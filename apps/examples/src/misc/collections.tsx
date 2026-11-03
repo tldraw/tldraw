@@ -95,7 +95,7 @@ async function seedSamples(editor: Editor) {
 		const ids = sample.shapes.map((shape) => shape.id)
 		editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
 		try {
-			await saveShapesToCollection(editor, source, sample.collectionId, ids, sample.name)
+			await saveShapesToCollection(editor, source, sample.collectionId, ids, { name: sample.name })
 		} finally {
 			editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
 		}
