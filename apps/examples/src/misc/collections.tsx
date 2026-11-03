@@ -1,6 +1,8 @@
 import {
 	AddToCollectionMenuItem,
+	type AddToCollectionOrder,
 	CollectionsPanel,
+	type CollectionsPanelNavigation,
 	CollectionRecordType,
 	CollectionsPanelButton,
 	collectionsPanelOpen,
@@ -9,16 +11,20 @@ import {
 	type TLCollectionId,
 } from '@tldraw/collections'
 import {
+	atom,
 	createShapeId,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	DefaultMenuPanel,
 	Editor,
+	PageRecordType,
 	TLComponents,
 	Tldraw,
 	TLGeoShape,
 	TLShapePartial,
 	toRichText,
+	useEditor,
+	useValue,
 } from 'tldraw'
 import '@tldraw/collections/collections.css'
 import 'tldraw/tldraw.css'
@@ -104,11 +110,149 @@ async function seedSamples(editor: Editor) {
 
 let seeding: Promise<void> | undefined
 
+// A UI playground: each design surface is a page, and the controls at the top offer that surface's
+// choices. Choices stay in effect on every page.
+interface PlaygroundSettings {
+	navigation: CollectionsPanelNavigation
+	order: AddToCollectionOrder
+}
+
+const settings = atom<PlaygroundSettings>('collections playground', {
+	navigation: 'picker',
+	order: 'source',
+})
+
+type Choice = {
+	[K in keyof PlaygroundSettings]: {
+		key: K
+		label: string
+		options: { value: PlaygroundSettings[K]; label: string }[]
+	}
+}[keyof PlaygroundSettings]
+
+const SURFACES: { page: string; hint: string; choices: Choice[] }[] = [
+	{
+		page: 'Panel',
+		hint: 'Open the panel with the button beside the main menu.',
+		choices: [
+			{
+				key: 'navigation',
+				label: 'Moving between collections',
+				options: [
+					{ value: 'picker', label: 'Picker' },
+					{ value: 'list', label: 'List with counts' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Save menu',
+		hint: 'Select shapes, right-click, then Add to collection.',
+		choices: [
+			{
+				key: 'order',
+				label: 'Collection order',
+				options: [
+					{ value: 'source', label: "The source's order" },
+					{ value: 'recent', label: 'Recently saved to first' },
+				],
+			},
+		],
+	},
+]
+
+function PlaygroundControls() {
+	const editor = useEditor()
+	const pageName = useValue('page name', () => editor.getCurrentPage().name, [editor])
+	const current = useValue('playground settings', () => settings.get(), [])
+	const surface = SURFACES.find((s) => s.page === pageName)
+	if (!surface) return null
+
+	return (
+		<div
+			style={{
+				pointerEvents: 'all',
+				margin: 8,
+				padding: '8px 12px',
+				borderRadius: 'var(--tl-radius-3)',
+				background: 'var(--tl-color-panel)',
+				boxShadow: 'var(--tl-shadow-2)',
+				fontSize: 12,
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 6,
+			}}
+		>
+			<div>
+				<strong>{surface.page}</strong> · {surface.hint}
+			</div>
+			{surface.choices.map((choice) => (
+				<div key={choice.key} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+					<span style={{ color: 'var(--tl-color-text-3)' }}>{choice.label}</span>
+					{choice.options.map((option) => (
+						<label key={option.value} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+							<input
+								type="radio"
+								name={choice.key}
+								checked={current[choice.key] === option.value}
+								onChange={() =>
+									settings.update((prev) => ({ ...prev, [choice.key]: option.value }))
+								}
+							/>
+							{option.label}
+						</label>
+					))}
+				</div>
+			))}
+		</div>
+	)
+}
+
+function PlaygroundPanel() {
+	const navigation = useValue('navigation', () => settings.get().navigation, [])
+	return <CollectionsPanel source={source} navigation={navigation} />
+}
+
+function PlaygroundSaveMenu() {
+	const order = useValue('order', () => settings.get().order, [])
+	return <AddToCollectionMenuItem source={source} order={order} />
+}
+
+// One page per surface. A fresh, empty first page becomes the first surface; missing pages are
+// added, and the save menu's page gets shapes to select.
+function setUpSurfaces(editor: Editor) {
+	const pages = () => editor.getPages()
+	const first = pages()[0]
+	const hasSurface = (name: string) => pages().some((page) => page.name === name)
+	if (!hasSurface(SURFACES[0].page) && first && editor.getPageShapeIds(first.id).size === 0) {
+		editor.renamePage(first.id, SURFACES[0].page)
+	}
+	for (const surface of SURFACES) {
+		if (!hasSurface(surface.page)) {
+			editor.createPage({ id: PageRecordType.createId(), name: surface.page })
+		}
+	}
+	const saveMenuPage = pages().find((page) => page.name === 'Save menu')
+	if (saveMenuPage && editor.getPageShapeIds(saveMenuPage.id).size === 0) {
+		editor.createShapes([
+			{ type: 'geo', parentId: saveMenuPage.id, x: 200, y: 200, props: { w: 160, h: 100 } },
+			{
+				type: 'geo',
+				parentId: saveMenuPage.id,
+				x: 420,
+				y: 220,
+				props: { geo: 'ellipse', w: 120, h: 80, color: 'blue', fill: 'semi' },
+			},
+		])
+	}
+}
+
 const components: TLComponents = {
-	InFrontOfTheCanvas: () => <CollectionsPanel source={source} />,
+	InFrontOfTheCanvas: PlaygroundPanel,
+	TopPanel: PlaygroundControls,
 	ContextMenu: (props) => (
 		<DefaultContextMenu {...props}>
-			<AddToCollectionMenuItem source={source} />
+			<PlaygroundSaveMenu />
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
@@ -123,6 +267,7 @@ const components: TLComponents = {
 }
 
 const handleMount = (editor: Editor) => {
+	editor.run(() => setUpSurfaces(editor), { history: 'ignore' })
 	collectionsPanelOpen.set(editor, true)
 	seeding ??= seedSamples(editor)
 }
