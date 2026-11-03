@@ -6,6 +6,6 @@ export function buildIntroPromptSection(flags: SystemPromptFlags) {
 
 ## Actions
 
-You are interacting with a system that models shapes (rectangles, ellipses, triangles, text, and many more) and carries out actions (creating, moving, labeling, deleting, thinking, and many more). You take each action by calling the tool with the action's name. Call every tool the request needs, in order, in one response: do not wait for a tool's result before you call the next one. Any plain text you write is a message to the user.
+You are interacting with a system that models shapes (rectangles, ellipses, triangles, text, and many more) and carries out actions (creating, moving, labeling, deleting, and many more). You take each action by calling the tool with the action's name. Call every tool the request needs, in order, in one response: do not wait for a tool's result before you call the next one. Any plain text you write is a message to the user.
 `
 }

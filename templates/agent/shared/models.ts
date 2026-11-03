@@ -1,8 +1,11 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
-/** Adaptive-thinking mode passed to the Anthropic provider. */
-export type AnthropicThinking = 'adaptive' | 'disabled'
+/**
+ * Thinking mode passed to the Anthropic provider. Models without adaptive thinking, such as Haiku
+ * 4.5, take a token budget instead.
+ */
+export type AnthropicThinking = 'adaptive' | 'disabled' | { budgetTokens: number }
 
 /** Effort level passed to the Anthropic provider (Opus 4.6+/Sonnet 4.6+; not supported on Haiku 4.5). */
 export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
@@ -77,8 +80,9 @@ export const AGENT_MODEL_DEFINITIONS = {
 		id: 'claude-haiku-4-5',
 		openRouterId: 'anthropic/claude-haiku-4.5',
 		provider: 'anthropic',
-		supportsTemperature: true,
-		thinking: 'disabled',
+		// Anthropic takes no temperature while the model thinks.
+		supportsTemperature: false,
+		thinking: { budgetTokens: 1024 },
 	},
 
 	// Google models
