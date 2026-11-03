@@ -86,6 +86,7 @@ export function useItemDrag(
 
 		return (itemId: TLCollectionItemId) => ({
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
+				if (e.button !== 0) return
 				const panel = e.currentTarget.closest('.tlui-collections-panel') ?? e.currentTarget
 				state = {
 					name: 'pointing',
