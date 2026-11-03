@@ -69,3 +69,5 @@ export {
 } from './canvas/item-order'
 export type { GroupCollections } from './canvas/collection-groups'
 export type { SaveSelectionOptions } from './canvas/use-save-selection'
+export type { FirstUse } from './canvas/no-collections'
+export type { ReadOnlyOptions } from './canvas/collections-panel-header'
