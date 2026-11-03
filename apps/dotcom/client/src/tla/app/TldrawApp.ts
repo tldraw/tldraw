@@ -657,6 +657,13 @@ export class TldrawApp {
 			// one" isn't a reason to skip it.
 			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
+		copied_invite_link: { defaultMessage: 'Copied invite link' },
+		// toast title
+		accept_invite_error_title: { defaultMessage: 'Error accepting invite' },
+		// toast descriptions
+		accept_invite_unauthorized: { defaultMessage: 'Sign in to accept this invite.' },
+		accept_invite_not_found: { defaultMessage: 'This invite link is invalid or has expired.' },
+		accept_invite_try_again: { defaultMessage: 'Please try again.' },
 	})
 
 	getMessage(id: keyof typeof this.messages) {
@@ -1480,7 +1487,7 @@ export class TldrawApp {
 		}
 		const response = (await res.json()) as CreateFilesResponseBody
 		if (response.error) {
-			throw Error(response.message)
+			throw Error(response.code)
 		}
 		const fileId = response.slugs[0]
 		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
@@ -1516,7 +1523,7 @@ export class TldrawApp {
 		if (showToast) {
 			this.toasts?.addToast({
 				id: 'copied-invite-link',
-				title: 'Copied invite link',
+				title: this.msg(this.messages.copied_invite_link),
 			})
 		}
 
@@ -1534,10 +1541,17 @@ export class TldrawApp {
 		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
 		if (!payload || payload.error || !response.ok) {
+			const code = payload?.error ? payload.code : undefined
 			this.toasts?.addToast({
 				severity: 'error',
-				title: 'Error accepting invite',
-				description: payload?.message ?? 'Please try again.',
+				title: this.msg(this.messages.accept_invite_error_title),
+				description: this.msg(
+					code === 'unauthorized'
+						? this.messages.accept_invite_unauthorized
+						: code === 'invite_not_found'
+							? this.messages.accept_invite_not_found
+							: this.messages.accept_invite_try_again
+				),
 			})
 			this.navigate(routes.tlaRoot())
 			return
@@ -1551,8 +1565,8 @@ export class TldrawApp {
 			if (attempts++ > 100) {
 				this.toasts?.addToast({
 					severity: 'error',
-					title: 'Error accepting invite',
-					description: 'Please try again.',
+					title: this.msg(this.messages.accept_invite_error_title),
+					description: this.msg(this.messages.accept_invite_try_again),
 				})
 				this.navigate(routes.tlaRoot())
 				return

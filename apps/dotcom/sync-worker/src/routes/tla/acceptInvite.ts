@@ -10,20 +10,18 @@ import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorks
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
 	if (!token) {
-		return Response.json(
-			{ error: true, message: 'Invite token is required' } satisfies AcceptInviteResponseBody,
-			{ status: 400 }
-		)
+		return Response.json({ error: true, code: 'bad_request' } satisfies AcceptInviteResponseBody, {
+			status: 400,
+		})
 	}
 
-	// Return our own 401 body: the router's generic one has no `message`, which the client shows
-	// as the toast description.
+	// Return our own 401 body: the router's generic one has no `code`, so the client couldn't tell
+	// a signed-out accept from any other failure.
 	const auth = await getAuth(request, env)
 	if (!auth) {
-		return Response.json(
-			{ error: true, message: 'Sign in to accept this invite' } satisfies AcceptInviteResponseBody,
-			{ status: 401 }
-		)
+		return Response.json({ error: true, code: 'unauthorized' } satisfies AcceptInviteResponseBody, {
+			status: 401,
+		})
 	}
 	const db = createPostgresConnectionPool(env, 'acceptInvite')
 
@@ -36,7 +34,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json(
 					{
 						error: true,
-						message: 'Invalid or expired invite token',
+						code: 'invite_not_found',
 					} satisfies AcceptInviteResponseBody,
 					{ status: 404 }
 				)
@@ -52,7 +50,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			if (existingMember) {
 				return Response.json({
 					error: false,
-					message: 'You are already a member of this group',
 					workspaceId: workspace.id,
 					workspaceName: workspace.name,
 					alreadyMember: true,
@@ -70,7 +67,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json(
 					{
 						error: true,
-						message: 'User not found',
+						code: 'user_not_found',
 					} satisfies AcceptInviteResponseBody,
 					{ status: 404 }
 				)
@@ -110,7 +107,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			if (inserted.numInsertedOrUpdatedRows === 0n) {
 				return Response.json({
 					error: false,
-					message: 'You are already a member of this group',
 					workspaceId: workspace.id,
 					workspaceName: workspace.name,
 					alreadyMember: true,
@@ -119,7 +115,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 
 			return Response.json({
 				error: false,
-				message: 'Successfully joined the group',
 				workspaceId: workspace.id,
 				workspaceName: workspace.name,
 				success: true,
@@ -130,7 +125,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 		return Response.json(
 			{
 				error: true,
-				message: 'Internal server error',
+				code: 'internal_error',
 			} satisfies AcceptInviteResponseBody,
 			{ status: 500 }
 		)

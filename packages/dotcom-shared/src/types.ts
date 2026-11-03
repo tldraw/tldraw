@@ -44,10 +44,7 @@ export type CreateFilesResponseBody =
 			error: false
 			slugs: string[]
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 export type PublishFileResponseBody =
 	| {
@@ -67,6 +64,24 @@ export type UnpublishFileResponseBody =
 			message: string
 	  }
 
+/**
+ * Error codes the app's HTTP routes return instead of prose, so the client can show the failure in
+ * the user's language. Same idea as {@link ZErrorCode} for Zero mutation rejections.
+ */
+export const TlaApiErrorCode = stringEnum(
+	'bad_request',
+	'unauthorized',
+	'invite_not_found',
+	'user_not_found',
+	'internal_error'
+)
+export type TlaApiErrorCode = keyof typeof TlaApiErrorCode
+
+export interface TlaApiErrorResponseBody {
+	error: true
+	code: TlaApiErrorCode
+}
+
 export type GetInviteInfoResponseBody =
 	| {
 			error: false
@@ -75,30 +90,22 @@ export type GetInviteInfoResponseBody =
 			isValid: true
 			inviteSecret: string
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 export type AcceptInviteResponseBody =
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			alreadyMember: true
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 /**
  * The most pages the board-info tool will enumerate for a board. Bounds the page list the MCP
