@@ -10,6 +10,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
+import type { ItemGridAppearance } from '../ui/item-grid'
 import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { CollectionItems } from './collection-items'
 import { CollectionPreviewRow } from './collection-preview-row'
@@ -65,6 +66,8 @@ export interface CollectionsPanelProps {
 	 * and sections show a heading per group; the picker names each collection's group.
 	 */
 	groupCollections?: GroupCollections
+	/** How item tiles are drawn: their style, columns, label and fit. */
+	tileAppearance?: ItemGridAppearance
 }
 
 /**
@@ -78,6 +81,7 @@ export function CollectionsPanel({
 	navigation = 'picker',
 	itemOrderings = defaultItemOrderings,
 	groupCollections,
+	tileAppearance,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -169,6 +173,7 @@ export function CollectionsPanel({
 												getItemProps={getItemProps}
 												ordering={ordering}
 												reversed={orderChoice.reversed}
+												appearance={tileAppearance}
 											/>
 										)}
 									</section>
@@ -187,6 +192,7 @@ export function CollectionsPanel({
 					getItemProps={getItemProps}
 					ordering={ordering}
 					reversed={orderChoice.reversed}
+					appearance={tileAppearance}
 				/>
 			)
 		}

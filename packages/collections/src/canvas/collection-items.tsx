@@ -2,7 +2,7 @@ import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useState } fro
 import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
-import { ItemGrid } from '../ui/item-grid'
+import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
@@ -50,6 +50,7 @@ export interface CollectionItemsProps {
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: TLCollectionItemOrdering
 	reversed: boolean
+	appearance?: ItemGridAppearance
 }
 
 /** One collection's items as a grid, with each item's rename and delete. */
@@ -59,6 +60,7 @@ export function CollectionItems({
 	getItemProps,
 	ordering,
 	reversed,
+	appearance,
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -198,6 +200,7 @@ export function CollectionItems({
 			onRename={renameItem}
 			onCancelRename={() => setRenamingId(undefined)}
 			empty={msg(messages.emptyCollection)}
+			appearance={appearance}
 		/>
 	)
 }

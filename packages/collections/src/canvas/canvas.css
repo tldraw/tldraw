@@ -68,7 +68,7 @@
 
 .tlui-collections-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(var(--tlui-collections-columns, 2), minmax(0, 1fr));
 	gap: 4px;
 	margin: 0;
 	padding: 4px 8px 8px;
@@ -269,6 +269,86 @@
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
 	border-radius: var(--tl-radius-1);
+}
+
+/* Tile appearance, set on the grid by ItemGrid's appearance. */
+.tlui-collections-grid[data-tile-style='card'] .tlui-collections-tile__thumbnail {
+	background: var(--tl-color-panel);
+	box-shadow: inset 0 0 0 1px var(--tl-color-divider);
+}
+
+.tlui-collections-grid[data-tile-style='card'] .tlui-collections-tile:hover {
+	background: none;
+}
+
+.tlui-collections-grid[data-tile-style='card']
+	.tlui-collections-tile:hover
+	.tlui-collections-tile__thumbnail {
+	box-shadow:
+		inset 0 0 0 1px var(--tl-color-text-3),
+		var(--tl-shadow-1);
+}
+
+.tlui-collections-grid[data-tile-style='plain'] .tlui-collections-tile__thumbnail {
+	background: none;
+}
+
+.tlui-collections-grid[data-tile-fit='cover'] .tlui-collections-tile__thumbnail > img {
+	width: 100%;
+	height: 100%;
+	max-width: none;
+	max-height: none;
+	object-fit: cover;
+}
+
+.tlui-collections-grid[data-tile-label='hidden'] .tlui-collections-tile__label {
+	display: none;
+}
+
+.tlui-collections-grid[data-tile-label='hover'] .tlui-collections-tile__label {
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	bottom: 8px;
+	padding: 2px 6px;
+	border-radius: var(--tl-radius-1);
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-1);
+	font-size: 11px;
+	opacity: 0;
+	pointer-events: none;
+}
+
+.tlui-collections-grid[data-tile-label='hover']
+	.tlui-collections-tile:hover
+	.tlui-collections-tile__label,
+.tlui-collections-grid[data-tile-label='hover']
+	.tlui-collections-tile:focus-within
+	.tlui-collections-tile__label {
+	opacity: 1;
+}
+
+/* Dense grids: a smaller ⋯ and hover label, so they don't cover the thumbnail. */
+.tlui-collections-grid:is([data-tile-columns='3'], [data-tile-columns='4'])
+	.tlui-collections-tile__menu {
+	top: 2px;
+	right: 2px;
+}
+
+.tlui-collections-grid:is([data-tile-columns='3'], [data-tile-columns='4'])
+	.tlui-collections-tile__menu-button {
+	height: 20px;
+	width: 20px;
+	min-width: 20px;
+}
+
+.tlui-collections-grid:is([data-tile-columns='3'], [data-tile-columns='4'])[data-tile-label='hover']
+	.tlui-collections-tile__label {
+	left: 4px;
+	right: 4px;
+	bottom: 4px;
+	padding: 1px 4px;
+	font-size: 10px;
 }
 
 /* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu

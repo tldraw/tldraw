@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
 import { ItemTile } from './item-tile'
 
 /** @public */
@@ -9,6 +9,21 @@ export interface ItemGridItem<Id extends string = string> {
 	/** The tile's accessible name: the item's name, or a description for an unnamed item. */
 	accessibleLabel: string
 	thumbnailUrl?: string
+}
+
+/**
+ * How the grid draws its tiles. Every field is optional; the defaults are a grey well behind each
+ * thumbnail, two columns, the name below, and the thumbnail contained with an inset.
+ * @public
+ */
+export interface ItemGridAppearance {
+	/** `'well'`: a grey well behind the thumbnail. `'card'`: a bordered card. `'plain'`: no background. */
+	style?: 'well' | 'card' | 'plain'
+	columns?: 2 | 3 | 4
+	/** Where the item's name shows: under the tile, over it while hovered, or not at all. */
+	label?: 'below' | 'hover' | 'hidden'
+	/** `'contain'` shows the whole thumbnail with an inset; `'cover'` fills the tile and crops. */
+	fit?: 'contain' | 'cover'
 }
 
 /** @public */
@@ -24,6 +39,7 @@ export interface ItemGridProps<Id extends string = string> {
 	onCancelRename?(): void
 	/** Shown when there are no items. */
 	empty: ReactNode
+	appearance?: ItemGridAppearance
 }
 
 /** @public @react */
@@ -35,11 +51,19 @@ export function ItemGrid<Id extends string>({
 	onRename,
 	onCancelRename,
 	empty,
+	appearance = {},
 }: ItemGridProps<Id>) {
 	if (items.length === 0) return <p className="tlui-collections-panel__empty">{empty}</p>
 
 	return (
-		<ul className="tlui-collections-grid">
+		<ul
+			className="tlui-collections-grid"
+			data-tile-style={appearance.style ?? 'well'}
+			data-tile-label={appearance.label ?? 'below'}
+			data-tile-fit={appearance.fit ?? 'contain'}
+			data-tile-columns={appearance.columns ?? 2}
+			style={{ '--tlui-collections-columns': appearance.columns ?? 2 } as CSSProperties}
+		>
 			{items.map((item) => (
 				<li key={item.id}>
 					<ItemTile
