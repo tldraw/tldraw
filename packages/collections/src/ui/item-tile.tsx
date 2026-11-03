@@ -1,6 +1,6 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react'
 import { RenameInput } from './rename-input'
-import { ThumbnailImage } from './thumbnail-image'
+import { ThumbnailImage, type ThumbnailImageRef } from './thumbnail-image'
 
 /** @public */
 export interface ItemTileRenaming {
@@ -18,8 +18,8 @@ export interface ItemTileProps {
 	thumbnailUrl?: string
 	/** Cleans a stored SVG thumbnail before it's drawn. See {@link CollectionsPanelProps.sanitizeThumbnail}. */
 	sanitizeThumbnail?(svg: string): string
-	/** Gives the URL for an image the thumbnail points at by asset id. */
-	resolveThumbnailAsset?(assetId: string): Promise<string | null>
+	/** Gives the URL for an image the thumbnail points at. */
+	resolveThumbnailImage?(ref: ThumbnailImageRef): Promise<string | null>
 	/** Props for the tile's button: its click, pointer and drag handlers. */
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
 	/** Shown over the tile's corner on hover, e.g. an {@link ItemMenu}. */
@@ -34,7 +34,7 @@ export function ItemTile({
 	accessibleLabel,
 	thumbnailUrl,
 	sanitizeThumbnail,
-	resolveThumbnailAsset,
+	resolveThumbnailImage,
 	buttonProps,
 	menu,
 	renaming,
@@ -45,7 +45,7 @@ export function ItemTile({
 				<ThumbnailImage
 					url={thumbnailUrl}
 					sanitize={sanitizeThumbnail}
-					resolveAsset={resolveThumbnailAsset}
+					resolveImage={resolveThumbnailImage}
 				/>
 			)}
 		</span>

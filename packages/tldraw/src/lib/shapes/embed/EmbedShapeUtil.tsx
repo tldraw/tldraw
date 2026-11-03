@@ -222,10 +222,18 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 
 	// The live export draws the iframe, which a stored preview can't hold.
 	override toPreviewSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
-		const label =
-			this.getEmbedDefinition(shape.props.url)?.definition.title ??
-			getHumanReadableAddress(shape.props.url)
-		return <PreviewCard w={shape.props.w} h={shape.props.h} label={label} ctx={ctx} />
+		const definition = this.getEmbedDefinition(shape.props.url)?.definition
+		const address = getHumanReadableAddress(shape.props.url)
+		return (
+			<PreviewCard
+				w={shape.props.w}
+				h={shape.props.h}
+				title={definition?.title ?? address}
+				caption={definition ? address : undefined}
+				icon={definition ? { embedIcon: definition.type } : undefined}
+				ctx={ctx}
+			/>
+		)
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {

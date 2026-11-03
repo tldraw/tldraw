@@ -115,11 +115,15 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : null
 		) as TLBookmarkAsset | null
 		const title = asset?.props.title ? convertCommonTitleHTMLEntities(asset.props.title) : null
+		const address = getHumanReadableAddress(shape.props.url)
 		return (
 			<PreviewCard
 				w={shape.props.w}
 				h={getBookmarkShapeHeight(this.editor, shape)}
-				label={title || getHumanReadableAddress(shape.props.url)}
+				title={title || address}
+				caption={title ? address : undefined}
+				image={asset?.props.image ? { assetId: asset.id, field: 'image' } : undefined}
+				icon={asset?.props.favicon ? { assetId: asset.id, field: 'favicon' } : undefined}
 				ctx={ctx}
 			/>
 		)

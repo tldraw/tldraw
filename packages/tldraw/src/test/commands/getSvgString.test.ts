@@ -352,6 +352,7 @@ describe('preview exports', () => {
 
 		expect(svg).toContain('>tldraw.dev</text>')
 		expect(svg).toContain('>YouTube</text>')
+		expect(svg).toContain('data-tl-embed-icon="youtube"')
 		expect(svg).not.toContain('<foreignObject')
 	})
 

@@ -6,6 +6,7 @@ import {
 	useDialogs,
 	useEditor,
 	useToasts,
+	useAssetUrls,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -13,6 +14,7 @@ import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemContent, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { ItemMenu } from '../ui/item-menu'
+import type { ThumbnailImageRef } from '../ui/thumbnail-image'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { placeCollectionItem } from './place-item'
@@ -143,14 +145,23 @@ export function CollectionsPanel({ source, sanitizeThumbnail }: CollectionsPanel
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 
-	// SPIKE: an image in a thumbnail points at its asset, which lives in the item's content. Tiles
-	// resolve it through the editor's asset store, as the canvas would once the item is placed.
-	const resolveThumbnailAsset = useCallback(
-		async (itemId: TLCollectionItemId, assetId: string) => {
+	// SPIKE: an image in a thumbnail points at an asset in the item's content, or at an embed's icon.
+	// Tiles resolve assets through the editor's asset store, as the canvas would once the item is
+	// placed, and embed icons through the host's asset URLs, as the embed dialog does.
+	const assetUrls = useAssetUrls()
+	const resolveThumbnailImage = useCallback(
+		async (itemId: TLCollectionItemId, ref: ThumbnailImageRef) => {
+			if (ref.embedIcon) {
+				return (assetUrls.embedIcons as Record<string, string | undefined>)[ref.embedIcon] ?? null
+			}
 			const asset = (await getCachedItemContent(source, itemId)).content.assets.find(
-				(a) => a.id === assetId
+				(a) => a.id === ref.assetId
 			)
 			if (!asset) return null
+			if (ref.field) {
+				const value = (asset.props as Record<string, unknown>)[ref.field]
+				return typeof value === 'string' && value ? value : null
+			}
 			const src = 'src' in asset.props ? asset.props.src : null
 			const resolve = editor.store.props.assets.resolve
 			if (!resolve) return src
@@ -162,7 +173,7 @@ export function CollectionsPanel({ source, sanitizeThumbnail }: CollectionsPanel
 				shouldResolveToOriginal: false,
 			})
 		},
-		[editor, source]
+		[editor, source, assetUrls]
 	)
 	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
 	const canRename = useValue(
@@ -221,7 +232,7 @@ export function CollectionsPanel({ source, sanitizeThumbnail }: CollectionsPanel
 						}))}
 						getItemProps={getItemProps}
 						sanitizeThumbnail={sanitizeThumbnail}
-						resolveThumbnailAsset={resolveThumbnailAsset}
+						resolveThumbnailImage={resolveThumbnailImage}
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}
