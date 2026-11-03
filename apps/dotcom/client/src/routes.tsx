@@ -146,6 +146,7 @@ export function createAppRouter({
 					    a trailing optional param drops the optionality and 404s bare /admin */}
 					<Route path="/admin" lazy={() => import('./pages/admin')} />
 					<Route path="/admin/:section" lazy={() => import('./pages/admin')} />
+					<Route path="/admin/:section/:fileId" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
 			<Route path={ROUTES.tlaSsoCallback} lazy={() => import('./tla/pages/sso-callback')} />
