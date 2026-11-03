@@ -262,6 +262,7 @@ const SURFACES: Surface[] = [
 					{ value: 'picker', label: 'Picker' },
 					{ value: 'list', label: 'List with counts' },
 					{ value: 'sections', label: 'Sections' },
+					{ value: 'previews', label: 'Rows with previews' },
 				],
 			},
 		],

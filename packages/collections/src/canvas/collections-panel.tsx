@@ -12,6 +12,7 @@ import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
 import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { CollectionItems } from './collection-items'
+import { CollectionPreviewRow } from './collection-preview-row'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import {
 	defaultItemOrderings,
@@ -42,9 +43,11 @@ const messages = defineMessages({
  * - `'picker'`: a picker in the header over the open collection's items.
  * - `'list'`: a list of collections with their item counts, each opening into its items.
  * - `'sections'`: every collection in one scroll, each a section that folds shut.
+ * - `'previews'`: a row per collection with its first few items, placeable from there, and how many
+ *   more there are; the row opens into all its items.
  * @public
  */
-export type CollectionsPanelNavigation = 'picker' | 'list' | 'sections'
+export type CollectionsPanelNavigation = 'picker' | 'list' | 'sections' | 'previews'
 
 /** @public */
 export interface CollectionsPanelProps {
@@ -187,6 +190,33 @@ export function CollectionsPanel({
 				/>
 			)
 		}
+		if (navigation === 'previews') {
+			if (collections.length === 0) {
+				return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+			}
+			return (
+				<div className="tlui-collections-sections">
+					{groups.map((group) => (
+						<Fragment key={group.label ?? ''}>
+							{groupHeading(group.label)}
+							<ul className="tlui-collections-previews">
+								{group.collections.map((collection) => (
+									<CollectionPreviewRow
+										key={collection.id}
+										source={source}
+										collection={collection}
+										ordering={ordering}
+										reversed={orderChoice.reversed}
+										getItemProps={getItemProps}
+										onOpen={() => activeCollectionId.set(editor, collection.id)}
+									/>
+								))}
+							</ul>
+						</Fragment>
+					))}
+				</div>
+			)
+		}
 		if (navigation === 'list') {
 			if (collections.length === 0) {
 				return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
@@ -225,7 +255,11 @@ export function CollectionsPanel({
 					collections={collections}
 					current={navigation === 'sections' ? undefined : current}
 					itemCount={current ? countOf(current) : 0}
-					onBack={navigation === 'list' ? () => activeCollectionId.set(editor, null) : undefined}
+					onBack={
+						navigation === 'list' || navigation === 'previews'
+							? () => activeCollectionId.set(editor, null)
+							: undefined
+					}
 					groupCollections={groupCollections}
 					sort={sort}
 				/>
