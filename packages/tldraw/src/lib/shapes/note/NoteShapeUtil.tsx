@@ -44,6 +44,7 @@ import {
 	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	TEXT_PROPS,
+	STANDARD_CHECKBOX_STYLE,
 	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
@@ -149,7 +150,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						? getColorValue(colors, color, 'noteText')
 						: getColorValue(colors, labelColor, 'fill'),
 				labelFontFamily: getFontFamily(theme, font),
-				labelCheckboxStyle: getFontCheckboxStyle(theme, font),
+				labelCheckboxStyle: getFontCheckboxStyle(theme, font) ?? STANDARD_CHECKBOX_STYLE,
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelFontWeight: TEXT_PROPS.fontWeight,

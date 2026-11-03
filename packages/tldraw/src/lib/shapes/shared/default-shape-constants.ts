@@ -90,6 +90,15 @@ export function getFontCheckboxStyle(
 }
 
 /**
+ * No custom properties, so the stylesheet's standard checkboxes. The built-in shapes pass it for a
+ * font without its own: left undefined, a label looks the art up by family instead, and would find
+ * another font's if the two share a family.
+ *
+ * @internal
+ */
+export const STANDARD_CHECKBOX_STYLE: Record<string, string> = Object.freeze({})
+
+/**
  * {@link getFontCheckboxStyle} for the theme font whose family is `fontFamily`, for a label that's
  * given a resolved family rather than a font key. A family no theme font uses gets nothing, and with
  * it the standard checkboxes.

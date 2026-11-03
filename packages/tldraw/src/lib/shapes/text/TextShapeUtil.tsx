@@ -29,6 +29,7 @@ import {
 import {
 	FONT_SIZES,
 	TEXT_PROPS,
+	STANDARD_CHECKBOX_STYLE,
 	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
@@ -91,7 +92,7 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 			return {
 				color: getColorValue(theme.colors[colorMode], color, 'solid'),
 				fontFamily: getFontFamily(theme, font),
-				checkboxStyle: getFontCheckboxStyle(theme, font),
+				checkboxStyle: getFontCheckboxStyle(theme, font) ?? STANDARD_CHECKBOX_STYLE,
 				fontSize: theme.fontSize * FONT_SIZES[size],
 				lineHeight: theme.lineHeight,
 				fontWeight: TEXT_PROPS.fontWeight,

@@ -55,6 +55,7 @@ import {
 	ARROW_LABEL_FONT_SIZES,
 	ARROW_LABEL_PADDING,
 	STROKE_SIZES,
+	STANDARD_CHECKBOX_STYLE,
 	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
@@ -180,7 +181,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 				labelColor: getColorValue(colors, labelColor, 'solid'),
 				labelFontFamily: getFontFamily(theme, font),
-				labelCheckboxStyle: getFontCheckboxStyle(theme, font),
+				labelCheckboxStyle: getFontCheckboxStyle(theme, font) ?? STANDARD_CHECKBOX_STYLE,
 				labelFontSize: theme.fontSize * ARROW_LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelPadding: ARROW_LABEL_PADDING,

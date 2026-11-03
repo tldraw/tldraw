@@ -47,6 +47,7 @@ import {
 	LABEL_PADDING,
 	STROKE_SIZES,
 	TEXT_PROPS,
+	STANDARD_CHECKBOX_STYLE,
 	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
@@ -210,7 +211,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 				patternFillFallbackColor: getColorValue(colors, color, 'semi'),
 				labelColor: getColorValue(colors, labelColor, 'solid'), // todo: separate from the solid color (or create more named colors in the palette so that these could be configured separately)
 				labelFontFamily: getFontFamily(theme, font),
-				labelCheckboxStyle: getFontCheckboxStyle(theme, font),
+				labelCheckboxStyle: getFontCheckboxStyle(theme, font) ?? STANDARD_CHECKBOX_STYLE,
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelMinWidth: GEO_SHAPE_MIN_WIDTHS[size],
 				labelExtraPadding: theme.strokeWidth * STROKE_SIZES[size],
