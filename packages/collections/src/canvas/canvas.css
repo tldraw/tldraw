@@ -286,6 +286,27 @@
 	border-radius: var(--tl-radius-1);
 }
 
+/* A tile just saved flashes once, so the eye finds it. */
+@keyframes tlui-collections-flash {
+	from {
+		box-shadow: 0 0 0 3px var(--tl-color-selected);
+	}
+	to {
+		box-shadow: 0 0 0 3px transparent;
+	}
+}
+
+.tlui-collections-grid > li[data-highlighted] .tlui-collections-tile {
+	animation: tlui-collections-flash 1.6s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tlui-collections-grid > li[data-highlighted] .tlui-collections-tile {
+		animation: none;
+		box-shadow: 0 0 0 2px var(--tl-color-selected);
+	}
+}
+
 /* Tile appearance, set on the grid by ItemGrid's appearance. */
 .tlui-collections-grid[data-tile-style='card'] .tlui-collections-tile__thumbnail {
 	background: var(--tl-color-panel);
@@ -437,4 +458,13 @@
 .tlui-input.tlui-collections-panel__rename {
 	padding: 0px 12px;
 	font-weight: 500;
+}
+
+/* As tldraw's own dialogs style their inputs (see the embed dialog). */
+.tlui-collections-name-input {
+	width: 100%;
+	min-width: 280px;
+	padding: 0 var(--tl-space-4);
+	border-radius: var(--tl-radius-2);
+	background-color: var(--tl-color-muted-2);
 }

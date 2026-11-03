@@ -17,7 +17,7 @@ import { RenameInput } from '../ui/rename-input'
 import type { GroupCollections } from './collection-groups'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { activeCollectionId, renamingCollectionId } from './state'
-import { useSaveSelection } from './use-save-selection'
+import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
@@ -63,6 +63,8 @@ export interface CollectionsPanelHeaderProps {
 	sort?: CollectionMenuSort
 	/** Names each collection's group in the picker. */
 	groupCollections?: GroupCollections
+	/** What happens around a save from the header's "+". */
+	saving?: SaveSelectionOptions
 }
 
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
@@ -77,12 +79,13 @@ export function CollectionsPanelHeader({
 	detail,
 	sort,
 	groupCollections,
+	saving,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const { saveSelection } = useSaveSelection(source)
+	const { saveSelection } = useSaveSelection(source, saving)
 	const currentId = current?.id
 	const renaming = useValue(
 		'renaming collection',
