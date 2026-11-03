@@ -135,6 +135,35 @@ const img = document.createElement('img')
 img.src = result.url
 ```
 
+## Previews
+
+A preview is a small SVG that is stored and shown later, for example as a thumbnail in a list of saved items. Pass `preview: true` to [Editor#getSvgString](?):
+
+```typescript
+const result = await editor.getSvgString(shapes, { preview: true, background: false })
+```
+
+A preview differs from a normal export in three ways:
+
+- Colours become CSS variables with the exported colour as fallback, so a preview follows the theme and color mode of whoever views it. Set the variables with [getPreviewColorVariables](?) on an element that contains the preview.
+- Fonts aren't embedded. Show the preview inline, in a page that already has them.
+- Images are references to their asset rather than data, and whoever shows the preview resolves them.
+
+Because a preview is meant to be inlined, sanitize it with [sanitizeSvg](?) before showing one that came from someone else.
+
+```tsx
+const style = getPreviewColorVariables(editor.getCurrentTheme(), editor.getColorMode())
+<div style={style} dangerouslySetInnerHTML={{ __html: sanitizeSvg(result.svg) }} />
+```
+
+Shapes are drawn in a preview the way a normal export draws them, so most shapes need nothing. Implement [ShapeUtil#toPreviewSvg](?) when that doesn't suit something stored: a shape that shows live content, such as an iframe or a clock, can return a [PreviewCard](?) saying what it is, and a shape that draws a picture can use [PreviewImage](?), which points at the asset instead of embedding it. Read colours from `ctx.theme` so they follow the viewer's theme.
+
+```tsx
+override toPreviewSvg(shape: ClockShape, ctx: SvgExportContext) {
+	return <PreviewCard w={shape.props.w} h={shape.props.h} title="Paris" caption="Live clock" ctx={ctx} />
+}
+```
+
 ## Error handling
 
 The SVG methods ([Editor#getSvgElement](?) and [Editor#getSvgString](?)) return `undefined` when there's nothing to export. Check the result before using it:
@@ -165,3 +194,4 @@ The raster conversion automatically clamps dimensions to stay within browser can
 - [Export canvas as image](/examples/data/assets/export-canvas-as-image) - Export the entire canvas using [Editor#toImage](?) and download it.
 - [Export canvas as image (with settings)](/examples/data/assets/export-canvas-settings) - Export with configurable format, scale, background, and other options.
 - [Custom shape SVG export](/examples/shapes/tools/toSvg-method-example) - Define how custom shapes render when exported using [ShapeUtil#toSvg](?) and [ShapeUtil#toBackgroundSvg](?).
+- [Shape previews](/examples/shapes/tools/shape-previews) - Draw a custom shape differently in a preview export with [ShapeUtil#toPreviewSvg](?) and [PreviewCard](?).
