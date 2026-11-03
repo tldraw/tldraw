@@ -116,7 +116,7 @@ function ContextualToolbarInner({
 	)
 }
 
-function useEditingLinkBehavior(textEditor?: TiptapEditor) {
+export function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 	const [isEditingLink, setIsEditingLink] = useState(false)
 
 	// Set up text editor event listeners.
@@ -126,9 +126,12 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 			return
 		}
 
-		const handleClick = () => {
-			const isLinkActive = textEditor.isActive('link')
-			setIsEditingLink(isLinkActive)
+		const handleClick = (e: MouseEvent) => {
+			// The link mark is inclusive, so a caret placed just after a link reports it as active.
+			// Clicking past the end of a line that ends in a link would otherwise open the link
+			// editor and steal focus from the text, so require the click to land on the link itself.
+			const isOnLink = e.target instanceof Element && !!e.target.closest('a')
+			setIsEditingLink(isOnLink && textEditor.isActive('link'))
 		}
 
 		textEditor.view.dom.addEventListener('click', handleClick)
@@ -151,7 +154,9 @@ function useEditingLinkBehavior(textEditor?: TiptapEditor) {
 		// the current active state of the text editor. This is because there's
 		// a subtelty where when going edit-to-edit, that is text editor-to-text editor
 		// in different shapes, the isEditingLink state doesn't get reset quickly enough.
-		if (textEditor.isActive('link')) {
+		// Also gated on isEditingLink: closing the link editor flips it back to false, and without
+		// this the caret left at the link's edge would re-select the whole link.
+		if (isEditingLink && textEditor.isActive('link')) {
 			try {
 				const { from, to } = getMarkRange(
 					textEditor.state.doc.resolve(textEditor.state.selection.from),
