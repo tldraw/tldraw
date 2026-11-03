@@ -14,6 +14,7 @@ import { Highlight } from '@tiptap/extension-highlight'
 import { TaskItem, TaskList } from '@tiptap/extension-list'
 import { Typography } from '@tiptap/extension-typography'
 import { Node, type Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { Selection, TextSelection } from '@tiptap/pm/state'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
@@ -107,12 +108,47 @@ const DefaultTaskItem = TaskItem.extend({
 					for (let depth = $from.depth; depth > 0; depth--) {
 						if ($from.node(depth).type.name === this.name) return
 					}
+					const checked = match[1]?.toLowerCase() === 'x'
 					const isInListItem = $from.depth > 1 && $from.node(-1).type.name === 'listItem'
-					const commands = chain().deleteRange(range)
-					if (isInListItem) commands.liftListItem('listItem')
-					commands
-						.toggleTaskList()
-						.updateAttributes(this.name, { checked: match[1]?.toLowerCase() === 'x' })
+					if (!isInListItem) {
+						chain()
+							.deleteRange(range)
+							.toggleTaskList()
+							.updateAttributes(this.name, { checked })
+							.run()
+						return
+					}
+					// In a list item, swap the item for a task list where it stands, splitting its list
+					// around it. Lifting it and then toggling only works one level deep: in a nested list
+					// the lift lands it in the outer list, and the toggle then throws on that list.
+					chain()
+						.deleteRange(range)
+						.command(({ tr }) => {
+							const $pos = tr.selection.$from
+							const listDepth = $pos.depth - 2
+							const list = $pos.node(listDepth)
+							const index = $pos.index(listDepth)
+							const items: ProseMirrorNode[] = []
+							list.forEach((item) => items.push(item))
+							const taskList = tr.doc.type.schema.nodes.taskList.create(
+								null,
+								this.type.create({ checked }, items[index].content)
+							)
+							const before = items.slice(0, index)
+							const after = items.slice(index + 1)
+							const listBefore = before.length ? list.type.create(list.attrs, before) : undefined
+							const listStart = $pos.before(listDepth)
+							tr.replaceWith(listStart, $pos.after(listDepth), [
+								...(listBefore ? [listBefore] : []),
+								taskList,
+								...(after.length ? [list.type.create(list.attrs, after)] : []),
+							])
+							// Put the cursor back at its offset in the item's text, now in the task item.
+							const taskListStart = listStart + (listBefore?.nodeSize ?? 0)
+							const textStart = Selection.near(tr.doc.resolve(taskListStart)).from
+							tr.setSelection(TextSelection.create(tr.doc, textStart + $pos.parentOffset))
+							return true
+						})
 						.run()
 				},
 			}),

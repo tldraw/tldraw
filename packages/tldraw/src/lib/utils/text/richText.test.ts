@@ -377,6 +377,23 @@ describe('task item shortcut', () => {
 		)
 	})
 
+	it.each(['[ ] task', '- [ ] task'])(
+		'turns `%s` in a nested bulleted item into a task list at its depth',
+		(typed) => {
+			expect(
+				typeText(
+					'<ul><li><p>top</p><ul><li><p>nested</p></li><li><p></p></li></ul></li></ul>',
+					typed
+				)
+			).toBe(
+				'<ul dir="auto"><li dir="auto"><p dir="auto">top</p>' +
+					'<ul dir="auto"><li dir="auto"><p dir="auto">nested</p></li></ul>' +
+					taskList([false, 'task']) +
+					'</li></ul>'
+			)
+		}
+	)
+
 	it('leaves the brackets as typed inside a task item', () => {
 		expect(typeText(taskList([false, '']), '[ ] a')).toBe(taskList([false, '[ ] a']))
 	})
