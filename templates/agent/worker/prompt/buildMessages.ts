@@ -7,12 +7,19 @@ import type {
 	TextContent,
 	ToolCall,
 } from '@earendil-works/pi-ai'
+import { CHAT_HISTORY_PRIORITY } from '../../shared/schema/PromptPartDefinitions'
 import { AgentMessage, AgentMessageContent } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getPromptPartDefinition, PromptPart } from '../../shared/types/PromptPart'
 
-/** Build the model's messages from the prompt. `model` is the model the messages are sent to. */
-export function buildMessages(prompt: AgentPrompt, model: Model<Api>): Message[] {
+/**
+ * Build the model's messages from the prompt. `model` is the model the messages are sent to.
+ * `afterHistory` is the first text after the chat history, which marks where the history ends.
+ */
+export function buildMessages(
+	prompt: AgentPrompt,
+	model: Model<Api>
+): { messages: Message[]; afterHistory?: string } {
 	const allMessages: AgentMessage[] = []
 
 	// Build messages from each prompt part using shared definitions
@@ -24,7 +31,14 @@ export function buildMessages(prompt: AgentPrompt, model: Model<Api>): Message[]
 	// Sort by priority (higher priority = later in prompt)
 	allMessages.sort((a, b) => a.priority - b.priority)
 
-	return toModelMessages(allMessages, model)
+	const hasHistory = allMessages[0]?.priority === CHAT_HISTORY_PRIORITY
+	const afterHistory = hasHistory
+		? allMessages
+				.filter((m) => m.priority !== CHAT_HISTORY_PRIORITY)
+				.flatMap((m) => m.content)
+				.find((c) => c.type === 'text')?.text
+		: undefined
+	return { messages: toModelMessages(allMessages, model), afterHistory }
 }
 
 /**

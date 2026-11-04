@@ -71,7 +71,7 @@ export class AgentService {
 		const modelDefinition = getAgentModelDefinition(modelName)
 		const { model, apiKey } = this.getModel(modelDefinition)
 		const systemPrompt = buildSystemPrompt(prompt)
-		const messages = buildMessages(prompt, model)
+		const { messages, afterHistory } = buildMessages(prompt, model)
 		const { tools, schemas } = buildActionTools(prompt)
 
 		// Check for debug flags and log if enabled
@@ -103,6 +103,10 @@ export class AgentService {
 				// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
 				// thinks; sending it returns a 400.
 				...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
+				onPayload: (payload, payloadModel) =>
+					payloadModel.api === 'anthropic-messages' && afterHistory
+						? markHistoryForCache(payload as AnthropicPayload, afterHistory)
+						: undefined,
 			}
 		)
 
@@ -216,6 +220,46 @@ export class AgentService {
 			throw new Error('The model replied without any actions.')
 		}
 	}
+}
+
+interface AnthropicBlock {
+	type: string
+	text?: string
+	cache_control?: unknown
+}
+interface AnthropicPayload {
+	messages: { content: string | AnthropicBlock[] }[]
+}
+
+/**
+ * Claude caches the request up to a marked block. pi-ai marks the last message, but that is the
+ * canvas context, which changes on every request, so the next request never reads that cache.
+ * Move the mark to the end of the chat history, which the next request repeats.
+ */
+function markHistoryForCache(payload: AnthropicPayload, afterHistory: string): AnthropicPayload {
+	const { messages } = payload
+	const last = messages.at(-1)?.content
+	const mark = Array.isArray(last) ? last.at(-1)?.cache_control : undefined
+	if (!mark || !Array.isArray(last)) return payload
+	for (let i = messages.length - 1; i >= 0; i--) {
+		const content = messages[i].content
+		if (!Array.isArray(content)) continue
+		const j = content.findIndex((b) => b.type === 'text' && b.text === afterHistory)
+		if (j === -1) continue
+		let lastOfHistory: AnthropicBlock | undefined = content[j - 1]
+		if (!lastOfHistory && i > 0) {
+			const previous = messages[i - 1]
+			if (typeof previous.content === 'string') {
+				previous.content = [{ type: 'text', text: previous.content }]
+			}
+			lastOfHistory = previous.content.at(-1)
+		}
+		if (!lastOfHistory) return payload
+		delete last.at(-1)!.cache_control
+		lastOfHistory.cache_control = mark
+		return payload
+	}
+	return payload
 }
 
 /** What is wrong with an invalid tool call's input, for the model to read and correct. */
