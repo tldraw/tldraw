@@ -1586,7 +1586,7 @@ describe('28. TLSocketRoom (SR)', () => {
 
 		// Allows a page only when the page named in meta.after exists
 		const pageAfterExisting = {
-			page: ({ next, get }: any) => (get(next.meta.after) ? next : null),
+			page: ({ next, get }: any) => (get(next.meta.after) ? next : false),
 		}
 
 		it('[SR16] get reads stored records and earlier writes in the same push', () => {
@@ -1616,7 +1616,9 @@ describe('28. TLSocketRoom (SR)', () => {
 		})
 
 		it('[SR16] the deprecated authorizeRecord option still applies', () => {
-			const room = new TLSocketRoom<TLRecord, void>({ authorizeRecord: pageAfterExisting })
+			const room = new TLSocketRoom<TLRecord, void>({
+				authorizeRecord: { page: ({ next, get }: any) => (get(next.meta.after) ? next : null) },
+			})
 			connectSession(room, 'S', createMockSocket())
 
 			const orphan = makePage('orphan', 'a4', { after: 'page:missing' })

@@ -1332,7 +1332,7 @@ describe('record authorizers see server-schema records', () => {
 
 	it('vetoes based on the server-schema record', () => {
 		const t = makeInstance((args: any) =>
-			args.type === 'update' && args.next.name === 'forged' ? null : args.next
+			args.type === 'update' && args.next.name === 'forged' ? false : args.next
 		)
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()

@@ -7,7 +7,13 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLBeforeWriteHooks, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import {
+	resolveBeforeWrite,
+	RoomSnapshot,
+	TLBeforeWriteHooks,
+	TLRecordAuthorizers,
+	TLSyncRoom,
+} from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -287,17 +293,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// The default logger belongs to both layers: TLSyncRoom is where authorizer throws are
 		// logged, and a host that passes no `log` would otherwise never see them.
 		this.log = 'log' in opts ? opts.log : { error: console.error }
-		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const authorizeRecord = opts.authorizeRecord
-		if (opts.beforeWrite && authorizeRecord) {
-			throw new Error('TLSocketRoom: set beforeWrite or authorizeRecord, not both')
-		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			// The room reads `null` as a rejection, so the deprecated hooks run unchanged.
-			beforeWrite: opts.beforeWrite ?? (authorizeRecord as TLBeforeWriteHooks<R, SessionMeta>),
+			beforeWrite: resolveBeforeWrite(opts),
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
