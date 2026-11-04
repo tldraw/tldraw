@@ -117,7 +117,10 @@
 	width: 28px;
 	min-width: 28px;
 	border-radius: var(--tl-radius-2);
-	background: var(--tl-color-panel);
+}
+
+.tlui-collections-tile__menu-button::after {
+	content: none;
 }
 
 .tlui-collections-tile__thumbnail {
@@ -128,6 +131,28 @@
 	border-radius: var(--tl-radius-1);
 	background: var(--tl-color-background);
 	overflow: hidden;
+}
+
+@media (hover: hover) {
+	.tlui-collections-tile:hover:not(:has(.tlui-collections-tile__menu-button:hover))
+		.tlui-collections-tile__thumbnail {
+		background: var(--tl-color-muted-2);
+	}
+
+	.tlui-collections-tile__menu-button:hover {
+		background: linear-gradient(var(--tl-color-muted-2), var(--tl-color-muted-2))
+			var(--tl-color-panel);
+	}
+}
+
+.tlui-collections-tile__menu-button[data-state='open'] {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%)
+		var(--tl-color-panel);
+}
+
+.tlui-collections-tile:has(.tlui-collections-tile__menu-button[data-state='open'])
+	.tlui-collections-tile__thumbnail {
+	background: var(--tl-color-background);
 }
 
 .tlui-collections-tile__thumbnail > img {
