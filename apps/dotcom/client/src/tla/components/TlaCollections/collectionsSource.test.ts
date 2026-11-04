@@ -45,7 +45,7 @@ describe('TldrawAppCollectionsSource', () => {
 
 		source.setOpenFileId('file-b')
 		expect(names(source)).not.toContain('Board kit')
-		expect(names(source)).toEqual(['Wireframes', 'Icons'])
+		expect(names(source)).toEqual([])
 
 		source.setOpenFileId('file-a')
 		expect(names(source)).toContain('Board kit')

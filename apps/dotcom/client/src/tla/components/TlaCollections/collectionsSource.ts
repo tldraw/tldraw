@@ -1,5 +1,4 @@
 import {
-	CollectionRecordType,
 	InMemoryCollectionSource,
 	type CollectionSource,
 	type InMemoryCollectionSourceOptions,
@@ -50,8 +49,8 @@ class OwnedInMemoryCollectionSource extends InMemoryCollectionSource {
  * file's workspace. A file's own collections are listed only while that file is open.
  *
  * An in-memory source, saved to IndexedDB after each change and loaded back on start. Each
- * collection is saved with its owner. Until the load finishes it shows the sample collections, and
- * writes wait for it.
+ * collection is saved with its owner. Until the load finishes nothing is listed, and writes wait
+ * for it.
  */
 export class TldrawAppCollectionsSource implements CollectionSource {
 	readonly id = 'dotcom-browser'
@@ -86,26 +85,7 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 	private readonly loadedThumbnailUrls: string[] = []
 
 	constructor(private readonly app: TldrawApp) {
-		const homeId = app.getHomeWorkspaceId()
-		this.inner = atom(
-			'collections source',
-			this.createInner({
-				collections: [
-					CollectionRecordType.create({
-						id: CollectionRecordType.createId('sample-wireframes'),
-						name: 'Wireframes',
-						ownerId: homeId,
-					}),
-					CollectionRecordType.create({
-						id: CollectionRecordType.createId('sample-icons'),
-						name: 'Icons',
-						ownerId: homeId,
-					}),
-				],
-				items: [],
-				contents: {},
-			})
-		)
+		this.inner = atom('collections source', this.createInner())
 		this.db = openDB(`tldraw-collections-${app.userId}`, 1, {
 			upgrade(db) {
 				db.createObjectStore('state')
@@ -215,14 +195,14 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		this.db.then((db) => db.close()).catch(() => {})
 	}
 
-	private createInner(initial: InMemoryCollectionSourceOptions['initial']) {
+	private createInner(initial?: InMemoryCollectionSourceOptions['initial']) {
 		return new OwnedInMemoryCollectionSource(() => this.getCollectionOwners(), { initial })
 	}
 
 	private async load() {
 		const db = await this.db
 		const collections: TLCollection[] | undefined = await db.get('state', 'collections')
-		// Nothing saved yet: keep the samples.
+		// Nothing saved yet: stay empty.
 		if (!collections) return
 		const stored: StoredItem[] = await db.getAll('items')
 		const items = stored.map(({ item, thumbnail }) => {
@@ -237,10 +217,9 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		previous.dispose()
 	}
 
-	// The whole collection list, other files' included, is saved with every change, so an item added
-	// to a sample collection before anything else was saved still has its collection on the next
-	// load. The change has already happened in memory, so a failed save keeps it for this session
-	// instead of reporting an error for something that worked.
+	// The whole collection list, other files' included, is saved with every change. The change has
+	// already happened in memory, so a failed save keeps it for this session instead of reporting
+	// an error for something that worked.
 	private async save(write?: (db: IDBPDatabase) => Promise<unknown>) {
 		try {
 			const db = await this.db
