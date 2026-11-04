@@ -224,6 +224,9 @@ export class Slurper {
 			const counts = countRecords(absent)
 			reportTelemetry(() => app.trackEvent('slurp_restore_removed', { source: 'app', ...counts }))
 			warnSlurp(fileId, 'restore_removed', counts)
+			// Restored shapes the server dropped are the one failure this browser can prove: the local
+			// copy is still here, so point at it instead of leaving an empty board.
+			if (counts.shape_count > 0) this.showFailureDialog()
 		}, 10000)
 		abortSignal.addEventListener('abort', cleanup, { once: true })
 		editor.disposables.add(cleanup)

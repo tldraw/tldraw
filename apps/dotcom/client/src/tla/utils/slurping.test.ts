@@ -162,8 +162,41 @@ describe('maybeSlurp', () => {
 			asset_count: 0,
 		})
 		expect(captureMessage).toHaveBeenCalledTimes(1)
+		expect(opts.addDialog).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'slurp-failure' })
+		)
 		await vi.advanceTimersByTimeAsync(10000)
 		expect(captureMessage).toHaveBeenCalledTimes(1)
+	})
+
+	it('reports but does not show recovery when only non-shape records are removed', async () => {
+		const assetId = AssetRecordType.createId('local-image')
+		localData.records.push(
+			AssetRecordType.create({
+				id: assetId,
+				type: 'image',
+				meta: {},
+				props: {
+					w: 100,
+					h: 100,
+					name: 'image.png',
+					isAnimated: false,
+					mimeType: 'image/png',
+					src: 'https://example.com/image.png',
+				},
+			})
+		)
+		await restore()
+		editor.store.mergeRemoteChanges(() => editor.store.remove([assetId]))
+		await vi.advanceTimersByTimeAsync(10000)
+		expect(opts.app.trackEvent).toHaveBeenCalledWith('slurp_restore_removed', {
+			source: 'app',
+			record_count: 1,
+			shape_count: 0,
+			note_count: 0,
+			asset_count: 1,
+		})
+		expect(opts.addDialog).not.toHaveBeenCalled()
 	})
 
 	it.each(['local', 'readded', 'aborted', 'disposed', 'unrelated'])(
@@ -194,6 +227,7 @@ describe('maybeSlurp', () => {
 			await vi.advanceTimersByTimeAsync(10000)
 			expect(stop).toHaveBeenCalledTimes(1)
 			expect(captureMessage).not.toHaveBeenCalled()
+			expect(opts.addDialog).not.toHaveBeenCalled()
 			expect(
 				vi
 					.mocked(opts.app.trackEvent)
