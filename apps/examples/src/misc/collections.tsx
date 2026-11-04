@@ -64,7 +64,7 @@ interface ScopeSettings {
 
 const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 	showPersonal: 'shown',
-	layout: 'mixed',
+	layout: 'grouped',
 	fileOwner: 'personal',
 	workspaceEditors: 'everyone',
 	role: 'admin',
@@ -911,7 +911,7 @@ function PlaygroundPanel() {
 			source={source}
 			navigation={navigation}
 			itemOrderings={sorting === 'built-in' ? defaultItemOrderings : [sourceItemOrder]}
-			groupCollections={grouped ? 'owner' : undefined}
+			groupCollections={grouped ? 'owner' : 'none'}
 			tileAppearance={tileAppearance}
 			side={side}
 			width={Number(panelWidth)}
@@ -941,15 +941,7 @@ function PlaygroundSaveMenu() {
 		},
 		[]
 	)
-	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
-	return (
-		<AddToCollectionMenuItem
-			source={source}
-			order={order}
-			groupCollections={grouped ? 'owner' : undefined}
-			saving={saving}
-		/>
-	)
+	return <AddToCollectionMenuItem source={source} order={order} saving={saving} />
 }
 
 // One page per surface. A fresh, empty first page becomes the first surface, missing pages are

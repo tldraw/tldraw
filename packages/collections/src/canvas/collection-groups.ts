@@ -12,11 +12,12 @@ export type GroupCollections = (collection: TLCollection) => string | undefined
 
 /**
  * How collections are grouped under headings. `'owner'`: by the owner each collection names in
- * its `ownerId`, headed by the owner's name, in the order the source lists its owners. A function
- * names each collection's group instead, groups in the order they first appear.
+ * its `ownerId`, headed by the owner's name, in the order the source lists its owners; with one
+ * owner or none, there are no headings. `'none'`: no headings. A function names each collection's
+ * group instead, groups in the order they first appear.
  * @public
  */
-export type CollectionGrouping = 'owner' | GroupCollections
+export type CollectionGrouping = 'owner' | 'none' | GroupCollections
 
 export interface CollectionGroup {
 	label?: string
@@ -41,8 +42,9 @@ export function useCollectionGrouping(
 		[source, grouping]
 	)
 	return useMemo(() => {
-		if (grouping === undefined) return undefined
+		if (grouping === undefined || grouping === 'none') return undefined
 		if (grouping !== 'owner') return { groupOf: grouping }
+		if (owners.length < 2) return undefined
 		const names = new Map(owners.map((owner) => [owner.id, owner.name]))
 		return {
 			groupOf: (collection) =>

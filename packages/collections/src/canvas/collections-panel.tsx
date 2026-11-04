@@ -88,9 +88,11 @@ export interface CollectionsPanelProps {
 	 */
 	itemOrderings?: TLCollectionItemOrdering[]
 	/**
-	 * Groups collections under headings: `'owner'` by who owns them, or a function naming each
-	 * collection's group. The list and sections show a heading per group; the picker names each
-	 * collection's group.
+	 * Groups collections under headings: `'owner'` by who owns them, `'none'` not at all, or a
+	 * function naming each collection's group. The list, sections and previews show a heading per
+	 * group; the picker names each collection's group. The footer's menu of collections groups them
+	 * the same way. Defaults to `'owner'`, which shows no headings for a source with one owner or
+	 * none.
 	 */
 	groupCollections?: CollectionGrouping
 	/** How item tiles are drawn: their style, columns, label and fit. */
@@ -148,7 +150,7 @@ export function CollectionsPanel({
 	source,
 	navigation = 'sections',
 	itemOrderings = defaultItemOrderings,
-	groupCollections,
+	groupCollections = 'owner',
 	tileAppearance,
 	side = 'left',
 	width = 240,
