@@ -16,7 +16,7 @@ import { CollectionList } from '../ui/collection-list'
 import { CollectionPicker } from '../ui/collection-picker'
 import { CollectionTabs } from '../ui/collection-tabs'
 import type { ItemGridAppearance } from '../ui/item-grid'
-import { AddSelectionBar, type AddControl } from './add-selection-bar'
+import { AddSelectionBar, AddSelectionMenuBar, type AddControl } from './add-selection-bar'
 import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { CollectionItems } from './collection-items'
 import { CollectionPreviewRow } from './collection-preview-row'
@@ -36,6 +36,7 @@ import { itemMatches, type ItemSearch } from './item-search'
 import { NoCollections, type FirstUse } from './no-collections'
 import { placeCollectionItem, type PlaceItemOptions } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
+import type { AddToCollectionOrder } from './use-add-targets'
 import { useItemDrag } from './use-item-drag'
 import type { SaveSelectionOptions } from './use-save-selection'
 
@@ -98,7 +99,7 @@ export interface CollectionsPanelProps {
 	 * bottom of the screen and closes once an item is placed.
 	 */
 	smallScreen?: 'panel' | 'sheet'
-	/** What happens around a save from the panel's "+": naming, confirmation and undo. */
+	/** What happens around a save from the panel's add controls: naming, confirmation and undo. */
 	saving?: SaveSelectionOptions
 	/** Where clicking an item places it. Dragging places it where it's dropped. */
 	placement?: PlaceItemOptions
@@ -111,11 +112,15 @@ export interface CollectionsPanelProps {
 	/** What the header holds: the collection picker, or a title and close button. Defaults to `'picker'`. */
 	header?: PanelHeader
 	/**
-	 * Where adding the selection is offered: a "+" in the header, or a bar along the bottom of the
-	 * panel while one collection is showing. Sections keep a "+" in each section's header. Defaults
-	 * to `'header'`.
+	 * Where adding the selection is offered. `'footer'`: a bar along the bottom of the panel. With
+	 * one collection showing it adds to that collection; with several (sections, the list, previews,
+	 * or searching everywhere) it opens a menu of collections, as the "Add to collection" context
+	 * menu does. `'header'`: a "+" in the header, and in each section's header. Defaults to
+	 * `'footer'`.
 	 */
 	addControl?: AddControl
+	/** How the footer's menu of collections orders them. Defaults to `'source'`. */
+	addMenuOrder?: AddToCollectionOrder
 	/** What a collection with no items shows. Defaults to `'message'`. */
 	emptyCollection?: EmptyCollection
 	/**
@@ -146,7 +151,8 @@ export function CollectionsPanel({
 	readOnly,
 	search = 'none',
 	header = 'picker',
-	addControl = 'header',
+	addControl = 'footer',
+	addMenuOrder = 'source',
 	emptyCollection = 'message',
 	sectionRows = 2,
 }: CollectionsPanelProps) {
@@ -223,7 +229,7 @@ export function CollectionsPanel({
 		name: collection.name,
 		detail: groupCollections?.(collection),
 	}))
-	// The footer's bar adds to the one collection the panel is showing; sections have a "+" each.
+	// With one collection showing, the footer's bar adds to it; with several, it opens a menu.
 	const showsOneCollection =
 		current !== undefined && navigation !== 'sections' && !searchingEverywhere
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
@@ -279,6 +285,7 @@ export function CollectionsPanel({
 											itemCount={countOf(collection)}
 											detail={String(countOf(collection))}
 											collapsed={isCollapsed}
+											addButton={addControl === 'header'}
 											onToggleCollapsed={() =>
 												collapsedCollectionIds.update(editor, (ids) =>
 													isCollapsed
@@ -454,14 +461,23 @@ export function CollectionsPanel({
 					</div>
 				)}
 				{body()}
-				{addControl === 'footer' && showsOneCollection && current && (
-					<AddSelectionBar
-						source={source}
-						collectionId={current.id}
-						saving={saving}
-						readOnly={readOnly}
-					/>
-				)}
+				{addControl === 'footer' &&
+					(showsOneCollection && current ? (
+						<AddSelectionBar
+							source={source}
+							collectionId={current.id}
+							saving={saving}
+							readOnly={readOnly}
+						/>
+					) : (
+						<AddSelectionMenuBar
+							source={source}
+							order={addMenuOrder}
+							groupCollections={groupCollections}
+							saving={saving}
+							readOnly={readOnly}
+						/>
+					))}
 			</section>
 		</EditorPortal>
 	)
