@@ -145,6 +145,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 			CollectionItemRecordType.create({
 				collectionId,
 				...(newItem.name === undefined ? {} : { name: newItem.name }),
+				createdAt: Date.now(),
 			})
 		)
 		// Created only after validation, so a rejected item can't leak its blob.
