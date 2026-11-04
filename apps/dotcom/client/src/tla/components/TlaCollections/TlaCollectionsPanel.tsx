@@ -4,7 +4,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 export function TlaCollectionsPanel() {
 	const source = useMaybeApp()?.collections
 	if (!source) return null
-	return <CollectionsPanel source={source} />
+	return <CollectionsPanel source={source} side="right" />
 }
 
 export function TlaAddToCollectionMenuItem() {

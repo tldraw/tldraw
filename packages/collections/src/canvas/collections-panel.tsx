@@ -59,15 +59,17 @@ const messages = defineMessages({
 /** @public */
 export interface CollectionsPanelProps {
 	source: CollectionSource
+	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
+	side?: 'left' | 'right'
 }
 
 /**
- * A floating panel on the left of the canvas for browsing a {@link CollectionSource}, shown while
+ * A floating panel on one side of the canvas for browsing a {@link CollectionSource}, shown while
  * {@link collectionsPanelOpen} is set. Clicking an item places a copy of it in the middle of the
  * viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source }: CollectionsPanelProps) {
+export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -150,6 +152,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		<EditorPortal>
 			<section
 				className="tlui-collections-panel"
+				data-side={side}
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
