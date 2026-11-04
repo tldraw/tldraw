@@ -6,8 +6,11 @@ import {
 	CollectionRecordType,
 	CollectionsPanelButton,
 	collectionsPanelOpen,
+	defaultItemOrderings,
 	InMemoryCollectionSource,
 	saveShapesToCollection,
+	sourceItemOrder,
+	type TLCollectionAction,
 	type TLCollectionId,
 } from '@tldraw/collections'
 import {
@@ -34,7 +37,25 @@ import 'tldraw/tldraw.css'
 const WIREFRAMES = CollectionRecordType.createId('wireframes')
 const ICONS = CollectionRecordType.createId('icons')
 
-const source = new InMemoryCollectionSource({
+type Permissions = Record<TLCollectionAction, boolean>
+
+const permissions = atom<Permissions>('collections playground permissions', {
+	createCollection: true,
+	renameCollection: true,
+	deleteCollection: true,
+	addItem: true,
+	renameItem: true,
+	deleteItem: true,
+})
+
+// The in-memory source, with each action switchable from the Permissions page.
+class PlaygroundSource extends InMemoryCollectionSource {
+	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
+		return permissions.get()[action] && super.can(action, collectionId)
+	}
+}
+
+const samples = new PlaygroundSource({
 	initial: {
 		collections: [
 			CollectionRecordType.create({ id: WIREFRAMES, name: 'Wireframes' }),
@@ -44,6 +65,19 @@ const source = new InMemoryCollectionSource({
 		contents: {},
 	},
 })
+
+const SOURCES = {
+	samples,
+	empty: new PlaygroundSource({ id: 'playground-empty' }),
+	'one-empty': new PlaygroundSource({
+		id: 'playground-one-empty',
+		initial: {
+			collections: [CollectionRecordType.create({ name: 'Untitled' })],
+			items: [],
+			contents: {},
+		},
+	}),
+}
 
 type GeoProps = Partial<TLGeoShape['props']>
 
@@ -101,7 +135,7 @@ async function seedSamples(editor: Editor) {
 		const ids = sample.shapes.map((shape) => shape.id)
 		editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
 		try {
-			await saveShapesToCollection(editor, source, sample.collectionId, ids, sample.name)
+			await saveShapesToCollection(editor, samples, sample.collectionId, ids, sample.name)
 		} finally {
 			editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
 		}
@@ -115,11 +149,15 @@ let seeding: Promise<void> | undefined
 interface PlaygroundSettings {
 	navigation: CollectionsPanelNavigation
 	order: AddToCollectionOrder
+	sorting: 'built-in' | 'source-only'
+	data: keyof typeof SOURCES
 }
 
 const settings = atom<PlaygroundSettings>('collections playground', {
 	navigation: 'picker',
 	order: 'source',
+	sorting: 'built-in',
+	data: 'samples',
 })
 
 type Choice = {
@@ -130,7 +168,16 @@ type Choice = {
 	}
 }[keyof PlaygroundSettings]
 
-const SURFACES: { page: string; hint: string; choices: Choice[] }[] = [
+interface Surface {
+	page: string
+	hint: string
+	choices?: Choice[]
+	toggles?: { action: TLCollectionAction; label: string }[]
+	/** Whether the page gets shapes to select and save. */
+	shapes?: boolean
+}
+
+const SURFACES: Surface[] = [
 	{
 		page: 'Panel',
 		hint: 'Open the panel with the button beside the main menu.',
@@ -149,6 +196,7 @@ const SURFACES: { page: string; hint: string; choices: Choice[] }[] = [
 	{
 		page: 'Save menu',
 		hint: 'Select shapes, right-click, then Add to collection.',
+		shapes: true,
 		choices: [
 			{
 				key: 'order',
@@ -160,12 +208,58 @@ const SURFACES: { page: string; hint: string; choices: Choice[] }[] = [
 			},
 		],
 	},
+	{
+		page: 'Sorting',
+		hint: "Sort a collection's items from the panel's ⋯ menu.",
+		choices: [
+			{
+				key: 'sorting',
+				label: 'Orderings offered',
+				options: [
+					{ value: 'built-in', label: 'Default, Newest, Name' },
+					{ value: 'source-only', label: "The source's order only" },
+				],
+			},
+		],
+	},
+	{
+		page: 'Permissions',
+		hint: 'Turn actions off and see what the panel, its menus and the save menu offer.',
+		shapes: true,
+		toggles: [
+			{ action: 'createCollection', label: 'Create collections' },
+			{ action: 'renameCollection', label: 'Rename collections' },
+			{ action: 'deleteCollection', label: 'Delete collections' },
+			{ action: 'addItem', label: 'Add items' },
+			{ action: 'renameItem', label: 'Rename items' },
+			{ action: 'deleteItem', label: 'Delete items' },
+		],
+	},
+	{
+		page: 'Empty states',
+		hint: 'Swap in a source with nothing in it, then save something.',
+		shapes: true,
+		choices: [
+			{
+				key: 'data',
+				label: 'Source',
+				options: [
+					{ value: 'samples', label: 'Samples' },
+					{ value: 'empty', label: 'No collections' },
+					{ value: 'one-empty', label: 'One empty collection' },
+				],
+			},
+		],
+	},
 ]
+
+const rowStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' } as const
 
 function PlaygroundControls() {
 	const editor = useEditor()
 	const pageName = useValue('page name', () => editor.getCurrentPage().name, [editor])
 	const current = useValue('playground settings', () => settings.get(), [])
+	const allowed = useValue('playground permissions', () => permissions.get(), [])
 	const surface = SURFACES.find((s) => s.page === pageName)
 	if (!surface) return null
 
@@ -182,13 +276,14 @@ function PlaygroundControls() {
 				display: 'flex',
 				flexDirection: 'column',
 				gap: 6,
+				maxWidth: 560,
 			}}
 		>
 			<div>
 				<strong>{surface.page}</strong> · {surface.hint}
 			</div>
-			{surface.choices.map((choice) => (
-				<div key={choice.key} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+			{surface.choices?.map((choice) => (
+				<div key={choice.key} style={rowStyle}>
 					<span style={{ color: 'var(--tl-color-text-3)' }}>{choice.label}</span>
 					{choice.options.map((option) => (
 						<label key={option.value} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
@@ -205,22 +300,52 @@ function PlaygroundControls() {
 					))}
 				</div>
 			))}
+			{surface.toggles && (
+				<div style={rowStyle}>
+					{surface.toggles.map((toggle) => (
+						<label key={toggle.action} style={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+							<input
+								type="checkbox"
+								checked={allowed[toggle.action]}
+								onChange={(e) => {
+									const checked = e.currentTarget.checked
+									permissions.update((prev) => ({ ...prev, [toggle.action]: checked }))
+								}}
+							/>
+							{toggle.label}
+						</label>
+					))}
+				</div>
+			)}
 		</div>
 	)
 }
 
+function usePlaygroundSource() {
+	return useValue('playground source', () => SOURCES[settings.get().data], [])
+}
+
 function PlaygroundPanel() {
+	const source = usePlaygroundSource()
 	const navigation = useValue('navigation', () => settings.get().navigation, [])
-	return <CollectionsPanel source={source} navigation={navigation} />
+	const sorting = useValue('sorting', () => settings.get().sorting, [])
+	return (
+		<CollectionsPanel
+			source={source}
+			navigation={navigation}
+			itemOrderings={sorting === 'built-in' ? defaultItemOrderings : [sourceItemOrder]}
+		/>
+	)
 }
 
 function PlaygroundSaveMenu() {
+	const source = usePlaygroundSource()
 	const order = useValue('order', () => settings.get().order, [])
 	return <AddToCollectionMenuItem source={source} order={order} />
 }
 
-// One page per surface. A fresh, empty first page becomes the first surface; missing pages are
-// added, and the save menu's page gets shapes to select.
+// One page per surface. A fresh, empty first page becomes the first surface, missing pages are
+// added, and pages for saving get shapes to select.
 function setUpSurfaces(editor: Editor) {
 	const pages = () => editor.getPages()
 	const first = pages()[0]
@@ -232,19 +357,19 @@ function setUpSurfaces(editor: Editor) {
 		if (!hasSurface(surface.page)) {
 			editor.createPage({ id: PageRecordType.createId(), name: surface.page })
 		}
-	}
-	const saveMenuPage = pages().find((page) => page.name === 'Save menu')
-	if (saveMenuPage && editor.getPageShapeIds(saveMenuPage.id).size === 0) {
-		editor.createShapes([
-			{ type: 'geo', parentId: saveMenuPage.id, x: 200, y: 200, props: { w: 160, h: 100 } },
-			{
-				type: 'geo',
-				parentId: saveMenuPage.id,
-				x: 420,
-				y: 220,
-				props: { geo: 'ellipse', w: 120, h: 80, color: 'blue', fill: 'semi' },
-			},
-		])
+		const page = pages().find((p) => p.name === surface.page)
+		if (surface.shapes && page && editor.getPageShapeIds(page.id).size === 0) {
+			editor.createShapes([
+				{ type: 'geo', parentId: page.id, x: 200, y: 200, props: { w: 160, h: 100 } },
+				{
+					type: 'geo',
+					parentId: page.id,
+					x: 420,
+					y: 220,
+					props: { geo: 'ellipse', w: 120, h: 80, color: 'blue', fill: 'semi' },
+				},
+			])
+		}
 	}
 }
 
