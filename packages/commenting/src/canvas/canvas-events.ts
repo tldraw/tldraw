@@ -7,6 +7,13 @@ export function isCanvasPanGesture(editor: Editor, e: ReactPointerEvent) {
 	return e.button !== 0 || editor.inputs.keys.has('Space')
 }
 
+/** Commenting UI that holds focus drops it to <body> when it unmounts. From there tool shortcuts
+ *  still fire but the editor's Escape listener (on its container) doesn't, so you could press C and
+ *  then not leave the comment tool (#11293). Call this when that UI closes. */
+export function returnFocusToEditor(editor: Editor) {
+	editor.getContainer().focus({ preventScroll: true })
+}
+
 /** Hand a pointer event to the canvas beneath the comments layer, marked the same way the
  *  pass-through wheel/hover hooks mark their re-dispatched events. */
 export function forwardPointerEventToCanvas(container: HTMLElement, e: ReactPointerEvent) {

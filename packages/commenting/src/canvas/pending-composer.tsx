@@ -14,6 +14,7 @@ import {
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { CommentPin } from '../ui/comment-pin'
+import { returnFocusToEditor } from './canvas-events'
 import {
 	clearCommentDraft,
 	getCommentDraft,
@@ -95,19 +96,21 @@ export function PendingComposer({
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [editor])
 
-	// Escape dismisses the draft but keeps the comment tool, so a second Escape leaves it. This is a
-	// capture-phase document listener because the editor's Escape listener sits natively on its
-	// container: a React onKeyDown here runs after the editor has already cancelled the tool.
-	// Mid-placement (pointing, dragging) Escape stays the tool's, which abandons the gesture.
+	// Escape dismisses the draft but keeps the comment tool, so a second Escape leaves it. Capture
+	// phase, because a React onKeyDown here runs only after the editor's native container listener
+	// has cancelled the tool. Mid-placement (pointing, dragging) Escape stays the tool's, which
+	// abandons the gesture.
 	useEffect(() => {
+		const doc = editor.getContainerDocument()
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Escape' || isMentionPickerOpen() || !editor.isIn('comment.idle')) return
 			pendingComment.set(editor, null)
+			returnFocusToEditor(editor)
 			e.preventDefault()
 			e.stopPropagation()
 		}
-		document.addEventListener('keydown', onKeyDown, true)
-		return () => document.removeEventListener('keydown', onKeyDown, true)
+		doc.addEventListener('keydown', onKeyDown, true)
+		return () => doc.removeEventListener('keydown', onKeyDown, true)
 	}, [editor])
 
 	const submit = () => {

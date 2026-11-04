@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
+import { returnFocusToEditor } from './canvas-events'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
@@ -122,6 +123,10 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 		const onKeyDown = (e: KeyboardEvent) => {
 			if (e.key !== 'Escape' || e.defaultPrevented) return
 			openStackId.set(editor, null)
+			returnFocusToEditor(editor)
+			// Otherwise the editor also cancels, leaving the comment tool in the same press.
+			e.preventDefault()
+			e.stopPropagation()
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)

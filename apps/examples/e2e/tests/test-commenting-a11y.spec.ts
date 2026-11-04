@@ -262,4 +262,56 @@ test.describe('commenting escape', () => {
 		await page.keyboard.press('Escape')
 		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
 	})
+
+	test('escape closes a stack list, then leaves the comment tool', async ({ page }) => {
+		await placeComment(page, 'first')
+		await placeComment(page, 'second')
+
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await page.locator('.tl-container').focus()
+		await page.keyboard.press('c')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+		const badge = page.locator('.tlui-cmt-canvas-stack-badge')
+		await badge.focus()
+		await page.keyboard.press('Enter')
+		const card = page.locator('.tlui-cmt-stack-list__card').first()
+		await expect(card).toBeVisible()
+
+		await page.keyboard.press('Escape')
+		await expect(card).toHaveCount(0)
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	test('escape cancels a comment edit, then closes the thread, then leaves the tool', async ({
+		page,
+	}) => {
+		await placeComment(page, 'first')
+
+		const pin = page.locator('.tlui-cmt-canvas-pin__marker')
+		await pin.click()
+		await page.keyboard.press('c')
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.locator('.tlui-cmt-canvas-popover [data-cmt-more-for]').click()
+		await page.locator('.tlui-cmt-menu-item', { hasText: 'Edit' }).click()
+		const editor = page.locator('.tlui-cmt-editing [contenteditable="true"]')
+		await expect(editor).toBeFocused()
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(editor).toHaveCount(0)
+		await expect(pin).toHaveAttribute('aria-expanded', 'true')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(pin).toHaveAttribute('aria-expanded', 'false')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
 })

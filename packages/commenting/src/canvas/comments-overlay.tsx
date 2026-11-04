@@ -3,6 +3,7 @@ import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef } from 're
 import { EditorPortal, react, TLCommentThread, useEditor, useValue } from 'tldraw'
 import type { ClusterNode } from '../clustering/types'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
+import { returnFocusToEditor } from './canvas-events'
 import { ClusterBadge } from './cluster-badge'
 import { clusterFadeClassName } from './cluster-fade'
 import {
@@ -219,8 +220,14 @@ function CanvasCommentsLayer(props: CommentingContext) {
 			// The mention picker owns Escape while it's open — let it dismiss the roster alone.
 			if (isMentionPickerOpen()) return
 			const target = e.target as HTMLElement | null
-			if (target && target.closest('.tlui-cmt-editing')) return
+			if (target && target.closest('.tlui-cmt-editing')) {
+				// The edit composer cancels itself in React, which runs only after the editor's native
+				// listener has cancelled the tool. Marking the event handled makes the editor skip it.
+				editor.markEventAsHandled(e)
+				return
+			}
 			openThreadId.set(editor, null)
+			returnFocusToEditor(editor)
 			e.preventDefault()
 			e.stopPropagation()
 		}
@@ -228,9 +235,8 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		return () => document.removeEventListener('keydown', onKeyDown, true)
 	}, [editor])
 
-	// A closing thread, stack, or composer can take keyboard focus down with it, leaving it on
-	// <body>. Tool shortcuts still fire from there but the editor's Escape listener (on its
-	// container) doesn't, so you could press C and then not leave the comment tool (#11293).
+	// Escape handlers return focus synchronously, so a quick second Escape lands. This catches the
+	// other ways a thread, stack, or composer closes (close button, resolve, outside click).
 	useEffect(() => {
 		let wasOpen = false
 		return react('return focus to the editor when commenting UI closes', () => {
@@ -243,7 +249,7 @@ function CanvasCommentsLayer(props: CommentingContext) {
 				editor.timers.requestAnimationFrame(() => {
 					const doc = editor.getContainerDocument()
 					if (editor.getIsFocused() && (!doc.activeElement || doc.activeElement === doc.body)) {
-						editor.getContainer().focus()
+						returnFocusToEditor(editor)
 					}
 				})
 			}
