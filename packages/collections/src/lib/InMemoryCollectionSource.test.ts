@@ -193,6 +193,21 @@ describe('InMemoryCollectionSource', () => {
 			expect(source.getCollections()).toEqual([])
 		})
 
+		it('lets a subclass list its own owners, checking starting data only against given ones', async () => {
+			class WorkspaceSource extends InMemoryCollectionSource {
+				override getCollectionOwners() {
+					return owners
+				}
+			}
+			const source = new WorkspaceSource({
+				initial: { collections: [{ ...prefabs(), ownerId: 'acme' }], items: [], contents: {} },
+			})
+			expect((await source.createCollection('Mine')).ownerId).toBe('home')
+			await expect(source.createCollection('Theirs', { ownerId: 'nobody' })).rejects.toThrow(
+				CollectionNotFoundError
+			)
+		})
+
 		it('refuses a default owner that is not an owner', () => {
 			expect(() => new InMemoryCollectionSource({ owners, defaultOwnerId: 'nobody' })).toThrow(
 				'not one of the owners'

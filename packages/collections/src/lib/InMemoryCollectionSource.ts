@@ -37,7 +37,8 @@ export interface InMemoryCollectionSourceOptions {
 	readOnly?: boolean
 	/**
 	 * Who collections can belong to. Leave out for a source without owners, whose collections can't
-	 * be moved.
+	 * be moved, or for a subclass that lists its own by overriding `getCollectionOwners`. When
+	 * given, the starting data and default owner are checked against them.
 	 */
 	owners?: TLCollectionOwner[]
 	/** Who new collections belong to unless they name an owner. Defaults to the first owner. */
@@ -74,7 +75,8 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.owners = options.owners ?? []
 		this.defaultOwnerId = options.defaultOwnerId
 		// Checked against the option, not getCollectionOwners: a subclass's owners may not be ready yet.
-		const isOwner = (ownerId: string) => this.owners.some((owner) => owner.id === ownerId)
+		const isOwner = (ownerId: string) =>
+			!options.owners || options.owners.some((owner) => owner.id === ownerId)
 		if (this.defaultOwnerId !== undefined && !isOwner(this.defaultOwnerId)) {
 			throw new Error(`Default owner ${this.defaultOwnerId} is not one of the owners`)
 		}
