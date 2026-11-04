@@ -1,6 +1,6 @@
 name = "agent-template"
 main = "worker/worker.ts"
-compatibility_date = "2024-12-30"
+compatibility_date = "2025-05-08"
 # pi-ai imports Node built-ins in code the worker never runs, such as OAuth login.
 compatibility_flags = ["nodejs_compat"]
 assets = { not_found_handling = "single-page-application" }

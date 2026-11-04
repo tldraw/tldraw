@@ -1,4 +1,10 @@
-import type { Api, Model, Tool, ToolCall } from '@earendil-works/pi-ai'
+import {
+	validateToolArguments,
+	type Api,
+	type Model,
+	type Tool,
+	type ToolCall,
+} from '@earendil-works/pi-ai'
 import { createModels, type MutableModels } from '@earendil-works/pi-ai/models'
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic'
 import { googleProvider } from '@earendil-works/pi-ai/providers/google'
@@ -82,7 +88,7 @@ export class AgentService {
 		const model = await this.getModel(modelName)
 		const systemPrompt = buildSystemPrompt(prompt)
 		const { messages, afterHistory } = buildMessages(prompt, model)
-		const { tools, schemas } = buildActionTools(prompt)
+		const tools = buildActionTools(prompt)
 
 		// Check for debug flags and log if enabled
 		const debugPart = prompt.debug as DebugPart | undefined
@@ -135,18 +141,27 @@ export class AgentService {
 			if (call) {
 				closedCalls.add(index)
 				finish.toolCalls++
-				const schema = schemas[call.name]
-				if (!schema) {
+				const tool = tools.find((t) => t.name === call.name)
+				if (!tool) {
 					// The mode has no such action, so the client could not act on it. Drop the call.
 					console.warn(`Invalid ${call.name} call from ${modelName}: no such tool`)
 					return null
 				}
-				const invalid = call.argumentsError
-					? 'Invalid input, so nothing was done: the input is not valid JSON.'
-					: describeInvalidInput(schema.safeParse(call.arguments))
+				// pi-ai fixes common slips first, such as `"42"` for a number, so the action takes its output.
+				let input: Record<string, unknown> | undefined
+				let invalid: string | undefined
+				try {
+					input = validateToolArguments(tool, call)
+				} catch (error) {
+					invalid = `Invalid input, so nothing was done:\n${(error as Error).message}`
+				}
 				actionCount++
 				lastActionEnd = Date.now()
-				const closed = { ...action, complete: true, time: lastActionEnd - startTime } as const
+				const closed = {
+					...(input ? ({ ...input, _type: call.name } as AgentAction) : action),
+					complete: true,
+					time: lastActionEnd - startTime,
+				} as const
 				if (!invalid) return closed
 				console.warn(`Invalid ${call.name} call from ${modelName}: ${invalid}`)
 				// The client records the error as the call's result, without acting on it, and the model
@@ -205,7 +220,7 @@ export class AgentService {
 				if (closed) yield closed
 				continue
 			}
-			if (block.type !== 'toolCall' || schemas[block.name]) {
+			if (block.type !== 'toolCall' || tools.some((t) => t.name === block.name)) {
 				yield { ...open.action, complete: false, time: Date.now() - open.startTime }
 			}
 		}
@@ -260,25 +275,15 @@ function markHistoryForCache(payload: AnthropicPayload, afterHistory: string): A
 	return payload
 }
 
-/** What is wrong with an invalid tool call's input, for the model to read and correct. */
-function describeInvalidInput(parsed: z.ZodSafeParseResult<unknown>): string | undefined {
-	if (parsed.success) return undefined
-	return `Invalid input, so nothing was done:\n${z.prettifyError(parsed.error)}`
-}
-
 /**
- * One tool per action the mode allows, named by the action's `_type`, and the schema that checks
- * each tool's input. Messages are plain text and think actions are the model's own reasoning, so
- * they have no tool. The client carries out each call.
+ * One tool per action the mode allows, named by the action's `_type`, with the action's schema as
+ * JSON Schema. Messages are plain text and think actions are the model's own reasoning, so they
+ * have no tool. The client carries out each call.
  */
-function buildActionTools(prompt: AgentPrompt): {
-	tools: Tool[]
-	schemas: Record<string, z.ZodType>
-} {
+function buildActionTools(prompt: AgentPrompt): Tool[] {
 	const modePart = prompt.mode
 	if (!modePart) throw new Error('A mode part is always required.')
 	const tools: Tool[] = []
-	const schemas: Record<string, z.ZodType> = {}
 	for (const type of modePart.actionTypes) {
 		if (type === 'message' || type === 'think') continue
 		const schema = getActionSchemaForMode(type, modePart.modeType) as
@@ -286,12 +291,11 @@ function buildActionTools(prompt: AgentPrompt): {
 			| undefined
 		if (!schema) continue
 		const inputSchema = schema.omit({ _type: true })
-		schemas[type] = inputSchema
 		tools.push({
 			name: type,
 			description: (schema.meta() as ActionMeta | undefined)?.description ?? '',
 			parameters: z.toJSONSchema(inputSchema),
 		})
 	}
-	return { tools, schemas }
+	return tools
 }
