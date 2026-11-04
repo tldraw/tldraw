@@ -41,7 +41,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.5.0',
+	version: '3.6.0',
 }
 
 /**
@@ -57,10 +57,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside a cluster when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters of shapes, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -337,17 +337,73 @@ export function parsePageInfoInput(input: unknown): { boardId: string; page: Pag
 	return { boardId: parseBoardId(value.boardId), page: parsePageSelector(value.page) }
 }
 
+// Bounds the request itself, before the measure render it would cost. Paging bounds the answer.
+export const CLUSTER_INFO_MAX_IDS = 100
+
+/** Where a paged get_cluster_info answer picks up: a shape within one of the clusters asked for. */
+export interface ClusterInfoCursor {
+	cluster: number
+	shape: number
+}
+
 export function parseClusterInfoInput(input: unknown): {
 	boardId: string
 	page: PageSelector
-	clusterId: string
+	clusterIds: string[]
+	cursor: ClusterInfoCursor | null
 } {
 	const value = requireArgumentsObject(input)
+	// `clusterId` is the argument this tool took before it took several. A client holding the old tool
+	// list still sends it.
+	const clusterIds = [...new Set(parseClusterIds(value.clusterIds ?? value.clusterId))]
+	if (clusterIds.length > CLUSTER_INFO_MAX_IDS) {
+		throw new Error(
+			`clusterIds takes at most ${CLUSTER_INFO_MAX_IDS} ids in one call. Split them across several calls.`
+		)
+	}
 	return {
 		boardId: parseBoardId(value.boardId),
 		page: parsePageSelector(value.page),
-		clusterId: parseClusterId(value.clusterId),
+		clusterIds,
+		cursor: parseClusterInfoCursor(value.cursor, clusterIds),
 	}
+}
+
+// Refused rather than read as the first page, for the reason search_boards gives: a model whose
+// cursor silently restarts sees its own answers repeat, with no sign the cursor was the problem.
+function parseClusterInfoCursor(value: unknown, clusterIds: string[]): ClusterInfoCursor | null {
+	if (value === undefined || value === null) return null
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the first shape, or pass the nextCursor from a previous get_cluster_info result.'
+	)
+	if (typeof value !== 'string') throw invalid
+	let parts: string[]
+	try {
+		parts = atob(value).split(':')
+	} catch {
+		throw invalid
+	}
+	if (parts.length !== 3 || !/^\d+$/.test(parts[0]) || !/^\d+$/.test(parts[1])) throw invalid
+	// A cursor is a position in one list of clusters. Passed on with a different list it would point
+	// into clusters the caller never saw the start of.
+	let ids: string
+	try {
+		ids = decodeURIComponent(parts[2])
+	} catch {
+		throw invalid
+	}
+	if (ids !== clusterIds.join(',')) {
+		throw new Error(
+			'cursor is from a different set of clusterIds. Repeat the clusterIds it came from, or omit the cursor to start from the first shape.'
+		)
+	}
+	return { cluster: Number(parts[0]), shape: Number(parts[1]) }
+}
+
+// Opaque, so the encoding can change without clients having to. The ids are percent-escaped because
+// `btoa` throws outside Latin-1.
+function encodeClusterInfoCursor(cursor: ClusterInfoCursor, clusterIds: string[]): string {
+	return btoa(`${cursor.cluster}:${cursor.shape}:${encodeURIComponent(clusterIds.join(','))}`)
 }
 
 export function parseClusterScreenshotInput(input: unknown): {
@@ -410,18 +466,14 @@ function parseBoardName(value: unknown, purpose: string): string {
 // Accepts one id or several. A single string is allowed because asking for one cluster is the common
 // case and making callers wrap it in an array is friction for nothing.
 export function parseClusterIds(value: unknown): string[] {
-	if (typeof value === 'string') return [parseClusterId(value)]
-	if (!Array.isArray(value) || value.length === 0) {
+	const ids = typeof value === 'string' ? [value] : value
+	if (!Array.isArray(ids) || ids.length === 0) {
 		throw new Error('clusterIds is required: a cluster id, or an array of them')
 	}
-	return value.map((id) => parseClusterId(id))
-}
-
-export function parseClusterId(value: unknown): string {
-	if (typeof value !== 'string' || value.length === 0) {
-		throw new Error('clusterId is required')
+	if (!ids.every((id): id is string => typeof id === 'string' && id.length > 0)) {
+		throw new Error('clusterIds must each be a cluster id from get_page_info')
 	}
-	return value
+	return ids
 }
 
 function requireArgumentsObject(input: unknown): Record<string, unknown> {
@@ -1018,17 +1070,40 @@ export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): Too
 	})
 }
 
+/**
+ * The most JSON one get_cluster_info answer carries before it stops and hands back a nextCursor.
+ * Some clients cut a tool result off at 25K tokens, and this JSON runs about 2.5 to 3 characters a
+ * token, so 60K characters keeps an answer under that. Measured rather than counted in
+ * shapes, because a shape's size is mostly its text: a box is ~400 characters, a note holding a
+ * paragraph several times that.
+ */
+export const CLUSTER_INFO_MAX_CHARS = 60_000
+
+export type ClusterInfoResult =
+	| { ok: true; result: ToolResult }
+	| { ok: false; reason: 'cluster_not_found' | 'invalid_input'; result: ToolResult }
+
 export function getClusterInfo(
 	page: ResolvedPageOk,
 	{ clusters, arrows, dimensions }: PageClustering,
-	clusterId: string,
-	selector: PageSelector
-): ToolResult {
-	const cluster = clusters.find((c) => c.id === clusterId)
-	if (!cluster) {
-		return toolError(
-			`No cluster with id "${clusterId}" on page ${describePageSelector(selector)}. Call get_page_info to list this page's clusters.`
-		)
+	clusterIds: string[],
+	selector: PageSelector,
+	cursor: ClusterInfoCursor | null = null
+): ClusterInfoResult {
+	const found = findClusters(clusters, clusterIds, selector)
+	if (!found.ok) return { ok: false, reason: 'cluster_not_found', result: found.result }
+
+	const start = cursor ?? { cluster: 0, shape: 0 }
+	// The ids are checked against the cursor when it is read, and a cluster whose shapes changed has a
+	// new id and is refused above, so this catches a cursor that was altered or made up.
+	if (start.shape >= (found.clusters[start.cluster]?.shapes.length ?? 0)) {
+		return {
+			ok: false,
+			reason: 'invalid_input',
+			result: toolError(
+				'cursor does not point into these clusters any more. Omit it to start from the first shape.'
+			),
+		}
 	}
 
 	const pageTransformOf = getPageTransformResolver(page.shapes)
@@ -1039,21 +1114,97 @@ export function getClusterInfo(
 		else bindingsByArrow.set(binding.fromId, [binding])
 	}
 
-	return toolJsonResult({
-		clusterId: cluster.id,
-		label: cluster.label,
-		keywords: cluster.keywords,
+	// Fills the answer shape by shape until the next would take it over budget. At least one shape
+	// always goes in, so a single shape larger than the budget still gets read and paging moves on.
+	// The budget covers the whole answer: across many small clusters, the label and keywords each
+	// one carries come to nearly as much again as its shapes. Room is kept for the longest cursor.
+	const answered: Record<string, unknown>[] = []
+	const longestCursor = encodeClusterInfoCursor(
+		{
+			cluster: found.clusters.length,
+			shape: Math.max(...found.clusters.map((cluster) => cluster.shapes.length)),
+		},
+		clusterIds
+	)
+	let size = JSON.stringify({
 		pageName: page.pageName,
-		numberOfShapes: cluster.numberOfShapes,
-		shapes: cluster.shapes.map((shape) =>
-			toReadableShape(shape, {
+		clusters: [],
+		nextCursor: longestCursor,
+	}).length
+	let shapeCount = 0
+	let next: ClusterInfoCursor | null = null
+	fill: for (let c = start.cluster; c < found.clusters.length; c++) {
+		const cluster = found.clusters[c]
+		const firstShape = c === start.cluster ? start.shape : 0
+		const shapes: unknown[] = []
+		for (let s = firstShape; s < cluster.shapes.length; s++) {
+			const shape = cluster.shapes[s]
+			const readable = toReadableShape(shape, {
 				transform: pageTransformOf(shape),
 				measuredArrow: arrows[shape.id],
 				measuredDimensions: dimensions[shape.id],
 				bindings: bindingsByArrow.get(shape.id) ?? [],
 			})
-		),
-	})
+			// A slice's own fields are paid for with its first shape, so a cluster left for the next
+			// answer costs this one nothing.
+			const envelope = shapes.length
+				? 0
+				: JSON.stringify(describeClusterSlice(cluster, firstShape, [])).length + 1
+			const shapeSize = envelope + JSON.stringify(readable).length + 1
+			if (shapeCount > 0 && size + shapeSize > CLUSTER_INFO_MAX_CHARS) {
+				next = { cluster: c, shape: s }
+				if (shapes.length) answered.push(describeClusterSlice(cluster, firstShape, shapes))
+				break fill
+			}
+			size += shapeSize
+			shapeCount++
+			shapes.push(readable)
+		}
+		answered.push(describeClusterSlice(cluster, firstShape, shapes))
+	}
+
+	return {
+		ok: true,
+		result: toolJsonResult({
+			pageName: page.pageName,
+			clusters: answered,
+			...(next ? { nextCursor: encodeClusterInfoCursor(next, clusterIds) } : null),
+		}),
+	}
+}
+
+// A cluster split across answers carries firstShapeIndex, so a model can tell a slice from a whole
+// cluster without counting against numberOfShapes, which is always the cluster's total.
+function describeClusterSlice(cluster: ShapeCluster, firstShape: number, shapes: unknown[]) {
+	const whole = firstShape === 0 && shapes.length === cluster.shapes.length
+	return {
+		clusterId: cluster.id,
+		label: cluster.label,
+		keywords: cluster.keywords,
+		numberOfShapes: cluster.numberOfShapes,
+		...(whole ? null : { firstShapeIndex: firstShape }),
+		shapes,
+	}
+}
+
+// Unknown ids refuse the whole call rather than answering for the ones that resolved: a caller asking
+// for three clusters and getting two has no way to notice.
+function findClusters(
+	clusters: ShapeCluster[],
+	clusterIds: string[],
+	selector: PageSelector
+): { ok: true; clusters: ShapeCluster[] } | { ok: false; result: ToolResult } {
+	const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
+	const missing = clusterIds.filter((id) => !byId.has(id))
+	if (missing.length > 0) {
+		return {
+			ok: false,
+			result: toolError(
+				`No cluster on page ${describePageSelector(selector)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`
+			),
+		}
+	}
+	return { ok: true, clusters: clusterIds.map((id) => byId.get(id)!) }
 }
 
 export type PickedShapes = { ok: true; shapeIds: string[] } | { ok: false; result: ToolResult }
@@ -1067,26 +1218,15 @@ export function pickClusterShapes(
 	clusterIds: string[],
 	selector: PageSelector
 ): PickedShapes {
-	const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
-
-	// Reject unknown ids rather than quietly rendering the subset that resolved — a caller asking for
-	// three clusters and getting a picture of two has no way to notice.
-	const missing = clusterIds.filter((id) => !byId.has(id))
-	if (missing.length > 0) {
-		return {
-			ok: false,
-			result: toolError(
-				`No cluster on page ${describePageSelector(selector)} with id ${missing.map((id) => `"${id}"`).join(', ')}. Call get_page_info to list this page's clusters.`
-			),
-		}
-	}
+	const found = findClusters(clusters, clusterIds, selector)
+	if (!found.ok) return found
 
 	// Several clusters render as one framed image of their union, which is the point of taking more
 	// than one: seeing how they sit relative to each other.
 	return {
 		ok: true,
 		shapeIds: [
-			...new Set(clusterIds.flatMap((id) => byId.get(id)!.shapes.map((shape) => shape.id))),
+			...new Set(found.clusters.flatMap((cluster) => cluster.shapes.map((shape) => shape.id))),
 		],
 	}
 }
@@ -1487,7 +1627,7 @@ function getPageInfoToolDefinition() {
 		name: PAGE_INFO_TOOL_NAME,
 		title: 'Get tldraw page info',
 		description:
-			'List the shape clusters on one page of a tldraw.com board you have access to. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. A cluster\'s label comes from its text or its frame\'s name; one with no text is labelled by what it holds, such as "12 freehand strokes", and handwriting or drawings in it can only be seen with get_cluster_screenshot. Pass a cluster id to get_cluster_info or get_cluster_screenshot.',
+			'List the shape clusters on one page of a tldraw.com board you have access to. Each top-level shape is a cluster together with its descendants, so frames and groups stay together while ungrouped shapes remain individually addressable. A cluster\'s label comes from its text or its frame\'s name; one with no text is labelled by what it holds, such as "12 freehand strokes", and handwriting or drawings in it can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1505,20 +1645,27 @@ function getClusterInfoToolDefinition() {
 	return {
 		name: CLUSTER_INFO_TOOL_NAME,
 		title: 'Get tldraw cluster info',
-		description:
-			"Describe one cluster from get_page_info: its label, keywords, and every shape it contains. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page (an arrow's is its drawn start, and null when props.start is), and pageRotation its rotation on the page (arrows have none; their ends say which way they point). parentId still names the frame or group a shape sits in. On an arrow, props.start and props.end are its ends as drawn, each { pageX, pageY } (null for a bound end the editor could not measure), and props.bindingFromId and props.bindingToId are the shapes its start and end are bound to, or null when free. `props` holds the rest of the record — size and style in the shape's own unrotated space; w and h are a shape's size as drawn, so a geo's h already includes its label's growth (growY, not reported separately), and a text's, group's or freehand stroke's are measured — with the rich text document replaced by `props.text`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is rounded to thousandths, in the record's own units: angles in radians, and values that run 0–1 on the record (opacity, labelPosition and so on) as fractions. `meta` is passed through as stored. Draw and highlight shapes give their size and props.pointCount but not their strokes, which can't be read from coordinates: to see what was drawn or written, call get_cluster_screenshot.",
+		description: `Describe one or more clusters from get_page_info: for each, in the order asked, its label, keywords, and every shape it contains. Ask for several clusters in one call rather than one call each. An answer too large for one response stops part-way and carries nextCursor: call again with the same clusterIds and that cursor for the rest. A cluster too large for one answer is split across as many answers as it needs, and each slice carries firstShapeIndex: where the slice starts within the whole cluster. numberOfShapes is always the cluster's total. All positions are in page space, whatever the shape's parent: pageX and pageY are the shape's origin on the page (an arrow's is its drawn start, and null when props.start is), and pageRotation its rotation on the page (arrows have none; their ends say which way they point). parentId still names the frame or group a shape sits in. On an arrow, props.start and props.end are its ends as drawn, each { pageX, pageY } (null for a bound end the editor could not measure), and props.bindingFromId and props.bindingToId are the shapes its start and end are bound to, or null when free. \`props\` holds the rest of the record — size and style in the shape's own unrotated space; w and h are a shape's size as drawn, so a geo's h already includes its label's growth (growY, not reported separately), and a text's, group's or freehand stroke's are measured — with the rich text document replaced by \`props.text\`, the plain string the editor reports, which also surfaces text not stored on the record (a geo shape's label, for instance). Every number is rounded to thousandths, in the record's own units: angles in radians, and values that run 0–1 on the record (opacity, labelPosition and so on) as fractions. \`meta\` is passed through as stored. Draw and highlight shapes give their size and props.pointCount but not their strokes, which can't be read from coordinates: to see what was drawn or written, call get_cluster_screenshot.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
 				page: PAGE_PROPERTY,
-				clusterId: {
+				clusterIds: {
+					type: 'array',
+					items: { type: 'string' },
+					maxItems: CLUSTER_INFO_MAX_IDS,
+					description:
+						'One or more cluster ids from get_page_info. All of them must be on the given page. A bare string is also accepted for a single cluster.',
+				},
+				cursor: {
 					type: 'string',
-					description: 'The id of the cluster to get info for.',
+					description:
+						'The nextCursor from a previous get_cluster_info result, to get the rest of its answer. Omit for the first. Pass the same clusterIds with it.',
 				},
 			},
-			required: ['boardId', 'clusterId'],
+			required: ['boardId', 'clusterIds'],
 		},
 		annotations: READ_ONLY_ANNOTATIONS,
 	}

@@ -6,6 +6,7 @@ import {
 	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
+	CLUSTER_INFO_MAX_CHARS,
 	ShapeMeasurement,
 	clusterPage,
 	compareBoardSearchOrder,
@@ -19,6 +20,7 @@ import {
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
 	resolvePage,
+	parseClusterInfoInput,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -584,6 +586,8 @@ describe('getClusterInfo', () => {
 		arrowBinding('binding:end', 'shape:bound', 'shape:b', 'end'),
 	]
 
+	const snapshot = { documents: records.map((state) => ({ state })), schema: {} } as any
+
 	const MEASUREMENTS: Record<string, ShapeMeasurement> = {
 		'shape:frame': { minX: 700.4, minY: 500.6, maxX: 1000.4, maxY: 900.6 },
 		'shape:inner': { minX: 880.4, minY: 510.6, maxX: 980.4, maxY: 610.6 },
@@ -614,26 +618,245 @@ describe('getClusterInfo', () => {
 		},
 	}
 
+	const FIRST_PAGE = { kind: 'ordinal', ordinal: 0 } as const
+
+	function clusteredPage(source: any, measurements: Record<string, ShapeMeasurement>) {
+		const page = resolvePage(source, FIRST_PAGE)
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		return {
+			page,
+			clustering: {
+				clusters: clusterPage(page, measurements),
+				...getMeasuredGeometry(measurements),
+			},
+		}
+	}
+
+	function textOf(result: { content: ReturnType<typeof getBoardSearchResults>['content'] }) {
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		return block.text
+	}
+
+	function clusterIdOf(
+		clustering: ReturnType<typeof clusteredPage>['clustering'],
+		shapeId: string
+	): string {
+		return clustering.clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!.id
+	}
+
 	function shapesOfCluster(
 		measurements: Record<string, ShapeMeasurement>,
 		shapeId: string,
 		extraRecords: object[] = []
 	) {
 		const documents = [...records, ...extraRecords].map((state) => ({ state }))
-		const page = resolvePage({ documents, schema: {} } as any, { kind: 'ordinal', ordinal: 0 })
-		if (!page.ok) throw new Error('Expected the page to resolve')
-		const clusters = clusterPage(page, measurements)
-		const cluster = clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!
-		const geometry = getMeasuredGeometry(measurements)
-		const result = getClusterInfo(page, { clusters, ...geometry }, cluster.id, {
-			kind: 'ordinal',
-			ordinal: 0,
-		})
-		const block = result.content[0]
-		if (block.type !== 'text') throw new Error('Expected a text block')
-		const shapes = JSON.parse(block.text).shapes as any[]
+		const { page, clustering } = clusteredPage({ documents, schema: {} } as any, measurements)
+		const info = getClusterInfo(page, clustering, [clusterIdOf(clustering, shapeId)], FIRST_PAGE)
+		if (!info.ok) throw new Error('Expected the cluster to resolve')
+		const shapes = JSON.parse(textOf(info.result)).clusters[0].shapes as any[]
 		return (id: string) => shapes.find((s) => s.id === id)
 	}
+
+	// Pages built from boxes far enough apart that each top-level shape is its own cluster, unless it
+	// is a frame holding children.
+	function farApart(shapes: Record<string, unknown>[]) {
+		const all = [records[0], records[1], ...shapes]
+		const measurements: Record<string, ShapeMeasurement> = {}
+		const byId = new Map((shapes as any[]).map((record) => [record.id, record]))
+		for (const record of shapes as any[]) {
+			// One level of nesting is all these pages use, and none of them rotate.
+			const x = record.x + (byId.get(record.parentId)?.x ?? 0)
+			measurements[record.id] = { minX: x, minY: 0, maxX: x + record.props.w, maxY: 100 }
+		}
+		return {
+			snapshot: { documents: all.map((state) => ({ state })), schema: {} } as any,
+			measurements,
+		}
+	}
+
+	it('answers several clusters in the order asked, each in the single-cluster shape', () => {
+		const board = farApart([
+			shape('shape:one', { x: 0 }),
+			shape('shape:frame', { type: 'frame', x: 100_000, props: { w: 400, h: 100, name: 'F' } }),
+			shape('shape:child', { parentId: 'shape:frame', x: 10, y: 10 }),
+			shape('shape:three', { x: 200_000 }),
+		])
+		const { page, clustering } = clusteredPage(board.snapshot, board.measurements)
+		const ids = ['shape:three', 'shape:frame', 'shape:one'].map((id) => clusterIdOf(clustering, id))
+		expect(new Set(ids).size).toBe(3)
+
+		const info = getClusterInfo(page, clustering, ids, FIRST_PAGE)
+		if (!info.ok) throw new Error('Expected the clusters to resolve')
+		const answer = JSON.parse(textOf(info.result))
+
+		expect(answer.pageName).toBe('Cover')
+		expect(answer.clusters.map((c: any) => c.clusterId)).toEqual(ids)
+		expect(answer.clusters.map((c: any) => c.shapes.map((s: any) => s.id))).toEqual([
+			['shape:three'],
+			['shape:frame', 'shape:child'],
+			['shape:one'],
+		])
+		expect(Object.keys(answer.clusters[0])).toEqual([
+			'clusterId',
+			'label',
+			'keywords',
+			'numberOfShapes',
+			'shapes',
+		])
+		// A cluster read alongside others reads exactly as it does on its own.
+		const alone = getClusterInfo(page, clustering, [ids[1]], FIRST_PAGE)
+		if (!alone.ok) throw new Error('Expected the cluster to resolve')
+		expect(answer.clusters[1]).toEqual(JSON.parse(textOf(alone.result)).clusters[0])
+	})
+
+	it('refuses the whole call when any id is unknown, naming every missing one', () => {
+		const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
+		const known = clustering.clusters[0].id
+
+		const info = getClusterInfo(
+			page,
+			clustering,
+			['cluster:gone', known, 'cluster:also-gone'],
+			FIRST_PAGE
+		)
+
+		expect(info.ok).toBe(false)
+		if (info.ok) return
+		expect(info.reason).toBe('cluster_not_found')
+		expect(textOf(info.result)).toBe(
+			'No cluster on page 0 with id "cluster:gone", "cluster:also-gone". Call get_page_info to list this page\'s clusters.'
+		)
+	})
+
+	describe('paging', () => {
+		// A frame holding enough boxes that its cluster runs past one answer on its own, and a lone box
+		// beside it, asked for after it.
+		const BOXES = 400
+		const { snapshot: bigSnapshot, measurements: bigMeasurements } = farApart([
+			shape('shape:big', { type: 'frame', props: { w: 2000, h: 100, name: 'Big' } }),
+			...Array.from({ length: BOXES }, (_, i) =>
+				shape(`shape:box-${i}`, { parentId: 'shape:big', props: { w: 10, h: 10 } })
+			),
+			shape('shape:lone', { x: 100_000 }),
+		])
+
+		function readAll(source: any, measurements: Record<string, ShapeMeasurement>, ids: string[]) {
+			const { page, clustering } = clusteredPage(source, measurements)
+			const clusterIds = ids.map((id) => clusterIdOf(clustering, id))
+			const answers: any[] = []
+			let cursor = null
+			do {
+				const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, cursor)
+				if (!info.ok) throw new Error(textOf(info.result))
+				const answer = JSON.parse(textOf(info.result))
+				answers.push(answer)
+				cursor = answer.nextCursor
+					? parseClusterInfoInput({ boardId: 'b', clusterIds, cursor: answer.nextCursor }).cursor
+					: null
+			} while (cursor)
+			return { answers, clusterIds }
+		}
+
+		it('splits an answer too large for one response, and every shape arrives once, in order', () => {
+			const { answers, clusterIds } = readAll(bigSnapshot, bigMeasurements, [
+				'shape:big',
+				'shape:lone',
+			])
+
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				const shapes = answer.clusters.flatMap((c: any) => c.shapes)
+				expect(JSON.stringify(shapes).length).toBeLessThanOrEqual(CLUSTER_INFO_MAX_CHARS)
+			}
+			const received = answers.flatMap((a) =>
+				a.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))
+			)
+			expect(received).toEqual([
+				'shape:big',
+				...Array.from({ length: BOXES }, (_, i) => `shape:box-${i}`),
+				'shape:lone',
+			])
+			expect(answers.at(-1).nextCursor).toBeUndefined()
+
+			// The big cluster is cut across answers, so each slice says where it starts; the lone one
+			// arrives whole and says nothing.
+			const slices = answers.flatMap((a) => a.clusters).filter((c) => c.clusterId === clusterIds[0])
+			expect(slices.map((c) => c.firstShapeIndex)).toEqual(
+				slices.map((_, i) =>
+					slices.slice(0, i).reduce((sum: number, c: any) => sum + c.shapes.length, 0)
+				)
+			)
+			expect(slices.every((c) => c.numberOfShapes === BOXES + 1)).toBe(true)
+			const lone = answers.at(-1).clusters.at(-1)
+			expect(lone.clusterId).toBe(clusterIds[1])
+			expect(lone).not.toHaveProperty('firstShapeIndex')
+		})
+
+		// Each cluster's label and keywords ride along with its shapes. Across many small clusters they
+		// come to nearly as much again, which an answer measured by its shapes alone never saw.
+		it('keeps the whole answer within budget, not just its shapes', () => {
+			const COUNT = 100
+			const board = farApart(
+				Array.from({ length: COUNT }, (_, i) => shape(`shape:note-${i}`, { x: i * 100_000 }))
+			)
+			for (let i = 0; i < COUNT; i++) {
+				board.measurements[`shape:note-${i}`].text =
+					`Quarterly planning review ${i} customer onboarding retention analysis roadmap ` +
+					'milestone '.repeat(25)
+			}
+			const { clustering } = clusteredPage(board.snapshot, board.measurements)
+			const clusterIds = clustering.clusters.map((c) => c.id)
+			expect(clusterIds).toHaveLength(COUNT)
+
+			const { answers } = readAll(
+				board.snapshot,
+				board.measurements,
+				clustering.clusters.map((c) => c.shapes[0].id)
+			)
+			// The shapes alone would all fit in one answer.
+			const shapes = answers.flatMap((a) => a.clusters.flatMap((c: any) => c.shapes))
+			expect(JSON.stringify(shapes).length).toBeLessThan(CLUSTER_INFO_MAX_CHARS)
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				expect(JSON.stringify(answer).length).toBeLessThanOrEqual(CLUSTER_INFO_MAX_CHARS)
+			}
+			expect(answers.flatMap((a) => a.clusters.map((c: any) => c.clusterId))).toEqual(clusterIds)
+		})
+
+		// Refusing it would leave that shape unreadable, and paging could never get past it.
+		it('still answers a single shape larger than one answer, then moves on', () => {
+			const huge = {
+				...MEASUREMENTS,
+				'shape:a': { ...MEASUREMENTS['shape:a'], text: 'x'.repeat(70_000) },
+			}
+			const { page, clustering } = clusteredPage(snapshot, huge)
+			const clusterIds = [clusterIdOf(clustering, 'shape:a'), clusterIdOf(clustering, 'shape:b')]
+			expect(clusterIds[0]).not.toBe(clusterIds[1])
+
+			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE)
+			if (!info.ok) throw new Error('Expected the clusters to resolve')
+			const answer = JSON.parse(textOf(info.result))
+			expect(answer.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))).toContain(
+				'shape:a'
+			)
+			expect(answer.nextCursor).toEqual(expect.any(String))
+		})
+
+		it('refuses a cursor that no longer points into the clusters', () => {
+			const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
+			const clusterIds = [clusterIdOf(clustering, 'shape:a')]
+
+			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, {
+				cluster: 0,
+				shape: 10_000,
+			})
+
+			expect(info.ok).toBe(false)
+			if (info.ok) return
+			expect(info.reason).toBe('invalid_input')
+		})
+	})
 
 	// The stored arrow is a 2-unit stub at the origin; what a model needs is where it is drawn and
 	// what it connects.
