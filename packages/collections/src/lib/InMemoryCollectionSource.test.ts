@@ -142,6 +142,29 @@ describe('InMemoryCollectionSource', () => {
 		await expect(source.getItemContent(item.id)).rejects.toThrow(CollectionNotFoundError)
 	})
 
+	it('moves an item to another collection, keeping its id and content', async () => {
+		const source = new InMemoryCollectionSource()
+		const from = await source.createCollection('Wireframes')
+		const to = await source.createCollection('Icons')
+		const item = await source.addItem(from.id, { name: 'Card', content: content() })
+		await source.moveItem(item.id, to.id)
+		expect(source.getItems(from.id)).toEqual([])
+		expect(source.getItems(to.id).map((i) => i.id)).toEqual([item.id])
+		expect(await source.getItemContent(item.id)).toEqual(content())
+	})
+
+	it('refuses to move an item out of or into a read-only collection', async () => {
+		const source = new InMemoryCollectionSource({
+			initial: { collections: [prefabs()], items: [], contents: {} },
+		})
+		const writable = await source.createCollection('Mine')
+		const item = await source.addItem(writable.id, { content: content() })
+		await expect(source.moveItem(item.id, pack)).rejects.toThrow(CollectionPermissionError)
+		await expect(source.moveItem(item.id, missingCollection)).rejects.toThrow(
+			CollectionNotFoundError
+		)
+	})
+
 	it('deleting a collection deletes its items', async () => {
 		const source = new InMemoryCollectionSource()
 		const keep = await source.createCollection('Keep')

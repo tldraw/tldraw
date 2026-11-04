@@ -311,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Please reload the page"
   },
+  "747ee44424": {
+    "translation": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
+  },
   "74ff4bad28": {
     "translation": "No files found"
   },
@@ -461,9 +464,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# unread} other {# unread}}"
   },
-  "a0da245992": {
-    "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -499,6 +499,9 @@
   },
   "a9ded1e5ce": {
     "translation": "Background"
+  },
+  "a9fc91939a": {
+    "translation": "Collections"
   },
   "aac449eef6": {
     "translation": "Create workspace"

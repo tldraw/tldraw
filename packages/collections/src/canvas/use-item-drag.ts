@@ -1,5 +1,5 @@
 import { PointerEvent, useMemo } from 'react'
-import { getPointerInfo, TLContent, useEditor, Vec, VecModel } from 'tldraw'
+import { getPointerInfo, react, TLContent, useEditor, Vec, VecModel } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
 
@@ -84,8 +84,22 @@ export function useItemDrag(
 			})
 		}
 
+		// Translating sets the canvas's cursor, but the panel's elements set their own, including the
+		// tile, which holds pointer capture for the whole drag.
+		const showMoveCursorWhileTranslating = () => {
+			if (!editor.isIn('select.translating')) return
+			const container = editor.getContainer()
+			container.classList.add('tlui-collections-dragging')
+			const stop = react('collections drag cursor', () => {
+				if (editor.isIn('select.translating')) return
+				container.classList.remove('tlui-collections-dragging')
+				stop()
+			})
+		}
+
 		return (itemId: TLCollectionItemId) => ({
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
+				if (e.button !== 0) return
 				const panel = e.currentTarget.closest('.tlui-collections-panel') ?? e.currentTarget
 				state = {
 					name: 'pointing',
@@ -110,6 +124,7 @@ export function useItemDrag(
 				const { screenSpaceStart } = state
 				state = { name: 'dragging' }
 				startDrag(e, screenSpaceStart, content)
+				showMoveCursorWhileTranslating()
 			},
 			onPointerUp(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
@@ -121,6 +136,10 @@ export function useItemDrag(
 					name: 'pointer_up',
 					...getPointerInfo(editor, e),
 				})
+			},
+			onPointerCancel() {
+				if (state.name === 'dragging') editor.cancel()
+				state = { name: 'idle' }
 			},
 			onClick() {
 				const wasDrag = state.name === 'dragging'

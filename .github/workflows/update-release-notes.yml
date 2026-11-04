@@ -130,6 +130,16 @@ jobs:
         env:
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
 
+      # Merges through the merge queue once required checks pass. If this fails the
+      # PR is still open and can be merged by hand, so it warns rather than fails.
+      - name: Enable auto-merge
+        if: steps.changes.outputs.has_changes == 'true'
+        run: |
+          gh pr merge "${{ steps.branch.outputs.branch_name }}" --auto --squash \
+            || echo "::warning::Could not enable auto-merge on the release notes PR"
+        env:
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+
       # Each run regenerates the notes from scratch, so a PR opened by this run
       # supersedes any release notes PR left open by an earlier run. The PR may come
       # from the step above or from the skill itself, so this compares the currently
