@@ -13,27 +13,32 @@ const messages = defineMessages({
 	name: { id: 'collections.item-order.name', defaultMessage: 'Name' },
 })
 
-/** A way to order a collection's items. Leave out `compare` for the source's own order. */
-export interface ItemOrdering {
+/**
+ * A way to order a collection's items. Leave out `compare` for the source's own order. `label` is
+ * shown in the panel's sort menu, as is or as a translation key.
+ * @public
+ */
+export interface TLCollectionItemOrdering {
 	id: string
 	label: string
 	compare?(a: TLCollectionItem, b: TLCollectionItem): number
 }
 
-const sourceItemOrder: ItemOrdering = {
+/** @public */
+export const sourceItemOrder: TLCollectionItemOrdering = {
 	id: 'source',
 	label: messages.default.id,
 }
 
-/** Newest first; items without a save date come last. */
-const newestItemOrder: ItemOrdering = {
+/** Newest first; items without a save date come last. @public */
+export const newestItemOrder: TLCollectionItemOrdering = {
 	id: 'newest',
 	label: messages.newest.id,
 	compare: (a, b) => (b.createdAt ?? -Infinity) - (a.createdAt ?? -Infinity),
 }
 
-/** A to Z by name; unnamed items come last. */
-const nameItemOrder: ItemOrdering = {
+/** A to Z by name; unnamed items come last. @public */
+export const nameItemOrder: TLCollectionItemOrdering = {
 	id: 'name',
 	label: messages.name.id,
 	compare: (a, b) => {
@@ -44,8 +49,12 @@ const nameItemOrder: ItemOrdering = {
 	},
 }
 
-/** The orderings offered in the panel's sort menu; the first is the default. */
-export const itemOrderings = [sourceItemOrder, newestItemOrder, nameItemOrder]
+/**
+ * The orderings the panel's sort menu offers unless the host passes its own; the first is the
+ * default.
+ * @public
+ */
+export const defaultItemOrderings = [sourceItemOrder, newestItemOrder, nameItemOrder]
 
 /** The current user's choice of ordering, kept in this browser. */
 export interface ItemOrderChoice {
@@ -90,7 +99,11 @@ export function setItemOrderChoice(sourceId: string, choice: ItemOrderChoice) {
 }
 
 /** Items in the given ordering, reversed if asked. Items the ordering ties keep the source's order. */
-export function sortItems(items: TLCollectionItem[], ordering: ItemOrdering, reversed: boolean) {
+export function sortItems(
+	items: TLCollectionItem[],
+	ordering: TLCollectionItemOrdering,
+	reversed: boolean
+) {
 	const { compare } = ordering
 	const sorted = compare
 		? items

@@ -12,7 +12,12 @@ import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
 import { CollectionItems } from './collection-items'
 import { CollectionsPanelHeader } from './collections-panel-header'
-import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
+import {
+	defaultItemOrderings,
+	getItemOrderChoice,
+	setItemOrderChoice,
+	type TLCollectionItemOrdering,
+} from './item-order'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -45,6 +50,12 @@ export interface CollectionsPanelProps {
 	source: CollectionSource
 	/** Defaults to `'picker'`. */
 	navigation?: CollectionsPanelNavigation
+	/**
+	 * The ways users can order a collection's items, offered in the panel's ⋯ menu; the first is
+	 * the default. Defaults to the source's order, newest first, and by name. With only one, the
+	 * menu has no "Sort items by". Each user's choice is kept in their browser.
+	 */
+	itemOrderings?: TLCollectionItemOrdering[]
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
 	side?: 'left' | 'right'
 }
@@ -58,6 +69,7 @@ export interface CollectionsPanelProps {
 export function CollectionsPanel({
 	source,
 	navigation = 'picker',
+	itemOrderings = defaultItemOrderings,
 	side = 'left',
 }: CollectionsPanelProps) {
 	const editor = useEditor()
@@ -80,17 +92,20 @@ export function CollectionsPanel({
 		editor,
 	])
 	const orderChoice = useValue('item order', () => getItemOrderChoice(source.id), [source])
-	// A stored choice that matches no ordering falls back to the default.
+	// A stored choice the host no longer offers falls back to its first ordering.
 	const ordering = itemOrderings.find((o) => o.id === orderChoice.orderingId) ?? itemOrderings[0]
-	const sort = {
-		options: itemOrderings.map(({ id, label }) => ({ id, label })),
-		value: ordering.id,
-		onValueChange: (orderingId: string) =>
-			setItemOrderChoice(source.id, { ...orderChoice, orderingId }),
-		reversed: orderChoice.reversed,
-		onReversedChange: (reversed: boolean) =>
-			setItemOrderChoice(source.id, { ...orderChoice, reversed }),
-	}
+	const sort =
+		itemOrderings.length > 1
+			? {
+					options: itemOrderings.map(({ id, label }) => ({ id, label })),
+					value: ordering.id,
+					onValueChange: (orderingId: string) =>
+						setItemOrderChoice(source.id, { ...orderChoice, orderingId }),
+					reversed: orderChoice.reversed,
+					onReversedChange: (reversed: boolean) =>
+						setItemOrderChoice(source.id, { ...orderChoice, reversed }),
+				}
+			: undefined
 	const placeItem = useCallback(
 		(itemId: TLCollectionItemId) => {
 			placeCollectionItem(editor, source, itemId).catch(() => {

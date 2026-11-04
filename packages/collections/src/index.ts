@@ -55,3 +55,10 @@ export {
 	type TLCollectionItemId,
 	type TLCollectionRecord,
 } from './lib/schema'
+export {
+	defaultItemOrderings,
+	nameItemOrder,
+	newestItemOrder,
+	sourceItemOrder,
+	type TLCollectionItemOrdering,
+} from './canvas/item-order'

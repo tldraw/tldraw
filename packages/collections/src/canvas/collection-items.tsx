@@ -5,7 +5,7 @@ import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { type ItemOrdering, sortItems } from './item-order'
+import { sortItems, type TLCollectionItemOrdering } from './item-order'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 
 const messages = defineMessages({
@@ -48,7 +48,7 @@ export interface CollectionItemsProps {
 	collectionId: TLCollectionId
 	/** Props for an item's tile button: its click and drag handlers. */
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
-	ordering: ItemOrdering
+	ordering: TLCollectionItemOrdering
 	reversed: boolean
 }
 
