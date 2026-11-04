@@ -58,3 +58,10 @@ export {
 	type TLCollectionRecord,
 	type TLCollectionThumbnail,
 } from './lib/schema'
+export {
+	defaultItemOrderings,
+	nameItemOrder,
+	newestItemOrder,
+	sourceItemOrder,
+	type TLCollectionItemOrdering,
+} from './canvas/item-order'
