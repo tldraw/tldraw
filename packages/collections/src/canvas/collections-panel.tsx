@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useState } from 'react'
+import { Fragment, useCallback, useId, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -13,11 +13,19 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
+import { CollectionPicker } from '../ui/collection-picker'
+import { CollectionTabs } from '../ui/collection-tabs'
 import type { ItemGridAppearance } from '../ui/item-grid'
+import { AddSelectionBar, type AddControl } from './add-selection-bar'
 import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { CollectionItems } from './collection-items'
 import { CollectionPreviewRow } from './collection-preview-row'
-import { CollectionsPanelHeader, type ReadOnlyOptions } from './collections-panel-header'
+import {
+	CollectionsPanelHeader,
+	type PanelHeader,
+	type ReadOnlyOptions,
+} from './collections-panel-header'
+import type { EmptyCollection } from './empty-collection'
 import {
 	defaultItemOrderings,
 	getItemOrderChoice,
@@ -58,9 +66,10 @@ const messages = defineMessages({
  * - `'sections'`: every collection in one scroll, each a section that folds shut.
  * - `'previews'`: a row per collection with its first few items, placeable from there, and how many
  *   more there are; the row opens into all its items.
+ * - `'tabs'`: a tab per collection under the header, over the chosen collection's items.
  * @public
  */
-export type CollectionsPanelNavigation = 'picker' | 'list' | 'sections' | 'previews'
+export type CollectionsPanelNavigation = 'picker' | 'list' | 'sections' | 'previews' | 'tabs'
 
 /** @public */
 export interface CollectionsPanelProps {
@@ -99,6 +108,16 @@ export interface CollectionsPanelProps {
 	readOnly?: ReadOnlyOptions
 	/** Whether the panel has a search field, and where it looks. Search matches item names. */
 	search?: ItemSearch
+	/** What the header holds: the collection picker, or a title and close button. Defaults to `'picker'`. */
+	header?: PanelHeader
+	/**
+	 * Where adding the selection is offered: a "+" in the header, or a bar along the bottom of the
+	 * panel while one collection is showing. Sections keep a "+" in each section's header. Defaults
+	 * to `'header'`.
+	 */
+	addControl?: AddControl
+	/** What a collection with no items shows. Defaults to `'message'`. */
+	emptyCollection?: EmptyCollection
 }
 
 /**
@@ -121,6 +140,9 @@ export function CollectionsPanel({
 	firstUse = 'message',
 	readOnly,
 	search = 'none',
+	header = 'picker',
+	addControl = 'header',
+	emptyCollection = 'message',
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -128,11 +150,12 @@ export function CollectionsPanel({
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const collections = useValue('collections', () => source.getCollections(), [source])
 	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
-	// With a picker, a stale id (the collection was deleted) falls back to the first collection
-	// rather than an empty panel. With the list, no open collection shows the list.
+	// With a picker or tabs, a stale id (the collection was deleted) falls back to the first
+	// collection rather than an empty panel. With the list, no open collection shows the list.
 	const current =
 		collections.find((collection) => collection.id === activeId) ??
-		(navigation === 'picker' ? collections[0] : undefined)
+		(navigation === 'picker' || navigation === 'tabs' ? collections[0] : undefined)
+	const tabPanelId = useId()
 	const [query, setQuery] = useState('')
 	const searchingEverywhere = search === 'everywhere' && query.trim() !== ''
 	const matchingCollections = useValue(
@@ -189,6 +212,14 @@ export function CollectionsPanel({
 		[editor, source, addToast, msg, isSheet, placement]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
+	const collectionOptions = collections.map((collection) => ({
+		id: collection.id,
+		name: collection.name,
+		detail: groupCollections?.(collection),
+	}))
+	// The footer's bar adds to the one collection the panel is showing; sections have a "+" each.
+	const showsOneCollection =
+		current !== undefined && navigation !== 'sections' && !searchingEverywhere
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
 	const groups = groupCollectionList(collections, groupCollections)
 	const groupHeading = (label?: string) =>
@@ -259,6 +290,9 @@ export function CollectionsPanel({
 												reversed={orderChoice.reversed}
 												appearance={tileAppearance}
 												query={filter}
+												emptyCollection={emptyCollection}
+												saving={saving}
+												readOnly={readOnly}
 											/>
 										)}
 									</section>
@@ -270,7 +304,7 @@ export function CollectionsPanel({
 			)
 		}
 		if (current) {
-			return (
+			const items = (
 				<CollectionItems
 					source={source}
 					collectionId={current.id}
@@ -279,7 +313,21 @@ export function CollectionsPanel({
 					reversed={orderChoice.reversed}
 					appearance={tileAppearance}
 					query={filter}
+					emptyCollection={emptyCollection}
+					saving={saving}
+					readOnly={readOnly}
 				/>
+			)
+			if (navigation !== 'tabs') return items
+			return (
+				<div
+					id={tabPanelId}
+					role="tabpanel"
+					aria-label={current.name}
+					className="tlui-collections-tabpanel"
+				>
+					{items}
+				</div>
 			)
 		}
 		if (navigation === 'previews') {
@@ -359,7 +407,29 @@ export function CollectionsPanel({
 					}
 					groupCollections={groupCollections}
 					sort={sort}
+					title={header === 'title'}
+					onClose={header === 'title' ? () => collectionsPanelOpen.set(editor, false) : undefined}
+					addButton={addControl === 'header'}
 				/>
+				{header === 'title' && navigation === 'picker' && current && (
+					<div className="tlui-collections-panel__picker">
+						<CollectionPicker
+							collections={collectionOptions}
+							value={current.id}
+							onValueChange={(id) => activeCollectionId.set(editor, id)}
+							label={msg(messages.title)}
+						/>
+					</div>
+				)}
+				{navigation === 'tabs' && current && (
+					<CollectionTabs
+						collections={collectionOptions}
+						value={current.id}
+						onValueChange={(id) => activeCollectionId.set(editor, id)}
+						label={msg(messages.title)}
+						panelId={tabPanelId}
+					/>
+				)}
 				{showSearch && (
 					<div className="tlui-collections-search">
 						<TldrawUiInput
@@ -377,6 +447,14 @@ export function CollectionsPanel({
 					</div>
 				)}
 				{body()}
+				{addControl === 'footer' && showsOneCollection && current && (
+					<AddSelectionBar
+						source={source}
+						collectionId={current.id}
+						saving={saving}
+						readOnly={readOnly}
+					/>
+				)}
 			</section>
 		</EditorPortal>
 	)

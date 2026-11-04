@@ -604,3 +604,97 @@
 	border-radius: var(--tl-radius-2);
 	background-color: var(--tl-color-muted-2);
 }
+
+/* The title header's picker, under it and inset like the header's. */
+.tlui-collections-panel__picker {
+	flex-shrink: 0;
+	padding: 2px;
+}
+
+.tlui-collections-tabs {
+	flex-shrink: 0;
+	display: flex;
+	gap: 4px;
+	padding: 0 8px;
+	border-bottom: 1px solid var(--tl-color-divider);
+	overflow-x: auto;
+	scroll-padding-inline: 8px;
+	scrollbar-width: none;
+}
+
+/* A scroll container drops its end padding, so this keeps the last tab off the panel's edge. */
+.tlui-collections-tabs::after {
+	content: '';
+	flex: 0 0 4px;
+}
+
+.tlui-collections-tab {
+	all: unset;
+	box-sizing: border-box;
+	flex-shrink: 0;
+	max-width: 120px;
+	padding: 0 6px;
+	line-height: 36px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--tl-color-text-3);
+	font-weight: 500;
+	cursor: pointer;
+}
+
+.tlui-collections-tab:hover {
+	color: var(--tl-color-text-1);
+}
+
+.tlui-collections-tab[aria-selected='true'] {
+	color: var(--tl-color-text-1);
+	box-shadow: inset 0 -2px 0 var(--tl-color-text-1);
+}
+
+.tlui-collections-tab:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+	border-radius: var(--tl-radius-1);
+}
+
+.tlui-collections-tabpanel {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.tlui-collections-add-bar {
+	flex-shrink: 0;
+	padding: 2px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.tlui-collections-add-bar__button {
+	width: 100%;
+	justify-content: space-between;
+}
+
+/* Placeholder tiles stand in for items, under the button that adds the first one. */
+.tlui-collections-add-first {
+	position: relative;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.tlui-collections-add-first__placeholders {
+	width: 100%;
+	overflow: hidden;
+	opacity: 0.4;
+	pointer-events: none;
+}
+
+.tlui-collections-add-first__button {
+	position: absolute;
+	background: var(--tl-color-panel);
+	border-radius: var(--tl-radius-2);
+	box-shadow: var(--tl-shadow-2);
+}
