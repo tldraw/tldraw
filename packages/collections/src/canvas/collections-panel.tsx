@@ -14,6 +14,7 @@ import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { getItemOrderChoice, itemOrderings, setItemOrderChoice, sortItems } from './item-order'
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -78,10 +79,23 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 	// A stale id (the collection was deleted) falls back to the first collection rather than an empty panel.
 	const current = collections.find((collection) => collection.id === activeId) ?? collections[0]
 	const currentId = current?.id
-	const items = useValue('collection items', () => (currentId ? source.getItems(currentId) : []), [
-		source,
-		currentId,
-	])
+	const orderChoice = useValue('item order', () => getItemOrderChoice(source.id), [source])
+	// A stored choice that matches no ordering falls back to the default.
+	const ordering = itemOrderings.find((o) => o.id === orderChoice.orderingId) ?? itemOrderings[0]
+	const items = useValue(
+		'collection items',
+		() => (currentId ? sortItems(source.getItems(currentId), ordering, orderChoice.reversed) : []),
+		[source, currentId, ordering, orderChoice.reversed]
+	)
+	const sort = {
+		options: itemOrderings.map(({ id, label }) => ({ id, label })),
+		value: ordering.id,
+		onValueChange: (orderingId: string) =>
+			setItemOrderChoice(source.id, { ...orderChoice, orderingId }),
+		reversed: orderChoice.reversed,
+		onReversedChange: (reversed: boolean) =>
+			setItemOrderChoice(source.id, { ...orderChoice, reversed }),
+	}
 	const placeItem = useCallback(
 		(itemId: TLCollectionItemId) => {
 			placeCollectionItem(editor, source, itemId).catch(() => {
@@ -158,6 +172,7 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 					collections={collections}
 					current={current}
 					itemCount={items.length}
+					sort={sort}
 				/>
 				{current ? (
 					<ItemGrid

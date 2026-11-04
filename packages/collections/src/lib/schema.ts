@@ -38,6 +38,11 @@ export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollec
 	name?: string
 	/** Left out when the item has no thumbnail. When present it is never blank. */
 	thumbnailUrl?: string
+	/**
+	 * When the item was saved, in milliseconds since the epoch. Left out by sources that don't
+	 * track it; orderings by date put those items last.
+	 */
+	createdAt?: number
 	/** Always 1 for now: items aren't replaced. To change one, delete it and add it again. */
 	version: number
 	meta: JsonObject
@@ -63,6 +68,7 @@ export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
 	collectionId: idValidator<TLCollectionId>('collection'),
 	name: nonEmptyString.optional(),
 	thumbnailUrl: nonEmptyString.optional(),
+	createdAt: T.number.optional(),
 	version: T.positiveInteger,
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
