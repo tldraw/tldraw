@@ -244,7 +244,7 @@ describe('28. TLSocketRoom (SR)', () => {
 				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'record authorizer threw; rejecting the write',
+					'beforeWrite hook threw; rejecting the write',
 					expect.objectContaining({ message: 'authorizer exploded' })
 				)
 			} finally {
@@ -1606,7 +1606,7 @@ describe('28. TLSocketRoom (SR)', () => {
 		it('[SR16] get takes its result type from a typed id', () => {
 			const hooks: TLBeforeWriteHooks<TLRecord, void> = {
 				shape: ({ next, get }) => {
-					if (!next) return null
+					if (!next) return
 					expectTypeOf(get(next.parentId)).toEqualTypeOf<TLPage | TLShape | undefined>()
 					expectTypeOf(get('page:page')).toEqualTypeOf<UnknownRecord | undefined>()
 					return next

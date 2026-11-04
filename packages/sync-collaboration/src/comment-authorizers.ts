@@ -1,5 +1,5 @@
 import type { UnknownRecord } from '@tldraw/store'
-import type { TLBeforeWriteHook, TLBeforeWriteHooks } from '@tldraw/sync-core'
+import { deny, TLDeny, type TLBeforeWriteHook, type TLBeforeWriteHooks } from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
 	type TLComment,
@@ -152,7 +152,7 @@ export function createCommentAuthorizers<SessionMeta>(
 	type Rule<Rec extends UnknownRecord> = (
 		userId: string | null,
 		args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]
-	) => Rec | null
+	) => Rec | TLDeny
 
 	/**
 	 * Adapt a rule to the authorizer signature: gate on `canComment` first, then resolve the
@@ -162,7 +162,7 @@ export function createCommentAuthorizers<SessionMeta>(
 		rule: Rule<Rec>
 	): TLBeforeWriteHook<Rec, SessionMeta> {
 		return (args) => {
-			if (!canComment(args.session)) return null
+			if (!canComment(args.session)) return deny('session may not comment')
 			return rule(getUserId(args.session), args)
 		}
 	}
@@ -177,12 +177,12 @@ export function createCommentAuthorizers<SessionMeta>(
 	): Rule<Rec> {
 		return (userId, { type, prev, next }) => {
 			if (type === 'create') {
-				if (!userId) return null // no identity to attribute → reject
+				if (!userId) return deny('no user id to attribute')
 				return { ...next, [field]: userId } as Rec
 			}
 			if (type === 'update') {
-				if (next[field] !== prev[field]) return null // attribution is immutable
-				if (ownerOnlyUpdate && userId !== prev[field]) return null // only the author edits
+				if (next[field] !== prev[field]) return deny(`${field} is immutable`)
+				if (ownerOnlyUpdate && userId !== prev[field]) return deny('only the author may edit')
 				return next
 			}
 			return prev
@@ -209,11 +209,13 @@ export function createCommentAuthorizers<SessionMeta>(
 		base: Rule<Rec>
 	): Rule<Rec> {
 		return (userId, args) => {
-			if (args.type === 'delete') return null
+			if (args.type === 'delete') return deny('clients may not hard-delete')
 			const result = base(userId, args)
-			if (!result) return null
+			if (result instanceof TLDeny) return result
 			// A record can't be born deleted — that would smuggle a deletion past the update checks.
-			if (args.type === 'create') return args.next.isDeleted ? null : result
+			if (args.type === 'create') {
+				return args.next.isDeleted ? deny('may not create a deleted record') : result
+			}
 
 			const { prev, next, session } = args
 			const mayModify = (write: 'edit' | 'delete') => {
@@ -222,14 +224,18 @@ export function createCommentAuthorizers<SessionMeta>(
 				return canModifyComment({ session, userId, ownerId: ownerOf(prev), ...modification })
 			}
 
-			if (prev.isDeleted === next.isDeleted) return mayModify('edit') ? result : null
+			if (prev.isDeleted === next.isDeleted) {
+				return mayModify('edit') ? result : deny('may not edit')
+			}
 
-			if (prev.isDeleted) return null // write-once: never cleared
-			if (!mayModify('delete')) return null
+			if (prev.isDeleted) return deny('isDeleted is write-once')
+			if (!mayModify('delete')) return deny('may not delete')
 			// The built-in client deletes by setting the flag and nothing else. An update carrying
 			// more than that is also an edit, and has to be allowed as one — otherwise a delete-only
 			// permission could rewrite a comment on its way out.
-			if (!isEqual({ ...next, isDeleted: prev.isDeleted }, prev) && !mayModify('edit')) return null
+			if (!isEqual({ ...next, isDeleted: prev.isDeleted }, prev) && !mayModify('edit')) {
+				return deny('may not edit')
+			}
 			return result
 		}
 	}
@@ -240,17 +246,21 @@ export function createCommentAuthorizers<SessionMeta>(
 	 */
 	const authorizeThreadResolution: Rule<TLCommentThread> = (userId, args) => {
 		const result = authorizeAuthored<TLCommentThread>('createdBy')(userId, args)
-		if (!result) return null
+		if (result instanceof TLDeny) return result
 		if (args.type === 'create') {
 			// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
 			const { next } = args
-			if (next.resolved && next.resolved.by !== userId) return null
+			if (next.resolved && next.resolved.by !== userId) {
+				return deny('resolved.by must be the session user')
+			}
 		}
 		if (args.type === 'update') {
 			const { prev, next } = args
 			const changed =
 				prev.resolved?.at !== next.resolved?.at || prev.resolved?.by !== next.resolved?.by
-			if (changed && next.resolved && next.resolved.by !== userId) return null
+			if (changed && next.resolved && next.resolved.by !== userId) {
+				return deny('resolved.by must be the session user')
+			}
 		}
 		return result
 	}
@@ -268,7 +278,7 @@ export function createCommentAuthorizers<SessionMeta>(
 			if (args.type === 'update') {
 				const { prev, next } = args
 				for (const field of fields) {
-					if (next[field] !== prev[field]) return null
+					if (next[field] !== prev[field]) return deny(`${field} is immutable`)
 				}
 			}
 			return base(userId, args)
@@ -295,24 +305,25 @@ export function createCommentAuthorizers<SessionMeta>(
 		// records because server-initiated writes carry no session and so skip authorizers
 		// entirely — an open client delete was never what made the sweep work.
 		if (args.type === 'delete') {
-			return userId && userId === args.prev.userId ? args.prev : null
+			return userId && userId === args.prev.userId
+				? args.prev
+				: deny('only the reactor may remove a reaction')
 		}
 		const result = authorizeReactionBase(userId, args)
-		if (!result) return null
+		if (result instanceof TLDeny) return result
 		if (args.type === 'create') {
 			// Unreachable: the base rule already rejected identity-less creates. Checked to narrow.
-			if (!userId) return null
+			if (!userId) return deny('no user id to attribute')
 			const { next } = args
 			if (next.id !== createCommentReactionId(next.commentId, userId, next.emoji)) {
-				return null
+				return deny('reaction id is not canonical')
 			}
 		}
 		if (args.type === 'update') {
 			const { prev, next } = args
-			if (next.commentId !== prev.commentId) return null
-			if (next.threadId !== prev.threadId) return null
-			if (next.pageId !== prev.pageId) return null
-			if (next.emoji !== prev.emoji) return null
+			for (const field of ['commentId', 'threadId', 'pageId', 'emoji'] as const) {
+				if (next[field] !== prev[field]) return deny(`${field} is immutable`)
+			}
 		}
 		return result
 	}

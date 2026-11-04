@@ -73,6 +73,9 @@ export const DEFAULT_INITIAL_SNAPSHOT: {
 // @internal
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
+// @public
+export function deny(reason: string): TLDeny;
+
 // @internal
 export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
 
@@ -399,7 +402,7 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
     next: Rec;
     prev: Rec;
     type: 'update';
-})) => null | Rec;
+})) => false | Rec | TLDeny | void;
 
 // @public
 export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
@@ -424,6 +427,13 @@ export interface TLConnectRequest {
 
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
+
+// @public
+export class TLDeny {
+    constructor(
+    reason: string);
+    readonly reason: string;
+}
 
 // @internal @deprecated
 export const TLIncompatibilityReason: {
@@ -478,10 +488,14 @@ export interface TLPushRequest<R extends UnknownRecord> {
 }
 
 // @internal @deprecated (undocumented)
-export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = TLBeforeWriteHook<Rec, SessionMeta>;
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]) => null | Rec;
 
 // @internal @deprecated (undocumented)
-export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = TLBeforeWriteHooks<R, SessionMeta>;
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLRecordAuthorizer<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
 
 // @public
 export class TLRemoteSyncError extends Error {
@@ -557,7 +571,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     // @internal @deprecated (undocumented)
-    authorizeRecord?: TLBeforeWriteHooks<R, SessionMeta>;
+    authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;

@@ -4,7 +4,7 @@
 
 ```ts
 
-import type { TLBeforeWriteHooks } from '@tldraw/sync-core';
+import { TLBeforeWriteHooks } from '@tldraw/sync-core';
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';

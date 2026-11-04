@@ -1,5 +1,6 @@
 import {
 	RecordOpType,
+	TLDeny,
 	TLSocketRoom,
 	WebSocketMinimal,
 	getTlsyncProtocolVersion,
@@ -74,7 +75,7 @@ describe('authorizeFileRecord', () => {
 					prev: thread,
 					next: null,
 				})
-			).toBeNull()
+			).toBeInstanceOf(TLDeny)
 		})
 
 		it('vetoes a comment create from a canvas read-only session', () => {
@@ -91,7 +92,7 @@ describe('authorizeFileRecord', () => {
 					prev: null,
 					next,
 				})
-			).toBeNull()
+			).toBeInstanceOf(TLDeny)
 		})
 	})
 
@@ -248,19 +249,19 @@ describe('authorizeFileRecord', () => {
 		it('vetoes changing attribution to someone else', () => {
 			const prev = makeNote('real-bob')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
 		})
 
 		it('vetoes an anonymous session setting any non-null attribution', () => {
 			const prev = makeNote(null)
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
 		})
 
 		it('vetoes smuggling attribution in via a shape-type change', () => {
 			const prev = makeGeo()
 			const next = { ...makeNote('real-alice'), id: prev.id }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
 		})
 
 		it('ignores non-note shapes', () => {
@@ -273,7 +274,7 @@ describe('authorizeFileRecord', () => {
 
 		it('allows deletes', () => {
 			const prev = makeNote('real-alice')
-			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBe(prev)
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBeUndefined()
 		})
 
 		it('allows a legal note update from a canvas read-only session (gated at the protocol level, not here)', () => {

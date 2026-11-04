@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLBeforeWriteHooks, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLBeforeWriteHooks, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -159,7 +159,8 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * @deprecated Use `beforeWrite`. Setting both throws.
 	 * @internal
 	 */
-	authorizeRecord?: TLBeforeWriteHooks<R, SessionMeta>
+	// oxlint-disable-next-line typescript/no-deprecated
+	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -295,7 +296,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			beforeWrite: opts.beforeWrite ?? authorizeRecord,
+			// The room reads `null` as a rejection, so the deprecated hooks run unchanged.
+			beforeWrite: opts.beforeWrite ?? (authorizeRecord as TLBeforeWriteHooks<R, SessionMeta>),
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

@@ -10,7 +10,7 @@ import {
 } from '../lib/protocol'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { RoomSnapshot, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
+import { RoomSnapshot, deny, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
 
 // A generic object-lane test schema: `doc` records live in the document lane, `note` records are
 // served through the object-store lane (see `objectTypes` below). Deliberately not comment-shaped —
@@ -693,6 +693,44 @@ describe('object store lane', () => {
 			push(room, 'alice', { [note.id]: [RecordOpType.Remove] }, 3)
 
 			expect(types).toEqual(['create', 'update', 'delete'])
+		})
+
+		describe('hook results', () => {
+			function pushNoteWith(hook: any) {
+				const warn = vi.fn()
+				const { room, storage } = makeRoom({
+					objectTypes: ['note'],
+					beforeWrite: { note: hook },
+					log: { warn },
+				})
+				connectSession(room, 'writer', { meta: { userId: 'u' } })
+				const note = Note.create({ text: 'client' })
+				push(room, 'writer', { [note.id]: [RecordOpType.Put, note] })
+				return { warn, note: storedNote(storage, note.id) }
+			}
+
+			it('returning nothing allows the write as it is', () => {
+				const { note, warn } = pushNoteWith(() => undefined)
+				expect(note?.text).toBe('client')
+				expect(warn).not.toHaveBeenCalled()
+			})
+
+			it('returning false rejects the write', () => {
+				const { note, warn } = pushNoteWith(() => false)
+				expect(note).toBeUndefined()
+				expect(warn).toHaveBeenCalledTimes(1)
+			})
+
+			it('deny rejects the write and logs the reason', () => {
+				const { note, warn } = pushNoteWith(() => deny('not the author'))
+				expect(note).toBeUndefined()
+				expect(warn.mock.calls[0].join(' ')).toContain('not the author')
+			})
+
+			it('a record field named reason is not read as a rejection', () => {
+				const { note } = pushNoteWith(({ next }: any) => ({ ...next, reason: 'x' }))
+				expect(note?.reason).toBe('x')
+			})
 		})
 
 		it('logs a warning when a write is vetoed', () => {
