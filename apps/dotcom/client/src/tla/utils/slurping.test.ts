@@ -1,4 +1,4 @@
-import { Editor, LocalIndexedDb, createShapeId, createTLStore } from 'tldraw'
+import { Editor, LocalIndexedDb, createShapeId, createTLStore, promiseWithResolve } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { TldrawApp } from '../app/TldrawApp'
 import { maybeSlurp } from './slurping'
@@ -62,20 +62,25 @@ describe('maybeSlurp', () => {
 	})
 
 	it.each(['missing schema', 'empty records'])('keeps %s retryable', async (scenario) => {
+		const missingData = {
+			schema: scenario === 'missing schema' ? undefined : localData.schema,
+			records: [],
+			sessionStateSnapshot: undefined,
+		}
 		const load = vi
 			.spyOn(LocalIndexedDb.prototype, 'load')
-			.mockResolvedValueOnce({
-				schema: scenario === 'missing schema' ? undefined : localData.schema,
-				records: [],
-				sessionStateSnapshot: undefined,
-			})
+			.mockResolvedValueOnce(missingData)
+			.mockResolvedValueOnce(missingData)
 			.mockResolvedValueOnce(localData)
 
-		const firstOpen = maybeSlurp(opts)
-		await vi.advanceTimersByTimeAsync(50)
-		await firstOpen
-		expect(editor.getDocumentSettings().meta).toEqual({})
-		expect(editor.getShape(shapeId)).toBeUndefined()
+		for (let i = 0; i < 2; i++) {
+			const open = maybeSlurp(opts)
+			await vi.advanceTimersByTimeAsync(50)
+			await open
+			expect(editor.getDocumentSettings().meta).toEqual({})
+			expect(editor.getShape(shapeId)).toBeUndefined()
+			expect(opts.addDialog).not.toHaveBeenCalled()
+		}
 
 		const nextOpen = maybeSlurp(opts)
 		await vi.advanceTimersByTimeAsync(50)
@@ -85,6 +90,86 @@ describe('maybeSlurp', () => {
 			slurpPersistenceKey: 'local-drawing',
 			slurpFinished: true,
 		})
-		expect(load).toHaveBeenCalledTimes(2)
+		expect(load).toHaveBeenCalledTimes(3)
+	})
+
+	it('stays silent without local data even when the cloud board has edits', async () => {
+		const cloudShapeId = createShapeId('cloud-edit')
+		editor.createShape({ id: cloudShapeId, type: 'group' })
+
+		const open = maybeSlurp(opts)
+		await vi.advanceTimersByTimeAsync(50)
+		await open
+
+		expect(editor.getShape(cloudShapeId)).toMatchObject({ id: cloudShapeId })
+		expect(editor.getDocumentSettings().meta).toEqual({})
+		expect(opts.addDialog).not.toHaveBeenCalled()
+	})
+
+	it('does not mark an unrestored document finished when the cloud board has edits', async () => {
+		const cloudShapeId = createShapeId('cloud-edit')
+		editor.createShape({ id: cloudShapeId, type: 'group' })
+		vi.spyOn(LocalIndexedDb.prototype, 'load').mockResolvedValue(localData)
+
+		const open = maybeSlurp(opts)
+		await vi.advanceTimersByTimeAsync(50)
+		await open
+
+		expect(editor.getShape(cloudShapeId)).toMatchObject({ id: cloudShapeId })
+		expect(editor.getShape(shapeId)).toBeUndefined()
+		expect(editor.getDocumentSettings().meta).toEqual({})
+		expect(opts.addDialog).toHaveBeenCalledOnce()
+	})
+
+	it('does not restore deleted content after the document was already slurped', async () => {
+		editor.updateDocumentSettings({ meta: { slurpPersistenceKey: 'local-drawing' } })
+		vi.spyOn(LocalIndexedDb.prototype, 'load').mockResolvedValue(localData)
+
+		const open = maybeSlurp(opts)
+		await vi.advanceTimersByTimeAsync(50)
+		await open
+
+		expect(editor.getShape(shapeId)).toBeUndefined()
+		expect(editor.getDocumentSettings().meta).toEqual({
+			slurpPersistenceKey: 'local-drawing',
+			slurpFinished: true,
+		})
+		expect(opts.addDialog).not.toHaveBeenCalled()
+	})
+
+	it('preserves cloud edits made while the local document is loading', async () => {
+		const data = promiseWithResolve<typeof localData>()
+		vi.spyOn(LocalIndexedDb.prototype, 'load').mockReturnValue(data)
+		const open = maybeSlurp(opts)
+		await vi.advanceTimersByTimeAsync(50)
+
+		const cloudShapeId = createShapeId('cloud-edit')
+		editor.createShape({ id: cloudShapeId, type: 'group' })
+		data.resolve(localData)
+		await open
+
+		expect(editor.getShape(cloudShapeId)).toMatchObject({ id: cloudShapeId })
+		expect(editor.getShape(shapeId)).toBeUndefined()
+		expect(editor.getDocumentSettings().meta).toEqual({})
+		expect(opts.addDialog).toHaveBeenCalledOnce()
+	})
+
+	it('does not overwrite another slurp that finished while reading the local document', async () => {
+		const data = promiseWithResolve<typeof localData>()
+		vi.spyOn(LocalIndexedDb.prototype, 'load').mockReturnValue(data)
+		const open = maybeSlurp(opts)
+		await vi.advanceTimersByTimeAsync(50)
+
+		editor.createShape({ id: shapeId, type: 'group', x: 100 })
+		editor.updateDocumentSettings({ meta: { slurpPersistenceKey: 'local-drawing' } })
+		data.resolve(localData)
+		await open
+
+		expect(editor.getShape(shapeId)).toMatchObject({ id: shapeId, x: 100 })
+		expect(editor.getDocumentSettings().meta).toEqual({
+			slurpPersistenceKey: 'local-drawing',
+			slurpFinished: true,
+		})
+		expect(opts.addDialog).not.toHaveBeenCalled()
 	})
 })
