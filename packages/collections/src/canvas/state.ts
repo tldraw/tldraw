@@ -35,6 +35,12 @@ export const collapsedCollectionIds = new EditorAtom<TLCollectionId[]>(
 	() => []
 )
 
+/** The panel's sections showing every item rather than their first few rows. */
+export const expandedCollectionIds = new EditorAtom<TLCollectionId[]>(
+	'expandedCollectionIds',
+	() => []
+)
+
 /** An item just saved whose menu opens with its name ready to edit. */
 export const renamingItemId = new EditorAtom<TLCollectionItemId | null>(
 	'renamingItemId',

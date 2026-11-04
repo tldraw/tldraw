@@ -118,6 +118,11 @@ export interface CollectionsPanelProps {
 	addControl?: AddControl
 	/** What a collection with no items shows. Defaults to `'message'`. */
 	emptyCollection?: EmptyCollection
+	/**
+	 * In sections, how many rows of items each section shows before a "Show all" control reveals
+	 * the rest. Defaults to 2. Pass `Infinity` to show every item.
+	 */
+	sectionRows?: number
 }
 
 /**
@@ -143,6 +148,7 @@ export function CollectionsPanel({
 	header = 'picker',
 	addControl = 'header',
 	emptyCollection = 'message',
+	sectionRows = 2,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -293,6 +299,7 @@ export function CollectionsPanel({
 												emptyCollection={emptyCollection}
 												saving={saving}
 												readOnly={readOnly}
+												maxRows={filter.trim() === '' ? sectionRows : undefined}
 											/>
 										)}
 									</section>
