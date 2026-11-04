@@ -57,7 +57,7 @@ type Scope = 'personal' | 'workspace'
 interface ScopeSettings {
 	showPersonal: 'shown' | 'hidden'
 	layout: 'mixed' | 'grouped'
-	newScope: Scope
+	fileOwner: Scope
 	workspaceEditors: 'everyone' | 'admins'
 	role: 'admin' | 'member'
 }
@@ -65,7 +65,7 @@ interface ScopeSettings {
 const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 	showPersonal: 'shown',
 	layout: 'mixed',
-	newScope: 'personal',
+	fileOwner: 'personal',
 	workspaceEditors: 'everyone',
 	role: 'admin',
 }
@@ -92,7 +92,7 @@ const WORKSPACE_CHANGES: TLCollectionAction[] = [
 ]
 
 // The in-memory source, with each action switchable from the Permissions page, and scopes from the
-// Scope page: personal collections can be hidden, new ones go to the chosen owner, and a member
+// Scope page: personal collections can be hidden, new ones go to the file's owner, and a member
 // may be kept from changing workspace collections.
 class PlaygroundSource extends InMemoryCollectionSource {
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
@@ -108,12 +108,8 @@ class PlaygroundSource extends InMemoryCollectionSource {
 		return all.filter((collection) => collection.ownerId !== PERSONAL)
 	}
 
-	override async createCollection(name: string) {
-		const collection = await super.createCollection(name)
-		const ownerId = OWNER_OF_SCOPE[scopeSettings.get().newScope]
-		if (collection.ownerId === ownerId) return collection
-		await super.moveCollection(collection.id, ownerId)
-		return { ...collection, ownerId }
+	override getDefaultOwnerId() {
+		return OWNER_OF_SCOPE[scopeSettings.get().fileOwner]
 	}
 
 	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
@@ -347,7 +343,7 @@ type Choice = {
 const SCOPE_KEYS: (keyof ScopeSettings)[] = [
 	'showPersonal',
 	'layout',
-	'newScope',
+	'fileOwner',
 	'workspaceEditors',
 	'role',
 ]
@@ -701,11 +697,11 @@ const SURFACES: Surface[] = [
 				],
 			},
 			{
-				key: 'newScope',
-				label: 'New collections go to',
+				key: 'fileOwner',
+				label: 'This file belongs to',
 				options: [
 					{ value: 'personal', label: 'Personal' },
-					{ value: 'workspace', label: 'The workspace' },
+					{ value: 'workspace', label: 'Acme workspace' },
 				],
 			},
 			{
