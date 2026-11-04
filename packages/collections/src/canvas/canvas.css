@@ -241,11 +241,15 @@
 
 .tlui-collections-menu__submenu-trigger > .tlui-menu__submenu__trigger.tlui-button::after {
 	inset: 2px;
-	background: var(--tl-color-muted-2);
 }
 
-.tlui-collections-menu__submenu-trigger > .tlui-menu__submenu__trigger[data-state='open']::after {
-	opacity: 1;
+.tlui-collections-menu__submenu > .tlui-button__checkbox {
+	margin: 0;
+	padding: 0 10px;
+}
+
+.tlui-collections-menu__submenu > .tlui-button__checkbox::after {
+	inset: 2px;
 }
 
 .tlui-collections-menu__item--danger {
