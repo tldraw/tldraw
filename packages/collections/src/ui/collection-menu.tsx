@@ -18,6 +18,7 @@ const messages = defineMessages({
 	delete: { id: 'collections.collection-menu.delete', defaultMessage: 'Delete collection' },
 	sort: { id: 'collections.collection-menu.sort', defaultMessage: 'Sort items by' },
 	reverse: { id: 'collections.collection-menu.reverse', defaultMessage: 'Reverse order' },
+	move: { id: 'collections.collection-menu.move', defaultMessage: 'Move to' },
 })
 
 /** @public */
@@ -31,6 +32,15 @@ export interface CollectionMenuSort {
 }
 
 /** @public */
+export interface CollectionMenuMove {
+	/** Who the collection can move to, in the order to list them. */
+	owners: { id: string; name: string }[]
+	/** The collection's current owner, checked in the list. */
+	value?: string
+	onValueChange(ownerId: string): void
+}
+
+/** @public */
 export interface CollectionMenuProps {
 	/** Leave out any action the source doesn't allow; the menu hides it. */
 	onCreate?(): void
@@ -38,19 +48,22 @@ export interface CollectionMenuProps {
 	onDelete?(): void
 	/** A "Sort items by" submenu. Leave out to hide it. */
 	sort?: CollectionMenuSort
+	/** A "Move to" submenu of owners. Leave out to hide it. */
+	move?: CollectionMenuMove
 }
 
 /**
  * A ⋯ menu for the panel's collections. Renders nothing when it has no actions.
  * @public @react
  */
-export function CollectionMenu({ onCreate, onRename, onDelete, sort }: CollectionMenuProps) {
+export function CollectionMenu({ onCreate, onRename, onDelete, sort, move }: CollectionMenuProps) {
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
 	const create = isReadonly ? undefined : onCreate
 	const rename = isReadonly ? undefined : onRename
 	const remove = isReadonly ? undefined : onDelete
-	if (!create && !rename && !remove && !sort) return null
+	const moveTo = isReadonly ? undefined : move
+	if (!create && !rename && !remove && !sort && !moveTo) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id="collections-collection-menu">
@@ -88,6 +101,20 @@ export function CollectionMenu({ onCreate, onRename, onDelete, sort }: Collectio
 								checked={sort.reversed}
 								onSelect={() => sort.onReversedChange(!sort.reversed)}
 							/>
+						</MenuSubmenu>
+					)}
+					{moveTo && (
+						<MenuSubmenu id="collections-collection-menu-move" label={msg(messages.move)}>
+							{moveTo.owners.map((owner) => (
+								<MenuCheckboxItem
+									key={owner.id}
+									label={owner.name}
+									checked={owner.id === moveTo.value}
+									onSelect={() => {
+										if (owner.id !== moveTo.value) moveTo.onValueChange(owner.id)
+									}}
+								/>
+							))}
 						</MenuSubmenu>
 					)}
 					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
