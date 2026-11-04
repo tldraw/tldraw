@@ -6,12 +6,12 @@ import {
 	CollectionRecordType,
 	CollectionsPanelButton,
 	collectionsPanelOpen,
+	type CollectionSource,
 	defaultItemOrderings,
-	type GroupCollections,
 	InMemoryCollectionSource,
+	type InMemoryCollectionSourceOptions,
 	saveShapesToCollection,
 	sourceItemOrder,
-	type TLCollection,
 	type TLCollectionAction,
 	type TLCollectionId,
 } from '@tldraw/collections'
@@ -72,14 +72,16 @@ const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 
 const scopeSettings = atom<ScopeSettings>('collections playground scope', DEFAULT_SCOPE_SETTINGS)
 
-// Which scope each collection belongs to. A real source would know from where it stores the
-// collection, e.g. the workspace (group) it belongs to.
-const scopes = atom<Record<string, Scope>>('collections playground scopes', {
-	[WIREFRAMES]: 'workspace',
-	[ICONS]: 'personal',
-})
+// Owners as tldraw.com has them: the user's home workspace, then a workspace they belong to.
+const PERSONAL = 'home'
+const ACME = 'acme'
 
-const scopeOf = (collection: TLCollection): Scope => scopes.get()[collection.id] ?? 'personal'
+const OWNERS = [
+	{ id: PERSONAL, name: 'Personal' },
+	{ id: ACME, name: 'Acme workspace' },
+]
+
+const OWNER_OF_SCOPE: Record<Scope, string> = { personal: PERSONAL, workspace: ACME }
 
 const WORKSPACE_CHANGES: TLCollectionAction[] = [
 	'renameCollection',
@@ -90,28 +92,36 @@ const WORKSPACE_CHANGES: TLCollectionAction[] = [
 ]
 
 // The in-memory source, with each action switchable from the Permissions page, and scopes from the
-// Scope page: personal collections can be hidden, new ones go to the chosen scope, and a member
+// Scope page: personal collections can be hidden, new ones go to the chosen owner, and a member
 // may be kept from changing workspace collections.
 class PlaygroundSource extends InMemoryCollectionSource {
+	constructor(options: InMemoryCollectionSourceOptions = {}) {
+		super({ ...options, owners: OWNERS })
+	}
+
 	override getCollections() {
 		const showsShapes = settings.get().manyItems === 'shown'
 		const all = super
 			.getCollections()
 			.filter((collection) => showsShapes || collection.id !== SHAPES)
 		if (scopeSettings.get().showPersonal === 'shown') return all
-		return all.filter((collection) => scopeOf(collection) !== 'personal')
+		return all.filter((collection) => collection.ownerId !== PERSONAL)
 	}
 
 	override async createCollection(name: string) {
 		const collection = await super.createCollection(name)
-		scopes.update((prev) => ({ ...prev, [collection.id]: scopeSettings.get().newScope }))
-		return collection
+		const ownerId = OWNER_OF_SCOPE[scopeSettings.get().newScope]
+		if (collection.ownerId === ownerId) return collection
+		await super.moveCollection(collection.id, ownerId)
+		return { ...collection, ownerId }
 	}
 
 	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
 		if (!permissions.get()[action] || !super.can(action, collectionId)) return false
 		const { workspaceEditors, role } = scopeSettings.get()
-		const isWorkspace = collectionId !== undefined && scopes.get()[collectionId] === 'workspace'
+		const isWorkspace =
+			collectionId !== undefined &&
+			super.getCollections().find((c) => c.id === collectionId)?.ownerId === ACME
 		if (isWorkspace && workspaceEditors === 'admins' && role === 'member') {
 			return !WORKSPACE_CHANGES.includes(action)
 		}
@@ -119,15 +129,12 @@ class PlaygroundSource extends InMemoryCollectionSource {
 	}
 }
 
-const groupByScope: GroupCollections = (collection) =>
-	scopeOf(collection) === 'workspace' ? 'Acme workspace' : 'Personal'
-
 const samples = new PlaygroundSource({
 	initial: {
 		collections: [
-			CollectionRecordType.create({ id: WIREFRAMES, name: 'Wireframes' }),
-			CollectionRecordType.create({ id: ICONS, name: 'Icons' }),
-			CollectionRecordType.create({ id: SHAPES, name: 'Shapes' }),
+			CollectionRecordType.create({ id: WIREFRAMES, name: 'Wireframes', ownerId: ACME }),
+			CollectionRecordType.create({ id: ICONS, name: 'Icons', ownerId: PERSONAL }),
+			CollectionRecordType.create({ id: SHAPES, name: 'Shapes', ownerId: PERSONAL }),
 		],
 		items: [],
 		contents: {},
@@ -140,11 +147,22 @@ const SOURCES = {
 	'one-empty': new PlaygroundSource({
 		id: 'playground-one-empty',
 		initial: {
-			collections: [CollectionRecordType.create({ name: 'Untitled' })],
+			collections: [CollectionRecordType.create({ name: 'Untitled', ownerId: PERSONAL })],
 			items: [],
 			contents: {},
 		},
 	}),
+}
+
+// The same source without moveCollection, for the playground's toggle: the panel then offers no
+// "Move to". It shares the source's collections, so turning moving back on loses nothing.
+const withoutMoving = (source: CollectionSource): CollectionSource =>
+	Object.assign(Object.create(source), { moveCollection: undefined })
+
+const FIXED_OWNER_SOURCES: Record<keyof typeof SOURCES, CollectionSource> = {
+	samples: withoutMoving(SOURCES.samples),
+	empty: withoutMoving(SOURCES.empty),
+	'one-empty': withoutMoving(SOURCES['one-empty']),
 }
 
 type GeoProps = Partial<TLGeoShape['props']>
@@ -256,6 +274,7 @@ interface PlaygroundSettings {
 	navigation: CollectionsPanelNavigation
 	sectionRows: '1' | '2' | '3' | 'all'
 	manyItems: 'hidden' | 'shown'
+	moveCollections: 'yes' | 'no'
 	order: AddToCollectionOrder
 	sorting: 'built-in' | 'source-only'
 	tileStyle: 'well' | 'card' | 'plain'
@@ -286,6 +305,7 @@ const DEFAULT_SETTINGS: PlaygroundSettings = {
 	navigation: 'sections',
 	sectionRows: '2',
 	manyItems: 'hidden',
+	moveCollections: 'yes',
 	order: 'source',
 	sorting: 'built-in',
 	tileStyle: 'well',
@@ -378,6 +398,14 @@ const SURFACES: Surface[] = [
 				options: [
 					{ value: 'hidden', label: 'Hidden' },
 					{ value: 'shown', label: 'Shown' },
+				],
+			},
+			{
+				key: 'moveCollections',
+				label: 'Collections can move between owners',
+				options: [
+					{ value: 'yes', label: 'Yes' },
+					{ value: 'no', label: 'No' },
 				],
 			},
 		],
@@ -645,7 +673,7 @@ const SURFACES: Surface[] = [
 	},
 	{
 		page: 'Scope',
-		hint: 'Personal and workspace collections, as seen in a team file.',
+		hint: 'Personal and workspace collections, as seen in a team file. Move one from its ⋯ menu.',
 		shapes: true,
 		choices: [
 			{
@@ -660,8 +688,16 @@ const SURFACES: Surface[] = [
 				key: 'layout',
 				label: 'Layout',
 				options: [
-					{ value: 'grouped', label: 'Grouped by scope' },
+					{ value: 'grouped', label: 'Grouped by owner' },
 					{ value: 'mixed', label: 'Mixed' },
+				],
+			},
+			{
+				key: 'moveCollections',
+				label: 'Collections can move between owners',
+				options: [
+					{ value: 'yes', label: 'Yes' },
+					{ value: 'no', label: 'No' },
 				],
 			},
 			{
@@ -798,7 +834,14 @@ function PlaygroundControls({ editor }: { editor: Editor }) {
 }
 
 function usePlaygroundSource() {
-	return useValue('playground source', () => SOURCES[settings.get().data], [])
+	return useValue(
+		'playground source',
+		() => {
+			const { data, moveCollections } = settings.get()
+			return moveCollections === 'yes' ? SOURCES[data] : FIXED_OWNER_SOURCES[data]
+		},
+		[]
+	)
 }
 
 function PlaygroundPanel() {
@@ -872,7 +915,7 @@ function PlaygroundPanel() {
 			source={source}
 			navigation={navigation}
 			itemOrderings={sorting === 'built-in' ? defaultItemOrderings : [sourceItemOrder]}
-			groupCollections={grouped ? groupByScope : undefined}
+			groupCollections={grouped ? 'owner' : undefined}
 			tileAppearance={tileAppearance}
 			side={side}
 			width={Number(panelWidth)}
@@ -907,7 +950,7 @@ function PlaygroundSaveMenu() {
 		<AddToCollectionMenuItem
 			source={source}
 			order={order}
-			groupCollections={grouped ? groupByScope : undefined}
+			groupCollections={grouped ? 'owner' : undefined}
 			saving={saving}
 		/>
 	)
