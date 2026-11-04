@@ -1,19 +1,5 @@
 /* ------------------- Top left panel ------------------- */
 
-.menuPanelRow {
-	display: flex;
-	align-items: flex-start;
-	max-width: 100%;
-	min-width: 0px;
-}
-
-/* Clears the top left panel's 4px top border so the button lines up with its buttons. */
-.collectionsPanelButton {
-	flex: 0 0 auto;
-	padding: 4px 0px 0px 4px;
-	pointer-events: all;
-}
-
 .topLeftOfflineLogo {
 	color: var(--tl-color-text-0);
 	margin-top: -4px;
@@ -217,9 +203,9 @@ button.topLeftInputNameWidthSetter {
 
 /* ------------------- Top right ------------------ */
 
-/* Sit the comments toggle on a canvas-coloured chip like the other top-right canvas buttons, so
-   it reads as part of the same row rather than floating bare over the canvas. */
-.commentsSidebarButton {
+/* Sit the panel toggles on a canvas-coloured chip like the other top-right canvas buttons, so
+   they read as part of the same row rather than floating bare over the canvas. */
+.topRightIconButton {
 	background-color: var(--tl-color-background);
 	border-radius: 8px;
 	/* A 36px square matching the share button; min-width because the base button's 40px would
@@ -230,13 +216,13 @@ button.topLeftInputNameWidthSetter {
 }
 
 /* Match the hover wash to the share pill's inset and radius (the base ::after sits at 4px). */
-.commentsSidebarButton::after {
+.topRightIconButton::after {
 	inset: 2px;
 }
 
-/* The comments sidebar toggle shows the same open wash as the main menu trigger while the
-   sidebar it controls is open. */
-.commentsSidebarButton[aria-pressed='true']::after {
+/* A panel toggle shows the same open wash as the main menu trigger while the panel it controls
+   is open. */
+.topRightIconButton[aria-pressed='true']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
 }

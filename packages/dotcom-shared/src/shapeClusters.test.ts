@@ -277,12 +277,40 @@ describe('labelClusters', () => {
 		expect(labelled.label).toContain('checkout')
 	})
 
-	it('gives an empty label to a cluster with no text at all', () => {
-		expect(labelClusters([[{ type: 'geo', props: {} } as unknown as TLShape]])[0]).toEqual({
-			label: '',
+	// Handwriting has no text to label it by, and a blank says nothing about what is there.
+	it('labels a cluster with no text by what it holds, most numerous first', () => {
+		const of = (type: string, props: object = {}) => ({ type, props }) as unknown as TLShape
+		const [strokes, mixed] = labelClusters([
+			[of('draw'), of('draw'), of('draw'), of('highlight')],
+			[
+				of('group'),
+				of('geo', { geo: 'rectangle' }),
+				of('geo', { geo: 'arrow-right' }),
+				of('arrow'),
+			],
+		])
+		expect(strokes).toEqual({
+			label: '3 freehand strokes + 1 highlighter stroke',
 			keywords: [],
 			frameNames: [],
 		})
+		// The group is only a container, and the two kinds shown are the first two alphabetically.
+		expect(mixed.label).toBe('1 arrow + 1 rectangle')
+		expect(labelClusters([[of('custom-widget')]])[0].label).toBe('1 custom-widget shape')
+	})
+
+	it('names geo shapes as nouns, plural included', () => {
+		const geo = (name: string) => ({ type: 'geo', props: { geo: name } }) as unknown as TLShape
+		const labels = labelClusters([
+			[geo('check-box'), geo('check-box'), geo('rhombus'), geo('rhombus')],
+			[geo('x-box'), geo('x-box'), geo('x-box'), geo('rhombus-2'), geo('rhombus')],
+			[geo('arrow-left'), geo('arrow-left'), geo('ellipse'), geo('ellipse'), geo('ellipse')],
+		]).map((cluster) => cluster.label)
+		expect(labels).toEqual([
+			'2 check boxes + 2 rhombuses',
+			'3 x boxes + 2 rhombuses',
+			'3 ellipses + 2 left arrow shapes',
+		])
 	})
 
 	it('drops stopwords, short tokens and bare numbers', () => {

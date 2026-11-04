@@ -5,9 +5,11 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
 	useTranslation,
 } from 'tldraw'
 
@@ -16,7 +18,19 @@ const messages = defineMessages({
 	create: { id: 'collections.collection-menu.create', defaultMessage: 'New collection' },
 	rename: { id: 'collections.collection-menu.rename', defaultMessage: 'Rename collection' },
 	delete: { id: 'collections.collection-menu.delete', defaultMessage: 'Delete collection' },
+	sort: { id: 'collections.collection-menu.sort', defaultMessage: 'Sort items by' },
+	reverse: { id: 'collections.collection-menu.reverse', defaultMessage: 'Reverse order' },
 })
+
+/** @public */
+export interface CollectionMenuSort {
+	/** Each ordering's id and label, the label as is or as a translation key. */
+	options: { id: string; label: string }[]
+	value: string
+	onValueChange(id: string): void
+	reversed: boolean
+	onReversedChange(reversed: boolean): void
+}
 
 /** @public */
 export interface CollectionMenuProps {
@@ -24,6 +38,8 @@ export interface CollectionMenuProps {
 	onCreate?(): void
 	onRename?(): void
 	onDelete?(): void
+	/** A "Sort items by" submenu. Leave out to hide it. */
+	sort?: CollectionMenuSort
 }
 
 /**
@@ -31,9 +47,9 @@ export interface CollectionMenuProps {
  * no actions.
  * @public @react
  */
-export function CollectionMenu({ onCreate, onRename, onDelete }: CollectionMenuProps) {
+export function CollectionMenu({ onCreate, onRename, onDelete, sort }: CollectionMenuProps) {
 	const msg = useTranslation()
-	if (!onCreate && !onRename && !onDelete) return null
+	if (!onCreate && !onRename && !onDelete && !sort) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id="collections-collection-menu">
@@ -43,7 +59,7 @@ export function CollectionMenu({ onCreate, onRename, onDelete }: CollectionMenuP
 					tooltip={msg(messages.moreOptions)}
 					title={msg(messages.moreOptions)}
 				>
-					<TldrawUiButtonIcon icon="dots-horizontal" small />
+					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={4} alignOffset={0}>
@@ -56,6 +72,33 @@ export function CollectionMenu({ onCreate, onRename, onDelete }: CollectionMenuP
 					{onRename && (
 						<TldrawUiMenuGroup id="modify">
 							<TldrawUiMenuItem id="rename" label={messages.rename.id} onSelect={onRename} />
+						</TldrawUiMenuGroup>
+					)}
+					{sort && (
+						<TldrawUiMenuGroup id="sort">
+							<TldrawUiMenuSubmenu id="sort-items" label={messages.sort.id}>
+								<TldrawUiMenuGroup id="sort-orderings">
+									{sort.options.map((option) => (
+										<TldrawUiMenuCheckboxItem
+											key={option.id}
+											id={`sort-${option.id}`}
+											label={option.label}
+											checked={option.id === sort.value}
+											readonlyOk
+											onSelect={() => sort.onValueChange(option.id)}
+										/>
+									))}
+								</TldrawUiMenuGroup>
+								<TldrawUiMenuGroup id="sort-direction">
+									<TldrawUiMenuCheckboxItem
+										id="sort-reverse"
+										label={messages.reverse.id}
+										checked={sort.reversed}
+										readonlyOk
+										onSelect={() => sort.onReversedChange(!sort.reversed)}
+									/>
+								</TldrawUiMenuGroup>
+							</TldrawUiMenuSubmenu>
 						</TldrawUiMenuGroup>
 					)}
 					{onDelete && (
