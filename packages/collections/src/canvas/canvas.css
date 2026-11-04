@@ -85,6 +85,11 @@
 	cursor: pointer;
 }
 
+.tlui-collections-dragging,
+.tlui-collections-dragging * {
+	cursor: var(--tl-cursor-move) !important;
+}
+
 .tlui-collections-tile__button:focus-visible {
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
