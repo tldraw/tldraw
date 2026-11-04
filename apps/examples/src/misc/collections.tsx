@@ -235,7 +235,7 @@ interface PlaygroundSettings {
 }
 
 const settings = atom<PlaygroundSettings>('collections playground', {
-	navigation: 'picker',
+	navigation: 'sections',
 	order: 'source',
 	sorting: 'built-in',
 	tileStyle: 'well',
@@ -303,9 +303,9 @@ const SURFACES: Surface[] = [
 				key: 'navigation',
 				label: 'Moving between collections',
 				options: [
+					{ value: 'sections', label: 'Sections' },
 					{ value: 'picker', label: 'Picker' },
 					{ value: 'list', label: 'List with counts' },
-					{ value: 'sections', label: 'Sections' },
 					{ value: 'previews', label: 'Rows with previews' },
 					{ value: 'tabs', label: 'Tabs' },
 				],
@@ -329,6 +329,7 @@ const SURFACES: Surface[] = [
 				key: 'navigation',
 				label: 'Moving between collections',
 				options: [
+					{ value: 'sections', label: 'Sections' },
 					{ value: 'picker', label: 'Picker' },
 					{ value: 'tabs', label: 'Tabs' },
 				],

@@ -74,7 +74,7 @@ export type CollectionsPanelNavigation = 'picker' | 'list' | 'sections' | 'previ
 /** @public */
 export interface CollectionsPanelProps {
 	source: CollectionSource
-	/** Defaults to `'picker'`. */
+	/** Defaults to `'sections'`. */
 	navigation?: CollectionsPanelNavigation
 	/**
 	 * The ways users can order a collection's items, offered in the panel's ⋯ menu; the first is
@@ -128,7 +128,7 @@ export interface CollectionsPanelProps {
  */
 export function CollectionsPanel({
 	source,
-	navigation = 'picker',
+	navigation = 'sections',
 	itemOrderings = defaultItemOrderings,
 	groupCollections,
 	tileAppearance,
