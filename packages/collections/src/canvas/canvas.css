@@ -261,8 +261,8 @@
 	overflow: visible;
 }
 
-.tlui-collections-section + .tlui-collections-section {
-	border-top: 1px solid var(--tl-color-divider);
+.tlui-collections-section > .tlui-collections-panel__header {
+	border-bottom: none;
 }
 
 .tlui-collections-panel__detail {
