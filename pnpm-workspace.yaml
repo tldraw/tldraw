@@ -41,6 +41,10 @@ minimumReleaseAge: 10080
 # Remove once 1.11.3 clears the gate (2026-10-30T21:53Z).
 minimumReleaseAgeExclude:
   - '@rocicorp/zero@1.11.3'
+  # Remove once 1.5.0 clears the gate (2026-11-09T11:00Z).
+  - '@earendil-works/pi-ai@1.5.0'
+  - '@earendil-works/pi-schema@1.5.0'
+  - '@earendil-works/pi-telemetry@1.5.0'
 
 overrides:
   '@types/node': ^22.15.31

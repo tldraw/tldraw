@@ -292,8 +292,7 @@ function buildActionTools(prompt: AgentPrompt): {
 		tools.push({
 			name: type,
 			description: (schema.meta() as ActionMeta | undefined)?.description ?? '',
-			// pi-ai takes the parameters as JSON Schema.
-			parameters: z.toJSONSchema(inputSchema) as Tool['parameters'],
+			parameters: z.toJSONSchema(inputSchema),
 		})
 	}
 	return { tools, schemas }
