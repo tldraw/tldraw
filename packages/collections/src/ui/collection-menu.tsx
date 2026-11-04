@@ -66,8 +66,8 @@ export function CollectionMenu({ onCreate, onRename, onDelete, sort }: Collectio
 			<TldrawUiDropdownMenuContent
 				className="tlui-collections-menu"
 				side="bottom"
-				align="end"
-				sideOffset={4}
+				align="start"
+				sideOffset={0}
 				alignOffset={0}
 			>
 				<TldrawUiDropdownMenuGroup>
