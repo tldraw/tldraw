@@ -224,6 +224,9 @@ interface PlaygroundSettings {
 	placeAt: 'center' | 'pointer'
 	placeRepeat: 'stack' | 'cascade'
 	placeIntoFrame: 'yes' | 'no'
+	firstUse: 'message' | 'hint' | 'create'
+	readOnlyAdd: 'disable' | 'hide'
+	readOnlyMarker: 'none' | 'lock'
 	data: keyof typeof SOURCES
 }
 
@@ -245,6 +248,9 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	placeAt: 'center',
 	placeRepeat: 'stack',
 	placeIntoFrame: 'no',
+	firstUse: 'message',
+	readOnlyAdd: 'disable',
+	readOnlyMarker: 'none',
 	data: 'samples',
 })
 
@@ -476,6 +482,24 @@ const SURFACES: Surface[] = [
 		page: 'Permissions',
 		hint: 'Turn actions off and see what the panel, its menus and the save menu offer.',
 		shapes: true,
+		choices: [
+			{
+				key: 'readOnlyAdd',
+				label: 'Without Add items, the "+"',
+				options: [
+					{ value: 'disable', label: 'Is disabled' },
+					{ value: 'hide', label: 'Is hidden' },
+				],
+			},
+			{
+				key: 'readOnlyMarker',
+				label: 'Marker',
+				options: [
+					{ value: 'none', label: 'None' },
+					{ value: 'lock', label: 'Lock beside the name' },
+				],
+			},
+		],
 		toggles: [
 			{ action: 'createCollection', label: 'Create collections' },
 			{ action: 'renameCollection', label: 'Rename collections' },
@@ -544,6 +568,15 @@ const SURFACES: Surface[] = [
 					{ value: 'samples', label: 'Samples' },
 					{ value: 'empty', label: 'No collections' },
 					{ value: 'one-empty', label: 'One empty collection' },
+				],
+			},
+			{
+				key: 'firstUse',
+				label: 'With no collections',
+				options: [
+					{ value: 'message', label: 'Say so' },
+					{ value: 'hint', label: 'Say how to start one' },
+					{ value: 'create', label: 'Offer a New collection button' },
 				],
 			},
 		],
@@ -660,6 +693,15 @@ function PlaygroundPanel() {
 		},
 		[]
 	)
+	const firstUse = useValue('first use', () => settings.get().firstUse, [])
+	const readOnly = useValue(
+		'read only',
+		() => {
+			const { readOnlyAdd, readOnlyMarker } = settings.get()
+			return { addButton: readOnlyAdd, marker: readOnlyMarker }
+		},
+		[]
+	)
 	const tileAppearance = useValue(
 		'tile appearance',
 		() => {
@@ -685,6 +727,8 @@ function PlaygroundPanel() {
 			smallScreen={smallScreen}
 			saving={saving}
 			placement={placement}
+			firstUse={firstUse}
+			readOnly={readOnly}
 		/>
 	)
 }

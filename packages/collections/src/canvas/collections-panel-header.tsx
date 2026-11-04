@@ -3,6 +3,7 @@ import {
 	getIncrementedName,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
+	TldrawUiIcon,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -26,6 +27,7 @@ const messages = defineMessages({
 	collapse: { id: 'collections.collapse', defaultMessage: 'Hide items' },
 	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	readOnly: { id: 'collections.read-only', defaultMessage: "You can't add to this collection" },
 	deleteTitle: {
 		id: 'collections.delete-collection-dialog.title',
 		defaultMessage: 'Delete collection',
@@ -65,6 +67,20 @@ export interface CollectionsPanelHeaderProps {
 	groupCollections?: GroupCollections
 	/** What happens around a save from the header's "+". */
 	saving?: SaveSelectionOptions
+	/** How the header shows a collection the user can't add to. */
+	readOnly?: ReadOnlyOptions
+}
+
+/**
+ * How the panel shows a collection the user can't add to. Every field is optional; the defaults
+ * show a disabled "+" and no marker.
+ * @public
+ */
+export interface ReadOnlyOptions {
+	/** `'disable'` shows the "+" greyed out; `'hide'` leaves it out. */
+	addButton?: 'disable' | 'hide'
+	/** `'lock'` puts a lock beside the collection's name. */
+	marker?: 'none' | 'lock'
 }
 
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
@@ -80,6 +96,7 @@ export function CollectionsPanelHeader({
 	detail,
 	groupCollections,
 	saving,
+	readOnly = {},
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -98,6 +115,7 @@ export function CollectionsPanelHeader({
 	const can = useValue(
 		'collection permissions',
 		() => ({
+			mayAdd: currentId !== undefined && source.can('addItem', currentId),
 			add:
 				currentId !== undefined &&
 				editor.getSelectedShapeIds().length > 0 &&
@@ -227,15 +245,26 @@ export function CollectionsPanelHeader({
 			)}
 			{nameControl(current)}
 			<div className="tlui-collections-panel__header-actions">
-				<TldrawUiButton
-					type="icon"
-					disabled={!can.add}
-					tooltip={msg(messages.addSelection)}
-					title={msg(messages.addSelection)}
-					onClick={() => saveSelection(current.id)}
-				>
-					<TldrawUiButtonIcon icon="plus" small />
-				</TldrawUiButton>
+				{readOnly.marker === 'lock' && !can.mayAdd && (
+					<TldrawUiIcon
+						className="tlui-collections-panel__lock"
+						icon="lock"
+						label={msg(messages.readOnly)}
+						title={msg(messages.readOnly)}
+						small
+					/>
+				)}
+				{(can.mayAdd || readOnly.addButton !== 'hide') && (
+					<TldrawUiButton
+						type="icon"
+						disabled={!can.add}
+						tooltip={msg(messages.addSelection)}
+						title={msg(messages.addSelection)}
+						onClick={() => saveSelection(current.id)}
+					>
+						<TldrawUiButtonIcon icon="plus" small />
+					</TldrawUiButton>
+				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the input straight away. */}
 				{!renaming && menu}
