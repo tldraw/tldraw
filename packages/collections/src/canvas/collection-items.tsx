@@ -6,6 +6,7 @@ import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
+import { activeCollectionId, collectionsPanelOpen } from './state'
 
 const messages = defineMessages({
 	emptyCollection: {
@@ -31,6 +32,10 @@ const messages = defineMessages({
 		id: 'collections.delete-error.title',
 		defaultMessage: "Couldn't delete item",
 	},
+	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
+	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
+	movedOpen: { id: 'collections.moved.open', defaultMessage: 'Open' },
+	moveErrorTitle: { id: 'collections.move-error.title', defaultMessage: "Couldn't move item" },
 	changeErrorDescription: {
 		id: 'collections.change-error.description',
 		defaultMessage:
@@ -59,6 +64,19 @@ export function CollectionItems({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
+	// Collections an item here can move to: other collections that accept items, when the source
+	// can move and items may leave this one.
+	const moveTargets = useValue(
+		'move targets',
+		() =>
+			source.moveItem && source.can('deleteItem', collectionId)
+				? source
+						.getCollections()
+						.filter((c) => c.id !== collectionId && source.can('addItem', c.id))
+						.map(({ id, name }) => ({ id, name }))
+				: [],
+		[source, collectionId]
+	)
 	const items = useValue(
 		'collection items',
 		() => sortItems(source.getItems(collectionId), ordering, reversed),
@@ -97,6 +115,31 @@ export function CollectionItems({
 		},
 		[addToast, msg]
 	)
+	const moveItem = useCallback(
+		(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) => {
+			const target = moveTargets.find((c) => c.id === toCollectionId)
+			source.moveItem?.(itemId, toCollectionId).then(
+				() => {
+					addToast({
+						title: msg(messages.movedTitle),
+						description: target ? msg(messages.movedDescription, { name: target.name }) : undefined,
+						actions: [
+							{
+								label: msg(messages.movedOpen),
+								type: 'primary',
+								onClick: () => {
+									activeCollectionId.set(editor, toCollectionId)
+									collectionsPanelOpen.set(editor, true)
+								},
+							},
+						],
+					})
+				},
+				() => showChangeError(msg(messages.moveErrorTitle))
+			)
+		},
+		[editor, source, moveTargets, addToast, msg, showChangeError]
+	)
 	const renameItem = useCallback(
 		(itemId: TLCollectionItemId, name: string) => {
 			setRenamingId(undefined)
@@ -124,6 +167,8 @@ export function CollectionItems({
 				<ItemMenu
 					id={item.id}
 					onRename={canRename ? () => setRenamingId(item.id) : undefined}
+					moveTargets={moveTargets}
+					onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
 					onDelete={
 						canDelete
 							? () =>
