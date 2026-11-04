@@ -86,6 +86,7 @@ afterEach(() => {
 describe('file room record veto telemetry', () => {
 	it('indexes every create/update/delete veto by room with bounded record dimensions', async () => {
 		vi.useFakeTimers()
+		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValueOnce(null).mockReturnValueOnce(null)
 		const h = await harness()
 		const { auth } = h
 		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
@@ -125,16 +126,18 @@ describe('file room record veto telemetry', () => {
 		const { auth } = h
 		const waitUntil = vi.spyOn(h.object.state, 'waitUntil')
 		for (let i = 0; i < 1000; i++) {
-			expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
+			expect(
+				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+			).toBeNull()
 		}
 		expect(h.points).toEqual([])
 		expect(waitUntil).toHaveBeenCalledTimes(1)
 		await h.flush()
-		expect(h.points).toEqual([point('shape', 'create', 'note', 1000)])
-		auth.shape({ session, type: 'create', prev: null, next: note('bob') })
+		expect(h.points).toEqual([point('shape', 'update', 'note', 1000)])
+		auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
 		await h.flush()
 		expect(h.points).toHaveLength(2)
-		expect(h.points[1]).toEqual(point('shape', 'create', 'note'))
+		expect(h.points[1]).toEqual(point('shape', 'update', 'note'))
 		expect(h.warnings).toHaveLength(2)
 	})
 
@@ -171,7 +174,7 @@ describe('file room record veto telemetry', () => {
 			vi.setSystemTime(new Date('2026-01-01T00:00:00Z').getTime() + minutes * 60_000)
 			const h = await harness(saved)
 			const { auth } = h
-			auth.shape({ session, type: 'create', prev: null, next: note('bob') })
+			auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
 			await h.flush()
 			expect(h.warnings).toHaveLength(expected)
 		}
@@ -188,13 +191,15 @@ describe('file room record veto telemetry', () => {
 			if (dependency === 'analytics') h.object.measure.writeDataPoint = fail
 			if (dependency === 'storage') h.object.storage.put = fail
 			if (dependency === 'sentry') h.object.sentry.captureMessage = fail
-			expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
+			expect(
+				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+			).toBeNull()
 			await expect(h.flush()).resolves.toBeUndefined()
 			if (dependency === 'analytics') {
 				h.object.measure.writeDataPoint = writeDataPoint
-				auth.shape({ session, type: 'create', prev: null, next: note('bob') })
+				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
 				await h.flush()
-				expect(h.points).toEqual([point('shape', 'create', 'note')])
+				expect(h.points).toEqual([point('shape', 'update', 'note')])
 			}
 		}
 	})
