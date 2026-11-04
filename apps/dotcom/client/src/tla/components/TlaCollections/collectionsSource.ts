@@ -46,7 +46,7 @@ class OwnedInMemoryCollectionSource extends InMemoryCollectionSource {
  * Until tldraw.com has a real source, collections are kept in this browser, per user: they survive
  * a reload but don't follow anyone to another browser or device. A collection belongs to the open
  * file or to one of the user's workspaces, their home workspace first, and new ones go to the open
- * file's workspace. A file's own collections are listed only while that file is open.
+ * file. A file's own collections are listed only while that file is open.
  *
  * An in-memory source, saved to IndexedDB after each change and loaded back on start. Each
  * collection is saved with its owner. Until the load finishes nothing is listed, and writes wait
@@ -97,7 +97,7 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		})
 	}
 
-	/** Called by the editor's collections UI, so new collections go to the open file's workspace. */
+	/** Called by the editor's collections UI, so new collections go to the open file. */
 	setOpenFileId(fileId: string | undefined) {
 		this.openFileId.set(fileId)
 	}
@@ -123,12 +123,8 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		return this.owners$.get()
 	}
 
-	// A file in a workspace the user isn't a member of, such as a shared one, falls back to home.
 	getDefaultOwnerId() {
-		const fileId = this.openFileId.get()
-		const workspaceId = fileId === undefined ? undefined : this.app.getFile(fileId)?.owningGroupId
-		const isOwner = this.getCollectionOwners().some((owner) => owner.id === workspaceId)
-		return workspaceId && isOwner ? workspaceId : this.app.getHomeWorkspaceId()
+		return this.openFileId.get() ?? this.app.getHomeWorkspaceId()
 	}
 
 	async createCollection(name: string, options: TLNewCollectionOptions = {}) {

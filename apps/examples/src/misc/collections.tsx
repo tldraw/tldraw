@@ -53,12 +53,12 @@ const permissions = atom<Permissions>('collections playground permissions', {
 	deleteItem: true,
 })
 
-type Scope = 'personal' | 'workspace'
+type NewCollectionOwner = 'board' | 'personal' | 'workspace'
 
 interface ScopeSettings {
 	showPersonal: 'shown' | 'hidden'
 	layout: 'mixed' | 'grouped'
-	fileOwner: Scope
+	newCollectionOwner: NewCollectionOwner
 	workspaceEditors: 'everyone' | 'admins'
 	role: 'admin' | 'member'
 }
@@ -66,7 +66,7 @@ interface ScopeSettings {
 const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 	showPersonal: 'shown',
 	layout: 'grouped',
-	fileOwner: 'personal',
+	newCollectionOwner: 'board',
 	workspaceEditors: 'everyone',
 	role: 'admin',
 }
@@ -85,7 +85,11 @@ const OWNERS = [
 	{ id: ACME, name: 'Acme workspace' },
 ]
 
-const OWNER_OF_SCOPE: Record<Scope, string> = { personal: PERSONAL, workspace: ACME }
+const OWNER_IDS: Record<NewCollectionOwner, string> = {
+	board: BOARD,
+	personal: PERSONAL,
+	workspace: ACME,
+}
 
 const WORKSPACE_CHANGES: TLCollectionAction[] = [
 	'renameCollection',
@@ -96,7 +100,7 @@ const WORKSPACE_CHANGES: TLCollectionAction[] = [
 ]
 
 // The in-memory source, with each action switchable from the Permissions page, and scopes from the
-// Scope page: personal collections can be hidden, new ones go to the file's owner, and a member
+// Scope page: personal collections can be hidden, new ones go to the chosen owner, and a member
 // may be kept from changing workspace collections.
 class PlaygroundSource extends InMemoryCollectionSource {
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
@@ -113,7 +117,7 @@ class PlaygroundSource extends InMemoryCollectionSource {
 	}
 
 	override getDefaultOwnerId() {
-		return OWNER_OF_SCOPE[scopeSettings.get().fileOwner]
+		return OWNER_IDS[scopeSettings.get().newCollectionOwner]
 	}
 
 	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
@@ -358,7 +362,7 @@ type Choice = {
 const SCOPE_KEYS: (keyof ScopeSettings)[] = [
 	'showPersonal',
 	'layout',
-	'fileOwner',
+	'newCollectionOwner',
 	'workspaceEditors',
 	'role',
 ]
@@ -712,9 +716,10 @@ const SURFACES: Surface[] = [
 				],
 			},
 			{
-				key: 'fileOwner',
-				label: 'This file belongs to',
+				key: 'newCollectionOwner',
+				label: 'New collections go to',
 				options: [
+					{ value: 'board', label: 'This board' },
 					{ value: 'personal', label: 'Personal' },
 					{ value: 'workspace', label: 'Acme workspace' },
 				],

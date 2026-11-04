@@ -16,7 +16,6 @@ function createSource(userId = newUserId()) {
 			{ groupId: 'home', group: { name: 'Home' } },
 			{ groupId: 'acme', group: { name: 'Acme' } },
 		],
-		getFile: (fileId: string) => ({ id: fileId, owningGroupId: 'acme' }),
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 	}
 	return new TldrawAppCollectionsSource(app as unknown as TldrawApp)
@@ -35,6 +34,13 @@ describe('TldrawAppCollectionsSource', () => {
 			{ id: 'home', name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
 		])
+	})
+
+	it('creates new collections under the open file, or the home workspace with none open', () => {
+		const source = createSource()
+		expect(source.getDefaultOwnerId()).toBe('home')
+		source.setOpenFileId('file-a')
+		expect(source.getDefaultOwnerId()).toBe('file-a')
 	})
 
 	it("lists a file's collections only while that file is open", async () => {
