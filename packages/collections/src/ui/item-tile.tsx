@@ -11,6 +11,8 @@ export interface ItemTileProps {
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
 	/** Shown over the tile's corner on hover, e.g. an {@link ItemMenu}. */
 	menu?: ReactNode
+	/** Whether the name shows on the tile, as well as in its tooltip. Defaults to false. */
+	showLabel?: boolean
 }
 
 /** @public @react */
@@ -20,6 +22,7 @@ export function ItemTile({
 	thumbnailUrl,
 	buttonProps,
 	menu,
+	showLabel = false,
 }: ItemTileProps) {
 	return (
 		<div className="tlui-collections-tile">
@@ -35,6 +38,7 @@ export function ItemTile({
 						<img src={thumbnailUrl} alt="" draggable={false} loading="lazy" decoding="async" />
 					)}
 				</span>
+				{showLabel && name && <span className="tlui-collections-tile__label">{name}</span>}
 			</button>
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}
 		</div>

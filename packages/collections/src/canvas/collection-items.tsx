@@ -6,7 +6,7 @@ import {
 	type TLCollectionId,
 	type TLCollectionItemId,
 } from '../lib/schema'
-import { ItemGrid } from '../ui/item-grid'
+import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
@@ -54,6 +54,7 @@ export interface CollectionItemsProps {
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: TLCollectionItemOrdering
 	reversed: boolean
+	appearance?: ItemGridAppearance
 }
 
 /** One collection's items as a grid, with each item's menu: rename, move and delete. */
@@ -63,6 +64,7 @@ export function CollectionItems({
 	getItemProps,
 	ordering,
 	reversed,
+	appearance,
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -164,8 +166,7 @@ export function CollectionItems({
 				name: item.name,
 				accessibleLabel: item.name ?? msg(messages.unnamedItem),
 				thumbnailUrl:
-					item.thumbnail &&
-					getThumbnailForColorMode(item.thumbnail, isDarkMode ? 'dark' : 'light'),
+					item.thumbnail && getThumbnailForColorMode(item.thumbnail, isDarkMode ? 'dark' : 'light'),
 			}))}
 			getItemProps={getTileProps}
 			renderItemMenu={(item) => (
@@ -201,6 +202,7 @@ export function CollectionItems({
 				/>
 			)}
 			empty={msg(messages.emptyCollection)}
+			appearance={appearance}
 		/>
 	)
 }

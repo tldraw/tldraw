@@ -210,6 +210,10 @@ interface PlaygroundSettings {
 	navigation: CollectionsPanelNavigation
 	order: AddToCollectionOrder
 	sorting: 'built-in' | 'source-only'
+	tileStyle: 'well' | 'card' | 'plain'
+	tileColumns: '2' | '3' | '4'
+	tileLabel: 'hidden' | 'below' | 'hover'
+	tileFit: 'contain' | 'cover'
 	data: keyof typeof SOURCES
 }
 
@@ -217,6 +221,10 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	navigation: 'picker',
 	order: 'source',
 	sorting: 'built-in',
+	tileStyle: 'well',
+	tileColumns: '2',
+	tileLabel: 'hidden',
+	tileFit: 'contain',
 	data: 'samples',
 })
 
@@ -278,6 +286,47 @@ const SURFACES: Surface[] = [
 				options: [
 					{ value: 'source', label: "The source's order" },
 					{ value: 'recent', label: 'Recently saved to first' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Tiles',
+		hint: 'How an item is drawn in the panel. Hover a tile to see its hover states.',
+		choices: [
+			{
+				key: 'tileStyle',
+				label: 'Style',
+				options: [
+					{ value: 'well', label: 'Canvas colour' },
+					{ value: 'card', label: 'Card' },
+					{ value: 'plain', label: 'Plain' },
+				],
+			},
+			{
+				key: 'tileColumns',
+				label: 'Columns',
+				options: [
+					{ value: '2', label: '2' },
+					{ value: '3', label: '3' },
+					{ value: '4', label: '4' },
+				],
+			},
+			{
+				key: 'tileLabel',
+				label: 'Name',
+				options: [
+					{ value: 'hidden', label: 'In the menu only' },
+					{ value: 'below', label: 'Below' },
+					{ value: 'hover', label: 'On hover' },
+				],
+			},
+			{
+				key: 'tileFit',
+				label: 'Fit',
+				options: [
+					{ value: 'contain', label: 'Contain' },
+					{ value: 'cover', label: 'Fill and crop' },
 				],
 			},
 		],
@@ -457,12 +506,26 @@ function PlaygroundPanel() {
 	const navigation = useValue('navigation', () => settings.get().navigation, [])
 	const sorting = useValue('sorting', () => settings.get().sorting, [])
 	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
+	const tileAppearance = useValue(
+		'tile appearance',
+		() => {
+			const { tileStyle, tileColumns, tileLabel, tileFit } = settings.get()
+			return {
+				style: tileStyle,
+				columns: Number(tileColumns) as 2 | 3 | 4,
+				label: tileLabel,
+				fit: tileFit,
+			}
+		},
+		[]
+	)
 	return (
 		<CollectionsPanel
 			source={source}
 			navigation={navigation}
 			itemOrderings={sorting === 'built-in' ? defaultItemOrderings : [sourceItemOrder]}
 			groupCollections={grouped ? groupByScope : undefined}
+			tileAppearance={tileAppearance}
 		/>
 	)
 }
