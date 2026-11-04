@@ -43,6 +43,14 @@ describe('collectionValidator', () => {
 		expect(() => collectionValidator.validate({ ...collection, name: '  ' })).toThrow()
 	})
 
+	it('accepts an owner, but not a blank one', () => {
+		expect(collectionValidator.validate({ ...collection, ownerId: 'acme' })).toEqual({
+			...collection,
+			ownerId: 'acme',
+		})
+		expect(() => collectionValidator.validate({ ...collection, ownerId: ' ' })).toThrow()
+	})
+
 	it('rejects an id that is not a collection id', () => {
 		expect(() => collectionValidator.validate({ ...collection, id: 'wireframes' })).toThrow()
 	})

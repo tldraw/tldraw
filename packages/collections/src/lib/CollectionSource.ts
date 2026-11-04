@@ -20,6 +20,12 @@ export type TLCollectionAction =
 	| 'renameItem'
 	| 'deleteItem'
 
+/** Someone a collection can belong to, such as a user or a workspace. */
+export interface TLCollectionOwner {
+	id: string
+	name: string
+}
+
 /** What a source needs to store a new item. */
 export interface TLNewCollectionItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
@@ -64,6 +70,19 @@ export interface CollectionSource {
 	 * offers "Move to" only for sources that have it.
 	 */
 	moveItem?(itemId: TLCollectionItemId, toCollectionId: TLCollectionId): Promise<void>
+
+	/**
+	 * Who collections can belong to, each collection naming one in its `ownerId`. Listed in the
+	 * order the UI should show them, e.g. the user's own first, then their workspaces. Optional:
+	 * sources that don't track owners leave it out.
+	 */
+	getCollectionOwners?(): TLCollectionOwner[]
+	/**
+	 * Gives a collection to another owner. Its items stay in it. Optional: the UI offers "Move to"
+	 * only for sources that have it and {@link CollectionSource.getCollectionOwners}, with more than
+	 * one owner.
+	 */
+	moveCollection?(collectionId: TLCollectionId, ownerId: string): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */
@@ -81,10 +100,10 @@ export class CollectionPermissionError extends Error {
 	}
 }
 
-/** Thrown by a source when a collection or item doesn't exist (any more). */
+/** Thrown by a source when a collection, item or owner doesn't exist (any more). */
 export class CollectionNotFoundError extends Error {
 	override name = 'CollectionNotFoundError'
 	constructor(readonly id: string) {
-		super(`No collection or item with id ${id}`)
+		super(`No collection, item or owner with id ${id}`)
 	}
 }

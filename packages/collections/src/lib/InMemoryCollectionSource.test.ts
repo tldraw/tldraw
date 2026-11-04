@@ -165,6 +165,69 @@ describe('InMemoryCollectionSource', () => {
 		)
 	})
 
+	describe('owners', () => {
+		const owners = [
+			{ id: 'home', name: 'Personal' },
+			{ id: 'acme', name: 'Acme workspace' },
+		]
+
+		it('gives new collections to the first owner', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			expect(source.getCollectionOwners()).toEqual(owners)
+			const collection = await source.createCollection('Wireframes')
+			expect(collection.ownerId).toBe('home')
+		})
+
+		it('leaves the owner out without owners', async () => {
+			const source = new InMemoryCollectionSource()
+			expect(source.getCollectionOwners()).toEqual([])
+			const collection = await source.createCollection('Wireframes')
+			expect(collection.ownerId).toBeUndefined()
+		})
+
+		it('moves a collection to another owner, keeping its items', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			const collection = await source.createCollection('Wireframes')
+			const item = await source.addItem(collection.id, { name: 'Card', content: content() })
+			const seen: (string | undefined)[] = []
+			const stop = react('owner', () => {
+				seen.push(source.getCollections()[0].ownerId)
+			})
+			await source.moveCollection(collection.id, 'acme')
+			stop()
+			expect(seen).toEqual(['home', 'acme'])
+			expect(source.getCollections()).toEqual([{ ...collection, ownerId: 'acme' }])
+			expect(source.getItems(collection.id).map((i) => i.id)).toEqual([item.id])
+			expect(await source.getItemContent(item.id)).toEqual(content())
+		})
+
+		it('refuses a missing collection or owner', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			const collection = await source.createCollection('Wireframes')
+			await expect(source.moveCollection(missingCollection, 'acme')).rejects.toThrow(
+				CollectionNotFoundError
+			)
+			await expect(source.moveCollection(collection.id, 'nobody')).rejects.toThrow(
+				CollectionNotFoundError
+			)
+			expect(source.getCollections()[0].ownerId).toBe('home')
+		})
+
+		it('refuses starting data owned by a missing owner', () => {
+			expect(
+				() =>
+					new InMemoryCollectionSource({
+						owners,
+						initial: {
+							collections: [{ ...prefabs(), ownerId: 'nobody' }],
+							items: [],
+							contents: {},
+						},
+					})
+			).toThrow('missing owner')
+		})
+	})
+
 	it('deleting a collection deletes its items', async () => {
 		const source = new InMemoryCollectionSource()
 		const keep = await source.createCollection('Keep')
