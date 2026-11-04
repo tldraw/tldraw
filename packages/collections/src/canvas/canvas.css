@@ -23,6 +23,16 @@
 	right: 8px;
 }
 
+/* On a phone, the sheet spans the bottom of the screen above the toolbar. */
+.tlui-collections-panel[data-layout='sheet'] {
+	top: auto;
+	left: 8px;
+	right: 8px;
+	bottom: 64px;
+	width: auto;
+	max-height: 50%;
+}
+
 /* Spaced like the comments sidebar header: the picker's own 12px button padding plus 2px here puts
    its label 14px in, level with a bare title. */
 .tlui-collections-panel__header {

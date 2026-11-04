@@ -2,6 +2,8 @@ import { Fragment, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	PORTRAIT_BREAKPOINT,
+	useBreakpoint,
 	useEditor,
 	useToasts,
 	useTranslation,
@@ -61,8 +63,6 @@ export interface CollectionsPanelProps {
 	 * menu has no "Sort items by". Each user's choice is kept in their browser.
 	 */
 	itemOrderings?: TLCollectionItemOrdering[]
-	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
-	side?: 'left' | 'right'
 	/**
 	 * Groups collections under headings, e.g. by scope ("Personal", a workspace's name). The list
 	 * and sections show a heading per group; the picker names each collection's group.
@@ -70,6 +70,15 @@ export interface CollectionsPanelProps {
 	groupCollections?: GroupCollections
 	/** How item tiles are drawn: their style, columns, label and fit. */
 	tileAppearance?: ItemGridAppearance
+	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
+	side?: 'left' | 'right'
+	/** The panel's width in pixels, on screens wider than a phone. Defaults to 240. */
+	width?: number
+	/**
+	 * On a phone-sized screen: `'panel'` keeps the floating panel (the default); `'sheet'` spans the
+	 * bottom of the screen and closes once an item is placed.
+	 */
+	smallScreen?: 'panel' | 'sheet'
 }
 
 /**
@@ -82,9 +91,11 @@ export function CollectionsPanel({
 	source,
 	navigation = 'picker',
 	itemOrderings = defaultItemOrderings,
-	side = 'left',
 	groupCollections,
 	tileAppearance,
+	side = 'left',
+	width = 240,
+	smallScreen = 'panel',
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -120,8 +131,12 @@ export function CollectionsPanel({
 						setItemOrderChoice(source.id, { ...orderChoice, reversed }),
 				}
 			: undefined
+	const breakpoint = useBreakpoint()
+	const isSheet = smallScreen === 'sheet' && breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const placeItem = useCallback(
 		(itemId: TLCollectionItemId) => {
+			// A sheet covers the canvas, so it gets out of the way of what was just placed.
+			if (isSheet) collectionsPanelOpen.set(editor, false)
 			placeCollectionItem(editor, source, itemId).catch(() => {
 				addToast({
 					title: msg(messages.placeErrorTitle),
@@ -130,7 +145,7 @@ export function CollectionsPanel({
 				})
 			})
 		},
-		[editor, source, addToast, msg]
+		[editor, source, addToast, msg, isSheet]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
@@ -257,6 +272,8 @@ export function CollectionsPanel({
 			<section
 				className="tlui-collections-panel"
 				data-side={side}
+				data-layout={isSheet ? 'sheet' : 'panel'}
+				style={isSheet ? undefined : { width }}
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
