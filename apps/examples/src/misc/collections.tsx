@@ -7,9 +7,11 @@ import {
 	CollectionsPanelButton,
 	collectionsPanelOpen,
 	defaultItemOrderings,
+	type GroupCollections,
 	InMemoryCollectionSource,
 	saveShapesToCollection,
 	sourceItemOrder,
+	type TLCollection,
 	type TLCollectionAction,
 	type TLCollectionId,
 } from '@tldraw/collections'
@@ -48,12 +50,70 @@ const permissions = atom<Permissions>('collections playground permissions', {
 	deleteItem: true,
 })
 
-// The in-memory source, with each action switchable from the Permissions page.
+type Scope = 'personal' | 'workspace'
+
+interface ScopeSettings {
+	showPersonal: 'shown' | 'hidden'
+	layout: 'mixed' | 'grouped'
+	newScope: Scope
+	workspaceEditors: 'everyone' | 'admins'
+	role: 'admin' | 'member'
+}
+
+const scopeSettings = atom<ScopeSettings>('collections playground scope', {
+	showPersonal: 'shown',
+	layout: 'mixed',
+	newScope: 'personal',
+	workspaceEditors: 'everyone',
+	role: 'admin',
+})
+
+// Which scope each collection belongs to. A real source would know from where it stores the
+// collection, e.g. the workspace (group) it belongs to.
+const scopes = atom<Record<string, Scope>>('collections playground scopes', {
+	[WIREFRAMES]: 'workspace',
+	[ICONS]: 'personal',
+})
+
+const scopeOf = (collection: TLCollection): Scope => scopes.get()[collection.id] ?? 'personal'
+
+const WORKSPACE_CHANGES: TLCollectionAction[] = [
+	'renameCollection',
+	'deleteCollection',
+	'addItem',
+	'renameItem',
+	'deleteItem',
+]
+
+// The in-memory source, with each action switchable from the Permissions page, and scopes from the
+// Scope page: personal collections can be hidden, new ones go to the chosen scope, and a member
+// may be kept from changing workspace collections.
 class PlaygroundSource extends InMemoryCollectionSource {
+	override getCollections() {
+		const all = super.getCollections()
+		if (scopeSettings.get().showPersonal === 'shown') return all
+		return all.filter((collection) => scopeOf(collection) !== 'personal')
+	}
+
+	override async createCollection(name: string) {
+		const collection = await super.createCollection(name)
+		scopes.update((prev) => ({ ...prev, [collection.id]: scopeSettings.get().newScope }))
+		return collection
+	}
+
 	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
-		return permissions.get()[action] && super.can(action, collectionId)
+		if (!permissions.get()[action] || !super.can(action, collectionId)) return false
+		const { workspaceEditors, role } = scopeSettings.get()
+		const isWorkspace = collectionId !== undefined && scopes.get()[collectionId] === 'workspace'
+		if (isWorkspace && workspaceEditors === 'admins' && role === 'member') {
+			return !WORKSPACE_CHANGES.includes(action)
+		}
+		return true
 	}
 }
+
+const groupByScope: GroupCollections = (collection) =>
+	scopeOf(collection) === 'workspace' ? 'Acme workspace' : 'Personal'
 
 const samples = new PlaygroundSource({
 	initial: {
@@ -160,13 +220,26 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	data: 'samples',
 })
 
+type AllSettings = PlaygroundSettings & ScopeSettings
+
 type Choice = {
-	[K in keyof PlaygroundSettings]: {
+	[K in keyof AllSettings]: {
 		key: K
 		label: string
-		options: { value: PlaygroundSettings[K]; label: string }[]
+		options: { value: AllSettings[K]; label: string }[]
 	}
-}[keyof PlaygroundSettings]
+}[keyof AllSettings]
+
+const SCOPE_KEYS: (keyof ScopeSettings)[] = [
+	'showPersonal',
+	'layout',
+	'newScope',
+	'workspaceEditors',
+	'role',
+]
+
+const isScopeKey = (key: keyof AllSettings): key is keyof ScopeSettings =>
+	(SCOPE_KEYS as string[]).includes(key)
 
 interface Surface {
 	page: string
@@ -236,6 +309,53 @@ const SURFACES: Surface[] = [
 		],
 	},
 	{
+		page: 'Scope',
+		hint: 'Personal and workspace collections, as seen in a team file.',
+		shapes: true,
+		choices: [
+			{
+				key: 'showPersonal',
+				label: 'Personal collections here',
+				options: [
+					{ value: 'shown', label: 'Shown' },
+					{ value: 'hidden', label: 'Hidden' },
+				],
+			},
+			{
+				key: 'layout',
+				label: 'Layout',
+				options: [
+					{ value: 'grouped', label: 'Grouped by scope' },
+					{ value: 'mixed', label: 'Mixed' },
+				],
+			},
+			{
+				key: 'newScope',
+				label: 'New collections go to',
+				options: [
+					{ value: 'personal', label: 'Personal' },
+					{ value: 'workspace', label: 'The workspace' },
+				],
+			},
+			{
+				key: 'workspaceEditors',
+				label: 'Who can change workspace collections',
+				options: [
+					{ value: 'everyone', label: 'Every member' },
+					{ value: 'admins', label: 'Admins only' },
+				],
+			},
+			{
+				key: 'role',
+				label: 'You are',
+				options: [
+					{ value: 'admin', label: 'An admin' },
+					{ value: 'member', label: 'A member' },
+				],
+			},
+		],
+	},
+	{
 		page: 'Empty states',
 		hint: 'Swap in a source with nothing in it, then save something.',
 		shapes: true,
@@ -258,7 +378,11 @@ const rowStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wra
 function PlaygroundControls() {
 	const editor = useEditor()
 	const pageName = useValue('page name', () => editor.getCurrentPage().name, [editor])
-	const current = useValue('playground settings', () => settings.get(), [])
+	const current = useValue(
+		'playground settings',
+		(): AllSettings => ({ ...settings.get(), ...scopeSettings.get() }),
+		[]
+	)
 	const allowed = useValue('playground permissions', () => permissions.get(), [])
 	const surface = SURFACES.find((s) => s.page === pageName)
 	if (!surface) return null
@@ -292,7 +416,9 @@ function PlaygroundControls() {
 								name={choice.key}
 								checked={current[choice.key] === option.value}
 								onChange={() =>
-									settings.update((prev) => ({ ...prev, [choice.key]: option.value }))
+									isScopeKey(choice.key)
+										? scopeSettings.update((prev) => ({ ...prev, [choice.key]: option.value }))
+										: settings.update((prev) => ({ ...prev, [choice.key]: option.value }))
 								}
 							/>
 							{option.label}
@@ -329,11 +455,13 @@ function PlaygroundPanel() {
 	const source = usePlaygroundSource()
 	const navigation = useValue('navigation', () => settings.get().navigation, [])
 	const sorting = useValue('sorting', () => settings.get().sorting, [])
+	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
 	return (
 		<CollectionsPanel
 			source={source}
 			navigation={navigation}
 			itemOrderings={sorting === 'built-in' ? defaultItemOrderings : [sourceItemOrder]}
+			groupCollections={grouped ? groupByScope : undefined}
 		/>
 	)
 }
@@ -341,7 +469,14 @@ function PlaygroundPanel() {
 function PlaygroundSaveMenu() {
 	const source = usePlaygroundSource()
 	const order = useValue('order', () => settings.get().order, [])
-	return <AddToCollectionMenuItem source={source} order={order} />
+	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
+	return (
+		<AddToCollectionMenuItem
+			source={source}
+			order={order}
+			groupCollections={grouped ? groupByScope : undefined}
+		/>
+	)
 }
 
 // One page per surface. A fresh, empty first page becomes the first surface, missing pages are
