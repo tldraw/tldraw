@@ -84,7 +84,7 @@ function makeRoom(
 		snapshot?: RoomSnapshot
 		objectTypes?: readonly string[]
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
-		authorizeRecord?: {
+		beforeWrite?: {
 			[typeName: string]: (args: {
 				session: { sessionId: string; isReadonly: boolean; meta: any }
 				type: 'create' | 'update' | 'delete'
@@ -110,7 +110,7 @@ function makeRoom(
 		storage,
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
-		authorizeRecord: opts.authorizeRecord,
+		beforeWrite: opts.beforeWrite,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -432,9 +432,9 @@ describe('object store lane', () => {
 		})
 	})
 
-	describe('authorizeRecord', () => {
+	describe('beforeWrite', () => {
 		it('rejects a presence typeName key at construction', () => {
-			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
+			expect(() => makeRoom({ beforeWrite: { presence: ({ next }: any) => next } })).toThrow(
 				/presence/
 			)
 		})
@@ -452,7 +452,7 @@ describe('object store lane', () => {
 		}
 
 		function withNote(authorize: any, extra: any = {}) {
-			return makeRoom({ objectTypes: ['note'], authorizeRecord: { note: authorize }, ...extra })
+			return makeRoom({ objectTypes: ['note'], beforeWrite: { note: authorize }, ...extra })
 		}
 
 		function seededWithNote(authorize: any) {
@@ -538,7 +538,7 @@ describe('object store lane', () => {
 			// authorize `doc`, a document-lane record
 			const { room, storage } = makeRoom({
 				objectTypes: ['note'],
-				authorizeRecord: {
+				beforeWrite: {
 					doc: ({ type, next }: any) => (type === 'create' ? { ...next, title: 'stamped' } : next),
 				},
 			})
@@ -619,7 +619,7 @@ describe('object store lane', () => {
 		// The typeName guard must not depend on authorizers being configured: the write gate keys
 		// off the *incoming* typeName, so relabeling an existing object-lane record as a document
 		// type would otherwise let an objectAccess:'read' session write through the document lane.
-		it('vetoes a typeName swap even with no authorizeRecord configured', () => {
+		it('vetoes a typeName swap even with no beforeWrite configured', () => {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room, storage } = makeRoom({
 				objectTypes: ['note'],
@@ -700,7 +700,7 @@ describe('object store lane', () => {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room } = makeRoom({
 				objectTypes: ['note'],
-				authorizeRecord: { note: () => null },
+				beforeWrite: { note: () => null },
 				log: { warn },
 			})
 			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })

@@ -101,7 +101,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 
 /**
  * Server-side write authorization for comment records, for use with a sync server's
- * `authorizeRecord` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
+ * `beforeWrite` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
  * session's identity so nothing can be posted, resolved, or deleted in someone else's name:
  *
  * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after,
@@ -130,7 +130,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  * type MyRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
  *
  * new TLSocketRoom<MyRecord, SessionMeta>({
- * 	authorizeRecord: {
+ * 	beforeWrite: {
  * 		...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
  * 	},
  * })

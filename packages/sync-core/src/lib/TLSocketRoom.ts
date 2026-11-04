@@ -145,9 +145,14 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
-	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
-	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 * Per-type hooks for client record writes (create, update, delete): veto writes the session
+	 * isn't allowed to make, or rewrite the record on create — e.g. force a comment's `authorId`
+	 * to the signed-in user. Each hook can read other records with `get`, for rules that depend on
+	 * a record's parent. See {@link TLRecordAuthorizers}.
+	 */
+	beforeWrite?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * @deprecated Use `beforeWrite`. Setting both throws.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
@@ -276,11 +281,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// The default logger belongs to both layers: TLSyncRoom is where authorizer throws are
 		// logged, and a host that passes no `log` would otherwise never see them.
 		this.log = 'log' in opts ? opts.log : { error: console.error }
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const authorizeRecord = opts.authorizeRecord
+		if (opts.beforeWrite && authorizeRecord) {
+			throw new Error('TLSocketRoom: set beforeWrite or authorizeRecord, not both')
+		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			authorizeRecord: opts.authorizeRecord,
+			beforeWrite: opts.beforeWrite ?? authorizeRecord,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -970,6 +980,34 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	closeSession(sessionId: string, fatalReason?: TLSyncErrorCloseEventReason | string) {
 		this.room.rejectSession(sessionId, fatalReason)
+	}
+
+	/**
+	 * Changes a connected session's write access without reconnecting it. The session's next
+	 * push is checked against the new access. Fields you leave out keep their current value.
+	 *
+	 * The client is not told about the change yet: it keeps the read-only state it got when it
+	 * connected. The server skips writes the session may no longer make, and the client undoes
+	 * them when it syncs, as it does for any rejected write.
+	 *
+	 * @example
+	 * ```ts
+	 * // the user's role on this file changed from editor to viewer
+	 * room.updateSessionAccess(sessionId, { isReadonly: true })
+	 * ```
+	 */
+	updateSessionAccess(
+		sessionId: string,
+		access: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
+	) {
+		if (!this.room.updateSessionAccess(sessionId, access)) return
+		// A hibernated session resumes from its last snapshot. Save one now, not after the usual
+		// debounce, so a resume can never bring back the old access.
+		if (this.opts.onSessionSnapshot) {
+			this.clearSnapshotTimer(sessionId)
+			const snapshot = this.getSessionSnapshot(sessionId)
+			if (snapshot) this.opts.onSessionSnapshot(sessionId, snapshot)
+		}
 	}
 
 	/**

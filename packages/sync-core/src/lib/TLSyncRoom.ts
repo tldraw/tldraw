@@ -183,6 +183,14 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 		 *  id) and the canvas-lane `isReadonly` state, for hosts whose object-lane policy follows
 		 *  canvas access. */
 		session: { sessionId: string; isReadonly: boolean; meta: SessionMeta }
+		/**
+		 * Reads any document record as of this write, including earlier writes in the same push.
+		 * Use it for rules that depend on other records, e.g. "only inside a frame you can edit"
+		 * needs the shape's parent. Reads the server's copy, never the client's. It returns
+		 * `UnknownRecord` so a hook map written for some record types still fits a room
+		 * with more types; narrow the result by `typeName`.
+		 */
+		get(id: string): UnknownRecord | undefined
 	} & (
 		| { type: 'create'; prev: null; next: Rec }
 		| { type: 'update'; prev: Rec; next: Rec }
@@ -352,19 +360,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
-	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	private readonly beforeWrite?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
 
 	/**
 	 * The authorizer registered for a record type, widened to the room's record union. Each entry in
-	 * `authorizeRecord` is typed to its specific record; the cast here is the one place we can't
+	 * `beforeWrite` is typed to its specific record; the cast here is the one place we can't
 	 * statically correlate a runtime `typeName` with its record type, so it lives in the library
 	 * rather than in every consumer.
 	 */
 	private authorizerFor(typeName: R['typeName']): TLRecordAuthorizer<R, SessionMeta> | undefined {
-		const authorize = this.authorizeRecord?.[typeName] as
-			| TLRecordAuthorizer<R, SessionMeta>
-			| undefined
+		const authorize = this.beforeWrite?.[typeName] as TLRecordAuthorizer<R, SessionMeta> | undefined
 		if (!authorize) return undefined
 		// Fail closed: an authorizer that throws rejects the write (and is logged) rather than
 		// aborting the whole push. Authorizers are security-sensitive, so a bug must never let a
@@ -400,7 +406,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * Per-type authorizers for client record writes (create, update, delete): veto or, on
 		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
-		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+		beforeWrite?: TLRecordAuthorizers<R, SessionMeta>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -408,7 +414,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
-		this.authorizeRecord = opts.authorizeRecord
+		this.beforeWrite = opts.beforeWrite
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -450,12 +456,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.presenceType = presenceTypes.values().next()?.value ?? null
 
-		// The presence lane never consults authorizers, so a presence key in `authorizeRecord`
+		// The presence lane never consults authorizers, so a presence key in `beforeWrite`
 		// would be a silent no-op — fail loudly at construction instead.
-		if (this.presenceType && this.authorizeRecord) {
+		if (this.presenceType && this.beforeWrite) {
 			assert(
-				!getOwnProperty(this.authorizeRecord, this.presenceType.typeName),
-				`TLSyncRoom: authorizeRecord['${this.presenceType.typeName}'] is a presence type; presence records are not authorized`
+				!getOwnProperty(this.beforeWrite, this.presenceType.typeName),
+				`TLSyncRoom: beforeWrite['${this.presenceType.typeName}'] is a presence type; presence records are not authorized`
 			)
 		}
 
@@ -981,6 +987,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
+	 * Changes a session's write access. Later pushes from the session use the new access.
+	 *
+	 * @returns false if the session does not exist
+	 * @internal
+	 */
+	updateSessionAccess(
+		sessionId: string,
+		access: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
+	): boolean {
+		const session = this.sessions.get(sessionId)
+		if (!session) return false
+		if (access.isReadonly !== undefined) session.isReadonly = access.isReadonly
+		if (access.objectAccess !== undefined) session.objectAccess = access.objectAccess
+		return true
+	}
+
+	/**
 	 * Reject and disconnect a session due to incompatibility or other fatal errors.
 	 * Sends appropriate error messages before closing the connection.
 	 *
@@ -1421,8 +1444,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
 
 				// what authorizers see of the pushing session, shared by every authorized op in this push
-				const authSession = session
-					? { sessionId: session.sessionId, isReadonly: session.isReadonly, meta: session.meta }
+				const authBase = session
+					? {
+							session: {
+								sessionId: session.sessionId,
+								isReadonly: session.isReadonly,
+								meta: session.meta,
+							},
+							get: (id: string) => txn.get(id),
+						}
 					: null
 
 				if (message.diff) {
@@ -1469,14 +1499,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// Per-type authorizer: stamp/veto the write from the session's identity.
 								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
 								let authorize: ((prev: R | null, next: R) => R | null) | undefined
-								if (session && this.authorizeRecord) {
+								if (session && this.beforeWrite) {
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
 										authorize = (prevRec, next) => {
 											const result = authorizePut(
 												prevRec
-													? { session: authSession!, type: 'update', prev: prevRec, next }
-													: { session: authSession!, type: 'create', prev: null, next }
+													? { ...authBase!, type: 'update', prev: prevRec, next }
+													: { ...authBase!, type: 'create', prev: null, next }
 											)
 											if (!result) {
 												this.log?.warn?.(
@@ -1508,7 +1538,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
 											const result = authorizePatch({
-												session: authSession!,
+												...authBase!,
 												type: 'update',
 												prev,
 												next,
@@ -1542,7 +1572,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorizeRemove = session && this.authorizerFor(doc.typeName)
 								if (
 									authorizeRemove &&
-									!authorizeRemove({ session: authSession!, type: 'delete', prev: doc, next: null })
+									!authorizeRemove({ ...authBase!, type: 'delete', prev: doc, next: null })
 								) {
 									this.log?.warn?.(
 										'authorizer vetoed delete',

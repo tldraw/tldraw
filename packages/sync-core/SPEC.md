@@ -279,6 +279,8 @@ These rules hold for both `InMemorySyncStorage` and `SQLiteSyncStorage`. The sha
 - **SR13** `getSessionSnapshot` returns null unless the session is `Connected`; the snapshot carries the serialized schema, readonly flag, legacy/append flags, presence id, and the presence record with large fields stripped (`scribbles: []`, `chatMessage: ''`, `selectedShapeIds: []`, `brush: null`).
 - **SR14** `handleSocketResume` restores a session from a snapshot directly into `Connected` state without attaching socket listeners (hibernation environments deliver events via methods); the resumed session handles pings and pushes normally.
 - **SR15** `getPresenceRecords()` returns a map of presence id to presence record for every presence currently in the room.
+- **SR16** `beforeWrite` hooks get `get(id)`, which reads the server's copy of any document record as of this write, including earlier writes in the same push. The deprecated `authorizeRecord` option is an alias; setting both throws.
+- **SR17** `updateSessionAccess` changes a session's `isReadonly` and `objectAccess` for later pushes, and saves a session snapshot at once when `onSessionSnapshot` is set. An unknown session id does nothing.
 
 ## 29. `updateStore` (US) — deprecated
 

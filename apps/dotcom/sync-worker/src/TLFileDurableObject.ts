@@ -480,7 +480,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: authorizeFileRecord,
+						beforeWrite: authorizeFileRecord,
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can

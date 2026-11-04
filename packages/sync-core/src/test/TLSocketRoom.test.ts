@@ -215,7 +215,7 @@ describe('28. TLSocketRoom (SR)', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
 				const room = new TLSocketRoom({
-					authorizeRecord: {
+					beforeWrite: {
 						page: () => {
 							throw new Error('authorizer exploded')
 						},
@@ -1558,6 +1558,127 @@ describe('28. TLSocketRoom (SR)', () => {
 			} finally {
 				vi.useRealTimers()
 			}
+		})
+	})
+
+	describe('beforeWrite', () => {
+		function pushPages(room: TLSocketRoom<any, any>, sessionId: string, pages: TLPage[]) {
+			room.handleSocketMessage(
+				sessionId,
+				JSON.stringify({
+					type: 'push',
+					clientClock: 1,
+					diff: Object.fromEntries(pages.map((p) => [p.id, [RecordOpType.Put, p]])),
+				})
+			)
+		}
+
+		function makePage(name: string, index: string, meta: TLPage['meta'] = {}) {
+			return PageRecordType.create({
+				id: PageRecordType.createId(name),
+				name,
+				index: index as IndexKey,
+				meta,
+			})
+		}
+
+		// Allows a page only when the page named in meta.after exists
+		const pageAfterExisting = {
+			page: ({ next, get }: any) => (get(next.meta.after) ? next : null),
+		}
+
+		it('[SR16] get reads stored records and earlier writes in the same push', () => {
+			const room = new TLSocketRoom<TLRecord, void>({ beforeWrite: pageAfterExisting })
+			connectSession(room, 'S', createMockSocket())
+
+			const first = makePage('first', 'a2', { after: 'page:page' })
+			const second = makePage('second', 'a3', { after: first.id })
+			const orphan = makePage('orphan', 'a4', { after: 'page:missing' })
+			pushPages(room, 'S', [first, second, orphan])
+
+			expect(room.getRecord(first.id)).toBeDefined()
+			expect(room.getRecord(second.id)).toBeDefined()
+			expect(room.getRecord(orphan.id)).toBeUndefined()
+		})
+
+		it('[SR16] the deprecated authorizeRecord option still applies', () => {
+			const room = new TLSocketRoom<TLRecord, void>({ authorizeRecord: pageAfterExisting })
+			connectSession(room, 'S', createMockSocket())
+
+			const orphan = makePage('orphan', 'a4', { after: 'page:missing' })
+			pushPages(room, 'S', [orphan])
+
+			expect(room.getRecord(orphan.id)).toBeUndefined()
+		})
+
+		it('[SR16] throws when both beforeWrite and authorizeRecord are set', () => {
+			expect(
+				() =>
+					new TLSocketRoom<TLRecord, void>({
+						beforeWrite: pageAfterExisting,
+						authorizeRecord: pageAfterExisting,
+					})
+			).toThrow('set beforeWrite or authorizeRecord, not both')
+		})
+	})
+
+	describe('updateSessionAccess', () => {
+		it('[SR17] later pushes use the new access', () => {
+			const room = new TLSocketRoom<TLRecord, void>({})
+			connectSession(room, 'S', createMockSocket())
+
+			room.updateSessionAccess('S', { isReadonly: true })
+			expect(room.getSessions()[0].isReadonly).toBe(true)
+
+			const page = PageRecordType.create({
+				id: PageRecordType.createId('p'),
+				name: 'p',
+				index: 'a2' as IndexKey,
+			})
+			room.handleSocketMessage(
+				'S',
+				JSON.stringify({
+					type: 'push',
+					clientClock: 1,
+					diff: { [page.id]: [RecordOpType.Put, page] },
+				})
+			)
+			expect(room.getRecord(page.id)).toBeUndefined()
+
+			room.updateSessionAccess('S', { isReadonly: false })
+			room.handleSocketMessage(
+				'S',
+				JSON.stringify({
+					type: 'push',
+					clientClock: 2,
+					diff: { [page.id]: [RecordOpType.Put, page] },
+				})
+			)
+			expect(room.getRecord(page.id)).toBeDefined()
+		})
+
+		it('[SR17] saves a session snapshot at once with the new access', () => {
+			const onSessionSnapshot = vi.fn()
+			const room = new TLSocketRoom<TLRecord, void>({ onSessionSnapshot })
+			connectSession(room, 'S', createMockSocket())
+
+			room.updateSessionAccess('S', { isReadonly: true, objectAccess: 'read' })
+
+			expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
+			expect(onSessionSnapshot).toHaveBeenCalledWith(
+				'S',
+				expect.objectContaining({ isReadonly: true, objectAccess: 'read' })
+			)
+			room.close()
+		})
+
+		it('[SR17] does nothing for an unknown session', () => {
+			const onSessionSnapshot = vi.fn()
+			const room = new TLSocketRoom<TLRecord, void>({ onSessionSnapshot })
+
+			room.updateSessionAccess('missing', { isReadonly: true })
+
+			expect(onSessionSnapshot).not.toHaveBeenCalled()
 		})
 	})
 

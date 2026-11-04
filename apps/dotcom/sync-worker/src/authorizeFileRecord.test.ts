@@ -24,6 +24,11 @@ function session(
 	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId } }
 }
 
+// Hook arguments for a session; these hooks do not read other records
+function ctx(userId: string | null, isReadonly = false) {
+	return { session: session(userId, isReadonly), get: () => undefined }
+}
+
 describe('authorizeFileRecord', () => {
 	// The comment/thread policy itself is tested in @tldraw/sync-collaboration; these two only
 	// verify the factory is wired in with getUserId mapped to session.meta.userId.
@@ -42,7 +47,7 @@ describe('authorizeFileRecord', () => {
 				body: toRichText('hi'),
 			})
 			const result = authorizeFileRecord.comment!({
-				session: session('real-bob'),
+				...ctx('real-bob'),
 				type: 'create',
 				prev: null,
 				next,
@@ -53,7 +58,7 @@ describe('authorizeFileRecord', () => {
 		it('vetoes thread hard-deletes (deletion is soft)', () => {
 			expect(
 				authorizeFileRecord['comment-thread']!({
-					session: session('real-bob'),
+					...ctx('real-bob'),
 					type: 'delete',
 					prev: thread,
 					next: null,
@@ -70,7 +75,7 @@ describe('authorizeFileRecord', () => {
 			})
 			expect(
 				authorizeFileRecord.comment!({
-					session: session('real-bob', true),
+					...ctx('real-bob', true),
 					type: 'create',
 					prev: null,
 					next,
@@ -120,92 +125,80 @@ describe('authorizeFileRecord', () => {
 
 		it('vetoes a create with foreign attribution (duplication now re-stamps the copy)', () => {
 			const next = makeNote('real-alice')
-			expect(
-				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		it('allows a create attributed to the session user', () => {
 			const next = makeNote('real-bob')
-			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
-				next
-			)
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBe(next)
 		})
 
 		it('allows a create with no attribution (empty or anonymous note)', () => {
 			const next = makeNote(null)
-			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
-				next
-			)
-			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBe(next)
+			expect(authorize({ ...ctx(null), type: 'create', prev: null, next })).toBe(next)
 		})
 
 		it('vetoes an anonymous session creating a note with any attribution', () => {
 			const next = makeNote('real-alice')
-			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		it('allows updates that do not touch attribution, from any user', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, x: 100 }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('allows changing attribution to the session user', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-bob' } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('allows clearing attribution to null (text emptied, or anonymous edit)', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: null } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes changing attribution to someone else', () => {
 			const prev = makeNote('real-bob')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes an anonymous session setting any non-null attribution', () => {
 			const prev = makeNote(null)
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes smuggling attribution in via a shape-type change', () => {
 			const prev = makeGeo()
 			const next = { ...makeNote('real-alice'), id: prev.id }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('ignores non-note shapes', () => {
 			const prev = makeGeo()
 			const next = { ...prev, x: 50 }
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBe(next)
 			// creates of non-note shapes carry no attribution to enforce, so they pass through
-			expect(authorize({ session: session(null), type: 'create', prev: null, next: prev })).toBe(
-				prev
-			)
+			expect(authorize({ ...ctx(null), type: 'create', prev: null, next: prev })).toBe(prev)
 		})
 
 		it('allows deletes', () => {
 			const prev = makeNote('real-alice')
-			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
-				prev
-			)
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBe(prev)
 		})
 
 		it('allows a legal note update from a canvas read-only session (gated at the protocol level, not here)', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, x: 100 }
-			expect(authorize({ session: session('real-bob', true), type: 'update', prev, next })).toBe(
-				next
-			)
+			expect(authorize({ ...ctx('real-bob', true), type: 'update', prev, next })).toBe(next)
 		})
 	})
 })

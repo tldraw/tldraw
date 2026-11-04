@@ -39,6 +39,11 @@ function session(
 	return { sessionId: 's1', isReadonly, meta: { userId } }
 }
 
+// Hook arguments for a session; these hooks do not read other records
+function ctx(userId: string | null, isReadonly = false) {
+	return { session: session(userId, isReadonly), get: () => undefined }
+}
+
 describe('createCommentAuthorizers', () => {
 	// getUserId is documented as called exactly once per write. More than once would let an
 	// impure host callback split identity across checks — e.g. a reaction create where the
@@ -54,9 +59,9 @@ describe('createCommentAuthorizers', () => {
 		// the worst former offender: a thread update touching both resolution and the soft-delete flag
 		const prev = createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'real-bob' })
 		const next = { ...prev, resolved: { at: 1, by: 'real-bob' }, isDeleted: true }
-		expect(
-			counted['comment-thread']!({ session: session('real-bob'), type: 'update', prev, next })
-		).toBe(next)
+		expect(counted['comment-thread']!({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(
+			next
+		)
 		expect(calls).toBe(1)
 	})
 
@@ -67,7 +72,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('stamps authorId from the session on create, overriding the client value', () => {
 			const result = authorize({
-				session: session('real-bob'),
+				...ctx('real-bob'),
 				type: 'create',
 				prev: null,
 				next: comment('client-claims-alice'),
@@ -77,69 +82,63 @@ describe('createCommentAuthorizers', () => {
 
 		it('rejects a create with no authenticated user', () => {
 			expect(
-				authorize({ session: session(null), type: 'create', prev: null, next: comment('anon') })
+				authorize({ ...ctx(null), type: 'create', prev: null, next: comment('anon') })
 			).toBeNull()
 		})
 
 		it('allows the author to edit their own comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, body: toRichText('edited') }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes an edit from someone who is not the author', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, body: toRichText('sneakily rewritten') }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes an update that changes the author', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, authorId: 'someone-else' }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes every client hard-delete, even from the author (deletion is soft)', () => {
 			const prev = comment('real-bob')
-			expect(
-				authorize({ session: session('real-bob'), type: 'delete', prev, next: null })
-			).toBeNull()
-			expect(
-				authorize({ session: session('real-mallory'), type: 'delete', prev, next: null })
-			).toBeNull()
-			expect(authorize({ session: session(null), type: 'delete', prev, next: null })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'delete', prev, next: null })).toBeNull()
 		})
 
 		it('lets the author soft-delete their own comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a non-author soft-deleting the comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes clearing a soft-delete, even by the author (write-once)', () => {
 			const prev = { ...comment('real-bob'), isDeleted: true }
 			const next = { ...prev, isDeleted: false }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('allows an update that leaves an existing soft-delete untouched', () => {
 			const prev = { ...comment('real-bob'), isDeleted: true }
 			const next = { ...prev, body: toRichText('edited') }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a create with the soft-delete flag already set', () => {
 			const next = { ...comment('real-bob'), isDeleted: true }
-			expect(
-				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		// threadId ties a comment to its conversation (and downstream to a file), so re-parenting an
@@ -147,7 +146,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes re-parenting a comment to another thread', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		// createdAt orders threads and bounds the notification feed, so a mutable one lets a comment
@@ -155,14 +154,14 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes back-dating a comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, createdAt: 1 }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		// the anchor lifecycle rewrites pageId on every comment when a thread moves pages
 		it('allows a pageId update (threads can move between pages)', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, pageId: 'page:other' as TLPageId }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 	})
 
@@ -173,7 +172,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('stamps createdBy from the session on create, overriding the client value', () => {
 			const result = authorize({
-				session: session('real-bob'),
+				...ctx('real-bob'),
 				type: 'create',
 				prev: null,
 				next: makeThread('client-claims-alice'),
@@ -184,45 +183,43 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that changes the creator', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, createdBy: 'someone-else' }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('lets a non-creator resolve the thread as themselves', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, resolved: { at: 1, by: 'real-mallory' } }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('lets a non-creator reopen a resolved thread', () => {
 			const prev = { ...makeThread('real-bob'), resolved: { at: 1, by: 'real-alice' } }
 			const next = { ...prev, resolved: null }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a resolution attributed to someone else', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, resolved: { at: 1, by: 'real-alice' } }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('allows an update that leaves an existing resolution untouched', () => {
 			const prev = { ...makeThread('real-bob'), resolved: { at: 1, by: 'real-alice' } }
 			// new object reference, same value — must not be treated as a change
 			const next = { ...prev, resolved: { ...prev.resolved } }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a create with a resolution attributed to someone else', () => {
 			const next = { ...makeThread('real-mallory'), resolved: { at: 1, by: 'real-alice' } }
-			expect(
-				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		it('allows a create resolved by the creator themselves', () => {
 			const next = { ...makeThread('real-bob'), resolved: { at: 1, by: 'real-bob' } }
 			const result = authorize({
-				session: session('real-bob'),
+				...ctx('real-bob'),
 				type: 'create',
 				prev: null,
 				next,
@@ -232,44 +229,38 @@ describe('createCommentAuthorizers', () => {
 
 		it('vetoes every client hard-delete, even from the creator (deletion is soft)', () => {
 			const prev = makeThread('real-bob')
-			expect(
-				authorize({ session: session('real-bob'), type: 'delete', prev, next: null })
-			).toBeNull()
-			expect(
-				authorize({ session: session('real-mallory'), type: 'delete', prev, next: null })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })).toBeNull()
 		})
 
 		it('lets the creator soft-delete their own thread', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a non-creator soft-deleting the thread', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes clearing a soft-delete, even by the creator (write-once)', () => {
 			const prev = { ...makeThread('real-bob'), isDeleted: true }
 			const next = { ...prev, isDeleted: false }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('allows an update that leaves an existing soft-delete untouched', () => {
 			const prev = { ...makeThread('real-bob'), isDeleted: true }
 			const next = { ...prev, resolved: { at: 2, by: 'real-mallory' } }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBe(next)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('vetoes a create with the soft-delete flag already set', () => {
 			const next = { ...makeThread('real-bob'), isDeleted: true }
-			expect(
-				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBeNull()
 		})
 	})
 
@@ -292,7 +283,7 @@ describe('createCommentAuthorizers', () => {
 			// someone else — the server stamps it back to the session user
 			const next: TLCommentReaction = { ...makeReaction('real-bob'), userId: 'client-claims-alice' }
 			const result = authorize({
-				session: session('real-bob'),
+				...ctx('real-bob'),
 				type: 'create',
 				prev: null,
 				next,
@@ -303,7 +294,7 @@ describe('createCommentAuthorizers', () => {
 		it('rejects a create from a session with no identity', () => {
 			expect(
 				authorize({
-					session: session(null),
+					...ctx(null),
 					type: 'create',
 					prev: null,
 					next: makeReaction('anyone'),
@@ -314,7 +305,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that changes the reacting user', () => {
 			const prev = makeReaction('real-bob')
 			const next = { ...prev, userId: 'real-alice' }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		// emoji feeds the id now, so switching emoji is a delete+create, never an update — an update
@@ -322,30 +313,26 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that changes the emoji', () => {
 			const prev = makeReaction('real-bob', '👍')
 			const next = { ...prev, emoji: '🎉' }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes changing someone else’s reaction', () => {
 			const prev = makeReaction('real-alice')
 			const next = { ...prev, emoji: '💩' }
-			expect(authorize({ session: session('real-mallory'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('lets the reactor remove their own reaction', () => {
 			const prev = makeReaction('real-bob')
-			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
-				prev
-			)
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBe(prev)
 		})
 
 		it('vetoes deleting someone else’s reaction', () => {
 			// cascades still sweep every reactor's records: server-initiated writes carry no session
 			// and skip authorizers entirely, so this doesn't need to be open to clients
 			const prev = makeReaction('real-alice')
-			expect(
-				authorize({ session: session('real-mallory'), type: 'delete', prev, next: null })
-			).toBeNull()
-			expect(authorize({ session: session(null), type: 'delete', prev, next: null })).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })).toBeNull()
+			expect(authorize({ ...ctx(null), type: 'delete', prev, next: null })).toBeNull()
 		})
 
 		// The id is derived from (comment, user, emoji). A create must land at the session user's own
@@ -357,9 +344,7 @@ describe('createCommentAuthorizers', () => {
 				...makeReaction('real-mallory', '👍'),
 				id: createCommentReactionId(createCommentId('c1'), 'real-alice', '👍'),
 			}
-			expect(
-				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		// the id also encodes the emoji, so an id that doesn't match the record's own emoji field
@@ -369,16 +354,12 @@ describe('createCommentAuthorizers', () => {
 				...makeReaction('real-mallory', '🎉'),
 				id: createCommentReactionId(createCommentId('c1'), 'real-mallory', '👍'),
 			}
-			expect(
-				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).toBeNull()
 		})
 
 		it('allows a create whose id is the session user’s canonical slot', () => {
 			const next = makeReaction('real-mallory')
-			expect(
-				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
-			).not.toBeNull()
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).not.toBeNull()
 		})
 
 		// the reaction's comment is fixed by its id; an update must not move it onto another comment,
@@ -386,14 +367,14 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that moves the reaction to a different comment', () => {
 			const prev = makeReaction('real-bob')
 			const next = { ...prev, commentId: createCommentId('c2') }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('vetoes an update that changes the denormalized threadId or pageId', () => {
 			const prev = makeReaction('real-bob')
 			expect(
 				authorize({
-					session: session('real-bob'),
+					...ctx('real-bob'),
 					type: 'update',
 					prev,
 					next: {
@@ -404,7 +385,7 @@ describe('createCommentAuthorizers', () => {
 			).toBeNull()
 			expect(
 				authorize({
-					session: session('real-bob'),
+					...ctx('real-bob'),
 					type: 'update',
 					prev,
 					next: { ...prev, pageId: 'page:other' as typeof prev.pageId },
@@ -434,6 +415,7 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers.comment!({
 					session: readonly,
+					get: () => undefined,
 					type: 'create',
 					prev: null,
 					next: comment('real-bob'),
@@ -442,19 +424,27 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers.comment!({
 					session: readonly,
+					get: () => undefined,
 					type: 'update',
 					prev: commentPrev,
 					next: { ...commentPrev, body: toRichText('edited') },
 				})
 			).toBeNull()
 			expect(
-				authorizers.comment!({ session: readonly, type: 'delete', prev: commentPrev, next: null })
+				authorizers.comment!({
+					session: readonly,
+					get: () => undefined,
+					type: 'delete',
+					prev: commentPrev,
+					next: null,
+				})
 			).toBeNull()
 
 			const threadPrev = makeThread('real-bob')
 			expect(
 				authorizers['comment-thread']!({
 					session: readonly,
+					get: () => undefined,
 					type: 'create',
 					prev: null,
 					next: makeThread('real-bob'),
@@ -463,6 +453,7 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers['comment-thread']!({
 					session: readonly,
+					get: () => undefined,
 					type: 'update',
 					prev: threadPrev,
 					next: { ...threadPrev, resolved: { at: 1, by: 'real-bob' } },
@@ -471,6 +462,7 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers['comment-thread']!({
 					session: readonly,
+					get: () => undefined,
 					type: 'delete',
 					prev: threadPrev,
 					next: null,
@@ -481,6 +473,7 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers['comment-reaction']!({
 					session: readonly,
+					get: () => undefined,
 					type: 'create',
 					prev: null,
 					next: makeReaction('real-bob'),
@@ -489,6 +482,7 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers['comment-reaction']!({
 					session: readonly,
+					get: () => undefined,
 					type: 'update',
 					prev: reactionPrev,
 					next: { ...reactionPrev, createdAt: reactionPrev.createdAt + 1 },
@@ -497,6 +491,7 @@ describe('createCommentAuthorizers', () => {
 			expect(
 				authorizers['comment-reaction']!({
 					session: readonly,
+					get: () => undefined,
 					type: 'delete',
 					prev: reactionPrev,
 					next: null,
@@ -506,7 +501,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('still applies the per-type rules to read-write sessions', () => {
 			const result = authorizers.comment!({
-				session: session('real-bob', false),
+				...ctx('real-bob', false),
 				type: 'create',
 				prev: null,
 				next: comment('client-claims-alice'),
@@ -521,7 +516,7 @@ describe('createCommentAuthorizers', () => {
 			})
 
 			const result = commentOnly.comment!({
-				session: session('real-bob', true),
+				...ctx('real-bob', true),
 				type: 'create',
 				prev: null,
 				next: comment('client-claims-alice'),
@@ -530,7 +525,7 @@ describe('createCommentAuthorizers', () => {
 
 			expect(
 				commentOnly.comment!({
-					session: session(null, true),
+					...ctx(null, true),
 					type: 'create',
 					prev: null,
 					next: comment('anon'),
@@ -551,7 +546,7 @@ describe('createCommentAuthorizers', () => {
 			const prev = comment('real-bob')
 			expect(
 				blocked.comment!({
-					session: session('real-bob'),
+					...ctx('real-bob'),
 					type: 'update',
 					prev,
 					next: { ...prev, isDeleted: true },
@@ -568,7 +563,7 @@ describe('createCommentAuthorizers', () => {
 
 			expect(
 				bannable.comment!({
-					session: session('banned', false),
+					...ctx('banned', false),
 					type: 'create',
 					prev: null,
 					next: comment('banned'),
@@ -576,7 +571,7 @@ describe('createCommentAuthorizers', () => {
 			).toBeNull()
 
 			const result = bannable.comment!({
-				session: session('real-bob', false),
+				...ctx('real-bob', false),
 				type: 'create',
 				prev: null,
 				next: comment('client-claims-alice'),
@@ -605,25 +600,21 @@ describe('createCommentAuthorizers', () => {
 		it('lets a widened rule soft-delete another user’s comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(moderated.comment!({ session: session('real-mod'), type: 'update', prev, next })).toBe(
-				next
-			)
+			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('lets a widened rule soft-delete another user’s thread', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(
-				moderated['comment-thread']!({ session: session('real-mod'), type: 'update', prev, next })
-			).toBe(next)
+			expect(moderated['comment-thread']!({ ...ctx('real-mod'), type: 'update', prev, next })).toBe(
+				next
+			)
 		})
 
 		it('keeps the edit and the delete separate: widening deletes grants no edits', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, body: toRichText('rewritten by the mod') }
-			expect(
-				moderated.comment!({ session: session('real-mod'), type: 'update', prev, next })
-			).toBeNull()
+			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toBeNull()
 		})
 
 		// The gap a delete-only permission would otherwise leave: flip the flag, rewrite the body,
@@ -631,24 +622,20 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes a delete that carries an edit past a delete-only permission', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true, body: toRichText('rewritten on the way out') }
-			expect(
-				moderated.comment!({ session: session('real-mod'), type: 'update', prev, next })
-			).toBeNull()
+			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toBeNull()
 		})
 
 		it('still lets the owner delete and edit in one write', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true, body: toRichText('last word') }
-			expect(moderated.comment!({ session: session('real-bob'), type: 'update', prev, next })).toBe(
-				next
-			)
+			expect(moderated.comment!({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(next)
 		})
 
 		it('leaves everyone else where the default left them', () => {
 			const prev = comment('real-bob')
 			expect(
 				moderated.comment!({
-					session: session('real-mallory'),
+					...ctx('real-mallory'),
 					type: 'update',
 					prev,
 					next: { ...prev, isDeleted: true },
@@ -657,7 +644,7 @@ describe('createCommentAuthorizers', () => {
 			const threadPrev = makeThread('real-bob')
 			expect(
 				moderated['comment-thread']!({
-					session: session('real-mallory'),
+					...ctx('real-mallory'),
 					type: 'update',
 					prev: threadPrev,
 					next: { ...threadPrev, isDeleted: true },
@@ -673,7 +660,7 @@ describe('createCommentAuthorizers', () => {
 			const prev = comment('real-bob')
 			expect(
 				frozen.comment!({
-					session: session('real-bob'),
+					...ctx('real-bob'),
 					type: 'update',
 					prev,
 					next: { ...prev, body: toRichText('edited') },
@@ -681,9 +668,9 @@ describe('createCommentAuthorizers', () => {
 			).toBeNull()
 			// ...and the delete it didn't narrow still goes through
 			const deleted = { ...prev, isDeleted: true }
-			expect(
-				frozen.comment!({ session: session('real-bob'), type: 'update', prev, next: deleted })
-			).toBe(deleted)
+			expect(frozen.comment!({ ...ctx('real-bob'), type: 'update', prev, next: deleted })).toBe(
+				deleted
+			)
 		})
 
 		it('is asked with the stored record, not the client’s version of it', () => {
@@ -699,12 +686,12 @@ describe('createCommentAuthorizers', () => {
 			// mallory's push claims the comment is hers and already deleted; the context must describe
 			// the record the room holds, or an ownership rule would be reading the attacker's claim
 			const next = { ...prev, authorId: 'real-mallory', body: toRichText('edited') }
-			spying.comment!({ session: session('real-mallory'), type: 'update', prev, next })
+			spying.comment!({ ...ctx('real-mallory'), type: 'update', prev, next })
 			// the attribution guard rejects this one before the option is asked at all
 			expect(seen).toEqual([])
 
 			spying.comment!({
-				session: session('real-mallory'),
+				...ctx('real-mallory'),
 				type: 'update',
 				prev,
 				next: { ...prev, body: toRichText('edited') },
@@ -731,7 +718,7 @@ describe('createCommentAuthorizers', () => {
 			})
 			const prev = makeThread('real-bob')
 			spying['comment-thread']!({
-				session: session('real-mallory'),
+				...ctx('real-mallory'),
 				type: 'update',
 				prev,
 				next: { ...prev, isDeleted: true },
@@ -762,7 +749,7 @@ describe('createCommentAuthorizers', () => {
 			const resolved = { ...prev, resolved: { at: 1, by: 'real-mallory' } }
 			expect(
 				counting['comment-thread']!({
-					session: session('real-mallory'),
+					...ctx('real-mallory'),
 					type: 'update',
 					prev,
 					next: resolved,
@@ -771,7 +758,7 @@ describe('createCommentAuthorizers', () => {
 			const reopened = { ...resolved, resolved: null }
 			expect(
 				counting['comment-thread']!({
-					session: session('real-mallory'),
+					...ctx('real-mallory'),
 					type: 'update',
 					prev: resolved,
 					next: reopened,
@@ -799,7 +786,7 @@ describe('createCommentAuthorizers', () => {
 			// a permissive callback doesn't hand mallory someone else's reaction
 			expect(
 				counting['comment-reaction']!({
-					session: session('real-mallory'),
+					...ctx('real-mallory'),
 					type: 'delete',
 					prev,
 					next: null,
@@ -807,7 +794,7 @@ describe('createCommentAuthorizers', () => {
 			).toBeNull()
 			expect(
 				counting['comment-reaction']!({
-					session: session('real-bob'),
+					...ctx('real-bob'),
 					type: 'update',
 					prev,
 					next: { ...prev, createdAt: prev.createdAt + 1 },
@@ -828,7 +815,7 @@ describe('createCommentAuthorizers', () => {
 				const prev = { ...comment('real-bob'), isDeleted: true }
 				expect(
 					permissive.comment!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'update',
 						prev,
 						next: { ...prev, isDeleted: false },
@@ -839,12 +826,12 @@ describe('createCommentAuthorizers', () => {
 			it('still vetoes every client hard-delete', () => {
 				const prev = comment('real-bob')
 				expect(
-					permissive.comment!({ session: session('real-mod'), type: 'delete', prev, next: null })
+					permissive.comment!({ ...ctx('real-mod'), type: 'delete', prev, next: null })
 				).toBeNull()
 				const threadPrev = makeThread('real-bob')
 				expect(
 					permissive['comment-thread']!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'delete',
 						prev: threadPrev,
 						next: null,
@@ -856,7 +843,7 @@ describe('createCommentAuthorizers', () => {
 				const prev = comment('real-bob')
 				expect(
 					permissive.comment!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'update',
 						prev,
 						next: { ...prev, authorId: 'real-mod' },
@@ -868,7 +855,7 @@ describe('createCommentAuthorizers', () => {
 				const prev = comment('real-bob')
 				expect(
 					permissive.comment!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'update',
 						prev,
 						next: { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] },
@@ -876,7 +863,7 @@ describe('createCommentAuthorizers', () => {
 				).toBeNull()
 				expect(
 					permissive.comment!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'update',
 						prev,
 						next: { ...prev, createdAt: 1 },
@@ -887,7 +874,7 @@ describe('createCommentAuthorizers', () => {
 			it('still vetoes a create with the soft-delete flag already set', () => {
 				expect(
 					permissive.comment!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'create',
 						prev: null,
 						next: { ...comment('real-mod'), isDeleted: true },
@@ -899,7 +886,7 @@ describe('createCommentAuthorizers', () => {
 				const prev = makeThread('real-bob')
 				expect(
 					permissive['comment-thread']!({
-						session: session('real-mod'),
+						...ctx('real-mod'),
 						type: 'update',
 						prev,
 						next: { ...prev, resolved: { at: 1, by: 'real-alice' } },
@@ -913,12 +900,8 @@ describe('createCommentAuthorizers', () => {
 			it('takes a callback at its word about an anonymous session', () => {
 				const prev = comment('real-bob')
 				const next = { ...prev, isDeleted: true }
-				expect(permissive.comment!({ session: session(null), type: 'update', prev, next })).toBe(
-					next
-				)
-				expect(
-					authorizers.comment!({ session: session(null), type: 'update', prev, next })
-				).toBeNull()
+				expect(permissive.comment!({ ...ctx(null), type: 'update', prev, next })).toBe(next)
+				expect(authorizers.comment!({ ...ctx(null), type: 'update', prev, next })).toBeNull()
 			})
 		})
 	})

@@ -1262,7 +1262,7 @@ describe('when the client is the same version', () => {
 describe('record authorizers see server-schema records', () => {
 	function makeInstance(authorizeUser: (args: any) => any) {
 		return new TestInstance(undefined, schemaV1, schemaV2, {
-			authorizeRecord: { user: authorizeUser },
+			beforeWrite: { user: authorizeUser },
 		})
 	}
 
