@@ -210,6 +210,15 @@
 	opacity: 1;
 }
 
+.tlui-collections-menu__submenu > .tlui-button__checkbox {
+	margin: 0;
+	padding: 0 10px;
+}
+
+.tlui-collections-menu__submenu > .tlui-button__checkbox::after {
+	inset: 2px;
+}
+
 .tlui-collections-menu__item--danger {
 	color: var(--tl-color-danger);
 }

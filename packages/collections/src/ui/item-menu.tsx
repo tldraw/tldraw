@@ -1,19 +1,16 @@
-import { type PointerEvent, type RefObject, useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import {
 	defineMessages,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
-	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiDropdownMenuSub,
-	TldrawUiDropdownMenuSubContent,
-	TldrawUiDropdownMenuSubTrigger,
 	useContainer,
 	useTranslation,
 } from 'tldraw'
+import { MenuItem, MenuSubmenu } from './menu-items'
 import { RenameInput } from './rename-input'
 
 const messages = defineMessages({
@@ -99,11 +96,6 @@ function ItemMenuContent({ id, name, onRename, onDelete, moveTargets, onMove }: 
 	const renameItemRef = useRef<HTMLButtonElement>(null)
 	useKeepMenuOpenOnEscape(renaming)
 
-	// The submenu trigger takes no event handlers, so its wrapper does what MenuItem's keepFocus does.
-	const keepFocus = (e: PointerEvent) => {
-		if (renaming) e.preventDefault()
-	}
-
 	const stopRenaming = () => {
 		setRenaming(false)
 		// Enter and Escape blur the input, leaving focus nowhere. Deferred so Enter's keypress doesn't
@@ -145,72 +137,21 @@ function ItemMenuContent({ id, name, onRename, onDelete, moveTargets, onMove }: 
 					/>
 				)}
 				{moveTargets && onMove && (
-					<TldrawUiDropdownMenuSub id={`${getItemMenuId(id)}-move-to`}>
-						<div
-							className="tlui-collections-menu__submenu-trigger"
-							onPointerMoveCapture={keepFocus}
-							onPointerOutCapture={keepFocus}
-						>
-							<TldrawUiDropdownMenuSubTrigger label={msg(messages.moveTo)} />
-						</div>
-						<TldrawUiDropdownMenuSubContent alignOffset={-4} sideOffset={0}>
-							<TldrawUiDropdownMenuGroup className="tlui-collections-menu__submenu">
-								{moveTargets.map((target) => (
-									<MenuItem
-										key={target.id}
-										label={target.name}
-										holdFocus={false}
-										onClick={() => onMove(target.id)}
-									/>
-								))}
-							</TldrawUiDropdownMenuGroup>
-						</TldrawUiDropdownMenuSubContent>
-					</TldrawUiDropdownMenuSub>
+					<MenuSubmenu
+						id={`${getItemMenuId(id)}-move-to`}
+						label={msg(messages.moveTo)}
+						holdFocus={renaming}
+					>
+						{moveTargets.map((target) => (
+							<MenuItem key={target.id} label={target.name} onClick={() => onMove(target.id)} />
+						))}
+					</MenuSubmenu>
 				)}
 				{onDelete && (
 					<MenuItem label={msg(messages.delete)} danger holdFocus={renaming} onClick={onDelete} />
 				)}
 			</TldrawUiDropdownMenuGroup>
 		</>
-	)
-}
-
-function MenuItem({
-	buttonRef,
-	label,
-	danger,
-	noClose,
-	holdFocus,
-	onClick,
-}: {
-	buttonRef?: RefObject<HTMLButtonElement | null>
-	label: string
-	danger?: boolean
-	noClose?: boolean
-	/** Stops the menu moving focus to the item on hover, which would blur and commit a rename. */
-	holdFocus: boolean
-	onClick(): void
-}) {
-	const keepFocus = (e: PointerEvent) => {
-		if (holdFocus) e.preventDefault()
-	}
-	return (
-		<TldrawUiDropdownMenuItem noClose={noClose}>
-			<button
-				ref={buttonRef}
-				type="button"
-				className={
-					danger
-						? 'tlui-collections-menu__item tlui-collections-menu__item--danger'
-						: 'tlui-collections-menu__item'
-				}
-				onClick={onClick}
-				onPointerMove={keepFocus}
-				onPointerLeave={keepFocus}
-			>
-				<span>{label}</span>
-			</button>
-		</TldrawUiDropdownMenuItem>
 	)
 }
 

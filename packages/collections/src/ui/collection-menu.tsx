@@ -3,15 +3,13 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuCheckboxItem,
-	TldrawUiMenuContextProvider,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
+	useReadonly,
 	useTranslation,
 } from 'tldraw'
+import { MenuCheckboxItem, MenuItem, MenuSubmenu } from './menu-items'
 
 const messages = defineMessages({
 	moreOptions: { id: 'collections.collection-menu.title', defaultMessage: 'Collection options' },
@@ -43,13 +41,16 @@ export interface CollectionMenuProps {
 }
 
 /**
- * A ⋯ menu for the panel's collections, laid out like the page menu's. Renders nothing when it has
- * no actions.
+ * A ⋯ menu for the panel's collections. Renders nothing when it has no actions.
  * @public @react
  */
 export function CollectionMenu({ onCreate, onRename, onDelete, sort }: CollectionMenuProps) {
 	const msg = useTranslation()
-	if (!onCreate && !onRename && !onDelete && !sort) return null
+	const isReadonly = useReadonly()
+	const create = isReadonly ? undefined : onCreate
+	const rename = isReadonly ? undefined : onRename
+	const remove = isReadonly ? undefined : onDelete
+	if (!create && !rename && !remove && !sort) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id="collections-collection-menu">
@@ -62,51 +63,35 @@ export function CollectionMenu({ onCreate, onRename, onDelete, sort }: Collectio
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={4} alignOffset={0}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
-					{onCreate && (
-						<TldrawUiMenuGroup id="create">
-							<TldrawUiMenuItem id="create" label={messages.create.id} onSelect={onCreate} />
-						</TldrawUiMenuGroup>
-					)}
-					{onRename && (
-						<TldrawUiMenuGroup id="modify">
-							<TldrawUiMenuItem id="rename" label={messages.rename.id} onSelect={onRename} />
-						</TldrawUiMenuGroup>
-					)}
+			<TldrawUiDropdownMenuContent
+				className="tlui-collections-menu"
+				side="bottom"
+				align="end"
+				sideOffset={4}
+				alignOffset={0}
+			>
+				<TldrawUiDropdownMenuGroup>
+					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
+					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
-						<TldrawUiMenuGroup id="sort">
-							<TldrawUiMenuSubmenu id="sort-items" label={messages.sort.id}>
-								<TldrawUiMenuGroup id="sort-orderings">
-									{sort.options.map((option) => (
-										<TldrawUiMenuCheckboxItem
-											key={option.id}
-											id={`sort-${option.id}`}
-											label={option.label}
-											checked={option.id === sort.value}
-											readonlyOk
-											onSelect={() => sort.onValueChange(option.id)}
-										/>
-									))}
-								</TldrawUiMenuGroup>
-								<TldrawUiMenuGroup id="sort-direction">
-									<TldrawUiMenuCheckboxItem
-										id="sort-reverse"
-										label={messages.reverse.id}
-										checked={sort.reversed}
-										readonlyOk
-										onSelect={() => sort.onReversedChange(!sort.reversed)}
-									/>
-								</TldrawUiMenuGroup>
-							</TldrawUiMenuSubmenu>
-						</TldrawUiMenuGroup>
+						<MenuSubmenu id="collections-collection-menu-sort" label={msg(messages.sort)}>
+							{sort.options.map((option) => (
+								<MenuCheckboxItem
+									key={option.id}
+									label={msg(option.label)}
+									checked={option.id === sort.value}
+									onSelect={() => sort.onValueChange(option.id)}
+								/>
+							))}
+							<MenuCheckboxItem
+								label={msg(messages.reverse)}
+								checked={sort.reversed}
+								onSelect={() => sort.onReversedChange(!sort.reversed)}
+							/>
+						</MenuSubmenu>
 					)}
-					{onDelete && (
-						<TldrawUiMenuGroup id="delete">
-							<TldrawUiMenuItem id="delete" label={messages.delete.id} onSelect={onDelete} />
-						</TldrawUiMenuGroup>
-					)}
-				</TldrawUiMenuContextProvider>
+					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
+				</TldrawUiDropdownMenuGroup>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
