@@ -475,10 +475,10 @@ export interface TLPushRequest<R extends UnknownRecord> {
     type: 'push';
 }
 
-// @public @deprecated (undocumented)
+// @internal @deprecated (undocumented)
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = TLBeforeWriteHook<Rec, SessionMeta>;
 
-// @public @deprecated (undocumented)
+// @internal @deprecated (undocumented)
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = TLBeforeWriteHooks<R, SessionMeta>;
 
 // @public
@@ -554,7 +554,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
-    // @deprecated (undocumented)
+    // @internal @deprecated (undocumented)
     authorizeRecord?: TLBeforeWriteHooks<R, SessionMeta>;
     beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
     // (undocumented)

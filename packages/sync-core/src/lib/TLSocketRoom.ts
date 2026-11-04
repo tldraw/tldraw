@@ -153,6 +153,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 	/**
 	 * @deprecated Use `beforeWrite`. Setting both throws.
+	 * @internal
 	 */
 	authorizeRecord?: TLBeforeWriteHooks<R, SessionMeta>
 	/**

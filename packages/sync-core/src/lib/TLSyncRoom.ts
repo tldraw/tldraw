@@ -218,7 +218,7 @@ export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
 
 /**
  * @deprecated Use `TLBeforeWriteHook` instead.
- * @public
+ * @internal
  */
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = TLBeforeWriteHook<
 	Rec,
@@ -227,7 +227,7 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = TLBefor
 
 /**
  * @deprecated Use `TLBeforeWriteHooks` instead.
- * @public
+ * @internal
  */
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = TLBeforeWriteHooks<
 	R,
