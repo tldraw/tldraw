@@ -217,3 +217,49 @@ test.describe('commenting a11y', () => {
 		await expect(page.locator('.tlui-cmt-stack-list__thread')).toHaveCount(1)
 	})
 })
+
+// Escape steps back one level at a time: close whatever is open while keeping the comment tool,
+// then leave the tool for select (#11293).
+test.describe('commenting escape', () => {
+	test.beforeEach(async ({ page, isMobile }) => {
+		if (isMobile) test.skip()
+		await page.goto('http://localhost:5420/commenting/full')
+		await page.waitForSelector('.tl-canvas')
+		await page.locator('.tl-container').focus()
+	})
+
+	test('escape closes the composer, then leaves the comment tool', async ({ page }) => {
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await startComment(page)
+		await page.keyboard.type('a draft')
+
+		await page.keyboard.press('Escape')
+		await expect(page.locator('.tlui-cmt-canvas-composer')).toHaveCount(0)
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	test('escape leaves the comment tool after closing a thread opened from its pin', async ({
+		page,
+	}) => {
+		await placeComment(page, 'first')
+
+		// Clicking the pin leaves focus outside the editor container, where the editor listens for
+		// Escape, while tool shortcuts like C still work.
+		const pin = page.locator('.tlui-cmt-canvas-pin__marker')
+		await pin.click()
+		await expect(pin).toHaveAttribute('aria-expanded', 'true')
+		await page.keyboard.press('c')
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(pin).toHaveAttribute('aria-expanded', 'false')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
+})

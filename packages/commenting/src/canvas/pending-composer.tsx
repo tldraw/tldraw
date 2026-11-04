@@ -95,6 +95,21 @@ export function PendingComposer({
 		return () => document.removeEventListener('pointerdown', onPointerDown, true)
 	}, [editor])
 
+	// Escape dismisses the draft but keeps the comment tool, so a second Escape leaves it. This is a
+	// capture-phase document listener because the editor's Escape listener sits natively on its
+	// container: a React onKeyDown here runs after the editor has already cancelled the tool.
+	// Mid-placement (pointing, dragging) Escape stays the tool's, which abandons the gesture.
+	useEffect(() => {
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape' || isMentionPickerOpen() || !editor.isIn('comment.idle')) return
+			pendingComment.set(editor, null)
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		document.addEventListener('keydown', onKeyDown, true)
+		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [editor])
+
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
 		const comment = commitCommentMutation(editor, ({ put }) => {
@@ -139,9 +154,6 @@ export function PendingComposer({
 				style={{ left: placed.left, top: placed.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
-				onKeyDown={(e) => {
-					if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
-				}}
 			>
 				{canComment ? (
 					<CommentComposer

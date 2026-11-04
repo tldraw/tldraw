@@ -1,6 +1,6 @@
 import { isMentionPickerOpen } from '@tldraw/mentions'
 import { Fragment, ReactNode, useCallback, useEffect, useMemo, useRef } from 'react'
-import { EditorPortal, TLCommentThread, useEditor, useValue } from 'tldraw'
+import { EditorPortal, react, TLCommentThread, useEditor, useValue } from 'tldraw'
 import type { ClusterNode } from '../clustering/types'
 import { registerCommentAnchorLifecycle } from './anchor-lifecycle'
 import { ClusterBadge } from './cluster-badge'
@@ -226,6 +226,29 @@ function CanvasCommentsLayer(props: CommentingContext) {
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
+	}, [editor])
+
+	// A closing thread, stack, or composer can take keyboard focus down with it, leaving it on
+	// <body>. Tool shortcuts still fire from there but the editor's Escape listener (on its
+	// container) doesn't, so you could press C and then not leave the comment tool (#11293).
+	useEffect(() => {
+		let wasOpen = false
+		return react('return focus to the editor when commenting UI closes', () => {
+			const isOpen =
+				openThreadId.get(editor) !== null ||
+				openStackId.get(editor) !== null ||
+				pendingComment.get(editor) !== null
+			if (wasOpen && !isOpen) {
+				// The closed UI unmounts, and drops focus, on the render after this change.
+				editor.timers.requestAnimationFrame(() => {
+					const doc = editor.getContainerDocument()
+					if (editor.getIsFocused() && (!doc.activeElement || doc.activeElement === doc.body)) {
+						editor.getContainer().focus()
+					}
+				})
+			}
+			wasOpen = isOpen
+		})
 	}, [editor])
 
 	// Shift+C toggles pin visibility. Physical `KeyC` so it's layout-independent, and skipped while
