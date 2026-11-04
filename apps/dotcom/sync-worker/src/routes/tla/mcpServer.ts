@@ -1,8 +1,4 @@
-import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
-	ShapeCluster,
-} from '@tldraw/dotcom-shared'
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -31,6 +27,7 @@ import {
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
+	PageClustering,
 	PageSelector,
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
@@ -41,6 +38,7 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getMeasuredGeometry,
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
@@ -883,7 +881,7 @@ async function callPageInfoTool(
 		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return getPageInfo(resolved.page, clustered.clusters)
+		return getPageInfo(resolved.page, clustered.clustering.clusters)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
@@ -1159,7 +1157,7 @@ async function checkRenameRateLimit(
 }
 
 type PageClustersResult =
-	| { ok: true; clusters: ShapeCluster[]; clusterCacheStatus: 'hit' | 'miss' }
+	| { ok: true; clustering: PageClustering; clusterCacheStatus: 'hit' | 'miss' }
 	| { ok: false; result: ToolCallResult }
 
 // How the three clustering tools get a page's clusters, and the one place that decides whether that
@@ -1208,7 +1206,7 @@ async function clustersFor(
 		resolved.page,
 		resolved.snapshotVersion
 	)
-	if (cached) return { ok: true, clusters: cached, clusterCacheStatus: 'hit' }
+	if (cached) return { ok: true, clustering: cached, clusterCacheStatus: 'hit' }
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
@@ -1236,10 +1234,14 @@ async function clustersFor(
 		cacheContext,
 		resolved.board,
 		resolved.page,
-		buildClusterIndex(clusters),
+		buildClusterIndex(clusters, measurements),
 		resolved.snapshotVersion
 	)
-	return { ok: true, clusters, clusterCacheStatus: 'miss' }
+	return {
+		ok: true,
+		clustering: { clusters, ...getMeasuredGeometry(measurements) },
+		clusterCacheStatus: 'miss',
+	}
 }
 
 async function callClusterInfoTool(
@@ -1266,17 +1268,23 @@ async function callClusterInfoTool(
 
 		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
-		const result = getClusterInfo(resolved.page, clustered.clusters, input.clusterId, input.page)
-		if (result.isError) {
+		const info = getClusterInfo(
+			resolved.page,
+			clustered.clustering,
+			input.clusterIds,
+			input.page,
+			input.cursor
+		)
+		if (!info.ok) {
 			telemetry({
 				cacheStatus: 'none',
 				clusterCacheStatus: clustered.clusterCacheStatus,
-				failureReason: 'cluster_not_found',
+				failureReason: info.reason,
 			})
-			return withTelemetryReason(result, 'cluster_not_found')
+			return withTelemetryReason(info.result, info.reason)
 		}
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return result
+		return info.result
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -1286,7 +1294,7 @@ async function callClusterInfoTool(
 			extras: {
 				boardId: input.boardId,
 				page: describePageSelector(input.page),
-				clusterId: input.clusterId,
+				clusterIds: input.clusterIds.join(','),
 			},
 			summary: 'Could not read cluster info',
 			telemetry,
@@ -1496,7 +1504,7 @@ async function callClusterScreenshotTool(
 		pickShapes: async (resolved, telemetry) => {
 			const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
-			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
+			const picked = pickClusterShapes(clustered.clustering.clusters, input.clusterIds, input.page)
 			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as

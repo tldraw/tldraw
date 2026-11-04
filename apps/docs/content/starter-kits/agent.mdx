@@ -35,6 +35,8 @@ OPENAI_API_KEY=<your key>
 
 We recommend Anthropic for best results. Get an API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
 
+To use one [OpenRouter](https://openrouter.ai) key for every model instead, set `OPENROUTER_API_KEY`. The provider keys are then not used.
+
 ---
 
 ## Use cases
@@ -593,12 +595,15 @@ To add support for a different model, add the model's definition to `AGENT_MODEL
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
 	id: 'claude-sonnet-5',
+	openRouterId: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
 	supportsTemperature: false,
 	thinking: 'adaptive',
 	effort: 'low',
 }
 ```
+
+`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
 
 If you need to add any extra setup or configuration for your provider, you can add it to the `worker/do/AgentService.ts` file.
 

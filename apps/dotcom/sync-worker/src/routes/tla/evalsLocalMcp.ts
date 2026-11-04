@@ -19,6 +19,7 @@ import {
 	getBoardSearchResults,
 	clusterPage,
 	getClusterInfo,
+	getMeasuredGeometry,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -190,12 +191,21 @@ async function callFixtureTool(
 					: resolved.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
-				const { boardId, page, clusterId } = parseClusterInfoInput(args)
+				const { boardId, page, clusterIds, cursor } = parseClusterInfoInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getClusterInfo(resolved, clusterPage(resolved, board.measurements), clusterId, page)
+					? getClusterInfo(
+							resolved,
+							{
+								clusters: clusterPage(resolved, board.measurements),
+								...getMeasuredGeometry(board.measurements),
+							},
+							clusterIds,
+							page,
+							cursor
+						).result
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
