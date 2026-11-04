@@ -59,7 +59,7 @@ export function CollectionMenu({ onCreate, onRename, onDelete, sort }: Collectio
 					tooltip={msg(messages.moreOptions)}
 					title={msg(messages.moreOptions)}
 				>
-					<TldrawUiButtonIcon icon="dots-horizontal" small />
+					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={4} alignOffset={0}>
