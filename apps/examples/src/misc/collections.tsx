@@ -214,6 +214,10 @@ interface PlaygroundSettings {
 	tileColumns: '2' | '3' | '4'
 	tileLabel: 'below' | 'hover' | 'hidden'
 	tileFit: 'contain' | 'cover'
+	panelSide: 'left' | 'right'
+	panelWidth: '200' | '240' | '320'
+	smallScreen: 'panel' | 'sheet'
+	viewport: 'desktop' | 'phone'
 	data: keyof typeof SOURCES
 }
 
@@ -225,6 +229,10 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	tileColumns: '2',
 	tileLabel: 'below',
 	tileFit: 'contain',
+	panelSide: 'left',
+	panelWidth: '240',
+	smallScreen: 'panel',
+	viewport: 'desktop',
 	data: 'samples',
 })
 
@@ -286,6 +294,46 @@ const SURFACES: Surface[] = [
 				options: [
 					{ value: 'source', label: "The source's order" },
 					{ value: 'recent', label: 'Recently saved to first' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Panel layout',
+		hint: 'Where the panel sits and how wide it is; on a phone, a panel or a sheet.',
+		shapes: true,
+		choices: [
+			{
+				key: 'panelSide',
+				label: 'Side',
+				options: [
+					{ value: 'left', label: 'Left' },
+					{ value: 'right', label: 'Right' },
+				],
+			},
+			{
+				key: 'panelWidth',
+				label: 'Width',
+				options: [
+					{ value: '200', label: '200 px' },
+					{ value: '240', label: '240 px' },
+					{ value: '320', label: '320 px' },
+				],
+			},
+			{
+				key: 'smallScreen',
+				label: 'On a phone',
+				options: [
+					{ value: 'panel', label: 'Panel' },
+					{ value: 'sheet', label: 'Sheet that closes after placing' },
+				],
+			},
+			{
+				key: 'viewport',
+				label: 'Viewport',
+				options: [
+					{ value: 'desktop', label: 'Desktop' },
+					{ value: 'phone', label: 'Phone (390 px)' },
 				],
 			},
 		],
@@ -425,8 +473,7 @@ const SURFACES: Surface[] = [
 
 const rowStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' } as const
 
-function PlaygroundControls() {
-	const editor = useEditor()
+function PlaygroundControls({ editor }: { editor: Editor }) {
 	const pageName = useValue('page name', () => editor.getCurrentPage().name, [editor])
 	const current = useValue(
 		'playground settings',
@@ -506,6 +553,18 @@ function PlaygroundPanel() {
 	const navigation = useValue('navigation', () => settings.get().navigation, [])
 	const sorting = useValue('sorting', () => settings.get().sorting, [])
 	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
+	const {
+		panelSide: side,
+		panelWidth,
+		smallScreen,
+	} = useValue(
+		'panel layout',
+		() => {
+			const { panelSide, panelWidth, smallScreen } = settings.get()
+			return { panelSide, panelWidth, smallScreen }
+		},
+		[]
+	)
 	const tileAppearance = useValue(
 		'tile appearance',
 		() => {
@@ -526,6 +585,9 @@ function PlaygroundPanel() {
 			itemOrderings={sorting === 'built-in' ? defaultItemOrderings : [sourceItemOrder]}
 			groupCollections={grouped ? groupByScope : undefined}
 			tileAppearance={tileAppearance}
+			side={side}
+			width={Number(panelWidth)}
+			smallScreen={smallScreen}
 		/>
 	)
 }
@@ -574,7 +636,12 @@ function setUpSurfaces(editor: Editor) {
 
 const components: TLComponents = {
 	InFrontOfTheCanvas: PlaygroundPanel,
-	TopPanel: PlaygroundControls,
+	// In the phone viewport the controls sit beside the frame instead, clear of the panel.
+	TopPanel: function PlaygroundTopPanel() {
+		const editor = useEditor()
+		const viewport = useValue('viewport', () => settings.get().viewport, [])
+		return viewport === 'desktop' ? <PlaygroundControls editor={editor} /> : null
+	},
 	ContextMenu: (props) => (
 		<DefaultContextMenu {...props}>
 			<PlaygroundSaveMenu />
@@ -591,16 +658,45 @@ const components: TLComponents = {
 	),
 }
 
+const mountedEditor = atom<Editor | null>('collections playground editor', null)
+
 const handleMount = (editor: Editor) => {
+	mountedEditor.set(editor)
 	editor.run(() => setUpSurfaces(editor), { history: 'ignore' })
 	collectionsPanelOpen.set(editor, true)
 	seeding ??= seedSamples(editor)
 }
 
+// The Panel layout page can shrink the editor to a phone's width, so tldraw's breakpoints treat
+// it as a phone.
 export default function Collections() {
+	const viewport = useValue('viewport', () => settings.get().viewport, [])
+	const mounted = useValue('mounted editor', () => mountedEditor.get(), [])
+	const editor = (
+		<Tldraw persistenceKey="collections" components={components} onMount={handleMount} />
+	)
+	if (viewport === 'desktop') return <div className="tldraw__editor">{editor}</div>
 	return (
-		<div className="tldraw__editor">
-			<Tldraw persistenceKey="collections" components={components} onMount={handleMount} />
+		<div
+			className="tldraw__editor"
+			style={{ display: 'flex', justifyContent: 'center', gap: 16, background: '#ddd' }}
+		>
+			{mounted && (
+				<div style={{ alignSelf: 'flex-start', paddingTop: 8 }}>
+					<PlaygroundControls editor={mounted} />
+				</div>
+			)}
+			<div
+				style={{
+					position: 'relative',
+					width: 390,
+					height: '100%',
+					maxHeight: 844,
+					alignSelf: 'center',
+				}}
+			>
+				{editor}
+			</div>
 		</div>
 	)
 }
