@@ -188,10 +188,23 @@
 	height: 40px;
 }
 
+.tlui-collections-menu__heading:has(.tlui-collections-menu__rename) {
+	position: relative;
+	padding: 0;
+}
+
+.tlui-collections-menu__heading:has(.tlui-collections-menu__rename)::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	border-radius: var(--tl-radius-2);
+	border: 1px solid var(--tl-color-primary);
+	pointer-events: none;
+}
+
 .tlui-input.tlui-collections-menu__rename {
 	width: 100%;
-	padding: 0;
-	font-weight: bold;
+	padding: 0 12px;
 }
 
 .tlui-collections-menu__item {
