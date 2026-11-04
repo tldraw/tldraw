@@ -259,12 +259,6 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 }
 
 /**
- * A hook's result, normalized: a rejection with its reason, or the allowed write with the record
- * the hook returned, if any.
- */
-type TLWriteVerdict<R> = { rejected: true; reason: string } | { rejected: false; record?: R }
-
-/**
  * A collaborative workspace that manages multiple client sessions and synchronizes
  * document changes between them. The room serves as the authoritative source for
  * all document state and handles conflict resolution, schema migrations, and
@@ -419,7 +413,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	private authorizerFor(
 		typeName: R['typeName']
-	): ((args: Parameters<TLBeforeWriteHook<R, SessionMeta>>[0]) => TLWriteVerdict<R>) | undefined {
+	): ((args: Parameters<TLBeforeWriteHook<R, SessionMeta>>[0]) => R | void | TLDeny) | undefined {
 		const authorize = this.beforeWrite?.[typeName] as
 			| ((args: Parameters<TLBeforeWriteHook<R, SessionMeta>>[0]) => unknown)
 			| undefined
@@ -430,14 +424,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				result = authorize(args)
 			} catch (e) {
 				// Fail closed: hooks are security-sensitive, so a bug must never let a write through.
-				this.log?.error?.('beforeWrite hook threw; rejecting the write', e)
-				return { rejected: true, reason: 'hook threw' }
+				this.log?.error?.('beforeWrite hook threw; denying the write', e)
+				return deny('hook threw')
 			}
-			if (result instanceof TLDeny) return { rejected: true, reason: result.reason }
 			// `null` is the rejection of the deprecated `authorizeRecord` hooks, which TLSocketRoom
 			// passes in as `beforeWrite`.
-			if (result === false || result === null) return { rejected: true, reason: 'rejected' }
-			return { rejected: false, record: result as R | undefined }
+			if (result === false || result === null) return deny('rejected')
+			return result as R | void | TLDeny
 		}
 	}
 
@@ -1542,25 +1535,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
 										authorize = (prevRec, next) => {
-											const verdict = authorizePut(
+											const result = authorizePut(
 												prevRec
 													? { ...authBase!, type: 'update', prev: prevRec, next }
 													: { ...authBase!, type: 'create', prev: null, next }
 											)
-											if (verdict.rejected) {
+											if (result instanceof TLDeny) {
 												this.log?.warn?.(
-													'beforeWrite rejected put',
+													'beforeWrite denied put',
 													record.typeName,
 													id,
 													'session:',
 													session.sessionId,
 													'reason:',
-													verdict.reason
+													result.reason
 												)
 												return null
 											}
 											// create: store the stamped record; update: allow/veto only
-											return prevRec ? next : (verdict.record ?? next)
+											return prevRec ? next : (result ?? next)
 										}
 									}
 								}
@@ -1578,24 +1571,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const authorizePatch = session && this.authorizerFor(doc.typeName)
 								const authorize = authorizePatch
 									? (prev: R, next: R) => {
-											const verdict = authorizePatch({
+											const result = authorizePatch({
 												...authBase!,
 												type: 'update',
 												prev,
 												next,
 											})
-											if (verdict.rejected) {
+											const denied = result instanceof TLDeny
+											if (denied) {
 												this.log?.warn?.(
-													'beforeWrite rejected patch',
+													'beforeWrite denied patch',
 													doc.typeName,
 													id,
 													'session:',
 													session.sessionId,
 													'reason:',
-													verdict.reason
+													result.reason
 												)
 											}
-											return !verdict.rejected
+											return !denied
 										}
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
@@ -1613,18 +1607,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// Per-type authorizer (delete): veto deletes the session isn't allowed to make,
 								// e.g. deleting someone else's comment. Allow/veto only.
 								const authorizeRemove = session && this.authorizerFor(doc.typeName)
-								const verdict =
+								const result =
 									authorizeRemove &&
 									authorizeRemove({ ...authBase!, type: 'delete', prev: doc, next: null })
-								if (verdict && verdict.rejected) {
+								if (session && result instanceof TLDeny) {
 									this.log?.warn?.(
-										'beforeWrite rejected delete',
+										'beforeWrite denied delete',
 										doc.typeName,
 										id,
 										'session:',
 										session.sessionId,
 										'reason:',
-										verdict.reason
+										result.reason
 									)
 									continue
 								}
