@@ -259,32 +259,6 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 }
 
 /**
- * The `beforeWrite` hooks for TLSocketRoom's options, with the deprecated `authorizeRecord`
- * adapted to the new contract (`null` becomes `false`). Delete with `TLRecordAuthorizers`.
- *
- * @internal
- */
-export function resolveBeforeWrite<R extends UnknownRecord, SessionMeta>(opts: {
-	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
-	// oxlint-disable-next-line typescript/no-deprecated
-	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
-}): TLBeforeWriteHooks<R, SessionMeta> | undefined {
-	// oxlint-disable-next-line typescript/no-deprecated
-	const { beforeWrite, authorizeRecord } = opts
-	if (!authorizeRecord) return beforeWrite
-	if (beforeWrite) throw new Error('TLSocketRoom: set beforeWrite or authorizeRecord, not both')
-	return Object.fromEntries(
-		Object.entries(authorizeRecord).map(([typeName, authorize]) => [
-			typeName,
-			authorize &&
-				((args: unknown) =>
-					// oxlint-disable-next-line typescript/no-deprecated
-					(authorize as TLRecordAuthorizer<R, SessionMeta>)(args as never) ?? false),
-		])
-	) as TLBeforeWriteHooks<R, SessionMeta>
-}
-
-/**
  * A hook's result, normalized: a rejection with its reason, or the allowed write with the record
  * the hook returned, if any.
  */
