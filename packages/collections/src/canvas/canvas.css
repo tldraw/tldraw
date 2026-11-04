@@ -76,10 +76,6 @@
 	border-radius: var(--tl-radius-2);
 }
 
-.tlui-collections-tile:hover {
-	background: var(--tl-color-muted-2);
-}
-
 .tlui-collections-tile__button {
 	all: unset;
 	box-sizing: border-box;
