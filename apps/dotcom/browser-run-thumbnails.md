@@ -457,9 +457,9 @@ get_page_info({
  boardId: string,
  page?: number | string, // 0-based page index or stable page id (see get_board_info). default 0
 })
-// → { name: string, bounds?: Bounds, clusterCount: number,
-//     clusters: { id: string, label: string, keywords: string[], numberOfShapes: number, bounds?: Bounds }[] }
-//   Bounds is { x, y, w, h } in page space, rounded to thousandths; omitted when the render measured
+// → { name: string, bounds: Bounds | null, clusterCount: number,
+//     clusters: { id: string, label: string, keywords: string[], numberOfShapes: number, bounds: Bounds | null }[] }
+//   Bounds is { x, y, w, h } in page space, rounded to thousandths; null when the render measured
 //   none of it
 
 get_cluster_info({

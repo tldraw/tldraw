@@ -1100,18 +1100,20 @@ describe('getPageInfo', () => {
 					label: '1 geo shape',
 					keywords: [],
 					numberOfShapes: 1,
+					bounds: null,
 				},
 			],
 		})
 	})
 
-	it('omits the page bounds when nothing was measured', () => {
+	it('reports null bounds when nothing was measured', () => {
 		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
 		if (!page.ok) throw new Error('Expected the page to resolve')
 		const block = getPageInfo(page, clusteringFromMeasure(clusterPage(page, {}), {})).content[0]
 		if (block.type !== 'text') throw new Error('Expected a text block')
 		const info = JSON.parse(block.text)
-		expect(info).not.toHaveProperty('bounds')
+		expect(info.bounds).toBeNull()
+		expect(info.clusters.every((c: { bounds: unknown }) => c.bounds === null)).toBe(true)
 		// The bindings still hold without a measure.
 		expect(info.clusters.map((c: { numberOfShapes: number }) => c.numberOfShapes)).toEqual([
 			3, 1, 1,

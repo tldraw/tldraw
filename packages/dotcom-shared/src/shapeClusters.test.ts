@@ -1,10 +1,9 @@
-import { TLShape, VecModel } from '@tldraw/tlschema'
+import { TLArrowBinding, TLShape, VecModel } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	boundsGapDistance,
 	getShapeText,
 	labelClusters,
-	ClusterArrowBinding,
 	ClusterBounds,
 	ClusterMeasurement,
 	computeAutoEps,
@@ -175,8 +174,8 @@ const drawn = (start: VecModel, end: VecModel): ClusterMeasurement => ({
 	arrow: { start, end },
 })
 
-const binding = (arrowId: string, terminal: 'start' | 'end', toId: string): ClusterArrowBinding =>
-	({ fromId: arrowId, toId, props: { terminal } }) as unknown as ClusterArrowBinding
+const binding = (arrowId: string, terminal: 'start' | 'end', toId: string): TLArrowBinding =>
+	({ fromId: arrowId, toId, props: { terminal } }) as unknown as TLArrowBinding
 
 // Three tight groups, so eps is small: A top left, B bottom right, C in the middle of the box an
 // arrow from A to B would have.

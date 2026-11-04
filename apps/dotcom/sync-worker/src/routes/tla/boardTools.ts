@@ -1,8 +1,11 @@
 import {
 	ClusterBounds,
+	ClusterMeasurement,
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_PAGES,
+	MeasuredArrow,
+	MeasuredDimensions,
 	ShapeCluster,
 	can,
 	getShapeClusters,
@@ -107,32 +110,13 @@ export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 // --- Reading a snapshot -------------------------------------------------------------------------
 
 /**
- * What one shape's measure render produced: its page bounds, the text its ShapeUtil reported, for an
- * arrow where the editor actually drew it, and for a text, group, draw or highlight shape its size as
- * drawn.
+ * What one shape's measure render produced: what clustering reads (its page bounds and, for an arrow,
+ * where the editor drew it), plus the text its ShapeUtil reported and, for a text, group, draw or
+ * highlight shape, its size as drawn.
  */
-export interface ShapeMeasurement extends ClusterBounds {
+export interface ShapeMeasurement extends ClusterMeasurement {
 	text?: string
-	arrow?: MeasuredArrow
 	dimensions?: MeasuredDimensions
-}
-
-/**
- * A shape's own unrotated size as the editor draws it. The record cannot say: a text's height comes
- * from laying out its text, and a group or a freehand stroke has no size of its own.
- */
-export interface MeasuredDimensions {
-	w: number
-	h: number
-}
-
-/**
- * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
- * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
- */
-export interface MeasuredArrow {
-	start: VecModel
-	end: VecModel
 }
 
 // A board page in stable board order. `index` is the 0-based ordinal callers pass to the screenshot
@@ -913,8 +897,8 @@ export interface PageClusterIndex {
 		label: string
 		keywords: string[]
 		shapeIds: string[]
-		/** The cluster's page-space box, absent when the render measured none of its shapes. */
-		bounds?: BoxModel
+		/** The cluster's page-space box, null when the render measured none of its shapes. */
+		bounds: BoxModel | null
 	}[]
 	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
 	text: Record<string, string>
@@ -1011,16 +995,13 @@ export function buildClusterIndex(
 
 	return {
 		v: CLUSTER_INDEX_FORMAT_VERSION,
-		clusters: clusters.map((cluster) => {
-			const bounds = toClusterBox(cluster.shapes.map((shape) => measurements[shape.id]))
-			return {
-				id: cluster.id,
-				label: cluster.label,
-				keywords: cluster.keywords,
-				shapeIds: cluster.shapes.map((shape) => shape.id),
-				...(bounds ? { bounds } : null),
-			}
-		}),
+		clusters: clusters.map((cluster) => ({
+			id: cluster.id,
+			label: cluster.label,
+			keywords: cluster.keywords,
+			shapeIds: cluster.shapes.map((shape) => shape.id),
+			bounds: toClusterBox(cluster.shapes.map((shape) => measurements[shape.id])),
+		})),
 		text,
 		arrows,
 		dimensions,
@@ -1110,9 +1091,9 @@ export function getPageInfo(
 	page: ResolvedPageOk,
 	{ clusters, bounds }: PageClustering
 ): ToolResult {
-	// Bounds let a model see what is near what without opening every cluster. They are omitted
-	// rather than invented for a cluster the render could not measure. The page's box is built from
-	// the clusters' rounded ones, so a stored index and a fresh measure give the same answer.
+	// Bounds let a model see what is near what without opening every cluster. They are null rather
+	// than invented for a cluster the render could not measure. The page's box is built from the
+	// clusters' rounded ones, so a stored index and a fresh measure give the same answer.
 	const pageBounds = toClusterBox(
 		Object.values(bounds).map(({ x, y, w, h }) => ({ minX: x, minY: y, maxX: x + w, maxY: y + h }))
 	)
@@ -1122,14 +1103,14 @@ export function getPageInfo(
 	// neither of them can look up.
 	return toolJsonResult({
 		name: page.pageName,
-		...(pageBounds ? { bounds: pageBounds } : null),
+		bounds: pageBounds,
 		clusterCount: clusters.length,
 		clusters: clusters.map((c) => ({
 			id: c.id,
 			label: c.label,
 			keywords: c.keywords,
 			numberOfShapes: c.numberOfShapes,
-			...(bounds[c.id] ? { bounds: bounds[c.id] } : null),
+			bounds: bounds[c.id] ?? null,
 		})),
 	})
 }
@@ -1691,7 +1672,7 @@ function getPageInfoToolDefinition() {
 		name: PAGE_INFO_TOOL_NAME,
 		title: 'Get tldraw page info',
 		description:
-			'List the clusters on one page of a tldraw.com board you have access to. A cluster is a group of shapes that belong together: shapes near each other, shapes inside a frame, group or larger shape, and shapes joined by arrows, together with those arrows. Every shape is in exactly one cluster. Each cluster has an id, a label (its frame name, or else its largest text, the top-left one among equals, then a keyword that sets it apart; one with no text is labelled by what it holds, such as "12 freehand strokes"), keywords drawn from all its text, its shape count, and its page-space bounds {x, y, w, h}; the page’s bounds cover all its content. Use the bounds to see which clusters sit near each other without opening them. Handwriting and drawings can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
+			'List the clusters on one page of a tldraw.com board you have access to. A cluster is a group of shapes that belong together: shapes near each other, shapes inside a frame, group or larger shape, and shapes joined by arrows, together with those arrows. Every shape is in exactly one cluster. Each cluster has an id, a label (its frame name, or else its largest text, the top-left one among equals, then a keyword that sets it apart; one with no text is labelled by what it holds, such as "12 freehand strokes"), keywords drawn from all its text, its shape count, and its page-space bounds {x, y, w, h}, or null when none of its shapes could be measured; the page’s bounds cover all its content. Use the bounds to see which clusters sit near each other without opening them. Handwriting and drawings can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

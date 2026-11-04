@@ -1,5 +1,6 @@
-import { TLArrowBinding, TLShape, VecModel } from '@tldraw/tlschema'
+import { TLArrowBinding, TLShape } from '@tldraw/tlschema'
 import { getHashForString } from '@tldraw/utils'
+import type { MeasuredArrow } from './types'
 
 export interface ShapeCluster {
 	id: string
@@ -31,12 +32,7 @@ export interface ClusterBounds {
 
 /** A shape's page bounds and, for an arrow, where its ends are drawn in page space. */
 export interface ClusterMeasurement extends ClusterBounds {
-	arrow?: { start: VecModel; end: VecModel }
-}
-
-/** What clustering reads from an arrow binding: which arrow, which of its ends, bound to what. */
-export type ClusterArrowBinding = Pick<TLArrowBinding, 'fromId' | 'toId'> & {
-	props: Pick<TLArrowBinding['props'], 'terminal'>
+	arrow?: MeasuredArrow
 }
 
 // Spatial linkage is O(n²) — a full Prim pass plus the nearest-neighbour scan that derives eps. At a
@@ -63,7 +59,7 @@ export function getShapeClusters(
 	shapes: TLShapeWithPlainText[],
 	pageId: string,
 	bounds?: Record<string, ClusterMeasurement>,
-	bindings: readonly ClusterArrowBinding[] = []
+	bindings: readonly TLArrowBinding[] = []
 ): ShapeCluster[] {
 	const byId = new Map(shapes.map((shape) => [shape.id, shape]))
 	const atomsByRoot = new Map<string, TLShapeWithPlainText[]>()
@@ -265,6 +261,12 @@ function describeShapes(shapes: TLShapeWithPlainText[]) {
 		.join(' + ')
 }
 
+/** A cluster's chosen title, and the text size it was chosen by. */
+interface ClusterTitle {
+	text: string
+	scale: number
+}
+
 export interface ClusterLabel {
 	label: string
 	keywords: string[]
@@ -349,8 +351,8 @@ export function labelClusters(
 		// The title is the largest text that can name a group (see isTitleCandidate), and the first in
 		// reading order among equals. A cluster whose only text is decoration (a sheet of emoji
 		// stickers) still gets its largest piece, rather than an empty label that hides it has text.
-		let title: { text: string; scale: number } | null = null
-		let fallback: { text: string; scale: number } | null = null
+		let title: ClusterTitle | null = null
+		let fallback: ClusterTitle | null = null
 		for (let rank = 0; rank < texts.length; rank++) {
 			const { shape, text } = texts[rank]
 			const scale = getTextScale(shape)
@@ -518,7 +520,7 @@ function containsBox(a: ClusterBounds, b: ClusterBounds, tolerance = 2): boolean
 function mergeAtoms(
 	atoms: TLShapeWithPlainText[][],
 	bounds: Record<string, ClusterMeasurement>,
-	bindings: readonly ClusterArrowBinding[]
+	bindings: readonly TLArrowBinding[]
 ): TLShapeWithPlainText[][] {
 	const boxes = atoms.map((atom) => boundsForAtom(atom, bounds))
 	const isArrowAtom = atoms.map((atom) => atom.every((shape) => shape.type === 'arrow'))

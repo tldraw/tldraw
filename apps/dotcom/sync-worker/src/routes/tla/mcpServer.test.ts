@@ -1231,19 +1231,22 @@ describe('page and cluster info', () => {
 		expect(info.name).toBe('Cover')
 		expect(info.clusters).toHaveLength(2)
 		// The fixture's shapes carry no text, so there are no keywords, and each is labelled by what it
-		// holds. Its geo records name no geo, so they read as plain geo shapes.
+		// holds. Its geo records name no geo, so they read as plain geo shapes. Nothing is measured, so
+		// neither has a position.
 		expect(info.clusters).toEqual([
 			{
 				id: expect.stringMatching(/^cluster:/),
 				numberOfShapes: 1,
 				label: '1 geo shape',
 				keywords: [],
+				bounds: null,
 			},
 			{
 				id: expect.stringMatching(/^cluster:/),
 				numberOfShapes: 1,
 				label: '1 geo shape',
 				keywords: [],
+				bounds: null,
 			},
 		])
 	})
