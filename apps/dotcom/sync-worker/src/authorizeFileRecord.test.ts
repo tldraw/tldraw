@@ -1,6 +1,5 @@
 import {
 	RecordOpType,
-	isDeny,
 	TLSocketRoom,
 	WebSocketMinimal,
 	getTlsyncProtocolVersion,
@@ -75,7 +74,7 @@ describe('authorizeFileRecord', () => {
 					prev: thread,
 					next: null,
 				})
-			).toSatisfy(isDeny)
+			).toBe(thread)
 		})
 
 		it('vetoes a comment create from a canvas read-only session', () => {
@@ -92,7 +91,7 @@ describe('authorizeFileRecord', () => {
 					prev: null,
 					next,
 				})
-			).toSatisfy(isDeny)
+			).toBeNull()
 		})
 	})
 
@@ -249,19 +248,19 @@ describe('authorizeFileRecord', () => {
 		it('vetoes changing attribution to someone else', () => {
 			const prev = makeNote('real-bob')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(prev)
 		})
 
 		it('vetoes an anonymous session setting any non-null attribution', () => {
 			const prev = makeNote(null)
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBe(prev)
 		})
 
 		it('vetoes smuggling attribution in via a shape-type change', () => {
 			const prev = makeGeo()
 			const next = { ...makeNote('real-alice'), id: prev.id }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBe(prev)
 		})
 
 		it('ignores non-note shapes', () => {

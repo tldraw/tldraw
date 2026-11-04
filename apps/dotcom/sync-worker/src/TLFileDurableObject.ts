@@ -32,7 +32,6 @@ import {
 	TLSyncErrorCloseEventReason,
 	TLSyncForwardDiff,
 	TLSyncStorage,
-	isDeny,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
@@ -411,14 +410,10 @@ export class TLFileDurableObject extends DurableObject {
 					typeName,
 					(args: Parameters<typeof authorize>[0]) => {
 						const result = authorize(args as never)
-						if (isDeny(result)) {
+						// Keeping `prev` is how a hook rejects a write.
+						if (result === args.prev) {
 							try {
-								this.recordVeto(
-									typeName,
-									args.type,
-									args.type === 'delete' ? args.prev : args.next,
-									result.reason
-								)
+								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
 							} catch {
 								// Failed telemetry must never change authorization.
 							}
@@ -1494,8 +1489,7 @@ export class TLFileDurableObject extends DurableObject {
 	private recordVeto(
 		typeName: keyof typeof authorizeFileRecord,
 		operation: 'create' | 'update' | 'delete',
-		record: UnknownRecord,
-		reason: string
+		record: UnknownRecord
 	) {
 		const shape = record as UnknownRecord & { type?: unknown }
 		const shapeType =
@@ -1504,7 +1498,7 @@ export class TLFileDurableObject extends DurableObject {
 				: typeof shape.type === 'string' && Object.hasOwn(defaultShapeSchemas, shape.type)
 					? shape.type
 					: 'unknown'
-		const key = `${typeName}|${operation}|${shapeType}|${reason}`
+		const key = `${typeName}|${operation}|${shapeType}`
 		if (this.recordVetoCounts) {
 			this.recordVetoCounts.set(key, (this.recordVetoCounts.get(key) ?? 0) + 1)
 			return
@@ -1532,7 +1526,7 @@ export class TLFileDurableObject extends DurableObject {
 			// Hibernation resets fields: persist before capture so waking cannot flood Sentry.
 			if (previous !== undefined && now - previous < 60 * 60 * 1000) return
 			await this.storage.put(key, now)
-			const [typeName, operation, shapeType, reason] = firstCategory.split('|')
+			const [typeName, operation, shapeType] = firstCategory.split('|')
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.withScope((scope) => {
 				scope.setFingerprint(['file-record-vetoed'])
@@ -1542,7 +1536,6 @@ export class TLFileDurableObject extends DurableObject {
 					typeName,
 					operation,
 					shapeType,
-					reason,
 				})
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				this.sentry?.captureMessage('File record vetoed', 'warning')

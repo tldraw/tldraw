@@ -1,5 +1,5 @@
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
-import { deny, TLBeforeWriteHook, TLBeforeWriteHooks } from '@tldraw/sync-core'
+import { TLBeforeWriteHook, TLBeforeWriteHooks } from '@tldraw/sync-core'
 import {
 	TLComment,
 	TLCommentReaction,
@@ -38,7 +38,7 @@ const authorizeShape: TLBeforeWriteHook<TLShape, SessionMeta> = ({ session, type
 	const before = type === 'create' ? null : getNoteAttribution(prev)
 	const after = getNoteAttribution(next)
 	if (after !== before && after != null && after !== session.meta.userId) {
-		if (type === 'update') return deny('note author must be the session user')
+		if (type === 'update') return prev
 		const note = next as TLNoteShape
 		return { ...note, props: { ...note.props, textLastEditedBy: session.meta.userId } }
 	}

@@ -66,10 +66,8 @@ export {
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
 export {
-	deny,
-	isDeny,
+	composeBeforeWrite,
 	TLSyncRoom,
-	type TLDeny,
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,

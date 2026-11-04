@@ -57,6 +57,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 }
 
 // @public
+export function composeBeforeWrite<R extends UnknownRecord, SessionMeta>(...maps: TLBeforeWriteHooks<R, SessionMeta>[]): TLBeforeWriteHooks<R, SessionMeta>;
+
+// @public
 export const DEFAULT_INITIAL_SNAPSHOT: {
     documentClock: number;
     documents: ({
@@ -72,9 +75,6 @@ export const DEFAULT_INITIAL_SNAPSHOT: {
 
 // @internal
 export type DeleteOp = [type: typeof ValueOpType.Delete];
-
-// @public
-export function deny(reason: string): TLDeny;
 
 // @internal
 export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
@@ -147,9 +147,6 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
 }
-
-// @public
-export function isDeny(value: unknown): value is TLDeny;
 
 // @public
 export class JsonChunkAssembler {
@@ -405,7 +402,7 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
     next: Rec;
     prev: Rec;
     type: 'update';
-})) => Rec | TLDeny | void;
+})) => null | Rec | void;
 
 // @public
 export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
@@ -430,12 +427,6 @@ export interface TLConnectRequest {
 
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
-
-// @public
-export interface TLDeny {
-    readonly [denyBrand]: true;
-    readonly reason: string;
-}
 
 // @internal @deprecated
 export const TLIncompatibilityReason: {

@@ -7,7 +7,13 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLBeforeWriteHooks, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import {
+	beforeWriteFromAuthorizers,
+	RoomSnapshot,
+	TLBeforeWriteHooks,
+	TLRecordAuthorizers,
+	TLSyncRoom,
+} from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -145,10 +151,11 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type hooks for client record writes (create, update, delete): veto writes the session
-	 * isn't allowed to make, or rewrite the record on create — e.g. force a comment's `authorId`
-	 * to the signed-in user. Each hook can read other records with `get`, for rules that depend on
-	 * a record's parent. See {@link TLBeforeWriteHooks}.
+	 * Per-type hooks for client record writes (create, update, delete), for data rules: reject a
+	 * write that breaks an invariant, or rewrite the record on create — e.g. force a comment's
+	 * `authorId` to the signed-in user. Each hook can read other records with `get`, for rules that
+	 * depend on a record's parent. Not an access control API; see {@link TLBeforeWriteHook}.
+	 * Combine maps from several packages with {@link composeBeforeWrite}.
 	 *
 	 * Only runs for client pushes. Server-initiated changes — `updateStore`, `loadSnapshot`,
 	 * migrations, or writing to the storage directly — skip these hooks, so server code that acts
@@ -296,8 +303,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			// The room reads `null` as a rejection, so the deprecated hooks run unchanged.
-			beforeWrite: opts.beforeWrite ?? (authorizeRecord as TLBeforeWriteHooks<R, SessionMeta>),
+			beforeWrite:
+				opts.beforeWrite ?? (authorizeRecord && beforeWriteFromAuthorizers(authorizeRecord)),
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

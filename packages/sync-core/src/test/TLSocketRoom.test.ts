@@ -244,7 +244,7 @@ describe('28. TLSocketRoom (SR)', () => {
 				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'beforeWrite hook threw; denying the write',
+					'beforeWrite hook threw; keeping the stored record',
 					expect.objectContaining({ message: 'authorizer exploded' })
 				)
 			} finally {

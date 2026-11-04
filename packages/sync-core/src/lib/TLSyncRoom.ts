@@ -147,34 +147,39 @@ export interface RoomSnapshot {
 }
 
 /**
- * Authorizes a single record write from a client: any per-record, per-session rule the host wants
- * to enforce server-side — veto writes the session isn't allowed to make, or rewrite the record on
- * create. The session's `meta` carries whatever the rule needs (identity, roles, …); for example,
- * force a comment's `authorId` to the signed-in user so nobody can post in someone else's name.
+ * A low-level hook that runs before each client write of one record, and decides what the record
+ * becomes. Use it for data rules the server must enforce: stamp fields, keep fields immutable, or
+ * reject a record that breaks an invariant. For example, force a comment's `authorId` to the
+ * signed-in user from `session.meta`, so nobody can post in someone else's name.
+ *
+ * It is not an access control API. It sees one write at a time and knows nothing of roles,
+ * grants, or reads. For who may edit or view a document, use the session's `isReadonly` and
+ * `objectAccess` when it connects (see {@link TLSocketRoom.handleSocketConnect}).
  *
  * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
  * (see {@link TLBeforeWriteHooks}), and only for client pushes — never for server-initiated writes.
  *
  * `prev` and `next` are always at the **server's** schema version: client writes are migrated
- * before the authorizer runs, so guarding or stamping a field never requires knowing what older
- * clients call it. On create, the record you return is what gets stored (after validation) — no
- * migration runs afterwards, so stamped fields can't be clobbered.
+ * before the hook runs, so guarding or stamping a field never requires knowing what older
+ * clients call it. The record you return is what gets stored (after validation) — no migration
+ * runs afterwards, so stamped fields can't be clobbered.
  *
- * Return one of:
+ * Return the record that should exist after the write:
  *
- * - nothing, to allow the write as it is;
- * - a record, to allow the write. On **create**, the record you return is what gets stored, so
- *   stamp identity fields here (e.g. set `authorId` from `session.meta`). On **update** and
- *   **delete**, the returned record is ignored;
- * - `deny(reason)`, to reject the write. It is skipped and the client
- *   self-corrects, exactly like the `objectAccess` gate. The room logs the reason.
+ * - nothing, to apply the write as the client sent it;
+ * - a record, to store that record instead. It must keep the record's `id` and `typeName`;
+ * - `prev`, to keep the record as it was. This rejects the write on any op, since `prev` is `null`
+ *   on create;
+ * - `null`, for no record: a create is skipped, an update deletes the record, a delete goes ahead.
+ *
+ * When the stored result differs from the client's write, the client is corrected by the push
+ * result, as for any other server-side change.
  *
  * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
  * must be fast and do **no** I/O. `next`/`prev` are client-controlled records, so treat their
- * contents as untrusted; prefer rejecting over throwing, though a throw is caught, logged, and
- * treated as a rejection (fail closed) rather than crashing the push. For
- * expensive, async checks (e.g. resolving mentions against who can access a file), react after the
- * fact via `onCommittedChanges`.
+ * contents as untrusted. A throw is caught, logged, and keeps `prev` (fail closed) rather than
+ * crashing the push. For expensive, async checks (e.g. resolving mentions against who can access a
+ * file), react after the fact via `onCommittedChanges`.
  *
  * @public
  */
@@ -198,61 +203,76 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (
 		| { type: 'update'; prev: Rec; next: Rec }
 		| { type: 'delete'; prev: Rec; next: null }
 	)
-) => Rec | void | TLDeny
-
-// `Symbol.for` so that a denial still matches when an app bundles two copies of this package,
-// where `instanceof` would fail and a denied create would store the denial as the record.
-declare const denyBrand: unique symbol
-const DENY_KEY: typeof denyBrand = Symbol.for('tldraw.access.deny') as typeof denyBrand
-
-/**
- * A denied operation, made by {@link deny}. Detect it with {@link isDeny}. JSON records cannot
- * have symbol keys, so a record field named `reason` is never mistaken for a denial.
- *
- * @public
- */
-export interface TLDeny {
-	/** Marks the object as a denial. Hooks make one with {@link deny}, never by hand. */
-	readonly [denyBrand]: true
-	/** Why the operation was denied. The room logs it; keep it short and free of user content. */
-	readonly reason: string
-}
-
-/**
- * Denies an operation from a hook such as {@link TLBeforeWriteHook}: `return deny('not the author')`.
- *
- * @public
- */
-export function deny(reason: string): TLDeny {
-	return { [DENY_KEY]: true, reason }
-}
-
-/**
- * Whether a value is a denial made by {@link deny}. Hosts that wrap hooks, e.g. for telemetry,
- * use it to read a hook's result.
- *
- * @public
- */
-export function isDeny(value: unknown): value is TLDeny {
-	return typeof value === 'object' && value !== null && (value as any)[DENY_KEY] === true
-}
+) => Rec | null | void
 
 /**
  * A map from record `typeName` to a {@link TLBeforeWriteHook} for that record type. Only listed
- * types are authorized; every other record writes through untouched, so this stays off the hot path
- * for the vast majority of writes (shape drags etc.).
+ * types are run through a hook; every other record writes through untouched, so this stays off the
+ * hot path for the vast majority of writes (shape drags etc.).
  *
- * Each authorizer is typed to its record — e.g. `next` in the `comment` entry is a `TLComment` — so
- * renaming a field on the record makes the authorizer that reads it fail to compile, rather than
+ * Each hook is typed to its record — e.g. `next` in the `comment` entry is a `TLComment` — so
+ * renaming a field on the record makes the hook that reads it fail to compile, rather than
  * silently stamp or guard the wrong field.
  *
- * Presence records are never authorized (presence is per-session and ephemeral); registering the
+ * Presence records never run through hooks (presence is per-session and ephemeral); registering the
  * presence typeName is a construction-time error.
  *
  * @public
  */
 export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
 	[K in R['typeName']]?: TLBeforeWriteHook<Extract<R, { typeName: K }>, SessionMeta>
+}
+
+/**
+ * Combines several {@link TLBeforeWriteHooks} maps into one. A spread keeps only the last hook for
+ * a type, so two packages that both guard `comment` would silently drop one; use this instead.
+ *
+ * For each type, the hooks run in argument order, and each gets the record the hook before it
+ * returned as `next`. A hook that keeps `prev` or returns `null` decides the write, and later
+ * hooks don't run.
+ *
+ * @example
+ * ```ts
+ * new TLSocketRoom<MyRecord, SessionMeta>({
+ * 	beforeWrite: composeBeforeWrite(
+ * 		createCommentAuthorizers({ getUserId }),
+ * 		{ comment: ({ prev, next }) => (next && isTooLong(next) ? prev : undefined) }
+ * 	),
+ * })
+ * ```
+ *
+ * @public
+ */
+export function composeBeforeWrite<R extends UnknownRecord, SessionMeta>(
+	...maps: TLBeforeWriteHooks<R, SessionMeta>[]
+): TLBeforeWriteHooks<R, SessionMeta> {
+	type AnyHook = TLBeforeWriteHook<R, SessionMeta>
+	const byType = new Map<string, AnyHook[]>()
+	for (const map of maps) {
+		for (const [typeName, hook] of Object.entries(map as Record<string, AnyHook | undefined>)) {
+			if (!hook) continue
+			const hooks = byType.get(typeName)
+			if (hooks) hooks.push(hook)
+			else byType.set(typeName, [hook])
+		}
+	}
+	const composed: Record<string, AnyHook> = {}
+	for (const [typeName, hooks] of byType) {
+		composed[typeName] =
+			hooks.length === 1
+				? hooks[0]
+				: (args) => {
+						let next: R | null = args.next
+						for (const hook of hooks) {
+							const result = hook({ ...args, next } as typeof args)
+							if (result === undefined) continue
+							if (result === null || result === args.prev) return result
+							next = result
+						}
+						return next === args.next ? undefined : next
+					}
+	}
+	return composed as unknown as TLBeforeWriteHooks<R, SessionMeta>
 }
 
 /**
@@ -270,6 +290,32 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 	// oxlint-disable-next-line typescript/no-deprecated
 	[K in R['typeName']]?: TLRecordAuthorizer<Extract<R, { typeName: K }>, SessionMeta>
+}
+
+/**
+ * Runs the deprecated `authorizeRecord` hooks as `beforeWrite` hooks. They return `null` to reject,
+ * which would mean "delete" to a `beforeWrite` hook, and their returned record counts on create only.
+ *
+ * @internal
+ */
+export function beforeWriteFromAuthorizers<R extends UnknownRecord, SessionMeta>(
+	// oxlint-disable-next-line typescript/no-deprecated
+	authorizers: TLRecordAuthorizers<R, SessionMeta>
+): TLBeforeWriteHooks<R, SessionMeta> {
+	// oxlint-disable-next-line typescript/no-deprecated
+	type AnyAuthorizer = TLRecordAuthorizer<R, SessionMeta>
+	const hooks: Record<string, TLBeforeWriteHook<R, SessionMeta>> = {}
+	for (const [typeName, authorize] of Object.entries(
+		authorizers as Record<string, AnyAuthorizer | undefined>
+	)) {
+		if (!authorize) continue
+		hooks[typeName] = (args) => {
+			const result: unknown = authorize(args)
+			if (result === null || result === false) return args.prev
+			return args.type === 'create' ? (result as R) : undefined
+		}
+	}
+	return hooks as unknown as TLBeforeWriteHooks<R, SessionMeta>
 }
 
 /**
@@ -420,32 +466,47 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private readonly sessionIdleTimeout: number
 
 	/**
-	 * The authorizer registered for a record type, widened to the room's record union. Each entry in
-	 * `beforeWrite` is typed to its specific record; the cast here is the one place we can't
-	 * statically correlate a runtime `typeName` with its record type, so it lives in the library
-	 * rather than in every consumer.
+	 * Runs the `beforeWrite` hook registered for a record type and returns what the record becomes:
+	 * a record to store, `null` for no record, or `'keep'` to leave the stored record as it is. Each
+	 * entry in `beforeWrite` is typed to its specific record; the cast here is the one place we
+	 * can't statically correlate a runtime `typeName` with its record type, so it lives in the
+	 * library rather than in every consumer.
 	 */
-	private authorizerFor(
+	private writeHookFor(
 		typeName: R['typeName']
-	): ((args: Parameters<TLBeforeWriteHook<R, SessionMeta>>[0]) => R | void | TLDeny) | undefined {
-		const authorize = this.beforeWrite?.[typeName] as
-			| ((args: Parameters<TLBeforeWriteHook<R, SessionMeta>>[0]) => unknown)
-			| undefined
-		if (!authorize) return undefined
+	): ((args: Parameters<TLBeforeWriteHook<R, SessionMeta>>[0]) => R | null | 'keep') | undefined {
+		const hook = this.beforeWrite?.[typeName] as TLBeforeWriteHook<R, SessionMeta> | undefined
+		if (!hook) return undefined
 		return (args) => {
-			let result: unknown
+			let result: R | null | void
 			try {
-				result = authorize(args)
+				result = hook(args)
 			} catch (e) {
 				// Fail closed: hooks are security-sensitive, so a bug must never let a write through.
-				this.log?.error?.('beforeWrite hook threw; denying the write', e)
-				return deny('hook threw')
+				this.log?.error?.('beforeWrite hook threw; keeping the stored record', e)
+				return 'keep'
 			}
-			// The deprecated `authorizeRecord` hooks, which TLSocketRoom passes in as `beforeWrite`,
-			// reject with `null` or `false`. Without this, a create would store `null`/`false` as
-			// the record.
-			if (result === false || result === null) return deny('rejected')
-			return result as R | void | TLDeny
+			if (result === undefined) return args.next
+			if (result === args.prev) {
+				this.log?.warn?.(
+					'beforeWrite kept the stored record',
+					typeName,
+					args.type,
+					(args.next ?? args.prev)!.id,
+					'session:',
+					args.session.sessionId
+				)
+				return 'keep'
+			}
+			if (result === null) return null
+			const id = (args.next ?? args.prev)!.id
+			if (result.id !== id || result.typeName !== typeName) {
+				// A changed id or typeName would write a different record than the one this op
+				// was checked against.
+				this.log?.error?.('beforeWrite hook changed id or typeName; keeping the stored record', id)
+				return 'keep'
+			}
+			return result
 		}
 	}
 
@@ -1344,7 +1405,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			changes: ActualChanges,
 			id: string,
 			_state: R,
-			authorize?: (prev: R | null, next: R) => R | null,
+			// What the record becomes (see `writeHookFor`), from the `beforeWrite` hook if one is set.
+			resolve?: (prev: R | null, next: R) => R | null | 'keep',
 			// The existing document if the caller already fetched it; `null` for fetched-and-absent,
 			// `undefined` for not fetched. Saves a second SELECT + JSON.parse on the push hot path.
 			prevDoc?: R | null
@@ -1360,12 +1422,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const doc =
 				prevDoc !== undefined ? (prevDoc ?? undefined) : (storage.get(id) as R | undefined)
 
-			// Authorize on the up-migrated record; on create the authorizer's return is stored as-is,
-			// so no later migration can clobber stamped fields.
-			if (authorize) {
-				const result = authorize(doc ?? null, state)
-				if (!result) return Result.ok(undefined) // vetoed: skip the op, the client self-corrects
-				if (!doc) state = result // create: store the authorizer's (stamped) record
+			// Run the hook on the up-migrated record; its result is stored as-is, so no later
+			// migration can clobber stamped fields. The client self-corrects from the push result.
+			if (resolve) {
+				const result = resolve(doc ?? null, state)
+				if (result === 'keep') return Result.ok(undefined)
+				if (result === null) {
+					if (doc) {
+						storage.delete(id)
+						propagateOp(changes, id, [RecordOpType.Remove], doc, undefined)
+					}
+					return Result.ok(undefined)
+				}
+				state = result
 			}
 
 			if (doc) {
@@ -1395,7 +1464,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			changes: ActualChanges,
 			id: string,
 			patch: ObjectDiff,
-			authorize?: (prev: R, next: R) => boolean,
+			// What the record becomes (see `writeHookFor`), from the `beforeWrite` hook if one is set.
+			resolve?: (prev: R, next: R) => R | null | 'keep',
 			// The existing document if the caller already fetched it (see `addDocument`).
 			prevDoc?: R
 		) => {
@@ -1404,6 +1474,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (!doc) return
 
 			const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
+			// Run the hook on the committed candidate — the record that would actually be stored,
+			// never a raw client-version preview.
+			const commit = (candidate: R, candidateDiff: ObjectDiff) => {
+				const result = resolve ? resolve(doc, candidate) : candidate
+				if (result === 'keep') return
+				if (result === null) {
+					storage.delete(id)
+					propagateOp(changes, id, [RecordOpType.Remove], doc, undefined)
+					return
+				}
+				const diff =
+					result === candidate
+						? candidateDiff
+						: diffAndValidateRecord(doc, result, recordType, legacyAppendMode)
+				if (!diff) return
+				storage.set(id, result)
+				propagateOp(changes, id, [RecordOpType.Patch, diff], doc, result)
+			}
 			// If the client's version of the record is older than ours,
 			// we apply the patch to the downgraded version of the record
 			const downgraded = session
@@ -1416,12 +1504,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (downgraded.value === doc) {
 				// If the versions are compatible, apply the patch and propagate the patch op
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
-				if (diff) {
-					// Authorize on the committed candidate — the record that will actually be stored.
-					if (authorize && !authorize(doc, diff[1])) return
-					storage.set(id, diff[1])
-					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
-				}
+				if (diff) commit(diff[1], diff[0])
 			} else {
 				// need to apply the patch to the downgraded version and then upgrade it
 
@@ -1437,12 +1520,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 				// replace the state with the upgraded version and propagate the patch op
 				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
-				if (diff) {
-					// Authorize on the committed candidate — the upgraded record, not a raw preview.
-					if (authorize && !authorize(doc, upgraded.value)) return
-					storage.set(id, upgraded.value)
-					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
-				}
+				if (diff) commit(upgraded.value, diff)
 			}
 		}
 
@@ -1543,37 +1621,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									)
 									continue
 								}
-								// Per-type authorizer: stamp/veto the write from the session's identity.
 								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
-								let authorize: ((prev: R | null, next: R) => R | null) | undefined
-								if (session && this.beforeWrite) {
-									const authorizePut = this.authorizerFor(record.typeName)
-									if (authorizePut) {
-										authorize = (prevRec, next) => {
-											const result = authorizePut(
-												prevRec
-													? { ...authBase!, type: 'update', prev: prevRec, next }
-													: { ...authBase!, type: 'create', prev: null, next }
-											)
-											if (isDeny(result)) {
-												this.log?.warn?.(
-													'beforeWrite denied put',
-													record.typeName,
-													id,
-													'session:',
-													session.sessionId,
-													'reason:',
-													result.reason
-												)
-												return null
-											}
-											// create: store the stamped record; update: allow/veto only
-											return prevRec ? next : (result ?? next)
-										}
-									}
-								}
+								const hook = session && this.writeHookFor(record.typeName)
+								const resolve = hook
+									? (prev: R | null, next: R) =>
+											prev
+												? hook({ ...authBase!, type: 'update', prev, next })
+												: hook({ ...authBase!, type: 'create', prev: null, next })
+									: undefined
 								// The guard above already fetched this, so don't hit storage again.
-								addDocument(txn, docChanges, id, record, authorize, prevRecord)
+								addDocument(txn, docChanges, id, record, resolve, prevRecord)
 								break
 							}
 							case RecordOpType.Patch: {
@@ -1581,35 +1638,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
-								// Per-type authorizer (update, allow/veto only): runs inside `patchDocument`
-								// on the committed candidate, never on a raw client-version preview.
-								const authorizePatch = session && this.authorizerFor(doc.typeName)
-								const authorize = authorizePatch
-									? (prev: R, next: R) => {
-											const result = authorizePatch({
-												...authBase!,
-												type: 'update',
-												prev,
-												next,
-											})
-											const denied = isDeny(result)
-											if (denied) {
-												this.log?.warn?.(
-													'beforeWrite denied patch',
-													doc.typeName,
-													id,
-													'session:',
-													session.sessionId,
-													'reason:',
-													result.reason
-												)
-											}
-											return !denied
-										}
+								// Runs inside `patchDocument` on the committed candidate.
+								const hook = session && this.writeHookFor(doc.typeName)
+								const resolve = hook
+									? (prev: R, next: R) => hook({ ...authBase!, type: 'update', prev, next })
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
 								// already fetched the record, so pass it through.
-								patchDocument(txn, docChanges, id, op[1], authorize, doc)
+								patchDocument(txn, docChanges, id, op[1], resolve, doc)
 								break
 							}
 							case RecordOpType.Remove: {
@@ -1619,22 +1655,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									continue
 								}
 								if (!canWrite(doc.typeName)) continue
-								// Per-type authorizer (delete): veto deletes the session isn't allowed to make,
-								// e.g. deleting someone else's comment. Allow/veto only.
-								const authorizeRemove = session && this.authorizerFor(doc.typeName)
-								const result =
-									authorizeRemove &&
-									authorizeRemove({ ...authBase!, type: 'delete', prev: doc, next: null })
-								if (session && isDeny(result)) {
-									this.log?.warn?.(
-										'beforeWrite denied delete',
-										doc.typeName,
-										id,
-										'session:',
-										session.sessionId,
-										'reason:',
-										result.reason
-									)
+								const hook = session && this.writeHookFor(doc.typeName)
+								const result = hook
+									? hook({ ...authBase!, type: 'delete', prev: doc, next: null })
+									: null
+								if (result === 'keep') continue
+								if (result) {
+									// The hook replaced the delete with a write of this record.
+									const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
+									const diff = diffAndValidateRecord(doc, result, recordType, legacyAppendMode)
+									if (diff) {
+										txn.set(id, result)
+										propagateOp(docChanges, id, [RecordOpType.Patch, diff], doc, result)
+									}
 									continue
 								}
 

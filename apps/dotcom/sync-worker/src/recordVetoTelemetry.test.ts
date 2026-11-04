@@ -1,4 +1,3 @@
-import { deny, isDeny } from '@tldraw/sync-core'
 import {
 	createComment,
 	createCommentThread,
@@ -59,6 +58,10 @@ async function harness(saved = new Map<string, unknown>()) {
 	}
 }
 const get = () => undefined
+/** Whether a hook rejected the write: it keeps `prev`. */
+function rejects<A extends { prev: unknown }>(hook: ((args: A) => unknown) | undefined, args: A) {
+	return hook!(args) === args.prev
+}
 const session = {
 	sessionId: 'secret-session',
 	isReadonly: false,
@@ -72,9 +75,9 @@ const note = (userId: string) =>
 		props: { textLastEditedBy: userId },
 	}) as TLShape
 
-function point(type: string, operation: string, shapeType: string, reason: string, count = 1) {
+function point(type: string, operation: string, shapeType: string, count = 1) {
 	return {
-		blobs: ['record_vetoed', 'test-worker', type, operation, shapeType, reason],
+		blobs: ['record_vetoed', 'test-worker', type, operation, shapeType],
 		indexes: ['durable-object-id'],
 		doubles: [count],
 	}
@@ -88,34 +91,32 @@ afterEach(() => {
 describe('file room record veto telemetry', () => {
 	it('indexes every create/update/delete veto by room with bounded record dimensions', async () => {
 		vi.useFakeTimers()
-		vi.spyOn(authorizeFileRecord, 'shape')
-			.mockReturnValueOnce(deny('mocked'))
-			.mockReturnValueOnce(deny('mocked'))
+		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValueOnce(null).mockReturnValueOnce(null)
 		const h = await harness()
 		const { auth } = h
-		expect(auth.shape({ session, get, type: 'create', prev: null, next: note('bob') })).toSatisfy(
-			isDeny
-		)
-		expect(auth.shape({ session, get, type: 'create', prev: null, next: note('bob') })).toSatisfy(
-			isDeny
-		)
 		expect(
-			auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
-		).toSatisfy(isDeny)
+			rejects(auth.shape, { session, get, type: 'create', prev: null, next: note('bob') })
+		).toBe(true)
+		expect(
+			rejects(auth.shape, { session, get, type: 'create', prev: null, next: note('bob') })
+		).toBe(true)
+		expect(
+			rejects(auth.shape, { session, get, type: 'update', prev: note('alice'), next: note('bob') })
+		).toBe(true)
 		const thread = createCommentThread({
 			pageId: 'page:test' as TLPageId,
 			anchor: { type: 'page' },
 			createdBy: 'alice',
 		})
 		expect(
-			auth['comment-thread']!({ session, get, type: 'delete', prev: thread, next: null })
-		).toSatisfy(isDeny)
+			rejects(auth['comment-thread'], { session, get, type: 'delete', prev: thread, next: null })
+		).toBe(true)
 		expect(h.points).toEqual([])
 		await h.flush()
 		expect(h.points).toEqual([
-			point('shape', 'create', 'note', 'mocked', 2),
-			point('shape', 'update', 'note', 'note author must be the session user'),
-			point('comment-thread', 'delete', '', 'clients may not hard-delete'),
+			point('shape', 'create', 'note', 2),
+			point('shape', 'update', 'note'),
+			point('comment-thread', 'delete', ''),
 		])
 		expect(h.warnings).toEqual([
 			{
@@ -124,7 +125,6 @@ describe('file room record veto telemetry', () => {
 				typeName: 'shape',
 				operation: 'create',
 				shapeType: 'note',
-				reason: 'mocked',
 			},
 			{ message: 'File record vetoed', level: 'warning' },
 		])
@@ -136,21 +136,23 @@ describe('file room record veto telemetry', () => {
 		const waitUntil = vi.spyOn(h.object.state, 'waitUntil')
 		for (let i = 0; i < 1000; i++) {
 			expect(
-				auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
-			).toSatisfy(isDeny)
+				rejects(auth.shape, {
+					session,
+					get,
+					type: 'update',
+					prev: note('alice'),
+					next: note('bob'),
+				})
+			).toBe(true)
 		}
 		expect(h.points).toEqual([])
 		expect(waitUntil).toHaveBeenCalledTimes(1)
 		await h.flush()
-		expect(h.points).toEqual([
-			point('shape', 'update', 'note', 'note author must be the session user', 1000),
-		])
+		expect(h.points).toEqual([point('shape', 'update', 'note', 1000)])
 		auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
 		await h.flush()
 		expect(h.points).toHaveLength(2)
-		expect(h.points[1]).toEqual(
-			point('shape', 'update', 'note', 'note author must be the session user')
-		)
+		expect(h.points[1]).toEqual(point('shape', 'update', 'note'))
 		expect(h.warnings).toHaveLength(2)
 	})
 
@@ -165,7 +167,7 @@ describe('file room record veto telemetry', () => {
 		const next = note('alice')
 		for (let i = 0; i < 1000; i++) {
 			expect(auth.shape({ session, get, type: 'create', prev: null, next })).toBe(next)
-			expect(auth.shape({ session, get, type: 'update', prev: next, next })).toBe(next)
+			expect(auth.shape({ session, get, type: 'update', prev: note('alice'), next })).toBe(next)
 			expect(auth.shape({ session, get, type: 'delete', prev: next, next: null })).toBeUndefined()
 		}
 		await h.flush()
@@ -205,23 +207,27 @@ describe('file room record veto telemetry', () => {
 			if (dependency === 'storage') h.object.storage.put = fail
 			if (dependency === 'sentry') h.object.sentry.captureMessage = fail
 			expect(
-				auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
-			).toSatisfy(isDeny)
+				rejects(auth.shape, {
+					session,
+					get,
+					type: 'update',
+					prev: note('alice'),
+					next: note('bob'),
+				})
+			).toBe(true)
 			await expect(h.flush()).resolves.toBeUndefined()
 			if (dependency === 'analytics') {
 				h.object.measure.writeDataPoint = writeDataPoint
 				auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
 				await h.flush()
-				expect(h.points).toEqual([
-					point('shape', 'update', 'note', 'note author must be the session user'),
-				])
+				expect(h.points).toEqual([point('shape', 'update', 'note')])
 			}
 		}
 	})
 
 	it('bounds unvalidated shape types without including the client record type name', async () => {
 		vi.useFakeTimers()
-		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValue(deny('mocked'))
+		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValue(null)
 		const h = await harness()
 		const { auth } = h
 		const next = {
@@ -229,17 +235,16 @@ describe('file room record veto telemetry', () => {
 			type: 'secret-client-content',
 			typeName: 'secret-type-name',
 		} as unknown as TLShape
-		expect(auth.shape({ session, get, type: 'create', prev: null, next })).toSatisfy(isDeny)
+		expect(rejects(auth.shape, { session, get, type: 'create', prev: null, next })).toBe(true)
 		expect(h.points).toEqual([])
 		await h.flush()
-		expect(h.points).toEqual([point('shape', 'create', 'unknown', 'mocked')])
+		expect(h.points).toEqual([point('shape', 'create', 'unknown')])
 		expect(h.warnings[0]).toEqual({
 			durableObjectId: 'durable-object-id',
 			slug: 'file-id',
 			typeName: 'shape',
 			operation: 'create',
 			shapeType: 'unknown',
-			reason: 'mocked',
 		})
 	})
 
