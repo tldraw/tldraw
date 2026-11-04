@@ -75,9 +75,21 @@
 }
 
 .tlui-collections-panel__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
 	margin: 0;
 	padding: 24px;
 	text-align: center;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-panel__empty > p {
+	margin: 0;
+}
+
+.tlui-collections-panel__lock {
 	color: var(--tl-color-text-3);
 }
 
