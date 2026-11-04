@@ -16,13 +16,14 @@ import type { ItemGridAppearance } from '../ui/item-grid'
 import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { CollectionItems } from './collection-items'
 import { CollectionPreviewRow } from './collection-preview-row'
-import { CollectionsPanelHeader } from './collections-panel-header'
+import { CollectionsPanelHeader, type ReadOnlyOptions } from './collections-panel-header'
 import {
 	defaultItemOrderings,
 	getItemOrderChoice,
 	setItemOrderChoice,
 	type TLCollectionItemOrdering,
 } from './item-order'
+import { NoCollections, type FirstUse } from './no-collections'
 import { placeCollectionItem, type PlaceItemOptions } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -84,6 +85,10 @@ export interface CollectionsPanelProps {
 	saving?: SaveSelectionOptions
 	/** Where clicking an item places it. Dragging places it where it's dropped. */
 	placement?: PlaceItemOptions
+	/** What the panel shows before there are any collections. */
+	firstUse?: FirstUse
+	/** How the panel shows a collection the user can't add to. */
+	readOnly?: ReadOnlyOptions
 }
 
 /**
@@ -103,6 +108,8 @@ export function CollectionsPanel({
 	smallScreen = 'panel',
 	saving,
 	placement,
+	firstUse = 'message',
+	readOnly,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -165,7 +172,7 @@ export function CollectionsPanel({
 	const body = () => {
 		if (navigation === 'sections') {
 			if (collections.length === 0) {
-				return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+				return <NoCollections source={source} firstUse={firstUse} />
 			}
 			return (
 				<div className="tlui-collections-sections">
@@ -178,6 +185,7 @@ export function CollectionsPanel({
 									<section key={collection.id} className="tlui-collections-section">
 										<CollectionsPanelHeader
 											saving={saving}
+											readOnly={readOnly}
 											source={source}
 											collections={collections}
 											current={collection}
@@ -224,7 +232,7 @@ export function CollectionsPanel({
 		}
 		if (navigation === 'previews') {
 			if (collections.length === 0) {
-				return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+				return <NoCollections source={source} firstUse={firstUse} />
 			}
 			return (
 				<div className="tlui-collections-sections">
@@ -251,7 +259,7 @@ export function CollectionsPanel({
 		}
 		if (navigation === 'list') {
 			if (collections.length === 0) {
-				return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+				return <NoCollections source={source} firstUse={firstUse} />
 			}
 			return (
 				<div className="tlui-collections-sections">
@@ -272,7 +280,7 @@ export function CollectionsPanel({
 				</div>
 			)
 		}
-		return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+		return <NoCollections source={source} firstUse={firstUse} />
 	}
 
 	return (
@@ -287,6 +295,7 @@ export function CollectionsPanel({
 			>
 				<CollectionsPanelHeader
 					saving={saving}
+					readOnly={readOnly}
 					source={source}
 					collections={collections}
 					current={navigation === 'sections' ? undefined : current}
