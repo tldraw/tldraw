@@ -4,10 +4,10 @@
 
 ```ts
 
+import type { TLBeforeWriteHooks } from '@tldraw/sync-core';
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
-import type { TLRecordAuthorizers } from '@tldraw/sync-core';
 
 // @public
 export interface CommentAuthorizerOptions<SessionMeta> {
@@ -48,7 +48,7 @@ export type CommentModificationAuthContext<SessionMeta> = {
 } & CommentModification;
 
 // @public
-export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
+export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLBeforeWriteHooks<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
 
 // (No @packageDocumentation comment for this package)
 
