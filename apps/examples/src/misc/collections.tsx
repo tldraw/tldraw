@@ -39,6 +39,7 @@ import 'tldraw/tldraw.css'
 // against an in-memory source without the tldraw.com stack.
 const WIREFRAMES = CollectionRecordType.createId('wireframes')
 const ICONS = CollectionRecordType.createId('icons')
+const BOARD_KIT = CollectionRecordType.createId('board-kit')
 const SHAPES = CollectionRecordType.createId('shapes')
 
 type Permissions = Record<TLCollectionAction, boolean>
@@ -72,11 +73,14 @@ const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 
 const scopeSettings = atom<ScopeSettings>('collections playground scope', DEFAULT_SCOPE_SETTINGS)
 
-// Owners as tldraw.com has them: the user's home workspace, then a workspace they belong to.
+// Owners as tldraw.com has them: the open file, the user's home workspace, then a workspace they
+// belong to.
+const BOARD = 'board'
 const PERSONAL = 'home'
 const ACME = 'acme'
 
 const OWNERS = [
+	{ id: BOARD, name: 'This board' },
 	{ id: PERSONAL, name: 'Personal' },
 	{ id: ACME, name: 'Acme workspace' },
 ]
@@ -128,6 +132,7 @@ class PlaygroundSource extends InMemoryCollectionSource {
 const samples = new PlaygroundSource({
 	initial: {
 		collections: [
+			CollectionRecordType.create({ id: BOARD_KIT, name: 'Board kit', ownerId: BOARD }),
 			CollectionRecordType.create({ id: WIREFRAMES, name: 'Wireframes', ownerId: ACME }),
 			CollectionRecordType.create({ id: ICONS, name: 'Icons', ownerId: PERSONAL }),
 			CollectionRecordType.create({ id: SHAPES, name: 'Shapes', ownerId: PERSONAL }),
@@ -179,6 +184,16 @@ const SAMPLES: {
 	name?: string
 	shapes: TLShapePartial<TLGeoShape>[]
 }[] = [
+	{
+		collectionId: BOARD_KIT,
+		name: 'Arrow',
+		shapes: [geo(0, 0, { geo: 'arrow-right', w: 120, h: 72, fill: 'solid', color: 'green' })],
+	},
+	{
+		collectionId: BOARD_KIT,
+		name: 'Cloud',
+		shapes: [geo(0, 0, { geo: 'cloud', w: 140, h: 96, fill: 'semi', color: 'light-blue' })],
+	},
 	{
 		collectionId: WIREFRAMES,
 		name: 'Button',
@@ -669,7 +684,7 @@ const SURFACES: Surface[] = [
 	},
 	{
 		page: 'Scope',
-		hint: 'Personal and workspace collections, as seen in a team file. Move one from its ⋯ menu.',
+		hint: 'Board, personal and workspace collections, as seen in a team file. Move one from its ⋯ menu.',
 		shapes: true,
 		choices: [
 			{
