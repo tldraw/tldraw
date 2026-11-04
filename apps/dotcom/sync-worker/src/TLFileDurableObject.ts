@@ -32,7 +32,6 @@ import {
 	TLSyncErrorCloseEventReason,
 	TLSyncForwardDiff,
 	TLSyncStorage,
-	type TLRecordAuthorizer,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
@@ -53,7 +52,14 @@ import {
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	objectMapEntries,
+	retry,
+} from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
@@ -394,22 +400,28 @@ export class TLFileDurableObject extends DurableObject {
 	private recordVetoWarningScheduled = false
 	private recordVetoCounts?: Map<string, number>
 
-	private observeRecordAuthorizer<Rec extends UnknownRecord>(
-		typeName: keyof typeof authorizeFileRecord,
-		authorize: TLRecordAuthorizer<Rec, SessionMeta> | undefined
-	): TLRecordAuthorizer<Rec, SessionMeta> | undefined {
-		if (!authorize) return undefined
-		return (args) => {
-			const result = authorize(args)
-			if (result === null) {
-				try {
-					this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
-				} catch {
-					// Failed telemetry must never change authorization.
-				}
-			}
-			return result
-		}
+	private observeRecordAuthorizers(
+		authorizers: typeof authorizeFileRecord
+	): typeof authorizeFileRecord {
+		return Object.fromEntries(
+			objectMapEntries(authorizers).map(([typeName, authorize]) => {
+				if (!authorize) return [typeName, undefined]
+				return [
+					typeName,
+					(args: Parameters<typeof authorize>[0]) => {
+						const result = authorize(args as never)
+						if (result === null) {
+							try {
+								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
+							} catch {
+								// Failed telemetry must never change authorization.
+							}
+						}
+						return result
+					},
+				]
+			})
+		) as typeof authorizeFileRecord
 	}
 
 	getRoom() {
@@ -420,18 +432,6 @@ export class TLFileDurableObject extends DurableObject {
 			const promise = this.getStorage()
 				.then(async (storage) => {
 					this.setBootStage('room-create')
-					const authorizeRecord = {
-						shape: this.observeRecordAuthorizer('shape', authorizeFileRecord.shape),
-						comment: this.observeRecordAuthorizer('comment', authorizeFileRecord.comment),
-						'comment-thread': this.observeRecordAuthorizer(
-							'comment-thread',
-							authorizeFileRecord['comment-thread']
-						),
-						'comment-reaction': this.observeRecordAuthorizer(
-							'comment-reaction',
-							authorizeFileRecord['comment-reaction']
-						),
-					}
 					const room = new TLSocketRoom<TLRecord, SessionMeta>({
 						storage,
 						schema: fileSyncSchema,
@@ -516,7 +516,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord,
+						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
