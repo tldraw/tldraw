@@ -26,6 +26,7 @@ import {
 import { placeCollectionItem } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
+import type { SaveSelectionOptions } from './use-save-selection'
 
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
@@ -79,6 +80,8 @@ export interface CollectionsPanelProps {
 	 * bottom of the screen and closes once an item is placed.
 	 */
 	smallScreen?: 'panel' | 'sheet'
+	/** What happens around a save from the panel's "+": naming, confirmation and undo. */
+	saving?: SaveSelectionOptions
 }
 
 /**
@@ -96,6 +99,7 @@ export function CollectionsPanel({
 	side = 'left',
 	width = 240,
 	smallScreen = 'panel',
+	saving,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -170,6 +174,7 @@ export function CollectionsPanel({
 								return (
 									<section key={collection.id} className="tlui-collections-section">
 										<CollectionsPanelHeader
+											saving={saving}
 											source={source}
 											collections={collections}
 											current={collection}
@@ -278,6 +283,7 @@ export function CollectionsPanel({
 				onContextMenu={(e) => e.stopPropagation()}
 			>
 				<CollectionsPanelHeader
+					saving={saving}
 					source={source}
 					collections={collections}
 					current={navigation === 'sections' ? undefined : current}
