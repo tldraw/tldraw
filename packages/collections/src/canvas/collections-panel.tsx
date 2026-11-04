@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { Fragment, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -10,6 +10,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
+import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { CollectionItems } from './collection-items'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import {
@@ -58,6 +59,11 @@ export interface CollectionsPanelProps {
 	itemOrderings?: TLCollectionItemOrdering[]
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
 	side?: 'left' | 'right'
+	/**
+	 * Groups collections under headings, e.g. by scope ("Personal", a workspace's name). The list
+	 * and sections show a heading per group; the picker names each collection's group.
+	 */
+	groupCollections?: GroupCollections
 }
 
 /**
@@ -71,6 +77,7 @@ export function CollectionsPanel({
 	navigation = 'picker',
 	itemOrderings = defaultItemOrderings,
 	side = 'left',
+	groupCollections,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -120,6 +127,9 @@ export function CollectionsPanel({
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
+	const groups = groupCollectionList(collections, groupCollections)
+	const groupHeading = (label?: string) =>
+		label && <h3 className="tlui-collections-group__heading">{label}</h3>
 
 	if (!open) return null
 
@@ -130,37 +140,42 @@ export function CollectionsPanel({
 			}
 			return (
 				<div className="tlui-collections-sections">
-					{collections.map((collection) => {
-						const isCollapsed = collapsed.includes(collection.id)
-						return (
-							<section key={collection.id} className="tlui-collections-section">
-								<CollectionsPanelHeader
-									source={source}
-									collections={collections}
-									current={collection}
-									itemCount={countOf(collection)}
-									detail={String(countOf(collection))}
-									collapsed={isCollapsed}
-									onToggleCollapsed={() =>
-										collapsedCollectionIds.update(editor, (ids) =>
-											isCollapsed
-												? ids.filter((id) => id !== collection.id)
-												: [...ids, collection.id]
-										)
-									}
-								/>
-								{!isCollapsed && (
-									<CollectionItems
-										source={source}
-										collectionId={collection.id}
-										getItemProps={getItemProps}
-										ordering={ordering}
-										reversed={orderChoice.reversed}
-									/>
-								)}
-							</section>
-						)
-					})}
+					{groups.map((group) => (
+						<Fragment key={group.label ?? ''}>
+							{groupHeading(group.label)}
+							{group.collections.map((collection) => {
+								const isCollapsed = collapsed.includes(collection.id)
+								return (
+									<section key={collection.id} className="tlui-collections-section">
+										<CollectionsPanelHeader
+											source={source}
+											collections={collections}
+											current={collection}
+											itemCount={countOf(collection)}
+											detail={String(countOf(collection))}
+											collapsed={isCollapsed}
+											onToggleCollapsed={() =>
+												collapsedCollectionIds.update(editor, (ids) =>
+													isCollapsed
+														? ids.filter((id) => id !== collection.id)
+														: [...ids, collection.id]
+												)
+											}
+										/>
+										{!isCollapsed && (
+											<CollectionItems
+												source={source}
+												collectionId={collection.id}
+												getItemProps={getItemProps}
+												ordering={ordering}
+												reversed={orderChoice.reversed}
+											/>
+										)}
+									</section>
+								)
+							})}
+						</Fragment>
+					))}
 				</div>
 			)
 		}
@@ -176,16 +191,26 @@ export function CollectionsPanel({
 			)
 		}
 		if (navigation === 'list') {
+			if (collections.length === 0) {
+				return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+			}
 			return (
-				<CollectionList
-					collections={collections.map((collection) => ({
-						id: collection.id,
-						name: collection.name,
-						detail: msg(messages.itemCount, { count: countOf(collection) }),
-					}))}
-					onOpen={(id) => activeCollectionId.set(editor, id)}
-					empty={msg(messages.empty)}
-				/>
+				<div className="tlui-collections-sections">
+					{groups.map((group) => (
+						<Fragment key={group.label ?? ''}>
+							{groupHeading(group.label)}
+							<CollectionList
+								collections={group.collections.map((collection) => ({
+									id: collection.id,
+									name: collection.name,
+									detail: msg(messages.itemCount, { count: countOf(collection) }),
+								}))}
+								onOpen={(id) => activeCollectionId.set(editor, id)}
+								empty={msg(messages.empty)}
+							/>
+						</Fragment>
+					))}
+				</div>
 			)
 		}
 		return <p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
@@ -204,6 +229,7 @@ export function CollectionsPanel({
 					collections={collections}
 					current={navigation === 'sections' ? undefined : current}
 					itemCount={current ? countOf(current) : 0}
+					groupCollections={groupCollections}
 					sort={sort}
 					onBack={navigation === 'list' ? () => activeCollectionId.set(editor, null) : undefined}
 				/>

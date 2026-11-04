@@ -14,6 +14,7 @@ import type { TLCollection } from '../lib/schema'
 import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
+import type { GroupCollections } from './collection-groups'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { activeCollectionId, renamingCollectionId } from './state'
 import { useSaveSelection } from './use-save-selection'
@@ -60,6 +61,8 @@ export interface CollectionsPanelHeaderProps {
 	collapsed?: boolean
 	/** Shown beside the name, e.g. how many items the collection holds. */
 	detail?: string
+	/** Names each collection's group in the picker. */
+	groupCollections?: GroupCollections
 }
 
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
@@ -73,6 +76,7 @@ export function CollectionsPanelHeader({
 	onToggleCollapsed,
 	collapsed = false,
 	detail,
+	groupCollections,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -172,7 +176,11 @@ export function CollectionsPanelHeader({
 		}
 		return (
 			<CollectionPicker
-				collections={collections}
+				collections={collections.map((c) => ({
+					id: c.id,
+					name: c.name,
+					detail: groupCollections?.(c),
+				}))}
 				value={collection.id}
 				onValueChange={(id) => activeCollectionId.set(editor, id)}
 				label={msg(messages.title)}
