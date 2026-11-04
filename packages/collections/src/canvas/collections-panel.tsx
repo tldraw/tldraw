@@ -231,6 +231,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}
+								name={item.name}
 								onRename={canRename ? () => setRenamingId(item.id) : undefined}
 								moveTargets={moveTargets}
 								onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}

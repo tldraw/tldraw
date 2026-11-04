@@ -4,7 +4,7 @@ import { ItemTile } from './item-tile'
 /** @public */
 export interface ItemGridItem<Id extends string = string> {
 	id: Id
-	/** Shown under the thumbnail when present. */
+	/** Shown as the tile's tooltip and at the top of its menu when present. */
 	name?: string
 	/** The tile's accessible name: the item's name, or a description for an unnamed item. */
 	accessibleLabel: string
@@ -18,7 +18,7 @@ export interface ItemGridProps<Id extends string = string> {
 	getItemProps(id: Id): ButtonHTMLAttributes<HTMLButtonElement>
 	/** An item's menu, shown over its tile. Leave it out for tiles without one. */
 	renderItemMenu?(item: ItemGridItem<Id>): ReactNode
-	/** The item being renamed, whose label is an input. */
+	/** The item being renamed, whose tile shows an input. */
 	renamingId?: Id
 	onRename?(id: Id, name: string): void
 	onCancelRename?(): void

@@ -10,7 +10,7 @@ export interface ItemTileRenaming {
 
 /** @public */
 export interface ItemTileProps {
-	/** Shown under the thumbnail. Unnamed items show no label. */
+	/** Shown as the tile's tooltip. Unnamed items have none. */
 	name?: string
 	/** The button's accessible name: the item's name, or a description for an unnamed item. */
 	accessibleLabel: string
@@ -19,7 +19,7 @@ export interface ItemTileProps {
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
 	/** Shown over the tile's corner on hover, e.g. an {@link ItemMenu}. */
 	menu?: ReactNode
-	/** Set while the item is being renamed: the label becomes an input. */
+	/** Set while the item is being renamed: an input shows under the thumbnail. */
 	renaming?: ItemTileRenaming
 }
 
@@ -57,10 +57,10 @@ export function ItemTile({
 					type="button"
 					className="tlui-collections-tile__button"
 					aria-label={accessibleLabel}
+					title={name}
 					{...buttonProps}
 				>
 					{thumbnail}
-					{name && <span className="tlui-collections-tile__label">{name}</span>}
 				</button>
 			)}
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}

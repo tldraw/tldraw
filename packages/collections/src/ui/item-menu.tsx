@@ -23,6 +23,8 @@ const messages = defineMessages({
 export interface ItemMenuProps {
 	/** Unique per item, so each tile's menu opens on its own. */
 	id: string
+	/** Shown at the top of the menu. Leave out for an unnamed item. */
+	name?: string
 	/** Leave out to hide Rename, e.g. when the source doesn't allow it. */
 	onRename?(): void
 	/** Leave out to hide Delete. */
@@ -45,7 +47,7 @@ export function getItemMenuId(id: string) {
  * A ⋯ menu for one item, laid out like the page menu's. Renders nothing when it has no actions.
  * @public @react
  */
-export function ItemMenu({ id, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
 	const msg = useTranslation()
 	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
 	if (!onRename && !onDelete && !canMove) return null
@@ -64,6 +66,11 @@ export function ItemMenu({ id, onRename, onDelete, moveTargets, onMove }: ItemMe
 			</TldrawUiDropdownMenuTrigger>
 			<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={4} alignOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+					{name && (
+						<div className="tlui-collections-menu-heading" role="presentation">
+							{name}
+						</div>
+					)}
 					{onRename && (
 						<TldrawUiMenuGroup id="modify">
 							<TldrawUiMenuItem id="rename" label={messages.rename.id} onSelect={onRename} />

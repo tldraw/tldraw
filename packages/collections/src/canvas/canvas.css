@@ -150,11 +150,15 @@
 	object-fit: contain;
 }
 
-.tlui-collections-tile__label {
-	padding: 0 2px;
+.tlui-collections-menu-heading {
+	max-width: 200px;
+	padding: 6px 12px 2px;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	cursor: default;
 }
 
 .tlui-collections-panel__header-actions {
