@@ -434,7 +434,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				return { rejected: true, reason: 'hook threw' }
 			}
 			if (result instanceof TLDeny) return { rejected: true, reason: result.reason }
-			if (result === false) return { rejected: true, reason: 'rejected' }
+			// `null` is the rejection of the deprecated `authorizeRecord` hooks, which TLSocketRoom
+			// passes in as `beforeWrite`.
+			if (result === false || result === null) return { rejected: true, reason: 'rejected' }
 			return { rejected: false, record: result as R | undefined }
 		}
 	}

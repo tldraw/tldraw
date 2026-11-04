@@ -288,25 +288,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// logged, and a host that passes no `log` would otherwise never see them.
 		this.log = 'log' in opts ? opts.log : { error: console.error }
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
-		const { authorizeRecord } = opts
+		const authorizeRecord = opts.authorizeRecord
 		if (opts.beforeWrite && authorizeRecord) {
 			throw new Error('TLSocketRoom: set beforeWrite or authorizeRecord, not both')
 		}
-		// The deprecated hooks return `null` to reject; `beforeWrite` hooks return `false`.
-		const beforeWrite =
-			opts.beforeWrite ??
-			(authorizeRecord &&
-				(Object.fromEntries(
-					Object.entries(authorizeRecord).map(([typeName, authorize]) => [
-						typeName,
-						authorize && ((args: never) => (authorize as (args: never) => unknown)(args) ?? false),
-					])
-				) as TLBeforeWriteHooks<R, SessionMeta>))
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			beforeWrite,
+			// The room reads `null` as a rejection, so the deprecated hooks run unchanged.
+			beforeWrite: opts.beforeWrite ?? (authorizeRecord as TLBeforeWriteHooks<R, SessionMeta>),
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
