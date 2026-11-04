@@ -326,7 +326,7 @@ const DEFAULT_SETTINGS: PlaygroundSettings = {
 	readOnlyAdd: 'disable',
 	readOnlyMarker: 'none',
 	search: 'none',
-	header: 'title',
+	header: 'picker',
 	addControl: 'footer',
 	emptyCollection: 'message',
 	data: 'samples',
