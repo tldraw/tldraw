@@ -1,10 +1,18 @@
-import { ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai'
-import { CHAT_HISTORY_PRIORITY } from '../../shared/schema/PromptPartDefinitions'
+import type {
+	Api,
+	AssistantMessage,
+	ImageContent,
+	Message,
+	Model,
+	TextContent,
+	ToolCall,
+} from '@earendil-works/pi-ai'
 import { AgentMessage, AgentMessageContent } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getPromptPartDefinition, PromptPart } from '../../shared/types/PromptPart'
 
-export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
+/** Build the model's messages from the prompt. `model` is the model the messages are sent to. */
+export function buildMessages(prompt: AgentPrompt, model: Model<Api>): Message[] {
 	const allMessages: AgentMessage[] = []
 
 	// Build messages from each prompt part using shared definitions
@@ -16,22 +24,7 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	// Sort by priority (higher priority = later in prompt)
 	allMessages.sort((a, b) => a.priority - b.priority)
 
-	const history = toModelMessages(allMessages.filter((m) => m.priority === CHAT_HISTORY_PRIORITY))
-	const rest = toModelMessages(allMessages.filter((m) => m.priority !== CHAT_HISTORY_PRIORITY))
-
-	// Claude caches only up to a marked message. The next request repeats the history and adds to it.
-	// Mark the message's last block, not the message: OpenRouter marks every block of a marked
-	// message, and Claude takes at most four marks.
-	const lastHistoryMessage = history.at(-1)
-	const cacheMark = { anthropic: { cacheControl: { type: 'ephemeral' } } }
-	if (typeof lastHistoryMessage?.content === 'string') {
-		lastHistoryMessage.providerOptions = cacheMark
-	} else {
-		const lastPart = lastHistoryMessage?.content.at(-1)
-		if (lastPart) lastPart.providerOptions = cacheMark
-	}
-
-	return [...history, ...rest]
+	return toModelMessages(allMessages, model)
 }
 
 /**
@@ -86,33 +79,34 @@ function defaultBuildMessagesFromPart(part: PromptPart): AgentMessage[] {
 }
 
 /**
- * Convert AgentMessage[] to ModelMessage[] for the AI SDK. Past actions become calls to their tools.
- * Consecutive actions share one assistant turn, followed by one message with every result: a long
+ * Convert AgentMessage[] to the model's messages. Past actions become calls to their tools.
+ * Consecutive actions share one assistant turn, followed by one result message per call: a long
  * history of one call per turn teaches some models (Gemini) to make one call per response. Any other
  * message ends the turn, including an empty one, such as the prompt of a request that only sends
  * results back. So each response keeps its own turn, and later requests repeat it unchanged.
  */
-function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
-	const messages: ModelMessage[] = []
+function toModelMessages(agentMessages: AgentMessage[], model: Model<Api>): Message[] {
+	const messages: Message[] = []
 	let toolCallCount = 0
 	// The tool-call turn that the next actions join, until another message comes between.
-	let toolTurn: { calls: ToolCallPart[]; results: ToolResultPart[] } | null = null
+	let toolTurn: AssistantMessage | null = null
+	const timestamp = Date.now()
 
 	for (const tlMessage of agentMessages) {
-		const content: (TextPart | ImagePart)[] = []
-		const toolCalls: { call: ToolCallPart; result: string }[] = []
+		const content: (TextContent | ImageContent)[] = []
+		const toolCalls: { call: ToolCall; result: string }[] = []
 
 		for (const contentItem of tlMessage.content) {
 			if (contentItem.type === 'image') {
-				content.push({ type: 'image', image: contentItem.image! })
+				content.push(toImageContent(contentItem.image!))
 			} else if (contentItem.type === 'action') {
 				const { _type, ...input } = contentItem.action!
 				toolCalls.push({
 					call: {
-						type: 'tool-call',
-						toolCallId: `history-${toolCallCount++}`,
-						toolName: _type,
-						input,
+						type: 'toolCall',
+						id: `history-${toolCallCount++}`,
+						name: _type,
+						arguments: input as ToolCall['arguments'],
 					},
 					result: contentItem.result ?? 'Done.',
 				})
@@ -121,27 +115,69 @@ function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 			}
 		}
 
-		if (toolCalls.length === 0) toolTurn = null
+		if (toolCalls.length === 0 || content.length > 0) toolTurn = null
 		if (content.length > 0) {
-			messages.push({ role: tlMessage.role, content } as ModelMessage)
+			messages.push(
+				tlMessage.role === 'user'
+					? { role: 'user', content, timestamp }
+					: assistantMessage(
+							model,
+							content.filter((c) => c.type === 'text'),
+							timestamp
+						)
+			)
 		}
 		if (toolCalls.length > 0) {
 			if (!toolTurn) {
-				toolTurn = { calls: [], results: [] }
-				messages.push({ role: 'assistant', content: toolTurn.calls })
-				messages.push({ role: 'tool', content: toolTurn.results })
+				toolTurn = assistantMessage(model, [], timestamp)
+				messages.push(toolTurn)
 			}
 			for (const { call, result } of toolCalls) {
-				toolTurn.calls.push(call)
-				toolTurn.results.push({
-					type: 'tool-result',
-					toolCallId: call.toolCallId,
-					toolName: call.toolName,
-					output: { type: 'text', value: result },
+				toolTurn.content.push(call)
+				// The turn is the last message, so its results stay after all of its calls.
+				messages.push({
+					role: 'toolResult',
+					toolCallId: call.id,
+					toolName: call.name,
+					content: [{ type: 'text', text: result }],
+					isError: false,
+					timestamp,
 				})
 			}
 		}
 	}
 
 	return messages
+}
+
+/** A past assistant turn, marked as the model's own so its tool calls are sent unchanged. */
+function assistantMessage(
+	model: Model<Api>,
+	content: AssistantMessage['content'],
+	timestamp: number
+): AssistantMessage {
+	return {
+		role: 'assistant',
+		content,
+		api: model.api,
+		provider: model.provider,
+		model: model.id,
+		usage: {
+			input: 0,
+			output: 0,
+			cacheRead: 0,
+			cacheWrite: 0,
+			totalTokens: 0,
+			cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0, total: 0 },
+		},
+		stopReason: 'toolUse',
+		timestamp,
+	}
+}
+
+/** Split a data URL, such as `data:image/png;base64,iVBOR…`, into its type and base64 data. */
+function toImageContent(dataUrl: string): ImageContent {
+	const match = dataUrl.match(/^data:([^;,]+);base64,(.*)$/s)
+	if (!match) throw new Error('Images must be base64 data URLs.')
+	return { type: 'image', mimeType: match[1], data: match[2] }
 }

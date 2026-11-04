@@ -640,14 +640,13 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 	openRouterId: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
 	supportsTemperature: false,
-	thinking: 'adaptive',
-	effort: 'low',
+	reasoning: 'low',
 }
 ```
 
-`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
+`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set. `reasoning` sets how much the model reasons, from `'minimal'` to `'max'`; omit it to turn reasoning off.
 
-Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
+The worker calls models with [pi-ai](https://www.npmjs.com/package/@earendil-works/pi-ai), which must list the model in its catalog for that provider. To add a provider, register it in `worker/do/AgentService.ts`.
 
 ## Support custom shapes
 

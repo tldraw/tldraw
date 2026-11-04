@@ -1,23 +1,12 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
-/**
- * Thinking mode passed to the Anthropic provider. Models without adaptive thinking, such as Haiku
- * 4.5, take a token budget instead.
- */
-export type AnthropicThinking = 'adaptive' | 'disabled' | { budgetTokens: number }
+/** How much a model reasons before it answers. */
+export type AgentReasoningLevel = 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
-/** Effort level passed to the Anthropic provider (Opus 4.6+/Sonnet 4.6+; not supported on Haiku 4.5). */
-export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-
-/** Reasoning effort passed to the OpenAI provider. */
-export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-
-/** Thinking level passed to the Google provider. */
-export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
-
-interface BaseAgentModelDefinition {
+export interface AgentModelDefinition {
 	name: AgentModelName
+	provider: AgentModelProvider
 	/** The provider's own model id. */
 	id: string
 	/** The model's id on OpenRouter, used when the worker has an `OPENROUTER_API_KEY`. */
@@ -28,30 +17,15 @@ interface BaseAgentModelDefinition {
 	 * Opus 4.7+ and Sonnet 5 removed `temperature`/`top_p`/`top_k` (sending them is a 400).
 	 */
 	supportsTemperature: boolean
-}
 
-export interface AnthropicModelDefinition extends BaseAgentModelDefinition {
-	provider: 'anthropic'
-	thinking: AnthropicThinking
-	/** Effort level; omit for models that don't support it (e.g. Haiku 4.5). */
-	effort?: AnthropicEffort
+	/** How much the model reasons. Omit to turn reasoning off. */
+	reasoning?: AgentReasoningLevel
+	/**
+	 * The token budget for `reasoning`, for models that think with a budget instead of an effort,
+	 * such as Haiku 4.5.
+	 */
+	thinkingBudget?: number
 }
-
-export interface GoogleModelDefinition extends BaseAgentModelDefinition {
-	provider: 'google'
-	thinkingLevel: GeminiThinkingLevel
-}
-
-export interface OpenAIModelDefinition extends BaseAgentModelDefinition {
-	provider: 'openai'
-	/** Reasoning effort; omit to use the model's default. */
-	reasoningEffort?: OpenAIReasoningEffort
-}
-
-export type AgentModelDefinition =
-	| AnthropicModelDefinition
-	| GoogleModelDefinition
-	| OpenAIModelDefinition
 
 export const AGENT_MODEL_DEFINITIONS = {
 	// Anthropic models
@@ -61,8 +35,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		openRouterId: 'anthropic/claude-opus-5',
 		provider: 'anthropic',
 		supportsTemperature: false,
-		thinking: 'adaptive',
-		effort: 'medium',
+		reasoning: 'medium',
 	},
 
 	'claude-sonnet-5': {
@@ -71,8 +44,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		openRouterId: 'anthropic/claude-sonnet-5',
 		provider: 'anthropic',
 		supportsTemperature: false,
-		thinking: 'adaptive',
-		effort: 'low',
+		reasoning: 'low',
 	},
 
 	'claude-haiku-4-5': {
@@ -82,7 +54,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 		provider: 'anthropic',
 		// Anthropic takes no temperature while the model thinks.
 		supportsTemperature: false,
-		thinking: { budgetTokens: 1024 },
+		reasoning: 'low',
+		thinkingBudget: 1024,
 	},
 
 	// Google models
@@ -92,7 +65,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		openRouterId: 'google/gemini-3.8-flash',
 		provider: 'google',
 		supportsTemperature: false,
-		thinkingLevel: 'low',
+		reasoning: 'low',
 	},
 
 	// OpenAI models
@@ -102,7 +75,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		openRouterId: 'openai/gpt-5.6-sol',
 		provider: 'openai',
 		supportsTemperature: false,
-		reasoningEffort: 'medium',
+		reasoning: 'medium',
 	},
 
 	'gpt-5.6-terra': {
@@ -111,7 +84,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		openRouterId: 'openai/gpt-5.6-terra',
 		provider: 'openai',
 		supportsTemperature: false,
-		reasoningEffort: 'high',
+		reasoning: 'high',
 	},
 
 	'gpt-5.6-luna': {
@@ -120,6 +93,7 @@ export const AGENT_MODEL_DEFINITIONS = {
 		openRouterId: 'openai/gpt-5.6-luna',
 		provider: 'openai',
 		supportsTemperature: false,
+		reasoning: 'medium',
 	},
 } as const
 
