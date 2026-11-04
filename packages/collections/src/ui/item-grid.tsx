@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, CSSProperties, ReactNode } from 'react'
+import { ButtonHTMLAttributes, CSSProperties, ReactNode, useEffect, useRef } from 'react'
 import { ItemTile } from './item-tile'
 
 /** @public */
@@ -35,6 +35,8 @@ export interface ItemGridProps<Id extends string = string> {
 	renderItemMenu?(item: ItemGridItem<Id>): ReactNode
 	/** The item being renamed, whose label is an input. */
 	renamingId?: Id
+	/** An item to scroll into view and flash, e.g. one just saved. */
+	highlightedId?: Id
 	onRename?(id: Id, name: string): void
 	onCancelRename?(): void
 	/** Shown when there are no items. */
@@ -48,15 +50,25 @@ export function ItemGrid<Id extends string>({
 	getItemProps,
 	renderItemMenu,
 	renamingId,
+	highlightedId,
 	onRename,
 	onCancelRename,
 	empty,
 	appearance = {},
 }: ItemGridProps<Id>) {
+	const listRef = useRef<HTMLUListElement>(null)
+	useEffect(() => {
+		if (!highlightedId) return
+		listRef.current
+			?.querySelector('[data-highlighted]')
+			?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })
+	}, [highlightedId])
+
 	if (items.length === 0) return <p className="tlui-collections-panel__empty">{empty}</p>
 
 	return (
 		<ul
+			ref={listRef}
 			className="tlui-collections-grid"
 			data-tile-style={appearance.style ?? 'well'}
 			data-tile-label={appearance.label ?? 'below'}
@@ -65,7 +77,7 @@ export function ItemGrid<Id extends string>({
 			style={{ '--tlui-collections-columns': appearance.columns ?? 2 } as CSSProperties}
 		>
 			{items.map((item) => (
-				<li key={item.id}>
+				<li key={item.id} data-highlighted={item.id === highlightedId || undefined}>
 					<ItemTile
 						name={item.name}
 						accessibleLabel={item.accessibleLabel}

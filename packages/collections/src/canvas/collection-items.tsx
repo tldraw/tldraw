@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useState } from 'react'
+import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useEffect } from 'react'
 import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
@@ -6,7 +6,12 @@ import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
-import { activeCollectionId, collectionsPanelOpen } from './state'
+import {
+	activeCollectionId,
+	collectionsPanelOpen,
+	highlightedItemId,
+	renamingItemId,
+} from './state'
 
 const messages = defineMessages({
 	emptyCollection: {
@@ -84,7 +89,24 @@ export function CollectionItems({
 		() => sortItems(source.getItems(collectionId), ordering, reversed),
 		[source, collectionId, ordering, reversed]
 	)
-	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
+	const renamingId = useValue('renaming item', () => renamingItemId.get(editor) ?? undefined, [
+		editor,
+	])
+	const setRenamingId = useCallback(
+		(id: TLCollectionItemId | undefined) => renamingItemId.set(editor, id ?? null),
+		[editor]
+	)
+	const highlightedId = useValue(
+		'highlighted item',
+		() => highlightedItemId.get(editor) ?? undefined,
+		[editor]
+	)
+	// The flash lasts as long as its animation, then the item is an ordinary tile again.
+	useEffect(() => {
+		if (!highlightedId) return
+		const timeout = setTimeout(() => highlightedItemId.set(editor, null), 1600)
+		return () => clearTimeout(timeout)
+	}, [editor, highlightedId])
 	const canRename = useValue('can rename items', () => source.can('renameItem', collectionId), [
 		source,
 		collectionId,
@@ -153,7 +175,7 @@ export function CollectionItems({
 				.renameItem(itemId, trimmed)
 				.catch(() => showChangeError(msg(messages.renameErrorTitle)))
 		},
-		[items, source, showChangeError, msg]
+		[items, source, showChangeError, msg, setRenamingId]
 	)
 
 	return (
@@ -197,6 +219,7 @@ export function CollectionItems({
 				/>
 			)}
 			renamingId={renamingId}
+			highlightedId={highlightedId}
 			onRename={renameItem}
 			onCancelRename={() => setRenamingId(undefined)}
 			empty={msg(messages.emptyCollection)}
