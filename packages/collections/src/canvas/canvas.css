@@ -120,16 +120,6 @@
 	background: var(--tl-color-panel);
 }
 
-.tlui-collections-tile .tlui-input__wrapper {
-	height: auto;
-}
-
-.tlui-input.tlui-collections-tile__input {
-	height: 15px;
-	max-height: 15px;
-	padding: 0px 2px;
-}
-
 .tlui-collections-tile__thumbnail {
 	display: flex;
 	align-items: center;
@@ -146,11 +136,82 @@
 	object-fit: contain;
 }
 
-.tlui-collections-tile__label {
-	padding: 0 2px;
+.tlui-collections-menu,
+.tlui-collections-menu__submenu {
+	min-width: 100px;
+	padding: 4px;
+}
+
+.tlui-collections-menu__heading {
+	display: flex;
+	align-items: center;
+	width: 200px;
+	min-height: 40px;
+	padding: 0 10px;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	cursor: default;
+}
+
+.tlui-collections-menu__heading > strong {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.tlui-collections-menu__heading .tlui-input__wrapper {
+	height: 40px;
+}
+
+.tlui-input.tlui-collections-menu__rename {
+	width: 100%;
+	padding: 0;
+	font-weight: bold;
+}
+
+.tlui-collections-menu__item {
+	position: relative;
+	display: flex;
+	align-items: center;
+	width: 100%;
+	min-height: 40px;
+	padding: 0 10px;
+	border: none;
+	background: transparent;
+	font: inherit;
+	font-size: 12px;
+	color: var(--tl-color-text-1);
+	cursor: pointer;
+}
+
+.tlui-collections-menu__item::after {
+	content: '';
+	position: absolute;
+	inset: 2px;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-collections-menu__item:hover::after {
+	background: var(--tl-color-muted-2);
+}
+
+.tlui-collections-menu__submenu-trigger > .tlui-menu__submenu__trigger {
+	margin: 0;
+	padding: 0 4px 0 10px;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-collections-menu__submenu-trigger > .tlui-menu__submenu__trigger.tlui-button::after {
+	inset: 2px;
+	background: var(--tl-color-muted-2);
+}
+
+.tlui-collections-menu__submenu-trigger > .tlui-menu__submenu__trigger[data-state='open']::after {
+	opacity: 1;
+}
+
+.tlui-collections-menu__item--danger {
+	color: var(--tl-color-danger);
 }
 
 .tlui-collections-panel__header-actions {
