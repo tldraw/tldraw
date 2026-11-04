@@ -1,11 +1,12 @@
 /* Floats on the left below the main menu, or on the right where the comments sidebar sits: 48px
-   from the top on either side, sized to its content and scrolling past max-height. */
+   from the top on either side, sized to its content and scrolling past max-height. Hosts can change
+   the cap with --tlui-collections-panel-max-height. */
 .tlui-collections-panel {
 	position: absolute;
 	top: 48px;
 	left: 8px;
 	width: 240px;
-	max-height: calc(100% - 56px);
+	max-height: var(--tlui-collections-panel-max-height, min(calc(100% - 56px), 560px));
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;
