@@ -19,6 +19,7 @@ import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
 	myWorkspace: { defaultMessage: 'My workspace' },
+	thisBoard: { defaultMessage: 'This board' },
 })
 
 interface StoredItem {
@@ -44,8 +45,9 @@ class OwnedInMemoryCollectionSource extends InMemoryCollectionSource {
 
 /**
  * Until tldraw.com has a real source, collections are kept in this browser, per user: they survive
- * a reload but don't follow anyone to another browser or device. Like files, each belongs to one of
- * the user's workspaces, their home workspace first, and new ones go to the open file's workspace.
+ * a reload but don't follow anyone to another browser or device. A collection belongs to the open
+ * file or to one of the user's workspaces, their home workspace first, and new ones go to the open
+ * file's workspace. A file's own collections are listed only while that file is open.
  *
  * An in-memory source, saved to IndexedDB after each change and loaded back on start. Each
  * collection is saved with its owner. Until the load finishes it shows the sample collections, and
@@ -56,15 +58,25 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 	private readonly openFileId = atom<string | undefined>('collections open file', undefined)
 
 	private readonly owners$ = computed('collection owners', (): TLCollectionOwner[] => {
+		const fileId = this.openFileId.get()
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
 		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
 		return [
+			...(fileId === undefined ? [] : [{ id: fileId, name: this.app.msg(messages.thisBoard) }]),
 			{ id: homeId, name: homeName ?? this.app.msg(messages.myWorkspace) },
 			...memberships.flatMap((m) =>
 				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
 			),
 		]
+	})
+
+	private readonly collections$ = computed('visible collections', () => {
+		const ownerIds = new Set(this.getCollectionOwners().map((owner) => owner.id))
+		return this.inner
+			.get()
+			.getCollections()
+			.filter((collection) => collection.ownerId === undefined || ownerIds.has(collection.ownerId))
 	})
 
 	private readonly inner: Atom<InMemoryCollectionSource>
@@ -111,7 +123,7 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 	}
 
 	getCollections() {
-		return this.inner.get().getCollections()
+		return this.collections$.get()
 	}
 
 	getItems(collectionId: TLCollectionId) {
@@ -225,10 +237,10 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		previous.dispose()
 	}
 
-	// The collection list is saved with every change, so an item added to a sample collection
-	// before anything else was saved still has its collection on the next load. The change has
-	// already happened in memory, so a failed save keeps it for this session instead of reporting
-	// an error for something that worked.
+	// The whole collection list, other files' included, is saved with every change, so an item added
+	// to a sample collection before anything else was saved still has its collection on the next
+	// load. The change has already happened in memory, so a failed save keeps it for this session
+	// instead of reporting an error for something that worked.
 	private async save(write?: (db: IDBPDatabase) => Promise<unknown>) {
 		try {
 			const db = await this.db
