@@ -22,7 +22,7 @@ export interface AgentModelDefinition {
 	reasoning?: AgentReasoningLevel
 	/**
 	 * The token budget for `reasoning`, for models that think with a budget instead of an effort,
-	 * such as Haiku 4.5.
+	 * such as Haiku 4.5. pi-ai reads it only for levels `'minimal'` to `'high'`.
 	 */
 	thinkingBudget?: number
 }
