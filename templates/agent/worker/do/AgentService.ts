@@ -1,4 +1,4 @@
-import type { Api, AssistantMessage, Model, Tool, ToolCall } from '@earendil-works/pi-ai'
+import type { Api, Model, Tool, ToolCall } from '@earendil-works/pi-ai'
 import { createModels } from '@earendil-works/pi-ai/models'
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic'
 import { googleProvider } from '@earendil-works/pi-ai/providers/google'
@@ -107,27 +107,31 @@ export class AgentService {
 		)
 
 		// Text becomes a message action, the model's own reasoning a think action, and each tool call
-		// the action it names. One block is open at a time: it streams as partial, then closes when it
-		// ends or when the model starts another block. pi-ai can start a block before it ends the one
-		// before it, so a closed block's later events are ignored.
+		// the action it names. The client applies one action at a time, so one block streams as partial
+		// until it ends or until another block has new content. pi-ai can add text to a block after a
+		// later block starts, so text that arrives after its block was closed becomes a new action.
 		// `closeOpen` sets `open` to null, so TypeScript must not narrow it from this initializer.
 		let open = null as {
 			index: number
 			action: AgentAction
 			startTime: number
+			/** Where this action's text starts in its block. */
+			from?: number
 			call?: ToolCall
 		} | null
-		const closedBlocks = new Set<number>()
+		// How much of each text and thinking block earlier actions sent.
+		const sentText = new Map<number, number>()
+		const closedCalls = new Set<number>()
 		let actionCount = 0
 		// Each action is timed from the end of the one before it, and the first from the request, so
 		// the times add up to the whole turn, including waits for the provider.
 		let lastActionEnd = Date.now()
 		const closeOpen = (): Extract<Streaming<AgentAction>, { complete: true }> | null => {
 			if (!open) return null
-			const { index, action, startTime, call } = open
+			const { index, action, startTime, from, call } = open
 			open = null
-			closedBlocks.add(index)
 			if (call) {
+				closedCalls.add(index)
 				finish.toolCalls++
 				const schema = schemas[call.name]
 				if (!schema) {
@@ -147,38 +151,50 @@ export class AgentService {
 				// reads it in the next step.
 				return { ...closed, invalid }
 			}
-			// Whitespace between tool calls is not a message, and reasoning with no text is not worth
-			// showing.
-			if (!(action as { text?: string }).text?.trim()) return null
+			const text = (action as { text: string }).text
+			sentText.set(index, (from ?? 0) + text.length)
+			// Whitespace between tool calls is not a message.
+			if (!text.trim()) return null
 			actionCount++
 			lastActionEnd = Date.now()
 			return { ...action, complete: true, time: lastActionEnd - startTime }
 		}
 
-		let final: AssistantMessage | null = null
 		for await (const event of result) {
-			if (event.type === 'error') throw new Error(event.error.errorMessage ?? 'The model failed.')
-			if (event.type === 'done') {
-				final = event.message
-				break
+			if (event.type === 'error') {
+				const { rawStopReason, errorMessage } = event.error
+				throw new Error(
+					rawStopReason?.match(/content.?filter|refusal|safety|prohibited/i)
+						? "The model's safety filter declined this request."
+						: (errorMessage ?? 'The model failed.'),
+					{ cause: event.error }
+				)
 			}
-			if (event.type === 'start' || closedBlocks.has(event.contentIndex)) continue
+			if (event.type === 'start' || event.type === 'done') continue
 
-			if (open?.index !== event.contentIndex) {
+			// The partial message holds each block's content so far, with tool input parsed.
+			const index = event.contentIndex
+			const block = event.type === 'toolcall_end' ? event.toolCall : event.partial.content[index]
+			if (block.type === 'toolCall' && closedCalls.has(index)) continue
+			if (open?.index !== index) {
+				const from = block.type === 'toolCall' ? undefined : (sentText.get(index) ?? 0)
+				const fullText =
+					block.type === 'text' ? block.text : block.type === 'thinking' ? block.thinking : ''
+				// A text or thinking block takes over only once it has something new to show.
+				if (from !== undefined && !fullText.slice(from).trim()) continue
+				// Providers finish a tool call's input before they start another block, so a call that
+				// another block interrupts is complete.
 				const closed = closeOpen()
 				if (closed) yield closed
-				open = { index: event.contentIndex, action: {} as AgentAction, startTime: lastActionEnd }
+				open = { index, action: {} as AgentAction, startTime: lastActionEnd, from }
 			}
-			// The partial message holds each block's content so far, with tool input parsed.
-			const block =
-				event.type === 'toolcall_end' ? event.toolCall : event.partial.content[event.contentIndex]
 			if (block.type === 'toolCall') {
 				open.call = block
 				open.action = { ...block.arguments, _type: block.name } as AgentAction
 			} else {
 				open.action = {
 					_type: block.type === 'text' ? 'message' : 'think',
-					text: block.type === 'text' ? block.text : block.thinking,
+					text: (block.type === 'text' ? block.text : block.thinking).slice(open.from),
 				} as AgentAction
 			}
 
@@ -187,11 +203,9 @@ export class AgentService {
 				if (closed) yield closed
 				continue
 			}
-			const streams =
-				block.type === 'toolCall'
-					? !!schemas[block.name]
-					: !!(open.action as { text?: string }).text?.trim()
-			if (streams) yield { ...open.action, complete: false, time: Date.now() - open.startTime }
+			if (block.type !== 'toolCall' || schemas[block.name]) {
+				yield { ...open.action, complete: false, time: Date.now() - open.startTime }
+			}
 		}
 
 		const closed = closeOpen()
@@ -199,11 +213,7 @@ export class AgentService {
 
 		// A user's prompt must get an answer. On a follow-up step, an empty reply means the work is done.
 		if (actionCount === 0 && prompt.messages?.requestSource !== 'self') {
-			throw new Error(
-				final?.rawStopReason?.match(/content.?filter|refusal|safety/i)
-					? "The model's safety filter declined this request."
-					: 'The model replied without any actions.'
-			)
+			throw new Error('The model replied without any actions.')
 		}
 	}
 }
