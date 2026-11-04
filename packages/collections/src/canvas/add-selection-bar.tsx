@@ -14,7 +14,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
 import { MenuItem } from '../ui/menu-items'
-import type { GroupCollections } from './collection-groups'
+import type { CollectionGrouping } from './collection-groups'
 import type { ReadOnlyOptions } from './collections-panel-header'
 import { type AddToCollectionOrder, useAddTargets } from './use-add-targets'
 import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
@@ -90,7 +90,7 @@ export function AddSelectionMenuBar({
 }: {
 	source: CollectionSource
 	order?: AddToCollectionOrder
-	groupCollections?: GroupCollections
+	groupCollections?: CollectionGrouping
 	saving?: SaveSelectionOptions
 	readOnly?: ReadOnlyOptions
 }) {

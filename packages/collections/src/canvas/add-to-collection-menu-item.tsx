@@ -7,7 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { GroupCollections } from './collection-groups'
+import type { CollectionGrouping } from './collection-groups'
 import { type AddToCollectionOrder, useAddTargets } from './use-add-targets'
 import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
@@ -24,8 +24,8 @@ export interface AddToCollectionMenuItemProps {
 	source: CollectionSource
 	/** Defaults to `'source'`. */
 	order?: AddToCollectionOrder
-	/** Groups the collections, each group headed by its name, e.g. by scope. */
-	groupCollections?: GroupCollections
+	/** Groups the collections, each group headed by its name, e.g. by owner. */
+	groupCollections?: CollectionGrouping
 	/** What happens around a save: naming, confirmation and undo. */
 	saving?: SaveSelectionOptions
 }

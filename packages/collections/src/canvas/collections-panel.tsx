@@ -17,7 +17,11 @@ import { CollectionPicker } from '../ui/collection-picker'
 import { CollectionTabs } from '../ui/collection-tabs'
 import type { ItemGridAppearance } from '../ui/item-grid'
 import { AddSelectionBar, AddSelectionMenuBar, type AddControl } from './add-selection-bar'
-import { groupCollectionList, type GroupCollections } from './collection-groups'
+import {
+	type CollectionGrouping,
+	groupCollectionList,
+	useCollectionGrouping,
+} from './collection-groups'
 import { CollectionItems } from './collection-items'
 import { CollectionPreviewRow } from './collection-preview-row'
 import {
@@ -84,10 +88,11 @@ export interface CollectionsPanelProps {
 	 */
 	itemOrderings?: TLCollectionItemOrdering[]
 	/**
-	 * Groups collections under headings, e.g. by scope ("Personal", a workspace's name). The list
-	 * and sections show a heading per group; the picker names each collection's group.
+	 * Groups collections under headings: `'owner'` by who owns them, or a function naming each
+	 * collection's group. The list and sections show a heading per group; the picker names each
+	 * collection's group.
 	 */
-	groupCollections?: GroupCollections
+	groupCollections?: CollectionGrouping
 	/** How item tiles are drawn: their style, columns, label and fit. */
 	tileAppearance?: ItemGridAppearance
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
@@ -164,6 +169,7 @@ export function CollectionsPanel({
 	const { addToast } = useToasts()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const collections = useValue('collections', () => source.getCollections(), [source])
+	const grouping = useCollectionGrouping(source, groupCollections)
 	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
 	// With a picker or tabs, a stale id (the collection was deleted) falls back to the first
 	// collection rather than an empty panel. With the list, no open collection shows the list.
@@ -230,13 +236,13 @@ export function CollectionsPanel({
 	const collectionOptions = collections.map((collection) => ({
 		id: collection.id,
 		name: collection.name,
-		detail: groupCollections?.(collection),
+		detail: grouping?.groupOf(collection),
 	}))
 	// With one collection showing, the footer's bar adds to it; with several, it opens a menu.
 	const showsOneCollection =
 		current !== undefined && navigation !== 'sections' && !searchingEverywhere
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
-	const groups = groupCollectionList(collections, groupCollections)
+	const groups = groupCollectionList(collections, grouping)
 	const groupHeading = (label?: string) =>
 		label && <h3 className="tlui-collections-group__heading">{label}</h3>
 
@@ -422,7 +428,7 @@ export function CollectionsPanel({
 							? () => activeCollectionId.set(editor, null)
 							: undefined
 					}
-					groupCollections={groupCollections}
+					groupCollections={grouping?.groupOf}
 					sort={sort}
 					title={header === 'title'}
 					onClose={header === 'title' ? () => collectionsPanelOpen.set(editor, false) : undefined}
