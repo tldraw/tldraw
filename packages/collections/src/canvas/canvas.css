@@ -171,7 +171,7 @@
 	display: flex;
 	align-items: center;
 	width: 200px;
-	min-height: 40px;
+	min-height: 36px;
 	padding: 0 10px;
 	font-size: 12px;
 	color: var(--tl-color-text-1);
@@ -185,7 +185,7 @@
 }
 
 .tlui-collections-menu__heading .tlui-input__wrapper {
-	height: 40px;
+	height: 36px;
 }
 
 .tlui-collections-menu__heading:has(.tlui-collections-menu__rename) {
@@ -196,7 +196,7 @@
 .tlui-collections-menu__heading:has(.tlui-collections-menu__rename)::before {
 	content: '';
 	position: absolute;
-	inset: 4px;
+	inset: 2px;
 	border-radius: var(--tl-radius-2);
 	border: 1px solid var(--tl-color-primary);
 	pointer-events: none;
@@ -212,7 +212,7 @@
 	display: flex;
 	align-items: center;
 	width: 100%;
-	min-height: 40px;
+	min-height: 36px;
 	padding: 0 10px;
 	border: none;
 	background: transparent;
@@ -234,6 +234,8 @@
 }
 
 .tlui-collections-menu__submenu-trigger > .tlui-menu__submenu__trigger {
+	height: 36px;
+	min-height: 36px;
 	margin: 0;
 	padding: 0 4px 0 10px;
 	color: var(--tl-color-text-1);
@@ -244,6 +246,8 @@
 }
 
 .tlui-collections-menu__submenu > .tlui-button__checkbox {
+	height: 36px;
+	min-height: 36px;
 	margin: 0;
 	padding: 0 10px;
 }
