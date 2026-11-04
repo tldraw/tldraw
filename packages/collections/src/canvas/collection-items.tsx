@@ -4,7 +4,9 @@ import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
+import type { ReadOnlyOptions } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { AddFirstItem, type EmptyCollection } from './empty-collection'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
 import { itemMatches } from './item-search'
 import {
@@ -13,6 +15,7 @@ import {
 	highlightedItemId,
 	renamingItemId,
 } from './state'
+import type { SaveSelectionOptions } from './use-save-selection'
 
 const messages = defineMessages({
 	noMatches: { id: 'collections.search.no-matches', defaultMessage: 'No items match “{query}”.' },
@@ -60,6 +63,12 @@ export interface CollectionItemsProps {
 	appearance?: ItemGridAppearance
 	/** Shows only items whose name contains this, ignoring case. */
 	query?: string
+	/** What shows while the collection has no items. Defaults to `'message'`. */
+	emptyCollection?: EmptyCollection
+	/** What happens around a save from the empty collection's button. */
+	saving?: SaveSelectionOptions
+	/** With `addButton: 'hide'`, a collection the user can't add to shows the message instead. */
+	readOnly?: ReadOnlyOptions
 }
 
 /** One collection's items as a grid, with each item's menu: rename, move and delete. */
@@ -71,6 +80,9 @@ export function CollectionItems({
 	reversed,
 	appearance,
 	query = '',
+	emptyCollection = 'message',
+	saving,
+	readOnly = {},
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -106,6 +118,10 @@ export function CollectionItems({
 		return () => clearTimeout(timeout)
 	}, [editor, highlightedId])
 	const canRename = useValue('can rename items', () => source.can('renameItem', collectionId), [
+		source,
+		collectionId,
+	])
+	const canAdd = useValue('can add items', () => source.can('addItem', collectionId), [
 		source,
 		collectionId,
 	])
@@ -187,6 +203,18 @@ export function CollectionItems({
 		},
 		[items, source, showChangeError, msg]
 	)
+
+	const offersAdd = emptyCollection === 'add' && (canAdd || readOnly.addButton !== 'hide')
+	if (items.length === 0 && query.trim() === '' && offersAdd) {
+		return (
+			<AddFirstItem
+				source={source}
+				collectionId={collectionId}
+				appearance={appearance}
+				saving={saving}
+			/>
+		)
+	}
 
 	return (
 		<ItemGrid

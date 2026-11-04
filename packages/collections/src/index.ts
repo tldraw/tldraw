@@ -18,6 +18,7 @@ export {
 	type CollectionMenuSort,
 } from './ui/collection-menu'
 export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
+export { CollectionTabs, type CollectionTabsProps } from './ui/collection-tabs'
 export {
 	CollectionList,
 	type CollectionListItem,
@@ -70,5 +71,7 @@ export {
 export type { GroupCollections } from './canvas/collection-groups'
 export type { SaveSelectionOptions } from './canvas/use-save-selection'
 export type { FirstUse } from './canvas/no-collections'
-export type { ReadOnlyOptions } from './canvas/collections-panel-header'
+export type { PanelHeader, ReadOnlyOptions } from './canvas/collections-panel-header'
+export type { AddControl } from './canvas/add-selection-bar'
+export type { EmptyCollection } from './canvas/empty-collection'
 export type { ItemSearch } from './canvas/item-search'

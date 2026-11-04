@@ -27,6 +27,7 @@ const messages = defineMessages({
 	collapse: { id: 'collections.collapse', defaultMessage: 'Hide items' },
 	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	close: { id: 'collections.close', defaultMessage: 'Close' },
 	readOnly: { id: 'collections.read-only', defaultMessage: "You can't add to this collection" },
 	deleteTitle: {
 		id: 'collections.delete-collection-dialog.title',
@@ -69,7 +70,21 @@ export interface CollectionsPanelHeaderProps {
 	saving?: SaveSelectionOptions
 	/** How the header shows a collection the user can't add to. */
 	readOnly?: ReadOnlyOptions
+	/** Set to name the panel ("Collections") where the header would otherwise hold the picker. */
+	title?: boolean
+	/** Set to show a close button at the end of the header. */
+	onClose?(): void
+	/** Whether the header has the "+" that adds the selection. Defaults to true. */
+	addButton?: boolean
 }
+
+/**
+ * What the panel's header holds. `'picker'`: the collection picker, with "+" and ⋯. `'title'`: the
+ * panel's name, the ⋯ menu and a close button; the navigation chooses the collection, and with the
+ * picker navigation, the picker sits under the header.
+ * @public
+ */
+export type PanelHeader = 'picker' | 'title'
 
 /**
  * How the panel shows a collection the user can't add to. Every field is optional; the defaults
@@ -97,6 +112,9 @@ export function CollectionsPanelHeader({
 	groupCollections,
 	saving,
 	readOnly = {},
+	title = false,
+	onClose,
+	addButton = true,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -176,6 +194,17 @@ export function CollectionsPanelHeader({
 		/>
 	)
 
+	const closeButton = onClose && (
+		<TldrawUiButton
+			type="icon"
+			tooltip={msg(messages.close)}
+			title={msg(messages.close)}
+			onClick={onClose}
+		>
+			<TldrawUiButtonIcon icon="cross-2" small />
+		</TldrawUiButton>
+	)
+
 	const nameControl = (collection: TLCollection) => {
 		if (renaming) {
 			return (
@@ -195,6 +224,9 @@ export function CollectionsPanelHeader({
 				</span>
 			)
 		}
+		if (title) {
+			return <span className="tlui-collections-panel__title">{msg(messages.title)}</span>
+		}
 		return (
 			<CollectionPicker
 				collections={collections.map((c) => ({
@@ -213,7 +245,10 @@ export function CollectionsPanelHeader({
 		return (
 			<header className="tlui-collections-panel__header">
 				<span className="tlui-collections-panel__title">{msg(messages.title)}</span>
-				{menu}
+				<div className="tlui-collections-panel__header-actions">
+					{menu}
+					{closeButton}
+				</div>
 			</header>
 		)
 	}
@@ -254,7 +289,7 @@ export function CollectionsPanelHeader({
 						small
 					/>
 				)}
-				{(can.mayAdd || readOnly.addButton !== 'hide') && (
+				{addButton && (can.mayAdd || readOnly.addButton !== 'hide') && (
 					<TldrawUiButton
 						type="icon"
 						disabled={!can.add}
@@ -268,6 +303,7 @@ export function CollectionsPanelHeader({
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the input straight away. */}
 				{!renaming && menu}
+				{closeButton}
 			</div>
 		</header>
 	)
