@@ -227,6 +227,7 @@ interface PlaygroundSettings {
 	firstUse: 'message' | 'hint' | 'create'
 	readOnlyAdd: 'disable' | 'hide'
 	readOnlyMarker: 'none' | 'lock'
+	search: 'none' | 'collection' | 'everywhere'
 	data: keyof typeof SOURCES
 }
 
@@ -251,6 +252,7 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	firstUse: 'message',
 	readOnlyAdd: 'disable',
 	readOnlyMarker: 'none',
+	search: 'none',
 	data: 'samples',
 })
 
@@ -345,6 +347,21 @@ const SURFACES: Surface[] = [
 				options: [
 					{ value: 'no', label: 'Place as usual' },
 					{ value: 'yes', label: 'Place inside it' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Search',
+		hint: "Type part of an item's name. Unnamed items never match.",
+		choices: [
+			{
+				key: 'search',
+				label: 'Search',
+				options: [
+					{ value: 'none', label: 'None' },
+					{ value: 'collection', label: 'Within the collection showing' },
+					{ value: 'everywhere', label: 'Across all collections' },
 				],
 			},
 		],
@@ -694,6 +711,7 @@ function PlaygroundPanel() {
 		[]
 	)
 	const firstUse = useValue('first use', () => settings.get().firstUse, [])
+	const search = useValue('search', () => settings.get().search, [])
 	const readOnly = useValue(
 		'read only',
 		() => {
@@ -729,6 +747,7 @@ function PlaygroundPanel() {
 			placement={placement}
 			firstUse={firstUse}
 			readOnly={readOnly}
+			search={search}
 		/>
 	)
 }

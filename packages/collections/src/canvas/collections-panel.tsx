@@ -1,7 +1,8 @@
-import { Fragment, useCallback } from 'react'
+import { Fragment, useCallback, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
+	TldrawUiInput,
 	PORTRAIT_BREAKPOINT,
 	useBreakpoint,
 	useEditor,
@@ -23,6 +24,7 @@ import {
 	setItemOrderChoice,
 	type TLCollectionItemOrdering,
 } from './item-order'
+import { itemMatches, type ItemSearch } from './item-search'
 import { NoCollections, type FirstUse } from './no-collections'
 import { placeCollectionItem, type PlaceItemOptions } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
@@ -32,6 +34,12 @@ import type { SaveSelectionOptions } from './use-save-selection'
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
 	empty: { id: 'collections.empty', defaultMessage: 'No collections yet.' },
+	searchCollection: { id: 'collections.search.collection', defaultMessage: 'Search by name' },
+	searchEverywhere: {
+		id: 'collections.search.everywhere',
+		defaultMessage: 'Search all collections',
+	},
+	noMatches: { id: 'collections.search.no-matches', defaultMessage: 'No items match “{query}”.' },
 	itemCount: {
 		id: 'collections.item-count',
 		defaultMessage: '{count, plural, one {# item} other {# items}}',
@@ -89,6 +97,8 @@ export interface CollectionsPanelProps {
 	firstUse?: FirstUse
 	/** How the panel shows a collection the user can't add to. */
 	readOnly?: ReadOnlyOptions
+	/** Whether the panel has a search field, and where it looks. Search matches item names. */
+	search?: ItemSearch
 }
 
 /**
@@ -110,6 +120,7 @@ export function CollectionsPanel({
 	placement,
 	firstUse = 'message',
 	readOnly,
+	search = 'none',
 }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -122,6 +133,22 @@ export function CollectionsPanel({
 	const current =
 		collections.find((collection) => collection.id === activeId) ??
 		(navigation === 'picker' ? collections[0] : undefined)
+	const [query, setQuery] = useState('')
+	const searchingEverywhere = search === 'everywhere' && query.trim() !== ''
+	const matchingCollections = useValue(
+		'collections with matches',
+		() =>
+			searchingEverywhere
+				? collections.filter((c) => source.getItems(c.id).some((item) => itemMatches(item, query)))
+				: [],
+		[source, collections, query, searchingEverywhere]
+	)
+	// 'collection' search filters item grids, so it needs one showing; 'everywhere' works from any view.
+	const showSearch =
+		search !== 'none' &&
+		collections.length > 0 &&
+		(search === 'everywhere' || navigation === 'sections' || current !== undefined)
+	const filter = search === 'collection' ? query : ''
 	const itemCounts = useValue(
 		'collection item counts',
 		() => new Map(collections.map((c) => [c.id, source.getItems(c.id).length])),
@@ -170,6 +197,29 @@ export function CollectionsPanel({
 	if (!open) return null
 
 	const body = () => {
+		if (searchingEverywhere) {
+			if (matchingCollections.length === 0) {
+				return <p className="tlui-collections-panel__empty">{msg(messages.noMatches, { query })}</p>
+			}
+			return (
+				<div className="tlui-collections-sections">
+					{matchingCollections.map((collection) => (
+						<section key={collection.id} className="tlui-collections-section">
+							<h3 className="tlui-collections-group__heading">{collection.name}</h3>
+							<CollectionItems
+								source={source}
+								collectionId={collection.id}
+								getItemProps={getItemProps}
+								ordering={ordering}
+								reversed={orderChoice.reversed}
+								appearance={tileAppearance}
+								query={query}
+							/>
+						</section>
+					))}
+				</div>
+			)
+		}
 		if (navigation === 'sections') {
 			if (collections.length === 0) {
 				return <NoCollections source={source} firstUse={firstUse} />
@@ -208,6 +258,7 @@ export function CollectionsPanel({
 												ordering={ordering}
 												reversed={orderChoice.reversed}
 												appearance={tileAppearance}
+												query={filter}
 											/>
 										)}
 									</section>
@@ -227,6 +278,7 @@ export function CollectionsPanel({
 					ordering={ordering}
 					reversed={orderChoice.reversed}
 					appearance={tileAppearance}
+					query={filter}
 				/>
 			)
 		}
@@ -308,6 +360,22 @@ export function CollectionsPanel({
 					groupCollections={groupCollections}
 					sort={sort}
 				/>
+				{showSearch && (
+					<div className="tlui-collections-search">
+						<TldrawUiInput
+							className="tlui-collections-search__input"
+							value={query}
+							onValueChange={setQuery}
+							onCancel={() => setQuery('')}
+							placeholder={msg(
+								search === 'everywhere' ? messages.searchEverywhere : messages.searchCollection
+							)}
+							aria-label={msg(
+								search === 'everywhere' ? messages.searchEverywhere : messages.searchCollection
+							)}
+						/>
+					</div>
+				)}
 				{body()}
 			</section>
 		</EditorPortal>
