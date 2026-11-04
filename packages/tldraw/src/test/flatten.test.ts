@@ -8,6 +8,7 @@ import {
 	TLShapePartial,
 	Vec,
 	createShapeId,
+	toRichText,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { flattenShapesToImages, unflattenImages } from '../lib/ui/hooks/useFlatten'
@@ -155,6 +156,29 @@ describe('unflattenImages', () => {
 	async function flattenBoxes() {
 		editor.createShapes([box(a, 100, 100), box(b, 200, 150, 50, 80)])
 		const [imageId] = (await flattenShapesToImages(editor, [a, b]))!
+		return imageId
+	}
+
+	function mockFlattenSource(source: unknown) {
+		vi.spyOn(window, 'fetch').mockResolvedValue(
+			new Response(
+				`<svg xmlns="http://www.w3.org/2000/svg"><metadata id="tldraw-flatten-source">${JSON.stringify(source)}</metadata></svg>`
+			)
+		)
+	}
+
+	/** The source flatten saved for one box, with its content rewritten by `edit`. */
+	async function flattenBoxWithEditedSource(edit: (content: any) => void) {
+		editor.createShapes([box(a, 100, 100)])
+		const content = structuredClone(editor.getContentFromCurrentPage([a])!)
+		const [imageId] = (await flattenShapesToImages(editor, [a]))!
+		edit(content)
+		mockFlattenSource({
+			type: 'tldraw-flatten-source',
+			version: 1,
+			bounds: editor.getShapePageBounds(imageId)!.toJson(),
+			content,
+		})
 		return imageId
 	}
 
@@ -392,6 +416,52 @@ describe('unflattenImages', () => {
 
 		expect(result.type).toBe('success')
 		expect(getRestoredBoxes()).toEqual(before)
+	})
+
+	it('keeps the saved shapes out of the store, so the room does not grow with them', async () => {
+		function getStoreSize() {
+			return JSON.stringify(editor.store.getStoreSnapshot().store).length
+		}
+		const emptySize = getStoreSize()
+		const ids = Array.from({ length: 200 }, (_, i) => createShapeId(`box-${i}`))
+		editor.createShapes(ids.map((id, i) => box(id, (i % 20) * 60, Math.floor(i / 20) * 60)))
+
+		const [imageId] = (await flattenShapesToImages(editor, ids))!
+
+		const asset = editor.getAsset(editor.getShape<TLImageShape>(imageId)!.props.assetId!)!
+		const svg = await (await fetch(asset.props.src!)).text()
+		expect(svg.length).toBeGreaterThan(50_000)
+		expect(getStoreSize() - emptySize).toBeLessThan(2_000)
+	})
+
+	it('migrates saved shapes from an older schema', async () => {
+		const imageId = await flattenBoxWithEditedSource((content) => {
+			// geo shapes before AddRichText (version 10) had plain `text`
+			content.schema.sequences['com.tldraw.shape.geo'] = 9
+			const props = content.shapes[0].props
+			delete props.richText
+			delete props.flipX
+			delete props.flipY
+			props.text = 'hello'
+		})
+
+		const result = await unflattenImages(editor, [imageId])
+
+		if (result.type !== 'success') throw Error(`unflatten failed: ${result.reason}`)
+		const [restored] = result.shapeIds
+		expect(editor.getShape<TLGeoShape>(restored)!.props.richText).toEqual(toRichText('hello'))
+	})
+
+	it('reports saved shapes from a newer schema as unreadable and keeps the image', async () => {
+		const imageId = await flattenBoxWithEditedSource((content) => {
+			content.schema.sequences['com.tldraw.shape.geo'] = 999
+		})
+
+		const result = await unflattenImages(editor, [imageId])
+
+		expect(result).toEqual({ type: 'error', reason: 'unreadable' })
+		expect(editor.getShape(imageId)).toBeDefined()
+		expect(getRestoredBoxes()).toEqual([])
 	})
 
 	it('can be undone in one step', async () => {
