@@ -152,7 +152,7 @@ export interface RoomSnapshot {
  * force a comment's `authorId` to the signed-in user so nobody can post in someone else's name.
  *
  * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
- * (see {@link TLRecordAuthorizers}), and only for client pushes — never for server-initiated writes.
+ * (see {@link TLBeforeWriteHooks}), and only for client pushes — never for server-initiated writes.
  *
  * `prev` and `next` are always at the **server's** schema version: client writes are migrated
  * before the authorizer runs, so guarding or stamping a field never requires knowing what older
@@ -177,7 +177,7 @@ export interface RoomSnapshot {
  *
  * @public
  */
-export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
+export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (
 	args: {
 		/** The session performing the write: its host-provided `meta` (e.g. the authenticated user
 		 *  id) and the canvas-lane `isReadonly` state, for hosts whose object-lane policy follows
@@ -199,7 +199,7 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 ) => Rec | null
 
 /**
- * A map from record `typeName` to a {@link TLRecordAuthorizer} for that record type. Only listed
+ * A map from record `typeName` to a {@link TLBeforeWriteHook} for that record type. Only listed
  * types are authorized; every other record writes through untouched, so this stays off the hot path
  * for the vast majority of writes (shape drags etc.).
  *
@@ -212,9 +212,27 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
  *
  * @public
  */
-export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
-	[K in R['typeName']]?: TLRecordAuthorizer<Extract<R, { typeName: K }>, SessionMeta>
+export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
+	[K in R['typeName']]?: TLBeforeWriteHook<Extract<R, { typeName: K }>, SessionMeta>
 }
+
+/**
+ * @deprecated Use {@link TLBeforeWriteHook}.
+ * @public
+ */
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = TLBeforeWriteHook<
+	Rec,
+	SessionMeta
+>
+
+/**
+ * @deprecated Use {@link TLBeforeWriteHooks}.
+ * @public
+ */
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = TLBeforeWriteHooks<
+	R,
+	SessionMeta
+>
 
 /**
  * A collaborative workspace that manages multiple client sessions and synchronizes
@@ -360,7 +378,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	public readonly schema: StoreSchema<R, any>
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
-	private readonly beforeWrite?: TLRecordAuthorizers<R, SessionMeta>
+	private readonly beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
 
 	/**
@@ -369,8 +387,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * statically correlate a runtime `typeName` with its record type, so it lives in the library
 	 * rather than in every consumer.
 	 */
-	private authorizerFor(typeName: R['typeName']): TLRecordAuthorizer<R, SessionMeta> | undefined {
-		const authorize = this.beforeWrite?.[typeName] as TLRecordAuthorizer<R, SessionMeta> | undefined
+	private authorizerFor(typeName: R['typeName']): TLBeforeWriteHook<R, SessionMeta> | undefined {
+		const authorize = this.beforeWrite?.[typeName] as TLBeforeWriteHook<R, SessionMeta> | undefined
 		if (!authorize) return undefined
 		// Fail closed: an authorizer that throws rejects the write (and is logged) rather than
 		// aborting the whole push. Authorizers are security-sensitive, so a bug must never let a
@@ -404,9 +422,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		objectTypes?: readonly string[]
 		/**
 		 * Per-type authorizers for client record writes (create, update, delete): veto or, on
-		 * create, rewrite. See {@link TLRecordAuthorizers}.
+		 * create, rewrite. See {@link TLBeforeWriteHooks}.
 		 */
-		beforeWrite?: TLRecordAuthorizers<R, SessionMeta>
+		beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {

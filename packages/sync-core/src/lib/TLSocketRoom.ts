@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLBeforeWriteHooks, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -148,13 +148,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Per-type hooks for client record writes (create, update, delete): veto writes the session
 	 * isn't allowed to make, or rewrite the record on create — e.g. force a comment's `authorId`
 	 * to the signed-in user. Each hook can read other records with `get`, for rules that depend on
-	 * a record's parent. See {@link TLRecordAuthorizers}.
+	 * a record's parent. See {@link TLBeforeWriteHooks}.
 	 */
-	beforeWrite?: TLRecordAuthorizers<R, SessionMeta>
+	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 	/**
 	 * @deprecated Use `beforeWrite`. Setting both throws.
 	 */
-	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	authorizeRecord?: TLBeforeWriteHooks<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.

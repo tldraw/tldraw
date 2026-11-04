@@ -1,5 +1,5 @@
 import type { UnknownRecord } from '@tldraw/store'
-import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
+import type { TLBeforeWriteHook, TLBeforeWriteHooks } from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
 	type TLComment,
@@ -140,7 +140,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  */
 export function createCommentAuthorizers<SessionMeta>(
 	opts: CommentAuthorizerOptions<SessionMeta>
-): TLRecordAuthorizers<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
+): TLBeforeWriteHooks<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
 	const {
 		getUserId,
 		canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly,
@@ -151,7 +151,7 @@ export function createCommentAuthorizers<SessionMeta>(
 	/** A rule is an authorizer that receives the session's user id, resolved for it exactly once. */
 	type Rule<Rec extends UnknownRecord> = (
 		userId: string | null,
-		args: Parameters<TLRecordAuthorizer<Rec, SessionMeta>>[0]
+		args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]
 	) => Rec | null
 
 	/**
@@ -160,7 +160,7 @@ export function createCommentAuthorizers<SessionMeta>(
 	 */
 	function withUserId<Rec extends UnknownRecord>(
 		rule: Rule<Rec>
-	): TLRecordAuthorizer<Rec, SessionMeta> {
+	): TLBeforeWriteHook<Rec, SessionMeta> {
 		return (args) => {
 			if (!canComment(args.session)) return null
 			return rule(getUserId(args.session), args)

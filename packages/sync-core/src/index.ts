@@ -70,7 +70,11 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
+	type TLBeforeWriteHook,
+	type TLBeforeWriteHooks,
+	// oxlint-disable-next-line typescript/no-deprecated
 	type TLRecordAuthorizer,
+	// oxlint-disable-next-line typescript/no-deprecated
 	type TLRecordAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'

@@ -377,6 +377,35 @@ export interface SyncSqliteDatabase {
     };
 }
 
+// @public
+export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
+    get(id: string): undefined | UnknownRecord;
+    session: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+    };
+} & ({
+    next: null;
+    prev: Rec;
+    type: 'delete';
+} | {
+    next: Rec;
+    prev: null;
+    type: 'create';
+} | {
+    next: Rec;
+    prev: Rec;
+    type: 'update';
+})) => null | Rec;
+
+// @public
+export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLBeforeWriteHook<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
+
 // @internal
 export interface TLConnectRequest {
     // (undocumented)
@@ -446,34 +475,11 @@ export interface TLPushRequest<R extends UnknownRecord> {
     type: 'push';
 }
 
-// @public
-export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
-    get(id: string): undefined | UnknownRecord;
-    session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    };
-} & ({
-    next: null;
-    prev: Rec;
-    type: 'delete';
-} | {
-    next: Rec;
-    prev: null;
-    type: 'create';
-} | {
-    next: Rec;
-    prev: Rec;
-    type: 'update';
-})) => null | Rec;
+// @public @deprecated (undocumented)
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = TLBeforeWriteHook<Rec, SessionMeta>;
 
-// @public
-export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
-    [K in R['typeName']]?: TLRecordAuthorizer<Extract<R, {
-        typeName: K;
-    }>, SessionMeta>;
-};
+// @public @deprecated (undocumented)
+export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = TLBeforeWriteHooks<R, SessionMeta>;
 
 // @public
 export class TLRemoteSyncError extends Error {
@@ -549,8 +555,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     // @deprecated (undocumented)
-    authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
-    beforeWrite?: TLRecordAuthorizers<R, SessionMeta>;
+    authorizeRecord?: TLBeforeWriteHooks<R, SessionMeta>;
+    beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -723,7 +729,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
         }): void;
-        beforeWrite?: TLRecordAuthorizers<R, SessionMeta>;
+        beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
         objectTypes?: readonly string[];
         clientTimeout?: number;
         log?: TLSyncLog;
