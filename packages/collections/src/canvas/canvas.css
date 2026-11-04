@@ -130,7 +130,7 @@
 	justify-content: center;
 	aspect-ratio: 1;
 	border-radius: var(--tl-radius-1);
-	background: var(--tl-color-muted-1);
+	background: var(--tl-color-background);
 	overflow: hidden;
 }
 
