@@ -1,12 +1,4 @@
 import { ButtonHTMLAttributes, ReactNode } from 'react'
-import { RenameInput } from './rename-input'
-
-/** @public */
-export interface ItemTileRenaming {
-	defaultValue: string
-	onComplete(name: string): void
-	onCancel(): void
-}
 
 /** @public */
 export interface ItemTileProps {
@@ -19,8 +11,6 @@ export interface ItemTileProps {
 	buttonProps?: ButtonHTMLAttributes<HTMLButtonElement>
 	/** Shown over the tile's corner on hover, e.g. an {@link ItemMenu}. */
 	menu?: ReactNode
-	/** Set while the item is being renamed: an input shows under the thumbnail. */
-	renaming?: ItemTileRenaming
 }
 
 /** @public @react */
@@ -30,39 +20,20 @@ export function ItemTile({
 	thumbnailUrl,
 	buttonProps,
 	menu,
-	renaming,
 }: ItemTileProps) {
-	const thumbnail = (
-		<span className="tlui-collections-tile__thumbnail">
-			{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
-		</span>
-	)
-
 	return (
 		<div className="tlui-collections-tile">
-			{renaming ? (
-				<>
-					<button
-						type="button"
-						className="tlui-collections-tile__button"
-						aria-label={accessibleLabel}
-						{...buttonProps}
-					>
-						{thumbnail}
-					</button>
-					<RenameInput className="tlui-collections-tile__input" {...renaming} />
-				</>
-			) : (
-				<button
-					type="button"
-					className="tlui-collections-tile__button"
-					aria-label={accessibleLabel}
-					title={name}
-					{...buttonProps}
-				>
-					{thumbnail}
-				</button>
-			)}
+			<button
+				type="button"
+				className="tlui-collections-tile__button"
+				aria-label={accessibleLabel}
+				title={name}
+				{...buttonProps}
+			>
+				<span className="tlui-collections-tile__thumbnail">
+					{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
+				</span>
+			</button>
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}
 		</div>
 	)
