@@ -28,3 +28,9 @@ export const renamingCollectionId = new EditorAtom<TLCollectionId | null>(
 	'renamingCollectionId',
 	() => null
 )
+
+/** The collections folded shut in the panel's sections, kept while the panel is closed. */
+export const collapsedCollectionIds = new EditorAtom<TLCollectionId[]>(
+	'collapsedCollectionIds',
+	() => []
+)

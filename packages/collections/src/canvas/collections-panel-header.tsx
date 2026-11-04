@@ -20,6 +20,9 @@ import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
+	back: { id: 'collections.back', defaultMessage: 'All collections' },
+	expand: { id: 'collections.expand', defaultMessage: 'Show items' },
+	collapse: { id: 'collections.collapse', defaultMessage: 'Hide items' },
 	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
 	deleteTitle: {
@@ -50,6 +53,13 @@ export interface CollectionsPanelHeaderProps {
 	itemCount: number
 	/** The menu's "Sort items by" submenu, when items can be ordered more than one way. */
 	sort?: CollectionMenuSort
+	/** Set when collections are listed: the header shows a back button and the name, not a picker. */
+	onBack?(): void
+	/** Set for a section of the panel: the header shows a fold toggle and the name, not a picker. */
+	onToggleCollapsed?(): void
+	collapsed?: boolean
+	/** Shown beside the name, e.g. how many items the collection holds. */
+	detail?: string
 }
 
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
@@ -59,6 +69,10 @@ export function CollectionsPanelHeader({
 	current,
 	itemCount,
 	sort,
+	onBack,
+	onToggleCollapsed,
+	collapsed = false,
+	detail,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -137,6 +151,35 @@ export function CollectionsPanelHeader({
 		/>
 	)
 
+	const nameControl = (collection: TLCollection) => {
+		if (renaming) {
+			return (
+				<RenameInput
+					className="tlui-collections-panel__rename"
+					defaultValue={collection.name}
+					onComplete={renameCollection}
+					onCancel={stopRenaming}
+				/>
+			)
+		}
+		if (onBack || onToggleCollapsed) {
+			return (
+				<span className="tlui-collections-panel__title">
+					<span className="tlui-collections-panel__name">{collection.name}</span>
+					{detail && <span className="tlui-collections-panel__detail">{detail}</span>}
+				</span>
+			)
+		}
+		return (
+			<CollectionPicker
+				collections={collections}
+				value={collection.id}
+				onValueChange={(id) => activeCollectionId.set(editor, id)}
+				label={msg(messages.title)}
+			/>
+		)
+	}
+
 	if (!current) {
 		return (
 			<header className="tlui-collections-panel__header">
@@ -148,21 +191,30 @@ export function CollectionsPanelHeader({
 
 	return (
 		<header className="tlui-collections-panel__header">
-			{renaming ? (
-				<RenameInput
-					className="tlui-collections-panel__rename"
-					defaultValue={current.name}
-					onComplete={renameCollection}
-					onCancel={stopRenaming}
-				/>
-			) : (
-				<CollectionPicker
-					collections={collections}
-					value={current.id}
-					onValueChange={(id) => activeCollectionId.set(editor, id)}
-					label={msg(messages.title)}
-				/>
+			{onToggleCollapsed && (
+				<TldrawUiButton
+					type="icon"
+					className="tlui-collections-panel__back"
+					tooltip={msg(collapsed ? messages.expand : messages.collapse)}
+					title={msg(collapsed ? messages.expand : messages.collapse)}
+					aria-expanded={!collapsed}
+					onClick={onToggleCollapsed}
+				>
+					<TldrawUiButtonIcon icon={collapsed ? 'chevron-right' : 'chevron-down'} small />
+				</TldrawUiButton>
 			)}
+			{onBack && (
+				<TldrawUiButton
+					type="icon"
+					className="tlui-collections-panel__back"
+					tooltip={msg(messages.back)}
+					title={msg(messages.back)}
+					onClick={onBack}
+				>
+					<TldrawUiButtonIcon icon="chevron-left" small />
+				</TldrawUiButton>
+			)}
+			{nameControl(current)}
 			<div className="tlui-collections-panel__header-actions">
 				<TldrawUiButton
 					type="icon"
