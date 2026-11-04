@@ -228,6 +228,9 @@ interface PlaygroundSettings {
 	readOnlyAdd: 'disable' | 'hide'
 	readOnlyMarker: 'none' | 'lock'
 	search: 'none' | 'collection' | 'everywhere'
+	header: 'picker' | 'title'
+	addControl: 'header' | 'footer'
+	emptyCollection: 'message' | 'add'
 	data: keyof typeof SOURCES
 }
 
@@ -253,6 +256,9 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	readOnlyAdd: 'disable',
 	readOnlyMarker: 'none',
 	search: 'none',
+	header: 'picker',
+	addControl: 'header',
+	emptyCollection: 'message',
 	data: 'samples',
 })
 
@@ -301,6 +307,46 @@ const SURFACES: Surface[] = [
 					{ value: 'list', label: 'List with counts' },
 					{ value: 'sections', label: 'Sections' },
 					{ value: 'previews', label: 'Rows with previews' },
+					{ value: 'tabs', label: 'Tabs' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Panel chrome',
+		hint: "Select shapes to add them. For an empty collection, make one from the panel's ⋯ menu.",
+		shapes: true,
+		choices: [
+			{
+				key: 'header',
+				label: 'Header',
+				options: [
+					{ value: 'picker', label: 'Collection picker' },
+					{ value: 'title', label: 'Title and close button' },
+				],
+			},
+			{
+				key: 'navigation',
+				label: 'Moving between collections',
+				options: [
+					{ value: 'picker', label: 'Picker' },
+					{ value: 'tabs', label: 'Tabs' },
+				],
+			},
+			{
+				key: 'addControl',
+				label: 'Add the selection from',
+				options: [
+					{ value: 'header', label: 'A "+" in the header' },
+					{ value: 'footer', label: 'A bar along the bottom' },
+				],
+			},
+			{
+				key: 'emptyCollection',
+				label: 'An empty collection',
+				options: [
+					{ value: 'message', label: 'Says so' },
+					{ value: 'add', label: 'Offers to add the selection' },
 				],
 			},
 		],
@@ -712,6 +758,9 @@ function PlaygroundPanel() {
 	)
 	const firstUse = useValue('first use', () => settings.get().firstUse, [])
 	const search = useValue('search', () => settings.get().search, [])
+	const header = useValue('header', () => settings.get().header, [])
+	const addControl = useValue('add control', () => settings.get().addControl, [])
+	const emptyCollection = useValue('empty collection', () => settings.get().emptyCollection, [])
 	const readOnly = useValue(
 		'read only',
 		() => {
@@ -748,6 +797,9 @@ function PlaygroundPanel() {
 			firstUse={firstUse}
 			readOnly={readOnly}
 			search={search}
+			header={header}
+			addControl={addControl}
+			emptyCollection={emptyCollection}
 		/>
 	)
 }
