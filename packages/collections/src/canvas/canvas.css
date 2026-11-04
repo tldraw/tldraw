@@ -593,3 +593,14 @@
 	border-radius: var(--tl-radius-2);
 	background-color: var(--tl-color-muted-2);
 }
+
+.tlui-collections-search {
+	padding: 4px 8px;
+}
+
+.tlui-collections-search__input {
+	width: 100%;
+	padding: 0 var(--tl-space-4);
+	border-radius: var(--tl-radius-2);
+	background-color: var(--tl-color-muted-2);
+}

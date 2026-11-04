@@ -10,6 +10,7 @@ import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
+import { itemMatches } from './item-search'
 import {
 	activeCollectionId,
 	collectionsPanelOpen,
@@ -18,6 +19,7 @@ import {
 } from './state'
 
 const messages = defineMessages({
+	noMatches: { id: 'collections.search.no-matches', defaultMessage: 'No items match “{query}”.' },
 	emptyCollection: {
 		id: 'collections.empty-collection',
 		defaultMessage: 'Nothing saved here yet.',
@@ -60,6 +62,8 @@ export interface CollectionItemsProps {
 	ordering: TLCollectionItemOrdering
 	reversed: boolean
 	appearance?: ItemGridAppearance
+	/** Shows only items whose name contains this, ignoring case. */
+	query?: string
 }
 
 /** One collection's items as a grid, with each item's menu: rename, move and delete. */
@@ -70,6 +74,7 @@ export function CollectionItems({
 	ordering,
 	reversed,
 	appearance,
+	query = '',
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -77,8 +82,13 @@ export function CollectionItems({
 	const { addDialog } = useDialogs()
 	const items = useValue(
 		'collection items',
-		() => sortItems(source.getItems(collectionId), ordering, reversed),
-		[source, collectionId, ordering, reversed]
+		() =>
+			sortItems(
+				source.getItems(collectionId).filter((item) => itemMatches(item, query)),
+				ordering,
+				reversed
+			),
+		[source, collectionId, ordering, reversed, query]
 	)
 	const isDarkMode = useValue('is dark mode', () => editor.getColorMode() === 'dark', [editor])
 	const renamingId = useValue('renaming item', () => renamingItemId.get(editor) ?? undefined, [
@@ -228,7 +238,9 @@ export function CollectionItems({
 				/>
 			)}
 			highlightedId={highlightedId}
-			empty={msg(messages.emptyCollection)}
+			empty={
+				query.trim() === '' ? msg(messages.emptyCollection) : msg(messages.noMatches, { query })
+			}
 			appearance={appearance}
 		/>
 	)
