@@ -5,6 +5,8 @@ import {
 	createDebugValue,
 	createSessionStateSnapshotSignal,
 	debugFlags,
+	DefaultContextMenu,
+	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	defineMessages,
@@ -48,9 +50,12 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
-import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
+import {
+	TlaAddToCollectionMenuItem,
+	TlaCollectionsPanel,
+} from '../TlaCollections/TlaCollectionsPanel'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -73,6 +78,7 @@ const messages = defineMessages({
 	slurpFailed: {
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
+	fileHistory: { defaultMessage: 'File history' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -339,9 +345,18 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} />
-				: undefined,
+			ContextMenu: (props) => (
+				<DefaultContextMenu {...props}>
+					<TlaAddToCollectionMenuItem />
+					<DefaultContextMenuContent />
+				</DefaultContextMenu>
+			),
+			InFrontOfTheCanvas: () => (
+				<>
+					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
+					<TlaCollectionsPanel />
+				</>
+			),
 		}
 	}, [fileId, commentingEnabled])
 
@@ -393,17 +408,17 @@ const DOTCOM_DEBUG_FLAGS = {
 
 function CustomDebugMenu() {
 	const app = useMaybeApp()
-	const user = useTldrawCurrentUser()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const msg = useTranslation()
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
-			{!isReadOnly && app && user?.isTldraw && (
+			{!isReadOnly && app && (
 				<TldrawUiMenuItem
 					id="file-history"
-					label="File history"
+					label={msg(messages.fileHistory)}
 					readonlyOk
 					onSelect={() => {
 						const url = new URL(window.location.href)

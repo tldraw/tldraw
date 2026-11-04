@@ -1,5 +1,6 @@
 import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
+import type { CollectionSource } from '@tldraw/collections'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
@@ -8,6 +9,7 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	Snapshot,
+	TlaApiErrorCode,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
@@ -69,6 +71,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
+import { createCollectionsSource } from '../components/TlaCollections/collectionsSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -205,6 +208,8 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
+	/** Null when the `collections` flag is off for this user. */
+	readonly collections: CollectionSource | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -293,6 +298,13 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		if (flags.collections?.enabled) {
+			const collections = createCollectionsSource()
+			this.collections = collections
+			this.disposables.push(() => collections.dispose())
+		} else {
+			this.collections = null
+		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -646,6 +658,13 @@ export class TldrawApp {
 			// one" isn't a reason to skip it.
 			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
+		copied_invite_link: { defaultMessage: 'Copied invite link' },
+		// toast title
+		accept_invite_error_title: { defaultMessage: 'Error accepting invite' },
+		// toast descriptions
+		accept_invite_unauthorized: { defaultMessage: 'Sign in to accept this invite.' },
+		accept_invite_not_found: { defaultMessage: 'This invite link is invalid or has expired.' },
+		accept_invite_try_again: { defaultMessage: 'Please try again.' },
 	})
 
 	getMessage(id: keyof typeof this.messages) {
@@ -1469,7 +1488,7 @@ export class TldrawApp {
 		}
 		const response = (await res.json()) as CreateFilesResponseBody
 		if (response.error) {
-			throw Error(response.message)
+			throw Error(response.code)
 		}
 		const fileId = response.slugs[0]
 		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
@@ -1505,7 +1524,7 @@ export class TldrawApp {
 		if (showToast) {
 			this.toasts?.addToast({
 				id: 'copied-invite-link',
-				title: 'Copied invite link',
+				title: this.msg(this.messages.copied_invite_link),
 			})
 		}
 
@@ -1523,10 +1542,17 @@ export class TldrawApp {
 		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
 		if (!payload || payload.error || !response.ok) {
+			const code = payload?.error ? payload.code : undefined
+			const errorMessages: Partial<Record<TlaApiErrorCode, TLI18nMessage>> = {
+				unauthorized: this.messages.accept_invite_unauthorized,
+				invite_not_found: this.messages.accept_invite_not_found,
+			}
 			this.toasts?.addToast({
 				severity: 'error',
-				title: 'Error accepting invite',
-				description: payload?.message ?? 'Please try again.',
+				title: this.msg(this.messages.accept_invite_error_title),
+				description: this.msg(
+					(code && errorMessages[code]) ?? this.messages.accept_invite_try_again
+				),
 			})
 			this.navigate(routes.tlaRoot())
 			return
@@ -1540,8 +1566,8 @@ export class TldrawApp {
 			if (attempts++ > 100) {
 				this.toasts?.addToast({
 					severity: 'error',
-					title: 'Error accepting invite',
-					description: 'Please try again.',
+					title: this.msg(this.messages.accept_invite_error_title),
+					description: this.msg(this.messages.accept_invite_try_again),
 				})
 				this.navigate(routes.tlaRoot())
 				return

@@ -85,7 +85,10 @@ export class Slurper {
 	constructor(private opts: SlurperOpts & { slurpPersistenceKey: string }) {}
 
 	async slurp() {
-		if (this.opts.editor.store.query.records('shape').get().length === 0) {
+		if (
+			this.opts.editor.getDocumentSettings().meta.slurpPersistenceKey !==
+			this.opts.slurpPersistenceKey
+		) {
 			// This is a one-time operation.
 			// So we need to wait a tick for react strict mode to finish
 			// doing its nasty business before we start the migration.
@@ -105,10 +108,15 @@ export class Slurper {
 		try {
 			const data = await db.load({ sessionId: TAB_ID })
 			if (abortSignal.aborted) return false
-			// Nothing local to restore on this device (opened elsewhere, storage cleared): loading a
-			// snapshot with no schema throws. Leave the slurp unfinished so the device that does hold
-			// the data still gets to run it.
+			// Another restore may have completed while this one was reading IndexedDB.
+			if (editor.getDocumentSettings().meta.slurpPersistenceKey === slurpPersistenceKey) return true
+			// Other devices and workspace members won't have this browser's local data.
 			if (!data.schema || data.records.length === 0) return false
+			// Recover existing cloud edits alongside local content manually so neither is overwritten.
+			if (editor.store.query.records('shape').get().length > 0) {
+				this.showFailureDialog()
+				return false
+			}
 			// Assets will be served from the local indexedDb while they are being uploaded
 			editor.loadSnapshot({
 				document: {

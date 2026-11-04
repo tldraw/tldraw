@@ -1,5 +1,6 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { getResponseError, StructuredDataDisplay, useTransientMessage } from './shared'
@@ -32,6 +33,90 @@ function UserDataSummary({
 						<span className={styles.fieldValue}>{value}</span>
 					</div>
 				))}
+			</div>
+		</div>
+	)
+}
+
+function ChangeEmail({ user, onChanged }: { user: TlaUser; onChanged(email: string): void }) {
+	const inputRef = useRef<HTMLInputElement>(null)
+	const [isSaving, setIsSaving] = useState(false)
+	const [error, setError] = useState(null as string | null)
+	const [result, setResult] = useState(null as string | null)
+
+	const onSave = useCallback(async () => {
+		const email = inputRef.current?.value?.trim()
+		if (!email) {
+			setError('Please enter the new email')
+			return
+		}
+		if (
+			!window.confirm(
+				`Change the sign-in email of ${user.id} from ${user.email} to ${email}? The old address stops working for email sign-in.`
+			)
+		) {
+			return
+		}
+		setIsSaving(true)
+		setError(null)
+		setResult(null)
+		try {
+			const res = await fetch(
+				`/api/app/admin/user/change_email?${new URLSearchParams({ q: user.id })}`,
+				{
+					method: 'POST',
+					headers: { 'content-type': 'application/json' },
+					body: JSON.stringify({ email }),
+				}
+			)
+			if (!res.ok) {
+				setError(await getResponseError(res))
+				return
+			}
+			const body = (await res.json()) as {
+				email: string
+				removed: string[]
+				keptLinked: string[]
+				problems: string[]
+			}
+			if (body.problems.length) {
+				setError(
+					`The email changed, but some steps failed. Check them by hand or run the change again: ${body.problems.join(' ')}`
+				)
+			}
+			setResult(
+				[
+					`Email is now ${body.email}.`,
+					body.removed.length ? `Removed: ${body.removed.join(', ')}.` : null,
+					body.keptLinked.length
+						? `Kept because a social login uses them: ${body.keptLinked.join(', ')}.`
+						: null,
+				]
+					.filter(Boolean)
+					.join(' ')
+			)
+			onChanged(body.email)
+		} finally {
+			setIsSaving(false)
+		}
+	}, [user, onChanged])
+
+	return (
+		<div className={styles.fileOperation}>
+			<h4 className={styles.subTitle}>Change email</h4>
+			{error && <div className={styles.errorMessage}>{error}</div>}
+			{result && <div className={styles.successMessage}>{result}</div>}
+			<div className={styles.searchContainer}>
+				<input
+					ref={inputRef}
+					type="email"
+					placeholder="New email"
+					className={styles.searchInput}
+					disabled={isSaving}
+				/>
+				<AdminButton onClick={onSave} variant="secondary" disabled={isSaving} isLoading={isSaving}>
+					Change email
+				</AdminButton>
 			</div>
 		</div>
 	)
@@ -166,6 +251,15 @@ export function UsersSection() {
 		await loadDeletedFiles()
 	}, [loadDeletedFiles, setSuccessMessage])
 
+	// /admin/users?q=<email or ID> opens straight to that user, so other admin pages can link here
+	const [searchParams] = useSearchParams()
+	const initialQuery = searchParams.get('q')
+	useEffect(() => {
+		if (!initialQuery || !inputRef.current) return
+		inputRef.current.value = initialQuery
+		loadData()
+	}, [initialQuery, loadData])
+
 	return (
 		<>
 			{/* User Search Section */}
@@ -211,6 +305,14 @@ export function UsersSection() {
 							Copy data
 						</AdminButton>
 					</div>
+					<ChangeEmail
+						user={data.user}
+						onChanged={(email) => {
+							// The search box may hold the old email, which no longer finds the user.
+							if (inputRef.current) inputRef.current.value = email
+							loadData()
+						}}
+					/>
 					<DeletedFilesTable files={deletedFiles} userId={data.user?.id} onUndeleted={loadData} />
 					<StructuredDataDisplay data={data} />
 				</section>

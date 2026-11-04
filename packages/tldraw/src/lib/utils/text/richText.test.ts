@@ -53,6 +53,21 @@ describe('renderHtmlFromRichTextWithExtensions', () => {
 				'<ul dir="auto"><li dir="auto"><p dir="auto"><br /></p></li></ul>'
 		)
 	})
+
+	it('fills an empty heading at every level', () => {
+		// Typing `# ` on an empty line creates one.
+		for (const level of [1, 2, 3, 4, 5, 6]) {
+			expect(render([{ type: 'heading', attrs: { level } }])).toBe(
+				`<h${level} dir="auto"><br /></h${level}>`
+			)
+		}
+	})
+
+	it('leaves headings with content alone', () => {
+		expect(
+			render([{ type: 'heading', attrs: { level: 1 }, content: [{ type: 'text', text: 'hi' }] }])
+		).toBe('<h1 dir="auto">hi</h1>')
+	})
 })
 
 describe('isEmptyRichText', () => {

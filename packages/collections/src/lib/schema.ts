@@ -1,36 +1,93 @@
 import type { TLContent } from '@tldraw/editor'
-import { shapeIdValidator } from '@tldraw/tlschema'
+import {
+	createRecordMigrationSequence,
+	createRecordType,
+	type BaseRecord,
+	type RecordId,
+} from '@tldraw/store'
+import { idValidator, shapeIdValidator } from '@tldraw/tlschema'
+import type { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
+export type TLCollectionId = RecordId<TLCollection>
+
 /** A named list of items. Where it is stored is up to the source that provides it. */
-export interface TLCollection {
-	id: string
+export interface TLCollection extends BaseRecord<'collection', TLCollectionId> {
 	name: string
 	/**
 	 * True for collections users can't change, such as a prefab pack shipped with an app.
-	 * Nothing enforces it yet, so sources can leave it out; absent means false.
+	 * Sources can leave it out; absent means false.
 	 */
 	readOnly?: boolean
+	meta: JsonObject
 }
 
+export type TLCollectionItemId = RecordId<TLCollectionItem>
+
 /**
- * The listing entry for an item. Its content is loaded separately with
- * {@link parseCollectionItemContent}, so showing a collection never loads every item's shapes
- * and assets.
+ * The listing entry for an item. Its content is loaded separately, with
+ * `CollectionSource.getItemContent`, so showing a collection never loads every item's shapes and
+ * assets.
  */
-export interface TLCollectionItem {
-	id: string
-	collectionId: string
+export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollectionItemId> {
+	collectionId: TLCollectionId
 	/**
 	 * Left out when nobody has named the item: adding from the canvas shouldn't force a name.
 	 * The UI decides what to show instead. When present it is never blank.
 	 */
 	name?: string
-	/** `''` until a thumbnail has been rendered for this item's current version. */
-	thumbnailUrl: string
-	/** Increases every time the item's content is replaced. */
+	/** Left out when the item has no thumbnail. When present it is never blank. */
+	thumbnailUrl?: string
+	/** Always 1 for now: items aren't replaced. To change one, delete it and add it again. */
 	version: number
+	meta: JsonObject
 }
+
+export type TLCollectionRecord = TLCollection | TLCollectionItem
+
+const nonEmptyString = T.string.check((value) => {
+	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
+})
+
+export const collectionValidator: T.Validator<TLCollection> = T.object({
+	id: idValidator<TLCollectionId>('collection'),
+	typeName: T.literal('collection'),
+	name: nonEmptyString,
+	readOnly: T.boolean.optional(),
+	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+})
+
+export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
+	id: idValidator<TLCollectionItemId>('collection-item'),
+	typeName: T.literal('collection-item'),
+	collectionId: idValidator<TLCollectionId>('collection'),
+	name: nonEmptyString.optional(),
+	thumbnailUrl: nonEmptyString.optional(),
+	version: T.positiveInteger,
+	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+})
+
+export const CollectionRecordType = createRecordType<TLCollection>('collection', {
+	validator: collectionValidator,
+	scope: 'document',
+}).withDefaultProperties(() => ({ meta: {} }))
+
+export const CollectionItemRecordType = createRecordType<TLCollectionItem>('collection-item', {
+	validator: collectionItemValidator,
+	scope: 'document',
+}).withDefaultProperties(() => ({ version: 1, meta: {} }))
+
+export const collectionMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw.collection',
+	recordType: 'collection',
+	sequence: [],
+})
+
+export const collectionItemMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw.collection-item',
+	recordType: 'collection-item',
+	sequence: [],
+})
 
 /** The newest item content format this version of the package can read. */
 export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
@@ -38,32 +95,11 @@ export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1
 /**
  * The shapes an item places, in a versioned envelope. Anything an item needs beyond shapes
  * arrives as a new `formatVersion`, so the way collections are listed and stored doesn't change.
- *
- * Shape ids inside `content` must stay the same when an item gets a new version, so copies placed
- * from an older version can later be matched shape by shape to the new one.
  */
 export interface TLCollectionItemContent {
 	formatVersion: 1
 	content: TLContent
 }
-
-const nonEmptyString = T.string.check((value) => {
-	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
-})
-
-export const collectionValidator: T.Validator<TLCollection> = T.object({
-	id: nonEmptyString,
-	name: nonEmptyString,
-	readOnly: T.boolean.optional(),
-})
-
-export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
-	id: nonEmptyString,
-	collectionId: nonEmptyString,
-	name: nonEmptyString.optional(),
-	thumbnailUrl: T.string,
-	version: T.positiveInteger,
-})
 
 // Only the envelope is checked here. The records inside are migrated and validated by the
 // editor's store schema when the content is placed (putContentOntoCurrentPage), which is the

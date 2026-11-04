@@ -8,6 +8,8 @@ import {
 } from '@tldraw/editor'
 import { TLCreateTextJsxFromSpansOpts } from '../shared/createTextJsxFromSpans'
 
+export const FRAME_HEADING_MAX_SCALE = 3.5
+
 export function defaultEmptyAs(str: string, dflt: string) {
 	if (str.match(/^\s*$/)) {
 		return dflt
