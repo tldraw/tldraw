@@ -218,6 +218,9 @@ interface PlaygroundSettings {
 	panelWidth: '200' | '240' | '320'
 	smallScreen: 'panel' | 'sheet'
 	viewport: 'desktop' | 'phone'
+	savingNaming: 'none' | 'auto' | 'dialog' | 'inline'
+	savingConfirmation: 'toast' | 'panel' | 'highlight'
+	savingUndo: 'none' | 'toast'
 	data: keyof typeof SOURCES
 }
 
@@ -233,6 +236,9 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	panelWidth: '240',
 	smallScreen: 'panel',
 	viewport: 'desktop',
+	savingNaming: 'none',
+	savingConfirmation: 'toast',
+	savingUndo: 'none',
 	data: 'samples',
 })
 
@@ -294,6 +300,40 @@ const SURFACES: Surface[] = [
 				options: [
 					{ value: 'source', label: "The source's order" },
 					{ value: 'recent', label: 'Recently saved to first' },
+				],
+			},
+		],
+	},
+	{
+		page: 'Saving',
+		hint: "What happens when you save. ⌘Z can't undo a save: items live in the source, outside the document's history.",
+		shapes: true,
+		choices: [
+			{
+				key: 'savingNaming',
+				label: 'Name',
+				options: [
+					{ value: 'none', label: 'Unnamed' },
+					{ value: 'auto', label: 'Automatic ("Drawing 2")' },
+					{ value: 'dialog', label: 'Ask in a dialog' },
+					{ value: 'inline', label: "Rename in the new item's menu" },
+				],
+			},
+			{
+				key: 'savingConfirmation',
+				label: 'Confirmation',
+				options: [
+					{ value: 'toast', label: 'Toast when the panel is closed' },
+					{ value: 'panel', label: 'Open the panel' },
+					{ value: 'highlight', label: 'Open, scroll to and flash the item' },
+				],
+			},
+			{
+				key: 'savingUndo',
+				label: 'Undo',
+				options: [
+					{ value: 'none', label: 'None' },
+					{ value: 'toast', label: 'Undo in the toast' },
 				],
 			},
 		],
@@ -565,6 +605,14 @@ function PlaygroundPanel() {
 		},
 		[]
 	)
+	const saving = useValue(
+		'saving',
+		() => {
+			const { savingNaming, savingConfirmation, savingUndo } = settings.get()
+			return { naming: savingNaming, confirmation: savingConfirmation, undo: savingUndo }
+		},
+		[]
+	)
 	const tileAppearance = useValue(
 		'tile appearance',
 		() => {
@@ -588,6 +636,7 @@ function PlaygroundPanel() {
 			side={side}
 			width={Number(panelWidth)}
 			smallScreen={smallScreen}
+			saving={saving}
 		/>
 	)
 }
@@ -595,12 +644,21 @@ function PlaygroundPanel() {
 function PlaygroundSaveMenu() {
 	const source = usePlaygroundSource()
 	const order = useValue('order', () => settings.get().order, [])
+	const saving = useValue(
+		'saving',
+		() => {
+			const { savingNaming, savingConfirmation, savingUndo } = settings.get()
+			return { naming: savingNaming, confirmation: savingConfirmation, undo: savingUndo }
+		},
+		[]
+	)
 	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
 	return (
 		<AddToCollectionMenuItem
 			source={source}
 			order={order}
 			groupCollections={grouped ? groupByScope : undefined}
+			saving={saving}
 		/>
 	)
 }

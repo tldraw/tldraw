@@ -36,6 +36,10 @@ export interface ItemMenuProps {
 	/** The collections the item can move to. Leave out, or leave empty, to hide "Move to". */
 	moveTargets?: { id: string; name: string }[]
 	onMove?(collectionId: string): void
+	/** Set to open the menu with Rename already started, e.g. for an item just saved. */
+	renameOnOpen?: boolean
+	/** Called once the menu has opened with Rename started, so the caller can clear `renameOnOpen`. */
+	onRenameOnOpen?(): void
 }
 
 /**
@@ -52,7 +56,16 @@ export function getItemMenuId(id: string) {
  * nothing when it has no actions.
  * @public @react
  */
-export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+export function ItemMenu({
+	id,
+	name,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+	renameOnOpen,
+	onRenameOnOpen,
+}: ItemMenuProps) {
 	const msg = useTranslation()
 	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
 	if (!onRename && !onDelete && !canMove) return null
@@ -83,6 +96,8 @@ export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: 
 					onDelete={onDelete}
 					moveTargets={canMove ? moveTargets : undefined}
 					onMove={onMove}
+					renameOnOpen={renameOnOpen}
+					onRenameOnOpen={onRenameOnOpen}
 				/>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
@@ -90,9 +105,21 @@ export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: 
 }
 
 /** Mounted only while the menu is open, so closing it ends a rename. */
-function ItemMenuContent({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+function ItemMenuContent({
+	id,
+	name,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+	renameOnOpen = false,
+	onRenameOnOpen,
+}: ItemMenuProps) {
 	const msg = useTranslation()
-	const [renaming, setRenaming] = useState(false)
+	const [renaming, setRenaming] = useState(renameOnOpen && onRename !== undefined)
+	useEffect(() => {
+		if (renameOnOpen && onRenameOnOpen) onRenameOnOpen()
+	}, [renameOnOpen, onRenameOnOpen])
 	const renameItemRef = useRef<HTMLButtonElement>(null)
 	useKeepMenuOpenOnEscape(renaming)
 

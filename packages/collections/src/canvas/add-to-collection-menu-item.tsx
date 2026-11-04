@@ -9,7 +9,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import { groupCollectionList, type GroupCollections } from './collection-groups'
 import { sortByRecentlySavedTo } from './recent-collections'
-import { useSaveSelection } from './use-save-selection'
+import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	addToCollection: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
@@ -33,6 +33,8 @@ export interface AddToCollectionMenuItemProps {
 	order?: AddToCollectionOrder
 	/** Groups the collections, each group headed by its name, e.g. by scope. */
 	groupCollections?: GroupCollections
+	/** What happens around a save: naming, confirmation and undo. */
+	saving?: SaveSelectionOptions
 }
 
 /**
@@ -45,6 +47,7 @@ export function AddToCollectionMenuItem({
 	source,
 	order = 'source',
 	groupCollections,
+	saving,
 }: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
@@ -63,7 +66,7 @@ export function AddToCollectionMenuItem({
 	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
 		source,
 	])
-	const { saveSelection, saveToNewCollection } = useSaveSelection(source)
+	const { saveSelection, saveToNewCollection } = useSaveSelection(source, saving)
 
 	if (!hasSelection || (collections.length === 0 && !canCreate)) return null
 

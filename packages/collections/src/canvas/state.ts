@@ -1,5 +1,5 @@
 import { EditorAtom, type Editor } from 'tldraw'
-import type { TLCollectionId } from '../lib/schema'
+import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 
 /**
  * Whether the collections panel is open. Scoped per editor, so two editors on one page don't share
@@ -33,4 +33,16 @@ export const renamingCollectionId = new EditorAtom<TLCollectionId | null>(
 export const collapsedCollectionIds = new EditorAtom<TLCollectionId[]>(
 	'collapsedCollectionIds',
 	() => []
+)
+
+/** An item just saved whose menu opens with its name ready to edit. */
+export const renamingItemId = new EditorAtom<TLCollectionItemId | null>(
+	'renamingItemId',
+	() => null
+)
+
+/** An item just saved, which its grid scrolls to and flashes. */
+export const highlightedItemId = new EditorAtom<TLCollectionItemId | null>(
+	'highlightedItemId',
+	() => null
 )

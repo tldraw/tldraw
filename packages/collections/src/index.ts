@@ -68,3 +68,4 @@ export {
 	type TLCollectionItemOrdering,
 } from './canvas/item-order'
 export type { GroupCollections } from './canvas/collection-groups'
+export type { SaveSelectionOptions } from './canvas/use-save-selection'

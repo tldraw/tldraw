@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
+import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useEffect } from 'react'
 import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
@@ -6,7 +6,12 @@ import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
-import { activeCollectionId, collectionsPanelOpen } from './state'
+import {
+	activeCollectionId,
+	collectionsPanelOpen,
+	highlightedItemId,
+	renamingItemId,
+} from './state'
 
 const messages = defineMessages({
 	emptyCollection: {
@@ -71,6 +76,25 @@ export function CollectionItems({
 		() => sortItems(source.getItems(collectionId), ordering, reversed),
 		[source, collectionId, ordering, reversed]
 	)
+	const renamingId = useValue('renaming item', () => renamingItemId.get(editor) ?? undefined, [
+		editor,
+	])
+	const isRenamingHere = renamingId !== undefined && items.some((item) => item.id === renamingId)
+	useEffect(() => {
+		if (renamingId && isRenamingHere) editor.menus.addOpenMenu(getItemMenuId(renamingId))
+	}, [editor, renamingId, isRenamingHere])
+	const clearRenaming = useCallback(() => renamingItemId.set(editor, null), [editor])
+	const highlightedId = useValue(
+		'highlighted item',
+		() => highlightedItemId.get(editor) ?? undefined,
+		[editor]
+	)
+	// The flash lasts as long as its animation, then the item is an ordinary tile again.
+	useEffect(() => {
+		if (!highlightedId) return
+		const timeout = setTimeout(() => highlightedItemId.set(editor, null), 1600)
+		return () => clearTimeout(timeout)
+	}, [editor, highlightedId])
 	const canRename = useValue('can rename items', () => source.can('renameItem', collectionId), [
 		source,
 		collectionId,
@@ -170,6 +194,8 @@ export function CollectionItems({
 					onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
 					moveTargets={moveTargets}
 					onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
+					renameOnOpen={item.id === renamingId}
+					onRenameOnOpen={clearRenaming}
 					onDelete={
 						canDelete
 							? () =>
@@ -195,6 +221,7 @@ export function CollectionItems({
 					}
 				/>
 			)}
+			highlightedId={highlightedId}
 			empty={msg(messages.emptyCollection)}
 			appearance={appearance}
 		/>
