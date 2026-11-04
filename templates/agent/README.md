@@ -6,23 +6,23 @@ A chat panel on the right side of the screen lets users communicate with the age
 
 ## Environment setup
 
-Create a `.dev.vars` file in the root directory and add a key for each model provider you want to use. You need at least one. Each model in the model picker works only if its provider has a key.
+Create a `.dev.vars` file in the root directory and add a key for each model provider you want to use. You need at least one.
 
 ```
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
-GOOGLE_API_KEY=your_google_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
 Get the keys from the [Anthropic console](https://console.anthropic.com/settings/keys), [Google AI Studio](https://aistudio.google.com/apikey) and the [OpenAI dashboard](https://platform.openai.com/api-keys). We recommend Anthropic for best results.
 
-To use every model with one key, use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
+To use every model with one key, use an [OpenRouter](https://openrouter.ai/settings/keys) key:
 
 ```
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
-When `OPENROUTER_API_KEY` is set, every request goes through OpenRouter and the provider keys are not used.
+A model goes to its own provider when that provider has a key, and through OpenRouter when it does not.
 
 ## Local development
 
@@ -624,29 +624,20 @@ Each action the agent can take in its current mode is sent to the model as a too
 Set an agent's model using the `setModelName` method on the `modelName` manager.
 
 ```ts
-agent.modelName.setModelName('gemini-3.8-flash')
+agent.modelName.setModelName('google/gemini-3.8-flash')
 ```
 
 To change the logic for deciding which model to use for a request, you can edit `ModelNamePartUtil`.
 
 ## Support a different model
 
-Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
+Add the model to `AGENT_MODELS` in `shared/models.ts`, as a `provider/id` ref from the catalog of [pi-ai](https://www.npmjs.com/package/@earendil-works/pi-ai), the library the worker calls models with.
 
 ```ts
-'claude-sonnet-5': {
-	name: 'claude-sonnet-5',
-	id: 'claude-sonnet-5',
-	openRouterId: 'anthropic/claude-sonnet-5',
-	provider: 'anthropic',
-	supportsTemperature: false,
-	reasoning: 'low',
-}
+'anthropic/claude-sonnet-5'
 ```
 
-`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set. `reasoning` sets how much the model reasons, from `'minimal'` to `'max'`; omit it to turn reasoning off.
-
-The worker calls models with [pi-ai](https://www.npmjs.com/package/@earendil-works/pi-ai), which must list the model in its catalog for that provider. To add a provider, register it in `worker/do/AgentService.ts`.
+pi-ai's catalog supplies the model's API, limits and reasoning support. Every model reasons at pi-ai's `'medium'` level, set in `worker/do/AgentService.ts`. When the model's id on [OpenRouter](https://openrouter.ai/models) differs from its ref, add it to `OPENROUTER_IDS` in the same file. To add a provider, register it there too.
 
 ## Support custom shapes
 

@@ -3,7 +3,7 @@ import { Editor, useValue } from 'tldraw'
 import { AtIcon } from '../../shared/icons/AtIcon'
 import { BrainIcon } from '../../shared/icons/BrainIcon'
 import { ChevronDownIcon } from '../../shared/icons/ChevronDownIcon'
-import { AGENT_MODEL_DEFINITIONS, AgentModelName } from '../../shared/models'
+import { AGENT_MODELS, AgentModelName } from '../../shared/models'
 import { useAgent } from '../agent/TldrawAgentAppProvider'
 import { ContextItemTag } from './ContextItemTag'
 import { SelectionTag } from './SelectionTag'
@@ -104,9 +104,9 @@ export function ChatInput({
 								value={modelName}
 								onChange={(e) => agent.modelName.setModelName(e.target.value as AgentModelName)}
 							>
-								{Object.values(AGENT_MODEL_DEFINITIONS).map((model) => (
-									<option key={model.name} value={model.name}>
-										{model.name}
+								{AGENT_MODELS.map((model) => (
+									<option key={model} value={model}>
+										{model}
 									</option>
 								))}
 							</select>

@@ -1,11 +1,11 @@
 import type { Api, Model, Tool, ToolCall } from '@earendil-works/pi-ai'
-import { createModels } from '@earendil-works/pi-ai/models'
+import { createModels, type MutableModels } from '@earendil-works/pi-ai/models'
 import { anthropicProvider } from '@earendil-works/pi-ai/providers/anthropic'
 import { googleProvider } from '@earendil-works/pi-ai/providers/google'
 import { openaiProvider } from '@earendil-works/pi-ai/providers/openai'
 import { openrouterProvider } from '@earendil-works/pi-ai/providers/openrouter'
 import z from 'zod'
-import { AgentModelDefinition, getAgentModelDefinition } from '../../shared/models'
+import { AgentModelName } from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { ActionMeta, AgentAction, getActionSchemaForMode } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -15,34 +15,37 @@ import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
 
-const models = createModels()
-models.setProvider(anthropicProvider())
-models.setProvider(googleProvider())
-models.setProvider(openaiProvider())
-models.setProvider(openrouterProvider())
+// OpenRouter ids that differ from the direct provider's `provider/id`.
+const OPENROUTER_IDS: Partial<Record<AgentModelName, string>> = {
+	'anthropic/claude-haiku-4-5': 'anthropic/claude-haiku-4.5',
+}
 
 export class AgentService {
-	constructor(private env: Environment) {}
+	private models: MutableModels
 
-	/**
-	 * The model and API key for a definition. With an OpenRouter key, every model goes through
-	 * OpenRouter and the provider keys are not used.
-	 */
-	getModel(definition: AgentModelDefinition): { model: Model<Api>; apiKey: string } {
-		const route = this.env.OPENROUTER_API_KEY
-			? { provider: 'openrouter', id: definition.openRouterId, apiKey: this.env.OPENROUTER_API_KEY }
-			: {
-					provider: definition.provider,
-					id: definition.id,
-					apiKey: {
-						anthropic: this.env.ANTHROPIC_API_KEY,
-						google: this.env.GOOGLE_API_KEY,
-						openai: this.env.OPENAI_API_KEY,
-					}[definition.provider],
-				}
-		const model = models.getModel(route.provider, route.id)
-		if (!model) throw new Error(`Model ${route.id} not found for ${route.provider}`)
-		return { model, apiKey: route.apiKey }
+	constructor(env: Environment) {
+		// pi-ai reads each provider's key from its usual env var, such as `ANTHROPIC_API_KEY`.
+		this.models = createModels({
+			authContext: {
+				env: async (name) =>
+					(env as unknown as Record<string, string | undefined>)[name] || undefined,
+				fileExists: async () => false,
+			},
+		})
+		this.models.setProvider(anthropicProvider())
+		this.models.setProvider(googleProvider())
+		this.models.setProvider(openaiProvider())
+		this.models.setProvider(openrouterProvider())
+	}
+
+	/** The model from its own provider when that provider has a key, or else from OpenRouter. */
+	async getModel(name: AgentModelName): Promise<Model<Api>> {
+		const [provider, id] = name.split('/') as [string, string]
+		const model = (await this.models.getAuth(provider))
+			? this.models.getModel(provider, id)
+			: this.models.getModel('openrouter', OPENROUTER_IDS[name] ?? name)
+		if (!model) throw new Error(`Model ${name} not found`)
+		return model
 	}
 
 	/**
@@ -68,8 +71,7 @@ export class AgentService {
 		finish: { toolCalls: number }
 	): AsyncGenerator<Streaming<AgentAction>> {
 		const modelName = getModelName(prompt)
-		const modelDefinition = getAgentModelDefinition(modelName)
-		const { model, apiKey } = this.getModel(modelDefinition)
+		const model = await this.getModel(modelName)
 		const systemPrompt = buildSystemPrompt(prompt)
 		const { messages, afterHistory } = buildMessages(prompt, model)
 		const { tools, schemas } = buildActionTools(prompt)
@@ -85,24 +87,12 @@ export class AgentService {
 			}
 		}
 
-		const result = models.streamSimple(
+		const result = this.models.streamSimple(
 			model,
 			// The client carries out each tool call and sends the results in its next request.
 			{ systemPrompt, messages, tools },
 			{
-				apiKey,
-				maxTokens: 8192,
-				reasoning: modelDefinition.reasoning,
-				...(modelDefinition.thinkingBudget
-					? {
-							thinkingBudgets: {
-								[modelDefinition.reasoning ?? 'low']: modelDefinition.thinkingBudget,
-							},
-						}
-					: {}),
-				// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
-				// thinks; sending it returns a 400.
-				...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
+				reasoning: 'medium',
 				onPayload: (payload, payloadModel) =>
 					payloadModel.api === 'anthropic-messages' && afterHistory
 						? markHistoryForCache(payload as AnthropicPayload, afterHistory)
