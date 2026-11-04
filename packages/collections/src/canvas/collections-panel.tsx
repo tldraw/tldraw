@@ -109,7 +109,10 @@ export interface CollectionsPanelProps {
 	readOnly?: ReadOnlyOptions
 	/** Whether the panel has a search field, and where it looks. Search matches item names. */
 	search?: ItemSearch
-	/** What the header holds: the collection picker, or a title and close button. Defaults to `'picker'`. */
+	/**
+	 * What the header holds: a title and close button, or the collection picker. Defaults to
+	 * `'title'`; with the picker navigation, the picker then sits under the header.
+	 */
 	header?: PanelHeader
 	/**
 	 * Where adding the selection is offered. `'footer'`: a bar along the bottom of the panel. With
@@ -150,7 +153,7 @@ export function CollectionsPanel({
 	firstUse = 'message',
 	readOnly,
 	search = 'none',
-	header = 'picker',
+	header = 'title',
 	addControl = 'footer',
 	addMenuOrder = 'source',
 	emptyCollection = 'message',
