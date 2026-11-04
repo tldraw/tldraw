@@ -45,7 +45,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.7.0',
+	version: '3.8.0',
 }
 
 /**
@@ -317,9 +317,53 @@ export function parseBoardInfoInput(input: unknown): { boardId: string } {
 	return { boardId: parseBoardId(value.boardId) }
 }
 
-export function parsePageInfoInput(input: unknown): { boardId: string; page: PageSelector } {
+export function parsePageInfoInput(input: unknown): {
+	boardId: string
+	page: PageSelector
+	cursor: number | null
+} {
 	const value = requireArgumentsObject(input)
-	return { boardId: parseBoardId(value.boardId), page: parsePageSelector(value.page) }
+	const page = parsePageSelector(value.page)
+	return {
+		boardId: parseBoardId(value.boardId),
+		page,
+		cursor: parsePageInfoCursor(value.cursor, page),
+	}
+}
+
+// Refused rather than read as the first page, for the reason search_boards gives. The cursor is an
+// offset into one page's clusters, and means nothing on another.
+function parsePageInfoCursor(value: unknown, page: PageSelector): number | null {
+	if (value === undefined || value === null) return null
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the first cluster, or pass the nextCursor from a previous get_page_info result.'
+	)
+	if (typeof value !== 'string') throw invalid
+	let parts: string[]
+	try {
+		parts = atob(value).split(':')
+	} catch {
+		throw invalid
+	}
+	if (parts.length !== 2 || !/^\d+$/.test(parts[0])) throw invalid
+	let selector: string
+	try {
+		selector = decodeURIComponent(parts[1])
+	} catch {
+		throw invalid
+	}
+	if (selector !== JSON.stringify(page)) {
+		throw new Error(
+			'cursor is from a different page. Repeat the page it came from, or omit the cursor to start from the first cluster.'
+		)
+	}
+	return Number(parts[0])
+}
+
+// Opaque, so the encoding can change without clients having to. The selector is percent-escaped
+// because a page id can hold a `:`, and `btoa` throws outside Latin-1.
+export function encodePageInfoCursor(offset: number, page: PageSelector): string {
+	return btoa(`${offset}:${encodeURIComponent(JSON.stringify(page))}`)
 }
 
 // Bounds the request itself, before the measure render it would cost. Paging bounds the answer.
@@ -1087,9 +1131,30 @@ export function clusteringFromIndex(
 // index and a call served from a fresh render hand in the same thing, and everything from here on is
 // identical.
 
+/**
+ * The most cluster JSON one get_page_info answer carries before it stops and hands back a nextCursor.
+ * This JSON is denser than get_cluster_info's, mostly digits and punctuation, so it gets a limit of
+ * its own: a 59K-character answer overflowed the 25K tokens some clients cut a tool result off at.
+ */
+export const PAGE_INFO_MAX_CHARS = 40_000
+
+function roundClusterBox(box: BoxModel | null): BoxModel | null {
+	if (!box) return null
+	return {
+		x: Math.round(box.x),
+		y: Math.round(box.y),
+		w: Math.round(box.w),
+		h: Math.round(box.h),
+	}
+}
+
 export function getPageInfo(
 	page: ResolvedPageOk,
-	{ clusters, bounds }: PageClustering
+	{ clusters, bounds }: PageClustering,
+	{ selector, offset }: { selector: PageSelector; offset: number } = {
+		selector: { kind: 'ordinal', ordinal: 0 },
+		offset: 0,
+	}
 ): ToolResult {
 	// Bounds let a model see what is near what without opening every cluster. They are null rather
 	// than invented for a cluster the render could not measure. The page's box is built from the
@@ -1101,17 +1166,33 @@ export function getPageInfo(
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
 	// ids against a single page, so listing every shape on the board here would hand out ids that
 	// neither of them can look up.
-	return toolJsonResult({
-		name: page.pageName,
-		bounds: pageBounds,
-		clusterCount: clusters.length,
-		clusters: clusters.map((c) => ({
+	//
+	// Largest first, so a model that stops after the first answer has seen a big board's main areas.
+	const ordered = [...clusters].sort((a, b) => b.numberOfShapes - a.numberOfShapes)
+	const answer: object[] = []
+	let size = 0
+	let next = offset
+	for (; next < ordered.length; next++) {
+		const c = ordered[next]
+		const entry = {
 			id: c.id,
 			label: c.label,
 			keywords: c.keywords,
 			numberOfShapes: c.numberOfShapes,
-			bounds: bounds[c.id] ?? null,
-		})),
+			bounds: roundClusterBox(bounds[c.id] ?? null),
+		}
+		const entrySize = JSON.stringify(entry).length + 1 // the comma
+		if (answer.length > 0 && size + entrySize > PAGE_INFO_MAX_CHARS) break
+		answer.push(entry)
+		size += entrySize
+	}
+
+	return toolJsonResult({
+		name: page.pageName,
+		bounds: roundClusterBox(pageBounds),
+		clusterCount: clusters.length,
+		clusters: answer,
+		...(next < ordered.length ? { nextCursor: encodePageInfoCursor(next, selector) } : null),
 	})
 }
 
@@ -1672,13 +1753,18 @@ function getPageInfoToolDefinition() {
 		name: PAGE_INFO_TOOL_NAME,
 		title: 'Get tldraw page info',
 		description:
-			'List the clusters on one page of a tldraw.com board you have access to. A cluster is a group of shapes that belong together: shapes near each other, shapes inside a frame, group or larger shape, and shapes joined by arrows, together with those arrows. Every shape is in exactly one cluster. Each cluster has an id, a label (its frame name, or else its largest text, the top-left one among equals, then a keyword that sets it apart; one with no text is labelled by what it holds, such as "12 freehand strokes"), keywords drawn from all its text, its shape count, and its page-space bounds {x, y, w, h}, or null when none of its shapes could be measured; the page’s bounds cover all its content. Use the bounds to see which clusters sit near each other without opening them. Handwriting and drawings can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
+			'List the clusters on one page of a tldraw.com board you have access to. A cluster is a group of shapes that belong together: shapes near each other, shapes inside a frame, group or larger shape, and shapes joined by arrows, together with those arrows. Every shape is in exactly one cluster. Each cluster has an id, a label (its frame name, or else its largest text, the top-left one among equals, then a keyword that sets it apart; one with no text is labelled by what it holds, such as "12 freehand strokes"), keywords drawn from all its text, its shape count, and its page-space bounds {x, y, w, h}, or null when none of its shapes could be measured; the page’s bounds cover all its content. Clusters come largest first, and clusterCount is the page’s total. An answer too large for one response stops part-way and carries nextCursor: call again with the same page and that cursor for the rest, or stop once you have what you need. Use the bounds to see which clusters sit near each other without opening them. Handwriting and drawings can only be seen with get_cluster_screenshot. Pass cluster ids to get_cluster_info or get_cluster_screenshot.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
 			properties: {
 				boardId: BOARD_ID_PROPERTY,
 				page: PAGE_PROPERTY,
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous get_page_info result, to get the next clusters. Omit for the first. Pass the same page with it.',
+				},
 			},
 			required: ['boardId'],
 		},

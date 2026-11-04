@@ -14,6 +14,7 @@ import {
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	encodePageInfoCursor,
 	parsePageInfoInput,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
@@ -342,15 +343,31 @@ describe('measure through /content', () => {
 })
 
 describe('tool inputs', () => {
+	it('reads a get_page_info cursor, and refuses one it cannot use', () => {
+		const page = { kind: 'id', id: 'page:b' } as const
+		const cursor = encodePageInfoCursor(40, page)
+		expect(parsePageInfoInput({ boardId: 'abc', page: 'page:b', cursor }).cursor).toBe(40)
+		expect(() => parsePageInfoInput({ boardId: 'abc', page: 'page:c', cursor })).toThrow(
+			'cursor is from a different page'
+		)
+		for (const bad of ['not base64!', btoa('x:y'), btoa('12'), 12]) {
+			expect(() => parsePageInfoInput({ boardId: 'abc', cursor: bad })).toThrow(
+				'cursor is not valid'
+			)
+		}
+	})
+
 	it('parses board and page selectors', () => {
 		expect(parseBoardInfoInput({ boardId: 'abc' })).toEqual({ boardId: 'abc' })
 		expect(parsePageInfoInput({ boardId: 'abc' })).toEqual({
 			boardId: 'abc',
 			page: { kind: 'ordinal', ordinal: 0 },
+			cursor: null,
 		})
 		expect(parsePageInfoInput({ boardId: 'abc', page: 'page:b' })).toEqual({
 			boardId: 'abc',
 			page: { kind: 'id', id: 'page:b' },
+			cursor: null,
 		})
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: -1 })).toThrow('page must be')
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: 1.5 })).toThrow('page must be')
@@ -601,7 +618,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.7.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.8.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1362,6 +1379,36 @@ describe('cluster index cache', () => {
 			'user_ix'
 		)
 		expect(cached.content).toEqual(fresh.content)
+	})
+
+	// A later page spends nothing, so charging it would let paging a big board use up the budget for
+	// reading it.
+	it('does not charge the per-user budget for a later page of get_page_info', async () => {
+		mockPublishedBoard()
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITER: { limit } })
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_paging')
+		limit.mockClear()
+
+		const cursor = encodePageInfoCursor(1, { kind: 'ordinal', ordinal: 0 })
+		const result = await callTool('get_page_info', { boardId: 'abc', cursor }, env, 'user_paging')
+
+		expect(result.isError).toBeUndefined()
+		expect(limit).not.toHaveBeenCalled()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
+	// Otherwise a made-up cursor on a cold board would be a free measure.
+	it('charges a get_page_info cursor that misses the index', async () => {
+		mockPublishedBoard()
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITER: { limit } })
+
+		const cursor = encodePageInfoCursor(1, { kind: 'ordinal', ordinal: 0 })
+		await callTool('get_page_info', { boardId: 'abc', cursor }, env, 'user_cold')
+
+		expect(limit).toHaveBeenCalledTimes(1)
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 	})
 
 	it('keeps the plain text only an editor can report', async () => {

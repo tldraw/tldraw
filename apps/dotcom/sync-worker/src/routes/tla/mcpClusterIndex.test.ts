@@ -121,10 +121,10 @@ describe('the stored index', () => {
 		const fresh = getPageInfo(page, clusteringFromMeasure(clusters, MEASUREMENTS))
 		expect(getPageInfo(page, rehydrated)).toEqual(fresh)
 		expect(JSON.parse((fresh.content[0] as { text: string }).text).bounds).toEqual({
-			x: 0.4,
-			y: -0.6,
-			w: 5080.1,
-			h: 80.6,
+			x: 0,
+			y: -1,
+			w: 5080,
+			h: 81,
 		})
 	})
 

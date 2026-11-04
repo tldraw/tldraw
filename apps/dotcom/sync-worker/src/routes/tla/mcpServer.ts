@@ -866,7 +866,11 @@ async function callPageInfoTool(
 	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
 	// 500. Same reason in every tool below.
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		// A later page of an answer is served from the index the first page wrote, so it spends nothing
+		// and isn't charged: paging a big board shouldn't use up the budget for reading it. A cursor
+		// that misses the index is charged by readClustering before it measures.
+		const refusal =
+			input.cursor === null ? await checkPerUserRateLimit(env, userId, telemetry) : null
 		if (refusal) return refusal
 
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
@@ -878,10 +882,20 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
+		const clustered = await readClustering(resolved, {
+			env,
+			userId,
+			telemetry,
+			request,
+			ctx,
+			chargeCallerOnMiss: input.cursor !== null,
+		})
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return getPageInfo(resolved.page, clustered)
+		return getPageInfo(resolved.page, clustered, {
+			selector: input.page,
+			offset: input.cursor ?? 0,
+		})
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
@@ -1191,12 +1205,14 @@ async function readClustering(
 		telemetry,
 		request,
 		ctx,
+		chargeCallerOnMiss = false,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		chargeCallerOnMiss?: boolean
 	}
 ): Promise<ClusteringResult> {
 	const cacheContext = { env, request, ctx }
@@ -1207,6 +1223,11 @@ async function readClustering(
 		resolved.snapshotVersion
 	)
 	if (cached) return { ok: true, ...cached, clusterCacheStatus: 'hit' }
+
+	if (chargeCallerOnMiss) {
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		if (refusal) return { ok: false, result: refusal }
+	}
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
