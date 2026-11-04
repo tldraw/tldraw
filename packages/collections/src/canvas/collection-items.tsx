@@ -1,5 +1,14 @@
 import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useEffect } from 'react'
-import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	useDialogs,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
@@ -12,12 +21,15 @@ import { itemMatches } from './item-search'
 import {
 	activeCollectionId,
 	collectionsPanelOpen,
+	expandedCollectionIds,
 	highlightedItemId,
 	renamingItemId,
 } from './state'
 import type { SaveSelectionOptions } from './use-save-selection'
 
 const messages = defineMessages({
+	showAll: { id: 'collections.section.show-all', defaultMessage: 'Show all ({count})' },
+	showLess: { id: 'collections.section.show-less', defaultMessage: 'Show less' },
 	noMatches: { id: 'collections.search.no-matches', defaultMessage: 'No items match “{query}”.' },
 	emptyCollection: {
 		id: 'collections.empty-collection',
@@ -69,6 +81,11 @@ export interface CollectionItemsProps {
 	saving?: SaveSelectionOptions
 	/** With `addButton: 'hide'`, a collection the user can't add to shows the message instead. */
 	readOnly?: ReadOnlyOptions
+	/**
+	 * Shows only this many rows of tiles, then a control that shows the rest. Leave out to show
+	 * every item.
+	 */
+	maxRows?: number
 }
 
 /** One collection's items as a grid, with each item's menu: rename, move and delete. */
@@ -83,6 +100,7 @@ export function CollectionItems({
 	emptyCollection = 'message',
 	saving,
 	readOnly = {},
+	maxRows,
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -204,6 +222,23 @@ export function CollectionItems({
 		[items, source, showChangeError, msg]
 	)
 
+	const expanded = useValue(
+		'collection expanded',
+		() => expandedCollectionIds.get(editor).includes(collectionId),
+		[editor, collectionId]
+	)
+	const limit = maxRows === undefined ? Infinity : maxRows * (appearance?.columns ?? 2)
+	const truncates = items.length > limit
+	// An item just saved stays in view, even past the rows a section shows.
+	const revealsHidden = items
+		.slice(limit)
+		.some((item) => item.id === highlightedId || item.id === renamingId)
+	const shownItems = truncates && !expanded && !revealsHidden ? items.slice(0, limit) : items
+	const toggleExpanded = () =>
+		expandedCollectionIds.update(editor, (ids) =>
+			expanded ? ids.filter((id) => id !== collectionId) : [...ids, collectionId]
+		)
+
 	const offersAdd = emptyCollection === 'add' && (canAdd || readOnly.addButton !== 'hide')
 	if (items.length === 0 && query.trim() === '' && offersAdd) {
 		return (
@@ -217,53 +252,64 @@ export function CollectionItems({
 	}
 
 	return (
-		<ItemGrid
-			items={items.map((item) => ({
-				id: item.id,
-				name: item.name,
-				accessibleLabel: item.name ?? msg(messages.unnamedItem),
-				thumbnailUrl: item.thumbnailUrl,
-			}))}
-			getItemProps={getTileProps}
-			renderItemMenu={(item) => (
-				<ItemMenu
-					id={item.id}
-					name={item.name}
-					onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
-					moveTargets={moveTargets}
-					onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
-					renameOnOpen={item.id === renamingId}
-					onRenameOnOpen={clearRenaming}
-					onDelete={
-						canDelete
-							? () =>
-									addDialog({
-										component: ({ onClose }) => (
-											<ConfirmDeleteDialog
-												title={msg(messages.deleteItemTitle)}
-												body={
-													item.name
-														? msg(messages.deleteItemBody, { name: item.name })
-														: msg(messages.deleteUnnamedItemBody)
-												}
-												onClose={onClose}
-												onConfirm={() =>
-													source
-														.deleteItem(item.id)
-														.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
-												}
-											/>
-										),
-									})
-							: undefined
-					}
-				/>
+		<>
+			<ItemGrid
+				items={shownItems.map((item) => ({
+					id: item.id,
+					name: item.name,
+					accessibleLabel: item.name ?? msg(messages.unnamedItem),
+					thumbnailUrl: item.thumbnailUrl,
+				}))}
+				getItemProps={getTileProps}
+				renderItemMenu={(item) => (
+					<ItemMenu
+						id={item.id}
+						name={item.name}
+						onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
+						moveTargets={moveTargets}
+						onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
+						renameOnOpen={item.id === renamingId}
+						onRenameOnOpen={clearRenaming}
+						onDelete={
+							canDelete
+								? () =>
+										addDialog({
+											component: ({ onClose }) => (
+												<ConfirmDeleteDialog
+													title={msg(messages.deleteItemTitle)}
+													body={
+														item.name
+															? msg(messages.deleteItemBody, { name: item.name })
+															: msg(messages.deleteUnnamedItemBody)
+													}
+													onClose={onClose}
+													onConfirm={() =>
+														source
+															.deleteItem(item.id)
+															.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+													}
+												/>
+											),
+										})
+								: undefined
+						}
+					/>
+				)}
+				highlightedId={highlightedId}
+				empty={
+					query.trim() === '' ? msg(messages.emptyCollection) : msg(messages.noMatches, { query })
+				}
+				appearance={appearance}
+			/>
+			{truncates && !revealsHidden && (
+				<div className="tlui-collections-section__more">
+					<TldrawUiButton type="normal" aria-expanded={expanded} onClick={toggleExpanded}>
+						<TldrawUiButtonLabel>
+							{expanded ? msg(messages.showLess) : msg(messages.showAll, { count: items.length })}
+						</TldrawUiButtonLabel>
+					</TldrawUiButton>
+				</div>
 			)}
-			highlightedId={highlightedId}
-			empty={
-				query.trim() === '' ? msg(messages.emptyCollection) : msg(messages.noMatches, { query })
-			}
-			appearance={appearance}
-		/>
+		</>
 	)
 }
