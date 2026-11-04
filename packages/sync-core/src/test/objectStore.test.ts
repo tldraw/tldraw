@@ -727,6 +727,14 @@ describe('object store lane', () => {
 				expect(warn.mock.calls[0].join(' ')).toContain('not the author')
 			})
 
+			it('a denial from another copy of the package rejects the write', () => {
+				const { note } = pushNoteWith(() => ({
+					[Symbol.for('tldraw.sync.deny')]: true,
+					reason: 'other copy',
+				}))
+				expect(note).toBeUndefined()
+			})
+
 			it('a record field named reason is not read as a rejection', () => {
 				const { note } = pushNoteWith(({ next }: any) => ({ ...next, reason: 'x' }))
 				expect(note?.reason).toBe('x')

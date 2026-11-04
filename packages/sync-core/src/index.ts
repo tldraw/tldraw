@@ -67,8 +67,9 @@ export {
 } from './lib/TLSyncClient'
 export {
 	deny,
+	isDeny,
 	TLSyncRoom,
-	TLDeny,
+	type TLDeny,
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,

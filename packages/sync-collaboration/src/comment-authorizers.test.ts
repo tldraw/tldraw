@@ -1,4 +1,4 @@
-import { TLDeny } from '@tldraw/sync-core'
+import { isDeny } from '@tldraw/sync-core'
 import {
 	TLComment,
 	TLCommentReaction,
@@ -84,7 +84,7 @@ describe('createCommentAuthorizers', () => {
 		it('rejects a create with no authenticated user', () => {
 			expect(
 				authorize({ ...ctx(null), type: 'create', prev: null, next: comment('anon') })
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		})
 
 		it('allows the author to edit their own comment', () => {
@@ -96,26 +96,22 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an edit from someone who is not the author', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, body: toRichText('sneakily rewritten') }
-			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
-			)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('vetoes an update that changes the author', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, authorId: 'someone-else' }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('vetoes every client hard-delete, even from the author (deletion is soft)', () => {
 			const prev = comment('real-bob')
-			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBeInstanceOf(
-				TLDeny
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })).toSatisfy(
+				isDeny
 			)
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })
-			).toBeInstanceOf(TLDeny)
-			expect(authorize({ ...ctx(null), type: 'delete', prev, next: null })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx(null), type: 'delete', prev, next: null })).toSatisfy(isDeny)
 		})
 
 		it('lets the author soft-delete their own comment', () => {
@@ -127,16 +123,14 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes a non-author soft-deleting the comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
-			)
-			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('vetoes clearing a soft-delete, even by the author (write-once)', () => {
 			const prev = { ...comment('real-bob'), isDeleted: true }
 			const next = { ...prev, isDeleted: false }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('allows an update that leaves an existing soft-delete untouched', () => {
@@ -147,9 +141,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('vetoes a create with the soft-delete flag already set', () => {
 			const next = { ...comment('real-bob'), isDeleted: true }
-			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBeInstanceOf(
-				TLDeny
-			)
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toSatisfy(isDeny)
 		})
 
 		// threadId ties a comment to its conversation (and downstream to a file), so re-parenting an
@@ -157,7 +149,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes re-parenting a comment to another thread', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		// createdAt orders threads and bounds the notification feed, so a mutable one lets a comment
@@ -165,7 +157,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes back-dating a comment', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, createdAt: 1 }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		// the anchor lifecycle rewrites pageId on every comment when a thread moves pages
@@ -194,7 +186,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that changes the creator', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, createdBy: 'someone-else' }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('lets a non-creator resolve the thread as themselves', () => {
@@ -212,9 +204,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes a resolution attributed to someone else', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, resolved: { at: 1, by: 'real-alice' } }
-			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
-			)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('allows an update that leaves an existing resolution untouched', () => {
@@ -226,9 +216,9 @@ describe('createCommentAuthorizers', () => {
 
 		it('vetoes a create with a resolution attributed to someone else', () => {
 			const next = { ...makeThread('real-mallory'), resolved: { at: 1, by: 'real-alice' } }
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })
-			).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).toSatisfy(
+				isDeny
+			)
 		})
 
 		it('allows a create resolved by the creator themselves', () => {
@@ -244,12 +234,10 @@ describe('createCommentAuthorizers', () => {
 
 		it('vetoes every client hard-delete, even from the creator (deletion is soft)', () => {
 			const prev = makeThread('real-bob')
-			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toBeInstanceOf(
-				TLDeny
+			expect(authorize({ ...ctx('real-bob'), type: 'delete', prev, next: null })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })).toSatisfy(
+				isDeny
 			)
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })
-			).toBeInstanceOf(TLDeny)
 		})
 
 		it('lets the creator soft-delete their own thread', () => {
@@ -261,16 +249,14 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes a non-creator soft-deleting the thread', () => {
 			const prev = makeThread('real-bob')
 			const next = { ...prev, isDeleted: true }
-			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
-			)
-			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toSatisfy(isDeny)
+			expect(authorize({ ...ctx(null), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('vetoes clearing a soft-delete, even by the creator (write-once)', () => {
 			const prev = { ...makeThread('real-bob'), isDeleted: true }
 			const next = { ...prev, isDeleted: false }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('allows an update that leaves an existing soft-delete untouched', () => {
@@ -281,9 +267,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('vetoes a create with the soft-delete flag already set', () => {
 			const next = { ...makeThread('real-bob'), isDeleted: true }
-			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toBeInstanceOf(
-				TLDeny
-			)
+			expect(authorize({ ...ctx('real-bob'), type: 'create', prev: null, next })).toSatisfy(isDeny)
 		})
 	})
 
@@ -322,13 +306,13 @@ describe('createCommentAuthorizers', () => {
 					prev: null,
 					next: makeReaction('anyone'),
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		})
 
 		it('vetoes an update that changes the reacting user', () => {
 			const prev = makeReaction('real-bob')
 			const next = { ...prev, userId: 'real-alice' }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		// emoji feeds the id now, so switching emoji is a delete+create, never an update — an update
@@ -336,15 +320,13 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that changes the emoji', () => {
 			const prev = makeReaction('real-bob', '👍')
 			const next = { ...prev, emoji: '🎉' }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('vetoes changing someone else’s reaction', () => {
 			const prev = makeReaction('real-alice')
 			const next = { ...prev, emoji: '💩' }
-			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
-			)
+			expect(authorize({ ...ctx('real-mallory'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('lets the reactor remove their own reaction', () => {
@@ -356,10 +338,10 @@ describe('createCommentAuthorizers', () => {
 			// cascades still sweep every reactor's records: server-initiated writes carry no session
 			// and skip authorizers entirely, so this doesn't need to be open to clients
 			const prev = makeReaction('real-alice')
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })
-			).toBeInstanceOf(TLDeny)
-			expect(authorize({ ...ctx(null), type: 'delete', prev, next: null })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'delete', prev, next: null })).toSatisfy(
+				isDeny
+			)
+			expect(authorize({ ...ctx(null), type: 'delete', prev, next: null })).toSatisfy(isDeny)
 		})
 
 		// The id is derived from (comment, user, emoji). A create must land at the session user's own
@@ -371,9 +353,9 @@ describe('createCommentAuthorizers', () => {
 				...makeReaction('real-mallory', '👍'),
 				id: createCommentReactionId(createCommentId('c1'), 'real-alice', '👍'),
 			}
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })
-			).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).toSatisfy(
+				isDeny
+			)
 		})
 
 		// the id also encodes the emoji, so an id that doesn't match the record's own emoji field
@@ -383,16 +365,16 @@ describe('createCommentAuthorizers', () => {
 				...makeReaction('real-mallory', '🎉'),
 				id: createCommentReactionId(createCommentId('c1'), 'real-mallory', '👍'),
 			}
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })
-			).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).toSatisfy(
+				isDeny
+			)
 		})
 
 		it('allows a create whose id is the session user’s canonical slot', () => {
 			const next = makeReaction('real-mallory')
-			expect(
-				authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })
-			).not.toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-mallory'), type: 'create', prev: null, next })).not.toSatisfy(
+				isDeny
+			)
 		})
 
 		// the reaction's comment is fixed by its id; an update must not move it onto another comment,
@@ -400,7 +382,7 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes an update that moves the reaction to a different comment', () => {
 			const prev = makeReaction('real-bob')
 			const next = { ...prev, commentId: createCommentId('c2') }
-			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toBeInstanceOf(TLDeny)
+			expect(authorize({ ...ctx('real-bob'), type: 'update', prev, next })).toSatisfy(isDeny)
 		})
 
 		it('vetoes an update that changes the denormalized threadId or pageId', () => {
@@ -415,7 +397,7 @@ describe('createCommentAuthorizers', () => {
 						threadId: createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'x' }).id,
 					},
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorize({
 					...ctx('real-bob'),
@@ -423,7 +405,7 @@ describe('createCommentAuthorizers', () => {
 					prev,
 					next: { ...prev, pageId: 'page:other' as typeof prev.pageId },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		})
 	})
 
@@ -453,7 +435,7 @@ describe('createCommentAuthorizers', () => {
 					prev: null,
 					next: comment('real-bob'),
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorizers.comment!({
 					session: readonly,
@@ -462,7 +444,7 @@ describe('createCommentAuthorizers', () => {
 					prev: commentPrev,
 					next: { ...commentPrev, body: toRichText('edited') },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorizers.comment!({
 					session: readonly,
@@ -471,7 +453,7 @@ describe('createCommentAuthorizers', () => {
 					prev: commentPrev,
 					next: null,
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 
 			const threadPrev = makeThread('real-bob')
 			expect(
@@ -482,7 +464,7 @@ describe('createCommentAuthorizers', () => {
 					prev: null,
 					next: makeThread('real-bob'),
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorizers['comment-thread']!({
 					session: readonly,
@@ -491,7 +473,7 @@ describe('createCommentAuthorizers', () => {
 					prev: threadPrev,
 					next: { ...threadPrev, resolved: { at: 1, by: 'real-bob' } },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorizers['comment-thread']!({
 					session: readonly,
@@ -500,7 +482,7 @@ describe('createCommentAuthorizers', () => {
 					prev: threadPrev,
 					next: null,
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 
 			const reactionPrev = makeReaction('real-bob')
 			expect(
@@ -511,7 +493,7 @@ describe('createCommentAuthorizers', () => {
 					prev: null,
 					next: makeReaction('real-bob'),
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorizers['comment-reaction']!({
 					session: readonly,
@@ -520,7 +502,7 @@ describe('createCommentAuthorizers', () => {
 					prev: reactionPrev,
 					next: { ...reactionPrev, createdAt: reactionPrev.createdAt + 1 },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				authorizers['comment-reaction']!({
 					session: readonly,
@@ -529,7 +511,7 @@ describe('createCommentAuthorizers', () => {
 					prev: reactionPrev,
 					next: null,
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		})
 
 		it('still applies the per-type rules to read-write sessions', () => {
@@ -563,7 +545,7 @@ describe('createCommentAuthorizers', () => {
 					prev: null,
 					next: comment('anon'),
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		})
 
 		it('is asked before canModifyComment, so a blocked session is never asked about a record', () => {
@@ -584,7 +566,7 @@ describe('createCommentAuthorizers', () => {
 					prev,
 					next: { ...prev, isDeleted: true },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(asked).toBe(0)
 		})
 
@@ -601,7 +583,7 @@ describe('createCommentAuthorizers', () => {
 					prev: null,
 					next: comment('banned'),
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 
 			const result = bannable.comment!({
 				...ctx('real-bob', false),
@@ -647,8 +629,8 @@ describe('createCommentAuthorizers', () => {
 		it('keeps the edit and the delete separate: widening deletes grants no edits', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, body: toRichText('rewritten by the mod') }
-			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
+			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toSatisfy(
+				isDeny
 			)
 		})
 
@@ -657,8 +639,8 @@ describe('createCommentAuthorizers', () => {
 		it('vetoes a delete that carries an edit past a delete-only permission', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, isDeleted: true, body: toRichText('rewritten on the way out') }
-			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toBeInstanceOf(
-				TLDeny
+			expect(moderated.comment!({ ...ctx('real-mod'), type: 'update', prev, next })).toSatisfy(
+				isDeny
 			)
 		})
 
@@ -677,7 +659,7 @@ describe('createCommentAuthorizers', () => {
 					prev,
 					next: { ...prev, isDeleted: true },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			const threadPrev = makeThread('real-bob')
 			expect(
 				moderated['comment-thread']!({
@@ -686,7 +668,7 @@ describe('createCommentAuthorizers', () => {
 					prev: threadPrev,
 					next: { ...threadPrev, isDeleted: true },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		})
 
 		it('narrows as well as widens', () => {
@@ -702,7 +684,7 @@ describe('createCommentAuthorizers', () => {
 					prev,
 					next: { ...prev, body: toRichText('edited') },
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			// ...and the delete it didn't narrow still goes through
 			const deleted = { ...prev, isDeleted: true }
 			expect(frozen.comment!({ ...ctx('real-bob'), type: 'update', prev, next: deleted })).toBe(
@@ -828,7 +810,7 @@ describe('createCommentAuthorizers', () => {
 					prev,
 					next: null,
 				})
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			expect(
 				counting['comment-reaction']!({
 					...ctx('real-bob'),
@@ -836,7 +818,7 @@ describe('createCommentAuthorizers', () => {
 					prev,
 					next: { ...prev, createdAt: prev.createdAt + 1 },
 				})
-			).not.toBeInstanceOf(TLDeny)
+			).not.toSatisfy(isDeny)
 			expect(asked).toBe(0)
 		})
 
@@ -857,14 +839,14 @@ describe('createCommentAuthorizers', () => {
 						prev,
 						next: { ...prev, isDeleted: false },
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 			})
 
 			it('still vetoes every client hard-delete', () => {
 				const prev = comment('real-bob')
 				expect(
 					permissive.comment!({ ...ctx('real-mod'), type: 'delete', prev, next: null })
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 				const threadPrev = makeThread('real-bob')
 				expect(
 					permissive['comment-thread']!({
@@ -873,7 +855,7 @@ describe('createCommentAuthorizers', () => {
 						prev: threadPrev,
 						next: null,
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 			})
 
 			it('still vetoes changing a comment’s author', () => {
@@ -885,7 +867,7 @@ describe('createCommentAuthorizers', () => {
 						prev,
 						next: { ...prev, authorId: 'real-mod' },
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 			})
 
 			it('still vetoes re-parenting and back-dating a comment', () => {
@@ -897,7 +879,7 @@ describe('createCommentAuthorizers', () => {
 						prev,
 						next: { ...prev, threadId: 'comment-thread:other' as TLCommentThread['id'] },
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 				expect(
 					permissive.comment!({
 						...ctx('real-mod'),
@@ -905,7 +887,7 @@ describe('createCommentAuthorizers', () => {
 						prev,
 						next: { ...prev, createdAt: 1 },
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 			})
 
 			it('still vetoes a create with the soft-delete flag already set', () => {
@@ -916,7 +898,7 @@ describe('createCommentAuthorizers', () => {
 						prev: null,
 						next: { ...comment('real-mod'), isDeleted: true },
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 			})
 
 			it('still vetoes a resolution attributed to someone else', () => {
@@ -928,7 +910,7 @@ describe('createCommentAuthorizers', () => {
 						prev,
 						next: { ...prev, resolved: { at: 1, by: 'real-alice' } },
 					})
-				).toBeInstanceOf(TLDeny)
+				).toSatisfy(isDeny)
 			})
 
 			// An anonymous session has no identity to check a record against, so the default withholds
@@ -938,9 +920,7 @@ describe('createCommentAuthorizers', () => {
 				const prev = comment('real-bob')
 				const next = { ...prev, isDeleted: true }
 				expect(permissive.comment!({ ...ctx(null), type: 'update', prev, next })).toBe(next)
-				expect(authorizers.comment!({ ...ctx(null), type: 'update', prev, next })).toBeInstanceOf(
-					TLDeny
-				)
+				expect(authorizers.comment!({ ...ctx(null), type: 'update', prev, next })).toSatisfy(isDeny)
 			})
 		})
 	})

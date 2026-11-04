@@ -1,5 +1,11 @@
 import type { UnknownRecord } from '@tldraw/store'
-import { deny, TLDeny, type TLBeforeWriteHook, type TLBeforeWriteHooks } from '@tldraw/sync-core'
+import {
+	deny,
+	isDeny,
+	type TLBeforeWriteHook,
+	type TLBeforeWriteHooks,
+	type TLDeny,
+} from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
 	type TLComment,
@@ -211,7 +217,7 @@ export function createCommentAuthorizers<SessionMeta>(
 		return (userId, args) => {
 			if (args.type === 'delete') return deny('clients may not hard-delete')
 			const result = base(userId, args)
-			if (result instanceof TLDeny) return result
+			if (isDeny(result)) return result
 			// A record can't be born deleted — that would smuggle a deletion past the update checks.
 			if (args.type === 'create') {
 				return args.next.isDeleted ? deny('may not create a deleted record') : result
@@ -246,7 +252,7 @@ export function createCommentAuthorizers<SessionMeta>(
 	 */
 	const authorizeThreadResolution: Rule<TLCommentThread> = (userId, args) => {
 		const result = authorizeAuthored<TLCommentThread>('createdBy')(userId, args)
-		if (result instanceof TLDeny) return result
+		if (isDeny(result)) return result
 		if (args.type === 'create') {
 			// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
 			const { next } = args
@@ -310,7 +316,7 @@ export function createCommentAuthorizers<SessionMeta>(
 				: deny('only the reactor may remove a reaction')
 		}
 		const result = authorizeReactionBase(userId, args)
-		if (result instanceof TLDeny) return result
+		if (isDeny(result)) return result
 		if (args.type === 'create') {
 			// Unreachable: the base rule already rejected identity-less creates. Checked to narrow.
 			if (!userId) return deny('no user id to attribute')

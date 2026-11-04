@@ -27,12 +27,12 @@ import {
 	DurableObjectSqliteSyncWrapper,
 	RoomSnapshot,
 	SQLiteSyncStorage,
-	TLDeny,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 	TLSyncForwardDiff,
 	TLSyncStorage,
+	isDeny,
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
@@ -411,7 +411,7 @@ export class TLFileDurableObject extends DurableObject {
 					typeName,
 					(args: Parameters<typeof authorize>[0]) => {
 						const result = authorize(args as never)
-						if (result === false || result instanceof TLDeny) {
+						if (result === false || isDeny(result)) {
 							try {
 								this.recordVeto(
 									typeName,

@@ -1,4 +1,4 @@
-import { deny, TLDeny } from '@tldraw/sync-core'
+import { deny, isDeny } from '@tldraw/sync-core'
 import {
 	createComment,
 	createCommentThread,
@@ -93,15 +93,15 @@ describe('file room record veto telemetry', () => {
 			.mockReturnValueOnce(deny('mocked'))
 		const h = await harness()
 		const { auth } = h
-		expect(
-			auth.shape({ session, get, type: 'create', prev: null, next: note('bob') })
-		).toBeInstanceOf(TLDeny)
-		expect(
-			auth.shape({ session, get, type: 'create', prev: null, next: note('bob') })
-		).toBeInstanceOf(TLDeny)
+		expect(auth.shape({ session, get, type: 'create', prev: null, next: note('bob') })).toSatisfy(
+			isDeny
+		)
+		expect(auth.shape({ session, get, type: 'create', prev: null, next: note('bob') })).toSatisfy(
+			isDeny
+		)
 		expect(
 			auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
-		).toBeInstanceOf(TLDeny)
+		).toSatisfy(isDeny)
 		const thread = createCommentThread({
 			pageId: 'page:test' as TLPageId,
 			anchor: { type: 'page' },
@@ -109,7 +109,7 @@ describe('file room record veto telemetry', () => {
 		})
 		expect(
 			auth['comment-thread']!({ session, get, type: 'delete', prev: thread, next: null })
-		).toBeInstanceOf(TLDeny)
+		).toSatisfy(isDeny)
 		expect(h.points).toEqual([])
 		await h.flush()
 		expect(h.points).toEqual([
@@ -137,7 +137,7 @@ describe('file room record veto telemetry', () => {
 		for (let i = 0; i < 1000; i++) {
 			expect(
 				auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 		}
 		expect(h.points).toEqual([])
 		expect(waitUntil).toHaveBeenCalledTimes(1)
@@ -206,7 +206,7 @@ describe('file room record veto telemetry', () => {
 			if (dependency === 'sentry') h.object.sentry.captureMessage = fail
 			expect(
 				auth.shape({ session, get, type: 'update', prev: note('alice'), next: note('bob') })
-			).toBeInstanceOf(TLDeny)
+			).toSatisfy(isDeny)
 			await expect(h.flush()).resolves.toBeUndefined()
 			if (dependency === 'analytics') {
 				h.object.measure.writeDataPoint = writeDataPoint
@@ -229,7 +229,7 @@ describe('file room record veto telemetry', () => {
 			type: 'secret-client-content',
 			typeName: 'secret-type-name',
 		} as unknown as TLShape
-		expect(auth.shape({ session, get, type: 'create', prev: null, next })).toBeInstanceOf(TLDeny)
+		expect(auth.shape({ session, get, type: 'create', prev: null, next })).toSatisfy(isDeny)
 		expect(h.points).toEqual([])
 		await h.flush()
 		expect(h.points).toEqual([point('shape', 'create', 'unknown', 'mocked')])

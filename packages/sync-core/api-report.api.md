@@ -149,6 +149,9 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 }
 
 // @public
+export function isDeny(value: unknown): value is TLDeny;
+
+// @public
 export class JsonChunkAssembler {
     handleMessage(msg: string): {
         data: object;
@@ -429,9 +432,8 @@ export interface TLConnectRequest {
 export type TLCustomMessageHandler = (this: null, data: any) => void;
 
 // @public
-export class TLDeny {
-    constructor(
-    reason: string);
+export interface TLDeny {
+    readonly [denyBrand]: true;
     readonly reason: string;
 }
 

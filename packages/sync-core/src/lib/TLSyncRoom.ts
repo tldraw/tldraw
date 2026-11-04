@@ -200,18 +200,22 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (
 	)
 ) => Rec | void | false | TLDeny
 
+// `Symbol.for` so that a denial still matches when an app bundles two copies of this package,
+// where `instanceof` would fail and a denied create would store the denial as the record.
+declare const denyBrand: unique symbol
+const DENY_KEY: typeof denyBrand = Symbol.for('tldraw.sync.deny') as typeof denyBrand
+
 /**
- * A denied operation, made by {@link deny}. Hosts that wrap hooks such as {@link TLBeforeWriteHook},
- * e.g. for telemetry, detect it with `instanceof`. A record can never be an instance, so a record
- * field named `reason` is not mistaken for a denial.
+ * A denied operation, made by {@link deny}. Detect it with {@link isDeny}. JSON records cannot
+ * have symbol keys, so a record field named `reason` is never mistaken for a denial.
  *
  * @public
  */
-export class TLDeny {
-	constructor(
-		/** Why the operation was denied. The room logs it; keep it short and free of user content. */
-		readonly reason: string
-	) {}
+export interface TLDeny {
+	/** Marks the object as a denial. Hooks make one with {@link deny}, never by hand. */
+	readonly [denyBrand]: true
+	/** Why the operation was denied. The room logs it; keep it short and free of user content. */
+	readonly reason: string
 }
 
 /**
@@ -220,7 +224,17 @@ export class TLDeny {
  * @public
  */
 export function deny(reason: string): TLDeny {
-	return new TLDeny(reason)
+	return { [DENY_KEY]: true, reason }
+}
+
+/**
+ * Whether a value is a denial made by {@link deny}. Hosts that wrap hooks, e.g. for telemetry,
+ * use it to read a hook's result.
+ *
+ * @public
+ */
+export function isDeny(value: unknown): value is TLDeny {
+	return typeof value === 'object' && value !== null && (value as any)[DENY_KEY] === true
 }
 
 /**
@@ -1540,7 +1554,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 													? { ...authBase!, type: 'update', prev: prevRec, next }
 													: { ...authBase!, type: 'create', prev: null, next }
 											)
-											if (result instanceof TLDeny) {
+											if (isDeny(result)) {
 												this.log?.warn?.(
 													'beforeWrite denied put',
 													record.typeName,
@@ -1577,7 +1591,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 												prev,
 												next,
 											})
-											const denied = result instanceof TLDeny
+											const denied = isDeny(result)
 											if (denied) {
 												this.log?.warn?.(
 													'beforeWrite denied patch',
@@ -1610,7 +1624,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const result =
 									authorizeRemove &&
 									authorizeRemove({ ...authBase!, type: 'delete', prev: doc, next: null })
-								if (session && result instanceof TLDeny) {
+								if (session && isDeny(result)) {
 									this.log?.warn?.(
 										'beforeWrite denied delete',
 										doc.typeName,
