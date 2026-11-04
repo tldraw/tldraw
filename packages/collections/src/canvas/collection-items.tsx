@@ -5,6 +5,7 @@ import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { sortItems, type TLCollectionItemOrdering } from './item-order'
 
 const messages = defineMessages({
 	emptyCollection: {
@@ -42,18 +43,27 @@ export interface CollectionItemsProps {
 	collectionId: TLCollectionId
 	/** Props for an item's tile button: its click and drag handlers. */
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	ordering: TLCollectionItemOrdering
+	reversed: boolean
 }
 
 /** One collection's items as a grid, with each item's rename and delete. */
-export function CollectionItems({ source, collectionId, getItemProps }: CollectionItemsProps) {
+export function CollectionItems({
+	source,
+	collectionId,
+	getItemProps,
+	ordering,
+	reversed,
+}: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const items = useValue('collection items', () => source.getItems(collectionId), [
-		source,
-		collectionId,
-	])
+	const items = useValue(
+		'collection items',
+		() => sortItems(source.getItems(collectionId), ordering, reversed),
+		[source, collectionId, ordering, reversed]
+	)
 	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
 	const canRename = useValue('can rename items', () => source.can('renameItem', collectionId), [
 		source,

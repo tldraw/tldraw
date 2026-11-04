@@ -12,7 +12,11 @@ export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { placeCollectionItem } from './canvas/place-item'
 export { saveShapesToCollection } from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
-export { CollectionMenu, type CollectionMenuProps } from './ui/collection-menu'
+export {
+	CollectionMenu,
+	type CollectionMenuProps,
+	type CollectionMenuSort,
+} from './ui/collection-menu'
 export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
 export {
 	CollectionList,
@@ -51,3 +55,10 @@ export {
 	type TLCollectionItemId,
 	type TLCollectionRecord,
 } from './lib/schema'
+export {
+	defaultItemOrderings,
+	nameItemOrder,
+	newestItemOrder,
+	sourceItemOrder,
+	type TLCollectionItemOrdering,
+} from './canvas/item-order'
