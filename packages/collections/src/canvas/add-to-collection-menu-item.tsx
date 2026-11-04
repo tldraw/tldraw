@@ -7,6 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { sortByRecentlySavedTo } from './recent-collections'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -17,9 +18,18 @@ const messages = defineMessages({
 	},
 })
 
+/**
+ * How the submenu orders collections: as the source lists them, or the ones the current user saved
+ * to most recently first (remembered in this browser).
+ * @public
+ */
+export type AddToCollectionOrder = 'source' | 'recent'
+
 /** @public */
 export interface AddToCollectionMenuItemProps {
 	source: CollectionSource
+	/** Defaults to `'source'`. */
+	order?: AddToCollectionOrder
 }
 
 /**
@@ -28,15 +38,23 @@ export interface AddToCollectionMenuItemProps {
  * nowhere to add it. Drop it into your context menu, e.g. above `DefaultContextMenuContent`.
  * @public @react
  */
-export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps) {
+export function AddToCollectionMenuItem({
+	source,
+	order = 'source',
+}: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
 	const collections = useValue(
 		'writable collections',
-		() => source.getCollections().filter((collection) => source.can('addItem', collection.id)),
-		[source]
+		() => {
+			const writable = source
+				.getCollections()
+				.filter((collection) => source.can('addItem', collection.id))
+			return order === 'recent' ? sortByRecentlySavedTo(source.id, writable) : writable
+		},
+		[source, order]
 	)
 	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
 		source,
