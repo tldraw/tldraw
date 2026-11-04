@@ -38,6 +38,7 @@ export {
 	CollectionPermissionError,
 	type CollectionSource,
 	type TLCollectionAction,
+	type TLCollectionOwner,
 	type TLNewCollectionItem,
 } from './lib/CollectionSource'
 export {
