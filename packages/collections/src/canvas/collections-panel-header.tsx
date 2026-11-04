@@ -17,6 +17,7 @@ import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
 import type { GroupCollections } from './collection-groups'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { createNewCollection } from './new-collection'
 import { activeCollectionId, renamingCollectionId } from './state'
 import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
@@ -165,7 +166,7 @@ export function CollectionsPanelHeader({
 			msg(messages.newCollectionName),
 			collections.map((collection) => collection.name)
 		)
-		source.createCollection(name).then((collection) => {
+		createNewCollection(source, name).then((collection) => {
 			activeCollectionId.set(editor, collection.id)
 			renamingCollectionId.set(editor, collection.id)
 		}, showError)

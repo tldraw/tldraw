@@ -8,6 +8,7 @@ import {
 	type TLCollectionAction,
 	type TLCollectionOwner,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from './CollectionSource'
 import {
 	CollectionItemRecordType,
@@ -36,10 +37,12 @@ export interface InMemoryCollectionSourceOptions {
 	/** Makes every collection read-only, like a prefab pack. Items can still be used. */
 	readOnly?: boolean
 	/**
-	 * Who collections can belong to. New collections go to the first. Leave out for a source
-	 * without owners, whose collections can't be moved.
+	 * Who collections can belong to. Leave out for a source without owners, whose collections can't
+	 * be moved.
 	 */
 	owners?: TLCollectionOwner[]
+	/** Who new collections belong to unless they name an owner. Defaults to the first owner. */
+	defaultOwnerId?: string
 }
 
 const schema = StoreSchema.create<TLCollectionRecord>(
@@ -59,6 +62,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly readOnly: boolean
 	private readonly owners: TLCollectionOwner[]
+	private readonly defaultOwnerId: string | undefined
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
@@ -69,6 +73,12 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.id = options.id ?? 'in-memory'
 		this.readOnly = options.readOnly ?? false
 		this.owners = options.owners ?? []
+		this.defaultOwnerId = options.defaultOwnerId
+		// Checked against the option, not getCollectionOwners: a subclass's owners may not be ready yet.
+		const isOwner = (ownerId: string) => this.owners.some((owner) => owner.id === ownerId)
+		if (this.defaultOwnerId !== undefined && !isOwner(this.defaultOwnerId)) {
+			throw new Error(`Default owner ${this.defaultOwnerId} is not one of the owners`)
+		}
 		if (options.initial) {
 			const { collections, items, contents } = options.initial
 			// Bad starting data would only fail later, in the UI, so it is checked as a whole up front.
@@ -77,7 +87,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 			const ids = [...collections, ...items].map((r) => r.id)
 			if (new Set(ids).size !== ids.length) throw new Error('Duplicate ids in starting data')
 			for (const collection of collections) {
-				if (collection.ownerId !== undefined && !this.hasOwner(collection.ownerId)) {
+				if (collection.ownerId !== undefined && !isOwner(collection.ownerId)) {
 					throw new Error(
 						`Collection ${collection.id} belongs to missing owner ${collection.ownerId}`
 					)
@@ -135,9 +145,14 @@ export class InMemoryCollectionSource implements CollectionSource {
 		return this.owners
 	}
 
-	async createCollection(name: string) {
+	getDefaultOwnerId() {
+		return this.defaultOwnerId
+	}
+
+	async createCollection(name: string, options: TLNewCollectionOptions = {}) {
 		this.assertCan('createCollection')
-		const ownerId = this.owners[0]?.id
+		const ownerId = options.ownerId ?? this.getDefaultOwnerId() ?? this.getCollectionOwners()[0]?.id
+		if (ownerId !== undefined && !this.hasOwner(ownerId)) throw new CollectionNotFoundError(ownerId)
 		const collection = CollectionRecordType.create({
 			name,
 			...(ownerId === undefined ? {} : { ownerId }),
@@ -231,7 +246,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	}
 
 	private hasOwner(ownerId: string) {
-		return this.owners.some((owner) => owner.id === ownerId)
+		return this.getCollectionOwners().some((owner) => owner.id === ownerId)
 	}
 
 	private getItem(itemId: TLCollectionItemId) {

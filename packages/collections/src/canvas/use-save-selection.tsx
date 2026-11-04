@@ -11,6 +11,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItem } from '../lib/schema'
 import { NameItemDialog } from './name-item-dialog'
+import { createNewCollection } from './new-collection'
 import { recordRecentCollection } from './recent-collections'
 import { saveShapesToCollection } from './save-shapes'
 import {
@@ -177,8 +178,7 @@ export function useSaveSelection(source: CollectionSource, options: SaveSelectio
 			msg(messages.newCollectionName),
 			source.getCollections().map((collection) => collection.name)
 		)
-		source
-			.createCollection(name)
+		createNewCollection(source, name)
 			.then(async (collection) => {
 				await saveShapesToCollection(editor, source, collection.id, shapeIds)
 				recordRecentCollection(source.id, collection.id)

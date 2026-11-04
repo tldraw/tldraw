@@ -194,6 +194,27 @@ describe('InMemoryCollectionSource', () => {
 			expect(collection.ownerId).toBe('home')
 		})
 
+		it('gives new collections to the default owner, unless they name one', async () => {
+			const source = new InMemoryCollectionSource({ owners, defaultOwnerId: 'acme' })
+			expect(source.getDefaultOwnerId()).toBe('acme')
+			expect((await source.createCollection('Wireframes')).ownerId).toBe('acme')
+			expect((await source.createCollection('Icons', { ownerId: 'home' })).ownerId).toBe('home')
+		})
+
+		it('refuses a new collection for a missing owner', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			await expect(source.createCollection('Wireframes', { ownerId: 'nobody' })).rejects.toThrow(
+				CollectionNotFoundError
+			)
+			expect(source.getCollections()).toEqual([])
+		})
+
+		it('refuses a default owner that is not an owner', () => {
+			expect(() => new InMemoryCollectionSource({ owners, defaultOwnerId: 'nobody' })).toThrow(
+				'not one of the owners'
+			)
+		})
+
 		it('leaves the owner out without owners', async () => {
 			const source = new InMemoryCollectionSource()
 			expect(source.getCollectionOwners()).toEqual([])

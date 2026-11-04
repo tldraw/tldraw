@@ -41,6 +41,7 @@ export {
 	type TLCollectionAction,
 	type TLCollectionOwner,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from './lib/CollectionSource'
 export {
 	InMemoryCollectionSource,
