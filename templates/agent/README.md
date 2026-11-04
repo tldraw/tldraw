@@ -637,7 +637,7 @@ Add the model to `AGENT_MODELS` in `shared/models.ts`, as a `provider/id` ref fr
 'anthropic/claude-sonnet-5'
 ```
 
-pi-ai's catalog supplies the model's API, limits and reasoning support. Every model reasons at pi-ai's `'medium'` level, set in `worker/do/AgentService.ts`. When the model's id on [OpenRouter](https://openrouter.ai/models) differs from its ref, add it to `OPENROUTER_IDS` in the same file. To add a provider, register it there too.
+pi-ai's catalog supplies the model's API, limits and reasoning support. Every model reasons at the `'medium'` level, set in `worker/do/AgentService.ts`. When the model's id on [OpenRouter](https://openrouter.ai/models) differs from its ref, add it to `OPENROUTER_IDS` in the same file. To add a provider, register it there too.
 
 ## Support custom shapes
 

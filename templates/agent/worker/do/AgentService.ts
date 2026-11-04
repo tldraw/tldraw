@@ -27,8 +27,10 @@ export class AgentService {
 		// pi-ai reads each provider's key from its usual env var, such as `ANTHROPIC_API_KEY`.
 		this.models = createModels({
 			authContext: {
-				env: async (name) =>
-					(env as unknown as Record<string, string | undefined>)[name] || undefined,
+				env: async (name) => {
+					const value = (env as unknown as Record<string, unknown>)[name]
+					return typeof value === 'string' && value ? value : undefined
+				},
 				fileExists: async () => false,
 			},
 		})
@@ -40,10 +42,16 @@ export class AgentService {
 
 	/** The model from its own provider when that provider has a key, or else from OpenRouter. */
 	async getModel(name: AgentModelName): Promise<Model<Api>> {
-		const [provider, id] = name.split('/') as [string, string]
-		const model = (await this.models.getAuth(provider))
-			? this.models.getModel(provider, id)
-			: this.models.getModel('openrouter', OPENROUTER_IDS[name] ?? name)
+		const slash = name.indexOf('/')
+		const provider = name.slice(0, slash)
+		let model: Model<Api> | undefined
+		if (await this.models.getAuth(provider)) {
+			model = this.models.getModel(provider, name.slice(slash + 1))
+		} else if (await this.models.getAuth('openrouter')) {
+			model = this.models.getModel('openrouter', OPENROUTER_IDS[name] ?? name)
+		} else {
+			throw new Error(`Set an API key for ${provider} or OPENROUTER_API_KEY to use ${name}.`)
+		}
 		if (!model) throw new Error(`Model ${name} not found`)
 		return model
 	}
