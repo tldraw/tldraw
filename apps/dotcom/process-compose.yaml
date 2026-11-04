@@ -97,6 +97,13 @@ processes:
       sync-worker:
         condition: process_healthy
 
+  # render-worker — private screenshot/measure worker. The reverse of image-resize/usercontent:
+  # sync-worker binds THIS by name (RENDER_WORKER), so wrangler's dev registry connects them whenever
+  # both are up. Nothing calls the binding yet (the render core still lives in sync-worker), so no
+  # strict ordering is needed. In dev it drives the client's Playwright endpoint, not Browser Run.
+  render-worker:
+    command: pnpm --filter @tldraw/dotcom-render-worker dev
+
   # client — vite dev server
   client:
     command: pnpm --filter dotcom dev

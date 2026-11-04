@@ -4,6 +4,8 @@
 // render pages, so the wait strategy, terminal selectors, and capture target live here — one place
 // — and the local harness can't drift from production.
 
+import type { ThumbnailSnapshotResponseBody } from './types'
+
 // The render page marks a terminal state on <body>/<html>: success sets data-thumbnail-ready once
 // the exported image has painted; any failure (bad token, snapshot load, export, or image decode)
 // sets data-thumbnail-error. The screenshot wait resolves on EITHER, so a failed render returns as
@@ -18,6 +20,31 @@ const THUMBNAIL_CAPTURE_SELECTOR = 'body[data-thumbnail-ready="true"]'
 
 // Shared so the worker and the page cannot drift: a mismatched name is silent, the page just fetches.
 export const THUMBNAIL_RENDER_GLOBAL = '__TLDRAW_RENDER__'
+
+// The push payload the render page reads off the global. Built here so the sync worker's oversize
+// pre-check and the render worker's actual push use one definition and cannot drift. Parsed rather
+// than evaluated as an object literal: a literal turns a record's `"__proto__"` key into its
+// prototype, so a board that loads by fetch would fail validation by push. addScriptTag sets the
+// script's text rather than parsing it as HTML, so board text cannot close the tag early.
+export function renderPushScript(
+	payload: Extract<ThumbnailSnapshotResponseBody, { error: false }>
+) {
+	return `window.${THUMBNAIL_RENDER_GLOBAL}=JSON.parse(${JSON.stringify(JSON.stringify(payload))})`
+}
+
+// The binding serializes the whole request into one RPC message, capped at 32 MiB (measured
+// 2026-08-21: a 25.6 MB push landed intact, 32 MB was refused). The budget sits under that for
+// request-envelope headroom and covers both hops: the sync→render RPC (the payload object) and
+// Browser Run's addScriptTag (this script, the larger of the two).
+export const RENDER_PUSH_BUDGET_BYTES = 31 * 1024 * 1024
+
+// The script's size as the RPC actually serializes it: V8 holds a string as Latin-1 (1 byte/char)
+// unless any character falls outside it, when the whole string becomes UTF-16 (2 bytes/char). So a
+// char count alone understates a board carrying non-Latin-1 text — measure bytes.
+export function renderPushByteLength(script: string) {
+	// Any code unit at or above U+0100 means the string isn't all-Latin-1, so V8 stores it as UTF-16.
+	return script.length * (/[Ā-￿]/.test(script) ? 2 : 1)
+}
 
 // Tells the page a push is coming. Without it every pull render would wait for a push that never
 // lands. Set only by getThumbnailRenderRequestBase, alongside the script itself.

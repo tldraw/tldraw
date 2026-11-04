@@ -794,6 +794,22 @@ importers:
         specifier: ^4.148.0
         version: 4.148.0(@cloudflare/workers-types@4.20260317.1)(@types/node@22.16.0)
 
+  apps/dotcom/render-worker:
+    dependencies:
+      '@tldraw/dotcom-shared':
+        specifier: workspace:*
+        version: link:../../../packages/dotcom-shared
+      '@tldraw/worker-shared':
+        specifier: workspace:*
+        version: link:../../../packages/worker-shared
+    devDependencies:
+      '@cloudflare/workers-types':
+        specifier: ^4.20260302.0
+        version: 4.20260317.1
+      wrangler:
+        specifier: ^4.75.0
+        version: 4.76.0(@cloudflare/workers-types@4.20260317.1)
+
   apps/dotcom/sync-worker:
     dependencies:
       '@clerk/backend':
@@ -805,6 +821,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
+      '@tldraw/dotcom-render-worker':
+        specifier: workspace:*
+        version: link:../render-worker
       '@tldraw/dotcom-shared':
         specifier: workspace:*
         version: link:../../../packages/dotcom-shared
