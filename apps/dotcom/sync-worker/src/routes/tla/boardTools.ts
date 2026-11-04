@@ -1072,12 +1072,12 @@ export function getPageInfo(page: ResolvedPageOk, clusters: ShapeCluster[]): Too
 
 /**
  * The most JSON one get_cluster_info answer carries before it stops and hands back a nextCursor.
- * Some clients cut a tool result off at 25K tokens, and this JSON runs about 2.5 to 3 characters a
- * token, so 60K characters keeps an answer under that. Measured rather than counted in
- * shapes, because a shape's size is mostly its text: a box is ~400 characters, a note holding a
- * paragraph several times that.
+ * Some clients cut a tool result off at 25K tokens, and a 55K-character answer has gone over that:
+ * this JSON can run under 2.2 characters a token, so 40K characters leaves room. Measured rather
+ * than counted in shapes, because a shape's size is mostly its text: a box is ~400 characters, a
+ * note holding a paragraph several times that.
  */
-export const CLUSTER_INFO_MAX_CHARS = 60_000
+export const CLUSTER_INFO_MAX_CHARS = 40_000
 
 export type ClusterInfoResult =
 	| { ok: true; result: ToolResult }

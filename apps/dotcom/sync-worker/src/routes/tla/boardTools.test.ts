@@ -796,7 +796,7 @@ describe('getClusterInfo', () => {
 		// Each cluster's label and keywords ride along with its shapes. Across many small clusters they
 		// come to nearly as much again, which an answer measured by its shapes alone never saw.
 		it('keeps the whole answer within budget, not just its shapes', () => {
-			const COUNT = 100
+			const COUNT = 70
 			const board = farApart(
 				Array.from({ length: COUNT }, (_, i) => shape(`shape:note-${i}`, { x: i * 100_000 }))
 			)
