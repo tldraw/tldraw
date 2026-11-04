@@ -149,6 +149,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * isn't allowed to make, or rewrite the record on create — e.g. force a comment's `authorId`
 	 * to the signed-in user. Each hook can read other records with `get`, for rules that depend on
 	 * a record's parent. See {@link TLBeforeWriteHooks}.
+	 *
+	 * Only runs for client pushes. Server-initiated changes — `updateStore`, `loadSnapshot`,
+	 * migrations, or writing to the storage directly — skip these hooks, so server code that acts
+	 * for a user must check that user's access itself before it writes.
 	 */
 	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 	/**
