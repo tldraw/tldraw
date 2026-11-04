@@ -1,16 +1,17 @@
+import { useEffect, useRef, useState } from 'react'
 import {
 	defineMessages,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuContextProvider,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
+	useContainer,
 	useTranslation,
 } from 'tldraw'
+import { MenuItem, MenuSubmenu } from './menu-items'
+import { RenameInput } from './rename-input'
 
 const messages = defineMessages({
 	moreOptions: { id: 'collections.item-menu.title', defaultMessage: 'Item options' },
@@ -23,8 +24,13 @@ const messages = defineMessages({
 export interface ItemMenuProps {
 	/** Unique per item, so each tile's menu opens on its own. */
 	id: string
-	/** Leave out to hide Rename, e.g. when the source doesn't allow it. */
-	onRename?(): void
+	/** Shown at the top of the menu. Leave out for an unnamed item. */
+	name?: string
+	/**
+	 * Called with the input's value when a rename in the menu completes. Leave out to hide Rename,
+	 * e.g. when the source doesn't allow it.
+	 */
+	onRename?(name: string): void
 	/** Leave out to hide Delete. */
 	onDelete?(): void
 	/** The collections the item can move to. Leave out, or leave empty, to hide "Move to". */
@@ -42,10 +48,11 @@ export function getItemMenuId(id: string) {
 }
 
 /**
- * A ⋯ menu for one item, laid out like the page menu's. Renders nothing when it has no actions.
+ * A ⋯ menu for one item, headed by its name. Rename turns the heading into an input. Renders
+ * nothing when it has no actions.
  * @public @react
  */
-export function ItemMenu({ id, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
 	const msg = useTranslation()
 	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
 	if (!onRename && !onDelete && !canMove) return null
@@ -62,36 +69,106 @@ export function ItemMenu({ id, onRename, onDelete, moveTargets, onMove }: ItemMe
 					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end" sideOffset={4} alignOffset={0}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
-					{onRename && (
-						<TldrawUiMenuGroup id="modify">
-							<TldrawUiMenuItem id="rename" label={messages.rename.id} onSelect={onRename} />
-						</TldrawUiMenuGroup>
-					)}
-					{canMove && (
-						<TldrawUiMenuGroup id="move">
-							<TldrawUiMenuSubmenu id="move-to" label={messages.moveTo.id}>
-								<TldrawUiMenuGroup id="move-targets">
-									{moveTargets.map((target) => (
-										<TldrawUiMenuItem
-											key={target.id}
-											id={`move-to-${target.id}`}
-											label={target.name}
-											onSelect={() => onMove(target.id)}
-										/>
-									))}
-								</TldrawUiMenuGroup>
-							</TldrawUiMenuSubmenu>
-						</TldrawUiMenuGroup>
-					)}
-					{onDelete && (
-						<TldrawUiMenuGroup id="delete">
-							<TldrawUiMenuItem id="delete" label={messages.delete.id} onSelect={onDelete} />
-						</TldrawUiMenuGroup>
-					)}
-				</TldrawUiMenuContextProvider>
+			<TldrawUiDropdownMenuContent
+				className="tlui-collections-menu"
+				side="bottom"
+				align="start"
+				alignOffset={0}
+				sideOffset={0}
+			>
+				<ItemMenuContent
+					id={id}
+					name={name}
+					onRename={onRename}
+					onDelete={onDelete}
+					moveTargets={canMove ? moveTargets : undefined}
+					onMove={onMove}
+				/>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
+}
+
+/** Mounted only while the menu is open, so closing it ends a rename. */
+function ItemMenuContent({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+	const msg = useTranslation()
+	const [renaming, setRenaming] = useState(false)
+	const renameItemRef = useRef<HTMLButtonElement>(null)
+	useKeepMenuOpenOnEscape(renaming)
+
+	const stopRenaming = () => {
+		setRenaming(false)
+		// Enter and Escape blur the input, leaving focus nowhere. Deferred so Enter's keypress doesn't
+		// land on Rename and start another rename.
+		requestAnimationFrame(() => {
+			const item = renameItemRef.current
+			if (item && item.ownerDocument.activeElement === item.ownerDocument.body) item.focus()
+		})
+	}
+
+	return (
+		<>
+			{renaming && onRename && (
+				<div className="tlui-collections-menu__heading" onKeyDown={(e) => e.stopPropagation()}>
+					<RenameInput
+						className="tlui-collections-menu__rename"
+						defaultValue={name ?? ''}
+						onComplete={(newName) => {
+							stopRenaming()
+							onRename(newName)
+						}}
+						onCancel={stopRenaming}
+					/>
+				</div>
+			)}
+			{!renaming && name && (
+				<div className="tlui-collections-menu__heading" role="presentation">
+					<strong>{name}</strong>
+				</div>
+			)}
+			<TldrawUiDropdownMenuGroup>
+				{onRename && (
+					<MenuItem
+						buttonRef={renameItemRef}
+						label={msg(messages.rename)}
+						noClose
+						holdFocus={renaming}
+						onClick={() => setRenaming(true)}
+					/>
+				)}
+				{moveTargets && onMove && (
+					<MenuSubmenu
+						id={`${getItemMenuId(id)}-move-to`}
+						label={msg(messages.moveTo)}
+						holdFocus={renaming}
+					>
+						{moveTargets.map((target) => (
+							<MenuItem key={target.id} label={target.name} onClick={() => onMove(target.id)} />
+						))}
+					</MenuSubmenu>
+				)}
+				{onDelete && (
+					<MenuItem label={msg(messages.delete)} danger holdFocus={renaming} onClick={onDelete} />
+				)}
+			</TldrawUiDropdownMenuGroup>
+		</>
+	)
+}
+
+/**
+ * The menu closes on Escape from a capture listener on the document, which runs before the input's
+ * own handler. Marking the event handled on the window first lets Escape cancel the rename and leave
+ * the menu open.
+ */
+function useKeepMenuOpenOnEscape(active: boolean) {
+	const container = useContainer()
+	useEffect(() => {
+		const win = container.ownerDocument.defaultView
+		if (!active || !win) return undefined
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape') e.preventDefault()
+		}
+		win.addEventListener('keydown', onKeyDown, true)
+		return () => win.removeEventListener('keydown', onKeyDown, true)
+	}, [active, container])
 }

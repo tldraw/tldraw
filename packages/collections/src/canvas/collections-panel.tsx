@@ -1,4 +1,4 @@
-import { type MouseEvent, useCallback, useState } from 'react'
+import { type MouseEvent, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -115,7 +115,6 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 		[editor, source, addToast, msg]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
-	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
 	const canRename = useValue(
 		'can rename items',
 		() => currentId !== undefined && source.can('renameItem', currentId),
@@ -190,7 +189,6 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 	)
 	const renameItem = useCallback(
 		(itemId: TLCollectionItemId, name: string) => {
-			setRenamingId(undefined)
 			const item = items.find((i) => i.id === itemId)
 			const trimmed = name.trim()
 			// Names are never blank, so clearing the input keeps the old name rather than removing it.
@@ -231,7 +229,8 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 						renderItemMenu={(item) => (
 							<ItemMenu
 								id={item.id}
-								onRename={canRename ? () => setRenamingId(item.id) : undefined}
+								name={item.name}
+								onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
 								moveTargets={moveTargets}
 								onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
 								onDelete={
@@ -259,9 +258,6 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 								}
 							/>
 						)}
-						renamingId={renamingId}
-						onRename={renameItem}
-						onCancelRename={() => setRenamingId(undefined)}
 						empty={msg(messages.emptyCollection)}
 					/>
 				) : (
