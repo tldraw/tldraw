@@ -2,8 +2,9 @@ import { useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import {
 	type CollectionGroup,
+	type CollectionGrouping,
 	groupCollectionList,
-	type GroupCollections,
+	useCollectionGrouping,
 } from './collection-groups'
 import { sortByRecentlySavedTo } from './recent-collections'
 
@@ -27,8 +28,9 @@ export interface AddTargets {
 export function useAddTargets(
 	source: CollectionSource,
 	order: AddToCollectionOrder = 'source',
-	groupCollections?: GroupCollections
+	groupCollections?: CollectionGrouping
 ): AddTargets {
+	const grouping = useCollectionGrouping(source, groupCollections)
 	const collections = useValue(
 		'writable collections',
 		() => {
@@ -43,7 +45,7 @@ export function useAddTargets(
 		source,
 	])
 	return {
-		groups: groupCollectionList(collections, groupCollections),
+		groups: groupCollectionList(collections, grouping),
 		canCreate,
 		hasTargets: collections.length > 0 || canCreate,
 	}
