@@ -354,7 +354,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			InFrontOfTheCanvas: () => (
 				<>
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
-					<TlaCollectionsPanel />
+					<TlaCollectionsPanel fileId={fileId} />
 				</>
 			),
 		}
