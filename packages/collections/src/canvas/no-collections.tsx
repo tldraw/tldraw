@@ -7,6 +7,7 @@ import {
 	useTranslation,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { createNewCollection } from './new-collection'
 import { activeCollectionId, renamingCollectionId } from './state'
 
 const messages = defineMessages({
@@ -48,7 +49,7 @@ export function NoCollections({
 	const canCreate = firstUse === 'create' && source.can('createCollection')
 
 	const create = () =>
-		source.createCollection(msg(messages.newCollectionName)).then(
+		createNewCollection(source, msg(messages.newCollectionName)).then(
 			(collection) => {
 				activeCollectionId.set(editor, collection.id)
 				renamingCollectionId.set(editor, collection.id)

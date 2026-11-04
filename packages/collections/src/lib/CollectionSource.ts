@@ -26,6 +26,12 @@ export interface TLCollectionOwner {
 	name: string
 }
 
+/** Choices for a new collection. */
+export interface TLNewCollectionOptions {
+	/** Who it belongs to. Left out, the source decides, e.g. its default owner. */
+	ownerId?: string
+}
+
 /** What a source needs to store a new item. */
 export interface TLNewCollectionItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
@@ -57,7 +63,7 @@ export interface CollectionSource {
 	 */
 	can(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
 
-	createCollection(name: string): Promise<TLCollection>
+	createCollection(name: string, options?: TLNewCollectionOptions): Promise<TLCollection>
 	renameCollection(collectionId: TLCollectionId, name: string): Promise<void>
 	deleteCollection(collectionId: TLCollectionId): Promise<void>
 
@@ -77,6 +83,12 @@ export interface CollectionSource {
 	 * sources that don't track owners leave it out.
 	 */
 	getCollectionOwners?(): TLCollectionOwner[]
+	/**
+	 * Who new collections belong to unless the user picks, such as the owner of the open file. The
+	 * UI's "New collection" passes it to {@link CollectionSource.createCollection}. Optional: left
+	 * out, or returning undefined, the source decides.
+	 */
+	getDefaultOwnerId?(): string | undefined
 	/**
 	 * Gives a collection to another owner. Its items stay in it. Optional: the UI offers "Move to"
 	 * only for sources that have it and {@link CollectionSource.getCollectionOwners}, with more than
