@@ -1,6 +1,6 @@
-import { ModelMessage } from 'ai'
 import { useCallback } from 'react'
 import { T, TldrawUiButton, TldrawUiButtonIcon, TldrawUiInput, useEditor } from 'tldraw'
+import type { ChatMessage } from '../../../worker/types'
 import { HandleIcon } from '../../components/icons/HandleIcon'
 import { SendIcon } from '../../components/icons/SendIcon'
 import { NODE_HEIGHT_PX, NODE_WIDTH_PX } from '../../constants'
@@ -76,7 +76,7 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 		// 3. send prompt to ai
 		// 4. update node with assistant message
 
-		const messages: ModelMessage[] = []
+		const messages: ChatMessage[] = []
 		for (const connectedShape of getAllConnectedNodes(editor, shape, 'end')) {
 			const node = editor.getShape(connectedShape)
 			if (!node || !editor.isShapeOfType(node, 'node')) continue
@@ -112,14 +112,7 @@ function MessageNodeComponent({ node, shape }: NodeComponentProps<MessageNode>) 
 				while (true) {
 					const { value, done } = await reader.read()
 					if (done) break
-					const chunk = decoder.decode(value, { stream: true })
-					// Some environments may send SSE-style lines; extract data if so, else use raw chunk
-					const maybeSse = chunk
-						.split('\n')
-						.filter((line) => line.startsWith('data:'))
-						.map((line) => line.replace(/^data:\s?/, ''))
-						.join('')
-					accumulatedText += maybeSse || chunk
+					accumulatedText += decoder.decode(value, { stream: true })
 					updateNode<MessageNode>(editor, shape, (node) => ({
 						...node,
 						assistantMessage: accumulatedText,

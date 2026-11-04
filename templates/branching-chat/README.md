@@ -34,7 +34,7 @@ npm install
 Create a `.env` file in the root directory and add a Google Gemini API key:
 
 ```
-GOOGLE_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 Get the key from [Google AI Studio](https://aistudio.google.com/apikey).
@@ -45,8 +45,8 @@ Or use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
 OPENROUTER_API_KEY=your_openrouter_api_key_here
 ```
 
-When `OPENROUTER_API_KEY` is set, requests go through OpenRouter and `GOOGLE_API_KEY` is not used.
-You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+When `GEMINI_API_KEY` is not set, requests go through OpenRouter.
+The worker uses [pi-ai](https://www.npmjs.com/package/@earendil-works/pi-ai), so you can also switch to a model from another provider.
 
 ### 3. Start Development
 
@@ -79,7 +79,7 @@ This template showcases advanced tldraw concepts:
 
 - **Cloudflare Workers**: Edge computing for global performance
 - **Durable Objects**: Stateful operations and session management
-- **AI Integration**: Vercel AI SDK with streaming support
+- **AI Integration**: pi-ai with streaming support
 - **API Routes**: RESTful endpoints for chat operations
 
 ## Deployment
@@ -97,7 +97,7 @@ npx wrangler deploy
 The deployed worker does not read `.env`. Add your key to it as a secret:
 
 ```bash
-npx wrangler secret put GOOGLE_API_KEY
+npx wrangler secret put GEMINI_API_KEY
 ```
 
 If you use OpenRouter, add `OPENROUTER_API_KEY` instead.

@@ -1,6 +1,7 @@
 name = "branching-chat-template"
 main = "worker/worker.ts"
-compatibility_date = "2024-12-30"
+compatibility_date = "2025-05-08"
+compatibility_flags = ["nodejs_compat"]
 assets = { not_found_handling = "single-page-application" }
 preview_urls = true
 

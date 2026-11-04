@@ -2264,18 +2264,12 @@ importers:
 
   templates/branching-chat:
     dependencies:
-      '@ai-sdk/google':
-        specifier: ^2.0.74
-        version: 2.0.74(zod@4.3.6)
       '@cloudflare/vite-plugin':
         specifier: ^1.29.1
         version: 1.30.0(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))(workerd@1.20260317.1)(wrangler@4.148.0(@types/node@22.16.0))
-      '@openrouter/ai-sdk-provider':
-        specifier: ^1.5.4
-        version: 1.5.4(ai@5.0.194(zod@4.3.6))(zod@4.3.6)
-      ai:
-        specifier: ^5.0.194
-        version: 5.0.194(zod@4.3.6)
+      '@earendil-works/pi-ai':
+        specifier: ^1.5.0
+        version: 1.5.0(@aws-sdk/credential-provider-node@3.972.89)(@modelcontextprotocol/sdk@1.29.0(@cfworker/json-schema@4.1.1)(supports-color@10.2.2)(zod@4.3.6))(@smithy/signature-v4@5.7.4)(supports-color@10.2.2)(undici@7.28.0)(ws@8.21.0)(zod@4.3.6)
       classnames:
         specifier: ^2.5.1
         version: 2.5.1
@@ -2297,9 +2291,6 @@ importers:
       wrangler:
         specifier: ^4.148.0
         version: 4.148.0(@cloudflare/workers-types@4.20260317.1)(@types/node@22.16.0)
-      zod:
-        specifier: ^4.1.8
-        version: 4.3.6
     devDependencies:
       '@cloudflare/workers-types':
         specifier: ^4.20260302.0
@@ -5781,16 +5772,6 @@ packages:
   '@octokit/webhooks@12.0.11':
     resolution: {integrity: sha512-YEQOb7v0TZ662nh5jsbY1CMgJyMajCEagKrHWC30LTCwCtnuIrLtEpE20vq4AtH0SuZI90+PtV66/Bnnw0jkvg==}
     engines: {node: '>= 18'}
-
-  '@openrouter/ai-sdk-provider@1.5.4':
-    resolution: {integrity: sha512-xrSQPUIH8n9zuyYZR0XK7Ba0h2KsjJcMkxnwaYfmv13pKs3sDkjPzVPPhlhzqBGddHb5cFEwJ9VFuFeDcxCDSw==}
-    engines: {node: '>=18'}
-    peerDependencies:
-      ai: ^5.0.0
-      zod: ^3.24.1 || ^v4
-
-  '@openrouter/sdk@0.1.27':
-    resolution: {integrity: sha512-RH//L10bSmc81q25zAZudiI4kNkLgxF2E+WU42vghp3N6TEvZ6F0jK7uT3tOxkEn91gzmMw9YVmDENy7SJsajQ==}
 
   '@opentelemetry/api-logs@0.223.0':
     resolution: {integrity: sha512-Oepm6etVPFCn0VWB1t833iOTgz1eYBDUPxcrOR/XvwzD1+Ag9VzSPSrrKAFNJ/haatj+8CXbG47pZXvdNQKDJw==}
@@ -20029,16 +20010,6 @@ snapshots:
       '@octokit/webhooks-methods': 4.0.0
       '@octokit/webhooks-types': 7.1.0
       aggregate-error: 3.1.0
-
-  '@openrouter/ai-sdk-provider@1.5.4(ai@5.0.194(zod@4.3.6))(zod@4.3.6)':
-    dependencies:
-      '@openrouter/sdk': 0.1.27
-      ai: 5.0.194(zod@4.3.6)
-      zod: 4.3.6
-
-  '@openrouter/sdk@0.1.27':
-    dependencies:
-      zod: 4.3.6
 
   '@opentelemetry/api-logs@0.223.0':
     dependencies:

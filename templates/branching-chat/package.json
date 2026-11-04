@@ -37,18 +37,15 @@
 		"build-types": "tsc"
 	},
 	"dependencies": {
-		"@ai-sdk/google": "^2.0.74",
 		"@cloudflare/vite-plugin": "^1.29.1",
-		"@openrouter/ai-sdk-provider": "^1.5.4",
-		"ai": "^5.0.194",
+		"@earendil-works/pi-ai": "^1.5.0",
 		"classnames": "^2.5.1",
 		"itty-router": "^5.0.18",
 		"radix-ui": "^1.4.2",
 		"react": "^19.2.1",
 		"react-dom": "^19.2.1",
 		"tldraw": "workspace:*",
-		"wrangler": "^4.148.0",
-		"zod": "^4.1.8"
+		"wrangler": "^4.148.0"
 	},
 	"devDependencies": {
 		"@cloudflare/workers-types": "^4.20260302.0",

@@ -1,6 +1,11 @@
 export interface Environment {
-	GOOGLE_API_KEY: string
-	// Optional. When set, requests go through OpenRouter and GOOGLE_API_KEY is not used.
+	// Set one of these. Without GEMINI_API_KEY, requests go through OpenRouter.
+	GEMINI_API_KEY?: string
 	OPENROUTER_API_KEY?: string
 	LOG_LEVEL: 'debug' | 'none'
+}
+
+export interface ChatMessage {
+	role: 'user' | 'assistant'
+	content: string
 }
