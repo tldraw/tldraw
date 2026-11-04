@@ -15,6 +15,7 @@ import {
 	type TLCollectionAction,
 	type TLCollectionId,
 } from '@tldraw/collections'
+import { useEffect } from 'react'
 import {
 	atom,
 	createShapeId,
@@ -38,6 +39,7 @@ import 'tldraw/tldraw.css'
 // against an in-memory source without the tldraw.com stack.
 const WIREFRAMES = CollectionRecordType.createId('wireframes')
 const ICONS = CollectionRecordType.createId('icons')
+const SHAPES = CollectionRecordType.createId('shapes')
 
 type Permissions = Record<TLCollectionAction, boolean>
 
@@ -60,13 +62,15 @@ interface ScopeSettings {
 	role: 'admin' | 'member'
 }
 
-const scopeSettings = atom<ScopeSettings>('collections playground scope', {
+const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 	showPersonal: 'shown',
 	layout: 'mixed',
 	newScope: 'personal',
 	workspaceEditors: 'everyone',
 	role: 'admin',
-})
+}
+
+const scopeSettings = atom<ScopeSettings>('collections playground scope', DEFAULT_SCOPE_SETTINGS)
 
 // Which scope each collection belongs to. A real source would know from where it stores the
 // collection, e.g. the workspace (group) it belongs to.
@@ -90,7 +94,10 @@ const WORKSPACE_CHANGES: TLCollectionAction[] = [
 // may be kept from changing workspace collections.
 class PlaygroundSource extends InMemoryCollectionSource {
 	override getCollections() {
-		const all = super.getCollections()
+		const showsShapes = settings.get().manyItems === 'shown'
+		const all = super
+			.getCollections()
+			.filter((collection) => showsShapes || collection.id !== SHAPES)
 		if (scopeSettings.get().showPersonal === 'shown') return all
 		return all.filter((collection) => scopeOf(collection) !== 'personal')
 	}
@@ -120,6 +127,7 @@ const samples = new PlaygroundSource({
 		collections: [
 			CollectionRecordType.create({ id: WIREFRAMES, name: 'Wireframes' }),
 			CollectionRecordType.create({ id: ICONS, name: 'Icons' }),
+			CollectionRecordType.create({ id: SHAPES, name: 'Shapes' }),
 		],
 		items: [],
 		contents: {},
@@ -204,10 +212,50 @@ async function seedSamples(editor: Editor) {
 
 let seeding: Promise<void> | undefined
 
+const SHAPE_KINDS: GeoProps['geo'][] = [
+	'rectangle',
+	'ellipse',
+	'triangle',
+	'diamond',
+	'pentagon',
+	'hexagon',
+	'octagon',
+	'star',
+	'heart',
+	'cloud',
+]
+
+const SHAPE_COLORS: GeoProps['color'][] = ['black', 'blue', 'green', 'orange', 'red', 'violet']
+
+const MANY_ITEMS = 40
+
+// A big collection, to see how sections and the panel cap a long list. Saved on first use only.
+async function seedShapes(editor: Editor) {
+	for (let i = 0; i < MANY_ITEMS; i++) {
+		const shape = geo(0, 0, {
+			geo: SHAPE_KINDS[i % SHAPE_KINDS.length],
+			color: SHAPE_COLORS[i % SHAPE_COLORS.length],
+			fill: 'semi',
+			w: 96,
+			h: 96,
+		})
+		editor.run(() => editor.createShapes([shape]), { history: 'ignore' })
+		try {
+			await saveShapesToCollection(editor, samples, SHAPES, [shape.id], `Shape ${i + 1}`)
+		} finally {
+			editor.run(() => editor.deleteShapes([shape.id]), { history: 'ignore' })
+		}
+	}
+}
+
+let seedingShapes: Promise<void> | undefined
+
 // A UI playground: each design surface is a page, and the controls at the top offer that surface's
 // choices. Choices stay in effect on every page.
 interface PlaygroundSettings {
 	navigation: CollectionsPanelNavigation
+	sectionRows: '1' | '2' | '3' | 'all'
+	manyItems: 'hidden' | 'shown'
 	order: AddToCollectionOrder
 	sorting: 'built-in' | 'source-only'
 	tileStyle: 'well' | 'card' | 'plain'
@@ -234,8 +282,10 @@ interface PlaygroundSettings {
 	data: keyof typeof SOURCES
 }
 
-const settings = atom<PlaygroundSettings>('collections playground', {
+const DEFAULT_SETTINGS: PlaygroundSettings = {
 	navigation: 'sections',
+	sectionRows: '2',
+	manyItems: 'hidden',
 	order: 'source',
 	sorting: 'built-in',
 	tileStyle: 'well',
@@ -260,7 +310,9 @@ const settings = atom<PlaygroundSettings>('collections playground', {
 	addControl: 'header',
 	emptyCollection: 'message',
 	data: 'samples',
-})
+}
+
+const settings = atom<PlaygroundSettings>('collections playground', DEFAULT_SETTINGS)
 
 type AllSettings = PlaygroundSettings & ScopeSettings
 
@@ -308,6 +360,24 @@ const SURFACES: Surface[] = [
 					{ value: 'list', label: 'List with counts' },
 					{ value: 'previews', label: 'Rows with previews' },
 					{ value: 'tabs', label: 'Tabs' },
+				],
+			},
+			{
+				key: 'sectionRows',
+				label: 'Rows per section',
+				options: [
+					{ value: '1', label: '1' },
+					{ value: '2', label: '2' },
+					{ value: '3', label: '3' },
+					{ value: 'all', label: 'All' },
+				],
+			},
+			{
+				key: 'manyItems',
+				label: `A collection of ${MANY_ITEMS} items`,
+				options: [
+					{ value: 'hidden', label: 'Hidden' },
+					{ value: 'shown', label: 'Shown' },
 				],
 			},
 		],
@@ -647,6 +717,10 @@ const SURFACES: Surface[] = [
 	},
 ]
 
+const DEFAULTS: AllSettings = { ...DEFAULT_SETTINGS, ...DEFAULT_SCOPE_SETTINGS }
+
+const isDefault = (key: keyof AllSettings, value: string) => DEFAULTS[key] === value
+
 const rowStyle = { display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' } as const
 
 function PlaygroundControls({ editor }: { editor: Editor }) {
@@ -695,6 +769,9 @@ function PlaygroundControls({ editor }: { editor: Editor }) {
 								}
 							/>
 							{option.label}
+							{isDefault(choice.key, option.value) && (
+								<span style={{ color: 'var(--tl-color-text-3)' }}>(default)</span>
+							)}
 						</label>
 					))}
 				</div>
@@ -725,8 +802,14 @@ function usePlaygroundSource() {
 }
 
 function PlaygroundPanel() {
+	const editor = useEditor()
 	const source = usePlaygroundSource()
 	const navigation = useValue('navigation', () => settings.get().navigation, [])
+	const sectionRows = useValue('section rows', () => settings.get().sectionRows, [])
+	const showsShapes = useValue('many items', () => settings.get().manyItems === 'shown', [])
+	useEffect(() => {
+		if (showsShapes) seedingShapes ??= seedShapes(editor)
+	}, [editor, showsShapes])
 	const sorting = useValue('sorting', () => settings.get().sorting, [])
 	const grouped = useValue('grouped', () => scopeSettings.get().layout === 'grouped', [])
 	const {
@@ -801,6 +884,7 @@ function PlaygroundPanel() {
 			header={header}
 			addControl={addControl}
 			emptyCollection={emptyCollection}
+			sectionRows={sectionRows === 'all' ? Infinity : Number(sectionRows)}
 		/>
 	)
 }
