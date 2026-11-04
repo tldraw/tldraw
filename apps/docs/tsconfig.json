@@ -1,7 +1,11 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
 	"compilerOptions": {
-		"paths": { "@/*": ["./*"] },
+		// @types fallback for the global virtual store; see pnpm-workspace.yaml.
+		"paths": {
+			"@/*": ["./*"],
+			"*": ["./node_modules/@types/*"]
+		},
 		"lib": ["DOM", "DOM.Iterable", "ESNext"],
 		"plugins": [{ "name": "next" }],
 		"allowJs": true,
