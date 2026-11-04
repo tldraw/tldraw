@@ -154,8 +154,9 @@ function TopPanel() {
 
 /*
 [1]
-`@tldraw/mermaid` pulls in the (large) mermaid library, so it is imported lazily the first
-time the user applies a workflow rather than on page load.
+`@tldraw/mermaid` and the layout engine it loads are only needed once a diagram is converted,
+so the package is imported lazily the first time the user applies a workflow rather than on
+page load.
 
 [2]
 `blueprintRender.mapNodeToRenderSpec` lets you decide which shape each parsed Mermaid node
