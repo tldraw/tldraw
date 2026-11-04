@@ -1,5 +1,6 @@
 import { vi } from 'vitest'
 import { Environment } from '../../types'
+import { ShapeMeasurement } from './boardTools'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -130,12 +131,7 @@ export function makeFakeQueue() {
 // every clustering tool would fail on a missing result, since they all measure the page before
 // clustering it. Bounds are given as boxes, the shape the worker stores, and converted to what the
 // page reports.
-export function makeMeasuringBrowserBinding(
-	bounds: Record<
-		string,
-		{ minX: number; minY: number; maxX: number; maxY: number; text?: string }
-	> = {}
-) {
+export function makeMeasuringBrowserBinding(bounds: Record<string, ShapeMeasurement> = {}) {
 	const binding = makeBrowserBinding()
 	binding.quickAction.mockImplementation(async (action: string) =>
 		action === 'content'
@@ -150,13 +146,11 @@ export function contentResponse(html: string) {
 	return Response.json({ success: true, result: html })
 }
 
-export function measurePageHtml(
-	bounds: Record<string, { minX: number; minY: number; maxX: number; maxY: number; text?: string }>
-) {
+export function measurePageHtml(bounds: Record<string, ShapeMeasurement>) {
 	const reported = Object.fromEntries(
-		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, text }]) => [
+		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, ...rest }]) => [
 			id,
-			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...(text ? { text } : null) },
+			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...rest },
 		])
 	)
 	return `<html data-thumbnail-ready="true"><head></head><body data-thumbnail-ready="true"><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported).replace(/</g, '\\u003c')}</script></body></html>`

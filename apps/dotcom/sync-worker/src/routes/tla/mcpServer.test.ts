@@ -546,7 +546,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.5.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1175,11 +1175,21 @@ describe('page and cluster info', () => {
 
 		expect(info.name).toBe('Cover')
 		expect(info.clusters).toHaveLength(2)
-		// The fixture's shapes carry no text, so there is nothing to derive a keyword label from —
-		// an empty label is the honest answer rather than a made-up one.
+		// The fixture's shapes carry no text, so there are no keywords, and each is labelled by what it
+		// holds. Its geo records name no geo, so they read as plain geo shapes.
 		expect(info.clusters).toEqual([
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+			},
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+			},
 		])
 	})
 
@@ -1214,8 +1224,8 @@ describe('page and cluster info', () => {
 
 		expect(shape.props.text).toBe('Checkout total')
 		expect(shape.props.richText).toBeUndefined()
-		// Everything else about the record is passed through untouched.
-		expect(shape).toMatchObject({ id: 'shape:page:a-0', typeName: 'shape' })
+		expect(shape.id).toBe('shape:page:a-0')
+		expect(shape.typeName).toBeUndefined()
 		expect(shape.plainText).toBeUndefined()
 	})
 })
@@ -1264,10 +1274,122 @@ describe('cluster index cache', () => {
 			'user_ix_text'
 		)
 
-		// Served from the index, so this text came out of storage rather than out of a render — the one
-		// thing in a cluster that cannot be re-derived from the stored record.
+		// Served from the index, so this text came out of storage rather than out of a render: it cannot
+		// be re-derived from the stored record.
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
+	})
+
+	// Geometry only an editor can resolve — a bound arrow's ends, a text's drawn size — has to survive
+	// the index too, or the second call of a drill-down would describe a different board.
+	it('keeps the measured arrow ends and shape dimensions', async () => {
+		const snapshot = makeSnapshot(PAGES)
+		snapshot.documents.push(
+			{
+				state: {
+					typeName: 'shape',
+					id: 'shape:arrow',
+					parentId: 'page:a',
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					rotation: 0,
+					opacity: 1,
+					props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 }, bend: 0, labelPosition: 0.5 },
+				},
+			},
+			{
+				state: {
+					typeName: 'shape',
+					id: 'shape:caption',
+					parentId: 'page:a',
+					type: 'text',
+					x: 0,
+					y: 100,
+					rotation: 0,
+					opacity: 1,
+					props: { w: 80, autoSize: true, scale: 1 },
+				},
+			},
+			{
+				state: {
+					typeName: 'binding',
+					id: 'binding:end',
+					type: 'arrow',
+					fromId: 'shape:arrow',
+					toId: 'shape:page:a-1',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+						isExact: false,
+						snap: 'none',
+					},
+				},
+			}
+		)
+		mockPublishedBoard(snapshot)
+		const measurements = {
+			'shape:page:a-0': { minX: 0, minY: 0, maxX: 80, maxY: 80 },
+			'shape:page:a-1': { minX: 100, minY: 0, maxX: 180, maxY: 80 },
+			'shape:caption': {
+				minX: 0,
+				minY: 100,
+				maxX: 80,
+				maxY: 126.4,
+				dimensions: { w: 80.0001, h: 26.4 },
+			},
+			'shape:arrow': {
+				minX: 79.6,
+				minY: 39.5,
+				maxX: 100.4,
+				maxY: 40.5,
+				arrow: { start: { x: 79.6, y: 40.2 }, end: { x: 100.4, y: 39.8 } },
+			},
+		}
+		const measuringEnv = () => {
+			const env = makeEnv()
+			;(env as any).BROWSER = makeMeasuringBrowserBinding(measurements)
+			return env
+		}
+		const env = measuringEnv()
+
+		const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_ix_geo')
+		const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+		const shapes: any[] = []
+		for (const clusterId of clusterIds) {
+			const cached = await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterId },
+				env,
+				'user_ix_geo'
+			)
+			// A new env each time, so this one measures rather than reading an index.
+			const fresh = await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterId },
+				measuringEnv(),
+				'user_ix_geo'
+			)
+			expect(cached.content).toEqual(fresh.content)
+			shapes.push(...JSON.parse(cached.content[0].text).shapes)
+		}
+
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(shapes.find((shape) => shape.id === 'shape:arrow')).toMatchObject({
+			pageX: 79.6,
+			pageY: 40.2,
+			props: {
+				start: { pageX: 79.6, pageY: 40.2 },
+				end: { pageX: 100.4, pageY: 39.8 },
+				bindingFromId: null,
+				bindingToId: 'shape:page:a-1',
+			},
+		})
+		expect(shapes.find((shape) => shape.id === 'shape:caption').props).toMatchObject({
+			w: 80,
+			h: 26.4,
+		})
 	})
 
 	it('indexes each page separately', async () => {

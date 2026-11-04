@@ -31,7 +31,7 @@ import {
 	recordMintedRenderToken,
 	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
-import { ShapeMeasurement } from './boardTools'
+import { MeasuredArrow, MeasuredDimensions, ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,
@@ -978,7 +978,7 @@ export async function measurePageShapes(
 // The page's result element out of a `/content` response. Malformed boxes are dropped rather than
 // kept: a non-finite value would produce NaN distances and silently detach that shape from the
 // minimum spanning tree.
-function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
+export function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
 	const html = new TextDecoder().decode(buffer)
 	const match = new RegExp(
 		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
@@ -996,15 +996,44 @@ function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement
 		) {
 			continue
 		}
+		const arrow = readArrow(box.arrow)
+		const dimensions = readDimensions(box.dimensions)
 		bounds[shapeId] = {
 			minX: box.x,
 			minY: box.y,
 			maxX: box.x + box.w,
 			maxY: box.y + box.h,
 			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
+			...(arrow ? { arrow } : null),
+			...(dimensions ? { dimensions } : null),
 		}
 	}
 	return bounds
+}
+
+// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
+// arrow from its record, as it would for a render page that predates arrow measurement.
+function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
+	const start = readPoint(value?.start)
+	const end = readPoint(value?.end)
+	return start && end ? { start, end } : undefined
+}
+
+function readPoint(value: unknown) {
+	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
+	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
+}
+
+// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
+function readDimensions(
+	value: ThumbnailShapeMeasurement['dimensions']
+): MeasuredDimensions | undefined {
+	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
+	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
+}
+
+function isFiniteNumber(value: unknown): value is number {
+	return Number.isFinite(value)
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
