@@ -1,9 +1,9 @@
-import { type UIMessage } from '@ai-sdk/react'
 import { memo } from 'react'
+import type { ChatMessage as ChatMessageData } from '@/types'
 import { ChatMessage, ImageClickTarget } from './ChatMessage'
 
 interface MessageListProps {
-	messages: UIMessage[]
+	messages: ChatMessageData[]
 	onImageClick: (target: ImageClickTarget) => void
 }
 

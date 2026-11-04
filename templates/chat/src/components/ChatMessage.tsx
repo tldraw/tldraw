@@ -1,13 +1,13 @@
-import { type UIMessage } from '@ai-sdk/react'
 import { memo } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { FileHelpers } from 'tldraw'
+import type { ChatMessage as ChatMessageData } from '@/types'
 import { TldrawProviderMetadata } from './WhiteboardModal'
 
 export type ImageClickTarget = TldrawProviderMetadata | { uploadedFile: File }
 
 interface ChatMessageProps {
-	message: UIMessage
+	message: ChatMessageData
 	onImageClick: (opts: ImageClickTarget) => void
 }
 
@@ -31,7 +31,7 @@ export const ChatMessage = memo(function ChatMessage({ message, onImageClick }: 
 			{message.parts.map((part, index) => {
 				if (part.type === 'file') {
 					// we stash a snapshot of the tldraw document in the provider metadata:
-					const tldrawMetadata = part.providerMetadata?.tldraw as TldrawProviderMetadata | undefined
+					const tldrawMetadata = part.providerMetadata?.tldraw
 					const handleImageClick = async () => {
 						// if we have a tldraw snapshot, we open the tldraw modal when it's clicked:
 						if (tldrawMetadata) {

@@ -1,6 +1,6 @@
-import { UIMessage, validateUIMessages } from 'ai'
 import { useCallback, useEffect, useState } from 'react'
 import { FileHelpers } from 'tldraw'
+import type { ChatMessage } from '@/types'
 
 const STORAGE_FILE_NAME = 'chat-messages.json'
 
@@ -9,8 +9,8 @@ const STORAGE_FILE_NAME = 'chat-messages.json'
  * the messages because it has a higher capacity than localStorage, and is easier to use than
  * IndexedDB.
  */
-export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessage[]) => void] {
-	const [initialMessages, setInitialMessages] = useState<UIMessage[] | null>(null)
+export function useChatMessageStorage(): [ChatMessage[] | null, (messages: ChatMessage[]) => void] {
+	const [initialMessages, setInitialMessages] = useState<ChatMessage[] | null>(null)
 
 	useEffect(() => {
 		let isCancelled = false
@@ -25,11 +25,7 @@ export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessa
 				const fileContents = await FileHelpers.blobToText(await file.getFile())
 				if (isCancelled) return
 
-				const messages = JSON.parse(fileContents)
-				const validatedMessages = await validateUIMessages({ messages })
-				if (isCancelled) return
-
-				setInitialMessages(validatedMessages)
+				setInitialMessages(JSON.parse(fileContents))
 			} catch (err) {
 				if (isCancelled) return
 				console.error('Error loading chat messages from storage', err)
@@ -42,7 +38,7 @@ export function useChatMessageStorage(): [UIMessage[] | null, (messages: UIMessa
 		}
 	}, [])
 
-	const saveMessages = useCallback(async (messages: UIMessage[]) => {
+	const saveMessages = useCallback(async (messages: ChatMessage[]) => {
 		const root = await navigator.storage.getDirectory()
 		const file = await root.getFileHandle(STORAGE_FILE_NAME, { create: true })
 		const writable = await file.createWritable({ keepExistingData: false })

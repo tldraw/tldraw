@@ -1,17 +1,16 @@
 'use client'
 
-import { useChat } from '@ai-sdk/react'
-import { DefaultChatTransport, FileUIPart, TextUIPart, UIMessage } from 'ai'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { uniqueId } from 'tldraw'
 import { useChatMessageStorage } from '@/hooks/useChatMessageStorage'
-import { uploadMessageContents } from '@/utils/uploadMessageContents'
+import { ChatMessage, ChatPart } from '@/types'
 import { useChatInputState } from '../hooks/useChatInputState'
 import { useScrollToBottom } from '../hooks/useScrollToBottom'
 import { ChatInput } from './ChatInput'
 import { ImageClickTarget } from './ChatMessage'
 import { ClearChatIcon } from './ClearChatIcon'
 import { MessageList } from './MessageList'
-import { TldrawProviderMetadata, WhiteboardImage } from './WhiteboardModal'
+import { WhiteboardImage } from './WhiteboardModal'
 
 export function Chat() {
 	// store chat messages locally in the browser
@@ -26,85 +25,71 @@ function ChatInner({
 	initialMessages,
 	saveMessages,
 }: {
-	initialMessages: UIMessage[]
-	saveMessages: (messages: UIMessage[]) => void
+	initialMessages: ChatMessage[]
+	saveMessages: (messages: ChatMessage[]) => void
 }) {
 	// All state relating to the chat input and the tldraw modal is managed in this hook
 	const [chatInputState, chatInputDispatch] = useChatInputState()
 
-	// We use the Vercel AI SDK's useChat hook to send messages to the server and manage the chat
-	// history. You could replace this with your own chat implementation.
-	const chat = useChat({
-		transport: new DefaultChatTransport({
-			api: '/api/chat',
-			prepareSendMessagesRequest: async (options) => {
-				const { messagesToSend, messagesToSave } = await uploadMessageContents(options.messages)
-				chat.setMessages(messagesToSave)
-				return {
-					body: {
-						...options.body,
-						id: options.id,
-						messages: messagesToSend,
-						trigger: options.trigger,
-						messageId: options.messageId,
-					},
-				}
-			},
-		}),
-		messages: initialMessages,
-	})
-
-	const { sendMessage, status, error, clearError, setMessages } = chat
-
-	// save the chat messages to local storage when the chat finishes
-	useEffect(() => {
-		if (chat.status === 'ready') {
-			saveMessages(chat.messages)
-		}
-	}, [chat.status, chat.messages, saveMessages])
-
-	// If the chat encounters an error, we alert the user and clear the error.
-	useEffect(() => {
-		if (error) {
-			alert(error.message)
-			clearError()
-		}
-	}, [error, clearError])
+	const [messages, setMessages] = useState(initialMessages)
+	const [waitingForResponse, setWaitingForResponse] = useState(false)
 
 	// when the user send a message, we take the text they've written and any images / sketches
-	// they've attached and send them to the model.
+	// they've attached and send them to the model. The reply streams in as plain text.
 	const handleSendMessage = useCallback(
-		(text: string, images: WhiteboardImage[]) => {
+		async (text: string, images: WhiteboardImage[]) => {
 			chatInputDispatch({ type: 'clear' })
 
-			const parts: (TextUIPart | FileUIPart)[] = images.map((image): FileUIPart => {
-				const tldrawMetadata: TldrawProviderMetadata = {
-					snapshot: image.snapshot,
-					imageName: image.name,
-				}
-				return {
-					type: 'file',
-					url: image.url,
-					filename: image.name,
-					mediaType: image.type,
-					providerMetadata: { tldraw: tldrawMetadata } as any,
-				}
-			})
-
+			const parts: ChatPart[] = images.map((image) => ({
+				type: 'file',
+				url: image.url,
+				filename: image.name,
+				mediaType: image.type,
+				providerMetadata: { tldraw: { snapshot: image.snapshot, imageName: image.name } },
+			}))
 			if (text.trim()) {
 				parts.push({ type: 'text', text })
 			}
 
-			sendMessage({ parts })
+			const history = [...messages, { id: uniqueId(), role: 'user' as const, parts }]
+			const replyId = uniqueId()
+			let latest: ChatMessage[] = [...history, { id: replyId, role: 'assistant', parts: [] }]
+			setMessages(latest)
+			setWaitingForResponse(true)
+			try {
+				const response = await fetch('/api/chat', { method: 'POST', body: JSON.stringify(history) })
+				if (!response.ok || !response.body) throw new Error(await response.text())
+				const reader = response.body.getReader()
+				const decoder = new TextDecoder()
+				let reply = ''
+				while (true) {
+					const { value, done } = await reader.read()
+					if (done) break
+					reply += decoder.decode(value, { stream: true })
+					latest = [
+						...history,
+						{ id: replyId, role: 'assistant', parts: [{ type: 'text', text: reply }] },
+					]
+					setMessages(latest)
+				}
+			} catch (error) {
+				// The user's message stays, so they can see what failed and send it again.
+				alert(error instanceof Error ? error.message : String(error))
+				latest = history
+				setMessages(latest)
+			} finally {
+				setWaitingForResponse(false)
+				saveMessages(latest)
+			}
 		},
-		[sendMessage, chatInputDispatch]
+		[messages, saveMessages, chatInputDispatch]
 	)
 
 	// keep the chat scrolled to the bottom as messages are added or changed
 	const scrollToBottom = useScrollToBottom()
 	useEffect(() => {
 		scrollToBottom()
-	}, [chat.messages, scrollToBottom])
+	}, [messages, scrollToBottom])
 
 	// when the user clicks on an image from chat history, we open the tldraw modal. here they can
 	// see a larger version of the image, but also annotate it and re-add it to the chat.
@@ -116,7 +101,7 @@ function ChatInner({
 	const handleClearChat = useCallback(() => {
 		setMessages([])
 		saveMessages([])
-	}, [setMessages, saveMessages])
+	}, [saveMessages])
 
 	// users can drag and drop images to the chat input area to add them to their message. when
 	// they're dragging we keep track of a special isDragging state.
@@ -149,7 +134,7 @@ function ChatInner({
 	}
 
 	// if the chat is empty, we put the input area right in the middle of the page
-	if (chat.messages.length === 0) {
+	if (messages.length === 0) {
 		return (
 			<div
 				className="empty-chat-container"
@@ -162,7 +147,7 @@ function ChatInner({
 					<div className="centered-input">
 						<ChatInput
 							onSendMessage={handleSendMessage}
-							waitingForResponse={status !== 'ready'}
+							waitingForResponse={waitingForResponse}
 							scrollToBottom={scrollToBottom}
 							state={chatInputState}
 							dispatch={chatInputDispatch}
@@ -186,11 +171,11 @@ function ChatInner({
 					<ClearChatIcon />
 				</button>
 			</div>
-			<MessageList messages={chat.messages} onImageClick={handleImageClick} />
+			<MessageList messages={messages} onImageClick={handleImageClick} />
 			<div className="chat-footer">
 				<ChatInput
 					onSendMessage={handleSendMessage}
-					waitingForResponse={status !== 'ready'}
+					waitingForResponse={waitingForResponse}
 					scrollToBottom={scrollToBottom}
 					state={chatInputState}
 					dispatch={chatInputDispatch}

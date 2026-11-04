@@ -30,24 +30,34 @@ Key interactions include:
 
 ## Environment setup
 
-Create a `.env.local` file in the root directory and add your Google Generative API key:
+Create a `.env.local` file in the root directory and add a Google Gemini API key:
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+GEMINI_API_KEY=your_gemini_api_key_here
 ```
 
 Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
-You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
+
+Or use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
+
+```
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+```
+
+When `GEMINI_API_KEY` is not set, requests go through OpenRouter.
+The API route uses [pi-ai](https://www.npmjs.com/package/@earendil-works/pi-ai), so you can also switch to a model from another provider.
+
+Images go to the model inside each request. Vercel limits a request body to 4.5 MB, so a chat with many large images can fail there.
 
 ## File structure
 
 - **`src/app/page.tsx`:** The main entry point that renders the chat interface
-- **`src/components/Chat.tsx`:** The main chat container using the Vercel AI SDK's useChat hook
+- **`src/components/Chat.tsx`:** The main chat container, which sends messages and streams replies
 - **`src/components/MessageList.tsx`:** Scrollable message history with loading states
 - **`src/components/ChatMessage.tsx`:** Individual message display component
 - **`src/components/ChatInput.tsx`:** Input field with send functionality
 - **`src/components/WhiteboardModal.tsx`:** Modal component that integrates tldraw for drawing and sketching
-- **`src/app/api/chat/route.ts`:** Next.js API route using Vercel AI SDK for OpenAI integration
+- **`src/app/api/chat/route.ts`:** Next.js API route that streams replies from Gemini with pi-ai
 - **`src/app/styles.css`:** CSS with responsive design for all components
 
 ## License
