@@ -1,3 +1,4 @@
+import { UnknownRecord } from '@tldraw/store'
 /* eslint-disable @typescript-eslint/no-deprecated -- initialSnapshot, onDataChange,
  * updateStore, and getCurrentSnapshot are deprecated but remain part of the public
  * contract under test (see SPEC.md sections 28 and 29). */
@@ -11,6 +12,7 @@ import {
 	TLPage,
 	TLRecord,
 	TLScribble,
+	TLShape,
 } from '@tldraw/tlschema'
 import {
 	createTLSchema,
@@ -20,7 +22,7 @@ import {
 	sortById,
 	ZERO_INDEX_KEY,
 } from 'tldraw'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
@@ -28,7 +30,7 @@ import { getTlsyncProtocolVersion } from '../lib/protocol'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { TLSyncRoom, type RoomSnapshot } from '../lib/TLSyncRoom'
+import { TLSyncRoom, type RoomSnapshot, type TLBeforeWriteHooks } from '../lib/TLSyncRoom'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -1599,6 +1601,18 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room.getRecord(first.id)).toBeDefined()
 			expect(room.getRecord(second.id)).toBeDefined()
 			expect(room.getRecord(orphan.id)).toBeUndefined()
+		})
+
+		it('[SR16] get takes its result type from a typed id', () => {
+			const hooks: TLBeforeWriteHooks<TLRecord, void> = {
+				shape: ({ next, get }) => {
+					if (!next) return null
+					expectTypeOf(get(next.parentId)).toEqualTypeOf<TLPage | TLShape | undefined>()
+					expectTypeOf(get('page:page')).toEqualTypeOf<UnknownRecord | undefined>()
+					return next
+				},
+			}
+			expect(hooks.shape).toBeDefined()
 		})
 
 		it('[SR16] the deprecated authorizeRecord option still applies', () => {

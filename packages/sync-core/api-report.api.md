@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
+import { RecordId } from '@tldraw/store';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
@@ -379,12 +380,13 @@ export interface SyncSqliteDatabase {
 
 // @public
 export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
-    get(id: string): undefined | UnknownRecord;
+    get<Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined;
     session: {
         isReadonly: boolean;
         meta: SessionMeta;
         sessionId: string;
     };
+    get(id: string): undefined | UnknownRecord;
 } & ({
     next: null;
     prev: Rec;

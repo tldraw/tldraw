@@ -1,6 +1,7 @@
 import {
 	AtomMap,
 	MigrationFailureReason,
+	RecordId,
 	RecordType,
 	SerializedSchema,
 	StoreSchema,
@@ -186,10 +187,11 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (
 		/**
 		 * Reads any document record as of this write, including earlier writes in the same push.
 		 * Use it for rules that depend on other records, e.g. "only inside a frame you can edit"
-		 * needs the shape's parent. Reads the server's copy, never the client's. It returns
-		 * `UnknownRecord` so a hook map written for some record types still fits a room
-		 * with more types; narrow the result by `typeName`.
+		 * needs the shape's parent. Reads the server's copy, never the client's. A typed id such
+		 * as `shape.parentId` gives a typed result. A plain string gives `UnknownRecord`; narrow
+		 * that by `typeName`.
 		 */
+		get<Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined
 		get(id: string): UnknownRecord | undefined
 	} & (
 		| { type: 'create'; prev: null; next: Rec }
