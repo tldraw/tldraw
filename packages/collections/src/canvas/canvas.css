@@ -117,7 +117,10 @@
 	width: 28px;
 	min-width: 28px;
 	border-radius: var(--tl-radius-2);
-	background: var(--tl-color-panel);
+}
+
+.tlui-collections-tile__menu-button::after {
+	content: none;
 }
 
 .tlui-collections-tile__thumbnail {
