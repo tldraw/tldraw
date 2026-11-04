@@ -1,8 +1,8 @@
 export {
 	AddToCollectionMenuItem,
 	type AddToCollectionMenuItemProps,
-	type AddToCollectionOrder,
 } from './canvas/add-to-collection-menu-item'
+export type { AddToCollectionOrder } from './canvas/use-add-targets'
 export {
 	CollectionsPanel,
 	type CollectionsPanelNavigation,

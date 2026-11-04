@@ -307,7 +307,7 @@ const DEFAULT_SETTINGS: PlaygroundSettings = {
 	readOnlyMarker: 'none',
 	search: 'none',
 	header: 'picker',
-	addControl: 'header',
+	addControl: 'footer',
 	emptyCollection: 'message',
 	data: 'samples',
 }
@@ -844,6 +844,7 @@ function PlaygroundPanel() {
 	const search = useValue('search', () => settings.get().search, [])
 	const header = useValue('header', () => settings.get().header, [])
 	const addControl = useValue('add control', () => settings.get().addControl, [])
+	const order = useValue('order', () => settings.get().order, [])
 	const emptyCollection = useValue('empty collection', () => settings.get().emptyCollection, [])
 	const readOnly = useValue(
 		'read only',
@@ -883,6 +884,7 @@ function PlaygroundPanel() {
 			search={search}
 			header={header}
 			addControl={addControl}
+			addMenuOrder={order}
 			emptyCollection={emptyCollection}
 			sectionRows={sectionRows === 'all' ? Infinity : Number(sectionRows)}
 		/>

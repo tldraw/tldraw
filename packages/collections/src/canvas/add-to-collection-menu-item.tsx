@@ -7,8 +7,8 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import { groupCollectionList, type GroupCollections } from './collection-groups'
-import { sortByRecentlySavedTo } from './recent-collections'
+import type { GroupCollections } from './collection-groups'
+import { type AddToCollectionOrder, useAddTargets } from './use-add-targets'
 import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -18,13 +18,6 @@ const messages = defineMessages({
 		defaultMessage: 'New collection',
 	},
 })
-
-/**
- * How the submenu orders collections: as the source lists them, or the ones the current user saved
- * to most recently first (remembered in this browser).
- * @public
- */
-export type AddToCollectionOrder = 'source' | 'recent'
 
 /** @public */
 export interface AddToCollectionMenuItemProps {
@@ -53,27 +46,15 @@ export function AddToCollectionMenuItem({
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
-	const collections = useValue(
-		'writable collections',
-		() => {
-			const writable = source
-				.getCollections()
-				.filter((collection) => source.can('addItem', collection.id))
-			return order === 'recent' ? sortByRecentlySavedTo(source.id, writable) : writable
-		},
-		[source, order]
-	)
-	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
-		source,
-	])
+	const { groups, canCreate, hasTargets } = useAddTargets(source, order, groupCollections)
 	const { saveSelection, saveToNewCollection } = useSaveSelection(source, saving)
 
-	if (!hasSelection || (collections.length === 0 && !canCreate)) return null
+	if (!hasSelection || !hasTargets) return null
 
 	return (
 		<TldrawUiMenuGroup id="collections">
 			<TldrawUiMenuSubmenu id="add-to-collection" label={messages.addToCollection.id}>
-				{groupCollectionList(collections, groupCollections).map((group, index) => (
+				{groups.map((group, index) => (
 					<TldrawUiMenuGroup key={group.label ?? index} id={`add-to-collection-targets-${index}`}>
 						{/* Menu groups can't show a heading, and context menus hide disabled items, so a plain
 						    element is the heading; keyboard navigation passes over it. */}
