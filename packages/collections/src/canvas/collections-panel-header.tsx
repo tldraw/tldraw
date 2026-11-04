@@ -38,6 +38,8 @@ const messages = defineMessages({
 		defaultMessage:
 			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
 	},
+	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
+	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
 		defaultMessage: "Couldn't change collections",
@@ -145,6 +147,12 @@ export function CollectionsPanelHeader({
 		[editor, source, currentId]
 	)
 
+	const owners = useValue(
+		'collection owners',
+		() => (source.moveCollection && source.getCollectionOwners ? source.getCollectionOwners() : []),
+		[source]
+	)
+
 	const showError = () =>
 		addToast({
 			title: msg(messages.changeErrorTitle),
@@ -185,12 +193,28 @@ export function CollectionsPanelHeader({
 		})
 	}
 
+	const moveCollection = (ownerId: string) => {
+		const owner = owners.find((o) => o.id === ownerId)
+		if (!current || !source.moveCollection) return
+		source.moveCollection(current.id, ownerId).then(() => {
+			addToast({
+				title: msg(messages.movedTitle),
+				description: owner ? msg(messages.movedDescription, { name: owner.name }) : undefined,
+			})
+		}, showError)
+	}
+
 	const menu = (
 		<CollectionMenu
 			onCreate={can.create ? createCollection : undefined}
 			onRename={can.rename ? startRenaming : undefined}
 			onDelete={can.delete ? deleteCollection : undefined}
 			sort={sort}
+			move={
+				current && owners.length > 1
+					? { owners, value: current.ownerId, onValueChange: moveCollection }
+					: undefined
+			}
 		/>
 	)
 
