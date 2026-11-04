@@ -444,10 +444,10 @@ describe('object store lane', () => {
 		const authorizeNote = ({ session, type, prev, next }: any) => {
 			if (type === 'create') {
 				const userId = session.meta?.userId
-				if (!userId) return false
+				if (!userId) return deny('no user')
 				return { ...next, text: `by:${userId}` }
 			}
-			if (type === 'update') return next.text === prev.text ? next : false
+			if (type === 'update') return next.text === prev.text ? next : deny('text is immutable')
 			return prev // delete allowed
 		}
 
@@ -507,7 +507,7 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('rejects a create the authorizer denies (returns false)', () => {
+		it('rejects a create the authorizer denies', () => {
 			const { room, storage } = withNote(authorizeNote)
 			const socket = connectSession(room, 'anon', { meta: { userId: null } })
 
@@ -592,7 +592,7 @@ describe('object store lane', () => {
 
 		it('vetoes a delete the authorizer rejects', () => {
 			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
-				type === 'delete' ? false : next
+				type === 'delete' ? deny('no deletes') : next
 			)
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'm' } })
 
@@ -715,11 +715,14 @@ describe('object store lane', () => {
 				expect(warn).not.toHaveBeenCalled()
 			})
 
-			it('returning false rejects the write', () => {
-				const { note, warn } = pushNoteWith(() => false)
-				expect(note).toBeUndefined()
-				expect(warn).toHaveBeenCalledTimes(1)
-			})
+			it.each([null, false])(
+				'%s from a deprecated authorizeRecord hook rejects the write',
+				(legacy) => {
+					const { note, warn } = pushNoteWith(() => legacy)
+					expect(note).toBeUndefined()
+					expect(warn).toHaveBeenCalledTimes(1)
+				}
+			)
 
 			it('deny rejects the write and logs the reason', () => {
 				const { note, warn } = pushNoteWith(() => deny('not the author'))
@@ -729,7 +732,7 @@ describe('object store lane', () => {
 
 			it('a denial from another copy of the package rejects the write', () => {
 				const { note } = pushNoteWith(() => ({
-					[Symbol.for('tldraw.sync.deny')]: true,
+					[Symbol.for('tldraw.access.deny')]: true,
 					reason: 'other copy',
 				}))
 				expect(note).toBeUndefined()
@@ -746,7 +749,7 @@ describe('object store lane', () => {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room } = makeRoom({
 				objectTypes: ['note'],
-				beforeWrite: { note: () => false },
+				beforeWrite: { note: () => deny('vetoed') },
 				log: { warn },
 			})
 			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })

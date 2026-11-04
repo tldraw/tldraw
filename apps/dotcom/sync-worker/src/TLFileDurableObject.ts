@@ -411,13 +411,13 @@ export class TLFileDurableObject extends DurableObject {
 					typeName,
 					(args: Parameters<typeof authorize>[0]) => {
 						const result = authorize(args as never)
-						if (result === false || isDeny(result)) {
+						if (isDeny(result)) {
 							try {
 								this.recordVeto(
 									typeName,
 									args.type,
 									args.type === 'delete' ? args.prev : args.next,
-									result ? result.reason : 'denied'
+									result.reason
 								)
 							} catch {
 								// Failed telemetry must never change authorization.

@@ -16,7 +16,7 @@ import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
 import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
+import { RoomSnapshot, TLRoomSocket, deny } from '../lib/TLSyncRoom'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
@@ -1332,7 +1332,7 @@ describe('record authorizers see server-schema records', () => {
 
 	it('vetoes based on the server-schema record', () => {
 		const t = makeInstance((args: any) =>
-			args.type === 'update' && args.next.name === 'forged' ? false : args.next
+			args.type === 'update' && args.next.name === 'forged' ? deny('forged') : args.next
 		)
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()

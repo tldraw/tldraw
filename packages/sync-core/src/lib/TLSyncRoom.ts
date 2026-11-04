@@ -166,7 +166,7 @@ export interface RoomSnapshot {
  * - a record, to allow the write. On **create**, the record you return is what gets stored, so
  *   stamp identity fields here (e.g. set `authorId` from `session.meta`). On **update** and
  *   **delete**, the returned record is ignored;
- * - `deny(reason)` or `false`, to reject the write. It is skipped and the client
+ * - `deny(reason)`, to reject the write. It is skipped and the client
  *   self-corrects, exactly like the `objectAccess` gate. The room logs the reason.
  *
  * ⚠︎ Runs synchronously inside the commit transaction, on the same path as every document edit — it
@@ -198,12 +198,12 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (
 		| { type: 'update'; prev: Rec; next: Rec }
 		| { type: 'delete'; prev: Rec; next: null }
 	)
-) => Rec | void | false | TLDeny
+) => Rec | void | TLDeny
 
 // `Symbol.for` so that a denial still matches when an app bundles two copies of this package,
 // where `instanceof` would fail and a denied create would store the denial as the record.
 declare const denyBrand: unique symbol
-const DENY_KEY: typeof denyBrand = Symbol.for('tldraw.sync.deny') as typeof denyBrand
+const DENY_KEY: typeof denyBrand = Symbol.for('tldraw.access.deny') as typeof denyBrand
 
 /**
  * A denied operation, made by {@link deny}. Detect it with {@link isDeny}. JSON records cannot
@@ -441,8 +441,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				this.log?.error?.('beforeWrite hook threw; denying the write', e)
 				return deny('hook threw')
 			}
-			// `null` is the rejection of the deprecated `authorizeRecord` hooks, which TLSocketRoom
-			// passes in as `beforeWrite`.
+			// The deprecated `authorizeRecord` hooks, which TLSocketRoom passes in as `beforeWrite`,
+			// reject with `null` or `false`. Without this, a create would store `null`/`false` as
+			// the record.
 			if (result === false || result === null) return deny('rejected')
 			return result as R | void | TLDeny
 		}

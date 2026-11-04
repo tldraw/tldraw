@@ -405,7 +405,7 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
     next: Rec;
     prev: Rec;
     type: 'update';
-})) => false | Rec | TLDeny | void;
+})) => Rec | TLDeny | void;
 
 // @public
 export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
