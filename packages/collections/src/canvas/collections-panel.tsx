@@ -294,7 +294,6 @@ export function CollectionsPanel({
 											collections={collections}
 											current={collection}
 											itemCount={countOf(collection)}
-											detail={String(countOf(collection))}
 											collapsed={isCollapsed}
 											addButton={addControl === 'header'}
 											onToggleCollapsed={() =>
