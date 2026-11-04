@@ -1622,66 +1622,6 @@ describe('28. TLSocketRoom (SR)', () => {
 		})
 	})
 
-	describe('updateSessionAccess', () => {
-		it('[SR17] later pushes use the new access', () => {
-			const room = new TLSocketRoom<TLRecord, void>({})
-			connectSession(room, 'S', createMockSocket())
-
-			room.updateSessionAccess('S', { isReadonly: true })
-			expect(room.getSessions()[0].isReadonly).toBe(true)
-
-			const page = PageRecordType.create({
-				id: PageRecordType.createId('p'),
-				name: 'p',
-				index: 'a2' as IndexKey,
-			})
-			room.handleSocketMessage(
-				'S',
-				JSON.stringify({
-					type: 'push',
-					clientClock: 1,
-					diff: { [page.id]: [RecordOpType.Put, page] },
-				})
-			)
-			expect(room.getRecord(page.id)).toBeUndefined()
-
-			room.updateSessionAccess('S', { isReadonly: false })
-			room.handleSocketMessage(
-				'S',
-				JSON.stringify({
-					type: 'push',
-					clientClock: 2,
-					diff: { [page.id]: [RecordOpType.Put, page] },
-				})
-			)
-			expect(room.getRecord(page.id)).toBeDefined()
-		})
-
-		it('[SR17] saves a session snapshot at once with the new access', () => {
-			const onSessionSnapshot = vi.fn()
-			const room = new TLSocketRoom<TLRecord, void>({ onSessionSnapshot })
-			connectSession(room, 'S', createMockSocket())
-
-			room.updateSessionAccess('S', { isReadonly: true, objectAccess: 'read' })
-
-			expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
-			expect(onSessionSnapshot).toHaveBeenCalledWith(
-				'S',
-				expect.objectContaining({ isReadonly: true, objectAccess: 'read' })
-			)
-			room.close()
-		})
-
-		it('[SR17] does nothing for an unknown session', () => {
-			const onSessionSnapshot = vi.fn()
-			const room = new TLSocketRoom<TLRecord, void>({ onSessionSnapshot })
-
-			room.updateSessionAccess('missing', { isReadonly: true })
-
-			expect(onSessionSnapshot).not.toHaveBeenCalled()
-		})
-	})
-
 	describe('getPresenceRecords', () => {
 		it('[SR15] getPresenceRecords correctly handles presence records', () => {
 			const store = getStore()

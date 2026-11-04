@@ -983,34 +983,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Changes a connected session's write access without reconnecting it. The session's next
-	 * push is checked against the new access. Fields you leave out keep their current value.
-	 *
-	 * The client is not told about the change yet: it keeps the read-only state it got when it
-	 * connected. The server skips writes the session may no longer make, and the client undoes
-	 * them when it syncs, as it does for any rejected write.
-	 *
-	 * @example
-	 * ```ts
-	 * // the user's role on this file changed from editor to viewer
-	 * room.updateSessionAccess(sessionId, { isReadonly: true })
-	 * ```
-	 */
-	updateSessionAccess(
-		sessionId: string,
-		access: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
-	) {
-		if (!this.room.updateSessionAccess(sessionId, access)) return
-		// A hibernated session resumes from its last snapshot. Save one now, not after the usual
-		// debounce, so a resume can never bring back the old access.
-		if (this.opts.onSessionSnapshot) {
-			this.clearSnapshotTimer(sessionId)
-			const snapshot = this.getSessionSnapshot(sessionId)
-			if (snapshot) this.opts.onSessionSnapshot(sessionId, snapshot)
-		}
-	}
-
-	/**
 	 * Closes the room and disconnects all connected clients. This should be called
 	 * when shutting down the room permanently, such as during server shutdown or
 	 * when the room is no longer needed. Once closed, the room cannot be reopened.

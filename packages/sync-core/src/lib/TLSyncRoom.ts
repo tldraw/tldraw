@@ -987,23 +987,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Changes a session's write access. Later pushes from the session use the new access.
-	 *
-	 * @returns false if the session does not exist
-	 * @internal
-	 */
-	updateSessionAccess(
-		sessionId: string,
-		access: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
-	): boolean {
-		const session = this.sessions.get(sessionId)
-		if (!session) return false
-		if (access.isReadonly !== undefined) session.isReadonly = access.isReadonly
-		if (access.objectAccess !== undefined) session.objectAccess = access.objectAccess
-		return true
-	}
-
-	/**
 	 * Reject and disconnect a session due to incompatibility or other fatal errors.
 	 * Sends appropriate error messages before closing the connection.
 	 *

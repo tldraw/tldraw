@@ -542,10 +542,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
-    updateSessionAccess(sessionId: string, access: {
-        isReadonly?: boolean;
-        objectAccess?: TLObjectStoreAccess;
-    }): void;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
@@ -788,10 +784,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
-    updateSessionAccess(sessionId: string, access: {
-        isReadonly?: boolean;
-        objectAccess?: TLObjectStoreAccess;
-    }): boolean;
 }
 
 // @public
