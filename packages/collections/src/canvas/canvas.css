@@ -6,7 +6,7 @@
 	top: 48px;
 	left: 8px;
 	width: 240px;
-	max-height: var(--tlui-collections-panel-max-height, min(calc(100% - 56px), 560px));
+	max-height: var(--tlui-collections-panel-max-height, min(calc(100% - 56px), 720px));
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;
