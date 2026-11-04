@@ -62,3 +62,4 @@ export {
 	sourceItemOrder,
 	type TLCollectionItemOrdering,
 } from './canvas/item-order'
+export type { GroupCollections } from './canvas/collection-groups'

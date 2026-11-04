@@ -8,7 +8,8 @@ import {
 
 /** @public */
 export interface CollectionPickerProps<Id extends string = string> {
-	collections: { id: Id; name: string }[]
+	/** `detail`, when given, follows the name in the list, e.g. the collection's group. */
+	collections: { id: Id; name: string; detail?: string }[]
 	value: Id
 	onValueChange(id: Id): void
 	label: string
@@ -37,7 +38,13 @@ export function CollectionPicker<Id extends string>({
 			</TldrawUiSelectTrigger>
 			<TldrawUiSelectContent className="tlui-collections-picker__content">
 				{collections.map((collection) => (
-					<TldrawUiSelectItem key={collection.id} value={collection.id} label={collection.name} />
+					<TldrawUiSelectItem
+						key={collection.id}
+						value={collection.id}
+						label={
+							collection.detail ? `${collection.name} · ${collection.detail}` : collection.name
+						}
+					/>
 				))}
 			</TldrawUiSelectContent>
 		</TldrawUiSelect>
