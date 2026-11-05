@@ -1,8 +1,4 @@
-import type {
-	CollectionPack,
-	CollectionPackItem,
-	TLCollectionItemContent,
-} from '@tldraw/collections'
+import type { CollectionPack, TLCollectionItemContent } from '@tldraw/collections'
 import {
 	createShapeId,
 	createTLSchema,
@@ -18,7 +14,6 @@ import {
 import doodles from './collections-pack-doodles.json'
 import floorPlan from './collections-pack-floor-plan.json'
 import tldrawCharacters from './collections-pack-tldraw-characters.json'
-import wireframingSketches from './collections-pack-wireframing-sketches.json'
 
 type Color = 'black' | 'grey' | 'blue' | 'green' | 'yellow' | 'violet'
 
@@ -218,7 +213,7 @@ function item(packId: string, id: string, name: string, shapes: PackShape[]) {
 const wireframing: CollectionPack = {
 	id: 'wireframing',
 	name: 'Wireframing',
-	version: 2,
+	version: 3,
 	items: [
 		item('wireframing', 'button', 'Button', [
 			{
@@ -256,7 +251,6 @@ const wireframing: CollectionPack = {
 			{ type: 'text', x: 180, y: 16, w: 70, text: 'Docs', color: 'grey' },
 			{ type: 'text', x: 260, y: 16, w: 80, text: 'Sign in', color: 'blue' },
 		]),
-		...(wireframingSketches as unknown as CollectionPackItem[]),
 	],
 }
 
