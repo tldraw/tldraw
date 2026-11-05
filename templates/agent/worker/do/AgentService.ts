@@ -1,4 +1,4 @@
-import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
+import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
 import { createGoogle, GoogleLanguageModelOptions, GoogleProvider } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import {
@@ -10,6 +10,7 @@ import {
 	JSONParseError,
 	LanguageModel,
 	NoSuchToolError,
+	parsePartialJson,
 	streamText,
 	tool,
 	ToolSet,
@@ -25,7 +26,6 @@ import { Environment } from '../environment'
 import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
-import { closeAndParseJson } from './closeAndParseJson'
 
 export class AgentService {
 	openai: OpenAIProvider
@@ -101,12 +101,10 @@ export class AgentService {
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
 			maxOutputTokens: 8192,
-			// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
-			// thinks; sending it returns a 400.
-			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
+			reasoning: modelDefinition.reasoning,
 			providerOptions: this.openrouter
 				? getOpenRouterProviderOptions(modelDefinition)
-				: getProviderOptions(modelDefinition),
+				: PROVIDER_OPTIONS,
 			onAbort() {
 				console.warn('Stream actions aborted')
 			},
@@ -204,9 +202,9 @@ export class AgentService {
 				case 'tool-input-delta': {
 					if (open?.input === undefined) break
 					open.input += part.delta
-					const partialInput = closeAndParseJson(open.input)
-					if (!partialInput) break
-					open.action = { ...partialInput, _type: open.action._type } as AgentAction
+					const { value } = await parsePartialJson(open.input)
+					if (typeof value !== 'object' || value === null || Array.isArray(value)) break
+					open.action = { ...value, _type: open.action._type } as AgentAction
 					yield { ...open.action, complete: false, time: Date.now() - open.startTime }
 					break
 				}
@@ -305,73 +303,23 @@ function buildActionTools(prompt: AgentPrompt): ToolSet {
 type StreamTextProviderOptions = NonNullable<Parameters<typeof streamText>[0]['providerOptions']>
 
 /**
- * Map a model definition's reasoning preferences to AI SDK provider options.
- * Only the matching provider's options are set; the SDK ignores the rest.
+ * Stream reasoning summaries, which reach the client as think actions. Each provider reads only its
+ * own options.
  */
-function getProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
-	switch (definition.provider) {
-		case 'anthropic':
-			return {
-				anthropic: {
-					thinking:
-						definition.thinking === 'adaptive'
-							? { type: 'adaptive' }
-							: definition.thinking === 'disabled'
-								? { type: 'disabled' }
-								: { type: 'enabled', budgetTokens: definition.thinking.budgetTokens },
-					...(definition.effort ? { effort: definition.effort } : {}),
-				} satisfies AnthropicProviderOptions,
-			}
-		case 'google':
-			return {
-				google: {
-					// Stream thought summaries, which reach the client as think actions.
-					thinkingConfig: { thinkingLevel: definition.thinkingLevel, includeThoughts: true },
-				} satisfies GoogleLanguageModelOptions,
-			}
-		case 'openai':
-			return {
-				openai: {
-					...(definition.reasoningEffort ? { reasoningEffort: definition.reasoningEffort } : {}),
-					// Stream reasoning summaries, which reach the client as think actions.
-					reasoningSummary: 'auto',
-				} satisfies OpenAIResponsesProviderOptions,
-			}
-	}
+const PROVIDER_OPTIONS: StreamTextProviderOptions = {
+	google: { thinkingConfig: { includeThoughts: true } } satisfies GoogleLanguageModelOptions,
+	openai: { reasoningSummary: 'auto' } satisfies OpenAIResponsesProviderOptions,
 }
 
 /**
- * OpenRouter takes one reasoning effort for every model, or a token budget for a model that thinks
- * with one. Its effort has three levels, so `minimal` sends `low`, and `xhigh` and `max` send `high`.
- * A model with no effort uses OpenRouter's default.
+ * The OpenRouter provider does not read the AI SDK's `reasoning` option, so the effort goes in its
+ * own options. OpenRouter has no `max` level, so `max` sends `xhigh`.
  */
 function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
-	const effort =
-		definition.provider === 'anthropic'
-			? definition.thinking === 'adaptive'
-				? definition.effort
-				: undefined
-			: definition.provider === 'google'
-				? definition.thinkingLevel
-				: definition.reasoningEffort
-	const reasoningOff =
-		definition.provider === 'anthropic' ? definition.thinking === 'disabled' : effort === 'none'
-	const reasoning: OpenRouterProviderOptions['reasoning'] = reasoningOff
-		? // OpenRouter's type needs an effort even when reasoning is off.
-			{ enabled: false, effort: 'low' }
-		: definition.provider === 'anthropic' && typeof definition.thinking === 'object'
-			? { max_tokens: definition.thinking.budgetTokens }
-			: effort && effort !== 'none'
-				? { effort: OPENROUTER_EFFORT[effort] }
-				: undefined
-	return { openrouter: reasoning ? { reasoning } : {} }
+	const { reasoning } = definition
+	if (!reasoning) return {}
+	const effort = reasoning === 'max' ? 'xhigh' : reasoning
+	return {
+		openrouter: { reasoning: { effort } } satisfies OpenRouterProviderOptions,
+	}
 }
-
-const OPENROUTER_EFFORT = {
-	minimal: 'low',
-	low: 'low',
-	medium: 'medium',
-	high: 'high',
-	xhigh: 'high',
-	max: 'high',
-} as const

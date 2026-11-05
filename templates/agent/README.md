@@ -636,16 +636,16 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 ```ts
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
+	provider: 'anthropic',
 	id: 'claude-sonnet-5',
 	openRouterId: 'anthropic/claude-sonnet-5',
-	provider: 'anthropic',
-	supportsTemperature: false,
-	thinking: 'adaptive',
-	effort: 'low',
+	reasoning: 'low',
 }
 ```
 
 `openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
+
+`reasoning` sets how much the model reasons before it answers, from `none` to `max`. The AI SDK maps it to each provider's own setting, such as Anthropic's effort or Gemini's thinking level, and uses the nearest level that the model supports. Omit it to use the provider's default.
 
 Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
 
