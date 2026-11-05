@@ -456,11 +456,14 @@ get_board_info({
 get_page_info({
  boardId: string,
  page?: number | string, // 0-based page index or stable page id (see get_board_info). default 0
+ cursor?: string, // the nextCursor of a previous answer, for the same page
 })
 // → { name: string, bounds: Bounds | null, clusterCount: number,
-//     clusters: { id: string, label: string, keywords: string[], numberOfShapes: number, bounds: Bounds | null }[] }
-//   Bounds is { x, y, w, h } in page space, rounded to thousandths; null when the render measured
-//   none of it
+//     clusters: { id: string, label: string, keywords: string[], numberOfShapes: number, bounds: Bounds | null }[],
+//     nextCursor?: string }
+//   Clusters come largest first; an answer stops at ~40K characters of clusters with a nextCursor, and
+//   name, bounds and clusterCount repeat on every answer. Bounds is { x, y, w, h } in page space,
+//   rounded to whole numbers; null when the render measured none of it
 
 get_cluster_info({
  boardId: string,
