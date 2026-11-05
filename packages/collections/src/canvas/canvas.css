@@ -97,9 +97,8 @@
 .tlui-collections-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--tlui-collections-columns, 2), minmax(0, 1fr));
-	gap: 4px;
 	margin: 0;
-	padding: 4px 8px 8px;
+	padding: 4px 10px 8px;
 	list-style: none;
 	overflow-y: auto;
 }
@@ -252,7 +251,7 @@
 /* A group's heading stays at the top of the list while its collections scroll under it, and its
    collections' headers stick beneath it. */
 .tlui-collections-group {
-	--tlui-collections-group-heading-height: 28px;
+	--tlui-collections-group-heading-height: 24px;
 	--tlui-collections-sticky-top: var(--tlui-collections-group-heading-height);
 }
 
@@ -321,6 +320,7 @@
 
 .tlui-collections-sections .tlui-collections-grid {
 	overflow: visible;
+	padding: 0 10px 4px;
 }
 
 /* Stays at the top of the list, under its group's heading, while its own items scroll under it,
@@ -336,6 +336,58 @@
 		var(--tl-color-panel)
 	);
 	border-bottom: none;
+}
+
+/* A section's header is a shorter row than the panel's: its name, rename input and buttons are
+   28px tall. */
+.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__title {
+	line-height: 28px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-input__wrapper,
+.tlui-collections-section > .tlui-collections-panel__header .tlui-input {
+	height: 28px;
+	max-height: 28px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
+	padding-bottom: 2px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-button {
+	height: 28px;
+	min-width: 28px;
+	width: 28px;
+	padding: 0;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-button::after {
+	inset: 2px;
+}
+
+/* The whole name row folds the section, with the chevron straight after the name. */
+.tlui-collections-panel__toggle {
+	align-items: center;
+	gap: 2px;
+	margin: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: 500;
+	text-align: left;
+	cursor: pointer;
+}
+
+.tlui-collections-panel__toggle:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-collections-panel__toggle > .tlui-collections-chevron {
+	color: var(--tl-color-text-3);
 }
 
 .tlui-collections-panel__detail {
@@ -815,13 +867,13 @@
 }
 
 .tlui-collections-section__more {
-	padding: 0 8px 8px;
+	padding: 0 14px 4px;
 }
 
 .tlui-collections-section__more > .tlui-button {
 	width: 100%;
-	height: 32px;
-	min-height: 32px;
+	height: 28px;
+	min-height: 28px;
 	justify-content: center;
 	color: var(--tl-color-text-3);
 }
