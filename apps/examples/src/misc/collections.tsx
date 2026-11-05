@@ -1,10 +1,12 @@
 import {
 	AddToCollectionMenuItem,
 	type AddToCollectionOrder,
+	BoardCollectionSource,
 	CollectionsPanel,
 	type CollectionsPanelNavigation,
 	CollectionRecordType,
 	CollectionsQuickActions,
+	collectionSchemaRecords,
 	collectionsPanelOpen,
 	type CollectionSource,
 	CompositeCollectionSource,
@@ -81,8 +83,11 @@ const BOARD = 'board'
 const PERSONAL = 'home'
 const ACME = 'acme'
 
+const BOARD_OWNER = { id: BOARD, name: 'This board' }
+
+// The board's own collections are records in its document, kept by a BoardCollectionSource; these
+// are the rest.
 const OWNERS = [
-	{ id: BOARD, name: 'This board' },
 	{ id: PERSONAL, name: 'Personal' },
 	{ id: ACME, name: 'Acme workspace' },
 ]
@@ -119,7 +124,8 @@ class PlaygroundSource extends InMemoryCollectionSource {
 	}
 
 	override getDefaultOwnerId() {
-		return OWNER_IDS[scopeSettings.get().newCollectionOwner]
+		const ownerId = OWNER_IDS[scopeSettings.get().newCollectionOwner]
+		return OWNERS.some((owner) => owner.id === ownerId) ? ownerId : PERSONAL
 	}
 
 	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
@@ -135,10 +141,25 @@ class PlaygroundSource extends InMemoryCollectionSource {
 	}
 }
 
+// The board's collections, switchable from the Permissions page like the rest.
+class PlaygroundBoardSource extends BoardCollectionSource {
+	override can(action: TLCollectionAction, collectionId?: TLCollectionId) {
+		return permissions.get()[action] && super.can(action, collectionId)
+	}
+}
+
+// New collections go to the owner chosen on the Scope page, when this source has it.
+class PlaygroundCompositeSource extends CompositeCollectionSource {
+	override getDefaultOwnerId() {
+		const ownerId = OWNER_IDS[scopeSettings.get().newCollectionOwner]
+		const owner = this.getCollectionOwners().find((o) => o.id === ownerId)
+		return owner && !owner.readOnly ? ownerId : super.getDefaultOwnerId()
+	}
+}
+
 const samples = new PlaygroundSource({
 	initial: {
 		collections: [
-			CollectionRecordType.create({ id: BOARD_KIT, name: 'Board kit', ownerId: BOARD }),
 			CollectionRecordType.create({ id: WIREFRAMES, name: 'Wireframes', ownerId: ACME }),
 			CollectionRecordType.create({ id: ICONS, name: 'Icons', ownerId: PERSONAL }),
 			CollectionRecordType.create({ id: SHAPES, name: 'Shapes', ownerId: PERSONAL }),
@@ -151,37 +172,65 @@ const samples = new PlaygroundSource({
 // Packs shipped with the app, listed under their own owner once added from "Browse collections…".
 const starterPacks = new PackCollectionSource({ id: 'playground-packs', packs: STARTER_PACKS })
 
-const withPacks = (id: string, source: CollectionSource) =>
-	new CompositeCollectionSource({
-		id,
-		parts: [{ source }, { owner: { id: 'tldraw', name: 'tldraw' }, source: starterPacks }],
-	})
+const PACKS_PART = { owner: { id: 'tldraw', name: 'tldraw' }, source: starterPacks }
 
-const SOURCES = {
-	samples: withPacks('playground-with-packs', samples),
-	empty: withPacks('playground-empty', new PlaygroundSource({ id: 'playground-empty-own' })),
-	'one-empty': withPacks(
-		'playground-one-empty',
-		new PlaygroundSource({
-			id: 'playground-one-empty-own',
-			initial: {
-				collections: [CollectionRecordType.create({ name: 'Untitled', ownerId: PERSONAL })],
-				items: [],
-				contents: {},
-			},
-		})
-	),
-}
+const empty = new PlaygroundSource({ id: 'playground-empty-own' })
+const oneEmpty = new PlaygroundSource({
+	id: 'playground-one-empty-own',
+	initial: {
+		collections: [CollectionRecordType.create({ name: 'Untitled', ownerId: PERSONAL })],
+		items: [],
+		contents: {},
+	},
+})
+
+type SourceName = 'samples' | 'empty' | 'one-empty'
 
 // The same source without moveCollection, for the playground's toggle: the panel then offers no
 // "Move to". It shares the source's collections, so turning moving back on loses nothing.
 const withoutMoving = (source: CollectionSource): CollectionSource =>
 	Object.assign(Object.create(source), { moveCollection: undefined })
 
-const FIXED_OWNER_SOURCES: Record<keyof typeof SOURCES, CollectionSource> = {
-	samples: withoutMoving(SOURCES.samples),
-	empty: withoutMoving(SOURCES.empty),
-	'one-empty': withoutMoving(SOURCES['one-empty']),
+interface EditorSources {
+	board: BoardCollectionSource
+	movable: Record<SourceName, CollectionSource>
+	fixed: Record<SourceName, CollectionSource>
+}
+
+// The board's collections come from the editor's document, so the sources are made per editor.
+// The empty sources leave the board out, so the Empty states page shows what a first visit does.
+const editorSources = new WeakMap<Editor, EditorSources>()
+
+function getEditorSources(editor: Editor): EditorSources {
+	let sources = editorSources.get(editor)
+	if (!sources) {
+		const board = new PlaygroundBoardSource(editor, { id: 'playground-board' })
+		const movable: Record<SourceName, CollectionSource> = {
+			samples: new PlaygroundCompositeSource({
+				id: 'playground-with-packs',
+				parts: [{ owner: BOARD_OWNER, source: board }, { source: samples }, PACKS_PART],
+			}),
+			empty: new PlaygroundCompositeSource({
+				id: 'playground-empty',
+				parts: [{ source: empty }, PACKS_PART],
+			}),
+			'one-empty': new PlaygroundCompositeSource({
+				id: 'playground-one-empty',
+				parts: [{ source: oneEmpty }, PACKS_PART],
+			}),
+		}
+		sources = {
+			board,
+			movable,
+			fixed: {
+				samples: withoutMoving(movable.samples),
+				empty: withoutMoving(movable.empty),
+				'one-empty': withoutMoving(movable['one-empty']),
+			},
+		}
+		editorSources.set(editor, sources)
+	}
+	return sources
 }
 
 type GeoProps = Partial<TLGeoShape['props']>
@@ -245,15 +294,38 @@ const SAMPLES: {
 	},
 ]
 
+async function saveSample(
+	editor: Editor,
+	source: CollectionSource,
+	collectionId: TLCollectionId,
+	sample: (typeof SAMPLES)[number]
+) {
+	const ids = sample.shapes.map((shape) => shape.id)
+	editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
+	try {
+		await saveShapesToCollection(editor, source, collectionId, ids, sample.name)
+	} finally {
+		editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
+	}
+}
+
 async function seedSamples(editor: Editor) {
 	for (const sample of SAMPLES) {
-		const ids = sample.shapes.map((shape) => shape.id)
-		editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
-		try {
-			await saveShapesToCollection(editor, samples, sample.collectionId, ids, sample.name)
-		} finally {
-			editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
-		}
+		if (sample.collectionId === BOARD_KIT) continue
+		await saveSample(editor, samples, sample.collectionId, sample)
+	}
+}
+
+// The board kit is saved into the document, so it is seeded once per document, not on every load.
+async function seedBoardKit(editor: Editor) {
+	if (editor.getDocumentSettings().meta.collectionsPlaygroundSeeded) return
+	editor.run(() => editor.updateDocumentSettings({ meta: { collectionsPlaygroundSeeded: true } }), {
+		history: 'ignore',
+	})
+	const { board } = getEditorSources(editor)
+	const kit = await board.createCollection('Board kit')
+	for (const sample of SAMPLES) {
+		if (sample.collectionId === BOARD_KIT) await saveSample(editor, board, kit.id, sample)
 	}
 }
 
@@ -327,7 +399,7 @@ interface PlaygroundSettings {
 	header: 'picker' | 'title'
 	addControl: 'header' | 'footer'
 	emptyCollection: 'message' | 'add'
-	data: keyof typeof SOURCES
+	data: SourceName
 }
 
 const DEFAULT_SETTINGS: PlaygroundSettings = {
@@ -542,7 +614,7 @@ const SURFACES: Surface[] = [
 	},
 	{
 		page: 'Saving',
-		hint: "What happens when you save. ⌘Z can't undo a save: items live in the source, outside the document's history.",
+		hint: "What happens when you save. ⌘Z can't undo a save: saving isn't an edit to the canvas, so it stays out of the undo history.",
 		shapes: true,
 		choices: [
 			{
@@ -864,13 +936,15 @@ function PlaygroundControls({ editor }: { editor: Editor }) {
 }
 
 function usePlaygroundSource() {
+	const editor = useEditor()
 	return useValue(
 		'playground source',
 		() => {
 			const { data, moveCollections } = settings.get()
-			return moveCollections === 'yes' ? SOURCES[data] : FIXED_OWNER_SOURCES[data]
+			const sources = getEditorSources(editor)
+			return moveCollections === 'yes' ? sources.movable[data] : sources.fixed[data]
 		},
-		[]
+		[editor]
 	)
 }
 
@@ -1043,6 +1117,9 @@ const handleMount = (editor: Editor) => {
 	editor.run(() => setUpSurfaces(editor), { history: 'ignore' })
 	collectionsPanelOpen.set(editor, true)
 	seeding ??= seedSamples(editor)
+	seedBoardKit(editor).catch((error) =>
+		console.error('[collections] seeding the board failed', error)
+	)
 }
 
 // The Panel layout page can shrink the editor to a phone's width, so tldraw's breakpoints treat
@@ -1051,7 +1128,12 @@ export default function Collections() {
 	const viewport = useValue('viewport', () => settings.get().viewport, [])
 	const mounted = useValue('mounted editor', () => mountedEditor.get(), [])
 	const editor = (
-		<Tldraw persistenceKey="collections" components={components} onMount={handleMount} />
+		<Tldraw
+			persistenceKey="collections"
+			records={collectionSchemaRecords}
+			components={components}
+			onMount={handleMount}
+		/>
 	)
 	if (viewport === 'desktop') return <div className="tldraw__editor">{editor}</div>
 	return (
