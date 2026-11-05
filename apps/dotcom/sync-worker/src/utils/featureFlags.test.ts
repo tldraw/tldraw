@@ -550,6 +550,7 @@ describe('getAllFeatureFlagValues', () => {
 			'collections',
 			'load_rum',
 			'mcp_server_access',
+			'mcp_tab_render',
 			'rum_enabled',
 			'version_chain',
 		])

@@ -986,10 +986,15 @@ export function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeas
 		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
 	).exec(html)
 	if (!match) throw new Error('The render page did not report any measurements')
-	const reported = JSON.parse(match[1]) as Record<string, ThumbnailShapeMeasurement>
+	return readMeasurements(JSON.parse(match[1]))
+}
 
+/** What the editor reported for each shape, whichever editor that was. */
+export function readMeasurements(reported: unknown): Record<string, ShapeMeasurement> {
 	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
+	for (const [shapeId, box] of Object.entries(
+		reported as Record<string, ThumbnailShapeMeasurement>
+	)) {
 		if (
 			!Number.isFinite(box?.x) ||
 			!Number.isFinite(box?.y) ||

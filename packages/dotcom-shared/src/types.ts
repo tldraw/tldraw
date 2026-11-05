@@ -170,6 +170,47 @@ export interface ThumbnailShapeMeasurement {
 }
 
 /**
+ * The sync socket query param a client sets to say it can answer `mcp_tab_render` jobs. Opt-in rather
+ * than read off the build timestamp, because the sockets in a room are not all browsers: an agent
+ * joins on an OAuth token as the same user and could never answer, and every job sent to one costs
+ * the full ack window.
+ */
+export const TAB_RENDER_PARAM = 'tabRender'
+
+/** What an MCP tool asks an open tab to work out, so it doesn't have to start a Browser Run session. */
+export type TabRenderRequest =
+	| { mode: 'measure'; pageId: string }
+	| {
+			mode: 'screenshot'
+			pageId: string
+			shapeIds: string[]
+			theme: 'light' | 'dark'
+			width: number
+			height: number
+	  }
+
+export const TAB_RENDER_DECLINE_REASONS = [
+	/** The socket is up but the editor has not mounted yet. */
+	'editor_not_ready',
+	/** The tab has no such page. */
+	'page_missing',
+	/** A screenshot of a page the tab isn't showing: the export only draws the current page. */
+	'page_not_current',
+	/** None of the requested shapes are on the page any more. */
+	'shapes_missing',
+	/** The work threw. */
+	'failed',
+] as const
+export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
+
+/** What a tab POSTs back for a job. Anything but `accepted` ends that tab's part in it. */
+export type TabRenderReply =
+	| { status: 'accepted' }
+	| { status: 'declined'; reason: TabRenderDeclineReason }
+	| { status: 'measured'; shapes: Record<string, ThumbnailShapeMeasurement> }
+	| { status: 'captured'; base64: string }
+
+/**
  * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
  * page is ready. All values are `performance.now()` stamps (ms since navigation start), so the
  * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
@@ -295,6 +336,9 @@ export type TLCustomServerEvent =
 			boot_r2_ms?: number
 			boot_comments_ms?: number
 	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
+	// Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
+	// this one session and nowhere else, and it is what the reply route checks.
+	| { type: 'mcp_tab_render'; jobId: string; request: TabRenderRequest }
 
 /* ----------------------- Feature Flags ---------------------- */
 
@@ -302,6 +346,7 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'mcp_server_access',
+	'mcp_tab_render',
 	'version_chain',
 	'collections',
 ] as const

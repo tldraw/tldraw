@@ -13,7 +13,10 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TAB_RENDER_PARAM,
 	TLCustomServerEvent,
+	TabRenderReply,
+	TabRenderRequest,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
@@ -120,6 +123,12 @@ import {
 	resolvePersistedFingerprint,
 	SnapshotFingerprint,
 } from './snapshotUtils'
+import {
+	TabRenderBroker,
+	TabRenderOutcome,
+	TabRenderSocket,
+	pickTabRenderSessions,
+} from './tabRenderBroker'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
@@ -228,6 +237,9 @@ interface SocketAttachment {
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
+	// Whether this client can answer `mcp_tab_render` jobs. Absent on attachments serialized before
+	// the param existed, and on bundles that predate it.
+	canTabRender?: boolean
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -1231,6 +1243,7 @@ export class TLFileDurableObject extends DurableObject {
 				isReadonly,
 				objectAccess,
 				clientBuildTimestamp,
+				canTabRender: params[TAB_RENDER_PARAM] === '1',
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -3530,6 +3543,44 @@ export class TLFileDurableObject extends DurableObject {
 		this.ensureMcpClusterIndex()
 		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
 		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
+	}
+
+	private tabRenders = new TabRenderBroker()
+
+	/**
+	 * Asks this user's open tabs to do something an MCP tool would otherwise start a browser for.
+	 *
+	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
+	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
+	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
+	 */
+	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
+		if (!this._documentInfo || this._documentInfo.deleted) return { outcome: 'no_tab' }
+
+		const sockets: TabRenderSocket[] = []
+		for (const ws of this.ctx.getWebSockets()) {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId) continue
+			sockets.push({
+				sessionId: attachment.sessionId,
+				userId: attachment.meta.userId,
+				canRender: attachment.canTabRender === true,
+				lastPingAt: this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ?? null,
+			})
+		}
+		const sessionIds = pickTabRenderSessions(sockets, userId, Date.now())
+		if (sessionIds.length === 0) return { outcome: 'no_tab' }
+
+		const room = await this.getRoom()
+		return this.tabRenders.dispatch(sessionIds, request, (sessionId, jobId) => {
+			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+			room.sendCustomMessage(sessionId, event)
+		})
+	}
+
+	/** Hands a tab's reply to the job waiting for it. False when no job is waiting under that id. */
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
 	}
 
 	/**

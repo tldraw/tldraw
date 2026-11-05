@@ -6,7 +6,9 @@ import {
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
+import { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
+import { resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
@@ -34,6 +36,7 @@ import {
 	datapointsNamed,
 	failureBlobsOf,
 	makeBrowserBinding,
+	makeFakeFileDurableObjectNamespace,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
 	makeMeasuringBrowserBinding,
@@ -1747,6 +1750,202 @@ describe('cluster index cache', () => {
 // nothing. The budgets themselves live in config.ts, and they are per account: the auth layer is
 // what made that identity trustworthy, where the per-IP keys this replaced were evaded by a proxy
 // pool and shared across a NAT.
+describe('rendering in an open tab', () => {
+	const MEASURED_SHAPES = {
+		'shape:page:a-0': { x: 0, y: 0, w: 10, h: 10, text: 'From the tab' },
+		'shape:page:a-1': { x: 5000, y: 0, w: 10, h: 10 },
+	}
+
+	function makeTabEnv(
+		answer: (request: { mode: string }) => TabRenderOutcome,
+		{ flagOn = true }: { flagOn?: boolean } = {}
+	) {
+		const requestTabRender = vi.fn(async (_userId: string, request: any) => answer(request))
+		const env = makeEnv({
+			TLDR_DOC: makeFakeFileDurableObjectNamespace(requestTabRender),
+			ROOMS: makeFakeRoomsBucket(),
+			FEATURE_FLAGS: {
+				get: async () => JSON.stringify({ allowEveryone: flagOn }),
+			},
+		})
+		return { env, requestTabRender }
+	}
+
+	function mockSharedBoard() {
+		grantReadAccess()
+		vi.mocked(getSharedFileInfo).mockResolvedValue({
+			id: 'abc',
+			name: 'My Board',
+			shared: true,
+			isDeleted: false,
+		} as any)
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+	}
+
+	const answerFromTab = (request: { mode: string }): TabRenderOutcome =>
+		request.mode === 'measure'
+			? { outcome: 'measured', shapes: MEASURED_SHAPES }
+			: { outcome: 'captured', base64: 'iVBORw0KGgoTAB' }
+
+	beforeEach(() => {
+		resetFeatureFlagCacheForTests()
+		mockSharedBoard()
+	})
+
+	it('measures in the tab and spends no browser session', async () => {
+		const { env, requestTabRender } = makeTabEnv(answerFromTab)
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(requestTabRender).toHaveBeenCalledWith('user_tab', { mode: 'measure', pageId: 'page:a' })
+		expect(sessionsOf(env)).toEqual([])
+		expect(JSON.parse(result.content[0].text).clusters.map((c: any) => c.label)).toContain(
+			'From the tab'
+		)
+	})
+
+	it('captures in the tab, spends no browser session, and answers with its image', async () => {
+		const { env, requestTabRender } = makeTabEnv(answerFromTab)
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_tab'
+		)
+
+		expect(requestTabRender).toHaveBeenLastCalledWith('user_tab', {
+			mode: 'screenshot',
+			pageId: 'page:a',
+			shapeIds: expect.any(Array),
+			theme: 'light',
+			width: 1200,
+			height: 630,
+		})
+		expect(sessionsOf(env)).toEqual([])
+		expect(result.content).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'image', data: 'iVBORw0KGgoTAB', mimeType: 'image/png' },
+		])
+	})
+
+	// The caches have no viewer dimension, and a tab's owner can POST anything. If either write landed,
+	// one viewer of a shared board could put words and pictures in front of every other viewer's agent.
+	it('never writes what a tab produced to a cache other callers read', async () => {
+		const { env } = makeTabEnv(answerFromTab)
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_tab'
+		)
+
+		expect(clusterIndexKeysOf(env)).toEqual([])
+		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	it('does not count a tab against the Browser Run budgets', async () => {
+		const browserLimit = vi.fn(async () => ({ success: false }))
+		const { env } = makeTabEnv(answerFromTab)
+		;(env as any).MCP_SERVER_BROWSER_RATE_LIMITER = { limit: browserLimit }
+		;(env as any).MCP_SERVER_BOARD_RATE_LIMITER = { limit: browserLimit }
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_tab'
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(browserLimit).not.toHaveBeenCalled()
+	})
+
+	it.each<[string, TabRenderOutcome]>([
+		['nobody has it open', { outcome: 'no_tab' }],
+		['every tab declined', { outcome: 'declined', reason: 'page_not_current' }],
+		['no tab acknowledged', { outcome: 'ack_timeout' }],
+		['the tab ran out of time', { outcome: 'work_timeout' }],
+	])('falls back to Browser Run when %s', async (_name, outcome) => {
+		const { env } = makeTabEnv(() => outcome)
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_tab'
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'screenshot'])
+	})
+
+	it('falls back to Browser Run when the object cannot be reached', async () => {
+		const { env } = makeTabEnv(() => {
+			throw new Error('object unavailable')
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(result.isError).toBeUndefined()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
+	it('falls back per step: a tab can measure and leave the capture to Browser Run', async () => {
+		const { env } = makeTabEnv((request) =>
+			request.mode === 'measure'
+				? { outcome: 'measured', shapes: MEASURED_SHAPES }
+				: { outcome: 'declined', reason: 'page_not_current' }
+		)
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_tab'
+		)
+
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['screenshot'])
+	})
+
+	it('does not ask a tab when the flag is off for the caller', async () => {
+		const { env, requestTabRender } = makeTabEnv(answerFromTab, { flagOn: false })
+
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(requestTabRender).not.toHaveBeenCalled()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
+	// A published board is a frozen copy; the room behind it holds a different, live document.
+	it('does not ask a tab about a published board', async () => {
+		denyReadAccess()
+		mockPublishedBoard()
+		const { env, requestTabRender } = makeTabEnv(answerFromTab)
+
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(requestTabRender).not.toHaveBeenCalled()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
+	it('records how each attempt went, with no board or user identity', async () => {
+		const { env } = makeTabEnv(() => ({ outcome: 'declined', reason: 'page_missing' }))
+
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.blobs.slice(2))).toEqual([
+			['mode:measure', 'outcome:declined', 'reason:page_missing'],
+		])
+	})
+})
+
 describe('rate limits', () => {
 	it('does not limit get_board_info, which spends no Browser Run', async () => {
 		mockPublishedBoard()

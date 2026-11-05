@@ -61,6 +61,7 @@ import { createBoardForUser } from './createBoard'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
+import { captureInOpenTab, measureInOpenTab } from './mcpTabRender'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -1229,6 +1230,27 @@ async function readClustering(
 		if (refusal) return { ok: false, result: refusal }
 	}
 
+	// Ahead of the Browser Run budget, which it doesn't spend. Clustered but never written to the index:
+	// see mcpTabRender.ts for why a tab's answer stops at the caller who asked for it.
+	const tabMeasurements = await measureInOpenTab(
+		env,
+		resolved.board,
+		userId,
+		resolved.page.pageId,
+		{
+			request,
+			ctx,
+		}
+	)
+	if (tabMeasurements) {
+		const clusters = clusterPage(resolved.page, tabMeasurements)
+		return {
+			ok: true,
+			...clusteringFromMeasure(clusters, tabMeasurements),
+			clusterCacheStatus: 'miss',
+		}
+	}
+
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
 			cacheStatus: 'none',
@@ -1405,6 +1427,26 @@ async function renderShapeSetScreenshot(
 				decodeThumbnailPageName(cached.customMetadata?.pageName),
 				arrayBufferToBase64(await cached.arrayBuffer())
 			)
+		}
+
+		// Ahead of the guards below, which bound Browser Run, and never written back to the PNG cache:
+		// see mcpTabRender.ts for why a tab's answer stops at the caller who asked for it.
+		const tabImage = await captureInOpenTab(
+			env,
+			resolved.board,
+			userId,
+			{
+				pageId: resolved.page.pageId,
+				shapeIds,
+				theme,
+				width: DEFAULT_THUMBNAIL_WIDTH,
+				height: DEFAULT_THUMBNAIL_HEIGHT,
+			},
+			{ request, ctx }
+		)
+		if (tabImage) {
+			telemetry({ cacheStatus: 'miss', clusterCacheStatus })
+			return toolPageResult(resolved.page.pageName, tabImage)
 		}
 
 		// Only cache misses spend Browser Rendering capacity on the capture, so the per-board and
