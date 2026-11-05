@@ -20,6 +20,8 @@ export type GroupCollections = (collection: TLCollection) => string | undefined
 export type CollectionGrouping = 'owner' | 'none' | GroupCollections
 
 export interface CollectionGroup {
+	/** Tells the group apart from the others, e.g. its owner's id. Unnamed groups have none. */
+	key?: string
 	label?: string
 	collections: TLCollection[]
 }
@@ -27,7 +29,9 @@ export interface CollectionGroup {
 /** A grouping worked out against a source. */
 export interface ResolvedGrouping {
 	groupOf: GroupCollections
-	/** Group labels in the order their groups go. Groups not listed follow, in order of appearance. */
+	/** Identifies a collection's group. Defaults to the group's name. */
+	keyOf?: GroupCollections
+	/** Group keys in the order their groups go. Groups not listed follow, in order of appearance. */
 	order?: string[]
 }
 
@@ -49,7 +53,11 @@ export function useCollectionGrouping(
 		return {
 			groupOf: (collection) =>
 				collection.ownerId === undefined ? undefined : names.get(collection.ownerId),
-			order: owners.map((owner) => owner.name),
+			keyOf: (collection) =>
+				collection.ownerId !== undefined && names.has(collection.ownerId)
+					? collection.ownerId
+					: undefined,
+			order: owners.map((owner) => owner.id),
 		}
 	}, [grouping, owners])
 }
@@ -63,19 +71,20 @@ export function groupCollectionList(
 	grouping?: ResolvedGrouping
 ): CollectionGroup[] {
 	if (!grouping) return [{ collections }]
-	const groups = new Map<string | undefined, TLCollection[]>()
+	const keyOf = grouping.keyOf ?? grouping.groupOf
+	const groups = new Map<string | undefined, CollectionGroup>()
 	for (const collection of collections) {
-		const label = grouping.groupOf(collection)
-		const group = groups.get(label)
-		if (group) group.push(collection)
-		else groups.set(label, [collection])
+		const key = keyOf(collection)
+		const group = groups.get(key)
+		if (group) group.collections.push(collection)
+		else groups.set(key, { key, label: grouping.groupOf(collection), collections: [collection] })
 	}
-	const list = [...groups].map(([label, members]) => ({ label, collections: members }))
+	const list = [...groups.values()]
 	const order = grouping.order
 	if (!order) return list
-	const rank = (label?: string) => {
-		const index = label === undefined ? -1 : order.indexOf(label)
+	const rank = (key?: string) => {
+		const index = key === undefined ? -1 : order.indexOf(key)
 		return index === -1 ? order.length : index
 	}
-	return list.sort((a, b) => rank(a.label) - rank(b.label))
+	return list.sort((a, b) => rank(a.key) - rank(b.key))
 }

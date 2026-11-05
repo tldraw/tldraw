@@ -52,3 +52,12 @@ export const highlightedItemId = new EditorAtom<TLCollectionItemId | null>(
 	'highlightedItemId',
 	() => null
 )
+
+/**
+ * The groups of collections folded shut in the panel, by source id, each the keys of its groups
+ * (e.g. owner ids). Kept while the panel is closed.
+ */
+export const collapsedGroupKeys = new EditorAtom<Record<string, string[]>>(
+	'collapsedGroupKeys',
+	() => ({})
+)
