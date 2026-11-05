@@ -24,12 +24,13 @@ const messages = defineMessages({
 })
 
 /**
- * Where the panel offers adding the selection. `'footer'`: a bar along the bottom of the panel,
- * which adds to the collection showing, or opens a menu of collections when several are showing.
- * `'header'`: a "+" in the header, and in each section's header.
+ * Where the panel offers adding the selection, besides the "+" tile that ends each collection's
+ * grid. `'none'`: nowhere else. `'footer'`: a bar along the bottom of the panel, which adds to
+ * the collection showing, or opens a menu of collections when several are showing. `'header'`: a
+ * "+" in the header, and in each section's header.
  * @public
  */
-export type AddControl = 'header' | 'footer'
+export type AddControl = 'none' | 'header' | 'footer'
 
 function useHasSelection() {
 	const editor = useEditor()
