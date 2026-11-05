@@ -105,7 +105,22 @@
 	display: flex;
 	align-items: center;
 	padding: 2px;
-	background: var(--tl-color-panel);
+	background: color-mix(in srgb, var(--tl-color-panel) 95%, transparent);
+}
+
+.tlui-collections-group > .tlui-collections-group__heading::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	height: 12px;
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--tl-color-panel) 95%, transparent),
+		transparent
+	);
+	pointer-events: none;
 }
 
 .tlui-collections-group__toggle {
