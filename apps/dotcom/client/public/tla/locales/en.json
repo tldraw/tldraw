@@ -14,6 +14,9 @@
   "04a2dd56d6": {
     "translation": "Invite teammates"
   },
+  "0571ee3934": {
+    "translation": "Couldn't change the collection"
+  },
   "05b2656486": {
     "translation": "<name>{author}</name> mentioned you"
   },
@@ -245,6 +248,9 @@
   "5bffeebf03": {
     "translation": "<name>{author}</name> reacted to your comment"
   },
+  "5cbe4b7faf": {
+    "translation": "No collections in this workspace yet."
+  },
   "5d04a002ea": {
     "translation": "Unable to connect"
   },
@@ -265,6 +271,9 @@
   },
   "61057a0c84": {
     "translation": "Later"
+  },
+  "611307b7ab": {
+    "translation": "Delete collection"
   },
   "61fb03fd7b": {
     "translation": "{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
@@ -449,6 +458,9 @@
   "9c228b6834": {
     "translation": "You appear to be offline. Check your connection and try again."
   },
+  "9c48785253": {
+    "translation": "{count, plural, one {# item} other {# items}}"
+  },
   "9ccb565b86": {
     "translation": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
   },
@@ -515,6 +527,9 @@
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
+  "ad2d494369": {
+    "translation": "Delete <strong>{name}</strong>? {count, plural, =0 {} one {Its # item is deleted for everyone in this workspace.} other {Its # items are deleted for everyone in this workspace.}}"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Last published <date></date>"
@@ -572,6 +587,9 @@
   },
   "c26f17786f": {
     "translation": "{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}"
+  },
+  "c2d3219e36": {
+    "translation": "You may not be allowed to, or the collection no longer exists."
   },
   "c303bd1095": {
     "translation": "Unable to publish the file."
@@ -641,6 +659,9 @@
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e10a073cda": {
+    "translation": "Moved to {name}"
   },
   "e2198d6228": {
     "translation": "Copy invite link"
