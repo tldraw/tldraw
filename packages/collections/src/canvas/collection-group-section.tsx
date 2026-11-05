@@ -106,7 +106,6 @@ export function CollectionGroupSection({
 				{canCreate && (
 					<TldrawUiButton
 						type="icon"
-						className="tlui-collections-group__add"
 						tooltip={msg(messages.newCollectionIn, { name: label })}
 						title={msg(messages.newCollectionIn, { name: label })}
 						onClick={createCollection}

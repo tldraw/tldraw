@@ -251,7 +251,7 @@
 /* A group's heading stays at the top of the list while its collections scroll under it, and its
    collections' headers stick beneath it. */
 .tlui-collections-group {
-	--tlui-collections-group-heading-height: 24px;
+	--tlui-collections-group-heading-height: 44px;
 	--tlui-collections-sticky-top: var(--tlui-collections-group-heading-height);
 }
 
@@ -262,7 +262,7 @@
 	height: var(--tlui-collections-group-heading-height);
 	display: flex;
 	align-items: center;
-	padding: 0 4px 0 0;
+	padding: 2px;
 	background: var(--tl-color-panel);
 }
 
@@ -275,7 +275,7 @@
 	flex: 1;
 	min-width: 0;
 	height: 100%;
-	padding: 0 12px;
+	padding: 0 10px;
 	cursor: pointer;
 }
 
@@ -287,20 +287,6 @@
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: -2px;
 	border-radius: var(--tl-radius-2);
-}
-
-/* Centred under the ⋯ of the collection headers below it. */
-.tlui-collections-group__add.tlui-button {
-	flex-shrink: 0;
-	height: 24px;
-	min-width: 24px;
-	width: 24px;
-	padding: 0;
-	color: var(--tl-color-text-3);
-}
-
-.tlui-collections-group__add.tlui-button::after {
-	inset: 2px;
 }
 
 .tlui-collections-group__label {
