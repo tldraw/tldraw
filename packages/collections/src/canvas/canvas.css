@@ -177,7 +177,7 @@
 	z-index: 1;
 	background: linear-gradient(
 		to bottom,
-		color-mix(in srgb, var(--tl-color-panel) 95%, transparent) calc(100% - 8px),
+		color-mix(in srgb, var(--tl-color-panel) 95%, transparent) calc(100% - 20px),
 		transparent
 	);
 	border-bottom: none;
