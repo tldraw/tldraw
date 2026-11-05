@@ -15,6 +15,7 @@ export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from
 export {
 	CollectionMenu,
 	type CollectionMenuProps,
+	type CollectionMenuCopy,
 	type CollectionMenuMove,
 	type CollectionMenuSort,
 } from './ui/collection-menu'
