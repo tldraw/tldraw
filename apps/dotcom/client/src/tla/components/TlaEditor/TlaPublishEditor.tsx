@@ -6,6 +6,7 @@ import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { globalEditor } from '../../../utils/globalEditor'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
@@ -47,6 +48,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				snapshot={snapshot}
+				records={fileSchemaRecords}
 				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
