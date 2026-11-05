@@ -30,6 +30,8 @@ export async function flattenShapesToImages(
 		shapeIds.map((id) => {
 			const shape = editor.getShape(id)
 			if (!shape) return
+			// deleteShapes skips locked shapes; saving one would duplicate it on unflatten
+			if (editor.isShapeOrAncestorLocked(shape)) return
 			// skip shapes that don't have a toSvg method
 			if (editor.getShapeUtil(shape.type).toSvg === undefined) return
 			return shape

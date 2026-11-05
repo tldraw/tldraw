@@ -149,6 +149,20 @@ describe('flattenShapesToImages clustering', () => {
 	})
 })
 
+describe('flattenShapesToImages locked shapes', () => {
+	it('leaves locked shapes out of the image', async () => {
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([box(a, 100, 100), { ...box(b, 120, 120), isLocked: true }])
+
+		const [imageId] = (await flattenShapesToImages(editor, [a, b]))!
+		await unflattenImages(editor, [imageId])
+
+		expect(editor.getShape(b)).toBeDefined()
+		expect(editor.getCurrentPageShapes().filter((s) => s.type === 'geo')).toHaveLength(2)
+	})
+})
+
 describe('unflattenImages', () => {
 	const a = createShapeId('a')
 	const b = createShapeId('b')
