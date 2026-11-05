@@ -1,4 +1,4 @@
-import { Fragment, useCallback, useId, useState } from 'react'
+import { useCallback, useId, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -18,6 +18,7 @@ import { CollectionPicker } from '../ui/collection-picker'
 import { CollectionTabs } from '../ui/collection-tabs'
 import type { ItemGridAppearance } from '../ui/item-grid'
 import { AddSelectionBar, AddSelectionMenuBar, type AddControl } from './add-selection-bar'
+import { CollectionGroupSection } from './collection-group-section'
 import {
 	type CollectionGrouping,
 	groupCollectionList,
@@ -267,8 +268,6 @@ export function CollectionsPanel({
 		current !== undefined && navigation !== 'sections' && !searchingEverywhere
 	const countOf = (collection: TLCollection) => itemCounts.get(collection.id) ?? 0
 	const groups = groupCollectionList(collections, grouping)
-	const groupHeading = (label?: string) =>
-		label && <h3 className="tlui-collections-group__heading">{label}</h3>
 
 	if (!open) return null
 
@@ -302,8 +301,7 @@ export function CollectionsPanel({
 			return (
 				<div className="tlui-collections-sections">
 					{groups.map((group) => (
-						<Fragment key={group.label ?? ''}>
-							{groupHeading(group.label)}
+						<CollectionGroupSection key={group.key ?? ''} source={source} group={group}>
 							{group.collections.map((collection) => {
 								const isCollapsed = collapsed.includes(collection.id)
 								return (
@@ -344,7 +342,7 @@ export function CollectionsPanel({
 									</section>
 								)
 							})}
-						</Fragment>
+						</CollectionGroupSection>
 					))}
 				</div>
 			)
@@ -382,8 +380,7 @@ export function CollectionsPanel({
 			return (
 				<div className="tlui-collections-sections">
 					{groups.map((group) => (
-						<Fragment key={group.label ?? ''}>
-							{groupHeading(group.label)}
+						<CollectionGroupSection key={group.key ?? ''} source={source} group={group}>
 							<ul className="tlui-collections-previews">
 								{group.collections.map((collection) => (
 									<CollectionPreviewRow
@@ -396,7 +393,7 @@ export function CollectionsPanel({
 									/>
 								))}
 							</ul>
-						</Fragment>
+						</CollectionGroupSection>
 					))}
 				</div>
 			)
@@ -408,8 +405,7 @@ export function CollectionsPanel({
 			return (
 				<div className="tlui-collections-sections">
 					{groups.map((group) => (
-						<Fragment key={group.label ?? ''}>
-							{groupHeading(group.label)}
+						<CollectionGroupSection key={group.key ?? ''} source={source} group={group}>
 							<CollectionList
 								collections={group.collections.map((collection) => ({
 									id: collection.id,
@@ -419,7 +415,7 @@ export function CollectionsPanel({
 								onOpen={(id) => activeCollectionId.set(editor, id)}
 								empty={msg(messages.empty)}
 							/>
-						</Fragment>
+						</CollectionGroupSection>
 					))}
 				</div>
 			)
