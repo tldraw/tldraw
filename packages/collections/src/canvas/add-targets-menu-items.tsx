@@ -27,7 +27,7 @@ export function AddTargetsMenuItems({
 	return (
 		<>
 			{targets.groups.map((group, index) => (
-				<div key={group.label ?? index} role="group" aria-label={group.label}>
+				<div key={group.key ?? index} role="group" aria-label={group.label}>
 					{group.label && (
 						<div className="tlui-collections-menu-heading" role="presentation">
 							{group.label}

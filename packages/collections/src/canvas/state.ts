@@ -1,5 +1,5 @@
 import { EditorAtom, type Editor } from 'tldraw'
-import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
+import type { TLCollectionId } from '../lib/schema'
 
 /**
  * Whether the collections panel is open. Scoped per editor, so two editors on one page don't share
@@ -9,8 +9,8 @@ import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 export const collectionsPanelOpen = new EditorAtom<boolean>('collectionsPanelOpen', () => false)
 
 /**
- * The collection the panel shows, or null for the first one. Kept on the editor so it survives the
- * panel closing.
+ * A collection to bring into view: the panel unfolds it and scrolls to it, then clears this. Set it
+ * with {@link collectionsPanelOpen} to show a collection, e.g. one just saved to.
  * @public
  */
 export const activeCollectionId = new EditorAtom<TLCollectionId | null>(
@@ -33,24 +33,6 @@ export const renamingCollectionId = new EditorAtom<TLCollectionId | null>(
 export const collapsedCollectionIds = new EditorAtom<TLCollectionId[]>(
 	'collapsedCollectionIds',
 	() => []
-)
-
-/** The panel's sections showing every item rather than their first few rows. */
-export const expandedCollectionIds = new EditorAtom<TLCollectionId[]>(
-	'expandedCollectionIds',
-	() => []
-)
-
-/** An item just saved whose menu opens with its name ready to edit. */
-export const renamingItemId = new EditorAtom<TLCollectionItemId | null>(
-	'renamingItemId',
-	() => null
-)
-
-/** An item just saved, which its grid scrolls to and flashes. */
-export const highlightedItemId = new EditorAtom<TLCollectionItemId | null>(
-	'highlightedItemId',
-	() => null
 )
 
 /**

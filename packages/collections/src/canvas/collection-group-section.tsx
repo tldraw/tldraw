@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { type ReactNode, useEffect } from 'react'
 import {
 	defineMessages,
 	getIncrementedName,
@@ -63,6 +63,20 @@ export function CollectionGroupSection({
 		[source, key]
 	)
 
+	// Unfolds when a collection in it is brought into view.
+	const holdsActive = useValue(
+		'group holds active collection',
+		() => group.collections.some((c) => c.id === activeCollectionId.get(editor)),
+		[editor, group.collections]
+	)
+	useEffect(() => {
+		if (!holdsActive || key === undefined) return
+		collapsedGroupKeys.update(editor, (all) => ({
+			...all,
+			[source.id]: (all[source.id] ?? []).filter((k) => k !== key),
+		}))
+	}, [editor, source, key, holdsActive])
+
 	if (key === undefined || !label) return <>{children}</>
 
 	const setCollapsed = (shut: boolean) =>
@@ -78,7 +92,6 @@ export function CollectionGroupSection({
 		)
 		createNewCollection(source, name, key).then(
 			(collection) => {
-				setCollapsed(false)
 				activeCollectionId.set(editor, collection.id)
 				renamingCollectionId.set(editor, collection.id)
 			},
