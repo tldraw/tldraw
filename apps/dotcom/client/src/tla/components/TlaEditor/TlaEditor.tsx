@@ -347,7 +347,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
-					<TlaAddToCollectionMenuItem />
+					<TlaAddToCollectionMenuItem fileId={fileId} />
 					<DefaultContextMenuContent />
 				</DefaultContextMenu>
 			),
