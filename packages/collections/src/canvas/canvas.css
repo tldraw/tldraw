@@ -108,21 +108,6 @@
 	background: color-mix(in srgb, var(--tl-color-panel) 95%, transparent);
 }
 
-.tlui-collections-group > .tlui-collections-group__heading::after {
-	content: '';
-	position: absolute;
-	top: 100%;
-	left: 0;
-	right: 0;
-	height: 12px;
-	background: linear-gradient(
-		to bottom,
-		color-mix(in srgb, var(--tl-color-panel) 95%, transparent),
-		transparent
-	);
-	pointer-events: none;
-}
-
 .tlui-collections-group__toggle {
 	all: unset;
 	box-sizing: border-box;
@@ -190,23 +175,12 @@
 	position: sticky;
 	top: var(--tlui-collections-sticky-top, 0);
 	z-index: 1;
-	background: color-mix(in srgb, var(--tl-color-panel) 95%, transparent);
-	border-bottom: none;
-}
-
-.tlui-collections-section > .tlui-collections-panel__header::after {
-	content: '';
-	position: absolute;
-	top: 100%;
-	left: 0;
-	right: 0;
-	height: 12px;
 	background: linear-gradient(
 		to bottom,
-		color-mix(in srgb, var(--tl-color-panel) 95%, transparent),
+		color-mix(in srgb, var(--tl-color-panel) 95%, transparent) calc(100% - 8px),
 		transparent
 	);
-	pointer-events: none;
+	border-bottom: none;
 }
 
 /* The whole name row folds the section, with the chevron straight after the name. */
