@@ -10040,8 +10040,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 
-				// Save the new asset under the old asset's id
-				this.updateAssets([{ ...newAsset, id: asset.id }])
+				// Save the new asset under the old asset's id. Keep the pasted asset's meta, which the
+				// upload doesn't know about (e.g. the flag that lets a flattened image be unflattened).
+				this.updateAssets([
+					{ ...newAsset, id: asset.id, meta: { ...asset.meta, ...newAsset.meta } },
+				])
 			})
 		)
 
