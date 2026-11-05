@@ -13,11 +13,18 @@ import {
 	DefaultContextMenu,
 	DefaultContextMenuContent,
 	Editor,
+	PageRecordType,
+	react,
 	TLComponents,
+	TLDefaultColorStyle,
 	Tldraw,
 	TLGeoShape,
+	TLGeoShapeGeoStyle,
+	TLPageId,
 	TLShapePartial,
 	toRichText,
+	useEditor,
+	useValue,
 } from 'tldraw'
 import '@tldraw/collections/collections.css'
 import 'tldraw/tldraw.css'
@@ -51,11 +58,13 @@ const geo = (x: number, y: number, props: GeoProps): TLShapePartial<TLGeoShape> 
 	props,
 })
 
-const SAMPLES: {
+interface Sample {
 	collectionId: TLCollectionId
 	name?: string
 	shapes: TLShapePartial<TLGeoShape>[]
-}[] = [
+}
+
+const SAMPLES: Sample[] = [
 	{
 		collectionId: WIREFRAMES,
 		name: 'Button',
@@ -105,8 +114,124 @@ const SAMPLES: {
 	},
 ]
 
-async function seedSamples(editor: Editor) {
-	for (const sample of SAMPLES) {
+const GEOS: TLGeoShapeGeoStyle[] = [
+	'rectangle',
+	'ellipse',
+	'triangle',
+	'diamond',
+	'pentagon',
+	'hexagon',
+	'star',
+	'heart',
+	'cloud',
+	'oval',
+	'trapezoid',
+	'x-box',
+]
+
+const COLORS: TLDefaultColorStyle[] = [
+	'black',
+	'blue',
+	'green',
+	'orange',
+	'red',
+	'violet',
+	'yellow',
+	'light-blue',
+]
+
+// One shape per item, varied by its position in the run.
+const shapeSample = (collectionId: TLCollectionId, index: number, name?: string): Sample => ({
+	collectionId,
+	name,
+	shapes: [
+		geo(0, 0, {
+			geo: GEOS[index % GEOS.length],
+			w: 96,
+			h: 96,
+			fill: 'semi',
+			color: COLORS[index % COLORS.length],
+		}),
+	],
+})
+
+interface Scenario {
+	source: InMemoryCollectionSource
+	samples: Sample[]
+}
+
+interface PageScenario extends Scenario {
+	pageId: TLPageId
+	pageName: string
+}
+
+const DEFAULT_SCENARIO: Scenario = { source, samples: SAMPLES }
+
+const SHAPES = CollectionRecordType.createId('shapes')
+const FAVOURITES = CollectionRecordType.createId('favourites')
+const DRAFTS = CollectionRecordType.createId('drafts')
+
+const LOTS_OF_ITEMS: PageScenario = {
+	pageId: PageRecordType.createId('lots-of-items'),
+	pageName: 'Lots of items',
+	source: new InMemoryCollectionSource({
+		id: 'examples-lots-of-items',
+		initial: {
+			collections: [
+				CollectionRecordType.create({ id: SHAPES, name: 'Shapes' }),
+				CollectionRecordType.create({ id: FAVOURITES, name: 'Favourites' }),
+				CollectionRecordType.create({ id: DRAFTS, name: 'Drafts' }),
+			],
+			items: [],
+			contents: {},
+		},
+	}),
+	samples: [
+		...Array.from({ length: 40 }, (_, i) => shapeSample(SHAPES, i, `Shape ${i + 1}`)),
+		...Array.from({ length: 3 }, (_, i) => shapeSample(FAVOURITES, i + 3)),
+		...Array.from({ length: 2 }, (_, i) => shapeSample(DRAFTS, i + 6)),
+	],
+}
+
+// Some collections are left empty.
+const ITEMS_PER_COLLECTION = [3, 0, 2, 4, 1, 0, 3, 2, 0, 5, 1, 2, 0, 3, 2]
+const MANY_COLLECTION_IDS = ITEMS_PER_COLLECTION.map((_, i) =>
+	CollectionRecordType.createId(`collection-${i + 1}`)
+)
+
+const LOTS_OF_COLLECTIONS: PageScenario = {
+	pageId: PageRecordType.createId('lots-of-collections'),
+	pageName: 'Lots of collections',
+	source: new InMemoryCollectionSource({
+		id: 'examples-lots-of-collections',
+		initial: {
+			collections: MANY_COLLECTION_IDS.map((id, i) =>
+				CollectionRecordType.create({ id, name: `Collection ${i + 1}` })
+			),
+			items: [],
+			contents: {},
+		},
+	}),
+	samples: ITEMS_PER_COLLECTION.flatMap((count, i) =>
+		Array.from({ length: count }, (_, j) => shapeSample(MANY_COLLECTION_IDS[i], i + j))
+	),
+}
+
+const EMPTY: PageScenario = {
+	pageId: PageRecordType.createId('empty'),
+	pageName: 'Empty',
+	source: new InMemoryCollectionSource({ id: 'examples-empty' }),
+	samples: [],
+}
+
+// The first page shows the default scenario; each of these gets a page after it.
+const PAGE_SCENARIOS = [LOTS_OF_ITEMS, LOTS_OF_COLLECTIONS, EMPTY]
+
+const scenarioFor = (pageId: TLPageId): Scenario =>
+	PAGE_SCENARIOS.find((scenario) => scenario.pageId === pageId) ?? DEFAULT_SCENARIO
+
+async function seedSamples(editor: Editor, { source, samples }: Scenario) {
+	for (const sample of samples) {
 		const ids = sample.shapes.map((shape) => shape.id)
 		editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
 		try {
@@ -117,13 +242,39 @@ async function seedSamples(editor: Editor) {
 	}
 }
 
-let seeding: Promise<void> | undefined
+// Sources outlive the editor, so each is seeded once, the first time its page is shown. Seeding
+// runs one scenario at a time.
+const seeded = new Set<Scenario>()
+let seeding = Promise.resolve()
+
+function seedScenario(editor: Editor, scenario: Scenario) {
+	if (seeded.has(scenario)) return
+	seeded.add(scenario)
+	seeding = seeding
+		.then(() => seedSamples(editor, scenario))
+		.catch((error) => console.error('[collections example] seeding failed', error))
+}
+
+const useScenario = () => {
+	const editor = useEditor()
+	return useValue('collections scenario', () => scenarioFor(editor.getCurrentPageId()), [editor])
+}
+
+function ScenarioPanel() {
+	const { source } = useScenario()
+	return <CollectionsPanel key={source.id} source={source} />
+}
+
+function ScenarioAddToCollectionMenuItem() {
+	const { source } = useScenario()
+	return <AddToCollectionMenuItem source={source} />
+}
 
 const components: TLComponents = {
-	InFrontOfTheCanvas: () => <CollectionsPanel source={source} />,
+	InFrontOfTheCanvas: ScenarioPanel,
 	ContextMenu: (props) => (
 		<DefaultContextMenu {...props}>
-			<AddToCollectionMenuItem source={source} />
+			<ScenarioAddToCollectionMenuItem />
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
@@ -131,8 +282,23 @@ const components: TLComponents = {
 }
 
 const handleMount = (editor: Editor) => {
-	collectionsPanelOpen.set(editor, true)
-	seeding ??= seedSamples(editor)
+	editor.run(
+		() => {
+			for (const { pageId, pageName } of PAGE_SCENARIOS) {
+				if (!editor.getPage(pageId)) editor.createPage({ id: pageId, name: pageName })
+			}
+		},
+		{ history: 'ignore' }
+	)
+	// Opens the panel on each page change only, so closing it on a page keeps it closed.
+	let shownPageId: TLPageId | undefined
+	return react('show the page scenario', () => {
+		const pageId = editor.getCurrentPageId()
+		if (pageId === shownPageId) return
+		shownPageId = pageId
+		collectionsPanelOpen.set(editor, true)
+		seedScenario(editor, scenarioFor(pageId))
+	})
 }
 
 export default function Collections() {
