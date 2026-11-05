@@ -48,6 +48,10 @@ export {
 export { type AddedPackIds, localStorageAddedPackIds } from './lib/AddedPackIds'
 export type { CollectionPack, CollectionPackItem } from './lib/CollectionPack'
 export {
+	BoardCollectionSource,
+	type BoardCollectionSourceOptions,
+} from './lib/BoardCollectionSource'
+export {
 	CompositeCollectionSource,
 	type CompositeCollectionSourceOptions,
 	type CompositeCollectionSourcePart,
