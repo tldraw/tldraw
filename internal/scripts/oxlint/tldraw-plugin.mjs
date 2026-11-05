@@ -96,6 +96,32 @@ function findOwningPackage(filePath) {
 	return null
 }
 
+let workspaceExports = null
+
+/**
+ * Whether a workspace package names this subpath in its package.json `exports`, which makes it an
+ * entry point the package offers rather than a reach into its source.
+ */
+function isDeclaredSubpathExport(packageName, subpath) {
+	if (!workspaceExports) {
+		workspaceExports = new Map()
+		const packagesDir = join(REPO_ROOT, 'packages')
+		for (const entry of readdirSync(packagesDir)) {
+			try {
+				const packageJson = JSON.parse(
+					readFileSync(join(packagesDir, entry, 'package.json'), 'utf8')
+				)
+				if (packageJson.exports && typeof packageJson.exports === 'object') {
+					workspaceExports.set(packageJson.name, new Set(Object.keys(packageJson.exports)))
+				}
+			} catch {
+				// Not a package.
+			}
+		}
+	}
+	return workspaceExports.get(packageName)?.has(`./${subpath}`) ?? false
+}
+
 /** Strip a subpath off an import specifier, leaving the bare package name. */
 function getImportedPackageName(specifier) {
 	if (!specifier || specifier.startsWith('.') || specifier.startsWith('/')) return null
@@ -421,6 +447,9 @@ const rules = {
 							if (parts.length === 2) return
 							if (importPath.endsWith('.css')) return
 							if (parts[1] === 'assets' && parts.length === 3) return
+							if (isDeclaredSubpathExport(parts.slice(0, 2).join('/'), parts.slice(2).join('/'))) {
+								return
+							}
 							break
 						default:
 							return
