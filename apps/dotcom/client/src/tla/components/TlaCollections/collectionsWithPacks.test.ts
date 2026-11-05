@@ -27,7 +27,13 @@ describe('TldrawAppCollectionsWithPacks', () => {
 	it('lists no starter packs until the user adds them', () => {
 		const source = createSource()
 		expect(listing(source)).toEqual([])
-		expect(source.packs.getPacks().map((pack) => pack.name)).toEqual(['Wireframing', 'Diagramming'])
+		expect(source.packs.getPacks().map((pack) => pack.name)).toEqual([
+			'Wireframing',
+			'Diagramming',
+			'Floor plan',
+			'tldraw characters',
+			'Doodles',
+		])
 	})
 
 	it('keeps added packs per user across a reload, and hides removed ones', () => {
@@ -94,7 +100,7 @@ describe('TldrawAppCollectionsWithPacks', () => {
 		await vi.waitFor(() => expect(listing(reloaded)[0]).toEqual(['Wireframing', 'home']))
 		const [reloadedCopy] = reloaded.getCollections()
 		const button = reloaded.getItems(reloadedCopy.id).find((item) => item.name === 'Button')
-		expect(reloaded.getItems(reloadedCopy.id)).toHaveLength(6)
+		expect(reloaded.getItems(reloadedCopy.id)).toHaveLength(8)
 		const content = await reloaded.getItemContent(button!.id)
 		expect(content.content.shapes).toHaveLength(1)
 	})
