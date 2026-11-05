@@ -24,7 +24,7 @@ export interface AddToCollectionMenuItemProps {
 	source: CollectionSource
 	/** Defaults to `'source'`. */
 	order?: AddToCollectionOrder
-	/** Groups the collections, each group headed by its name, e.g. by owner. */
+	/** Groups the collections, each group headed by its name. Defaults to `'owner'`. */
 	groupCollections?: CollectionGrouping
 	/** What happens around a save: naming, confirmation and undo. */
 	saving?: SaveSelectionOptions
@@ -39,7 +39,7 @@ export interface AddToCollectionMenuItemProps {
 export function AddToCollectionMenuItem({
 	source,
 	order = 'source',
-	groupCollections,
+	groupCollections = 'owner',
 	saving,
 }: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
@@ -78,6 +78,7 @@ export function AddToCollectionMenuItem({
 						<TldrawUiMenuItem
 							id="add-to-new-collection"
 							label={messages.newCollection.id}
+							iconLeft="plus"
 							onSelect={saveToNewCollection}
 						/>
 					</TldrawUiMenuGroup>

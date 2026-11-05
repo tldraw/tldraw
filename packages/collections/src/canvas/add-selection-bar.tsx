@@ -139,7 +139,11 @@ export function AddSelectionMenuBar({
 							</div>
 						))}
 						{canCreate && (
-							<MenuItem label={msg(messages.newCollection)} onClick={saveToNewCollection} />
+							<MenuItem
+								icon="plus"
+								label={msg(messages.newCollection)}
+								onClick={saveToNewCollection}
+							/>
 						)}
 					</TldrawUiDropdownMenuGroup>
 				</TldrawUiDropdownMenuContent>

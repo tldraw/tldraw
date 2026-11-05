@@ -151,6 +151,12 @@
 	cursor: default;
 }
 
+/* Context menu items draw iconLeft after the label; this one leads with it, as dropdown menus do. */
+.tlui-button__menu[data-testid$='.add-to-new-collection'] > .tlui-button__icon {
+	order: -1;
+	margin-inline-end: var(--tl-space-2);
+}
+
 .tlui-collections-previews {
 	margin: 0;
 	padding: 0 0 4px;
@@ -520,6 +526,7 @@
 	position: relative;
 	display: flex;
 	align-items: center;
+	gap: var(--tl-space-2);
 	width: 100%;
 	min-height: 36px;
 	padding: 0 10px;
