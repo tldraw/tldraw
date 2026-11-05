@@ -70,16 +70,24 @@ function addImage(editor: Editor) {
 }
 
 describe('getEditorCollections', () => {
-	it("lists the board first and keeps its new collections in the file's document", async () => {
+	it("lists the board first and keeps collections made there in the file's document", async () => {
 		const { editor, source } = setUp()
 		expect(source.getCollectionOwners?.()).toEqual([
 			{ id: 'file-a', name: 'This board' },
 			{ id: 'home', name: 'Home' },
 			{ id: 'tldraw', name: 'tldraw', readOnly: true },
 		])
-		const collection = await source.createCollection('Board kit')
+		const collection = await source.createCollection('Board kit', { ownerId: 'file-a' })
 		expect(collection.ownerId).toBe('file-a')
 		expect(ofType(editor, 'collection')).toMatchObject([{ id: collection.id, name: 'Board kit' }])
+	})
+
+	it('creates new collections in the home workspace by default', async () => {
+		const { editor, source } = setUp()
+		expect(source.getDefaultOwnerId?.()).toBe('home')
+		const collection = await source.createCollection('Team kit')
+		expect(collection.ownerId).toBe('home')
+		expect(ofType(editor, 'collection')).toEqual([])
 	})
 
 	it('creates new collections in the home workspace while the board is read-only', async () => {
@@ -93,7 +101,7 @@ describe('getEditorCollections', () => {
 	it('moves a board collection to a workspace and back, with its image', async () => {
 		const { editor, source } = setUp()
 		const { id, assetId } = addImage(editor)
-		const collection = await source.createCollection('Photos')
+		const collection = await source.createCollection('Photos', { ownerId: 'file-a' })
 		await source.addItem(collection.id, {
 			content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
 		})

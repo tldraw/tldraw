@@ -16,7 +16,8 @@ const sources = new WeakMap<Editor, { fileId: string; source: CollectionSource }
 /**
  * The collections an open file's editor offers: the board's own, kept as records in the file's
  * document so they are saved, synced and duplicated with it, then the user's workspace collections
- * and added packs. New collections go to the board unless the editor is read-only.
+ * and added packs. New collections go to the user's home workspace; the board is a target only when
+ * chosen, e.g. by moving a collection there.
  *
  * Made once per editor, so the panel and the save menu share it.
  */
@@ -31,6 +32,7 @@ export function getEditorCollections(
 	const source = new CompositeCollectionSource({
 		// The app source's id, so choices the UI keeps per source carry over.
 		id: collections.id,
+		defaultOwnerId: app.getHomeWorkspaceId(),
 		parts: [
 			{
 				owner: { id: fileId, name: app.msg(messages.thisBoard) },
