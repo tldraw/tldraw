@@ -226,7 +226,7 @@ export function CollectionsPanelHeader({
 	const menu = (
 		<CollectionMenu
 			id={`collections-collection-menu-${currentId ?? 'panel'}`}
-			onCreate={can.create ? createCollection : undefined}
+			onCreate={can.create && !onToggleCollapsed ? createCollection : undefined}
 			onRename={can.rename ? startRenaming : undefined}
 			onDelete={can.delete ? deleteCollection : undefined}
 			sort={sort}
