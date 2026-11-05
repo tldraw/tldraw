@@ -1,20 +1,28 @@
 import { AddToCollectionMenuItem, CollectionsPanel } from '@tldraw/collections'
-import { useEffect } from 'react'
+import { useMemo } from 'react'
+import { useEditor } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { getEditorCollections } from './editorCollections'
 
-export function TlaCollectionsPanel({ fileId }: { fileId: string }) {
-	const source = useMaybeApp()?.collections
-	useEffect(() => {
-		if (!source) return
-		source.setOpenFileId(fileId)
-		return () => source.setOpenFileId(undefined)
-	}, [source, fileId])
-	if (!source) return null
-	return <CollectionsPanel source={source} catalogue={source.packs} side="right" />
+function useEditorCollections(fileId: string) {
+	const app = useMaybeApp()
+	const editor = useEditor()
+	const collections = app?.collections
+	return useMemo(
+		() => (app && collections ? getEditorCollections(app, collections, editor, fileId) : null),
+		[app, collections, editor, fileId]
+	)
 }
 
-export function TlaAddToCollectionMenuItem() {
-	const source = useMaybeApp()?.collections
+export function TlaCollectionsPanel({ fileId }: { fileId: string }) {
+	const catalogue = useMaybeApp()?.collections?.packs
+	const source = useEditorCollections(fileId)
+	if (!source) return null
+	return <CollectionsPanel source={source} catalogue={catalogue} side="right" />
+}
+
+export function TlaAddToCollectionMenuItem({ fileId }: { fileId: string }) {
+	const source = useEditorCollections(fileId)
 	if (!source) return null
 	return <AddToCollectionMenuItem source={source} />
 }

@@ -20,7 +20,6 @@ import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
 	myWorkspace: { defaultMessage: 'My workspace' },
-	thisBoard: { defaultMessage: 'This board' },
 })
 
 // Bytes rather than a Blob, which not every IndexedDB stores.
@@ -54,10 +53,10 @@ class OwnedInMemoryCollectionSource extends InMemoryCollectionSource {
 }
 
 /**
- * Until tldraw.com has a real source, collections are kept in this browser, per user: they survive
- * a reload but don't follow anyone to another browser or device. A collection belongs to the open
- * file or to one of the user's workspaces, their home workspace first, and new ones go to the open
- * file. A file's own collections are listed only while that file is open.
+ * Until tldraw.com has a real source, workspace collections are kept in this browser, per user:
+ * they survive a reload but don't follow anyone to another browser or device. A collection belongs
+ * to one of the user's workspaces, their home workspace first. A board's own collections are kept
+ * in its document instead (see editorCollections).
  *
  * An in-memory source, saved to IndexedDB after each change and loaded back on start. Each
  * collection is saved with its owner. Until the load finishes nothing is listed, and writes wait
@@ -65,15 +64,12 @@ class OwnedInMemoryCollectionSource extends InMemoryCollectionSource {
  */
 export class TldrawAppCollectionsSource implements CollectionSource {
 	readonly id = 'dotcom-browser'
-	private readonly openFileId = atom<string | undefined>('collections open file', undefined)
 
 	private readonly owners$ = computed('collection owners', (): TLCollectionOwner[] => {
-		const fileId = this.openFileId.get()
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
 		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
 		return [
-			...(fileId === undefined ? [] : [{ id: fileId, name: this.app.msg(messages.thisBoard) }]),
 			{ id: homeId, name: homeName ?? this.app.msg(messages.myWorkspace) },
 			...memberships.flatMap((m) =>
 				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
@@ -108,11 +104,6 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		})
 	}
 
-	/** Called by the editor's collections UI, so new collections go to the open file. */
-	setOpenFileId(fileId: string | undefined) {
-		this.openFileId.set(fileId)
-	}
-
 	getCollections() {
 		return this.collections$.get()
 	}
@@ -135,7 +126,7 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 	}
 
 	getDefaultOwnerId() {
-		return this.openFileId.get() ?? this.app.getHomeWorkspaceId()
+		return this.app.getHomeWorkspaceId()
 	}
 
 	async createCollection(name: string, options: TLNewCollectionOptions = {}) {

@@ -33,10 +33,6 @@ export class TldrawAppCollectionsWithPacks extends CompositeCollectionSource {
 		this.packs = packs
 	}
 
-	setOpenFileId(fileId: string | undefined) {
-		this.browser.setOpenFileId(fileId)
-	}
-
 	dispose() {
 		this.browser.dispose()
 	}

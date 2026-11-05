@@ -55,9 +55,7 @@ describe('TldrawAppCollectionsWithPacks', () => {
 		const source = createSource()
 		source.packs.addPack('wireframing')
 		source.packs.addPack('diagramming')
-		source.setOpenFileId('file-a')
 		expect(source.getCollectionOwners()).toEqual([
-			{ id: 'file-a', name: 'This board' },
 			{ id: 'home', name: 'Home' },
 			{ id: 'tldraw', name: 'tldraw', readOnly: true },
 		])
@@ -70,12 +68,11 @@ describe('TldrawAppCollectionsWithPacks', () => {
 		expect(source.can('addItem', wireframing.id)).toBe(false)
 	})
 
-	it('still creates new collections under the open file', async () => {
+	it('still creates new collections under the home workspace', async () => {
 		const source = createSource()
-		source.setOpenFileId('file-a')
-		expect(source.getDefaultOwnerId()).toBe('file-a')
-		const collection = await source.createCollection('Board kit')
-		expect(collection.ownerId).toBe('file-a')
+		expect(source.getDefaultOwnerId()).toBe('home')
+		const collection = await source.createCollection('Team kit')
+		expect(collection.ownerId).toBe('home')
 	})
 
 	it('copies a pack to a workspace, keeping the copy across a reload', async () => {
