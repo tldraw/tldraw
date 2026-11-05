@@ -1,22 +1,12 @@
-import {
-	defineMessages,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	TldrawUiMenuSubmenu,
-	useEditor,
-	useValue,
-} from 'tldraw'
+import { defineMessages, TldrawUiMenuGroup, TldrawUiMenuSubmenu, useEditor, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { AddTargetsMenuItems } from './add-targets-menu-items'
 import type { CollectionGrouping } from './collection-groups'
 import { type AddToCollectionOrder, useAddTargets } from './use-add-targets'
 import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	addToCollection: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
-	newCollection: {
-		id: 'collections.add-to-new-collection',
-		defaultMessage: 'New collection',
-	},
 })
 
 /** @public */
@@ -46,43 +36,19 @@ export function AddToCollectionMenuItem({
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
-	const { groups, canCreate, hasTargets } = useAddTargets(source, order, groupCollections)
+	const targets = useAddTargets(source, order, groupCollections)
 	const { saveSelection, saveToNewCollection } = useSaveSelection(source, saving)
 
-	if (!hasSelection || !hasTargets) return null
+	if (!hasSelection || !targets.hasTargets) return null
 
 	return (
 		<TldrawUiMenuGroup id="collections">
 			<TldrawUiMenuSubmenu id="add-to-collection" label={messages.addToCollection.id}>
-				{groups.map((group, index) => (
-					<TldrawUiMenuGroup key={group.label ?? index} id={`add-to-collection-targets-${index}`}>
-						{/* Menu groups can't show a heading, and context menus hide disabled items, so a plain
-						    element is the heading; keyboard navigation passes over it. */}
-						{group.label && (
-							<div className="tlui-collections-menu-heading" role="presentation">
-								{group.label}
-							</div>
-						)}
-						{group.collections.map((collection) => (
-							<TldrawUiMenuItem
-								key={collection.id}
-								id={`add-to-collection-${collection.id}`}
-								label={collection.name}
-								onSelect={() => saveSelection(collection.id)}
-							/>
-						))}
-					</TldrawUiMenuGroup>
-				))}
-				{canCreate && (
-					<TldrawUiMenuGroup id="add-to-new-collection">
-						<TldrawUiMenuItem
-							id="add-to-new-collection"
-							label={messages.newCollection.id}
-							iconLeft="plus"
-							onSelect={saveToNewCollection}
-						/>
-					</TldrawUiMenuGroup>
-				)}
+				<AddTargetsMenuItems
+					targets={targets}
+					onAdd={saveSelection}
+					onAddToNew={saveToNewCollection}
+				/>
 			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>
 	)

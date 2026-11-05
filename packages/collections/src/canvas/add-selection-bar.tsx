@@ -4,16 +4,16 @@ import {
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuContextProvider,
 	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
-import { MenuItem } from '../ui/menu-items'
+import { AddTargetsMenuItems } from './add-targets-menu-items'
 import type { CollectionGrouping } from './collection-groups'
 import type { ReadOnlyOptions } from './collections-panel-header'
 import { type AddToCollectionOrder, useAddTargets } from './use-add-targets'
@@ -21,10 +21,6 @@ import { type SaveSelectionOptions, useSaveSelection } from './use-save-selectio
 
 const messages = defineMessages({
 	addToCollection: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
-	newCollection: {
-		id: 'collections.add-to-new-collection',
-		defaultMessage: 'New collection',
-	},
 })
 
 /**
@@ -97,9 +93,9 @@ export function AddSelectionMenuBar({
 	const msg = useTranslation()
 	const { saveSelection, saveToNewCollection } = useSaveSelection(source, saving)
 	const hasSelection = useHasSelection()
-	const { groups, canCreate, hasTargets } = useAddTargets(source, order, groupCollections)
+	const targets = useAddTargets(source, order, groupCollections)
 
-	if (!hasTargets && readOnly.addButton === 'hide') return null
+	if (!targets.hasTargets && readOnly.addButton === 'hide') return null
 
 	return (
 		<div className="tlui-collections-add-bar">
@@ -108,44 +104,26 @@ export function AddSelectionMenuBar({
 					<TldrawUiButton
 						type="normal"
 						className="tlui-collections-add-bar__button"
-						disabled={!hasTargets || !hasSelection}
+						disabled={!targets.hasTargets || !hasSelection}
 					>
 						<TldrawUiButtonLabel>{msg(messages.addToCollection)}</TldrawUiButtonLabel>
 						<TldrawUiButtonIcon icon="plus" small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent
-					className="tlui-collections-menu tlui-collections-add-menu"
-					side="top"
+					className="tlui-collections-add-menu"
+					side="bottom"
 					align="start"
 					sideOffset={4}
 					alignOffset={0}
 				>
-					<TldrawUiDropdownMenuGroup>
-						{groups.map((group, index) => (
-							<div key={group.label ?? index} role="group" aria-label={group.label}>
-								{group.label && (
-									<div className="tlui-collections-menu-heading" role="presentation">
-										{group.label}
-									</div>
-								)}
-								{group.collections.map((collection) => (
-									<MenuItem
-										key={collection.id}
-										label={collection.name}
-										onClick={() => saveSelection(collection.id)}
-									/>
-								))}
-							</div>
-						))}
-						{canCreate && (
-							<MenuItem
-								icon="plus"
-								label={msg(messages.newCollection)}
-								onClick={saveToNewCollection}
-							/>
-						)}
-					</TldrawUiDropdownMenuGroup>
+					<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+						<AddTargetsMenuItems
+							targets={targets}
+							onAdd={saveSelection}
+							onAddToNew={saveToNewCollection}
+						/>
+					</TldrawUiMenuContextProvider>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiDropdownMenuRoot>
 		</div>
