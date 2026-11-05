@@ -15,7 +15,8 @@ function createSource(userId = newUserId()) {
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 	}
 	return new TldrawAppCollectionsWithPacks(
-		new TldrawAppCollectionsSource(app as unknown as TldrawApp)
+		new TldrawAppCollectionsSource(app as unknown as TldrawApp),
+		userId
 	)
 }
 
@@ -23,8 +24,31 @@ const listing = (source: TldrawAppCollectionsWithPacks) =>
 	source.getCollections().map((collection) => [collection.name, collection.ownerId])
 
 describe('TldrawAppCollectionsWithPacks', () => {
-	it("lists the starter packs, read-only, after the user's owners", () => {
+	it('lists no starter packs until the user adds them', () => {
 		const source = createSource()
+		expect(listing(source)).toEqual([])
+		expect(source.packs.getPacks().map((pack) => pack.name)).toEqual(['Wireframing', 'Diagramming'])
+	})
+
+	it('keeps added packs per user across a reload, and hides removed ones', () => {
+		const userId = newUserId()
+		const source = createSource(userId)
+		source.packs.addPack('diagramming')
+		expect(listing(source)).toEqual([['Diagramming', 'tldraw']])
+		source.dispose()
+
+		const reloaded = createSource(userId)
+		expect(listing(reloaded)).toEqual([['Diagramming', 'tldraw']])
+		expect(listing(createSource())).toEqual([])
+		reloaded.packs.removePack('diagramming')
+		expect(listing(reloaded)).toEqual([])
+		expect(listing(createSource(userId))).toEqual([])
+	})
+
+	it("lists added starter packs, read-only, after the user's owners", () => {
+		const source = createSource()
+		source.packs.addPack('wireframing')
+		source.packs.addPack('diagramming')
 		source.setOpenFileId('file-a')
 		expect(source.getCollectionOwners()).toEqual([
 			{ id: 'file-a', name: 'This board' },
@@ -51,6 +75,8 @@ describe('TldrawAppCollectionsWithPacks', () => {
 	it('copies a pack to a workspace, keeping the copy across a reload', async () => {
 		const userId = newUserId()
 		const source = createSource(userId)
+		source.packs.addPack('wireframing')
+		source.packs.addPack('diagramming')
 		const [wireframing] = source.getCollections()
 		await source.moveCollection(wireframing.id, 'home')
 		expect(listing(source)).toEqual([
