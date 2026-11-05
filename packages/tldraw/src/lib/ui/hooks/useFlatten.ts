@@ -138,7 +138,11 @@ export async function flattenShapesToImages(
 		})
 		if (!svgResult) continue
 
-		const content = editor.getContentFromCurrentPage(group.shapes)
+		// Assets in a local-only store (not http or data URLs) can't be read from another board,
+		// so inline them the way copy and .tldr export do.
+		const content = await editor.resolveAssetsInContent(
+			editor.getContentFromCurrentPage(group.shapes)
+		)
 		if (!content) continue
 
 		const svg = embedFlattenSource(svgResult.svg, {
@@ -284,6 +288,8 @@ async function readFlattenSource(editor: Editor, image: TLImageShape) {
 /** @internal */
 export function isFlattenedImage(editor: Editor, shape: TLShape): shape is TLImageShape {
 	if (!editor.isShapeOfType(shape, 'image') || !shape.props.assetId) return false
+	// deleteShapes skips locked shapes, so unflatten would leave the image beside its shapes
+	if (editor.isShapeOrAncestorLocked(shape)) return false
 	return editor.getAsset(shape.props.assetId)?.meta[FLATTENED_ASSET_META_KEY] === true
 }
 

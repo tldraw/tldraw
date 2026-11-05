@@ -464,6 +464,53 @@ describe('unflattenImages', () => {
 		expect(getRestoredBoxes()).toEqual([])
 	})
 
+	it('ignores locked images', async () => {
+		const imageId = await flattenBoxes()
+		editor.toggleLock([imageId])
+
+		await unflattenImages(editor, [imageId])
+
+		expect(editor.getShape(imageId)).toBeDefined()
+		expect(getRestoredBoxes()).toEqual([])
+	})
+
+	it('inlines assets from a local-only store, so they still load on another board', async () => {
+		const assetId = AssetRecordType.createId('local')
+		const imageShapeId = createShapeId('local-image')
+		editor.createAssets([
+			{
+				id: assetId,
+				typeName: 'asset',
+				type: 'image',
+				props: {
+					w: 10,
+					h: 10,
+					name: 'local.png',
+					isAnimated: false,
+					mimeType: 'image/png',
+					src: 'asset:local',
+				},
+				meta: {},
+			},
+		])
+		editor.createShapes([
+			{ id: imageShapeId, type: 'image', props: { assetId, w: 10, h: 10 } },
+			box(a, 100, 100),
+		])
+		vi.spyOn(editor.store.props.assets, 'resolve').mockResolvedValue('data:image/png;base64,AAAA')
+
+		const [imageId] = (await flattenShapesToImages(editor, [imageShapeId, a]))!
+
+		const flatAsset = editor.getAsset(editor.getShape<TLImageShape>(imageId)!.props.assetId!)!
+		const svg = await (await fetch(flatAsset.props.src!)).text()
+		const metadata = new DOMParser()
+			.parseFromString(svg, 'image/svg+xml')
+			.querySelector('metadata#tldraw-flatten-source')!
+		const savedAsset = JSON.parse(metadata.textContent!).content.assets[0]
+		expect(savedAsset.id).toBe(assetId)
+		expect(savedAsset.props.src).toMatch(/^data:/)
+	})
+
 	it('can be undone in one step', async () => {
 		const imageId = await flattenBoxes()
 		editor.markHistoryStoppingPoint()
