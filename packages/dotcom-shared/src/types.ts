@@ -205,7 +205,7 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'page_not_current',
 	'shapes_missing',
 	'too_many_shapes',
-	/** Mid-drag, or already exporting. */
+	/** Mid-drag, or queued behind other exports for too long. */
 	'busy',
 	/** The export gave up waiting for its shapes, so its picture can't be trusted. */
 	'export_timed_out',

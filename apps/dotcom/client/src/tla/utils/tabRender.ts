@@ -46,8 +46,20 @@ const FONT_WAIT_MS = 1_500
 // tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
 const MAX_EXPORT_SHAPES = 500
 
-// One at a time, so an agent walking a board's clusters can't stack exports up on the main thread.
-let isExporting = false
+// Longer than this in the queue and the worker has likely gone to Browser Run, so an export would be
+// main thread time spent on an answer nobody is waiting for.
+const MAX_EXPORT_QUEUE_MS = 5_000
+
+// One at a time, so an agent can't stack exports up on the main thread. Queued rather than declined:
+// agents routinely ask for several clusters at once, and the next in line waiting a moment beats
+// sending it to Browser Run for seconds.
+let exportQueue: Promise<unknown> = Promise.resolve()
+
+function enqueueExport(run: () => Promise<TabRenderReply>) {
+	const result = exportQueue.then(run)
+	exportQueue = result.catch(() => {})
+	return result
+}
 
 export async function answerTabRender(
 	editor: Editor | null,
@@ -68,7 +80,7 @@ export async function answerTabRender(
 		await reply(
 			request.mode === 'measure'
 				? await measurePage(editor, request.pageId as TLPageId)
-				: await capturePage(editor, request)
+				: await queueCapture(editor, request)
 		)
 	} catch (error) {
 		console.error('Could not answer a tab render job', error)
@@ -87,8 +99,19 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 	const ids = getRequestedShapeIds(editor, request.shapeIds)
 	if (ids.length === 0) return 'shapes_missing'
 	if (editor.getShapeAndDescendantIds(ids).size > MAX_EXPORT_SHAPES) return 'too_many_shapes'
-	if (isExporting || editor.inputs.getIsDragging()) return 'busy'
+	if (editor.inputs.getIsDragging()) return 'busy'
 	return undefined
+}
+
+// Checked again at the front of the queue, because the page, the shapes and the user's drag can all
+// have moved on while it waited.
+function queueCapture(editor: Editor, request: TabRenderScreenshotRequest) {
+	const queuedAt = Date.now()
+	return enqueueExport(async () => {
+		const reason =
+			Date.now() - queuedAt > MAX_EXPORT_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+		return reason ? { status: 'declined', reason } : capturePage(editor, request)
+	})
 }
 
 async function forEachInSlices<T>(items: T[], visit: (item: T) => void) {
@@ -132,21 +155,16 @@ async function capturePage(
 	const ids = getRequestedShapeIds(editor, request.shapeIds)
 	const { bounds, scale } = getExportFrame(editor, ids, width, height)
 
-	isExporting = true
-	try {
-		const startedAt = performance.now()
-		const blob = await renderThumbnailPng(editor, ids, { theme, width, height, bounds, scale })
-		// An export that outlives this delay gives up on the shapes it was waiting for, such as a slow
-		// image, and resolves anyway with a valid PNG of an empty canvas, which the agent would take for
-		// a picture of the board. Nothing in the result gives that away, so the clock has to.
-		if (performance.now() - startedAt >= editor.options.maxExportDelayMs) {
-			return { status: 'declined', reason: 'export_timed_out' }
-		}
-		const dataUrl = await FileHelpers.blobToDataUrl(blob)
-		return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
-	} finally {
-		isExporting = false
+	const startedAt = performance.now()
+	const blob = await renderThumbnailPng(editor, ids, { theme, width, height, bounds, scale })
+	// An export that outlives this delay gives up on the shapes it was waiting for, such as a slow
+	// image, and resolves anyway with a valid PNG of an empty canvas, which the agent would take for a
+	// picture of the board. Nothing in the result gives that away, so the clock has to.
+	if (performance.now() - startedAt >= editor.options.maxExportDelayMs) {
+		return { status: 'declined', reason: 'export_timed_out' }
 	}
+	const dataUrl = await FileHelpers.blobToDataUrl(blob)
+	return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
 }
 
 // The rectangle and zoom the render page reaches by calling zoomToBounds on its own disposable

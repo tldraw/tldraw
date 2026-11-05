@@ -239,27 +239,92 @@ describe('answerTabRender', () => {
 		editor.dispose()
 	})
 
-	it('runs one export at a time', async () => {
-		const { editor, firstPageId, firstShapeId } = setupEditor()
-		const toImage = stubExport(editor)
-		let finishExport = () => {}
-		toImage.mockImplementationOnce(
-			() =>
-				new Promise((resolve) => {
-					finishExport = () => resolve({ blob: new Blob(['x']), width: 1200, height: 630 })
-				})
-		)
+	describe('with several screenshots at once', () => {
+		// Holds the first export open, so that everything after it has to queue.
+		function holdFirstExport(toImage: ReturnType<typeof stubExport>) {
+			let release = () => {}
+			toImage.mockImplementationOnce(
+				() =>
+					new Promise((resolve) => {
+						release = () => resolve({ blob: new Blob(['x']), width: 1200, height: 630 })
+					})
+			)
+			return () => release()
+		}
 
-		const first = answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
-		await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
-		expect(replies).toContainEqual({ status: 'declined', reason: 'busy' })
+		it('queues them one at a time rather than declining any', async () => {
+			const { editor, firstPageId, firstShapeId } = setupEditor()
+			const toImage = stubExport(editor)
+			const release = holdFirstExport(toImage)
+			const screenshot = () =>
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
-		finishExport()
-		await first
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
-		expect(toImage).toHaveBeenCalledTimes(2)
-		editor.dispose()
+			const jobs = [screenshot(), screenshot(), screenshot()]
+			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
+			await new Promise((resolve) => setTimeout(resolve, 10))
+			expect(toImage).toHaveBeenCalledTimes(1)
+
+			release()
+			await Promise.all(jobs)
+
+			expect(toImage).toHaveBeenCalledTimes(3)
+			expect(replies.filter((reply) => reply.status === 'captured')).toHaveLength(3)
+			expect(replies.filter((reply) => reply.status === 'declined')).toEqual([])
+			editor.dispose()
+		})
+
+		it('keeps going after an export fails', async () => {
+			const { editor, firstPageId, firstShapeId } = setupEditor()
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			const toImage = stubExport(editor)
+			toImage.mockRejectedValueOnce(new Error('export failed'))
+			const screenshot = () =>
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+
+			await Promise.all([screenshot(), screenshot()])
+
+			expect(replies).toContainEqual({ status: 'declined', reason: 'failed' })
+			expect(replies).toContainEqual({ status: 'captured', base64: expect.any(String) })
+			editor.dispose()
+		})
+
+		// The page can change while a job waits, and the export only draws the current one.
+		it('checks again when its turn comes', async () => {
+			const { editor, firstPageId, firstShapeId, otherPageId } = setupEditor()
+			const toImage = stubExport(editor)
+			const release = holdFirstExport(toImage)
+			const screenshot = () =>
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+
+			const jobs = [screenshot(), screenshot()]
+			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
+			editor.setCurrentPage(otherPageId)
+			release()
+			await Promise.all(jobs)
+
+			expect(toImage).toHaveBeenCalledTimes(1)
+			expect(replies).toContainEqual({ status: 'declined', reason: 'page_not_current' })
+			editor.dispose()
+		})
+
+		// By now the worker has likely gone to Browser Run, so this would be wasted main thread time.
+		it('gives up on a job that waited too long', async () => {
+			const { editor, firstPageId, firstShapeId } = setupEditor()
+			const toImage = stubExport(editor)
+			const release = holdFirstExport(toImage)
+			const screenshot = () =>
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+
+			const jobs = [screenshot(), screenshot()]
+			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
+			vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 5_001)
+			release()
+			await Promise.all(jobs)
+
+			expect(toImage).toHaveBeenCalledTimes(1)
+			expect(replies).toContainEqual({ status: 'declined', reason: 'busy' })
+			editor.dispose()
+		})
 	})
 
 	// Past its delay an export resolves anyway, with a valid PNG of an empty canvas. Sending that would
