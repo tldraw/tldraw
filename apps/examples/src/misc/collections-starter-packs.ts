@@ -12,6 +12,7 @@ import {
 	toRichText,
 } from 'tldraw'
 import floorPlan from './collections-pack-floor-plan.json'
+import tldrawCharacters from './collections-pack-tldraw-characters.json'
 
 type Color = 'black' | 'grey' | 'blue' | 'green' | 'yellow' | 'violet'
 
@@ -342,4 +343,5 @@ export const STARTER_PACKS: CollectionPack[] = [
 	wireframing,
 	diagramming,
 	floorPlan as unknown as CollectionPack,
+	tldrawCharacters as unknown as CollectionPack,
 ]
