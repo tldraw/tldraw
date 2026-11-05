@@ -11,6 +11,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { copyCollection } from '../lib/copyCollection'
 import type { TLCollection } from '../lib/schema'
 import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
@@ -41,6 +42,8 @@ const messages = defineMessages({
 	},
 	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
 	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
+	copiedTitle: { id: 'collections.copied.title', defaultMessage: 'Copied' },
+	copiedDescription: { id: 'collections.copied.description', defaultMessage: 'Copied to {name}.' },
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
 		defaultMessage: "Couldn't change collections",
@@ -144,13 +147,14 @@ export function CollectionsPanelHeader({
 			create: source.can('createCollection'),
 			rename: currentId !== undefined && source.can('renameCollection', currentId),
 			delete: currentId !== undefined && source.can('deleteCollection', currentId),
+			copy: source.can('createCollection'),
 		}),
 		[editor, source, currentId]
 	)
 
 	const owners = useValue(
 		'collection owners',
-		() => (source.moveCollection && source.getCollectionOwners ? source.getCollectionOwners() : []),
+		() => (source.getCollectionOwners ? source.getCollectionOwners() : []),
 		[source]
 	)
 
@@ -205,6 +209,20 @@ export function CollectionsPanelHeader({
 		}, showError)
 	}
 
+	const copyToOwner = (ownerId: string) => {
+		const owner = owners.find((o) => o.id === ownerId)
+		if (!current) return
+		copyCollection(source, current.id, ownerId).then(() => {
+			addToast({
+				title: msg(messages.copiedTitle),
+				description: owner ? msg(messages.copiedDescription, { name: owner.name }) : undefined,
+			})
+		}, showError)
+	}
+
+	const moveTargets = owners.filter((o) => !o.readOnly || o.id === current?.ownerId)
+	const copyTargets = owners.filter((o) => !o.readOnly && o.id !== current?.ownerId)
+
 	const menu = (
 		<CollectionMenu
 			id={`collections-collection-menu-${currentId ?? 'panel'}`}
@@ -213,8 +231,13 @@ export function CollectionsPanelHeader({
 			onDelete={can.delete ? deleteCollection : undefined}
 			sort={sort}
 			move={
-				current && owners.length > 1
-					? { owners, value: current.ownerId, onValueChange: moveCollection }
+				current && source.moveCollection && can.delete && moveTargets.length > 1
+					? { owners: moveTargets, value: current.ownerId, onValueChange: moveCollection }
+					: undefined
+			}
+			copy={
+				current && can.copy && copyTargets.length > 0
+					? { owners: copyTargets, onSelect: copyToOwner }
 					: undefined
 			}
 		/>

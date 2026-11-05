@@ -19,6 +19,7 @@ const messages = defineMessages({
 	sort: { id: 'collections.collection-menu.sort', defaultMessage: 'Sort items by' },
 	reverse: { id: 'collections.collection-menu.reverse', defaultMessage: 'Reverse order' },
 	move: { id: 'collections.collection-menu.move', defaultMessage: 'Move to' },
+	copy: { id: 'collections.collection-menu.copy', defaultMessage: 'Copy to' },
 })
 
 /** @public */
@@ -41,6 +42,13 @@ export interface CollectionMenuMove {
 }
 
 /** @public */
+export interface CollectionMenuCopy {
+	/** Who the collection can be copied to, in the order to list them. */
+	owners: { id: string; name: string }[]
+	onSelect(ownerId: string): void
+}
+
+/** @public */
 export interface CollectionMenuProps {
 	/**
 	 * Unique among the menus on screen: tldraw keeps a menu's open state by its id, so menus sharing
@@ -55,6 +63,8 @@ export interface CollectionMenuProps {
 	sort?: CollectionMenuSort
 	/** A "Move to" submenu of owners. Leave out to hide it. */
 	move?: CollectionMenuMove
+	/** A "Copy to" submenu of owners. Leave out to hide it. */
+	copy?: CollectionMenuCopy
 }
 
 /**
@@ -68,6 +78,7 @@ export function CollectionMenu({
 	onDelete,
 	sort,
 	move,
+	copy,
 }: CollectionMenuProps) {
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
@@ -75,7 +86,8 @@ export function CollectionMenu({
 	const rename = isReadonly ? undefined : onRename
 	const remove = isReadonly ? undefined : onDelete
 	const moveTo = isReadonly ? undefined : move
-	if (!create && !rename && !remove && !sort && !moveTo) return null
+	const copyTo = isReadonly ? undefined : copy
+	if (!create && !rename && !remove && !sort && !moveTo && !copyTo) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -125,6 +137,17 @@ export function CollectionMenu({
 									onSelect={() => {
 										if (owner.id !== moveTo.value) moveTo.onValueChange(owner.id)
 									}}
+								/>
+							))}
+						</MenuSubmenu>
+					)}
+					{copyTo && (
+						<MenuSubmenu id={`${id}-copy`} label={msg(messages.copy)}>
+							{copyTo.owners.map((owner) => (
+								<MenuItem
+									key={owner.id}
+									label={owner.name}
+									onClick={() => copyTo.onSelect(owner.id)}
 								/>
 							))}
 						</MenuSubmenu>
