@@ -354,7 +354,7 @@
 }
 
 @media (hover: hover) {
-	.tlui-collections-tile:hover:not(:has(.tlui-collections-tile__menu-button:hover))
+	.tlui-collections-tile:hover:not(:has(.tlui-collections-tile__menu-button:hover, :disabled))
 		.tlui-collections-tile__thumbnail {
 		background: var(--tl-color-muted-2);
 	}
@@ -386,6 +386,24 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.tlui-collections-add-tile .tlui-collections-tile__thumbnail {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-add-tile .tlui-collections-tile__button:disabled {
+	cursor: default;
+}
+
+.tlui-collections-add-tile .tlui-collections-tile__button:disabled .tlui-icon {
+	opacity: 0.4;
+}
+
+@media (hover: hover) {
+	.tlui-collections-add-tile:not(:has(:disabled)):hover .tlui-collections-tile__thumbnail {
+		color: var(--tl-color-text-1);
+	}
 }
 
 /* A tile just saved flashes once, so the eye finds it. */
