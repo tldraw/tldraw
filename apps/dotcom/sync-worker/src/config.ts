@@ -140,10 +140,10 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * alone changes nothing in production. Each budget has its own binding, and the pairs must move
  * together:
  *
- *   MCP_PER_USER_RATE_LIMIT            ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 10)
+ *   MCP_PER_USER_RATE_LIMIT            ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 60)
  *   MCP_PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
- *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 20)
- *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
+ *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 120)
+ *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 120)
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
  *
@@ -155,9 +155,10 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * Per-user counts *tool calls that can spend Browser Run*, not captures, and it is one budget across
  * every such tool — see `perUserRateLimitKey`. That distinction matters because the clustering tools
  * each run a measure render, which costs a full browser session: the ordinary one-screenshot flow is
- * get_page_info, get_cluster_info, get_cluster_screenshot, so 10 calls a minute is nearer 3 finished
- * screenshots a minute than 10. Worth revisiting on the binding before the flag is widened; the
- * number here alone changes nothing deployed.
+ * get_page_info, get_cluster_info, get_cluster_screenshot, so 60 calls a minute is nearer 20 finished
+ * screenshots a minute than 60. Sized for several agents sharing one account: at 10, parallel agents
+ * on one account were refused mid-task in testing. Spend stays bounded by the per-board and global
+ * limiters, since this budget also counts cache hits. The number here alone changes nothing deployed.
  *
  * Per-board is far below per-user on purpose: no single board may absorb more than 2 captures a
  * minute. Cache misses only, so this does not bound the usual "screenshot several pages of one board"
@@ -177,14 +178,14 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * 400 calls to walk it, and an agent that reformulates a failed query spends a few more. A refusal
  * mid-page has no good recovery either — a model cannot wait, so it retries or reports a partial
  * answer as a complete one, which is worse than the load it would have prevented. Against that, the
- * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 60
- * a minute is well under a second of database time per caller per minute.
+ * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 120
+ * a minute is about a second of database time per caller per minute.
  *
  * Per account, and only per account. It does not bound many accounts looping at once; that would
  * need a global search limiter alongside it, the way MCP_SERVER_BROWSER_RATE_LIMITER sits under the
  * per-user screenshot budget. Deliberately left until there is real traffic to size it against.
  */
-export const MCP_SEARCH_PER_USER_RATE_LIMIT = 60
+export const MCP_SEARCH_PER_USER_RATE_LIMIT = 120
 
 /** The `create_board` budget. Each call writes rows, so it sits well below the search budget. */
 export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
@@ -192,9 +193,9 @@ export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
 /** The `rename_board` budget. A write, like create, so the same size and well below search. */
 export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
 
-export const MCP_PER_USER_RATE_LIMIT = 10
+export const MCP_PER_USER_RATE_LIMIT = 60
 export const MCP_PER_BOARD_RATE_LIMIT = 2
-export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20
+export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 120
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 
 /**

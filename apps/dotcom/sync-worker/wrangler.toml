@@ -644,7 +644,7 @@ simple = { limit = 600, period = 60 }
 
 # MCP server per-account request guard: one budget per signed-in caller, across every tool that can
 # spend Browser Run. It counts *calls*, not captures, and the clustering tools each run a measure
-# render, so ten a minute is nearer three finished screenshots a minute — see MCP_PER_USER_RATE_LIMIT
+# render, so sixty a minute is nearer twenty finished screenshots a minute — see MCP_PER_USER_RATE_LIMIT
 # in config.ts before changing this number.
 # A binding carries one `limit` applied per key, so per-account and per-board need separate bindings to
 # hold different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
@@ -656,25 +656,25 @@ simple = { limit = 600, period = 60 }
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1005"
-simple = { limit = 10, period = 60 }
+simple = { limit = 60, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1006"
-simple = { limit = 10, period = 60 }
+simple = { limit = 60, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1007"
-simple = { limit = 10, period = 60 }
+simple = { limit = 60, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SCREENSHOT_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1008"
-simple = { limit = 10, period = 60 }
+simple = { limit = 60, period = 60 }
 
 # MCP server per-board capture guard, kept tighter than the per-account one so no single board can
 # absorb a caller's whole allowance. Captures only: measure renders are counted against the global
@@ -708,25 +708,25 @@ simple = { limit = 2, period = 60 }
 name = "MCP_SERVER_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1009"
-simple = { limit = 20, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SERVER_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1010"
-simple = { limit = 20, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SERVER_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1011"
-simple = { limit = 20, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SERVER_BROWSER_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1012"
-simple = { limit = 20, period = 60 }
+simple = { limit = 120, period = 60 }
 
 # MCP server per-account `search_boards` guard. Bounds Postgres rather than Browser Run, which search
 # never spends, so it is a separate budget from MCP_SCREENSHOT_RATE_LIMITER and a much larger number:
@@ -736,25 +736,25 @@ simple = { limit = 20, period = 60 }
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1017"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1018"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1019"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1020"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 # MCP server per-account `create_board` guard. Bounds writes, so it is its own budget and smaller than
 # search's — see MCP_CREATE_PER_USER_RATE_LIMIT in config.ts before changing this.
