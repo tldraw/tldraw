@@ -11565,10 +11565,6 @@ packages:
     resolution: {integrity: sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==}
     engines: {node: '>=0.8.x'}
 
-  eventsource-parser@3.0.6:
-    resolution: {integrity: sha512-Vo1ab+QXPzZ4tCa8SwIHJFaSzy4R6SHf7BY79rFBDf0idraZWAkYrDjDj8uWaSm3S2TK+hJ7/t1CEmZ7jXw+pg==}
-    engines: {node: '>=18.0.0'}
-
   eventsource-parser@3.1.1:
     resolution: {integrity: sha512-EKN1vKAMcZ8MlYMpaNuxN6R9yakzH6uajHcHVTqWJzvu5pWw9DyhbP35HH8MVBQ+dZjAfDxk+A8NiR9KWaXiyQ==}
     engines: {node: '>=18.0.0'}
@@ -16056,11 +16052,6 @@ packages:
       '@types/react':
         optional: true
 
-  use-sync-external-store@1.5.0:
-    resolution: {integrity: sha512-Rb46I4cGGVBmjamjphe8L/UnvJD+uPPtTkNvX5mZgqdbavhI4EbgIWJiIHXJ8bc/i9EQGPRh4DwEURJ552Do0A==}
-    peerDependencies:
-      react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
-
   use-sync-external-store@1.7.0:
     resolution: {integrity: sha512-6L+EeigHMQhdaIPNIFUKwfWJSwWFQ8gJbJ2DLOs5sDIegTwR9fRxvnM3uciHKjIZhFz+KAv2emhWMRvDmMcY8A==}
     peerDependencies:
@@ -16845,7 +16836,7 @@ snapshots:
       '@floating-ui/dom': 1.6.1
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
-      use-sync-external-store: 1.5.0(react@19.2.1)
+      use-sync-external-store: 1.7.0(react@19.2.1)
 
   '@ariakit/react@0.4.15(react-dom@19.2.1(react@19.2.1))(react@19.2.1)':
     dependencies:
@@ -19258,7 +19249,7 @@ snapshots:
       cors: 2.8.6
       cross-spawn: 7.0.6
       eventsource: 3.0.7
-      eventsource-parser: 3.0.6
+      eventsource-parser: 3.1.1
       express: 5.2.1(supports-color@10.2.2)
       express-rate-limit: 8.3.1(express@5.2.1(supports-color@10.2.2))
       hono: 4.13.1
@@ -19282,7 +19273,7 @@ snapshots:
       cors: 2.8.6
       cross-spawn: 7.0.6
       eventsource: 3.0.7
-      eventsource-parser: 3.0.6
+      eventsource-parser: 3.1.1
       express: 5.2.1(supports-color@10.2.2)
       express-rate-limit: 8.3.1(express@5.2.1(supports-color@10.2.2))
       hono: 4.13.1
@@ -21493,7 +21484,7 @@ snapshots:
   '@radix-ui/react-use-is-hydrated@0.1.0(@types/react@19.2.7)(react@19.2.1)':
     dependencies:
       react: 19.2.1
-      use-sync-external-store: 1.5.0(react@19.2.1)
+      use-sync-external-store: 1.7.0(react@19.2.1)
     optionalDependencies:
       '@types/react': 19.2.7
 
@@ -22747,7 +22738,7 @@ snapshots:
       fast-equals: 5.3.4
       react: 19.2.1
       react-dom: 19.2.1(react@19.2.1)
-      use-sync-external-store: 1.5.0(react@19.2.1)
+      use-sync-external-store: 1.7.0(react@19.2.1)
     optionalDependencies:
       '@tiptap/extension-bubble-menu': 3.13.0(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0)
       '@tiptap/extension-floating-menu': 3.13.0(@floating-ui/dom@1.6.1)(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0)
@@ -26147,13 +26138,11 @@ snapshots:
 
   events@3.3.0: {}
 
-  eventsource-parser@3.0.6: {}
-
   eventsource-parser@3.1.1: {}
 
   eventsource@3.0.7:
     dependencies:
-      eventsource-parser: 3.0.6
+      eventsource-parser: 3.1.1
 
   execa@3.2.0:
     dependencies:
@@ -30042,7 +30031,7 @@ snapshots:
       algoliasearch-helper: 3.23.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
       instantsearch.js: 4.77.1(@algolia/client-search@4.24.0)(@algolia/recommend@4.24.0)(algoliasearch@4.24.0)
       react: 19.2.1
-      use-sync-external-store: 1.5.0(react@19.2.1)
+      use-sync-external-store: 1.7.0(react@19.2.1)
     transitivePeerDependencies:
       - '@algolia/client-search'
       - '@algolia/recommend'
@@ -31760,10 +31749,6 @@ snapshots:
       tslib: 2.8.1
     optionalDependencies:
       '@types/react': 19.2.7
-
-  use-sync-external-store@1.5.0(react@19.2.1):
-    dependencies:
-      react: 19.2.1
 
   use-sync-external-store@1.7.0(react@19.2.1):
     dependencies:
