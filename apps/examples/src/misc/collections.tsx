@@ -4,7 +4,7 @@ import {
 	CollectionsPanel,
 	type CollectionsPanelNavigation,
 	CollectionRecordType,
-	CollectionsPanelButton,
+	CollectionsActionsMenu,
 	collectionsPanelOpen,
 	type CollectionSource,
 	CompositeCollectionSource,
@@ -23,7 +23,6 @@ import {
 	createShapeId,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
-	DefaultMenuPanel,
 	Editor,
 	PageRecordType,
 	TLComponents,
@@ -399,7 +398,7 @@ interface Surface {
 const SURFACES: Surface[] = [
 	{
 		page: 'Panel',
-		hint: 'Open the panel with the button beside the main menu. Add packs from its ⋯ menu, under Browse collections…',
+		hint: 'Open the panel with the bookmark button in the menu panel. Add packs from its ⋯ menu, under Browse collections…',
 		choices: [
 			{
 				key: 'navigation',
@@ -1034,14 +1033,7 @@ const components: TLComponents = {
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
-	MenuPanel: () => (
-		<div style={{ display: 'flex', alignItems: 'flex-start' }}>
-			<DefaultMenuPanel />
-			<div style={{ paddingTop: 2, paddingLeft: 4, pointerEvents: 'all' }}>
-				<CollectionsPanelButton />
-			</div>
-		</div>
-	),
+	ActionsMenu: CollectionsActionsMenu,
 }
 
 const mountedEditor = atom<Editor | null>('collections playground editor', null)

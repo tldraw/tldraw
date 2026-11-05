@@ -3,6 +3,7 @@ export {
 	type AddToCollectionMenuItemProps,
 } from './canvas/add-to-collection-menu-item'
 export type { AddToCollectionOrder } from './canvas/use-add-targets'
+export { CollectionsActionsMenu } from './canvas/collections-actions-menu'
 export {
 	CollectionsPanel,
 	type CollectionsPanelNavigation,
