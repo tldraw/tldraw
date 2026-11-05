@@ -286,15 +286,38 @@
 	white-space: nowrap;
 }
 
-.collectionRename {
-	flex: 1;
-	min-width: 0;
-}
-
 .collectionCount {
 	flex-shrink: 0;
 	color: var(--tl-color-text-3);
 	font-size: 12px;
+}
+
+/* A bare icon, like the sidebar's file menu trigger, flush with the content's right edge. */
+.collectionMenuTrigger {
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	padding: 0;
+	margin-inline-end: -10px;
+	background: none;
+	color: var(--tl-color-text-3);
+}
+
+.collectionMenuTrigger:after {
+	content: none;
+}
+
+/* Menus portal into the editor container beside the dialog, on the menus layer below it. Raise
+   the row menu and its "Move to" submenu to the dialog's layer, as .menuSelectContent does; the
+   submenu takes no class, so it is matched by the test id tldraw gives it. */
+.collectionMenu,
+:global([data-testid='dialog-sub.move-collection-content']) {
+	z-index: var(--tl-layer-canvas-overlays);
+}
+
+.collectionMenu :global([data-testid='dialog.delete']) {
+	color: var(--tl-color-danger);
 }
 
 .collectionsEmpty {

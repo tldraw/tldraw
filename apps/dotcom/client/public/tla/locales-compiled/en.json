@@ -1036,6 +1036,60 @@
       "value": "? This action cannot be undone."
     }
   ],
+  "92e423b077": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " and its "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "? Copies already placed on canvases stay."
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1278,6 +1332,12 @@
       "value": "Analytics"
     }
   ],
+  "a8852f3a91": [
+    {
+      "type": 0,
+      "value": "Collection menu"
+    }
+  ],
   "a8873770ab": [
     {
       "type": 0,
@@ -1312,68 +1372,6 @@
     {
       "type": 0,
       "value": "File limit reached"
-    }
-  ],
-  "ad2d494369": [
-    {
-      "type": 0,
-      "value": "Delete "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "name"
-        }
-      ],
-      "type": 8,
-      "value": "strong"
-    },
-    {
-      "type": 0,
-      "value": "? "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "=0": {
-          "value": [
-          ]
-        },
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Its "
-            },
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " item is deleted for everyone in this workspace."
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Its "
-            },
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " items are deleted for everyone in this workspace."
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
     }
   ],
   "af3dc88931": [

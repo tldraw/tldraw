@@ -428,6 +428,9 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
+  "92e423b077": {
+    "translation": "Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay."
+  },
   "930390d222": {
     "translation": "Copied invite link"
   },
@@ -509,6 +512,9 @@
   "a768caa988": {
     "translation": "Analytics"
   },
+  "a8852f3a91": {
+    "translation": "Collection menu"
+  },
   "a8873770ab": {
     "translation": "File is getting large"
   },
@@ -526,9 +532,6 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
-  },
-  "ad2d494369": {
-    "translation": "Delete <strong>{name}</strong>? {count, plural, =0 {} one {Its # item is deleted for everyone in this workspace.} other {Its # items are deleted for everyone in this workspace.}}"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",

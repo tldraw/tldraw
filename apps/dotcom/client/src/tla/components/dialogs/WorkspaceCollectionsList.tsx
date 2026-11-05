@@ -1,24 +1,49 @@
 import {
-	CollectionMenu,
 	RenameInput,
 	type CollectionSource,
 	type TLCollection,
 	type TLCollectionId,
+	type TLCollectionOwner,
 } from '@tldraw/collections'
 import { useState } from 'react'
-import { defineMessages, F, useDialogs, useToasts, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	F,
+	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
+	TldrawUiMenuSubmenu,
+	useDialogs,
+	useToasts,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
 	itemCount: { defaultMessage: '{count, plural, one {# item} other {# items}}' },
+	collectionMenu: { defaultMessage: 'Collection menu' },
+	rename: { defaultMessage: 'Rename' },
+	moveTo: { defaultMessage: 'Move to' },
+	delete: { defaultMessage: 'Delete' },
 	moved: { defaultMessage: 'Moved to {name}' },
 	changeError: { defaultMessage: "Couldn't change the collection" },
 	changeErrorDescription: {
 		defaultMessage: 'You may not be allowed to, or the collection no longer exists.',
 	},
 })
+
+// Must match the submenu content id the stylesheet raises above the dialog (see dialogs.module.css).
+const MOVE_SUBMENU_ID = 'move-collection'
 
 export function WorkspaceCollectionsList({
 	source,
@@ -88,7 +113,7 @@ export function WorkspaceCollectionsList({
 					title={<F defaultMessage="Delete collection" />}
 					description={
 						<F
-							defaultMessage="Delete <strong>{name}</strong>? {count, plural, =0 {} one {Its # item is deleted for everyone in this workspace.} other {Its # items are deleted for everyone in this workspace.}}"
+							defaultMessage="Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay."
 							values={{
 								name: collection.name,
 								count: itemCount,
@@ -96,7 +121,7 @@ export function WorkspaceCollectionsList({
 							}}
 						/>
 					}
-					confirmLabel={<F defaultMessage="Delete" />}
+					confirmLabel={<F {...messages.delete} />}
 					cancelLabel={<F defaultMessage="Cancel" />}
 					confirmType="danger"
 					onConfirm={() => source.deleteCollection(collection.id).catch(showError)}
@@ -120,7 +145,7 @@ export function WorkspaceCollectionsList({
 				<div key={collection.id} className={styles.collectionItem}>
 					{renamingId === collection.id ? (
 						<RenameInput
-							className={styles.collectionRename}
+							className={styles.dialogInput}
 							defaultValue={collection.name}
 							onComplete={(name) => renameCollection(collection, name)}
 							onCancel={() => setRenamingId(undefined)}
@@ -131,22 +156,101 @@ export function WorkspaceCollectionsList({
 					<span className={styles.collectionCount}>
 						{msg(messages.itemCount, { count: itemCount })}
 					</span>
-					<CollectionMenu
-						id={`workspace-collection-menu-${collection.id}`}
+					<CollectionRowMenu
+						collection={collection}
 						onRename={canRename ? () => setRenamingId(collection.id) : undefined}
 						onDelete={canDelete ? () => openDeleteConfirmDialog(collection, itemCount) : undefined}
-						move={
+						moveTargets={
 							source.moveCollection && canDelete && workspaceOwners.length > 1
-								? {
-										owners: workspaceOwners,
-										value: collection.ownerId,
-										onValueChange: (ownerId) => moveCollection(collection, ownerId),
-									}
+								? workspaceOwners
 								: undefined
 						}
+						onMove={(ownerId) => moveCollection(collection, ownerId)}
 					/>
 				</div>
 			))}
 		</div>
+	)
+}
+
+function CollectionRowMenu({
+	collection,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+}: {
+	collection: TLCollection
+	onRename?(): void
+	onDelete?(): void
+	moveTargets?: TLCollectionOwner[]
+	onMove(ownerId: string): void
+}) {
+	const msg = useTranslation()
+	const label = msg(messages.collectionMenu)
+	if (!onRename && !onDelete && !moveTargets) return null
+
+	return (
+		<TldrawUiDropdownMenuRoot id={`workspace-collection-menu-${collection.id}`}>
+			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
+						type="icon"
+						className={styles.collectionMenuTrigger}
+						tooltip={label}
+						title={label}
+					>
+						<TlaIcon icon="dots-vertical-strong" />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent
+					className={styles.collectionMenu}
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+				>
+					{onRename && (
+						<TldrawUiMenuGroup id="collection-actions">
+							<TldrawUiMenuItem
+								id="rename"
+								label={msg(messages.rename)}
+								readonlyOk
+								onSelect={onRename}
+							/>
+						</TldrawUiMenuGroup>
+					)}
+					{(moveTargets || onDelete) && (
+						<TldrawUiMenuGroup id="collection-delete">
+							{moveTargets && (
+								<TldrawUiMenuSubmenu id={MOVE_SUBMENU_ID} label={msg(messages.moveTo)} size="small">
+									<TldrawUiMenuGroup id="workspaces">
+										{moveTargets.map((owner) => (
+											<TldrawUiMenuCheckboxItem
+												key={owner.id}
+												id={`workspace-${owner.id}`}
+												label={owner.name}
+												checked={owner.id === collection.ownerId}
+												readonlyOk
+												onSelect={() => {
+													if (owner.id !== collection.ownerId) onMove(owner.id)
+												}}
+											/>
+										))}
+									</TldrawUiMenuGroup>
+								</TldrawUiMenuSubmenu>
+							)}
+							{onDelete && (
+								<TldrawUiMenuItem
+									id="delete"
+									label={msg(messages.delete)}
+									readonlyOk
+									onSelect={onDelete}
+								/>
+							)}
+						</TldrawUiMenuGroup>
+					)}
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
 	)
 }
