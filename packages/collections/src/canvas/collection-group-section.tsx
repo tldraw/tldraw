@@ -20,6 +20,10 @@ const messages = defineMessages({
 		id: 'collections.group.new-collection',
 		defaultMessage: 'New collection in {name}',
 	},
+	newPrivateCollection: {
+		id: 'collections.group.new-private-collection',
+		defaultMessage: 'New private collection',
+	},
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
@@ -54,13 +58,16 @@ export function CollectionGroupSection({
 		() => key !== undefined && (collapsedGroupKeys.get(editor)[source.id] ?? []).includes(key),
 		[editor, source, key]
 	)
+	const owner = useValue(
+		'group owner',
+		() =>
+			(source.getCollectionOwners ? source.getCollectionOwners() : []).find((o) => o.id === key),
+		[source, key]
+	)
 	const canCreate = useValue(
 		'group can create',
-		() => {
-			const owner = source.getCollectionOwners?.().find((o) => o.id === key)
-			return owner !== undefined && !owner.readOnly && source.can('createCollection')
-		},
-		[source, key]
+		() => owner !== undefined && !owner.readOnly && source.can('createCollection'),
+		[source, owner]
 	)
 
 	// Unfolds when a collection in it is brought into view.
@@ -104,6 +111,10 @@ export function CollectionGroupSection({
 		)
 	}
 
+	const addLabel = owner?.private
+		? msg(messages.newPrivateCollection)
+		: msg(messages.newCollectionIn, { name: label })
+
 	return (
 		<section className="tlui-collections-group" aria-label={label}>
 			<h3 className="tlui-collections-group__heading">
@@ -119,8 +130,8 @@ export function CollectionGroupSection({
 				{canCreate && (
 					<TldrawUiButton
 						type="icon"
-						tooltip={msg(messages.newCollectionIn, { name: label })}
-						title={msg(messages.newCollectionIn, { name: label })}
+						tooltip={addLabel}
+						title={addLabel}
 						onClick={createCollection}
 					>
 						<TldrawUiButtonIcon icon="plus" small />

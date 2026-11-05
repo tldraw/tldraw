@@ -76,9 +76,15 @@ export function WorkspaceCollectionsList({
 	const workspaceOwners = useValue(
 		'workspace collection owners',
 		() => {
-			const workspaceIds = new Set(app.getWorkspaceMemberships().map((m) => m.groupId))
+			// By the workspaces' own names, which the collections panel replaces for the home one.
+			const names = new Map(
+				app.getWorkspaceMemberships().flatMap((m) => (m.group ? [[m.groupId, m.group.name]] : []))
+			)
 			const owners = source.getCollectionOwners ? source.getCollectionOwners() : []
-			return owners.filter((owner) => !owner.readOnly && workspaceIds.has(owner.id))
+			return owners.flatMap((owner) => {
+				const name = names.get(owner.id)
+				return !owner.readOnly && name !== undefined ? [{ ...owner, name }] : []
+			})
 		},
 		[app, source]
 	)

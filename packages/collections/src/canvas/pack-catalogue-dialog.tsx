@@ -33,6 +33,10 @@ const messages = defineMessages({
 		id: 'collections.catalogue.added-toast.description',
 		defaultMessage: 'Added {pack} to {owner}.',
 	},
+	addedToPrivate: {
+		id: 'collections.catalogue.added-toast.description-private',
+		defaultMessage: 'Added {pack} to your private collections.',
+	},
 	addedDescription: {
 		id: 'collections.catalogue.added-toast.description-no-owner',
 		defaultMessage: 'Added {pack}.',
@@ -117,6 +121,11 @@ function PackRow({ source, pack }: { source: CollectionSource; pack: CollectionP
 			pack.name,
 			source.getCollections().map((c) => c.name)
 		)
+		const addedDescription = () => {
+			if (!owner) return msg(messages.addedDescription, { pack: pack.name })
+			if (owner.private) return msg(messages.addedToPrivate, { pack: pack.name })
+			return msg(messages.addedTo, { pack: pack.name, owner: owner.name })
+		}
 		setAdding(true)
 		copyPack(source, pack, { name, ...(ownerId === undefined ? {} : { ownerId }) })
 			.then(
@@ -124,9 +133,7 @@ function PackRow({ source, pack }: { source: CollectionSource; pack: CollectionP
 					activeCollectionId.set(editor, collection.id)
 					addToast({
 						title: msg(messages.addedTitle),
-						description: owner
-							? msg(messages.addedTo, { pack: pack.name, owner: owner.name })
-							: msg(messages.addedDescription, { pack: pack.name }),
+						description: addedDescription(),
 						actions: [
 							{
 								label: msg(messages.open),
