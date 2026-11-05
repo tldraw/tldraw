@@ -1,6 +1,8 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	MeasuredArrow,
+	MeasuredDimensions,
 	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
@@ -31,7 +33,7 @@ import {
 	recordMintedRenderToken,
 	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
-import { MeasuredArrow, MeasuredDimensions, ShapeMeasurement } from './boardTools'
+import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,

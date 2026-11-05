@@ -38,7 +38,7 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
-	getMeasuredGeometry,
+	clusteringFromMeasure,
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
@@ -878,10 +878,10 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return getPageInfo(resolved.page, clustered.clustering.clusters)
+		return getPageInfo(resolved.page, clustered)
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
@@ -1156,8 +1156,8 @@ async function checkRenameRateLimit(
 	)
 }
 
-type PageClustersResult =
-	| { ok: true; clustering: PageClustering; clusterCacheStatus: 'hit' | 'miss' }
+type ClusteringResult =
+	| ({ ok: true; clusterCacheStatus: 'hit' | 'miss' } & PageClustering)
 	| { ok: false; result: ToolCallResult }
 
 // How the three clustering tools get a page's clusters, and the one place that decides whether that
@@ -1183,7 +1183,7 @@ type PageClustersResult =
 //
 // The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
 // carry no duration bookkeeping.
-async function clustersFor(
+async function readClustering(
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
 	{
 		env,
@@ -1198,7 +1198,7 @@ async function clustersFor(
 		request: Request
 		ctx: ExecutionContext | undefined
 	}
-): Promise<PageClustersResult> {
+): Promise<ClusteringResult> {
 	const cacheContext = { env, request, ctx }
 	const cached = await readPageClusters(
 		cacheContext,
@@ -1206,7 +1206,7 @@ async function clustersFor(
 		resolved.page,
 		resolved.snapshotVersion
 	)
-	if (cached) return { ok: true, clustering: cached, clusterCacheStatus: 'hit' }
+	if (cached) return { ok: true, ...cached, clusterCacheStatus: 'hit' }
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
@@ -1237,11 +1237,7 @@ async function clustersFor(
 		buildClusterIndex(clusters, measurements),
 		resolved.snapshotVersion
 	)
-	return {
-		ok: true,
-		clustering: { clusters, ...getMeasuredGeometry(measurements) },
-		clusterCacheStatus: 'miss',
-	}
+	return { ok: true, ...clusteringFromMeasure(clusters, measurements), clusterCacheStatus: 'miss' }
 }
 
 async function callClusterInfoTool(
@@ -1266,11 +1262,11 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
 		const info = getClusterInfo(
 			resolved.page,
-			clustered.clustering,
+			clustered,
 			input.clusterIds,
 			input.page,
 			input.cursor
@@ -1502,9 +1498,9 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved, telemetry) => {
-			const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+			const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
-			const picked = pickClusterShapes(clustered.clustering.clusters, input.clusterIds, input.page)
+			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
 			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
