@@ -11,7 +11,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { TLCollection, TLCollectionItemId } from '../lib/schema'
+import type { TLCollection, TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
 import { CollectionPicker } from '../ui/collection-picker'
 import { CollectionTabs } from '../ui/collection-tabs'
@@ -203,21 +203,33 @@ export function CollectionsPanel({
 	const collapsed = useValue('collapsed collections', () => collapsedCollectionIds.get(editor), [
 		editor,
 	])
-	const orderChoice = useValue('item order', () => getItemOrderChoice(source.id), [source])
-	// A stored choice the host no longer offers falls back to its first ordering.
-	const ordering = itemOrderings.find((o) => o.id === orderChoice.orderingId) ?? itemOrderings[0]
-	const sort =
-		itemOrderings.length > 1
-			? {
-					options: itemOrderings.map(({ id, label }) => ({ id, label })),
-					value: ordering.id,
-					onValueChange: (orderingId: string) =>
-						setItemOrderChoice(source.id, { ...orderChoice, orderingId }),
-					reversed: orderChoice.reversed,
-					onReversedChange: (reversed: boolean) =>
-						setItemOrderChoice(source.id, { ...orderChoice, reversed }),
-				}
-			: undefined
+	const orderChoices = useValue(
+		'item orders',
+		() => new Map(collections.map((c) => [c.id, getItemOrderChoice(source.id, c.id)])),
+		[source, collections]
+	)
+	const choiceOf = (collectionId: TLCollectionId) =>
+		orderChoices.get(collectionId) ?? getItemOrderChoice(source.id, collectionId)
+	const orderOf = (collectionId: TLCollectionId) => {
+		const choice = choiceOf(collectionId)
+		// A stored choice the host no longer offers falls back to its first ordering.
+		const ordering = itemOrderings.find((o) => o.id === choice.orderingId) ?? itemOrderings[0]
+		return { ordering, reversed: choice.reversed }
+	}
+	const sortFor = (collectionId: TLCollectionId) => {
+		if (itemOrderings.length < 2) return undefined
+		const choice = choiceOf(collectionId)
+		const { ordering } = orderOf(collectionId)
+		return {
+			options: itemOrderings.map(({ id, label }) => ({ id, label })),
+			value: ordering.id,
+			onValueChange: (orderingId: string) =>
+				setItemOrderChoice(source.id, collectionId, { ...choice, orderingId }),
+			reversed: choice.reversed,
+			onReversedChange: (reversed: boolean) =>
+				setItemOrderChoice(source.id, collectionId, { ...choice, reversed }),
+		}
+	}
 	const breakpoint = useBreakpoint()
 	const isSheet = smallScreen === 'sheet' && breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM
 	const placeItem = useCallback(
@@ -264,8 +276,7 @@ export function CollectionsPanel({
 								source={source}
 								collectionId={collection.id}
 								getItemProps={getItemProps}
-								ordering={ordering}
-								reversed={orderChoice.reversed}
+								{...orderOf(collection.id)}
 								appearance={tileAppearance}
 								query={query}
 							/>
@@ -296,6 +307,7 @@ export function CollectionsPanel({
 											itemCount={countOf(collection)}
 											collapsed={isCollapsed}
 											addButton={addControl === 'header'}
+											sort={sortFor(collection.id)}
 											onToggleCollapsed={() =>
 												collapsedCollectionIds.update(editor, (ids) =>
 													isCollapsed
@@ -309,8 +321,7 @@ export function CollectionsPanel({
 												source={source}
 												collectionId={collection.id}
 												getItemProps={getItemProps}
-												ordering={ordering}
-												reversed={orderChoice.reversed}
+												{...orderOf(collection.id)}
 												appearance={tileAppearance}
 												query={filter}
 												emptyCollection={emptyCollection}
@@ -333,8 +344,7 @@ export function CollectionsPanel({
 					source={source}
 					collectionId={current.id}
 					getItemProps={getItemProps}
-					ordering={ordering}
-					reversed={orderChoice.reversed}
+					{...orderOf(current.id)}
 					appearance={tileAppearance}
 					query={filter}
 					emptyCollection={emptyCollection}
@@ -369,8 +379,7 @@ export function CollectionsPanel({
 										key={collection.id}
 										source={source}
 										collection={collection}
-										ordering={ordering}
-										reversed={orderChoice.reversed}
+										{...orderOf(collection.id)}
 										getItemProps={getItemProps}
 										onOpen={() => activeCollectionId.set(editor, collection.id)}
 									/>
@@ -430,7 +439,7 @@ export function CollectionsPanel({
 							: undefined
 					}
 					groupCollections={grouping?.groupOf}
-					sort={sort}
+					sort={navigation !== 'sections' && current ? sortFor(current.id) : undefined}
 					title={header === 'title'}
 					onClose={header === 'title' ? () => collectionsPanelOpen.set(editor, false) : undefined}
 					addButton={addControl === 'header'}
