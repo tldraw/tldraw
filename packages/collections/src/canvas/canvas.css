@@ -602,6 +602,8 @@
 .tlui-input.tlui-collections-panel__rename {
 	padding: 0px 12px;
 	font-weight: 500;
+	border-radius: var(--tl-radius-2);
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
 }
 
 /* As tldraw's own dialogs style their inputs (see the embed dialog). */
