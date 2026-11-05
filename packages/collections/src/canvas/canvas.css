@@ -606,6 +606,14 @@
 	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
 }
 
+.tlui-collections-panel__back + .tlui-input__wrapper {
+	margin-left: -4px;
+}
+
+.tlui-collections-panel__back + .tlui-input__wrapper > .tlui-collections-panel__rename {
+	padding-left: 8px;
+}
+
 /* As tldraw's own dialogs style their inputs (see the embed dialog). */
 .tlui-collections-name-input {
 	width: 100%;
