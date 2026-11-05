@@ -10,7 +10,7 @@ export interface AgentModelOptions {
 	/** Omit to use the provider's default. */
 	reasoning?: AgentReasoning
 	/** The model's id on OpenRouter, when it differs from the model's name. */
-	openRouterId?: string
+	openRouterId?: `${string}/${string}`
 }
 
 /**
