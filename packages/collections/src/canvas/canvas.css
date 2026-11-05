@@ -261,7 +261,13 @@
 	overflow: visible;
 }
 
+/* Stays at the top of the list while its own items scroll under it, until the next section's
+   header pushes it out. */
 .tlui-collections-section > .tlui-collections-panel__header {
+	position: sticky;
+	top: 0;
+	z-index: 1;
+	background: var(--tl-color-panel);
 	border-bottom: none;
 }
 
