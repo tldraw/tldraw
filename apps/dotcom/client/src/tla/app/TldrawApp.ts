@@ -71,6 +71,7 @@ import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
 import { TldrawAppCollectionsSource } from '../components/TlaCollections/collectionsSource'
+import { TldrawAppCollectionsWithPacks } from '../components/TlaCollections/collectionsWithPacks'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -208,7 +209,7 @@ export class TldrawApp {
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
 	/** Null when the `collections` flag is off for this user. */
-	readonly collections: TldrawAppCollectionsSource | null
+	readonly collections: TldrawAppCollectionsWithPacks | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -298,7 +299,7 @@ export class TldrawApp {
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		if (flags.collections?.enabled) {
-			const collections = new TldrawAppCollectionsSource(this)
+			const collections = new TldrawAppCollectionsWithPacks(new TldrawAppCollectionsSource(this))
 			this.collections = collections
 			this.disposables.push(() => collections.dispose())
 		} else {
