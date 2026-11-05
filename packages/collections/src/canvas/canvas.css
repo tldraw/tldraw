@@ -175,13 +175,23 @@
 	position: sticky;
 	top: var(--tlui-collections-sticky-top, 0);
 	z-index: 1;
-	background: linear-gradient(
-		to top,
-		transparent,
-		color-mix(in srgb, var(--tl-color-panel) 95%, transparent),
-		var(--tl-color-panel)
-	);
+	background: color-mix(in srgb, var(--tl-color-panel) 95%, transparent);
 	border-bottom: none;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 0;
+	right: 0;
+	height: 12px;
+	background: linear-gradient(
+		to bottom,
+		color-mix(in srgb, var(--tl-color-panel) 95%, transparent),
+		transparent
+	);
+	pointer-events: none;
 }
 
 /* The whole name row folds the section, with the chevron straight after the name. */
