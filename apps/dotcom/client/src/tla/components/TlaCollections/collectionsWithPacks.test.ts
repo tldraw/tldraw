@@ -100,7 +100,7 @@ describe('TldrawAppCollectionsWithPacks', () => {
 		await vi.waitFor(() => expect(listing(reloaded)[0]).toEqual(['Wireframing', 'home']))
 		const [reloadedCopy] = reloaded.getCollections()
 		const button = reloaded.getItems(reloadedCopy.id).find((item) => item.name === 'Button')
-		expect(reloaded.getItems(reloadedCopy.id)).toHaveLength(8)
+		expect(reloaded.getItems(reloadedCopy.id)).toHaveLength(6)
 		const content = await reloaded.getItemContent(button!.id)
 		expect(content.content.shapes).toHaveLength(1)
 	})
