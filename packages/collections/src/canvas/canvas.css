@@ -267,7 +267,12 @@
 	position: sticky;
 	top: 0;
 	z-index: 1;
-	background: var(--tl-color-panel);
+	background: linear-gradient(
+		to top,
+		transparent,
+		color-mix(in srgb, var(--tl-color-panel) 95%, transparent),
+		var(--tl-color-panel)
+	);
 	border-bottom: none;
 }
 
