@@ -15,6 +15,7 @@ import {
 	type TLTextShape,
 	toRichText,
 } from 'tldraw'
+import doodles from './collections-pack-doodles.json'
 import floorPlan from './collections-pack-floor-plan.json'
 import tldrawCharacters from './collections-pack-tldraw-characters.json'
 import wireframingSketches from './collections-pack-wireframing-sketches.json'
@@ -350,4 +351,5 @@ export const STARTER_PACKS: CollectionPack[] = [
 	diagramming,
 	floorPlan as unknown as CollectionPack,
 	tldrawCharacters as unknown as CollectionPack,
+	doodles as unknown as CollectionPack,
 ]
