@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
+import { AddSelectionBar } from './add-selection-bar'
 import { CollectionSection } from './collection-section'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { placeCollectionItem } from './place-item'
@@ -40,8 +41,8 @@ export interface CollectionsPanelProps {
 /**
  * A floating panel on one side of the canvas for browsing a {@link CollectionSource}, shown while
  * {@link collectionsPanelOpen} is set. Every collection is a section of one scroll, under a header
- * that folds it shut. Clicking an item places a copy of it in the middle of the viewport; dragging
- * one out drops it under the pointer.
+ * that folds it shut, over a bar that adds the selection to a collection. Clicking an item places a
+ * copy of it in the middle of the viewport; dragging one out drops it under the pointer.
  * @public @react
  */
 export function CollectionsPanel({
@@ -108,6 +109,7 @@ export function CollectionsPanel({
 						))}
 					</div>
 				)}
+				<AddSelectionBar source={source} />
 			</section>
 		</EditorPortal>
 	)

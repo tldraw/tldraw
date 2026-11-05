@@ -17,12 +17,10 @@ import { CollectionItems } from './collection-items'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
 import { collapsedCollectionIds, renamingCollectionId } from './state'
-import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	expand: { id: 'collections.section.expand', defaultMessage: 'Show items' },
 	collapse: { id: 'collections.section.collapse', defaultMessage: 'Hide items' },
-	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	deleteTitle: {
 		id: 'collections.delete-collection-dialog.title',
 		defaultMessage: 'Delete collection',
@@ -52,8 +50,8 @@ export interface CollectionSectionProps {
 }
 
 /**
- * One collection as a section of the panel: a header that folds it shut, renames it, adds the
- * selection to it and holds its menu, over its items.
+ * One collection as a section of the panel: a header that folds it shut, renames it and holds its
+ * menu, over its items.
  */
 export function CollectionSection({
 	source,
@@ -65,7 +63,6 @@ export function CollectionSection({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const { saveSelection } = useSaveSelection(source)
 	const collectionId = collection.id
 	const collapsed = useValue(
 		'collection collapsed',
@@ -80,11 +77,10 @@ export function CollectionSection({
 	const can = useValue(
 		'collection permissions',
 		() => ({
-			add: editor.getSelectedShapeIds().length > 0 && source.can('addItem', collectionId),
 			rename: source.can('renameCollection', collectionId),
 			delete: source.can('deleteCollection', collectionId),
 		}),
-		[editor, source, collectionId]
+		[source, collectionId]
 	)
 	const orderChoice = useValue('item order', () => getItemOrderChoice(source.id, collectionId), [
 		source,
@@ -163,15 +159,6 @@ export function CollectionSection({
 					<span className="tlui-collections-section__name">{collection.name}</span>
 				)}
 				<div className="tlui-collections-panel__header-actions">
-					<TldrawUiButton
-						type="icon"
-						disabled={!can.add}
-						tooltip={msg(messages.addSelection)}
-						title={msg(messages.addSelection)}
-						onClick={() => saveSelection(collectionId)}
-					>
-						<TldrawUiButtonIcon icon="plus" small />
-					</TldrawUiButton>
 					{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 					    the input straight away. */}
 					{!renaming && (

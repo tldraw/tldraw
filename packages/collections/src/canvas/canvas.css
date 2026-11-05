@@ -282,6 +282,29 @@
 	overflow-y: auto;
 }
 
+.tlui-collections-add-bar {
+	flex-shrink: 0;
+	padding: 2px;
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.tlui-collections-add-bar__button {
+	width: 100%;
+	justify-content: space-between;
+}
+
+.tlui-collections-add-menu {
+	width: var(--radix-dropdown-menu-trigger-width);
+	max-height: var(--radix-dropdown-menu-content-available-height);
+	overflow-y: auto;
+}
+
+/* Context menu items draw iconLeft after the label; this one leads with it, as dropdown menus do. */
+.tlui-button__menu[data-testid$='.add-to-new-collection'] > .tlui-button__icon {
+	order: -1;
+	margin-inline-end: var(--tl-space-2);
+}
+
 .tlui-collections-sections .tlui-collections-grid {
 	overflow: visible;
 }
