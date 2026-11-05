@@ -53,6 +53,12 @@
       "value": "Invite teammates"
     }
   ],
+  "0571ee3934": [
+    {
+      "type": 0,
+      "value": "Couldn't change the collection"
+    }
+  ],
   "05b2656486": [
     {
       "children": [
@@ -591,6 +597,12 @@
       "value": " reacted to your comment"
     }
   ],
+  "5cbe4b7faf": [
+    {
+      "type": 0,
+      "value": "No collections in this workspace yet."
+    }
+  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -631,6 +643,12 @@
     {
       "type": 0,
       "value": "Later"
+    }
+  ],
+  "611307b7ab": [
+    {
+      "type": 0,
+      "value": "Delete collection"
     }
   ],
   "61fb03fd7b": [
@@ -1092,6 +1110,38 @@
       "value": "You appear to be offline. Check your connection and try again."
     }
   ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1262,6 +1312,68 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "ad2d494369": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": "? "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "=0": {
+          "value": [
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Its "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item is deleted for everyone in this workspace."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Its "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items are deleted for everyone in this workspace."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "af3dc88931": [
@@ -1466,6 +1578,12 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "total"
+    }
+  ],
+  "c2d3219e36": [
+    {
+      "type": 0,
+      "value": "You may not be allowed to, or the collection no longer exists."
     }
   ],
   "c303bd1095": [
@@ -1676,6 +1794,16 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e10a073cda": [
+    {
+      "type": 0,
+      "value": "Moved to "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "e2198d6228": [

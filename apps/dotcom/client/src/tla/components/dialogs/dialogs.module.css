@@ -266,6 +266,43 @@
 	font-size: 12px;
 }
 
+.collectionsList {
+	display: flex;
+	flex-direction: column;
+}
+
+.collectionItem {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 36px;
+}
+
+.collectionName {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.collectionRename {
+	flex: 1;
+	min-width: 0;
+}
+
+.collectionCount {
+	flex-shrink: 0;
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+}
+
+.collectionsEmpty {
+	margin: 0;
+	line-height: 36px;
+	color: var(--tl-color-text-3);
+}
+
 /* Pull the tab strip out by the shared 12px tab padding so the first tab's label
    aligns with the headings, button, and member rows. Since the dialog body's padding
    also equals that 12px, the strip now spans the body's full width — so drop the tab
@@ -299,6 +336,11 @@
 
 .tabPage.scrollable {
 	overflow-y: auto;
+}
+
+/* The home workspace's collections sit under a section heading, not a tab bar. */
+.tabPage.untabbedPage {
+	padding-top: 0;
 }
 
 /* The toggle row and the action links below it sit at the content edge (no inset), so
