@@ -41,8 +41,10 @@ export interface ItemGridProps<Id extends string = string> {
 	renderItemMenu?(item: ItemGridItem<Id>): ReactNode
 	/** An item to scroll into view and flash, e.g. one just saved. */
 	highlightedId?: Id
-	/** Shown when there are no items. */
+	/** Shown when there are no items and nothing comes after them. */
 	empty: ReactNode
+	/** A tile after the items, such as one that adds to the collection. */
+	after?: ReactNode
 	appearance?: ItemGridAppearance
 }
 
@@ -53,6 +55,7 @@ export function ItemGrid<Id extends string>({
 	renderItemMenu,
 	highlightedId,
 	empty,
+	after,
 	appearance = {},
 }: ItemGridProps<Id>) {
 	const listRef = useRef<HTMLUListElement>(null)
@@ -64,7 +67,7 @@ export function ItemGrid<Id extends string>({
 
 	const label = appearance.label ?? 'hidden'
 	const columns = appearance.columns ?? 2
-	if (items.length === 0) return <p className="tlui-collections-panel__empty">{empty}</p>
+	if (items.length === 0 && !after) return <p className="tlui-collections-panel__empty">{empty}</p>
 
 	return (
 		<ul
@@ -88,6 +91,7 @@ export function ItemGrid<Id extends string>({
 					/>
 				</li>
 			))}
+			{after && <li>{after}</li>}
 		</ul>
 	)
 }

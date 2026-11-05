@@ -13,6 +13,7 @@ import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
+import { AddSelectionTile } from './add-selection-tile'
 import type { ReadOnlyOptions } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { AddFirstItem, type EmptyCollection } from './empty-collection'
@@ -227,7 +228,9 @@ export function CollectionItems({
 		() => expandedCollectionIds.get(editor).includes(collectionId),
 		[editor, collectionId]
 	)
-	const limit = maxRows === undefined ? Infinity : maxRows * (appearance?.columns ?? 2)
+	const showsAddTile = canAdd && query.trim() === ''
+	const limit =
+		maxRows === undefined ? Infinity : maxRows * (appearance?.columns ?? 2) - (showsAddTile ? 1 : 0)
 	const truncates = items.length > limit
 	// An item just saved stays in view, even past the rows a section shows.
 	const revealsHidden = items
@@ -296,6 +299,11 @@ export function CollectionItems({
 					/>
 				)}
 				highlightedId={highlightedId}
+				after={
+					showsAddTile && (
+						<AddSelectionTile source={source} collectionId={collectionId} saving={saving} />
+					)
+				}
 				empty={
 					query.trim() === '' ? msg(messages.emptyCollection) : msg(messages.noMatches, { query })
 				}
