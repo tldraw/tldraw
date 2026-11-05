@@ -1,4 +1,8 @@
-import type { CollectionPack, TLCollectionItemContent } from '@tldraw/collections'
+import type {
+	CollectionPack,
+	CollectionPackItem,
+	TLCollectionItemContent,
+} from '@tldraw/collections'
 import {
 	createShapeId,
 	createTLSchema,
@@ -11,6 +15,10 @@ import {
 	type TLTextShape,
 	toRichText,
 } from 'tldraw'
+import doodles from './starterPackDoodles.json'
+import floorPlan from './starterPackFloorPlan.json'
+import tldrawCharacters from './starterPackTldrawCharacters.json'
+import wireframingSketches from './starterPackWireframingSketches.json'
 
 type Color = 'black' | 'grey' | 'blue' | 'green' | 'yellow' | 'violet'
 
@@ -210,7 +218,7 @@ function item(packId: string, id: string, name: string, shapes: PackShape[]) {
 const wireframing: CollectionPack = {
 	id: 'wireframing',
 	name: 'Wireframing',
-	version: 1,
+	version: 2,
 	items: [
 		item('wireframing', 'button', 'Button', [
 			{
@@ -248,6 +256,7 @@ const wireframing: CollectionPack = {
 			{ type: 'text', x: 180, y: 16, w: 70, text: 'Docs', color: 'grey' },
 			{ type: 'text', x: 260, y: 16, w: 80, text: 'Sign in', color: 'blue' },
 		]),
+		...(wireframingSketches as unknown as CollectionPackItem[]),
 	],
 }
 
@@ -337,4 +346,10 @@ const diagramming: CollectionPack = {
 	],
 }
 
-export const STARTER_PACKS: CollectionPack[] = [wireframing, diagramming]
+export const STARTER_PACKS: CollectionPack[] = [
+	wireframing,
+	diagramming,
+	floorPlan as unknown as CollectionPack,
+	tldrawCharacters as unknown as CollectionPack,
+	doodles as unknown as CollectionPack,
+]
