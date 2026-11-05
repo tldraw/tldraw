@@ -70,7 +70,7 @@ interface ScopeSettings {
 const DEFAULT_SCOPE_SETTINGS: ScopeSettings = {
 	showPersonal: 'shown',
 	layout: 'grouped',
-	newCollectionOwner: 'board',
+	newCollectionOwner: 'personal',
 	workspaceEditors: 'everyone',
 	role: 'admin',
 }
@@ -805,8 +805,8 @@ const SURFACES: Surface[] = [
 				key: 'newCollectionOwner',
 				label: 'New collections go to',
 				options: [
-					{ value: 'board', label: 'This board' },
 					{ value: 'personal', label: 'Personal' },
+					{ value: 'board', label: 'This board' },
 					{ value: 'workspace', label: 'Acme workspace' },
 				],
 			},
