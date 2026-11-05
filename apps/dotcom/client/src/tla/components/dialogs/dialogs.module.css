@@ -304,8 +304,9 @@
 	color: var(--tl-color-text-3);
 }
 
-.collectionMenuTrigger:after {
-	content: none;
+.collectionMenuTrigger:hover,
+.collectionMenuTrigger[data-state='open'] {
+	color: var(--tl-color-text-1);
 }
 
 /* Menus portal into the editor container beside the dialog, on the menus layer below it. Raise

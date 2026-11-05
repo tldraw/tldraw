@@ -209,46 +209,42 @@ function CollectionRowMenu({
 					align="end"
 					{...TLA_MENU_POSITION}
 				>
-					{onRename && (
-						<TldrawUiMenuGroup id="collection-actions">
+					<TldrawUiMenuGroup id="collection-actions">
+						{onRename && (
 							<TldrawUiMenuItem
 								id="rename"
 								label={msg(messages.rename)}
 								readonlyOk
 								onSelect={onRename}
 							/>
-						</TldrawUiMenuGroup>
-					)}
-					{(moveTargets || onDelete) && (
-						<TldrawUiMenuGroup id="collection-delete">
-							{moveTargets && (
-								<TldrawUiMenuSubmenu id={MOVE_SUBMENU_ID} label={msg(messages.moveTo)} size="small">
-									<TldrawUiMenuGroup id="workspaces">
-										{moveTargets.map((owner) => (
-											<TldrawUiMenuCheckboxItem
-												key={owner.id}
-												id={`workspace-${owner.id}`}
-												label={owner.name}
-												checked={owner.id === collection.ownerId}
-												readonlyOk
-												onSelect={() => {
-													if (owner.id !== collection.ownerId) onMove(owner.id)
-												}}
-											/>
-										))}
-									</TldrawUiMenuGroup>
-								</TldrawUiMenuSubmenu>
-							)}
-							{onDelete && (
-								<TldrawUiMenuItem
-									id="delete"
-									label={msg(messages.delete)}
-									readonlyOk
-									onSelect={onDelete}
-								/>
-							)}
-						</TldrawUiMenuGroup>
-					)}
+						)}
+						{moveTargets && (
+							<TldrawUiMenuSubmenu id={MOVE_SUBMENU_ID} label={msg(messages.moveTo)} size="small">
+								<TldrawUiMenuGroup id="workspaces">
+									{moveTargets.map((owner) => (
+										<TldrawUiMenuCheckboxItem
+											key={owner.id}
+											id={`workspace-${owner.id}`}
+											label={owner.name}
+											checked={owner.id === collection.ownerId}
+											readonlyOk
+											onSelect={() => {
+												if (owner.id !== collection.ownerId) onMove(owner.id)
+											}}
+										/>
+									))}
+								</TldrawUiMenuGroup>
+							</TldrawUiMenuSubmenu>
+						)}
+						{onDelete && (
+							<TldrawUiMenuItem
+								id="delete"
+								label={msg(messages.delete)}
+								readonlyOk
+								onSelect={onDelete}
+							/>
+						)}
+					</TldrawUiMenuGroup>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
