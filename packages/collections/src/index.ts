@@ -3,12 +3,12 @@ export {
 	type AddToCollectionMenuItemProps,
 } from './canvas/add-to-collection-menu-item'
 export type { AddToCollectionOrder } from './canvas/use-add-targets'
-export { CollectionsActionsMenu } from './canvas/collections-actions-menu'
 export {
 	CollectionsPanel,
 	type CollectionsPanelNavigation,
 	type CollectionsPanelProps,
 } from './canvas/collections-panel'
+export { CollectionsQuickActions } from './canvas/collections-quick-actions'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { placeCollectionItem, type PlaceItemOptions } from './canvas/place-item'
 export { saveShapesToCollection } from './canvas/save-shapes'
