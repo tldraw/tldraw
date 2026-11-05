@@ -15,11 +15,6 @@ export type TLCollectionId = RecordId<TLCollection>
 export interface TLCollection extends BaseRecord<'collection', TLCollectionId> {
 	name: string
 	/**
-	 * True for collections users can't change, such as a prefab pack shipped with an app.
-	 * Sources can leave it out; absent means false.
-	 */
-	readOnly?: boolean
-	/**
 	 * Who the collection belongs to, such as a user or a workspace, as the source names them in
 	 * `CollectionSource.getCollectionOwners`. What an owner is stays up to the source. Left out by
 	 * sources that don't track owners.
@@ -94,7 +89,6 @@ export const collectionValidator: T.Validator<TLCollection> = T.object({
 	id: idValidator<TLCollectionId>('collection'),
 	typeName: T.literal('collection'),
 	name: nonEmptyString,
-	readOnly: T.boolean.optional(),
 	ownerId: nonEmptyString.optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })

@@ -15,7 +15,7 @@ const card = CollectionItemRecordType.createId('card')
 const missingCollection = CollectionRecordType.createId('nope')
 const missingItem = CollectionItemRecordType.createId('nope')
 
-const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs', readOnly: true })
+const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs' })
 const cardItem = () =>
 	CollectionItemRecordType.create({ id: card, collectionId: pack, name: 'Card' })
 
@@ -172,6 +172,7 @@ describe('InMemoryCollectionSource', () => {
 	it('refuses to move an item out of or into a read-only collection', async () => {
 		const source = new InMemoryCollectionSource({
 			initial: { collections: [prefabs()], items: [], contents: {} },
+			readOnlyCollectionIds: [pack],
 		})
 		const writable = await source.createCollection('Mine')
 		const item = await source.addItem(writable.id, { content: content() })
@@ -337,6 +338,7 @@ describe('InMemoryCollectionSource', () => {
 				items: [],
 				contents: {},
 			},
+			readOnlyCollectionIds: [pack],
 		})
 		expect(source.can('createCollection')).toBe(true)
 		expect(source.can('addItem', pack)).toBe(false)

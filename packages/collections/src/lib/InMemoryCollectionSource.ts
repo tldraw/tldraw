@@ -44,6 +44,8 @@ export interface InMemoryCollectionSourceOptions {
 	owners?: TLCollectionOwner[]
 	/** Who new collections belong to unless they name an owner. Defaults to the first owner. */
 	defaultOwnerId?: string
+	/** Makes these collections read-only while the rest stay writable. Items can still be used. */
+	readOnlyCollectionIds?: TLCollectionId[]
 }
 
 const schema = StoreSchema.create<TLCollectionRecord>(
@@ -64,6 +66,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	private readonly readOnly: boolean
 	private readonly owners: TLCollectionOwner[]
 	private readonly defaultOwnerId: string | undefined
+	private readonly readOnlyCollectionIds: Set<TLCollectionId>
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
@@ -81,6 +84,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		if (this.defaultOwnerId !== undefined && !isOwner(this.defaultOwnerId)) {
 			throw new Error(`Default owner ${this.defaultOwnerId} is not one of the owners`)
 		}
+		this.readOnlyCollectionIds = new Set(options.readOnlyCollectionIds)
 		if (options.initial) {
 			const { collections, items, contents } = options.initial
 			// Bad starting data would only fail later, in the UI, so it is checked as a whole up front.
@@ -140,7 +144,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		const collection = collectionId === undefined ? undefined : this.store.get(collectionId)
 		if (collectionId !== undefined && !collection) return false
 		if (this.readOnly) return false
-		return !collection?.readOnly
+		return collectionId === undefined || !this.readOnlyCollectionIds.has(collectionId)
 	}
 
 	getCollectionOwners() {
