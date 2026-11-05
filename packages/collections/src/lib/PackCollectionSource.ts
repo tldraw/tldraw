@@ -1,4 +1,6 @@
+import { computed } from '@tldraw/state'
 import { structuredClone } from '@tldraw/utils'
+import { type AddedPackIds, getAddedPackIdsKey, localStorageAddedPackIds } from './AddedPackIds'
 import type { CollectionPack } from './CollectionPack'
 import {
 	CollectionNotFoundError,
@@ -6,6 +8,7 @@ import {
 	type CollectionSource,
 	type TLCollectionAction,
 } from './CollectionSource'
+import type { PackCatalogue } from './PackCatalogue'
 import {
 	CollectionItemRecordType,
 	collectionItemValidator,
@@ -23,21 +26,33 @@ import {
 export interface PackCollectionSourceOptions {
 	id?: string
 	packs: CollectionPack[]
+	/**
+	 * Which packs the user has added, and so which are listed. Defaults to this browser's
+	 * localStorage, kept per source id.
+	 */
+	addedPackIds?: AddedPackIds
 }
 
 /**
- * A read-only source that lists each pack as a collection of the pack's items. Every change is
- * refused, so its collections can only be used, or copied into a source that accepts them.
- *
- * Packs are data that never changes, so the getters return the same arrays every time and have
- * nothing to subscribe to.
+ * A read-only source that lists each pack the user has added as a collection of the pack's items.
+ * No pack is listed until it's added, from the panel's "Browse collections…" or with
+ * {@link PackCollectionSource.addPack}. Every change to the collections is refused, so they can
+ * only be used, or copied into a source that accepts them.
  * @public
  */
-export class PackCollectionSource implements CollectionSource {
+export class PackCollectionSource implements CollectionSource, PackCatalogue {
 	readonly id: string
-	private readonly collections: TLCollection[]
+	private readonly packs: CollectionPack[]
+	private readonly addedPackIds: AddedPackIds
+	private readonly allCollections: TLCollection[]
+	private readonly packIds = new Map<TLCollectionId, string>()
 	private readonly items = new Map<TLCollectionId, TLCollectionItem[]>()
 	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()
+
+	private readonly collections$ = computed('added pack collections', () => {
+		const added = new Set(this.addedPackIds.get())
+		return this.allCollections.filter((_, i) => added.has(this.packs[i].id))
+	})
 
 	/** The collection id a pack is listed under. */
 	static getCollectionId(packId: string): TLCollectionId {
@@ -51,10 +66,14 @@ export class PackCollectionSource implements CollectionSource {
 
 	constructor(options: PackCollectionSourceOptions) {
 		this.id = options.id ?? 'packs'
+		this.packs = options.packs
+		this.addedPackIds =
+			options.addedPackIds ?? localStorageAddedPackIds(getAddedPackIdsKey(this.id))
 		const packIds = options.packs.map((pack) => pack.id)
 		if (new Set(packIds).size !== packIds.length) throw new Error('Duplicate pack ids')
-		this.collections = options.packs.map((pack) => {
+		this.allCollections = options.packs.map((pack) => {
 			const collectionId = PackCollectionSource.getCollectionId(pack.id)
+			this.packIds.set(collectionId, pack.id)
 			const itemIds = pack.items.map((item) => item.id)
 			if (new Set(itemIds).size !== itemIds.length) {
 				throw new Error(`Duplicate item ids in pack ${pack.id}`)
@@ -86,10 +105,12 @@ export class PackCollectionSource implements CollectionSource {
 	}
 
 	getCollections() {
-		return this.collections
+		return this.collections$.get()
 	}
 
 	getItems(collectionId: TLCollectionId) {
+		const packId = this.packIds.get(collectionId)
+		if (packId === undefined || !this.isPackAdded(packId)) return []
 		return this.items.get(collectionId) ?? []
 	}
 
@@ -97,6 +118,28 @@ export class PackCollectionSource implements CollectionSource {
 		const content = this.contents.get(itemId)
 		if (!content) throw new CollectionNotFoundError(itemId)
 		return structuredClone(content)
+	}
+
+	getPacks() {
+		return this.packs
+	}
+
+	isPackAdded(packId: string) {
+		return this.addedPackIds.get().includes(packId)
+	}
+
+	addPack(packId: string) {
+		if (this.isPackAdded(packId) || !this.packs.some((pack) => pack.id === packId)) return
+		this.addedPackIds.set([...this.addedPackIds.get(), packId])
+	}
+
+	removePack(packId: string) {
+		if (!this.isPackAdded(packId)) return
+		this.addedPackIds.set(this.addedPackIds.get().filter((id) => id !== packId))
+	}
+
+	getPackId(collectionId: TLCollectionId) {
+		return this.packIds.get(collectionId)
 	}
 
 	can(_action: TLCollectionAction, _collectionId?: TLCollectionId) {
