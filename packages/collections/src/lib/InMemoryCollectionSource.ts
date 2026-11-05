@@ -22,7 +22,6 @@ import {
 	type TLCollectionItem,
 	type TLCollectionItemContent,
 	type TLCollectionItemId,
-	type TLCollectionRecord,
 } from './schema'
 
 export interface InMemoryCollectionSourceOptions {
@@ -45,7 +44,9 @@ export interface InMemoryCollectionSourceOptions {
 	defaultOwnerId?: string
 }
 
-const schema = StoreSchema.create<TLCollectionRecord>(
+type ListingRecord = TLCollection | TLCollectionItem
+
+const schema = StoreSchema.create<ListingRecord>(
 	{ collection: CollectionRecordType, 'collection-item': CollectionItemRecordType },
 	{ migrations: [collectionMigrations, collectionItemMigrations] }
 )
@@ -63,7 +64,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	private readonly readOnly: boolean
 	private readonly owners: TLCollectionOwner[]
 	private readonly defaultOwnerId: string | undefined
-	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
+	private readonly store = new Store<ListingRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
 	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()

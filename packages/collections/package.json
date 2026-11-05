@@ -5,6 +5,11 @@
 	"private": true,
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./schema": "./src/lib/schema.ts",
+		"./*.css": "./*.css"
+	},
 	"style": "./collections.css",
 	"files": [
 		"collections.css"
