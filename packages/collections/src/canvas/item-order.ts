@@ -56,7 +56,7 @@ export const nameItemOrder: TLCollectionItemOrdering = {
  */
 export const defaultItemOrderings = [sourceItemOrder, newestItemOrder, nameItemOrder]
 
-/** The current user's choice of ordering, kept in this browser. */
+/** The current user's choice of ordering for one collection, kept in this browser. */
 export interface ItemOrderChoice {
 	orderingId: string
 	reversed: boolean
@@ -64,18 +64,23 @@ export interface ItemOrderChoice {
 
 const DEFAULT_CHOICE: ItemOrderChoice = { orderingId: sourceItemOrder.id, reversed: false }
 
-const choicesBySource = new Map<string, Atom<ItemOrderChoice>>()
+const choices = new Map<string, Atom<ItemOrderChoice>>()
 
-function storageKey(sourceId: string) {
-	return `tldraw-collections-item-order:${sourceId}`
+function choiceKey(sourceId: string, collectionId: string) {
+	return `${sourceId}:${collectionId}`
 }
 
-function getChoiceAtom(sourceId: string) {
-	let choice = choicesBySource.get(sourceId)
+function storageKey(key: string) {
+	return `tldraw-collections-item-order:${key}`
+}
+
+function getChoiceAtom(sourceId: string, collectionId: string) {
+	const key = choiceKey(sourceId, collectionId)
+	let choice = choices.get(key)
 	if (!choice) {
 		let stored = DEFAULT_CHOICE
 		try {
-			const parsed = JSON.parse(getFromLocalStorage(storageKey(sourceId)) ?? 'null')
+			const parsed = JSON.parse(getFromLocalStorage(storageKey(key)) ?? 'null')
 			if (typeof parsed?.orderingId === 'string' && typeof parsed?.reversed === 'boolean') {
 				stored = { orderingId: parsed.orderingId, reversed: parsed.reversed }
 			}
@@ -83,19 +88,23 @@ function getChoiceAtom(sourceId: string) {
 			// A corrupt entry falls back to the default.
 		}
 		choice = atom('item order', stored)
-		choicesBySource.set(sourceId, choice)
+		choices.set(key, choice)
 	}
 	return choice
 }
 
-/** The current user's ordering for a source's items. Reactive. */
-export function getItemOrderChoice(sourceId: string) {
-	return getChoiceAtom(sourceId).get()
+/** The current user's ordering for a collection's items. Reactive. */
+export function getItemOrderChoice(sourceId: string, collectionId: string) {
+	return getChoiceAtom(sourceId, collectionId).get()
 }
 
-export function setItemOrderChoice(sourceId: string, choice: ItemOrderChoice) {
-	getChoiceAtom(sourceId).set(choice)
-	setInLocalStorage(storageKey(sourceId), JSON.stringify(choice))
+export function setItemOrderChoice(
+	sourceId: string,
+	collectionId: string,
+	choice: ItemOrderChoice
+) {
+	getChoiceAtom(sourceId, collectionId).set(choice)
+	setInLocalStorage(storageKey(choiceKey(sourceId, collectionId)), JSON.stringify(choice))
 }
 
 /** Items in the given ordering, reversed if asked. Items the ordering ties keep the source's order. */
