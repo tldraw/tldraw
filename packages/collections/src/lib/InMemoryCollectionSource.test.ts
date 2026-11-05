@@ -333,6 +333,70 @@ describe('InMemoryCollectionSource', () => {
 		expect(await source.getItemContent(item.id)).toEqual(content())
 	})
 
+	describe('order', () => {
+		// Twenty is well past the point where the store stops keeping insertion order.
+		const seeded = () => {
+			const collections = Array.from({ length: 20 }, (_, i) =>
+				CollectionRecordType.create({ name: `Collection ${i}` })
+			)
+			const items = Array.from({ length: 20 }, (_, i) =>
+				CollectionItemRecordType.create({ collectionId: collections[0].id, name: `Item ${i}` })
+			)
+			const contents = Object.fromEntries(items.map((item) => [item.id, content()]))
+			const source = new InMemoryCollectionSource({ initial: { collections, items, contents } })
+			return { source, collections, items }
+		}
+
+		it('lists starting data in the order given', () => {
+			const { source, collections, items } = seeded()
+			expect(source.getCollections().map((c) => c.id)).toEqual(collections.map((c) => c.id))
+			expect(source.getItems(collections[0].id).map((i) => i.id)).toEqual(items.map((i) => i.id))
+		})
+
+		it('lists new collections and items after the starting ones', async () => {
+			const { source, collections, items } = seeded()
+			const collection = await source.createCollection('New')
+			const item = await source.addItem(collections[0].id, { name: 'New', content: content() })
+			expect(source.getCollections().map((c) => c.id)).toEqual([
+				...collections.map((c) => c.id),
+				collection.id,
+			])
+			expect(source.getItems(collections[0].id).map((i) => i.id)).toEqual([
+				...items.map((i) => i.id),
+				item.id,
+			])
+		})
+
+		it('keeps an item in place when it is renamed', async () => {
+			const { source, collections, items } = seeded()
+			await source.renameItem(items[3].id, 'Renamed')
+			await source.renameCollection(collections[3].id, 'Renamed')
+			expect(source.getCollections().map((c) => c.id)).toEqual(collections.map((c) => c.id))
+			expect(source.getItems(collections[0].id).map((i) => i.id)).toEqual(items.map((i) => i.id))
+		})
+
+		it('lists an item added after a delete at the end', async () => {
+			const { source, collections, items } = seeded()
+			await source.deleteItem(items[0].id)
+			const item = await source.addItem(collections[0].id, { name: 'New', content: content() })
+			expect(source.getItems(collections[0].id).map((i) => i.id)).toEqual([
+				...items.slice(1).map((i) => i.id),
+				item.id,
+			])
+		})
+
+		it('lists a moved item at the end of its new collection', async () => {
+			const { source, collections, items } = seeded()
+			const target = collections[1].id
+			const first = await source.addItem(target, { name: 'First', content: content() })
+			await source.moveItem(items[0].id, target)
+			expect(source.getItems(target).map((i) => i.id)).toEqual([first.id, items[0].id])
+			expect(source.getItems(collections[0].id).map((i) => i.id)).toEqual(
+				items.slice(1).map((i) => i.id)
+			)
+		})
+	})
+
 	it('releases every thumbnail url on dispose', async () => {
 		const revoke = vi.spyOn(URL, 'revokeObjectURL')
 		const source = new InMemoryCollectionSource()
