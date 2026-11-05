@@ -27,8 +27,6 @@ import { type SaveSelectionOptions, useSaveSelection } from './use-save-selectio
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
 	back: { id: 'collections.back', defaultMessage: 'All collections' },
-	expand: { id: 'collections.expand', defaultMessage: 'Show items' },
-	collapse: { id: 'collections.collapse', defaultMessage: 'Hide items' },
 	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
 	close: { id: 'collections.close', defaultMessage: 'Close' },
@@ -276,7 +274,21 @@ export function CollectionsPanelHeader({
 				/>
 			)
 		}
-		if (onBack || onToggleCollapsed) {
+		if (onToggleCollapsed) {
+			return (
+				<button
+					type="button"
+					className="tlui-collections-panel__title tlui-collections-panel__toggle"
+					aria-expanded={!collapsed}
+					onClick={onToggleCollapsed}
+				>
+					<span className="tlui-collections-panel__name">{collection.name}</span>
+					<TldrawUiIcon icon="chevron-down" label="" small className="tlui-collections-chevron" />
+					{detail && <span className="tlui-collections-panel__detail">{detail}</span>}
+				</button>
+			)
+		}
+		if (onBack) {
 			return (
 				<span className="tlui-collections-panel__title">
 					<span className="tlui-collections-panel__name">{collection.name}</span>
@@ -315,18 +327,6 @@ export function CollectionsPanelHeader({
 
 	return (
 		<header className="tlui-collections-panel__header">
-			{onToggleCollapsed && (
-				<TldrawUiButton
-					type="icon"
-					className="tlui-collections-panel__back"
-					tooltip={msg(collapsed ? messages.expand : messages.collapse)}
-					title={msg(collapsed ? messages.expand : messages.collapse)}
-					aria-expanded={!collapsed}
-					onClick={onToggleCollapsed}
-				>
-					<TldrawUiButtonIcon icon={collapsed ? 'chevron-right' : 'chevron-down'} small />
-				</TldrawUiButton>
-			)}
 			{onBack && (
 				<TldrawUiButton
 					type="icon"
