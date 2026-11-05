@@ -5,6 +5,7 @@ import {
 	TLDocument,
 	TLDRAW_FILE_EXTENSION,
 } from 'tldraw'
+import { fileSchemaRecords } from '../../utils/fileSchemaRecords'
 import type { TldrawApp } from '../app/TldrawApp'
 
 type ImportResult =
@@ -20,7 +21,7 @@ export async function importFromUrl(app: TldrawApp, url: string): Promise<Import
 		const json = await res.text()
 		const parseResult = parseTldrawJsonFile({
 			json,
-			schema: createTLSchema(),
+			schema: createTLSchema({ records: fileSchemaRecords }),
 		})
 		if (!parseResult.ok) {
 			return { ok: false, error: 'URL did not point to a valid tldraw file' }

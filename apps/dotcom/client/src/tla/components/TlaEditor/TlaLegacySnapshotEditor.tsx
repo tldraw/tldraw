@@ -5,6 +5,7 @@ import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { globalEditor } from '../../../utils/globalEditor'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
@@ -82,6 +83,7 @@ function TlaEditorInner({
 			<Tldraw
 				className="tla-editor"
 				snapshot={snapshot}
+				records={fileSchemaRecords}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				onMount={handleMount}

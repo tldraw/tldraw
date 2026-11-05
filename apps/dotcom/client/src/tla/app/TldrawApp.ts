@@ -67,6 +67,7 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { fileSchemaRecords } from '../../utils/fileSchemaRecords'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
@@ -1435,7 +1436,7 @@ export class TldrawApp {
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
-			schema: createTLSchema(),
+			schema: createTLSchema({ records: fileSchemaRecords }),
 			json,
 		})
 
