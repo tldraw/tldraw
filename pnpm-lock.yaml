@@ -797,6 +797,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
+      '@tldraw/collections':
+        specifier: workspace:*
+        version: link:../../../packages/collections
       '@tldraw/dotcom-shared':
         specifier: workspace:*
         version: link:../../../packages/dotcom-shared
