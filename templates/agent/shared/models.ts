@@ -38,7 +38,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 		provider: 'anthropic',
 		id: 'claude-haiku-4-5',
 		openRouterId: 'anthropic/claude-haiku-4.5',
-		reasoning: 'low',
+		// Haiku thinks with a token budget, a share of its output limit. `minimal` is about 1,300.
+		reasoning: 'minimal',
 	},
 	'gemini-3.8-flash': {
 		name: 'gemini-3.8-flash',

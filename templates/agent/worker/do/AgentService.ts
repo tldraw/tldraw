@@ -93,8 +93,11 @@ export class AgentService {
 				role: 'system',
 				content: systemPrompt,
 				// Anthropic caches only up to an explicit breakpoint. One at the end of the system prompt
-				// caches all of it. Other providers ignore this option.
-				providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
+				// caches all of it. Only Claude gets it: OpenRouter sends the mark to any model.
+				providerOptions:
+					modelDefinition.provider === 'anthropic'
+						? { anthropic: { cacheControl: { type: 'ephemeral' } } }
+						: undefined,
 			},
 			messages: promptMessages,
 			// The client carries out each tool call and sends the results in its next request.
