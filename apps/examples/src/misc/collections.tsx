@@ -404,7 +404,7 @@ interface PlaygroundSettings {
 
 const DEFAULT_SETTINGS: PlaygroundSettings = {
 	navigation: 'sections',
-	sectionRows: '2',
+	sectionRows: 'all',
 	manyItems: 'hidden',
 	moveCollections: 'yes',
 	order: 'source',
@@ -487,10 +487,10 @@ const SURFACES: Surface[] = [
 				key: 'sectionRows',
 				label: 'Rows per section',
 				options: [
+					{ value: 'all', label: 'All' },
 					{ value: '1', label: '1' },
 					{ value: '2', label: '2' },
 					{ value: '3', label: '3' },
-					{ value: 'all', label: 'All' },
 				],
 			},
 			{

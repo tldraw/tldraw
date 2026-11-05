@@ -137,8 +137,9 @@ export interface CollectionsPanelProps {
 	/** What a collection with no items shows. Defaults to `'message'`. */
 	emptyCollection?: EmptyCollection
 	/**
-	 * In sections, how many rows of items each section shows before a "Show all" control reveals
-	 * the rest. Defaults to 2. Pass `Infinity` to show every item.
+	 * In sections, how many rows of items each section shows. Defaults to `Infinity`: every item,
+	 * with folding a section or a group the way to shorten the panel. With a number, a "Show all"
+	 * control under the rows reveals the rest.
 	 */
 	sectionRows?: number
 	/**
@@ -173,7 +174,7 @@ export function CollectionsPanel({
 	addControl = 'none',
 	addMenuOrder = 'source',
 	emptyCollection = 'message',
-	sectionRows = 2,
+	sectionRows = Infinity,
 	catalogue,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
