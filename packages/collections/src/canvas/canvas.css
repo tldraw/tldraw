@@ -184,33 +184,6 @@
 	border-bottom: none;
 }
 
-/* A section's header is a shorter row than the panel's: its name, rename input and buttons are
-   28px tall. */
-.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__title {
-	line-height: 28px;
-}
-
-.tlui-collections-section > .tlui-collections-panel__header .tlui-input__wrapper,
-.tlui-collections-section > .tlui-collections-panel__header .tlui-input {
-	height: 28px;
-	max-height: 28px;
-}
-
-.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
-	padding-bottom: 2px;
-}
-
-.tlui-collections-section > .tlui-collections-panel__header .tlui-button {
-	height: 28px;
-	min-width: 28px;
-	width: 28px;
-	padding: 0;
-}
-
-.tlui-collections-section > .tlui-collections-panel__header .tlui-button::after {
-	inset: 2px;
-}
-
 /* The whole name row folds the section, with the chevron straight after the name. */
 .tlui-collections-panel__toggle {
 	align-items: center;
@@ -467,7 +440,7 @@
 }
 
 .tlui-input.tlui-collections-panel__rename {
-	padding: 0px 12px;
+	padding: 0 12px 2px;
 	font-weight: 500;
 	border-radius: var(--tl-radius-2);
 	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
