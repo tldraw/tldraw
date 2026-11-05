@@ -16,7 +16,6 @@ const messages = defineMessages({
 /**
  * A way to order a collection's items. Leave out `compare` for the source's own order. `label` is
  * shown in the panel's sort menu, as is or as a translation key.
- * @public
  */
 export interface TLCollectionItemOrdering {
 	id: string
@@ -24,21 +23,20 @@ export interface TLCollectionItemOrdering {
 	compare?(a: TLCollectionItem, b: TLCollectionItem): number
 }
 
-/** @public */
-export const sourceItemOrder: TLCollectionItemOrdering = {
+const sourceItemOrder: TLCollectionItemOrdering = {
 	id: 'source',
 	label: messages.default.id,
 }
 
-/** Newest first; items without a save date come last. @public */
-export const newestItemOrder: TLCollectionItemOrdering = {
+/** Newest first; items without a save date come last. */
+const newestItemOrder: TLCollectionItemOrdering = {
 	id: 'newest',
 	label: messages.newest.id,
 	compare: (a, b) => (b.createdAt ?? -Infinity) - (a.createdAt ?? -Infinity),
 }
 
-/** A to Z by name; unnamed items come last. @public */
-export const nameItemOrder: TLCollectionItemOrdering = {
+/** A to Z by name; unnamed items come last. */
+const nameItemOrder: TLCollectionItemOrdering = {
 	id: 'name',
 	label: messages.name.id,
 	compare: (a, b) => {
@@ -49,11 +47,7 @@ export const nameItemOrder: TLCollectionItemOrdering = {
 	},
 }
 
-/**
- * The orderings the panel's sort menu offers unless the host passes its own; the first is the
- * default.
- * @public
- */
+/** The orderings the panel's sort menu offers; the first is the default. */
 export const defaultItemOrderings = [sourceItemOrder, newestItemOrder, nameItemOrder]
 
 /** The current user's choice of ordering for one collection, kept in this browser. */

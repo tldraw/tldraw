@@ -1,37 +1,15 @@
-import { type ButtonHTMLAttributes, type MouseEvent, useCallback, useEffect } from 'react'
-import {
-	defineMessages,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	useDialogs,
-	useEditor,
-	useToasts,
-	useTranslation,
-	useValue,
-} from 'tldraw'
+import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
+import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
-import { ItemGrid, type ItemGridAppearance } from '../ui/item-grid'
+import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
-import type { ReadOnlyOptions } from './collections-panel-header'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { AddFirstItem, type EmptyCollection } from './empty-collection'
 import { sortItems, type TLCollectionItemOrdering } from './item-order'
-import { itemMatches } from './item-search'
-import {
-	activeCollectionId,
-	collectionsPanelOpen,
-	expandedCollectionIds,
-	highlightedItemId,
-	renamingItemId,
-} from './state'
-import type { SaveSelectionOptions } from './use-save-selection'
+import { activeCollectionId, collectionsPanelOpen } from './state'
 
 const messages = defineMessages({
-	showAll: { id: 'collections.section.show-all', defaultMessage: 'Show all ({count})' },
-	showLess: { id: 'collections.section.show-less', defaultMessage: 'Show less' },
-	noMatches: { id: 'collections.search.no-matches', defaultMessage: 'No items match “{query}”.' },
 	emptyCollection: {
 		id: 'collections.empty-collection',
 		defaultMessage: 'Nothing saved here yet.',
@@ -73,20 +51,6 @@ export interface CollectionItemsProps {
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: TLCollectionItemOrdering
 	reversed: boolean
-	appearance?: ItemGridAppearance
-	/** Shows only items whose name contains this, ignoring case. */
-	query?: string
-	/** What shows while the collection has no items. Defaults to `'message'`. */
-	emptyCollection?: EmptyCollection
-	/** What happens around a save from the empty collection's button. */
-	saving?: SaveSelectionOptions
-	/** With `addButton: 'hide'`, a collection the user can't add to shows the message instead. */
-	readOnly?: ReadOnlyOptions
-	/**
-	 * Shows only this many rows of tiles, then a control that shows the rest. Leave out to show
-	 * every item.
-	 */
-	maxRows?: number
 }
 
 /** One collection's items as a grid, with each item's menu: rename, move and delete. */
@@ -96,12 +60,6 @@ export function CollectionItems({
 	getItemProps,
 	ordering,
 	reversed,
-	appearance,
-	query = '',
-	emptyCollection = 'message',
-	saving,
-	readOnly = {},
-	maxRows,
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -109,33 +67,9 @@ export function CollectionItems({
 	const { addDialog } = useDialogs()
 	const items = useValue(
 		'collection items',
-		() =>
-			sortItems(
-				source.getItems(collectionId).filter((item) => itemMatches(item, query)),
-				ordering,
-				reversed
-			),
-		[source, collectionId, ordering, reversed, query]
+		() => sortItems(source.getItems(collectionId), ordering, reversed),
+		[source, collectionId, ordering, reversed]
 	)
-	const renamingId = useValue('renaming item', () => renamingItemId.get(editor) ?? undefined, [
-		editor,
-	])
-	const isRenamingHere = renamingId !== undefined && items.some((item) => item.id === renamingId)
-	useEffect(() => {
-		if (renamingId && isRenamingHere) editor.menus.addOpenMenu(getItemMenuId(renamingId))
-	}, [editor, renamingId, isRenamingHere])
-	const clearRenaming = useCallback(() => renamingItemId.set(editor, null), [editor])
-	const highlightedId = useValue(
-		'highlighted item',
-		() => highlightedItemId.get(editor) ?? undefined,
-		[editor]
-	)
-	// The flash lasts as long as its animation, then the item is an ordinary tile again.
-	useEffect(() => {
-		if (!highlightedId) return
-		const timeout = setTimeout(() => highlightedItemId.set(editor, null), 1600)
-		return () => clearTimeout(timeout)
-	}, [editor, highlightedId])
 	const canRename = useValue('can rename items', () => source.can('renameItem', collectionId), [
 		source,
 		collectionId,
@@ -223,101 +157,49 @@ export function CollectionItems({
 		[items, source, showChangeError, msg]
 	)
 
-	const expanded = useValue(
-		'collection expanded',
-		() => expandedCollectionIds.get(editor).includes(collectionId),
-		[editor, collectionId]
-	)
-	const showsAddTile = canAdd && query.trim() === ''
-	const limit =
-		maxRows === undefined ? Infinity : maxRows * (appearance?.columns ?? 2) - (showsAddTile ? 1 : 0)
-	const truncates = items.length > limit
-	// An item just saved stays in view, even past the rows a section shows.
-	const revealsHidden = items
-		.slice(limit)
-		.some((item) => item.id === highlightedId || item.id === renamingId)
-	const shownItems = truncates && !expanded && !revealsHidden ? items.slice(0, limit) : items
-	const toggleExpanded = () =>
-		expandedCollectionIds.update(editor, (ids) =>
-			expanded ? ids.filter((id) => id !== collectionId) : [...ids, collectionId]
-		)
-
-	const offersAdd = emptyCollection === 'add' && (canAdd || readOnly.addButton !== 'hide')
-	if (items.length === 0 && query.trim() === '' && offersAdd) {
-		return (
-			<AddFirstItem
-				source={source}
-				collectionId={collectionId}
-				appearance={appearance}
-				saving={saving}
-			/>
-		)
-	}
-
 	return (
-		<>
-			<ItemGrid
-				items={shownItems.map((item) => ({
-					id: item.id,
-					name: item.name,
-					accessibleLabel: item.name ?? msg(messages.unnamedItem),
-					thumbnailUrl: item.thumbnailUrl,
-				}))}
-				getItemProps={getTileProps}
-				renderItemMenu={(item) => (
-					<ItemMenu
-						id={item.id}
-						name={item.name}
-						onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
-						moveTargets={moveTargets}
-						onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
-						renameOnOpen={item.id === renamingId}
-						onRenameOnOpen={clearRenaming}
-						onDelete={
-							canDelete
-								? () =>
-										addDialog({
-											component: ({ onClose }) => (
-												<ConfirmDeleteDialog
-													title={msg(messages.deleteItemTitle)}
-													body={
-														item.name
-															? msg(messages.deleteItemBody, { name: item.name })
-															: msg(messages.deleteUnnamedItemBody)
-													}
-													onClose={onClose}
-													onConfirm={() =>
-														source
-															.deleteItem(item.id)
-															.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
-													}
-												/>
-											),
-										})
-								: undefined
-						}
-					/>
-				)}
-				highlightedId={highlightedId}
-				after={
-					showsAddTile && (
-						<AddSelectionTile source={source} collectionId={collectionId} saving={saving} />
-					)
-				}
-				empty={
-					query.trim() === '' ? msg(messages.emptyCollection) : msg(messages.noMatches, { query })
-				}
-				appearance={appearance}
-			/>
-			{truncates && !revealsHidden && (
-				<div className="tlui-collections-section__more">
-					<TldrawUiButton type="normal" aria-expanded={expanded} onClick={toggleExpanded}>
-						<TldrawUiButtonLabel>
-							{expanded ? msg(messages.showLess) : msg(messages.showAll, { count: items.length })}
-						</TldrawUiButtonLabel>
-					</TldrawUiButton>
-				</div>
+		<ItemGrid
+			items={items.map((item) => ({
+				id: item.id,
+				name: item.name,
+				accessibleLabel: item.name ?? msg(messages.unnamedItem),
+				thumbnailUrl: item.thumbnailUrl,
+			}))}
+			getItemProps={getTileProps}
+			renderItemMenu={(item) => (
+				<ItemMenu
+					id={item.id}
+					name={item.name}
+					onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
+					moveTargets={moveTargets}
+					onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
+					onDelete={
+						canDelete
+							? () =>
+									addDialog({
+										component: ({ onClose }) => (
+											<ConfirmDeleteDialog
+												title={msg(messages.deleteItemTitle)}
+												body={
+													item.name
+														? msg(messages.deleteItemBody, { name: item.name })
+														: msg(messages.deleteUnnamedItemBody)
+												}
+												onClose={onClose}
+												onConfirm={() =>
+													source
+														.deleteItem(item.id)
+														.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+												}
+											/>
+										),
+									})
+							: undefined
+					}
+				/>
 			)}
-		</>
+			after={canAdd && <AddSelectionTile source={source} collectionId={collectionId} />}
+			empty={msg(messages.emptyCollection)}
+		/>
 	)
 }

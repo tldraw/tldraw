@@ -24,18 +24,7 @@
 	right: 8px;
 }
 
-/* On a phone, the sheet spans the bottom of the screen above the toolbar. */
-.tlui-collections-panel[data-layout='sheet'] {
-	top: auto;
-	left: 8px;
-	right: 8px;
-	bottom: 64px;
-	width: auto;
-	max-height: 50%;
-}
-
-/* Spaced like the comments sidebar header: the picker's own 12px button padding plus 2px here puts
-   its label 14px in, level with a bare title. */
+/* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */
 .tlui-collections-panel__header {
 	flex-shrink: 0;
 	display: flex;
@@ -56,23 +45,10 @@
 	white-space: nowrap;
 }
 
-.tlui-collections-panel__back + .tlui-collections-panel__title {
-	padding-left: 4px;
-}
-
 .tlui-collections-panel__name {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
-}
-
-.tlui-collections-picker .tlui-select__value {
-	font-weight: 500;
-}
-
-/* Flush like tldraw's other menus, which leave the spacing to each item's highlight inset. */
-.tlui-collections-picker__content .tlui-select__viewport {
-	padding: 0px;
 }
 
 .tlui-collections-panel__empty {
@@ -90,10 +66,6 @@
 	margin: 0;
 }
 
-.tlui-collections-panel__lock {
-	color: var(--tl-color-text-3);
-}
-
 .tlui-collections-grid {
 	display: grid;
 	grid-template-columns: repeat(var(--tlui-collections-columns, 2), minmax(0, 1fr));
@@ -103,141 +75,11 @@
 	overflow-y: auto;
 }
 
-.tlui-collections-list {
-	margin: 0;
-	padding: 4px;
-	list-style: none;
-	overflow-y: auto;
-}
-
-.tlui-collections-list__row {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	width: 100%;
-	height: 36px;
-	padding: 0 8px;
-	border: none;
-	border-radius: var(--tl-radius-2);
-	background: none;
-	color: var(--tl-color-text-1);
-	font: inherit;
-	font-size: 12px;
-	text-align: left;
-	cursor: pointer;
-}
-
-.tlui-collections-list__row:hover,
-.tlui-collections-list__row:focus-visible {
-	background: var(--tl-color-hint);
-}
-
-.tlui-collections-list__name {
-	flex: 1;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-collections-list__detail {
-	color: var(--tl-color-text-3);
-}
-
 .tlui-collections-menu-heading {
 	padding: 6px 10px 2px;
 	font-size: 11px;
 	color: var(--tl-color-text-3);
 	cursor: default;
-}
-
-.tlui-collections-previews {
-	margin: 0;
-	padding: 0 0 4px;
-	list-style: none;
-}
-
-.tlui-collections-preview__header {
-	all: unset;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	width: 100%;
-	padding: 8px 8px 4px 12px;
-	font-size: 12px;
-	font-weight: 500;
-	cursor: pointer;
-}
-
-.tlui-collections-preview__header:hover .tlui-collections-preview__name,
-.tlui-collections-preview__header:focus-visible .tlui-collections-preview__name {
-	text-decoration: underline;
-}
-
-.tlui-collections-preview__name {
-	flex: 1;
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-collections-preview__count {
-	flex-shrink: 0;
-	color: var(--tl-color-text-3);
-	font-weight: normal;
-}
-
-.tlui-collections-preview__strip {
-	display: grid;
-	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 4px;
-	margin: 0;
-	padding: 0 8px 4px;
-	list-style: none;
-}
-
-.tlui-collections-preview__tile {
-	all: unset;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	width: 100%;
-	aspect-ratio: 1;
-	border-radius: var(--tl-radius-1);
-	background: var(--tl-color-background);
-	overflow: hidden;
-	cursor: pointer;
-}
-
-@media (hover: hover) {
-	.tlui-collections-preview__tile:hover {
-		background: var(--tl-color-muted-2);
-	}
-}
-
-.tlui-collections-preview__tile > img {
-	max-width: 80%;
-	max-height: 80%;
-	object-fit: contain;
-}
-
-.tlui-collections-preview__tile:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
-}
-
-.tlui-collections-preview__more {
-	font-size: 12px;
-	color: var(--tl-color-text-3);
-}
-
-.tlui-collections-preview__empty {
-	margin: 0;
-	padding: 0 12px 8px;
-	font-size: 12px;
-	color: var(--tl-color-text-3);
 }
 
 .tlui-collections-group__heading {
@@ -311,10 +153,6 @@
 	.tlui-icon.tlui-collections-chevron {
 		transition: none;
 	}
-}
-
-.tlui-collections-sections .tlui-collections-list {
-	overflow: visible;
 }
 
 .tlui-collections-sections {
@@ -391,17 +229,6 @@
 
 .tlui-collections-panel__toggle > .tlui-collections-chevron {
 	color: var(--tl-color-text-3);
-}
-
-.tlui-collections-panel__detail {
-	flex-shrink: 0;
-	margin-left: 8px;
-	color: var(--tl-color-text-3);
-	font-weight: normal;
-}
-
-.tlui-collections-panel__back {
-	flex: 0 0 auto;
 }
 
 .tlui-collections-tile {
@@ -520,27 +347,6 @@
 @media (hover: hover) {
 	.tlui-collections-add-tile:not(:has(:disabled)):hover .tlui-collections-tile__thumbnail {
 		color: var(--tl-color-text-1);
-	}
-}
-
-/* A tile just saved flashes once, so the eye finds it. */
-@keyframes tlui-collections-flash {
-	from {
-		box-shadow: 0 0 0 3px var(--tl-color-selected);
-	}
-	to {
-		box-shadow: 0 0 0 3px transparent;
-	}
-}
-
-.tlui-collections-grid > li[data-highlighted] .tlui-collections-tile {
-	animation: tlui-collections-flash 1.6s ease-out;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.tlui-collections-grid > li[data-highlighted] .tlui-collections-tile {
-		animation: none;
-		box-shadow: 0 0 0 2px var(--tl-color-selected);
 	}
 }
 
@@ -739,146 +545,6 @@
 	font-weight: 500;
 	border-radius: var(--tl-radius-2);
 	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
-}
-
-.tlui-collections-panel__back + .tlui-input__wrapper {
-	margin-left: -4px;
-}
-
-.tlui-collections-panel__back + .tlui-input__wrapper > .tlui-collections-panel__rename {
-	padding-left: 8px;
-}
-
-/* As tldraw's own dialogs style their inputs (see the embed dialog). */
-.tlui-collections-name-input {
-	width: 100%;
-	min-width: 280px;
-	padding: 0 var(--tl-space-4);
-	border-radius: var(--tl-radius-2);
-	background-color: var(--tl-color-muted-2);
-}
-
-.tlui-collections-search {
-	padding: 4px 8px;
-}
-
-.tlui-collections-search__input {
-	width: 100%;
-	padding: 0 var(--tl-space-4);
-	border-radius: var(--tl-radius-2);
-	background-color: var(--tl-color-muted-2);
-}
-
-/* The title header's picker, under it and inset like the header's. */
-.tlui-collections-panel__picker {
-	flex-shrink: 0;
-	padding: 2px;
-}
-
-.tlui-collections-tabs {
-	flex-shrink: 0;
-	display: flex;
-	gap: 4px;
-	padding: 0 8px;
-	border-bottom: 1px solid var(--tl-color-divider);
-	overflow-x: auto;
-	scroll-padding-inline: 8px;
-	scrollbar-width: none;
-}
-
-/* A scroll container drops its end padding, so this keeps the last tab off the panel's edge. */
-.tlui-collections-tabs::after {
-	content: '';
-	flex: 0 0 4px;
-}
-
-.tlui-collections-tab {
-	all: unset;
-	box-sizing: border-box;
-	flex-shrink: 0;
-	max-width: 120px;
-	padding: 0 6px;
-	line-height: 36px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	color: var(--tl-color-text-3);
-	font-weight: 500;
-	cursor: pointer;
-}
-
-.tlui-collections-tab:hover {
-	color: var(--tl-color-text-1);
-}
-
-.tlui-collections-tab[aria-selected='true'] {
-	color: var(--tl-color-text-1);
-	box-shadow: inset 0 -2px 0 var(--tl-color-text-1);
-}
-
-.tlui-collections-tab:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
-	border-radius: var(--tl-radius-1);
-}
-
-.tlui-collections-tabpanel {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-}
-
-.tlui-collections-add-bar {
-	flex-shrink: 0;
-	padding: 2px;
-	border-top: 1px solid var(--tl-color-divider);
-}
-
-.tlui-collections-add-bar__button {
-	width: 100%;
-	justify-content: space-between;
-}
-
-.tlui-collections-add-menu {
-	width: calc(var(--radix-dropdown-menu-trigger-width) + 8px);
-	max-height: var(--radix-dropdown-menu-content-available-height);
-	overflow-y: auto;
-}
-
-/* Placeholder tiles stand in for items, under the button that adds the first one. */
-.tlui-collections-add-first {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 0;
-	overflow: hidden;
-}
-
-.tlui-collections-add-first__placeholders {
-	width: 100%;
-	overflow: hidden;
-	opacity: 0.4;
-	pointer-events: none;
-}
-
-.tlui-collections-add-first__button {
-	position: absolute;
-	background: var(--tl-color-panel);
-	border-radius: var(--tl-radius-2);
-	box-shadow: var(--tl-shadow-2);
-}
-
-.tlui-collections-section__more {
-	padding: 0 14px 4px;
-}
-
-.tlui-collections-section__more > .tlui-button {
-	width: 100%;
-	height: 28px;
-	min-height: 28px;
-	justify-content: center;
-	color: var(--tl-color-text-3);
 }
 
 .tlui-collections-catalogue {
