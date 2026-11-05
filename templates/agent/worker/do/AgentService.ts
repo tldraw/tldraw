@@ -1,12 +1,13 @@
-import { AnthropicProvider, createAnthropic } from '@ai-sdk/anthropic'
-import { createGoogle, GoogleLanguageModelOptions, GoogleProvider } from '@ai-sdk/google'
-import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
+import { createAnthropic } from '@ai-sdk/anthropic'
+import { createGoogle, GoogleLanguageModelOptions } from '@ai-sdk/google'
+import { createOpenAI, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import {
 	createOpenRouter,
 	OpenRouterProvider,
 	OpenRouterProviderOptions,
 } from '@openrouter/ai-sdk-provider'
 import {
+	createProviderRegistry,
 	JSONParseError,
 	LanguageModel,
 	NoSuchToolError,
@@ -17,7 +18,7 @@ import {
 	TypeValidationError,
 } from 'ai'
 import z from 'zod'
-import { AgentModelDefinition, getAgentModelDefinition } from '../../shared/models'
+import { AGENT_MODELS, AgentModelName, AgentModelOptions } from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { ActionMeta, AgentAction, getActionSchemaForMode } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -27,25 +28,36 @@ import { buildMessages } from '../prompt/buildMessages'
 import { buildSystemPrompt } from '../prompt/buildSystemPrompt'
 import { getModelName } from '../prompt/getModelName'
 
+/** Resolves a model name, such as `anthropic/claude-sonnet-5`, to its provider's model. */
+function createProviders(env: Environment) {
+	return createProviderRegistry(
+		{
+			anthropic: createAnthropic({ apiKey: env.ANTHROPIC_API_KEY }),
+			google: createGoogle({ apiKey: env.GOOGLE_API_KEY }),
+			openai: createOpenAI({ apiKey: env.OPENAI_API_KEY }),
+		},
+		{ separator: '/' }
+	)
+}
+
 export class AgentService {
-	openai: OpenAIProvider
-	anthropic: AnthropicProvider
-	google: GoogleProvider
+	providers: ReturnType<typeof createProviders>
 	// With an OpenRouter key, every model goes through OpenRouter and the provider keys are not used.
 	openrouter: OpenRouterProvider | null
 
 	constructor(env: Environment) {
-		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
-		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
-		this.google = createGoogle({ apiKey: env.GOOGLE_API_KEY })
+		this.providers = createProviders(env)
 		this.openrouter = env.OPENROUTER_API_KEY
 			? createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })
 			: null
 	}
 
-	getModel(definition: AgentModelDefinition): LanguageModel {
-		if (this.openrouter) return this.openrouter(definition.openRouterId)
-		return this[definition.provider](definition.id)
+	getModel(name: AgentModelName): LanguageModel {
+		if (this.openrouter) {
+			const options: AgentModelOptions = AGENT_MODELS[name]
+			return this.openrouter(options.openRouterId ?? name)
+		}
+		return this.providers.languageModel(name)
 	}
 
 	/**
@@ -71,8 +83,8 @@ export class AgentService {
 		finish: { toolCalls: number }
 	): AsyncGenerator<Streaming<AgentAction>> {
 		const modelName = getModelName(prompt)
-		const modelDefinition = getAgentModelDefinition(modelName)
-		const model = this.getModel(modelDefinition)
+		const modelOptions: AgentModelOptions = AGENT_MODELS[modelName]
+		const model = this.getModel(modelName)
 		const systemPrompt = buildSystemPrompt(prompt)
 		const promptMessages = buildMessages(prompt)
 
@@ -94,19 +106,18 @@ export class AgentService {
 				content: systemPrompt,
 				// Anthropic caches only up to an explicit breakpoint. One at the end of the system prompt
 				// caches all of it. Only Claude gets it: OpenRouter sends the mark to any model.
-				providerOptions:
-					modelDefinition.provider === 'anthropic'
-						? { anthropic: { cacheControl: { type: 'ephemeral' } } }
-						: undefined,
+				providerOptions: modelName.startsWith('anthropic/')
+					? { anthropic: { cacheControl: { type: 'ephemeral' } } }
+					: undefined,
 			},
 			messages: promptMessages,
 			// The client carries out each tool call and sends the results in its next request.
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
 			maxOutputTokens: 8192,
-			reasoning: modelDefinition.reasoning,
+			reasoning: modelOptions.reasoning,
 			providerOptions: this.openrouter
-				? getOpenRouterProviderOptions(modelDefinition)
+				? getOpenRouterProviderOptions(modelOptions)
 				: PROVIDER_OPTIONS,
 			onAbort() {
 				console.warn('Stream actions aborted')
@@ -318,8 +329,7 @@ const PROVIDER_OPTIONS: StreamTextProviderOptions = {
  * The OpenRouter provider does not read the AI SDK's `reasoning` option, so the effort goes in its
  * own options. OpenRouter has no `max` level, so `max` sends `xhigh`.
  */
-function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
-	const { reasoning } = definition
+function getOpenRouterProviderOptions({ reasoning }: AgentModelOptions): StreamTextProviderOptions {
 	if (!reasoning) return {}
 	const effort = reasoning === 'max' ? 'xhigh' : reasoning
 	return {

@@ -624,30 +624,24 @@ Each action the agent can take in its current mode is sent to the model as a too
 Set an agent's model using the `setModelName` method on the `modelName` manager.
 
 ```ts
-agent.modelName.setModelName('gemini-3.8-flash')
+agent.modelName.setModelName('google/gemini-3.8-flash')
 ```
 
 To change the logic for deciding which model to use for a request, you can edit `ModelNamePartUtil`.
 
 ## Support a different model
 
-Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
+Add the model to `AGENT_MODELS` in `shared/models.ts`. Its name is the provider and the provider's model id, joined by a slash.
 
 ```ts
-'claude-sonnet-5': {
-	name: 'claude-sonnet-5',
-	provider: 'anthropic',
-	id: 'claude-sonnet-5',
-	openRouterId: 'anthropic/claude-sonnet-5',
-	reasoning: 'low',
-}
+'anthropic/claude-sonnet-5': { reasoning: 'low' },
 ```
-
-`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
 
 `reasoning` sets how much the model reasons before it answers, from `none` to `max`. The AI SDK maps it to each provider's own setting, such as Anthropic's effort or Gemini's thinking level, and uses the nearest level that the model supports. Omit it to use the provider's default.
 
-Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
+When `OPENROUTER_API_KEY` is set, the kit uses the model's name as its [OpenRouter](https://openrouter.ai/models) id. If the ids differ, set `openRouterId`.
+
+To add a provider, add it to `createProviders` in `worker/do/AgentService.ts` and to `AgentModelProvider` in `shared/models.ts`.
 
 ## Support custom shapes
 
