@@ -43,10 +43,18 @@ export {
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './lib/CollectionSource'
+export type { CollectionPack, CollectionPackItem } from './lib/CollectionPack'
+export {
+	CompositeCollectionSource,
+	type CompositeCollectionSourceOptions,
+	type CompositeCollectionSourcePart,
+} from './lib/CompositeCollectionSource'
+export { copyCollection } from './lib/copyCollection'
 export {
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,
 } from './lib/InMemoryCollectionSource'
+export { PackCollectionSource, type PackCollectionSourceOptions } from './lib/PackCollectionSource'
 export {
 	CollectionItemContentTooNewError,
 	CollectionItemRecordType,

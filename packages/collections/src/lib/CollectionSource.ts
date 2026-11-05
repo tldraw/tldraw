@@ -24,6 +24,11 @@ export type TLCollectionAction =
 export interface TLCollectionOwner {
 	id: string
 	name: string
+	/**
+	 * True when collections can't be created for this owner or moved or copied to it, such as a
+	 * pack shipped with an app. Absent means false.
+	 */
+	readOnly?: boolean
 }
 
 /** Choices for a new collection. */
