@@ -24,8 +24,8 @@
 	right: 8px;
 }
 
-/* Spaced like the comments sidebar header: the picker's own 12px button padding plus 2px here puts
-   its label 14px in, level with a bare title. */
+/* Spaced like the comments sidebar header: the title's own 12px padding plus 2px here puts it 14px
+   in. */
 .tlui-collections-panel__header {
 	flex-shrink: 0;
 	display: flex;
@@ -40,15 +40,6 @@
 	padding: 0 12px;
 	line-height: 40px;
 	font-weight: 500;
-}
-
-.tlui-collections-picker .tlui-select__value {
-	font-weight: 500;
-}
-
-/* Flush like tldraw's other menus, which leave the spacing to each item's highlight inset. */
-.tlui-collections-picker__content .tlui-select__viewport {
-	padding: 0px;
 }
 
 .tlui-collections-panel__empty {
