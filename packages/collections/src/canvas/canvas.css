@@ -464,6 +464,22 @@
 	height: 40px;
 }
 
+.tlui-collections-section > .tlui-collections-panel__header:has(.tlui-input__wrapper) {
+	min-height: 44px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-input__wrapper {
+	height: 32px;
+	margin-left: 4px;
+	margin-right: 44px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
+	height: 32px;
+	max-height: 32px;
+	padding-left: 8px;
+}
+
 .tlui-input.tlui-collections-panel__rename {
 	padding: 0 12px 2px;
 	font-weight: 500;
