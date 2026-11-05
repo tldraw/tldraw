@@ -739,6 +739,7 @@
 .tlui-collections-catalogue {
 	width: 440px;
 	max-width: 100%;
+	max-height: 560px;
 }
 
 .tlui-collections-catalogue > .tlui-collections-catalogue__packs {
