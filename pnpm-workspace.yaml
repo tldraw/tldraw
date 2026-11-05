@@ -9,6 +9,11 @@ packages:
 # Yarn didn't install missing peers; keep the dependency graph identical across the migration.
 autoInstallPeers: false
 
+# Deduplicate on every install that writes the lockfile, so `pnpm dedupe --check` in CI passes
+# without a manual `pnpm dedupe`. When the duplicate is also a peer of another dependency, it
+# takes a second `pnpm install`.
+autoDedupe: true
+
 # Don't run third-party dependency build/install scripts by default. Packages that genuinely
 # need to build are listed under allowBuilds. This closes the postinstall code-execution vector;
 # see the note in AGENTS.md.
@@ -60,10 +65,12 @@ patchedDependencies:
 
 # node_modules links into pnpm's shared store instead of cloning ~140k files per checkout, so a
 # worktree installs and deletes in seconds. The store has no hidden hoist, so an undeclared import
-# only resolves if packageExtensions declares it. Types that import @types/react without declaring
-# it rely on an @types `paths` fallback in the tsconfigs that need it. Only @types: bundlers read
-# `paths` too, and mapping runtime packages would send them past `exports`.
+# only resolves if packageExtensions declares it.
 enableGlobalVirtualStore: true
+
+# Link the @types package of a peer dependency next to each package that peer-depends on it, so
+# TypeScript finds types such as @types/react from inside the global virtual store.
+addMissingPeerTypes: true
 
 packageExtensions:
   # These packages import modules they don't declare.
