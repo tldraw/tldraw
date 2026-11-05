@@ -1,4 +1,4 @@
-import { ImagePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai'
+import { FilePart, ModelMessage, TextPart, ToolCallPart, ToolResultPart } from 'ai'
 import { CHAT_HISTORY_PRIORITY } from '../../shared/schema/PromptPartDefinitions'
 import { AgentMessage, AgentMessageContent } from '../../shared/types/AgentMessage'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -28,7 +28,14 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 		lastHistoryMessage.providerOptions = cacheMark
 	} else {
 		const lastPart = lastHistoryMessage?.content.at(-1)
-		if (lastPart) lastPart.providerOptions = cacheMark
+		// Tool approvals take no options. The kit does not send any.
+		if (
+			lastPart &&
+			lastPart.type !== 'tool-approval-request' &&
+			lastPart.type !== 'tool-approval-response'
+		) {
+			lastPart.providerOptions = cacheMark
+		}
 	}
 
 	return [...history, ...rest]
@@ -99,12 +106,12 @@ function toModelMessages(agentMessages: AgentMessage[]): ModelMessage[] {
 	let toolTurn: { calls: ToolCallPart[]; results: ToolResultPart[] } | null = null
 
 	for (const tlMessage of agentMessages) {
-		const content: (TextPart | ImagePart)[] = []
+		const content: (TextPart | FilePart)[] = []
 		const toolCalls: { call: ToolCallPart; result: string }[] = []
 
 		for (const contentItem of tlMessage.content) {
 			if (contentItem.type === 'image') {
-				content.push({ type: 'image', image: contentItem.image! })
+				content.push({ type: 'file', mediaType: 'image', data: new URL(contentItem.image!) })
 			} else if (contentItem.type === 'action') {
 				const { _type, ...input } = contentItem.action!
 				toolCalls.push({

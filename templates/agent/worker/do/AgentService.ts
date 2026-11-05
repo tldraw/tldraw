@@ -1,9 +1,5 @@
 import { AnthropicProvider, AnthropicProviderOptions, createAnthropic } from '@ai-sdk/anthropic'
-import {
-	createGoogleGenerativeAI,
-	GoogleGenerativeAIProvider,
-	GoogleGenerativeAIProviderOptions,
-} from '@ai-sdk/google'
+import { createGoogle, GoogleLanguageModelOptions, GoogleProvider } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import {
 	createOpenRouter,
@@ -13,7 +9,6 @@ import {
 import {
 	JSONParseError,
 	LanguageModel,
-	ModelMessage,
 	NoSuchToolError,
 	streamText,
 	tool,
@@ -35,14 +30,14 @@ import { closeAndParseJson } from './closeAndParseJson'
 export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
-	google: GoogleGenerativeAIProvider
+	google: GoogleProvider
 	// With an OpenRouter key, every model goes through OpenRouter and the provider keys are not used.
 	openrouter: OpenRouterProvider | null
 
 	constructor(env: Environment) {
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
-		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
+		this.google = createGoogle({ apiKey: env.GOOGLE_API_KEY })
 		this.openrouter = env.OPENROUTER_API_KEY
 			? createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })
 			: null
@@ -79,31 +74,7 @@ export class AgentService {
 		const modelDefinition = getAgentModelDefinition(modelName)
 		const model = this.getModel(modelDefinition)
 		const systemPrompt = buildSystemPrompt(prompt)
-
-		// Build messages with provider-specific options
-		const messages: ModelMessage[] = []
-
-		// Add system prompt with Anthropic caching if applicable
-		if (modelDefinition.provider === 'anthropic') {
-			// Anthropic requires explicit cache breakpoints. We set one at the end of the
-			// system prompt to cache all system content (which generally changes together).
-			messages.push({
-				role: 'system',
-				content: systemPrompt,
-				providerOptions: {
-					anthropic: { cacheControl: { type: 'ephemeral' } },
-				},
-			})
-		} else {
-			messages.push({
-				role: 'system',
-				content: systemPrompt,
-			})
-		}
-
-		// Add prompt messages
 		const promptMessages = buildMessages(prompt)
-		messages.push(...promptMessages)
 
 		// Check for debug flags and log if enabled
 		const debugPart = prompt.debug as DebugPart | undefined
@@ -118,7 +89,14 @@ export class AgentService {
 
 		const result = streamText({
 			model,
-			messages,
+			instructions: {
+				role: 'system',
+				content: systemPrompt,
+				// Anthropic caches only up to an explicit breakpoint. One at the end of the system prompt
+				// caches all of it. Other providers ignore this option.
+				providerOptions: { anthropic: { cacheControl: { type: 'ephemeral' } } },
+			},
+			messages: promptMessages,
 			// The client carries out each tool call and sends the results in its next request.
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
@@ -166,7 +144,7 @@ export class AgentService {
 
 		// Read fullStream, not textStream: textStream drops error parts, so a failure partway through
 		// a response would end the stream silently.
-		for await (const part of result.fullStream) {
+		for await (const part of result.stream) {
 			if (part.type === 'error') throw part.error
 
 			switch (part.type) {
@@ -349,7 +327,7 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 				google: {
 					// Stream thought summaries, which reach the client as think actions.
 					thinkingConfig: { thinkingLevel: definition.thinkingLevel, includeThoughts: true },
-				} satisfies GoogleGenerativeAIProviderOptions,
+				} satisfies GoogleLanguageModelOptions,
 			}
 		case 'openai':
 			return {
