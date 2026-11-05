@@ -4,7 +4,7 @@ import {
 	CollectionsPanel,
 	type CollectionsPanelNavigation,
 	CollectionRecordType,
-	CollectionsActionsMenu,
+	CollectionsQuickActions,
 	collectionsPanelOpen,
 	type CollectionSource,
 	CompositeCollectionSource,
@@ -1033,7 +1033,7 @@ const components: TLComponents = {
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
-	ActionsMenu: CollectionsActionsMenu,
+	QuickActions: CollectionsQuickActions,
 }
 
 const mountedEditor = atom<Editor | null>('collections playground editor', null)
