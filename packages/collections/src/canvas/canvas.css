@@ -726,53 +726,31 @@
 }
 
 .tlui-collections-catalogue {
-	width: 360px;
+	width: 440px;
 	max-width: 100%;
 }
 
-.tlui-collections-catalogue__packs {
+.tlui-collections-catalogue > .tlui-collections-catalogue__packs {
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
+	gap: var(--tl-space-4);
 	margin: 0;
 	padding: 0;
 	list-style: none;
 }
 
 .tlui-collections-catalogue__pack {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) auto;
-	align-items: center;
-	gap: 8px;
-	padding: 8px;
-	border-radius: var(--tl-radius-2);
-	background: var(--tl-color-muted-2);
-}
-
-.tlui-collections-catalogue__text {
 	display: flex;
 	flex-direction: column;
-	min-width: 0;
-}
-
-.tlui-collections-catalogue__name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-	font-weight: 500;
-	color: var(--tl-color-text-1);
-}
-
-.tlui-collections-catalogue__detail {
-	font-size: 11px;
-	color: var(--tl-color-text-3);
+	padding: var(--tl-space-3);
+	border-radius: var(--tl-radius-4);
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
 }
 
 .tlui-collections-catalogue__thumbnails {
-	grid-column: 1 / -1;
 	display: grid;
 	grid-template-columns: repeat(4, minmax(0, 1fr));
-	gap: 4px;
+	gap: var(--tl-space-3);
 }
 
 .tlui-collections-catalogue__thumbnail {
@@ -780,7 +758,8 @@
 	align-items: center;
 	justify-content: center;
 	aspect-ratio: 1;
-	border-radius: var(--tl-radius-1);
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
 	background: var(--tl-color-background);
 	overflow: hidden;
 }
@@ -789,4 +768,41 @@
 	max-width: 80%;
 	max-height: 80%;
 	object-fit: contain;
+}
+
+.tlui-collections-catalogue__footer {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-4);
+	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
+}
+
+.tlui-collections-catalogue__text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.tlui-collections-catalogue__name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 13px;
+	line-height: 20px;
+	font-weight: 500;
+	color: var(--tl-color-text-0);
+}
+
+.tlui-collections-catalogue__detail {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-catalogue__toggle {
+	flex: none;
 }
