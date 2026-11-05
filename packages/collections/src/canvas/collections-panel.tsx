@@ -125,11 +125,11 @@ export interface CollectionsPanelProps {
 	 */
 	header?: PanelHeader
 	/**
-	 * Where adding the selection is offered. `'footer'`: a bar along the bottom of the panel. With
-	 * one collection showing it adds to that collection; with several (sections, the list, previews,
-	 * or searching everywhere) it opens a menu of collections, as the "Add to collection" context
-	 * menu does. `'header'`: a "+" in the header, and in each section's header. Defaults to
-	 * `'footer'`.
+	 * Where adding the selection is offered, besides each collection's "+" tile. `'none'`: nowhere
+	 * else. `'footer'`: a bar along the bottom of the panel. With one collection showing it adds
+	 * to that collection; with several (sections, the list, previews, or searching everywhere) it
+	 * opens a menu of collections, as the "Add to collection" context menu does. `'header'`: a "+"
+	 * in the header, and in each section's header. Defaults to `'none'`.
 	 */
 	addControl?: AddControl
 	/** How the footer's menu of collections orders them. Defaults to `'source'`. */
@@ -170,7 +170,7 @@ export function CollectionsPanel({
 	readOnly,
 	search = 'none',
 	header = 'picker',
-	addControl = 'footer',
+	addControl = 'none',
 	addMenuOrder = 'source',
 	emptyCollection = 'message',
 	sectionRows = 2,

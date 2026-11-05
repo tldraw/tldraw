@@ -397,7 +397,7 @@ interface PlaygroundSettings {
 	readOnlyMarker: 'none' | 'lock'
 	search: 'none' | 'collection' | 'everywhere'
 	header: 'picker' | 'title'
-	addControl: 'header' | 'footer'
+	addControl: 'none' | 'header' | 'footer'
 	emptyCollection: 'message' | 'add'
 	data: SourceName
 }
@@ -428,7 +428,7 @@ const DEFAULT_SETTINGS: PlaygroundSettings = {
 	readOnlyMarker: 'none',
 	search: 'none',
 	header: 'picker',
-	addControl: 'footer',
+	addControl: 'none',
 	emptyCollection: 'message',
 	data: 'samples',
 }
@@ -537,6 +537,7 @@ const SURFACES: Surface[] = [
 				key: 'addControl',
 				label: 'Add the selection from',
 				options: [
+					{ value: 'none', label: 'Only the "+" tiles' },
 					{ value: 'header', label: 'A "+" in the header' },
 					{ value: 'footer', label: 'A bar along the bottom' },
 				],
