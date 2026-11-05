@@ -33,3 +33,10 @@ export function takePosthogBootstrapFromHash(): PosthogHashBootstrap | undefined
 	window.history.replaceState(window.history.state, '', `${pathname}${search}`)
 	return bootstrap
 }
+
+/**
+ * The ids tldraw.com was opened with, taken once when this module loads. After a tldraw.dev form the
+ * distinct id is the visitor's email, so sentry.client.config imports this module to clear the hash
+ * before Sentry records the URL.
+ */
+export const posthogHashBootstrap = takePosthogBootstrapFromHash()

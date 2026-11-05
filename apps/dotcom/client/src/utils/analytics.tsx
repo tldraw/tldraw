@@ -14,7 +14,7 @@ import {
 	shouldUseCommonRoom,
 	trackCommonRoomPageview,
 } from './common-room-signals'
-import { takePosthogBootstrapFromHash } from './posthogHashBootstrap'
+import { posthogHashBootstrap } from './posthogHashBootstrap'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -72,9 +72,6 @@ type AnalyticsOptions =
 // @ts-ignore this is fine
 const POSTHOG_KEY: string | undefined = import.meta.env.VITE_POSTHOG_KEY
 const shouldUsePosthog = POSTHOG_KEY !== undefined
-
-// Taken at load, before any tracker reports the URL, while the hash's timestamp is still fresh.
-const posthogHashBootstrap = takePosthogBootstrapFromHash()
 
 // @ts-ignore this is fine
 const GA4_MEASUREMENT_ID: string | undefined = import.meta.env.VITE_GA4_MEASUREMENT_ID
