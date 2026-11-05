@@ -149,29 +149,29 @@ const samples = new PlaygroundSource({
 	},
 })
 
-// The samples, then packs shipped with the app under their own owner, which can be copied from.
-const withPacks = new CompositeCollectionSource({
-	id: 'playground-with-packs',
-	parts: [
-		{ source: samples },
-		{
-			owner: { id: 'tldraw', name: 'tldraw' },
-			source: new PackCollectionSource({ packs: STARTER_PACKS }),
-		},
-	],
-})
+// Packs shipped with the app, listed under their own owner once added from "Browse collections…".
+const starterPacks = new PackCollectionSource({ id: 'playground-packs', packs: STARTER_PACKS })
+
+const withPacks = (id: string, source: CollectionSource) =>
+	new CompositeCollectionSource({
+		id,
+		parts: [{ source }, { owner: { id: 'tldraw', name: 'tldraw' }, source: starterPacks }],
+	})
 
 const SOURCES = {
-	samples: withPacks,
-	empty: new PlaygroundSource({ id: 'playground-empty' }),
-	'one-empty': new PlaygroundSource({
-		id: 'playground-one-empty',
-		initial: {
-			collections: [CollectionRecordType.create({ name: 'Untitled', ownerId: PERSONAL })],
-			items: [],
-			contents: {},
-		},
-	}),
+	samples: withPacks('playground-with-packs', samples),
+	empty: withPacks('playground-empty', new PlaygroundSource({ id: 'playground-empty-own' })),
+	'one-empty': withPacks(
+		'playground-one-empty',
+		new PlaygroundSource({
+			id: 'playground-one-empty-own',
+			initial: {
+				collections: [CollectionRecordType.create({ name: 'Untitled', ownerId: PERSONAL })],
+				items: [],
+				contents: {},
+			},
+		})
+	),
 }
 
 // The same source without moveCollection, for the playground's toggle: the panel then offers no
@@ -399,7 +399,7 @@ interface Surface {
 const SURFACES: Surface[] = [
 	{
 		page: 'Panel',
-		hint: 'Open the panel with the button beside the main menu.',
+		hint: 'Open the panel with the button beside the main menu. Add packs from its ⋯ menu, under Browse collections…',
 		choices: [
 			{
 				key: 'navigation',
@@ -961,6 +961,7 @@ function PlaygroundPanel() {
 			addMenuOrder={order}
 			emptyCollection={emptyCollection}
 			sectionRows={sectionRows === 'all' ? Infinity : Number(sectionRows)}
+			catalogue={starterPacks}
 		/>
 	)
 }
