@@ -7,8 +7,8 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import type { CollectionPack } from '../lib/CollectionPack'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { PackCatalogue } from '../lib/PackCatalogue'
 import type { TLCollectionItemId } from '../lib/schema'
 import { CollectionGroupSection } from './collection-group-section'
 import { groupCollectionList, useCollectionGrouping } from './collection-groups'
@@ -35,11 +35,11 @@ export interface CollectionsPanelProps {
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
 	side?: 'left' | 'right'
 	/**
-	 * Packs users can add: the panel's ⋯ menu and its empty state offer "Browse collections", and
-	 * each added pack's ⋯ menu offers "Remove from panel". Usually a {@link PackCollectionSource}
-	 * that is also part of `source`, so added packs are listed.
+	 * Packs users can add: the panel's ⋯ menu and its empty state offer "Browse collections", where
+	 * adding a pack copies it into the source's default owner, e.g. the user's personal workspace,
+	 * as an ordinary collection.
 	 */
-	catalogue?: PackCatalogue
+	catalogue?: readonly CollectionPack[]
 }
 
 /**
@@ -51,7 +51,7 @@ export interface CollectionsPanelProps {
  */
 export function CollectionsPanel({ source, side = 'left', catalogue }: CollectionsPanelProps) {
 	const editor = useEditor()
-	const openCatalogue = useOpenPackCatalogue(catalogue)
+	const openCatalogue = useOpenPackCatalogue(source, catalogue)
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
@@ -94,7 +94,6 @@ export function CollectionsPanel({ source, side = 'left', catalogue }: Collectio
 										source={source}
 										collection={collection}
 										getItemProps={getItemProps}
-										catalogue={catalogue}
 									/>
 								))}
 							</CollectionGroupSection>

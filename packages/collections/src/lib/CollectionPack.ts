@@ -1,12 +1,13 @@
 import type { TLCollectionItemContent } from './schema'
 
 /**
- * A set of items shipped as data, such as starter shapes bundled with an app. A
- * {@link PackCollectionSource} lists each pack as a read-only collection.
+ * A set of items shipped as data, such as starter shapes bundled with an app. The panel's "Browse
+ * collections" offers packs, and adding one copies it into the user's collections with
+ * {@link copyPack}.
  * @public
  */
 export interface CollectionPack {
-	/** Stable across versions: the pack's collection id is derived from it. */
+	/** Stable across versions: a copy of the pack records it. */
 	id: string
 	name: string
 	version: number
@@ -15,7 +16,7 @@ export interface CollectionPack {
 
 /** @public */
 export interface CollectionPackItem {
-	/** Unique within the pack and stable across versions: the item's id is derived from it. */
+	/** Unique within the pack. */
 	id: string
 	name?: string
 	content: TLCollectionItemContent

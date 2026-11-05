@@ -1,7 +1,9 @@
 import 'fake-indexeddb/auto'
+import { copyPack } from '@tldraw/collections'
 import { describe, expect, it, vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
 import { TldrawAppCollectionsSource } from './collectionsSource'
+import { STARTER_PACKS } from './starterPacks'
 
 let lastUserId = 0
 const newUserId = () => `user-${++lastUserId}`
@@ -47,5 +49,22 @@ describe('TldrawAppCollectionsSource', () => {
 		const reloaded = createSource(userId)
 		await vi.waitFor(() => expect(names(reloaded)).toEqual(['Home kit', 'Team kit']))
 		expect(reloaded.getCollections().find((c) => c.name === 'Team kit')?.ownerId).toBe('acme')
+	})
+
+	it('copies a starter pack into the home workspace and remembers which pack it was', async () => {
+		const userId = newUserId()
+		const source = createSource(userId)
+		const doodles = STARTER_PACKS.find((pack) => pack.id === 'doodles')!
+		const copy = await copyPack(source, doodles)
+		expect(copy).toMatchObject({ name: doodles.name, ownerId: 'home' })
+		expect(source.getItems(copy.id)).toHaveLength(doodles.items.length)
+		source.dispose()
+
+		const reloaded = createSource(userId)
+		await vi.waitFor(() => expect(names(reloaded)).toEqual([doodles.name]))
+		expect(reloaded.getCollections()[0].meta).toEqual({
+			packId: 'doodles',
+			packVersion: doodles.version,
+		})
 	})
 })

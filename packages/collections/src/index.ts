@@ -28,7 +28,6 @@ export {
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './lib/CollectionSource'
-export { type AddedPackIds, localStorageAddedPackIds } from './lib/AddedPackIds'
 export type { CollectionPack, CollectionPackItem } from './lib/CollectionPack'
 export {
 	BoardCollectionSource,
@@ -40,12 +39,11 @@ export {
 	type CompositeCollectionSourcePart,
 } from './lib/CompositeCollectionSource'
 export { copyCollection } from './lib/copyCollection'
+export { copyPack } from './lib/copyPack'
 export {
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,
 } from './lib/InMemoryCollectionSource'
-export type { PackCatalogue } from './lib/PackCatalogue'
-export { PackCollectionSource, type PackCollectionSourceOptions } from './lib/PackCollectionSource'
 export {
 	CollectionItemContentRecordType,
 	CollectionItemContentTooNewError,

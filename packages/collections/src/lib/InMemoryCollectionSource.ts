@@ -158,6 +158,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		const collection = CollectionRecordType.create({
 			name,
 			...(ownerId === undefined ? {} : { ownerId }),
+			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.store.put([collection])
 		return collection

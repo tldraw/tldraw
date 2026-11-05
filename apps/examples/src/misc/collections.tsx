@@ -9,7 +9,6 @@ import {
 	type CollectionSource,
 	CompositeCollectionSource,
 	InMemoryCollectionSource,
-	PackCollectionSource,
 	saveShapesToCollection,
 	type TLCollectionId,
 } from '@tldraw/collections'
@@ -39,7 +38,7 @@ const PAGES = ['Collections', 'Lots of items', 'Lots of collections', 'Empty'] a
 type PageName = (typeof PAGES)[number]
 
 // Owners as tldraw.com has them: the open file, the user's home workspace, then a workspace they
-// belong to, and tldraw's packs.
+// belong to.
 const BOARD_OWNER = { id: 'board', name: 'This board' }
 const PERSONAL = 'home'
 const ACME = 'acme'
@@ -84,15 +83,8 @@ const manyCollections = workspaces(
 
 const empty = workspaces('collections-empty', [])
 
-const packs = new PackCollectionSource({ id: 'collections-packs', packs: STARTER_PACKS })
-const PACKS_PART = { owner: { id: 'tldraw', name: 'tldraw' }, source: packs }
-
-const composite = (
-	id: string,
-	parts: ConstructorParameters<typeof CompositeCollectionSource>[0]['parts']
-) => new CompositeCollectionSource({ id, defaultOwnerId: PERSONAL, parts })
-
-// The board's collections are records in the editor's document, so the sources are made per editor.
+// The board's collections are records in the editor's document, so the default page's source is
+// made per editor.
 const editorSources = new WeakMap<
 	Editor,
 	{ board: BoardCollectionSource; byPage: Record<PageName, CollectionSource> }
@@ -105,20 +97,14 @@ function getEditorSources(editor: Editor) {
 		sources = {
 			board,
 			byPage: {
-				Collections: composite('collections-default', [
-					{ owner: BOARD_OWNER, source: board },
-					{ source: samples },
-					PACKS_PART,
-				]),
-				'Lots of items': composite('collections-lots-of-items', [
-					{ source: manyItems },
-					PACKS_PART,
-				]),
-				'Lots of collections': composite('collections-lots-of-collections', [
-					{ source: manyCollections },
-					PACKS_PART,
-				]),
-				Empty: composite('collections-empty', [{ source: empty }, PACKS_PART]),
+				Collections: new CompositeCollectionSource({
+					id: 'collections-default',
+					defaultOwnerId: PERSONAL,
+					parts: [{ owner: BOARD_OWNER, source: board }, { source: samples }],
+				}),
+				'Lots of items': manyItems,
+				'Lots of collections': manyCollections,
+				Empty: empty,
 			},
 		}
 		editorSources.set(editor, sources)
@@ -334,7 +320,7 @@ function ExamplePanel() {
 	const source = usePageSource()
 	const pageName = useValue('page name', () => editor.getCurrentPage().name as PageName, [editor])
 	useEffect(() => seedPage(editor, pageName), [editor, pageName])
-	return <CollectionsPanel source={source} catalogue={packs} />
+	return <CollectionsPanel source={source} catalogue={STARTER_PACKS} />
 }
 
 function ExampleSaveMenu() {

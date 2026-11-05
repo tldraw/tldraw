@@ -8,6 +8,7 @@ import {
 	type CollectionSource,
 	type TLCollectionAction,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from './CollectionSource'
 import {
 	CollectionItemContentRecordType,
@@ -121,9 +122,12 @@ export class BoardCollectionSource implements CollectionSource {
 		return !!collection && !collection.readOnly
 	}
 
-	async createCollection(name: string) {
+	async createCollection(name: string, options: TLNewCollectionOptions = {}) {
 		this.assertCan('createCollection')
-		const collection = CollectionRecordType.create({ name })
+		const collection = CollectionRecordType.create({
+			name,
+			...(options.meta === undefined ? {} : { meta: options.meta }),
+		})
 		this.write([collection])
 		return collection
 	}

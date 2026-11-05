@@ -1,3 +1,4 @@
+import type { JsonObject } from '@tldraw/utils'
 import type {
 	TLCollection,
 	TLCollectionId,
@@ -35,6 +36,8 @@ export interface TLCollectionOwner {
 export interface TLNewCollectionOptions {
 	/** Who it belongs to. Left out, the source decides, e.g. its default owner. */
 	ownerId?: string
+	/** Stored on the collection as its `meta`, e.g. the pack it was copied from. */
+	meta?: JsonObject
 }
 
 /** What a source needs to store a new item. */

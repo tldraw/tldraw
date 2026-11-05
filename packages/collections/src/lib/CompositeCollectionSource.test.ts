@@ -1,12 +1,14 @@
-import { atom } from '@tldraw/state'
 import { react } from '@tldraw/state'
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
 import { CompositeCollectionSource } from './CompositeCollectionSource'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
-import { PackCollectionSource } from './PackCollectionSource'
-import type { TLCollectionItemContent } from './schema'
+import {
+	CollectionItemRecordType,
+	CollectionRecordType,
+	type TLCollectionItemContent,
+} from './schema'
 
 function content(name: string): TLCollectionItemContent {
 	const id = createShapeId(name)
@@ -26,23 +28,21 @@ const tldraw = { id: 'tldraw', name: 'tldraw' }
 const personal = { id: 'home', name: 'Personal' }
 const acme = { id: 'acme', name: 'Acme workspace' }
 
-const packs = () =>
-	new PackCollectionSource({
-		packs: [
-			{
-				id: 'wireframing',
-				name: 'Wireframing',
-				version: 1,
-				items: [
-					{ id: 'button', name: 'Button', content: content('button') },
-					{ id: 'card', name: 'Card', content: content('card') },
-				],
-			},
-		],
-		addedPackIds: atom<readonly string[]>('added pack ids', ['wireframing']),
-	})
+const wireframing = CollectionRecordType.createId('wireframing')
 
-const wireframing = PackCollectionSource.getCollectionId('wireframing')
+// A read-only part, as a host's shared kits might be.
+const packs = () => {
+	const button = CollectionItemRecordType.create({ collectionId: wireframing, name: 'Button' })
+	const card = CollectionItemRecordType.create({ collectionId: wireframing, name: 'Card' })
+	return new InMemoryCollectionSource({
+		readOnly: true,
+		initial: {
+			collections: [CollectionRecordType.create({ id: wireframing, name: 'Wireframing' })],
+			items: [button, card],
+			contents: { [button.id]: content('button'), [card.id]: content('card') },
+		},
+	})
+}
 
 function setUp() {
 	const mine = new InMemoryCollectionSource({ id: 'mine' })
@@ -221,7 +221,10 @@ describe('CompositeCollectionSource', () => {
 	it('offers moving items only when a part can', () => {
 		const withMoving = setUp().source
 		expect(withMoving.moveItem).toBeDefined()
-		const packsOnly = new CompositeCollectionSource({ parts: [{ owner: tldraw, source: packs() }] })
-		expect(packsOnly.moveItem).toBeUndefined()
+		const unmovable = Object.assign(packs(), { moveItem: undefined })
+		const withoutMoving = new CompositeCollectionSource({
+			parts: [{ owner: tldraw, source: unmovable }],
+		})
+		expect(withoutMoving.moveItem).toBeUndefined()
 	})
 })

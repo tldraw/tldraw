@@ -44,7 +44,8 @@ export async function copyItem(
 	})
 }
 
-async function fetchThumbnail(url: string): Promise<Blob | undefined> {
+/** A thumbnail's image, or undefined when it can't be fetched. */
+export async function fetchThumbnail(url: string): Promise<Blob | undefined> {
 	try {
 		const response = await fetch(url)
 		return response.ok ? await response.blob() : undefined

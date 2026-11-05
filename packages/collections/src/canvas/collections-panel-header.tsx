@@ -6,8 +6,8 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
+import type { CollectionPack } from '../lib/CollectionPack'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { PackCatalogue } from '../lib/PackCatalogue'
 import { CollectionMenu } from '../ui/collection-menu'
 import { createNewCollection } from './new-collection'
 import { useOpenPackCatalogue } from './pack-catalogue-dialog'
@@ -32,12 +32,12 @@ export function CollectionsPanelHeader({
 	catalogue,
 }: {
 	source: CollectionSource
-	catalogue?: PackCatalogue
+	catalogue?: readonly CollectionPack[]
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
-	const openCatalogue = useOpenPackCatalogue(catalogue)
+	const openCatalogue = useOpenPackCatalogue(source, catalogue)
 	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
 		source,
 	])
