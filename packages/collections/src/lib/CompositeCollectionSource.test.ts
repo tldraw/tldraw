@@ -1,3 +1,4 @@
+import { atom } from '@tldraw/state'
 import { react } from '@tldraw/state'
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
@@ -38,6 +39,7 @@ const packs = () =>
 				],
 			},
 		],
+		addedPackIds: atom<readonly string[]>('added pack ids', ['wireframing']),
 	})
 
 const wireframing = PackCollectionSource.getCollectionId('wireframing')
