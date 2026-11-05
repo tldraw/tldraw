@@ -60,14 +60,19 @@ export {
 export type { PackCatalogue } from './lib/PackCatalogue'
 export { PackCollectionSource, type PackCollectionSourceOptions } from './lib/PackCollectionSource'
 export {
+	CollectionItemContentRecordType,
 	CollectionItemContentTooNewError,
 	CollectionItemRecordType,
+	collectionItemContentMigrations,
+	collectionItemContentValidator,
 	collectionItemMigrations,
 	collectionMigrations,
 	CollectionRecordType,
+	collectionSchemaRecords,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	collectionItemValidator,
 	collectionValidator,
+	getCollectionItemContentId,
 	getThumbnailForColorMode,
 	mapThumbnail,
 	parseCollectionItemContent,
@@ -75,6 +80,8 @@ export {
 	type TLCollectionId,
 	type TLCollectionItem,
 	type TLCollectionItemContent,
+	type TLCollectionItemContentRecord,
+	type TLCollectionItemContentRecordId,
 	type TLCollectionItemId,
 	type TLCollectionRecord,
 	type TLCollectionThumbnail,
