@@ -33,7 +33,14 @@ export function AddTargetsMenuItems({
 					onClick={() => onAdd(collection.id)}
 				/>
 			))}
-			{targets.canCreate && <MenuItem label={msg(messages.newCollection)} onClick={onAddToNew} />}
+			{targets.canCreate && (
+				<>
+					{targets.collections.length > 0 && (
+						<div role="separator" className="tlui-collections-menu__divider" />
+					)}
+					<MenuItem label={msg(messages.newCollection)} onClick={onAddToNew} />
+				</>
+			)}
 		</>
 	)
 }
