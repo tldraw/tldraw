@@ -1,11 +1,13 @@
 import { type PointerEvent, type ReactNode, type RefObject } from 'react'
 import {
+	type TLUiIconType,
 	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuSub,
 	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
+	TldrawUiIcon,
 } from 'tldraw'
 
 function keepFocusWhile(holdFocus: boolean) {
@@ -16,6 +18,7 @@ function keepFocusWhile(holdFocus: boolean) {
 
 export function MenuItem({
 	buttonRef,
+	icon,
 	label,
 	danger,
 	noClose,
@@ -23,6 +26,7 @@ export function MenuItem({
 	onClick,
 }: {
 	buttonRef?: RefObject<HTMLButtonElement | null>
+	icon?: TLUiIconType
 	label: string
 	danger?: boolean
 	noClose?: boolean
@@ -45,6 +49,7 @@ export function MenuItem({
 				onPointerMove={keepFocus}
 				onPointerLeave={keepFocus}
 			>
+				{icon && <TldrawUiIcon icon={icon} small label="" />}
 				<span>{label}</span>
 			</button>
 		</TldrawUiDropdownMenuItem>
