@@ -9,7 +9,6 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { copyCollection } from '../lib/copyCollection'
-import type { PackCatalogue } from '../lib/PackCatalogue'
 import type { TLCollection } from '../lib/schema'
 import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { RenameInput } from '../ui/rename-input'
@@ -47,8 +46,6 @@ export interface CollectionSectionHeaderProps {
 	onToggleCollapsed(): void
 	/** The menu's "Sort items by" submenu. */
 	sort: CollectionMenuSort
-	/** Packs, when `collection` is one, which the menu offers to remove from the panel. */
-	catalogue?: PackCatalogue
 }
 
 /**
@@ -61,14 +58,12 @@ export function CollectionSectionHeader({
 	collapsed,
 	onToggleCollapsed,
 	sort,
-	catalogue,
 }: CollectionSectionHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const collectionId = collection.id
-	const packId = catalogue?.getPackId(collectionId)
 	const renaming = useValue(
 		'renaming collection',
 		() => renamingCollectionId.get(editor) === collectionId,
@@ -170,9 +165,6 @@ export function CollectionSectionHeader({
 				{!renaming && (
 					<CollectionMenu
 						id={`collections-collection-menu-${collectionId}`}
-						onRemoveFromPanel={
-							catalogue && packId !== undefined ? () => catalogue.removePack(packId) : undefined
-						}
 						onRename={can.rename ? () => renamingCollectionId.set(editor, collectionId) : undefined}
 						onDelete={can.delete ? deleteCollection : undefined}
 						sort={sort}

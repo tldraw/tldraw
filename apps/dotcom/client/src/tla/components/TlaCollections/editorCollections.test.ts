@@ -13,7 +13,6 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import type { TldrawApp } from '../../app/TldrawApp'
 import { TldrawAppCollectionsSource } from './collectionsSource'
-import { TldrawAppCollectionsWithPacks } from './collectionsWithPacks'
 import { getEditorCollections } from './editorCollections'
 
 let lastUserId = 0
@@ -32,7 +31,7 @@ function setUp() {
 		getWorkspaceMemberships: () => [{ groupId: 'home', group: { name: 'Home' } }],
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 	} as unknown as TldrawApp
-	const collections = new TldrawAppCollectionsWithPacks(new TldrawAppCollectionsSource(app), userId)
+	const collections = new TldrawAppCollectionsSource(app)
 	const editor = new Editor({
 		store: createTLStore({ schema: createTLSchema({ records: fileSchemaRecords }) }),
 		shapeUtils: defaultShapeUtils,
@@ -75,7 +74,6 @@ describe('getEditorCollections', () => {
 		expect(source.getCollectionOwners?.()).toEqual([
 			{ id: 'file-a', name: 'This board' },
 			{ id: 'home', name: 'Home' },
-			{ id: 'tldraw', name: 'tldraw', readOnly: true },
 		])
 		const collection = await source.createCollection('Board kit', { ownerId: 'file-a' })
 		expect(collection.ownerId).toBe('file-a')

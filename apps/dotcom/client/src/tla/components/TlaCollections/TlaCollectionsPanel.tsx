@@ -3,6 +3,7 @@ import { useMemo } from 'react'
 import { useEditor } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getEditorCollections } from './editorCollections'
+import { STARTER_PACKS } from './starterPacks'
 
 function useEditorCollections(fileId: string) {
 	const app = useMaybeApp()
@@ -15,10 +16,9 @@ function useEditorCollections(fileId: string) {
 }
 
 export function TlaCollectionsPanel({ fileId }: { fileId: string }) {
-	const catalogue = useMaybeApp()?.collections?.packs
 	const source = useEditorCollections(fileId)
 	if (!source) return null
-	return <CollectionsPanel source={source} catalogue={catalogue} side="right" />
+	return <CollectionsPanel source={source} catalogue={STARTER_PACKS} side="right" />
 }
 
 export function TlaAddToCollectionMenuItem({ fileId }: { fileId: string }) {

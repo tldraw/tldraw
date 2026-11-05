@@ -1,7 +1,6 @@
 import { type ButtonHTMLAttributes, useEffect, useRef } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { PackCatalogue } from '../lib/PackCatalogue'
 import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionItems } from './collection-items'
 import { CollectionSectionHeader } from './collection-section-header'
@@ -16,12 +15,10 @@ export function CollectionSection({
 	source,
 	collection,
 	getItemProps,
-	catalogue,
 }: {
 	source: CollectionSource
 	collection: TLCollection
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
-	catalogue?: PackCatalogue
 }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLElement>(null)
@@ -63,7 +60,6 @@ export function CollectionSection({
 				collection={collection}
 				collapsed={collapsed}
 				onToggleCollapsed={() => setCollapsed(!collapsed)}
-				catalogue={catalogue}
 				sort={{
 					options: defaultItemOrderings.map(({ id, label }) => ({ id, label })),
 					value: ordering.id,

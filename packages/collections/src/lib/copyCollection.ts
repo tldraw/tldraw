@@ -49,8 +49,11 @@ export async function copyItem(
 	})
 }
 
-// A pair is copied only whole: half of one can't be stored.
-async function fetchThumbnail(
+/**
+ * A thumbnail's images, or undefined when they can't be fetched. A pair is fetched only whole: half
+ * of one can't be stored.
+ */
+export async function fetchThumbnail(
 	thumbnail: TLCollectionThumbnail
 ): Promise<TLCollectionThumbnail<Blob> | undefined> {
 	if (typeof thumbnail === 'string') return fetchImage(thumbnail)

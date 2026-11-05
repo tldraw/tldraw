@@ -132,7 +132,7 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 	async createCollection(name: string, options: TLNewCollectionOptions = {}) {
 		await this.ready
 		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
-		const collection = await this.inner.get().createCollection(name, { ownerId })
+		const collection = await this.inner.get().createCollection(name, { ...options, ownerId })
 		await this.save()
 		return collection
 	}

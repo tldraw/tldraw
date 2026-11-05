@@ -164,6 +164,11 @@
 	padding: 0 10px 4px;
 }
 
+/* Scrolled to, a section stops below its group's heading rather than under it. */
+.tlui-collections-section {
+	scroll-margin-top: var(--tlui-collections-sticky-top, 0);
+}
+
 /* Stays at the top of the list, under its group's heading, while its own items scroll under it,
    until the next section's header pushes it out. */
 .tlui-collections-section > .tlui-collections-panel__header {

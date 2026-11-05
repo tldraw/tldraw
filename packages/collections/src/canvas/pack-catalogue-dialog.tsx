@@ -1,6 +1,7 @@
-import { useCallback } from 'react'
+import { useCallback, useState } from 'react'
 import {
 	defineMessages,
+	getIncrementedName,
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
@@ -10,12 +11,15 @@ import {
 	TldrawUiDialogTitle,
 	useDialogs,
 	useEditor,
+	useToasts,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import type { CollectionPack } from '../lib/CollectionPack'
-import type { PackCatalogue } from '../lib/PackCatalogue'
+import type { CollectionSource } from '../lib/CollectionSource'
+import { copyPack, getPackCopyMeta } from '../lib/copyPack'
 import { getThumbnailForColorMode } from '../lib/schema'
+import { activeCollectionId, collectionsPanelOpen } from './state'
 
 const messages = defineMessages({
 	title: { id: 'collections.catalogue.title', defaultMessage: 'Browse collections' },
@@ -25,24 +29,51 @@ const messages = defineMessages({
 	},
 	add: { id: 'collections.catalogue.add', defaultMessage: 'Add' },
 	added: { id: 'collections.catalogue.added', defaultMessage: 'Added' },
-	remove: { id: 'collections.catalogue.remove', defaultMessage: 'Remove from panel' },
+	addedTitle: { id: 'collections.catalogue.added-toast.title', defaultMessage: 'Added' },
+	addedTo: {
+		id: 'collections.catalogue.added-toast.description',
+		defaultMessage: 'Added {pack} to {owner}.',
+	},
+	addedDescription: {
+		id: 'collections.catalogue.added-toast.description-no-owner',
+		defaultMessage: 'Added {pack}.',
+	},
+	open: { id: 'collections.saved.open', defaultMessage: 'Open' },
+	addErrorTitle: { id: 'collections.catalogue.add-error.title', defaultMessage: "Couldn't add" },
+	addErrorDescription: {
+		id: 'collections.catalogue.add-error.description',
+		defaultMessage: 'You may not be allowed to create collections, or copying failed.',
+	},
 })
 
 const THUMBNAILS_SHOWN = 4
 
+const defaultOwnerOf = (source: CollectionSource) =>
+	source.getDefaultOwnerId ? source.getDefaultOwnerId() : undefined
+
 /**
- * Opens the catalogue of packs, or is undefined when there's no catalogue or it offers no packs.
+ * Opens the catalogue of packs, or is undefined when there are no packs. Adding a pack copies it
+ * into the source's default owner.
  */
-export function useOpenPackCatalogue(catalogue: PackCatalogue | undefined) {
+export function useOpenPackCatalogue(
+	source: CollectionSource,
+	catalogue: readonly CollectionPack[] | undefined
+) {
 	const { addDialog } = useDialogs()
 	const open = useCallback(() => {
 		if (!catalogue) return
-		addDialog({ component: () => <PackCatalogueDialog catalogue={catalogue} /> })
-	}, [addDialog, catalogue])
-	return catalogue && catalogue.getPacks().length > 0 ? open : undefined
+		addDialog({ component: () => <PackCatalogueDialog source={source} catalogue={catalogue} /> })
+	}, [addDialog, source, catalogue])
+	return catalogue && catalogue.length > 0 ? open : undefined
 }
 
-function PackCatalogueDialog({ catalogue }: { catalogue: PackCatalogue }) {
+function PackCatalogueDialog({
+	source,
+	catalogue,
+}: {
+	source: CollectionSource
+	catalogue: readonly CollectionPack[]
+}) {
 	const msg = useTranslation()
 	return (
 		<>
@@ -52,8 +83,8 @@ function PackCatalogueDialog({ catalogue }: { catalogue: PackCatalogue }) {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className="tlui-collections-catalogue">
 				<ul className="tlui-collections-catalogue__packs">
-					{catalogue.getPacks().map((pack) => (
-						<PackRow key={pack.id} catalogue={catalogue} pack={pack} />
+					{catalogue.map((pack) => (
+						<PackRow key={pack.id} source={source} pack={pack} />
 					))}
 				</ul>
 			</TldrawUiDialogBody>
@@ -61,11 +92,65 @@ function PackCatalogueDialog({ catalogue }: { catalogue: PackCatalogue }) {
 	)
 }
 
-function PackRow({ catalogue, pack }: { catalogue: PackCatalogue; pack: CollectionPack }) {
-	const msg = useTranslation()
-	const added = useValue('pack added', () => catalogue.isPackAdded(pack.id), [catalogue, pack.id])
+function PackRow({ source, pack }: { source: CollectionSource; pack: CollectionPack }) {
 	const editor = useEditor()
+	const msg = useTranslation()
+	const { addToast } = useToasts()
+	const [adding, setAdding] = useState(false)
+	// Added while the default owner holds a copy of this pack; deleting the copy offers it again.
+	const added = useValue(
+		'pack added',
+		() => {
+			const ownerId = defaultOwnerOf(source)
+			return source
+				.getCollections()
+				.some((c) => c.ownerId === ownerId && getPackCopyMeta(c)?.packId === pack.id)
+		},
+		[source, pack.id]
+	)
 	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
+	const canAdd = useValue('can add pack', () => source.can('createCollection'), [source])
+
+	const add = () => {
+		const ownerId = defaultOwnerOf(source)
+		const owners = source.getCollectionOwners ? source.getCollectionOwners() : []
+		const owner = owners.find((o) => o.id === ownerId)
+		const name = getIncrementedName(
+			pack.name,
+			source.getCollections().map((c) => c.name)
+		)
+		setAdding(true)
+		copyPack(source, pack, { name, ...(ownerId === undefined ? {} : { ownerId }) })
+			.then(
+				(collection) => {
+					activeCollectionId.set(editor, collection.id)
+					addToast({
+						title: msg(messages.addedTitle),
+						description: owner
+							? msg(messages.addedTo, { pack: pack.name, owner: owner.name })
+							: msg(messages.addedDescription, { pack: pack.name }),
+						actions: [
+							{
+								label: msg(messages.open),
+								type: 'primary',
+								onClick: () => {
+									activeCollectionId.set(editor, collection.id)
+									collectionsPanelOpen.set(editor, true)
+								},
+							},
+						],
+					})
+				},
+				() =>
+					addToast({
+						title: msg(messages.addErrorTitle),
+						description: msg(messages.addErrorDescription),
+						severity: 'error',
+					})
+			)
+			.finally(() => setAdding(false))
+	}
+
 	return (
 		<li className="tlui-collections-catalogue__pack">
 			<div className="tlui-collections-catalogue__thumbnails" aria-hidden>
@@ -91,8 +176,8 @@ function PackRow({ catalogue, pack }: { catalogue: PackCatalogue; pack: Collecti
 				<TldrawUiButton
 					type={added ? 'normal' : 'primary'}
 					className="tlui-collections-catalogue__toggle"
-					title={added ? msg(messages.remove) : undefined}
-					onClick={() => (added ? catalogue.removePack(pack.id) : catalogue.addPack(pack.id))}
+					disabled={added || adding || !canAdd}
+					onClick={add}
 				>
 					{added && <TldrawUiButtonIcon icon="check" small />}
 					<TldrawUiButtonLabel>{msg(added ? messages.added : messages.add)}</TldrawUiButtonLabel>
