@@ -2,7 +2,7 @@ export {
 	AddToCollectionMenuItem,
 	type AddToCollectionMenuItemProps,
 } from './canvas/add-to-collection-menu-item'
-export { CollectionsActionsMenu } from './canvas/collections-actions-menu'
+export { CollectionsQuickActions } from './canvas/collections-quick-actions'
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { placeCollectionItem } from './canvas/place-item'

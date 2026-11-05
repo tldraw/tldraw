@@ -2,7 +2,7 @@ import {
 	AddToCollectionMenuItem,
 	CollectionsPanel,
 	CollectionRecordType,
-	CollectionsActionsMenu,
+	CollectionsQuickActions,
 	collectionsPanelOpen,
 	InMemoryCollectionSource,
 	saveShapesToCollection,
@@ -278,7 +278,7 @@ const components: TLComponents = {
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
-	ActionsMenu: CollectionsActionsMenu,
+	QuickActions: CollectionsQuickActions,
 }
 
 const handleMount = (editor: Editor) => {

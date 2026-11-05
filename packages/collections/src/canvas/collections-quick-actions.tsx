@@ -1,12 +1,13 @@
 import {
-	DefaultActionsMenu,
+	DefaultQuickActions,
+	DefaultQuickActionsContent,
 	defineMessages,
 	TldrawUiButtonIcon,
 	TldrawUiToolbarButton,
 	useEditor,
 	useTranslation,
 	useValue,
-	type TLUiActionsMenuProps,
+	type TLUiQuickActionsProps,
 } from 'tldraw'
 import { collectionsPanelOpen, toggleCollectionsPanel } from './state'
 
@@ -15,22 +16,22 @@ const messages = defineMessages({
 })
 
 /**
- * An `ActionsMenu` override: tldraw's actions menu followed by a button that opens and closes the
- * {@link CollectionsPanel}. tldraw renders the actions menu at the end of the quick actions, so the
- * button sits there too: in the menu panel on wide screens, and in the toolbar on narrow ones.
+ * A `QuickActions` override: tldraw's quick actions followed by a button that opens and closes the
+ * {@link CollectionsPanel}, so the button sits before the actions menu: in the menu panel on wide
+ * screens, and in the toolbar on narrow ones.
  *
  * @example
  * ```tsx
- * <Tldraw components={{ ActionsMenu: CollectionsActionsMenu }} />
+ * <Tldraw components={{ QuickActions: CollectionsQuickActions }} />
  * ```
  * @public @react
  */
-export function CollectionsActionsMenu(props: TLUiActionsMenuProps) {
+export function CollectionsQuickActions({ children }: TLUiQuickActionsProps) {
 	return (
-		<>
-			<DefaultActionsMenu {...props} />
+		<DefaultQuickActions>
+			{children ?? <DefaultQuickActionsContent />}
 			<CollectionsToolbarButton />
-		</>
+		</DefaultQuickActions>
 	)
 }
 
