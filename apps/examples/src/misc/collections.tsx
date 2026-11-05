@@ -7,9 +7,11 @@ import {
 	CollectionsPanelButton,
 	collectionsPanelOpen,
 	type CollectionSource,
+	CompositeCollectionSource,
 	defaultItemOrderings,
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,
+	PackCollectionSource,
 	saveShapesToCollection,
 	sourceItemOrder,
 	type TLCollectionAction,
@@ -33,6 +35,7 @@ import {
 	useValue,
 } from 'tldraw'
 import '@tldraw/collections/collections.css'
+import { STARTER_PACKS } from './collections-starter-packs'
 import 'tldraw/tldraw.css'
 
 // Unlisted, like /develop: @tldraw/collections is unreleased, so this page is for building its UI
@@ -146,8 +149,20 @@ const samples = new PlaygroundSource({
 	},
 })
 
+// The samples, then packs shipped with the app under their own owner, which can be copied from.
+const withPacks = new CompositeCollectionSource({
+	id: 'playground-with-packs',
+	parts: [
+		{ source: samples },
+		{
+			owner: { id: 'tldraw', name: 'tldraw' },
+			source: new PackCollectionSource({ packs: STARTER_PACKS }),
+		},
+	],
+})
+
 const SOURCES = {
-	samples,
+	samples: withPacks,
 	empty: new PlaygroundSource({ id: 'playground-empty' }),
 	'one-empty': new PlaygroundSource({
 		id: 'playground-one-empty',
