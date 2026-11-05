@@ -42,7 +42,14 @@ export function AddTargetsMenuItems({
 					))}
 				</div>
 			))}
-			{targets.canCreate && <MenuItem label={msg(messages.newCollection)} onClick={onAddToNew} />}
+			{targets.canCreate && (
+				<>
+					{targets.groups.length > 0 && (
+						<div role="separator" className="tlui-collections-menu__divider" />
+					)}
+					<MenuItem label={msg(messages.newCollection)} onClick={onAddToNew} />
+				</>
+			)}
 		</>
 	)
 }
