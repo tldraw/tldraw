@@ -4,16 +4,15 @@ import {
 	type TLCollection,
 	type TLCollectionAction,
 	type TLCollectionId,
-	type TLCollectionItem,
 	type TLCollectionItemContent,
 	type TLCollectionItemId,
 	type TLNewCollectionItem,
 } from '@tldraw/collections'
 import { openDB, type IDBPDatabase } from 'idb'
 import { atom } from 'tldraw'
+import { nextAddIndex, sortStoredItems, type OrderedStoredItem } from './storedItemOrder'
 
-interface StoredItem {
-	item: TLCollectionItem
+interface StoredItem extends OrderedStoredItem {
 	content: TLCollectionItemContent
 	// Bytes rather than a Blob, which not every IndexedDB stores.
 	thumbnail?: { type: string; data: ArrayBuffer }
@@ -36,6 +35,7 @@ class BrowserCollectionSource implements CollectionSource {
 	private readonly ready: Promise<void>
 	// The in-memory source only releases URLs it created, so these are released here.
 	private readonly loadedThumbnailUrls: string[] = []
+	private nextItemAddIndex = 0
 
 	constructor(userId: string) {
 		this.db = openDB(`tldraw-collections-${userId}`, 1, {
@@ -89,12 +89,14 @@ class BrowserCollectionSource implements CollectionSource {
 	async addItem(collectionId: TLCollectionId, newItem: TLNewCollectionItem) {
 		await this.ready
 		const item = await this.inner.get().addItem(collectionId, newItem)
+		const addIndex = this.nextItemAddIndex++
 		// The object URL dies with the page, so the thumbnail's bytes are saved instead and turned
 		// back into a URL on load.
 		const { thumbnailUrl: _, ...itemToStore } = item
 		const { thumbnail } = newItem
 		const stored: StoredItem = {
 			item: itemToStore,
+			addIndex,
 			content: newItem.content,
 			thumbnail: thumbnail && { type: thumbnail.type, data: await thumbnail.arrayBuffer() },
 		}
@@ -128,7 +130,8 @@ class BrowserCollectionSource implements CollectionSource {
 		const collections: TLCollection[] | undefined = await db.get('state', 'collections')
 		// Nothing saved yet: stay empty.
 		if (!collections) return
-		const stored: StoredItem[] = await db.getAll('items')
+		const stored = sortStoredItems<StoredItem>(await db.getAll('items'))
+		this.nextItemAddIndex = nextAddIndex(stored)
 		const items = stored.map(({ item, thumbnail }) => {
 			if (!thumbnail) return item
 			const thumbnailUrl = URL.createObjectURL(new Blob([thumbnail.data], { type: thumbnail.type }))
