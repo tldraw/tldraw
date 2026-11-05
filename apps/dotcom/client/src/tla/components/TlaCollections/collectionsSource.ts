@@ -19,7 +19,7 @@ import { atom, computed, defineMessages, type Atom } from 'tldraw'
 import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
-	myWorkspace: { defaultMessage: 'My workspace' },
+	privateToYou: { defaultMessage: 'Private to you' },
 })
 
 // Bytes rather than a Blob, which not every IndexedDB stores.
@@ -68,9 +68,9 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 	private readonly owners$ = computed('collection owners', (): TLCollectionOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
-		const homeName = memberships.find((m) => m.groupId === homeId)?.group?.name
+		// The collections UI names the home workspace for who sees it, not by its name.
 		return [
-			{ id: homeId, name: homeName ?? this.app.msg(messages.myWorkspace) },
+			{ id: homeId, name: this.app.msg(messages.privateToYou), private: true },
 			...memberships.flatMap((m) =>
 				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
 			),

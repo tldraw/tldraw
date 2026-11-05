@@ -30,7 +30,7 @@ describe('TldrawAppCollectionsSource', () => {
 	it("lists the user's workspaces as owners, home first, and creates new collections there", async () => {
 		const source = createSource()
 		expect(source.getCollectionOwners()).toEqual([
-			{ id: 'home', name: 'Home' },
+			{ id: 'home', name: 'Private to you', private: true },
 			{ id: 'acme', name: 'Acme' },
 		])
 		expect(source.getDefaultOwnerId()).toBe('home')

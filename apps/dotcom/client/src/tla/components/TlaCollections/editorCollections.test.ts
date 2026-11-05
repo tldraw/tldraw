@@ -73,7 +73,7 @@ describe('getEditorCollections', () => {
 		const { editor, source } = setUp()
 		expect(source.getCollectionOwners?.()).toEqual([
 			{ id: 'file-a', name: 'This board' },
-			{ id: 'home', name: 'Home' },
+			{ id: 'home', name: 'Private to you', private: true },
 		])
 		const collection = await source.createCollection('Board kit', { ownerId: 'file-a' })
 		expect(collection.ownerId).toBe('file-a')
