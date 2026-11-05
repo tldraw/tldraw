@@ -79,6 +79,22 @@ const SAMPLES: {
 		],
 	},
 	{
+		collectionId: WIREFRAMES,
+		name: 'Input',
+		shapes: [
+			geo(0, 0, { w: 200, h: 40 }),
+			geo(12, 8, { w: 120, h: 24, richText: toRichText('Email'), size: 's', color: 'grey' }),
+		],
+	},
+	{
+		collectionId: WIREFRAMES,
+		name: 'Toggle',
+		shapes: [
+			geo(0, 0, { w: 72, h: 36, fill: 'solid', color: 'green' }),
+			geo(40, 4, { geo: 'ellipse', w: 28, h: 28, fill: 'solid', color: 'white' }),
+		],
+	},
+	{
 		collectionId: ICONS,
 		name: 'Star',
 		shapes: [geo(0, 0, { geo: 'star', w: 96, h: 96, fill: 'solid', color: 'yellow' })],

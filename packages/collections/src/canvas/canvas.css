@@ -276,3 +276,41 @@
 	padding: 0px 12px;
 	font-weight: 500;
 }
+
+.tlui-collections-sections {
+	overflow-y: auto;
+}
+
+.tlui-collections-sections .tlui-collections-grid {
+	overflow: visible;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header {
+	border-bottom: none;
+}
+
+.tlui-collections-section__toggle {
+	flex: 0 0 auto;
+}
+
+.tlui-collections-section__name {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	line-height: 40px;
+	font-weight: 500;
+}
+
+.tlui-collections-section__more {
+	padding: 0 8px 8px;
+}
+
+.tlui-collections-section__more > .tlui-button {
+	width: 100%;
+	height: 32px;
+	min-height: 32px;
+	justify-content: center;
+	color: var(--tl-color-text-3);
+}
