@@ -68,21 +68,6 @@ function PackRow({ catalogue, pack }: { catalogue: PackCatalogue; pack: Collecti
 	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
 	return (
 		<li className="tlui-collections-catalogue__pack">
-			<div className="tlui-collections-catalogue__text">
-				<span className="tlui-collections-catalogue__name">{pack.name}</span>
-				<span className="tlui-collections-catalogue__detail">
-					{msg(messages.itemCount, { count: pack.items.length })}
-				</span>
-			</div>
-			<TldrawUiButton
-				type={added ? 'normal' : 'primary'}
-				className="tlui-collections-catalogue__toggle"
-				title={added ? msg(messages.remove) : undefined}
-				onClick={() => (added ? catalogue.removePack(pack.id) : catalogue.addPack(pack.id))}
-			>
-				{added && <TldrawUiButtonIcon icon="check" small />}
-				<TldrawUiButtonLabel>{msg(added ? messages.added : messages.add)}</TldrawUiButtonLabel>
-			</TldrawUiButton>
 			<div className="tlui-collections-catalogue__thumbnails" aria-hidden>
 				{pack.items.slice(0, THUMBNAILS_SHOWN).map((item) => (
 					<span key={item.id} className="tlui-collections-catalogue__thumbnail">
@@ -95,6 +80,23 @@ function PackRow({ catalogue, pack }: { catalogue: PackCatalogue; pack: Collecti
 						)}
 					</span>
 				))}
+			</div>
+			<div className="tlui-collections-catalogue__footer">
+				<div className="tlui-collections-catalogue__text">
+					<span className="tlui-collections-catalogue__name">{pack.name}</span>
+					<span className="tlui-collections-catalogue__detail">
+						{msg(messages.itemCount, { count: pack.items.length })}
+					</span>
+				</div>
+				<TldrawUiButton
+					type={added ? 'normal' : 'primary'}
+					className="tlui-collections-catalogue__toggle"
+					title={added ? msg(messages.remove) : undefined}
+					onClick={() => (added ? catalogue.removePack(pack.id) : catalogue.addPack(pack.id))}
+				>
+					{added && <TldrawUiButtonIcon icon="check" small />}
+					<TldrawUiButtonLabel>{msg(added ? messages.added : messages.add)}</TldrawUiButtonLabel>
+				</TldrawUiButton>
 			</div>
 		</li>
 	)
