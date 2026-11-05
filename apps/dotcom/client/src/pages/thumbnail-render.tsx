@@ -24,7 +24,6 @@ import {
 	TLRecord,
 	TLShapeId,
 	Tldraw,
-	compact,
 	fetch,
 	sleep,
 	useEditor,
@@ -36,6 +35,8 @@ import {
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
 import {
+	getRequestedBounds,
+	getRequestedShapeIds,
 	getThumbnailContentInset,
 	measureShapeForMcp,
 	renderThumbnailPng,
@@ -467,15 +468,6 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 // can see, so a live shared-file snapshot that moved them to another page since the mint gets here.
 export const SHAPES_NOT_ON_PAGE = 'requested shapes are not on the requested page'
 
-// The shapes the token asked for, filtered to those on the current page. Deliberately not a store
-// lookup: `editor.getShape` answers for a shape on any page, and both callers use this to decide
-// what to draw or delete on *this* one. Membership is read from the current page rather than from
-// each shape's `parentId`, which for a shape inside a frame names the frame instead of the page.
-function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
-	const onCurrentPage = editor.getCurrentPageShapeIds()
-	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
-}
-
 // Readies the canvas for a live capture, or refuses the render. Returns false once the error marker
 // is set, which is terminal — the worker's screenshot wait resolves on it.
 //
@@ -526,9 +518,7 @@ function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
 // for the same reason content fits are: autosized text re-measures once web fonts load.
 function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, height: number) {
 	const ids = getRequestedShapeIds(editor, shapeIds)
-	const bounds = ids.length
-		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-		: null
+	const bounds = ids.length ? getRequestedBounds(editor, ids) : null
 	fitBoundsCamera(editor, bounds, width, height)
 }
 

@@ -867,9 +867,9 @@ async function callPageInfoTool(
 	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
 	// 500. Same reason in every tool below.
 	try {
-		// A later page of an answer is served from the index the first page wrote, so it spends nothing
-		// and isn't charged: paging a big board shouldn't use up the budget for reading it. A cursor
-		// that misses the index is charged by readClustering before it measures.
+		// A later page of an answer is usually served from the index the first page wrote, so it spends
+		// nothing and isn't charged: paging a big board shouldn't use up the budget for reading it. A
+		// cursor that misses the index is charged by readClustering before it measures.
 		const refusal =
 			input.cursor === null ? await checkPerUserRateLimit(env, userId, telemetry) : null
 		if (refusal) return refusal
@@ -1178,12 +1178,13 @@ type ClusteringResult =
 // How the three clustering tools get a page's clusters, and the one place that decides whether that
 // costs a browser session.
 //
-// Clustering needs real geometry, and the only way to get it is to run an editor in Browser
-// Rendering — the same cost as a screenshot. But the answer only moves when the board's content
-// moves, so the first tool to measure a page stores it (mcpClusterIndex.ts, keyed by the board's
-// content version) and every later call for the same content is served from that. In the documented
-// drill-down — get_page_info, then get_cluster_info, then get_cluster_screenshot — that is one
-// measure for the first call and none for the rest, where it used to be one each.
+// Clustering needs real geometry, and the only way to get it is to run an editor: the caller's open
+// tab if they have one, otherwise Browser Rendering, at the same cost as a screenshot. But the
+// answer only moves when the board's content moves, so the first tool to measure a page stores it
+// (mcpClusterIndex.ts, keyed by the board's content version) and every later call for the same
+// content is served from that. In the documented drill-down — get_page_info, then get_cluster_info,
+// then get_cluster_screenshot — that is one measure for the first call and none for the rest, where
+// it used to be one each. A tab's measure isn't stored, so with a tab open each miss measures again.
 //
 // A miss falls back to measuring, so nothing here can leave a tool unable to answer: a cache that is
 // empty, stale, unreadable, or was never written because get_page_info was skipped behaves exactly
@@ -1230,8 +1231,7 @@ async function readClustering(
 		if (refusal) return { ok: false, result: refusal }
 	}
 
-	// Ahead of the Browser Run budget, which it doesn't spend. Clustered but never written to the index:
-	// see mcpTabRender.ts for why a tab's answer stops at the caller who asked for it.
+	// Ahead of the Browser Run budget, which it doesn't spend, and never written to the index.
 	const tabMeasurements = await measureInOpenTab(
 		env,
 		resolved.board,
@@ -1429,8 +1429,7 @@ async function renderShapeSetScreenshot(
 			)
 		}
 
-		// Ahead of the guards below, which bound Browser Run, and never written back to the PNG cache:
-		// see mcpTabRender.ts for why a tab's answer stops at the caller who asked for it.
+		// Ahead of the guards below, which bound Browser Run, and never written back to the PNG cache.
 		const tabImage = await captureInOpenTab(
 			env,
 			resolved.board,

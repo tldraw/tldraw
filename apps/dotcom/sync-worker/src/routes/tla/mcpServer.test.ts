@@ -1746,10 +1746,6 @@ describe('cluster index cache', () => {
 	})
 })
 
-// Only the tools that spend Browser Run are limited — get_board_info is not, since it renders
-// nothing. The budgets themselves live in config.ts, and they are per account: the auth layer is
-// what made that identity trustworthy, where the per-IP keys this replaced were evaded by a proxy
-// pool and shared across a NAT.
 describe('rendering in an open tab', () => {
 	const MEASURED_SHAPES = {
 		'shape:page:a-0': { x: 0, y: 0, w: 10, h: 10, text: 'From the tab' },
@@ -1784,8 +1780,8 @@ describe('rendering in an open tab', () => {
 
 	const answerFromTab = (request: { mode: string }): TabRenderOutcome =>
 		request.mode === 'measure'
-			? { outcome: 'measured', shapes: MEASURED_SHAPES }
-			: { outcome: 'captured', base64: 'iVBORw0KGgoTAB' }
+			? { status: 'measured', shapes: MEASURED_SHAPES }
+			: { status: 'captured', base64: 'iVBORw0KGgoTAB' }
 
 	beforeEach(() => {
 		resetFeatureFlagCacheForTests()
@@ -1830,8 +1826,7 @@ describe('rendering in an open tab', () => {
 		])
 	})
 
-	// The caches have no viewer dimension, and a tab's owner can POST anything. If either write landed,
-	// one viewer of a shared board could put words and pictures in front of every other viewer's agent.
+	// The caches have no viewer dimension, and a tab's owner can POST anything.
 	it('never writes what a tab produced to a cache other callers read', async () => {
 		const { env } = makeTabEnv(answerFromTab)
 		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
@@ -1866,10 +1861,11 @@ describe('rendering in an open tab', () => {
 	})
 
 	it.each<[string, TabRenderOutcome]>([
-		['nobody has it open', { outcome: 'no_tab' }],
-		['every tab declined', { outcome: 'declined', reason: 'page_not_current' }],
-		['no tab acknowledged', { outcome: 'ack_timeout' }],
-		['the tab ran out of time', { outcome: 'work_timeout' }],
+		['nobody has it open', { status: 'no_tab' }],
+		['the room would not boot', { status: 'room_timeout' }],
+		['every tab declined', { status: 'declined', reason: 'page_not_current' }],
+		['no tab acknowledged', { status: 'ack_timeout' }],
+		['the tab ran out of time', { status: 'work_timeout' }],
 	])('falls back to Browser Run when %s', async (_name, outcome) => {
 		const { env } = makeTabEnv(() => outcome)
 		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
@@ -1899,8 +1895,8 @@ describe('rendering in an open tab', () => {
 	it('falls back per step: a tab can measure and leave the capture to Browser Run', async () => {
 		const { env } = makeTabEnv((request) =>
 			request.mode === 'measure'
-				? { outcome: 'measured', shapes: MEASURED_SHAPES }
-				: { outcome: 'declined', reason: 'page_not_current' }
+				? { status: 'measured', shapes: MEASURED_SHAPES }
+				: { status: 'declined', reason: 'page_not_current' }
 		)
 		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
 
@@ -1923,7 +1919,6 @@ describe('rendering in an open tab', () => {
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
 	})
 
-	// A published board is a frozen copy; the room behind it holds a different, live document.
 	it('does not ask a tab about a published board', async () => {
 		denyReadAccess()
 		mockPublishedBoard()
@@ -1936,7 +1931,7 @@ describe('rendering in an open tab', () => {
 	})
 
 	it('records how each attempt went, with no board or user identity', async () => {
-		const { env } = makeTabEnv(() => ({ outcome: 'declined', reason: 'page_missing' }))
+		const { env } = makeTabEnv(() => ({ status: 'declined', reason: 'page_missing' }))
 
 		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 
@@ -1946,6 +1941,10 @@ describe('rendering in an open tab', () => {
 	})
 })
 
+// Only the tools that spend Browser Run are limited — get_board_info is not, since it renders
+// nothing. The budgets themselves live in config.ts, and they are per account: the auth layer is
+// what made that identity trustworthy, where the per-IP keys this replaced were evaded by a proxy
+// pool and shared across a NAT.
 describe('rate limits', () => {
 	it('does not limit get_board_info, which spends no Browser Run', async () => {
 		mockPublishedBoard()

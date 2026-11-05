@@ -1,56 +1,62 @@
 import {
-	TLCustomServerEvent,
 	TabRenderDeclineReason,
 	TabRenderReply,
 	TabRenderRequest,
+	TabRenderScreenshotRequest,
+	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import {
 	Box,
 	Editor,
 	FileHelpers,
+	TLFontFace,
 	TLPageId,
 	TLShapeId,
 	clamp,
-	compact,
 	fetch,
 	last,
 	sleep,
 } from 'tldraw'
 import {
+	getRequestedBounds,
+	getRequestedShapeIds,
 	getThumbnailContentInset,
 	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
 
-// Answers MCP tool calls from this tab, so the user's agent doesn't wait on a Browser Run session for
-// something this editor can already work out. See "Rendering in an open tab" in
-// browser-run-thumbnails.md.
+// Answers MCP tool calls from this tab; see "Rendering in an open tab" in browser-run-thumbnails.md.
 //
 // This runs in the tab someone may be drawing in, so it only ever reads: the camera, the current page
 // and the selection stay put, which is why it computes an export frame rather than borrowing the
-// render page's zoom-to-fit. And a job this tab can't answer is declined rather than attempted — the
-// worker has a fallback, and an answer that costs the user a dropped frame is worse than a slow one.
-
-type TabRenderEvent = Extract<TLCustomServerEvent, { type: 'mcp_tab_render' }>
-type CaptureRequest = Extract<TabRenderRequest, { mode: 'screenshot' }>
+// render page's zoom-to-fit. And a job this tab can't answer cheaply is declined rather than
+// attempted — the worker has a fallback, and an answer that costs the user a dropped frame is worse
+// than a slow one.
 
 // Time budget per slice of a measure. Geometry is cached for the page in view, but a first measure of
 // another page lays out all of its text, which on a big page is long enough to be felt.
-const MEASURE_SLICE_MS = 8
+const SLICE_MS = 8
 
 // Well inside the worker's measure timeout: text measured against a fallback font is a slightly wrong
 // answer, and no answer costs the whole Browser Run fallback.
 const FONT_WAIT_MS = 1_500
 
+// An export can't be sliced: it renders every shape in one synchronous flush, on the main thread of a
+// tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
+const MAX_EXPORT_SHAPES = 500
+
+// One at a time, so an agent walking a board's clusters can't stack exports up on the main thread.
+let isExporting = false
+
 export async function answerTabRender(
 	editor: Editor | null,
 	fileId: string,
-	{ jobId, request }: TabRenderEvent
+	{ jobId, request }: TabRenderServerEvent
 ) {
 	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, body)
 
-	const refusal = getRefusal(editor, request)
+	const refusal = editor ? getRefusal(editor, request) : 'editor_not_ready'
 	if (refusal || !editor) {
 		await reply({ status: 'declined', reason: refusal ?? 'editor_not_ready' })
 		return
@@ -59,33 +65,41 @@ export async function answerTabRender(
 	// Not awaited: the ack only has to arrive, and work shouldn't wait on the round trip.
 	void reply({ status: 'accepted' })
 	try {
-		await reply(await doTabRender(editor, request))
+		await reply(
+			request.mode === 'measure'
+				? await measurePage(editor, request.pageId as TLPageId)
+				: await capturePage(editor, request)
+		)
 	} catch (error) {
 		console.error('Could not answer a tab render job', error)
 		await reply({ status: 'declined', reason: 'failed' })
 	}
 }
 
-function getRefusal(
-	editor: Editor | null,
-	request: TabRenderRequest
-): TabRenderDeclineReason | undefined {
-	if (!editor) return 'editor_not_ready'
+function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDeclineReason | undefined {
 	const pageId = request.pageId as TLPageId
 	if (!editor.getPage(pageId)) return 'page_missing'
-	if (request.mode === 'screenshot') {
-		// The export draws from the current page's rendering shapes, and switching a user's page
-		// underneath them to take a picture is not an option.
-		if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
-		if (getShapesOnCurrentPage(editor, request.shapeIds).length === 0) return 'shapes_missing'
-	}
+	if (request.mode === 'measure') return undefined
+
+	// The export draws from the current page's rendering shapes, and switching a user's page underneath
+	// them to take a picture is not an option.
+	if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
+	const ids = getRequestedShapeIds(editor, request.shapeIds)
+	if (ids.length === 0) return 'shapes_missing'
+	if (editor.getShapeAndDescendantIds(ids).size > MAX_EXPORT_SHAPES) return 'too_many_shapes'
+	if (isExporting || editor.inputs.getIsDragging()) return 'busy'
 	return undefined
 }
 
-function doTabRender(editor: Editor, request: TabRenderRequest): Promise<TabRenderReply> {
-	return request.mode === 'measure'
-		? measurePage(editor, request.pageId as TLPageId)
-		: capturePage(editor, request)
+async function forEachInSlices<T>(items: T[], visit: (item: T) => void) {
+	let sliceStart = performance.now()
+	for (const item of items) {
+		if (performance.now() - sliceStart > SLICE_MS) {
+			await yieldToMainThread()
+			sliceStart = performance.now()
+		}
+		visit(item)
+	}
 }
 
 async function measurePage(editor: Editor, pageId: TLPageId): Promise<TabRenderReply> {
@@ -93,44 +107,53 @@ async function measurePage(editor: Editor, pageId: TLPageId): Promise<TabRenderR
 
 	// The editor only loads fonts for the page it's on, and an agent can ask about any of them.
 	// Autosizing text has no correct size until its real font has loaded.
-	const fonts = new Set(ids.flatMap((id) => editor.fonts.getShapeFontFaces(id)))
+	const fonts = new Set<TLFontFace>()
+	await forEachInSlices(ids, (id) => {
+		for (const font of editor.fonts.getShapeFontFaces(id)) fonts.add(font)
+	})
 	await Promise.race([
 		Promise.allSettled([...fonts].map((font) => editor.fonts.ensureFontIsLoaded(font))),
 		sleep(FONT_WAIT_MS),
 	])
 
 	const shapes: Record<string, ThumbnailShapeMeasurement> = {}
-	let sliceStart = performance.now()
-	for (const id of ids) {
-		if (performance.now() - sliceStart > MEASURE_SLICE_MS) {
-			await yieldToMainThread()
-			sliceStart = performance.now()
-		}
+	await forEachInSlices(ids, (id) => {
 		const measured = measureShapeForMcp(editor, id)
 		if (measured) shapes[id] = measured
-	}
+	})
 	return { status: 'measured', shapes }
 }
 
-async function capturePage(editor: Editor, request: CaptureRequest): Promise<TabRenderReply> {
+async function capturePage(
+	editor: Editor,
+	request: TabRenderScreenshotRequest
+): Promise<TabRenderReply> {
 	const { theme, width, height } = request
-	const ids = getShapesOnCurrentPage(editor, request.shapeIds)
+	const ids = getRequestedShapeIds(editor, request.shapeIds)
 	const { bounds, scale } = getExportFrame(editor, ids, width, height)
-	const blob = await renderThumbnailPng(editor, ids, { theme, width, height, bounds, scale })
-	const dataUrl = await FileHelpers.blobToDataUrl(blob)
-	return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
-}
 
-function getShapesOnCurrentPage(editor: Editor, shapeIds: string[]) {
-	const onPage = editor.getCurrentPageShapeIds()
-	return shapeIds.filter((id): id is TLShapeId => onPage.has(id as TLShapeId))
+	isExporting = true
+	try {
+		const startedAt = performance.now()
+		const blob = await renderThumbnailPng(editor, ids, { theme, width, height, bounds, scale })
+		// An export that outlives this delay gives up on the shapes it was waiting for, such as a slow
+		// image, and resolves anyway with a valid PNG of an empty canvas, which the agent would take for
+		// a picture of the board. Nothing in the result gives that away, so the clock has to.
+		if (performance.now() - startedAt >= editor.options.maxExportDelayMs) {
+			return { status: 'declined', reason: 'export_timed_out' }
+		}
+		const dataUrl = await FileHelpers.blobToDataUrl(blob)
+		return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
+	} finally {
+		isExporting = false
+	}
 }
 
 // The rectangle and zoom the render page reaches by calling zoomToBounds on its own disposable
 // camera, worked out without touching this one. The two have to frame alike: the same shapes should
 // read the same whether Browser Run drew them or a tab did.
 function getExportFrame(editor: Editor, ids: TLShapeId[], width: number, height: number) {
-	const shapes = Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
+	const shapes = getRequestedBounds(editor, ids)
 	const inset = getThumbnailContentInset(width, height)
 	const { zoomSteps } = editor.getCameraOptions()
 	const scale = clamp(

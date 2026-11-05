@@ -172,7 +172,7 @@ export function makeFakeFileDurableObjectNamespace(
 	requestTabRender: (
 		userId: string,
 		request: TabRenderRequest
-	) => Promise<TabRenderOutcome> = async () => ({ outcome: 'no_tab' })
+	) => Promise<TabRenderOutcome> = async () => ({ status: 'no_tab' })
 ) {
 	const objects = new Map<string, Map<string, { version: string; payload: string }>>()
 	const calls = { get: 0, put: 0 }

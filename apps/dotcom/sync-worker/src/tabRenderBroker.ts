@@ -1,25 +1,31 @@
-import { TAB_RENDER_DECLINE_REASONS, TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
+import { TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
 
 // Lets an MCP tool borrow a user's open tldraw.com tab instead of starting a Browser Run session.
 // Lives in the file's Durable Object, because that is where the sockets are; see "Rendering in an
-// open tab" in browser-run-thumbnails.md for why it is shaped like this.
+// open tab" in browser-run-thumbnails.md.
 //
-// A job goes to each of the user's live tabs at once and the first answer wins. A tab can stop being
-// able to answer without its socket closing — a laptop lid, a frozen background tab — so a job never
-// waits on one tab being healthy. The ack window is what bounds that: a tab that can answer says so
-// straight away, so the only price of a dead tab is the window, not the whole work timeout.
+// A tab can stop answering without its socket closing, so a job goes to all of a user's live tabs and
+// the first answer wins.
 
 /**
- * How long a tab has to acknowledge a job, and the whole price of a tab that looks alive but isn't.
- * Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be throttled to
- * once a second. Too short and live tabs lose to Browser Run; too long and a dead one taxes every
- * fallback.
+ * How long a tab has to acknowledge a job. This is what a tab that looks alive but isn't costs a
+ * fallback. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
+ * throttled to once a second. Too short and live tabs lose to Browser Run; too long and a dead one
+ * taxes every fallback.
  */
 export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 
 /**
- * How long acknowledged work may run. Both sit well under a Browser Run session, since a timeout here
- * is paid on top of the fallback: past this, the fallback would likely have been faster.
+ * How long a job may wait for the room to boot. An idle tab lets the object hibernate, so the room
+ * usually has to resume first, and a wedged boot would otherwise hang the tool call, which doesn't
+ * depend on the room in any other way.
+ */
+export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
+
+/**
+ * How long work may run once the ack window closes. Both sit well under a Browser Run session, since
+ * a timeout here is paid on top of the fallback: past this, the fallback would likely have been
+ * faster.
  */
 export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
 
@@ -37,52 +43,37 @@ export const MAX_TAB_RENDER_SESSIONS = 3
 export const TAB_RENDER_MAX_PING_AGE_MS = 90_000
 
 export type TabRenderOutcome =
-	| { outcome: 'measured'; shapes: Record<string, unknown> }
-	| { outcome: 'captured'; base64: string }
-	| { outcome: 'no_tab' }
-	| { outcome: 'declined'; reason: string }
-	| { outcome: 'ack_timeout' }
-	| { outcome: 'work_timeout' }
+	| Extract<TabRenderReply, { status: 'measured' | 'captured' | 'declined' }>
+	| { status: 'no_tab' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
 
 export interface TabRenderSocket {
 	sessionId: string
 	userId: string | null
-	canRender: boolean
-	/** When this socket last pinged, or null if it hasn't since connecting. */
-	lastPingAt: number | null
+	/** When this socket last pinged, or connected if it hasn't pinged yet. */
+	lastSeenAt: number
 }
 
-/** The sessions worth sending one user's job to, most recently pinged first. */
+/** The sessions worth sending one user's job to, most recently seen first. */
 export function pickTabRenderSessions(
 	sockets: TabRenderSocket[],
 	userId: string,
 	now: number
 ): string[] {
+	const live = sockets
+		.filter((s) => s.userId === userId && now - s.lastSeenAt <= TAB_RENDER_MAX_PING_AGE_MS)
+		.sort((a, b) => b.lastSeenAt - a.lastSeenAt)
+		.map((s) => s.sessionId)
 	// A superseded socket for a session can linger, so sessions are deduped rather than sockets.
-	const lastPingBySession = new Map<string, number>()
-	for (const socket of sockets) {
-		if (!socket.canRender || socket.userId !== userId) continue
-		// Null is a socket too new to have pinged, which is the opposite of dead.
-		const lastPingAt = socket.lastPingAt ?? now
-		if (now - lastPingAt > TAB_RENDER_MAX_PING_AGE_MS) continue
-		const known = lastPingBySession.get(socket.sessionId)
-		if (known === undefined || lastPingAt > known) {
-			lastPingBySession.set(socket.sessionId, lastPingAt)
-		}
-	}
-	return [...lastPingBySession.entries()]
-		.sort((a, b) => b[1] - a[1])
-		.slice(0, MAX_TAB_RENDER_SESSIONS)
-		.map(([sessionId]) => sessionId)
+	return [...new Set(live)].slice(0, MAX_TAB_RENDER_SESSIONS)
 }
 
-type TabState = 'asked' | 'working' | 'declined'
-
 interface TabRenderJob {
-	/** By job id: each tab gets its own, so a reply can only ever speak for the tab it was sent to. */
-	tabs: Map<string, TabState>
-	ackWindowOpen: boolean
-	lastDeclineReason: string
+	/**
+	 * The tabs that can still answer, by job id. Each tab gets its own id, so a reply can only ever
+	 * speak for the tab it was sent to.
+	 */
+	tabs: Map<string, 'asked' | 'working'>
+	lastDecline?: Extract<TabRenderReply, { status: 'declined' }>
 	finish(outcome: TabRenderOutcome): void
 }
 
@@ -95,15 +86,11 @@ export class TabRenderBroker {
 		request: TabRenderRequest,
 		send: (sessionId: string, jobId: string) => void
 	): Promise<TabRenderOutcome> {
-		if (sessionIds.length === 0) return Promise.resolve({ outcome: 'no_tab' })
-
 		return new Promise((resolve) => {
 			const jobIds: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
 				tabs: new Map(),
-				ackWindowOpen: true,
-				lastDeclineReason: 'failed',
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
@@ -111,22 +98,18 @@ export class TabRenderBroker {
 					resolve(outcome)
 				},
 			}
-			const startWorkTimer = () => {
+			const ackTimer = setTimeout(() => {
+				for (const [jobId, state] of job.tabs) {
+					if (state === 'asked') this.forgetTab(job, jobId)
+				}
+				if (job.tabs.size === 0) {
+					job.finish(job.lastDecline ?? { status: 'ack_timeout' })
+					return
+				}
 				workTimer = setTimeout(
-					() => job.finish({ outcome: 'work_timeout' }),
+					() => job.finish({ status: 'work_timeout' }),
 					TAB_RENDER_WORK_TIMEOUT_MS[request.mode]
 				)
-			}
-			const ackTimer = setTimeout(() => {
-				job.ackWindowOpen = false
-				const tabs = [...job.tabs.values()]
-				if (tabs.includes('working')) {
-					startWorkTimer()
-				} else if (tabs.includes('declined')) {
-					job.finish({ outcome: 'declined', reason: job.lastDeclineReason })
-				} else {
-					job.finish({ outcome: 'ack_timeout' })
-				}
 			}, TAB_RENDER_ACK_TIMEOUT_MS)
 
 			for (const sessionId of sessionIds) {
@@ -139,63 +122,32 @@ export class TabRenderBroker {
 		})
 	}
 
+	private forgetTab(job: TabRenderJob, jobId: string) {
+		job.tabs.delete(jobId)
+		this.jobs.delete(jobId)
+	}
+
+	has(jobId: string) {
+		return this.jobs.has(jobId)
+	}
+
 	/** Whether the reply landed. False for an unknown job id, including one that already finished. */
 	receive(jobId: string, reply: TabRenderReply): boolean {
 		const job = this.jobs.get(jobId)
-		if (!job || job.tabs.get(jobId) === 'declined') return false
+		if (!job) return false
 
 		switch (reply.status) {
 			case 'accepted':
 				job.tabs.set(jobId, 'working')
-				return true
-			case 'declined': {
-				job.tabs.set(jobId, 'declined')
-				job.lastDeclineReason = reply.reason
-				const tabs = [...job.tabs.values()]
-				// Tabs still in `asked` only count while they could yet acknowledge.
-				const stillPossible =
-					tabs.includes('working') || (job.ackWindowOpen && tabs.includes('asked'))
-				if (!stillPossible) job.finish({ outcome: 'declined', reason: reply.reason })
-				return true
-			}
-			case 'measured':
-				job.finish({ outcome: 'measured', shapes: reply.shapes })
-				return true
-			case 'captured':
-				job.finish({ outcome: 'captured', base64: reply.base64 })
-				return true
+				break
+			case 'declined':
+				this.forgetTab(job, jobId)
+				job.lastDecline = reply
+				if (job.tabs.size === 0) job.finish(reply)
+				break
+			default:
+				job.finish(reply)
 		}
-	}
-}
-
-// Plenty for a 1200x630 PNG, and the same bound keeps a measure of a very large page inside what a
-// single RPC can carry.
-export const MAX_TAB_RENDER_REPLY_LENGTH = 16 * 1024 * 1024
-
-// The base64 of the eight byte PNG signature, minus the trailing characters that also encode the
-// bytes after it.
-const PNG_BASE64_PREFIX = 'iVBORw0KGgo'
-
-/** A reply off the wire, or null if it is not one. The body comes from a client, so nothing is assumed. */
-export function parseTabRenderReply(value: unknown): TabRenderReply | null {
-	if (!value || typeof value !== 'object') return null
-	const reply = value as Record<string, unknown>
-	switch (reply.status) {
-		case 'accepted':
-			return { status: 'accepted' }
-		case 'declined':
-			return (TAB_RENDER_DECLINE_REASONS as readonly unknown[]).includes(reply.reason)
-				? (reply as TabRenderReply)
-				: null
-		case 'measured':
-			return reply.shapes && typeof reply.shapes === 'object' && !Array.isArray(reply.shapes)
-				? (reply as TabRenderReply)
-				: null
-		case 'captured':
-			return typeof reply.base64 === 'string' && reply.base64.startsWith(PNG_BASE64_PREFIX)
-				? (reply as TabRenderReply)
-				: null
-		default:
-			return null
+		return true
 	}
 }

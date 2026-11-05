@@ -62,6 +62,7 @@ import {
 	exhaustiveSwitchError,
 	objectMapEntries,
 	retry,
+	sleep,
 } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -124,6 +125,7 @@ import {
 	SnapshotFingerprint,
 } from './snapshotUtils'
 import {
+	TAB_RENDER_ROOM_TIMEOUT_MS,
 	TabRenderBroker,
 	TabRenderOutcome,
 	TabRenderSocket,
@@ -237,9 +239,9 @@ interface SocketAttachment {
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
-	// Whether this client can answer `mcp_tab_render` jobs. Absent on attachments serialized before
-	// the param existed, and on bundles that predate it.
-	canTabRender?: boolean
+	// When a client that can answer `mcp_tab_render` jobs connected, which is what its liveness reads
+	// as until its first ping. Absent for every other socket.
+	tabRenderConnectedAt?: number
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -1132,6 +1134,7 @@ export class TLFileDurableObject extends DurableObject {
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
 		let auth: { userId: string } | null
+		let isWebsiteSession = false
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1146,8 +1149,10 @@ export class TLFileDurableObject extends DurableObject {
 			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
 			// a browser lets a client set there, which keeps it out of the URL that session tokens
 			// still use.
+			const session = await getAuth(req, this.env)
+			isWebsiteSession = !!session
 			auth =
-				(await getAuth(req, this.env)) ??
+				session ??
 				(await getMcpTokenUser(req, this.env, {
 					allowSubprotocolToken: true,
 					allowQueryToken: true,
@@ -1243,7 +1248,8 @@ export class TLFileDurableObject extends DurableObject {
 				isReadonly,
 				objectAccess,
 				clientBuildTimestamp,
-				canTabRender: params[TAB_RENDER_PARAM] === '1',
+				tabRenderConnectedAt:
+					isWebsiteSession && params[TAB_RENDER_PARAM] === '1' ? Date.now() : undefined,
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -3555,30 +3561,38 @@ export class TLFileDurableObject extends DurableObject {
 	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
 	 */
 	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
-		if (!this._documentInfo || this._documentInfo.deleted) return { outcome: 'no_tab' }
+		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 
 		const sockets: TabRenderSocket[] = []
 		for (const ws of this.ctx.getWebSockets()) {
 			const attachment = this.getSocketAttachment(ws)
-			if (!attachment?.sessionId) continue
+			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
 			sockets.push({
 				sessionId: attachment.sessionId,
 				userId: attachment.meta.userId,
-				canRender: attachment.canTabRender === true,
-				lastPingAt: this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ?? null,
+				lastSeenAt:
+					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
+					attachment.tabRenderConnectedAt,
 			})
 		}
 		const sessionIds = pickTabRenderSessions(sockets, userId, Date.now())
-		if (sessionIds.length === 0) return { outcome: 'no_tab' }
+		if (sessionIds.length === 0) return { status: 'no_tab' }
 
-		const room = await this.getRoom()
+		const room = await Promise.race([
+			this.getRoom(),
+			sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null),
+		])
+		if (!room) return { status: 'room_timeout' }
 		return this.tabRenders.dispatch(sessionIds, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
 	}
 
-	/** Hands a tab's reply to the job waiting for it. False when no job is waiting under that id. */
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
+	}
+
 	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
 		return this.tabRenders.receive(jobId, reply)
 	}

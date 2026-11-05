@@ -1,5 +1,14 @@
 import { ThumbnailShapeMeasurement } from '@tldraw/dotcom-shared'
-import { Box, Editor, TLArrowShape, TLShape, TLShapeId, VecLike, getArrowInfo } from 'tldraw'
+import {
+	Box,
+	Editor,
+	TLArrowShape,
+	TLShape,
+	TLShapeId,
+	VecLike,
+	compact,
+	getArrowInfo,
+} from 'tldraw'
 
 // What the MCP tools need from an editor, whichever editor is answering: the render page's throwaway
 // one (pages/thumbnail-render.tsx), or the one in a user's open tab (tla/utils/tabRender.ts). The two
@@ -7,6 +16,19 @@ import { Box, Editor, TLArrowShape, TLShape, TLShapeId, VecLike, getArrowInfo } 
 
 export function getThumbnailContentInset(width: number, height: number) {
 	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
+}
+
+// The shapes a job asked for, filtered to those on the current page. Deliberately not a store lookup:
+// `editor.getShape` answers for a shape on any page, and callers use this to decide what to draw or
+// delete on *this* one. Membership is read from the current page rather than from each shape's
+// `parentId`, which for a shape inside a frame names the frame instead of the page.
+export function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
+	const onCurrentPage = editor.getCurrentPageShapeIds()
+	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
+}
+
+export function getRequestedBounds(editor: Editor, ids: TLShapeId[]) {
+	return Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
 }
 
 /**
