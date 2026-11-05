@@ -20,6 +20,11 @@ const messages = defineMessages({
 	reverse: { id: 'collections.collection-menu.reverse', defaultMessage: 'Reverse order' },
 	move: { id: 'collections.collection-menu.move', defaultMessage: 'Move to' },
 	copy: { id: 'collections.collection-menu.copy', defaultMessage: 'Copy to' },
+	browse: { id: 'collections.collection-menu.browse', defaultMessage: 'Browse collections…' },
+	removeFromPanel: {
+		id: 'collections.collection-menu.remove-from-panel',
+		defaultMessage: 'Remove from panel',
+	},
 })
 
 /** @public */
@@ -65,6 +70,13 @@ export interface CollectionMenuProps {
 	move?: CollectionMenuMove
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: CollectionMenuCopy
+	/**
+	 * "Browse collections…", which opens the catalogue of packs. Offered in a read-only editor too:
+	 * what the panel lists is the user's preference, not part of the document.
+	 */
+	onBrowse?(): void
+	/** "Remove from panel", for an added pack. Offered in a read-only editor too, as is `onBrowse`. */
+	onRemoveFromPanel?(): void
 }
 
 /**
@@ -79,6 +91,8 @@ export function CollectionMenu({
 	sort,
 	move,
 	copy,
+	onBrowse,
+	onRemoveFromPanel,
 }: CollectionMenuProps) {
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
@@ -87,7 +101,18 @@ export function CollectionMenu({
 	const remove = isReadonly ? undefined : onDelete
 	const moveTo = isReadonly ? undefined : move
 	const copyTo = isReadonly ? undefined : copy
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo) return null
+	if (
+		!create &&
+		!rename &&
+		!remove &&
+		!sort &&
+		!moveTo &&
+		!copyTo &&
+		!onBrowse &&
+		!onRemoveFromPanel
+	) {
+		return null
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -109,6 +134,7 @@ export function CollectionMenu({
 			>
 				<TldrawUiDropdownMenuGroup>
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
+					{onBrowse && <MenuItem label={msg(messages.browse)} onClick={onBrowse} />}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
 						<MenuSubmenu id={`${id}-sort`} label={msg(messages.sort)}>
@@ -151,6 +177,9 @@ export function CollectionMenu({
 								/>
 							))}
 						</MenuSubmenu>
+					)}
+					{onRemoveFromPanel && (
+						<MenuItem label={msg(messages.removeFromPanel)} onClick={onRemoveFromPanel} />
 					)}
 					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
 				</TldrawUiDropdownMenuGroup>

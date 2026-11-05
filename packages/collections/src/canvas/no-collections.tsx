@@ -17,6 +17,7 @@ const messages = defineMessages({
 		defaultMessage: 'Select shapes and choose Add to collection to start one.',
 	},
 	create: { id: 'collections.empty-create', defaultMessage: 'New collection' },
+	browse: { id: 'collections.empty-browse', defaultMessage: 'Browse collections' },
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
 	createErrorTitle: {
 		id: 'collections.collection-error.title',
@@ -39,9 +40,12 @@ export type FirstUse = 'message' | 'hint' | 'create'
 export function NoCollections({
 	source,
 	firstUse,
+	onBrowse,
 }: {
 	source: CollectionSource
 	firstUse: FirstUse
+	/** Set to offer a button that opens the catalogue of packs. */
+	onBrowse?(): void
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -69,6 +73,11 @@ export function NoCollections({
 			{canCreate && (
 				<TldrawUiButton type="primary" onClick={create}>
 					<TldrawUiButtonLabel>{msg(messages.create)}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			)}
+			{onBrowse && (
+				<TldrawUiButton type={canCreate ? 'normal' : 'primary'} onClick={onBrowse}>
+					<TldrawUiButtonLabel>{msg(messages.browse)}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			)}
 		</div>

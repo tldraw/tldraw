@@ -12,6 +12,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { copyCollection } from '../lib/copyCollection'
+import type { PackCatalogue } from '../lib/PackCatalogue'
 import type { TLCollection } from '../lib/schema'
 import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
@@ -19,6 +20,7 @@ import { RenameInput } from '../ui/rename-input'
 import type { GroupCollections } from './collection-groups'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { createNewCollection } from './new-collection'
+import { useOpenPackCatalogue } from './pack-catalogue-dialog'
 import { activeCollectionId, renamingCollectionId } from './state'
 import { type SaveSelectionOptions, useSaveSelection } from './use-save-selection'
 
@@ -82,6 +84,8 @@ export interface CollectionsPanelHeaderProps {
 	onClose?(): void
 	/** Whether the header has the "+" that adds the selection. Defaults to true. */
 	addButton?: boolean
+	/** Packs the menu offers to browse, and to remove from the panel when `current` is one. */
+	catalogue?: PackCatalogue
 }
 
 /**
@@ -121,13 +125,16 @@ export function CollectionsPanelHeader({
 	title = false,
 	onClose,
 	addButton = true,
+	catalogue,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const { saveSelection } = useSaveSelection(source, saving)
+	const openCatalogue = useOpenPackCatalogue(catalogue)
 	const currentId = current?.id
+	const packId = currentId === undefined ? undefined : catalogue?.getPackId(currentId)
 	const renaming = useValue(
 		'renaming collection',
 		() => currentId !== undefined && renamingCollectionId.get(editor) === currentId,
@@ -227,6 +234,10 @@ export function CollectionsPanelHeader({
 		<CollectionMenu
 			id={`collections-collection-menu-${currentId ?? 'panel'}`}
 			onCreate={can.create && !onToggleCollapsed ? createCollection : undefined}
+			onBrowse={onToggleCollapsed ? undefined : openCatalogue}
+			onRemoveFromPanel={
+				catalogue && packId !== undefined ? () => catalogue.removePack(packId) : undefined
+			}
 			onRename={can.rename ? startRenaming : undefined}
 			onDelete={can.delete ? deleteCollection : undefined}
 			sort={sort}

@@ -11,6 +11,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import type { PackCatalogue } from '../lib/PackCatalogue'
 import type { TLCollection, TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { CollectionList } from '../ui/collection-list'
 import { CollectionPicker } from '../ui/collection-picker'
@@ -38,6 +39,7 @@ import {
 } from './item-order'
 import { itemMatches, type ItemSearch } from './item-search'
 import { NoCollections, type FirstUse } from './no-collections'
+import { useOpenPackCatalogue } from './pack-catalogue-dialog'
 import { placeCollectionItem, type PlaceItemOptions } from './place-item'
 import { activeCollectionId, collapsedCollectionIds, collectionsPanelOpen } from './state'
 import type { AddToCollectionOrder } from './use-add-targets'
@@ -138,6 +140,12 @@ export interface CollectionsPanelProps {
 	 * the rest. Defaults to 2. Pass `Infinity` to show every item.
 	 */
 	sectionRows?: number
+	/**
+	 * Packs users can add to the panel: the panel's ⋯ menu and its empty state offer "Browse
+	 * collections", and each added pack's ⋯ menu offers "Remove from panel". Usually a
+	 * {@link PackCollectionSource} that is also part of `source`, so added packs are listed.
+	 */
+	catalogue?: PackCatalogue
 }
 
 /**
@@ -165,8 +173,10 @@ export function CollectionsPanel({
 	addMenuOrder = 'source',
 	emptyCollection = 'message',
 	sectionRows = 2,
+	catalogue,
 }: CollectionsPanelProps) {
 	const editor = useEditor()
+	const openCatalogue = useOpenPackCatalogue(catalogue)
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
@@ -287,7 +297,7 @@ export function CollectionsPanel({
 		}
 		if (navigation === 'sections') {
 			if (collections.length === 0) {
-				return <NoCollections source={source} firstUse={firstUse} />
+				return <NoCollections source={source} firstUse={firstUse} onBrowse={openCatalogue} />
 			}
 			return (
 				<div className="tlui-collections-sections">
@@ -308,6 +318,7 @@ export function CollectionsPanel({
 											collapsed={isCollapsed}
 											addButton={addControl === 'header'}
 											sort={sortFor(collection.id)}
+											catalogue={catalogue}
 											onToggleCollapsed={() =>
 												collapsedCollectionIds.update(editor, (ids) =>
 													isCollapsed
@@ -366,7 +377,7 @@ export function CollectionsPanel({
 		}
 		if (navigation === 'previews') {
 			if (collections.length === 0) {
-				return <NoCollections source={source} firstUse={firstUse} />
+				return <NoCollections source={source} firstUse={firstUse} onBrowse={openCatalogue} />
 			}
 			return (
 				<div className="tlui-collections-sections">
@@ -392,7 +403,7 @@ export function CollectionsPanel({
 		}
 		if (navigation === 'list') {
 			if (collections.length === 0) {
-				return <NoCollections source={source} firstUse={firstUse} />
+				return <NoCollections source={source} firstUse={firstUse} onBrowse={openCatalogue} />
 			}
 			return (
 				<div className="tlui-collections-sections">
@@ -413,7 +424,7 @@ export function CollectionsPanel({
 				</div>
 			)
 		}
-		return <NoCollections source={source} firstUse={firstUse} />
+		return <NoCollections source={source} firstUse={firstUse} onBrowse={openCatalogue} />
 	}
 
 	return (
@@ -443,6 +454,7 @@ export function CollectionsPanel({
 					title={header === 'title'}
 					onClose={header === 'title' ? () => collectionsPanelOpen.set(editor, false) : undefined}
 					addButton={addControl === 'header'}
+					catalogue={catalogue}
 				/>
 				{header === 'title' && navigation === 'picker' && current && (
 					<div className="tlui-collections-panel__picker">
