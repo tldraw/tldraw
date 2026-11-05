@@ -10,7 +10,8 @@ packages:
 autoInstallPeers: false
 
 # Deduplicate on every install that writes the lockfile, so `pnpm dedupe --check` in CI passes
-# without a manual `pnpm dedupe`.
+# without a manual `pnpm dedupe`. When the duplicate is also a peer of another dependency, it
+# takes a second `pnpm install`.
 autoDedupe: true
 
 # Don't run third-party dependency build/install scripts by default. Packages that genuinely
