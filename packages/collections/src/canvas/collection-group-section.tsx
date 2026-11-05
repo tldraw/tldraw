@@ -1,12 +1,40 @@
 import type { ReactNode } from 'react'
-import { TldrawUiIcon, useEditor, useValue } from 'tldraw'
+import {
+	defineMessages,
+	getIncrementedName,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	TldrawUiIcon,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { CollectionGroup } from './collection-groups'
-import { collapsedGroupKeys } from './state'
+import { createNewCollection } from './new-collection'
+import { activeCollectionId, collapsedGroupKeys, renamingCollectionId } from './state'
+
+const messages = defineMessages({
+	newCollectionIn: {
+		id: 'collections.group.new-collection',
+		defaultMessage: 'New collection in {name}',
+	},
+	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	changeErrorTitle: {
+		id: 'collections.collection-error.title',
+		defaultMessage: "Couldn't change collections",
+	},
+	changeErrorDescription: {
+		id: 'collections.collection-error.description',
+		defaultMessage: 'You may not be allowed to, or the collection no longer exists.',
+	},
+})
 
 /**
- * A named group of collections under a heading that folds it shut. An unnamed group has no heading
- * and shows its collections as they are.
+ * A named group of collections under a heading that folds it shut. When the group is an owner that
+ * takes new collections, the heading also has a "+" that creates one there. An unnamed group has no
+ * heading and shows its collections as they are.
  */
 export function CollectionGroupSection({
 	source,
@@ -18,23 +46,50 @@ export function CollectionGroupSection({
 	children: ReactNode
 }) {
 	const editor = useEditor()
+	const msg = useTranslation()
+	const { addToast } = useToasts()
 	const { key, label } = group
 	const collapsed = useValue(
 		'collection group collapsed',
 		() => key !== undefined && (collapsedGroupKeys.get(editor)[source.id] ?? []).includes(key),
 		[editor, source, key]
 	)
+	const canCreate = useValue(
+		'group can create',
+		() => {
+			const owner = source.getCollectionOwners?.().find((o) => o.id === key)
+			return owner !== undefined && !owner.readOnly && source.can('createCollection')
+		},
+		[source, key]
+	)
 
 	if (key === undefined || !label) return <>{children}</>
 
-	const toggle = () =>
+	const setCollapsed = (shut: boolean) =>
 		collapsedGroupKeys.update(editor, (all) => {
-			const keys = all[source.id] ?? []
-			return {
-				...all,
-				[source.id]: collapsed ? keys.filter((k) => k !== key) : [...keys, key],
-			}
+			const keys = (all[source.id] ?? []).filter((k) => k !== key)
+			return { ...all, [source.id]: shut ? [...keys, key] : keys }
 		})
+
+	const createCollection = () => {
+		const name = getIncrementedName(
+			msg(messages.newCollectionName),
+			source.getCollections().map((collection) => collection.name)
+		)
+		createNewCollection(source, name, key).then(
+			(collection) => {
+				setCollapsed(false)
+				activeCollectionId.set(editor, collection.id)
+				renamingCollectionId.set(editor, collection.id)
+			},
+			() =>
+				addToast({
+					title: msg(messages.changeErrorTitle),
+					description: msg(messages.changeErrorDescription),
+					severity: 'error',
+				})
+		)
+	}
 
 	return (
 		<section className="tlui-collections-group" aria-label={label}>
@@ -43,11 +98,22 @@ export function CollectionGroupSection({
 					type="button"
 					className="tlui-collections-group__toggle"
 					aria-expanded={!collapsed}
-					onClick={toggle}
+					onClick={() => setCollapsed(!collapsed)}
 				>
 					<span className="tlui-collections-group__label">{label}</span>
 					<TldrawUiIcon icon="chevron-down" label="" small className="tlui-collections-chevron" />
 				</button>
+				{canCreate && (
+					<TldrawUiButton
+						type="icon"
+						className="tlui-collections-group__add"
+						tooltip={msg(messages.newCollectionIn, { name: label })}
+						title={msg(messages.newCollectionIn, { name: label })}
+						onClick={createCollection}
+					>
+						<TldrawUiButtonIcon icon="plus" small />
+					</TldrawUiButton>
+				)}
 			</h3>
 			{!collapsed && children}
 		</section>

@@ -260,7 +260,9 @@
 	top: 0;
 	z-index: 2;
 	height: var(--tlui-collections-group-heading-height);
-	padding: 0;
+	display: flex;
+	align-items: center;
+	padding: 0 4px 0 0;
 	background: var(--tl-color-panel);
 }
 
@@ -270,7 +272,8 @@
 	display: flex;
 	align-items: center;
 	gap: 2px;
-	width: 100%;
+	flex: 1;
+	min-width: 0;
 	height: 100%;
 	padding: 0 12px;
 	cursor: pointer;
@@ -284,6 +287,20 @@
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: -2px;
 	border-radius: var(--tl-radius-2);
+}
+
+/* Centred under the ⋯ of the collection headers below it. */
+.tlui-collections-group__add.tlui-button {
+	flex-shrink: 0;
+	height: 24px;
+	min-width: 24px;
+	width: 24px;
+	padding: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-group__add.tlui-button::after {
+	inset: 2px;
 }
 
 .tlui-collections-group__label {
