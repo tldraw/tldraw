@@ -1,5 +1,13 @@
-import { defineMessages, TldrawUiMenuGroup, TldrawUiMenuSubmenu, useEditor, useValue } from 'tldraw'
+import {
+	defineMessages,
+	TldrawUiDropdownMenuGroup,
+	TldrawUiMenuGroup,
+	TldrawUiMenuSubmenu,
+	useEditor,
+	useValue,
+} from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { InContextMenu } from '../ui/menu-items'
 import { AddTargetsMenuItems } from './add-targets-menu-items'
 import type { CollectionGrouping } from './collection-groups'
 import { type AddToCollectionOrder, useAddTargets } from './use-add-targets'
@@ -44,11 +52,15 @@ export function AddToCollectionMenuItem({
 	return (
 		<TldrawUiMenuGroup id="collections">
 			<TldrawUiMenuSubmenu id="add-to-collection" label={messages.addToCollection.id}>
-				<AddTargetsMenuItems
-					targets={targets}
-					onAdd={saveSelection}
-					onAddToNew={saveToNewCollection}
-				/>
+				<InContextMenu>
+					<TldrawUiDropdownMenuGroup className="tlui-collections-menu__submenu">
+						<AddTargetsMenuItems
+							targets={targets}
+							onAdd={saveSelection}
+							onAddToNew={saveToNewCollection}
+						/>
+					</TldrawUiDropdownMenuGroup>
+				</InContextMenu>
 			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>
 	)
