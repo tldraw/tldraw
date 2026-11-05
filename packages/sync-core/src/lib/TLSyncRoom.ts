@@ -277,7 +277,7 @@ export function composeBeforeWrite<R extends UnknownRecord, SessionMeta>(
 
 /**
  * @deprecated Use `TLBeforeWriteHook` instead. Returns `null` to reject.
- * @internal
+ * @public
  */
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 	args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]
@@ -285,7 +285,7 @@ export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (
 
 /**
  * @deprecated Use `TLBeforeWriteHooks` instead.
- * @internal
+ * @public
  */
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 	// oxlint-disable-next-line typescript/no-deprecated

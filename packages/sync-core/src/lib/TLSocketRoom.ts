@@ -164,7 +164,6 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 	/**
 	 * @deprecated Use `beforeWrite`. Setting both throws.
-	 * @internal
 	 */
 	// oxlint-disable-next-line typescript/no-deprecated
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
