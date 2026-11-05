@@ -4,9 +4,9 @@ import {
 	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
-	TldrawUiMenuContextProvider,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -48,19 +48,20 @@ export function AddSelectionBar({ source }: { source: CollectionSource }) {
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
 				<TldrawUiDropdownMenuContent
-					className="tlui-collections-add-menu"
+					className="tlui-collections-menu tlui-collections-add-menu"
 					side="bottom"
 					align="start"
 					sideOffset={4}
-					alignOffset={0}
+					alignOffset={-4}
+					collisionPadding={4}
 				>
-					<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+					<TldrawUiDropdownMenuGroup>
 						<AddTargetsMenuItems
 							targets={targets}
 							onAdd={saveSelection}
 							onAddToNew={saveToNewCollection}
 						/>
-					</TldrawUiMenuContextProvider>
+					</TldrawUiDropdownMenuGroup>
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiDropdownMenuRoot>
 		</div>

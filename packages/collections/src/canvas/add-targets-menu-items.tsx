@@ -1,5 +1,6 @@
-import { defineMessages, TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
 import type { TLCollectionId } from '../lib/schema'
+import { MenuItem } from '../ui/menu-items'
 import type { AddTargets } from './use-add-targets'
 
 const messages = defineMessages({
@@ -11,7 +12,7 @@ const messages = defineMessages({
 
 /**
  * The collections the selection can be added to, then a new collection when the source allows
- * creating one, each in its own group. Renders as whichever menu it is placed in.
+ * creating one.
  */
 export function AddTargetsMenuItems({
 	targets,
@@ -22,30 +23,17 @@ export function AddTargetsMenuItems({
 	onAdd(collectionId: TLCollectionId): void
 	onAddToNew(): void
 }) {
+	const msg = useTranslation()
 	return (
 		<>
-			{targets.collections.length > 0 && (
-				<TldrawUiMenuGroup id="add-to-collection-targets">
-					{targets.collections.map((collection) => (
-						<TldrawUiMenuItem
-							key={collection.id}
-							id={`add-to-collection-${collection.id}`}
-							label={collection.name}
-							onSelect={() => onAdd(collection.id)}
-						/>
-					))}
-				</TldrawUiMenuGroup>
-			)}
-			{targets.canCreate && (
-				<TldrawUiMenuGroup id="add-to-new-collection">
-					<TldrawUiMenuItem
-						id="add-to-new-collection"
-						label={messages.newCollection.id}
-						iconLeft="plus"
-						onSelect={onAddToNew}
-					/>
-				</TldrawUiMenuGroup>
-			)}
+			{targets.collections.map((collection) => (
+				<MenuItem
+					key={collection.id}
+					label={collection.name}
+					onClick={() => onAdd(collection.id)}
+				/>
+			))}
+			{targets.canCreate && <MenuItem label={msg(messages.newCollection)} onClick={onAddToNew} />}
 		</>
 	)
 }
