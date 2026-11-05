@@ -388,9 +388,15 @@ export async function unflattenImages(
 	editor: Editor,
 	shapeIds: TLShapeId[]
 ): Promise<TLUnflattenResult> {
-	const images = compact(shapeIds.map((id) => editor.getShape(id))).filter((shape) =>
-		isFlattenedImage(editor, shape)
-	)
+	// The put and the shape limit work on the current page
+	function canUnflattenNow(shape: TLShape | undefined): shape is TLImageShape {
+		return (
+			!!shape &&
+			isFlattenedImage(editor, shape) &&
+			editor.getAncestorPageId(shape) === editor.getCurrentPageId()
+		)
+	}
+	const images = compact(shapeIds.map((id) => editor.getShape(id))).filter(canUnflattenNow)
 
 	let error: Extract<TLUnflattenResult, { type: 'error' }>['reason'] | null = null
 	const restorable: { image: TLImageShape; source: TLFlattenSource }[] = []
@@ -425,9 +431,10 @@ export async function unflattenImages(
 	const selectionAtStart = editor.getSelectedShapeIds()
 
 	for (const { source, image: imageAtStart } of restorable) {
-		// The image may have been deleted or changed by a collaborator while we fetched
-		const image = editor.getShape<TLImageShape>(imageAtStart.id)
-		if (!image || !canRestoreFlattenSource(image, source)) {
+		// The image may have been deleted, locked or changed while we fetched
+		const image = editor.getShape(imageAtStart.id)
+		if (!canUnflattenNow(image)) continue
+		if (!canRestoreFlattenSource(image, source)) {
 			error ??= 'transformed'
 			continue
 		}

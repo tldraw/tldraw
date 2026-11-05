@@ -525,6 +525,38 @@ describe('unflattenImages', () => {
 		expect(savedAsset.props.src).toMatch(/^data:/)
 	})
 
+	it('skips an image that was locked while its shapes were loading', async () => {
+		const imageId = await flattenBoxes()
+
+		const result = unflattenImages(editor, [imageId])
+		editor.toggleLock([imageId])
+		await result
+
+		expect(editor.getShape(imageId)).toBeDefined()
+		expect(getRestoredBoxes()).toEqual([])
+	})
+
+	it('skips an image that was deleted while its shapes were loading', async () => {
+		const imageId = await flattenBoxes()
+
+		const result = unflattenImages(editor, [imageId])
+		editor.deleteShapes([imageId])
+
+		expect(await result).toEqual({ type: 'success', shapeIds: [] })
+		expect(getRestoredBoxes()).toEqual([])
+	})
+
+	it('ignores images on another page', async () => {
+		const imageId = await flattenBoxes()
+		editor.createPage({ name: 'other' })
+		editor.setCurrentPage(editor.getPages()[1].id)
+
+		await unflattenImages(editor, [imageId])
+
+		expect(editor.getShape(imageId)).toBeDefined()
+		expect(editor.getCurrentPageShapes()).toEqual([])
+	})
+
 	it('can be undone in one step', async () => {
 		const imageId = await flattenBoxes()
 		editor.markHistoryStoppingPoint()
