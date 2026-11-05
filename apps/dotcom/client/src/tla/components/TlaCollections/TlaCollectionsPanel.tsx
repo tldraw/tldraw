@@ -10,7 +10,7 @@ export function TlaCollectionsPanel({ fileId }: { fileId: string }) {
 		return () => source.setOpenFileId(undefined)
 	}, [source, fileId])
 	if (!source) return null
-	return <CollectionsPanel source={source} side="right" />
+	return <CollectionsPanel source={source} catalogue={source.packs} side="right" />
 }
 
 export function TlaAddToCollectionMenuItem() {

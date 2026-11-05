@@ -299,7 +299,10 @@ export class TldrawApp {
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		if (flags.collections?.enabled) {
-			const collections = new TldrawAppCollectionsWithPacks(new TldrawAppCollectionsSource(this))
+			const collections = new TldrawAppCollectionsWithPacks(
+				new TldrawAppCollectionsSource(this),
+				this.userId
+			)
 			this.collections = collections
 			this.disposables.push(() => collections.dispose())
 		} else {
