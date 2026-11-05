@@ -1,5 +1,6 @@
-import { defineMessages, TldrawUiMenuGroup, TldrawUiMenuItem } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
 import type { TLCollectionId } from '../lib/schema'
+import { MenuItem } from '../ui/menu-items'
 import type { AddTargets } from './use-add-targets'
 
 const messages = defineMessages({
@@ -10,8 +11,8 @@ const messages = defineMessages({
 })
 
 /**
- * The collections the selection can be added to, a group per heading, then a new collection when
- * the source allows creating one. Renders as whichever menu it is placed in.
+ * The collections the selection can be added to, under their group's heading, then a new
+ * collection when the source allows creating one.
  */
 export function AddTargetsMenuItems({
 	targets,
@@ -22,37 +23,26 @@ export function AddTargetsMenuItems({
 	onAdd(collectionId: TLCollectionId): void
 	onAddToNew(): void
 }) {
+	const msg = useTranslation()
 	return (
 		<>
 			{targets.groups.map((group, index) => (
-				<TldrawUiMenuGroup key={group.label ?? index} id={`add-to-collection-targets-${index}`}>
-					{/* Menu groups can't show a heading, and context menus hide disabled items, so a plain
-					    element is the heading; keyboard navigation passes over it. */}
+				<div key={group.label ?? index} role="group" aria-label={group.label}>
 					{group.label && (
 						<div className="tlui-collections-menu-heading" role="presentation">
 							{group.label}
 						</div>
 					)}
 					{group.collections.map((collection) => (
-						<TldrawUiMenuItem
+						<MenuItem
 							key={collection.id}
-							id={`add-to-collection-${collection.id}`}
 							label={collection.name}
-							onSelect={() => onAdd(collection.id)}
+							onClick={() => onAdd(collection.id)}
 						/>
 					))}
-				</TldrawUiMenuGroup>
+				</div>
 			))}
-			{targets.canCreate && (
-				<TldrawUiMenuGroup id="add-to-new-collection">
-					<TldrawUiMenuItem
-						id="add-to-new-collection"
-						label={messages.newCollection.id}
-						iconLeft="plus"
-						onSelect={onAddToNew}
-					/>
-				</TldrawUiMenuGroup>
-			)}
+			{targets.canCreate && <MenuItem label={msg(messages.newCollection)} onClick={onAddToNew} />}
 		</>
 	)
 }
