@@ -7,6 +7,8 @@ import {
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
 	CLUSTER_INFO_MAX_CHARS,
+	PAGE_INFO_MAX_CHARS,
+	parsePageInfoInput,
 	ShapeMeasurement,
 	clusterPage,
 	compareBoardSearchOrder,
@@ -1076,7 +1078,7 @@ describe('getPageInfo', () => {
 
 		expect(JSON.parse(block.text)).toEqual({
 			name: 'Cover',
-			bounds: { x: 0, y: 0, w: 20100.5, h: 9050 },
+			bounds: { x: 0, y: 0, w: 20101, h: 9050 },
 			clusterCount: 3,
 			clusters: [
 				// Joined through the arrow's bindings, at a distance proximity would never bridge.
@@ -1085,7 +1087,7 @@ describe('getPageInfo', () => {
 					label: 'Start',
 					keywords: ['start'],
 					numberOfShapes: 3,
-					bounds: { x: 0.4, y: 0, w: 20100.1, h: 110.6 },
+					bounds: { x: 0, y: 0, w: 20100, h: 111 },
 				},
 				{
 					id: expect.stringMatching(/^cluster:/),
@@ -1118,5 +1120,79 @@ describe('getPageInfo', () => {
 		expect(info.clusters.map((c: { numberOfShapes: number }) => c.numberOfShapes)).toEqual([
 			3, 1, 1,
 		])
+	})
+
+	describe('paging', () => {
+		const selector = { kind: 'ordinal', ordinal: 0 } as const
+		const page = resolvePage(snapshot, selector)
+		if (!page.ok) throw new Error('Expected the page to resolve')
+
+		// Sizes run small to large, so the answer can only be largest first by sorting.
+		const clusters = Array.from({ length: 800 }, (_, i) => ({
+			id: `cluster:${i}`,
+			label: `Cluster ${i}`,
+			keywords: ['one', 'two', 'three', 'four', 'five'],
+			numberOfShapes: i + 1,
+			shapes: [],
+		}))
+		const bounds = Object.fromEntries(
+			clusters.map((c, i) => [c.id, { x: i + 0.4, y: 0, w: 100.6, h: 100 }])
+		)
+		const clustering = { clusters, bounds, arrows: {}, dimensions: {} } as any
+
+		function readAllAnswers() {
+			const answers = []
+			let offset = 0
+			for (;;) {
+				const block = getPageInfo(page as any, clustering, { selector, offset }).content[0]
+				if (block.type !== 'text') throw new Error('Expected a text block')
+				const answer = JSON.parse(block.text)
+				answers.push(answer)
+				if (!answer.nextCursor) return answers
+				const { cursor } = parsePageInfoInput({ boardId: 'abc', cursor: answer.nextCursor })
+				offset = cursor as number
+			}
+		}
+
+		it('splits a large page into answers that fit, without losing a cluster', () => {
+			const answers = readAllAnswers()
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				expect(JSON.stringify(answer.clusters).length).toBeLessThan(PAGE_INFO_MAX_CHARS + 2)
+			}
+			const ids = answers.flatMap((a) => a.clusters.map((c: { id: string }) => c.id))
+			expect(new Set(ids).size).toBe(800)
+		})
+
+		it('leads with the largest clusters, across answers', () => {
+			const sizes = readAllAnswers().flatMap((a) =>
+				a.clusters.map((c: { numberOfShapes: number }) => c.numberOfShapes)
+			)
+			expect(sizes).toEqual([...sizes].sort((a, b) => b - a))
+			expect(sizes[0]).toBe(800)
+		})
+
+		it('repeats the page totals on every answer', () => {
+			for (const answer of readAllAnswers()) {
+				expect(answer.name).toBe('Cover')
+				expect(answer.clusterCount).toBe(800)
+				expect(answer.bounds).toEqual({ x: 0, y: 0, w: 900, h: 100 })
+			}
+		})
+
+		it('answers an offset past the end with no clusters and no cursor', () => {
+			const block = getPageInfo(page, clustering, { selector, offset: 5000 }).content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			const answer = JSON.parse(block.text)
+			expect(answer.clusters).toEqual([])
+			expect(answer.nextCursor).toBeUndefined()
+		})
+
+		it('still returns a cluster larger than the limit on its own', () => {
+			const huge = { ...clusters[0], label: 'x'.repeat(PAGE_INFO_MAX_CHARS * 2) }
+			const block = getPageInfo(page, { ...clustering, clusters: [huge, clusters[1]] }).content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			expect(JSON.parse(block.text).clusters).toHaveLength(1)
+		})
 	})
 })
