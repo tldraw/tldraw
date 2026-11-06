@@ -36,8 +36,8 @@ export function createCanvasOpsReceiver(editor: Editor) {
 
 		/**
 		 * Apply ops as they arrive for stream `id`. The first call opens the stream; pass `finish`
-		 * with the last ops to close it. A stream nobody finishes closes after
-		 * `STREAM_IDLE_TIMEOUT_MS` without a chunk.
+		 * with the last ops to close it. A stream nobody finishes is finished (and so squashed into
+		 * one undo step) after `STREAM_IDLE_TIMEOUT_MS` without a chunk.
 		 */
 		async streamOps(
 			id: string,
@@ -50,7 +50,10 @@ export function createCanvasOpsReceiver(editor: Editor) {
 				let entry = streams.get(id)
 				if (entry) editor.timers.clearTimeout(entry.idle)
 				const apply = entry?.apply ?? createOpsStream(editor, parseAttribution(attribution))
-				entry = { apply, idle: editor.timers.setTimeout(() => close(id), STREAM_IDLE_TIMEOUT_MS) }
+				const idle = editor.timers.setTimeout(() => {
+					void apply([], true).finally(() => close(id))
+				}, STREAM_IDLE_TIMEOUT_MS)
+				entry = { apply, idle }
 				streams.set(id, entry)
 				return await apply(parsed, finish)
 			} finally {

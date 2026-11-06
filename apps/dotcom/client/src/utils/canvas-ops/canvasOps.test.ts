@@ -439,16 +439,15 @@ describe('batches and streams', () => {
 		])
 	})
 
-	it('makes each stream chunk its own undo step, so user edits between chunks stay separate', async () => {
+	it('squashes a whole stream into one undo step', async () => {
+		seedDiagram()
+		const before = editor.getCurrentPageShapeIds()
 		const stream = createOpsStream(editor, { runId: 'run' })
-		await stream([{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 0 } }], false)
-		editor.markHistoryStoppingPoint('user')
-		editor.createShape({ id: id('mine'), type: 'geo', x: 500, y: 500 })
-		await stream([{ op: 'add', kind: 'box', text: 'B', id: 'b', at: { x: 0, y: 200 } }], true)
+		await stream([{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 700 } }], false)
+		editor.markHistoryStoppingPoint('something else')
+		await stream([{ op: 'add', kind: 'box', text: 'B', id: 'b', at: { x: 300, y: 700 } }], true)
 		editor.undo()
-		expect(
-			[editor.getShape(id('a')), editor.getShape(id('mine')), editor.getShape(id('b'))].map(Boolean)
-		).toEqual([true, true, false])
+		expect(editor.getCurrentPageShapeIds()).toEqual(before)
 	})
 
 	it('keeps { created } refs to the shapes this run made', async () => {
