@@ -220,6 +220,11 @@ export interface TLPushRequest<R extends UnknownRecord> {
 	diff?: NetworkDiff<R>
 	/** A named command. A push carries a diff (the edit lane) or a command, never both. */
 	command?: TLCommandCall
+	/**
+	 * A client-made id for the command. A client sends a command again after a reconnect; the
+	 * server skips an id it has already applied, so a command never applies twice.
+	 */
+	commandId?: string
 	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 }
 

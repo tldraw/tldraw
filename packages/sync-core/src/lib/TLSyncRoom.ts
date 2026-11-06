@@ -367,6 +367,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly commands?: TLCommandSet<R>
+	/** Recent command ids, oldest first. In memory only: a restarted room forgets them. */
+	private readonly appliedCommandIds = new Set<string>()
 	private readonly sessionIdleTimeout: number
 
 	/**
@@ -1512,7 +1514,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		if (message.command) {
-			this.handleCommandPush(session, message.clientClock, message.command)
+			this.handleCommandPush(session, message.clientClock, message.command, message.commandId)
 			return
 		}
 
@@ -2014,9 +2016,22 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private handleCommandPush(
 		session: RoomSession<R, SessionMeta> | null,
 		clientClock: number,
-		call: TLCommandCall
+		call: TLCommandCall,
+		commandId?: string
 	) {
 		if (session && session.state !== RoomSessionState.Connected) return
+		if (commandId && this.appliedCommandIds.has(commandId)) {
+			// sent again after a reconnect; the client already has its effects from the hydration
+			if (session) {
+				this._unsafe_sendMessage(session.sessionId, {
+					type: 'push_result',
+					clientClock,
+					serverClock: this.lastDocumentClock,
+					action: 'discard',
+				})
+			}
+			return
+		}
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 		const actor = session?.actor ?? SERVER_ACTOR
 		const set = this.commands
@@ -2099,6 +2114,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					serverClock: documentClock,
 					action: { rebaseWithDiff: migrated.value },
 				})
+			}
+		}
+		if (commandId) {
+			this.appliedCommandIds.add(commandId)
+			if (this.appliedCommandIds.size > 10_000) {
+				this.appliedCommandIds.delete(this.appliedCommandIds.values().next().value!)
 			}
 		}
 		this.trackOwnWrites(session, result.diff)

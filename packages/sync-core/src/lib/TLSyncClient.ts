@@ -750,11 +750,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	runCommand(name: string, args: unknown): TLCommandResult<R> {
 		if (!this.commands) throw new Error('This sync client has no commands')
-		if (!this.isConnectedToRoom) return { ok: false, reason: 'offline' }
 		const call: TLCommandCall = { name, args }
 		// Send edits made before this command first, so the server sees them in order.
 		this.store._flushHistory()
 		this.flushUnsentChanges()
+		if (!this.isConnectedToRoom && this.offlineChanges) {
+			// keep the order: offline edits so far, then this command
+			this.replay.push(...this.takeOfflineChanges())
+		}
 
 		const result = runCommand(this.commands, this.commandReader(), this.actor.get(), call)
 		if (!result.ok) {
@@ -782,14 +785,35 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		return result
 	}
 
-	private sendCommand(call: TLCommandCall) {
+	private sendCommand(call: TLCommandCall, commandId = uniqueId()) {
 		const pushRequest: TLPushRequest<R> = {
 			type: 'push',
 			clientClock: this.clientClock++,
 			command: call,
+			commandId,
+		}
+		if (!this.isConnectedToRoom) {
+			// offline: it applied locally; it goes to the server on reconnect
+			this.replay.push(pushRequest)
+			return
 		}
 		this.socket.sendMessage(pushRequest)
 		this.pendingPushRequests.push(pushRequest)
+	}
+
+	/**
+	 * Pushes the server has not answered, and offline work, in order. A reconnect replays them:
+	 * edits as diffs, commands as commands with their ids, so the server does not apply a command
+	 * twice and the edit policy never sees a command's records as raw edits.
+	 */
+	private replay: TLPushRequest<R>[] = []
+	/** Edits made while offline, since the last offline command. */
+	private offlineChanges: RecordsDiff<R> | null = null
+
+	private takeOfflineChanges(): TLPushRequest<R>[] {
+		const diff = this.offlineChanges && getNetworkDiff(this.offlineChanges)
+		this.offlineChanges = null
+		return diff ? [{ type: 'push', clientClock: -1, diff }] : []
 	}
 
 	private applyingCommand = false
@@ -965,6 +989,32 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		})
 	}
 
+	/** Apply and send the unanswered and offline work again, in order, on the server's state. */
+	private replayAfterReconnect(set: TLCommandSet<R>) {
+		const replay = [...this.replay, ...this.takeOfflineChanges()]
+		this.replay = []
+		for (const request of replay) {
+			if (request.command) {
+				const result = runCommand(set, this.commandReader(), this.actor.get(), request.command)
+				if (result.ok) {
+					const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+					squashRecordDiffsMutable(this.speculativeChanges, [changes])
+				}
+				// sent even if denied here, so the server answers and the client reports it
+				this.sendCommand(request.command, request.commandId)
+				continue
+			}
+			if (!request.diff) continue
+			const changes = this.store.filterChangesByScope(
+				this.store.extractingChanges(() => this.applyNetworkDiff(request.diff!, true)),
+				'document'
+			)
+			if (!changes) continue
+			this.push(changes)
+			this.flushUnsentChanges()
+		}
+	}
+
 	/** Switch to offline mode */
 	private resetConnection(hard = false) {
 		this.debug('resetting connection')
@@ -981,6 +1031,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.firstUnansweredPingAt = null
+		if (this.commands) {
+			this.replay.push(...this.pendingPushRequests)
+			const unsent = this.unsentChanges.nextDiff && getNetworkDiff(this.unsentChanges.nextDiff)
+			if (unsent) this.replay.push({ type: 'push', clientClock: -1, diff: unsent })
+		}
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
 		this.unsentChanges.nextDiff = undefined
@@ -1055,6 +1110,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				this.applyNetworkDiff({ ...wipeDiff, ...event.diff }, true)
 
 				this.isConnectedToRoom = true
+
+				if (this.commands) {
+					this.replayAfterReconnect(this.commands)
+					return
+				}
 
 				// now re-apply the speculative changes creating a new push request with the
 				// appropriate diff
@@ -1175,7 +1235,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.debug('push', change)
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
 		// in offline mode, we only accumulate in speculativeChanges
-		if (!this.isConnectedToRoom) return
+		if (!this.isConnectedToRoom) {
+			if (this.commands) {
+				this.offlineChanges ??= createEmptyRecordsDiff<R>()
+				squashRecordDiffsMutable(this.offlineChanges, [change])
+			}
+			return
+		}
 		if (!this.unsentChanges.nextDiff) {
 			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
 		}

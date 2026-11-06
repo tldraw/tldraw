@@ -84,6 +84,12 @@ export class LocalRoom {
 		this.queue.push(fn)
 	}
 
+	/** Run what is queued now, once, without flushing the server's debounced messages. */
+	step() {
+		const queue = this.queue.splice(0)
+		for (const fn of queue) fn()
+	}
+
 	log: any[] = []
 	flush() {
 		for (let i = 0; i < 1000; i++) {
@@ -107,37 +113,51 @@ export class Peer {
 	readonly mode = atom<'readonly' | 'readwrite'>('mode', 'readwrite')
 	private _editor: Editor | null = null
 	private listeners = new Set<(msg: any) => void>()
+	private statusListeners = new Set<(ev: any) => void>()
+	/** Bumped on each disconnect, so messages in flight on the old socket are lost. */
+	private generation = 0
+	private readonly serverSocket: WebSocketMinimal
 
 	constructor(
 		private readonly local: LocalRoom,
 		readonly sessionId: string,
-		actor: TLCommandActor
+		private readonly actor: TLCommandActor
 	) {
 		const serverSocket: WebSocketMinimal = {
 			readyState: 1,
-			send: (data) =>
+			send: (data) => {
+				const generation = this.generation
 				local.enqueue(() => {
+					if (generation !== this.generation) return
 					local.log.push([sessionId, 'down', data.slice(0, 300)])
 					this.listeners.forEach((l) => l(JSON.parse(data)))
-				}),
+				})
+			},
 			close: (_code?: number, reason?: string) => {
 				this.closedWith = reason
 			},
 		}
+		this.serverSocket = serverSocket
 		local.room.handleSocketConnect({ sessionId, socket: serverSocket, actor })
 
 		const clientSocket: TLPersistentClientSocket<any, any> = {
 			connectionStatus: 'online',
-			sendMessage: (msg) =>
+			sendMessage: (msg) => {
+				const generation = this.generation
 				local.enqueue(() => {
+					if (generation !== this.generation) return
 					local.log.push([sessionId, 'up', JSON.stringify(msg).slice(0, 300)])
 					local.room.handleSocketMessage(sessionId, JSON.stringify(msg))
-				}),
+				})
+			},
 			onReceiveMessage: (cb) => {
 				this.listeners.add(cb)
 				return () => this.listeners.delete(cb)
 			},
-			onStatusChange: () => () => {},
+			onStatusChange: (cb) => {
+				this.statusListeners.add(cb)
+				return () => this.statusListeners.delete(cb)
+			},
 			restart: () => {},
 			close: () => {},
 		}
@@ -179,6 +199,22 @@ export class Peer {
 			})
 		}
 		return this._editor
+	}
+
+	/** Drop the connection. Messages in flight either way are lost. */
+	disconnect() {
+		this.generation++
+		this.local.room.handleSocketClose(this.sessionId)
+		this.statusListeners.forEach((l) => l({ status: 'offline' }))
+	}
+
+	reconnect() {
+		this.local.room.handleSocketConnect({
+			sessionId: this.sessionId,
+			socket: this.serverSocket,
+			actor: this.actor,
+		})
+		this.statusListeners.forEach((l) => l({ status: 'online' }))
 	}
 
 	run(name: string, args: unknown) {

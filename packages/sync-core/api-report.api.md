@@ -584,6 +584,7 @@ export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
     clientClock: number;
     command?: TLCommandCall;
+    commandId?: string;
     // (undocumented)
     diff?: NetworkDiff<R>;
     // (undocumented)

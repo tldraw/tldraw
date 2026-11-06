@@ -894,3 +894,60 @@ describe('undo and redo of commands', () => {
 		expect(a.get('page:new' as TLPageId)).toBeUndefined()
 	})
 })
+
+describe('reconnect and offline', () => {
+	it('a command the server applied before the connection dropped is not applied twice', () => {
+		const { room, t, a } = setup()
+		const note = geo(t, 0)
+		room.flush()
+		a.run('votes.toggle', { shapeId: note })
+		room.step() // the server applies the vote; its answer is still in flight
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['alice'])
+		a.disconnect()
+		room.flush()
+		a.reconnect()
+		room.flush()
+		// a second toggle would remove the vote again
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['alice'])
+		expect(a.get<TLShape>(note)!.meta.votes).toEqual(['alice'])
+		expect(a.rejections).toEqual([])
+	})
+
+	it('a command lost on the way is sent again as a command, not as a raw edit', () => {
+		const { room, t, a } = setup()
+		const note = geo(t, 0)
+		room.flush()
+		a.run('votes.toggle', { shapeId: note })
+		a.disconnect() // the push never reaches the server
+		room.flush()
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toBeUndefined()
+		a.reconnect()
+		room.flush()
+		// as a raw edit, the vote would be denied: Alice cannot edit the teacher's note
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['alice'])
+		expect(a.rejections).toEqual([])
+	})
+
+	it('commands and edits made offline go to the server in order on reconnect', () => {
+		const { room, a } = setup()
+		a.disconnect()
+		room.flush()
+		const mine = geo(a, 0)
+		expect(
+			a.run('comments.add', {
+				threadId: 'comment-thread:o',
+				commentId: 'comment:o',
+				pageId: page,
+				anchor: { type: 'shape', shapeId: mine, x: 0, y: 0, isPrecise: false },
+				body: toRichText('written offline'),
+				now: 1,
+			})
+		).toMatchObject({ ok: true })
+		a.getEditor().updateShape({ id: mine, type: 'geo', x: 40 })
+		a.reconnect()
+		room.flush()
+		expect(room.room.getRecord(mine)).toMatchObject({ x: 40, meta: { ownerId: 'alice' } })
+		expect(room.room.getRecord('comment:o')).toMatchObject({ authorId: 'alice' })
+		expect(a.rejections).toEqual([])
+	})
+})
