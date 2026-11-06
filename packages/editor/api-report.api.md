@@ -48,6 +48,7 @@ import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
 import { Timers } from '@tldraw/utils';
+import { TLAccessState } from '@tldraw/tlschema';
 import { TLAsset } from '@tldraw/tlschema';
 import { TLAssetId } from '@tldraw/tlschema';
 import { TLAssetPartial } from '@tldraw/tlschema';
@@ -81,6 +82,10 @@ import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
+import { TLRuleDecision } from '@tldraw/rules';
+import { TLRuleDenial } from '@tldraw/rules';
+import { TLRules } from '@tldraw/rules';
+import { TLRuleUser } from '@tldraw/rules';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
 import { TLShapeCrop } from '@tldraw/tlschema';
@@ -101,6 +106,7 @@ import { TLUser } from '@tldraw/tlschema';
 import { TLUserId } from '@tldraw/tlschema';
 import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
+import { TLWriteOp } from '@tldraw/rules';
 import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
@@ -1585,6 +1591,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number, opts?: {
         center?: VecLike;
     }): this;
+    readonly rules: RulesManager;
     run(fn: () => void, opts?: TLEditorRunOptions): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
@@ -2996,6 +3003,33 @@ export type RotateCorner = 'bottom_left_rotate' | 'bottom_right_rotate' | 'mobil
 
 // @public (undocumented)
 export function rotateSelectionHandle(handle: SelectionHandle, rotation: number): SelectionHandle;
+
+// @public
+export class RulesManager extends EditorManager {
+    constructor(editor: Editor);
+    can(action: string): boolean;
+    canEditShape(shape: TLShape): boolean;
+    canUseTool(toolId: string): boolean;
+    decide(op: TLWriteOp, typeName: string, known?: {
+        next?: Record<string, unknown>;
+        prev?: Record<string, unknown>;
+    }): TLRuleDecision;
+    explainEdit(shape: TLShape): null | TLRuleDenial;
+    // (undocumented)
+    getAccess(): null | TLAccessState;
+    // (undocumented)
+    getCompiled(): null | TLRules;
+    getIsReadonly(): boolean;
+    getLastDenial(): {
+        at: number;
+        denial: TLRuleDenial;
+    } | null;
+    // (undocumented)
+    getUser(): TLRuleUser;
+    // (undocumented)
+    isActive(): boolean;
+    setAccess(access: null | TLAccessState): void;
+}
 
 // @public (undocumented)
 export const runtime: {
@@ -4856,10 +4890,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
-    collaboration?: {
-        mode?: null | Signal<'readonly' | 'readwrite'>;
-        status: null | Signal<'offline' | 'online'>;
-    };
+    collaboration?: TLStoreProps['collaboration'];
     id?: string;
 } & TLStoreSchemaOptions;
 

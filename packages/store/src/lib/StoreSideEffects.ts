@@ -26,7 +26,7 @@ import { Store } from './Store'
 export type StoreBeforeCreateHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
-) => R
+) => R | null
 /**
  * Handler function called after a record has been successfully created in the store.
  * Use this for side effects that should happen after record creation, such as updating
@@ -262,9 +262,11 @@ export class StoreSideEffects<R extends UnknownRecord> {
 
 		const handlers = this._beforeCreateHandlers[record.typeName] as StoreBeforeCreateHandler<R>[]
 		if (handlers) {
-			let r = record
+			let r: R | null = record
 			for (const handler of handlers) {
 				r = handler(r, source)
+				// a handler can veto the create, so later handlers never see it
+				if (r === null) return null
 			}
 			return r
 		}

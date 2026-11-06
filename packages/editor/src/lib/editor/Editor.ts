@@ -170,6 +170,7 @@ import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
+import { RulesManager } from './managers/RulesManager/RulesManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -523,6 +524,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.scribbles = new ScribbleManager(this)
+
+		this.rules = new RulesManager(this)
+		this.disposables.add(() => this.rules.dispose())
 
 		// Overlay utils
 		this.overlays = new OverlayManager(this)
@@ -1194,6 +1198,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly scribbles: ScribbleManager
+
+	/**
+	 * Access rules as data (see `@tldraw/rules`). In a rules room the sync server sends the rules
+	 * and this user's facts; the editor checks writes against them, locks shapes the user may not
+	 * edit, hides tools the user can never use, and runs read-only when no shape write is possible.
+	 *
+	 * @public
+	 */
+	readonly rules: RulesManager
 
 	/**
 	 * A manager for canvas overlay UI elements (selection handles, shape handles, etc.).
@@ -5782,8 +5795,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		// A shape the rules do not let this user touch acts as locked. Only the shape itself:
+		// a student's drawing inside the teacher's frame stays editable.
+		if (!this.rules.canEditShape(_shape)) return true
+		return this._isShapeOrAncestorFlagLocked(_shape)
+	}
+
+	private _isShapeOrAncestorFlagLocked(shape: TLShape | undefined): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this._isShapeOrAncestorFlagLocked(this.getShapeParent(shape))
 	}
 
 	/**
@@ -10441,7 +10462,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the editor is in readonly mode
 	 */
 	@computed getIsReadonly() {
-		return this.getInstanceState().isReadonly
+		// with access rules, read-only is derived: the rules allow no shape write at all
+		return this.getInstanceState().isReadonly || this.rules.getIsReadonly()
 	}
 
 	/**

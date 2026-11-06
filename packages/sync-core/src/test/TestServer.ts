@@ -1,3 +1,4 @@
+import type { TLRuleUser } from '@tldraw/rules'
 import { StoreSchema, UnknownRecord } from '@tldraw/store'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import { TLObjectStoreAccess } from '../lib/protocol'
@@ -27,7 +28,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 
 	connect(
 		socketPair: TestSocketPair<R>,
-		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
+		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess; user?: TLRuleUser }
 	): void {
 		this.room.handleNewSession({
 			sessionId: socketPair.id,
@@ -35,6 +36,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 			meta: undefined,
 			isReadonly: opts?.isReadonly ?? false,
 			objectAccess: opts?.objectAccess,
+			user: opts?.user,
 		})
 
 		socketPair.clientSocket.connectionStatus = 'online'

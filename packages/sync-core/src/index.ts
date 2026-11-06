@@ -31,6 +31,7 @@ export {
 	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
+export { SessionView, type TLRoomAccess } from './lib/RoomRules'
 export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'

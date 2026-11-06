@@ -8,6 +8,7 @@
 		"rootDir": "src"
 	},
 	"references": [
+		{ "path": "../rules" },
 		{ "path": "../driver" },
 		{ "path": "../editor" },
 		{ "path": "../state" },
