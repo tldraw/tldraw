@@ -273,6 +273,9 @@ type HeldRecords<R extends UnknownRecord = UnknownRecord> = Extract<
 	{ state: 'connected' }
 >['held']
 
+/** Thrown inside a push transaction to roll it back when `writeRejection` is `'push'`. */
+class PushRejectedError extends Error {}
+
 function newHeldRecords<R extends UnknownRecord>(complete: boolean): HeldRecords<R> {
 	return { complete, records: new Map(), reads: new Map(), readBy: new Map() }
 }
@@ -616,6 +619,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
+	private readonly writeRejection: 'record' | 'push'
 	private readonly readHooks = new Map<
 		string,
 		ReturnType<TLSyncRoom<R, SessionMeta>['wrapReadHook']>
@@ -875,6 +879,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * create, rewrite. See {@link TLBeforeWriteHooks}.
 		 */
 		beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
+		/**
+		 * What a rejected client write takes with it: only that record (`'record'`, the default), or
+		 * the whole push (`'push'`). See `TLSocketRoomOptions.writeRejection`.
+		 */
+		writeRejection?: 'record' | 'push'
 		/** Per-type hooks that decide what each session receives. See {@link TLBeforeReadHooks}. */
 		beforeRead?: TLBeforeReadHooks<R, SessionMeta>
 		storage: TLSyncStorage<R>
@@ -885,6 +894,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.beforeWrite = opts.beforeWrite
+		this.writeRejection = opts.writeRejection ?? 'record'
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -1812,6 +1822,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 
+		// Called for each client write the room refuses: a hook kept the stored record, or the
+		// session may not write the type. With `writeRejection: 'push'` the transaction rolls back
+		// at its end, after every op ran, so an invalid record later in the push still rejects the
+		// session whatever its order.
+		let rejected = false
+		const rejectWrite = () => {
+			if (session && this.writeRejection === 'push') rejected = true
+		}
+
 		const propagateOp = (
 			changes: PushChanges<R>,
 			id: string,
@@ -1863,7 +1882,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// migration can clobber stamped fields. The client self-corrects from the push result.
 			if (resolve) {
 				const result = resolve(doc ?? null, state)
-				if (result === 'keep') return Result.ok(undefined)
+				if (result === 'keep') {
+					// A put that repeats the stored record changes nothing, so it rejects nothing.
+					if (!doc || !isEqual(doc, state)) rejectWrite()
+					return Result.ok(undefined)
+				}
 				if (result === null) {
 					if (doc) {
 						storage.delete(id)
@@ -1915,7 +1938,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// never a raw client-version preview.
 			const commit = (candidate: R, candidateDiff: ObjectDiff) => {
 				const result = resolve ? resolve(doc, candidate) : candidate
-				if (result === 'keep') return
+				if (result === 'keep') return rejectWrite()
 				if (result === null) {
 					storage.delete(id)
 					propagateOp(changes, id, [RecordOpType.Remove], doc, undefined)
@@ -1961,167 +1984,205 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		const { result, documentClock, changes } = this.storage.transaction(
-			(txn) => {
-				this.broadcastChanges(txn)
-				// collect actual ops that resulted from the push
-				// these will be broadcast to other users
+		const presenceChanges: PushChanges<R> = { diffs: null }
+		// Pending changes from elsewhere are broadcast in their own transaction when a push may roll
+		// back: broadcasting can reject a session and delete its presence, which a rollback would
+		// bring back for a session that is already gone.
+		if (this.writeRejection === 'push' && this.storage.getClock() !== this.lastDocumentClock) {
+			this.storage.transaction((txn) => this.broadcastChanges(txn))
+		}
+		let txnResult
+		try {
+			txnResult = this.storage.transaction(
+				(txn) => {
+					this.broadcastChanges(txn)
+					// collect actual ops that resulted from the push
+					// these will be broadcast to other users
 
-				const docChanges: PushChanges<R> = { diffs: null }
-				const presenceChanges: PushChanges<R> = { diffs: null }
+					const docChanges: PushChanges<R> = { diffs: null }
 
-				if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
-					if (!session) throw new Error('session is required for presence pushes')
-					// The push request was for the presence scope.
-					const id = session.presenceId
-					const [type, val] = message.presence
-					const { typeName } = this.presenceType
-					switch (type) {
-						case RecordOpType.Put: {
-							// Try to put the document. If it fails, stop here.
-							addDocument(this.presenceStore, presenceChanges, id, {
-								...val,
-								id,
-								typeName,
-							})
-							break
-						}
-						case RecordOpType.Patch: {
-							// Try to patch the document. If it fails, stop here.
-							patchDocument(this.presenceStore, presenceChanges, id, {
-								...val,
-								id: [ValueOpType.Put, id],
-								typeName: [ValueOpType.Put, typeName],
-							})
-							break
-						}
-					}
-				}
-				// Per-op write gate: document-lane records are gated by `isReadonly`, object-lane
-				// records by `objectAccess`. Denied ops are skipped (the client is corrected by the
-				// resulting discard/rebase push_result, exactly as whole-diff readonly skips were).
-				// Server-initiated pushes (no session) are always allowed.
-				const canWrite = (typeName: string) =>
-					!session ||
-					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
+					// Per-op write gate: document-lane records are gated by `isReadonly`, object-lane
+					// records by `objectAccess`. Denied ops are skipped (the client is corrected by the
+					// resulting discard/rebase push_result, exactly as whole-diff readonly skips were).
+					// Server-initiated pushes (no session) are always allowed.
+					const canWrite = (typeName: string) =>
+						!session ||
+						(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
 
-				// what authorizers see of the pushing session, shared by every authorized op in this push
-				const authBase = session
-					? {
-							session: {
-								sessionId: session.sessionId,
-								isReadonly: session.isReadonly,
-								meta: session.meta,
-							},
-							get: (id: string) => txn.get(id),
-						}
-					: null
-
-				if (message.diff) {
-					// The push request was for the document scope.
-					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
-						switch (op[0]) {
-							case RecordOpType.Put: {
-								// The write gate is checked before type validation so that a denied
-								// session's ops are skipped without rejection, matching the previous
-								// whole-diff readonly behavior.
-								if (!canWrite(op[1].typeName)) continue
-								// Try to add the document.
-								// If we're putting a record with a type that we don't recognize, fail
-								if (
-									!this.documentTypes.has(op[1].typeName) &&
-									!this.objectTypes.has(op[1].typeName)
-								) {
-									throw new TLSyncError(
-										'invalid record',
-										TLSyncErrorCloseEventReason.INVALID_RECORD
-									)
-								}
-								const record = op[1]
-								// A put must not change the record's typeName. Two reasons, and the first
-								// applies whether or not authorizers are configured: the write gate above
-								// keyed off the *incoming* typeName, so a swap between lanes (document <->
-								// object) would let a session denied on one lane write through the other by
-								// relabeling an existing record. The second is that the authorizer lookup
-								// also keys off the incoming typeName while the replace path validates
-								// against the stored one, so a swap would consult the wrong authorizer (or
-								// none). Skip it like a veto; the client self-corrects.
-								// `undefined` (no session) means the guard didn't fetch, so addDocument will.
-								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
-								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
-									this.log?.warn?.(
-										'skipping put that changes typeName',
-										`${prevRecord.typeName} -> ${record.typeName}`,
-										id,
-										'session:',
-										session.sessionId
-									)
-									continue
-								}
-								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
-								const hook = session && this.writeHookFor(record.typeName)
-								const resolve = hook
-									? (prev: R | null, next: R) =>
-											prev
-												? hook({ ...authBase!, type: 'update', prev, next })
-												: hook({ ...authBase!, type: 'create', prev: null, next })
-									: undefined
-								// The guard above already fetched this, so don't hit storage again.
-								addDocument(txn, docChanges, id, record, resolve, prevRecord)
-								break
+					// what authorizers see of the pushing session, shared by every authorized op in this push
+					const authBase = session
+						? {
+								session: {
+									sessionId: session.sessionId,
+									isReadonly: session.isReadonly,
+									meta: session.meta,
+								},
+								get: (id: string) => txn.get(id),
 							}
-							case RecordOpType.Patch: {
-								const doc = txn.get(id) as R | undefined
-								// if it was already deleted, there's no need to apply the patch
-								if (!doc) continue
-								if (!canWrite(doc.typeName)) continue
-								// Runs inside `patchDocument` on the committed candidate.
-								const hook = session && this.writeHookFor(doc.typeName)
-								const resolve = hook
-									? (prev: R, next: R) => hook({ ...authBase!, type: 'update', prev, next })
-									: undefined
-								// Try to patch the document. If it fails, stop here. The write gate above
-								// already fetched the record, so pass it through.
-								patchDocument(txn, docChanges, id, op[1], resolve, doc)
-								break
-							}
-							case RecordOpType.Remove: {
-								const doc = txn.get(id) as R | undefined
-								if (!doc) {
-									// If the doc was already deleted, don't do anything, no need to propagate a delete op
-									continue
-								}
-								if (!canWrite(doc.typeName)) continue
-								const hook = session && this.writeHookFor(doc.typeName)
-								const result = hook
-									? hook({ ...authBase!, type: 'delete', prev: doc, next: null })
-									: null
-								if (result === 'keep') continue
-								if (result) {
-									// The hook replaced the delete with a write of this record.
-									const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
-									const diff = diffAndValidateRecord(doc, result, recordType, legacyAppendMode)
-									if (diff) {
-										txn.set(id, result)
-										propagateOp(docChanges, id, [RecordOpType.Patch, diff], doc, result)
+						: null
+
+					if (message.diff) {
+						// The push request was for the document scope.
+						for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
+							switch (op[0]) {
+								case RecordOpType.Put: {
+									// The write gate is checked before type validation so that a denied
+									// session's ops are skipped without rejection, matching the previous
+									// whole-diff readonly behavior.
+									if (!canWrite(op[1].typeName)) {
+										rejectWrite()
+										continue
 									}
-									continue
+									// Try to add the document.
+									// If we're putting a record with a type that we don't recognize, fail
+									if (
+										!this.documentTypes.has(op[1].typeName) &&
+										!this.objectTypes.has(op[1].typeName)
+									) {
+										throw new TLSyncError(
+											'invalid record',
+											TLSyncErrorCloseEventReason.INVALID_RECORD
+										)
+									}
+									const record = op[1]
+									// A put must not change the record's typeName. Two reasons, and the first
+									// applies whether or not authorizers are configured: the write gate above
+									// keyed off the *incoming* typeName, so a swap between lanes (document <->
+									// object) would let a session denied on one lane write through the other by
+									// relabeling an existing record. The second is that the authorizer lookup
+									// also keys off the incoming typeName while the replace path validates
+									// against the stored one, so a swap would consult the wrong authorizer (or
+									// none). Skip it like a veto; the client self-corrects.
+									// `undefined` (no session) means the guard didn't fetch, so addDocument will.
+									const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
+									if (session && prevRecord && prevRecord.typeName !== record.typeName) {
+										this.log?.warn?.(
+											'skipping put that changes typeName',
+											`${prevRecord.typeName} -> ${record.typeName}`,
+											id,
+											'session:',
+											session.sessionId
+										)
+										rejectWrite()
+										continue
+									}
+									// Client pushes only; runs inside `addDocument`, on the up-migrated record.
+									const hook = session && this.writeHookFor(record.typeName)
+									const resolve = hook
+										? (prev: R | null, next: R) =>
+												prev
+													? hook({ ...authBase!, type: 'update', prev, next })
+													: hook({ ...authBase!, type: 'create', prev: null, next })
+										: undefined
+									// The guard above already fetched this, so don't hit storage again.
+									addDocument(txn, docChanges, id, record, resolve, prevRecord)
+									break
 								}
+								case RecordOpType.Patch: {
+									const doc = txn.get(id) as R | undefined
+									// if it was already deleted, there's no need to apply the patch
+									if (!doc) continue
+									if (!canWrite(doc.typeName)) {
+										rejectWrite()
+										continue
+									}
+									// Runs inside `patchDocument` on the committed candidate.
+									const hook = session && this.writeHookFor(doc.typeName)
+									const resolve = hook
+										? (prev: R, next: R) => hook({ ...authBase!, type: 'update', prev, next })
+										: undefined
+									// Try to patch the document. If it fails, stop here. The write gate above
+									// already fetched the record, so pass it through.
+									patchDocument(txn, docChanges, id, op[1], resolve, doc)
+									break
+								}
+								case RecordOpType.Remove: {
+									const doc = txn.get(id) as R | undefined
+									if (!doc) {
+										// If the doc was already deleted, don't do anything, no need to propagate a delete op
+										continue
+									}
+									if (!canWrite(doc.typeName)) {
+										rejectWrite()
+										continue
+									}
+									const hook = session && this.writeHookFor(doc.typeName)
+									const result = hook
+										? hook({ ...authBase!, type: 'delete', prev: doc, next: null })
+										: null
+									if (result === 'keep') {
+										rejectWrite()
+										continue
+									}
+									if (result) {
+										// The hook replaced the delete with a write of this record.
+										const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
+										const diff = diffAndValidateRecord(doc, result, recordType, legacyAppendMode)
+										if (diff) {
+											txn.set(id, result)
+											propagateOp(docChanges, id, [RecordOpType.Patch, diff], doc, result)
+										}
+										continue
+									}
 
-								// Delete the document and propagate the delete op
-								// delete automatically creates tombstones
-								txn.delete(id)
-								propagateOp(docChanges, id, op, doc, undefined)
-								break
+									// Delete the document and propagate the delete op
+									// delete automatically creates tombstones
+									txn.delete(id)
+									propagateOp(docChanges, id, op, doc, undefined)
+									break
+								}
 							}
 						}
 					}
-				}
 
-				return { docChanges, presenceChanges }
-			},
-			{ id: this.internalTxnId, emitChanges: 'when-different' }
-		)
+					if (rejected) throw new PushRejectedError()
+					return { docChanges, presenceChanges }
+				},
+				{ id: this.internalTxnId, emitChanges: 'when-different' }
+			)
+		} catch (e) {
+			if (!(e instanceof PushRejectedError)) throw e
+			// The transaction rolled back, so the push has no document changes, and its result is
+			// `discard`: the client undoes the whole push.
+			txnResult = {
+				result: { docChanges: { diffs: null }, presenceChanges },
+				documentClock: this.lastDocumentClock,
+				didChange: false,
+				changes: undefined,
+			}
+		}
+		const { result, documentClock, changes } = txnResult
+
+		// Presence is not in the storage transaction, so it is applied after the document changes
+		// commit or roll back: a push that `writeRejection: 'push'` rejects keeps its presence,
+		// which the client counts as sent.
+		if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
+			if (!session) throw new Error('session is required for presence pushes')
+			// The push request was for the presence scope.
+			const id = session.presenceId
+			const [type, val] = message.presence
+			const { typeName } = this.presenceType
+			switch (type) {
+				case RecordOpType.Put: {
+					// Try to put the document. If it fails, stop here.
+					addDocument(this.presenceStore, presenceChanges, id, {
+						...val,
+						id,
+						typeName,
+					})
+					break
+				}
+				case RecordOpType.Patch: {
+					// Try to patch the document. If it fails, stop here.
+					patchDocument(this.presenceStore, presenceChanges, id, {
+						...val,
+						id: [ValueOpType.Put, id],
+						typeName: [ValueOpType.Put, typeName],
+					})
+					break
+				}
+			}
+		}
 
 		this.lastDocumentClock = documentClock
 
