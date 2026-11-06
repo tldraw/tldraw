@@ -9,7 +9,9 @@ import {
 import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
+	commandIdsField,
 	convertStoreSnapshotToRoomSnapshot,
+	MAX_COMMAND_IDS,
 	TLSyncForwardDiff,
 	TLSyncStorage,
 	TLSyncStorageGetChangesSinceResult,
@@ -89,11 +91,13 @@ export function migrateSqliteSyncStorage(
 		objectsTable = 'objects',
 		tombstonesTable = 'tombstones',
 		metadataTable = 'metadata',
+		commandsTable = 'commands',
 	}: {
 		documentsTable?: string
 		objectsTable?: string
 		tombstonesTable?: string
 		metadataTable?: string
+		commandsTable?: string
 	} = {}
 ): void {
 	let migrationVersion = 0
@@ -175,6 +179,17 @@ export function migrateSqliteSyncStorage(
 			);
 
 			CREATE INDEX idx_${objectsTable}_lastChangedClock ON ${objectsTable}(lastChangedClock);
+		`)
+	}
+
+	if (migrationVersion === 3) {
+		// Migration 4: Add the applied command ids, so a command resent after a restart is not
+		// applied twice. The rowid orders them for pruning.
+		migrationVersion++
+		storage.exec(`
+			CREATE TABLE ${commandsTable} (
+				id TEXT PRIMARY KEY
+			);
 		`)
 	}
 
@@ -298,12 +313,14 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		const objectsTable = `${prefix}objects`
 		const tombstonesTable = `${prefix}tombstones`
 		const metadataTable = `${prefix}metadata`
+		const commandsTable = `${prefix}commands`
 
 		migrateSqliteSyncStorage(this.sql, {
 			documentsTable,
 			objectsTable,
 			tombstonesTable,
 			metadataTable,
+			commandsTable,
 		})
 
 		// Both record tables have identical shape; prepare the same statements for each.
@@ -376,6 +393,20 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 				`SELECT id FROM ${tombstonesTable} WHERE clock > ?`
 			),
 
+			// Applied command ids
+			hasCommandId: this.sql.prepare<{ id: string }, [id: string]>(
+				`SELECT id FROM ${commandsTable} WHERE id = ?`
+			),
+			insertCommandId: this.sql.prepare<void, [id: string]>(
+				`INSERT OR IGNORE INTO ${commandsTable} (id) VALUES (?)`
+			),
+			pruneCommandIds: this.sql.prepare<void, [keep: number]>(
+				`DELETE FROM ${commandsTable} WHERE rowid <= (SELECT MAX(rowid) FROM ${commandsTable}) - ?`
+			),
+			iterateCommandIds: this.sql.prepare<{ id: string }>(
+				`SELECT id FROM ${commandsTable} ORDER BY rowid ASC`
+			),
+
 			// Initial setup (only used when loading a snapshot)
 			updateMetadata: this.sql.prepare<
 				void,
@@ -398,6 +429,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 				DELETE FROM ${documentsTable};
 				DELETE FROM ${objectsTable};
 				DELETE FROM ${tombstonesTable};
+				DELETE FROM ${commandsTable};
 			`)
 
 			// Insert records, routing object-lane types into their partition (a seed snapshot may
@@ -414,6 +446,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 					this.stmts.insertTombstone.run(id, clock)
 				}
 			}
+			for (const id of snapshot.commandIds ?? []) this.stmts.insertCommandId.run(id)
 
 			this.stmts.updateMetadata.run(
 				documentClock,
@@ -549,6 +582,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 			documents: Array.from(this._iterateRecords(this.stmts.documents)),
 			tombstones: Object.fromEntries(this._iterateTombstones()),
 			schema: this._getSchema(),
+			...commandIdsField(this.stmts.iterateCommandIds.all().map((row) => row.id)),
 		}
 	}
 
@@ -613,6 +647,15 @@ class SQLiteSyncStorageTransaction<R extends UnknownRecord> implements TLSyncSto
 
 	getClock(): number {
 		return this._clock
+	}
+
+	hasCommandId(id: string): boolean {
+		return this.stmts.hasCommandId.all(id).length > 0
+	}
+
+	addCommandId(id: string): void {
+		this.stmts.insertCommandId.run(id)
+		this.stmts.pruneCommandIds.run(MAX_COMMAND_IDS)
 	}
 
 	private getNextClock(): number {

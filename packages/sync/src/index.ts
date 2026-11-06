@@ -5,6 +5,7 @@ export * from '@tldraw/sync-core'
 export {
 	useSync,
 	type RemoteTLStoreWithStatus,
+	type TLSyncCommandsApi,
 	type UseSyncConnectFn,
 	type UseSyncOptions,
 	type UseSyncOptionsBase,

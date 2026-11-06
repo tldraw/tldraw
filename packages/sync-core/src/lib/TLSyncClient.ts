@@ -1,9 +1,11 @@
-import { Signal, react, transact } from '@tldraw/state'
+import { Atom, Signal, atom, react, transact } from '@tldraw/state'
 import {
 	RecordId,
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	createEmptyRecordsDiff,
+	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -14,6 +16,19 @@ import {
 	objectMapEntries,
 	uniqueId,
 } from '@tldraw/utils'
+import {
+	TLCommandActor,
+	TLCommandCall,
+	TLCommandReader,
+	TLCommandResult,
+	TLCommandSet,
+	TLCommandWrites,
+	actorCan,
+	canEditRecord,
+	lookupOf,
+	defaultActor,
+	runCommand,
+} from './commands'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -461,6 +476,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	private readonly commands?: TLCommandSet<R>
+	private readonly onPushRejected?: (details: { reason: string; command?: TLCommandCall }) => void
+	private readonly onActorChange?: (details: { actor: TLCommandActor; isReadonly: boolean }) => void
+
+	/**
+	 * Who this client acts as, as the server last said. Before the first connect it has all
+	 * permissions, so offline edits work.
+	 */
+	readonly actor: Atom<TLCommandActor> = atom('TLSyncClient.actor', defaultActor(false))
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -501,9 +526,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
 		): void
+		/** The room's commands and edit policy: the same set the server uses. */
+		commands?: TLCommandSet<R>
+		/** The server discarded a push, or a command was denied locally. */
+		onPushRejected?(details: { reason: string; command?: TLCommandCall }): void
+		/** The actor changed: at connect, or live when the host changed it. */
+		onActorChange?(details: { actor: TLCommandActor; isReadonly: boolean }): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
+		this.commands = config.commands
+		this.onPushRejected = config.onPushRejected
+		this.onActorChange = config.onActorChange
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
 
@@ -512,46 +546,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
 
 		// Initialize throttled methods after throttle instance is created
-		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
-			this.debug('sending unsent changes', {
-				isConnectedToRoom: this.isConnectedToRoom,
-				unsentChanges: this.unsentChanges,
-			})
-			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-				return
-			}
-			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
-				return
-			}
-			const diff = this.unsentChanges.nextDiff
-				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
-				: undefined
-			const presence = this.unsentChanges.nextPresence
-				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
-				: undefined
-
-			if (!diff && !presence) {
-				return
-			}
-
-			const pushRequest: TLPushRequest<R> = {
-				type: 'push',
-				clientClock: this.clientClock,
-				diff,
-				presence,
-			}
-
-			this.debug('sending push request', pushRequest)
-			this.socket.sendMessage(pushRequest)
-
-			if (this.unsentChanges.nextPresence) {
-				this.lastPushedPresenceState = this.unsentChanges.nextPresence
-			}
-			this.clientClock++
-			this.pendingPushRequests.push(pushRequest)
-			this.unsentChanges.nextDiff = undefined
-			this.unsentChanges.nextPresence = undefined
-		})
+		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => this.flushUnsentChanges())
 
 		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
 
@@ -568,6 +563,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.presenceState = config.presence
 		this.presenceMode = config.presenceMode
 
+		if (this.commands) this.registerEditGuard(this.commands)
+
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
 			// or stash them locally in offline mode
@@ -575,7 +572,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				({ changes }) => {
 					if (this.didCancel?.()) return this.close()
 					this.debug('received store changes', { changes })
-					this.push(changes)
+					if (this.applyingCommand) {
+						// a command's own writes: on the undo stack, but sent as the command
+						squashRecordDiffsMutable(this.speculativeChanges, [changes])
+						return
+					}
+					this.push(this.sendUndoAsCommands(changes))
 				},
 				{ source: 'user', scope: 'document' }
 			),
@@ -683,6 +685,378 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
+	private flushUnsentChanges() {
+		this.debug('sending unsent changes', {
+			isConnectedToRoom: this.isConnectedToRoom,
+			unsentChanges: this.unsentChanges,
+		})
+		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+			return
+		}
+		if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
+			return
+		}
+		const diff = this.unsentChanges.nextDiff
+			? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
+			: undefined
+		const presence = this.unsentChanges.nextPresence
+			? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
+			: undefined
+
+		if (!diff && !presence) {
+			return
+		}
+
+		const pushRequest: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock,
+			diff,
+			presence,
+		}
+
+		this.debug('sending push request', pushRequest)
+		this.socket.sendMessage(pushRequest)
+
+		if (this.unsentChanges.nextPresence) {
+			this.lastPushedPresenceState = this.unsentChanges.nextPresence
+		}
+		this.clientClock++
+		this.pendingPushRequests.push(pushRequest)
+		this.unsentChanges.nextDiff = undefined
+		this.unsentChanges.nextPresence = undefined
+	}
+
+	private commandReader(): TLCommandReader<R> {
+		return {
+			get: (id) => this.store.get(id as RecordId<R>),
+			values: () => this.store.allRecords(),
+		}
+	}
+
+	private applyCommandWrites(writes: TLCommandWrites<R>) {
+		if (writes.puts.length) this.store.put(writes.puts)
+		if (writes.deletes.length) this.store.remove(writes.deletes as RecordId<R>[])
+	}
+
+	/**
+	 * Run a named command. It applies at once on this client (optimistically), and the server runs
+	 * it again with the trusted actor. If the server's result differs, this client rebases onto it.
+	 *
+	 * A denied command writes nothing and returns the reason. A command the server later denies is
+	 * rolled back, and `onPushRejected` is called.
+	 *
+	 * A command that returns an inverse goes on the undo stack, and undo sends the inverse.
+	 *
+	 * @param name - The command's name
+	 * @param args - JSON args. Pass new ids here, so the client and server create the same records.
+	 */
+	runCommand(name: string, args: unknown): TLCommandResult<R> {
+		if (!this.commands) throw new Error('This sync client has no commands')
+		const call: TLCommandCall = { name, args }
+		// Send edits made before this command first, so the server sees them in order.
+		this.store._flushHistory()
+		this.flushUnsentChanges()
+
+		const result = this.runOwnCommand(this.commands, this.commandReader(), call)
+		if (!result.ok) {
+			this.onPushRejected?.({ reason: result.reason, command: call })
+			return result
+		}
+		if (result.inverse) {
+			// Apply as a user change, so the editor's undo stack holds it. The store listener sees
+			// `applyingCommand` and does not send the writes as a raw diff.
+			this.applyingCommand = true
+			try {
+				const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+				this.store._flushHistory()
+				this.rememberUndo(result.inverse, changes)
+			} finally {
+				this.applyingCommand = false
+			}
+		} else {
+			this.store.mergeRemoteChanges(() => {
+				const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+				squashRecordDiffsMutable(this.speculativeChanges, [changes])
+			})
+		}
+		this.sendCommand(call)
+		return result
+	}
+
+	private sendCommand(call: TLCommandCall, commandId = uniqueId()) {
+		// keep the order: offline edits so far, then this command
+		if (!this.isConnectedToRoom && this.offlineChanges) {
+			this.replay.push(...this.takeOfflineChanges())
+		}
+		const pushRequest: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock++,
+			command: call,
+			commandId,
+		}
+		if (!this.isConnectedToRoom) {
+			// offline: it applied locally; it goes to the server on reconnect
+			this.replay.push(pushRequest)
+			return
+		}
+		this.socket.sendMessage(pushRequest)
+		this.pendingPushRequests.push(pushRequest)
+	}
+
+	/**
+	 * Pushes the server has not answered, and offline work, in order. A reconnect replays them:
+	 * edits as diffs, commands as commands with their ids, so the server does not apply a command
+	 * twice and the edit policy never sees a command's records as raw edits.
+	 */
+	private replay: TLPushRequest<R>[] = []
+	/** Edits made while offline, since the last offline command. */
+	private offlineChanges: RecordsDiff<R> | null = null
+
+	private takeOfflineChanges(): TLPushRequest<R>[] {
+		const diff = this.offlineChanges && getNetworkDiff(this.offlineChanges)
+		this.offlineChanges = null
+		return diff ? [{ type: 'push', clientClock: -1, diff }] : []
+	}
+
+	private applyingCommand = false
+	/** Records whose delete has started; see {@link TLEditPolicyContext.deleting}. */
+	private readonly deleting = new Set<string>()
+	/** The host connected this session read-only, so the server refuses every command. */
+	private hostReadonly = false
+	/**
+	 * Commands on the undo stack, newest last. Each holds the call that reverses it, and the
+	 * records it changed, before and after.
+	 */
+	private undoable: {
+		inverse: TLCommandCall
+		before: Map<string, R | undefined>
+		after: Map<string, R | undefined>
+	}[] = []
+
+	private rememberUndo(inverse: TLCommandCall, changes: RecordsDiff<R>) {
+		const before = new Map<string, R | undefined>()
+		const after = new Map<string, R | undefined>()
+		// Only synced records: the editor's own reactions to a command (a deleted page's camera)
+		// are not in the undo history the same way.
+		const synced = (record: R) => this.store.scopedTypes.document.has(record.typeName)
+		for (const [id, record] of objectMapEntries(changes.added)) {
+			if (!synced(record)) continue
+			before.set(id, undefined)
+			after.set(id, record)
+		}
+		for (const [id, [from, to]] of objectMapEntries(changes.updated)) {
+			if (!synced(to)) continue
+			before.set(id, from)
+			after.set(id, to)
+		}
+		for (const [id, record] of objectMapEntries(changes.removed)) {
+			if (!synced(record)) continue
+			before.set(id, record)
+			after.set(id, undefined)
+		}
+		if (before.size === 0) return
+		this.undoable.push({ inverse, before, after })
+		if (this.undoable.length > 100) this.undoable.shift()
+	}
+
+	/** Whether a record change takes a command's record back to its state before or after it. */
+	private isUndoStep(id: string, value: R | undefined) {
+		return this.undoable.some(
+			(e) =>
+				e.before.has(id) && (isEqual(e.before.get(id), value) || isEqual(e.after.get(id), value))
+		)
+	}
+
+	/**
+	 * Undo and redo replay record diffs. When a diff takes all of a command's records back to their
+	 * state before the command, send the command's inverse instead of the raw records, so the
+	 * server authorizes the undo like any other command. Returns the rest of the diff.
+	 */
+	private sendUndoAsCommands(changes: RecordsDiff<R>): RecordsDiff<R> {
+		if (!this.commands || this.undoable.length === 0) return changes
+		const valueAfter = (id: string): [boolean, R | undefined] => {
+			if (id in changes.added) return [true, (changes.added as any)[id]]
+			if (id in changes.updated) return [true, (changes.updated as any)[id][1]]
+			if (id in changes.removed) return [true, undefined]
+			return [false, undefined]
+		}
+		let rest = changes
+		for (let i = this.undoable.length - 1; i >= 0; i--) {
+			const entry = this.undoable[i]
+			const matches = [...entry.before].every(([id, value]) => {
+				const [touched, next] = valueAfter(id)
+				return touched && isEqual(next, value)
+			})
+			if (!matches) continue
+			// The step is applied locally already; the server runs the inverse. Run it here too,
+			// on the state before the step, only to learn its own inverse for the next redo.
+			const reader: TLCommandReader<R> = {
+				get: (id) =>
+					entry.after.has(id) ? entry.after.get(id) : this.store.get(id as RecordId<R>),
+				values: () => this.store.allRecords(),
+			}
+			const next = runCommand(this.commands, reader, this.actor.get(), entry.inverse)
+			// The same step may hold raw edits to the command's records, such as a drag of a shape
+			// that was also voted on. The inverse undoes only the command's part, so the rest goes as
+			// a raw edit after it: from what the inverse leaves on the server to the undo target.
+			const fixups = createEmptyRecordsDiff<R>()
+			const preUndo = (id: string): R | undefined => {
+				if (id in changes.updated) return (changes.updated as any)[id][0]
+				if (id in changes.removed) return (changes.removed as any)[id]
+				if (id in changes.added) return undefined
+				return this.store.get(id as RecordId<R>)
+			}
+			const onServer = runCommand(
+				this.commands,
+				{ get: preUndo, values: () => this.store.allRecords() },
+				this.actor.get(),
+				entry.inverse
+			)
+			if (onServer.ok) {
+				const puts = new Map(onServer.writes.puts.map((r) => [r.id as string, r]))
+				const deletes = new Set(onServer.writes.deletes)
+				for (const id of entry.before.keys()) {
+					// untouched since the command: the inverse alone is the undo
+					if (isEqual(preUndo(id), entry.after.get(id))) continue
+					const left = deletes.has(id) ? undefined : (puts.get(id) ?? preUndo(id))
+					const target = valueAfter(id)[1]
+					if (isEqual(left, target)) continue
+					// a fixup is a raw edit; one the edit lane forbids (a command-only record that the
+					// server's run made differ, e.g. by its own clock) is the inverse's job alone
+					const op = left && target ? 'update' : target ? 'create' : 'delete'
+					if (!this.canEdit(op, left ?? null, target ?? null)) continue
+					if (left && target) (fixups.updated as any)[id] = [left, target]
+					else if (target) (fixups.added as any)[id] = target
+					else if (left) (fixups.removed as any)[id] = left
+				}
+			}
+			this.undoable.splice(i, 1)
+			if (next.ok && next.inverse) {
+				this.undoable.splice(i, 0, {
+					inverse: next.inverse,
+					before: entry.after,
+					after: entry.before,
+				})
+			}
+			const matched = createEmptyRecordsDiff<R>()
+			const remaining = createEmptyRecordsDiff<R>()
+			for (const kind of ['added', 'updated', 'removed'] as const) {
+				for (const [id, value] of objectMapEntries(rest[kind] as Record<string, any>)) {
+					;((entry.before.has(id) ? matched : remaining)[kind] as any)[id] = value
+				}
+			}
+			squashRecordDiffsMutable(this.speculativeChanges, [matched])
+			this.push(remaining)
+			this.flushUnsentChanges()
+			this.sendCommand(entry.inverse)
+			if (!isRecordsDiffEmpty(fixups)) {
+				this.push(fixups)
+				this.flushUnsentChanges()
+			}
+			rest = createEmptyRecordsDiff<R>()
+		}
+		return rest
+	}
+
+	/** Run this session's command locally, as the server will. */
+	private runOwnCommand(
+		set: TLCommandSet<R>,
+		reader: TLCommandReader<R>,
+		call: TLCommandCall
+	): TLCommandResult<R> {
+		if (this.hostReadonly) return { ok: false, reason: 'this session is read-only' }
+		return runCommand(set, reader, this.actor.get(), call)
+	}
+
+	/** Whether this client's actor has a permission, reactively. */
+	can(permission: string): boolean {
+		return actorCan(this.actor.get(), permission)
+	}
+
+	private storeLookup() {
+		return lookupOf<R>({
+			get: (id) => this.store.get(id as RecordId<R>),
+			values: () => this.store.allRecords(),
+		})
+	}
+
+	/** Whether this client may make a record change on the edit lane, reactively. */
+	canEdit(op: 'create' | 'update' | 'delete', prev: R | null, next: R | null): boolean {
+		if (!this.commands) return true
+		// the client checks each record as it changes, so the store is the state before and after
+		const records = this.storeLookup()
+		return canEditRecord(this.commands, this.actor.get(), {
+			op,
+			prev,
+			next,
+			...records,
+			before: records,
+			deleting: this.deleting,
+		})
+	}
+
+	/**
+	 * Block user edits that the edit policy denies before they reach the store, so they never
+	 * flash and roll back. The server checks again; this guard is only for the feel.
+	 */
+	private registerEditGuard(set: TLCommandSet<R>) {
+		const { sideEffects } = this.store
+		let removingDenied = false
+		// a later handler may cancel a delete, so its after-delete never runs
+		this.disposables.push(sideEffects.registerOperationCompleteHandler(() => this.deleting.clear()))
+		for (const typeName of this.store.scopedTypes.document) {
+			this.disposables.push(
+				sideEffects.registerBeforeCreateHandler(typeName, (record, source) => {
+					if (source !== 'user' || this.applyingCommand || !set.edit.stamp) return record
+					// an undo brings back a record as it was, owner and all
+					if (this.isUndoStep(record.id, record)) return record
+					return set.edit.stamp(this.actor.get(), record, this.storeLookup())
+				}),
+				// A before-create handler cannot veto, so remove a denied record right after. The
+				// create and the remove squash to nothing, so nothing is sent.
+				sideEffects.registerAfterCreateHandler(typeName, (record, source) => {
+					if (source !== 'user' || this.applyingCommand || this.isUndoStep(record.id, record))
+						return
+					if (this.canEdit('create', null, record)) return
+					removingDenied = true
+					try {
+						this.store.remove([record.id])
+					} finally {
+						removingDenied = false
+					}
+					this.onPushRejected?.({ reason: `edit denied: create ${record.typeName}` })
+				}),
+				sideEffects.registerBeforeChangeHandler(typeName, (prev, next, source) => {
+					if (source !== 'user' || this.applyingCommand || this.isUndoStep(next.id, next))
+						return next
+					// tldraw replaces whole records on some updates (an uploaded asset), so the stamp
+					// keeps fields such as the owner that the new record leaves out
+					const stamped = set.edit.stamp
+						? set.edit.stamp(this.actor.get(), next, this.storeLookup())
+						: next
+					if (this.canEdit('update', prev, stamped)) return stamped
+					return prev
+				}),
+				sideEffects.registerBeforeDeleteHandler(typeName, (record, source) => {
+					if (
+						source === 'user' &&
+						!removingDenied &&
+						!this.applyingCommand &&
+						!this.isUndoStep(record.id, undefined) &&
+						!this.canEdit('delete', record, null)
+					) {
+						return false
+					}
+					this.deleting.add(record.id)
+					return
+				}),
+				sideEffects.registerAfterDeleteHandler(typeName, (record) => {
+					this.deleting.delete(record.id)
+				})
+			)
+		}
+	}
+
 	/** @internal */
 	latestConnectRequestId: string | null = null
 
@@ -706,6 +1080,32 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		})
 	}
 
+	/** Apply and send the unanswered and offline work again, in order, on the server's state. */
+	private replayAfterReconnect(set: TLCommandSet<R>) {
+		const replay = [...this.replay, ...this.takeOfflineChanges()]
+		this.replay = []
+		for (const request of replay) {
+			if (request.command) {
+				const result = this.runOwnCommand(set, this.commandReader(), request.command)
+				if (result.ok) {
+					const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+					squashRecordDiffsMutable(this.speculativeChanges, [changes])
+				}
+				// sent even if denied here, so the server answers and the client reports it
+				this.sendCommand(request.command, request.commandId)
+				continue
+			}
+			if (!request.diff) continue
+			const changes = this.store.filterChangesByScope(
+				this.store.extractingChanges(() => this.applyNetworkDiff(request.diff!, true)),
+				'document'
+			)
+			if (!changes) continue
+			this.push(changes)
+			this.flushUnsentChanges()
+		}
+	}
+
 	/** Switch to offline mode */
 	private resetConnection(hard = false) {
 		this.debug('resetting connection')
@@ -722,6 +1122,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.firstUnansweredPingAt = null
+		if (this.commands) {
+			this.replay.push(...this.pendingPushRequests)
+			const unsent = this.unsentChanges.nextDiff && getNetworkDiff(this.unsentChanges.nextDiff)
+			if (unsent) this.replay.push({ type: 'push', clientClock: -1, diff: unsent })
+		}
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
 		this.unsentChanges.nextDiff = undefined
@@ -797,6 +1202,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 				this.isConnectedToRoom = true
 
+				if (this.commands) {
+					this.replayAfterReconnect(this.commands)
+					return
+				}
+
 				// now re-apply the speculative changes creating a new push request with the
 				// appropriate diff
 				const networkDiff = getNetworkDiff(stashedChanges)
@@ -813,6 +1223,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
+			const actor = event.actor ?? defaultActor(event.isReadonly)
+			this.hostReadonly = event.hostReadonly ?? false
+			this.actor.set(actor)
+			this.onActorChange?.({ actor, isReadonly: event.isReadonly })
 			this.onAfterConnect?.(this, {
 				isReadonly: event.isReadonly,
 				objectAccess: event.objectAccess ?? 'write',
@@ -856,6 +1270,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				break
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
+				break
+			case 'actor':
+				this.actor.set(event.actor)
+				this.onActorChange?.({ actor: event.actor, isReadonly: event.isReadonly })
 				break
 			case 'custom':
 				this.onCustomMessageReceived?.call(null, event.data)
@@ -909,7 +1327,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.debug('push', change)
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
 		// in offline mode, we only accumulate in speculativeChanges
-		if (!this.isConnectedToRoom) return
+		if (!this.isConnectedToRoom) {
+			if (this.commands) {
+				this.offlineChanges ??= createEmptyRecordsDiff<R>()
+				squashRecordDiffsMutable(this.offlineChanges, [change])
+			}
+			return
+		}
 		if (!this.unsentChanges.nextDiff) {
 			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
 		}
@@ -996,7 +1420,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						)
 					}
 					if (diff.action === 'discard') {
-						this.pendingPushRequests.shift()
+						const request = this.pendingPushRequests.shift()!
+						if (diff.reason) {
+							this.onPushRejected?.({ reason: diff.reason, command: request.command })
+						}
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1011,7 +1438,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				try {
 					this.speculativeChanges = this.store.extractingChanges(() => {
 						for (const request of this.pendingPushRequests) {
-							if (!('diff' in request) || !request.diff) continue
+							if (request.command && this.commands) {
+								// Run the command again on the new state. If it is denied now, the
+								// server will deny it too, so drop its effects.
+								const result = this.runOwnCommand(
+									this.commands,
+									this.commandReader(),
+									request.command
+								)
+								if (result.ok) this.applyCommandWrites(result.writes)
+								continue
+							}
+							if (!request.diff) continue
 							this.applyNetworkDiff(request.diff, true)
 						}
 						if (!this.unsentChanges.nextDiff) return

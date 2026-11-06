@@ -1,4 +1,5 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import type { TLCommandActor } from './commands'
 import { TLObjectStoreAccess, TLSocketServerSentDataEvent } from './protocol'
 import { TLRoomSocket } from './TLSyncRoom'
 
@@ -85,6 +86,15 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
 	 */
 	objectAccess: TLObjectStoreAccess
+	/**
+	 * Who this session acts as, for commands and the edit lane. When the room has commands,
+	 * `isReadonly` is derived from it.
+	 */
+	actor: TLCommandActor
+	/** The `isReadonly` the host passed. It caps the actor: a read-only session never edits. */
+	hostReadonly: boolean
+	/** Whether the client speaks protocol 9 (commands and live actor updates) */
+	supportsCommands: boolean
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */
@@ -145,4 +155,9 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+			/**
+			 * The ids of the records this client holds. Kept only when the room has a read policy,
+			 * so the server knows when a record appears to, or disappears from, the client.
+			 */
+			visible?: Set<string>
 	  })

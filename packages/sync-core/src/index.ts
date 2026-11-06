@@ -1,5 +1,30 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
+export {
+	actorCan,
+	canEditRecord,
+	canOpenRoom,
+	canReadRecord,
+	defaultActor,
+	lookupOf,
+	defineCommand,
+	defineCommandSet,
+	runCommand,
+	TLCommandDenied,
+	type TLCommand,
+	type TLCommandActor,
+	type TLCommandCall,
+	type TLCommandContext,
+	type TLCommandReader,
+	type TLCommandResult,
+	type TLCommandSet,
+	type TLCommandWrites,
+	type TLEditPolicy,
+	type TLEditPolicyContext,
+	type TLReadCache,
+	type TLReadPolicy,
+	type TLRecordLookup,
+} from './lib/commands'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {
 	applyObjectDiff,

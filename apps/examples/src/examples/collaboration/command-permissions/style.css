@@ -1,0 +1,168 @@
+.cp-root {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	background: #ccc;
+}
+
+.cp-tour {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 8px 12px;
+	background: #fff9db;
+	border-bottom: 1px solid #e9d97a;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.cp-tour-nav {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.cp-tour-body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.cp-tour-why {
+	color: #555;
+}
+
+.cp-slot {
+	display: flex;
+	min-width: 0;
+	min-height: 0;
+	outline: 3px solid transparent;
+	outline-offset: -3px;
+}
+
+.cp-slot > .cp-pane {
+	flex: 1;
+}
+
+.cp-slot[data-focus='true'] {
+	outline-color: #fab005;
+	z-index: 1;
+}
+
+.cp-grid {
+	flex: 1;
+	min-height: 0;
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
+	gap: 4px;
+	background: #ccc;
+}
+
+.cp-pane {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	min-height: 0;
+	background: white;
+	border-top: 4px solid var(--cp-color, #999);
+}
+
+.cp-loading {
+	align-items: center;
+	justify-content: center;
+}
+
+.cp-header {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 6px 8px;
+	font-size: 12px;
+	border-bottom: 1px solid #eee;
+}
+
+.cp-title {
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+}
+
+.cp-perms {
+	color: #666;
+	font-family: monospace;
+}
+
+.cp-actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+	align-items: center;
+}
+
+.cp-comments {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+	max-height: 60px;
+	overflow: auto;
+}
+
+.cp-comments button {
+	margin-left: 4px;
+	border: none;
+	background: none;
+	cursor: pointer;
+}
+
+.cp-canvas {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+.cp-denied {
+	position: absolute;
+	bottom: 56px;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 1000;
+	padding: 6px 10px;
+	border-radius: 6px;
+	background: #c92a2a;
+	color: white;
+	font-size: 12px;
+	pointer-events: none;
+}
+
+.cp-votes {
+	pointer-events: none;
+	position: absolute;
+	min-width: 24px;
+	height: 24px;
+	border-radius: 12px;
+	background: #495057;
+	color: white;
+	font-size: 13px;
+	font-weight: bold;
+	text-align: center;
+	line-height: 24px;
+}
+
+.cp-votes[data-mine='true'] {
+	background: #e03131;
+}
+
+.cp-owner {
+	pointer-events: none;
+	position: absolute;
+	font-size: 11px;
+	color: #868e96;
+	white-space: nowrap;
+}
+
+.cp-owner[data-locked='true'] {
+	color: #c92a2a;
+}

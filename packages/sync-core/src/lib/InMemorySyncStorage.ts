@@ -11,6 +11,8 @@ import { assert, IndexKey, objectMapEntries, throttle, type ThrottledFunction } 
 import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
+	commandIdsField,
+	MAX_COMMAND_IDS,
 	TLSyncForwardDiff,
 	TLSyncStorage,
 	TLSyncStorageGetChangesSinceResult,
@@ -127,6 +129,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	readonly objectTypes: ReadonlySet<string>
 	/** @internal */
 	tombstones: AtomMap<string, number>
+	/** Applied command ids, oldest first. @internal */
+	commandIds: AtomMap<string, true>
 	/** @internal */
 	schema: Atom<SerializedSchema>
 	/** @internal */
@@ -193,6 +197,10 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			// If the tombstone history starts now (or we didn't have the
 			// tombstoneHistoryStartsAtClock) then there are no tombstones
 			tombstoneHistoryStartsAtClock === documentClock ? [] : tombstoneEntries
+		)
+		this.commandIds = new AtomMap(
+			'room command ids',
+			(snapshot.commandIds ?? []).map((id) => [id, true] as const)
 		)
 		if (onChange) {
 			this.onChange(onChange)
@@ -278,6 +286,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			documentClock: this.documentClock.get(),
 			documents: Array.from(this.documents.values()),
 			tombstones: Object.fromEntries(this.tombstones.entries()),
+			...commandIdsField(Array.from(this.commandIds.keys())),
 			schema: this.schema.get(),
 		}
 	}
@@ -326,6 +335,16 @@ class InMemorySyncStorageTransaction<
 
 	getClock(): number {
 		return this._clock
+	}
+
+	hasCommandId(id: string): boolean {
+		return this.storage.commandIds.has(id)
+	}
+
+	addCommandId(id: string): void {
+		const ids = this.storage.commandIds
+		ids.set(id, true)
+		while (ids.size > MAX_COMMAND_IDS) ids.delete(ids.keys().next().value!)
 	}
 
 	private didIncrementClock: boolean = false

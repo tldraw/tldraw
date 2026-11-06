@@ -1,6 +1,10 @@
 import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
+	TLCommandActor,
+	TLCommandCall,
+	TLCommandResult,
+	TLCommandSet,
 	TLCustomMessageHandler,
 	TLObjectStoreAccess,
 	TLPersistentClientSocket,
@@ -110,7 +114,28 @@ export type RemoteTLStoreWithStatus =
 			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
 			 */
 			readonly objectAccess: TLObjectStoreAccess
+			/**
+			 * Run named commands and read this session's actor. Present when `commands` was passed
+			 * to {@link useSync}. All of it is reactive.
+			 */
+			readonly commands: TLSyncCommandsApi | null
 	  })
+
+/**
+ * The client side of a room's commands. See {@link UseSyncOptionsBase.commands}.
+ *
+ * @public
+ */
+export interface TLSyncCommandsApi {
+	/** Run a command optimistically. The server runs it again and is the authority. */
+	run(name: string, args: unknown): TLCommandResult<TLRecord>
+	/** Whether this session's actor has a permission. */
+	can(permission: string): boolean
+	/** Whether the edit policy allows a record change, for showing or hiding UI. */
+	canEdit(op: 'create' | 'update' | 'delete', prev: TLRecord | null, next: TLRecord | null): boolean
+	/** Who this session acts as, as the server last said. */
+	getActor(): TLCommandActor
+}
 
 /**
  * Creates a reactive store synchronized with a multiplayer server for real-time collaboration.
@@ -211,6 +236,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		commands,
+		onPushRejected: _onPushRejected,
 		themes,
 		...schemaOpts
 	} = opts
@@ -229,6 +256,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	const onPushRejected = useEvent(_onPushRejected ?? (() => {}))
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -340,6 +368,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		const client = new TLSyncClient<TLRecord, TLStore>({
 			store,
 			socket,
+			commands,
+			onPushRejected,
+			onActorChange({ isReadonly }) {
+				// the server re-sends this whenever the host changes the actor, so the canvas
+				// turns read-only (or back) without a reconnect
+				syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+			},
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
@@ -398,6 +433,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		commands,
+		onPushRejected,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -411,10 +448,20 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
 				objectAccess: state.objectAccess ?? 'write',
+				commands: commands ? createCommandsApi(state.readyClient) : null,
 			}
 		},
-		[state]
+		[state, commands]
 	)
+}
+
+function createCommandsApi(client: TLSyncClient<TLRecord, TLStore>): TLSyncCommandsApi {
+	return {
+		run: (name, args) => client.runCommand(name, args),
+		can: (permission) => client.can(permission),
+		canEdit: (op, prev, next) => client.canEdit(op, prev, next),
+		getActor: () => client.actor.get(),
+	}
 }
 
 /**
@@ -442,6 +489,18 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * The room's named commands and edit policy. Pass the same set the server uses (see
+	 * `TLSocketRoom`'s `commands` option). Keep it stable: define it at module level.
+	 */
+	commands?: TLCommandSet<TLRecord>
+
+	/**
+	 * Called when the server discards a push (a denied command or edit), or a command is denied
+	 * locally. Use it to explain to the user why their change went away.
+	 */
+	onPushRejected?(details: { reason: string; command?: TLCommandCall }): void
+
 	/**
 	 * Named theme definitions. When provided, custom color names are automatically
 	 * registered before the store is constructed so persisted data with those
