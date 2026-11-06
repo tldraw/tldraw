@@ -1263,7 +1263,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private pendingAfterEvents: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
 	private addDiffForAfterEvent(before: R | null, after: R | null) {
 		assert(this.pendingAfterEvents, 'must be in event operation')
-		if (this.permissionChanges && before !== after) {
+		if (this.permissionChanges && !this.permissionsPaused && before !== after) {
 			const id = (before ?? after)!.id
 			const existing = this.permissionChanges.get(id)
 			if (existing) existing.after = after
@@ -1415,8 +1415,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 		const items: RecordAccess<R>[] = []
 		for (const { before, after } of changes.values()) {
-			const record = (after ?? before)!
-			if (!this.scopedTypes.document.has(record.typeName)) continue
+			// created and deleted in the same operation: nothing to check
+			const record = after ?? before
+			if (!record || !this.scopedTypes.document.has(record.typeName)) continue
 			if (before && after) {
 				if (before === after || isEqual(before, after)) continue
 				items.push({ type: 'update', prev: before, next: after })

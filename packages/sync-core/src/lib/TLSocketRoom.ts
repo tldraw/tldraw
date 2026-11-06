@@ -151,6 +151,11 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * actor is the session ({@link TLSyncActor}). Use the same chain on the client (see
 	 * `Store.setPermissions`), so that the client stops a write before it is sent.
 	 *
+	 * File read control: at connect, the room asks the chain for the action `room.open`
+	 * (`chain.can({ actor, action: 'room.open' })`), and closes the session with `FORBIDDEN` if
+	 * it is denied. `refreshReads` and `updateSessionMeta` ask again, and close sessions that may
+	 * no longer open the room.
+	 *
 	 * The session's lane access (`isReadonly`, `objectAccess`) is checked first, outside the chain,
 	 * so no layer can let a read-only session write.
 	 *
@@ -159,9 +164,15 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * chain itself (for example with `chain.run` or `chain.can`).
 	 *
 	 * With a chain, each connect sends the full document view, and every broadcast runs the read
-	 * chain once per session.
+	 * chain once per session (see `checkReads`).
 	 */
 	permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>
+	/**
+	 * Whether `permissions` also decides what each session receives. Defaults to `true`. Set it to
+	 * `false` for a chain with no read rules: the room then sends every record, resumes sessions
+	 * from their last clock, and does not run the chain per session on each broadcast.
+	 */
+	checkReads?: boolean
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -293,6 +304,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			permissions: opts.permissions,
+			checkReads: opts.checkReads,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -934,7 +946,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 	/**
 	 * Run the read chain again for every connected session (or one session), and send each one
-	 * what changed. Call it after a change that the chain reads but that is not in the records
+	 * what changed. Sessions that may no longer open the room (action `room.open`) are closed with
+	 * `FORBIDDEN`. Call it after a change that the chain reads but that is not in the records
 	 * themselves, for example a grant held outside the room.
 	 */
 	refreshReads(sessionId?: string) {
@@ -943,7 +956,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 	/**
 	 * Change a connected session's `meta`, for example after a role change. The room checks later
-	 * writes with the new `meta`, and refreshes what the session can see.
+	 * writes with the new `meta`, and refreshes what the session can see. If the session may no
+	 * longer open the room, it is closed with `FORBIDDEN`.
 	 */
 	updateSessionMeta(sessionId: string, meta: SessionMeta) {
 		this.room.updateSessionMeta(sessionId, meta)

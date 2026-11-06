@@ -112,6 +112,19 @@ describe('PermissionChain', () => {
 		expect(result.denied.map((d) => d.reason)).toEqual(['atomic: not your note', 'not your note'])
 	})
 
+	it('atomic() also denies the batch when a later layer drops an access', () => {
+		const a = note('a', 'alice')
+		const b = note('b', 'alice')
+		const dropB: PermissionMiddleware<Rec, Actor> = (batch, next) =>
+			next(batch.items.filter((i) => i.type !== 'create' || i.next.id !== b.id))
+		const result = run(new PermissionChain(atomic(), dropB), alice, [
+			{ type: 'create', prev: null, next: a },
+			{ type: 'create', prev: null, next: b },
+		])
+		expect(result.allowed).toEqual([])
+		expect(result.denied.map((d) => d.reason)).toEqual(['atomic: denied', 'atomic: denied'])
+	})
+
 	it('changes a record, and later layers see the change', () => {
 		let seen: string | undefined
 		const chain = new PermissionChain<Rec, Actor>(stampOwner, (batch, next) => {
@@ -269,6 +282,26 @@ describe('Store.setPermissions', () => {
 		store.withoutPermissions(() => store.put([note('system', 'x')]))
 		expect(store.has(Note.createId('remote'))).toBe(true)
 		expect(store.has(Cursor.createId('c'))).toBe(true)
+		expect(store.has(Note.createId('system'))).toBe(true)
+		expect(onDenied).not.toHaveBeenCalled()
+	})
+
+	it('skips a record created and deleted in the same operation', () => {
+		const { store, onDenied } = makeStore(viewer, viewersCannotWrite)
+		const a = note('a', 'v')
+		store.atomic(() => {
+			store.put([a])
+			store.remove([a.id])
+		})
+		expect(store.has(a.id)).toBe(false)
+		expect(onDenied).not.toHaveBeenCalled()
+	})
+
+	it('does not check writes in withoutPermissions inside an operation', () => {
+		const { store, onDenied } = makeStore(viewer, viewersCannotWrite)
+		store.atomic(() => {
+			store.withoutPermissions(() => store.put([note('system', 'x')]))
+		})
 		expect(store.has(Note.createId('system'))).toBe(true)
 		expect(onDenied).not.toHaveBeenCalled()
 	})

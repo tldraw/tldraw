@@ -3,6 +3,7 @@ import {
 	TLSocketClientSentEvent,
 	TLSocketRoom,
 	TLSocketServerSentEvent,
+	TLSyncErrorCloseEventCode,
 	WebSocketMinimal,
 } from '@tldraw/sync-core'
 import { PermissionChain, TLRecord } from 'tldraw'
@@ -21,11 +22,13 @@ export function createInPageRoom(chain: PermissionChain<TLRecord, ClassroomActor
 	const room: TLSocketRoom<TLRecord, ClassroomMeta> = new TLSocketRoom<TLRecord, ClassroomMeta>({
 		permissions: chain,
 		// The read rules of a shape read its page. A page change does not change its shapes, so
-		// re-run the reads when a page changes.
+		// re-run the reads when a page changes. The document's meta decides who may open the room
+		// (file read control), so re-run them when it changes too.
 		onCommittedChanges: ({ diff }) => {
-			const touchesPage = Object.values(diff.puts).some(
-				(put) => (Array.isArray(put) ? put[1] : put).typeName === 'page'
-			)
+			const touchesPage = Object.values(diff.puts).some((put) => {
+				const typeName = (Array.isArray(put) ? put[1] : put).typeName
+				return typeName === 'page' || typeName === 'document'
+			})
 			if (touchesPage) room.refreshReads()
 		},
 	})
@@ -47,10 +50,18 @@ export function createInPageRoom(chain: PermissionChain<TLRecord, ClassroomActor
 					for (const listener of clientListeners) listener(msg)
 				})
 			},
-			close: () => {
+			close: (code?: number, reason?: string) => {
 				serverSocket.readyState = 3
-				client.connectionStatus = 'offline'
-				for (const listener of statusListeners) listener({ status: 'offline' })
+				// A rejection from the room (for example FORBIDDEN from `room.open`) is an error the
+				// client shows, like a WebSocket closed with this code.
+				const event =
+					code === TLSyncErrorCloseEventCode && reason
+						? ({ status: 'error', reason } as const)
+						: ({ status: 'offline' } as const)
+				setTimeout(() => {
+					client.connectionStatus = event.status
+					for (const listener of statusListeners) listener(event)
+				})
 			},
 			addEventListener: (type, listener) => serverListeners[type].add(listener),
 			removeEventListener: (type, listener) => serverListeners[type].delete(listener),

@@ -10,6 +10,7 @@ import {
 import {
 	TLComment,
 	TLCommentThread,
+	TLDOCUMENT_ID,
 	TLPageId,
 	TLRecord,
 	TLShapeId,
@@ -29,7 +30,7 @@ import {
 	defaultTools,
 } from 'tldraw'
 import { afterEach, describe, expect, it } from 'vitest'
-import { TLSyncClient } from '../lib/TLSyncClient'
+import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import {
 	ClassroomActor,
 	ClassroomMeta,
@@ -55,6 +56,8 @@ class Peer {
 	client: TLSyncClient<TLRecord>
 	editor!: Editor
 	denied: PermissionDenial<TLRecord>[] = []
+	syncErrors: string[] = []
+	expectsSyncError = false
 
 	constructor(
 		readonly server: TestServer<TLRecord>,
@@ -77,7 +80,7 @@ class Peer {
 			store: this.store,
 			socket: this.pair.clientSocket,
 			onSyncError: (reason) => {
-				throw new Error('sync error: ' + reason)
+				this.syncErrors.push(reason)
 			},
 			onLoad: () => {
 				this.editor = new Editor({
@@ -109,7 +112,14 @@ function classroom({ atomicPushes = true } = {}) {
 	const flush = () => {
 		for (let i = 0; i < 50; i++) {
 			server.flushDebouncingMessages()
-			if (!peers.some((p) => p.pair.getNeedsFlushing())) return
+			if (!peers.some((p) => p.pair.getNeedsFlushing())) {
+				for (const p of peers) {
+					if (p.syncErrors.length && !p.expectsSyncError) {
+						throw new Error(`sync error for ${p.meta.userId}: ${p.syncErrors.join(', ')}`)
+					}
+				}
+				return
+			}
 			for (const p of peers) {
 				p.pair.flushClientSentEvents()
 				p.pair.flushServerSentEvents()
@@ -117,8 +127,9 @@ function classroom({ atomicPushes = true } = {}) {
 		}
 		throw new Error('did not settle')
 	}
-	const join = (meta: ClassroomMeta) => {
+	const join = (meta: ClassroomMeta, { expectsSyncError = false } = {}) => {
 		const peer = new Peer(server, meta, chain)
+		peer.expectsSyncError = expectsSyncError
 		peers.push(peer)
 		flush()
 		return peer
@@ -266,6 +277,38 @@ describe('page read control', () => {
 		flush()
 		expect(alice.store.get(page2)).toBeDefined()
 		expect(alice.store.get(secretBox)).toBeDefined()
+	})
+})
+
+describe('file read control', () => {
+	it('when the teacher closes the class, a student cannot open the file', () => {
+		const { join, teacher, flush } = classroom()
+		teacher.editor.updateDocumentSettings({ meta: { closed: true } })
+		flush()
+		const alice = join({ userId: 'alice', role: 'student' }, { expectsSyncError: true })
+		expect(alice.syncErrors).toEqual([TLSyncErrorCloseEventReason.FORBIDDEN])
+		expect(alice.store.get(teacher.editor.getCurrentPageId())).toBeUndefined()
+	})
+
+	it('closing the class closes the open sessions of students on refresh', () => {
+		const { join, teacher, server, flush } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' }, { expectsSyncError: true })
+		const other = join({ userId: 'teacher2', role: 'teacher' })
+		teacher.editor.updateDocumentSettings({ meta: { closed: true } })
+		flush()
+		server.room.refreshReads()
+		flush()
+		expect(alice.syncErrors).toEqual([TLSyncErrorCloseEventReason.FORBIDDEN])
+		expect(other.syncErrors).toEqual([])
+	})
+
+	it('students cannot reopen the class', () => {
+		const { join, teacher, flush } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		alice.editor.updateDocumentSettings({ meta: { closed: true } })
+		expect(alice.denied.map((d) => d.reason)).toEqual(['only teachers change the file'])
+		flush()
+		expect(teacher.store.get(TLDOCUMENT_ID)!.meta.closed).toBeUndefined()
 	})
 })
 

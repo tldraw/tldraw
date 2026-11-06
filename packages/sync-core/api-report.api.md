@@ -555,6 +555,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    checkReads?: boolean;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -742,6 +743,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         objectTypes?: readonly string[];
         permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>;
+        checkReads?: boolean;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;

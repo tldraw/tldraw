@@ -304,6 +304,7 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
         action: string;
         actor: Actor;
         get?(id: string): R | undefined;
+        onError?(error: unknown): void;
         record?: R;
     }): boolean;
     run(opts: {

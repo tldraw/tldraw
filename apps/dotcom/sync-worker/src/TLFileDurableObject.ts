@@ -513,6 +513,8 @@ export class TLFileDurableObject extends DurableObject {
 							this.vetoTelemetry(),
 							recordAuthorizers(authorizeFileRecord as TLRecordAuthorizers<TLRecord, SessionMeta>)
 						),
+						// The chain has write rules only.
+						checkReads: false,
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can

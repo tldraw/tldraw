@@ -312,6 +312,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>
+	/** The chain for reads, or undefined when the room does not filter what sessions receive. */
+	private readonly readPermissions?: PermissionChain<R, TLSyncActor<SessionMeta>>
 	private readonly sessionIdleTimeout: number
 
 	private actorOf(session: {
@@ -330,7 +332,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/** Whether a diff puts a record that the read chain must see, so that views read storage. */
 	private hasFilteredPut(diff: TLSyncForwardDiff<R> | undefined) {
-		if (!diff || !this.permissions) return false
+		if (!diff || !this.readPermissions) return false
 		for (const put of Object.values(diff.puts)) {
 			if ((Array.isArray(put) ? put[1] : put).typeName !== this.presenceType?.typeName) return true
 		}
@@ -373,7 +375,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		get: ((id: string) => UnknownRecord | undefined) | undefined,
 		onlyChanges = false
 	): TLSyncForwardDiff<R> {
-		if (!this.permissions) return diff
+		if (!this.readPermissions) return diff
 		const { held } = session
 		// After a full-view connect the room has decided every record, so a new one is not held. A
 		// resumed session may hold anything.
@@ -388,7 +390,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		let sentById: Map<string, R> | null = null
 		if (items.length > 0) {
 			assert(get, 'the read chain needs a record reader for this diff')
-			const result = this.permissions.run({
+			const result = this.readPermissions.run({
 				kind: 'read',
 				actor: this.actorOf(session),
 				items,
@@ -456,15 +458,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	refreshReads(sessionId?: string) {
 		if (!this.permissions) return
+		const closed: string[] = []
 		this.storage.transaction((txn) => {
 			this.broadcastChanges(txn)
+			const get = (id: string) => txn.get(id) as R | undefined
+			const sessions = [...this.sessions.values()].filter(
+				(s): s is Extract<RoomSession<R, SessionMeta>, { state: 'connected' }> =>
+					s.state === RoomSessionState.Connected &&
+					(sessionId === undefined || s.sessionId === sessionId)
+			)
+			for (const session of sessions) {
+				if (!this.mayOpen(session, get)) closed.push(session.sessionId)
+			}
+			if (!this.readPermissions) return
 			const all = txn.getChangesSince(-1)
 			if (!all) return
 			const legacyAppendMode = !this.getCanEmitStringAppend()
-			for (const session of this.sessions.values()) {
-				if (session.state !== RoomSessionState.Connected) continue
-				if (sessionId !== undefined && session.sessionId !== sessionId) continue
-				const view = this.diffForSession(session, all.diff, (id) => txn.get(id), true)
+			for (const session of sessions) {
+				if (closed.includes(session.sessionId)) continue
+				const view = this.diffForSession(session, all.diff, get, true)
 				if (isEmptyForwardDiff(view)) continue
 				const diffResult = this.migrateDiffOrRejectSession(
 					session.sessionId,
@@ -482,17 +494,30 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				})
 			}
 		})
+		for (const id of closed) this.rejectSession(id, TLSyncErrorCloseEventReason.FORBIDDEN)
 	}
 
 	/**
 	 * Change a connected session's `meta`, for example after a role change, and refresh what it
-	 * can see. Later writes are checked with the new `meta`.
+	 * can see. Later writes are checked with the new `meta`. If the chain no longer lets the
+	 * session open the room, the session is closed with `FORBIDDEN`.
 	 */
 	updateSessionMeta(sessionId: string, meta: SessionMeta) {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
 		session.meta = meta
 		this.refreshReads(sessionId)
+	}
+
+	/** File read control: the chain's answer to the action `room.open` for this session. */
+	private mayOpen(session: RoomSession<R, SessionMeta>, get: (id: string) => R | undefined) {
+		if (!this.permissions) return true
+		return this.permissions.can({
+			actor: this.actorOf(session),
+			action: 'room.open',
+			get,
+			onError: (e) => this.log?.error?.('the chain failed on room.open; rejecting', e),
+		})
 	}
 
 	constructor(opts: {
@@ -517,6 +542,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * See {@link TLSocketRoomOptions.permissions}.
 		 */
 		permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>
+		/** See `TLSocketRoomOptions.checkReads`. */
+		checkReads?: boolean
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -525,6 +552,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.permissions = opts.permissions
+		this.readPermissions = opts.checkReads === false ? undefined : opts.permissions
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -1235,6 +1263,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.SERVER_TOO_OLD)
 			return
 		}
+		const mayOpen = this.storage.transaction((txn) =>
+			this.mayOpen(session, (id) => txn.get(id) as R | undefined)
+		).result
+		if (!mayOpen) {
+			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			return
+		}
 		// If the client's store is at a different version to ours, it could cause corruption.
 		// We should disconnect the client and ask them to refresh.
 		if (message.schema == null) {
@@ -1285,9 +1320,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.broadcastChanges(txn)
 			// With a read chain, what the client kept from its last connection may no longer be what
 			// it can see, so it always gets a full view.
-			const docChanges = txn.getChangesSince(this.permissions ? -1 : message.lastServerClock)
+			const docChanges = txn.getChangesSince(this.readPermissions ? -1 : message.lastServerClock)
 			const docView =
-				docChanges && this.permissions
+				docChanges && this.readPermissions
 					? this.diffForSession({ ...session, held }, docChanges.diff, (id) => txn.get(id))
 					: docChanges?.diff
 			const presenceDiff = this.migrateDiffOrRejectSession(
@@ -1720,7 +1755,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// Pass 1 collects what each op would do, without writing. Pass 2 runs the chain once
 					// on the whole push. Pass 3 applies the ops again, with the chain's decisions.
 					const proposed: RecordAccess<R>[] = []
-					runOps((_id, access) => {
+					runOps((id, access) => {
+						// An op whose key is not its record's id would miss its decision in pass 3.
+						if (getRecordAccessKey(access) !== id) return 'keep'
 						if (access.type !== 'update' || !isEqual(access.prev, access.next)) {
 							proposed.push(access)
 						}
@@ -1748,6 +1785,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						)
 					}
 					runOps((id, access) => {
+						if (getRecordAccessKey(access) !== id) return 'keep'
 						const decision = decisions.get(id)
 						// not proposed: a no-op update
 						if (decision === undefined) return access.type === 'delete' ? null : access.next

@@ -49,3 +49,9 @@
 	font-size: 12px;
 	padding: 4px 8px;
 }
+
+.permission-chain__closed {
+	padding: 16px;
+	font-size: 13px;
+	color: #b3261e;
+}

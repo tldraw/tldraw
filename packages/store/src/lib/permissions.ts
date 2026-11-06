@@ -269,14 +269,16 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 		action: string
 		record?: R
 		get?(id: string): R | undefined
+		onError?(error: unknown): void
 	}): boolean {
-		const { actor, action, record, get = () => undefined } = opts
+		const { actor, action, record, get = () => undefined, onError } = opts
 		return (
 			this.run({
 				kind: 'action',
 				actor,
 				items: [{ type: 'action', name: action, record }],
 				get,
+				onError,
 			}).denied.length === 0
 		)
 	}
@@ -373,8 +375,12 @@ export function rewrite<R extends UnknownRecord, Actor>(
 export function atomic<R extends UnknownRecord, Actor>(): PermissionMiddleware<R, Actor> {
 	return (batch, next) => {
 		const result = next()
-		if (batch.kind !== 'write' || result.denied.length === 0) return result
-		const reason = `atomic: ${result.denied[0].reason}`
+		if (batch.kind !== 'write') return result
+		// A later layer can also drop an access without a denial; that counts as denied too.
+		const allowedKeys = new Set(result.allowed.map(getRecordAccessKey))
+		const dropped = batch.items.some((access) => !allowedKeys.has(getRecordAccessKey(access)))
+		if (result.denied.length === 0 && !dropped) return result
+		const reason = `atomic: ${result.denied[0]?.reason ?? 'denied'}`
 		return {
 			allowed: [],
 			denied: batch.items.map((access) => {

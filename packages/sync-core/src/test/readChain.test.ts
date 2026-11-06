@@ -1,5 +1,6 @@
 import {
 	BaseRecord,
+	allow,
 	PermissionChain,
 	PermissionMiddleware,
 	RecordId,
@@ -129,6 +130,8 @@ function makeRoom(
 		objectTypes?: readonly string[]
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
 		beforeRead?: Record<string, ReadHook>
+		permissions?: PermissionChain<R, TLSyncActor<any>>
+		checkReads?: boolean
 		log?: any
 	} = {}
 ) {
@@ -147,9 +150,12 @@ function makeRoom(
 		storage,
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
-		permissions: opts.beforeRead
-			? new PermissionChain<R, TLSyncActor<any>>(readHooksLayer(opts.beforeRead))
-			: undefined,
+		permissions:
+			opts.permissions ??
+			(opts.beforeRead
+				? new PermissionChain<R, TLSyncActor<any>>(readHooksLayer(opts.beforeRead))
+				: undefined),
+		checkReads: opts.checkReads,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -600,5 +606,45 @@ describe('canRead', () => {
 
 		expect(connectDiff(bob)).toEqual({})
 		expect(log.error).toHaveBeenCalled()
+	})
+})
+
+describe('write-only chains', () => {
+	const plain = Doc.create({ title: 'plain' })
+	const snapshot = {
+		documents: [{ state: plain, lastChangedClock: 0 }],
+		clock: 0,
+		documentClock: 0,
+		schema: schema.serialize(),
+	}
+
+	it('with checkReads: false, resumes a reconnecting client from its clock', () => {
+		const chain = new PermissionChain<R, TLSyncActor<any>>((_batch, next) => next())
+		const { room, storage } = makeRoom({ snapshot, permissions: chain, checkReads: false })
+		const socket = makeSocket()
+		room.handleNewSession({ sessionId: 'bob', socket, meta: undefined, isReadonly: false })
+		room.handleMessage('bob', {
+			type: 'connect',
+			connectRequestId: 'c',
+			lastServerClock: storage.getClock(),
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: room.serializedSchema,
+		} satisfies TLConnectRequest)
+
+		const connect = socket.__messages.find((m: any) => m.type === 'connect') as any
+		expect(connect.hydrationType).toBe('wipe_presence')
+		expect(connect.diff).toEqual({})
+	})
+
+	it('does not store a put whose key is not its record id', () => {
+		const denyOther = allow<R, TLSyncActor<any>>((access) =>
+			access.type === 'create' && access.next.id === 'doc:other' ? 'no' : undefined
+		)
+		const { room, storage } = makeRoom({ snapshot, permissions: new PermissionChain(denyOther) })
+		connectSession(room, 'bob')
+		const other = Doc.create({ id: 'doc:other' as any, title: 'x' })
+		push(room, 'bob', { ['doc:decoy']: [RecordOpType.Put, other] })
+
+		expect(storedIds(storage)).toEqual([plain.id])
 	})
 })

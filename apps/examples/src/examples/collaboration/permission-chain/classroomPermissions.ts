@@ -8,7 +8,7 @@ import {
 	RecordAccess,
 	rewrite,
 } from 'tldraw'
-import { TLPage, TLRecord, TLShape, TLShapeId } from 'tldraw'
+import { TLDOCUMENT_ID, TLPage, TLRecord, TLShape, TLShapeId } from 'tldraw'
 
 // A copy of packages/sync-core/src/test/classroomPermissions.ts, which the use case tests run
 // against a real room. The same chain runs in the in-page room and in each editor below.
@@ -69,6 +69,18 @@ function shapeWriteOf(access: RecordAccess<TLRecord>) {
 	return write as { type: typeof write.type; prev: TLShape | null; next: TLShape | null }
 }
 
+/**
+ * File read control: when a teacher closes the class, only teachers may open the file. The room
+ * asks this at connect (action `room.open`) and again on `refreshReads`.
+ */
+export const closedClass: Layer = allow((access, batch) => {
+	if (access.type !== 'action' || access.name !== 'room.open' || isTeacher(batch.actor)) {
+		return undefined
+	}
+	const doc = batch.get(TLDOCUMENT_ID)
+	return doc?.typeName === 'document' && doc.meta.closed ? 'class is closed' : undefined
+})
+
 /** Page read control: a private page, and all that is on it, is for teachers only. */
 export const privatePages: Layer = allow((access, batch) => {
 	if (access.type === 'read') {
@@ -83,11 +95,13 @@ export const privatePages: Layer = allow((access, batch) => {
 	return undefined
 })
 
-/** Page write control: only a teacher changes pages, and a locked page's shapes. */
+/** Page write control: only a teacher changes the file, pages, and a locked page's shapes. */
 export const lockedPages: Layer = allow((access, batch) => {
 	const write = writeOf(access)
 	if (!write || isTeacher(batch.actor)) return undefined
-	if ((write.prev ?? write.next)!.typeName === 'page') return 'only teachers change pages'
+	const typeName = (write.prev ?? write.next)!.typeName
+	if (typeName === 'document') return 'only teachers change the file'
+	if (typeName === 'page') return 'only teachers change pages'
 	if (!shapeWriteOf(access)) return undefined
 	const before = write.prev ? pageOf(write.prev, batch.get) : undefined
 	const after = write.next ? pageOf(write.next, batch.getAfter) : undefined
@@ -155,6 +169,7 @@ export function classroomPermissions({ atomicPushes = true } = {}) {
 	return new PermissionChain<TLRecord, ClassroomActor>(
 		...(atomicPushes ? [atomic<TLRecord, ClassroomActor>()] : []),
 		viewersReadOnly,
+		closedClass,
 		privatePages,
 		lockedPages,
 		// before the per-shape rules: the limit counts the batch as the client sent it
