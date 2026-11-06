@@ -1,7 +1,6 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
-	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
@@ -10,7 +9,6 @@ import {
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { base64ToArrayBuffer } from '../../utils/base64'
-import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -142,26 +140,9 @@ const TOOLS_LIST_CACHE_SCOPE = 'public'
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 /**
- * The one per-caller budget, shared by every tool that can spend Browser Run.
- *
- * One key rather than three. The tools used to hold `user-cluster:`, `user-info:` and `user-shot:`
- * buckets — and the first two were crossed besides, `get_page_info` counting against the cluster
- * bucket and `get_cluster_info` against the info one — so the real per-caller ceiling was three times
- * the single number config.ts documents and the refusal messages quote. Merging them is what makes
- * that number true, and it is the reading every comment in this file already assumed.
- *
- * The `mcp-shared-board-screenshot:` prefix that `isRateLimited` adds is what the deployed bindings
- * count against; this key sits under it, so this rename costs every caller one reset window.
- */
-function perUserRateLimitKey(userId: string) {
-	return `user:${userId}`
-}
-
-/**
- * The `search_boards` budget's key. A separate binding, not a separate prefix: `isRateLimited`'s
- * `mcp-shared-board-screenshot:` prefix is what the deployed buckets count against and cannot move,
- * so what keeps this budget apart from the Browser Run one is the binding it is checked against, not
- * the string. The `search:` segment only keeps the two readable in a dump.
+ * The `search_boards` budget's key. `isRateLimited`'s `mcp-shared-board-screenshot:` prefix is what
+ * the deployed buckets count against and cannot move, so what keeps budgets apart is the binding each
+ * is checked against. The `search:` segment only keeps them readable in a dump.
  */
 function searchRateLimitKey(userId: string) {
 	return `search:${userId}`
@@ -614,9 +595,8 @@ function withResultEnvelope(result: object, era: ProtocolEra) {
  * hold. A file that resolves as empty is still the caller's board, so it does not fall through to the
  * published lookup and get misreported as not found.
  *
- * The file branch resolves under `render` rather than `public` once the access check passes — that is
- * what lets it reach an unshared board, and it is why the render helpers mint a recorded two-factor
- * token for this surface. Published boards stay `public`: the published slug is the whole capability,
+ * The file branch resolves under `render` rather than `public` once the access check passes, which is
+ * what lets it reach an unshared board. Published boards stay `public`: the published slug is the whole capability,
  * and no user check narrows or widens it.
  *
  * Both failures answer the same `not_found`, deliberately. Distinguishing "no such board" from "you
@@ -666,11 +646,9 @@ async function callSearchBoardsTool(
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
-	// Its own budget, not the Browser Run one: this call spends no Browser Run, and counting it
-	// against that limiter would make the per-account number config.ts documents untrue. What it does
-	// spend is Postgres, and paging is index-bounded (see searchBoards.ts) while matching is not — a
-	// query that matches nothing still reads every board the caller can see. See "MCP tools" in
-	// browser-run-thumbnails.md.
+	// What this spends is Postgres, and paging is index-bounded (see searchBoards.ts) while matching is
+	// not — a query that matches nothing still reads every board the caller can see. See "MCP tools"
+	// in browser-run-thumbnails.md.
 	try {
 		// Inside the try for the reason spelled out on callPageInfoTool: a limiter that *throws* is a
 		// binding outage, not a caller over budget, and outside the try it escapes as a 500 the client
@@ -680,8 +658,7 @@ async function callSearchBoardsTool(
 
 		return getBoardSearchResults(await searchAccessibleBoards(env, userId, input), input.terms)
 	} catch (error) {
-		// No `telemetry`: like get_board_info, this spends no Browser Run and so writes nothing to
-		// the screenshot ledger, which is the one that answers cache and refusal questions.
+		// No `telemetry`: like get_board_info, this isn't on the screenshot ledger.
 		return toolFailure(error, {
 			env,
 			request,
@@ -710,8 +687,7 @@ async function callListWorkspacesTool(
 	if (!parsed.ok) return parsed.result
 
 	try {
-		// Shares search_boards' budget: it is the same kind of spend — a cheap, index-served Postgres
-		// read and no Browser Run — and a binding of its own would buy nothing that one doesn't.
+		// Shares search_boards' budget: it is the same kind of spend, a cheap, index-served Postgres read.
 		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
@@ -815,17 +791,12 @@ async function callBoardInfoTool(
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
-	// Not rate limited: the limiters here bound Browser Run, and this call spends none. The clustering
-	// tools below do spend it — they measure the page in a render before they can group anything — so
-	// they are limited even though they read as "info" calls too.
-
 	try {
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
 		return getBoardInfo(loaded.snapshot, loaded.fileName)
 	} catch (error) {
-		// No `telemetry`: this tool spends no Browser Run and so writes nothing to the screenshot
-		// ledger, which is the one that answers cache and refusal questions about renders.
+		// No `telemetry`: this tool isn't on the screenshot ledger.
 		return toolFailure(error, {
 			env,
 			request,
@@ -858,9 +829,6 @@ async function callPageInfoTool(
 	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
 	// 500. Same reason in every tool below.
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
-		if (refusal) return refusal
-
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
 		// ids that neither of them can look up.
@@ -869,13 +837,13 @@ async function callPageInfoTool(
 			ctx,
 		})
 		if (!resolved.ok) {
-			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
+			telemetry({ failureReason: resolved.reason })
 			return resolved.result
 		}
 
 		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
-		telemetry({ cacheStatus: 'none' })
+		telemetry({})
 		return getPageInfo(resolved.page, clustered, {
 			selector: input.page,
 			offset: input.cursor ?? 0,
@@ -898,8 +866,8 @@ async function callPageInfoTool(
 // The documented telemetry codes a board/page resolution can fail with — the bounded vocabulary in
 // browser-run-thumbnails.md. Carried on the failure shapes below alongside the caller-facing result,
 // so the request-level `mcp_shared_board_screenshot` event can record which failure this was without
-// re-deriving it from the message. Main's `withTelemetryReason` carries the same code on the result
-// for the per-call `mcp_server_tool_call` event; the two events want it in different places.
+// re-deriving it from the message. `withTelemetryReason` carries the same code on the result for the
+// per-call `mcp_server_tool_call` event; the two events want it in different places.
 // boardTools' own `no_pages` and `page_out_of_range` are resolution states, not telemetry codes:
 // resolveBoardPage maps them onto `board_empty` and `page_not_found` before anything is recorded, so
 // they never reach a datapoint and are absent here.
@@ -935,12 +903,8 @@ async function loadBoardForTool(
 	// owns is readable and a published board is still held to the published check.
 	//
 	// `file` is the row the resolve above already gated on, handed back so this read re-applies the
-	// gate without asking Postgres the same question a second time — otherwise every tool call dials
-	// twice for one row, on top of the access check's own dial. Safe precisely here, for the same
-	// reason it is in the OG queue: the two are microseconds apart inside one function, where the
-	// re-read would return the row we already hold. It is not a general licence — the render page's
-	// own read (getThumbnailSnapshot) deliberately re-reads, because it is a separate request, and
-	// that re-read is what makes an un-share land inside the render token's window.
+	// gate without asking Postgres the same question a second time. Safe here because the two are
+	// microseconds apart inside one function.
 	const snapshot = await loadBoardSnapshot(env, resolved.board, {
 		access: resolved.board.access,
 		file: resolved.board.file,
@@ -991,71 +955,27 @@ async function resolveBoardPage(
 
 // One datapoint shape for every MCP tool: `source: 'mcp'`, plus whatever the row carries.
 //
+// `cacheStatus` is always `none`: the tools have no cache left, and the field holds its blob position.
+//
 // The caller is deliberately *not* filled in here. It belongs only on rate-limited rows, so the
 // handful of sites that write one hash the user id themselves — see the note on `callerHash` in
 // writeScreenshotTelemetry for why the blob is scoped that narrowly. Hashing here instead would put
 // a SubtleCrypto round trip on every successful tool call to produce a value the writer then throws
 // away as `caller:none`.
 function mcpTelemetryWriter(env: Environment) {
-	return (data: {
-		// `none` = the request never consulted the PNG cache: all info-tool rows, and screenshot
-		// requests refused before the cache read. Keeping those out of hit/miss is what lets a
-		// hit-rate-by-source panel read cache health rather than refusal volume.
-		cacheStatus: 'hit' | 'miss' | 'none'
-		failureReason?: string
-		rateLimitAllowed?: boolean
-		callerHash?: string
-	}) => {
-		writeScreenshotTelemetry(env, { source: 'mcp', ...data })
+	return (data: { failureReason?: string; rateLimitAllowed?: boolean; callerHash?: string }) => {
+		writeScreenshotTelemetry(env, { source: 'mcp', cacheStatus: 'none', ...data })
 	}
 }
 
 type McpTelemetryWriter = ReturnType<typeof mcpTelemetryWriter>
 
 /**
- * The per-caller ceiling on calls, not on captures, so a caller looping over cache hits is still
- * bounded. Returns the refusal to hand back, or `undefined` to carry on.
- *
- * Written once rather than per tool because the message and the reason code are what config.ts's
- * documented number means to a caller, and three copies of it drifted from each other and from the
- * key they counted against — see `perUserRateLimitKey`. Refusals are recorded on the screenshot
- * ledger here too: they used to be written by the screenshot tool alone, because the info tools
- * returned before their telemetry writer existed, so a caller hitting the limit through
- * `get_page_info` was invisible on the one panel that answers "who is being turned away".
- */
-async function checkPerUserRateLimit(
-	env: Environment,
-	userId: string,
-	telemetry: McpTelemetryWriter
-): Promise<ToolCallResult | undefined> {
-	if (
-		!(await isRateLimited(env.MCP_SCREENSHOT_RATE_LIMITER, perUserRateLimitKey(userId), {
-			fallbackLimit: MCP_PER_USER_RATE_LIMIT,
-		}))
-	) {
-		return undefined
-	}
-	telemetry({
-		cacheStatus: 'none',
-		rateLimitAllowed: false,
-		failureReason: 'rate_limited_user',
-		callerHash: await sha256(userId),
-	})
-	return toolError(
-		`Rate limited. Requests are limited to about ${MCP_PER_USER_RATE_LIMIT} per minute per account.`,
-		'rate_limited_user'
-	)
-}
-
-/**
- * The per-caller ceiling on `search_boards`, which the Browser Run budget deliberately does not
- * cover: search spends no Browser Run, and counting it there would make the number config.ts
- * documents untrue again.
+ * The per-caller ceiling on `search_boards`.
  *
  * The refusal is written to the screenshot ledger even though a successful search is not. That
- * ledger is the one panel answering "who is being turned away", and a limit nobody can see firing
- * is the mistake `checkPerUserRateLimit` already documents having made once; its own reason code so
- * the two budgets stay legible apart.
+ * ledger is the one panel answering "who is being turned away", and a limit nobody can see firing is
+ * no use.
  */
 async function checkSearchRateLimit(
 	env: Environment,
@@ -1070,7 +990,6 @@ async function checkSearchRateLimit(
 		return undefined
 	}
 	telemetry({
-		cacheStatus: 'none',
 		rateLimitAllowed: false,
 		failureReason: 'rate_limited_search',
 		callerHash: await sha256(userId),
@@ -1082,9 +1001,9 @@ async function checkSearchRateLimit(
 }
 
 /**
- * The per-caller ceiling on `create_board`. Its own binding because it bounds writes, which neither
- * the Browser Run budget nor the search one is sized for. MAX_NUMBER_OF_FILES caps what a runaway
- * loop can leave behind; this caps how fast it gets there.
+ * The per-caller ceiling on `create_board`. Its own binding because it bounds writes, which the search
+ * budget isn't sized for. MAX_NUMBER_OF_FILES caps what a runaway loop can leave behind; this caps how
+ * fast it gets there.
  */
 async function checkCreateRateLimit(
 	env: Environment,
@@ -1099,7 +1018,6 @@ async function checkCreateRateLimit(
 		return undefined
 	}
 	telemetry({
-		cacheStatus: 'none',
 		rateLimitAllowed: false,
 		failureReason: 'rate_limited_create',
 		callerHash: await sha256(userId),
@@ -1123,7 +1041,6 @@ async function checkRenameRateLimit(
 		return undefined
 	}
 	telemetry({
-		cacheStatus: 'none',
 		rateLimitAllowed: false,
 		failureReason: 'rate_limited_rename',
 		callerHash: await sha256(userId),
@@ -1137,8 +1054,8 @@ async function checkRenameRateLimit(
 type ClusteringResult = ({ ok: true } & PageClustering) | { ok: false; result: ToolCallResult }
 
 // How the three clustering tools get a page's clusters. Clustering needs real geometry, and the only
-// way to get it is to run an editor, so this asks the caller's open tab every time: a tab's answer
-// can't be cached, because its owner can send anything and the cluster index has no viewer dimension.
+// way to get it is to run an editor, so this asks the caller's open tab every time. See mcpTabRender.ts
+// for why a tab's answer is never kept.
 async function readClustering(
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
 	{
@@ -1160,7 +1077,7 @@ async function readClustering(
 		ctx,
 	})
 	if (!measured.ok) {
-		telemetry({ cacheStatus: 'none', failureReason: measured.reason })
+		telemetry({ failureReason: measured.reason })
 		return { ok: false, result: toolError(measured.message, measured.reason) }
 	}
 	const clusters = clusterPage(resolved.page, measured.value)
@@ -1180,15 +1097,12 @@ async function callClusterInfoTool(
 	const input = parsed.input
 
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
-		if (refusal) return refusal
-
 		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
 			request,
 			ctx,
 		})
 		if (!resolved.ok) {
-			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
+			telemetry({ failureReason: resolved.reason })
 			return resolved.result
 		}
 
@@ -1202,10 +1116,10 @@ async function callClusterInfoTool(
 			input.cursor
 		)
 		if (!info.ok) {
-			telemetry({ cacheStatus: 'none', failureReason: info.reason })
+			telemetry({ failureReason: info.reason })
 			return withTelemetryReason(info.result, info.reason)
 		}
-		telemetry({ cacheStatus: 'none' })
+		telemetry({})
 		return info.result
 	} catch (error) {
 		return toolFailure(error, {
@@ -1261,12 +1175,9 @@ async function renderShapeSetScreenshot(
 	const telemetry = mcpTelemetryWriter(env)
 
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
-		if (refusal) return refusal
-
 		const resolved = await resolveBoardPage(env, boardId, page, userId, { request, ctx })
 		if (!resolved.ok) {
-			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
+			telemetry({ failureReason: resolved.reason })
 			return resolved.result
 		}
 
@@ -1287,11 +1198,11 @@ async function renderShapeSetScreenshot(
 			{ request, ctx }
 		)
 		if (!image.ok) {
-			telemetry({ cacheStatus: 'none', failureReason: image.reason })
+			telemetry({ failureReason: image.reason })
 			return toolError(image.message, image.reason)
 		}
 
-		telemetry({ cacheStatus: 'none' })
+		telemetry({})
 		return toolPageResult(resolved.page.pageName, image.value)
 	} catch (error) {
 		return toolFailure(error, {
@@ -1336,7 +1247,7 @@ async function callClusterScreenshotTool(
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
 			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.
-			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
+			telemetry({ failureReason: 'cluster_not_found' })
 			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
@@ -1356,16 +1267,6 @@ async function callApplyOpsTool(
 	const input = parsed.input
 
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, mcpTelemetryWriter(env))
-		if (refusal) return refusal
-
-		if (!(await isFeatureFlagEnabledForUser(env, 'mcp_tab_render', userId))) {
-			return toolError(
-				'Editing boards is not available on this account yet.',
-				'apply_ops_not_enabled'
-			)
-		}
-
 		const access = await hasReadAccessToFile(env, userId, input.boardId)
 		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
 
@@ -1408,22 +1309,19 @@ async function callUserStateTool(
 	const input = parsed.input
 
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, mcpTelemetryWriter(env))
-		if (refusal) return refusal
-
 		const access = await hasReadAccessToFile(env, userId, input.boardId)
 		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
 
 		if (input.userId === null || input.userId === userId) {
 			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
 			if (!state.ok) return toolError(state.message, state.reason)
-			const { status: _, ...value } = state.value
-			return toolJsonResult({ userId, ...value })
+			const { pageId, pageName, selectedShapeIds, viewport } = state.value
+			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
 		}
 
 		const users = await readBoardUsers(env, input.boardId, { request, ctx })
 		if (!users.ok) return toolError(users.message, users.reason)
-		const user = users.value.find((candidate) => candidate.userId === input.userId)
+		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
 		if (!user) {
 			return toolError(
 				'That user is not on this board right now. Call get_board_users to see who is.',
@@ -1456,15 +1354,12 @@ async function callBoardUsersTool(
 	const input = parsed.input
 
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, mcpTelemetryWriter(env))
-		if (refusal) return refusal
-
 		const access = await hasReadAccessToFile(env, userId, input.boardId)
 		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
 
 		const users = await readBoardUsers(env, input.boardId, { request, ctx })
 		if (!users.ok) return toolError(users.message, users.reason)
-		return toolJsonResult({ users: users.value })
+		return toolJsonResult(users.value)
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -1513,7 +1408,7 @@ function parseToolInput<T>(parse: () => T, telemetry?: McpTelemetryWriter): Pars
 	try {
 		return { ok: true, input: parse() }
 	} catch (error) {
-		telemetry?.({ cacheStatus: 'none', failureReason: 'invalid_input' })
+		telemetry?.({ failureReason: 'invalid_input' })
 		return {
 			ok: false,
 			result: toolError(error instanceof Error ? error.message : String(error), 'invalid_input'),
@@ -1577,7 +1472,7 @@ function toolFailure(
 			: recordAs
 				? recordAs(failureReason)
 				: failureReason
-	telemetry?.({ cacheStatus: 'none', failureReason: recorded })
+	telemetry?.({ failureReason: recorded })
 	return toolError(`${summary}: ${describeThumbnailFailure(recorded)}.`, recorded)
 }
 

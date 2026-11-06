@@ -289,8 +289,10 @@ export interface TLPersistentClientSocket<
 const PING_INTERVAL = 5000
 /**
  * How long changes wait for an animation frame before being sent anyway. A hidden tab never gets one,
- * so an edit made there by anything but the user, like an agent, would never leave the tab and would
- * be lost on reload, even though it looks applied.
+ * so without this, changes that reached this client would stay here until the tab was shown.
+ *
+ * This only covers the send. The store's own history flush also waits for a frame, so an edit made in
+ * a hidden tab has to call `store._flushHistory()` to reach this client at all.
  */
 const MAX_SYNC_FRAME_WAIT_MS = 250
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2

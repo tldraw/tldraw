@@ -526,6 +526,54 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
+		// Cancelling a drag rolls back past the batch, after the agent was told it landed.
+		it('declines while the user is mid-drag, without claiming the job', async () => {
+			const { editor } = setupEditor()
+			vi.spyOn(editor.inputs, 'getIsDragging').mockReturnValue(true)
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(replies).toEqual([{ status: 'declined', reason: 'busy' }])
+			expect(editor.getShape(hello)).toBeUndefined()
+			editor.dispose()
+		})
+
+		// The store tells the sync client about changes on a frame, which a hidden tab never gets.
+		it('flushes the store, so the batch leaves a hidden tab', async () => {
+			const { editor } = setupEditor()
+			const flush = vi.spyOn(editor.store, '_flushHistory')
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(flush).toHaveBeenCalled()
+			editor.dispose()
+		})
+
+		// The agent was told to check and may have resent it, so landing now would apply it twice.
+		it('drops a batch that waited too long in the queue', async () => {
+			const { editor, firstPageId, firstShapeId } = setupEditor()
+			const toImage = stubExport(editor)
+			let release = () => {}
+			toImage.mockImplementationOnce(
+				() =>
+					new Promise((resolve) => {
+						release = () => resolve({ blob: new Blob(['x']), width: 1200, height: 630 })
+					})
+			)
+			const capture = answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
+
+			const apply = answerTabRender(editor, 'file-1', applyOps())
+			await vi.waitFor(() => expect(replies).toContainEqual({ status: 'accepted' }))
+			vi.spyOn(Date, 'now').mockReturnValue(Date.now() + 5_001)
+			release()
+			await Promise.all([capture, apply])
+
+			expect(editor.getShape(hello)).toBeUndefined()
+			expect(replies).toContainEqual({ status: 'declined', reason: 'busy' })
+			editor.dispose()
+		})
+
 		// A hidden tab never fires animation frames, and this is the usual state of a board an agent is
 		// working on. Hanging here looks like a failure, and a retry would apply the batch twice.
 		it('reports back from a tab that never fires animation frames', async () => {

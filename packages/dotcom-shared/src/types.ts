@@ -379,7 +379,6 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'mcp_server_access',
-	'mcp_tab_render',
 	'version_chain',
 	'collections',
 ] as const

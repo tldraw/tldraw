@@ -170,15 +170,6 @@ export type ThumbnailErrorSurface =
 	| 'mcp_board_rename'
 	| 'mcp_workspace_list'
 	| 'mcp_screenshot'
-	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
-	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
-	// call is re-spending Browser Run.
-	| 'mcp_screenshot_cache_write'
-	// The cluster index cache in the file's Durable Object. Neither of these is ever a caller-visible
-	// failure — both fall back to measuring the page — but both mean the clustering tools are paying
-	// for a browser session per call again, which is the thing that cache exists to stop.
-	| 'mcp_cluster_index_read'
-	| 'mcp_cluster_index_write'
 	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
 	// help. The caller is told to try again.
 	| 'mcp_tab_render'

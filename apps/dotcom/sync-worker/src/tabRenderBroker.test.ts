@@ -1,7 +1,6 @@
 import { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	MAX_TAB_RENDER_SESSIONS,
 	TAB_RENDER_ACK_TIMEOUT_MS,
 	TAB_RENDER_MAX_PING_AGE_MS,
 	TAB_RENDER_WORK_TIMEOUT_MS,
@@ -41,19 +40,16 @@ describe('pickTabRenderSessions', () => {
 		expect(picked).toEqual([])
 	})
 
-	it('caps the tabs asked, most recently pinged first, and dedupes a superseded socket', () => {
+	it('dedupes a superseded socket for the same session', () => {
 		const picked = pickTabRenderSessions(
 			[
-				socket({ sessionId: 'oldest', lastSeenAt: NOW - 400 }),
-				socket({ sessionId: 'newest', lastSeenAt: NOW - 100 }),
-				socket({ sessionId: 'newest', lastSeenAt: NOW - 500 }),
-				socket({ sessionId: 'middle', lastSeenAt: NOW - 200 }),
-				socket({ sessionId: 'third', lastSeenAt: NOW - 300 }),
+				socket({ sessionId: 'a', lastSeenAt: NOW - 100 }),
+				socket({ sessionId: 'a', lastSeenAt: NOW - 500 }),
 			],
 			'user_a',
 			NOW
 		)
-		expect(picked).toEqual(['newest', 'middle', 'third'].slice(0, MAX_TAB_RENDER_SESSIONS))
+		expect(picked).toEqual(['a'])
 	})
 })
 
@@ -159,18 +155,6 @@ describe('TabRenderBroker', () => {
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
 		await result
 		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(false)
-	})
-
-	// Every tab that acted on a write would apply it, so the agent's edit would land once per tab.
-	it('lets only one tab claim a write', async () => {
-		const { broker, jobIds, result } = dispatch(['a', 'b'], applyOps)
-
-		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(true)
-		expect(broker.receive(jobIds.get('b')!, { status: 'accepted' })).toBe(false)
-
-		const applied = { status: 'applied', pageId: 'page:a', pageName: 'One', result: {} } as const
-		broker.receive(jobIds.get('a')!, applied)
-		await expect(result).resolves.toEqual(applied)
 	})
 
 	it('lets every tab work on a read', () => {

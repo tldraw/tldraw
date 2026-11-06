@@ -41,16 +41,17 @@ import { createCanvasOpsReceiver } from '../../utils/canvas-ops'
 const SLICE_MS = 8
 
 // Well inside the worker's measure timeout: text measured against a fallback font is a slightly wrong
-// answer, and no answer costs the whole Browser Run fallback.
+// answer, and no answer fails the call.
 const FONT_WAIT_MS = 1_500
 
 // An export can't be sliced: it renders every shape in one synchronous flush, on the main thread of a
 // tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
 const MAX_EXPORT_SHAPES = 500
 
-// Longer than this in the queue and the worker has likely stopped waiting, so an export would be main
-// thread time spent on an answer nobody is waiting for.
-const MAX_EXPORT_QUEUE_MS = 5_000
+// Longer than this in the queue and the worker has likely stopped waiting. For a read that would be
+// main thread time spent on nobody. For a write it's worse: the agent has been told to check the board
+// and may have sent the batch again, so the two would both land.
+const MAX_QUEUE_MS = 5_000
 
 // Enough for the model to see what to fix on a large batch, and well inside what the reply route takes.
 const MAX_INVALID_OPS_DETAIL = 1_500
@@ -78,8 +79,8 @@ export async function answerTabRender(
 		return
 	}
 
-	// A write waits for the go-ahead, because the ack is also its claim on the job: another tab may have
-	// it already, or this tab may have been frozen and be waking up to a job the agent gave up on.
+	// A write waits for the go-ahead: this tab may have been frozen and be waking up to a job the agent
+	// gave up on.
 	if (request.mode === 'apply_ops') {
 		if (!(await reply({ status: 'accepted' }))) return
 	} else {
@@ -133,7 +134,9 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 		if (!pageId || !editor.getPage(pageId)) return 'page_missing'
 		// Ops place shapes on the page in view, so a batch meant for another page would land on the
 		// wrong one, and moving the user there to apply it is not an option.
-		return editor.getCurrentPageId() === pageId ? undefined : 'page_not_current'
+		if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
+		// Cancelling a drag rolls back to where it began, which would take the batch with it.
+		return editor.inputs.getIsDragging() ? 'busy' : undefined
 	}
 
 	const pageId = request.pageId as TLPageId
@@ -155,22 +158,26 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 function queueCapture(editor: Editor, request: TabRenderScreenshotRequest) {
 	const queuedAt = Date.now()
 	return enqueueWork(async () => {
-		const reason =
-			Date.now() - queuedAt > MAX_EXPORT_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+		const reason = Date.now() - queuedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		return reason ? { status: 'declined', reason } : capturePage(editor, request)
 	})
 }
 
 function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest) {
+	const queuedAt = Date.now()
 	return enqueueWork(async (): Promise<TabRenderReply> => {
-		const reason = getRefusal(editor, request)
+		const reason = Date.now() - queuedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		if (reason) return { status: 'declined', reason }
 		try {
+			// Read first: the batch settles for a moment, and the user can change page in it.
+			const page = editor.getCurrentPage()
 			const { compiled: _, ...result } = await createCanvasOpsReceiver(editor).applyBatch(
 				{ ops: request.ops },
 				request.attribution
 			)
-			const page = editor.getCurrentPage()
+			// The store tells the sync client about changes on an animation frame, and a hidden tab never
+			// gets one. Without this a batch would report success and stay here until the tab was shown.
+			editor.store._flushHistory()
 			return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 		} catch (error) {
 			if (!(error instanceof z.ZodError)) throw error
@@ -236,9 +243,7 @@ async function capturePage(
 	return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
 }
 
-// The rectangle and zoom the render page reaches by calling zoomToBounds on its own disposable
-// camera, worked out without touching this one. The two have to frame alike: the same shapes should
-// read the same whether Browser Run drew them or a tab did.
+// What zoomToBounds would reach on a camera sized to the output, worked out without touching this one.
 function getExportFrame(editor: Editor, ids: TLShapeId[], width: number, height: number) {
 	const shapes = getRequestedBounds(editor, ids)
 	const inset = getThumbnailContentInset(width, height)

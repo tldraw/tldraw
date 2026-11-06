@@ -13,7 +13,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { McpBoardUser, PageSelector, ResolvedPage, ShapeMeasurement } from './boardTools'
+import { PageSelector, ResolvedPage, ShapeMeasurement, getBoardUsers } from './boardTools'
 import { readMeasurements } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
 
@@ -34,19 +34,20 @@ export type TabRenderResult<T> =
 	| { ok: true; value: T }
 	| { ok: false; message: string; reason: string }
 
-async function renderInOpenTab(
+async function runInOpenTab<S extends TabRenderOutcome['status']>(
 	env: Environment,
 	fileId: string,
 	userId: string,
 	job: TabRenderRequest,
+	expected: S,
 	{ request, ctx }: TabRenderContext
-): Promise<TabRenderOutcome | { status: 'error' }> {
+): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: S }>>> {
 	const startedAt = Date.now()
+	let result: TabRenderOutcome | { status: 'error' }
 	try {
-		const result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job)
+		result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job)
 		const reason = result.status === 'declined' ? result.reason : 'none'
 		writeTabRenderTelemetry(env, job.mode, result.status, reason, Date.now() - startedAt)
-		return result
 	} catch (error) {
 		reportThumbnailError(error, {
 			ctx,
@@ -56,8 +57,12 @@ async function renderInOpenTab(
 			extras: { mode: job.mode },
 		})
 		writeTabRenderTelemetry(env, job.mode, 'error', 'none', Date.now() - startedAt)
-		return { status: 'error' }
+		result = { status: 'error' }
 	}
+	if (result.status === expected) {
+		return { ok: true, value: result as Extract<TabRenderOutcome, { status: S }> }
+	}
+	return { ok: false, ...describeFailure(result, job.mode, boardUrlOf(env, request, fileId)) }
 }
 
 // Outcome and reason are closed vocabularies, with no board or user identity, like the rest of this
@@ -93,12 +98,12 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	failed: 'The browser tab could not do that. Try again in a moment.',
 }
 
-/** What to tell the model when a tab didn't produce what was asked for. */
 function describeFailure(
 	result: TabRenderOutcome | { status: 'error' },
-	mode: TabRenderRequest['mode'],
+	mode: TabRenderRequest['mode'] | null,
 	boardUrl: string
 ): { message: string; reason: string } {
+	const notResponding = `The browser tab for this board is not responding, so nothing was done. Ask the user to bring ${boardUrl} to the front, then try again.`
 	switch (result.status) {
 		case 'declined': {
 			const message = DECLINE_MESSAGES[result.reason]
@@ -116,18 +121,24 @@ function describeFailure(
 			return { message: DECLINE_MESSAGES.read_only, reason: 'tab_read_only' }
 		case 'room_timeout':
 		case 'ack_timeout':
+			return { message: notResponding, reason: `tab_${result.status}` }
+		// Both can happen after a tab claimed a write, so the batch may well have landed, and telling
+		// the agent nothing happened is how it lands twice.
 		case 'error':
-			return {
-				message: `The browser tab for this board is not responding, so nothing was done. Ask the user to bring ${boardUrl} to the front, then try again.`,
-				reason: `tab_${result.status}`,
-			}
 		case 'work_timeout':
+			if (mode === 'apply_ops') {
+				return {
+					message:
+						'The browser tab did not report back, so these ops may or may not have applied. Check the board before sending them again.',
+					reason: `tab_${result.status}`,
+				}
+			}
 			return {
 				message:
-					mode === 'apply_ops'
-						? 'The browser tab did not report back in time, so these ops may or may not have applied. Check the board before sending them again.'
+					result.status === 'error'
+						? notResponding
 						: 'The browser tab took too long. Try again in a moment.',
-				reason: 'tab_work_timeout',
+				reason: `tab_${result.status}`,
 			}
 		// A reply of the wrong kind for the job, which only a tab that isn't ours would send.
 		default:
@@ -151,10 +162,7 @@ export const PUBLISHED_BOARD_FAILURE = {
 	reason: 'tab_published_board',
 } as const
 
-/**
- * A page as the room holds it now, rather than as it was last persisted, so an agent reads what it
- * just drew.
- */
+/** As the room holds it now, because an agent has to be able to read what it just drew. */
 export async function readLivePage(
 	env: Environment,
 	fileId: string,
@@ -164,10 +172,9 @@ export async function readLivePage(
 ): Promise<TabRenderResult<ResolvedPage>> {
 	const result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
 	if (result.status === 'ok') return { ok: true, value: result.page }
-	return { ok: false, ...describeFailure(result, 'measure', boardUrlOf(env, request, fileId)) }
+	return { ok: false, ...describeFailure(result, null, boardUrlOf(env, request, fileId)) }
 }
 
-/** The page's measurements from the caller's open tab. */
 export async function measureInOpenTab(
 	env: Environment,
 	fileId: string,
@@ -175,15 +182,11 @@ export async function measureInOpenTab(
 	pageId: string,
 	context: TabRenderContext
 ): Promise<TabRenderResult<Record<string, ShapeMeasurement>>> {
-	const result = await renderInOpenTab(env, fileId, userId, { mode: 'measure', pageId }, context)
-	if (result.status === 'measured') return { ok: true, value: readMeasurements(result.shapes) }
-	return {
-		ok: false,
-		...describeFailure(result, 'measure', boardUrlOf(env, context.request, fileId)),
-	}
+	const job: TabRenderRequest = { mode: 'measure', pageId }
+	const result = await runInOpenTab(env, fileId, userId, job, 'measured', context)
+	return result.ok ? { ok: true, value: readMeasurements(result.value.shapes) } : result
 }
 
-/** A base64 PNG from the caller's open tab. */
 export async function captureInOpenTab(
 	env: Environment,
 	fileId: string,
@@ -191,69 +194,46 @@ export async function captureInOpenTab(
 	capture: Omit<TabRenderScreenshotRequest, 'mode'>,
 	context: TabRenderContext
 ): Promise<TabRenderResult<string>> {
-	const result = await renderInOpenTab(
-		env,
-		fileId,
-		userId,
-		{ mode: 'screenshot', ...capture },
-		context
-	)
-	if (result.status === 'captured') return { ok: true, value: result.base64 }
-	return {
-		ok: false,
-		...describeFailure(result, 'screenshot', boardUrlOf(env, context.request, fileId)),
-	}
+	const job: TabRenderRequest = { mode: 'screenshot', ...capture }
+	const result = await runInOpenTab(env, fileId, userId, job, 'captured', context)
+	return result.ok ? { ok: true, value: result.value.base64 } : result
 }
 
 /**
- * What the caller is doing, from their tab. Not from presence: a hibernating room clears selections
- * to fit its socket attachments, and "change what I selected" usually comes after a pause.
+ * Not from presence: a hibernating room clears selections to fit its socket attachments, and "change
+ * what I selected" usually comes after a pause.
  */
-export async function readUserStateInOpenTab(
+export function readUserStateInOpenTab(
 	env: Environment,
 	fileId: string,
 	userId: string,
 	context: TabRenderContext
-): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: 'user_state' }>>> {
-	const result = await renderInOpenTab(env, fileId, userId, { mode: 'user_state' }, context)
-	if (result.status === 'user_state') return { ok: true, value: result }
-	return {
-		ok: false,
-		...describeFailure(result, 'user_state', boardUrlOf(env, context.request, fileId)),
-	}
+) {
+	return runInOpenTab(env, fileId, userId, { mode: 'user_state' }, 'user_state', context)
 }
 
-/** Who is on the board, from presence. Takes no tab of the caller's. */
-export async function readBoardUsers(
-	env: Environment,
-	fileId: string,
-	{ request }: TabRenderContext
-): Promise<TabRenderResult<McpBoardUser[]>> {
-	const result = await getRoomDurableObject(env, fileId).getMcpBoardUsers()
-	if (result.status === 'ok') return { ok: true, value: result.users }
-	return { ok: false, ...describeFailure(result, 'measure', boardUrlOf(env, request, fileId)) }
-}
-
-/** Applies a batch of canvas ops in the caller's open tab, as that tab's own user. */
-export async function applyOpsInOpenTab(
+export function applyOpsInOpenTab(
 	env: Environment,
 	fileId: string,
 	userId: string,
 	apply: Omit<TabRenderApplyOpsRequest, 'mode'>,
 	context: TabRenderContext
-): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: 'applied' }>>> {
-	const result = await renderInOpenTab(
-		env,
-		fileId,
-		userId,
-		{ mode: 'apply_ops', ...apply },
-		context
-	)
-	if (result.status === 'applied') return { ok: true, value: result }
-	return {
-		ok: false,
-		...describeFailure(result, 'apply_ops', boardUrlOf(env, context.request, fileId)),
+) {
+	const job: TabRenderRequest = { mode: 'apply_ops', ...apply }
+	return runInOpenTab(env, fileId, userId, job, 'applied', context)
+}
+
+export async function readBoardUsers(
+	env: Environment,
+	fileId: string,
+	{ request }: TabRenderContext
+): Promise<TabRenderResult<ReturnType<typeof getBoardUsers>>> {
+	const result = await getRoomDurableObject(env, fileId).getMcpBoardUsers()
+	if (result.status === 'room_timeout') {
+		return { ok: false, ...describeFailure(result, null, boardUrlOf(env, request, fileId)) }
 	}
+	const { users, anonymousViewers } = result
+	return { ok: true, value: { users, anonymousViewers } }
 }
 
 // In bytes, which also keeps the reply inside what one RPC can carry: a body this size serializes to
@@ -310,16 +290,13 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 }
 
 /**
- * A tab's reply to a job. Takes no sign-in: the job id is a random UUID sent to one authenticated
- * socket and dead within seconds. A session token would only add a failure, since a hidden tab's Clerk
- * token is routinely expired and refreshing it loses to the ack window.
+ * A tab's reply to a job. No sign-in: a hidden tab's Clerk token is routinely expired, and refreshing
+ * it loses to the ack window. The job id, a UUID sent to one socket, is the capability. Anyone can
+ * reach this, so size and job are checked before the body is read, which keeps a stranger's bytes out
+ * of the room's object.
  *
- * That makes this reachable by anyone, so the size is checked from the header and the job before the
- * body is read: without a live job id, a request's bytes never reach the room's object, where enough
- * of them at once could reset it and disconnect everyone on the board.
- *
- * For a write this is also the go-ahead: a tab applies a batch only after its `accepted` gets a 200,
- * so a 404 is what stands down a tab that lost the claim or woke up after the job ended.
+ * For a write, the 200 on `accepted` is the go-ahead, and a 404 stands down a tab that woke after the
+ * job ended.
  */
 export async function postTabRenderReply(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId, jobId } = request.params

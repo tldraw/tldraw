@@ -10,7 +10,7 @@ tldraw.com can capture PNG thumbnails of public boards by taking a Cloudflare Br
 - an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one or more clusters, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
 - a board OG image endpoint, `GET /api/app/social-preview/:prefix/:slug/image`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run. It lives under the `social-preview` route family alongside the crawler HTML that references it.
 
-**The MCP tools don't use Browser Run for now.** They work only through the caller's open tab: see "Working in an open tab". Where this doc describes the MCP tools rendering, measuring, caching PNGs, or being limited per board or globally, it describes how they used to work; thumbnails and OG images still work that way.
+**The MCP tools don't use Browser Run for now.** They work only through the caller's open tab: see "Working in an open tab". The numbered steps under "Architecture" are how they used to reach a render, and thumbnails and OG images still render that way.
 
 Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked from the worker via the `BROWSER` binding's `quickAction` method (`env.BROWSER.quickAction('screenshot', …)`). Chrome runs in Cloudflare's Browser Rendering fleet, not in the worker isolate. The pipeline never hands the browser a user-provided URL: the worker resolves the board, mints a short-lived signed render job, and the screenshot only ever targets the internal render page with that token. **Rendering is not gated on public viewability — serving is.** A thumbnail is generated for every board, private ones included, so that an owner-facing surface has one to show; the OG image route re-applies the public gate on every request. See "Rendering every board" below for what that means for the render token. The MCP surface exposes page metadata, shape clusters — including their shape records, with rich text flattened to a plain string — and cluster screenshots: no arbitrary selectors or arbitrary URLs, and no board the authenticated caller could not already open in a browser.
 
@@ -114,29 +114,7 @@ What bounds it instead is per-board: the render debounce in front of the edit tr
 
 Worth being explicit that **no per-board mechanism can cap total spend**, because total is `active boards × per-board rate`. Cloudflare's rate limit binding cannot close that gap either: limits are applied per Cloudflare location, so a single global key gives `limit × locations`, not `limit`. (The same caveat applies to the MCP global cap below — `MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 20` is really 20/min per colo. It bounds a rogue caller, which is its job, but it is not an account-wide spend ceiling.) The levers that actually bound the total are Browser Run's own account limits and raising them.
 
-The limits below are therefore the **only** rate limiting in the pipeline, and they exist for the **MCP endpoint** specifically — the one Browser Run-spending surface an outside caller can drive directly, where a rogue or looping agent is the threat being bounded. They are applied in `mcpServer.ts` (with the fallback budgets in `config.ts`), not in the shared render core, so a new surface built on those helpers cannot pick one up by accident:
-
-- Per account: ~10 Browser Run-spending **calls** per minute, one budget across every such tool (`user:` on `MCP_SCREENSHOT_RATE_LIMITER`).
-- Per board: ~2 Browser Run **captures** per minute (`board:` on `MCP_SERVER_BOARD_RATE_LIMITER`), applied only on cache misses.
-- Global: ~20 Browser Run **sessions** per minute across all MCP callers (`MCP_SERVER_BROWSER_RATE_LIMITER`, key `global`), captures and measures alike.
-
-The per-account budget is one bucket, and counts calls rather than captures. Both matter. It was three buckets — one per tool family — which made the real per-caller ceiling three times the single number quoted here and in every refusal message. Counting calls is what keeps it meaningful now that most calls spend nothing: with the cluster index in place the ordinary one-screenshot flow (`get_page_info`, `get_cluster_info`, `get_cluster_screenshot`) is still three calls but only two browser sessions — one measure and one capture — where it used to be four. ~10 calls a minute is therefore nearer three finished screenshots a minute in Browser Run terms and rather more than that in tool calls. Worth revisiting on the binding before the flag is widened.
-
-Measures are counted against the **global** budget but deliberately not the per-board one. They are real Browser Run sessions and used to be counted against neither, which is what made the account-wide ceiling several times the one actually enforced. Per-board allows 2 a minute, and a cold drill-down can legitimately measure once and capture once against the same board, so counting measures there would refuse the documented path rather than an abusive one. The global check now runs only when the cluster index misses: a call served from the index creates no session, and metering it would be metering nothing.
-
-Per-board is deliberately far tighter than per-account: no single board may absorb more than 2 captures a minute. Because captures are counted only on cache misses, this does not bound the usual "screenshot several clusters of one board" flow — a repeated capture of the same shapes is a cache hit.
-
-That gap is only expressible because each budget has **its own binding**. A binding carries a single `limit` applied per key, so two budgets wanting different numbers cannot share one however distinct their keys are. The caller and per-board budgets shared `MCP_SCREENSHOT_RATE_LIMITER` while both were 2, which made them look separable when they were not; per-board moved to `MCP_SERVER_BOARD_RATE_LIMITER` (`namespace_id` 1013–1016) when they diverged.
-
-The `MCP_SERVER_` prefix on two of the three is deliberate. Neither budget is about screenshots as such — they bound Browser Run spending by the MCP endpoint, and the cluster tools land on the same allowance, so a name tied to one tool is wrong the moment a second tool spends it.
-
-**The caller budget keyed on `cf-connecting-ip` until the endpoint required authentication.** An account is the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone behind one NAT no longer shares a single one. The binding keeps the name `MCP_SCREENSHOT_RATE_LIMITER` because it is deployed and counting; only the key inside it changed, which resets the buckets once and then behaves. IP-keyed limits still make sense on endpoints with no caller identity — the render page's snapshot route, and the unauthenticated discovery endpoint — and there are none there today.
-
-Two things to know when changing any of these. The numbers live in **two places that must move together** — the constants in `config.ts` (`MCP_PER_USER_RATE_LIMIT` and friends) are only the isolate-local fallback for local dev and tests, and every deployed environment is governed by the Cloudflare binding in `wrangler.toml`, so editing one alone changes nothing where it matters. Unit tests run with no bindings at all, so they pin the fallback constants and can never catch a wrong or shared binding; `wrangler.toml` is the only place to check that. And `period` in those bindings [must be either 10 or 60 seconds](https://developers.cloudflare.com/workers/runtime-apis/bindings/rate-limit/) — that restriction is on the window, not on `limit`, which is an unconstrained integer. All of these use `period = 60`.
-
-Only the calls that _can_ spend Browser Run are limited. `get_board_info` is not: it resolves a board and reads its snapshot, which is the same work the ordinary board routes already do for that caller, and it never clusters. `search_boards` is not either, though for a different reason — it spends no Browser Run, but its Postgres cost is not comparably cheap; see "MCP tools" below for what it actually does and why a dedicated limiter is deferred rather than added. The clustering tools are limited even though they read as "info" calls, and even though the cluster index means most of them spend nothing — the per-account budget is a ceiling on calls, and whether any given one turns into a render is not something the caller controls. The OG image route's per-board limit (`og-board:`) is gone too, along with the route's enqueue — see "OG images (queue-backed async rendering)" above.
-
-The Cloudflare rate limit bindings are declared in `wrangler.toml` for every environment. When a binding is absent (local dev, tests) the route falls back to an isolate-local guard with the same limits. Changing the global cap means moving the `MCP_SERVER_BROWSER_RATE_LIMITER` bindings in `wrangler.toml` (one per environment) and the isolate-local fallback constant `MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT` in `config.ts` together.
+The MCP tools have no limit in this pipeline, because they don't use it: they work in the caller's own tab. `search_boards`, `create_board` and `rename_board` keep budgets of their own, because those bound Postgres and writes. See `config.ts`.
 
 The thing to watch instead of a cap is Browser Rendering's own account limits: a render can hold a session for the full 45s `THUMBNAIL_RENDER_TIMEOUT_MS`, so sustained edit volume is bounded in practice by concurrent-session and new-session-per-minute limits rather than by anything in this worker. Browser Rendering bills by browser duration, so thumbnail spend now scales with editing activity. `fetch-screenshot-metrics.ts` (below) is how that gets watched.
 
@@ -283,13 +261,11 @@ The sync worker needs:
 - `MCP_SCREENSHOT_RENDER_ORIGIN` - set in `wrangler.toml` for dev (`http://localhost:3000`), staging, and production. Preview deploys have no `wrangler.toml` entry, so `deploy-dotcom.ts` injects the preview's own client origin (`https://${previewId}-preview-deploy.tldraw.com`) as a deploy var.
 - `MCP_SERVER_URL` - the MCP server's public URL: the resource identifier advertised in protected resource metadata and pointed at by the `WWW-Authenticate` challenge. **Not** compared against an incoming token — Clerk stamps no `aud`, so there is no audience binding to check; see "Authentication on the MCP server" for what stands in for one. Set in `wrangler.toml` for dev, staging, and production; previews have no entry, so `deploy-dotcom.ts` injects `https://${previewId}-preview-deploy.tldraw.com/api/app/mcp` as a deploy var. Left unset it would be derived from the request's own `Host` header, which is acceptable for local dev and tests only — see `getMcpResourceUrl`.
 - `THUMBNAILS` R2 bucket binding - board thumbnails / OG images (`og/…` keys) and their pending markers. `thumbnails-preview` in dev/preview/staging, `thumbnails` in production.
-- `MCP_DATA_BUCKET` binding - R2 bucket for MCP tool output; today that is screenshots (`mcp/…` keys). `dotcom-mcp-data-preview` in dev/preview/staging, `dotcom-mcp-data` in production.
 
 ### Why two buckets
 
 Both key spaces used to live in `thumbnails`, separated only by prefix. They are now separate buckets for two reasons:
 
-- **Domain.** `MCP_DATA_BUCKET` is where the MCP surface puts what it produces, and that won't stay limited to board thumbnails. Keying the bucket to the tool rather than to the artifact means the next MCP output type lands somewhere that already fits, instead of accreting inside a bucket named for something it isn't.
 - **Retention.** The two caches want opposite lifetimes:
   - **`og/…`** keys (`og/{kind}/{slug}/{theme}.png`) carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. Nothing accumulates and nothing deletes one, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
 
@@ -518,17 +494,17 @@ tldraw.com stores a name on every board it creates. One the creator did not name
 
 Earlier revisions ordered by per-user recency, joining `file_state`. That join was the performance problem — a sort key reached through a left join and a `COALESCE` can never be index-ordered — and it is also the join that would have quietly widened the scope, since a `file_state` row exists for anyone who has opened a link-shared board. It is gone; don't reintroduce it.
 
-Search spends no Browser Run, so it sits outside the rate limits below — but unlike `get_board_info`, it is not simply unlimited: it has a budget of its own, because the cost it drives is Postgres rather than a browser session. Paging is now **index-bounded**: `file("owningGroupId", "createdAt" DESC)` (`052_file_search_index.sql`) serves the access filter and the ordering together, so each workspace's page is read in index order and stops — `LIMIT 21` saves work, not just transfer. Nothing indexes `name ILIKE '%…%'`, so a search term is still a filter applied to rows the index scan walks past: cost then scales with how far down the caller's boards the matches sit, and a term matching nothing walks their whole set.
+Search has a budget of its own, because the cost it drives is Postgres rather than a browser session. Paging is now **index-bounded**: `file("owningGroupId", "createdAt" DESC)` (`052_file_search_index.sql`) serves the access filter and the ordering together, so each workspace's page is read in index order and stops — `LIMIT 21` saves work, not just transfer. Nothing indexes `name ILIKE '%…%'`, so a search term is still a filter applied to rows the index scan walks past: cost then scales with how far down the caller's boards the matches sit, and a term matching nothing walks their whole set.
 
 **That part is behind a switch.** `MCP_SEARCH_NAME_MATCHING_ENABLED` gates name matching per environment — `"true"` on staging, `"false"` on production while the scan above is still being watched, and unset reads as on so previews, local dev and tests keep the full tool. Off, `search_boards` becomes a listing tool: it advertises no `query` and refuses one, rather than accepting a query and ignoring it. That distinction is the point — a model that asked for "roadmap" and received the account's twenty most recent boards would read them as twenty matches and open one.
 
 **Why it took two edits, and what still sorts.** The index is usable only because the access predicate is a single equality, which it became when [#10391](https://github.com/tldraw/tldraw/pull/10391) removed the last user-owns-file paths. While the predicate was `file."ownerId" = :caller OR file."owningGroupId" IN (:groups)`, Postgres answered the top-level `OR` with a `BitmapOr`, whose output has no order, so the plan was a bitmap heap scan of everything in scope followed by a top-N sort whatever indexes existed. Measured on Postgres 16.14 against the real DDL and an 8000-board workspace, and re-measured after the merge: with the `OR` arm present the planner materialises ~8010 rows and top-N sorts them, and ignores this index entirely in favour of the existing `file_owning_group_id_idx`; with the arm gone and one workspace, the same query is an index scan plus incremental sort reading 22 rows for a 21-row page. **So don't reintroduce a top-level `OR` in the access predicate** — it silently un-indexes the ordering rather than failing anything. A caller in more than one workspace would produce `owningGroupId = ANY(:groups)`, which is not that single equality — a btree scan driven by an array key is not order-preserving before Postgres 17, and production runs 16 — so that case seq-scanned every board in scope and top-N sorted it: 30,000 rows for the first 21, measured across three 10k-board workspaces. The query therefore asks each workspace for its own page and merges them, `unnest(:groups) CROSS JOIN LATERAL (… LIMIT 21)`, which reads 63 rows for the same answer. The merge is correct because each arm takes a whole page: the global top 21 cannot contain a row missing from every workspace's own top 21. Every filter has to stay inside the arm for the same reason — one applied after the arm's `LIMIT` could empty a page that had more rows to give. The index deliberately stops at `createdAt` and leaves the `file.id COLLATE "C"` tiebreak to the incremental sort: the primary key already makes `id` unique, and ties on `createdAt` are rare.
 
-**Its own limiter, not the Browser Run one.** `MCP_SERVER_SEARCH_RATE_LIMITER` bounds `search_boards` at 60 calls a minute per account (`MCP_SEARCH_PER_USER_RATE_LIMIT`), separately from the per-account Browser Run budget — counting search against that one would make the number `config.ts` documents for it untrue, and would inherit a limit chosen for a different cost.
+**Its own limiter.** `MCP_SERVER_SEARCH_RATE_LIMITER` bounds `search_boards` at 60 calls a minute per account (`MCP_SEARCH_PER_USER_RATE_LIMIT`), separately from the per-account Browser Run budget — counting search against that one would make the number `config.ts` documents for it untrue, and would inherit a limit chosen for a different cost.
 
 60 rather than something tighter because **paging is what spends this, not abuse.** The page size is fixed at 20, so a caller in an 8000-board workspace needs 400 calls to walk it, and an agent that reformulates a failed query spends a few more. A refusal mid-page has no good recovery either: a model cannot wait, so it retries or reports a partial answer as a complete one, which is worse than the load it prevents. Against that, the worst measured call is ~9ms of database time, so 60 a minute is well under a second of database time per caller per minute. The refusal is written to the screenshot ledger as `rate_limited_search` even though successful searches are not — that ledger is the panel answering "who is being turned away", and a limit nobody can watch firing is the thing the per-user budget already had to be fixed for once.
 
-What this does **not** bound is many accounts looping at once; that needs a global search limiter alongside it, the way `MCP_SERVER_BROWSER_RATE_LIMITER` sits under the per-user screenshot budget. Deliberately left until there is traffic to size it against, with `postgres_client_connect` volume from this surface as the signal.
+What this does **not** bound is many accounts looping at once; that needs a global search limiter alongside it. Deliberately left until there is traffic to size it against, with `postgres_client_connect` volume from this surface as the signal.
 
 Every tool accepts the id of a tldraw.com board the authenticated caller can see: the `:slug` of a file URL (`https://www.tldraw.com/f/:slug`) they own, can reach through its owning group, or that is shared via link — or the `:slug` of a published board URL (`https://www.tldraw.com/p/:slug`). The id is resolved as a file first and a published slug second. Deleted files and test files are refused, as is any board the caller has no access to; all of these answer the same "no board was found with this id" as an id that names nothing at all.
 
@@ -549,21 +525,23 @@ MCP tool ──RPC──▶ file durable object ──custom sync message──�
 
 Published boards can't be read this way, because the room behind one holds the live file rather than the frozen copy the tool was asked about, and nobody viewing the published page is in that room.
 
-**What a tab produces is never written to a cache.** A tab is a client whose owner can POST anything, so a forged answer must only reach the agent of the person who forged it. So every call asks the tab again, which is why later `get_page_info` pages are charged to the per-account budget.
+**What a tab produces is never written to a cache.** A tab is a client whose owner can POST anything, so a forged answer must only reach the agent of the person who forged it. So every call asks the tab again.
 
 **Reads are live.** Which shapes exist comes from the room (`getMcpLivePage`) rather than the snapshot in R2, which lags it by up to the persist interval, so an agent reads what it just drew. Only the requested page comes back, because a whole document could outgrow an RPC. `get_board_info` needs no tab and still reads the snapshot.
 
-**Presence.** `get_board_users` and another user's `get_user_state` come from presence, with no round trip to a tab. The caller's own `get_user_state` asks their tab instead, because a hibernating room clears selections from presence to fit its socket attachments, and "change what I selected" usually comes after a pause. Another user's selection can read as empty for the same reason.
+**Presence.** `get_board_users` and another user's `get_user_state` come from presence, with no round trip to a tab. The caller's own `get_user_state` asks their tab instead, because a hibernating room clears selections from presence to fit its socket attachments, and "change what I selected" usually comes after a pause. Another user's selection can read as empty for the same reason, and presence isn't sent at all while someone is alone on a board, so what it says of them dates from when they connected.
+
+Presence is the one thing here a stranger controls. Any client can set any field, read-only guests included, and it reaches an agent that can also edit the board. So identity comes from the verified session rather than the record's `userId`, and `getBoardUsers` cuts names down and refuses anything that doesn't look like an id.
 
 **Who gets asked.** The sessions of the calling user that set `?tabRender=1` on connect and signed in with a website session. The param is ignored on an OAuth token: an agent can join a room as the same user, and honouring it there would let one of a user's agents answer with a forged result to another. A teammate's tab is never asked. The object reads this straight off its hibernated sockets, so a call on a board nobody has open wakes neither the room nor the document.
 
 **Open sockets lie.** A sleeping laptop or a frozen tab keeps its socket, and `clientTimeout: Infinity` means the room never drops it. Three things bound what that costs a call:
 
 - Sockets that have not pinged for `TAB_RENDER_MAX_PING_AGE_MS` (90s) are skipped, read from the runtime's auto-response timestamp. That has to clear the once-a-minute timers of a hidden tab.
-- A job goes to up to `MAX_TAB_RENDER_SESSIONS` (3) tabs at once and the first answer wins, so one dead tab can't sink a job another could answer.
+- A read goes to up to `MAX_TAB_RENDER_SESSIONS` (3) tabs at once and the first answer wins, so one dead tab can't sink a job another could answer.
 - A tab acknowledges a job immediately, within `TAB_RENDER_ACK_TIMEOUT_MS` (1.5s).
 
-The room resuming comes first and has its own limit, `TAB_RENDER_ROOM_TIMEOUT_MS` (1.5s), because an idle tab lets the object hibernate and a wedged boot would otherwise hang the tool call. Once a tab has acknowledged, it has the ack window plus `TAB_RENDER_WORK_TIMEOUT_MS` (5s to measure, 8s to capture, 10s to apply).
+The room resuming comes first and has its own limit, `TAB_RENDER_ROOM_TIMEOUT_MS` (1.5s), because an idle tab lets the object hibernate and a wedged boot would otherwise hang the tool call. Once a tab has acknowledged, it has the ack window plus `TAB_RENDER_WORK_TIMEOUT_MS` (5s to measure, 8s to capture, 10s to apply, 3s for `user_state`).
 
 **The reply route takes no sign-in.** The job id is a random UUID delivered to one authenticated socket, one per tab, and it stops working when the job ends. A session token would add a failure instead of protection: a hidden tab's Clerk token is routinely expired, and refreshing it would eat the ack window. Because anyone can reach the route, it checks the declared size and that the job exists before reading the body, so bytes from a stranger never reach a room's object.
 
@@ -571,11 +549,12 @@ The room resuming comes first and has its own limit, `TAB_RENDER_ROOM_TIMEOUT_MS
 
 **Hidden tabs answer, and pay for it.** Chrome clamps a hidden tab's timers to about once a second, and the export waits on a `sleep(0)` in `ExportDelay`, so a hidden screenshot costs seconds more than a visible one. Measuring doesn't wait on timers and isn't affected.
 
-**Writes.** `apply_ops`, gated by the `mcp_tab_render` flag, runs a batch of canvas ops (`apps/dotcom/client/src/utils/canvas-ops/`) in the tab, as that tab's session, so the room authorizes the edit exactly as it would the user's own. The batch is validated in the tab, which owns the op vocabulary, and is one undo step. Three things are different from a read:
+**Writes.** `apply_ops` runs a batch of canvas ops (`apps/dotcom/client/src/utils/canvas-ops/`) in the tab, as that tab's session, so the room authorizes the edit exactly as it would the user's own. The batch is validated in the tab, which owns the op vocabulary, and is one undo step. Some things are different from a read:
 
-- **A write runs once.** First-answer-wins would apply it in every tab, so a tab's acknowledgement is a claim: it applies a batch only after its `accepted` POST gets a 200, the first claim wins, and later ones get a 404. That also stands down a frozen tab that wakes after the job ended, which would otherwise replay old ops.
-- **Timeouts can't always say what happened.** Nothing acknowledged means nothing was applied, and the agent is told so. A timeout after a claim means the batch may have landed, and the agent is told to check before sending it again.
-- **It has to work in a hidden tab.** That is the usual state of a board an agent is editing, and a hidden tab never fires animation frames, which is what both the sync client's flush and a batch's settle wait for. A user can't edit a hidden tab, so nothing else exercises this. `TLSyncClient` passes `maxFrameWaitMs` to its `FpsScheduler` so changes still leave the tab; without it a batch looks applied and is lost on reload.
+- **A write runs once.** It goes to one tab, and that tab applies a batch only after its `accepted` POST gets a 200. A frozen tab that wakes after the job ended gets a 404, and would otherwise replay old ops.
+- **Timeouts can't always say what happened.** Nothing acknowledged means nothing was applied, and the agent is told so. A timeout after a claim, or the object failing partway, means the batch may have landed, and the agent is told to check before sending it again. A batch that waited out `MAX_QUEUE_MS` behind other work is dropped for the same reason.
+- **It waits for the user's drag to end.** Cancelling a drag rolls back to where it began, which would take the batch with it, so a tab declines mid-drag.
+- **It has to work in a hidden tab.** That is the usual state of a board an agent is editing, and a hidden tab never fires animation frames, which is what both the sync client's flush and a batch's settle wait for. A user can't edit a hidden tab, so nothing else exercises this. The tab calls `store._flushHistory()` after a batch, and `TLSyncClient` passes `maxFrameWaitMs` to its `FpsScheduler`, so changes reach the sync client and then leave the tab. Without both, a batch looks applied and is lost on reload, unless another client's traffic happens to flush it, which is why checking from a second client doesn't prove this works.
 - **Only tabs that can edit are asked.** The object applies the same rule `onRequest` does before looking for a tab, so a view-only caller is told so rather than sent to open one. View-only sessions are skipped too, since a session keeps the mode it connected with. A batch naming a page the user isn't on is declined rather than applied to the wrong page, because ops place shapes on the page in view.
 - **It goes to one tab.** The one the user was most recently active in, from `lastActivityTimestamp` in presence, so "the selection" and "the page they're on" mean the tab they're in. `get_user_state` does the same. The claim still matters: it's what stands down a frozen tab.
 
@@ -623,7 +602,6 @@ Client registration is the other thing to configure. Clients identify themselves
   Two prerequisites, which are why this is a follow-up rather than a config line. **The queue has to be split first** — `tldraw-multiplayer-queue` also carries `asset-upload`, and `max_concurrency` is a per-consumer setting, so capping the shared queue would throttle uploads too. And **`OG_PENDING_MARKER_TTL_MS` has to be re-derived from the cap**: it is sized against a job's retry chain (~3.75 minutes) on the assumption that queue latency is negligible, which is true only while nothing throttles. Once depth can build, a message can wait longer than its marker lives, the marker lapses, the next edit enqueues a second job for the same board, and the two clobber each other's per-board render token record — adding load exactly when the queue is already behind. Either refresh the marker when the job starts or derive its TTL from the cap.
 
 - Schedule `fetch-screenshot-metrics.ts --check` somewhere (cron CI job or an external monitor) and point a dashboard at the SQL queries above; the script and queries exist, the scheduling is an ops decision.
-- Shared files render the last persisted room snapshot from R2, which can lag in-memory edits by the persist debounce. If near-real-time accuracy is ever required, add a `getCurrentSnapshot` RPC on `TLFileDurableObject` (modeled on `onDownloadTldr`) instead of reading R2.
 - Keep current-viewport screenshots, arbitrary shape selectors, and arbitrary URLs out of the MCP scope; boards stay limited to what the authenticated caller could already open in a browser.
 
 ## System map
@@ -635,7 +613,6 @@ flowchart TB
     subgraph entry ["Entry points (sync worker)"]
         SB["search_boards<br/>(POST /api/app/mcp — Postgres only, no browser)"]
         BI["get_board_info<br/>(POST /api/app/mcp — no browser)"]
-        MCP["get_page_info / get_cluster_info /<br/>get_cluster_screenshot<br/>(POST /api/app/mcp — measure render + capture)"]
         OGR["GET /api/app/social-preview/:prefix/:slug/image<br/>(serves R2 cache only, never waits)"]
         SP["GET /app/social-preview/:prefix/:slug<br/>(crawler HTML: board name + og:image)"]
         BV["GET /api/app/file/:boardId/thumbnail<br/>(R2 cache read, access-gated, never waits)"]
@@ -653,14 +630,11 @@ flowchart TB
 
     SB --> PG[("Postgres: file<br/>owned or workspace scope, newest created first")]
     BI --> GATE["Resolve board + share gate<br/>(published or link-shared only)"]
-    MCP --> GATE
     QC --> GATE
 
     GATE --> SNAP2["Load room snapshot<br/>(enumerate pages; board-info returns here)"]
     SNAP2 -->|name, page list| BI
-    SNAP2 --> IDX{"Cluster index for this<br/>page + content version?<br/>(TLFileDurableObject SQL)"}
-    IDX -->|hit: no render| MCP
-    IDX -->|miss| TOKEN["Mint HMAC render token<br/>(board identity, pageId, 60s expiry)"]
+    SNAP2 --> TOKEN["Mint HMAC render token<br/>(board identity, pageId, 60s expiry)"]
     TOKEN --> BR["env.BROWSER.quickAction<br/>(navigate → wait data-thumbnail-ready → PNG)"]
 
     BR --> PAGE["/__thumbnail-render (client render page)"]
@@ -668,13 +642,10 @@ flowchart TB
     PAGE --> EXPORT["setCurrentPage(pageId) · editor.toImage()<br/>content-fit · display as full-viewport img"]
     EXPORT -->|screenshot captures the img| BR
 
-    BR -->|measure bounds + text| IDX
-    BR -->|PNG bytes| WORKER["Worker writes R2 + returns image"]
-    WORKER --> R2[("THUMBNAILS bucket (og/… keys)<br/>MCP_DATA_BUCKET (mcp/… keys,<br/>expiring)")]
-    WORKER -->|image in hand| MCP
+    BR -->|PNG bytes| WORKER["Worker writes R2"]
+    WORKER --> R2[("THUMBNAILS bucket (og/… keys)")]
     R2 -->|serve cached| OGR
     R2 -->|serve cached| BV
-    R2 -->|serve cached| MCP
 ```
 
 ### Follow-up work

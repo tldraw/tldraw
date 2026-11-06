@@ -3,9 +3,9 @@ import { TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
 // Runs an MCP tool's work in a user's open tldraw.com tab. Lives in the file's Durable Object, because
 // that is where the sockets are; see "Working in an open tab" in browser-run-thumbnails.md.
 //
-// A tab can stop answering without its socket closing, so a job goes to all of a user's live tabs and
-// the first answer wins. A write can't work that way, since every tab would apply it, so the first
-// tab to acknowledge claims it and the others are told to stand down.
+// A tab can stop answering without its socket closing, so a read goes to several of a user's live tabs
+// and the first answer wins. A write goes to one, and that tab waits for the 200 on its acknowledgement
+// before applying anything, which is what stops a frozen tab replaying a job when it wakes.
 
 /**
  * How long a tab has to acknowledge a job, which is how long a call waits on a tab that looks alive
@@ -59,7 +59,7 @@ export interface TabRenderSocket {
 	lastSeenAt: number
 }
 
-/** The sessions worth sending one user's job to, most recently seen first. */
+/** The sessions worth sending one user's job to. */
 export function pickTabRenderSessions(
 	sockets: TabRenderSocket[],
 	userId: string,
@@ -67,10 +67,9 @@ export function pickTabRenderSessions(
 ): string[] {
 	const live = sockets
 		.filter((s) => s.userId === userId && now - s.lastSeenAt <= TAB_RENDER_MAX_PING_AGE_MS)
-		.sort((a, b) => b.lastSeenAt - a.lastSeenAt)
 		.map((s) => s.sessionId)
 	// A superseded socket for a session can linger, so sessions are deduped rather than sockets.
-	return [...new Set(live)].slice(0, MAX_TAB_RENDER_SESSIONS)
+	return [...new Set(live)]
 }
 
 interface TabRenderJob {
@@ -79,8 +78,6 @@ interface TabRenderJob {
 	 * speak for the tab it was sent to.
 	 */
 	tabs: Map<string, 'asked' | 'working'>
-	/** Only one tab may work on this job, so a second acknowledgement is refused. */
-	exclusive: boolean
 	lastDecline?: Extract<TabRenderReply, { status: 'declined' }>
 	finish(outcome: TabRenderOutcome): void
 }
@@ -99,7 +96,6 @@ export class TabRenderBroker {
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
 				tabs: new Map(),
-				exclusive: request.mode === 'apply_ops',
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
@@ -147,7 +143,6 @@ export class TabRenderBroker {
 
 		switch (reply.status) {
 			case 'accepted':
-				if (job.exclusive && [...job.tabs.values()].includes('working')) return false
 				job.tabs.set(jobId, 'working')
 				break
 			case 'declined':

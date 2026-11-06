@@ -48,8 +48,6 @@ export class FpsScheduler {
 
 		// A race rather than a check of `document.hidden`: a frame requested just before the tab is
 		// hidden never arrives either, and everything queued after it would wait behind it.
-		// eslint-disable-next-line no-restricted-globals
-		let timer: ReturnType<typeof setTimeout> | undefined = undefined
 		const run = () => {
 			clearTimeout(timer)
 			// eslint-disable-next-line no-restricted-globals
@@ -57,9 +55,9 @@ export class FpsScheduler {
 			callback()
 		}
 		// eslint-disable-next-line no-restricted-globals
-		const frame = requestAnimationFrame(run)
+		const timer = setTimeout(run, maxFrameWaitMs)
 		// eslint-disable-next-line no-restricted-globals
-		timer = setTimeout(run, maxFrameWaitMs)
+		const frame = requestAnimationFrame(run)
 		return frame
 	}
 
