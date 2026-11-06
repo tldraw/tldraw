@@ -919,6 +919,16 @@ describe('canWrite', () => {
 		expect(storedNote(storage, note.id)?.text).toBe('x')
 	})
 
+	it('rejects a write when a check returns a truthy non-boolean or a Promise', () => {
+		for (const check of [() => 'yes', async () => true]) {
+			const { room, storage, note } = roomWith(canWrite<R, undefined>({ note: check as any }))
+
+			push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'x'] }] })
+
+			expect(storedNote(storage, note.id)?.text).toBe('seeded')
+		}
+	})
+
 	it('composes with a stamping hook, and the later check sees the stamped record', () => {
 		const seen: string[] = []
 		const { room, storage, note } = roomWith(
