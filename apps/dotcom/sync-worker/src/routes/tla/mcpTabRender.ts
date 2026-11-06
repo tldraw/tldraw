@@ -1,5 +1,6 @@
 import {
 	TAB_RENDER_DECLINE_REASONS,
+	TabRenderApplyOpsRequest,
 	TabRenderReply,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
@@ -10,39 +11,39 @@ import { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
-import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
+import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { ShapeMeasurement } from './boardTools'
-import { ResolvedThumbnailBoard, readMeasurements } from './thumbnailRender'
+import { McpBoardUser, PageSelector, ResolvedPage, ShapeMeasurement } from './boardTools'
+import { readMeasurements } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
 
-// The MCP side of rendering in an open tab. Any failure here means "use Browser Run", so a tool never
-// answers worse than it would without this.
+// The MCP side of working in an open tab, which is the only way these tools measure, capture or
+// write: anything a tab can't do comes back as a message telling the agent what the user needs to do.
 //
-// **What a tab produces never reaches a shared cache.** Its owner can POST anything, and the `mcp/`
-// PNG keys and the cluster index have no viewer dimension, so a forged answer would reach every other
-// viewer's agent. See "Rendering in an open tab" in browser-run-thumbnails.md.
+// **What a tab produces never reaches a shared cache.** Its owner can POST anything, so a forged
+// answer must only ever reach that owner's own agent. See "Working in an open tab" in
+// browser-run-thumbnails.md.
 
 interface TabRenderContext {
 	request: Request
 	ctx: ExecutionContext | undefined
 }
 
+/** What a tab produced, or a message for the model and a bounded code for telemetry. */
+export type TabRenderResult<T> =
+	| { ok: true; value: T }
+	| { ok: false; message: string; reason: string }
+
 async function renderInOpenTab(
 	env: Environment,
-	board: ResolvedThumbnailBoard,
+	fileId: string,
 	userId: string,
 	job: TabRenderRequest,
 	{ request, ctx }: TabRenderContext
-): Promise<TabRenderOutcome | null> {
-	// A published board is the frozen copy made when it was published. The room behind it holds the
-	// live file, which is a different document from the one this tool call was asked about.
-	if (board.kind !== 'shared_file') return null
-	if (!(await isFeatureFlagEnabledForUser(env, 'mcp_tab_render', userId))) return null
-
+): Promise<TabRenderOutcome | { status: 'error' }> {
 	const startedAt = Date.now()
 	try {
-		const result = await getRoomDurableObject(env, board.fileId).requestTabRender(userId, job)
+		const result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job)
 		const reason = result.status === 'declined' ? result.reason : 'none'
 		writeTabRenderTelemetry(env, job.mode, result.status, reason, Date.now() - startedAt)
 		return result
@@ -55,7 +56,7 @@ async function renderInOpenTab(
 			extras: { mode: job.mode },
 		})
 		writeTabRenderTelemetry(env, job.mode, 'error', 'none', Date.now() - startedAt)
-		return null
+		return { status: 'error' }
 	}
 }
 
@@ -74,34 +75,185 @@ function writeTabRenderTelemetry(
 	})
 }
 
-/** The page's measurements from the caller's open tab, or null to fall back to Browser Run. */
+const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], string> = {
+	editor_not_ready: 'The board is still loading in the browser tab. Try again in a moment.',
+	page_missing:
+		'The browser tab does not have that page. Call get_board_info to list the pages, or try again in a moment if it was only just added.',
+	page_not_current:
+		'The browser tab is showing a different page, and this only works on the page in view. Ask the user to switch to that page, then try again.',
+	shapes_missing:
+		'Those shapes are no longer on the page. Call get_page_info for the current clusters.',
+	too_many_shapes:
+		'That is too many shapes to capture at once without interrupting the user. Ask for fewer clusters.',
+	busy: 'The user is busy in the browser tab. Try again in a moment.',
+	export_timed_out:
+		'The picture took too long to draw, usually while images load. Try again in a moment.',
+	invalid_ops: 'The batch is invalid and nothing was applied.',
+	read_only: 'You have view-only access to this board, so it cannot be edited.',
+	failed: 'The browser tab could not do that. Try again in a moment.',
+}
+
+/** What to tell the model when a tab didn't produce what was asked for. */
+function describeFailure(
+	result: TabRenderOutcome | { status: 'error' },
+	mode: TabRenderRequest['mode'],
+	boardUrl: string
+): { message: string; reason: string } {
+	switch (result.status) {
+		case 'declined': {
+			const message = DECLINE_MESSAGES[result.reason]
+			return {
+				message: result.detail ? `${message} ${result.detail}` : message,
+				reason: `tab_${result.reason}`,
+			}
+		}
+		case 'no_tab':
+			return {
+				message: `This board is not open in a browser tab, and this tool works through the user's open tab. Ask the user to open ${boardUrl} and keep it open, then try again.`,
+				reason: 'tab_not_open',
+			}
+		case 'read_only':
+			return { message: DECLINE_MESSAGES.read_only, reason: 'tab_read_only' }
+		case 'room_timeout':
+		case 'ack_timeout':
+		case 'error':
+			return {
+				message: `The browser tab for this board is not responding, so nothing was done. Ask the user to bring ${boardUrl} to the front, then try again.`,
+				reason: `tab_${result.status}`,
+			}
+		case 'work_timeout':
+			return {
+				message:
+					mode === 'apply_ops'
+						? 'The browser tab did not report back in time, so these ops may or may not have applied. Check the board before sending them again.'
+						: 'The browser tab took too long. Try again in a moment.',
+				reason: 'tab_work_timeout',
+			}
+		// A reply of the wrong kind for the job, which only a tab that isn't ours would send.
+		default:
+			return { message: DECLINE_MESSAGES.failed, reason: 'tab_failed' }
+	}
+}
+
+function boardUrlOf(env: Environment, request: Request, fileId: string) {
+	return `${getPublicOrigin(request as IRequest, env)}/f/${fileId}`
+}
+
+/**
+ * Why a tool can't work on a published board. It is the frozen copy made when it was published, the
+ * room behind it holds the live file, which is a different document, and nobody viewing the published
+ * page is in that room.
+ */
+export const PUBLISHED_BOARD_FAILURE = {
+	ok: false,
+	message:
+		'This tool works through an open browser tab of the board, which a published board does not have. Only get_board_info works on published boards for now.',
+	reason: 'tab_published_board',
+} as const
+
+/**
+ * A page as the room holds it now, rather than as it was last persisted, so an agent reads what it
+ * just drew.
+ */
+export async function readLivePage(
+	env: Environment,
+	fileId: string,
+	userId: string,
+	page: PageSelector,
+	{ request }: TabRenderContext
+): Promise<TabRenderResult<ResolvedPage>> {
+	const result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
+	if (result.status === 'ok') return { ok: true, value: result.page }
+	return { ok: false, ...describeFailure(result, 'measure', boardUrlOf(env, request, fileId)) }
+}
+
+/** The page's measurements from the caller's open tab. */
 export async function measureInOpenTab(
 	env: Environment,
-	board: ResolvedThumbnailBoard,
+	fileId: string,
 	userId: string,
 	pageId: string,
 	context: TabRenderContext
-): Promise<Record<string, ShapeMeasurement> | null> {
-	const result = await renderInOpenTab(env, board, userId, { mode: 'measure', pageId }, context)
-	return result?.status === 'measured' ? readMeasurements(result.shapes) : null
+): Promise<TabRenderResult<Record<string, ShapeMeasurement>>> {
+	const result = await renderInOpenTab(env, fileId, userId, { mode: 'measure', pageId }, context)
+	if (result.status === 'measured') return { ok: true, value: readMeasurements(result.shapes) }
+	return {
+		ok: false,
+		...describeFailure(result, 'measure', boardUrlOf(env, context.request, fileId)),
+	}
 }
 
-/** A base64 PNG from the caller's open tab, or null to fall back to Browser Run. */
+/** A base64 PNG from the caller's open tab. */
 export async function captureInOpenTab(
 	env: Environment,
-	board: ResolvedThumbnailBoard,
+	fileId: string,
 	userId: string,
 	capture: Omit<TabRenderScreenshotRequest, 'mode'>,
 	context: TabRenderContext
-): Promise<string | null> {
+): Promise<TabRenderResult<string>> {
 	const result = await renderInOpenTab(
 		env,
-		board,
+		fileId,
 		userId,
 		{ mode: 'screenshot', ...capture },
 		context
 	)
-	return result?.status === 'captured' ? result.base64 : null
+	if (result.status === 'captured') return { ok: true, value: result.base64 }
+	return {
+		ok: false,
+		...describeFailure(result, 'screenshot', boardUrlOf(env, context.request, fileId)),
+	}
+}
+
+/**
+ * What the caller is doing, from their tab. Not from presence: a hibernating room clears selections
+ * to fit its socket attachments, and "change what I selected" usually comes after a pause.
+ */
+export async function readUserStateInOpenTab(
+	env: Environment,
+	fileId: string,
+	userId: string,
+	context: TabRenderContext
+): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: 'user_state' }>>> {
+	const result = await renderInOpenTab(env, fileId, userId, { mode: 'user_state' }, context)
+	if (result.status === 'user_state') return { ok: true, value: result }
+	return {
+		ok: false,
+		...describeFailure(result, 'user_state', boardUrlOf(env, context.request, fileId)),
+	}
+}
+
+/** Who is on the board, from presence. Takes no tab of the caller's. */
+export async function readBoardUsers(
+	env: Environment,
+	fileId: string,
+	{ request }: TabRenderContext
+): Promise<TabRenderResult<McpBoardUser[]>> {
+	const result = await getRoomDurableObject(env, fileId).getMcpBoardUsers()
+	if (result.status === 'ok') return { ok: true, value: result.users }
+	return { ok: false, ...describeFailure(result, 'measure', boardUrlOf(env, request, fileId)) }
+}
+
+/** Applies a batch of canvas ops in the caller's open tab, as that tab's own user. */
+export async function applyOpsInOpenTab(
+	env: Environment,
+	fileId: string,
+	userId: string,
+	apply: Omit<TabRenderApplyOpsRequest, 'mode'>,
+	context: TabRenderContext
+): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: 'applied' }>>> {
+	const result = await renderInOpenTab(
+		env,
+		fileId,
+		userId,
+		{ mode: 'apply_ops', ...apply },
+		context
+	)
+	if (result.status === 'applied') return { ok: true, value: result }
+	return {
+		ok: false,
+		...describeFailure(result, 'apply_ops', boardUrlOf(env, context.request, fileId)),
+	}
 }
 
 // In bytes, which also keeps the reply inside what one RPC can carry: a body this size serializes to
@@ -113,6 +265,8 @@ const JOB_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f
 // The base64 of the PNG signature, minus the trailing characters that also encode the bytes after it.
 const PNG_BASE64_PREFIX = 'iVBORw0KGgo'
 
+const MAX_DECLINE_DETAIL_LENGTH = 2_000
+
 /** A reply off the wire, or null if it is not one. It comes from a client, so nothing is assumed. */
 export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 	if (!value || typeof value !== 'object') return null
@@ -120,16 +274,34 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 	switch (reply.status) {
 		case 'accepted':
 			return { status: 'accepted' }
-		case 'declined':
-			return (TAB_RENDER_DECLINE_REASONS as readonly unknown[]).includes(reply.reason)
-				? (reply as TabRenderReply)
-				: null
+		case 'declined': {
+			if (!(TAB_RENDER_DECLINE_REASONS as readonly unknown[]).includes(reply.reason)) return null
+			if (reply.detail !== undefined && typeof reply.detail !== 'string') return null
+			if ((reply.detail?.length ?? 0) > MAX_DECLINE_DETAIL_LENGTH) return null
+			return reply as TabRenderReply
+		}
 		case 'measured':
 			return reply.shapes && typeof reply.shapes === 'object' && !Array.isArray(reply.shapes)
 				? (reply as TabRenderReply)
 				: null
 		case 'captured':
 			return typeof reply.base64 === 'string' && reply.base64.startsWith(PNG_BASE64_PREFIX)
+				? (reply as TabRenderReply)
+				: null
+		case 'user_state':
+			return typeof reply.pageId === 'string' &&
+				typeof reply.pageName === 'string' &&
+				Array.isArray(reply.selectedShapeIds) &&
+				reply.viewport &&
+				typeof reply.viewport === 'object'
+				? (reply as TabRenderReply)
+				: null
+		case 'applied':
+			return typeof reply.pageId === 'string' &&
+				typeof reply.pageName === 'string' &&
+				reply.result &&
+				typeof reply.result === 'object' &&
+				!Array.isArray(reply.result)
 				? (reply as TabRenderReply)
 				: null
 		default:
@@ -145,6 +317,9 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
  * That makes this reachable by anyone, so the size is checked from the header and the job before the
  * body is read: without a live job id, a request's bytes never reach the room's object, where enough
  * of them at once could reset it and disconnect everyone on the board.
+ *
+ * For a write this is also the go-ahead: a tab applies a batch only after its `accepted` gets a 200,
+ * so a 404 is what stands down a tab that lost the claim or woke up after the job ended.
  */
 export async function postTabRenderReply(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId, jobId } = request.params

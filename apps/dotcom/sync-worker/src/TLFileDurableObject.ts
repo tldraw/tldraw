@@ -114,6 +114,13 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
+import {
+	McpBoardUser,
+	PageSelector,
+	ResolvedPage,
+	getBoardUsers,
+	resolvePage,
+} from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -3553,8 +3560,41 @@ export class TLFileDurableObject extends DurableObject {
 
 	private tabRenders = new TabRenderBroker()
 
+	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
+	private getTabRenderSockets() {
+		const sockets: (TabRenderSocket & { isReadonly: boolean })[] = []
+		for (const ws of this.ctx.getWebSockets()) {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
+			sockets.push({
+				sessionId: attachment.sessionId,
+				userId: attachment.meta.userId,
+				isReadonly: attachment.isReadonly,
+				lastSeenAt:
+					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
+					attachment.tabRenderConnectedAt,
+			})
+		}
+		return sockets
+	}
+
+	/** The room, unless it takes too long: see TAB_RENDER_ROOM_TIMEOUT_MS. */
+	private getRoomForTabRender() {
+		return Promise.race([this.getRoom(), sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null)])
+	}
+
+	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
+	private async canWriteToFile(userId: string) {
+		const access = await this.getAppFileRecordWithRole(userId)
+		if (!access) return false
+		return (
+			can(access.role, 'accessFiles') ||
+			(access.file.shared && access.file.sharedLinkType === 'edit')
+		)
+	}
+
 	/**
-	 * Asks this user's open tabs to do something an MCP tool would otherwise start a browser for.
+	 * Runs an MCP tool's work in this user's open tabs.
 	 *
 	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
 	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
@@ -3562,31 +3602,79 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
-
-		const sockets: TabRenderSocket[] = []
-		for (const ws of this.ctx.getWebSockets()) {
-			const attachment = this.getSocketAttachment(ws)
-			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
-			sockets.push({
-				sessionId: attachment.sessionId,
-				userId: attachment.meta.userId,
-				lastSeenAt:
-					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
-					attachment.tabRenderConnectedAt,
-			})
+		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
+		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
+			return { status: 'read_only' }
 		}
-		const sessionIds = pickTabRenderSessions(sockets, userId, Date.now())
-		if (sessionIds.length === 0) return { status: 'no_tab' }
 
-		const room = await Promise.race([
-			this.getRoom(),
-			sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null),
-		])
+		const sockets = this.getTabRenderSockets()
+		const now = Date.now()
+		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
+		// The tab applies a write as its own session, which is what the room authorizes. The access
+		// check above is current, but a session keeps the mode it connected with until it reconnects.
+		const sessionIds = pickTabRenderSessions(
+			request.mode === 'apply_ops' ? sockets.filter((s) => !s.isReadonly) : sockets,
+			userId,
+			now
+		)
+		if (sessionIds.length === 0) return { status: 'read_only' }
+
+		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }
-		return this.tabRenders.dispatch(sessionIds, request, (sessionId, jobId) => {
+
+		// A ping only says a tab is alive; the user's last pointer activity says which one they're in.
+		const lastActiveAt = (sessionId: string) => {
+			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
+			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
+		}
+		const byActivity = [...sessionIds].sort((a, b) => lastActiveAt(b) - lastActiveAt(a))
+		// "The user's selection" and "the page they're on" mean the tab they're in. Reads go to all of
+		// them, where any answer will do and a second tab can cover for a dead one.
+		const isAboutTheUser = request.mode === 'apply_ops' || request.mode === 'user_state'
+		const targets = isAboutTheUser ? byActivity.slice(0, 1) : byActivity
+
+		return this.tabRenders.dispatch(targets, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
+	}
+
+	/**
+	 * A page as it is right now, for the read tools. The persisted snapshot in R2 lags the room by up
+	 * to the persist interval, so reading it would miss what an agent has just drawn.
+	 *
+	 * Only that page's records come back: the whole document could outgrow what an RPC can carry.
+	 * Refuses before booting the room when this user has no tab, because the caller is about to need
+	 * one anyway.
+	 */
+	async getMcpLivePage(
+		userId: string,
+		page: PageSelector
+	): Promise<{ status: 'no_tab' | 'room_timeout' } | { status: 'ok'; page: ResolvedPage }> {
+		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
+		const sockets = this.getTabRenderSockets()
+		if (pickTabRenderSessions(sockets, userId, Date.now()).length === 0) return { status: 'no_tab' }
+
+		const room = await this.getRoomForTabRender()
+		if (!room) return { status: 'room_timeout' }
+		const snapshot = (await this.getStorage()).getSnapshot?.()
+		if (!snapshot) throw new Error('The room storage cannot be read as a snapshot')
+		return { status: 'ok', page: resolvePage(snapshot, page) }
+	}
+
+	/**
+	 * Who is on the board, from presence, most recently active first. Nobody connected means nobody to
+	 * report, without booting the room.
+	 */
+	async getMcpBoardUsers(): Promise<
+		{ status: 'room_timeout' } | { status: 'ok'; users: McpBoardUser[] }
+	> {
+		if (!this._documentInfo || this._documentInfo.deleted || !this.ctx.getWebSockets().length) {
+			return { status: 'ok', users: [] }
+		}
+		const room = await this.getRoomForTabRender()
+		if (!room) return { status: 'room_timeout' }
+		return { status: 'ok', users: getBoardUsers(Object.values(room.getPresenceRecords())) }
 	}
 
 	async hasTabRenderJob(jobId: string): Promise<boolean> {

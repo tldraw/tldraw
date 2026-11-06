@@ -287,6 +287,12 @@ export interface TLPersistentClientSocket<
 }
 
 const PING_INTERVAL = 5000
+/**
+ * How long changes wait for an animation frame before being sent anyway. A hidden tab never gets one,
+ * so an edit made there by anything but the user, like an agent, would never leave the tab and would
+ * be lost on reload, even though it looks applied.
+ */
+const MAX_SYNC_FRAME_WAIT_MS = 250
 const MAX_TIME_TO_WAIT_FOR_SERVER_INTERACTION_BEFORE_RESETTING_CONNECTION = PING_INTERVAL * 2
 /**
  * How long an unanswered ping may stay outstanding before the connection is considered dead.
@@ -509,7 +515,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		// Create a separate throttle instance for network sync operations
 		// This ensures sync operations have their own queue separate from UI operations
-		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
+		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS, {
+			maxFrameWaitMs: MAX_SYNC_FRAME_WAIT_MS,
+		})
 
 		// Initialize throttled methods after throttle instance is created
 		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {

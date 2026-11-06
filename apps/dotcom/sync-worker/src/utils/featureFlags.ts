@@ -41,7 +41,7 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			users: [],
 			allowEveryone: false,
 			description:
-				"Whose MCP tool calls may be answered by that user's own open tldraw.com tab instead of a Browser Run session. Anything a tab cannot answer still falls back to Browser Run, so closing this only makes those calls slower",
+				"Who may edit boards through the MCP server's apply_ops tool, which applies ops in the user's open tldraw.com tab. Reads through a tab aren't gated by this. Closing it stops agents writing to boards",
 		},
 		version_chain: {
 			type: 'percentage',

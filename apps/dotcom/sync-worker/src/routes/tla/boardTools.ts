@@ -1,4 +1,5 @@
 import {
+	CANVAS_OPS_BATCH_JSON_SCHEMA,
 	ClusterBounds,
 	ClusterMeasurement,
 	DEFAULT_THUMBNAIL_HEIGHT,
@@ -16,6 +17,7 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	BoxModel,
 	TLArrowBinding,
+	TLInstancePresence,
 	TLShape,
 	VecModel,
 	b64Vecs,
@@ -61,10 +63,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug: if it is not, they say so, and you should ask the user to open it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. Accepts published tldraw.com/p/:slug boards, link-shared tldraw.com/f/:slug files, and your own private boards, rendered through a signed, tldraw-owned render job. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened — a published board is still reachable by id. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug: if it is not, they say so, and you should ask the user to open it. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -74,6 +76,9 @@ export const CLUSTER_SCREENSHOT_TOOL_NAME = 'get_cluster_screenshot'
 export const CREATE_BOARD_TOOL_NAME = 'create_board'
 export const RENAME_BOARD_TOOL_NAME = 'rename_board'
 export const LIST_WORKSPACES_TOOL_NAME = 'list_workspaces'
+export const APPLY_OPS_TOOL_NAME = 'apply_ops'
+export const USER_STATE_TOOL_NAME = 'get_user_state'
+export const BOARD_USERS_TOOL_NAME = 'get_board_users'
 
 export const TOOL_NAMES = [
 	SEARCH_BOARDS_TOOL_NAME,
@@ -84,6 +89,9 @@ export const TOOL_NAMES = [
 	PAGE_INFO_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	APPLY_OPS_TOOL_NAME,
+	USER_STATE_TOOL_NAME,
+	BOARD_USERS_TOOL_NAME,
 ] as const
 
 // What a model is told when the board id it was given leads nowhere. The route decides *whether* a
@@ -455,6 +463,56 @@ export const BOARD_NAME_MAX_LENGTH = 200
 // A null workspace means the caller's personal workspace. A blank string is treated the same way
 // rather than as a name to match: a model that fills every field in the schema sends "" for the one
 // it meant to leave out.
+export const APPLY_OPS_MAX_OPS = 1000
+// A batch goes to the tab as a single socket message. This is several times what 1,000 ordinary ops
+// serialize to, so it only stops a batch that would stall the tab just parsing it.
+const APPLY_OPS_MAX_LENGTH = 1024 * 1024
+const APPLY_OPS_MAX_RUN_ID_LENGTH = 100
+
+/** Only the outer shape: the tab owns the op vocabulary and validates each op against it. */
+export function parseApplyOpsInput(input: unknown): {
+	boardId: string
+	ops: unknown[]
+	page: PageSelector | null
+	runId: string | null
+} {
+	const value = requireArgumentsObject(input)
+	const { ops, runId } = value
+	if (!Array.isArray(ops) || ops.length === 0) {
+		throw new Error('ops must be a non-empty array of canvas ops')
+	}
+	if (ops.length > APPLY_OPS_MAX_OPS) {
+		throw new Error(`ops can hold at most ${APPLY_OPS_MAX_OPS} ops; split the work across calls`)
+	}
+	if (JSON.stringify(ops).length > APPLY_OPS_MAX_LENGTH) {
+		throw new Error('ops is too large; split the work across calls')
+	}
+	if (runId !== undefined) {
+		if (typeof runId !== 'string' || !runId || runId.length > APPLY_OPS_MAX_RUN_ID_LENGTH) {
+			throw new Error(`runId must be a string of at most ${APPLY_OPS_MAX_RUN_ID_LENGTH} characters`)
+		}
+	}
+	return {
+		boardId: parseBoardId(value.boardId),
+		ops,
+		page: value.page === undefined ? null : parsePageSelector(value.page),
+		runId: runId ?? null,
+	}
+}
+
+export function parseBoardUsersInput(input: unknown): { boardId: string } {
+	return { boardId: parseBoardId(requireArgumentsObject(input).boardId) }
+}
+
+export function parseUserStateInput(input: unknown): { boardId: string; userId: string | null } {
+	const value = requireArgumentsObject(input)
+	const { userId } = value
+	if (userId !== undefined && (typeof userId !== 'string' || !userId)) {
+		throw new Error('userId must be a user id from get_board_users')
+	}
+	return { boardId: parseBoardId(value.boardId), userId: userId ?? null }
+}
+
 export function parseCreateBoardInput(input: unknown): { name: string; workspace: string | null } {
 	const value = requireArgumentsObject(input)
 	const name = parseBoardName(value.name, 'the title for the new board')
@@ -829,6 +887,7 @@ export function getCreatedBoardResult({
 		name,
 		url,
 		workspace: { id: workspace.id, name: workspace.name, personal: workspace.personal },
+		nextStep: `This board has to be open in a browser tab before you can edit or read it. Open ${url}, or ask the user to, then call apply_ops.`,
 	})
 }
 
@@ -899,6 +958,54 @@ function getArrowBindingsOf(snapshot: RoomSnapshot, shapes: TLShape[]): TLArrowB
 
 export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
 
+/** One user on a board, from their presence. */
+export interface McpBoardUser {
+	userId: string
+	name: string
+	color: string
+	pageId: string
+	/** Empty when they have been idle: a hibernating room doesn't keep selections. */
+	selectedShapeIds: string[]
+	viewport: BoxModel | null
+	lastActiveAt: string | null
+}
+
+/** Each user's most recently active presence: someone with two tabs open is one person. */
+export function getBoardUsers(presences: unknown[]): McpBoardUser[] {
+	const latest = new Map<string, TLInstancePresence>()
+	for (const record of presences as TLInstancePresence[]) {
+		if (record.typeName !== 'instance_presence') continue
+		const known = latest.get(record.userId)
+		if (!known || (record.lastActivityTimestamp ?? 0) > (known.lastActivityTimestamp ?? 0)) {
+			latest.set(record.userId, record)
+		}
+	}
+	return [...latest.values()]
+		.sort((a, b) => (b.lastActivityTimestamp ?? 0) - (a.lastActivityTimestamp ?? 0))
+		.map((presence) => ({
+			// Presence stores a record id; everything else here speaks in bare account ids.
+			userId: presence.userId.replace(/^user:/, ''),
+			name: presence.userName,
+			color: presence.color,
+			pageId: presence.currentPageId,
+			selectedShapeIds: presence.selectedShapeIds,
+			viewport: getPresenceViewport(presence),
+			lastActiveAt: presence.lastActivityTimestamp
+				? new Date(presence.lastActivityTimestamp).toISOString()
+				: null,
+		}))
+}
+
+function getPresenceViewport({ camera, screenBounds }: TLInstancePresence): BoxModel | null {
+	if (!camera || !screenBounds || !camera.z) return null
+	return {
+		x: -camera.x,
+		y: -camera.y,
+		w: screenBounds.w / camera.z,
+		h: screenBounds.h / camera.z,
+	}
+}
+
 // Clustering takes three of the things the measure render answers: where each shape sits, where
 // each arrow's ends are drawn, and what ShapeUtil.getText says a shape holds. Bounds and arrow ends
 // drive the linkage, alongside the page's bindings; the text is attached to the shapes so labelling
@@ -912,48 +1019,6 @@ export function clusterPage(page: ResolvedPageOk, measurements: Record<string, S
 	return getShapeClusters(shapes, page.pageId, measurements, page.bindings)
 }
 
-// --- The cluster index --------------------------------------------------------------------------
-//
-// What a measure render is worth keeping. Clustering a page and describing its shapes need things
-// only an editor can answer — where each shape sits, where each arrow is drawn, and what its
-// ShapeUtil.getText reports — and all of them cost a full Browser Run session. The *answer* is small
-// and stays true for as long as the board's content does, so it is reduced to this once and stored
-// (mcpClusterIndex.ts), and the three tools that cluster read it back instead of measuring again.
-//
-// Bounds are not kept: they decide which atoms merge, and that decision is already in `clusters`.
-// Arrow ends and shape dimensions are stored by shape id, rounded to thousandths, which is also how
-// get_cluster_info reports them. Rounding is idempotent, so a call served from the index and a call
-// served from a fresh render answer identically.
-
-/**
- * A page's clustering and geometry, reduced to what survives a round trip through storage.
- *
- * Bump `CLUSTER_INDEX_FORMAT_VERSION` whenever this shape changes, or whenever clustering or
- * labelling changes in a way that would make a stored index disagree with a fresh measure — the
- * content version in the cache key rotates on edits, not on deploys, so nothing else invalidates a
- * stored index when the code that produced it moves.
- */
-export interface PageClusterIndex {
-	v: number
-	/** `shapeIds` are in `getShapeClusters` order, so a rehydrated cluster reads the same. */
-	clusters: {
-		id: string
-		label: string
-		keywords: string[]
-		shapeIds: string[]
-		/** The cluster's page-space box, null when the render measured none of its shapes. */
-		bounds: BoxModel | null
-	}[]
-	/** The text the measure render's editor reported, by shape id. Absent for shapes with none. */
-	text: Record<string, string>
-	/** Each measured arrow as drawn, by shape id. */
-	arrows: Record<string, MeasuredArrow>
-	/** Each measured text, group, draw and highlight shape's size as drawn, by shape id. */
-	dimensions: Record<string, MeasuredDimensions>
-}
-
-export const CLUSTER_INDEX_FORMAT_VERSION = 3
-
 /**
  * A page's clusters, each cluster's box by cluster id, and the geometry get_cluster_info describes
  * its shapes with, by shape id.
@@ -965,7 +1030,6 @@ export interface PageClustering {
 	dimensions: Record<string, MeasuredDimensions>
 }
 
-/** A page's clustering from a fresh measure, in the same form a stored index rehydrates to. */
 export function clusteringFromMeasure(
 	clusters: ShapeCluster[],
 	measurements: Record<string, ShapeMeasurement>
@@ -982,10 +1046,6 @@ export function clusteringFromMeasure(
 		if (measurement.dimensions) dimensions[id] = measurement.dimensions
 	}
 	return { clusters, bounds, arrows, dimensions }
-}
-
-function roundPoint(point: VecModel): VecModel {
-	return { x: toThousandths(point.x), y: toThousandths(point.y) }
 }
 
 /**
@@ -1013,123 +1073,6 @@ function toClusterBox(boxes: (ClusterBounds | undefined)[]): BoxModel | null {
 		h: toThousandths(union.maxY - union.minY),
 	}
 }
-
-/** Reduces a page's clusters, and the measure they were built from, to the form that is stored. */
-export function buildClusterIndex(
-	clusters: ShapeCluster[],
-	measurements: Record<string, ShapeMeasurement>
-): PageClusterIndex {
-	const text: Record<string, string> = {}
-	const arrows: PageClusterIndex['arrows'] = {}
-	const dimensions: PageClusterIndex['dimensions'] = {}
-	for (const cluster of clusters) {
-		for (const shape of cluster.shapes) {
-			if (shape.plainText) text[shape.id] = shape.plainText
-			const measured = measurements[shape.id]
-			if (measured?.dimensions) {
-				const { w, h } = measured.dimensions
-				dimensions[shape.id] = { w: toThousandths(w), h: toThousandths(h) }
-			}
-			if (measured?.arrow) {
-				const { start, end } = measured.arrow
-				arrows[shape.id] = { start: roundPoint(start), end: roundPoint(end) }
-			}
-		}
-	}
-
-	return {
-		v: CLUSTER_INDEX_FORMAT_VERSION,
-		clusters: clusters.map((cluster) => ({
-			id: cluster.id,
-			label: cluster.label,
-			keywords: cluster.keywords,
-			shapeIds: cluster.shapes.map((shape) => shape.id),
-			bounds: toClusterBox(cluster.shapes.map((shape) => measurements[shape.id])),
-		})),
-		text,
-		arrows,
-		dimensions,
-	}
-}
-
-/**
- * Reads an index back out of storage, or null if it is anything other than one this build wrote.
- *
- * The version check is the load-bearing one: rows outlive deploys, and the content version in the
- * cache key rotates on edits rather than on releases, so nothing else catches a row written by a
- * build whose format has since moved. A null is a cache miss, which costs one render and is safe.
- */
-export function parseClusterIndex(json: string): PageClusterIndex | null {
-	let value: unknown
-	try {
-		value = JSON.parse(json)
-	} catch {
-		return null
-	}
-	const candidate = value as PageClusterIndex | null
-	if (!candidate || candidate.v !== CLUSTER_INDEX_FORMAT_VERSION) return null
-	if (!Array.isArray(candidate.clusters) || !candidate.text || !candidate.arrows) return null
-	if (!candidate.dimensions) return null
-	return candidate
-}
-
-/**
- * Rebuilds full clusters and their geometry from a stored index and the page it was built for, or
- * null when the two disagree. A null costs one render; serving a mismatch costs a wrong answer
- * that no uncached path could produce, so the check runs in both directions.
- *
- * Clustering partitions a page — every shape lands in exactly one cluster — so the index and the page
- * agree only if they name the same shapes *and* the same number of them. Naming one the page lacks is
- * the obvious half. The other half is what catches a page that has *gained* shapes since it was
- * indexed, which a stored index cannot otherwise notice: it would rebuild cleanly and answer short,
- * and an index built when the page was empty would report a full page as having no clusters at all.
- *
- * The storage key is a digest of the snapshot actually read, so normal content changes cannot
- * produce this skew. This remains a cheap integrity check for malformed or corrupted rows, where
- * falling back to one render is safer than serving a plausible partial answer.
- *
- * A malformed row throws instead, from reading a field the format promised; the cache read treats
- * that as a miss too.
- */
-export function clusteringFromIndex(
-	page: ResolvedPageOk,
-	index: PageClusterIndex
-): PageClustering | null {
-	const byId = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
-	const clusters: ShapeCluster[] = []
-	const arrows: Record<string, MeasuredArrow> = {}
-	const dimensions: Record<string, MeasuredDimensions> = {}
-	const bounds: Record<string, BoxModel> = {}
-	let named = 0
-
-	for (const cluster of index.clusters) {
-		const shapes: TLShapeWithPlainText[] = []
-		for (const shapeId of cluster.shapeIds) {
-			const shape = byId.get(shapeId)
-			if (!shape) return null
-			const text = index.text[shapeId]
-			shapes.push(text ? { ...shape, plainText: text } : shape)
-
-			if (index.arrows[shapeId]) arrows[shapeId] = index.arrows[shapeId]
-			if (index.dimensions[shapeId]) dimensions[shapeId] = index.dimensions[shapeId]
-		}
-		named += shapes.length
-		if (cluster.bounds) bounds[cluster.id] = cluster.bounds
-		clusters.push({
-			id: cluster.id,
-			label: cluster.label,
-			keywords: cluster.keywords,
-			numberOfShapes: shapes.length,
-			shapes,
-		})
-	}
-
-	return named === page.shapes.length ? { clusters, bounds, arrows, dimensions } : null
-}
-
-// The three clustering tools take clusters, never the render itself: a call served from a stored
-// index and a call served from a fresh render hand in the same thing, and everything from here on is
-// identical.
 
 /**
  * The most cluster JSON one get_page_info answer carries before it stops and hands back a nextCursor.
@@ -1571,6 +1514,9 @@ export function getToolDefinitions(nameMatchingEnabled: boolean) {
 		getPageInfoToolDefinition(),
 		getClusterInfoToolDefinition(),
 		getClusterScreenshotToolDefinition(),
+		getApplyOpsToolDefinition(),
+		getUserStateToolDefinition(),
+		getBoardUsersToolDefinition(),
 	]
 }
 
@@ -1669,7 +1615,7 @@ function getCreateBoardToolDefinition() {
 		name: CREATE_BOARD_TOOL_NAME,
 		title: 'Create tldraw board',
 		description:
-			'Create a new, empty tldraw.com board and return its boardId and url. The board goes in your personal workspace unless you name another workspace you belong to and can add boards to — a name or id from list_workspaces, or the workspaceName search_boards reports. If the workspace you name is not one of those, the error lists the ones you can use. The new board is shared by link for editing, the same as a board created on tldraw.com.',
+			'Create a new, empty tldraw.com board and return its boardId and url. It has to be open in a browser tab before apply_ops or the reading tools can work on it, so open the url or ask the user to. The board goes in your personal workspace unless you name another workspace you belong to and can add boards to — a name or id from list_workspaces, or the workspaceName search_boards reports. If the workspace you name is not one of those, the error lists the ones you can use. The new board is shared by link for editing, the same as a board created on tldraw.com.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1833,6 +1779,96 @@ function getClusterScreenshotToolDefinition() {
 			required: ['boardId', 'page', 'clusterIds'],
 		},
 		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getUserStateToolDefinition() {
+	return {
+		name: USER_STATE_TOOL_NAME,
+		title: 'Get tldraw user state',
+		description:
+			'Return what a user is doing on a board: the page they are on, the shape ids they have selected, and their viewport in page coordinates. Use it to work out what they mean by "this" or "here". Leave userId out for the user you are acting for, which needs the board open in their browser tab and is always accurate. For anyone else it comes from their presence, where the selection can read as empty if they have been idle for a while.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: BOARD_ID_PROPERTY,
+				userId: {
+					type: 'string',
+					description: 'A user id from get_board_users. Omit it for the user you are acting for.',
+				},
+			},
+			required: ['boardId'],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getBoardUsersToolDefinition() {
+	return {
+		name: BOARD_USERS_TOOL_NAME,
+		title: 'Get tldraw board users',
+		description:
+			'List who is on a board right now: each user id, name and color, the page they are on, and when they were last active, most recently active first. An empty list means nobody has it open.',
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: { boardId: BOARD_ID_PROPERTY },
+			required: ['boardId'],
+		},
+		annotations: READ_ONLY_ANNOTATIONS,
+	}
+}
+
+function getApplyOpsToolDefinition() {
+	return {
+		name: APPLY_OPS_TOOL_NAME,
+		title: 'Apply ops to a tldraw board',
+		description: `Edit a tldraw.com board by applying a batch of canvas ops, as the user, in their open browser tab. The board must be open in a tab on the page you mean to edit; if it is not, this says so and you should ask the user to open it. You need edit access.
+
+Each batch is one undo step for the user. A failing op is reported and the rest still run. The result says what each op did, where things landed and what was adjusted. Split large work into several calls, one part at a time, because each shows up on the board as soon as it lands. get_page_info and get_cluster_info list the shapes saved to the board, which lags a tab by several seconds, so rely on this result rather than reading back straight away. Page coordinates: y grows downward.
+
+Ops:
+- add: create a label (text), note, box, ellipse, or shape (any geo). Place it with \`at\` (top-left) or relative to a \`target\` with \`relation\` (above, below, left_of, right_of, inside, centered_on), \`gap\`, \`align\`. Boxes size themselves to their text unless you give w/h. A box's text is its label, drawn inside it; use \\n for line breaks.
+- place: move an existing shape (\`at\`, or \`relation\` + \`target\`) and/or change its w, h, text, and style.
+- label: attach a text label to a shape or a page point, optionally with an arrow.
+- connect: an arrow between two shapes (bound to them) or points. Reusing an existing arrow's id replaces that arrow.
+- rename (change text; fit: widen or shrink_text), restyle (color/fill/dash/size, or \`like\` another shape), resize (w/h/scale, anchor), remove, untangle (spread overlapping shapes near anchors).
+- path: a polyline or curve through page points; closed: true makes a fillable outline; smooth: true curves it.
+- duplicate: copy a shape to a new position.
+
+Refer to shapes by id, or by {text}, {description}, {selected: true}, or {created: "last" | index}. Give new shapes short ids so later ops can refer to them.
+
+A card's words, title and body alike, belong in the box's own text. Separate labels laid over a box don't move or resize with it. Keep shapes from overlapping unless one is meant to sit inside another, and keep text inside the shape that contains it. Change only what the request asks for.`,
+		inputSchema: {
+			type: 'object',
+			additionalProperties: false,
+			properties: {
+				boardId: BOARD_ID_PROPERTY,
+				ops: {
+					...CANVAS_OPS_BATCH_JSON_SCHEMA.properties.ops,
+					minItems: 1,
+					description: 'The ops to apply, in order.',
+				},
+				page: {
+					type: ['number', 'string'],
+					description:
+						'Which page you mean to edit: its 0-based index or page id from get_board_info. Omit it to edit whichever page the user has open. The call fails rather than edit a page the user is not on.',
+				},
+				runId: {
+					type: 'string',
+					description:
+						'Any string, reused across calls so that {created} refs reach the shapes you made in earlier calls. Without one, they only reach shapes made in this call.',
+				},
+			},
+			required: ['boardId', 'ops'],
+		},
+		annotations: {
+			readOnlyHint: false,
+			destructiveHint: true,
+			idempotentHint: false,
+			openWorldHint: false,
+		},
 	}
 }
 

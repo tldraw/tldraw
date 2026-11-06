@@ -112,6 +112,17 @@ describe('parseTabRenderReply', () => {
 		[{ status: 'declined', reason: 'page_not_current' }],
 		[{ status: 'measured', shapes: {} }],
 		[{ status: 'captured', base64: 'iVBORw0KGgoAAAANSUhEUg' }],
+		[{ status: 'applied', pageId: 'page:a', pageName: 'One', result: { applied: 1 } }],
+		[{ status: 'declined', reason: 'invalid_ops', detail: 'Unknown op' }],
+		[
+			{
+				status: 'user_state',
+				pageId: 'page:a',
+				pageName: 'One',
+				selectedShapeIds: [],
+				viewport: { x: 0, y: 0, w: 1, h: 1 },
+			},
+		],
 	])('accepts %j', (reply) => {
 		expect(parseTabRenderReply(reply)).toEqual(reply)
 	})
@@ -126,7 +137,12 @@ describe('parseTabRenderReply', () => {
 		[{ status: 'captured', base64: 42 }],
 		// Whatever this is, the tool result would call it a PNG.
 		[{ status: 'captured', base64: 'PHN2ZyB4bWxucz0' }],
-	])('refuses %j', (reply) => {
+		[{ status: 'applied', pageId: 'page:a', pageName: 'One' }],
+		[{ status: 'applied', pageId: 1, pageName: 'One', result: {} }],
+		[{ status: 'user_state', pageId: 'page:a', pageName: 'One', selectedShapeIds: 'a' }],
+		[{ status: 'declined', reason: 'invalid_ops', detail: 7 }],
+		[{ status: 'declined', reason: 'invalid_ops', detail: 'x'.repeat(2001) }],
+	])('refuses %.60j', (reply) => {
 		expect(parseTabRenderReply(reply)).toBeNull()
 	})
 })

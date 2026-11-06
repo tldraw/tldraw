@@ -441,3 +441,43 @@ describe('real-world scenarios', () => {
 		expect(soloSyncFn).toHaveBeenCalledTimes(2)
 	})
 })
+
+describe('FpsScheduler maxFrameWaitMs', () => {
+	beforeEach(() => {
+		// @ts-expect-error - testing flag
+		globalThis.__FORCE_RAF_IN_TESTS__ = true
+		vi.useFakeTimers()
+		vi.stubGlobal('requestAnimationFrame', () => 1)
+		vi.stubGlobal('cancelAnimationFrame', () => {})
+	})
+
+	afterEach(() => {
+		// @ts-expect-error - testing flag
+		delete globalThis.__FORCE_RAF_IN_TESTS__
+		vi.unstubAllGlobals()
+		vi.useRealTimers()
+	})
+
+	// A hidden tab never fires animation frames, so work that has to happen would wait for the tab.
+	it('runs queued work when no frame arrives', () => {
+		const scheduler = new FpsScheduler(30, { maxFrameWaitMs: 250 })
+		const fn = vi.fn()
+
+		scheduler.fpsThrottle(fn)()
+		vi.advanceTimersByTime(249)
+		expect(fn).not.toHaveBeenCalled()
+
+		vi.advanceTimersByTime(1)
+		expect(fn).toHaveBeenCalledTimes(1)
+	})
+
+	it('waits for a frame by default', () => {
+		const scheduler = new FpsScheduler(30)
+		const fn = vi.fn()
+
+		scheduler.fpsThrottle(fn)()
+		vi.advanceTimersByTime(60_000)
+
+		expect(fn).not.toHaveBeenCalled()
+	})
+})
