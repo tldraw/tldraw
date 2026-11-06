@@ -284,7 +284,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
 		sql: TLSyncSqliteWrapper
 		snapshot?: RoomSnapshot | StoreSnapshot<R>
 		/**
-		 * Record type names stored in the object-store lane. Records of these types are routed to
+		 * Record type names stored in the object store. Records of these types are routed to
 		 * a separate table: excluded from `getSnapshot()`, returned by `getObjectsSnapshot()`.
 		 * They share the documents' clock, tombstones, and transactions.
 		 */

@@ -1,5 +1,6 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
+import type { TLSessionAccess } from './TLSyncRoom'
 
 const TLSYNC_PROTOCOL_VERSION = 8
 
@@ -25,10 +26,10 @@ export function getTlsyncProtocolVersion() {
 }
 
 /**
- * Access level for object-store lane record types (see `objectTypes` on the room).
+ * Access level for object-store record types (see `objectTypes` on the room).
  *
- * Object-lane records (e.g. comments) are gated by this per-session value instead of the
- * document-lane `isReadonly` flag, so a session can be allowed to write objects without
+ * Object-store records (e.g. comments) are gated by this per-session value instead of the
+ * document's `isReadonly` flag, so a session can be allowed to write objects without
  * being allowed to edit the document ("can comment but not edit"), or vice versa.
  *
  * @public
@@ -118,12 +119,11 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			schema: SerializedSchema
 			diff: NetworkDiff<R>
 			serverClock: number
+			/** Write access to the document and the object store. Optional and additive: older servers omit it. */
+			access?: TLSessionAccess
+			/** @deprecated use `access.document`; still sent for older clients */
 			isReadonly: boolean
-			/**
-			 * Write access for object-store lane record types, when the room has an object lane.
-			 * Optional and additive: servers without an object lane (or older servers) omit it, and
-			 * older clients ignore it — no protocol version bump needed.
-			 */
+			/** @deprecated use `access.objects`; still sent for older clients */
 			objectAccess?: TLObjectStoreAccess
 	  }
 	| {
@@ -174,7 +174,20 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** Set on `discard` when the room's `authorize` rule refused the push. */
+			refused?: TLSyncRefusal
 	  }
+
+/**
+ * Why the room's `authorize` rule refused a push: a short reason for the client and, when the rule
+ * knows, the ids of the records that caused it.
+ *
+ * @public
+ */
+export interface TLSyncRefusal {
+	reason: string
+	ids?: string[]
+}
 
 /**
  * Interface defining a client-to-server push request message.

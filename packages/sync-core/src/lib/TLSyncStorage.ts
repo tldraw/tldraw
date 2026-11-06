@@ -83,19 +83,19 @@ export interface TLSyncStorage<R extends UnknownRecord> {
 
 	onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void
 
-	/** A snapshot of the document lane only — never contains object-store lane records. */
+	/** A snapshot of the document only — never contains object-store records. */
 	getSnapshot?(): RoomSnapshot
 
 	/**
-	 * A snapshot of the object-store lane (see `objectTypes` on the storage), for hosts that
-	 * persist object-lane records separately from the document. Same entry shape as
-	 * `RoomSnapshot['documents']` so a lane can be persisted and re-seeded via a merged snapshot.
+	 * A snapshot of the object store (see `objectTypes` on the storage), for hosts that
+	 * persist its records separately from the document. Same entry shape as
+	 * `RoomSnapshot['documents']` so it can be persisted and re-seeded via a merged snapshot.
 	 */
 	getObjectsSnapshot?(): RoomSnapshot['documents']
 
 	/**
 	 * The same entries for the given ids, for callers that need a handful of records rather than the
-	 * whole (parsed) lane. Ids with no object-lane record are omitted — document-lane ids included —
+	 * whole (parsed) object store. Ids with no object-store record are omitted — document ids included —
 	 * and duplicates yield one entry.
 	 */
 	getObjectsByIds?(ids: Iterable<string>): RoomSnapshot['documents']
