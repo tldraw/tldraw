@@ -3,8 +3,10 @@ import type { TLBeforeReadHook, TLBeforeReadHooks } from './TLSyncRoom'
 
 /**
  * A visibility check for one record and one session: return `true` to send the record, `false` to
- * hide it. It gets the same arguments as a {@link TLBeforeReadHook}, including `get` to read other
- * records.
+ * hide it. Any result other than `true` hides it. It gets the same arguments as a
+ * {@link TLBeforeReadHook}, including `get` to read other records. The check runs again only when
+ * its own record changes, so a check that reads other records with `get` (e.g. "hidden when its
+ * frame is private") does not update when only those records change.
  *
  * @public
  */
@@ -49,7 +51,9 @@ export function canRead<R extends UnknownRecord, SessionMeta>(
 	const hooks: Record<string, TLBeforeReadHook<R, SessionMeta>> = {}
 	for (const [typeName, check] of Object.entries(checks as Record<string, AnyCheck | undefined>)) {
 		if (!check) continue
-		hooks[typeName] = (args) => (check(args) ? undefined : null)
+		// Fail closed: a truthy non-boolean (a string, a Promise from an async check) must not show a
+		// hidden record.
+		hooks[typeName] = (args) => (check(args) === true ? undefined : null)
 	}
 	return hooks as unknown as TLBeforeReadHooks<R, SessionMeta>
 }

@@ -1322,6 +1322,31 @@ describe('canRead', () => {
 		).toEqual([{ [plain.id]: [RecordOpType.Remove] }])
 	})
 
+	it('sends nothing while a record is hidden, then the whole record when the check turns true', () => {
+		const room = roomWith(notSecret)
+		connectSession(room, 'alice', { meta: { role: 'owner' } })
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+		const title = (t: string) =>
+			({ [secret.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, t] }] }) as any
+
+		push(room, 'alice', title('secret v2'), 1)
+		push(room, 'alice', title('public'), 2)
+		room._flushDataMessages('bob')
+
+		expect(
+			sentDataMessages(bob)
+				.filter((m) => m.type === 'patch')
+				.map((m) => m.diff)
+		).toEqual([{ [secret.id]: [RecordOpType.Put, { ...secret, title: 'public' }] }])
+	})
+
+	it('hides the record when a check returns a truthy value that is not true', () => {
+		const room = roomWith(canRead<R, any>({ doc: () => 'yes' as any }))
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+
+		expect(connectDiff(bob)).toEqual({})
+	})
+
 	it('hides the record when a check throws', () => {
 		const log = { error: vi.fn() }
 		const room = roomWith(
