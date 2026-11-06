@@ -13,6 +13,7 @@ import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import {
 	RoomSnapshot,
+	composeBeforeRead,
 	composeBeforeWrite,
 	beforeWriteFromAuthorizers,
 	TLBeforeWriteHook,
@@ -100,6 +101,7 @@ function makeRoom(
 				next: any
 			}) => any
 		}
+		beforeRead?: { [typeName: string]: (args: any) => any }
 		log?: any
 	} = {}
 ) {
@@ -119,6 +121,7 @@ function makeRoom(
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
 		beforeWrite: opts.beforeWrite,
+		beforeRead: opts.beforeRead,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -934,5 +937,293 @@ describe('canWrite', () => {
 
 		expect(seen).toEqual(['x-stamped'])
 		expect(storedNote(storage, note.id)?.text).toBe('x-stamped')
+	})
+})
+
+describe('beforeRead', () => {
+	// alice is the owner and sees everything; bob cannot see secret docs; carol gets titles masked
+	const readHooks = {
+		doc: ({ session, record }: { session: { meta: any }; record: DocRecord }) => {
+			if (session.meta.role === 'owner') return undefined
+			if (record.title.startsWith('secret')) return null
+			if (session.meta.role === 'masked') return { ...record, title: '***' }
+			return undefined
+		},
+	}
+
+	const plain = Doc.create({ title: 'plain' })
+	const secret = Doc.create({ title: 'secret plan' })
+
+	function roomWith(beforeRead: any = readHooks, log?: any) {
+		const { room, storage } = makeRoom({
+			beforeRead,
+			log,
+			snapshot: {
+				documents: [
+					{ state: plain, lastChangedClock: 0 },
+					{ state: secret, lastChangedClock: 0 },
+				],
+				clock: 0,
+				documentClock: 0,
+				schema: schema.serialize(),
+			},
+		})
+		return { room, storage }
+	}
+
+	const connectDiff = (socket: MockSocket) =>
+		(socket.__messages.find((m: any) => m.type === 'connect') as any).diff
+	// later data messages wait for a debounce timer, so flush them first
+	const patches = (room: TLSyncRoom<any, any>, sessionId: string, socket: MockSocket) => {
+		room._flushDataMessages(sessionId)
+		return sentDataMessages(socket)
+			.filter((m) => m.type === 'patch')
+			.map((m) => m.diff)
+	}
+
+	describe('on connect', () => {
+		it('sends each session what its hooks allow', () => {
+			const { room } = roomWith()
+			const alice = connectSession(room, 'alice', { meta: { role: 'owner' }, clear: false })
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+			const carol = connectSession(room, 'carol', { meta: { role: 'masked' }, clear: false })
+
+			expect(connectDiff(alice)).toEqual({
+				[plain.id]: [RecordOpType.Put, plain],
+				[secret.id]: [RecordOpType.Put, secret],
+			})
+			expect(connectDiff(bob)).toEqual({ [plain.id]: [RecordOpType.Put, plain] })
+			expect(connectDiff(carol)).toEqual({
+				[plain.id]: [RecordOpType.Put, { ...plain, title: '***' }],
+			})
+		})
+
+		it('always sends a full view, even to a client that reconnects', () => {
+			const { room, storage } = roomWith()
+			const socket = makeSocket()
+			room.handleNewSession({
+				sessionId: 'bob',
+				socket,
+				meta: { role: 'viewer' } as any,
+				isReadonly: false,
+			})
+			room.handleMessage('bob', {
+				type: 'connect',
+				connectRequestId: 'c',
+				lastServerClock: storage.getClock(),
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: room.serializedSchema,
+			} satisfies TLConnectRequest)
+
+			const connect = socket.__messages.find((m: any) => m.type === 'connect') as any
+			expect(connect.hydrationType).toBe('wipe_all')
+			expect(connect.diff).toEqual({ [plain.id]: [RecordOpType.Put, plain] })
+		})
+	})
+
+	describe('on broadcast', () => {
+		it('keeps patches for a client that holds the stored record', () => {
+			const { room } = roomWith()
+			connectSession(room, 'alice', { meta: { role: 'owner' } })
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+
+			push(room, 'alice', {
+				[plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }],
+			})
+
+			expect(patches(room, 'bob', bob)).toEqual([
+				{ [plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }] },
+			])
+		})
+
+		it('sends nothing for a hidden record, a whole record when it shows, and one remove when it hides', () => {
+			const { room } = roomWith()
+			connectSession(room, 'alice', { meta: { role: 'owner' } })
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+			const title = (t: string) =>
+				({ [secret.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, t] }] }) as any
+
+			push(room, 'alice', title('secret v2'), 1)
+			expect(patches(room, 'bob', bob)).toEqual([])
+
+			push(room, 'alice', title('public'), 2)
+			push(room, 'alice', title('secret again'), 3)
+			push(room, 'alice', title('secret v4'), 4)
+			push(room, 'alice', { [secret.id]: [RecordOpType.Remove] }, 5)
+
+			expect(patches(room, 'bob', bob)).toEqual([
+				{ [secret.id]: [RecordOpType.Put, { ...secret, title: 'public' }] },
+				{ [secret.id]: [RecordOpType.Remove] },
+			])
+		})
+
+		it('sends the whole changed copy on every change', () => {
+			const { room } = roomWith()
+			connectSession(room, 'alice', { meta: { role: 'owner' } })
+			const carol = connectSession(room, 'carol', { meta: { role: 'masked' } })
+
+			push(room, 'alice', {
+				[plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }],
+			})
+
+			expect(patches(room, 'carol', carol)).toEqual([
+				{ [plain.id]: [RecordOpType.Put, { ...plain, title: '***' }] },
+			])
+		})
+
+		it('sends server writes through the hooks too', () => {
+			const { room, storage } = roomWith()
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+			const created = Doc.create({ title: 'secret new' })
+
+			storage.transaction((txn) => txn.set(created.id, created))
+
+			expect(patches(room, 'bob', bob)).toEqual([])
+		})
+
+		it('leaves types without a hook on the shared path', () => {
+			const { room } = roomWith({})
+			connectSession(room, 'alice', { meta: { role: 'owner' } })
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+
+			push(room, 'alice', { [secret.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'x'] }] })
+
+			expect(patches(room, 'bob', bob)).toEqual([
+				{ [secret.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'x'] }] },
+			])
+		})
+
+		it('sends whole records to a resumed session, which may hold anything', () => {
+			const { room } = roomWith()
+			connectSession(room, 'alice', { meta: { role: 'owner' } })
+			const bob = makeSocket()
+			room.handleResumedSession({
+				sessionId: 'bob',
+				socket: bob,
+				meta: { role: 'viewer' } as any,
+				isReadonly: false,
+				serializedSchema: room.serializedSchema,
+				presenceId: null,
+				presenceRecord: null,
+				requiresLegacyRejection: false,
+				supportsStringAppend: true,
+			})
+
+			push(
+				room,
+				'alice',
+				{ [plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }] },
+				1
+			)
+			push(
+				room,
+				'alice',
+				{ [secret.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'secret 2'] }] },
+				2
+			)
+
+			expect(patches(room, 'bob', bob)).toEqual([
+				{ [plain.id]: [RecordOpType.Put, { ...plain, title: 'other' }] },
+				{ [secret.id]: [RecordOpType.Remove] },
+			])
+		})
+	})
+
+	describe('push results', () => {
+		it('removes a create that the pushing client may not see', () => {
+			const { room, storage } = roomWith()
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+			const created = Doc.create({ title: 'secret mine' })
+
+			push(room, 'bob', { [created.id]: [RecordOpType.Put, created] })
+
+			expect(storedIds(storage)).toContain(created.id)
+			expect(lastPushResult(bob)).toMatchObject({
+				action: { rebaseWithDiff: { [created.id]: [RecordOpType.Remove] } },
+			})
+		})
+
+		it('corrects the pushing client to its changed copy, and keeps the stored fields', () => {
+			const { room, storage } = roomWith()
+			const carol = connectSession(room, 'carol', { meta: { role: 'masked' } })
+
+			push(room, 'carol', {
+				[plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'mine'] }],
+			})
+
+			expect(storage.getSnapshot().documents.find((d) => d.state.id === plain.id)?.state).toEqual({
+				...plain,
+				title: 'mine',
+			})
+			expect(lastPushResult(carol)).toMatchObject({
+				action: { rebaseWithDiff: { [plain.id]: [RecordOpType.Put, { ...plain, title: '***' }] } },
+			})
+		})
+
+		it('commits a push that the client sees as stored', () => {
+			const { room } = roomWith()
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+
+			push(room, 'bob', { [plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }] })
+
+			expect(lastPushResult(bob)).toMatchObject({ action: 'commit' })
+		})
+	})
+
+	describe('hook results', () => {
+		it.each([
+			[
+				'throws',
+				() => {
+					throw new Error('boom')
+				},
+			],
+			['changes the id', ({ record }: any) => ({ ...record, id: 'doc:other' })],
+			['changes the typeName', ({ record }: any) => ({ ...record, typeName: 'note' })],
+		])('sends nothing when the hook %s', (_, hook) => {
+			const log = { error: vi.fn(), warn: vi.fn() }
+			const { room } = roomWith({ doc: hook }, log)
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+
+			expect(connectDiff(bob)).toEqual({})
+			expect(log.error).toHaveBeenCalled()
+		})
+
+		it('refuses a presence hook at construction', () => {
+			expect(() => roomWith({ presence: () => undefined })).toThrow(/presence/)
+		})
+	})
+})
+
+describe('composeBeforeRead', () => {
+	it('runs hooks in order, passing each the record the hook before it returned', () => {
+		const { doc } = composeBeforeRead<R, undefined>(
+			{ doc: ({ record }) => ({ ...record, title: record.title + ' a' }) },
+			{ doc: ({ record }) => ({ ...record, title: record.title + ' b' }) }
+		) as any
+		const record = Doc.create({ title: 'x' })
+
+		expect(doc({ session: {}, record, get: () => undefined }).title).toBe('x a b')
+	})
+
+	it('stops at the first hook that returns null', () => {
+		const later = vi.fn()
+		const { doc } = composeBeforeRead<R, undefined>({ doc: () => null }, { doc: later }) as any
+
+		expect(
+			doc({ session: {}, record: Doc.create({ title: 'x' }), get: () => undefined })
+		).toBeNull()
+		expect(later).not.toHaveBeenCalled()
+	})
+
+	it('returns nothing when no hook changed the record', () => {
+		const { doc } = composeBeforeRead<R, undefined>(
+			{ doc: () => undefined },
+			{ doc: () => undefined }
+		) as any
+
+		expect(
+			doc({ session: {}, record: Doc.create({ title: 'x' }), get: () => undefined })
+		).toBeUndefined()
 	})
 })

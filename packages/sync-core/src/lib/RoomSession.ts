@@ -145,4 +145,12 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+			/**
+			 * What the client holds of each record that has a `beforeRead` hook: the stored record
+			 * (`same`), a changed copy (`changed`), or nothing (`none`). A missing id is unknown, and
+			 * the room assumes the client may hold it. Empty for a resumed session.
+			 *
+			 * @internal
+			 */
+			held: Map<string, 'same' | 'changed' | 'none'>
 	  })

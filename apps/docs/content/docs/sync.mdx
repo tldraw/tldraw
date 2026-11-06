@@ -407,6 +407,14 @@ turn them into hooks with [canWrite](?). These hooks also run only for client pu
 `updateStore` call from an API route, skips them, so it must check that user's access itself first.
 See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
+To decide what each session receives, pass hooks to the room's `beforeRead` option (see
+[TLBeforeReadHooks](?)). A hook returns nothing to send the record as stored, a changed copy (for
+example a card without its face), or `null` to send nothing. When a session can no longer see a record
+it holds, the room removes it from that client. A hook runs again only when its record changes, so a
+rule that reads other records with `get` (such as "hidden when its frame is hidden") does not update
+when only those records change. A client writes against what it received, so guard the fields it
+cannot see with `beforeWrite` or `canWrite`. Combine read hook maps with [composeBeforeRead](?).
+
 ### Deployment concerns
 
 <Callout type="warning">
