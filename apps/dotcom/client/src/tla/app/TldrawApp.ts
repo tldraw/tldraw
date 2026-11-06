@@ -210,6 +210,8 @@ export class TldrawApp {
 	readonly isLoadRumEnabled: boolean
 	/** Null when the `collections` flag is off for this user. */
 	readonly collections: TldrawAppCollectionsSource | null
+	/** Empty until {@link startCollections}. */
+	private readonly collectionRows$: Atom<QueryResultType<typeof queries.collections>>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -298,8 +300,9 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.collectionRows$ = atom('collection rows signal', [], { isEqual })
 		if (flags.collections?.enabled) {
-			const collections = new TldrawAppCollectionsSource(this)
+			const collections = new TldrawAppCollectionsSource(this, getToken)
 			this.collections = collections
 			this.disposables.push(() => collections.dispose())
 		} else {
@@ -450,6 +453,23 @@ export class TldrawApp {
 			this.reactions$,
 			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
 		)
+	}
+
+	/**
+	 * Subscribe the collections of the user's workspaces, when the `collections` flag is on. Like
+	 * {@link startNotificationFeeds}, once {@link preload} has resolved.
+	 */
+	startCollections() {
+		if (!this.collections) return
+		this.bindQuery(
+			this.collectionRows$,
+			this.materializeQuery<QueryResultType<typeof queries.collections>>(queries.collections())
+		)
+	}
+
+	/** The collections of every workspace the user is in, with their items. */
+	getCollectionRows(): QueryResultType<typeof queries.collections> {
+		return this.collectionRows$.get()
 	}
 
 	/**
@@ -1261,6 +1281,7 @@ export class TldrawApp {
 		try {
 			await app.preload(opts.signal)
 			app.startNotificationFeeds()
+			app.startCollections()
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.
