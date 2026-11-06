@@ -8,7 +8,7 @@ import {
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './CollectionSource'
-import { copyCollection, copyItem } from './copyCollection'
+import { copyCollectionItemByItem, copyItem } from './copyCollection'
 import type { TLCollection, TLCollectionId, TLCollectionItemId } from './schema'
 
 /** @public */
@@ -164,10 +164,23 @@ export class CompositeCollectionSource implements CollectionSource {
 			}
 			return from.source.moveCollection(collectionId, ownerId)
 		}
-		await copyCollection(this, collectionId, ownerId)
+		await copyCollectionItemByItem(this, collectionId, ownerId)
 		if (from.source.can('deleteCollection', collectionId)) {
 			await from.source.deleteCollection(collectionId)
 		}
+	}
+
+	/**
+	 * Within a part whose source can copy collections itself, that source makes the copy; anywhere
+	 * else, each item is loaded and added to the new collection.
+	 */
+	async copyCollection(collectionId: TLCollectionId, ownerId: string) {
+		const from = this.getCollectionPart(collectionId)
+		const to = this.getOwnerPart(ownerId)
+		if (from === to && !from.owner && from.source.copyCollection) {
+			return from.source.copyCollection(collectionId, ownerId)
+		}
+		return copyCollectionItemByItem(this, collectionId, ownerId)
 	}
 
 	private async moveItemBetweenParts(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) {
