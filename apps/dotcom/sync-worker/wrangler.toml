@@ -217,11 +217,28 @@ pattern = "staging.tldraw.com/.well-known/oauth-protected-resource"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/.well-known/mcp/*"
 
-# The MCP host, which this worker owns whole: its own router answers every path (see mcpHostRouter
-# in worker.ts). A more specific pattern can still hand a path to another worker.
+# The MCP host. As on www.tldraw.com, this worker takes only its own paths and the rest falls through
+# to the Vercel site (apps/public/mcp-web in the internal repo). A server added to mcpHostRouter in
+# worker.ts needs a route here too, or its requests go to the site and never reach this worker.
+#
+# `/mcp*` rather than `/mcp`: a pattern with no trailing wildcard does not match a URL with a query
+# string, so `/mcp?...` would go to the site.
 [[env.staging.routes]]
 zone_name = "tldraw.com"
-pattern = "staging-mcp.tldraw.com/*"
+pattern = "staging-mcp.tldraw.com/mcp*"
+
+# OAuth discovery for the server above. Other workers can claim their own paths under this prefix
+# with a more specific pattern.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging-mcp.tldraw.com/.well-known/oauth-protected-resource/*"
+
+# The path-less fallback, which this host answers with a 404 (see ROOT_MCP_SERVER_PATH in mcpAuth.ts).
+# Routed anyway so that stays true: a catch-all rewrite on the site would otherwise turn it into a 200
+# of index.html, the silent discovery failure described for staging.tldraw.com above.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging-mcp.tldraw.com/.well-known/oauth-protected-resource"
 
 [[env.staging.routes]]
 custom_domain = true
@@ -244,11 +261,18 @@ pattern = "www.tldraw.com/.well-known/oauth-protected-resource"
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/.well-known/mcp/*"
 
-# The MCP host, which this worker owns whole: its own router answers every path (see mcpHostRouter
-# in worker.ts). Mirrors the staging-mcp.tldraw.com/* route above.
+# The MCP host. See the staging-mcp.tldraw.com comments above.
 [[env.production.routes]]
 zone_name = "tldraw.com"
-pattern = "mcp.tldraw.com/*"
+pattern = "mcp.tldraw.com/mcp*"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "mcp.tldraw.com/.well-known/oauth-protected-resource/*"
+
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "mcp.tldraw.com/.well-known/oauth-protected-resource"
 
 [[env.production.routes]]
 custom_domain = true

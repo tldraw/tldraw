@@ -295,9 +295,10 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
-// The MCP host (`mcp.tldraw.com`) serves MCP servers and nothing else, one per path. A router of its
-// own rather than routes on the main one, so no API route is reachable through the host and no
-// server's path can collide with one.
+// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path. wrangler.toml routes only those
+// paths here and the rest of the host is a Vercel site, so a server added here also needs a route
+// there. A router of its own rather than routes on the main one, so no API route is reachable through
+// the host and no server's path can collide with one.
 const mcpHostRouter = createRouter<Environment>()
 	.options(ROOT_MCP_SERVER_PATH, mcpCorsPreflight)
 	.options(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
