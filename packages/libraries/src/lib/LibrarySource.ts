@@ -39,7 +39,7 @@ export interface TLNewLibraryOptions {
 	meta?: JsonObject
 }
 
-/** How {@link copyLibrary} names the copy. */
+/** How {@link LibrarySource.copyLibrary} names the copy. */
 export interface TLCopyLibraryOptions {
 	/**
 	 * The copy's name, from the library's, e.g. "Shapes (Copy)" from "Shapes". Left out, the copy
@@ -139,6 +139,17 @@ export interface LibrarySource {
 	 * out, or returning undefined, the source decides.
 	 */
 	getDefaultOwnerId?(): string | undefined
+	/**
+	 * Copies a library and its items to an owner, as a new library named by `options.getName`, and
+	 * returns the copy. The items keep their names. Optional: for sources that can copy without the
+	 * caller loading and adding every item again, e.g. on a server. Without it, `copyLibrary` copies
+	 * item by item through {@link LibrarySource.getItemContent} and {@link LibrarySource.addItem}.
+	 */
+	copyLibrary?(
+		libraryId: TLLibraryId,
+		ownerId: string,
+		options?: TLCopyLibraryOptions
+	): Promise<TLLibrary>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

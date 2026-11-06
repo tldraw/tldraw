@@ -107,6 +107,15 @@ describe('copyLibrary', () => {
 		expect(source.getItems(copy.id).map((item) => item.name)).toEqual(['Card'])
 	})
 
+	it("passes the options to a source's own copyLibrary", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		const own = vi.fn(async () => original)
+		const getName = (name: string) => `${name} (Copy)`
+		await copyLibrary(Object.assign(source, { copyLibrary: own }), original.id, 'acme', { getName })
+		expect(own).toHaveBeenCalledWith(original.id, 'acme', { getName })
+	})
+
 	it('deletes the partial copy when an item cannot be copied', async () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
