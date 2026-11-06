@@ -1,8 +1,4 @@
-import {
-	DEFAULT_THUMBNAIL_HEIGHT,
-	DEFAULT_THUMBNAIL_WIDTH,
-	ShapeCluster,
-} from '@tldraw/dotcom-shared'
+import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -31,6 +27,7 @@ import {
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
+	PageClustering,
 	PageSelector,
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
@@ -41,6 +38,7 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	clusteringFromMeasure,
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
@@ -625,7 +623,7 @@ export async function resolveSharedBoardForUser(
 	env: Environment,
 	boardId: string,
 	userId: string
-): Promise<ResolveThumbnailBoardResult> {
+): Promise<ResolvedBoardForUser> {
 	const readAccess = await hasReadAccessToFile(env, userId, boardId)
 	if (readAccess.ok) {
 		// The row the access check just read, handed on so the resolution re-applies the gate without
@@ -635,10 +633,22 @@ export async function resolveSharedBoardForUser(
 			access: 'render',
 			file: readAccess.file,
 		})
-		if (file.ok || file.reason === 'board_empty') return file
+		if (file.ok) return { ...file, fileName: readAccess.file.name }
+		if (file.reason === 'board_empty') return file
 	}
-	return resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+	const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+	return published.ok ? { ...published, fileName: null } : published
 }
+
+export type ResolvedBoardForUser =
+	| {
+			ok: true
+			board: ResolvedThumbnailBoard
+			// The `file` row's name; null when served as the published copy, which carries its own.
+			// See getBoardInfo.
+			fileName: string | null
+	  }
+	| Extract<ResolveThumbnailBoardResult, { ok: false }>
 
 // A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
 // same shapes requested in a different order hit the same cached PNG — the render is identical.
@@ -820,7 +830,7 @@ async function callBoardInfoTool(
 	try {
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
-		return getBoardInfo(loaded.snapshot)
+		return getBoardInfo(loaded.snapshot, loaded.fileName)
 	} catch (error) {
 		// No `telemetry`: this tool spends no Browser Run and so writes nothing to the screenshot
 		// ledger, which is the one that answers cache and refusal questions about renders.
@@ -856,7 +866,11 @@ async function callPageInfoTool(
 	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
 	// 500. Same reason in every tool below.
 	try {
-		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		// A later page of an answer is served from the index the first page wrote, so it spends nothing
+		// and isn't charged: paging a big board shouldn't use up the budget for reading it. A cursor
+		// that misses the index is charged by readClustering before it measures.
+		const refusal =
+			input.cursor === null ? await checkPerUserRateLimit(env, userId, telemetry) : null
 		if (refusal) return refusal
 
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
@@ -868,10 +882,20 @@ async function callPageInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+		const clustered = await readClustering(resolved, {
+			env,
+			userId,
+			telemetry,
+			request,
+			ctx,
+			chargeCallerOnMiss: input.cursor !== null,
+		})
 		if (!clustered.ok) return clustered.result
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return getPageInfo(resolved.page, clustered.clusters)
+		return getPageInfo(resolved.page, clustered, {
+			selector: input.page,
+			offset: input.cursor ?? 0,
+		})
 	} catch (error) {
 		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
 		// request ledger as the screenshot tool's. The measure session itself reports separately.
@@ -901,6 +925,7 @@ type LoadedBoard =
 	| {
 			ok: true
 			board: ResolvedThumbnailBoard
+			fileName: string | null
 			snapshot: import('@tldraw/sync-core').RoomSnapshot
 			snapshotVersion: string
 	  }
@@ -949,7 +974,13 @@ async function loadBoardForTool(
 	// between HEAD and GET. Key the cluster index to the bytes we actually read so neither gap can
 	// store an old measurement under new content.
 	const snapshotVersion = await sha256(JSON.stringify(snapshot))
-	return { ok: true, board: resolved.board, snapshot, snapshotVersion }
+	return {
+		ok: true,
+		board: resolved.board,
+		fileName: resolved.fileName,
+		snapshot,
+		snapshotVersion,
+	}
 }
 
 type ResolvedBoardPage =
@@ -1139,8 +1170,8 @@ async function checkRenameRateLimit(
 	)
 }
 
-type PageClustersResult =
-	| { ok: true; clusters: ShapeCluster[]; clusterCacheStatus: 'hit' | 'miss' }
+type ClusteringResult =
+	| ({ ok: true; clusterCacheStatus: 'hit' | 'miss' } & PageClustering)
 	| { ok: false; result: ToolCallResult }
 
 // How the three clustering tools get a page's clusters, and the one place that decides whether that
@@ -1166,7 +1197,7 @@ type PageClustersResult =
 //
 // The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
 // carry no duration bookkeeping.
-async function clustersFor(
+async function readClustering(
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
 	{
 		env,
@@ -1174,14 +1205,16 @@ async function clustersFor(
 		telemetry,
 		request,
 		ctx,
+		chargeCallerOnMiss = false,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		chargeCallerOnMiss?: boolean
 	}
-): Promise<PageClustersResult> {
+): Promise<ClusteringResult> {
 	const cacheContext = { env, request, ctx }
 	const cached = await readPageClusters(
 		cacheContext,
@@ -1189,7 +1222,12 @@ async function clustersFor(
 		resolved.page,
 		resolved.snapshotVersion
 	)
-	if (cached) return { ok: true, clusters: cached, clusterCacheStatus: 'hit' }
+	if (cached) return { ok: true, ...cached, clusterCacheStatus: 'hit' }
+
+	if (chargeCallerOnMiss) {
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
+		if (refusal) return { ok: false, result: refusal }
+	}
 
 	if (await isGlobalBrowserRunRateLimited(env)) {
 		telemetry({
@@ -1210,16 +1248,17 @@ async function clustersFor(
 
 	const measurements = await measurePageShapes(env, resolved.board, resolved.page.pageId, {
 		surface: 'mcp',
+		snapshot: resolved.snapshot,
 	})
 	const clusters = clusterPage(resolved.page, measurements)
 	await writePageClusterIndex(
 		cacheContext,
 		resolved.board,
 		resolved.page,
-		buildClusterIndex(clusters),
+		buildClusterIndex(clusters, measurements),
 		resolved.snapshotVersion
 	)
-	return { ok: true, clusters, clusterCacheStatus: 'miss' }
+	return { ok: true, ...clusteringFromMeasure(clusters, measurements), clusterCacheStatus: 'miss' }
 }
 
 async function callClusterInfoTool(
@@ -1244,19 +1283,25 @@ async function callClusterInfoTool(
 			return resolved.result
 		}
 
-		const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
-		const result = getClusterInfo(resolved.page, clustered.clusters, input.clusterId, input.page)
-		if (result.isError) {
+		const info = getClusterInfo(
+			resolved.page,
+			clustered,
+			input.clusterIds,
+			input.page,
+			input.cursor
+		)
+		if (!info.ok) {
 			telemetry({
 				cacheStatus: 'none',
 				clusterCacheStatus: clustered.clusterCacheStatus,
-				failureReason: 'cluster_not_found',
+				failureReason: info.reason,
 			})
-			return withTelemetryReason(result, 'cluster_not_found')
+			return withTelemetryReason(info.result, info.reason)
 		}
 		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
-		return result
+		return info.result
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -1266,7 +1311,7 @@ async function callClusterInfoTool(
 			extras: {
 				boardId: input.boardId,
 				page: describePageSelector(input.page),
-				clusterId: input.clusterId,
+				clusterIds: input.clusterIds.join(','),
 			},
 			summary: 'Could not read cluster info',
 			telemetry,
@@ -1404,6 +1449,7 @@ async function renderShapeSetScreenshot(
 			height: DEFAULT_THUMBNAIL_HEIGHT,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
+			snapshot: resolved.snapshot,
 			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
 			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
 			// only — the OG surface keeps the export path's pixel-exact sizing.
@@ -1473,7 +1519,7 @@ async function callClusterScreenshotTool(
 		userId,
 		extras: { clusterIds: input.clusterIds.join(',') },
 		pickShapes: async (resolved, telemetry) => {
-			const clustered = await clustersFor(resolved, { env, userId, telemetry, request, ctx })
+			const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
 			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
 			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }

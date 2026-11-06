@@ -37,10 +37,11 @@
 	},
 	"dependencies": {
 		"@clerk/react": "^6.17.6",
-		"@rocicorp/zero": "1.10.0",
+		"@rocicorp/zero": "1.11.3",
 		"@sentry/integrations": "^7.120.3",
 		"@sentry/react": "^7.120.3",
 		"@tldraw/assets": "workspace:*",
+		"@tldraw/collections": "workspace:*",
 		"@tldraw/commenting": "workspace:*",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",

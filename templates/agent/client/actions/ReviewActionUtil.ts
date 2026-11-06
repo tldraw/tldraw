@@ -20,6 +20,10 @@ export const ReviewActionUtil = registerActionUtil(
 			}
 		}
 
+		override getResult() {
+			return 'A new screenshot of the review area comes in your next request.'
+		}
+
 		override applyAction(action: Streaming<ReviewAction>, helpers: AgentHelpers) {
 			if (!action.complete) return
 
@@ -57,5 +61,5 @@ function getReviewMessage(intent: string) {
 
 - Is there still more work to do? If so, continue it.
 - Is the task supposed to be complete? If so, it's time to review the results of that. Did you do what the user asked for? Did the plan work? Think through your findings and pay close attention to the image, because that's what you can see right now. If you make any corrections, let the user know what you did and why. If no corrections are needed, there's no need to say anything.
-- Make sure to reference your last actions (denoted by [ACTION]) in order to see if you completed the task. Assume each action you see in the chat history completed successfully.`
+- Make sure to reference your previous tool calls and their results in order to see if you completed the task.`
 }

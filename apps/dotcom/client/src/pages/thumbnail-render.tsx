@@ -2,7 +2,10 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
 	MIN_THUMBNAIL_DIMENSION,
+	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_ERROR_MAX_LENGTH,
+	THUMBNAIL_RENDER_GLOBAL,
+	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
 	ThumbnailRenderErrorRequestBody,
 	ThumbnailRenderParams,
@@ -10,7 +13,6 @@ import {
 	ThumbnailShapeMeasurement,
 	ThumbnailRenderTimingsRequestBody,
 	ThumbnailSnapshotResponseBody,
-	getLicenseKey,
 } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
@@ -20,15 +22,19 @@ import {
 	SerializedSchema,
 	TLPageId,
 	TLRecord,
+	TLShape,
 	TLShapeId,
 	Tldraw,
+	VecLike,
 	compact,
 	fetch,
 	sleep,
 	useEditor,
+	TLArrowShape,
 	TLAssetId,
 	TLBookmarkShape,
 	AssetRecordType,
+	getArrowInfo,
 	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -53,6 +59,7 @@ const THUMBNAIL_RESULT_ENDPOINT = '/api/app/thumbnail-render/result'
 const pageTimings: {
 	/** Authorises the beacon. Never set on the dev fixture page, which therefore sends none. */
 	token?: string
+	acquiredBy?: 'push' | 'fetch'
 	bootAt?: number
 	dataAt?: number
 	mountAt?: number
@@ -63,7 +70,7 @@ const pageTimings: {
 // which it must, because the screenshot (and the session's teardown) follows the ready marker
 // almost immediately.
 function sendTimingsBeacon(exportedAt: number) {
-	const { token, bootAt, dataAt, mountAt, settledAt } = pageTimings
+	const { token, acquiredBy, bootAt, dataAt, mountAt, settledAt } = pageTimings
 	if (
 		!token ||
 		bootAt === undefined ||
@@ -75,6 +82,7 @@ function sendTimingsBeacon(exportedAt: number) {
 	}
 	const body: ThumbnailRenderTimingsRequestBody = {
 		token,
+		acquiredBy,
 		timings: { bootAt, dataAt, mountAt, settledAt, exportedAt },
 	}
 	// A plain same-origin fetch: forcing it into no-cors mode turned out to stop delivery entirely.
@@ -127,7 +135,35 @@ export type ThumbnailRenderData =
 			message: string
 	  }
 
-/** Fetches the render job the URL's token names: the records to draw and how to draw them. */
+type ThumbnailPushedSnapshot = Extract<ThumbnailSnapshotResponseBody, { error: false }>
+
+declare global {
+	interface Window {
+		[THUMBNAIL_RENDER_GLOBAL]?: ThumbnailPushedSnapshot
+	}
+}
+
+// The injected script runs after navigation, often after this module has looked, so a one-shot
+// setter catches the assignment. No timer: a push that never lands ends as the capture's timeout,
+// and the worker fetches on the board's next attempt (see markPushTimedOut).
+function awaitPushedSnapshot(): Promise<ThumbnailPushedSnapshot> {
+	return new Promise((resolve) => {
+		Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
+			configurable: true,
+			set: (value: ThumbnailPushedSnapshot) => {
+				Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
+					configurable: true,
+					writable: true,
+					value,
+				})
+				resolve(value)
+			},
+			get: () => undefined,
+		})
+	})
+}
+
+/** The render job the URL's token names: the records to draw and how to draw them. */
 export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRenderData> {
 	pageTimings.bootAt = performance.now()
 	const token = url.searchParams.get('token')
@@ -135,6 +171,21 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 
 	if (!token) {
 		return { ok: false, message: 'Missing render token' }
+	}
+
+	const pushed =
+		window[THUMBNAIL_RENDER_GLOBAL] ??
+		(url.searchParams.get(THUMBNAIL_RENDER_PUSH_PARAM) === '1' ? await awaitPushedSnapshot() : null)
+	if (pushed) {
+		pageTimings.acquiredBy = 'push'
+		pageTimings.dataAt = performance.now()
+		return {
+			ok: true,
+			token,
+			records: pushed.records,
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		}
 	}
 
 	const result = await fetch(
@@ -149,6 +200,7 @@ export async function acquireThumbnailRenderData(url: URL): Promise<ThumbnailRen
 		return { ok: false, message: data.message }
 	}
 
+	pageTimings.acquiredBy = 'fetch'
 	pageTimings.dataAt = performance.now()
 	return {
 		ok: true,
@@ -163,7 +215,6 @@ export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 	if (!data.ok) return <ThumbnailRenderError message={data.message} />
 	return (
 		<ThumbnailRenderPage
-			token={data.token}
 			records={data.records}
 			schema={data.schema}
 			renderParams={data.renderParams}
@@ -172,12 +223,10 @@ export function ThumbnailRenderView({ data }: { data: ThumbnailRenderData }) {
 }
 
 function ThumbnailRenderPage({
-	token,
 	records,
 	schema,
 	renderParams,
 }: {
-	token: string
 	records: TLRecord[]
 	schema: SerializedSchema
 	renderParams: ThumbnailRenderParams
@@ -219,7 +268,6 @@ function ThumbnailRenderPage({
 		>
 			<Tldraw
 				hideUi
-				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				components={{ ErrorFallback: ThumbnailRenderCrash }}
@@ -254,7 +302,7 @@ function ThumbnailRenderPage({
 				}}
 			>
 				{renderParams.mode === 'measure' ? (
-					<ThumbnailMeasureSignal token={token} />
+					<ThumbnailMeasureSignal />
 				) : (
 					<ThumbnailExportSignal
 						theme={theme}
@@ -316,6 +364,9 @@ export function setThumbnailError(message: string) {
 	sendErrorBeacon(message)
 	document.body.dataset.thumbnailError = message
 	document.documentElement.dataset.thumbnailError = message
+	// A measure's `/content` read returns the whole document, and a pushed board's script would
+	// otherwise ride back with every failure.
+	for (const script of document.querySelectorAll('script')) script.remove()
 }
 
 // A data-URL <img> can finish decoding before React attaches the onLoad handler, in which case
@@ -596,10 +647,9 @@ export function ThumbnailExportSignal({
 	return null
 }
 
-// Measure mode. The page exists only to be a real editor: it settles, measures, posts, and marks
-// itself ready. The worker's screenshot of it is discarded — driving a Browser Run session is simply
-// how the measurement gets to happen, and the ready marker is how the worker knows it is done.
-function ThumbnailMeasureSignal({ token }: { token: string }) {
+// Measure mode. The page exists only to be a real editor: it settles, measures, leaves the result in
+// the DOM, and marks itself ready. The worker reads the page's HTML through `/content`.
+function ThumbnailMeasureSignal() {
 	const editor = useEditor()
 
 	useEffect(() => {
@@ -619,14 +669,22 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 				const box = editor.getShapePageBounds(id)
 				if (!shape || !box) continue
 				const text = editor.getShapeUtil(shape).getText(shape)
-				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
+				const arrow = editor.isShapeOfType<TLArrowShape>(shape, 'arrow')
+					? measureArrow(editor, shape)
+					: undefined
+				const dimensions = measureDimensions(editor, shape)
+				bounds[id] = {
+					x: box.x,
+					y: box.y,
+					w: box.w,
+					h: box.h,
+					...(text ? { text } : null),
+					...(arrow ? { arrow } : null),
+					...(dimensions ? { dimensions } : null),
+				}
 			}
-			await fetch(THUMBNAIL_RESULT_ENDPOINT, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token, bounds }),
-			})
 			if (cancelled) return
+			publishMeasureResult(bounds)
 			signalThumbnailReady()
 		})().catch((error) => {
 			if (cancelled) return
@@ -635,9 +693,54 @@ function ThumbnailMeasureSignal({ token }: { token: string }) {
 		return () => {
 			cancelled = true
 		}
-	}, [editor, token])
+	}, [editor])
 
 	return null
+}
+
+// Where an arrow is drawn, in page space. A bound arrow's record holds only a placeholder stub; its
+// real ends are resolved against the shapes it is bound to, which needs the editor.
+export function measureArrow(
+	editor: Editor,
+	shape: TLArrowShape
+): ThumbnailShapeMeasurement['arrow'] | undefined {
+	const info = getArrowInfo(editor, shape)
+	if (!info) return undefined
+	const transform = editor.getShapePageTransform(shape)
+	const toPage = (point: VecLike) => {
+		const { x, y } = transform.applyToPoint(point)
+		return { x, y }
+	}
+	return { start: toPage(info.start.point), end: toPage(info.end.point) }
+}
+
+// The shapes whose size the record does not hold: a text's height comes from laying out its text,
+// and a group or a freehand stroke has no size of its own — a stroke's is the one thing left to say
+// about it once its points are dropped. Everything else is left out: a geo's size follows from its
+// record (w by h + growY), and a line's or arrow's isn't a meaningful w and h.
+const MEASURED_DIMENSION_TYPES = new Set(['text', 'group', 'draw', 'highlight'])
+
+// A shape's own unrotated size as drawn. Geometry bounds rather than page bounds, which for a rotated
+// shape are the larger axis-aligned box around it.
+export function measureDimensions(
+	editor: Editor,
+	shape: TLShape
+): ThumbnailShapeMeasurement['dimensions'] | undefined {
+	if (!MEASURED_DIMENSION_TYPES.has(shape.type)) return undefined
+	const { w, h } = editor.getShapeGeometry(shape).bounds
+	return { w, h }
+}
+
+// Everything else goes first: `/content` returns the whole document, and a pushed board's script
+// alone can be megabytes the worker would read only to discard.
+function publishMeasureResult(bounds: Record<string, ThumbnailShapeMeasurement>) {
+	const result = document.createElement('script')
+	result.type = 'application/json'
+	result.id = THUMBNAIL_MEASURE_RESULT_ID
+	// Escaped so shape text containing `</script>` cannot end the element early in the serialized HTML.
+	result.textContent = JSON.stringify(bounds).replace(/</g, '\\u003c')
+	document.head.replaceChildren()
+	document.body.replaceChildren(result)
 }
 
 // Exports the exact viewport rectangle through editor.toImage: bounds are the viewport in page

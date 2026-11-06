@@ -760,6 +760,37 @@ describe('LicenseManager', () => {
 			}
 		})
 
+		it('Licenses our VS Code extension webview when no key is provided', async () => {
+			const manager = await createManagerOnHost(
+				'vscode-webview://1ipd8pun8ud7nd7hv9d112g7evi7m10vak9vviuvia66ou6aibp3/index.html?id=6ec2dc7a-afe9-45d9-bd71-1749f9568d28&swVersion=4&extensionId=tldraw-org.tldraw-vscode&platform=electron'
+			)
+
+			expect(await manager.getLicenseFromKey('')).toMatchObject({
+				isLicenseParseable: true,
+				isDomainValid: true,
+				isLicensedWithWatermark: true,
+			})
+			expect(manager.state.get()).toBe('licensed-with-watermark')
+			manager.dispose()
+		})
+
+		it('Does not license other VS Code extension webviews', async () => {
+			const urls = [
+				'vscode-webview://abc/index.html?extensionId=evil-org.evil-vscode&x=tldraw-org.tldraw-vscode',
+				'vscode-webview://tldraw-org.tldraw-vscode/index.html?extensionId=evil-org.evil-vscode',
+			]
+
+			for (const url of urls) {
+				const manager = await createManagerOnHost(url)
+
+				expect(await manager.getLicenseFromKey('')).toMatchObject({
+					isLicenseParseable: false,
+					reason: 'no-key-provided',
+				})
+				manager.dispose()
+			}
+		})
+
 		it('Never sends a watermark tracking ping for our own domains', async () => {
 			const manager = await createManagerOnHost('https://makereal.tldraw.com')
 
@@ -799,6 +830,70 @@ describe('LicenseManager', () => {
 			expect(result.license.id).toBe('a-real-key')
 			expect(result.isLicensedWithWatermark).toBe(false)
 			expect(manager.state.get()).toBe('licensed')
+			manager.dispose()
+		})
+	})
+
+	describe('Tracked licenses', () => {
+		let fetchSpy: ReturnType<typeof vi.fn>
+
+		beforeEach(() => {
+			process.env.NODE_ENV = 'production'
+			fetchSpy = vi.fn(() => Promise.resolve(new Response()))
+			vi.stubGlobal('fetch', fetchSpy)
+		})
+
+		afterEach(() => {
+			vi.unstubAllGlobals()
+			process.env.NODE_ENV = 'test'
+		})
+
+		async function createManagerOnHost(url: string, flags: number) {
+			// @ts-ignore
+			delete window.location
+			// @ts-ignore
+			window.location = new URL(url)
+
+			const licenseKey = await generateLicenseKey(
+				JSON.stringify(['tracked-key', ['*'], flags, expiryDate]),
+				keyPair
+			)
+			const manager = new LicenseManager(licenseKey, keyPair.publicKey)
+			await vi.waitFor(() => expect(manager.state.get()).not.toBe('pending'))
+			return manager
+		}
+
+		it('Pings for a paid license with the tracked flag', async () => {
+			const manager = await createManagerOnHost(
+				'https://app.example.com',
+				FLAGS.ANNUAL_LICENSE | FLAGS.TRACKED
+			)
+
+			expect(manager.state.get()).toBe('licensed')
+			expect(fetchSpy).toHaveBeenCalledTimes(1)
+			const trackUrl = new URL(fetchSpy.mock.calls[0][0] as string)
+			expect(trackUrl.searchParams.get('license_type')).toBe('tracked')
+			expect(trackUrl.searchParams.get('license_id')).toBe('tracked-key')
+			expect(trackUrl.searchParams.get('sku')).toBe('annual')
+			expect(trackUrl.searchParams.get('url')).toBe('https://app.example.com/')
+			manager.dispose()
+		})
+
+		it('Does not ping for the same paid license without the tracked flag', async () => {
+			const manager = await createManagerOnHost('https://app.example.com', FLAGS.ANNUAL_LICENSE)
+
+			expect(manager.state.get()).toBe('licensed')
+			expect(fetchSpy).not.toHaveBeenCalled()
+			manager.dispose()
+		})
+
+		it('Does not ping for a tracked license in development', async () => {
+			const manager = await createManagerOnHost(
+				'http://localhost:3000',
+				FLAGS.ANNUAL_LICENSE | FLAGS.TRACKED
+			)
+
+			expect(fetchSpy).not.toHaveBeenCalled()
 			manager.dispose()
 		})
 	})

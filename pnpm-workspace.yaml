@@ -9,6 +9,11 @@ packages:
 # Yarn didn't install missing peers; keep the dependency graph identical across the migration.
 autoInstallPeers: false
 
+# Deduplicate on every install that writes the lockfile, so `pnpm dedupe --check` in CI passes
+# without a manual `pnpm dedupe`. When the duplicate is also a peer of another dependency, it
+# takes a second `pnpm install`.
+autoDedupe: true
+
 # Don't run third-party dependency build/install scripts by default. Packages that genuinely
 # need to build are listed under allowBuilds. This closes the postinstall code-execution vector;
 # see the note in AGENTS.md.
@@ -37,13 +42,9 @@ allowBuilds:
 
 # Newly published versions must be at least 7 days old before pnpm will pick them (minutes).
 minimumReleaseAge: 10080
-# Keep Zero's deployed versions available while backend and frontend upgrades roll out separately.
+# Remove once 1.11.3 clears the gate (2026-10-30T21:53Z).
 minimumReleaseAgeExclude:
-  - '@rocicorp/zero@1.10.0'
-  - '@rocicorp/zero@1.11.2'
-  # Pulled in by @rocicorp/zero@1.11.2. Remove once they clear the gate (2026-10-23T20:25Z).
-  - '@opentelemetry/auto-instrumentations-node@0.81.2'
-  - '@opentelemetry/instrumentation-winston@0.68.1'
+  - '@rocicorp/zero@1.11.3'
 
 overrides:
   '@types/node': ^22.15.31
@@ -61,3 +62,36 @@ overrides:
 
 patchedDependencies:
   '@microsoft/tsdoc@0.15.1': patches/@microsoft__tsdoc@0.15.1.patch
+
+# node_modules links into pnpm's shared store instead of cloning ~140k files per checkout, so a
+# worktree installs and deletes in seconds. The store has no hidden hoist, so an undeclared import
+# only resolves if packageExtensions declares it.
+enableGlobalVirtualStore: true
+
+# Link the @types package of a peer dependency next to each package that peer-depends on it, so
+# TypeScript finds types such as @types/react from inside the global virtual store.
+addMissingPeerTypes: true
+
+packageExtensions:
+  # These packages import modules they don't declare.
+  '@rocicorp/zero':
+    peerDependencies:
+      kysely: '*'
+    peerDependenciesMeta:
+      kysely:
+        optional: true
+  '@fastify/websocket':
+    peerDependencies:
+      fastify: '*'
+    peerDependenciesMeta:
+      fastify:
+        optional: true
+  algoliasearch-helper:
+    peerDependencies:
+      '@algolia/client-search': '*'
+      '@algolia/recommend': '*'
+    peerDependenciesMeta:
+      '@algolia/client-search':
+        optional: true
+      '@algolia/recommend':
+        optional: true

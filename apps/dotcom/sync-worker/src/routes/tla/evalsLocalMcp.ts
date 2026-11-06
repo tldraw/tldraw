@@ -19,6 +19,7 @@ import {
 	getBoardSearchResults,
 	clusterPage,
 	getClusterInfo,
+	clusteringFromMeasure,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -85,7 +86,7 @@ export function getEvalsFixtureScreenshotPlan(
 	snapshot: RoomSnapshot,
 	measurements: Record<string, ShapeMeasurement>
 ): ScreenshotPlanEntry[] {
-	const pages = JSON.parse(textOf(getBoardInfo(snapshot))) as {
+	const pages = JSON.parse(textOf(getBoardInfo(snapshot, null))) as {
 		pages: Array<{ id: string }>
 	}
 	const plan: ScreenshotPlanEntry[] = []
@@ -94,7 +95,9 @@ export function getEvalsFixtureScreenshotPlan(
 		const resolved = resolvePage(snapshot, selector)
 		if (!resolved.ok) continue
 		const clusters = clusterPage(resolved, measurements)
-		const info = JSON.parse(textOf(getPageInfo(resolved, clusters))) as {
+		const info = JSON.parse(
+			textOf(getPageInfo(resolved, clusteringFromMeasure(clusters, measurements)))
+		) as {
 			clusters: Array<{ id: string }>
 		}
 		const clusterIds = info.clusters.map((cluster) => cluster.id)
@@ -177,7 +180,8 @@ async function callFixtureTool(
 			case BOARD_INFO_TOOL_NAME: {
 				const { boardId } = parseBoardInfoInput(args)
 				const board = boards.get(boardId)
-				return board ? getBoardInfo(board.snapshot) : toolError(BOARD_NOT_FOUND_MESSAGE)
+				// No file row, so the name comes from the snapshot, as it does for search above.
+				return board ? getBoardInfo(board.snapshot, null) : toolError(BOARD_NOT_FOUND_MESSAGE)
 			}
 			case PAGE_INFO_TOOL_NAME: {
 				const { boardId, page } = parsePageInfoInput(args)
@@ -185,16 +189,25 @@ async function callFixtureTool(
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getPageInfo(resolved, clusterPage(resolved, board.measurements))
+					? getPageInfo(
+							resolved,
+							clusteringFromMeasure(clusterPage(resolved, board.measurements), board.measurements)
+						)
 					: resolved.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
-				const { boardId, page, clusterId } = parseClusterInfoInput(args)
+				const { boardId, page, clusterIds, cursor } = parseClusterInfoInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolvePage(board.snapshot, page)
 				return resolved.ok
-					? getClusterInfo(resolved, clusterPage(resolved, board.measurements), clusterId, page)
+					? getClusterInfo(
+							resolved,
+							clusteringFromMeasure(clusterPage(resolved, board.measurements), board.measurements),
+							clusterIds,
+							page,
+							cursor
+						).result
 					: resolved.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
