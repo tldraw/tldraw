@@ -1,31 +1,18 @@
 import {
-	CollectionRecordType,
 	InMemoryCollectionSource,
 	type CollectionSource,
 	type TLCollection,
 	type TLCollectionAction,
 	type TLCollectionId,
-	type TLCollectionItem,
 	type TLCollectionItemContent,
 	type TLCollectionItemId,
 	type TLNewCollectionItem,
 } from '@tldraw/collections'
 import { openDB, type IDBPDatabase } from 'idb'
 import { atom } from 'tldraw'
+import { nextAddIndex, sortStoredItems, type OrderedStoredItem } from './storedItemOrder'
 
-const SAMPLE_COLLECTIONS = [
-	CollectionRecordType.create({
-		id: CollectionRecordType.createId('sample-wireframes'),
-		name: 'Wireframes',
-	}),
-	CollectionRecordType.create({
-		id: CollectionRecordType.createId('sample-icons'),
-		name: 'Icons',
-	}),
-]
-
-interface StoredItem {
-	item: TLCollectionItem
+interface StoredItem extends OrderedStoredItem {
 	content: TLCollectionItemContent
 	// Bytes rather than a Blob, which not every IndexedDB stores.
 	thumbnail?: { type: string; data: ArrayBuffer }
@@ -39,20 +26,16 @@ export function createCollectionsSource(userId: string) {
 
 /**
  * An in-memory source, saved to IndexedDB after each change and loaded back on start. Until the
- * load finishes it shows the sample collections, and writes wait for it.
+ * load finishes nothing is listed, and writes wait for it.
  */
 class BrowserCollectionSource implements CollectionSource {
 	readonly id = 'dotcom-browser'
-	private readonly inner = atom(
-		'collections source',
-		new InMemoryCollectionSource({
-			initial: { collections: SAMPLE_COLLECTIONS, items: [], contents: {} },
-		})
-	)
+	private readonly inner = atom('collections source', new InMemoryCollectionSource())
 	private readonly db: Promise<IDBPDatabase>
 	private readonly ready: Promise<void>
 	// The in-memory source only releases URLs it created, so these are released here.
 	private readonly loadedThumbnailUrls: string[] = []
+	private nextItemAddIndex = 0
 
 	constructor(userId: string) {
 		this.db = openDB(`tldraw-collections-${userId}`, 1, {
@@ -106,12 +89,14 @@ class BrowserCollectionSource implements CollectionSource {
 	async addItem(collectionId: TLCollectionId, newItem: TLNewCollectionItem) {
 		await this.ready
 		const item = await this.inner.get().addItem(collectionId, newItem)
+		const addIndex = this.nextItemAddIndex++
 		// The object URL dies with the page, so the thumbnail's bytes are saved instead and turned
 		// back into a URL on load.
 		const { thumbnailUrl: _, ...itemToStore } = item
 		const { thumbnail } = newItem
 		const stored: StoredItem = {
 			item: itemToStore,
+			addIndex,
 			content: newItem.content,
 			thumbnail: thumbnail && { type: thumbnail.type, data: await thumbnail.arrayBuffer() },
 		}
@@ -143,9 +128,10 @@ class BrowserCollectionSource implements CollectionSource {
 	private async load() {
 		const db = await this.db
 		const collections: TLCollection[] | undefined = await db.get('state', 'collections')
-		// Nothing saved yet: keep the samples.
+		// Nothing saved yet: stay empty.
 		if (!collections) return
-		const stored: StoredItem[] = await db.getAll('items')
+		const stored = sortStoredItems<StoredItem>(await db.getAll('items'))
+		this.nextItemAddIndex = nextAddIndex(stored)
 		const items = stored.map(({ item, thumbnail }) => {
 			if (!thumbnail) return item
 			const thumbnailUrl = URL.createObjectURL(new Blob([thumbnail.data], { type: thumbnail.type }))
@@ -158,10 +144,9 @@ class BrowserCollectionSource implements CollectionSource {
 		previous.dispose()
 	}
 
-	// The collection list is saved with every change, so an item added to a sample collection
-	// before anything else was saved still has its collection on the next load. The change has
-	// already happened in memory, so a failed save keeps it for this session instead of reporting
-	// an error for something that worked.
+	// The collection list is saved with every change. The change has already happened in memory, so
+	// a failed save keeps it for this session instead of reporting an error for something that
+	// worked.
 	private async save(write?: (db: IDBPDatabase) => Promise<unknown>) {
 		try {
 			const db = await this.db

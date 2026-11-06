@@ -1,4 +1,4 @@
-import type { Computed } from '@tldraw/state'
+import { computed, type Computed } from '@tldraw/state'
 import { Store, StoreSchema } from '@tldraw/store'
 import { structuredClone } from '@tldraw/utils'
 import {
@@ -47,12 +47,17 @@ const schema = StoreSchema.create<TLCollectionRecord>(
  * Collections and items live in a tldraw `Store`, which validates them and freezes them in
  * development. Item content and thumbnails stay outside it: content can be large, and thumbnails
  * are object URLs that have to be released.
+ *
+ * The store doesn't keep insertion order past a handful of records, so the source numbers records
+ * itself and lists them in that order: starting data as given, then each create, add, or move.
  */
 export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly readOnly: boolean
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
-	private readonly collections = this.store.query.records('collection')
+	private readonly sequence = new Map<TLCollectionId | TLCollectionItemId, number>()
+	private nextSequence = 0
+	private readonly collections = this.inSequence(this.store.query.records('collection'))
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
 	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()
 	private readonly thumbnailUrls = new Map<TLCollectionItemId, string>()
@@ -76,6 +81,8 @@ export class InMemoryCollectionSource implements CollectionSource {
 			for (const itemId of Object.keys(contents)) {
 				if (!items.some((i) => i.id === itemId)) throw new Error(`Content ${itemId} has no item`)
 			}
+			for (const record of [...collections, ...items])
+				this.sequence.set(record.id, this.nextSequence++)
 			this.store.put([...collections, ...items])
 			for (const [itemId, content] of Object.entries(contents)) {
 				this.contents.set(itemId as TLCollectionItemId, parseCollectionItemContent(content))
@@ -92,9 +99,11 @@ export class InMemoryCollectionSource implements CollectionSource {
 	getItems(collectionId: TLCollectionId) {
 		let items = this.itemsByCollection.get(collectionId)
 		if (!items) {
-			items = this.store.query.records('collection-item', () => ({
-				collectionId: { eq: collectionId },
-			}))
+			items = this.inSequence(
+				this.store.query.records('collection-item', () => ({
+					collectionId: { eq: collectionId },
+				}))
+			)
 			this.itemsByCollection.set(collectionId, items)
 		}
 		return items.get()
@@ -118,6 +127,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	async createCollection(name: string) {
 		this.assertCan('createCollection')
 		const collection = CollectionRecordType.create({ name })
+		this.sequence.set(collection.id, this.nextSequence++)
 		this.store.put([collection])
 		return collection
 	}
@@ -134,6 +144,8 @@ export class InMemoryCollectionSource implements CollectionSource {
 		const items = this.getItems(collectionId)
 		for (const item of items) this.forgetItem(item.id)
 		this.store.remove([collectionId, ...items.map((item) => item.id)])
+		this.sequence.delete(collectionId)
+		for (const item of items) this.sequence.delete(item.id)
 		this.itemsByCollection.delete(collectionId)
 	}
 
@@ -155,6 +167,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 			item = { ...item, thumbnailUrl }
 		}
 		this.contents.set(item.id, structuredClone(content))
+		this.sequence.set(item.id, this.nextSequence++)
 		this.store.put([item])
 		return item
 	}
@@ -170,6 +183,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.assertCan('deleteItem', item.collectionId)
 		this.forgetItem(itemId)
 		this.store.remove([itemId])
+		this.sequence.delete(itemId)
 	}
 
 	async moveItem(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) {
@@ -178,6 +192,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.assertCan('deleteItem', item.collectionId)
 		this.assertCan('addItem', toCollectionId)
 		if (item.collectionId === toCollectionId) return
+		this.sequence.set(itemId, this.nextSequence++)
 		this.store.put([{ ...item, collectionId: toCollectionId }])
 	}
 
@@ -185,6 +200,14 @@ export class InMemoryCollectionSource implements CollectionSource {
 	dispose() {
 		for (const url of this.thumbnailUrls.values()) URL.revokeObjectURL(url)
 		this.thumbnailUrls.clear()
+	}
+
+	// The sequence is a plain map rather than reactive state: it only changes alongside a store
+	// write to the same record, which re-runs the query anyway.
+	private inSequence<R extends TLCollectionRecord>(query: Computed<R[]>): Computed<R[]> {
+		return computed('in sequence', () =>
+			[...query.get()].sort((a, b) => this.sequence.get(a.id)! - this.sequence.get(b.id)!)
+		)
 	}
 
 	private getCollection(collectionId: TLCollectionId) {

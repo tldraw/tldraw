@@ -2,6 +2,7 @@ export {
 	AddToCollectionMenuItem,
 	type AddToCollectionMenuItemProps,
 } from './canvas/add-to-collection-menu-item'
+export { CollectionsQuickActions } from './canvas/collections-quick-actions'
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { placeCollectionItem } from './canvas/place-item'
@@ -12,7 +13,6 @@ export {
 	type CollectionMenuProps,
 	type CollectionMenuSort,
 } from './ui/collection-menu'
-export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
 export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
 export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
 export { ItemTile, type ItemTileProps } from './ui/item-tile'
