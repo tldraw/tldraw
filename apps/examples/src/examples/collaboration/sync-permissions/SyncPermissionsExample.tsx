@@ -1,6 +1,14 @@
 import { CanvasComments, CommentTool, commentToolOverrides } from '@tldraw/commenting'
 import { InMemorySyncStorage, TLSocketRoom, useSync } from '@tldraw/sync'
-import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	ReactNode,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	CommentToolbarItem,
 	DefaultToolbar,
@@ -8,6 +16,7 @@ import {
 	Editor,
 	TLComponents,
 	TLRecord,
+	TLStore,
 	TLUiOverrides,
 	Tldraw,
 	UserRecordType,
@@ -28,8 +37,9 @@ import {
 	Meta,
 	Policy,
 	Session,
+	clientCanWrite,
 	clientChecksOn,
-	installClientGate,
+	installClientChecks,
 	serverOptions,
 	writeLog,
 } from './access'
@@ -301,17 +311,16 @@ function UserEditor({
 		objectAccess.set(grantedAccess)
 	}, [objectAccess, grantedAccess])
 
+	// [5]
+	const canWrite = useMemo(
+		() => (room.policy.write ? clientCanWrite(room.policy, getSession) : undefined),
+		[room, getSession]
+	)
+
 	const { tools, overrides, components } = useMemo(() => {
-		const allowed = scene.tools?.(user, getSession())
-		const overrides: TLUiOverrides[] = []
-		if (allowed) {
-			overrides.push({
-				tools: (_, tools) =>
-					Object.fromEntries(Object.entries(tools).filter(([id]) => allowed.includes(id))),
-			})
-		}
 		// The style panel would crowd the narrow editors.
-		if (!scene.comments) return { tools: [], overrides, components: { StylePanel: null } }
+		if (!scene.comments)
+			return { tools: [], overrides: [] as TLUiOverrides[], components: { StylePanel: null } }
 		const components: TLComponents = {
 			StylePanel: null,
 			// Commenters are read-only on the canvas, and the read-only toolbar shows only tools
@@ -332,7 +341,6 @@ function UserEditor({
 		return {
 			tools: [CommentTool.configure({ canComment: () => objectAccess.get() === 'write' })],
 			overrides: [
-				...overrides,
 				commentToolOverrides,
 				{
 					tools: (_, tools) => ({ ...tools, comment: { ...tools.comment, readonlyOk: true } }),
@@ -340,24 +348,22 @@ function UserEditor({
 			],
 			components,
 		}
-	}, [scene, user, getSession, objectAccess])
+	}, [scene, user, objectAccess])
 
 	const [editor, setEditor] = useState<Editor>()
 	const onMount = useCallback(
 		(editor: Editor) => {
-			// [5]
-			const cleanups = [scene.setup?.(editor, user, getSession)]
-			if (room.policy.write) cleanups.push(installClientGate(editor, room.policy.write, getSession))
+			const cleanup = scene.setup?.(editor, user, getSession)
 			editor.zoomToFit()
 			if (editor.getZoomLevel() > 1) editor.resetZoom()
 			setEditor(editor)
 			onEditor(user.id, editor)
 			return () => {
-				cleanups.forEach((fn) => fn?.())
+				cleanup?.()
 				onEditor(user.id, undefined)
 			}
 		},
-		[scene, user, room, getSession, onEditor]
+		[scene, user, getSession, onEditor]
 	)
 
 	return (
@@ -373,12 +379,16 @@ function UserEditor({
 			/>
 			{store.status === 'synced-remote' ? (
 				<div className="perm-canvas">
+					{room.policy.write && (
+						<ClientChecks store={store.store} policy={room.policy} getSession={getSession} />
+					)}
 					<Tldraw
 						store={store.store}
 						shapeUtils={customShapeUtils}
 						tools={tools}
 						overrides={overrides}
 						components={components}
+						canWrite={canWrite}
 						onMount={onMount}
 						autoFocus={false}
 					/>
@@ -397,6 +407,21 @@ function UserEditor({
 			)}
 		</>
 	)
+}
+
+// Rendered before <Tldraw>, so its layout effect registers the store handlers before the editor
+// registers its own.
+function ClientChecks({
+	store,
+	policy,
+	getSession,
+}: {
+	store: TLStore
+	policy: Policy
+	getSession(): Session
+}) {
+	useLayoutEffect(() => installClientChecks(store, policy, getSession), [store, policy, getSession])
+	return null
 }
 
 function PanelHeader({
@@ -498,7 +523,10 @@ session options again. A client that the server refused stops, so the panel moun
 read comments but gets no composer.
 
 [5]
-The same write rules that run on the server also run in the client, as store side effects that
-veto the write. The user is not shown an edit that the server would take back. Turn off "Client
-checks" to send every write and see the server undo it.
+The same write rules that run on the server also run in the client, as the editor's `canWrite`
+option. The editor blocks a write that the rules refuse, and rolls back the whole operation, so a
+group or a page delete lands whole or not at all. The UI asks the same option, so a tool or action
+the user may not use is hidden or disabled. The option gets only the stored record for an update,
+so store side effects check the new values too, and log each denial (`installClientChecks`). Turn off "Client checks" to
+send every write and see the server undo it.
 */

@@ -8,7 +8,7 @@ import {
 	UseSyncConnectFn,
 	WebSocketMinimal,
 } from '@tldraw/sync'
-import { TLRecord } from 'tldraw'
+import { TLRecord, atom } from 'tldraw'
 import { Meta } from './access'
 
 type ClientSocket = TLPersistentClientSocket<
@@ -38,7 +38,8 @@ const LATENCY_MS = 60
  * new role.
  */
 export class LocalRoom {
-	private readonly granted = new Map<string, ConnectDecision>()
+	// An atom, so a client check that reads the grant runs again when the user reconnects.
+	private readonly granted = atom<Record<string, ConnectDecision>>('granted', {})
 
 	constructor(
 		readonly room: TLSocketRoom<TLRecord, Meta>,
@@ -62,13 +63,13 @@ export class LocalRoom {
 	 * not the app's current state, so they agree with the server until the session reconnects.
 	 */
 	grantFor(userId: string) {
-		return this.granted.get(userId)
+		return this.granted.get()[userId]
 	}
 
 	/** @internal */
 	_open(userId: string, client: LocalClientSocket): FakeServerSocket | null {
 		const decision = this.resolve(userId)
-		this.granted.set(userId, decision)
+		this.granted.update((g) => ({ ...g, [userId]: decision }))
 		if (!decision.allow) return null
 		const sessionId = `${userId}:${client.id}`
 		const socket = new FakeServerSocket(client)

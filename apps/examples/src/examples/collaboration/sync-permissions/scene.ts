@@ -43,9 +43,7 @@ export interface Scene<S = any> {
 	/** Default for the "client checks" toggle in this scene. */
 	clientChecks?: boolean
 	comments?: boolean
-	/** The tools this user may pick. Unset: all. */
-	tools?(user: DemoUser, session: Session): string[] | undefined
-	/** Client code for this user's editor, e.g. a reactive read-only mode. */
+	/** Client code for this user's editor, e.g. a side effect that stamps the owner. */
 	setup?(editor: Editor, user: DemoUser, getSession: () => Session): (() => void) | void
 	Controls?: ComponentType<{ ctx: SceneContext<S> }>
 }

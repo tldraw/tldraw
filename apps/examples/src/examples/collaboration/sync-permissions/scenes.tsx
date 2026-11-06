@@ -5,6 +5,7 @@ import {
 	PageRecordType,
 	TLDOCUMENT_ID,
 	TLDocument,
+	TLFrameShape,
 	TLGeoShape,
 	TLPage,
 	TLRecord,
@@ -12,21 +13,9 @@ import {
 	TLShapePartial,
 	createShapeId,
 	getIndexAbove,
-	react,
 	toRichText,
 } from 'tldraw'
-import {
-	Get,
-	Meta,
-	Rule,
-	ancestors,
-	bothSides,
-	clientChecksOn,
-	inherited,
-	isShape,
-	log,
-	pageOf,
-} from './access'
+import { Get, Meta, Rule, ancestors, bothSides, inherited, isShape, log, pageOf } from './access'
 import { DemoUser, Scene, allow, defineScene, deny } from './scene'
 import { CardShape } from './shapes'
 import { Action, Check, Segmented } from './ui'
@@ -215,6 +204,8 @@ const shareLink = defineScene({
 
 // 3. Classroom: students edit one section ---------------------------------------------------
 
+const documentMeta = (get: Get) => (get(TLDOCUMENT_ID) as TLDocument | undefined)?.meta ?? {}
+
 const inSection = (get: Get, shape: TLShape, meta: Meta): true | string => {
 	if (shape.type === 'frame') return 'students cannot change sections'
 	// Sections are inherited from the frame: a shape that names its own could go anywhere.
@@ -227,18 +218,17 @@ const classroomSections = defineScene({
 	title: 'Classroom: students edit one section',
 	status: 'solved',
 	summary:
-		"Each student may write only inside their own frame. The rule reads the shape's parents with get, on both sides of the write, so a student can't move a shape out of their section either.",
+		"Each student may write only inside their own frame. The rule reads the shape's parents with get, on both sides of the write, so a student can't move a shape out of their section either. The teacher makes sections private with document.meta.privateSections, which the read rule reads with get, so the change is live.",
 	tryThis: [
 		"Draw in your own section as Sam, then in Sky's section.",
 		'Drag a shape from your section out of it.',
 		'Turn on "Students see only their section".',
 	],
 	expect:
-		"Sam can draw only in his frame. Strokes elsewhere don't appear. With private sections on, each student sees only their own frame's content.",
-	gap: 'A read rule that reads the parent runs again only when the shape itself changes, so the demo reconnects the students when the setting changes.',
+		"Sam can draw only in his frame. Strokes elsewhere don't appear, and he can't select or move shapes outside it. With private sections on, each student sees only their own frame's content at once, with no reconnect.",
 	primitives: ['canWrite', 'canRead', 'get'],
 	users: [teacher, sam, sky],
-	initialState: { privateSections: false },
+	initialState: {},
 	seed(editor) {
 		frame(editor, 'sec-a', 0, 0, 340, 300, "Sam's section", { section: 'a' })
 		frame(editor, 'sec-b', 380, 0, 340, 300, "Sky's section", { section: 'b' })
@@ -249,7 +239,7 @@ const classroomSections = defineScene({
 		u.id === 'tess'
 			? allow({ userId: 'tess', role: 'teacher' })
 			: allow({ userId: u.id, role: 'student', section: u.id === 'sam' ? 'a' : 'b' }),
-	policy: (getState) => ({
+	policy: () => ({
 		write: {
 			shape: (args) =>
 				isTeacher(args.session.meta) ||
@@ -259,21 +249,22 @@ const classroomSections = defineScene({
 		},
 		read: {
 			shape: ({ session, record, get }) => {
-				if (!getState().privateSections || isTeacher(session.meta)) return true
+				if (!documentMeta(get).privateSections || isTeacher(session.meta)) return true
 				const section = inherited(get, record, 'section')
 				return section === undefined || section === session.meta.section
 			},
 		},
 	}),
-	Controls: ({ ctx }) => (
-		<Check
-			label="Students see only their section"
-			checked={ctx.state.privateSections}
-			onChange={(privateSections) =>
-				ctx.setState({ privateSections }, { reconnect: ['sam', 'sky'] })
-			}
-		/>
-	),
+	Controls({ ctx }) {
+		const tess = ctx.editors.tess
+		return (
+			<Check
+				label="Students see only their section (Tess's editor)"
+				checked={!!tess?.getDocumentSettings().meta.privateSections}
+				onChange={(privateSections) => tess?.updateDocumentSettings({ meta: { privateSections } })}
+			/>
+		)
+	},
 })
 
 // 4. Workspace owner, member, guest ---------------------------------------------------------
@@ -298,8 +289,7 @@ const workspaceRoles = defineScene({
 		'Set Gil to "removed".',
 	],
 	expect:
-		"Max's new page does not appear until he is an owner. Gil's editor is read-only as a guest and shows no access when removed.",
-	gap: "Deleting a page deletes its shapes, then the page, in one push. Rules see one record at a time. The server uses writeRejection 'push', so it rejects all of it. But with client checks on, the client blocks only the page and still sends the shape deletes, which a member may make: the page stays, empty.",
+		"Max's page menu does not offer to add, rename, or delete pages until he is an owner. Gil's editor is read-only as a guest and shows no access when removed. Deleting a page deletes its shapes, then the page: with client checks on, the editor rolls back all of it, and with them off, the server's writeRejection 'push' rejects all of it.",
 	primitives: ['handleSocketConnect', 'isReadonly', 'canWrite', 'writeRejection'],
 	users: workspaceUsers,
 	initialState: {
@@ -345,18 +335,17 @@ const teamOnly = (get: Get, pageId: string, meta: Meta) =>
 const teamPages = defineScene({
 	id: 'team-pages',
 	title: 'Team-only pages',
-	status: 'partly',
+	status: 'solved',
 	summary:
-		"A page with meta.teamOnly is hidden from people outside the team, with the shapes on it. The read rule for a shape reads its page with get. People outside the team can't write there or flip the flag.",
+		"A page with meta.teamOnly is hidden from people outside the team, with the shapes on it. The read rule for a shape reads its page with get, so it runs again when the page changes. People outside the team can't write there or flip the flag, and don't see the presence of a teammate on a team-only page.",
 	tryThis: [
 		'Open the page menu as Cal (client). Only "Brief" is there.',
-		'As Ana, untick "Internal is team only".',
-		'Press "Reconnect Cal", then tick it again.',
+		'As Ana, go to "Internal". Her cursor leaves Cal\'s editor.',
+		'As Ana, untick "Internal is team only", then tick it again.',
 	],
 	expect:
-		"When Ana opens the page, Cal gets the page but not its shapes, because only the page changed. When he reconnects, he gets the shapes too. When she hides it again, the page leaves Cal's editor, but its shapes stay in his store, with no page, until he reconnects. The shape count in his header shows it.",
-	gap: "Visibility that follows the page needs a reconnect: canRead runs again for a shape only when the shape changes. So a shape on a page that becomes hidden stays in the client's store. Presence also names Ana's current page, so Cal can see that a page he can't open exists.",
-	primitives: ['canRead', 'canWrite', 'get', 'closeSession'],
+		"When Ana opens the page, Cal gets the page and its shapes at once. When she hides it again, the page and its shapes leave Cal's editor. The shape count in his header shows it. While Ana is on a team-only page, Cal gets no presence from her.",
+	primitives: ['canRead', 'canWrite', 'get', 'beforeRead (presence)'],
 	users: [user('ana', 'Ana (agency)', '#e03131'), user('cal', 'Cal (client)', '#1971c2')],
 	initialState: {},
 	seed(editor) {
@@ -389,6 +378,9 @@ const teamPages = defineScene({
 		read: {
 			page: ({ session, record }) => !record.meta.teamOnly || session.meta.team === 'agency',
 			shape: ({ session, record, get }) => teamOnly(get, pageOf(get, record), session.meta),
+			// Presence names the user's current page, so it would tell Cal that the page exists.
+			instance_presence: ({ session, record, get }) =>
+				teamOnly(get, record.currentPageId, session.meta),
 		},
 	}),
 	Controls({ ctx }) {
@@ -401,7 +393,6 @@ const teamPages = defineScene({
 					checked={isTeamOnly}
 					onChange={(teamOnly) => ana?.updatePage({ id: internalPage, meta: { teamOnly } })}
 				/>
-				<Action onClick={() => ctx.setState({}, { reconnect: ['cal'] })}>Reconnect Cal</Action>
 			</>
 		)
 	},
@@ -416,11 +407,11 @@ const callOn = defineScene({
 	title: 'Classroom: call on one student',
 	status: 'solved',
 	summary:
-		'The teacher writes document.meta.calledOn. The server rule reads it with get on every write, and each student client turns read-only on and off from the same value, so the change is live, with no reconnect.',
+		"The teacher writes document.meta.calledOn. The server rule reads it with get on every write. Each student's editor runs the same rule through its canWrite option, which runs again when the value changes, so the change is live, with no reconnect.",
 	tryThis: ['Call on Sam, and draw as Sam and as Sky.', 'Call on Sky, then on nobody.'],
 	expect:
-		'Only the student called on can draw. The others are read-only at once. With client checks off, their writes are sent and the server undoes them.',
-	primitives: ['canWrite', 'get', 'store side effects', 'react'],
+		'Only the student called on can draw. The others lose their drawing tools at once and cannot move shapes. With client checks off, their writes are sent and the server undoes them.',
+	primitives: ['canWrite', 'get', 'canWrite (editor option)'],
 	users: [teacher, sam, sky],
 	initialState: {},
 	seed(editor) {
@@ -438,14 +429,6 @@ const callOn = defineScene({
 			page: teacherPages,
 		},
 	}),
-	setup(editor, u, getSession) {
-		if (u.id === 'tess') return
-		return react('called on', () => {
-			const mine = calledOn((id) => editor.store.get(id as any)) === getSession().meta.userId
-			// Read-only is a client check too: with client checks off, the server is the only gate.
-			editor.updateInstanceState({ isReadonly: !mine && clientChecksOn.get() })
-		})
-	},
 	Controls({ ctx }) {
 		const tess = ctx.editors.tess
 		const current = (tess?.getDocumentSettings().meta.calledOn as string | undefined) ?? 'nobody'
@@ -471,20 +454,15 @@ const isHidden = (get: Get, shape: TLShape) =>
 const revealSteps = defineScene({
 	id: 'reveal-steps',
 	title: 'Classroom: reveal step by step',
-	status: 'partly',
+	status: 'solved',
 	summary:
-		'Each step is a frame with meta.hidden. canRead hides a hidden frame and everything in it from students. The teacher reveals a step by clearing the flag.',
-	tryThis: [
-		'Press "Reveal next step" with the workaround off.',
-		'Press "Reconnect Sam".',
-		'Reset, turn on the workaround, and reveal again.',
-	],
+		"Each step is a frame with meta.hidden. canRead hides a hidden frame and everything in it from students. The rule reads the shape's parents with get, so it runs again when a frame changes. The teacher reveals a step by clearing the flag on the frame only.",
+	tryThis: ['Press "Reveal next step" two times.', 'Press "Reset".'],
 	expect:
-		"Without the workaround, Sam gets an empty frame: the frame changed, its children did not, so their read rule did not run again. After a reconnect, the content is there. With the workaround, the teacher's client also touches every shape in the step, and Sam gets the content at once.",
-	gap: 'A read rule that reads a parent does not run again when only the parent changes. The workaround writes every child, which costs one write per shape.',
+		'Sam gets each step and its content at once. Reset hides the steps again, and their content leaves his editor.',
 	primitives: ['canRead', 'get'],
 	users: [teacher, sam],
-	initialState: { touchChildren: false },
+	initialState: {},
 	seed(editor) {
 		steps.forEach((step, i) => {
 			frame(editor, step, i * 300, 0, 260, 220, `Step ${i + 1}`, { hidden: i > 0 })
@@ -507,19 +485,7 @@ const revealSteps = defineScene({
 		const reveal = () => {
 			if (!tess) return
 			const next = steps.map(sid).find((id) => tess.getShape(id)?.meta.hidden)
-			if (!next) return
-			tess.run(() => {
-				tess.updateShape({ id: next, type: 'frame', meta: { hidden: false } })
-				if (!ctx.state.touchChildren) return
-				for (const childId of tess.getSortedChildIdsForParent(next)) {
-					const child = tess.getShape(childId)!
-					tess.updateShape({
-						id: childId,
-						type: child.type,
-						meta: { rev: ((child.meta.rev as number) ?? 0) + 1 },
-					} as TLShapePartial)
-				}
-			})
+			if (next) tess.updateShape({ id: next, type: 'frame', meta: { hidden: false } })
 		}
 		const reset = () => {
 			ctx.room.storage.transaction((txn) => {
@@ -528,17 +494,10 @@ const revealSteps = defineScene({
 					if (f) txn.set(f.id, { ...f, meta: { ...f.meta, hidden: true } })
 				})
 			})
-			ctx.setState({}, { reconnect: ['sam'] })
 		}
 		return (
 			<>
 				<Action onClick={reveal}>Reveal next step</Action>
-				<Check
-					label="Workaround: also touch the step's shapes"
-					checked={ctx.state.touchChildren}
-					onChange={(touchChildren) => ctx.setState({ touchChildren })}
-				/>
-				<Action onClick={() => ctx.setState({}, { reconnect: ['sam'] })}>Reconnect Sam</Action>
 				<Action onClick={reset}>Reset</Action>
 			</>
 		)
@@ -621,9 +580,8 @@ const cadchat = defineScene({
 		'Turn off client checks and try again.',
 	],
 	expect:
-		'Cole (clearance 1) does not see Class 2 or 3. Erin sees Classes 1 and 2. The log lists every write and every denial, with the user and the reason.',
-	gap: "Presence is not filtered: Cole can see Erin's cursor move over the empty space where Class 2 is.",
-	primitives: ['canRead', 'canWrite', 'beforeWrite (audit)', 'get'],
+		"Cole (clearance 1) does not see Class 2 or 3. Erin sees Classes 1 and 2. Cole doesn't see Erin's cursor over a class he can't see, or her selection of a part in it. The log lists every write and every denial, with the user and the reason.",
+	primitives: ['canRead', 'canWrite', 'beforeWrite (audit)', 'beforeRead (presence)', 'get'],
 	users: [
 		user('erin', 'Erin (clearance 2)', '#e03131'),
 		user('cole', 'Cole (clearance 1)', '#1971c2'),
@@ -657,6 +615,36 @@ const cadchat = defineScene({
 		read: {
 			shape: ({ session, record, get }) => classOf(get, record) <= (session.meta.clearance ?? 0),
 		},
+		mask: {
+			// Presence would show where a hidden part is, by the cursor or the selection on it.
+			instance_presence: ({ session, record, get }) => {
+				const clearance = session.meta.clearance ?? 0
+				const visible = (id: string) => {
+					const shape = get(id)
+					return isShape(shape) && classOf(get, shape) <= clearance
+				}
+				const { cursor } = record
+				const overHidden =
+					cursor &&
+					[1, 2, 3].some((c) => {
+						const f = get(sid(`class-${c}`)) as TLFrameShape | undefined
+						return (
+							f &&
+							c > clearance &&
+							cursor.x >= f.x &&
+							cursor.x <= f.x + f.props.w &&
+							cursor.y >= f.y &&
+							cursor.y <= f.y + f.props.h
+						)
+					})
+				return {
+					...record,
+					cursor: overHidden ? null : cursor,
+					brush: overHidden ? null : record.brush,
+					selectedShapeIds: record.selectedShapeIds.filter(visible),
+				}
+			},
+		},
 	}),
 })
 
@@ -669,12 +657,12 @@ const agents = defineScene({
 	title: 'Agents: limited areas, tools, and shapes',
 	status: 'partly',
 	summary:
-		"The agent connects with its own session and meta.agent: the frame it may work in and the shape types it may make. The same rule runs in the agent's client and on the server. Its toolbar shows only its tools.",
+		"The agent connects with its own session and meta.agent: the frame it may work in and the shape types it may make. The same rule runs in the agent's client and on the server. Its toolbar asks the same rule, so it offers no tool that makes a shape on the page.",
 	tryThis: ['Press "Run the agent\'s plan".', 'Turn off client checks and run it again.'],
 	expect:
-		"The note inside the frame stays. The note outside, the arrow, and the delete of Hana's shape are denied, each with a reason in the log. With client checks off, they appear for a moment and are undone.",
+		"The note inside the frame stays. The note outside, the arrow, and the delete of Hana's shape are denied. The log gives the reason for the two notes and the arrow. The editor refuses the delete before it writes anything, so the client log has no entry for it. With client checks off, all three appear for a moment, the server undoes them, and the log has a reason for each.",
 	gap: "An agent that runs inside the user's editor shares the user's session, so the server cannot tell its writes from the user's. The demo gives the agent its own session.",
-	primitives: ['handleSocketConnect (meta)', 'canWrite', 'get', 'tool overrides'],
+	primitives: ['handleSocketConnect (meta)', 'canWrite', 'get', 'canWrite (editor option)'],
 	users: [user('hana', 'Hana (human)', '#e03131'), user('bot', 'Agent', '#7048e8')],
 	initialState: {},
 	seed(editor) {
@@ -704,8 +692,6 @@ const agents = defineScene({
 			},
 		},
 	}),
-	tools: (_, session) =>
-		session.meta.agent ? ['select', 'hand', 'note', 'text', 'rectangle', 'ellipse'] : undefined,
 	Controls({ ctx }) {
 		const run = () => {
 			const bot = ctx.editors.bot
@@ -895,7 +881,7 @@ const penAndText = defineScene({
 	title: 'Classroom: edit only in some ways',
 	status: 'solved',
 	summary:
-		"Students may add pen strokes, highlights, and text, and change only their own shapes. The server stamps the owner on create. The student's toolbar shows only those tools.",
+		"Students may add pen strokes, highlights, and text, and change only their own shapes. The server stamps the owner on create. The student's toolbar shows only the tools that the same rule lets him use, through the editor's canWrite option.",
 	tryThis: [
 		'Write on the worksheet as Sam with the pen and the text tool.',
 		"Try to move or erase the teacher's worksheet.",
@@ -903,7 +889,7 @@ const penAndText = defineScene({
 	],
 	expect:
 		'Sam can add and erase his own marks only. The worksheet stays where it is. A pasted rectangle is undone by the server.',
-	primitives: ['canWrite', 'beforeWrite (stamp)', 'tool overrides', 'store side effects'],
+	primitives: ['canWrite', 'beforeWrite (stamp)', 'canWrite (editor option)', 'store side effects'],
 	users: [teacher, sam],
 	initialState: {},
 	seed(editor) {
@@ -937,8 +923,6 @@ const penAndText = defineScene({
 			document: teacherPages,
 		},
 	}),
-	tools: (u) =>
-		u.id === 'sam' ? ['select', 'hand', 'draw', 'highlight', 'text', 'eraser'] : undefined,
 	setup(editor, _, getSession) {
 		// The client stamps the owner too, so its copy matches the server's and the gate sees it.
 		return editor.sideEffects.registerBeforeCreateHandler('shape', (shape, source) =>
@@ -1152,8 +1136,7 @@ const pushRejection = defineScene({
 		'Turn client checks on and press it again.',
 	],
 	expect:
-		"With 'record', the server stores the children's moves into a group it rejected, so the boxes vanish for everyone. With 'push', the server rejects all of it and Bob's client undoes the group. With client checks on, the client blocks the group but still moves the children, so the boxes vanish again.",
-	gap: "Client vetoes are per record, with no client version of writeRejection: 'push'. A rule that blocks part of an operation must also block what depends on it.",
+		"With 'record', the server stores the children's moves into a group it rejected, so the boxes vanish for everyone. With 'push', the server rejects all of it and Bob's client undoes the group. With client checks on, Bob's editor rolls back the whole operation, so nothing is sent and the boxes stay.",
 	primitives: ['writeRejection', 'canWrite'],
 	users: [user('alice', 'Alice', '#e03131'), user('bob', 'Bob (no groups)', '#1971c2')],
 	initialState: { mode: 'record' as 'record' | 'push' },

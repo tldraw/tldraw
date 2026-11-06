@@ -10,7 +10,7 @@ import {
 	composeBeforeRead,
 	composeBeforeWrite,
 } from '@tldraw/sync'
-import { Editor, TLRecord, TLShape, UnknownRecord, atom } from 'tldraw'
+import { Editor, TLRecord, TLRecordWrite, TLShape, TLStore, UnknownRecord, atom } from 'tldraw'
 
 // The app's access layer. The SDK gives primitives (`canWrite`, `canRead`, `beforeWrite`,
 // `beforeRead`, session options); the policy lives here, in app code. One set of write rules runs
@@ -39,7 +39,7 @@ export type Rules = {
 }
 
 export interface Policy {
-	/** Who may write what. Runs on the server (canWrite) and in each client (store side effects). */
+	/** Who may write what. Runs on the server (canWrite) and in each client (the editor's canWrite option). */
 	write?: Rules
 	/** Server-only changes to the written record, such as stamping an owner. Run before `write`. */
 	stamp?: TLBeforeWriteHooks<TLRecord, Meta>[]
@@ -76,9 +76,8 @@ let nextLogId = 1
 
 export function log(entry: Omit<LogEntry, 'id' | 'key' | 'count'>) {
 	const key = Object.values(entry).join('|')
-	// Server hooks run inside the room's storage transaction. When `writeRejection: 'push'` rejects
-	// a push, that transaction rolls back every signal changed in it, this log included. So write
-	// the log after the transaction.
+	// When the editor blocks a write, it rolls back the whole operation, and every signal changed in
+	// it, this log included. So write the log after the operation.
 	queueMicrotask(() =>
 		writeLog.update((list) => {
 			// A drag sends one write per frame: count repeats instead of flooding the log.
@@ -130,33 +129,81 @@ export function serverOptions(policy: Policy): Partial<TLSocketRoomOptions<TLRec
 }
 
 /**
- * Run the same write rules in a client, before a write reaches the server. The store ignores
- * these vetoes for remote changes, so the client never blocks what the server already accepted.
+ * The same write rules, for a client: the editor's `canWrite` option. The editor asks before it
+ * stores a local write, and the UI asks the same question, so a tool or action that the rules
+ * refuse is hidden or disabled. For an update the editor gives only the stored record, so the
+ * rule sees no change here; {@link installClientChecks} checks the new values.
  */
-export function installClientGate(editor: Editor, rules: Rules, getSession: () => Session) {
-	const get = (id: string) => editor.store.get(id as TLRecord['id'])
-	const check = (args: Omit<WriteArgs<TLRecord>, 'session' | 'get'>) => {
-		if (!clientChecksOn.get()) return true
+export function clientCanWrite(policy: Policy, getSession: () => Session) {
+	return ({ type, record }: TLRecordWrite, editor: Editor) => {
 		const session = getSession()
-		const full = { ...args, session, get } as WriteArgs<TLRecord>
-		const result = evaluate(rules[args.next?.typeName ?? args.prev!.typeName] as Rule<any>, full)
-		if (result === true) return true
-		logDenial('client', full, result)
-		return false
+		// With this option the editor no longer blocks writes in readonly mode by itself. The server
+		// ignores a readonly session's document writes, so block them here too.
+		if (session.isReadonly && !policy.objectTypes?.includes(record.typeName)) return false
+		const rule = policy.write?.[record.typeName]
+		if (!rule || !clientChecksOn.get()) return true
+		const args = {
+			type,
+			prev: type === 'create' ? null : record,
+			next: type === 'delete' ? null : record,
+			session,
+			get: (id: string) => editor.store.get(id as TLRecord['id']),
+		} as WriteArgs<TLRecord>
+		return evaluate(rule as Rule<any>, args) === true
 	}
-	const cleanups = Object.keys(rules).map((typeName) =>
-		editor.sideEffects.register({
+}
+
+/**
+ * Log the client's denials, and check the new values of each local update, for rules about
+ * fields such as moving a shape out of a section. Register this on the store before the editor
+ * is made, so it runs before the editor's own `canWrite` check: that check blocks the write, and
+ * rolls back the whole operation, after this has logged why. The store ignores these handlers'
+ * vetoes for remote changes.
+ */
+export function installClientChecks(store: TLStore, policy: Policy, getSession: () => Session) {
+	const get = (id: string) => store.get(id as TLRecord['id'])
+	const denial = (args: Omit<WriteArgs<TLRecord>, 'session' | 'get'>) => {
+		if (!clientChecksOn.get()) return null
+		const rule = policy.write?.[(args.next ?? args.prev)!.typeName]
+		if (!rule) return null
+		const full = { ...args, session: getSession(), get } as WriteArgs<TLRecord>
+		const result = evaluate(rule as Rule<any>, full)
+		if (result === true) return null
+		logDenial('client', full, result)
+		return result
+	}
+	const cleanups = Object.keys(policy.write ?? {}).map((typeName) =>
+		store.sideEffects.register({
 			[typeName]: {
-				beforeCreate: (next: TLRecord, source: 'user' | 'remote') =>
-					source !== 'user' || check({ type: 'create', prev: null, next }) ? next : false,
-				beforeChange: (prev: TLRecord, next: TLRecord, source: 'user' | 'remote') =>
-					source !== 'user' || check({ type: 'update', prev, next }) ? next : prev,
-				beforeDelete: (prev: TLRecord, source: 'user' | 'remote') =>
-					source !== 'user' || check({ type: 'delete', prev, next: null }) ? undefined : false,
+				beforeCreate: (next: TLRecord, source: 'user' | 'remote') => {
+					if (source === 'user') denial({ type: 'create', prev: null, next })
+					return next
+				},
+				beforeChange: (prev: TLRecord, next: TLRecord, source: 'user' | 'remote') => {
+					if (source !== 'user' || !denial({ type: 'update', prev, next })) return next
+					// The editor's check sees only the stored record. When that alone is enough to
+					// deny, let the editor block the write, so it rolls back the whole operation.
+					return clientCanWriteRecord(policy, getSession, get, prev) ? prev : next
+				},
+				beforeDelete: (prev: TLRecord, source: 'user' | 'remote') => {
+					if (source === 'user') denial({ type: 'delete', prev, next: null })
+				},
 			},
 		})
 	)
 	return () => cleanups.forEach((fn) => fn())
+}
+
+function clientCanWriteRecord(
+	policy: Policy,
+	getSession: () => Session,
+	get: Get,
+	record: TLRecord
+) {
+	const rule = policy.write?.[record.typeName]
+	if (!rule) return true
+	const args = { type: 'update', prev: record, next: record, session: getSession(), get }
+	return evaluate(rule as Rule<any>, args as WriteArgs<TLRecord>) === true
 }
 
 // Helpers for rules that depend on a record's parents.
