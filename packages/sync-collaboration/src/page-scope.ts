@@ -7,6 +7,8 @@ import type { TLPage } from '@tldraw/tlschema'
  * - `page`: the page record the input lives on.
  * - `dangling`: the input points at a parent that does not exist. A rule should refuse: the write
  *   would leave an orphan, or the client is lying about its parent.
+ * - `split`: a binding whose two shapes live on different pages. The editor never makes one (a
+ *   shape moved to another page is isolated from its bindings first), so a rule should refuse.
  * - `unscoped`: the input is not a page-scoped record (e.g. the document record, an asset). A rule
  *   decides on its own what that means; it is not an error.
  *
@@ -14,7 +16,7 @@ import type { TLPage } from '@tldraw/tlschema'
  */
 export type TLOwningPage =
 	| { page: TLPage; reason?: undefined }
-	| { page: null; reason: 'dangling' | 'unscoped' }
+	| { page: null; reason: 'dangling' | 'split' | 'unscoped' }
 
 /**
  * Resolve the page a record lives on, reading other records through `get`. Built for a sync
@@ -23,7 +25,7 @@ export type TLOwningPage =
  *
  * - A page is its own owning page.
  * - A shape is walked up `parentId` through frames and groups to its page.
- * - A binding lives on the page of its `fromId` shape. Rules that care should check `toId` too.
+ * - A binding lives on the page both its shapes are on; `split` when they differ.
  * - Anything else is `unscoped`.
  *
  * A walk that reaches a missing record is `dangling`; a rule should refuse rather than allow.
@@ -53,17 +55,27 @@ export function getOwningPage(
 	get: (id: string) => UnknownRecord | undefined,
 	record: UnknownRecord
 ): TLOwningPage {
-	const dangling: TLOwningPage = { page: null, reason: 'dangling' }
+	if (record.typeName !== 'binding') return walkToPage(get, record)
+	const { fromId, toId } = record as UnknownRecord & { fromId: string; toId: string }
+	const from = get(fromId)
+	const to = get(toId)
+	if (!from || !to) return dangling
+	const owning = walkToPage(get, from)
+	if (!owning.page) return owning
+	const other = walkToPage(get, to)
+	if (!other.page) return other
+	return owning.page.id === other.page.id ? owning : { page: null, reason: 'split' }
+}
+
+const dangling: TLOwningPage = { page: null, reason: 'dangling' }
+
+function walkToPage(get: (id: string) => UnknownRecord | undefined, record: UnknownRecord) {
 	let current: UnknownRecord | undefined = record
-	if (current.typeName === 'binding') {
-		current = get((current as UnknownRecord & { fromId: string }).fromId)
-		if (!current) return dangling
-	}
 	// Bounded so a tampered parent cycle fails closed instead of looping forever.
 	for (let depth = 0; depth < MAX_PARENT_DEPTH; depth++) {
 		if (current.typeName === 'page') return { page: current as TLPage }
 		if (current.typeName !== 'shape')
-			return depth === 0 ? { page: null, reason: 'unscoped' } : dangling
+			return depth === 0 ? { page: null, reason: 'unscoped' as const } : dangling
 		current = get((current as UnknownRecord & { parentId: string }).parentId)
 		if (!current) return dangling
 	}

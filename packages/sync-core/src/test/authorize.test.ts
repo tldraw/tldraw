@@ -1,8 +1,10 @@
 import {
+	createBindingId,
 	createShapeId,
 	createUserId,
 	InstancePresenceRecordType,
 	PageRecordType,
+	TLArrowBinding,
 	TLFrameShape,
 	TLPageId,
 	TLRecord,
@@ -17,7 +19,13 @@ import {
 	TLPushRequest,
 	TLSocketServerSentEvent,
 } from '../lib/protocol'
-import { perRecord, TLRoomSocket, TLSyncAuthorizer, TLSyncRoom, TLSyncTransform } from '../lib/TLSyncRoom'
+import {
+	perRecord,
+	TLRoomSocket,
+	TLSyncAuthorizer,
+	TLSyncRoom,
+	TLSyncTransform,
+} from '../lib/TLSyncRoom'
 
 // The classroom: a teacher and two students on one board, one page per student. A page's policy
 // lives on the page record (`meta.ownerId`); the rule walks a shape to its page to authorize it.
@@ -134,14 +142,42 @@ function frame(
 	}) as TLFrameShape
 }
 
+function arrowBinding(
+	id: ReturnType<typeof createBindingId>,
+	fromId: ReturnType<typeof createShapeId>,
+	toId: ReturnType<typeof createShapeId>
+): TLArrowBinding {
+	return schema.types.binding.create({
+		id,
+		type: 'arrow',
+		fromId,
+		toId,
+		props: {
+			terminal: 'end',
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isExact: false,
+			isPrecise: false,
+			snap: 'none',
+		},
+	}) as TLArrowBinding
+}
+
 const pageA = PageRecordType.createId('a')
 const pageB = PageRecordType.createId('b')
 const frameOnB = createShapeId('frame-on-b')
 
-// Walk a shape to its page. `null` when the chain dead-ends: a rule must refuse on that.
-// Hosts should use `getOwningPage` from `@tldraw/sync-collaboration` instead; it lives here only
-// because that package depends on this one.
+// Walk a shape to its page; a binding lives on the page both its shapes are on. `null` when the
+// chain dead-ends or the binding spans pages: a rule must refuse on that. Hosts should use
+// `getOwningPage` from `@tldraw/sync-collaboration` instead; it lives here only because that package
+// depends on this one.
 function pageOf(get: (id: string) => TLRecord | undefined, record: TLRecord): TLRecord | null {
+	if (record.typeName === 'binding') {
+		const from = get(record.fromId)
+		const to = get(record.toId)
+		if (!from || !to) return null
+		const page = pageOf(get, from)
+		return page && page === pageOf(get, to) ? page : null
+	}
 	let cur: TLRecord | undefined = record
 	while (cur && cur.typeName === 'shape' && !cur.parentId.startsWith('page:')) {
 		cur = get(cur.parentId)
@@ -293,7 +329,12 @@ describe('authorize', () => {
 		const child2 = createShapeId('child-2')
 		const { room, storage } = makeRoom({
 			authorize: classroomRule,
-			documents: [page(pageA, 'A'), frame(myFrame, pageA), frame(child1, myFrame), frame(child2, myFrame)],
+			documents: [
+				page(pageA, 'A'),
+				frame(myFrame, pageA),
+				frame(child1, myFrame),
+				frame(child2, myFrame),
+			],
 		})
 		const socket = connect(room, 'student-a', { userId: 'A', role: 'student' })
 
@@ -396,6 +437,71 @@ describe('authorize', () => {
 		push(room, 'student-a', { [myFrame]: [RecordOpType.Put, { ...frame(myFrame, pageA), x: 10 }] })
 
 		expect(transform).not.toHaveBeenCalled()
+	})
+
+	it('deletes a page with its contents in one push, and refuses the same for another page', () => {
+		const shapeOnA = createShapeId('shape-on-a')
+		const arrowOnA = createShapeId('arrow-on-a')
+		const bindingOnA = createBindingId('binding-on-a')
+		const { room, storage } = makeRoom({
+			authorize: classroomRule,
+			documents: [
+				page(pageA, 'A'),
+				page(pageB, 'B'),
+				frame(shapeOnA, pageA),
+				frame(arrowOnA, pageA),
+				arrowBinding(bindingOnA, arrowOnA, shapeOnA),
+				frame(frameOnB, pageB),
+			],
+		})
+		const socket = connect(room, 'student-a', { userId: 'A', role: 'student' })
+
+		// the editor cascades a page delete client-side: page, shapes and bindings in one push
+		push(room, 'student-a', {
+			[pageA]: [RecordOpType.Remove],
+			[shapeOnA]: [RecordOpType.Remove],
+			[arrowOnA]: [RecordOpType.Remove],
+			[bindingOnA]: [RecordOpType.Remove],
+		})
+		expect(ids(storage).sort()).toEqual([pageB, frameOnB].sort())
+		expect(lastPushResult(socket)).toMatchObject({ action: 'commit' })
+
+		// a second session: the room debounces data messages per session, so a second push's
+		// result would still be queued on the first socket
+		const socket2 = connect(room, 'student-a-2', { userId: 'A', role: 'student' })
+		push(room, 'student-a-2', {
+			[pageB]: [RecordOpType.Remove],
+			[frameOnB]: [RecordOpType.Remove],
+		})
+		expect(ids(storage).sort()).toEqual([pageB, frameOnB].sort())
+		expect(lastPushResult(socket2)).toMatchObject({
+			action: 'discard',
+			refused: { reason: 'not your page', ids: [pageB, frameOnB] },
+		})
+	})
+
+	it('refuses a binding from a student arrow to a shape on another student page', () => {
+		const arrowOnA = createShapeId('arrow-on-a')
+		const bindingId = createBindingId('cross-page')
+		const { room, storage } = makeRoom({
+			authorize: classroomRule,
+			documents: [
+				page(pageA, 'A'),
+				page(pageB, 'B'),
+				frame(arrowOnA, pageA),
+				frame(frameOnB, pageB),
+			],
+		})
+		const socket = connect(room, 'student-a', { userId: 'A', role: 'student' })
+
+		push(room, 'student-a', {
+			[bindingId]: [RecordOpType.Put, arrowBinding(bindingId, arrowOnA, frameOnB)],
+		})
+		expect(ids(storage)).not.toContain(bindingId)
+		expect(lastPushResult(socket)).toMatchObject({
+			action: 'discard',
+			refused: { reason: 'dangling parent', ids: [bindingId] },
+		})
 	})
 
 	it('never consults the rule for presence', () => {

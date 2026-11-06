@@ -3,7 +3,7 @@ import { PageRecordType, TLPageId } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import { getOwningPage } from './page-scope'
 
-// Only the fields the walk reads: `typeName`, `parentId`, `fromId`.
+// Only the fields the walk reads: `typeName`, `parentId`, `fromId`, `toId`.
 const rec = (r: object) => r as unknown as UnknownRecord
 const pageA = PageRecordType.create({ id: 'page:a' as TLPageId, name: 'A', index: 'a1' as any })
 const frame = rec({ id: 'shape:frame', typeName: 'shape', parentId: 'page:a' })
@@ -45,12 +45,37 @@ describe('getOwningPage', () => {
 		expect(getOwningPage(reader(), frame)).toEqual({ page: null, reason: 'dangling' })
 	})
 
-	it('a binding lives on the page of its fromId shape', () => {
-		expect(getOwningPage(reader(pageA, arrow), binding)).toEqual({ page: pageA })
+	it('a binding lives on the page both its shapes are on', () => {
+		expect(getOwningPage(reader(pageA, arrow, frame, group, note), binding)).toEqual({
+			page: pageA,
+		})
 	})
 
-	it('a binding whose fromId is missing is dangling', () => {
-		expect(getOwningPage(reader(pageA), binding)).toEqual({ page: null, reason: 'dangling' })
+	it('a binding whose shapes are on different pages is split', () => {
+		const pageB = PageRecordType.create({ id: 'page:b' as TLPageId, name: 'B', index: 'a2' as any })
+		const noteOnB = rec({ id: 'shape:note', typeName: 'shape', parentId: 'page:b' })
+		expect(getOwningPage(reader(pageA, pageB, arrow, noteOnB), binding)).toEqual({
+			page: null,
+			reason: 'split',
+		})
+	})
+
+	it('a binding with either shape missing is dangling', () => {
+		expect(getOwningPage(reader(pageA, note, frame, group), binding)).toEqual({
+			page: null,
+			reason: 'dangling',
+		})
+		expect(getOwningPage(reader(pageA, arrow), binding)).toEqual({
+			page: null,
+			reason: 'dangling',
+		})
+	})
+
+	it('a binding whose shape dangles is dangling', () => {
+		expect(getOwningPage(reader(pageA, arrow, note), binding)).toEqual({
+			page: null,
+			reason: 'dangling',
+		})
 	})
 
 	it('a record with no page is unscoped', () => {

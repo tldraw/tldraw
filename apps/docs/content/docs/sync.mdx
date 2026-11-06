@@ -490,7 +490,7 @@ Here the page's policy lives on the page record, in its `meta`. Any client can s
 
 Because the rule sees the whole push, the order of changes inside it never matters. A frame and the shapes inside it can be created in either order; a frame deleted together with its children goes, children and all; a shape reparented into a frame the same push deletes is refused.
 
-`getOwningPage` returns `{ page }` or `{ page: null, reason }`. The reason is `'dangling'` when a parent is missing (refuse: the write would leave an orphan), or `'unscoped'` for records that don't live on a page, like the document record (your call).
+`getOwningPage` returns `{ page }` or `{ page: null, reason }`. The reason is `'dangling'` when a parent is missing (refuse: the write would leave an orphan), `'split'` for a binding whose two shapes are on different pages (refuse: the editor never makes one), or `'unscoped'` for records that don't live on a page, like the document record (your call).
 
 #### What a refused push looks like
 

@@ -90,7 +90,7 @@ export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
 // @public
 export type TLOwningPage = {
     page: null;
-    reason: 'dangling' | 'unscoped';
+    reason: 'dangling' | 'split' | 'unscoped';
 } | {
     page: TLPage;
     reason?: undefined;
