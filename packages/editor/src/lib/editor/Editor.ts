@@ -1776,27 +1776,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
-	private _isInCheckedRun = false
-
 	run(fn: () => void, opts?: TLEditorRunOptions): this {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
 			this.store.withTransaction(() => {
-				// the outermost run is the transaction: check it as a whole before it commits
-				if (this._isInCheckedRun || !this.permissions.isActive()) {
+				if (!this.permissions.isActive()) {
 					this.history.batch(fn, opts)
 					return
 				}
-				this._isInCheckedRun = true
-				try {
-					this.permissions.runChecked(
-						() => this.history.batch(fn, opts),
-						this.store.getCurrentTransaction()?.intent ?? null
-					)
-				} finally {
-					this._isInCheckedRun = false
-				}
+				this.permissions.runChecked(
+					() => this.history.batch(fn, opts),
+					this.store.getCurrentTransaction()?.intent ?? null
+				)
 			}, opts)
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock

@@ -1592,7 +1592,6 @@ export class Editor extends EventEmitter<TLEventMap> {
     rotateShapesBy(shapes: TLShape[] | TLShapeId[], delta: number, opts?: {
         center?: VecLike;
     }): this;
-    // (undocumented)
     run(fn: () => void, opts?: TLEditorRunOptions): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;

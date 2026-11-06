@@ -131,7 +131,9 @@ export class PermissionsManager extends EditorManager {
 		const editor = this.editor
 		this.history._withRollback(() => {
 			transaction((rollback) => {
-				const diff = editor.store.extractingChanges(() => this.history.batch(fn))
+				const diff = editor.store.extractingChanges(() =>
+					this.asOneTransaction(() => this.history.batch(fn))
+				)
 				const documentDiff = editor.store.filterChangesByScope(diff, 'document')
 				if (documentDiff) verdict = this.checkChanges(documentDiff, intent)
 				rollback()
@@ -182,6 +184,19 @@ export class PermissionsManager extends EditorManager {
 		}
 	}
 
+	private _inTransaction = false
+
+	/** Run `fn` so that the runs inside it are checked with it, not on their own. */
+	private asOneTransaction(fn: () => void) {
+		if (this._inTransaction) return fn()
+		this._inTransaction = true
+		try {
+			fn()
+		} finally {
+			this._inTransaction = false
+		}
+	}
+
 	/** @internal */
 	reportDenial(denial: TLPermissionDenial) {
 		this._lastDenial.set(denial)
@@ -195,11 +210,13 @@ export class PermissionsManager extends EditorManager {
 	 * @internal
 	 */
 	runChecked(fn: () => void, intent: TLIntent | null) {
+		// only the outermost run is the transaction: inner runs are part of it
+		if (this._inTransaction) return fn()
 		let denial: TLVerdict | null = null
 		const editor = this.editor
 		this.history._withRollback(() => {
 			transaction((rollback) => {
-				const diff = editor.store.extractingChanges(fn)
+				const diff = editor.store.extractingChanges(() => this.asOneTransaction(fn))
 				const documentDiff = editor.store.filterChangesByScope(diff, 'document')
 				if (!documentDiff) return
 				const verdict = this.checkChanges(documentDiff, intent)
