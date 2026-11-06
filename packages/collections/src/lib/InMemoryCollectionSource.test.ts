@@ -35,6 +35,21 @@ function content(): TLCollectionItemContent {
 }
 
 describe('InMemoryCollectionSource', () => {
+	it('lists collections in the order they were added', async () => {
+		const names = Array.from({ length: 24 }, (_, i) => `Collection ${i + 1}`)
+		const source = new InMemoryCollectionSource({
+			initial: {
+				collections: names.slice(0, 12).map((name) => CollectionRecordType.create({ name })),
+				items: [],
+				contents: {},
+			},
+		})
+		for (const name of names.slice(12)) await source.createCollection(name)
+		const first = source.getCollections()[0]
+		await source.renameCollection(first.id, 'Renamed')
+		expect(source.getCollections().map((c) => c.name)).toEqual(['Renamed', ...names.slice(1)])
+	})
+
 	it('creates and renames collections', async () => {
 		const source = new InMemoryCollectionSource()
 		const collection = await source.createCollection('Wireframes')

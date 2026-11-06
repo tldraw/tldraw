@@ -1,4 +1,4 @@
-import type { Computed } from '@tldraw/state'
+import { computed, type Computed } from '@tldraw/state'
 import { Store, StoreSchema } from '@tldraw/store'
 import { structuredClone } from '@tldraw/utils'
 import {
@@ -66,7 +66,15 @@ export class InMemoryCollectionSource implements CollectionSource {
 	private readonly owners: TLCollectionOwner[]
 	private readonly defaultOwnerId: string | undefined
 	private readonly store = new Store<ListingRecord>({ schema, props: {} })
-	private readonly collections = this.store.query.records('collection')
+	// The store lists records in no particular order, so each collection's place is kept here.
+	private readonly addedOrder = new Map<TLCollectionId, number>()
+	private addedCount = 0
+	private readonly storedCollections = this.store.query.records('collection')
+	private readonly collections = computed('in-memory collections', () =>
+		[...this.storedCollections.get()].sort(
+			(a, b) => (this.addedOrder.get(a.id) ?? 0) - (this.addedOrder.get(b.id) ?? 0)
+		)
+	)
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
 	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()
 	private readonly thumbnailUrls = new Map<TLCollectionItemId, string[]>()
@@ -105,6 +113,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 			for (const itemId of Object.keys(contents)) {
 				if (!items.some((i) => i.id === itemId)) throw new Error(`Content ${itemId} has no item`)
 			}
+			for (const collection of collections) this.markAdded(collection.id)
 			this.store.put([...collections, ...items])
 			for (const [itemId, content] of Object.entries(contents)) {
 				this.contents.set(itemId as TLCollectionItemId, parseCollectionItemContent(content))
@@ -161,6 +170,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 			...(ownerId === undefined ? {} : { ownerId }),
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
+		this.markAdded(collection.id)
 		this.store.put([collection])
 		return collection
 	}
@@ -178,6 +188,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		for (const item of items) this.forgetItem(item.id)
 		this.store.remove([collectionId, ...items.map((item) => item.id)])
 		this.itemsByCollection.delete(collectionId)
+		this.addedOrder.delete(collectionId)
 	}
 
 	async addItem(collectionId: TLCollectionId, newItem: TLNewCollectionItem) {
@@ -241,6 +252,10 @@ export class InMemoryCollectionSource implements CollectionSource {
 	dispose() {
 		for (const urls of this.thumbnailUrls.values()) urls.forEach((url) => URL.revokeObjectURL(url))
 		this.thumbnailUrls.clear()
+	}
+
+	private markAdded(collectionId: TLCollectionId) {
+		this.addedOrder.set(collectionId, this.addedCount++)
 	}
 
 	private getCollection(collectionId: TLCollectionId) {
