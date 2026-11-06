@@ -49,7 +49,9 @@
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
 		"build-types": "tsc --build"
 	},
-	"dependencies": {},
+	"dependencies": {
+		"@tldraw/utils": "workspace:*"
+	},
 	"devDependencies": {},
 	"engines": {
 		"node": ">=22.12.0"

@@ -1759,7 +1759,11 @@ importers:
         specifier: ^19.2.1
         version: 19.2.1(@types/react@19.2.7)(react@19.2.1)
 
-  packages/rules: {}
+  packages/rules:
+    dependencies:
+      '@tldraw/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/state:
     dependencies:

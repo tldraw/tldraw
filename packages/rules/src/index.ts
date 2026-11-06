@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
+
 export {
 	RULE_FUNCTIONS,
 	RULE_ROOTS,
@@ -29,3 +31,9 @@ export {
 export { composeRules, type TLRulesFragment } from './lib/compose'
 export { commentRules, userRecordRules } from './lib/presets'
 export { pollPluginRules, useCaseRules } from './lib/use-cases'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)
