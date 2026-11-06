@@ -470,7 +470,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				if (id === undefined || seen.has(id)) continue
 				seen.add(id)
 				const followed = get(id)
-				if (!followed) continue
+				// Fail closed: a shape whose page was deleted on its own would otherwise be sent
+				// to every reader.
+				if (!followed) return false
 				const request = { verb: 'read', record: followed as R } as const
 				if (!this._authorize(actor, request, get, depth + 1, false)) return false
 				queue.push(followed)

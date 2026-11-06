@@ -1350,19 +1350,24 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * operation in `fn` together when `fn` returns, and reverts all of them if any is denied.
 	 * `editor.run` uses this, so a user action is kept or reverted as a whole.
 	 *
+	 * Returns false when the changes were denied (and reverted). Inside another scope, the outer
+	 * scope checks them, so this returns true.
+	 *
 	 * @internal
 	 */
-	withPolicyScope<T>(fn: () => T): T {
-		if (this.policyScope || !this.actor.__unsafe__getWithoutCapture()) return fn()
-		const changes = (this.policyScope = new Map())
-		let result: T
+	withPolicyScope(fn: () => void): boolean {
+		if (this.policyScope || !this.actor.__unsafe__getWithoutCapture()) {
+			fn()
+			return true
+		}
+		const changes: Map<IdOf<R>, { before: R | null; after: R | null }> = new Map()
+		this.policyScope = changes
 		try {
-			result = fn()
+			fn()
 		} finally {
 			this.policyScope = null
 		}
-		if (changes.size > 0) transact(() => this.enforcePolicies(changes))
-		return result
+		return changes.size === 0 || transact(() => this.enforcePolicies(changes))
 	}
 
 	/**
@@ -1407,6 +1412,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private enforcePolicies(changes: Map<IdOf<R>, { before: R | null; after: R | null }>) {
 		const actor = this.actor.__unsafe__getWithoutCapture()!
 		const get = (id: string) => this.records.__unsafe__getWithoutCapture(id as IdOf<R>)
+		const getBefore = (id: string) => {
+			const change = changes.get(id as IdOf<R>)
+			return change ? (change.before ?? undefined) : get(id)
+		}
+		// The sync server lets a session write only what it may read, before and after the
+		// change. Without the same check here, the editor would keep a change that the server
+		// rejects, and lose it on the next sync.
+		const isReadFiltered = this.schema.hasReadRules()
+		const mayRead = (record: R, read: (id: string) => UnknownRecord | undefined) =>
+			this.schema.authorize(actor, { verb: 'read', record }, read)
 		const denied: PolicyRequest<R>[] = []
 		for (const { before, after } of changes.values()) {
 			// Created and deleted again in the same operation: no net change.
@@ -1421,7 +1436,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					: after
 						? { verb: 'create', next: after }
 						: { verb: 'delete', prev: before! }
-			if (request && !this.schema.authorize(actor, request, get)) denied.push(request)
+			if (!request) continue
+			if (
+				(isReadFiltered &&
+					((before && !mayRead(before, getBefore)) || (after && !mayRead(after, get)))) ||
+				!this.schema.authorize(actor, request, get)
+			) {
+				denied.push(request)
+			}
 		}
 		if (denied.length === 0) return true
 
@@ -1445,6 +1467,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 		for (const record of toRestore) this.records.set(record.id, record)
 		this.records.deleteMany(toDelete)
+		// Inside an atomic, the after-handlers have not run yet. Take the reverted changes out
+		// of their queue, or a handler would act on a change that is gone (an after-delete on a
+		// restored shape deletes its bindings).
+		const pending = this.pendingAfterEvents
+		if (pending) {
+			for (const [id, { before }] of changes) {
+				const event = pending.get(id)
+				if (!event) continue
+				event.after = before
+				if (event.before === event.after) pending.delete(id)
+			}
+		}
 		this.updateHistory(reverse)
 		for (const listener of this.policyDeniedListeners) listener(denied)
 		return false

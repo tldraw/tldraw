@@ -103,7 +103,7 @@ describe('schema.authorize', () => {
 		expect(schema.authorize(ann, { verb: 'read', record: n }, get)).toBe(false)
 	})
 
-	it('hides a record whose followed record is hidden, without turning on read filtering', () => {
+	it('hides a record whose followed record is hidden or missing, without turning on read filtering', () => {
 		const { schema, note } = setup({
 			type: { readFollows: (n) => [n.ownerId, 'note:missing'] },
 		})
@@ -119,9 +119,12 @@ describe('schema.authorize', () => {
 				id === parent.id ? parent : undefined
 			)
 		expect(read(child)).toBe(false)
-		expect(read(hidden.note('d', 'note:gone'))).toBe(true)
-		// A followed id that does not exist is skipped.
-		expect(schema.authorize(ann, { verb: 'read', record: note('a', 'x') }, get)).toBe(true)
+		expect(read(hidden.note('d', 'note:gone'))).toBe(false)
+		// A followed id that does not exist hides the record (fail closed), with or without read
+		// rules. An undefined id is not followed.
+		expect(schema.authorize(ann, { verb: 'read', record: note('a', 'x') }, get)).toBe(false)
+		const loose = setup({ type: { readFollows: () => [undefined] } })
+		expect(loose.schema.authorize(ann, { verb: 'read', record: note('a', 'x') }, get)).toBe(true)
 	})
 
 	it('allows everything for records outside the document scope', () => {

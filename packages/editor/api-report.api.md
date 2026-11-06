@@ -2246,6 +2246,8 @@ export class HistoryManager<R extends UnknownRecord> {
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
+    // @internal
+    _restoreIfDenied(fn: () => boolean): void;
     // (undocumented)
     squashToMark(id: string): this;
     // (undocumented)

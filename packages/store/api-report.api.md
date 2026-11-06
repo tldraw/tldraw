@@ -538,7 +538,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
     // @internal
-    withPolicyScope<T>(fn: () => T): T;
+    withPolicyScope(fn: () => void): boolean;
 }
 
 // @public

@@ -1756,7 +1756,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
 			// With an actor set, the record policies keep or revert the whole run as one unit.
-			this.store.withPolicyScope(() => this.history.batch(fn, opts))
+			const runAsUnit = () => this.store.withPolicyScope(() => this.history.batch(fn, opts))
+			if (unsafe__withoutCapture(() => this.store.getActor())) {
+				this.history._restoreIfDenied(runAsUnit)
+			} else {
+				runAsUnit()
+			}
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}

@@ -238,10 +238,13 @@ function softDelete<R extends UnknownRecord & { isDeleted: boolean }>(
  *   of the person who deleted it moves the threads on that shape to a point.
  * - Hard delete: never from a client.
  * - Actions: `resolve` (anyone who may comment), `delete` (the creator, or `comments:manage`).
+ * - Read: follows its page, so a reader who may not read the page gets none of its threads.
+ *   A comment follows its thread, and a reaction follows its comment.
  *
  * @public
  */
 export const commentThreadPolicy: RecordPolicy<TLCommentThread> = {
+	readFollows: (record) => [record.pageId],
 	create: ({ can, actor, next }) =>
 		can('comments:write') &&
 		isOwnedBy(actor, next.createdBy) &&
@@ -294,6 +297,7 @@ export const commentThreadPolicy: RecordPolicy<TLCommentThread> = {
  * @public
  */
 export const commentPolicy: RecordPolicy<TLComment> = {
+	readFollows: (record) => [record.threadId],
 	create: ({ can, actor, next }) =>
 		can('comments:write') && isOwnedBy(actor, next.authorId) && !next.isDeleted,
 	update: (ctx) => {
@@ -331,6 +335,7 @@ export const commentPolicy: RecordPolicy<TLComment> = {
  * @public
  */
 export const commentReactionPolicy: RecordPolicy<TLCommentReaction> = {
+	readFollows: (record) => [record.commentId],
 	create: ({ can, actor, next }) =>
 		can('comments:write') &&
 		isOwnedBy(actor, next.userId) &&

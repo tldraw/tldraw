@@ -67,6 +67,9 @@ afterEach(() => {
 })
 
 const shape = (id: TLShape['id']) => editor.getShape(id)!
+// Past the editor's lock check, as a client that ignores the UI would write.
+const moveDirectly = (id: TLShape['id'], x: number) =>
+	editor.store.update(id, (record) => ({ ...record, x }))
 
 describe('the classroom, as a student', () => {
 	it('stamps the owner on shapes drawn with a tool', () => {
@@ -274,6 +277,74 @@ describe('review cases', () => {
 		setActor(student)
 		expect(editor.isShapeOrAncestorLocked(frameId)).toBe(true)
 		expect(editor.isShapeOrAncestorLocked(own)).toBe(false)
+	})
+
+	it('puts the history back when a run with an allowed undo is denied', () => {
+		editor.markHistoryStoppingPoint('a')
+		editor.updateShape({ id: ids.samBox, type: 'geo', x: 400 })
+		editor.markHistoryStoppingPoint('b')
+		editor.updateShape({ id: ids.samBox, type: 'geo', x: 500 })
+		const undos = editor.getHistory().getNumUndos()
+		editor.run(() => {
+			editor.undo()
+			moveDirectly(ids.teacherBox, 999)
+		})
+		expect(denied).toEqual(['update'])
+		expect([shape(ids.samBox).x, shape(ids.teacherBox).x]).toEqual([500, 0])
+		expect(editor.getHistory().getNumUndos()).toBe(undos)
+		// The next undo stops at the mark, as it would without the denied run.
+		editor.undo()
+		expect(shape(ids.samBox).x).toBe(400)
+		editor.redo()
+		expect(shape(ids.samBox).x).toBe(500)
+	})
+
+	it('keeps the redo stack when a run is denied', () => {
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: ids.samBox, type: 'geo', x: 400 })
+		editor.undo()
+		const redos = editor.getHistory().getNumRedos()
+		editor.run(() => moveDirectly(ids.teacherBox, 999))
+		expect(denied).toEqual(['update'])
+		expect(editor.getHistory().getNumRedos()).toBe(redos)
+		editor.redo()
+		expect(shape(ids.samBox).x).toBe(400)
+	})
+
+	it('does not leave a reverted change in history when a mark is set inside a denied run', () => {
+		editor.markHistoryStoppingPoint()
+		editor.run(() => {
+			editor.updateShape({ id: ids.samBox, type: 'geo', x: 400 })
+			editor.markHistoryStoppingPoint()
+			moveDirectly(ids.teacherBox, 999)
+		})
+		expect(shape(ids.samBox).x).toBe(300)
+		editor.undo()
+		editor.redo()
+		expect(shape(ids.samBox).x).toBe(300)
+	})
+
+	it('runs no after-handler for a change that a denied bail took back', () => {
+		const mark = editor.markHistoryStoppingPoint()
+		const s2 = createShapeId('s2')
+		editor.createShapes([{ id: s2, type: 'geo', x: 600, y: 0 }])
+		const deleted: string[] = []
+		editor.sideEffects.registerAfterDeleteHandler('shape', (s) => void deleted.push(s.id))
+		setActor(viewer)
+		editor.store.atomic(() => editor.bailToMark(mark))
+		expect(denied).toEqual(['delete'])
+		expect(editor.getShape(s2)).toBeDefined()
+		expect(deleted).toEqual([])
+	})
+
+	it('reverts the changes of a run that throws', () => {
+		expect(() =>
+			editor.run(() => {
+				moveDirectly(ids.teacherBox, 999)
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect(shape(ids.teacherBox).x).toBe(0)
 	})
 })
 

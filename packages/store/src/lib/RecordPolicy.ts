@@ -111,7 +111,8 @@ export interface RecordPolicy<R extends UnknownRecord = UnknownRecord> {
 	 * The ids of the records that a record of this type is part of. A reader who may not read one
 	 * of them may not read this record either, whatever the read rules say. So a binding follows
 	 * the two shapes it joins, a shape follows its parent, and a presence follows its page, and a
-	 * reader never gets half of a structure. Ids of records that do not exist are skipped.
+	 * reader never gets half of a structure. An id of a record that does not exist hides the
+	 * record too (fail closed), so a shape left without its page is hidden from everyone.
 	 *
 	 * Unlike a read rule, this hides nothing by itself, so it does not turn on read filtering.
 	 * The lists of all layers apply together.

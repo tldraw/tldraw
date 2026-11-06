@@ -1083,6 +1083,60 @@ describe('access changes, resume, and presence', () => {
 		expect(view().dependents.get(PAGE_2) ?? new Set()).not.toContain(createShapeId('secret'))
 		expect(view().dependents.get(PAGE_1)).toContain(createShapeId('secret'))
 	})
+
+	it('the client and the server agree when a write would hide the record from its writer', () => {
+		const { client, deliver, stored } = setup({ policies: privatePages, seed: seed() })
+		const c = client('ed', createPolicyActor({ id: 'ed', actions: ['document:write'] }))
+		c.store.update(PAGE_1, (p: any) => ({ ...p, meta: { private: true } }))
+		// The client denies it at once, so it never shows a change that the server then drops.
+		expect(c.denied).toEqual([`update ${PAGE_1}`])
+		expect((c.store.get(PAGE_1) as any).meta).toEqual({})
+		deliver()
+		expect((stored(PAGE_1) as any).meta).toEqual({})
+	})
+
+	it('hides a shape whose page was deleted on its own', () => {
+		const { client, deliver } = setup({ policies: privatePages, seed: seed() })
+		const t = client(
+			'teacher',
+			createPolicyActor({ id: 'teacher', actions: ['document:write', 'pages:read-private'] })
+		)
+		const s = client('sam', student)
+		t.store.remove([PAGE_2])
+		deliver()
+		expect(ids(s.store, 'shape')).toEqual([createShapeId('public')])
+	})
+
+	it('hides the comment threads, comments, and reactions on a private page', () => {
+		const thread = createCommentThread({
+			pageId: PAGE_2,
+			anchor: { type: 'page' },
+			createdBy: 'teacher',
+		})
+		const comment = createComment({
+			threadId: thread.id,
+			pageId: PAGE_2,
+			authorId: 'teacher',
+			body: toRichText('answer'),
+		})
+		const reaction = createCommentReaction({
+			commentId: comment.id,
+			threadId: thread.id,
+			pageId: PAGE_2,
+			userId: 'teacher',
+			emoji: '👍',
+		})
+		const { client } = setup({
+			policies: privatePages,
+			seed: [...seed(), thread, comment, reaction],
+		})
+		const s = client('sam', student)
+		const r = client('ria', createPolicyActor({ id: 'ria', actions: ['pages:read-private'] }))
+		const comments = (store: Store<any>) =>
+			['comment-thread', 'comment', 'comment-reaction'].map((t) => ids(store, t).length)
+		expect(comments(s.store)).toEqual([0, 0, 0])
+		expect(comments(r.store)).toEqual([1, 1, 1])
+	})
 })
 
 describe('cost', () => {
