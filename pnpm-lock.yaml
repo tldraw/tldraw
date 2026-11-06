@@ -730,9 +730,6 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
-      fake-indexeddb:
-        specifier: ^4.0.2
-        version: 4.0.2
       identity-obj-proxy:
         specifier: ^3.0.0
         version: 3.0.0
