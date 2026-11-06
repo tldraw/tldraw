@@ -1,4 +1,6 @@
+import type { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { vi } from 'vitest'
+import type { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
 import { ShapeMeasurement } from './boardTools'
 
@@ -166,7 +168,12 @@ export function measurePageHtml(bounds: Record<string, ShapeMeasurement>) {
 // a value rather than part of the key — so a write for new content replaces the old row exactly as
 // `INSERT OR REPLACE` does, a read for a stale version misses, and a write prunes the pages the board
 // no longer has. mcpClusterIndexStorage.test.ts is what holds this fake to the real statements.
-export function makeFakeFileDurableObjectNamespace() {
+export function makeFakeFileDurableObjectNamespace(
+	requestTabRender: (
+		userId: string,
+		request: TabRenderRequest
+	) => Promise<TabRenderOutcome> = async () => ({ status: 'no_tab' })
+) {
 	const objects = new Map<string, Map<string, { version: string; payload: string }>>()
 	const calls = { get: 0, put: 0 }
 	const keyOf = (key: { kind: string; pageId: string }) => `${key.kind}/${key.pageId}`
@@ -199,6 +206,7 @@ export function makeFakeFileDurableObjectNamespace() {
 					}
 					store.set(keyOf(key), { version: key.version, payload })
 				},
+				requestTabRender,
 			}
 		},
 	}

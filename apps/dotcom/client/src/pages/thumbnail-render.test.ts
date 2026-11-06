@@ -12,12 +12,11 @@ import {
 	defaultTldrawOptions,
 } from 'tldraw'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
+import { measureArrow, measureDimensions } from '../utils/boardCapture'
 import {
 	SHAPES_NOT_ON_PAGE,
 	acquireThumbnailRenderData,
 	exportThumbnailImage,
-	measureArrow,
-	measureDimensions,
 	prepareLiveCapture,
 	setThumbnailError,
 	signalThumbnailReady,

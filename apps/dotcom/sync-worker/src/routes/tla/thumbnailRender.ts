@@ -977,17 +977,22 @@ export async function measurePageShapes(
 	}
 }
 
-// The page's result element out of a `/content` response. Malformed boxes are dropped rather than
-// kept: a non-finite value would produce NaN distances and silently detach that shape from the
-// minimum spanning tree.
+// The page's result element out of a `/content` response.
 export function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
 	const html = new TextDecoder().decode(buffer)
 	const match = new RegExp(
 		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
 	).exec(html)
 	if (!match) throw new Error('The render page did not report any measurements')
-	const reported = JSON.parse(match[1]) as Record<string, ThumbnailShapeMeasurement>
+	return readMeasurements(JSON.parse(match[1]))
+}
 
+// What an editor reported, whichever editor that was. Malformed boxes are dropped rather than kept: a
+// non-finite value would produce NaN distances and silently detach that shape from the minimum
+// spanning tree.
+export function readMeasurements(
+	reported: Record<string, ThumbnailShapeMeasurement>
+): Record<string, ShapeMeasurement> {
 	const bounds: Record<string, ShapeMeasurement> = {}
 	for (const [shapeId, box] of Object.entries(reported)) {
 		if (
