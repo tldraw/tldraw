@@ -218,6 +218,37 @@ test.describe('Context menu', async () => {
 		})
 	})
 
+	test('Escape deselects shapes after a canvas click closes the menu', async () => {
+		test.skip(isMobileProject(), 'Mobile emulation does not simulate right-click')
+		await page.mouse.click(200, 200)
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toHaveLength(1)
+
+		await page.mouse.click(200, 200, { button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeVisible()
+		await page.mouse.click(900, 700)
+		await expect(page.getByTestId('context-menu')).toBeHidden()
+
+		await page.mouse.click(200, 200)
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toHaveLength(1)
+		await page.keyboard.press('Escape')
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual([])
+	})
+
+	test('Escape closes the menu before deselecting shapes', async () => {
+		test.skip(isMobileProject(), 'Mobile emulation does not simulate right-click')
+		await page.mouse.click(200, 200, { button: 'right' })
+		await expect(page.getByTestId('context-menu')).toBeVisible()
+		const selectedIds = await page.evaluate(() => editor.getSelectedShapeIds())
+		expect(selectedIds).toHaveLength(1)
+
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('context-menu')).toBeHidden()
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual(selectedIds)
+
+		await page.keyboard.press('Escape')
+		expect(await page.evaluate(() => editor.getSelectedShapeIds())).toEqual([])
+	})
+
 	test('left-click drag with menu open starts brush selection', async () => {
 		test.skip(isMobileProject(), 'Mobile emulation does not simulate right-click')
 		await page.mouse.move(800, 600)

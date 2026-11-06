@@ -117,7 +117,6 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 	const cb = useCallback(
 		(isOpen: boolean) => {
-			const body = editor.getContainerDocument().body
 			if (rContextMenuPagePoint) {
 				rContextMenuPagePoint.current = isOpen ? editor.inputs.getCurrentPagePoint().clone() : null
 			}
@@ -127,17 +126,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				if (onlySelectedShape && editor.isShapeOrAncestorLocked(onlySelectedShape)) {
 					editor.setSelectedShapes([])
 				}
-
-				editor.timers.requestAnimationFrame(() => {
-					body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, {
-						capture: true,
-					})
-				})
 			} else {
-				body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, {
-					capture: true,
-				})
-
 				if (editor.getInstanceState().isCoarsePointer) {
 					suppressDismissUntilRef.current = Date.now() + 500
 
@@ -160,12 +149,27 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 				}
 			}
 		},
-		[editor, preventEscapeFromLosingShapeFocus, rContextMenuPagePoint]
+		[editor, rContextMenuPagePoint]
 	)
 
 	const container = useContainer()
 	const dir = useDirection()
 	const [isOpen, handleOpenChange] = useMenuIsOpen('context menu', cb)
+
+	useEffect(() => {
+		const body = editor.getContainerDocument().body
+		if (isOpen) {
+			body.addEventListener('keydown', preventEscapeFromLosingShapeFocus, { capture: true })
+			return
+		}
+
+		// Canvas clicks close the menu without onOpenChange. Keep intercepting until the
+		// next frame so an Escape that closes the menu cannot also deselect shapes.
+		const frame = editor.timers.requestAnimationFrame(() => {
+			body.removeEventListener('keydown', preventEscapeFromLosingShapeFocus, { capture: true })
+		})
+		return () => editor.timers.cancelAnimationFrame(frame)
+	}, [editor, isOpen, preventEscapeFromLosingShapeFocus])
 
 	// Get the context menu content, either the default component or the user's
 	// override. If there's no menu content, then the user has set it to null,
