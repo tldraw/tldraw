@@ -292,6 +292,38 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
+	 * Provides a way to lock shapes for this editor only, for example the shapes that the current
+	 * user may not change. The editor treats a shape as locked when its `isLocked` prop is true or
+	 * when this returns true, so it cannot be selected, moved, edited, or deleted from the UI. The
+	 * shape's `isLocked` prop does not change, so other users are not affected, and "unlock" does
+	 * not remove this lock.
+	 *
+	 * Like `isLocked`, the lock applies to the shape's descendants too.
+	 *
+	 * @example
+	 * ```ts
+	 * isShapeLocked={(shape) => shape.meta.ownerId !== currentUserId}
+	 * ```
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	isShapeLocked?(shape: TLShape, editor: Editor): boolean
+	/**
+	 * Provides a way to make pages read-only for this editor only. While the current page is
+	 * read-only, {@link Editor.getIsReadonly} is true, so the editor and the UI act as they do in
+	 * read-only mode.
+	 *
+	 * @example
+	 * ```ts
+	 * isPageReadonly={(page) => page.meta.lockedForStudents === true}
+	 * ```
+	 *
+	 * @param page - The page to check.
+	 * @param editor - The editor instance.
+	 */
+	isPageReadonly?(page: TLPage, editor: Editor): boolean
+	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
@@ -375,6 +407,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		isShapeLocked,
+		isPageReadonly,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -385,6 +419,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
+		this._isShapeLocked = isShapeLocked
+		this._isPageReadonly = isPageReadonly
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -992,6 +1028,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+	private readonly _isShapeLocked?: TLEditorOptions['isShapeLocked']
+	private readonly _isPageReadonly?: TLEditorOptions['isPageReadonly']
 
 	@computed
 	private getIsShapeHiddenCache() {
@@ -2286,7 +2324,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// selecting inside a locked frame or group is allowed, mutating is not.
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
-		this.setSelectedShapes(ids.filter((id) => !this.getShape(id)?.isLocked))
+		this.setSelectedShapes(ids.filter((id) => !this.isShapeLocked(id)))
 		return this
 	}
 
@@ -5782,8 +5820,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
+		if (this.isShapeLocked(_shape)) return true
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+	}
+
+	/**
+	 * Check whether a shape itself is locked: its `isLocked` prop is true, or the editor's
+	 * `isShapeLocked` option locks it for this editor. Use {@link Editor.isShapeOrAncestorLocked}
+	 * to include the shape's ancestors.
+	 *
+	 * @param shape - The shape (or shape id) to check.
+	 *
+	 * @public
+	 */
+	isShapeLocked(shape: TLShape | TLShapeId): boolean {
+		const _shape = this.getShape(shape)
+		if (!_shape) return false
+		if (_shape.isLocked) return true
+		return this._isShapeLocked?.(_shape, this) ?? false
 	}
 
 	/**
@@ -5957,7 +6011,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
 			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) continue
 			if (
-				(shape.isLocked && !hitLocked) ||
+				(this.isShapeLocked(shape) && !hitLocked) ||
 				this.isShapeHidden(shape) ||
 				this.isShapeOfType(shape, 'group')
 			) {
@@ -6668,7 +6722,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	getDraggingOverShape(point: Vec, droppingShapes: TLShape[]): TLShape | undefined {
 		// get fresh moving shapes
 		const draggingShapes = compact(droppingShapes.map((s) => this.getShape(s))).filter(
-			(s) => !s.isLocked && !this.isShapeHidden(s)
+			(s) => !this.isShapeLocked(s) && !this.isShapeHidden(s)
 		)
 		// Descendants of the dragged shapes can't be the target, otherwise dragging a frame out of
 		// its parent reports a nested child as the target and the parent never sees the drag leave
@@ -6680,7 +6734,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}).filter(
 			(s) =>
 				!droppingShapes.includes(s) &&
-				!s.isLocked &&
+				!this.isShapeLocked(s) &&
 				!this.isShapeHidden(s) &&
 				!excludedIds.has(s.id)
 		)
@@ -10441,7 +10495,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the editor is in readonly mode
 	 */
 	@computed getIsReadonly() {
-		return this.getInstanceState().isReadonly
+		if (this.getInstanceState().isReadonly) return true
+		if (!this._isPageReadonly) return false
+		const page = this.getCurrentPage()
+		return !!page && this._isPageReadonly(page, this)
 	}
 
 	/**

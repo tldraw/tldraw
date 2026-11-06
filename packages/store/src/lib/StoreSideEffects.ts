@@ -8,7 +8,8 @@ import { Store } from './Store'
  *
  * @param record - The record about to be created
  * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
- * @returns The record to actually create (may be modified)
+ * @returns The record to actually create (may be modified), or `false` to cancel the create. The
+ * `false` return matches {@link StoreBeforeDeleteHandler}, so a handler can veto writes of each kind.
  *
  * @example
  * ```ts
@@ -26,7 +27,7 @@ import { Store } from './Store'
 export type StoreBeforeCreateHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
-) => R
+) => R | false
 /**
  * Handler function called after a record has been successfully created in the store.
  * Use this for side effects that should happen after record creation, such as updating
@@ -254,17 +255,19 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param record - The record about to be created
 	 * @param source - Whether the change originated from 'user' or 'remote'
-	 * @returns The potentially modified record to actually create
+	 * @returns The potentially modified record to actually create, or `false` if a handler canceled it
 	 * @internal
 	 */
-	handleBeforeCreate(record: R, source: 'remote' | 'user') {
+	handleBeforeCreate(record: R, source: 'remote' | 'user'): R | false {
 		if (!this._isEnabled) return record
 
 		const handlers = this._beforeCreateHandlers[record.typeName] as StoreBeforeCreateHandler<R>[]
 		if (handlers) {
 			let r = record
 			for (const handler of handlers) {
-				r = handler(r, source)
+				const result = handler(r, source)
+				if (result === false) return false
+				r = result
 			}
 			return r
 		}
@@ -457,7 +460,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 
 	/**
 	 * Register a handler to be called before a record of a certain type is created. Return a
-	 * modified record from the handler to change the record that will be created.
+	 * modified record from the handler to change the record that will be created, or `false` to
+	 * cancel the create.
 	 *
 	 * Use this handle only to modify the creation of the record itself. If you want to trigger a
 	 * side-effect on a different record (for example, moving one shape when another is created),

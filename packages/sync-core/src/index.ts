@@ -70,10 +70,19 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
+	type TLAuthorizerSession,
 	type TLRecordAuthorizer,
 	type TLRecordAuthorizers,
+	type TLRecordReadAuthorizer,
+	type TLRecordReadAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
+export {
+	checkRecordWrite,
+	registerRecordRules,
+	type TLRecordRules,
+	type TLRecordWrite,
+} from './lib/recordRules'
 export {
 	loadSnapshotIntoStorage,
 	type TLSyncForwardDiff,

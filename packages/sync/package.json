@@ -51,6 +51,7 @@
 		"build-types": "tsc --build"
 	},
 	"devDependencies": {
+		"@tldraw/sync-collaboration": "workspace:*",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"react": "^19.2.1",

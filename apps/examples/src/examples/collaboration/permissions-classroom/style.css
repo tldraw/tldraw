@@ -1,0 +1,59 @@
+.permissions-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
+	gap: 4px;
+	height: 100%;
+	width: 100%;
+	position: absolute;
+	inset: 0;
+	background: #ddd;
+}
+
+.permissions-pane {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	background: white;
+}
+
+.permissions-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	font-size: 12px;
+}
+
+.permissions-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.permissions-role {
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: #eee;
+}
+
+.permissions-controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-left: auto;
+}
+
+.permissions-denials {
+	padding: 0 8px 4px;
+	font-size: 11px;
+	color: #c92a2a;
+	min-height: 14px;
+}
+
+.permissions-canvas {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}

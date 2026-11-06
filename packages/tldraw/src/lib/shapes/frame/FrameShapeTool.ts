@@ -36,7 +36,7 @@ export function getEnclosedShapeIds(editor: Editor, shape: TLShape): TLShapeId[]
 		if (!siblingShape) return
 		// We don't want to frame the frame itself
 		if (siblingShape.id === shape.id) return
-		if (siblingShape.isLocked) return
+		if (editor.isShapeLocked(siblingShape)) return
 
 		const pageShapeBounds = editor.getShapePageBounds(siblingShape)
 		if (!pageShapeBounds) return

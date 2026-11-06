@@ -1,0 +1,126 @@
+import { TLAuthorizerSession, TLRecordRules } from '@tldraw/sync'
+import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
+import {
+	PageRecordType,
+	TLComment,
+	TLCommentReaction,
+	TLCommentThread,
+	TLInstancePresence,
+	TLPage,
+	TLPageId,
+	TLParentId,
+	TLRecord,
+	TLShape,
+	TLShapeId,
+	UnknownRecord,
+} from 'tldraw'
+
+// The rules of one shared board, written once with the existing hook shapes. The server spreads
+// them into `TLSocketRoom`; the client registers them on its store and derives locks from them.
+
+export type Role = 'teacher' | 'student' | 'commenter' | 'viewer' | 'agent'
+
+export interface ClassroomMeta {
+	userId: string
+	role: Role
+	/** For agents: the frame that the agent may write in. */
+	areaId?: TLShapeId
+}
+
+export type ClassroomRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
+type Session = TLAuthorizerSession<ClassroomMeta>
+type Get = (id: string) => UnknownRecord | undefined
+
+/** What the host gives a session at connect, for each role. Share links map to a role. */
+export function accessForRole(role: Role) {
+	return {
+		isReadonly: role === 'commenter' || role === 'viewer',
+		objectAccess: role === 'viewer' ? ('read' as const) : ('write' as const),
+	}
+}
+
+/** Shape types that students may create. Agents and teachers may create any type. */
+export const STUDENT_SHAPE_TYPES = ['draw', 'geo', 'note', 'text', 'arrow', 'highlight']
+
+export function getPageIdOfParent(parentId: TLParentId, get: Get): TLPageId | undefined {
+	let id: string = parentId
+	for (let i = 0; i < 100; i++) {
+		if (PageRecordType.isId(id)) return id
+		const parent = get(id) as TLShape | undefined
+		if (!parent) return undefined
+		id = parent.parentId
+	}
+	return undefined
+}
+
+function isInsideShape(parentId: TLParentId, ancestorId: TLShapeId, get: Get) {
+	let id: string = parentId
+	for (let i = 0; i < 100; i++) {
+		if (id === ancestorId) return true
+		const parent = get(id) as TLShape | undefined
+		if (!parent) return false
+		id = parent.parentId
+	}
+	return false
+}
+
+export function canReadPage(meta: ClassroomMeta, page: TLPage | undefined) {
+	if (!page) return false
+	return !page.meta.private || meta.role === 'teacher'
+}
+
+export function isPageReadonlyFor(meta: ClassroomMeta, page: TLPage | undefined) {
+	return !!page?.meta.readonly && meta.role !== 'teacher'
+}
+
+function canReadOnPage(session: Session, pageId: TLPageId | undefined, get: Get) {
+	return canReadPage(session.meta, get(pageId ?? '') as TLPage | undefined)
+}
+
+function canWriteShape(session: Session, shape: TLShape, get: Get) {
+	const { meta } = session
+	const page = get(getPageIdOfParent(shape.parentId, get) ?? '') as TLPage | undefined
+	if (isPageReadonlyFor(meta, page)) return false
+	if (meta.role === 'teacher') return true
+	if (meta.role === 'agent') return !!meta.areaId && isInsideShape(shape.parentId, meta.areaId, get)
+	return shape.meta.ownerId === meta.userId
+}
+
+export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
+	authorizeRead: {
+		page: ({ session, record }) => canReadPage(session.meta, record),
+		shape: ({ session, record, get }) =>
+			canReadOnPage(session, getPageIdOfParent(record.parentId, get), get),
+		instance_presence: ({ session, record, get }) =>
+			canReadOnPage(session, (record as TLInstancePresence).currentPageId, get),
+		'comment-thread': ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
+		comment: ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
+		'comment-reaction': ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
+	},
+	authorizeRecord: {
+		...createCommentAuthorizers<ClassroomMeta>({
+			getUserId: (session) => session.meta.userId,
+			// commenters may comment on a read-only canvas; viewers are stopped by `objectAccess`
+			canComment: (session) => session.meta.role !== 'viewer',
+			// add own vs manage any: the teacher may take down any comment, but not edit it
+			canModifyComment: (ctx) =>
+				ctx.userId === ctx.ownerId ||
+				(ctx.action !== 'edit-comment' && ctx.session.meta.role === 'teacher'),
+		}),
+		page: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
+		shape: ({ session, type, prev, next, get }) => {
+			const { meta } = session
+			if (type === 'create') {
+				if (meta.role === 'student' && !STUDENT_SHAPE_TYPES.includes(next.type)) return null
+				// the owner is stamped from the session, never trusted from the client
+				const stamped = { ...next, meta: { ...next.meta, ownerId: meta.userId } }
+				return canWriteShape(session, stamped, get) ? stamped : null
+			}
+			if (!canWriteShape(session, prev, get)) return null
+			if (type === 'delete') return prev
+			if (next.meta.ownerId !== prev.meta.ownerId) return null
+			// "before and after": a move must not take the shape somewhere the session may not write
+			return canWriteShape(session, next, get) ? next : null
+		},
+	},
+}

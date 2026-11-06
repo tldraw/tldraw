@@ -74,7 +74,7 @@ export class EditingShape extends StateNode {
 		// and if they are, we need to transition to translating instead.
 		if (this.hitLabelOnShapeForPointerUp && this.editor.inputs.getIsDragging()) {
 			if (this.editor.getIsReadonly()) return
-			if (this.hitLabelOnShapeForPointerUp.isLocked) return
+			if (this.editor.isShapeLocked(this.hitLabelOnShapeForPointerUp)) return
 
 			this.editor.select(this.hitLabelOnShapeForPointerUp)
 			this.parent.transition('translating', info)
@@ -87,7 +87,7 @@ export class EditingShape extends StateNode {
 			if (this.editor.getIsReadonly()) return
 
 			const editingShape = this.editor.getEditingShape()
-			if (!editingShape || editingShape.isLocked) return
+			if (!editingShape || this.editor.isShapeLocked(editingShape)) return
 
 			if (!this.isTextInputFocused()) {
 				// Input blurred during drag - exit edit mode and start translating
@@ -212,7 +212,7 @@ export class EditingShape extends StateNode {
 
 		// Stay in edit mode to maintain flow of editing.
 		const util = this.editor.getShapeUtil(hitShape)
-		if (hitShape.isLocked) return
+		if (this.editor.isShapeLocked(hitShape)) return
 
 		if (this.editor.getIsReadonly()) {
 			if (!util.canEditInReadonly(hitShape)) {

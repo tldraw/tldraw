@@ -71,7 +71,7 @@ export class DragAndDropManager {
 
 		const zIndexById = new Map(editor.getCurrentPageShapesSorted().map((s, i) => [s.id, i]))
 		this.shapesToActuallyMove = Array.from(shapesToActuallyMove)
-			.filter((s) => !s.isLocked)
+			.filter((s) => !editor.isShapeLocked(s))
 			.sort((a, b) => zIndexById.get(a.id)! - zIndexById.get(b.id)!)
 
 		this.initialDraggingOverShape = editor.getDraggingOverShape(point, this.shapesToActuallyMove)

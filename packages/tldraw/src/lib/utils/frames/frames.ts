@@ -50,7 +50,9 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
  * @internal
  */
 export function getFrameableShapeIds(editor: Editor, ids: TLShapeId[]): TLShapeId[] {
-	const unlocked = compact(ids.map((id) => editor.getShape(id))).filter((shape) => !shape.isLocked)
+	const unlocked = compact(ids.map((id) => editor.getShape(id))).filter(
+		(shape) => !editor.isShapeLocked(shape)
+	)
 	// Check bound targets against the unlocked set rather than `ids`: a locked target stays out
 	// of the frame, so its arrow must too. Arrows can't bind to arrows, so one pass is enough.
 	const unlockedIds = new Set(unlocked.map((shape) => shape.id))

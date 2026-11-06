@@ -7,7 +7,12 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import {
+	RoomSnapshot,
+	TLRecordAuthorizers,
+	TLRecordReadAuthorizers,
+	TLSyncRoom,
+} from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -151,6 +156,14 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
+	 * Per-type read rules: the room sends each session only the records it may read, and rejects
+	 * its writes to other records. Use it for private pages or hidden areas. See
+	 * {@link TLRecordReadAuthorizers}. To change what a session may read because its access
+	 * changed, close the session with {@link TLSocketRoom.closeSession}; the client reconnects
+	 * and gets a new, filtered hydration.
+	 */
+	authorizeRead?: TLRecordReadAuthorizers<R, SessionMeta>
+	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
@@ -281,6 +294,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			authorizeRead: opts.authorizeRead,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

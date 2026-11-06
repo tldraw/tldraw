@@ -125,7 +125,7 @@ export function updateArrowTargetState({
 		margin: arrowKind === 'elbow' ? 8 : [8, 0],
 		filter: (targetShape) => {
 			return (
-				!targetShape.isLocked &&
+				!editor.isShapeLocked(targetShape) &&
 				editor.canBindShapes({
 					fromShape: arrow ?? targetFilterFallback,
 					toShape: targetShape,
