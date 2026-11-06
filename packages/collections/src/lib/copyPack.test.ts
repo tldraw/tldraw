@@ -1,7 +1,7 @@
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import type { CollectionPack } from './CollectionPack'
-import { copyPack, getPackCopyMeta } from './copyPack'
+import { copyPack } from './copyPack'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
 import type { TLCollectionItemContent } from './schema'
 
@@ -35,11 +35,11 @@ const owners = [
 ]
 
 describe('copyPack', () => {
-	it('copies a pack as an ordinary collection that names the pack it came from', async () => {
+	it('copies a pack as an ordinary collection, with the meta it is given', async () => {
 		const source = new InMemoryCollectionSource({ owners })
-		const copy = await copyPack(source, pack, { ownerId: 'acme', name: 'Wireframing 2' })
-		expect(copy).toMatchObject({ name: 'Wireframing 2', ownerId: 'acme' })
-		expect(getPackCopyMeta(copy)).toEqual({ packId: 'wireframing', packVersion: 3 })
+		const meta = { from: 'wireframing' }
+		const copy = await copyPack(source, pack, { ownerId: 'acme', meta })
+		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'acme', meta })
 		const items = source.getItems(copy.id)
 		expect(items.map((item) => item.name)).toEqual(['Button', undefined])
 		expect(await source.getItemContent(items[0].id)).toEqual(content('button'))
@@ -47,14 +47,16 @@ describe('copyPack', () => {
 		expect(source.can('addItem', copy.id)).toBe(true)
 	})
 
-	it("uses the pack's name and the source's default owner unless told otherwise", async () => {
+	it("uses the source's default owner and no meta unless told otherwise", async () => {
 		const source = new InMemoryCollectionSource({ owners, defaultOwnerId: 'home' })
 		const copy = await copyPack(source, pack)
-		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'home' })
+		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'home', meta: {} })
 	})
 
-	it('names no pack for a collection made any other way', async () => {
-		const source = new InMemoryCollectionSource()
-		expect(getPackCopyMeta(await source.createCollection('Kit'))).toBeUndefined()
+	it("numbers the copy's name when the source already has one by the pack's name", async () => {
+		const source = new InMemoryCollectionSource({ owners })
+		await source.createCollection('Wireframing')
+		const copy = await copyPack(source, pack)
+		expect(copy.name).toBe('Wireframing 1')
 	})
 })

@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
 	defineMessages,
 	getIncrementedName,
@@ -6,11 +7,9 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import type { CollectionPack } from '../lib/CollectionPack'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { CollectionMenu } from '../ui/collection-menu'
 import { createNewCollection } from './new-collection'
-import { useOpenPackCatalogue } from './pack-catalogue-dialog'
 import { activeCollectionId, renamingCollectionId } from './state'
 
 const messages = defineMessages({
@@ -26,18 +25,17 @@ const messages = defineMessages({
 	},
 })
 
-/** The panel's header: its title, and a ⋯ menu to make a new collection or browse packs. */
+/** The panel's header: its title, and a ⋯ menu to make a new collection and the host's own items. */
 export function CollectionsPanelHeader({
 	source,
-	catalogue,
+	menuItems,
 }: {
 	source: CollectionSource
-	catalogue?: readonly CollectionPack[]
+	menuItems?: ReactNode
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
-	const openCatalogue = useOpenPackCatalogue(source, catalogue)
 	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
 		source,
 	])
@@ -68,8 +66,9 @@ export function CollectionsPanelHeader({
 				<CollectionMenu
 					id="collections-panel-menu"
 					onCreate={canCreate ? createCollection : undefined}
-					onBrowse={openCatalogue}
-				/>
+				>
+					{menuItems}
+				</CollectionMenu>
 			</div>
 		</header>
 	)

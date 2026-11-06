@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
 	defineMessages,
 	TldrawUiButton,
@@ -20,7 +21,6 @@ const messages = defineMessages({
 	reverse: { id: 'collections.collection-menu.reverse', defaultMessage: 'Reverse order' },
 	move: { id: 'collections.collection-menu.move', defaultMessage: 'Move to' },
 	copy: { id: 'collections.collection-menu.copy', defaultMessage: 'Copy to' },
-	browse: { id: 'collections.collection-menu.browse', defaultMessage: 'Browse collections…' },
 })
 
 /** @public */
@@ -67,10 +67,10 @@ export interface CollectionMenuProps {
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: CollectionMenuCopy
 	/**
-	 * "Browse collections…", which opens the catalogue of packs. Offered in a read-only editor too:
-	 * adding a pack copies it into the user's own collections, not into the document.
+	 * Items of the host's own, placed after "New collection", e.g. {@link CollectionMenuItem}s. Shown
+	 * in a read-only editor too, so leave out any that change the document.
 	 */
-	onBrowse?(): void
+	children?: ReactNode
 }
 
 /**
@@ -85,7 +85,7 @@ export function CollectionMenu({
 	sort,
 	move,
 	copy,
-	onBrowse,
+	children,
 }: CollectionMenuProps) {
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
@@ -94,7 +94,7 @@ export function CollectionMenu({
 	const remove = isReadonly ? undefined : onDelete
 	const moveTo = isReadonly ? undefined : move
 	const copyTo = isReadonly ? undefined : copy
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !onBrowse) return null
+	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -116,7 +116,7 @@ export function CollectionMenu({
 			>
 				<TldrawUiDropdownMenuGroup>
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
-					{onBrowse && <MenuItem label={msg(messages.browse)} onClick={onBrowse} />}
+					{children}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
 						<MenuSubmenu id={`${id}-sort`} label={msg(messages.sort)}>
