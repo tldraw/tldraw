@@ -31,12 +31,6 @@ export interface TLCollectionOwner {
 	 * pack shipped with an app. Absent means false.
 	 */
 	readOnly?: boolean
-	/**
-	 * True for the current user's own space, such as their personal workspace. The panel then
-	 * speaks of it as theirs, e.g. "New private collection" rather than "New collection in" its
-	 * name. Absent means false.
-	 */
-	private?: boolean
 }
 
 /** Choices for a new collection. */

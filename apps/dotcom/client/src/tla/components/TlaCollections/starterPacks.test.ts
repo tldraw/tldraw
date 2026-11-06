@@ -5,7 +5,7 @@ import { addStarterPack, getStarterPackId, isStarterPackAdded } from './starterP
 const pack: CollectionPack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
 
 const owners = [
-	{ id: 'home', name: 'Private to you', private: true },
+	{ id: 'home', name: 'Private to you' },
 	{ id: 'acme', name: 'Acme' },
 ]
 

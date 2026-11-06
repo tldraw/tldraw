@@ -20,10 +20,6 @@ const messages = defineMessages({
 		id: 'collections.group.new-collection',
 		defaultMessage: 'New collection in {name}',
 	},
-	newPrivateCollection: {
-		id: 'collections.group.new-private-collection',
-		defaultMessage: 'New private collection',
-	},
 	newCollectionName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
@@ -111,9 +107,7 @@ export function CollectionGroupSection({
 		)
 	}
 
-	const addLabel = owner?.private
-		? msg(messages.newPrivateCollection)
-		: msg(messages.newCollectionIn, { name: label })
+	const addLabel = msg(messages.newCollectionIn, { name: label })
 
 	return (
 		<section className="tlui-collections-group" aria-label={label}>

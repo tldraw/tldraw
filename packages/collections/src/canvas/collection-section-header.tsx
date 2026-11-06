@@ -27,16 +27,8 @@ const messages = defineMessages({
 	},
 	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
 	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
-	movedToPrivate: {
-		id: 'collections.moved.description-private',
-		defaultMessage: 'Moved to your private collections.',
-	},
 	copiedTitle: { id: 'collections.copied.title', defaultMessage: 'Copied' },
 	copiedDescription: { id: 'collections.copied.description', defaultMessage: 'Copied to {name}.' },
-	copiedToPrivate: {
-		id: 'collections.copied.description-private',
-		defaultMessage: 'Copied to your private collections.',
-	},
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
 		defaultMessage: "Couldn't change collections",
@@ -129,11 +121,7 @@ export function CollectionSectionHeader({
 		source.moveCollection(collectionId, ownerId).then(() => {
 			addToast({
 				title: msg(messages.movedTitle),
-				description:
-					owner &&
-					msg(owner.private ? messages.movedToPrivate : messages.movedDescription, {
-						name: owner.name,
-					}),
+				description: owner && msg(messages.movedDescription, { name: owner.name }),
 			})
 		}, showError)
 	}
@@ -143,11 +131,7 @@ export function CollectionSectionHeader({
 		copyCollection(source, collectionId, ownerId).then(() => {
 			addToast({
 				title: msg(messages.copiedTitle),
-				description:
-					owner &&
-					msg(owner.private ? messages.copiedToPrivate : messages.copiedDescription, {
-						name: owner.name,
-					}),
+				description: owner && msg(messages.copiedDescription, { name: owner.name }),
 			})
 		}, showError)
 	}

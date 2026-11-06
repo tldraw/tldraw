@@ -45,7 +45,7 @@ const BOARD_OWNER = { id: 'board', name: 'This board' }
 const PERSONAL = 'home'
 const ACME = 'acme'
 const OWNERS = [
-	{ id: PERSONAL, name: 'Private to you', private: true },
+	{ id: PERSONAL, name: 'Private to you' },
 	{ id: ACME, name: 'Acme workspace' },
 ]
 

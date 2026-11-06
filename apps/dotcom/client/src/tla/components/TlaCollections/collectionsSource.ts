@@ -70,7 +70,7 @@ export class TldrawAppCollectionsSource implements CollectionSource {
 		const memberships = this.app.getWorkspaceMemberships()
 		// The collections UI names the home workspace for who sees it, not by its name.
 		return [
-			{ id: homeId, name: this.app.msg(messages.privateToYou), private: true },
+			{ id: homeId, name: this.app.msg(messages.privateToYou) },
 			...memberships.flatMap((m) =>
 				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
 			),
