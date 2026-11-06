@@ -574,3 +574,8 @@
 .tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
 	background: var(--tl-color-panel);
 }
+
+.tlui-collections-panel > .tlui-collections-panel__header .tlui-button[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
