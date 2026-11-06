@@ -44,12 +44,23 @@ const PEOPLE: Person[] = [
 	{ id: 'carol', name: 'Carol (comment link)', color: '#f08c00', role: 'commenter' },
 ]
 
+const ANSWERS = PageRecordType.createId('answers')
+
+// What the teacher controls. The host (local.room) acts on these; the panes show them.
+const aliceCanEdit = atom('alice can edit', true)
+const answersShared = atom('answers shared with alice', false)
+const carolHasAccess = atom('carol has access', true)
+const roleOf: Record<string, keyof typeof ROLES> = Object.fromEntries(
+	PEOPLE.map((p) => [p.id, p.role])
+)
+
 // one stable connect function and user store per person, so useSync connects once
 const SESSIONS = Object.fromEntries(
 	PEOPLE.map((p) => [
 		p.id,
 		{
-			connect: local.connectAs(p.id, actor(p.id, p.role)),
+			// read at each connect, so a reconnect gets the actor the host gives now
+			connect: local.connectAs(p.id, () => actor(p.id, roleOf[p.id])),
 			users: {
 				currentUser: atom(
 					'user',
@@ -63,10 +74,16 @@ const SESSIONS = Object.fromEntries(
 const CommandsContext = createContext<{ commands: TLSyncCommandsApi; userId: string } | null>(null)
 
 export default function CommandPermissionsExample() {
+	// the server closes a session that loses read; when access comes back, Carol opens the file again
+	const carolKey = useValue(
+		'carol access',
+		() => (carolHasAccess.get() ? 'carol' : 'carol-off'),
+		[]
+	)
 	return (
 		<div className="cp-grid">
 			{PEOPLE.map((person) => (
-				<Pane key={person.id} person={person} />
+				<Pane key={person.id === 'carol' ? carolKey : person.id} person={person} />
 			))}
 		</div>
 	)
@@ -89,11 +106,12 @@ function Pane({ person }: { person: Person }) {
 			timer.current = setTimeout(() => setDenied(null), 2500)
 		},
 	})
+	const commands = store.status === 'synced-remote' ? store.commands : null
 
 	const onMount = useCallback(
 		(editor: Editor) => {
 			setEditor(editor)
-			if (person.role === 'teacher') seedLesson(editor)
+			if (person.role === 'teacher' && commands) seedLesson(editor, commands)
 			// the teacher's lesson reaches the other panes a moment later; fit it once it arrives
 			const stop = react('fit lesson', () => {
 				if (editor.getCurrentPageShapes().length < 4) return
@@ -103,17 +121,28 @@ function Pane({ person }: { person: Person }) {
 				}, 0)
 			})
 		},
-		[person.role]
+		[person.role, commands]
 	)
 
-	if (store.status !== 'synced-remote' || !store.commands) {
+	if (store.status === 'error') {
+		return (
+			<div
+				className="cp-pane cp-loading"
+				style={{ '--cp-color': person.color } as React.CSSProperties}
+			>
+				<strong>{person.name}</strong>
+				<span>You no longer have access to this file.</span>
+			</div>
+		)
+	}
+	if (!commands) {
 		return <div className="cp-pane cp-loading">Connecting…</div>
 	}
 
 	return (
-		<CommandsContext.Provider value={{ commands: store.commands, userId: person.id }}>
+		<CommandsContext.Provider value={{ commands, userId: person.id }}>
 			<div className="cp-pane" style={{ '--cp-color': person.color } as React.CSSProperties}>
-				<PaneHeader person={person} editor={editor} commands={store.commands} />
+				<PaneHeader person={person} editor={editor} commands={commands} />
 				<div className="cp-canvas">
 					<Tldraw store={store} components={components} onMount={onMount} />
 					{denied && <div className="cp-denied">Not allowed: {denied}</div>}
@@ -134,7 +163,10 @@ function PaneHeader({
 }) {
 	const permissions = useValue('permissions', () => commands.getActor().permissions, [commands])
 	const selected = useValue('selected', () => editor?.getOnlySelectedShape() ?? null, [editor])
-	const [aliceCanEdit, setAliceCanEdit] = useState(true)
+	const [online, setOnline] = useState(true)
+	const canEditAlice = useValue(aliceCanEdit)
+	const shared = useValue(answersShared)
+	const carolAccess = useValue(carolHasAccess)
 
 	// [3]
 	const run = (name: string, args: unknown) => commands.run(name, args)
@@ -148,14 +180,19 @@ function PaneHeader({
 			<div className="cp-actions">
 				<button
 					disabled={!selected || !commands.can('votes:cast')}
-					onClick={() => selected && run('votes.toggle', { shapeId: selected.id })}
+					onClick={() => {
+						if (!selected || !editor) return
+						editor.markHistoryStoppingPoint('vote')
+						run('votes.toggle', { shapeId: selected.id })
+					}}
 				>
 					Vote on selection
 				</button>
 				<button
 					disabled={!editor}
-					onClick={() =>
-						editor &&
+					onClick={() => {
+						if (!editor) return
+						editor.markHistoryStoppingPoint('comment')
 						run('comments.add', {
 							threadId: 'comment-thread:' + uniqueId(),
 							commentId: 'comment:' + uniqueId(),
@@ -164,10 +201,22 @@ function PaneHeader({
 							body: toRichText(`Hello from ${person.name}`),
 							now: Date.now(),
 						})
-					}
+					}}
 				>
 					Comment
 				</button>
+				<label title="Drop this client's connection. Edits and commands wait, then go to the server on reconnect.">
+					<input
+						type="checkbox"
+						checked={online}
+						onChange={(e) => {
+							setOnline(e.target.checked)
+							// [9]
+							local.setOnline(person.id, e.target.checked)
+						}}
+					/>
+					Online
+				</label>
 				{person.role === 'teacher' && (
 					<>
 						<button
@@ -180,17 +229,45 @@ function PaneHeader({
 						<label>
 							<input
 								type="checkbox"
-								checked={aliceCanEdit}
+								checked={canEditAlice}
 								onChange={(e) => {
-									setAliceCanEdit(e.target.checked)
+									aliceCanEdit.set(e.target.checked)
+									roleOf.alice = e.target.checked ? 'student' : 'mutedStudent'
 									// [4]
-									local.room.updateSessionActor(
-										'alice',
-										actor('alice', e.target.checked ? 'student' : 'mutedStudent')
-									)
+									local.room.updateSessionActor('alice', actor('alice', roleOf.alice))
 								}}
 							/>
 							Alice can edit
+						</label>
+						<label>
+							<input
+								type="checkbox"
+								checked={shared}
+								onChange={(e) => {
+									answersShared.set(e.target.checked)
+									// [7]
+									run('pages.setReaders', {
+										id: ANSWERS,
+										readers: e.target.checked ? ['alice'] : [],
+									})
+								}}
+							/>
+							Share answers with Alice
+						</label>
+						<label>
+							<input
+								type="checkbox"
+								checked={carolAccess}
+								onChange={(e) => {
+									carolHasAccess.set(e.target.checked)
+									roleOf.carol = e.target.checked ? 'commenter' : 'noAccess'
+									// [8]
+									if (!e.target.checked) {
+										local.room.updateSessionActor('carol', actor('carol', 'noAccess'))
+									}
+								}}
+							/>
+							Carol has access
 						</label>
 						<button onClick={askAgent}>Ask the agent</button>
 					</>
@@ -306,7 +383,7 @@ const components: TLComponents = {
 	),
 }
 
-function seedLesson(editor: Editor) {
+function seedLesson(editor: Editor, commands: TLSyncCommandsApi) {
 	if (editor.getCurrentPageShapes().length > 0) return
 	const frame = (x: number, y: number, name: string, meta: TLShape['meta']) =>
 		editor.createShape({
@@ -326,6 +403,17 @@ function seedLesson(editor: Editor) {
 		y: 0,
 		props: { richText: toRichText('Draw your idea in your area. Vote for the best one!') },
 	})
+	// [7] a page only the teacher can read, until the teacher shares it
+	commands.run('pages.create', { id: ANSWERS, name: 'Answers (teacher only)' })
+	commands.run('pages.setReaders', { id: ANSWERS, readers: [] })
+	editor.createShape({
+		type: 'note',
+		parentId: ANSWERS,
+		x: 0,
+		y: 0,
+		props: { richText: toRichText('Answer: the water cycle has four stages.') },
+	})
+	editor.clearHistory()
 }
 
 let agent: ReturnType<LocalRoom['headlessClient']> | null = null
@@ -356,7 +444,8 @@ you cannot edit acts locked instead of moving and jumping back.
 
 [3]
 A command is a name and JSON args. New ids and timestamps go in the args, so the client and the
-server make the same records.
+server make the same records. A command that returns its inverse goes on the undo stack: press
+Cmd+Z after a vote or a comment, and the client sends the inverse command.
 
 [4]
 The host changes a session's actor while it is open. Alice's canvas turns read-only at once, and her
@@ -368,4 +457,16 @@ teacher's note, which the edit lane would never let them change.
 
 [6]
 canEdit runs the shared edit policy, so the UI can show what is locked before you try.
+
+[7]
+The "Answers" page has readers set to nobody, so only the teacher (who manages pages) gets it. The
+server never sends it, or its shapes, comments, and cursors, to the students. Sharing it with Alice
+sends it to her at once; unsharing removes it, and her editor moves to another page.
+
+[8]
+Removing read closes Carol's session at once. Turning it back on lets her open the file again.
+
+[9]
+Take a pane offline, vote and comment, then come back online. The client sends the commands again
+as commands with their ids, so the server applies each one once.
 */

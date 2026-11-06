@@ -2,6 +2,7 @@ import { defineCommand, defineCommandSet, type TLCommandActor } from '@tldraw/sy
 import {
 	commentCommands,
 	createOwnedShapesPolicy,
+	createPageReadPolicy,
 	getShapeOwner,
 	pageCommands,
 	TLDRAW_PERMISSIONS as P,
@@ -34,6 +35,8 @@ const voteToggle = defineCommand<TLRecord, { shapeId: string }>({
 		const votes = Array.isArray(shape.meta.votes) ? (shape.meta.votes as string[]) : []
 		const next = votes.includes(userId) ? votes.filter((v) => v !== userId) : [...votes, userId]
 		ctx.update<TLShape>(shape.id, { meta: { ...shape.meta, votes: next } })
+		// the inverse puts the vote on the undo stack: undo sends votes.toggle again
+		return { name: 'votes.toggle', args: { shapeId } }
 	},
 })
 
@@ -85,16 +88,20 @@ export const classroomCommands = defineCommandSet<TLRecord>({
 		canUseParent: (actor, parent) =>
 			getShapeOwner(parent) === actor.userId || parent.meta.assignee === actor.userId,
 	}),
+	// [4] The read side. A page with readers set by pages.setReaders is only for them (and for
+	// whoever manages pages). Its shapes, bindings, comments, and cursors follow it.
+	read: createPageReadPolicy(),
 })
 
-// [4] Roles are lists of permissions. The host picks one per session, for example from a share
+// [5] Roles are lists of permissions. The host picks one per session, for example from a share
 // link or a class roster, and can change it while the session is open.
 export const ROLES = {
 	teacher: ['*'],
-	student: [P.edit, P.writeComments, 'votes:cast'],
-	mutedStudent: [P.writeComments, 'votes:cast'],
-	commenter: [P.writeComments],
-	agent: ['agent:notes'],
+	student: [P.read, P.edit, P.writeComments, 'votes:cast'],
+	mutedStudent: [P.read, P.writeComments, 'votes:cast'],
+	commenter: [P.read, P.writeComments],
+	noAccess: [],
+	agent: [P.read, 'agent:notes'],
 } satisfies Record<string, string[]>
 
 export function actor(userId: string, role: keyof typeof ROLES): TLCommandActor {
