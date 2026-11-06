@@ -19,7 +19,7 @@ export function onMovePage(
 
 	let index: IndexKey
 
-	const pages = editor.getPages()
+	const pages = editor.getVisiblePages()
 
 	const below = from > to ? pages[to - 1] : pages[to]
 	const above = from > to ? pages[to] : pages[to + 1]

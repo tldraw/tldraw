@@ -881,7 +881,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, getPageVisibility, canWrite, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -927,6 +927,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     canEditShape<T extends TLShape | TLShapeId>(shape: null | T, info?: TLEditStartInfo): shape is T;
     canRedo(): boolean;
     canUndo(): boolean;
+    canWrite(write: TLRecordWrite): boolean;
     // @internal (undocumented)
     capturedPointerId: null | number;
     centerOnPoint(point: VecLike, opts?: TLCameraMoveOptions): this;
@@ -1457,6 +1458,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getViewportScreenCenter(): Vec;
     getVisibleCollaborators(): TLInstancePresence[];
     getVisibleCollaboratorsOnCurrentPage(): TLInstancePresence[];
+    getVisiblePages(): TLPage[];
     getZoomLevel(): number;
     groupShapes(shapes: TLShape[], opts?: Partial<{
         groupId: TLShapeId;
@@ -1488,6 +1490,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
+    isPageHidden(page: TLPage | TLPageId): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;
@@ -3802,12 +3805,14 @@ export interface TldrawEditorBaseProps {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
+    canWrite?: TLEditorOptions['canWrite'];
     children?: ReactNode;
     className?: string;
     colorScheme?: 'dark' | 'light' | 'system';
     components?: TLEditorComponents;
     // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
+    getPageVisibility?: TLEditorOptions['getPageVisibility'];
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     i18n?: TLI18nAdapter;
     initialState?: string;
@@ -4008,12 +4013,14 @@ export interface TLEditorOptions {
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
+    canWrite?(write: TLRecordWrite, editor: Editor): boolean;
     colorScheme?: 'dark' | 'light' | 'system';
     // (undocumented)
     fontAssetUrls?: {
         [key: string]: string | undefined;
     };
     getContainer(): HTMLElement;
+    getPageVisibility?(page: TLPage, editor: Editor): 'hidden' | 'visible' | null | undefined;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
     i18n?: TLI18nAdapter;
     initialState?: string;
@@ -4655,6 +4662,14 @@ export type TLPointerEventTarget = {
     shape?: undefined;
     target: 'canvas';
 };
+
+// @public
+export interface TLRecordWrite {
+    // (undocumented)
+    record: TLRecord;
+    // (undocumented)
+    type: 'create' | 'delete' | 'update';
+}
 
 // @public (undocumented)
 export interface TLRenderingShape {

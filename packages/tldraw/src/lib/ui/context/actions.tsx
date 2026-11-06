@@ -1871,7 +1871,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
-					const pages = editor.getPages()
+					const pages = editor.getVisiblePages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 					if (currentPageIndex < 1) return
 					trackEvent('change-page', { source, direction: 'prev' })
@@ -1885,7 +1885,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
-					const pages = editor.getPages()
+					const pages = editor.getVisiblePages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 
 					// If we're on the last page...

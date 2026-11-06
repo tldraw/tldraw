@@ -119,7 +119,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const rSortableContainer = useRef<HTMLDivElement>(null)
 
-	const pages = useValue('pages', () => editor.getPages(), [editor])
+	const pages = useValue('pages', () => editor.getVisiblePages(), [editor])
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
 
 	const isReadonlyMode = useReadonly()
@@ -271,7 +271,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		editor.timers.requestAnimationFrame(() => {
 			const container = rSortableContainer.current
 			if (!container) return
-			const currentIndex = editor.getPages().findIndex((p) => p.id === currentPage.id)
+			const currentIndex = editor.getVisiblePages().findIndex((p) => p.id === currentPage.id)
 			if (currentIndex === -1) return
 
 			const doc = editor.getContainerDocument()
