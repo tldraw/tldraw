@@ -132,11 +132,11 @@ export class PermissionsManager extends EditorManager {
 		const checkpoint = this.history._checkpoint()
 		const previousScope = this._scope
 		// a dry run: the runs inside it join it, and nothing is reported
-		this._scope = { transaction: null, touched: new Set(), dryRun: true }
+		this._scope = { dryRun: true }
 		try {
 			transaction((rollback) => {
 				const diff = editor.store.extractingChanges(() => this.history.batch(fn))
-				const documentDiff = documentChanges(editor, diff, this._scope!.touched)
+				const documentDiff = documentChanges(editor, diff)
 				if (documentDiff) verdict = this.checkChanges(documentDiff, intent)
 				rollback()
 			})
@@ -151,8 +151,17 @@ export class PermissionsManager extends EditorManager {
 	 * Run the named mutator locally as a prediction. The push carries the intent, and the server
 	 * runs the same mutator and keeps its own result. A mutator that throws is denied: nothing
 	 * changes, and the editor emits `permission-denied` with the error's message.
+	 *
+	 * Called inside an `editor.run` (a tool's event handler, for example), the mutator runs when
+	 * that run ends, as its own action. So code later in the same run does not see its result.
+	 * The server checks each push on its own, so the client does the same: a mutator never takes
+	 * part in, or hides, the check of the run around it.
 	 */
 	mutate(name: string, args?: JsonValue) {
+		if (this._scope && !this._scope.dryRun) {
+			this._deferred.push({ name, args })
+			return
+		}
 		const mutator = getOwnProperty(this.getPermissions()?.mutators ?? {}, name)
 		if (!mutator) throw new Error(`No mutator named "${name}"`)
 		const store = this.editor.store
@@ -167,7 +176,7 @@ export class PermissionsManager extends EditorManager {
 		}
 		const intent = { name, args }
 		let error: unknown = null
-		this.editor.run(
+		this.editor._run(
 			() => {
 				// A throwing mutator is a denial, as on the server: undo its partial writes and their
 				// history, and keep the throw from crashing the editor.
@@ -183,7 +192,8 @@ export class PermissionsManager extends EditorManager {
 				this.revert(store.filterChangesByScope(diff, 'document'))
 				checkpoint.rollback()
 			},
-			{ intent }
+			undefined,
+			intent
 		)
 		if (error) {
 			this.reportDenial({
@@ -200,17 +210,12 @@ export class PermissionsManager extends EditorManager {
 		this.editor.emit('permission-denied', denial)
 	}
 
-	/**
-	 * The checked run in progress. Runs inside it that share its store transaction join it;
-	 * a run that starts its own transaction (one with its own intent) is checked on its own, as
-	 * the server will check its push on its own.
-	 */
-	private _scope: {
-		transaction: StoreTransaction | null
-		/** document ids changed by runs checked on their own inside this one */
-		touched: Set<string>
-		dryRun: boolean
-	} | null = null
+	/** The checked run in progress. Runs inside it join it. */
+	private _scope: { dryRun: boolean } | null = null
+	/** Mutators called inside the checked run in progress. They run when it ends. */
+	private _deferred: Array<{ name: string; args?: JsonValue }> = []
+	/** True while a denied run is put back, so stamps leave the restored records alone. */
+	private _reverting = false
 
 	/**
 	 * Run `fn` as one checked transaction. A denied run's document changes are reverted, and the
@@ -220,43 +225,39 @@ export class PermissionsManager extends EditorManager {
 	 * @internal
 	 */
 	runChecked(fn: () => void, transaction: StoreTransaction | null) {
-		const parent = this._scope
-		if (parent && (parent.transaction === transaction || parent.dryRun)) return fn()
+		if (this._scope) return fn()
 		// one reactive transaction around the run and its revert, so store listeners (and the
 		// sync client) never see a denied change on its own
-		transact(() => this._runChecked(fn, transaction, parent))
+		transact(() => this._runChecked(fn, transaction))
+		while (this._deferred.length && !this._scope) {
+			const { name, args } = this._deferred.shift()!
+			this.mutate(name, args)
+		}
 	}
 
-	private _runChecked(
-		fn: () => void,
-		transaction: StoreTransaction | null,
-		parent: PermissionsManager['_scope']
-	) {
+	private _runChecked(fn: () => void, transaction: StoreTransaction | null) {
 		const editor = this.editor
-		const scope = { transaction, touched: new Set<string>(), dryRun: false }
 		const checkpoint = this.history._checkpoint()
 		let diff: RecordsDiff<TLRecord>
-		this._scope = scope
+		this._scope = { dryRun: false }
 		try {
 			diff = editor.store.extractingChanges(fn)
 		} catch (e) {
 			checkpoint.release()
+			this._deferred = []
 			throw e
 		} finally {
-			this._scope = parent
+			this._scope = null
 		}
-		const documentDiff = documentChanges(editor, diff, scope.touched)
+		const documentDiff = documentChanges(editor, diff)
 		const verdict = documentDiff ? this.checkChanges(documentDiff, transaction?.intent ?? null) : OK
 		if (verdict.ok) {
 			checkpoint.release()
 		} else {
 			this.revert(documentDiff)
 			checkpoint.rollback()
-		}
-		if (parent) {
-			for (const changes of [diff.added, diff.updated, diff.removed]) {
-				for (const id in changes) parent.touched.add(id)
-			}
+			// the mutators it called are part of the denied action
+			this._deferred = []
 		}
 		if (!verdict.ok) {
 			this.reportDenial({
@@ -270,13 +271,20 @@ export class PermissionsManager extends EditorManager {
 	/**
 	 * Put the document back as it was before `diff`. It is a user change, so it cancels the
 	 * denied change before the sync client sends it. History is ignored: the checkpoint drops
-	 * the run's undo steps.
+	 * the run's undo steps. Stamps do not run: a deleted shape that comes back keeps its owner,
+	 * as the server has it. Other side effects run, so a reverted create also leaves the
+	 * selection.
 	 */
 	private revert(diff: RecordsDiff<TLRecord> | null) {
 		if (!diff) return
-		this.history.batch(() => this.editor.store.applyDiff(reverseRecordsDiff(diff)), {
-			history: 'ignore',
-		})
+		this._reverting = true
+		try {
+			this.history.batch(() => this.editor.store.applyDiff(reverseRecordsDiff(diff)), {
+				history: 'ignore',
+			})
+		} finally {
+			this._reverting = false
+		}
 	}
 
 	private registerStamps() {
@@ -286,7 +294,7 @@ export class PermissionsManager extends EditorManager {
 				editor.sideEffects.registerBeforeCreateHandler(
 					typeName as TLRecord['typeName'],
 					(record, source) => {
-						if (source !== 'user') return record
+						if (source !== 'user' || this._reverting) return record
 						const stamps = this.getPermissions()?.stamps
 						if (!stamps?.length) return record
 						const access = this.getAccess()
@@ -300,15 +308,10 @@ export class PermissionsManager extends EditorManager {
 	}
 }
 
-/**
- * The document part of `diff`, without records that runs checked on their own already covered,
- * and without updates that change nothing (a denied inner run leaves an update back to where it
- * started).
- */
+/** The document part of `diff`, without updates that change nothing. */
 function documentChanges(
 	editor: Editor,
-	diff: RecordsDiff<TLRecord>,
-	skip: ReadonlySet<string>
+	diff: RecordsDiff<TLRecord>
 ): RecordsDiff<TLRecord> | null {
 	const document = editor.store.filterChangesByScope(diff, 'document')
 	if (!document) return null
@@ -319,7 +322,7 @@ function documentChanges(
 	>[]) {
 		for (const id in changes) {
 			const change = changes[id]
-			if (skip.has(id) || (Array.isArray(change) && isEqual(change[0], change[1]))) {
+			if (Array.isArray(change) && isEqual(change[0], change[1])) {
 				delete changes[id]
 			} else {
 				empty = false

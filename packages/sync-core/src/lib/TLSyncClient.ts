@@ -400,12 +400,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		nextPresence?: R | null
 	} = { nextDiffs: [], nextPresence: undefined }
 	/**
-	 * Pushes that were in flight when the connection dropped. With `unsentChanges.nextDiffs`, which
-	 * keeps filling while offline, they make up `speculativeChanges` action by action, so a
-	 * reconnect sends each action as its own push, with its intent, and a denial removes only that
-	 * action.
+	 * Plain pushes that were in flight when the connection dropped. With
+	 * `unsentChanges.nextDiffs`, which keeps filling while offline, they make up
+	 * `speculativeChanges` action by action, so a reconnect sends each action as its own push and a
+	 * denial removes only that action.
 	 */
-	private interruptedPushes: Array<{ intent: TLIntent | null; diff: NetworkDiff<R> }> = []
+	private interruptedPushes: NetworkDiff<R>[] = []
 
 	/**
 	 * The diff of 'unconfirmed', 'optimistic' changes that have been made locally by the user if we
@@ -745,8 +745,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.isConnectedToRoom = false
 		this.firstUnansweredPingAt = null
 		for (const request of this.pendingPushRequests) {
-			if (request.diff)
-				this.interruptedPushes.push({ intent: request.intent ?? null, diff: request.diff })
+			// A named push may have run on the server, and running a mutator twice could do its
+			// work twice. So it is not sent again: if the server ran it, the reconnect brings its
+			// result, and if not, the prediction goes away.
+			if (request.diff && !request.intent) this.interruptedPushes.push(request.diff)
 		}
 		this.pendingPushRequests = []
 		this.deniedCount = 0
@@ -824,7 +826,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				// Re-apply the local changes one action at a time, each as its own push with its own
 				// intent, so the server judges each action on its own.
 				const actions = [
-					...this.interruptedPushes,
+					...this.interruptedPushes.map((diff) => ({ intent: null, diff })),
 					...this.unsentChanges.nextDiffs.map(({ transaction, diff }) => ({
 						intent: transaction?.intent ?? null,
 						diff: getNetworkDiff(diff),
@@ -838,7 +840,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						this.store.extractingChanges(() => this.applyNetworkDiff(diff, true)),
 						'document'
 					)
-					if (changes) this.push(changes, { intent })
+					if (changes) this.push(changes, { intent, group: null })
 				}
 			})
 
@@ -943,7 +945,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
 		const queue = this.unsentChanges.nextDiffs
 		let entry = queue[queue.length - 1]
-		if (!entry || entry.transaction !== transaction) {
+		if (!entry || !this.sameAction(entry.transaction, transaction)) {
 			entry = { transaction, diff: { added: {} as any, updated: {} as any, removed: {} as any } }
 			queue.push(entry)
 		}
@@ -952,6 +954,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		squashRecordDiffsMutable(entry.diff, [change])
 		// offline, the queue keeps growing; `didReconnect` sends it action by action
 		if (this.isConnectedToRoom) this.sendUnsentChanges()
+	}
+
+	/**
+	 * Do changes from these two transactions go up in one push? Online, only changes from the
+	 * same transaction do. Offline, so do unnamed transactions of the same group (the frames of
+	 * one drag): they go up as one action after the reconnect, and the queue stays one entry per
+	 * gesture.
+	 */
+	private sameAction(a: StoreTransaction | null, b: StoreTransaction | null) {
+		if (a === b) return true
+		if (this.isConnectedToRoom || !a || !b || a.intent || b.intent) return false
+		return a.group !== null && a.group === b.group
 	}
 
 	/** Get the target FPS for network operations based on presence mode */

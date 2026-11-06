@@ -344,11 +344,6 @@ export interface TLEditorOptions {
  */
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
 	ignoreShapeLock?: boolean
-	/**
-	 * The named operation this run is. The sync client sends it with the push, so the server can
-	 * check it, or run its own mutator with that name.
-	 */
-	intent?: TLIntent
 }
 
 /** @public */
@@ -1777,20 +1772,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	run(fn: () => void, opts?: TLEditorRunOptions): this {
+		return this._run(fn, opts, null)
+	}
+
+	/**
+	 * A run that is a named operation (a mutator). Only {@link PermissionsManager.mutate} makes
+	 * one, so a named run never starts inside another checked run.
+	 *
+	 * @internal
+	 */
+	_run(fn: () => void, opts: TLEditorRunOptions | undefined, intent: TLIntent | null): this {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
 			// Without permissions, a run is no transaction: changes batch as they always have, and
 			// the sync client sends a frame's changes as one push.
-			if (!this.permissions.isActive() && !opts?.intent) {
+			if (!this.permissions.isActive() && !intent) {
 				this.history.batch(fn, opts)
 			} else {
-				this.store.withTransaction(() => {
-					this.permissions.runChecked(
-						() => this.history.batch(fn, opts),
-						this.store.getCurrentTransaction() ?? null
-					)
-				}, opts)
+				// the group is the undo step, so a drag replays after offline as one action
+				this.store.withTransaction(
+					() => {
+						this.permissions.runChecked(
+							() => this.history.batch(fn, opts),
+							this.store.getCurrentTransaction() ?? null
+						)
+					},
+					{ intent, group: this.history._currentMarkId() }
+				)
 			}
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock

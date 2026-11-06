@@ -54,6 +54,41 @@ it("denies a change to someone else's shape and rolls it back as a whole", () =>
 	])
 })
 
+it("restores someone else's deleted shape exactly, with no new owner and nothing to send", () => {
+	editor.permissions.setAccess(bob)
+	const before = editor.store.serialize('document')
+	const changes: unknown[] = []
+	const stop = editor.store.listen((e) => changes.push(e.changes), {
+		source: 'user',
+		scope: 'document',
+	})
+	editor.deleteShapes([A])
+	stop()
+	expect(editor.store.serialize('document')).toEqual(before)
+	expect(
+		changes.every(
+			(c: any) =>
+				!Object.keys(c.added).length &&
+				!Object.keys(c.updated).length &&
+				!Object.keys(c.removed).length
+		)
+	).toBe(true)
+	expect(denials).toEqual([
+		{ reason: 'You can only delete your own shapes.', intent: null, source: 'local' },
+	])
+})
+
+it('leaves no selection of a shape whose create was denied', () => {
+	editor.permissions.setAccess({ userId: 'val', abilities: [] })
+	const v = createShapeId('v')
+	editor.run(() => {
+		editor.createShapes([geo(v)])
+		editor.select(v)
+	})
+	expect(editor.getShape(v)).toBeUndefined()
+	expect(editor.getSelectedShapeIds()).toEqual([])
+})
+
 it('denies an action as one unit: no partial writes from the allowed part', () => {
 	editor.permissions.setAccess(bob)
 	const B = createShapeId('b')
@@ -213,10 +248,25 @@ describe('mutate', () => {
 		expect(editor.getShape(A)!.x).toBe(50)
 	})
 
-	it('runs a mutator inside another run with its own intent', () => {
-		editor.run(() => editor.permissions.mutate('move', { x: 70 }))
+	it('runs a mutator called inside a run when that run ends, as its own action', () => {
+		let xInsideRun = -1
+		editor.run(() => {
+			editor.permissions.mutate('move', { x: 70 })
+			xInsideRun = editor.getShape(A)!.x
+		})
+		expect(xInsideRun).toBe(0)
 		expect(editor.getShape(A)!.x).toBe(70)
 		expect(denials).toEqual([])
+	})
+
+	it('drops a mutator called inside a run that is denied', () => {
+		editor.permissions.setAccess({ userId: 'val', abilities: [] })
+		editor.run(() => {
+			editor.createShapes([geo(createShapeId('v'))])
+			editor.permissions.mutate('move', { x: 70 })
+		})
+		expect(editor.getShape(A)!.x).toBe(0)
+		expect(denials.map((d) => d.intent)).toEqual([null])
 	})
 
 	it('denies a mutator that throws, with its partial writes undone', () => {

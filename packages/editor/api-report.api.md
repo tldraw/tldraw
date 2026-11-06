@@ -1594,6 +1594,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         center?: VecLike;
     }): this;
     run(fn: () => void, opts?: TLEditorRunOptions): this;
+    // @internal
+    _run(fn: () => void, opts: TLEditorRunOptions | undefined, intent: null | TLIntent): this;
     screenToPage(point: VecLike): Vec;
     readonly scribbles: ScribbleManager;
     select(...shapes: TLShape[] | TLShapeId[]): this;
@@ -2225,6 +2227,8 @@ export class HistoryManager<R extends UnknownRecord> {
     };
     // (undocumented)
     clear(): void;
+    // @internal
+    _currentMarkId(): null | string;
     // @internal (undocumented)
     debug(): {
         pendingDiff: {
@@ -4069,7 +4073,6 @@ export interface TLEditorOptions {
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
     // (undocumented)
     ignoreShapeLock?: boolean;
-    intent?: TLIntent;
 }
 
 // @public

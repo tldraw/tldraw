@@ -449,6 +449,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
     withTransaction<T>(fn: () => T, opts?: {
+        group?: null | string;
         intent?: null | StoreIntent;
     }): T;
 }
@@ -664,6 +665,7 @@ export interface StoreSnapshot<R extends UnknownRecord> {
 
 // @public
 export interface StoreTransaction {
+    readonly group: null | string;
     readonly intent: null | StoreIntent;
 }
 

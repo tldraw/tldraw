@@ -1,6 +1,7 @@
 import {
 	Editor,
 	IndexKey,
+	PageRecordType,
 	TLArrowShape,
 	TLRecord,
 	TLShape,
@@ -154,6 +155,11 @@ describe('offline changes', () => {
 							? 'Forbidden shapes are not allowed.'
 							: undefined,
 					(tx) => (tx.intent?.name === 'blocked' ? 'This action is blocked.' : undefined),
+					(tx) =>
+						(tx.after.get('document:document' as any) as any)?.meta?.locked &&
+						tx.changes.some((c) => ((c.next as any)?.x ?? 0) >= 20)
+							? 'The right side is locked.'
+							: undefined,
 				],
 			})
 		)
@@ -206,6 +212,27 @@ describe('offline changes', () => {
 		expect(h.serverRecord(bad)).toBeUndefined()
 		expect(h.serverRecord(createShapeId('child'))).toBeUndefined()
 		expect(h.serverRecord(createShapeId('other'))).toBeDefined()
+	})
+
+	it('go up one undo step at a time, so the frames of one drag are one action', () => {
+		const ann = h.connect('ann', editor)
+		const bob = h.connect('bob', editor)
+		const dragged = createShapeId('dragged')
+		const other = createShapeId('other')
+		ann.goOffline()
+		ann.editor.markHistoryStoppingPoint('draw')
+		ann.editor.createShapes([{ id: dragged, type: 'geo', x: 0, y: 0 }])
+		ann.editor.updateShapes([{ id: dragged, type: 'geo', x: 10 }])
+		ann.editor.updateShapes([{ id: dragged, type: 'geo', x: 30 }])
+		ann.editor.markHistoryStoppingPoint('next')
+		ann.editor.createShapes([{ id: other, type: 'geo', x: 0, y: 300 }])
+		// meanwhile, the server starts to deny the end of the drag
+		bob.editor.updateDocumentSettings({ meta: { locked: true } })
+		ann.reconnect()
+		// the whole drag is denied, not only its last frame
+		expect(h.serverRecord(dragged)).toBeUndefined()
+		expect(ann.editor.getShape(dragged)).toBeUndefined()
+		expect(h.serverRecord(other)).toBeDefined()
 	})
 
 	it('resend pushes that were in flight when the connection dropped', () => {
@@ -457,3 +484,56 @@ function shapeRecord(user: { editor: Editor }, id: string, x = 0, type = 'geo'):
 		props: editor.getShapeUtil(type as TLShape['type']).getDefaultProps(),
 	} as TLShape
 }
+
+describe('reconnect', () => {
+	it('keeps one queue entry per offline gesture, not one per frame', () => {
+		h = new SyncHarness(definePermissions<TLRecord>({ rules: [() => undefined] }))
+		const ann = h.connect('ann', editor)
+		const id = createShapeId('dragged')
+		ann.editor.createShapes([{ id, type: 'geo', x: 0, y: 0 }])
+		h.settle()
+		ann.goOffline()
+		ann.editor.markHistoryStoppingPoint('drag')
+		for (let x = 1; x <= 200; x++) {
+			ann.editor.updateShape({ id, type: 'geo', x })
+			ann.store._flushHistory()
+		}
+		const queued = (ann.client as any).unsentChanges.nextDiffs.length
+		ann.reconnect()
+		h.settle()
+		expect({ queued, x: (h.serverRecord(id) as TLShape | undefined)?.x }).toEqual({
+			queued: 1,
+			x: 200,
+		})
+	})
+
+	it('does not send a named push again when its answer was lost, so a mutator runs once', () => {
+		h = new SyncHarness(
+			definePermissions<TLRecord>({
+				mutators: {
+					// a new page with a random id: the server's result differs from the prediction
+					addPage(ctx) {
+						const n = [...ctx.all()].filter((r) => r.typeName === 'page').length
+						ctx.put([PageRecordType.create({ name: 'p' + n, index: ('a' + (n + 5)) as IndexKey })])
+					},
+				},
+			})
+		)
+		const ann = h.connect('ann', editor)
+		const serverPages = () => h.serverRecords().filter((r) => r.typeName === 'page').length
+		ann.editor.permissions.mutate('addPage')
+		ann.store._flushHistory()
+		vi.advanceTimersByTime(50)
+		// the server gets the push and runs the mutator, but its answer is lost
+		const queue = (h as any).queue as Array<() => void>
+		for (const deliver of queue.splice(0)) deliver()
+		expect(serverPages()).toBe(2)
+		ann.goOffline()
+		ann.reconnect()
+		h.settle()
+		expect({ server: serverPages(), client: ann.editor.getPages().length }).toEqual({
+			server: 2,
+			client: 2,
+		})
+	})
+})

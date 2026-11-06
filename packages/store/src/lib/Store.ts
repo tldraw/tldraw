@@ -137,6 +137,12 @@ export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
 export interface StoreTransaction {
 	/** The named operation, if the writer gave one. */
 	readonly intent: StoreIntent | null
+	/**
+	 * Transactions with the same group are one gesture, such as the frames of a drag. Online, the
+	 * sync client sends each transaction as it happens. After it was offline, it sends each group
+	 * of unnamed transactions as one push, so one denial covers the whole gesture.
+	 */
+	readonly group: string | null
 }
 
 /**
@@ -1106,11 +1112,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	withTransaction<T>(fn: () => T, opts?: { intent?: StoreIntent | null }): T {
+	withTransaction<T>(
+		fn: () => T,
+		opts?: { intent?: StoreIntent | null; group?: string | null }
+	): T {
 		const intent = opts?.intent ?? null
 		const outer = this.currentTransaction
 		if (outer && !intent) return fn()
-		this.currentTransaction = { intent }
+		this.currentTransaction = { intent, group: opts?.group ?? null }
 		try {
 			return fn()
 		} finally {

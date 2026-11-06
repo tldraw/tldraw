@@ -322,6 +322,16 @@ export class HistoryManager<R extends UnknownRecord> {
 		return this
 	}
 
+	/** @internal The id of the latest mark: the undo step that new changes go into. */
+	_currentMarkId(): string | null {
+		let top = this.stacks.__unsafe__getWithoutCapture().undos
+		while (top.head) {
+			if (top.head.type === 'stop') return top.head.id
+			top = top.tail
+		}
+		return null
+	}
+
 	/** @internal */
 	_mark(id: string) {
 		transact(() => {
