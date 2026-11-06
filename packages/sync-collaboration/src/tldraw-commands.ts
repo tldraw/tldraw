@@ -331,6 +331,13 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 					return true
 				}
 				case 'binding': {
+					// Deleting a shape unbinds everything attached to it, including other people's
+					// arrows. Without this, deleting your own shape would leave a binding to nothing.
+					if (ctx.op === 'delete') {
+						const binding = ctx.prev as TLBinding
+						const to = ctx.get(binding.toId) as TLShape | undefined
+						if (!to || ownsShape(ctx.actor, to)) return true
+					}
 					// A binding belongs to the shape it starts from (an arrow). Check both sides, so
 					// nobody can take over someone else's binding by pointing it at their own arrow.
 					for (const binding of [ctx.prev, ctx.next] as (TLBinding | null)[]) {

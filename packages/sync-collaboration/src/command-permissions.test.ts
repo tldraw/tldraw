@@ -706,3 +706,81 @@ describe('page read control', () => {
 		expect(late.get(page)).toBeDefined()
 	})
 })
+
+describe('arrows across owners', () => {
+	function boundArrow() {
+		const s = setup()
+		const box = geo(s.b, 300)
+		s.room.flush()
+		const arrow = createShapeId()
+		const editor = s.a.getEditor()
+		editor.createShape({
+			id: arrow,
+			type: 'arrow',
+			x: 0,
+			y: 50,
+			props: { start: { x: 0, y: 0 }, end: { x: 350, y: 0 } },
+		})
+		editor.createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: box,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+			},
+		})
+		s.room.flush()
+		const bindings = () =>
+			s.room.room
+				.getCurrentSnapshot()
+				.documents.filter((d) => d.state.typeName === 'binding')
+				.map((d) => d.state)
+		return { ...s, box, arrow, bindings }
+	}
+
+	it("Alice binds her arrow to Bob's shape; Bob moves it and the arrow follows", () => {
+		const { room, a, b, box, arrow, bindings } = boundArrow()
+		expect(bindings()).toHaveLength(1)
+		b.getEditor().updateShape({ id: box, type: 'geo', x: 500 })
+		room.flush()
+		expect(b.rejections).toEqual([])
+		expect((room.room.getRecord(box) as TLShape).x).toBe(500)
+		// the binding, not a write to Alice's arrow, makes the arrow follow
+		expect(a.getEditor().getBindingsFromShape(arrow, 'arrow')).toHaveLength(1)
+	})
+
+	it("Bob deletes his shape: the binding from Alice's arrow goes with it", () => {
+		const { room, a, b, box, arrow, bindings } = boundArrow()
+		b.getEditor().deleteShape(box)
+		room.flush()
+		expect(b.rejections).toEqual([])
+		expect(room.room.getRecord(box)).toBeUndefined()
+		// no binding to a shape that is gone, on the server or on Alice's client
+		expect(bindings()).toEqual([])
+		expect(a.getEditor().getBindingsFromShape(arrow, 'arrow')).toEqual([])
+		// Alice's arrow stays, and stays hers
+		expect(getShapeOwner(room.room.getRecord(arrow) as TLShape)).toBe('alice')
+	})
+
+	it("Bob cannot unbind Alice's arrow from a shape that is not his", () => {
+		const { room, a, bindings } = boundArrow()
+		const own = geo(a, 900)
+		room.flush()
+		const binding = bindings()[0]
+		const forger = room.forger('f', student('bob'))
+		room.flush()
+		forger.push({ diff: { [binding.id]: ['remove'] } as any })
+		room.flush()
+		// the binding points at Bob's box, so Bob may remove it; retarget it to Alice's shape first
+		const retargeted = { ...binding, id: 'binding:alice', toId: own }
+		a.store.put([retargeted as any])
+		room.flush()
+		forger.push({ diff: { 'binding:alice': ['remove'] } as any })
+		room.flush()
+		expect(forger.lastResult().action).toBe('discard')
+		expect(room.room.getRecord('binding:alice')).toBeDefined()
+	})
+})
