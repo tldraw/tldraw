@@ -1262,7 +1262,7 @@ describe('when the client is the same version', () => {
 describe('record authorizers see server-schema records', () => {
 	function makeInstance(authorizeUser: (args: any) => any) {
 		return new TestInstance(undefined, schemaV1, schemaV2, {
-			authorizeRecord: { user: authorizeUser },
+			beforeWrite: { user: authorizeUser },
 		})
 	}
 
@@ -1332,7 +1332,7 @@ describe('record authorizers see server-schema records', () => {
 
 	it('vetoes based on the server-schema record', () => {
 		const t = makeInstance((args: any) =>
-			args.type === 'update' && args.next.name === 'forged' ? null : args.next
+			args.type === 'update' && args.next.name === 'forged' ? args.prev : args.next
 		)
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()

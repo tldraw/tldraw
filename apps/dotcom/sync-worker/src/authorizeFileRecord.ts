@@ -1,5 +1,5 @@
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
-import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
+import { TLBeforeWriteHook, TLBeforeWriteHooks } from '@tldraw/sync-core'
 import {
 	TLComment,
 	TLCommentReaction,
@@ -33,17 +33,12 @@ function getNoteAttribution(shape: TLShape): string | null | undefined {
  * from the imported board, so re-stamp foreign attribution from the session instead. Updates
  * may retain an existing author but cannot claim a new identity other than the session's user.
  */
-const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
-	session,
-	type,
-	prev,
-	next,
-}) => {
-	if (type === 'delete') return prev
+const authorizeShape: TLBeforeWriteHook<TLShape, SessionMeta> = ({ session, type, prev, next }) => {
+	if (type === 'delete') return
 	const before = type === 'create' ? null : getNoteAttribution(prev)
 	const after = getNoteAttribution(next)
 	if (after !== before && after != null && after !== session.meta.userId) {
-		if (type === 'update') return null
+		if (type === 'update') return prev
 		const note = next as TLNoteShape
 		return { ...note, props: { ...note.props, textLastEditedBy: session.meta.userId } }
 	}
@@ -58,4 +53,4 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 export const authorizeFileRecord = {
 	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
 	shape: authorizeShape,
-} satisfies TLRecordAuthorizers<FileRecord, SessionMeta>
+} satisfies TLBeforeWriteHooks<FileRecord, SessionMeta>

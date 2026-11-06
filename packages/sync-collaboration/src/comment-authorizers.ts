@@ -1,5 +1,5 @@
 import type { UnknownRecord } from '@tldraw/store'
-import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
+import { type TLBeforeWriteHook, type TLBeforeWriteHooks } from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
 	type TLComment,
@@ -101,7 +101,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 
 /**
  * Server-side write authorization for comment records, for use with a sync server's
- * `authorizeRecord` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
+ * `beforeWrite` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
  * session's identity so nothing can be posted, resolved, or deleted in someone else's name:
  *
  * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after,
@@ -130,7 +130,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  * type MyRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
  *
  * new TLSocketRoom<MyRecord, SessionMeta>({
- * 	authorizeRecord: {
+ * 	beforeWrite: {
  * 		...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
  * 	},
  * })
@@ -140,7 +140,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  */
 export function createCommentAuthorizers<SessionMeta>(
 	opts: CommentAuthorizerOptions<SessionMeta>
-): TLRecordAuthorizers<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
+): TLBeforeWriteHooks<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
 	const {
 		getUserId,
 		canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly,
@@ -148,11 +148,15 @@ export function createCommentAuthorizers<SessionMeta>(
 			userId === ownerId,
 	} = opts
 
-	/** A rule is an authorizer that receives the session's user id, resolved for it exactly once. */
+	/**
+	 * A rule is a hook that receives the session's user id, resolved for it exactly once. It rejects
+	 * a write by returning `args.prev`, so a rule that wraps another one stops when
+	 * `result === args.prev`.
+	 */
 	type Rule<Rec extends UnknownRecord> = (
 		userId: string | null,
-		args: Parameters<TLRecordAuthorizer<Rec, SessionMeta>>[0]
-	) => Rec | null
+		args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]
+	) => Rec | null | void
 
 	/**
 	 * Adapt a rule to the authorizer signature: gate on `canComment` first, then resolve the
@@ -160,9 +164,9 @@ export function createCommentAuthorizers<SessionMeta>(
 	 */
 	function withUserId<Rec extends UnknownRecord>(
 		rule: Rule<Rec>
-	): TLRecordAuthorizer<Rec, SessionMeta> {
+	): TLBeforeWriteHook<Rec, SessionMeta> {
 		return (args) => {
-			if (!canComment(args.session)) return null
+			if (!canComment(args.session)) return args.prev
 			return rule(getUserId(args.session), args)
 		}
 	}
@@ -177,15 +181,14 @@ export function createCommentAuthorizers<SessionMeta>(
 	): Rule<Rec> {
 		return (userId, { type, prev, next }) => {
 			if (type === 'create') {
-				if (!userId) return null // no identity to attribute → reject
+				if (!userId) return prev
 				return { ...next, [field]: userId } as Rec
 			}
 			if (type === 'update') {
-				if (next[field] !== prev[field]) return null // attribution is immutable
-				if (ownerOnlyUpdate && userId !== prev[field]) return null // only the author edits
-				return next
+				if (next[field] !== prev[field]) return prev
+				if (ownerOnlyUpdate && userId !== prev[field]) return prev
 			}
-			return prev
+			return undefined
 		}
 	}
 
@@ -209,11 +212,13 @@ export function createCommentAuthorizers<SessionMeta>(
 		base: Rule<Rec>
 	): Rule<Rec> {
 		return (userId, args) => {
-			if (args.type === 'delete') return null
+			if (args.type === 'delete') return args.prev
 			const result = base(userId, args)
-			if (!result) return null
+			if (result === args.prev) return result
 			// A record can't be born deleted — that would smuggle a deletion past the update checks.
-			if (args.type === 'create') return args.next.isDeleted ? null : result
+			if (args.type === 'create') {
+				return args.next.isDeleted ? args.prev : result
+			}
 
 			const { prev, next, session } = args
 			const mayModify = (write: 'edit' | 'delete') => {
@@ -222,14 +227,18 @@ export function createCommentAuthorizers<SessionMeta>(
 				return canModifyComment({ session, userId, ownerId: ownerOf(prev), ...modification })
 			}
 
-			if (prev.isDeleted === next.isDeleted) return mayModify('edit') ? result : null
+			if (prev.isDeleted === next.isDeleted) {
+				return mayModify('edit') ? result : prev
+			}
 
-			if (prev.isDeleted) return null // write-once: never cleared
-			if (!mayModify('delete')) return null
+			if (prev.isDeleted) return prev
+			if (!mayModify('delete')) return prev
 			// The built-in client deletes by setting the flag and nothing else. An update carrying
 			// more than that is also an edit, and has to be allowed as one — otherwise a delete-only
 			// permission could rewrite a comment on its way out.
-			if (!isEqual({ ...next, isDeleted: prev.isDeleted }, prev) && !mayModify('edit')) return null
+			if (!isEqual({ ...next, isDeleted: prev.isDeleted }, prev) && !mayModify('edit')) {
+				return prev
+			}
 			return result
 		}
 	}
@@ -240,17 +249,21 @@ export function createCommentAuthorizers<SessionMeta>(
 	 */
 	const authorizeThreadResolution: Rule<TLCommentThread> = (userId, args) => {
 		const result = authorizeAuthored<TLCommentThread>('createdBy')(userId, args)
-		if (!result) return null
+		if (result === args.prev) return result
 		if (args.type === 'create') {
 			// Delete + re-put could otherwise smuggle in a resolution forged in someone else's name.
 			const { next } = args
-			if (next.resolved && next.resolved.by !== userId) return null
+			if (next.resolved && next.resolved.by !== userId) {
+				return args.prev
+			}
 		}
 		if (args.type === 'update') {
 			const { prev, next } = args
 			const changed =
 				prev.resolved?.at !== next.resolved?.at || prev.resolved?.by !== next.resolved?.by
-			if (changed && next.resolved && next.resolved.by !== userId) return null
+			if (changed && next.resolved && next.resolved.by !== userId) {
+				return args.prev
+			}
 		}
 		return result
 	}
@@ -268,7 +281,7 @@ export function createCommentAuthorizers<SessionMeta>(
 			if (args.type === 'update') {
 				const { prev, next } = args
 				for (const field of fields) {
-					if (next[field] !== prev[field]) return null
+					if (next[field] !== prev[field]) return prev
 				}
 			}
 			return base(userId, args)
@@ -295,24 +308,23 @@ export function createCommentAuthorizers<SessionMeta>(
 		// records because server-initiated writes carry no session and so skip authorizers
 		// entirely — an open client delete was never what made the sweep work.
 		if (args.type === 'delete') {
-			return userId && userId === args.prev.userId ? args.prev : null
+			return userId && userId === args.prev.userId ? undefined : args.prev
 		}
 		const result = authorizeReactionBase(userId, args)
-		if (!result) return null
+		if (result === args.prev) return result
 		if (args.type === 'create') {
 			// Unreachable: the base rule already rejected identity-less creates. Checked to narrow.
-			if (!userId) return null
+			if (!userId) return args.prev
 			const { next } = args
 			if (next.id !== createCommentReactionId(next.commentId, userId, next.emoji)) {
-				return null
+				return args.prev
 			}
 		}
 		if (args.type === 'update') {
 			const { prev, next } = args
-			if (next.commentId !== prev.commentId) return null
-			if (next.threadId !== prev.threadId) return null
-			if (next.pageId !== prev.pageId) return null
-			if (next.emoji !== prev.emoji) return null
+			for (const field of ['commentId', 'threadId', 'pageId', 'emoji'] as const) {
+				if (next[field] !== prev[field]) return prev
+			}
 		}
 		return result
 	}

@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
+import { RecordId } from '@tldraw/store';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
@@ -54,6 +55,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
     // (undocumented)
     _ws: null | WebSocket;
 }
+
+// @public
+export function composeBeforeWrite<R extends UnknownRecord, SessionMeta>(...maps: TLBeforeWriteHooks<R, SessionMeta>[]): TLBeforeWriteHooks<R, SessionMeta>;
 
 // @public
 export const DEFAULT_INITIAL_SNAPSHOT: {
@@ -377,6 +381,36 @@ export interface SyncSqliteDatabase {
     };
 }
 
+// @public
+export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
+    get<Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined;
+    session: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+    };
+    get(id: string): undefined | UnknownRecord;
+} & ({
+    next: null;
+    prev: Rec;
+    type: 'delete';
+} | {
+    next: Rec;
+    prev: null;
+    type: 'create';
+} | {
+    next: Rec;
+    prev: Rec;
+    type: 'update';
+})) => null | Rec | void;
+
+// @public
+export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLBeforeWriteHook<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
+
 // @internal
 export interface TLConnectRequest {
     // (undocumented)
@@ -446,28 +480,10 @@ export interface TLPushRequest<R extends UnknownRecord> {
     type: 'push';
 }
 
-// @public
-export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
-    session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    };
-} & ({
-    next: null;
-    prev: Rec;
-    type: 'delete';
-} | {
-    next: Rec;
-    prev: null;
-    type: 'create';
-} | {
-    next: Rec;
-    prev: Rec;
-    type: 'update';
-})) => null | Rec;
+// @public @deprecated (undocumented)
+export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]) => null | Rec;
 
-// @public
+// @public @deprecated (undocumented)
 export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
     [K in R['typeName']]?: TLRecordAuthorizer<Extract<R, {
         typeName: K;
@@ -547,7 +563,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    // @deprecated (undocumented)
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+    beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -720,7 +738,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
         }): void;
-        authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+        beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
         objectTypes?: readonly string[];
         clientTimeout?: number;
         log?: TLSyncLog;

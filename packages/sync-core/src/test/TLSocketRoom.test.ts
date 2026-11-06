@@ -1,3 +1,4 @@
+import { UnknownRecord } from '@tldraw/store'
 /* eslint-disable @typescript-eslint/no-deprecated -- initialSnapshot, onDataChange,
  * updateStore, and getCurrentSnapshot are deprecated but remain part of the public
  * contract under test (see SPEC.md sections 28 and 29). */
@@ -11,6 +12,7 @@ import {
 	TLPage,
 	TLRecord,
 	TLScribble,
+	TLShape,
 } from '@tldraw/tlschema'
 import {
 	createTLSchema,
@@ -20,7 +22,7 @@ import {
 	sortById,
 	ZERO_INDEX_KEY,
 } from 'tldraw'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, expectTypeOf, it, vi } from 'vitest'
 import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
@@ -28,7 +30,7 @@ import { getTlsyncProtocolVersion } from '../lib/protocol'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { TLSyncRoom, type RoomSnapshot } from '../lib/TLSyncRoom'
+import { TLSyncRoom, type RoomSnapshot, type TLBeforeWriteHooks } from '../lib/TLSyncRoom'
 
 function getStore() {
 	const schema = createTLSchema()
@@ -215,7 +217,7 @@ describe('28. TLSocketRoom (SR)', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
 				const room = new TLSocketRoom({
-					authorizeRecord: {
+					beforeWrite: {
 						page: () => {
 							throw new Error('authorizer exploded')
 						},
@@ -242,7 +244,7 @@ describe('28. TLSocketRoom (SR)', () => {
 				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'record authorizer threw; rejecting the write',
+					'beforeWrite hook threw; keeping the stored record',
 					expect.objectContaining({ message: 'authorizer exploded' })
 				)
 			} finally {
@@ -1558,6 +1560,81 @@ describe('28. TLSocketRoom (SR)', () => {
 			} finally {
 				vi.useRealTimers()
 			}
+		})
+	})
+
+	describe('beforeWrite', () => {
+		function pushPages(room: TLSocketRoom<any, any>, sessionId: string, pages: TLPage[]) {
+			room.handleSocketMessage(
+				sessionId,
+				JSON.stringify({
+					type: 'push',
+					clientClock: 1,
+					diff: Object.fromEntries(pages.map((p) => [p.id, [RecordOpType.Put, p]])),
+				})
+			)
+		}
+
+		function makePage(name: string, index: string, meta: TLPage['meta'] = {}) {
+			return PageRecordType.create({
+				id: PageRecordType.createId(name),
+				name,
+				index: index as IndexKey,
+				meta,
+			})
+		}
+
+		// Allows a page only when the page named in meta.after exists
+		const pageAfterExisting = {
+			page: ({ next, get }: any) => (get(next.meta.after) ? next : false),
+		}
+
+		it('[SR16] get reads stored records and earlier writes in the same push', () => {
+			const room = new TLSocketRoom<TLRecord, void>({ beforeWrite: pageAfterExisting })
+			connectSession(room, 'S', createMockSocket())
+
+			const first = makePage('first', 'a2', { after: 'page:page' })
+			const second = makePage('second', 'a3', { after: first.id })
+			const orphan = makePage('orphan', 'a4', { after: 'page:missing' })
+			pushPages(room, 'S', [first, second, orphan])
+
+			expect(room.getRecord(first.id)).toBeDefined()
+			expect(room.getRecord(second.id)).toBeDefined()
+			expect(room.getRecord(orphan.id)).toBeUndefined()
+		})
+
+		it('[SR16] get takes its result type from a typed id', () => {
+			const hooks: TLBeforeWriteHooks<TLRecord, void> = {
+				shape: ({ next, get }) => {
+					if (!next) return
+					expectTypeOf(get(next.parentId)).toEqualTypeOf<TLPage | TLShape | undefined>()
+					expectTypeOf(get('page:page')).toEqualTypeOf<UnknownRecord | undefined>()
+					return next
+				},
+			}
+			expect(hooks.shape).toBeDefined()
+		})
+
+		it('[SR16] the deprecated authorizeRecord option still applies', () => {
+			const room = new TLSocketRoom<TLRecord, void>({
+				authorizeRecord: { page: ({ next, get }: any) => (get(next.meta.after) ? next : null) },
+			})
+			connectSession(room, 'S', createMockSocket())
+
+			const orphan = makePage('orphan', 'a4', { after: 'page:missing' })
+			pushPages(room, 'S', [orphan])
+
+			expect(room.getRecord(orphan.id)).toBeUndefined()
+		})
+
+		it('[SR16] throws when both beforeWrite and authorizeRecord are set', () => {
+			expect(
+				() =>
+					new TLSocketRoom<TLRecord, void>({
+						beforeWrite: pageAfterExisting,
+						authorizeRecord: pageAfterExisting,
+					})
+			).toThrow('set beforeWrite or authorizeRecord, not both')
 		})
 	})
 

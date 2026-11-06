@@ -10,7 +10,14 @@ import {
 } from '../lib/protocol'
 import { TLSocketRoom } from '../lib/TLSocketRoom'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
-import { RoomSnapshot, TLRoomSocket, TLSyncRoom } from '../lib/TLSyncRoom'
+import {
+	RoomSnapshot,
+	composeBeforeWrite,
+	beforeWriteFromAuthorizers,
+	TLBeforeWriteHook,
+	TLRoomSocket,
+	TLSyncRoom,
+} from '../lib/TLSyncRoom'
 
 // A generic object-lane test schema: `doc` records live in the document lane, `note` records are
 // served through the object-store lane (see `objectTypes` below). Deliberately not comment-shaped —
@@ -84,7 +91,7 @@ function makeRoom(
 		snapshot?: RoomSnapshot
 		objectTypes?: readonly string[]
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
-		authorizeRecord?: {
+		beforeWrite?: {
 			[typeName: string]: (args: {
 				session: { sessionId: string; isReadonly: boolean; meta: any }
 				type: 'create' | 'update' | 'delete'
@@ -110,7 +117,7 @@ function makeRoom(
 		storage,
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
-		authorizeRecord: opts.authorizeRecord,
+		beforeWrite: opts.beforeWrite,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -432,9 +439,9 @@ describe('object store lane', () => {
 		})
 	})
 
-	describe('authorizeRecord', () => {
+	describe('beforeWrite', () => {
 		it('rejects a presence typeName key at construction', () => {
-			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
+			expect(() => makeRoom({ beforeWrite: { presence: ({ next }: any) => next } })).toThrow(
 				/presence/
 			)
 		})
@@ -447,12 +454,12 @@ describe('object store lane', () => {
 				if (!userId) return null
 				return { ...next, text: `by:${userId}` }
 			}
-			if (type === 'update') return next.text === prev.text ? next : null
-			return prev // delete allowed
+			if (type === 'update') return next.text === prev.text ? next : prev
+			return // delete allowed
 		}
 
 		function withNote(authorize: any, extra: any = {}) {
-			return makeRoom({ objectTypes: ['note'], authorizeRecord: { note: authorize }, ...extra })
+			return makeRoom({ objectTypes: ['note'], beforeWrite: { note: authorize }, ...extra })
 		}
 
 		function seededWithNote(authorize: any) {
@@ -507,7 +514,7 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('rejects a create the authorizer denies (returns null)', () => {
+		it('rejects a create the authorizer denies', () => {
 			const { room, storage } = withNote(authorizeNote)
 			const socket = connectSession(room, 'anon', { meta: { userId: null } })
 
@@ -538,7 +545,7 @@ describe('object store lane', () => {
 			// authorize `doc`, a document-lane record
 			const { room, storage } = makeRoom({
 				objectTypes: ['note'],
-				authorizeRecord: {
+				beforeWrite: {
 					doc: ({ type, next }: any) => (type === 'create' ? { ...next, title: 'stamped' } : next),
 				},
 			})
@@ -565,8 +572,8 @@ describe('object store lane', () => {
 		})
 
 		it('allows an update the authorizer permits (patch)', () => {
-			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) =>
-				type === 'delete' ? prev : next
+			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
+				type === 'delete' ? undefined : next
 			)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
@@ -578,7 +585,7 @@ describe('object store lane', () => {
 		})
 
 		it('does not consult the authorizer for a no-op patch', () => {
-			const authorize = vi.fn(({ type, prev, next }: any) => (type === 'delete' ? prev : next))
+			const authorize = vi.fn(({ type, next }: any) => (type === 'delete' ? undefined : next))
 			const { room, note } = seededWithNote(authorize)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 			authorize.mockClear()
@@ -591,8 +598,8 @@ describe('object store lane', () => {
 		})
 
 		it('vetoes a delete the authorizer rejects', () => {
-			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
-				type === 'delete' ? null : next
+			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) =>
+				type === 'delete' ? prev : next
 			)
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'm' } })
 
@@ -619,7 +626,7 @@ describe('object store lane', () => {
 		// The typeName guard must not depend on authorizers being configured: the write gate keys
 		// off the *incoming* typeName, so relabeling an existing object-lane record as a document
 		// type would otherwise let an objectAccess:'read' session write through the document lane.
-		it('vetoes a typeName swap even with no authorizeRecord configured', () => {
+		it('vetoes a typeName swap even with no beforeWrite configured', () => {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room, storage } = makeRoom({
 				objectTypes: ['note'],
@@ -655,16 +662,54 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('ignores the record returned by an update authorizer (allow/veto only)', () => {
-			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) => {
-				if (type === 'update') return { ...next, text: 'stamped-on-update' }
-				return type === 'delete' ? prev : next
-			})
+		it.each(['put', 'patch'] as const)(
+			'stores the record a hook returns on update (%s) and rebases the client',
+			(kind) => {
+				const { room, storage, note } = seededWithNote(({ type, next }: any) =>
+					type === 'update' ? { ...next, text: next.text + '-stamped' } : undefined
+				)
+				const socket = connectSession(room, 'alice', { meta: { userId: 'u' } })
+
+				push(room, 'alice', {
+					[note.id]:
+						kind === 'put'
+							? [RecordOpType.Put, { ...note, text: 'edited' }]
+							: [RecordOpType.Patch, { text: [ValueOpType.Put, 'edited'] }],
+				})
+
+				expect(storedNote(storage, note.id)?.text).toBe('edited-stamped')
+				expect(lastPushResult(socket).action).toHaveProperty('rebaseWithDiff')
+			}
+		)
+
+		it.each(['put', 'patch'] as const)(
+			'deletes the record when a hook returns null on update (%s)',
+			(kind) => {
+				const { room, storage, note } = seededWithNote(({ type }: any) =>
+					type === 'update' ? null : undefined
+				)
+				connectSession(room, 'alice', { meta: { userId: 'u' } })
+
+				push(room, 'alice', {
+					[note.id]:
+						kind === 'put'
+							? [RecordOpType.Put, { ...note, text: 'edited' }]
+							: [RecordOpType.Patch, { text: [ValueOpType.Put, 'edited'] }],
+				})
+
+				expect(storedIds(storage)).toEqual([])
+			}
+		)
+
+		it('stores the record a hook returns instead of a delete', () => {
+			const { room, storage, note } = seededWithNote(({ type, prev }: any) =>
+				type === 'delete' ? { ...prev, text: 'tombstone' } : undefined
+			)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
-			push(room, 'alice', { [note.id]: [RecordOpType.Put, { ...note, text: 'edited' }] })
+			push(room, 'alice', { [note.id]: [RecordOpType.Remove] })
 
-			expect(storedNote(storage, note.id)?.text).toBe('edited')
+			expect(storedNote(storage, note.id)?.text).toBe('tombstone')
 		})
 
 		it('rejects the write (fail closed) when the authorizer throws, without crashing the push', () => {
@@ -682,9 +727,9 @@ describe('object store lane', () => {
 		it('passes the change type for create, update, and delete', () => {
 			const types: string[] = []
 			const note = Note.create({ text: 'x' })
-			const { room } = withNote(({ type, prev, next }: any) => {
+			const { room } = withNote(({ type, next }: any) => {
 				types.push(type)
-				return type === 'delete' ? prev : next
+				return type === 'delete' ? undefined : next
 			})
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
@@ -695,12 +740,79 @@ describe('object store lane', () => {
 			expect(types).toEqual(['create', 'update', 'delete'])
 		})
 
+		describe('hook results', () => {
+			function pushNoteWith(hook: any) {
+				const warn = vi.fn()
+				const { room, storage } = makeRoom({
+					objectTypes: ['note'],
+					beforeWrite: { note: hook },
+					log: { warn },
+				})
+				connectSession(room, 'writer', { meta: { userId: 'u' } })
+				const note = Note.create({ text: 'client' })
+				push(room, 'writer', { [note.id]: [RecordOpType.Put, note] })
+				return { warn, note: storedNote(storage, note.id) }
+			}
+
+			it('returning nothing allows the write as it is', () => {
+				const { note, warn } = pushNoteWith(() => undefined)
+				expect(note?.text).toBe('client')
+				expect(warn).not.toHaveBeenCalled()
+			})
+
+			it('returning prev keeps the stored record and logs it', () => {
+				const { note, warn } = pushNoteWith(({ prev }: any) => prev)
+				expect(note).toBeUndefined()
+				expect(warn).toHaveBeenCalledTimes(1)
+			})
+
+			it('returning null on create skips the record', () => {
+				const { note } = pushNoteWith(() => null)
+				expect(note).toBeUndefined()
+			})
+
+			it('keeps the stored record when a hook changes the id', () => {
+				const { note } = pushNoteWith(({ next }: any) => ({ ...next, id: 'note:other' }))
+				expect(note).toBeUndefined()
+			})
+
+			it.each([null, false])(
+				'%s from a deprecated authorizeRecord hook rejects the write and never deletes',
+				(legacy) => {
+					const hooks = beforeWriteFromAuthorizers<R, undefined>({ note: () => legacy as any })
+					const { note } = pushNoteWith(hooks.note)
+					expect(note).toBeUndefined()
+
+					const seeded = seededWithNote(hooks.note)
+					connectSession(seeded.room, 'alice', { meta: { userId: 'u' } })
+					push(seeded.room, 'alice', {
+						[seeded.note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'edited'] }],
+					})
+					expect(storedNote(seeded.storage, seeded.note.id)?.text).toBe('by:user-alice')
+				}
+			)
+
+			it('a deprecated authorizeRecord hook stamps on create only', () => {
+				const hooks = beforeWriteFromAuthorizers<R, undefined>({
+					note: ({ next }: any) => ({ ...next, text: 'stamped' }),
+				})
+				expect(pushNoteWith(hooks.note).note?.text).toBe('stamped')
+
+				const seeded = seededWithNote(hooks.note)
+				connectSession(seeded.room, 'alice', { meta: { userId: 'u' } })
+				push(seeded.room, 'alice', {
+					[seeded.note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'edited'] }],
+				})
+				expect(storedNote(seeded.storage, seeded.note.id)?.text).toBe('edited')
+			})
+		})
+
 		it('logs a warning when a write is vetoed', () => {
 			const warn = vi.fn()
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room } = makeRoom({
 				objectTypes: ['note'],
-				authorizeRecord: { note: () => null },
+				beforeWrite: { note: ({ prev }: any) => prev },
 				log: { warn },
 			})
 			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
@@ -710,5 +822,54 @@ describe('object store lane', () => {
 			expect(warn).toHaveBeenCalledTimes(1)
 			expect(warn.mock.calls[0].join(' ')).toContain(note.id)
 		})
+	})
+})
+
+describe('composeBeforeWrite', () => {
+	type Args = Parameters<TLBeforeWriteHook<NoteRecord, null>>[0]
+	const session = { sessionId: 's', isReadonly: false, meta: null }
+	const get = () => undefined
+	const note = Note.create({ text: 'hi' })
+	const create = { session, get, type: 'create', prev: null, next: note } as Args
+	const update = { session, get, type: 'update', prev: note, next: { ...note, text: 'x' } } as Args
+
+	it('passes a single hook through unchanged', () => {
+		const hook = () => undefined
+		expect(composeBeforeWrite<R, null>({ note: hook }).note).toBe(hook)
+	})
+
+	it('runs hooks for a type in argument order, each seeing the record the previous returned', () => {
+		const seen: string[] = []
+		const hooks = composeBeforeWrite<R, null>(
+			{ note: ({ next }) => ({ ...next!, text: next!.text + '-a' }) },
+			{ doc: () => null },
+			{
+				note: ({ next }) => {
+					seen.push(next!.text)
+					return { ...next!, text: next!.text + '-b' }
+				},
+			}
+		)
+		expect(hooks.note!(create)).toEqual({ ...note, text: 'hi-a-b' })
+		expect(hooks.note!(update)).toEqual({ ...note, text: 'x-a-b' })
+		expect(seen).toEqual(['hi-a', 'x-a'])
+	})
+
+	it('returns nothing when no hook changed the record', () => {
+		const hooks = composeBeforeWrite<R, null>(
+			{ note: () => undefined },
+			{ note: ({ next }) => next }
+		)
+		expect(hooks.note!(create)).toBeUndefined()
+	})
+
+	it.each([
+		['keeping prev', ({ prev }: Args) => prev],
+		['returning null', () => null],
+	])('stops at the first hook %s', (_, first) => {
+		const later = vi.fn()
+		const hooks = composeBeforeWrite<R, null>({ note: first }, { note: later })
+		expect(hooks.note!(update)).toBe(first(update))
+		expect(later).not.toHaveBeenCalled()
 	})
 })

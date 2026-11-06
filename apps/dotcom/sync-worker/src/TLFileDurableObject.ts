@@ -410,7 +410,8 @@ export class TLFileDurableObject extends DurableObject {
 					typeName,
 					(args: Parameters<typeof authorize>[0]) => {
 						const result = authorize(args as never)
-						if (result === null) {
+						// Keeping `prev` is how a hook rejects a write.
+						if (result === args.prev) {
 							try {
 								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
 							} catch {
@@ -516,7 +517,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						beforeWrite: this.observeRecordAuthorizers(authorizeFileRecord),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can

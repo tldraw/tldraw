@@ -7,7 +7,13 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import {
+	beforeWriteFromAuthorizers,
+	RoomSnapshot,
+	TLBeforeWriteHooks,
+	TLRecordAuthorizers,
+	TLSyncRoom,
+} from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -145,10 +151,21 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
-	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
-	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 * Per-type hooks for client record writes (create, update, delete), for data rules: reject a
+	 * write that breaks an invariant, or rewrite the record on create — e.g. force a comment's
+	 * `authorId` to the signed-in user. Each hook can read other records with `get`, for rules that
+	 * depend on a record's parent. Not an access control API; see {@link TLBeforeWriteHook}.
+	 * Combine maps from several packages with {@link composeBeforeWrite}.
+	 *
+	 * Only runs for client pushes. Server-initiated changes — `updateStore`, `loadSnapshot`,
+	 * migrations, or writing to the storage directly — skip these hooks, so server code that acts
+	 * for a user must check that user's access itself before it writes.
 	 */
+	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
+	/**
+	 * @deprecated Use `beforeWrite`. Setting both throws.
+	 */
+	// oxlint-disable-next-line typescript/no-deprecated
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
@@ -276,11 +293,17 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		// The default logger belongs to both layers: TLSyncRoom is where authorizer throws are
 		// logged, and a host that passes no `log` would otherwise never see them.
 		this.log = 'log' in opts ? opts.log : { error: console.error }
+		// eslint-disable-next-line @typescript-eslint/no-deprecated
+		const authorizeRecord = opts.authorizeRecord
+		if (opts.beforeWrite && authorizeRecord) {
+			throw new Error('TLSocketRoom: set beforeWrite or authorizeRecord, not both')
+		}
 		this.room = new TLSyncRoom<R, SessionMeta>({
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			authorizeRecord: opts.authorizeRecord,
+			beforeWrite:
+				opts.beforeWrite ?? (authorizeRecord && beforeWriteFromAuthorizers(authorizeRecord)),
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
