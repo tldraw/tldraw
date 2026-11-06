@@ -2,6 +2,7 @@ import { TlaEffectOutbox } from '@tldraw/dotcom-shared'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
+import { processCollectionItemEffect } from './collectionEffects'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
 import {
 	EFFECT_TIMEOUT_MS,
@@ -120,6 +121,11 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 		// register here alongside their trigger.
 		const handlers: Record<string, (row: TlaEffectOutbox) => Promise<void>> = {
 			file: (row) => processFileEffect(fileDeps, row),
+			collection_item: (row) =>
+				processCollectionItemEffect(
+					{ deleteStoredObjects: (keys) => this.env.ROOMS.delete(keys) },
+					row
+				),
 		}
 		try {
 			await drainOutbox({

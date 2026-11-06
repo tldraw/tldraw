@@ -38,6 +38,12 @@ import { getSocialPreview } from './routes/getSocialPreview'
 import { joinExistingRoom } from './routes/joinExistingRoom'
 import { submitFeedback } from './routes/submitFeedback'
 import { acceptInvite } from './routes/tla/acceptInvite'
+import {
+	addCollectionItem,
+	getCollectionItemContent,
+	getCollectionItemThumbnail,
+} from './routes/tla/collectionItems'
+import { copyCollection } from './routes/tla/copyCollection'
 import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
@@ -197,6 +203,10 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.post('/app/collections/:collectionId/items', addCollectionItem)
+	.post('/app/collections/:collectionId/copy', copyCollection)
+	.get('/app/collection-items/:itemId/content', getCollectionItemContent)
+	.get('/app/collection-items/:itemId/thumbnail', getCollectionItemThumbnail)
 	.get('/app/invite/:token', getInviteInfo)
 	.post('/app/invite/:token/accept', acceptInvite)
 	.all('/app/__test__/*', testRoutes.fetch)
