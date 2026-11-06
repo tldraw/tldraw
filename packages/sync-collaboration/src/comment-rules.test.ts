@@ -24,6 +24,8 @@ interface Write {
 	type: 'create' | 'update' | 'delete'
 	prev: AnyComment | null
 	next: AnyComment | null
+	/** What else the room holds after the write. Defaults to `thread` and the comment `c1`. */
+	others?: AnyComment[]
 }
 
 /**
@@ -34,8 +36,11 @@ function rulesFor(opts?: CommentRuleOptions) {
 	const permissions = definePermissions<TLRecord>({
 		rules: [...defaultAbilityRules(), ...commentRules(opts)],
 	})
-	const check = ({ session, type, prev, next }: Write) => {
+	const check = ({ session, type, prev, next, others = [thread, c1] }: Write) => {
 		const id = (next ?? prev)!.id
+		const after = new Map<string, AnyComment>(others.map((r) => [r.id, r]))
+		if (next) after.set(id, next)
+		else after.delete(id)
 		const verdict = permissions.check(
 			createTransaction<TLRecord>({
 				access: session,
@@ -45,7 +50,7 @@ function rulesFor(opts?: CommentRuleOptions) {
 					updated: type === 'update' ? { [id]: [prev, next] } : {},
 					removed: type === 'delete' ? { [id]: prev } : {},
 				} as any,
-				after: { get: () => undefined, all: () => [] },
+				after: { get: (id) => after.get(id) as TLRecord | undefined, all: () => [] },
 			})
 		)
 		return verdict.ok ? (next ?? prev) : null
@@ -61,6 +66,10 @@ const thread = createCommentThread({
 	anchor: { type: 'page' },
 	createdBy: 'client-claims-alice',
 })
+const c1: TLComment = {
+	...createComment({ threadId: thread.id, pageId, authorId: 'real-alice', body: toRichText('hi') }),
+	id: createCommentId('c1'),
+}
 
 /** A commenter's access. `canvasReadonly` drops the `comment` ability, as a viewer link would. */
 function session(userId: string | null, canvasReadonly = false): TLAccess {
@@ -183,7 +192,25 @@ describe('commentRules', () => {
 		it('allows a pageId update (threads can move between pages)', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, pageId: 'page:other' as TLPageId }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			const moved = { ...thread, pageId: next.pageId }
+			expect(
+				authorize({ session: session('real-bob'), type: 'update', prev, next, others: [moved] })
+			).toBe(next)
+		})
+
+		it("vetoes a create or pageId update that does not match the thread's page", () => {
+			const own = comment('real-bob')
+			const forged = { ...own, pageId: 'page:other' as TLPageId }
+			const bob = session('real-bob')
+			expect(authorize({ session: bob, type: 'create', prev: null, next: forged })).toBeNull()
+			expect(authorize({ session: bob, type: 'update', prev: own, next: forged })).toBeNull()
+		})
+
+		it('vetoes a create in a thread that does not exist', () => {
+			const next = comment('real-bob')
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next, others: [] })
+			).toBeNull()
 		})
 	})
 
@@ -402,6 +429,20 @@ describe('commentRules', () => {
 			expect(
 				authorize({ session: session('real-mallory'), type: 'create', prev: null, next })
 			).not.toBeNull()
+		})
+
+		it("vetoes a create whose threadId or pageId is not its comment's, or with no comment", () => {
+			const mallory = session('real-mallory')
+			const next = makeReaction('real-mallory')
+			for (const forged of [
+				{ ...next, pageId: 'page:other' as TLPageId },
+				{ ...next, threadId: 'comment-thread:other' as TLCommentThread['id'] },
+			]) {
+				expect(authorize({ session: mallory, type: 'create', prev: null, next: forged })).toBeNull()
+			}
+			expect(
+				authorize({ session: mallory, type: 'create', prev: null, next, others: [thread] })
+			).toBeNull()
 		})
 
 		// the reaction's comment is fixed by its id; an update must not move it onto another comment,

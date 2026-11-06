@@ -6,6 +6,7 @@ import {
 	type TLCommentReaction,
 	type TLCommentThread,
 	type TLRecordChange,
+	type TLRecordReader,
 	type TLRule,
 	type TLStamp,
 } from '@tldraw/tlschema'
@@ -81,12 +82,14 @@ export interface CommentRuleOptions {
  *
  * - `comment`: `authorId` must be the session's user on create (anonymous creates are denied) and
  *   is immutable after. Who may update is `canModifyComment`'s call — the author's, unless
- *   widened. `threadId` and `createdAt` are immutable too.
+ *   widened. `threadId` and `createdAt` are immutable too. Its thread must exist, and its
+ *   `pageId` must be the thread's, on create and whenever `pageId` changes.
  * - `comment-thread`: `createdBy` must be the session's user on create, and is immutable. Anyone
  *   who can comment may resolve or reopen, but a non-null `resolved.by` must be the session's own
  *   user.
  * - `comment-reaction`: `userId` must be the session's user and is immutable, a create must land
  *   at the canonical id for its (comment, user, emoji) triple, and only the reactor may delete it.
+ *   On create, its comment must exist and share its `threadId` and `pageId`.
  * - Deletion is soft for comments and threads: a write-once `isDeleted` flag, never set at create.
  *   Client hard-deletes are denied. The server can still remove records with `updateStore`, which
  *   no rule checks.
@@ -124,11 +127,11 @@ export function commentRules<R extends UnknownRecord>(opts: CommentRuleOptions =
 				const typeName = (change.next ?? change.prev)!.typeName
 				let reason: string | undefined
 				if (typeName === 'comment') {
-					reason = checkComment(change as TLRecordChange<TLComment>, userId, mayModify)
+					reason = checkComment(change as TLRecordChange<TLComment>, userId, mayModify, tx.after)
 				} else if (typeName === 'comment-thread') {
 					reason = checkThread(change as TLRecordChange<TLCommentThread>, userId, mayModify)
 				} else if (typeName === 'comment-reaction') {
-					reason = checkReaction(change as TLRecordChange<TLCommentReaction>, userId)
+					reason = checkReaction(change as TLRecordChange<TLCommentReaction>, userId, tx.after)
 				}
 				if (reason) return reason
 			}
@@ -139,10 +142,21 @@ export function commentRules<R extends UnknownRecord>(opts: CommentRuleOptions =
 
 type MayModify = (ownerId: string, modification: CommentModification) => boolean
 
+/**
+ * Whether a comment sits on its thread's page. Read rules find a comment's page by its own
+ * `pageId`, which the client sets: without this, a comment with a forged `pageId` on a page the
+ * session can see lands in a thread on a page it cannot see.
+ */
+function isOnThreadPage(after: TLRecordReader<UnknownRecord>, comment: TLComment) {
+	const thread = after.get(comment.threadId) as TLCommentThread | undefined
+	return thread?.typeName === 'comment-thread' && thread.pageId === comment.pageId
+}
+
 function checkComment(
 	change: TLRecordChange<TLComment>,
 	userId: string | null,
-	mayModify: MayModify
+	mayModify: MayModify,
+	after: TLRecordReader<UnknownRecord>
 ): string | undefined {
 	switch (change.op) {
 		case 'delete':
@@ -151,6 +165,7 @@ function checkComment(
 			if (!userId) return 'Sign in to comment.'
 			if (change.next.authorId !== userId) return 'You can only post comments as yourself.'
 			if (change.next.isDeleted) return 'A new comment cannot be deleted.'
+			if (!isOnThreadPage(after, change.next)) return "A comment must be on its thread's page."
 			return undefined
 		case 'update': {
 			const { prev, next } = change
@@ -160,6 +175,9 @@ function checkComment(
 			}
 			// `pageId` stays mutable: it's denormalized from the thread, and moving an anchored
 			// thread between pages rewrites it on every comment in the thread.
+			if (next.pageId !== prev.pageId && !isOnThreadPage(after, next)) {
+				return "A comment must be on its thread's page."
+			}
 			return checkSoftDelete(prev, next, (write) =>
 				mayModify(prev.authorId, {
 					action: write === 'delete' ? 'delete-comment' : 'edit-comment',
@@ -230,7 +248,8 @@ function checkSoftDelete<Rec extends UnknownRecord & { isDeleted: boolean }>(
 
 function checkReaction(
 	change: TLRecordChange<TLCommentReaction>,
-	userId: string | null
+	userId: string | null,
+	after: TLRecordReader<UnknownRecord>
 ): string | undefined {
 	switch (change.op) {
 		case 'delete':
@@ -244,6 +263,15 @@ function checkReaction(
 			// a forged id could squat another user's slot, or land two records on one triple
 			if (next.id !== createCommentReactionId(next.commentId, userId, next.emoji)) {
 				return 'A reaction must use its own id.'
+			}
+			// same as comments: read rules trust the reaction's own threadId and pageId
+			const comment = after.get(next.commentId) as TLComment | undefined
+			if (
+				comment?.typeName !== 'comment' ||
+				comment.threadId !== next.threadId ||
+				comment.pageId !== next.pageId
+			) {
+				return "A reaction must be on its comment's thread and page."
 			}
 			return undefined
 		}

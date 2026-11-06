@@ -4,12 +4,16 @@ import {
 	defaultBindingSchemas,
 	defaultShapeSchemas,
 	definePermissions,
+	InstancePresenceRecordType,
+	ownShapesOnly,
 	pageReadAccess,
 	TL_FULL_ACCESS,
 	TLAccess,
 	TLMutator,
+	TLPageId,
 	TLPermissions,
 	TLRecord,
+	TLUserId,
 } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { InMemorySyncStorage } from '../../lib/InMemorySyncStorage'
@@ -74,7 +78,10 @@ afterEach(() => {
 	for (const room of rooms.splice(0)) room.close()
 })
 
-function makeRoom(permissions: TLPermissions<TLRecord>, opts: { onCommittedChanges?: any } = {}) {
+function makeRoom(
+	permissions: TLPermissions<TLRecord>,
+	opts: { onCommittedChanges?: any; storage?: InMemorySyncStorage<TLRecord> } = {}
+) {
 	const room = new TLSocketRoom<TLRecord, any>({ schema, permissions, ...opts })
 	rooms.push(room)
 	return room
@@ -272,6 +279,25 @@ describe('page read access', () => {
 		// a late joiner does not get it either
 		expect(connect(room, 'eve2', eveAccess).receivedIds().has('shape:secret')).toBe(false)
 	})
+
+	it("does not let a raw client hide someone else's shapes by deleting only their page", () => {
+		const room = makeRoom(
+			definePermissions<TLRecord>({
+				rules: [...defaultAbilityRules<TLRecord>(), ownShapesOnly({ unless: 'teach' })],
+				canRead: pageReadAccess({ canSeePage: () => true }),
+			})
+		)
+		const bob = connect(room, 'bob', { userId: 'bob', abilities: ['edit'] })
+		bob.push({ 'shape:bobs': ['put', shape('shape:bobs', 'page:page', 'bob')] })
+		const eve = connect(room, 'eve', eveAccess)
+
+		expect(eve.push({ 'page:page': ['remove'] })).toMatchObject({
+			action: 'discard',
+			denied: { reason: 'You can only delete your own shapes.' },
+		})
+		expect(room.getRecord('page:page')).toBeDefined()
+		expect(bob.messages().some((m) => m.type === 'patch' && 'shape:bobs' in m.diff)).toBe(false)
+	})
 })
 
 describe('access', () => {
@@ -383,5 +409,61 @@ describe('visibility index', () => {
 		expect(Object.keys(connected.diff)).not.toContain('shape:s')
 		expect(Object.keys(connected.diff)).not.toContain('page:p')
 		room.close()
+	})
+
+	it('closes every session on a wipe when the storage cannot nest transactions', async () => {
+		// SQLite throws on a nested transaction. Removing a session with presence used to open
+		// one, so only the first session was closed and the rest kept records they can't see.
+		class NoNestingStorage extends InMemorySyncStorage<TLRecord> {
+			depth = 0
+			override transaction<T>(
+				callback: Parameters<InMemorySyncStorage<TLRecord>['transaction']>[0],
+				opts?: Parameters<InMemorySyncStorage<TLRecord>['transaction']>[1]
+			): T {
+				if (this.depth > 0) throw new Error('cannot start a transaction within a transaction')
+				this.depth++
+				try {
+					return super.transaction(callback as any, opts) as T
+				} finally {
+					this.depth--
+				}
+			}
+		}
+		const storage = new NoNestingStorage({
+			snapshot: { documents: [], clock: 0, documentClock: 0, schema: schema.serialize() },
+		})
+		storage.transaction((txn) => {
+			txn.set('page:p', page('page:p', 'P'))
+			txn.set('shape:s', shape('shape:s', 'page:p', 'admin'))
+		})
+		const room = makeRoom(pagePermissions(), { storage })
+		const clients = ['eve', 'eve2'].map((name) => {
+			const client = connect(room, name, eveAccess)
+			client.send({
+				type: 'push',
+				clientClock: 1,
+				presence: [
+					'put',
+					InstancePresenceRecordType.create({
+						id: InstancePresenceRecordType.createId(name),
+						userId: `user:${name}` as TLUserId,
+						userName: name,
+						currentPageId: 'page:p' as TLPageId,
+					}),
+				],
+			})
+			return client
+		})
+		expect(Object.keys(room.getPresenceRecords())).toHaveLength(2)
+
+		storage.transaction((txn) => {
+			txn.set('page:p', page('page:p', 'P', { private: true }))
+		})
+		storage.tombstoneHistoryStartsAtClock.set(storage.getClock())
+		await new Promise((resolve) => setTimeout(resolve, 0))
+
+		const closed = clients.map((c) => c.messages().some((m) => m.type === '__closed'))
+		expect(closed).toEqual([true, true])
+		expect(room.getPresenceRecords()).toEqual({})
 	})
 })

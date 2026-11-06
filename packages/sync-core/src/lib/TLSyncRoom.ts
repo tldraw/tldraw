@@ -64,6 +64,9 @@ import {
 	TLSyncForwardDiff,
 	TLSyncStorage,
 	TLSyncStorageTransaction,
+	TLSyncStorageTransactionCallback,
+	TLSyncStorageTransactionOptions,
+	TLSyncStorageTransactionResult,
 	toNetworkDiff,
 } from './TLSyncStorage'
 
@@ -344,6 +347,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private readonly permissions: TLPermissions<R>
 	/** What each access can see, when the room filters reads. */
 	private visibility: RoomVisibility<R> | null
+	/** The transaction the room is inside, so work reached from within it doesn't nest another. */
+	private openTxn: TLSyncStorageTransaction<R> | null = null
 	private onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 	private readonly sessionIdleTimeout: number
 
@@ -455,7 +460,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 	private broadcastExternalStorageChanges() {
-		this.storage.transaction((txn) => {
+		this.transaction((txn) => {
 			this.broadcastChanges(txn)
 			this.lastDocumentClock = txn.getClock()
 		}) // no id needed because this only reads, no writes.
@@ -1007,6 +1012,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	private forceAllReconnect() {
+		// The indexes are rebuilt below, so removing each session needn't update them
+		this.visibility = null
 		for (const session of this.sessions.values()) {
 			// Only connected clients hold state at a clock we can no longer diff from. A session
 			// mid-handshake gets hydrated from its own lastServerClock in the same transaction, so
@@ -1141,7 +1148,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// without having changed. Send the full visible state instead.
 		let visibleIds: Set<string> | null = null
 
-		const { documentClock, result } = this.storage.transaction((txn) => {
+		const { documentClock, result } = this.transaction((txn) => {
 			this.broadcastChanges(txn)
 			let docChanges = txn.getChangesSince(message.lastServerClock)
 			if (this.visibility) {
@@ -1348,7 +1355,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			intent && permissions ? getOwnProperty(permissions.mutators, intent.name) : undefined
 		let denied: { reason: string } | null = null
 
-		const { result, documentClock, changes } = this.storage.transaction(
+		const { result, documentClock, changes } = this.transaction(
 			(txn) => {
 				this.broadcastChanges(txn)
 				// collect actual ops that resulted from the push
@@ -1677,9 +1684,32 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		txn?: TLSyncStorageTransaction<R>
 	): VisibilityUpdate<R> | null {
 		if (!this.visibility) return null
+		txn ??= this.openTxn ?? undefined
 		if (txn) return this.visibility.update(ids(), this.readerFor(txn))
-		return this.storage.transaction((txn) => this.visibility!.update(ids(), this.readerFor(txn)))
-			.result
+		return this.transaction((txn) => this.visibility!.update(ids(), this.readerFor(txn))).result
+	}
+
+	/**
+	 * Opens a storage transaction and records it as open. Removing a session reads visibility and
+	 * can happen inside one (a forced reconnect, a rejection while broadcasting or connecting);
+	 * opening a second there throws on SQLite.
+	 */
+	private transaction<T>(
+		callback: (txn: TLSyncStorageTransaction<R>) => T,
+		opts?: TLSyncStorageTransactionOptions
+	): TLSyncStorageTransactionResult<T, R> {
+		return this.storage.transaction<T>(
+			((txn: TLSyncStorageTransaction<R>) => {
+				const outer = this.openTxn
+				this.openTxn = txn
+				try {
+					return callback(txn)
+				} finally {
+					this.openTxn = outer
+				}
+			}) as TLSyncStorageTransactionCallback<R, T>,
+			opts
+		)
 	}
 
 	/**
@@ -1752,7 +1782,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		this._unsafe_sendMessage(sessionId, { type: 'access', access })
 		if (!session.visibleIds) return
-		this.storage.transaction((txn) => {
+		this.transaction((txn) => {
 			const records = this.readerFor(txn)
 			const before = session.visibleIds!
 			const after = new Set(this.visibilityIndex(access, txn).visible)

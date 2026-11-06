@@ -165,7 +165,8 @@ function arrowDetaches(prev: UnknownRecord, next: UnknownRecord, terminals: Read
 
 /**
  * Shapes belong to their creator. A session may create a shape only with its own user id in
- * `meta.ownerId`, and may change or delete only shapes it owns. The owner never changes.
+ * `meta.ownerId`, and may change or delete only shapes it owns. The owner never changes. Deleting a
+ * page or a shape is denied while a shape someone else owns is still under it.
  * Bindings belong to the shape they start from (`fromId`). Sessions with the `unless` ability
  * skip the rule. Anonymous sessions own nothing.
  *
@@ -220,6 +221,24 @@ export function ownShapesOnly<R extends UnknownRecord>(
 				for (const binding of [change.prev, change.next] as (AnyRecord | null)[]) {
 					if (!binding) continue
 					if (!owns(binding.fromId)) return 'You can only connect arrows that you own.'
+				}
+			}
+		}
+		// A raw client can delete only a page or a parent frame and leave the shapes under it.
+		// Those shapes then have no page, so read rules hide them from everyone, owner included.
+		const deletedParents = new Set<string>()
+		for (const change of tx.changes) {
+			const typeName = (change.prev as AnyRecord | null)?.typeName
+			if (change.op === 'delete' && (typeName === 'page' || typeName === 'shape')) {
+				deletedParents.add(change.id)
+			}
+		}
+		if (deletedParents.size) {
+			for (const record of tx.after.all()) {
+				const shape = record as AnyRecord
+				if (shape.typeName !== 'shape' || (userId && ownerOf(shape) === userId)) continue
+				if (ancestorIdsOf(tx.after, record).some((id) => deletedParents.has(id))) {
+					return 'You can only delete your own shapes.'
 				}
 			}
 		}

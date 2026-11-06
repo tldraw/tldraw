@@ -115,3 +115,44 @@ describe('ownShapesOnly detach', () => {
 		)
 	})
 })
+
+describe('ownShapesOnly parent deletes', () => {
+	const rule = ownShapesOnly<Rec>({ unless: 'teach' })
+	const pageA = page('page:a')
+	const frame = shape('shape:frame', 'page:a', 'ann')
+	const bobs = shape('shape:bobs', 'shape:frame', 'bob')
+	const anns = shape('shape:anns', 'shape:frame', 'ann')
+
+	/** `abilities` removes `removed` from a document of pageA, ann's frame, and what's in it. */
+	function remove(removed: Rec[], inFrame: Rec[], abilities = ['edit']) {
+		const all = [pageA, frame, ...inFrame]
+		const tx = createTransaction<Rec>({
+			access: { userId: 'ann', abilities },
+			intent: null,
+			diff: {
+				added: {},
+				updated: {},
+				removed: Object.fromEntries(removed.map((r) => [r.id, r])),
+			} as any,
+			after: reader(all.filter((r) => !removed.includes(r))),
+		})
+		return rule(tx)
+	}
+
+	it("denies deleting a page that still holds someone else's shape", () => {
+		expect(remove([pageA], [bobs])).toBe('You can only delete your own shapes.')
+	})
+
+	it("denies deleting your frame that still holds someone else's shape", () => {
+		expect(remove([frame], [bobs])).toBe('You can only delete your own shapes.')
+	})
+
+	it('allows deleting a page or frame that holds only your shapes', () => {
+		expect(remove([pageA], [anns])).toBeUndefined()
+		expect(remove([pageA, frame, anns], [anns])).toBeUndefined()
+	})
+
+	it('allows it with the unless ability', () => {
+		expect(remove([pageA], [bobs], ['edit', 'teach'])).toBeUndefined()
+	})
+})

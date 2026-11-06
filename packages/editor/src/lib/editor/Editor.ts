@@ -1790,15 +1790,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!this.permissions.isActive() && !intent) {
 				this.history.batch(fn, opts)
 			} else {
-				// the group is the undo step, so a drag replays after offline as one action
 				this.store.withTransaction(
 					() => {
-						this.permissions.runChecked(
-							() => this.history.batch(fn, opts),
-							this.store.getCurrentTransaction() ?? null
-						)
+						this.permissions.runChecked(() => {
+							this.history.batch(fn, opts)
+							// The group is the undo step the run ends in, so a drag replays after offline
+							// as one action. Read at the end: a tool often sets the mark inside the run.
+							this.store.setTransactionGroup(this.history._currentMarkId())
+						}, this.store.getCurrentTransaction())
 					},
-					{ intent, group: this.history._currentMarkId() }
+					{ intent }
 				)
 			}
 		} finally {

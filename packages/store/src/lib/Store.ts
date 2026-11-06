@@ -140,7 +140,8 @@ export interface StoreTransaction {
 	/**
 	 * Transactions with the same group are one gesture, such as the frames of a drag. Online, the
 	 * sync client sends each transaction as it happens. After it was offline, it sends each group
-	 * of unnamed transactions as one push, so one denial covers the whole gesture.
+	 * of unnamed transactions as one push, so one denial covers the whole gesture. Set it with
+	 * {@link Store.setTransactionGroup}.
 	 */
 	readonly group: string | null
 }
@@ -1112,19 +1113,34 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 *
 	 * @public
 	 */
-	withTransaction<T>(
-		fn: () => T,
-		opts?: { intent?: StoreIntent | null; group?: string | null }
-	): T {
+	withTransaction<T>(fn: () => T, opts?: { intent?: StoreIntent | null }): T {
 		const intent = opts?.intent ?? null
 		const outer = this.currentTransaction
 		if (outer && !intent) return fn()
-		this.currentTransaction = { intent, group: opts?.group ?? null }
+		const groups = this.transactionGroups
+		const transaction: StoreTransaction = {
+			intent,
+			// a getter: history entries are frozen, and the group is often known only at the end
+			get group() {
+				return groups.get(transaction) ?? null
+			},
+		}
+		this.currentTransaction = transaction
 		try {
 			return fn()
 		} finally {
 			this.currentTransaction = outer
 		}
+	}
+
+	private transactionGroups = new WeakMap<StoreTransaction, string>()
+
+	/** Set the {@link StoreTransaction.group} of the transaction that is running now. @public */
+	setTransactionGroup(group: string | null) {
+		const transaction = this.currentTransaction
+		if (!transaction) return
+		if (group === null) this.transactionGroups.delete(transaction)
+		else this.transactionGroups.set(transaction, group)
 	}
 
 	/** The transaction that is running now, if any. @public */

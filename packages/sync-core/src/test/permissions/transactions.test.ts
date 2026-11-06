@@ -224,8 +224,11 @@ describe('offline changes', () => {
 		ann.editor.createShapes([{ id: dragged, type: 'geo', x: 0, y: 0 }])
 		ann.editor.updateShapes([{ id: dragged, type: 'geo', x: 10 }])
 		ann.editor.updateShapes([{ id: dragged, type: 'geo', x: 30 }])
-		ann.editor.markHistoryStoppingPoint('next')
-		ann.editor.createShapes([{ id: other, type: 'geo', x: 0, y: 300 }])
+		// a tool sets the mark inside the run that creates the shape
+		ann.editor.run(() => {
+			ann.editor.markHistoryStoppingPoint('next')
+			ann.editor.createShapes([{ id: other, type: 'geo', x: 0, y: 300 }])
+		})
 		// meanwhile, the server starts to deny the end of the drag
 		bob.editor.updateDocumentSettings({ meta: { locked: true } })
 		ann.reconnect()

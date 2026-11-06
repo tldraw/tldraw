@@ -34,10 +34,12 @@ interface Write {
 	type: 'create' | 'update' | 'delete'
 	prev: TLRecord | null
 	next: TLRecord | null
+	/** Other records in the document after the write, such as a comment's thread. */
+	others?: TLRecord[]
 }
 
 /** Check one write against the file rules, as the room checks a push of it. */
-function allowed({ session, type, prev, next }: Write) {
+function allowed({ session, type, prev, next, others = [] }: Write) {
 	const id = (next ?? prev)!.id
 	return filePermissions.check(
 		createTransaction<TLRecord>({
@@ -48,7 +50,10 @@ function allowed({ session, type, prev, next }: Write) {
 				updated: type === 'update' ? { [id]: [prev, next] } : {},
 				removed: type === 'delete' ? { [id]: prev } : {},
 			} as any,
-			after: { get: () => undefined, all: () => [] },
+			after: {
+				get: (recordId) => [next, ...others].find((r) => r?.id === recordId) ?? undefined,
+				all: () => [next, ...others].filter((r): r is TLRecord => !!r),
+			},
 		})
 	).ok
 }
@@ -77,15 +82,22 @@ describe('filePermissions', () => {
 
 		it('denies a comment attributed to someone else', () => {
 			const next = comment('client-claims-alice')
-			expect(allowed({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
-				false
-			)
+			expect(
+				allowed({
+					session: session('real-bob'),
+					type: 'create',
+					prev: null,
+					next,
+					others: [thread as any],
+				})
+			).toBe(false)
 			expect(
 				allowed({
 					session: session('real-bob'),
 					type: 'create',
 					prev: null,
 					next: comment('real-bob'),
+					others: [thread as any],
 				})
 			).toBe(true)
 		})
