@@ -108,6 +108,7 @@ function makeRoom(
 			}) => any
 		}
 		beforeRead?: { [typeName: string]: (args: any) => any }
+		writeRejection?: 'record' | 'push'
 		log?: any
 	} = {}
 ) {
@@ -128,6 +129,7 @@ function makeRoom(
 		onCommittedChanges: opts.onCommittedChanges,
 		beforeWrite: opts.beforeWrite,
 		beforeRead: opts.beforeRead,
+		writeRejection: opts.writeRejection,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -1406,5 +1408,215 @@ describe('canRead', () => {
 
 	it('skips types with no check', () => {
 		expect(Object.keys(canRead<R, any>({ doc: undefined, note: () => true }))).toEqual(['note'])
+	})
+})
+
+describe('writeRejection', () => {
+	// A doc stands in for a group and notes for its children: the hook rejects the group, as an
+	// access rule would, while the children in the same push are allowed.
+	const group = Doc.create({ title: 'group' })
+	const child = Note.create({ text: 'child' })
+	const existing = Note.create({ text: 'existing' })
+	const rejectGroup = { doc: ({ prev }: any) => prev }
+	const groupAndChildren = {
+		[group.id]: [RecordOpType.Put, group],
+		[child.id]: [RecordOpType.Put, child],
+		[existing.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'moved'] }],
+	} as any
+
+	function roomWith(opts: {
+		writeRejection?: 'record' | 'push'
+		beforeWrite?: any
+		beforeRead?: any
+	}) {
+		const onCommittedChanges = vi.fn()
+		const { room, storage } = makeRoom({
+			...opts,
+			objectTypes: ['note'],
+			onCommittedChanges,
+			log: { warn: vi.fn(), error: vi.fn() },
+			snapshot: {
+				documents: [{ state: existing, lastChangedClock: 0 }],
+				clock: 0,
+				documentClock: 0,
+				schema: schema.serialize(),
+			},
+		})
+		const alice = connectSession(room, 'alice')
+		const bob = connectSession(room, 'bob')
+		return { room, storage, alice, bob, onCommittedChanges }
+	}
+
+	const storedText = (storage: InMemorySyncStorage<R>) =>
+		(
+			storage.getObjectsSnapshot().find((d) => d.state.id === existing.id)?.state as
+				| NoteRecord
+				| undefined
+		)?.text
+
+	it("keeps the rest of the push by default ('record')", () => {
+		const { room, storage, alice } = roomWith({ beforeWrite: rejectGroup })
+
+		push(room, 'alice', groupAndChildren)
+
+		expect(storedIds(storage)).toEqual([child.id, existing.id].sort())
+		expect(storedText(storage)).toBe('moved')
+		expect(lastPushResult(alice).action).toHaveProperty('rebaseWithDiff')
+	})
+
+	it("rejects the whole push with 'push': nothing is stored or broadcast, and the client discards it", async () => {
+		const { room, storage, alice, bob, onCommittedChanges } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: rejectGroup,
+		})
+
+		push(room, 'alice', groupAndChildren)
+		room._flushDataMessages('bob')
+		await new Promise((r) => setTimeout(r, 0))
+
+		expect(storedIds(storage)).toEqual([existing.id])
+		expect(storedText(storage)).toBe('existing')
+		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+		expect(sentDataMessages(bob)).toEqual([])
+		expect(onCommittedChanges).not.toHaveBeenCalled()
+	})
+
+	it("commits a push with no rejected write as usual with 'push'", () => {
+		const { room, storage, alice } = roomWith({ writeRejection: 'push', beforeWrite: {} })
+
+		push(room, 'alice', groupAndChildren)
+
+		expect(storedIds(storage)).toEqual([child.id, existing.id, group.id].sort())
+		expect(lastPushResult(alice)).toMatchObject({ action: 'commit' })
+	})
+
+	it("rejects the whole push with 'push' when a hook throws", () => {
+		const { room, storage, alice } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: {
+				doc: () => {
+					throw new Error('bug')
+				},
+			},
+		})
+
+		push(room, 'alice', groupAndChildren)
+
+		expect(storedIds(storage)).toEqual([existing.id])
+		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+	})
+
+	it("rejects the whole push with 'push' when the session may not write a type", () => {
+		const { room, storage } = roomWith({ writeRejection: 'push' })
+		const reader = connectSession(room, 'reader', { objectAccess: 'read' })
+
+		push(room, 'reader', groupAndChildren)
+
+		expect(storedIds(storage)).toEqual([existing.id])
+		expect(lastPushResult(reader)).toMatchObject({ action: 'discard' })
+	})
+
+	it("rejects the whole push with 'push' when a hook keeps a deleted record", () => {
+		const { room, storage, alice } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: { note: ({ type, prev }: any) => (type === 'delete' ? prev : undefined) },
+		})
+
+		push(room, 'alice', {
+			[group.id]: [RecordOpType.Put, group],
+			[existing.id]: [RecordOpType.Remove],
+		} as any)
+
+		expect(storedIds(storage)).toEqual([existing.id])
+		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+	})
+
+	it("rejects the session with 'push' when an invalid record follows a rejected one", () => {
+		const { room, alice } = roomWith({ writeRejection: 'push', beforeWrite: rejectGroup })
+
+		push(room, 'alice', {
+			[group.id]: [RecordOpType.Put, group],
+			['unknown:x']: [RecordOpType.Put, { id: 'unknown:x', typeName: 'unknown' }],
+		} as any)
+
+		expect(room.sessions.get('alice')).toBeUndefined()
+		expect(alice.close).toHaveBeenCalled()
+	})
+
+	it("does not reject a push with 'push' for a put that repeats a record the hook keeps", () => {
+		const { room, storage, alice } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: { note: ({ prev }: any) => prev },
+		})
+
+		push(room, 'alice', {
+			[existing.id]: [RecordOpType.Put, existing],
+			[group.id]: [RecordOpType.Put, group],
+		} as any)
+
+		expect(storedIds(storage)).toEqual([existing.id, group.id].sort())
+		expect(lastPushResult(alice).action).toEqual({
+			rebaseWithDiff: { [group.id]: [RecordOpType.Put, group] },
+		})
+	})
+
+	it("still applies the presence of a rejected push with 'push'", () => {
+		const { room, alice, bob } = roomWith({ writeRejection: 'push', beforeWrite: rejectGroup })
+
+		room.handleMessage('alice', {
+			type: 'push',
+			clientClock: 1,
+			diff: groupAndChildren,
+			presence: [RecordOpType.Put, Presence.create({ name: 'alice' })],
+		} as any)
+		room._flushDataMessages('bob')
+
+		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+		expect([...room.presenceStore.values()]).toEqual([
+			expect.objectContaining({ typeName: 'presence', name: 'alice' }),
+		])
+		const patch = sentDataMessages(bob).find((m) => m.type === 'patch')
+		expect(Object.values(patch.diff)).toEqual([
+			[RecordOpType.Put, expect.objectContaining({ typeName: 'presence', name: 'alice' })],
+		])
+	})
+
+	it('works with beforeRead: a rejected push sends nothing, and an allowed one is still filtered', () => {
+		const { room, storage, alice, bob } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: {
+				doc: ({ prev, next }: any) => (next?.title === 'rejected' ? prev : undefined),
+			},
+			beforeRead: { doc: ({ record }: any) => (record.title === 'hidden' ? null : undefined) },
+		})
+		const hidden = Doc.create({ title: 'hidden' })
+		const rejected = Doc.create({ title: 'rejected' })
+
+		push(
+			room,
+			'alice',
+			{ [rejected.id]: [RecordOpType.Put, rejected], [child.id]: [RecordOpType.Put, child] } as any,
+			1
+		)
+		room._flushDataMessages('bob')
+		expect(storedIds(storage)).toEqual([existing.id])
+		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+		expect(sentDataMessages(bob)).toEqual([])
+
+		push(
+			room,
+			'alice',
+			{ [hidden.id]: [RecordOpType.Put, hidden], [child.id]: [RecordOpType.Put, child] } as any,
+			2
+		)
+		room._flushDataMessages('alice')
+		room._flushDataMessages('bob')
+		expect(storedIds(storage)).toEqual([child.id, existing.id, hidden.id].sort())
+		// alice may not see the hidden doc she created: the result leaves it out, so her client drops it
+		expect(lastPushResult(alice).action.rebaseWithDiff).toEqual({
+			[child.id]: [RecordOpType.Put, child],
+		})
+		const patch = sentDataMessages(bob).find((m) => m.type === 'patch')
+		expect(patch.diff).toEqual({ [child.id]: [RecordOpType.Put, child] })
 	})
 })

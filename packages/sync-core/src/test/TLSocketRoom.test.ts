@@ -1603,6 +1603,22 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room.getRecord(orphan.id)).toBeUndefined()
 		})
 
+		it("[SR18] writeRejection: 'push' stores none of a push that has a rejected record", () => {
+			const room = new TLSocketRoom<TLRecord, void>({
+				beforeWrite: { page: ({ next, prev, get }: any) => (get(next.meta.after) ? next : prev) },
+				writeRejection: 'push',
+				log: { warn: () => {} },
+			})
+			connectSession(room, 'S', createMockSocket())
+
+			const first = makePage('first', 'a2', { after: 'page:page' })
+			const orphan = makePage('orphan', 'a4', { after: 'page:missing' })
+			pushPages(room, 'S', [first, orphan])
+
+			expect(room.getRecord(first.id)).toBeUndefined()
+			expect(room.getRecord(orphan.id)).toBeUndefined()
+		})
+
 		it('[SR16] get takes its result type from a typed id', () => {
 			const hooks: TLBeforeWriteHooks<TLRecord, void> = {
 				shape: ({ next, get }) => {

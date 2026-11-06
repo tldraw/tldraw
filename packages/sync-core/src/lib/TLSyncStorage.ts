@@ -74,6 +74,11 @@ export type TLSyncStorageTransactionCallback<R extends UnknownRecord, T> = (
  * @public
  */
 export interface TLSyncStorage<R extends UnknownRecord> {
+	/**
+	 * Runs `callback` as one atomic transaction. If the callback throws, every write it made must
+	 * be rolled back before the error is rethrown: the room relies on this to reject a whole push
+	 * (see `TLSocketRoomOptions.writeRejection`) and when it rejects a session mid-push.
+	 */
 	transaction<T>(
 		callback: TLSyncStorageTransactionCallback<R, T>,
 		opts?: TLSyncStorageTransactionOptions

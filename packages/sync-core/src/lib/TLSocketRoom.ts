@@ -164,6 +164,25 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
 	/**
+	 * What a rejected client write takes with it. A write is rejected when a `beforeWrite` hook
+	 * returns `prev`, throws, or returns a record with another id or typeName; when a put changes a
+	 * stored record's typeName; or when the session may not write that record type.
+	 *
+	 * - `'record'` (the default): the room skips only that record and applies the rest of the push.
+	 * - `'push'`: the room rejects the whole push. It stores and broadcasts none of its records, and
+	 *   the client undoes all of them. Use it when records depend on each other, for example a
+	 *   group and the `parentId` changes of its children. Hooks may already have run for earlier
+	 *   records of the push, so they must not have side effects. Presence in the push is still
+	 *   applied.
+	 *
+	 * A push is what the client sends in one network frame: every change made since the last
+	 * push, so it can hold more than one user action, but a store transaction is never split
+	 * between pushes. Each push is judged on its own: a later push that builds on a rejected one
+	 * (for example, it moves shapes into the rejected group) is applied if its own records pass.
+	 * Check such references in a hook with `get`.
+	 */
+	writeRejection?: 'record' | 'push'
+	/**
 	 * @deprecated Use `beforeWrite`. Setting both throws.
 	 */
 	// oxlint-disable-next-line typescript/no-deprecated
@@ -313,6 +332,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			beforeWrite:
 				opts.beforeWrite ?? (authorizeRecord && beforeWriteFromAuthorizers(authorizeRecord)),
 			beforeRead: opts.beforeRead,
+			writeRejection: opts.writeRejection,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

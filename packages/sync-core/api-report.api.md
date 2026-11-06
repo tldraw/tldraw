@@ -659,6 +659,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     schema?: StoreSchema<R, any>;
     // (undocumented)
     storage?: TLSyncStorage<R>;
+    writeRejection?: 'push' | 'record';
 }
 
 // @internal
@@ -793,6 +794,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
         objectTypes?: readonly string[];
+        writeRejection?: 'push' | 'record';
         beforeRead?: TLBeforeReadHooks<R, SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
@@ -884,7 +886,6 @@ export interface TLSyncStorage<R extends UnknownRecord> {
     getSnapshot?(): RoomSnapshot;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
-    // (undocumented)
     transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
 }
 
