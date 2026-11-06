@@ -19,6 +19,21 @@
 	gap: 2px;
 }
 
+/* Beside a 250px scene list, a phone-width main column is too narrow for its controls. */
+@media (max-width: 700px) {
+	.perm-root {
+		grid-template-columns: 1fr;
+		grid-template-rows: auto auto;
+		overflow-y: auto;
+	}
+
+	.perm-scenes {
+		max-height: 160px;
+		border-right: 0;
+		border-bottom: 1px solid #ddd;
+	}
+}
+
 .perm-scenes button {
 	display: grid;
 	grid-template-columns: 20px 1fr auto;
