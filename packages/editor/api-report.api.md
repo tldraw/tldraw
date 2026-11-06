@@ -6,6 +6,10 @@
 
 import { Atom } from '@tldraw/state';
 import { AtomSet } from '@tldraw/store';
+import { Authorize } from '@tldraw/store';
+import { AuthorizeCustomAction } from '@tldraw/store';
+import { AuthorizeDecision } from '@tldraw/store';
+import { AuthorizeRecordAction } from '@tldraw/store';
 import { Awaitable } from '@tldraw/utils';
 import { BoxModel } from '@tldraw/tlschema';
 import { ComponentType } from 'react';
@@ -881,7 +885,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, permissions, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1538,6 +1542,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     pageToScreen(point: VecLike): Vec;
     pageToViewport(point: VecLike): Vec;
     readonly performance: PerformanceManager;
+    readonly permissions: PermissionsManager;
     popFocusedGroupId(): this;
     putContentOntoCurrentPage(content: TLContent, opts?: {
         point?: VecLike;
@@ -2800,6 +2805,19 @@ export class PerformanceManager extends EditorManager {
 // @public
 export function perimeterOfEllipse(rx: number, ry: number): number;
 
+// @public
+export class PermissionsManager extends EditorManager {
+    constructor(editor: Editor, permissions?: TLEditorPermissions);
+    can(action: AuthorizeCustomAction | AuthorizeRecordAction, record?: TLRecord, next?: TLRecord): boolean;
+    check(action: AuthorizeCustomAction | AuthorizeRecordAction, record?: TLRecord, next?: TLRecord): AuthorizeDecision<TLRecord>;
+    getActor<Actor = unknown>(): Actor;
+    getLastDenial(): null | TLPermissionDenial;
+    isEnabled(): boolean;
+    setActor(actor: unknown): void;
+    // @internal
+    startWriteGate(): void;
+}
+
 // @public (undocumented)
 export const PI: number;
 
@@ -3816,6 +3834,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
+    permissions?: TLEditorPermissions;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -4022,6 +4041,7 @@ export interface TLEditorOptions {
     licenseKey?: string;
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
+    permissions?: TLEditorPermissions;
     shapeUtils: readonly TLAnyShapeUtilConstructor[];
     store: TLStore;
     // @deprecated
@@ -4029,6 +4049,14 @@ export interface TLEditorOptions {
     themes?: Partial<TLThemes>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
+}
+
+// @public
+export interface TLEditorPermissions<Actor = any> {
+    // (undocumented)
+    actor: Actor;
+    // (undocumented)
+    authorize: Authorize<TLRecord, Actor>;
 }
 
 // @public
@@ -4602,6 +4630,18 @@ export interface TLPerfLongAnimationFrameScript {
     duration: number;
     invoker: string;
     sourceURL: string;
+}
+
+// @public
+export interface TLPermissionDenial {
+    // (undocumented)
+    action: AuthorizeRecordAction;
+    // (undocumented)
+    reason: null | string;
+    // (undocumented)
+    recordId: TLRecord['id'];
+    // (undocumented)
+    time: number;
 }
 
 // @public (undocumented)

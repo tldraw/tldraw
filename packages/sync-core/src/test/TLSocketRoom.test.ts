@@ -215,10 +215,8 @@ describe('28. TLSocketRoom (SR)', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
 				const room = new TLSocketRoom({
-					authorizeRecord: {
-						page: () => {
-							throw new Error('authorizer exploded')
-						},
+					authorize: (ctx) => {
+						if (ctx.action === 'create') throw new Error('authorizer exploded')
 					},
 				})
 				const socket = createMockSocket()
@@ -242,7 +240,9 @@ describe('28. TLSocketRoom (SR)', () => {
 				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'record authorizer threw; rejecting the write',
+					'authorize threw; denying',
+					'create',
+					'test-session',
 					expect.objectContaining({ message: 'authorizer exploded' })
 				)
 			} finally {

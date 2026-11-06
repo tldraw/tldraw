@@ -34,6 +34,7 @@ import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { defaultI18n, TLI18nAdapter } from './config/TLI18n'
 import { Editor } from './editor/Editor'
+import type { TLEditorPermissions } from './editor/managers/PermissionsManager/PermissionsManager'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -249,6 +250,18 @@ export interface TldrawEditorBaseProps {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Permission rules: one `authorize` function, the same one the sync server runs, and the actor
+	 * it checks for. A new `authorize` function recreates the editor. A new `actor` does not: the
+	 * editor updates its answers at once.
+	 *
+	 * @example
+	 * ```tsx
+	 * <Tldraw permissions={{ authorize, actor: { userId, role: 'student' } }} />
+	 * ```
+	 */
+	permissions?: TLEditorPermissions
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -529,6 +542,7 @@ function TldrawEditorWithReadyStore({
 	themes,
 	initialTheme,
 	i18n,
+	permissions,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -585,6 +599,11 @@ function TldrawEditorWithReadyStore({
 		[]
 	)
 
+	// The actor can change (a new role from the server) without a new editor.
+	const authorize = permissions?.authorize
+	const actorRef = useRef(permissions?.actor)
+	actorRef.current = permissions?.actor
+
 	useLayoutEffect(
 		() => {
 			const {
@@ -617,6 +636,7 @@ function TldrawEditorWithReadyStore({
 				themes: themes,
 				initialTheme: initialTheme,
 				i18n: stableI18n,
+				permissions: authorize ? { authorize, actor: actorRef.current } : undefined,
 			})
 			editor.licenseManager = licenseManager
 
@@ -658,8 +678,14 @@ function TldrawEditorWithReadyStore({
 			getShapeVisibility,
 			assetUrls,
 			stableI18n,
+			authorize,
 		]
 	)
+
+	const actor = permissions?.actor
+	useLayoutEffect(() => {
+		editor?.permissions.setActor(actor)
+	}, [editor, actor])
 
 	useLayoutEffect(() => {
 		if (!editor) return

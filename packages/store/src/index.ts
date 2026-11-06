@@ -1,6 +1,19 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { AtomMap } from './lib/AtomMap'
 export { AtomSet } from './lib/AtomSet'
+export {
+	combineAuthorize,
+	runAuthorize,
+	type Authorize,
+	type AuthorizeContext,
+	type AuthorizeCustomAction,
+	type AuthorizeDecision,
+	type AuthorizeDenial,
+	type AuthorizeGet,
+	type AuthorizeRecordAction,
+	type AuthorizeRequest,
+	type AuthorizeResult,
+} from './lib/authorize'
 export type { BaseRecord, IdOf, RecordId, UnknownRecord } from './lib/BaseRecord'
 export { devFreeze } from './lib/devFreeze'
 export { type QueryExpression, type QueryValueMatcher } from './lib/executeQuery'
@@ -50,6 +63,8 @@ export {
 	type StoreSnapshot,
 	type StoreValidator,
 	type StoreValidators,
+	type StoreWriteGate,
+	type StoreWriteGateChange,
 } from './lib/Store'
 export { StoreQueries, type RSIndex, type RSIndexDiff, type RSIndexMap } from './lib/StoreQueries'
 export { StoreSchema, type StoreValidationFailure } from './lib/StoreSchema'

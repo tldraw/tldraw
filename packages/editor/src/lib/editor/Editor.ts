@@ -170,6 +170,10 @@ import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
+import {
+	PermissionsManager,
+	TLEditorPermissions,
+} from './managers/PermissionsManager/PermissionsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -292,6 +296,12 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
+	 * Permission rules: one `authorize` function, the same one the sync server runs, and the actor
+	 * it checks for. The editor treats shapes the actor cannot update as locked, and reverts any
+	 * local operation that `authorize` denies. See {@link PermissionsManager}.
+	 */
+	permissions?: TLEditorPermissions
+	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
@@ -380,6 +390,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		themes,
 		initialTheme,
 		i18n,
+		permissions,
 	}: TLEditorOptions) {
 		super()
 
@@ -393,6 +404,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.options = { ...defaultTldrawOptions, ...options }
 
 		this.store = store
+		this.permissions = new PermissionsManager(this, permissions)
+		this.disposables.add(() => this.permissions.dispose())
 		this.history = new HistoryManager<TLRecord>({
 			store,
 			annotateError: (error: any) => {
@@ -989,6 +1002,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			})
 		)
+
+		this.permissions.startWriteGate()
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
@@ -1222,6 +1237,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private focusManager: FocusManager
+
+	/**
+	 * Answers permission questions with the editor's `authorize` function, and stops local writes
+	 * that it denies. See {@link PermissionsManager}.
+	 *
+	 * @public
+	 */
+	readonly permissions: PermissionsManager
 
 	/**
 	 * The current HTML element containing the editor.
@@ -1753,7 +1776,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			// With permission rules, the whole run passes or fails as one operation.
+			this.store.batchWriteGate(() => this.history.batch(fn, opts))
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
@@ -5783,6 +5807,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
 		if (_shape.isLocked) return true
+		// A shape that the actor may not change behaves as locked, so the UI never offers an edit
+		// that the permission rules would revert.
+		if (this.permissions.isEnabled() && !this.permissions.can('update', _shape)) return true
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 
@@ -5957,7 +5984,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
 			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) continue
 			if (
-				(shape.isLocked && !hitLocked) ||
+				((shape.isLocked ||
+					(this.permissions.isEnabled() && !this.permissions.can('update', shape))) &&
+					!hitLocked) ||
 				this.isShapeHidden(shape) ||
 				this.isShapeOfType(shape, 'group')
 			) {

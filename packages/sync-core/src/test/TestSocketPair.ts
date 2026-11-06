@@ -102,8 +102,11 @@ export class TestSocketPair<R extends UnknownRecord> {
 		return this.clientSocket.connectionStatus === 'online'
 	}
 
+	/** Session options for every connect, such as the `meta` that `authorize` sees. */
+	connectOptions: Parameters<TestServer<R>['connect']>[1] = undefined
+
 	connect() {
-		this.server.connect(this)
+		this.server.connect(this, this.connectOptions)
 	}
 
 	disconnect(code?: number, reason?: string) {

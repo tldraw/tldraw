@@ -1,4 +1,11 @@
-import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
+import type {
+	Authorize,
+	AuthorizeCustomAction,
+	AuthorizeRecordAction,
+	SerializedSchema,
+	StoreSchema,
+	UnknownRecord,
+} from '@tldraw/store'
 import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
@@ -7,7 +14,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -145,11 +152,31 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
-	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
-	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 * One function for every permission question about the room's records. The actor is the
+	 * session's `meta`. The room asks it:
+	 *
+	 * - `create`, `update`, and `delete` for each record of each client push, after the
+	 *   `isReadonly` / `objectAccess` gate. A denial skips the record (or the whole push, with
+	 *   `atomicPushes`), and the client is corrected. A `{ record }` result is stored instead.
+	 * - `read` for each record that it sends to each session, on connect and on each change. A
+	 *   denial sends nothing (and removes the record from a client that holds it). A `{ record }`
+	 *   result sends that copy instead.
+	 * - custom actions through {@link TLSocketRoom.can}, and from inside the function with
+	 *   `ctx.can()`.
+	 *
+	 * It does not run for server-initiated writes (`updateStore`, `loadSnapshot`, migrations), or
+	 * for presence records. With `authorize` set, every connect gets a full view of the document.
+	 *
+	 * The editor takes the same function (`authorize` on `Tldraw`), so the UI and the server
+	 * agree. See {@link @tldraw/store#Authorize}.
 	 */
-	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	authorize?: Authorize<R, SessionMeta>
+	/**
+	 * When true, a push with any denied write is rejected as a whole: nothing in it is stored, and
+	 * the client rolls all of it back. Use it when a partial push would break references, such as
+	 * an arrow without its binding. Default false: the room skips each denied record.
+	 */
+	atomicPushes?: boolean
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -280,7 +307,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			authorizeRecord: opts.authorizeRecord,
+			authorize: opts.authorize,
+			atomicPushes: opts.atomicPushes,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -946,6 +974,37 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	sendCustomMessage(sessionId: string, data: any) {
 		this.room.sendCustomMessage(sessionId, data)
+	}
+
+	/**
+	 * Asks the room's `authorize` function a question for a connected session, as of the stored
+	 * records. Use it in server code outside the socket, such as an HTTP route for a custom action,
+	 * so that the route and the client ask the same function.
+	 *
+	 * @example
+	 * ```ts
+	 * if (!room.can(sessionId, 'cards:reveal', card)) return new Response(null, { status: 403 })
+	 * ```
+	 */
+	can(sessionId: string, action: AuthorizeRecordAction | AuthorizeCustomAction, record?: R) {
+		return this.room.can(sessionId, action, record)
+	}
+
+	/**
+	 * Runs `read` again for each record, for the given sessions (all by default), and updates what
+	 * each of them holds. Call it when a rule's answer changes for a reason other than a change to
+	 * the record itself.
+	 */
+	reauthorize(sessionIds?: readonly string[]) {
+		this.room.reauthorize(sessionIds)
+	}
+
+	/**
+	 * Replaces a session's `meta` (the actor that `authorize` sees) with no reconnect, and updates
+	 * what the session can see. Write checks use the new `meta` from the next push.
+	 */
+	updateSessionMeta(sessionId: string, meta: SessionMeta) {
+		this.room.updateSessionMeta(sessionId, meta)
 	}
 
 	/**

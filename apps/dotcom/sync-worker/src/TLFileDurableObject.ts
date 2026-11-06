@@ -21,7 +21,7 @@ import {
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { UnknownRecord } from '@tldraw/store'
+import { Authorize, UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -52,21 +52,14 @@ import {
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	objectMapEntries,
-	retry,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, getObjectAccess } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -274,13 +267,15 @@ const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 // Record types served through the room's object-store lane rather than the document lane.
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`
 // (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
-// rather than the R2 document blob. Every entry must have an `authorizeFileRecord` authorizer —
-// that's where per-tier write policy lives (the `satisfies` enforces it).
-const OBJECT_TYPES = [
-	'comment-thread',
-	'comment',
-	'comment-reaction',
-] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
+// rather than the R2 document blob. Their write rules live in `authorizeFileRecord`.
+const OBJECT_TYPES = ['comment-thread', 'comment', 'comment-reaction'] as const
+
+// The record types whose denied writes are counted in telemetry.
+const OBSERVED_TYPES = ['shape', ...OBJECT_TYPES] as const
+type ObservedType = (typeof OBSERVED_TYPES)[number]
+function isObservedType(typeName: string): typeName is ObservedType {
+	return (OBSERVED_TYPES as readonly string[]).includes(typeName)
+}
 
 // The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
@@ -400,28 +395,30 @@ export class TLFileDurableObject extends DurableObject {
 	private recordVetoWarningScheduled = false
 	private recordVetoCounts?: Map<string, number>
 
-	private observeRecordAuthorizers(
-		authorizers: typeof authorizeFileRecord
-	): typeof authorizeFileRecord {
-		return Object.fromEntries(
-			objectMapEntries(authorizers).map(([typeName, authorize]) => {
-				if (!authorize) return [typeName, undefined]
-				return [
-					typeName,
-					(args: Parameters<typeof authorize>[0]) => {
-						const result = authorize(args as never)
-						if (result === null) {
-							try {
-								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
-							} catch {
-								// Failed telemetry must never change authorization.
-							}
-						}
-						return result
-					},
-				]
-			})
-		) as typeof authorizeFileRecord
+	/** Counts each denied client write, without changing the answer. */
+	private observeAuthorize(
+		authorize: Authorize<TLRecord, SessionMeta>
+	): Authorize<TLRecord, SessionMeta> {
+		return (ctx) => {
+			const result = authorize(ctx)
+			const denied = result === false || (typeof result === 'object' && result && 'deny' in result)
+			if (
+				denied &&
+				(ctx.action === 'create' || ctx.action === 'update' || ctx.action === 'delete') &&
+				isObservedType(ctx.record.typeName)
+			) {
+				try {
+					this.recordVeto(
+						ctx.record.typeName,
+						ctx.action,
+						ctx.action === 'update' ? (ctx.next ?? ctx.record) : ctx.record
+					)
+				} catch {
+					// Failed telemetry must never change authorization.
+				}
+			}
+			return result
+		}
 	}
 
 	getRoom() {
@@ -516,7 +513,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						authorize: this.observeAuthorize(authorizeFileRecord),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -1220,11 +1217,10 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
-			// Only authenticated users can write comments — authors are stored in Postgres with a
-			// foreign key to the user table, so an anonymous author can't be represented. Tier
-			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
-			// `isReadonly`.
-			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
+			const objectAccess: TLObjectStoreAccess = getObjectAccess({
+				userId: meta.userId,
+				isReadonly,
+			})
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
@@ -1486,7 +1482,7 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private recordVeto(
-		typeName: keyof typeof authorizeFileRecord,
+		typeName: ObservedType,
 		operation: 'create' | 'update' | 'delete',
 		record: UnknownRecord
 	) {

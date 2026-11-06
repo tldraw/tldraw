@@ -60,11 +60,16 @@ describe('CommentTool.configure', () => {
 })
 
 // A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
-// getStateDescendant, and commitCommentMutation forwards to run().
-function stubEditor(options: CommentingOptions) {
+// getStateDescendant, and commitCommentMutation forwards to run(). `can` stands in for the
+// editor's permission rules; without it, the editor has none.
+function stubEditor(
+	options: CommentingOptions,
+	can?: (action: string, record?: unknown) => boolean
+) {
 	const runCalls: Array<{ history: unknown }> = []
 	const editor = {
 		getStateDescendant: () => ({ options }),
+		permissions: { isEnabled: () => !!can, can: (a: string, r?: unknown) => can!(a, r) },
 		run: (fn: () => void, opts: { history: unknown }) => {
 			runCalls.push(opts)
 			fn()
@@ -93,6 +98,16 @@ describe('getCanComment', () => {
 		expect(getCanComment(editor, 'alice')).toBe(true)
 		expect(getCanComment(editor, null)).toBe(false)
 		expect(getCanComment(editor, undefined)).toBe(false)
+	})
+
+	it('asks the editor permission rules for comments:write when the editor has them', () => {
+		const asked: string[] = []
+		const { editor } = stubEditor(defaultCommentingOptions, (action) => {
+			asked.push(action)
+			return false
+		})
+		expect(getCanComment(editor, 'alice')).toBe(false)
+		expect(asked).toEqual(['comments:write'])
 	})
 
 	it('normalizes an undefined viewer to null for the callback', () => {
@@ -191,6 +206,24 @@ describe('getCanModifyComment', () => {
 			false
 		)
 		expect(getCanModifyComment(editor, null, { action: 'delete-thread', thread })).toBe(false)
+	})
+
+	it('asks the editor permission rules for the named action when the editor has them', () => {
+		const asked: Array<[string, unknown]> = []
+		const { editor } = stubEditor(defaultCommentingOptions, (action, record) => {
+			asked.push([action, record])
+			return action === 'comments:delete'
+		})
+		const comment = makeComment('alice')
+		const thread = makeThread('alice')
+		expect(getCanModifyComment(editor, 'bob', { action: 'edit-comment', comment })).toBe(false)
+		expect(getCanModifyComment(editor, 'bob', { action: 'delete-comment', comment })).toBe(true)
+		expect(getCanModifyComment(editor, 'bob', { action: 'delete-thread', thread })).toBe(true)
+		expect(asked).toEqual([
+			['comments:edit', comment],
+			['comments:delete', comment],
+			['comments:delete', thread],
+		])
 	})
 
 	it('passes the editor, the viewer, and the targeted write to the callback', () => {

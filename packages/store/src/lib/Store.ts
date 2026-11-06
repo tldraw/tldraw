@@ -1258,6 +1258,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	private pendingAfterEvents: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+	// Every change of the current top-level operation, across all side-effect rounds, for the
+	// write gate. Null when no gate is set, so stores without one pay nothing.
+	private operationChanges: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+	private writeGate: StoreWriteGate<R> | null = null
+	private writeGateBatchDepth = 0
 	private addDiffForAfterEvent(before: R | null, after: R | null) {
 		assert(this.pendingAfterEvents, 'must be in event operation')
 		if (before === after) return
@@ -1269,6 +1274,109 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			existing.after = after
 		} else {
 			this.pendingAfterEvents.set(id, { before, after })
+		}
+		if (this.operationChanges && !this.isMergingRemoteChanges) {
+			const change = this.operationChanges.get(id)
+			if (change) change.after = after
+			else this.operationChanges.set(id, { before, after })
+		}
+	}
+
+	/**
+	 * Sets a function that checks each top-level user operation once it has run, with all of its
+	 * side effects. It gets the net change of every document-scope record. When it returns `false`,
+	 * the store puts every record of the operation back as it was, so the operation is all or
+	 * nothing. Listeners and history then see no net change. When it returns records, the store
+	 * puts them as part of the same operation, with side effects off (for example, to stamp an
+	 * owner on a new shape).
+	 *
+	 * It does not run for remote changes (`mergeRemoteChanges`), for operations with side effects
+	 * off (such as snapshot loads), or for writes made while it runs.
+	 *
+	 * @internal
+	 */
+	setWriteGate(gate: StoreWriteGate<R> | null) {
+		this.writeGate = gate
+	}
+
+	/**
+	 * Runs `fn` as one operation for the write gate: every top-level operation inside it is
+	 * checked once, together, when `fn` returns, and reverted together if the gate fails. The
+	 * editor runs `editor.run()` through this, so that an arrow and its bindings, made in two
+	 * store operations, pass or fail as one.
+	 *
+	 * @internal
+	 */
+	batchWriteGate<T>(fn: () => T): T {
+		const isNested = this.writeGateBatchDepth > 0
+		if (!this.writeGate || this.isMergingRemoteChanges || (!isNested && this._isInAtomicOp)) {
+			return fn()
+		}
+		if (isNested) {
+			this.writeGateBatchDepth++
+			try {
+				return fn()
+			} finally {
+				this.writeGateBatchDepth--
+			}
+		}
+		this.operationChanges = new Map()
+		this.writeGateBatchDepth = 1
+		let changes: Map<IdOf<R>, { before: R | null; after: R | null }>
+		let result: T
+		try {
+			result = fn()
+		} finally {
+			changes = this.operationChanges!
+			this.operationChanges = null
+			this.writeGateBatchDepth = 0
+		}
+		// With callbacks off, the check's own writes are not gated again.
+		this.atomic(() => this.checkWriteGate(changes), false)
+		return result
+	}
+
+	/** Runs the write gate on the operation that just ran, and reverts the operation if it fails. */
+	private checkWriteGate(changes: Map<IdOf<R>, { before: R | null; after: R | null }>) {
+		const gate = this.writeGate
+		if (!gate) return
+		const documentTypes = this.scopedTypes.document
+		const checked: StoreWriteGateChange<R>[] = []
+		for (const change of changes.values()) {
+			const { before, after } = change
+			if (before && after && isEqual(before, after)) continue
+			if (!documentTypes.has((after ?? before)!.typeName)) continue
+			checked.push(change)
+		}
+		if (checked.length === 0) return
+		const result = gate(checked)
+		if (result === true) return
+		if (result !== false) {
+			if (result.length === 0) return
+			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
+			this.sideEffects.setIsEnabled(false)
+			try {
+				this.put(result)
+			} finally {
+				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
+			}
+			return
+		}
+		// Put back every record of the operation, in every scope, so that nothing refers to a
+		// record that the revert removed (for example a selection of a denied new shape).
+		const prevSideEffectsEnabled = this.sideEffects.isEnabled()
+		this.sideEffects.setIsEnabled(false)
+		try {
+			const toRemove: IdOf<R>[] = []
+			const toPut: R[] = []
+			for (const { before, after } of changes.values()) {
+				if (!before) toRemove.push(after!.id)
+				else toPut.push(before)
+			}
+			if (toRemove.length) this.remove(toRemove)
+			if (toPut.length) this.put(toPut)
+		} finally {
+			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
 	}
 	private flushAtomicCallbacks(isMergingRemoteChanges: boolean) {
@@ -1328,6 +1436,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// an operation may switch side effects off, but never on while they are disabled
 			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
 			this._isInAtomicOp = true
+			// Inside `batchWriteGate`, the batch collects the changes and checks them at its end.
+			const gated =
+				this.writeGate !== null &&
+				this.writeGateBatchDepth === 0 &&
+				!isMergingRemoteChanges &&
+				runCallbacks &&
+				prevSideEffectsEnabled
+			if (gated) this.operationChanges = new Map()
 
 			if (isMergingRemoteChanges) {
 				this.isMergingRemoteChanges = true
@@ -1339,8 +1455,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
 
+				if (gated) {
+					const changes = this.operationChanges!
+					this.operationChanges = null
+					this.checkWriteGate(changes)
+				}
+
 				return result
 			} finally {
+				if (this.writeGateBatchDepth === 0) this.operationChanges = null
 				this.pendingAfterEvents = null
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
@@ -1356,6 +1479,27 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		)
 	}
 }
+
+/**
+ * The net change of one record in an operation: `before` is null for a create, `after` is null for
+ * a delete.
+ *
+ * @internal
+ */
+export interface StoreWriteGateChange<R extends UnknownRecord> {
+	before: R | null
+	after: R | null
+}
+
+/**
+ * Checks one top-level user operation. Return `true` to keep it, `false` to revert it, or records
+ * to put in place of the ones it wrote. See `Store.setWriteGate`.
+ *
+ * @internal
+ */
+export type StoreWriteGate<R extends UnknownRecord> = (
+	changes: readonly StoreWriteGateChange<R>[]
+) => boolean | R[]
 
 /**
  * Collect and squash history entries by their adjacent sources.

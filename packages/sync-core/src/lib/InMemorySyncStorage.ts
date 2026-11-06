@@ -216,7 +216,9 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 				changes = txn.getChangesSince(clockBefore)?.diff
 			}
 		} catch (error) {
-			console.error('Error in transaction', error)
+			// A push that `authorize` denied in atomic mode rolls back on purpose.
+			if ((error as Error)?.name !== 'AtomicPushDenied')
+				console.error('Error in transaction', error)
 			throw error
 		} finally {
 			txn.close()

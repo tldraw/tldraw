@@ -1,3 +1,4 @@
+import { Authorize } from '@tldraw/store'
 import {
 	createComment,
 	createCommentThread,
@@ -6,8 +7,10 @@ import {
 	TLShape,
 	toRichText,
 } from '@tldraw/tlschema'
+import { TLRecord } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { asAuthorizerMap } from './authorizeFileRecord.testing'
 import { TLFileDurableObject } from './TLFileDurableObject'
 
 vi.mock('cloudflare:workers', () => ({ DurableObject: class {} }))
@@ -18,7 +21,10 @@ vi.mock('@tldraw/sync-core', async (original) => ({
 	},
 }))
 
-async function harness(saved = new Map<string, unknown>()) {
+async function harness(
+	saved = new Map<string, unknown>(),
+	base: Authorize<TLRecord, SessionMeta> = authorizeFileRecord
+) {
 	const pending: Promise<unknown>[] = []
 	const points: unknown[] = []
 	const warnings: unknown[] = []
@@ -45,7 +51,10 @@ async function harness(saved = new Map<string, unknown>()) {
 		getStorage: async () => ({}),
 		maybeAssociateFileAssets: vi.fn(),
 	})
-	const auth = (await object.getRoom()).options.authorizeRecord as typeof authorizeFileRecord
+	// The room gets the observed `authorizeFileRecord`; a test can observe its own rule instead.
+	const room = await object.getRoom()
+	expect(room.options.authorize).toBeTypeOf('function')
+	const auth = asAuthorizerMap(object.observeAuthorize(base))
 	points.length = 0
 	return {
 		object,
@@ -86,8 +95,12 @@ afterEach(() => {
 describe('file room record veto telemetry', () => {
 	it('indexes every create/update/delete veto by room with bounded record dimensions', async () => {
 		vi.useFakeTimers()
-		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValueOnce(null).mockReturnValueOnce(null)
-		const h = await harness()
+		let denials = 2
+		const h = await harness(undefined, (ctx) =>
+			ctx.action === 'create' && ctx.record.typeName === 'shape' && denials-- > 0
+				? false
+				: authorizeFileRecord(ctx)
+		)
 		const { auth } = h
 		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
 		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
@@ -99,9 +112,7 @@ describe('file room record veto telemetry', () => {
 			anchor: { type: 'page' },
 			createdBy: 'alice',
 		})
-		expect(
-			auth['comment-thread']!({ session, type: 'delete', prev: thread, next: null })
-		).toBeNull()
+		expect(auth['comment-thread']({ session, type: 'delete', prev: thread, next: null })).toBeNull()
 		expect(h.points).toEqual([])
 		await h.flush()
 		expect(h.points).toEqual([
@@ -204,15 +215,15 @@ describe('file room record veto telemetry', () => {
 		}
 	})
 
-	it('bounds unvalidated shape types without including the client record type name', async () => {
+	it('bounds unvalidated shape types without including the client shape type', async () => {
 		vi.useFakeTimers()
-		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValue(null)
-		const h = await harness()
+		const h = await harness(undefined, (ctx) =>
+			ctx.record?.typeName === 'shape' ? false : undefined
+		)
 		const { auth } = h
 		const next = {
 			...note('bob'),
 			type: 'secret-client-content',
-			typeName: 'secret-type-name',
 		} as unknown as TLShape
 		expect(auth.shape({ session, type: 'create', prev: null, next })).toBeNull()
 		expect(h.points).toEqual([])
@@ -227,7 +238,7 @@ describe('file room record veto telemetry', () => {
 		})
 	})
 
-	it('preserves canonicalized results, missing authorizers, and policy exceptions', async () => {
+	it('preserves canonicalized results and policy exceptions', async () => {
 		vi.useFakeTimers()
 		const comment = createComment({
 			pageId: 'page:test' as TLPageId,
@@ -235,26 +246,19 @@ describe('file room record veto telemetry', () => {
 			authorId: 'bob',
 			body: toRichText('Hello'),
 		})
-		vi.spyOn(authorizeFileRecord, 'shape').mockImplementation(() => {
-			throw new Error('policy failed')
+		const h = await harness(undefined, (ctx) => {
+			if (ctx.record?.typeName === 'shape') throw new Error('policy failed')
+			return authorizeFileRecord(ctx)
 		})
-		const original = authorizeFileRecord['comment-reaction']
-		try {
-			authorizeFileRecord['comment-reaction'] = undefined
-			const h = await harness()
-			expect(h.auth['comment-reaction']).toBeUndefined()
-			expect(h.auth.comment!({ session, type: 'create', prev: null, next: comment })).toEqual({
-				...comment,
-				authorId: 'alice',
-			})
-			expect(() =>
-				h.auth.shape({ session, type: 'create', prev: null, next: note('bob') })
-			).toThrow('policy failed')
-			await h.flush()
-			expect(h.points).toEqual([])
-			expect(h.warnings).toEqual([])
-		} finally {
-			authorizeFileRecord['comment-reaction'] = original
-		}
+		expect(h.auth.comment({ session, type: 'create', prev: null, next: comment })).toEqual({
+			...comment,
+			authorId: 'alice',
+		})
+		expect(() => h.auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toThrow(
+			'policy failed'
+		)
+		await h.flush()
+		expect(h.points).toEqual([])
+		expect(h.warnings).toEqual([])
 	})
 })
