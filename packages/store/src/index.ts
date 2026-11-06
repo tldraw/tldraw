@@ -45,6 +45,7 @@ export {
 	type StoreListener,
 	type StoreListenerFilters,
 	type StoreObject,
+	type StoreWriteGuard,
 	type StoreObjectRecordType,
 	type StoreRecord,
 	type StoreSnapshot,

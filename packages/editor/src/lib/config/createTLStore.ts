@@ -76,6 +76,8 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 		status: Signal<'online' | 'offline'> | null
 		mode?: Signal<'readonly' | 'readwrite'> | null
 	}
+	/** The access model and the session's access in it. See `Editor.access`. */
+	access?: TLStoreProps['access']
 } & TLStoreSchemaOptions
 
 /** @public */
@@ -151,6 +153,7 @@ export function createTLStore({
 	users = defaultUserStore,
 	onMount,
 	collaboration,
+	access,
 	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
@@ -184,6 +187,7 @@ export function createTLStore({
 				return onMount?.(editor)
 			},
 			collaboration,
+			access,
 		},
 	})
 

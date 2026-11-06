@@ -1993,6 +1993,10 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public
 export interface TLStoreProps {
+    access?: {
+        model: AccessModel<any>;
+        session: Signal<null | SessionAccess>;
+    };
     assets: Required<TLAssetStore>;
     collaboration?: {
         mode?: null | Signal<'readonly' | 'readwrite'>;

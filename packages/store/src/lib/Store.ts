@@ -7,6 +7,7 @@ import {
 	isUninitialized,
 	reactor,
 	transact,
+	transaction,
 } from '@tldraw/state'
 import {
 	WeakCache,
@@ -1258,12 +1259,20 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	private pendingAfterEvents: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+	// net changes of the guarded operation in progress (see `setWriteGuard`), across every round of
+	// after-callbacks, so the guard sees what the whole operation did
+	private guardedChanges: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
 	private addDiffForAfterEvent(before: R | null, after: R | null) {
 		assert(this.pendingAfterEvents, 'must be in event operation')
 		if (before === after) return
 		if (before && after) assert(before.id === after.id)
 		if (!before && !after) return
 		const id = (before || after)!.id
+		if (this.guardedChanges) {
+			const seen = this.guardedChanges.get(id)
+			if (seen) seen.after = after
+			else this.guardedChanges.set(id, { before, after })
+		}
 		const existing = this.pendingAfterEvents.get(id)
 		if (existing) {
 			existing.after = after
@@ -1323,6 +1332,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				}
 			}
 
+			if (this.writeGuard && !isMergingRemoteChanges) {
+				return this.guardedAtomic(fn, runCallbacks, this.writeGuard)
+			}
+
 			this.pendingAfterEvents = new Map()
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 			// an operation may switch side effects off, but never on while they are disabled
@@ -1349,11 +1362,67 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		})
 	}
 
+	private writeGuard: StoreWriteGuard<R> | null = null
+	// history interceptor calls held back until the guard has passed the operation
+	private heldInterceptorCalls: (() => void)[] | null = null
+
+	/**
+	 * Check every local operation before it commits. The guard gets the net changes of each
+	 * outermost operation (after all side effects ran). If it returns false, the whole operation is
+	 * rolled back: no record, history entry, undo entry, or sync push is left behind. Changes merged
+	 * with `mergeRemoteChanges` are never checked.
+	 *
+	 * @public
+	 */
+	setWriteGuard(guard: StoreWriteGuard<R> | null) {
+		this.writeGuard = guard
+	}
+
+	private guardedAtomic<T>(fn: () => T, runCallbacks: boolean, guard: StoreWriteGuard<R>): T {
+		return transaction((rollback) => {
+			this.pendingAfterEvents = new Map()
+			this.guardedChanges = new Map()
+			this.heldInterceptorCalls = []
+			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
+			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
+			this._isInAtomicOp = true
+			let held: (() => void)[] = []
+			let allowed = true
+			try {
+				const result = fn()
+				this.flushAtomicCallbacks(false)
+				const changes = this.guardedChanges
+				const diff: RecordsDiff<R> = { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
+				for (const [id, { before, after }] of changes) {
+					if (before && after) {
+						if (before !== after && !isEqual(before, after)) diff.updated[id] = [before, after]
+					} else if (after) diff.added[id] = after
+					else if (before) diff.removed[id] = before
+				}
+				held = this.heldInterceptorCalls
+				if (!isRecordsDiffEmpty(diff) && !guard(diff)) {
+					allowed = false
+					rollback()
+				}
+				return result
+			} finally {
+				this.pendingAfterEvents = null
+				this.guardedChanges = null
+				this.heldInterceptorCalls = null
+				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
+				this._isInAtomicOp = false
+				if (allowed) for (const call of held) call()
+			}
+		})
+	}
+
 	/** @internal */
 	addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void) {
-		return this.historyAccumulator.addInterceptor((entry) =>
-			fn(entry, this.isMergingRemoteChanges ? 'remote' : 'user')
-		)
+		return this.historyAccumulator.addInterceptor((entry) => {
+			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+			if (this.heldInterceptorCalls) this.heldInterceptorCalls.push(() => fn(entry, source))
+			else fn(entry, source)
+		})
 	}
 }
 
@@ -1477,6 +1546,14 @@ class HistoryAccumulator<T extends UnknownRecord> {
 		}
 	}
 }
+
+/**
+ * Checks the net changes of one local store operation. Return false to roll the whole operation
+ * back. See {@link Store.setWriteGuard}.
+ *
+ * @public
+ */
+export type StoreWriteGuard<R extends UnknownRecord> = (changes: RecordsDiff<R>) => boolean
 
 /**
  * A store or an object containing a store.
