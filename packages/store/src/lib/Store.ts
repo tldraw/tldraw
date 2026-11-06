@@ -23,6 +23,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
+import { PermissionChain, PermissionDenial, RecordAccess } from './permissions'
 import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
@@ -908,11 +909,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 		try {
 			this.sideEffects.setIsEnabled(false)
-			this.atomic(() => {
-				this.clear()
-				this.put(Object.values(migrationResult.value))
-				this.ensureStoreIsUsable()
-			}, false)
+			this.withoutPermissions(() =>
+				this.atomic(() => {
+					this.clear()
+					this.put(Object.values(migrationResult.value))
+					this.ensureStoreIsUsable()
+				}, false)
+			)
 		} finally {
 			this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 		}
@@ -1260,6 +1263,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private pendingAfterEvents: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
 	private addDiffForAfterEvent(before: R | null, after: R | null) {
 		assert(this.pendingAfterEvents, 'must be in event operation')
+		if (this.permissionChanges && before !== after) {
+			const id = (before ?? after)!.id
+			const existing = this.permissionChanges.get(id)
+			if (existing) existing.after = after
+			else this.permissionChanges.set(id, { before, after })
+		}
 		if (before === after) return
 		if (before && after) assert(before.id === after.id)
 		if (!before && !after) return
@@ -1324,6 +1333,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			}
 
 			this.pendingAfterEvents = new Map()
+			// Writes merged from the server were checked there. Writes made while permissions are
+			// paused (snapshot loads, host system writes) are not the actor's.
+			this.permissionChanges =
+				this.permissions && !isMergingRemoteChanges && !this.permissionsPaused ? new Map() : null
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 			// an operation may switch side effects off, but never on while they are disabled
 			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
@@ -1338,9 +1351,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.isMergingRemoteChanges = false
 
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
+				this.applyPermissions()
 
 				return result
 			} finally {
+				this.permissionChanges = null
 				this.pendingAfterEvents = null
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
@@ -1349,12 +1364,122 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		})
 	}
 
+	private permissions: StorePermissions<R> | null = null
+	private permissionsPaused = false
+	private permissionChanges: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+
+	/**
+	 * Check local writes with a {@link PermissionChain}. At the end of each top-level operation
+	 * (an outermost {@link Store.atomic}, which is one editor operation), the store runs the chain
+	 * once on all document-record writes of the operation, as one batch. It then puts back each
+	 * denied record, and stores the changed `next` of each allowed write. Listeners, history and
+	 * the sync client see only the result, so a denied write is never sent.
+	 *
+	 * Writes merged from a server (`mergeRemoteChanges`), snapshot loads, and writes in
+	 * {@link Store.withoutPermissions} are not checked.
+	 *
+	 * Pass `null` to stop checking.
+	 *
+	 * @public
+	 */
+	setPermissions(permissions: StorePermissions<R> | null) {
+		this.permissions = permissions
+	}
+
+	/** The permissions set with {@link Store.setPermissions}, if any. @public */
+	getPermissions(): StorePermissions<R> | null {
+		return this.permissions
+	}
+
+	/**
+	 * Run `fn` without the permission check, for writes that the host makes for itself, not for
+	 * the actor.
+	 *
+	 * @public
+	 */
+	withoutPermissions<T>(fn: () => T): T {
+		if (this.permissionsPaused) return fn()
+		this.permissionsPaused = true
+		try {
+			return fn()
+		} finally {
+			this.permissionsPaused = false
+		}
+	}
+
+	private applyPermissions() {
+		const changes = this.permissionChanges
+		const permissions = this.permissions
+		this.permissionChanges = null
+		if (!changes || !permissions || changes.size === 0) return
+
+		const items: RecordAccess<R>[] = []
+		for (const { before, after } of changes.values()) {
+			const record = (after ?? before)!
+			if (!this.scopedTypes.document.has(record.typeName)) continue
+			if (before && after) {
+				if (before === after || isEqual(before, after)) continue
+				items.push({ type: 'update', prev: before, next: after })
+			} else if (after) {
+				items.push({ type: 'create', prev: null, next: after })
+			} else if (before) {
+				items.push({ type: 'delete', prev: before, next: null })
+			}
+		}
+		if (items.length === 0) return
+
+		const result = permissions.chain.run({
+			kind: 'write',
+			actor: permissions.getActor(),
+			items,
+			get: (id) => {
+				const change = changes.get(id as IdOf<R>)
+				if (change) return change.before ?? undefined
+				return this.records.__unsafe__getWithoutCapture(id as IdOf<R>)
+			},
+			onError: (error) => console.error('permission chain threw; denying the operation', error),
+		})
+
+		const toPut: R[] = []
+		const toRemove: IdOf<R>[] = []
+		for (const { access } of result.denied) {
+			if (access.type === 'create') toRemove.push(access.next.id)
+			else if (access.type === 'update' || access.type === 'delete') toPut.push(access.prev)
+		}
+		for (const access of result.allowed) {
+			if (access.type !== 'create' && access.type !== 'update') continue
+			const current = changes.get(access.next.id)?.after
+			if (current !== access.next) toPut.push(access.next)
+		}
+		if (toPut.length || toRemove.length) {
+			// The corrections are the store's own writes: no side effects, and no second check.
+			this.atomic(() => {
+				if (toRemove.length) this.remove(toRemove)
+				if (toPut.length) this.put(toPut)
+			}, false)
+		}
+		if (result.denied.length) permissions.onDenied?.(result.denied)
+	}
+
 	/** @internal */
 	addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void) {
 		return this.historyAccumulator.addInterceptor((entry) =>
 			fn(entry, this.isMergingRemoteChanges ? 'remote' : 'user')
 		)
 	}
+}
+
+/**
+ * The permission check of a store: see {@link Store.setPermissions}.
+ *
+ * @public
+ */
+export interface StorePermissions<R extends UnknownRecord> {
+	readonly chain: PermissionChain<R, any>
+	/** The actor for the current write. Called once per operation. */
+	getActor(): unknown
+	/** Called after the store put back writes that the chain denied. */
+	onDenied?(denials: readonly PermissionDenial<R>[]): void
 }
 
 /**

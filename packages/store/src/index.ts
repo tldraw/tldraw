@@ -6,6 +6,22 @@ export { devFreeze } from './lib/devFreeze'
 export { type QueryExpression, type QueryValueMatcher } from './lib/executeQuery'
 export { IncrementalSetConstructor } from './lib/IncrementalSetConstructor'
 export {
+	allow,
+	atomic,
+	denyAll,
+	getAccessRecord,
+	getRecordAccessKey,
+	PermissionChain,
+	rewrite,
+	type PermissionBatch,
+	type PermissionBatchKind,
+	type PermissionDenial,
+	type PermissionMiddleware,
+	type PermissionNext,
+	type PermissionResult,
+	type RecordAccess,
+} from './lib/permissions'
+export {
 	createMigrationIds,
 	createMigrationSequence,
 	createRecordMigrationSequence,
@@ -46,6 +62,7 @@ export {
 	type StoreListenerFilters,
 	type StoreObject,
 	type StoreObjectRecordType,
+	type StorePermissions,
 	type StoreRecord,
 	type StoreSnapshot,
 	type StoreValidator,
