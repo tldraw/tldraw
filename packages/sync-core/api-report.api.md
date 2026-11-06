@@ -23,11 +23,17 @@ import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
+// @public (undocumented)
+export function actorCan(actor: TLCommandActor, permission: string | undefined): boolean;
+
 // @internal
 export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown[], offset: number];
 
 // @internal
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
+
+// @public
+export function canEditRecord<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, ctx: Omit<TLEditPolicyContext<R>, 'actor'>): boolean;
 
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
@@ -68,6 +74,18 @@ export const DEFAULT_INITIAL_SNAPSHOT: {
     schema: SerializedSchemaV2;
     tombstoneHistoryStartsAtClock: number;
 };
+
+// @public
+export function defaultActor(isReadonly: boolean): TLCommandActor;
+
+// @public (undocumented)
+export function defineCommand<R extends UnknownRecord, Args>(command: TLCommand<R, Args>): TLCommand<R, Args>;
+
+// @public (undocumented)
+export function defineCommandSet<R extends UnknownRecord>(opts: {
+    commands?: readonly TLCommand<R, any>[];
+    edit?: TLEditPolicy<R>;
+}): TLCommandSet<R>;
 
 // @internal
 export type DeleteOp = [type: typeof ValueOpType.Delete];
@@ -272,6 +290,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
 
 // @internal
 export interface RoomSessionBase<R extends UnknownRecord, Meta> {
+    actor: TLCommandActor;
     isReadonly: boolean;
     meta: Meta;
     objectAccess: TLObjectStoreAccess;
@@ -279,6 +298,7 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     requiresLegacyRejection: boolean;
     sessionId: string;
     socket: TLRoomSocket<R>;
+    supportsCommands: boolean;
     supportsStringAppend: boolean;
 }
 
@@ -314,7 +334,11 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 }
 
 // @public
+export function runCommand<R extends UnknownRecord>(set: TLCommandSet<R>, reader: TLCommandReader<R>, actor: TLCommandActor, call: TLCommandCall): TLCommandResult<R>;
+
+// @public
 export interface SessionStateSnapshot {
+    actor?: TLCommandActor;
     // (undocumented)
     isReadonly: boolean;
     objectAccess?: TLObjectStoreAccess;
@@ -326,6 +350,8 @@ export interface SessionStateSnapshot {
     requiresLegacyRejection: boolean;
     // (undocumented)
     serializedSchema: SerializedSchema;
+    // (undocumented)
+    supportsCommands?: boolean;
     // (undocumented)
     supportsStringAppend: boolean;
 }
@@ -377,6 +403,93 @@ export interface SyncSqliteDatabase {
     };
 }
 
+// @public
+export interface TLCommand<R extends UnknownRecord = UnknownRecord, Args = any> {
+    readonly args: {
+        validate(value: unknown): Args;
+    };
+    // (undocumented)
+    readonly name: string;
+    readonly requires?: string;
+    // (undocumented)
+    run(ctx: TLCommandContext<R>, args: Args): void;
+}
+
+// @public
+export interface TLCommandActor {
+    // (undocumented)
+    readonly permissions: readonly string[];
+    // (undocumented)
+    readonly userId: null | string;
+}
+
+// @public
+export interface TLCommandCall {
+    // (undocumented)
+    args: unknown;
+    // (undocumented)
+    name: string;
+}
+
+// @public
+export interface TLCommandContext<R extends UnknownRecord> {
+    // (undocumented)
+    readonly actor: TLCommandActor;
+    // (undocumented)
+    can(permission: string): boolean;
+    // (undocumented)
+    delete(id: R['id'] | string): void;
+    deny(reason: string): never;
+    // (undocumented)
+    get<T extends R = R>(id: string | T['id']): T | undefined;
+    // (undocumented)
+    getAll<T extends R = R>(typeName: T['typeName']): T[];
+    // (undocumented)
+    put(record: R): void;
+    // (undocumented)
+    update<T extends R>(id: T['id'], partial: Partial<Omit<T, 'id' | 'typeName'>>): T;
+}
+
+// @public
+export class TLCommandDenied extends Error {
+    constructor(reason: string);
+    // (undocumented)
+    readonly reason: string;
+}
+
+// @public
+export interface TLCommandReader<R extends UnknownRecord> {
+    // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
+    values(): Iterable<R>;
+}
+
+// @public (undocumented)
+export type TLCommandResult<R extends UnknownRecord> = {
+    ok: false;
+    reason: string;
+} | {
+    ok: true;
+    writes: TLCommandWrites<R>;
+};
+
+// @public
+export interface TLCommandSet<R extends UnknownRecord = UnknownRecord> {
+    // (undocumented)
+    readonly commands: ReadonlyMap<string, TLCommand<R>>;
+    // (undocumented)
+    readonly edit: TLEditPolicy<R>;
+}
+
+// @public
+export interface TLCommandWrites<R extends UnknownRecord> {
+    // (undocumented)
+    deletes: string[];
+    // (undocumented)
+    puts: R[];
+}
+
 // @internal
 export interface TLConnectRequest {
     // (undocumented)
@@ -393,6 +506,30 @@ export interface TLConnectRequest {
 
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
+
+// @public
+export interface TLEditPolicy<R extends UnknownRecord> {
+    // (undocumented)
+    authorize?(ctx: TLEditPolicyContext<R>): boolean;
+    readonly commandOnlyTypes?: readonly string[];
+    readonly openTypes?: readonly string[];
+    readonly requires?: string;
+    stamp?(actor: TLCommandActor, record: R): R;
+}
+
+// @public (undocumented)
+export interface TLEditPolicyContext<R extends UnknownRecord> {
+    // (undocumented)
+    readonly actor: TLCommandActor;
+    // (undocumented)
+    get(id: string): R | undefined;
+    // (undocumented)
+    readonly next: null | R;
+    // (undocumented)
+    readonly op: 'create' | 'delete' | 'update';
+    // (undocumented)
+    readonly prev: null | R;
+}
 
 // @internal @deprecated
 export const TLIncompatibilityReason: {
@@ -438,6 +575,7 @@ export type TLPresenceMode =
 export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
     clientClock: number;
+    command?: TLCommandCall;
     // (undocumented)
     diff?: NetworkDiff<R>;
     // (undocumented)
@@ -513,9 +651,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         objectAccess: TLObjectStoreAccess;
         sessionId: string;
     }>;
+    // (undocumented)
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
+        actor?: TLCommandActor;
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
         sessionId: string;
@@ -541,6 +681,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
+    updateSessionActor(sessionId: string, actor: TLCommandActor): void;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
@@ -550,6 +691,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
+    commands?: TLCommandSet<R>;
     // @deprecated (undocumented)
     initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
     // (undocumented)
@@ -592,6 +734,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 
 // @internal
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
+    reason?: string;
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
     };
@@ -606,7 +749,12 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 
 // @internal
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
+    type: 'actor';
+    actor: TLCommandActor;
+    isReadonly: boolean;
+} | {
     objectAccess?: TLObjectStoreAccess;
+    actor?: TLCommandActor;
     connectRequestId: string;
     diff: NetworkDiff<R>;
     hydrationType: 'wipe_all' | 'wipe_presence';
@@ -651,6 +799,15 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
+        onActorChange?(details: {
+            actor: TLCommandActor;
+            isReadonly: boolean;
+        }): void;
+        commands?: TLCommandSet<R>;
+        onPushRejected?(details: {
+            command?: TLCommandCall;
+            reason: string;
+        }): void;
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
@@ -664,6 +821,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         socket: TLPersistentClientSocket<any, any>;
         store: S;
     });
+    readonly actor: Atom<TLCommandActor>;
+    can(permission: string): boolean;
+    canEdit(op: 'create' | 'delete' | 'update', prev: null | R, next: null | R): boolean;
     close(): void;
     // @internal (undocumented)
     isConnectedToRoom: boolean;
@@ -673,6 +833,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly presenceMode: Signal<TLPresenceMode> | undefined;
     // @internal (undocumented)
     readonly presenceState: Signal<null | R> | undefined;
+    runCommand(name: string, args: unknown): TLCommandResult<R>;
     // @internal (undocumented)
     readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
     // @internal (undocumented)
@@ -720,6 +881,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
         }): void;
+        commands?: TLCommandSet<R>;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
         clientTimeout?: number;
@@ -745,6 +907,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
+        actor?: TLCommandActor;
         isReadonly: boolean;
         meta: SessionMeta;
         objectAccess?: TLObjectStoreAccess;
@@ -752,6 +915,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         socket: TLRoomSocket<R>;
     }): this;
     handleResumedSession(opts: {
+        actor?: TLCommandActor;
         isReadonly: boolean;
         meta: SessionMeta;
         objectAccess?: TLObjectStoreAccess;
@@ -761,6 +925,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         serializedSchema: SerializedSchema;
         sessionId: string;
         socket: TLRoomSocket<R>;
+        supportsCommands?: boolean;
         supportsStringAppend: boolean;
     }): void;
     // (undocumented)
@@ -781,6 +946,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+    updateSessionActor(sessionId: string, actor: TLCommandActor): void;
 }
 
 // @public

@@ -258,7 +258,9 @@ export function getShapeOwner(shape: TLShape): string | undefined {
  *
  * @public
  */
-export function createOwnedShapesPolicy(opts: OwnedShapesPolicyOptions = {}): TLEditPolicy<R> {
+export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecord>(
+	opts: OwnedShapesPolicyOptions = {}
+): TLEditPolicy<Rec> {
 	const canUseParent =
 		opts.canUseParent ?? ((actor: TLCommandActor, parent: TLShape) => ownsShape(actor, parent))
 
@@ -277,7 +279,7 @@ export function createOwnedShapesPolicy(opts: OwnedShapesPolicyOptions = {}): TL
 		return parent.typeName === 'shape' && canUseParent(ctx.actor, parent)
 	}
 
-	return {
+	const policy: TLEditPolicy<R> = {
 		commandOnlyTypes: COMMENT_TYPES,
 		// every editor writes its user record on mount, read-only or not
 		openTypes: ['user'],
@@ -318,4 +320,5 @@ export function createOwnedShapesPolicy(opts: OwnedShapesPolicyOptions = {}): TL
 			}
 		},
 	}
+	return policy as TLEditPolicy<any>
 }

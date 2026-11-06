@@ -6,9 +6,14 @@
 
 import { Editor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLCommandActor } from '@tldraw/sync-core';
+import { TLCommandCall } from '@tldraw/sync-core';
+import { TLCommandResult } from '@tldraw/sync-core';
+import { TLCommandSet } from '@tldraw/sync-core';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLRecord } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
@@ -20,6 +25,7 @@ import { TLUserStore } from 'tldraw';
 export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
     status: 'synced-remote';
 }> & {
+    readonly commands: null | TLSyncCommandsApi;
     readonly objectAccess: TLObjectStoreAccess;
 }) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
@@ -28,6 +34,14 @@ export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
 } | {
     status: 'synced-remote';
 }>;
+
+// @public
+export interface TLSyncCommandsApi {
+    can(permission: string): boolean;
+    canEdit(op: 'create' | 'delete' | 'update', prev: null | TLRecord, next: null | TLRecord): boolean;
+    getActor(): TLCommandActor;
+    run(name: string, args: unknown): TLCommandResult<TLRecord>;
+}
 
 // @public
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
@@ -59,10 +73,15 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 // @public
 export interface UseSyncOptionsBase {
     assets: TLAssetStore;
+    commands?: TLCommandSet<TLRecord>;
     getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
+    onPushRejected?(details: {
+        command?: TLCommandCall;
+        reason: string;
+    }): void;
     // @internal
     roomId?: string;
     themes?: Partial<TLThemes>;

@@ -109,7 +109,7 @@ function setup() {
 
 function geo(editor: LocalRoom['peers'] extends Map<any, infer P> ? P : never, x: number) {
 	const id = createShapeId()
-	editor.editor.createShape({ id, type: 'geo', x, y: 0, props: { w: 100, h: 100 } })
+	editor.getEditor().createShape({ id, type: 'geo', x, y: 0, props: { w: 100, h: 100 } })
 	return id
 }
 
@@ -118,7 +118,7 @@ describe('file write control: viewers', () => {
 		const { room } = setup()
 		const v = room.connect('v', viewer)
 		room.flush()
-		expect(v.editor.getIsReadonly()).toBe(true)
+		expect(v.getEditor().getIsReadonly()).toBe(true)
 		expect(v.run('pages.create', { id: 'page:x', name: 'X' })).toEqual({
 			ok: false,
 			reason: 'missing permission: pages:manage',
@@ -144,7 +144,7 @@ describe('shape write control: students edit only their own shapes', () => {
 		const forger = room.forger('a2', student('alice'))
 		room.flush()
 		const id = createShapeId()
-		const { meta: _meta, ...shape } = { ...a.editor.getShapeUtil('geo').getDefaultProps() } as any
+		const { meta: _meta, ...shape } = { ...a.getEditor().getShapeUtil('geo').getDefaultProps() } as any
 		void _meta
 		forger.push({
 			diff: {
@@ -176,8 +176,8 @@ describe('shape write control: students edit only their own shapes', () => {
 		const id = geo(a, 0)
 		room.flush()
 		expect(getShapeOwner(b.get(id)!)).toBe('alice')
-		b.editor.updateShape({ id, type: 'geo', x: 500 })
-		b.editor.deleteShape(id)
+		b.getEditor().updateShape({ id, type: 'geo', x: 500 })
+		b.getEditor().deleteShape(id)
 		expect(b.get<TLShape>(id)!.x).toBe(0)
 		room.flush()
 		expect((room.room.getRecord(id) as TLShape).x).toBe(0)
@@ -208,10 +208,10 @@ describe('shape write control: students edit only their own shapes', () => {
 	it("a student cannot move their own shape into another student's frame", () => {
 		const { room, a, b } = setup()
 		const frame = createShapeId()
-		a.editor.createShape({ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } })
+		a.getEditor().createShape({ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } })
 		const bobs = geo(b, 600)
 		room.flush()
-		b.editor.reparentShapes([bobs], frame)
+		b.getEditor().reparentShapes([bobs], frame)
 		expect(b.get<TLShape>(bobs)!.parentId).toBe(page)
 		room.flush()
 		expect((room.room.getRecord(bobs) as TLShape).parentId).toBe(page)
@@ -220,7 +220,7 @@ describe('shape write control: students edit only their own shapes', () => {
 	it('a student may draw inside a frame the teacher assigned to them', () => {
 		const { room, t, a } = setup()
 		const frame = createShapeId()
-		t.editor.createShape({
+		t.getEditor().createShape({
 			id: frame,
 			type: 'frame',
 			x: 0,
@@ -230,11 +230,11 @@ describe('shape write control: students edit only their own shapes', () => {
 		})
 		room.flush()
 		const id = createShapeId()
-		a.editor.createShape({ id, type: 'geo', parentId: frame, x: 10, y: 10 })
+		a.getEditor().createShape({ id, type: 'geo', parentId: frame, x: 10, y: 10 })
 		room.flush()
 		expect((room.room.getRecord(id) as TLShape).parentId).toBe(frame)
 		// but cannot edit the frame itself
-		a.editor.updateShape({ id: frame, type: 'frame', x: 50 })
+		a.getEditor().updateShape({ id: frame, type: 'frame', x: 50 })
 		room.flush()
 		expect((room.room.getRecord(frame) as TLShape).x).toBe(0)
 	})
@@ -243,7 +243,7 @@ describe('shape write control: students edit only their own shapes', () => {
 		const { room, t, a } = setup()
 		const id = geo(a, 0)
 		room.flush()
-		t.editor.updateShape({ id, type: 'geo', x: 42 })
+		t.getEditor().updateShape({ id, type: 'geo', x: 42 })
 		room.flush()
 		expect((room.room.getRecord(id) as TLShape).x).toBe(42)
 		expect(a.get<TLShape>(id)!.x).toBe(42)
@@ -254,7 +254,7 @@ describe('page write control', () => {
 	it('students cannot create pages, by command or by raw edit', () => {
 		const { room, a } = setup()
 		expect(a.run('pages.create', { id: 'page:x', name: 'X' }).ok).toBe(false)
-		a.editor.createPage({ id: 'page:y' as TLPageId, name: 'Y' })
+		a.getEditor().createPage({ id: 'page:y' as TLPageId, name: 'Y' })
 		// a denied create is removed right away, so nothing is sent
 		expect(a.get('page:y' as TLPageId)).toBeUndefined()
 		room.flush()
@@ -265,10 +265,10 @@ describe('page write control', () => {
 		const { room, t, a } = setup()
 		t.run('pages.create', { id: 'page:two', name: 'Two' })
 		room.flush()
-		t.editor.setCurrentPage('page:two' as TLPageId)
+		t.getEditor().setCurrentPage('page:two' as TLPageId)
 		const shape = geo(t, 0)
 		const child = createShapeId()
-		a.editor.setCurrentPage('page:two' as TLPageId)
+		a.getEditor().setCurrentPage('page:two' as TLPageId)
 		room.flush()
 		a.run('comments.add', {
 			threadId: 'comment-thread:1',
@@ -305,7 +305,7 @@ describe('comments: add your own, manage any', () => {
 		const { room } = setup()
 		const c = room.connect('c', commenter)
 		room.flush()
-		expect(c.editor.getIsReadonly()).toBe(true)
+		expect(c.getEditor().getIsReadonly()).toBe(true)
 		expect(c.run('comments.add', add('comment-thread:c', 'comment:c')).ok).toBe(true)
 		room.flush()
 		expect(room.room.getRecord('comment:c')).toMatchObject({ authorId: 'commenter' })
@@ -350,13 +350,13 @@ describe('live access changes', () => {
 		room.flush()
 		room.room.updateSessionActor('a', { userId: 'alice', permissions: [] })
 		room.flush()
-		expect(a.editor.getIsReadonly()).toBe(true)
+		expect(a.getEditor().getIsReadonly()).toBe(true)
 		expect(a.client.can(P.writeComments)).toBe(false)
 
 		room.room.updateSessionActor('a', student('alice'))
 		room.flush()
-		expect(a.editor.getIsReadonly()).toBe(false)
-		a.editor.updateShape({ id, type: 'geo', x: 10 })
+		expect(a.getEditor().getIsReadonly()).toBe(false)
+		a.getEditor().updateShape({ id, type: 'geo', x: 10 })
 		room.flush()
 		expect((room.room.getRecord(id) as TLShape).x).toBe(10)
 	})
@@ -397,7 +397,7 @@ describe('plugin actions: dot voting', () => {
 		expect((room.room.getRecord(id) as TLShape).meta.votes).toEqual(['alice', 'bob'])
 		expect((t.get<TLShape>(id)!.meta as any).votes).toEqual(['alice', 'bob'])
 		// a raw write of the same field is an edit of the teacher's shape, so it is denied
-		a.editor.updateShape({ id, type: 'geo', meta: { votes: ['alice', 'alice', 'alice'] } })
+		a.getEditor().updateShape({ id, type: 'geo', meta: { votes: ['alice', 'alice', 'alice'] } })
 		room.flush()
 		expect((room.room.getRecord(id) as TLShape).meta.votes).toEqual(['alice', 'bob'])
 	})
@@ -417,7 +417,7 @@ describe('agents: a token that may run one tool and nothing else', () => {
 	it('the agent adds notes in its area, and cannot edit or comment', () => {
 		const { room, t } = setup()
 		const area = createShapeId()
-		t.editor.createShape({
+		t.getEditor().createShape({
 			id: area,
 			type: 'frame',
 			x: 0,
@@ -431,7 +431,7 @@ describe('agents: a token that may run one tool and nothing else', () => {
 		room.flush()
 		expect(bot.run('agent.addNote', { id: 'shape:note1', text: 'Idea' }).ok).toBe(true)
 		expect(bot.run('comments.add', add())).toMatchObject({ ok: false })
-		bot.editor.updateShape({ id: other, type: 'geo', x: 0 })
+		bot.getEditor().updateShape({ id: other, type: 'geo', x: 0 })
 		room.flush()
 		expect(room.room.getRecord('shape:note1')).toMatchObject({ parentId: area })
 		expect((room.room.getRecord(other) as TLShape).x).toBe(900)

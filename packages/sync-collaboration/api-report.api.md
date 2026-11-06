@@ -4,10 +4,18 @@
 
 ```ts
 
+import { TLCommand } from '@tldraw/sync-core';
+import { TLCommandActor } from '@tldraw/sync-core';
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
+import { TLEditPolicy } from '@tldraw/sync-core';
 import type { TLRecordAuthorizers } from '@tldraw/sync-core';
+import { TLShape } from '@tldraw/tlschema';
+import type { UnknownRecord } from '@tldraw/store';
+
+// @public (undocumented)
+export const COMMENT_TYPES: readonly ['comment', 'comment-thread', 'comment-reaction'];
 
 // @public
 export interface CommentAuthorizerOptions<SessionMeta> {
@@ -23,6 +31,15 @@ export interface CommentAuthorizerOptions<SessionMeta> {
         sessionId: string;
     }): null | string;
 }
+
+// @public
+export const commentCommands: (TLCommand<UnknownRecord, {
+    commentId: string;
+}> | TLCommand<UnknownRecord, {
+    now: number;
+    resolved: boolean;
+    threadId: string;
+}>)[];
 
 // @public
 export type CommentModification = {
@@ -49,6 +66,31 @@ export type CommentModificationAuthContext<SessionMeta> = {
 
 // @public
 export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
+
+// @public
+export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecord>(opts?: OwnedShapesPolicyOptions): TLEditPolicy<Rec>;
+
+// @public
+export function getShapeOwner(shape: TLShape): string | undefined;
+
+// @public (undocumented)
+export interface OwnedShapesPolicyOptions {
+    canUseParent?(actor: TLCommandActor, parent: TLShape): boolean;
+}
+
+// @public
+export const pageCommands: TLCommand<UnknownRecord, {
+    id: string;
+}>[];
+
+// @public
+export const TLDRAW_PERMISSIONS: {
+    readonly managePages: 'pages:manage';
+    readonly manageComments: 'comments:manage';
+    readonly manageShapes: 'shapes:manage';
+    readonly writeComments: 'comments:write';
+    readonly edit: 'edit';
+};
 
 // (No @packageDocumentation comment for this package)
 

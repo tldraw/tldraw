@@ -158,7 +158,7 @@ export class Peer {
 	}
 
 	/** An editor on this peer's store, made after the first sync, as useSync does. */
-	get editor() {
+	getEditor() {
 		if (!this._editor) {
 			this._editor = new Editor({
 				shapeUtils: defaultShapeUtils,
