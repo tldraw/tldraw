@@ -649,7 +649,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// Iterate through all records, creating, updating or removing as needed
 			let record: R
 
-			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+			const source = this.getSideEffectSource()
 
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
@@ -688,7 +688,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					}
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
-					record = this.sideEffects.handleBeforeCreate(record, source)
+					const created = this.sideEffects.handleBeforeCreate(record, source)
+					if (created === false) continue
+					record = created
 
 					// If we don't have an atom, create one.
 
@@ -740,7 +742,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	remove(ids: IdOf<R>[]): void {
 		this.atomic(() => {
 			const toDelete = new Set<IdOf<R>>(ids)
-			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+			const source = this.getSideEffectSource()
 
 			if (this.sideEffects.isEnabled()) {
 				for (const id of ids) {
@@ -1060,6 +1062,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	private isMergingRemoteChanges = false
+	// True while side effects run for an operation that merged remote changes. Their writes are
+	// still recorded as 'user' changes, because a sync client must push them, but side-effect
+	// handlers see them as 'remote': a handler that vetoes them would leave this client out of
+	// sync with the server.
+	private isReactingToRemoteChanges = false
+	private getSideEffectSource(): ChangeSource {
+		return this.isMergingRemoteChanges || this.isReactingToRemoteChanges ? 'remote' : 'user'
+	}
 
 	/**
 	 * Merge changes from a remote source. Changes made within the provided function
@@ -1273,7 +1283,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 	private flushAtomicCallbacks(isMergingRemoteChanges: boolean) {
 		let updateDepth = 0
-		let source: ChangeSource = isMergingRemoteChanges ? 'remote' : 'user'
+		const source: ChangeSource = isMergingRemoteChanges ? 'remote' : 'user'
+		this.isReactingToRemoteChanges = isMergingRemoteChanges
 		while (this.pendingAfterEvents) {
 			const events = this.pendingAfterEvents
 			this.pendingAfterEvents = null
@@ -1298,9 +1309,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			if (!this.pendingAfterEvents) {
 				this.sideEffects.handleOperationComplete(source)
 			}
-			// Whatever the after-handlers or the operation-complete handlers changed in response to
-			// a remote operation is not itself remote: later rounds are attributed to 'user'.
-			source = 'user'
 		}
 	}
 	private _isInAtomicOp = false
@@ -1345,6 +1353,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
 				this.isMergingRemoteChanges = false
+				this.isReactingToRemoteChanges = false
 			}
 		})
 	}

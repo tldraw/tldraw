@@ -130,3 +130,71 @@ describe('restoring bound arrows multiplayer', () => {
 		expect(bindings().end).toBeDefined()
 	})
 })
+
+describe('a local write veto and remote changes', () => {
+	// A veto that blocks every local delete, as an access layer might for a viewer. It lets
+	// remote writes through, as the store side-effect docs require.
+	function vetoLocalDeletes() {
+		const seen: string[] = []
+		const unregister = [
+			editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {
+				seen.push(`${shape.type}:${source}`)
+				return source === 'user' ? false : undefined
+			}),
+			editor.sideEffects.registerBeforeDeleteHandler('binding', (binding, source) => {
+				seen.push(`${binding.type}:${source}`)
+				return source === 'user' ? false : undefined
+			}),
+		]
+		return { seen, dispose: () => unregister.forEach((fn) => fn()) }
+	}
+
+	// The binding cleanup runs inside the merge itself, so it is remote either way.
+	it('does not block the binding cleanup after a remote delete', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+		])
+		editor
+			.setCurrentTool('arrow')
+			.pointerMove(50, 50)
+			.pointerDown()
+			.pointerMove(250, 50)
+			.pointerUp()
+		expect(bindings().end).toBeDefined()
+		const veto = vetoLocalDeletes()
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.box2]))
+
+		expect(veto.seen.sort()).toEqual(['arrow:remote', 'geo:remote'])
+		expect(bindings().start).toBeDefined()
+		expect(bindings().end).toBeUndefined()
+		veto.dispose()
+	})
+
+	// The group cleanup runs after the merge, in an operation-complete handler.
+	it('does not block the group cleanup after a remote delete', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+		])
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
+		const veto = vetoLocalDeletes()
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.box1, ids.box2]))
+
+		expect(editor.getShape(ids.group1)).toBeUndefined()
+		expect(veto.seen).toContain('group:remote')
+		veto.dispose()
+	})
+
+	it('still blocks a local delete', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+		const veto = vetoLocalDeletes()
+
+		editor.deleteShapes([ids.box1])
+
+		expect(editor.getShape(ids.box1)).toBeDefined()
+		veto.dispose()
+	})
+})

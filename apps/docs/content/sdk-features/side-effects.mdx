@@ -27,14 +27,14 @@ The editor uses side effects internally to keep data consistent. When you delete
 
 Side effects provide six handler types organized around three operations: create, change, and delete. Each operation has a "before" and "after" phase. Handlers are registered per record `typeName` (`'shape'`, `'binding'`, `'page'`, or a custom type); check `shape.type` inside the handler if you only care about one kind of shape.
 
-| Handler        | Runs                       | Return value                                                                  |
-| -------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| `beforeCreate` | Before a record is stored  | The record to store. Return a modified copy to change it.                     |
-| `beforeChange` | Before an update is stored | The record to store. Return `prev` to block the change, or a modified `next`. |
-| `beforeDelete` | Before a record is removed | `false` to prevent deletion.                                                  |
-| `afterCreate`  | After a record is stored   | Nothing. Update other records in response.                                    |
-| `afterChange`  | After an update is stored  | Nothing. Update other records in response.                                    |
-| `afterDelete`  | After a record is removed  | Nothing. Clean up references or cascade deletions.                            |
+| Handler        | Runs                       | Return value                                                                      |
+| -------------- | -------------------------- | --------------------------------------------------------------------------------- |
+| `beforeCreate` | Before a record is stored  | The record to store. Return a modified copy to change it, or `false` to block it. |
+| `beforeChange` | Before an update is stored | The record to store. Return `prev` to block the change, or a modified `next`.     |
+| `beforeDelete` | Before a record is removed | `false` to prevent deletion.                                                      |
+| `afterCreate`  | After a record is stored   | Nothing. Update other records in response.                                        |
+| `afterChange`  | After an update is stored  | Nothing. Update other records in response.                                        |
+| `afterDelete`  | After a record is removed  | Nothing. Clean up references or cascade deletions.                                |
 
 Use before handlers to modify the record being operated on, and after handlers to update other records in response. Returning `prev` from `beforeChange` blocks the change because the store sees no difference from what's already stored and skips the write.
 
@@ -51,6 +51,24 @@ editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
 ```
 
 You might auto-save only after user operations, or skip validation for trusted remote data.
+
+Changes that handlers make in reaction to a remote change, such as deleting a group whose last child another person deleted, also have the source `'remote'`. They are still sent to the server like other local changes.
+
+### Blocking writes
+
+Before handlers can block any local write: return `false` from `beforeCreate` or `beforeDelete`, or return `prev` from `beforeChange`. Only block writes whose source is `'user'`. The server has already accepted a remote write, so if you block it, this client no longer matches the server.
+
+```typescript
+editor.sideEffects.register({
+	shape: {
+		beforeCreate: (shape, source) => (source === 'user' && !canEdit(shape) ? false : shape),
+		beforeChange: (prev, next, source) => (source === 'user' && !canEdit(prev) ? prev : next),
+		beforeDelete: (shape, source) => (source === 'user' && !canEdit(shape) ? false : undefined),
+	},
+})
+```
+
+A blocked write is skipped on its own. Other records in the same operation are still written, so a handler that blocks part of an operation can leave related records inconsistent, for example a binding to a shape that was not created.
 
 ### Registration and cleanup
 

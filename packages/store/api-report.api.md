@@ -460,7 +460,7 @@ export type StoreAfterDeleteHandler<R extends UnknownRecord> = (record: R, sourc
 export type StoreBeforeChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
 
 // @public
-export type StoreBeforeCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => R;
+export type StoreBeforeCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => false | R;
 
 // @public
 export type StoreBeforeDeleteHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => false | void;
@@ -601,7 +601,7 @@ export class StoreSideEffects<R extends UnknownRecord> {
     // @internal
     handleBeforeChange(prev: R, next: R, source: 'remote' | 'user'): R;
     // @internal
-    handleBeforeCreate(record: R, source: 'remote' | 'user'): R;
+    handleBeforeCreate(record: R, source: 'remote' | 'user'): false | R;
     // @internal
     handleBeforeDelete(record: R, source: 'remote' | 'user'): boolean;
     // @internal
