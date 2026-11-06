@@ -3,8 +3,8 @@ import { IRequest } from 'itty-router'
 import { getR2KeyForRoom } from '../r2'
 import { Environment } from '../types'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../utils/roomIdIsTooLong'
-import { requireAdminAccessToRequest } from '../utils/tla/getAuth'
 import { isTestFile } from '../utils/tla/isTestFile'
+import { requireHistoryAccess } from '../utils/tla/requireHistoryAccess'
 import {
 	loadChainIndexForVersion,
 	openWholeVersionStream,
@@ -22,7 +22,7 @@ export async function getRoomHistorySnapshot(
 	if (!roomId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
 
-	await requireAdminAccessToRequest(request, env)
+	await requireHistoryAccess(request, env, roomId, isApp)
 
 	if (isTestFile(roomId)) {
 		return new Response('Not found', { status: 404 })

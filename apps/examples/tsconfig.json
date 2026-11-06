@@ -5,12 +5,12 @@
 	"compilerOptions": { "outDir": "./.tsbuild" },
 	"references": [
 		{ "path": "../../packages/assets" },
+		{ "path": "../../packages/collections" },
 		{ "path": "../../packages/commenting" },
 		{ "path": "../../packages/mermaid" },
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },
-		{ "path": "../../packages/dotcom-shared" },
 		{ "path": "../../packages/driver" },
 		{ "path": "../../packages/tlschema" }
 	]

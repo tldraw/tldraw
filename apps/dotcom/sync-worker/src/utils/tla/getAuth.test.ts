@@ -17,6 +17,7 @@ vi.mock('../featureFlags', () => ({ canUseMcpServer: vi.fn() }))
 // Import after the mocks are registered.
 import { canUseMcpServer } from '../featureFlags'
 import {
+	getAuth,
 	getMcpTokenAuth,
 	getZeroAuth,
 	isOAuthAccessToken,
@@ -81,6 +82,47 @@ describe('requireAdminAccessToRequest', () => {
 		}
 		getUser.mockResolvedValue(user)
 		await expect(requireAdminAccessToRequest(request, env)).resolves.toBe(user)
+	})
+})
+
+describe('getAuth origin check', () => {
+	beforeEach(() => authenticateRequest.mockReset())
+
+	async function authorizedPartiesFor(extra: Record<string, string>) {
+		signedInAs('user_1')
+		await getAuth(request, { ...env, ...extra })
+		return authenticateRequest.mock.calls[0][1].authorizedParties
+	}
+
+	it('skips the check in development, where devices reach the worker by LAN address', async () => {
+		expect(await authorizedPartiesFor({ TLDRAW_ENV: 'development' })).toBeUndefined()
+	})
+
+	it('only accepts the production domains in production', async () => {
+		expect(await authorizedPartiesFor({ TLDRAW_ENV: 'production' })).toEqual([
+			'https://tldraw.com',
+			'https://www.tldraw.com',
+		])
+	})
+
+	it('only accepts the staging domain on staging', async () => {
+		expect(await authorizedPartiesFor({ TLDRAW_ENV: 'staging' })).toEqual([
+			'https://staging.tldraw.com',
+		])
+	})
+
+	it('only accepts the preview domain on previews', async () => {
+		expect(
+			await authorizedPartiesFor({
+				TLDRAW_ENV: 'preview',
+				WORKER_NAME: 'pr-123-tldraw-multiplayer',
+			})
+		).toEqual(['https://pr-123-preview-deploy.tldraw.com'])
+	})
+
+	it('refuses to run a preview without its name rather than skip the check', async () => {
+		signedInAs('user_1')
+		await expect(getAuth(request, { ...env, TLDRAW_ENV: 'preview' })).rejects.toThrow('WORKER_NAME')
 	})
 })
 

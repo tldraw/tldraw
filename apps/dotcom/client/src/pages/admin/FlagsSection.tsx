@@ -170,9 +170,10 @@ function FeatureFlags() {
 					implicitAccess={FLAG_IMPLICIT_ACCESS[flagName]}
 					onSetAllowEveryone={(allowEveryone) => {
 						if (
-							allowEveryone &&
 							!window.confirm(
-								`Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again on "User list".`
+								allowEveryone
+									? `Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again on "User list".`
+									: `Limit "${flagName}" to the user list?`
 							)
 						) {
 							return

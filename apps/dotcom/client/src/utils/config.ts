@@ -1,4 +1,4 @@
-import { isPreviewEnv, isProductionEnv, isStagingEnv } from './env'
+import { isProductionEnv, isStagingEnv } from './env'
 
 export const BOOKMARK_ENDPOINT = '/api/unfurl'
 
@@ -19,10 +19,7 @@ export const MULTIPLAYER_SERVER =
 		? `${window.location.origin}/api`
 		: process.env.MULTIPLAYER_SERVER.replace(/^http/, 'ws')
 
-export const ZERO_SERVER =
-	(isStagingEnv || isProductionEnv || isPreviewEnv) && typeof location !== 'undefined'
-		? process.env.ZERO_SERVER
-		: 'http://localhost:4848/'
+export const ZERO_SERVER = process.env.ZERO_SERVER
 
 // Monotonic build identifier (epoch ms at build time, baked in by vite). Sent as `?v=` on sync
 // websocket connections so the server can tell how stale a client bundle is. '0' outside a vite

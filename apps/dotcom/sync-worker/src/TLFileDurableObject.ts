@@ -21,6 +21,7 @@ import {
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -46,11 +47,19 @@ import {
 	TLRecord,
 	commentSchemaRecords,
 	createTLSchema,
+	defaultShapeSchemas,
 	isCommentId,
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	objectMapEntries,
+	retry,
+} from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
@@ -134,12 +143,12 @@ import {
 	getMcpTokenAuth,
 	MCP_SOCKET_SUBPROTOCOL,
 	requireAdminAccess,
-	requireAdminAccessToRequest,
 	type McpTokenOptions,
 } from './utils/tla/getAuth'
 import { getLegacyRoomData } from './utils/tla/getLegacyRoomData'
 import { getFileRecordWithRole, getRole } from './utils/tla/getRole'
 import { isTestFile } from './utils/tla/isTestFile'
+import { requireHistoryAccess } from './utils/tla/requireHistoryAccess'
 import { ChainState, isChainHead, PendingDelta } from './versionChain'
 import { loadVersionChainRollout, resolveVersionChainMode } from './versionChainConfig'
 import {
@@ -388,6 +397,33 @@ export class TLFileDurableObject extends DurableObject {
 
 	sentry: ReturnType<typeof createSentry> | null = null
 
+	private recordVetoWarningScheduled = false
+	private recordVetoCounts?: Map<string, number>
+
+	private observeRecordAuthorizers(
+		authorizers: typeof authorizeFileRecord
+	): typeof authorizeFileRecord {
+		return Object.fromEntries(
+			objectMapEntries(authorizers).map(([typeName, authorize]) => {
+				if (!authorize) return [typeName, undefined]
+				return [
+					typeName,
+					(args: Parameters<typeof authorize>[0]) => {
+						const result = authorize(args as never)
+						if (result === null) {
+							try {
+								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
+							} catch {
+								// Failed telemetry must never change authorization.
+							}
+						}
+						return result
+					},
+				]
+			})
+		) as typeof authorizeFileRecord
+	}
+
 	getRoom() {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
@@ -480,7 +516,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: authorizeFileRecord,
+						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -685,7 +721,7 @@ export class TLFileDurableObject extends DurableObject {
 		try {
 			return await this.router.fetch(req)
 		} catch (err) {
-			// Auth failures (e.g. non-staff hitting restore) are expected denials, not
+			// Auth failures (e.g. a non-editor hitting restore) are expected denials, not
 			// server errors: return their real status instead of a 500 + Sentry noise.
 			if (err instanceof StatusError) {
 				return new Response(err.message, { status: err.status })
@@ -849,8 +885,8 @@ export class TLFileDurableObject extends DurableObject {
 	async onRestore(req: IRequest) {
 		this._isRestoring = true
 		try {
-			await requireAdminAccessToRequest(req, this.env)
 			const roomId = this.documentInfo.slug
+			await requireHistoryAccess(req, this.env, roomId, this.documentInfo.isApp)
 			const roomKey = getR2KeyForRoom({ slug: roomId, isApp: this.documentInfo.isApp })
 			const timestamp = ((await req.json()) as any).timestamp
 			if (!timestamp) {
@@ -1446,6 +1482,65 @@ export class TLFileDurableObject extends DurableObject {
 		} catch (e) {
 			this.reportError(e, { source: 'alarm', retryCount: alarmInfo?.retryCount ?? 0 })
 			throw e
+		}
+	}
+
+	private recordVeto(
+		typeName: keyof typeof authorizeFileRecord,
+		operation: 'create' | 'update' | 'delete',
+		record: UnknownRecord
+	) {
+		const shape = record as UnknownRecord & { type?: unknown }
+		const shapeType =
+			typeName !== 'shape'
+				? ''
+				: typeof shape.type === 'string' && Object.hasOwn(defaultShapeSchemas, shape.type)
+					? shape.type
+					: 'unknown'
+		const key = `${typeName}|${operation}|${shapeType}`
+		if (this.recordVetoCounts) {
+			this.recordVetoCounts.set(key, (this.recordVetoCounts.get(key) ?? 0) + 1)
+			return
+		}
+		const counts = (this.recordVetoCounts = new Map([[key, 1]]))
+		// Coalesce a push's vetoes to avoid per-record I/O and Analytics Engine's write limit.
+		this.state.waitUntil(Promise.resolve().then(() => this.flushRecordVetoes(counts, key)))
+	}
+
+	private async flushRecordVetoes(counts: Map<string, number>, firstCategory: string) {
+		this.recordVetoCounts = undefined
+		for (const [dimensions, count] of counts) {
+			try {
+				this.writeEvent('record_vetoed', { blobs: dimensions.split('|'), doubles: [count] })
+			} catch {
+				// A failed category must not prevent the remaining counters from flushing.
+			}
+		}
+		if (this.recordVetoWarningScheduled || !this.sentry) return
+		this.recordVetoWarningScheduled = true
+		try {
+			const key = 'recordVetoWarningAt'
+			const previous = await this.storage.get<number>(key)
+			const now = Date.now()
+			// Hibernation resets fields: persist before capture so waking cannot flood Sentry.
+			if (previous !== undefined && now - previous < 60 * 60 * 1000) return
+			await this.storage.put(key, now)
+			const [typeName, operation, shapeType] = firstCategory.split('|')
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.withScope((scope) => {
+				scope.setFingerprint(['file-record-vetoed'])
+				scope.setExtras({
+					durableObjectId: this.id.toString(),
+					slug: this._documentInfo?.slug,
+					typeName,
+					operation,
+					shapeType,
+				})
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.captureMessage('File record vetoed', 'warning')
+			})
+		} catch {
+			// Failed telemetry must not retry on every edit.
 		}
 	}
 

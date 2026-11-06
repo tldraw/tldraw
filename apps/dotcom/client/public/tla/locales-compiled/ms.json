@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -499,16 +493,6 @@
       "value": "Had kolaborator dicapai"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " belum dibaca"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -934,20 +918,6 @@
       "value": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Menambahkan "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " fail .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1128,6 +1098,27 @@
       "value": "."
     }
   ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " belum dibaca"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "a0da245992": [
     {
       "type": 0,
@@ -1300,6 +1291,12 @@
       "value": "Pemilik"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Seret fail ke bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu Fail di bahagian atas kiri."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1374,6 +1371,27 @@
       "value": "Ketahui lebih lanjut tentang perkongsian."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fail .tldr telah ditambahkan."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1384,12 +1402,6 @@
     {
       "type": 0,
       "value": "Kuki penting"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Rentetan Panjang"
     }
   ],
   "c6a00f137b": [
@@ -1458,17 +1470,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1476,7 +1477,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " orang lain"
             }
           ]
         }
@@ -1674,12 +1675,6 @@
       "value": "Menu akaun"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Beraksen"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1780,17 +1775,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " lagi"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1798,7 +1782,7 @@
             },
             {
               "type": 0,
-              "value": " lagi"
+              "value": " orang lain"
             }
           ]
         }

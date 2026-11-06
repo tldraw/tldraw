@@ -22,19 +22,24 @@ export function getClerkClient(env: Environment) {
 	})
 }
 
-function getAuthorizedParties(env: Environment): string[] {
-	const parties = ['https://tldraw.com', 'https://www.tldraw.com', 'https://staging.tldraw.com']
-	// Only include localhost in non-production environments
-	if (env.TLDRAW_ENV !== 'production') {
-		parties.push('http://localhost:3000')
+function getAuthorizedParties(env: Environment): string[] | undefined {
+	switch (env.TLDRAW_ENV) {
+		case 'development':
+			// Local dev is also opened from phones and tablets via the machine's network address, which
+			// the worker can't know. Only Clerk's dev instance signs these tokens, so the check adds nothing.
+			return undefined
+		case 'staging':
+			return ['https://staging.tldraw.com']
+		case 'preview': {
+			// A missing or empty list disables Clerk's check, so a preview without its name must throw.
+			if (!env.WORKER_NAME) throw new Error('WORKER_NAME is required on previews')
+			// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
+			const previewId = env.WORKER_NAME.replace(/-tldraw-multiplayer$/, '')
+			return [`https://${previewId}-preview-deploy.tldraw.com`]
+		}
+		default:
+			return ['https://tldraw.com', 'https://www.tldraw.com']
 	}
-	// For preview envs, add the preview domain
-	// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
-	if (env.TLDRAW_ENV === 'preview' && env.WORKER_NAME) {
-		const previewId = env.WORKER_NAME.replace(/-tldraw-multiplayer$/, '')
-		parties.push(`https://${previewId}-preview-deploy.tldraw.com`)
-	}
-	return parties
 }
 
 export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
@@ -364,9 +369,11 @@ function getSubprotocolToken(request: IRequest): string | null {
  * columns. Deliberately not a licence to cache it: it is safe only for a caller re-applying the gate
  * microseconds later inside one function, which is exactly where `loadBoardSnapshot` already accepts
  * one and where the render page's own read deliberately does not.
+ *
+ * `name` rides along for get_board_info, which would otherwise dial again for it.
  */
 export type ReadAccessToFile =
-	| { ok: true; file: { id: string; shared: boolean; isDeleted: boolean } }
+	| { ok: true; file: { id: string; name: string; shared: boolean; isDeleted: boolean } }
 	| { ok: false }
 
 export async function hasReadAccessToFile(
@@ -379,14 +386,14 @@ export async function hasReadAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'name', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
 		if (!file || file.isDeleted) return { ok: false }
 		const granted = {
 			ok: true,
-			file: { id: file.id, shared: file.shared, isDeleted: false },
+			file: { id: file.id, name: file.name, shared: file.shared, isDeleted: false },
 		} as const
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
