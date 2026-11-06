@@ -886,7 +886,6 @@ export interface TLSyncStorage<R extends UnknownRecord> {
     getSnapshot?(): RoomSnapshot;
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
-    // (undocumented)
     transaction<T>(callback: TLSyncStorageTransactionCallback<R, T>, opts?: TLSyncStorageTransactionOptions): TLSyncStorageTransactionResult<T, R>;
 }
 

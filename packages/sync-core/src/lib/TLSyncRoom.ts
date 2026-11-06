@@ -1877,9 +1877,37 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		// Outside the transaction: the presence store is not part of it, so a rejected push still
-		// applies its presence, which the client counts as sent.
+		// The presence store is not part of the storage transaction, so presence is applied first
+		// and outside it: a push that `writeRejection: 'push'` rolls back must keep its presence,
+		// which the client counts as sent.
 		const presenceChanges: PushChanges<R> = { diffs: null }
+		if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
+			if (!session) throw new Error('session is required for presence pushes')
+			// The push request was for the presence scope.
+			const id = session.presenceId
+			const [type, val] = message.presence
+			const { typeName } = this.presenceType
+			switch (type) {
+				case RecordOpType.Put: {
+					// Try to put the document. If it fails, stop here.
+					addDocument(this.presenceStore, presenceChanges, id, {
+						...val,
+						id,
+						typeName,
+					})
+					break
+				}
+				case RecordOpType.Patch: {
+					// Try to patch the document. If it fails, stop here.
+					patchDocument(this.presenceStore, presenceChanges, id, {
+						...val,
+						id: [ValueOpType.Put, id],
+						typeName: [ValueOpType.Put, typeName],
+					})
+					break
+				}
+			}
+		}
 		let txnResult
 		try {
 			txnResult = this.storage.transaction(
@@ -1890,38 +1918,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 					const docChanges: PushChanges<R> = { diffs: null }
 
-					if (
-						this.presenceType &&
-						session?.presenceId &&
-						'presence' in message &&
-						message.presence
-					) {
-						if (!session) throw new Error('session is required for presence pushes')
-						// The push request was for the presence scope.
-						const id = session.presenceId
-						const [type, val] = message.presence
-						const { typeName } = this.presenceType
-						switch (type) {
-							case RecordOpType.Put: {
-								// Try to put the document. If it fails, stop here.
-								addDocument(this.presenceStore, presenceChanges, id, {
-									...val,
-									id,
-									typeName,
-								})
-								break
-							}
-							case RecordOpType.Patch: {
-								// Try to patch the document. If it fails, stop here.
-								patchDocument(this.presenceStore, presenceChanges, id, {
-									...val,
-									id: [ValueOpType.Put, id],
-									typeName: [ValueOpType.Put, typeName],
-								})
-								break
-							}
-						}
-					}
 					// Per-op write gate: document-lane records are gated by `isReadonly`, object-lane
 					// records by `objectAccess`. Denied ops are skipped (the client is corrected by the
 					// resulting discard/rebase push_result, exactly as whole-diff readonly skips were).
@@ -2062,15 +2058,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			)
 		} catch (e) {
 			if (!(e instanceof PushRejectedError)) throw e
-			// The transaction rolled back. `discard` makes the client undo the whole push.
-			this.sendPushResults(
-				session,
-				message,
-				{ docChanges: { diffs: null }, presenceChanges },
-				this.lastDocumentClock
-			)
-			if (presenceChanges.diffs) queueMicrotask(() => this.onPresenceChange?.())
-			return
+			// The transaction rolled back, so the push has no document changes, and its result is
+			// `discard`: the client undoes the whole push.
+			txnResult = {
+				result: { docChanges: { diffs: null }, presenceChanges },
+				documentClock: this.lastDocumentClock,
+				didChange: false,
+				changes: undefined,
+			}
 		}
 		const { result, documentClock, changes } = txnResult
 

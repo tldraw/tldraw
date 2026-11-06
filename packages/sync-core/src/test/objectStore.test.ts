@@ -1543,6 +1543,9 @@ describe('writeRejection', () => {
 		room._flushDataMessages('bob')
 
 		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+		expect([...room.presenceStore.values()]).toEqual([
+			expect.objectContaining({ typeName: 'presence', name: 'alice' }),
+		])
 		const patch = sentDataMessages(bob).find((m) => m.type === 'patch')
 		expect(Object.values(patch.diff)).toEqual([
 			[RecordOpType.Put, expect.objectContaining({ typeName: 'presence', name: 'alice' })],
