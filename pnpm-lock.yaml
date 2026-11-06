@@ -1879,10 +1879,37 @@ importers:
       '@tldraw/utils':
         specifier: workspace:*
         version: link:../utils
+      '@tldraw/validate':
+        specifier: workspace:*
+        version: link:../validate
     devDependencies:
+      '@peculiar/webcrypto':
+        specifier: ^1.5.0
+        version: 1.5.0
+      '@tldraw/state':
+        specifier: workspace:*
+        version: link:../state
+      fake-indexeddb:
+        specifier: ^4.0.2
+        version: 4.0.2
+      react:
+        specifier: ^19.2.1
+        version: 19.2.1
+      react-dom:
+        specifier: ^19.2.1
+        version: 19.2.1(@types/react@19.2.7)(react@19.2.1)
+      resize-observer-polyfill:
+        specifier: ^1.5.1
+        version: 1.5.1
+      tldraw:
+        specifier: workspace:*
+        version: link:../tldraw
       vitest:
         specifier: ^5.0.0
         version: 5.0.0(@edge-runtime/vm@3.2.0)(@opentelemetry/api@1.9.1)(@types/node@22.16.0)(@vitest/coverage-v8@5.0.0)(@vitest/ui@5.0.0)(jsdom@29.1.1)(vite@8.2.1(@types/node@22.16.0)(esbuild@0.28.2)(jiti@2.7.0)(terser@5.46.0)(tsx@4.22.4)(yaml@2.9.0))
+      ws:
+        specifier: 8.21.0
+        version: 8.21.0
 
   packages/sync-core:
     dependencies:

@@ -1,4 +1,5 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import type { TLCommandActor } from './commands'
 import { TLObjectStoreAccess, TLSocketServerSentDataEvent } from './protocol'
 import { TLRoomSocket } from './TLSyncRoom'
 
@@ -85,6 +86,13 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
 	 */
 	objectAccess: TLObjectStoreAccess
+	/**
+	 * Who this session acts as, for commands and the edit lane. When the room has commands,
+	 * `isReadonly` is derived from it.
+	 */
+	actor: TLCommandActor
+	/** Whether the client speaks protocol 9 (commands and live actor updates) */
+	supportsCommands: boolean
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */

@@ -14,11 +14,23 @@ import {
 	isEqual,
 	isNativeStructuredClone,
 	objectMapEntriesIterable,
+	objectMapKeys,
 	Result,
 	throttle,
 	type ThrottledFunction,
 } from '@tldraw/utils'
 import { createNanoEvents } from 'nanoevents'
+import {
+	actorCan,
+	canEditRecord,
+	defaultActor,
+	runCommand,
+	SERVER_ACTOR,
+	type TLCommandActor,
+	type TLCommandCall,
+	type TLCommandReader,
+	type TLCommandSet,
+} from './commands'
 import {
 	applyObjectDiff,
 	diffRecord,
@@ -353,6 +365,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	private readonly commands?: TLCommandSet<R>
 	private readonly sessionIdleTimeout: number
 
 	/**
@@ -401,9 +414,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+		/**
+		 * Named commands and the edit-lane policy. Share the same set with the clients. When set,
+		 * each session's `isReadonly` follows from its actor.
+		 */
+		commands?: TLCommandSet<R>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
+		this.commands = opts.commands
 		this.schema = opts.schema
 		this.log = opts.log
 		this.onPresenceChange = opts.onPresenceChange
@@ -629,6 +648,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
+			actor: session.actor,
+			supportsCommands: session.supportsCommands,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
 		})
@@ -744,8 +765,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
+		actor?: TLCommandActor
 	}) {
-		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
+		const { sessionId, socket, meta, objectAccess } = opts
+		const actor = opts.actor ?? defaultActor(opts.isReadonly)
+		const isReadonly = this.deriveIsReadonly(opts.isReadonly, actor)
 		// a connect racing close() would otherwise create a session nothing ever prunes
 		if (this._isClosed) {
 			socket.close()
@@ -762,11 +786,35 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
+			actor,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
+			supportsCommands: true,
 		})
 		return this
+	}
+
+	private deriveIsReadonly(isReadonly: boolean, actor: TLCommandActor) {
+		if (!this.commands) return isReadonly
+		return isReadonly || !actorCan(actor, this.commands.edit.requires ?? 'edit')
+	}
+
+	/**
+	 * Change who a session acts as, without a reconnect. The new actor applies to the next push,
+	 * and the client gets it at once, so its UI and its optimistic checks follow.
+	 *
+	 * @param sessionId - The session to change
+	 * @param actor - The new actor
+	 */
+	updateSessionActor(sessionId: string, actor: TLCommandActor) {
+		const session = this.sessions.get(sessionId)
+		if (!session) return
+		session.actor = actor
+		session.isReadonly = this.deriveIsReadonly(false, actor)
+		if (session.state === RoomSessionState.Connected && session.supportsCommands) {
+			this._unsafe_sendMessage(sessionId, { type: 'actor', actor, isReadonly: session.isReadonly })
+		}
 	}
 
 	/**
@@ -782,12 +830,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
+		actor?: TLCommandActor
+		supportsCommands?: boolean
 		serializedSchema: SerializedSchema
 		presenceId: string | null
 		presenceRecord: UnknownRecord | null
 		requiresLegacyRejection: boolean
 		supportsStringAppend: boolean
 	}) {
+		const actor = opts.actor ?? defaultActor(opts.isReadonly)
 		const {
 			sessionId,
 			socket,
@@ -820,8 +871,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			debounceTimer: null,
 			outstandingDataMessages: [],
 			meta,
-			isReadonly,
+			isReadonly: this.deriveIsReadonly(isReadonly, actor),
 			objectAccess: objectAccess ?? 'write',
+			actor,
+			supportsCommands: opts.supportsCommands ?? true,
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
@@ -1114,6 +1167,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			theirProtocolVersion++
 			session.supportsStringAppend = false
 		}
+		// 8 is 9 without commands and live actor updates
+		if (theirProtocolVersion === 8) {
+			theirProtocolVersion++
+			session.supportsCommands = false
+		}
 
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
@@ -1161,6 +1219,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
+				actor: session.actor,
+				supportsCommands: session.supportsCommands,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
@@ -1212,6 +1272,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				diff: { ...presenceDiff.value, ...docDiff },
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
+				actor: session.actor,
 			} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
 		}) // no id needed because this only reads, no writes.
 
@@ -1233,6 +1294,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// update the last interaction time
 		if (session) {
 			session.lastInteractionTime = Date.now()
+		}
+
+		if (message.command) {
+			this.handleCommandPush(session, message.clientClock, message.command)
+			return
 		}
 
 		const legacyAppendMode = !this.getCanEmitStringAppend()
@@ -1418,14 +1484,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// Server-initiated pushes (no session) are always allowed.
 				const canWrite = (typeName: string) =>
 					!session ||
-					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
+					(this.objectTypes.has(typeName)
+						? session.objectAccess !== 'read'
+						: // with commands, the edit policy decides (see checkEditPush)
+							!!this.commands || !session.isReadonly)
 
 				// what authorizers see of the pushing session, shared by every authorized op in this push
 				const authSession = session
 					? { sessionId: session.sessionId, isReadonly: session.isReadonly, meta: session.meta }
 					: null
 
-				if (message.diff) {
+				// Edit-lane policy: check every op first and discard the whole push if one is denied,
+				// so a push never half-applies (an arrow without its binding, a child without its frame).
+				const { editDenied, stamped } =
+					session && this.commands && message.diff
+						? this.checkEditPush(txn, session.actor, message.diff)
+						: { editDenied: undefined, stamped: undefined }
+
+				if (message.diff && !editDenied) {
 					// The push request was for the document scope.
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
 						switch (op[0]) {
@@ -1445,7 +1521,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										TLSyncErrorCloseEventReason.INVALID_RECORD
 									)
 								}
-								const record = op[1]
+								const record = stamped?.get(id) ?? op[1]
 								// A put must not change the record's typeName. Two reasons, and the first
 								// applies whether or not authorizers are configured: the write gate above
 								// keyed off the *incoming* typeName, so a swap between lanes (document <->
@@ -1564,7 +1640,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 				}
 
-				return { docChanges, presenceChanges }
+				return { docChanges, presenceChanges, editDenied }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
 		)
@@ -1593,6 +1669,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'discard',
+				...(result.editDenied ? { reason: result.editDenied } : null),
 			}
 		} else if (session) {
 			// if recordsDiff is null but diff is not, then there are no clients that need down migrations
@@ -1647,6 +1724,168 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		if (result.docChanges.diffs && this.onCommittedChanges) {
 			const diff = result.docChanges.diffs.diff
+			queueMicrotask(() => {
+				try {
+					this.onCommittedChanges?.({ diff, documentClock })
+				} catch (e) {
+					this.log?.error?.('onCommittedChanges threw', e)
+				}
+			})
+		}
+	}
+
+	private checkEditPush(
+		txn: TLSyncStorageTransaction<R>,
+		actor: TLCommandActor,
+		diff: NetworkDiff<R>
+	): { editDenied: string | undefined; stamped: Map<string, R> } {
+		const set = this.commands!
+		const stamped = new Map<string, R>()
+		const changes: {
+			id: string
+			op: 'create' | 'update' | 'delete'
+			prev: R | null
+			next: R | null
+		}[] = []
+		// The policy may read other records in the same push (a child and its new frame), so it
+		// sees the push applied over the stored state.
+		const overlay = new Map<string, R | null>()
+		for (const [id, op] of objectMapEntriesIterable(diff)) {
+			const prev = (txn.get(id) as R | undefined) ?? null
+			switch (op[0]) {
+				case RecordOpType.Put: {
+					let next = op[1]
+					if (!prev && set.edit.stamp) {
+						next = set.edit.stamp(actor, next)
+						stamped.set(id, next)
+					}
+					changes.push({ id, op: prev ? 'update' : 'create', prev, next })
+					overlay.set(id, next)
+					break
+				}
+				case RecordOpType.Patch: {
+					if (!prev) continue
+					const next = applyObjectDiff(prev, op[1])
+					changes.push({ id, op: 'update', prev, next })
+					overlay.set(id, next)
+					break
+				}
+				case RecordOpType.Remove: {
+					if (!prev) continue
+					changes.push({ id, op: 'delete', prev, next: null })
+					overlay.set(id, null)
+					break
+				}
+			}
+		}
+		const get = (id: string) =>
+			(overlay.has(id) ? (overlay.get(id) ?? undefined) : txn.get(id)) as R
+		for (const change of changes) {
+			if (
+				!canEditRecord(set, actor, { op: change.op, prev: change.prev, next: change.next, get })
+			) {
+				const typeName = (change.next ?? change.prev)!.typeName
+				this.log?.warn?.('edit policy denied push', change.op, typeName, change.id)
+				return { editDenied: `edit denied: ${change.op} ${typeName}`, stamped }
+			}
+		}
+		return { editDenied: undefined, stamped }
+	}
+
+	private handleCommandPush(
+		session: RoomSession<R, SessionMeta> | null,
+		clientClock: number,
+		call: TLCommandCall
+	) {
+		if (session && session.state !== RoomSessionState.Connected) return
+		const legacyAppendMode = !this.getCanEmitStringAppend()
+		const actor = session?.actor ?? SERVER_ACTOR
+		const set = this.commands
+
+		type Outcome =
+			| { ok: false; reason: string | undefined }
+			| { ok: true; diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> }
+		const { result, documentClock } = this.storage.transaction(
+			(txn): Outcome => {
+				this.broadcastChanges(txn)
+				if (!set) return { ok: false, reason: 'this room has no commands' }
+				const res = runCommand(set, txn as TLCommandReader<R>, actor, call)
+				if (!res.ok) return { ok: false, reason: res.reason }
+
+				const diff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+				const networkDiff: NetworkDiff<R> = {}
+				for (const record of res.writes.puts) {
+					if (!this.documentTypes.has(record.typeName) && !this.objectTypes.has(record.typeName)) {
+						throw new Error(`command ${call.name} wrote an unknown record type: ${record.typeName}`)
+					}
+					const recordType = assertExists(getOwnProperty(this.schema.types, record.typeName))
+					const prev = txn.get(record.id) as R | undefined
+					if (prev) {
+						const patch = diffAndValidateRecord(prev, record, recordType, legacyAppendMode)
+						if (!patch) continue
+						txn.set(record.id, record)
+						diff.puts[record.id] = [prev, record]
+						networkDiff[record.id] = [RecordOpType.Patch, patch]
+					} else {
+						validateRecord(record, recordType)
+						txn.set(record.id, record)
+						diff.puts[record.id] = record
+						networkDiff[record.id] = [RecordOpType.Put, record]
+					}
+				}
+				for (const id of res.writes.deletes) {
+					txn.delete(id)
+					diff.deletes.push(id)
+					networkDiff[id] = [RecordOpType.Remove]
+				}
+				if (objectMapKeys(networkDiff).length === 0) return { ok: false, reason: undefined }
+				return { ok: true, diff, networkDiff }
+			},
+			{ id: this.internalTxnId, emitChanges: 'when-different' }
+		)
+
+		this.lastDocumentClock = documentClock
+
+		if (!result.ok) {
+			if (result.reason) {
+				this.log?.warn?.('command denied', call.name, result.reason, 'session:', session?.sessionId)
+			}
+			if (session) {
+				this._unsafe_sendMessage(session.sessionId, {
+					type: 'push_result',
+					clientClock,
+					serverClock: documentClock,
+					action: 'discard',
+					...(result.reason ? { reason: result.reason } : null),
+				})
+			}
+			return
+		}
+
+		if (session) {
+			// The client ran the command too, but cannot know if the server's result matches, so
+			// the server always sends its result back.
+			const migrated = this.migrateDiffOrRejectSession(
+				session.sessionId,
+				session.serializedSchema,
+				session.requiresDownMigrations,
+				result.diff,
+				result.networkDiff,
+				legacyAppendMode
+			)
+			if (migrated.ok) {
+				this._unsafe_sendMessage(session.sessionId, {
+					type: 'push_result',
+					clientClock,
+					serverClock: documentClock,
+					action: { rebaseWithDiff: migrated.value },
+				})
+			}
+		}
+		this.broadcastPatch(result.diff, result.networkDiff, session?.sessionId)
+
+		if (this.onCommittedChanges) {
+			const diff = result.diff
 			queueMicrotask(() => {
 				try {
 					this.onCommittedChanges?.({ diff, documentClock })

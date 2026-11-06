@@ -1,7 +1,8 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import type { TLCommandActor, TLCommandCall } from './commands'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-const TLSYNC_PROTOCOL_VERSION = 8
+const TLSYNC_PROTOCOL_VERSION = 9
 
 /**
  * Gets the current tldraw sync protocol version number.
@@ -125,6 +126,17 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			 * older clients ignore it — no protocol version bump needed.
 			 */
 			objectAccess?: TLObjectStoreAccess
+			/** Who this session acts as, for commands and the edit lane. Sent from protocol 9. */
+			actor?: TLCommandActor
+	  }
+	| {
+			/**
+			 * The session's actor changed while connected. `isReadonly` is the edit-lane state that
+			 * follows from it. Sent only to protocol 9 clients.
+			 */
+			type: 'actor'
+			actor: TLCommandActor
+			isReadonly: boolean
 	  }
 	| {
 			type: 'incompatibility_error'
@@ -174,6 +186,8 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** Why the server discarded the push: a denied command or edit. */
+			reason?: string
 	  }
 
 /**
@@ -204,6 +218,8 @@ export interface TLPushRequest<R extends UnknownRecord> {
 	type: 'push'
 	clientClock: number
 	diff?: NetworkDiff<R>
+	/** A named command. A push carries a diff (the edit lane) or a command, never both. */
+	command?: TLCommandCall
 	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 }
 

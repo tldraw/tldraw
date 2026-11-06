@@ -1,4 +1,4 @@
-import { Signal, react, transact } from '@tldraw/state'
+import { Atom, Signal, atom, react, transact } from '@tldraw/state'
 import {
 	RecordId,
 	RecordsDiff,
@@ -14,6 +14,18 @@ import {
 	objectMapEntries,
 	uniqueId,
 } from '@tldraw/utils'
+import {
+	TLCommandActor,
+	TLCommandCall,
+	TLCommandReader,
+	TLCommandResult,
+	TLCommandSet,
+	TLCommandWrites,
+	actorCan,
+	canEditRecord,
+	defaultActor,
+	runCommand,
+} from './commands'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -461,6 +473,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	private readonly commands?: TLCommandSet<R>
+	private readonly onPushRejected?: (details: { reason: string; command?: TLCommandCall }) => void
+	private readonly onActorChange?: (details: { actor: TLCommandActor; isReadonly: boolean }) => void
+
+	/**
+	 * Who this client acts as, as the server last said. Before the first connect it has all
+	 * permissions, so offline edits work.
+	 */
+	readonly actor: Atom<TLCommandActor> = atom('TLSyncClient.actor', defaultActor(false))
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -501,9 +523,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
 		): void
+		/** The room's commands and edit policy: the same set the server uses. */
+		commands?: TLCommandSet<R>
+		/** The server discarded a push, or a command was denied locally. */
+		onPushRejected?(details: { reason: string; command?: TLCommandCall }): void
+		/** The actor changed: at connect, or live when the host changed it. */
+		onActorChange?(details: { actor: TLCommandActor; isReadonly: boolean }): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
+		this.commands = config.commands
+		this.onPushRejected = config.onPushRejected
+		this.onActorChange = config.onActorChange
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
 
@@ -512,46 +543,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
 
 		// Initialize throttled methods after throttle instance is created
-		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
-			this.debug('sending unsent changes', {
-				isConnectedToRoom: this.isConnectedToRoom,
-				unsentChanges: this.unsentChanges,
-			})
-			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-				return
-			}
-			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
-				return
-			}
-			const diff = this.unsentChanges.nextDiff
-				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
-				: undefined
-			const presence = this.unsentChanges.nextPresence
-				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
-				: undefined
-
-			if (!diff && !presence) {
-				return
-			}
-
-			const pushRequest: TLPushRequest<R> = {
-				type: 'push',
-				clientClock: this.clientClock,
-				diff,
-				presence,
-			}
-
-			this.debug('sending push request', pushRequest)
-			this.socket.sendMessage(pushRequest)
-
-			if (this.unsentChanges.nextPresence) {
-				this.lastPushedPresenceState = this.unsentChanges.nextPresence
-			}
-			this.clientClock++
-			this.pendingPushRequests.push(pushRequest)
-			this.unsentChanges.nextDiff = undefined
-			this.unsentChanges.nextPresence = undefined
-		})
+		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => this.flushUnsentChanges())
 
 		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
 
@@ -567,6 +559,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		this.presenceState = config.presence
 		this.presenceMode = config.presenceMode
+
+		if (this.commands) this.registerEditGuard(this.commands)
 
 		this.disposables.push(
 			// when local 'user' changes are made, send them to the server
@@ -680,6 +674,151 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// then we should send a connect message right away
 		if (this.socket.connectionStatus === 'online') {
 			this.sendConnectMessage()
+		}
+	}
+
+	private flushUnsentChanges() {
+		this.debug('sending unsent changes', {
+			isConnectedToRoom: this.isConnectedToRoom,
+			unsentChanges: this.unsentChanges,
+		})
+		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+			return
+		}
+		if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
+			return
+		}
+		const diff = this.unsentChanges.nextDiff
+			? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
+			: undefined
+		const presence = this.unsentChanges.nextPresence
+			? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
+			: undefined
+
+		if (!diff && !presence) {
+			return
+		}
+
+		const pushRequest: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock,
+			diff,
+			presence,
+		}
+
+		this.debug('sending push request', pushRequest)
+		this.socket.sendMessage(pushRequest)
+
+		if (this.unsentChanges.nextPresence) {
+			this.lastPushedPresenceState = this.unsentChanges.nextPresence
+		}
+		this.clientClock++
+		this.pendingPushRequests.push(pushRequest)
+		this.unsentChanges.nextDiff = undefined
+		this.unsentChanges.nextPresence = undefined
+	}
+
+	private commandReader(): TLCommandReader<R> {
+		return {
+			get: (id) => this.store.get(id as RecordId<R>),
+			values: () => this.store.allRecords(),
+		}
+	}
+
+	private applyCommandWrites(writes: TLCommandWrites<R>) {
+		if (writes.puts.length) this.store.put(writes.puts)
+		if (writes.deletes.length) this.store.remove(writes.deletes as RecordId<R>[])
+	}
+
+	/**
+	 * Run a named command. It applies at once on this client (optimistically), and the server runs
+	 * it again with the trusted actor. If the server's result differs, this client rebases onto it.
+	 *
+	 * A denied command writes nothing and returns the reason. A command the server later denies is
+	 * rolled back, and `onPushRejected` is called.
+	 *
+	 * Commands change the store as remote changes, so the editor's undo stack does not hold them.
+	 *
+	 * @param name - The command's name
+	 * @param args - JSON args. Pass new ids here, so the client and server create the same records.
+	 */
+	runCommand(name: string, args: unknown): TLCommandResult<R> {
+		if (!this.commands) throw new Error('This sync client has no commands')
+		if (!this.isConnectedToRoom) return { ok: false, reason: 'offline' }
+		const call: TLCommandCall = { name, args }
+		// Send edits made before this command first, so the server sees them in order.
+		this.store._flushHistory()
+		this.flushUnsentChanges()
+
+		const result = runCommand(this.commands, this.commandReader(), this.actor.get(), call)
+		if (!result.ok) {
+			this.onPushRejected?.({ reason: result.reason, command: call })
+			return result
+		}
+		this.store.mergeRemoteChanges(() => {
+			const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+			squashRecordDiffsMutable(this.speculativeChanges, [changes])
+		})
+		const pushRequest: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock++,
+			command: call,
+		}
+		this.socket.sendMessage(pushRequest)
+		this.pendingPushRequests.push(pushRequest)
+		return result
+	}
+
+	/** Whether this client's actor has a permission, reactively. */
+	can(permission: string): boolean {
+		return actorCan(this.actor.get(), permission)
+	}
+
+	/** Whether this client may make a record change on the edit lane, reactively. */
+	canEdit(op: 'create' | 'update' | 'delete', prev: R | null, next: R | null): boolean {
+		if (!this.commands) return true
+		return canEditRecord(this.commands, this.actor.get(), {
+			op,
+			prev,
+			next,
+			get: (id) => this.store.get(id as RecordId<R>),
+		})
+	}
+
+	/**
+	 * Block user edits that the edit policy denies before they reach the store, so they never
+	 * flash and roll back. The server checks again; this guard is only for the feel.
+	 */
+	private registerEditGuard(set: TLCommandSet<R>) {
+		const { sideEffects } = this.store
+		let removingDenied = false
+		for (const typeName of this.store.scopedTypes.document) {
+			this.disposables.push(
+				sideEffects.registerBeforeCreateHandler(typeName, (record, source) => {
+					if (source !== 'user' || !set.edit.stamp) return record
+					return set.edit.stamp(this.actor.get(), record)
+				}),
+				// A before-create handler cannot veto, so remove a denied record right after. The
+				// create and the remove squash to nothing, so nothing is sent.
+				sideEffects.registerAfterCreateHandler(typeName, (record, source) => {
+					if (source !== 'user' || this.canEdit('create', null, record)) return
+					removingDenied = true
+					try {
+						this.store.remove([record.id])
+					} finally {
+						removingDenied = false
+					}
+					this.onPushRejected?.({ reason: `edit denied: create ${record.typeName}` })
+				}),
+				sideEffects.registerBeforeChangeHandler(typeName, (prev, next, source) => {
+					if (source !== 'user' || this.canEdit('update', prev, next)) return next
+					return prev
+				}),
+				sideEffects.registerBeforeDeleteHandler(typeName, (record, source) => {
+					if (source !== 'user' || removingDenied || this.canEdit('delete', record, null)) return
+					return false
+				})
+			)
 		}
 	}
 
@@ -813,6 +952,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
+			const actor = event.actor ?? defaultActor(event.isReadonly)
+			this.actor.set(actor)
+			this.onActorChange?.({ actor, isReadonly: event.isReadonly })
 			this.onAfterConnect?.(this, {
 				isReadonly: event.isReadonly,
 				objectAccess: event.objectAccess ?? 'write',
@@ -856,6 +998,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				break
 			case 'pong':
 				// noop, we only use ping/pong to set lastSeverInteractionTimestamp
+				break
+			case 'actor':
+				this.actor.set(event.actor)
+				this.onActorChange?.({ actor: event.actor, isReadonly: event.isReadonly })
 				break
 			case 'custom':
 				this.onCustomMessageReceived?.call(null, event.data)
@@ -996,7 +1142,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						)
 					}
 					if (diff.action === 'discard') {
-						this.pendingPushRequests.shift()
+						const request = this.pendingPushRequests.shift()!
+						if (diff.reason) {
+							this.onPushRejected?.({ reason: diff.reason, command: request.command })
+						}
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1011,7 +1160,19 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				try {
 					this.speculativeChanges = this.store.extractingChanges(() => {
 						for (const request of this.pendingPushRequests) {
-							if (!('diff' in request) || !request.diff) continue
+							if (request.command && this.commands) {
+								// Run the command again on the new state. If it is denied now, the
+								// server will deny it too, so drop its effects.
+								const result = runCommand(
+									this.commands,
+									this.commandReader(),
+									this.actor.get(),
+									request.command
+								)
+								if (result.ok) this.applyCommandWrites(result.writes)
+								continue
+							}
+							if (!request.diff) continue
 							this.applyNetworkDiff(request.diff, true)
 						}
 						if (!this.unsentChanges.nextDiff) return

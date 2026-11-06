@@ -2,6 +2,7 @@ import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store
 import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
+import type { TLCommandActor, TLCommandSet } from './commands'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
 import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
@@ -77,6 +78,12 @@ export interface SessionStateSnapshot {
 	 * before this field existed resume cleanly (they fail closed to 'read').
 	 */
 	objectAccess?: TLObjectStoreAccess
+	/**
+	 * Who the session acts as. Optional so older snapshots resume; they fail closed to an actor
+	 * with no permissions.
+	 */
+	actor?: TLCommandActor
+	supportsCommands?: boolean
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
@@ -150,6 +157,11 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * Named commands and the edit-lane policy. Pass the same set to the clients. See
+	 * {@link defineCommandSet}.
+	 */
+	commands?: TLCommandSet<R>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -281,6 +293,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			commands: opts.commands,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -351,9 +364,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			socket: WebSocketMinimal
 			isReadonly?: boolean
 			objectAccess?: TLObjectStoreAccess
+			/**
+			 * Who the session acts as, for commands and the edit lane. Defaults to all permissions,
+			 * or none when `isReadonly`. Change it later with {@link TLSocketRoom.updateSessionActor}.
+			 */
+			actor?: TLCommandActor
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		const { sessionId, socket, isReadonly = false, objectAccess = 'write', actor } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)
@@ -375,6 +393,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId,
 			isReadonly,
 			objectAccess,
+			actor,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -629,6 +648,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			// snapshots persisted before this field existed fail closed — those sessions predate
 			// the record types gated by objectAccess, so they have nothing to write anyway
 			objectAccess: snapshot.objectAccess ?? 'read',
+			actor: snapshot.actor ?? { userId: null, permissions: [] },
+			supportsCommands: snapshot.supportsCommands ?? false,
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -667,6 +688,19 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * }
 	 * ```
 	 */
+	/**
+	 * Change who a session acts as, without a reconnect. Use it when a grant changes: the session's
+	 * next push is checked with the new actor, and its client updates its UI at once.
+	 *
+	 * @param sessionId - The session to change
+	 * @param actor - The new actor
+	 */
+	updateSessionActor(sessionId: string, actor: TLCommandActor) {
+		this.room.updateSessionActor(sessionId, actor)
+		// keep a hibernation snapshot in step, or a resume would restore the old actor
+		this.scheduleDebouncedSnapshot(sessionId)
+	}
+
 	getSessionSnapshot(sessionId: string): SessionStateSnapshot | null {
 		const session = this.room.sessions.get(sessionId)
 		if (!session || session.state !== RoomSessionState.Connected) {
@@ -685,6 +719,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			serializedSchema: session.serializedSchema,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
+			actor: session.actor,
+			supportsCommands: session.supportsCommands,
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
