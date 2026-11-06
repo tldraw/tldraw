@@ -83,6 +83,12 @@ export interface SessionStateSnapshot {
 	 * with no permissions.
 	 */
 	actor?: TLCommandActor
+	/**
+	 * Whether the host connected the session read-only, apart from the actor. `isReadonly` also
+	 * counts the actor's permissions, so a resume restores this one; a later grant can still lift
+	 * the actor's part.
+	 */
+	hostReadonly?: boolean
 	supportsCommands?: boolean
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
@@ -644,7 +650,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleResumedSession({
 			sessionId,
-			isReadonly: snapshot.isReadonly,
+			isReadonly: snapshot.hostReadonly ?? snapshot.isReadonly,
 			// snapshots persisted before this field existed fail closed — those sessions predate
 			// the record types gated by objectAccess, so they have nothing to write anyway
 			objectAccess: snapshot.objectAccess ?? 'read',
@@ -672,23 +678,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
-	 * Returns a snapshot of a connected session's state that can be persisted and later
-	 * used with {@link TLSocketRoom.handleSocketResume} to restore the session after hibernation.
-	 *
-	 * Returns `null` if the session doesn't exist or isn't in the `Connected` state.
-	 *
-	 * @param sessionId - The session to snapshot
-	 *
-	 * @example
-	 * ```ts
-	 * // Store snapshot in a Cloudflare WebSocket attachment
-	 * const snapshot = room.getSessionSnapshot(sessionId)
-	 * if (snapshot) {
-	 *   ws.serializeAttachment({ sessionId, snapshot })
-	 * }
-	 * ```
-	 */
-	/**
 	 * Change who a session acts as, without a reconnect. Use it when a grant changes: the session's
 	 * next push is checked with the new actor, and its client updates its UI at once.
 	 *
@@ -705,6 +694,23 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		}
 	}
 
+	/**
+	 * Returns a snapshot of a connected session's state that can be persisted and later
+	 * used with {@link TLSocketRoom.handleSocketResume} to restore the session after hibernation.
+	 *
+	 * Returns `null` if the session doesn't exist or isn't in the `Connected` state.
+	 *
+	 * @param sessionId - The session to snapshot
+	 *
+	 * @example
+	 * ```ts
+	 * // Store snapshot in a Cloudflare WebSocket attachment
+	 * const snapshot = room.getSessionSnapshot(sessionId)
+	 * if (snapshot) {
+	 *   ws.serializeAttachment({ sessionId, snapshot })
+	 * }
+	 * ```
+	 */
 	getSessionSnapshot(sessionId: string): SessionStateSnapshot | null {
 		const session = this.room.sessions.get(sessionId)
 		if (!session || session.state !== RoomSessionState.Connected) {
@@ -724,6 +730,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
 			actor: session.actor,
+			hostReadonly: session.hostReadonly,
 			supportsCommands: session.supportsCommands,
 			presenceId: session.presenceId,
 			presenceRecord,

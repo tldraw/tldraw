@@ -354,6 +354,7 @@ export function runCommand<R extends UnknownRecord>(set: TLCommandSet<R>, reader
 // @public
 export interface SessionStateSnapshot {
     actor?: TLCommandActor;
+    hostReadonly?: boolean;
     // (undocumented)
     isReadonly: boolean;
     objectAccess?: TLObjectStoreAccess;
@@ -458,6 +459,7 @@ export interface TLCommandContext<R extends UnknownRecord> {
     get<T extends R = R>(id: string | T['id']): T | undefined;
     // (undocumented)
     getAll<T extends R = R>(typeName: T['typeName']): T[];
+    now(): number;
     // (undocumented)
     put(record: R): void;
     // (undocumented)
@@ -531,7 +533,7 @@ export interface TLEditPolicy<R extends UnknownRecord> {
     readonly commandOnlyTypes?: readonly string[];
     readonly openTypes?: readonly string[];
     readonly requires?: string;
-    stamp?(actor: TLCommandActor, record: R): R;
+    stamp?(actor: TLCommandActor, record: R, records: TLRecordLookup<R>): R;
 }
 
 // @public
@@ -539,6 +541,7 @@ export interface TLEditPolicyContext<R extends UnknownRecord> extends TLRecordLo
     // (undocumented)
     readonly actor: TLCommandActor;
     readonly before: TLRecordLookup<R>;
+    readonly isClient: boolean;
     // (undocumented)
     readonly next: null | R;
     // (undocumented)
@@ -692,7 +695,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         objectAccess: TLObjectStoreAccess;
         sessionId: string;
     }>;
-    // (undocumented)
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {

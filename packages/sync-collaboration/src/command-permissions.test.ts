@@ -11,6 +11,7 @@ import {
 	AssetRecordType,
 	createShapeId,
 	InstancePresenceRecordType,
+	PageRecordType,
 	toRichText,
 	type TLArrowShape,
 	type TLComment,
@@ -294,7 +295,6 @@ describe('page write control', () => {
 			pageId: 'page:two',
 			anchor: { type: 'page' },
 			body: toRichText('hi'),
-			now: 1,
 		})
 		room.flush()
 		void child
@@ -316,7 +316,6 @@ describe('comments: add your own, manage any', () => {
 		pageId: page,
 		anchor: { type: 'point', x: 0, y: 0 },
 		body: toRichText(text),
-		now: 1,
 	})
 
 	it('a comment-only link can comment on a read-only canvas, as itself', () => {
@@ -398,7 +397,6 @@ describe('live access changes', () => {
 			pageId: page,
 			anchor: { type: 'page' },
 			body: toRichText('x'),
-			now: 1,
 		}
 	}
 })
@@ -462,7 +460,6 @@ describe('agents: a token that may run one tool and nothing else', () => {
 			pageId: page,
 			anchor: { type: 'page' },
 			body: toRichText('x'),
-			now: 1,
 		}
 	}
 })
@@ -493,6 +490,7 @@ describe('review fixes', () => {
 				get: (id) => shapes[id],
 				getAll: () => [],
 				before: { get: (id) => shapes[id], getAll: () => [] },
+				isClient: false,
 			})
 		).toBe(false)
 	})
@@ -687,7 +685,6 @@ describe('page read control', () => {
 					pageId: answers,
 					anchor: { type: 'page' },
 					body: toRichText('x'),
-					now: 1,
 				},
 			},
 		})
@@ -713,7 +710,6 @@ describe('page read control', () => {
 			pageId: answers,
 			anchor: { type: 'page' },
 			body: toRichText('the answer is 42'),
-			now: 1,
 		})
 		room.flush()
 		expect(room.room.getRecord('comment:s')).toBeDefined()
@@ -828,8 +824,23 @@ describe('arrows across owners', () => {
 		expect(tryPatch({ start: ['put', { x: 9, y: 9 }] })).toBe('discard')
 		expect(tryPatch({ color: ['put', 'red'] })).toBe('discard')
 		expect(stored().props.start).toEqual({ x: 0, y: 0 })
-		// the end is bound to Bob's box, so Bob may move it, as tldraw does when he deletes the box
-		expect(tryPatch({ end: ['put', { x: 7, y: 7 }] })).toBe('commit')
+		// the end is bound to Bob's box, but the binding stays: that is a reshape, not an unbind
+		expect(tryPatch({ end: ['put', { x: 7, y: 7 }] })).toBe('discard')
+		expect(tryPatch({ bend: ['put', 400] })).toBe('discard')
+		// in the push that removes the binding, as tldraw does when Bob deletes the box, he may
+		const binding = (room.serverRecords('binding') as any[])[0]
+		forger.push({
+			diff: {
+				[binding.id]: ['remove'],
+				[arrow]: [
+					'patch',
+					{ props: ['patch', { end: ['put', { x: 7, y: 7 }], bend: ['put', 5] }] },
+				],
+			},
+		} as any)
+		room.flush()
+		expect(forger.lastResult().action).toBe('commit')
+		expect(stored().props.end).toEqual({ x: 7, y: 7 })
 	})
 
 	it("Bob cannot unbind Alice's arrow from a shape that is not his", () => {
@@ -1161,7 +1172,6 @@ describe('undo and redo of commands', () => {
 			pageId: page,
 			anchor: { type: 'page' },
 			body: toRichText('oops'),
-			now: 1,
 		})
 		room.flush()
 		editor.undo()
@@ -1233,7 +1243,6 @@ describe('undo and redo of commands', () => {
 			pageId: 'page:two',
 			anchor: { type: 'page' },
 			body: toRichText('hi'),
-			now: 1,
 		})
 		room.flush()
 		const ids = ['page:two', shape, mine, 'comment-thread:1', 'comment:1']
@@ -1335,7 +1344,6 @@ describe('reconnect and offline', () => {
 				pageId: page,
 				anchor: { type: 'shape', shapeId: mine, x: 0, y: 0, isPrecise: false },
 				body: toRichText('written offline'),
-				now: 1,
 			})
 		).toMatchObject({ ok: true })
 		a.getEditor().updateShape({ id: mine, type: 'geo', x: 40 })
@@ -1344,5 +1352,257 @@ describe('reconnect and offline', () => {
 		expect(room.room.getRecord(mine)).toMatchObject({ x: 40, meta: { ownerId: 'alice' } })
 		expect(room.room.getRecord('comment:o')).toMatchObject({ authorId: 'alice' })
 		expect(a.rejections).toEqual([])
+	})
+})
+
+describe('review cycle 2', () => {
+	const photo = () =>
+		AssetRecordType.create({
+			id: AssetRecordType.createId('photo'),
+			type: 'image',
+			props: {
+				name: 'a.png',
+				src: 'https://example.com/a.png',
+				w: 10,
+				h: 10,
+				mimeType: 'image/png',
+				isAnimated: false,
+			},
+		})
+
+	it("a student cannot change or delete the teacher's image, but owns the images they add", () => {
+		const { room, t, a } = setup()
+		const asset = photo()
+		t.getEditor().createAssets([asset])
+		t.getEditor().createShape({ type: 'image', props: { assetId: asset.id, w: 10, h: 10 } })
+		room.flush()
+		const forger = room.forger('f', student('mallory'))
+		room.flush()
+		forger.push({
+			diff: {
+				[asset.id]: ['patch', { props: ['patch', { src: ['put', 'https://evil.example'] }] }],
+			},
+		} as any)
+		room.flush()
+		expect(forger.lastResult().action).toBe('discard')
+		forger.push({ diff: { [asset.id]: ['remove'] } } as any)
+		room.flush()
+		expect(forger.lastResult().action).toBe('discard')
+		expect((room.room.getRecord(asset.id) as any).props.src).toBe('https://example.com/a.png')
+		// Alice's own image is hers to change
+		const mine = { ...photo(), id: AssetRecordType.createId('mine') }
+		a.getEditor().createAssets([mine])
+		room.flush()
+		expect((room.room.getRecord(mine.id) as any).meta.ownerId).toBe('alice')
+		a.getEditor().updateAssets([{ id: mine.id, type: 'image', props: { ...mine.props, w: 20 } }])
+		room.flush()
+		expect(a.rejections).toEqual([])
+		expect((room.room.getRecord(mine.id) as any).props.w).toBe(20)
+	})
+
+	it('a student adds an image: the asset first, then its shape, as tldraw does on drop', () => {
+		const { room, a, b } = setup()
+		const asset = { ...photo(), id: AssetRecordType.createId('drop') }
+		const editor = a.getEditor()
+		editor.run(() => {
+			editor.createAssets([asset])
+			editor.createShape({ type: 'image', props: { assetId: asset.id, w: 10, h: 10 } })
+		})
+		room.flush()
+		expect(a.rejections).toEqual([])
+		expect(room.room.getRecord(asset.id)).toBeDefined()
+		expect(b.get(asset.id)).toBeDefined()
+	})
+
+	it("an author cannot undo a moderator's delete of their comment, but can undo their own", () => {
+		const { room, t, a } = setup()
+		const add = (id: string) =>
+			a.run('comments.add', {
+				threadId: `comment-thread:${id}`,
+				commentId: `comment:${id}`,
+				pageId: page,
+				anchor: { type: 'page' },
+				body: toRichText(id),
+			})
+		add('rude')
+		add('mine')
+		room.flush()
+		t.run('comments.delete', { commentId: 'comment:rude' })
+		a.run('comments.delete', { commentId: 'comment:mine' })
+		room.flush()
+		expect(a.run('comments.restore', { commentId: 'comment:rude' })).toMatchObject({ ok: false })
+		expect(a.run('comments.restore', { commentId: 'comment:mine' })).toMatchObject({ ok: true })
+		room.flush()
+		expect(room.room.getRecord('comment:rude')).toMatchObject({ isDeleted: true })
+		expect(room.room.getRecord('comment:mine')).toMatchObject({ isDeleted: false, meta: {} })
+	})
+
+	it('comment times come from the clock of the machine that runs the command', () => {
+		const { room } = setup()
+		const forger = room.forger('f', student('mallory'))
+		room.flush()
+		const start = Date.now()
+		const command = (args: object) => ({
+			name: 'comments.add',
+			args: {
+				threadId: 'comment-thread:t',
+				commentId: 'comment:c',
+				pageId: page,
+				anchor: { type: 'page' },
+				body: toRichText('x'),
+				...args,
+			},
+		})
+		// a time in the args is not part of the command any more
+		forger.push({ command: command({ now: 0 }), commandId: 'c1' } as any)
+		room.flush()
+		expect(room.room.getRecord('comment:c')).toBeUndefined()
+		forger.push({ command: command({}), commandId: 'c2' } as any)
+		room.flush()
+		expect(
+			(room.room.getRecord('comment:c') as unknown as TLComment).createdAt
+		).toBeGreaterThanOrEqual(start)
+	})
+
+	it('a session the host connects read-only runs no commands, whatever its actor', () => {
+		const room = new TLSocketRoom<any, void>({
+			schema,
+			commands: commands as any,
+			log: { warn: () => {}, error: console.error },
+		})
+		const out: any[] = []
+		room.handleSocketConnect({
+			sessionId: 'ro',
+			isReadonly: true,
+			actor: teacher,
+			socket: { readyState: 1, send: (d) => out.push(JSON.parse(d)), close: () => {} },
+		})
+		const send = (msg: object) => room.handleSocketMessage('ro', JSON.stringify(msg))
+		send({
+			type: 'connect',
+			connectRequestId: 'x',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schema.serialize(),
+		})
+		send({
+			type: 'push',
+			clientClock: 0,
+			command: { name: 'pages.create', args: { id: 'page:ro', name: 'RO' } },
+		})
+		expect(room.getRecord('page:ro')).toBeUndefined()
+	})
+
+	it('a session resumed after hibernation can still be given edit', () => {
+		const noRead = defineCommandSet<UnknownRecord>({
+			commands: [...commentCommands],
+			edit: createOwnedShapesPolicy(),
+		})
+		const room = new TLSocketRoom<any, void>({
+			schema,
+			commands: noRead as any,
+			log: { warn: () => {}, error: console.error },
+		})
+		room.storage.transaction((txn) => {
+			txn.set(page, PageRecordType.create({ id: page, name: 'Page', index: 'a1' as any }))
+		})
+		const socket = { readyState: 1, send: () => {}, close: () => {} }
+		room.handleSocketConnect({
+			sessionId: 'v',
+			actor: { userId: 'v', permissions: [P.read] },
+			socket,
+		})
+		const send = (msg: object) => room.handleSocketMessage('v', JSON.stringify(msg))
+		send({
+			type: 'connect',
+			connectRequestId: 'x',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schema.serialize(),
+		})
+		const snapshot = room.getSessionSnapshot('v')!
+		const resumed = new TLSocketRoom<any, void>({
+			schema,
+			commands: noRead as any,
+			storage: room.storage,
+			log: { warn: () => {}, error: console.error },
+		})
+		resumed.handleSocketResume({ sessionId: 'v', socket, snapshot })
+		resumed.updateSessionActor('v', { userId: 'v', permissions: [P.read, P.edit] })
+		const shape = {
+			id: 'shape:v',
+			typeName: 'shape',
+			type: 'geo',
+			parentId: page,
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: geoProps(),
+		}
+		resumed.handleSocketMessage(
+			'v',
+			JSON.stringify({ type: 'push', clientClock: 0, diff: { 'shape:v': ['put', shape] } })
+		)
+		expect(resumed.getRecord('shape:v')).toBeDefined()
+	})
+
+	it('a cursor shows the name and color of its real user, and an anonymous one is anonymous', () => {
+		const { room, a } = setup()
+		const anon = room.forger('anon', { userId: null, permissions: [P.read] })
+		const bob = room.forger('bob', student('bob'))
+		room.flush()
+		const cursor = (id: string) =>
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId(id),
+				currentPageId: page,
+				userId: 'user:teacher' as TLUserId,
+				userName: 'Teacher',
+			})
+		anon.push({ presence: ['put', cursor('anon')] } as any)
+		bob.push({ presence: ['put', cursor('bob')] } as any)
+		room.flush()
+		const cursors = a.store.query.records('instance_presence').get()
+		expect(cursors.filter((p) => p.userId === 'user:teacher' || p.userName === 'Teacher')).toEqual(
+			[]
+		)
+		expect(cursors.map((p) => [p.userId, p.userName]).sort()).toEqual([
+			['user:anonymous', 'Anonymous'],
+			['user:bob', 'bob'],
+		])
+		// a patch cannot change it either
+		bob.push({ presence: ['patch', { userName: ['put', 'Teacher'] }] } as any)
+		room.flush()
+		expect(
+			a.store.query
+				.records('instance_presence')
+				.get()
+				.find((p) => p.userId === 'user:bob')?.userName
+		).toBe('bob')
+	})
+
+	it("adding another person's user record cannot choose their name", () => {
+		const { room } = setup()
+		const forger = room.forger('f', student('mallory'))
+		room.flush()
+		const carol = UserRecordType.create({ id: UserRecordType.createId('carol'), name: 'Teacher' })
+		forger.push({ diff: { [carol.id]: ['put', carol] } } as any)
+		room.flush()
+		// stored, with the name blanked; the client is told what was stored
+		expect(forger.lastResult().action).not.toBe('discard')
+		expect((room.room.getRecord(carol.id) as TLUser).name).toBe('')
+	})
+
+	it('a page with a malformed readers list is hidden, not shown to everyone', () => {
+		const { room, t, a } = setup()
+		t.run('pages.create', { id: 'page:odd', name: 'Odd' })
+		room.flush()
+		expect(a.get('page:odd' as TLPageId)).toBeDefined()
+		t.getEditor().updatePage({ id: 'page:odd' as TLPageId, meta: { readers: 'alice' } })
+		room.flush()
+		expect(a.get('page:odd' as TLPageId)).toBeUndefined()
 	})
 })

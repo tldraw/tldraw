@@ -7,9 +7,13 @@ import {
 	type TLEditPolicy,
 	type TLEditPolicyContext,
 	type TLReadPolicy,
+	type TLRecordLookup,
 } from '@tldraw/sync-core'
 import {
 	PageRecordType,
+	type TLAsset,
+	type TLInstancePresence,
+	type TLUser,
 	type TLBinding,
 	type TLComment,
 	type TLCommentAnchor,
@@ -65,8 +69,8 @@ const anchorArg = T.unknownObject as T.Validator<any> as T.Validator<TLCommentAn
 const richTextArg = T.unknownObject as T.Validator<any> as T.Validator<TLRichText>
 
 /**
- * Comment commands. The server sets `authorId`, `createdBy`, and `createdAt`, so a client cannot
- * forge them. Raw writes of comment records must be off; pass {@link COMMENT_TYPES} as
+ * Comment commands. The server sets `authorId`, `createdBy`, and the times from the actor and its
+ * own clock, so a client cannot forge them. Raw writes of comment records must be off; pass {@link COMMENT_TYPES} as
  * `commandOnlyTypes` in the edit policy.
  *
  * @public
@@ -80,7 +84,6 @@ export const commentCommands = [
 			pageId: string
 			anchor?: TLCommentAnchor
 			body: TLRichText
-			now: number
 		}
 	>({
 		name: 'comments.add',
@@ -91,7 +94,6 @@ export const commentCommands = [
 			pageId: id('page'),
 			anchor: anchorArg.optional(),
 			body: richTextArg,
-			now: T.number,
 		}),
 		run(ctx, args) {
 			const userId = requireUser(ctx)
@@ -105,7 +107,7 @@ export const commentCommands = [
 					pageId: args.pageId as TLPageId,
 					anchor: args.anchor,
 					createdBy: userId,
-					createdAt: args.now,
+					createdAt: ctx.now(),
 					resolved: null,
 					isDeleted: false,
 					meta: {},
@@ -122,7 +124,7 @@ export const commentCommands = [
 				threadId: thread.id,
 				pageId: thread.pageId,
 				authorId: userId,
-				createdAt: args.now,
+				createdAt: ctx.now(),
 				editedAt: null,
 				body: args.body,
 				isDeleted: false,
@@ -132,16 +134,16 @@ export const commentCommands = [
 			return { name: 'comments.delete', args: { commentId: args.commentId } }
 		},
 	}),
-	defineCommand<R, { commentId: string; body: TLRichText; now: number }>({
+	defineCommand<R, { commentId: string; body: TLRichText }>({
 		name: 'comments.edit',
 		requires: TLDRAW_PERMISSIONS.writeComments,
-		args: T.object({ commentId: id('comment'), body: richTextArg, now: T.number }),
+		args: T.object({ commentId: id('comment'), body: richTextArg }),
 		run(ctx, args) {
 			const userId = requireUser(ctx)
 			const comment = ctx.get<TLComment & R>(args.commentId)
 			if (!comment || comment.isDeleted) return ctx.deny('no such comment')
 			if (comment.authorId !== userId) return ctx.deny('only the author can edit a comment')
-			ctx.update<TLComment & R>(comment.id, { body: args.body, editedAt: args.now })
+			ctx.update<TLComment & R>(comment.id, { body: args.body, editedAt: ctx.now() })
 			return { name: 'comments.edit', args: { ...args, body: comment.body } }
 		},
 	}),
@@ -156,7 +158,11 @@ export const commentCommands = [
 			if (comment.authorId !== userId && !ctx.can(TLDRAW_PERMISSIONS.manageComments)) {
 				return ctx.deny('only the author or a moderator can delete a comment')
 			}
-			ctx.update<TLComment & R>(comment.id, { isDeleted: true })
+			// who deleted it decides who may restore it
+			ctx.update<TLComment & R>(comment.id, {
+				isDeleted: true,
+				meta: { ...comment.meta, deletedBy: userId },
+			})
 			// The thread goes when its last live comment goes, in the same unit.
 			const live = ctx
 				.getAll<TLComment & R>('comment')
@@ -173,25 +179,28 @@ export const commentCommands = [
 			const userId = requireUser(ctx)
 			const comment = ctx.get<TLComment & R>(args.commentId)
 			if (!comment || !comment.isDeleted) return ctx.deny('no deleted comment')
-			if (comment.authorId !== userId && !ctx.can(TLDRAW_PERMISSIONS.manageComments)) {
-				return ctx.deny('only the author or a moderator can restore a comment')
+			// The author can undo their own delete, not a moderator's. A comment deleted before
+			// `deletedBy` existed counts as deleted by someone else.
+			if (comment.meta.deletedBy !== userId && !ctx.can(TLDRAW_PERMISSIONS.manageComments)) {
+				return ctx.deny('only who deleted a comment, or a moderator, can restore it')
 			}
-			ctx.update<TLComment & R>(comment.id, { isDeleted: false })
+			const { deletedBy: _, ...meta } = comment.meta
+			ctx.update<TLComment & R>(comment.id, { isDeleted: false, meta })
 			const thread = ctx.get<TLCommentThread & R>(comment.threadId)
 			if (thread?.isDeleted) ctx.update<TLCommentThread & R>(thread.id, { isDeleted: false })
 			return { name: 'comments.delete', args: { commentId: args.commentId } }
 		},
 	}),
-	defineCommand<R, { threadId: string; resolved: boolean; now: number }>({
+	defineCommand<R, { threadId: string; resolved: boolean }>({
 		name: 'comments.resolve',
 		requires: TLDRAW_PERMISSIONS.writeComments,
-		args: T.object({ threadId: id('comment-thread'), resolved: T.boolean, now: T.number }),
+		args: T.object({ threadId: id('comment-thread'), resolved: T.boolean }),
 		run(ctx, args) {
 			const userId = requireUser(ctx)
 			const thread = ctx.get<TLCommentThread & R>(args.threadId)
 			if (!thread || thread.isDeleted) return ctx.deny('no such thread')
 			ctx.update<TLCommentThread & R>(thread.id, {
-				resolved: args.resolved ? { at: args.now, by: userId } : null,
+				resolved: args.resolved ? { at: ctx.now(), by: userId } : null,
 			})
 			return { name: 'comments.resolve', args: { ...args, resolved: !!thread.resolved } }
 		},
@@ -372,7 +381,11 @@ export function getActorUserRecordId(actor: TLCommandActor): string | null {
 
 /** The owner that {@link createOwnedShapesPolicy} stamps on a shape. @public */
 export function getShapeOwner(shape: TLShape): string | undefined {
-	const owner = shape.meta?.ownerId
+	return getRecordOwner(shape)
+}
+
+function getRecordOwner(record: TLShape | TLAsset): string | undefined {
+	const owner = record.meta?.ownerId
 	return typeof owner === 'string' ? owner : undefined
 }
 
@@ -393,12 +406,13 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 	const canUseParent =
 		opts.canUseParent ?? ((actor: TLCommandActor, parent: TLShape) => ownsShape(actor, parent))
 
-	function ownsShape(actor: TLCommandActor, shape: TLShape) {
+	function ownsRecord(actor: TLCommandActor, record: TLShape | TLAsset) {
 		if (actorCan(actor, TLDRAW_PERMISSIONS.manageShapes)) return true
-		// An unstamped shape (made before the policy, or by the server) belongs to nobody.
-		const owner = getShapeOwner(shape)
+		// An unstamped record (made before the policy, or by the server) belongs to nobody.
+		const owner = getRecordOwner(record)
 		return owner !== undefined && owner === actor.userId
 	}
+	const ownsShape = ownsRecord
 
 	// A parent chain that loops crashes the editor, so nobody may store one.
 	function hasParentCycle(ctx: TLEditPolicyContext<R>, shape: TLShape) {
@@ -415,8 +429,8 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 	/**
 	 * When a shape is deleted, tldraw unbinds the arrows attached to it and moves each arrow's
 	 * loose end to where the shape was. That arrow may be someone else's. The actor may make that
-	 * one change: only the end points and the bend, and only the ends that were bound to a shape
-	 * the actor owns.
+	 * one change, in the push that removes the binding: only the end points and the bend, and only
+	 * the ends that were bound to a shape the actor owns.
 	 */
 	function isUnbindFixup(ctx: TLEditPolicyContext<R>, prev: TLShape, next: TLShape) {
 		if (prev.type !== 'arrow' || next.type !== 'arrow') return false
@@ -427,6 +441,8 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 		const ownedEnds = new Set<string>()
 		for (const binding of ctx.before.getAll('binding') as unknown as TLArrowBinding[]) {
 			if (binding.fromId !== a.id || binding.type !== 'arrow') continue
+			// only an unbind: the binding must go in this same push
+			if (!ctx.isClient && ctx.get(binding.id)) continue
 			const to = ctx.before.get(binding.toId) as TLShape | undefined
 			if (to && ownsShape(ctx.actor, to)) ownedEnds.add(binding.props.terminal)
 		}
@@ -449,15 +465,35 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 		commandOnlyTypes: COMMENT_TYPES,
 		// every editor writes its user record on mount, read-only or not
 		openTypes: ['user'],
-		stamp(actor, record) {
-			if (!actor.userId) return record
-			if (record.typeName === 'instance_presence') {
-				// a cursor always shows who really moves it
-				return { ...record, userId: getActorUserRecordId(actor) } as R
+		stamp(actor, record, records) {
+			const userRecordId = getActorUserRecordId(actor)
+			switch (record.typeName) {
+				case 'instance_presence': {
+					// A cursor always shows who really moves it, with the name and color of that
+					// user's record. An anonymous actor gets one shared anonymous id.
+					const user = userRecordId ? (records.get(userRecordId) as TLUser | undefined) : undefined
+					return {
+						...record,
+						userId: userRecordId ?? 'user:anonymous',
+						userName: user?.name ?? actor.userId ?? 'Anonymous',
+						color: user?.color ?? (record as unknown as TLInstancePresence).color,
+					} as unknown as R
+				}
+				case 'user': {
+					// Another person's user record is an attribution cache (tldraw adds one on paste).
+					// It may not choose that person's name; their own editor writes it.
+					if (record.id === userRecordId) return record
+					return { ...record, name: '', imageUrl: '' } as R
+				}
+				case 'shape':
+				case 'asset': {
+					if (!actor.userId) return record
+					const meta = (record as unknown as TLShape).meta
+					return { ...record, meta: { ...meta, ownerId: actor.userId } } as unknown as R
+				}
+				default:
+					return record
 			}
-			if (record.typeName !== 'shape') return record
-			const shape = record as unknown as TLShape
-			return { ...shape, meta: { ...shape.meta, ownerId: actor.userId } } as unknown as R
 		},
 		authorize(ctx) {
 			const record = (ctx.next ?? ctx.prev) as TLRecord
@@ -501,13 +537,20 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 					}
 					return true
 				}
+				case 'asset': {
+					// an asset is its uploader's, like a shape: others may use it, not change it
+					const prev = ctx.prev as TLAsset | null
+					const next = ctx.next as TLAsset | null
+					if (prev && !ownsRecord(ctx.actor, prev)) return false
+					if (next && !ownsRecord(ctx.actor, next)) return false
+					return !prev || !next || getRecordOwner(prev) === getRecordOwner(next)
+				}
 				case 'page':
 				case 'document':
 					return actorCan(ctx.actor, TLDRAW_PERMISSIONS.managePages)
 				case 'user':
 					// Each actor changes only its own user record (name, color). Any editor may add a
-					// missing one: editors keep user records as a cache for attribution, and refusing
-					// the add would make the editor try again forever.
+					// missing one, as tldraw does on paste; the stamp blanks its name.
 					return ctx.op === 'create' || record.id === getActorUserRecordId(ctx.actor)
 				default:
 					return true
@@ -520,7 +563,9 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 /** Who may read a page, or `null` for everyone with the `read` permission. @public */
 export function getPageReaders(page: TLPage): string[] | null {
 	const readers = page.meta?.readers
-	return Array.isArray(readers) ? readers.filter((r): r is string => typeof r === 'string') : null
+	if (readers === undefined || readers === null) return null
+	// a malformed list hides the page rather than showing it to everyone
+	return Array.isArray(readers) ? readers.filter((r): r is string => typeof r === 'string') : []
 }
 
 /**
@@ -584,6 +629,27 @@ export function createPageReadPolicy<
 
 	const ASSET_SCOPE = 'asset:'
 
+	// The pages each asset is used on, built once per scan of the shapes, not once per asset
+	// and session. `getAll` returns the same array while the records do not change.
+	const assetPagesCache = new WeakMap<readonly UnknownRecord[], Map<string, Set<string>>>()
+	function assetPages(records: TLRecordLookup<UnknownRecord>) {
+		const shapes = records.getAll('shape')
+		let index = assetPagesCache.get(shapes)
+		if (index) return index
+		index = new Map()
+		for (const shape of shapes) {
+			const assetId = (shape as TLShape & { props: { assetId?: unknown } }).props.assetId
+			if (typeof assetId !== 'string') continue
+			const pageId = getRecordPageId(shape, records.get)
+			if (!pageId) continue
+			let pages = index.get(assetId)
+			if (!pages) index.set(assetId, (pages = new Set()))
+			pages.add(pageId)
+		}
+		assetPagesCache.set(shapes, index)
+		return index
+	}
+
 	const policy: TLReadPolicy<R> = {
 		requires: TLDRAW_PERMISSIONS.read,
 		canOpen(actor, records) {
@@ -601,15 +667,16 @@ export function createPageReadPolicy<
 			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
 			if (scope.startsWith(ASSET_SCOPE)) {
 				// An asset is visible when a shape the actor can read uses it. An asset that no shape
-				// uses is hidden too: it may be left over from a hidden page. Its uploader still has
-				// it, and others get it with the first shape that uses it.
-				return records.getAll('shape').some((shape) => {
-					if ((shape as TLShape & { props: { assetId?: unknown } }).props.assetId !== scope) {
-						return false
-					}
-					const pageId = getRecordPageId(shape, records.get)
-					return !!pageId && canReadPage(actor, records.get(pageId))
-				})
+				// uses is hidden from others: it may be left over from a hidden page. Others get it
+				// with the first shape that uses it.
+				const pageIds = assetPages(records).get(scope)
+				// an unused asset is its uploader's alone, who adds it just before the shape
+				if (!pageIds) {
+					const asset = records.get(scope) as TLAsset | undefined
+					return !!asset && !!actor.userId && getRecordOwner(asset) === actor.userId
+				}
+				for (const pageId of pageIds) if (canReadPage(actor, records.get(pageId))) return true
+				return false
 			}
 			return canReadPage(actor, records.get(scope))
 		},

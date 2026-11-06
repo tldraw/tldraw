@@ -1,6 +1,59 @@
-.cp-grid {
+.cp-root {
 	position: fixed;
 	inset: 0;
+	display: flex;
+	flex-direction: column;
+	background: #ccc;
+}
+
+.cp-tour {
+	display: flex;
+	gap: 12px;
+	align-items: flex-start;
+	padding: 8px 12px;
+	background: #fff9db;
+	border-bottom: 1px solid #e9d97a;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.cp-tour-nav {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+	white-space: nowrap;
+}
+
+.cp-tour-body {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.cp-tour-why {
+	color: #555;
+}
+
+.cp-slot {
+	display: flex;
+	min-width: 0;
+	min-height: 0;
+	outline: 3px solid transparent;
+	outline-offset: -3px;
+}
+
+.cp-slot > .cp-pane {
+	flex: 1;
+}
+
+.cp-slot[data-focus='true'] {
+	outline-color: #fab005;
+	z-index: 1;
+}
+
+.cp-grid {
+	flex: 1;
+	min-height: 0;
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	grid-template-rows: 1fr 1fr;

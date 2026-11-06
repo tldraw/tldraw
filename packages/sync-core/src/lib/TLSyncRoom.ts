@@ -828,7 +828,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		actor?: TLCommandActor
 	}) {
 		const { sessionId, socket, meta, objectAccess } = opts
-		const actor = opts.actor ?? defaultActor(opts.isReadonly)
+		const actor = opts.actor ?? this.missingActor(opts.isReadonly)
 		const isReadonly = this.deriveIsReadonly(opts.isReadonly, actor)
 		// a connect racing close() would otherwise create a session nothing ever prunes
 		if (this._isClosed) {
@@ -1024,6 +1024,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		for (const id of diff.deletes) session.visible.delete(id)
 	}
 
+	/**
+	 * A room with commands must be told who each session is. A host that forgets fails closed: the
+	 * session gets no permissions, and with a read policy it is refused.
+	 */
+	private missingActor(isReadonly: boolean): TLCommandActor {
+		if (!this.commands) return defaultActor(isReadonly)
+		this.log?.warn?.('a session connected to a room with commands has no actor; it gets none')
+		return { userId: null, permissions: [] }
+	}
+
 	private deriveIsReadonly(isReadonly: boolean, actor: TLCommandActor) {
 		if (!this.commands) return isReadonly
 		return isReadonly || !actorCan(actor, this.commands.edit.requires ?? 'edit')
@@ -1077,7 +1087,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		requiresLegacyRejection: boolean
 		supportsStringAppend: boolean
 	}) {
-		const actor = opts.actor ?? defaultActor(opts.isReadonly)
+		const actor = opts.actor ?? this.missingActor(opts.isReadonly)
 		const {
 			sessionId,
 			socket,
@@ -1695,8 +1705,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			patch: ObjectDiff,
 			authorize?: (prev: R, next: R) => R | null,
 			// The existing document if the caller already fetched it (see `addDocument`).
-			prevDoc?: R
+			prevDoc?: R,
+			// Rewrites the patched record before it is stored, as the edit policy's stamp does for
+			// presence. A rewritten record goes out as a put.
+			transform?: (next: R) => R
 		) => {
+			const store = (doc: R, next: R, op: RecordOp<R>) => {
+				const stamped = transform ? transform(next) : next
+				storage.set(id, stamped)
+				if (stamped === next || isEqual(stamped, next)) propagateOp(changes, id, op, doc, next)
+				else propagateOp(changes, id, [RecordOpType.Put, stamped], doc, stamped)
+			}
 			// if it was already deleted, there's no need to apply the patch
 			const doc = prevDoc ?? (storage.get(id) as R | undefined)
 			if (!doc) return
@@ -1717,8 +1736,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (diff) {
 					// Authorize on the committed candidate — the record that will actually be stored.
 					if (authorize && !authorize(doc, diff[1])) return
-					storage.set(id, diff[1])
-					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
+					store(doc, diff[1], [RecordOpType.Patch, diff[0]])
 				}
 			} else {
 				// need to apply the patch to the downgraded version and then upgrade it
@@ -1738,8 +1756,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (diff) {
 					// Authorize on the committed candidate — the upgraded record, not a raw preview.
 					if (authorize && !authorize(doc, upgraded.value)) return
-					storage.set(id, upgraded.value)
-					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
+					store(doc, upgraded.value, [RecordOpType.Patch, diff])
 				}
 			}
 		}
@@ -1759,19 +1776,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					const id = session.presenceId
 					const [type, val] = message.presence
 					const { typeName } = this.presenceType
-					// the edit policy's stamp sets who a cursor belongs to; a patch cannot change it
-					const stamp = this.commands?.edit.stamp
-					const actor = session.actor
+					// the edit policy's stamp sets who a cursor belongs to, on every put and patch
+					const policyStamp = this.commands?.edit.stamp
+					const records = lookupOf(txn as TLCommandReader<R>)
+					const stamp = policyStamp && ((r: R) => policyStamp(session.actor, r, records))
 					switch (type) {
 						case RecordOpType.Put: {
 							// Try to put the document. If it fails, stop here.
 							const record = { ...val, id, typeName } as R
-							addDocument(
-								this.presenceStore,
-								presenceChanges,
-								id,
-								stamp ? stamp(actor, record) : record
-							)
+							addDocument(this.presenceStore, presenceChanges, id, stamp ? stamp(record) : record)
 							break
 						}
 						case RecordOpType.Patch: {
@@ -1785,9 +1798,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									id: [ValueOpType.Put, id],
 									typeName: [ValueOpType.Put, typeName],
 								},
-								stamp
-									? (_prev, next) => (isEqual(stamp(actor, next), next) ? next : null)
-									: undefined
+								undefined,
+								undefined,
+								stamp || undefined
 							)
 							break
 						}
@@ -2085,6 +2098,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		// The policy may read other records in the same push (a child and its new frame), so it
 		// sees the push applied over the stored state.
+		const before = lookupOf<R>(txn as TLCommandReader<R>)
 		const overlay = new Map<string, R | null>()
 		for (const [id, op] of objectMapEntriesIterable(diff)) {
 			const prev = (txn.get(id) as R | undefined) ?? null
@@ -2092,7 +2106,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				case RecordOpType.Put: {
 					let sent = op[1]
 					if (!prev && set.edit.stamp) {
-						sent = set.edit.stamp(actor, sent)
+						sent = set.edit.stamp(actor, sent, before)
 						stamped.set(id, sent)
 					}
 					const next = up(sent)
@@ -2120,7 +2134,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			}
 		}
-		const before = lookupOf<R>(txn as TLCommandReader<R>)
 		const after = lookupOf<R>({
 			get: (id) => (overlay.has(id) ? (overlay.get(id) ?? undefined) : (txn.get(id) as R)),
 			*values() {
@@ -2158,6 +2171,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					get: after.get,
 					getAll: after.getAll,
 					before,
+					isClient: false,
 				})
 			) {
 				this.log?.warn?.('edit policy denied push', change.op, typeName, change.id)
@@ -2189,6 +2203,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			(txn): Outcome => {
 				this.broadcastChanges(txn)
 				if (!set) return { ok: false, reason: 'this room has no commands' }
+				// the host's read-only flag caps every actor; give a viewer comments through its actor
+				if (session?.hostReadonly) return { ok: false, reason: 'this session is read-only' }
 				// sent again after a reconnect; the client already has its effects from the hydration
 				if (commandId && isApplied(txn, commandId)) return { ok: false, reason: undefined }
 				const res = runCommand(set, txn as TLCommandReader<R>, actor, call)

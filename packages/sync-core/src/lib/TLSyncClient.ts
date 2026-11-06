@@ -917,6 +917,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					const left = deletes.has(id) ? undefined : (puts.get(id) ?? preUndo(id))
 					const target = valueAfter(id)[1]
 					if (isEqual(left, target)) continue
+					// a fixup is a raw edit; one the edit lane forbids (a command-only record that the
+					// server's run made differ, e.g. by its own clock) is the inverse's job alone
+					const op = left && target ? 'update' : target ? 'create' : 'delete'
+					if (!this.canEdit(op, left ?? null, target ?? null)) continue
 					if (left && target) (fixups.updated as any)[id] = [left, target]
 					else if (target) (fixups.added as any)[id] = target
 					else if (left) (fixups.removed as any)[id] = left
@@ -955,20 +959,25 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		return actorCan(this.actor.get(), permission)
 	}
 
+	private storeLookup() {
+		return lookupOf<R>({
+			get: (id) => this.store.get(id as RecordId<R>),
+			values: () => this.store.allRecords(),
+		})
+	}
+
 	/** Whether this client may make a record change on the edit lane, reactively. */
 	canEdit(op: 'create' | 'update' | 'delete', prev: R | null, next: R | null): boolean {
 		if (!this.commands) return true
 		// the client checks each record as it changes, so the store is the state before and after
-		const records = lookupOf<R>({
-			get: (id) => this.store.get(id as RecordId<R>),
-			values: () => this.store.allRecords(),
-		})
+		const records = this.storeLookup()
 		return canEditRecord(this.commands, this.actor.get(), {
 			op,
 			prev,
 			next,
 			...records,
 			before: records,
+			isClient: true,
 		})
 	}
 
@@ -985,7 +994,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					if (source !== 'user' || this.applyingCommand || !set.edit.stamp) return record
 					// an undo brings back a record as it was, owner and all
 					if (this.isUndoStep(record.id, record)) return record
-					return set.edit.stamp(this.actor.get(), record)
+					return set.edit.stamp(this.actor.get(), record, this.storeLookup())
 				}),
 				// A before-create handler cannot veto, so remove a denied record right after. The
 				// create and the remove squash to nothing, so nothing is sent.

@@ -38,7 +38,6 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 export const commentCommands: (TLCommand<UnknownRecord, {
     commentId: string;
 }> | TLCommand<UnknownRecord, {
-    now: number;
     resolved: boolean;
     threadId: string;
 }>)[];

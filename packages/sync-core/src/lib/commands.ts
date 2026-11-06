@@ -63,6 +63,11 @@ export interface TLCommandContext<R extends UnknownRecord> {
 	update<T extends R>(id: T['id'], partial: Partial<Omit<T, 'id' | 'typeName'>>): T
 	delete(id: R['id'] | string): void
 	can(permission: string): boolean
+	/**
+	 * The current time on the machine that runs the command. The client's run is a prediction;
+	 * the server's time is the one stored, so a client cannot backdate a record.
+	 */
+	now(): number
 	/** Stop the command. Nothing it wrote is applied. */
 	deny(reason: string): never
 }
@@ -114,6 +119,12 @@ export interface TLEditPolicyContext<R extends UnknownRecord> extends TLRecordLo
 	 * such as the binding that an unbind deletes, reads it here.
 	 */
 	readonly before: TLRecordLookup<R>
+	/**
+	 * True in the client's guard, which checks one record at a time while the store changes, so
+	 * `before` and the state after are the same. A rule that needs the whole push can allow the
+	 * change there; the server, which sees the whole push, decides.
+	 */
+	readonly isClient: boolean
 }
 
 /**
@@ -140,9 +151,10 @@ export interface TLEditPolicy<R extends UnknownRecord> {
 	/**
 	 * Change a record that the actor creates through the edit lane, for example to stamp the
 	 * owner. Runs on the client before the record is stored, and on the server again, where the
-	 * server's result wins.
+	 * server's result wins. The server also runs it on every write of the actor's presence record,
+	 * so a cursor always shows who moves it. `records` is the room before the write.
 	 */
-	stamp?(actor: TLCommandActor, record: R): R
+	stamp?(actor: TLCommandActor, record: R, records: TLRecordLookup<R>): R
 }
 
 /**
@@ -275,6 +287,7 @@ export function runCommand<R extends UnknownRecord>(
 	}
 	const ctx: TLCommandContext<R> = {
 		actor,
+		now: () => Date.now(),
 		get: get as TLCommandContext<R>['get'],
 		getAll: ((typeName: string) => {
 			const out = new Map<string, R>()

@@ -23,6 +23,7 @@ import {
 import 'tldraw/tldraw.css'
 import { actor, classroomCommands, schema, type ROLES } from './classroom'
 import { LocalRoom } from './local-room'
+import { Tour, useFocusedPanes } from './tour'
 import './style.css'
 
 // There's a guide at the bottom of this file!
@@ -71,6 +72,16 @@ const SESSIONS = Object.fromEntries(
 	])
 )
 
+// Four editors share one page. Only the pane you last clicked takes keyboard shortcuts, so Delete
+// in Bob's pane does not also delete Alice's selection.
+let focusedEditor: Editor | null = null
+function focusPane(editor: Editor | null) {
+	if (!editor || editor === focusedEditor) return
+	focusedEditor?.blur()
+	editor.focus()
+	focusedEditor = editor
+}
+
 const CommandsContext = createContext<{ commands: TLSyncCommandsApi; userId: string } | null>(null)
 
 export default function CommandPermissionsExample() {
@@ -80,11 +91,17 @@ export default function CommandPermissionsExample() {
 		() => (carolHasAccess.get() ? 'carol' : 'carol-off'),
 		[]
 	)
+	const focused = useFocusedPanes()
 	return (
-		<div className="cp-grid">
-			{PEOPLE.map((person) => (
-				<Pane key={person.id === 'carol' ? carolKey : person.id} person={person} />
-			))}
+		<div className="cp-root">
+			<Tour />
+			<div className="cp-grid">
+				{PEOPLE.map((person) => (
+					<div key={person.id} className="cp-slot" data-focus={focused.includes(person.id)}>
+						<Pane key={person.id === 'carol' ? carolKey : person.id} person={person} />
+					</div>
+				))}
+			</div>
 		</div>
 	)
 }
@@ -141,10 +158,14 @@ function Pane({ person }: { person: Person }) {
 
 	return (
 		<CommandsContext.Provider value={{ commands, userId: person.id }}>
-			<div className="cp-pane" style={{ '--cp-color': person.color } as React.CSSProperties}>
+			<div
+				className="cp-pane"
+				style={{ '--cp-color': person.color } as React.CSSProperties}
+				onPointerDownCapture={() => focusPane(editor)}
+			>
 				<PaneHeader person={person} editor={editor} commands={commands} />
 				<div className="cp-canvas">
-					<Tldraw store={store} components={components} onMount={onMount} />
+					<Tldraw store={store} components={components} onMount={onMount} autoFocus={false} />
 					{denied && <div className="cp-denied">Not allowed: {denied}</div>}
 				</div>
 			</div>
@@ -199,7 +220,6 @@ function PaneHeader({
 							pageId: editor.getCurrentPageId(),
 							anchor: { type: 'page' },
 							body: toRichText(`Hello from ${person.name}`),
-							now: Date.now(),
 						})
 					}}
 				>
@@ -269,6 +289,16 @@ function PaneHeader({
 							/>
 							Carol has access
 						</label>
+						<button
+							onClick={() => {
+								if (!editor) return
+								editor.markHistoryStoppingPoint('delete page')
+								// [10]
+								run('pages.delete', { id: editor.getCurrentPageId() })
+							}}
+						>
+							Delete page
+						</button>
 						<button onClick={askAgent}>Ask the agent</button>
 					</>
 				)}
@@ -469,4 +499,9 @@ Removing read closes Carol's session at once. Turning it back on lets her open t
 [9]
 Take a pane offline, vote and comment, then come back online. The client sends the commands again
 as commands with their ids, so the server applies each one once.
+
+[10]
+pages.delete removes the page and everything on it in one step, and returns pages.restore with the
+removed records as its inverse. Press Cmd+Z after a delete: the server checks the restore like any
+other command, so a modified client cannot use it to forge records.
 */
