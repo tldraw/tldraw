@@ -1,5 +1,5 @@
 import { TLRuleUser, TLRulesDefinition } from '@tldraw/rules'
-import { TLPersistentClientSocket, TLSocketRoom } from '@tldraw/sync-core'
+import { InMemorySyncStorage, TLPersistentClientSocket, TLSocketRoom } from '@tldraw/sync-core'
 import {
 	Editor,
 	TLRecord,
@@ -18,10 +18,24 @@ import {
  */
 export class LocalRoom {
 	readonly room: TLSocketRoom<TLRecord, void>
+	private readonly storage: InMemorySyncStorage<TLRecord>
 	private nextSession = 0
 
 	constructor(snapshot: TLStoreSnapshot, rules: TLRulesDefinition) {
-		this.room = new TLSocketRoom<TLRecord, void>({ initialSnapshot: snapshot, rules })
+		this.storage = new InMemorySyncStorage<TLRecord>({
+			snapshot: {
+				documents: Object.values(snapshot.store).map((state) => ({ state, lastChangedClock: 0 })),
+				clock: 0,
+				documentClock: 0,
+				schema: snapshot.schema,
+			},
+		})
+		this.room = new TLSocketRoom<TLRecord, void>({ storage: this.storage, rules })
+	}
+
+	/** Every document record the room holds, for showing what each pane was and was not sent. */
+	records(): TLRecord[] {
+		return this.storage.getSnapshot().documents.map((d) => d.state as TLRecord)
 	}
 
 	/** Connect a new session as `user`. Returns its id and a socket for `useSync({ connect })`. */

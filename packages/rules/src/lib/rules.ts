@@ -473,6 +473,10 @@ export class TLRules {
 			if (evaluate(read.expr, readHost) !== true) return this.deny(read, readHost)
 		}
 
+		const rule = this.ruleFor(typeName, op)
+		const host = this.host(user, op, prev ?? undefined, next ?? undefined, get)
+		if (evaluate(rule.expr, host) !== true) return this.deny(rule, host)
+
 		if (op !== 'delete' && next && !(read.expr.k === 'lit' && read.expr.v === true)) {
 			// Nor write a record you could not see afterwards: a shape put on a team page you are
 			// not on, or moved into a hidden frame. The client would lose it at once.
@@ -484,9 +488,6 @@ export class TLRules {
 			}
 		}
 
-		const rule = this.ruleFor(typeName, op)
-		const host = this.host(user, op, prev ?? undefined, next ?? undefined, get)
-		if (evaluate(rule.expr, host) !== true) return this.deny(rule, host)
 		return { ok: true, record: (op === 'delete' ? prev : next) as R }
 	}
 

@@ -523,6 +523,15 @@ function explainFalse(
 		if (isLiteral(expr.right)) return `${text(expr.left)} is ${show(l)}`
 		return `${text(expr.left)} is ${show(l)} and ${text(expr.right)} is ${show(r)}`
 	}
+	if (expr.k === 'unary' && expr.op === '!') return `${text(expr.arg)} is true`
+	if (expr.k === 'quant') {
+		const list = evaluate(expr.list, host, scope)
+		const n = Array.isArray(list) ? list.length : 0
+		const items = `${text(expr.list)} has ${n} item${n === 1 ? '' : 's'}`
+		return expr.q === 'some'
+			? `${items}, and none has ${text(expr.body)}`
+			: `${items}, and not every one has ${text(expr.body)}`
+	}
 	return `${text(expr)} is false`
 }
 

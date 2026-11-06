@@ -1,9 +1,11 @@
 import { TLRulesDefinition, compileRules } from '@tldraw/rules'
 import { useSync } from '@tldraw/sync'
+import isEqual from 'lodash/isEqual'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	Editor,
 	TLAssetStore,
+	TLRecord,
 	TLUserStore,
 	Tldraw,
 	atom,
@@ -41,7 +43,15 @@ export default function PermissionRulesExample() {
 						</button>
 					))}
 				</nav>
-				<p className="pr-try">{scenario.tryThis}</p>
+				<p className="pr-summary">{scenario.summary}</p>
+				<ol className="pr-steps">
+					{scenario.steps.map((step, i) => (
+						<li key={i}>
+							<span className="pr-step-do">{step.do}</span>
+							<span className="pr-step-see">{step.see}</span>
+						</li>
+					))}
+				</ol>
 			</header>
 			{/* [1] */}
 			<ScenarioView key={scenario.id} scenario={scenario} />
@@ -136,6 +146,7 @@ function Pane({
 				</select>
 				{editor && <PaneStatus editor={editor} scenario={scenario} />}
 			</div>
+			{editor && <PaneHoldings editor={editor} room={room} />}
 			<div className="pr-canvas">
 				<Tldraw
 					store={store}
@@ -171,6 +182,62 @@ function PaneStatus({ editor, scenario }: { editor: Editor; scenario: Scenario }
 	)
 }
 
+// [9]
+function PaneHoldings({ editor, room }: { editor: Editor; room: LocalRoom }) {
+	const [holdings, setHoldings] = useState({
+		held: 0,
+		total: 0,
+		notSent: [] as string[],
+		masked: [] as string[],
+	})
+	useEffect(() => {
+		const update = () => {
+			const inRoom = room.records()
+			const notSent: string[] = []
+			const masked: string[] = []
+			let held = 0
+			for (const record of inRoom) {
+				const mine = editor.store.get(record.id)
+				if (!mine) notSent.push(describe(record))
+				else {
+					held++
+					if (!isEqual(mine, record)) masked.push(describe(record))
+				}
+			}
+			setHoldings({ held, total: inRoom.length, notSent, masked })
+		}
+		update()
+		const t = setInterval(update, 500)
+		return () => clearInterval(t)
+	}, [editor, room])
+	return (
+		<div className="pr-holdings">
+			This pane holds <strong>{holdings.held}</strong> of {holdings.total} records in the room.
+			{holdings.notSent.length > 0 && (
+				<span title={holdings.notSent.join('\n')}>
+					{' '}
+					Not sent: <strong>{holdings.notSent.length}</strong> (
+					{holdings.notSent.slice(0, 3).join(', ')}
+					{holdings.notSent.length > 3 ? ', …' : ''}).
+				</span>
+			)}
+			{holdings.masked.length > 0 && (
+				<span title={holdings.masked.join('\n')}>
+					{' '}
+					Sent with a hidden field: <strong>{holdings.masked.length}</strong> (
+					{holdings.masked.join(', ')}).
+				</span>
+			)}
+		</div>
+	)
+}
+
+function describe(record: TLRecord) {
+	if (record.typeName === 'page') return `page “${record.name}”`
+	if (record.typeName === 'shape') return `${record.type} ${record.id.replace('shape:', '')}`
+	return record.typeName
+}
+
 // [6]
 function DenialBar({ editor }: { editor: Editor }) {
 	const last = useValue('last denial', () => editor.rules.getLastDenial(), [editor])
@@ -186,10 +253,26 @@ function DenialBar({ editor }: { editor: Editor }) {
 		<div className="pr-denial">
 			<strong>{last.denial.message ?? 'Not allowed'}</strong>
 			<span>
-				{last.denial.rule}: <code>{last.denial.clause}</code> was {last.denial.result}
+				Why: {last.denial.reason}. Rule <code>{last.denial.rule}</code>, clause{' '}
+				<code>{last.denial.clause}</code>.
 			</span>
 		</div>
 	)
+}
+
+/** Only the parts of a definition at these paths, such as `let` or `types.shape`. */
+function excerpt(rules: TLRulesDefinition, paths: string[]) {
+	const out: Record<string, any> = {}
+	for (const path of paths) {
+		const keys = path.split('.')
+		let from: any = rules
+		for (const k of keys) from = from?.[k]
+		if (from === undefined) continue
+		let to = out
+		keys.slice(0, -1).forEach((k) => (to = to[k] ??= {}))
+		to[keys[keys.length - 1]] = from
+	}
+	return out
 }
 
 const TOOLS = ['draw', 'geo', 'text', 'note', 'arrow', 'frame', 'line'] as const
@@ -210,8 +293,18 @@ function RulesPanel({
 
 	return (
 		<aside className="pr-rules">
-			<h3>Rules (data, live)</h3>
-			<textarea spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} />
+			<h3>The rules for this scenario</h3>
+			<p className="pr-note">
+				The part that matters here. It is plain data: the room enforces it, and every editor gets a
+				copy.
+			</p>
+			<pre className="pr-excerpt">
+				{JSON.stringify(excerpt(rules, scenario.rulePaths), null, 2)}
+			</pre>
+			<details>
+				<summary>Edit all the rules, live</summary>
+				<textarea spellCheck={false} value={text} onChange={(e) => setText(e.target.value)} />
+			</details>
 			<div className="pr-rules-actions">
 				<button
 					onClick={() => {
@@ -298,7 +391,8 @@ facts and gains or loses records, live, with no reconnect.
 
 [6]
 A write the rules deny never leaves the editor. `editor.rules.getLastDenial()` has the rule's
-message and the exact clause that failed.
+message, the clause that failed, and a reason in plain words, such as `prev.meta.ownerId is
+"bob" and user.id is "ann"`.
 
 [7]
 Because rules are data, the editor can analyze them: `decide()` answers for a partial record,
@@ -307,4 +401,9 @@ which is how the toolbar knows which tools to show before any write.
 [8]
 Each person publishes their display name as a `user` record. The rules (`userRecordRules`) let
 each person write only the record at their own id, so nobody can rename someone else.
+
+[9]
+The proof of read control. The pane compares what it holds with what the room holds: records the
+room never sent, and records it sent with a field hidden (a card face). It reads the room
+directly, which only this demo can do, because the room runs in the same browser tab.
 */

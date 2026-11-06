@@ -1,11 +1,22 @@
 import { TLRuleUser, TLRulesDefinition, useCaseRules } from '@tldraw/rules'
 import { Editor, PageRecordType, TLPageId, createShapeId, toRichText } from 'tldraw'
 
+export interface Step {
+	/** What to do, and in which pane. */
+	do: string
+	/** What you see, and which part of the rules causes it. */
+	see: string
+}
+
 export interface Scenario {
 	id: string
 	title: string
-	/** What to try, in one or two sentences. */
-	tryThis: string
+	/** The use case, in one sentence. */
+	summary: string
+	/** A walkthrough: do this, see that. */
+	steps: Step[]
+	/** The parts of the rules this scenario is about, as `let`, `types.shape`, … */
+	rulePaths: string[]
 	rules: TLRulesDefinition
 	/** The people a pane can be. Switching changes the session's user facts live. */
 	users: { label: string; user: TLRuleUser }[]
@@ -49,8 +60,31 @@ export const scenarios: Scenario[] = [
 	{
 		id: 'classroom',
 		title: 'Classroom',
-		tryThis:
-			'Students see only the student tools and can draw only in their own frame. Try to move Ann’s drawing into Bob’s frame, or to edit the teacher’s note. The teacher can lock the lesson: every student’s tools go away at once.',
+		summary:
+			'Shape-level write control: students draw only in their own frame, with student tools, and change only their own shapes. The teacher can do anything, and can lock the lesson.',
+		steps: [
+			{
+				do: 'In Ann’s pane, pick the draw tool and draw inside the frame named “Ann”.',
+				see: 'The stroke stays, in every pane. The room stamped meta.ownerId: "ann" on it from Ann’s user facts (stamp), so her client could not claim to be someone else.',
+			},
+			{
+				do: 'In Ann’s pane, draw outside her frame, or in Bob’s.',
+				see: 'No stroke. The bar under her pane shows the rule’s message and why: the inMyFrame clause was false. The write never left her editor.',
+			},
+			{
+				do: 'Look at Ann’s toolbar, then the teacher’s.',
+				see: 'Ann has no frame or line tool: the analyzer proved that studentTool can never be true for them. The teacher has every tool. See the table in the side panel.',
+			},
+			{
+				do: 'Try to move the teacher’s note, or Bob’s frame, in Ann’s pane.',
+				see: 'They act as locked: the update rule needs mine, and Ann does not own them.',
+			},
+			{
+				do: 'In the teacher’s pane, press “Lock / unlock lesson”.',
+				see: 'Both students go read-only at once and lose their tools (locked reads the document record). Press it again to unlock.',
+			},
+		],
+		rulePaths: ['let', 'actions', 'types.shape'],
 		rules: useCaseRules.classroom,
 		users: [
 			{ label: 'Teacher', user: { id: 'teacher', role: 'teacher' } },
@@ -75,8 +109,27 @@ export const scenarios: Scenario[] = [
 	{
 		id: 'share-links',
 		title: 'Share links',
-		tryThis:
-			'Switch the guest between view, comment, and edit. The change is live: no reconnect. A viewer’s editor is read-only because the rules allow no shape write, not because of a flag.',
+		summary:
+			'File-level read and write control for a share link: view, comment, or edit. Access changes apply live.',
+		steps: [
+			{
+				do: 'The guest starts on “view”. Try to move a shape in the guest’s pane.',
+				see: 'Nothing moves, and the pane says “read-only (derived)”. No flag was set: default.write allows a viewer no shape write, so the editor derives read-only.',
+			},
+			{
+				do: 'Switch the guest to “comment”.',
+				see: 'The canvas stays read-only. The comment rules (canComment) now allow comment records, stamped with the guest’s own id. This demo has no comment UI; the backtests cover comments.',
+			},
+			{
+				do: 'Switch the guest to “edit”.',
+				see: 'The toolbar comes back and the guest can draw. There was no reconnect: the room sent the new user facts and the editor re-derived everything.',
+			},
+			{
+				do: 'Switch the guest to “Anonymous: edit”.',
+				see: 'They can edit the canvas. A comment’s authorId is stamped from user.id, and a stamp that has no value denies, so an anonymous person cannot comment.',
+			},
+		],
+		rulePaths: ['let', 'default', 'types.comment'],
 		rules: useCaseRules.shareLinks,
 		users: [
 			{ label: 'Owner', user: { id: 'owner', access: 'edit', role: 'owner' } },
@@ -94,8 +147,23 @@ export const scenarios: Scenario[] = [
 	{
 		id: 'team-pages',
 		title: 'Team pages',
-		tryThis:
-			'The outsider’s page menu has no “Red team” page: the room never sent it, or its shapes, or the cursors of people on it. Add the outsider to the team and the page arrives live.',
+		summary:
+			'Page-level read control: a page with meta.team is sent only to people on that team, with its shapes and the cursors of people on it.',
+		steps: [
+			{
+				do: 'Open the page menu in the outsider’s pane. Compare the record counts in the two pane headers.',
+				see: 'The outsider has no “Red team only” page. The room never sent it, its shapes, or the cursors of people on it (page.read, shape.read, instance_presence.read).',
+			},
+			{
+				do: 'Switch the outsider to “Outsider, now on red”.',
+				see: 'The page and its shapes arrive live, in one patch.',
+			},
+			{
+				do: 'Switch them back to “Outsider”.',
+				see: 'The page and its shapes are removed from that pane. Only the records whose rules read the team page were checked again.',
+			},
+		],
+		rulePaths: ['let', 'types.page', 'types.shape', 'types.instance_presence'],
 		rules: useCaseRules.teamPages,
 		users: [
 			{ label: 'Red team member', user: { id: 'rita', teams: ['red'] } },
@@ -115,8 +183,23 @@ export const scenarios: Scenario[] = [
 	{
 		id: 'reveal',
 		title: 'Cards and reveal',
-		tryThis:
-			'Each player sees only their own card, and nobody but the dealer sees inside the hidden frame. The dealer reveals, and the records arrive for everyone. Players can move their own cards, nothing else.',
+		summary:
+			'Field-level and shape-level read control: everyone sees the cards, but only the holder sees a card’s face. A hidden frame is not sent at all.',
+		steps: [
+			{
+				do: 'Compare Ann’s and Bob’s panes.',
+				see: 'Both see both cards. Each sees the face of their own card only. The other card shows 🂠: the room sent that in place of the real text (fields). Neither sees the “Answer” frame (shape.read).',
+			},
+			{
+				do: 'In Bob’s pane, drag Bob’s card. Then try to drag Ann’s card.',
+				see: 'Bob’s card moves for everyone, and Ann still sees it face down. Ann’s card does not move for Bob: players may move only their own cards (update).',
+			},
+			{
+				do: 'In the dealer’s pane, press “Reveal everything”.',
+				see: 'The faces and the frame with its note arrive in every pane, live.',
+			},
+		],
+		rulePaths: ['let', 'types.shape'],
 		rules: useCaseRules.reveal,
 		users: [
 			{ label: 'Dealer', user: { id: 'dealer', role: 'dealer' } },
@@ -146,8 +229,19 @@ export const scenarios: Scenario[] = [
 	{
 		id: 'agent',
 		title: 'Agent in a frame',
-		tryThis:
-			'The agent sees only its frame. Run the agent: it adds notes in its frame, and its writes outside the frame and its delete are stopped, each with the rule’s reason.',
+		summary:
+			'An agent limited to one area: it reads only its frame, creates only a few shape types there, and never deletes.',
+		steps: [
+			{
+				do: 'Look at the agent’s pane.',
+				see: 'Only the frame. The note “Not for the agent” and the human’s cursor were never sent (shape.read, instance_presence.read).',
+			},
+			{
+				do: 'In the agent’s pane, press “Run the agent”.',
+				see: 'A note appears in the frame, in both panes. Then its note outside the frame is stopped, and then its delete. The bar shows the reason each time.',
+			},
+		],
+		rulePaths: ['let', 'types.shape', 'types.instance_presence'],
 		rules: useCaseRules.agent,
 		users: [
 			{ label: 'Human', user: { id: 'human', role: 'human' } },
