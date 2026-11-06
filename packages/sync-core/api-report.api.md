@@ -291,6 +291,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
 // @internal
 export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     actor: TLCommandActor;
+    hostReadonly: boolean;
     isReadonly: boolean;
     meta: Meta;
     objectAccess: TLObjectStoreAccess;

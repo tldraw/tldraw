@@ -214,7 +214,12 @@ export const pageCommands = [
 			const byId = new Map(shapes.map((s) => [s.id as string, s]))
 			const pageOf = (shape: TLShape): string => {
 				let parent: string = shape.parentId
-				while (byId.has(parent)) parent = byId.get(parent)!.parentId
+				// a stored parent cycle must not hang the server
+				const seen = new Set<string>()
+				while (byId.has(parent) && !seen.has(parent)) {
+					seen.add(parent)
+					parent = byId.get(parent)!.parentId
+				}
 				return parent
 			}
 			const gone = new Set(shapes.filter((s) => pageOf(s) === args.id).map((s) => s.id as string))
@@ -305,12 +310,19 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 					return true
 				}
 				case 'binding': {
-					// A binding belongs to the shape it starts from (an arrow).
-					const binding = record as TLBinding
-					const from = ctx.get(binding.fromId) as TLShape | undefined
-					// on delete the arrow may already be gone in the same push
-					if (!from) return ctx.op === 'delete'
-					return ownsShape(ctx.actor, from)
+					// A binding belongs to the shape it starts from (an arrow). Check both sides, so
+					// nobody can take over someone else's binding by pointing it at their own arrow.
+					for (const binding of [ctx.prev, ctx.next] as (TLBinding | null)[]) {
+						if (!binding) continue
+						const from = ctx.get(binding.fromId) as TLShape | undefined
+						// on delete the arrow may already be gone in the same push
+						if (!from) {
+							if (ctx.op !== 'delete') return false
+							continue
+						}
+						if (!ownsShape(ctx.actor, from)) return false
+					}
+					return true
 				}
 				case 'page':
 				case 'document':

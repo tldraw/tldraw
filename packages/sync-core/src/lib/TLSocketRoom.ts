@@ -697,8 +697,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	updateSessionActor(sessionId: string, actor: TLCommandActor) {
 		this.room.updateSessionActor(sessionId, actor)
-		// keep a hibernation snapshot in step, or a resume would restore the old actor
-		this.scheduleDebouncedSnapshot(sessionId)
+		// write the snapshot now: a resume inside the debounce window would restore the old actor
+		if (this.opts.onSessionSnapshot) {
+			this.clearSnapshotTimer(sessionId)
+			const snapshot = this.getSessionSnapshot(sessionId)
+			if (snapshot) this.opts.onSessionSnapshot(sessionId, snapshot)
+		}
 	}
 
 	getSessionSnapshot(sessionId: string): SessionStateSnapshot | null {

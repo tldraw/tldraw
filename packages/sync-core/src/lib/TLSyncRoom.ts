@@ -649,6 +649,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
 			actor: session.actor,
+			hostReadonly: session.hostReadonly,
 			supportsCommands: session.supportsCommands,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
@@ -787,6 +788,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
 			actor,
+			hostReadonly: opts.isReadonly ?? false,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
@@ -811,7 +813,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
 		session.actor = actor
-		session.isReadonly = this.deriveIsReadonly(false, actor)
+		session.isReadonly = this.deriveIsReadonly(session.hostReadonly, actor)
 		if (session.state === RoomSessionState.Connected && session.supportsCommands) {
 			this._unsafe_sendMessage(sessionId, { type: 'actor', actor, isReadonly: session.isReadonly })
 		}
@@ -874,6 +876,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: this.deriveIsReadonly(isReadonly, actor),
 			objectAccess: objectAccess ?? 'write',
 			actor,
+			hostReadonly: isReadonly,
 			supportsCommands: opts.supportsCommands ?? true,
 			requiresLegacyRejection,
 			supportsStringAppend,
@@ -1220,6 +1223,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
 				actor: session.actor,
+				hostReadonly: session.hostReadonly,
 				supportsCommands: session.supportsCommands,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
@@ -1498,7 +1502,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// so a push never half-applies (an arrow without its binding, a child without its frame).
 				const { editDenied, stamped } =
 					session && this.commands && message.diff
-						? this.checkEditPush(txn, session.actor, message.diff)
+						? this.checkEditPush(txn, editActor(session), message.diff)
 						: { editDenied: undefined, stamped: undefined }
 
 				if (message.diff && !editDenied) {
@@ -1752,6 +1756,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const overlay = new Map<string, R | null>()
 		for (const [id, op] of objectMapEntriesIterable(diff)) {
 			const prev = (txn.get(id) as R | undefined) ?? null
+			// object-lane records are gated by objectAccess, not the edit policy
+			const typeName = prev?.typeName ?? (op[0] === RecordOpType.Put ? op[1].typeName : undefined)
+			if (typeName && this.objectTypes.has(typeName)) continue
 			switch (op[0]) {
 				case RecordOpType.Put: {
 					let next = op[1]
@@ -1911,6 +1918,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	handleClose(sessionId: string) {
 		this.cancelSession(sessionId)
 	}
+}
+
+/** @internal */
+/** The actor the edit lane sees: a host-read-only session has no edit permission. */
+function editActor(session: { actor: TLCommandActor; hostReadonly: boolean }): TLCommandActor {
+	if (!session.hostReadonly) return session.actor
+	return { ...session.actor, permissions: [] }
 }
 
 /** @internal */

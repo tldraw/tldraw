@@ -270,7 +270,9 @@ export function canEditRecord<R extends UnknownRecord>(
 	ctx: Omit<TLEditPolicyContext<R>, 'actor'>
 ): boolean {
 	const { edit } = set
-	const typeName = (ctx.next ?? ctx.prev)!.typeName
+	// the stored type decides the rule; a patch cannot pick its own branch by changing typeName
+	const typeName = (ctx.prev ?? ctx.next)!.typeName
+	if (ctx.prev && ctx.next && ctx.prev.typeName !== ctx.next.typeName) return false
 	if (edit.commandOnlyTypes?.includes(typeName)) return false
 	if (!edit.openTypes?.includes(typeName) && !actorCan(actor, edit.requires ?? 'edit')) return false
 	return edit.authorize ? edit.authorize({ ...ctx, actor }) : true

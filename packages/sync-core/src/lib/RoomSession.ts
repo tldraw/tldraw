@@ -91,6 +91,8 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * `isReadonly` is derived from it.
 	 */
 	actor: TLCommandActor
+	/** The `isReadonly` the host passed. It caps the actor: a read-only session never edits. */
+	hostReadonly: boolean
 	/** Whether the client speaks protocol 9 (commands and live actor updates) */
 	supportsCommands: boolean
 	/** Whether this session requires legacy protocol rejection handling */

@@ -144,7 +144,9 @@ describe('shape write control: students edit only their own shapes', () => {
 		const forger = room.forger('a2', student('alice'))
 		room.flush()
 		const id = createShapeId()
-		const { meta: _meta, ...shape } = { ...a.getEditor().getShapeUtil('geo').getDefaultProps() } as any
+		const { meta: _meta, ...shape } = {
+			...a.getEditor().getShapeUtil('geo').getDefaultProps(),
+		} as any
 		void _meta
 		forger.push({
 			diff: {
@@ -447,4 +449,101 @@ describe('agents: a token that may run one tool and nothing else', () => {
 			now: 1,
 		}
 	}
+})
+
+function geoProps() {
+	const room = new LocalRoom(commands)
+	const p = room.connect('probe', teacher)
+	room.flush()
+	return { ...p.getEditor().getShapeUtil('geo').getDefaultProps() }
+}
+
+describe('review fixes', () => {
+	const policy = createOwnedShapesPolicy()
+	const bob: TLCommandActor = student('bob')
+	const shapes: Record<string, any> = {
+		'shape:aliceArrow': { id: 'shape:aliceArrow', typeName: 'shape', meta: { ownerId: 'alice' } },
+		'shape:bobArrow': { id: 'shape:bobArrow', typeName: 'shape', meta: { ownerId: 'bob' } },
+	}
+	const binding = (fromId: string) => ({ id: 'binding:1', typeName: 'binding', fromId, toId: 'x' })
+
+	it('a binding cannot be taken over by pointing it at your own arrow', () => {
+		expect(
+			policy.authorize!({
+				actor: bob,
+				op: 'update',
+				prev: binding('shape:aliceArrow') as any,
+				next: binding('shape:bobArrow') as any,
+				get: (id) => shapes[id],
+			})
+		).toBe(false)
+	})
+
+	it('pages.delete stops on a stored parent cycle', () => {
+		// no editors here: the editor itself cannot render a parent cycle
+		const room = new LocalRoom(commands)
+		const forger = room.forger('t2', teacher)
+		room.flush()
+		forger.push({ command: { name: 'pages.create', args: { id: 'page:two', name: 'Two' } } })
+		room.flush()
+		const page2 = room.room.getRecord('page:page') as any
+		void page2
+		const base = (id: string, parentId: string) => ({
+			id,
+			typeName: 'shape',
+			type: 'geo',
+			parentId,
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: geoProps(),
+		})
+		forger.push({
+			diff: {
+				'shape:x': ['put', base('shape:x', 'page:two')],
+				'shape:y': ['put', base('shape:y', 'shape:x')],
+			} as any,
+		})
+		room.flush()
+		forger.push({ diff: { 'shape:x': ['patch', { parentId: ['put', 'shape:y'] }] } as any })
+		room.flush()
+		expect((room.room.getRecord('shape:x') as TLShape).parentId).toBe('shape:y')
+		forger.push({ command: { name: 'pages.delete', args: { id: 'page:two' } } })
+		room.flush()
+		expect(room.room.getRecord('page:two')).toBeUndefined()
+	})
+
+	it('a host read-only flag caps an actor that has edit', () => {
+		const room = new LocalRoom(commands)
+		const id = createShapeId()
+		const t = room.connect('t', teacher)
+		room.flush()
+		t.getEditor().createShape({ id, type: 'geo', x: 0, y: 0 })
+		room.flush()
+		room.room.handleSocketConnect({
+			sessionId: 'ro',
+			isReadonly: true,
+			actor: teacher,
+			socket: { readyState: 1, send: () => {}, close: () => {} },
+		})
+		room.room.handleSocketMessage(
+			'ro',
+			JSON.stringify({
+				type: 'connect',
+				connectRequestId: 'x',
+				lastServerClock: 0,
+				protocolVersion: 9,
+				schema: t.store.schema.serialize(),
+			})
+		)
+		room.room.handleSocketMessage(
+			'ro',
+			JSON.stringify({ type: 'push', clientClock: 0, diff: { [id]: ['patch', { x: ['put', 5] }] } })
+		)
+		expect((room.room.getRecord(id) as TLShape).x).toBe(0)
+	})
 })
