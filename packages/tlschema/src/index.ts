@@ -31,6 +31,37 @@
  */
 
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
+export {
+	AccessModel,
+	createAccessView,
+	overlayAccessView,
+	type AccessActor,
+	type AccessChange,
+	type AccessDecision,
+	type AccessEffect,
+	type AccessEntry,
+	type AccessModelConfig,
+	type AccessOp,
+	type AccessRelation,
+	type AccessSubject,
+	type AccessTypeRule,
+	type AccessView,
+	type SessionAccess,
+} from './access/AccessModel'
+export {
+	accessEntryRecordConfig,
+	accessSchemaRecords,
+	createAccessEntry,
+	createAccessEntryId,
+	createTLAccessModel,
+	defaultAccessEntries,
+	defaultAccessRoles,
+	defaultAccessTypes,
+	TL_ACCESS_ROOT,
+	type TLAccessEntry,
+	type TLAccessEntryId,
+	type TLAccessModelOptions,
+} from './access/TLAccess'
 export { assetIdValidator, createAssetValidator, type TLBaseAsset } from './assets/TLBaseAsset'
 export {
 	bookmarkAssetMigrations,

@@ -26,6 +26,136 @@ import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
 
 // @public
+export interface AccessActor {
+    // (undocumented)
+    readonly groups?: readonly string[];
+    // (undocumented)
+    readonly id: null | string;
+}
+
+// @public
+export interface AccessChange<R extends UnknownRecord = UnknownRecord> {
+    // (undocumented)
+    readonly next: null | R;
+    // (undocumented)
+    readonly prev: null | R;
+}
+
+// @public
+export interface AccessDecision {
+    // (undocumented)
+    readonly allowed: boolean;
+    readonly at: null | string;
+    // (undocumented)
+    readonly entry: AccessEntry | null;
+    readonly id: string;
+    // (undocumented)
+    readonly reason: string;
+    // (undocumented)
+    readonly verb: string;
+}
+
+// @public
+export type AccessEffect = 'allow' | 'block' | 'deny';
+
+// @public
+export interface AccessEntry {
+    // (undocumented)
+    readonly effect: AccessEffect;
+    // (undocumented)
+    readonly resource: string;
+    // (undocumented)
+    readonly subject: AccessSubject;
+    // (undocumented)
+    readonly verbs: readonly string[];
+}
+
+// @public (undocumented)
+export const accessEntryRecordConfig: CustomRecordInfo;
+
+// @public
+export class AccessModel<R extends UnknownRecord = UnknownRecord> {
+    constructor(config: AccessModelConfig<R>);
+    can(session: SessionAccess, verb: string, id: string, view: AccessView<R>): boolean;
+    // (undocumented)
+    canRead(session: SessionAccess, id: string, view: AccessView<R>): boolean;
+    checkChange(session: SessionAccess, change: AccessChange<R>, before: AccessView<R>, after: AccessView<R>): AccessDecision;
+    checkChanges(session: SessionAccess, changes: Iterable<AccessChange<R>>, before: AccessView<R>, after: AccessView<R>): AccessDecision | null;
+    decide(session: SessionAccess, verb: string, id: string, view: AccessView<R>): AccessDecision;
+    entryOf(record: null | R | undefined): (AccessEntry & R) | null;
+    // (undocumented)
+    readonly entryType: null | string;
+    expand(names: readonly string[]): ReadonlySet<string>;
+    explain(session: SessionAccess, verb: string, id: string, view: AccessView<R>): AccessDecision;
+    explainRead(session: SessionAccess, id: string, view: AccessView<R>): AccessDecision;
+    getTypeRule(typeName: string): AccessTypeRule<any> | undefined;
+    // (undocumented)
+    readonly manageVerb: string;
+    // (undocumented)
+    ownerOf(record: R): null | string;
+    // (undocumented)
+    parentOf(id: string, view: AccessView<R>): null | string | undefined;
+    // (undocumented)
+    readonly root: string;
+    stamp(session: SessionAccess, prev: null | R, next: R): R;
+}
+
+// @public (undocumented)
+export interface AccessModelConfig<R extends UnknownRecord = UnknownRecord> {
+    entries?: readonly AccessEntry[];
+    entryType?: string;
+    manageVerb?: string;
+    relations?: Record<string, AccessRelation<R>>;
+    roles?: Record<string, readonly string[]>;
+    root: string;
+    types: Record<string, AccessTypeRule<any>>;
+}
+
+// @public (undocumented)
+export type AccessOp = 'create' | 'delete' | 'update';
+
+// @public
+export type AccessRelation<R extends UnknownRecord = UnknownRecord> = (actor: AccessActor, record: R | undefined, view: AccessView<R>) => boolean;
+
+// @public
+export const accessSchemaRecords: {
+    access: CustomRecordInfo;
+};
+
+// @public
+export type AccessSubject = {
+    readonly id: string;
+    readonly type: 'group';
+} | {
+    readonly id: string;
+    readonly type: 'user';
+} | {
+    readonly relation: string;
+    readonly type: 'relation';
+} | {
+    readonly type: 'anyone';
+};
+
+// @public
+export interface AccessTypeRule<R extends UnknownRecord = UnknownRecord> {
+    alsoRead?(record: R): readonly string[];
+    owner?: {
+        get(record: R): null | string | undefined;
+        set(record: R, ownerId: null | string): R;
+    };
+    parent(record: R): null | string;
+    verbs?: Partial<Record<AccessOp, string>>;
+}
+
+// @public
+export interface AccessView<R extends UnknownRecord = UnknownRecord> {
+    // (undocumented)
+    entriesAt(resource: string): readonly AccessEntry[];
+    // (undocumented)
+    get(id: string): R | undefined;
+}
+
+// @public
 export const arrowBindingMigrations: TLPropsMigrations;
 
 // @public
@@ -155,6 +285,22 @@ export function compressLegacySegments(segments: {
     type: 'free' | 'straight';
 }[]): TLDrawShapeSegment[];
 
+// @public (undocumented)
+export function createAccessEntry(entry: Omit<TLAccessEntry, 'id' | 'meta' | 'typeName' | 'verbs'> & {
+    id?: TLAccessEntryId;
+    meta?: JsonObject;
+    verbs: readonly string[];
+}): TLAccessEntry;
+
+// @public (undocumented)
+export function createAccessEntryId(id?: string): TLAccessEntryId;
+
+// @public
+export function createAccessView<R extends UnknownRecord>(model: AccessModel<R>, records: Iterable<R> | Map<string, R>): AccessView<R> & {
+    delete(id: string): void;
+    set(record: R): void;
+};
+
 // @public
 export function createAssetPropsMigrationIds<S extends string, T extends Record<string, number>>(assetType: S, ids: T): {
     [k in keyof T]: `com.tldraw.asset.${S}/${T[k]}`;
@@ -280,6 +426,9 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
+export function createTLAccessModel<R extends UnknownRecord = UnknownRecord>(opts?: TLAccessModelOptions<R>): AccessModel<R>;
+
+// @public
 export function createTLSchema({ shapes, bindings, assets, user, records, migrations, }?: {
     assets?: Record<string, SchemaPropsInfo>;
     bindings?: Record<string, SchemaPropsInfo>;
@@ -304,6 +453,20 @@ export interface CustomRecordInfo {
     scope: RecordScope;
     validator: T.Validatable<any>;
 }
+
+// @public
+export const defaultAccessEntries: readonly AccessEntry[];
+
+// @public
+export const defaultAccessRoles: {
+    readonly admin: readonly ["editor", "comment:edit", "manage"];
+    readonly commenter: readonly ["viewer", "comment"];
+    readonly editor: readonly ["commenter", "create", "update", "delete"];
+    readonly viewer: readonly ["read"];
+};
+
+// @public
+export const defaultAccessTypes: Record<string, AccessTypeRule<any>>;
 
 // @public
 export const defaultAssetSchemas: {
@@ -786,6 +949,9 @@ export const noteShapeProps: RecordProps<TLNoteShape>;
 export const opacityValidator: T.Validator<number>;
 
 // @public
+export function overlayAccessView<R extends UnknownRecord>(model: AccessModel<R>, base: AccessView<R>, changes: ReadonlyMap<string, null | R>): AccessView<R>;
+
+// @public
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public
@@ -842,6 +1008,16 @@ export interface SchemaPropsInfo {
 export const scribbleValidator: T.ObjectValidator<TLScribble>;
 
 // @public
+export interface SessionAccess {
+    // (undocumented)
+    readonly actor: AccessActor;
+    // (undocumented)
+    readonly entries?: readonly AccessEntry[];
+    // (undocumented)
+    readonly limit?: null | readonly string[];
+}
+
+// @public
 export type SetValue<T extends Set<any>> = T extends Set<infer U> ? U : never;
 
 // @public
@@ -890,6 +1066,9 @@ export const textShapeMigrations: TLPropsMigrations;
 export const textShapeProps: RecordProps<TLTextShape>;
 
 // @public
+export const TL_ACCESS_ROOT: string;
+
+// @public
 export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
@@ -900,6 +1079,32 @@ export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
 export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
+
+// @public
+export interface TLAccessEntry extends BaseRecord<'access', TLAccessEntryId>, AccessEntry {
+    // (undocumented)
+    readonly effect: AccessEffect;
+    // (undocumented)
+    readonly meta: JsonObject;
+    // (undocumented)
+    readonly resource: string;
+    // (undocumented)
+    readonly subject: AccessSubject;
+    // (undocumented)
+    readonly verbs: string[];
+}
+
+// @public (undocumented)
+export type TLAccessEntryId = RecordId<TLAccessEntry>;
+
+// @public (undocumented)
+export interface TLAccessModelOptions<R extends UnknownRecord = UnknownRecord> {
+    entries?: readonly AccessEntry[];
+    // (undocumented)
+    relations?: AccessModelConfig<R>['relations'];
+    roles?: Record<string, readonly string[]>;
+    types?: Record<string, AccessTypeRule<any>>;
+}
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
