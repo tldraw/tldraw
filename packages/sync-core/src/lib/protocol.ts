@@ -1,5 +1,6 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
+import type { TLSessionAccess } from './TLSyncRoom'
 
 const TLSYNC_PROTOCOL_VERSION = 8
 
@@ -118,12 +119,11 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			schema: SerializedSchema
 			diff: NetworkDiff<R>
 			serverClock: number
+			/** Per-lane write access. Optional and additive: older servers omit it. */
+			access?: TLSessionAccess
+			/** @deprecated use `access.document`; still sent for older clients */
 			isReadonly: boolean
-			/**
-			 * Write access for object-store lane record types, when the room has an object lane.
-			 * Optional and additive: servers without an object lane (or older servers) omit it, and
-			 * older clients ignore it — no protocol version bump needed.
-			 */
+			/** @deprecated use `access.objects`; still sent for older clients */
 			objectAccess?: TLObjectStoreAccess
 	  }
 	| {

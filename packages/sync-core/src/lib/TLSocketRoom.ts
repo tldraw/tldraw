@@ -7,7 +7,13 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import {
+	RoomSnapshot,
+	TLRecordAuthorizers,
+	TLSessionAccess,
+	TLSyncAuthorizer,
+	TLSyncRoom,
+} from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -71,11 +77,11 @@ export interface TLSyncLog {
  */
 export interface SessionStateSnapshot {
 	serializedSchema: SerializedSchema
+	/** Write access per lane. Optional so snapshots persisted before it existed resume from the flags below. */
+	access?: TLSessionAccess
+	/** @deprecated use `access.document`; still written for readers of older snapshots */
 	isReadonly: boolean
-	/**
-	 * Write access for the record types listed in `objectTypes`. Optional so snapshots persisted
-	 * before this field existed resume cleanly (they fail closed to 'read').
-	 */
+	/** @deprecated use `access.objects`; still written for readers of older snapshots */
 	objectAccess?: TLObjectStoreAccess
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
@@ -148,8 +154,17 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
 	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 *
+	 * @deprecated Use `authorize`. Ignored when `authorize` is set.
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * The room's one write rule, judging every client record write with read access to the
+	 * transaction. Replaces the per-session `isReadonly`/`objectAccess` gates and `authorizeRecord`
+	 * when set. See {@link TLSyncAuthorizer}.
+	 */
+	authorize?: TLSyncAuthorizer<R, SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -280,7 +295,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			authorizeRecord: opts.authorizeRecord,
+			authorize: opts.authorize,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -349,11 +366,21 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		opts: {
 			sessionId: string
 			socket: WebSocketMinimal
+			/** Per-lane write access. Defaults to write on both lanes. */
+			access?: TLSessionAccess
+			/** @deprecated use `access.document` */
 			isReadonly?: boolean
+			/** @deprecated use `access.objects` */
 			objectAccess?: TLObjectStoreAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		const { sessionId, socket } = opts
+		const access: TLSessionAccess = opts.access ?? {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			document: opts.isReadonly ? 'read' : 'write',
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			objects: opts.objectAccess ?? 'write',
+		}
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)
@@ -373,8 +400,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleNewSession({
 			sessionId,
-			isReadonly,
-			objectAccess,
+			access,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -625,10 +651,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleResumedSession({
 			sessionId,
-			isReadonly: snapshot.isReadonly,
-			// snapshots persisted before this field existed fail closed — those sessions predate
-			// the record types gated by objectAccess, so they have nothing to write anyway
-			objectAccess: snapshot.objectAccess ?? 'read',
+			access: snapshot.access ?? {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				document: snapshot.isReadonly ? 'read' : 'write',
+				// snapshots persisted before the object lane existed fail closed: those sessions
+				// predate the record types it gates, so they have nothing to write anyway
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				objects: snapshot.objectAccess ?? 'read',
+			},
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -683,8 +713,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		return {
 			serializedSchema: session.serializedSchema,
-			isReadonly: session.isReadonly,
-			objectAccess: session.objectAccess,
+			access: session.access,
+			isReadonly: session.access.document === 'read',
+			objectAccess: session.access.objects,
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
@@ -750,7 +781,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * for (const session of sessions) {
 	 *   console.log(`${session.sessionId}: ${session.isConnected ? 'online' : 'offline'}`)
-	 *   if (session.isReadonly) {
+	 *   if (session.access.document === 'read') {
 	 *     console.log('  (read-only access)')
 	 *   }
 	 * }
@@ -759,7 +790,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	getSessions(): Array<{
 		sessionId: string
 		isConnected: boolean
+		access: TLSessionAccess
+		/** @deprecated use `access.document` */
 		isReadonly: boolean
+		/** @deprecated use `access.objects` */
 		objectAccess: TLObjectStoreAccess
 		meta: SessionMeta
 	}> {
@@ -767,8 +801,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			return {
 				sessionId: session.sessionId,
 				isConnected: session.state === RoomSessionState.Connected,
-				isReadonly: session.isReadonly,
-				objectAccess: session.objectAccess,
+				access: session.access,
+				isReadonly: session.access.document === 'read',
+				objectAccess: session.access.objects,
 				meta: session.meta,
 			}
 		})

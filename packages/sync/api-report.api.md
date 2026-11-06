@@ -9,6 +9,7 @@ import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLSessionAccess } from '@tldraw/sync-core';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
@@ -21,6 +22,7 @@ export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
     status: 'synced-remote';
 }> & {
     readonly objectAccess: TLObjectStoreAccess;
+    readonly access: TLSessionAccess;
 }) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
 } | {

@@ -55,6 +55,7 @@ export {
 } from './lib/TLSocketRoom'
 export {
 	TLSyncClient,
+	type TLSyncConnectDetails,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 	type SubscribingFn,
@@ -71,7 +72,13 @@ export {
 	type PresenceStore,
 	type RoomSnapshot,
 	type TLRecordAuthorizer,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	type TLRecordAuthorizers,
+	type TLRecordChange,
+	type TLSessionAccess,
+	type TLSyncAuthorizer,
+	type TLSyncAuthorizerSession,
+	createLaneAccessAuthorizer,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {

@@ -31,6 +31,7 @@ import {
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from './protocol'
+import type { TLSessionAccess } from './TLSyncRoom'
 
 /**
  * Function type for subscribing to events with a callback.
@@ -146,6 +147,20 @@ export class TLSyncError extends Error {
  */
 export type TLSyncErrorCloseEventReason =
 	(typeof TLSyncErrorCloseEventReason)[keyof typeof TLSyncErrorCloseEventReason]
+
+/**
+ * What the server granted this session, delivered to `onAfterConnect`.
+ *
+ * @public
+ */
+export interface TLSyncConnectDetails {
+	/** Write access per lane, as the server decided it for this session. */
+	access: TLSessionAccess
+	/** @deprecated use `access.document` */
+	isReadonly: boolean
+	/** @deprecated use `access.objects` */
+	objectAccess: TLObjectStoreAccess
+}
 
 /**
  * Handler function for custom application messages sent through the sync protocol.
@@ -454,10 +469,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write'
 	 *     when the server doesn't send it, e.g. older servers or rooms with no object lane)
 	 */
-	private readonly onAfterConnect?: (
-		self: this,
-		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
-	) => void
+	private readonly onAfterConnect?: (self: this, details: TLSyncConnectDetails) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
@@ -497,10 +509,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
-		onAfterConnect?(
-			self: TLSyncClient<R, S>,
-			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
-		): void
+		onAfterConnect?(self: TLSyncClient<R, S>, details: TLSyncConnectDetails): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -813,9 +822,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
+			const access: TLSessionAccess = event.access ?? {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				document: event.isReadonly ? 'read' : 'write',
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				objects: event.objectAccess ?? 'write',
+			}
 			this.onAfterConnect?.(this, {
-				isReadonly: event.isReadonly,
-				objectAccess: event.objectAccess ?? 'write',
+				access,
+				isReadonly: access.document === 'read',
+				objectAccess: access.objects,
 			})
 			const presence = this.presenceState?.get()
 			if (presence) {
