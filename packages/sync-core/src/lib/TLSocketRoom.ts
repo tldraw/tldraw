@@ -172,7 +172,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Per-type hooks that decide what each session receives: the record, a changed copy, or
 	 * nothing. See {@link TLBeforeReadHook}. Combine maps with {@link composeBeforeRead}.
 	 *
-	 * A rule that reads other records with `get` runs again only when the record itself changes.
+	 * A hook runs again when a record that it read with `get` changes.
 	 */
 	beforeRead?: TLBeforeReadHooks<R, SessionMeta>
 	/**

@@ -723,7 +723,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * its page is hidden" follows the page. A session that may hold anything (after a resume) gets
 	 * every hooked record, as a whole record or a remove, and is then complete.
 	 *
-	 * `txn` is missing only for a diff that deletes presence records, which hooks cannot read.
+	 * `txn` is missing only for a diff that deletes presence records, which `get` cannot read, so
+	 * no hook runs again for it.
 	 */
 	private diffForSession(
 		session: {
@@ -761,7 +762,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			else delete puts[id]
 		}
 
-		// `put` is the diff's entry for the record, or undefined when a record that its hook read changed.
+		// `put` is the diff's entry, or undefined when a record that the hook read changed.
 		const evaluate = (
 			hook: ReturnType<TLSyncRoom<R, SessionMeta>['wrapReadHook']>,
 			id: string,
@@ -808,7 +809,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			held.records.delete(id)
 		}
 
-		if (held.readBy.size > 0) {
+		if (txn && held.readBy.size > 0) {
 			const stale = new Set<string>()
 			for (const id of [...Object.keys(diff.puts), ...diff.deletes]) {
 				for (const reader of held.readBy.get(id) ?? []) {
@@ -816,7 +817,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			}
 			for (const id of stale) {
-				const record = (txn?.get(id) ?? this.presenceStore.get(id)) as R | undefined
+				const record = (txn.get(id) ?? this.presenceStore.get(id)) as R | undefined
 				const hook = record && this.readHooks.get(record.typeName)
 				if (hook) evaluate(hook, id, record, undefined)
 				else setReads(held, id, null)
