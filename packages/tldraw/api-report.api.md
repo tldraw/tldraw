@@ -1884,10 +1884,11 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // (undocumented)
     static props: RecordProps<TLEmbedShape>;
     resolveAspectRatio(shape: TLEmbedShape): Promise<void>;
+    resolvePreviewImage(shape: TLEmbedShape): Promise<void>;
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
-    toSvg(shape: TLEmbedShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLEmbedShape, ctx: SvgExportContext): Promise<JSX.Element>;
     // (undocumented)
     static type: 'embed';
 }

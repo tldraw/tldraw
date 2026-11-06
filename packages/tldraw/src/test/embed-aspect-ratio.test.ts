@@ -40,7 +40,7 @@ function stubVimeoDefinitionByUrl(ratios: Record<string, number>) {
 		const ratio = ratios[info.url]
 		const meta =
 			typeof ratio === 'number' ? { imageWidth: Math.round(ratio * 1000), imageHeight: 1000 } : {}
-		return { type: 'bookmark', meta } as any
+		return { type: 'bookmark', props: {}, meta } as any
 	})
 	return util
 }
@@ -221,6 +221,8 @@ describe('embed aspect ratio correction', () => {
 
 		const id = createShapeId()
 		editor.createShape<TLEmbedShape>({ id, type: 'embed', props: { w: 640, h: 360, url } })
+		// Let the lookup started by creating the shape finish, so the call below makes its own.
+		await vi.waitFor(() => expect(editor.getShape<TLEmbedShape>(id)!.props.w).not.toBe(640))
 		const shape = editor.getShape<TLEmbedShape>(id)!
 
 		// tear the editor down mid-flight

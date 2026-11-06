@@ -217,7 +217,7 @@ The tldraw embed definition sets `embedOnPaste: false`, so pasting a tldraw.com 
 
 ## SVG export
 
-Exports can't capture an embed's iframe, so they draw a card in its place: the definition's title and the URL's address, in the export's color mode.
+Exports can't capture an embed's iframe, so they draw the page's preview image instead. When an embed is created, or its URL changes, it looks that image up through the editor's URL asset handler, as a bookmark does, and keeps it as a bookmark asset in `assetId`. Without one, exports draw a card with the definition's title and the URL's address, in the export's color mode.
 
 ## Related articles
 

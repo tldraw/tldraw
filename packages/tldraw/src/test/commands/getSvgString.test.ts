@@ -1,4 +1,5 @@
 import {
+	AssetRecordType,
 	BaseBoxShapeUtil,
 	BaseFrameLikeShapeUtil,
 	DefaultColorStyle,
@@ -321,6 +322,58 @@ describe('embeds', () => {
 		const svg = await exportEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
 		expect(svg.querySelector('foreignObject')).toBeNull()
 		expect(texts(svg)).toEqual(['YouTube', 'youtube.com'])
+	})
+
+	const jpeg = new Blob(['jpeg'], { type: 'image/jpeg' })
+	// Image hosts answer only the urls given here; anything else fails, as a CORS error would.
+	const serveImages = (...urls: string[]) => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string) =>
+				urls.includes(url) ? { ok: true, blob: async () => jpeg } : Promise.reject(new TypeError())
+			)
+		)
+	}
+	afterEach(() => vi.unstubAllGlobals())
+
+	const exportWithStoredImage = async (url: string, src: string) => {
+		const asset = AssetRecordType.create({
+			id: AssetRecordType.createId('preview'),
+			type: 'bookmark',
+			props: {
+				src,
+				image: 'https://cdn.example.com/preview.jpg',
+				title: '',
+				description: '',
+				favicon: '',
+			},
+		})
+		editor.createAssets([asset])
+		editor.createShapes([
+			{ id: embedId, type: 'embed', props: { w: 400, h: 225, url, assetId: asset.id } },
+		])
+		return parseSvg(await editor.getSvgString([embedId]))
+	}
+
+	it('draws the preview image stored on the embed', async () => {
+		serveImages('https://cdn.example.com/preview.jpg')
+		const svg = await exportWithStoredImage('https://vimeo.com/1', 'https://vimeo.com/1')
+		expect(svg.querySelector('image')!.getAttribute('href')).toMatch(/^data:image\/jpeg;base64,/)
+		expect(texts(svg)).toEqual([])
+	})
+
+	it('draws the card when the stored image can’t be fetched', async () => {
+		serveImages()
+		const svg = await exportWithStoredImage('https://vimeo.com/1', 'https://vimeo.com/1')
+		expect(svg.querySelector('image')).toBeNull()
+		expect(texts(svg)).toEqual(['Vimeo', 'vimeo.com'])
+	})
+
+	it('ignores an image stored for the embed’s previous url', async () => {
+		serveImages('https://cdn.example.com/preview.jpg')
+		const svg = await exportWithStoredImage('https://vimeo.com/2', 'https://vimeo.com/1')
+		expect(svg.querySelector('image')).toBeNull()
+		expect(texts(svg)).toEqual(['Vimeo', 'vimeo.com'])
 	})
 
 	it('names an unknown site by its address alone', async () => {
