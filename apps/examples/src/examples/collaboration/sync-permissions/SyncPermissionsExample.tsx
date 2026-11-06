@@ -74,7 +74,7 @@ export default function SyncPermissionsExample() {
 }
 
 interface Room {
-	local: LocalRoom<Meta>
+	local: LocalRoom
 	policy: Policy
 }
 

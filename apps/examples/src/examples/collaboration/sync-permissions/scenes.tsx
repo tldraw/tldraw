@@ -95,7 +95,6 @@ function note(editor: Editor, name: string, x: number, y: number, label: string,
 }
 
 const isTeacher = (meta: Meta) => meta.role === 'teacher'
-const shapesOf = (editor: Editor | undefined) => (editor ? editor.getCurrentPageShapes() : [])
 
 // 1. Offline scripts and server actions -------------------------------------------------------
 
@@ -140,9 +139,12 @@ const serverActions = defineScene({
 				reason: verdict === true ? 'route checked the user' : verdict,
 			})
 			if (verdict !== true) return
-			const template = shapesOf(ctx.editors.alice).find((s) => s.type === 'geo')
-			if (!template) return
 			ctx.room.storage.transaction((txn) => {
+				// Copy a stored box, so the new record has every prop the schema needs.
+				const template = [...txn.values()].find((s) => isShape(s) && s.type === 'geo') as
+					| TLShape
+					| undefined
+				if (!template) return
 				const id = createShapeId()
 				txn.set(id, {
 					...template,
@@ -210,6 +212,8 @@ const shareLink = defineScene({
 
 const inSection = (get: Get, shape: TLShape, meta: Meta): true | string => {
 	if (shape.type === 'frame') return 'students cannot change sections'
+	// Sections are inherited from the frame: a shape that names its own could go anywhere.
+	if (shape.meta.section !== undefined) return 'only frames have sections'
 	return inherited(get, shape, 'section') === meta.section ? true : 'outside your section'
 }
 
@@ -511,8 +515,8 @@ const revealSteps = defineScene({
 		const reset = () => {
 			ctx.room.storage.transaction((txn) => {
 				steps.slice(1).forEach((step) => {
-					const f = txn.get(sid(step)) as TLShape
-					txn.set(f.id, { ...f, meta: { ...f.meta, hidden: true } })
+					const f = txn.get(sid(step)) as TLShape | undefined
+					if (f) txn.set(f.id, { ...f, meta: { ...f.meta, hidden: true } })
 				})
 			})
 			ctx.setState({}, { reconnect: ['sam'] })
@@ -587,7 +591,7 @@ const classOf = (get: Get, shape: TLShape) =>
 
 const cadRule: Rule<TLShape> = (args) => {
 	const clearance = args.session.meta.clearance ?? 0
-	if (args.prev && args.next && args.prev.meta.securityClass !== args.next.meta.securityClass)
+	if (args.prev?.meta.securityClass !== args.next?.meta.securityClass && args.next)
 		return 'only the server sets a class'
 	if (args.prev && args.next && classOf(args.get, args.prev) !== classOf(args.get, args.next))
 		return 'cannot move between classes'
@@ -723,7 +727,8 @@ const agents = defineScene({
 					}),
 				() => bot.deleteShape(sid('human')),
 			]
-			plan.forEach((step, i) => setTimeout(step, i * 500))
+			// The scene may be reset mid-plan, which disposes this editor.
+			plan.forEach((step, i) => setTimeout(() => !bot.isDisposed && step(), i * 500))
 		}
 		return <Action onClick={run}>Run the agent&apos;s plan</Action>
 	},
@@ -826,7 +831,8 @@ const folderInherit = defineScene({
 	},
 	connect: (u, s) => {
 		const grants = s.grants[u.id]
-		const i = grants.findLastIndex((g) => g !== 'inherit')
+		let i = grants.length - 1
+		while (i >= 0 && grants[i] === 'inherit') i--
 		const level: Level = i === -1 ? 'none' : (grants[i] as Level)
 		if (level === 'none') return deny
 		return allow(
@@ -941,6 +947,7 @@ const pokerRule: Rule<TLShape> = ({ session, type, prev, next }) => {
 	const p = prev as CardShape
 	const n = next as CardShape
 	if (n.props.face !== p.props.face) return 'cards cannot change'
+	if (n.meta.ownerId !== p.meta.ownerId) return 'the owner is fixed'
 	if (n.props.revealed !== p.props.revealed) {
 		if (p.meta.ownerId !== session.meta.userId) return 'only the owner shows a card'
 		if (!n.props.revealed) return 'a shown card stays shown'
@@ -1019,7 +1026,7 @@ const poker = defineScene({
 				</Action>
 				<Action
 					onClick={() =>
-						pete?.updateShape({ id: sid('card-pete-0'), type: 'poker-card', props: { face: 'A♠' } })
+						pete?.updateShape({ id: sid('card-pete-0'), type: 'poker-card', props: { face: 'K♣' } })
 					}
 				>
 					Pete changes his card

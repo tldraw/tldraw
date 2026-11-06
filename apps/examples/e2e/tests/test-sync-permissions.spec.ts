@@ -2,6 +2,8 @@ import test, { Page, expect } from '@playwright/test'
 
 async function openScene(page: Page, scene: string) {
 	await page.goto(`http://localhost:5420/sync-permissions/full?scene=${scene}`)
+	await expect(page.locator('.perm-panel').first()).toBeVisible()
+	// Every user's editor has connected and loaded.
 	await expect(page.locator('.perm-canvas')).toHaveCount(await page.locator('.perm-panel').count())
 }
 

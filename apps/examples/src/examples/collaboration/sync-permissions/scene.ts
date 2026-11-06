@@ -35,7 +35,7 @@ export interface Scene<S = any> {
 	/** Make the room's first document. Runs in a headless editor. */
 	seed(editor: Editor): void
 	/** The app's auth at connect time: what `handleSocketConnect` gets for this user. */
-	connect(user: DemoUser, state: S): ConnectDecision<Meta>
+	connect(user: DemoUser, state: S): ConnectDecision
 	/** The policy. Rules read app state through `getState`, so they see the current value. */
 	policy(getState: () => S): Policy
 	/** Room options can't change on a live room: a new key makes a new room. */

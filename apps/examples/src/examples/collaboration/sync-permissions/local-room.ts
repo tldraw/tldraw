@@ -9,6 +9,7 @@ import {
 	WebSocketMinimal,
 } from '@tldraw/sync'
 import { TLRecord } from 'tldraw'
+import { Meta } from './access'
 
 type ClientSocket = TLPersistentClientSocket<
 	TLSocketClientSentEvent<TLRecord>,
@@ -16,7 +17,7 @@ type ClientSocket = TLPersistentClientSocket<
 >
 
 /** What the app decides at connect time: the same options a real server passes to `handleSocketConnect`. */
-export type ConnectDecision<Meta> =
+export type ConnectDecision =
 	| { allow: false }
 	| {
 			allow: true
@@ -36,10 +37,10 @@ const LATENCY_MS = 60
  * `resolve` callback decides the session options on every connect, so a reconnect picks up a
  * new role.
  */
-export class LocalRoom<Meta> {
+export class LocalRoom {
 	constructor(
 		readonly room: TLSocketRoom<TLRecord, Meta>,
-		private readonly resolve: (userId: string) => ConnectDecision<Meta>
+		private readonly resolve: (userId: string) => ConnectDecision
 	) {}
 
 	/** A `connect` function for `useSync`. */
@@ -55,7 +56,7 @@ export class LocalRoom<Meta> {
 	}
 
 	/** @internal */
-	_open(userId: string, client: LocalClientSocket<Meta>): FakeServerSocket | null {
+	_open(userId: string, client: LocalClientSocket): FakeServerSocket | null {
 		const decision = this.resolve(userId)
 		if (!decision.allow) return null
 		const sessionId = `${userId}:${client.id}`
@@ -66,7 +67,7 @@ export class LocalRoom<Meta> {
 			isReadonly: decision.isReadonly,
 			objectAccess: decision.objectAccess,
 			meta: decision.meta,
-		} as unknown as Parameters<TLSocketRoom<TLRecord, Meta>['handleSocketConnect']>[0])
+		})
 		return socket
 	}
 
@@ -86,7 +87,9 @@ class FakeServerSocket implements WebSocketMinimal {
 		error: new Set<any>(),
 	}
 
-	constructor(private readonly client: LocalClientSocket<any>) {}
+	private clientGone = false
+
+	constructor(private readonly client: LocalClientSocket) {}
 
 	addEventListener(type: 'message' | 'close' | 'error', listener: (event: any) => void) {
 		this.listeners[type].add(listener)
@@ -99,7 +102,8 @@ class FakeServerSocket implements WebSocketMinimal {
 	send(data: string) {
 		if (this.readyState !== 1) return
 		setTimeout(() => {
-			if (this.readyState === 1) this.client._receive(JSON.parse(data))
+			// Like a real socket, a message sent before the server closes still arrives.
+			if (!this.clientGone) this.client._receive(JSON.parse(data))
 		}, LATENCY_MS)
 	}
 
@@ -108,7 +112,10 @@ class FakeServerSocket implements WebSocketMinimal {
 		if (this.readyState === 3) return
 		this.readyState = 3
 		for (const l of this.listeners.close) l({ code, reason })
-		this.client._serverClosed(code, reason)
+		// After the messages already in flight, as a real socket delivers them.
+		setTimeout(() => {
+			if (!this.clientGone) this.client._serverClosed(code, reason)
+		}, LATENCY_MS)
 	}
 
 	/** The client sends a message to the room. */
@@ -122,6 +129,7 @@ class FakeServerSocket implements WebSocketMinimal {
 
 	/** The client closes the connection. */
 	_clientClosed() {
+		this.clientGone = true
 		if (this.readyState === 3) return
 		this.readyState = 3
 		for (const l of this.listeners.close) l({ code: 1000 })
@@ -129,7 +137,7 @@ class FakeServerSocket implements WebSocketMinimal {
 }
 
 /** The client's end of the fake WebSocket, with the reconnect behavior of `ClientWebSocketAdapter`. */
-class LocalClientSocket<Meta> implements ClientSocket {
+class LocalClientSocket implements ClientSocket {
 	readonly id = nextClientId++
 	connectionStatus: ClientSocket['connectionStatus'] = 'offline'
 	private server: FakeServerSocket | null = null
@@ -138,7 +146,7 @@ class LocalClientSocket<Meta> implements ClientSocket {
 	private readonly statusListeners = new Set<(ev: TLSocketStatusChangeEvent) => void>()
 
 	constructor(
-		private readonly room: LocalRoom<Meta>,
+		private readonly room: LocalRoom,
 		private readonly userId: string
 	) {
 		setTimeout(() => this.open(), 0)
