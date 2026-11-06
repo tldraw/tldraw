@@ -1,4 +1,5 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import { SessionAccess } from '@tldraw/tlschema'
 import { TLObjectStoreAccess, TLSocketServerSentDataEvent } from './protocol'
 import { TLRoomSocket } from './TLSyncRoom'
 
@@ -85,6 +86,13 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
 	 */
 	objectAccess: TLObjectStoreAccess
+	/** The session's access, in rooms with an access model. Replaces `isReadonly` and `objectAccess` there. */
+	access: SessionAccess | null
+	/**
+	 * Ids of the records this session holds, in rooms with an access model: what it may read. The
+	 * room sends and removes records to keep the client's store equal to this set.
+	 */
+	visible: Set<string> | null
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */

@@ -7,6 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
+import { SessionAccess } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -456,8 +457,15 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	private readonly onAfterConnect?: (
 		self: this,
-		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+		details: {
+			isReadonly: boolean
+			objectAccess: TLObjectStoreAccess
+			access: SessionAccess | null
+		}
 	) => void
+
+	/** Called when the server changes this session's access live (rooms with an access model). */
+	private readonly onAccessChange?: (access: SessionAccess) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
@@ -499,11 +507,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onCustomMessageReceived?: TLCustomMessageHandler
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
-			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+			details: {
+				isReadonly: boolean
+				objectAccess: TLObjectStoreAccess
+				access: SessionAccess | null
+			}
 		): void
+		onAccessChange?(access: SessionAccess): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
+		this.onAccessChange = config.onAccessChange
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
 
@@ -816,6 +830,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.onAfterConnect?.(this, {
 				isReadonly: event.isReadonly,
 				objectAccess: event.objectAccess ?? 'write',
+				access: event.access ?? null,
 			})
 			const presence = this.presenceState?.get()
 			if (presence) {
@@ -859,6 +874,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				break
 			case 'custom':
 				this.onCustomMessageReceived?.call(null, event.data)
+				break
+			case 'access':
+				this.onAccessChange?.(event.access)
 				break
 
 			default:

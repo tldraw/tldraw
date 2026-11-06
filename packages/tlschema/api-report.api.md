@@ -298,6 +298,7 @@ export function createAccessEntryId(id?: string): TLAccessEntryId;
 // @public
 export function createAccessView<R extends UnknownRecord>(model: AccessModel<R>, records: Iterable<R> | Map<string, R>): AccessView<R> & {
     delete(id: string): void;
+    ids(): Iterable<string>;
     set(record: R): void;
 };
 

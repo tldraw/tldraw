@@ -390,6 +390,19 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 		if (prev && next && rule.owner && rule.owner.get(prev) !== rule.owner.get(next)) {
 			return deny(verbs.update, record.id, null, null, 'the owner of a record cannot change')
 		}
+		if (this.entryOf(record)) {
+			// An entry write is judged by the entries as they were before the push, so it cannot
+			// grant the right to write itself. Records come from `after` first, so an entry may sit
+			// on a resource created in the same push, and from `before` for a deleted entry.
+			const records = after
+			const entries = before
+			const view: AccessView<R> = {
+				get: (id) => records.get(id) ?? entries.get(id),
+				entriesAt: (resource) => entries.entriesAt(resource),
+			}
+			before = view
+			after = view
+		}
 		let decision: AccessDecision
 		if (!prev) {
 			decision = this.explain(session, verbs.create, next!.id, after)
@@ -467,7 +480,7 @@ function deny(
 export function createAccessView<R extends UnknownRecord>(
 	model: AccessModel<R>,
 	records: Iterable<R> | Map<string, R>
-): AccessView<R> & { set(record: R): void; delete(id: string): void } {
+): AccessView<R> & { set(record: R): void; delete(id: string): void; ids(): Iterable<string> } {
 	const byId = new Map<string, R>()
 	const entries = new Map<string, Map<string, AccessEntry>>()
 	const index = (record: R) => {
@@ -488,6 +501,7 @@ export function createAccessView<R extends UnknownRecord>(
 	const cache = new Map<string, AccessEntry[]>()
 	return {
 		get: (id) => byId.get(id),
+		ids: () => byId.keys(),
 		entriesAt(resource) {
 			let list = cache.get(resource)
 			if (!list) cache.set(resource, (list = [...(entries.get(resource)?.values() ?? [])]))

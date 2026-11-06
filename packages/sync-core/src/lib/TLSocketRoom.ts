@@ -1,5 +1,11 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
+import {
+	AccessModel,
+	createTLSchema,
+	SessionAccess,
+	TLInstancePresence,
+	TLStoreSnapshot,
+} from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
@@ -77,6 +83,8 @@ export interface SessionStateSnapshot {
 	 * before this field existed resume cleanly (they fail closed to 'read').
 	 */
 	objectAccess?: TLObjectStoreAccess
+	/** The session's access, in rooms with an access model. A room with a model rejects a snapshot without it. */
+	access?: SessionAccess | null
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
@@ -150,6 +158,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * The room's access model: the same object the editor runs. The room checks each push as a
+	 * whole against it, sends each session only what it may read, and changes access live through
+	 * {@link TLSocketRoom.updateSessionAccess}. It replaces `isReadonly`, `objectAccess`,
+	 * `objectTypes`, and `authorizeRecord`: every session passes `access` instead.
+	 */
+	access?: AccessModel<R>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -281,6 +296,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			access: opts.access,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -351,6 +367,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			socket: WebSocketMinimal
 			isReadonly?: boolean
 			objectAccess?: TLObjectStoreAccess
+			/** The session's access, required in rooms with an access model. Replaces `isReadonly` and `objectAccess` there. */
+			access?: SessionAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
 		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
@@ -375,6 +393,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId,
 			isReadonly,
 			objectAccess,
+			access: opts.access,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -629,6 +648,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			// snapshots persisted before this field existed fail closed — those sessions predate
 			// the record types gated by objectAccess, so they have nothing to write anyway
 			objectAccess: snapshot.objectAccess ?? 'read',
+			access: snapshot.access ?? null,
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -648,6 +668,21 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}),
 			meta: 'meta' in opts ? (opts.meta as any) : undefined,
 		})
+	}
+
+	/**
+	 * Change a session's access live, in a room with an access model. The client gets its new
+	 * access and the records it may now read, and loses the ones it may not, with no reconnect.
+	 *
+	 * @example
+	 * ```ts
+	 * // the teacher calls on Bob: Bob can now edit, the last student cannot
+	 * room.updateSessionAccess(lastStudentSession, { actor: { id: last }, entries: [viewerOnRoot] })
+	 * room.updateSessionAccess(bobSession, { actor: { id: 'bob' }, entries: [editorOnRoot] })
+	 * ```
+	 */
+	updateSessionAccess(sessionId: string, access: SessionAccess) {
+		this.room.updateSessionAccess(sessionId, access)
 	}
 
 	/**
@@ -685,6 +720,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			serializedSchema: session.serializedSchema,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
+			access: session.access,
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,

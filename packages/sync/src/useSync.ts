@@ -13,6 +13,8 @@ import {
 } from '@tldraw/sync-core'
 import { useEffect } from 'react'
 import {
+	AccessModel,
+	SessionAccess,
 	Editor,
 	TAB_ID,
 	TLAssetStore,
@@ -212,6 +214,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
+		access,
 		...schemaOpts
 	} = opts
 
@@ -307,6 +310,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+		const accessSession = atom<SessionAccess | null>('access session', null)
 
 		const store = createTLStore({
 			id: storeId,
@@ -318,6 +322,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: collaborationStatusSignal,
 				mode: syncMode,
 			},
+			access: access ? { model: access, session: accessSession } : undefined,
 		})
 
 		const presence = createPresenceStateDerivation(currentUser, {
@@ -358,7 +363,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly, objectAccess }) {
+			onAccessChange(next) {
+				accessSession.set(next)
+			},
+			onAfterConnect(_, { isReadonly, objectAccess, access: sessionAccess }) {
 				// Object-lane (comment) write access is decided per session by the server and can
 				// change on reconnect (e.g. when the file's share tier changes), so surface it on
 				// the returned status for consumers that gate comment UI. This fires before the
@@ -366,6 +374,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState((prev) => ({ ...prev, objectAccess }))
 				transact(() => {
 					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+					accessSession.set(sessionAccess)
 					// if the server crashes and loses all data it can return an empty document
 					// when it comes back up. This is a safety check to make sure that if something like
 					// that happens, it won't render the app broken and require a restart. The user will
@@ -398,6 +407,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		access,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -442,6 +452,12 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * The room's access model: the same object the server's `TLSocketRoom` uses. The editor then
+	 * checks every local write against it and derives readonly and locks from it, with the
+	 * session's access sent by the server. Register `accessSchemaRecords` in `records` too.
+	 */
+	access?: AccessModel<any>
 	/**
 	 * Named theme definitions. When provided, custom color names are automatically
 	 * registered before the store is constructed so persisted data with those

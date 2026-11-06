@@ -1,7 +1,8 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import { SessionAccess } from '@tldraw/tlschema'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-const TLSYNC_PROTOCOL_VERSION = 8
+const TLSYNC_PROTOCOL_VERSION = 9
 
 /**
  * Gets the current tldraw sync protocol version number.
@@ -125,6 +126,16 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			 * older clients ignore it — no protocol version bump needed.
 			 */
 			objectAccess?: TLObjectStoreAccess
+			/**
+			 * The session's place in the room's access model (protocol 9+), when the room has one.
+			 * The client runs the same model with it, so its UI and write guard match the server.
+			 */
+			access?: SessionAccess | null
+	  }
+	| {
+			/** The session's access changed live (protocol 9+). */
+			type: 'access'
+			access: SessionAccess
 	  }
 	| {
 			type: 'incompatibility_error'
