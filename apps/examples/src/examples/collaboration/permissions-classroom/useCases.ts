@@ -1,11 +1,13 @@
 import { TLSocketRoom } from '@tldraw/sync'
 import {
+	createBindingId,
 	createComment,
 	createCommentThread,
 	createShapeId,
 	Editor,
 	PageRecordType,
 	TLPageId,
+	TLShapeId,
 	toRichText,
 } from 'tldraw'
 import { ClassroomMeta, ClassroomRecord, Role } from './rules'
@@ -26,13 +28,38 @@ export interface Classroom {
 
 export interface UseCase {
 	title: string
+	/** What happens, in plain words, and what to look for in the panes. */
+	story: string
+	/** The panes to watch, by user id. */
+	people: string[]
 	/** The part of the API that solves it. */
 	api: string
-	run(c: Classroom): Promise<string[]>
+	run(c: Classroom): Promise<Check[]>
 }
 
+/** One result of a use case: what happened, and what the rules say should happen. */
+export interface Check {
+	label: string
+	actual: boolean
+	expected: boolean
+	/** Words for true and false. */
+	words: [string, string]
+}
+
+const allowed = (label: string, actual: boolean, expected: boolean): Check => ({
+	label,
+	actual,
+	expected,
+	words: ['allowed', 'denied'],
+})
+const yes = (label: string, actual: boolean, expected: boolean): Check => ({
+	label,
+	actual,
+	expected,
+	words: ['yes', 'no'],
+})
+
 const settle = (ms = 400) => new Promise((r) => setTimeout(r, ms))
-const verdict = (ok: boolean) => (ok ? 'allowed' : 'denied')
 
 /** Write with the store's side effects off, so neither the editor nor the client rules stop it.
  *  This is what a modified client could send. Only the server can stop it. */
@@ -53,6 +80,11 @@ async function reset(c: Classroom) {
 		teacher.updatePage({ id: LESSON, meta: { ...lesson.meta, readonly: false } })
 	if (!answers.meta.private)
 		teacher.updatePage({ id: ANSWERS, meta: { ...answers.meta, private: true } })
+	// clear what earlier scripts drew on the lesson, and keep the lesson itself
+	const drawn = [...teacher.getPageShapeIds(LESSON)].filter(
+		(id) => id !== PROMPT && id !== AGENT_AREA
+	)
+	teacher.deleteShapes(drawn.filter((id) => teacher.getShape(id)?.parentId === LESSON))
 	await settle()
 }
 
@@ -84,16 +116,23 @@ function startThread(editor: Editor, userId: string, pageId: TLPageId, x: number
 export const USE_CASES: UseCase[] = [
 	{
 		title: 'File read control',
+		story:
+			'The teacher sets the shared link to "no access". The host refuses the link at connect, so Carol gets nothing from the room.',
+		people: ['carol'],
 		api: 'The host refuses the connection (accessForRole returns null)',
 		async run(c) {
 			await reset(c)
 			c.setRole('carol', 'none')
 			await settle()
-			return ['Link set to "no access". Carol\'s pane is refused with FORBIDDEN.']
+			const refused = !c.room.getSessions().some((s) => s.sessionId === 'carol' && s.isConnected)
+			return [yes('Carol is refused at connect', refused, true)]
 		},
 	},
 	{
 		title: 'File write control',
+		story:
+			"With a view link, Carol's editor is read-only. A modified client could still send a write, so the script forces one past the editor: the server rejects it.",
+		people: ['carol'],
 		api: 'isReadonly at connect; the server rejects forced writes',
 		async run(c) {
 			await reset(c)
@@ -103,13 +142,20 @@ export const USE_CASES: UseCase[] = [
 			forcePut(carol, [{ ...page, name: 'Hacked' }])
 			await settle()
 			return [
-				`View link draws a note: ${verdict(kept)} (the editor is read-only)`,
-				`View link forces a page rename: ${verdict((c.room.getRecord(LESSON) as any).name === 'Hacked')} by the server`,
+				allowed('View link draws a note', kept, false),
+				allowed(
+					'View link forces a page rename past the editor',
+					(c.room.getRecord(LESSON) as any).name === 'Hacked',
+					false
+				),
 			]
 		},
 	},
 	{
 		title: 'Page read control',
+		story:
+			"The Answers page is private. The teacher shares it: Alice's pane gets the page and its shapes with no reconnect. The teacher hides it again: they go.",
+		people: ['teacher', 'alice'],
 		api: 'authorizeRead.page and .shape, live with no reconnect',
 		async run(c) {
 			await reset(c)
@@ -118,15 +164,21 @@ export const USE_CASES: UseCase[] = [
 			const before = !!alice.getPage(ANSWERS)
 			teacher.updatePage({ id: ANSWERS, meta: { private: false } })
 			await settle()
-			const after = !!alice.getPage(ANSWERS)
+			const shared = !!alice.getPage(ANSWERS)
+			teacher.updatePage({ id: ANSWERS, meta: { private: true } })
+			await settle()
 			return [
-				`Answers page sent to Alice while private: ${before ? 'yes' : 'no'}`,
-				`Teacher clears "Answers private". Sent to Alice now: ${after ? 'yes' : 'no'}`,
+				yes('Alice has the private Answers page', before, false),
+				yes('The teacher shares it. Alice has it now', shared, true),
+				yes('The teacher hides it again. Alice still has it', !!alice.getPage(ANSWERS), false),
 			]
 		},
 	},
 	{
 		title: 'Page write control',
+		story:
+			"The teacher makes the Lesson page read-only for students. Alice's tools go away on that page, and a note she tries to make is not kept.",
+		people: ['alice'],
 		api: 'authorizeRecord.shape reads the page with get; isPageReadonly in the editor',
 		async run(c) {
 			await reset(c)
@@ -139,13 +191,16 @@ export const USE_CASES: UseCase[] = [
 			const readonly = alice.getIsReadonly()
 			const { kept } = await createNote(c, 'alice', 0)
 			return [
-				`Teacher locks the Lesson page. Alice's editor is read-only: ${readonly ? 'yes' : 'no'}`,
-				`Alice draws on the Lesson page: ${verdict(kept)}`,
+				yes("Alice's editor is read-only on the Lesson page", readonly, true),
+				allowed('Alice draws on the Lesson page', kept, false),
 			]
 		},
 	},
 	{
 		title: 'Shape write control: own shapes only',
+		story:
+			"Alice draws a note: the room stamps her as its owner. The teacher's prompt is locked in her editor. A forced move of it is rejected by the server.",
+		people: ['alice'],
 		api: 'authorizeRecord.shape stamps the owner; isShapeLocked from a probe',
 		async run(c) {
 			await reset(c)
@@ -156,14 +211,26 @@ export const USE_CASES: UseCase[] = [
 			forcePut(alice, [{ ...prompt, x: prompt.x + 100 }])
 			await settle()
 			return [
-				`Alice draws a note: ${verdict(kept)}, owner ${(c.room.getRecord(id) as any)?.meta.ownerId}`,
-				`The teacher's text is locked for Alice: ${alice.isShapeLocked(PROMPT) ? 'yes' : 'no'}`,
-				`Alice forces a move of it: ${verdict((c.room.getRecord(PROMPT) as any).x !== prompt.x)} by the server`,
+				allowed('Alice draws a note', kept, true),
+				yes(
+					'The room stamps Alice as its owner',
+					(c.room.getRecord(id) as any)?.meta.ownerId === 'alice',
+					true
+				),
+				yes("The teacher's prompt is locked for Alice", alice.isShapeLocked(PROMPT), true),
+				allowed(
+					'Alice forces a move of the prompt',
+					(c.room.getRecord(PROMPT) as any).x !== prompt.x,
+					false
+				),
 			]
 		},
 	},
 	{
 		title: 'Tool and shape type limits',
+		story:
+			"Students may make only some shape types. The frame tool is not in Alice's toolbar, and a frame made through the API is not kept.",
+		people: ['alice'],
 		api: 'authorizeRecord.shape on create; overrides.tools hides the tools',
 		async run(c) {
 			await reset(c)
@@ -172,14 +239,14 @@ export const USE_CASES: UseCase[] = [
 			const frame = createShapeId()
 			alice.createShape({ id: frame, type: 'frame', x: -300, y: 300 })
 			await settle()
-			return [
-				`Alice creates a frame: ${verdict(!!c.room.getRecord(frame))}`,
-				'The frame tool is not in her toolbar (overrides.tools).',
-			]
+			return [allowed('Alice creates a frame', !!c.room.getRecord(frame), false)]
 		},
 	},
 	{
 		title: 'Agents limited to an area',
+		story:
+			'The helper agent may write only inside its purple frame. A note inside is kept. A note outside is not. A move of its note out of the frame is not kept.',
+		people: ['agent'],
 		api: 'Session meta carries the area; the rule checks prev and next ancestors',
 		async run(c) {
 			await reset(c)
@@ -190,32 +257,41 @@ export const USE_CASES: UseCase[] = [
 			agent.createShape({ id: inside, type: 'note', parentId: AGENT_AREA, x: 40, y: 80 })
 			agent.createShape({ id: outside, type: 'note', x: -400, y: 0 })
 			await settle()
-			const note = agent.getShape(inside)
-			if (note) agent.reparentShapes([inside], LESSON)
+			if (agent.getShape(inside)) agent.reparentShapes([inside], LESSON)
 			await settle()
 			return [
-				`Agent writes inside its frame: ${verdict(!!c.room.getRecord(inside))}`,
-				`Agent writes outside its frame: ${verdict(!!c.room.getRecord(outside))}`,
-				`Agent moves its note out of the frame: ${verdict((c.room.getRecord(inside) as any)?.parentId === LESSON)}`,
+				allowed('Agent writes inside its frame', !!c.room.getRecord(inside), true),
+				allowed('Agent writes outside its frame', !!c.room.getRecord(outside), false),
+				allowed(
+					'Agent moves its note out of the frame',
+					(c.room.getRecord(inside) as any)?.parentId === LESSON,
+					false
+				),
 			]
 		},
 	},
 	{
 		title: 'Share links',
+		story:
+			'The same link, three roles in turn. The host maps each to access at connect: a view link and a comment link cannot draw, a student link can.',
+		people: ['carol'],
 		api: 'The host maps a link to a role: isReadonly, objectAccess, and meta',
 		async run(c) {
 			await reset(c)
-			const lines = []
+			const checks = []
 			for (const role of ['viewer', 'commenter', 'student'] as Role[]) {
 				c.setRole('carol', role)
 				const { kept } = await createNote(c, 'carol', -200)
-				lines.push(`Link "${role}" draws a note: ${verdict(kept)}`)
+				checks.push(allowed(`Link "${role}" draws a note`, kept, role === 'student'))
 			}
-			return lines
+			return checks
 		},
 	},
 	{
 		title: 'Comments: comment-only link',
+		story:
+			'A comment link has a read-only canvas but may write comments. A view link may write neither.',
+		people: ['carol'],
 		api: 'objectAccess "write" with isReadonly; canComment',
 		async run(c) {
 			await reset(c)
@@ -227,13 +303,20 @@ export const USE_CASES: UseCase[] = [
 			const denied = startThread(viewer, 'carol', LESSON, -100)
 			await settle()
 			return [
-				`Comment link comments on the read-only canvas: ${verdict(!!c.room.getRecord(ok.comment.id))}`,
-				`View link comments: ${verdict(!!c.room.getRecord(denied.comment.id))}`,
+				allowed(
+					'Comment link comments on the read-only canvas',
+					!!c.room.getRecord(ok.comment.id),
+					true
+				),
+				allowed('View link comments', !!c.room.getRecord(denied.comment.id), false),
 			]
 		},
 	},
 	{
 		title: 'Comments: add own, manage any',
+		story:
+			"Carol comments. Alice may not delete it. The teacher may take it down, but may not edit Carol's words.",
+		people: ['carol', 'alice', 'teacher'],
 		api: 'createCommentAuthorizers({ canModifyComment }), also on the client',
 		async run(c) {
 			await reset(c)
@@ -252,14 +335,17 @@ export const USE_CASES: UseCase[] = [
 			teacher.store.put([{ ...fromRoom(), isDeleted: true }])
 			await settle()
 			return [
-				`Alice deletes Carol's comment: ${verdict(aliceDeleted)}`,
-				`Teacher edits Carol's comment: ${verdict(teacherEdited)}`,
-				`Teacher takes down Carol's comment: ${verdict(fromRoom().isDeleted)}`,
+				allowed("Alice deletes Carol's comment", aliceDeleted, false),
+				allowed("Teacher edits Carol's comment", teacherEdited, false),
+				allowed("Teacher takes down Carol's comment", fromRoom().isDeleted, true),
 			]
 		},
 	},
 	{
 		title: 'Comments on hidden pages',
+		story:
+			'The teacher comments on the private Answers page. The comment is in the room, but Alice never receives it.',
+		people: ['teacher', 'alice'],
 		api: 'authorizeRead on comment-thread, comment, comment-reaction by pageId',
 		async run(c) {
 			await reset(c)
@@ -268,13 +354,20 @@ export const USE_CASES: UseCase[] = [
 			await settle()
 			const alice = await c.editor('alice')
 			return [
-				`Teacher comments on the private Answers page: ${verdict(!!c.room.getRecord(comment.id))}`,
-				`Comment sent to Alice: ${alice.store.get(comment.id as any) ? 'yes' : 'no'}`,
+				allowed(
+					'Teacher comments on the private Answers page',
+					!!c.room.getRecord(comment.id),
+					true
+				),
+				yes('Alice receives the comment', !!alice.store.get(comment.id as any), false),
 			]
 		},
 	},
 	{
 		title: 'Live role change',
+		story:
+			'The teacher makes Alice a co-teacher. The room closes her session, her client reconnects, and the host gives it the new access: locks open and the private page arrives.',
+		people: ['alice'],
 		api: 'closeSession(id); the client reconnects with its new access',
 		async run(c) {
 			await reset(c)
@@ -284,14 +377,16 @@ export const USE_CASES: UseCase[] = [
 			const seesAnswers = !!alice.getPage(ANSWERS)
 			c.setRole('alice', 'student')
 			return [
-				`Alice is a co-teacher. The teacher's text is locked for her: ${locked ? 'yes' : 'no'}`,
-				`She receives the private Answers page: ${seesAnswers ? 'yes' : 'no'}`,
-				'She is a student again.',
+				yes("As co-teacher, the teacher's prompt is locked for Alice", locked, false),
+				yes('As co-teacher, Alice receives the private Answers page', seesAnswers, true),
 			]
 		},
 	},
 	{
 		title: 'Plugin record type',
+		story:
+			'A grade is a custom record type. Only the teacher writes grades, and each student receives only their own.',
+		people: ['alice', 'carol'],
 		api: 'Rules keyed by typeName: authorizeRead.grade, authorizeRecord.grade',
 		async run(c) {
 			await reset(c)
@@ -305,14 +400,21 @@ export const USE_CASES: UseCase[] = [
 			forcePut(alice, [{ ...grade, score: 'A+' }])
 			await settle()
 			return [
-				`Teacher grades Alice: ${verdict(!!c.room.getRecord(grade.id))}`,
-				`Grade sent to Alice: ${alice.store.get(grade.id as any) ? 'yes' : 'no'}, to Carol: ${carol.store.get(grade.id as any) ? 'yes' : 'no'}`,
-				`Alice changes her grade: ${verdict((c.room.getRecord(grade.id) as any).score === 'A+')}`,
+				allowed('Teacher grades Alice', !!c.room.getRecord(grade.id), true),
+				yes('Alice receives her grade', !!alice.store.get(grade.id as any), true),
+				yes("Carol receives Alice's grade", !!carol.store.get(grade.id as any), false),
+				allowed(
+					'Alice changes her grade',
+					(c.room.getRecord(grade.id) as any).score === 'A+',
+					false
+				),
 			]
 		},
 	},
 	{
 		title: 'Plugin shape type',
+		story: 'The star stamp is a custom shape type. Only the teacher may award one.',
+		people: ['teacher', 'alice'],
 		api: 'authorizeRecord.shape checks the shape type, built-in or not',
 		async run(c) {
 			await reset(c)
@@ -326,13 +428,16 @@ export const USE_CASES: UseCase[] = [
 			alice.createShape({ id: fromAlice, type: 'stamp', x: 260, y: 220 })
 			await settle()
 			return [
-				`Teacher awards a star stamp: ${verdict(!!c.room.getRecord(fromTeacher))}`,
-				`Alice awards herself a star stamp: ${verdict(!!c.room.getRecord(fromAlice))}`,
+				allowed('Teacher awards a star stamp', !!c.room.getRecord(fromTeacher), true),
+				allowed('Alice awards herself a star stamp', !!c.room.getRecord(fromAlice), false),
 			]
 		},
 	},
 	{
 		title: 'Actions',
+		story:
+			"Lock is the teacher's action. It is not in Alice's menus, and a lock that she makes through the API is not kept.",
+		people: ['alice', 'teacher'],
 		api: 'overrides.actions hides lock for students; a shape rule enforces it',
 		async run(c) {
 			await reset(c)
@@ -345,9 +450,88 @@ export const USE_CASES: UseCase[] = [
 			teacher.toggleLock([id])
 			await settle()
 			return [
-				`Alice locks her own note: ${verdict(aliceLocked)}`,
-				`Teacher locks Alice's note: ${verdict(!!(c.room.getRecord(id) as any)?.isLocked)}`,
+				allowed('Alice locks her own note', aliceLocked, false),
+				allowed("Teacher locks Alice's note", !!(c.room.getRecord(id) as any)?.isLocked, true),
+			]
+		},
+	},
+	{
+		title: 'Bindings follow their shapes',
+		story:
+			"Alice may connect her own arrow to the teacher's prompt, because that does not change the prompt. She may not connect the teacher's arrow to her note.",
+		people: ['alice'],
+		api: 'authorizeRecord.binding needs write access to the arrow; authorizeRead.binding follows it',
+		async run(c) {
+			await reset(c)
+			const teacher = await c.editor('teacher')
+			teacher.setCurrentPage(LESSON)
+			const teacherArrow = createShapeId()
+			teacher.createShape({ id: teacherArrow, type: 'arrow', x: 360, y: 60 })
+			await settle()
+			const { editor: alice, id: note } = await createNote(c, 'alice', 300)
+			const aliceArrow = createShapeId()
+			alice.createShape({ id: aliceArrow, type: 'arrow', x: 300, y: 380 })
+			await settle()
+			const own = bind(alice, aliceArrow, PROMPT)
+			const theirs = bind(alice, teacherArrow, note)
+			await settle()
+			return [
+				allowed("Alice connects her arrow to the teacher's prompt", !!c.room.getRecord(own), true),
+				allowed(
+					"Alice connects the teacher's arrow to her note",
+					!!c.room.getRecord(theirs),
+					false
+				),
+			]
+		},
+	},
+	{
+		title: 'A push is all or nothing',
+		story:
+			"A modified client sends one change with two records: a move of Alice's own note, which is allowed, and a move of the teacher's prompt, which is not. The room keeps neither.",
+		people: ['alice'],
+		api: 'TLSyncRoom rolls back a push when a rule denies any record in it',
+		async run(c) {
+			await reset(c)
+			const { editor: alice, id } = await createNote(c, 'alice', 0)
+			const note = alice.getShape(id)!
+			const prompt = alice.getShape(PROMPT)!
+			forcePut(alice, [
+				{ ...note, x: note.x + 200 },
+				{ ...prompt, x: prompt.x + 200 },
+			])
+			await settle()
+			return [
+				allowed(
+					"The move of Alice's own note, in that push",
+					(c.room.getRecord(id) as any).x !== note.x,
+					false
+				),
+				allowed(
+					"The move of the teacher's prompt, in that push",
+					(c.room.getRecord(PROMPT) as any).x !== prompt.x,
+					false
+				),
+				yes("Alice's editor goes back to the room's state", alice.getShape(id)!.x === note.x, true),
 			]
 		},
 	},
 ]
+
+function bind(editor: Editor, fromId: TLShapeId, toId: TLShapeId) {
+	const id = createBindingId()
+	editor.createBinding({
+		id,
+		type: 'arrow',
+		fromId,
+		toId,
+		props: {
+			terminal: 'end',
+			normalizedAnchor: { x: 0.5, y: 0.5 },
+			isExact: false,
+			isPrecise: false,
+			snap: 'none',
+		},
+	})
+	return id
+}

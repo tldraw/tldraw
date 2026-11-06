@@ -120,3 +120,26 @@
 	flex: 1;
 	min-height: 0;
 }
+
+.permissions-intro {
+	margin: 0;
+	color: #555;
+	line-height: 1.4;
+}
+
+.permissions-summary {
+	padding: 4px 6px;
+	border-radius: 4px;
+	background: #e6f4ea;
+	font-weight: 600;
+}
+
+.permissions-unexpected {
+	background: #fde2e1;
+}
+
+.permissions-pane-focused {
+	outline: 3px solid #1971c2;
+	outline-offset: -3px;
+	z-index: 1;
+}

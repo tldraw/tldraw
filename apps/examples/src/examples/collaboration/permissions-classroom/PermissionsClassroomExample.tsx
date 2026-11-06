@@ -46,7 +46,7 @@ import {
 } from './rules'
 import { StampShapeUtil, stampProps } from './stamp'
 import './style.css'
-import { AGENT_AREA, ANSWERS, Classroom, LESSON, PROMPT, USE_CASES } from './useCases'
+import { AGENT_AREA, ANSWERS, Check, Classroom, LESSON, PROMPT, USE_CASES } from './useCases'
 
 const shapeUtils = [StampShapeUtil]
 // the client schema needs every shape type, built-in and plugin
@@ -125,6 +125,8 @@ export default function PermissionsClassroomExample() {
 		else editors.current.delete(userId)
 	}, [])
 	const roles = useValue('roles', () => access.get(), [])
+	// the panes that the running use case is about
+	const [focus, setFocus] = useState<string[]>([])
 	if (!room) return null
 	return (
 		<div className="permissions-root">
@@ -136,10 +138,11 @@ export default function PermissionsClassroomExample() {
 						room={room}
 						person={person}
 						onEditor={onEditor}
+						focused={focus.includes(person.userId)}
 					/>
 				))}
 			</div>
-			<UseCasePanel room={room} editors={editors.current} />
+			<UseCasePanel room={room} editors={editors.current} onFocus={setFocus} />
 		</div>
 	)
 }
@@ -148,10 +151,12 @@ function Pane({
 	room,
 	person,
 	onEditor,
+	focused,
 }: {
 	room: TLSocketRoom<ClassroomRecord, ClassroomMeta>
 	person: Person
 	onEditor(userId: string, value: { editor: Editor; role: Role } | null): void
+	focused: boolean
 }) {
 	const { userId } = person
 	// [4]
@@ -289,7 +294,7 @@ function Pane({
 	)
 
 	return (
-		<div className="permissions-pane">
+		<div className={focused ? 'permissions-pane permissions-pane-focused' : 'permissions-pane'}>
 			<div className="permissions-header">
 				<span className="permissions-dot" style={{ background: person.color }} />
 				<strong>{person.name}</strong>
@@ -330,11 +335,13 @@ function Pane({
 function UseCasePanel({
 	room,
 	editors,
+	onFocus,
 }: {
 	room: TLSocketRoom<ClassroomRecord, ClassroomMeta>
 	editors: Map<string, { editor: Editor; role: Role }>
+	onFocus(userIds: string[]): void
 }) {
-	const [results, setResults] = useState<Record<string, string[]>>({})
+	const [results, setResults] = useState<Record<string, Check[] | string>>({})
 	const [running, setRunning] = useState<string | null>(null)
 	const classroom = useMemo<Classroom>(
 		() => ({
@@ -358,14 +365,20 @@ function UseCasePanel({
 	const run = async (title: string) => {
 		const useCase = USE_CASES.find((u) => u.title === title)!
 		setRunning(title)
+		onFocus(useCase.people)
 		try {
-			const lines = await useCase.run(classroom)
-			setResults((r) => ({ ...r, [title]: lines }))
+			const checks = await useCase.run(classroom)
+			setResults((r) => ({ ...r, [title]: checks }))
 		} catch (e) {
-			setResults((r) => ({ ...r, [title]: [`Error: ${(e as Error).message}`] }))
+			setResults((r) => ({ ...r, [title]: `Error: ${(e as Error).message}` }))
 		}
 		setRunning(null)
+		onFocus([])
 	}
+	const finished = USE_CASES.filter((u) => Array.isArray(results[u.title]))
+	const asExpected = finished.filter((u) =>
+		(results[u.title] as Check[]).every((check) => check.actual === check.expected)
+	)
 	return (
 		<div className="permissions-panel">
 			<div className="permissions-panel-header">
@@ -379,22 +392,56 @@ function UseCasePanel({
 					Run all
 				</button>
 			</div>
-			{USE_CASES.map((u) => (
-				<div key={u.title} className="permissions-case">
-					<div className="permissions-case-title">
-						<span>{u.title}</span>
-						<button disabled={!!running} onClick={() => run(u.title)}>
-							{running === u.title ? 'Running' : 'Try it'}
-						</button>
-					</div>
-					<code>{u.api}</code>
-					{results[u.title]?.map((line) => (
-						<div key={line} className="permissions-case-result">
-							{line}
-						</div>
-					))}
+			<p className="permissions-intro">
+				Four people share one room that runs in this page. Each pane is a full tldraw editor with
+				its own connection. The rules are one object in <code>rules.ts</code>: the room enforces
+				them, each client checks writes before it sends them, and each editor turns them into locks.
+			</p>
+			<p className="permissions-intro">
+				&ldquo;Try it&rdquo; resets the board and makes the writes that a person would make. The
+				panes it is about get a blue outline. Some scripts also send a write that skips the editor
+				and the client rules, as a modified client could. Each line compares the room&rsquo;s result
+				with what the rules say.
+			</p>
+			{finished.length > 0 && (
+				<div className="permissions-summary">
+					{asExpected.length} of {finished.length} use cases give the expected result
 				</div>
-			))}
+			)}
+			{USE_CASES.map((u) => {
+				const result = results[u.title]
+				return (
+					<div key={u.title} className="permissions-case">
+						<div className="permissions-case-title">
+							<span>{u.title}</span>
+							<button disabled={!!running} onClick={() => run(u.title)}>
+								{running === u.title ? 'Running' : 'Try it'}
+							</button>
+						</div>
+						<div>{u.story}</div>
+						<code>{u.api}</code>
+						{typeof result === 'string' && <div className="permissions-case-result">{result}</div>}
+						{Array.isArray(result) &&
+							result.map((check) => {
+								const ok = check.actual === check.expected
+								const word = (value: boolean) => check.words[value ? 0 : 1]
+								return (
+									<div
+										key={check.label}
+										className={
+											ok
+												? 'permissions-case-result'
+												: 'permissions-case-result permissions-unexpected'
+										}
+									>
+										{ok ? '✓' : '✗'} {check.label}: {word(check.actual)}
+										{!ok && ` (expected ${word(check.expected)})`}
+									</div>
+								)
+							})}
+					</div>
+				)
+			})}
 		</div>
 	)
 }
