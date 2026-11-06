@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { EMPTY_ARRAY } from '@tldraw/state'
-import { LegacyMigrations, MigrationSequence } from '@tldraw/store'
+import { LegacyMigrations, MigrationSequence, RecordPolicy } from '@tldraw/store'
 import {
 	RecordProps,
 	TLAsset,
@@ -33,6 +33,7 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
 	type: T['type']
 	props?: RecordProps<T>
 	migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+	policy?: RecordPolicy<any>
 	handledAssetTypes?: readonly string[]
 }
 
@@ -163,6 +164,25 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
 	 * guide for more information.
 	 */
 	static migrations?: LegacyMigrations | TLPropsMigrations | MigrationSequence
+
+	/**
+	 * The access rules of this shape type. They run in the editor before a change is applied, and
+	 * on the sync server before a push is committed, so give the server the same policy (with
+	 * `props` and `migrations`). They sit on top of the shape policy and below the host's
+	 * `policies`. See `RecordPolicy`.
+	 *
+	 * @example
+	 * ```ts
+	 * class StickerShapeUtil extends ShapeUtil<StickerShape> {
+	 * 	// Anyone who may add stickers may add one, but only its owner moves it.
+	 * 	static policy: RecordPolicy<StickerShape> = {
+	 * 		create: (ctx) => ctx.can('stickers:add') || ctx.base(),
+	 * 		update: (ctx) => isOwnedBy(ctx.actor, ctx.prev.props.ownerId) || ctx.base(),
+	 * 	}
+	 * }
+	 * ```
+	 */
+	static policy?: RecordPolicy<any>
 
 	/**
 	 * The type of the shape util, which should match the shape's type.

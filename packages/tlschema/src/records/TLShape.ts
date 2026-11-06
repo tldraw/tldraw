@@ -1,8 +1,10 @@
 import {
 	RecordId,
+	RecordPolicy,
 	UnknownRecord,
 	createMigrationIds,
 	createRecordMigrationSequence,
+	createKindPolicy,
 	createRecordType,
 } from '@tldraw/store'
 import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
@@ -566,6 +568,13 @@ export function createShapePropsMigrationIds<
 export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 	return createRecordType('shape', {
 		scope: 'document',
+		// Each shape type can bring its own policy (`ShapeUtil.policy`). A shape is readable only
+		// while its parent is, so a reader never gets a shape without its frame, group, or page.
+		policy: createKindPolicy<TLShape>(
+			{ readFollows: (shape) => [shape.parentId] },
+			mapObjectMapValues(shapes, (_, { policy }) => policy),
+			(shape) => shape.type
+		) as RecordPolicy<any>,
 		validator: T.model(
 			'shape',
 			T.union(

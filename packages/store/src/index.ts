@@ -30,6 +30,16 @@ export {
 	squashRecordDiffsMutable,
 	type RecordsDiff,
 } from './lib/RecordsDiff'
+export {
+	createKindPolicy,
+	createPolicyActor,
+	isOwnedBy,
+	layerPolicies,
+	type PolicyActor,
+	type PolicyContext,
+	type PolicyRequest,
+	type RecordPolicy,
+} from './lib/RecordPolicy'
 export { assertIdType, createRecordType, RecordType, type RecordScope } from './lib/RecordType'
 export {
 	createComputedCache,

@@ -1,5 +1,6 @@
 import { Expand, objectMapEntries, structuredClone, uniqueId } from '@tldraw/utils'
 import { IdOf, UnknownRecord } from './BaseRecord'
+import { RecordPolicy } from './RecordPolicy'
 import { StoreValidator } from './Store'
 
 /**
@@ -68,6 +69,13 @@ export class RecordType<
 	readonly scope: RecordScope
 
 	/**
+	 * The access rules of this record type. See {@link RecordPolicy}.
+	 *
+	 * @public
+	 */
+	readonly policy?: RecordPolicy<R>
+
+	/**
 	 * Creates a new RecordType instance.
 	 *
 	 * typeName - The unique type name for records created by this RecordType
@@ -95,8 +103,10 @@ export class RecordType<
 			readonly validator?: StoreValidator<R>
 			readonly scope?: RecordScope
 			readonly ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
+			readonly policy?: RecordPolicy<R>
 		}
 	) {
+		this.policy = config.policy
 		this.createDefaultProperties = config.createDefaultProperties
 		this.validator = config.validator ?? { validate: (r: unknown) => r as R }
 		this.scope = config.scope ?? 'document'
@@ -281,6 +291,7 @@ export class RecordType<
 			validator: this.validator,
 			scope: this.scope,
 			ephemeralKeys: this.ephemeralKeys,
+			policy: this.policy,
 		})
 	}
 
@@ -346,6 +357,7 @@ export function createRecordType<R extends UnknownRecord>(
 		validator?: StoreValidator<R>
 		scope: RecordScope
 		ephemeralKeys?: { readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean }
+		policy?: RecordPolicy<R>
 	}
 ): RecordType<R, keyof Omit<R, 'id' | 'typeName'>> {
 	return new RecordType<R, keyof Omit<R, 'id' | 'typeName'>>(typeName, {
@@ -353,6 +365,7 @@ export function createRecordType<R extends UnknownRecord>(
 		validator: config.validator,
 		scope: config.scope,
 		ephemeralKeys: config.ephemeralKeys,
+		policy: config.policy,
 	})
 }
 

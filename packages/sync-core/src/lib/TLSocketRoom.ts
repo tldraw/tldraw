@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLGetActor, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -81,6 +81,11 @@ export interface SessionStateSnapshot {
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
 	supportsStringAppend: boolean
+	/**
+	 * A hash of what the session could read, when the room filters reads. On resume, a different
+	 * hash (or none) makes the client reconnect, so it gets a correct view.
+	 */
+	readViewHash?: string
 }
 
 /**
@@ -150,6 +155,21 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * The policy actor of each session. When set, every client push is checked against the
+	 * schema's record policies (the same policies the editor runs), and a push with any denied
+	 * change is discarded as a whole. When the schema has read rules, each session receives only
+	 * the records it may read. See {@link TLGetActor}.
+	 *
+	 * @example
+	 * ```ts
+	 * new TLSocketRoom<TLRecord, { userId: string; actions: string[] }>({
+	 * 	schema,
+	 * 	getActor: ({ meta }) => createPolicyActor({ id: meta.userId, actions: meta.actions }),
+	 * })
+	 * ```
+	 */
+	getActor?: TLGetActor<SessionMeta>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -281,12 +301,17 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			getActor: opts.getActor,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
 			clientTimeout: opts.clientTimeout,
 		})
 		this.storage = storage
+		// The snapshot carries a hash of what the session may read: keep it current.
+		this.room.events.on('read_view_changed', ({ sessionId }) =>
+			this.scheduleDebouncedSnapshot(sessionId)
+		)
 		this.room.events.on('session_removed', (args) => {
 			this.clearSnapshotTimer(args.sessionId)
 			this.sessions.delete(args.sessionId)
@@ -634,6 +659,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord: snapshot.presenceRecord,
 			requiresLegacyRejection: snapshot.requiresLegacyRejection,
 			supportsStringAppend: snapshot.supportsStringAppend,
+			readViewHash: snapshot.readViewHash,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -648,6 +674,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}),
 			meta: 'meta' in opts ? (opts.meta as any) : undefined,
 		})
+	}
+
+	/**
+	 * Tells the room that what `getActor` returns for a session has changed (a new role, a revoked
+	 * share link), so that what the session can read is brought up to date now: records it may
+	 * now read are sent, records it may no longer read are removed. Without a `sessionId`, every
+	 * session is refreshed. Writes need no refresh: `getActor` is called on every push.
+	 *
+	 * @param sessionId - The session whose access changed. Omit it to refresh every session.
+	 */
+	refreshAccess(sessionId?: string) {
+		this.room.refreshAccess(sessionId)
 	}
 
 	/**
@@ -689,6 +727,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
+			readViewHash: this.room.getReadViewHash(sessionId),
 		}
 	}
 

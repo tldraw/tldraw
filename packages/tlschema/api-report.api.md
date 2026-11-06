@@ -12,7 +12,9 @@ import { LegacyMigrations } from '@tldraw/store';
 import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
+import { PolicyContext } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
+import { RecordPolicy } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
@@ -134,6 +136,12 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
+export const commentPolicy: RecordPolicy<TLComment>;
+
+// @public
+export const commentReactionPolicy: RecordPolicy<TLCommentReaction>;
+
+// @public
 export const commentReactionRecordConfig: CustomRecordInfo;
 
 // @public
@@ -145,6 +153,9 @@ export const commentSchemaRecords: {
     'comment-thread': CustomRecordInfo;
     comment: CustomRecordInfo;
 };
+
+// @public
+export const commentThreadPolicy: RecordPolicy<TLCommentThread>;
 
 // @public
 export const commentThreadRecordConfig: CustomRecordInfo;
@@ -280,7 +291,8 @@ export function createShapeValidator<Type extends string, Props extends JsonObje
 }): T.ObjectValidator<Expand<    { [P in "id" | "index" | "isLocked" | "meta" | "opacity" | "parentId" | "rotation" | "typeName" | "x" | "y" | (undefined extends Props ? never : "props") | (undefined extends Type ? never : "type")]: TLBaseShape<Type, Props>[P]; } & { [P in (undefined extends Props ? "props" : never) | (undefined extends Type ? "type" : never)]?: TLBaseShape<Type, Props>[P] | undefined; }>>;
 
 // @public
-export function createTLSchema({ shapes, bindings, assets, user, records, migrations, }?: {
+export function createTLSchema({ shapes, bindings, assets, user, records, migrations, policies, }?: {
+    policies?: TLPolicies;
     assets?: Record<string, SchemaPropsInfo>;
     bindings?: Record<string, SchemaPropsInfo>;
     migrations?: readonly MigrationSequence[];
@@ -301,6 +313,7 @@ export function createUserRecordType(config?: {
 export interface CustomRecordInfo {
     createDefaultProperties?: () => Record<string, unknown>;
     migrations?: MigrationSequence | TLPropsMigrations;
+    policy?: RecordPolicy<any>;
     scope: RecordScope;
     validator: T.Validatable<any>;
 }
@@ -345,6 +358,9 @@ export const defaultAssetSchemas: {
 };
 
 // @public
+export const defaultBindingPolicy: RecordPolicy<TLBinding>;
+
+// @public
 export const defaultBindingSchemas: {
     arrow: {
         migrations: TLPropsMigrations;
@@ -374,6 +390,9 @@ export const DefaultFontStyle: EnumStyleProp<"draw" | "mono" | "sans" | "serif">
 
 // @public
 export const DefaultHorizontalAlignStyle: EnumStyleProp<"end-legacy" | "end" | "middle-legacy" | "middle" | "start-legacy" | "start">;
+
+// @public
+export const defaultRecordPolicy: RecordPolicy;
 
 // @public
 export const defaultShapeSchemas: {
@@ -777,6 +796,9 @@ export const lineShapeProps: RecordProps<TLLineShape>;
 export const LineShapeSplineStyle: EnumStyleProp<"cubic" | "line">;
 
 // @public
+export function mayUpdate(ctx: PolicyContext, record: undefined | UnknownRecord): boolean;
+
+// @public
 export const noteShapeMigrations: TLPropsMigrations;
 
 // @public
@@ -835,6 +857,7 @@ export const rootShapeMigrations: MigrationSequence;
 export interface SchemaPropsInfo {
     meta?: Record<string, StoreValidator<any>>;
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
+    policy?: RecordPolicy<any>;
     props?: Record<string, StoreValidator<any>>;
 }
 
@@ -1709,6 +1732,15 @@ export const TLPOINTER_ID: TLPointerId;
 
 // @public
 export type TLPointerId = RecordId<TLPointer>;
+
+// @public
+export type TLPolicies = {
+    readonly [K in TLRecord['typeName']]?: RecordPolicy<Extract<TLRecord, {
+        typeName: K;
+    }>>;
+} & {
+    readonly [typeName: string]: RecordPolicy<any> | undefined;
+};
 
 // @public
 export type TLPresenceStateInfo = Parameters<(typeof InstancePresenceRecordType)['create']>[0];

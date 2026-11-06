@@ -1,5 +1,13 @@
-import { BaseRecord, RecordId, createRecordMigrationSequence } from '@tldraw/store'
-import { JsonObject } from '@tldraw/utils'
+import {
+	BaseRecord,
+	PolicyContext,
+	RecordId,
+	RecordPolicy,
+	UnknownRecord,
+	createRecordMigrationSequence,
+	isOwnedBy,
+} from '@tldraw/store'
+import { JsonObject, isEqual } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { idValidator } from '../misc/id-validator'
 import { richTextValidator, TLRichText } from '../misc/TLRichText'
@@ -195,6 +203,147 @@ function createCommentGuardMigrations(
 	})
 }
 
+// Comment actions:
+// - `comments:write`: start threads, reply, react, resolve, and change your own comments.
+// - `comments:manage`: delete any comment or thread (moderators). Never edit someone else's text.
+
+function changedOnly<R extends UnknownRecord>(prev: R, next: R, keys: (keyof R)[]) {
+	const a: any = { ...prev }
+	const b: any = { ...next }
+	for (const key of keys) {
+		delete a[key]
+		delete b[key]
+	}
+	return isEqual(a, b)
+}
+
+function softDelete<R extends UnknownRecord & { isDeleted: boolean }>(
+	ctx: PolicyContext & { prev: R; next: R }
+): 'none' | 'delete' | 'invalid' {
+	if (ctx.prev.isDeleted === ctx.next.isDeleted) return ctx.prev.isDeleted ? 'invalid' : 'none'
+	// Write once: a deleted record never comes back.
+	if (ctx.prev.isDeleted) return 'invalid'
+	return 'delete'
+}
+
+/**
+ * The policy of comment threads. It replaces the server's `createCommentAuthorizers` and the
+ * client's `canModifyComment` with one set of rules.
+ *
+ * - Create: needs `comments:write`. `createdBy` is the actor, not deleted, and not resolved by
+ *   someone else.
+ * - Update: needs `comments:write`. `createdBy`, `createdAt`, and `pageId` never change. A new
+ *   resolution must name the actor. A soft delete needs the `delete` action and changes nothing
+ *   else. Anyone who may comment may move a thread's anchor: when a shape is deleted, the client
+ *   of the person who deleted it moves the threads on that shape to a point.
+ * - Hard delete: never from a client.
+ * - Actions: `resolve` (anyone who may comment), `delete` (the creator, or `comments:manage`).
+ * - Read: follows its page, so a reader who may not read the page gets none of its threads.
+ *   A comment follows its thread, and a reaction follows its comment.
+ *
+ * @public
+ */
+export const commentThreadPolicy: RecordPolicy<TLCommentThread> = {
+	readFollows: (record) => [record.pageId],
+	create: ({ can, actor, next }) =>
+		can('comments:write') &&
+		isOwnedBy(actor, next.createdBy) &&
+		!next.isDeleted &&
+		(next.resolved === null || isOwnedBy(actor, next.resolved.by)),
+	update: (ctx) => {
+		const { prev, next, actor } = ctx
+		if (!ctx.can('comments:write')) return false
+		if (
+			prev.createdBy !== next.createdBy ||
+			prev.createdAt !== next.createdAt ||
+			prev.pageId !== next.pageId
+		) {
+			return false
+		}
+		const deletion = softDelete(ctx)
+		if (deletion === 'invalid') return false
+		if (deletion === 'delete') {
+			return (
+				changedOnly(prev, next, ['isDeleted']) &&
+				ctx.authorize({ verb: 'action', action: 'delete', record: prev })
+			)
+		}
+		if (!isEqual(prev.resolved, next.resolved)) {
+			if (next.resolved && !isOwnedBy(actor, next.resolved.by)) return false
+			if (!ctx.authorize({ verb: 'action', action: 'resolve', record: prev })) return false
+		}
+		return true
+	},
+	delete: () => false,
+	actions: {
+		resolve: ({ can }) => can('comments:write'),
+		delete: ({ can, actor, record }) =>
+			can('comments:manage') || (can('comments:write') && isOwnedBy(actor, record.createdBy)),
+	},
+}
+
+/**
+ * The policy of comments.
+ *
+ * - Create: needs `comments:write`. `authorId` is the actor, and the comment is not deleted.
+ * - Update: `authorId`, `threadId`, `pageId`, and `createdAt` never change. A text edit needs the
+ *   `edit` action. A soft delete needs the `delete` action and changes nothing else.
+ * - Hard delete: never from a client.
+ * - Actions: `edit` (the author only), `delete` (the author, or `comments:manage`).
+ *
+ * A host that lets moderators edit too overrides `actions.edit`. The write rule and the UI both
+ * use the action, so they cannot drift.
+ *
+ * @public
+ */
+export const commentPolicy: RecordPolicy<TLComment> = {
+	readFollows: (record) => [record.threadId],
+	create: ({ can, actor, next }) =>
+		can('comments:write') && isOwnedBy(actor, next.authorId) && !next.isDeleted,
+	update: (ctx) => {
+		const { prev, next } = ctx
+		if (
+			prev.authorId !== next.authorId ||
+			prev.threadId !== next.threadId ||
+			prev.pageId !== next.pageId ||
+			prev.createdAt !== next.createdAt
+		) {
+			return false
+		}
+		const deletion = softDelete(ctx)
+		if (deletion === 'invalid') return false
+		if (deletion === 'delete') {
+			return (
+				changedOnly(prev, next, ['isDeleted']) &&
+				ctx.authorize({ verb: 'action', action: 'delete', record: prev })
+			)
+		}
+		return ctx.authorize({ verb: 'action', action: 'edit', record: prev })
+	},
+	delete: () => false,
+	actions: {
+		edit: ({ can, actor, record }) => can('comments:write') && isOwnedBy(actor, record.authorId),
+		delete: ({ can, actor, record }) =>
+			can('comments:manage') || (can('comments:write') && isOwnedBy(actor, record.authorId)),
+	},
+}
+
+/**
+ * The policy of comment reactions. The reactor is the actor, the id is the canonical id for
+ * (comment, actor, emoji), nothing changes after create, and only the reactor deletes it.
+ *
+ * @public
+ */
+export const commentReactionPolicy: RecordPolicy<TLCommentReaction> = {
+	readFollows: (record) => [record.commentId],
+	create: ({ can, actor, next }) =>
+		can('comments:write') &&
+		isOwnedBy(actor, next.userId) &&
+		next.id === createCommentReactionId(next.commentId, actor.id!, next.emoji),
+	update: () => false,
+	delete: ({ actor, prev }) => isOwnedBy(actor, prev.userId),
+}
+
 /**
  * Config for registering the `comment-thread` record type in a tldraw schema. Pass via
  * `commentSchemaRecords`; see `TLCommentThread`.
@@ -203,6 +352,7 @@ function createCommentGuardMigrations(
  */
 export const commentThreadRecordConfig: CustomRecordInfo = {
 	scope: 'document',
+	policy: commentThreadPolicy,
 	migrations: createCommentGuardMigrations('comment-thread', [
 		{
 			// Shape anchors gained normalized x/y + isPrecise; existing ones were imprecise (top-right).
@@ -257,6 +407,7 @@ export const commentThreadRecordConfig: CustomRecordInfo = {
  */
 export const commentRecordConfig: CustomRecordInfo = {
 	scope: 'document',
+	policy: commentPolicy,
 	migrations: createCommentGuardMigrations('comment'),
 	validator: T.object({
 		id: idValidator<TLCommentId>('comment'),
@@ -280,6 +431,7 @@ export const commentRecordConfig: CustomRecordInfo = {
  */
 export const commentReactionRecordConfig: CustomRecordInfo = {
 	scope: 'document',
+	policy: commentReactionPolicy,
 	migrations: createCommentGuardMigrations('comment-reaction'),
 	validator: T.object({
 		id: idValidator<TLCommentReactionId>('comment-reaction'),

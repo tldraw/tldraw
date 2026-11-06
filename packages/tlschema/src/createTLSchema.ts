@@ -1,4 +1,11 @@
-import { LegacyMigrations, MigrationSequence, StoreSchema, StoreValidator } from '@tldraw/store'
+import {
+	LegacyMigrations,
+	MigrationSequence,
+	RecordPolicy,
+	StoreSchema,
+	StoreSchemaOptions,
+	StoreValidator,
+} from '@tldraw/store'
 import { objectMapValues } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { TLBaseAsset } from './assets/TLBaseAsset'
@@ -6,6 +13,7 @@ import { bookmarkAssetMigrations, bookmarkAssetProps } from './assets/TLBookmark
 import { imageAssetMigrations, imageAssetProps } from './assets/TLImageAsset'
 import { videoAssetMigrations, videoAssetProps } from './assets/TLVideoAsset'
 import { arrowBindingMigrations, arrowBindingProps } from './bindings/TLArrowBinding'
+import { defaultRecordPolicy } from './policies'
 import {
 	TLDefaultAsset,
 	TLUnknownAsset,
@@ -87,7 +95,23 @@ export interface SchemaPropsInfo {
 	 * Validation schema for metadata fields.
 	 */
 	meta?: Record<string, StoreValidator<any>>
+
+	/**
+	 * The access rules of this shape or binding type. They sit on top of the shape (or binding)
+	 * policy, and below the host's policy. See `RecordPolicy`.
+	 */
+	policy?: RecordPolicy<any>
 }
+
+/**
+ * The host's access rules per record type name, for `createTLSchema({ policies })`. Each entry is
+ * the top policy layer for that type. See `RecordPolicy`.
+ *
+ * @public
+ */
+export type TLPolicies = {
+	readonly [K in TLRecord['typeName']]?: RecordPolicy<Extract<TLRecord, { typeName: K }>>
+} & { readonly [typeName: string]: RecordPolicy<any> | undefined }
 
 /**
  * The complete schema definition for a tldraw store, encompassing all record types,
@@ -343,6 +367,7 @@ export function createTLSchema({
 	user,
 	records = {},
 	migrations,
+	policies,
 }: {
 	shapes?: Record<string, SchemaPropsInfo>
 	bindings?: Record<string, SchemaPropsInfo>
@@ -350,6 +375,11 @@ export function createTLSchema({
 	user?: UserSchemaInfo
 	records?: Record<string, CustomRecordInfo>
 	migrations?: readonly MigrationSequence[]
+	/**
+	 * The host's access rules per record type: the top policy layer, above the rules of each
+	 * type. Use the same value on the client and on the sync server. See `RecordPolicy`.
+	 */
+	policies?: TLPolicies
 } = {}): TLSchema {
 	const stylesById = new Map<string, StyleProp<unknown>>()
 	for (const shape of objectMapValues(shapes)) {
@@ -432,6 +462,8 @@ export function createTLSchema({
 			],
 			onValidationFailure,
 			createIntegrityChecker,
+			defaultPolicy: defaultRecordPolicy,
+			policies: policies as StoreSchemaOptions<TLRecord, TLStoreProps>['policies'],
 		}
 	)
 }

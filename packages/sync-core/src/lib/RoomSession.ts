@@ -145,4 +145,22 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+			/**
+			 * What this session may read, when the schema has read rules and the session has an
+			 * actor. `undefined` when every record is sent.
+			 */
+			readView?: ReadView
 	  })
+
+/**
+ * The records one session may read (`visible`), for each record id the records whose read rule
+ * read it (`dependents`), and the reverse (`reads`), so that a re-check drops what a rule no
+ * longer reads.
+ *
+ * @internal
+ */
+export interface ReadView {
+	visible: Set<string>
+	dependents: Map<string, Set<string>>
+	reads: Map<string, Set<string>>
+}

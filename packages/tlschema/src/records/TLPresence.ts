@@ -242,6 +242,9 @@ export const InstancePresenceRecordType = createRecordType<TLInstancePresence>(
 	{
 		validator: instancePresenceValidator,
 		scope: 'presence',
+		// A session sees another user's presence (cursor, selection, camera) only while it may
+		// read the page that the user is on. This applies only when the room filters reads.
+		policy: { readFollows: (presence) => [presence.currentPageId] },
 	}
 ).withDefaultProperties(() => ({
 	lastActivityTimestamp: null,

@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
+import { PolicyActor } from '@tldraw/store';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
@@ -231,6 +232,16 @@ export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown];
 
 // @internal
+export interface ReadView {
+    // (undocumented)
+    dependents: Map<string, Set<string>>;
+    // (undocumented)
+    reads: Map<string, Set<string>>;
+    // (undocumented)
+    visible: Set<string>;
+}
+
+// @internal
 export class ReconnectManager {
     constructor(socketAdapter: ClientWebSocketAdapter, getUri: () => Promise<string> | string);
     close(): void;
@@ -256,18 +267,19 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingConnectMessage;
-    sessionStartTime: number;
-}) | (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingRemoval;
-    cancellationTime: number;
-}) | (RoomSessionBase<R, Meta> & {
+    readView?: ReadView;
     state: typeof RoomSessionState.Connected;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
     requiresDownMigrations: boolean;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingConnectMessage;
+    sessionStartTime: number;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingRemoval;
+    cancellationTime: number;
 });
 
 // @internal
@@ -322,6 +334,7 @@ export interface SessionStateSnapshot {
     presenceId: null | string;
     // (undocumented)
     presenceRecord: null | UnknownRecord;
+    readViewHash?: string;
     // (undocumented)
     requiresLegacyRejection: boolean;
     // (undocumented)
@@ -393,6 +406,12 @@ export interface TLConnectRequest {
 
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
+
+// @public
+export type TLGetActor<SessionMeta> = (session: {
+    meta: SessionMeta;
+    sessionId: string;
+}) => null | PolicyActor;
 
 // @internal @deprecated
 export const TLIncompatibilityReason: {
@@ -538,6 +557,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     readonly log?: TLSyncLog;
     // (undocumented)
     readonly opts: TLSocketRoomOptions<R, SessionMeta>;
+    refreshAccess(sessionId?: string): void;
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
@@ -550,6 +570,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
+    getActor?: TLGetActor<SessionMeta>;
     // @deprecated (undocumented)
     initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
     // (undocumented)
@@ -722,6 +743,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
+        getActor?: TLGetActor<SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
@@ -733,6 +755,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly documentTypes: Set<string>;
     // (undocumented)
     readonly events: Emitter<    {
+    read_view_changed(args: {
+    sessionId: string;
+    }): void;
     room_became_empty(): void;
     session_removed(args: {
     meta: SessionMeta;
@@ -742,6 +767,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     getCanEmitStringAppend(): boolean;
+    getReadViewHash(sessionId: string): string | undefined;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
@@ -757,6 +783,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         objectAccess?: TLObjectStoreAccess;
         presenceId: null | string;
         presenceRecord: null | UnknownRecord;
+        readViewHash?: string;
         requiresLegacyRejection: boolean;
         serializedSchema: SerializedSchema;
         sessionId: string;
@@ -773,6 +800,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
     pruneSessions: ThrottledFunction<() => void>;
+    refreshAccess(sessionId?: string): void;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;

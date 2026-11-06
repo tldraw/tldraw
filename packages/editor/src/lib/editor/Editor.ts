@@ -12,6 +12,8 @@ import {
 	RecordType,
 	StoreSideEffects,
 	StoreSnapshot,
+	PolicyActor,
+	PolicyRequest,
 	UnknownRecord,
 	reverseRecordsDiff,
 } from '@tldraw/store'
@@ -1753,7 +1755,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			// With an actor set, the record policies keep or revert the whole run as one unit.
+			const runAsUnit = () => this.store.withPolicyScope(() => this.history.batch(fn, opts))
+			if (unsafe__withoutCapture(() => this.store.getActor())) {
+				this.history._restoreIfDenied(runAsUnit)
+			} else {
+				runAsUnit()
+			}
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
@@ -5782,8 +5790,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		// A shape the actor may not update behaves like a locked shape: it cannot be selected,
+		// moved, or edited. Only the shape itself is checked: a student's own shape inside the
+		// teacher's frame stays theirs to change.
+		if (this.getActor() && !this._getMayUpdateShapeCache().get(_shape.id)) return true
+		return this._isShapeOrAncestorFlaggedLocked(_shape)
+	}
+
+	private _isShapeOrAncestorFlaggedLocked(shape: TLShape | undefined): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this._isShapeOrAncestorFlaggedLocked(this.getShapeParent(shape))
+	}
+
+	@computed private _getMayUpdateShapeCache(): ComputedCache<boolean, TLShape> {
+		return this.store.createComputedCache<boolean, TLShape>('mayUpdateShape', (shape) =>
+			this.can({ verb: 'update', prev: shape, next: shape })
+		)
 	}
 
 	/**
@@ -10434,6 +10457,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getIsFocused() {
 		return this.getInstanceState().isFocused
+	}
+
+	/**
+	 * Set who uses this editor. While an actor is set, every local change is checked against the
+	 * record policies of the schema (see `RecordPolicy`), and an operation with any denied change
+	 * is reverted as a whole. Give the sync server the same actor and policies, so that the
+	 * editor never sends a change the server rejects.
+	 *
+	 * Pass `null` to stop checking (the default).
+	 *
+	 * @public
+	 */
+	setActor(actor: PolicyActor | null): this {
+		this.store.setActor(actor)
+		return this
+	}
+
+	/**
+	 * The actor set with {@link Editor.setActor}, or `null`.
+	 *
+	 * @public
+	 */
+	getActor(): PolicyActor | null {
+		return this.store.getActor()
+	}
+
+	/**
+	 * Asks the record policies if the current actor may make `request`. Use it to show or hide UI.
+	 * Always `true` when no actor is set. Reactive.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.can({ verb: 'update', prev: shape, next: shape })
+	 * editor.can({ verb: 'action', action: 'resolve', record: thread })
+	 * ```
+	 *
+	 * @public
+	 */
+	can(request: PolicyRequest<TLRecord>): boolean {
+		const actor = this.getActor()
+		if (!actor) return true
+		return this.store.schema.authorize(actor, request, (id) => this.store.get(id as TLRecord['id']))
 	}
 
 	/**

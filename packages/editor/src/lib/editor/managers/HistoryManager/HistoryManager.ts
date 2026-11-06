@@ -124,6 +124,38 @@ export class HistoryManager<R extends UnknownRecord> {
 		}
 	}
 
+	/**
+	 * Runs `fn`, and puts the stacks and the changes since the last mark back as they were when
+	 * `fn` returns false. `editor.run` uses it when the record policies revert the run: the
+	 * document is back where it was, so the history must be too. Otherwise an undo or bail in the
+	 * run moves the stacks, the revert clears the redo stack, and the next undo skips a mark.
+	 *
+	 * Nothing is copied up front: the stacks are immutable, and the pending diff is copied only
+	 * when it next changes.
+	 *
+	 * @internal
+	 */
+	_restoreIfDenied(fn: () => boolean) {
+		const stacks = this.stacks.__unsafe__getWithoutCapture()
+		const pending = this.pendingDiff.peek()
+		if (fn()) return
+		this.stacks.set(stacks)
+		this.pendingDiff.restore(pending)
+	}
+
+	/**
+	 * Applies an undo or redo. Returns false when the record policies of the store denied it (the
+	 * store has then reverted it), so the stacks stay where they were and a later undo or redo
+	 * still matches the document.
+	 */
+	private applyUnlessDenied(diff: RecordsDiff<R>) {
+		const isAllowed = this.store.checkPoliciesNow(() =>
+			this.store.applyDiff(diff, { ignoreEphemeralKeys: true })
+		)
+		if (isAllowed) this.store.ensureStoreIsUsable()
+		return isAllowed
+	}
+
 	// History
 	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
 		const previousState = this.state
@@ -190,8 +222,10 @@ export class HistoryManager<R extends UnknownRecord> {
 				this.pendingDiff.restore(pendingDiff)
 				return this
 			}
-			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
-			this.store.ensureStoreIsUsable()
+			if (!this.applyUnlessDenied(diffToUndo)) {
+				this.pendingDiff.restore(pendingDiff)
+				return this
+			}
 			this.stacks.set({ undos, redos })
 		} finally {
 			this._isReplaying = previousIsReplaying
@@ -240,8 +274,7 @@ export class HistoryManager<R extends UnknownRecord> {
 					break
 				}
 			}
-			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
-			this.store.ensureStoreIsUsable()
+			if (!this.applyUnlessDenied(diffToRedo)) return this
 			this.stacks.set({ undos, redos })
 		} finally {
 			this._isReplaying = previousIsReplaying
@@ -346,15 +379,24 @@ const modeToState = {
 class PendingDiff<R extends UnknownRecord> {
 	private diff = createEmptyRecordsDiff<R>()
 	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
+	// Set while someone holds `diff` from `peek`: `apply` must copy it before it changes it.
+	private isShared = false
 
 	clear() {
 		const diff = this.diff
+		this.isShared = false
 		this.diff = createEmptyRecordsDiff<R>()
 		this.isEmptyAtom.set(true)
 		return diff
 	}
 
+	peek() {
+		this.isShared = true
+		return this.diff
+	}
+
 	restore(diff: RecordsDiff<R>) {
+		this.isShared = true
 		this.diff = diff
 		this.isEmptyAtom.set(isRecordsDiffEmpty(diff))
 	}
@@ -364,6 +406,13 @@ class PendingDiff<R extends UnknownRecord> {
 	}
 
 	apply(diff: RecordsDiff<R>) {
+		if (this.isShared) {
+			// A copy with new [from, to] tuples, because the squash changes tuples in place.
+			const copy = createEmptyRecordsDiff<R>()
+			squashRecordDiffsMutable(copy, [this.diff])
+			this.diff = copy
+			this.isShared = false
+		}
 		squashRecordDiffsMutable(this.diff, [diff])
 		// Recomputing emptiness from the accumulated diff is O(N) (for-in over a
 		// dictionary-mode object pays an O(N) key-collection prologue), and this runs on

@@ -1,3 +1,4 @@
+import type { RecordPolicy } from '@tldraw/store'
 import {
 	RecordProps,
 	TLBinding,
@@ -18,6 +19,8 @@ export interface TLBindingUtilConstructor<
 	props?: RecordProps<T>
 	/** Migrations for this binding's props. */
 	migrations?: TLPropsMigrations
+	/** Access rules for this binding type. */
+	policy?: RecordPolicy<any>
 }
 
 /**
@@ -132,6 +135,11 @@ export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
 	constructor(public editor: Editor) {}
 	static props?: RecordProps<TLUnknownBinding>
 	static migrations?: TLPropsMigrations
+	/**
+	 * The access rules of this binding type, on top of the binding policy (a binding follows the
+	 * shape it starts from). See `ShapeUtil.policy` and `RecordPolicy`.
+	 */
+	static policy?: RecordPolicy<any>
 
 	/**
 	 * The type of the binding util, which should match the binding's type.
