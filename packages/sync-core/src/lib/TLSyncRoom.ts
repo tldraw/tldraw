@@ -49,6 +49,7 @@ import {
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 } from './protocol'
+import { RoomVisibility, VisibilityUpdate, accessKey } from './ReadVisibility'
 import { applyAndDiffRecord, diffAndValidateRecord, validateRecord } from './recordDiff'
 import {
 	RoomSession,
@@ -316,6 +317,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly permissions: TLPermissions<R>
+	/** What each access can see, when the room filters reads. */
+	private readonly visibility: RoomVisibility<R> | null
 	private onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 	private readonly sessionIdleTimeout: number
 
@@ -351,6 +354,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.permissions = opts.permissions ?? definePermissions({ rules: defaultAbilityRules<R>() })
+		this.visibility = this.permissions.canRead ? new RoomVisibility(this.permissions.canRead) : null
 		this.onPushDenied = opts.onPushDenied
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
@@ -530,11 +534,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (presence) {
 			this.presenceStore.delete(session.presenceId!)
 			// Broadcast presence removal - use RecordsDiff with the removed record
-			this.broadcastPatch({
-				puts: {},
-				deletes: [session.presenceId!],
-			})
+			this.broadcastPatch(
+				{ puts: {}, deletes: [session.presenceId!] },
+				undefined,
+				undefined,
+				this.updateVisibility(() => [session.presenceId!])
+			)
 		}
+		this.visibility?.retain(this.sessionAccesses())
 
 		this.events.emit('session_removed', { sessionId, meta: session.meta })
 		if (this.sessions.size === 0) {
@@ -1023,7 +1030,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			diff,
 			undefined,
 			undefined,
-			this.permissions.canRead ? this.computeVisibilityUpdate(this.readerFor(txn), true) : null
+			this.updateVisibility(() => [...Object.keys(diff.puts), ...diff.deletes], txn)
 		)
 	}
 
@@ -1138,8 +1145,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const { documentClock, result } = this.storage.transaction((txn) => {
 			this.broadcastChanges(txn)
 			let docChanges = txn.getChangesSince(message.lastServerClock)
-			if (this.permissions.canRead) {
-				visibleIds = this.computeVisibleIds(session.access, this.readerFor(txn))
+			if (this.visibility) {
+				visibleIds = new Set(this.visibilityIndex(session.access, txn).visible)
 				const puts: TLSyncForwardDiff<R>['puts'] = {}
 				for (const record of txn.values()) {
 					if (visibleIds.has(record.id)) puts[record.id] = record
@@ -1507,8 +1514,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				// What each filtered session can see now, computed while the storage is open.
 				const visibility =
-					this.permissions.canRead && (docChanges.diffs || presenceChanges.diffs)
-						? this.computeVisibilityUpdate(this.readerFor(txn), !!docChanges.diffs)
+					docChanges.diffs || presenceChanges.diffs
+						? this.updateVisibility(
+								() => [
+									...Object.keys(docChanges.diffs?.diff.puts ?? {}),
+									...(docChanges.diffs?.diff.deletes ?? []),
+									...Object.keys(presenceChanges.diffs?.diff.puts ?? {}),
+									...(presenceChanges.diffs?.diff.deletes ?? []),
+								],
+								txn
+							)
 						: null
 
 				return { docChanges, presenceChanges, visibility }
@@ -1623,52 +1638,32 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	/** The ids a session with `access` can see: documents and presence. */
-	private computeVisibleIds(access: TLAccess, records: TLRecordReader<R>): Set<string> {
-		const canRead = this.permissions.canRead
-		const ids = new Set<string>()
-		const ctx = { access, can: (ability: string) => accessCan(access, ability), records }
-		for (const record of records.all()) {
-			if (!canRead || canRead(record, ctx)) ids.add(record.id)
-		}
-		for (const record of this.presenceStore.values()) {
-			if (!canRead || canRead(record, ctx)) ids.add(record.id)
-		}
-		return ids
+	/** The visibility index for `access`, built on first use. */
+	private visibilityIndex(access: TLAccess, txn: TLSyncStorageTransaction<R>) {
+		return this.visibility!.indexFor(access, () => [...this.allIds(txn)], this.readerFor(txn))
+	}
+
+	private *allIds(txn: TLSyncStorageTransaction<R>) {
+		for (const record of txn.values()) yield record.id
+		for (const record of this.presenceStore.values()) yield record.id
+	}
+
+	private sessionAccesses() {
+		return [...this.sessions.values()].map((session) => session.access)
 	}
 
 	/**
-	 * What each filtered session can see after a change. With `full`, every record is checked
-	 * again, because a change to one record (a page, a parent) can change what others show. A
-	 * presence-only change checks only the presence records. Sessions with the same access
-	 * share one result.
+	 * Bring what each access can see up to date after the records with `ids` changed. With no
+	 * `txn`, opens a read-only one. Null when the room does not filter reads.
 	 */
-	private computeVisibilityUpdate(records: TLRecordReader<R>, full: boolean): VisibilityUpdate<R> {
-		const byAccess = new Map<string, Set<string>>()
-		const update: VisibilityUpdate<R> = { visibleIds: new Map(), revealed: new Map() }
-		for (const session of this.sessions.values()) {
-			if (session.state !== RoomSessionState.Connected || !session.visibleIds) continue
-			const key = JSON.stringify(session.access)
-			let next = byAccess.get(key)
-			if (!next) {
-				if (full) {
-					next = this.computeVisibleIds(session.access, records)
-				} else {
-					next = new Set(session.visibleIds)
-					const canRead = this.permissions.canRead!
-					const access = session.access
-					const ctx = { access, can: (ability: string) => accessCan(access, ability), records }
-					for (const presence of this.presenceStore.values()) {
-						if (canRead(presence, ctx)) next.add(presence.id)
-						else next.delete(presence.id)
-					}
-				}
-				byAccess.set(key, next)
-			}
-			update.visibleIds.set(session.sessionId, next)
-			collectRevealed(update, session.visibleIds, next, records)
-		}
-		return update
+	private updateVisibility(
+		ids: () => Iterable<string>,
+		txn?: TLSyncStorageTransaction<R>
+	): VisibilityUpdate<R> | null {
+		if (!this.visibility) return null
+		if (txn) return this.visibility.update(ids(), this.readerFor(txn))
+		return this.storage.transaction((txn) => this.visibility!.update(ids(), this.readerFor(txn)))
+			.result
 	}
 
 	/**
@@ -1681,35 +1676,47 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		visibility: VisibilityUpdate<R> | null | undefined,
 		isSource: boolean
 	): TLSyncForwardDiff<R> {
-		const before = session.visibleIds!
-		const after = visibility?.visibleIds.get(session.sessionId) ?? before
+		const visible = session.visibleIds!
+		const shown = new Set<string>()
+		const hidden = new Set<string>()
+		const change = visibility?.changes.get(accessKey(session.access))
+		if (change) {
+			for (const id of change.shown) {
+				if (visible.has(id)) continue
+				visible.add(id)
+				shown.add(id)
+			}
+			for (const id of change.hidden) {
+				if (!visible.delete(id)) continue
+				hidden.add(id)
+			}
+		}
+		const wasVisible = (id: string) => hidden.has(id) || (visible.has(id) && !shown.has(id))
+
 		const result: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const touched = new Set<string>()
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 			touched.add(id)
 			if (isSource) continue
-			if (after.has(id)) {
+			if (visible.has(id)) {
 				// newly visible: send the whole record, the client has no base to patch
-				result.puts[id] = before.has(id) ? put : Array.isArray(put) ? put[1] : put
-			} else if (before.has(id)) {
+				result.puts[id] = wasVisible(id) ? put : Array.isArray(put) ? put[1] : put
+			} else if (wasVisible(id)) {
 				result.deletes.push(id)
 			}
 		}
 		for (const id of diff.deletes) {
 			touched.add(id)
-			if (!isSource && before.has(id)) result.deletes.push(id)
+			if (!isSource && wasVisible(id)) result.deletes.push(id)
 		}
-		if (visibility && after !== before) {
-			for (const id of after) {
-				if (before.has(id) || touched.has(id)) continue
-				const record = visibility.revealed.get(id)
-				if (record) result.puts[id] = record
-			}
-			for (const id of before) {
-				if (!after.has(id) && !touched.has(id)) result.deletes.push(id)
-			}
+		for (const id of shown) {
+			if (touched.has(id)) continue
+			const record = visibility!.revealed.get(id)
+			if (record) result.puts[id] = record
 		}
-		session.visibleIds = after
+		for (const id of hidden) {
+			if (!touched.has(id)) result.deletes.push(id)
+		}
 		return result
 	}
 
@@ -1722,18 +1729,27 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
 		session.access = access
-		if (session.state !== RoomSessionState.Connected) return
+		if (session.state !== RoomSessionState.Connected) {
+			this.visibility?.retain(this.sessionAccesses())
+			return
+		}
 		this._unsafe_sendMessage(sessionId, { type: 'access', access })
 		if (!session.visibleIds) return
 		this.storage.transaction((txn) => {
 			const records = this.readerFor(txn)
-			const visibleIds = this.computeVisibleIds(access, records)
-			const visibility: VisibilityUpdate<R> = {
-				visibleIds: new Map([[sessionId, visibleIds]]),
-				revealed: new Map(),
+			const before = session.visibleIds!
+			const after = new Set(this.visibilityIndex(access, txn).visible)
+			this.visibility!.retain(this.sessionAccesses())
+			session.visibleIds = after
+			const diff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+			for (const id of after) {
+				if (before.has(id)) continue
+				const record = records.get(id)
+				if (record) diff.puts[id] = record
 			}
-			collectRevealed(visibility, session.visibleIds!, visibleIds, records)
-			const diff = this.filterDiffForSession(session, { puts: {}, deletes: [] }, visibility, false)
+			for (const id of before) {
+				if (!after.has(id)) diff.deletes.push(id)
+			}
 			if (!Object.keys(diff.puts).length && !diff.deletes.length) return
 			const migrated = this.migrateDiffOrRejectSession(
 				sessionId,
@@ -1816,29 +1832,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	handleClose(sessionId: string) {
 		this.cancelSession(sessionId)
-	}
-}
-
-/**
- * What each filtered session can see after a change, and the records that became visible to
- * someone. Those are read while the storage transaction is open: the broadcast runs after it.
- */
-interface VisibilityUpdate<R extends UnknownRecord> {
-	visibleIds: Map<string, Set<string>>
-	revealed: Map<string, R>
-}
-
-function collectRevealed<R extends UnknownRecord>(
-	update: VisibilityUpdate<R>,
-	before: ReadonlySet<string>,
-	after: ReadonlySet<string>,
-	records: TLRecordReader<R>
-) {
-	if (after === before) return
-	for (const id of after) {
-		if (before.has(id) || update.revealed.has(id)) continue
-		const record = records.get(id)
-		if (record) update.revealed.set(id, record)
 	}
 }
 
