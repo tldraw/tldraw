@@ -40,6 +40,7 @@ import {
 	getTlsyncProtocolVersion,
 	TLIncompatibilityReason,
 	TLObjectStoreAccess,
+	TLPushDenial,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
@@ -322,6 +323,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private readonly atomicPushes: boolean
 	private readonly sessionIdleTimeout: number
 
+	/** The lane gate: object-lane types follow `objectAccess`, the rest follow `isReadonly`. */
+	private canWriteType(session: RoomSession<R, SessionMeta>, typeName: string) {
+		return this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly
+	}
+
 	/**
 	 * Asks the room's `authorize` function about one request for one session. Shared by the write
 	 * path, the read path, and {@link TLSyncRoom.can}.
@@ -331,7 +337,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		request: AuthorizeRequest<R>,
 		get: AuthorizeGet
 	): AuthorizeDecision<R> {
-		return runAuthorize(this.authorizeFn!, request, {
+		return runAuthorize(this.authorizeFn ?? null, request, {
 			actor: session.meta,
 			get,
 			onError: (e) =>
@@ -360,7 +366,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.sessionId,
 				decision.reason ?? ''
 			)
-			this.onDeny?.()
+			this.onDeny?.({
+				action: request.action,
+				recordId: request.record.id,
+				...(decision.reason !== undefined && { reason: decision.reason }),
+			})
 			return 'deny'
 		}
 		if (request.action === 'delete') return null
@@ -382,8 +392,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return this.isValidCopy(decision.record) ? decision.record : null
 	}
 
-	/** Set during a push in atomic mode, so that the first denial can abort the whole push. */
-	private onDeny?: () => void
+	/** Set during a push: collects its denials for the push result, and in atomic mode aborts it. */
+	private onDeny?: (denial: TLPushDenial) => void
 
 	/** Whether a diff puts any record, so that its per-session views must read storage. */
 	private needsReadView(diff: TLSyncForwardDiff<R> | undefined) {
@@ -402,6 +412,42 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
+	 * Updates what a session holds of one stored record, and returns what to send it: `'same'` when
+	 * it already holds the stored record (so a patch of it applies), `'drop'` when it must get
+	 * nothing, `'remove'` when it may hold a record that it can no longer see, or else the record
+	 * or changed copy to send whole.
+	 */
+	private viewRecord(
+		session: { sessionId: string; meta: SessionMeta; held: HeldRecords<R> },
+		id: string,
+		record: R,
+		get: AuthorizeGet,
+		created?: ReadonlySet<string>
+	): R | 'same' | 'drop' | 'remove' {
+		const { held } = session
+		// `held` stores only hidden records and changed copies. After a full-view connect, a missing
+		// id means the client holds the stored record. A resumed session may hold anything.
+		const before = created?.has(id)
+			? 'none'
+			: (held.records.get(id) ?? (held.complete ? 'same' : undefined))
+		const sent = this.resolveRead(session, record, get)
+		if (sent === null) {
+			held.records.set(id, 'none')
+			return before === 'none' ? 'drop' : 'remove'
+		}
+		if (sent === 'same') {
+			if (held.complete) held.records.delete(id)
+			else held.records.set(id, 'same')
+			return before === 'same' ? 'same' : record
+		}
+		// A copy equal to the one the client holds is not sent again, so the client cannot tell
+		// when hidden fields change.
+		if (typeof before === 'object' && isEqual(before, sent)) return 'drop'
+		held.records.set(id, sent)
+		return sent
+	}
+
+	/**
 	 * Rewrites a diff into what one session receives, and records what it now holds. Returns the
 	 * same diff object when nothing in it changes for this session, so the shared network diff is
 	 * reused.
@@ -410,17 +456,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * holds the stored record. Otherwise the session gets the whole record, or a remove when it may
 	 * hold a record that it can no longer see. A changed copy equal to the one the client holds is
 	 * not sent again, so the client cannot tell when hidden fields change.
+	 *
+	 * `created` lists ids that did not exist before this diff. No session can hold them, so a hidden
+	 * one gets no remove, which would leak its id.
 	 */
 	private diffForSession(
 		session: { sessionId: string; meta: SessionMeta; held: HeldRecords<R> },
 		diff: TLSyncForwardDiff<R>,
-		get: AuthorizeGet | undefined
+		get: AuthorizeGet | undefined,
+		created?: ReadonlySet<string>
 	): TLSyncForwardDiff<R> {
 		if (!this.authorizeFn) return diff
 		const { held } = session
-		// `held` stores only hidden records and changed copies. After a full-view connect, a missing
-		// id means the client holds the stored record. A resumed session may hold anything.
-		const holds = (id: string) => held.records.get(id) ?? (held.complete ? 'same' : undefined)
 
 		let puts: TLSyncForwardDiff<R>['puts'] | null = null
 		const removes: string[] = []
@@ -437,22 +484,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// Presence goes to every session as it is. It is never a record that `authorize` sees.
 			if (record.typeName === presenceTypeName) continue
 			assert(get, 'authorize needs a record reader for this diff')
-			const before = holds(id)
-			const sent = this.resolveRead(session, record, get)
-			if (sent === null) {
+			const view = this.viewRecord(session, id, record, get, created)
+			if (view === 'remove') {
 				setPut(id, undefined)
-				if (before !== 'none') removes.push(id)
-				held.records.set(id, 'none')
-			} else if (sent === 'same') {
-				// a patch only applies to the stored record it was computed from
-				if (before !== 'same' && Array.isArray(put)) setPut(id, record)
-				if (held.complete) held.records.delete(id)
-				else held.records.set(id, 'same')
-			} else if (typeof before === 'object' && isEqual(before, sent)) {
+				removes.push(id)
+			} else if (view === 'drop') {
 				setPut(id, undefined)
-			} else {
-				setPut(id, sent)
-				held.records.set(id, sent)
+			} else if (view !== 'same' && view !== put) {
+				setPut(id, view)
 			}
 		}
 		for (const id of diff.deletes) {
@@ -481,8 +520,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	): boolean {
 		const session = this.sessions.get(sessionId)
 		if (!session) return false
+		// A write must pass the session's lane gate first, as it would in a push.
+		const isWrite = action === 'create' || action === 'update' || action === 'delete'
+		if (isWrite && record && !this.canWriteType(session, record.typeName)) return false
 		const request = { action, record, next: undefined } as AuthorizeRequest<R>
-		if (!this.authorizeFn) return action.includes(':') ? false : !!record
 		return this.storage.transaction((txn) =>
 			this.decide(session, request, (id: string) => txn.get(id))
 		).result.allowed
@@ -761,12 +802,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param sourceSessionId - Optional session ID to exclude from the broadcast
 	 * @param get - Reads stored records for `authorize`. Required when the room has one and the diff
 	 *              puts records.
+	 * @param created - Ids that the diff creates. A session that cannot read one gets no remove.
 	 */
 	private broadcastPatch(
 		diff: TLSyncForwardDiff<R>,
 		networkDiff?: NetworkDiff<R> | null,
 		sourceSessionId?: string,
-		get?: (id: string) => UnknownRecord | undefined
+		get?: (id: string) => UnknownRecord | undefined,
+		created?: ReadonlySet<string>
 	) {
 		// Computed once and shared by every session that needs no down-migration; the push path
 		// hands us the diff it already computed (in legacy append mode when needed), and re-deriving
@@ -782,7 +825,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				return
 			}
 
-			const view = this.diffForSession(session, diff, get)
+			const view = this.diffForSession(session, diff, get, created)
 			if (view !== diff && isEmptyForwardDiff(view)) return
 			const diffResult = this.migrateDiffOrRejectSession(
 				session.sessionId,
@@ -819,24 +862,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			for (const session of this.sessions.values()) {
 				if (session.state !== RoomSessionState.Connected) continue
 				if (sessionIds && !sessionIds.includes(session.sessionId)) continue
-				const { held } = session
 				const puts: TLSyncForwardDiff<R>['puts'] = {}
 				const deletes: string[] = []
 				for (const [id, put] of objectMapEntriesIterable(all.puts)) {
 					const record = Array.isArray(put) ? put[1] : put
-					const before = held.records.get(id) ?? (held.complete ? 'same' : undefined)
-					const sent = this.resolveRead(session, record, get)
-					if (sent === null) {
-						if (before !== 'none') deletes.push(id)
-						held.records.set(id, 'none')
-					} else if (sent === 'same') {
-						if (before !== 'same') puts[id] = record
-						if (held.complete) held.records.delete(id)
-						else held.records.set(id, 'same')
-					} else if (!(typeof before === 'object' && isEqual(before, sent))) {
-						puts[id] = sent
-						held.records.set(id, sent)
-					}
+					const view = this.viewRecord(session, id, record, get)
+					if (view === 'remove') deletes.push(id)
+					else if (view !== 'same' && view !== 'drop') puts[id] = view
 				}
 				const view = { puts, deletes }
 				if (isEmptyForwardDiff(view)) continue
@@ -1416,6 +1448,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>,
 		result: { docChanges: PushChanges<R>; presenceChanges: PushChanges<R> },
 		documentClock: number,
+		denials: TLPushDenial[],
 		get?: (id: string) => UnknownRecord | undefined
 	) {
 		const legacyAppendMode = !this.getCanEmitStringAppend()
@@ -1469,9 +1502,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		if (session && pushResult) {
+			if (denials.length && pushResult.type === 'push_result') pushResult.denials = denials
 			this._unsafe_sendMessage(session.sessionId, pushResult)
 		}
 		if (result.docChanges.diffs || result.presenceChanges.diffs) {
+			// The push path writes an existing record as a patch, so a whole-record put is a create.
+			const created = new Set<string>()
+			for (const [id, put] of objectMapEntriesIterable(result.docChanges.diffs?.diff.puts ?? {})) {
+				if (!Array.isArray(put)) created.add(id)
+			}
 			this.broadcastPatch(
 				{
 					puts: {
@@ -1488,7 +1527,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					...result.presenceChanges.diffs?.networkDiff,
 				},
 				session?.sessionId,
-				get
+				get,
+				created
 			)
 		}
 	}
@@ -1703,9 +1743,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// records by `objectAccess`. Denied ops are skipped (the client is corrected by the
 					// resulting discard/rebase push_result, exactly as whole-diff readonly skips were).
 					// Server-initiated pushes (no session) are always allowed.
-					const canWrite = (typeName: string) =>
-						!session ||
-						(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
+					const canWrite = (typeName: string) => !session || this.canWriteType(session, typeName)
 
 					// `authorize` runs for client pushes only. Server-initiated writes have no session.
 					const authorizing = session && this.authorizeFn ? session : null
@@ -1820,10 +1858,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				{ id: this.internalTxnId, emitChanges: 'when-different' }
 			)
 
-		// In atomic mode the first denial throws, which rolls the whole push back (D41).
-		if (this.atomicPushes && session && this.authorizeFn) {
-			this.onDeny = () => {
-				throw new AtomicPushDenied()
+		// The pushing client gets its denials with the push result. In atomic mode the first denial
+		// throws, which rolls the whole push back (D41).
+		const denials: TLPushDenial[] = []
+		if (session && this.authorizeFn) {
+			this.onDeny = (denial) => {
+				denials.push(denial)
+				if (this.atomicPushes) throw new AtomicPushDenied()
 			}
 		}
 		let txnResult: ReturnType<typeof runTransaction>
@@ -1837,6 +1878,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					clientClock: message.clientClock,
 					serverClock: this.lastDocumentClock,
 					action: 'discard',
+					denials,
 				})
 			}
 			return
@@ -1860,10 +1902,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// updates what its session holds, so it must run once, on the final diff.
 		if (this.needsReadView(result.docChanges.diffs?.diff)) {
 			this.storage.transaction((txn) =>
-				this.sendPushResults(session, message, result, documentClock, (id: string) => txn.get(id))
+				this.sendPushResults(session, message, result, documentClock, denials, (id: string) =>
+					txn.get(id)
+				)
 			)
 		} else {
-			this.sendPushResults(session, message, result, documentClock)
+			this.sendPushResults(session, message, result, documentClock, denials)
 		}
 
 		if (result.presenceChanges.diffs) {

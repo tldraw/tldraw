@@ -139,6 +139,8 @@ function isCustomAction(action: string): action is AuthorizeCustomAction {
  * Runs an {@link Authorize} function for one request, and normalizes the result. The sync server
  * and the editor both call this, so the defaults are the same on both sides:
  *
+ * - a record action with no record denies;
+ * - with no `authorize`, a record action is allowed and a custom action is denied;
  * - a throw denies, and is passed to `onError`;
  * - an abstain allows a record action, and denies a custom action;
  * - a replacement record with a different `id` or `typeName` denies.
@@ -146,17 +148,19 @@ function isCustomAction(action: string): action is AuthorizeCustomAction {
  * @public
  */
 export function runAuthorize<R extends UnknownRecord, Actor>(
-	authorize: Authorize<R, Actor>,
+	authorize: Authorize<R, Actor> | null,
 	request: AuthorizeRequest<R>,
 	env: { actor: Actor; get: AuthorizeGet; onError?(error: unknown): void },
 	depth = 0
 ): AuthorizeDecision<R> {
+	// A record action is always about a record: without one there is nothing to allow.
+	if (!isCustomAction(request.action) && !request.record) return { allowed: false }
+	if (!authorize) return { allowed: !isCustomAction(request.action) }
 	if (depth > MAX_DEPTH) {
 		env.onError?.(new Error(`authorize: can() nested more than ${MAX_DEPTH} levels`))
 		return { allowed: false }
 	}
 	const can = (action: AuthorizeRecordAction | AuthorizeCustomAction, record?: R) => {
-		if (!isCustomAction(action) && !record) return false
 		const nested = { action, record, next: undefined } as AuthorizeRequest<R>
 		return runAuthorize(authorize, nested, env, depth + 1).allowed
 	}

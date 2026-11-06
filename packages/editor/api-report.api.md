@@ -2813,6 +2813,12 @@ export class PermissionsManager extends EditorManager {
     getActor<Actor = unknown>(): Actor;
     getLastDenial(): null | TLPermissionDenial;
     isEnabled(): boolean;
+    isShapeLocked(shape: TLShape): boolean;
+    reportServerDenial(denial: {
+        action: AuthorizeRecordAction;
+        reason?: string;
+        recordId: string;
+    }): void;
     setActor(actor: unknown): void;
     // @internal
     startWriteGate(): void;
@@ -4640,6 +4646,8 @@ export interface TLPermissionDenial {
     reason: null | string;
     // (undocumented)
     recordId: TLRecord['id'];
+    // (undocumented)
+    source: 'editor' | 'server';
     // (undocumented)
     time: number;
 }

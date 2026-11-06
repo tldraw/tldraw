@@ -1323,17 +1323,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.operationChanges = new Map()
 		this.writeGateBatchDepth = 1
 		let changes: Map<IdOf<R>, { before: R | null; after: R | null }>
-		let result: T
 		try {
-			result = fn()
+			return fn()
 		} finally {
 			changes = this.operationChanges!
 			this.operationChanges = null
 			this.writeGateBatchDepth = 0
+			// Check even when `fn` throws: its earlier operations are already committed, and
+			// would otherwise sync unchecked. With callbacks off, the check's own writes are not
+			// gated again.
+			this.atomic(() => this.checkWriteGate(changes), false)
 		}
-		// With callbacks off, the check's own writes are not gated again.
-		this.atomic(() => this.checkWriteGate(changes), false)
-		return result
 	}
 
 	/** Runs the write gate on the operation that just ran, and reverts the operation if it fails. */
@@ -1344,6 +1344,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const checked: StoreWriteGateChange<R>[] = []
 		for (const change of changes.values()) {
 			const { before, after } = change
+			// A record created and deleted in the same operation is no change.
+			if (!before && !after) continue
 			if (before && after && isEqual(before, after)) continue
 			if (!documentTypes.has((after ?? before)!.typeName)) continue
 			checked.push(change)
@@ -1370,8 +1372,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const toRemove: IdOf<R>[] = []
 			const toPut: R[] = []
 			for (const { before, after } of changes.values()) {
-				if (!before) toRemove.push(after!.id)
-				else toPut.push(before)
+				if (before) toPut.push(before)
+				else if (after) toRemove.push(after.id)
 			}
 			if (toRemove.length) this.remove(toRemove)
 			if (toPut.length) this.put(toPut)

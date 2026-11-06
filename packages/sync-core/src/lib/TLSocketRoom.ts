@@ -348,7 +348,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
 	 *   - socket - WebSocket-like object for client communication
 	 *   - isReadonly - Whether the client can modify the document (defaults to false)
-	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write').
+	 *   - objectAccess - Write access for object-store lane record types. Defaults to 'read' for a
+	 *     read-only session and 'write' otherwise.
 	 *     Independent of isReadonly, so a session can be allowed to write objects (e.g. comments)
 	 *     without being allowed to edit the document.
 	 *   - meta - Additional session metadata (required if SessionMeta is not void)
@@ -381,7 +382,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			objectAccess?: TLObjectStoreAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		// A read-only session gets a read-only object lane unless the host says otherwise, so
+		// that a view-only link cannot comment by default.
+		const { sessionId, socket, isReadonly = false } = opts
+		const objectAccess = opts.objectAccess ?? (isReadonly ? 'read' : 'write')
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)

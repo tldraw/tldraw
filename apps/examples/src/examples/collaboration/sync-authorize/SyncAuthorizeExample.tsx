@@ -16,6 +16,7 @@ import {
 	createShapeId,
 	createUserId,
 	inlineBase64AssetStore,
+	react,
 	toRichText,
 	useEditor,
 	useValue,
@@ -23,6 +24,7 @@ import {
 import 'tldraw/tldraw.css'
 import { ACTORS, AGENT_FRAME_ID, Actor, authorize } from './classroom'
 import { connectLocal, createLocalRoom, schema } from './localRoom'
+import { STEPS } from './steps'
 import './sync-authorize.css'
 
 // There's a guide at the bottom of this file!
@@ -31,8 +33,21 @@ type Room = TLSocketRoom<TLRecord, Actor>
 
 const ActorContext = createContext<Actor>(ACTORS.teacher)
 
+const PANEL_IDS = ['panel-1', 'panel-2', 'panel-3'] as const
+
 export default function SyncAuthorizeExample() {
 	const [atomicPushes, setAtomicPushes] = useState(false)
+	const [stepIndex, setStepIndex] = useState(0)
+	const [actors, setActors] = useState(() => STEPS[0].panels.map((id) => ACTORS[id]))
+	const [checks, setChecks] = useState([true, true, true])
+
+	// [12]
+	const goTo = (index: number) => {
+		const step = STEPS[index]
+		setStepIndex(index)
+		setActors(step.panels.map((id) => ACTORS[id]))
+		setChecks(step.checks ?? [true, true, true])
+	}
 
 	// [1]
 	const [room, setRoom] = useState<Room | null>(null)
@@ -45,11 +60,8 @@ export default function SyncAuthorizeExample() {
 	return (
 		<div className="sync-authorize">
 			<div className="sync-authorize__bar">
-				<span>
-					One <code>authorize</code> function runs in the sync room and in each editor. Switch a
-					panel&apos;s user to see what they can see and do.
-				</span>
-				<label>
+				<Walkthrough index={stepIndex} onGoTo={goTo} />
+				<label className="sync-authorize__atomic">
 					<input
 						type="checkbox"
 						checked={atomicPushes}
@@ -60,39 +72,80 @@ export default function SyncAuthorizeExample() {
 			</div>
 			{room && (
 				<div className="sync-authorize__panels">
-					<Panel key="1" room={room} sessionId="panel-1" initialActor={ACTORS.teacher} seed />
-					<Panel key="2" room={room} sessionId="panel-2" initialActor={ACTORS.ana} />
-					<Panel key="3" room={room} sessionId="panel-3" initialActor={ACTORS.ben} />
+					{PANEL_IDS.map((sessionId, i) => (
+						<Panel
+							key={sessionId}
+							room={room}
+							sessionId={sessionId}
+							actor={actors[i]}
+							onActorChange={(next) => setActors((all) => all.map((a, j) => (j === i ? next : a)))}
+							editorChecks={checks[i]}
+							onEditorChecksChange={(next) =>
+								setChecks((all) => all.map((c, j) => (j === i ? next : c)))
+							}
+							seed={i === 0}
+						/>
+					))}
 				</div>
 			)}
 		</div>
 	)
 }
 
+function Walkthrough({ index, onGoTo }: { index: number; onGoTo(index: number): void }) {
+	const step = STEPS[index]
+	return (
+		<section className="sync-authorize__step" aria-live="polite">
+			<div className="sync-authorize__step-nav">
+				<button disabled={index === 0} onClick={() => onGoTo(index - 1)}>
+					Back
+				</button>
+				<span>
+					Step {index + 1} of {STEPS.length}
+				</span>
+				<button disabled={index === STEPS.length - 1} onClick={() => onGoTo(index + 1)}>
+					Next
+				</button>
+			</div>
+			<div className="sync-authorize__step-body">
+				<strong>{step.title}</strong>
+				<p>{step.rule}</p>
+				<ol>
+					{step.try.map((line) => (
+						<li key={line}>{line}</li>
+					))}
+				</ol>
+			</div>
+		</section>
+	)
+}
+
 function Panel({
 	room,
 	sessionId,
-	initialActor,
+	actor,
+	onActorChange,
+	editorChecks,
+	onEditorChecksChange,
 	seed = false,
 }: {
 	room: Room
 	sessionId: string
-	initialActor: Actor
+	actor: Actor
+	onActorChange(actor: Actor): void
+	editorChecks: boolean
+	onEditorChecksChange(on: boolean): void
 	seed?: boolean
 }) {
-	const [actor, setActor] = useState(initialActor)
 	const actorRef = useRef(actor)
 	const [editor, setEditor] = useState<Editor | null>(null)
-	const [editorChecks, setEditorChecks] = useState(true)
 
 	// [2]
-	const currentUser = useMemo(
-		() =>
-			atom(
-				'current user',
-				UserRecordType.create({ id: createUserId(initialActor.userId), name: initialActor.name })
-			),
-		[initialActor]
+	const [currentUser] = useState(() =>
+		atom(
+			'current user',
+			UserRecordType.create({ id: createUserId(actor.userId), name: actor.name })
+		)
 	)
 	const connect = useCallback(
 		() => connectLocal(room, sessionId, actorRef.current),
@@ -106,19 +159,19 @@ function Panel({
 	})
 
 	// [3]
-	const changeActor = (next: Actor) => {
-		setActor(next)
-		actorRef.current = next
-		currentUser.set(UserRecordType.create({ id: createUserId(next.userId), name: next.name }))
-		room.updateSessionMeta(sessionId, next)
-	}
+	useEffect(() => {
+		if (actorRef.current === actor) return
+		actorRef.current = actor
+		currentUser.set(UserRecordType.create({ id: createUserId(actor.userId), name: actor.name }))
+		room.updateSessionMeta(sessionId, actor)
+	}, [actor, currentUser, room, sessionId])
 
 	return (
 		<div className="sync-authorize__panel">
 			<div className="sync-authorize__header">
 				<select
 					value={actor.userId}
-					onChange={(e) => changeActor(ACTORS[e.target.value])}
+					onChange={(e) => onActorChange(ACTORS[e.target.value])}
 					aria-label="User"
 				>
 					{Object.values(ACTORS).map((a) => (
@@ -133,7 +186,7 @@ function Panel({
 					<input
 						type="checkbox"
 						checked={editorChecks}
-						onChange={(e) => setEditorChecks(e.target.checked)}
+						onChange={(e) => onEditorChecksChange(e.target.checked)}
 					/>
 					Editor checks
 				</label>
@@ -150,6 +203,15 @@ function Panel({
 						overrides={[commentToolOverrides]}
 						onMount={(editor) => {
 							setEditor(editor)
+							// [11]
+							editor.disposables.add(
+								react('tool gate', () => {
+									const tool = editor.getCurrentToolId()
+									if (editor.permissions.isEnabled() && !editor.permissions.can(`tool:${tool}`)) {
+										editor.setCurrentTool('select')
+									}
+								})
+							)
 							if (seed) seedRoom(room, editor)
 							editor.setCamera({ x: 40, y: 80, z: 0.6 })
 						}}
@@ -213,7 +275,8 @@ function DenialLine({ editor }: { editor: Editor }) {
 		<div className="sync-authorize__denial">
 			{denial ? (
 				<>
-					Denied {denial.action}: {denial.reason ?? 'no reason'}
+					{denial.source === 'server' ? 'The room denied' : 'The editor denied'} {denial.action}:{' '}
+					{denial.reason ?? 'no reason'}
 				</>
 			) : (
 				'No denied writes yet'
@@ -349,7 +412,9 @@ client is not a security boundary.
 action. The bot's button writes one shape inside its frame and one outside: the second is denied.
 
 [6]
-The last write that the editor reverted, and the reason that the rule gave.
+The last denied write, and the reason that the rule gave. With editor checks on, the editor denies
+the write before it is sent. With them off, the room denies it, sends the reason back with the push
+result, and `useSync` gives it to `editor.permissions`.
 
 [7]
 The toolbar shows only the tools that `tool:<id>` allows. A shape that the actor cannot update
@@ -370,4 +435,13 @@ Turn off "Editor checks" to see what the room alone enforces. The editor then wr
 user does, and the room corrects it: a denied shape disappears a moment later. With the checks off,
 draw an arrow from your shape to the teacher's text. The room stores the arrow without its binding,
 or, with atomic pushes, rejects the whole arrow.
+
+[11]
+The toolbar hides the tools that the rules deny, but a keyboard shortcut can still select one. This
+reaction puts the user back on the select tool. It is UX only: the room denies the tool's writes
+anyway.
+
+[12]
+The walkthrough has one step per use case (see `steps.ts`). Each step sets the user and the editor
+checks of each panel. A user change goes through `updateSessionMeta`, as in [3].
 */

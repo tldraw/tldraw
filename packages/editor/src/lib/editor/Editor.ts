@@ -5806,11 +5806,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
 		// A shape that the actor may not change behaves as locked, so the UI never offers an edit
-		// that the permission rules would revert.
-		if (this.permissions.isEnabled() && !this.permissions.can('update', _shape)) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		// that the permission rules would revert. Only the shape itself counts: the actor's own
+		// shape inside someone else's frame stays editable.
+		if (this.permissions.isShapeLocked(_shape)) return true
+		return this._isShapeOrAncestorLockedByProp(_shape)
+	}
+
+	private _isShapeOrAncestorLockedByProp(shape: TLShape | undefined): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this._isShapeOrAncestorLockedByProp(this.getShapeParent(shape))
 	}
 
 	/**
@@ -5984,9 +5990,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
 			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) continue
 			if (
-				((shape.isLocked ||
-					(this.permissions.isEnabled() && !this.permissions.can('update', shape))) &&
-					!hitLocked) ||
+				((shape.isLocked || this.permissions.isShapeLocked(shape)) && !hitLocked) ||
 				this.isShapeHidden(shape) ||
 				this.isShapeOfType(shape, 'group')
 			) {

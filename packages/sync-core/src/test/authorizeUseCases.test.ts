@@ -148,7 +148,7 @@ const classroom: Authorize<TLRecord, Actor> = (ctx) => {
 				return ctx.can('cards:reveal', record) || { deny: 'Only the teacher reveals cards' }
 			}
 			const parent = isShapeId(next.parentId) ? ctx.get(next.parentId) : undefined
-			if (parent && parent.meta.ownerId !== actor.userId) {
+			if (next.parentId !== record.parentId && parent && parent.meta.ownerId !== actor.userId) {
 				return { deny: "You cannot move into someone else's frame" }
 			}
 			if (actor.frameId && !isInside(next, actor.frameId, ctx.get)) {
@@ -196,6 +196,8 @@ class Peer {
 			onSyncError: (reason) => {
 				throw new Error('onSyncError:' + reason)
 			},
+			// as useSync does
+			onPushDenied: (denials) => this.editor.permissions.reportServerDenial(denials.at(-1)!),
 			onLoad: () => {
 				this.editor = new Editor({
 					shapeUtils: defaultShapeUtils,
@@ -333,6 +335,13 @@ describe('file read and write control', () => {
 		flush2()
 		expect(stored2(createShapeId('g2'))).toBeUndefined()
 		expect(g2.has(createShapeId('g2'))).toBe(false)
+		// the room's reason reaches the editor, as a local denial would
+		expect(g2.editor.permissions.getLastDenial()).toMatchObject({
+			action: 'create',
+			recordId: createShapeId('g2'),
+			reason: 'You can only view this file',
+			source: 'server',
+		})
 		expect(stored(createShapeId('g1'))).toBeUndefined()
 	})
 
@@ -365,6 +374,23 @@ describe('page read control', () => {
 		flush()
 		expect(b.has(createShapeId('red-box'))).toBe(false)
 		expect((a.get(createShapeId('red-box')) as TLShape).x).toBe(50)
+	})
+
+	it('sends no message about a hidden record when it is created', () => {
+		const { join, flush } = setup()
+		const t = join(teacher)
+		const b = join(ben)
+		const received: string[] = []
+		const onReceive = b.pair.callbacks.onReceiveMessage!
+		b.pair.callbacks.onReceiveMessage = (msg) => {
+			received.push(JSON.stringify(msg))
+			onReceive(msg)
+		}
+		t.editor.createPage(redPage)
+		t.editor.createShapes([box('red-box', redPage.id)])
+		flush()
+		// a remove for an id ben never held would tell him that the record exists
+		expect(received.filter((m) => m.includes('red'))).toEqual([])
 	})
 
 	it('removes a page at once when a live role change takes the team away', () => {
@@ -619,6 +645,28 @@ describe('agents', () => {
 		expect(bot.editor.permissions.getLastDenial()?.reason).toBe(
 			'Agents write only inside their frame'
 		)
+	})
+
+	it('treats only the shape itself as locked, not its children', () => {
+		const { join, flush } = setup()
+		const t = join(teacher)
+		const frameId = createShapeId('agent-frame')
+		t.editor.createShapes([
+			{
+				id: frameId,
+				type: 'frame',
+				parentId: t.editor.getCurrentPageId(),
+				props: { w: 500, h: 500 },
+			},
+		])
+		flush()
+		const bot = join({ userId: 'bot', role: 'agent', frameId })
+		bot.editor.createShapes([box('inside', frameId)])
+		// the teacher's frame is locked for the bot, but the bot's own box inside it is not
+		expect(bot.editor.isShapeOrAncestorLocked(frameId)).toBe(true)
+		expect(bot.editor.isShapeOrAncestorLocked(createShapeId('inside'))).toBe(false)
+		bot.editor.updateShapes([{ id: createShapeId('inside'), type: 'geo', x: 50 }])
+		expect((bot.get(createShapeId('inside')) as TLShape).x).toBe(50)
 	})
 })
 

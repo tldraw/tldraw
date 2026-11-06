@@ -411,7 +411,7 @@ export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<
 export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;
 
 // @public
-export function runAuthorize<R extends UnknownRecord, Actor>(authorize: Authorize<R, Actor>, request: AuthorizeRequest<R>, env: {
+export function runAuthorize<R extends UnknownRecord, Actor>(authorize: Authorize<R, Actor> | null, request: AuthorizeRequest<R>, env: {
     actor: Actor;
     get: AuthorizeGet;
     onError?(error: unknown): void;

@@ -532,7 +532,15 @@ export class TLFileDurableObject extends DurableObject {
 							resumes.push({
 								sessionId: attachment.sessionId,
 								socket: ws,
-								snapshot: attachment.snapshot,
+								// Attachments written before comment access followed the readonly
+								// lane may carry objectAccess 'write' on a view-only session.
+								snapshot: {
+									...attachment.snapshot,
+									objectAccess: getObjectAccess({
+										userId: attachment.meta.userId,
+										isReadonly: attachment.snapshot.isReadonly,
+									}),
+								},
 								meta: attachment.meta,
 							})
 						}

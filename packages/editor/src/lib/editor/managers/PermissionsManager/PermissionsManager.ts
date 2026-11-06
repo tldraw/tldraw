@@ -8,7 +8,7 @@ import {
 	runAuthorize,
 	StoreWriteGateChange,
 } from '@tldraw/store'
-import { TLRecord } from '@tldraw/tlschema'
+import { TLRecord, TLShape } from '@tldraw/tlschema'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
 
@@ -25,7 +25,8 @@ export interface TLEditorPermissions<Actor = any> {
 }
 
 /**
- * The last write that the editor reverted, and why.
+ * The last write that `authorize` denied, and why. `source` is `'editor'` when the editor
+ * reverted it at once, and `'server'` when the sync room denied it and the client rolled it back.
  *
  * @public
  */
@@ -33,6 +34,7 @@ export interface TLPermissionDenial {
 	action: AuthorizeRecordAction
 	recordId: TLRecord['id']
 	reason: string | null
+	source: 'editor' | 'server'
 	time: number
 }
 
@@ -54,6 +56,12 @@ export class PermissionsManager extends EditorManager {
 	private readonly _authorize: Authorize<TLRecord, unknown> | null
 	private readonly _actor: Atom<unknown>
 	private readonly _lastDenial = atom<TLPermissionDenial | null>('lastDenial', null)
+	// Hit tests ask this for every candidate shape on every pointer move, so it is cached per
+	// shape and recomputed only when the shape, a record the rule reads, or the actor changes.
+	private readonly _lockedCache = this.editor.store.createComputedCache<boolean, TLShape>(
+		'permissions locked',
+		(shape) => !this.can('update', shape)
+	)
 
 	constructor(editor: Editor, permissions?: TLEditorPermissions) {
 		super(editor)
@@ -100,10 +108,6 @@ export class PermissionsManager extends EditorManager {
 		record?: TLRecord,
 		next?: TLRecord
 	): AuthorizeDecision<TLRecord> {
-		if (!this._authorize) {
-			return action.includes(':') ? { allowed: false } : { allowed: true }
-		}
-		if (!action.includes(':') && !record) return { allowed: false }
 		const request = { action, record, next } as AuthorizeRequest<TLRecord>
 		return runAuthorize(this._authorize, request, {
 			actor: this._actor.get(),
@@ -131,9 +135,33 @@ export class PermissionsManager extends EditorManager {
 		return this.check(action, record, next).allowed
 	}
 
-	/** The last local write that `authorize` denied, for a toast or a status line. */
+	/**
+	 * Whether the actor may not change this shape at all (`update` with no `next`). The editor
+	 * treats such a shape as locked: it cannot be selected, moved, or deleted. Always false when
+	 * the editor has no `authorize`.
+	 */
+	isShapeLocked(shape: TLShape): boolean {
+		if (!this._authorize) return false
+		return this._lockedCache.get(shape.id) ?? false
+	}
+
+	/** The last write that `authorize` denied, here or on the server, for a toast or a status line. */
 	getLastDenial() {
 		return this._lastDenial.get()
+	}
+
+	/**
+	 * Records a write that the sync server denied, so that the UI shows it as it shows a local
+	 * denial. `useSync` calls this for each denial that the room sends back.
+	 */
+	reportServerDenial(denial: { action: AuthorizeRecordAction; recordId: string; reason?: string }) {
+		this._lastDenial.set({
+			action: denial.action,
+			recordId: denial.recordId as TLRecord['id'],
+			reason: denial.reason ?? null,
+			source: 'server',
+			time: Date.now(),
+		})
 	}
 
 	private checkOperation(changes: readonly StoreWriteGateChange<TLRecord>[]): boolean | TLRecord[] {
@@ -158,6 +186,7 @@ export class PermissionsManager extends EditorManager {
 					action: request.action as AuthorizeRecordAction,
 					recordId: request.record.id,
 					reason: decision.reason ?? null,
+					source: 'editor',
 					time: Date.now(),
 				})
 				return false

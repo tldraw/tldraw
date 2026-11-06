@@ -9,10 +9,45 @@
 .sync-authorize__bar {
 	display: flex;
 	gap: 16px;
-	align-items: center;
+	align-items: flex-start;
 	justify-content: space-between;
 	padding: 8px 12px;
 	border-bottom: 1px solid #ddd;
+}
+
+.sync-authorize__step {
+	flex: 1;
+	display: flex;
+	gap: 16px;
+	min-width: 0;
+}
+
+.sync-authorize__step-nav {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+	flex-shrink: 0;
+	white-space: nowrap;
+}
+
+.sync-authorize__step-body {
+	min-width: 0;
+	max-width: 90ch;
+}
+
+.sync-authorize__step-body p {
+	margin: 2px 0 4px;
+	color: #444;
+}
+
+.sync-authorize__step-body ol {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.sync-authorize__atomic {
+	flex-shrink: 0;
+	white-space: nowrap;
 }
 
 .sync-authorize__panels {
@@ -49,6 +84,12 @@
 }
 
 @media (max-width: 800px) {
+	.sync-authorize__bar,
+	.sync-authorize__step {
+		flex-direction: column;
+		gap: 8px;
+	}
+
 	.sync-authorize__panels {
 		grid-template-columns: 1fr;
 		grid-auto-rows: minmax(320px, 1fr);

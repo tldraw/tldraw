@@ -441,6 +441,15 @@ export type TLPresenceMode =
 | 'solo'
 /** Full presence sharing - cursors and selections visible to others */;
 
+// @public
+export interface TLPushDenial {
+    // (undocumented)
+    action: 'create' | 'delete' | 'update';
+    reason?: string;
+    // (undocumented)
+    recordId: string;
+}
+
 // @internal
 export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
@@ -575,6 +584,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 
 // @internal
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
+    denials?: TLPushDenial[];
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
     };
@@ -641,6 +651,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         }): void;
         onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
+        onPushDenied?(denials: TLPushDenial[]): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         presenceMode?: Signal<TLPresenceMode>;

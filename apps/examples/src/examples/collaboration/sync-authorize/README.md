@@ -25,14 +25,6 @@ Control who can see and change what with one `authorize` function, on the sync s
 
 Three clients share one sync room in this page. One `authorize` function answers every question: may this user read this record, create it, update it, delete it, or do a custom action such as `cards:reveal` or `tool:draw`. The room runs it for every read and write. Each editor runs it too, through the `permissions` prop, to show the right tools, to make other users' shapes act locked, and to revert a denied write at once.
 
-Things to try:
+The top bar is a guided walkthrough with one step per use case: a view-only share link, team pages, a locked page, shapes that only their owner can change, hidden cards (a plugin type with a custom action), comments, an agent that writes only inside its frame, and pushes that the room applies in part. Each step sets the user of each panel, says which rule in `classroom.ts` answers the use case, and lists what to try.
 
-- Draw as Ana, then try to move the shape as Ben. Ben cannot select it.
-- Open the page menu as Ana and as Ben. Each sees only their own team page.
-- Switch a panel to the view-only link. The toolbar shrinks, and every write is denied.
-- Look at the cards: each student sees only their own card's text until the teacher reveals the cards.
-- Switch a panel to the bot and press "Run bot". Only the shape inside the bot's frame stays.
-- As Ana, draw an arrow to the teacher's text. It does not bind, because the text acts locked for Ana.
-- Comment as Ana. Ben can reply, but only Ana can edit or delete her comment. The teacher can delete any comment. The guest and the bot cannot comment.
-- Turn off "Editor checks" in a panel. The editor then sends every write, and the room corrects it: try to move the teacher's text, and it moves back.
-- With editor checks off, draw an arrow from your shape to the teacher's text. The room stores the arrow without its binding. Turn on atomic pushes, and the room rejects the whole arrow.
+Turn off "Editor checks" in a panel to see what the room alone enforces. The editor then sends every write, and the room corrects it and sends back the reason.
