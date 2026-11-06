@@ -147,10 +147,11 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
 			/**
 			 * What the client holds of each record that has a `beforeRead` hook: the stored record
-			 * (`same`), a changed copy (`changed`), or nothing (`none`). A missing id is unknown, and
-			 * the room assumes the client may hold it. Empty for a resumed session.
+			 * (`same`), the changed copy it was sent, or nothing (`none`). `complete` is true after a
+			 * full-view connect, where a missing id means `none`. A resumed session is incomplete,
+			 * so a missing id means the client may hold the record.
 			 *
 			 * @internal
 			 */
-			held: Map<string, 'same' | 'changed' | 'none'>
+			held: { complete: boolean; records: Map<string, 'same' | 'none' | R> }
 	  })

@@ -266,7 +266,10 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
-    held: Map<string, 'changed' | 'none' | 'same'>;
+    held: {
+        complete: boolean;
+        records: Map<string, 'none' | 'same' | R>;
+    };
     state: typeof RoomSessionState.Connected;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;

@@ -1057,28 +1057,52 @@ describe('beforeRead', () => {
 			])
 		})
 
-		it('sends the whole changed copy on every change', () => {
-			const { room } = roomWith()
+		it('sends a changed copy only when it differs from the one the client holds', () => {
+			// keeps the first letter, so some title changes change the copy and some do not
+			const { room } = roomWith({
+				doc: ({ record }: { record: DocRecord }) => ({ ...record, title: record.title[0] + '***' }),
+			})
 			connectSession(room, 'alice', { meta: { role: 'owner' } })
 			const carol = connectSession(room, 'carol', { meta: { role: 'masked' } })
+			const title = (t: string) =>
+				({ [plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, t] }] }) as any
 
-			push(room, 'alice', {
-				[plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }],
-			})
+			push(room, 'alice', title('other'), 1)
+			push(room, 'alice', title('oops'), 2)
+			push(room, 'alice', title('xyz'), 3)
 
 			expect(patches(room, 'carol', carol)).toEqual([
-				{ [plain.id]: [RecordOpType.Put, { ...plain, title: '***' }] },
+				{ [plain.id]: [RecordOpType.Put, { ...plain, title: 'o***' }] },
+				{ [plain.id]: [RecordOpType.Put, { ...plain, title: 'x***' }] },
 			])
 		})
 
-		it('sends server writes through the hooks too', () => {
-			const { room, storage } = roomWith()
+		it('sends nothing, not even a remove, for a new record the client may not see', () => {
+			const { room } = roomWith()
+			connectSession(room, 'alice', { meta: { role: 'owner' } })
 			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
 			const created = Doc.create({ title: 'secret new' })
 
-			storage.transaction((txn) => txn.set(created.id, created))
+			push(room, 'alice', { [created.id]: [RecordOpType.Put, created] }, 1)
+			push(room, 'alice', { [created.id]: [RecordOpType.Remove] }, 2)
 
 			expect(patches(room, 'bob', bob)).toEqual([])
+		})
+
+		it('sends server writes through the hooks too', async () => {
+			const { room, storage } = roomWith()
+			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+			const hidden = Doc.create({ title: 'secret new' })
+			const shown = Doc.create({ title: 'plain new' })
+
+			storage.transaction((txn) => {
+				txn.set(hidden.id, hidden)
+				txn.set(shown.id, shown)
+			})
+			// the room hears about storage writes on a microtask
+			await new Promise((r) => setTimeout(r, 0))
+
+			expect(patches(room, 'bob', bob)).toEqual([{ [shown.id]: [RecordOpType.Put, shown] }])
 		})
 
 		it('leaves types without a hook on the shared path', () => {
@@ -1130,7 +1154,7 @@ describe('beforeRead', () => {
 	})
 
 	describe('push results', () => {
-		it('removes a create that the pushing client may not see', () => {
+		it('discards a create that the pushing client may not see', () => {
 			const { room, storage } = roomWith()
 			const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
 			const created = Doc.create({ title: 'secret mine' })
@@ -1138,12 +1162,11 @@ describe('beforeRead', () => {
 			push(room, 'bob', { [created.id]: [RecordOpType.Put, created] })
 
 			expect(storedIds(storage)).toContain(created.id)
-			expect(lastPushResult(bob)).toMatchObject({
-				action: { rebaseWithDiff: { [created.id]: [RecordOpType.Remove] } },
-			})
+			// a discard undoes the create on the client, so it needs no remove
+			expect(lastPushResult(bob)).toMatchObject({ action: 'discard' })
 		})
 
-		it('corrects the pushing client to its changed copy, and keeps the stored fields', () => {
+		it('discards an edit that does not change the copy the pushing client holds', () => {
 			const { room, storage } = roomWith()
 			const carol = connectSession(room, 'carol', { meta: { role: 'masked' } })
 
@@ -1155,8 +1178,22 @@ describe('beforeRead', () => {
 				...plain,
 				title: 'mine',
 			})
+			// a discard puts the client back on the copy it holds
+			expect(lastPushResult(carol)).toMatchObject({ action: 'discard' })
+		})
+
+		it('corrects the pushing client to a changed copy that differs from the one it holds', () => {
+			const { room } = roomWith({
+				doc: ({ record }: { record: DocRecord }) => ({ ...record, title: record.title[0] + '***' }),
+			})
+			const carol = connectSession(room, 'carol', { meta: { role: 'masked' } })
+
+			push(room, 'carol', {
+				[plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'zebra'] }],
+			})
+
 			expect(lastPushResult(carol)).toMatchObject({
-				action: { rebaseWithDiff: { [plain.id]: [RecordOpType.Put, { ...plain, title: '***' }] } },
+				action: { rebaseWithDiff: { [plain.id]: [RecordOpType.Put, { ...plain, title: 'z***' }] } },
 			})
 		})
 

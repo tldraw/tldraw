@@ -268,7 +268,10 @@ export function composeBeforeWrite<R extends UnknownRecord, SessionMeta>(
 }
 
 /** What a client holds of each record that has a `beforeRead` hook. */
-type HeldRecords = Map<string, 'same' | 'changed' | 'none'>
+type HeldRecords<R extends UnknownRecord = UnknownRecord> = Extract<
+	RoomSession<R, unknown>,
+	{ state: 'connected' }
+>['held']
 
 interface PushChanges<R extends UnknownRecord> {
 	diffs: {
@@ -565,7 +568,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>
-	private readonly beforeRead?: TLBeforeReadHooks<R, SessionMeta>
 	private readonly readHooks = new Map<
 		string,
 		ReturnType<TLSyncRoom<R, SessionMeta>['wrapReadHook']>
@@ -641,73 +643,91 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				this.log?.error?.('beforeRead hook changed id or typeName; sending nothing', args.record.id)
 				return null
 			}
-			try {
-				// The client validates what it receives, and an invalid record breaks its store.
-				getOwnProperty(this.schema.types, typeName)?.validate(result)
-			} catch (e) {
-				this.log?.error?.('beforeRead hook returned an invalid record; sending nothing', e)
-				return null
-			}
 			return result
+		}
+	}
+
+	/** Whether a changed copy may be sent. The client validates what it receives, and an invalid record breaks its store. */
+	private isValidCopy(copy: R) {
+		try {
+			getOwnProperty(this.schema.types, copy.typeName)?.validate(copy)
+			return true
+		} catch (e) {
+			this.log?.error?.('beforeRead hook returned an invalid record; sending nothing', e)
+			return false
 		}
 	}
 
 	/**
 	 * Rewrites a diff into what one session receives, and records what it now holds. Returns the
-	 * same diff object when no record in it has a `beforeRead` hook.
+	 * same diff object when nothing in it changes for this session.
 	 *
 	 * A patch is only valid against the record the client holds, so it is kept only when the client
-	 * holds the stored record. Otherwise the session gets the whole record, or a remove when it
-	 * may hold a record that it can no longer see. `fresh` is for a connect, where the client
-	 * holds nothing.
+	 * holds the stored record. Otherwise the session gets the whole record, or a remove when it may
+	 * hold a record that it can no longer see. A changed copy equal to the one the client holds is
+	 * not sent again, so the client cannot tell when hidden fields change.
 	 */
 	private diffForSession(
-		session: { sessionId: string; isReadonly: boolean; meta: SessionMeta; held: HeldRecords },
+		session: { sessionId: string; isReadonly: boolean; meta: SessionMeta; held: HeldRecords<R> },
 		diff: TLSyncForwardDiff<R>,
-		get: ((id: string) => UnknownRecord | undefined) | undefined,
-		mode: 'fresh' | 'update' = 'update'
+		get: ((id: string) => UnknownRecord | undefined) | undefined
 	): TLSyncForwardDiff<R> {
-		if (!this.beforeRead) return diff
+		if (this.readHooks.size === 0) return diff
 		const { held } = session
-		const holds = (id: string) => held.get(id) ?? (mode === 'fresh' ? 'none' : undefined)
+		// After a full-view connect the room has decided every hooked record, so a new one is not
+		// held. A resumed session may hold anything.
+		const holds = (id: string) => held.records.get(id) ?? (held.complete ? 'none' : undefined)
 		const hookSession = {
 			sessionId: session.sessionId,
 			isReadonly: session.isReadonly,
 			meta: session.meta,
 		}
 
-		let result: TLSyncForwardDiff<R> | null = null
-		const view = () => (result ??= { puts: { ...diff.puts }, deletes: [...diff.deletes] })
+		let puts: TLSyncForwardDiff<R>['puts'] | null = null
+		const removes: string[] = []
+		const skipDeletes = new Set<string>()
+		const setPut = (id: string, put: R | undefined) => {
+			puts ??= { ...diff.puts }
+			if (put) puts[id] = put
+			else delete puts[id]
+		}
 
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 			const record = Array.isArray(put) ? put[1] : put
 			const hook = this.readHooks.get(record.typeName)
 			if (!hook) continue
 			assert(get, 'beforeRead needs a record reader for this diff')
-			const sent = hook({ session: hookSession, record, get } as Parameters<typeof hook>[0])
-			const out = view()
+			const held_ = holds(id)
+			let sent = hook({ session: hookSession, record, get } as Parameters<typeof hook>[0])
+			if (sent !== null && sent !== 'same' && !this.isValidCopy(sent)) sent = null
 			if (sent === null) {
-				delete out.puts[id]
-				if (holds(id) !== 'none') out.deletes.push(id)
-				held.set(id, 'none')
+				setPut(id, undefined)
+				if (held_ !== 'none') removes.push(id)
+				held.records.set(id, 'none')
 			} else if (sent === 'same') {
-				if (holds(id) !== 'same') out.puts[id] = record
-				held.set(id, 'same')
+				// a patch only applies to the stored record it was computed from
+				if (held_ !== 'same' && Array.isArray(put)) setPut(id, record)
+				held.records.set(id, 'same')
+			} else if (typeof held_ === 'object' && isEqual(held_, sent)) {
+				setPut(id, undefined)
 			} else {
-				out.puts[id] = sent
-				held.set(id, 'changed')
+				setPut(id, sent)
+				held.records.set(id, sent)
 			}
 		}
 		for (const id of diff.deletes) {
-			if (!held.has(id)) continue
+			const held_ = held.records.get(id)
+			if (held_ === undefined) continue
 			// A record the client never held needs no remove.
-			if (held.get(id) === 'none') {
-				const out = view()
-				out.deletes = out.deletes.filter((d) => d !== id)
-			}
-			held.delete(id)
+			if (held_ === 'none') skipDeletes.add(id)
+			held.records.delete(id)
 		}
-		return result ?? diff
+
+		if (!puts && removes.length === 0 && skipDeletes.size === 0) return diff
+		return {
+			puts: puts ?? diff.puts,
+			deletes: [...diff.deletes.filter((id) => !skipDeletes.has(id)), ...removes],
+		}
 	}
 
 	constructor(opts: {
@@ -742,7 +762,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.beforeWrite = opts.beforeWrite
-		this.beforeRead = opts.beforeRead
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -792,13 +811,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				`TLSyncRoom: beforeWrite['${this.presenceType.typeName}'] is a presence type; presence records are not authorized`
 			)
 		}
-		if (this.presenceType && this.beforeRead) {
+		if (this.presenceType && opts.beforeRead) {
 			assert(
-				!getOwnProperty(this.beforeRead, this.presenceType.typeName),
+				!getOwnProperty(opts.beforeRead, this.presenceType.typeName),
 				`TLSyncRoom: beforeRead['${this.presenceType.typeName}'] is a presence type; presence records are not filtered`
 			)
 		}
-		for (const [typeName, hook] of Object.entries(this.beforeRead ?? {})) {
+		for (const [typeName, hook] of Object.entries(opts.beforeRead ?? {})) {
 			if (hook) this.readHooks.set(typeName, this.wrapReadHook(typeName, hook as any))
 		}
 
@@ -1167,7 +1186,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			lastInteractionTime: Date.now(),
 			debounceTimer: null,
 			outstandingDataMessages: [],
-			held: new Map(),
+			held: { complete: false, records: new Map() },
 			meta,
 			isReadonly,
 			objectAccess: objectAccess ?? 'write',
@@ -1495,7 +1514,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const requiresDownMigrations = migrations.value.length > 0
 
-		const held: HeldRecords = new Map()
+		const held: HeldRecords<R> = { complete: true, records: new Map() }
 		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
@@ -1521,10 +1540,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.broadcastChanges(txn)
 			// With read hooks, what the client kept from its last connection may no longer be what
 			// it can see, so it always gets a full view.
-			const docChanges = txn.getChangesSince(this.beforeRead ? -1 : message.lastServerClock)
+			const docChanges = txn.getChangesSince(this.readHooks.size > 0 ? -1 : message.lastServerClock)
 			const docView =
-				docChanges && this.beforeRead
-					? this.diffForSession({ ...session, held }, docChanges.diff, (id) => txn.get(id), 'fresh')
+				docChanges && this.readHooks.size > 0
+					? this.diffForSession({ ...session, held }, docChanges.diff, (id) => txn.get(id))
 					: docChanges?.diff
 			const presenceDiff = this.migrateDiffOrRejectSession(
 				session.sessionId,
@@ -1676,10 +1695,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 
-		type ActualChanges = PushChanges<R>
-
 		const propagateOp = (
-			changes: ActualChanges,
+			changes: PushChanges<R>,
 			id: string,
 			op: RecordOp<R>,
 			before: R | undefined,
@@ -1705,7 +1722,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const addDocument = (
 			storage: MinimalDocStore<R>,
-			changes: ActualChanges,
+			changes: PushChanges<R>,
 			id: string,
 			_state: R,
 			// What the record becomes (see `writeHookFor`), from the `beforeWrite` hook if one is set.
@@ -1764,7 +1781,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const patchDocument = (
 			storage: MinimalDocStore<R>,
-			changes: ActualChanges,
+			changes: PushChanges<R>,
 			id: string,
 			patch: ObjectDiff,
 			// What the record becomes (see `writeHookFor`), from the `beforeWrite` hook if one is set.
@@ -1833,8 +1850,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// collect actual ops that resulted from the push
 				// these will be broadcast to other users
 
-				const docChanges: ActualChanges = { diffs: null }
-				const presenceChanges: ActualChanges = { diffs: null }
+				const docChanges: PushChanges<R> = { diffs: null }
+				const presenceChanges: PushChanges<R> = { diffs: null }
 
 				if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
 					if (!session) throw new Error('session is required for presence pushes')
@@ -1999,8 +2016,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		// Read hooks read stored records, which needs a transaction.
-		if (this.beforeRead) {
+		// Read hooks read stored records, which needs a transaction. The views run after the push
+		// commits, because the storage may change what was written (`changes` above), and each view
+		// updates what its session holds, so it must run once, on the final diff.
+		if (this.readHooks.size > 0) {
 			this.storage.transaction((txn) =>
 				this.sendPushResults(session, message, result, documentClock, (id) => txn.get(id))
 			)
