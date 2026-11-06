@@ -4,6 +4,7 @@ import {
 	type TLComment,
 	type TLCommentThread,
 	type TLHistoryBatchOptions,
+	type TLRecord,
 	type TLShapeId,
 	type VecLike,
 	useEditor,
@@ -282,7 +283,11 @@ function permits(option: string, check: () => boolean): boolean {
  */
 export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
 	const { canComment } = getCommentingOptions(editor)
-	if (!canComment) return currentUserId != null
+	if (!canComment) {
+		// With permission rules, ask the same `comments:write` action as the server.
+		if (editor.permissions.isEnabled()) return editor.permissions.can('comments:write')
+		return currentUserId != null
+	}
 	return permits('canComment', () => canComment({ editor, currentUserId: currentUserId ?? null }))
 }
 
@@ -342,7 +347,16 @@ export function getCanModifyComment(
 		currentUserId: currentUserId ?? null,
 		...modification,
 	}
-	if (!canModifyComment) return defaultCanModifyComment(ctx)
+	if (!canModifyComment) {
+		// With permission rules, ask the same named actions as the server's comment rules.
+		if (editor.permissions.isEnabled()) {
+			const record =
+				modification.action === 'delete-thread' ? modification.thread : modification.comment
+			const action = modification.action === 'edit-comment' ? 'comments:edit' : 'comments:delete'
+			return editor.permissions.can(action, record as unknown as TLRecord)
+		}
+		return defaultCanModifyComment(ctx)
+	}
 	return permits('canModifyComment', () => canModifyComment(ctx))
 }
 

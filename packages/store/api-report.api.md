@@ -67,6 +67,73 @@ export class AtomSet<T> {
 }
 
 // @public
+export type Authorize<R extends UnknownRecord, Actor> = (ctx: AuthorizeContext<R, Actor>) => AuthorizeResult<R>;
+
+// @public
+export type AuthorizeContext<R extends UnknownRecord, Actor> = AuthorizeRequest<R> & {
+    can(action: AuthorizeCustomAction | AuthorizeRecordAction, record?: R): boolean;
+    get: AuthorizeGet;
+    actor: Actor;
+};
+
+// @public
+export type AuthorizeCustomAction = `${string}:${string}`;
+
+// @public
+export type AuthorizeDecision<R extends UnknownRecord> = {
+    allowed: false;
+    reason?: string;
+} | {
+    allowed: true;
+    record?: R;
+};
+
+// @public
+export interface AuthorizeDenial {
+    // (undocumented)
+    deny: string;
+}
+
+// @public
+export interface AuthorizeGet {
+    // (undocumented)
+    <Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined;
+    // (undocumented)
+    (id: string): undefined | UnknownRecord;
+}
+
+// @public
+export type AuthorizeRecordAction = 'create' | 'delete' | 'read' | 'update';
+
+// @public
+export type AuthorizeRequest<R extends UnknownRecord> = {
+    action: 'create';
+    next?: undefined;
+    record: R;
+} | {
+    action: 'delete';
+    next?: undefined;
+    record: R;
+} | {
+    action: 'read';
+    next?: undefined;
+    record: R;
+} | {
+    action: 'update';
+    next: R | undefined;
+    record: R;
+} | {
+    action: AuthorizeCustomAction;
+    next?: undefined;
+    record?: R;
+};
+
+// @public
+export type AuthorizeResult<R extends UnknownRecord> = {
+    record: R;
+} | AuthorizeDenial | boolean | undefined | void;
+
+// @public
 export interface BaseRecord<TypeName extends string, Id extends RecordId<UnknownRecord>> {
     // (undocumented)
     readonly id: Id;
@@ -82,6 +149,9 @@ export interface CollectionDiff<T> {
     added?: Set<T>;
     removed?: Set<T>;
 }
+
+// @public
+export function combineAuthorize<R extends UnknownRecord, Actor>(...fns: Authorize<R, Actor>[]): Authorize<R, Actor>;
 
 // @public
 export interface ComputedCache<Data, R extends UnknownRecord> {
@@ -341,6 +411,13 @@ export type RSIndexDiff<R extends UnknownRecord> = Map<any, CollectionDiff<IdOf<
 export type RSIndexMap<R extends UnknownRecord> = Map<any, Set<IdOf<R>>>;
 
 // @public
+export function runAuthorize<R extends UnknownRecord, Actor>(authorize: Authorize<R, Actor> | null, request: AuthorizeRequest<R>, env: {
+    actor: Actor;
+    get: AuthorizeGet;
+    onError?(error: unknown): void;
+}, depth?: number): AuthorizeDecision<R>;
+
+// @public
 export type SerializedSchema = SerializedSchemaV1 | SerializedSchemaV2;
 
 // @public
@@ -401,6 +478,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
+    // @internal
+    batchWriteGate<T>(fn: () => T): T;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;
@@ -440,6 +519,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
+    // @internal
+    setWriteGate(gate: null | StoreWriteGate<R>): void;
     readonly sideEffects: StoreSideEffects<R>;
     unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
@@ -674,6 +755,17 @@ export type StoreValidators<R extends UnknownRecord> = {
         typeName: K;
     }>>;
 };
+
+// @internal
+export type StoreWriteGate<R extends UnknownRecord> = (changes: readonly StoreWriteGateChange<R>[]) => boolean | R[];
+
+// @internal
+export interface StoreWriteGateChange<R extends UnknownRecord> {
+    // (undocumented)
+    after: null | R;
+    // (undocumented)
+    before: null | R;
+}
 
 // @public
 export interface SynchronousRecordStorage<R extends UnknownRecord> {

@@ -25,6 +25,7 @@ import {
 import { interval } from './interval'
 import {
 	TLObjectStoreAccess,
+	TLPushDenial,
 	TLPushRequest,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
@@ -461,6 +462,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	/** Called with the writes of a push that the room's `authorize` denied, after the rollback. */
+	private readonly onPushDenied?: (denials: TLPushDenial[]) => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -497,6 +501,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
+		onPushDenied?(denials: TLPushDenial[]): void
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
@@ -562,6 +567,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
+		this.onPushDenied = config.onPushDenied
 
 		let didLoad = false
 
@@ -974,6 +980,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+		const denials: TLPushDenial[] = []
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -995,6 +1002,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 							'Received push_result for a push request that is not at the front of the queue'
 						)
 					}
+					if (diff.denials) denials.push(...diff.denials)
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
 					} else if (diff.action === 'commit') {
@@ -1027,6 +1035,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
+			if (denials.length) this.onPushDenied?.(denials)
 		} catch (e) {
 			console.error(e)
 			this.store.ensureStoreIsUsable()

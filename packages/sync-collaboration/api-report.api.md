@@ -4,51 +4,19 @@
 
 ```ts
 
-import { TLComment } from '@tldraw/tlschema';
-import { TLCommentReaction } from '@tldraw/tlschema';
-import { TLCommentThread } from '@tldraw/tlschema';
-import type { TLRecordAuthorizers } from '@tldraw/sync-core';
+import type { Authorize } from '@tldraw/store';
+import type { UnknownRecord } from '@tldraw/store';
 
 // @public
-export interface CommentAuthorizerOptions<SessionMeta> {
-    canComment?(session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    }): boolean;
-    canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean;
-    getUserId(session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    }): null | string;
+export type CommentAction = 'comments:delete' | 'comments:edit' | 'comments:write';
+
+// @public
+export interface CommentAuthorizeOptions<Actor> {
+    getUserId(actor: Actor): null | string;
 }
 
 // @public
-export type CommentModification = {
-    readonly action: 'delete-comment';
-    readonly comment: TLComment;
-} | {
-    readonly action: 'delete-thread';
-    readonly thread: TLCommentThread;
-} | {
-    readonly action: 'edit-comment';
-    readonly comment: TLComment;
-};
-
-// @public
-export type CommentModificationAuthContext<SessionMeta> = {
-    readonly ownerId: string;
-    readonly session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    };
-    readonly userId: null | string;
-} & CommentModification;
-
-// @public
-export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
+export function createCommentAuthorize<R extends UnknownRecord, Actor>(opts: CommentAuthorizeOptions<Actor>): Authorize<R, Actor>;
 
 // (No @packageDocumentation comment for this package)
 

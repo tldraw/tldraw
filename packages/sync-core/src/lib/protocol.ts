@@ -174,7 +174,22 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** The writes of this push that the room's `authorize` denied. Older clients ignore it. */
+			denials?: TLPushDenial[]
 	  }
+
+/**
+ * One write of a push that the room's `authorize` function denied, as the pushing client receives
+ * it. The client has already rolled the write back when it gets this.
+ *
+ * @public
+ */
+export interface TLPushDenial {
+	action: 'create' | 'update' | 'delete'
+	recordId: string
+	/** The rule's `{ deny }` message, if it gave one. */
+	reason?: string
+}
 
 /**
  * Interface defining a client-to-server push request message.

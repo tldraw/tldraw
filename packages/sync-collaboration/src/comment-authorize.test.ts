@@ -1,3 +1,4 @@
+import { combineAuthorize, runAuthorize, type Authorize } from '@tldraw/store'
 import {
 	TLComment,
 	TLCommentReaction,
@@ -11,13 +12,86 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { createCommentAuthorizers } from './comment-authorizers'
+import { createCommentAuthorize } from './comment-authorize'
 
 interface TestMeta {
 	userId: string | null
 }
 
-const authorizers = createCommentAuthorizers<TestMeta>({
+type CommentRecord = TLComment | TLCommentThread | TLCommentReaction
+interface TestSession {
+	sessionId: string
+	isReadonly: boolean
+	meta: TestMeta
+}
+type Write<Rec> = { session: TestSession } & (
+	| { type: 'create'; prev: null; next: Rec }
+	| { type: 'update'; prev: Rec; next: Rec }
+	| { type: 'delete'; prev: Rec; next: null }
+)
+
+/**
+ * These cases were written for the per-type authorizer maps. This adapter runs each case through
+ * one `authorize` function: a host rule built from the old options, combined with the comment
+ * rules. A case gets back the stored record, or `null` for a denial, as before.
+ */
+function createCommentAuthorizers(opts: {
+	getUserId(session: TestSession): string | null
+	canComment?(session: TestSession): boolean
+	canModifyComment?(ctx: any): boolean
+}) {
+	const toSession = (meta: TestMeta): TestSession => ({ sessionId: 's1', isReadonly: false, meta })
+	const getUserId = (meta: TestMeta) => opts.getUserId(toSession(meta))
+	const host: Authorize<CommentRecord, TestMeta> = (ctx) => {
+		if (ctx.action === 'comments:write' && opts.canComment) {
+			return opts.canComment(toSession(ctx.actor))
+		}
+		if ((ctx.action === 'comments:edit' || ctx.action === 'comments:delete') && ctx.record) {
+			if (!opts.canModifyComment) return undefined
+			const record = ctx.record
+			const base = {
+				session: toSession(ctx.actor),
+				userId: getUserId(ctx.actor),
+				ownerId: record.typeName === 'comment-thread' ? record.createdBy : (record as any).authorId,
+			}
+			const modification =
+				record.typeName === 'comment-thread'
+					? { action: 'delete-thread', thread: record }
+					: {
+							action: ctx.action === 'comments:edit' ? 'edit-comment' : 'delete-comment',
+							comment: record,
+						}
+			return opts.canModifyComment({ ...base, ...modification })
+		}
+		return undefined
+	}
+	const authorize = combineAuthorize<CommentRecord, TestMeta>(
+		host,
+		createCommentAuthorize<CommentRecord, TestMeta>({ getUserId })
+	)
+	function run<Rec extends CommentRecord>(write: Write<Rec>): Rec | null {
+		const request =
+			write.type === 'create'
+				? ({ action: 'create', record: write.next } as const)
+				: write.type === 'update'
+					? ({ action: 'update', record: write.prev, next: write.next } as const)
+					: ({ action: 'delete', record: write.prev } as const)
+		const decision = runAuthorize(authorize, request, {
+			actor: write.session.meta,
+			get: () => undefined,
+		})
+		if (!decision.allowed) return null
+		if (write.type === 'create') return (decision.record as Rec) ?? write.next
+		return write.type === 'update' ? write.next : write.prev
+	}
+	return {
+		comment: (write: Write<TLComment>) => run(write),
+		'comment-thread': (write: Write<TLCommentThread>) => run(write),
+		'comment-reaction': (write: Write<TLCommentReaction>) => run(write),
+	}
+}
+
+const authorizers = createCommentAuthorizers({
 	getUserId: (session) => session.meta.userId,
 })
 
@@ -39,27 +113,7 @@ function session(
 	return { sessionId: 's1', isReadonly, meta: { userId } }
 }
 
-describe('createCommentAuthorizers', () => {
-	// getUserId is documented as called exactly once per write. More than once would let an
-	// impure host callback split identity across checks — e.g. a reaction create where the
-	// stamped userId and the canonical-id check disagree about who is reacting.
-	it('resolves the session user exactly once per authorization', () => {
-		let calls = 0
-		const counted = createCommentAuthorizers<TestMeta>({
-			getUserId: (s) => {
-				calls++
-				return s.meta.userId
-			},
-		})
-		// the worst former offender: a thread update touching both resolution and the soft-delete flag
-		const prev = createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'real-bob' })
-		const next = { ...prev, resolved: { at: 1, by: 'real-bob' }, isDeleted: true }
-		expect(
-			counted['comment-thread']!({ session: session('real-bob'), type: 'update', prev, next })
-		).toBe(next)
-		expect(calls).toBe(1)
-	})
-
+describe('createCommentAuthorize', () => {
 	describe('comment', () => {
 		const authorize = authorizers.comment!
 		const comment = (authorId: string) =>
@@ -427,8 +481,15 @@ describe('createCommentAuthorizers', () => {
 				emoji,
 			})
 
-		it('blocks all comment-record writes from canvas read-only sessions by default', () => {
-			const readonly = session('real-bob', true)
+		// Changed with `authorize`: the rules no longer read `isReadonly`. The room's `objectAccess`
+		// gate is the lane check, and a host denies `comments:write` for its own reasons.
+		it('blocks all comment-record writes when the host denies comments:write', () => {
+			const viewOnly = createCommentAuthorizers({
+				getUserId: (session) => session.meta.userId,
+				canComment: () => false,
+			})
+			const authorizers = viewOnly
+			const readonly = session('real-bob')
 
 			const commentPrev = comment('real-bob')
 			expect(
@@ -515,7 +576,7 @@ describe('createCommentAuthorizers', () => {
 		})
 
 		it('lets a custom canComment allow read-only sessions (comment-only setups)', () => {
-			const commentOnly = createCommentAuthorizers<TestMeta>({
+			const commentOnly = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canComment: () => true,
 			})
@@ -540,7 +601,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('is asked before canModifyComment, so a blocked session is never asked about a record', () => {
 			let asked = 0
-			const blocked = createCommentAuthorizers<TestMeta>({
+			const blocked = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canComment: () => false,
 				canModifyComment: () => {
@@ -561,7 +622,7 @@ describe('createCommentAuthorizers', () => {
 		})
 
 		it('lets a custom canComment block sessions on its own criteria', () => {
-			const bannable = createCommentAuthorizers<TestMeta>({
+			const bannable = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canComment: ({ meta }) => meta.userId !== 'banned',
 			})
@@ -595,7 +656,7 @@ describe('createCommentAuthorizers', () => {
 
 		// The motivating case: a moderator takes down someone else's comment, but takes over
 		// nobody's voice — editing stays the author's.
-		const moderated = createCommentAuthorizers<TestMeta>({
+		const moderated = createCommentAuthorizers({
 			getUserId: (session) => session.meta.userId,
 			canModifyComment: (ctx) =>
 				(ctx.action !== 'edit-comment' && ctx.session.meta.userId === 'real-mod') ||
@@ -666,7 +727,7 @@ describe('createCommentAuthorizers', () => {
 		})
 
 		it('narrows as well as widens', () => {
-			const frozen = createCommentAuthorizers<TestMeta>({
+			const frozen = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canModifyComment: (ctx) => ctx.action !== 'edit-comment' && ctx.userId === ctx.ownerId,
 			})
@@ -688,7 +749,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('is asked with the stored record, not the client’s version of it', () => {
 			const seen: unknown[] = []
-			const spying = createCommentAuthorizers<TestMeta>({
+			const spying = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canModifyComment: (ctx) => {
 					seen.push(ctx)
@@ -722,7 +783,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('reports the thread’s creator as the owner of a thread delete', () => {
 			const seen: unknown[] = []
-			const spying = createCommentAuthorizers<TestMeta>({
+			const spying = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canModifyComment: (ctx) => {
 					seen.push(ctx)
@@ -751,7 +812,7 @@ describe('createCommentAuthorizers', () => {
 		// `canComment`'s to gate, and the option is never asked about them.
 		it('is not asked about resolving or reopening a thread', () => {
 			let asked = 0
-			const counting = createCommentAuthorizers<TestMeta>({
+			const counting = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canModifyComment: () => {
 					asked++
@@ -782,7 +843,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('is not asked about reactions', () => {
 			let asked = 0
-			const counting = createCommentAuthorizers<TestMeta>({
+			const counting = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canModifyComment: () => {
 					asked++
@@ -819,7 +880,7 @@ describe('createCommentAuthorizers', () => {
 		// The point of asking after the structural rules: a host can hand out these three writes
 		// without handing out the invariants underneath them.
 		describe('the structural rules hold however permissive the callback', () => {
-			const permissive = createCommentAuthorizers<TestMeta>({
+			const permissive = createCommentAuthorizers({
 				getUserId: (session) => session.meta.userId,
 				canModifyComment: () => true,
 			})
@@ -910,10 +971,20 @@ describe('createCommentAuthorizers', () => {
 			// An anonymous session has no identity to check a record against, so the default withholds
 			// all three writes from it. A callback that returns true regardless is taken at its word —
 			// worth knowing before writing one that ignores `userId`.
-			it('takes a callback at its word about an anonymous session', () => {
+			// Changed with `authorize`: an anonymous actor fails `comments:write` unless the host
+			// allows it, so a permissive edit rule alone no longer lets anonymous sessions write.
+			it('takes a callback at its word about an anonymous session only once it may comment', () => {
 				const prev = comment('real-bob')
 				const next = { ...prev, isDeleted: true }
-				expect(permissive.comment!({ session: session(null), type: 'update', prev, next })).toBe(
+				expect(
+					permissive.comment!({ session: session(null), type: 'update', prev, next })
+				).toBeNull()
+				const openToAnyone = createCommentAuthorizers({
+					getUserId: (session) => session.meta.userId,
+					canComment: () => true,
+					canModifyComment: () => true,
+				})
+				expect(openToAnyone.comment!({ session: session(null), type: 'update', prev, next })).toBe(
 					next
 				)
 				expect(

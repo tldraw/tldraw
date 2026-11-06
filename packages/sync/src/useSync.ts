@@ -297,6 +297,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		}
 
 		let didCancel = false
+		// Denials from the room go to the editor that mounts this store, for its denial UI.
+		let mountedEditor: Editor | null = null
 
 		const collaborationStatusSignal = atom(
 			'collaboration status',
@@ -313,7 +315,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			schema,
 			assets,
 			users,
-			onMount,
+			onMount: (editor) => {
+				mountedEditor = editor
+				return onMount?.(editor)
+			},
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
@@ -376,6 +381,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onPushDenied(denials) {
+				mountedEditor?.permissions.reportServerDenial(denials[denials.length - 1])
+			},
 			presence,
 			presenceMode,
 		})

@@ -20,7 +20,10 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, getObjectAccess } from './authorizeFileRecord'
+import { asAuthorizerMap } from './authorizeFileRecord.testing'
+
+const fileAuth = asAuthorizerMap(authorizeFileRecord)
 
 const pageId = 'page:test' as TLPageId
 
@@ -52,7 +55,7 @@ describe('authorizeFileRecord', () => {
 				authorId: 'client-claims-alice',
 				body: toRichText('hi'),
 			})
-			const result = authorizeFileRecord.comment!({
+			const result = fileAuth.comment({
 				session: session('real-bob'),
 				type: 'create',
 				prev: null,
@@ -63,7 +66,7 @@ describe('authorizeFileRecord', () => {
 
 		it('vetoes thread hard-deletes (deletion is soft)', () => {
 			expect(
-				authorizeFileRecord['comment-thread']!({
+				fileAuth['comment-thread']({
 					session: session('real-bob'),
 					type: 'delete',
 					prev: thread,
@@ -72,26 +75,17 @@ describe('authorizeFileRecord', () => {
 			).toBeNull()
 		})
 
-		it('vetoes a comment create from a canvas read-only session', () => {
-			const next = createComment({
-				threadId: thread.id,
-				pageId,
-				authorId: 'real-bob',
-				body: toRichText('hi'),
-			})
-			expect(
-				authorizeFileRecord.comment!({
-					session: session('real-bob', true),
-					type: 'create',
-					prev: null,
-					next,
-				})
-			).toBeNull()
+		// The comment rules no longer read `isReadonly`. View-only sessions get the object lane as
+		// read-only instead, so they still read comments but cannot write them.
+		it('gives the object lane write access only to signed-in, non-readonly sessions', () => {
+			expect(getObjectAccess({ userId: 'real-bob', isReadonly: false })).toBe('write')
+			expect(getObjectAccess({ userId: 'real-bob', isReadonly: true })).toBe('read')
+			expect(getObjectAccess({ userId: null, isReadonly: false })).toBe('read')
 		})
 	})
 
 	describe('shape', () => {
-		const authorize = authorizeFileRecord.shape!
+		const authorize = fileAuth.shape
 
 		function makeNote(textLastEditedBy: string | null): TLNoteShape {
 			return {
@@ -174,7 +168,7 @@ describe('authorizeFileRecord', () => {
 			const note = makeNote('browser-generated-user-id')
 			const room = new TLSocketRoom<TLRecord, SessionMeta>({
 				schema,
-				authorizeRecord: authorizeFileRecord,
+				authorize: authorizeFileRecord,
 			})
 			const socket: WebSocketMinimal = {
 				send: vi.fn(),

@@ -53,7 +53,7 @@ function connectSession(
 	room: TLSocketRoom<any, any>,
 	sessionId: string,
 	socket: WebSocketMinimal,
-	opts: { objectAccess?: 'read' | 'write' } = {}
+	opts: { objectAccess?: 'read' | 'write'; isReadonly?: boolean } = {}
 ) {
 	room.handleSocketConnect({ sessionId, socket, ...opts })
 	const connectRequest = {
@@ -215,10 +215,8 @@ describe('28. TLSocketRoom (SR)', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
 				const room = new TLSocketRoom({
-					authorizeRecord: {
-						page: () => {
-							throw new Error('authorizer exploded')
-						},
+					authorize: (ctx) => {
+						if (ctx.action === 'create') throw new Error('authorizer exploded')
 					},
 				})
 				const socket = createMockSocket()
@@ -242,7 +240,9 @@ describe('28. TLSocketRoom (SR)', () => {
 				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'record authorizer threw; rejecting the write',
+					'authorize threw; denying',
+					'create',
+					'test-session',
 					expect.objectContaining({ message: 'authorizer exploded' })
 				)
 			} finally {
@@ -1200,6 +1200,29 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(snapshot!.presenceId).toBeDefined()
 			expect(snapshot!.requiresLegacyRejection).toBe(false)
 			expect(snapshot!.supportsStringAppend).toBe(true)
+		})
+
+		it('[SR13] gives a read-only session a read-only object lane unless the host says otherwise', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'viewer', createMockSocket(), { isReadonly: true })
+			connectSession(room, 'commenter', createMockSocket(), {
+				isReadonly: true,
+				objectAccess: 'write',
+			})
+			const access = Object.fromEntries(
+				room.getSessions().map((s) => [s.sessionId, s.objectAccess])
+			)
+			expect(access).toEqual({ viewer: 'read', commenter: 'write' })
+		})
+
+		it('[SR13] answers room.can for a write with the session lane gate first', () => {
+			const room = new TLSocketRoom({ authorize: () => true })
+			connectSession(room, 'viewer', createMockSocket(), { isReadonly: true })
+			connectSession(room, 'editor', createMockSocket())
+			const page = PageRecordType.create({ name: 'p', index: 'a1' as any })
+			expect(room.can('viewer', 'read', page)).toBe(true)
+			expect(room.can('viewer', 'create', page)).toBe(false)
+			expect(room.can('editor', 'create', page)).toBe(true)
 		})
 
 		it('[SR13] round-trips objectAccess through snapshot and resume', () => {

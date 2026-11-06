@@ -1,4 +1,4 @@
-import { BaseRecord, RecordId, StoreSchema, createRecordType } from '@tldraw/store'
+import { Authorize, BaseRecord, RecordId, StoreSchema, createRecordType } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
@@ -84,14 +84,8 @@ function makeRoom(
 		snapshot?: RoomSnapshot
 		objectTypes?: readonly string[]
 		onCommittedChanges?(args: { diff: any; documentClock: number }): void
-		authorizeRecord?: {
-			[typeName: string]: (args: {
-				session: { sessionId: string; isReadonly: boolean; meta: any }
-				type: 'create' | 'update' | 'delete'
-				prev: any
-				next: any
-			}) => any
-		}
+		authorize?: Authorize<any, any>
+		atomicPushes?: boolean
 		log?: any
 	} = {}
 ) {
@@ -110,7 +104,8 @@ function makeRoom(
 		storage,
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
-		authorizeRecord: opts.authorizeRecord,
+		authorize: opts.authorize,
+		atomicPushes: opts.atomicPushes,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -432,30 +427,25 @@ describe('object store lane', () => {
 		})
 	})
 
-	describe('authorizeRecord', () => {
-		it('rejects a presence typeName key at construction', () => {
-			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
-				/presence/
-			)
-		})
-
-		// A per-type authorizer like dotcom's: stamp the note's text from the session's user id on
-		// create, keep it immutable on update, allow deletes.
-		const authorizeNote = ({ session, type, prev, next }: any) => {
-			if (type === 'create') {
-				const userId = session.meta?.userId
-				if (!userId) return null
-				return { ...next, text: `by:${userId}` }
+	describe('authorize', () => {
+		// Like dotcom's attribution rule: stamp the note's text from the actor on create, keep it
+		// immutable on update, allow deletes.
+		const authorizeNote: Authorize<any, any> = (ctx) => {
+			if (ctx.record?.typeName !== 'note') return undefined
+			if (ctx.action === 'create') {
+				const userId = ctx.actor?.userId
+				if (!userId) return false
+				return { record: { ...ctx.record, text: `by:${userId}` } }
 			}
-			if (type === 'update') return next.text === prev.text ? next : null
-			return prev // delete allowed
+			if (ctx.action === 'update' && ctx.next) return ctx.next.text === ctx.record.text
+			return undefined
 		}
 
-		function withNote(authorize: any, extra: any = {}) {
-			return makeRoom({ objectTypes: ['note'], authorizeRecord: { note: authorize }, ...extra })
+		function withNote(authorize: Authorize<any, any>, extra: any = {}) {
+			return makeRoom({ objectTypes: ['note'], authorize, ...extra })
 		}
 
-		function seededWithNote(authorize: any) {
+		function seededWithNote(authorize: Authorize<any, any>) {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room, storage } = withNote(authorize, {
 				snapshot: {
@@ -471,27 +461,19 @@ describe('object store lane', () => {
 		const storedNote = (storage: InMemorySyncStorage<R>, id: string) =>
 			storage.getObjectsSnapshot().find((d) => d.state.id === id)?.state as any
 
-		it('exposes the session isReadonly flag to the authorizer', () => {
-			const authorize = vi.fn(({ next }: any) => next)
+		it('gets the session meta as the actor', () => {
+			const authorize = vi.fn((_ctx: any) => undefined)
 			const { room } = withNote(authorize)
-			// a canvas-readonly session can still write the object lane (objectAccess defaults to
-			// 'write'), which is exactly why authorizers need to see isReadonly independently
-			connectSession(room, 'reader', { isReadonly: true, meta: { userId: 'u' } })
+			connectSession(room, 'reader', { meta: { userId: 'u' } })
 
 			const note = Note.create({ text: 'x' })
 			push(room, 'reader', { [note.id]: [RecordOpType.Put, note] })
 
-			expect(authorize.mock.calls[0][0].session.isReadonly).toBe(true)
-
-			authorize.mockClear()
-			connectSession(room, 'writer', { isReadonly: false, meta: { userId: 'u' } })
-			const note2 = Note.create({ text: 'y' })
-			push(room, 'writer', { [note2.id]: [RecordOpType.Put, note2] })
-
-			expect(authorize.mock.calls[0][0].session.isReadonly).toBe(false)
+			const writes = authorize.mock.calls.filter(([ctx]) => ctx.action === 'create')
+			expect(writes[0][0].actor).toEqual({ userId: 'u' })
 		})
 
-		it('stamps a created record from the session, overriding the client value', () => {
+		it('stamps a created record from the actor, overriding the client value', () => {
 			const { room, storage } = withNote(authorizeNote)
 			const socket = connectSession(room, 'alice', { meta: { userId: 'user-alice' } })
 
@@ -507,7 +489,7 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('rejects a create the authorizer denies (returns null)', () => {
+		it('rejects a create that authorize denies', () => {
 			const { room, storage } = withNote(authorizeNote)
 			const socket = connectSession(room, 'anon', { meta: { userId: null } })
 
@@ -519,37 +501,29 @@ describe('object store lane', () => {
 			expect(storedIds(storage)).toEqual([])
 		})
 
-		it('only runs for registered types — other records write through untouched', () => {
+		it('asks about every record type, not only the ones a rule names', () => {
 			const seen: string[] = []
-			const { room, storage } = withNote(({ next }: any) => {
-				seen.push('note')
-				return next
+			const { room, storage } = withNote((ctx) => {
+				if (ctx.action !== 'read') seen.push(`${ctx.action}:${ctx.record!.typeName}`)
+				return undefined
 			})
 			connectSession(room, 'writer', { meta: { userId: 'u' } })
 
 			const doc = Doc.create({ title: 'hi' })
 			push(room, 'writer', { [doc.id]: [RecordOpType.Put, doc] })
 
-			expect(seen).toEqual([])
+			expect(seen).toEqual(['create:doc'])
 			expect(storedIds(storage)).toEqual([doc.id])
 		})
 
-		it('authorizes document-lane record types', () => {
-			// authorize `doc`, a document-lane record
-			const { room, storage } = makeRoom({
-				objectTypes: ['note'],
-				authorizeRecord: {
-					doc: ({ type, next }: any) => (type === 'create' ? { ...next, title: 'stamped' } : next),
-				},
+		it('never asks about presence records', () => {
+			const actions: string[] = []
+			const { room } = withNote((ctx) => {
+				actions.push(ctx.record?.typeName ?? ctx.action)
+				return undefined
 			})
 			connectSession(room, 'writer', { meta: { userId: 'u' } })
-
-			const doc = Doc.create({ title: 'client' })
-			push(room, 'writer', { [doc.id]: [RecordOpType.Put, doc] })
-
-			const stored = storage.getSnapshot().documents.find((d) => d.state.id === doc.id)
-				?.state as any
-			expect(stored?.title).toBe('stamped')
+			expect(actions.filter((t) => t === 'presence')).toEqual([])
 		})
 
 		it('vetoes an update that changes an immutable field (patch)', () => {
@@ -564,10 +538,8 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('allows an update the authorizer permits (patch)', () => {
-			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) =>
-				type === 'delete' ? prev : next
-			)
+		it('allows an update when authorize abstains (patch)', () => {
+			const { room, storage, note } = seededWithNote(() => undefined)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
 			push(room, 'alice', {
@@ -577,8 +549,8 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('edited')
 		})
 
-		it('does not consult the authorizer for a no-op patch', () => {
-			const authorize = vi.fn(({ type, prev, next }: any) => (type === 'delete' ? prev : next))
+		it('does not ask about a no-op patch', () => {
+			const authorize = vi.fn((_ctx: any) => undefined)
 			const { room, note } = seededWithNote(authorize)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 			authorize.mockClear()
@@ -587,13 +559,11 @@ describe('object store lane', () => {
 				[note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, note.text] }],
 			})
 
-			expect(authorize).not.toHaveBeenCalled()
+			expect(authorize.mock.calls.filter(([ctx]) => ctx.action !== 'read')).toEqual([])
 		})
 
-		it('vetoes a delete the authorizer rejects', () => {
-			const { room, storage, note } = seededWithNote(({ type, next }: any) =>
-				type === 'delete' ? null : next
-			)
+		it('vetoes a delete that authorize denies', () => {
+			const { room, storage, note } = seededWithNote((ctx) => ctx.action !== 'delete')
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'm' } })
 
 			push(room, 'mallory', { [note.id]: [RecordOpType.Remove] })
@@ -606,8 +576,6 @@ describe('object store lane', () => {
 			const { room, storage, note } = seededWithNote(authorizeNote)
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
 
-			// a `doc`-shaped record reusing the note's id: the authorizer lookup keys off the incoming
-			// typeName, so the swap would consult the doc authorizer (here: none) instead of note's
 			push(room, 'mallory', {
 				[note.id]: [RecordOpType.Put, { id: note.id, typeName: 'doc', title: 'swapped' } as any],
 			})
@@ -616,10 +584,10 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.typeName).toBe('note')
 		})
 
-		// The typeName guard must not depend on authorizers being configured: the write gate keys
-		// off the *incoming* typeName, so relabeling an existing object-lane record as a document
-		// type would otherwise let an objectAccess:'read' session write through the document lane.
-		it('vetoes a typeName swap even with no authorizeRecord configured', () => {
+		// The typeName guard must not depend on `authorize`: the write gate keys off the *incoming*
+		// typeName, so relabeling an existing object-lane record as a document type would otherwise
+		// let an objectAccess:'read' session write through the document lane.
+		it('vetoes a typeName swap even with no authorize configured', () => {
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room, storage } = makeRoom({
 				objectTypes: ['note'],
@@ -630,7 +598,6 @@ describe('object store lane', () => {
 					schema: schema.serialize(),
 				},
 			})
-			// denied on the object lane, but allowed on the document lane
 			const socket = connectSession(room, 'mallory', {
 				objectAccess: 'read',
 				meta: { userId: 'user-mallory' },
@@ -655,20 +622,22 @@ describe('object store lane', () => {
 			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
 		})
 
-		it('ignores the record returned by an update authorizer (allow/veto only)', () => {
-			const { room, storage, note } = seededWithNote(({ type, prev, next }: any) => {
-				if (type === 'update') return { ...next, text: 'stamped-on-update' }
-				return type === 'delete' ? prev : next
-			})
+		it('stores the replacement record on update too', () => {
+			const { room, storage, note } = seededWithNote((ctx) =>
+				ctx.action === 'update' && ctx.next
+					? { record: { ...ctx.next, text: 'stamped-on-update' } }
+					: undefined
+			)
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
 			push(room, 'alice', { [note.id]: [RecordOpType.Put, { ...note, text: 'edited' }] })
 
-			expect(storedNote(storage, note.id)?.text).toBe('edited')
+			expect(storedNote(storage, note.id)?.text).toBe('stamped-on-update')
 		})
 
-		it('rejects the write (fail closed) when the authorizer throws, without crashing the push', () => {
-			const { room, storage } = withNote(() => {
+		it('rejects the write (fail closed) when authorize throws, without crashing the push', () => {
+			const { room, storage } = withNote((ctx) => {
+				if (ctx.action === 'read') return undefined
 				throw new Error('boom')
 			})
 			const socket = connectSession(room, 'alice', { meta: { userId: 'u' } })
@@ -679,12 +648,12 @@ describe('object store lane', () => {
 			expect(storedIds(storage)).toEqual([])
 		})
 
-		it('passes the change type for create, update, and delete', () => {
-			const types: string[] = []
+		it('passes the action for create, update, and delete', () => {
+			const actions: string[] = []
 			const note = Note.create({ text: 'x' })
-			const { room } = withNote(({ type, prev, next }: any) => {
-				types.push(type)
-				return type === 'delete' ? prev : next
+			const { room } = withNote((ctx) => {
+				if (ctx.action !== 'read') actions.push(ctx.action)
+				return undefined
 			})
 			connectSession(room, 'alice', { meta: { userId: 'u' } })
 
@@ -692,15 +661,15 @@ describe('object store lane', () => {
 			push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'y'] }] }, 2)
 			push(room, 'alice', { [note.id]: [RecordOpType.Remove] }, 3)
 
-			expect(types).toEqual(['create', 'update', 'delete'])
+			expect(actions).toEqual(['create', 'update', 'delete'])
 		})
 
-		it('logs a warning when a write is vetoed', () => {
+		it('logs a warning with the reason when a write is denied', () => {
 			const warn = vi.fn()
 			const note = Note.create({ text: 'by:user-alice' })
 			const { room } = makeRoom({
 				objectTypes: ['note'],
-				authorizeRecord: { note: () => null },
+				authorize: (ctx) => (ctx.action === 'create' ? { deny: 'no notes' } : undefined),
 				log: { warn },
 			})
 			connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
@@ -709,6 +678,7 @@ describe('object store lane', () => {
 
 			expect(warn).toHaveBeenCalledTimes(1)
 			expect(warn.mock.calls[0].join(' ')).toContain(note.id)
+			expect(warn.mock.calls[0].join(' ')).toContain('no notes')
 		})
 	})
 })

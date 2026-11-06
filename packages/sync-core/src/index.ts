@@ -26,6 +26,7 @@ export {
 	type TLConnectRequest,
 	type TLObjectStoreAccess,
 	type TLPingRequest,
+	type TLPushDenial,
 	type TLPushRequest,
 	type TLSocketClientSentEvent,
 	type TLSocketServerSentDataEvent,
@@ -70,8 +71,6 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
-	type TLRecordAuthorizer,
-	type TLRecordAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {

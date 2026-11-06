@@ -1262,7 +1262,16 @@ describe('when the client is the same version', () => {
 describe('record authorizers see server-schema records', () => {
 	function makeInstance(authorizeUser: (args: any) => any) {
 		return new TestInstance(undefined, schemaV1, schemaV2, {
-			authorizeRecord: { user: authorizeUser },
+			// The old per-type shape (null rejects, the create result is stored), on `authorize`.
+			authorize: (ctx: any) => {
+				if (ctx.action === 'read' || ctx.record?.typeName !== 'user') return undefined
+				const type = ctx.action
+				const prev = type === 'create' ? null : ctx.record
+				const next = type === 'create' ? ctx.record : type === 'update' ? ctx.next : null
+				const result = authorizeUser({ type, prev, next })
+				if (result === null) return false
+				return type === 'create' ? { record: result } : true
+			},
 		})
 	}
 

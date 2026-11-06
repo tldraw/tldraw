@@ -5,12 +5,12 @@ import { RoomSnapshot, TLSyncRoom } from '../lib/TLSyncRoom'
 import { TestSocketPair } from './TestSocketPair'
 
 type TestRoomOptions<R extends UnknownRecord> = Omit<
-	ConstructorParameters<typeof TLSyncRoom<R, undefined>>[0],
+	ConstructorParameters<typeof TLSyncRoom<R, any>>[0],
 	'schema' | 'storage'
 >
 
 export class TestServer<R extends UnknownRecord, P = unknown> {
-	room: TLSyncRoom<R, undefined>
+	room: TLSyncRoom<R, any>
 	storage: InMemorySyncStorage<R>
 	constructor(schema: StoreSchema<R, P>, snapshot?: RoomSnapshot, roomOpts?: TestRoomOptions<R>) {
 		// Use provided snapshot or create an empty one with the current schema
@@ -22,17 +22,17 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 				schema: schema.serialize(),
 			},
 		})
-		this.room = new TLSyncRoom<R, undefined>({ schema, storage: this.storage, ...roomOpts })
+		this.room = new TLSyncRoom<R, any>({ schema, storage: this.storage, ...roomOpts })
 	}
 
 	connect(
 		socketPair: TestSocketPair<R>,
-		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
+		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess; meta?: unknown }
 	): void {
 		this.room.handleNewSession({
 			sessionId: socketPair.id,
 			socket: socketPair.roomSocket,
-			meta: undefined,
+			meta: opts?.meta,
 			isReadonly: opts?.isReadonly ?? false,
 			objectAccess: opts?.objectAccess,
 		})
