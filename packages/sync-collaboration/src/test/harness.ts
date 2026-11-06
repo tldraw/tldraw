@@ -95,6 +95,8 @@ export class LocalRoom {
 		for (let i = 0; i < 1000; i++) {
 			const inner = (this.room as any).room
 			for (const sessionId of inner.sessions.keys()) inner._flushDataMessages(sessionId)
+			// the client throttles its pushes to the frame rate; a test does not wait for frames
+			for (const peer of this.peers.values()) (peer.client as any).flushUnsentChanges()
 			if (this.queue.length === 0) return
 			const queue = this.queue.splice(0)
 			for (const fn of queue) fn()
@@ -108,6 +110,8 @@ export class Peer {
 	readonly client: TLSyncClient<TLRecord, TLStore>
 	readonly rejections: string[] = []
 	readonly syncErrors: string[] = []
+	/** This peer's cursor and page, as the editor would publish it. */
+	readonly presence = atom<TLRecord | null>('presence', null)
 	/** The reason the server closed this session with, if it did. */
 	closedWith: string | undefined
 	readonly mode = atom<'readonly' | 'readwrite'>('mode', 'readwrite')
@@ -170,7 +174,8 @@ export class Peer {
 		this.client = new TLSyncClient<TLRecord, TLStore>({
 			store: this.store,
 			socket: clientSocket,
-			presence: atom('presence', null),
+			presence: this.presence,
+			presenceMode: atom('presenceMode', 'full' as const),
 			commands: local.commands as TLCommandSet<any>,
 			onLoad: () => {},
 			onSyncError: (reason) => this.syncErrors.push(reason),

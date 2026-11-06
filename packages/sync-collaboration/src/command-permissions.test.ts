@@ -2,6 +2,7 @@ import type { UnknownRecord } from '@tldraw/store'
 import { defineCommand, defineCommandSet, type TLCommandActor } from '@tldraw/sync-core'
 import {
 	createShapeId,
+	InstancePresenceRecordType,
 	toRichText,
 	type TLComment,
 	type TLCommentThread,
@@ -695,6 +696,31 @@ describe('page read control', () => {
 		expect(room.room.getRecord('comment:s')).toBeDefined()
 		expect(a.store.get('comment:s' as any)).toBeUndefined()
 		expect(a.store.get('comment-thread:s' as any)).toBeUndefined()
+	})
+
+	it("the teacher's cursor disappears for students while the teacher is on the hidden page", () => {
+		const { room, t, a } = lesson()
+		const cursor = (currentPageId: TLPageId) =>
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId('t'),
+				currentPageId,
+				userId: 'user:teacher',
+				userName: 'Teacher',
+			})
+		const teacherCursors = () =>
+			a.store.query
+				.records('instance_presence')
+				.get()
+				.filter((p) => p.userId === 'user:teacher')
+		t.presence.set(cursor(page))
+		room.flush()
+		expect(teacherCursors()).toHaveLength(1)
+		t.presence.set(cursor(answers))
+		room.flush()
+		expect(teacherCursors()).toHaveLength(0)
+		t.presence.set(cursor(page))
+		room.flush()
+		expect(teacherCursors()).toHaveLength(1)
 	})
 
 	it('a reconnect hydrates only what the session can read', () => {
