@@ -407,6 +407,13 @@ turn them into hooks with [canWrite](?). These hooks also run only for client pu
 `updateStore` call from an API route, skips them, so it must check that user's access itself first.
 See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
+By default the room judges each record of a push on its own: when a hook rejects one record, the room
+still applies the others. That can leave a half-done change, such as children moved into a group that
+was rejected. Set the room's `writeRejection` option to `'push'` to reject the whole push instead. The
+room then stores and broadcasts none of its records, and the client undoes all of them. A push holds
+every change the client made since its last push, so it can hold more than one user action, but a
+store transaction is never split between two pushes.
+
 To decide what each session receives, pass hooks to the room's `beforeRead` option (see
 [TLBeforeReadHooks](?)). A hook returns nothing to send the record as stored, a changed copy (for
 example a card without its face), or `null` to send nothing. When a session can no longer see a record

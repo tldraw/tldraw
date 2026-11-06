@@ -659,6 +659,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     schema?: StoreSchema<R, any>;
     // (undocumented)
     storage?: TLSyncStorage<R>;
+    writeRejection?: 'push' | 'record';
 }
 
 // @internal
@@ -793,6 +794,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
         objectTypes?: readonly string[];
+        writeRejection?: 'push' | 'record';
         beforeRead?: TLBeforeReadHooks<R, SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;

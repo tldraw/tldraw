@@ -215,9 +215,6 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 			if (trackChanges) {
 				changes = txn.getChangesSince(clockBefore)?.diff
 			}
-		} catch (error) {
-			console.error('Error in transaction', error)
-			throw error
 		} finally {
 			txn.close()
 		}
