@@ -7,7 +7,6 @@ import {
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	ThumbnailShapeMeasurement,
-	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
@@ -44,7 +43,6 @@ import { thumbnailSnapshotBodyFor } from './getThumbnailSnapshot'
 import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
-	RenderPageError,
 	classifyScreenshotFailure,
 } from './thumbnailShared'
 
@@ -194,8 +192,7 @@ export async function loadBoardSnapshot(
  *
  * A token minted without a record fails its own check at the snapshot route and surfaces as a generic
  * render failure — and the way that arrived the first time was exactly this: a second mint site that
- * did the first half only, leaving every measure token unrecorded. Both mint sites go through here so
- * a third cannot repeat it.
+ * did the first half only. Every mint site goes through here so a later one cannot repeat it.
  *
  * Recorded before the browser can present the token, so the snapshot route can tell one we minted from
  * one merely signed with our secret. Awaited, not fired off: the render is about to depend on it
@@ -304,7 +301,6 @@ export async function captureThumbnailScreenshot(
 		width,
 		height,
 		telemetry,
-		capture,
 		content,
 		snapshot,
 	}: {
@@ -329,12 +325,6 @@ export async function captureThumbnailScreenshot(
 		 * definition a screenshot render.
 		 */
 		telemetry: { source: BrowserRunSessionContext['source']; reason?: OgImageRenderReason }
-		/**
-		 * `live` skips the in-page export and lets the screenshot rasterize the live canvas, after the
-		 * page has pruned it to the requested shapes. Signed into the job so the render page reads it
-		 * with the rest of its parameters. See ThumbnailRenderParams.
-		 */
-		capture?: 'live'
 		/** What the board holds, for the ledger (see summarizeSnapshotContent). Never identifies it. */
 		content?: RenderContentSummary
 		/** The board the caller already read, to push into the page; see renderTransportFor. */
@@ -353,7 +343,6 @@ export async function captureThumbnailScreenshot(
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
-		...(capture ? { capture } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
 		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).
 		x: 0,
@@ -373,12 +362,7 @@ export async function captureThumbnailScreenshot(
 			{
 				width,
 				height,
-				session: {
-					source: telemetry.source,
-					mode: 'screenshot',
-					reason: telemetry.reason,
-					capture,
-				},
+				session: { source: telemetry.source, reason: telemetry.reason },
 				transport: await renderTransportFor(env, snapshot, job),
 				content,
 				pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
@@ -387,7 +371,7 @@ export async function captureThumbnailScreenshot(
 		return { base64: arrayBufferToBase64(buffer), durationMs }
 	} finally {
 		// The MCP surface keys its records by token, so nothing later overwrites this one and it has to
-		// be dropped here — the same cleanup a measure gets, for the same reason. In `finally` because a
+		// be dropped here. In `finally` because a
 		// failed render leaves exactly the orphan a successful one would, and the snapshot fetch the
 		// record guards is over either way by the time the session ends. A no-op for OG, whose per-board
 		// key must outlive the capture; see deleteMintedRenderToken.
@@ -398,11 +382,8 @@ export async function captureThumbnailScreenshot(
 /** What a browser session was created for, stamped on its `browser_run_session` datapoint. */
 export interface BrowserRunSessionContext {
 	source: 'mcp' | 'og' | 'queue'
-	mode: 'measure' | 'screenshot'
 	/** The queue trigger, on sessions the queue runs. Request-path sessions have none. */
 	reason?: OgImageRenderReason
-	/** `live` when the render was asked to rasterize the live canvas; absent means the page exports. */
-	capture?: 'live'
 }
 
 /**
@@ -509,14 +490,14 @@ function writeBrowserRunSessionTelemetry(
 	writeDataPoint(undefined, env.MEASURE, env, 'browser_run_session', {
 		blobs: [
 			`source:${session.source}`,
-			`mode:${session.mode}`,
+			// Constant now, and kept: blob positions must not shift.
+			'mode:screenshot',
 			`outcome:${outcome}`,
 			`reason:${session.reason ?? 'none'}`,
 			// Appended: existing blob positions must not shift.
 			`page:${page}`,
-			// Appended after `page:` for the same reason. `none` on measures, which draw nothing; a
-			// screenshot render exports unless it asked for live.
-			`capture:${session.mode === 'measure' ? 'none' : (session.capture ?? 'export')}`,
+			// Appended after `page:` for the same reason, and constant now for the same reason as `mode:`.
+			'capture:export',
 			// Appended after `capture:`. What the worker sent; what the page used is `acquired:` on
 			// render_page_timings.
 			`transport:${transport.kind}`,
@@ -547,13 +528,12 @@ function pageReachOf(
 	return transport.kind === 'push' && reach === 'unreached' ? 'unknown' : reach
 }
 
-// One Browser Run session against the render page: a `/screenshot` returning the PNG for a
-// screenshot, a `/content` returning the page's HTML for a measure (see THUMBNAIL_MEASURE_RESULT_ID).
+// One Browser Run session against the render page: a `/screenshot` returning the PNG.
 //
 // A failed render marks an error state rather than the ready one, so it returns as a failure
 // immediately instead of burning the timeout (see THUMBNAIL_SETTLED_SELECTOR /
-// THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared). A screenshot sees that as Browser Run failing
-// the capture; a measure gets the error page back and throws RenderPageError with its message.
+// THUMBNAIL_CAPTURE_SELECTOR in @tldraw/dotcom-shared). The worker sees that as Browser Run failing
+// the capture.
 async function runRenderSession(
 	env: Environment,
 	renderUrl: string,
@@ -574,12 +554,11 @@ async function runRenderSession(
 		pageReached?(since: number): Promise<RenderPageReach>
 	}
 ): Promise<{ buffer: ArrayBuffer; durationMs: number }> {
-	const action: BrowserRunAction = session.mode === 'measure' ? 'content' : 'screenshot'
 	// Built by one function and handed to whichever transport runs, so the wait strategy, capture
 	// target and timeout cannot drift between Browser Run and its development stand-in, or between a
 	// pushed request and its fallback.
 	const requestBody = (injectedScript?: string) =>
-		(action === 'content' ? getThumbnailContentRequestBody : getThumbnailScreenshotRequestBody)({
+		getThumbnailScreenshotRequestBody({
 			renderUrl,
 			width,
 			height,
@@ -595,8 +574,8 @@ async function runRenderSession(
 	const startedAt = Date.now()
 	const callCapture = (body: ThumbnailRenderRequestBody) =>
 		env.LOCAL_SCREENSHOT_SERVICE_URL
-			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, action, body)
-			: callBrowserRun(env, action, body)
+			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, body)
+			: callBrowserRun(env, body)
 	try {
 		// The binding refuses an oversize request before any browser session exists, so falling back
 		// to the fetch costs nothing. Only that refusal falls back; any other error is the render's.
@@ -632,20 +611,6 @@ async function runRenderSession(
 	}
 
 	const buffer = timed.buffer
-	const pageError = action === 'content' ? readRenderPageError(buffer) : undefined
-	if (pageError !== undefined) {
-		writeBrowserRunSessionTelemetry(env, session, {
-			outcome: 'page_error',
-			durationMs: timed.durationMs,
-			width,
-			height,
-			page: 'reached',
-			browserMsUsed: timed.browserMsUsed,
-			transport,
-			content,
-		})
-		throw new RenderPageError({ detail: pageError })
-	}
 	if (buffer.byteLength === 0) {
 		// The session ran to completion — the spend is real — it just produced nothing usable.
 		writeBrowserRunSessionTelemetry(env, session, {
@@ -674,29 +639,7 @@ async function runRenderSession(
 	return { buffer, durationMs: timed.durationMs }
 }
 
-type BrowserRunAction = 'screenshot' | 'content'
-type ThumbnailRenderRequestBody =
-	| ReturnType<typeof getThumbnailScreenshotRequestBody>
-	| ReturnType<typeof getThumbnailContentRequestBody>
-
-// The page's `data-thumbnail-error` from a `/content` response, or undefined if it has none. Read
-// off <html>, which the page marks along with <body> and never clears.
-function readRenderPageError(buffer: ArrayBuffer): string | undefined {
-	const html = new TextDecoder().decode(buffer)
-	const tag = /<html\b[^>]*>/i.exec(html)?.[0]
-	if (!tag) return undefined
-	const attribute = /\sdata-thumbnail-error(?:="([^"]*)")?/.exec(tag)
-	return attribute ? decodeHtmlAttribute(attribute[1] ?? '') || '(no message)' : undefined
-}
-
-function decodeHtmlAttribute(value: string) {
-	return value
-		.replace(/&quot;/g, '"')
-		.replace(/&lt;/g, '<')
-		.replace(/&gt;/g, '>')
-		.replace(/&nbsp;/g, '\u00a0')
-		.replace(/&amp;/g, '&')
-}
+type ThumbnailRenderRequestBody = ReturnType<typeof getThumbnailScreenshotRequestBody>
 
 // A capture that came back OK, fully read, and how long the whole thing took. The transports read
 // the body themselves rather than handing back a Response: the read has to happen inside
@@ -718,7 +661,6 @@ function browserMsUsedOf(response: Response) {
 
 async function callBrowserRun(
 	env: Environment,
-	action: BrowserRunAction,
 	requestBody: ThumbnailRenderRequestBody
 ): Promise<TimedCapture> {
 	if (!env.BROWSER) {
@@ -730,7 +672,7 @@ async function callBrowserRun(
 	const startedAt = Date.now()
 	// A Browser Rendering Quick Action, invoked straight through the binding (no puppeteer, no API
 	// token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
-	const response = await env.BROWSER.quickAction(action, requestBody)
+	const response = await env.BROWSER.quickAction('screenshot', requestBody)
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {
@@ -753,37 +695,10 @@ async function callBrowserRun(
 		})
 	})
 	return {
-		buffer: action === 'content' ? unwrapContentResult(buffer, response.status, startedAt) : buffer,
+		buffer,
 		durationMs: Date.now() - startedAt,
 		browserMsUsed: browserMsUsedOf(response),
 	}
-}
-
-// `/content` answers `{ success, result: "<html>…" }` rather than the HTML itself. Anything else is a
-// session that ran and gave nothing usable, so it fails the way a broken capture body does.
-function unwrapContentResult(buffer: ArrayBuffer, status: number, startedAt: number): ArrayBuffer {
-	let parsed: unknown
-	try {
-		parsed = JSON.parse(new TextDecoder().decode(buffer))
-	} catch {
-		parsed = undefined
-	}
-	// `null` and scalars are valid JSON too; they must fail as a BrowserRenderError, which is what
-	// puts the session on the ledger, not as a TypeError reading `.success`.
-	const body = (parsed && typeof parsed === 'object' ? parsed : {}) as {
-		success?: unknown
-		result?: unknown
-		errors?: unknown
-	}
-	if (body.success !== true || typeof body.result !== 'string') {
-		throw new BrowserRenderError({
-			status,
-			detail: truncate(`Unusable content response: ${JSON.stringify(body.errors ?? parsed)}`),
-			durationMs: Date.now() - startedAt,
-			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
-		})
-	}
-	return new TextEncoder().encode(body.result).buffer as ArrayBuffer
 }
 
 // The request cannot cap its own total: `gotoOptions.timeout` and `waitForSelector.timeout` are
@@ -870,13 +785,10 @@ function truncate(text: string) {
 // evidence that it works in production.
 async function callLocalScreenshotService(
 	serviceUrl: string,
-	action: BrowserRunAction,
 	requestBody: ThumbnailRenderRequestBody
 ): Promise<TimedCapture> {
 	const startedAt = Date.now()
-	const url = new URL(serviceUrl)
-	url.searchParams.set('action', action)
-	const response = await fetch(url, {
+	const response = await fetch(serviceUrl, {
 		method: 'POST',
 		headers: { 'Content-Type': 'application/json' },
 		body: JSON.stringify(requestBody),
@@ -888,32 +800,19 @@ async function callLocalScreenshotService(
 		)
 	}
 	// A dev server that has not loaded the screenshot plugin answers this path with the client's
-	// index.html — a 200 full of bytes that would otherwise be cached as if it were a thumbnail. For
-	// the same reason the page's HTML comes back wrapped in JSON rather than as text/html.
-	const expected = action === 'content' ? 'application/json' : 'image/png'
+	// index.html — a 200 full of bytes that would otherwise be cached as if it were a thumbnail.
 	const contentType = response.headers.get('content-type') ?? ''
-	if (!contentType.includes(expected)) {
+	if (!contentType.includes('image/png')) {
 		throw new Error(
-			`Local screenshot service returned ${contentType || 'no content type'}, expected ${expected}. Is the client dev server running with the thumbnail screenshot plugin?`
+			`Local screenshot service returned ${contentType || 'no content type'}, expected image/png. Is the client dev server running with the thumbnail screenshot plugin?`
 		)
 	}
-	const buffer =
-		action === 'content'
-			? (new TextEncoder().encode(((await response.json()) as { html: string }).html)
-					.buffer as ArrayBuffer)
-			: await response.arrayBuffer()
+	const buffer = await response.arrayBuffer()
 	return { buffer, durationMs: Date.now() - startedAt, browserMsUsed: browserMsUsedOf(response) }
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
 // can be detected) alongside any surface-specific metadata.
-// --- Measuring a page in a real editor ----------------------------------------------------------
-//
-// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
-// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
-// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and leaves the
-// result in its own HTML for the worker's `/content` read.
-
 // What an editor reported, whichever editor that was. Malformed boxes are dropped rather than kept: a
 // non-finite value would produce NaN distances and silently detach that shape from the minimum
 // spanning tree.

@@ -23,10 +23,6 @@ export const THUMBNAIL_RENDER_GLOBAL = '__TLDRAW_RENDER__'
 // lands. Set only by getThumbnailRenderRequestBase, alongside the script itself.
 export const THUMBNAIL_RENDER_PUSH_PARAM = 'push'
 
-// Where a measure page leaves its result for the worker's `/content` read. The page clears
-// everything else first, so the response stays the size of the answer rather than of the push.
-export const THUMBNAIL_MEASURE_RESULT_ID = 'tldraw-measure-result'
-
 // Builds the `/screenshot` request body. `timeoutMs` is granted to navigation and to the
 // settle+export wait *individually* — these are per-phase timers, not a cap on the call. They
 // exist so Browser Run gives up on a dead page early; bounding the call as a whole is the
@@ -57,18 +53,6 @@ export function getThumbnailScreenshotRequestBody({
 		screenshotOptions: {
 			type: 'png',
 		},
-	}
-}
-
-// Builds the `/content` request body for a measure. Same page, wait and timeouts as a screenshot;
-// the answer is the page's HTML, read for THUMBNAIL_MEASURE_RESULT_ID or the error marker.
-export function getThumbnailContentRequestBody(
-	options: Parameters<typeof getThumbnailRenderRequestBase>[0]
-) {
-	return {
-		...getThumbnailRenderRequestBase(options),
-		// Browser Run caches quick action responses for a few seconds by default, keyed on the request.
-		cacheTTL: 0,
 	}
 }
 

@@ -17,7 +17,6 @@ import {
 	SHAPES_NOT_ON_PAGE,
 	acquireThumbnailRenderData,
 	exportThumbnailImage,
-	prepareLiveCapture,
 	setThumbnailError,
 	signalThumbnailReady,
 } from './thumbnail-render'
@@ -79,37 +78,6 @@ function setupTwoPageEditor() {
 	editor.setCurrentPage(renderedPageId)
 	return { editor, movedId, renderedId }
 }
-
-describe('prepareLiveCapture', () => {
-	it('prunes to the requested shapes when they are on the rendered page', () => {
-		const { editor, renderedId } = setupTwoPageEditor()
-		expect(prepareLiveCapture(editor, [renderedId])).toBe(true)
-		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
-		expect(document.body.dataset.thumbnailError).toBeUndefined()
-		editor.dispose()
-	})
-
-	// The snapshot endpoint only proves the requested ids still exist somewhere on the board, so a
-	// live shared-file snapshot that moved them to another page since the token was minted reaches
-	// the render page. Pruning on that would delete every shape on the rendered page and hand the
-	// screenshot a blank canvas, which the tool would return — and cache — as a picture of the
-	// shapes that were asked for. It has to fail instead.
-	it('refuses without touching the page when the requested shapes moved to another page', () => {
-		const { editor, movedId, renderedId } = setupTwoPageEditor()
-		expect(prepareLiveCapture(editor, [movedId])).toBe(false)
-		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
-		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
-		editor.dispose()
-	})
-
-	it('keeps the on-page shapes when only some of the requested shapes moved away', () => {
-		const { editor, movedId, renderedId } = setupTwoPageEditor()
-		expect(prepareLiveCapture(editor, [renderedId, movedId])).toBe(true)
-		expect([...editor.getCurrentPageShapeIds()]).toEqual([renderedId])
-		expect(document.body.dataset.thumbnailError).toBeUndefined()
-		editor.dispose()
-	})
-})
 
 describe('measureArrow', () => {
 	// The record of a bound arrow is a stub at its origin; only the editor knows where it runs.
@@ -259,10 +227,8 @@ describe('signalThumbnailReady', () => {
 		expect(document.documentElement.dataset.thumbnailReady).toBe('true')
 	})
 
-	// The worker captures on `body[data-thumbnail-ready="true"]` and does not look at the error
-	// marker, so a page carrying both hands back a screenshot of whatever is on screen and it gets
-	// cached as the real thing. prepareLiveCapture's refusal returns from onMount, but
-	// ThumbnailExportSignal keeps running and ends here, so the error has to win.
+	// The worker captures on `body[data-thumbnail-ready="true"]` and does not look at the error marker,
+	// so a page that marked both would hand back whatever is on screen, cached as the real thing.
 	it('refuses to mark ready once an error is marked', () => {
 		setThumbnailError(SHAPES_NOT_ON_PAGE)
 		signalThumbnailReady()

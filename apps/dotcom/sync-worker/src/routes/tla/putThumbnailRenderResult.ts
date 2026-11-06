@@ -12,8 +12,7 @@ import { RenderPageError, reportThumbnailError } from './thumbnailShared'
 
 // The render page's beacons: phase timings on success, its own error on failure. A signed token
 // proves the POST comes from a render we asked for. Telemetry only — nothing downstream waits on
-// either, so both are accepted for any valid token, screenshot or measure. Measure results come back
-// in the page's HTML instead (see measurePageShapes).
+// either, so both are accepted for any valid token.
 //
 // Signed and unexpired, but deliberately *not* minted-checked, unlike the snapshot route. An MCP
 // record is keyed per capture and deleted the moment the session returns (see
@@ -56,11 +55,10 @@ export async function putThumbnailRenderResult(
 			return Response.json({ error: true, message: 'Invalid render token' }, { status: 403 })
 		}
 		const surface = job.surface ?? 'og'
-		const mode = job.mode ?? 'screenshot'
 		// The message goes to Sentry only: it is free text, and Analytics Engine blobs must stay
 		// bounded.
 		writeDataPoint(undefined, env.MEASURE, env, 'render_page_error', {
-			blobs: [`surface:${surface}`, `mode:${mode}`, `phase:${phase}`],
+			blobs: [`surface:${surface}`, 'mode:screenshot', `phase:${phase}`],
 		})
 		reportThumbnailError(
 			new RenderPageError({ detail: message.slice(0, THUMBNAIL_RENDER_ERROR_MAX_LENGTH), phase }),
@@ -70,9 +68,6 @@ export async function putThumbnailRenderResult(
 				surface: 'render_page',
 				extras: {
 					render_surface: surface,
-					render_mode: mode,
-					// Matches browser_run_session, where a measure draws nothing: `capture:none`.
-					render_capture: mode === 'measure' ? 'none' : (job.capture ?? 'export'),
 				},
 			}
 		)

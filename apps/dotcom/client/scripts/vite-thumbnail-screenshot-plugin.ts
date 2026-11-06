@@ -8,9 +8,8 @@ import type { Connect, Plugin } from 'vite'
 // browser itself, but this dev server is a Node process that already depends on Playwright, so it
 // can — the worker POSTs here and gets the PNG back.
 //
-// The request body is exactly what the worker would send Browser Run's `/screenshot` or `/content`
-// Quick Action (`getThumbnailScreenshotRequestBody`, `getThumbnailContentRequestBody`), named by the
-// `action` query parameter, so the wait strategy, capture target, and timeout come from
+// The request body is exactly what the worker would send Browser Run's `/screenshot` Quick Action
+// (`getThumbnailScreenshotRequestBody`), so the wait strategy, capture target, and timeout come from
 // the same place production gets them and cannot drift here. Note this file is imported by
 // `vite.config.ts`, which Node loads directly, so it must not import `@tldraw/dotcom-shared`: that
 // package's entry re-exports extensionless paths Node cannot resolve.
@@ -96,23 +95,14 @@ export function thumbnailScreenshotPlugin(): Plugin {
 					return
 				}
 				try {
-					const action = new URL(req.url ?? '', 'http://localhost').searchParams.get('action')
 					const request = parseRequest(
 						JSON.parse(await readBody(req)),
-						ownOrigin(server.httpServer?.address()),
-						action === 'content' ? 'content' : 'screenshot'
+						ownOrigin(server.httpServer?.address())
 					)
 					const result = await capture(await getBrowser(), request)
 					res.statusCode = 200
-					if (typeof result === 'string') {
-						// Wrapped rather than sent as text/html, which the worker could not tell apart from
-						// the SPA fallback a dev server without this plugin answers with.
-						res.setHeader('content-type', 'application/json')
-						res.end(JSON.stringify({ html: result }))
-					} else {
-						res.setHeader('content-type', 'image/png')
-						res.end(result)
-					}
+					res.setHeader('content-type', 'image/png')
+					res.end(result)
 				} catch (error) {
 					// The worker turns any non-200 into a render failure, so this body is only ever read
 					// by a developer looking at why a local thumbnail did not appear.
@@ -157,8 +147,7 @@ export function ownOrigin(address: string | { port: number } | null | undefined)
 }
 
 interface ScreenshotRequest {
-	/** Absent on a `content` request, which returns the page's HTML instead of a capture. */
-	captureSelector?: string
+	captureSelector: string
 	height: number
 	settledSelector: string
 	timeoutMs: number
@@ -171,11 +160,7 @@ interface ScreenshotRequest {
 // reachable, and only on `origin`: the caller's host is discarded and the path is fixed, so this
 // cannot be pointed at an arbitrary URL — the same property production has, where Browser Run is
 // never handed a caller-supplied URL.
-export function parseRequest(
-	body: any,
-	origin: string,
-	action: 'screenshot' | 'content'
-): ScreenshotRequest {
+export function parseRequest(body: any, origin: string): ScreenshotRequest {
 	if (typeof body?.url !== 'string') throw new Error('url is required')
 	const { pathname, search } = new URL(body.url)
 	if (pathname !== RENDER_PATH) {
@@ -186,18 +171,12 @@ export function parseRequest(
 	const captureSelector = body.selector
 	const timeoutMs = body.gotoOptions?.timeout
 	const { width, height } = body.viewport ?? {}
-	if (
-		!settledSelector ||
-		(action === 'screenshot' && !captureSelector) ||
-		!timeoutMs ||
-		!width ||
-		!height
-	) {
+	if (!settledSelector || !captureSelector || !timeoutMs || !width || !height) {
 		throw new Error('Request is not a thumbnail screenshot request body')
 	}
 
 	return {
-		captureSelector: action === 'screenshot' ? captureSelector : undefined,
+		captureSelector,
 		height,
 		settledSelector,
 		timeoutMs,
@@ -211,8 +190,7 @@ export function parseRequest(
 
 // Settle on either terminal marker, then capture the success-only element — the same sequence the
 // Quick Action request body asks Browser Run for, so a failed render fails as soon as the page says
-// so instead of burning the timeout. A `content` request returns the HTML at that point, error or
-// not, as `/content` does.
+// so instead of burning the timeout.
 async function capture(browser: Browser, request: ScreenshotRequest) {
 	const page = await browser.newPage({
 		viewport: { width: request.width, height: request.height },
@@ -222,7 +200,6 @@ async function capture(browser: Browser, request: ScreenshotRequest) {
 		await page.goto(request.url, { waitUntil: 'domcontentloaded', timeout: request.timeoutMs })
 		for (const content of request.injectedScripts) await page.addScriptTag({ content })
 		await page.waitForSelector(request.settledSelector, { timeout: request.timeoutMs })
-		if (!request.captureSelector) return await page.content()
 		const target = await page.$(request.captureSelector)
 		if (!target) {
 			const reason = await page.evaluate(() => document.body.dataset.thumbnailError)

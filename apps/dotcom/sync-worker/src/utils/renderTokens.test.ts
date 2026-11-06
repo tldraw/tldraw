@@ -287,30 +287,6 @@ describe('render token records', () => {
 			expect(await isMintedRenderToken(envWithBucket, mcpJob, mcpToken)).toBe(true)
 		})
 
-		// The clustering tools measure a page (a render with nothing exported) and then screenshot part
-		// of it, and the two overlap whenever a caller drills down or parallelizes. Measure jobs mint
-		// light-theme tokens for the same page a screenshot names, so without `mode` in the key the
-		// later mint would invalidate the earlier's in-flight token and the loser would 403.
-		it('keeps a measure render and a screenshot of one page independent', async () => {
-			const envWithBucket = makeEnvWithBucket()
-			const measure = makeJob({
-				surface: 'mcp',
-				kind: 'shared_file',
-				slug: 'f1',
-				pageId: 'page:a',
-				mode: 'measure',
-			})
-			const shot = makeJob({ surface: 'mcp', kind: 'shared_file', slug: 'f1', pageId: 'page:a' })
-
-			const measureToken = await mintThumbnailRenderToken(envWithBucket, measure)
-			await recordMintedRenderToken(envWithBucket, measure, measureToken)
-			const shotToken = await mintThumbnailRenderToken(envWithBucket, shot)
-			await recordMintedRenderToken(envWithBucket, shot, shotToken)
-
-			expect(await isMintedRenderToken(envWithBucket, measure, measureToken)).toBe(true)
-			expect(await isMintedRenderToken(envWithBucket, shot, shotToken)).toBe(true)
-		})
-
 		// Two cluster screenshots of one page render different images when their shape sets differ, so
 		// they are distinct captures the same way two pages are — while the same shape set requested
 		// twice deliberately shares a key, the same image rendered twice.
@@ -355,46 +331,6 @@ describe('render token records', () => {
 			)
 
 			expect(await isMintedRenderToken(envWithBucket, light, lightToken)).toBe(true)
-		})
-
-		// Every measure of a page mints the same job — no shape set, and the theme is hardcoded light —
-		// so content cannot tell two of them apart. They are keyed by their tokens instead. This is the
-		// ordinary agent pattern rather than a rare race: get_page_info, get_cluster_info and
-		// get_cluster_screenshot each measure before they can do anything, so any two of them running
-		// against one page would otherwise have the loser 403 as a generic "Screenshot failed".
-		it('keeps concurrent measures of one page independent', async () => {
-			const envWithBucket = makeEnvWithBucket()
-			const job = makeJob({
-				surface: 'mcp',
-				kind: 'shared_file',
-				slug: 'f1',
-				pageId: 'page:a',
-				mode: 'measure',
-			})
-
-			const first = await mintThumbnailRenderToken(envWithBucket, job)
-			await recordMintedRenderToken(envWithBucket, job, first)
-			// A second measure of the same page, minted while the first is still in flight. Identical job
-			// but for the expiry, which is what makes the two tokens differ.
-			const secondJob = { ...job, exp: job.exp + 1 }
-			const second = await mintThumbnailRenderToken(envWithBucket, secondJob)
-			await recordMintedRenderToken(envWithBucket, secondJob, second)
-
-			expect(await isMintedRenderToken(envWithBucket, job, first)).toBe(true)
-			expect(await isMintedRenderToken(envWithBucket, secondJob, second)).toBe(true)
-		})
-
-		// The flip side of a per-token key: nothing later overwrites it, so the measure drops it itself.
-		it('drops a measure record once the measure is done with it', async () => {
-			const envWithBucket = makeEnvWithBucket()
-			const job = makeJob({ surface: 'mcp', slug: 'f1', pageId: 'page:a', mode: 'measure' })
-			const token = await mintThumbnailRenderToken(envWithBucket, job)
-			await recordMintedRenderToken(envWithBucket, job, token)
-
-			await deleteMintedRenderToken(envWithBucket, job, token)
-
-			expect(await isMintedRenderToken(envWithBucket, job, token)).toBe(false)
-			expect([...(envWithBucket.THUMBNAILS as any).store.keys()]).toEqual([])
 		})
 
 		// Two agents asking for the same cluster of the same board, or one agent issuing the same tool
@@ -489,12 +425,6 @@ describe('render token records', () => {
 
 			const shot = makeJob({ ...board, surface: 'mcp', pageId: 'page:a' })
 			await recordMintedRenderToken(envWithBucket, shot, await mintThumbnailRenderToken(env, shot))
-			const measure = makeJob({ ...board, surface: 'mcp', pageId: 'page:a', mode: 'measure' })
-			await recordMintedRenderToken(
-				envWithBucket,
-				measure,
-				await mintThumbnailRenderToken(env, measure)
-			)
 			// The record an older worker wrote, which sits at the board prefix *without* its trailing
 			// slash — so a prefix listing walks straight past it.
 			await bucket.put(`render-tokens/${board.kind}/${board.slug}`, new Uint8Array())

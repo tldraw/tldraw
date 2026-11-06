@@ -40,18 +40,14 @@ describe('isLocalWorkerRequest', () => {
 
 describe('parseRequest', () => {
 	it("opens the render page on the dev server's own origin, whatever host the body names", () => {
-		const request = parseRequest(body, ownOrigin({ port: 3000 }), 'screenshot')
+		const request = parseRequest(body, ownOrigin({ port: 3000 }))
 		expect(request.url).toBe('http://localhost:3000/__thumbnail-render?token=t')
 		expect(request.injectedScripts).toEqual(['window.x = 1'])
 	})
 
 	it('refuses any page but the render page', () => {
 		expect(() =>
-			parseRequest(
-				{ ...body, url: 'http://localhost:5432/' },
-				'http://localhost:3000',
-				'screenshot'
-			)
+			parseRequest({ ...body, url: 'http://localhost:5432/' }, 'http://localhost:3000')
 		).toThrow('Only /__thumbnail-render can be captured')
 	})
 

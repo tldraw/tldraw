@@ -165,18 +165,6 @@ describe('the timing beacon', () => {
 		expect(response.status).toBe(400)
 		expect((env.MEASURE as any).writeDataPoint).not.toHaveBeenCalled()
 	})
-
-	it('refuses a measure result, which now comes back in the page instead', async () => {
-		const env = makeScreenshotTestEnv() as unknown as Environment
-		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
-
-		const response = await putThumbnailRenderResult(
-			makeRequest({ token, bounds: { 'shape:a': { x: 0, y: 0, w: 10, h: 10 } } }),
-			env
-		)
-
-		expect(response.status).toBe(400)
-	})
 })
 
 describe('the failure beacon', () => {
@@ -201,25 +189,6 @@ describe('the failure beacon', () => {
 			render_page_error: 'Could not load render job (404)',
 			render_page_phase: 'boot',
 			render_surface: 'og',
-			render_mode: 'screenshot',
-			render_capture: 'export',
-		})
-		logged.mockRestore()
-	})
-
-	it('tags a measure as capturing nothing, as the session ledger does', async () => {
-		const env = makeScreenshotTestEnv() as unknown as Environment
-		const token = await mintThumbnailRenderToken(env, { ...JOB, mode: 'measure' })
-		const logged = vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		await putThumbnailRenderResult(
-			makeRequest({ token, error: { message: 'boom', phase: 'mount' } }),
-			env
-		)
-
-		expect(logged.mock.calls[0][1]).toMatchObject({
-			render_mode: 'measure',
-			render_capture: 'none',
 		})
 		logged.mockRestore()
 	})

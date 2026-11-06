@@ -70,13 +70,6 @@ export interface ThumbnailRenderJob {
 	 * fits the camera to their common bounds and draws only them. Omitted means the whole page.
 	 */
 	shapeIds?: string[]
-	/** `live`: the page prunes to `shapeIds`, settles, and lets the screenshot rasterize the canvas. */
-	capture?: 'live'
-	/**
-	 * `measure` skips the export and POSTs the page's shape geometry back instead — the only way a
-	 * Worker can obtain bounds, since sizing a shape needs an editor and font metrics.
-	 */
-	mode?: 'screenshot' | 'measure'
 	/** The viewport the render page sets directly when `camera` is omitted. */
 	x: number
 	y: number
@@ -151,7 +144,6 @@ export async function verifyThumbnailRenderToken(
 		(job.surface !== undefined && job.surface !== 'og' && job.surface !== 'mcp') ||
 		(job.camera !== undefined && job.camera !== 'content') ||
 		(job.pageId !== undefined && typeof job.pageId !== 'string') ||
-		(job.mode !== undefined && job.mode !== 'screenshot' && job.mode !== 'measure') ||
 		(job.shapeIds !== undefined &&
 			(!Array.isArray(job.shapeIds) ||
 				job.shapeIds.length === 0 ||
@@ -179,8 +171,6 @@ export function renderParamsForJob(job: ThumbnailRenderJob): ThumbnailRenderPara
 		...(job.camera ? { camera: job.camera } : null),
 		...(job.pageId ? { pageId: job.pageId } : null),
 		...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
-		...(job.capture ? { capture: job.capture } : null),
-		...(job.mode ? { mode: job.mode } : null),
 		x: job.x,
 		y: job.y,
 		z: job.z,
@@ -263,7 +253,7 @@ function isPerCaptureRecordKey(job: Pick<ThumbnailRenderJob, 'surface'>) {
 }
 
 async function renderTokenRecordKey(
-	job: Pick<ThumbnailRenderJob, 'kind' | 'slug' | 'surface' | 'mode'>,
+	job: Pick<ThumbnailRenderJob, 'kind' | 'slug' | 'surface'>,
 	token: string
 ) {
 	const surface = renderJobSurface(job)
@@ -273,7 +263,7 @@ async function renderTokenRecordKey(
 	// concurrent case, not a race, and a content key would have them invalidate each other. Hashed
 	// rather than used raw because the token is a credential and this is an object name. The mode
 	// segment carries no meaning for the lookup — it is there so a listing reads.
-	return `${base}/${job.mode === 'measure' ? 'measure' : 'screenshot'}/${await sha256(token)}`
+	return `${base}/screenshot/${await sha256(token)}`
 }
 
 /**
@@ -302,8 +292,8 @@ export async function recordMintedRenderToken(
 }
 
 /**
- * Drops one capture's record, for the keys that do not overwrite in place — every MCP job, measure and
- * screenshot alike, since their key carries the token and so nothing later reuses it. Each capture would
+ * Drops one capture's record, for the keys that do not overwrite in place — every MCP job, since its
+ * key carries the token and so nothing later reuses it. Each capture would
  * otherwise leave an object behind forever; see recordMintedRenderToken. Call it once the render is done
  * with the token, which is after the snapshot fetch this record guards has already happened.
  *
