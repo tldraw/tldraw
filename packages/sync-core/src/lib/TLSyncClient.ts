@@ -399,6 +399,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		nextDiffs: Array<{ transaction: StoreTransaction | null; diff: RecordsDiff<R> }>
 		nextPresence?: R | null
 	} = { nextDiffs: [], nextPresence: undefined }
+	/**
+	 * Pushes that were in flight when the connection dropped. With `unsentChanges.nextDiffs`, which
+	 * keeps filling while offline, they make up `speculativeChanges` action by action, so a
+	 * reconnect sends each action as its own push, with its intent, and a denial removes only that
+	 * action.
+	 */
+	private interruptedPushes: Array<{ intent: TLIntent | null; diff: NetworkDiff<R> }> = []
 
 	/**
 	 * The diff of 'unconfirmed', 'optimistic' changes that have been made locally by the user if we
@@ -737,10 +744,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.lastPushedPresenceState = null
 		this.isConnectedToRoom = false
 		this.firstUnansweredPingAt = null
+		for (const request of this.pendingPushRequests) {
+			if (request.diff)
+				this.interruptedPushes.push({ intent: request.intent ?? null, diff: request.diff })
+		}
 		this.pendingPushRequests = []
 		this.deniedCount = 0
 		this.incomingDiffBuffer = []
-		this.unsentChanges.nextDiffs = []
 		this.unsentChanges.nextPresence = undefined
 		if (this.socket.connectionStatus === 'online') {
 			this.socket.restart()
@@ -779,8 +789,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			console.error(e)
 		}
 
-		// at the end of this process we want to have at most one pending push request
-		// based on anything inside this.speculativeChanges
 		transact(() => {
 			// Now our goal is to rebase on the server's state.
 			// This means wiping away any peer presence data, which the server will replace in full on every connect.
@@ -813,17 +821,25 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 				this.isConnectedToRoom = true
 
-				// now re-apply the speculative changes creating a new push request with the
-				// appropriate diff
-				const networkDiff = getNetworkDiff(stashedChanges)
-				if (!networkDiff) return
-				const speculativeChanges = this.store.filterChangesByScope(
-					this.store.extractingChanges(() => {
-						this.applyNetworkDiff(networkDiff, true)
-					}),
-					'document'
-				)
-				if (speculativeChanges) this.push(speculativeChanges)
+				// Re-apply the local changes one action at a time, each as its own push with its own
+				// intent, so the server judges each action on its own.
+				const actions = [
+					...this.interruptedPushes,
+					...this.unsentChanges.nextDiffs.map(({ transaction, diff }) => ({
+						intent: transaction?.intent ?? null,
+						diff: getNetworkDiff(diff),
+					})),
+				]
+				this.interruptedPushes = []
+				this.unsentChanges.nextDiffs = []
+				for (const { intent, diff } of actions) {
+					if (!diff) continue
+					const changes = this.store.filterChangesByScope(
+						this.store.extractingChanges(() => this.applyNetworkDiff(diff, true)),
+						'document'
+					)
+					if (changes) this.push(changes, { intent })
+				}
 			})
 
 			// this.isConnectedToRoom = true
@@ -925,9 +941,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private push(change: RecordsDiff<any>, transaction: StoreTransaction | null = null) {
 		this.debug('push', change)
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
-		// in offline mode, we only accumulate in speculativeChanges. Offline changes go up as one
-		// push with no intent when the client reconnects.
-		if (!this.isConnectedToRoom) return
 		const queue = this.unsentChanges.nextDiffs
 		let entry = queue[queue.length - 1]
 		if (!entry || entry.transaction !== transaction) {
@@ -937,7 +950,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// records are immutable, so sharing their references with `change` is fine — the
 		// squash gives the entry its own containers and tuples without deep-cloning records
 		squashRecordDiffsMutable(entry.diff, [change])
-		this.sendUnsentChanges()
+		// offline, the queue keeps growing; `didReconnect` sends it action by action
+		if (this.isConnectedToRoom) this.sendUnsentChanges()
 	}
 
 	/** Get the target FPS for network operations based on presence mode */
@@ -1049,6 +1063,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					console.error(e)
 					// throw away the speculative changes and start over
 					this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
+					this.pendingPushRequests = []
+					this.unsentChanges.nextDiffs = []
 					this.resetConnection()
 				}
 			})

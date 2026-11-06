@@ -205,21 +205,25 @@ export class SyncUser {
 		this.editor.on('permission-denied', (denial) => this.denials.push(denial))
 	}
 
+	private online = true
+	private readonly socketListeners = {
+		message: new Set<(msg: TLSocketServerSentEvent<TLRecord>) => void>(),
+		status: new Set<(event: any) => void>(),
+	}
+	private serverListeners = new Map<string, Set<(event: any) => void>>()
+
 	private createSocket(access: TLAccess) {
 		const harness = this.harness
-		const sessionId = `session-${this.name}`
-		const listeners = {
-			message: new Set<(msg: TLSocketServerSentEvent<TLRecord>) => void>(),
-			status: new Set<(event: any) => void>(),
-		}
-		const serverListeners = new Map<string, Set<(event: any) => void>>()
+		const listeners = this.socketListeners
 		const client: TLPersistentClientSocket<
 			TLSocketClientSentEvent<TLRecord>,
 			TLSocketServerSentEvent<TLRecord>
 		> = {
 			connectionStatus: 'online',
 			sendMessage: (msg) => {
+				if (!this.online) return
 				const data = JSON.stringify(msg)
+				const serverListeners = this.serverListeners
 				harness.enqueue(() => serverListeners.get('message')?.forEach((fn) => fn({ data })))
 			},
 			onReceiveMessage: (cb) => {
@@ -233,19 +237,37 @@ export class SyncUser {
 			restart: () => {},
 			close: () => {},
 		}
-		harness.room.handleSocketConnect({
-			sessionId,
+		this.clientSocket = client
+		this.connectServerSide(access)
+		return client
+	}
+
+	private clientSocket!: TLPersistentClientSocket<
+		TLSocketClientSentEvent<TLRecord>,
+		TLSocketServerSentEvent<TLRecord>
+	>
+
+	/** Open a new server-side socket for this session, as a fresh WebSocket would. */
+	private connectServerSide(access: TLAccess) {
+		const listeners = this.socketListeners
+		const serverListeners = new Map<string, Set<(event: any) => void>>()
+		this.serverListeners = serverListeners
+		this.harness.room.handleSocketConnect({
+			sessionId: this.sessionId,
 			access,
 			socket: {
 				readyState: 1,
 				send: (data: string) => {
-					harness.enqueue(() => {
+					// a message the server sent to a socket that has since dropped never arrives
+					if (this.serverListeners !== serverListeners) return
+					this.harness.enqueue(() => {
+						if (this.serverListeners !== serverListeners) return
 						const msg = JSON.parse(data)
 						listeners.message.forEach((fn) => fn(msg))
 					})
 				},
 				close: () => {
-					client.connectionStatus = 'offline'
+					this.clientSocket.connectionStatus = 'offline'
 				},
 				addEventListener: (type: string, fn: (event: any) => void) => {
 					if (!serverListeners.has(type)) serverListeners.set(type, new Set())
@@ -256,7 +278,25 @@ export class SyncUser {
 				},
 			},
 		})
-		return client
+	}
+
+	/** Drop the connection. Local changes keep working and queue up until `reconnect`. */
+	goOffline() {
+		this.online = false
+		this.serverListeners.get('close')?.forEach((fn) => fn({}))
+		this.serverListeners = new Map()
+		this.clientSocket.connectionStatus = 'offline'
+		this.socketListeners.status.forEach((fn) => fn({ status: 'offline' }))
+		this.harness.settle()
+	}
+
+	/** Connect again with a new socket, and wait until the client has caught up. */
+	reconnect(access: TLAccess = this.access.get()) {
+		this.online = true
+		this.connectServerSide(access)
+		this.clientSocket.connectionStatus = 'online'
+		this.socketListeners.status.forEach((fn) => fn({ status: 'online' }))
+		this.harness.settle()
 	}
 
 	/** Change this session's access on the server, as an app would after a role change. */

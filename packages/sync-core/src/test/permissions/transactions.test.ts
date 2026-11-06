@@ -90,6 +90,7 @@ describe('one transaction per editor.run', () => {
 						tx.changes.some((c) => (c.next as any)?.meta?.forbidden)
 							? 'Forbidden shapes are not allowed.'
 							: undefined,
+					(tx) => (tx.intent?.name === 'blocked' ? 'This action is blocked.' : undefined),
 				],
 			})
 		)
@@ -138,6 +139,83 @@ describe('one transaction per editor.run', () => {
 		ann.editor.createShapes([geo(createShapeId('after'))])
 		h.settle()
 		expect(h.serverRecord(createShapeId('after'))).toBeDefined()
+	})
+})
+
+describe('offline changes', () => {
+	beforeEach(() => {
+		h = new SyncHarness(
+			definePermissions<TLRecord>({
+				rules: [
+					...defaultAbilityRules(),
+					(tx) =>
+						tx.changes.some((c) => (c.next as any)?.meta?.forbidden)
+							? 'Forbidden shapes are not allowed.'
+							: undefined,
+					(tx) => (tx.intent?.name === 'blocked' ? 'This action is blocked.' : undefined),
+				],
+			})
+		)
+	})
+
+	it('go up one action at a time, so a denial removes only that action', () => {
+		const ann = h.connect('ann', editor)
+		ann.goOffline()
+		ann.store.withTransaction(() => ann.store.put([shapeRecord(ann, 'ok1')]))
+		ann.store.withTransaction(() =>
+			ann.store.put([{ ...shapeRecord(ann, 'bad'), meta: { forbidden: true } }])
+		)
+		ann.store.withTransaction(() => ann.store.put([shapeRecord(ann, 'ok2', 200)]))
+		// still offline: nothing reached the server
+		expect(h.serverRecord(createShapeId('ok1'))).toBeUndefined()
+
+		ann.reconnect()
+		expect(h.serverRecord(createShapeId('ok1'))).toBeDefined()
+		expect(h.serverRecord(createShapeId('bad'))).toBeUndefined()
+		expect(h.serverRecord(createShapeId('ok2'))).toBeDefined()
+		expect(ann.editor.getShape(createShapeId('bad'))).toBeUndefined()
+		expect(ann.editor.getShape(createShapeId('ok2'))).toBeDefined()
+	})
+
+	it('keep their intent', () => {
+		const ann = h.connect('ann', editor)
+		ann.goOffline()
+		ann.store.withTransaction(() => ann.store.put([shapeRecord(ann, 'plain')]))
+		ann.store.withTransaction(() => ann.store.put([shapeRecord(ann, 'named', 200)]), {
+			intent: { name: 'blocked' },
+		})
+		ann.reconnect()
+		expect(h.serverRecord(createShapeId('plain'))).toBeDefined()
+		expect(h.serverRecord(createShapeId('named'))).toBeUndefined()
+		expect(ann.store.props.collaboration?.lastDenial?.get()?.reason).toBe('This action is blocked.')
+	})
+
+	it('deny an offline action built on a denied offline action', () => {
+		const ann = h.connect('ann', editor)
+		const bad = createShapeId('bad')
+		ann.goOffline()
+		ann.store.withTransaction(() =>
+			ann.store.put([{ ...shapeRecord(ann, 'bad', 0, 'frame'), meta: { forbidden: true } }])
+		)
+		ann.store.withTransaction(() =>
+			ann.store.put([{ ...shapeRecord(ann, 'child'), parentId: bad }])
+		)
+		ann.store.withTransaction(() => ann.store.put([shapeRecord(ann, 'other', 300)]))
+		ann.reconnect()
+		expect(h.serverRecord(bad)).toBeUndefined()
+		expect(h.serverRecord(createShapeId('child'))).toBeUndefined()
+		expect(h.serverRecord(createShapeId('other'))).toBeDefined()
+	})
+
+	it('resend pushes that were in flight when the connection dropped', () => {
+		const ann = h.connect('ann', editor)
+		ann.store.withTransaction(() => ann.store.put([shapeRecord(ann, 'inflight')]))
+		ann.store._flushHistory()
+		vi.advanceTimersByTime(50) // the push leaves the client, but the server never gets it
+		ann.goOffline()
+		expect(h.serverRecord(createShapeId('inflight'))).toBeUndefined()
+		ann.reconnect()
+		expect(h.serverRecord(createShapeId('inflight'))).toBeDefined()
 	})
 })
 
