@@ -9,6 +9,7 @@ import {
 	type TLPageId,
 	type TLShape,
 	type TLShapeId,
+	type TLUserId,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { LocalRoom } from './test/harness'
@@ -704,7 +705,7 @@ describe('page read control', () => {
 			InstancePresenceRecordType.create({
 				id: InstancePresenceRecordType.createId('t'),
 				currentPageId,
-				userId: 'user:teacher',
+				userId: 'user:teacher' as TLUserId,
 				userName: 'Teacher',
 			})
 		const teacherCursors = () =>
@@ -864,7 +865,7 @@ describe('undo and redo of commands', () => {
 		room.flush()
 		editor.undo()
 		room.flush()
-		expect((room.room.getRecord('comment:u') as TLComment).isDeleted).toBe(true)
+		expect((room.room.getRecord('comment:u') as unknown as TLComment).isDeleted).toBe(true)
 		editor.redo()
 		room.flush()
 		expect(room.room.getRecord('comment:u')).toMatchObject({ isDeleted: false, authorId: 'alice' })
