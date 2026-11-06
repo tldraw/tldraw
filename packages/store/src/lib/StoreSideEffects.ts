@@ -255,11 +255,13 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param record - The record about to be created
 	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @param canVeto - Whether a handler may block the creation. When false, a handler that
+	 * returns `false` is skipped and the chain goes on.
 	 * @returns The potentially modified record to actually create, or `false` if a handler
 	 * prevented the creation
 	 * @internal
 	 */
-	handleBeforeCreate(record: R, source: 'remote' | 'user'): R | false {
+	handleBeforeCreate(record: R, source: 'remote' | 'user', canVeto = true): R | false {
 		if (!this._isEnabled) return record
 
 		const handlers = this._beforeCreateHandlers[record.typeName] as StoreBeforeCreateHandler<R>[]
@@ -267,8 +269,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 			let r = record
 			for (const handler of handlers) {
 				const result = handler(r, source)
-				if (result === false) return false
-				r = result
+				if (result !== false) r = result
+				else if (canVeto) return false
 			}
 			return r
 		}
@@ -303,20 +305,24 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 * @param prev - The current version of the record
 	 * @param next - The proposed new version of the record
 	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @param canVeto - Whether a handler may block the change. When false, a handler that
+	 * returns `prev` is skipped and the chain goes on.
 	 * @returns The potentially modified record to actually store, or `prev` if a handler blocked
 	 * the change
 	 * @internal
 	 */
-	handleBeforeChange(prev: R, next: R, source: 'remote' | 'user') {
+	handleBeforeChange(prev: R, next: R, source: 'remote' | 'user', canVeto = true) {
 		if (!this._isEnabled) return next
 
 		const handlers = this._beforeChangeHandlers[next.typeName] as StoreBeforeChangeHandler<R>[]
 		if (handlers) {
 			let r = next
 			for (const handler of handlers) {
-				r = handler(prev, r, source)
+				const result = handler(prev, r, source)
+				// Returning prev blocks a change, unless the caller put prev itself.
+				if (result !== prev || r === prev) r = result
 				// a later handler that returns a new object must not undo the block
-				if (r === prev) return prev
+				else if (canVeto) return prev
 			}
 			return r
 		}
@@ -350,16 +356,18 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param record - The record about to be deleted
 	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @param canVeto - Whether a handler may block the deletion. When false, every handler
+	 * still runs, but none can block it.
 	 * @returns `true` to allow deletion, `false` to prevent it
 	 * @internal
 	 */
-	handleBeforeDelete(record: R, source: 'remote' | 'user') {
+	handleBeforeDelete(record: R, source: 'remote' | 'user', canVeto = true) {
 		if (!this._isEnabled) return true
 
 		const handlers = this._beforeDeleteHandlers[record.typeName] as StoreBeforeDeleteHandler<R>[]
 		if (handlers) {
 			for (const handler of handlers) {
-				if (handler(record, source) === false) {
+				if (handler(record, source) === false && canVeto) {
 					return false
 				}
 			}
@@ -469,11 +477,10 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 * prevent the creation.
 	 *
 	 * Together with `return prev` in a before-change handler and `return false` in a
-	 * before-delete handler, this lets a handler veto any local write. Do not veto a write whose
-	 * `source` is `'remote'`, or a write made while {@link Store.isReactingToRemoteChanges} is
-	 * true: the server has already accepted the remote change, so blocking it or its cleanup
-	 * leaves this client out of sync with the server. The store ignores a veto of its own
-	 * integrity repairs.
+	 * before-delete handler, this lets a handler veto any local write. The store ignores a veto
+	 * of a remote write, of a write made while {@link Store.isReactingToRemoteChanges} is true,
+	 * and of its own integrity repairs: the server has already accepted the remote change, so
+	 * blocking it or its cleanup would leave this client out of sync with the server.
 	 *
 	 * Use this handle only to modify the creation of the record itself. If you want to trigger a
 	 * side-effect on a different record (for example, moving one shape when another is created),

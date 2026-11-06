@@ -600,11 +600,11 @@ export class StoreSideEffects<R extends UnknownRecord> {
     // @internal
     handleAfterDelete(record: R, source: 'remote' | 'user'): void;
     // @internal
-    handleBeforeChange(prev: R, next: R, source: 'remote' | 'user'): R;
+    handleBeforeChange(prev: R, next: R, source: 'remote' | 'user', canVeto?: boolean): R;
     // @internal
-    handleBeforeCreate(record: R, source: 'remote' | 'user'): false | R;
+    handleBeforeCreate(record: R, source: 'remote' | 'user', canVeto?: boolean): false | R;
     // @internal
-    handleBeforeDelete(record: R, source: 'remote' | 'user'): boolean;
+    handleBeforeDelete(record: R, source: 'remote' | 'user', canVeto?: boolean): boolean;
     // @internal
     handleOperationComplete(source: 'remote' | 'user'): void;
     // @internal

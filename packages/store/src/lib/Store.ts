@@ -650,6 +650,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			let record: R
 
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+			const canVeto = this.canVeto()
 
 			for (let i = 0, n = records.length; i < n; i++) {
 				record = records[i]
@@ -658,9 +659,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				// If we already have an atom for this record, update its value.
 				if (initialValue) {
 					// If we have a beforeUpdate callback, run it against the initial and next records
-					const changed = this.sideEffects.handleBeforeChange(initialValue, record, source)
-					// integrity repairs must not be vetoed: the repair would retry forever
-					if (changed !== initialValue || !this.isRepairing) record = changed
+					record = this.sideEffects.handleBeforeChange(initialValue, record, source, canVeto)
 
 					// Validate the record
 					const validated = this.schema.validateRecord(
@@ -690,10 +689,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					}
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
-					const created = this.sideEffects.handleBeforeCreate(record, source)
-					// integrity repairs must not be vetoed: the repair would retry forever
-					if (created === false && !this.isRepairing) continue
-					record = created === false ? record : created
+					const created = this.sideEffects.handleBeforeCreate(record, source, canVeto)
+					if (created === false) continue
+					record = created
 
 					// If we don't have an atom, create one.
 
@@ -746,13 +744,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.atomic(() => {
 			const toDelete = new Set<IdOf<R>>(ids)
 			const source = this.isMergingRemoteChanges ? 'remote' : 'user'
+			const canVeto = this.canVeto()
 
 			if (this.sideEffects.isEnabled()) {
 				for (const id of ids) {
 					const record = this.records.__unsafe__getWithoutCapture(id)
 					if (!record) continue
 
-					if (this.sideEffects.handleBeforeDelete(record, source) === false && !this.isRepairing) {
+					if (this.sideEffects.handleBeforeDelete(record, source, canVeto) === false) {
 						toDelete.delete(id)
 					}
 				}
@@ -1068,18 +1067,19 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private _isReactingToRemoteChanges = false
 
 	/**
-	 * Whether the store is running side effects for a remote change: the `after*` and
-	 * `operationComplete` handlers of a {@link Store.mergeRemoteChanges} call, the writes they
-	 * make, and the integrity check after the merge. Those writes have the source `'user'`,
-	 * because a sync client must push them, but nobody asked for them: they keep the store
-	 * consistent with what the server already accepted. A handler that vetoes local writes
-	 * should let them through, or this client goes out of sync with the server.
+	 * Whether the store is in a {@link Store.mergeRemoteChanges} call: the remote changes
+	 * themselves, the `after*` and `operationComplete` handlers they trigger, the writes those
+	 * handlers make, and the integrity check after the merge. The handlers' writes have the source
+	 * `'user'`, because a sync client must push them, but nobody on this client asked for them:
+	 * they keep the store consistent with what the server already accepted. So the store ignores a
+	 * before-handler's veto of them. Use this to tell such writes apart from the ones a person
+	 * made, for example to attribute only the person's own edits.
 	 *
 	 * @example
 	 * ```ts
-	 * editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {
-	 *   if (source === 'remote' || editor.store.isReactingToRemoteChanges()) return
-	 *   if (!canEdit(shape)) return false
+	 * editor.sideEffects.registerBeforeChangeHandler('shape', (prev, next, source) => {
+	 *   if (source === 'remote' || editor.store.isReactingToRemoteChanges()) return next
+	 *   return { ...next, meta: { ...next.meta, editedBy: currentUserId } }
 	 * })
 	 * ```
 	 *
@@ -1087,6 +1087,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	isReactingToRemoteChanges() {
 		return this._isReactingToRemoteChanges
+	}
+
+	// A before-handler may veto only a write that someone asked for on this client. The server
+	// has already accepted a remote change, so blocking it or its cleanup would leave this client
+	// out of sync with the server, and a blocked integrity repair would retry forever.
+	private canVeto() {
+		return !this.isMergingRemoteChanges && !this._isReactingToRemoteChanges && !this.isRepairing
 	}
 
 	/**
@@ -1114,15 +1121,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			throw new Error('Cannot merge remote changes while in atomic operation')
 		}
 
+		this._isReactingToRemoteChanges = true
 		try {
-			this.atomic(fn, true, true)
-		} finally {
-			this._isReactingToRemoteChanges = true
 			try {
-				this.ensureStoreIsUsable()
+				this.atomic(fn, true, true)
 			} finally {
-				this._isReactingToRemoteChanges = false
+				this.ensureStoreIsUsable()
 			}
+		} finally {
+			this._isReactingToRemoteChanges = false
 		}
 	}
 
@@ -1272,22 +1279,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	private _integrityChecker?: () => void | undefined
 
-	// True while the integrity checker repairs the store. A before-create or before-delete veto
-	// is ignored then, because the checker retries until its repair lands.
+	// True only while the integrity checker writes its own repairs, not while the after-handlers
+	// those repairs trigger run.
 	private isRepairing = false
 
 	/** @internal */
 	ensureStoreIsUsable() {
-		const wasRepairing = this.isRepairing
-		this.isRepairing = true
-		try {
-			this.atomic(() => {
-				this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+		this.atomic(() => {
+			this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+			const wasRepairing = this.isRepairing
+			this.isRepairing = true
+			try {
 				this._integrityChecker?.()
-			})
-		} finally {
-			this.isRepairing = wasRepairing
-		}
+			} finally {
+				this.isRepairing = wasRepairing
+			}
+		})
 	}
 
 	private _isPossiblyCorrupted = false
@@ -1317,7 +1324,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private flushAtomicCallbacks(isMergingRemoteChanges: boolean) {
 		let updateDepth = 0
 		let source: ChangeSource = isMergingRemoteChanges ? 'remote' : 'user'
-		if (isMergingRemoteChanges) this._isReactingToRemoteChanges = true
 		while (this.pendingAfterEvents) {
 			const events = this.pendingAfterEvents
 			this.pendingAfterEvents = null
@@ -1389,7 +1395,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
 				this.isMergingRemoteChanges = false
-				if (isMergingRemoteChanges) this._isReactingToRemoteChanges = false
 			}
 		})
 	}

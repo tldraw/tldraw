@@ -52,51 +52,25 @@ editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
 
 You might auto-save only after user operations, or skip validation for trusted remote data.
 
-Changes that handlers make in reaction to a remote change, such as deleting a group whose last child another person deleted, have the source `'user'`, because this client sends them to the server. While the store makes them, `editor.store.isReactingToRemoteChanges()` returns `true`.
+Changes that handlers make in reaction to a remote change, such as deleting a group whose last child another person deleted, have the source `'user'`, because this client sends them to the server. While the store merges remote changes and makes this cleanup, `editor.store.isReactingToRemoteChanges()` returns `true`.
 
 ### Blocking writes
 
-Before handlers can block any local write: return `false` from `beforeCreate` or `beforeDelete`, or return `prev` from `beforeChange`. Block only writes that someone asked for on this client. Let remote writes and the cleanup that follows them through: the server has already accepted the remote change, so if you block it or its cleanup, this client no longer matches the server.
+Before handlers can block a write: return `false` from `beforeCreate` or `beforeDelete`, or return `prev` from `beforeChange`. Later handlers are not called for a blocked write.
 
 ```typescript
-const isLocal = (source: 'user' | 'remote') =>
-	source === 'user' && !editor.store.isReactingToRemoteChanges()
-
 editor.sideEffects.register({
 	shape: {
-		beforeCreate: (shape, source) => (isLocal(source) && !canEdit(shape) ? false : shape),
-		beforeChange: (prev, next, source) => (isLocal(source) && !canEdit(prev) ? prev : next),
-		beforeDelete: (shape, source) => (isLocal(source) && !canEdit(shape) ? false : undefined),
+		beforeCreate: (shape) => (canEdit(shape) ? shape : false),
+		beforeChange: (prev, next) => (canEdit(prev) ? next : prev),
+		beforeDelete: (shape) => (canEdit(shape) ? undefined : false),
 	},
 })
 ```
 
-The store ignores a veto of its own integrity repairs, such as creating a page when the last one was deleted.
+The store blocks only writes that someone asked for on this client. It ignores a block of a remote change, of the cleanup that follows a remote change, and of its own integrity repairs, such as creating a page when the last one was deleted. The server has already accepted the remote change, so blocking it would leave this client out of sync with the server.
 
 A blocked write is skipped on its own. Other records in the same operation are still written, so a handler that blocks part of an operation can leave related records inconsistent, for example a binding to a shape that was not created.
-
-### Registration and cleanup
-
-Register side effects using the type-specific methods on `editor.sideEffects`. Each method returns a cleanup function you can call to remove the handler:
-
-```typescript
-const cleanup = editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
-	if (shape.type === 'note') {
-		editor.updateShape({ id: shape.id, type: 'note', meta: { createdAt: Date.now() } })
-	}
-})
-
-// Later, when no longer needed
-cleanup()
-```
-
-To register several handlers at once, pass an object keyed by type name to `editor.sideEffects.register({ shape: { afterCreate, beforeDelete } })`; it returns a single cleanup function.
-
-### Execution order
-
-Handlers execute in registration order. If one handler reads a value another handler writes, register the writer first.
-
-Before handlers run inline as each record is written. After handlers are queued and run when the outermost store operation completes, so changes made inside them belong to the same transaction and the same undo step. If an after handler makes further changes, their handlers run in a follow-up pass. The `operationComplete` handler runs once at the end, after every pass has finished.
 
 ## Use cases
 
