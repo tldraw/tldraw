@@ -4,6 +4,7 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	createEmptyRecordsDiff,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -569,7 +570,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				({ changes }) => {
 					if (this.didCancel?.()) return this.close()
 					this.debug('received store changes', { changes })
-					this.push(changes)
+					if (this.applyingCommand) {
+						// a command's own writes: on the undo stack, but sent as the command
+						squashRecordDiffsMutable(this.speculativeChanges, [changes])
+						return
+					}
+					this.push(this.sendUndoAsCommands(changes))
 				},
 				{ source: 'user', scope: 'document' }
 			),
@@ -737,7 +743,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * A denied command writes nothing and returns the reason. A command the server later denies is
 	 * rolled back, and `onPushRejected` is called.
 	 *
-	 * Commands change the store as remote changes, so the editor's undo stack does not hold them.
+	 * A command that returns an inverse goes on the undo stack, and undo sends the inverse.
 	 *
 	 * @param name - The command's name
 	 * @param args - JSON args. Pass new ids here, so the client and server create the same records.
@@ -755,10 +761,28 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.onPushRejected?.({ reason: result.reason, command: call })
 			return result
 		}
-		this.store.mergeRemoteChanges(() => {
-			const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
-			squashRecordDiffsMutable(this.speculativeChanges, [changes])
-		})
+		if (result.inverse) {
+			// Apply as a user change, so the editor's undo stack holds it. The store listener sees
+			// `applyingCommand` and does not send the writes as a raw diff.
+			this.applyingCommand = true
+			try {
+				const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+				this.store._flushHistory()
+				this.rememberUndo(result.inverse, changes)
+			} finally {
+				this.applyingCommand = false
+			}
+		} else {
+			this.store.mergeRemoteChanges(() => {
+				const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
+				squashRecordDiffsMutable(this.speculativeChanges, [changes])
+			})
+		}
+		this.sendCommand(call)
+		return result
+	}
+
+	private sendCommand(call: TLCommandCall) {
 		const pushRequest: TLPushRequest<R> = {
 			type: 'push',
 			clientClock: this.clientClock++,
@@ -766,7 +790,98 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 		this.socket.sendMessage(pushRequest)
 		this.pendingPushRequests.push(pushRequest)
-		return result
+	}
+
+	private applyingCommand = false
+	/**
+	 * Commands on the undo stack, newest last. Each holds the call that reverses it, and the
+	 * records it changed, before and after.
+	 */
+	private undoable: {
+		inverse: TLCommandCall
+		before: Map<string, R | undefined>
+		after: Map<string, R | undefined>
+	}[] = []
+
+	private rememberUndo(inverse: TLCommandCall, changes: RecordsDiff<R>) {
+		const before = new Map<string, R | undefined>()
+		const after = new Map<string, R | undefined>()
+		for (const [id, record] of objectMapEntries(changes.added)) {
+			before.set(id, undefined)
+			after.set(id, record)
+		}
+		for (const [id, [from, to]] of objectMapEntries(changes.updated)) {
+			before.set(id, from)
+			after.set(id, to)
+		}
+		for (const [id, record] of objectMapEntries(changes.removed)) {
+			before.set(id, record)
+			after.set(id, undefined)
+		}
+		if (before.size === 0) return
+		this.undoable.push({ inverse, before, after })
+		if (this.undoable.length > 100) this.undoable.shift()
+	}
+
+	/** Whether a record change takes a command's record back to its state before or after it. */
+	private isUndoStep(id: string, value: R | undefined) {
+		return this.undoable.some(
+			(e) =>
+				e.before.has(id) && (isEqual(e.before.get(id), value) || isEqual(e.after.get(id), value))
+		)
+	}
+
+	/**
+	 * Undo and redo replay record diffs. When a diff takes all of a command's records back to their
+	 * state before the command, send the command's inverse instead of the raw records, so the
+	 * server authorizes the undo like any other command. Returns the rest of the diff.
+	 */
+	private sendUndoAsCommands(changes: RecordsDiff<R>): RecordsDiff<R> {
+		if (!this.commands || this.undoable.length === 0) return changes
+		const valueAfter = (id: string): [boolean, R | undefined] => {
+			if (id in changes.added) return [true, (changes.added as any)[id]]
+			if (id in changes.updated) return [true, (changes.updated as any)[id][1]]
+			if (id in changes.removed) return [true, undefined]
+			return [false, undefined]
+		}
+		let rest = changes
+		for (let i = this.undoable.length - 1; i >= 0; i--) {
+			const entry = this.undoable[i]
+			const matches = [...entry.before].every(([id, value]) => {
+				const [touched, next] = valueAfter(id)
+				return touched && isEqual(next, value)
+			})
+			if (!matches) continue
+			// The step is applied locally already; the server runs the inverse. Run it here too,
+			// on the state before the step, only to learn its own inverse for the next redo.
+			const reader: TLCommandReader<R> = {
+				get: (id) =>
+					entry.after.has(id) ? entry.after.get(id) : this.store.get(id as RecordId<R>),
+				values: () => this.store.allRecords(),
+			}
+			const next = runCommand(this.commands, reader, this.actor.get(), entry.inverse)
+			this.undoable.splice(i, 1)
+			if (next.ok && next.inverse) {
+				this.undoable.splice(i, 0, {
+					inverse: next.inverse,
+					before: entry.after,
+					after: entry.before,
+				})
+			}
+			const matched = createEmptyRecordsDiff<R>()
+			const remaining = createEmptyRecordsDiff<R>()
+			for (const kind of ['added', 'updated', 'removed'] as const) {
+				for (const [id, value] of objectMapEntries(rest[kind] as Record<string, any>)) {
+					;((entry.before.has(id) ? matched : remaining)[kind] as any)[id] = value
+				}
+			}
+			squashRecordDiffsMutable(this.speculativeChanges, [matched])
+			this.push(remaining)
+			this.flushUnsentChanges()
+			this.sendCommand(entry.inverse)
+			rest = createEmptyRecordsDiff<R>()
+		}
+		return rest
 	}
 
 	/** Whether this client's actor has a permission, reactively. */
@@ -795,13 +910,15 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		for (const typeName of this.store.scopedTypes.document) {
 			this.disposables.push(
 				sideEffects.registerBeforeCreateHandler(typeName, (record, source) => {
-					if (source !== 'user' || !set.edit.stamp) return record
+					if (source !== 'user' || this.applyingCommand || !set.edit.stamp) return record
 					return set.edit.stamp(this.actor.get(), record)
 				}),
 				// A before-create handler cannot veto, so remove a denied record right after. The
 				// create and the remove squash to nothing, so nothing is sent.
 				sideEffects.registerAfterCreateHandler(typeName, (record, source) => {
-					if (source !== 'user' || this.canEdit('create', null, record)) return
+					if (source !== 'user' || this.applyingCommand || this.isUndoStep(record.id, record))
+						return
+					if (this.canEdit('create', null, record)) return
 					removingDenied = true
 					try {
 						this.store.remove([record.id])
@@ -811,11 +928,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					this.onPushRejected?.({ reason: `edit denied: create ${record.typeName}` })
 				}),
 				sideEffects.registerBeforeChangeHandler(typeName, (prev, next, source) => {
-					if (source !== 'user' || this.canEdit('update', prev, next)) return next
+					if (source !== 'user' || this.applyingCommand || this.isUndoStep(next.id, next))
+						return next
+					if (this.canEdit('update', prev, next)) return next
 					return prev
 				}),
 				sideEffects.registerBeforeDeleteHandler(typeName, (record, source) => {
-					if (source !== 'user' || removingDenied || this.canEdit('delete', record, null)) return
+					if (source !== 'user' || removingDenied || this.applyingCommand) return
+					if (this.isUndoStep(record.id, undefined) || this.canEdit('delete', record, null)) return
 					return false
 				})
 			)

@@ -784,3 +784,113 @@ describe('arrows across owners', () => {
 		expect(room.room.getRecord('binding:alice')).toBeDefined()
 	})
 })
+
+describe('undo and redo of commands', () => {
+	it("undo of a vote on the teacher's note sends the inverse command, not a raw edit", () => {
+		const { room, t, a } = setup()
+		const note = geo(t, 0)
+		room.flush()
+		const editor = a.getEditor()
+		editor.markHistoryStoppingPoint()
+		a.run('votes.toggle', { shapeId: note })
+		room.flush()
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['alice'])
+
+		editor.undo()
+		// optimistic: the undo step itself
+		expect(a.get<TLShape>(note)!.meta.votes).toBeUndefined()
+		room.flush()
+		// then the server's result of the inverse command
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual([])
+		expect(a.get<TLShape>(note)!.meta.votes).toEqual([])
+		expect(a.rejections).toEqual([])
+
+		editor.redo()
+		room.flush()
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['alice'])
+		expect(a.rejections).toEqual([])
+	})
+
+	it('undo keeps votes that others cast in the meantime', () => {
+		const { room, t, a, b } = setup()
+		const note = geo(t, 0)
+		room.flush()
+		a.getEditor().markHistoryStoppingPoint()
+		a.run('votes.toggle', { shapeId: note })
+		room.flush()
+		b.run('votes.toggle', { shapeId: note })
+		room.flush()
+		a.getEditor().undo()
+		room.flush()
+		// a raw undo would write back [], wiping Bob's vote; the inverse command removes only Alice's
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['bob'])
+		expect(a.get<TLShape>(note)!.meta.votes).toEqual(['bob'])
+	})
+
+	it('undo of a comment deletes it; redo restores it; the author stays the actor', () => {
+		const { room, a } = setup()
+		const editor = a.getEditor()
+		editor.markHistoryStoppingPoint()
+		a.run('comments.add', {
+			threadId: 'comment-thread:u',
+			commentId: 'comment:u',
+			pageId: page,
+			anchor: { type: 'page' },
+			body: toRichText('oops'),
+			now: 1,
+		})
+		room.flush()
+		editor.undo()
+		room.flush()
+		expect((room.room.getRecord('comment:u') as TLComment).isDeleted).toBe(true)
+		editor.redo()
+		room.flush()
+		expect(room.room.getRecord('comment:u')).toMatchObject({ isDeleted: false, authorId: 'alice' })
+		expect(a.rejections).toEqual([])
+	})
+
+	it('one undo step can hold a drag and a command: the drag goes raw, the command as its inverse', () => {
+		const { room, t, a } = setup()
+		const note = geo(t, 0)
+		const mine = geo(a, 300)
+		room.flush()
+		const editor = a.getEditor()
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: mine, type: 'geo', x: 400 })
+		a.run('votes.toggle', { shapeId: note })
+		room.flush()
+		editor.undo()
+		room.flush()
+		expect((room.room.getRecord(mine) as TLShape).x).toBe(300)
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual([])
+		expect(a.rejections).toEqual([])
+	})
+
+	it('undo is authorized like any command: it fails after the permission is gone', () => {
+		const { room, t, a } = setup()
+		const note = geo(t, 0)
+		room.flush()
+		a.getEditor().markHistoryStoppingPoint()
+		a.run('votes.toggle', { shapeId: note })
+		room.flush()
+		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.read, P.edit] })
+		room.flush()
+		a.getEditor().undo()
+		room.flush()
+		expect((room.room.getRecord(note) as TLShape).meta.votes).toEqual(['alice'])
+		expect(a.get<TLShape>(note)!.meta.votes).toEqual(['alice'])
+		expect(a.rejections).toContain('missing permission: votes:cast')
+	})
+
+	it('the teacher undoes a new page', () => {
+		const { room, t, a } = setup()
+		t.getEditor().markHistoryStoppingPoint()
+		t.run('pages.create', { id: 'page:new', name: 'New' })
+		room.flush()
+		expect(a.get('page:new' as TLPageId)).toBeDefined()
+		t.getEditor().undo()
+		room.flush()
+		expect(room.room.getRecord('page:new')).toBeUndefined()
+		expect(a.get('page:new' as TLPageId)).toBeUndefined()
+	})
+})

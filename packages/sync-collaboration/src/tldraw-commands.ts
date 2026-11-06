@@ -159,6 +159,24 @@ export const commentCommands = [
 				.getAll<TLComment & R>('comment')
 				.filter((c) => c.threadId === comment.threadId && !c.isDeleted)
 			if (live.length === 0) ctx.update<TLCommentThread & R>(comment.threadId, { isDeleted: true })
+			return { name: 'comments.restore', args: { commentId: args.commentId } }
+		},
+	}),
+	defineCommand<R, { commentId: string }>({
+		name: 'comments.restore',
+		requires: TLDRAW_PERMISSIONS.writeComments,
+		args: T.object({ commentId: id('comment') }),
+		run(ctx, args) {
+			const userId = requireUser(ctx)
+			const comment = ctx.get<TLComment & R>(args.commentId)
+			if (!comment || !comment.isDeleted) return ctx.deny('no deleted comment')
+			if (comment.authorId !== userId && !ctx.can(TLDRAW_PERMISSIONS.manageComments)) {
+				return ctx.deny('only the author or a moderator can restore a comment')
+			}
+			ctx.update<TLComment & R>(comment.id, { isDeleted: false })
+			const thread = ctx.get<TLCommentThread & R>(comment.threadId)
+			if (thread?.isDeleted) ctx.update<TLCommentThread & R>(thread.id, { isDeleted: false })
+			return { name: 'comments.delete', args: { commentId: args.commentId } }
 		},
 	}),
 	defineCommand<R, { threadId: string; resolved: boolean; now: number }>({
