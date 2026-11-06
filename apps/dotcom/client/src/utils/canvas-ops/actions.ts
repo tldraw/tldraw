@@ -137,17 +137,19 @@ export interface BatchJournal {
 	created: TLShapeId[]
 }
 
-/** Shapes created through ops on this editor, in order, across batches; backs `{ created }` refs. */
+/**
+ * Shapes one run (one `runId`) created on this editor, in order, across batches; backs `{ created }`
+ * refs. Scoped per run so `{ created: 'all' }` never reaches another agent's shapes.
+ */
 export interface RunMemory {
 	created: TLShapeId[]
 }
-const runMemories = new WeakMap<Editor, RunMemory>()
-export function runMemory(editor: Editor): RunMemory {
-	let memory = runMemories.get(editor)
-	if (!memory) {
-		memory = { created: [] }
-		runMemories.set(editor, memory)
-	}
+const runMemories = new WeakMap<Editor, Map<string, RunMemory>>()
+function runMemory(editor: Editor, runId = ''): RunMemory {
+	let byRun = runMemories.get(editor)
+	if (!byRun) runMemories.set(editor, (byRun = new Map()))
+	let memory = byRun.get(runId)
+	if (!memory) byRun.set(runId, (memory = { created: [] }))
 	return memory
 }
 
@@ -406,7 +408,7 @@ export function runBatch(
 	if (attribution.userId) stamp.userId = attribution.userId
 	if (attribution.userName) stamp.userName = attribution.userName
 	const journal: BatchJournal = { stamp, created: [] }
-	const memory = runMemory(editor)
+	const memory = runMemory(editor, attribution.runId)
 	const ctx: BatchContext = {
 		editor,
 		journal,

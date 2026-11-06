@@ -5,7 +5,7 @@ interface Point {
 	y: number
 }
 
-/** Native editable geometry; callers handle ids, attribution, journaling, and styling. */
+/** Native editable geometry for a line (open) or draw (closed) shape; callers handle ids, attribution, and styling. */
 export function pathGeometry(input: Point[], closed = false, smooth = false) {
 	const points = input.map((p) => ({ ...p }))
 	if (

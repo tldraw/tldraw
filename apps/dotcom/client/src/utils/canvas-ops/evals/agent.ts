@@ -144,7 +144,10 @@ export async function runAgent(editor: Editor, task: string): Promise<AgentRun> 
 					type: 'tool_result',
 					tool_use_id: block.id,
 					is_error: true,
-					content: `Invalid ops, nothing applied:\n${error}`,
+					content:
+						e instanceof z.ZodError
+							? `Invalid ops, nothing applied:\n${error}`
+							: `The batch failed: ${error}`,
 				})
 			}
 		}

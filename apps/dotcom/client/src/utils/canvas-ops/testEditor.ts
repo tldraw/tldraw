@@ -11,7 +11,7 @@ import {
 	type TLMeasureTextOpts,
 } from 'tldraw'
 
-/** Deterministic text measurement: 16 units per character and 32 per line at 24px, scaled by size. */
+/** A headless editor whose text measurement is deterministic: 16 units per character and 32 per line at 24px, scaled by font size. */
 export function createTestEditor(): Editor {
 	const container = document.createElement('div')
 	document.body.appendChild(container)

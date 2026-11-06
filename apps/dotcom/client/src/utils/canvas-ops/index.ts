@@ -3,6 +3,7 @@ import { applyOps, createOpsStream } from './ops'
 import {
 	AttributionSchema,
 	CanvasOpSchema,
+	MAX_OPS_PER_BATCH,
 	OpsBatchSchema,
 	type ApplyOpsResult,
 	type Attribution,
@@ -17,8 +18,14 @@ export type { ApplyOpsResult, Attribution, CanvasOp, OpResult, OpsBatch } from '
  * fails validation throws without applying any op.
  */
 export function createCanvasOpsReceiver(editor: Editor) {
-	const streams = new Map<string, ReturnType<typeof createOpsStream>>()
+	const streams = new Map<string, { apply: ReturnType<typeof createOpsStream>; idle: number }>()
 	const parseAttribution = (raw: unknown): Attribution => AttributionSchema.parse(raw ?? {})
+	const close = (id: string) => {
+		const entry = streams.get(id)
+		if (!entry) return
+		editor.timers.clearTimeout(entry.idle)
+		streams.delete(id)
+	}
 
 	return {
 		/** Apply a whole `{ ops }` batch as one undo step. */
@@ -29,7 +36,8 @@ export function createCanvasOpsReceiver(editor: Editor) {
 
 		/**
 		 * Apply ops as they arrive for stream `id`. The first call opens the stream; pass `finish`
-		 * with the last ops to close it.
+		 * with the last ops to close it. A stream nobody finishes closes after
+		 * `STREAM_IDLE_TIMEOUT_MS` without a chunk.
 		 */
 		async streamOps(
 			id: string,
@@ -37,19 +45,19 @@ export function createCanvasOpsReceiver(editor: Editor) {
 			finish: boolean,
 			attribution?: unknown
 		): Promise<ApplyOpsResult> {
-			const parsed: CanvasOp[] = CanvasOpSchema.array().parse(ops)
-			let stream = streams.get(id)
-			if (!stream) {
-				stream = createOpsStream(editor, parseAttribution(attribution))
-				streams.set(id, stream)
-			}
 			try {
-				return await stream(parsed, finish)
+				const parsed: CanvasOp[] = CanvasOpSchema.array().max(MAX_OPS_PER_BATCH).parse(ops)
+				let entry = streams.get(id)
+				if (entry) editor.timers.clearTimeout(entry.idle)
+				const apply = entry?.apply ?? createOpsStream(editor, parseAttribution(attribution))
+				entry = { apply, idle: editor.timers.setTimeout(() => close(id), STREAM_IDLE_TIMEOUT_MS) }
+				streams.set(id, entry)
+				return await apply(parsed, finish)
 			} finally {
-				if (finish) streams.delete(id)
+				if (finish) close(id)
 			}
 		},
 	}
 }
 
-export type CanvasOpsReceiver = ReturnType<typeof createCanvasOpsReceiver>
+const STREAM_IDLE_TIMEOUT_MS = 60_000

@@ -1,11 +1,10 @@
-import { Editor, type TLShapeId } from 'tldraw'
+import { Editor, transaction, type TLShapeId } from 'tldraw'
 import {
 	describeShapes,
 	fromShapeId,
 	LABEL_PADDING,
 	measureLabel,
 	runBatch,
-	runMemory,
 	settle,
 	toShapeId,
 	type BatchContext,
@@ -24,11 +23,9 @@ import type {
 	RefList,
 } from './schema'
 
-/**
- * Compiles ops to bare actions: resolves references, does the geometry with real text
- * measurements, avoids collisions, and reports where things landed. Everything goes through
- * `runBatch`, so undo and attribution are the same as for bare actions.
- */
+// Compiles ops to bare actions: resolves references, does the geometry with real text
+// measurements, avoids collisions, and reports where things landed. Everything goes through
+// `runBatch`, so undo and attribution are the same as for bare actions.
 
 interface Rect {
 	x: number
@@ -75,7 +72,7 @@ function gapBetween(a: Rect, b: Rect): number {
 	return Math.max(b.x - (a.x + a.w), a.x - (b.x + b.w), b.y - (a.y + a.h), a.y - (b.y + b.h))
 }
 
-/** Sparse strokes cannot be treated as solid bounding-box obstacles. Inspect them visually. */
+/** Lines and draw strokes are mostly empty space, so their bounding boxes are not obstacles. */
 function isPath(type: string) {
 	return type === 'line' || type === 'draw'
 }
@@ -88,7 +85,11 @@ function obstacles(editor: Editor, exclude: Set<TLShapeId>): Array<{ id: TLShape
 		.map((s) => ({ id: s.id, rect: rectOf(editor, s.id) }))
 }
 
-/** True when `rect` collides with an obstacle that neither contains it nor is contained by it (containers are fine). */
+/**
+ * The first obstacle within `slack` of `rect`. An obstacle that contains `rect` is skipped only if it
+ * is in `allowContainers` (any container when that is omitted); a `rect` that swallows an obstacle
+ * always collides, since nothing the solver places is meant to contain other shapes.
+ */
 function collides(
 	rect: Rect,
 	obs: Array<{ id: TLShapeId; rect: Rect }>,
@@ -96,10 +97,6 @@ function collides(
 	allowContainers?: Set<TLShapeId>
 ): { id: TLShapeId; rect: Rect } | null {
 	for (const o of obs) {
-		// A subject that swallows an obstacle (a label over a dot) is a collision: nothing the solver
-		// places is meant to contain other shapes.
-		// Sitting inside a bigger shape is fine for a frame the target also lives in; a wall or a
-		// neighbouring box that would swallow the subject is a collision like any other.
 		if (contains(o.rect, rect) && (!allowContainers || allowContainers.has(o.id))) continue
 		if (overlaps(rect, o.rect, slack)) return o
 	}
@@ -159,7 +156,7 @@ function summarise(s: ShapeSummary) {
 }
 
 /** Deterministic matching of a description like "the red ellipse in the lower right" or "the box labelled 'API'". */
-export function matchDescription(shapes: ShapeSummary[], description: string): ShapeSummary[] {
+function matchDescription(shapes: ShapeSummary[], description: string): ShapeSummary[] {
 	const d = description.toLowerCase()
 	let pool = shapes
 	const quoted = description.match(/["“'‘]([^"”'’]+)["”'’]/)
@@ -211,12 +208,12 @@ export function matchDescription(shapes: ShapeSummary[], description: string): S
 	return pool
 }
 
-export interface RefContext {
+interface RefContext {
 	created: TLShapeId[]
 	selected: TLShapeId[]
 }
 
-export function resolveRef(editor: Editor, ref: Ref, ctx: RefContext): TLShapeId {
+function resolveRef(editor: Editor, ref: Ref, ctx: RefContext): TLShapeId {
 	if (typeof ref === 'string') {
 		const id = toShapeId(ref)
 		if (!editor.getShape(id)) throw new Error(`Unknown shape "${ref}"`)
@@ -258,7 +255,7 @@ export function resolveRef(editor: Editor, ref: Ref, ctx: RefContext): TLShapeId
 	)
 }
 
-export function resolveRefList(editor: Editor, list: RefList, ctx: RefContext): TLShapeId[] {
+function resolveRefList(editor: Editor, list: RefList, ctx: RefContext): TLShapeId[] {
 	if (Array.isArray(list)) return list.map((r) => resolveRef(editor, r, ctx))
 	if ('selected' in list) {
 		if (ctx.selected.length === 0) throw new Error('The user has nothing selected')
@@ -371,11 +368,11 @@ function freeGap(
 }
 
 /**
- * Find a collision-free position for `subject` relative to `target`: the requested spot first; if
- * the neighbour on that side leaves too narrow a gap for the requested clearance, centre the subject
- * in the gap with equal margins; then nudges along the shared edge; then the opposite side. A
- * shape that contains the target (a frame) does not count as a collision; anything else that would
- * swallow the subject does. Returns `blocked` when nothing fits, so the caller may shrink and retry.
+ * Find a collision-free spot for `subject` relative to `target`, trying in order: the requested
+ * spot; centred in a too-narrow gap on that side; for left/right, the opposite side, then small
+ * vertical nudges (leaving the row reads worse than switching sides); for above/below, nudges along
+ * the row, then the opposite side. A shape that contains the target (a frame) is not a collision.
+ * Returns `blocked` when nothing fits, so the caller may shrink and retry.
  */
 function solvePlacement(
 	editor: Editor,
@@ -422,8 +419,6 @@ function solvePlacement(
 			}
 		}
 	}
-	// Beside a shape, leaving the row (a vertical nudge) reads worse than using the other side; above or
-	// below, sliding along the row is fine.
 	const tryOpposite = () => {
 		if (!sideways) return null
 		const opp = tryAt(OPPOSITE[relation], 0, 0)
@@ -527,21 +522,17 @@ function crowding(editor: Editor, id: TLShapeId): string | undefined {
 // ---------------------------------------------------------------------------------------------
 // Ops
 
-/** Create a new subject at a provisional spot and return its id and measured rect. */
+/** Create a new subject at `at`; the caller moves it into place. */
 function materialise(
 	ctx: OpContext,
-	subject: NewSubject,
+	subject: NewSubject & { kind: NonNullable<NewSubject['kind']> },
 	at: { x: number; y: number },
 	align?: 'start' | 'end'
 ): TLShapeId {
 	const id = subject.id
 	let created: string[]
-	const kind =
-		subject.kind ??
-		(subject.w !== undefined || subject.h !== undefined || subject.geo ? 'shape' : 'label')
-	switch (kind as string) {
+	switch (subject.kind) {
 		case 'label':
-		case 'text':
 			created = ctx.apply({
 				type: 'create_text',
 				id,
@@ -803,20 +794,21 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 	if ('text' in op && typeof op.text === 'string' && op.text.includes('\\n')) {
 		op = { ...op, text: op.text.replace(/\\n/g, '\n') }
 	}
-	const ok = (shapeIds: TLShapeId[], message: string, adjusted?: string): OpResult => {
-		if ('assembly' in op && op.assembly !== undefined) {
-			for (const id of shapeIds)
-				ctx.apply({ type: 'update_shape', shapeId: fromShapeId(id), assembly: op.assembly })
-		}
-		return { index, op: op.op, ok: true, shapeIds: shapeIds.map(fromShapeId), message, adjusted }
-	}
+	const ok = (shapeIds: TLShapeId[], message: string, adjusted?: string): OpResult => ({
+		index,
+		op: op.op,
+		ok: true,
+		shapeIds: shapeIds.map(fromShapeId),
+		message,
+		adjusted,
+	})
 	switch (op.op) {
 		case 'path': {
-			const { op: _op, assembly: _assembly, ...fields } = op
+			const { op: _op, ...fields } = op
 			const ids = ctx.apply({ type: 'create_path', ...fields }).map(toShapeId)
 			return ok(
 				ids,
-				`Created ${op.closed ? 'closed outline' : op.smooth ? 'curve' : 'polyline'} at the supplied page points. Path collisions require visual review.`
+				`Created ${op.closed ? 'closed outline' : op.smooth ? 'curve' : 'polyline'} at the supplied page points.`
 			)
 		}
 		case 'duplicate': {
@@ -836,7 +828,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 		case 'add': {
 			const kind =
 				op.kind ?? (op.w !== undefined || op.h !== undefined || op.geo ? 'shape' : 'label')
-			const spec: NewSubject = {
+			const spec: NewSubject & { kind: typeof kind } = {
 				kind,
 				text: op.text,
 				id: op.id,
@@ -1030,8 +1022,20 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 							dash?: 'solid' | 'dashed' | 'dotted' | 'draw'
 						})
 					: undefined
+			// Replacing an arrow keeps its text unless the op gives new text; a side label the old
+			// arrow had is re-made below if the new shaft is short.
+			const text =
+				op.text ??
+				(existingArrow ? editor.getShapeUtil(existingArrow).getText(existingArrow) : undefined)
 			if (existingArrow?.type === 'arrow') {
-				ctx.apply({ type: 'delete_shapes', shapeIds: [fromShapeId(existingArrow.id)] })
+				const oldLabel = editor.getShape(toShapeId(`${op.id}-label`))
+				ctx.apply({
+					type: 'delete_shapes',
+					shapeIds: [
+						fromShapeId(existingArrow.id),
+						...(oldLabel ? [fromShapeId(oldLabel.id)] : []),
+					],
+				})
 			}
 			// Bind first so the decision uses the visible, clipped shaft rather than the distance between
 			// shape centres. A label is applied to the arrow only after the shaft proves long enough.
@@ -1047,17 +1051,14 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const ends = describeShapes(editor).find((s) => s.id === created[0])?.arrowEnds
 			const visibleFrom = ends?.start ?? from.point
 			const visibleTo = ends?.end ?? to.point
-			const short =
-				!existingArrow &&
-				!!op.text &&
-				arrowIsTooShortForLabel(editor, op.text, visibleFrom, visibleTo)
+			const short = !!text && arrowIsTooShortForLabel(editor, text, visibleFrom, visibleTo)
 			let adjusted: string | undefined
 			if (short) {
 				const labelId = materialise(
 					ctx,
 					{
 						kind: 'label',
-						text: op.text!,
+						text: text!,
 						color: op.color,
 						size: 'm',
 						id: op.id ? `${op.id}-label` : undefined,
@@ -1066,7 +1067,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				)
 				adjusted = placeShortArrowLabel(ctx, labelId, visibleFrom, visibleTo)
 				ids.push(labelId)
-			} else if (op.text) ctx.apply({ type: 'update_shape', shapeId: created[0], text: op.text })
+			} else if (text) ctx.apply({ type: 'update_shape', shapeId: created[0], text })
 			return ok(
 				ids,
 				`arrow ${created[0]} from ${'shapeId' in from.action ? from.action.shapeId : `(${from.action.x}, ${from.action.y})`} to ${'shapeId' in to.action ? to.action.shapeId : `(${to.action.x}, ${to.action.y})`}${short ? `; label "${op.text}" beside it` : ''}`,
@@ -1079,8 +1080,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const rect = rectOf(editor, id)
 			const props = shape.props as { size?: CanvasSize; w?: number }
 			const size = props.size ?? 'm'
-			const cleanText = op.text
-			let needed = shape.type === 'geo' ? labelWidthNeeded(editor, id, cleanText, size) : 0
+			let needed = shape.type === 'geo' ? labelWidthNeeded(editor, id, op.text, size) : 0
 			if (shape.type === 'geo' && needed > rect.w) {
 				for (const s of editor.getCurrentPageShapes()) {
 					if (s.id === id || s.type !== 'geo') continue
@@ -1100,7 +1100,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const update: Extract<CanvasAction, { type: 'update_shape' }> = {
 				type: 'update_shape',
 				shapeId: fromShapeId(id),
-				text: cleanText,
+				text: op.text,
 			}
 			let adjusted: string | undefined
 			if (shape.type === 'geo' && needed > rect.w) {
@@ -1108,7 +1108,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 					update.w = needed
 					adjusted = `widened to ${Math.round(needed)} so the label stays on one line`
 				} else if (fit === 'shrink_text') {
-					update.size = size === 'm' ? 's' : size === 'l' ? 'm' : size === 'xl' ? 'l' : 's'
+					update.size = SMALLER[size] ?? 's'
 					adjusted = `text size reduced to ${update.size} to fit`
 				}
 			}
@@ -1116,7 +1116,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const crowded = update.w !== undefined ? crowding(editor, id) : undefined
 			return ok(
 				[id],
-				`${fromShapeId(id)} renamed to "${cleanText}"`,
+				`${fromShapeId(id)} renamed to "${op.text}"`,
 				[adjusted, crowded].filter(Boolean).join('; ') || undefined
 			)
 		}
@@ -1197,6 +1197,9 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			const id = resolveRef(editor, op.target, ctx.refs)
 			const rect = rectOf(editor, id)
 			const shape = editor.getShape(id)!
+			if (shape.type === 'line' || shape.type === 'draw' || shape.type === 'arrow') {
+				throw new Error(`resize does not support ${shape.type} shapes`)
+			}
 			const uniform = shape.type === 'note' || shape.type === 'text'
 			const factor = uniform
 				? Math.min(
@@ -1216,8 +1219,9 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 				h: uniform ? (geometry.h / currentScale) * (currentScale * uniformScale) : h,
 			}
 			if (op.anchor === 'center' && !uniform) {
-				update.x = rect.x - (w - rect.w) / 2
-				update.y = rect.y - (h - rect.h) / 2
+				// rect is page space and update_shape writes parent space: move by the delta.
+				update.x = shape.x - (w - rect.w) / 2
+				update.y = shape.y - (h - rect.h) / 2
 			}
 			ctx.apply(update)
 			if (uniform && op.anchor === 'center') {
@@ -1239,11 +1243,12 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 	}
 }
 
-function segmentClipRange(
+/** Whether the segment from `a` to `b` enters `rect` (Liang–Barsky clipping). */
+function segmentCrossesRect(
 	a: { x: number; y: number },
 	b: { x: number; y: number },
 	rect: Rect
-): [number, number] | null {
+): boolean {
 	const dx = b.x - a.x
 	const dy = b.y - a.y
 	let t0 = 0
@@ -1256,27 +1261,16 @@ function segmentClipRange(
 	]
 	for (const [p, q] of edges) {
 		if (p === 0) {
-			if (q < 0) return null
+			if (q < 0) return false
 			continue
 		}
 		const t = q / p
 		if (p < 0) t0 = Math.max(t0, t)
 		else t1 = Math.min(t1, t)
-		if (t0 > t1) return null
+		if (t0 > t1) return false
 	}
-	return [t0, t1]
+	return true
 }
-
-/** Whether the segment from `a` to `b` enters `rect` (Liang–Barsky clipping). */
-function segmentCrossesRect(
-	a: { x: number; y: number },
-	b: { x: number; y: number },
-	rect: Rect
-): boolean {
-	return segmentClipRange(a, b, rect) !== null
-}
-
-/**
 
 /** Presence records prefix user ids with "user:"; senders may pass either form. */
 function sameUser(presenceUserId: string, userId: string): boolean {
@@ -1299,13 +1293,37 @@ function selectionFor(editor: Editor, userId?: string): TLShapeId[] {
 	return editor.getSelectedShapeIds()
 }
 
+/**
+ * Apply one op atomically: an op that throws partway (an ambiguous ref after an update, an id that
+ * already exists after a create) is rolled back, so a failed op never leaves half an edit behind.
+ */
 function runOp(ctx: OpContext, op: CanvasOp, index: number, errors: string[]): OpResult {
+	const lengths = [ctx.journal.created.length, ctx.memory.created.length, ctx.compiled.length]
 	try {
-		return applyOp(ctx, op, index)
+		return transaction(() => applyOp(ctx, op, index))
 	} catch (e) {
+		ctx.journal.created.length = lengths[0]
+		ctx.memory.created.length = lengths[1]
+		ctx.compiled.length = lengths[2]
 		const message = (e as Error).message
 		errors.push(`Op ${index} (${op.op}): ${message}`)
 		return { index, op: op.op, ok: false, shapeIds: [], message }
+	}
+}
+
+function resultOf(
+	batchId: string,
+	ctx: OpContext,
+	results: OpResult[],
+	errors: string[]
+): ApplyOpsResult {
+	return {
+		batchId,
+		applied: results.filter((r) => r.ok).length,
+		createdIds: ctx.journal.created.map(fromShapeId),
+		errors: [...errors],
+		results: [...results],
+		compiled: [...ctx.compiled],
 	}
 }
 
@@ -1318,35 +1336,31 @@ export async function applyOps(
 	const results: OpResult[] = []
 	const errors: string[] = []
 	const selected = selectionFor(editor, attribution.userId)
-	const { batchId, ctx } = runBatch(editor, attribution, (batch) => {
-		const opCtx: OpContext = { ...batch, refs: { created: batch.memory.created, selected } }
+	let opCtx!: OpContext
+	const { batchId } = runBatch(editor, attribution, (batch) => {
+		opCtx = { ...batch, refs: { created: batch.memory.created, selected } }
 		for (const [index, op] of ops.entries()) results.push(runOp(opCtx, op, index, errors))
 	})
 	await settle(editor)
-	return {
-		batchId,
-		applied: results.filter((r) => r.ok).length,
-		createdIds: ctx.journal.created.map(fromShapeId),
-		errors,
-		results,
-		compiled: ctx.compiled,
-	}
+	return resultOf(batchId, opCtx, results, errors)
 }
 
 /**
  * Apply ops as they stream in, all under one batch id. Each call applies the ops that have
- * arrived; pass `finish` with the last ones.
+ * arrived and is its own undo step: anything the user does between chunks marks history, and a
+ * chunk without its own mark would merge into the user's step.
  */
 export function createOpsStream(editor: Editor, attribution: Attribution = {}) {
 	const selected = selectionFor(editor, attribution.userId)
 	const { batchId, ctx } = runBatch(editor, attribution, () => {})
-	const opCtx: OpContext = { ...ctx, refs: { created: runMemory(editor).created, selected } }
+	const opCtx: OpContext = { ...ctx, refs: { created: ctx.memory.created, selected } }
 	const results: OpResult[] = []
 	const errors: string[] = []
 	let finished = false
 	return async (ops: CanvasOp[], finish: boolean): Promise<ApplyOpsResult> => {
 		if (finished) throw new Error('Operation stream already finished')
 		if (finish) finished = true
+		editor.markHistoryStoppingPoint('canvas ops chunk')
 		editor.run(
 			() => {
 				for (const op of ops) results.push(runOp(opCtx, op, results.length, errors))
@@ -1354,13 +1368,6 @@ export function createOpsStream(editor: Editor, attribution: Attribution = {}) {
 			{ history: 'record' }
 		)
 		await settle(editor)
-		return {
-			batchId,
-			applied: results.filter((r) => r.ok).length,
-			createdIds: ctx.journal.created.map(fromShapeId),
-			errors: [...errors],
-			results: [...results],
-			compiled: [...ctx.compiled],
-		}
+		return resultOf(batchId, opCtx, results, errors)
 	}
 }

@@ -195,7 +195,7 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 		op: z.literal('untangle'),
 		targets: RefListSchema,
 		keepNear: z.array(RefSchema).optional(),
-		maxDistance: finite.positive().optional(),
+		maxDistance: finite.positive().max(2000).optional(),
 	}),
 	z.strictObject({
 		op: z.literal('resize'),
@@ -208,9 +208,12 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 ])
 export type CanvasOp = z.infer<typeof CanvasOpSchema>
 
+/** A batch runs synchronously in the user's tab, so its size bounds how long the tab can stall. */
+export const MAX_OPS_PER_BATCH = 200
+
 export const OpsBatchSchema = z
 	.object({
-		ops: z.array(CanvasOpSchema),
+		ops: z.array(CanvasOpSchema).max(MAX_OPS_PER_BATCH),
 	})
 	.strict()
 export type OpsBatch = z.infer<typeof OpsBatchSchema>

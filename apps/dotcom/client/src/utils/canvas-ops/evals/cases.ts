@@ -123,9 +123,10 @@ export const cases: Case[] = [
 		setup: (editor) => seed(editor, crowded),
 		task: 'Make the important one stand out.',
 		check: (g) => {
+			expect(g.run.batches, 'no edits attempted').toEqual([])
 			expect(changed(g.before, g.after)).toEqual([])
 			expect(g.after.size).toBe(g.before.size)
-			expect(g.run.answer).toMatch(/\?|which|not sure|can't tell|cannot tell|unclear/i)
+			expect(g.run.answer).toMatch(/which (one|card|shape)|what do you mean|important/i)
 		},
 	},
 	{
@@ -231,13 +232,14 @@ export const cases: Case[] = [
 		task: "Add a 'Rejected' outcome to the flowchart: the verdict can also lead to Rejected, which ends the flow.",
 		check: (g) => {
 			for (const id of g.before.keys()) expect(g.after.has(id), id).toBe(true)
-			const rejected = byText(g.after, /rejected/i)
+			const rejected = solids(g.after).find((s) => /rejected/i.test(s.text))
+			expect(rejected, 'a Rejected node').toBeDefined()
 			const fresh = added(g).filter((s) => s.type !== 'arrow')
 			expect(fresh.length).toBeGreaterThanOrEqual(1)
 			expect(fresh.length).toBeLessThanOrEqual(3)
-			expect(boundArrows(g.after).some((a) => a.start === 'verdict' && a.end === rejected.id)).toBe(
-				true
-			)
+			expect(
+				boundArrows(g.after).some((a) => a.start === 'verdict' && a.end === rejected!.id)
+			).toBe(true)
 			expect(changed(g.before, g.after, ['opened', 'review', 'verdict', 'merged'])).toEqual([])
 			expect(newProblems(g)).toEqual([])
 		},

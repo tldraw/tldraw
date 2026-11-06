@@ -260,6 +260,45 @@ describe('connect', () => {
 })
 
 describe('rename, restyle, remove, untangle, resize', () => {
+	it('resizes about the centre inside a frame without jumping by the frame offset', async () => {
+		editor.createShape({
+			id: id('frame'),
+			type: 'frame',
+			x: 500,
+			y: 500,
+			props: { w: 600, h: 600 },
+		})
+		editor.createShape({
+			id: id('box'),
+			type: 'geo',
+			parentId: id('frame'),
+			x: 100,
+			y: 100,
+			props: { w: 100, h: 100 },
+		})
+		const result = await applyOps(editor, [
+			{ op: 'resize', target: 'box', scale: 2, anchor: 'center' },
+		])
+		expect(result.errors).toEqual([])
+		expect(rect('box')).toMatchObject({ x: 550, y: 550, w: 200, h: 200 })
+	})
+
+	it('refuses to resize a line instead of reporting a no-op as done', async () => {
+		const made = await applyOps(editor, [
+			{
+				op: 'path',
+				id: 'ln',
+				points: [
+					{ x: 0, y: 0 },
+					{ x: 100, y: 0 },
+				],
+			},
+		])
+		expect(made.errors).toEqual([])
+		const result = await applyOps(editor, [{ op: 'resize', target: 'ln', scale: 2 }])
+		expect(result.errors).toEqual([expect.stringContaining('does not support line')])
+	})
+
 	it('rename widens a box so a long label stays one line', async () => {
 		seedDiagram()
 		const result = await applyOps(editor, [
@@ -367,6 +406,67 @@ describe('paths and duplicates', () => {
 })
 
 describe('batches and streams', () => {
+	it('rolls back an op that fails partway and keeps the rest', async () => {
+		seedDiagram()
+		seed([
+			{
+				type: 'create_shape',
+				id: 'api2',
+				geo: 'rectangle',
+				x: 100,
+				y: 600,
+				w: 200,
+				h: 100,
+				text: 'API v2',
+			},
+		])
+		const result = await applyOps(editor, [
+			// The update applies, then the ambiguous target throws.
+			{ op: 'place', subject: 'db', color: 'red', relation: 'below', target: { text: 'AP' } },
+			{ op: 'restyle', targets: ['n1'], color: 'blue' },
+		])
+		expect(result.results.map((r) => r.ok)).toEqual([false, true])
+		expect(editor.getShape<TLGeoShape>(id('db'))!.props.color).toBe('green')
+		expect(result.compiled).toEqual([
+			{
+				type: 'update_shape',
+				shapeId: 'n1',
+				color: 'blue',
+				fill: undefined,
+				dash: undefined,
+				size: undefined,
+			},
+		])
+	})
+
+	it('makes each stream chunk its own undo step, so user edits between chunks stay separate', async () => {
+		const stream = createOpsStream(editor, { runId: 'run' })
+		await stream([{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 0 } }], false)
+		editor.markHistoryStoppingPoint('user')
+		editor.createShape({ id: id('mine'), type: 'geo', x: 500, y: 500 })
+		await stream([{ op: 'add', kind: 'box', text: 'B', id: 'b', at: { x: 0, y: 200 } }], true)
+		editor.undo()
+		expect(
+			[editor.getShape(id('a')), editor.getShape(id('mine')), editor.getShape(id('b'))].map(Boolean)
+		).toEqual([true, true, false])
+	})
+
+	it('keeps { created } refs to the shapes this run made', async () => {
+		await applyOps(
+			editor,
+			[{ op: 'add', kind: 'box', text: 'Other', id: 'other', at: { x: 0, y: 0 } }],
+			{ runId: 'other-run' }
+		)
+		await applyOps(
+			editor,
+			[{ op: 'add', kind: 'box', text: 'Mine', id: 'mine', at: { x: 0, y: 300 } }],
+			{ runId: 'run' }
+		)
+		await applyOps(editor, [{ op: 'remove', targets: { created: 'all' } }], { runId: 'run' })
+		expect(editor.getShape(id('other'))).toBeDefined()
+		expect(editor.getShape(id('mine'))).toBeUndefined()
+	})
+
 	it('a batch is one undo step', async () => {
 		seedDiagram()
 		const before = editor.getCurrentPageShapeIds()
@@ -405,16 +505,6 @@ describe('receiver', () => {
 			})
 		).rejects.toThrow()
 		expect(editor.getCurrentPageShapeIds().size).toBe(0)
-	})
-
-	it('applies a batch-level assembly to the shapes it creates', async () => {
-		const receiver = createCanvasOpsReceiver(editor)
-		const result = await receiver.applyBatch({
-			assembly: 'face',
-			ops: [{ op: 'add', kind: 'ellipse', id: 'head', w: 100, h: 100, at: { x: 0, y: 0 } }],
-		})
-		expect(result.errors).toEqual([])
-		expect(editor.getShape(id('head'))!.meta.assembly).toBe('face')
 	})
 
 	it('streams by id and closes the stream on finish', async () => {
