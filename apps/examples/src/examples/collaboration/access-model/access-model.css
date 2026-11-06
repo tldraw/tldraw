@@ -29,6 +29,21 @@
 
 .access-model__panel {
 	padding: 0 12px 8px;
+	display: flow-root;
+}
+
+.access-model__how {
+	float: right;
+	margin: 0 0 6px 12px;
+	padding: 6px 8px;
+	max-width: 50%;
+	max-height: 190px;
+	overflow: auto;
+	background: #1e1e2e;
+	color: #e4e4ef;
+	border-radius: 6px;
+	font-size: 11px;
+	line-height: 1.35;
 }
 
 .access-model__panel p {

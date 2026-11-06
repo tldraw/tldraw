@@ -7,6 +7,7 @@ import {
 } from '@tldraw/sync'
 import { AccessModel, SessionAccess, TLRecord, TLStoreSnapshot, createTLSchema } from 'tldraw'
 import { accessSchemaRecords, commentSchemaRecords } from 'tldraw'
+import { voteSchemaRecords } from './votes'
 
 // A sync server that runs in the page, so each pane below is a real client of a real room: the
 // room enforces the access model exactly as it would on a server.
@@ -17,7 +18,7 @@ type ClientSocket = TLPersistentClientSocket<
 >
 
 export const accessSchema = createTLSchema({
-	records: { ...accessSchemaRecords, ...commentSchemaRecords },
+	records: { ...accessSchemaRecords, ...commentSchemaRecords, ...voteSchemaRecords },
 })
 
 export class LocalRoom {

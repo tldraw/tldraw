@@ -22,10 +22,11 @@ import 'tldraw/tldraw.css'
 import './access-model.css'
 import { LocalRoom } from './localRoom'
 import { Actor, Scenario, scenarios, sessionAccessFor } from './scenarios'
+import { voteSchemaRecords } from './votes'
 
 // There's a guide at the bottom of this file!
 
-const records = { ...accessSchemaRecords, ...commentSchemaRecords }
+const records = { ...accessSchemaRecords, ...commentSchemaRecords, ...voteSchemaRecords }
 
 export default function AccessModelExample() {
 	const [scenarioId, setScenarioId] = useState(scenarios[0].id)
@@ -88,6 +89,7 @@ function ScenarioView({ scenario }: { scenario: Scenario }) {
 	return (
 		<>
 			<div className="access-model__panel">
+				<pre className="access-model__how">{scenario.how}</pre>
 				<p>{scenario.summary}</p>
 				<ol>
 					{scenario.tryThis.map((t) => (
@@ -208,7 +210,7 @@ function Pane({
 
 	return (
 		<div className="access-model__pane" style={{ borderColor: actor.color }}>
-			<PaneHeader actor={actor} editor={editor} />
+			<PaneHeader actor={actor} editor={editor} scenario={scenario} />
 			<div className="access-model__canvas">
 				<Tldraw
 					store={store}
@@ -227,7 +229,15 @@ function Pane({
 }
 
 // [5]
-function PaneHeader({ actor, editor }: { actor: Actor; editor: Editor | null }) {
+function PaneHeader({
+	actor,
+	editor,
+	scenario,
+}: {
+	actor: Actor
+	editor: Editor | null
+	scenario: Scenario
+}) {
 	const status = useValue(
 		'access status',
 		() => {
@@ -240,9 +250,10 @@ function PaneHeader({ actor, editor }: { actor: Actor; editor: Editor | null }) 
 				verbs,
 				readonly: editor.getIsReadonly(),
 				denial: editor.access.getLastDenial(),
+				extra: scenario.inspect?.(editor) ?? null,
 			}
 		},
-		[editor]
+		[editor, scenario]
 	)
 	return (
 		<div className="access-model__header">
@@ -257,6 +268,7 @@ function PaneHeader({ actor, editor }: { actor: Actor; editor: Editor | null }) 
 					{status.readonly ? ' · readonly canvas' : ''}
 				</div>
 			)}
+			{status?.extra && <div className="access-model__muted">{status.extra}</div>}
 			{status?.denial && (
 				<div className="access-model__denial">
 					Last write rolled back: {status.denial.verb} on {status.denial.id}. {status.denial.reason}

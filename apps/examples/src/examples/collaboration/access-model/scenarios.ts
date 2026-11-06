@@ -16,6 +16,7 @@ import {
 	createTLAccessModel,
 	toRichText,
 } from 'tldraw'
+import { vote, voteAccessType, voteSummary } from './votes'
 
 // Each scenario is one use case: a model, a seeded room, the people in it, and buttons that
 // change access while you watch. Everything else (what each pane may see, select, draw, and
@@ -57,6 +58,10 @@ export interface Scenario {
 	actors: Actor[]
 	actions: ScenarioAction[]
 	comments?: boolean
+	/** The API for this case, shown next to the panes. */
+	how: string
+	/** An extra line in each pane's header. */
+	inspect?(editor: Editor): string
 }
 
 export function sessionAccessFor(actor: Actor): SessionAccess {
@@ -189,7 +194,20 @@ export const scenarios: Scenario[] = [
 			'Draw as the owner and the editor link; the viewer link sees it live but has no drawing tools.',
 			'Press "Make the link an edit link". The guest still cannot edit: the anonymous ceiling wins. The pane says why.',
 			'Press "Guest signs in". The ceiling goes away and the toolbar appears, with no reconnect.',
+			'Press "Take editing away from the edit link person": one deny entry for one user, live.',
 		],
+		how: `// host: each link is a role on the root; anonymous visitors get a ceiling
+room.handleSocketConnect({ sessionId, socket, access: {
+  actor: { id: user?.id ?? null },
+  entries: [{ resource: TL_ACCESS_ROOT, subject: user ? { type: 'user', id: user.id } : { type: 'anyone' },
+              effect: 'allow', verbs: [link.role] }],   // 'viewer' | 'commenter' | 'editor'
+  limit: user ? null : ['viewer'],                      // nothing lifts an anonymous visitor
+}})
+room.updateSessionAccess(sessionId, next)              // sign-in or role change: live
+
+// in the room: remove one person's edit rights with one entry
+createAccessEntry({ resource: TL_ACCESS_ROOT, subject: { type: 'user', id: 'eli' },
+                    effect: 'deny', verbs: ['create', 'update', 'delete'] })`,
 		model: createTLAccessModel(),
 		records: () => [
 			...base(),
@@ -219,6 +237,24 @@ export const scenarios: Scenario[] = [
 					c.setActor('guest', { anonymous: false, limit: undefined, name: 'Guest (signed in)' }),
 			},
 			{
+				label: 'Take editing away from the edit link person',
+				by: 'olive',
+				run: (c) =>
+					put(c.editor('olive'), [
+						entry('eliDeny', {
+							resource: TL_ACCESS_ROOT,
+							subject: { type: 'user', id: 'eli' },
+							effect: 'deny',
+							verbs: ['create', 'update', 'delete'],
+						}),
+					]),
+			},
+			{
+				label: 'Give it back',
+				by: 'olive',
+				run: (c) => remove(c.editor('olive'), ['access:eliDeny']),
+			},
+			{
 				label: 'Reset the guest',
 				run: (c) =>
 					c.setActor('guest', {
@@ -239,7 +275,21 @@ export const scenarios: Scenario[] = [
 			'Draw as Bob, then try to drag the teacher’s shape: it cannot be selected.',
 			'As the teacher, press "Lock the board". Students lose their tools; the teacher keeps them.',
 			'Press "Call on Bob": Bob becomes an editor live and can move anything.',
+			'Press the "Bob:" buttons. "Take Ann’s shape" changes nothing: the editor and the server keep the owner a record was created with. "Give himself edit rights" is rolled back: writing entries needs "manage". "Move his and Ann’s shapes at once" is rolled back as a whole, so Bob’s own shape does not move either.',
 		],
+		how: `const model = createTLAccessModel({
+  roles: { student: ['viewer', 'comment', 'create'], teacher: ['admin'] },
+  entries: [
+    // owners edit their own: a relation, checked on each record
+    { resource: TL_ACCESS_ROOT, subject: { type: 'relation', relation: 'owner' },
+      effect: 'allow', verbs: ['update', 'delete'] },
+  ],
+})
+// the editor and the server stamp meta.ownerId on create, and keep it on update
+
+// "Lock the board": one record in the room
+createAccessEntry({ resource: TL_ACCESS_ROOT, subject: { type: 'group', id: 'students' },
+                    effect: 'deny', verbs: ['create', 'update', 'delete'] })`,
 		model: createTLAccessModel({
 			roles: { student: ['viewer', 'comment', 'create'], teacher: ['admin'] },
 			entries: [ownersEdit],
@@ -290,6 +340,43 @@ export const scenarios: Scenario[] = [
 					]),
 			},
 			{ label: 'Unlock', by: 'tess', run: (c) => remove(c.editor('tess'), ['access:lock']) },
+			{
+				label: 'Bob: take Ann’s shape',
+				by: 'bob',
+				run: (c) => {
+					const e = c.editor('bob')
+					const anns = e?.getShape(shape('anns'))
+					if (anns) put(e, [{ ...anns, meta: { ownerId: 'bob' } } as TLRecord])
+				},
+			},
+			{
+				label: 'Bob: give himself edit rights',
+				by: 'bob',
+				run: (c) =>
+					put(c.editor('bob'), [
+						entry('bobSelfGrant', {
+							resource: TL_ACCESS_ROOT,
+							subject: { type: 'user', id: 'bob' },
+							effect: 'allow',
+							verbs: ['editor'],
+						}),
+					]),
+			},
+			{
+				label: 'Bob: move his and Ann’s shapes at once',
+				by: 'bob',
+				run: (c) => {
+					const e = c.editor('bob')
+					e?.run(
+						() =>
+							e.updateShapes([
+								{ id: shape('bobs'), type: 'geo', y: 340 },
+								{ id: shape('anns'), type: 'geo', y: 340 },
+							]),
+						{ ignoreShapeLock: true }
+					)
+				},
+			},
 			{ label: 'Call on Bob', run: (c) => c.setActor('bob', { roles: ['editor'] }) },
 			{ label: 'Bob sits down', run: (c) => c.setActor('bob', { roles: ['student'] }) },
 		],
@@ -304,6 +391,11 @@ export const scenarios: Scenario[] = [
 			'Drag Bob’s shape toward Ann’s frame: the move is rolled back.',
 			'Press "Give Bob’s area to Ann": the teacher moves the entry, and the tools follow.',
 		],
+		how: `// everyone views; each student edits one frame and what is in it
+createAccessEntry({ resource: bobFrameId, subject: { type: 'user', id: 'bob' },
+                    effect: 'allow', verbs: ['editor'] })
+// a move is checked at the old parent and at the new parent
+// the editor shows tools when canCreateOnPage() finds such an entry`,
 		model: createTLAccessModel(),
 		records: () => [
 			...base(),
@@ -368,6 +460,12 @@ export const scenarios: Scenario[] = [
 			'As Tess, press "Share the team page with Gus". The page and its shapes arrive in Gus’s store live.',
 			'Press "Unshare": they are removed from Gus’s store again.',
 		],
+		how: `// private: nobody, except the team ("block" loses to "allow" on the same level)
+createAccessEntry({ resource: teamPageId, subject: { type: 'anyone' }, effect: 'block', verbs: ['admin'] })
+createAccessEntry({ resource: teamPageId, subject: { type: 'group', id: 'team' }, effect: 'allow', verbs: ['admin'] })
+// share with one person
+createAccessEntry({ resource: teamPageId, subject: { type: 'user', id: 'gus' }, effect: 'allow', verbs: ['viewer'] })
+// the server sends a session only what it may read, and patches its store when that changes`,
 		model: createTLAccessModel(),
 		records: () => [
 			...base([
@@ -425,7 +523,13 @@ export const scenarios: Scenario[] = [
 			'Each player sees only their own card. The dealer sees all of them.',
 			'Press "Reveal" as the dealer: the cards arrive in every store at once.',
 			'Press "Hide again".',
+			'Press "Dealer: point an arrow at Ann’s card". Bob gets the arrow, but not its binding: a binding needs read on both ends.',
 		],
+		how: `// per card: nobody reads it, except its holder (and the dealer manages it)
+createAccessEntry({ resource: cardId, subject: { type: 'anyone' }, effect: 'block', verbs: ['read'] })
+createAccessEntry({ resource: cardId, subject: { type: 'user', id: 'ann' }, effect: 'allow', verbs: ['read'] })
+// reveal: delete the block entries
+// bindings: parent is fromId, and alsoRead: [toId]`,
 		model: createTLAccessModel(),
 		records: () => [
 			...base(),
@@ -438,6 +542,8 @@ export const scenarios: Scenario[] = [
 			{ id: 'ann', name: 'Ann', color: '#0E9F6E', roles: ['viewer'] },
 			{ id: 'bob', name: 'Bob', color: '#E16919', roles: ['viewer'] },
 		],
+		inspect: (editor) =>
+			`bindings in my store: ${editor.store.allRecords().filter((r) => r.typeName === 'binding').length}`,
 		actions: [
 			{
 				label: 'Reveal',
@@ -453,6 +559,35 @@ export const scenarios: Scenario[] = [
 						hiddenCards().filter((r) => r.id.endsWith('Block'))
 					),
 			},
+			{
+				label: 'Dealer: point an arrow at Ann’s card',
+				by: 'dealer',
+				run: (c) => {
+					const e = c.editor('dealer')
+					if (!e) return
+					const arrow = createShapeId()
+					e.run(() => {
+						e.createShape({
+							id: arrow,
+							type: 'arrow',
+							x: 140,
+							y: 360,
+							props: { start: { x: 0, y: 0 }, end: { x: 0, y: -100 } },
+						})
+						e.createBinding({
+							type: 'arrow',
+							fromId: arrow,
+							toId: shape('annCard'),
+							props: {
+								terminal: 'end',
+								normalizedAnchor: { x: 0.5, y: 0.5 },
+								isExact: false,
+								isPrecise: false,
+							},
+						})
+					})
+				},
+			},
 		],
 	},
 	{
@@ -465,6 +600,14 @@ export const scenarios: Scenario[] = [
 			'As the admin, delete any comment.',
 			'The viewer sees every thread but has no composer.',
 		],
+		how: `// default model: comment types have their own verbs
+//   thread/comment create: 'comment'   edit/delete: 'comment:edit'
+//   and an entry gives 'comment:edit' to each comment's owner
+CommentTool.configure({
+  canComment: ({ editor }) => editor.access.can('comment', editor.getCurrentPageId()),
+  canModifyComment: ({ editor, ...change }) => editor.access.can('comment:edit', id),
+})
+// commenter = viewer + 'comment'; admin has 'comment:edit' for every comment`,
 		comments: true,
 		model: createTLAccessModel(),
 		records: () => [
@@ -489,6 +632,14 @@ export const scenarios: Scenario[] = [
 			'Press "Agent: delete everything": the server and the editor deny it. The pane shows the ceiling as the reason.',
 			'Press "Agent: draw outside its area": rolled back.',
 		],
+		how: `// the agent is an actor; its token is a ceiling
+room.handleSocketConnect({ sessionId, socket, access: {
+  actor: { id: 'agent' },
+  entries: [{ resource: TL_ACCESS_ROOT, subject: { type: 'user', id: 'agent' }, effect: 'allow', verbs: ['viewer'] }],
+  limit: ['viewer', 'create', 'update'],   // no delete, whatever an entry grants
+}})
+createAccessEntry({ resource: agentFrameId, subject: { type: 'user', id: 'agent' },
+                    effect: 'allow', verbs: ['editor'] })`,
 		model: createTLAccessModel(),
 		records: () => [
 			...base(),
@@ -539,6 +690,100 @@ export const scenarios: Scenario[] = [
 					c.editor('agent')?.createShape({ type: 'geo', x: 60, y: 260, props: { w: 100, h: 60 } }),
 			},
 		],
+	},
+	{
+		id: 'plugin',
+		title: 'Plugin: votes',
+		summary:
+			'A plugin adds its own record type (a vote on a shape) and its own verbs ("vote", "vote:edit"). It gives the model a type rule; the editor and the server need nothing else. A vote inherits from its shape, so a shape you may not read or vote on takes no votes.',
+		tryThis: [
+			'Press "Ann votes for Plan" and "Bob votes for Plan". Every pane counts the votes.',
+			'Press "Viewer votes": rolled back, a viewer has no "vote" verb.',
+			'Press "Bob removes Ann’s vote": rolled back, only the voter owns the vote. "Ann removes her vote" works.',
+			'Press "Close voting on Build": one deny entry on the shape. Votes on it are rolled back.',
+		],
+		model: createTLAccessModel({
+			roles: { voter: ['viewer', 'vote'], host: ['admin', 'vote'] },
+			types: { vote: voteAccessType },
+			entries: [
+				{
+					resource: TL_ACCESS_ROOT,
+					subject: { type: 'relation', relation: 'owner' },
+					effect: 'allow',
+					verbs: ['vote:edit'],
+				},
+			],
+		}),
+		records: () => [
+			...base(),
+			box('plan', { x: 80, y: 80, label: 'Plan', color: 'blue' }),
+			box('build', { x: 300, y: 80, label: 'Build', color: 'green' }),
+		],
+		actors: [
+			{ id: 'olive', name: 'Owner', color: '#4465E9', roles: ['host'] },
+			{ id: 'ann', name: 'Ann (voter)', color: '#0E9F6E', roles: ['voter'] },
+			{ id: 'bob', name: 'Bob (voter)', color: '#E16919', roles: ['voter'] },
+			{ id: 'vic', name: 'Viewer', color: '#9C1FBE', roles: ['viewer'] },
+		],
+		inspect: voteSummary,
+		actions: [
+			{
+				label: 'Ann votes for Plan',
+				by: 'ann',
+				run: (c) => put(c.editor('ann'), [vote(shape('plan'), 'ann')]),
+			},
+			{
+				label: 'Bob votes for Plan',
+				by: 'bob',
+				run: (c) => put(c.editor('bob'), [vote(shape('plan'), 'bob')]),
+			},
+			{
+				label: 'Viewer votes',
+				by: 'vic',
+				run: (c) => put(c.editor('vic'), [vote(shape('plan'), 'vic')]),
+			},
+			{
+				label: 'Bob removes Ann’s vote',
+				by: 'bob',
+				run: (c) => remove(c.editor('bob'), [vote(shape('plan'), 'ann').id]),
+			},
+			{
+				label: 'Ann removes her vote',
+				by: 'ann',
+				run: (c) => remove(c.editor('ann'), [vote(shape('plan'), 'ann').id]),
+			},
+			{
+				label: 'Close voting on Build',
+				by: 'olive',
+				run: (c) =>
+					put(c.editor('olive'), [
+						entry('buildClosed', {
+							resource: shape('build'),
+							subject: { type: 'anyone' },
+							effect: 'deny',
+							verbs: ['vote'],
+						}),
+					]),
+			},
+			{
+				label: 'Ann votes for Build',
+				by: 'ann',
+				run: (c) => put(c.editor('ann'), [vote(shape('build'), 'ann')]),
+			},
+		],
+		how: `// the plugin: a record type and a type rule
+const voteAccessType: AccessTypeRule<TLVote> = {
+  parent: (vote) => vote.shapeId,                       // inherits from its shape
+  verbs: { create: 'vote', update: 'vote:edit', delete: 'vote:edit' },
+  owner: { get: (v) => v.userId, set: (v, id) => ({ ...v, userId: id }) },
+}
+const model = createTLAccessModel({
+  roles: { voter: ['viewer', 'vote'] },
+  types: { vote: voteAccessType },
+  entries: [{ resource: TL_ACCESS_ROOT, subject: { type: 'relation', relation: 'owner' },
+              effect: 'allow', verbs: ['vote:edit'] }],
+})
+// a plugin action asks the model: editor.access.can('vote', shapeId)`,
 	},
 ]
 
