@@ -217,6 +217,18 @@ describe('share links: view, comment, edit', () => {
 		expect(room.stored('comment:2')).toBeUndefined()
 	})
 
+	it('file-level read control: with no access, the room sends no records', () => {
+		const room = makeRoom(useCaseRules.shareLinks, records)
+		const none = room.connect({ id: 'n', access: 'none' })
+		expect(room.ids(none)).toEqual([])
+		room.server.room.updateSessionUser(none.id, { id: 'n', access: 'view' })
+		room.flush()
+		expect(room.ids(none)).toEqual(['document:document', 'page:main', 'shape:a'])
+		room.server.room.updateSessionUser(none.id, { id: 'n', access: 'none' })
+		room.flush()
+		expect(room.ids(none)).toEqual([])
+	})
+
 	it('upgrading a link from view to edit applies live, with no reconnect', () => {
 		const room = makeRoom(useCaseRules.shareLinks, records)
 		const c = room.connect({ id: 'v', access: 'view' })
