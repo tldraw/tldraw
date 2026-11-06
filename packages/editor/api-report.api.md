@@ -273,7 +273,7 @@ export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
     onAfterCreate?(options: BindingOnCreateOptions<Binding>): void;
     onAfterDelete?(options: BindingOnDeleteOptions<Binding>): void;
     onBeforeChange?(options: BindingOnChangeOptions<Binding>): Binding | void;
-    onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void;
+    onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | false | void;
     onBeforeDelete?(options: BindingOnDeleteOptions<Binding>): void;
     onBeforeDeleteFromShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
     onBeforeDeleteToShape?(options: BindingOnShapeDeleteOptions<Binding>): void;
@@ -2241,6 +2241,8 @@ export class HistoryManager<R extends UnknownRecord> {
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
+    // @internal
+    _rollBackOperation(): void;
     // (undocumented)
     squashToMark(id: string): this;
     // (undocumented)

@@ -88,6 +88,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	isEqual,
 	last,
 	lerp,
 	minBy,
@@ -656,9 +657,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (canWrite) {
 			// Registered first, so a blocked write stops before the editor's own handlers react to it.
 			// The store ignores these blocks for remote changes and its integrity repairs.
-			const blocks = (type: TLRecordWrite['type'], record: TLRecord, source: 'user' | 'remote') => {
-				// The store ignores a block of these writes anyway, so don't ask
-				if (source === 'remote' || this.store.isReactingToRemoteChanges()) return false
+			const blocks = (type: TLRecordWrite['type'], record: TLRecord, next?: TLRecord) => {
+				// The store ignores a block of remote changes and integrity repairs anyway, so don't ask
+				if (!this.store.canVeto()) return false
 				// Removing a binding to a shape that is gone, or is being deleted, is cleanup, not a
 				// choice. A blocked cleanup leaves a binding that points at nothing.
 				if (type === 'delete' && record.typeName === 'binding') {
@@ -672,18 +673,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return false
 					}
 				}
-				return !this.canWrite({ type, record })
+				if (this.canWrite({ type, record })) return false
+				// An unchanged record is not a write, and must not roll back the operation
+				if (next && isEqual(record, next)) return false
+				// One operation lands whole or not at all. A partial write can leave the document
+				// broken for everyone: children moved into a group that was not created, or a page
+				// that stays while its shapes go.
+				this.history._rollBackOperation()
+				return true
 			}
 			for (const typeName of this.store.scopedTypes.document) {
 				this.disposables.add(
 					this.sideEffects.register({
 						[typeName]: {
-							beforeCreate: (record: TLRecord, source: 'user' | 'remote') =>
-								blocks('create', record, source) ? false : record,
-							beforeChange: (prev: TLRecord, next: TLRecord, source: 'user' | 'remote') =>
-								blocks('update', prev, source) ? prev : next,
-							beforeDelete: (record: TLRecord, source: 'user' | 'remote') =>
-								blocks('delete', record, source) ? false : undefined,
+							beforeCreate: (record: TLRecord) => (blocks('create', record) ? false : record),
+							beforeChange: (prev: TLRecord, next: TLRecord) =>
+								blocks('update', prev, next) ? prev : next,
+							beforeDelete: (record: TLRecord) => (blocks('delete', record) ? false : undefined),
 						},
 					} as any)
 				)
@@ -873,6 +879,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				binding: {
 					beforeCreate: (binding) => {
 						const next = this.getBindingUtil(binding).onBeforeCreate?.({ binding })
+						if (next === false) return false
 						if (next) return next
 						return binding
 					},
@@ -1185,7 +1192,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	/**
 	 * Whether this client may make a write, according to the `canWrite` option. Without that
-	 * option, every write is allowed. Session records, such as the camera, are always allowed.
+	 * option, every write is allowed, except while the editor is readonly. With the option, the
+	 * option decides, also while readonly: an app can let a readonly person write some records,
+	 * such as comments. Session records, such as the camera, are always allowed.
 	 *
 	 * For an update or a delete, the editor checks the stored record with the same id, and caches
 	 * the answer. A record that is not stored is checked as given. The answer is reactive: call it
@@ -1204,17 +1213,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	canWrite(write: TLRecordWrite): boolean {
-		if (!this._canWrite) return true
 		if (!this.store.scopedTypes.document.has(write.record.typeName)) return true
+		if (!this._canWrite) return !this.getIsReadonly()
 		if (write.type !== 'create' && this.store.has(write.record.id)) {
 			return !!this.getCanWriteCaches()![write.type].get(write.record.id)
 		}
 		return this._checkWrite(write)
-	}
-
-	private _canDeleteShape(id: TLShapeId) {
-		const shape = this.getShape(id)
-		return !shape || this.canWrite({ type: 'delete', record: shape })
 	}
 
 	readonly options: TldrawOptions
@@ -4776,6 +4780,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 					this.stopFollowingUser()
 					return
 				}
+				// Stop before the switch: switching would show the hidden page until the
+				// leave-a-hidden-page reaction switched back
+				if (this.isPageHidden(leaderPresence.currentPageId)) {
+					this.stopFollowingUser()
+					return
+				}
 				if (
 					leaderPresence.currentPageId !== this.getCurrentPageId() &&
 					this.getPage(leaderPresence.currentPageId)
@@ -5331,14 +5341,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const visiblePages = this.getVisiblePages()
 				if (!this.isPageHidden(id) && visiblePages.length === 1) return
 
-				// Don't delete a page that the canWrite option keeps, or one that would keep shapes it
-				// won't let us delete
-				if (this._canWrite) {
-					if (!this.canWrite({ type: 'delete', record: deletedPage })) return
-					const pageShapeIds = this.getPageShapeIds(id)
-					if (![...pageShapeIds].every((shapeId) => this._canDeleteShape(shapeId))) return
-				}
-
 				if (id === this.getCurrentPageId()) {
 					const index = visiblePages.findIndex((page) => page.id === id)
 					const next = visiblePages[index - 1] ?? visiblePages[index + 1]
@@ -5384,8 +5386,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.createPage({ name: freshPage.name + ' Copy', id: createId, index })
 			// set the new page as the current page
 			this.setCurrentPage(createId)
-			// The create was blocked or the copy is hidden. Pasting now would double the source page.
-			if (this.getCurrentPageId() !== createId) return
 			// update the new page's camera to the previous page's camera
 			this.setCamera(prevCamera)
 
@@ -7475,13 +7475,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (pageId === currentPageId) return this
 		if (!this.store.has(pageId)) return this
 		if (this.isPageHidden(pageId)) return this
-		// The shapes are deleted and pasted again, so a shape that stays would be doubled
-		if (
-			this._canWrite &&
-			![...this.getShapeAndDescendantIds(ids)].every((id) => this._canDeleteShape(id))
-		) {
-			return this
-		}
 
 		// Basically copy the shapes
 		const content = this.getContentFromCurrentPage(ids)
@@ -9163,8 +9156,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 					props: {},
 				},
 			])
-			// A blocked create (see the canWrite option) leaves no group to reparent into
-			if (!this.getShape(groupId)) return
 			this.reparentShapes(sortedShapeIds, groupId)
 			if (select) {
 				// the select option determines whether the grouped shapes' children are selected
@@ -9219,8 +9210,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapesToUngroup.forEach((shape) => {
-			// A group that cannot be deleted would be left empty
-			if (this.isShapeOfType(shape, 'group') && this._canDeleteShape(shape.id)) {
+			if (this.isShapeOfType(shape, 'group')) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)
@@ -9398,20 +9388,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapeIdsToDelete.length === 0) return this
 
 		// We also need to delete these shapes' descendants
-		const allShapeIdsToDelete = new Set<TLShapeId>()
+		const allShapeIdsToDelete = new Set<TLShapeId>(shapeIdsToDelete)
 
 		for (const id of shapeIdsToDelete) {
-			const subtree = [id]
 			this.visitDescendants(id, (childId) => {
-				subtree.push(childId)
+				allShapeIdsToDelete.add(childId)
 			})
-			// The canWrite option blocks deletes one record at a time. Deleting a parent without a
-			// child it may not delete would leave the child pointing at nothing, so skip the subtree.
-			if (this._canWrite && !subtree.every((childId) => this._canDeleteShape(childId))) continue
-			for (const childId of subtree) allShapeIdsToDelete.add(childId)
 		}
-
-		if (allShapeIdsToDelete.size === 0) return this
 
 		this.emit('deleted-shapes', [...allShapeIdsToDelete])
 		this.emit('edit')

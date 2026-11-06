@@ -114,7 +114,7 @@ The `getPageVisibility` option hides pages in the same way. It returns `'hidden'
 <Tldraw getPageVisibility={(page) => (page.meta.private ? 'hidden' : 'visible')} />
 ```
 
-A hidden page is left out of [Editor#getVisiblePages](?), which the page menu, the "Move to page" menu, page navigation and printing use. The editor does not navigate to a hidden page, and if the current page becomes hidden, it moves to the first visible page. [Editor#getPages](?) still returns every page. Check a single page with [Editor#isPageHidden](?).
+A hidden page is left out of [Editor#getVisiblePages](?), which the page menu, the "Move to page" menu, page navigation and printing use. The editor does not navigate to a hidden page, and if the current page becomes hidden, it moves to the first visible page. If a person follows a collaborator who goes to a hidden page, the editor stops following them and stays on the current page. [Editor#getPages](?) still returns every page. Check a single page with [Editor#isPageHidden](?).
 
 Like hidden shapes, hidden pages are still in the store. To keep a page's records away from a client, filter them on the server, for example with `beforeRead` on a sync room.
 

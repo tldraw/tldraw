@@ -1,4 +1,4 @@
-import { atom, EMPTY_ARRAY, transact } from '@tldraw/state'
+import { atom, EMPTY_ARRAY, transact, transaction } from '@tldraw/state'
 import {
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
@@ -43,11 +43,16 @@ export class HistoryManager<R extends UnknownRecord> {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
-			if (source !== 'user') return
+			if (source !== 'user') {
+				// Rolling back would also undo the remote change, which the server has already accepted
+				if (this._operation) this._operation.canRollBack = false
+				return
+			}
 
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
 					this.pendingDiff.apply(entry.changes)
+					this._trackApplied(entry.changes)
 					// this interceptor runs for every store change, so skip the update when the
 					// redo stack is already empty
 					if (this.stacks.get().redos.length > 0) {
@@ -56,6 +61,7 @@ export class HistoryManager<R extends UnknownRecord> {
 					break
 				case HistoryRecorderState.RecordingPreserveRedoStack:
 					this.pendingDiff.apply(entry.changes)
+					this._trackApplied(entry.changes)
 					break
 				case HistoryRecorderState.Paused:
 					break
@@ -94,6 +100,86 @@ export class HistoryManager<R extends UnknownRecord> {
 	/** @internal */
 	_isInBatch = false
 
+	// The outermost batch, undo or redo in progress. A blocked write can ask to roll it back, so
+	// that one operation lands whole or not at all. The store's records and the undo stacks are
+	// atoms, so a transaction rollback restores them. The pending diff is not: `pendingDiff` is the
+	// diff object that the operation started with, and `applied` is what it squashed into that
+	// object since.
+	private _operation: {
+		pendingDiff: RecordsDiff<R>
+		applied: RecordsDiff<R>
+		canRollBack: boolean
+		rollBack: boolean
+	} | null = null
+
+	/**
+	 * Roll back the outermost batch, undo or redo in progress when it ends. Does nothing when there
+	 * is none, or when it cannot be rolled back: it started inside a store operation, or it merged
+	 * remote changes.
+	 *
+	 * @internal
+	 */
+	_rollBackOperation() {
+		if (this._operation) this._operation.rollBack = true
+	}
+
+	private _trackApplied(changes: RecordsDiff<R>) {
+		const op = this._operation
+		// After a mark or an undo replaced the pending diff, a rollback restores the old diff
+		// object, so the changes squashed into the new one need no tracking.
+		if (op && this.pendingDiff.peek() === op.pendingDiff) {
+			squashRecordDiffsMutable(op.applied, [changes])
+		}
+	}
+
+	private _runOperation(fn: () => void) {
+		// Inside a store operation, its after-handlers have already seen these changes and would
+		// not see them reverted, so leave the blocked records to the store.
+		if (this._operation || this.store.isInAtomicOp()) {
+			transact(fn)
+			return
+		}
+
+		const op = {
+			pendingDiff: this.pendingDiff.peek(),
+			applied: createEmptyRecordsDiff<R>(),
+			canRollBack: true,
+			rollBack: false,
+		}
+		this._operation = op
+		let didRollBack = false
+		try {
+			transaction((rollback) => {
+				try {
+					fn()
+				} catch (error) {
+					// the transaction reverts the atoms when fn throws
+					didRollBack = true
+					throw error
+				}
+				if (op.rollBack && op.canRollBack) {
+					didRollBack = true
+					rollback()
+				}
+			})
+		} finally {
+			this._operation = null
+			if (didRollBack) {
+				const { pendingDiff, applied } = op
+				squashRecordDiffsMutable(pendingDiff, [reverseRecordsDiff(applied)])
+				// An update and its reverse squash to an update from a record to itself
+				for (const diff of [applied.added, applied.updated, applied.removed]) {
+					for (const id in diff) {
+						const update = pendingDiff.updated[id as keyof typeof diff]
+						if (update && update[0] === update[1])
+							delete pendingDiff.updated[id as keyof typeof diff]
+					}
+				}
+				this.pendingDiff.restore(pendingDiff)
+			}
+		}
+	}
+
 	batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 		const previousState = this.state
 
@@ -110,7 +196,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 			this._isInBatch = true
 			try {
-				transact(fn)
+				this._runOperation(fn)
 			} catch (error) {
 				this.annotateError(error)
 				throw error
@@ -202,12 +288,18 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	undo() {
-		this._undo({ pushToRedoStack: true })
+		this._runOperation(() => this._undo({ pushToRedoStack: true }))
 
 		return this
 	}
 
 	redo() {
+		this._runOperation(() => this._redo())
+
+		return this
+	}
+
+	private _redo() {
 		const previousState = this.state
 		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
@@ -252,14 +344,14 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	bail() {
-		this._undo({ pushToRedoStack: false })
+		this._runOperation(() => this._undo({ pushToRedoStack: false }))
 
 		return this
 	}
 
 	bailToMark(id: string) {
 		if (id) {
-			this._undo({ pushToRedoStack: false, toMark: id })
+			this._runOperation(() => this._undo({ pushToRedoStack: false, toMark: id }))
 		}
 
 		return this
@@ -375,6 +467,10 @@ class PendingDiff<R extends UnknownRecord> {
 		} else if (this.isEmptyAtom.__unsafe__getWithoutCapture()) {
 			this.isEmptyAtom.set(!hasAnyKey(diff.updated))
 		}
+	}
+
+	peek() {
+		return this.diff
 	}
 
 	debug() {

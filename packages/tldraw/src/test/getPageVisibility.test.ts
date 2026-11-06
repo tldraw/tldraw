@@ -1,4 +1,12 @@
-import { atom, createShapeId, PageRecordType, TLPageId } from '@tldraw/editor'
+import {
+	atom,
+	createShapeId,
+	createUserId,
+	InstancePresenceRecordType,
+	PageRecordType,
+	react,
+	TLPageId,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 const page2 = PageRecordType.createId('page2')
@@ -86,5 +94,34 @@ describe('page operations with hidden pages', () => {
 		editor.moveShapesToPage([id], page2)
 		expect(editor.getShape(id)!.parentId).toBe(editor.getCurrentPageId())
 		expect(editor.getPageShapeIds(page2).size).toBe(0)
+	})
+})
+
+describe('following a user onto a hidden page', () => {
+	it('stops following, and never shows the hidden page', () => {
+		const leaderId = createUserId('leader')
+		const presence = (currentPageId: TLPageId) =>
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId(leaderId),
+				userId: leaderId,
+				userName: 'leader',
+				currentPageId,
+				camera: { x: 0, y: 0, z: 1 },
+				screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
+				lastActivityTimestamp: Date.now(),
+			})
+		hidden.set(new Set([page2]))
+		editor.store.put([presence(page3)])
+		editor.startFollowingUser(leaderId)
+		expect(editor.getCurrentPageId()).toBe(page3)
+
+		const pages: TLPageId[] = []
+		const stop = react('watch the current page', () => {
+			pages.push(editor.getCurrentPageId())
+		})
+		editor.store.put([presence(page2)])
+		stop()
+		expect(pages).toEqual([page3])
+		expect(editor.getInstanceState().followingUserId).toBeNull()
 	})
 })
