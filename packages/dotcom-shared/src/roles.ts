@@ -16,11 +16,11 @@ import { Capability } from './capabilities'
  * and {@link Role} is derived from these keys. Today the only difference between
  * `member` and `owner` is the `manageWorkspace` capability: owners administer the
  * workspace (invite link, members' roles, name, deletion); members only work with
- * its files.
+ * its files and collections.
  */
 const roles = {
-	member: ['accessFiles', 'addFiles', 'removeFiles'],
-	owner: ['accessFiles', 'addFiles', 'removeFiles', 'manageWorkspace'],
+	member: ['accessFiles', 'addFiles', 'removeFiles', 'manageCollections'],
+	owner: ['accessFiles', 'addFiles', 'removeFiles', 'manageWorkspace', 'manageCollections'],
 } satisfies Record<string, readonly Capability[]>
 
 /** A role a member can have in a workspace — the string stored in `group_user.role`. */
