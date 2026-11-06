@@ -1,3 +1,4 @@
+import { attributionService } from './analytics-services/attribution'
 import { commonRoomService } from './analytics-services/common-room'
 import { ga4Gtag, ga4Service } from './analytics-services/ga4'
 import { gtmService } from './analytics-services/gtm'
@@ -41,6 +42,7 @@ class Analytics {
 		hubspotService,
 		reoService,
 		commonRoomService,
+		attributionService,
 	]
 
 	private maybeTrackConsentUpdate(consent: ConsentPreferences) {
@@ -138,6 +140,7 @@ class Analytics {
 			page: this.page.bind(this),
 			gtag: this.gtag.bind(this),
 			getConsentState: () => cookieConsentToPreferences(this.consent, this.consentOptInType),
+			getAttribution: () => attributionService.getAttribution(),
 			onConsentUpdate: (callback: (preferences: ConsentPreferences) => void) => {
 				this.consentCallbacks.push(callback)
 				return () => {
