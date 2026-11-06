@@ -402,12 +402,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * dependents, so a page that becomes private hides its shapes without a full rescan.
 	 */
 	private buildReadView(actor: PolicyActor, reader: SynchronousRecordStorage<R>): ReadView {
-		const view: ReadView = { visible: new Set(), dependents: new Map() }
+		const view: ReadView = { visible: new Set(), dependents: new Map(), reads: new Map() }
 		for (const record of reader.values()) {
-			if (this.presenceType && record.typeName === this.presenceType.typeName) continue
+			if (this.checkRead(actor, record, reader, view)) view.visible.add(record.id)
+		}
+		for (const record of this.presenceStore.values()) {
 			if (this.checkRead(actor, record, reader, view)) view.visible.add(record.id)
 		}
 		return view
+	}
+
+	/** A document record from storage, or a presence record from the presence store. */
+	private getReadable(id: string, reader: SynchronousRecordStorage<R>): R | undefined {
+		return (this.isPresenceId(id) ? this.presenceStore.get(id) : reader.get(id)) as R | undefined
+	}
+
+	private isPresenceId(id: string) {
+		return !!this.presenceType && id.startsWith(this.presenceType.typeName + ':')
 	}
 
 	private checkRead(
@@ -416,8 +427,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		reader: SynchronousRecordStorage<R>,
 		view: ReadView
 	) {
+		// Forget what the rule read last time, so that dependents do not only grow.
+		for (const id of view.reads.get(record.id) ?? []) view.dependents.get(id)?.delete(record.id)
+		const reads = new Set<string>()
+		view.reads.set(record.id, reads)
 		const get = (id: string) => {
 			if (id !== record.id) {
+				reads.add(id)
 				let dependents = view.dependents.get(id)
 				if (!dependents) view.dependents.set(id, (dependents = new Set()))
 				dependents.add(record.id)
@@ -427,13 +443,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return this.schema.authorize(actor, { verb: 'read', record }, get)
 	}
 
+	/** Removes a deleted record from a read view. */
+	private forgetRead(view: ReadView, id: string) {
+		view.visible.delete(id)
+		for (const read of view.reads.get(id) ?? []) view.dependents.get(read)?.delete(id)
+		view.reads.delete(id)
+	}
+
 	/**
 	 * Narrows a diff to what one session may read, and adds the records whose visibility changed
 	 * without a change to the record itself (for example, shapes on a page that became private).
-	 * Updates `session.readView`.
-	 *
-	 * Limit: dependents are only added, never removed, so a record can be re-checked more often
-	 * than needed. A change to the actor itself is seen only at the next connect.
+	 * Presence records go through their type's read rule too. Updates `session.readView`.
 	 */
 	private filterDiffForSession(
 		session: Extract<RoomSession<R, SessionMeta>, { state: typeof RoomSessionState.Connected }>,
@@ -444,13 +464,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		changedIds: Iterable<string>
 	): { diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> } {
 		const view = (session.readView ??= this.buildReadView(actor, reader))
-		const isPresence = (id: string) =>
-			!!this.presenceType && id.startsWith(this.presenceType.typeName + ':')
 
 		// Re-check the changed records and every record whose rule read one of them.
 		const toCheck = new Set<string>()
 		for (const id of changedIds) {
-			if (isPresence(id)) continue
+			// A session never receives its own presence back.
+			if (id === session.presenceId) continue
 			toCheck.add(id)
 			for (const dependent of view.dependents.get(id) ?? []) toCheck.add(dependent)
 		}
@@ -458,8 +477,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const nextVisible = new Set<string>()
 		for (const id of toCheck) {
 			if (view.visible.has(id)) prevVisible.add(id)
-			const record = reader.get(id)
-			if (record && this.checkRead(actor, record, reader, view)) {
+			const record = this.getReadable(id, reader)
+			if (!record) {
+				this.forgetRead(view, id)
+			} else if (this.checkRead(actor, record, reader, view)) {
 				nextVisible.add(id)
 				view.visible.add(id)
 			} else {
@@ -470,11 +491,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const outNetwork: NetworkDiff<R> = {}
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
-			if (isPresence(id)) {
-				out.puts[id] = put
-				if (networkDiff[id]) outNetwork[id] = networkDiff[id]
-				continue
-			}
 			if (!nextVisible.has(id)) continue
 			if (prevVisible.has(id)) {
 				out.puts[id] = put
@@ -486,14 +502,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 		for (const id of diff.deletes) {
-			if (isPresence(id) || prevVisible.has(id)) {
+			if (prevVisible.has(id)) {
 				out.deletes.push(id)
 				outNetwork[id] = [RecordOpType.Remove]
 			}
 		}
 		for (const id of nextVisible) {
 			if (prevVisible.has(id) || getOwnProperty(out.puts, id)) continue
-			const record = reader.get(id)
+			const record = this.getReadable(id, reader)
 			if (!record) continue
 			out.puts[id] = record
 			outNetwork[id] = [RecordOpType.Put, record]
@@ -504,6 +520,64 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			outNetwork[id] = [RecordOpType.Remove]
 		}
 		return { diff: out, networkDiff: outNetwork }
+	}
+
+	/** A hash of what a session may read, for its session snapshot. @internal */
+	getReadViewHash(sessionId: string): string | undefined {
+		const session = this.sessions.get(sessionId)
+		if (session?.state !== RoomSessionState.Connected || !session.readView) return undefined
+		return hashReadView(session.readView, (id) => this.isPresenceId(id))
+	}
+
+	/**
+	 * Re-reads the actor of one session (or of every session) and brings what each session may
+	 * read up to date: records it may now read are sent, records it may no longer read are
+	 * removed. Writes always use the current actor, so this is only needed for reads.
+	 */
+	refreshAccess(sessionId?: string) {
+		if (!this.schema.hasReadRules()) return
+		this.storage.transaction((txn) => {
+			for (const session of this.sessions.values()) {
+				if (session.state !== RoomSessionState.Connected) continue
+				if (sessionId !== undefined && session.sessionId !== sessionId) continue
+				const actor = this.actorFor(session)
+				const prev = session.readView
+				const next = actor ? this.buildReadView(actor, txn) : undefined
+				session.readView = next
+				// Without a read view, a session holds every record.
+				const held = prev?.visible ?? this.allReadableIds(txn)
+				const now = next?.visible ?? this.allReadableIds(txn)
+				const diff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+				for (const id of now) {
+					if (held.has(id) || id === session.presenceId) continue
+					const record = this.getReadable(id, txn)
+					if (record) diff.puts[id] = record
+				}
+				for (const id of held) {
+					if (!now.has(id) && id !== session.presenceId) diff.deletes.push(id)
+				}
+				if (!diff.deletes.length && !Object.keys(diff.puts).length) continue
+				const migrated = this.migrateDiffOrRejectSession(
+					session.sessionId,
+					session.serializedSchema,
+					session.requiresDownMigrations,
+					diff
+				)
+				if (!migrated.ok) continue
+				this._unsafe_sendMessage(session.sessionId, {
+					type: 'patch',
+					diff: migrated.value,
+					serverClock: this.lastDocumentClock,
+				})
+			}
+		})
+	}
+
+	private allReadableIds(reader: SynchronousRecordStorage<R>) {
+		const ids = new Set<string>()
+		for (const record of reader.values()) ids.add(record.id)
+		for (const record of this.presenceStore.values()) ids.add(record.id)
+		return ids
 	}
 
 	/** Checks each change in an overlay against the policies, with the overlay as the end state. */
@@ -1003,8 +1077,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		presenceRecord: UnknownRecord | null
 		requiresLegacyRejection: boolean
 		supportsStringAppend: boolean
+		readViewHash?: string
 	}) {
 		const {
+			readViewHash,
 			sessionId,
 			socket,
 			meta,
@@ -1025,12 +1101,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const migrations = this.schema.getMigrationsSince(serializedSchema)
 		const requiresDownMigrations = migrations.ok ? migrations.value.length > 0 : false
 
-		// Limit: the room assumes that a resumed client holds what it may read now. A record whose
-		// visibility changed while the socket slept is corrected at the next change to it.
+		// The room cannot know what a resumed client holds, only a hash of what it could read when
+		// the snapshot was taken. If that differs from what it may read now (its access changed
+		// while the socket slept), close the socket: the client reconnects and gets a full view.
 		const actor = this.filtersReads({ sessionId, meta }) ? this.actorFor({ sessionId, meta }) : null
 		const readView = actor
 			? this.storage.transaction((txn) => this.buildReadView(actor, txn)).result
 			: undefined
+		if (readView && readViewHash !== hashReadView(readView, (id) => this.isPresenceId(id))) {
+			socket.close()
+			return
+		}
 
 		this.sessions.set(sessionId, {
 			state: RoomSessionState.Connected,
@@ -1402,7 +1483,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (actor) {
 				readView = this.buildReadView(actor, txn)
 				const puts: Record<string, R> = {}
-				for (const id of readView.visible) puts[id] = txn.get(id)!
+				for (const id of readView.visible) {
+					if (!this.isPresenceId(id)) puts[id] = txn.get(id)!
+				}
 				docChanges = { wipeAll: true, diff: { puts, deletes: [] } }
 			}
 			const presenceDiff = this.migrateDiffOrRejectSession(
@@ -1417,6 +1500,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					puts: Object.fromEntries(
 						[...this.presenceStore.values()]
 							.filter((p) => p.id !== session.presenceId)
+							.filter((p) => !readView || readView.visible.has(p.id))
 							.map((p) => [p.id, p])
 					),
 					deletes: [],
@@ -1982,4 +2066,22 @@ export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R
 	values() {
 		return this.presences.values()
 	}
+}
+
+/**
+ * FNV-1a over the sorted visible document ids. Presence is left out: after the room hibernates,
+ * other sessions' presence returns one resume at a time.
+ */
+function hashReadView(view: ReadView, isPresenceId: (id: string) => boolean): string {
+	let hash = 0x811c9dc5
+	for (const id of [...view.visible].sort()) {
+		if (isPresenceId(id)) continue
+		for (let i = 0; i < id.length; i++) {
+			hash ^= id.charCodeAt(i)
+			hash = Math.imul(hash, 0x01000193)
+		}
+		hash ^= 0x2c
+		hash = Math.imul(hash, 0x01000193)
+	}
+	return (hash >>> 0).toString(36)
 }

@@ -81,6 +81,11 @@ export interface SessionStateSnapshot {
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
 	supportsStringAppend: boolean
+	/**
+	 * A hash of what the session could read, when the room filters reads. On resume, a different
+	 * hash (or none) makes the client reconnect, so it gets a correct view.
+	 */
+	readViewHash?: string
 }
 
 /**
@@ -650,6 +655,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord: snapshot.presenceRecord,
 			requiresLegacyRejection: snapshot.requiresLegacyRejection,
 			supportsStringAppend: snapshot.supportsStringAppend,
+			readViewHash: snapshot.readViewHash,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -664,6 +670,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}),
 			meta: 'meta' in opts ? (opts.meta as any) : undefined,
 		})
+	}
+
+	/**
+	 * Tells the room that what `getActor` returns for a session has changed (a new role, a revoked
+	 * share link), so that what the session can read is brought up to date now: records it may
+	 * now read are sent, records it may no longer read are removed. Without a `sessionId`, every
+	 * session is refreshed. Writes need no refresh: `getActor` is called on every push.
+	 *
+	 * @param sessionId - The session whose access changed. Omit it to refresh every session.
+	 */
+	refreshAccess(sessionId?: string) {
+		this.room.refreshAccess(sessionId)
 	}
 
 	/**
@@ -705,6 +723,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
+			readViewHash: this.room.getReadViewHash(sessionId),
 		}
 	}
 

@@ -100,13 +100,31 @@ describe('the classroom, as a student', () => {
 		expect(denied).toEqual(['update'])
 	})
 
-	it('checks each store operation in editor.run on its own (limit: run is not one unit)', () => {
+	it('keeps or reverts a whole editor.run as one unit', () => {
 		editor.run(() => {
 			editor.store.update(ids.samBox, (s) => ({ ...s, x: 999 }))
 			editor.store.update(ids.teacherBox, (s) => ({ ...s, x: 999 }))
 		})
-		expect(shape(ids.samBox).x).toBe(999)
+		expect(shape(ids.samBox).x).toBe(300)
 		expect(shape(ids.teacherBox).x).toBe(0)
+		expect(denied).toEqual(['update'])
+
+		editor.run(() => {
+			editor.store.update(ids.samBox, (s) => ({ ...s, x: 400 }))
+			editor.store.update(ids.samBox, (s) => ({ ...s, y: 50 }))
+		})
+		expect(shape(ids.samBox)).toMatchObject({ x: 400, y: 50 })
+	})
+
+	it('reverts a denied run without a trace in undo history', () => {
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: ids.samBox, type: 'geo', x: 400 })
+		editor.run(() => {
+			editor.store.update(ids.samBox, (s) => ({ ...s, y: 77 }))
+			editor.store.update(ids.teacherBox, (s) => ({ ...s, x: 999 }))
+		})
+		editor.undo()
+		expect(shape(ids.samBox)).toMatchObject({ x: 300, y: 0 })
 	})
 
 	it('leaves undo and redo working after a denied operation', () => {

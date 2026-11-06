@@ -1755,7 +1755,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			// With an actor set, the record policies keep or revert the whole run as one unit.
+			this.store.withPolicyScope(() => this.history.batch(fn, opts))
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}

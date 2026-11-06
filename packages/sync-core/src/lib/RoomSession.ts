@@ -153,12 +153,14 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 	  })
 
 /**
- * The records one session may read (`visible`), and for each record id, the records whose read
- * rule read it (`dependents`).
+ * The records one session may read (`visible`), for each record id the records whose read rule
+ * read it (`dependents`), and the reverse (`reads`), so that a re-check drops what a rule no
+ * longer reads.
  *
  * @internal
  */
 export interface ReadView {
 	visible: Set<string>
 	dependents: Map<string, Set<string>>
+	reads: Map<string, Set<string>>
 }

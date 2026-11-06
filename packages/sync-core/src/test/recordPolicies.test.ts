@@ -1,4 +1,4 @@
-import { computed } from '@tldraw/state'
+import { atom, computed } from '@tldraw/state'
 import {
 	PolicyActor,
 	PolicyContext,
@@ -10,6 +10,7 @@ import {
 } from '@tldraw/store'
 import {
 	DocumentRecordType,
+	InstancePresenceRecordType,
 	TLDOCUMENT_ID,
 	PageRecordType,
 	TLPageId,
@@ -310,7 +311,11 @@ function setup(opts: { policies?: TLPolicies; seed?: object[] } = {}) {
 		}
 	}
 
-	function client(id: string, who: PolicyActor | null, { guard = withClientGuard } = {}): Client {
+	function client(
+		id: string,
+		who: PolicyActor | null,
+		{ guard = withClientGuard, presence = null as UnknownRecord | null } = {}
+	): Client {
 		actors.set(id, who)
 		const pair = new TestSocketPair<any>(id, server)
 		const received: any[] = []
@@ -330,7 +335,7 @@ function setup(opts: { policies?: TLPolicies; seed?: object[] } = {}) {
 		const sync = new TLSyncClient<any>({
 			store,
 			socket: pair.clientSocket,
-			presence: computed('p', () => null),
+			presence: computed('p', () => presence as any),
 			onLoad: () => {},
 			onSyncError: (reason) => errors.push(reason),
 		})
@@ -897,6 +902,117 @@ for (const guard of [true, false]) {
 		})
 	})
 }
+
+describe('access changes, resume, and presence', () => {
+	const seed = () => [
+		page(PAGE_1),
+		page(PAGE_2, { private: true }),
+		box('public', 'teacher', PAGE_1),
+		box('secret', 'teacher', PAGE_2),
+	]
+	const reader = createPolicyActor({ id: 'sam', actions: ['pages:read-private'] })
+	const student = actor('sam', 'student')
+	const presenceOn = (userId: string, pageId: TLPageId) =>
+		InstancePresenceRecordType.create({
+			id: InstancePresenceRecordType.createId(userId),
+			userId: `user:${userId}` as any,
+			userName: userId,
+			currentPageId: pageId,
+		})
+
+	it('refreshAccess sends and removes records when a session’s read access changes', () => {
+		const { server, client, deliver } = setup({ policies: privatePages, seed: seed() })
+		const s = client('sam', student)
+		expect(ids(s.store, 'shape')).toEqual([createShapeId('public')])
+
+		s.setActor(reader)
+		server.room.refreshAccess('sam')
+		deliver()
+		expect(ids(s.store, 'page')).toEqual([PAGE_2, PAGE_1].sort())
+		expect(ids(s.store, 'shape')).toEqual([createShapeId('public'), createShapeId('secret')].sort())
+
+		s.setActor(student)
+		server.room.refreshAccess()
+		deliver()
+		expect(ids(s.store, 'page')).toEqual([PAGE_1])
+		expect(ids(s.store, 'shape')).toEqual([createShapeId('public')])
+	})
+
+	it('a resumed session keeps its socket when its access is unchanged, and reconnects when it changed', () => {
+		const { server, client, schema } = setup({ policies: privatePages, seed: seed() })
+		client('sam', student)
+		const readViewHash = server.room.getReadViewHash('sam')
+		expect(readViewHash).toBeDefined()
+		const resume = (sessionId: string, hash: string | undefined) => {
+			const socket = { isOpen: true, sendMessage: vi.fn(), close: vi.fn() }
+			server.room.handleResumedSession({
+				sessionId,
+				socket,
+				meta: undefined,
+				isReadonly: false,
+				serializedSchema: schema.serialize(),
+				presenceId: null,
+				presenceRecord: null,
+				requiresLegacyRejection: false,
+				supportsStringAppend: true,
+				readViewHash: hash,
+			})
+			return socket
+		}
+		expect(resume('sam', readViewHash).close).not.toHaveBeenCalled()
+		// The room only knows sessions through getActor, keyed here by session id.
+		server.room.sessions.delete('sam')
+		const roomActors = (server.room as any).getActorOpt
+		;(server.room as any).getActorOpt = () => reader
+		expect(resume('sam', readViewHash).close).toHaveBeenCalled()
+		// A snapshot without a hash, from before read filtering, also reconnects.
+		;(server.room as any).getActorOpt = () => student
+		expect(resume('ann', undefined).close).toHaveBeenCalled()
+		;(server.room as any).getActorOpt = roomActors
+	})
+
+	it('a session sees another user’s presence only while it may read that user’s page', () => {
+		const { client, deliver } = setup({ policies: privatePages, seed: seed() })
+		const t = client(
+			'teacher',
+			createPolicyActor({ id: 'teacher', actions: ['document:write', 'pages:read-private'] }),
+			{ presence: presenceOn('teacher', PAGE_2) }
+		)
+		const s = client('sam', student)
+		const viewer = client('vi', reader)
+		deliver()
+		// The room gives each presence its own id, so compare by user.
+		const presences = (c: Client) =>
+			c.store
+				.allRecords()
+				.filter((r: any) => r.typeName === 'instance_presence')
+				.map((r: any) => r.userId)
+		expect(presences(viewer)).toEqual(['user:teacher'])
+		expect(presences(s)).toEqual([])
+
+		// The page becomes public: its visitors' presence follows.
+		t.store.update(PAGE_2, (p: any) => ({ ...p, meta: {} }))
+		deliver()
+		expect(presences(s)).toEqual(['user:teacher'])
+		// A session never receives its own presence.
+		expect(presences(t)).toEqual([])
+	})
+
+	it('a rule that stops reading a record is no longer re-checked when that record changes', () => {
+		const { server, client, deliver } = setup({ policies: privatePages, seed: seed() })
+		const t = client(
+			'teacher',
+			createPolicyActor({ id: 'teacher', actions: ['document:write', 'pages:read-private'] })
+		)
+		client('sam', student)
+		const view = () => (server.room.sessions.get('sam') as any).readView
+		expect(view().dependents.get(PAGE_2)).toContain(createShapeId('secret'))
+		t.store.update(createShapeId('secret'), (r: any) => ({ ...r, parentId: PAGE_1 }))
+		deliver()
+		expect(view().dependents.get(PAGE_2) ?? new Set()).not.toContain(createShapeId('secret'))
+		expect(view().dependents.get(PAGE_1)).toContain(createShapeId('secret'))
+	})
+})
 
 describe('cost', () => {
 	// One 1,000 shape push from a student, with 5 viewers connected, with and without policies.

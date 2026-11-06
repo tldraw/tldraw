@@ -372,6 +372,17 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		this.sortedMigrations = sortMigrations(allMigrations)
 
 		for (const [typeName, type] of objectMapEntries(this.types) as [string, RecordType<R, any>][]) {
+			if (type.scope === 'presence') {
+				// Presence is written by each session for itself, so only its read rule applies. It
+				// does not turn on read filtering by itself: it only narrows presence when a document
+				// type has read rules.
+				const read = layerPolicies(
+					type.policy,
+					getOwnProperty(options.policies ?? {}, typeName) as RecordPolicy<any> | undefined
+				).read
+				if (read) this.policies.set(typeName, { read })
+				continue
+			}
 			if (type.scope !== 'document') continue
 			const policy = layerPolicies(
 				layerPolicies(options.defaultPolicy as RecordPolicy<any>, type.policy),
@@ -392,8 +403,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	/**
 	 * The layered policy of a document record type: the schema default, the type's own policy,
-	 * and the host's policy. `undefined` for unknown types and for session and presence types,
-	 * which policies do not cover.
+	 * and the host's policy. For a presence type, only its `read` rule. `undefined` for unknown
+	 * types and for session types, which policies do not cover.
 	 *
 	 * @public
 	 */
@@ -441,7 +452,9 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		const subject = getPolicySubject(request)
 		const type = getOwnProperty(this.types, subject?.typeName) as RecordType<R, any> | undefined
 		if (!type) return false
-		if (type.scope !== 'document') return true
+		if (type.scope !== 'document' && !(type.scope === 'presence' && request.verb === 'read')) {
+			return true
+		}
 		if (
 			request.verb === 'update' &&
 			(request.prev.id !== request.next.id || request.prev.typeName !== request.next.typeName)

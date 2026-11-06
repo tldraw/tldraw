@@ -1343,9 +1343,29 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		return () => this.policyDeniedListeners.delete(fn)
 	}
 
-	private enforcePolicies() {
-		const changes = this.guardedChanges!
-		this.guardedChanges = null
+	private policyScope: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+
+	/**
+	 * Runs `fn` as one unit for the record policies: the store checks the net changes of every
+	 * operation in `fn` together when `fn` returns, and reverts all of them if any is denied.
+	 * `editor.run` uses this, so a user action is kept or reverted as a whole.
+	 *
+	 * @internal
+	 */
+	withPolicyScope<T>(fn: () => T): T {
+		if (this.policyScope || !this.actor.__unsafe__getWithoutCapture()) return fn()
+		const changes = (this.policyScope = new Map())
+		let result: T
+		try {
+			result = fn()
+		} finally {
+			this.policyScope = null
+		}
+		if (changes.size > 0) transact(() => this.enforcePolicies(changes))
+		return result
+	}
+
+	private enforcePolicies(changes: Map<IdOf<R>, { before: R | null; after: R | null }>) {
 		const actor = this.actor.__unsafe__getWithoutCapture()!
 		const get = (id: string) => this.records.__unsafe__getWithoutCapture(id as IdOf<R>)
 		const denied: PolicyRequest<R>[] = []
@@ -1354,7 +1374,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			if ((this.schema.types as any)[record.typeName]?.scope !== 'document') continue
 			const request: PolicyRequest<R> | null =
 				before && after
-					? before === after
+					? before === after || isEqual(before, after)
 						? null
 						: { verb: 'update', prev: before, next: after }
 					: after
@@ -1418,17 +1438,23 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.isMergingRemoteChanges = true
 			}
 			// Local writes are checked against the record policies once the whole operation,
-			// side effects included, has run. Remote changes were checked by the server.
-			if (this.actor.__unsafe__getWithoutCapture() && !isMergingRemoteChanges) {
-				this.guardedChanges = new Map()
+			// side effects included, has run (or, inside `withPolicyScope`, once the scope ends).
+			// Remote changes were checked by the server, but what the side effects write in
+			// response to them is local, so that is checked too.
+			const hasActor = !!this.actor.__unsafe__getWithoutCapture()
+			if (hasActor && !isMergingRemoteChanges) {
+				this.guardedChanges = this.policyScope ?? new Map()
 			}
 
 			try {
 				const result = fn()
 				this.isMergingRemoteChanges = false
 
+				if (hasActor && isMergingRemoteChanges) this.guardedChanges = new Map()
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
-				if (this.guardedChanges) this.enforcePolicies()
+				const guarded = this.guardedChanges
+				this.guardedChanges = null
+				if (guarded && guarded !== this.policyScope) this.enforcePolicies(guarded)
 
 				return result
 			} finally {
@@ -1471,6 +1497,24 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
  * @returns An array of squashed history entries
  * @public
  */
+// A change and its reverse (a policy denial) squash to an update from a record to itself. Listeners
+// should not see it: the sync client would push it, and the server would check it.
+function dropNoOpChanges<T extends UnknownRecord>(entries: HistoryEntry<T>[]): HistoryEntry<T>[] {
+	const isNoOp = ([from, to]: [T, T]) => from === to
+	if (!entries.some((e) => (Object.values(e.changes.updated) as [T, T][]).some(isNoOp))) {
+		return entries
+	}
+	const result: HistoryEntry<T>[] = []
+	for (const entry of entries) {
+		const updated = Object.fromEntries(
+			(Object.entries(entry.changes.updated) as [string, [T, T]][]).filter(([, change]) => !isNoOp(change))
+		) as RecordsDiff<T>['updated']
+		const changes = { ...entry.changes, updated }
+		if (!isRecordsDiffEmpty(changes)) result.push({ ...entry, changes })
+	}
+	return result
+}
+
 function squashHistoryEntries<T extends UnknownRecord>(
 	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
@@ -1549,7 +1593,7 @@ class HistoryAccumulator<T extends UnknownRecord> {
 		this.discardFrom(currentVersion + 1)
 		const history = squashHistoryEntries(this._history)
 		this.clear()
-		return history
+		return dropNoOpChanges(history)
 	}
 
 	/**
