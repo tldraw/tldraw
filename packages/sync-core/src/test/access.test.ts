@@ -95,7 +95,7 @@ function seed() {
 			resource: 'page:team',
 			subject: { type: 'group', id: 'team' },
 			effect: 'allow',
-			verbs: ['editor'],
+			verbs: ['admin'],
 		}),
 		entry({
 			id: 'cardBlock',
@@ -246,6 +246,32 @@ describe('read: each session gets only what it may read', () => {
 		])
 		flush()
 		expect(bob.store.get('shape:card' as any)).toBeUndefined()
+	})
+
+	it('share: an allow entry for one user sends the page and its shapes; deleting it removes them', () => {
+		makeServer()
+		const bob = join('bob', as('bob', ['editor']))
+		const tess = join('tess', as('tess', ['teacher'], ['team']))
+		expect(bob.store.get('page:team' as any)).toBeUndefined()
+
+		tess.store.put([
+			entry({
+				id: 'bob',
+				resource: 'page:team',
+				subject: { type: 'user', id: 'bob' },
+				effect: 'allow',
+				verbs: ['viewer'],
+			}),
+		])
+		flush()
+		expect(tess.store.get('access:bob' as any)).toBeDefined()
+		expect(bob.store.get('page:team' as any)).toMatchObject({ id: 'page:team' })
+		expect(bob.store.get('shape:secret' as any)).toMatchObject({ id: 'shape:secret' })
+
+		tess.store.remove(['access:bob' as any])
+		flush()
+		expect(bob.store.get('page:team' as any)).toBeUndefined()
+		expect(bob.store.get('shape:secret' as any)).toBeUndefined()
 	})
 
 	it('a shape moved into a page you cannot read disappears for you', () => {

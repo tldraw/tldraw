@@ -10,6 +10,7 @@ import {
 import {
 	ComputedCache,
 	RecordType,
+	RecordsDiff,
 	StoreSideEffects,
 	StoreSnapshot,
 	UnknownRecord,
@@ -4476,6 +4477,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return
 		}
+		// Runs in a reaction: a write the access guard rolls back would re-run it forever.
+		const diff = existing
+			? { added: {}, updated: { [user.id]: [existing, user] }, removed: {} }
+			: { added: { [user.id]: user }, updated: {}, removed: {} }
+		if (this.access.check(diff as RecordsDiff<TLRecord>)) return
 		this.run(
 			() => {
 				this.store.put([user])

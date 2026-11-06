@@ -134,11 +134,11 @@ export class AccessManager extends EditorManager {
 			after.set(record.id, null)
 		}
 		if (!changes.length) return null
-		// the store already holds the new records; rebuild the "before" view from the diff
+		// Overlay both sides on the store, so this works before a write (a pre-check) and after it (the guard).
 		const beforeChanges = new Map<string, TLRecord | null>()
 		for (const { prev, next } of changes) beforeChanges.set((prev ?? next)!.id, prev)
 		const before = overlayAccessView(model, this.view, beforeChanges)
-		return model.checkChanges(session, changes, before, this.view)
+		return model.checkChanges(session, changes, before, overlayAccessView(model, this.view, after))
 	}
 
 	private isSynced(record: TLRecord) {

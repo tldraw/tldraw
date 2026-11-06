@@ -325,6 +325,8 @@ export const commentToolOverrides: TLUiOverrides = {
 			icon: 'comment',
 			label: messages.toolComment.id,
 			kbd: 'c',
+			// Commenting is not editing: `canComment` gates it, so a readonly session may still comment.
+			readonlyOk: true,
 			onSelect: (source) => {
 				// The menu was opened by the last pointer down; the live pointer is over the menu now.
 				if (source === 'context-menu') startCommentAt(editor, editor.inputs.getOriginPagePoint())

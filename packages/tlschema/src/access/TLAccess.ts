@@ -8,6 +8,7 @@ import { CustomRecordInfo, createCustomRecordId } from '../records/TLCustomRecor
 import { TLDOCUMENT_ID } from '../records/TLDocument'
 import { TLInstancePresence } from '../records/TLPresence'
 import { TLShape } from '../records/TLShape'
+import { TLUser, UserRecordType } from '../records/TLUser'
 import {
 	AccessEffect,
 	AccessEntry,
@@ -107,6 +108,7 @@ export const TL_ACCESS_ROOT: string = TLDOCUMENT_ID
  * - `comment:edit`: edit, resolve, or delete a comment. The model gives it to each comment's
  *   owner, so a commenter manages their own comments and an admin manages all.
  * - `manage`: write in-room access entries (share, lock, hide).
+ * - `user:edit`: write a `user` record. The model gives it to the record's own user only.
  *
  * @public
  */
@@ -122,7 +124,10 @@ const shapeOwner: AccessTypeRule<TLShape>['owner'] = {
 	set: (shape, ownerId) => ({ ...shape, meta: { ...shape.meta, ownerId } }),
 }
 
+// Writing, editing, and deleting a comment is its author's; resolving, reopening, and moving a
+// thread, and reacting, are anyone's who may comment (as in @tldraw/commenting).
 const commentVerbs = { create: 'comment', update: 'comment:edit', delete: 'comment:edit' }
+const threadVerbs = { create: 'comment', update: 'comment', delete: 'comment:edit' }
 
 /**
  * The resource tree for the default tldraw record types:
@@ -133,6 +138,7 @@ const commentVerbs = { create: 'comment', update: 'comment:edit', delete: 'comme
  * │            ├── binding           (its parent is fromId; its toId must be readable too)
  * │            └── comment-thread ── comment ── comment-reaction
  * ├── asset
+ * ├── user                         (each user writes only their own)
  * └── access entry                 (its parent is the resource it is on)
  * ```
  *
@@ -154,7 +160,7 @@ export const defaultAccessTypes: Record<string, AccessTypeRule<any>> = {
 	'comment-thread': {
 		parent: (thread: TLCommentThread) =>
 			thread.anchor.type === 'shape' ? thread.anchor.shapeId : thread.pageId,
-		verbs: commentVerbs,
+		verbs: threadVerbs,
 		owner: {
 			get: (thread) => thread.createdBy || null,
 			set: (thread, ownerId) => ({ ...thread, createdBy: ownerId ?? '' }),
@@ -170,11 +176,17 @@ export const defaultAccessTypes: Record<string, AccessTypeRule<any>> = {
 	},
 	'comment-reaction': {
 		parent: (reaction: TLCommentReaction) => reaction.commentId,
-		verbs: commentVerbs,
+		verbs: threadVerbs,
 		owner: {
 			get: (reaction) => reaction.userId || null,
 			set: (reaction, ownerId) => ({ ...reaction, userId: ownerId ?? '' }),
 		},
+	},
+	// Each user writes only their own record. The owner is the record id, so a stamp cannot change it.
+	user: {
+		parent: () => TL_ACCESS_ROOT,
+		verbs: { create: 'user:edit', update: 'user:edit', delete: 'user:edit' },
+		owner: { get: (user: TLUser) => UserRecordType.parseId(user.id), set: (user) => user },
 	},
 	access: {
 		parent: (entry: TLAccessEntry) => entry.resource,
@@ -184,7 +196,7 @@ export const defaultAccessTypes: Record<string, AccessTypeRule<any>> = {
 
 /**
  * Entries that are part of the default model: each owner may edit and delete their own comments
- * and reactions.
+ * and reactions, and write their own `user` record.
  *
  * @public
  */
@@ -193,7 +205,7 @@ export const defaultAccessEntries: readonly AccessEntry[] = [
 		resource: TL_ACCESS_ROOT,
 		subject: { type: 'relation', relation: 'owner' },
 		effect: 'allow',
-		verbs: ['comment:edit'],
+		verbs: ['comment:edit', 'user:edit'],
 	},
 ]
 

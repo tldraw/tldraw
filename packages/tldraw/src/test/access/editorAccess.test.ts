@@ -8,6 +8,7 @@ import {
 	createAccessEntry,
 	createShapeId,
 	createTLAccessModel,
+	createUserId,
 } from '@tldraw/tlschema'
 import { TestEditor } from '../TestEditor'
 
@@ -71,6 +72,27 @@ describe('viewer', () => {
 		editor.store.put([{ ...editor.getShape(tessShape)!, id: createShapeId('sneaky') }])
 		expect(shapeCount()).toBe(2)
 		expect(await denial()).toMatchObject({ allowed: false, verb: 'create' })
+	})
+
+	it('writes its own user record, and no one else’s', async () => {
+		const user = (id: string) =>
+			({
+				id: createUserId(id),
+				typeName: 'user',
+				name: id,
+				color: '',
+				imageUrl: '',
+				meta: {},
+			}) as const
+		editor._ensureUserRecord(user('vic'))
+		expect(editor.store.get(createUserId('vic'))).toMatchObject({ name: 'vic' })
+		editor.store.put([user('tess')])
+		expect(editor.store.get(createUserId('tess'))).toBeUndefined()
+		expect(await denial()).toMatchObject({ allowed: false, verb: 'user:edit' })
+		// the editor checks first, so its user-record reaction does not loop on a denial
+		session.set({ actor: { id: null }, entries: [onRoot(['viewer'])] })
+		expect(() => editor._ensureUserRecord(user('anon'))).not.toThrow()
+		expect(editor.store.get(createUserId('anon'))).toBeUndefined()
 	})
 
 	it('a denied operation leaves nothing to undo', () => {
@@ -162,4 +184,37 @@ it('with no model, nothing changes', () => {
 	plain.createShape({ type: 'geo', x: 0, y: 0 })
 	expect(plain.getCurrentPageShapes()).toHaveLength(1)
 	expect(plain.access.can('anything')).toBe(true)
+})
+
+describe('known hard case: arrows across owners', () => {
+	it("a student can move their own shape when the teacher's arrow is bound to it", () => {
+		as('bob', ['student'])
+		const mine = createShapeId('mine')
+		editor.createShape({ id: mine, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } })
+		as('tess', ['teacher'])
+		editor.setCurrentTool('arrow').pointerDown(50, 50).pointerMove(350, 350).pointerUp()
+		const arrow = editor.getOnlySelectedShape()!
+		expect(editor.getBindingsFromShape(arrow, 'arrow')).toHaveLength(2)
+		const arrowBefore = editor.getShape(arrow.id)
+
+		as('bob', ['student'])
+		editor.updateShape({ id: mine, type: 'geo', x: 400 })
+		// the bound arrow's record does not change when its target moves, so nothing is denied
+		expect(editor.getShape(mine)!.x).toBe(400)
+		expect(editor.getShape(arrow.id)).toEqual(arrowBefore)
+	})
+	it('limit: a student cannot delete their own shape while the teacher’s arrow is bound to it', () => {
+		as('bob', ['student'])
+		const mine = createShapeId('mine')
+		editor.createShape({ id: mine, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } })
+		as('tess', ['teacher'])
+		editor.setCurrentTool('arrow').pointerDown(50, 50).pointerMove(350, 350).pointerUp()
+
+		as('bob', ['student'])
+		editor.deleteShapes([mine])
+		// deleting the shape deletes the binding and rewrites the arrow, which is the teacher's:
+		// the whole operation is rolled back. A host can allow it with an entry for bindings, or
+		// the model could grow a rule that unbinding follows the target's owner.
+		expect(editor.getShape(mine)).toBeDefined()
+	})
 })
