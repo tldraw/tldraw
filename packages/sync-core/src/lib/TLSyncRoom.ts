@@ -169,6 +169,8 @@ interface PushChanges<R extends UnknownRecord> {
 		networkDiff: NetworkDiff<R>
 		diff: TLSyncForwardDiff<R>
 	} | null
+	/** Ids that the push created. Kept apart from `diffs`, which the storage may replace. */
+	created: Set<string>
 }
 
 function isEmptyForwardDiff(diff: TLSyncForwardDiff<UnknownRecord>) {
@@ -1506,11 +1508,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this._unsafe_sendMessage(session.sessionId, pushResult)
 		}
 		if (result.docChanges.diffs || result.presenceChanges.diffs) {
-			// The push path writes an existing record as a patch, so a whole-record put is a create.
-			const created = new Set<string>()
-			for (const [id, put] of objectMapEntriesIterable(result.docChanges.diffs?.diff.puts ?? {})) {
-				if (!Array.isArray(put)) created.add(id)
-			}
 			this.broadcastPatch(
 				{
 					puts: {
@@ -1528,7 +1525,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				},
 				session?.sessionId,
 				get,
-				created
+				result.docChanges.created
 			)
 		}
 	}
@@ -1560,6 +1557,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			switch (op[0]) {
 				case RecordOpType.Put:
 					changes.diffs.diff.puts[id] = op[1]
+					if (!before) changes.created.add(id)
 					break
 				case RecordOpType.Patch:
 					assert(before && after, 'before and after are required for patches')
@@ -1704,8 +1702,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// collect actual ops that resulted from the push
 					// these will be broadcast to other users
 
-					const docChanges: PushChanges<R> = { diffs: null }
-					const presenceChanges: PushChanges<R> = { diffs: null }
+					const docChanges: PushChanges<R> = { diffs: null, created: new Set() }
+					const presenceChanges: PushChanges<R> = { diffs: null, created: new Set() }
 
 					if (
 						this.presenceType &&
@@ -1861,6 +1859,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// The pushing client gets its denials with the push result. In atomic mode the first denial
 		// throws, which rolls the whole push back (D41).
 		const denials: TLPushDenial[] = []
+		// Restored after, so that a push made from inside this one cannot clear its handler.
+		const outerOnDeny = this.onDeny
 		if (session && this.authorizeFn) {
 			this.onDeny = (denial) => {
 				denials.push(denial)
@@ -1883,7 +1883,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			return
 		} finally {
-			this.onDeny = undefined
+			this.onDeny = outerOnDeny
 		}
 		const { result, documentClock, changes } = txnResult
 
