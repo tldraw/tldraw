@@ -1347,6 +1347,13 @@ describe('canRead', () => {
 		expect(connectDiff(bob)).toEqual({})
 	})
 
+	it('hides the record when an async check returns a Promise', () => {
+		const room = roomWith(canRead<R, any>({ doc: (async () => true) as any }))
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+
+		expect(connectDiff(bob)).toEqual({})
+	})
+
 	it('hides the record when a check throws', () => {
 		const log = { error: vi.fn() }
 		const room = roomWith(
