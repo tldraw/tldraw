@@ -1,6 +1,7 @@
 import {
 	RecordOpType,
 	TLSocketRoom,
+	TLSyncAuthorizer,
 	WebSocketMinimal,
 	getTlsyncProtocolVersion,
 } from '@tldraw/sync-core'
@@ -23,76 +24,89 @@ import { describe, expect, it, vi } from 'vitest'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
+const get = () => undefined
 
-function session(
-	userId: string | null,
-	isReadonly = false
-): {
-	sessionId: string
-	isReadonly: boolean
-	meta: SessionMeta
-} {
-	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId } }
+function session(userId: string | null, document: 'read' | 'write' = 'write') {
+	return {
+		sessionId: 's1',
+		meta: { storeId: 'store', userId } satisfies SessionMeta,
+		access: { document, objects: userId ? ('write' as const) : ('read' as const) },
+	}
 }
 
+type Args = Parameters<typeof authorizeFileRecord>[0]
+// the room fills `get` and `record` from the push; tests build the change by hand
+const authorize = (c: Omit<Args, 'get' | 'record'>) =>
+	authorizeFileRecord({ ...c, get, record: c.type === 'delete' ? c.prev : c.next } as Args)
+
 describe('authorizeFileRecord', () => {
-	// The comment/thread policy itself is tested in @tldraw/sync-collaboration; these two only
-	// verify the factory is wired in with getUserId mapped to session.meta.userId.
-	describe('comment authorizer wiring', () => {
+	describe('comment rule wiring', () => {
 		const thread = createCommentThread({
 			pageId,
 			anchor: { type: 'page' },
 			createdBy: 'real-bob',
 		})
+		const comment = (authorId: string) =>
+			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
 
 		it('stamps authorId from the session user id', () => {
-			const next = createComment({
-				threadId: thread.id,
-				pageId,
-				authorId: 'client-claims-alice',
-				body: toRichText('hi'),
-			})
-			const result = authorizeFileRecord.comment!({
+			const result = authorize({
 				session: session('real-bob'),
 				type: 'create',
 				prev: null,
-				next,
+				next: comment('client-claims-alice'),
 			}) as TLComment
 			expect(result.authorId).toBe('real-bob')
 		})
 
 		it('vetoes thread hard-deletes (deletion is soft)', () => {
 			expect(
-				authorizeFileRecord['comment-thread']!({
-					session: session('real-bob'),
-					type: 'delete',
-					prev: thread,
-					next: null,
-				})
+				authorize({ session: session('real-bob'), type: 'delete', prev: thread, next: null })
 			).toBeNull()
 		})
 
 		it('vetoes a comment create from a canvas read-only session', () => {
-			const next = createComment({
-				threadId: thread.id,
-				pageId,
-				authorId: 'real-bob',
-				body: toRichText('hi'),
-			})
 			expect(
-				authorizeFileRecord.comment!({
-					session: session('real-bob', true),
+				authorize({
+					session: session('real-bob', 'read'),
 					type: 'create',
 					prev: null,
-					next,
+					next: comment('real-bob'),
 				})
+			).toBeNull()
+		})
+
+		it('vetoes every comment write from an anonymous session, including reopening a thread', () => {
+			const resolved = { ...thread, resolved: { at: 1, by: 'real-bob' } }
+			expect(
+				authorize({ session: session(null), type: 'create', prev: null, next: comment('x') })
+			).toBeNull()
+			expect(
+				authorize({ session: session(null), type: 'update', prev: resolved, next: thread })
 			).toBeNull()
 		})
 	})
 
-	describe('shape', () => {
-		const authorize = authorizeFileRecord.shape!
+	describe('canvas access', () => {
+		const page = PageRecordType.create({ id: pageId, name: 'Page', index: 'a1' as any })
 
+		it('refuses any non-comment write from a session without edit access', () => {
+			expect(
+				authorize({ session: session('real-bob', 'read'), type: 'create', prev: null, next: page })
+			).toBeNull()
+			expect(
+				authorize({ session: session('real-bob', 'read'), type: 'delete', prev: page, next: null })
+			).toBeNull()
+		})
+
+		it('passes non-shape records through for a session with edit access', () => {
+			expect(authorize({ session: session(null), type: 'create', prev: null, next: page })).toBe(
+				page
+			)
+		})
+	})
+
+	describe('shape', () => {
 		function makeNote(textLastEditedBy: string | null): TLNoteShape {
 			return {
 				id: createShapeId('note1'),
@@ -174,7 +188,7 @@ describe('authorizeFileRecord', () => {
 			const note = makeNote('browser-generated-user-id')
 			const room = new TLSocketRoom<TLRecord, SessionMeta>({
 				schema,
-				authorizeRecord: authorizeFileRecord,
+				authorize: authorizeFileRecord as TLSyncAuthorizer<TLRecord, SessionMeta>,
 			})
 			const socket: WebSocketMinimal = {
 				send: vi.fn(),
@@ -265,7 +279,6 @@ describe('authorizeFileRecord', () => {
 			const prev = makeGeo()
 			const next = { ...prev, x: 50 }
 			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
-			// creates of non-note shapes carry no attribution to enforce, so they pass through
 			expect(authorize({ session: session(null), type: 'create', prev: null, next: prev })).toBe(
 				prev
 			)
@@ -278,12 +291,12 @@ describe('authorizeFileRecord', () => {
 			)
 		})
 
-		it('allows a legal note update from a canvas read-only session (gated at the protocol level, not here)', () => {
+		it('refuses a note update from a canvas read-only session (the rule, not a gate, decides now)', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, x: 100 }
-			expect(authorize({ session: session('real-bob', true), type: 'update', prev, next })).toBe(
-				next
-			)
+			expect(
+				authorize({ session: session('real-bob', 'read'), type: 'update', prev, next })
+			).toBeNull()
 		})
 	})
 })
