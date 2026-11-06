@@ -1719,10 +1719,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 
 		// Called for each client write the room refuses: a hook kept the stored record, or the
-		// session may not write the type. With `writeRejection: 'push'` it rolls the transaction
-		// back, so no record of the push is stored.
+		// session may not write the type. With `writeRejection: 'push'` the transaction rolls back
+		// at its end, after every op ran, so an invalid record later in the push still rejects the
+		// session whatever its order.
+		let rejected = false
 		const rejectWrite = () => {
-			if (session && this.writeRejection === 'push') throw new PushRejectedError()
+			if (session && this.writeRejection === 'push') rejected = true
 		}
 
 		const propagateOp = (
@@ -1777,7 +1779,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (resolve) {
 				const result = resolve(doc ?? null, state)
 				if (result === 'keep') {
-					rejectWrite()
+					// A put that repeats the stored record changes nothing, so it rejects nothing.
+					if (!doc || !isEqual(doc, state)) rejectWrite()
 					return Result.ok(undefined)
 				}
 				if (result === null) {
@@ -1877,36 +1880,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		// The presence store is not part of the storage transaction, so presence is applied first
-		// and outside it: a push that `writeRejection: 'push'` rolls back must keep its presence,
-		// which the client counts as sent.
 		const presenceChanges: PushChanges<R> = { diffs: null }
-		if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
-			if (!session) throw new Error('session is required for presence pushes')
-			// The push request was for the presence scope.
-			const id = session.presenceId
-			const [type, val] = message.presence
-			const { typeName } = this.presenceType
-			switch (type) {
-				case RecordOpType.Put: {
-					// Try to put the document. If it fails, stop here.
-					addDocument(this.presenceStore, presenceChanges, id, {
-						...val,
-						id,
-						typeName,
-					})
-					break
-				}
-				case RecordOpType.Patch: {
-					// Try to patch the document. If it fails, stop here.
-					patchDocument(this.presenceStore, presenceChanges, id, {
-						...val,
-						id: [ValueOpType.Put, id],
-						typeName: [ValueOpType.Put, typeName],
-					})
-					break
-				}
-			}
+		// Pending changes from elsewhere are broadcast in their own transaction when a push may roll
+		// back: broadcasting can reject a session and delete its presence, which a rollback would
+		// bring back for a session that is already gone.
+		if (this.writeRejection === 'push' && this.storage.getClock() !== this.lastDocumentClock) {
+			this.storage.transaction((txn) => this.broadcastChanges(txn))
 		}
 		let txnResult
 		try {
@@ -2052,6 +2031,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						}
 					}
 
+					if (rejected) throw new PushRejectedError()
 					return { docChanges, presenceChanges }
 				},
 				{ id: this.internalTxnId, emitChanges: 'when-different' }
@@ -2068,6 +2048,37 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 		const { result, documentClock, changes } = txnResult
+
+		// Presence is not in the storage transaction, so it is applied after the document changes
+		// commit or roll back: a push that `writeRejection: 'push'` rejects keeps its presence,
+		// which the client counts as sent.
+		if (this.presenceType && session?.presenceId && 'presence' in message && message.presence) {
+			if (!session) throw new Error('session is required for presence pushes')
+			// The push request was for the presence scope.
+			const id = session.presenceId
+			const [type, val] = message.presence
+			const { typeName } = this.presenceType
+			switch (type) {
+				case RecordOpType.Put: {
+					// Try to put the document. If it fails, stop here.
+					addDocument(this.presenceStore, presenceChanges, id, {
+						...val,
+						id,
+						typeName,
+					})
+					break
+				}
+				case RecordOpType.Patch: {
+					// Try to patch the document. If it fails, stop here.
+					patchDocument(this.presenceStore, presenceChanges, id, {
+						...val,
+						id: [ValueOpType.Put, id],
+						typeName: [ValueOpType.Put, typeName],
+					})
+					break
+				}
+			}
+		}
 
 		this.lastDocumentClock = documentClock
 

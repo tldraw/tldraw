@@ -1516,7 +1516,7 @@ describe('writeRejection', () => {
 		expect(lastPushResult(reader)).toMatchObject({ action: 'discard' })
 	})
 
-	it("rejects a later push that deletes a record the hook keeps, with 'push'", () => {
+	it("rejects the whole push with 'push' when a hook keeps a deleted record", () => {
 		const { room, storage, alice } = roomWith({
 			writeRejection: 'push',
 			beforeWrite: { note: ({ type, prev }: any) => (type === 'delete' ? prev : undefined) },
@@ -1529,6 +1529,35 @@ describe('writeRejection', () => {
 
 		expect(storedIds(storage)).toEqual([existing.id])
 		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+	})
+
+	it("rejects the session with 'push' when an invalid record follows a rejected one", () => {
+		const { room, alice } = roomWith({ writeRejection: 'push', beforeWrite: rejectGroup })
+
+		push(room, 'alice', {
+			[group.id]: [RecordOpType.Put, group],
+			['unknown:x']: [RecordOpType.Put, { id: 'unknown:x', typeName: 'unknown' }],
+		} as any)
+
+		expect(room.sessions.get('alice')).toBeUndefined()
+		expect(alice.close).toHaveBeenCalled()
+	})
+
+	it("does not reject a push with 'push' for a put that repeats a record the hook keeps", () => {
+		const { room, storage, alice } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: { note: ({ prev }: any) => prev },
+		})
+
+		push(room, 'alice', {
+			[existing.id]: [RecordOpType.Put, existing],
+			[group.id]: [RecordOpType.Put, group],
+		} as any)
+
+		expect(storedIds(storage)).toEqual([existing.id, group.id].sort())
+		expect(lastPushResult(alice).action).toEqual({
+			rebaseWithDiff: { [group.id]: [RecordOpType.Put, group] },
+		})
 	})
 
 	it("still applies the presence of a rejected push with 'push'", () => {
