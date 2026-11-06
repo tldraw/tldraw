@@ -125,6 +125,16 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			 * older clients ignore it — no protocol version bump needed.
 			 */
 			objectAccess?: TLObjectStoreAccess
+			/**
+			 * The session's access context, when the room has an access layer (see `TLRoomAccess`).
+			 * The client evaluates the same rules with it.
+			 */
+			access?: unknown
+	  }
+	| {
+			/** The session's access context changed. Sent only by rooms with an access layer. */
+			type: 'access'
+			access: unknown
 	  }
 	| {
 			type: 'incompatibility_error'

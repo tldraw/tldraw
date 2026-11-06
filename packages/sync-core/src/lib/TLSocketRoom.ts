@@ -6,6 +6,7 @@ import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncSto
 import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
+import { TLRoomAccess } from './TLRoomAccess'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
 import {
@@ -77,6 +78,8 @@ export interface SessionStateSnapshot {
 	 * before this field existed resume cleanly (they fail closed to 'read').
 	 */
 	objectAccess?: TLObjectStoreAccess
+	/** The session's access context, when the room has an access layer. */
+	access?: unknown
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
@@ -150,6 +153,11 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * Per-session read and write access, such as `createRelationRoomAccess`. Each session gets an
+	 * access context in {@link TLSocketRoom.handleSocketConnect}. See {@link TLRoomAccess}.
+	 */
+	access?: TLRoomAccess<R>
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -281,6 +289,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			access: opts.access,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -351,9 +360,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			socket: WebSocketMinimal
 			isReadonly?: boolean
 			objectAccess?: TLObjectStoreAccess
+			/** The session's access context, when the room has an access layer. */
+			access?: unknown
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		const { sessionId, socket, isReadonly = false, objectAccess = 'write', access } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)
@@ -375,6 +386,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId,
 			isReadonly,
 			objectAccess,
+			access,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -629,6 +641,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			// snapshots persisted before this field existed fail closed — those sessions predate
 			// the record types gated by objectAccess, so they have nothing to write anyway
 			objectAccess: snapshot.objectAccess ?? 'read',
+			access: snapshot.access,
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -648,6 +661,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			}),
 			meta: 'meta' in opts ? (opts.meta as any) : undefined,
 		})
+	}
+
+	/**
+	 * Replace a session's access context, for example after a grant changed. The client gets the
+	 * new context, and records it can now read or can no longer read are added or removed. No
+	 * reconnect is needed. Only for rooms with an `access` layer.
+	 *
+	 * @param sessionId - The session to update.
+	 * @param access - The new access context.
+	 */
+	updateSessionAccess(sessionId: string, access: unknown) {
+		this.room.updateSessionAccess(sessionId, access)
 	}
 
 	/**
@@ -685,6 +710,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			serializedSchema: session.serializedSchema,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
+			...(session.access != null ? { access: session.access } : {}),
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,

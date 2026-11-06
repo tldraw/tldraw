@@ -9,6 +9,7 @@ import {
 } from '@tldraw/tlschema'
 import { assert, IndexKey, objectMapEntries, throttle, type ThrottledFunction } from '@tldraw/utils'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
+import { TLRoomAccessDenied } from './TLRoomAccess'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
 	TLSyncForwardDiff,
@@ -216,7 +217,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 				changes = txn.getChangesSince(clockBefore)?.diff
 			}
 		} catch (error) {
-			console.error('Error in transaction', error)
+			// an access denial is an expected rollback, not a failure
+			if (!(error instanceof TLRoomAccessDenied)) console.error('Error in transaction', error)
 			throw error
 		} finally {
 			txn.close()

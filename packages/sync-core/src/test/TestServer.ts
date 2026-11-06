@@ -25,6 +25,9 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 		this.room = new TLSyncRoom<R, undefined>({ schema, storage: this.storage, ...roomOpts })
 	}
 
+	/** Access contexts by session id, used on every (re)connect of that session. */
+	accessBySession = new Map<string, unknown>()
+
 	connect(
 		socketPair: TestSocketPair<R>,
 		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
@@ -35,6 +38,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 			meta: undefined,
 			isReadonly: opts?.isReadonly ?? false,
 			objectAccess: opts?.objectAccess,
+			access: this.accessBySession.get(socketPair.id),
 		})
 
 		socketPair.clientSocket.connectionStatus = 'online'

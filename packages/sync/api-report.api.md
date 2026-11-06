@@ -60,6 +60,7 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 export interface UseSyncOptionsBase {
     assets: TLAssetStore;
     getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
+    onAccessChange?(access: unknown): void;
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;

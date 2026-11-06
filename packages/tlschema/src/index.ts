@@ -147,6 +147,14 @@ export {
 	type CustomRecordInfo,
 } from './records/TLCustomRecord'
 export {
+	createRelation,
+	createRelationId,
+	relationRecordConfig,
+	relationSchemaRecords,
+	type TLRelation,
+	type TLRelationId,
+} from './records/TLRelation'
+export {
 	DocumentRecordType,
 	isDocument,
 	TLDOCUMENT_ID,

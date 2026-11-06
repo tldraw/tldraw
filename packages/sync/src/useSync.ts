@@ -211,6 +211,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		onAccessChange: _onAccessChange,
 		themes,
 		...schemaOpts
 	} = opts
@@ -229,6 +230,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	const onAccessChange = useEvent((access: unknown) => _onAccessChange?.(access))
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -376,6 +378,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onAccessChange,
 			presence,
 			presenceMode,
 		})
@@ -398,6 +401,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		onAccessChange,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -506,6 +510,15 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	onCustomMessageReceived?(data: any): void
+
+	/**
+	 * Called with the session's access context when the room has an access layer (for example
+	 * `createRelationRoomAccess`): at every connect, and whenever the server changes it. Pass it to
+	 * a `TLRelationsClient` so the editor runs the same checks as the server.
+	 *
+	 * @param access - The context from the server.
+	 */
+	onAccessChange?(access: unknown): void
 
 	/** @internal */
 	onMount?(editor: Editor): void

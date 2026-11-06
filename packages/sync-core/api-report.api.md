@@ -23,11 +23,37 @@ import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
+// @public (undocumented)
+export function allOf(...exprs: TLRelationExpr[]): TLRelationExpr;
+
+// @public (undocumented)
+export function anyOf(...exprs: TLRelationExpr[]): TLRelationExpr;
+
+// @public
+export function anyone(): TLRelationExpr;
+
 // @internal
 export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown[], offset: number];
 
 // @internal
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
+
+// @public
+export function attenuateCapabilityToken(token: string, caveat: TLCapabilityCaveat): Promise<string>;
+
+// @public
+export function authorizeRelationWrite<R extends {
+    id: string;
+    typeName: string;
+}>(schema: TLRelationSchema, source: TLRelationSource, ctx: TLRelationContext, op: TLRelationWriteOp): TLRelationWriteResult<R>;
+
+// @public
+export function butNot(base: TLRelationExpr, subtract: TLRelationExpr): TLRelationExpr;
+
+// @public
+export function canReadRelationRecord(schema: TLRelationSchema, source: TLRelationSource, ctx: TLRelationContext, record: {
+    id: string;
+}): boolean;
 
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
@@ -56,6 +82,12 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 }
 
 // @public
+export function createCapabilityToken(cap: TLCapability, secret: string): Promise<string>;
+
+// @public
+export function createRelationRoomAccess<R extends UnknownRecord>(schema: TLRelationSchema): TLRoomAccess<R, TLRelationContext>;
+
+// @public
 export const DEFAULT_INITIAL_SNAPSHOT: {
     documentClock: number;
     documents: ({
@@ -69,11 +101,22 @@ export const DEFAULT_INITIAL_SNAPSHOT: {
     tombstoneHistoryStartsAtClock: number;
 };
 
+// @public
+export const defaultRelationSchema: TLRelationSchema;
+
+// @public
+export function defineRelationSchema(types: Record<string, TLRelationTypeDef>, opts?: {
+    parentRelation?: string;
+}): TLRelationSchema;
+
 // @internal
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal
 export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
+
+// @public
+export function direct(): TLRelationExpr;
 
 // @public
 export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
@@ -94,6 +137,15 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
     // (undocumented)
     transaction<T>(callback: () => T): T;
 }
+
+// @public
+export function field(read: TLRelationFieldExpr['read'], opts?: {
+    lock?: string | true;
+    stamp?: TLRelationFieldExpr['stamp'];
+}): TLRelationFieldExpr;
+
+// @public
+export function from(via: string, relation: string): TLRelationExpr;
 
 // @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
@@ -145,6 +197,36 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 }
 
 // @public
+export class InMemoryTupleStore implements TLTupleStore {
+    constructor(initial?: readonly TLRelationTuple[]);
+    // (undocumented)
+    all(): TLRelationTuple[];
+    // (undocumented)
+    delete(tuple: TLRelationTuple): Promise<void>;
+    // (undocumented)
+    onChange(listener: (change: {
+        op: 'delete' | 'write';
+        tuple: TLRelationTuple;
+    }) => void): () => void;
+    // (undocumented)
+    read(filter: {
+        object: string;
+        relation?: string;
+    } | {
+        subject: string;
+    }): Promise<TLRelationTuple[]>;
+    // (undocumented)
+    readSync(filter: {
+        object: string;
+        relation?: string;
+    } | {
+        subject: string;
+    }): TLRelationTuple[];
+    // (undocumented)
+    write(tuple: TLRelationTuple): Promise<void>;
+}
+
+// @public
 export class JsonChunkAssembler {
     handleMessage(msg: string): {
         data: object;
@@ -177,6 +259,9 @@ export interface NetworkDiff<R extends UnknownRecord> {
     // (undocumented)
     [id: string]: RecordOp<R>;
 }
+
+// @public
+export function nobody(): TLRelationExpr;
 
 // @public
 export class NodeSqliteWrapper implements TLSyncSqliteWrapper {
@@ -254,6 +339,60 @@ export const RecordOpType: {
 // @internal
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
+// @public
+export class RelationEvaluator {
+    constructor(schema: TLRelationSchema, source: TLRelationSource, ctx: TLRelationContext, op?: TLRelationWriteOp);
+    ancestors(object: string): string[];
+    anchorsOf(object: string): string[];
+    // (undocumented)
+    check(object: string, relation: string): boolean;
+    // (undocumented)
+    readonly ctx: TLRelationContext;
+    // (undocumented)
+    hasParentRelation(object: string): boolean;
+    listSubjects(object: string, relation: string): string[];
+    // (undocumented)
+    parentOf(object: string): string | undefined;
+    // (undocumented)
+    readonly schema: TLRelationSchema;
+    // (undocumented)
+    readonly source: TLRelationSource;
+}
+
+// @public
+export class RelationTupleIndex {
+    // (undocumented)
+    clear(): void;
+    // (undocumented)
+    getSubjects(object: string, relation: string): readonly string[];
+    objectsWithUsersetOf(object: string): string[];
+    // (undocumented)
+    put(record: {
+        id: string;
+        object: string;
+        relation: string;
+        subject: string;
+    }): void;
+    // (undocumented)
+    remove(id: string): void;
+    usersetObjects(): string[];
+}
+
+// @public
+export function resolveRelationContext(opts: ResolveRelationContextOptions): Promise<TLRelationContext>;
+
+// @public
+export interface ResolveRelationContextOptions {
+    actor: null | string;
+    ceilings?: readonly TLRelationCeiling[];
+    extraSubjects?: readonly string[];
+    root: string;
+    // (undocumented)
+    schema: TLRelationSchema;
+    // (undocumented)
+    store: TLTupleStore;
+}
+
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
     state: typeof RoomSessionState.AwaitingConnectMessage;
@@ -272,6 +411,7 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
 
 // @internal
 export interface RoomSessionBase<R extends UnknownRecord, Meta> {
+    access: unknown;
     isReadonly: boolean;
     meta: Meta;
     objectAccess: TLObjectStoreAccess;
@@ -280,6 +420,7 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     sessionId: string;
     socket: TLRoomSocket<R>;
     supportsStringAppend: boolean;
+    visible: null | Set<string>;
 }
 
 // @internal
@@ -315,6 +456,7 @@ export interface RoomStoreMethods<R extends UnknownRecord = UnknownRecord> {
 
 // @public
 export interface SessionStateSnapshot {
+    access?: unknown;
     // (undocumented)
     isReadonly: boolean;
     objectAccess?: TLObjectStoreAccess;
@@ -375,6 +517,20 @@ export interface SyncSqliteDatabase {
         iterate(...params: unknown[]): IterableIterator<unknown>;
         run(...params: unknown[]): unknown;
     };
+}
+
+// @public
+export interface TLCapability {
+    readonly actingFor?: null | string;
+    readonly ceilings?: readonly TLRelationCeiling[];
+    readonly expiresAt?: number;
+    readonly subject: string;
+}
+
+// @public
+export interface TLCapabilityCaveat extends TLRelationCeiling {
+    // (undocumented)
+    readonly expiresAt?: number;
 }
 
 // @internal
@@ -475,6 +631,135 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 };
 
 // @public
+export interface TLRelationCeiling {
+    readonly relations?: readonly string[];
+    readonly within?: readonly string[];
+}
+
+// @public
+export interface TLRelationContext {
+    readonly actor: null | string;
+    readonly ceilings?: readonly TLRelationCeiling[];
+    readonly root: string;
+    readonly rootRelations: readonly string[];
+    readonly subjects: readonly string[];
+}
+
+// @public
+export interface TLRelationEnv {
+    readonly actor: null | string;
+    readonly op?: TLRelationWriteOp;
+    readonly root: string;
+}
+
+// @public
+export type TLRelationExpr = {
+    readonly base: TLRelationExpr;
+    readonly kind: 'butNot';
+    readonly subtract: TLRelationExpr;
+} | {
+    readonly exprs: readonly TLRelationExpr[];
+    readonly kind: 'allOf';
+} | {
+    readonly exprs: readonly TLRelationExpr[];
+    readonly kind: 'anyOf';
+} | {
+    readonly kind: 'anyone';
+} | {
+    readonly kind: 'direct';
+} | {
+    readonly kind: 'from';
+    readonly relation: string;
+    readonly via: string;
+} | {
+    readonly kind: 'nobody';
+} | {
+    readonly kind: 'when';
+    test(record: any, env: TLRelationEnv): boolean;
+} | string | TLRelationFieldExpr;
+
+// @public
+export interface TLRelationFieldExpr {
+    // (undocumented)
+    readonly kind: 'field';
+    // (undocumented)
+    readonly lock?: string | true;
+    // (undocumented)
+    read(record: any, env: TLRelationEnv): null | readonly string[] | string | undefined;
+    // (undocumented)
+    stamp?(record: any, actor: null | string): any;
+}
+
+// @public
+export interface TLRelationSchema {
+    readonly parentRelation: string;
+    // (undocumented)
+    readonly types: Readonly<Record<string, TLRelationTypeDef>>;
+}
+
+// @public
+export class TLRelationsClient<R extends UnknownRecord> {
+    constructor(store: Store<R>, schema: TLRelationSchema, initialContext?: null | TLRelationContext);
+    can(relation: string, object: string): boolean;
+    canCreate(record: R): boolean;
+    // (undocumented)
+    canDelete(record: R): boolean;
+    canRead(record: R): boolean;
+    canUpdate(prev: R, next?: R): boolean;
+    canWrite(op: TLRelationWriteOp): boolean;
+    readonly context: Atom<null | TLRelationContext>;
+    install(): () => void;
+    // (undocumented)
+    readonly schema: TLRelationSchema;
+    setContext(context: unknown): void;
+    // (undocumented)
+    readonly store: Store<R>;
+}
+
+// @public
+export interface TLRelationSource {
+    getRecord(id: string): any | undefined;
+    getSubjects(object: string, relation: string): readonly string[];
+}
+
+// @public
+export interface TLRelationTuple {
+    // (undocumented)
+    readonly object: string;
+    // (undocumented)
+    readonly relation: string;
+    // (undocumented)
+    readonly subject: string;
+}
+
+// @public
+export type TLRelationTypeDef = Readonly<Record<string, TLRelationExpr>>;
+
+// @public
+export type TLRelationWriteOp = {
+    readonly next: any;
+    readonly prev: any;
+    readonly type: 'update';
+} | {
+    readonly next: any;
+    readonly prev: null;
+    readonly type: 'create';
+} | {
+    readonly next: null;
+    readonly prev: any;
+    readonly type: 'delete';
+};
+
+// @public
+export type TLRelationWriteResult<R> = {
+    ok: false;
+    reason: string;
+} | {
+    ok: true;
+    record: R;
+};
+
+// @public
 export class TLRemoteSyncError extends Error {
     constructor(reason: string | TLSyncErrorCloseEventReason);
     // (undocumented)
@@ -482,6 +767,46 @@ export class TLRemoteSyncError extends Error {
     // (undocumented)
     readonly reason: string | TLSyncErrorCloseEventReason;
 }
+
+// @public
+export interface TLRoomAccess<R extends UnknownRecord, Ctx = any> {
+    authorizeWrite(ctx: Ctx, write: TLRoomAccessWrite<R>, view: TLRoomAccessView<R>): null | R;
+    canConnect(ctx: Ctx, visible: ReadonlySet<string>, view: TLRoomAccessView<R>): boolean;
+    // (undocumented)
+    canRead(ctx: Ctx, record: R, view: TLRoomAccessView<R>): boolean;
+    didChange(change: {
+        deletes: readonly string[];
+        puts: readonly R[];
+        reset: boolean;
+    }): void;
+    readRecheck(changes: ReadonlyArray<{
+        id: string;
+        next: null | R;
+        prev: null | R;
+    }>, view: TLRoomAccessView<R>): 'all' | 'none' | ((record: R) => boolean);
+    toClient(ctx: Ctx): unknown;
+}
+
+// @public
+export interface TLRoomAccessView<R extends UnknownRecord> {
+    // (undocumented)
+    get(id: string): R | undefined;
+}
+
+// @public
+export type TLRoomAccessWrite<R extends UnknownRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
+};
 
 // @internal
 export interface TLRoomSocket<R extends UnknownRecord> {
@@ -516,6 +841,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
+        access?: unknown;
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
         sessionId: string;
@@ -541,12 +867,14 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
+    updateSessionAccess(sessionId: string, access: unknown): void;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    access?: TLRoomAccess<R>;
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
@@ -606,6 +934,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 
 // @internal
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
+    access?: unknown;
     objectAccess?: TLObjectStoreAccess;
     connectRequestId: string;
     diff: NetworkDiff<R>;
@@ -615,6 +944,9 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     schema: SerializedSchema;
     serverClock: number;
     type: 'connect';
+} | {
+    type: 'access';
+    access: unknown;
 } | {
     data: any;
     type: 'custom';
@@ -652,6 +984,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
         didCancel?(): boolean;
+        onAccessChange?(access: unknown): void;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
             objectAccess: TLObjectStoreAccess;
@@ -720,6 +1053,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
         }): void;
+        access?: TLRoomAccess<R>;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
         clientTimeout?: number;
@@ -745,6 +1079,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
+        access?: unknown;
         isReadonly: boolean;
         meta: SessionMeta;
         objectAccess?: TLObjectStoreAccess;
@@ -752,6 +1087,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         socket: TLRoomSocket<R>;
     }): this;
     handleResumedSession(opts: {
+        access?: unknown;
         isReadonly: boolean;
         meta: SessionMeta;
         objectAccess?: TLObjectStoreAccess;
@@ -781,6 +1117,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+    updateSessionAccess(sessionId: string, access: unknown): void;
 }
 
 // @public
@@ -857,6 +1194,26 @@ export interface TLSyncStorageTransactionResult<T, R extends UnknownRecord = Unk
     result: T;
 }
 
+// @public
+export interface TLTupleStore {
+    // (undocumented)
+    delete(tuple: TLRelationTuple): Promise<void>;
+    // (undocumented)
+    onChange(listener: (change: {
+        op: 'delete' | 'write';
+        tuple: TLRelationTuple;
+    }) => void): () => void;
+    // (undocumented)
+    read(filter: {
+        object: string;
+        relation?: string;
+    } | {
+        subject: string;
+    }): Promise<readonly TLRelationTuple[]>;
+    // (undocumented)
+    write(tuple: TLRelationTuple): Promise<void>;
+}
+
 // @internal
 export type ValueOp = AppendOp | DeleteOp | PatchOp | PutOp;
 
@@ -872,6 +1229,9 @@ export const ValueOpType: {
 export type ValueOpType = (typeof ValueOpType)[keyof typeof ValueOpType];
 
 // @public
+export function verifyCapabilityToken(token: string, secret: string, now?: number): Promise<null | TLCapability>;
+
+// @public
 export interface WebSocketMinimal {
     addEventListener?: (type: 'close' | 'error' | 'message', listener: (event: any) => void) => void;
     close: (code?: number, reason?: string) => void;
@@ -879,6 +1239,9 @@ export interface WebSocketMinimal {
     removeEventListener?: (type: 'close' | 'error' | 'message', listener: (event: any) => void) => void;
     send: (data: string) => void;
 }
+
+// @public
+export function when(test: (record: any, env: TLRelationEnv) => boolean): TLRelationExpr;
 
 // (No @packageDocumentation comment for this package)
 

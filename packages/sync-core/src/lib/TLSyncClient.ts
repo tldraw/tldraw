@@ -461,6 +461,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	/**
+	 * Called with the session's access context when the room has an access layer: at every connect,
+	 * and whenever the server changes it.
+	 */
+	private readonly onAccessChange?: (access: unknown) => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -497,6 +503,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
+		onAccessChange?(access: unknown): void
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
@@ -562,6 +569,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
+		this.onAccessChange = config.onAccessChange
 
 		let didLoad = false
 
@@ -773,6 +781,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			const stashedChanges = this.speculativeChanges
 			this.speculativeChanges = { added: {} as any, updated: {} as any, removed: {} as any }
 
+			// before the diff, so local checks run with the context the server will use for them
+			if (event.access !== undefined) this.onAccessChange?.(event.access)
+
 			this.store.mergeRemoteChanges(() => {
 				// gather records to delete in a NetworkDiff
 				const wipeDiff: NetworkDiff<R> = {}
@@ -859,6 +870,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				break
 			case 'custom':
 				this.onCustomMessageReceived?.call(null, event.data)
+				break
+			case 'access':
+				this.onAccessChange?.(event.access)
 				break
 
 			default:

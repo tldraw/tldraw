@@ -1,0 +1,140 @@
+.rp-root {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	font-family: var(--tl-font-sans, sans-serif);
+	font-size: 13px;
+}
+.rp-tabs {
+	display: flex;
+	gap: 4px;
+	padding: 8px;
+	border-bottom: 1px solid #ddd;
+	flex-wrap: wrap;
+}
+.rp-tabs button,
+.rp-controls button {
+	border: 1px solid #ccc;
+	background: white;
+	border-radius: 6px;
+	padding: 4px 10px;
+	cursor: pointer;
+}
+.rp-tabs button[data-active='true'] {
+	background: #1d1d1d;
+	color: white;
+	border-color: #1d1d1d;
+}
+.rp-loading {
+	padding: 16px;
+}
+.rp-scenario {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+}
+.rp-side {
+	width: 260px;
+	flex-shrink: 0;
+	padding: 8px 12px;
+	border-right: 1px solid #ddd;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	overflow: auto;
+}
+.rp-side p {
+	margin: 0;
+	line-height: 1.4;
+}
+.rp-controls {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+.rp-log {
+	font-family: monospace;
+	font-size: 11px;
+	background: #f6f6f6;
+	border-radius: 6px;
+	padding: 6px;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	word-break: break-all;
+}
+.rp-log-title {
+	font-weight: bold;
+}
+.rp-log-empty {
+	color: #888;
+}
+.rp-panes {
+	flex: 1;
+	display: flex;
+	min-width: 0;
+}
+.rp-pane {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border-right: 1px solid #ddd;
+}
+.rp-pane-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	border-bottom: 1px solid #ddd;
+	flex-wrap: wrap;
+}
+.rp-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+.rp-role {
+	color: #666;
+}
+.rp-badges {
+	display: flex;
+	gap: 4px;
+	margin-left: auto;
+}
+.rp-badge {
+	background: #eef;
+	border-radius: 4px;
+	padding: 1px 6px;
+	font-size: 11px;
+}
+.rp-canvas {
+	position: relative;
+	flex: 1;
+}
+.rp-overlay {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	background: rgba(255, 255, 255, 0.92);
+	z-index: 1000;
+	text-align: center;
+	padding: 16px;
+}
+.rp-section-title {
+	font-weight: 600;
+	margin-top: 4px;
+}
+.rp-try {
+	margin: 0;
+	padding-left: 18px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	line-height: 1.4;
+}

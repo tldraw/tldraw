@@ -292,6 +292,15 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
+	 * Treat a shape as locked for this user, in addition to its `isLocked` prop. Use it for access
+	 * rules: a shape the user may not change can't be selected or edited. It is not stored, so other
+	 * users are not affected. Children of a locked shape are locked too.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	isShapeLocked?(shape: TLShape, editor: Editor): boolean
+	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
@@ -375,6 +384,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		isShapeLocked,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -385,6 +395,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
+		this._isShapeLocked = isShapeLocked
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -992,6 +1003,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+	private readonly _isShapeLocked?: TLEditorOptions['isShapeLocked']
 
 	@computed
 	private getIsShapeHiddenCache() {
@@ -5782,7 +5794,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
+		if (_shape.isLocked || this._isShapeLocked?.(_shape, this)) return true
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 

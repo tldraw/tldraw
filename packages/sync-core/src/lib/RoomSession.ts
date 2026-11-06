@@ -85,6 +85,16 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
 	 */
 	objectAccess: TLObjectStoreAccess
+	/**
+	 * The session's access context, when the room has an access layer (see `TLRoomAccess`).
+	 * Opaque to the room.
+	 */
+	access: unknown
+	/**
+	 * Ids of the records this session holds, when the room has an access layer. The room uses it
+	 * to send puts when records become readable and removes when they stop being readable.
+	 */
+	visible: Set<string> | null
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */
