@@ -337,6 +337,8 @@ function groupHooksByType<Hook>(maps: object[]): Map<string, Hook[]> {
  * session receives. Use it to hide a record from some sessions, or to send them a changed copy. For
  * example, send a card without its face to every player but its owner.
  *
+ * To only hide records, use {@link canRead}, which builds these hooks from boolean checks.
+ *
  * Return what the session should receive:
  *
  * - nothing, to send the record as stored;

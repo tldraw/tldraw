@@ -31,6 +31,9 @@ export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
 
 // @public
+export function canRead<R extends UnknownRecord, SessionMeta>(checks: TLCanReadChecks<R, SessionMeta>): TLBeforeReadHooks<R, SessionMeta>;
+
+// @public
 export function canWrite<R extends UnknownRecord, SessionMeta>(checks: TLCanWriteChecks<R, SessionMeta>): TLBeforeWriteHooks<R, SessionMeta>;
 
 // @internal
@@ -438,6 +441,16 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
 // @public
 export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
     [K in R['typeName']]?: TLBeforeWriteHook<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
+
+// @public
+export type TLCanReadCheck<Rec extends UnknownRecord, SessionMeta> = (args: Parameters<TLBeforeReadHook<Rec, SessionMeta>>[0]) => boolean;
+
+// @public
+export type TLCanReadChecks<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLCanReadCheck<Extract<R, {
         typeName: K;
     }>, SessionMeta>;
 };

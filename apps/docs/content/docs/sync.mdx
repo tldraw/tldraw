@@ -410,7 +410,8 @@ See [Commenting](/sdk-features/commenting) for the client side and the ready-mad
 To decide what each session receives, pass hooks to the room's `beforeRead` option (see
 [TLBeforeReadHooks](?)). A hook returns nothing to send the record as stored, a changed copy (for
 example a card without its face), or `null` to send nothing. When a session can no longer see a record
-it holds, the room removes it from that client. The room remembers which records each hook read with
+it holds, the room removes it from that client. For plain "who may see what" rules, write boolean
+checks and turn them into hooks with [canRead](?). The room remembers which records each hook read with
 `get`, and runs the hook again when one of them changes. So a rule such as "hidden when its page is
 hidden" follows the page: when the page hides, the session gets removes for its shapes, and when it
 shows again, the shapes come back. Read other records only through `get`. The hook gets frozen records,
