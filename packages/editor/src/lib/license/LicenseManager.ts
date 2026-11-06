@@ -29,6 +29,7 @@ export const FLAGS = {
 	FEAT_COLLABORATION: 1 << 6,
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
+	TRACKED: 1 << 8,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -57,6 +58,9 @@ const CANONICAL_TLDRAW_HOSTS = [
 	'tldraw.workers.dev',
 	'tldraw.xyz',
 ]
+
+/** Our VS Code extension, whose webviews are served from `vscode-webview:` with a random hostname. */
+const CANONICAL_VSCODE_EXTENSION_ID = 'tldraw-org.tldraw-vscode'
 
 /** Marks a license as the keyless canonical-host grant, which is never tracked. */
 const CANONICAL_HOST_LICENSE_ID = 'tldraw-canonical-host'
@@ -136,7 +140,7 @@ export interface ValidLicenseKeyResult {
 }
 
 /** @internal */
-export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | null
+export type TrackType = 'unlicensed' | 'with_watermark' | 'evaluation' | 'tracked' | null
 
 /** @internal */
 export class LicenseManager {
@@ -236,8 +240,12 @@ export class LicenseManager {
 		return host === 'localhost' || host === '::1' || /^127(?:\.\d{1,3}){3}$/.test(host)
 	}
 
-	/** Whether the page is served from one of tldraw's own domains, or a subdomain of one. */
+	/** Whether the page is served from one of tldraw's own domains, a subdomain of one, or our VS Code extension. */
 	private isCanonicalTldrawHost() {
+		if (window.location.protocol === 'vscode-webview:') {
+			const extensionId = new URL(window.location.href).searchParams.get('extensionId')
+			return extensionId === CANONICAL_VSCODE_EXTENSION_ID
+		}
 		const hostname = window.location.hostname.toLowerCase()
 		return CANONICAL_TLDRAW_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`))
 	}
@@ -301,6 +309,10 @@ export class LicenseManager {
 		// Track evaluation licenses (for analytics, even though no watermark is shown)
 		if (result.isEvaluationLicense) {
 			return 'evaluation'
+		}
+
+		if (this.isFlagEnabled(result.license.flags, FLAGS.TRACKED)) {
+			return 'tracked'
 		}
 
 		// Track licenses that show watermarks

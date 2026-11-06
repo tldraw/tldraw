@@ -45,6 +45,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
+		collections: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'Shows the collections UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
+		},
 	}
 }
 

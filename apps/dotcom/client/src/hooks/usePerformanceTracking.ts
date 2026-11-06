@@ -10,6 +10,8 @@ import { getFeatureFlags } from '../tla/utils/featureFlags'
 import { trackEvent } from '../utils/analytics'
 
 const r2 = (n: number) => Math.round(n * 100) / 100
+const RUM_PERFORMANCE_SAMPLE_RATE = 0.1
+const MEMORY_SAMPLE_INTERVAL_MS = 5 * 60_000
 
 // Counts editor mounts (file navigations). First mount = 0.
 let editorMountCount = 0
@@ -35,8 +37,10 @@ function commonStats(event: TLPerfFrameTimeStats & { shapeCount: number; zoomLev
 }
 
 function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
+	if (Math.random() >= RUM_PERFORMANCE_SAMPLE_RATE) return
 	trackEvent('rum', {
 		type: 'interaction',
+		sample_rate: RUM_PERFORMANCE_SAMPLE_RATE,
 		interaction_name: event.name,
 		interaction_path: event.path,
 		selected_shape_count: Object.values(event.selectedShapeTypes).reduce((a, b) => a + b, 0),
@@ -46,8 +50,10 @@ function handleInteractionEnd(event: TLInteractionEndPerfEvent) {
 }
 
 function handleCameraEnd(event: TLCameraEndPerfEvent) {
+	if (Math.random() >= RUM_PERFORMANCE_SAMPLE_RATE) return
 	trackEvent('rum', {
 		type: 'camera',
+		sample_rate: RUM_PERFORMANCE_SAMPLE_RATE,
 		camera_type: event.type,
 		visible_shape_count: event.visibleShapeCount,
 		culled_shape_count: event.culledShapeCount,
@@ -88,6 +94,8 @@ export function usePerformanceTracking() {
 						if (!m || !m.jsHeapSizeLimit) return
 						const event = {
 							type: 'memory' as const,
+							sample_rate: 1,
+							sample_interval_s: MEMORY_SAMPLE_INTERVAL_MS / 1000,
 							sample_index: sampleIndex,
 							sample_reason: reason,
 							session_duration_s: Math.round((Date.now() - mountTime) / 1000),
@@ -125,7 +133,7 @@ export function usePerformanceTracking() {
 					memoryInterval = setInterval(() => {
 						if (disposed) return
 						sampleMemory('interval')
-					}, 60_000)
+					}, MEMORY_SAMPLE_INTERVAL_MS)
 
 					visibilityHandler = () => {
 						if (document.visibilityState === 'hidden' && !disposed) {

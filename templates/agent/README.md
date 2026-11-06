@@ -6,7 +6,7 @@ A chat panel on the right side of the screen lets users communicate with the age
 
 ## Environment setup
 
-Create a `.dev.vars` file in the root directory and add API keys for any model providers you want to use.
+Create a `.dev.vars` file in the root directory and add a key for each model provider you want to use. You need at least one. Each model in the model picker works only if its provider has a key.
 
 ```
 ANTHROPIC_API_KEY=your_anthropic_api_key_here
@@ -14,7 +14,15 @@ GOOGLE_API_KEY=your_google_api_key_here
 OPENAI_API_KEY=your_openai_api_key_here
 ```
 
-We recommend using Anthropic for best results. Get your API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
+Get the keys from the [Anthropic console](https://console.anthropic.com/settings/keys), [Google AI Studio](https://aistudio.google.com/apikey) and the [OpenAI dashboard](https://platform.openai.com/api-keys). We recommend Anthropic for best results.
+
+To use every model with one key, use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
+
+```
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+```
+
+When `OPENROUTER_API_KEY` is set, every request goes through OpenRouter and the provider keys are not used.
 
 ## Local development
 
@@ -56,6 +64,8 @@ To make decisions on what to do, we send the agent information from various sour
 Aside from using the chat panel UI, you can also prompt the agent programmatically.
 
 The simplest way is to call the `prompt()` method to start an agentic loop. The agent continues until it finishes the task.
+
+Each action is a tool call. The browser carries out the tool calls as they stream in, then sends their results back to the model in a follow-up request, with a new view of the canvas. The loop ends when the model replies without tool calls. A turn has at most 20 follow-up requests, and near that limit the model is told how many steps it has left.
 
 ```ts
 // Inside a component wrapped by TldrawAgentAppProvider
@@ -429,6 +439,24 @@ override async applyAction(action: Streaming<CountryInfoAction>) {
 }
 ```
 
+## Report what an action did
+
+The model reads what each action did as the result of its tool call. By default, the result lists the shapes that the action created, updated or deleted. To report something else, override `getResult` in the action util.
+
+```ts
+override getResult() {
+	return `Number of shapes on the canvas: ${this.editor.getCurrentPageShapes().length}`
+}
+```
+
+When the model asks for something that cannot be done, throw an `ActionFailedError` from `applyAction`. Its message becomes the result, so the model can correct its mistake.
+
+```ts
+if (!existingShape) {
+	throw new ActionFailedError(`Shape ${action.update.shapeId} not found in canvas.`)
+}
+```
+
 ## Sanitize data received from the model
 
 The model can make mistakes. Sometimes this is due to hallucinations, sometimes because the canvas changed since the model last saw it. Either way, an incoming action might contain invalid data.
@@ -564,13 +592,32 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 }
 ```
 
+## Deploy
+
+Build the app and deploy it to Cloudflare Workers:
+
+```bash
+npm run build
+npx wrangler deploy
+```
+
+The deployed worker does not read `.dev.vars`. Add the same keys to it as secrets, one command per key:
+
+```bash
+npx wrangler secret put ANTHROPIC_API_KEY
+```
+
+## Limit usage before you deploy
+
+The starter kit has no usage limits. A public deployment pays for every request with your API keys, so add a limit per user, such as a budget of requests or spend, enforced on your server, before you deploy it publicly.
+
 ## Change the system prompt
 
 The system prompt lives in `worker/prompt/buildSystemPrompt.ts`. Edit the sections in `worker/prompt/sections/` to change the system prompt.
 
 The system prompt is rebuilt for each step in the agentic loop depending on which actions and parts are available in the agent's current mode. If you add new actions or parts, you can give the model more detailed instructions for how to use them in `worker/prompt/sections/rules-section.ts`.
 
-The schema showing the actions the agent can output is also automatically added to the system prompt.
+Each action the agent can take in its current mode is sent to the model as a tool, named after the action's `_type`, with the action's schema as its parameters.
 
 ## Change to a different model
 
@@ -590,13 +637,15 @@ Add the model's definition to `AGENT_MODEL_DEFINITIONS` in `shared/models.ts`.
 'claude-sonnet-5': {
 	name: 'claude-sonnet-5',
 	id: 'claude-sonnet-5',
+	openRouterId: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
-	supportsPrefill: false,
 	supportsTemperature: false,
 	thinking: 'adaptive',
 	effort: 'low',
 }
 ```
+
+`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
 
 Add extra setup or configuration for your provider in `worker/do/AgentService.ts`.
 
