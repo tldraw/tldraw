@@ -1,17 +1,27 @@
+import { CanvasComments, CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import '@tldraw/commenting/commenting.css'
 import { useSync } from '@tldraw/sync'
-import { useMemo, useState } from 'react'
+import { ComponentType, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	CustomRecordInfo,
+	DefaultToolbar,
+	DefaultToolbarContent,
 	Editor,
 	T,
 	TLAccess,
+	TLComponents,
 	TLPageId,
 	TLPermissionDenial,
 	TLRecord,
-	TLShapeId,
+	TLRule,
+	TLShape,
+	TLUiOverrides,
 	Tldraw,
+	ToolbarItem,
 	UserRecordType,
+	ancestorIdsOf,
 	atom,
+	commentSchemaRecords,
 	confineToShape,
 	createShapeId,
 	defaultAbilityRules,
@@ -19,9 +29,12 @@ import {
 	inlineBase64AssetStore,
 	intentOwnsTypes,
 	ownShapesOnly,
+	ownerOf,
 	pageReadAccess,
 	pageWriteAccess,
 	stampOwner,
+	toRichText,
+	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -43,6 +56,8 @@ const ROLES: Record<string, (userId: string) => TLAccess> = {
 const LOCKED_PAGE = 'page:locked' as TLPageId
 const ANSWERS_PAGE = 'page:answers' as TLPageId
 const AGENT_FRAME = createShapeId('agent-frame')
+const NOTES_FRAME = createShapeId('notes')
+const HOMEWORK_FRAME = createShapeId('homework')
 
 const voteRecord: CustomRecordInfo = {
 	scope: 'document',
@@ -54,19 +69,84 @@ const voteRecord: CustomRecordInfo = {
 	}),
 }
 
-interface Scenario {
-	title: string
-	about: string
-	panes: Array<{ name: string; role: keyof typeof ROLES }>
-	createRoom(): LocalRoom
+// [2]
+function isPrivateTo(record: TLRecord | undefined, userId: string | null) {
+	return record?.typeName === 'shape' && record.meta.private === true && ownerOf(record) !== userId
 }
 
-// [2]
+// [3]
+const lockedFrames: TLRule<TLRecord> = (tx) => {
+	if (tx.can('teach')) return
+	for (const change of tx.changes) {
+		const sides = [
+			[tx.before, change.prev],
+			[tx.after, change.next],
+		] as const
+		for (const [records, record] of sides) {
+			if (!record) continue
+			for (const id of [record.id, ...ancestorIdsOf(records, record)]) {
+				const frame = records.get(id)
+				if (frame?.typeName === 'shape' && frame.meta.locked) {
+					return 'The teacher locked this frame.'
+				}
+			}
+		}
+	}
+	return undefined
+}
+
+/** UI that one pane adds to its header. */
+type PaneTools = ComponentType<{ editor: Editor; setRole(role: string): void }>
+
+interface Scenario {
+	title: string
+	summary: string
+	/** What to do, and what you should see. */
+	steps: Array<[string, string]>
+	panes: Array<{ name: string; role: keyof typeof ROLES; Tools?: PaneTools }>
+	createRoom(): LocalRoom
+	/** Shapes that the first pane makes when the room is new. */
+	seed?(editor: Editor): void
+	comments?: boolean
+}
+
+// [4]
 const SCENARIOS: Record<string, Scenario> = {
+	roles: {
+		title: 'Roles and share links',
+		summary: 'Each share link gives a role. A role is a list of abilities.',
+		steps: [
+			['As Eve, draw a rectangle.', 'It appears in every pane.'],
+			['As Vic, try to select and move it.', 'Vic is a viewer: there are no tools to change it.'],
+			[
+				'As Cam, pick the comment tool (C) and click the rectangle.',
+				'Cam can comment and everyone sees it, but Cam cannot change shapes.',
+			],
+			['In Eve’s pane, click "Revoke link".', 'Eve becomes a viewer at once, with no reload.'],
+		],
+		panes: [
+			{ name: 'Vic', role: 'viewer' },
+			{ name: 'Cam', role: 'commenter' },
+			{ name: 'Eve', role: 'editor', Tools: RevokeLinkButton },
+		],
+		comments: true,
+		createRoom: () =>
+			new LocalRoom({
+				records: commentSchemaRecords,
+				permissions: definePermissions<TLRecord>({ rules: defaultAbilityRules() }),
+			}),
+	},
 	classroom: {
 		title: 'Classroom',
-		about:
-			'Students change only their own shapes. Try to move, group, or delete a shape someone else drew. The teacher can change anything.',
+		summary: 'Students change only their own shapes. The teacher can change anything.',
+		steps: [
+			['As Ann, draw a rectangle.', 'It appears in every pane.'],
+			[
+				'As Bob, drag Ann’s rectangle by its edge, or select it and press Delete.',
+				'It does not change, and "Denied changes" says why.',
+			],
+			['As Tia, drag Ann’s rectangle.', 'It moves for everyone: the teacher may.'],
+		],
 		panes: [
 			{ name: 'Tia', role: 'teacher' },
 			{ name: 'Ann', role: 'student' },
@@ -80,12 +160,47 @@ const SCENARIOS: Record<string, Scenario> = {
 				}),
 			}),
 	},
+	private: {
+		title: 'Private shapes',
+		summary: 'A private shape is never sent to anyone but its owner.',
+		steps: [
+			['As Ann, click "Draw a private shape".', 'Ann sees it. Bob’s pane stays empty.'],
+			['As Ann, draw a normal shape.', 'Bob sees that one.'],
+			['As Ann, click "Make them public".', 'The private shape appears for Bob.'],
+		],
+		panes: [
+			{ name: 'Ann', role: 'editor', Tools: PrivateShapeButtons },
+			{ name: 'Bob', role: 'editor' },
+		],
+		createRoom: () =>
+			new LocalRoom({
+				permissions: definePermissions<TLRecord>({
+					rules: defaultAbilityRules(),
+					// [5]
+					canRead: (record, ctx) => {
+						const userId = ctx.access.userId
+						if (record.typeName === 'binding') {
+							return (
+								!isPrivateTo(ctx.records.get(record.fromId), userId) &&
+								!isPrivateTo(ctx.records.get(record.toId), userId)
+							)
+						}
+						return !isPrivateTo(record, userId)
+					},
+					stamps: [stampOwner()],
+				}),
+			}),
+	},
 	pages: {
 		title: 'Pages',
-		about:
-			'Students cannot edit the "Locked" page and cannot see the "Answers" page, its shapes, or cursors on it. The teacher can show or hide the answers live.',
+		summary: 'Lock a page, or hide it with everything on it.',
+		steps: [
+			['As Sam, open the page menu.', 'Sam sees "Page 1" and "Locked", but not "Answers".'],
+			['As Sam, go to "Locked" and try to draw.', 'The shape is denied.'],
+			['As Tia, click "Show answers".', 'The "Answers" page and its text appear for Sam.'],
+		],
 		panes: [
-			{ name: 'Tia', role: 'teacher' },
+			{ name: 'Tia', role: 'teacher', Tools: AnswersToggle },
 			{ name: 'Sam', role: 'student' },
 		],
 		createRoom: () =>
@@ -106,40 +221,120 @@ const SCENARIOS: Record<string, Scenario> = {
 					}),
 				}),
 			}),
+		seed: (editor) => {
+			editor.createShape({
+				type: 'text',
+				parentId: LOCKED_PAGE,
+				x: 80,
+				y: 120,
+				props: { richText: toRichText('Only the teacher can change this page.') },
+			})
+			editor.createShape({
+				type: 'text',
+				parentId: ANSWERS_PAGE,
+				x: 80,
+				y: 120,
+				props: { richText: toRichText('Answer: 42') },
+			})
+		},
+	},
+	offline: {
+		title: 'Offline',
+		summary: 'Changes made offline are checked one by one when you reconnect.',
+		steps: [
+			['As Ann, click "Go offline".', 'Ann’s pane stops syncing.'],
+			[
+				'As Ann, draw a shape in "Notes" and another in "Homework".',
+				'They appear only in Ann’s pane.',
+			],
+			['As Tia, click "Lock homework".', 'Tia sees "Homework (locked)". Ann does not, yet.'],
+			[
+				'As Ann, click "Reconnect".',
+				'The "Notes" shape syncs. The server denies the "Homework" shape, and it disappears.',
+			],
+		],
+		panes: [
+			{ name: 'Tia', role: 'teacher', Tools: LockHomeworkButton },
+			{ name: 'Ann', role: 'student' },
+		],
+		createRoom: () =>
+			new LocalRoom({
+				permissions: definePermissions<TLRecord>({
+					rules: [...defaultAbilityRules(), lockedFrames],
+				}),
+			}),
+		seed: (editor) => {
+			editor.createShapes([
+				{
+					id: NOTES_FRAME,
+					type: 'frame',
+					x: 40,
+					y: 80,
+					props: { w: 320, h: 180, name: 'Notes' },
+				},
+				{
+					id: HOMEWORK_FRAME,
+					type: 'frame',
+					x: 40,
+					y: 300,
+					props: { w: 320, h: 180, name: 'Homework' },
+				},
+			])
+		},
 	},
 	agent: {
 		title: 'Agent',
-		about:
-			'The agent can change shapes inside its frame only. People are not limited. Use the agent pane as the agent would.',
+		summary: 'The agent changes shapes inside its frame only. People are not limited.',
+		steps: [
+			['As Bot, draw inside "Bot’s frame".', 'It works, and Ann sees it.'],
+			['As Bot, draw outside the frame.', 'The shape is denied.'],
+			['As Ann, draw anywhere.', 'It works: the limit is only for the agent.'],
+		],
 		panes: [
 			{ name: 'Ann', role: 'editor' },
 			{ name: 'Bot', role: 'agent' },
 		],
 		createRoom: () =>
 			new LocalRoom({
-				setup: (store) => store.put([frameRecord('page:page' as TLPageId) as any]),
 				permissions: definePermissions<TLRecord>({
 					rules: [
 						...defaultAbilityRules(),
 						confineToShape({
 							appliesTo: (tx) => tx.can('agent'),
 							rootId: (tx) => {
-								const frame = tx.before.get(AGENT_FRAME) as any
-								return frame?.meta.agentId === tx.access.userId ? AGENT_FRAME : null
+								const frame = tx.before.get(AGENT_FRAME)
+								return frame?.typeName === 'shape' && frame.meta.agentId === tx.access.userId
+									? AGENT_FRAME
+									: null
 							},
 							reason: 'The agent can only change shapes inside its frame.',
 						}),
 					],
 				}),
 			}),
+		seed: (editor) => {
+			editor.createShape({
+				id: AGENT_FRAME,
+				type: 'frame',
+				x: 40,
+				y: 80,
+				meta: { agentId: 'bot' },
+				props: { w: 320, h: 240, name: 'Bot’s frame' },
+			})
+		},
 	},
 	poll: {
 		title: 'Poll plugin',
-		about:
-			'A plugin with its own record type. Votes change only through the "vote" action, which the server runs again, so nobody can vote twice or for someone else. Viewers cannot vote.',
+		summary: 'A plugin with its own records. Votes change only through the "vote" action.',
+		steps: [
+			['As Ann, click "Vote A".', 'A has 1 vote in both panes.'],
+			['As Ann, click "Vote B".', 'Ann’s vote moves to B: one vote per person.'],
+			['As Ann, click "Write a vote directly".', 'Denied: votes only change through "vote".'],
+			['As Val, click "Vote A".', 'Denied: viewers cannot vote.'],
+		],
 		panes: [
-			{ name: 'Ann', role: 'student' },
-			{ name: 'Val', role: 'viewer' },
+			{ name: 'Ann', role: 'student', Tools: PollButtons },
+			{ name: 'Val', role: 'viewer', Tools: PollButtons },
 		],
 		createRoom: () =>
 			new LocalRoom({
@@ -149,6 +344,7 @@ const SCENARIOS: Record<string, Scenario> = {
 						...defaultAbilityRules(),
 						intentOwnsTypes('vote', { types: ['vote'], ability: 'poll:vote' }),
 					],
+					// [6]
 					mutators: {
 						vote(ctx, args: { option: string }) {
 							if (!ctx.can('poll:vote')) throw new Error('You cannot vote.')
@@ -164,29 +360,57 @@ const SCENARIOS: Record<string, Scenario> = {
 }
 
 export default function SyncPermissionsExample() {
-	const [scenarioId, setScenarioId] = useState('classroom')
+	const [scenarioId, setScenarioId] = useState('roles')
 	const scenario = SCENARIOS[scenarioId]
 	// a new room for each scenario
 	const room = useMemo(() => scenario.createRoom(), [scenario])
+	// With several editors on one page, only the one you last clicked should get key presses.
+	// Otherwise Delete in Bob's pane also deletes what Ann has selected.
+	const focused = useRef<Editor | null>(null)
+	const focusEditor = useCallback((editor: Editor) => {
+		if (focused.current === editor) return
+		focused.current?.blur()
+		editor.focus()
+		focused.current = editor
+	}, [])
 
 	return (
 		<div className="permissions-example">
-			<div className="permissions-example__bar">
+			<div className="permissions-example__tabs" role="tablist">
 				{Object.entries(SCENARIOS).map(([id, s]) => (
-					<button key={id} data-active={id === scenarioId} onClick={() => setScenarioId(id)}>
+					<button
+						key={id}
+						role="tab"
+						aria-selected={id === scenarioId}
+						onClick={() => setScenarioId(id)}
+					>
 						{s.title}
 					</button>
 				))}
-				<span>{scenario.about}</span>
+			</div>
+			<div className="permissions-example__guide">
+				<p>{scenario.summary}</p>
+				<strong>Try this</strong>
+				<ol>
+					{scenario.steps.map(([action, outcome]) => (
+						<li key={action}>
+							<b>{action}</b> {outcome}
+						</li>
+					))}
+				</ol>
 			</div>
 			<div className="permissions-example__panes">
-				{scenario.panes.map((pane) => (
+				{scenario.panes.map((pane, i) => (
 					<Pane
 						key={scenarioId + pane.name}
 						room={room}
+						scenario={scenario}
 						scenarioId={scenarioId}
 						name={pane.name}
 						initialRole={pane.role}
+						Tools={pane.Tools}
+						seeds={i === 0}
+						onFocus={focusEditor}
 					/>
 				))}
 			</div>
@@ -194,23 +418,36 @@ export default function SyncPermissionsExample() {
 	)
 }
 
-// [3]
+interface LogEntry extends TLPermissionDenial {
+	key: number
+	count: number
+}
+
 function Pane({
 	room,
+	scenario,
 	scenarioId,
 	name,
 	initialRole,
+	Tools,
+	seeds,
+	onFocus,
 }: {
 	room: LocalRoom
+	scenario: Scenario
 	scenarioId: string
 	name: string
 	initialRole: string
+	Tools?: PaneTools
+	seeds: boolean
+	onFocus(editor: Editor): void
 }) {
 	const userId = name.toLowerCase()
 	const sessionId = `${scenarioId}-${userId}`
-	const [role, setRole] = useState(initialRole)
+	const [role, setRoleState] = useState(initialRole)
+	const [online, setOnline] = useState(true)
 	const [editor, setEditor] = useState<Editor | null>(null)
-	const [denial, setDenial] = useState<TLPermissionDenial | null>(null)
+	const [log, setLog] = useState<LogEntry[]>([])
 
 	const connect = useMemo(
 		() => room.connect(sessionId, ROLES[initialRole](userId)),
@@ -233,48 +470,181 @@ function Pane({
 		records: room.records,
 	})
 
+	const setRole = (next: string) => {
+		setRoleState(next)
+		// [7]
+		room.setAccess(sessionId, ROLES[next](userId))
+	}
+
+	// [8]
+	useEffect(() => {
+		if (!editor) return
+		let key = 0
+		const onDenied = (denial: TLPermissionDenial) => {
+			setLog((log) => {
+				const [last, ...rest] = log
+				if (last && last.reason === denial.reason && last.source === denial.source) {
+					return [{ ...last, count: last.count + 1 }, ...rest]
+				}
+				return [{ ...denial, key: key++, count: 1 }, ...log].slice(0, 4)
+			})
+		}
+		editor.on('permission-denied', onDenied)
+		return () => {
+			editor.off('permission-denied', onDenied)
+		}
+	}, [editor])
+
+	const comments = useCommentsUi(scenario.comments ? userId : null)
+
 	return (
-		<div className="permissions-example__pane">
+		<div className="permissions-example__pane" data-testid={`pane-${userId}`}>
 			<div className="permissions-example__pane-header">
 				<strong>{name}</strong>
-				<select
-					value={role}
-					onChange={(e) => {
-						setRole(e.target.value)
-						// [4]
-						room.setAccess(sessionId, ROLES[e.target.value](userId))
-					}}
-				>
+				<select aria-label="Role" value={role} onChange={(e) => setRole(e.target.value)}>
 					{Object.keys(ROLES).map((r) => (
 						<option key={r}>{r}</option>
 					))}
 				</select>
-				{editor && scenarioId === 'pages' && <AnswersToggle editor={editor} />}
-				{editor && scenarioId === 'poll' && <PollPanel editor={editor} />}
-				{denial && (
-					<span className="permissions-example__denial">
-						Denied ({denial.source}): {denial.reason}
-					</span>
-				)}
+				<button
+					onClick={() => {
+						// [9]
+						room.setOnline(sessionId, !online)
+						setOnline(!online)
+					}}
+				>
+					{online ? 'Go offline' : 'Reconnect'}
+				</button>
+				{!online && <span className="permissions-example__offline">Offline</span>}
+				{editor && Tools && <Tools editor={editor} setRole={setRole} />}
 			</div>
-			<div className="permissions-example__canvas">
+			<div
+				className="permissions-example__canvas"
+				onPointerDownCapture={() => editor && onFocus(editor)}
+			>
 				<Tldraw
 					store={store}
+					autoFocus={false}
+					{...comments}
 					onMount={(editor) => {
 						setEditor(editor)
-						// [5]
-						editor.on('permission-denied', setDenial)
-						if (scenarioId === 'agent') editor.zoomToFit()
+						if (seeds) scenario.seed?.(editor)
 					}}
 				/>
+			</div>
+			<div className="permissions-example__log" aria-label="Denied changes">
+				<strong>Denied changes</strong>
+				{log.length === 0 ? (
+					<span className="permissions-example__empty">None yet</span>
+				) : (
+					<ul>
+						{log.map((entry) => (
+							<li key={entry.key}>
+								<span className="permissions-example__source" data-source={entry.source}>
+									{entry.source === 'local' ? 'editor' : 'server'}
+								</span>
+								{entry.intent && <code>{entry.intent.name}</code>} {entry.reason}
+								{entry.count > 1 && ` (×${entry.count})`}
+							</li>
+						))}
+					</ul>
+				)}
 			</div>
 		</div>
 	)
 }
 
+const COMMENT_TOOLS = [CommentTool]
+// A commenter's editor is read-only, which hides the quick actions where the comment tool
+// usually sits. Put it in the main toolbar, and mark it as fine to use when read-only.
+const commentOverrides: TLUiOverrides = {
+	tools(editor, tools, helpers) {
+		const next = commentToolOverrides.tools!(editor, tools, helpers)
+		next.comment = { ...next.comment, readonlyOk: true }
+		return next
+	},
+}
+
+function useCommentsUi(userId: string | null) {
+	return useMemo(() => {
+		if (!userId) return {}
+		const components: TLComponents = {
+			Toolbar: () => (
+				<DefaultToolbar>
+					<CommentToolbarButton />
+					<DefaultToolbarContent />
+				</DefaultToolbar>
+			),
+			InFrontOfTheCanvas: () => (
+				<CanvasComments
+					currentUserId={userId}
+					resolveAuthor={(id) => ({ name: id[0].toUpperCase() + id.slice(1) })}
+				/>
+			),
+		}
+		return { tools: COMMENT_TOOLS, overrides: [commentOverrides], components }
+	}, [userId])
+}
+
+function CommentToolbarButton() {
+	const editor = useEditor()
+	const canComment = useValue('can comment', () => editor.permissions.can('comment'), [editor])
+	return canComment ? <ToolbarItem tool="comment" /> : null
+}
+
+function RevokeLinkButton({ editor, setRole }: { editor: Editor; setRole(role: string): void }) {
+	// [10]
+	const canEdit = useValue('can edit', () => editor.permissions.can('edit'), [editor])
+	if (!canEdit) return null
+	return <button onClick={() => setRole('viewer')}>Revoke link</button>
+}
+
+function PrivateShapeButtons({ editor }: { editor: Editor }) {
+	const privateShapes = useValue(
+		'private shapes',
+		() => editor.getCurrentPageShapes().filter((s) => s.meta.private === true),
+		[editor]
+	)
+	return (
+		<>
+			<button
+				onClick={() =>
+					editor.createShape({
+						type: 'geo',
+						x: 60 + privateShapes.length * 30,
+						y: 80 + privateShapes.length * 30,
+						meta: { private: true },
+						props: {
+							w: 220,
+							h: 90,
+							color: 'red',
+							dash: 'dashed',
+							richText: toRichText('Private to Ann'),
+						},
+					})
+				}
+			>
+				Draw a private shape
+			</button>
+			{privateShapes.length > 0 && (
+				<button
+					onClick={() =>
+						editor.updateShapes(
+							privateShapes.map((s: TLShape) => ({ ...s, meta: { ...s.meta, private: false } }))
+						)
+					}
+				>
+					Make them public
+				</button>
+			)}
+		</>
+	)
+}
+
 function AnswersToggle({ editor }: { editor: Editor }) {
 	const page = useValue('answers page', () => editor.getPage(ANSWERS_PAGE), [editor])
-	if (!page || !editor.permissions.can('teach')) return null
+	const canTeach = useValue('can teach', () => editor.permissions.can('teach'), [editor])
+	if (!page || !canTeach) return null
 	return (
 		<button
 			onClick={() => editor.updatePage({ id: ANSWERS_PAGE, meta: { hidden: !page.meta.hidden } })}
@@ -284,39 +654,54 @@ function AnswersToggle({ editor }: { editor: Editor }) {
 	)
 }
 
-function PollPanel({ editor }: { editor: Editor }) {
+function LockHomeworkButton({ editor }: { editor: Editor }) {
+	const frame = useValue('homework', () => editor.getShape(HOMEWORK_FRAME), [editor])
+	const canTeach = useValue('can teach', () => editor.permissions.can('teach'), [editor])
+	if (!frame || !canTeach) return null
+	const locked = frame.meta.locked === true
+	return (
+		<button
+			onClick={() =>
+				editor.updateShape({
+					id: HOMEWORK_FRAME,
+					type: 'frame',
+					meta: { locked: !locked },
+					props: { name: locked ? 'Homework' : 'Homework (locked)' },
+				})
+			}
+		>
+			{locked ? 'Unlock homework' : 'Lock homework'}
+		</button>
+	)
+}
+
+function PollButtons({ editor }: { editor: Editor }) {
 	const votes = useValue(
 		'votes',
 		() => editor.store.allRecords().filter((r) => (r.typeName as string) === 'vote') as any[],
 		[editor]
 	)
+	const userId = editor.permissions.getAccess().userId
 	return (
 		<>
 			{['A', 'B'].map((option) => (
-				// [6]
 				<button key={option} onClick={() => editor.permissions.mutate('vote', { option })}>
 					Vote {option} ({votes.filter((v) => v.option === option).length})
 				</button>
 			))}
+			<button
+				onClick={() =>
+					editor.run(() => {
+						editor.store.put([
+							{ id: `vote:${userId}-2`, typeName: 'vote', userId, option: 'A' } as any,
+						])
+					})
+				}
+			>
+				Write a vote directly
+			</button>
 		</>
 	)
-}
-
-function frameRecord(pageId: TLPageId) {
-	return {
-		id: AGENT_FRAME as TLShapeId,
-		typeName: 'shape',
-		type: 'frame',
-		x: 100,
-		y: 100,
-		rotation: 0,
-		index: 'a1',
-		parentId: pageId,
-		isLocked: false,
-		opacity: 1,
-		meta: { agentId: 'bot' },
-		props: { w: 400, h: 300, name: "Bot's frame", color: 'black' },
-	}
 }
 
 /*
@@ -325,27 +710,58 @@ In an app, the room runs on your server. Everything else here is the same code a
 
 [1]
 Access is what a session may do: a user id and a list of abilities. Your server decides it when
-a socket connects, from a cookie or a share link token. Abilities are plain strings, so a plugin
-can add its own, like "poll:vote".
+a socket connects, from a cookie or a share link token: a "view" link gives no abilities, a
+"comment" link gives `comment`, an "edit" link gives `edit` and `comment`. The default rules
+(`defaultAbilityRules`) need `edit` to change the canvas and `comment` to write comments.
+Abilities are plain strings, so your own rules can add more, like "teach" or "poll:vote".
 
 [2]
-Each scenario is one permissions object: rules that check each change as a whole transaction,
-an optional `canRead` that hides records, and optional mutators that the server runs itself. The
-same object goes to the server (`TLSocketRoom`) and the client (`useSync`), so the editor denies
-a change at once, before it is sent, and the server checks it again.
+A shape is private to its owner when `meta.private` is true. `ownerOf` reads `meta.ownerId`,
+which `stampOwner` writes on every shape the user creates.
 
 [3]
-Each pane is one user with their own session. Draw in one pane and see it in the others.
+A rule is a function. It gets the whole transaction (every changed record before and after, the
+room before and after, and the session's access) and returns a reason to deny it, or nothing to
+allow it. This one denies any change inside a frame whose `meta.locked` is true, unless the
+session can "teach". It reads both sides, so a shape cannot be moved into or out of a locked
+frame either.
 
 [4]
-`updateSessionAccess` changes a session's access live, with no reconnect. Change a role and the
-pane updates at once: it becomes read-only, or a hidden page appears.
+Each scenario is one permissions object from `definePermissions`: `rules` that check each change
+as one transaction, an optional `canRead` that hides records, optional `mutators` that the server
+runs itself, and `stamps` that fill in fields on new records. The same object goes to the server
+(`TLSocketRoom`) and to the client (`useSync`), so the editor denies a change at once, before it
+is sent, and the server checks it again.
 
 [5]
-The editor emits `permission-denied` for changes it denies itself ("local") and for changes the
-server denied ("server"). The default UI also shows a toast.
+`canRead` decides which records each session receives. The server never sends Bob a record that
+Ann made private, so it is not in his browser at all. When a record changes, the server checks it
+again: make the shape public, and it is sent to Bob. A session also cannot write a record it
+cannot see, before or after the change. Bindings to a hidden shape are hidden too, so Bob's
+client never holds an arrow that points at nothing.
 
 [6]
-`editor.permissions.mutate` runs a named action. The client runs it as a prediction, and the
-server runs it again and keeps its own result.
+A mutator is a named action. `editor.permissions.mutate('vote', args)` runs it on the client as a
+prediction, and the server runs it again and keeps its own result, so a client cannot vote for
+someone else. `intentOwnsTypes` makes the "vote" action the only way to change vote records:
+writing one directly is denied.
+
+[7]
+`room.updateSessionAccess` changes a session's access live, with no reconnect. Change a role, or
+revoke a link, and the pane updates at once: it becomes read-only, or a hidden page appears.
+
+[8]
+The editor emits `permission-denied` for changes it denies itself (source "local") and for
+changes the server denied (source "server"). The default UI also shows a toast. A denied change is
+rolled back, so the canvas shows only what the server accepts.
+
+[9]
+While offline, the editor still checks each change against the access it last had. On reconnect,
+the client sends what it changed offline one action at a time, and the server checks each one
+against the room as it is now. If the teacher locked a frame in the meantime, only the changes
+inside that frame are denied and rolled back. The rest are kept.
+
+[10]
+`editor.permissions.can(ability)` reads the session's current access, for showing or hiding UI.
+It updates when the server changes the access.
 */
