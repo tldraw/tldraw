@@ -28,6 +28,8 @@ import { MemoExoticComponent } from 'react';
 import { MigrationSequence } from '@tldraw/store';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
+import { PermissionChain } from '@tldraw/store';
+import { PermissionDenial } from '@tldraw/store';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
@@ -1408,6 +1410,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
+    getShapePermissionDenial(shape: TLShape | TLShapeId): string | undefined;
     getShapesAtPoint(point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;
@@ -3816,6 +3819,7 @@ export interface TldrawEditorBaseProps {
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
     overlayUtils?: readonly TLAnyOverlayUtilConstructor[];
+    permissions?: TLEditorPermissions;
     shapeUtils?: readonly TLAnyShapeUtilConstructor[];
     // @deprecated
     textOptions?: TLTextOptions;
@@ -4029,6 +4033,16 @@ export interface TLEditorOptions {
     themes?: Partial<TLThemes>;
     tools: readonly TLStateNodeConstructor[];
     user?: TLCurrentUser;
+}
+
+// @public
+export interface TLEditorPermissions<Actor = any> {
+    // (undocumented)
+    readonly actor: Actor;
+    // (undocumented)
+    readonly chain: PermissionChain<TLRecord, Actor>;
+    // (undocumented)
+    onDenied?(denials: readonly PermissionDenial<TLRecord>[]): void;
 }
 
 // @public

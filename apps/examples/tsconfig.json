@@ -9,6 +9,8 @@
 		{ "path": "../../packages/commenting" },
 		{ "path": "../../packages/mermaid" },
 		{ "path": "../../packages/sync" },
+		{ "path": "../../packages/sync-collaboration" },
+		{ "path": "../../packages/sync-core" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },
 		{ "path": "../../packages/driver" },

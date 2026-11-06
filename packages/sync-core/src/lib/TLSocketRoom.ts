@@ -1,13 +1,14 @@
-import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
+import type { PermissionChain, SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
+import { TLSyncActor } from './permissions'
 import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -145,11 +146,33 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
-	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
-	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 * The permission chain for this room. It decides each client push as one write batch (all ops
+	 * of the push together), and what each session receives as one read batch per message. The
+	 * actor is the session ({@link TLSyncActor}). Use the same chain on the client (see
+	 * `Store.setPermissions`), so that the client stops a write before it is sent.
+	 *
+	 * File read control: at connect, the room asks the chain for the action `room.open`
+	 * (`chain.can({ actor, action: 'room.open' })`), and closes the session with `FORBIDDEN` if
+	 * it is denied. `refreshReads` and `updateSessionMeta` ask again, and close sessions that may
+	 * no longer open the room.
+	 *
+	 * The session's lane access (`isReadonly`, `objectAccess`) is checked first, outside the chain,
+	 * so no layer can let a read-only session write.
+	 *
+	 * Only client pushes and reads are checked. Server-initiated changes (`updateStore`,
+	 * `loadSnapshot`, migrations) skip the chain, so server code that acts for a user must ask the
+	 * chain itself (for example with `chain.run` or `chain.can`).
+	 *
+	 * With a chain, each connect sends the full document view, and every broadcast runs the read
+	 * chain once per session (see `checkReads`).
 	 */
-	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>
+	/**
+	 * Whether `permissions` also decides what each session receives. Defaults to `true`. Set it to
+	 * `false` for a chain with no read rules: the room then sends every record, resumes sessions
+	 * from their last clock, and does not run the chain per session on each broadcast.
+	 */
+	checkReads?: boolean
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -280,7 +303,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			authorizeRecord: opts.authorizeRecord,
+			permissions: opts.permissions,
+			checkReads: opts.checkReads,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -918,6 +942,25 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 				txn.delete(id)
 			}
 		})
+	}
+
+	/**
+	 * Run the read chain again for every connected session (or one session), and send each one
+	 * what changed. Sessions that may no longer open the room (action `room.open`) are closed with
+	 * `FORBIDDEN`. Call it after a change that the chain reads but that is not in the records
+	 * themselves, for example a grant held outside the room.
+	 */
+	refreshReads(sessionId?: string) {
+		this.room.refreshReads(sessionId)
+	}
+
+	/**
+	 * Change a connected session's `meta`, for example after a role change. The room checks later
+	 * writes with the new `meta`, and refreshes what the session can see. If the session may no
+	 * longer open the room, it is closed with `FORBIDDEN`.
+	 */
+	updateSessionMeta(sessionId: string, meta: SessionMeta) {
+		this.room.updateSessionMeta(sessionId, meta)
 	}
 
 	/**

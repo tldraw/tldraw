@@ -1,8 +1,11 @@
+import { PermissionChain } from '@tldraw/store'
 import {
 	RecordOpType,
 	TLSocketRoom,
 	WebSocketMinimal,
 	getTlsyncProtocolVersion,
+	recordAuthorizers,
+	type TLRecordAuthorizers,
 } from '@tldraw/sync-core'
 import {
 	DocumentRecordType,
@@ -30,9 +33,10 @@ function session(
 ): {
 	sessionId: string
 	isReadonly: boolean
+	objectAccess: 'write'
 	meta: SessionMeta
 } {
-	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId } }
+	return { sessionId: 's1', isReadonly, objectAccess: 'write', meta: { storeId: 'store', userId } }
 }
 
 describe('authorizeFileRecord', () => {
@@ -174,7 +178,9 @@ describe('authorizeFileRecord', () => {
 			const note = makeNote('browser-generated-user-id')
 			const room = new TLSocketRoom<TLRecord, SessionMeta>({
 				schema,
-				authorizeRecord: authorizeFileRecord,
+				permissions: new PermissionChain(
+					recordAuthorizers(authorizeFileRecord as TLRecordAuthorizers<TLRecord, SessionMeta>)
+				),
 			})
 			const socket: WebSocketMinimal = {
 				send: vi.fn(),

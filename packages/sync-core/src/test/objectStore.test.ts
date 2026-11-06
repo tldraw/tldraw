@@ -1,7 +1,9 @@
 import { BaseRecord, RecordId, StoreSchema, createRecordType } from '@tldraw/store'
+import { PermissionChain } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
+import { recordAuthorizers } from '../lib/permissions'
 import {
 	TLConnectRequest,
 	TLPushRequest,
@@ -110,7 +112,9 @@ function makeRoom(
 		storage,
 		objectTypes: opts.objectTypes,
 		onCommittedChanges: opts.onCommittedChanges,
-		authorizeRecord: opts.authorizeRecord,
+		permissions: opts.authorizeRecord
+			? new PermissionChain(recordAuthorizers(opts.authorizeRecord as any))
+			: undefined,
 		log: opts.log,
 	})
 	disposables.push(() => room.close())
@@ -433,12 +437,6 @@ describe('object store lane', () => {
 	})
 
 	describe('authorizeRecord', () => {
-		it('rejects a presence typeName key at construction', () => {
-			expect(() => makeRoom({ authorizeRecord: { presence: ({ next }: any) => next } })).toThrow(
-				/presence/
-			)
-		})
-
 		// A per-type authorizer like dotcom's: stamp the note's text from the session's user id on
 		// create, keep it immutable on update, allow deletes.
 		const authorizeNote = ({ session, type, prev, next }: any) => {

@@ -1,3 +1,4 @@
+import { PermissionChain } from '@tldraw/store'
 /* eslint-disable @typescript-eslint/no-deprecated -- initialSnapshot, onDataChange,
  * updateStore, and getCurrentSnapshot are deprecated but remain part of the public
  * contract under test (see SPEC.md sections 28 and 29). */
@@ -24,6 +25,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { chunk, MAX_ASSEMBLED_MESSAGE_CHARS } from '../lib/chunk'
 import { RecordOpType } from '../lib/diff'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from '../lib/InMemorySyncStorage'
+import { recordAuthorizers } from '../lib/permissions'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
 import { WebSocketMinimal } from '../lib/ServerSocketAdapter'
 import { TLSocketRoom, TLSyncLog } from '../lib/TLSocketRoom'
@@ -215,11 +217,13 @@ describe('28. TLSocketRoom (SR)', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
 				const room = new TLSocketRoom({
-					authorizeRecord: {
-						page: () => {
-							throw new Error('authorizer exploded')
-						},
-					},
+					permissions: new PermissionChain(
+						recordAuthorizers({
+							page: () => {
+								throw new Error('authorizer exploded')
+							},
+						} as any)
+					),
 				})
 				const socket = createMockSocket()
 				connectSession(room, 'test-session', socket)
@@ -242,7 +246,7 @@ describe('28. TLSocketRoom (SR)', () => {
 				// the authorizer threw, and the host heard about it without passing a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'record authorizer threw; rejecting the write',
+					'the write chain failed; rejecting the push',
 					expect.objectContaining({ message: 'authorizer exploded' })
 				)
 			} finally {

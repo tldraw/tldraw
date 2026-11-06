@@ -1,0 +1,169 @@
+.permission-chain {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: 1fr 340px;
+	grid-template-rows: 1fr auto;
+	gap: 8px;
+	padding: 8px;
+	background: var(--tl-color-low, #f5f5f5);
+}
+
+.permission-chain__panes {
+	display: flex;
+	gap: 8px;
+	min-height: 0;
+}
+
+.permission-chain__room {
+	grid-column: 1;
+	font-size: 12px;
+	min-height: 48px;
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	background: white;
+	color: #b3261e;
+}
+
+.permission-chain__room strong {
+	color: #222;
+}
+
+.permission-chain__cases {
+	grid-column: 2;
+	grid-row: 1 / span 2;
+	overflow: auto;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	background: white;
+	font-size: 12px;
+}
+
+.permission-chain__cases-title {
+	padding: 8px 10px;
+	font-weight: 600;
+	font-size: 13px;
+	border-bottom: 1px solid #eee;
+}
+
+.permission-chain__case > button {
+	display: block;
+	width: 100%;
+	padding: 6px 10px;
+	border: none;
+	border-bottom: 1px solid #f0f0f0;
+	background: none;
+	text-align: left;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+}
+
+.permission-chain__case-body {
+	padding: 4px 10px 10px;
+	border-bottom: 1px solid #f0f0f0;
+}
+
+.permission-chain__case-body p,
+.permission-chain__case-body ol {
+	margin: 4px 0;
+	padding-left: 16px;
+}
+
+.permission-chain__case-body p {
+	padding-left: 0;
+}
+
+.permission-chain__case-body pre {
+	margin: 6px 0 0;
+	padding: 6px;
+	overflow: auto;
+	background: #f6f6f6;
+	border-radius: 4px;
+	font-size: 11px;
+	line-height: 1.4;
+	tab-size: 2;
+}
+
+.permission-chain__grade {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	border: 2px solid #2f80ed;
+	border-radius: 8px;
+	background: #eef5ff;
+	font-size: 20px;
+}
+
+.permission-chain__header label {
+	margin-left: 8px;
+	font-weight: 400;
+	font-size: 12px;
+}
+
+.permission-chain__pane {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	overflow: hidden;
+	background: white;
+}
+
+.permission-chain__header {
+	padding: 6px 10px;
+	font-weight: 600;
+	font-size: 13px;
+	border-bottom: 1px solid #eee;
+}
+
+.permission-chain__canvas {
+	position: relative;
+	flex: 1;
+}
+
+.permission-chain__log {
+	padding: 6px 10px;
+	font-size: 12px;
+	min-height: 64px;
+	border-top: 1px solid #eee;
+	color: #b3261e;
+}
+
+.permission-chain__controls {
+	display: flex;
+	flex-wrap: wrap;
+	justify-content: flex-end;
+	gap: 4px;
+	padding: 4px;
+	pointer-events: all;
+}
+
+.permission-chain__controls button {
+	font-size: 12px;
+	padding: 4px 8px;
+}
+
+.permission-chain__closed {
+	padding: 16px;
+	font-size: 13px;
+	color: #b3261e;
+}
+
+.permission-chain__locked {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 4px 8px;
+	border-radius: 6px;
+	background: #fff4d6;
+	color: #6b4a00;
+	font-size: 12px;
+	pointer-events: none;
+	z-index: 1000;
+}

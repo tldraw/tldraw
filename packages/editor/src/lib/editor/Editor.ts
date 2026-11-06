@@ -1753,7 +1753,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			this.history.batch(() => this.store.batchPermissions(fn), opts)
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
@@ -2286,7 +2286,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// selecting inside a locked frame or group is allowed, mutating is not.
 		const ids = this.getSortedChildIdsForParent(parentToSelectWithinId)
 		if (ids.length <= 0) return this
-		this.setSelectedShapes(ids.filter((id) => !this.getShape(id)?.isLocked))
+		this.setSelectedShapes(
+			ids.filter((id) => !this.getShape(id)?.isLocked && !this.getShapePermissionDenial(id))
+		)
 		return this
 	}
 
@@ -5782,8 +5784,42 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		if (this._isShapeOrAncestorFlaggedLocked(_shape)) return true
+		return this.getShapePermissionDenial(_shape) !== undefined
+	}
+
+	private _isShapeOrAncestorFlaggedLocked(shape: TLShape | undefined): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this._isShapeOrAncestorFlaggedLocked(this.getShapeParent(shape))
+	}
+
+	/**
+	 * Why the store's permission chain (see `Store.setPermissions`) does not let the user change a
+	 * shape, or `undefined` if it does. The editor asks the chain about an update of the shape that
+	 * changes nothing. In the UI, a shape that the chain denies acts as locked: the user cannot
+	 * hover, select, move, resize or delete it, so a drag never starts and never snaps back. Only
+	 * the shape itself is checked, not its ancestors: a shape of yours in a frame that you may not
+	 * change stays yours.
+	 *
+	 * Editor methods such as `updateShapes` do not skip these shapes. Their writes reach the store,
+	 * which checks the whole operation (also in `Store.withoutPermissions`, where it checks nothing).
+	 * Rules that depend on the change itself (for example "not into another user's frame") deny
+	 * there, at the end of the operation, and the store puts the change back.
+	 *
+	 * @public
+	 */
+	getShapePermissionDenial(shape: TLShape | TLShapeId): string | undefined {
+		if (!this.store.getPermissions()) return undefined
+		const id = typeof shape === 'string' ? shape : shape.id
+		return this._getShapePermissionDenialCache().get(id) ?? undefined
+	}
+
+	@computed private _getShapePermissionDenialCache(): ComputedCache<string | null, TLShape> {
+		return this.store.createComputedCache('shapePermissionDenial', (shape) => {
+			const { denied } = this.store.checkWrites([{ type: 'update', prev: shape, next: shape }])
+			return denied[0]?.reason ?? null
+		})
 	}
 
 	/**
@@ -5957,7 +5993,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Frame-like shapes have labels positioned above the shape (outside bounds), so always include them
 			if (!candidateIds.has(shape.id) && !this.isShapeFrameLike(shape)) continue
 			if (
-				(shape.isLocked && !hitLocked) ||
+				((shape.isLocked || this.getShapePermissionDenial(shape) !== undefined) && !hitLocked) ||
 				this.isShapeHidden(shape) ||
 				this.isShapeOfType(shape, 'group')
 			) {
@@ -8784,7 +8820,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
 			// every frame but the last and end up stranded at the penultimate one
 			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
-			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
+			if (!ignoreShapeLock && !unlocks && this._isShapeOrAncestorFlaggedLocked(shape)) {
 				continue
 			}
 
@@ -9067,7 +9103,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (!(Object.hasOwn(partial, 'isLocked') && !partial.isLocked)) {
 						continue
 					}
-				} else if (this.isShapeOrAncestorLocked(shape)) {
+				} else if (this._isShapeOrAncestorFlaggedLocked(shape)) {
 					// If the shape itself is unlocked, and any of the shape's
 					// ancestors are locked then we'll skip the update
 					continue
@@ -9127,7 +9163,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
 		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
 		// of a locked frame can't be moved but can still be deleted or duplicated
-		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
+		return ids.filter((id) => !this._isShapeOrAncestorFlaggedLocked(this.getShape(id)))
 	}
 
 	/**

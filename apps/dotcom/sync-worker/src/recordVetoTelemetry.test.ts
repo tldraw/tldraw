@@ -1,3 +1,4 @@
+import { PermissionChain } from '@tldraw/store'
 import {
 	createComment,
 	createCommentThread,
@@ -45,7 +46,23 @@ async function harness(saved = new Map<string, unknown>()) {
 		getStorage: async () => ({}),
 		maybeAssociateFileAssets: vi.fn(),
 	})
-	const auth = (await object.getRoom()).options.authorizeRecord as typeof authorizeFileRecord
+	// The room's chain, called the way the per-type authorizers used to be: one write at a time,
+	// returning the record when allowed and null when denied.
+	const chain = (await object.getRoom()).options.permissions as PermissionChain<any, any>
+	const auth = new Proxy({} as Record<string, any>, {
+		get:
+			(_target, _typeName) =>
+			({ session, ...access }: any) => {
+				const result = chain.run({
+					kind: 'write',
+					actor: session,
+					items: [access],
+					get: () => undefined,
+				})
+				const allowed = result.allowed[0] as any
+				return allowed ? (allowed.next ?? allowed.prev) : null
+			},
+	}) as typeof authorizeFileRecord
 	points.length = 0
 	return {
 		object,
@@ -60,6 +77,7 @@ async function harness(saved = new Map<string, unknown>()) {
 const session = {
 	sessionId: 'secret-session',
 	isReadonly: false,
+	objectAccess: 'write' as const,
 	meta: { userId: 'alice', storeId: 'secret-store' },
 }
 const note = (userId: string) =>
@@ -212,7 +230,6 @@ describe('file room record veto telemetry', () => {
 		const next = {
 			...note('bob'),
 			type: 'secret-client-content',
-			typeName: 'secret-type-name',
 		} as unknown as TLShape
 		expect(auth.shape({ session, type: 'create', prev: null, next })).toBeNull()
 		expect(h.points).toEqual([])
@@ -227,7 +244,7 @@ describe('file room record veto telemetry', () => {
 		})
 	})
 
-	it('preserves canonicalized results, missing authorizers, and policy exceptions', async () => {
+	it('preserves canonicalized results, and records no veto for a missing authorizer or a policy exception', async () => {
 		vi.useFakeTimers()
 		const comment = createComment({
 			pageId: 'page:test' as TLPageId,
@@ -242,14 +259,12 @@ describe('file room record veto telemetry', () => {
 		try {
 			authorizeFileRecord['comment-reaction'] = undefined
 			const h = await harness()
-			expect(h.auth['comment-reaction']).toBeUndefined()
 			expect(h.auth.comment!({ session, type: 'create', prev: null, next: comment })).toEqual({
 				...comment,
 				authorId: 'alice',
 			})
-			expect(() =>
-				h.auth.shape({ session, type: 'create', prev: null, next: note('bob') })
-			).toThrow('policy failed')
+			// The chain fails closed on a throw: the write is denied, and it is not a policy veto.
+			expect(h.auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
 			await h.flush()
 			expect(h.points).toEqual([])
 			expect(h.warnings).toEqual([])

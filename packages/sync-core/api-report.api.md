@@ -7,6 +7,8 @@
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
+import { PermissionChain } from '@tldraw/store';
+import { PermissionMiddleware } from '@tldraw/store';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
@@ -241,6 +243,9 @@ export class ReconnectManager {
     maybeReconnected(): void;
 }
 
+// @public
+export function recordAuthorizers<R extends UnknownRecord, SessionMeta>(authorizers: TLRecordAuthorizers<R, SessionMeta>): PermissionMiddleware<R, TLSyncActor<SessionMeta>>;
+
 // @internal
 export type RecordOp<R extends UnknownRecord> = [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R] | [typeof RecordOpType.Remove];
 
@@ -256,18 +261,22 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingConnectMessage;
-    sessionStartTime: number;
-}) | (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingRemoval;
-    cancellationTime: number;
-}) | (RoomSessionBase<R, Meta> & {
+    held: {
+        complete: boolean;
+        records: Map<string, 'none' | 'same' | R>;
+    };
     state: typeof RoomSessionState.Connected;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
     requiresDownMigrations: boolean;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingConnectMessage;
+    sessionStartTime: number;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingRemoval;
+    cancellationTime: number;
 });
 
 // @internal
@@ -448,11 +457,8 @@ export interface TLPushRequest<R extends UnknownRecord> {
 
 // @public
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
-    session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    };
+    get?(id: string): undefined | UnknownRecord;
+    session: TLSyncActor<SessionMeta>;
 } & ({
     next: null;
     prev: Rec;
@@ -538,16 +544,18 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     readonly log?: TLSyncLog;
     // (undocumented)
     readonly opts: TLSocketRoomOptions<R, SessionMeta>;
+    refreshReads(sessionId?: string): void;
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
+    updateSessionMeta(sessionId: string, meta: SessionMeta): void;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
-    authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+    checkReads?: boolean;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -584,6 +592,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
     }) => void;
     onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void;
+    permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>;
     // (undocumented)
     schema?: StoreSchema<R, any>;
     // (undocumented)
@@ -647,6 +656,18 @@ export type TLSqliteOutputValue = bigint | null | number | string | Uint8Array;
 
 // @public
 export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
+
+// @public
+export interface TLSyncActor<SessionMeta> {
+    // (undocumented)
+    readonly isReadonly: boolean;
+    // (undocumented)
+    readonly meta: SessionMeta;
+    // (undocumented)
+    readonly objectAccess: TLObjectStoreAccess;
+    // (undocumented)
+    readonly sessionId: string;
+}
 
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
@@ -720,8 +741,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
         }): void;
-        authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
+        permissions?: PermissionChain<R, TLSyncActor<SessionMeta>>;
+        checkReads?: boolean;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
@@ -773,6 +795,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
     pruneSessions: ThrottledFunction<() => void>;
+    refreshReads(sessionId?: string): void;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;
@@ -781,6 +804,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+    updateSessionMeta(sessionId: string, meta: SessionMeta): void;
 }
 
 // @public

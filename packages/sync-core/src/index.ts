@@ -1,5 +1,11 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
+export {
+	recordAuthorizers,
+	type TLRecordAuthorizer,
+	type TLRecordAuthorizers,
+	type TLSyncActor,
+} from './lib/permissions'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {
 	applyObjectDiff,
@@ -70,8 +76,6 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
-	type TLRecordAuthorizer,
-	type TLRecordAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {

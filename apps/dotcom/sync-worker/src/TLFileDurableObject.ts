@@ -21,7 +21,7 @@ import {
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { UnknownRecord } from '@tldraw/store'
+import { PermissionChain, PermissionMiddleware, UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -33,9 +33,12 @@ import {
 	TLSyncForwardDiff,
 	TLSyncStorage,
 	loadSnapshotIntoStorage,
+	recordAuthorizers,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
 	type TLObjectStoreAccess,
+	type TLRecordAuthorizers,
+	type TLSyncActor,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
@@ -52,14 +55,7 @@ import {
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	objectMapEntries,
-	retry,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
@@ -400,28 +396,25 @@ export class TLFileDurableObject extends DurableObject {
 	private recordVetoWarningScheduled = false
 	private recordVetoCounts?: Map<string, number>
 
-	private observeRecordAuthorizers(
-		authorizers: typeof authorizeFileRecord
-	): typeof authorizeFileRecord {
-		return Object.fromEntries(
-			objectMapEntries(authorizers).map(([typeName, authorize]) => {
-				if (!authorize) return [typeName, undefined]
-				return [
-					typeName,
-					(args: Parameters<typeof authorize>[0]) => {
-						const result = authorize(args as never)
-						if (result === null) {
-							try {
-								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
-							} catch {
-								// Failed telemetry must never change authorization.
-							}
-						}
-						return result
-					},
-				]
-			})
-		) as typeof authorizeFileRecord
+	/**
+	 * A chain layer that records each write the later layers deny. It changes no decision, and a
+	 * failed record never changes one either.
+	 */
+	private vetoTelemetry(): PermissionMiddleware<TLRecord, TLSyncActor<SessionMeta>> {
+		return (batch, next) => {
+			const result = next()
+			if (batch.kind !== 'write') return result
+			for (const { access } of result.denied) {
+				if (access.type === 'read' || access.type === 'action') continue
+				const record = access.type === 'delete' ? access.prev : access.next
+				try {
+					this.recordVeto(record.typeName as keyof typeof authorizeFileRecord, access.type, record)
+				} catch {
+					// Failed telemetry must never change authorization.
+				}
+			}
+			return result
+		}
 	}
 
 	getRoom() {
@@ -516,7 +509,12 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						permissions: new PermissionChain<TLRecord, TLSyncActor<SessionMeta>>(
+							this.vetoTelemetry(),
+							recordAuthorizers(authorizeFileRecord as TLRecordAuthorizers<TLRecord, SessionMeta>)
+						),
+						// The chain has write rules only.
+						checkReads: false,
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can

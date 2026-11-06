@@ -12,7 +12,13 @@ import { Signal } from '@tldraw/state';
 import { UNINITIALIZED } from '@tldraw/state';
 
 // @public
+export function allow<R extends UnknownRecord, Actor, S extends R = R>(test: (access: RecordAccess<S>, batch: PermissionBatch<R, Actor, S>) => boolean | string | void): PermissionMiddleware<R, Actor, S>;
+
+// @public
 export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
+
+// @public
+export function atomic<R extends UnknownRecord, Actor>(): PermissionMiddleware<R, Actor>;
 
 // @public
 export class AtomMap<K, V> implements Map<K, V> {
@@ -135,7 +141,21 @@ export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
 
 // @public
+export function denyAll<R extends UnknownRecord>(batch: Pick<PermissionBatch<R, unknown>, 'items'>, reason: string): PermissionResult<R>;
+
+// @public
 export function devFreeze<T>(object: T): T;
+
+// @public
+export function forType<R extends UnknownRecord, Actor, T extends R['typeName']>(typeName: T, ...layers: NoInfer<PermissionMiddleware<R, Actor, Extract<R, {
+    typeName: T;
+}>>>[]): PermissionMiddleware<R, Actor>;
+
+// @public
+export function getAccessRecord<R extends UnknownRecord>(access: RecordAccess<R>): R | undefined;
+
+// @public
+export function getRecordAccessKey(access: RecordAccess<UnknownRecord>): string;
 
 // @public
 export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
@@ -267,6 +287,63 @@ export function parseMigrationId(id: MigrationId): {
     version: number;
 };
 
+// @public
+export interface PermissionBatch<R extends UnknownRecord, Actor, S extends R = R> {
+    // (undocumented)
+    readonly actor: Actor;
+    get(id: string): R | undefined;
+    getAfter(id: string): R | undefined;
+    readonly items: readonly RecordAccess<S>[];
+    // (undocumented)
+    readonly kind: PermissionBatchKind;
+}
+
+// @public
+export type PermissionBatchKind = 'action' | 'read' | 'write';
+
+// @public
+export class PermissionChain<R extends UnknownRecord, Actor> {
+    constructor(...layers: (PermissionChain<R, Actor> | PermissionMiddleware<R, Actor>)[]);
+    can(opts: {
+        action: string;
+        actor: Actor;
+        get?(id: string): R | undefined;
+        onError?(error: unknown): void;
+        record?: R;
+    }): boolean;
+    run(opts: {
+        actor: Actor;
+        get(id: string): R | undefined;
+        hostDenials?: ReadonlyMap<string, string>;
+        items: readonly RecordAccess<R>[];
+        kind: PermissionBatchKind;
+        onError?(error: unknown): void;
+    }): PermissionResult<R>;
+    use(...layers: (PermissionChain<R, Actor> | PermissionMiddleware<R, Actor>)[]): this;
+}
+
+// @public
+export interface PermissionDenial<R extends UnknownRecord> {
+    // (undocumented)
+    readonly access: RecordAccess<R>;
+    // (undocumented)
+    readonly reason: string;
+}
+
+// @public
+export type PermissionMiddleware<R extends UnknownRecord, Actor, S extends R = R> = (batch: PermissionBatch<R, Actor, S>, next: PermissionNext<S>) => PermissionResult<S>;
+
+// @public
+export type PermissionNext<R extends UnknownRecord> = (items?: readonly RecordAccess<R>[]) => PermissionResult<R>;
+
+// @public
+export interface PermissionResult<R extends UnknownRecord> {
+    // (undocumented)
+    readonly allowed: readonly RecordAccess<R>[];
+    // (undocumented)
+    readonly denied: readonly PermissionDenial<R>[];
+}
+
 // @public (undocumented)
 export type QueryExpression<R extends object> = {
     [k in keyof R & string]?: R[k] extends boolean | null | number | string | undefined ? QueryValueMatcher<R[k]> : R[k] extends object ? QueryExpression<R[k]> : QueryValueMatcher<R[k]>;
@@ -279,6 +356,28 @@ export type QueryValueMatcher<T> = {
     gt: number;
 } | {
     neq: T;
+};
+
+// @public
+export type RecordAccess<R extends UnknownRecord> = {
+    readonly name: string;
+    readonly record?: R;
+    readonly type: 'action';
+} | {
+    readonly next: null;
+    readonly prev: R;
+    readonly type: 'delete';
+} | {
+    readonly next: R;
+    readonly prev: null;
+    readonly type: 'create';
+} | {
+    readonly next: R;
+    readonly prev: R;
+    readonly type: 'update';
+} | {
+    readonly record: R;
+    readonly type: 'read';
 };
 
 // @public
@@ -330,6 +429,9 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 
 // @public
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
+
+// @public
+export function rewrite<R extends UnknownRecord, Actor, S extends R = R>(fn: (access: RecordAccess<S>, batch: PermissionBatch<R, Actor, S>) => RecordAccess<S> | void): PermissionMiddleware<R, Actor, S>;
 
 // @public
 export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
@@ -401,6 +503,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
+    // @internal
+    batchPermissions<T>(fn: () => T): T;
+    checkWrites(items: readonly RecordAccess<R>[]): PermissionResult<R>;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;
@@ -419,6 +524,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
+    getPermissions(): null | StorePermissions<R>;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -440,11 +546,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
+    setPermissions(permissions: null | StorePermissions<R>): void;
     readonly sideEffects: StoreSideEffects<R>;
     unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
+    withoutPermissions<T>(fn: () => T): T;
 }
 
 // @public
@@ -495,6 +603,14 @@ export type StoreObjectRecordType<Context extends StoreObject<any>> = Context ex
 
 // @public
 export type StoreOperationCompleteHandler = (source: 'remote' | 'user') => void;
+
+// @public
+export interface StorePermissions<R extends UnknownRecord> {
+    // (undocumented)
+    readonly chain: PermissionChain<R, any>;
+    getActor(): unknown;
+    onDenied?(denials: readonly PermissionDenial<R>[]): void;
+}
 
 // @public
 export class StoreQueries<R extends UnknownRecord> {
