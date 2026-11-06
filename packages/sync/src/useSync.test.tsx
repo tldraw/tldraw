@@ -81,7 +81,11 @@ describe('useSync', () => {
 		const clientB = Mock.instances[1]
 
 		act(() => {
-			clientB.opts.onAfterConnect(clientB, { isReadonly: false, objectAccess: 'write' })
+			clientB.opts.onAfterConnect(clientB, {
+				access: { document: 'write', objects: 'write' },
+				isReadonly: false,
+				objectAccess: 'write',
+			})
 			clientB.opts.onLoad(clientB)
 		})
 
@@ -89,6 +93,7 @@ describe('useSync', () => {
 		expect(latest).toMatchObject({
 			status: 'synced-remote',
 			connectionStatus: 'online',
+			access: { document: 'write', objects: 'write' },
 			objectAccess: 'write',
 		})
 	})

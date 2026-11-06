@@ -1222,8 +1222,9 @@ describe('28. TLSocketRoom (SR)', () => {
 			connectSession(room, 'test', socket)
 
 			const snapshot = room.getSessionSnapshot('test')!
-			// simulate a snapshot persisted before the objectAccess field existed
+			// simulate a snapshot persisted before the objectAccess and access fields existed
 			delete snapshot.objectAccess
+			delete snapshot.access
 
 			const room2 = new TLSocketRoom({})
 			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
