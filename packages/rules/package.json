@@ -1,0 +1,23 @@
+{
+	"name": "@tldraw/rules",
+	"description": "Declarative per-type access rules for tldraw, evaluated the same way on client and server. Prototype: private.",
+	"version": "0.0.0",
+	"private": true,
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"type": "module",
+	"dependencies": {},
+	"devDependencies": {
+		"vitest": "^5.0.0",
+		"@tldraw/tlschema": "workspace:*"
+	},
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	}
+}
