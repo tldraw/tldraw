@@ -21,12 +21,13 @@ import {
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
-import { UnknownRecord } from '@tldraw/store'
+import { StoreSchema, UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
 	RoomSnapshot,
 	SQLiteSyncStorage,
+	TLSessionAccess,
 	TLSocketRoom,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
@@ -35,7 +36,6 @@ import {
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
-	type TLObjectStoreAccess,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
@@ -51,22 +51,22 @@ import {
 	isCommentId,
 	isCommentReactionId,
 	isCommentThreadId,
+	TLStoreProps,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	objectMapEntries,
-	retry,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import {
+	FileRecord,
+	OBJECT_TYPES,
+	SessionMeta,
+	authorizeFileRecord,
+	transformFileRecord,
+} from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -222,9 +222,8 @@ class FileRecordNotFoundError extends Error {
 interface SocketAttachment {
 	sessionId: string
 	meta: SessionMeta
-	isReadonly: boolean
-	// optional: attachments serialized before the object-store lane existed lack this field
-	objectAccess?: TLObjectStoreAccess
+	// optional: attachments serialized before this field existed carry the old flags instead
+	access?: TLSessionAccess
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
@@ -269,18 +268,9 @@ const MB = 1024 * 1024
 // through the room; comments are persisted to Postgres rather than the main document blob (see
 // drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
 // client (see useSync in the dotcom client) or the schemas won't match.
-const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
-
-// Record types served through the room's object-store lane rather than the document lane.
-// Object-lane records sync over the same socket but are gated per session by `objectAccess`
-// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
-// rather than the R2 document blob. Every entry must have an `authorizeFileRecord` authorizer —
-// that's where per-tier write policy lives (the `satisfies` enforces it).
-const OBJECT_TYPES = [
-	'comment-thread',
-	'comment',
-	'comment-reaction',
-] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
+const fileSyncSchema = createTLSchema({
+	records: commentSchemaRecords,
+}) as unknown as StoreSchema<FileRecord, TLStoreProps>
 
 // The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
@@ -292,14 +282,14 @@ export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
 
-	private _storage: Promise<TLSyncStorage<TLRecord>> | null = null
+	private _storage: Promise<TLSyncStorage<FileRecord>> | null = null
 
-	private async loadStorage(slug: string): Promise<TLSyncStorage<TLRecord>> {
+	private async loadStorage(slug: string): Promise<TLSyncStorage<FileRecord>> {
 		const sql = new DurableObjectSqliteSyncWrapper(this.ctx.storage)
 
 		// If SQLite has been initialized, use it directly
 		if (SQLiteSyncStorage.hasBeenInitialized(sql)) {
-			return new SQLiteSyncStorage<TLRecord>({ sql, objectTypes: OBJECT_TYPES })
+			return new SQLiteSyncStorage<FileRecord>({ sql, objectTypes: OBJECT_TYPES })
 		}
 
 		// SQLite not initialized yet, load from R2 and initialize. The loaded snapshot has the
@@ -309,7 +299,7 @@ export class TLFileDurableObject extends DurableObject {
 		// Decoding a large board into SQLite is sync CPU; without this it runs under whichever
 		// network stage loadFromDatabase last set.
 		this.setBootStage('storage-load:sqlite-init')
-		const storage = new SQLiteSyncStorage<TLRecord>({
+		const storage = new SQLiteSyncStorage<FileRecord>({
 			sql,
 			snapshot: result.snapshot,
 			objectTypes: OBJECT_TYPES,
@@ -320,7 +310,7 @@ export class TLFileDurableObject extends DurableObject {
 		return storage
 	}
 
-	private getStorage(): Promise<TLSyncStorage<TLRecord>> {
+	private getStorage(): Promise<TLSyncStorage<FileRecord>> {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
 		}
@@ -384,7 +374,7 @@ export class TLFileDurableObject extends DurableObject {
 		return this._storage
 	}
 
-	_room: Promise<TLSocketRoom<TLRecord, SessionMeta>> | null = null
+	_room: Promise<TLSocketRoom<FileRecord, SessionMeta>> | null = null
 
 	// Which boot phase a pending _storage/_room promise last reached, and when it was entered.
 	// Pending promises are cached, so when a boot wedges every caller awaits the same stuck
@@ -400,28 +390,22 @@ export class TLFileDurableObject extends DurableObject {
 	private recordVetoWarningScheduled = false
 	private recordVetoCounts?: Map<string, number>
 
-	private observeRecordAuthorizers(
-		authorizers: typeof authorizeFileRecord
-	): typeof authorizeFileRecord {
-		return Object.fromEntries(
-			objectMapEntries(authorizers).map(([typeName, authorize]) => {
-				if (!authorize) return [typeName, undefined]
-				return [
-					typeName,
-					(args: Parameters<typeof authorize>[0]) => {
-						const result = authorize(args as never)
-						if (result === null) {
-							try {
-								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
-							} catch {
-								// Failed telemetry must never change authorization.
-							}
-						}
-						return result
-					},
-				]
-			})
-		) as typeof authorizeFileRecord
+	private observeAuthorizer(authorize: typeof authorizeFileRecord): typeof authorizeFileRecord {
+		return (args) => {
+			const refusal = authorize(args)
+			if (refusal) {
+				try {
+					for (const change of args.changes) {
+						const record = change.type === 'delete' ? change.prev : change.next
+						if (!refusal.ids?.includes(record.id)) continue
+						this.recordVeto(record.typeName, change.type, record)
+					}
+				} catch {
+					// Failed telemetry must never change authorization.
+				}
+			}
+			return refusal
+		}
 	}
 
 	getRoom() {
@@ -432,7 +416,7 @@ export class TLFileDurableObject extends DurableObject {
 			const promise = this.getStorage()
 				.then(async (storage) => {
 					this.setBootStage('room-create')
-					const room = new TLSocketRoom<TLRecord, SessionMeta>({
+					const room = new TLSocketRoom<FileRecord, SessionMeta>({
 						storage,
 						schema: fileSyncSchema,
 						objectTypes: OBJECT_TYPES,
@@ -516,7 +500,8 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						transform: transformFileRecord,
+						authorize: this.observeAuthorizer(authorizeFileRecord),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -1219,17 +1204,16 @@ export class TLFileDurableObject extends DurableObject {
 				storeId: storeId ?? sessionId,
 				userId: auth?.userId ? auth.userId : null,
 			}
-			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
-			// Only authenticated users can write comments — authors are stored in Postgres with a
-			// foreign key to the user table, so an anonymous author can't be represented. Tier
-			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
-			// `isReadonly`.
-			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
+			// The rule decides every write from this and `meta`; the client receives it as-is and
+			// locks its canvas and comment UI from it.
+			const access: TLSessionAccess = {
+				document: openMode === ROOM_OPEN_MODE.READ_ONLY ? 'read' : 'write',
+				objects: auth?.userId ? 'write' : 'read',
+			}
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
-				isReadonly,
-				objectAccess,
+				access,
 				clientBuildTimestamp,
 				snapshot: null,
 			}
@@ -1253,8 +1237,7 @@ export class TLFileDurableObject extends DurableObject {
 				sessionId,
 				socket: serverWebSocket,
 				meta,
-				isReadonly,
-				objectAccess,
+				access,
 			})
 			// Mapped here and on resume, never from webSocketMessage: a superseded socket for the same
 			// session id can still deliver messages, and would steal the session's snapshot writes.
@@ -1486,10 +1469,13 @@ export class TLFileDurableObject extends DurableObject {
 	}
 
 	private recordVeto(
-		typeName: keyof typeof authorizeFileRecord,
+		clientTypeName: string,
 		operation: 'create' | 'update' | 'delete',
 		record: UnknownRecord
 	) {
+		const typeName = Object.hasOwn(fileSyncSchema.types, clientTypeName)
+			? clientTypeName
+			: 'unknown'
 		const shape = record as UnknownRecord & { type?: unknown }
 		const shapeType =
 			typeName !== 'shape'
@@ -2647,7 +2633,7 @@ export class TLFileDurableObject extends DurableObject {
 		)
 	}
 
-	private enqueueCommentChanges(diff: TLSyncForwardDiff<TLRecord>) {
+	private enqueueCommentChanges(diff: TLSyncForwardDiff<FileRecord>) {
 		const ids: string[] = []
 		for (const put of Object.values(diff.puts)) {
 			const record = (Array.isArray(put) ? put[1] : put) as { id: string }
@@ -3352,8 +3338,8 @@ export class TLFileDurableObject extends DurableObject {
 		// in which case we should kick people out or change their permissions
 		//
 		// Only `edit` links grant guests canvas write; anything else fails closed. A tier change
-		// flips `isReadonly`, and the reconnect refreshes the session state the comment
-		// authorizers gate on — so comparing the readonly lane alone covers both.
+		// flips document access, and the reconnect refreshes the session state the comment
+		// rules gate on — so comparing the document lane alone covers both.
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
 
 		for (const session of room.getSessions()) {
@@ -3371,7 +3357,7 @@ export class TLFileDurableObject extends DurableObject {
 				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
-			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
+			} else if ((session.access.document === 'read') !== roomIsReadOnlyForGuests) {
 				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect
 					room.closeSession(session.sessionId)
@@ -3570,7 +3556,7 @@ export class TLFileDurableObject extends DurableObject {
 		// A room that can't boot (a hard-deleted legacy room with tabs still attached, a transient
 		// storage error) must not abort the drain — the raw close below suffices on its own for
 		// every non-legacy-protocol client.
-		let room: TLSocketRoom<TLRecord, SessionMeta> | null = null
+		let room: TLSocketRoom<FileRecord, SessionMeta> | null = null
 		if (this._documentInfo) {
 			try {
 				room = await this.getRoom()
@@ -3588,7 +3574,7 @@ export class TLFileDurableObject extends DurableObject {
 	 */
 	private closeSockets(
 		sockets: WebSocket[],
-		room: TLSocketRoom<TLRecord, SessionMeta> | null,
+		room: TLSocketRoom<FileRecord, SessionMeta> | null,
 		reason: TLSyncErrorCloseEventReason
 	) {
 		for (const ws of sockets) {
