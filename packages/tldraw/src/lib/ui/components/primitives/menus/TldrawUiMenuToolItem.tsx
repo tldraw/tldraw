@@ -1,3 +1,5 @@
+import { useMaybeEditor, useValue } from '@tldraw/editor'
+import { isToolAvailable } from '../../../context/action-state'
 import { useTools } from '../../../hooks/useTools'
 import { TldrawUiMenuItem, TLUiMenuItemProps } from './TldrawUiMenuItem'
 
@@ -8,8 +10,14 @@ export type TLUiMenuToolItemProps = {
 
 /** @public @react */
 export function TldrawUiMenuToolItem({ toolId = '', ...rest }: TLUiMenuToolItemProps) {
+	const editor = useMaybeEditor()
 	const tools = useTools()
 	const tool = tools[toolId]
-	if (!tool) return null
+	const isAvailable = useValue(
+		'tool available',
+		() => !editor || !tool || isToolAvailable(editor, tool),
+		[editor, tool]
+	)
+	if (!tool || !isAvailable) return null
 	return <TldrawUiMenuItem {...tool} {...rest} />
 }

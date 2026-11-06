@@ -1,4 +1,6 @@
-import type { Editor } from '@tldraw/editor'
+import type { Editor, TLShape } from '@tldraw/editor'
+import type { TLUiToolItem } from '../hooks/useTools'
+import { canCreateShapeOfType } from './action-predicates'
 import type { TLUiActionItem } from './actions'
 
 /** @internal */
@@ -12,8 +14,36 @@ export interface TLUiActionState {
 const MISSING: TLUiActionState = { available: false, enabled: false, checked: undefined }
 const NO_EDITOR: TLUiActionState = { available: true, enabled: true, checked: undefined }
 
+/** @internal */
+export function isReadonlyOk(
+	editor: Editor,
+	readonlyOk: boolean | ((editor: Editor) => boolean) | undefined
+) {
+	if (typeof readonlyOk !== 'function') return !!readonlyOk
+	try {
+		return readonlyOk(editor)
+	} catch (error) {
+		console.error('A readonlyOk check threw, so the item is hidden while readonly', error)
+		return false
+	}
+}
+
+/**
+ * Whether a tool shows and runs now: in readonly mode only when it is `readonlyOk`, and a tool
+ * that creates shapes only when the `canWrite` editor option lets this person create that shape
+ * on the current page. A tool creates the shape type it is named after, the geo tools (such as
+ * `rectangle`) create geo shapes, and the media tool creates images.
+ *
+ * @internal
+ */
+export function isToolAvailable(editor: Editor, tool: TLUiToolItem) {
+	if (editor.getIsReadonly() && !isReadonlyOk(editor, tool.readonlyOk)) return false
+	const type = tool.meta?.geo ? 'geo' : tool.id === 'asset' ? 'image' : tool.id
+	return canCreateShapeOfType(editor, type as TLShape['type'])
+}
+
 function isActionAvailable(editor: Editor, action: TLUiActionItem) {
-	if (editor.getIsReadonly() && !action.readonlyOk) return false
+	if (editor.getIsReadonly() && !isReadonlyOk(editor, action.readonlyOk)) return false
 	return !action.isAvailable || action.isAvailable(editor)
 }
 
@@ -47,7 +77,7 @@ function readActionState(editor: Editor, action: TLUiActionItem): TLUiActionStat
 	const available = tryPredicate(
 		'isAvailable',
 		() => isActionAvailable(editor, action),
-		!editor.getIsReadonly() || !!action.readonlyOk
+		!editor.getIsReadonly() || isReadonlyOk(editor, action.readonlyOk)
 	)
 	const enabled =
 		available && tryPredicate('isEnabled', () => isActionEnabled(editor, action), false)
@@ -79,7 +109,7 @@ function reportThrowingPredicate(
  */
 export function isActionRunnable(editor: Editor, action: TLUiActionItem | undefined): boolean {
 	if (!action) return false
-	if (editor.getIsReadonly() && !action.readonlyOk) return false
+	if (editor.getIsReadonly() && !isReadonlyOk(editor, action.readonlyOk)) return false
 	return passes(editor, action, 'isAvailable') && passes(editor, action, 'isEnabled')
 }
 

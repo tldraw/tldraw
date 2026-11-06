@@ -3,9 +3,11 @@ import {
 	Editor,
 	StateNode,
 	TLCommentAnchor,
+	TLRecord,
 	TLStateNodeConstructor,
 	TLUiOverrides,
 	VecLike,
+	createCommentThread,
 	defineMessages,
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
@@ -325,6 +327,17 @@ export const commentToolOverrides: TLUiOverrides = {
 			icon: 'comment',
 			label: messages.toolComment.id,
 			kbd: 'c',
+			// A readonly person may still comment where the editor's canWrite option allows it
+			readonlyOk: (editor) =>
+				editor.store.scopedTypes.document.has('comment-thread' as TLRecord['typeName']) &&
+				editor.canWrite({
+					type: 'create',
+					record: createCommentThread({
+						pageId: editor.getCurrentPageId(),
+						anchor: { type: 'point', x: 0, y: 0 },
+						createdBy: editor.user.getExternalId(),
+					}) as unknown as TLRecord,
+				}),
 			onSelect: (source) => {
 				// The menu was opened by the last pointer down; the live pointer is over the menu now.
 				if (source === 'context-menu') startCommentAt(editor, editor.inputs.getOriginPagePoint())

@@ -197,7 +197,7 @@ export function usePrint() {
 			} else {
 				if (allowAllPages) {
 					// Print all pages
-					const pages = editor.getPages()
+					const pages = editor.getVisiblePages()
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]
 						const svgExport = await editor.getSvgString(

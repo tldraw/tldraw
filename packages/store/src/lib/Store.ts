@@ -1092,7 +1092,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	// A before-handler may veto only a write that someone asked for on this client. The server
 	// has already accepted a remote change, so blocking it or its cleanup would leave this client
 	// out of sync with the server, and a blocked integrity repair would retry forever.
-	private canVeto() {
+	/** @internal */
+	canVeto() {
 		return !this.isMergingRemoteChanges && !this._isReactingToRemoteChanges && !this.isRepairing
 	}
 
@@ -1354,6 +1355,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 	private _isInAtomicOp = false
+
+	/** @internal */
+	isInAtomicOp() {
+		return this._isInAtomicOp
+	}
+
 	/** @internal */
 	atomic<T>(fn: () => T, runCallbacks = true, isMergingRemoteChanges = false): T {
 		return transact(() => {

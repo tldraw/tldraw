@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from '@tldraw/editor'
+import { canWriteSelection } from '../context/action-predicates'
 
 const selectToolStyles: readonly StyleProp<any>[] = Object.freeze([
 	DefaultColorStyle,
@@ -27,6 +28,8 @@ export function useRelevantStyles(stylesToCheck = selectToolStyles): ReadonlySha
 			const isInShapeSpecificTool = !!editor.root.getCurrent()?.shapeType
 			const isInSelect = editor.isIn('select')
 			const hasShapesSelected = isInSelect && editor.getSelectedShapeIds().length > 0
+			// A style change to a shape the canWrite option blocks would roll back the whole change
+			if (hasShapesSelected && !canWriteSelection(editor)) return null
 
 			if (styles.size === 0 && isInSelect && !hasShapesSelected) {
 				for (const style of stylesToCheck) {

@@ -4664,7 +4664,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     } | TransationKey;
     // (undocumented)
     onSelect(source: TLUiEventSource): Promise<void> | void;
-    readonlyOk?: boolean;
+    readonlyOk?: ((editor: Editor) => boolean) | boolean;
 }
 
 // @public (undocumented)
@@ -5497,7 +5497,7 @@ export interface TLUiMenuItemProps<TranslationKey extends string = string, IconT
     noClose?: boolean;
     onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     onSelect(source: TLUiEventSource): Promise<void> | void;
-    readonlyOk?: boolean;
+    readonlyOk?: ((editor: Editor) => boolean) | boolean;
     spinner?: boolean;
 }
 
@@ -5851,8 +5851,7 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void;
     // (undocumented)
     onSelect(source: TLUiEventSource): void;
-    // (undocumented)
-    readonlyOk?: boolean;
+    readonlyOk?: ((editor: Editor) => boolean) | boolean;
     // (undocumented)
     shortcutsLabel?: TranslationKey;
 }

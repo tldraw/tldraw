@@ -106,6 +106,18 @@ export default function App() {
 
 For examples using hidden shapes, see the [collaboration private content example](/examples/collaboration/sync-private-content) and the [layer panel example](/examples/ui/layer-panel).
 
+## Hidden pages
+
+The `getPageVisibility` option hides pages in the same way. It returns `'hidden'` or `'visible'` for a page:
+
+```tsx
+<Tldraw getPageVisibility={(page) => (page.meta.private ? 'hidden' : 'visible')} />
+```
+
+A hidden page is left out of [Editor#getVisiblePages](?), which the page menu, the "Move to page" menu, page navigation and printing use. The editor does not navigate to a hidden page, and if the current page becomes hidden, it moves to the first visible page. If a person follows a collaborator who goes to a hidden page, the editor stops following them and stays on the current page. [Editor#getPages](?) still returns every page. Check a single page with [Editor#isPageHidden](?).
+
+Like hidden shapes, hidden pages are still in the store. To keep a page's records away from a client, filter them on the server, for example with `beforeRead` on a sync room.
+
 ## Opacity
 
 Each shape has an `opacity` property (0 to 1) that controls its transparency. When shapes are nested, opacity multiplies down the hierarchy: a shape at 0.5 opacity inside a parent at 0.5 opacity renders at 0.25 opacity.

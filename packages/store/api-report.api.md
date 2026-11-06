@@ -401,6 +401,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
+    // @internal (undocumented)
+    canVeto(): boolean;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;
@@ -423,6 +425,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
     readonly id: string;
+    // @internal (undocumented)
+    isInAtomicOp(): boolean;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
     isReactingToRemoteChanges(): boolean;
