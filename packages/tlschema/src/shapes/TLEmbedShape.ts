@@ -1,5 +1,7 @@
 import { safeParseUrl } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
+import { assetIdValidator } from '../assets/TLBaseAsset'
+import { TLAssetId } from '../records/TLAsset'
 import { createShapePropsMigrationIds, createShapePropsMigrationSequence } from '../records/TLShape'
 import { RecordProps } from '../recordsWithProps'
 import { TLBaseShape } from './TLBaseShape'
@@ -264,6 +266,11 @@ export interface TLEmbedShapeProps {
 	h: number
 	/** URL of the content to embed (supports YouTube, Figma, CodePen, etc.) */
 	url: string
+	/**
+	 * Bookmark asset with the page's preview image, which exports draw in place of the iframe they
+	 * can't capture. Null when there is none.
+	 */
+	assetId: TLAssetId | null
 }
 
 /**
@@ -310,6 +317,7 @@ export const embedShapeProps: RecordProps<TLEmbedShape> = {
 	w: T.nonZeroNumber,
 	h: T.nonZeroNumber,
 	url: T.string,
+	assetId: assetIdValidator.nullable(),
 }
 
 const Versions = createShapePropsMigrationIds('embed', {
@@ -317,6 +325,7 @@ const Versions = createShapePropsMigrationIds('embed', {
 	RemoveDoesResize: 2,
 	RemoveTmpOldUrl: 3,
 	RemovePermissionOverrides: 4,
+	AddAssetId: 5,
 })
 
 /**
@@ -381,6 +390,15 @@ export const embedShapeMigrations = createShapePropsMigrationSequence({
 				delete props.overridePermissions
 			},
 			down: 'retired',
+		},
+		{
+			id: Versions.AddAssetId,
+			up: (props) => {
+				props.assetId = null
+			},
+			down: (props) => {
+				delete props.assetId
+			},
 		},
 	],
 })

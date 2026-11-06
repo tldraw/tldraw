@@ -1310,6 +1310,7 @@ export type TLEmbedShape = TLBaseShape<'embed', TLEmbedShapeProps>;
 
 // @public
 export interface TLEmbedShapeProps {
+    assetId: null | TLAssetId;
     h: number;
     url: string;
     w: number;

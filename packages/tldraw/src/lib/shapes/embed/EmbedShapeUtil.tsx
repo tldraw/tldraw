@@ -210,6 +210,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			w: 300,
 			h: 300,
 			url: '',
+			assetId: null,
 		}
 	}
 
