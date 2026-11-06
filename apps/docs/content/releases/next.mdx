@@ -8,7 +8,7 @@ status: published
 last_version: v5.6.0
 ---
 
-So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, improves crop mode, and runs agent starter kit actions through tool calls. It also includes bug fixes across frame hit testing, text shape bounds, cursor chat, and the comment composer.
+So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, improves crop mode, and runs agent starter kit actions through tool calls. It also includes bug fixes across media asset handling, frame hit testing, text shape bounds, cursor chat, and the comment composer.
 
 ## API changes
 
@@ -28,6 +28,8 @@ So far this release lets shapes decide whether they can flip, gates action execu
 
 ## Bug fixes
 
+- Fix a crash when dropping an audio-only video file (for example `.webm`) or a file with no size on the canvas. ([#11220](https://github.com/tldraw/tldraw/pull/11220))
+- Fix replacing an image or video when the upload fails: the shape now keeps its previous media and an error toast shows. ([#11220](https://github.com/tldraw/tldraw/pull/11220))
 - Fix clicks in the empty space above a frame selecting the frame when zoomed out. ([#11253](https://github.com/tldraw/tldraw/pull/11253))
 - Fix cursor chat closing immediately when opened from the context menu. ([#11054](https://github.com/tldraw/tldraw/pull/11054))
 - Fix the comment composer's text jumping up when a comment wraps onto a second line. ([#11255](https://github.com/tldraw/tldraw/pull/11255))
