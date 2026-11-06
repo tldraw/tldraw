@@ -1,5 +1,6 @@
 import { BaseRecord, RecordId, StoreSchema, createRecordType } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
+import { canRead } from '../lib/canRead'
 import { canWrite } from '../lib/canWrite'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
@@ -1262,5 +1263,100 @@ describe('composeBeforeRead', () => {
 		expect(
 			doc({ session: {}, record: Doc.create({ title: 'x' }), get: () => undefined })
 		).toBeUndefined()
+	})
+})
+
+describe('canRead', () => {
+	const plain = Doc.create({ title: 'plain' })
+	const secret = Doc.create({ title: 'secret plan' })
+	const notSecret = canRead<R, any>({
+		doc: ({ session, record }) =>
+			session.meta.role === 'owner' || !record.title.startsWith('secret'),
+	})
+
+	function roomWith(beforeRead: any, log?: any) {
+		const { room } = makeRoom({
+			beforeRead,
+			log,
+			snapshot: {
+				documents: [
+					{ state: plain, lastChangedClock: 0 },
+					{ state: secret, lastChangedClock: 0 },
+				],
+				clock: 0,
+				documentClock: 0,
+				schema: schema.serialize(),
+			},
+		})
+		return room
+	}
+	const connectDiff = (socket: MockSocket) =>
+		(socket.__messages.find((m: any) => m.type === 'connect') as any).diff
+
+	it('sends the stored record when a check returns true, and nothing when it returns false', () => {
+		const room = roomWith(notSecret)
+		const alice = connectSession(room, 'alice', { meta: { role: 'owner' }, clear: false })
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+
+		expect(connectDiff(alice)).toEqual({
+			[plain.id]: [RecordOpType.Put, plain],
+			[secret.id]: [RecordOpType.Put, secret],
+		})
+		expect(connectDiff(bob)).toEqual({ [plain.id]: [RecordOpType.Put, plain] })
+	})
+
+	it('removes a record from a client that holds it when the check turns false', () => {
+		const room = roomWith(notSecret)
+		connectSession(room, 'alice', { meta: { role: 'owner' } })
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' } })
+
+		push(room, 'alice', {
+			[plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'secret now'] }],
+		})
+		room._flushDataMessages('bob')
+
+		expect(
+			sentDataMessages(bob)
+				.filter((m) => m.type === 'patch')
+				.map((m) => m.diff)
+		).toEqual([{ [plain.id]: [RecordOpType.Remove] }])
+	})
+
+	it('hides the record when a check throws', () => {
+		const log = { error: vi.fn() }
+		const room = roomWith(
+			canRead<R, any>({
+				doc: () => {
+					throw new Error('boom')
+				},
+			}),
+			log
+		)
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+
+		expect(connectDiff(bob)).toEqual({})
+		expect(log.error).toHaveBeenCalled()
+	})
+
+	it('composes with a masking hook, which never sees a hidden record', () => {
+		const masked: string[] = []
+		const room = roomWith(
+			composeBeforeRead<R, any>(notSecret, {
+				doc: ({ record }) => {
+					masked.push(record.title)
+					return { ...record, title: '***' }
+				},
+			})
+		)
+		const bob = connectSession(room, 'bob', { meta: { role: 'viewer' }, clear: false })
+
+		expect(connectDiff(bob)).toEqual({
+			[plain.id]: [RecordOpType.Put, { ...plain, title: '***' }],
+		})
+		expect(masked).toEqual(['plain'])
+	})
+
+	it('skips types with no check', () => {
+		expect(Object.keys(canRead<R, any>({ doc: undefined, note: () => true }))).toEqual(['note'])
 	})
 })
