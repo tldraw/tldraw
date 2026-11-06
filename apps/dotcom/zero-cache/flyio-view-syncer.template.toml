@@ -44,6 +44,8 @@ ZERO_ENABLE_CRUD_MUTATIONS = "false"
 ZERO_UPSTREAM_MAX_CONNS = "__VS_UPSTREAM_MAX_CONNS"
 ZERO_CVR_MAX_CONNS = "__VS_CVR_MAX_CONNS"
 ZERO_LOG_LEVEL = "warn"
+# A hydration that never finishes pins its replica snapshot, so the WAL grows until the disk fills.
+ZERO_VIEW_SYNCER_QUERY_HYDRATION_TIMEOUT_MS = "120000"
 OTEL_TRACES_EXPORTER = "none"
 DO_NOT_TRACK = "1"
 OTEL_NODE_RESOURCE_DETECTORS = "env,host,os"
