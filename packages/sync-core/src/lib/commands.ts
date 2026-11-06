@@ -120,11 +120,12 @@ export interface TLEditPolicyContext<R extends UnknownRecord> extends TLRecordLo
 	 */
 	readonly before: TLRecordLookup<R>
 	/**
-	 * True in the client's guard, which checks one record at a time while the store changes, so
-	 * `before` and the state after are the same. A rule that needs the whole push can allow the
-	 * change there; the server, which sees the whole push, decides.
+	 * Records whose delete has started but is not yet in `get`. The client's guard checks each
+	 * record as the store changes, and a delete can first change related records while the deleted
+	 * record is still in the store: tldraw moves the ends of the arrows bound to a shape before it
+	 * removes that shape. The server sees the whole push in `get`, so this is empty there.
 	 */
-	readonly isClient: boolean
+	readonly deleting: ReadonlySet<string>
 }
 
 /**
@@ -149,10 +150,11 @@ export interface TLEditPolicy<R extends UnknownRecord> {
 	readonly openTypes?: readonly string[]
 	authorize?(ctx: TLEditPolicyContext<R>): boolean
 	/**
-	 * Change a record that the actor creates through the edit lane, for example to stamp the
-	 * owner. Runs on the client before the record is stored, and on the server again, where the
-	 * server's result wins. The server also runs it on every write of the actor's presence record,
-	 * so a cursor always shows who moves it. `records` is the room before the write.
+	 * Change a record that the actor writes through the edit lane, for example to stamp the owner
+	 * on a create and keep it on every update. Runs on the client before the record is stored, and
+	 * on the server again, where the server's result wins. The server also runs it on every write
+	 * of the actor's presence record, so a cursor always shows who moves it. `records` is the room
+	 * before the write, so `records.get(record.id)` is the record as it was, if it existed.
 	 */
 	stamp?(actor: TLCommandActor, record: R, records: TLRecordLookup<R>): R
 }

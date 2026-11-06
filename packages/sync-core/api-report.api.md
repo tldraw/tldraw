@@ -541,7 +541,7 @@ export interface TLEditPolicyContext<R extends UnknownRecord> extends TLRecordLo
     // (undocumented)
     readonly actor: TLCommandActor;
     readonly before: TLRecordLookup<R>;
-    readonly isClient: boolean;
+    readonly deleting: ReadonlySet<string>;
     // (undocumented)
     readonly next: null | R;
     // (undocumented)
@@ -792,10 +792,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 
 // @internal
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
-    type: 'actor';
-    actor: TLCommandActor;
-    isReadonly: boolean;
-} | {
+    hostReadonly?: boolean;
     objectAccess?: TLObjectStoreAccess;
     actor?: TLCommandActor;
     connectRequestId: string;
@@ -806,6 +803,10 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     schema: SerializedSchema;
     serverClock: number;
     type: 'connect';
+} | {
+    type: 'actor';
+    actor: TLCommandActor;
+    isReadonly: boolean;
 } | {
     data: any;
     type: 'custom';

@@ -105,7 +105,7 @@ describe('canEditRecord', () => {
 		next: rec,
 		...none,
 		before: none,
-		isClient: false,
+		deleting: new Set<string>(),
 	}
 
 	it('needs the edit permission unless the type is open', () => {

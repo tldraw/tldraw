@@ -119,6 +119,8 @@ const timeSince = (time: number) => Date.now() - time
 // WebSocket close frames cap the reason at 123 UTF-8 bytes; a longer one makes `close()` throw
 const MAX_CLOSE_REASON_BYTES = 123
 const closeReasonEncoder = new TextEncoder()
+// The server sees the whole push in the edit policy's `get`, so no delete is ever half done.
+const noDeletes: ReadonlySet<string> = new Set()
 
 const truncatedSuffix = (droppedBytes: number) => `... (+${droppedBytes} bytes)`
 
@@ -1533,6 +1535,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					isReadonly: session.isReadonly,
 					objectAccess: session.objectAccess,
 					actor: session.actor,
+					hostReadonly: session.hostReadonly,
 				} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
 			}
 			const presenceDiff = this.migrateDiffOrRejectSession(
@@ -1579,6 +1582,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
 				actor: session.actor,
+				hostReadonly: session.hostReadonly,
 			} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
 		}) // no id needed because this only reads, no writes.
 
@@ -2105,7 +2109,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			switch (op[0]) {
 				case RecordOpType.Put: {
 					let sent = op[1]
-					if (!prev && set.edit.stamp) {
+					if (set.edit.stamp) {
 						sent = set.edit.stamp(actor, sent, before)
 						stamped.set(id, sent)
 					}
@@ -2171,7 +2175,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					get: after.get,
 					getAll: after.getAll,
 					before,
-					isClient: false,
+					deleting: noDeletes,
 				})
 			) {
 				this.log?.warn?.('edit policy denied push', change.op, typeName, change.id)

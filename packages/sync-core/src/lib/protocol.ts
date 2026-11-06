@@ -128,6 +128,11 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			objectAccess?: TLObjectStoreAccess
 			/** Who this session acts as, for commands and the edit lane. Sent from protocol 9. */
 			actor?: TLCommandActor
+			/**
+			 * The host connected this session read-only. The server then refuses every command, so
+			 * the client does not run them. Sent from protocol 9.
+			 */
+			hostReadonly?: boolean
 	  }
 	| {
 			/**

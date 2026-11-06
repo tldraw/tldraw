@@ -757,7 +757,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store._flushHistory()
 		this.flushUnsentChanges()
 
-		const result = runCommand(this.commands, this.commandReader(), this.actor.get(), call)
+		const result = this.runOwnCommand(this.commands, this.commandReader(), call)
 		if (!result.ok) {
 			this.onPushRejected?.({ reason: result.reason, command: call })
 			return result
@@ -819,6 +819,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	private applyingCommand = false
+	/** Records whose delete has started; see {@link TLEditPolicyContext.deleting}. */
+	private readonly deleting = new Set<string>()
+	/** The host connected this session read-only, so the server refuses every command. */
+	private hostReadonly = false
 	/**
 	 * Commands on the undo stack, newest last. Each holds the call that reverses it, and the
 	 * records it changed, before and after.
@@ -954,6 +958,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		return rest
 	}
 
+	/** Run this session's command locally, as the server will. */
+	private runOwnCommand(
+		set: TLCommandSet<R>,
+		reader: TLCommandReader<R>,
+		call: TLCommandCall
+	): TLCommandResult<R> {
+		if (this.hostReadonly) return { ok: false, reason: 'this session is read-only' }
+		return runCommand(set, reader, this.actor.get(), call)
+	}
+
 	/** Whether this client's actor has a permission, reactively. */
 	can(permission: string): boolean {
 		return actorCan(this.actor.get(), permission)
@@ -977,7 +991,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			next,
 			...records,
 			before: records,
-			isClient: true,
+			deleting: this.deleting,
 		})
 	}
 
@@ -988,6 +1002,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private registerEditGuard(set: TLCommandSet<R>) {
 		const { sideEffects } = this.store
 		let removingDenied = false
+		// a later handler may cancel a delete, so its after-delete never runs
+		this.disposables.push(sideEffects.registerOperationCompleteHandler(() => this.deleting.clear()))
 		for (const typeName of this.store.scopedTypes.document) {
 			this.disposables.push(
 				sideEffects.registerBeforeCreateHandler(typeName, (record, source) => {
@@ -1013,13 +1029,29 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				sideEffects.registerBeforeChangeHandler(typeName, (prev, next, source) => {
 					if (source !== 'user' || this.applyingCommand || this.isUndoStep(next.id, next))
 						return next
-					if (this.canEdit('update', prev, next)) return next
+					// tldraw replaces whole records on some updates (an uploaded asset), so the stamp
+					// keeps fields such as the owner that the new record leaves out
+					const stamped = set.edit.stamp
+						? set.edit.stamp(this.actor.get(), next, this.storeLookup())
+						: next
+					if (this.canEdit('update', prev, stamped)) return stamped
 					return prev
 				}),
 				sideEffects.registerBeforeDeleteHandler(typeName, (record, source) => {
-					if (source !== 'user' || removingDenied || this.applyingCommand) return
-					if (this.isUndoStep(record.id, undefined) || this.canEdit('delete', record, null)) return
-					return false
+					if (
+						source === 'user' &&
+						!removingDenied &&
+						!this.applyingCommand &&
+						!this.isUndoStep(record.id, undefined) &&
+						!this.canEdit('delete', record, null)
+					) {
+						return false
+					}
+					this.deleting.add(record.id)
+					return
+				}),
+				sideEffects.registerAfterDeleteHandler(typeName, (record) => {
+					this.deleting.delete(record.id)
 				})
 			)
 		}
@@ -1054,7 +1086,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.replay = []
 		for (const request of replay) {
 			if (request.command) {
-				const result = runCommand(set, this.commandReader(), this.actor.get(), request.command)
+				const result = this.runOwnCommand(set, this.commandReader(), request.command)
 				if (result.ok) {
 					const changes = this.store.extractingChanges(() => this.applyCommandWrites(result.writes))
 					squashRecordDiffsMutable(this.speculativeChanges, [changes])
@@ -1192,6 +1224,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.store.applyDiff(stashedChanges, false)
 
 			const actor = event.actor ?? defaultActor(event.isReadonly)
+			this.hostReadonly = event.hostReadonly ?? false
 			this.actor.set(actor)
 			this.onActorChange?.({ actor, isReadonly: event.isReadonly })
 			this.onAfterConnect?.(this, {
@@ -1408,10 +1441,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 							if (request.command && this.commands) {
 								// Run the command again on the new state. If it is denied now, the
 								// server will deny it too, so drop its effects.
-								const result = runCommand(
+								const result = this.runOwnCommand(
 									this.commands,
 									this.commandReader(),
-									this.actor.get(),
 									request.command
 								)
 								if (result.ok) this.applyCommandWrites(result.writes)

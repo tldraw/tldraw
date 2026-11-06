@@ -639,6 +639,7 @@ describe('when the client is too old', () => {
 			isReadonly: false,
 			objectAccess: 'write',
 			actor: { userId: null, permissions: ['*'] },
+			hostReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1SendMessage).toHaveBeenCalledWith({
@@ -652,6 +653,7 @@ describe('when the client is too old', () => {
 			isReadonly: false,
 			objectAccess: 'write',
 			actor: { userId: null, permissions: ['*'] },
+			hostReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		v2SendMessage.mockClear()
@@ -1175,6 +1177,7 @@ describe('when the client is the same version', () => {
 			isReadonly: false,
 			objectAccess: 'write',
 			actor: { userId: null, permissions: ['*'] },
+			hostReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
@@ -1188,6 +1191,7 @@ describe('when the client is the same version', () => {
 			isReadonly: false,
 			objectAccess: 'write',
 			actor: { userId: null, permissions: ['*'] },
+			hostReadonly: false,
 		} satisfies TLSocketServerSentEvent<RV2>)
 		;(aSocket.sendMessage as Mock).mockClear()
 		;(bSocket.sendMessage as Mock).mockClear()

@@ -441,8 +441,8 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 		const ownedEnds = new Set<string>()
 		for (const binding of ctx.before.getAll('binding') as unknown as TLArrowBinding[]) {
 			if (binding.fromId !== a.id || binding.type !== 'arrow') continue
-			// only an unbind: the binding must go in this same push
-			if (!ctx.isClient && ctx.get(binding.id)) continue
+			// only an unbind: the binding goes in this push, or the shape it points at is being deleted
+			if (ctx.get(binding.id) && !ctx.deleting.has(binding.toId)) continue
 			const to = ctx.before.get(binding.toId) as TLShape | undefined
 			if (to && ownsShape(ctx.actor, to)) ownedEnds.add(binding.props.terminal)
 		}
@@ -475,21 +475,30 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 					return {
 						...record,
 						userId: userRecordId ?? 'user:anonymous',
-						userName: user?.name ?? actor.userId ?? 'Anonymous',
-						color: user?.color ?? (record as unknown as TLInstancePresence).color,
+						// tldraw's default user name and color are '', and its cursor falls back for those
+						userName: user?.name || actor.userId || 'Anonymous',
+						color: user?.color || (record as unknown as TLInstancePresence).color,
 					} as unknown as R
 				}
 				case 'user': {
 					// Another person's user record is an attribution cache (tldraw adds one on paste).
-					// It may not choose that person's name; their own editor writes it.
+					// It may not choose that person's name or color; their own editor writes them.
 					if (record.id === userRecordId) return record
-					return { ...record, name: '', imageUrl: '' } as R
+					return { ...record, name: '', imageUrl: '', color: '' } as R
 				}
 				case 'shape':
 				case 'asset': {
-					if (!actor.userId) return record
-					const meta = (record as unknown as TLShape).meta
-					return { ...record, meta: { ...meta, ownerId: actor.userId } } as unknown as R
+					// A new record is the actor's. An update keeps the owner it had, even when the
+					// client sends a whole new record (tldraw does this when an upload finishes).
+					const prev = records.get(record.id) as TLShape | TLAsset | undefined
+					const owner = prev ? getRecordOwner(prev) : actor.userId
+					const r = record as unknown as TLShape | TLAsset
+					if (getRecordOwner(r) === owner) return record
+					const { ownerId: _, ...meta } = r.meta ?? {}
+					return {
+						...r,
+						meta: owner === undefined ? meta : { ...meta, ownerId: owner },
+					} as unknown as R
 				}
 				default:
 					return record

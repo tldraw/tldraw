@@ -247,11 +247,13 @@ export class Peer {
 		this.statusListeners.forEach((l) => l({ status: 'offline' }))
 	}
 
-	reconnect() {
+	/** Connect again; `isReadonly` is the host's flag, as for a view-only link. */
+	reconnect(opts: { isReadonly?: boolean } = {}) {
 		this.local.room.handleSocketConnect({
 			sessionId: this.sessionId,
 			socket: this.serverSocket,
 			actor: this.actor,
+			isReadonly: opts.isReadonly,
 		})
 		this.statusListeners.forEach((l) => l({ status: 'online' }))
 	}

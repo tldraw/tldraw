@@ -490,7 +490,7 @@ describe('review fixes', () => {
 				get: (id) => shapes[id],
 				getAll: () => [],
 				before: { get: (id) => shapes[id], getAll: () => [] },
-				isClient: false,
+				deleting: new Set<string>(),
 			})
 		).toBe(false)
 	})
@@ -1604,5 +1604,170 @@ describe('review cycle 2', () => {
 		t.getEditor().updatePage({ id: 'page:odd' as TLPageId, meta: { readers: 'alice' } })
 		room.flush()
 		expect(a.get('page:odd' as TLPageId)).toBeUndefined()
+	})
+})
+
+describe('review cycle 3', () => {
+	it("a student's image upload saves: tldraw replaces the asset record when the upload ends", () => {
+		const { room, a, b } = setup()
+		const id = AssetRecordType.createId('drop')
+		const asset = (src: string | null) =>
+			AssetRecordType.create({
+				id,
+				type: 'image',
+				props: { name: 'a.png', src, w: 10, h: 10, mimeType: 'image/png', isAnimated: false },
+			})
+		const editor = a.getEditor()
+		// a local preview first, with no src, and its shape
+		editor.run(() => {
+			editor.createAssets([asset(null)])
+			editor.createShape({ type: 'image', props: { assetId: id, w: 10, h: 10 } })
+		})
+		room.flush()
+		// then the uploaded asset under the same id, with `meta: {}`
+		editor.updateAssets([{ ...asset('https://cdn.example/a.png'), id }])
+		room.flush()
+		const stored = room.room.getRecord(id) as any
+		expect(a.rejections).toEqual([])
+		expect([stored.props.src, stored.meta.ownerId]).toEqual(['https://cdn.example/a.png', 'alice'])
+		expect((b.get(id) as any).props.src).toBe('https://cdn.example/a.png')
+	})
+
+	it('a whole-record put cannot drop or change the owner of a shape', () => {
+		const { room, a } = setup()
+		const box = geo(a, 0)
+		room.flush()
+		const stored = () => room.room.getRecord(box) as TLShape
+		const forger = room.forger('f', student('alice'))
+		room.flush()
+		forger.push({
+			diff: { [box]: ['put', { ...stored(), x: 50, meta: { ownerId: 'bob' } }] },
+		} as any)
+		room.flush()
+		expect([stored().x, getShapeOwner(stored())]).toEqual([50, 'alice'])
+		forger.push({ diff: { [box]: ['put', { ...stored(), x: 60, meta: {} }] } } as any)
+		room.flush()
+		expect([stored().x, getShapeOwner(stored())]).toEqual([60, 'alice'])
+	})
+
+	it('a session the host makes read-only does not run commands locally', () => {
+		const { room } = setup()
+		const c = room.connect('c', commenter)
+		room.flush()
+		// the same actor comes back on a view-only link
+		c.disconnect()
+		c.reconnect({ isReadonly: true })
+		room.flush()
+		const res = c.run('comments.add', {
+			threadId: 'comment-thread:x',
+			commentId: 'comment:x',
+			pageId: page,
+			anchor: { type: 'page' },
+			body: toRichText('hi'),
+		})
+		expect(res.ok).toBe(false)
+		expect(c.get('comment:x' as any)).toBeUndefined()
+		room.flush()
+		expect(room.room.getRecord('comment:x')).toBeUndefined()
+	})
+
+	function presencePuts(room: LocalRoom) {
+		const observer = room.forger('obs', teacher)
+		room.flush()
+		return () =>
+			observer.answers
+				.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+				.filter((m) => m.type === 'patch')
+				.flatMap((m) =>
+					Object.entries(m.diff)
+						.filter(([id]) => id.startsWith('instance_presence'))
+						.map(([, op]) => op as [string, any])
+				)
+	}
+
+	it("a user record made by someone else sets neither the name nor the color of that person's cursor", () => {
+		const { room } = setup()
+		const seen = presencePuts(room)
+		const mallory = room.forger('m', student('mallory'))
+		room.flush()
+		const fake = UserRecordType.create({
+			id: UserRecordType.createId('zed'),
+			name: 'Teacher',
+			color: '#teacher',
+		})
+		mallory.push({ diff: { [fake.id]: ['put', fake] } } as any)
+		room.flush()
+		const zed = room.forger('z', student('zed'))
+		room.flush()
+		const cursor = InstancePresenceRecordType.create({
+			id: InstancePresenceRecordType.createId('z'),
+			currentPageId: page,
+			userId: 'user:zed' as TLUserId,
+			userName: 'zed',
+			color: '#zed',
+		})
+		zed.push({ presence: ['put', cursor] } as any)
+		room.flush()
+		const put = seen().find(([, r]) => r?.userId === 'user:zed')![1]
+		expect([put.userName, put.color]).toEqual(['zed', '#zed'])
+	})
+
+	it('a cursor keeps its own color when the user record has none, and moves as patches', () => {
+		const { room } = setup()
+		const seen = presencePuts(room)
+		const bob = room.forger('bob', student('bob'))
+		room.flush()
+		// tldraw's default user color is ''
+		const user = UserRecordType.create({ id: UserRecordType.createId('bob'), name: 'bob' })
+		bob.push({ diff: { [user.id]: ['put', user] } } as any)
+		room.flush()
+		const cursor = InstancePresenceRecordType.create({
+			id: InstancePresenceRecordType.createId('bob'),
+			currentPageId: page,
+			userId: 'user:bob' as TLUserId,
+			userName: 'bob',
+			color: '#FF0000',
+		})
+		bob.push({ presence: ['put', cursor] } as any)
+		room.flush()
+		for (const x of [1, 2, 3]) {
+			bob.push({
+				presence: ['patch', { cursor: ['put', { x, y: 0, type: 'default', rotation: 0 }] }],
+			} as any)
+			room.flush()
+		}
+		const ops = seen()
+		expect(ops.map(([op]) => op)).toEqual(['put', 'patch', 'patch', 'patch'])
+		expect(ops[0][1].color).toBe('#FF0000')
+	})
+
+	it("Bob's bend of Alice's arrow, bound to his box, never applies locally", () => {
+		const { room, a, b } = setup()
+		const box = geo(b, 300)
+		room.flush()
+		const arrow = createShapeId()
+		a.getEditor().createShape({
+			id: arrow,
+			type: 'arrow',
+			x: 0,
+			y: 50,
+			props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+		})
+		a.getEditor().createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: box,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+			},
+		})
+		room.flush()
+		b.getEditor().updateShape({ id: arrow, type: 'arrow', props: { bend: 80 } })
+		expect(b.get<TLArrowShape>(arrow)!.props.bend).toBe(0)
+		room.flush()
+		expect(b.rejections).toEqual([])
 	})
 })
