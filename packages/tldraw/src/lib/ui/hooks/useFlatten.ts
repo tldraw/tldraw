@@ -1,18 +1,25 @@
 import {
 	Box,
+	BoxModel,
 	Editor,
 	IndexKey,
+	TLContent,
 	TLImageAsset,
+	TLImageShape,
 	TLShape,
 	TLShapeId,
 	Vec,
+	VecLike,
 	compact,
 	createShapeId,
+	fetch,
+	isEqual,
 	isShapeId,
 	transact,
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
+import { getDefaultCrop } from '../../shapes/shared/crop'
 
 export async function flattenShapesToImages(
 	editor: Editor,
@@ -23,6 +30,8 @@ export async function flattenShapesToImages(
 		shapeIds.map((id) => {
 			const shape = editor.getShape(id)
 			if (!shape) return
+			// deleteShapes skips locked shapes; saving one would duplicate it on unflatten
+			if (editor.isShapeOrAncestorLocked(shape)) return
 			// skip shapes that don't have a toSvg method
 			if (editor.getShapeUtil(shape.type).toSvg === undefined) return
 			return shape
@@ -125,21 +134,35 @@ export async function flattenShapesToImages(
 		}
 
 		// get an image for the shapes
-		const svgResult = await editor.getSvgString(group.shapes, {
+		const svgResult = await editor.getSvgElement(group.shapes, {
 			padding,
 			background: false,
 		})
-		if (!svgResult?.svg) continue
+		if (!svgResult) continue
+
+		// Assets in a local-only store (not http or data URLs) can't be read from another board,
+		// so inline them the way copy and .tldr export do.
+		const content = await editor.resolveAssetsInContent(
+			editor.getContentFromCurrentPage(group.shapes)
+		)
+		if (!content) continue
+
+		const svg = embedFlattenSource(svgResult.svg, {
+			type: FLATTEN_SOURCE_TYPE,
+			version: 1,
+			bounds: Box.ExpandBy(group.bounds, padding).toJson(),
+			content,
+		})
 
 		// get an image asset for the image
 		const asset = (await editor.getAssetForExternalContent({
 			type: 'file',
-			file: new File([svgResult.svg], 'asset.svg', { type: 'image/svg+xml' }),
+			file: new File([svg], 'asset.svg', { type: 'image/svg+xml' }),
 		})) as TLImageAsset
 		if (!asset) continue
 
-		// add it to the group
-		group.asset = asset
+		// tag the asset so unflatten can find it
+		group.asset = { ...asset, meta: { ...asset.meta, [FLATTENED_ASSET_META_KEY]: true } }
 	}
 
 	const createdShapeIds: TLShapeId[] = []
@@ -212,6 +235,225 @@ export async function flattenShapesToImages(
 	})
 
 	return createdShapeIds
+}
+
+/** Marks assets made by flatten, so menus can show "Unflatten" without fetching the SVG. */
+const FLATTENED_ASSET_META_KEY = 'flattened'
+
+const FLATTEN_SOURCE_TYPE = 'tldraw-flatten-source'
+const FLATTEN_SOURCE_ELEMENT_ID = 'tldraw-flatten-source'
+
+/**
+ * Stored in a `<metadata>` element of the flattened SVG. This is a persisted format: SVGs written
+ * now must stay readable, so change it only with a new `version`.
+ */
+interface TLFlattenSource {
+	type: typeof FLATTEN_SOURCE_TYPE
+	version: 1
+	/** Page bounds of the image when it was created. Flatten always creates it unrotated. */
+	bounds: BoxModel
+	/** Same format as the clipboard; its schema lets older content migrate when it is put back. */
+	content: TLContent
+}
+
+function embedFlattenSource(svg: SVGSVGElement, source: TLFlattenSource) {
+	const metadata = svg.ownerDocument.createElementNS('http://www.w3.org/2000/svg', 'metadata')
+	metadata.setAttribute('id', FLATTEN_SOURCE_ELEMENT_ID)
+	// A text node, not CDATA: the serializer escapes it, and CDATA can't hold "]]>"
+	metadata.textContent = JSON.stringify(source)
+	svg.prepend(metadata)
+	return new XMLSerializer().serializeToString(svg)
+}
+
+async function readFlattenSource(editor: Editor, image: TLImageShape) {
+	const url = await editor.resolveAssetUrl(image.props.assetId, { shouldResolveToOriginal: true })
+	if (!url) return null
+	const response = await fetch(url)
+	if (!response.ok) return null
+	const doc = new DOMParser().parseFromString(await response.text(), 'image/svg+xml')
+	const text = doc.querySelector(`metadata#${FLATTEN_SOURCE_ELEMENT_ID}`)?.textContent
+	if (!text) return null
+	// Any SVG on the canvas can carry this element, so check the parts we read before the put.
+	// The store validates the records themselves.
+	const source = JSON.parse(text) as TLFlattenSource
+	if (source?.type !== FLATTEN_SOURCE_TYPE || source.version !== 1) return null
+	const { bounds, content } = source
+	if (!(bounds?.w > 0 && bounds.h > 0 && Number.isFinite(bounds.x) && Number.isFinite(bounds.y))) {
+		return null
+	}
+	if (!Array.isArray(content?.shapes) || !Array.isArray(content.rootShapeIds) || !content.schema) {
+		return null
+	}
+	return source
+}
+
+/** @internal */
+export function isFlattenedImage(editor: Editor, shape: TLShape): shape is TLImageShape {
+	if (!editor.isShapeOfType(shape, 'image') || !shape.props.assetId) return false
+	// deleteShapes skips locked shapes, so unflatten would leave the image beside its shapes
+	if (editor.isShapeOrAncestorLocked(shape)) return false
+	return editor.getAsset(shape.props.assetId)?.meta[FLATTENED_ASSET_META_KEY] === true
+}
+
+/**
+ * Unflatten only follows moves, rotation and uniform scale. A crop, flip or stretch has no
+ * equivalent on the source shapes, so those images stay flattened.
+ */
+function canRestoreFlattenSource(image: TLImageShape, source: TLFlattenSource) {
+	const { crop, flipX, flipY, w, h } = image.props
+	if (flipX || flipY) return false
+	const defaultCrop = getDefaultCrop()
+	if (
+		crop &&
+		(crop.isCircle ||
+			!isEqual(crop.topLeft, defaultCrop.topLeft) ||
+			!isEqual(crop.bottomRight, defaultCrop.bottomRight))
+	) {
+		return false
+	}
+	const scaleX = w / source.bounds.w
+	const scaleY = h / source.bounds.h
+	return Math.abs(scaleX - scaleY) <= 0.01 * Math.max(scaleX, scaleY)
+}
+
+// Resizing a frame doesn't scale its children, so scale every shape. Snapshot every page
+// transform first; once a parent moves, its children's transforms are wrong.
+function scaleShapeTrees(editor: Editor, rootIds: TLShapeId[], scale: number, origin: VecLike) {
+	// breadth-first, so parents come before their children
+	const ordered = [...rootIds]
+	for (let i = 0; i < ordered.length; i++) {
+		ordered.push(...editor.getSortedChildIdsForParent(ordered[i]))
+	}
+	const snapshots = ordered.map((id) => ({
+		shape: editor.getShape(id)!,
+		bounds: editor.getShapeGeometry(id).bounds,
+		pageTransform: editor.getShapePageTransform(id),
+	}))
+	for (const { shape, bounds, pageTransform } of snapshots) {
+		editor.resizeShape(
+			shape.id,
+			{ x: scale, y: scale },
+			{
+				initialShape: shape,
+				initialBounds: bounds,
+				initialPageTransform: pageTransform,
+				mode: 'scale_shape',
+				scaleOrigin: origin,
+			}
+		)
+	}
+}
+
+function restoreFlattenSource(editor: Editor, image: TLImageShape, source: TLFlattenSource) {
+	editor.selectNone()
+	editor.putContentOntoCurrentPage(source.content, { preservePosition: true, select: true })
+	// in stacking order: put selects the roots in the order it indexed them
+	const ids = editor.getSelectedShapeIds()
+	// put returns without putting anything when, for example, the page is read-only
+	if (ids.length === 0) throw Error('Nothing was put')
+
+	// The shapes are back where they were flattened from; move them onto the image
+	const sourceOrigin = { x: source.bounds.x, y: source.bounds.y }
+	const imageTransform = editor.getShapePageTransform(image)
+	const scale = image.props.w / source.bounds.w
+	if (scale !== 1) scaleShapeTrees(editor, ids, scale, sourceOrigin)
+	const rotation = imageTransform.rotation()
+	if (rotation !== 0) {
+		editor.rotateShapesBy(ids, rotation, { center: sourceOrigin })
+	}
+	editor.nudgeShapes(ids, Vec.Sub(imageTransform.point(), sourceOrigin))
+	editor.reparentShapes(ids, image.parentId, image.index)
+	// Put may have moved some roots into a frame that covers the original area, and
+	// reparenting orders them by those mixed indices, so restore the stacking order
+	const indices = ids.map((id) => editor.getShape(id)!.index).sort()
+	editor.updateShapes(
+		ids.map((id, i) => ({ id, type: editor.getShape(id)!.type, index: indices[i] }))
+	)
+	editor.deleteShapes([image.id])
+	return ids
+}
+
+/** @internal */
+export type TLUnflattenResult =
+	| { type: 'success'; shapeIds: TLShapeId[] }
+	| { type: 'error'; reason: 'transformed' | 'unreadable' | 'max-shapes' }
+
+/**
+ * Replace flattened images with the shapes they were flattened from. Images that can't be
+ * restored stay in place, and the result names the first reason.
+ *
+ * @internal
+ */
+export async function unflattenImages(
+	editor: Editor,
+	shapeIds: TLShapeId[]
+): Promise<TLUnflattenResult> {
+	// The put and the shape limit work on the current page
+	function canUnflattenNow(shape: TLShape | undefined): shape is TLImageShape {
+		return (
+			!!shape &&
+			isFlattenedImage(editor, shape) &&
+			editor.getAncestorPageId(shape) === editor.getCurrentPageId()
+		)
+	}
+	const images = compact(shapeIds.map((id) => editor.getShape(id))).filter(canUnflattenNow)
+
+	let error: Extract<TLUnflattenResult, { type: 'error' }>['reason'] | null = null
+	const restorable: { image: TLImageShape; source: TLFlattenSource }[] = []
+	const sources = await Promise.all(
+		images.map((image) => readFlattenSource(editor, image).catch(() => null))
+	)
+	for (let i = 0; i < images.length; i++) {
+		const image = images[i]
+		const source = sources[i]
+		if (!source) {
+			error ??= 'unreadable'
+		} else if (!canRestoreFlattenSource(image, source)) {
+			error ??= 'transformed'
+		} else {
+			restorable.push({ image, source })
+		}
+	}
+
+	const shapeCount = restorable.reduce((sum, { source }) => sum + source.content.shapes.length, 0)
+	// Counts the images too, because each put runs before its image is deleted
+	if (editor.getCurrentPageShapeIds().size + shapeCount > editor.options.maxShapesPerPage) {
+		const pageId = editor.getCurrentPageId()
+		editor.emit('max-shapes', {
+			name: editor.getPage(pageId)!.name,
+			pageId,
+			count: editor.options.maxShapesPerPage,
+		})
+		return { type: 'error', reason: 'max-shapes' }
+	}
+
+	const restoredShapeIds: TLShapeId[] = []
+	const selectionAtStart = editor.getSelectedShapeIds()
+
+	for (const { source, image: imageAtStart } of restorable) {
+		// The image may have been deleted, locked or changed while we fetched
+		const image = editor.getShape(imageAtStart.id)
+		if (!canUnflattenNow(image)) continue
+		if (!canRestoreFlattenSource(image, source)) {
+			error ??= 'transformed'
+			continue
+		}
+		// A run of its own, so a throw part way (e.g. a binding type this editor doesn't have)
+		// rolls back the shapes already put, and the image stays as it was
+		try {
+			editor.run(() => restoredShapeIds.push(...restoreFlattenSource(editor, image, source)))
+		} catch {
+			error ??= 'unreadable'
+		}
+	}
+
+	editor.setSelectedShapes([
+		...selectionAtStart.filter((id) => editor.getShape(id)),
+		...restoredShapeIds,
+	])
+
+	if (error) return { type: 'error', reason: error }
+	return { type: 'success', shapeIds: restoredShapeIds }
 }
 
 export function useFlatten() {
