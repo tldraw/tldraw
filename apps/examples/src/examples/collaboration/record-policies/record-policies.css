@@ -1,10 +1,40 @@
 .record-policies {
 	position: absolute;
 	inset: 0;
+	display: flex;
+	flex-direction: column;
+	background: #ddd;
+	font-size: 12px;
+}
+
+.record-policies__tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 6px 8px;
+	background: white;
+}
+
+.record-policies__tabs button[aria-pressed='true'] {
+	font-weight: bold;
+}
+
+.record-policies__about {
+	padding: 0 8px 6px;
+	background: white;
+	border-bottom: 1px solid #ddd;
+}
+
+.record-policies__about p {
+	margin: 4px 0;
+}
+
+.record-policies__panes {
+	flex: 1;
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	gap: 4px;
-	background: #ddd;
+	min-height: 0;
 }
 
 .record-policies__pane {
@@ -20,7 +50,6 @@
 	align-items: center;
 	gap: 8px;
 	padding: 6px 8px;
-	font-size: 12px;
 	border-bottom: 1px solid #ddd;
 }
 
@@ -38,6 +67,10 @@
 	color: #b00020;
 }
 
+.record-policies__log {
+	color: #444;
+}
+
 .record-policies__editor {
 	position: relative;
 	flex: 1;
@@ -46,4 +79,12 @@
 .record-policies__loading {
 	padding: 16px;
 	color: #666;
+}
+
+.record-policies__sticker {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-size: 44px;
+	pointer-events: all;
 }

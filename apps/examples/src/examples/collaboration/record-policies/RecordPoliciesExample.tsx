@@ -2,43 +2,57 @@ import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import {
 	Editor,
-	PageRecordType,
 	Tldraw,
 	UserRecordType,
 	atom,
 	createUserId,
 	inlineBase64AssetStore,
-	toRichText,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { actorFor, classroomPolicies, Person } from './classroom'
+import { agentArea } from './agentArea'
+import { classroom } from './classroom'
+import { comments } from './comments'
 import { connectToLocalRoom } from './localRoom'
+import { pageAccess } from './pageAccess'
+import { plugins } from './plugins'
 import './record-policies.css'
+import { Person, Scenario, actorFor, schemaOptionsFor } from './scenario'
+import { shareLinks } from './shareLinks'
 
 // There's a guide at the bottom of this file!
 
-const people: Person[] = [
-	{ id: 'teacher', name: 'Teacher', role: 'teacher' },
-	{ id: 'sam', name: 'Sam', role: 'student' },
-	{ id: 'ann', name: 'Ann', role: 'student' },
-]
-
-const ANSWERS_PAGE = PageRecordType.createId('answers')
+const scenarios = [classroom, shareLinks, pageAccess, comments, agentArea, plugins]
 
 export default function RecordPoliciesExample() {
+	const [scenario, setScenario] = useState<Scenario>(scenarios[0])
 	return (
 		<div className="record-policies">
-			{people.map((person) => (
-				<Pane key={person.id} person={person} />
-			))}
+			<div className="record-policies__tabs">
+				{scenarios.map((s) => (
+					<button key={s.id} aria-pressed={s === scenario} onClick={() => setScenario(s)}>
+						{s.title}
+					</button>
+				))}
+			</div>
+			<div className="record-policies__about">
+				<p>{scenario.rules}</p>
+				<p>
+					<strong>Try this:</strong> {scenario.tryThis}
+				</p>
+			</div>
+			<div className="record-policies__panes">
+				{scenario.people.map((person) => (
+					<Pane key={`${scenario.id}-${person.id}`} scenario={scenario} person={person} />
+				))}
+			</div>
 		</div>
 	)
 }
 
-function Pane({ person }: { person: Person }) {
+function Pane({ scenario, person }: { scenario: Scenario; person: Person }) {
 	// [1]
-	const connect = useCallback(() => connectToLocalRoom(person), [person])
+	const connect = useCallback(() => connectToLocalRoom(scenario, person), [scenario, person])
 	const users = useMemo(
 		() => ({
 			currentUser: atom(
@@ -51,22 +65,29 @@ function Pane({ person }: { person: Person }) {
 	const store = useSync({
 		connect,
 		users,
-		policies: classroomPolicies,
 		assets: inlineBase64AssetStore,
+		...schemaOptionsFor(scenario),
 	})
+	const tldrawProps = useMemo(() => scenario.tldrawProps?.(person, scenario), [scenario, person])
 	const [editor, setEditor] = useState<Editor | null>(null)
 	const [checkLocally, setCheckLocally] = useState(true)
 	const [blocked, setBlocked] = useState(0)
 
 	// [2]
+	const actor = useValue('actor', () => actorFor(person), [person])
 	useEffect(() => {
 		if (!editor) return
-		const actor = actorFor(person)
 		editor.setActor(checkLocally ? actor : null)
-		editor.getInitialMetaForShape = () => ({ ownerId: person.id })
-		return editor.store.addPolicyDeniedListener((denied) => setBlocked((n) => n + denied.length))
-	}, [editor, person, checkLocally])
+	}, [editor, actor, checkLocally])
 
+	useEffect(() => {
+		if (!editor) return
+		editor.getInitialMetaForShape = () => ({ ownerId: person.id })
+		scenario.seed?.(editor, person)
+		return editor.store.addPolicyDeniedListener((denied) => setBlocked((n) => n + denied.length))
+	}, [editor, scenario, person])
+
+	const Controls = scenario.Controls
 	return (
 		<div className="record-policies__pane">
 			<div className="record-policies__header">
@@ -81,15 +102,18 @@ function Pane({ person }: { person: Person }) {
 					Check locally
 				</label>
 				{blocked > 0 && <span className="record-policies__blocked">{blocked} blocked</span>}
-				{editor && person.role === 'teacher' && <TeacherControls editor={editor} />}
+				{editor && Controls && <Controls editor={editor} person={person} scenario={scenario} />}
 			</div>
 			<div className="record-policies__editor">
 				{store.status === 'synced-remote' ? (
 					<Tldraw
 						store={store.store}
+						shapeUtils={scenario.shapeUtils}
+						{...tldrawProps}
 						onMount={(editor) => {
 							setEditor(editor)
-							if (person.role === 'teacher') seedBoard(editor)
+							// Every scenario seeds its shapes near the origin.
+							editor.setCamera({ x: 40, y: 80, z: 0.6 })
 						}}
 					/>
 				) : (
@@ -100,93 +124,19 @@ function Pane({ person }: { person: Person }) {
 	)
 }
 
-// [3]
-function TeacherControls({ editor }: { editor: Editor }) {
-	const isLocked = useValue('locked', () => !!editor.getDocumentSettings().meta.locked, [editor])
-	const isPrivate = useValue('private', () => !!editor.getPage(ANSWERS_PAGE)?.meta.private, [
-		editor,
-	])
-	return (
-		<>
-			<button
-				onClick={() =>
-					editor.updateDocumentSettings({
-						meta: { ...editor.getDocumentSettings().meta, locked: !isLocked },
-					})
-				}
-			>
-				{isLocked ? 'Unlock board' : 'Lock board'}
-			</button>
-			<button
-				onClick={() => {
-					const page = editor.getPage(ANSWERS_PAGE)
-					if (page) editor.updatePage({ id: page.id, meta: { ...page.meta, private: !isPrivate } })
-				}}
-			>
-				{isPrivate ? 'Show answers' : 'Hide answers'}
-			</button>
-		</>
-	)
-}
-
-function seedBoard(editor: Editor) {
-	if (editor.getPage(ANSWERS_PAGE)) return
-	const pageId = editor.getCurrentPageId()
-	editor.run(() => {
-		editor.createShapes([
-			{
-				type: 'frame',
-				x: 0,
-				y: 0,
-				props: { w: 420, h: 260, name: 'Teacher’s area' },
-			},
-			{
-				type: 'note',
-				x: 40,
-				y: 60,
-				props: { richText: toRichText('Only the teacher changes this note.') },
-			},
-			{
-				type: 'text',
-				x: 0,
-				y: 320,
-				props: { richText: toRichText('Students: draw your answer below this line.') },
-			},
-		])
-		editor.createPage({ id: ANSWERS_PAGE, name: 'Answers', meta: { private: true } })
-		editor.createShapes([
-			{
-				type: 'text',
-				parentId: ANSWERS_PAGE,
-				x: 0,
-				y: 0,
-				props: { richText: toRichText('The answer is 42.') },
-			},
-		])
-		editor.setCurrentPage(pageId)
-	})
-	editor.zoomToFit({ animation: { duration: 0 } })
-}
-
 /*
-Three editors connect to one sync room that runs in this browser tab. Each editor and the room use
-the same policies (classroom.ts): students add shapes and change only their own, the teacher
-changes anything, and a private page is not sent to students.
+Each tab is one use case. Three editors connect to one sync room that runs in this browser tab
+(localRoom.ts). The editors and the room build their schema from the same scenario: its
+`policies`, plus the rules that its record types and shape utils bring.
 
 [1]
-`policies` goes into the client schema, and the room gets the same `policies` in its schema
-(localRoom.ts). The policies sit next to the record types in the schema, so a custom shape can
-bring its own rules with `static policy` on its ShapeUtil.
+`useSync` gets the schema options, policies included, and the room gets the same options
+(`schemaOptionsFor`). The room's `getActor` returns each session's actor on every push, so an
+access change (see "Share links") applies to the next change without a reconnect.
 
 [2]
 `editor.setActor` turns on the client check. A change that the policies deny is reverted in the
-editor before it is sent, and the teacher's shapes behave like locked shapes for a student. Turn
-"Check locally" off to see the server alone: the student can drag the teacher's shape, the room
-discards the push, and the shape snaps back. `getInitialMetaForShape` stamps the owner on new
-shapes; the policy only verifies it.
-
-[3]
-"Lock board" changes the document record, and the shape rules read it with `ctx.get`. "Hide
-answers" changes the page record. The room then sends a delete for the page and its shapes to each
-student, because their read rules depend on the page.
+editor before it is sent, and shapes that the actor may not change behave like locked shapes.
+Turn "Check locally" off to see the server alone: the room discards the push, and the change
+snaps back. `getInitialMetaForShape` stamps the owner on new shapes; the policies only verify it.
 */
