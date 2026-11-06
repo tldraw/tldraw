@@ -27,6 +27,8 @@ export interface TLNewCollectionItem {
 	content: TLCollectionItemContent
 	/** A rendered preview. Leave it out and the UI shows a placeholder. */
 	thumbnail?: Blob
+	/** Shown in place of `thumbnail` in dark mode. Leave it out when one suits both modes. */
+	darkThumbnail?: Blob
 }
 
 /**
