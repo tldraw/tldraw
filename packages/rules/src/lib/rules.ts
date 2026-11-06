@@ -3,6 +3,7 @@ import {
 	ERROR,
 	EvalHost,
 	PartialRecord,
+	and,
 	UNKNOWN,
 	Value,
 	changedPaths,
@@ -46,6 +47,27 @@ export interface TLTypeRules {
 	stamp?: Record<string, string>
 	/** Fields that can never change on update, such as `threadId` or `createdAt`. */
 	frozen?: string[]
+	/**
+	 * Fields that some users may not read, inside a record they can read. Where `read` is not true,
+	 * the room sends `hidden` in place of the real value, and a write that changes the field is
+	 * denied (a write that sends `hidden` back keeps the real value). A card face is the usual case:
+	 *
+	 * ```ts
+	 * fields: { 'props.text': { read: 'record.meta.holder == user.id', hidden: '' } }
+	 * ```
+	 */
+	fields?: Record<string, TLFieldRule>
+}
+
+/**
+ * Read control for one field. See {@link TLTypeRules.fields}.
+ *
+ * @public
+ */
+export interface TLFieldRule {
+	read: TLRuleSource
+	/** The value a user who may not read the field gets. It must pass the record's validator. */
+	hidden: TLRuleJson
 }
 
 /**
@@ -112,6 +134,8 @@ export interface TLRuleDenial {
 	clause: string
 	/** `'false'` when the clause was false, `'error'` when it read missing data or mixed types. */
 	result: 'false' | 'error'
+	/** One sentence for a rule author: `prev.meta.ownerId is missing`, `isTeacher is false`. */
+	reason: string
 }
 
 /** @public */
@@ -170,6 +194,7 @@ interface CompiledType {
 	delete?: CompiledRule
 	stamp: { path: string; rule: CompiledRule }[]
 	frozen: string[]
+	fields: { path: string; rule: CompiledRule; hidden: TLRuleJson }[]
 }
 
 /** @public */
@@ -224,9 +249,10 @@ function walk(expr: TLRuleExpr, visit: (e: TLRuleExpr, scope: Set<string>) => vo
  * @public
  */
 export class TLRules {
-	readonly lets: Record<string, { expr: TLRuleExpr; source: string }> = {}
-	private readonly actions: Record<string, CompiledRule> = {}
-	private readonly types: Record<string, CompiledType> = {}
+	// prototype-free, so `constructor` or `__proto__` is never a let, an action, or a type
+	readonly lets: Record<string, { expr: TLRuleExpr; source: string }> = Object.create(null)
+	private readonly actions: Record<string, CompiledRule> = Object.create(null)
+	private readonly types: Record<string, CompiledType> = Object.create(null)
 	private readonly defaultRead: CompiledRule
 	private readonly defaultWrite: CompiledRule
 	readonly pushes: 'atomic' | 'per-record'
@@ -252,6 +278,11 @@ export class TLRules {
 					rule: compileOne(`${typeName}.stamp.${path}`, src),
 				})),
 				frozen: rules.frozen ?? [],
+				fields: Object.entries(rules.fields ?? {}).map(([path, f]) => ({
+					path,
+					rule: compileOne(`${typeName}.fields.${path}`, f.read),
+					hidden: f.hidden,
+				})),
 			}
 			for (const op of ['read', 'create', 'update', 'delete'] as const) {
 				const src = rules[op]
@@ -277,6 +308,7 @@ export class TLRules {
 				if (t[op]) out.push(t[op]!)
 			}
 			for (const s of t.stamp) out.push(s.rule)
+			for (const f of t.fields) out.push(f.rule)
 		}
 		return out
 	}
@@ -364,8 +396,8 @@ export class TLRules {
 	}
 
 	private deny(rule: CompiledRule, host: EvalHost): { ok: false; denial: TLRuleDenial } {
-		const { clause, result } = findFailingClause(rule.expr, host, rule.source)
-		return { ok: false, denial: { rule: rule.label, message: rule.message, clause, result } }
+		const failing = findFailingClause(rule.expr, host, rule.source)
+		return { ok: false, denial: { rule: rule.label, message: rule.message, ...failing } }
 	}
 
 	/**
@@ -389,9 +421,34 @@ export class TLRules {
 							message: `${path} cannot change`,
 							clause: path,
 							result: 'false',
+							reason: `${path} is frozen`,
 						},
 					}
 				}
+			}
+		}
+
+		if (op === 'update' && prev && next && t?.fields.length) {
+			// You cannot change what you cannot see. The client holds `hidden` for the field, so a
+			// write that sends `hidden` back (a full put after a drag, say) keeps the real value.
+			for (const field of t.fields) {
+				const host = this.host(user, 'read', prev, prev, get)
+				if (evaluate(field.rule.expr, host) === true) continue
+				const sent = getPath(next, field.path)
+				const real = getPath(prev, field.path)
+				if (deepEqual(sent, real)) continue
+				if (!deepEqual(sent, field.hidden)) {
+					const failing = findFailingClause(field.rule.expr, host, field.rule.source)
+					return {
+						ok: false,
+						denial: {
+							rule: field.rule.label,
+							message: field.rule.message ?? `${field.path} is hidden from you`,
+							...failing,
+						},
+					}
+				}
+				next = setPath(next, field.path, real)
 			}
 		}
 
@@ -416,6 +473,17 @@ export class TLRules {
 			if (evaluate(read.expr, readHost) !== true) return this.deny(read, readHost)
 		}
 
+		if (op !== 'delete' && next && !(read.expr.k === 'lit' && read.expr.v === true)) {
+			// Nor write a record you could not see afterwards: a shape put on a team page you are
+			// not on, or moved into a hidden frame. The client would lose it at once.
+			const readHost = this.host(user, 'read', next, next, get)
+			if (evaluate(read.expr, readHost) !== true) {
+				const denied = this.deny(read, readHost)
+				denied.denial.message ??= 'You cannot put this where you cannot see it'
+				return denied
+			}
+		}
+
 		const rule = this.ruleFor(typeName, op)
 		const host = this.host(user, op, prev ?? undefined, next ?? undefined, get)
 		if (evaluate(rule.expr, host) !== true) return this.deny(rule, host)
@@ -426,6 +494,34 @@ export class TLRules {
 	canRead(record: TLRuleRecord, user: TLRuleUser, get: (id: string) => unknown): boolean {
 		const rule = this.ruleFor(record.typeName, 'read')
 		return evaluate(rule.expr, this.host(user, 'read', record, record, get)) === true
+	}
+
+	/**
+	 * The record as this user may see it: each field they may not read holds its `hidden` value.
+	 * Returns the same object when nothing is hidden.
+	 */
+	redact<R extends TLRuleRecord>(record: R, user: TLRuleUser, get: (id: string) => unknown): R {
+		const t = this.types[record.typeName]
+		if (!t?.fields.length) return record
+		let out = record
+		for (const field of t.fields) {
+			const host = this.host(user, 'read', record, record, get)
+			if (evaluate(field.rule.expr, host) !== true) out = setPath(out, field.path, field.hidden)
+		}
+		return out
+	}
+
+	/** Could some record of this type have a field this user may not read? */
+	mayHideFields(typeName: string, user: TLRuleUser): boolean {
+		const t = this.types[typeName]
+		if (!t?.fields.length) return false
+		return t.fields.some(
+			(f) =>
+				evaluate(
+					f.rule.expr,
+					this.host(user, 'read', UNKNOWN, UNKNOWN, () => UNKNOWN)
+				) !== true
+		)
 	}
 
 	explainRead(
@@ -485,7 +581,12 @@ export class TLRules {
 			next = new PartialRecord(stamped)
 		}
 		const rule = this.ruleFor(typeName, op)
-		const v = evaluate(rule.expr, this.host(user, op, prev, next, lookup))
+		let v = evaluate(rule.expr, this.host(user, op, prev, next, lookup))
+		if (op === 'update' || op === 'delete') {
+			// checkWrite also requires that the writer can read the record, so the analysis must too
+			const read = this.ruleFor(typeName, 'read')
+			v = and(evaluate(read.expr, this.host(user, 'read', prev, prev, lookup)), v)
+		}
 		if (v === true) return 'allow'
 		if (v === UNKNOWN) return 'maybe'
 		return 'deny'
@@ -595,6 +696,8 @@ export class TLRules {
 		const readRules: [string, CompiledRule][] = [['*', this.defaultRead]]
 		for (const [typeName, t] of Object.entries(this.types)) {
 			if (t.read) readRules.push([typeName, t.read])
+			else if (t.fields.length) readRules.push([typeName, this.defaultRead])
+			for (const f of t.fields) readRules.push([typeName, f.rule])
 		}
 		for (const [typeName, rule] of readRules) {
 			const set = (own[typeName] ??= new Set())
@@ -633,12 +736,12 @@ export class TLRules {
 		const deps = this.readDependencies
 		if (deps.wildcard) return 'all'
 		if ('created' in change || 'deleted' in change) return deps.usesGet ? 'all' : 'self'
-		const changed = changedPaths(change.prev, change.next)
+		const changed = changedPaths(change.prev, change.next).map((c) => c.join('.'))
 		const touches = (paths: string[]) =>
 			changed.some((c) => paths.some((p) => isUnder(c, p) || isUnder(p, c)))
 		if (touches(deps.other)) return 'all'
 		if (deps.traverses && changed.some((c) => c === 'parentId')) return 'all'
-		const own = deps.own[change.typeName] ?? deps.own['*'] ?? []
+		const own = Object.hasOwn(deps.own, change.typeName) ? deps.own[change.typeName] : deps.own['*']
 		return touches(own) ? 'self' : 'none'
 	}
 }

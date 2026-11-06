@@ -61,6 +61,14 @@ export class RulesManager extends EditorManager {
 				handlers.registerBeforeDeleteHandler(t, (record: any, source) => {
 					if (!isGated(record, source)) return
 					if (!this.check('delete', record, null)) return false
+					if (record.typeName === 'shape') {
+						// Deleting a frame deletes what is in it. If one child must stay, the frame stays
+						// too, or the child would be left with a parent that does not exist.
+						for (const id of editor.getShapeAndDescendantIds([record.id])) {
+							const child = editor.store.get(id)
+							if (child && id !== record.id && !this.check('delete', child, null)) return false
+						}
+					}
 					return
 				})
 			)

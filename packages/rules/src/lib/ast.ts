@@ -48,7 +48,10 @@ export const RULE_FUNCTIONS = {
 	page: 1,
 	/** `ancestors(r)`: the `parentId` chain above `r`, nearest first, up to and including the page. */
 	ancestors: 1,
-	/** `changed('a.b', ...)`: true when any of the paths differs between `prev` and `next`. */
+	/**
+	 * `changed('a.b', ...)`: true when any of the paths differs between `prev` and `next`. A path is
+	 * a dotted string, or a list of keys for a key that holds a dot: `['props', 'votes', user.id]`.
+	 */
 	changed: -1,
 	/** `onlyChanged('a', 'b.c', ...)`: true when every changed leaf path is under one of these. */
 	onlyChanged: -1,

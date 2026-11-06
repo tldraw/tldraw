@@ -117,6 +117,7 @@ function makeRoom(rules: TLRulesDefinition, records: R[]) {
 			store,
 			socket: socket.clientSocket,
 			presence,
+			presenceMode: atom('presence mode', 'full' as const),
 			onLoad: () => {},
 			onSyncError: (reason) => {
 				throw new Error(`unexpected sync error: ${reason}`)
@@ -400,11 +401,25 @@ describe('team pages: the room never sends what you cannot read', () => {
 		const red = room.connect({ id: 'r', teams: ['red'] })
 		red.store.put([{ ...(red.store.get('shape:plan' as any) as R), parentId: 'page:main' }])
 		room.flush()
-		// the child moves with its parent: the reparent forces a full recompute
+		// the child moves with its parent: its rule read the plan, so the index rechecks it
 		expect(room.ids(out, 'shape')).toEqual(['shape:child', 'shape:plan', 'shape:public'])
 		red.store.put([{ ...(red.store.get('shape:plan' as any) as R), parentId: 'page:secret' }])
 		room.flush()
 		expect(room.ids(out, 'shape')).toEqual(['shape:public'])
+	})
+
+	it('a page change rechecks only the records whose rules read that page', () => {
+		const many = [...records, ...Array.from({ length: 50 }, (_, i) => shape(`other-${i}`))]
+		const room = makeRoom(useCaseRules.teamPages, many)
+		const out = room.connect({ id: 'o', teams: [] })
+		const red = room.connect({ id: 'r', teams: ['red'] })
+		const spy = vi.spyOn((room.server.room as any).roomRules, 'show')
+		red.store.put([{ ...(red.store.get('page:secret' as any) as R), meta: { team: null } }])
+		room.flush()
+		expect(room.ids(out, 'shape')).toContain('shape:child')
+		const checked = new Set(spy.mock.calls.map((call) => (call[1] as R).id))
+		// the page, its shape, and the nested shape; not the 51 shapes on the other page
+		expect([...checked].sort()).toEqual(['page:secret', 'shape:child', 'shape:plan'])
 	})
 
 	it('joining the team sends the page live; leaving removes it', () => {
@@ -439,25 +454,80 @@ describe('team pages: the room never sends what you cannot read', () => {
 })
 
 describe('reveal: cards and hidden frames', () => {
+	const face = (text: string) => ({
+		type: 'doc',
+		content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+	})
+	const FACE_DOWN = face('🂠')
 	const records = [
 		doc(),
 		page('main'),
-		shape('ann-card', { meta: { holder: 'ann' } }),
-		shape('bob-card', { meta: { holder: 'bob' } }),
+		shape('ann-card', { props: { richText: face('A♠') }, meta: { holder: 'ann' } }),
+		shape('bob-card', { props: { richText: face('2♣') }, meta: { holder: 'bob' } }),
 		shape('box', { type: 'frame', meta: { hidden: true } }),
 		shape('answer', { parentId: 'shape:box' }),
 	]
 	const dealer = { id: 'd', role: 'dealer' }
+	const text = (c: Client, id: string) => (c.store.get(id as any) as R).props.richText
 
-	it('only the holder sees a card, and nobody but the dealer sees inside a hidden frame', () => {
+	it('everyone sees every card, but only its holder sees its face', () => {
 		const room = makeRoom(useCaseRules.reveal, records)
 		const ann = room.connect({ id: 'ann', role: 'player' })
 		const d = room.connect(dealer)
-		expect(room.ids(ann, 'shape')).toEqual(['shape:ann-card'])
+		expect(room.ids(ann, 'shape')).toEqual(['shape:ann-card', 'shape:bob-card'])
+		expect(text(ann, 'shape:ann-card')).toEqual(face('A♠'))
+		expect(text(ann, 'shape:bob-card')).toEqual(FACE_DOWN)
 		expect(room.ids(d, 'shape')).toHaveLength(4)
+		expect(text(d, 'shape:bob-card')).toEqual(face('2♣'))
 	})
 
-	it('revealing sends the records to everyone, live', () => {
+	it('nobody but the dealer gets the records inside a hidden frame', () => {
+		const room = makeRoom(useCaseRules.reveal, records)
+		const ann = room.connect({ id: 'ann', role: 'player' })
+		expect(room.ids(ann, 'shape')).not.toContain('shape:answer')
+		expect(room.ids(ann, 'shape')).not.toContain('shape:box')
+	})
+
+	it('a change to a hidden face never reaches the players who cannot read it', () => {
+		const room = makeRoom(useCaseRules.reveal, records)
+		const ann = room.connect({ id: 'ann', role: 'player' })
+		const d = room.connect(dealer)
+		const sent: unknown[] = []
+		const send = ann.socket.roomSocket.sendMessage
+		ann.socket.roomSocket.sendMessage = (msg) => {
+			sent.push(msg)
+			send(msg)
+		}
+		d.store.put([
+			{ ...(d.store.get('shape:bob-card' as any) as R), props: { richText: face('K♥') } },
+		])
+		room.flush()
+		expect(room.stored('shape:bob-card').props.richText).toEqual(face('K♥'))
+		expect(text(ann, 'shape:bob-card')).toEqual(FACE_DOWN)
+		expect(JSON.stringify(sent)).not.toContain('K♥')
+	})
+
+	it('moving a face-down card keeps its real face on the server; changing the face is denied', () => {
+		const room = makeRoom(useCaseRules.reveal, records)
+		const bob = room.connect({ id: 'bob', role: 'player' })
+		const ann = room.connect({ id: 'ann', role: 'player' })
+		// a full put of the face-down record, as a client sends after a drag: the face is kept
+		bob.store.put([{ ...(bob.store.get('shape:bob-card' as any) as R), x: 30 }])
+		room.flush()
+		expect(room.stored('shape:bob-card')).toMatchObject({ x: 30, props: { richText: face('2♣') } })
+		expect(text(ann, 'shape:bob-card')).toEqual(FACE_DOWN)
+		expect((ann.store.get('shape:bob-card' as any) as R).x).toBe(30)
+		// a forged face from someone who cannot read it
+		const forged = {
+			...(ann.store.get('shape:bob-card' as any) as R),
+			props: { richText: face('A♠') },
+		}
+		ann.store.put([forged])
+		room.flush()
+		expect(room.stored('shape:bob-card').props.richText).toEqual(face('2♣'))
+	})
+
+	it('revealing sends the faces and the hidden frame to everyone, live', () => {
 		const room = makeRoom(useCaseRules.reveal, records)
 		const ann = room.connect({ id: 'ann', role: 'player' })
 		const d = room.connect(dealer)
@@ -472,6 +542,7 @@ describe('reveal: cards and hidden frames', () => {
 			'shape:bob-card',
 			'shape:box',
 		])
+		expect(text(ann, 'shape:bob-card')).toEqual(face('2♣'))
 	})
 
 	it('a drag changes nothing the read rules read, so the room runs no read rule for it', () => {
@@ -479,7 +550,7 @@ describe('reveal: cards and hidden frames', () => {
 		const ann = room.connect({ id: 'ann', role: 'player' })
 		room.connect({ id: 'bob', role: 'player' })
 		const rules = (room.server.room as any).roomRules
-		const spy = vi.spyOn(rules, 'canRead')
+		const spy = vi.spyOn(rules, 'show')
 		ann.store.put([{ ...(ann.store.get('shape:ann-card' as any) as R), x: 40 }])
 		room.flush()
 		expect(room.stored('shape:ann-card')!.x).toBe(40)
@@ -553,5 +624,124 @@ describe('rules change live', () => {
 		})
 		room.flush()
 		expect(room.ids(c, 'page')).toEqual(['page:main', 'page:secret'])
+	})
+})
+
+describe('review findings stay fixed', () => {
+	it('a denied edit in the same push keeps the pusher’s cursor', () => {
+		const room = makeRoom(useCaseRules.shareLinks, [doc(), page('main'), shape('a')])
+		const viewer = room.connect({ id: 'v', access: 'view' })
+		const presence = () =>
+			[...(room.server.room as any).presenceStore.values()].map((p: R) => p.userName)
+		// one push: a new cursor, and an edit the rules deny
+		room.server.room.handleMessage(viewer.id, {
+			type: 'push',
+			clientClock: 100,
+			diff: { 'shape:a': ['patch', { x: ['put', 100] }] },
+			presence: [
+				'put',
+				{ typeName: 'instance_presence', currentPageId: 'page:main', userName: 'v1' },
+			],
+		} as any)
+		expect(room.stored('shape:a').x).toBe(0)
+		// the client counts its cursor as sent, so the next change is a patch on it
+		room.server.room.handleMessage(viewer.id, {
+			type: 'push',
+			clientClock: 101,
+			presence: ['patch', { userName: ['put', 'v2'] }],
+		} as any)
+		expect(presence()).toEqual(['v2'])
+	})
+
+	it('a reconnect after access grew sends the records the client never had', () => {
+		const room = makeRoom(useCaseRules.shareLinks, [doc(), page('main'), shape('a')])
+		const c = room.connect({ id: 'c', access: 'none' })
+		expect(room.ids(c)).toEqual([])
+		c.socket.disconnect()
+		c.socket.connectOpts = { user: { id: 'c', access: 'edit' } }
+		c.socket.connect()
+		room.flush()
+		expect(room.ids(c)).toEqual(['document:document', 'page:main', 'shape:a'])
+	})
+
+	it('checks presence writes against rules written for presence, and only those', () => {
+		const rules = composeRules(useCaseRules.agent, {
+			types: { instance_presence: { create: '!isAgent', update: '!isAgent' } },
+		})
+		const room = makeRoom(rules, [doc(), page('main')])
+		const human = room.connect({ id: 'human' }, 'page:main')
+		room.connect({ id: 'bot', role: 'agent', area: 'shape:none' }, 'page:main')
+		room.flush()
+		expect(room.ids(human, 'instance_presence')).toEqual([])
+		// and `default.write` does not apply to presence: a viewer keeps a cursor
+		const share = makeRoom(useCaseRules.shareLinks, [doc(), page('main')])
+		const editor = share.connect({ id: 'e', access: 'edit' })
+		share.connect({ id: 'v', access: 'view' }, 'page:main')
+		share.flush()
+		expect(share.ids(editor, 'instance_presence')).toHaveLength(1)
+	})
+
+	it('denies a write that puts a record where its writer cannot see it', () => {
+		const room = makeRoom(useCaseRules.teamPages, [
+			doc(),
+			page('main'),
+			page('secret', { team: 'red' }),
+			shape('plan', { parentId: 'page:secret' }),
+			shape('mine'),
+		])
+		const out = room.connect({ id: 'o', teams: [] })
+		out.store.put([shape('graffiti', { parentId: 'page:secret' })])
+		room.flush()
+		out.store.put([{ ...(out.store.get('shape:mine' as any) as R), parentId: 'shape:plan' }])
+		room.flush()
+		expect(room.stored('shape:graffiti')).toBeUndefined()
+		expect(room.stored('shape:mine').parentId).toBe('page:main')
+	})
+
+	it('skips a patch that changes a record’s typeName', () => {
+		const room = makeRoom(useCaseRules.shareLinks, [doc(), page('main')])
+		const c = room.connect({ id: 'cara', access: 'comment' })
+		c.store.put([
+			{ id: 'comment:1', typeName: 'comment', threadId: 't', isDeleted: false, createdAt: 1 },
+		])
+		room.flush()
+		room.server.room.handleMessage(c.id, {
+			type: 'push',
+			clientClock: 99,
+			diff: { 'comment:1': ['patch', { typeName: ['put', 'shape'] }] },
+		} as any)
+		expect(room.stored('comment:1').typeName).toBe('comment')
+	})
+
+	it('a parent created after its child hides the child, through the index', () => {
+		const room = makeRoom(useCaseRules.reveal, [doc(), page('main')])
+		const ann = room.connect({ id: 'ann', role: 'player' })
+		const d = room.connect({ id: 'd', role: 'dealer' })
+		d.store.put([shape('answer', { parentId: 'shape:box' })])
+		room.flush()
+		d.store.put([shape('box', { type: 'frame', meta: { hidden: true } })])
+		room.flush()
+		expect(room.ids(ann, 'shape')).toEqual([])
+	})
+
+	it('a rules room turns away a protocol 8 client, which cannot take the access message', () => {
+		const room = makeRoom(useCaseRules.shareLinks, [doc()])
+		const socket = new TestSocketPair<R>('old', room.server)
+		socket.connectOpts = { user: { id: 'x', access: 'edit' } }
+		socket.connect()
+		let closed: string | undefined
+		socket.callbacks.onStatusChange = (s) => {
+			if (s.status === 'error') closed = s.reason
+		}
+		socket.callbacks.onReceiveMessage = () => {}
+		room.server.room.handleMessage('old', {
+			type: 'connect',
+			connectRequestId: 'c',
+			lastServerClock: 0,
+			protocolVersion: 8,
+			schema: schema.serialize(),
+		})
+		socket.flushServerSentEvents()
+		expect(closed).toBe('CLIENT_TOO_OLD')
 	})
 })

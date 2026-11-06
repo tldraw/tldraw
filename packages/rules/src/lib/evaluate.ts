@@ -71,13 +71,29 @@ export function member(obj: Value, prop: string): Value {
 	if (isPlainObject(obj)) {
 		return Object.prototype.hasOwnProperty.call(obj, prop) ? obj[prop] : undefined
 	}
+	if (Array.isArray(obj) && /^(0|[1-9]\d*)$/.test(prop)) return obj[Number(prop)]
 	return undefined
 }
 
-export function getPath(obj: Value, path: string): Value {
+/**
+ * A path as segments. A string is split on `.`; a list of strings is taken as is, so a key that
+ * holds a dot (an email as a user id, say) can be named exactly: `['props', 'votes', user.id]`.
+ */
+export type Path = string | readonly string[]
+
+export function toSegments(path: Path): readonly string[] {
+	return typeof path === 'string' ? path.split('.') : path
+}
+
+export function getPath(obj: Value, path: Path): Value {
 	let v = obj
-	for (const part of path.split('.')) v = member(v, part)
+	for (const part of toSegments(path)) v = member(v, part)
 	return v
+}
+
+/** An array that holds a missing value somewhere: data that cannot be compared safely. */
+function hasMissing(v: Value): boolean {
+	return Array.isArray(v) && v.some((x) => isNullish(x) || x === ERROR || hasMissing(x))
 }
 
 export function and(a: Value, b: Value): Value {
@@ -123,6 +139,8 @@ function compare(op: string, l: Value, r: Value, le: TLRuleExpr, re: TLRuleExpr)
 			// In JavaScript `undefined === undefined`, so an unstamped shape and an anonymous user
 			// would "match". Here that comparison denies, and `!` cannot flip it.
 			if (isNullish(l) || isNullish(r)) return ERROR
+			// the same hole, one level down: `[prev.ownerId] == [user.id]`
+			if (hasMissing(l) || hasMissing(r)) return ERROR
 			return deepEqual(l, r)
 		})()
 		return op === '==' ? eq : not(eq)
@@ -167,13 +185,16 @@ function compare(op: string, l: Value, r: Value, le: TLRuleExpr, re: TLRuleExpr)
 	return ERROR
 }
 
-/** Every changed leaf path between two JSON values, as dot paths. */
-export function changedPaths(prev: Value, next: Value, prefix = '', out: string[] = []): string[] {
+/** Every changed leaf path between two JSON values, as segments. */
+export function changedPaths(
+	prev: Value,
+	next: Value,
+	prefix: string[] = [],
+	out: string[][] = []
+): string[][] {
 	if (isPlainObject(prev) && isPlainObject(next)) {
 		const keys = new Set([...Object.keys(prev), ...Object.keys(next)])
-		for (const key of keys) {
-			changedPaths(prev[key], next[key], prefix ? `${prefix}.${key}` : key, out)
-		}
+		for (const key of keys) changedPaths(prev[key], next[key], [...prefix, key], out)
 		return out
 	}
 	if (!deepEqual(prev, next)) out.push(prefix)
@@ -181,8 +202,10 @@ export function changedPaths(prev: Value, next: Value, prefix = '', out: string[
 }
 
 /** True when `path` is `prefix` or lies under it. */
-export function isUnder(path: string, prefix: string) {
-	return path === prefix || path.startsWith(prefix + '.')
+export function isUnder(path: Path, prefix: Path) {
+	const a = toSegments(path)
+	const b = toSegments(prefix)
+	return b.length <= a.length && b.every((seg, i) => seg === a[i])
 }
 
 function hasUnknown(v: Value) {
@@ -238,7 +261,10 @@ export function evaluate(expr: TLRuleExpr, host: EvalHost, scope?: Map<string, V
 		case 'lit':
 			return expr.v
 		case 'list': {
-			return expr.items.map((item) => evaluate(item, host, scope))
+			const items = expr.items.map((item) => evaluate(item, host, scope))
+			// `[x] == ['a']` must not decide while x is unknown: the list is unknown as a whole
+			if (items.some(hasUnknown)) return UNKNOWN
+			return items
 		}
 		case 'ident': {
 			if (scope?.has(expr.name)) return scope.get(expr.name)
@@ -293,11 +319,8 @@ export function evaluate(expr: TLRuleExpr, host: EvalHost, scope?: Map<string, V
 			const test = evaluate(expr.test, host, scope)
 			if (test === true) return evaluate(expr.then, host, scope)
 			if (test === false) return evaluate(expr.else, host, scope)
-			if (test === UNKNOWN) {
-				const a = evaluate(expr.then, host, scope)
-				const b = evaluate(expr.else, host, scope)
-				return a === b && typeof a !== 'object' ? a : UNKNOWN
-			}
+			// an unknown test may turn out to be an error, which denies whatever the branches say
+			if (test === UNKNOWN) return UNKNOWN
 			return ERROR
 		}
 		case 'quant': {
@@ -335,6 +358,8 @@ function call(
 		}
 		case 'parent': {
 			const [r] = args()
+			if (r === UNKNOWN) return UNKNOWN
+			if (!isRecordLike(r)) return ERROR
 			const parentId = member(r, 'parentId')
 			if (parentId === UNKNOWN) return UNKNOWN
 			return typeof parentId === 'string' ? host.get(parentId) : undefined
@@ -349,16 +374,19 @@ function call(
 			if (hasUnknown(prev) || hasUnknown(next)) return UNKNOWN
 			if (!isPlainObject(prev) || !isPlainObject(next)) return ERROR
 			const paths = args()
-			if (paths.some((p) => typeof p !== 'string')) return ERROR
+			const isPath = (p: Value) =>
+				typeof p === 'string' || (Array.isArray(p) && p.every((x) => typeof x === 'string'))
+			if (!paths.every(isPath)) return ERROR
+			const typed = paths as Path[]
 			if (expr.fn === 'changed') {
-				return (paths as string[]).some((p) => !deepEqual(getPath(prev, p), getPath(next, p)))
+				return typed.some((p) => !deepEqual(getPath(prev, p), getPath(next, p)))
 			}
-			return changedPaths(prev, next).every((c) => (paths as string[]).some((p) => isUnder(c, p)))
+			return changedPaths(prev, next).every((c) => typed.some((p) => isUnder(c, p)))
 		}
 		case 'exists': {
 			const [v] = args()
-			if (v === UNKNOWN) return UNKNOWN
-			return !isNullish(v) && v !== ERROR
+			if (v === UNKNOWN || v === ERROR) return v
+			return !isNullish(v)
 		}
 		case 'size': {
 			const [v] = args()
@@ -385,6 +413,124 @@ function call(
 		case 'canEdit':
 			return host.canEdit(args()[0])
 	}
+	return ERROR
+}
+
+/** What a value is, in words a rule author reads: `a string`, `missing`, `a record`. */
+function kindOf(v: Value): string {
+	if (v === undefined || v === null) return 'missing'
+	if (v === ERROR) return 'an error'
+	if (v === UNKNOWN) return 'unknown'
+	if (Array.isArray(v)) return 'a list'
+	if (isRecordLike(v)) return 'a record'
+	return `a ${typeof v}`
+}
+
+/**
+ * Why an expression is an error, in one sentence: the operand that was missing, or the two kinds
+ * that did not mix. It descends into the operand that caused the error.
+ */
+function explainError(
+	expr: TLRuleExpr,
+	host: EvalHost,
+	source: string,
+	scope?: Map<string, Value>
+): string {
+	const text = (e: TLRuleExpr) => source.slice(e.s[0], e.s[1])
+	const sub = (e: TLRuleExpr) => explainError(e, host, source, scope)
+	switch (expr.k) {
+		case 'binary': {
+			const l = evaluate(expr.left, host, scope)
+			const r = evaluate(expr.right, host, scope)
+			if (l === ERROR) return sub(expr.left)
+			if (r === ERROR) return sub(expr.right)
+			if (isNullish(l)) return `${text(expr.left)} is missing`
+			if (isNullish(r)) return `${text(expr.right)} is missing`
+			return `${text(expr.left)} is ${kindOf(l)} and ${text(expr.right)} is ${kindOf(r)}`
+		}
+		case 'logical':
+		case 'unary': {
+			const parts = expr.k === 'unary' ? [expr.arg] : [expr.left, expr.right]
+			for (const part of parts) {
+				const v = evaluate(part, host, scope)
+				if (v === ERROR) return sub(part)
+				if (typeof v !== 'boolean' && v !== UNKNOWN) {
+					return `${text(part)} is ${kindOf(v)}, not true or false`
+				}
+			}
+			break
+		}
+		case 'cond': {
+			const test = evaluate(expr.test, host, scope)
+			if (test === ERROR) return sub(expr.test)
+			return `${text(expr.test)} is ${kindOf(test)}, not true or false`
+		}
+		case 'ident': {
+			const named = !scope?.has(expr.name) && host.lets[expr.name]
+			if (named) return explainError(named.expr, host, named.source, scope)
+			break
+		}
+		case 'member':
+		case 'index':
+			return `${text(expr)} is ${kindOf(evaluate(expr, host, scope))}, not true or false`
+		case 'quant':
+		case 'call':
+			for (const arg of expr.k === 'call' ? expr.args : [expr.list]) {
+				if (evaluate(arg, host, scope) === ERROR) return sub(arg)
+			}
+			if (expr.k === 'quant') {
+				const list = evaluate(expr.list, host, scope)
+				if (!Array.isArray(list)) return `${text(expr.list)} is ${kindOf(list)}, not a list`
+				for (const item of list) {
+					const inner = new Map(scope)
+					inner.set(expr.param, item)
+					if (evaluate(expr.body, host, inner) === ERROR) {
+						return explainError(expr.body, host, source, inner)
+					}
+				}
+				break
+			}
+			return `${text(expr)} got ${expr.args.map((a) => kindOf(evaluate(a, host, scope))).join(' and ')}`
+	}
+	return `${text(expr)} is ${kindOf(evaluate(expr, host, scope))}, not true or false`
+}
+
+/** A value in a sentence: `'bob'`, `3`, `missing`, `a record`. Long values are cut. */
+function show(v: Value): string {
+	if (typeof v === 'string') return JSON.stringify(v.length > 40 ? v.slice(0, 40) + '…' : v)
+	if (typeof v === 'number' || typeof v === 'boolean') return String(v)
+	if (Array.isArray(v) && v.length <= 5 && v.every((x) => typeof x !== 'object')) {
+		return `[${v.map(show).join(', ')}]`
+	}
+	return kindOf(v)
+}
+
+/** Why a false clause is false: the values it compared, so the author sees what was there. */
+function explainFalse(
+	expr: TLRuleExpr,
+	host: EvalHost,
+	source: string,
+	scope?: Map<string, Value>
+): string {
+	const text = (e: TLRuleExpr) => source.slice(e.s[0], e.s[1])
+	if (
+		expr.k === 'binary' &&
+		!isLiteral(expr.left) &&
+		['==', '!=', 'in', '<', '<=', '>', '>='].includes(expr.op)
+	) {
+		const l = evaluate(expr.left, host, scope)
+		const r = evaluate(expr.right, host, scope)
+		if (isLiteral(expr.right)) return `${text(expr.left)} is ${show(l)}`
+		return `${text(expr.left)} is ${show(l)} and ${text(expr.right)} is ${show(r)}`
+	}
+	return `${text(expr)} is false`
+}
+
+/** A denied clause: its source, how it failed, and a sentence that says why. */
+export interface FailingClause {
+	clause: string
+	result: 'false' | 'error'
+	reason: string
 }
 
 /**
@@ -397,12 +543,15 @@ export function findFailingClause(
 	host: EvalHost,
 	source: string,
 	scope?: Map<string, Value>
-): { clause: string; result: 'false' | 'error' } {
+): FailingClause {
 	const result = evaluate(expr, host, scope)
-	const describe = (): { clause: string; result: 'false' | 'error' } => ({
-		clause: source.slice(expr.s[0], expr.s[1]),
-		result: result === false ? 'false' : 'error',
-	})
+	const describe = (): FailingClause => {
+		const clause = source.slice(expr.s[0], expr.s[1])
+		if (result === false) {
+			return { clause, result: 'false', reason: explainFalse(expr, host, source, scope) }
+		}
+		return { clause, result: 'error', reason: explainError(expr, host, source, scope) }
+	}
 	if (expr.k === 'logical' && expr.op === '&&') {
 		const left = evaluate(expr.left, host, scope)
 		return left === true
@@ -416,7 +565,7 @@ export function findFailingClause(
 	if (expr.k === 'ident' && !scope?.has(expr.name) && host.lets[expr.name]) {
 		const named = host.lets[expr.name]
 		const inner = findFailingClause(named.expr, host, named.source, scope)
-		return { clause: `${expr.name}: ${inner.clause}`, result: inner.result }
+		return { ...inner, clause: `${expr.name}: ${inner.clause}` }
 	}
 	if (expr.k === 'cond') {
 		const test = evaluate(expr.test, host, scope)

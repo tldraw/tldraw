@@ -64,7 +64,7 @@ export const useCaseRules = {
 					},
 					update: {
 						// both ends of the move: you own it now, and it stays in your frame
-						allow: 'isTeacher || (isStudent && !locked && mine && inMyFrame)',
+						allow: 'isTeacher || (isStudent && !locked && mine && studentTool && inMyFrame)',
 						message: 'You can only change your own shapes, inside your frame',
 					},
 					delete: {
@@ -117,23 +117,33 @@ export const useCaseRules = {
 	),
 
 	/**
-	 * Poker and progressive reveal. A card (a shape with `meta.holder`) is visible only to its
-	 * holder until the dealer sets `meta.revealed`. Anything inside a frame with `meta.hidden` is
-	 * visible only to the dealer until the frame is revealed.
+	 * Poker and progressive reveal. Everyone sees every card, face down: a card's text (a shape
+	 * with `meta.holder`) is hidden from everyone but its holder until the dealer sets
+	 * `meta.revealed`. Anything inside a frame with `meta.hidden` is not sent at all, except to the
+	 * dealer, until the frame is revealed.
 	 */
 	reveal: composeRules(
 		defineRules({
 			version: 1,
 			let: {
 				isDealer: "user.role == 'dealer'",
-				cardVisible:
+				faceUp:
 					'record.meta.holder == null || record.meta.revealed == true || record.meta.holder == user.id',
 				frameVisible: '!ancestors(record).some(a => a.meta.hidden == true)',
 			},
 			actions: { 'cards:reveal': 'isDealer' },
 			types: {
 				shape: {
-					read: 'isDealer || (cardVisible && frameVisible && !(record.meta.hidden == true))',
+					read: 'isDealer || (frameVisible && !(record.meta.hidden == true))',
+					fields: {
+						'props.richText': {
+							read: 'isDealer || faceUp',
+							hidden: {
+								type: 'doc',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: '🂠' }] }],
+							},
+						},
+					},
 					update: {
 						allow: "isDealer || (onlyChanged('x', 'y', 'rotation') && prev.meta.holder == user.id)",
 						message: 'Only the dealer changes the table. You may move your own cards.',
@@ -189,14 +199,17 @@ export const useCaseRules = {
 export const pollPluginRules = {
 	actions: { 'poll:create': "user.access == 'edit'" },
 	let: {
-		isPoll: "(op == 'delete' ? prev : next).type == 'poll'",
-		ownVoteOnly: "onlyChanged('props.votes.' + user.id)",
+		// both ends: a shape cannot become a poll, or stop being one, to dodge these rules
+		isPoll: "(op != 'create' && prev.type == 'poll') || (op != 'delete' && next.type == 'poll')",
+		// a list path, so a user id with a dot in it (an email) names one key, not two
+		ownVoteOnly: "onlyChanged(['props', 'votes', user.id])",
 	},
 	types: {
 		shape: {
 			create: "!isPoll || can('poll:create')",
 			update: {
-				allow: '!isPoll || prev.meta.ownerId == user.id || ownVoteOnly',
+				allow:
+					'!isPoll || (prev.type == next.type && (prev.meta.ownerId == user.id || ownVoteOnly))',
 				message: 'You can only change your own vote',
 			},
 		},

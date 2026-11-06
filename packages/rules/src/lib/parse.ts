@@ -225,7 +225,7 @@ export function parseRule(src: string): TLRuleExpr {
 				if (t.v === 'true' || t.v === 'false') return { k: 'lit', v: t.v === 'true', s: t.s }
 				if (t.v === 'null') return { k: 'lit', v: null, s: t.s }
 				if (isOp('(')) {
-					if (!(t.v in RULE_FUNCTIONS)) {
+					if (!Object.hasOwn(RULE_FUNCTIONS, t.v)) {
 						throw new TLRuleSyntaxError(`Unknown function '${t.v}'`, src, t.s[0])
 					}
 					next()

@@ -2,7 +2,7 @@ import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 import type { TLRoomAccess } from './RoomRules'
 
-const TLSYNC_PROTOCOL_VERSION = 8
+const TLSYNC_PROTOCOL_VERSION = 9
 
 /**
  * Gets the current tldraw sync protocol version number.

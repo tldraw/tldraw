@@ -15,6 +15,7 @@ export {
 	TLRulesCompileError,
 	compileRules,
 	defineRules,
+	type TLFieldRule,
 	type TLReadDependencies,
 	type TLRuleCheck,
 	type TLRuleDecision,

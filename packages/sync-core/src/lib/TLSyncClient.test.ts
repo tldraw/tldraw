@@ -290,7 +290,7 @@ describe('TLSyncClient', () => {
 			expect(msg.type).toBe('connect')
 			expect(msg.connectRequestId).toBe(client.latestConnectRequestId)
 			expect(msg.schema).toEqual(schema.serialize())
-			expect(msg.protocolVersion).toBe(8)
+			expect(msg.protocolVersion).toBe(9)
 			expect(msg.protocolVersion).toBe(getTlsyncProtocolVersion())
 			expect(msg.lastServerClock).toBe(-1)
 		})

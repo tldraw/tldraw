@@ -221,6 +221,7 @@ describe('explain', () => {
 				message: 'You can only change your own shapes, inside your frame',
 				clause: 'mine: prev.meta.ownerId == user.id',
 				result: 'false',
+				reason: 'prev.meta.ownerId is "bob" and user.id is "ann"',
 			},
 		})
 	})
@@ -241,6 +242,96 @@ describe('explain', () => {
 			get: () => undefined,
 		})
 		expect(result.ok ? null : result.denial.clause).toBe('mine: prev.meta.ownerId == user.id')
+	})
+})
+
+describe('explain in words', () => {
+	const check = (rule: string, prev: TLRuleRecord, user: Record<string, any>) =>
+		compileRules(base({ types: { shape: { update: rule } } })).checkWrite({
+			op: 'update',
+			typeName: 'shape',
+			prev,
+			next: prev,
+			user,
+			get: () => undefined,
+		})
+
+	it('says which side of a comparison was missing', () => {
+		const result = check('!(prev.meta.ownerId == user.id)', shape('a'), { id: 'ann' })
+		expect(result).toMatchObject({
+			ok: false,
+			denial: { result: 'error', reason: 'prev.meta.ownerId is missing' },
+		})
+	})
+
+	it('names the kinds that did not mix', () => {
+		const result = check('prev.x > user.id', shape('a'), { id: 'ann' })
+		expect(result).toMatchObject({
+			denial: { result: 'error', reason: 'prev.x is a number and user.id is a string' },
+		})
+	})
+
+	it('shows the value that was not in the list', () => {
+		const result = check("prev.type in ['draw', 'note']", shape('a'), {})
+		expect(result).toMatchObject({ denial: { result: 'false', reason: 'prev.type is "geo"' } })
+	})
+})
+
+describe('field read control', () => {
+	const rules = compileRules(
+		base({
+			default: { read: 'true', write: 'true' },
+			types: {
+				shape: {
+					fields: {
+						'props.text': {
+							read: 'record.meta.holder == user.id || record.meta.revealed == true',
+							hidden: '',
+						},
+					},
+				},
+			},
+		})
+	)
+	const card = shape('card', { props: { text: 'A♠' }, meta: { holder: 'ann' } })
+
+	it('hides the field from everyone but the holder', () => {
+		expect(rules.redact(card, { id: 'ann' }, () => undefined)).toBe(card)
+		expect(rules.redact(card, { id: 'bob' }, () => undefined)).toEqual({
+			...card,
+			props: { text: '' },
+		})
+		expect(rules.mayHideFields('shape', { id: 'bob' })).toBe(true)
+	})
+
+	it('denies a write to a hidden field, and keeps the real value when the hidden one comes back', () => {
+		const write = (text: string) =>
+			rules.checkWrite({
+				op: 'update',
+				typeName: 'shape',
+				prev: card,
+				next: { ...card, x: 5, props: { text } },
+				user: { id: 'bob' },
+				get: () => undefined,
+			})
+		expect(write('K♥')).toMatchObject({
+			ok: false,
+			denial: { rule: 'shape.fields.props.text', message: 'props.text is hidden from you' },
+		})
+		expect(write('')).toEqual({ ok: true, record: { ...card, x: 5 } })
+	})
+
+	it('counts field rules as read dependencies', () => {
+		expect(rules.readDependencies.own.shape).toEqual(
+			expect.arrayContaining(['meta.holder', 'meta.revealed'])
+		)
+		expect(
+			rules.changeAffectsVisibility({
+				typeName: 'shape',
+				prev: card,
+				next: { ...card, meta: { ...card.meta, revealed: true } },
+			})
+		).toBe('self')
 	})
 })
 
@@ -347,5 +438,176 @@ describe('compose', () => {
 		expect(() =>
 			composeRules(base({ actions: { a: 'true' } }), { actions: { a: 'false' } })
 		).toThrow(/defined twice/)
+	})
+})
+
+describe('review findings stay fixed', () => {
+	const read = (rule: string) =>
+		compileRules(
+			base({ types: { shape: { read: rule } }, default: { read: 'true', write: 'true' } })
+		)
+	const update = (rule: string, prev: TLRuleRecord, user: Record<string, any>) =>
+		compileRules(base({ types: { shape: { update: rule } } })).checkWrite({
+			op: 'update',
+			typeName: 'shape',
+			prev,
+			next: prev,
+			user,
+			get: () => undefined,
+		}).ok
+
+	it('does not decide a list with an unknown in it', () => {
+		const rules = read("!([record.meta.vis] == ['private'])")
+		expect(rules.decide('read', 'shape', {})).toBe('maybe')
+		expect(rules.canRead(shape('a', { meta: { vis: 'private' } }), {}, () => undefined)).toBe(false)
+	})
+
+	it('does not decide a ?: whose test may be an error', () => {
+		const rules = read('record.meta.ownerId == user.id ? true : user.admin')
+		expect(rules.decide('read', 'shape', { admin: true })).toBe('maybe')
+	})
+
+	it('does not match missing values inside lists', () => {
+		expect(update('[prev.meta.ownerId] == [user.id]', shape('a'), {})).toBe(false)
+	})
+
+	it('passes errors through exists() and parent()', () => {
+		expect(update("!exists(get('ban:' + user.id))", shape('a'), {})).toBe(false)
+		expect(update('parent(get(user.home)) == null', shape('a'), {})).toBe(false)
+	})
+
+	it('has no prototype names: lets, actions, functions, and types', () => {
+		expect(() => compileRules(base({ types: { shape: { update: 'constructor' } } }))).toThrow(
+			TLRulesCompileError
+		)
+		expect(() => compileRules(base({ types: { shape: { update: "can('toString')" } } }))).toThrow(
+			TLRulesCompileError
+		)
+		expect(() => parseRule('hasOwnProperty(1) == null')).toThrow()
+		const rules = compileRules(base({}))
+		expect(rules.can('constructor', {})).toBe(false)
+		expect(
+			rules.checkWrite({
+				op: 'create',
+				typeName: '__proto__',
+				prev: null,
+				next: { id: 'x', typeName: '__proto__' },
+				user: {},
+				get: () => undefined,
+			}).ok
+		).toBe(false)
+	})
+
+	it('composes without widening: no stamp replaced, a listed type keeps its default', () => {
+		const host = base({
+			types: { shape: { stamp: { 'meta.ownerId': 'user.id' } }, page: { read: 'true' } },
+			default: { read: 'true', write: 'user.teacher == true' },
+		})
+		expect(() =>
+			composeRules(host, { types: { shape: { stamp: { 'meta.ownerId': 'next.meta.ownerId' } } } })
+		).toThrow('stamped twice')
+		const rules = compileRules(composeRules(host, { types: { page: { update: 'true' } } }))
+		const p = { id: 'page:1', typeName: 'page', meta: {} }
+		const write = (teacher: boolean) =>
+			rules.checkWrite({
+				op: 'update',
+				typeName: 'page',
+				prev: p,
+				next: p,
+				user: { teacher },
+				get: () => undefined,
+			}).ok
+		expect([write(false), write(true)]).toEqual([false, true])
+	})
+
+	it('names a key with a dot exactly, with a list path', () => {
+		const rules = compileRules(composeRules(useCaseRules.shareLinks, pollPluginRules))
+		const poll = shape('p', { type: 'poll', props: { votes: {} }, meta: { ownerId: 'host' } })
+		const vote = (key: string, user: string) =>
+			rules.checkWrite({
+				op: 'update',
+				typeName: 'shape',
+				prev: poll,
+				next: { ...poll, props: { votes: { [key]: 'yes' } } },
+				user: { id: user, access: 'edit' },
+				get: () => undefined,
+			}).ok
+		expect(vote('bob@x.com', 'bob@x.com')).toBe(true)
+		expect(vote('bob@x.com', 'bob@x')).toBe(false)
+	})
+
+	it('freezes paths that go through lists', () => {
+		const rules = compileRules(
+			base({ types: { shape: { frozen: ['meta.tags.0'], update: 'true' } } })
+		)
+		const prev = shape('a', { meta: { tags: ['a'] } })
+		const ok = rules.checkWrite({
+			op: 'update',
+			typeName: 'shape',
+			prev,
+			next: { ...prev, meta: { tags: ['b'] } },
+			user: {},
+			get: () => undefined,
+		}).ok
+		expect(ok).toBe(false)
+	})
+
+	it('closes the reference rule bypasses: retyping into a teacher tool, or into a poll', () => {
+		const classroom = compileRules(useCaseRules.classroom)
+		const frame = shape('frame', { type: 'frame', meta: { assignee: 'ann' } })
+		const mine = shape('mine', { type: 'geo', parentId: 'shape:frame', meta: { ownerId: 'ann' } })
+		const get = store(
+			frame,
+			{ id: 'page:1', typeName: 'page', meta: {} } as any,
+			{
+				id: 'document:document',
+				typeName: 'document',
+				meta: {},
+			} as any
+		)
+		const retype = (rules: typeof classroom, prev: TLRuleRecord, type: string, user: any) =>
+			rules.checkWrite({
+				op: 'update',
+				typeName: 'shape',
+				prev,
+				next: { ...prev, type },
+				user,
+				get,
+			}).ok
+		expect(retype(classroom, mine, 'draw', { id: 'ann', role: 'student' })).toBe(true)
+		expect(retype(classroom, mine, 'frame', { id: 'ann', role: 'student' })).toBe(false)
+
+		const polls = compileRules(composeRules(useCaseRules.shareLinks, pollPluginRules))
+		const geo = shape('g', { meta: { ownerId: 'cara' } })
+		const editor = { id: 'cara', access: 'edit' }
+		expect(retype(polls, geo, 'note', editor)).toBe(true)
+		expect(retype(polls, geo, 'poll', editor)).toBe(false)
+	})
+
+	it('decides an update the way checkWrite does: the read check included', () => {
+		const rules = compileRules(
+			base({
+				types: { shape: { read: '!(record.meta.hidden == true)', update: 'true' } },
+				default: { read: 'true', write: 'false' },
+			})
+		)
+		expect(rules.decide('update', 'shape', {})).toBe('maybe')
+	})
+
+	it('explains an error inside a quantifier body', () => {
+		const rules = compileRules(
+			base({ types: { shape: { update: 'ancestors(prev).some(a => a.meta.n > user.n)' } } })
+		)
+		const parent = shape('p', { meta: { n: 1 } })
+		const child = shape('c', { parentId: 'shape:p' })
+		const result = rules.checkWrite({
+			op: 'update',
+			typeName: 'shape',
+			prev: child,
+			next: child,
+			user: {},
+			get: store(parent),
+		})
+		expect(result).toMatchObject({ denial: { reason: 'user.n is missing' } })
 	})
 })

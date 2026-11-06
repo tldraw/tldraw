@@ -90,11 +90,11 @@ export const pollPluginRules: {
 
 // @public
 export const RULE_FUNCTIONS: {
+    readonly changed: -1;
     readonly ancestors: 1;
     readonly can: 1;
     readonly canEdit: 1;
     readonly canRead: 1;
-    readonly changed: -1;
     readonly encode: 1;
     readonly exists: 1;
     readonly get: 1;
@@ -110,6 +110,13 @@ export const RULE_ROOTS: readonly ['user', 'prev', 'next', 'record', 'op'];
 
 // @public (undocumented)
 export type Span = [start: number, end: number];
+
+// @public
+export interface TLFieldRule {
+    hidden: TLRuleJson;
+    // (undocumented)
+    read: TLRuleSource;
+}
 
 // @public
 export interface TLReadDependencies {
@@ -137,6 +144,7 @@ export interface TLRuleDenial {
     clause: string;
     // (undocumented)
     message: null | string;
+    reason: string;
     result: 'error' | 'false';
     rule: string;
 }
@@ -253,10 +261,12 @@ export class TLRules {
         expr: TLRuleExpr;
         source: string;
     }>;
+    mayHideFields(typeName: string, user: TLRuleUser): boolean;
     // (undocumented)
     readonly pushes: 'atomic' | 'per-record';
     // (undocumented)
     readonly readDependencies: TLReadDependencies;
+    redact<R extends TLRuleRecord>(record: R, user: TLRuleUser, get: (id: string) => unknown): R;
     stamp<R extends TLRuleRecord>(record: R, user: TLRuleUser, get: (id: string) => unknown): R;
 }
 
@@ -309,6 +319,7 @@ export interface TLTypeRules {
     create?: TLRuleSource;
     // (undocumented)
     delete?: TLRuleSource;
+    fields?: Record<string, TLFieldRule>;
     frozen?: string[];
     // (undocumented)
     read?: TLRuleSource;

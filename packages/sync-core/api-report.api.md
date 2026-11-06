@@ -283,7 +283,7 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     socket: TLRoomSocket<R>;
     supportsStringAppend: boolean;
     user: null | TLRuleUser;
-    visible: null | Set<string>;
+    view: null | SessionView;
 }
 
 // @internal
@@ -333,6 +333,23 @@ export interface SessionStateSnapshot {
     // (undocumented)
     supportsStringAppend: boolean;
     user?: TLRuleUser;
+}
+
+// @internal
+export class SessionView {
+    constructor(user: TLRuleUser);
+    // (undocumented)
+    clearIndex(): void;
+    // (undocumented)
+    forget(id: string): void;
+    readonly ids: Set<string>;
+    readonly masked: Set<string>;
+    readonly readers: Map<string, Set<string>>;
+    readonly reads: Map<string, Set<string>>;
+    // (undocumented)
+    setReads(id: string, read: Set<string>): void;
+    // (undocumented)
+    user: TLRuleUser;
 }
 
 // @public

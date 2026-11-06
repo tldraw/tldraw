@@ -155,3 +155,32 @@ describe('the draw tool with a denied create', () => {
 		expect(drawn[0]).toMatchObject({ parentId: frameA, meta: { ownerId: 'ann' } })
 	})
 })
+
+describe('review findings stay fixed', () => {
+	it('does not delete a frame when a shape in it must stay', () => {
+		const frame = createShapeId('own-frame')
+		const theirs = createShapeId('theirs')
+		editor.createShapes([
+			{
+				id: frame,
+				type: 'frame',
+				x: 0,
+				y: 600,
+				props: { w: 300, h: 300 },
+				meta: { ownerId: 'ann' },
+			},
+			{ id: theirs, type: 'geo', parentId: frame, x: 10, y: 10, meta: { ownerId: 'bob' } },
+		])
+		editor.rules.setAccess({
+			rules: {
+				version: 1,
+				types: { shape: { delete: 'prev.meta.ownerId == user.id' } },
+				default: { read: 'true', write: 'true' },
+			},
+			user: { id: 'ann' },
+		})
+		editor.deleteShapes([frame])
+		expect(editor.getShape(frame)).toBeDefined()
+		expect(editor.getShape(theirs)?.parentId).toBe(frame)
+	})
+})

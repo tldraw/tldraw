@@ -39,7 +39,7 @@ import {
 	TLSocketServerSentEvent,
 } from './protocol'
 import { applyAndDiffRecord, diffAndValidateRecord, validateRecord } from './recordDiff'
-import { RoomRules, RulesDeniedPush, TLRoomAccess } from './RoomRules'
+import { RoomRules, RulesDeniedPush, SessionView, TLRoomAccess } from './RoomRules'
 import {
 	RoomSession,
 	RoomSessionState,
@@ -652,7 +652,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
 			user: session.user,
-			visible: session.visible,
+			view: session.view,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
 		})
@@ -685,7 +685,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	) {
 		const hasFiltered =
 			!!this.roomRules &&
-			[...this.sessions.values()].some((s) => s.state === RoomSessionState.Connected && s.visible)
+			[...this.sessions.values()].some((s) => s.state === RoomSessionState.Connected && s.view)
 		if (hasFiltered && !txn) {
 			// read rules may look at other records, so filter inside a (read-only) transaction
 			this.storage.transaction((t) => {
@@ -707,17 +707,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				if (sourceSessionId !== session.sessionId) this.cancelSession(session.sessionId)
 				return
 			}
-			if (session.visible && txn && impact) {
+			if (session.view && txn && impact) {
 				const filtered = this.roomRules!.filterDiff(
-					session.visible,
-					session.user ?? {},
+					session.view,
 					withoutId(diff, session.presenceId),
 					this.recordGetter(txn),
 					{
 						isSource: sourceSessionId === session.sessionId,
-						recomputeAll: impact.all,
 						unchanged: impact.unchanged,
-						allRecords: () => this.allRecordsFor(txn, session.presenceId),
+						reach: impact.reach,
 					}
 				)
 				if (!filtered) return
@@ -777,12 +775,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private initVisibleForResumedSession(sessionId: string) {
 		const session = this.sessions.get(sessionId)
 		if (!this.roomRules || !session?.user || !this.roomRules.needsReadFilter(session.user)) return
-		const visible = new Set<string>()
-		session.visible = visible
+		const view = new SessionView(session.user)
+		session.view = view
 		this.storage.transaction((txn) => {
 			const get = this.recordGetter(txn)
 			for (const r of this.allRecordsFor(txn, session.presenceId)) {
-				if (this.roomRules!.canRead(r, session.user!, get)) visible.add(r.id)
+				if (this.roomRules!.show(view, r, get)) view.ids.add(r.id)
 			}
 		})
 	}
@@ -815,23 +813,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			access: this.getSessionAccess(session),
 		})
 		const needsFilter = this.roomRules!.needsReadFilter(user)
-		if (!needsFilter && !session.visible) return
+		if (!needsFilter && !session.view) return
 		this.storage.transaction((txn) => {
 			const get = this.recordGetter(txn)
 			const records = this.allRecordsFor(txn, session.presenceId)
 			let delta: TLSyncForwardDiff<R>
 			if (needsFilter) {
-				// a session that was unfiltered held everything
-				const visible =
-					session.visible ??
-					new Set([...this.allRecordsFor(txn, session.presenceId)].map((r) => r.id))
-				delta = this.roomRules!.recompute(visible, user, get, records)
-				session.visible = visible
+				let view = session.view
+				if (!view) {
+					// a session that was unfiltered held everything
+					view = new SessionView(user)
+					for (const r of this.allRecordsFor(txn, session.presenceId)) view.ids.add(r.id)
+				}
+				view.user = user
+				delta = this.roomRules!.recompute(view, get, records)
+				session.view = view
 			} else {
-				// everything is readable now: send what it lacks, and stop filtering
+				// everything is readable now: send what it lacks or holds hidden, and stop filtering
 				delta = { puts: {}, deletes: [] }
-				for (const r of records) if (!session.visible!.has(r.id)) delta.puts[r.id] = r
-				session.visible = null
+				const view = session.view!
+				for (const r of records) {
+					if (!view.ids.has(r.id) || this.roomRules!.hasFields(r.typeName)) delta.puts[r.id] = r
+				}
+				session.view = null
 			}
 			if (!Object.keys(delta.puts).length && !delta.deletes.length) return
 			const migrated = this.migrateDiffOrRejectSession(
@@ -923,7 +927,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
 			user: this.roomRules ? (opts.user ?? {}) : null,
-			visible: null,
+			view: null,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
@@ -988,7 +992,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			user: this.roomRules ? (opts.user ?? {}) : null,
 			// The client's store survived, but the room no longer knows which records it holds.
 			// Start from "everything it may read now"; a later change sends the difference.
-			visible: null,
+			view: null,
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
@@ -1282,6 +1286,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			theirProtocolVersion++
 			session.supportsStringAppend = false
 		}
+		// 8 is 9 without the `access` message. A rules room needs it: an 8 client would fail on the
+		// message, and could not show or honor the rules.
+		if (theirProtocolVersion === 8) {
+			if (this.roomRules) {
+				this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+				return
+			}
+			theirProtocolVersion++
+		}
 
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
@@ -1330,32 +1343,36 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
 				user: session.user,
-				visible: visible,
+				view,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
 		}
 
-		// A session that read rules can deny anything to gets a full, filtered snapshot on every
-		// connect: the room cannot know what an earlier connection was allowed to hold.
-		const visible =
+		// In a rules room every connect gets a full snapshot (filtered, when the read rules can deny
+		// this user anything): the room cannot know what an earlier connection was allowed to hold,
+		// so a user whose access grew since then would otherwise miss records forever.
+		const fullSnapshot = !!this.roomRules
+		const view =
 			this.roomRules && session.user && this.roomRules.needsReadFilter(session.user)
-				? new Set<string>()
+				? new SessionView(session.user)
 				: null
 
 		const { documentClock, result } = this.storage.transaction((txn) => {
 			this.broadcastChanges(txn)
-			let docChanges = txn.getChangesSince(visible ? -1 : message.lastServerClock)
+			let docChanges = txn.getChangesSince(fullSnapshot ? -1 : message.lastServerClock)
 			const get = this.recordGetter(txn)
-			const readable = (r: R) => !visible || this.roomRules!.canRead(r, session.user!, get)
-			if (visible && docChanges) {
+			const shown = (r: R) => {
+				if (!view) return r
+				const s = this.roomRules!.show(view, r, get)
+				if (s) view.ids.add(r.id)
+				return s
+			}
+			if (view && docChanges) {
 				const puts: Record<string, R> = {}
 				for (const [id, put] of objectMapEntriesIterable(docChanges.diff.puts)) {
-					const record = Array.isArray(put) ? put[1] : put
-					if (readable(record)) {
-						puts[id] = record
-						visible.add(id)
-					}
+					const record = shown(Array.isArray(put) ? put[1] : put)
+					if (record) puts[id] = record
 				}
 				docChanges = { wipeAll: true, diff: { puts, deletes: [] } }
 			}
@@ -1369,12 +1386,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// would leave an orphaned presence in the client's local store (the
 					// server never echoes a session's own updates back to it).
 					puts: Object.fromEntries(
-						[...this.presenceStore.values()]
-							.filter((p) => p.id !== session.presenceId && readable(p))
-							.map((p) => {
-								visible?.add(p.id)
-								return [p.id, p]
-							})
+						[...this.presenceStore.values()].flatMap((p) => {
+							if (p.id === session.presenceId) return []
+							const s = shown(p)
+							return s ? [[p.id, s] as const] : []
+						})
 					),
 					deletes: [],
 				}
@@ -1398,7 +1414,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return {
 				type: 'connect',
 				connectRequestId: message.connectRequestId,
-				hydrationType: visible || docChanges?.wipeAll ? 'wipe_all' : 'wipe_presence',
+				hydrationType: fullSnapshot || docChanges?.wipeAll ? 'wipe_all' : 'wipe_presence',
 				protocolVersion: getTlsyncProtocolVersion(),
 				schema: this.schema.serialize(),
 				serverClock: txn.getClock(),
@@ -1418,7 +1434,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private handlePushRequest(
 		session: RoomSession<R, SessionMeta> | null,
-		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>
+		message: Extract<TLSocketClientSentEvent<R>, { type: 'push' }>,
+		/** Apply the push but send no push_result: the caller already answered for this clock. */
+		opts: { silent?: boolean } = {}
 	) {
 		// We must be connected to handle push requests
 		if (session && session.state !== RoomSessionState.Connected) {
@@ -1484,12 +1502,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const doc =
 				prevDoc !== undefined ? (prevDoc ?? undefined) : (storage.get(id) as R | undefined)
 
-			// Authorize on the up-migrated record; on create the authorizer's return is stored as-is,
-			// so no later migration can clobber stamped fields.
+			// Authorize on the up-migrated record; the authorizer's return is stored as-is, so no
+			// later migration can clobber stamped fields (create) or a kept hidden field (update).
 			if (authorize) {
 				const result = authorize(doc ?? null, state)
 				if (!result) return Result.ok(undefined) // vetoed: skip the op, the client self-corrects
-				if (!doc) state = result // create: store the authorizer's (stamped) record
+				state = result
 			}
 
 			if (doc) {
@@ -1542,7 +1560,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
 				if (diff) {
 					// Authorize on the committed candidate — the record that will actually be stored.
-					if (authorize && !authorize(doc, diff[1])) return
+					const authorized = authorize ? authorize(doc, diff[1]) : diff[1]
+					if (!authorized) return
+					if (authorized !== diff[1]) {
+						// the rules kept a field this session may not read: store and send that instead
+						const kept = diffAndValidateRecord(doc, authorized, recordType, legacyAppendMode)
+						if (!kept) return
+						storage.set(id, authorized)
+						propagateOp(changes, id, [RecordOpType.Patch, kept], doc, authorized)
+						return
+					}
 					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
 				}
@@ -1563,9 +1590,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
 				if (diff) {
 					// Authorize on the committed candidate — the upgraded record, not a raw preview.
-					if (authorize && !authorize(doc, upgraded.value)) return
-					storage.set(id, upgraded.value)
-					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
+					const authorized = authorize ? authorize(doc, upgraded.value) : upgraded.value
+					if (!authorized) return
+					const final =
+						authorized === upgraded.value
+							? diff
+							: diffAndValidateRecord(doc, authorized, recordType, legacyAppendMode)
+					if (!final) return
+					storage.set(id, authorized)
+					propagateOp(changes, id, [RecordOpType.Patch, final], doc, authorized)
 				}
 			}
 		}
@@ -1591,23 +1624,45 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						const id = session.presenceId
 						const [type, val] = message.presence
 						const { typeName } = this.presenceType
+						// Presence is checked only against rules written for it: `default.write` is
+						// about the document, and a viewer still has a cursor. A denied presence write
+						// is skipped, never a reason to roll back the document part of the push.
+						const presenceRules = this.roomRules?.getDefinition().types?.[typeName]
+						const authorizePresence =
+							presenceRules && (presenceRules.create || presenceRules.update || presenceRules.stamp)
+								? (prev: R | null, next: R): R | null => {
+										const result = this.roomRules!.rules.checkWrite<any>({
+											op: prev ? 'update' : 'create',
+											typeName,
+											prev,
+											next,
+											user: session.user ?? {},
+											get: this.recordGetter(txn) as any,
+										})
+										return result.ok ? result.record : null
+									}
+								: undefined
 						switch (type) {
 							case RecordOpType.Put: {
 								// Try to put the document. If it fails, stop here.
-								addDocument(this.presenceStore, presenceChanges, id, {
-									...val,
+								addDocument(
+									this.presenceStore,
+									presenceChanges,
 									id,
-									typeName,
-								})
+									{ ...val, id, typeName },
+									authorizePresence
+								)
 								break
 							}
 							case RecordOpType.Patch: {
 								// Try to patch the document. If it fails, stop here.
-								patchDocument(this.presenceStore, presenceChanges, id, {
-									...val,
-									id: [ValueOpType.Put, id],
-									typeName: [ValueOpType.Put, typeName],
-								})
+								patchDocument(
+									this.presenceStore,
+									presenceChanges,
+									id,
+									{ ...val, id: [ValueOpType.Put, id], typeName: [ValueOpType.Put, typeName] },
+									authorizePresence
+								)
 								break
 							}
 						}
@@ -1711,8 +1766,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 												prevRec,
 												next
 											)
-											if (!result) return null
-											return prevRec ? next : result
+											// create: the stamped record; update: `next`, with hidden fields kept
+											return result
 										}
 									} else if (session && this.authorizeRecord) {
 										const authorizePut = this.authorizerFor(record.typeName)
@@ -1747,6 +1802,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									// if it was already deleted, there's no need to apply the patch
 									if (!doc) continue
 									if (!canWrite(doc.typeName)) continue
+									// A patch never changes what a record is: the rules (and the put path)
+									// key off the stored typeName and id.
+									if (session && ('typeName' in op[1] || 'id' in op[1])) {
+										this.log?.warn?.('skipping patch that changes typeName or id', id)
+										continue
+									}
 									// Per-type authorizer (update, allow/veto only): runs inside `patchDocument`
 									// on the committed candidate, never on a raw client-version preview.
 									const authorizePatch = session && this.authorizerFor(doc.typeName)
@@ -1829,13 +1890,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (!(e instanceof RulesDeniedPush)) throw e
 			// Atomic pushes: one denied record rolls back the whole push, so an arrow never lands
 			// without its binding. The client drops the push, as for any discard.
-			if (session) {
+			if (session && !opts.silent) {
 				this._unsafe_sendMessage(session.sessionId, {
 					type: 'push_result',
 					clientClock: message.clientClock,
 					serverClock: this.lastDocumentClock,
 					action: 'discard',
 				})
+			}
+			// The rollback took the presence part too, but the client counts it as sent and patches
+			// from it next time. Apply the presence alone, so the cursor stays.
+			if (message.presence && message.diff) {
+				this.handlePushRequest(session, { ...message, diff: undefined }, { silent: true })
 			}
 			return
 		}
@@ -1888,7 +1954,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			// if the difff was not ok then the session was rejected and it's ok to continue without a push result
 		}
 
-		if (session && pushResult) {
+		if (session && pushResult && !opts.silent) {
 			this._unsafe_sendMessage(session.sessionId, pushResult)
 		}
 		if (result.docChanges.diffs || result.presenceChanges.diffs) {
