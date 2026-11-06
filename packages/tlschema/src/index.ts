@@ -64,9 +64,11 @@ export {
 	defaultBindingSchemas,
 	defaultShapeSchemas,
 	type SchemaPropsInfo,
+	type TLPolicies,
 	type TLSchema,
 	type UserSchemaInfo,
 } from './createTLSchema'
+export { defaultBindingPolicy, defaultRecordPolicy, mayUpdate } from './policies'
 export {
 	boxModelValidator,
 	vecModelValidator,
@@ -117,8 +119,11 @@ export {
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export {
+	commentPolicy,
+	commentReactionPolicy,
 	commentReactionRecordConfig,
 	commentRecordConfig,
+	commentThreadPolicy,
 	commentSchemaRecords,
 	commentThreadRecordConfig,
 	createComment,

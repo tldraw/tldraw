@@ -4,6 +4,7 @@ import {
 	CustomRecordInfo,
 	SchemaPropsInfo,
 	TLAssetStore,
+	TLPolicies,
 	TLRecord,
 	TLStore,
 	TLStoreProps,
@@ -66,6 +67,8 @@ export type TLStoreSchemaOptions =
 			assetUtils?: readonly TLAnyAssetUtilConstructor[]
 			migrations?: readonly MigrationSequence[]
 			records?: Record<string, CustomRecordInfo>
+			/** The host's access rules per record type. See `createTLSchema`. */
+			policies?: TLPolicies
 	  }
 
 /** @public */
@@ -133,6 +136,7 @@ export function createTLSchemaFromUtils(
 				: undefined,
 		records: 'records' in opts ? opts.records : undefined,
 		migrations: 'migrations' in opts ? opts.migrations : undefined,
+		policies: 'policies' in opts ? opts.policies : undefined,
 	})
 }
 
@@ -202,6 +206,7 @@ function utilsToMap<T extends SchemaPropsInfo & { type: string }>(utils: T[]) {
 			{
 				props: s.props,
 				migrations: s.migrations,
+				policy: s.policy,
 			},
 		])
 	)

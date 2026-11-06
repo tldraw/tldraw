@@ -20,6 +20,16 @@ import {
 	SynchronousStorage,
 	validateMigrations,
 } from './migrate'
+import {
+	getPolicyRule,
+	getPolicySubject,
+	layerPolicies,
+	PolicyActor,
+	PolicyContext,
+	PolicyRequest,
+	RecordPolicy,
+	runPolicyRule,
+} from './RecordPolicy'
 import { RecordType } from './RecordType'
 import { SerializedStore, Store, StoreSnapshot } from './Store'
 
@@ -252,7 +262,22 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 	onValidationFailure?(data: StoreValidationFailure<R>): R
 	/** @internal */
 	createIntegrityChecker?(store: Store<R, P>): void
+	/**
+	 * The bottom policy layer: used for every document record type, below the type's own policy.
+	 * See {@link RecordPolicy}.
+	 */
+	defaultPolicy?: RecordPolicy<R>
+	/**
+	 * The top policy layer: the host's rules per record type name, above the type's own policy.
+	 * See {@link RecordPolicy}.
+	 */
+	policies?: {
+		readonly [TypeName in R['typeName']]?: RecordPolicy<Extract<R, { typeName: TypeName }>>
+	}
 }
+
+// A rule may ask the policy of another record. This stops a cycle of such calls.
+const MAX_POLICY_DEPTH = 16
 
 /**
  * Manages the schema definition, validation, and migration system for a Store.
@@ -327,6 +352,8 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 	}
 
 	readonly migrations: Record<string, MigrationSequence> = {}
+	private readonly policies = new Map<string, RecordPolicy<any>>()
+	private _hasReadRules = false
 	readonly sortedMigrations: readonly Migration[]
 	private readonly migrationCache = new WeakMap<SerializedSchema, Result<Migration[], string>>()
 
@@ -344,6 +371,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		const allMigrations = Object.values(this.migrations).flatMap((m) => m.sequence)
 		this.sortedMigrations = sortMigrations(allMigrations)
 
+		for (const [typeName, type] of objectMapEntries(this.types) as [string, RecordType<R, any>][]) {
+			if (type.scope !== 'document') continue
+			const policy = layerPolicies(
+				layerPolicies(options.defaultPolicy as RecordPolicy<any>, type.policy),
+				getOwnProperty(options.policies ?? {}, typeName) as RecordPolicy<any> | undefined
+			)
+			this.policies.set(typeName, policy)
+			if (policy.read) this._hasReadRules = true
+		}
+
 		for (const migration of this.sortedMigrations) {
 			if (!migration.dependsOn?.length) continue
 			for (const dep of migration.dependsOn) {
@@ -351,6 +388,80 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				assert(depMigration, `Migration '${migration.id}' depends on missing migration '${dep}'`)
 			}
 		}
+	}
+
+	/**
+	 * The layered policy of a document record type: the schema default, the type's own policy,
+	 * and the host's policy. `undefined` for unknown types and for session and presence types,
+	 * which policies do not cover.
+	 *
+	 * @public
+	 */
+	getPolicy(typeName: R['typeName']): RecordPolicy<R> | undefined {
+		return this.policies.get(typeName)
+	}
+
+	/**
+	 * True when any record type has a `read` rule. A sync server filters what each session
+	 * receives only when this is true.
+	 *
+	 * @public
+	 */
+	hasReadRules(): boolean {
+		return this._hasReadRules
+	}
+
+	/**
+	 * Asks the policies if `actor` may make `request`. This is the one entry point that the
+	 * editor, the sync server, and the UI all use.
+	 *
+	 * - Session and presence records are always allowed: policies cover document records only.
+	 * - An unknown record type, or an update that changes `id` or `typeName`, is denied.
+	 * - A write or read with no rule at any layer is allowed. An action with no rule is denied.
+	 *
+	 * `get` reads other records. Give it the state that the change will produce.
+	 *
+	 * @public
+	 */
+	authorize(
+		actor: PolicyActor,
+		request: PolicyRequest<R>,
+		get: (id: string) => UnknownRecord | undefined
+	): boolean {
+		return this._authorize(actor, request, get, 0)
+	}
+
+	private _authorize(
+		actor: PolicyActor,
+		request: PolicyRequest<R>,
+		get: (id: string) => UnknownRecord | undefined,
+		depth: number
+	): boolean {
+		if (depth > MAX_POLICY_DEPTH) return false
+		const subject = getPolicySubject(request)
+		const type = getOwnProperty(this.types, subject?.typeName) as RecordType<R, any> | undefined
+		if (!type) return false
+		if (type.scope !== 'document') return true
+		if (
+			request.verb === 'update' &&
+			(request.prev.id !== request.next.id || request.prev.typeName !== request.next.typeName)
+		) {
+			return false
+		}
+		if (request.verb === 'create' && !this.types[request.next.typeName as R['typeName']]) {
+			return false
+		}
+		const noRule = request.verb !== 'action'
+		const rule = getPolicyRule(this.policies.get(type.typeName), request)
+		if (!rule) return noRule
+		const ctx: PolicyContext = {
+			actor,
+			can: (action) => actor.can(action),
+			get,
+			authorize: (next) => this._authorize(actor, next as PolicyRequest<R>, get, depth + 1),
+			base: () => noRule,
+		}
+		return runPolicyRule(rule, { ...ctx, ...request })
 	}
 
 	/**

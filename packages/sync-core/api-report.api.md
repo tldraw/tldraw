@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
+import { PolicyActor } from '@tldraw/store';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedSchema } from '@tldraw/store';
@@ -231,6 +232,14 @@ export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R
 export type PutOp = [type: typeof ValueOpType.Put, value: unknown];
 
 // @internal
+export interface ReadView {
+    // (undocumented)
+    dependents: Map<string, Set<string>>;
+    // (undocumented)
+    visible: Set<string>;
+}
+
+// @internal
 export class ReconnectManager {
     constructor(socketAdapter: ClientWebSocketAdapter, getUri: () => Promise<string> | string);
     close(): void;
@@ -256,18 +265,19 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingConnectMessage;
-    sessionStartTime: number;
-}) | (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingRemoval;
-    cancellationTime: number;
-}) | (RoomSessionBase<R, Meta> & {
+    readView?: ReadView;
     state: typeof RoomSessionState.Connected;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
     requiresDownMigrations: boolean;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingConnectMessage;
+    sessionStartTime: number;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingRemoval;
+    cancellationTime: number;
 });
 
 // @internal
@@ -393,6 +403,12 @@ export interface TLConnectRequest {
 
 // @public
 export type TLCustomMessageHandler = (this: null, data: any) => void;
+
+// @public
+export type TLGetActor<SessionMeta> = (session: {
+    meta: SessionMeta;
+    sessionId: string;
+}) => null | PolicyActor;
 
 // @internal @deprecated
 export const TLIncompatibilityReason: {
@@ -550,6 +566,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
+    getActor?: TLGetActor<SessionMeta>;
     // @deprecated (undocumented)
     initialSnapshot?: RoomSnapshot | TLStoreSnapshot;
     // (undocumented)
@@ -722,6 +739,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
+        getActor?: TLGetActor<SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;

@@ -1,0 +1,49 @@
+.record-policies {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 4px;
+	background: #ddd;
+}
+
+.record-policies__pane {
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: white;
+}
+
+.record-policies__header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 8px;
+	font-size: 12px;
+	border-bottom: 1px solid #ddd;
+}
+
+.record-policies__role {
+	color: #666;
+}
+
+.record-policies__header label {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+}
+
+.record-policies__blocked {
+	color: #b00020;
+}
+
+.record-policies__editor {
+	position: relative;
+	flex: 1;
+}
+
+.record-policies__loading {
+	padding: 16px;
+	color: #666;
+}

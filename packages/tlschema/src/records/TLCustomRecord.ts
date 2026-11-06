@@ -1,6 +1,7 @@
 import {
 	MigrationSequence,
 	RecordId,
+	RecordPolicy,
 	RecordScope,
 	UnknownRecord,
 	createMigrationSequence,
@@ -73,6 +74,12 @@ export interface CustomRecordInfo {
 	 */
 	// eslint-disable-next-line tldraw/method-signature-style
 	createDefaultProperties?: () => Record<string, unknown>
+
+	/**
+	 * The access rules of this record type, used by the editor and by the sync server. Without
+	 * one, every write needs `document:write`. See `RecordPolicy`.
+	 */
+	policy?: RecordPolicy<any>
 }
 
 /**
@@ -88,6 +95,7 @@ export function createCustomRecordType(typeName: string, config: CustomRecordInf
 	return createRecordType<UnknownRecord>(typeName, {
 		scope: config.scope,
 		validator: config.validator,
+		policy: config.policy,
 	}).withDefaultProperties(config.createDefaultProperties ?? (() => ({})))
 }
 

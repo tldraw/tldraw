@@ -1,8 +1,10 @@
 import {
 	RecordId,
+	RecordPolicy,
 	UnknownRecord,
 	createMigrationIds,
 	createRecordMigrationSequence,
+	createKindPolicy,
 	createRecordType,
 } from '@tldraw/store'
 import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
@@ -566,6 +568,12 @@ export function createShapePropsMigrationIds<
 export function createShapeRecordType(shapes: Record<string, SchemaPropsInfo>) {
 	return createRecordType('shape', {
 		scope: 'document',
+		// Each shape type can bring its own policy (`ShapeUtil.policy`).
+		policy: createKindPolicy<TLShape>(
+			undefined,
+			mapObjectMapValues(shapes, (_, { policy }) => policy),
+			(shape) => shape.type
+		) as RecordPolicy<any>,
 		validator: T.model(
 			'shape',
 			T.union(

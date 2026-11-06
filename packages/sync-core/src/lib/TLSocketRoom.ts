@@ -7,7 +7,7 @@ import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLGetActor, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -151,6 +151,21 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
+	 * The policy actor of each session. When set, every client push is checked against the
+	 * schema's record policies (the same policies the editor runs), and a push with any denied
+	 * change is discarded as a whole. When the schema has read rules, each session receives only
+	 * the records it may read. See {@link TLGetActor}.
+	 *
+	 * @example
+	 * ```ts
+	 * new TLSocketRoom<TLRecord, { userId: string; actions: string[] }>({
+	 * 	schema,
+	 * 	getActor: ({ meta }) => createPolicyActor({ id: meta.userId, actions: meta.actions }),
+	 * })
+	 * ```
+	 */
+	getActor?: TLGetActor<SessionMeta>
+	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
@@ -281,6 +296,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			getActor: opts.getActor,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

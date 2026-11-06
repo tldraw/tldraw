@@ -1,8 +1,10 @@
 import {
 	RecordId,
+	RecordPolicy,
 	UnknownRecord,
 	createMigrationIds,
 	createRecordMigrationSequence,
+	createKindPolicy,
 	createRecordType,
 } from '@tldraw/store'
 import { mapObjectMapValues, uniqueId } from '@tldraw/utils'
@@ -10,6 +12,7 @@ import { T } from '@tldraw/validate'
 import { TLArrowBinding } from '../bindings/TLArrowBinding'
 import { TLBaseBinding, createBindingValidator } from '../bindings/TLBaseBinding'
 import { SchemaPropsInfo } from '../createTLSchema'
+import { defaultBindingPolicy } from '../policies'
 import { TLPropsMigrations } from '../recordsWithProps'
 
 /**
@@ -419,6 +422,12 @@ export function createBindingPropsMigrationIds<S extends string, T extends Recor
 export function createBindingRecordType(bindings: Record<string, SchemaPropsInfo>) {
 	return createRecordType('binding', {
 		scope: 'document',
+		// A binding follows its shape, and each binding type can bring its own policy.
+		policy: createKindPolicy<TLBinding>(
+			defaultBindingPolicy,
+			mapObjectMapValues(bindings, (_, { policy }) => policy),
+			(binding) => binding.type
+		) as RecordPolicy<any>,
 		validator: T.model(
 			'binding',
 			T.union(

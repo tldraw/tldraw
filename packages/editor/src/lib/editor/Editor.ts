@@ -12,6 +12,8 @@ import {
 	RecordType,
 	StoreSideEffects,
 	StoreSnapshot,
+	PolicyActor,
+	PolicyRequest,
 	UnknownRecord,
 	reverseRecordsDiff,
 } from '@tldraw/store'
@@ -5783,6 +5785,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
 		if (_shape.isLocked) return true
+		// A shape the actor may not update behaves like a locked shape: it cannot be selected,
+		// moved, or edited.
+		if (this.getActor() && !this.can({ verb: 'update', prev: _shape, next: _shape })) return true
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 
@@ -10434,6 +10439,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getIsFocused() {
 		return this.getInstanceState().isFocused
+	}
+
+	/**
+	 * Set who uses this editor. While an actor is set, every local change is checked against the
+	 * record policies of the schema (see `RecordPolicy`), and an operation with any denied change
+	 * is reverted as a whole. Give the sync server the same actor and policies, so that the
+	 * editor never sends a change the server rejects.
+	 *
+	 * Pass `null` to stop checking (the default).
+	 *
+	 * @public
+	 */
+	setActor(actor: PolicyActor | null): this {
+		this.store.setActor(actor)
+		return this
+	}
+
+	/**
+	 * The actor set with {@link Editor.setActor}, or `null`.
+	 *
+	 * @public
+	 */
+	getActor(): PolicyActor | null {
+		return this.store.getActor()
+	}
+
+	/**
+	 * Asks the record policies if the current actor may make `request`. Use it to show or hide UI.
+	 * Always `true` when no actor is set. Reactive.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.can({ verb: 'update', prev: shape, next: shape })
+	 * editor.can({ verb: 'action', action: 'resolve', record: thread })
+	 * ```
+	 *
+	 * @public
+	 */
+	can(request: PolicyRequest<TLRecord>): boolean {
+		const actor = this.getActor()
+		if (!actor) return true
+		return this.store.schema.authorize(actor, request, (id) => this.store.get(id as TLRecord['id']))
 	}
 
 	/**

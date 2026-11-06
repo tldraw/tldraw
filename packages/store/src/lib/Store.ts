@@ -23,6 +23,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
+import { PolicyActor, PolicyRequest } from './RecordPolicy'
 import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
@@ -1264,6 +1265,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (before && after) assert(before.id === after.id)
 		if (!before && !after) return
 		const id = (before || after)!.id
+		if (this.guardedChanges) {
+			const guarded = this.guardedChanges.get(id)
+			if (guarded) guarded.after = after
+			else this.guardedChanges.set(id, { before, after })
+		}
 		const existing = this.pendingAfterEvents.get(id)
 		if (existing) {
 			existing.after = after
@@ -1303,6 +1309,85 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			source = 'user'
 		}
 	}
+	private readonly actor = atom<PolicyActor | null>('Store.actor', null)
+	private guardedChanges: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+	private policyDeniedListeners = new Set<(denied: PolicyRequest<R>[]) => void>()
+
+	/**
+	 * Set who makes local changes. While an actor is set, the store checks every local operation
+	 * against the record policies of its schema (see `RecordPolicy`). If any change in the
+	 * operation is denied, the store reverts the whole operation, so the store never holds a
+	 * change that the sync server would reject. Remote changes are not checked.
+	 *
+	 * Pass `null` to stop checking.
+	 *
+	 * @public
+	 */
+	setActor(actor: PolicyActor | null) {
+		this.actor.set(actor)
+	}
+
+	/** The actor set with {@link Store.setActor}. Reactive. @public */
+	getActor(): PolicyActor | null {
+		return this.actor.get()
+	}
+
+	/**
+	 * Called with the denied requests each time the store reverts an operation.
+	 *
+	 * @returns A function that removes the listener.
+	 * @public
+	 */
+	addPolicyDeniedListener(fn: (denied: PolicyRequest<R>[]) => void): () => void {
+		this.policyDeniedListeners.add(fn)
+		return () => this.policyDeniedListeners.delete(fn)
+	}
+
+	private enforcePolicies() {
+		const changes = this.guardedChanges!
+		this.guardedChanges = null
+		const actor = this.actor.__unsafe__getWithoutCapture()!
+		const get = (id: string) => this.records.__unsafe__getWithoutCapture(id as IdOf<R>)
+		const denied: PolicyRequest<R>[] = []
+		for (const { before, after } of changes.values()) {
+			const record = (after ?? before)!
+			if ((this.schema.types as any)[record.typeName]?.scope !== 'document') continue
+			const request: PolicyRequest<R> | null =
+				before && after
+					? before === after
+						? null
+						: { verb: 'update', prev: before, next: after }
+					: after
+						? { verb: 'create', next: after }
+						: { verb: 'delete', prev: before! }
+			if (request && !this.schema.authorize(actor, request, get)) denied.push(request)
+		}
+		if (denied.length === 0) return
+
+		// Write the reverse of the operation. Listeners (history, sync) get the operation and its
+		// reverse together, and their squash leaves no net change.
+		const reverse: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
+		const toRestore: R[] = []
+		const toDelete: IdOf<R>[] = []
+		for (const [id, { before, after }] of changes) {
+			if (before === after) continue
+			if (before && after) {
+				reverse.updated[id] = [after, before]
+				toRestore.push(before)
+			} else if (after) {
+				reverse.removed[id] = after
+				toDelete.push(id)
+			} else {
+				reverse.added[id] = before!
+				toRestore.push(before!)
+			}
+		}
+		for (const record of toRestore) this.records.set(record.id, record)
+		this.records.deleteMany(toDelete)
+		this.updateHistory(reverse)
+		for (const listener of this.policyDeniedListeners) listener(denied)
+	}
+
 	private _isInAtomicOp = false
 	/** @internal */
 	atomic<T>(fn: () => T, runCallbacks = true, isMergingRemoteChanges = false): T {
@@ -1332,15 +1417,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			if (isMergingRemoteChanges) {
 				this.isMergingRemoteChanges = true
 			}
+			// Local writes are checked against the record policies once the whole operation,
+			// side effects included, has run. Remote changes were checked by the server.
+			if (this.actor.__unsafe__getWithoutCapture() && !isMergingRemoteChanges) {
+				this.guardedChanges = new Map()
+			}
 
 			try {
 				const result = fn()
 				this.isMergingRemoteChanges = false
 
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
+				if (this.guardedChanges) this.enforcePolicies()
 
 				return result
 			} finally {
+				this.guardedChanges = null
 				this.pendingAfterEvents = null
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false

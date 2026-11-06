@@ -28,11 +28,14 @@ import { MemoExoticComponent } from 'react';
 import { MigrationSequence } from '@tldraw/store';
 import { Node as Node_2 } from '@tiptap/pm/model';
 import { PerformanceTracker } from '@tldraw/utils';
+import { PolicyActor } from '@tldraw/store';
+import { PolicyRequest } from '@tldraw/store';
 import * as React_2 from 'react';
 import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReactPortal } from 'react';
+import { RecordPolicy } from '@tldraw/store';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { RefAttributes } from 'react';
@@ -78,6 +81,7 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPolicies } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
@@ -280,6 +284,7 @@ export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
     onBeforeIsolateFromShape?(options: BindingOnShapeIsolateOptions<Binding>): void;
     onBeforeIsolateToShape?(options: BindingOnShapeIsolateOptions<Binding>): void;
     onOperationComplete?(): void;
+    static policy?: RecordPolicy<any>;
     // (undocumented)
     static props?: RecordProps<TLUnknownBinding>;
     static type: string;
@@ -907,6 +912,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     bringToFront(shapes: TLShape[] | TLShapeId[]): this;
+    can(request: PolicyRequest<TLRecord>): boolean;
     // (undocumented)
     canBindShapes({ fromShape, toShape, binding, }: {
         binding: {
@@ -1264,6 +1270,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         focusContainer?: boolean | undefined;
     }): this;
     readonly fonts: FontManager;
+    getActor(): null | PolicyActor;
     getAncestorPageId(shape?: TLShape | TLShapeId): TLPageId | undefined;
     getAsset<T extends TLAsset>(asset: T | T['id']): T | undefined;
     getAssetForExternalContent(info: TLExternalAsset): Promise<TLAsset | undefined>;
@@ -1600,6 +1607,7 @@ export class Editor extends EventEmitter<TLEventMap> {
         considerAllShapes?: boolean;
     }): this;
     sendToBack(shapes: TLShape[] | TLShapeId[]): this;
+    setActor(actor: null | PolicyActor): this;
     setCamera(point: VecLike, opts?: TLCameraMoveOptions): this;
     setCameraOptions(opts: Partial<TLCameraOptions>): this;
     setColorMode(mode: 'dark' | 'light'): this;
@@ -3168,6 +3176,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     onTranslateEnd?(initial: Shape, current: Shape): TLShapePartial<Shape> | void;
     onTranslateStart?(shape: Shape): TLShapePartial<Shape> | void;
     options: {};
+    static policy?: RecordPolicy<any>;
     static props?: RecordProps<TLUnknownShape>;
     // @internal
     providesBackgroundForChildren(shape: Shape): boolean;
@@ -3542,6 +3551,7 @@ export interface TLBindingUtilConstructor<T extends TLBinding, U extends Binding
     // (undocumented)
     new (editor: Editor): U;
     migrations?: TLPropsMigrations;
+    policy?: RecordPolicy<any>;
     props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];
@@ -4807,6 +4817,8 @@ export interface TLShapeUtilConstructor<T extends TLShape, U extends ShapeUtil<T
     // (undocumented)
     migrations?: LegacyMigrations | MigrationSequence | TLPropsMigrations;
     // (undocumented)
+    policy?: RecordPolicy<any>;
+    // (undocumented)
     props?: RecordProps<T>;
     // (undocumented)
     type: T['type'];
@@ -4865,6 +4877,7 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 
 // @public (undocumented)
 export type TLStoreSchemaOptions = {
+    policies?: TLPolicies;
     assetUtils?: readonly TLAnyAssetUtilConstructor[];
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     migrations?: readonly MigrationSequence[];

@@ -102,6 +102,9 @@ export interface CreateComputedCacheOpts<Data, R extends UnknownRecord> {
 // @internal
 export function createEmptyRecordsDiff<R extends UnknownRecord>(): RecordsDiff<R>;
 
+// @internal
+export function createKindPolicy<R extends UnknownRecord>(base: RecordPolicy<R> | undefined, kinds: Record<string, RecordPolicy<any> | undefined>, kindOf: (record: R) => string): RecordPolicy<R> | undefined;
+
 // @public
 export function createMigrationIds<const ID extends string, const Versions extends Record<string, number>>(sequenceId: ID, versions: Versions): {
     [K in keyof Versions]: `${ID}/${Versions[K]}`;
@@ -113,6 +116,12 @@ export function createMigrationSequence({ sequence, sequenceId, retroactive, }: 
     sequence: Array<Migration | StandaloneDependsOn>;
     sequenceId: string;
 }): MigrationSequence;
+
+// @public
+export function createPolicyActor(opts: {
+    actions: Iterable<string>;
+    id: null | string;
+}): PolicyActor;
 
 // @internal
 export function createRecordMigrationSequence(opts: {
@@ -130,6 +139,7 @@ export function createRecordType<R extends UnknownRecord>(typeName: R['typeName'
     ephemeralKeys?: {
         readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
     };
+    policy?: RecordPolicy<R>;
     scope: RecordScope;
     validator?: StoreValidator<R>;
 }): RecordType<R, keyof Omit<R, 'id' | 'typeName'>>;
@@ -162,7 +172,13 @@ export class IncrementalSetConstructor<T> {
 }
 
 // @public
+export function isOwnedBy(actor: PolicyActor, ownerId: unknown): boolean;
+
+// @public
 export function isRecordsDiffEmpty<T extends UnknownRecord>(diff: RecordsDiff<T>): boolean;
+
+// @public
+export function layerPolicies<R extends UnknownRecord>(lower: RecordPolicy<R> | undefined, upper: RecordPolicy<R> | undefined): RecordPolicy<R>;
 
 // @public
 export interface LegacyBaseMigrationsInfo {
@@ -267,6 +283,48 @@ export function parseMigrationId(id: MigrationId): {
     version: number;
 };
 
+// @public
+export interface PolicyActor {
+    // (undocumented)
+    can(action: string): boolean;
+    // (undocumented)
+    readonly id: null | string;
+}
+
+// @public
+export interface PolicyContext {
+    // (undocumented)
+    readonly actor: PolicyActor;
+    // (undocumented)
+    authorize(request: PolicyRequest): boolean;
+    // (undocumented)
+    base(): boolean;
+    // (undocumented)
+    can(action: string): boolean;
+    // (undocumented)
+    get(id: string): undefined | UnknownRecord;
+}
+
+// @public
+export type PolicyRequest<R extends UnknownRecord = UnknownRecord> = {
+    readonly action: string;
+    readonly record: R;
+    readonly verb: 'action';
+} | {
+    readonly next: R;
+    readonly prev: R;
+    readonly verb: 'update';
+} | {
+    readonly next: R;
+    readonly verb: 'create';
+} | {
+    readonly prev: R;
+    readonly verb: 'delete';
+} | {
+    readonly record: R;
+    readonly verb: 'read';
+};
+
 // @public (undocumented)
 export type QueryExpression<R extends object> = {
     [k in keyof R & string]?: R[k] extends boolean | null | number | string | undefined ? QueryValueMatcher<R[k]> : R[k] extends object ? QueryExpression<R[k]> : QueryValueMatcher<R[k]>;
@@ -290,6 +348,32 @@ export type RecordId<R extends UnknownRecord> = string & {
 };
 
 // @public
+export interface RecordPolicy<R extends UnknownRecord = UnknownRecord> {
+    readonly actions?: {
+        readonly [action: string]: (ctx: PolicyContext & {
+            readonly record: R;
+        }) => boolean;
+    };
+    // (undocumented)
+    create?(ctx: PolicyContext & {
+        readonly next: R;
+    }): boolean;
+    // (undocumented)
+    delete?(ctx: PolicyContext & {
+        readonly prev: R;
+    }): boolean;
+    // (undocumented)
+    read?(ctx: PolicyContext & {
+        readonly record: R;
+    }): boolean;
+    // (undocumented)
+    update?(ctx: PolicyContext & {
+        readonly next: R;
+        readonly prev: R;
+    }): boolean;
+}
+
+// @public
 export type RecordScope = 'document' | 'presence' | 'session';
 
 // @public
@@ -307,6 +391,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
         readonly ephemeralKeys?: {
             readonly [K in Exclude<keyof R, 'id' | 'typeName'>]: boolean;
         };
+        readonly policy?: RecordPolicy<R>;
         readonly scope?: RecordScope;
         readonly validator?: StoreValidator<R>;
     });
@@ -321,6 +406,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
     isId(id?: string): id is IdOf<R>;
     isInstance(record?: UnknownRecord): record is R;
     parseId(id: IdOf<R>): string;
+    readonly policy?: RecordPolicy<R>;
     readonly scope: RecordScope;
     readonly typeName: R['typeName'];
     validate(record: unknown, recordBefore?: R): R;
@@ -393,6 +479,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     });
     // @internal (undocumented)
     addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
+    addPolicyDeniedListener(fn: (denied: PolicyRequest<R>[]) => void): () => void;
     allRecords(): R[];
     // (undocumented)
     applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
@@ -419,6 +506,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
+    getActor(): null | PolicyActor;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -440,6 +528,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
+    setActor(actor: null | PolicyActor): void;
     readonly sideEffects: StoreSideEffects<R>;
     unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
@@ -549,6 +638,7 @@ export type StoreRecord<S extends Store<any>> = S extends Store<infer R> ? R : n
 
 // @public
 export class StoreSchema<R extends UnknownRecord, P = unknown> {
+    authorize(actor: PolicyActor, request: PolicyRequest<R>, get: (id: string) => undefined | UnknownRecord): boolean;
     static create<R extends UnknownRecord, P = unknown>(types: {
         [TypeName in R['typeName']]: {
             createId: any;
@@ -557,8 +647,10 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
     // @internal
     createIntegrityChecker(store: Store<R, P>): (() => void) | undefined;
     getMigrationsSince(persistedSchema: SerializedSchema): Result<Migration[], string>;
+    getPolicy(typeName: R['typeName']): RecordPolicy<R> | undefined;
     // @internal
     getType(typeName: string): RecordType<R, any>;
+    hasReadRules(): boolean;
     migratePersistedRecord(record: R, persistedSchema: SerializedSchema, direction?: 'down' | 'up'): MigrationResult<R>;
     // (undocumented)
     migrateStorage(storage: SynchronousStorage<R>): void;
@@ -583,10 +675,16 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 export interface StoreSchemaOptions<R extends UnknownRecord, P> {
     // @internal (undocumented)
     createIntegrityChecker?(store: Store<R, P>): void;
+    defaultPolicy?: RecordPolicy<R>;
     // (undocumented)
     migrations?: MigrationSequence[];
     // (undocumented)
     onValidationFailure?(data: StoreValidationFailure<R>): R;
+    policies?: {
+        readonly [TypeName in R['typeName']]?: RecordPolicy<Extract<R, {
+            typeName: TypeName;
+        }>>;
+    };
 }
 
 // @public
