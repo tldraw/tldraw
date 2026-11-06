@@ -279,33 +279,6 @@ describe('computing diffs (D)', () => {
 				x: [ValueOpType.Put, 200],
 			})
 		})
-
-		it('[D5] legacyAppendMode turns string appends into puts', () => {
-			const prev = { id: 'a', text: 'hello' }
-			const next = { id: 'a', text: 'hello world' }
-
-			expect(diffRecord(prev, next, true)).toEqual({
-				text: [ValueOpType.Put, 'hello world'],
-			})
-		})
-
-		it('[D5] legacyAppendMode turns nested string appends into puts', () => {
-			const prev = { id: 'a', props: { label: 'hello' } }
-			const next = { id: 'a', props: { label: 'hello world' } }
-
-			expect(diffRecord(prev, next, true)).toEqual({
-				props: [ValueOpType.Patch, { label: [ValueOpType.Put, 'hello world'] }],
-			})
-		})
-
-		it('[D5] [D7] legacyAppendMode does not affect array appends', () => {
-			const prev = { arr: [1, 2, 3] }
-			const next = { arr: [1, 2, 3, 4, 5] }
-
-			expect(diffRecord(prev, next, true)).toEqual({
-				arr: [ValueOpType.Append, [4, 5], 3],
-			})
-		})
 	})
 
 	describe('same-length arrays (D6)', () => {

@@ -1202,7 +1202,6 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(snapshot!.access).toEqual({ userId: null, abilities: ['edit', 'comment'] })
 			expect(snapshot!.presenceId).toBeDefined()
 			expect(snapshot!.requiresLegacyRejection).toBe(false)
-			expect(snapshot!.supportsStringAppend).toBe(true)
 		})
 
 		it('[SR13] round-trips access through snapshot and resume', () => {
@@ -1463,7 +1462,6 @@ describe('28. TLSocketRoom (SR)', () => {
 				presenceId: null,
 				presenceRecord: null,
 				requiresLegacyRejection: false,
-				supportsStringAppend: true,
 			}
 
 			room.handleSocketResume({
@@ -1486,7 +1484,6 @@ describe('28. TLSocketRoom (SR)', () => {
 				presenceId: null,
 				presenceRecord: null,
 				requiresLegacyRejection: false,
-				supportsStringAppend: true,
 			}
 
 			room.handleSocketResume({

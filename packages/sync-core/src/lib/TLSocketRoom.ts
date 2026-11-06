@@ -85,7 +85,6 @@ export interface SessionStateSnapshot {
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
-	supportsStringAppend: boolean
 }
 
 /**
@@ -644,7 +643,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
 			requiresLegacyRejection: snapshot.requiresLegacyRejection,
-			supportsStringAppend: snapshot.supportsStringAppend,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -698,7 +696,6 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
-			supportsStringAppend: session.supportsStringAppend,
 		}
 	}
 

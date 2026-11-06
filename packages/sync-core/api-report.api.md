@@ -76,7 +76,7 @@ export const DEFAULT_INITIAL_SNAPSHOT: {
 export type DeleteOp = [type: typeof ValueOpType.Delete];
 
 // @internal
-export function diffRecord(prev: object, next: object, legacyAppendMode?: boolean): null | ObjectDiff;
+export function diffRecord(prev: object, next: object): null | ObjectDiff;
 
 // @public
 export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
@@ -283,7 +283,6 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     requiresLegacyRejection: boolean;
     sessionId: string;
     socket: TLRoomSocket<R>;
-    supportsStringAppend: boolean;
     visibleIds: null | Set<string>;
 }
 
@@ -329,8 +328,6 @@ export interface SessionStateSnapshot {
     requiresLegacyRejection: boolean;
     // (undocumented)
     serializedSchema: SerializedSchema;
-    // (undocumented)
-    supportsStringAppend: boolean;
 }
 
 // @public
@@ -739,7 +736,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     }>;
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
-    getCanEmitStringAppend(): boolean;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
@@ -757,7 +753,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         serializedSchema: SerializedSchema;
         sessionId: string;
         socket: TLRoomSocket<R>;
-        supportsStringAppend: boolean;
     }): void;
     // (undocumented)
     readonly internalTxnId = "TLSyncRoom.txn";

@@ -95,8 +95,6 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	deniedIds: Set<string>
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
-	/** Whether this session supports string append operations */
-	supportsStringAppend: boolean
 }
 
 /**

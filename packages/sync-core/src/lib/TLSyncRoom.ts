@@ -573,7 +573,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			deniedCount: 0,
 			deniedIds: new Set(),
 			requiresLegacyRejection: session.requiresLegacyRejection,
-			supportsStringAppend: session.supportsStringAppend,
 		})
 
 		try {
@@ -602,11 +601,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		sourceSessionId?: string,
 		visibility?: VisibilityUpdate<R> | null
 	) {
-		// Computed once and shared by every session that needs no down-migration; the push path
-		// hands us the diff it already computed (in legacy append mode when needed), and re-deriving
-		// it per session would both repeat the diffing work and lose that legacy handling.
-		const legacyAppendMode = !this.getCanEmitStringAppend()
-		const unmigrated = networkDiff ?? toNetworkDiff(diff, legacyAppendMode)
+		// Computed once and shared by every session that needs no down-migration
+		const unmigrated = networkDiff ?? toNetworkDiff(diff)
 
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
@@ -634,8 +630,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.serializedSchema,
 				session.requiresDownMigrations,
 				sessionDiff,
-				sessionNetworkDiff ?? toNetworkDiff(sessionDiff, legacyAppendMode),
-				legacyAppendMode
+				sessionNetworkDiff ?? toNetworkDiff(sessionDiff)
 			)
 			if (!diffResult.ok) return
 
@@ -723,7 +718,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			deniedIds: new Set(),
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 		return this
 	}
@@ -744,7 +738,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		presenceId: string | null
 		presenceRecord: UnknownRecord | null
 		requiresLegacyRejection: boolean
-		supportsStringAppend: boolean
 	}) {
 		const {
 			sessionId,
@@ -755,7 +748,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			presenceId,
 			presenceRecord,
 			requiresLegacyRejection,
-			supportsStringAppend,
 		} = opts
 
 		if (this._isClosed) {
@@ -782,7 +774,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			deniedCount: 0,
 			deniedIds: new Set(),
 			requiresLegacyRejection,
-			supportsStringAppend,
 		})
 
 		// Restore presence before the schema checks: other clients still hold it from before the
@@ -809,23 +800,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
-	 * Checks if all connected sessions support string append operations (protocol version 8+).
-	 * If any client is on an older version, returns false to enable legacy append mode.
-	 *
-	 * @returns True if all connected sessions are on protocol version 8 or higher
-	 */
-	getCanEmitStringAppend(): boolean {
-		for (const session of this.sessions.values()) {
-			if (session.state === RoomSessionState.Connected) {
-				if (!session.supportsStringAppend) {
-					return false
-				}
-			}
-		}
-		return true
-	}
-
-	/**
 	 * When we send a diff to a client, if that client is on a lower version than us, we need to make
 	 * the diff compatible with their version. This method takes a TLSyncForwardDiff (which has full
 	 * records) and migrates all records down to the client's schema version, returning a NetworkDiff.
@@ -840,7 +814,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param requiresDownMigrations - Whether the client needs down migrations
 	 * @param diff - The TLSyncForwardDiff containing full records to migrate
 	 * @param unmigrated - Optional pre-computed NetworkDiff for when no migration is needed
-	 * @param legacyAppendMode - Emit string appends as puts (SES5); defaults to the room-wide state
 	 * @returns A NetworkDiff with migrated records, or a migration failure
 	 */
 	private migrateDiffOrRejectSession(
@@ -848,11 +821,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		serializedSchema: SerializedSchema,
 		requiresDownMigrations: boolean,
 		diff: TLSyncForwardDiff<R>,
-		unmigrated?: NetworkDiff<R>,
-		legacyAppendMode = !this.getCanEmitStringAppend()
+		unmigrated?: NetworkDiff<R>
 	): Result<NetworkDiff<R>, MigrationFailureReason> {
 		if (!requiresDownMigrations) {
-			return Result.ok(unmigrated ?? toNetworkDiff(diff, legacyAppendMode))
+			return Result.ok(unmigrated ?? toNetworkDiff(diff))
 		}
 
 		const result: NetworkDiff<R> = {}
@@ -872,7 +844,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 					return Result.err(toResult.reason)
 				}
-				const patch = diffRecord(fromResult.value, toResult.value, legacyAppendMode)
+				const patch = diffRecord(fromResult.value, toResult.value)
 				if (patch) {
 					result[id] = [RecordOpType.Patch, patch]
 				}
@@ -1079,10 +1051,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (theirProtocolVersion === 6) {
 			theirProtocolVersion++
 		}
-		if (theirProtocolVersion === 7) {
-			theirProtocolVersion++
-			session.supportsStringAppend = false
-		}
 
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
@@ -1126,7 +1094,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				lastInteractionTime: Date.now(),
 				debounceTimer: null,
 				outstandingDataMessages: [],
-				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
 				access: session.access,
 				visibleIds,
@@ -1218,8 +1185,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			session.lastInteractionTime = Date.now()
 		}
 
-		const legacyAppendMode = !this.getCanEmitStringAppend()
-
 		interface ActualChanges {
 			diffs: {
 				networkDiff: NetworkDiff<R>
@@ -1276,7 +1241,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// If there's an existing document, replace it with the new state
 				// but propagate a diff rather than the entire value
 				const recordType = assertExists(getOwnProperty(this.schema.types, doc.typeName))
-				const diff = diffAndValidateRecord(doc, state, recordType, legacyAppendMode)
+				const diff = diffAndValidateRecord(doc, state, recordType)
 				if (diff) {
 					storage.set(id, state)
 					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, state)
@@ -1318,7 +1283,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 			if (downgraded.value === doc) {
 				// If the versions are compatible, apply the patch and propagate the patch op
-				const diff = applyAndDiffRecord(doc, patch, recordType, legacyAppendMode)
+				const diff = applyAndDiffRecord(doc, patch, recordType)
 				if (diff) {
 					storage.set(id, diff[1])
 					propagateOp(changes, id, [RecordOpType.Patch, diff[0]], doc, diff[1])
@@ -1337,7 +1302,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					throw new TLSyncError(upgraded.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 				}
 				// replace the state with the upgraded version and propagate the patch op
-				const diff = diffAndValidateRecord(doc, upgraded.value, recordType, legacyAppendMode)
+				const diff = diffAndValidateRecord(doc, upgraded.value, recordType)
 				if (diff) {
 					storage.set(id, upgraded.value)
 					propagateOp(changes, id, [RecordOpType.Patch, diff], doc, upgraded.value)
@@ -1407,10 +1372,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// A server mutator: run the named operation here, and ignore the client's diff.
 					// The client's diff was its prediction; the rebase replaces it with this result.
 					try {
-						mutator(
-							this.mutatorContext(overlay, docChanges, session.access, legacyAppendMode),
-							intent!.args
-						)
+						mutator(this.mutatorContext(overlay, docChanges, session.access), intent!.args)
 					} catch (e) {
 						denied = { reason: e instanceof Error ? e.message : String(e) }
 					}
@@ -1537,7 +1499,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (changes && session) {
 			// txn did not apply verbatim so we should broadcast the actual changes
 			result.docChanges.diffs = {
-				networkDiff: toNetworkDiff(changes, legacyAppendMode),
+				networkDiff: toNetworkDiff(changes),
 				diff: changes,
 			}
 		}
@@ -1572,8 +1534,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.serializedSchema,
 				session.requiresDownMigrations,
 				result.docChanges.diffs.diff,
-				result.docChanges.diffs.networkDiff,
-				legacyAppendMode
+				result.docChanges.diffs.networkDiff
 			)
 			if (diff.ok) {
 				pushResult = {
@@ -1770,8 +1731,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private mutatorContext(
 		overlay: PushOverlay<R>,
 		changes: { diffs: { networkDiff: NetworkDiff<R>; diff: TLSyncForwardDiff<R> } | null },
-		access: TLAccess,
-		legacyAppendMode: boolean
+		access: TLAccess
 	): TLMutatorContext<R> {
 		const record = (id: string, op: RecordOp<R>, before: R | undefined, after: R | undefined) => {
 			if (!changes.diffs) changes.diffs = { networkDiff: {}, diff: { puts: {}, deletes: [] } }
@@ -1796,7 +1756,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 					const prev = overlay.get(next.id) as R | undefined
 					if (prev) {
-						const diff = diffAndValidateRecord(prev, next, recordType, legacyAppendMode)
+						const diff = diffAndValidateRecord(prev, next, recordType)
 						if (!diff) continue
 						overlay.set(next.id, next)
 						record(next.id, [RecordOpType.Patch, diff], prev, next)

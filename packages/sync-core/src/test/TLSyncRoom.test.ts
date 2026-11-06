@@ -2122,7 +2122,6 @@ describe('25. Messaging and broadcast (RB)', () => {
 			presenceId: null,
 			presenceRecord: null,
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 		expect(resumed.close).toHaveBeenCalled()
 		expect(room.sessions.size).toBe(0)
@@ -2442,17 +2441,6 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(room.sessions.size).toBe(0)
 	})
 
-	it('[HS2][SES5] sets supportsStringAppend to true for the current protocol version', () => {
-		const { room } = makeRoom()
-		connectSession(room, 'v8-session', { protocolVersion: getTlsyncProtocolVersion() })
-
-		const session = room.sessions.get('v8-session')
-		expect(session?.state).toBe(RoomSessionState.Connected)
-		if (session?.state === RoomSessionState.Connected) {
-			expect(session.supportsStringAppend).toBe(true)
-		}
-	})
-
 	it('[SES6] handleResumedSession registers a session directly in Connected state and restores its presence', () => {
 		const { room } = makeRoom()
 		const socket = makeSocket()
@@ -2473,7 +2461,6 @@ describe('26. Session lifecycle (SES)', () => {
 			presenceId,
 			presenceRecord,
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 
 		const session = room.sessions.get('resumed')! as any
@@ -2508,7 +2495,6 @@ describe('26. Session lifecycle (SES)', () => {
 			presenceId: null,
 			presenceRecord: null,
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 
 		expect(room.sessions.has('resumed')).toBe(false)
@@ -2540,7 +2526,6 @@ describe('26. Session lifecycle (SES)', () => {
 				presenceId: presenceRecord.id,
 				presenceRecord,
 				requiresLegacyRejection: false,
-				supportsStringAppend: true,
 			})
 			return { socket, presenceId: presenceRecord.id }
 		}
