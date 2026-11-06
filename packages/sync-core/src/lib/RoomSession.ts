@@ -146,7 +146,7 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
 			/**
-			 * What the client holds of each record that has a `beforeRead` hook: the stored record
+			 * What the client holds of each record the read chain has decided: the stored record
 			 * (`same`), the changed copy it was sent, or nothing (`none`). `complete` is true after a
 			 * full-view connect, where a missing id means `none`. A resumed session is incomplete,
 			 * so a missing id means the client may hold the record.

@@ -3,6 +3,7 @@ import {
 	getRecordAccessKey,
 	MigrationFailureReason,
 	PermissionChain,
+	PermissionResult,
 	RecordAccess,
 	RecordType,
 	SerializedSchema,
@@ -349,13 +350,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return diffs.some((diff) => !!diff && Object.keys(diff.puts).length > 0)
 	}
 
-	/** Whether a changed copy may be sent. The client validates what it receives, and an invalid record breaks its store. */
-	private isValidCopy(copy: R) {
+	/**
+	 * Whether a record that a chain layer changed is valid. The client validates what it receives,
+	 * and an invalid record breaks its store.
+	 */
+	private isValidCopy(copy: R, what: string) {
 		try {
 			getOwnProperty(this.schema.types, copy.typeName)?.validate(copy)
 			return true
 		} catch (e) {
-			this.log?.error?.('the read chain returned an invalid record; sending nothing', e)
+			this.log?.error?.(what, copy.id, e)
 			return false
 		}
 	}
@@ -426,7 +430,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const held_ = holds(id)
 			let sent: R | 'same' | null = sentById!.get(id) ?? null
 			if (sent === record) sent = 'same'
-			else if (sent !== null && !this.isValidCopy(sent)) sent = null
+			else if (
+				sent !== null &&
+				!this.isValidCopy(sent, 'the read chain returned an invalid record; sending nothing')
+			)
+				sent = null
 			if (sent === null) {
 				setPut(id, undefined)
 				if (held_ !== 'none') removes.push(id)
@@ -1812,31 +1820,35 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						if (access.type !== 'update' || !isEqual(access.prev, access.next)) propose(access)
 						return 'keep'
 					}, deny)
-					const result = this.permissions.run({
-						kind: 'write',
-						actor: this.actorOf(session),
-						items: proposed,
-						hostDenials,
-						get: (id) => txn.get(id) as R | undefined,
-						onError: (e) => this.log?.error?.('the write chain failed; rejecting the push', e),
-					})
 					const proposedById = new Map(proposed.map((p) => [getRecordAccessKey(p), p]))
-					const decisions = new Map<string, RecordAccess<R> | 'denied'>()
-					for (const access of result.allowed) {
-						const key = getRecordAccessKey(access)
-						// A layer that changed a record into an invalid one is a server bug. Deny the write
-						// rather than reject the client for it.
-						if (
-							(access.type === 'create' || access.type === 'update') &&
-							access !== proposedById.get(key) &&
-							!this.isValidCopy(access.next)
-						) {
-							this.log?.error?.('a permission layer made an invalid record; denying the write', key)
-							decisions.set(key, 'denied')
-							continue
-						}
-						decisions.set(key, access)
+					// A layer that changed a record into an invalid one is a server bug. Deny that write
+					// as a host denial and run the chain again, so that `atomic()` sees it. The host
+					// denials only grow, so this ends.
+					let result: PermissionResult<R>
+					for (;;) {
+						result = this.permissions.run({
+							kind: 'write',
+							actor: this.actorOf(session),
+							items: proposed,
+							hostDenials,
+							get: (id) => txn.get(id) as R | undefined,
+							onError: (e) => this.log?.error?.('the write chain failed; rejecting the push', e),
+						})
+						const invalid = result.allowed.filter(
+							(access) =>
+								(access.type === 'create' || access.type === 'update') &&
+								access !== proposedById.get(getRecordAccessKey(access)) &&
+								!this.isValidCopy(
+									access.next,
+									'a permission layer made an invalid record; denying the write'
+								)
+						)
+						if (invalid.length === 0) break
+						for (const access of invalid)
+							hostDenials.set(getRecordAccessKey(access), 'invalid record')
 					}
+					const decisions = new Map<string, RecordAccess<R> | 'denied'>()
+					for (const access of result.allowed) decisions.set(getRecordAccessKey(access), access)
 					for (const { access, reason } of result.denied) {
 						decisions.set(getRecordAccessKey(access), 'denied')
 						this.log?.warn?.(

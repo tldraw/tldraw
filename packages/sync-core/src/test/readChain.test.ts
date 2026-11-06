@@ -754,4 +754,26 @@ describe('a layer that makes an invalid record', () => {
 		const logged = error.mock.calls.some((call) => String(call[0]).includes('invalid record'))
 		expect([storedIds(storage), socket.close.mock.calls.length, logged]).toEqual([[], 0, true])
 	})
+
+	it('counts as a denial that atomic() sees, so the rest of the push is denied too', () => {
+		const { room, storage } = makeRoom({
+			log: { error: vi.fn() },
+			permissions: new PermissionChain<R, TLSyncActor<any>>(
+				atomic(),
+				rewrite((access) =>
+					access.type === 'create' && (access.next as any).title === 'bad'
+						? { ...access, next: { ...access.next, title: 7 } as any }
+						: undefined
+				)
+			),
+		})
+		connectSession(room, 'writer')
+		const good = Doc.create({ title: 'ok' })
+		const bad = Doc.create({ title: 'bad' })
+		push(room, 'writer', {
+			[good.id]: [RecordOpType.Put, good],
+			[bad.id]: [RecordOpType.Put, bad],
+		})
+		expect(storedIds(storage)).toEqual([])
+	})
 })
