@@ -16,6 +16,7 @@ import {
 	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
+import { useState } from 'react'
 import {
 	DEFAULT_EMBED_DEFINITIONS,
 	DefaultEmbedConfig,
@@ -275,6 +276,15 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			[]
 		)
 
+		// Culled shapes are `display: none`, so an iframe that loads while culled lays out at 0×0.
+		// Players pick their poster from that first size and keep it (YouTube shows a blurry
+		// low-res thumbnail), so hold off on the iframe until the shape has been on screen once.
+		const isCulled = useValue('is culled', () => this.editor.getCulledShapes().has(shape.id), [
+			shape.id,
+		])
+		const [hasBeenVisible, setHasBeenVisible] = useState(!isCulled)
+		if (!isCulled && !hasBeenVisible) setHasBeenVisible(true)
+
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
 
 		if (svgExport) {
@@ -294,6 +304,10 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 					/>
 				</HTMLContainer>
 			)
+		}
+
+		if (!hasBeenVisible) {
+			return <HTMLContainer className="tl-embed-container" id={shape.id} />
 		}
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
