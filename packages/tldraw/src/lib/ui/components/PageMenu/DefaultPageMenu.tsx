@@ -169,7 +169,12 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const renderCap = getPageMenuRenderCap(availableHeight)
 	const autoFitListHeight = getPageMenuAutoFitListHeight(pages.length)
 	const renderedListHeight = Math.min(userListHeight ?? autoFitListHeight, renderCap)
-	const hasReachedMaxPages = pages.length >= editor.options.maxPages
+	// Hidden pages count toward the limit too
+	const hasReachedMaxPages = useValue(
+		'has reached max pages',
+		() => editor.getPages().length >= editor.options.maxPages,
+		[editor]
+	)
 	const createPageButtonLabel = msg(
 		hasReachedMaxPages ? messages.pageMenuMaxPagesReached : messages.pageMenuCreateNewPage
 	)

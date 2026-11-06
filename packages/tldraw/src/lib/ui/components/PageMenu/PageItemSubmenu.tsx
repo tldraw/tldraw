@@ -90,7 +90,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 							id="duplicate"
 							label={messages.pageMenuSubmenuDuplicatePage.id}
 							onSelect={onDuplicate}
-							disabled={listSize >= editor.options.maxPages}
+							disabled={editor.getPages().length >= editor.options.maxPages}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem

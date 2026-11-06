@@ -19,17 +19,18 @@ export function onMovePage(
 
 	let index: IndexKey
 
+	// `from` and `to` are positions in the page menu, which lists only visible pages
 	const pages = editor.getVisiblePages()
-
 	const below = from > to ? pages[to - 1] : pages[to]
-	const above = from > to ? pages[to] : pages[to + 1]
 
-	if (below && !above) {
-		index = getIndexAbove(below.index)
-	} else if (!below && above) {
-		index = getIndexBelow(pages[0].index)
+	// Hidden pages can sit between visible ones, so place the page right after `below` in the
+	// full page order. Using only visible neighbours could give a hidden page's index.
+	const others = editor.getPages().filter((page) => page.id !== id)
+	if (!below) {
+		index = getIndexBelow(others[0].index)
 	} else {
-		index = getIndexBetween(below.index, above.index)
+		const next = others[others.findIndex((page) => page.id === below.id) + 1]
+		index = next ? getIndexBetween(below.index, next.index) : getIndexAbove(below.index)
 	}
 
 	if (index !== pages[from].index) {

@@ -53,3 +53,29 @@ describe('getPageVisibility option', () => {
 		expect(plain.getVisiblePages()).toEqual(plain.getPages())
 	})
 })
+
+describe('page operations with hidden pages', () => {
+	it('does not delete the last visible page', () => {
+		const first = editor.getPages()[0].id
+		hidden.set(new Set([page2, page3]))
+		editor.deletePage(first)
+		expect(editor.getPage(first)).toBeDefined()
+	})
+
+	it('moves to a visible neighbour when it deletes the current page', () => {
+		const first = editor.getPages()[0].id
+		hidden.set(new Set([page2]))
+		editor.deletePage(first)
+		expect(editor.getCurrentPageId()).toBe(page3)
+	})
+
+	it('leaves a hidden page without an undo step', () => {
+		editor.setCurrentPage(page3)
+		editor.markHistoryStoppingPoint()
+		hidden.set(new Set([page3]))
+		const first = editor.getPages()[0].id
+		expect(editor.getCurrentPageId()).toBe(first)
+		editor.undo()
+		expect(editor.getCurrentPageId()).toBe(first)
+	})
+})

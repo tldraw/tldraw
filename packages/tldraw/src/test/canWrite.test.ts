@@ -1,4 +1,4 @@
-import { atom, createShapeId, TLRecordWrite, TLShape } from '@tldraw/editor'
+import { atom, createShapeId, PageRecordType, TLRecordWrite, TLShape } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -143,4 +143,57 @@ describe('shape tools when a create is blocked', () => {
 			expect(editor.getCurrentPageShapeIds().size).toBe(before)
 		}
 	)
+})
+
+describe('operations on more than one record', () => {
+	it('keeps a shape whose children cannot be deleted, and deletes the rest', () => {
+		const frame = createShapeId('frame')
+		const child = createShapeId('child')
+		editor.store.mergeRemoteChanges(() => {
+			editor.createShapes([
+				{ id: frame, type: 'frame', x: 500, y: 0, meta: { owner: 'alice' } },
+				{ id: child, type: 'geo', parentId: frame, x: 10, y: 10, meta: { owner: 'bob' } },
+			])
+		})
+		editor.deleteShapes([frame, ids.mine])
+		expect(editor.getShape(frame)).toBeDefined()
+		expect(editor.getShape(child)!.parentId).toBe(frame)
+		expect(editor.getShape(ids.mine)).toBeUndefined()
+	})
+
+	it('leaves shapes on the page when the group create is blocked', () => {
+		const other = createShapeId('other')
+		editor.store.mergeRemoteChanges(() => {
+			editor.createShapes([{ id: other, type: 'geo', x: 400, y: 0, meta: { owner: 'alice' } }])
+		})
+		// The new group has no owner, so the check blocks it.
+		editor.groupShapes([ids.mine, other])
+		expect(editor.getShape(ids.mine)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(other)!.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('removes the bindings of a deleted shape, even when binding deletes are blocked', () => {
+		const plain = new TestEditor({
+			canWrite: ({ type, record }) => !(type === 'delete' && record.typeName === 'binding'),
+		})
+		const box = createShapeId('box')
+		plain.createShapes([{ id: box, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])
+		plain.setCurrentTool('arrow')
+		plain.pointerDown(50, 50).pointerMove(300, 300).pointerUp(300, 300)
+		expect(plain.getBindingsToShape(box, 'arrow')).toHaveLength(1)
+		plain.deleteShapes([box])
+		expect(plain.store.query.records('binding').get()).toHaveLength(0)
+	})
+
+	it('does not delete a page that holds a shape the check blocks', () => {
+		const page2 = PageRecordType.createId('page2')
+		editor.store.mergeRemoteChanges(() => {
+			editor.createPage({ id: page2, name: 'Page 2' })
+			editor.createShapes([
+				{ id: createShapeId('bobs'), type: 'geo', parentId: page2, meta: { owner: 'bob' } },
+			])
+		})
+		editor.deletePage(page2)
+		expect(editor.getPage(page2)).toBeDefined()
+	})
 })

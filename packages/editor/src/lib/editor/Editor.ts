@@ -656,8 +656,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (canWrite) {
 			// Registered first, so a blocked write stops before the editor's own handlers react to it.
 			// The store ignores these blocks for remote changes and its integrity repairs.
-			const blocks = (type: TLRecordWrite['type'], record: TLRecord, source: 'user' | 'remote') =>
-				source === 'user' && !this.canWrite({ type, record })
+			const blocks = (type: TLRecordWrite['type'], record: TLRecord, source: 'user' | 'remote') => {
+				// The store ignores a block of these writes anyway, so don't ask
+				if (source === 'remote' || this.store.isReactingToRemoteChanges()) return false
+				// Removing a binding to a shape that is gone, or is being deleted, is cleanup, not a
+				// choice. A blocked cleanup leaves a binding that points at nothing.
+				if (type === 'delete' && record.typeName === 'binding') {
+					const { fromId, toId } = record as TLBinding
+					if (
+						deletedShapeIds.has(fromId) ||
+						deletedShapeIds.has(toId) ||
+						!this.store.has(fromId) ||
+						!this.store.has(toId)
+					) {
+						return false
+					}
+				}
+				return !this.canWrite({ type, record })
+			}
 			for (const typeName of this.store.scopedTypes.document) {
 				this.disposables.add(
 					this.sideEffects.register({
@@ -1067,7 +1083,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 				react('leave a hidden page', () => {
 					if (!this.isPageHidden(this.getCurrentPageId())) return
 					const page = this.getVisiblePages()[0]
-					if (page) this.setCurrentPage(page)
+					// Not a step the person took, so keep it out of the undo history
+					if (page) this._setCurrentPage(page.id, 'ignore')
 				})
 			)
 		}
@@ -1191,6 +1208,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return !!this.getCanWriteCaches()![write.type].get(write.record.id)
 		}
 		return this._checkWrite(write)
+	}
+
+	private _canDeleteShape(id: TLShapeId) {
+		const shape = this.getShape(id)
+		return !shape || this.canWrite({ type: 'delete', record: shape })
 	}
 
 	readonly options: TldrawOptions
@@ -5199,7 +5221,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 		if (this.isPageHidden(pageId)) return this
+		return this._setCurrentPage(pageId, 'record-preserveRedoStack')
+	}
 
+	private _setCurrentPage(pageId: TLPageId, history: TLHistoryBatchOptions['history']): this {
 		this.stopFollowingUser()
 		// finish off any in-progress interactions
 		this.complete()
@@ -5210,7 +5235,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// ensure camera constraints are applied
 				this.setCamera(this.getCamera())
 			},
-			{ history: 'record-preserveRedoStack' }
+			{ history }
 		)
 	}
 
@@ -5300,10 +5325,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const deletedPage = this.getPage(id)
 				if (!deletedPage) return
 
+				// Don't leave the person with no page they can see
+				const visiblePages = this.getVisiblePages()
+				if (!this.isPageHidden(id) && visiblePages.length === 1) return
+
+				// Don't delete a page that the canWrite option keeps, or one that would keep shapes it
+				// won't let us delete
+				if (this._canWrite) {
+					if (!this.canWrite({ type: 'delete', record: deletedPage })) return
+					const pageShapeIds = this.getPageShapeIds(id)
+					if (![...pageShapeIds].every((shapeId) => this._canDeleteShape(shapeId))) return
+				}
+
 				if (id === this.getCurrentPageId()) {
-					const index = pages.findIndex((page) => page.id === id)
-					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPage(next.id)
+					const index = visiblePages.findIndex((page) => page.id === id)
+					const next = visiblePages[index - 1] ?? visiblePages[index + 1]
+					if (next) this.setCurrentPage(next.id)
 				}
 
 				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
@@ -9114,6 +9151,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					props: {},
 				},
 			])
+			// A blocked create (see the canWrite option) leaves no group to reparent into
+			if (!this.getShape(groupId)) return
 			this.reparentShapes(sortedShapeIds, groupId)
 			if (select) {
 				// the select option determines whether the grouped shapes' children are selected
@@ -9346,13 +9385,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (shapeIdsToDelete.length === 0) return this
 
 		// We also need to delete these shapes' descendants
-		const allShapeIdsToDelete = new Set<TLShapeId>(shapeIdsToDelete)
+		const allShapeIdsToDelete = new Set<TLShapeId>()
 
 		for (const id of shapeIdsToDelete) {
+			const subtree = [id]
 			this.visitDescendants(id, (childId) => {
-				allShapeIdsToDelete.add(childId)
+				subtree.push(childId)
 			})
+			// The canWrite option blocks deletes one record at a time. Deleting a parent without a
+			// child it may not delete would leave the child pointing at nothing, so skip the subtree.
+			if (this._canWrite && !subtree.every((childId) => this._canDeleteShape(childId))) continue
+			for (const childId of subtree) allShapeIdsToDelete.add(childId)
 		}
+
+		if (allShapeIdsToDelete.size === 0) return this
 
 		this.emit('deleted-shapes', [...allShapeIdsToDelete])
 		this.emit('edit')
