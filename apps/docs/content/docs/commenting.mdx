@@ -131,7 +131,7 @@ They're UI-level controls and nothing more. Comment records carry a client-suppl
 
 Comments sync like the rest of your document, with one registration on each side. Pass `records: commentSchemaRecords` to your sync hook, and the same map to `createTLSchema` on the server.
 
-On the server you can go a step further and serve comments through the room's object-store lane. Lane records are gated by their own per-session permission rather than by `isReadonly`, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#Syncing-comments).
+On the server you can go a step further and serve comments through the room's object store. Its records are gated by their own per-session permission rather than by `isReadonly`, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#Syncing-comments).
 
 ## Related
 
