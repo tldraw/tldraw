@@ -29,6 +29,7 @@ interface StoredItem {
 	content: TLCollectionItemContent
 	// Bytes rather than a Blob, which not every IndexedDB stores.
 	thumbnail?: { type: string; data: ArrayBuffer }
+	darkThumbnail?: { type: string; data: ArrayBuffer }
 }
 
 // Until tldraw.com has a real source, collections are kept in this browser, per user: they survive
@@ -108,12 +109,16 @@ class BrowserCollectionSource implements CollectionSource {
 		const item = await this.inner.get().addItem(collectionId, newItem)
 		// The object URL dies with the page, so the thumbnail's bytes are saved instead and turned
 		// back into a URL on load.
-		const { thumbnailUrl: _, ...itemToStore } = item
-		const { thumbnail } = newItem
+		const { thumbnailUrl: _, darkThumbnailUrl: __, ...itemToStore } = item
+		const { thumbnail, darkThumbnail } = newItem
 		const stored: StoredItem = {
 			item: itemToStore,
 			content: newItem.content,
 			thumbnail: thumbnail && { type: thumbnail.type, data: await thumbnail.arrayBuffer() },
+			darkThumbnail: darkThumbnail && {
+				type: darkThumbnail.type,
+				data: await darkThumbnail.arrayBuffer(),
+			},
 		}
 		await this.save((db) => db.put('items', stored, item.id))
 		return item
@@ -146,12 +151,16 @@ class BrowserCollectionSource implements CollectionSource {
 		// Nothing saved yet: keep the samples.
 		if (!collections) return
 		const stored: StoredItem[] = await db.getAll('items')
-		const items = stored.map(({ item, thumbnail }) => {
-			if (!thumbnail) return item
-			const thumbnailUrl = URL.createObjectURL(new Blob([thumbnail.data], { type: thumbnail.type }))
-			this.loadedThumbnailUrls.push(thumbnailUrl)
-			return { ...item, thumbnailUrl }
-		})
+		const toUrl = (bytes: { type: string; data: ArrayBuffer }) => {
+			const url = URL.createObjectURL(new Blob([bytes.data], { type: bytes.type }))
+			this.loadedThumbnailUrls.push(url)
+			return url
+		}
+		const items = stored.map(({ item, thumbnail, darkThumbnail }) => ({
+			...item,
+			...(thumbnail && { thumbnailUrl: toUrl(thumbnail) }),
+			...(darkThumbnail && { darkThumbnailUrl: toUrl(darkThumbnail) }),
+		}))
 		const contents = Object.fromEntries(stored.map(({ item, content }) => [item.id, content]))
 		const previous = this.inner.get()
 		this.inner.set(new InMemoryCollectionSource({ initial: { collections, items, contents } }))
