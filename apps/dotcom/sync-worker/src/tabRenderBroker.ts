@@ -1,17 +1,16 @@
 import { TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
 
-// Lets an MCP tool borrow a user's open tldraw.com tab instead of starting a Browser Run session.
-// Lives in the file's Durable Object, because that is where the sockets are; see "Rendering in an
-// open tab" in browser-run-thumbnails.md.
+// Runs an MCP tool's work in a user's open tldraw.com tab. Lives in the file's Durable Object, because
+// that is where the sockets are; see "Working in an open tab" in browser-run-thumbnails.md.
 //
 // A tab can stop answering without its socket closing, so a job goes to all of a user's live tabs and
-// the first answer wins.
+// the first answer wins. A write can't work that way, since every tab would apply it, so the first
+// tab to acknowledge claims it and the others are told to stand down.
 
 /**
- * How long a tab has to acknowledge a job. This is what a tab that looks alive but isn't costs a
- * fallback. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
- * throttled to once a second. Too short and live tabs lose to Browser Run; too long and a dead one
- * taxes every fallback.
+ * How long a tab has to acknowledge a job, which is how long a call waits on a tab that looks alive
+ * but isn't. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
+ * throttled to once a second, so too short refuses live tabs.
  */
 export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 
@@ -23,11 +22,15 @@ export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
 
 /**
- * How long work may run once the ack window closes. Both sit well under a Browser Run session, since
- * a timeout here is paid on top of the fallback: past this, the fallback would likely have been
- * faster.
+ * How long work may run once the ack window closes. A batch of ops gets the longest: it stalls a real
+ * tab for longer than an export, and a timeout on a write can't say whether the write landed.
  */
-export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
+export const TAB_RENDER_WORK_TIMEOUT_MS = {
+	measure: 5_000,
+	screenshot: 8_000,
+	apply_ops: 10_000,
+	user_state: 3_000,
+} as const
 
 /**
  * The most tabs one job goes to. Every addressed tab does the work, so this bounds what a single
@@ -43,8 +46,11 @@ export const MAX_TAB_RENDER_SESSIONS = 3
 export const TAB_RENDER_MAX_PING_AGE_MS = 90_000
 
 export type TabRenderOutcome =
-	| Extract<TabRenderReply, { status: 'measured' | 'captured' | 'declined' }>
-	| { status: 'no_tab' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
+	| Extract<
+			TabRenderReply,
+			{ status: 'measured' | 'captured' | 'applied' | 'user_state' | 'declined' }
+	  >
+	| { status: 'no_tab' | 'read_only' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
 
 export interface TabRenderSocket {
 	sessionId: string
@@ -73,6 +79,8 @@ interface TabRenderJob {
 	 * speak for the tab it was sent to.
 	 */
 	tabs: Map<string, 'asked' | 'working'>
+	/** Only one tab may work on this job, so a second acknowledgement is refused. */
+	exclusive: boolean
 	lastDecline?: Extract<TabRenderReply, { status: 'declined' }>
 	finish(outcome: TabRenderOutcome): void
 }
@@ -91,6 +99,7 @@ export class TabRenderBroker {
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
 				tabs: new Map(),
+				exclusive: request.mode === 'apply_ops',
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
@@ -138,6 +147,7 @@ export class TabRenderBroker {
 
 		switch (reply.status) {
 			case 'accepted':
+				if (job.exclusive && [...job.tabs.values()].includes('working')) return false
 				job.tabs.set(jobId, 'working')
 				break
 			case 'declined':

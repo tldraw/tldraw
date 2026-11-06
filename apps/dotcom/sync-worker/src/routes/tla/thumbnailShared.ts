@@ -179,9 +179,11 @@ export type ThumbnailErrorSurface =
 	// for a browser session per call again, which is the thing that cache exists to stop.
 	| 'mcp_cluster_index_read'
 	| 'mcp_cluster_index_write'
-	// Asking the caller's open tab (mcpTabRender.ts). Never caller-visible, since the tool falls back
-	// to Browser Run, but it means tabs are being skipped for a reason other than being unable to help.
+	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
+	// help. The caller is told to try again.
 	| 'mcp_tab_render'
+	| 'mcp_apply_ops'
+	| 'mcp_board_presence'
 	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
 	| 'board_view'
 	// The render page's failure beacon. Pairs with an og_queue or mcp_screenshot failure from the same

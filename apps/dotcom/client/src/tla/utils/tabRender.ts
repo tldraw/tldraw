@@ -1,4 +1,5 @@
 import {
+	TabRenderApplyOpsRequest,
 	TabRenderDeclineReason,
 	TabRenderReply,
 	TabRenderRequest,
@@ -18,6 +19,7 @@ import {
 	last,
 	sleep,
 } from 'tldraw'
+import { z } from 'zod'
 import {
 	getRequestedBounds,
 	getRequestedShapeIds,
@@ -25,14 +27,14 @@ import {
 	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
+import { createCanvasOpsReceiver } from '../../utils/canvas-ops'
 
-// Answers MCP tool calls from this tab; see "Rendering in an open tab" in browser-run-thumbnails.md.
+// Answers MCP tool calls from this tab; see "Working in an open tab" in browser-run-thumbnails.md.
 //
-// This runs in the tab someone may be drawing in, so it only ever reads: the camera, the current page
-// and the selection stay put, which is why it computes an export frame rather than borrowing the
-// render page's zoom-to-fit. And a job this tab can't answer cheaply is declined rather than
-// attempted — the worker has a fallback, and an answer that costs the user a dropped frame is worse
-// than a slow one.
+// This runs in the tab someone may be drawing in. Reads leave the camera, the current page and the
+// selection where they are, which is why a capture computes an export frame rather than borrowing the
+// render page's zoom-to-fit. A job this tab can't do cheaply is declined rather than attempted: the
+// agent can try again, and an answer that costs the user a dropped frame is worse than a slow one.
 
 // Time budget per slice of a measure. Geometry is cached for the page in view, but a first measure of
 // another page lays out all of its text, which on a big page is long enough to be felt.
@@ -46,18 +48,20 @@ const FONT_WAIT_MS = 1_500
 // tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
 const MAX_EXPORT_SHAPES = 500
 
-// Longer than this in the queue and the worker has likely gone to Browser Run, so an export would be
-// main thread time spent on an answer nobody is waiting for.
+// Longer than this in the queue and the worker has likely stopped waiting, so an export would be main
+// thread time spent on an answer nobody is waiting for.
 const MAX_EXPORT_QUEUE_MS = 5_000
 
-// One at a time, so an agent can't stack exports up on the main thread. Queued rather than declined:
-// agents routinely ask for several clusters at once, and the next in line waiting a moment beats
-// sending it to Browser Run for seconds.
-let exportQueue: Promise<unknown> = Promise.resolve()
+// Enough for the model to see what to fix on a large batch, and well inside what the reply route takes.
+const MAX_INVALID_OPS_DETAIL = 1_500
 
-function enqueueExport(run: () => Promise<TabRenderReply>) {
-	const result = exportQueue.then(run)
-	exportQueue = result.catch(() => {})
+// One at a time, so an agent can't stack work up on the main thread, and so batches of ops land in the
+// order they came. Queued rather than declined: agents routinely ask for several things at once.
+let workQueue: Promise<unknown> = Promise.resolve()
+
+function enqueueWork(run: () => Promise<TabRenderReply>) {
+	const result = workQueue.then(run)
+	workQueue = result.catch(() => {})
 	return result
 }
 
@@ -74,21 +78,64 @@ export async function answerTabRender(
 		return
 	}
 
-	// Not awaited: the ack only has to arrive, and work shouldn't wait on the round trip.
-	void reply({ status: 'accepted' })
+	// A write waits for the go-ahead, because the ack is also its claim on the job: another tab may have
+	// it already, or this tab may have been frozen and be waking up to a job the agent gave up on.
+	if (request.mode === 'apply_ops') {
+		if (!(await reply({ status: 'accepted' }))) return
+	} else {
+		// Not awaited: the ack only has to arrive, and a read shouldn't wait on the round trip.
+		void reply({ status: 'accepted' })
+	}
+
 	try {
-		await reply(
-			request.mode === 'measure'
-				? await measurePage(editor, request.pageId as TLPageId)
-				: await queueCapture(editor, request)
-		)
+		await reply(await doWork(editor, request))
 	} catch (error) {
 		console.error('Could not answer a tab render job', error)
 		await reply({ status: 'declined', reason: 'failed' })
 	}
 }
 
+function doWork(editor: Editor, request: TabRenderRequest) {
+	switch (request.mode) {
+		case 'measure':
+			return measurePage(editor, request.pageId as TLPageId)
+		case 'screenshot':
+			return queueCapture(editor, request)
+		case 'apply_ops':
+			return queueApplyOps(editor, request)
+		case 'user_state':
+			return readUserState(editor)
+	}
+}
+
+async function readUserState(editor: Editor): Promise<TabRenderReply> {
+	const page = editor.getCurrentPage()
+	const { x, y, w, h } = editor.getViewportPageBounds()
+	return {
+		status: 'user_state',
+		pageId: page.id,
+		pageName: page.name,
+		selectedShapeIds: editor.getSelectedShapeIds(),
+		viewport: { x, y, w, h },
+	}
+}
+
+function getApplyPageId(editor: Editor, page: TabRenderApplyOpsRequest['page']) {
+	if (!page) return editor.getCurrentPageId()
+	return page.kind === 'id' ? (page.id as TLPageId) : editor.getPages()[page.ordinal]?.id
+}
+
 function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDeclineReason | undefined {
+	if (request.mode === 'user_state') return undefined
+	if (request.mode === 'apply_ops') {
+		if (editor.getIsReadonly()) return 'read_only'
+		const pageId = getApplyPageId(editor, request.page)
+		if (!pageId || !editor.getPage(pageId)) return 'page_missing'
+		// Ops place shapes on the page in view, so a batch meant for another page would land on the
+		// wrong one, and moving the user there to apply it is not an option.
+		return editor.getCurrentPageId() === pageId ? undefined : 'page_not_current'
+	}
+
 	const pageId = request.pageId as TLPageId
 	if (!editor.getPage(pageId)) return 'page_missing'
 	if (request.mode === 'measure') return undefined
@@ -107,10 +154,32 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 // have moved on while it waited.
 function queueCapture(editor: Editor, request: TabRenderScreenshotRequest) {
 	const queuedAt = Date.now()
-	return enqueueExport(async () => {
+	return enqueueWork(async () => {
 		const reason =
 			Date.now() - queuedAt > MAX_EXPORT_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		return reason ? { status: 'declined', reason } : capturePage(editor, request)
+	})
+}
+
+function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest) {
+	return enqueueWork(async (): Promise<TabRenderReply> => {
+		const reason = getRefusal(editor, request)
+		if (reason) return { status: 'declined', reason }
+		try {
+			const { compiled: _, ...result } = await createCanvasOpsReceiver(editor).applyBatch(
+				{ ops: request.ops },
+				request.attribution
+			)
+			const page = editor.getCurrentPage()
+			return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
+		} catch (error) {
+			if (!(error instanceof z.ZodError)) throw error
+			return {
+				status: 'declined',
+				reason: 'invalid_ops',
+				detail: z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL),
+			}
+		}
 	})
 }
 
@@ -197,15 +266,18 @@ function yieldToMainThread() {
 	})
 }
 
-// A lost reply needs no handling: the worker times out and falls back to Browser Run.
+// A lost reply needs no handling: the worker times out and tells the agent. Whether the worker took
+// the reply is what a write checks before it applies anything.
 async function postTabRenderReply(fileId: string, jobId: string, reply: TabRenderReply) {
 	try {
-		await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {
+		const response = await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(reply),
 		})
+		return response.ok
 	} catch (error) {
 		console.error('Could not send a tab render reply', error)
+		return false
 	}
 }

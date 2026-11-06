@@ -26,11 +26,41 @@ export class FpsScheduler {
 	private frameRaf: undefined | number
 	private flushRaf: undefined | number
 	private lastFlushTime: number
+	private maxFrameWaitMs: number | undefined
 
-	constructor(targetFps: number = 120) {
+	/**
+	 * @param targetFps - The target frame rate.
+	 * @param options - `maxFrameWaitMs` runs queued work after that long even if no frame has arrived.
+	 * Animation frames never fire in a hidden tab, so without it queued work waits until the tab is
+	 * shown again. Set it for work that has to happen regardless, like sending changes to a server.
+	 */
+	constructor(targetFps: number = 120, options: { maxFrameWaitMs?: number } = {}) {
 		this.targetFps = targetFps
 		this.targetTimePerFrame = getTargetTimePerFrame(targetFps)
 		this.lastFlushTime = -this.targetTimePerFrame
+		this.maxFrameWaitMs = options.maxFrameWaitMs
+	}
+
+	private requestFrame(callback: () => void) {
+		const { maxFrameWaitMs } = this
+		// eslint-disable-next-line no-restricted-globals
+		if (maxFrameWaitMs === undefined) return requestAnimationFrame(callback)
+
+		// A race rather than a check of `document.hidden`: a frame requested just before the tab is
+		// hidden never arrives either, and everything queued after it would wait behind it.
+		// eslint-disable-next-line no-restricted-globals
+		let timer: ReturnType<typeof setTimeout> | undefined = undefined
+		const run = () => {
+			clearTimeout(timer)
+			// eslint-disable-next-line no-restricted-globals
+			cancelAnimationFrame(frame)
+			callback()
+		}
+		// eslint-disable-next-line no-restricted-globals
+		const frame = requestAnimationFrame(run)
+		// eslint-disable-next-line no-restricted-globals
+		timer = setTimeout(run, maxFrameWaitMs)
+		return frame
 	}
 
 	updateTargetFps(targetFps: number) {
@@ -55,8 +85,7 @@ export class FpsScheduler {
 
 		if (elapsed < this.targetTimePerFrame) {
 			// If we're too early to flush, we need to wait until the next frame to try and flush again.
-			// eslint-disable-next-line no-restricted-globals
-			this.frameRaf = requestAnimationFrame(() => {
+			this.frameRaf = this.requestFrame(() => {
 				this.frameRaf = undefined
 				this.tick(true)
 			})
@@ -71,8 +100,7 @@ export class FpsScheduler {
 		} else {
 			// If we haven't already waited for the next frame to run the tick, we need to wait until the next frame to flush.
 			if (this.flushRaf) return // ...though if there's a flush raf, that means we'll be flushing on the next frame already, so we can do nothing here.
-			// eslint-disable-next-line no-restricted-globals
-			this.flushRaf = requestAnimationFrame(() => {
+			this.flushRaf = this.requestFrame(() => {
 				this.flushRaf = undefined
 				this.lastFlushTime = Date.now()
 				this.flush()

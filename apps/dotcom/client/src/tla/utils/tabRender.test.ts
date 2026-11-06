@@ -25,14 +25,20 @@ beforeAll(() => {
 })
 
 const replies: TabRenderReply[] = []
+// How the worker answers a tab's `accepted`, which for a write is the go-ahead.
+let claimGranted = true
 
 beforeEach(() => {
 	replies.length = 0
+	claimGranted = true
 	vi.stubGlobal(
 		'fetch',
 		vi.fn(async (_url: string, init: RequestInit) => {
-			replies.push(JSON.parse(init.body as string))
-			return new Response('{}')
+			const reply = JSON.parse(init.body as string) as TabRenderReply
+			replies.push(reply)
+			return new Response('{}', {
+				status: reply.status === 'accepted' && !claimGranted ? 404 : 200,
+			})
 		})
 	)
 })
@@ -343,5 +349,193 @@ describe('answerTabRender', () => {
 			{ status: 'declined', reason: 'export_timed_out' },
 		])
 		editor.dispose()
+	})
+
+	it('reports what the user has selected, what page they are on and where they are looking', async () => {
+		const { editor, firstPageId, firstShapeId } = setupEditor()
+		editor.select(firstShapeId)
+
+		await answerTabRender(editor, 'file-1', job({ mode: 'user_state' }))
+
+		expect(replies.at(-1)).toEqual({
+			status: 'user_state',
+			pageId: firstPageId,
+			pageName: editor.getCurrentPage().name,
+			selectedShapeIds: [firstShapeId],
+			viewport: expect.objectContaining({ w: expect.any(Number), h: expect.any(Number) }),
+		})
+		editor.dispose()
+	})
+
+	describe('apply_ops', () => {
+		const attribution = { userId: 'user_a', runId: 'run-1' }
+		const addBox = { op: 'add', kind: 'box', id: 'hello', text: 'Hello', at: { x: 500, y: 500 } }
+		const applyOps = (
+			ops: unknown[] = [addBox],
+			page?: Extract<TabRenderRequest, { mode: 'apply_ops' }>['page']
+		) => job({ mode: 'apply_ops', ops, page, attribution })
+		const hello = createShapeId('hello')
+
+		it('applies a batch once it has the go-ahead, and reports what landed', async () => {
+			const { editor, firstPageId } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(editor.getShape(hello)).toBeDefined()
+			expect(replies).toEqual([
+				{ status: 'accepted' },
+				{
+					status: 'applied',
+					pageId: firstPageId,
+					pageName: editor.getCurrentPage().name,
+					result: expect.objectContaining({ applied: 1, errors: [], createdIds: ['hello'] }),
+				},
+			])
+			editor.dispose()
+		})
+
+		// The model has no use for the compiled actions, and on a big batch they dwarf the rest.
+		it('leaves the compiled actions out of what it reports', async () => {
+			const { editor } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			const applied = replies.at(-1) as Extract<TabRenderReply, { status: 'applied' }>
+			expect(applied.result).not.toHaveProperty('compiled')
+			editor.dispose()
+		})
+
+		// Refused means another tab has the job, or this one thawed after the agent gave up. Applying
+		// anyway is how an edit lands twice.
+		it('does nothing when the worker refuses the claim', async () => {
+			const { editor } = setupEditor()
+			claimGranted = false
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(editor.getShape(hello)).toBeUndefined()
+			expect(replies).toEqual([{ status: 'accepted' }])
+			editor.dispose()
+		})
+
+		it('does nothing when the claim cannot be sent', async () => {
+			const { editor } = setupEditor()
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'))
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(editor.getShape(hello)).toBeUndefined()
+			editor.dispose()
+		})
+
+		it('hands back why an invalid batch was refused, having applied none of it', async () => {
+			const { editor } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps([addBox, { op: 'explode' }]))
+
+			expect(editor.getShape(hello)).toBeUndefined()
+			expect(replies.at(-1)).toEqual({
+				status: 'declined',
+				reason: 'invalid_ops',
+				detail: expect.any(String),
+			})
+			editor.dispose()
+		})
+
+		it('declines on a view-only board, without claiming the job', async () => {
+			const { editor } = setupEditor()
+			editor.updateInstanceState({ isReadonly: true })
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(replies).toEqual([{ status: 'declined', reason: 'read_only' }])
+			editor.dispose()
+		})
+
+		it('uses the page the user is on when the agent names none', async () => {
+			const { editor, firstPageId } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(editor.getShape(hello)?.parentId).toBe(firstPageId)
+			editor.dispose()
+		})
+
+		// Ops place shapes on the page in view, so applying this would put them on the wrong page.
+		it('declines a batch meant for a page the user is not on', async () => {
+			const { editor, firstPageId, otherPageId } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'id', id: otherPageId }))
+
+			expect(replies).toEqual([{ status: 'declined', reason: 'page_not_current' }])
+			expect(editor.getShape(hello)).toBeUndefined()
+			expect(editor.getCurrentPageId()).toBe(firstPageId)
+			editor.dispose()
+		})
+
+		it('applies when a named page is the one in view, by id or by index', async () => {
+			const { editor, firstPageId } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'id', id: firstPageId }))
+			await answerTabRender(
+				editor,
+				'file-1',
+				applyOps([{ ...addBox, id: 'again' }], { kind: 'ordinal', ordinal: 0 })
+			)
+
+			expect(editor.getShape(hello)).toBeDefined()
+			expect(editor.getShape(createShapeId('again'))).toBeDefined()
+			editor.dispose()
+		})
+
+		it('declines a page the board does not have', async () => {
+			const { editor } = setupEditor()
+
+			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'ordinal', ordinal: 9 }))
+
+			expect(replies).toEqual([{ status: 'declined', reason: 'page_missing' }])
+			editor.dispose()
+		})
+
+		it('lands batches in the order they came', async () => {
+			const { editor } = setupEditor()
+			const first = { ...addBox, id: 'first' }
+			const second = { op: 'rename', target: 'first', text: 'Renamed' }
+
+			await Promise.all([
+				answerTabRender(editor, 'file-1', applyOps([first])),
+				answerTabRender(editor, 'file-1', applyOps([second])),
+			])
+
+			const shape = editor.getShape(createShapeId('first'))!
+			expect(editor.getShapeUtil(shape).getText(shape)).toBe('Renamed')
+			editor.dispose()
+		})
+
+		// The agent's only way to undo a mistake is the user's undo, so a batch has to be one step.
+		it('is a single undo step for the user', async () => {
+			const { editor } = setupEditor()
+			const second = { ...addBox, id: 'second', at: { x: 900, y: 500 } }
+
+			await answerTabRender(editor, 'file-1', applyOps([addBox, second]))
+			editor.undo()
+
+			expect(editor.getShape(hello)).toBeUndefined()
+			expect(editor.getShape(createShapeId('second'))).toBeUndefined()
+			editor.dispose()
+		})
+
+		// A hidden tab never fires animation frames, and this is the usual state of a board an agent is
+		// working on. Hanging here looks like a failure, and a retry would apply the batch twice.
+		it('reports back from a tab that never fires animation frames', async () => {
+			const { editor } = setupEditor()
+			vi.stubGlobal('requestAnimationFrame', vi.fn())
+
+			await answerTabRender(editor, 'file-1', applyOps())
+
+			expect(replies.at(-1)).toMatchObject({ status: 'applied' })
+			editor.dispose()
+		})
 	})
 })

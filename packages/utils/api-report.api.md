@@ -126,7 +126,9 @@ export function filterEntries<Key extends string, Value>(object: {
 
 // @public
 export class FpsScheduler {
-    constructor(targetFps?: number);
+    constructor(targetFps?: number, options?: {
+        maxFrameWaitMs?: number;
+    });
     fpsThrottle(fn: {
         (): void;
         cancel?(): void;

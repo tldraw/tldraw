@@ -1,8 +1,6 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
-	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
-	MCP_PER_BOARD_RATE_LIMIT,
 	MCP_PER_USER_RATE_LIMIT,
 	MCP_RATE_LIMIT_WINDOW_MS,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
@@ -11,14 +9,17 @@ import {
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
-import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { base64ToArrayBuffer } from '../../utils/base64'
+import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	APPLY_OPS_TOOL_NAME,
 	BOARD_EMPTY_MESSAGE,
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
+	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
@@ -32,7 +33,7 @@ import {
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
-	buildClusterIndex,
+	USER_STATE_TOOL_NAME,
 	clusterPage,
 	describePageSelector,
 	getBoardInfo,
@@ -43,7 +44,9 @@ import {
 	getPageInfo,
 	getToolDefinitions,
 	getWorkspaceListResult,
+	parseApplyOpsInput,
 	parseBoardInfoInput,
+	parseBoardUsersInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
@@ -51,8 +54,8 @@ import {
 	parsePageInfoInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseUserStateInput,
 	pickClusterShapes,
-	resolvePage,
 	toolError as modelToolError,
 	toolJsonResult,
 	toolPageResult,
@@ -60,20 +63,23 @@ import {
 import { createBoardForUser } from './createBoard'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
-import { readPageClusters, writePageClusterIndex } from './mcpClusterIndex'
-import { captureInOpenTab, measureInOpenTab } from './mcpTabRender'
+import {
+	PUBLISHED_BOARD_FAILURE,
+	applyOpsInOpenTab,
+	captureInOpenTab,
+	measureInOpenTab,
+	readBoardUsers,
+	readLivePage,
+	readUserStateInOpenTab,
+} from './mcpTabRender'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
 	ResolveThumbnailBoardResult,
 	ResolvedThumbnailBoard,
-	captureThumbnailScreenshot,
 	loadBoardSnapshot,
-	measurePageShapes,
-	putThumbnailPng,
 	resolveThumbnailBoard,
 	writeScreenshotTelemetry,
-	summarizeSnapshotContent,
 } from './thumbnailRender'
 import {
 	ThumbnailErrorSurface,
@@ -83,13 +89,13 @@ import {
 	reportThumbnailError,
 } from './thumbnailShared'
 
-// What it takes to run the board tools on Cloudflare: board resolution against Postgres and R2,
-// Browser Rendering, the `mcp/` PNG cache, rate limits, telemetry, and the HTTP shell around the
-// JSON-RPC dispatch.
+// What it takes to run the board tools on Cloudflare: board resolution against Postgres and R2, the
+// caller's open tab (mcpTabRender.ts), rate limits, telemetry, and the HTTP shell around the JSON-RPC
+// dispatch.
 //
 // The model-facing tools themselves live in boardTools.ts. That pure boundary lets the private eval
 // harness serve the exact same tool descriptions, parsing, clustering, and errors from local board
-// fixtures without needing a database or Browser Rendering.
+// fixtures without needing a database or a browser.
 //
 // Authentication and the feature flag gate live in mcpAuth.ts, applied to the whole endpoint before
 // any of this runs; the verified `userId` it returns is threaded through every tool below, keying
@@ -133,7 +139,6 @@ const TOOLS_LIST_CACHE_SCOPE = 'public'
 // with the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They
 // are applied here rather than in the shared render core so a new surface built on those helpers
 // cannot pick one up by accident.
-const GLOBAL_BROWSER_RATE_LIMIT_KEY = 'global'
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
 
 /**
@@ -168,12 +173,6 @@ function createRateLimitKey(userId: string) {
 
 function renameRateLimitKey(userId: string) {
 	return `rename:${userId}`
-}
-
-async function isGlobalBrowserRunRateLimited(env: Environment): Promise<boolean> {
-	return isRateLimited(env.MCP_SERVER_BROWSER_RATE_LIMITER, GLOBAL_BROWSER_RATE_LIMIT_KEY, {
-		fallbackLimit: MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
-	})
 }
 
 async function isRateLimited(
@@ -368,6 +367,9 @@ const TOOL_HANDLERS = new Map<
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
 	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+	[APPLY_OPS_TOOL_NAME, callApplyOpsTool],
+	[USER_STATE_TOOL_NAME, callUserStateTool],
+	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
 ])
 
 export async function mcpServer(
@@ -651,17 +653,6 @@ export type ResolvedBoardForUser =
 	  }
 	| Extract<ResolveThumbnailBoardResult, { ok: false }>
 
-// A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
-// same shapes requested in a different order hit the same cached PNG — the render is identical.
-export async function getShapesCacheKey(
-	board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug' | 'version'>,
-	theme: 'light' | 'dark',
-	shapeIds: string[]
-) {
-	const digest = await sha256([...shapeIds].sort().join(','))
-	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/shapes-${digest}.png`
-}
-
 async function callSearchBoardsTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -867,32 +858,24 @@ async function callPageInfoTool(
 	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
 	// 500. Same reason in every tool below.
 	try {
-		// A later page of an answer is usually served from the index the first page wrote, so it spends
-		// nothing and isn't charged: paging a big board shouldn't use up the budget for reading it. A
-		// cursor that misses the index is charged by readClustering before it measures.
-		const refusal =
-			input.cursor === null ? await checkPerUserRateLimit(env, userId, telemetry) : null
+		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
 		if (refusal) return refusal
 
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
 		// ids that neither of them can look up.
-		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
+		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
+			request,
+			ctx,
+		})
 		if (!resolved.ok) {
 			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
 			return resolved.result
 		}
 
-		const clustered = await readClustering(resolved, {
-			env,
-			userId,
-			telemetry,
-			request,
-			ctx,
-			chargeCallerOnMiss: input.cursor !== null,
-		})
+		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 		if (!clustered.ok) return clustered.result
-		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
+		telemetry({ cacheStatus: 'none' })
 		return getPageInfo(resolved.page, clustered, {
 			selector: input.page,
 			offset: input.cursor ?? 0,
@@ -928,7 +911,6 @@ type LoadedBoard =
 			board: ResolvedThumbnailBoard
 			fileName: string | null
 			snapshot: import('@tldraw/sync-core').RoomSnapshot
-			snapshotVersion: string
 	  }
 	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
 
@@ -970,55 +952,41 @@ async function loadBoardForTool(
 			result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty'),
 		}
 	}
-	// The board version is resolved before this read, so it can move independently of the snapshot:
-	// publishing updates lastPublished before its outbox writes R2, and a shared file can change
-	// between HEAD and GET. Key the cluster index to the bytes we actually read so neither gap can
-	// store an old measurement under new content.
-	const snapshotVersion = await sha256(JSON.stringify(snapshot))
-	return {
-		ok: true,
-		board: resolved.board,
-		fileName: resolved.fileName,
-		snapshot,
-		snapshotVersion,
-	}
+	return { ok: true, board: resolved.board, fileName: resolved.fileName, snapshot }
 }
 
 type ResolvedBoardPage =
-	| {
-			ok: true
-			board: ResolvedThumbnailBoard
-			page: ResolvedPageOk
-			snapshot: import('@tldraw/sync-core').RoomSnapshot
-			snapshotVersion: string
-	  }
-	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
+	| { ok: true; fileId: string; page: ResolvedPageOk }
+	| { ok: false; reason: string; result: ToolCallResult }
 
+// The page as the room holds it now rather than as it was last persisted, since an agent has to be
+// able to read what it just drew. Anything that can't be read that way, because it isn't a file the
+// caller can see, goes through the same resolution get_board_info uses, so that the refusals match.
 async function resolveBoardPage(
 	env: Environment,
 	boardId: string,
 	page: PageSelector,
-	userId: string
+	userId: string,
+	context: { request: Request; ctx: ExecutionContext | undefined }
 ): Promise<ResolvedBoardPage> {
-	const loaded = await loadBoardForTool(env, boardId, userId)
-	if (!loaded.ok) return loaded
+	const access = await hasReadAccessToFile(env, userId, boardId)
+	if (!access.ok) {
+		const loaded = await loadBoardForTool(env, boardId, userId)
+		if (!loaded.ok) return loaded
+		const { reason, message } = PUBLISHED_BOARD_FAILURE
+		return { ok: false, reason, result: toolError(message, reason) }
+	}
 
-	const pageResult = resolvePage(loaded.snapshot, page)
+	const live = await readLivePage(env, boardId, userId, page, context)
+	if (!live.ok) {
+		return { ok: false, reason: live.reason, result: toolError(live.message, live.reason) }
+	}
+	const pageResult = live.value
 	if (!pageResult.ok) {
 		const reason = pageResult.reason === 'no_pages' ? 'board_empty' : 'page_not_found'
-		return {
-			...pageResult,
-			reason,
-			result: withTelemetryReason(pageResult.result, reason),
-		}
+		return { ok: false, reason, result: withTelemetryReason(pageResult.result, reason) }
 	}
-	return {
-		ok: true,
-		board: loaded.board,
-		page: pageResult,
-		snapshot: loaded.snapshot,
-		snapshotVersion: loaded.snapshotVersion,
-	}
+	return { ok: true, fileId: boardId, page: pageResult }
 }
 
 // One datapoint shape for every MCP tool: `source: 'mcp'`, plus whatever the row carries.
@@ -1034,11 +1002,6 @@ function mcpTelemetryWriter(env: Environment) {
 		// requests refused before the cache read. Keeping those out of hit/miss is what lets a
 		// hit-rate-by-source panel read cache health rather than refusal volume.
 		cacheStatus: 'hit' | 'miss' | 'none'
-		// What the cluster index cache did, on its own dimension rather than folded into `cacheStatus`:
-		// the two caches answer different questions (one saves a capture, the other saves a measure)
-		// and a single blob mixing them would make either hit rate unreadable. `none` for the tools
-		// and refusals that never reach the clustering step.
-		clusterCacheStatus?: 'hit' | 'miss' | 'none'
 		failureReason?: string
 		rateLimitAllowed?: boolean
 		callerHash?: string
@@ -1171,34 +1134,11 @@ async function checkRenameRateLimit(
 	)
 }
 
-type ClusteringResult =
-	| ({ ok: true; clusterCacheStatus: 'hit' | 'miss' } & PageClustering)
-	| { ok: false; result: ToolCallResult }
+type ClusteringResult = ({ ok: true } & PageClustering) | { ok: false; result: ToolCallResult }
 
-// How the three clustering tools get a page's clusters, and the one place that decides whether that
-// costs a browser session.
-//
-// Clustering needs real geometry, and the only way to get it is to run an editor: the caller's open
-// tab if they have one, otherwise Browser Rendering, at the same cost as a screenshot. But the
-// answer only moves when the board's content moves, so the first tool to measure a page stores it
-// (mcpClusterIndex.ts, keyed by the board's content version) and every later call for the same
-// content is served from that. In the documented drill-down — get_page_info, then get_cluster_info,
-// then get_cluster_screenshot — that is one measure for the first call and none for the rest, where
-// it used to be one each. A tab's measure isn't stored, so with a tab open each miss measures again.
-//
-// A miss falls back to measuring, so nothing here can leave a tool unable to answer: a cache that is
-// empty, stale, unreadable, or was never written because get_page_info was skipped behaves exactly
-// like the pipeline did before it existed.
-//
-// The limiters are consulted on the miss path only — checking them on a hit would meter calls that
-// spend nothing. It is the global limiter and not the per-board one: that allows 2 a minute, and a
-// cold drill-down can legitimately measure once and capture once against the same board, so counting
-// measures there would refuse the documented flow rather than an abusive one. A measure used to check
-// neither, which is what made the account-wide ceiling several times the number the global limiter
-// describes.
-//
-// The session lands on the `browser_run_session` spend ledger inside the measure itself, so callers
-// carry no duration bookkeeping.
+// How the three clustering tools get a page's clusters. Clustering needs real geometry, and the only
+// way to get it is to run an editor, so this asks the caller's open tab every time: a tab's answer
+// can't be cached, because its owner can send anything and the cluster index has no viewer dimension.
 async function readClustering(
 	resolved: Extract<ResolvedBoardPage, { ok: true }>,
 	{
@@ -1207,80 +1147,24 @@ async function readClustering(
 		telemetry,
 		request,
 		ctx,
-		chargeCallerOnMiss = false,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
-		chargeCallerOnMiss?: boolean
 	}
 ): Promise<ClusteringResult> {
-	const cacheContext = { env, request, ctx }
-	const cached = await readPageClusters(
-		cacheContext,
-		resolved.board,
-		resolved.page,
-		resolved.snapshotVersion
-	)
-	if (cached) return { ok: true, ...cached, clusterCacheStatus: 'hit' }
-
-	if (chargeCallerOnMiss) {
-		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
-		if (refusal) return { ok: false, result: refusal }
-	}
-
-	// Ahead of the Browser Run budget, which it doesn't spend, and never written to the index.
-	const tabMeasurements = await measureInOpenTab(
-		env,
-		resolved.board,
-		userId,
-		resolved.page.pageId,
-		{
-			request,
-			ctx,
-		}
-	)
-	if (tabMeasurements) {
-		const clusters = clusterPage(resolved.page, tabMeasurements)
-		return {
-			ok: true,
-			...clusteringFromMeasure(clusters, tabMeasurements),
-			clusterCacheStatus: 'miss',
-		}
-	}
-
-	if (await isGlobalBrowserRunRateLimited(env)) {
-		telemetry({
-			cacheStatus: 'none',
-			clusterCacheStatus: 'miss',
-			rateLimitAllowed: false,
-			failureReason: 'rate_limited_global',
-			callerHash: await sha256(userId),
-		})
-		return {
-			ok: false,
-			result: toolError(
-				'Rate limited. Screenshot capacity is busy, try again in a minute.',
-				'rate_limited_global'
-			),
-		}
-	}
-
-	const measurements = await measurePageShapes(env, resolved.board, resolved.page.pageId, {
-		surface: 'mcp',
-		snapshot: resolved.snapshot,
+	const measured = await measureInOpenTab(env, resolved.fileId, userId, resolved.page.pageId, {
+		request,
+		ctx,
 	})
-	const clusters = clusterPage(resolved.page, measurements)
-	await writePageClusterIndex(
-		cacheContext,
-		resolved.board,
-		resolved.page,
-		buildClusterIndex(clusters, measurements),
-		resolved.snapshotVersion
-	)
-	return { ok: true, ...clusteringFromMeasure(clusters, measurements), clusterCacheStatus: 'miss' }
+	if (!measured.ok) {
+		telemetry({ cacheStatus: 'none', failureReason: measured.reason })
+		return { ok: false, result: toolError(measured.message, measured.reason) }
+	}
+	const clusters = clusterPage(resolved.page, measured.value)
+	return { ok: true, ...clusteringFromMeasure(clusters, measured.value) }
 }
 
 async function callClusterInfoTool(
@@ -1299,7 +1183,10 @@ async function callClusterInfoTool(
 		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
 		if (refusal) return refusal
 
-		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId)
+		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
+			request,
+			ctx,
+		})
 		if (!resolved.ok) {
 			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
 			return resolved.result
@@ -1315,14 +1202,10 @@ async function callClusterInfoTool(
 			input.cursor
 		)
 		if (!info.ok) {
-			telemetry({
-				cacheStatus: 'none',
-				clusterCacheStatus: clustered.clusterCacheStatus,
-				failureReason: info.reason,
-			})
+			telemetry({ cacheStatus: 'none', failureReason: info.reason })
 			return withTelemetryReason(info.result, info.reason)
 		}
-		telemetry({ cacheStatus: 'none', clusterCacheStatus: clustered.clusterCacheStatus })
+		telemetry({ cacheStatus: 'none' })
 		return info.result
 	} catch (error) {
 		return toolFailure(error, {
@@ -1343,7 +1226,7 @@ async function callClusterInfoTool(
 
 // Both shape-set screenshot tools do the same thing once they know which shapes to draw; they differ
 // only in how they get there — one is handed the ids, the other resolves them from a cluster. That
-// difference is `pickShapes`; everything downstream (rate limits, cache, capture, telemetry) is here.
+// difference is `pickShapes`; everything downstream (rate limits, capture, telemetry) is here.
 async function renderShapeSetScreenshot(
 	request: Request,
 	env: Environment,
@@ -1363,47 +1246,25 @@ async function renderShapeSetScreenshot(
 		/** Extra Sentry context identifying which tool asked. */
 		extras: Record<string, unknown>
 		/**
-		 * Resolves which shapes to draw. Any Browser Run it spends on the way (the cluster tool's measure
-		 * render) reports itself to the spend ledger, so nothing here needs to know.
-		 *
-		 * Owns the telemetry for its own refusals, which is why it is handed the writer: only it knows
-		 * whether a failure was a missing cluster or a limiter, and a row written here as well would file
-		 * one call on the ledger twice, under two different reason codes.
+		 * Resolves which shapes to draw. Owns the telemetry for its own refusals, which is why it is
+		 * handed the writer: only it knows what the failure was, and a row written here as well would
+		 * file one call on the ledger twice, under two different reason codes.
 		 */
 		pickShapes(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
 		): Promise<
-			| { ok: true; shapeIds: string[]; clusterCacheStatus: 'hit' | 'miss' }
-			| { ok: false; result: ReturnType<typeof toolError> }
+			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
 		>
 	}
 ) {
 	const telemetry = mcpTelemetryWriter(env)
-	// Whether the PNG cache was actually consulted, for the catch below: a failure before the cache
-	// read says nothing about cache health and files under `cache:none`, one after it was a miss.
-	let consultedCache = false
-	// Set once the shapes are picked, since that is the step that either measures or reads the index.
-	let clusterCacheStatus: 'hit' | 'miss' | 'none' = 'none'
 
 	try {
-		// Checked before the cache, unlike the two below: this is the per-caller ceiling on calls, not
-		// on captures, so a caller looping over cache hits is still bounded. One budget shared with the
-		// clustering tools — see perUserRateLimitKey.
 		const refusal = await checkPerUserRateLimit(env, userId, telemetry)
 		if (refusal) return refusal
 
-		if (!env.MCP_DATA_BUCKET) {
-			throw new Error('MCP_DATA_BUCKET bucket is not configured')
-		}
-
-		// The access check runs inside the resolution here, ahead of everything below it, and that
-		// ordering is load-bearing: the cache read further down is what it gates. `mcp/` keys carry no
-		// viewer dimension, so a private board cached for its owner would otherwise be served to anyone
-		// who named the right board id. Gating the read rather than adding a viewer to the key is also
-		// the cheaper fix — a viewer dimension would multiply the object count and turn one shared
-		// render into one render per caller.
-		const resolved = await resolveBoardPage(env, boardId, page, userId)
+		const resolved = await resolveBoardPage(env, boardId, page, userId, { request, ctx })
 		if (!resolved.ok) {
 			telemetry({ cacheStatus: 'none', failureReason: resolved.reason })
 			return resolved.result
@@ -1411,118 +1272,28 @@ async function renderShapeSetScreenshot(
 
 		const picked = await pickShapes(resolved, telemetry)
 		if (!picked.ok) return picked.result
-		const shapeIds = picked.shapeIds
-		// Carried onto every row below: whether this call had to measure is as much a part of what it
-		// spent as whether it had to capture.
-		clusterCacheStatus = picked.clusterCacheStatus
 
-		// Keyed on the shape set, so two requests naming the same shapes share one cached PNG — they
-		// render identically.
-		const cacheKey = await getShapesCacheKey(resolved.board, theme, shapeIds)
-		consultedCache = true
-		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
-		if (cached) {
-			telemetry({ cacheStatus: 'hit', clusterCacheStatus })
-			return toolPageResult(
-				decodeThumbnailPageName(cached.customMetadata?.pageName),
-				arrayBufferToBase64(await cached.arrayBuffer())
-			)
-		}
-
-		// Ahead of the guards below, which bound Browser Run, and never written back to the PNG cache.
-		const tabImage = await captureInOpenTab(
+		const image = await captureInOpenTab(
 			env,
-			resolved.board,
+			resolved.fileId,
 			userId,
 			{
 				pageId: resolved.page.pageId,
-				shapeIds,
+				shapeIds: picked.shapeIds,
 				theme,
 				width: DEFAULT_THUMBNAIL_WIDTH,
 				height: DEFAULT_THUMBNAIL_HEIGHT,
 			},
 			{ request, ctx }
 		)
-		if (tabImage) {
-			telemetry({ cacheStatus: 'miss', clusterCacheStatus })
-			return toolPageResult(resolved.page.pageName, tabImage)
+		if (!image.ok) {
+			telemetry({ cacheStatus: 'none', failureReason: image.reason })
+			return toolError(image.message, image.reason)
 		}
 
-		// Only cache misses spend Browser Rendering capacity on the capture, so the per-board and
-		// global guards sit here rather than at the top of the tool call.
-		if (
-			await isRateLimited(env.MCP_SERVER_BOARD_RATE_LIMITER, `board:${boardId}`, {
-				fallbackLimit: MCP_PER_BOARD_RATE_LIMIT,
-			})
-		) {
-			telemetry({
-				cacheStatus: 'miss',
-				clusterCacheStatus,
-				rateLimitAllowed: false,
-				failureReason: 'rate_limited_board',
-				callerHash: await sha256(userId),
-			})
-			return toolError(
-				'Rate limited. This board is being screenshotted too frequently.',
-				'rate_limited_board'
-			)
-		}
-		if (await isGlobalBrowserRunRateLimited(env)) {
-			telemetry({
-				cacheStatus: 'miss',
-				clusterCacheStatus,
-				rateLimitAllowed: false,
-				failureReason: 'rate_limited_global',
-				callerHash: await sha256(userId),
-			})
-			return toolError(
-				'Rate limited. Screenshot capacity is busy, try again in a minute.',
-				'rate_limited_global'
-			)
-		}
-
-		const render = await captureThumbnailScreenshot(env, resolved.board, {
-			surface: 'mcp',
-			pageId: resolved.page.pageId,
-			shapeIds,
-			theme,
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
-			telemetry: { source: 'mcp' },
-			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
-			snapshot: resolved.snapshot,
-			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
-			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
-			// only — the OG surface keeps the export path's pixel-exact sizing.
-			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
-				? { capture: 'live' as const }
-				: null),
-		})
-
-		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
-		// cache write must not throw it away — that would turn a working screenshot into a tool error
-		// and burn the caller's rate-limit budget for nothing. Reported rather than raised: the caller
-		// can't act on it, but a cache that stops absorbing writes means every call re-renders. The page
-		// name is URI-encoded because R2 custom metadata is not reliably unicode-safe.
-		try {
-			await putThumbnailPng(env.MCP_DATA_BUCKET, cacheKey, render.base64, resolved.board.version, {
-				pageName: encodeURIComponent(resolved.page.pageName),
-			})
-		} catch (error) {
-			reportThumbnailError(error, {
-				ctx,
-				env,
-				request,
-				surface: 'mcp_screenshot_cache_write',
-				extras: { boardId, page: describePageSelector(page), theme, ...extras },
-			})
-		}
-
-		telemetry({ cacheStatus: 'miss', clusterCacheStatus })
-		return toolPageResult(resolved.page.pageName, render.base64)
+		telemetry({ cacheStatus: 'none' })
+		return toolPageResult(resolved.page.pageName, image.value)
 	} catch (error) {
-		// The sessions this call held, failed or not, are already on the spend ledger; what is recorded
-		// here is the request's own outcome.
 		return toolFailure(error, {
 			env,
 			request,
@@ -1531,8 +1302,6 @@ async function renderShapeSetScreenshot(
 			extras: { boardId, page: describePageSelector(page), theme, ...extras },
 			summary: 'Screenshot failed',
 			telemetry,
-			cacheStatus: consultedCache ? 'miss' : 'none',
-			clusterCacheStatus,
 		})
 	}
 }
@@ -1563,18 +1332,150 @@ async function callClusterScreenshotTool(
 			const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
 			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
-			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
+			if (picked.ok) return picked
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
 			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.
-			telemetry({
-				cacheStatus: 'none',
-				clusterCacheStatus: clustered.clusterCacheStatus,
-				failureReason: 'cluster_not_found',
-			})
+			telemetry({ cacheStatus: 'none', failureReason: 'cluster_not_found' })
 			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
+}
+
+// Goes straight to the tab rather than through the board snapshot: the tab is what writes, and a board
+// created a moment ago has no persisted snapshot yet, which every other tool would report as empty.
+async function callApplyOpsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseApplyOpsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkPerUserRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		if (!(await isFeatureFlagEnabledForUser(env, 'mcp_tab_render', userId))) {
+			return toolError(
+				'Editing boards is not available on this account yet.',
+				'apply_ops_not_enabled'
+			)
+		}
+
+		const access = await hasReadAccessToFile(env, userId, input.boardId)
+		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+
+		const applied = await applyOpsInOpenTab(
+			env,
+			input.boardId,
+			userId,
+			{
+				ops: input.ops,
+				page: input.page ?? undefined,
+				attribution: { userId, runId: input.runId ?? crypto.randomUUID() },
+			},
+			{ request, ctx }
+		)
+		if (!applied.ok) return toolError(applied.message, applied.reason)
+		const { pageId, pageName, result } = applied.value
+		return toolJsonResult({ pageId, pageName, ...result })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_apply_ops',
+			extras: { boardId: input.boardId, opCount: input.ops.length },
+			summary: 'Could not apply ops',
+			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callUserStateTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseUserStateInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkPerUserRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const access = await hasReadAccessToFile(env, userId, input.boardId)
+		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+
+		if (input.userId === null || input.userId === userId) {
+			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			if (!state.ok) return toolError(state.message, state.reason)
+			const { status: _, ...value } = state.value
+			return toolJsonResult({ userId, ...value })
+		}
+
+		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		if (!users.ok) return toolError(users.message, users.reason)
+		const user = users.value.find((candidate) => candidate.userId === input.userId)
+		if (!user) {
+			return toolError(
+				'That user is not on this board right now. Call get_board_users to see who is.',
+				'user_not_on_board'
+			)
+		}
+		return toolJsonResult(user)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_presence',
+			extras: { boardId: input.boardId },
+			summary: 'Could not read user state',
+			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callBoardUsersTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseBoardUsersInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const refusal = await checkPerUserRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		const access = await hasReadAccessToFile(env, userId, input.boardId)
+		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+
+		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		if (!users.ok) return toolError(users.message, users.reason)
+		return toolJsonResult({ users: users.value })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_presence',
+			extras: { boardId: input.boardId },
+			summary: 'Could not list board users',
+			recordAs: () => 'board_lookup_error',
+		})
+	}
 }
 
 interface ToolCallResult extends ToolResult {
@@ -1641,8 +1542,6 @@ function toolFailure(
 		extras,
 		summary,
 		telemetry,
-		cacheStatus = 'none',
-		clusterCacheStatus = 'none',
 		recordAs,
 	}: {
 		env: Environment
@@ -1659,10 +1558,6 @@ function toolFailure(
 		 * no Browser Run and so do not appear on that ledger at all.
 		 */
 		telemetry?: McpTelemetryWriter
-		/** What the cache had done by the time this failed. See `consultedCache`. */
-		cacheStatus?: 'hit' | 'miss' | 'none'
-		/** The same, for the cluster index cache. See `clusterCacheStatus`. */
-		clusterCacheStatus?: 'hit' | 'miss' | 'none'
 		/**
 		 * Narrows the classifier's verdict for a tool whose failures it can misread — search_boards and
 		 * get_board_info spend no Browser Run, so a raw Postgres error the classifier would otherwise
@@ -1682,17 +1577,8 @@ function toolFailure(
 			: recordAs
 				? recordAs(failureReason)
 				: failureReason
-	telemetry?.({ cacheStatus, clusterCacheStatus, failureReason: recorded })
+	telemetry?.({ cacheStatus: 'none', failureReason: recorded })
 	return toolError(`${summary}: ${describeThumbnailFailure(recorded)}.`, recorded)
-}
-
-function decodeThumbnailPageName(value: string | undefined): string {
-	if (!value) return 'Page'
-	try {
-		return decodeURIComponent(value)
-	} catch {
-		return value
-	}
 }
 
 async function readJsonRpcRequest(request: Request): Promise<JsonRpcRequest | null> {

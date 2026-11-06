@@ -1,3 +1,4 @@
+import { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	MAX_TAB_RENDER_SESSIONS,
@@ -58,6 +59,11 @@ describe('pickTabRenderSessions', () => {
 
 describe('TabRenderBroker', () => {
 	const measure = { mode: 'measure', pageId: 'page:a' } as const
+	const applyOps: TabRenderRequest = {
+		mode: 'apply_ops',
+		ops: [],
+		attribution: { userId: 'user_a', runId: 'run' },
+	}
 
 	beforeEach(() => {
 		vi.useFakeTimers()
@@ -66,10 +72,10 @@ describe('TabRenderBroker', () => {
 		vi.useRealTimers()
 	})
 
-	function dispatch(sessionIds: string[]) {
+	function dispatch(sessionIds: string[], request: TabRenderRequest = measure) {
 		const broker = new TabRenderBroker()
 		const jobIds = new Map<string, string>()
-		const result = broker.dispatch(sessionIds, measure, (sessionId, jobId) => {
+		const result = broker.dispatch(sessionIds, request, (sessionId, jobId) => {
 			jobIds.set(sessionId, jobId)
 		})
 		return { broker, jobIds, result }
@@ -153,5 +159,44 @@ describe('TabRenderBroker', () => {
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
 		await result
 		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(false)
+	})
+
+	// Every tab that acted on a write would apply it, so the agent's edit would land once per tab.
+	it('lets only one tab claim a write', async () => {
+		const { broker, jobIds, result } = dispatch(['a', 'b'], applyOps)
+
+		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(true)
+		expect(broker.receive(jobIds.get('b')!, { status: 'accepted' })).toBe(false)
+
+		const applied = { status: 'applied', pageId: 'page:a', pageName: 'One', result: {} } as const
+		broker.receive(jobIds.get('a')!, applied)
+		await expect(result).resolves.toEqual(applied)
+	})
+
+	it('lets every tab work on a read', () => {
+		const { broker, jobIds } = dispatch(['a', 'b'])
+		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(true)
+		expect(broker.receive(jobIds.get('b')!, { status: 'accepted' })).toBe(true)
+	})
+
+	// A frozen tab keeps its socket and runs the job when it thaws, long after the agent moved on.
+	it('refuses a tab that claims a write after the job ended', async () => {
+		const { broker, jobIds, result } = dispatch(['a'], applyOps)
+
+		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
+		await result
+
+		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(false)
+	})
+
+	it('gives a write longer to finish than a read', async () => {
+		const { broker, jobIds, result } = dispatch(['a'], applyOps)
+		broker.receive(jobIds.get('a')!, { status: 'accepted' })
+
+		await vi.advanceTimersByTimeAsync(
+			TAB_RENDER_ACK_TIMEOUT_MS + TAB_RENDER_WORK_TIMEOUT_MS.apply_ops
+		)
+
+		await expect(result).resolves.toEqual({ status: 'work_timeout' })
 	})
 })
