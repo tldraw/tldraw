@@ -1,5 +1,6 @@
-import { MigrationSequence, Store } from '@tldraw/store'
+import { MigrationSequence, PermissionChain, PermissionDenial, Store } from '@tldraw/store'
 import {
+	TLRecord,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -109,6 +110,17 @@ export type TldrawEditorStoreProps = TldrawEditorWithStoreProps | TldrawEditorWi
 
 /** @public */
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
+
+/**
+ * The `permissions` prop of {@link TldrawEditor}.
+ *
+ * @public
+ */
+export interface TLEditorPermissions<Actor = any> {
+	readonly chain: PermissionChain<TLRecord, Actor>
+	readonly actor: Actor
+	onDenied?(denials: readonly PermissionDenial<TLRecord>[]): void
+}
 
 /**
  * Base props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
@@ -249,6 +261,19 @@ export interface TldrawEditorBaseProps {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Check the user's document writes with a permission chain before they are applied (and
+	 * before a sync client sends them). The editor runs the chain once per editor operation, as one
+	 * write batch, and puts back what it denies. Use the same chain as the server, with an actor of
+	 * the same shape, so that the client and the server agree. See `Store.setPermissions`.
+	 *
+	 * @example
+	 * ```tsx
+	 * <Tldraw permissions={{ chain, actor: { userId, role: 'student' }, onDenied: (d) => toast(d[0].reason) }} />
+	 * ```
+	 */
+	permissions?: TLEditorPermissions
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -529,6 +554,7 @@ function TldrawEditorWithReadyStore({
 	themes,
 	initialTheme,
 	i18n,
+	permissions,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -667,6 +693,13 @@ function TldrawEditorWithReadyStore({
 			return editor.registerDeepLinkListener(deepLinks)
 		}
 	}, [editor, deepLinks])
+
+	useLayoutEffect(() => {
+		if (!editor || !permissions) return
+		const { chain, actor, onDenied } = permissions
+		editor.store.setPermissions({ chain, getActor: () => actor, onDenied })
+		return () => editor.store.setPermissions(null)
+	}, [editor, permissions])
 
 	// keep the editor up to date with the latest camera options
 	// options.cameraOptions takes precedence over the deprecated cameraOptions prop

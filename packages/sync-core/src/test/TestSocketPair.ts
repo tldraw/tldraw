@@ -102,6 +102,9 @@ export class TestSocketPair<R extends UnknownRecord> {
 		return this.clientSocket.connectionStatus === 'online'
 	}
 
+	/** What the server is told about this session on each connect. */
+	connectOpts?: { isReadonly?: boolean; objectAccess?: 'read' | 'write'; meta?: any }
+
 	connect() {
 		this.server.connect(this)
 	}

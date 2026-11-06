@@ -1,0 +1,459 @@
+import { computed } from '@tldraw/state'
+import {
+	BaseRecord,
+	PermissionChain,
+	PermissionDenial,
+	PermissionMiddleware,
+	RecordId,
+	allow,
+} from '@tldraw/store'
+import {
+	TLComment,
+	TLCommentThread,
+	TLPageId,
+	TLRecord,
+	TLShapeId,
+	createComment,
+	createCommentThread,
+	createTLSchema,
+	toRichText,
+} from '@tldraw/tlschema'
+import {
+	Editor,
+	PageRecordType,
+	TLStore,
+	createShapeId,
+	createTLStore,
+	defaultBindingUtils,
+	defaultShapeUtils,
+	defaultTools,
+} from 'tldraw'
+import { afterEach, describe, expect, it } from 'vitest'
+import { TLSyncClient } from '../lib/TLSyncClient'
+import {
+	ClassroomActor,
+	ClassroomMeta,
+	MAX_AGENT_WRITES_PER_BATCH,
+	classroomActor,
+	classroomPermissions,
+} from './classroomPermissions'
+import { TestServer } from './TestServer'
+import { TestSocketPair } from './TestSocketPair'
+
+// Backtests of the permission use cases, from end to end: a real room, and real editors whose
+// stores run the same chain as the room (see classroomPermissions.ts).
+
+const schema = createTLSchema()
+const disposables: (() => void)[] = []
+afterEach(() => {
+	while (disposables.length) disposables.pop()!()
+})
+
+class Peer {
+	store: TLStore
+	pair: TestSocketPair<TLRecord>
+	client: TLSyncClient<TLRecord>
+	editor!: Editor
+	denied: PermissionDenial<TLRecord>[] = []
+
+	constructor(
+		readonly server: TestServer<TLRecord>,
+		public meta: ClassroomMeta,
+		chain: PermissionChain<TLRecord, ClassroomActor>
+	) {
+		this.store = createTLStore({ schema, id: meta.userId })
+		this.store.setPermissions({
+			chain,
+			getActor: () => classroomActor(this.meta),
+			onDenied: (d) => this.denied.push(...d),
+		})
+		this.pair = new TestSocketPair(meta.userId, server)
+		this.pair.connectOpts = {
+			meta,
+			isReadonly: meta.role === 'viewer',
+			objectAccess: meta.role === 'viewer' ? 'read' : 'write',
+		}
+		this.client = new TLSyncClient<TLRecord>({
+			store: this.store,
+			socket: this.pair.clientSocket,
+			onSyncError: (reason) => {
+				throw new Error('sync error: ' + reason)
+			},
+			onLoad: () => {
+				this.editor = new Editor({
+					shapeUtils: defaultShapeUtils,
+					bindingUtils: defaultBindingUtils,
+					tools: defaultTools,
+					store: this.store,
+					getContainer: () => document.createElement('div'),
+				})
+			},
+			presence: computed('presence', () => null),
+		})
+		disposables.push(() => {
+			this.editor?.dispose()
+			this.client.close()
+		})
+		this.pair.connect()
+	}
+
+	shape(id: TLShapeId) {
+		return this.store.get(id)
+	}
+}
+
+function classroom({ atomicPushes = true } = {}) {
+	const chain = classroomPermissions({ atomicPushes })
+	const server = new TestServer<TLRecord>(schema, undefined, { permissions: chain })
+	const peers: Peer[] = []
+	const flush = () => {
+		for (let i = 0; i < 50; i++) {
+			server.flushDebouncingMessages()
+			if (!peers.some((p) => p.pair.getNeedsFlushing())) return
+			for (const p of peers) {
+				p.pair.flushClientSentEvents()
+				p.pair.flushServerSentEvents()
+			}
+		}
+		throw new Error('did not settle')
+	}
+	const join = (meta: ClassroomMeta) => {
+		const peer = new Peer(server, meta, chain)
+		peers.push(peer)
+		flush()
+		return peer
+	}
+	const stored = (id: string) =>
+		server.storage.getSnapshot().documents.find((d) => d.state.id === id)?.state as
+			| TLRecord
+			| undefined
+
+	// The teacher sets up the room: a public page with shapes, and a private page.
+	const teacher = join({ userId: 'teacher', role: 'teacher' })
+	const page1 = teacher.editor.getCurrentPageId()
+	const page2 = PageRecordType.createId('private')
+	const teacherBox = createShapeId('teacher-box')
+	const secretBox = createShapeId('secret-box')
+	teacher.editor.createShape({ id: teacherBox, type: 'geo', x: 0, y: 0 })
+	teacher.editor.createPage({ id: page2, name: 'Answers', meta: { private: true } })
+	teacher.editor.createShape({ id: secretBox, type: 'geo', parentId: page2, x: 0, y: 0 })
+	flush()
+
+	return { server, chain, flush, join, stored, teacher, page1, page2, teacherBox, secretBox }
+}
+
+describe('shape write control: students edit only their own shapes', () => {
+	it('stamps the owner of a new shape, on the client and on the server', () => {
+		const { join, flush, stored } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const box = createShapeId('alice-box')
+		alice.editor.createShape({ id: box, type: 'geo', x: 10, y: 10, meta: { ownerId: 'mallory' } })
+		expect(alice.shape(box)!.meta.ownerId).toBe('alice')
+		flush()
+		expect(stored(box)!.meta).toEqual({ ownerId: 'alice' })
+		expect(alice.denied).toEqual([])
+	})
+
+	it("stops a move of the teacher's shape on the client, so nothing is sent", () => {
+		const { join, teacherBox, flush, stored } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		alice.editor.updateShape({ id: teacherBox, type: 'geo', x: 500 })
+		expect(alice.shape(teacherBox)!.x).toBe(0)
+		expect(alice.pair.clientSentEventQueue.filter((m) => m.type === 'push')).toEqual([])
+		expect(alice.denied.map((d) => d.reason)).toEqual(['not your shape'])
+		flush()
+		expect((stored(teacherBox) as any).x).toBe(0)
+	})
+
+	it('the server denies the same write from a client without the check, and corrects it', () => {
+		const { join, teacherBox, flush, stored } = classroom()
+		const mallory = join({ userId: 'mallory', role: 'student' })
+		mallory.store.setPermissions(null)
+		mallory.editor.updateShape({ id: teacherBox, type: 'geo', x: 500 })
+		expect((mallory.shape(teacherBox) as any).x).toBe(500)
+		flush()
+		expect((stored(teacherBox) as any).x).toBe(0)
+		expect((mallory.shape(teacherBox) as any).x).toBe(0)
+	})
+
+	it("denies a shape put into someone else's frame", () => {
+		const { join, flush, stored } = classroom()
+		const bob = join({ userId: 'bob', role: 'student' })
+		const frame = createShapeId('bob-frame')
+		bob.editor.createShape({ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } })
+		flush()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const box = createShapeId('alice-box')
+		alice.editor.createShape({ id: box, type: 'geo', parentId: frame, x: 10, y: 10 })
+		expect(alice.shape(box)).toBeUndefined()
+		expect(alice.denied.map((d) => d.reason)).toEqual(['not your frame'])
+		flush()
+		expect(stored(box)).toBeUndefined()
+	})
+})
+
+describe('a push is all or nothing with atomic()', () => {
+	function mixedPush(atomicPushes: boolean) {
+		const { join, teacherBox, flush, stored } = classroom({ atomicPushes })
+		const mallory = join({ userId: 'mallory', role: 'student' })
+		const own = createShapeId('own')
+		mallory.editor.createShape({ id: own, type: 'geo', x: 0, y: 0 })
+		flush()
+		// one operation that changes an own shape and the teacher's shape
+		mallory.store.setPermissions(null)
+		mallory.editor.updateShapes([
+			{ id: own, type: 'geo', x: 300 },
+			{ id: teacherBox, type: 'geo', x: 300 },
+		])
+		flush()
+		return { own: stored(own) as any, teacher: stored(teacherBox) as any }
+	}
+
+	it('with atomic(), the server rejects the whole push', () => {
+		const { own, teacher } = mixedPush(true)
+		expect([own.x, teacher.x]).toEqual([0, 0])
+	})
+
+	it('without it, the server applies the push in part', () => {
+		const { own, teacher } = mixedPush(false)
+		expect([own.x, teacher.x]).toEqual([300, 0])
+	})
+})
+
+describe('page read control', () => {
+	it('a student never receives a private page or its shapes', () => {
+		const { join, page2, secretBox } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		expect(alice.store.get(page2)).toBeUndefined()
+		expect(alice.store.get(secretBox)).toBeUndefined()
+		expect(alice.editor.getPages().map((p) => p.name)).toEqual(['Page 1'])
+	})
+
+	it('a student cannot write into a private page, even when the client knows its id', () => {
+		const { join, page2, flush, stored } = classroom()
+		const mallory = join({ userId: 'mallory', role: 'student' })
+		mallory.store.setPermissions(null)
+		const box = createShapeId('sneaky')
+		mallory.store.put([
+			{
+				...(mallory.editor.getShape(createShapeId('teacher-box')) as any),
+				id: box,
+				parentId: page2,
+			},
+		])
+		flush()
+		expect(stored(box)).toBeUndefined()
+	})
+
+	it('when a page turns private, the page goes, but its shapes stay until a refresh', () => {
+		const { join, teacher, page1, teacherBox, flush, server } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		teacher.editor.updatePage({ id: page1, meta: { private: true } })
+		flush()
+		expect(alice.store.get(page1)).toBeUndefined()
+		// The read chain ran on the page only. The shape did not change, so it was not re-checked.
+		expect(alice.store.get(teacherBox)).toBeDefined()
+		server.room.refreshReads()
+		flush()
+		expect(alice.store.get(teacherBox)).toBeUndefined()
+	})
+
+	it('a role change takes effect on writes and reads at once', () => {
+		const { join, server, page2, secretBox, flush } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		alice.meta = { userId: 'alice', role: 'teacher' }
+		server.room.updateSessionMeta('alice', alice.meta)
+		flush()
+		expect(alice.store.get(page2)).toBeDefined()
+		expect(alice.store.get(secretBox)).toBeDefined()
+	})
+})
+
+describe('page and file write control', () => {
+	it('a locked page is read only for students', () => {
+		const { join, teacher, page1, flush, stored } = classroom()
+		teacher.editor.updatePage({ id: page1, meta: { locked: true } })
+		flush()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const box = createShapeId('late')
+		alice.editor.createShape({ id: box, type: 'geo', x: 0, y: 0 })
+		expect(alice.denied.map((d) => d.reason)).toEqual(['page is locked'])
+		flush()
+		expect(stored(box)).toBeUndefined()
+	})
+
+	it('students cannot rename pages', () => {
+		const { join, page1 } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		alice.editor.renamePage(page1, 'Mine')
+		expect(alice.store.get(page1)!.name).toBe('Page 1')
+		expect(alice.denied.map((d) => d.reason)).toEqual(['only teachers change pages'])
+	})
+
+	it('a viewer writes nothing, and the room lane enforces it before the chain', () => {
+		const { join, teacherBox, flush, stored } = classroom()
+		const viewer = join({ userId: 'v', role: 'viewer' })
+		viewer.editor.updateShape({ id: teacherBox, type: 'geo', x: 99 })
+		expect(viewer.denied.map((d) => d.reason)).toEqual(['read only'])
+		viewer.store.setPermissions(null)
+		viewer.editor.updateShape({ id: teacherBox, type: 'geo', x: 99 })
+		flush()
+		expect((stored(teacherBox) as any).x).toBe(0)
+	})
+})
+
+describe('agents', () => {
+	function agentRoom() {
+		const room = classroom()
+		const frame = createShapeId('agent-frame')
+		room.teacher.editor.createShape({
+			id: frame,
+			type: 'frame',
+			x: 0,
+			y: 0,
+			props: { w: 900, h: 900 },
+		})
+		room.flush()
+		const agent = room.join({ userId: 'agent', role: 'agent', frameId: frame })
+		return { ...room, frame, agent }
+	}
+
+	it('an agent works inside its frame, and owns what it makes there', () => {
+		const { agent, frame, flush, stored } = agentRoom()
+		const box = createShapeId('agent-box')
+		agent.editor.createShape({ id: box, type: 'geo', parentId: frame, x: 10, y: 10 })
+		flush()
+		expect(stored(box)!.meta).toEqual({ ownerId: 'agent' })
+	})
+
+	it('an agent cannot write outside its frame', () => {
+		const { agent } = agentRoom()
+		agent.editor.createShape({ id: createShapeId('loose'), type: 'geo', x: 2000, y: 0 })
+		expect(agent.denied.map((d) => d.reason)).toEqual(['outside your frame'])
+	})
+
+	it('an agent batch over the limit is denied as a whole', () => {
+		const { agent, frame } = agentRoom()
+		agent.editor.createShapes(
+			Array.from({ length: MAX_AGENT_WRITES_PER_BATCH + 1 }, (_, i) => ({
+				id: createShapeId('many-' + i),
+				type: 'geo',
+				parentId: frame,
+				x: i,
+				y: 0,
+			}))
+		)
+		expect(agent.editor.getSortedChildIdsForParent(frame)).toEqual([])
+		expect(new Set(agent.denied.map((d) => d.reason))).toEqual(new Set(['too many writes']))
+	})
+})
+
+describe('actions', () => {
+	it('answers named actions for the UI and for server endpoints', () => {
+		const chain = classroomPermissions()
+		const can = (role: ClassroomMeta['role'], action: string) =>
+			chain.can({ actor: classroomActor({ userId: 'u', role }), action })
+		expect(can('teacher', 'page.lock')).toBe(true)
+		expect(can('student', 'page.lock')).toBe(false)
+		expect(can('student', 'file.share')).toBe(false)
+		expect(can('student', 'export')).toBe(true)
+	})
+})
+
+describe('comments: add your own, a teacher manages any', () => {
+	type CommentRecord = TLComment | TLCommentThread
+	const commentRules: PermissionMiddleware<CommentRecord, ClassroomActor> = allow(
+		(access, { actor }) => {
+			if (access.type === 'read' || access.type === 'action') return
+			const record = access.type === 'delete' ? access.prev : access.next
+			const owner = (r: CommentRecord) => (r.typeName === 'comment' ? r.authorId : r.createdBy)
+			if (access.type === 'create')
+				return owner(access.next) === actor.meta.userId || 'post as yourself'
+			if (actor.meta.role === 'teacher') return
+			return owner(access.prev) === actor.meta.userId || `not your ${record.typeName}`
+		}
+	)
+	const chain = new PermissionChain<CommentRecord, ClassroomActor>(commentRules)
+	const thread = createCommentThread({
+		pageId: 'page:p' as TLPageId,
+		anchor: { type: 'page' },
+		createdBy: 'alice',
+	})
+	const comment = createComment({
+		threadId: thread.id,
+		pageId: thread.pageId,
+		authorId: 'alice',
+		body: toRichText('hi'),
+	})
+	const write = (role: ClassroomMeta['role'], userId: string, access: any) =>
+		chain
+			.run({
+				kind: 'write',
+				actor: classroomActor({ userId, role }),
+				items: [access],
+				get: () => undefined,
+			})
+			.denied.map((d) => d.reason)
+
+	it('anyone posts as themselves only', () => {
+		expect(write('student', 'alice', { type: 'create', prev: null, next: comment })).toEqual([])
+		expect(write('student', 'bob', { type: 'create', prev: null, next: comment })).toEqual([
+			'post as yourself',
+		])
+	})
+
+	it('a student edits only their own comment, a teacher manages any', () => {
+		const edit = { type: 'update', prev: comment, next: { ...comment, isDeleted: true } }
+		expect(write('student', 'bob', edit)).toEqual(['not your comment'])
+		expect(write('student', 'alice', edit)).toEqual([])
+		expect(write('teacher', 'carol', edit)).toEqual([])
+	})
+})
+
+describe('plugin record types', () => {
+	// A plugin adds a record type and its own layer: one vote per user per page, and the
+	// server sets who voted. Both checks see the whole batch, so two votes in one push are caught.
+	interface Vote extends BaseRecord<'vote', RecordId<Vote>> {
+		pageId: string
+		userId: string
+	}
+	type Rec = TLRecord | Vote
+	const oneVoteEach: PermissionMiddleware<Rec, ClassroomActor> = (batch, next) => {
+		if (batch.kind !== 'write') return next()
+		const seen = new Set<string>()
+		const items = batch.items.flatMap((access) => {
+			if (access.type !== 'create' || access.next.typeName !== 'vote') return [access]
+			const vote = { ...(access.next as Vote), userId: batch.actor.meta.userId }
+			const key = vote.pageId + '/' + vote.userId
+			if (seen.has(key)) return []
+			seen.add(key)
+			return [{ ...access, next: vote }]
+		})
+		return next(items)
+	}
+	const chain = new PermissionChain<Rec, ClassroomActor>(oneVoteEach)
+	const vote = (id: string): Vote => ({
+		id: id as Vote['id'],
+		typeName: 'vote',
+		pageId: 'page:p',
+		userId: 'claimed',
+	})
+
+	it('stamps the voter, and denies a second vote in the same batch', () => {
+		const result = chain.run({
+			kind: 'write',
+			actor: classroomActor({ userId: 'alice', role: 'student' }),
+			items: [
+				{ type: 'create', prev: null, next: vote('vote:1') },
+				{ type: 'create', prev: null, next: vote('vote:2') },
+			],
+			get: () => undefined,
+		})
+		expect(result.allowed.map((a: any) => [a.next.id, a.next.userId])).toEqual([
+			['vote:1', 'alice'],
+		])
+		expect(result.denied.map((d) => [(d.access as any).next.id, d.reason])).toEqual([
+			['vote:2', 'denied'],
+		])
+	})
+})

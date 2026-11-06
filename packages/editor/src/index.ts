@@ -455,6 +455,7 @@ export {
 	LoadingScreen,
 	type LoadingScreenProps,
 	TldrawEditor,
+	type TLEditorPermissions,
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 	type TldrawEditorStoreProps,
