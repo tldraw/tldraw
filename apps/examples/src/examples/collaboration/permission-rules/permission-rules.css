@@ -1,0 +1,159 @@
+.pr-root {
+	position: fixed;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	font-family: system-ui, sans-serif;
+	font-size: 13px;
+	background: #f4f4f5;
+}
+.pr-header {
+	padding: 8px 12px;
+	border-bottom: 1px solid #ddd;
+	background: white;
+}
+.pr-tabs {
+	display: flex;
+	gap: 4px;
+	flex-wrap: wrap;
+}
+.pr-tab {
+	border: 1px solid #ccc;
+	background: white;
+	border-radius: 6px;
+	padding: 4px 10px;
+	cursor: pointer;
+}
+.pr-tab--active {
+	background: #2563eb;
+	border-color: #2563eb;
+	color: white;
+}
+.pr-try {
+	margin: 6px 0 0;
+	color: #444;
+}
+.pr-body {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+}
+.pr-panes {
+	flex: 1;
+	display: flex;
+	gap: 6px;
+	padding: 6px;
+	min-width: 0;
+}
+.pr-pane {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	background: white;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	overflow: hidden;
+}
+.pr-pane-header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px;
+	border-bottom: 1px solid #eee;
+	flex-wrap: wrap;
+}
+.pr-user {
+	font-size: 11px;
+	color: #666;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	max-width: 100%;
+}
+.pr-badge {
+	background: #fef3c7;
+	color: #92400e;
+	border-radius: 4px;
+	padding: 1px 6px;
+	font-size: 11px;
+}
+.pr-action {
+	border: 1px solid #2563eb;
+	color: #2563eb;
+	background: white;
+	border-radius: 4px;
+	padding: 2px 8px;
+	cursor: pointer;
+}
+.pr-canvas {
+	flex: 1;
+	position: relative;
+	min-height: 0;
+}
+.pr-denial {
+	min-height: 42px;
+	padding: 6px 8px;
+	background: #fee2e2;
+	color: #7f1d1d;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	font-size: 12px;
+}
+.pr-denial--empty {
+	background: transparent;
+}
+.pr-rules {
+	width: 360px;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	border-left: 1px solid #ddd;
+	background: white;
+	overflow: auto;
+}
+.pr-rules h3 {
+	margin: 4px 0 0;
+	font-size: 13px;
+}
+.pr-rules textarea {
+	flex: 1;
+	min-height: 260px;
+	font-family: ui-monospace, monospace;
+	font-size: 11px;
+}
+.pr-rules-actions {
+	display: flex;
+	gap: 6px;
+	align-items: center;
+}
+.pr-error {
+	color: #b91c1c;
+	font-size: 11px;
+}
+.pr-analysis {
+	border-collapse: collapse;
+	font-size: 11px;
+}
+.pr-analysis th,
+.pr-analysis td {
+	border: 1px solid #eee;
+	padding: 2px 4px;
+	text-align: left;
+}
+.pr-d--allow {
+	color: #166534;
+}
+.pr-d--deny {
+	color: #b91c1c;
+}
+.pr-d--maybe {
+	color: #92400e;
+}
+.pr-note {
+	color: #666;
+	font-size: 11px;
+	margin: 0;
+}
