@@ -1133,3 +1133,35 @@ describe('Zero-length arrows', () => {
 		expect(shapesAtPoint.some((s) => s.id === geoId)).toBe(true)
 	})
 })
+
+describe('Grid mode when dragging a terminal handle', () => {
+	it('suspends the grid while the accel key is held', () => {
+		const id = createShapeId('grid-arrow')
+		editor.updateInstanceState({ isGridMode: true })
+		editor.createShapes([
+			{
+				id,
+				type: 'arrow',
+				x: 500,
+				y: 500,
+				props: {
+					start: { x: 0, y: 0 },
+					end: { x: 100, y: 100 },
+				},
+			},
+		])
+
+		editor.select(id)
+		editor.pointerDown(600, 600, {
+			target: 'handle',
+			shape: arrow(id),
+			handle: editor.getShapeHandles(id)!.find((h) => h.id === 'end')!,
+		})
+
+		editor.pointerMove(633, 627)
+		expect(arrow(id).props.end).toMatchObject({ x: 130, y: 130 })
+
+		editor.pointerMove(633, 627, undefined, { ctrlKey: true })
+		expect(arrow(id).props.end).toMatchObject({ x: 133, y: 127 })
+	})
+})
