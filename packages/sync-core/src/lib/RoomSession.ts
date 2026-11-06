@@ -1,3 +1,4 @@
+import type { TLRuleUser } from '@tldraw/rules'
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { TLObjectStoreAccess, TLSocketServerSentDataEvent } from './protocol'
 import { TLRoomSocket } from './TLSyncRoom'
@@ -85,6 +86,13 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
 	 */
 	objectAccess: TLObjectStoreAccess
+	/** What the room's rules know about this session's user. Null outside a rules room. */
+	user: TLRuleUser | null
+	/**
+	 * Ids of the records this session's client holds, when its read rules can deny anything. Null
+	 * when the session reads everything, so the room skips all per-record read work for it.
+	 */
+	visible: Set<string> | null
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */

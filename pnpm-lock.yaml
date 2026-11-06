@@ -1895,6 +1895,9 @@ importers:
 
   packages/sync-core:
     dependencies:
+      '@tldraw/rules':
+        specifier: workspace:*
+        version: link:../rules
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state

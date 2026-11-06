@@ -1,8 +1,15 @@
 import { describe, expect, it } from 'vitest'
 import { composeRules } from '../lib/compose'
 import { parseRule } from '../lib/parse'
-import { TLRuleRecord, TLRulesCompileError, TLRulesDefinition, compileRules } from '../lib/rules'
+import {
+	TLRuleRecord as BaseRecord,
+	TLRulesCompileError,
+	TLRulesDefinition,
+	compileRules,
+} from '../lib/rules'
 import { pollPluginRules, useCaseRules } from '../lib/use-cases'
+
+type TLRuleRecord = BaseRecord & Record<string, any>
 
 const base = (def: Partial<TLRulesDefinition>): TLRulesDefinition => ({
 	version: 1,

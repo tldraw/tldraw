@@ -31,6 +31,7 @@ import {
 	TLSocketServerSentEvent,
 	getTlsyncProtocolVersion,
 } from './protocol'
+import type { TLRoomAccess } from './RoomRules'
 
 /**
  * Function type for subscribing to events with a callback.
@@ -461,6 +462,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	/** Called with the room's rules and this session's user facts: at connect, and on each change. */
+	private readonly onAccessChange?: (access: TLRoomAccess | null) => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -497,6 +501,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
+		onAccessChange?(access: TLRoomAccess | null): void
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
@@ -561,6 +566,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
+		this.onAccessChange = config.onAccessChange
 		this.onCustomMessageReceived = config.onCustomMessageReceived
 
 		let didLoad = false
@@ -813,6 +819,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
+			this.onAccessChange?.(event.access ?? null)
 			this.onAfterConnect?.(this, {
 				isReadonly: event.isReadonly,
 				objectAccess: event.objectAccess ?? 'write',
@@ -859,6 +866,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				break
 			case 'custom':
 				this.onCustomMessageReceived?.call(null, event.data)
+				break
+			case 'access':
+				this.onAccessChange?.(event.access)
 				break
 
 			default:

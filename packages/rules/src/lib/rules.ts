@@ -144,7 +144,6 @@ export interface TLReadDependencies {
 export interface TLRuleRecord {
 	id: string
 	typeName: string
-	[key: string]: unknown
 }
 
 /** @public */

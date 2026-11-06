@@ -68,6 +68,7 @@
 		"vitest": "^5.0.0"
 	},
 	"dependencies": {
+		"@tldraw/rules": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

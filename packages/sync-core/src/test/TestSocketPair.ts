@@ -102,8 +102,11 @@ export class TestSocketPair<R extends UnknownRecord> {
 		return this.clientSocket.connectionStatus === 'online'
 	}
 
+	/** Passed to the server on every (re)connect: `isReadonly`, `objectAccess`, or rules `user`. */
+	connectOpts: Parameters<TestServer<R>['connect']>[1] = undefined
+
 	connect() {
-		this.server.connect(this)
+		this.server.connect(this, this.connectOpts)
 	}
 
 	disconnect(code?: number, reason?: string) {

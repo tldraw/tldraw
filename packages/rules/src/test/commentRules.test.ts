@@ -63,9 +63,9 @@ function rulesAuthorizers(...fragments: TLRulesFragment[]) {
 			return result.ok ? result.record : null
 		}
 	return {
-		comment: make<TLComment & TLRuleRecord>('comment'),
-		'comment-thread': make<TLCommentThread & TLRuleRecord>('comment-thread'),
-		'comment-reaction': make<TLCommentReaction & TLRuleRecord>('comment-reaction'),
+		comment: make<TLComment>('comment'),
+		'comment-thread': make<TLCommentThread>('comment-thread'),
+		'comment-reaction': make<TLCommentReaction>('comment-reaction'),
 	}
 }
 

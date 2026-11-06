@@ -20,6 +20,8 @@ import { ThrottledFunction } from '@tldraw/utils';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRulesDefinition } from '@tldraw/rules';
+import { TLRuleUser } from '@tldraw/rules';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -280,6 +282,8 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     sessionId: string;
     socket: TLRoomSocket<R>;
     supportsStringAppend: boolean;
+    user: null | TLRuleUser;
+    visible: null | Set<string>;
 }
 
 // @internal
@@ -328,6 +332,7 @@ export interface SessionStateSnapshot {
     serializedSchema: SerializedSchema;
     // (undocumented)
     supportsStringAppend: boolean;
+    user?: TLRuleUser;
 }
 
 // @public
@@ -483,6 +488,14 @@ export class TLRemoteSyncError extends Error {
     readonly reason: string | TLSyncErrorCloseEventReason;
 }
 
+// @public
+export interface TLRoomAccess {
+    // (undocumented)
+    rules: TLRulesDefinition;
+    // (undocumented)
+    user: TLRuleUser;
+}
+
 // @internal
 export interface TLRoomSocket<R extends UnknownRecord> {
     close(code?: number, reason?: string): void;
@@ -516,6 +529,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
+        user?: TLRuleUser;
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
         sessionId: string;
@@ -541,6 +555,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
+    updateRules(rules: TLRulesDefinition): void;
+    updateSessionUser(sessionId: string, user: TLRuleUser): void;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
 }
@@ -584,6 +600,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
     }) => void;
     onSessionSnapshot?: (sessionId: string, snapshot: SessionStateSnapshot) => void;
+    rules?: TLRulesDefinition;
     // (undocumented)
     schema?: StoreSchema<R, any>;
     // (undocumented)
@@ -606,6 +623,7 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
 
 // @internal
 export type TLSocketServerSentEvent<R extends UnknownRecord> = {
+    access?: TLRoomAccess;
     objectAccess?: TLObjectStoreAccess;
     connectRequestId: string;
     diff: NetworkDiff<R>;
@@ -615,6 +633,9 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> = {
     schema: SerializedSchema;
     serverClock: number;
     type: 'connect';
+} | {
+    type: 'access';
+    access: TLRoomAccess;
 } | {
     data: any;
     type: 'custom';
@@ -652,6 +673,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
         didCancel?(): boolean;
+        onAccessChange?(access: null | TLRoomAccess): void;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
             objectAccess: TLObjectStoreAccess;
@@ -716,6 +738,7 @@ export interface TLSyncLog {
 // @internal
 export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     constructor(opts: {
+        rules?: TLRulesDefinition;
         onCommittedChanges?(args: {
             diff: TLSyncForwardDiff<R>;
             documentClock: number;
@@ -742,6 +765,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     getCanEmitStringAppend(): boolean;
+    getSessionAccess(session: {
+        user: null | TLRuleUser;
+    }): TLRoomAccess;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
@@ -750,6 +776,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         objectAccess?: TLObjectStoreAccess;
         sessionId: string;
         socket: TLRoomSocket<R>;
+        user?: TLRuleUser;
     }): this;
     handleResumedSession(opts: {
         isReadonly: boolean;
@@ -762,6 +789,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
         socket: TLRoomSocket<R>;
         supportsStringAppend: boolean;
+        user?: TLRuleUser;
     }): void;
     // (undocumented)
     readonly internalTxnId = "TLSyncRoom.txn";
@@ -781,6 +809,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
+    updateRules(rules: TLRulesDefinition): void;
+    updateSessionUser(sessionId: string, user: TLRuleUser): void;
 }
 
 // @public

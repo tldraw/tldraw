@@ -1,5 +1,6 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
+import type { TLRoomAccess } from './RoomRules'
 
 const TLSYNC_PROTOCOL_VERSION = 8
 
@@ -125,6 +126,16 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			 * older clients ignore it — no protocol version bump needed.
 			 */
 			objectAccess?: TLObjectStoreAccess
+			/**
+			 * Present in a rules room: the rule set and this session's user facts. The client
+			 * compiles the same rules and checks writes before it sends them.
+			 */
+			access?: TLRoomAccess
+	  }
+	| {
+			/** The session's rules or user facts changed. Sent live, with no reconnect. */
+			type: 'access'
+			access: TLRoomAccess
 	  }
 	| {
 			type: 'incompatibility_error'

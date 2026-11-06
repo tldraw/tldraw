@@ -1,3 +1,4 @@
+import type { TLRuleUser, TLRulesDefinition } from '@tldraw/rules'
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
 import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
@@ -81,6 +82,8 @@ export interface SessionStateSnapshot {
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
 	supportsStringAppend: boolean
+	/** The user facts of a session in a rules room. */
+	user?: TLRuleUser
 }
 
 /**
@@ -150,6 +153,15 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
 	 */
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	/**
+	 * Access rules as data, from `@tldraw/rules`. With rules, the room checks each client write
+	 * against them (stamping trusted fields on create), sends each session only the records its
+	 * read rules allow, and sends the rules and the session's `user` to the client so the editor
+	 * checks the same rules before it writes. Pass `user` to {@link TLSocketRoom.handleSocketConnect}
+	 * instead of `isReadonly` and `objectAccess`. Change them live with
+	 * {@link TLSocketRoom.updateSessionUser} and {@link TLSocketRoom.updateRules}.
+	 */
+	rules?: TLRulesDefinition
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -281,6 +293,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			authorizeRecord: opts.authorizeRecord,
+			rules: opts.rules,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -351,9 +364,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			socket: WebSocketMinimal
 			isReadonly?: boolean
 			objectAccess?: TLObjectStoreAccess
+			/** In a rules room: the facts the rules read as `user.*`. */
+			user?: TLRuleUser
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		const { sessionId, socket, isReadonly = false, objectAccess = 'write', user } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)
@@ -375,6 +390,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			sessionId,
 			isReadonly,
 			objectAccess,
+			user,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -629,6 +645,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			// snapshots persisted before this field existed fail closed — those sessions predate
 			// the record types gated by objectAccess, so they have nothing to write anyway
 			objectAccess: snapshot.objectAccess ?? 'read',
+			user: snapshot.user,
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
@@ -689,7 +706,22 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
+			...(session.user ? { user: session.user } : {}),
 		}
+	}
+
+	/**
+	 * Change a connected session's user facts in a rules room, live: the client re-derives what it
+	 * may do, and gains or loses records by its read rules, with no reconnect. For example, a
+	 * teacher calls on a student: `room.updateSessionUser(id, { ...user, role: 'presenter' })`.
+	 */
+	updateSessionUser(sessionId: string, user: TLRuleUser) {
+		this.room.updateSessionUser(sessionId, user)
+	}
+
+	/** Replace a rules room's rules, live, for every session. */
+	updateRules(rules: TLRulesDefinition) {
+		this.room.updateRules(rules)
 	}
 
 	/**
