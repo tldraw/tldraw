@@ -683,6 +683,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	updateSessionAccess(sessionId: string, access: SessionAccess) {
 		this.room.updateSessionAccess(sessionId, access)
+		// save now: a resume after hibernation must not bring back the old grant
+		this.clearSnapshotTimer(sessionId)
+		const snapshot = this.opts.onSessionSnapshot && this.getSessionSnapshot(sessionId)
+		if (snapshot) this.opts.onSessionSnapshot!(sessionId, snapshot)
 	}
 
 	/**

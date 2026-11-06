@@ -46,6 +46,7 @@ export {
 	type AccessSubject,
 	type AccessTypeRule,
 	type AccessView,
+	type IndexedAccessView,
 	type SessionAccess,
 } from './access/AccessModel'
 export {

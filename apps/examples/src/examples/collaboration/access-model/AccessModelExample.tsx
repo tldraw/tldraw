@@ -6,6 +6,7 @@ import {
 	DefaultToolbarContent,
 	Editor,
 	TLComponents,
+	TL_ACCESS_ROOT,
 	ToolbarItem,
 	Tldraw,
 	TldrawUiButton,
@@ -251,6 +252,7 @@ function PaneHeader({
 				readonly: editor.getIsReadonly(),
 				denial: editor.access.getLastDenial(),
 				extra: scenario.inspect?.(editor) ?? null,
+				why: explainShape(editor),
 			}
 		},
 		[editor, scenario]
@@ -269,6 +271,16 @@ function PaneHeader({
 				</div>
 			)}
 			{status?.extra && <div className="access-model__muted">{status.extra}</div>}
+			{status?.why && (
+				<div className="access-model__why">
+					<span className="access-model__muted">{status.why.label}:</span>
+					{status.why.rows.map((row) => (
+						<div key={row.verb} data-allowed={row.allowed}>
+							{row.allowed ? '✓' : '✗'} {row.verb}: {row.text}
+						</div>
+					))}
+				</div>
+			)}
 			{status?.denial && (
 				<div className="access-model__denial">
 					Last write rolled back: {status.denial.verb} on {status.denial.id}. {status.denial.reason}
@@ -276,6 +288,41 @@ function PaneHeader({
 			)}
 		</div>
 	)
+}
+
+// [7]
+function explainShape(editor: Editor) {
+	const id = editor.getOnlySelectedShapeId() ?? editor.getHoveredShapeId()
+	const shape = id && editor.getShape(id)
+	if (!shape) return null
+	const label = `${shape.type} owned by ${(shape.meta.ownerId as string) ?? 'nobody'}`
+	const rows = ['read', 'update', 'delete'].map((verb) => {
+		const d = editor.access.explain(verb, shape)
+		if (!d) return { verb, allowed: true, text: 'no model' }
+		const e = d.entry
+		const who = !e
+			? ''
+			: e.subject.type === 'anyone'
+				? 'anyone'
+				: e.subject.type === 'relation'
+					? `the ${e.subject.relation}`
+					: `${e.subject.type} ${e.subject.id}`
+		const on =
+			e?.resource === d.id
+				? 'this shape'
+				: e?.resource === editor.getCurrentPageId()
+					? 'this page'
+					: e?.resource === TL_ACCESS_ROOT
+						? 'the room'
+						: e?.resource
+		const text = e
+			? `${e.effect} ${e.verbs.join(', ')} for ${who}, on ${on}`
+			: d.at === null && !d.allowed && d.reason.startsWith('no entry')
+				? `${d.reason}: closed by default`
+				: d.reason
+		return { verb, allowed: d.allowed, text }
+	})
+	return { label: `Why, for the ${label}`, rows }
 }
 
 /*
@@ -310,4 +357,8 @@ the last write the guard rolled back.
 [6]
 A commenter's editor is readonly (they may not create shapes), so the toolbar shows only the
 readonly tools. The comment tool is readonly-ok, and shows when the session has the `comment` verb.
+
+[7]
+The "why" lines come from `editor.access.explain(verb, shape)`: the same walk the server runs,
+with the entry that decided. Select or hover a shape to see them.
 */

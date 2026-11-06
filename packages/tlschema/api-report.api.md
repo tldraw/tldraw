@@ -95,6 +95,8 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
     ownerOf(record: R): null | string;
     // (undocumented)
     parentOf(id: string, view: AccessView<R>): null | string | undefined;
+    reader(session: SessionAccess, view: AccessView<R>): (id: string) => boolean;
+    redact(session: SessionAccess, record: R, view: AccessView<R>): R;
     // (undocumented)
     readonly root: string;
     stamp(session: SessionAccess, prev: null | R, next: R): R;
@@ -144,6 +146,7 @@ export interface AccessTypeRule<R extends UnknownRecord = UnknownRecord> {
         set(record: R, ownerId: null | string): R;
     };
     parent(record: R): null | string;
+    redact?(record: R, canRead: (id: string) => boolean): R;
     verbs?: Partial<Record<AccessOp, string>>;
 }
 
@@ -296,11 +299,7 @@ export function createAccessEntry(entry: Omit<TLAccessEntry, 'id' | 'meta' | 'ty
 export function createAccessEntryId(id?: string): TLAccessEntryId;
 
 // @public
-export function createAccessView<R extends UnknownRecord>(model: AccessModel<R>, records: Iterable<R> | Map<string, R>): AccessView<R> & {
-    delete(id: string): void;
-    ids(): Iterable<string>;
-    set(record: R): void;
-};
+export function createAccessView<R extends UnknownRecord>(model: AccessModel<R>, records: Iterable<R> | Map<string, R>): IndexedAccessView<R>;
 
 // @public
 export function createAssetPropsMigrationIds<S extends string, T extends Record<string, number>>(assetType: S, ids: T): {
@@ -732,6 +731,18 @@ export const imageShapeMigrations: TLPropsMigrations;
 
 // @public
 export const imageShapeProps: RecordProps<TLImageShape>;
+
+// @public
+export interface IndexedAccessView<R extends UnknownRecord = UnknownRecord> extends AccessView<R> {
+    childrenOf(id: string): Iterable<string>;
+    // (undocumented)
+    delete(id: string): void;
+    // (undocumented)
+    ids(): Iterable<string>;
+    readersOf(id: string): Iterable<string>;
+    // (undocumented)
+    set(record: R): void;
+}
 
 // @public
 export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageId">;

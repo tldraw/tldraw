@@ -156,6 +156,12 @@ export const defaultAccessTypes: Record<string, AccessTypeRule<any>> = {
 	instance_presence: {
 		parent: (presence: TLInstancePresence) => presence.currentPageId,
 		// presence is never written through the model; the room owns it
+		redact: (presence: TLInstancePresence, canRead) => {
+			const selectedShapeIds = presence.selectedShapeIds.filter(canRead)
+			return selectedShapeIds.length === presence.selectedShapeIds.length
+				? presence
+				: { ...presence, selectedShapeIds }
+		},
 	},
 	'comment-thread': {
 		parent: (thread: TLCommentThread) =>

@@ -186,7 +186,7 @@ it('with no model, nothing changes', () => {
 	expect(plain.access.can('anything')).toBe(true)
 })
 
-describe('known hard case: arrows across owners', () => {
+describe('arrows across owners', () => {
 	it("a student can move their own shape when the teacher's arrow is bound to it", () => {
 		as('bob', ['student'])
 		const mine = createShapeId('mine')
@@ -203,18 +203,39 @@ describe('known hard case: arrows across owners', () => {
 		expect(editor.getShape(mine)!.x).toBe(400)
 		expect(editor.getShape(arrow.id)).toEqual(arrowBefore)
 	})
-	it('limit: a student cannot delete their own shape while the teacher’s arrow is bound to it', () => {
+	it('a student can delete their own shape: the binding goes with it, the arrow stays', () => {
 		as('bob', ['student'])
 		const mine = createShapeId('mine')
 		editor.createShape({ id: mine, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } })
 		as('tess', ['teacher'])
 		editor.setCurrentTool('arrow').pointerDown(50, 50).pointerMove(350, 350).pointerUp()
+		const arrow = editor.getOnlySelectedShape()!
+		const arrowBefore = editor.getShape(arrow.id)
 
 		as('bob', ['student'])
 		editor.deleteShapes([mine])
-		// deleting the shape deletes the binding and rewrites the arrow, which is the teacher's:
-		// the whole operation is rolled back. A host can allow it with an entry for bindings, or
-		// the model could grow a rule that unbinding follows the target's owner.
-		expect(editor.getShape(mine)).toBeDefined()
+		expect(editor.getShape(mine)).toBeUndefined()
+		expect(editor.getBindingsFromShape(arrow, 'arrow')).toHaveLength(1)
+		expect(editor.getShape(arrow.id)).toEqual(arrowBefore)
+	})
+
+	it('a student can move their own shape into a frame under the teacher’s arrow', () => {
+		as('bob', ['student'])
+		const mine = createShapeId('mine')
+		editor.createShape({ id: mine, type: 'geo', x: 300, y: 300, props: { w: 100, h: 100 } })
+		as('tess', ['teacher'])
+		editor.setCurrentTool('arrow').pointerDown(50, 50).pointerMove(350, 350).pointerUp()
+		// a frame bob may edit in
+		editor.store.put([
+			createAccessEntry({
+				resource: frame,
+				subject: { type: 'user', id: 'bob' },
+				effect: 'allow',
+				verbs: ['editor'],
+			}) as any,
+		])
+		as('bob', ['student'])
+		editor.reparentShapes([mine], frame)
+		expect(editor.getShape(mine)!.parentId).toBe(frame)
 	})
 })

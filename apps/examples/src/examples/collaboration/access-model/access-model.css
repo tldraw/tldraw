@@ -105,3 +105,17 @@
 	flex: 1;
 	min-height: 0;
 }
+
+.access-model__why {
+	font-family: var(--tl-font-mono, monospace);
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+.access-model__why [data-allowed='true'] {
+	color: #1f8a55;
+}
+
+.access-model__why [data-allowed='false'] {
+	color: #c0392b;
+}

@@ -363,9 +363,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAccessChange(next) {
-				accessSession.set(next)
-			},
+			onAccessChange: access
+				? (next) => {
+						accessSession.set(next)
+					}
+				: undefined,
 			onAfterConnect(_, { isReadonly, objectAccess, access: sessionAccess }) {
 				// Object-lane (comment) write access is decided per session by the server and can
 				// change on reconnect (e.g. when the file's share tier changes), so surface it on
@@ -455,7 +457,8 @@ export interface UseSyncOptionsBase {
 	/**
 	 * The room's access model: the same object the server's `TLSocketRoom` uses. The editor then
 	 * checks every local write against it and derives readonly and locks from it, with the
-	 * session's access sent by the server. Register `accessSchemaRecords` in `records` too.
+	 * session's access sent by the server. Register `accessSchemaRecords` in `records` too. Create
+	 * it once, outside the component: a new model reconnects the room.
 	 */
 	access?: AccessModel<any>
 	/**

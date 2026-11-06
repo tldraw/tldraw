@@ -1,8 +1,9 @@
-import { computed } from '@tldraw/state'
+import { atom, computed } from '@tldraw/state'
 import { Store } from '@tldraw/store'
 import {
 	AccessEntry,
 	DocumentRecordType,
+	InstancePresenceRecordType,
 	PageRecordType,
 	SessionAccess,
 	TLDOCUMENT_ID,
@@ -13,8 +14,10 @@ import {
 	createTLAccessModel,
 	createTLSchema,
 } from '@tldraw/tlschema'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { RecordOpType, ValueOpType } from '../lib/diff'
 import { getTlsyncProtocolVersion } from '../lib/protocol'
+import { SessionStateSnapshot, TLSocketRoom } from '../lib/TLSocketRoom'
 import { TLSyncClient } from '../lib/TLSyncClient'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
@@ -164,7 +167,7 @@ function flush() {
 	throw new Error('did not settle')
 }
 
-function join(name: string, access: SessionAccess) {
+function join(name: string, access: SessionAccess, presence: TLRecord | null = null) {
 	const pair = new TestSocketPair<TLRecord>(name, server)
 	pair.access = access
 	pair.connect()
@@ -174,7 +177,7 @@ function join(name: string, access: SessionAccess) {
 	const client = new TLSyncClient<TLRecord>({
 		store,
 		socket: pair.clientSocket,
-		presence: computed('presence', () => null),
+		presence: computed('presence', () => presence),
 		onLoad: () => {},
 		onSyncError: (reason) => {
 			throw new Error(`sync error: ${reason}`)
@@ -274,6 +277,57 @@ describe('read: each session gets only what it may read', () => {
 		expect(bob.store.get('shape:secret' as any)).toBeUndefined()
 	})
 
+	it('presence names only the shapes you may read', async () => {
+		makeServer()
+		const tessPresence = atom<TLRecord>(
+			'tess presence',
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId('tess'),
+				userId: 'user:tess' as any,
+				userName: 'Tess',
+				currentPageId: 'page:a' as any,
+				selectedShapeIds: ['shape:card', 'shape:tess'] as any,
+			})
+		)
+		// tess joins with a presence that selects the hidden card
+		{
+			const pair = new TestSocketPair<TLRecord>('tess', server)
+			pair.access = as('tess', ['teacher'], ['team'])
+			pair.connect()
+			const store = new Store<TLRecord, any>({ schema, props: {} })
+			clients.push(
+				new TLSyncClient<TLRecord>({
+					store,
+					socket: pair.clientSocket,
+					presence: computed('presence', () => tessPresence.get()),
+					presenceMode: atom('presence mode', 'full' as const),
+					onLoad: () => {},
+					onSyncError: (reason) => {
+						throw new Error(`sync error: ${reason}`)
+					},
+					onAccessChange: () => {},
+				})
+			)
+			pairs.push(pair)
+			flush()
+		}
+		const bob = join('bob', as('bob', ['viewer']))
+		const ann = join('ann', as('ann', ['viewer']))
+		flush()
+		const presenceIn = (store: Store<TLRecord, any>) =>
+			store.allRecords().find((r) => r.typeName === 'instance_presence') as any
+		// bob may not read the card; ann holds it
+		expect(presenceIn(bob.store).selectedShapeIds).toEqual(['shape:tess'])
+		expect(presenceIn(ann.store).selectedShapeIds).toEqual(['shape:card', 'shape:tess'])
+		// and on later presence updates
+		tessPresence.update((p: any) => ({ ...p, selectedShapeIds: ['shape:card'] }))
+		// presence pushes are frame-throttled
+		await new Promise((resolve) => setTimeout(resolve, 100))
+		flush()
+		expect(presenceIn(ann.store).selectedShapeIds).toEqual(['shape:card'])
+		expect(presenceIn(bob.store).selectedShapeIds).toEqual([])
+	})
+
 	it('a shape moved into a page you cannot read disappears for you', () => {
 		makeServer()
 		const bob = join('bob', as('bob', ['viewer']))
@@ -284,6 +338,38 @@ describe('read: each session gets only what it may read', () => {
 		tess.store.update('shape:tess' as any, (s) => ({ ...s, parentId: 'page:a' as any }))
 		flush()
 		expect(bob.store.get('shape:tess' as any)).toMatchObject({ parentId: 'page:a' })
+	})
+
+	it('a server-side delete of a page takes its shapes too, since nothing above them is readable', async () => {
+		// a second page bob may read, so his store stays usable without page:a
+		makeServer([
+			...seed(),
+			PageRecordType.create({ id: 'page:b' as any, name: 'B', index: 'a3' as any }),
+		])
+		const bob = join('bob', as('bob', ['viewer']))
+		expect(bob.store.get('shape:bob' as any)).toBeDefined()
+		server.storage.transaction((txn) => txn.delete('page:a'))
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		flush()
+		expect(bob.store.get('shape:bob' as any)).toBeUndefined()
+		expect(server.room.sessions.get('bob')!.visible!.has('shape:bob')).toBe(false)
+	})
+
+	it('a change checks only what it can affect: its subtree and the records that alsoRead it', async () => {
+		makeServer()
+		const bob = join('bob', as('bob', ['viewer']))
+		const read = vi.spyOn(model, 'reader')
+		const decide = vi.spyOn(model, 'decide')
+		server.storage.transaction((txn) =>
+			txn.set('shape:bob', { ...(txn.get('shape:bob') as any), x: 3 })
+		)
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		flush()
+		expect(bob.store.get('shape:bob' as any)).toMatchObject({ x: 3 })
+		// shape:bob, then page:a and the root once each: not every record in the room
+		expect(decide.mock.calls.filter(([, verb]) => verb === 'read').length).toBeLessThanOrEqual(3)
+		read.mockRestore()
+		decide.mockRestore()
 	})
 })
 
@@ -390,5 +476,70 @@ describe('protocol', () => {
 		makeServer()
 		const pair = new TestSocketPair<TLRecord>('nobody', server)
 		expect(() => pair.connect()).toThrow(/needs `access`/)
+	})
+})
+
+describe('hibernation', () => {
+	const socket = () =>
+		({
+			send: vi.fn(),
+			close: vi.fn(),
+			readyState: 1,
+			addEventListener: vi.fn(),
+			removeEventListener: vi.fn(),
+		}) as any
+	const snapshots = new Map<string, SessionStateSnapshot>()
+	const makeRoom = () =>
+		new TLSocketRoom<TLRecord>({
+			schema,
+			access: model,
+			initialSnapshot: {
+				documents: seed().map((state) => ({ state, lastChangedClock: 0 })),
+				clock: 0,
+				documentClock: 0,
+				schema: schema.serialize(),
+			},
+			onSessionSnapshot: (id, snapshot) => snapshots.set(id, snapshot),
+		})
+	const connect = (room: TLSocketRoom<TLRecord>, sessionId: string, access: SessionAccess) => {
+		room.handleSocketConnect({ sessionId, socket: socket(), access })
+		room.handleSocketMessage(
+			sessionId,
+			JSON.stringify({
+				type: 'connect',
+				connectRequestId: 'c',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: schema.serialize(),
+			})
+		)
+	}
+
+	it('a snapshot without access (saved before the model) does not resume: the client connects again', () => {
+		const room = makeRoom()
+		connect(room, 'bob', as('bob', ['viewer']))
+		const { access: _, ...old } = room.getSessionSnapshot('bob')!
+		const next = makeRoom()
+		const s = socket()
+		next.handleSocketResume({ sessionId: 'bob', socket: s, snapshot: old })
+		expect(s.close).toHaveBeenCalled()
+		expect(next.getSessions()).toEqual([])
+	})
+
+	it('a changed grant is saved at once, so a resume does not bring back the old one', () => {
+		const room = makeRoom()
+		connect(room, 'bob', as('bob', ['editor']))
+		room.updateSessionAccess('bob', as('bob', ['viewer']))
+		const next = makeRoom()
+		next.handleSocketResume({ sessionId: 'bob', socket: socket(), snapshot: snapshots.get('bob')! })
+		next.handleSocketMessage(
+			'bob',
+			JSON.stringify({
+				type: 'push',
+				clientClock: 1,
+				diff: { 'shape:tess': [RecordOpType.Patch, { x: [ValueOpType.Put, 5] }] },
+			})
+		)
+		expect((next.getRecord('shape:tess') as any).x).toBe(0)
 	})
 })

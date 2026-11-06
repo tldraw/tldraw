@@ -442,6 +442,16 @@ describe('use cases', () => {
 			expect(model.canRead(user('bob', [role(['editor'])]), entry.id, withEntry)).toBe(false)
 			expect(model.canRead(user('tess', [role(['admin'])]), entry.id, withEntry)).toBe(true)
 		})
+
+		it('a relation entry is visible to every reader, so the editor decides like the server', () => {
+			// page:a has no owner, but the entry applies to bob's shapes below it
+			const entry = createAccessEntry({ ...ownerEdits, resource: 'page:a' })
+			const withEntry = createAccessView(model, [...room(), entry])
+			const bob = user('bob', [role(['viewer'])])
+			expect(model.canRead(bob, entry.id, withEntry)).toBe(true)
+			expect(model.can(bob, 'update', 'shape:bob1', withEntry)).toBe(true)
+			expect(model.can(bob, 'update', 'shape:ann1', withEntry)).toBe(false)
+		})
 	})
 
 	it('plugin types and verbs: a custom record type with its own verb', () => {

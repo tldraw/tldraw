@@ -464,7 +464,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	) => void
 
-	/** Called when the server changes this session's access live (rooms with an access model). */
+	/**
+	 * Called when the server changes this session's access live. Pass it for a room with an access
+	 * model: the client then asks for the protocol version with access messages.
+	 */
 	private readonly onAccessChange?: (access: SessionAccess) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
@@ -715,7 +718,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			type: 'connect',
 			connectRequestId: this.latestConnectRequestId,
 			schema: this.store.schema.serialize(),
-			protocolVersion: getTlsyncProtocolVersion(),
+			// 9 only adds access messages: a client without a model asks for 8, so servers that
+			// predate access models still take it
+			protocolVersion: this.onAccessChange
+				? getTlsyncProtocolVersion()
+				: getTlsyncProtocolVersion() - 1,
 			lastServerClock: this.lastServerClock,
 		})
 	}

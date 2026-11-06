@@ -77,6 +77,22 @@ export interface AccessView<R extends UnknownRecord = UnknownRecord> {
 	entriesAt(resource: string): readonly AccessEntry[]
 }
 
+/**
+ * A view the server keeps for the whole room. Its indexes let a change recompute only the records
+ * it can affect: the subtree below it, and the records that `alsoRead` it.
+ *
+ * @public
+ */
+export interface IndexedAccessView<R extends UnknownRecord = UnknownRecord> extends AccessView<R> {
+	set(record: R): void
+	delete(id: string): void
+	ids(): Iterable<string>
+	/** Records whose parent is `id`, including ones left behind when `id` was deleted. */
+	childrenOf(id: string): Iterable<string>
+	/** Records that name `id` in `alsoRead`. */
+	readersOf(id: string): Iterable<string>
+}
+
 /** @public */
 export type AccessOp = 'create' | 'update' | 'delete'
 
@@ -100,6 +116,12 @@ export interface AccessTypeRule<R extends UnknownRecord = UnknownRecord> {
 		get(record: R): string | null | undefined
 		set(record: R, ownerId: string | null): R
 	}
+	/**
+	 * Remove references to records the reader may not read, before the record is sent to them.
+	 * A presence record names the shapes its user has selected; without this, a hidden shape's id
+	 * would reach everyone on the page. Return the record itself when nothing changes.
+	 */
+	redact?(record: R, canRead: (id: string) => boolean): R
 }
 
 /**
@@ -272,10 +294,22 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 		}
 	}
 
+	private hostEntries = new WeakMap<readonly AccessEntry[], Map<string, AccessEntry[]>>()
+
 	private entriesAt(resource: string, session: SessionAccess, view: AccessView<R>) {
 		const inRoom = view.entriesAt(resource)
 		const fromModel = this.staticEntries.get(resource)
-		const fromHost = session.entries?.filter((e) => e.resource === resource)
+		let byResource = session.entries && this.hostEntries.get(session.entries)
+		if (session.entries && !byResource) {
+			byResource = new Map()
+			for (const e of session.entries) {
+				const list = byResource.get(e.resource)
+				if (list) list.push(e)
+				else byResource.set(e.resource, [e])
+			}
+			this.hostEntries.set(session.entries, byResource)
+		}
+		const fromHost = byResource?.get(resource)
 		if (!fromModel && !fromHost?.length) return inRoom
 		return [...inRoom, ...(fromModel ?? []), ...(fromHost ?? [])]
 	}
@@ -334,7 +368,8 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 	/**
 	 * May the session see this record? Needs `read` on the record and every ancestor, and on any
 	 * `alsoRead` records. An in-room entry is visible to its own subject and to managers, never to
-	 * anyone else, so a session always holds the entries it needs to run the model locally.
+	 * anyone else, so a session always holds the entries it needs to run the model locally. A
+	 * relation entry is visible to everyone who may read its resource.
 	 */
 	explainRead(session: SessionAccess, id: string, view: AccessView<R>): AccessDecision {
 		if (session.limit && !this.expand(session.limit).has('read')) {
@@ -344,7 +379,12 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 		const rule = record && this.getTypeRule(record.typeName)
 		const entry = this.entryOf(record)
 		if (entry) {
-			if (this.subjectMatches(entry.subject, session, view.get(entry.resource), view)) {
+			// a relation entry is judged on each record below it (an owner entry on a page applies
+			// to every shape on it), so all readers of its resource need it to run the model locally
+			if (
+				entry.subject.type === 'relation' ||
+				this.subjectMatches(entry.subject, session, view.get(entry.resource), view)
+			) {
 				return this.explainRead(session, entry.resource, view)
 			}
 			return this.explain(session, this.manageVerb, entry.resource, view)
@@ -368,6 +408,33 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 
 	canRead(session: SessionAccess, id: string, view: AccessView<R>): boolean {
 		return this.explainRead(session, id, view).allowed
+	}
+
+	/**
+	 * `canRead` for many records of one view that does not change meanwhile. Each ancestor is
+	 * decided once, so a whole room costs one walk per record, not one per ancestor.
+	 */
+	reader(session: SessionAccess, view: AccessView<R>): (id: string) => boolean {
+		const memo = new Map<string, boolean>()
+		const ceiling = !session.limit || this.expand(session.limit).has('read')
+		const read = (id: string): boolean => {
+			const known = memo.get(id)
+			if (known !== undefined) return known
+			memo.set(id, false) // a cycle reads as closed
+			const record = view.get(id)
+			let ok = ceiling && !!(record || id === this.root)
+			if (ok && this.entryOf(record)) ok = this.canRead(session, id, view)
+			else if (ok) {
+				ok = this.decide(session, 'read', id, view).allowed
+				const parent = ok ? this.parentOf(id, view) : null
+				if (parent) ok = read(parent)
+				const alsoRead = record && this.getTypeRule(record.typeName)?.alsoRead
+				if (ok && alsoRead) ok = alsoRead(record).every(read)
+			}
+			memo.set(id, ok)
+			return ok
+		}
+		return read
 	}
 
 	/**
@@ -408,6 +475,19 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 			decision = this.explain(session, verbs.create, next!.id, after)
 		} else if (!next) {
 			decision = this.explain(session, verbs.delete, prev.id, before)
+			// a record that needs another goes with it: deleting your shape takes the binding of
+			// someone else's arrow to it. The other record's own delete is checked on its own.
+			const gone = !decision.allowed && rule.alsoRead?.(prev).find((id) => !after.get(id))
+			if (gone && before.get(gone) && this.canRead(session, prev.id, before)) {
+				decision = {
+					allowed: true,
+					verb: verbs.delete,
+					id: prev.id,
+					at: gone,
+					entry: null,
+					reason: `${gone} is deleted`,
+				}
+			}
 		} else {
 			decision = this.explain(session, verbs.update, prev.id, before)
 			if (decision.allowed) decision = this.explain(session, verbs.update, next.id, after)
@@ -459,6 +539,12 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 		const want = prev ? (owner.get(prev) ?? null) : session.actor.id
 		return (owner.get(next) ?? null) === want ? next : owner.set(next, want)
 	}
+
+	/** The record as this session may see it: references to records it may not read removed. */
+	redact(session: SessionAccess, record: R, view: AccessView<R>): R {
+		const redact = this.getTypeRule(record.typeName)?.redact
+		return redact ? redact(record, (id) => this.canRead(session, id, view)) : record
+	}
 }
 
 function deny(
@@ -480,10 +566,24 @@ function deny(
 export function createAccessView<R extends UnknownRecord>(
 	model: AccessModel<R>,
 	records: Iterable<R> | Map<string, R>
-): AccessView<R> & { set(record: R): void; delete(id: string): void; ids(): Iterable<string> } {
+): IndexedAccessView<R> {
 	const byId = new Map<string, R>()
 	const entries = new Map<string, Map<string, AccessEntry>>()
+	const children = new Map<string, Set<string>>()
+	const readers = new Map<string, Set<string>>()
+	const add = (map: Map<string, Set<string>>, key: string, id: string) => {
+		let set = map.get(key)
+		if (!set) map.set(key, (set = new Set()))
+		set.add(id)
+	}
+	const links = (record: R) => {
+		const rule = model.getTypeRule(record.typeName)
+		return { parent: rule?.parent(record) ?? null, alsoRead: rule?.alsoRead?.(record) ?? [] }
+	}
 	const index = (record: R) => {
+		const { parent, alsoRead } = links(record)
+		if (parent) add(children, parent, record.id)
+		for (const other of alsoRead) add(readers, other, record.id)
 		const entry = model.entryOf(record)
 		if (!entry) return
 		let list = entries.get(entry.resource)
@@ -491,6 +591,9 @@ export function createAccessView<R extends UnknownRecord>(
 		list.set(record.id, entry)
 	}
 	const unindex = (record: R) => {
+		const { parent, alsoRead } = links(record)
+		if (parent) children.get(parent)?.delete(record.id)
+		for (const other of alsoRead) readers.get(other)?.delete(record.id)
 		const entry = model.entryOf(record)
 		if (entry) entries.get(entry.resource)?.delete(record.id)
 	}
@@ -502,6 +605,8 @@ export function createAccessView<R extends UnknownRecord>(
 	return {
 		get: (id) => byId.get(id),
 		ids: () => byId.keys(),
+		childrenOf: (id) => children.get(id) ?? [],
+		readersOf: (id) => readers.get(id) ?? [],
 		entriesAt(resource) {
 			let list = cache.get(resource)
 			if (!list) cache.set(resource, (list = [...(entries.get(resource)?.values() ?? [])]))

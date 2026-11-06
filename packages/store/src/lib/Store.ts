@@ -1405,6 +1405,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					rollback()
 				}
 				return result
+			} catch (e) {
+				// the transaction rolls back on throw, so its held history calls must not run
+				allowed = false
+				throw e
 			} finally {
 				this.pendingAfterEvents = null
 				this.guardedChanges = null

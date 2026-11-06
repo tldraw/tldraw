@@ -718,42 +718,49 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/** Ids of every record the session may read. */
 	private readableIds(access: SessionAccess): Set<string> {
-		const model = this.access!
 		const view = this.accessView!
+		const read = this.access!.reader(access, view)
 		const out = new Set<string>()
-		for (const id of view.ids()) if (model.canRead(access, id, view)) out.add(id)
+		for (const id of view.ids()) if (read(id)) out.add(id)
 		return out
 	}
 
 	/**
 	 * Apply a committed diff to the access view, then send each session the part it may read.
-	 * A record that becomes readable is sent whole; one that stops being readable is removed. When
-	 * an entry changes or a record moves in the tree, every session's visible set is recomputed.
+	 * A record that becomes readable is sent whole; one that stops being readable is removed.
+	 *
+	 * Only records a change can affect are checked again: each changed record with its subtree
+	 * (an entry counts as a change to its resource), and the records that `alsoRead` any of them.
+	 * Readability depends on nothing else, so a move into a frame checks the moved shapes, and a
+	 * new entry on a page checks that page, not the room.
 	 */
 	private broadcastAccessPatch(diff: TLSyncForwardDiff<R>, sourceSessionId?: string) {
 		const model = this.access!
 		const view = this.accessView!
-		const presenceTypeName = this.presenceType?.typeName
-		let structural = false
+		const roots: string[] = []
+		const changed = (record: R | null | undefined) => {
+			const entry = model.entryOf(record)
+			if (entry) roots.push(entry.resource)
+		}
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
-			const before = Array.isArray(put) ? put[0] : (view.get(id) ?? null)
 			const after = Array.isArray(put) ? put[1] : put
-			if (model.entryOf(before) || model.entryOf(after)) structural = true
-			else if (before && after.typeName !== presenceTypeName) {
-				const rule = model.getTypeRule(after.typeName)
-				if (
-					rule &&
-					(rule.parent(before) !== rule.parent(after) ||
-						!isEqual(rule.alsoRead?.(before), rule.alsoRead?.(after)))
-				) {
-					structural = true
-				}
-			}
+			changed(view.get(id))
+			changed(after)
+			roots.push(id)
 			view.set(after)
 		}
 		for (const id of diff.deletes) {
-			if (model.entryOf(view.get(id))) structural = true
+			changed(view.get(id))
+			roots.push(id)
 			view.delete(id)
+		}
+		const affected = new Set<string>()
+		while (roots.length) {
+			const id = roots.pop()!
+			if (affected.has(id)) continue
+			affected.add(id)
+			for (const child of view.childrenOf(id)) roots.push(child)
+			for (const reader of view.readersOf(id)) roots.push(reader)
 		}
 
 		for (const session of this.sessions.values()) {
@@ -765,33 +772,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			const isSource = session.sessionId === sourceSessionId
 			const visible = session.visible
+			const read = model.reader(session.access, view)
 			const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
-			if (structural) {
-				const next = this.readableIds(session.access)
-				for (const id of next) {
-					if (!visible.has(id)) out.puts[id] = view.get(id)!
-					else if (!isSource && id in diff.puts) out.puts[id] = diff.puts[id]
-				}
-				for (const id of visible) if (!next.has(id)) out.deletes.push(id)
-				session.visible = next
-			} else {
-				for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
-					if (model.canRead(session.access, id, view)) {
-						if (!visible.has(id)) {
-							out.puts[id] = view.get(id)!
-							visible.add(id)
-						} else if (!isSource) {
-							out.puts[id] = put
-						}
-					} else if (visible.has(id)) {
-						out.deletes.push(id)
-						visible.delete(id)
+			for (const id of affected) {
+				const record = view.get(id)
+				if (record && read(id)) {
+					if (!visible.has(id)) {
+						visible.add(id)
+						out.puts[id] = record
+					} else if (!isSource && id in diff.puts) {
+						out.puts[id] = diff.puts[id]
 					}
-				}
-				for (const id of diff.deletes) {
-					if (!visible.has(id)) continue
-					visible.delete(id)
-					if (!isSource) out.deletes.push(id)
+				} else if (visible.delete(id)) {
+					// the source deleted it itself; a record it can no longer read is news to it
+					if (record || !isSource) out.deletes.push(id)
 				}
 			}
 			if (session.presenceId) {
@@ -805,8 +799,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private sendAccessDiff(sessionId: string, diff: TLSyncForwardDiff<R>) {
 		const session = this.sessions.get(sessionId)
-		if (!session || session.state !== RoomSessionState.Connected) return
+		if (!session || session.state !== RoomSessionState.Connected || !session.access) return
 		if (!diff.deletes.length && !Object.keys(diff.puts).length) return
+		// every record leaves the room through here (or the connect hydrate), so redact here
+		const model = this.access!
+		const view = this.accessView!
+		const access = session.access
+		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
+			diff.puts[id] = Array.isArray(put)
+				? [model.redact(access, put[0], view), model.redact(access, put[1], view)]
+				: model.redact(access, put, view)
+		}
 		const result = this.migrateDiffOrRejectSession(
 			sessionId,
 			session.serializedSchema,
@@ -839,7 +842,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		for (const id of next) if (!session.visible.has(id)) out.puts[id] = this.accessView!.get(id)!
 		for (const id of session.visible) if (!next.has(id)) out.deletes.push(id)
 		session.visible = next
-		if (session.presenceId) delete out.puts[session.presenceId]
+		if (session.presenceId) {
+			delete out.puts[session.presenceId]
+			out.deletes = out.deletes.filter((id) => id !== session.presenceId)
+		}
 		this._unsafe_sendMessage(sessionId, { type: 'access', access })
 		this.sendAccessDiff(sessionId, out)
 	}
@@ -963,7 +969,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			supportsStringAppend,
 		} = opts
 
-		if (this._isClosed) {
+		// a snapshot saved before the host turned on the model has no grant: make the client
+		// connect again, so the host gives it one, instead of resuming with no check at all
+		if (this._isClosed || (this.access && !opts.access)) {
 			socket.close()
 			return
 		}
@@ -1346,7 +1354,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const access = session.access
 			visible = this.readableIds(access)
 			const puts: Record<string, R> = {}
-			for (const id of visible) puts[id] = this.accessView!.get(id)!
+			for (const id of visible) {
+				puts[id] = this.access.redact(access, this.accessView!.get(id)!, this.accessView!)
+			}
 			const diff = this.migrateDiffOrRejectSession(
 				session.sessionId,
 				sessionSchema,
@@ -1624,8 +1634,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// Server-initiated pushes (no session) are always allowed.
 				const canWrite = (typeName: string) =>
 					!session ||
-					!!this.access ||
-					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
+					(this.access
+						? !!session.access
+						: this.objectTypes.has(typeName)
+							? session.objectAccess !== 'read'
+							: !session.isReadonly)
 
 				// With an access model, the push is staged first and checked as a whole: one denied
 				// record rejects all of it, so a push never lands in part (an arrow without its
