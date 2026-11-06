@@ -14,10 +14,9 @@ import {
 	TLShape,
 } from '@tldraw/tlschema'
 
-/** Per-session metadata attached to each socket: the local store id and the authenticated user (if any). */
+/** Per-session metadata attached to each socket: the local store id. */
 export interface SessionMeta {
 	storeId: string
-	userId: string | null
 }
 
 // Record types served through the room's object-store lane: persisted in Postgres via the
@@ -48,10 +47,10 @@ function authorizeShape({ session, type, prev, next }: ShapeChange): TLShape | n
 	if (type === 'delete') return prev
 	const before = type === 'create' ? null : getNoteAttribution(prev)
 	const after = getNoteAttribution(next)
-	if (after !== before && after != null && after !== session.meta.userId) {
+	if (after !== before && after != null && after !== session.userId) {
 		if (type === 'update') return null
 		const note = next as TLNoteShape
-		return { ...note, props: { ...note.props, textLastEditedBy: session.meta.userId } }
+		return { ...note, props: { ...note.props, textLastEditedBy: session.userId } }
 	}
 	return next
 }
@@ -59,11 +58,10 @@ function authorizeShape({ session, type, prev, next }: ShapeChange): TLShape | n
 /** The parts of the file rule, kept as an object so a test can stub one. */
 export const fileRecordRules = {
 	comments: createCommentAuthorizer<FileRecord, SessionMeta>({
-		getUserId: (session) => session.meta.userId,
 		// Only authenticated users can write comments: authors are stored in Postgres with a
 		// foreign key to the user table, so an anonymous author can't be represented. Tier
 		// gating (view-only sessions) is the document lane; commenting follows it today.
-		canComment: (session) => session.meta.userId !== null && session.access.document === 'write',
+		canComment: (session) => session.userId !== null && session.access.document === 'write',
 	}),
 	shape: authorizeShape,
 }

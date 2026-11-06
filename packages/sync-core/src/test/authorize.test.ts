@@ -81,10 +81,16 @@ function connect(
 	room: TLSyncRoom<TLRecord, Meta>,
 	sessionId: string,
 	meta: Meta,
-	opts: { isReadonly?: boolean } = {}
+	opts: { isReadonly?: boolean; userId?: string | null } = {}
 ): MockSocket {
 	const socket = makeSocket()
-	room.handleNewSession({ sessionId, socket, meta, isReadonly: opts.isReadonly ?? false })
+	room.handleNewSession({
+		sessionId,
+		socket,
+		meta,
+		userId: opts.userId,
+		isReadonly: opts.isReadonly ?? false,
+	})
 	room.handleMessage(sessionId, {
 		type: 'connect',
 		connectRequestId: 'connect-' + sessionId,
@@ -223,6 +229,28 @@ describe('authorize', () => {
 		const shapeId = createShapeId('own-page')
 		push(room, 'student-a', { [shapeId]: [RecordOpType.Put, frame(shapeId, pageA)] })
 		expect(storage.getSnapshot().documents.map((d) => d.state.id)).toContain(shapeId)
+	})
+
+	it('gives the rule the connect-time userId, null when none was given', () => {
+		const seen: Array<string | null> = []
+		const { room } = makeRoom({
+			authorize: ({ session, record }) => {
+				seen.push(session.userId)
+				return record
+			},
+			documents: [page(pageA, 'A')],
+		})
+		connect(room, 'signed-in', { userId: 'A', role: 'student' }, { userId: 'user-a' })
+		connect(room, 'anonymous', { userId: 'A', role: 'student' })
+
+		push(room, 'signed-in', {
+			[createShapeId('one')]: [RecordOpType.Put, frame(createShapeId('one'), pageA)],
+		})
+		push(room, 'anonymous', {
+			[createShapeId('two')]: [RecordOpType.Put, frame(createShapeId('two'), pageA)],
+		})
+
+		expect(seen).toEqual(['user-a', null])
 	})
 
 	it('lets a rule read a record created earlier in the same push', () => {

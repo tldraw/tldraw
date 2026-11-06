@@ -375,9 +375,12 @@ const { userId, userCanEdit } = await authenticate(request)
 room.handleSocketConnect({
 	sessionId,
 	socket,
+	userId,
 	access: { document: userCanEdit ? 'write' : 'read', objects: userId ? 'write' : 'read' },
 })
 ```
+
+`userId` is the authenticated user, from your own auth, or `null` for anonymous (the default). The room doesn't check it; it hands it to your rule as `session.userId` and keeps it across hibernation.
 
 A session with `document: 'read'` can't change the document. The client receives the same object (as `access` on the `useSync` status) and locks its toolbar from it. The lanes are independent; rooms without object types give `objects` the same value as `document`.
 
@@ -391,7 +394,6 @@ For anything finer than per-lane access, give the room one rule with the `author
 import { createLaneAccessAuthorizer, TLSocketRoom, TLSyncAuthorizer } from '@tldraw/sync-core'
 
 interface SessionMeta {
-	userId: string
 	role: 'teacher' | 'student'
 }
 
@@ -410,9 +412,10 @@ const room = new TLSocketRoom<TLRecord, SessionMeta>({ objectTypes, authorize })
 room.handleSocketConnect({
 	sessionId,
 	socket,
+	userId: user.id,
 	access,
-	// whatever your app knows about this user, resolved by your server before connecting
-	meta: { userId: user.id, role: user.role },
+	// whatever else your app knows about this user, resolved by your server before connecting
+	meta: { role: user.role },
 })
 ```
 
@@ -425,11 +428,12 @@ The rule's arguments:
 | `type`           | `'create'`, `'update'` or `'delete'`                                                          |
 | `prev`, `next`   | the record before and after the operation; `prev` is null on create, `next` on delete         |
 | `record`         | the record the operation is about: `next`, or `prev` on a delete                              |
+| `session.userId` | the authenticated user from connect, or `null` for anonymous                                  |
 | `session.meta`   | whatever your server attached at connect; the room never reads it                             |
 | `session.access` | the per-lane access from connect                                                              |
 | `get(id)`        | any record as it stands in the transaction, including earlier allowed operations in this push |
 
-The session id is chosen by the client and carries no authority; identity lives in `meta`. The rule runs on every edit: keep it fast and synchronous, and do no I/O. If it throws, the write is refused and the error is logged.
+The session id is chosen by the client and carries no authority; identity is `session.userId`. The rule runs on every edit: keep it fast and synchronous, and do no I/O. If it throws, the write is refused and the error is logged.
 
 #### Rules that read other records
 
@@ -453,7 +457,7 @@ const authorize: TLSyncAuthorizer<TLRecord, SessionMeta> = ({
 		// a broken parent chain, or no page at all: refuse
 		if (!owning.page) return null
 		// students may only change records on their own page
-		if (owning.page.meta.ownerId !== session.meta.userId) return null
+		if (owning.page.meta.ownerId !== session.userId) return null
 	}
 	return record
 }

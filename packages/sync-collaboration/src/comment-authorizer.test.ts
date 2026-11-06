@@ -28,6 +28,7 @@ const comment = (authorId: string) =>
 
 const session = (userId: string | null, canEdit = true, objects: 'read' | 'write' = 'write') => ({
 	sessionId: 's1',
+	userId,
 	meta: { userId, canEdit },
 	access: { document: canEdit ? ('write' as const) : ('read' as const), objects },
 })
@@ -43,6 +44,17 @@ const args = (c: Change): Args =>
 describe('createCommentAuthorizer', () => {
 	const rule = createCommentAuthorizer<UnknownRecord, Meta>({
 		getUserId: (s) => s.meta.userId,
+	})
+
+	it('stamps from session.userId when no getUserId is given', () => {
+		const byDefault = createCommentAuthorizer<UnknownRecord, Meta>()
+		const next = comment('client-says-alice')
+		const signedIn = { ...session(null), userId: 'bob' }
+		const result = byDefault(
+			args({ session: signedIn, type: 'create', prev: null, next })
+		) as TLComment
+		expect(result.authorId).toBe('bob')
+		expect(byDefault(args({ session: session(null), type: 'create', prev: null, next }))).toBeNull()
 	})
 
 	it('passes non-comment records through unchanged', () => {

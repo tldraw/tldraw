@@ -29,7 +29,8 @@ const get = () => undefined
 function session(userId: string | null, document: 'read' | 'write' = 'write') {
 	return {
 		sessionId: 's1',
-		meta: { storeId: 'store', userId } satisfies SessionMeta,
+		userId,
+		meta: { storeId: 'store' } satisfies SessionMeta,
 		access: { document, objects: userId ? ('write' as const) : ('read' as const) },
 	}
 }
@@ -201,7 +202,8 @@ describe('authorizeFileRecord', () => {
 				room.handleSocketConnect({
 					sessionId: 's1',
 					socket,
-					meta: { userId: 'real-bob', storeId: 'store' },
+					userId: 'real-bob',
+					meta: { storeId: 'store' },
 				})
 				room.handleSocketMessage(
 					's1',

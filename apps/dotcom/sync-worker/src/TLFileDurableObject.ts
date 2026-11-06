@@ -1189,15 +1189,13 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		try {
-			const meta: SessionMeta = {
-				storeId: storeId ?? sessionId,
-				userId: auth?.userId ? auth.userId : null,
-			}
+			const userId = auth?.userId ? auth.userId : null
+			const meta: SessionMeta = { storeId: storeId ?? sessionId }
 			// The rule decides every write from this and `meta`; the client receives it as-is and
 			// locks its canvas and comment UI from it.
 			const access: TLSessionAccess = {
 				document: openMode === ROOM_OPEN_MODE.READ_ONLY ? 'read' : 'write',
-				objects: auth?.userId ? 'write' : 'read',
+				objects: userId ? 'write' : 'read',
 			}
 			const attachment: SocketAttachment = {
 				sessionId,
@@ -1225,6 +1223,7 @@ export class TLFileDurableObject extends DurableObject {
 			room.handleSocketConnect({
 				sessionId,
 				socket: serverWebSocket,
+				userId,
 				meta,
 				access,
 			})
@@ -3338,7 +3337,7 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			const canAccessFiles = async () => {
-				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
+				const role = await getRole(this.db, session.userId, file.owningGroupId)
 				return can(role, 'accessFiles')
 			}
 

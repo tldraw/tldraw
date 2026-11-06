@@ -63,7 +63,8 @@ async function harness(saved = new Map<string, unknown>()) {
 }
 const session = {
 	sessionId: 'secret-session',
-	meta: { userId: 'alice', storeId: 'secret-store' },
+	userId: 'alice',
+	meta: { storeId: 'secret-store' },
 	access: { document: 'write' as const, objects: 'write' as const },
 }
 const note = (userId: string) =>

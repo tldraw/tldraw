@@ -36,7 +36,7 @@ export type TLOwningPage =
  * authorize: ({ session, get, record }) => {
  *   const owning = getOwningPage(get, record)
  *   if (!owning.page) return owning.reason === 'unscoped' ? record : null
- *   return owning.page.meta.ownerId === session.meta.userId ? record : null
+ *   return owning.page.meta.ownerId === session.userId ? record : null
  * }
  * ```
  *

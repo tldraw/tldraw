@@ -434,11 +434,11 @@ export function createCommentAuthorizers<SessionMeta>(
  */
 export interface CommentAuthorizerRuleOptions<SessionMeta> {
 	/**
-	 * Resolve the authenticated user id for a session from its host-provided `meta`. Return `null`
-	 * for anonymous sessions: they can't create records, and own none, so the default
+	 * Resolve the authenticated user id for a session. Defaults to `session.userId`. `null` means
+	 * anonymous: they can't create records, and own none, so the default
 	 * {@link CommentAuthorizerRuleOptions.canModifyComment} grants them no edits or deletes either.
 	 */
-	getUserId(session: TLSyncAuthorizerSession<SessionMeta>): string | null
+	getUserId?(session: TLSyncAuthorizerSession<SessionMeta>): string | null
 
 	/**
 	 * Whether a session may write comment records at all, checked before the per-type rules.
@@ -464,7 +464,6 @@ export interface CommentAuthorizerRuleOptions<SessionMeta> {
  * @example
  * ```ts
  * const comments = createCommentAuthorizer<MyRecord, SessionMeta>({
- * 	getUserId: (session) => session.meta.userId,
  * 	canComment: (session) => session.meta.canEdit,
  * })
  *
@@ -479,10 +478,10 @@ export interface CommentAuthorizerRuleOptions<SessionMeta> {
  * @public
  */
 export function createCommentAuthorizer<R extends UnknownRecord, SessionMeta>(
-	opts: CommentAuthorizerRuleOptions<SessionMeta>
+	opts: CommentAuthorizerRuleOptions<SessionMeta> = {}
 ): TLSyncAuthorizer<R, SessionMeta> {
 	const rules = buildCommentRules<TLSyncAuthorizerSession<SessionMeta>>({
-		getUserId: opts.getUserId,
+		getUserId: opts.getUserId ?? ((session) => session.userId),
 		canComment: opts.canComment ?? ((session) => session.access.objects === 'write'),
 		canModifyComment: opts.canModifyComment ?? ownerOnly,
 	})
