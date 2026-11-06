@@ -1031,8 +1031,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					if (!pageState) return
 					const selected = pageState.selectedShapeIds
 					const editingId = pageState.editingShapeId
-					const locked = selected.filter((id) => this.isShapeLocked(id))
-					const editingLocked = !!editingId && this.isShapeLocked(editingId)
+					const locked = selected.filter((id) => this.isShapeIdLockedByOption(id))
+					const editingLocked = !!editingId && this.isShapeIdLockedByOption(editingId)
 					if (!locked.length && !editingLocked) return
 					this.timers.setTimeout(() => {
 						if (editingLocked && this.getEditingShapeId() === editingId) {
@@ -1040,7 +1040,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 							this.setEditingShape(null)
 						}
 						const stillSelected = this.getSelectedShapeIds()
-						const next = stillSelected.filter((id) => !this.isShapeLocked(id))
+						const next = stillSelected.filter((id) => !this.isShapeIdLockedByOption(id))
 						if (next.length !== stillSelected.length) this.setSelectedShapes(next)
 					}, 0)
 				})
@@ -5874,6 +5874,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return !!this.getIsShapeLockedCache()?.get(shape.id)
 	}
 
+	private isShapeIdLockedByOption(id: TLShapeId): boolean {
+		const shape = this.getShape(id)
+		return !!shape && this.isShapeLockedByOption(shape)
+	}
+
 	/**
 	 * Check whether a shape itself is locked: its `isLocked` prop is true, or the editor's
 	 * `isShapeLocked` option locks it for this editor. Use {@link Editor.isShapeOrAncestorLocked}
@@ -7344,7 +7349,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	moveShapesToPage(shapes: TLShapeId[] | TLShape[], pageId: TLPageId): this {
-		const ids = toShapeIds(shapes)
+		// deleteShapes skips locked shapes, but the copy below would still put them on the new page
+		const ids = this._shouldIgnoreShapeLock
+			? toShapeIds(shapes)
+			: this._getUnlockedShapeIds(toShapeIds(shapes))
 
 		if (ids.length === 0) return this
 		if (this.getIsReadonly()) return this
@@ -9269,9 +9277,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapeIds = toShapeIds(_ids)
 
 		// Normally we don't want to delete locked shapes, but if the force option is set, we'll delete them anyway
-		const shapeIdsToDelete = this._shouldIgnoreShapeLock
+		let shapeIdsToDelete = this._shouldIgnoreShapeLock
 			? shapeIds
 			: this._getUnlockedShapeIds(shapeIds)
+
+		// The option lock is per editor (often a permission) and covers only the shape itself, so a
+		// shape this editor may change can hold one it may not. Deleting the parent would take
+		// that child with it, or orphan it when the rules cancel only the child's delete.
+		if (this._isShapeLocked && !this._shouldIgnoreShapeLock) {
+			shapeIdsToDelete = shapeIdsToDelete.filter((id) => {
+				let holdsLocked = false
+				this.visitDescendants(id, (childId) => {
+					if (this.isShapeIdLockedByOption(childId)) {
+						holdsLocked = true
+						return false
+					}
+				})
+				return !holdsLocked
+			})
+		}
 
 		if (shapeIdsToDelete.length === 0) return this
 

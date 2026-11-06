@@ -1,4 +1,11 @@
-import { atom, createShapeId, PageRecordType, TLShape } from '@tldraw/editor'
+import {
+	atom,
+	createShapeId,
+	getSnapshot,
+	loadSessionStateSnapshotIntoStore,
+	PageRecordType,
+	TLShape,
+} from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 // The `isShapeLocked` and `isPageReadonly` editor options: locks and read-only pages for one
@@ -97,5 +104,51 @@ describe('isPageReadonly option', () => {
 		expect(() => editor.moveShapesToPage([box], page2)).not.toThrow()
 		expect(editor.getShape(box)!.parentId).not.toBe(page2)
 		expect(editor.getCurrentPageId()).not.toBe(page2)
+	})
+})
+
+describe('option locks next to stored locks', () => {
+	it('lets the user select a shape with a stored lock and unlock it', () => {
+		editor.updateShape({ id: box, type: 'geo', isLocked: true })
+		editor.rightClick(50, 50, { target: 'shape', shape: editor.getShape(box)! })
+		expect(editor.getSelectedShapeIds()).toEqual([box])
+		vi.advanceTimersByTime(50)
+		// the release reaction only lets go of shapes that the option locks
+		expect(editor.getSelectedShapeIds()).toEqual([box])
+		editor.toggleLock(editor.getSelectedShapeIds())
+		expect(editor.getShape(box)!.isLocked).toBe(false)
+	})
+
+	it.each(['option', 'stored'] as const)(
+		'does not move a shape with a %s lock to another page',
+		(kind) => {
+			if (kind === 'option') lockedIds.set([box])
+			else editor.updateShape({ id: box, type: 'geo', isLocked: true })
+			const page1 = editor.getCurrentPageId()
+			editor.moveShapesToPage([box], page2)
+			expect(editor.getShape(box)!.parentId).toBe(page1)
+		}
+	)
+
+	it('does not delete a parent that holds a shape the option locks', () => {
+		lockedIds.set([child])
+		editor.deleteShapes([frame])
+		expect(editor.getShape(frame)).toBeDefined()
+		expect(editor.getShape(child)!.parentId).toBe(frame)
+	})
+})
+
+describe('integrity checks', () => {
+	it('fixes stale page state on many pages without a limit', () => {
+		for (let i = 0; i < 30; i++) {
+			editor.createPage({ id: PageRecordType.createId('p' + i), name: 'p' + i })
+		}
+		const session = getSnapshot(editor.store).session
+		session.pageStates = session.pageStates!.map((pageState) => ({
+			...pageState,
+			selectedShapeIds: [createShapeId('gone')],
+			focusedGroupId: createShapeId('gone-group'),
+		}))
+		expect(() => loadSessionStateSnapshotIntoStore(editor.store, session)).not.toThrow()
 	})
 })

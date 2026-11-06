@@ -292,6 +292,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private lastDocumentClock = 0
 
+	/**
+	 * With read rules: the ids of the records that existed at the last broadcast. A change made
+	 * straight to storage sends updates as full records, so this tells an update (which a session
+	 * may hold) from a create (whose id must not reach a session that may not read it).
+	 */
+	private knownIds: Set<string> | null = null
+
 	private pruneTimer: ReturnType<typeof setTimeout> | null = null
 
 	pruneSessions: ThrottledFunction<() => void> = throttle(() => {
@@ -626,6 +633,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const { documentClock } = this.transact((txn) => {
 			this.schema.migrateStorage(txn)
+			if (this.authorizeRead) this.knownIds = new Set(txn.keys())
 		})
 
 		this.lastDocumentClock = documentClock
@@ -862,10 +870,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const isUpdate = Array.isArray(put)
 			const record = isUpdate ? put[1] : put
 			const wasHidden = hidden.has(id)
-			// In a push, a full-record put is a create. In a change made straight to storage, an
-			// update is a full-record put too, so the session may hold the record. A hidden create
-			// made there sends the session a remove of an id that it does not have.
-			const maybeHeld = isUpdate || fullPutsMayBeUpdates
+			// The author holds what it wrote, creates included. For others, a full-record put is a
+			// create, except in a change made straight to storage, where updates are full records
+			// too: there, the record may be held only if it existed before.
+			const maybeHeld = isSource || isUpdate || (fullPutsMayBeUpdates && !!this.knownIds?.has(id))
 			check(id, record, maybeHeld)
 			if (!isSource && !wasHidden && !hidden.has(id)) out.puts[id] = put
 		}
@@ -988,6 +996,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				serverClock: this.lastDocumentClock,
 			})
 		})
+
+		if (this.knownIds) {
+			for (const id of Object.keys(diff.puts)) this.knownIds.add(id)
+			for (const id of diff.deletes) this.knownIds.delete(id)
+		}
 		return this
 	}
 
@@ -1379,6 +1392,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (wipeAll) {
 			// If this happens it means we'd need to broadcast a wipe_all message to all clients,
 			// which is not part of the protocol yet, so we need to force all clients to reconnect instead.
+			if (this.knownIds) this.knownIds = new Set(txn.keys())
 			this.forceAllReconnect()
 			return
 		}
@@ -2044,7 +2058,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					...result.docChanges.diffs?.networkDiff,
 					...result.presenceChanges.diffs?.networkDiff,
 				},
-				session?.sessionId
+				session?.sessionId,
+				undefined,
+				// a storage that rewrote the push reports its updates as full records
+				!!changes
 			)
 		}
 

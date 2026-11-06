@@ -317,3 +317,47 @@ describe('read rules: presence', () => {
 		expect(own).toEqual([])
 	})
 })
+
+describe('read rules: ids the session does not hold', () => {
+	it('does not reveal the id of a hidden record created straight in storage', async () => {
+		const storage = new InMemorySyncStorage<R>({ snapshot: snap() })
+		const room = makeRoom({ storage })
+		const user = connect(room, 'user', { admin: false })
+		await flush()
+		const secret = Folder.create({ id: Folder.createId('secret'), secret: true })
+		const hiddenFile = File.create({
+			id: File.createId('report-for-bob'),
+			folderId: secret.id,
+			text: 'grades',
+		})
+		storage.transaction((txn) => {
+			txn.set(secret.id, secret)
+			txn.set(hiddenFile.id, hiddenFile)
+		})
+		await flush()
+		const sent = JSON.stringify(received(user))
+		expect(sent).not.toContain('report-for-bob')
+	})
+
+	it('removes from the author a record that it created, when the same push hides it', async () => {
+		const room = makeRoom({
+			// anyone may write folders here
+			authorizeRecord: {},
+		})
+		const user = connect(room, 'user', { admin: false })
+		await flush()
+		const mine = File.create({ id: File.createId('mine'), folderId: folder.id, text: 'mine' })
+		push(room, 'user', {
+			diff: {
+				[mine.id]: [RecordOpType.Put, mine],
+				[folder.id]: [RecordOpType.Patch, { secret: [ValueOpType.Put, true] }],
+			},
+		})
+		await flush()
+		// the user may not read files in a secret folder: both files go, its own new one too
+		expect(patches(user).at(-1)).toMatchObject({
+			[file.id]: [RecordOpType.Remove],
+			[mine.id]: [RecordOpType.Remove],
+		})
+	})
+})

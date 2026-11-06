@@ -141,7 +141,7 @@ beforeEach(async () => {
 	// the teacher sets up the board
 	const teacher = join('teacher', 'teacher')
 	await settle()
-	teacher.editor.createPage({ id: page1, name: 'Lesson' })
+	teacher.editor.createPage({ id: page1, name: 'Lesson', meta: { home: true } })
 	teacher.editor.createPage({ id: page2, name: 'Answers' })
 	teacher.editor.setCurrentPage(page1)
 	for (const p of teacher.editor.getPages()) {
@@ -254,10 +254,23 @@ describe('page read control', () => {
 })
 
 describe('page write control', () => {
+	it('keeps a page that everyone may read: the home page cannot be deleted or made private', async () => {
+		const teacher = users[0]
+		const alice = join('alice', 'student')
+		await settle()
+		teacher.editor.updatePage({ id: page2, meta: { private: true } })
+		teacher.editor.deletePage(page1)
+		teacher.editor.updatePage({ id: page1, meta: { home: true, private: true } })
+		await settle()
+		expect(room.getRecord(page1)).toMatchObject({ meta: { home: true } })
+		expect((room.getRecord(page1) as TLPage).meta.private).toBeUndefined()
+		expect(alice.editor.getPages().map((p: TLPage) => p.id)).toEqual([page1])
+	})
+
 	it('makes a read-only page read-only in the student editor, and on the server', async () => {
 		const teacher = users[0]
 		teacher.editor.createShape(geo(createShapeId('t1')))
-		teacher.editor.updatePage({ id: page1, meta: { readonly: true } })
+		teacher.editor.updatePage({ id: page1, meta: { home: true, readonly: true } })
 		await settle()
 		const alice = join('alice', 'student')
 		await settle()
@@ -725,7 +738,7 @@ describe('undo after access changes', () => {
 		await settle()
 		expect(shapeInRoom(id).x).toBe(200)
 
-		teacher.editor.updatePage({ id: page1, meta: { readonly: true } })
+		teacher.editor.updatePage({ id: page1, meta: { home: true, readonly: true } })
 		await settle()
 		// the UI turns undo off on a read-only page, as for any read-only editor
 		expect(alice.editor.getIsReadonly()).toBe(true)
@@ -736,7 +749,7 @@ describe('undo after access changes', () => {
 		expect(shapeInRoom(id).x).toBe(200)
 
 		// the canceled step is used up: the next undo goes to the step before it
-		teacher.editor.updatePage({ id: page1, meta: { readonly: false } })
+		teacher.editor.updatePage({ id: page1, meta: { home: true, readonly: false } })
 		await settle()
 		alice.editor.undo()
 		await settle()

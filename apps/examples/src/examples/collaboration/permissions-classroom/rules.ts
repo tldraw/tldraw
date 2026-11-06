@@ -153,7 +153,13 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 				ctx.userId === ctx.ownerId ||
 				(ctx.action !== 'edit-comment' && ctx.session.meta.role === 'teacher'),
 		}),
-		page: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
+		page: ({ session, next, prev }) => {
+			if (session.meta.role !== 'teacher') return null
+			// Every user needs a page they may read, or their editor has no page to show. The home
+			// page keeps that true: it can't be deleted, made private, or stop being home.
+			if (prev?.meta.home && (!next || next.meta.private || !next.meta.home)) return null
+			return next ?? prev
+		},
 		document: ({ session, next, prev }) =>
 			session.meta.role === 'teacher' ? (next ?? prev) : null,
 		// anyone who may draw may add an image; only its owner or the teacher may change it

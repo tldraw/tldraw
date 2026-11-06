@@ -95,7 +95,12 @@ function createRoom() {
 		}
 		for (const record of [
 			DocumentRecordType.create({ id: TLDOCUMENT_ID }),
-			PageRecordType.create({ id: LESSON, name: 'Lesson', index: 'a1' as any }),
+			PageRecordType.create({
+				id: LESSON,
+				name: 'Lesson',
+				index: 'a1' as any,
+				meta: { home: true },
+			}),
 			PageRecordType.create({
 				id: ANSWERS,
 				name: 'Answers',
