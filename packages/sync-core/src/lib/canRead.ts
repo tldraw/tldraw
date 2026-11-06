@@ -4,9 +4,9 @@ import type { TLBeforeReadHook, TLBeforeReadHooks } from './TLSyncRoom'
 /**
  * A visibility check for one record and one session: return `true` to send the record, `false` to
  * hide it. Any result other than `true` hides it. It gets the same arguments as a
- * {@link TLBeforeReadHook}, including `get` to read other records. The check runs again only when
- * its own record changes, so a check that reads other records with `get` (e.g. "hidden when its
- * frame is private") does not update when only those records change.
+ * {@link TLBeforeReadHook}, including `get` to read other records. The check runs again when its
+ * record changes, and when a record that it read with `get` changes, so "hidden when its frame is
+ * private" follows the frame.
  *
  * @public
  */

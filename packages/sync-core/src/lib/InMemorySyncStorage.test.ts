@@ -1,3 +1,4 @@
+import { atom } from '@tldraw/state'
 import { TLDOCUMENT_ID, TLRecord } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
@@ -122,6 +123,32 @@ describe('InMemorySyncStorage', () => {
 				snapshot: makeContractSnapshot(contractRecords),
 			})
 			expect(Object.isFrozen(storage.documents.get(TLDOCUMENT_ID)?.state)).toBe(true)
+		})
+	})
+
+	describe('rollback', () => {
+		it('[IM7] a throw rolls back the storage but not other signals', () => {
+			const storage = new InMemorySyncStorage<TLRecord>({
+				snapshot: makeContractSnapshot(contractRecords),
+			})
+			const other = atom('other', 0)
+			const clock = storage.getClock()
+			const page = makePage('added')
+
+			expect(() =>
+				storage.transaction((txn) => {
+					txn.set(page.id, page)
+					txn.delete(TLDOCUMENT_ID)
+					other.set(1)
+					throw new Error('reject')
+				})
+			).toThrow('reject')
+
+			expect(storage.documents.has(page.id)).toBe(false)
+			expect(storage.documents.has(TLDOCUMENT_ID)).toBe(true)
+			expect(storage.tombstones.has(TLDOCUMENT_ID)).toBe(false)
+			expect(storage.getClock()).toBe(clock)
+			expect(other.get()).toBe(1)
 		})
 	})
 

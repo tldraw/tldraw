@@ -208,10 +208,21 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 		const txn = new InMemorySyncStorageTransaction<R>(this)
 		let result: T
 		let changes: TLSyncForwardDiff<R> | undefined
+		let failure: { error: unknown } | undefined
 		try {
+			// A throw rolls back only this storage, through the transaction's undo log. A rollback of
+			// the whole state transaction would also undo the signals that the callback's hooks
+			// changed, such as an audit log of rejected writes.
 			result = transaction(() => {
-				return callback(txn as any)
+				try {
+					return callback(txn as any)
+				} catch (error) {
+					txn.rollback()
+					failure = { error }
+					return undefined
+				}
 			}) as T
+			if (failure) throw failure.error
 			if (trackChanges) {
 				changes = txn.getChangesSince(clockBefore)?.diff
 			}
@@ -307,6 +318,8 @@ class InMemorySyncStorageTransaction<
 > implements TLSyncStorageTransaction<R> {
 	private _clock
 	private _closed = false
+	/** Restores the storage to how it was before each write, newest last. */
+	private undo: (() => void)[] = []
 
 	constructor(private storage: InMemorySyncStorage<R>) {
 		this._clock = this.storage.documentClock.get()
@@ -315,6 +328,18 @@ class InMemorySyncStorageTransaction<
 	/** @internal */
 	close() {
 		this._closed = true
+	}
+
+	/** @internal */
+	rollback() {
+		for (let i = this.undo.length - 1; i >= 0; i--) this.undo[i]()
+		this.undo.length = 0
+	}
+
+	private remember<V>(map: AtomMap<string, V>, id: string) {
+		const had = map.has(id)
+		const prev = map.get(id)
+		this.undo.push(() => (had ? map.set(id, prev as V) : map.delete(id)))
 	}
 
 	private assertNotClosed() {
@@ -329,7 +354,13 @@ class InMemorySyncStorageTransaction<
 	private getNextClock(): number {
 		if (!this.didIncrementClock) {
 			this.didIncrementClock = true
-			this._clock = this.storage.documentClock.set(this.storage.documentClock.get() + 1)
+			const prev = this.storage.documentClock.get()
+			this.undo.push(() => {
+				this.storage.documentClock.set(prev)
+				this._clock = prev
+				this.didIncrementClock = false
+			})
+			this._clock = this.storage.documentClock.set(prev + 1)
 		}
 		return this._clock
 	}
@@ -352,12 +383,14 @@ class InMemorySyncStorageTransaction<
 		const clock = this.getNextClock()
 		// Automatically clear tombstone if it exists
 		if (this.storage.tombstones.has(id)) {
+			this.remember(this.storage.tombstones, id)
 			this.storage.tombstones.delete(id)
 		}
 		// route by type: object-lane records live in their own partition
 		const map = this.storage.objectTypes.has(record.typeName)
 			? this.storage.objects
 			: this.storage.documents
+		this.remember(map, id)
 		map.set(id, {
 			state: devFreeze(record) as R,
 			lastChangedClock: clock,
@@ -370,7 +403,9 @@ class InMemorySyncStorageTransaction<
 		const map = this.mapContaining(id)
 		if (!map) return
 		const clock = this.getNextClock()
+		this.remember(map, id)
 		map.delete(id)
+		this.remember(this.storage.tombstones, id)
 		this.storage.tombstones.set(id, clock)
 		this.storage.pruneTombstones()
 	}
@@ -414,6 +449,8 @@ class InMemorySyncStorageTransaction<
 
 	setSchema(schema: SerializedSchema): void {
 		this.assertNotClosed()
+		const prev = this.storage.schema.get()
+		this.undo.push(() => this.storage.schema.set(prev))
 		this.storage.schema.set(schema)
 	}
 
