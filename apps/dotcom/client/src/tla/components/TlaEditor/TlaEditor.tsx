@@ -38,6 +38,7 @@ import {
 } from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
+import { createCanvasOpsReceiver } from '../../../utils/canvas-ops'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { reportFileLoad } from '../../../utils/fileLoad'
@@ -182,6 +183,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
+			const canvasAgent = createCanvasOpsReceiver(editor)
+			;(window as any).canvasAgent = canvasAgent
+			editor.disposables.add(() => {
+				if ((window as any).canvasAgent === canvasAgent) delete (window as any).canvasAgent
+			})
 			// Register the editor globally
 			globalEditor.set(editor)
 

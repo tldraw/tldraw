@@ -18,6 +18,7 @@
 		"start": "VITE_PREVIEW=1 pnpm exec tsx scripts/dev-app.ts",
 		"lint": "pnpm exec tsx ../../../internal/scripts/lint.ts",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"canvas-ops-evals": "pnpm exec vitest run --config src/utils/canvas-ops/evals/vitest.config.ts",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"e2e": "rm -rf 'e2e/.auth' && NODE_OPTIONS='--no-strip-types' pnpm exec playwright test --project=chromium-scenarios",
 		"e2e-scenarios": "NODE_OPTIONS='--no-strip-types' pnpm exec playwright test --project=chromium-scenarios",
@@ -66,6 +67,7 @@
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {
+		"@anthropic-ai/sdk": "^1.3.0",
 		"@clerk/testing": "^2.2.33",
 		"@formatjs/cli": "^6.5.1",
 		"@formatjs/unplugin": "^1.1.0",
