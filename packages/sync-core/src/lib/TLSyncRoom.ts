@@ -688,7 +688,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		diff: TLSyncForwardDiff<R>,
 		networkDiff?: NetworkDiff<R> | null,
 		sourceSessionId?: string,
-		txn?: TLSyncStorageTransaction<R>
+		txn?: TLSyncStorageTransaction<R>,
+		opts: { resync?: boolean } = {}
 	) {
 		// Computed once and shared by every session that needs no down-migration; the push path
 		// hands us the diff it already computed (in legacy append mode when needed), and re-deriving
@@ -696,7 +697,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 		const unmigrated = networkDiff ?? toNetworkDiff(diff, legacyAppendMode)
 		const filtered = this.isReadFiltered()
-		const resync = filtered && this.isScopeChange(diff)
+		const resync = filtered && (opts.resync || this.isScopeChange(diff))
 
 		const forbidden: string[] = []
 		const send = (records?: RoomRecords<R>) =>
@@ -1090,15 +1091,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
 		}
+		// The room does not know which records a read-filtered client holds after a sleep: its
+		// actor or a page's readers may have changed meanwhile. It reconnects, and the connect sends
+		// it exactly what it can read.
 		const resumed = this.sessions.get(sessionId)
 		if (resumed?.state === RoomSessionState.Connected && resumed.visible) {
-			this.withReader(undefined, (records) => {
-				for (const record of records.values()) {
-					if (canReadRecord(this.commands!, actor, record, records)) {
-						resumed.visible!.add(record.id)
-					}
-				}
-			})
+			this.cancelSession(sessionId)
 		}
 	}
 
@@ -1320,7 +1318,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.forceAllReconnect()
 			return
 		}
-		this.broadcastPatch(diff, null, undefined, txn)
+		// Writes made straight to storage carry no previous record, so the room cannot tell if
+		// they change what a session can read. Check everything again.
+		this.broadcastPatch(diff, null, undefined, txn, { resync: true })
 	}
 
 	/**
@@ -1739,7 +1739,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									id: [ValueOpType.Put, id],
 									typeName: [ValueOpType.Put, typeName],
 								},
-								stamp ? (_prev, next) => (isEqual(stamp(actor, next), next) ? next : null) : undefined
+								stamp
+									? (_prev, next) => (isEqual(stamp(actor, next), next) ? next : null)
+									: undefined
 							)
 							break
 						}
@@ -1765,7 +1767,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// so a push never half-applies (an arrow without its binding, a child without its frame).
 				const { editDenied, stamped } =
 					session && this.commands && message.diff
-						? this.checkEditPush(txn, session, editActor(session), message.diff)
+						? this.checkEditPush(txn, session, message.diff)
 						: { editDenied: undefined, stamped: undefined }
 
 				if (message.diff && !editDenied) {
@@ -2005,10 +2007,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private checkEditPush(
 		txn: TLSyncStorageTransaction<R>,
 		session: RoomSession<R, SessionMeta> & { serializedSchema?: SerializedSchema },
-		actor: TLCommandActor,
 		diff: NetworkDiff<R>
 	): { editDenied: string | undefined; stamped: Map<string, R> } {
 		const set = this.commands!
+		const { actor, hostReadonly } = session
 		const stamped = new Map<string, R>()
 		const changes: {
 			id: string
@@ -2040,9 +2042,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const overlay = new Map<string, R | null>()
 		for (const [id, op] of objectMapEntriesIterable(diff)) {
 			const prev = (txn.get(id) as R | undefined) ?? null
-			// object-lane records are gated by objectAccess, not the edit policy
-			const typeName = prev?.typeName ?? (op[0] === RecordOpType.Put ? op[1].typeName : undefined)
-			if (typeName && this.objectTypes.has(typeName)) continue
 			switch (op[0]) {
 				case RecordOpType.Put: {
 					let sent = op[1]
@@ -2085,9 +2084,28 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				for (const record of overlay.values()) if (record) yield record
 			},
 		})
+		// Object-lane records need `objectAccess`, not the edit permission, so the edit lane treats
+		// them as open types. Every other rule still applies: command-only types, read checks, stamps.
+		const objectSet =
+			this.objectTypes.size > 0
+				? {
+						...set,
+						edit: {
+							...set.edit,
+							openTypes: [...(set.edit.openTypes ?? []), ...this.objectTypes],
+						},
+					}
+				: set
 		for (const change of changes) {
+			const typeName = (change.next ?? change.prev)!.typeName
+			// a host read-only session keeps its other permissions (read, open types) but not the edit lane
+			const open = set.edit.openTypes?.includes(typeName) || this.objectTypes.has(typeName)
+			if (hostReadonly && !open) {
+				this.log?.warn?.('edit denied for a read-only session', change.op, typeName, change.id)
+				return { editDenied: `edit denied: ${change.op} ${typeName}`, stamped }
+			}
 			if (
-				!canEditRecord(set, actor, {
+				!canEditRecord(objectSet, actor, {
 					op: change.op,
 					prev: change.prev,
 					next: change.next,
@@ -2096,7 +2114,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					before,
 				})
 			) {
-				const typeName = (change.next ?? change.prev)!.typeName
 				this.log?.warn?.('edit policy denied push', change.op, typeName, change.id)
 				return { editDenied: `edit denied: ${change.op} ${typeName}`, stamped }
 			}
@@ -2247,11 +2264,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 /** @internal */
 /** The actor the edit lane sees: a host-read-only session has no edit permission. */
-function editActor(session: { actor: TLCommandActor; hostReadonly: boolean }): TLCommandActor {
-	if (!session.hostReadonly) return session.actor
-	return { ...session.actor, permissions: [] }
-}
-
 /** @internal */
 export interface MinimalDocStore<R extends UnknownRecord> {
 	get(id: string): UnknownRecord | undefined

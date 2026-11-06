@@ -1,5 +1,11 @@
 import type { UnknownRecord } from '@tldraw/store'
-import { defineCommand, defineCommandSet, type TLCommandActor } from '@tldraw/sync-core'
+import {
+	defineCommand,
+	defineCommandSet,
+	getTlsyncProtocolVersion,
+	TLSocketRoom,
+	type TLCommandActor,
+} from '@tldraw/sync-core'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -16,7 +22,7 @@ import {
 	UserRecordType,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
-import { LocalRoom } from './test/harness'
+import { LocalRoom, schema } from './test/harness'
 import {
 	commentCommands,
 	createOwnedShapesPolicy,
@@ -934,6 +940,125 @@ describe('closed gaps', () => {
 		room.room.updateSessionActor('old', { userId: 'alice', permissions: [P.read] })
 		room.flush()
 		expect(old.isClosed()).toBe(true)
+	})
+})
+
+describe('review findings', () => {
+	const answers = 'page:answers' as TLPageId
+	function rawSession(opts: { isReadonly?: boolean; objectTypes?: string[] } = {}) {
+		const room = new TLSocketRoom<any, void>({
+			schema,
+			commands: commands as any,
+			objectTypes: opts.objectTypes,
+			log: { warn: () => {}, error: console.error },
+		})
+		const out: any[] = []
+		room.handleSocketConnect({
+			sessionId: 'm',
+			isReadonly: opts.isReadonly,
+			actor: student('mallory'),
+			socket: { readyState: 1, send: (d) => out.push(JSON.parse(d)), close: () => {} },
+		})
+		const send = (msg: object) => room.handleSocketMessage('m', JSON.stringify(msg))
+		send({
+			type: 'connect',
+			connectRequestId: 'x',
+			lastServerClock: 0,
+			protocolVersion: getTlsyncProtocolVersion(),
+			schema: schema.serialize(),
+		})
+		let clock = 0
+		const push = (diff: object) => {
+			send({ type: 'push', clientClock: clock++, diff })
+			;(room as any).room._flushDataMessages('m')
+			return out
+				.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+				.reverse()
+				.find((m) => m.type === 'push_result')
+		}
+		return { room, push }
+	}
+
+	it('comment types in the object lane are still command-only', () => {
+		const { room, push } = rawSession({ objectTypes: ['comment', 'comment-thread'] })
+		const thread = {
+			id: 'comment-thread:x',
+			typeName: 'comment-thread',
+			pageId: page,
+			anchor: { type: 'page' },
+			createdBy: 'teacher',
+			createdAt: 1,
+			resolved: null,
+			isDeleted: false,
+			meta: {},
+		}
+		expect(push({ 'comment-thread:x': ['put', thread] })).toMatchObject({ action: 'discard' })
+		expect(room.getRecord('comment-thread:x')).toBeUndefined()
+	})
+
+	it('a host read-only session still writes its own user record', () => {
+		const { room, push } = rawSession({ isReadonly: true })
+		const user = UserRecordType.create({ id: UserRecordType.createId('mallory'), name: 'm' })
+		expect(push({ [user.id]: ['put', user] })).toMatchObject({ action: 'commit' })
+		expect(room.getRecord(user.id)).toBeDefined()
+		const shape = { id: 'shape:x', typeName: 'shape' }
+		expect(push({ 'shape:x': ['put', shape] })).toMatchObject({ action: 'discard' })
+	})
+
+	it('a frame moved to a hidden page by a direct storage write takes its children with it', async () => {
+		const { room, t, a } = setup()
+		t.run('pages.create', { id: answers, name: 'Answers' })
+		t.run('pages.setReaders', { id: answers, readers: [] })
+		room.flush()
+		const frame = createShapeId('frame')
+		const child = createShapeId('child')
+		t.getEditor().createShape({ id: frame, type: 'frame', props: { w: 500, h: 500 } })
+		t.getEditor().createShape({ id: child, type: 'geo', parentId: frame, x: 10, y: 10 })
+		room.flush()
+		expect(a.get(child)).toBeDefined()
+		await room.room.updateStore((store) => {
+			store.put({ ...(store.get(frame) as TLShape), parentId: answers })
+		})
+		room.flush()
+		expect(a.get(frame)).toBeUndefined()
+		expect(a.get(child)).toBeUndefined()
+	})
+
+	it('undo of a step with a vote and a drag of the same shape undoes both', () => {
+		const room = new LocalRoom(commands)
+		const a = room.connect('a', student('alice'))
+		room.flush()
+		const id = createShapeId()
+		const editor = a.getEditor()
+		editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+		room.flush()
+		editor.markHistoryStoppingPoint()
+		a.run('votes.toggle', { shapeId: id })
+		editor.updateShape({ id, type: 'geo', x: 400 })
+		room.flush()
+		editor.undo()
+		room.flush()
+		const server = room.room.getRecord(id) as TLShape
+		expect({ x: server.x, votes: server.meta.votes ?? [] }).toEqual({ x: 0, votes: [] })
+		expect(a.get<TLShape>(id)!.x).toBe(0)
+		expect(a.rejections).toEqual([])
+	})
+
+	it('undo of a step that creates a shape and votes on it removes the shape everywhere', () => {
+		const room = new LocalRoom(commands)
+		const a = room.connect('a', student('alice'))
+		room.flush()
+		const editor = a.getEditor()
+		editor.markHistoryStoppingPoint()
+		const id = createShapeId()
+		editor.createShape({ id, type: 'geo', x: 0, y: 0 })
+		a.run('votes.toggle', { shapeId: id })
+		room.flush()
+		editor.undo()
+		room.flush()
+		expect(a.get(id)).toBeUndefined()
+		expect(room.room.getRecord(id)).toBeUndefined()
+		expect(a.rejections).toEqual([])
 	})
 })
 

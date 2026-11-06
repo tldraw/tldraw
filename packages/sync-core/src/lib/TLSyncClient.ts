@@ -5,6 +5,7 @@ import {
 	Store,
 	UnknownRecord,
 	createEmptyRecordsDiff,
+	isRecordsDiffEmpty,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
@@ -755,10 +756,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// Send edits made before this command first, so the server sees them in order.
 		this.store._flushHistory()
 		this.flushUnsentChanges()
-		if (!this.isConnectedToRoom && this.offlineChanges) {
-			// keep the order: offline edits so far, then this command
-			this.replay.push(...this.takeOfflineChanges())
-		}
 
 		const result = runCommand(this.commands, this.commandReader(), this.actor.get(), call)
 		if (!result.ok) {
@@ -787,6 +784,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	private sendCommand(call: TLCommandCall, commandId = uniqueId()) {
+		// keep the order: offline edits so far, then this command
+		if (!this.isConnectedToRoom && this.offlineChanges) {
+			this.replay.push(...this.takeOfflineChanges())
+		}
 		const pushRequest: TLPushRequest<R> = {
 			type: 'push',
 			clientClock: this.clientClock++,
@@ -885,6 +886,36 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				values: () => this.store.allRecords(),
 			}
 			const next = runCommand(this.commands, reader, this.actor.get(), entry.inverse)
+			// The same step may hold raw edits to the command's records, such as a drag of a shape
+			// that was also voted on. The inverse undoes only the command's part, so the rest goes as
+			// a raw edit after it: from what the inverse leaves on the server to the undo target.
+			const fixups = createEmptyRecordsDiff<R>()
+			const preUndo = (id: string): R | undefined => {
+				if (id in changes.updated) return (changes.updated as any)[id][0]
+				if (id in changes.removed) return (changes.removed as any)[id]
+				if (id in changes.added) return undefined
+				return this.store.get(id as RecordId<R>)
+			}
+			const onServer = runCommand(
+				this.commands,
+				{ get: preUndo, values: () => this.store.allRecords() },
+				this.actor.get(),
+				entry.inverse
+			)
+			if (onServer.ok) {
+				const puts = new Map(onServer.writes.puts.map((r) => [r.id as string, r]))
+				const deletes = new Set(onServer.writes.deletes)
+				for (const id of entry.before.keys()) {
+					// untouched since the command: the inverse alone is the undo
+					if (isEqual(preUndo(id), entry.after.get(id))) continue
+					const left = deletes.has(id) ? undefined : (puts.get(id) ?? preUndo(id))
+					const target = valueAfter(id)[1]
+					if (isEqual(left, target)) continue
+					if (left && target) (fixups.updated as any)[id] = [left, target]
+					else if (target) (fixups.added as any)[id] = target
+					else if (left) (fixups.removed as any)[id] = left
+				}
+			}
 			this.undoable.splice(i, 1)
 			if (next.ok && next.inverse) {
 				this.undoable.splice(i, 0, {
@@ -904,6 +935,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.push(remaining)
 			this.flushUnsentChanges()
 			this.sendCommand(entry.inverse)
+			if (!isRecordsDiffEmpty(fixups)) {
+				this.push(fixups)
+				this.flushUnsentChanges()
+			}
 			rest = createEmptyRecordsDiff<R>()
 		}
 		return rest

@@ -526,17 +526,16 @@ export function createPageReadPolicy<
 		canRead(actor, record, records) {
 			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
 			if (record.typeName === 'asset') {
-				// An asset is hidden when every shape that uses it is hidden. An asset that no shape
-				// uses yet (an upload in progress) is visible: it tells nobody anything.
-				let used = false
-				for (const shape of records.getAll('shape')) {
-					if ((shape as TLShape & { props: { assetId?: unknown } }).props.assetId !== record.id) {
-						continue
-					}
-					if (canReadShape(actor, shape, records)) return true
-					used = true
-				}
-				return !used
+				// An asset is visible when a shape the actor can read uses it. An asset that no shape
+				// uses is hidden too: it may be left over from a hidden page. Its uploader still has it,
+				// and others get it with the first shape that uses it.
+				return records
+					.getAll('shape')
+					.some(
+						(shape) =>
+							(shape as TLShape & { props: { assetId?: unknown } }).props.assetId === record.id &&
+							canReadShape(actor, shape, records)
+					)
 			}
 			const pageId = getRecordPageId(record, records.get)
 			if (!pageId) return true
