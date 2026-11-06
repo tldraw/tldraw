@@ -2,19 +2,24 @@
 
 import {
 	BaseBoxShapeUtil,
+	FileHelpers,
 	HTMLContainer,
 	SvgExportContext,
+	TLAsset,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
+	TLShapeId,
 	clamp,
 	embedShapeMigrations,
 	embedShapeProps,
+	fetch,
 	lerp,
 	resizeBox,
 	toDomPrecision,
 	useColorMode,
 	useIsEditing,
+	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
 import {
@@ -58,6 +63,49 @@ export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * ```
 	 */
 	readonly embedConfig?: DefaultEmbedConfig & Record<string, unknown>
+}
+
+async function fetchImageAsDataUrl(src: string) {
+	try {
+		// An export shows nothing at all if any shape takes longer than maxExportDelayMs (5s).
+		const response = await fetch(src, { signal: AbortSignal.timeout(2000) })
+		if (!response.ok) return null
+		const blob = await response.blob()
+		if (!blob.type.startsWith('image/')) return null
+		return await FileHelpers.blobToDataUrl(blob)
+	} catch {
+		return null
+	}
+}
+
+function EmbedPreviewImage({
+	id,
+	w,
+	h,
+	radius,
+	href,
+}: {
+	id: TLShapeId
+	w: number
+	h: number
+	radius: number
+	href: string
+}) {
+	const clipPathId = useSharedSafeId(id + '_clip')
+	return (
+		<>
+			<clipPath id={clipPathId}>
+				<rect width={w} height={h} rx={radius} />
+			</clipPath>
+			<image
+				href={href}
+				width={w}
+				height={h}
+				preserveAspectRatio="xMidYMid slice"
+				clipPath={`url(#${clipPathId})`}
+			/>
+		</>
+	)
 }
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -178,7 +226,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	 */
 	private async getContentAspectRatio(url: string): Promise<number | undefined> {
 		try {
-			const asset = await this.editor.getAssetForExternalContent({ type: 'url', url })
+			const asset = await this.getUrlAsset(url)
 			if (!asset || asset.type !== 'bookmark') return undefined
 			const width = asset.meta.imageWidth
 			const height = asset.meta.imageHeight
@@ -189,6 +237,56 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			// Resolving the aspect ratio is best-effort: never let a metadata fetch failure surface.
 		}
 		return undefined
+	}
+
+	/**
+	 * Look up the page's preview image (its OpenGraph image) through the editor's url asset handler,
+	 * keep it as a bookmark asset, and point the shape's `assetId` at it, so exports can draw it in
+	 * place of the iframe. Applied without adding to the undo history.
+	 */
+	async resolvePreviewImage(shape: TLEmbedShape) {
+		const { url } = shape.props
+		if (!url || this.getPreviewAsset(shape)) return
+		const asset = await this.getUrlAsset(url)
+		if (this.editor.isDisposed) return
+
+		const latest = this.editor.getShape<TLEmbedShape>(shape.id)
+		// The url changed while we were waiting: a later run handles the new one.
+		if (!latest || latest.props.url !== url) return
+		const assetId = asset?.type === 'bookmark' && asset.props.image ? asset.id : null
+		if (latest.props.assetId === assetId) return
+
+		this.editor.run(
+			() => {
+				if (asset && assetId && !this.editor.getAsset(assetId)) this.editor.createAssets([asset])
+				this.editor.updateShape<TLEmbedShape>({ id: latest.id, type: 'embed', props: { assetId } })
+			},
+			{ history: 'ignore', ignoreShapeLock: true }
+		)
+	}
+
+	// Only an asset for the current url: one set before the url changed is about to be replaced.
+	private getPreviewAsset(shape: TLEmbedShape) {
+		const asset = shape.props.assetId ? this.editor.getAsset(shape.props.assetId) : undefined
+		return asset?.type === 'bookmark' && asset.props.src === shape.props.url ? asset : undefined
+	}
+
+	private urlAssets = new Map<string, Promise<TLAsset | null>>()
+
+	// An embed that sizes to its content and looks up its image asks for the same page: unfurl once.
+	private getUrlAsset(url: string) {
+		let asset = this.urlAssets.get(url)
+		if (!asset) {
+			asset = this.editor
+				.getAssetForExternalContent({ type: 'url', url })
+				.then(
+					(result) => result ?? null,
+					() => null
+				)
+				.finally(() => this.urlAssets.delete(url))
+			this.urlAssets.set(url, asset)
+		}
+		return asset
 	}
 
 	override getText(shape: TLEmbedShape) {
@@ -218,6 +316,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 			w: 300,
 			h: 300,
 			url: '',
+			assetId: null,
 		}
 	}
 
@@ -231,10 +330,16 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	// An export can't capture the iframe, so without this an embed exports as a blank box.
-	override toSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
+	override async toSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
 		const { w, h, url } = shape.props
 		const definition = this.getEmbedDefinition(url)?.definition
 		const radius = definition?.overrideOutlineRadius ?? 8
+		const stored = this.getPreviewAsset(shape)?.props.image
+		// An SVG drawn as an image can't load remote ones, so the export inlines it.
+		const image = stored ? await fetchImageAsDataUrl(stored) : null
+		if (image) {
+			return <EmbedPreviewImage id={shape.id} w={w} h={h} radius={radius} href={image} />
+		}
 		const address = getHumanReadableAddress(url)
 		const theme = this.editor.getCurrentTheme()
 		const colors = theme.colors[ctx.colorMode]

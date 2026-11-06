@@ -1072,6 +1072,22 @@ describe('Removes overridePermissions from embed', () => {
 	})
 })
 
+describe('Add asset id to embed shape', () => {
+	const { up, down } = getTestMigration(embedShapeVersions.AddAssetId)
+
+	test('up works as expected', () => {
+		expect(up({ props: { url: 'https://tldraw.com' } })).toEqual({
+			props: { url: 'https://tldraw.com', assetId: null },
+		})
+	})
+
+	test('down works as expected', () => {
+		expect(down({ props: { url: 'https://tldraw.com', assetId: 'asset:1' } })).toEqual({
+			props: { url: 'https://tldraw.com' },
+		})
+	})
+})
+
 describe('propsForNextShape -> stylesForNextShape', () => {
 	test('deletes propsForNextShape and adds stylesForNextShape without trying to bring across contents', () => {
 		const { up } = getTestMigration(instanceVersions.ReplacePropsForNextShapeWithStylesForNextShape)
