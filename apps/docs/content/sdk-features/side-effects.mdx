@@ -52,21 +52,26 @@ editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
 
 You might auto-save only after user operations, or skip validation for trusted remote data.
 
-Changes that handlers make in reaction to a remote change, such as deleting a group whose last child another person deleted, also have the source `'remote'`. They are still sent to the server like other local changes.
+Changes that handlers make in reaction to a remote change, such as deleting a group whose last child another person deleted, have the source `'user'`, because this client sends them to the server. While the store makes them, `editor.store.isReactingToRemoteChanges()` returns `true`.
 
 ### Blocking writes
 
-Before handlers can block any local write: return `false` from `beforeCreate` or `beforeDelete`, or return `prev` from `beforeChange`. Only block writes whose source is `'user'`. The server has already accepted a remote write, so if you block it, this client no longer matches the server.
+Before handlers can block any local write: return `false` from `beforeCreate` or `beforeDelete`, or return `prev` from `beforeChange`. Block only writes that someone asked for on this client. Let remote writes and the cleanup that follows them through: the server has already accepted the remote change, so if you block it or its cleanup, this client no longer matches the server.
 
 ```typescript
+const isLocal = (source: 'user' | 'remote') =>
+	source === 'user' && !editor.store.isReactingToRemoteChanges()
+
 editor.sideEffects.register({
 	shape: {
-		beforeCreate: (shape, source) => (source === 'user' && !canEdit(shape) ? false : shape),
-		beforeChange: (prev, next, source) => (source === 'user' && !canEdit(prev) ? prev : next),
-		beforeDelete: (shape, source) => (source === 'user' && !canEdit(shape) ? false : undefined),
+		beforeCreate: (shape, source) => (isLocal(source) && !canEdit(shape) ? false : shape),
+		beforeChange: (prev, next, source) => (isLocal(source) && !canEdit(prev) ? prev : next),
+		beforeDelete: (shape, source) => (isLocal(source) && !canEdit(shape) ? false : undefined),
 	},
 })
 ```
+
+The store ignores a veto of its own integrity repairs, such as creating a page when the last one was deleted.
 
 A blocked write is skipped on its own. Other records in the same operation are still written, so a handler that blocks part of an operation can leave related records inconsistent, for example a binding to a shape that was not created.
 

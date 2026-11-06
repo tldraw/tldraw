@@ -425,6 +425,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     readonly id: string;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
+    isReactingToRemoteChanges(): boolean;
     listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
     loadStoreSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)

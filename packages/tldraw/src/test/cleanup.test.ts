@@ -132,24 +132,28 @@ describe('restoring bound arrows multiplayer', () => {
 })
 
 describe('a local write veto and remote changes', () => {
-	// A veto that blocks every local delete, as an access layer might for a viewer. It lets
-	// remote writes through, as the store side-effect docs require.
+	// A veto that blocks every delete someone asks for on this client, as an access layer might
+	// for a viewer. It lets remote changes and their cleanup through, as the side-effect docs
+	// require.
 	function vetoLocalDeletes() {
 		const seen: string[] = []
+		const veto = (typeName: string, source: 'user' | 'remote') => {
+			const reacting = editor.store.isReactingToRemoteChanges()
+			seen.push(`${typeName}:${source}:${reacting}`)
+			return source === 'user' && !reacting ? false : undefined
+		}
 		const unregister = [
-			editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {
-				seen.push(`${shape.type}:${source}`)
-				return source === 'user' ? false : undefined
-			}),
-			editor.sideEffects.registerBeforeDeleteHandler('binding', (binding, source) => {
-				seen.push(`${binding.type}:${source}`)
-				return source === 'user' ? false : undefined
-			}),
+			editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) =>
+				veto(shape.type, source)
+			),
+			editor.sideEffects.registerBeforeDeleteHandler('binding', (binding, source) =>
+				veto(binding.type, source)
+			),
 		]
 		return { seen, dispose: () => unregister.forEach((fn) => fn()) }
 	}
 
-	// The binding cleanup runs inside the merge itself, so it is remote either way.
+	// The binding cleanup runs inside the merge itself, so its source is 'remote'.
 	it('does not block the binding cleanup after a remote delete', () => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
@@ -166,13 +170,14 @@ describe('a local write veto and remote changes', () => {
 
 		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.box2]))
 
-		expect(veto.seen.sort()).toEqual(['arrow:remote', 'geo:remote'])
+		expect(veto.seen.sort()).toEqual(['arrow:remote:false', 'geo:remote:false'])
 		expect(bindings().start).toBeDefined()
 		expect(bindings().end).toBeUndefined()
 		veto.dispose()
 	})
 
-	// The group cleanup runs after the merge, in an operation-complete handler.
+	// The group cleanup runs after the merge, in an operation-complete handler, so its source is
+	// 'user' (this client pushes it), but the store is reacting to the remote change.
 	it('does not block the group cleanup after a remote delete', () => {
 		editor.createShapes([
 			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
@@ -184,7 +189,7 @@ describe('a local write veto and remote changes', () => {
 		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.box1, ids.box2]))
 
 		expect(editor.getShape(ids.group1)).toBeUndefined()
-		expect(veto.seen).toContain('group:remote')
+		expect(veto.seen).toContain('group:user:true')
 		veto.dispose()
 	})
 
@@ -195,6 +200,22 @@ describe('a local write veto and remote changes', () => {
 		editor.deleteShapes([ids.box1])
 
 		expect(editor.getShape(ids.box1)).toBeDefined()
+		expect(veto.seen).toEqual(['geo:user:false'])
 		veto.dispose()
+	})
+
+	it('cannot block the integrity repair after a remote change deletes every page', () => {
+		// a naive veto that blocks every local page creation, even the repair
+		const dispose = editor.sideEffects.registerBeforeCreateHandler('page', (page, source) =>
+			source === 'user' ? false : page
+		)
+
+		editor.store.mergeRemoteChanges(() =>
+			editor.store.remove(editor.getPages().map((page) => page.id))
+		)
+
+		expect(editor.getPages()).toHaveLength(1)
+		expect(editor.getCurrentPage()).toBeDefined()
+		dispose()
 	})
 })

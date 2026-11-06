@@ -616,7 +616,7 @@ describe('atomic operations (AO)', () => {
 		expect(sources).toEqual(['remote', 'remote'])
 	})
 
-	test('[AO8] side-effect cascades from remote changes are recorded as user and handled as remote', () => {
+	test('[AO8] side-effect cascades from remote changes are attributed to user', () => {
 		const diffs: HistoryEntry<LibraryType>[] = []
 		store.listen((entry) => {
 			diffs.push(entry)
@@ -640,8 +640,8 @@ describe('atomic operations (AO)', () => {
 		})
 
 		expect(firstOrderEffectSources).toEqual(['remote'])
-		// handlers see the cascade as remote, but history records it as user, so sync pushes it
-		expect(secondOrderEffectSources).toEqual(['remote'])
+		// recursive changes are always user
+		expect(secondOrderEffectSources).toEqual(['user'])
 
 		expect(diffs).toMatchObject([
 			{
@@ -668,7 +668,7 @@ describe('atomic operations (AO)', () => {
 })
 
 describe('remote attribution (AO)', () => {
-	it('[AO8] changes made by operationComplete handlers after a remote operation are recorded as user and handled as remote', () => {
+	it('[AO8] changes made by operationComplete handlers after a remote operation are attributed to user', () => {
 		store.put([book1, book2])
 		const log: string[] = []
 		store.addHistoryInterceptor((_entry, source) => log.push('history:' + source))
@@ -690,8 +690,8 @@ describe('remote attribution (AO)', () => {
 			'history:remote',
 			'operationComplete:remote',
 			'history:user',
-			'afterChange:remote',
-			'operationComplete:remote',
+			'afterChange:user',
+			'operationComplete:user',
 			// the integrity check after the merge is its own (empty) user operation
 			'operationComplete:user',
 		])
@@ -699,13 +699,14 @@ describe('remote attribution (AO)', () => {
 })
 
 describe('vetoes and remote writes (SE7)', () => {
-	it('[SE7] [AO8] before handlers see writes made in reaction to a remote change as remote', () => {
+	it('[SE7] [AO8] writes made in reaction to a remote change are user, while isReactingToRemoteChanges is true', () => {
 		store.put([book1, book2])
 		const seen: string[] = []
 		store.sideEffects.registerBeforeDeleteHandler('book', (record, source) => {
-			seen.push(`${record.id}:${source}`)
-			// a veto that only applies to local writes
-			if (source === 'user') return false
+			const reacting = store.isReactingToRemoteChanges()
+			seen.push(`${record.id}:${source}:${reacting}`)
+			// a veto that only applies to writes someone asked for on this client
+			if (source === 'user' && !reacting) return false
 			return undefined
 		})
 		// deleting book1 remotely cleans up book2 locally
@@ -718,23 +719,34 @@ describe('vetoes and remote writes (SE7)', () => {
 		store.mergeRemoteChanges(() => store.remove([book1Id]))
 		store._flushHistory()
 
-		expect(seen).toEqual([`${book1Id}:remote`, `${book2Id}:remote`])
+		expect(seen).toEqual([`${book1Id}:remote:false`, `${book2Id}:user:true`])
 		expect(store.has(book2Id)).toBe(false)
-		// the cleanup is still a user change, so a sync client pushes it
+		// the cleanup is a user change, so a sync client pushes it
 		expect(sources).toEqual(['remote', 'user'])
+		expect(store.isReactingToRemoteChanges()).toBe(false)
 	})
 
-	it('[SE7] local writes after a remote merge are user again', () => {
-		const sources: string[] = []
-		store.sideEffects.registerBeforeCreateHandler('book', (record, source) => {
-			sources.push(source)
-			return record
+	it('[SE7] isReactingToRemoteChanges is true during the integrity check after a merge', () => {
+		const during: boolean[] = []
+		store.sideEffects.registerOperationCompleteHandler(() => {
+			during.push(store.isReactingToRemoteChanges())
 		})
 
 		store.mergeRemoteChanges(() => store.put([book1]))
 		store.put([book2])
 
-		expect(sources).toEqual(['remote', 'user'])
+		// the merge, then the integrity check, then the local put
+		expect(during).toEqual([true, true, false])
+	})
+
+	it('[SE7] isReactingToRemoteChanges is false after a merge that throws', () => {
+		expect(() =>
+			store.mergeRemoteChanges(() => {
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+
+		expect(store.isReactingToRemoteChanges()).toBe(false)
 	})
 
 	it('[SE7] the store honours a veto of a remote write', () => {
@@ -743,6 +755,18 @@ describe('vetoes and remote writes (SE7)', () => {
 		store.mergeRemoteChanges(() => store.put([book1]))
 
 		expect(store.has(book1Id)).toBe(false)
+	})
+
+	it('[SE3] [SE7] a beforeChange veto stops the chain, so a later handler cannot undo it', () => {
+		store.put([book1])
+		const later = vi.fn((_prev: Book, next: Book) => ({ ...next, numPages: next.numPages + 1 }))
+		store.sideEffects.registerBeforeChangeHandler('book', (prev) => prev)
+		store.sideEffects.registerBeforeChangeHandler('book', later)
+
+		store.update(book1Id, (b) => ({ ...b, title: 'changed' }))
+
+		expect(store.get(book1Id)).toEqual(book1)
+		expect(later).not.toHaveBeenCalled()
 	})
 })
 

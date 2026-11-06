@@ -297,12 +297,14 @@ export class StoreSideEffects<R extends UnknownRecord> {
 
 	/**
 	 * Processes all registered 'before change' handlers for a record.
-	 * Handlers are called in registration order and can modify or block the change.
+	 * Handlers are called in registration order and can modify or block the change. A handler
+	 * that returns `prev` blocks the change, and later handlers are not called.
 	 *
 	 * @param prev - The current version of the record
 	 * @param next - The proposed new version of the record
 	 * @param source - Whether the change originated from 'user' or 'remote'
-	 * @returns The potentially modified record to actually store
+	 * @returns The potentially modified record to actually store, or `prev` if a handler blocked
+	 * the change
 	 * @internal
 	 */
 	handleBeforeChange(prev: R, next: R, source: 'remote' | 'user') {
@@ -313,6 +315,8 @@ export class StoreSideEffects<R extends UnknownRecord> {
 			let r = next
 			for (const handler of handlers) {
 				r = handler(prev, r, source)
+				// a later handler that returns a new object must not undo the block
+				if (r === prev) return prev
 			}
 			return r
 		}
@@ -466,9 +470,10 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * Together with `return prev` in a before-change handler and `return false` in a
 	 * before-delete handler, this lets a handler veto any local write. Do not veto a write whose
-	 * `source` is `'remote'`: the server has already accepted it, so blocking it leaves this
-	 * client out of sync with the server. Writes that the store makes in reaction to a remote
-	 * change (for example, cleanup in an after-delete handler) also have the source `'remote'`.
+	 * `source` is `'remote'`, or a write made while {@link Store.isReactingToRemoteChanges} is
+	 * true: the server has already accepted the remote change, so blocking it or its cleanup
+	 * leaves this client out of sync with the server. The store ignores a veto of its own
+	 * integrity repairs.
 	 *
 	 * Use this handle only to modify the creation of the record itself. If you want to trigger a
 	 * side-effect on a different record (for example, moving one shape when another is created),
