@@ -193,11 +193,27 @@ export function parseTldrawJsonFile({
 function pruneUnusedAssets(records: TLRecord[]) {
 	const usedAssets = new Set<TLAssetId>()
 	for (const record of records) {
-		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
+		if (record.typeName !== 'shape') continue
+		if ('assetId' in record.props && record.props.assetId) {
 			usedAssets.add(record.props.assetId)
 		}
+		// Otherwise the off-screen half of a background-removal pair is dropped.
+		collectReferencedAssetIds(record.meta, usedAssets)
 	}
 	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id))
+}
+
+function collectReferencedAssetIds(value: unknown, into: Set<TLAssetId>) {
+	if (typeof value === 'string') {
+		if (value.startsWith('asset:')) into.add(value as TLAssetId)
+		return
+	}
+	if (Array.isArray(value)) {
+		for (const item of value) collectReferencedAssetIds(item, into)
+		return
+	}
+	if (!value || typeof value !== 'object') return
+	for (const item of Object.values(value)) collectReferencedAssetIds(item, into)
 }
 
 /** @public */

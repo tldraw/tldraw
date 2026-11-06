@@ -1,4 +1,4 @@
-import { useShallowObjectIdentity } from '@tldraw/editor'
+import { type TLShapeId, useShallowObjectIdentity } from '@tldraw/editor'
 import { ComponentType, ReactNode, createContext, useContext, useMemo } from 'react'
 import { DefaultA11yAnnouncer } from '../components/A11y'
 import {
@@ -73,6 +73,8 @@ export interface TLUiComponents {
 	Toolbar?: ComponentType | null
 	RichTextToolbar?: ComponentType<TLUiRichTextToolbarProps> | null
 	ImageToolbar?: ComponentType | null
+	/** Extra controls on the image toolbar's idle row, after crop. */
+	ImageToolbarExtra?: ComponentType<{ imageShapeId: TLShapeId }> | null
 	VideoToolbar?: ComponentType | null
 	KeyboardShortcutsDialog?: ComponentType<TLUiKeyboardShortcutsDialogProps> | null
 	QuickActions?: ComponentType<TLUiQuickActionsProps> | null
