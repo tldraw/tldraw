@@ -67,11 +67,14 @@ export {
 	type TLSocketStatusListener,
 } from './lib/TLSyncClient'
 export {
+	composeBeforeRead,
 	composeBeforeWrite,
 	TLSyncRoom,
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
+	type TLBeforeReadHook,
+	type TLBeforeReadHooks,
 	type TLBeforeWriteHook,
 	type TLBeforeWriteHooks,
 	// oxlint-disable-next-line typescript/no-deprecated

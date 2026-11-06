@@ -10,6 +10,7 @@ import { TLSyncErrorCloseEventReason } from './TLSyncClient'
 import {
 	beforeWriteFromAuthorizers,
 	RoomSnapshot,
+	TLBeforeReadHooks,
 	TLBeforeWriteHooks,
 	TLRecordAuthorizers,
 	TLSyncRoom,
@@ -168,6 +169,13 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	// oxlint-disable-next-line typescript/no-deprecated
 	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	/**
+	 * Per-type hooks that decide what each session receives: the record, a changed copy, or
+	 * nothing. See {@link TLBeforeReadHook}. Combine maps with {@link composeBeforeRead}.
+	 *
+	 * A hook runs again when a record that it read with `get` changes.
+	 */
+	beforeRead?: TLBeforeReadHooks<R, SessionMeta>
+	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
 	 * Use for persisting snapshots to WebSocket attachments (e.g. Cloudflare hibernation).
@@ -304,6 +312,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			objectTypes: opts.objectTypes,
 			beforeWrite:
 				opts.beforeWrite ?? (authorizeRecord && beforeWriteFromAuthorizers(authorizeRecord)),
+			beforeRead: opts.beforeRead,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

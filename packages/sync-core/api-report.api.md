@@ -60,6 +60,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 }
 
 // @public
+export function composeBeforeRead<R extends UnknownRecord, SessionMeta>(...maps: TLBeforeReadHooks<R, SessionMeta>[]): TLBeforeReadHooks<R, SessionMeta>;
+
+// @public
 export function composeBeforeWrite<R extends UnknownRecord, SessionMeta>(...maps: TLBeforeWriteHooks<R, SessionMeta>[]): TLBeforeWriteHooks<R, SessionMeta>;
 
 // @public
@@ -263,18 +266,24 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingConnectMessage;
-    sessionStartTime: number;
-}) | (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingRemoval;
-    cancellationTime: number;
-}) | (RoomSessionBase<R, Meta> & {
+    held: {
+        complete: boolean;
+        readBy: Map<string, Set<string>>;
+        reads: Map<string, Set<string>>;
+        records: Map<string, 'none' | 'same' | R>;
+    };
     state: typeof RoomSessionState.Connected;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
     requiresDownMigrations: boolean;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingConnectMessage;
+    sessionStartTime: number;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingRemoval;
+    cancellationTime: number;
 });
 
 // @internal
@@ -383,6 +392,25 @@ export interface SyncSqliteDatabase {
         run(...params: unknown[]): unknown;
     };
 }
+
+// @public
+export type TLBeforeReadHook<Rec extends UnknownRecord, SessionMeta> = (args: {
+    get<Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined;
+    record: Rec;
+    session: {
+        isReadonly: boolean;
+        meta: SessionMeta;
+        sessionId: string;
+    };
+    get(id: string): undefined | UnknownRecord;
+}) => null | Rec | void;
+
+// @public
+export type TLBeforeReadHooks<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLBeforeReadHook<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
 
 // @public
 export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
@@ -578,6 +606,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     // @deprecated (undocumented)
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+    beforeRead?: TLBeforeReadHooks<R, SessionMeta>;
     beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
@@ -753,6 +782,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         beforeWrite?: TLBeforeWriteHooks<R, SessionMeta>;
         objectTypes?: readonly string[];
+        beforeRead?: TLBeforeReadHooks<R, SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;

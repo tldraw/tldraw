@@ -145,4 +145,21 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+			/**
+			 * What the client holds of each record that has a `beforeRead` hook: the stored record
+			 * (`same`), the changed copy it was sent, or nothing (`none`). `complete` is true after a
+			 * full view, where a missing id means `none`. A resumed session is incomplete until its
+			 * first broadcast sends it a full view.
+			 *
+			 * `reads` holds the ids that each hooked record's hook read with `get`, and `readBy` the
+			 * reverse, so that a change to one record re-runs the hooks that read it.
+			 *
+			 * @internal
+			 */
+			held: {
+				complete: boolean
+				records: Map<string, 'same' | 'none' | R>
+				reads: Map<string, Set<string>>
+				readBy: Map<string, Set<string>>
+			}
 	  })
