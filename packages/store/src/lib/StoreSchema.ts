@@ -277,7 +277,7 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 }
 
 // A rule may ask the policy of another record. This stops a cycle of such calls.
-const MAX_POLICY_DEPTH = 32
+const MAX_POLICY_DEPTH = 16
 
 /**
  * Manages the schema definition, validation, and migration system for a Store.
@@ -442,11 +442,49 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		return this._authorize(actor, request, get, 0)
 	}
 
+	/**
+	 * Walks the `readFollows` chain of `record` (a shape's parents up to its page, for example)
+	 * and runs the read rule of each record on it. The walk is a loop with its own visited set:
+	 * it does not use the depth budget of rules that call `authorize`, so deep nesting is fine, and
+	 * a cycle in the data ends the walk instead of hiding the records on it.
+	 */
+	private isFollowedReadable(
+		actor: PolicyActor,
+		record: R,
+		get: (id: string) => UnknownRecord | undefined,
+		depth: number
+	): boolean {
+		const seen = new Set<string>([record.id])
+		const queue: UnknownRecord[] = [record]
+		while (queue.length) {
+			const current = queue.pop()!
+			const follows = this.policies.get(current.typeName)?.readFollows
+			if (!follows) continue
+			let ids: readonly (string | undefined)[]
+			try {
+				ids = follows(current)
+			} catch {
+				return false
+			}
+			for (const id of ids) {
+				if (id === undefined || seen.has(id)) continue
+				seen.add(id)
+				const followed = get(id)
+				if (!followed) continue
+				const request = { verb: 'read', record: followed as R } as const
+				if (!this._authorize(actor, request, get, depth + 1, false)) return false
+				queue.push(followed)
+			}
+		}
+		return true
+	}
+
 	private _authorize(
 		actor: PolicyActor,
 		request: PolicyRequest<R>,
 		get: (id: string) => UnknownRecord | undefined,
-		depth: number
+		depth: number,
+		isFollowing = true
 	): boolean {
 		if (depth > MAX_POLICY_DEPTH) return false
 		const subject = getPolicySubject(request)
@@ -466,21 +504,12 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 		}
 		const noRule = request.verb !== 'action'
 		const policy = this.policies.get(type.typeName)
-		if (request.verb === 'read' && policy?.readFollows) {
-			let followed: readonly (string | undefined)[]
-			try {
-				followed = policy.readFollows(request.record)
-			} catch {
-				return false
-			}
-			for (const id of followed) {
-				const record = id === undefined ? undefined : get(id)
-				if (
-					record &&
-					!this._authorize(actor, { verb: 'read', record: record as R }, get, depth + 1)
-				)
-					return false
-			}
+		if (
+			request.verb === 'read' &&
+			isFollowing &&
+			!this.isFollowedReadable(actor, request.record, get, depth)
+		) {
+			return false
 		}
 		const rule = getPolicyRule(policy, request)
 		if (!rule) return noRule

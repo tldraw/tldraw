@@ -103,6 +103,27 @@ describe('schema.authorize', () => {
 		expect(schema.authorize(ann, { verb: 'read', record: n }, get)).toBe(false)
 	})
 
+	it('hides a record whose followed record is hidden, without turning on read filtering', () => {
+		const { schema, note } = setup({
+			type: { readFollows: (n) => [n.ownerId, 'note:missing'] },
+		})
+		expect(schema.hasReadRules()).toBe(false)
+		const hidden = setup({
+			type: { readFollows: (n) => [n.ownerId] },
+			schema: { policies: { note: { read: (ctx) => ctx.record.text !== 'secret' } } },
+		})
+		const parent = hidden.note('p', '', 'secret')
+		const child = hidden.note('c', parent.id)
+		const read = (record: Note) =>
+			hidden.schema.authorize(ann, { verb: 'read', record }, (id) =>
+				id === parent.id ? parent : undefined
+			)
+		expect(read(child)).toBe(false)
+		expect(read(hidden.note('d', 'note:gone'))).toBe(true)
+		// A followed id that does not exist is skipped.
+		expect(schema.authorize(ann, { verb: 'read', record: note('a', 'x') }, get)).toBe(true)
+	})
+
 	it('allows everything for records outside the document scope', () => {
 		const { schema } = setup({ schema: { defaultPolicy: { create: () => false } } })
 		const camera = Camera.create({ id: Camera.createId('c'), x: 0 })
@@ -173,6 +194,16 @@ describe('the client guard', () => {
 		expect(store.has('note:r' as any)).toBe(true)
 		expect(store.has('note:reply-r' as any)).toBe(false)
 		expect(denied).toEqual(['create note:reply-r'])
+	})
+
+	it('treats a record created and deleted in one operation as no change', () => {
+		const { store, note, denied } = setup({ type: ownNotes })
+		store.setActor(ann)
+		store.atomic(() => {
+			store.put([note('t', 'bob')])
+			store.remove(['note:t' as any])
+		})
+		expect(denied).toEqual([])
 	})
 
 	it('reports denied requests in the shape the policies saw', () => {

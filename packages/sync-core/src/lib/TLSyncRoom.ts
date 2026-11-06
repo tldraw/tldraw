@@ -353,6 +353,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	readonly events = createNanoEvents<{
 		room_became_empty(): void
 		session_removed(args: { sessionId: string; meta: SessionMeta }): void
+		/** What a session may read changed, so its session snapshot is out of date. */
+		read_view_changed(args: { sessionId: string }): void
 	}>()
 
 	// Storage layer for documents, tombstones, and clocks
@@ -489,11 +491,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
+		let isViewChanged = false
+		for (const id of toCheck) {
+			if (prevVisible.has(id) !== nextVisible.has(id)) isViewChanged = true
+		}
+		if (isViewChanged) this.events.emit('read_view_changed', { sessionId: session.sessionId })
+
 		// The session that made the change already holds what it changed: it gets only the
 		// records whose visibility changed as a result.
 		const deletedBySource = isSource ? new Set(diff.deletes) : null
-		const isHeld = (id: string) =>
-			!!deletedBySource && (getOwnProperty(diff.puts, id) !== undefined || deletedBySource.has(id))
+		const isHeld = (id: string) => isSource && getOwnProperty(diff.puts, id) !== undefined
 		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const outNetwork: NetworkDiff<R> = {}
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
@@ -521,7 +528,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			outNetwork[id] = [RecordOpType.Put, record]
 		}
 		for (const id of prevVisible) {
-			if (nextVisible.has(id) || getOwnProperty(outNetwork, id) || isHeld(id)) continue
+			if (nextVisible.has(id) || getOwnProperty(outNetwork, id) || deletedBySource?.has(id))
+				continue
 			out.deletes.push(id)
 			outNetwork[id] = [RecordOpType.Remove]
 		}
@@ -563,6 +571,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					if (!now.has(id) && id !== session.presenceId) diff.deletes.push(id)
 				}
 				if (!diff.deletes.length && !Object.keys(diff.puts).length) continue
+				this.events.emit('read_view_changed', { sessionId: session.sessionId })
 				const migrated = this.migrateDiffOrRejectSession(
 					session.sessionId,
 					session.serializedSchema,
@@ -591,16 +600,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		actor: PolicyActor,
 		overlay: OverlayDocStore<R>,
 		txn: TLSyncStorageTransaction<R>,
-		readView: ReadView | undefined
+		isFiltering: boolean
 	) {
 		const denied: { verb: string; id: string }[] = []
 		const get = (id: string) => overlay.get(id)
+		const stored = (id: string) => txn.get(id) as R | undefined
+		const mayRead = (record: R, read: (id: string) => UnknownRecord | undefined) =>
+			this.schema.authorize(actor, { verb: 'read', record }, read)
 		for (const [id, after] of overlay.writes) {
-			const before = (txn.get(id) as R | undefined) ?? null
-			// A session may only change or delete what it may read. Without this, an id that leaks
-			// (through a binding or a selection) would let a client write a record it cannot see.
-			if (before && readView && !readView.visible.has(id)) {
-				denied.push({ verb: after ? 'update' : 'delete', id })
+			const before = stored(id) ?? null
+			// When the room filters reads, a session writes only what it may read, before and after
+			// the change, with its current actor. Without this, an id that leaks would let a client
+			// change a hidden record, put a shape on a hidden page, or bind to a hidden shape.
+			if (
+				isFiltering &&
+				((before && !mayRead(before, stored)) || (after && !mayRead(after, get)))
+			) {
+				denied.push({ verb: before && after ? 'update' : after ? 'create' : 'delete', id })
 				continue
 			}
 			const request: PolicyRequest<R> | null =
@@ -1122,7 +1138,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const readView = actor
 			? this.storage.transaction((txn) => this.buildReadView(actor, txn)).result
 			: undefined
-		if (readView && readViewHash !== hashReadView(readView, (id) => this.isPresenceId(id))) {
+		// A snapshot with a hash from a session that no longer filters reads may be missing records.
+		const isViewStale = readView
+			? readViewHash !== hashReadView(readView, (id) => this.isPresenceId(id))
+			: readViewHash !== undefined
+		if (isViewStale) {
 			socket.close()
 			return
 		}
@@ -1908,7 +1928,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 
 				if (overlay && session && actor) {
-					const denied = this.findDeniedChanges(actor, overlay, txn, session.readView)
+					const denied = this.findDeniedChanges(actor, overlay, txn, this.schema.hasReadRules())
 					if (denied.length) {
 						this.log?.warn?.(
 							'policy denied push',

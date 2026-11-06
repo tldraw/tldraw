@@ -953,6 +953,9 @@ describe('access changes, resume, and presence', () => {
 		// A snapshot without a hash, from before read filtering, also reconnects.
 		;(server.room as any).getActorOpt = () => student
 		expect(resume('ann', undefined).close).toHaveBeenCalled()
+		// A session that no longer filters reads may be missing records that it may now read.
+		;(server.room as any).getActorOpt = () => null
+		expect(resume('bob', readViewHash).close).toHaveBeenCalled()
 		;(server.room as any).getActorOpt = roomActors
 	})
 
@@ -996,6 +999,50 @@ describe('access changes, resume, and presence', () => {
 		push({ [secret.id]: [RecordOpType.Put, { ...secret, x: 999 }] })
 		push({ [secret.id]: [RecordOpType.Remove] })
 		expect(stored(createShapeId('secret'))).toEqual(secret)
+	})
+
+	it('denies a create or a binding into what the session may not read', () => {
+		const ed = createPolicyActor({ id: 'ed', actions: ['document:write'] })
+		const { client, deliver, stored } = setup({ policies: privatePages, seed: seed() })
+		const c = client('ed', ed)
+		const push = (diff: object) => {
+			c.pair.didReceiveFromClient!({ type: 'push', clientClock: 99, diff } as any)
+			deliver()
+		}
+		const onHidden = box('sneaky', 'ed', PAGE_2)
+		push({ [onHidden.id]: [RecordOpType.Put, onHidden] })
+		expect(stored(onHidden.id)).toBeUndefined()
+		const arrow = box('arrow1', 'ed', PAGE_1, 'arrow')
+		const toSecret = link('l1', arrow.id, createShapeId('secret'))
+		push({ [arrow.id]: [RecordOpType.Put, arrow], [toSecret.id]: [RecordOpType.Put, toSecret] })
+		expect(stored(toSecret.id)).toBeUndefined()
+	})
+
+	it('checks writes against the current actor, without a refresh', () => {
+		const both = createPolicyActor({ id: 'ed', actions: ['document:write', 'pages:read-private'] })
+		const { client, deliver, stored } = setup({ policies: privatePages, seed: seed() })
+		const c = client('ed', both)
+		const secret = stored(createShapeId('secret')) as any
+		c.setActor(createPolicyActor({ id: 'ed', actions: ['document:write'] }))
+		c.pair.didReceiveFromClient!({
+			type: 'push',
+			clientClock: 99,
+			diff: { [secret.id]: [RecordOpType.Put, { ...secret, x: 555 }] },
+		} as any)
+		deliver()
+		expect(stored(secret.id)).toEqual(secret)
+	})
+
+	it('reads shapes nested deeper than the rule depth limit, and survives a parent cycle', () => {
+		const chain = [box('n0', 'teacher', PAGE_1)]
+		for (let i = 1; i < 40; i++)
+			chain.push({ ...box(`n${i}`, 'teacher'), parentId: chain[i - 1].id } as any)
+		const a = { ...box('cyA', 'teacher'), parentId: createShapeId('cyB') } as any
+		const b = { ...box('cyB', 'teacher'), parentId: createShapeId('cyA') } as any
+		const { client } = setup({ policies: privatePages, seed: [...seed(), ...chain, a, b] })
+		const t = client('t', createPolicyActor({ id: 't', actions: ['pages:read-private'] }))
+		expect(t.store.has(chain[39].id)).toBe(true)
+		expect(t.store.has(a.id)).toBe(true)
 	})
 
 	it('does not send a session its own new records back', () => {

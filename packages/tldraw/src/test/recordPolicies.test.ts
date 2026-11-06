@@ -247,6 +247,21 @@ describe('review cases', () => {
 		expect(shape(createShapeId('t2')).x).toBe(0)
 	})
 
+	it('keeps undo in step when a denied undo runs inside editor.run', () => {
+		setActor(teacher)
+		const t2 = createShapeId('t2')
+		editor.markHistoryStoppingPoint()
+		editor.createShapes([{ id: t2, type: 'geo', x: 0, y: 500 }])
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: t2, type: 'geo', x: 100 })
+		setActor(viewer)
+		editor.run(() => editor.undo())
+		expect(shape(t2).x).toBe(100)
+		setActor(teacher)
+		editor.undo()
+		expect(shape(t2).x).toBe(0)
+	})
+
 	it('lets a student change their own shape inside the teacher’s frame', () => {
 		setActor(teacher)
 		const frameId = createShapeId('frame')

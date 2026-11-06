@@ -308,6 +308,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			clientTimeout: opts.clientTimeout,
 		})
 		this.storage = storage
+		// The snapshot carries a hash of what the session may read: keep it current.
+		this.room.events.on('read_view_changed', ({ sessionId }) =>
+			this.scheduleDebouncedSnapshot(sessionId)
+		)
 		this.room.events.on('session_removed', (args) => {
 			this.clearSnapshotTimer(args.sessionId)
 			this.sessions.delete(args.sessionId)

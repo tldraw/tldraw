@@ -130,18 +130,11 @@ export class HistoryManager<R extends UnknownRecord> {
 	 * still matches the document.
 	 */
 	private applyUnlessDenied(diff: RecordsDiff<R>) {
-		let isDenied = false
-		const stopListening = this.store.addPolicyDeniedListener(() => {
-			isDenied = true
-		})
-		try {
+		const isAllowed = this.store.checkPoliciesNow(() =>
 			this.store.applyDiff(diff, { ignoreEphemeralKeys: true })
-		} finally {
-			stopListening()
-		}
-		if (isDenied) return false
-		this.store.ensureStoreIsUsable()
-		return true
+		)
+		if (isAllowed) this.store.ensureStoreIsUsable()
+		return isAllowed
 	}
 
 	// History

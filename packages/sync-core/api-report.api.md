@@ -755,6 +755,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly documentTypes: Set<string>;
     // (undocumented)
     readonly events: Emitter<    {
+    read_view_changed(args: {
+    sessionId: string;
+    }): void;
     room_became_empty(): void;
     session_removed(args: {
     meta: SessionMeta;

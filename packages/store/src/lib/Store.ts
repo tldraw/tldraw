@@ -1365,6 +1365,45 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		return result
 	}
 
+	/**
+	 * Runs `fn` and checks its changes against the record policies at once, even inside a
+	 * `withPolicyScope` or an `atomic`. Returns false when they were denied (and reverted). Undo
+	 * and redo use it: they must know at once, to leave their stacks where they were.
+	 *
+	 * @internal
+	 */
+	checkPoliciesNow(fn: () => void): boolean {
+		if (!this.actor.__unsafe__getWithoutCapture()) {
+			fn()
+			return true
+		}
+		const outerScope = this.policyScope
+		const outerGuarded = this.guardedChanges
+		const changes: Map<IdOf<R>, { before: R | null; after: R | null }> = new Map()
+		this.policyScope = changes
+		if (outerGuarded) this.guardedChanges = changes
+		try {
+			fn()
+		} finally {
+			this.policyScope = outerScope
+			this.guardedChanges = outerGuarded
+		}
+		const isAllowed = changes.size === 0 || transact(() => this.enforcePolicies(changes))
+		// Allowed changes still belong to the outer unit: if it is reverted, so are they.
+		if (isAllowed) {
+			for (const outer of new Set([outerScope, outerGuarded])) {
+				if (!outer) continue
+				for (const [id, change] of changes) {
+					const existing = outer.get(id)
+					if (existing) existing.after = change.after
+					else outer.set(id, { ...change })
+				}
+			}
+		}
+		return isAllowed
+	}
+
+	/** Returns true when every change is allowed. Otherwise reverts all of them. */
 	private enforcePolicies(changes: Map<IdOf<R>, { before: R | null; after: R | null }>) {
 		const actor = this.actor.__unsafe__getWithoutCapture()!
 		const get = (id: string) => this.records.__unsafe__getWithoutCapture(id as IdOf<R>)
@@ -1384,7 +1423,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 						: { verb: 'delete', prev: before! }
 			if (request && !this.schema.authorize(actor, request, get)) denied.push(request)
 		}
-		if (denied.length === 0) return
+		if (denied.length === 0) return true
 
 		// Write the reverse of the operation. Listeners (history, sync) get the operation and its
 		// reverse together, and their squash leaves no net change.
@@ -1408,6 +1447,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		this.records.deleteMany(toDelete)
 		this.updateHistory(reverse)
 		for (const listener of this.policyDeniedListeners) listener(denied)
+		return false
 	}
 
 	private _isInAtomicOp = false
