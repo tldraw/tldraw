@@ -211,6 +211,8 @@ export class TldrawApp {
 	readonly isLoadRumEnabled: boolean
 	/** Null when the `libraries` flag is off for this user. */
 	readonly libraries: LibrarySource | null
+	/** Empty until {@link startLibraries}. */
+	private readonly libraryRows$: Atom<QueryResultType<typeof queries.libraries>>
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -299,10 +301,9 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.libraryRows$ = atom('library rows signal', [], { isEqual })
 		if (flags.libraries?.enabled) {
-			const libraries = new TldrawAppLibrariesSource(this)
-			this.libraries = libraries
-			this.disposables.push(() => libraries.dispose())
+			this.libraries = new TldrawAppLibrariesSource(this, getToken)
 		} else {
 			this.libraries = null
 		}
@@ -451,6 +452,23 @@ export class TldrawApp {
 			this.reactions$,
 			this.materializeQuery<QueryResultType<typeof queries.reactions>>(queries.reactions())
 		)
+	}
+
+	/**
+	 * Subscribe the libraries of the user's workspaces, when the `libraries` flag is on. Like
+	 * {@link startNotificationFeeds}, once {@link preload} has resolved.
+	 */
+	startLibraries() {
+		if (!this.libraries) return
+		this.bindQuery(
+			this.libraryRows$,
+			this.materializeQuery<QueryResultType<typeof queries.libraries>>(queries.libraries())
+		)
+	}
+
+	/** The libraries of every workspace the user is in, with their items. */
+	getLibraryRows(): QueryResultType<typeof queries.libraries> {
+		return this.libraryRows$.get()
 	}
 
 	/**
@@ -1262,6 +1280,7 @@ export class TldrawApp {
 		try {
 			await app.preload(opts.signal)
 			app.startNotificationFeeds()
+			app.startLibraries()
 		} catch (e) {
 			// Don't leave the half-built app's Zero connection and timers running behind the
 			// error page the caller shows for this.
