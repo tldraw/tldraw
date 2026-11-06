@@ -1870,9 +1870,6 @@ importers:
       '@tldraw/store':
         specifier: workspace:*
         version: link:../store
-      '@tldraw/sync-core':
-        specifier: workspace:*
-        version: link:../sync-core
       '@tldraw/tlschema':
         specifier: workspace:*
         version: link:../tlschema

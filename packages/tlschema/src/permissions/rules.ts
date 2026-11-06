@@ -1,5 +1,6 @@
 import { UnknownRecord } from '@tldraw/store'
 import {
+	TLAccess,
 	TLReadContext,
 	TLRecordChange,
 	TLRecordReader,
@@ -171,6 +172,20 @@ function checkOwnedChange(change: TLRecordChange<UnknownRecord>, userId: string 
 		case 'delete':
 			if (ownerOf(change.prev) !== userId) return 'You can only delete your own shapes.'
 			return
+	}
+}
+
+/**
+ * The client half of {@link ownShapesOnly}: put the user's id in `meta.ownerId` on every new
+ * shape. Shapes that already have an owner keep it (undo and redo bring back the old owner).
+ *
+ * @public
+ */
+export function stampOwner<R extends UnknownRecord>(): (record: R, access: TLAccess) => R {
+	return (record, access) => {
+		const r = record as AnyRecord
+		if (r.typeName !== 'shape' || !access.userId || ownerOf(r)) return record
+		return { ...r, meta: { ...r.meta, ownerId: access.userId } } as unknown as R
 	}
 }
 

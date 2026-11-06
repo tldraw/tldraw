@@ -4,25 +4,12 @@
 
 ```ts
 
+import { TLAccess } from '@tldraw/tlschema';
 import { TLComment } from '@tldraw/tlschema';
-import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
-import type { TLRecordAuthorizers } from '@tldraw/sync-core';
-
-// @public
-export interface CommentAuthorizerOptions<SessionMeta> {
-    canComment?(session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    }): boolean;
-    canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean;
-    getUserId(session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    }): null | string;
-}
+import { TLRule } from '@tldraw/tlschema';
+import { TLStamp } from '@tldraw/tlschema';
+import type { UnknownRecord } from '@tldraw/store';
 
 // @public
 export type CommentModification = {
@@ -37,18 +24,23 @@ export type CommentModification = {
 };
 
 // @public
-export type CommentModificationAuthContext<SessionMeta> = {
+export type CommentModificationContext = {
+    can(ability: string): boolean;
+    readonly access: TLAccess;
     readonly ownerId: string;
-    readonly session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    };
     readonly userId: null | string;
 } & CommentModification;
 
 // @public
-export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
+export interface CommentRuleOptions {
+    canModifyComment?(ctx: CommentModificationContext): boolean;
+}
+
+// @public
+export function commentRules<R extends UnknownRecord>(opts?: CommentRuleOptions): TLRule<R>[];
+
+// @public
+export function stampCommentAuthors<R extends UnknownRecord>(): TLStamp<R>;
 
 // (No @packageDocumentation comment for this package)
 

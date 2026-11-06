@@ -69,6 +69,7 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
+	type TLPushDeniedInfo,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {

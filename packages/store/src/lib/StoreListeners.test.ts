@@ -172,12 +172,39 @@ describe('listeners (H)', () => {
 		expect(listener).toHaveBeenCalledTimes(1)
 		expect(listener.mock.calls[0][0]).toEqual({
 			source: 'user',
+			transaction: null,
 			changes: {
 				added: { [author.id]: { ...author, name: 'Jimmy Tolks' } },
 				updated: {},
 				removed: {},
 			},
 		})
+	})
+
+	it('[H3b] each withTransaction call arrives as its own entry, even in one frame', async () => {
+		const listener = vi.fn()
+		store.listen(listener)
+
+		const a = tolkein()
+		const b = hobbit()
+		const c = { ...tolkein(), id: Author.createId('c') }
+		store.withTransaction(() => store.put([a]))
+		store.withTransaction(() => store.put([b]))
+		// a named operation inside an unnamed transaction gets its own transaction
+		store.withTransaction(() => {
+			store.withTransaction(() => store.put([c]), { intent: { name: 'add-c' } })
+		})
+
+		await new Promise((resolve) => requestAnimationFrame(resolve))
+		const entries = listener.mock.calls.map(([e]) => ({
+			ids: Object.keys(e.changes.added),
+			intent: e.transaction?.intent ?? null,
+		}))
+		expect(entries).toEqual([
+			{ ids: [a.id], intent: null },
+			{ ids: [b.id], intent: null },
+			{ ids: [c.id], intent: { name: 'add-c' } },
+		])
 	})
 
 	it('[H4] source filters drop entries from other sources', () => {

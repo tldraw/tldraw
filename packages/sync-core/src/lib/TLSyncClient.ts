@@ -3,6 +3,7 @@ import {
 	RecordId,
 	RecordsDiff,
 	Store,
+	StoreTransaction,
 	UnknownRecord,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
@@ -385,12 +386,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: TLPushRequest<R>[] = []
 	/**
-	 * Local changes not sent yet. Each entry becomes one push. Consecutive changes with the same
-	 * intent share an entry; a new intent starts a new one, so the server checks each named
-	 * operation on its own and never denies one operation for another's sake.
+	 * How many of this session's pushes the server has denied so far. Each push carries it, so the
+	 * server can deny a push that was made on top of a denied one before the client knew.
+	 */
+	private deniedCount = 0
+	/**
+	 * Local changes not sent yet. Each entry becomes one push. Consecutive changes from the same
+	 * store transaction (one `editor.run`) share an entry; a new transaction starts a new one, so
+	 * the server checks each user action on its own and never denies one for another's sake.
 	 */
 	private unsentChanges: {
-		nextDiffs: Array<{ intent: TLIntent | null; diff: RecordsDiff<R> }>
+		nextDiffs: Array<{ transaction: StoreTransaction | null; diff: RecordsDiff<R> }>
 		nextPresence?: R | null
 	} = { nextDiffs: [], nextPresence: undefined }
 
@@ -533,11 +539,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
 				: undefined
 			const requests: TLPushRequest<R>[] = []
-			for (const { intent, diff } of this.unsentChanges.nextDiffs) {
+			for (const { transaction, diff } of this.unsentChanges.nextDiffs) {
 				const networkDiff = getNetworkDiff(diff)
 				if (!networkDiff) continue
 				const request: TLPushRequest<R> = { type: 'push', clientClock: 0, diff: networkDiff }
-				if (intent) request.intent = intent
+				if (transaction?.intent) request.intent = transaction.intent
+				if (this.deniedCount) request.deniedCount = this.deniedCount
 				requests.push(request)
 			}
 			if (presence) {
@@ -580,10 +587,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// when local 'user' changes are made, send them to the server
 			// or stash them locally in offline mode
 			this.store.listen(
-				({ changes, intent }) => {
+				({ changes, transaction }) => {
 					if (this.didCancel?.()) return this.close()
 					this.debug('received store changes', { changes })
-					this.push(changes, intent ?? null)
+					this.push(changes, transaction ?? null)
 				},
 				{ source: 'user', scope: 'document' }
 			),
@@ -731,6 +738,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.isConnectedToRoom = false
 		this.firstUnansweredPingAt = null
 		this.pendingPushRequests = []
+		this.deniedCount = 0
 		this.incomingDiffBuffer = []
 		this.unsentChanges.nextDiffs = []
 		this.unsentChanges.nextPresence = undefined
@@ -914,7 +922,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Push a change to the server, or stash it locally if we're offline */
-	private push(change: RecordsDiff<any>, intent: TLIntent | null = null) {
+	private push(change: RecordsDiff<any>, transaction: StoreTransaction | null = null) {
 		this.debug('push', change)
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
 		// in offline mode, we only accumulate in speculativeChanges. Offline changes go up as one
@@ -922,8 +930,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		if (!this.isConnectedToRoom) return
 		const queue = this.unsentChanges.nextDiffs
 		let entry = queue[queue.length - 1]
-		if (!entry || entry.intent !== intent) {
-			entry = { intent, diff: { added: {} as any, updated: {} as any, removed: {} as any } }
+		if (!entry || entry.transaction !== transaction) {
+			entry = { transaction, diff: { added: {} as any, updated: {} as any, removed: {} as any } }
 			queue.push(entry)
 		}
 		// records are immutable, so sharing their references with `change` is fine — the
@@ -1011,8 +1019,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 					if (diff.action === 'discard') {
 						const request = this.pendingPushRequests.shift()!
-						if (diff.denied)
+						if (diff.denied) {
+							this.deniedCount++
 							denials.push({ reason: diff.denied.reason, intent: request.intent ?? null })
+						}
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {

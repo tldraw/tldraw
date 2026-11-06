@@ -386,12 +386,14 @@ export {
 	type TLIntent,
 	type TLMutator,
 	type TLMutatorContext,
+	type TLPermissionDenial,
 	type TLPermissions,
 	type TLPermissionsConfig,
 	type TLReadContext,
 	type TLRecordChange,
 	type TLRecordReader,
 	type TLRule,
+	type TLStamp,
 	type TLTransaction,
 	type TLVerdict,
 } from './permissions/TLPermissions'
@@ -408,6 +410,7 @@ export {
 	pageWriteAccess,
 	recordOf,
 	requireAbility,
+	stampOwner,
 } from './permissions/rules'
 
 registerTldrawLibraryVersion(

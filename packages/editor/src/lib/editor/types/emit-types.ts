@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { BoxModel, TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
+import { BoxModel, TLPageId, TLPermissionDenial, TLRecord, TLShapeId } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -23,6 +23,7 @@ export interface TLEventMap {
 	'created-shapes': [TLRecord[]]
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
+	'permission-denied': [TLPermissionDenial]
 	edit: []
 	dispose: []
 }

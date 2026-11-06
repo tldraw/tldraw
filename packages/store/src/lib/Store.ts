@@ -121,10 +121,22 @@ export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
 	/** The source of these changes */
 	source: ChangeSource
 	/**
-	 * The named operation these changes belong to, if the writer gave one (see
-	 * {@link Store.withIntent}). Entries with different intents are never squashed together.
+	 * The user action these changes belong to (see {@link Store.withTransaction}). Entries from
+	 * different transactions are never squashed together, so the sync client can send each one as
+	 * its own push.
 	 */
-	intent?: StoreIntent | null
+	transaction?: StoreTransaction | null
+}
+
+/**
+ * One user action. The sync client sends the changes of one transaction as one push, and the
+ * server accepts or denies them together. Compare by reference.
+ *
+ * @public
+ */
+export interface StoreTransaction {
+	/** The named operation, if the writer gave one. */
+	readonly intent: StoreIntent | null
 }
 
 /**
@@ -553,7 +565,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const errors: unknown[] = []
 			const wasFlushingHistory = this.isFlushingHistory
 			this.isFlushingHistory = true
-			for (const { changes, source, intent } of entries) {
+			for (const { changes, source, transaction } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
 				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
@@ -573,7 +585,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					// The entries are already dequeued, so a listener that throws must not stop the others
 					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
 					try {
-						onHistory({ changes: listenerChanges, source, intent })
+						onHistory({ changes: listenerChanges, source, transaction })
 					} catch (error) {
 						errors.push(error)
 					}
@@ -628,7 +640,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			{
 				changes,
 				source: this.isMergingRemoteChanges ? 'remote' : 'user',
-				intent: this.isMergingRemoteChanges ? null : this.currentIntent,
+				transaction: this.isMergingRemoteChanges ? null : this.currentTransaction,
 			},
 			version
 		)
@@ -1079,28 +1091,35 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	private isMergingRemoteChanges = false
 
-	private currentIntent: StoreIntent | null = null
+	private currentTransaction: StoreTransaction | null = null
 
 	/**
-	 * Run `fn` as one named operation. Changes that `fn` makes carry `intent` to store listeners,
-	 * and the sync client sends them as one push with the intent attached. When calls nest, the
-	 * outermost intent wins: it is the one the user asked for.
+	 * Run `fn` as one user action. Its changes reach store listeners tagged with one transaction
+	 * object, and the sync client sends them as one push, which the server accepts or denies as a
+	 * whole. Without this, all changes made in one frame go up together, so a denied change could
+	 * take unrelated changes down with it.
+	 *
+	 * Nested calls join the outer transaction. A nested call with an `intent` inside an outer
+	 * transaction without one starts its own transaction: a named operation must not carry
+	 * unrelated changes, because the server may run it by name and ignore the client's diff.
 	 *
 	 * @public
 	 */
-	withIntent<T>(intent: StoreIntent | null, fn: () => T): T {
-		if (this.currentIntent || !intent) return fn()
-		this.currentIntent = intent
+	withTransaction<T>(fn: () => T, opts?: { intent?: StoreIntent | null }): T {
+		const intent = opts?.intent ?? null
+		const outer = this.currentTransaction
+		if (outer && (outer.intent || !intent)) return fn()
+		this.currentTransaction = { intent }
 		try {
 			return fn()
 		} finally {
-			this.currentIntent = null
+			this.currentTransaction = outer
 		}
 	}
 
-	/** The intent of the operation that is running now, if any. @public */
-	getCurrentIntent(): StoreIntent | null {
-		return this.currentIntent
+	/** The transaction that is running now, if any. @public */
+	getCurrentTransaction(): StoreTransaction | null {
+		return this.currentTransaction
 	}
 
 	/**
@@ -1432,7 +1451,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
-		if (chunk[0].source !== entry.source || chunk[0].intent !== entry.intent) {
+		if (chunk[0].source !== entry.source || chunk[0].transaction !== entry.transaction) {
 			chunked.push(chunk)
 			chunk = []
 		}
@@ -1444,7 +1463,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
-			intent: chunk[0].intent,
+			transaction: chunk[0].transaction,
 			// a single-entry chunk needs no squashing — skip the O(N) copy of its diff
 			changes:
 				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),

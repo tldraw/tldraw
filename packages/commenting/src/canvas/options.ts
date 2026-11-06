@@ -161,7 +161,8 @@ export interface CommentingOptions {
 	 * Whether the viewer may participate in commenting: composing, editing, deleting, resolving, and
 	 * moving pins. When false, {@link CommentingComponents.ComposerFallback} renders in the
 	 * composer's place and action affordances are hidden. Unset, participation is allowed exactly
-	 * when `currentUserId` is set.
+	 * when `currentUserId` is set and the session has the `comment` ability
+	 * (`editor.permissions.can('comment')`), so a viewer link shows comments read-only.
 	 *
 	 * Called during render via {@link useCanComment}, so signal reads are tracked. Posting still
 	 * needs a `currentUserId`, so returning true for a signed-out viewer yields a composer whose
@@ -274,7 +275,8 @@ function permits(option: string, check: () => boolean): boolean {
 
 /**
  * Whether the viewer may participate in commenting, per {@link CommentingOptions.canComment}
- * (defaulting to `currentUserId != null` when unset). A callback that throws denies.
+ * (defaulting to a signed-in user with the `comment` ability when unset). A callback that throws
+ * denies.
  *
  * This is a plain, untracked read — in React, use {@link useCanComment} instead.
  *
@@ -282,7 +284,7 @@ function permits(option: string, check: () => boolean): boolean {
  */
 export function getCanComment(editor: Editor, currentUserId: string | null | undefined): boolean {
 	const { canComment } = getCommentingOptions(editor)
-	if (!canComment) return currentUserId != null
+	if (!canComment) return currentUserId != null && editor.permissions.can('comment')
 	return permits('canComment', () => canComment({ editor, currentUserId: currentUserId ?? null }))
 }
 

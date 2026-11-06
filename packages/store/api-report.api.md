@@ -141,8 +141,8 @@ export function devFreeze<T>(object: T): T;
 // @public
 export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
     changes: RecordsDiff<R>;
-    intent?: null | StoreIntent;
     source: ChangeSource;
+    transaction?: null | StoreTransaction;
 }
 
 // @public
@@ -421,7 +421,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
-    getCurrentIntent(): null | StoreIntent;
+    getCurrentTransaction(): null | StoreTransaction;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -448,7 +448,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
-    withIntent<T>(intent: null | StoreIntent, fn: () => T): T;
+    withTransaction<T>(fn: () => T, opts?: {
+        intent?: null | StoreIntent;
+    }): T;
 }
 
 // @public
@@ -658,6 +660,11 @@ export class StoreSideEffects<R extends UnknownRecord> {
 export interface StoreSnapshot<R extends UnknownRecord> {
     schema: SerializedSchema;
     store: SerializedStore<R>;
+}
+
+// @public
+export interface StoreTransaction {
+    readonly intent: null | StoreIntent;
 }
 
 // @public

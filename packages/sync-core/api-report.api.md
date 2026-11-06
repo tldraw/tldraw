@@ -276,6 +276,8 @@ export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Met
 // @internal
 export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     access: TLAccess;
+    deniedCount: number;
+    deniedIds: Set<string>;
     meta: Meta;
     presenceId: null | string;
     requiresLegacyRejection: boolean;
@@ -432,10 +434,25 @@ export type TLPresenceMode =
 | 'solo'
 /** Full presence sharing - cursors and selections visible to others */;
 
+// @public
+export interface TLPushDeniedInfo<SessionMeta> {
+    // (undocumented)
+    access: TLAccess;
+    // (undocumented)
+    intent: null | TLIntent;
+    // (undocumented)
+    meta: SessionMeta;
+    // (undocumented)
+    reason: string;
+    // (undocumented)
+    sessionId: string;
+}
+
 // @internal
 export interface TLPushRequest<R extends UnknownRecord> {
     // (undocumented)
     clientClock: number;
+    deniedCount?: number;
     // (undocumented)
     diff?: NetworkDiff<R>;
     intent?: TLIntent;
@@ -546,6 +563,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     onDataChange?(): void;
     // @internal (undocumented)
     onPresenceChange?(): void;
+    onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void;
     // (undocumented)
     onSessionRemoved?: (room: TLSocketRoom<R, SessionMeta>, args: {
         meta: SessionMeta;
@@ -701,6 +719,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         permissions?: TLPermissions<R>;
         objectTypes?: readonly string[];
+        onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;

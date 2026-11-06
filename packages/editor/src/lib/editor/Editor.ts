@@ -10,6 +10,7 @@ import {
 import {
 	ComputedCache,
 	RecordType,
+	RecordsDiff,
 	StoreSideEffects,
 	StoreSnapshot,
 	UnknownRecord,
@@ -41,9 +42,11 @@ import {
 	TLInstance,
 	TLInstancePageState,
 	TLInstancePresence,
+	TLIntent,
 	TLPage,
 	TLPageId,
 	TLParentId,
+	TLPermissions,
 	TLRecord,
 	TLShape,
 	TLShapeId,
@@ -170,6 +173,7 @@ import { FontManager } from './managers/FontManager/FontManager'
 import { HistoryManager } from './managers/HistoryManager/HistoryManager'
 import { InputsManager } from './managers/InputsManager/InputsManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
+import { PermissionsManager } from './managers/PermissionsManager/PermissionsManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
@@ -292,6 +296,12 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
+	 * The room's permissions. Every `editor.run` is checked against them as one transaction before
+	 * it commits. Pass the same object to the sync server. When the store comes from `useSync`
+	 * with permissions, you do not need to pass it here.
+	 */
+	permissions?: TLPermissions<TLRecord>
+	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
@@ -334,6 +344,11 @@ export interface TLEditorOptions {
  */
 export interface TLEditorRunOptions extends TLHistoryBatchOptions {
 	ignoreShapeLock?: boolean
+	/**
+	 * The named operation this run is. The sync client sends it with the push, so the server can
+	 * check it, or run its own mutator with that name.
+	 */
+	intent?: TLIntent
 }
 
 /** @public */
@@ -375,6 +390,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		permissions,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -592,6 +608,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.sideEffects = this.store.sideEffects
+		// after sideEffects: the manager registers its client-side stamps as create handlers
+		this.permissions = new PermissionsManager(this, permissions ?? null, this.history)
+		this.disposables.add(() => this.permissions.dispose())
 
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
@@ -1123,6 +1142,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly inputs: InputsManager
+
+	/**
+	 * The room's permissions on this client: what this session may do, and the check that every
+	 * `editor.run` passes before it commits.
+	 *
+	 * @public
+	 */
+	readonly permissions: PermissionsManager
 
 	/**
 	 * A manager for the editor's snapping feature.
@@ -1749,11 +1776,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 *
 	 * @public
 	 */
+	private _isInCheckedRun = false
+
 	run(fn: () => void, opts?: TLEditorRunOptions): this {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			this.store.withTransaction(() => {
+				// the outermost run is the transaction: check it as a whole before it commits
+				if (this._isInCheckedRun || !this.permissions.isActive()) {
+					this.history.batch(fn, opts)
+					return
+				}
+				this._isInCheckedRun = true
+				try {
+					this.permissions.runChecked(
+						() => this.history.batch(fn, opts),
+						this.store.getCurrentTransaction()?.intent ?? null
+					)
+				} finally {
+					this._isInCheckedRun = false
+				}
+			}, opts)
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
@@ -4465,6 +4509,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return
 		}
+		// This runs in a reaction. A denied write is rolled back, the rollback re-runs the
+		// reaction, and it would write again forever: check first instead (e.g. for a viewer).
+		const diff = existing
+			? { added: {}, updated: { [user.id]: [existing, user] }, removed: {} }
+			: { added: { [user.id]: user }, updated: {}, removed: {} }
+		if (!this.permissions.checkChanges(diff as RecordsDiff<TLRecord>).ok) return
 		this.run(
 			() => {
 				this.store.put([user])

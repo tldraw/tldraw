@@ -86,6 +86,13 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	 * not. The room sends the session changes to these records only.
 	 */
 	visibleIds: Set<string> | null
+	/** How many of this session's pushes the room has denied since it connected. */
+	deniedCount: number
+	/**
+	 * Ids that denied pushes touched, kept until the client has seen those denials. A later push
+	 * that touches or points at one of them is denied too.
+	 */
+	deniedIds: Set<string>
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */

@@ -94,6 +94,26 @@ export class HistoryManager<R extends UnknownRecord> {
 	/** @internal */
 	_isInBatch = false
 
+	/**
+	 * Run `fn`, which returns whether to keep what it did. When it returns false (or throws), the
+	 * changes it recorded are dropped from the pending undo entry. The caller rolls the store back
+	 * itself: this only keeps the history in step with it.
+	 *
+	 * @internal
+	 */
+	_withRollback(fn: () => boolean) {
+		const saved = this.pendingDiff.clear()
+		let keep = false
+		try {
+			keep = fn()
+		} finally {
+			if (keep) {
+				squashRecordDiffsMutable(saved, [this.pendingDiff.clear()])
+			}
+			this.pendingDiff.restore(saved)
+		}
+	}
+
 	batch(fn: () => void, opts?: TLHistoryBatchOptions) {
 		const previousState = this.state
 

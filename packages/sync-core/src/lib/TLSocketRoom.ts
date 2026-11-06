@@ -13,7 +13,7 @@ import { TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLPushDeniedInfo, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -155,6 +155,8 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * `comment` to write comments. See `definePermissions` in `@tldraw/tlschema`.
 	 */
 	permissions?: TLPermissions<R>
+	/** Called when the permissions deny a client push. Use it for logs and audit trails. */
+	onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -286,6 +288,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
 			permissions: opts.permissions,
+			onPushDenied: opts.onPushDenied,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,

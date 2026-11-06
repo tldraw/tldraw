@@ -14,6 +14,7 @@ import {
 	definePermissions,
 	TL_FULL_ACCESS,
 	TLAccess,
+	TLIntent,
 	TLMutatorContext,
 	TLPermissions,
 	TLRecordReader,
@@ -121,6 +122,20 @@ function truncateCloseReason(reason: string) {
 		outBytes += charBytes
 	}
 	return out + truncatedSuffix(totalBytes - outBytes)
+}
+
+/**
+ * A client push that the room's permissions denied. The room discards the whole push and tells
+ * the client why.
+ *
+ * @public
+ */
+export interface TLPushDeniedInfo<SessionMeta> {
+	sessionId: string
+	meta: SessionMeta
+	access: TLAccess
+	reason: string
+	intent: TLIntent | null
 }
 
 /**
@@ -301,6 +316,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly permissions: TLPermissions<R>
+	private onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 	private readonly sessionIdleTimeout: number
 
 	constructor(opts: {
@@ -325,6 +341,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * `defaultAbilityRules`: `edit` to change the canvas, `comment` to write comments.
 		 */
 		permissions?: TLPermissions<R>
+		/** Called when the permissions deny a client push. Use it for logs and audit trails. */
+		onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -333,6 +351,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.permissions = opts.permissions ?? definePermissions({ rules: defaultAbilityRules<R>() })
+		this.onPushDenied = opts.onPushDenied
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -544,6 +563,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			access: session.access,
 			visibleIds: null,
+			deniedCount: 0,
+			deniedIds: new Set(),
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
 		})
@@ -691,6 +712,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			access: access ?? TL_FULL_ACCESS,
 			visibleIds: null,
+			deniedCount: 0,
+			deniedIds: new Set(),
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
@@ -749,6 +772,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			access,
 			visibleIds: null,
+			deniedCount: 0,
+			deniedIds: new Set(),
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
@@ -1098,6 +1123,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				meta: session.meta,
 				access: session.access,
 				visibleIds,
+				deniedCount: 0,
+				deniedIds: new Set(),
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
@@ -1360,7 +1387,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// other way round.
 				const overlay = new PushOverlay<R>(txn)
 
-				if (mutator && session) {
+				if (session && (message.deniedCount ?? 0) >= session.deniedCount) {
+					// the client has seen every denial, so nothing it sends can build on one
+					session.deniedIds.clear()
+				}
+				if (session && message.diff && dependsOnAny(message.diff, session.deniedIds)) {
+					// The client made this change before it knew that an earlier push was denied, and
+					// the change touches or points at records from that push (a child of a denied
+					// frame, say). Deny it too, or it would land on records that do not exist.
+					denied = { reason: 'This change depends on a change that was denied.' }
+				} else if (mutator && session) {
 					// A server mutator: run the named operation here, and ignore the client's diff.
 					// The client's diff was its prediction; the rebase replaces it with this result.
 					try {
@@ -1446,6 +1482,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				if (denied) {
 					this.log?.warn?.('push denied', denied.reason, 'session:', session?.sessionId)
+					if (session) {
+						session.deniedCount++
+						for (const id in message.diff) session.deniedIds.add(id)
+						const info = {
+							sessionId: session.sessionId,
+							meta: session.meta,
+							access: session.access,
+							reason: denied.reason,
+							intent,
+						}
+						queueMicrotask(() => {
+							try {
+								this.onPushDenied?.(info)
+							} catch (e) {
+								this.log?.error?.('onPushDenied threw', e)
+							}
+						})
+					}
 					docChanges.diffs = null
 				} else {
 					overlay.commit()
@@ -1591,7 +1645,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 */
 	private computeVisibilityUpdate(records: TLRecordReader<R>, full: boolean): VisibilityUpdate<R> {
 		const byAccess = new Map<string, Set<string>>()
-		const update: VisibilityUpdate<R> = { visibleIds: new Map(), records }
+		const update: VisibilityUpdate<R> = { visibleIds: new Map(), revealed: new Map() }
 		for (const session of this.sessions.values()) {
 			if (session.state !== RoomSessionState.Connected || !session.visibleIds) continue
 			const key = JSON.stringify(session.access)
@@ -1612,6 +1666,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				byAccess.set(key, next)
 			}
 			update.visibleIds.set(session.sessionId, next)
+			collectRevealed(update, session.visibleIds, next, records)
 		}
 		return update
 	}
@@ -1647,7 +1702,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (visibility && after !== before) {
 			for (const id of after) {
 				if (before.has(id) || touched.has(id)) continue
-				const record = visibility.records.get(id)
+				const record = visibility.revealed.get(id)
 				if (record) result.puts[id] = record
 			}
 			for (const id of before) {
@@ -1672,10 +1727,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (!session.visibleIds) return
 		this.storage.transaction((txn) => {
 			const records = this.readerFor(txn)
+			const visibleIds = this.computeVisibleIds(access, records)
 			const visibility: VisibilityUpdate<R> = {
-				visibleIds: new Map([[sessionId, this.computeVisibleIds(access, records)]]),
-				records,
+				visibleIds: new Map([[sessionId, visibleIds]]),
+				revealed: new Map(),
 			}
+			collectRevealed(visibility, session.visibleIds!, visibleIds, records)
 			const diff = this.filterDiffForSession(session, { puts: {}, deletes: [] }, visibility, false)
 			if (!Object.keys(diff.puts).length && !diff.deletes.length) return
 			const migrated = this.migrateDiffOrRejectSession(
@@ -1762,10 +1819,46 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 }
 
-/** What each filtered session can see after a change, and a reader to fetch the records. */
+/**
+ * What each filtered session can see after a change, and the records that became visible to
+ * someone. Those are read while the storage transaction is open: the broadcast runs after it.
+ */
 interface VisibilityUpdate<R extends UnknownRecord> {
 	visibleIds: Map<string, Set<string>>
+	revealed: Map<string, R>
+}
+
+function collectRevealed<R extends UnknownRecord>(
+	update: VisibilityUpdate<R>,
+	before: ReadonlySet<string>,
+	after: ReadonlySet<string>,
 	records: TLRecordReader<R>
+) {
+	if (after === before) return
+	for (const id of after) {
+		if (before.has(id) || update.revealed.has(id)) continue
+		const record = records.get(id)
+		if (record) update.revealed.set(id, record)
+	}
+}
+
+/**
+ * Does a push touch, or point at, any of `ids`? A record points at another when any of its values
+ * is that record's id (`parentId`, `fromId`, `meta.someId`, ...). Only pushes made before the
+ * client saw a denial pay for this scan.
+ */
+function dependsOnAny(diff: NetworkDiff<any>, ids: ReadonlySet<string>): boolean {
+	if (ids.size === 0) return false
+	const mentions = (value: unknown): boolean => {
+		if (typeof value === 'string') return ids.has(value)
+		if (Array.isArray(value)) return value.some(mentions)
+		if (value && typeof value === 'object') return Object.values(value).some(mentions)
+		return false
+	}
+	for (const [id, op] of objectMapEntriesIterable(diff)) {
+		if (ids.has(id) || mentions(op[1])) return true
+	}
+	return false
 }
 
 /**

@@ -1,0 +1,53 @@
+.permissions-example {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	font-family: sans-serif;
+	font-size: 13px;
+}
+
+.permissions-example__bar {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 8px;
+	border-bottom: 1px solid #ddd;
+}
+
+.permissions-example__bar button[data-active='true'] {
+	font-weight: bold;
+}
+
+.permissions-example__panes {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+}
+
+.permissions-example__pane {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border-right: 1px solid #ddd;
+}
+
+.permissions-example__pane-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	min-height: 32px;
+}
+
+.permissions-example__denial {
+	color: #c22;
+}
+
+.permissions-example__canvas {
+	position: relative;
+	flex: 1;
+}

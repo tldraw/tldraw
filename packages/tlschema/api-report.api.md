@@ -923,6 +923,9 @@ export type ShapeWithCrop = ExtractShapeByProps<{
 }>;
 
 // @public
+export function stampOwner<R extends UnknownRecord>(): (record: R, access: TLAccess) => R;
+
+// @public
 export class StyleProp<Type> implements T.Validatable<Type> {
     // @internal
     protected constructor(id: string, defaultValue: Type, type: T.Validatable<Type>);
@@ -1793,6 +1796,16 @@ export type TLPageId = RecordId<TLPage>;
 // @public
 export type TLParentId = TLPageId | TLShapeId;
 
+// @public
+export interface TLPermissionDenial {
+    // (undocumented)
+    readonly intent: null | TLIntent;
+    // (undocumented)
+    readonly reason: string;
+    // (undocumented)
+    readonly source: 'local' | 'server';
+}
+
 // @public (undocumented)
 export interface TLPermissions<R extends UnknownRecord> {
     // (undocumented)
@@ -1802,6 +1815,8 @@ export interface TLPermissions<R extends UnknownRecord> {
     readonly mutators: Record<string, TLMutator<R>>;
     // (undocumented)
     readonly rules: readonly TLRule<R>[];
+    // (undocumented)
+    readonly stamps: readonly TLStamp<R>[];
 }
 
 // @public (undocumented)
@@ -1809,6 +1824,7 @@ export interface TLPermissionsConfig<R extends UnknownRecord> {
     canRead?(record: R, ctx: TLReadContext<R>): boolean;
     mutators?: Record<string, TLMutator<R>>;
     rules?: readonly TLRule<R>[];
+    stamps?: readonly TLStamp<R>[];
 }
 
 // @public
@@ -1941,6 +1957,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
+export type TLStamp<R extends UnknownRecord> = (record: R, access: TLAccess) => R;
+
+// @public
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public
@@ -1949,6 +1968,9 @@ export interface TLStoreProps {
     collaboration?: {
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
+        permissions?: null | TLPermissions<TLRecord>;
+        lastDenial?: null | Signal<null | TLPermissionDenial>;
+        access?: null | Signal<TLAccess>;
     };
     defaultName: string;
     onMount(editor: unknown): (() => void) | void;

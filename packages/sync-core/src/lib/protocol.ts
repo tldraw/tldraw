@@ -202,6 +202,11 @@ export interface TLPushRequest<R extends UnknownRecord> {
 	 * checks (or runs) it as one unit.
 	 */
 	intent?: TLIntent
+	/**
+	 * How many of this session's pushes the client had seen denied when it made this push. When the
+	 * server has denied more, the push was made on top of a denied change, and the server denies it.
+	 */
+	deniedCount?: number
 }
 
 /**

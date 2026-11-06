@@ -116,6 +116,32 @@ export interface TLPermissionsConfig<R extends UnknownRecord> {
 	canRead?(record: R, ctx: TLReadContext<R>): boolean
 	/** Named operations that the server runs itself. See {@link TLMutator}. */
 	mutators?: Record<string, TLMutator<R>>
+	/**
+	 * Fields the client writes on create, so rules can check them: for example the owner of a new
+	 * shape. The server never stamps. It only checks, so a forged stamp is denied like any other
+	 * write.
+	 */
+	stamps?: readonly TLStamp<R>[]
+}
+
+/**
+ * Fill in fields on a record the local user creates. Return the record unchanged when the stamp
+ * does not apply.
+ *
+ * @public
+ */
+export type TLStamp<R extends UnknownRecord> = (record: R, access: TLAccess) => R
+
+/**
+ * A denied change, as the editor reports it. `source` says who denied it: the local check before
+ * commit, or the server after a push.
+ *
+ * @public
+ */
+export interface TLPermissionDenial {
+	readonly reason: string
+	readonly intent: TLIntent | null
+	readonly source: 'local' | 'server'
 }
 
 /** @public */
@@ -126,6 +152,7 @@ export interface TLPermissions<R extends UnknownRecord> {
 	readonly rules: readonly TLRule<R>[]
 	readonly canRead?: TLPermissionsConfig<R>['canRead']
 	readonly mutators: Record<string, TLMutator<R>>
+	readonly stamps: readonly TLStamp<R>[]
 	/** Run every rule on a transaction. The first denial wins. */
 	check(tx: TLTransaction<R>): TLVerdict
 }
@@ -156,6 +183,7 @@ export function definePermissions<R extends UnknownRecord>(
 		rules,
 		canRead: config.canRead,
 		mutators: config.mutators ?? {},
+		stamps: config.stamps ?? [],
 		check(tx) {
 			// You cannot write what you cannot see, before or after: no blind writes to hidden
 			// records, and no moving a record somewhere you cannot see it.

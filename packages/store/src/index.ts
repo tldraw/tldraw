@@ -43,6 +43,7 @@ export {
 	type SerializedStore,
 	type StoreError,
 	type StoreIntent,
+	type StoreTransaction,
 	type StoreListener,
 	type StoreListenerFilters,
 	type StoreObject,
