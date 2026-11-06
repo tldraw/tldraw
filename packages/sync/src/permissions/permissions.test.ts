@@ -15,7 +15,6 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	atom,
-	commentSchemaRecords,
 	createCommentThread,
 	createComment,
 	toRichText,
@@ -32,6 +31,7 @@ import {
 	accessForRole,
 	ClassroomMeta,
 	ClassroomRecord,
+	classroomRecords,
 	classroomRules,
 	isPageReadonlyFor,
 	Role,
@@ -95,14 +95,17 @@ function join(userId: string, role: Role, extra: Partial<ClassroomMeta> = {}): U
 				return !s || isPageReadonlyFor(s.meta, page)
 			},
 		},
-		{ records: commentSchemaRecords, collaboration: { status: null, mode } }
+		{ records: classroomRecords, collaboration: { status: null, mode } }
 	)
 	registerRecordRules(editor.store as any, classroomRules, () => session()!)
 	conn = connectStore<ClassroomMeta>({
 		room,
 		store: editor.store,
 		sessionId: userId,
-		getAccess: () => ({ meta: access[userId], ...accessForRole(access[userId].role) }),
+		getAccess: () => {
+			const granted = accessForRole(access[userId].role)
+			return granted && { meta: access[userId], ...granted }
+		},
 		onAfterConnect: ({ isReadonly }) => mode.set(isReadonly ? 'readonly' : 'readwrite'),
 	})
 	const user = { userId, editor, conn }
@@ -128,7 +131,7 @@ beforeEach(async () => {
 	access = {}
 	users = []
 	room = new TLSocketRoom<ClassroomRecord, ClassroomMeta>({
-		schema: createTLSchema({ records: commentSchemaRecords }) as any,
+		schema: createTLSchema({ records: classroomRecords }) as any,
 		objectTypes: OBJECT_TYPES,
 		...classroomRules,
 	})
@@ -158,6 +161,14 @@ function geo(id: TLShapeId, x = 0, meta: JsonObject = {}): TLShapePartial<TLGeoS
 }
 
 describe('file read and write control', () => {
+	it('refuses at connect a person with no access to the file', async () => {
+		const nobody = join('nobody', 'none')
+		await settle()
+		expect(nobody.conn.errors).toEqual([TLSyncErrorCloseEventReason.FORBIDDEN])
+		// the editor has only its own local default page; nothing came from the room
+		expect(nobody.editor.getPage(page1)).toBeUndefined()
+	})
+
 	it('refuses a person with no access to the file', async () => {
 		const mallory = join('mallory', 'viewer')
 		await settle()
@@ -422,6 +433,86 @@ describe('comments', () => {
 		const alice = join('alice', 'student')
 		await settle()
 		expect(alice.editor.store.get(comment.id as any)).toBeUndefined()
+	})
+})
+
+describe('plugin types and actions', () => {
+	const grade = (studentId: string, score: string) =>
+		({ id: `grade:${studentId}`, typeName: 'grade', studentId, score }) as any
+
+	it('applies read and write rules to a custom record type by its typeName', async () => {
+		const teacher = users[0]
+		const alice = join('alice', 'student')
+		const bob = join('bob', 'student')
+		await settle()
+		teacher.editor.store.put([grade('alice', 'A'), grade('bob', 'B')])
+		await settle()
+		// each student receives only their own grade
+		expect(alice.editor.store.get('grade:alice' as any)).toEqual(grade('alice', 'A'))
+		expect(alice.editor.store.get('grade:bob' as any)).toBeUndefined()
+		expect(bob.editor.store.get('grade:alice' as any)).toBeUndefined()
+
+		// only the teacher writes grades: the client rules stop alice, and so does the server
+		alice.editor.store.put([grade('alice', 'A+')])
+		expect((alice.editor.store.get('grade:alice' as any) as any).score).toBe('A')
+		forcePut(alice.editor, [grade('alice', 'A+')])
+		await settle()
+		expect(shapeInRoom('grade:alice').score).toBe('A')
+		expect((alice.editor.store.get('grade:alice' as any) as any).score).toBe('A')
+	})
+
+	it('applies shape rules to a custom shape type by its type', () => {
+		// the test editors have no stamp shape util, so this checks the shared rule directly
+		const stamp = {
+			...(users[0].editor.getShapeUtil('geo').getDefaultProps() as any),
+		}
+		const shape = {
+			id: createShapeId('stamp'),
+			typeName: 'shape',
+			type: 'stamp',
+			parentId: page1,
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: stamp,
+		} as any
+		const get = (id: string) => users[0].editor.store.get(id as any) as any
+		const write = { type: 'create', prev: null, next: shape } as const
+		const as = (role: Role) => ({
+			sessionId: role,
+			isReadonly: false,
+			meta: { userId: role, role },
+		})
+		expect(checkRecordWrite(classroomRules, as('student'), get, write)).toBeNull()
+		expect(checkRecordWrite(classroomRules, as('agent'), get, write)).toBeNull()
+		expect(checkRecordWrite(classroomRules, as('teacher'), get, write)).toMatchObject({
+			type: 'stamp',
+			meta: { ownerId: 'teacher' },
+		})
+	})
+
+	it('backs the lock action with a rule: only the teacher locks or unlocks', async () => {
+		const teacher = users[0]
+		const alice = join('alice', 'student')
+		await settle()
+		alice.editor.createShape(geo(createShapeId('a1')))
+		await settle()
+		const id = createShapeId('a1')
+
+		alice.editor.toggleLock([id])
+		expect(alice.editor.getShape(id)!.isLocked).toBe(false)
+		forcePut(alice.editor, [{ ...alice.editor.getShape(id)!, isLocked: true }])
+		await settle()
+		expect(shapeInRoom(id).isLocked).toBe(false)
+
+		teacher.editor.toggleLock([id])
+		await settle()
+		expect(shapeInRoom(id).isLocked).toBe(true)
+		expect(alice.editor.getShape(id)!.isLocked).toBe(true)
 	})
 })
 

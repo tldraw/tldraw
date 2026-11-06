@@ -6,6 +6,7 @@ import {
 	TLSocketStatusChangeEvent,
 	TLSyncClient,
 	TLSyncErrorCloseEventCode,
+	TLSyncErrorCloseEventReason,
 	WebSocketMinimal,
 } from '@tldraw/sync-core'
 import { atom } from 'tldraw'
@@ -24,11 +25,12 @@ export class InMemoryClientSocket<Meta> implements TLPersistentClientSocket<any,
 	constructor(
 		private readonly room: TLSocketRoom<any, Meta>,
 		readonly sessionId: string,
+		/** `null` refuses the connection, as a server does for a person with no access. */
 		private readonly getAccess: () => {
 			meta: Meta
 			isReadonly: boolean
 			objectAccess: TLObjectStoreAccess
-		},
+		} | null,
 		/** The access that the server gave the current connection. */
 		readonly session = atom<TLAuthorizerSession<Meta> | null>('session', null)
 	) {
@@ -40,6 +42,13 @@ export class InMemoryClientSocket<Meta> implements TLPersistentClientSocket<any,
 	private connect() {
 		if (this.disposed) return
 		const access = this.getAccess()
+		if (!access) {
+			this.session.set(null)
+			queueMicrotask(() =>
+				this.setStatus({ status: 'error', reason: TLSyncErrorCloseEventReason.FORBIDDEN })
+			)
+			return
+		}
 		const server = { listeners: new Map<string, Set<(ev: any) => void>>(), closed: false }
 		this.server = server
 		const ws: WebSocketMinimal = {
@@ -136,7 +145,7 @@ export function connectStore<Meta>(opts: {
 	room: TLSocketRoom<any, Meta>
 	store: any
 	sessionId: string
-	getAccess(): { meta: Meta; isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+	getAccess(): { meta: Meta; isReadonly: boolean; objectAccess: TLObjectStoreAccess } | null
 	onAfterConnect?(details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }): void
 }) {
 	const socket = new InMemoryClientSocket(opts.room, opts.sessionId, opts.getAccess)

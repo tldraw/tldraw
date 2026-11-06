@@ -7,12 +7,12 @@ import {
 	TLSocketRoom,
 	useSync,
 } from '@tldraw/sync'
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	atom,
-	commentSchemaRecords,
-	createShapeId,
 	createTLSchema,
+	defaultShapeSchemas,
+	defaultShapeUtils,
 	createUserId,
 	DocumentRecordType,
 	Editor,
@@ -37,16 +37,20 @@ import {
 	accessForRole,
 	ClassroomMeta,
 	ClassroomRecord,
+	classroomRecords,
 	classroomRules,
 	isPageReadonlyFor,
 	Role,
 	STUDENT_SHAPE_TYPES,
+	TLGrade,
 } from './rules'
+import { StampShapeUtil, stampProps } from './stamp'
 import './style.css'
+import { AGENT_AREA, ANSWERS, Classroom, LESSON, PROMPT, USE_CASES } from './useCases'
 
-const LESSON = PageRecordType.createId('lesson')
-const ANSWERS = PageRecordType.createId('answers')
-const AGENT_AREA = createShapeId('agent-area')
+const shapeUtils = [StampShapeUtil]
+// the client schema needs every shape type, built-in and plugin
+const allShapeUtils = [...defaultShapeUtils, ...shapeUtils]
 
 interface Person {
 	userId: string
@@ -70,10 +74,13 @@ const access = atom<Record<string, ClassroomMeta>>('access', {
 })
 
 // [2]
-async function createRoom() {
+function createRoom() {
 	const room = new TLSocketRoom<ClassroomRecord, ClassroomMeta>({
 		// comment records are not part of TLRecord, so the room's record union is wider
-		schema: createTLSchema({ records: commentSchemaRecords }) as StoreSchema<ClassroomRecord, any>,
+		schema: createTLSchema({
+			shapes: { ...defaultShapeSchemas, stamp: { props: stampProps } },
+			records: classroomRecords,
+		}) as StoreSchema<ClassroomRecord, any>,
 		objectTypes: ['comment-thread', 'comment', 'comment-reaction'],
 		...classroomRules,
 	})
@@ -107,19 +114,32 @@ function setRole(room: TLSocketRoom<ClassroomRecord, ClassroomMeta>, userId: str
 export default function PermissionsClassroomExample() {
 	const [room, setRoom] = useState<TLSocketRoom<ClassroomRecord, ClassroomMeta> | null>(null)
 	useEffect(() => {
-		let r: TLSocketRoom<ClassroomRecord, ClassroomMeta> | null = null
-		createRoom().then((created) => {
-			r = created
-			setRoom(created)
-		})
-		return () => r?.close()
+		const created = createRoom()
+		setRoom(created)
+		return () => created.close()
 	}, [])
+	// [9]
+	const editors = useRef(new Map<string, { editor: Editor; role: Role }>())
+	const onEditor = useCallback((userId: string, value: { editor: Editor; role: Role } | null) => {
+		if (value) editors.current.set(userId, value)
+		else editors.current.delete(userId)
+	}, [])
+	const roles = useValue('roles', () => access.get(), [])
 	if (!room) return null
 	return (
-		<div className="permissions-grid">
-			{PEOPLE.map((person) => (
-				<Pane key={person.userId} room={room} person={person} />
-			))}
+		<div className="permissions-root">
+			<div className="permissions-grid">
+				{PEOPLE.map((person) => (
+					<Pane
+						// a refused link has no session to reconnect, so a new access mounts a new client
+						key={`${person.userId}:${roles[person.userId].role === 'none'}`}
+						room={room}
+						person={person}
+						onEditor={onEditor}
+					/>
+				))}
+			</div>
+			<UseCasePanel room={room} editors={editors.current} />
 		</div>
 	)
 }
@@ -127,9 +147,11 @@ export default function PermissionsClassroomExample() {
 function Pane({
 	room,
 	person,
+	onEditor,
 }: {
 	room: TLSocketRoom<ClassroomRecord, ClassroomMeta>
 	person: Person
+	onEditor(userId: string, value: { editor: Editor; role: Role } | null): void
 }) {
 	const { userId } = person
 	// [4]
@@ -143,7 +165,8 @@ function Pane({
 					userId,
 					() => {
 						const meta = access.get()[userId]
-						return { meta, ...accessForRole(meta.role) }
+						const granted = accessForRole(meta.role)
+						return granted && { meta, ...granted }
 					},
 					session
 				),
@@ -162,11 +185,22 @@ function Pane({
 		connect: socket.connect,
 		assets: inlineBase64AssetStore,
 		users,
-		records: commentSchemaRecords,
+		shapeUtils: allShapeUtils,
+		records: classroomRecords,
 	})
 	const role = useValue('role', () => socket.session.get()?.meta.role, [socket])
 	const [denials, setDenials] = useState<string[]>([])
 	const [editor, setEditor] = useState<Editor | null>(null)
+	useEffect(() => {
+		if (!editor || !role) return
+		onEditor(userId, { editor, role })
+		return () => onEditor(userId, null)
+	}, [editor, role, userId, onEditor])
+	const grade = useValue(
+		'grade',
+		() => (editor?.store.get(`grade:${userId}` as any) as TLGrade | undefined)?.score,
+		[editor, userId]
+	)
 
 	// [5]
 	const syncedStore = store.status === 'synced-remote' ? store.store : null
@@ -219,6 +253,14 @@ function Pane({
 		() => [
 			commentToolOverrides,
 			{
+				actions(_editor, actions) {
+					// locking is the teacher's; the shape rule enforces it on the server too
+					if (socket.session.get()?.meta.role !== 'teacher') {
+						delete actions['toggle-lock']
+						delete actions['unlock-all']
+					}
+					return actions
+				},
 				tools(_editor, tools) {
 					const role = socket.session.get()?.meta.role
 					// the comment tool is hidden on a read-only canvas unless it says otherwise
@@ -252,6 +294,7 @@ function Pane({
 				<span className="permissions-dot" style={{ background: person.color }} />
 				<strong>{person.name}</strong>
 				<span className="permissions-role">{role ?? 'connecting'}</span>
+				{grade && <span className="permissions-role">Grade: {grade}</span>}
 				{editor && userId === 'teacher' && <TeacherControls editor={editor} room={room} />}
 				{editor && userId === 'agent' && <AgentControls editor={editor} />}
 			</div>
@@ -259,11 +302,15 @@ function Pane({
 				{denials.length ? denials.join(' · ') : <span>&nbsp;</span>}
 			</div>
 			<div className="permissions-canvas">
+				{store.status === 'error' && (
+					<div className="permissions-refused">No access to this file ({store.error.message})</div>
+				)}
 				{/* [8] */}
 				{role && (
 					<Tldraw
 						key={role}
 						store={store}
+						shapeUtils={shapeUtils}
 						tools={tools}
 						overrides={overrides}
 						components={components}
@@ -276,6 +323,78 @@ function Pane({
 					/>
 				)}
 			</div>
+		</div>
+	)
+}
+
+function UseCasePanel({
+	room,
+	editors,
+}: {
+	room: TLSocketRoom<ClassroomRecord, ClassroomMeta>
+	editors: Map<string, { editor: Editor; role: Role }>
+}) {
+	const [results, setResults] = useState<Record<string, string[]>>({})
+	const [running, setRunning] = useState<string | null>(null)
+	const classroom = useMemo<Classroom>(
+		() => ({
+			room,
+			async editor(userId) {
+				for (let i = 0; i < 100; i++) {
+					const entry = editors.get(userId)
+					if (entry && entry.role === access.get()[userId].role) {
+						await new Promise((r) => setTimeout(r, 300))
+						return entry.editor
+					}
+					await new Promise((r) => setTimeout(r, 50))
+				}
+				throw new Error(`${userId} is not connected`)
+			},
+			setRole: (userId, role) => setRole(room, userId, role),
+			getRole: (userId) => access.get()[userId].role,
+		}),
+		[room, editors]
+	)
+	const run = async (title: string) => {
+		const useCase = USE_CASES.find((u) => u.title === title)!
+		setRunning(title)
+		try {
+			const lines = await useCase.run(classroom)
+			setResults((r) => ({ ...r, [title]: lines }))
+		} catch (e) {
+			setResults((r) => ({ ...r, [title]: [`Error: ${(e as Error).message}`] }))
+		}
+		setRunning(null)
+	}
+	return (
+		<div className="permissions-panel">
+			<div className="permissions-panel-header">
+				<strong>Use cases</strong>
+				<button
+					disabled={!!running}
+					onClick={async () => {
+						for (const u of USE_CASES) await run(u.title)
+					}}
+				>
+					Run all
+				</button>
+			</div>
+			{USE_CASES.map((u) => (
+				<div key={u.title} className="permissions-case">
+					<div className="permissions-case-title">
+						<span>{u.title}</span>
+						<button disabled={!!running} onClick={() => run(u.title)}>
+							{running === u.title ? 'Running' : 'Try it'}
+						</button>
+					</div>
+					<code>{u.api}</code>
+					{results[u.title]?.map((line) => (
+						<div key={line} className="permissions-case-result">
+							{line}
+						</div>
+					))}
+				</div>
+			))}
 		</div>
 	)
 }
@@ -334,6 +453,7 @@ function TeacherControls({
 				<option value="commenter">Link: can comment</option>
 				<option value="viewer">Link: can view</option>
 				<option value="student">Link: can draw</option>
+				<option value="none">Link: no access</option>
 			</select>
 		</span>
 	)
@@ -370,6 +490,7 @@ function seedLesson(editor: Editor) {
 	editor.setCurrentPage(LESSON)
 	editor.createShapes([
 		{
+			id: PROMPT,
 			type: 'text',
 			x: 0,
 			y: -160,
@@ -428,4 +549,9 @@ down any comment but edit none. Students see only the tools for the shape types 
 
 [8]
 Changing the role remounts the editor, so the tools and the UI match the new access.
+
+[9]
+The use case panel drives the four editors with scripts from useCases.ts. Each script resets the
+board, makes the writes that a person would make, and reports what the server kept. Some scripts
+also force a write past the editor and the client rules, to show that the server stops it too.
 */

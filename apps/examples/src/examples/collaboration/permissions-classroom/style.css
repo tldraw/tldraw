@@ -1,13 +1,76 @@
+.permissions-root {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	background: #ddd;
+	gap: 4px;
+}
+
 .permissions-grid {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
 	grid-template-rows: 1fr 1fr;
 	gap: 4px;
-	height: 100%;
-	width: 100%;
+	min-width: 0;
+	min-height: 0;
+}
+
+.permissions-panel {
+	overflow-y: auto;
+	background: white;
+	font-size: 12px;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.permissions-panel-header,
+.permissions-case-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.permissions-case {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.permissions-case-title span {
+	font-weight: 600;
+}
+
+.permissions-case code {
+	color: #555;
+	font-size: 11px;
+}
+
+.permissions-case-result {
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: #f1f3f5;
+}
+
+.permissions-refused {
 	position: absolute;
 	inset: 0;
-	background: #ddd;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #c92a2a;
+	font-size: 14px;
+}
+
+.permissions-stamp {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 }
 
 .permissions-pane {

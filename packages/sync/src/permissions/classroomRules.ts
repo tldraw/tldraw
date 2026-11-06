@@ -1,7 +1,12 @@
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 import { TLAuthorizerSession, TLRecordRules } from '@tldraw/sync-core'
 import {
+	BaseRecord,
+	commentSchemaRecords,
+	CustomRecordInfo,
 	PageRecordType,
+	RecordId,
+	T,
 	TLComment,
 	TLCommentReaction,
 	TLCommentThread,
@@ -18,7 +23,8 @@ import {
 // The rules of one shared board, written once with the existing hook shapes. The server spreads
 // them into `TLSocketRoom`; the client registers them on its store and derives locks from them.
 
-export type Role = 'teacher' | 'student' | 'commenter' | 'viewer' | 'agent'
+/** `none` has no access to the file: the host refuses the connection. */
+export type Role = 'teacher' | 'student' | 'commenter' | 'viewer' | 'agent' | 'none'
 
 export interface ClassroomMeta {
 	userId: string
@@ -27,12 +33,33 @@ export interface ClassroomMeta {
 	areaId?: TLShapeId
 }
 
-export type ClassroomRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
+/** A plugin record type: the rules treat it like any built-in type, by its `typeName`. */
+export interface TLGrade extends BaseRecord<'grade', RecordId<TLGrade>> {
+	studentId: string
+	score: string
+}
+
+export const gradeRecord: CustomRecordInfo = {
+	scope: 'document',
+	validator: T.object({
+		id: T.string,
+		typeName: T.literal('grade'),
+		studentId: T.string,
+		score: T.string,
+	}),
+}
+
+/** The custom record types of the board, for the schema on the server and on each client. */
+export const classroomRecords = { ...commentSchemaRecords, grade: gradeRecord }
+
+export type ClassroomRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction | TLGrade
 type Session = TLAuthorizerSession<ClassroomMeta>
 type Get = (id: string) => UnknownRecord | undefined
 
-/** What the host gives a session at connect, for each role. Share links map to a role. */
+/** What the host gives a session at connect, for each role. Share links map to a role. `null`
+ *  means the host refuses the connection. */
 export function accessForRole(role: Role) {
+	if (role === 'none') return null
 	return {
 		isReadonly: role === 'commenter' || role === 'viewer',
 		objectAccess: role === 'viewer' ? ('read' as const) : ('write' as const),
@@ -41,6 +68,9 @@ export function accessForRole(role: Role) {
 
 /** Shape types that students may create. Agents and teachers may create any type. */
 export const STUDENT_SHAPE_TYPES = ['draw', 'geo', 'note', 'text', 'arrow', 'highlight']
+
+/** Shape types that only the teacher may create, such as a plugin's `stamp` shape. */
+export const TEACHER_SHAPE_TYPES = ['stamp']
 
 export function getPageIdOfParent(parentId: TLParentId, get: Get): TLPageId | undefined {
 	let id: string = parentId
@@ -96,6 +126,8 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 		'comment-thread': ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
 		comment: ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
 		'comment-reaction': ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
+		grade: ({ session, record }) =>
+			session.meta.role === 'teacher' || record.studentId === session.meta.userId,
 	},
 	authorizeRecord: {
 		...createCommentAuthorizers<ClassroomMeta>({
@@ -108,10 +140,12 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 				(ctx.action !== 'edit-comment' && ctx.session.meta.role === 'teacher'),
 		}),
 		page: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
+		grade: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
 		shape: ({ session, type, prev, next, get }) => {
 			const { meta } = session
 			if (type === 'create') {
 				if (meta.role === 'student' && !STUDENT_SHAPE_TYPES.includes(next.type)) return null
+				if (meta.role !== 'teacher' && TEACHER_SHAPE_TYPES.includes(next.type)) return null
 				// the owner is stamped from the session, never trusted from the client
 				const stamped = { ...next, meta: { ...next.meta, ownerId: meta.userId } }
 				return canWriteShape(session, stamped, get) ? stamped : null
@@ -119,6 +153,8 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 			if (!canWriteShape(session, prev, get)) return null
 			if (type === 'delete') return prev
 			if (next.meta.ownerId !== prev.meta.ownerId) return null
+			// the lock action is the teacher's: the UI hides it, and this rule enforces it
+			if (next.isLocked !== prev.isLocked && meta.role !== 'teacher') return null
 			// "before and after": a move must not take the shape somewhere the session may not write
 			return canWriteShape(session, next, get) ? next : null
 		},
