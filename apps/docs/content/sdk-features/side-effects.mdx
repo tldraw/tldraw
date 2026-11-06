@@ -27,14 +27,14 @@ The editor uses side effects internally to keep data consistent. When you delete
 
 Side effects provide six handler types organized around three operations: create, change, and delete. Each operation has a "before" and "after" phase. Handlers are registered per record `typeName` (`'shape'`, `'binding'`, `'page'`, or a custom type); check `shape.type` inside the handler if you only care about one kind of shape.
 
-| Handler        | Runs                       | Return value                                                                  |
-| -------------- | -------------------------- | ----------------------------------------------------------------------------- |
-| `beforeCreate` | Before a record is stored  | The record to store. Return a modified copy to change it.                     |
-| `beforeChange` | Before an update is stored | The record to store. Return `prev` to block the change, or a modified `next`. |
-| `beforeDelete` | Before a record is removed | `false` to prevent deletion.                                                  |
-| `afterCreate`  | After a record is stored   | Nothing. Update other records in response.                                    |
-| `afterChange`  | After an update is stored  | Nothing. Update other records in response.                                    |
-| `afterDelete`  | After a record is removed  | Nothing. Clean up references or cascade deletions.                            |
+| Handler        | Runs                       | Return value                                                                      |
+| -------------- | -------------------------- | --------------------------------------------------------------------------------- |
+| `beforeCreate` | Before a record is stored  | The record to store. Return a modified copy to change it, or `false` to block it. |
+| `beforeChange` | Before an update is stored | The record to store. Return `prev` to block the change, or a modified `next`.     |
+| `beforeDelete` | Before a record is removed | `false` to prevent deletion.                                                      |
+| `afterCreate`  | After a record is stored   | Nothing. Update other records in response.                                        |
+| `afterChange`  | After an update is stored  | Nothing. Update other records in response.                                        |
+| `afterDelete`  | After a record is removed  | Nothing. Clean up references or cascade deletions.                                |
 
 Use before handlers to modify the record being operated on, and after handlers to update other records in response. Returning `prev` from `beforeChange` blocks the change because the store sees no difference from what's already stored and skips the write.
 
@@ -52,28 +52,25 @@ editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
 
 You might auto-save only after user operations, or skip validation for trusted remote data.
 
-### Registration and cleanup
+Changes that handlers make in reaction to a remote change, such as deleting a group whose last child another person deleted, have the source `'user'`, because this client sends them to the server. While the store merges remote changes and makes this cleanup, `editor.store.isReactingToRemoteChanges()` returns `true`.
 
-Register side effects using the type-specific methods on `editor.sideEffects`. Each method returns a cleanup function you can call to remove the handler:
+### Blocking writes
+
+Before handlers can block a write: return `false` from `beforeCreate` or `beforeDelete`, or return `prev` from `beforeChange`. Later handlers are not called for a blocked write.
 
 ```typescript
-const cleanup = editor.sideEffects.registerAfterCreateHandler('shape', (shape, source) => {
-	if (shape.type === 'note') {
-		editor.updateShape({ id: shape.id, type: 'note', meta: { createdAt: Date.now() } })
-	}
+editor.sideEffects.register({
+	shape: {
+		beforeCreate: (shape) => (canEdit(shape) ? shape : false),
+		beforeChange: (prev, next) => (canEdit(prev) ? next : prev),
+		beforeDelete: (shape) => (canEdit(shape) ? undefined : false),
+	},
 })
-
-// Later, when no longer needed
-cleanup()
 ```
 
-To register several handlers at once, pass an object keyed by type name to `editor.sideEffects.register({ shape: { afterCreate, beforeDelete } })`; it returns a single cleanup function.
+The store blocks only writes that someone asked for on this client. It ignores a block of a remote change, of the cleanup that follows a remote change, and of its own integrity repairs, such as creating a page when the last one was deleted. The server has already accepted the remote change, so blocking it would leave this client out of sync with the server.
 
-### Execution order
-
-Handlers execute in registration order. If one handler reads a value another handler writes, register the writer first.
-
-Before handlers run inline as each record is written. After handlers are queued and run when the outermost store operation completes, so changes made inside them belong to the same transaction and the same undo step. If an after handler makes further changes, their handlers run in a follow-up pass. The `operationComplete` handler runs once at the end, after every pass has finished.
+A blocked write is skipped on its own. Other records in the same operation are still written, so a handler that blocks part of an operation can leave related records inconsistent, for example a binding to a shape that was not created.
 
 ## Use cases
 

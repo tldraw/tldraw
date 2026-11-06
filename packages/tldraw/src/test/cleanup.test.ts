@@ -130,3 +130,85 @@ describe('restoring bound arrows multiplayer', () => {
 		expect(bindings().end).toBeDefined()
 	})
 })
+
+describe('a local write veto and remote changes', () => {
+	// A veto that blocks every delete, as an access layer might for a viewer. The store applies it
+	// only to deletes someone asks for on this client.
+	function vetoDeletes() {
+		const seen: string[] = []
+		const veto = (typeName: string, source: 'user' | 'remote') => {
+			seen.push(`${typeName}:${source}:${editor.store.isReactingToRemoteChanges()}`)
+			return false as const
+		}
+		const unregister = [
+			editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) =>
+				veto(shape.type, source)
+			),
+			editor.sideEffects.registerBeforeDeleteHandler('binding', (binding, source) =>
+				veto(binding.type, source)
+			),
+		]
+		return { seen, dispose: () => unregister.forEach((fn) => fn()) }
+	}
+
+	it('does not block the binding cleanup after a remote delete', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+		])
+		editor
+			.setCurrentTool('arrow')
+			.pointerMove(50, 50)
+			.pointerDown()
+			.pointerMove(250, 50)
+			.pointerUp()
+		expect(bindings().end).toBeDefined()
+		const veto = vetoDeletes()
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.box2]))
+
+		expect(editor.getShape(ids.box2)).toBeUndefined()
+		expect(bindings().start).toBeDefined()
+		expect(bindings().end).toBeUndefined()
+		veto.dispose()
+	})
+
+	// The group cleanup runs after the merge, in an operation-complete handler, so its source is
+	// 'user' (this client pushes it).
+	it('does not block the group cleanup after a remote delete', () => {
+		editor.createShapes([
+			{ id: ids.box1, type: 'geo', x: 0, y: 0 },
+			{ id: ids.box2, type: 'geo', x: 200, y: 0 },
+		])
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1 })
+		const veto = vetoDeletes()
+
+		editor.store.mergeRemoteChanges(() => editor.store.remove([ids.box1, ids.box2]))
+
+		expect(editor.getShape(ids.group1)).toBeUndefined()
+		expect(veto.seen).toContain('group:user:true')
+		veto.dispose()
+	})
+
+	it('still blocks a local delete', () => {
+		editor.createShapes([{ id: ids.box1, type: 'geo', x: 0, y: 0 }])
+		const veto = vetoDeletes()
+
+		editor.deleteShapes([ids.box1])
+
+		expect(editor.getShape(ids.box1)).toBeDefined()
+		expect(veto.seen).toEqual(['geo:user:false'])
+		veto.dispose()
+	})
+
+	it('cannot block the integrity repair after a local change deletes every page', () => {
+		const dispose = editor.sideEffects.registerBeforeCreateHandler('page', () => false)
+
+		editor.store.remove(editor.getPages().map((page) => page.id))
+		editor.store.ensureStoreIsUsable()
+
+		expect(editor.getPages()).toHaveLength(1)
+		expect(editor.getCurrentPage()).toBeDefined()
+		dispose()
+	})
+})

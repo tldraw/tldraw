@@ -118,6 +118,46 @@ describe('side effect handlers (SE)', () => {
 		expect(store.get(book1Id)!.title).toBe('transformed')
 	})
 
+	it('[SE2] beforeCreate can return false to prevent that creation only', () => {
+		const later = vi.fn((record: Book) => record)
+		store.sideEffects.registerBeforeCreateHandler('book', (record) =>
+			record.id === book1Id ? false : record
+		)
+		store.sideEffects.registerBeforeCreateHandler('book', later)
+		const afterCreate = vi.fn()
+		store.sideEffects.registerAfterCreateHandler('book', afterCreate)
+		const listener = vi.fn()
+		store.listen(listener)
+
+		store.put([book1, book2])
+
+		expect(store.has(book1Id)).toBe(false)
+		expect(store.has(book2Id)).toBe(true)
+		expect(later.mock.calls.map(([record]) => record.id)).toEqual([book2Id])
+		expect(afterCreate.mock.calls.map(([record]) => record.id)).toEqual([book2Id])
+		store._flushHistory()
+		expect(Object.keys(listener.mock.calls[0][0].changes.added)).toEqual([book2Id])
+	})
+
+	it('[SE2] [SE6] beforeCreate cannot block while side effects are disabled', () => {
+		store.sideEffects.registerBeforeCreateHandler('book', () => false)
+
+		store.atomic(() => store.put([book1]), false)
+
+		expect(store.has(book1Id)).toBe(true)
+	})
+
+	it('[SE2] a put whose creations are all blocked records no history entry', () => {
+		store.sideEffects.registerBeforeCreateHandler('book', () => false)
+		const listener = vi.fn()
+		store.listen(listener)
+
+		store.put([book1])
+
+		store._flushHistory()
+		expect(listener).not.toHaveBeenCalled()
+	})
+
 	it('[SE3] beforeChange transforms the update', () => {
 		store.put([book1])
 
@@ -655,6 +695,105 @@ describe('remote attribution (AO)', () => {
 			// the integrity check after the merge is its own (empty) user operation
 			'operationComplete:user',
 		])
+	})
+})
+
+describe('vetoes and remote writes (SE7)', () => {
+	it('[SE7] [AO8] a veto cannot block the cleanup after a remote change, which stays a user change', () => {
+		store.put([book1, book2])
+		const seen: string[] = []
+		store.sideEffects.registerBeforeDeleteHandler('book', (record, source) => {
+			seen.push(`${record.id}:${source}:${store.isReactingToRemoteChanges()}`)
+			return false
+		})
+		// deleting book1 remotely cleans up book2 locally
+		store.sideEffects.registerAfterDeleteHandler('book', (record) => {
+			if (record.id === book1Id) store.remove([book2Id])
+		})
+		const sources: string[] = []
+		store.listen((entry) => sources.push(entry.source))
+
+		store.mergeRemoteChanges(() => store.remove([book1Id]))
+		store._flushHistory()
+
+		expect(seen).toEqual([`${book1Id}:remote:true`, `${book2Id}:user:true`])
+		expect(store.has(book1Id)).toBe(false)
+		expect(store.has(book2Id)).toBe(false)
+		// the cleanup is a user change, so a sync client pushes it
+		expect(sources).toEqual(['remote', 'user'])
+		expect(store.isReactingToRemoteChanges()).toBe(false)
+	})
+
+	it('[SE7] a veto of a local write still blocks it', () => {
+		store.sideEffects.registerBeforeCreateHandler('book', () => false)
+
+		store.put([book1])
+
+		expect(store.has(book1Id)).toBe(false)
+	})
+
+	it('[SE7] the store ignores a veto of a remote create or update, and keeps the other handlers', () => {
+		store.sideEffects.registerBeforeCreateHandler('book', () => false)
+		store.sideEffects.registerBeforeCreateHandler('book', (record) => ({ ...record, numPages: 7 }))
+		store.sideEffects.registerBeforeChangeHandler('book', (prev) => prev)
+		store.sideEffects.registerBeforeChangeHandler('book', (_prev, next) => ({
+			...next,
+			numPages: 8,
+		}))
+
+		store.mergeRemoteChanges(() => store.put([book1]))
+		expect(store.get(book1Id)?.numPages).toBe(7)
+
+		store.mergeRemoteChanges(() => store.put([{ ...book1, title: 'remote title' }]))
+		expect(store.get(book1Id)).toMatchObject({ title: 'remote title', numPages: 8 })
+	})
+
+	it('[SE7] isReactingToRemoteChanges is true during the merge and the integrity check after it', () => {
+		const during: boolean[] = []
+		store.sideEffects.registerOperationCompleteHandler(() => {
+			during.push(store.isReactingToRemoteChanges())
+		})
+
+		store.mergeRemoteChanges(() => store.put([book1]))
+		store.put([book2])
+
+		// the merge, then the integrity check, then the local put
+		expect(during).toEqual([true, true, false])
+	})
+
+	it('[SE7] isReactingToRemoteChanges is false after a merge that throws', () => {
+		expect(() =>
+			store.mergeRemoteChanges(() => {
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+
+		expect(store.isReactingToRemoteChanges()).toBe(false)
+	})
+
+	it('[SE3] [SE7] a beforeChange veto stops the chain, so a later handler cannot undo it', () => {
+		store.put([book1])
+		const later = vi.fn((_prev: Book, next: Book) => ({ ...next, numPages: next.numPages + 1 }))
+		store.sideEffects.registerBeforeChangeHandler('book', (prev) => prev)
+		store.sideEffects.registerBeforeChangeHandler('book', later)
+
+		store.update(book1Id, (b) => ({ ...b, title: 'changed' }))
+
+		expect(store.get(book1Id)).toEqual(book1)
+		expect(later).not.toHaveBeenCalled()
+	})
+
+	it('[SE3] putting the stored record itself is no veto, so later handlers still run', () => {
+		store.put([book1])
+		store.sideEffects.registerBeforeChangeHandler('book', (_prev, next) => next)
+		store.sideEffects.registerBeforeChangeHandler('book', (_prev, next) => ({
+			...next,
+			numPages: 9,
+		}))
+
+		store.put([store.get(book1Id)!])
+
+		expect(store.get(book1Id)?.numPages).toBe(9)
 	})
 })
 

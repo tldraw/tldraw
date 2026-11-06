@@ -425,6 +425,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     readonly id: string;
     // @internal (undocumented)
     isPossiblyCorrupted(): boolean;
+    isReactingToRemoteChanges(): boolean;
     listen(onHistory: StoreListener<R>, filters?: Partial<StoreListenerFilters>): () => void;
     loadStoreSnapshot(snapshot: StoreSnapshot<R>): void;
     // @internal (undocumented)
@@ -460,7 +461,7 @@ export type StoreAfterDeleteHandler<R extends UnknownRecord> = (record: R, sourc
 export type StoreBeforeChangeHandler<R extends UnknownRecord> = (prev: R, next: R, source: 'remote' | 'user') => R;
 
 // @public
-export type StoreBeforeCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => R;
+export type StoreBeforeCreateHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => false | R;
 
 // @public
 export type StoreBeforeDeleteHandler<R extends UnknownRecord> = (record: R, source: 'remote' | 'user') => false | void;
@@ -599,11 +600,11 @@ export class StoreSideEffects<R extends UnknownRecord> {
     // @internal
     handleAfterDelete(record: R, source: 'remote' | 'user'): void;
     // @internal
-    handleBeforeChange(prev: R, next: R, source: 'remote' | 'user'): R;
+    handleBeforeChange(prev: R, next: R, source: 'remote' | 'user', canVeto?: boolean): R;
     // @internal
-    handleBeforeCreate(record: R, source: 'remote' | 'user'): R;
+    handleBeforeCreate(record: R, source: 'remote' | 'user', canVeto?: boolean): false | R;
     // @internal
-    handleBeforeDelete(record: R, source: 'remote' | 'user'): boolean;
+    handleBeforeDelete(record: R, source: 'remote' | 'user', canVeto?: boolean): boolean;
     // @internal
     handleOperationComplete(source: 'remote' | 'user'): void;
     // @internal

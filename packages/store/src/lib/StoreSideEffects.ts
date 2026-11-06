@@ -3,12 +3,13 @@ import { Store } from './Store'
 
 /**
  * Handler function called before a record is created in the store.
- * The handler receives the record to be created and can return a modified version.
+ * The handler receives the record to be created and can return a modified version, or `false`
+ * to prevent the creation.
  * Use this to validate, transform, or modify records before they are added to the store.
  *
  * @param record - The record about to be created
  * @param source - Whether the change originated from 'user' interaction or 'remote' synchronization
- * @returns The record to actually create (may be modified)
+ * @returns The record to actually create (may be modified), or `false` to prevent the creation
  *
  * @example
  * ```ts
@@ -26,7 +27,7 @@ import { Store } from './Store'
 export type StoreBeforeCreateHandler<R extends UnknownRecord> = (
 	record: R,
 	source: 'remote' | 'user'
-) => R
+) => R | false
 /**
  * Handler function called after a record has been successfully created in the store.
  * Use this for side effects that should happen after record creation, such as updating
@@ -254,17 +255,22 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param record - The record about to be created
 	 * @param source - Whether the change originated from 'user' or 'remote'
-	 * @returns The potentially modified record to actually create
+	 * @param canVeto - Whether a handler may block the creation. When false, a handler that
+	 * returns `false` is skipped and the chain goes on.
+	 * @returns The potentially modified record to actually create, or `false` if a handler
+	 * prevented the creation
 	 * @internal
 	 */
-	handleBeforeCreate(record: R, source: 'remote' | 'user') {
+	handleBeforeCreate(record: R, source: 'remote' | 'user', canVeto = true): R | false {
 		if (!this._isEnabled) return record
 
 		const handlers = this._beforeCreateHandlers[record.typeName] as StoreBeforeCreateHandler<R>[]
 		if (handlers) {
 			let r = record
 			for (const handler of handlers) {
-				r = handler(r, source)
+				const result = handler(r, source)
+				if (result !== false) r = result
+				else if (canVeto) return false
 			}
 			return r
 		}
@@ -293,22 +299,30 @@ export class StoreSideEffects<R extends UnknownRecord> {
 
 	/**
 	 * Processes all registered 'before change' handlers for a record.
-	 * Handlers are called in registration order and can modify or block the change.
+	 * Handlers are called in registration order and can modify or block the change. A handler
+	 * that returns `prev` blocks the change, and later handlers are not called.
 	 *
 	 * @param prev - The current version of the record
 	 * @param next - The proposed new version of the record
 	 * @param source - Whether the change originated from 'user' or 'remote'
-	 * @returns The potentially modified record to actually store
+	 * @param canVeto - Whether a handler may block the change. When false, a handler that
+	 * returns `prev` is skipped and the chain goes on.
+	 * @returns The potentially modified record to actually store, or `prev` if a handler blocked
+	 * the change
 	 * @internal
 	 */
-	handleBeforeChange(prev: R, next: R, source: 'remote' | 'user') {
+	handleBeforeChange(prev: R, next: R, source: 'remote' | 'user', canVeto = true) {
 		if (!this._isEnabled) return next
 
 		const handlers = this._beforeChangeHandlers[next.typeName] as StoreBeforeChangeHandler<R>[]
 		if (handlers) {
 			let r = next
 			for (const handler of handlers) {
-				r = handler(prev, r, source)
+				const result = handler(prev, r, source)
+				// Returning prev blocks a change, unless the caller put prev itself.
+				if (result !== prev || r === prev) r = result
+				// a later handler that returns a new object must not undo the block
+				else if (canVeto) return prev
 			}
 			return r
 		}
@@ -342,16 +356,18 @@ export class StoreSideEffects<R extends UnknownRecord> {
 	 *
 	 * @param record - The record about to be deleted
 	 * @param source - Whether the change originated from 'user' or 'remote'
+	 * @param canVeto - Whether a handler may block the deletion. When false, every handler
+	 * still runs, but none can block it.
 	 * @returns `true` to allow deletion, `false` to prevent it
 	 * @internal
 	 */
-	handleBeforeDelete(record: R, source: 'remote' | 'user') {
+	handleBeforeDelete(record: R, source: 'remote' | 'user', canVeto = true) {
 		if (!this._isEnabled) return true
 
 		const handlers = this._beforeDeleteHandlers[record.typeName] as StoreBeforeDeleteHandler<R>[]
 		if (handlers) {
 			for (const handler of handlers) {
-				if (handler(record, source) === false) {
+				if (handler(record, source) === false && canVeto) {
 					return false
 				}
 			}
@@ -457,7 +473,14 @@ export class StoreSideEffects<R extends UnknownRecord> {
 
 	/**
 	 * Register a handler to be called before a record of a certain type is created. Return a
-	 * modified record from the handler to change the record that will be created.
+	 * modified record from the handler to change the record that will be created, or `false` to
+	 * prevent the creation.
+	 *
+	 * Together with `return prev` in a before-change handler and `return false` in a
+	 * before-delete handler, this lets a handler veto any local write. The store ignores a veto
+	 * of a remote write, of a write made while {@link Store.isReactingToRemoteChanges} is true,
+	 * and of its own integrity repairs: the server has already accepted the remote change, so
+	 * blocking it or its cleanup would leave this client out of sync with the server.
 	 *
 	 * Use this handle only to modify the creation of the record itself. If you want to trigger a
 	 * side-effect on a different record (for example, moving one shape when another is created),
