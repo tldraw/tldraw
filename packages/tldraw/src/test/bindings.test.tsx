@@ -89,9 +89,9 @@ class TestBindingUtil extends BindingUtil {
 		mockOnBeforeToShapeIsolate(options)
 	}
 
-	override onBeforeCreate(options: BindingOnCreateOptions): void {
+	override onBeforeCreate(options: BindingOnCreateOptions): false | void {
 		registerCall('onBeforeCreate', options.binding)
-		mockOnBeforeCreate(options)
+		return mockOnBeforeCreate(options)
 	}
 
 	override onAfterCreate(options: BindingOnCreateOptions): void {
@@ -354,6 +354,19 @@ test('onBeforeCreate is called before the binding is created', () => {
 		expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(0)
 	})
 	bindShapes(ids.box1, ids.box2)
+	expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(1)
+})
+
+test('onBeforeCreate can prevent the binding from being created', () => {
+	mockOnBeforeCreate.mockImplementationOnce(() => false)
+	bindShapes(ids.box1, ids.box2)
+	expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(0)
+	expect(mockOnAfterCreate).not.toHaveBeenCalled()
+})
+
+test('onBeforeCreate cannot prevent a remote binding from being created', () => {
+	mockOnBeforeCreate.mockImplementationOnce(() => false)
+	editor.store.mergeRemoteChanges(() => bindShapes(ids.box1, ids.box2))
 	expect(editor.getBindingsFromShape(ids.box1, 'test')).toHaveLength(1)
 })
 

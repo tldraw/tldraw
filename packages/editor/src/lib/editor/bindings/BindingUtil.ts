@@ -175,11 +175,12 @@ export abstract class BindingUtil<Binding extends TLBinding = TLBinding> {
 	 * Called when a binding is about to be created. See {@link BindingOnCreateOptions} for details.
 	 *
 	 * You can optionally return a new binding to replace the one being created - for example, to
-	 * set different initial props.
+	 * set different initial props. Return `false` to prevent the binding from being created. A
+	 * binding that arrives from a remote peer is created anyway.
 	 *
 	 * @public
 	 */
-	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | void
+	onBeforeCreate?(options: BindingOnCreateOptions<Binding>): Binding | false | void
 
 	/**
 	 * Called after a binding has been created. See {@link BindingOnCreateOptions} for details.

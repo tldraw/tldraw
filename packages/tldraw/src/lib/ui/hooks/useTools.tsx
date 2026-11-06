@@ -84,7 +84,11 @@ export interface TLUiToolItem<
 	 * symbols to denote cmd/alt/shift, using `!` for shift, `$` for cmd, and `?` for alt.
 	 */
 	kbd?: string
-	readonlyOk?: boolean
+	/**
+	 * When `true`, the tool shows while the editor is readonly. A function decides each time, for a
+	 * tool that only writes records the readonly mode does not cover. Defaults to `false`.
+	 */
+	readonlyOk?: boolean | ((editor: Editor) => boolean)
 	meta?: {
 		[key: string]: any
 	}

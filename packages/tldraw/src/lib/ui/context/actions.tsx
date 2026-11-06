@@ -44,6 +44,9 @@ import {
 	areAllSelectedFrames,
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
+	canCreateShapeOfType,
+	canDeleteSelection,
+	canDuplicateSelection,
 	canFitFrameToContent,
 	canFlatten,
 	canFlipSelection,
@@ -51,6 +54,7 @@ import {
 	canReadClipboard,
 	canToggleAutoSize,
 	canWriteClipboard,
+	canWriteSelection,
 	hasDownloadableMediaSelected,
 	hasLinkShapeSelected,
 	hasLockedShapesOnPage,
@@ -305,8 +309,12 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
-	/** When `true`, the action runs while the editor is readonly. Defaults to `false`. */
-	readonlyOk?: boolean
+	/**
+	 * When `true`, the action runs while the editor is readonly. A function decides each time, for
+	 * an action whose writes the readonly mode does not cover, such as one that only writes records
+	 * the `canWrite` editor option allows. Defaults to `false`.
+	 */
+	readonlyOk?: boolean | ((editor: Editor) => boolean)
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
 	/**
@@ -551,6 +559,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-embed',
+				isEnabled: (editor) => canCreateShapeOfType(editor, 'embed'),
 				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
@@ -571,6 +580,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-media',
+				isEnabled: (editor) => canCreateShapeOfType(editor, 'image'),
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
@@ -876,7 +886,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: canDuplicateSelection,
 				kbd: 'cmd+d,ctrl+d',
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
@@ -1235,7 +1245,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'cut',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canDeleteSelection(editor),
 				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
@@ -1338,7 +1348,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'delete',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canDeleteSelection(editor),
 				label: messages.actionDelete.id,
 				kbd: '⌫,del',
 				icon: 'trash',
@@ -1781,7 +1791,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-lock',
-				isEnabled: canApplySelection,
+				isEnabled: (editor) => canApplySelection(editor) && canWriteSelection(editor),
 				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
 				onSelect(source) {
@@ -1871,7 +1881,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
-					const pages = editor.getPages()
+					const pages = editor.getVisiblePages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 					if (currentPageIndex < 1) return
 					trackEvent('change-page', { source, direction: 'prev' })
@@ -1885,7 +1895,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				onSelect: async (source) => {
 					// will select whatever the most recent geo tool was
-					const pages = editor.getPages()
+					const pages = editor.getVisiblePages()
 					const currentPageIndex = pages.findIndex((page) => page.id === editor.getCurrentPageId())
 
 					// If we're on the last page...

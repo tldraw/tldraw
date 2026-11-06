@@ -33,7 +33,7 @@ import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
 import { defaultI18n, TLI18nAdapter } from './config/TLI18n'
-import { Editor } from './editor/Editor'
+import { Editor, type TLEditorOptions } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
 import { TLStateNodeConstructor } from './editor/tools/StateNode'
@@ -249,6 +249,17 @@ export interface TldrawEditorBaseProps {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Provides a way to hide pages. See {@link @tldraw/editor#TLEditorOptions.getPageVisibility}.
+	 */
+	getPageVisibility?: TLEditorOptions['getPageVisibility']
+
+	/**
+	 * Decides whether this client may write a document record. See
+	 * {@link @tldraw/editor#TLEditorOptions.canWrite}.
+	 */
+	canWrite?: TLEditorOptions['canWrite']
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -524,6 +535,8 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	getPageVisibility,
+	canWrite,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -612,6 +625,8 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				getPageVisibility,
+				canWrite,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -656,6 +671,8 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			licenseManager,
 			getShapeVisibility,
+			getPageVisibility,
+			canWrite,
 			assetUrls,
 			stableI18n,
 		]

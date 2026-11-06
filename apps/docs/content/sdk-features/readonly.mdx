@@ -148,6 +148,73 @@ editor.putExternalContent({ type: 'files', files: myFiles, point: { x: 0, y: 0 }
 
 Only these two methods support this option. Use it sparingly since readonly mode exists to prevent unintended changes.
 
+## Blocking some writes
+
+Readonly mode is all or nothing. To block only some writes, for example shapes that belong to another person, pass a `canWrite` function. The editor calls it before it stores a local create, update or delete of a document record, and blocks the write when it returns `false`.
+
+```tsx
+<Tldraw
+	canWrite={({ type, record }, editor) => {
+		if (record.typeName !== 'shape') return true
+		return record.meta.ownerId === myUserId
+	}}
+/>
+```
+
+The editor is created again when the `canWrite` function changes, so pass a stable function: define it outside the component, or wrap it in `useCallback`. Keep values that change, such as the current user, in a signal that the function reads.
+
+The check gets the kind of write and one record: the new record for a create, and the stored record for an update or a delete. It does not get the new values of an update, so a rule about field values belongs in a [side effect](/sdk-features/side-effects). Remote changes, session records (camera, selection, instance state) and the store's own integrity repairs are never checked. A check that throws counts as `false`.
+
+### One operation lands whole or not at all
+
+When the check blocks one write, the editor rolls back the whole operation that made it: every record that the same [Editor#run](?) call, editor method, undo or redo wrote goes back, nothing reaches the sync server, and no undo step is added. For example, if the check blocks the group that [Editor#groupShapes](?) creates, the shapes do not move into it, and if it blocks the delete of a page, the shapes on the page stay too.
+
+The rollback has limits:
+
+- A write that a side effect blocks by itself, without the `canWrite` check, still blocks only that record.
+- An operation that merged remote changes is not rolled back, because the server has already accepted them.
+- A write made directly with `editor.store`, outside an editor method or `editor.run`, blocks only the record the check refused.
+- An undo or redo that is rolled back stays on its stack, so it applies once the check allows it.
+
+### Asking the check from the UI
+
+The UI can ask the same question before it acts, with [Editor#canWrite](?), so what the UI offers and what the editor accepts come from one answer. The answer is cached for each stored record and updates when the state the check read changes, so it works inside `useValue`:
+
+```tsx
+const canDelete = useValue(
+	'can delete',
+	() => editor.getSelectedShapes().every((record) => editor.canWrite({ type: 'delete', record })),
+	[editor]
+)
+```
+
+[Editor#canEditShape](?) and [Editor#canCropShape](?) already use it, and so does the default UI:
+
+- Actions on the selection, such as delete, group, align or the style panel, are disabled while the selection holds a shape, or a child of one, that the check blocks.
+- A tool named after a shape type, such as `geo` or `draw`, hides when the check blocks creating that shape on the current page.
+- The page menu disables creating, renaming, moving and deleting pages that the check blocks.
+
+Without the `canWrite` option, [Editor#canWrite](?) returns `false` for every document write while the editor is readonly. With the option, the check decides, also in readonly mode. A tool or an action can pass a function as `readonlyOk` to show in readonly mode only when that function returns `true`. The comment tool from `@tldraw/commenting` does this: in a readonly editor it shows when the check lets the person create a comment thread.
+
+```typescript
+// `canReview` is a signal your app sets for people who may review a readonly document
+const overrides: TLUiOverrides = {
+	actions(editor, actions) {
+		actions['approve'] = {
+			id: 'approve',
+			label: 'action.approve',
+			readonlyOk: () => canReview.get(),
+			onSelect() {
+				approveDocument()
+			},
+		}
+		return actions
+	},
+}
+```
+
+The check runs on this client only. A server that must enforce the same rule needs its own check, for example `beforeWrite` on a sync room.
+
 ## Collaboration and readonly mode
 
 When using tldraw's sync packages for collaboration, readonly mode integrates with room permissions. A user with read-only access to a shared document sees the editor in readonly mode automatically. The sync layer communicates the mode through a reactive signal, and the editor updates `isReadonly` in response.

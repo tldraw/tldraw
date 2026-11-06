@@ -331,7 +331,7 @@ export function ReorderMenuSubmenu() {
 export function MoveToPageMenu() {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const pages = useValue('pages', () => editor.getPages(), [editor])
+	const pages = useValue('pages', () => editor.getVisiblePages(), [editor])
 	const currentPageId = useValue('current page id', () => editor.getCurrentPageId(), [editor])
 	const { addToast } = useToasts()
 	const trackEvent = useUiEvents()

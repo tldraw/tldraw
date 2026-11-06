@@ -88,6 +88,7 @@ import {
 	getIndicesBetween,
 	getOwnProperty,
 	hasOwnProperty,
+	isEqual,
 	last,
 	lerp,
 	minBy,
@@ -292,6 +293,51 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
+	 * Provides a way to hide pages. A hidden page is left out of {@link Editor.getVisiblePages}, and
+	 * the editor does not navigate to it. If the current page becomes hidden, the editor moves to
+	 * the first visible page.
+	 *
+	 * Hiding a page only changes what this editor shows. It does not remove the page's records from
+	 * the store. To keep records from a client, filter them on the server.
+	 *
+	 * @example
+	 * ```ts
+	 * getPageVisibility={(page, editor) => page.meta.private ? 'hidden' : 'visible'}
+	 * ```
+	 *
+	 * @param page - The page to check.
+	 * @param editor - The editor instance.
+	 */
+	getPageVisibility?(page: TLPage, editor: Editor): 'visible' | 'hidden' | null | undefined
+	/**
+	 * Decides whether this client may write a document record.
+	 *
+	 * The editor asks before it stores a local create, update or delete of a document record, and
+	 * blocks the write when the answer is `false`. The UI asks the same question through
+	 * {@link Editor.canWrite}, so what the UI offers and what the store accepts come from one
+	 * answer.
+	 *
+	 * The check gets the kind of write and one record: the new record for a create, and the stored
+	 * record for an update or a delete. It does not get the new values of an update, because the UI
+	 * asks before they exist. Put rules about field values in a store side effect.
+	 *
+	 * - Remote changes and the store's own integrity repairs are never blocked.
+	 * - Session records, such as the camera and the instance state, are not checked.
+	 * - A check that throws counts as `false`.
+	 *
+	 * The editor caches the answer for each stored record and computes it again when the state
+	 * that the check read changes. So keep the check pure apart from reading editor state.
+	 *
+	 * @example
+	 * ```ts
+	 * canWrite={({ record }, editor) => record.meta.ownerId === myUserId}
+	 * ```
+	 *
+	 * @param write - The kind of write and the record it is about.
+	 * @param editor - The editor instance.
+	 */
+	canWrite?(write: TLRecordWrite, editor: Editor): boolean
+	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
@@ -326,6 +372,17 @@ export interface TLEditorOptions {
 	 * @deprecated Use `options.text` instead. This prop will be removed in a future release.
 	 */
 	textOptions?: TLTextOptions
+}
+
+/**
+ * A write that {@link TLEditorOptions.canWrite} decides on: the kind of write, and the new record
+ * for a create or the stored record for an update or a delete.
+ *
+ * @public
+ */
+export interface TLRecordWrite {
+	type: 'create' | 'update' | 'delete'
+	record: TLRecord
 }
 
 /**
@@ -375,6 +432,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		getPageVisibility,
+		canWrite,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -385,6 +444,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
+		this._getPageVisibility = getPageVisibility
+		this._canWrite = canWrite
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -395,6 +456,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store = store
 		this.history = new HistoryManager<TLRecord>({
 			store,
+			// only the canWrite option asks for a rollback, so skip the tracking it needs otherwise
+			rollsBackOperations: !!canWrite,
 			annotateError: (error: any) => {
 				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
 				this.crash(error)
@@ -593,6 +656,48 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.sideEffects = this.store.sideEffects
 
+		if (canWrite) {
+			// Registered first, so a blocked write stops before the editor's own handlers react to it.
+			// The store ignores these blocks for remote changes and its integrity repairs.
+			const blocks = (type: TLRecordWrite['type'], record: TLRecord, next?: TLRecord) => {
+				// The store ignores a block of remote changes and integrity repairs anyway, so don't ask
+				if (!this.store.canVeto()) return false
+				// Removing a binding to a shape that is gone, or is being deleted, is cleanup, not a
+				// choice. A blocked cleanup leaves a binding that points at nothing.
+				if (type === 'delete' && record.typeName === 'binding') {
+					const { fromId, toId } = record as TLBinding
+					if (
+						deletedShapeIds.has(fromId) ||
+						deletedShapeIds.has(toId) ||
+						!this.store.has(fromId) ||
+						!this.store.has(toId)
+					) {
+						return false
+					}
+				}
+				if (this.canWrite({ type, record })) return false
+				// An unchanged record is not a write, and must not roll back the operation
+				if (next && isEqual(record, next)) return false
+				// One operation lands whole or not at all. A partial write can leave the document
+				// broken for everyone: children moved into a group that was not created, or a page
+				// that stays while its shapes go.
+				this.history._rollBackOperation()
+				return true
+			}
+			for (const typeName of this.store.scopedTypes.document) {
+				this.disposables.add(
+					this.sideEffects.register({
+						[typeName]: {
+							beforeCreate: (record: TLRecord) => (blocks('create', record) ? false : record),
+							beforeChange: (prev: TLRecord, next: TLRecord) =>
+								blocks('update', prev, next) ? prev : next,
+							beforeDelete: (record: TLRecord) => (blocks('delete', record) ? false : undefined),
+						},
+					} as any)
+				)
+			}
+		}
+
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
 		const invalidParents = new Set<TLShapeId>()
@@ -776,6 +881,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				binding: {
 					beforeCreate: (binding) => {
 						const next = this.getBindingUtil(binding).onBeforeCreate?.({ binding })
+						if (next === false) return false
 						if (next) return next
 						return binding
 					},
@@ -981,6 +1087,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
+		if (getPageVisibility) {
+			this.disposables.add(
+				react('leave a hidden page', () => {
+					if (!this.isPageHidden(this.getCurrentPageId())) return
+					const page = this.getVisiblePages()[0]
+					if (!page) return
+					// Only track the page ids and their visibility, not the tool and camera state that
+					// the page switch reads. Not a step the person took, so keep it out of the history.
+					unsafe__withoutCapture(() => this._setCurrentPage(page.id, 'ignore'))
+				})
+			)
+		}
+
 		this.disposables.add(
 			react('sync current user record', () => {
 				const user = this.store.props.users.currentUser.get()
@@ -1011,6 +1130,112 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return !!this.getIsShapeHiddenCache!()!.get(
 			typeof shapeOrId === 'string' ? shapeOrId : shapeOrId.id
 		)
+	}
+
+	private readonly _getPageVisibility?: TLEditorOptions['getPageVisibility']
+
+	@computed
+	private getIsPageHiddenCache() {
+		if (!this._getPageVisibility) return null
+		return this.store.createComputedCache<boolean, TLPage>(
+			'isPageHidden',
+			(page: TLPage) => this._getPageVisibility!(page, this) === 'hidden'
+		)
+	}
+
+	/**
+	 * Whether a page is hidden by the `getPageVisibility` option. A page that does not exist is not
+	 * hidden.
+	 *
+	 * @param page - The page (or the page id) to check.
+	 *
+	 * @public
+	 */
+	isPageHidden(page: TLPage | TLPageId): boolean {
+		if (!this._getPageVisibility) return false
+		return !!this.getIsPageHiddenCache()!.get(typeof page === 'string' ? page : page.id)
+	}
+
+	/**
+	 * The pages that are not hidden by the `getPageVisibility` option, in page order. Use it for
+	 * anything that shows pages to a person, such as a page menu. {@link Editor.getPages} still
+	 * returns every page.
+	 *
+	 * @public
+	 */
+	@computed getVisiblePages(): TLPage[] {
+		if (!this._getPageVisibility) return this.getPages()
+		return this.getPages().filter((page) => !this.isPageHidden(page))
+	}
+
+	private readonly _canWrite?: TLEditorOptions['canWrite']
+
+	private _checkWrite(write: TLRecordWrite): boolean {
+		try {
+			return this._canWrite!(write, this) === true
+		} catch (error) {
+			console.error('The canWrite check threw, so the write is not allowed', error)
+			return false
+		}
+	}
+
+	@computed
+	private getCanWriteCaches() {
+		if (!this._canWrite) return null
+		return {
+			update: this.store.createComputedCache<boolean, TLRecord>('canUpdate', (record) =>
+				this._checkWrite({ type: 'update', record })
+			),
+			delete: this.store.createComputedCache<boolean, TLRecord>('canDelete', (record) =>
+				this._checkWrite({ type: 'delete', record })
+			),
+		}
+	}
+
+	/**
+	 * Whether this client may make a write, according to the `canWrite` option. Without that
+	 * option, every write is allowed, except while the editor is readonly. With the option, the
+	 * option decides, also while readonly: an app can let a readonly person write some records,
+	 * such as comments. Session records, such as the camera, are always allowed.
+	 *
+	 * For an update or a delete, the editor checks the stored record with the same id, and caches
+	 * the answer. A record that is not stored is checked as given. The answer is reactive: call it
+	 * inside a computed value or `useValue` and it updates when the state the check read changes.
+	 *
+	 * The editor blocks a local write that this returns `false` for, so the UI can use it to hide or
+	 * disable what a person cannot do.
+	 *
+	 * @example
+	 * ```ts
+	 * const canDelete = editor.canWrite({ type: 'delete', record: shape })
+	 * ```
+	 *
+	 * @param write - The kind of write and the record it is about.
+	 *
+	 * @public
+	 */
+	canWrite(write: TLRecordWrite): boolean {
+		if (!this.store.scopedTypes.document.has(write.record.typeName)) return true
+		if (!this._canWrite) return !this.getIsReadonly()
+		if (write.type !== 'create' && this.store.has(write.record.id)) {
+			return !!this.getCanWriteCaches()![write.type].get(write.record.id)
+		}
+		return this._checkWrite(write)
+	}
+
+	// The editor checks these up front where a partial write would corrupt the document even when
+	// the operation cannot be rolled back. A refused delete is a blocked write, so it rolls back the
+	// operation in progress like one.
+	private _canDeleteShapes(ids: Iterable<TLShapeId>) {
+		if (!this._canWrite) return true
+		for (const id of ids) {
+			const shape = this.getShape(id)
+			if (shape && !this.canWrite({ type: 'delete', record: shape })) {
+				this.history._rollBackOperation()
+				return false
+			}
+		}
+		return true
 	}
 
 	readonly options: TldrawOptions
@@ -2835,6 +3060,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (!util.canEditInReadonly(_shape) && !this.canWrite({ type: 'update', record: _shape })) {
+			return false // the canWrite option says no, and editing this shape writes to it
+		}
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -3093,6 +3321,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		if (!util.canCrop(_shape)) return false
 		if (this.getIsReadonly()) return false
+		if (!this.canWrite({ type: 'update', record: _shape })) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
 		return true
 	}
@@ -4554,6 +4783,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
+		// Following would switch to a page this person cannot see
+		if (this.isPageHidden(leaderPresence.currentPageId)) return this
+
 		const latestLeaderPresence = computed('latestLeaderPresence', () => {
 			return this._getFollowingPresence(userId)
 		})
@@ -4565,6 +4797,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 			const dispose = react('update current page', () => {
 				const leaderPresence = latestLeaderPresence.get()
 				if (!leaderPresence) {
+					this.stopFollowingUser()
+					return
+				}
+				// Stop before the switch: switching would show the hidden page until the
+				// leave-a-hidden-page reaction switched back
+				if (this.isPageHidden(leaderPresence.currentPageId)) {
 					this.stopFollowingUser()
 					return
 				}
@@ -5014,7 +5252,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			console.error("Tried to set the current page id to a page that doesn't exist.")
 			return this
 		}
+		if (this.isPageHidden(pageId)) return this
+		return this._setCurrentPage(pageId, 'record-preserveRedoStack')
+	}
 
+	private _setCurrentPage(pageId: TLPageId, history: TLHistoryBatchOptions['history']): this {
 		this.stopFollowingUser()
 		// finish off any in-progress interactions
 		this.complete()
@@ -5025,7 +5267,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// ensure camera constraints are applied
 				this.setCamera(this.getCamera())
 			},
-			{ history: 'record-preserveRedoStack' }
+			{ history }
 		)
 	}
 
@@ -5115,10 +5357,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const deletedPage = this.getPage(id)
 				if (!deletedPage) return
 
+				// Don't leave the person with no page they can see
+				const visiblePages = this.getVisiblePages()
+				if (!this.isPageHidden(id) && visiblePages.length === 1) return
+				// A page that stays would keep shapes that are gone, or the other way around
+				if (!this.canWrite({ type: 'delete', record: deletedPage })) {
+					this.history._rollBackOperation()
+					return
+				}
+				if (!this._canDeleteShapes(this.getPageShapeIds(id))) return
+
 				if (id === this.getCurrentPageId()) {
-					const index = pages.findIndex((page) => page.id === id)
-					const next = pages[index - 1] ?? pages[index + 1]
-					this.setCurrentPage(next.id)
+					const index = visiblePages.findIndex((page) => page.id === id)
+					const next = visiblePages[index - 1] ?? visiblePages[index + 1]
+					if (next) this.setCurrentPage(next.id)
 				}
 
 				const shapes = this.getSortedChildIdsForParent(deletedPage.id)
@@ -5160,6 +5412,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.createPage({ name: freshPage.name + ' Copy', id: createId, index })
 			// set the new page as the current page
 			this.setCurrentPage(createId)
+			// The copy is hidden (see getPageVisibility). Pasting now would double the source page.
+			if (this.getCurrentPageId() !== createId) return
 			// update the new page's camera to the previous page's camera
 			this.setCamera(prevCamera)
 
@@ -7248,6 +7502,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (pageId === currentPageId) return this
 		if (!this.store.has(pageId)) return this
+		if (this.isPageHidden(pageId)) return this
+		// The shapes are deleted and pasted again, so a shape that stays would be doubled
+		if (!this._canDeleteShapes(this.getShapeAndDescendantIds(ids))) return this
 
 		// Basically copy the shapes
 		const content = this.getContentFromCurrentPage(ids)
@@ -8929,6 +9186,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					props: {},
 				},
 			])
+			// A blocked create (see the canWrite option) that is not rolled back leaves no group
+			if (!this.getShape(groupId)) return
 			this.reparentShapes(sortedShapeIds, groupId)
 			if (select) {
 				// the select option determines whether the grouped shapes' children are selected
@@ -8991,6 +9250,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		if (groups.length === 0) return this
+		// A group that cannot be deleted would be left empty
+		if (!this._canDeleteShapes(groups.map((group) => group.id))) return this
 
 		this.run(() => {
 			for (let i = 0, n = groups.length; i < n; i++) {
@@ -9168,6 +9429,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				allShapeIdsToDelete.add(childId)
 			})
 		}
+
+		// Checked up front as well as by the rollback (see the canWrite option): a delete that
+		// runs inside a store operation is not rolled back, and would orphan a child it may not
+		// delete. Not deleting also keeps the 'deleted-shapes' event true.
+		if (!this._canDeleteShapes(allShapeIdsToDelete)) return this
 
 		this.emit('deleted-shapes', [...allShapeIdsToDelete])
 		this.emit('edit')
