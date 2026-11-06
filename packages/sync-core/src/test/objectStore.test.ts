@@ -37,7 +37,12 @@ interface PresenceRecord extends BaseRecord<'presence', RecordId<PresenceRecord>
 
 const Doc = createRecordType<DocRecord>('doc', {
 	scope: 'document',
-	validator: { validate: (value) => value as DocRecord },
+	validator: {
+		validate: (value) => {
+			if (typeof (value as DocRecord).title !== 'string') throw new Error('title must be a string')
+			return value as DocRecord
+		},
+	},
 })
 const Note = createRecordType<NoteRecord>('note', {
 	scope: 'document',
@@ -1227,6 +1232,7 @@ describe('beforeRead', () => {
 			],
 			['changes the id', ({ record }: any) => ({ ...record, id: 'doc:other' })],
 			['changes the typeName', ({ record }: any) => ({ ...record, typeName: 'note' })],
+			['returns an invalid copy', ({ record }: any) => ({ ...record, title: 42 })],
 		])('sends nothing when the hook %s', (_, hook) => {
 			const log = { error: vi.fn(), warn: vi.fn() }
 			const { room } = roomWith({ doc: hook }, log)
