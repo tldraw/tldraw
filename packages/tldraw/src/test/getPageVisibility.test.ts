@@ -1,4 +1,4 @@
-import { atom, PageRecordType, TLPageId } from '@tldraw/editor'
+import { atom, createShapeId, PageRecordType, TLPageId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 const page2 = PageRecordType.createId('page2')
@@ -77,5 +77,14 @@ describe('page operations with hidden pages', () => {
 		expect(editor.getCurrentPageId()).toBe(first)
 		editor.undo()
 		expect(editor.getCurrentPageId()).toBe(first)
+	})
+
+	it('does not move shapes to a hidden page', () => {
+		const id = createShapeId('box')
+		editor.createShapes([{ id, type: 'geo' }])
+		hidden.set(new Set([page2]))
+		editor.moveShapesToPage([id], page2)
+		expect(editor.getShape(id)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getPageShapeIds(page2).size).toBe(0)
 	})
 })

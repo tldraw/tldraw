@@ -196,4 +196,37 @@ describe('operations on more than one record', () => {
 		editor.deletePage(page2)
 		expect(editor.getPage(page2)).toBeDefined()
 	})
+
+	it('does not double the page when the duplicate page create is blocked', () => {
+		const blocksPages = new TestEditor({
+			canWrite: ({ type, record }) => !(type === 'create' && record.typeName === 'page'),
+		})
+		blocksPages.createShapes([{ id: createShapeId('a'), type: 'geo' }])
+		const page = blocksPages.getCurrentPageId()
+		blocksPages.duplicatePage(page)
+		expect(blocksPages.getPages()).toHaveLength(1)
+		expect(blocksPages.getPageShapeIds(page).size).toBe(1)
+	})
+
+	it('does not move shapes to another page when one of them cannot be deleted', () => {
+		const page2 = PageRecordType.createId('page2')
+		editor.store.mergeRemoteChanges(() => {
+			editor.createPage({ id: page2, name: 'Page 2' })
+		})
+		editor.moveShapesToPage([ids.mine, ids.theirs], page2)
+		expect(editor.getShape(ids.mine)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(ids.theirs)!.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getCurrentPageShapeIds().size).toBe(2)
+	})
+
+	it('does not ungroup a group that cannot be deleted', () => {
+		const group = createShapeId('group')
+		editor.store.mergeRemoteChanges(() => {
+			editor.groupShapes([ids.mine, ids.theirs], { groupId: group })
+			editor.updateShape({ id: group, type: 'group', meta: { owner: 'bob' } })
+		})
+		editor.ungroupShapes([group])
+		expect(editor.getShape(group)).toBeDefined()
+		expect(editor.getShape(ids.mine)!.parentId).toBe(group)
+	})
 })

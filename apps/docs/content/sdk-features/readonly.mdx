@@ -161,6 +161,8 @@ Readonly mode is all or nothing. To block only some writes, for example shapes t
 />
 ```
 
+The editor is created again when the `canWrite` function changes, so pass a stable function: define it outside the component, or wrap it in `useCallback`. Keep values that change, such as the current user, in a signal that the function reads.
+
 The check gets the kind of write and one record: the new record for a create, and the stored record for an update or a delete. It does not get the new values of an update, so a rule about field values belongs in a [side effect](/sdk-features/side-effects). Remote changes, session records (camera, selection, instance state) and the store's own integrity repairs are never checked. A check that throws counts as `false`.
 
 The UI can ask the same question before it acts, with [Editor#canWrite](?), so what the UI offers and what the editor accepts come from one answer. The answer is cached for each stored record and updates when the state the check read changes, so it works inside `useValue`:

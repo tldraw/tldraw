@@ -1083,8 +1083,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				react('leave a hidden page', () => {
 					if (!this.isPageHidden(this.getCurrentPageId())) return
 					const page = this.getVisiblePages()[0]
-					// Not a step the person took, so keep it out of the undo history
-					if (page) this._setCurrentPage(page.id, 'ignore')
+					if (!page) return
+					// Only track the page ids and their visibility, not the tool and camera state that
+					// the page switch reads. Not a step the person took, so keep it out of the history.
+					unsafe__withoutCapture(() => this._setCurrentPage(page.id, 'ignore'))
 				})
 			)
 		}
@@ -5382,6 +5384,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.createPage({ name: freshPage.name + ' Copy', id: createId, index })
 			// set the new page as the current page
 			this.setCurrentPage(createId)
+			// The create was blocked or the copy is hidden. Pasting now would double the source page.
+			if (this.getCurrentPageId() !== createId) return
 			// update the new page's camera to the previous page's camera
 			this.setCamera(prevCamera)
 
@@ -7470,6 +7474,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		if (pageId === currentPageId) return this
 		if (!this.store.has(pageId)) return this
+		if (this.isPageHidden(pageId)) return this
+		// The shapes are deleted and pasted again, so a shape that stays would be doubled
+		if (
+			this._canWrite &&
+			![...this.getShapeAndDescendantIds(ids)].every((id) => this._canDeleteShape(id))
+		) {
+			return this
+		}
 
 		// Basically copy the shapes
 		const content = this.getContentFromCurrentPage(ids)
@@ -9207,7 +9219,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const groups: TLGroupShape[] = []
 
 		shapesToUngroup.forEach((shape) => {
-			if (this.isShapeOfType(shape, 'group')) {
+			// A group that cannot be deleted would be left empty
+			if (this.isShapeOfType(shape, 'group') && this._canDeleteShape(shape.id)) {
 				groups.push(shape)
 			} else {
 				idsToSelect.add(shape.id)
