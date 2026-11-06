@@ -1,146 +1,40 @@
-export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
-export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
+export type AgentModelProvider = 'anthropic' | 'google' | 'openai'
 
 /**
- * Thinking mode passed to the Anthropic provider. Models without adaptive thinking, such as Haiku
- * 4.5, take a token budget instead.
+ * How much the model reasons before it answers. The AI SDK maps it to each provider's own setting,
+ * and rounds it down to the nearest level a model supports.
  */
-export type AnthropicThinking = 'adaptive' | 'disabled' | { budgetTokens: number }
+export type AgentReasoning = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
 
-/** Effort level passed to the Anthropic provider (Opus 4.6+/Sonnet 4.6+; not supported on Haiku 4.5). */
-export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-
-/** Reasoning effort passed to the OpenAI provider. */
-export type OpenAIReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max'
-
-/** Thinking level passed to the Google provider. */
-export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
-
-interface BaseAgentModelDefinition {
-	name: AgentModelName
-	/** The provider's own model id. */
-	id: string
-	/** The model's id on OpenRouter, used when the worker has an `OPENROUTER_API_KEY`. */
-	openRouterId: string
-
-	/**
-	 * Whether the model accepts a `temperature` sampling parameter.
-	 * Opus 4.7+ and Sonnet 5 removed `temperature`/`top_p`/`top_k` (sending them is a 400).
-	 */
-	supportsTemperature: boolean
+export interface AgentModelOptions {
+	/** Omit to use the provider's default. */
+	reasoning?: AgentReasoning
+	/** The model's id on OpenRouter, when it differs from the model's name. */
+	openRouterId?: `${string}/${string}`
 }
 
-export interface AnthropicModelDefinition extends BaseAgentModelDefinition {
-	provider: 'anthropic'
-	thinking: AnthropicThinking
-	/** Effort level; omit for models that don't support it (e.g. Haiku 4.5). */
-	effort?: AnthropicEffort
-}
-
-export interface GoogleModelDefinition extends BaseAgentModelDefinition {
-	provider: 'google'
-	thinkingLevel: GeminiThinkingLevel
-}
-
-export interface OpenAIModelDefinition extends BaseAgentModelDefinition {
-	provider: 'openai'
-	/** Reasoning effort; omit to use the model's default. */
-	reasoningEffort?: OpenAIReasoningEffort
-}
-
-export type AgentModelDefinition =
-	| AnthropicModelDefinition
-	| GoogleModelDefinition
-	| OpenAIModelDefinition
-
-export const AGENT_MODEL_DEFINITIONS = {
-	// Anthropic models
-	'claude-opus-5': {
-		name: 'claude-opus-5',
-		id: 'claude-opus-5',
-		openRouterId: 'anthropic/claude-opus-5',
-		provider: 'anthropic',
-		supportsTemperature: false,
-		thinking: 'adaptive',
-		effort: 'medium',
-	},
-
-	'claude-sonnet-5': {
-		name: 'claude-sonnet-5',
-		id: 'claude-sonnet-5',
-		openRouterId: 'anthropic/claude-sonnet-5',
-		provider: 'anthropic',
-		supportsTemperature: false,
-		thinking: 'adaptive',
-		effort: 'low',
-	},
-
-	'claude-haiku-4-5': {
-		name: 'claude-haiku-4-5',
-		id: 'claude-haiku-4-5',
+/**
+ * The models in the model picker. Each name is a `provider/id` ref: the AI SDK's provider registry
+ * resolves it, and OpenRouter takes it as the model's id unless `openRouterId` says otherwise.
+ */
+export const AGENT_MODELS = {
+	'anthropic/claude-opus-5': { reasoning: 'medium' },
+	'anthropic/claude-sonnet-5': { reasoning: 'low' },
+	// Haiku thinks with a token budget, a share of its output limit. `minimal` is about 1,300.
+	'anthropic/claude-haiku-4-5': {
+		reasoning: 'minimal',
 		openRouterId: 'anthropic/claude-haiku-4.5',
-		provider: 'anthropic',
-		// Anthropic takes no temperature while the model thinks.
-		supportsTemperature: false,
-		thinking: { budgetTokens: 1024 },
 	},
+	'google/gemini-3.8-flash': { reasoning: 'low' },
+	'openai/gpt-5.6-sol': { reasoning: 'medium' },
+	'openai/gpt-5.6-terra': { reasoning: 'high' },
+	'openai/gpt-5.6-luna': {},
+} as const satisfies Record<`${AgentModelProvider}/${string}`, AgentModelOptions>
 
-	// Google models
-	'gemini-3.8-flash': {
-		name: 'gemini-3.8-flash',
-		id: 'gemini-3.8-flash',
-		openRouterId: 'google/gemini-3.8-flash',
-		provider: 'google',
-		supportsTemperature: false,
-		thinkingLevel: 'low',
-	},
+export type AgentModelName = keyof typeof AGENT_MODELS
 
-	// OpenAI models
-	'gpt-5.6-sol': {
-		name: 'gpt-5.6-sol',
-		id: 'gpt-5.6-sol',
-		openRouterId: 'openai/gpt-5.6-sol',
-		provider: 'openai',
-		supportsTemperature: false,
-		reasoningEffort: 'medium',
-	},
+export const DEFAULT_MODEL_NAME: AgentModelName = 'anthropic/claude-sonnet-5'
 
-	'gpt-5.6-terra': {
-		name: 'gpt-5.6-terra',
-		id: 'gpt-5.6-terra',
-		openRouterId: 'openai/gpt-5.6-terra',
-		provider: 'openai',
-		supportsTemperature: false,
-		reasoningEffort: 'high',
-	},
-
-	'gpt-5.6-luna': {
-		name: 'gpt-5.6-luna',
-		id: 'gpt-5.6-luna',
-		openRouterId: 'openai/gpt-5.6-luna',
-		provider: 'openai',
-		supportsTemperature: false,
-	},
-} as const
-
-export const DEFAULT_MODEL_NAME: AgentModelName = 'claude-sonnet-5'
-
-/**
- * Check if a string is a valid AgentModelName.
- */
 export function isValidModelName(value: string | undefined): value is AgentModelName {
-	return !!value && value in AGENT_MODEL_DEFINITIONS
-}
-
-/**
- * Get the full information about a model from its name.
- * @param modelName - The name of the model.
- * @returns The full definition of the model.
- */
-export function getAgentModelDefinition(modelName: AgentModelName): AgentModelDefinition {
-	const definition = AGENT_MODEL_DEFINITIONS[modelName]
-	if (!definition) {
-		throw new Error(`Model ${modelName} not found`)
-	}
-	return definition
+	return !!value && value in AGENT_MODELS
 }
