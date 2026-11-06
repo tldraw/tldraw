@@ -67,6 +67,7 @@ import { TLSyncLog } from './TLSocketRoom'
 type RoomRecords<R extends UnknownRecord> = TLRecordLookup<R> & { values(): Iterable<R> }
 import { TLSyncError, TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 import {
+	MAX_COMMAND_IDS,
 	TLSyncForwardDiff,
 	TLSyncStorage,
 	TLSyncStorageTransaction,
@@ -162,6 +163,11 @@ export interface RoomSnapshot {
 	 * Serialized schema used when creating this snapshot (optional)
 	 */
 	schema?: SerializedSchema
+	/**
+	 * Ids of the latest commands the room applied, oldest first (optional). A client that resends
+	 * a command after a restart is answered from this list instead of running it twice.
+	 */
+	commandIds?: string[]
 }
 
 /**
@@ -2128,29 +2134,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		commandId?: string
 	) {
 		if (session && session.state !== RoomSessionState.Connected) return
-		if (commandId && this.appliedCommandIds.has(commandId)) {
-			// sent again after a reconnect; the client already has its effects from the hydration
-			if (session) {
-				this._unsafe_sendMessage(session.sessionId, {
-					type: 'push_result',
-					clientClock,
-					serverClock: this.lastDocumentClock,
-					action: 'discard',
-				})
-			}
-			return
-		}
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 		const actor = session?.actor ?? SERVER_ACTOR
 		const set = this.commands
 
 		type Outcome =
 			| { ok: false; reason: string | undefined }
-			| { ok: true; diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> }
+			| { ok: true; diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R>; idStored: boolean }
+		// A storage that keeps command ids keeps them with the writes, so a command applies once
+		// even across a restart. Otherwise the room remembers them in memory.
+		const isApplied = (txn: TLSyncStorageTransaction<R>, id: string) =>
+			txn.hasCommandId ? txn.hasCommandId(id) : this.appliedCommandIds.has(id)
 		const { result, documentClock } = this.storage.transaction(
 			(txn): Outcome => {
 				this.broadcastChanges(txn)
 				if (!set) return { ok: false, reason: 'this room has no commands' }
+				// sent again after a reconnect; the client already has its effects from the hydration
+				if (commandId && isApplied(txn, commandId)) return { ok: false, reason: undefined }
 				const res = runCommand(set, txn as TLCommandReader<R>, actor, call)
 				if (!res.ok) return { ok: false, reason: res.reason }
 
@@ -2181,7 +2181,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					networkDiff[id] = [RecordOpType.Remove]
 				}
 				if (objectMapKeys(networkDiff).length === 0) return { ok: false, reason: undefined }
-				return { ok: true, diff, networkDiff }
+				if (commandId) txn.addCommandId?.(commandId)
+				return { ok: true, diff, networkDiff, idStored: !!txn.addCommandId }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
 		)
@@ -2224,9 +2225,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				})
 			}
 		}
-		if (commandId) {
+		if (commandId && !result.idStored) {
 			this.appliedCommandIds.add(commandId)
-			if (this.appliedCommandIds.size > 10_000) {
+			if (this.appliedCommandIds.size > MAX_COMMAND_IDS) {
 				this.appliedCommandIds.delete(this.appliedCommandIds.values().next().value!)
 			}
 		}

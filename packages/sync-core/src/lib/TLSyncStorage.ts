@@ -28,6 +28,28 @@ export interface TLSyncStorageTransaction<R extends UnknownRecord> extends Synch
 	 * @returns Changes since the specified clock time
 	 */
 	getChangesSince(sinceClock: number): TLSyncStorageGetChangesSinceResult<R> | undefined
+
+	/**
+	 * Whether a command with this id was applied. With {@link TLSyncStorageTransaction.addCommandId},
+	 * this makes commands apply once even when a client resends one after a restart. A storage
+	 * without them keeps the ids in the room's memory only.
+	 */
+	hasCommandId?(id: string): boolean
+	/** Record that a command applied, in the same transaction as its writes. */
+	addCommandId?(id: string): void
+}
+
+/**
+ * How many applied command ids a storage keeps. A client resends at most its unanswered and
+ * offline commands, so this only needs to cover what can be in flight.
+ *
+ * @public
+ */
+export const MAX_COMMAND_IDS = 10_000
+
+/** Snapshots of rooms that never ran a command stay as they were. @internal */
+export function commandIdsField(ids: string[]): { commandIds?: string[] } {
+	return ids.length > 0 ? { commandIds: ids } : {}
 }
 
 /**

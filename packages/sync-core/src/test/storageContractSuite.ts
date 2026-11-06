@@ -62,6 +62,30 @@ export function registerStorageContractTests(factory: StorageContractFactory) {
 			expect(snapshot.documents.map((d) => d.lastChangedClock)).toEqual([0, 0])
 		})
 
+		describe('applied command ids', () => {
+			it('records an id with the writes, and forgets it when the transaction throws', () => {
+				const storage = create()
+				storage.transaction((txn) => txn.addCommandId!('kept'))
+				expect(() =>
+					storage.transaction((txn) => {
+						txn.addCommandId!('rolled-back')
+						throw new Error('boom')
+					})
+				).toThrow('boom')
+				expect(storage.transaction((txn) => txn.hasCommandId!('kept')).result).toBe(true)
+				expect(storage.transaction((txn) => txn.hasCommandId!('rolled-back')).result).toBe(false)
+			})
+
+			it('keeps ids in the snapshot, and leaves the snapshot of a room without commands alone', () => {
+				expect(create().getSnapshot!().commandIds).toBeUndefined()
+				const storage = create()
+				storage.transaction((txn) => txn.addCommandId!('a'))
+				const snapshot = storage.getSnapshot!()
+				expect(snapshot.commandIds).toEqual(['a'])
+				expect(create(snapshot).transaction((txn) => txn.hasCommandId!('a')).result).toBe(true)
+			})
+		})
+
 		describe('object-store lane partition', () => {
 			// the storage doesn't care about record semantics, so 'page' stands in as a
 			// generic object-lane type here

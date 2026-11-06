@@ -945,13 +945,17 @@ describe('closed gaps', () => {
 
 describe('review findings', () => {
 	const answers = 'page:answers' as TLPageId
-	function rawSession(opts: { isReadonly?: boolean; objectTypes?: string[] } = {}) {
-		const room = new TLSocketRoom<any, void>({
-			schema,
-			commands: commands as any,
-			objectTypes: opts.objectTypes,
-			log: { warn: () => {}, error: console.error },
-		})
+	function rawSession(
+		opts: { isReadonly?: boolean; objectTypes?: string[]; room?: TLSocketRoom<any, void> } = {}
+	) {
+		const room =
+			opts.room ??
+			new TLSocketRoom<any, void>({
+				schema,
+				commands: commands as any,
+				objectTypes: opts.objectTypes,
+				log: { warn: () => {}, error: console.error },
+			})
 		const out: any[] = []
 		room.handleSocketConnect({
 			sessionId: 'm',
@@ -968,8 +972,8 @@ describe('review findings', () => {
 			schema: schema.serialize(),
 		})
 		let clock = 0
-		const push = (diff: object) => {
-			send({ type: 'push', clientClock: clock++, diff })
+		const push = (diff: object, extra: object = {}) => {
+			send({ type: 'push', clientClock: clock++, ...(diff ? { diff } : null), ...extra })
 			;(room as any).room._flushDataMessages('m')
 			return out
 				.flatMap((m) => (m.type === 'data' ? m.data : [m]))
@@ -978,6 +982,42 @@ describe('review findings', () => {
 		}
 		return { room, push }
 	}
+
+	it('a command resent to a room restarted from its snapshot is not applied twice', () => {
+		const first = rawSession()
+		const shape = {
+			id: 'shape:mine',
+			typeName: 'shape',
+			type: 'geo',
+			parentId: page,
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: {},
+			props: geoProps(),
+		}
+		first.push({ 'shape:mine': ['put', shape] })
+		expect(first.room.getRecord('shape:mine')).toBeDefined()
+		const vote = { name: 'votes.toggle', args: { shapeId: 'shape:mine' } }
+		first.push(null as any, { command: vote, commandId: 'vote-1' })
+		expect((first.room.getRecord('shape:mine') as TLShape).meta.votes).toEqual(['mallory'])
+		// the room restarts before its answer arrives; the client resends the toggle with its id
+		const restarted = new TLSocketRoom<any, void>({
+			schema,
+			commands: commands as any,
+			initialSnapshot: first.room.getCurrentSnapshot(),
+			log: { warn: () => {}, error: console.error },
+		})
+		const again = rawSession({ room: restarted })
+		expect(again.push(null as any, { command: vote, commandId: 'vote-1' })).toMatchObject({
+			action: 'discard',
+		})
+		// a second toggle would have taken the vote away
+		expect((restarted.getRecord('shape:mine') as TLShape).meta.votes).toEqual(['mallory'])
+	})
 
 	it('comment types in the object lane are still command-only', () => {
 		const { room, push } = rawSession({ objectTypes: ['comment', 'comment-thread'] })

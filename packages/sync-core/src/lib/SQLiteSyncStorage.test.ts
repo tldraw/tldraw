@@ -12,6 +12,7 @@ import {
 import { MAX_TOMBSTONES } from './InMemorySyncStorage'
 import { NodeSqliteWrapper } from './NodeSqliteWrapper'
 import { SQLiteSyncStorage } from './SQLiteSyncStorage'
+import { MAX_COMMAND_IDS } from './TLSyncStorage'
 
 function createWrapper(config?: { tablePrefix?: string }) {
 	return new NodeSqliteWrapper(new DatabaseSync(':memory:'), config)
@@ -255,13 +256,31 @@ describe('SQLiteSyncStorage', () => {
 			expect(storage.getSnapshot().documents.length).toBe(3)
 		})
 
-		it('[SQ6] fresh databases start at migration version 3', () => {
+		it('[SQ6] fresh databases start at migration version 4', () => {
 			const sql = createWrapper()
 			new SQLiteSyncStorage<TLRecord>({ sql, snapshot: makeContractSnapshot(contractRecords) })
 			const row = sql
 				.prepare<{ migrationVersion: number }>('SELECT migrationVersion FROM metadata')
 				.all()[0]
-			expect(row?.migrationVersion).toBe(3)
+			expect(row?.migrationVersion).toBe(4)
+		})
+
+		it('[SQ7] applied command ids survive a reopen and a snapshot, and are pruned oldest first', () => {
+			const sql = createWrapper()
+			const storage = new SQLiteSyncStorage<TLRecord>({ sql })
+			storage.transaction((txn) => txn.addCommandId!('first'))
+			const reopened = new SQLiteSyncStorage<TLRecord>({ sql })
+			expect(reopened.transaction((txn) => txn.hasCommandId!('first')).result).toBe(true)
+			const copy = new SQLiteSyncStorage<TLRecord>({
+				sql: createWrapper(),
+				snapshot: reopened.getSnapshot(),
+			})
+			expect(copy.transaction((txn) => txn.hasCommandId!('first')).result).toBe(true)
+			storage.transaction((txn) => {
+				for (let i = 0; i < MAX_COMMAND_IDS; i++) txn.addCommandId!(`id${i}`)
+			})
+			expect(storage.transaction((txn) => txn.hasCommandId!('first')).result).toBe(false)
+			expect(storage.transaction((txn) => txn.hasCommandId!('id0')).result).toBe(true)
 		})
 	})
 
