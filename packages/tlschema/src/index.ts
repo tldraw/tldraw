@@ -366,6 +366,7 @@ export {
 	type TLAssetStore,
 	type TLSerializedStore,
 	type TLStore,
+	type TLAccessState,
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,

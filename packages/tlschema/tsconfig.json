@@ -4,6 +4,7 @@
 	"exclude": ["node_modules", "docs", "dist", ".tsbuild*"],
 	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
 	"references": [
+		{ "path": "../rules" },
 		{ "path": "../state" },
 		{ "path": "../store" },
 		{ "path": "../utils" },

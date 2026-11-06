@@ -189,9 +189,13 @@ function hasUnknown(v: Value) {
 	return v === UNKNOWN || v instanceof PartialRecord
 }
 
+function isRecordLike(v: Value) {
+	return isPlainObject(v) || v instanceof PartialRecord
+}
+
 function ancestorsOf(host: EvalHost, r: Value): Value {
-	if (hasUnknown(r)) return UNKNOWN
-	if (!isPlainObject(r)) return ERROR
+	if (r === UNKNOWN) return UNKNOWN
+	if (!isRecordLike(r)) return ERROR
 	const out: Value[] = []
 	let cur: Value = r
 	for (let i = 0; i < MAX_DEPTH; i++) {
@@ -209,17 +213,22 @@ function ancestorsOf(host: EvalHost, r: Value): Value {
 }
 
 function pageOf(host: EvalHost, r: Value): Value {
-	if (hasUnknown(r)) return UNKNOWN
-	if (!isPlainObject(r)) return ERROR
-	if (r.typeName === 'page') return r
-	if (typeof r.parentId === 'string') {
+	if (r === UNKNOWN) return UNKNOWN
+	if (!isRecordLike(r)) return ERROR
+	const typeName = member(r, 'typeName')
+	if (typeName === 'page') return r
+	const parentId = member(r, 'parentId')
+	if (parentId === UNKNOWN) return UNKNOWN
+	if (typeof parentId === 'string') {
 		const chain = ancestorsOf(host, r)
 		if (!Array.isArray(chain)) return chain
 		const top = chain[chain.length - 1]
 		return member(top, 'typeName') === 'page' ? top : undefined
 	}
 	for (const field of ['pageId', 'currentPageId']) {
-		if (typeof r[field] === 'string') return host.get(r[field] as string)
+		const id = member(r, field)
+		if (id === UNKNOWN) return UNKNOWN
+		if (typeof id === 'string') return host.get(id)
 	}
 	return undefined
 }

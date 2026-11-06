@@ -76,8 +76,12 @@ export interface ToolbarItemProps {
 
 /** @public @react */
 export function ToolbarItem({ tool }: ToolbarItemProps) {
+	const editor = useEditor()
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools[tool])
+	// in a rules room, a tool whose shape the user can never create is not offered
+	const canUse = useValue('can use tool', () => editor.rules.canUseTool(tool), [editor, tool])
+	if (!canUse) return null
 	return <TldrawUiMenuToolItem toolId={tool} isSelected={isSelected} />
 }
 

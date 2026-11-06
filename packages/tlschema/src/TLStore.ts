@@ -1,3 +1,4 @@
+import type { TLRuleUser, TLRulesDefinition } from '@tldraw/rules'
 import { Signal, computed } from '@tldraw/state'
 import {
 	SerializedStore,
@@ -336,7 +337,21 @@ export interface TLStoreProps {
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/** In a rules room: the rules and this user's facts, from the server. */
+		access?: Signal<TLAccessState | null> | null
 	}
+}
+
+/**
+ * The access rules a room enforces, and the facts about the current user that they read. The
+ * sync server sends this; the editor compiles the same rules to check writes and derive
+ * affordances. See `@tldraw/rules`.
+ *
+ * @public
+ */
+export interface TLAccessState {
+	rules: TLRulesDefinition
+	user: TLRuleUser
 }
 
 /**

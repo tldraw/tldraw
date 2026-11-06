@@ -23,6 +23,8 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { StoreValidator } from '@tldraw/store';
 import { T } from '@tldraw/validate';
+import type { TLRulesDefinition } from '@tldraw/rules';
+import type { TLRuleUser } from '@tldraw/rules';
 import { UnknownRecord } from '@tldraw/store';
 
 // @public
@@ -900,6 +902,14 @@ export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
 export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
+
+// @public
+export interface TLAccessState {
+    // (undocumented)
+    rules: TLRulesDefinition;
+    // (undocumented)
+    user: TLRuleUser;
+}
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
@@ -1790,6 +1800,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
     collaboration?: {
+        access?: null | Signal<null | TLAccessState>;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };

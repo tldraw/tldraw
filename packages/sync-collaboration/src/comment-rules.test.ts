@@ -1,3 +1,10 @@
+import {
+	TLRuleRecord,
+	TLRulesFragment,
+	commentRules,
+	compileRules,
+	composeRules,
+} from '@tldraw/rules'
 /**
  * The comment authorizer tests from `@tldraw/sync-collaboration`, run unchanged against
  * `commentRules`: the same rules as data instead of code. Only the setup differs. Cases that test
@@ -18,9 +25,6 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { TLRulesFragment, composeRules } from '../lib/compose'
-import { commentRules } from '../lib/presets'
-import { TLRuleRecord, compileRules } from '../lib/rules'
 
 interface TestMeta {
 	userId: string | null

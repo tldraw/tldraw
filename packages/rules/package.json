@@ -8,8 +8,7 @@
 	"type": "module",
 	"dependencies": {},
 	"devDependencies": {
-		"vitest": "^5.0.0",
-		"@tldraw/tlschema": "workspace:*"
+		"vitest": "^5.0.0"
 	},
 	"scripts": {
 		"test-ci": "pnpm exec vitest run --passWithNoTests",

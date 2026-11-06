@@ -133,6 +133,7 @@ export {
 	type ScribbleItem,
 	type ScribbleSessionOptions,
 } from './lib/editor/managers/ScribbleManager/ScribbleManager'
+export { RulesManager } from './lib/editor/managers/RulesManager/RulesManager'
 export {
 	BoundsSnaps,
 	type BoundsSnapGeometry,

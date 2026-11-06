@@ -15,6 +15,7 @@ import { useEffect } from 'react'
 import {
 	Editor,
 	TAB_ID,
+	TLAccessState,
 	TLAssetStore,
 	TLPresenceStateInfo,
 	TLRecord,
@@ -307,6 +308,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+		// in a rules room: the rules and this user's facts, which the editor checks locally
+		const access = atom<TLAccessState | null>('rules access', null)
 
 		const store = createTLStore({
 			id: storeId,
@@ -317,6 +320,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
+				access,
 			},
 		})
 
@@ -376,6 +380,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onAccessChange: (next) => access.set(next),
 			presence,
 			presenceMode,
 		})

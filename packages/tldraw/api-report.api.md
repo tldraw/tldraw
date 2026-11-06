@@ -6399,7 +6399,7 @@ export function ToggleTransparentBgMenuItem(): JSX.Element;
 export function ToggleWrapModeItem(): JSX.Element;
 
 // @public (undocumented)
-export function ToolbarItem({ tool }: ToolbarItemProps): JSX.Element;
+export function ToolbarItem({ tool }: ToolbarItemProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface ToolbarItemProps {

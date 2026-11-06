@@ -688,7 +688,10 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					}
 					this.addDiffForAfterEvent(initialValue, record)
 				} else {
-					record = this.sideEffects.handleBeforeCreate(record, source)
+					const created = this.sideEffects.handleBeforeCreate(record, source)
+					// vetoed by a before-create handler
+					if (created === null) continue
+					record = created
 
 					// If we don't have an atom, create one.
 
