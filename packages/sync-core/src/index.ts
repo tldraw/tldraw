@@ -31,9 +31,54 @@ export {
 	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,
 } from './lib/protocol'
+export { TLRelationsClient } from './lib/relations/client'
+export { defaultRelationSchema } from './lib/relations/defaultSchema'
+export {
+	RelationEvaluator,
+	authorizeRelationWrite,
+	canReadRelationRecord,
+	type TLRelationCeiling,
+	type TLRelationContext,
+	type TLRelationSource,
+	type TLRelationWriteResult,
+} from './lib/relations/evaluate'
+export { RelationTupleIndex, createRelationRoomAccess } from './lib/relations/roomAccess'
+export {
+	allOf,
+	anyOf,
+	anyone,
+	butNot,
+	defineRelationSchema,
+	direct,
+	field,
+	from,
+	nobody,
+	when,
+	type TLRelationEnv,
+	type TLRelationExpr,
+	type TLRelationFieldExpr,
+	type TLRelationSchema,
+	type TLRelationTypeDef,
+	type TLRelationWriteOp,
+} from './lib/relations/schema'
+export {
+	attenuateCapabilityToken,
+	createCapabilityToken,
+	verifyCapabilityToken,
+	type TLCapability,
+	type TLCapabilityCaveat,
+} from './lib/relations/tokens'
+export {
+	InMemoryTupleStore,
+	resolveRelationContext,
+	type ResolveRelationContextOptions,
+	type TLRelationTuple,
+	type TLTupleStore,
+} from './lib/relations/tupleStore'
 export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
 export type { WebSocketMinimal } from './lib/ServerSocketAdapter'
+export type { TLRoomAccess, TLRoomAccessView, TLRoomAccessWrite } from './lib/TLRoomAccess'
 export {
 	SQLiteSyncStorage,
 	type TLSqliteInputValue,

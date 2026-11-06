@@ -261,6 +261,12 @@ export interface CreatePresenceStateDerivationOpts {
     instanceId?: TLInstancePresence['id'];
 }
 
+// @public (undocumented)
+export function createRelation(object: string, relation: string, subject: string): TLRelation;
+
+// @public
+export function createRelationId(object: string, relation: string, subject: string): TLRelationId;
+
 // @public
 export function createShapeId(id?: string): TLShapeId;
 
@@ -817,6 +823,14 @@ export function registerColorsFromThemes(definitions: TLThemes): void;
 
 // @public
 export function registerFontsFromThemes(definitions: TLThemes): void;
+
+// @public
+export const relationRecordConfig: CustomRecordInfo;
+
+// @public
+export const relationSchemaRecords: {
+    relation: CustomRecordInfo;
+};
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -1732,6 +1746,21 @@ export interface TLPropsMigrations {
 
 // @public
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
+
+// @public
+export interface TLRelation extends BaseRecord<'relation', TLRelationId> {
+    // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
+    object: string;
+    // (undocumented)
+    relation: string;
+    // (undocumented)
+    subject: string;
+}
+
+// @public (undocumented)
+export type TLRelationId = RecordId<TLRelation>;
 
 // @public
 export interface TLRemovedDefaultThemeColors {

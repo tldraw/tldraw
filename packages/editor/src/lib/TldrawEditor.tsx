@@ -251,6 +251,15 @@ export interface TldrawEditorBaseProps {
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
+	 * Treat a shape as locked for this user, in addition to its `isLocked` prop. Use it for access
+	 * rules: a shape the user may not change can't be selected or edited. It is not stored.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	isShapeLocked?(shape: TLShape, editor: Editor): boolean
+
+	/**
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
@@ -524,6 +533,7 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	isShapeLocked,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -612,6 +622,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				isShapeLocked,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -656,6 +667,7 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			licenseManager,
 			getShapeVisibility,
+			isShapeLocked,
 			assetUrls,
 			stableI18n,
 		]
