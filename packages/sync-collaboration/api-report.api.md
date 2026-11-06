@@ -7,9 +7,20 @@
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
-import type { TLRecordAuthorizers } from '@tldraw/sync-core';
+import type { TLPage } from '@tldraw/tlschema';
+import { TLRecordAuthorizers } from '@tldraw/sync-core';
+import { TLSyncAuthorizer } from '@tldraw/sync-core';
+import { TLSyncAuthorizerSession } from '@tldraw/sync-core';
+import { TLSyncTransform } from '@tldraw/sync-core';
+import type { UnknownRecord } from '@tldraw/store';
 
 // @public
+export interface CommentAuthorizer<R extends UnknownRecord, SessionMeta> {
+    authorize: TLSyncAuthorizer<R, SessionMeta>;
+    transform: TLSyncTransform<R, SessionMeta>;
+}
+
+// @public @deprecated
 export interface CommentAuthorizerOptions<SessionMeta> {
     canComment?(session: {
         isReadonly: boolean;
@@ -25,6 +36,13 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 }
 
 // @public
+export interface CommentAuthorizerRuleOptions<SessionMeta> {
+    canComment?(session: TLSyncAuthorizerSession<SessionMeta>): boolean;
+    canModifyComment?(ctx: CommentModificationRuleContext<SessionMeta>): boolean;
+    getUserId(session: TLSyncAuthorizerSession<SessionMeta>): null | string;
+}
+
+// @public
 export type CommentModification = {
     readonly action: 'delete-comment';
     readonly comment: TLComment;
@@ -36,7 +54,7 @@ export type CommentModification = {
     readonly comment: TLComment;
 };
 
-// @public
+// @public @deprecated
 export type CommentModificationAuthContext<SessionMeta> = {
     readonly ownerId: string;
     readonly session: {
@@ -48,7 +66,35 @@ export type CommentModificationAuthContext<SessionMeta> = {
 } & CommentModification;
 
 // @public
-export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
+export type CommentModificationRuleContext<SessionMeta> = {
+    readonly ownerId: string;
+    readonly session: TLSyncAuthorizerSession<SessionMeta>;
+    readonly userId: null | string;
+} & CommentModification;
+
+// @public
+export function createCommentAuthorizer<R extends UnknownRecord, SessionMeta>(opts: CommentAuthorizerRuleOptions<SessionMeta>): CommentAuthorizer<R, SessionMeta>;
+
+// @public @deprecated
+export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLCommentRecord, SessionMeta>;
+
+// @public
+export function getOwningPage(get: (id: string) => undefined | UnknownRecord, record: UnknownRecord): TLOwningPage;
+
+// @public
+export function isCommentRecord(record: UnknownRecord): record is TLCommentRecord;
+
+// @public
+export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
+
+// @public
+export type TLOwningPage = {
+    page: null;
+    reason: 'dangling' | 'unscoped';
+} | {
+    page: TLPage;
+    reason?: undefined;
+};
 
 // (No @packageDocumentation comment for this package)
 
