@@ -4,12 +4,23 @@ import type { TLLibraryItem } from './schema'
 
 /**
  * Copies a library and its items to an owner, as a new library with the same name. The
- * original is left as it is, so this works for read-only libraries too. Item thumbnails are
- * fetched from their URLs and copied; one that can't be fetched is left out. If an item can't be
+ * original is left as it is, so this works for read-only libraries too. A source that has its
+ * own {@link LibrarySource.copyLibrary} makes the copy; otherwise item thumbnails are fetched
+ * from their URLs and copied, one that can't be fetched being left out, and if an item can't be
  * copied, the partial copy is deleted and the error rethrown.
  * @public
  */
 export async function copyLibrary(
+	source: LibrarySource,
+	libraryId: TLLibraryId,
+	ownerId: string
+): Promise<TLLibrary> {
+	if (source.copyLibrary) return source.copyLibrary(libraryId, ownerId)
+	return copyLibraryItemByItem(source, libraryId, ownerId)
+}
+
+/** {@link copyLibrary} for a source without its own: each item is loaded and added again. */
+export async function copyLibraryItemByItem(
 	source: LibrarySource,
 	libraryId: TLLibraryId,
 	ownerId: string
