@@ -10,6 +10,8 @@ import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
 import { TLEditPolicy } from '@tldraw/sync-core';
+import { TLPage } from '@tldraw/tlschema';
+import { TLReadPolicy } from '@tldraw/sync-core';
 import type { TLRecordAuthorizers } from '@tldraw/sync-core';
 import { TLShape } from '@tldraw/tlschema';
 import type { UnknownRecord } from '@tldraw/store';
@@ -71,6 +73,15 @@ export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOpt
 export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecord>(opts?: OwnedShapesPolicyOptions): TLEditPolicy<Rec>;
 
 // @public
+export function createPageReadPolicy<Rec extends UnknownRecord = UnknownRecord>(): TLReadPolicy<Rec>;
+
+// @public
+export function getPageReaders(page: TLPage): null | string[];
+
+// @public
+export function getRecordPageId(record: UnknownRecord, get: (id: string) => undefined | UnknownRecord): string | undefined;
+
+// @public
 export function getShapeOwner(shape: TLShape): string | undefined;
 
 // @public (undocumented)
@@ -88,6 +99,7 @@ export const TLDRAW_PERMISSIONS: {
     readonly managePages: 'pages:manage';
     readonly manageComments: 'comments:manage';
     readonly manageShapes: 'shapes:manage';
+    readonly read: 'read';
     readonly writeComments: 'comments:write';
     readonly edit: 'edit';
 };

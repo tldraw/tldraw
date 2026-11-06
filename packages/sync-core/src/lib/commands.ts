@@ -79,7 +79,13 @@ export interface TLCommand<R extends UnknownRecord = UnknownRecord, Args = any> 
 	readonly args: { validate(value: unknown): Args }
 	/** A permission the actor must have. Leave it out to let `run` decide alone. */
 	readonly requires?: string
-	run(ctx: TLCommandContext<R>, args: Args): void
+	/**
+	 * Read and write through `ctx`. Return the call that undoes this one (for example
+	 * `comments.add` returns `comments.delete`) to put the command on the client's undo stack.
+	 * Undo then sends that call, which the server authorizes like any other command. Return
+	 * nothing for a command that cannot be undone.
+	 */
+	run(ctx: TLCommandContext<R>, args: Args): TLCommandCall | void
 }
 
 /** @public */
@@ -121,13 +127,38 @@ export interface TLEditPolicy<R extends UnknownRecord> {
 }
 
 /**
- * The commands and edit policy for a room. Share one instance between client and server.
+ * The rule for what a session can see. The server applies it to everything it sends: the
+ * records at connect, every broadcast, and every command result. A record the actor cannot read
+ * never reaches the client, and the actor cannot write it through the edit lane or a command.
+ *
+ * @public
+ */
+export interface TLReadPolicy<R extends UnknownRecord> {
+	/**
+	 * The permission to open the room at all. A session without it is refused at connect, and is
+	 * closed when it loses the permission. Leave it out to let the host decide alone.
+	 */
+	readonly requires?: string
+	/** Hide one record from the actor. `get` reads any record in the room. */
+	canRead?(actor: TLCommandActor, record: R, get: (id: string) => R | undefined): boolean
+	/**
+	 * Whether a change can change what other records the actor can read, for example a page's
+	 * readers or a shape's move to another page. After such a change the server checks every
+	 * record again for every session. Without it, the server checks only the changed records.
+	 */
+	isScopeChange?(prev: R | null, next: R | null): boolean
+}
+
+/**
+ * The commands, edit policy, and read policy for a room. Share one instance between client and
+ * server.
  *
  * @public
  */
 export interface TLCommandSet<R extends UnknownRecord = UnknownRecord> {
 	readonly commands: ReadonlyMap<string, TLCommand<R>>
 	readonly edit: TLEditPolicy<R>
+	readonly read: TLReadPolicy<R>
 }
 
 /** @public */
@@ -141,13 +172,14 @@ export function defineCommand<R extends UnknownRecord, Args>(
 export function defineCommandSet<R extends UnknownRecord>(opts: {
 	commands?: readonly TLCommand<R, any>[]
 	edit?: TLEditPolicy<R>
+	read?: TLReadPolicy<R>
 }): TLCommandSet<R> {
 	const commands = new Map<string, TLCommand<R>>()
 	for (const command of opts.commands ?? []) {
 		if (commands.has(command.name)) throw new Error(`Duplicate command: ${command.name}`)
 		commands.set(command.name, command)
 	}
-	return { commands, edit: opts.edit ?? {} }
+	return { commands, edit: opts.edit ?? {}, read: opts.read ?? {} }
 }
 
 /** Thrown by {@link TLCommandContext.deny}. @public */
@@ -166,7 +198,7 @@ export interface TLCommandWrites<R extends UnknownRecord> {
 
 /** @public */
 export type TLCommandResult<R extends UnknownRecord> =
-	| { ok: true; writes: TLCommandWrites<R> }
+	| { ok: true; writes: TLCommandWrites<R>; inverse?: TLCommandCall }
 	| { ok: false; reason: string }
 
 /** The read side a command runs against: the client store or the server transaction. @public */
@@ -199,11 +231,14 @@ export function runCommand<R extends UnknownRecord>(
 		return { ok: false, reason: `invalid args: ${(e as Error).message}` }
 	}
 
+	// A command sees only what its actor can read, on the server as on the client.
+	const readable = (record: R | undefined) =>
+		record && canReadRecord(set, actor, record, (id) => reader.get(id)) ? record : undefined
 	const puts = new Map<string, R>()
 	const deletes = new Set<string>()
 	const get = (id: string): R | undefined => {
 		if (deletes.has(id)) return undefined
-		return puts.get(id) ?? reader.get(id)
+		return puts.get(id) ?? readable(reader.get(id))
 	}
 	const ctx: TLCommandContext<R> = {
 		actor,
@@ -211,7 +246,8 @@ export function runCommand<R extends UnknownRecord>(
 		getAll: ((typeName: string) => {
 			const out = new Map<string, R>()
 			for (const record of reader.values()) {
-				if (record.typeName === typeName && !deletes.has(record.id)) out.set(record.id, record)
+				if (record.typeName !== typeName || deletes.has(record.id)) continue
+				if (readable(record)) out.set(record.id, record)
 			}
 			for (const record of puts.values()) {
 				if (record.typeName === typeName) out.set(record.id, record)
@@ -239,8 +275,9 @@ export function runCommand<R extends UnknownRecord>(
 		},
 	}
 
+	let inverse: TLCommandCall | void
 	try {
-		command.run(ctx, args)
+		inverse = command.run(ctx, args)
 	} catch (e) {
 		if (e instanceof TLCommandDenied) return { ok: false, reason: e.reason }
 		throw e
@@ -250,12 +287,33 @@ export function runCommand<R extends UnknownRecord>(
 	for (const [id, record] of puts) {
 		const prev = reader.get(id)
 		if (prev && isEqual(prev, record)) continue
+		// a command cannot overwrite a hidden record, or write a record its actor cannot read
+		if ((prev && !readable(prev)) || !canReadRecord(set, actor, record, get)) {
+			return { ok: false, reason: `not found: ${id}` }
+		}
 		finalPuts.push(record)
 	}
 	return {
 		ok: true,
-		writes: { puts: finalPuts, deletes: [...deletes].filter((id) => reader.get(id) !== undefined) },
+		writes: { puts: finalPuts, deletes: [...deletes].filter((id) => readable(reader.get(id))) },
+		...(inverse ? { inverse } : null),
 	}
+}
+
+/**
+ * Whether the actor can read a record. The server uses it to filter what it sends; commands and
+ * the edit lane use it to deny writes to hidden records.
+ *
+ * @public
+ */
+export function canReadRecord<R extends UnknownRecord>(
+	set: TLCommandSet<R>,
+	actor: TLCommandActor,
+	record: R,
+	get: (id: string) => R | undefined
+): boolean {
+	if (!actorCan(actor, set.read.requires)) return false
+	return set.read.canRead ? set.read.canRead(actor, record, get) : true
 }
 
 /**
@@ -275,5 +333,8 @@ export function canEditRecord<R extends UnknownRecord>(
 	if (ctx.prev && ctx.next && ctx.prev.typeName !== ctx.next.typeName) return false
 	if (edit.commandOnlyTypes?.includes(typeName)) return false
 	if (!edit.openTypes?.includes(typeName) && !actorCan(actor, edit.requires ?? 'edit')) return false
+	// nobody edits what they cannot see, or moves a record somewhere they cannot see
+	if (ctx.prev && !canReadRecord(set, actor, ctx.prev, ctx.get)) return false
+	if (ctx.next && !canReadRecord(set, actor, ctx.next, ctx.get)) return false
 	return edit.authorize ? edit.authorize({ ...ctx, actor }) : true
 }

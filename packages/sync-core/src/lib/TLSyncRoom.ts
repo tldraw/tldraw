@@ -23,6 +23,7 @@ import { createNanoEvents } from 'nanoevents'
 import {
 	actorCan,
 	canEditRecord,
+	canReadRecord,
 	defaultActor,
 	runCommand,
 	SERVER_ACTOR,
@@ -677,38 +678,65 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private broadcastPatch(
 		diff: TLSyncForwardDiff<R>,
 		networkDiff?: NetworkDiff<R> | null,
-		sourceSessionId?: string
+		sourceSessionId?: string,
+		txn?: TLSyncStorageTransaction<R>
 	) {
 		// Computed once and shared by every session that needs no down-migration; the push path
 		// hands us the diff it already computed (in legacy append mode when needed), and re-deriving
 		// it per session would both repeat the diffing work and lose that legacy handling.
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 		const unmigrated = networkDiff ?? toNetworkDiff(diff, legacyAppendMode)
+		const filtered = this.readFiltered
+		const resync = filtered && this.isScopeChange(diff)
 
-		this.sessions.forEach((session) => {
-			if (session.state !== RoomSessionState.Connected) return
-			if (sourceSessionId === session.sessionId) return
-			if (!session.socket.isOpen) {
-				this.cancelSession(session.sessionId)
-				return
-			}
+		const send = (reader?: { get(id: string): R | undefined; values(): Iterable<R> }) =>
+			this.sessions.forEach((session) => {
+				if (session.state !== RoomSessionState.Connected) return
+				if (sourceSessionId === session.sessionId && !resync) return
+				if (!session.socket.isOpen) {
+					this.cancelSession(session.sessionId)
+					return
+				}
 
-			const diffResult = this.migrateDiffOrRejectSession(
-				session.sessionId,
-				session.serializedSchema,
-				session.requiresDownMigrations,
-				diff,
-				unmigrated,
-				legacyAppendMode
-			)
-			if (!diffResult.ok) return
+				let sessionDiff = diff
+				let sessionNetworkDiff = unmigrated
+				if (reader) {
+					// the source already has its own changes; it only needs what its access change shows
+					const own = sourceSessionId === session.sessionId
+					const out = this.filterForSession(
+						session,
+						own ? { puts: {}, deletes: [] } : diff,
+						own ? {} : unmigrated,
+						reader,
+						resync
+					)
+					if (own) {
+						for (const id of objectMapKeys(unmigrated)) delete out.networkDiff[id]
+						out.diff.deletes = out.diff.deletes.filter((id) => !(id in unmigrated))
+					}
+					sessionDiff = out.diff
+					sessionNetworkDiff = out.networkDiff
+					if (objectMapKeys(sessionNetworkDiff).length === 0) return
+				}
 
-			this._unsafe_sendMessage(session.sessionId, {
-				type: 'patch',
-				diff: diffResult.value,
-				serverClock: this.lastDocumentClock,
+				const diffResult = this.migrateDiffOrRejectSession(
+					session.sessionId,
+					session.serializedSchema,
+					session.requiresDownMigrations,
+					sessionDiff,
+					sessionNetworkDiff,
+					legacyAppendMode
+				)
+				if (!diffResult.ok) return
+
+				this._unsafe_sendMessage(session.sessionId, {
+					type: 'patch',
+					diff: diffResult.value,
+					serverClock: this.lastDocumentClock,
+				})
 			})
-		})
+		if (filtered) this.withReader(txn, send)
+		else send()
 		return this
 	}
 
@@ -797,6 +825,119 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return this
 	}
 
+	/** Whether the room filters what each session sees. */
+	private get readFiltered() {
+		return !!this.commands?.read.canRead
+	}
+
+	private canOpen(actor: TLCommandActor) {
+		return !this.commands || actorCan(actor, this.commands.read.requires)
+	}
+
+	/**
+	 * Filter a diff for one session: drop what it cannot read, send a whole record that becomes
+	 * readable, and remove a record that stops being readable. With `resync`, every record in the
+	 * room is checked again, not only the changed ones.
+	 */
+	private filterForSession(
+		session: { actor: TLCommandActor; presenceId: string | null; visible?: Set<string> },
+		diff: TLSyncForwardDiff<R>,
+		networkDiff: NetworkDiff<R>,
+		reader: { get(id: string): R | undefined; values(): Iterable<R> },
+		resync: boolean
+	): { diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> } {
+		const visible = session.visible
+		if (!visible || !this.commands) return { diff, networkDiff }
+		const set = this.commands
+		const get = (id: string) => reader.get(id) ?? (this.presenceStore.get(id) as R | undefined)
+		const outDiff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+		const outNetwork: NetworkDiff<R> = {}
+		const show = (id: string, record: R) => {
+			visible.add(id)
+			outDiff.puts[id] = record
+			outNetwork[id] = [RecordOpType.Put, record]
+		}
+		const hide = (id: string) => {
+			if (!visible.delete(id)) return
+			outDiff.deletes.push(id)
+			outNetwork[id] = [RecordOpType.Remove]
+		}
+		for (const [id, op] of objectMapEntriesIterable(networkDiff)) {
+			if (op[0] === RecordOpType.Remove) {
+				hide(id)
+				continue
+			}
+			const put = diff.puts[id]
+			const next = Array.isArray(put) ? put[1] : put
+			if (!next) continue
+			if (!canReadRecord(set, session.actor, next, get)) hide(id)
+			else if (visible.has(id)) {
+				outDiff.puts[id] = put
+				outNetwork[id] = op
+			} else show(id, next)
+		}
+		if (resync) {
+			const all = [...reader.values(), ...(this.presenceStore.values() as Iterable<R>)]
+			for (const record of all) {
+				if (record.id === session.presenceId || record.id in networkDiff) continue
+				const readable = canReadRecord(set, session.actor, record, get)
+				if (readable && !visible.has(record.id)) show(record.id, record)
+				else if (!readable) hide(record.id)
+			}
+		}
+		return { diff: outDiff, networkDiff: outNetwork }
+	}
+
+	/** Whether a diff can change what other records a session can read. */
+	private isScopeChange(diff: TLSyncForwardDiff<R>) {
+		const isScopeChange = this.commands?.read.isScopeChange
+		if (!isScopeChange) return false
+		for (const put of Object.values(diff.puts)) {
+			const [prev, next] = Array.isArray(put) ? put : [null, put]
+			if (isScopeChange(prev, next)) return true
+		}
+		return false
+	}
+
+	/** Run `fn` with a reader of the stored records, inside the caller's transaction if any. */
+	private withReader<T>(
+		txn: TLSyncStorageTransaction<R> | undefined,
+		fn: (reader: { get(id: string): R | undefined; values(): Iterable<R> }) => T
+	): T {
+		if (txn) return fn(txn as any)
+		return this.storage.transaction((t) => fn(t as any) as any).result as T
+	}
+
+	/** Send a session the records that appeared to it and remove the ones that disappeared. */
+	private resyncSession(sessionId: string) {
+		const session = this.sessions.get(sessionId)
+		if (!session || session.state !== RoomSessionState.Connected || !session.visible) return
+		const filtered = this.withReader(undefined, (reader) =>
+			this.filterForSession(session, { puts: {}, deletes: [] }, {}, reader, true)
+		)
+		if (objectMapKeys(filtered.networkDiff).length === 0) return
+		const migrated = this.migrateDiffOrRejectSession(
+			sessionId,
+			session.serializedSchema,
+			session.requiresDownMigrations,
+			filtered.diff,
+			filtered.networkDiff
+		)
+		if (!migrated.ok) return
+		this._unsafe_sendMessage(sessionId, {
+			type: 'patch',
+			diff: migrated.value,
+			serverClock: this.lastDocumentClock,
+		})
+	}
+
+	/** A session's own writes are on its client, so they count as visible. */
+	private trackOwnWrites(session: RoomSession<R, SessionMeta> | null, diff: TLSyncForwardDiff<R>) {
+		if (!session || session.state !== RoomSessionState.Connected || !session.visible) return
+		for (const id of objectMapKeys(diff.puts)) session.visible.add(id)
+		for (const id of diff.deletes) session.visible.delete(id)
+	}
+
 	private deriveIsReadonly(isReadonly: boolean, actor: TLCommandActor) {
 		if (!this.commands) return isReadonly
 		return isReadonly || !actorCan(actor, this.commands.edit.requires ?? 'edit')
@@ -814,9 +955,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (!session) return
 		session.actor = actor
 		session.isReadonly = this.deriveIsReadonly(session.hostReadonly, actor)
+		if (!this.canOpen(actor)) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			return
+		}
 		if (session.state === RoomSessionState.Connected && session.supportsCommands) {
 			this._unsafe_sendMessage(sessionId, { type: 'actor', actor, isReadonly: session.isReadonly })
 		}
+		this.resyncSession(sessionId)
 	}
 
 	/**
@@ -880,6 +1026,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			supportsCommands: opts.supportsCommands ?? true,
 			requiresLegacyRejection,
 			supportsStringAppend,
+			// the client held what it could read before the socket slept; nothing changed since
+			visible: this.readFiltered ? new Set() : undefined,
 		})
 
 		// Restore presence before the schema checks: other clients still hold it from before the
@@ -897,6 +1045,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
 			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
+		}
+		const resumed = this.sessions.get(sessionId)
+		if (resumed?.state === RoomSessionState.Connected && resumed.visible) {
+			this.withReader(undefined, (reader) => {
+				for (const record of [
+					...reader.values(),
+					...(this.presenceStore.values() as Iterable<R>),
+				]) {
+					if (canReadRecord(this.commands!, actor, record, (id) => reader.get(id))) {
+						resumed.visible!.add(record.id)
+					}
+				}
+			})
 		}
 	}
 
@@ -1118,7 +1279,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.forceAllReconnect()
 			return
 		}
-		this.broadcastPatch(diff)
+		this.broadcastPatch(diff, null, undefined, txn)
 	}
 
 	/**
@@ -1207,6 +1368,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const requiresDownMigrations = migrations.value.length > 0
 
+		if (!this.canOpen(session.actor)) {
+			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			return
+		}
+		// With a read policy, the client may hold records it can no longer read, so it always
+		// gets a full hydration of what it can read.
+		const visible = this.readFiltered ? new Set<string>() : undefined
+
 		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
 				state: RoomSessionState.Connected,
@@ -1226,13 +1395,49 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				hostReadonly: session.hostReadonly,
 				supportsCommands: session.supportsCommands,
 				requiresLegacyRejection: session.requiresLegacyRejection,
+				visible,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
 		}
 
 		const { documentClock, result } = this.storage.transaction((txn) => {
 			this.broadcastChanges(txn)
-			const docChanges = txn.getChangesSince(message.lastServerClock)
+			const docChanges = txn.getChangesSince(visible ? -1 : message.lastServerClock)
+			if (visible && docChanges) {
+				const filtered = this.filterForSession(
+					{ actor: session.actor, presenceId: session.presenceId, visible },
+					{
+						puts: { ...docChanges.diff.puts, ...this.presencePuts(session.presenceId) },
+						deletes: [],
+					},
+					toNetworkDiff({
+						puts: { ...docChanges.diff.puts, ...this.presencePuts(session.presenceId) },
+						deletes: [],
+					}),
+					txn as any,
+					false
+				)
+				const migrated = this.migrateDiffOrRejectSession(
+					session.sessionId,
+					sessionSchema,
+					requiresDownMigrations,
+					filtered.diff,
+					sessionSchema === this.serializedSchema ? filtered.networkDiff : undefined
+				)
+				if (!migrated.ok) return null
+				return {
+					type: 'connect',
+					connectRequestId: message.connectRequestId,
+					hydrationType: 'wipe_all',
+					protocolVersion: getTlsyncProtocolVersion(),
+					schema: this.schema.serialize(),
+					serverClock: txn.getClock(),
+					diff: migrated.value,
+					isReadonly: session.isReadonly,
+					objectAccess: session.objectAccess,
+					actor: session.actor,
+				} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
+			}
 			const presenceDiff = this.migrateDiffOrRejectSession(
 				session.sessionId,
 				sessionSchema,
@@ -1285,6 +1490,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (result) {
 			connect(result)
 		}
+	}
+
+	private presencePuts(exceptId: string | null): Record<string, R> {
+		return Object.fromEntries(
+			[...this.presenceStore.values()].filter((p) => p.id !== exceptId).map((p) => [p.id, p])
+		)
 	}
 
 	private handlePushRequest(
@@ -1700,6 +1911,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (session && pushResult) {
 			this._unsafe_sendMessage(session.sessionId, pushResult)
 		}
+		if (result.docChanges.diffs) this.trackOwnWrites(session, result.docChanges.diffs.diff)
 		if (result.docChanges.diffs || result.presenceChanges.diffs) {
 			this.broadcastPatch(
 				{
@@ -1889,6 +2101,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				})
 			}
 		}
+		this.trackOwnWrites(session, result.diff)
 		this.broadcastPatch(result.diff, result.networkDiff, session?.sessionId)
 
 		if (this.onCommittedChanges) {

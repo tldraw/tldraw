@@ -6,6 +6,7 @@ import {
 	type TLCommandActor,
 	type TLEditPolicy,
 	type TLEditPolicyContext,
+	type TLReadPolicy,
 } from '@tldraw/sync-core'
 import {
 	PageRecordType,
@@ -31,11 +32,13 @@ import { T } from '@tldraw/validate'
  * @public
  */
 export const TLDRAW_PERMISSIONS = {
+	/** Open the file at all. See {@link createPageReadPolicy}. */
+	read: 'read',
 	/** The free-form edit lane: drags, resizes, drawing, text. See `TLEditPolicy`. */
 	edit: 'edit',
 	/** Edit and delete shapes that other actors own. */
 	manageShapes: 'shapes:manage',
-	/** Create, rename, and delete pages. */
+	/** Create, rename, and delete pages, set who reads them, and read every page. */
 	managePages: 'pages:manage',
 	/** Start threads, reply, resolve, and edit or delete your own comments. */
 	writeComments: 'comments:write',
@@ -123,6 +126,7 @@ export const commentCommands = [
 				meta: {},
 			}
 			ctx.put(comment as TLComment & R)
+			return { name: 'comments.delete', args: { commentId: args.commentId } }
 		},
 	}),
 	defineCommand<R, { commentId: string; body: TLRichText; now: number }>({
@@ -135,6 +139,7 @@ export const commentCommands = [
 			if (!comment || comment.isDeleted) return ctx.deny('no such comment')
 			if (comment.authorId !== userId) return ctx.deny('only the author can edit a comment')
 			ctx.update<TLComment & R>(comment.id, { body: args.body, editedAt: args.now })
+			return { name: 'comments.edit', args: { ...args, body: comment.body } }
 		},
 	}),
 	defineCommand<R, { commentId: string }>({
@@ -167,6 +172,7 @@ export const commentCommands = [
 			ctx.update<TLCommentThread & R>(thread.id, {
 				resolved: args.resolved ? { at: args.now, by: userId } : null,
 			})
+			return { name: 'comments.resolve', args: { ...args, resolved: !!thread.resolved } }
 		},
 	}),
 ] satisfies TLCommand<R>[]
@@ -190,6 +196,7 @@ export const pageCommands = [
 			const pages = ctx.getAll<TLPage & R>('page').sort(sortByIndex)
 			const index = getIndexAbove(pages.at(-1)?.index as IndexKey | undefined)
 			ctx.put(PageRecordType.create({ id: args.id as TLPageId, name: args.name, index }))
+			return { name: 'pages.delete', args: { id: args.id } }
 		},
 	}),
 	defineCommand<R, { id: string; name: string }>({
@@ -197,8 +204,22 @@ export const pageCommands = [
 		requires: TLDRAW_PERMISSIONS.managePages,
 		args: T.object({ id: id('page'), name: T.string }),
 		run(ctx, args) {
-			if (!ctx.get(args.id)) return ctx.deny('no such page')
-			ctx.update<TLPage & R>(args.id as TLPageId, { name: args.name })
+			const page = ctx.get<TLPage & R>(args.id) ?? ctx.deny('no such page')
+			ctx.update<TLPage & R>(page.id, { name: args.name })
+			return { name: 'pages.rename', args: { id: args.id, name: page.name } }
+		},
+	}),
+	defineCommand<R, { id: string; readers: string[] | null }>({
+		name: 'pages.setReaders',
+		requires: TLDRAW_PERMISSIONS.managePages,
+		args: T.object({ id: id('page'), readers: T.arrayOf(T.string).nullable() }),
+		run(ctx, args) {
+			const page = ctx.get<TLPage & R>(args.id) ?? ctx.deny('no such page')
+			const { readers: _, ...meta } = page.meta
+			ctx.update<TLPage & R>(page.id, {
+				meta: args.readers ? { ...meta, readers: args.readers } : meta,
+			})
+			return { name: 'pages.setReaders', args: { id: args.id, readers: getPageReaders(page) } }
 		},
 	}),
 	defineCommand<R, { id: string }>({
@@ -333,4 +354,84 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 		},
 	}
 	return policy as TLEditPolicy<any>
+}
+
+/** Who may read a page, or `null` for everyone with the `read` permission. @public */
+export function getPageReaders(page: TLPage): string[] | null {
+	const readers = page.meta?.readers
+	return Array.isArray(readers) ? readers.filter((r): r is string => typeof r === 'string') : null
+}
+
+/**
+ * The page a record belongs to: a page itself, a shape's root page, a binding's arrow's page, a
+ * comment's page, a cursor's current page. `undefined` for records that belong to no page
+ * (the document, assets, users).
+ *
+ * @public
+ */
+export function getRecordPageId(
+	record: UnknownRecord,
+	get: (id: string) => UnknownRecord | undefined
+): string | undefined {
+	const r = record as TLRecord
+	switch (r.typeName) {
+		case 'page':
+			return r.id
+		case 'shape': {
+			let parent: string = r.parentId
+			// a stored parent cycle must not hang the server
+			const seen = new Set<string>()
+			while (!seen.has(parent)) {
+				seen.add(parent)
+				const next = get(parent) as TLRecord | undefined
+				if (next?.typeName !== 'shape') return parent
+				parent = next.parentId
+			}
+			return undefined
+		}
+		case 'binding': {
+			const from = get(r.fromId)
+			return from ? getRecordPageId(from, get) : undefined
+		}
+		case 'instance_presence':
+			return r.currentPageId
+		default: {
+			const pageId = (record as { pageId?: unknown }).pageId
+			return typeof pageId === 'string' ? pageId : undefined
+		}
+	}
+}
+
+/**
+ * A read policy for "some pages are only for some people". A page with `meta.readers` (set by the
+ * `pages.setReaders` command) is visible only to those user ids and to actors with
+ * `pages:manage`. Everything on the page follows it: shapes, bindings, comments, and the cursors
+ * of people on it. Opening the file needs the `read` permission.
+ *
+ * @public
+ */
+export function createPageReadPolicy<
+	Rec extends UnknownRecord = UnknownRecord,
+>(): TLReadPolicy<Rec> {
+	const policy: TLReadPolicy<R> = {
+		requires: TLDRAW_PERMISSIONS.read,
+		canRead(actor, record, get) {
+			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
+			const pageId = getRecordPageId(record, get)
+			if (!pageId) return true
+			const page = get(pageId) as TLPage | undefined
+			// a record on a missing page is a record nobody should see
+			if (!page || page.typeName !== 'page') return false
+			const readers = getPageReaders(page)
+			return !readers || (!!actor.userId && readers.includes(actor.userId))
+		},
+		isScopeChange(prev, next) {
+			const record = (next ?? prev) as TLRecord
+			if (record.typeName === 'page') return true
+			if (record.typeName !== 'shape' || !prev || !next) return false
+			// a move between pages carries the shape's children with it
+			return (prev as TLShape).parentId !== (next as TLShape).parentId
+		},
+	}
+	return policy as TLReadPolicy<any>
 }

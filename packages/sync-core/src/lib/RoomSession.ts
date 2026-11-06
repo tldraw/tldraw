@@ -155,4 +155,9 @@ export type RoomSession<R extends UnknownRecord, Meta> =
 			debounceTimer: ReturnType<typeof setTimeout> | null
 			/** Queue of data messages waiting to be sent to this session */
 			outstandingDataMessages: TLSocketServerSentDataEvent<R>[]
+			/**
+			 * The ids of the records this client holds. Kept only when the room has a read policy,
+			 * so the server knows when a record appears to, or disappears from, the client.
+			 */
+			visible?: Set<string>
 	  })

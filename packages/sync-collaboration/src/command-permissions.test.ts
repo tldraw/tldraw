@@ -14,6 +14,7 @@ import { LocalRoom } from './test/harness'
 import {
 	commentCommands,
 	createOwnedShapesPolicy,
+	createPageReadPolicy,
 	getShapeOwner,
 	pageCommands,
 	TLDRAW_PERMISSIONS as P,
@@ -35,6 +36,7 @@ const voteToggle = defineCommand<UnknownRecord, { shapeId: string }>({
 		const votes = Array.isArray(shape.meta.votes) ? (shape.meta.votes as string[]) : []
 		const next = votes.includes(userId) ? votes.filter((v) => v !== userId) : [...votes, userId]
 		ctx.update<TLShape & UnknownRecord>(shape.id, { meta: { ...shape.meta, votes: next } })
+		return { name: 'votes.toggle', args: { shapeId } }
 	},
 })
 
@@ -83,6 +85,7 @@ const commands = defineCommandSet<UnknownRecord>({
 		canUseParent: (actor, parent) =>
 			getShapeOwner(parent) === actor.userId || parent.meta.assignee === actor.userId,
 	}),
+	read: createPageReadPolicy(),
 })
 
 // ---- roles: a role is a list of permissions ----
@@ -90,11 +93,11 @@ const commands = defineCommandSet<UnknownRecord>({
 const teacher: TLCommandActor = { userId: 'teacher', permissions: ['*'] }
 const student = (userId: string): TLCommandActor => ({
 	userId,
-	permissions: [P.edit, P.writeComments, 'votes:cast'],
+	permissions: [P.read, P.edit, P.writeComments, 'votes:cast'],
 })
-const viewer: TLCommandActor = { userId: 'viewer', permissions: [] }
-const commenter: TLCommandActor = { userId: 'commenter', permissions: [P.writeComments] }
-const agent: TLCommandActor = { userId: 'agent', permissions: ['agent:notes'] }
+const viewer: TLCommandActor = { userId: 'viewer', permissions: [P.read] }
+const commenter: TLCommandActor = { userId: 'commenter', permissions: [P.read, P.writeComments] }
+const agent: TLCommandActor = { userId: 'agent', permissions: [P.read, 'agent:notes'] }
 
 const page = 'page:page' as TLPageId
 
@@ -350,7 +353,7 @@ describe('live access changes', () => {
 		const { room, a } = setup()
 		const id = geo(a, 0)
 		room.flush()
-		room.room.updateSessionActor('a', { userId: 'alice', permissions: [] })
+		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.read] })
 		room.flush()
 		expect(a.getEditor().getIsReadonly()).toBe(true)
 		expect(a.client.can(P.writeComments)).toBe(false)
@@ -368,7 +371,7 @@ describe('live access changes', () => {
 		a.run('comments.add', add('comment-thread:r', 'comment:r'))
 		expect(a.store.get('comment:r' as any)).toBeDefined() // optimistic
 		// revoke before the server sees the command
-		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.edit] })
+		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.read, P.edit] })
 		room.flush()
 		expect(a.store.get('comment:r' as any)).toBeUndefined()
 		expect(room.room.getRecord('comment:r')).toBeUndefined()
@@ -545,5 +548,161 @@ describe('review fixes', () => {
 			JSON.stringify({ type: 'push', clientClock: 0, diff: { [id]: ['patch', { x: ['put', 5] }] } })
 		)
 		expect((room.room.getRecord(id) as TLShape).x).toBe(0)
+	})
+})
+
+describe('file read control', () => {
+	it('a session without the read permission is refused at connect', () => {
+		const { room } = setup()
+		const x = room.connect('x', { userId: 'x', permissions: [P.edit] })
+		room.flush()
+		expect(x.closedWith).toBe('FORBIDDEN')
+		expect(x.store.get(page)).toBeUndefined()
+	})
+
+	it('revoking read closes an open session at once', () => {
+		const { room, t, a } = setup()
+		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.edit] })
+		room.flush()
+		expect(a.closedWith).toBe('FORBIDDEN')
+		// nothing new reaches the closed session
+		const id = geo(t, 0)
+		room.flush()
+		expect(a.get(id)).toBeUndefined()
+	})
+})
+
+describe('page read control', () => {
+	const answers = 'page:answers' as TLPageId
+	function lesson() {
+		const s = setup()
+		s.t.run('pages.create', { id: answers, name: 'Answers' })
+		s.t.run('pages.setReaders', { id: answers, readers: [] })
+		s.room.flush()
+		s.t.getEditor().setCurrentPage(answers)
+		const secret = geo(s.t, 0)
+		s.t.getEditor().setCurrentPage(page)
+		s.room.flush()
+		return { ...s, secret }
+	}
+
+	it('a hidden page and everything on it never reach students', () => {
+		const { room, t, a, b, secret } = lesson()
+		expect(t.get(answers)).toBeDefined()
+		for (const peer of [a, b]) {
+			expect(peer.get(answers)).toBeUndefined()
+			expect(peer.get(secret)).toBeUndefined()
+		}
+		// edits on the hidden page are filtered out of every broadcast
+		t.getEditor().updateShape({ id: secret, type: 'geo', x: 50 })
+		room.flush()
+		expect(a.get(secret)).toBeUndefined()
+		expect((room.room.getRecord(secret) as TLShape).x).toBe(50)
+	})
+
+	it('sharing a page sends it to its new readers live, and unsharing removes it', () => {
+		const { room, t, a, b, secret } = lesson()
+		t.run('pages.setReaders', { id: answers, readers: ['alice'] })
+		room.flush()
+		expect(a.get(answers)).toBeDefined()
+		expect(a.get(secret)).toBeDefined()
+		expect(b.get(secret)).toBeUndefined()
+		// a later edit arrives as a normal patch
+		t.getEditor().updateShape({ id: secret, type: 'geo', x: 70 })
+		room.flush()
+		expect(a.get<TLShape>(secret)!.x).toBe(70)
+
+		a.getEditor().setCurrentPage(answers)
+		t.run('pages.setReaders', { id: answers, readers: [] })
+		room.flush()
+		expect(a.get(answers)).toBeUndefined()
+		expect(a.get(secret)).toBeUndefined()
+		// the editor moves to a page Alice can read
+		expect(a.getEditor().getCurrentPageId()).toBe(page)
+		expect(a.syncErrors).toEqual([])
+	})
+
+	it('moving a shape to a hidden page removes it for students, moving it back returns it', () => {
+		const { room, t, a } = lesson()
+		const id = geo(t, 300)
+		room.flush()
+		expect(a.get(id)).toBeDefined()
+		t.getEditor().moveShapesToPage([id], answers)
+		room.flush()
+		expect(a.get(id)).toBeUndefined()
+		t.getEditor().moveShapesToPage([id], page)
+		room.flush()
+		expect(a.get(id)).toBeDefined()
+	})
+
+	it('a modified client cannot read, edit, or write into a hidden page', () => {
+		const { room, secret } = lesson()
+		const forger = room.forger('f', student('mallory'))
+		room.flush()
+		const received = JSON.stringify(forger.answers)
+		expect(received).not.toContain(answers)
+		expect(received).not.toContain(secret)
+
+		forger.push({ diff: { [secret]: ['patch', { x: ['put', 999] }] } as any })
+		room.flush()
+		expect(forger.lastResult().action).toBe('discard')
+		expect((room.room.getRecord(secret) as TLShape).x).toBe(0)
+
+		const shape = { ...(room.room.getRecord(secret) as TLShape), id: 'shape:mine', meta: {} }
+		forger.push({ diff: { 'shape:mine': ['put', shape] } as any })
+		room.flush()
+		expect(forger.lastResult().action).toBe('discard')
+		expect(room.room.getRecord('shape:mine')).toBeUndefined()
+
+		forger.push({
+			command: {
+				name: 'comments.add',
+				args: {
+					threadId: 'comment-thread:f',
+					commentId: 'comment:f',
+					pageId: answers,
+					anchor: { type: 'page' },
+					body: toRichText('x'),
+					now: 1,
+				},
+			},
+		})
+		room.flush()
+		expect(forger.lastResult()).toMatchObject({ action: 'discard', reason: 'no such page' })
+	})
+
+	it('a command cannot read a hidden record: a vote on a hidden shape is not found', () => {
+		const { room, a, secret } = lesson()
+		const forger = room.forger('f', student('mallory'))
+		room.flush()
+		forger.push({ command: { name: 'votes.toggle', args: { shapeId: secret } } })
+		room.flush()
+		expect(forger.lastResult()).toMatchObject({ action: 'discard', reason: 'no such shape' })
+		void a
+	})
+
+	it('comments on a hidden page are hidden too', () => {
+		const { room, t, a } = lesson()
+		t.run('comments.add', {
+			threadId: 'comment-thread:s',
+			commentId: 'comment:s',
+			pageId: answers,
+			anchor: { type: 'page' },
+			body: toRichText('the answer is 42'),
+			now: 1,
+		})
+		room.flush()
+		expect(room.room.getRecord('comment:s')).toBeDefined()
+		expect(a.store.get('comment:s' as any)).toBeUndefined()
+		expect(a.store.get('comment-thread:s' as any)).toBeUndefined()
+	})
+
+	it('a reconnect hydrates only what the session can read', () => {
+		const { room, secret } = lesson()
+		const late = room.connect('late', student('dana'))
+		room.flush()
+		expect(late.get(answers)).toBeUndefined()
+		expect(late.get(secret)).toBeUndefined()
+		expect(late.get(page)).toBeDefined()
 	})
 })

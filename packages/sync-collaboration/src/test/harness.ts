@@ -101,6 +101,9 @@ export class Peer {
 	readonly store: TLStore
 	readonly client: TLSyncClient<TLRecord, TLStore>
 	readonly rejections: string[] = []
+	readonly syncErrors: string[] = []
+	/** The reason the server closed this session with, if it did. */
+	closedWith: string | undefined
 	readonly mode = atom<'readonly' | 'readwrite'>('mode', 'readwrite')
 	private _editor: Editor | null = null
 	private listeners = new Set<(msg: any) => void>()
@@ -117,7 +120,9 @@ export class Peer {
 					local.log.push([sessionId, 'down', data.slice(0, 300)])
 					this.listeners.forEach((l) => l(JSON.parse(data)))
 				}),
-			close: () => {},
+			close: (_code?: number, reason?: string) => {
+				this.closedWith = reason
+			},
 		}
 		local.room.handleSocketConnect({ sessionId, socket: serverSocket, actor })
 
@@ -148,9 +153,7 @@ export class Peer {
 			presence: atom('presence', null),
 			commands: local.commands as TLCommandSet<any>,
 			onLoad: () => {},
-			onSyncError: (reason) => {
-				throw new Error('sync error: ' + reason)
-			},
+			onSyncError: (reason) => this.syncErrors.push(reason),
 			onPushRejected: ({ reason }) => this.rejections.push(reason),
 			// as useSync does: the editor is read-only when the actor has no edit lane
 			onActorChange: ({ isReadonly }) => this.mode.set(isReadonly ? 'readonly' : 'readwrite'),

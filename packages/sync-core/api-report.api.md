@@ -35,6 +35,9 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 // @public
 export function canEditRecord<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, ctx: Omit<TLEditPolicyContext<R>, 'actor'>): boolean;
 
+// @public
+export function canReadRecord<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, record: R, get: (id: string) => R | undefined): boolean;
+
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
@@ -85,6 +88,7 @@ export function defineCommand<R extends UnknownRecord, Args>(command: TLCommand<
 export function defineCommandSet<R extends UnknownRecord>(opts: {
     commands?: readonly TLCommand<R, any>[];
     edit?: TLEditPolicy<R>;
+    read?: TLReadPolicy<R>;
 }): TLCommandSet<R>;
 
 // @internal
@@ -274,18 +278,19 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingConnectMessage;
-    sessionStartTime: number;
-}) | (RoomSessionBase<R, Meta> & {
-    state: typeof RoomSessionState.AwaitingRemoval;
-    cancellationTime: number;
-}) | (RoomSessionBase<R, Meta> & {
+    visible?: Set<string>;
     state: typeof RoomSessionState.Connected;
     outstandingDataMessages: TLSocketServerSentDataEvent<R>[];
     serializedSchema: SerializedSchema;
     debounceTimer: null | ReturnType<typeof setTimeout>;
     lastInteractionTime: number;
     requiresDownMigrations: boolean;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingConnectMessage;
+    sessionStartTime: number;
+}) | (RoomSessionBase<R, Meta> & {
+    state: typeof RoomSessionState.AwaitingRemoval;
+    cancellationTime: number;
 });
 
 // @internal
@@ -412,8 +417,7 @@ export interface TLCommand<R extends UnknownRecord = UnknownRecord, Args = any> 
     // (undocumented)
     readonly name: string;
     readonly requires?: string;
-    // (undocumented)
-    run(ctx: TLCommandContext<R>, args: Args): void;
+    run(ctx: TLCommandContext<R>, args: Args): TLCommandCall | void;
 }
 
 // @public
@@ -468,11 +472,12 @@ export interface TLCommandReader<R extends UnknownRecord> {
 
 // @public (undocumented)
 export type TLCommandResult<R extends UnknownRecord> = {
-    ok: false;
-    reason: string;
-} | {
+    inverse?: TLCommandCall;
     ok: true;
     writes: TLCommandWrites<R>;
+} | {
+    ok: false;
+    reason: string;
 };
 
 // @public
@@ -481,6 +486,8 @@ export interface TLCommandSet<R extends UnknownRecord = UnknownRecord> {
     readonly commands: ReadonlyMap<string, TLCommand<R>>;
     // (undocumented)
     readonly edit: TLEditPolicy<R>;
+    // (undocumented)
+    readonly read: TLReadPolicy<R>;
 }
 
 // @public
@@ -583,6 +590,13 @@ export interface TLPushRequest<R extends UnknownRecord> {
     presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R];
     // (undocumented)
     type: 'push';
+}
+
+// @public
+export interface TLReadPolicy<R extends UnknownRecord> {
+    canRead?(actor: TLCommandActor, record: R, get: (id: string) => R | undefined): boolean;
+    isScopeChange?(prev: null | R, next: null | R): boolean;
+    readonly requires?: string;
 }
 
 // @public
