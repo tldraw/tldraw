@@ -22,6 +22,7 @@ const richTextMessages: Record<string, TLI18nMessage> = defineMessages({
 	code: { id: 'tool.rich-text-code', defaultMessage: 'Code' },
 	link: { id: 'tool.rich-text-link', defaultMessage: 'Link' },
 	bulletList: { id: 'tool.rich-text-bulletList', defaultMessage: 'Bulleted list' },
+	taskList: { id: 'tool.rich-text-taskList', defaultMessage: 'Task list' },
 	highlight: { id: 'tool.rich-text-highlight', defaultMessage: 'Highlight' },
 })
 
@@ -120,6 +121,16 @@ export function DefaultRichTextToolbarContent({
 					handleOp('bulletList', 'toggleBulletList')
 				},
 			},
+			// The docs suggest filtering task lists out of the extensions; without the command, a
+			// click would throw.
+			'toggleTaskList' in textEditor.commands
+				? {
+						name: 'taskList',
+						onSelect() {
+							handleOp('taskList', 'toggleTaskList')
+						},
+					}
+				: undefined,
 			{
 				name: 'highlight',
 				onSelect() {

@@ -5,12 +5,16 @@ import {
 	generateHTML,
 	generateJSON,
 	generateText,
+	InputRule,
 	JSONContent,
+	type KeyboardShortcutCommand,
 } from '@tiptap/core'
 import { Code } from '@tiptap/extension-code'
 import { Highlight } from '@tiptap/extension-highlight'
+import { TaskItem, TaskList } from '@tiptap/extension-list'
 import { Typography } from '@tiptap/extension-typography'
-import { Node } from '@tiptap/pm/model'
+import { Node, type Node as ProseMirrorNode } from '@tiptap/pm/model'
+import { Selection, TextSelection } from '@tiptap/pm/state'
 import { StarterKit, type StarterKitOptions } from '@tiptap/starter-kit'
 import {
 	Editor,
@@ -35,6 +39,123 @@ export const KeyboardShiftEnterTweakExtension = Extension.create({
 	},
 })
 
+/**
+ * Cmd/Ctrl+Enter ticks the task item the cursor sits in, or every item the selection touches. They
+ * all take the first item's new state, so one press reads as a single toggle rather than inverting
+ * each item separately.
+ *
+ * Shapes bind Cmd+Enter too (finishing the edit, adding the next note), and their key handlers run
+ * ahead of this keymap. RichTextArea doesn't pass the chord to them while the selection is in a task
+ * item, so this works in any shape that edits rich text, custom shapes included.
+ *
+ * @public
+ */
+export const TaskItemToggleExtension = Extension.create({
+	name: 'taskItemToggleHandler',
+	addKeyboardShortcuts() {
+		const toggle: KeyboardShortcutCommand = ({ editor }) =>
+			editor.commands.command(({ tr, state, dispatch }) => {
+				// Keyed by position so an item is only collected once. We look up from each
+				// textblock rather than collecting every taskItem in the range: a cursor inside a
+				// nested item is also "between" its parent item, which shouldn't tick as well.
+				const items = new Map<number, ProseMirrorNode>()
+				state.doc.nodesBetween(state.selection.from, state.selection.to, (node, pos) => {
+					if (!node.isTextblock) return true
+					const $pos = state.doc.resolve(pos)
+					for (let depth = $pos.depth; depth > 0; depth--) {
+						if ($pos.node(depth).type.name === 'taskItem') {
+							items.set($pos.before(depth), $pos.node(depth))
+							break
+						}
+					}
+					return false
+				})
+
+				if (items.size === 0) return false
+				if (!dispatch) return true
+
+				const checked = !items.values().next().value!.attrs.checked
+				for (const [pos, node] of items) {
+					tr.setNodeMarkup(pos, undefined, { ...node.attrs, checked })
+				}
+				return true
+			})
+		return {
+			'Mod-Enter': toggle,
+			// Off Apple platforms `Mod` is only Ctrl, but RichTextArea keeps Meta+Enter in a task item
+			// from the shape too, so Meta+Enter would otherwise do nothing.
+			'Meta-Enter': toggle,
+		}
+	},
+})
+
+/**
+ * TipTap's TaskItem, with a start-of-line shortcut that also takes the markdown spellings: `[ ] `,
+ * `[] ` and `[x] `, each optionally led by `-` as in `-[ ] ` or `- [x] `.
+ *
+ * `- ` makes a bullet list on its own before the brackets are typed, so `- [ ] ` arrives here inside
+ * a list item. That item is lifted out of its list first; otherwise the task list would nest inside
+ * the bullet, and the item would show both a bullet and a checkbox.
+ */
+const DefaultTaskItem = TaskItem.extend({
+	addInputRules() {
+		return [
+			new InputRule({
+				find: /^\s*-?\s?\[([ xX])?\]\s$/,
+				handler: ({ state, range, match, chain }) => {
+					const $from = state.doc.resolve(range.from)
+					// Inside a task item already: TipTap's rule would nest a second checkbox here.
+					for (let depth = $from.depth; depth > 0; depth--) {
+						if ($from.node(depth).type.name === this.name) return
+					}
+					const checked = match[1]?.toLowerCase() === 'x'
+					const isInListItem = $from.depth > 1 && $from.node(-1).type.name === 'listItem'
+					if (!isInListItem) {
+						chain()
+							.deleteRange(range)
+							.toggleTaskList()
+							.updateAttributes(this.name, { checked })
+							.run()
+						return
+					}
+					// In a list item, swap the item for a task list where it stands, splitting its list
+					// around it. Lifting it and then toggling only works one level deep: in a nested list
+					// the lift lands it in the outer list, and the toggle then throws on that list.
+					chain()
+						.deleteRange(range)
+						.command(({ tr }) => {
+							const $pos = tr.selection.$from
+							const listDepth = $pos.depth - 2
+							const list = $pos.node(listDepth)
+							const index = $pos.index(listDepth)
+							const items: ProseMirrorNode[] = []
+							list.forEach((item) => items.push(item))
+							const taskList = tr.doc.type.schema.nodes.taskList.create(
+								null,
+								this.type.create({ checked }, items[index].content)
+							)
+							const before = items.slice(0, index)
+							const after = items.slice(index + 1)
+							const listBefore = before.length ? list.type.create(list.attrs, before) : undefined
+							const listStart = $pos.before(listDepth)
+							tr.replaceWith(listStart, $pos.after(listDepth), [
+								...(listBefore ? [listBefore] : []),
+								taskList,
+								...(after.length ? [list.type.create(list.attrs, after)] : []),
+							])
+							// Put the cursor back at its offset in the item's text, now in the task item.
+							const taskListStart = listStart + (listBefore?.nodeSize ?? 0)
+							const textStart = Selection.near(tr.doc.resolve(taskListStart)).from
+							tr.setSelection(TextSelection.create(tr.doc, textStart + $pos.parentOffset))
+							return true
+						})
+						.run()
+				},
+			}),
+		]
+	},
+})
+
 // We change the default Code to override what's in the StarterKit.
 // It allows for other attributes/extensions.
 // @ts-ignore this is fine.
@@ -50,7 +171,8 @@ Highlight.config.priority = 1100
  * options. The one lever most consumers want is turning individual nodes off (e.g. comments use a
  * headingless set via `getTipTapDefaultExtensions({ heading: false })`); because `StarterKit` is a
  * single umbrella extension, its sub-extensions can only be disabled through its config, not by
- * filtering the returned array.
+ * filtering the returned array. Extensions outside the kit — `TaskList` and `TaskItem` among them —
+ * can be filtered out of the result by name.
  *
  * @public
  */
@@ -69,11 +191,22 @@ export function getTipTapDefaultExtensions(
 			// List every enabled block type: a missing one gets an empty paragraph appended after it
 			// that the user can't delete (#7641 for lists, #11113 for headings).
 			trailingNode: {
-				notAfter: ['paragraph', 'heading', 'bulletList', 'orderedList', 'listItem'],
+				notAfter: [
+					'paragraph',
+					'heading',
+					'bulletList',
+					'orderedList',
+					'listItem',
+					'taskList',
+					'taskItem',
+				],
 			},
 			...starterKitOptions,
 		}),
 		Highlight,
+		TaskList,
+		DefaultTaskItem.configure({ nested: true }),
+		TaskItemToggleExtension,
 		Typography,
 		LiteralTypingExtension,
 		WrapSelectionExtension,
@@ -165,11 +298,9 @@ export function isEmptyRichText(richText: TLRichText) {
 }
 
 /**
- * Whether the editor's active rich text selection is inside a list.
- *
- * `taskList` isn't in the default extension set, but when it is added its list items bind Tab and
- * Shift-Tab themselves. Leaving it out here lets our own Tab handling run alongside TipTap's, so a
- * single keypress both indents the text and nests the item.
+ * Whether the editor's active rich text selection is inside a list. When it is, our Tab handler
+ * bows out so TipTap's own Tab bindings can nest and un-nest the item instead of inserting a tab
+ * character into the line.
  *
  * @internal
  */
@@ -180,6 +311,53 @@ export function isEditingRichTextList(editor: Editor) {
 		textEditor?.isActive('orderedList') ||
 		textEditor?.isActive('taskList')
 	)
+}
+
+/**
+ * Whether the editor's active rich text selection is inside a task item. RichTextArea checks this
+ * to keep Cmd+Enter from the shape's key handler, so {@link TaskItemToggleExtension} can tick the
+ * item instead.
+ *
+ * The extension has to actually be installed for that to be true. Filtering it out of the set while
+ * keeping task lists is a reasonable thing to want — it's how you get Cmd+Enter back to finishing
+ * the edit — and withholding the chord for a keymap that isn't there would leave it doing nothing.
+ *
+ * @internal
+ */
+export function isEditingRichTextTaskItem(editor: Editor) {
+	const textEditor = editor.getRichTextEditor()
+	if (!textEditor?.isActive('taskItem')) return false
+	return textEditor.extensionManager.extensions.some(
+		(extension) => extension.name === TaskItemToggleExtension.name
+	)
+}
+
+/**
+ * Flips the `index`th task item, counting in document order, which is also the order the rendered
+ * checkboxes appear in the DOM. Returns the rich text unchanged if there's no such item.
+ *
+ * @internal
+ */
+export function toggleTaskItemInRichText(richText: TLRichText, index: number): TLRichText {
+	let seen = 0
+	const visit = (node: JSONContent): JSONContent => {
+		if (node.type === 'taskItem' && seen++ === index) {
+			node = { ...node, attrs: { ...node.attrs, checked: !node.attrs?.checked } }
+		}
+		return node.content ? { ...node, content: node.content.map(visit) } : node
+	}
+	return visit(richText as JSONContent) as TLRichText
+}
+
+const hasTaskListCache = new WeakCache<TLRichText, boolean>()
+
+/** @internal */
+export function richTextHasTaskList(richText: TLRichText) {
+	return hasTaskListCache.get(richText, () => {
+		const visit = (node: JSONContent): boolean =>
+			node.type === 'taskList' || !!node.content?.some(visit)
+		return visit(richText as JSONContent)
+	})
 }
 
 /**

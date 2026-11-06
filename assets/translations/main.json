@@ -465,6 +465,8 @@
 	"tool.rich-text-link-visit": "Visit link",
 	"tool.rich-text-orderedList": "Ordered list",
 	"tool.rich-text-strikethrough": "Strikethrough",
+	"tool.rich-text-taskItem-toggle": "Tick task item",
+	"tool.rich-text-taskList": "Task list",
 	"tool.rich-text-toolbar-title": "Text formatting",
 	"tool.select": "Select",
 	"tool.star": "Star",

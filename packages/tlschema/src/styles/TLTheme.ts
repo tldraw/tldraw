@@ -120,6 +120,36 @@ export interface TLThemeFont {
 	 * or `'font-draw'` for custom fonts.
 	 */
 	icon?: unknown
+	/**
+	 * How task list checkboxes are drawn in text set in this font. Omit for the standard box and
+	 * tick.
+	 */
+	checkbox?: TLThemeFontCheckbox
+}
+
+/**
+ * The images a font draws task list checkboxes with. Each is a URL (an SVG data URI works) used as
+ * a mask, so only its shape matters: it's painted in the text's color. Every image is stretched
+ * across the whole checkbox, so where the tick sits against the box is part of the art.
+ *
+ * @example
+ * ```ts
+ * const handDrawn: TLThemeFontCheckbox = {
+ *   boxes: [boxA, boxB, boxC],
+ *   tick: tickUrl,
+ * }
+ * ```
+ *
+ * @public
+ */
+export interface TLThemeFontCheckbox {
+	/**
+	 * Images for the box, cycled across a list's items so it doesn't read as one box stamped out
+	 * repeatedly. Only the first six are used. Omit for the standard box.
+	 */
+	boxes?: string[]
+	/** Image for the tick, drawn over the box when it's checked. Omit for the standard tick. */
+	tick?: string
 }
 
 /**

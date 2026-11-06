@@ -44,6 +44,8 @@ import {
 	LABEL_FONT_SIZES,
 	LABEL_PADDING,
 	TEXT_PROPS,
+	STANDARD_CHECKBOX_STYLE,
+	getFontCheckboxStyle,
 	getFontFamily,
 } from '../shared/default-shape-constants'
 import { DefaultFontFaces, getThemeFontFaces } from '../shared/defaultFonts'
@@ -86,6 +88,7 @@ export interface NoteShapeUtilDisplayValues {
 	borderWidth: number
 	labelColor: string
 	labelFontFamily: string
+	labelCheckboxStyle: Record<string, string> | undefined
 	labelFontSize: number
 	labelLineHeight: number
 	labelFontWeight: string
@@ -147,6 +150,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 						? getColorValue(colors, color, 'noteText')
 						: getColorValue(colors, labelColor, 'fill'),
 				labelFontFamily: getFontFamily(theme, font),
+				labelCheckboxStyle: getFontCheckboxStyle(theme, font) ?? STANDARD_CHECKBOX_STYLE,
 				labelFontSize: theme.fontSize * LABEL_FONT_SIZES[size],
 				labelLineHeight: theme.lineHeight,
 				labelFontWeight: TEXT_PROPS.fontWeight,
@@ -411,6 +415,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 							shapeId={id}
 							type={type}
 							fontFamily={dv.labelFontFamily}
+							checkboxStyle={dv.labelCheckboxStyle}
 							fontSize={(fontSizeAdjustment ?? 1) * dv.labelFontSize}
 							lineHeight={dv.labelLineHeight}
 							textAlign={dv.labelHorizontalAlign}
@@ -503,6 +508,7 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 				<RichTextSVG
 					fontSize={(shape.props.fontSizeAdjustment ?? 1) * dv.labelFontSize}
 					fontFamily={dv.labelFontFamily}
+					checkboxStyle={dv.labelCheckboxStyle}
 					lineHeight={dv.labelLineHeight}
 					textAlign={dv.labelHorizontalAlign}
 					verticalAlign={dv.labelVerticalAlign}

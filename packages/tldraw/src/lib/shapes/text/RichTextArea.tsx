@@ -9,6 +9,7 @@ import {
 	Editor,
 	TLRichText,
 	TLShapeId,
+	isAccelKey,
 	isEqual,
 	preventDefault,
 	useEditor,
@@ -16,7 +17,7 @@ import {
 	useUniqueSafeId,
 } from '@tldraw/editor'
 import React, { useLayoutEffect, useRef } from 'react'
-import { isEditingRichTextList } from '../../utils/text/richText'
+import { isEditingRichTextList, isEditingRichTextTaskItem } from '../../utils/text/richText'
 
 /** @public */
 export interface TextAreaProps {
@@ -171,7 +172,22 @@ export const RichTextArea = React.forwardRef<HTMLDivElement, TextAreaProps>(func
 						handleTab(editor, view, event)
 					}
 
+					// Cmd+Enter in a task item ticks it (TaskItemToggleExtension). A shape that binds the
+					// chord itself, to finish the edit or add the next note, would otherwise run first and
+					// tear the text editor down before the tick. Match the extension's bindings exactly:
+					// a chord held back here that the keymap doesn't take does nothing at all.
+					if (
+						event.key === 'Enter' &&
+						isAccelKey(event) &&
+						!event.shiftKey &&
+						!event.altKey &&
+						isEditingRichTextTaskItem(editor)
+					) {
+						return false
+					}
+
 					onKeyDown(event)
+					return false
 				},
 				handlePaste: (view: EditorView, event: ClipboardEvent) => {
 					onPaste(event)

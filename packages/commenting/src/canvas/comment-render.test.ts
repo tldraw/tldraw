@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
+import { commentTipTapExtensions, EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
 import { renderCommentHtml, renderCommentPlaintext } from './comment-render'
 
 const doc = (...content: any[]) => ({ type: 'doc', content }) as any
@@ -24,6 +24,13 @@ describe('renderCommentHtml', () => {
 		)
 		expect(list).toContain('<ul')
 		expect(list).toContain('one')
+	})
+
+	it('leaves task lists out of the limited set', () => {
+		// A posted comment is static HTML, so its checkboxes would toggle and never write back.
+		expect(commentTipTapExtensions.map((extension) => extension.name)).not.toEqual(
+			expect.arrayContaining([expect.stringMatching(/^task/)])
+		)
 	})
 
 	it('renders a heading node as a paragraph, never a heading', () => {
