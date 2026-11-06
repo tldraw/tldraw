@@ -479,6 +479,12 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 		const pageIds = $pageIds.get()
 		if (pageIds.size === 0) {
 			store.put(getDefaultPages())
+			// a `beforeCreate` side effect (for example permission rules) can cancel the page
+			if ($pageIds.get().size === 0) {
+				throw new Error(
+					'[tldraw] The store has no page and a side effect canceled the default page. Rules must leave each user at least one page that they can read.'
+				)
+			}
 			return ensureStoreIsUsable()
 		}
 

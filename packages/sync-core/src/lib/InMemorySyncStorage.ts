@@ -12,6 +12,7 @@ import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
 	TLSyncForwardDiff,
+	TLSyncRollback,
 	TLSyncStorage,
 	TLSyncStorageGetChangesSinceResult,
 	TLSyncStorageOnChangeCallbackProps,
@@ -216,7 +217,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 				changes = txn.getChangesSince(clockBefore)?.diff
 			}
 		} catch (error) {
-			console.error('Error in transaction', error)
+			if (!(error instanceof TLSyncRollback)) console.error('Error in transaction', error)
 			throw error
 		} finally {
 			txn.close()

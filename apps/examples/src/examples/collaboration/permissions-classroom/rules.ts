@@ -7,6 +7,7 @@ import {
 	PageRecordType,
 	RecordId,
 	T,
+	TLBinding,
 	TLComment,
 	TLCommentReaction,
 	TLCommentThread,
@@ -116,11 +117,24 @@ function canWriteShape(session: Session, shape: TLShape, get: Get) {
 	return shape.meta.ownerId === meta.userId
 }
 
+/** A binding belongs to its shapes: it is as visible as the shape it starts from. */
+function canReadBinding(session: Session, binding: TLBinding, get: Get) {
+	const from = get(binding.fromId) as TLShape | undefined
+	return !!from && canReadOnPage(session, getPageIdOfParent(from.parentId, get), get)
+}
+
+/** Whether a session may write a shape that exists, by id. */
+function canWriteShapeId(session: Session, id: TLShapeId, get: Get) {
+	const shape = get(id) as TLShape | undefined
+	return !!shape && canWriteShape(session, shape, get)
+}
+
 export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 	authorizeRead: {
 		page: ({ session, record }) => canReadPage(session.meta, record),
 		shape: ({ session, record, get }) =>
 			canReadOnPage(session, getPageIdOfParent(record.parentId, get), get),
+		binding: ({ session, record, get }) => canReadBinding(session, record, get),
 		instance_presence: ({ session, record, get }) =>
 			canReadOnPage(session, (record as TLInstancePresence).currentPageId, get),
 		'comment-thread': ({ session, record, get }) => canReadOnPage(session, record.pageId, get),
@@ -141,6 +155,17 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 		}),
 		page: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
 		grade: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
+		// A binding changes how its `from` shape (an arrow) behaves, so it needs write access to
+		// that shape. A delete also follows from deleting either end, so either end is enough.
+		binding: ({ session, type, prev, next, get }) => {
+			if (type === 'delete') {
+				// an end that is already gone (deleted earlier in the same push) also allows it
+				const free = (id: TLShapeId) => !get(id) || canWriteShapeId(session, id, get)
+				return free(prev.fromId) || free(prev.toId) ? prev : null
+			}
+			if (prev && !canWriteShapeId(session, prev.fromId, get)) return null
+			return canWriteShapeId(session, next.fromId, get) ? next : null
+		},
 		shape: ({ session, type, prev, next, get }) => {
 			const { meta } = session
 			if (type === 'create') {

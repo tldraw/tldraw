@@ -5,8 +5,10 @@ import {
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
 import {
+	createBindingId,
 	createShapeId,
 	createTLSchema,
+	TLBindingId,
 	PageRecordType,
 	TLPage,
 	TLPageId,
@@ -328,7 +330,7 @@ describe('shape write control: students edit only their own shapes', () => {
 		expect(alice.editor.getShape(createShapeId('f'))).toBeUndefined()
 	})
 
-	it('keeps a push that is partly allowed partly applied (known limit)', async () => {
+	it('rejects a whole push when a rule denies one of its records', async () => {
 		const teacher = users[0]
 		teacher.editor.createShape(geo(createShapeId('t1')))
 		const alice = join('alice', 'student')
@@ -337,14 +339,108 @@ describe('shape write control: students edit only their own shapes', () => {
 		await settle()
 		const t1 = alice.editor.getShape(createShapeId('t1'))!
 		const a1 = alice.editor.getShape(createShapeId('a1'))!
-		// one push, two records: the server checks each record alone
+		// one push, two records: one denied, so neither is kept
 		forcePut(alice.editor, [
 			{ ...t1, x: 300 },
 			{ ...a1, x: 300 },
 		])
 		await settle()
 		expect(shapeInRoom(t1.id)!.x).toBe(0)
-		expect(shapeInRoom(a1.id)!.x).toBe(300)
+		expect(shapeInRoom(a1.id)!.x).toBe(0)
+		// and the client is put back to the room's state
+		expect(alice.editor.getShape(a1.id)!.x).toBe(0)
+		expect(alice.editor.getShape(t1.id)!.x).toBe(0)
+	})
+})
+
+describe('bindings follow their shapes', () => {
+	function arrow(id: TLShapeId): TLShapePartial {
+		return { id, type: 'arrow', x: 0, y: 0 }
+	}
+	// every binding id that a test makes, to look each one up in the room
+	const bindingIds: TLBindingId[] = []
+	function bind(editor: Editor, fromId: TLShapeId, toId: TLShapeId) {
+		const id = createBindingId()
+		bindingIds.push(id)
+		editor.createBinding({
+			id,
+			type: 'arrow',
+			fromId,
+			toId,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+				snap: 'none',
+			},
+		})
+	}
+	const bindingsInRoom = () => bindingIds.map((id) => room.getRecord(id)).filter(Boolean)
+
+	it('hides the bindings of a private page', async () => {
+		const teacher = users[0]
+		teacher.editor.setCurrentPage(page2)
+		teacher.editor.createShapes([geo(createShapeId('box')), arrow(createShapeId('arrow'))])
+		bind(teacher.editor, createShapeId('arrow'), createShapeId('box'))
+		teacher.editor.updatePage({ id: page2, meta: { private: true } })
+		teacher.editor.setCurrentPage(page1)
+		await settle()
+		expect(bindingsInRoom()).toHaveLength(1)
+
+		const alice = join('alice', 'student')
+		await settle()
+		expect(alice.editor.store.query.records('binding').get()).toEqual([])
+
+		// reveal: the binding arrives with its shapes
+		teacher.editor.updatePage({ id: page2, meta: { private: false } })
+		await settle()
+		expect(alice.editor.store.query.records('binding').get()).toHaveLength(1)
+	})
+
+	it('lets a student bind its own arrow, but not rebind the teacher arrow', async () => {
+		const teacher = users[0]
+		teacher.editor.createShapes([geo(createShapeId('t-box')), arrow(createShapeId('t-arrow'))])
+		const alice = join('alice', 'student')
+		await settle()
+		alice.editor.createShapes([geo(createShapeId('a-box'), 300), arrow(createShapeId('a-arrow'))])
+		await settle()
+
+		// own arrow to the teacher's box: allowed, the box does not change
+		bind(alice.editor, createShapeId('a-arrow'), createShapeId('t-box'))
+		// the teacher's arrow to alice's box: the arrow is not hers
+		bind(alice.editor, createShapeId('t-arrow'), createShapeId('a-box'))
+		await settle()
+		expect(bindingsInRoom().map((b: any) => b.fromId)).toEqual([createShapeId('a-arrow')])
+
+		// forced past the client rules, the server rejects it too
+		const forged = {
+			...alice.editor.store.query.records('binding').get()[0],
+			id: bindingIds[bindingIds.push(createBindingId()) - 1],
+			fromId: createShapeId('t-arrow'),
+			toId: createShapeId('a-box'),
+		}
+		forcePut(alice.editor, [forged])
+		await settle()
+		expect(bindingsInRoom()).toHaveLength(1)
+	})
+
+	it('lets a student delete its own shape that the teacher arrow points to', async () => {
+		const teacher = users[0]
+		teacher.editor.createShape(arrow(createShapeId('t-arrow')))
+		const alice = join('alice', 'student')
+		await settle()
+		alice.editor.createShape(geo(createShapeId('a-box'), 300))
+		await settle()
+		bind(teacher.editor, createShapeId('t-arrow'), createShapeId('a-box'))
+		await settle()
+		expect(bindingsInRoom()).toHaveLength(1)
+
+		alice.editor.deleteShapes([createShapeId('a-box')])
+		await settle()
+		expect(shapeInRoom(createShapeId('a-box'))).toBeUndefined()
+		expect(bindingsInRoom()).toEqual([])
+		expect(shapeInRoom(createShapeId('t-arrow'))).toBeDefined()
 	})
 })
 
@@ -551,5 +647,36 @@ describe('follow-up writes after a remote change', () => {
 		expect(shapeInRoom(groupId)).toBeUndefined()
 		expect(alice.editor.store.get(groupId)).toBeUndefined()
 		expect(alice.editor.getShape(ids[0])!.parentId).toBe(page1)
+	})
+})
+
+describe('undo after access changes', () => {
+	it('cancels an undo that the rules now deny; the undo step is used up (known limit)', async () => {
+		const teacher = users[0]
+		const alice = join('alice', 'student')
+		await settle()
+		const id = createShapeId('a1')
+		alice.editor.createShape(geo(id))
+		alice.editor.markHistoryStoppingPoint()
+		alice.editor.updateShape({ id, type: 'geo', x: 200 })
+		await settle()
+		expect(shapeInRoom(id).x).toBe(200)
+
+		teacher.editor.updatePage({ id: page1, meta: { readonly: true } })
+		await settle()
+		// the UI turns undo off on a read-only page, as for any read-only editor
+		expect(alice.editor.getIsReadonly()).toBe(true)
+		// called anyway, the rules cancel the undo, and room and client stay in step
+		alice.editor.undo()
+		await settle()
+		expect(alice.editor.getShape(id)!.x).toBe(200)
+		expect(shapeInRoom(id).x).toBe(200)
+
+		// the canceled step is used up: the next undo goes to the step before it
+		teacher.editor.updatePage({ id: page1, meta: { readonly: false } })
+		await settle()
+		alice.editor.undo()
+		await settle()
+		expect(shapeInRoom(id)).toBeUndefined()
 	})
 })
