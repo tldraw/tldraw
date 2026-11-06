@@ -1,4 +1,6 @@
+import { createCommentAuthorize } from '@tldraw/sync-collaboration'
 import {
+	Authorize,
 	AuthorizeContext,
 	AuthorizeGet,
 	AuthorizeResult,
@@ -6,6 +8,7 @@ import {
 	TLRecord,
 	TLShape,
 	TLShapeId,
+	combineAuthorize,
 	createShapeId,
 	isShapeId,
 	toRichText,
@@ -31,7 +34,17 @@ export const ACTORS: Record<string, Actor> = {
 	bot: { userId: 'bot', name: 'Helper bot (agent)', role: 'agent', frameId: AGENT_FRAME_ID },
 }
 
-const STUDENT_TOOLS = ['select', 'hand', 'draw', 'geo', 'arrow', 'note', 'eraser', 'text']
+const STUDENT_TOOLS = [
+	'select',
+	'hand',
+	'draw',
+	'geo',
+	'arrow',
+	'note',
+	'eraser',
+	'text',
+	'comment',
+]
 
 function pageIdOf(record: TLRecord | undefined, get: AuthorizeGet): TLPageId | null {
 	if (!record) return null
@@ -46,6 +59,8 @@ function pageIdOf(record: TLRecord | undefined, get: AuthorizeGet): TLPageId | n
 		return parentId as TLPageId
 	}
 	if (record.typeName === 'binding') return pageIdOf(get(record.fromId), get)
+	// Comment threads, comments, and reactions all carry their page.
+	if ('pageId' in record) return record.pageId as TLPageId
 	return null
 }
 
@@ -68,6 +83,8 @@ export function classroom(ctx: AuthorizeContext<TLRecord, Actor>): AuthorizeResu
 
 	// [1]
 	if (ctx.action === 'cards:reveal') return isTeacher
+	if (ctx.action === 'comments:write') return actor.role === 'agent' ? false : undefined
+	if (ctx.action === 'comments:delete') return isTeacher || undefined
 	if (ctx.action.startsWith('tool:')) {
 		if (isTeacher) return true
 		if (actor.role === 'viewer') return ctx.action === 'tool:select' || ctx.action === 'tool:hand'
@@ -149,10 +166,25 @@ export function classroom(ctx: AuthorizeContext<TLRecord, Actor>): AuthorizeResu
 	return undefined
 }
 
+/**
+ * The rules that the room and the editors run: the classroom rules, and the shared comment rules.
+ * The comment rules stamp authorship and let authors edit and delete their own comments. The
+ * classroom rules widen `comments:delete` to the teacher, and deny `comments:write` to the bot.
+ */
+export const authorize: Authorize<TLRecord, Actor> = combineAuthorize(
+	classroom,
+	// [9]
+	createCommentAuthorize<TLRecord, Actor>({
+		getUserId: (actor) => (actor.role === 'viewer' ? null : actor.userId),
+	})
+)
+
 /*
 [1]
 Custom actions are questions with no record. The toolbar asks `tool:<id>`, and the reveal button
-asks `cards:reveal`. A custom action that no rule allows is denied.
+asks `cards:reveal`. A custom action that no rule allows is denied. The comment UI asks
+`comments:write`, `comments:edit`, and `comments:delete`: the comment rules allow them for the
+author, and these lines widen delete to the teacher (a moderator) and stop the bot from commenting.
 
 [2]
 Page read control. A team page and everything on it is hidden from everyone outside the team. A
@@ -180,4 +212,8 @@ new shape is yours at once. The bot may only write inside its frame.
 [8]
 An arrow may only connect your own shapes. The arrow and its bindings are one operation, so the
 editor reverts the arrow too.
+
+[9]
+`getUserId` gives the identity that comments are stamped with. A view-only link has none, so it
+cannot comment.
 */

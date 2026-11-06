@@ -5,6 +5,7 @@ priority: 4
 keywords:
   [
     multiplayer,
+    comments,
     sync,
     permissions,
     authorize,
@@ -32,4 +33,6 @@ Things to try:
 - Look at the cards: each student sees only their own card's text until the teacher reveals the cards.
 - Switch a panel to the bot and press "Run bot". Only the shape inside the bot's frame stays.
 - As Ana, draw an arrow to the teacher's text. It does not bind, because the text acts locked for Ana.
-- Turn on atomic pushes to make the room reject a push with any denied write as a whole.
+- Comment as Ana. Ben can reply, but only Ana can edit or delete her comment. The teacher can delete any comment. The guest and the bot cannot comment.
+- Turn off "Editor checks" in a panel. The editor then sends every write, and the room corrects it: try to move the teacher's text, and it moves back.
+- With editor checks off, draw an arrow from your shape to the teacher's text. The room stores the arrow without its binding. Turn on atomic pushes, and the room rejects the whole arrow.

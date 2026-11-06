@@ -1,5 +1,8 @@
 import { InMemorySyncStorage, TLPersistentClientSocket, TLSocketRoom } from '@tldraw/sync'
-import { Authorize, TLRecord, createTLSchema } from 'tldraw'
+import { Authorize, TLRecord, commentSchemaRecords, createTLSchema } from 'tldraw'
+
+/** The room and every client use one schema: the default records plus comment records. */
+export const schema = createTLSchema({ records: commentSchemaRecords })
 
 /**
  * A sync room that runs in this page, so that one example can show several users at once. A
@@ -10,7 +13,7 @@ export function createLocalRoom<Actor>(opts: {
 	atomicPushes: boolean
 }) {
 	return new TLSocketRoom<TLRecord, Actor>({
-		schema: createTLSchema(),
+		schema,
 		storage: new InMemorySyncStorage<TLRecord>(),
 		authorize: opts.authorize,
 		atomicPushes: opts.atomicPushes,

@@ -1,5 +1,7 @@
+import { CanvasComments, CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import '@tldraw/commenting/commenting.css'
 import { TLSocketRoom, useSync } from '@tldraw/sync'
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	DefaultToolbar,
 	Editor,
@@ -19,13 +21,15 @@ import {
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
-import { ACTORS, AGENT_FRAME_ID, Actor, classroom } from './classroom'
-import { connectLocal, createLocalRoom } from './localRoom'
+import { ACTORS, AGENT_FRAME_ID, Actor, authorize } from './classroom'
+import { connectLocal, createLocalRoom, schema } from './localRoom'
 import './sync-authorize.css'
 
 // There's a guide at the bottom of this file!
 
 type Room = TLSocketRoom<TLRecord, Actor>
+
+const ActorContext = createContext<Actor>(ACTORS.teacher)
 
 export default function SyncAuthorizeExample() {
 	const [atomicPushes, setAtomicPushes] = useState(false)
@@ -33,7 +37,7 @@ export default function SyncAuthorizeExample() {
 	// [1]
 	const [room, setRoom] = useState<Room | null>(null)
 	useEffect(() => {
-		const next = createLocalRoom({ authorize: classroom, atomicPushes })
+		const next = createLocalRoom({ authorize, atomicPushes })
 		setRoom(next)
 		return () => next.close()
 	}, [atomicPushes])
@@ -79,6 +83,7 @@ function Panel({
 	const [actor, setActor] = useState(initialActor)
 	const actorRef = useRef(actor)
 	const [editor, setEditor] = useState<Editor | null>(null)
+	const [editorChecks, setEditorChecks] = useState(true)
 
 	// [2]
 	const currentUser = useMemo(
@@ -95,6 +100,7 @@ function Panel({
 	)
 	const store = useSync({
 		connect,
+		schema,
 		assets: inlineBase64AssetStore,
 		users: useMemo(() => ({ currentUser }), [currentUser]),
 	})
@@ -122,20 +128,33 @@ function Panel({
 					))}
 				</select>
 				{editor && <PanelActions editor={editor} actor={actor} />}
+				{/* [10] */}
+				<label className="sync-authorize__checks">
+					<input
+						type="checkbox"
+						checked={editorChecks}
+						onChange={(e) => setEditorChecks(e.target.checked)}
+					/>
+					Editor checks
+				</label>
 			</div>
 			{editor && <DenialLine editor={editor} />}
 			<div className="sync-authorize__canvas">
-				<Tldraw
-					store={store}
-					// [4]
-					permissions={{ authorize: classroom, actor }}
-					components={components}
-					onMount={(editor) => {
-						setEditor(editor)
-						if (seed) seedRoom(room, editor)
-						editor.setCamera({ x: 40, y: 80, z: 0.6 })
-					}}
-				/>
+				<ActorContext.Provider value={actor}>
+					<Tldraw
+						store={store}
+						// [4]
+						permissions={editorChecks ? { authorize, actor } : undefined}
+						components={components}
+						tools={COMMENT_TOOLS}
+						overrides={[commentToolOverrides]}
+						onMount={(editor) => {
+							setEditor(editor)
+							if (seed) seedRoom(room, editor)
+							editor.setCamera({ x: 40, y: 80, z: 0.6 })
+						}}
+					/>
+				</ActorContext.Provider>
 			</div>
 		</div>
 	)
@@ -214,14 +233,20 @@ const TOOLBAR = [
 	{ item: 'note', tool: 'note' },
 	{ item: 'rectangle', tool: 'geo' },
 	{ item: 'frame', tool: 'frame' },
+	{ item: 'comment', tool: 'comment' },
 ]
+
+const COMMENT_TOOLS = [CommentTool]
 
 const components: TLComponents = {
 	Toolbar: function PermittedToolbar() {
 		const editor = useEditor()
 		const items = useValue(
 			'permitted tools',
-			() => TOOLBAR.filter(({ tool }) => editor.permissions.can(`tool:${tool}`)),
+			() =>
+				TOOLBAR.filter(
+					({ tool }) => !editor.permissions.isEnabled() || editor.permissions.can(`tool:${tool}`)
+				),
 			[editor]
 		)
 		return (
@@ -230,6 +255,19 @@ const components: TLComponents = {
 					<ToolbarItem key={item} tool={item} />
 				))}
 			</DefaultToolbar>
+		)
+	},
+	// [9]
+	InFrontOfTheCanvas: function Comments() {
+		const actor = useContext(ActorContext)
+		return (
+			<CanvasComments
+				currentUserId={actor.role === 'viewer' ? null : actor.userId}
+				resolveAuthor={(id) => {
+					const actor = Object.values(ACTORS).find((a) => a.userId === id)
+					return { name: actor?.name ?? id }
+				}}
+			/>
 		)
 	},
 }
@@ -320,4 +358,16 @@ behaves as locked: it cannot be selected, moved, or deleted.
 [8]
 The teacher's panel sets up the room once. Team pages have a `team` in their meta, and the
 locked page has `locked`. The teacher's own shapes have no owner, so no student can change them.
+
+[9]
+Comments use the same rules. Anyone with an identity can comment on a page they can see. Authors
+edit and delete their own comments, and the teacher can delete anyone's. A view-only link and the
+bot cannot comment. The comment UI asks `comments:write`, `comments:edit`, and `comments:delete`
+through `editor.permissions`, so it hides what the room would deny.
+
+[10]
+Turn off "Editor checks" to see what the room alone enforces. The editor then writes whatever the
+user does, and the room corrects it: a denied shape disappears a moment later. With the checks off,
+draw an arrow from your shape to the teacher's text. The room stores the arrow without its binding,
+or, with atomic pushes, rejects the whole arrow.
 */
