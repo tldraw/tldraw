@@ -83,7 +83,7 @@ const messages = defineMessages({
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
 // editable canvas get a sign-in prompt where the composers would be; view-only sessions
-// read threads without composers (the server rejects their writes in the authorizers).
+// read threads without composers (the server's filePermissions deny their writes).
 const tlaCommentTools = [
 	CommentTool.configure({
 		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),

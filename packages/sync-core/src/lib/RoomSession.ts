@@ -1,5 +1,6 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
-import { TLObjectStoreAccess, TLSocketServerSentDataEvent } from './protocol'
+import { TLAccess } from '@tldraw/tlschema'
+import { TLSocketServerSentDataEvent } from './protocol'
 import { TLRoomSocket } from './TLSyncRoom'
 
 /**
@@ -78,17 +79,23 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	socket: TLRoomSocket<R>
 	/** Custom metadata associated with this session */
 	meta: Meta
-	/** Whether this session has read-only permissions for document-lane records */
-	isReadonly: boolean
+	/** What this session may do. The room's permissions read it on every push. */
+	access: TLAccess
 	/**
-	 * Write access for object-store lane record types (see `objectTypes` on the room).
-	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
+	 * The ids this session can see, when the room filters reads (`canRead`). Null when it does
+	 * not. The room sends the session changes to these records only.
 	 */
-	objectAccess: TLObjectStoreAccess
+	visibleIds: Set<string> | null
+	/** How many of this session's pushes the room has denied since it connected. */
+	deniedCount: number
+	/**
+	 * Ids that denied pushes touched, kept until the client has seen those denials. A later push
+	 * that touches or points at one of them is denied too. Capped: a full set denies every push
+	 * until the client has seen the denials.
+	 */
+	deniedIds: Set<string>
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
-	/** Whether this session supports string append operations */
-	supportsStringAppend: boolean
 }
 
 /**

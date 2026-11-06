@@ -1,0 +1,130 @@
+.permissions-example {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	font-family: sans-serif;
+	font-size: 13px;
+}
+
+.permissions-example__tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 8px 8px 0;
+}
+
+.permissions-example__tabs button {
+	padding: 4px 10px;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	background: #fff;
+	cursor: pointer;
+}
+
+.permissions-example__tabs button[aria-selected='true'] {
+	border-color: #2f80ed;
+	background: #2f80ed;
+	color: #fff;
+}
+
+.permissions-example__guide {
+	padding: 6px 12px 8px;
+	border-bottom: 1px solid #ddd;
+	line-height: 1.4;
+}
+
+.permissions-example__guide p {
+	margin: 0 0 4px;
+}
+
+.permissions-example__guide ol {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 2px 24px;
+	margin: 2px 0 0;
+	padding-left: 20px;
+}
+
+.permissions-example__guide b {
+	font-weight: 600;
+}
+
+.permissions-example__panes {
+	flex: 1;
+	display: flex;
+	min-height: 0;
+}
+
+.permissions-example__pane {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	min-width: 0;
+	border-right: 1px solid #ddd;
+}
+
+.permissions-example__pane-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 8px;
+	min-height: 32px;
+}
+
+.permissions-example__offline {
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: #fde8c8;
+	color: #8a4b00;
+}
+
+.permissions-example__canvas {
+	position: relative;
+	flex: 1;
+}
+
+.permissions-example__log {
+	height: 86px;
+	overflow: auto;
+	padding: 6px 8px;
+	border-top: 1px solid #ddd;
+	background: #fafafa;
+}
+
+.permissions-example__log ul {
+	margin: 4px 0 0;
+	padding: 0;
+	list-style: none;
+}
+
+.permissions-example__log li {
+	margin-bottom: 2px;
+}
+
+.permissions-example__empty {
+	margin-left: 8px;
+	color: #888;
+}
+
+.permissions-example__source {
+	display: inline-block;
+	min-width: 44px;
+	margin-right: 6px;
+	padding: 0 4px;
+	border-radius: 3px;
+	font-size: 11px;
+	text-align: center;
+	background: #e3ecfb;
+	color: #1d4f9c;
+}
+
+.permissions-example__source[data-source='server'] {
+	background: #fbe3e3;
+	color: #9c1d1d;
+}
+
+.permissions-example__log code {
+	margin-right: 4px;
+}

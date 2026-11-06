@@ -1,25 +1,64 @@
 import {
+	TLAccess,
 	TLComment,
 	TLCommentReaction,
 	TLCommentThread,
 	TLPageId,
+	TLRecord,
 	createComment,
 	createCommentId,
 	createCommentReaction,
 	createCommentReactionId,
 	createCommentThread,
+	createTransaction,
+	defaultAbilityRules,
+	definePermissions,
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { createCommentAuthorizers } from './comment-authorizers'
+import { CommentRuleOptions, commentRules, stampCommentAuthors } from './comment-rules'
 
-interface TestMeta {
-	userId: string | null
+type AnyComment = TLComment | TLCommentThread | TLCommentReaction
+interface Write {
+	session: TLAccess
+	type: 'create' | 'update' | 'delete'
+	prev: AnyComment | null
+	next: AnyComment | null
+	/** What else the room holds after the write. Defaults to `thread` and the comment `c1`. */
+	others?: AnyComment[]
 }
 
-const authorizers = createCommentAuthorizers<TestMeta>({
-	getUserId: (session) => session.meta.userId,
-})
+/**
+ * Check one write against the rules, as the room checks a push of it. Returns the record the
+ * write leaves (`next`, or `prev` for a delete) when it is allowed, and null when it is denied.
+ */
+function rulesFor(opts?: CommentRuleOptions) {
+	const permissions = definePermissions<TLRecord>({
+		rules: [...defaultAbilityRules(), ...commentRules(opts)],
+	})
+	const check = ({ session, type, prev, next, others = [thread, c1] }: Write) => {
+		const id = (next ?? prev)!.id
+		const after = new Map<string, AnyComment>(others.map((r) => [r.id, r]))
+		if (next) after.set(id, next)
+		else after.delete(id)
+		const verdict = permissions.check(
+			createTransaction<TLRecord>({
+				access: session,
+				intent: null,
+				diff: {
+					added: type === 'create' ? { [id]: next } : {},
+					updated: type === 'update' ? { [id]: [prev, next] } : {},
+					removed: type === 'delete' ? { [id]: prev } : {},
+				} as any,
+				after: { get: (id) => after.get(id) as TLRecord | undefined, all: () => [] },
+			})
+		)
+		return verdict.ok ? (next ?? prev) : null
+	}
+	return { comment: check, 'comment-thread': check, 'comment-reaction': check }
+}
+
+const authorizers = rulesFor()
 
 const pageId = 'page:test' as TLPageId
 const thread = createCommentThread({
@@ -27,52 +66,43 @@ const thread = createCommentThread({
 	anchor: { type: 'page' },
 	createdBy: 'client-claims-alice',
 })
-
-function session(
-	userId: string | null,
-	isReadonly = false
-): {
-	sessionId: string
-	isReadonly: boolean
-	meta: TestMeta
-} {
-	return { sessionId: 's1', isReadonly, meta: { userId } }
+const c1: TLComment = {
+	...createComment({ threadId: thread.id, pageId, authorId: 'real-alice', body: toRichText('hi') }),
+	id: createCommentId('c1'),
 }
 
-describe('createCommentAuthorizers', () => {
-	// getUserId is documented as called exactly once per write. More than once would let an
-	// impure host callback split identity across checks — e.g. a reaction create where the
-	// stamped userId and the canonical-id check disagree about who is reacting.
-	it('resolves the session user exactly once per authorization', () => {
-		let calls = 0
-		const counted = createCommentAuthorizers<TestMeta>({
-			getUserId: (s) => {
-				calls++
-				return s.meta.userId
-			},
-		})
-		// the worst former offender: a thread update touching both resolution and the soft-delete flag
-		const prev = createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'real-bob' })
-		const next = { ...prev, resolved: { at: 1, by: 'real-bob' }, isDeleted: true }
-		expect(
-			counted['comment-thread']!({ session: session('real-bob'), type: 'update', prev, next })
-		).toBe(next)
-		expect(calls).toBe(1)
-	})
+/** A commenter's access. `canvasReadonly` drops the `comment` ability, as a viewer link would. */
+function session(userId: string | null, canvasReadonly = false): TLAccess {
+	return { userId, abilities: canvasReadonly ? [] : ['edit', 'comment'] }
+}
 
+describe('commentRules', () => {
 	describe('comment', () => {
 		const authorize = authorizers.comment!
 		const comment = (authorId: string) =>
 			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
 
-		it('stamps authorId from the session on create, overriding the client value', () => {
-			const result = authorize({
-				session: session('real-bob'),
-				type: 'create',
-				prev: null,
-				next: comment('client-claims-alice'),
-			}) as TLComment
-			expect(result.authorId).toBe('real-bob')
+		it('denies a create attributed to someone else', () => {
+			expect(
+				authorize({
+					session: session('real-bob'),
+					type: 'create',
+					prev: null,
+					next: comment('client-claims-alice'),
+				})
+			).toBeNull()
+			const own = comment('real-bob')
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next: own })
+			).toBe(own)
+		})
+
+		it('has a client stamp that attributes new comments to the session', () => {
+			const stamped = stampCommentAuthors<TLRecord>()(
+				comment('client-claims-alice') as any,
+				session('real-bob')
+			) as unknown as TLComment
+			expect(stamped.authorId).toBe('real-bob')
 		})
 
 		it('rejects a create with no authenticated user', () => {
@@ -162,7 +192,25 @@ describe('createCommentAuthorizers', () => {
 		it('allows a pageId update (threads can move between pages)', () => {
 			const prev = comment('real-bob')
 			const next = { ...prev, pageId: 'page:other' as TLPageId }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			const moved = { ...thread, pageId: next.pageId }
+			expect(
+				authorize({ session: session('real-bob'), type: 'update', prev, next, others: [moved] })
+			).toBe(next)
+		})
+
+		it("vetoes a create or pageId update that does not match the thread's page", () => {
+			const own = comment('real-bob')
+			const forged = { ...own, pageId: 'page:other' as TLPageId }
+			const bob = session('real-bob')
+			expect(authorize({ session: bob, type: 'create', prev: null, next: forged })).toBeNull()
+			expect(authorize({ session: bob, type: 'update', prev: own, next: forged })).toBeNull()
+		})
+
+		it('vetoes a create in a thread that does not exist', () => {
+			const next = comment('real-bob')
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next, others: [] })
+			).toBeNull()
 		})
 	})
 
@@ -171,14 +219,22 @@ describe('createCommentAuthorizers', () => {
 		const makeThread = (createdBy: string) =>
 			createCommentThread({ pageId, anchor: { type: 'page' }, createdBy })
 
-		it('stamps createdBy from the session on create, overriding the client value', () => {
-			const result = authorize({
-				session: session('real-bob'),
-				type: 'create',
-				prev: null,
-				next: makeThread('client-claims-alice'),
-			}) as TLCommentThread
-			expect(result.createdBy).toBe('real-bob')
+		it('denies a create attributed to someone else', () => {
+			expect(
+				authorize({
+					session: session('real-bob'),
+					type: 'create',
+					prev: null,
+					next: makeThread('client-claims-alice'),
+				})
+			).toBeNull()
+			const stamped = stampCommentAuthors<TLRecord>()(
+				makeThread('client-claims-alice') as any,
+				session('real-bob')
+			) as unknown as TLCommentThread
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next: stamped })
+			).toBe(stamped)
 		})
 
 		it('vetoes an update that changes the creator', () => {
@@ -226,7 +282,7 @@ describe('createCommentAuthorizers', () => {
 				type: 'create',
 				prev: null,
 				next,
-			}) as TLCommentThread
+			}) as unknown as TLCommentThread
 			expect(result.resolved).toEqual({ at: 1, by: 'real-bob' })
 		})
 
@@ -287,17 +343,11 @@ describe('createCommentAuthorizers', () => {
 				emoji,
 			})
 
-		it('stamps userId from the session on create, overriding the client value', () => {
-			// id is bob's canonical slot (so it passes the id check), but the userId field claims
-			// someone else — the server stamps it back to the session user
+		it('denies a create whose userId is someone else, even at the session user’s slot', () => {
 			const next: TLCommentReaction = { ...makeReaction('real-bob'), userId: 'client-claims-alice' }
-			const result = authorize({
-				session: session('real-bob'),
-				type: 'create',
-				prev: null,
-				next,
-			}) as TLCommentReaction
-			expect(result.userId).toBe('real-bob')
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
+			).toBeNull()
 		})
 
 		it('rejects a create from a session with no identity', () => {
@@ -381,6 +431,20 @@ describe('createCommentAuthorizers', () => {
 			).not.toBeNull()
 		})
 
+		it("vetoes a create whose threadId or pageId is not its comment's, or with no comment", () => {
+			const mallory = session('real-mallory')
+			const next = makeReaction('real-mallory')
+			for (const forged of [
+				{ ...next, pageId: 'page:other' as TLPageId },
+				{ ...next, threadId: 'comment-thread:other' as TLCommentThread['id'] },
+			]) {
+				expect(authorize({ session: mallory, type: 'create', prev: null, next: forged })).toBeNull()
+			}
+			expect(
+				authorize({ session: mallory, type: 'create', prev: null, next, others: [thread] })
+			).toBeNull()
+		})
+
 		// the reaction's comment is fixed by its id; an update must not move it onto another comment,
 		// or the id would disagree with commentId and two rows could collide on (commentId, userId)
 		it('vetoes an update that moves the reaction to a different comment', () => {
@@ -413,7 +477,7 @@ describe('createCommentAuthorizers', () => {
 		})
 	})
 
-	describe('canComment', () => {
+	describe('the comment ability', () => {
 		const comment = (authorId: string) =>
 			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
 		const makeThread = (createdBy: string) =>
@@ -427,7 +491,7 @@ describe('createCommentAuthorizers', () => {
 				emoji,
 			})
 
-		it('blocks all comment-record writes from canvas read-only sessions by default', () => {
+		it('denies every comment-record write from a session without it', () => {
 			const readonly = session('real-bob', true)
 
 			const commentPrev = comment('real-bob')
@@ -504,84 +568,24 @@ describe('createCommentAuthorizers', () => {
 			).toBeNull()
 		})
 
-		it('still applies the per-type rules to read-write sessions', () => {
-			const result = authorizers.comment!({
-				session: session('real-bob', false),
-				type: 'create',
-				prev: null,
-				next: comment('client-claims-alice'),
-			}) as TLComment
-			expect(result.authorId).toBe('real-bob')
-		})
-
-		it('lets a custom canComment allow read-only sessions (comment-only setups)', () => {
-			const commentOnly = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
-				canComment: () => true,
-			})
-
-			const result = commentOnly.comment!({
-				session: session('real-bob', true),
-				type: 'create',
-				prev: null,
-				next: comment('client-claims-alice'),
-			}) as TLComment
-			expect(result.authorId).toBe('real-bob')
-
+		it('lets a comment-only session comment, as itself', () => {
+			const commenter = { userId: 'real-bob', abilities: ['comment'] }
 			expect(
-				commentOnly.comment!({
-					session: session(null, true),
+				authorizers.comment!({
+					session: commenter,
+					type: 'create',
+					prev: null,
+					next: comment('real-bob'),
+				})
+			).not.toBeNull()
+			expect(
+				authorizers.comment!({
+					session: { userId: null, abilities: ['comment'] },
 					type: 'create',
 					prev: null,
 					next: comment('anon'),
 				})
 			).toBeNull()
-		})
-
-		it('is asked before canModifyComment, so a blocked session is never asked about a record', () => {
-			let asked = 0
-			const blocked = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
-				canComment: () => false,
-				canModifyComment: () => {
-					asked++
-					return true
-				},
-			})
-			const prev = comment('real-bob')
-			expect(
-				blocked.comment!({
-					session: session('real-bob'),
-					type: 'update',
-					prev,
-					next: { ...prev, isDeleted: true },
-				})
-			).toBeNull()
-			expect(asked).toBe(0)
-		})
-
-		it('lets a custom canComment block sessions on its own criteria', () => {
-			const bannable = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
-				canComment: ({ meta }) => meta.userId !== 'banned',
-			})
-
-			expect(
-				bannable.comment!({
-					session: session('banned', false),
-					type: 'create',
-					prev: null,
-					next: comment('banned'),
-				})
-			).toBeNull()
-
-			const result = bannable.comment!({
-				session: session('real-bob', false),
-				type: 'create',
-				prev: null,
-				next: comment('client-claims-alice'),
-			}) as TLComment
-			expect(result.authorId).toBe('real-bob')
 		})
 	})
 
@@ -595,11 +599,9 @@ describe('createCommentAuthorizers', () => {
 
 		// The motivating case: a moderator takes down someone else's comment, but takes over
 		// nobody's voice — editing stays the author's.
-		const moderated = createCommentAuthorizers<TestMeta>({
-			getUserId: (session) => session.meta.userId,
+		const moderated = rulesFor({
 			canModifyComment: (ctx) =>
-				(ctx.action !== 'edit-comment' && ctx.session.meta.userId === 'real-mod') ||
-				ctx.userId === ctx.ownerId,
+				(ctx.action !== 'edit-comment' && ctx.userId === 'real-mod') || ctx.userId === ctx.ownerId,
 		})
 
 		it('lets a widened rule soft-delete another user’s comment', () => {
@@ -666,8 +668,7 @@ describe('createCommentAuthorizers', () => {
 		})
 
 		it('narrows as well as widens', () => {
-			const frozen = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
+			const frozen = rulesFor({
 				canModifyComment: (ctx) => ctx.action !== 'edit-comment' && ctx.userId === ctx.ownerId,
 			})
 			const prev = comment('real-bob')
@@ -688,8 +689,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('is asked with the stored record, not the client’s version of it', () => {
 			const seen: unknown[] = []
-			const spying = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
+			const spying = rulesFor({
 				canModifyComment: (ctx) => {
 					seen.push(ctx)
 					return true
@@ -711,7 +711,8 @@ describe('createCommentAuthorizers', () => {
 			})
 			expect(seen).toEqual([
 				{
-					session: session('real-mallory'),
+					access: session('real-mallory'),
+					can: expect.any(Function),
 					userId: 'real-mallory',
 					ownerId: 'real-bob',
 					action: 'edit-comment',
@@ -722,8 +723,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('reports the thread’s creator as the owner of a thread delete', () => {
 			const seen: unknown[] = []
-			const spying = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
+			const spying = rulesFor({
 				canModifyComment: (ctx) => {
 					seen.push(ctx)
 					return true
@@ -738,7 +738,8 @@ describe('createCommentAuthorizers', () => {
 			})
 			expect(seen).toEqual([
 				{
-					session: session('real-mallory'),
+					access: session('real-mallory'),
+					can: expect.any(Function),
 					userId: 'real-mallory',
 					ownerId: 'real-bob',
 					action: 'delete-thread',
@@ -751,8 +752,7 @@ describe('createCommentAuthorizers', () => {
 		// `canComment`'s to gate, and the option is never asked about them.
 		it('is not asked about resolving or reopening a thread', () => {
 			let asked = 0
-			const counting = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
+			const counting = rulesFor({
 				canModifyComment: () => {
 					asked++
 					return true
@@ -782,8 +782,7 @@ describe('createCommentAuthorizers', () => {
 
 		it('is not asked about reactions', () => {
 			let asked = 0
-			const counting = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
+			const counting = rulesFor({
 				canModifyComment: () => {
 					asked++
 					return true
@@ -819,8 +818,7 @@ describe('createCommentAuthorizers', () => {
 		// The point of asking after the structural rules: a host can hand out these three writes
 		// without handing out the invariants underneath them.
 		describe('the structural rules hold however permissive the callback', () => {
-			const permissive = createCommentAuthorizers<TestMeta>({
-				getUserId: (session) => session.meta.userId,
+			const permissive = rulesFor({
 				canModifyComment: () => true,
 			})
 

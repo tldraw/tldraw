@@ -145,19 +145,12 @@ export interface TLSyncForwardDiff<R extends UnknownRecord> {
 	deletes: string[]
 }
 
-/**
- * @param legacyAppendMode - When true, string appends are emitted as puts (see `diffRecord`); the
- * room sets this whenever a connected client predates string-append support.
- * @internal
- */
-export function toNetworkDiff<R extends UnknownRecord>(
-	diff: TLSyncForwardDiff<R>,
-	legacyAppendMode = false
-): NetworkDiff<R> {
+/** @internal */
+export function toNetworkDiff<R extends UnknownRecord>(diff: TLSyncForwardDiff<R>): NetworkDiff<R> {
 	const networkDiff: NetworkDiff<R> = {}
 	for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 		if (Array.isArray(put)) {
-			const patch = diffRecord(put[0], put[1], legacyAppendMode)
+			const patch = diffRecord(put[0], put[1])
 			if (patch) {
 				networkDiff[id] = [RecordOpType.Patch, patch]
 			}

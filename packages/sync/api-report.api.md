@@ -5,10 +5,12 @@
 ```ts
 
 import { Editor } from 'tldraw';
+import { TLAccess } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
-import { TLObjectStoreAccess } from '@tldraw/sync-core';
+import { TLPermissions } from 'tldraw';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLRecord } from 'tldraw';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
@@ -20,7 +22,7 @@ import { TLUserStore } from 'tldraw';
 export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
     status: 'synced-remote';
 }> & {
-    readonly objectAccess: TLObjectStoreAccess;
+    readonly access: TLAccess;
 }) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
 } | {
@@ -63,6 +65,7 @@ export interface UseSyncOptionsBase {
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
+    permissions?: TLPermissions<TLRecord>;
     // @internal
     roomId?: string;
     themes?: Partial<TLThemes>;

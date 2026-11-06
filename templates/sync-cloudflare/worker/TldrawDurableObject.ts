@@ -8,6 +8,7 @@ import {
 	createTLSchema,
 	// defaultBindingSchemas,
 	defaultShapeSchemas,
+	TL_FULL_ACCESS,
 	TLRecord,
 } from '@tldraw/tlschema'
 import { DurableObject } from 'cloudflare:workers'
@@ -125,7 +126,8 @@ export class TldrawDurableObject extends DurableObject {
 
 		// Connect to the room. The first webSocketMessage from the client will
 		// complete the handshake and trigger debounced snapshot storage.
-		room.handleSocketConnect({ sessionId, socket: serverWebSocket })
+		// This template has no auth, so every session gets full access.
+		room.handleSocketConnect({ sessionId, socket: serverWebSocket, access: TL_FULL_ACCESS })
 
 		return new Response(null, { status: 101, webSocket: clientWebSocket })
 	}

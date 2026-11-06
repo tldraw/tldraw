@@ -2,7 +2,6 @@ import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
-	TLObjectStoreAccess,
 	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLRemoteSyncError,
@@ -22,6 +21,10 @@ import {
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
 	TLThemes,
+	TL_FULL_ACCESS,
+	TLAccess,
+	TLPermissionDenial,
+	TLPermissions,
 	TLUser,
 	TLUserStore,
 	UserRecordType,
@@ -105,11 +108,10 @@ export type RemoteTLStoreWithStatus =
 	  >
 	| (Extract<TLStoreWithStatus, { status: 'synced-remote' }> & {
 			/**
-			 * Write access for object-store lane record types (e.g. comments), as granted by the
-			 * server for this session. Independent of the canvas read-only state, so a session can
-			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
+			 * What the server lets this session do. It can change at any time, with no reconnect.
+			 * The editor reads the same value through `editor.permissions`.
 			 */
-			readonly objectAccess: TLObjectStoreAccess
+			readonly access: TLAccess
 	  })
 
 /**
@@ -199,7 +201,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
-		objectAccess?: TLObjectStoreAccess
+		access?: TLAccess
 	} | null>(null)
 	const {
 		uri,
@@ -212,6 +214,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		themes,
+		permissions,
 		...schemaOpts
 	} = opts
 
@@ -307,6 +310,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+		const accessSignal = atom<TLAccess>('sync access', TL_FULL_ACCESS)
+		const lastDenial = atom<TLPermissionDenial | null>('sync last denial', null)
+		const setAccess = (access: TLAccess) => {
+			accessSignal.set(access)
+			// read-only mode follows the `edit` ability, so tools and menus update with no extra code
+			syncMode.set(access.abilities.includes('edit') ? 'readwrite' : 'readonly')
+		}
 
 		const store = createTLStore({
 			id: storeId,
@@ -317,6 +327,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
+				access: accessSignal,
+				permissions: permissions ?? null,
+				lastDenial,
 			},
 		})
 
@@ -343,10 +356,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
-				// Keep objectAccess (onAfterConnect always runs first for this client) but drop the
+				// Keep access (onAfterConnect always runs first for this client) but drop the
 				// rest: an `error` left behind by a previous client (e.g. NOT_FOUND on the old uri)
 				// would otherwise keep the hook reporting status 'error' for the new, healthy room.
-				setState((prev) => ({ readyClient: client, objectAccess: prev?.objectAccess }))
+				setState((prev) => ({ readyClient: client, access: prev?.access }))
 			},
 			onSyncError(reason) {
 				console.error('sync error', reason)
@@ -358,14 +371,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly, objectAccess }) {
-				// Object-lane (comment) write access is decided per session by the server and can
-				// change on reconnect (e.g. when the file's share tier changes), so surface it on
-				// the returned status for consumers that gate comment UI. This fires before the
-				// first onLoad, hence the merge in both directions.
-				setState((prev) => ({ ...prev, objectAccess }))
+			onAfterConnect(_, { access }) {
+				// Access is decided per session by the server and can change at any time, so
+				// surface it on the returned status too. This fires before the first onLoad, hence
+				// the merge in both directions.
+				setState((prev) => ({ ...prev, access }))
 				transact(() => {
-					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+					setAccess(access)
 					// if the server crashes and loses all data it can return an empty document
 					// when it comes back up. This is a safety check to make sure that if something like
 					// that happens, it won't render the app broken and require a restart. The user will
@@ -374,6 +386,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					// but the likelihood of this happening is very low and maybe not worth caring about beyond this.
 					store.ensureStoreIsUsable()
 				})
+			},
+			onAccessChange(access) {
+				setAccess(access)
+				setState((prev) => (prev ? { ...prev, access } : prev))
+			},
+			onPushDenied(denial) {
+				lastDenial.set({ ...denial, source: 'server' })
 			},
 			onCustomMessageReceived,
 			presence,
@@ -398,6 +417,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		permissions,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -410,7 +430,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: 'synced-remote',
 				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
-				objectAccess: state.objectAccess ?? 'write',
+				access: state.access ?? TL_FULL_ACCESS,
 			}
 		},
 		[state]
@@ -442,6 +462,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
  * @public
  */
 export interface UseSyncOptionsBase {
+	/**
+	 * The room's permissions: the same object you pass to the server's `TLSocketRoom`. The editor
+	 * checks each change against them before it commits, so a denied change never leaves the
+	 * client. The server still checks every push.
+	 */
+	permissions?: TLPermissions<TLRecord>
+
 	/**
 	 * Named theme definitions. When provided, custom color names are automatically
 	 * registered before the store is constructed so persisted data with those

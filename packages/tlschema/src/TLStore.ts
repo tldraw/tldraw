@@ -7,6 +7,7 @@ import {
 	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
+import { TLAccess, TLPermissionDenial, TLPermissions } from './permissions/TLPermissions'
 import { TLAsset, TLAssetId } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -336,6 +337,12 @@ export interface TLStoreProps {
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/** What this session may do, as the server last said. */
+		access?: Signal<TLAccess> | null
+		/** The room's permissions: the same object the server checks pushes with. */
+		permissions?: TLPermissions<TLRecord> | null
+		/** The server's last denial of a push from this client. */
+		lastDenial?: Signal<TLPermissionDenial | null> | null
 	}
 }
 

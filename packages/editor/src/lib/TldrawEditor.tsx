@@ -1,5 +1,7 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
+	TLPermissions,
+	TLRecord,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -249,6 +251,12 @@ export interface TldrawEditorBaseProps {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * The room's permissions. Every change is checked against them as one transaction before it
+	 * commits. With `useSync`, pass them to `useSync` instead.
+	 */
+	permissions?: TLPermissions<TLRecord>
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -524,6 +532,7 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	permissions,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -612,6 +621,7 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				permissions,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -656,6 +666,7 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			licenseManager,
 			getShapeVisibility,
+			permissions,
 			assetUrls,
 			stableI18n,
 		]

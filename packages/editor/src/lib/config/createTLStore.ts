@@ -72,10 +72,7 @@ export type TLStoreSchemaOptions =
 export type TLStoreOptions = TLStoreBaseOptions & {
 	id?: string
 	/** Collaboration options for the store. */
-	collaboration?: {
-		status: Signal<'online' | 'offline'> | null
-		mode?: Signal<'readonly' | 'readwrite'> | null
-	}
+	collaboration?: TLStoreProps['collaboration']
 } & TLStoreSchemaOptions
 
 /** @public */

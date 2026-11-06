@@ -74,7 +74,12 @@ io.on('connection', async (socket) => {
 		}
 
 		// and finally connect the socket to the room
-		room.handleSocketConnect({ sessionId, socket: socketAdapter })
+		// This example has no auth, so every session gets full access.
+		room.handleSocketConnect({
+			sessionId,
+			socket: socketAdapter,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 
 		// Handle tldraw sync messages
 		socket.on('tldraw-message', (message) => {

@@ -4,13 +4,16 @@
 import {
 	createShapeId,
 	createUserId,
+	definePermissions,
 	InstancePresenceRecordType,
 	PageRecordType,
+	TLAccess,
 	TLDocument,
 	TLInstancePresence,
 	TLPage,
 	TLRecord,
 	TLScribble,
+	TL_FULL_ACCESS,
 } from '@tldraw/tlschema'
 import {
 	createTLSchema,
@@ -53,9 +56,9 @@ function connectSession(
 	room: TLSocketRoom<any, any>,
 	sessionId: string,
 	socket: WebSocketMinimal,
-	opts: { objectAccess?: 'read' | 'write' } = {}
+	opts: { access?: TLAccess } = {}
 ) {
-	room.handleSocketConnect({ sessionId, socket, ...opts })
+	room.handleSocketConnect({ sessionId, socket, access: opts.access ?? TL_FULL_ACCESS })
 	const connectRequest = {
 		type: 'connect' as const,
 		connectRequestId: `connect-${sessionId}`,
@@ -211,15 +214,17 @@ describe('28. TLSocketRoom (SR)', () => {
 			consoleSpy.mockRestore()
 		})
 
-		it('[SR3] the default logger also reaches TLSyncRoom, so authorizer failures are reported', () => {
+		it('[SR3] the default logger also reaches TLSyncRoom, so rule failures are reported', () => {
 			const consoleSpy = vi.spyOn(console, 'error').mockImplementation(() => {})
 			try {
 				const room = new TLSocketRoom({
-					authorizeRecord: {
-						page: () => {
-							throw new Error('authorizer exploded')
-						},
-					},
+					permissions: definePermissions({
+						rules: [
+							() => {
+								throw new Error('rule exploded')
+							},
+						],
+					}),
 				})
 				const socket = createMockSocket()
 				connectSession(room, 'test-session', socket)
@@ -239,11 +244,11 @@ describe('28. TLSocketRoom (SR)', () => {
 					})
 				)
 
-				// the authorizer threw, and the host heard about it without passing a logger
+				// the rule threw, the push failed closed, and the host heard about it without a logger
 				expect(room.getRecord(pageId)).toBeUndefined()
 				expect(consoleSpy).toHaveBeenCalledWith(
-					'record authorizer threw; rejecting the write',
-					expect.objectContaining({ message: 'authorizer exploded' })
+					'permission rule threw; denying the push',
+					expect.objectContaining({ message: 'rule exploded' })
 				)
 			} finally {
 				consoleSpy.mockRestore()
@@ -269,7 +274,7 @@ describe('28. TLSocketRoom (SR)', () => {
 	})
 
 	describe('handleSocketConnect', () => {
-		it('[SR4] registers sessions with readonly defaulting to false', () => {
+		it('[SR4] registers sessions with the access they connect with', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()
 			connectSession(room, 'test-session', socket)
@@ -279,8 +284,39 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(sessions[0]).toMatchObject({
 				sessionId: 'test-session',
 				isConnected: true,
-				isReadonly: false,
+				access: { userId: null, abilities: ['edit', 'comment'] },
 			})
+		})
+
+		it('[SR4] gives a session that connects with no access no abilities', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			room.handleSocketConnect({ sessionId: 'test-session', socket })
+			room.handleSocketMessage(
+				'test-session',
+				JSON.stringify({
+					type: 'connect',
+					connectRequestId: 'connect-1',
+					lastServerClock: 0,
+					protocolVersion: getTlsyncProtocolVersion(),
+					schema: createTLSchema().serialize(),
+				})
+			)
+			expect(room.getSessions()[0].access).toEqual({ userId: null, abilities: [] })
+		})
+
+		it('[SR4] throws when a caller still passes the removed isReadonly or objectAccess options', () => {
+			const room = new TLSocketRoom({})
+			for (const removed of ['isReadonly', 'objectAccess']) {
+				expect(() =>
+					room.handleSocketConnect({
+						sessionId: 'test-session',
+						socket: createMockSocket(),
+						[removed]: true,
+					} as any)
+				).toThrow(`the "${removed}" option was removed`)
+			}
+			expect(room.getSessions()).toHaveLength(0)
 		})
 
 		it('[SR4][SR7] handles readonly sessions correctly', () => {
@@ -289,7 +325,7 @@ describe('28. TLSocketRoom (SR)', () => {
 			room.handleSocketConnect({
 				sessionId: 'readonly-session',
 				socket,
-				isReadonly: true,
+				access: { userId: null, abilities: [] },
 			})
 
 			const connectRequest = {
@@ -302,7 +338,7 @@ describe('28. TLSocketRoom (SR)', () => {
 			room.handleSocketMessage('readonly-session', JSON.stringify(connectRequest))
 
 			const sessions = room.getSessions()
-			expect(sessions[0].isReadonly).toBe(true)
+			expect(sessions[0].access).toEqual({ userId: null, abilities: [] })
 		})
 
 		it('[SR4] attaches message, close, and error listeners when the socket supports addEventListener', () => {
@@ -1105,7 +1141,7 @@ describe('28. TLSocketRoom (SR)', () => {
 					'test',
 					expect.objectContaining({
 						serializedSchema: expect.anything(),
-						isReadonly: false,
+						access: { userId: null, abilities: ['edit', 'comment'] },
 					})
 				)
 
@@ -1195,40 +1231,54 @@ describe('28. TLSocketRoom (SR)', () => {
 			const snapshot = room.getSessionSnapshot('test')
 			expect(snapshot).not.toBeNull()
 			expect(snapshot!.serializedSchema).toBeDefined()
-			expect(snapshot!.isReadonly).toBe(false)
-			expect(snapshot!.objectAccess).toBe('write')
+			expect(snapshot!.access).toEqual({ userId: null, abilities: ['edit', 'comment'] })
 			expect(snapshot!.presenceId).toBeDefined()
 			expect(snapshot!.requiresLegacyRejection).toBe(false)
-			expect(snapshot!.supportsStringAppend).toBe(true)
 		})
 
-		it('[SR13] round-trips objectAccess through snapshot and resume', () => {
+		it('[SR13] round-trips access through snapshot and resume', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()
-			connectSession(room, 'test', socket, { objectAccess: 'read' })
+			const access = { userId: 'ann', abilities: ['comment'] }
+			connectSession(room, 'test', socket, { access })
 
 			const snapshot = room.getSessionSnapshot('test')!
-			expect(snapshot.objectAccess).toBe('read')
+			expect(snapshot.access).toEqual(access)
 
 			// Simulate hibernation: resume in a new room
 			const room2 = new TLSocketRoom({})
 			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
-			expect(room2.getSessions()[0].objectAccess).toBe('read')
+			expect(room2.getSessions()[0].access).toEqual(access)
 		})
 
-		it('[SR13] resumes legacy snapshots without objectAccess as read (fail closed)', () => {
+		it('[SR13] snapshots at once when access changes, so a resume cannot restore old rights', () => {
+			const snapshots: any[] = []
+			const room = new TLSocketRoom({
+				onSessionSnapshot: (_id, snapshot) => snapshots.push(snapshot),
+			})
+			connectSession(room, 'test', createMockSocket(), {
+				access: { userId: 'ann', abilities: ['edit'] },
+			})
+			snapshots.length = 0
+			room.updateSessionAccess('test', { userId: 'ann', abilities: [] })
+			expect(snapshots.map((s) => s.access)).toEqual([{ userId: 'ann', abilities: [] }])
+		})
+
+		it('[SR13] closes a session resumed from a snapshot persisted before access existed', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()
 			connectSession(room, 'test', socket)
 
 			const snapshot = room.getSessionSnapshot('test')!
-			// simulate a snapshot persisted before the objectAccess field existed
-			delete snapshot.objectAccess
+			// simulate a snapshot persisted before the access field existed
+			delete snapshot.access
 
 			const room2 = new TLSocketRoom({})
-			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
-			// such sessions predate the record types gated by objectAccess, so they have nothing to write anyway
-			expect(room2.getSessions()[0].objectAccess).toBe('read')
+			const resumedSocket = createMockSocket()
+			room2.handleSocketResume({ sessionId: 'test', socket: resumedSocket, snapshot })
+			// no access to resume with: the client reconnects and the host resolves access again
+			expect(room2.getSessions()).toEqual([])
+			expect(resumedSocket.close).toHaveBeenCalled()
 		})
 
 		it('[SR13] includes presence record when present', () => {
@@ -1440,11 +1490,10 @@ describe('28. TLSocketRoom (SR)', () => {
 			const socket = createMockSocket()
 			const snapshot = {
 				serializedSchema: createTLSchema().serialize(),
-				isReadonly: false,
+				access: { userId: null, abilities: ['edit', 'comment'] },
 				presenceId: null,
 				presenceRecord: null,
 				requiresLegacyRejection: false,
-				supportsStringAppend: true,
 			}
 
 			room.handleSocketResume({
@@ -1463,11 +1512,10 @@ describe('28. TLSocketRoom (SR)', () => {
 			const socket = createMockSocket()
 			const snapshot = {
 				serializedSchema: createTLSchema().serialize(),
-				isReadonly: true,
+				access: { userId: null, abilities: [] },
 				presenceId: null,
 				presenceRecord: null,
 				requiresLegacyRejection: false,
-				supportsStringAppend: true,
 			}
 
 			room.handleSocketResume({
@@ -1476,7 +1524,7 @@ describe('28. TLSocketRoom (SR)', () => {
 				snapshot,
 			})
 
-			expect(room.getSessions()[0].isReadonly).toBe(true)
+			expect(room.getSessions()[0].access).toEqual({ userId: null, abilities: [] })
 		})
 
 		it('[SR14] removes presence when a resumed session is immediately closed', () => {

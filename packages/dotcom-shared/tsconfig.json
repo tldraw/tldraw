@@ -6,6 +6,7 @@
 	"references": [
 		{ "path": "../state" },
 		{ "path": "../store" },
+		{ "path": "../sync-collaboration" },
 		{ "path": "../tldraw" },
 		{ "path": "../tlschema" },
 		{ "path": "../utils" },

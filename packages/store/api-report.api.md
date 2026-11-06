@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
 import { Expand } from '@tldraw/utils';
+import { JsonValue } from '@tldraw/utils';
 import { Result } from '@tldraw/utils';
 import { Signal } from '@tldraw/state';
 import { UNINITIALIZED } from '@tldraw/state';
@@ -141,6 +142,7 @@ export function devFreeze<T>(object: T): T;
 export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
     changes: RecordsDiff<R>;
     source: ChangeSource;
+    transaction?: null | StoreTransaction;
 }
 
 // @public
@@ -419,6 +421,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
+    getCurrentTransaction(): null | StoreTransaction;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -440,11 +443,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
+    setTransactionGroup(group: null | string): void;
     readonly sideEffects: StoreSideEffects<R>;
     unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
+    withTransaction<T>(fn: () => T, opts?: {
+        intent?: null | StoreIntent;
+    }): T;
 }
 
 // @public
@@ -472,6 +479,14 @@ export interface StoreError {
     phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
     recordAfter: unknown;
     recordBefore?: unknown;
+}
+
+// @public
+export interface StoreIntent {
+    // (undocumented)
+    readonly args?: JsonValue;
+    // (undocumented)
+    readonly name: string;
 }
 
 // @public
@@ -646,6 +661,12 @@ export class StoreSideEffects<R extends UnknownRecord> {
 export interface StoreSnapshot<R extends UnknownRecord> {
     schema: SerializedSchema;
     store: SerializedStore<R>;
+}
+
+// @public
+export interface StoreTransaction {
+    readonly group: null | string;
+    readonly intent: null | StoreIntent;
 }
 
 // @public

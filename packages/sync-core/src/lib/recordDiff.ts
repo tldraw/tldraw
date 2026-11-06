@@ -9,7 +9,6 @@ import { TLSyncError, TLSyncErrorCloseEventReason } from './TLSyncClient'
  * @param prevState - The previous record state
  * @param newState - The new record state
  * @param recordType - The record type definition for validation
- * @param legacyAppendMode - If true, string append operations will be converted to Put operations
  * @returns Result containing the diff and new state, or null if no changes, or validation error
  *
  * @internal
@@ -17,10 +16,9 @@ import { TLSyncError, TLSyncErrorCloseEventReason } from './TLSyncClient'
 export function diffAndValidateRecord<R extends UnknownRecord>(
 	prevState: R,
 	newState: R,
-	recordType: RecordType<R, any>,
-	legacyAppendMode = false
+	recordType: RecordType<R, any>
 ) {
-	const diff = diffRecord(prevState, newState, legacyAppendMode)
+	const diff = diffRecord(prevState, newState)
 	if (!diff) return
 	try {
 		recordType.validate(newState)
@@ -37,7 +35,6 @@ export function diffAndValidateRecord<R extends UnknownRecord>(
  * @param prevState - The previous record state
  * @param diff - The object diff to apply
  * @param recordType - The record type definition for validation
- * @param legacyAppendMode - If true, string append operations will be converted to Put operations
  * @returns Result containing the final diff and new state, or null if no changes, or validation error
  *
  * @internal
@@ -45,12 +42,11 @@ export function diffAndValidateRecord<R extends UnknownRecord>(
 export function applyAndDiffRecord<R extends UnknownRecord>(
 	prevState: R,
 	diff: ObjectDiff,
-	recordType: RecordType<R, any>,
-	legacyAppendMode = false
+	recordType: RecordType<R, any>
 ): [ObjectDiff, R] | undefined {
 	const newState = applyObjectDiff(prevState, diff)
 	if (newState === prevState) return
-	const actualDiff = diffAndValidateRecord(prevState, newState, recordType, legacyAppendMode)
+	const actualDiff = diffAndValidateRecord(prevState, newState, recordType)
 	if (!actualDiff) return
 	return [actualDiff, newState]
 }

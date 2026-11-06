@@ -1,13 +1,19 @@
 import type { SerializedSchema, StoreSchema, UnknownRecord } from '@tldraw/store'
-import { createTLSchema, TLInstancePresence, TLStoreSnapshot } from '@tldraw/tlschema'
+import {
+	createTLSchema,
+	TLAccess,
+	TLInstancePresence,
+	TLPermissions,
+	TLStoreSnapshot,
+} from '@tldraw/tlschema'
 import { getOwnProperty, hasOwnProperty, isEqual, structuredClone } from '@tldraw/utils'
 import { JsonChunkAssembler, MessageTooLargeError } from './chunk'
 import { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './InMemorySyncStorage'
-import { TLObjectStoreAccess, TLSocketServerSentEvent } from './protocol'
+import { TLSocketServerSentEvent } from './protocol'
 import { RoomSessionState } from './RoomSession'
 import { ServerSocketAdapter, WebSocketMinimal } from './ServerSocketAdapter'
 import { TLSyncErrorCloseEventReason } from './TLSyncClient'
-import { RoomSnapshot, TLRecordAuthorizers, TLSyncRoom } from './TLSyncRoom'
+import { RoomSnapshot, TLPushDeniedInfo, TLSyncRoom } from './TLSyncRoom'
 import {
 	convertStoreSnapshotToRoomSnapshot,
 	loadSnapshotIntoStorage,
@@ -71,16 +77,14 @@ export interface TLSyncLog {
  */
 export interface SessionStateSnapshot {
 	serializedSchema: SerializedSchema
-	isReadonly: boolean
 	/**
-	 * Write access for the record types listed in `objectTypes`. Optional so snapshots persisted
-	 * before this field existed resume cleanly (they fail closed to 'read').
+	 * The session's access. Optional because snapshots persisted before permissions have none:
+	 * those sessions are closed on resume, and the client reconnects to get fresh access.
 	 */
-	objectAccess?: TLObjectStoreAccess
+	access?: TLAccess
 	presenceId: string | null
 	presenceRecord: UnknownRecord | null
 	requiresLegacyRejection: boolean
-	supportsStringAppend: boolean
 }
 
 /**
@@ -139,17 +143,19 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	onCommittedChanges?: (args: { diff: TLSyncForwardDiff<R>; documentClock: number }) => void
 	/**
 	 * Record type names to serve through the object-store lane instead of the document lane.
-	 * Each must be a document-scoped type registered in the schema. Object-lane writes are gated
-	 * per session by `objectAccess` (see {@link TLSocketRoom.handleSocketConnect}) rather than
-	 * `isReadonly`, so e.g. a session can be allowed to comment without being allowed to edit.
+	 * Each must be a document-scoped type registered in the schema. This is a storage choice
+	 * only: who may write them is up to `permissions`.
 	 */
 	objectTypes?: readonly string[]
 	/**
-	 * Per-type authorizers for client record writes (create, update, delete): veto writes the
-	 * session isn't allowed to make, or rewrite the record on create — e.g. force a comment's
-	 * `authorId` to the signed-in user. See {@link TLRecordAuthorizers}.
+	 * The room's permissions: rules that check each client push as one transaction (all or
+	 * nothing), which records each session can see, and server mutators. Pass the same object
+	 * to the client. Defaults to `defaultAbilityRules` (from `@tldraw/tlschema`): `edit` to change the canvas,
+	 * `comment` to write comments. See `definePermissions` in `@tldraw/tlschema`.
 	 */
-	authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	permissions?: TLPermissions<R>
+	/** Called when the permissions deny a client push. Use it for logs and audit trails. */
+	onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 	/**
 	 * When set, the room will call {@link TLSocketRoom.getSessionSnapshot} after
 	 * no message activity for a session for 5s and pass the result to this callback.
@@ -191,7 +197,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
  * room.handleSocketConnect({
  *   sessionId: 'user-session-123',
  *   socket: webSocket,
- *   isReadonly: false
+ *   access: { userId: 'user-123', abilities: ['edit', 'comment'] },
  * })
  * ```
  *
@@ -280,7 +286,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			onPresenceChange: opts.onPresenceChange,
 			onCommittedChanges: opts.onCommittedChanges,
 			objectTypes: opts.objectTypes,
-			authorizeRecord: opts.authorizeRecord,
+			permissions: opts.permissions,
+			onPushDenied: opts.onPushDenied,
 			schema: opts.schema ?? (createTLSchema() as any),
 			log: this.log,
 			storage,
@@ -319,10 +326,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param opts - Connection options
 	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
 	 *   - socket - WebSocket-like object for client communication
-	 *   - isReadonly - Whether the client can modify the document (defaults to false)
-	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write').
-	 *     Independent of isReadonly, so a session can be allowed to write objects (e.g. comments)
-	 *     without being allowed to edit the document.
+	 *   - access - What the session may do. Change it later with
+	 *     {@link TLSocketRoom.updateSessionAccess}, with no reconnect. Left out, the session gets
+	 *     no abilities: it can read, but every write is denied. Pass
+	 *     `{ userId, abilities: ['edit', 'comment'] }` for full access.
 	 *   - meta - Additional session metadata (required if SessionMeta is not void)
 	 *
 	 * @example
@@ -331,7 +338,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * room.handleSocketConnect({
 	 *   sessionId: 'user-session-abc123',
 	 *   socket: webSocketConnection,
-	 *   isReadonly: !userHasEditPermission
+	 *   access: { userId, abilities: userHasEditPermission ? ['edit', 'comment'] : ['comment'] },
 	 * })
 	 * ```
 	 *
@@ -349,11 +356,20 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		opts: {
 			sessionId: string
 			socket: WebSocketMinimal
-			isReadonly?: boolean
-			objectAccess?: TLObjectStoreAccess
+			access?: TLAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
-		const { sessionId, socket, isReadonly = false, objectAccess = 'write' } = opts
+		// Removed options. Ignoring them would silently change what the session may do.
+		for (const removed of ['isReadonly', 'objectAccess']) {
+			if (removed in opts) {
+				throw new Error(
+					`TLSocketRoom.handleSocketConnect: the "${removed}" option was removed. Pass ` +
+						'"access" instead, for example { userId, abilities: ["comment"] } for a read-only ' +
+						'session that may comment.'
+				)
+			}
+		}
+		const { sessionId, socket, access } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)
 		const handleSocketError = () => this.handleSocketError(sessionId, socket)
@@ -373,8 +389,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleNewSession({
 			sessionId,
-			isReadonly,
-			objectAccess,
+			access,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -614,6 +629,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	) {
 		const { sessionId, socket, snapshot } = opts
 
+		if (!snapshot.access) {
+			// persisted before permissions: there is no access to resume with
+			try {
+				socket.close()
+			} catch {
+				// noop
+			}
+			return
+		}
+
 		this.sessions.get(sessionId)?.unlisten()
 		this.sessions.set(sessionId, {
 			assembler: new JsonChunkAssembler(),
@@ -625,15 +650,11 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleResumedSession({
 			sessionId,
-			isReadonly: snapshot.isReadonly,
-			// snapshots persisted before this field existed fail closed — those sessions predate
-			// the record types gated by objectAccess, so they have nothing to write anyway
-			objectAccess: snapshot.objectAccess ?? 'read',
+			access: snapshot.access,
 			serializedSchema: snapshot.serializedSchema,
 			presenceId: snapshot.presenceId,
 			presenceRecord: snapshot.presenceRecord,
 			requiresLegacyRejection: snapshot.requiresLegacyRejection,
-			supportsStringAppend: snapshot.supportsStringAppend,
 			socket: new ServerSocketAdapter({
 				ws: socket,
 				onBeforeSendMessage: this.opts.onBeforeSendMessage
@@ -683,12 +704,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		return {
 			serializedSchema: session.serializedSchema,
-			isReadonly: session.isReadonly,
-			objectAccess: session.objectAccess,
+			access: session.access,
 			presenceId: session.presenceId,
 			presenceRecord,
 			requiresLegacyRejection: session.requiresLegacyRejection,
-			supportsStringAppend: session.supportsStringAppend,
 		}
 	}
 
@@ -740,7 +759,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @returns Array of session information objects containing:
 	 *   - sessionId - Unique session identifier
 	 *   - isConnected - Whether the session has an active WebSocket connection
-	 *   - isReadonly - Whether the session can modify the document
+	 *   - access - What the session may do
 	 *   - meta - Custom session metadata
 	 *
 	 * @example
@@ -750,7 +769,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * for (const session of sessions) {
 	 *   console.log(`${session.sessionId}: ${session.isConnected ? 'online' : 'offline'}`)
-	 *   if (session.isReadonly) {
+	 *   if (!session.access.abilities.includes('edit')) {
 	 *     console.log('  (read-only access)')
 	 *   }
 	 * }
@@ -759,19 +778,38 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	getSessions(): Array<{
 		sessionId: string
 		isConnected: boolean
-		isReadonly: boolean
-		objectAccess: TLObjectStoreAccess
+		access: TLAccess
 		meta: SessionMeta
 	}> {
 		return [...this.room.sessions.values()].map((session) => {
 			return {
 				sessionId: session.sessionId,
 				isConnected: session.state === RoomSessionState.Connected,
-				isReadonly: session.isReadonly,
-				objectAccess: session.objectAccess,
+				access: session.access,
 				meta: session.meta,
 			}
 		})
+	}
+
+	/**
+	 * Change what a connected session may do. The client gets the new access at once, with no
+	 * reconnect, and its next pushes are checked against it. With read filtering (`canRead`), the
+	 * session also gets the records it can now see and loses the ones it can no longer see.
+	 *
+	 * @example
+	 * ```ts
+	 * // the teacher calls on Ann: she can edit until the next call
+	 * room.updateSessionAccess(annSessionId, { userId: 'ann', abilities: ['edit'] })
+	 * ```
+	 */
+	updateSessionAccess(sessionId: string, access: TLAccess) {
+		this.room.updateSessionAccess(sessionId, access)
+		// Snapshot at once, not debounced: a stored snapshot with the old access would give a
+		// downgraded session its old rights back when it resumes.
+		if (!this.opts.onSessionSnapshot) return
+		this.clearSnapshotTimer(sessionId)
+		const snapshot = this.getSessionSnapshot(sessionId)
+		if (snapshot) this.opts.onSessionSnapshot(sessionId, snapshot)
 	}
 
 	/**

@@ -1,13 +1,14 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
-// Server-side logic for tldraw's collaboration features, safe to import from any sync
-// server — no react or client-editor dependencies.
+// Permission rules for tldraw's collaboration features. They run on the sync server and in the
+// client's editor, so they have no react or client-editor dependencies.
 export {
-	type CommentAuthorizerOptions,
 	type CommentModification,
-	type CommentModificationAuthContext,
-	createCommentAuthorizers,
-} from './comment-authorizers'
+	type CommentModificationContext,
+	type CommentRuleOptions,
+	commentRules,
+	stampCommentAuthors,
+} from './comment-rules'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

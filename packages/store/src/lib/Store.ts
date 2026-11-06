@@ -9,6 +9,7 @@ import {
 	transact,
 } from '@tldraw/state'
 import {
+	JsonValue,
 	WeakCache,
 	assert,
 	filterEntries,
@@ -119,6 +120,41 @@ export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
 	changes: RecordsDiff<R>
 	/** The source of these changes */
 	source: ChangeSource
+	/**
+	 * The user action these changes belong to (see {@link Store.withTransaction}). Entries from
+	 * different transactions are never squashed together, so the sync client can send each one as
+	 * its own push.
+	 */
+	transaction?: StoreTransaction | null
+}
+
+/**
+ * One user action. The sync client sends the changes of one transaction as one push, and the
+ * server accepts or denies them together. Compare by reference.
+ *
+ * @public
+ */
+export interface StoreTransaction {
+	/** The named operation, if the writer gave one. */
+	readonly intent: StoreIntent | null
+	/**
+	 * Transactions with the same group are one gesture, such as the frames of a drag. Online, the
+	 * sync client sends each transaction as it happens. After it was offline, it sends each group
+	 * of unnamed transactions as one push, so one denial covers the whole gesture. Set it with
+	 * {@link Store.setTransactionGroup}.
+	 */
+	readonly group: string | null
+}
+
+/**
+ * A named operation that a set of changes belongs to. The sync client sends it with the changes,
+ * so the server can check or run the operation by name.
+ *
+ * @public
+ */
+export interface StoreIntent {
+	readonly name: string
+	readonly args?: JsonValue
 }
 
 /**
@@ -536,7 +572,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const errors: unknown[] = []
 			const wasFlushingHistory = this.isFlushingHistory
 			this.isFlushingHistory = true
-			for (const { changes, source } of entries) {
+			for (const { changes, source, transaction } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
 				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
@@ -556,7 +592,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					// The entries are already dequeued, so a listener that throws must not stop the others
 					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
 					try {
-						onHistory({ changes: listenerChanges, source })
+						onHistory({ changes: listenerChanges, source, transaction })
 					} catch (error) {
 						errors.push(error)
 					}
@@ -611,6 +647,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			{
 				changes,
 				source: this.isMergingRemoteChanges ? 'remote' : 'user',
+				transaction: this.isMergingRemoteChanges ? null : this.currentTransaction,
 			},
 			version
 		)
@@ -1061,6 +1098,56 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	private isMergingRemoteChanges = false
 
+	private currentTransaction: StoreTransaction | null = null
+
+	/**
+	 * Run `fn` as one user action. Its changes reach store listeners tagged with one transaction
+	 * object, and the sync client sends them as one push, which the server accepts or denies as a
+	 * whole. Without this, all changes made in one frame go up together, so a denied change could
+	 * take unrelated changes down with it.
+	 *
+	 * Nested calls without an `intent` join the outer transaction. A nested call with an `intent`
+	 * always starts its own transaction: a named operation must not carry unrelated changes, and
+	 * must not lose its name inside another, because the server may run it by name and ignore the
+	 * client's diff.
+	 *
+	 * @public
+	 */
+	withTransaction<T>(fn: () => T, opts?: { intent?: StoreIntent | null }): T {
+		const intent = opts?.intent ?? null
+		const outer = this.currentTransaction
+		if (outer && !intent) return fn()
+		const groups = this.transactionGroups
+		const transaction: StoreTransaction = {
+			intent,
+			// a getter: history entries are frozen, and the group is often known only at the end
+			get group() {
+				return groups.get(transaction) ?? null
+			},
+		}
+		this.currentTransaction = transaction
+		try {
+			return fn()
+		} finally {
+			this.currentTransaction = outer
+		}
+	}
+
+	private transactionGroups = new WeakMap<StoreTransaction, string>()
+
+	/** Set the {@link StoreTransaction.group} of the transaction that is running now. @public */
+	setTransactionGroup(group: string | null) {
+		const transaction = this.currentTransaction
+		if (!transaction) return
+		if (group === null) this.transactionGroups.delete(transaction)
+		else this.transactionGroups.set(transaction, group)
+	}
+
+	/** The transaction that is running now, if any. @public */
+	getCurrentTransaction(): StoreTransaction | null {
+		return this.currentTransaction
+	}
+
 	/**
 	 * Merge changes from a remote source. Changes made within the provided function
 	 * will be marked with source 'remote' instead of 'user'.
@@ -1390,7 +1477,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
-		if (chunk[0].source !== entry.source) {
+		if (chunk[0].source !== entry.source || chunk[0].transaction !== entry.transaction) {
 			chunked.push(chunk)
 			chunk = []
 		}
@@ -1402,6 +1489,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
+			transaction: chunk[0].transaction,
 			// a single-entry chunk needs no squashing — skip the O(N) copy of its diff
 			changes:
 				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),

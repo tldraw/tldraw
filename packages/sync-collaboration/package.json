@@ -46,7 +46,6 @@
 	},
 	"dependencies": {
 		"@tldraw/store": "workspace:*",
-		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*"
 	}

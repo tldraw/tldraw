@@ -11,9 +11,6 @@
 			"path": "../store"
 		},
 		{
-			"path": "../sync-core"
-		},
-		{
 			"path": "../tlschema"
 		},
 		{

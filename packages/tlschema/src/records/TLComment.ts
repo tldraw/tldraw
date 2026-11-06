@@ -43,7 +43,7 @@ export type TLCommentAnchor =
  * via `threadId`, ordered by `createdAt`. v1 threads are flat — no nested replies.
  *
  * Threads and comments are document records, but they're intended to be served through the sync
- * server's object-store lane: gated by the session's `objectAccess` rather than `isReadonly`
+ * server's object-store lane: written with the session's `comment` ability rather than `edit`
  * (so "can comment but not edit" is expressible), excluded from document snapshots and `.tldr`
  * exports server-side, and persisted in a separate lane from the main document.
  *
@@ -320,7 +320,7 @@ export function createCommentId(id?: string): TLCommentId {
 /**
  * The id of one user's reaction to one comment, derived from the (comment, user, emoji) triple
  * rather than random, so the same triple always addresses the same record and two tabs converge
- * instead of racing to create duplicates. The sync authorizer leans on this, so it must be
+ * instead of racing to create duplicates. The comment rules lean on this, so it must be
  * injective: all three parts are URI-encoded before joining, so a `:` in any of them can't shift
  * the boundary and collapse two triples onto one id.
  *

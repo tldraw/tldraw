@@ -21,7 +21,9 @@ import {
 	TLArrowShape,
 	TLArrowShapeProps,
 	TLBaseShape,
+	TLAccess,
 	TLDOCUMENT_ID,
+	TL_FULL_ACCESS,
 	TLRecord,
 	TLShapeId,
 	createTLSchema,
@@ -210,7 +212,7 @@ function connectSession(
 	room: TLSyncRoom<any, any>,
 	sessionId: string,
 	opts: {
-		isReadonly?: boolean
+		access?: TLAccess
 		protocolVersion?: number
 		lastServerClock?: number
 		schema?: SerializedSchema
@@ -222,7 +224,7 @@ function connectSession(
 		sessionId,
 		socket,
 		meta: undefined,
-		isReadonly: opts.isReadonly ?? false,
+		access: opts.access ?? TL_FULL_ACCESS,
 	})
 	room.handleMessage(sessionId, {
 		type: 'connect',
@@ -807,7 +809,7 @@ describe('23. Connect handshake (HS)', () => {
 			sessionId: 's1',
 			socket: makeSocket(),
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		const presenceId = room.sessions.get('s1')!.presenceId
 		expect(presenceId).not.toBeNull()
@@ -817,7 +819,7 @@ describe('23. Connect handshake (HS)', () => {
 			sessionId: 's1',
 			socket: makeSocket(),
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		expect(room.sessions.get('s1')!.presenceId).toBe(presenceId)
 
@@ -826,7 +828,7 @@ describe('23. Connect handshake (HS)', () => {
 			sessionId: 's2',
 			socket: makeSocket(),
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		expect(room.sessions.get('s2')!.presenceId).not.toBe(presenceId)
 	})
@@ -849,7 +851,7 @@ describe('23. Connect handshake (HS)', () => {
 			sessionId: 'old-client-session',
 			socket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		room.handleMessage('old-client-session', {
@@ -891,7 +893,7 @@ describe('23. Connect handshake (HS)', () => {
 			sessionId: 'newer-client-session',
 			socket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		room.handleMessage('newer-client-session', {
@@ -973,7 +975,7 @@ describe('23. Connect handshake (HS)', () => {
 
 		// B connects and sees A's presence in the connect diff
 		const socketB = connectSession(room, 'b', {
-			isReadonly: true,
+			access: { userId: null, abilities: [] },
 			lastServerClock: storage.getClock(),
 			clear: false,
 		})
@@ -981,7 +983,7 @@ describe('23. Connect handshake (HS)', () => {
 		expect(response.type).toBe('connect')
 		expect(response.connectRequestId).toBe('connect-b')
 		expect(response.hydrationType).toBe('wipe_presence')
-		expect(response.isReadonly).toBe(true)
+		expect(response.access).toEqual({ userId: null, abilities: [] })
 		expect(response.serverClock).toBe(storage.getClock())
 		expect(response.diff).toEqual({
 			[aPresenceId]: ['put', expect.objectContaining({ id: aPresenceId, userName: 'Alice' })],
@@ -1028,7 +1030,12 @@ describe('23. Connect handshake (HS)', () => {
 
 		// 'b' has opened its socket but not yet sent its connect message
 		const socketB = makeSocket()
-		room.handleNewSession({ sessionId: 'b', socket: socketB, meta: undefined, isReadonly: false })
+		room.handleNewSession({
+			sessionId: 'b',
+			socket: socketB,
+			meta: undefined,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 
 		// the room hasn't seen this change yet because the storage notifies on a microtask
 		const newPage = makePage('wipe_page', 'Wipe Page')
@@ -1078,7 +1085,12 @@ describe('24. Push handling (RP)', () => {
 	it('[RP1] ignores pushes from sessions that have not completed the handshake', () => {
 		const { room, storage } = makeRoom()
 		const socket = makeSocket()
-		room.handleNewSession({ sessionId: 's1', socket, meta: undefined, isReadonly: false })
+		room.handleNewSession({
+			sessionId: 's1',
+			socket,
+			meta: undefined,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 
 		const clockBefore = storage.getClock()
 		const newPage = makePage('early_page', 'Too early')
@@ -1516,8 +1528,10 @@ describe('24. Push handling (RP)', () => {
 
 	it('[RP9] does not allow updates from users who are marked as readonly', () => {
 		const { room, storage } = makeRoom()
-		const socketA = connectSession(room, 'sessionA', { isReadonly: true })
-		const socketB = connectSession(room, 'sessionB', { isReadonly: false })
+		const socketA = connectSession(room, 'sessionA', { access: { userId: null, abilities: [] } })
+		const socketB = connectSession(room, 'sessionB', {
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 		const getDoc = (id: string) => storage.documents.get(id)?.state
 
 		const push: TLPushRequest<any> = {
@@ -1543,7 +1557,15 @@ describe('24. Push handling (RP)', () => {
 		// should tell the session to discard it
 		expect(socketA.__lastMessage).toEqual({
 			type: 'data',
-			data: [{ type: 'push_result', clientClock: 0, serverClock: 0, action: 'discard' }],
+			data: [
+				{
+					type: 'push_result',
+					clientClock: 0,
+					serverClock: 0,
+					action: 'discard',
+					denied: { reason: 'You need "edit" access to change page records.' },
+				},
+			],
 		})
 		// should not have sent anything to sessionB
 		expect(socketB.__lastMessage).toBe(null)
@@ -1562,8 +1584,10 @@ describe('24. Push handling (RP)', () => {
 
 	it('[RP9][RP7][RP10] still allows presence updates from readonly users', () => {
 		const { room } = makeRoom()
-		const socketA = connectSession(room, 'sessionA', { isReadonly: true })
-		const socketB = connectSession(room, 'sessionB', { isReadonly: false })
+		const socketA = connectSession(room, 'sessionA', { access: { userId: null, abilities: [] } })
+		const socketB = connectSession(room, 'sessionB', {
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 		const presenceIdA = room.sessions.get('sessionA')!.presenceId!
 
 		const presencePushRequest: TLPushRequest<any> = {
@@ -2081,7 +2105,12 @@ describe('25. Messaging and broadcast (RB)', () => {
 		room.close()
 
 		const late = makeSocket()
-		room.handleNewSession({ sessionId: 'late', socket: late, meta: undefined, isReadonly: false })
+		room.handleNewSession({
+			sessionId: 'late',
+			socket: late,
+			meta: undefined,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 		expect(late.close).toHaveBeenCalled()
 
 		const resumed = makeSocket()
@@ -2089,12 +2118,11 @@ describe('25. Messaging and broadcast (RB)', () => {
 			sessionId: 'resumed',
 			socket: resumed,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 			serializedSchema: room.serializedSchema,
 			presenceId: null,
 			presenceRecord: null,
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 		expect(resumed.close).toHaveBeenCalled()
 		expect(room.sessions.size).toBe(0)
@@ -2224,7 +2252,12 @@ describe('25. Messaging and broadcast (RB)', () => {
 
 		warn.mockClear()
 		const socket = makeSocket()
-		room.handleNewSession({ sessionId: 'pending', socket, meta: undefined, isReadonly: false })
+		room.handleNewSession({
+			sessionId: 'pending',
+			socket,
+			meta: undefined,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 		room.sendCustomMessage('pending', 'hello')
 		expect(warn).toHaveBeenCalledWith('Tried to send message to disconnected client', 'custom')
 		expect(socket.sendMessage).not.toHaveBeenCalled()
@@ -2275,7 +2308,7 @@ describe('26. Session lifecycle (SES)', () => {
 			sessionId: 'never-connects',
 			socket: makeSocket(),
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		vi.setSystemTime(Date.now() + SESSION_START_WAIT_TIME + 1)
@@ -2304,7 +2337,7 @@ describe('26. Session lifecycle (SES)', () => {
 			sessionId: 's1',
 			socket,
 			meta: { userId: 'user-1' },
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		room.handleMessage('s1', {
 			type: 'connect',
@@ -2349,27 +2382,25 @@ describe('26. Session lifecycle (SES)', () => {
 		])
 	})
 
-	it('[SES4] legacy protocol clients are rejected with a mapped incompatibility_error and no close code', () => {
-		const cases = [
-			[TLSyncErrorCloseEventReason.CLIENT_TOO_OLD, 'clientTooOld'],
-			[TLSyncErrorCloseEventReason.SERVER_TOO_OLD, 'serverTooOld'],
-			[TLSyncErrorCloseEventReason.INVALID_RECORD, 'invalidRecord'],
-			[TLSyncErrorCloseEventReason.FORBIDDEN, 'invalidOperation'],
-		] as const
+	it('[SES4] legacy protocol clients are rejected at connect with a mapped incompatibility_error', () => {
+		const { room } = makeRoom()
+		// Protocol version 6 clients require legacy rejection, and every client before 9 is too old
+		const socket = connectSession(room, 'legacy', { protocolVersion: 6, clear: false })
 
-		for (const [reason, legacyReason] of cases) {
-			const { room } = makeRoom()
-			// Protocol version 6 clients require legacy rejection
-			const socket = connectSession(room, 'legacy', { protocolVersion: 6 })
+		expect(sentMessages(socket)).toEqual([
+			{ type: 'incompatibility_error', reason: 'clientTooOld' },
+		])
+		expect(socket.close).toHaveBeenCalledWith()
+		expect(room.sessions.size).toBe(0)
+	})
 
-			room.rejectSession('legacy', reason)
-
-			expect(sentMessages(socket)).toEqual([
-				{ type: 'incompatibility_error', reason: legacyReason },
-			])
-			expect(socket.close).toHaveBeenCalledWith()
-			expect(room.sessions.size).toBe(0)
-		}
+	it('[SES4] clients on protocol 8 (before permissions) are rejected as too old', () => {
+		const { room } = makeRoom()
+		const socket = connectSession(room, 'v8', { protocolVersion: 8, clear: false })
+		expect(socket.close).toHaveBeenCalledWith(
+			TLSyncErrorCloseEventCode,
+			TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
+		)
 	})
 
 	it('[SES4] modern clients are rejected by closing the socket with code 4099 and the reason', () => {
@@ -2411,42 +2442,6 @@ describe('26. Session lifecycle (SES)', () => {
 		expect(room.sessions.size).toBe(0)
 	})
 
-	it('[HS2][SES5] sets supportsStringAppend to false for protocol version 7', () => {
-		const { room } = makeRoom()
-		connectSession(room, 'v7-session', { protocolVersion: 7 })
-
-		const session = room.sessions.get('v7-session')
-		expect(session?.state).toBe(RoomSessionState.Connected)
-		if (session?.state === RoomSessionState.Connected) {
-			expect(session.supportsStringAppend).toBe(false)
-		}
-	})
-
-	it('[HS2][SES5] sets supportsStringAppend to true for protocol version 8', () => {
-		const { room } = makeRoom()
-		connectSession(room, 'v8-session', { protocolVersion: getTlsyncProtocolVersion() })
-
-		const session = room.sessions.get('v8-session')
-		expect(session?.state).toBe(RoomSessionState.Connected)
-		if (session?.state === RoomSessionState.Connected) {
-			expect(session.supportsStringAppend).toBe(true)
-		}
-	})
-
-	it('[SES5] getCanEmitStringAppend returns false when any connected client lacks string append support', () => {
-		const { room } = makeRoom()
-
-		connectSession(room, 'v8-client', { protocolVersion: 8 })
-
-		// With only a v8 client, should be true
-		expect(room.getCanEmitStringAppend()).toBe(true)
-
-		connectSession(room, 'v7-client', { protocolVersion: 7 })
-
-		// With mixed clients, should be false
-		expect(room.getCanEmitStringAppend()).toBe(false)
-	})
-
 	it('[SES6] handleResumedSession registers a session directly in Connected state and restores its presence', () => {
 		const { room } = makeRoom()
 		const socket = makeSocket()
@@ -2462,12 +2457,11 @@ describe('26. Session lifecycle (SES)', () => {
 			sessionId: 'resumed',
 			socket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 			serializedSchema: room.serializedSchema,
 			presenceId,
 			presenceRecord,
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 
 		const session = room.sessions.get('resumed')! as any
@@ -2480,54 +2474,6 @@ describe('26. Session lifecycle (SES)', () => {
 		// the resumed session handles messages like any connected session
 		room.handleMessage('resumed', { type: 'ping' })
 		expect(socket.__lastMessage).toEqual({ type: 'pong' })
-	})
-
-	it('[SES5] no session receives string-append ops while a client without append support is connected', () => {
-		vi.useFakeTimers()
-		const { room } = makeRoom()
-		const v8 = connectSession(room, 'v8', { protocolVersion: getTlsyncProtocolVersion() })
-		const v7 = connectSession(room, 'v7', { protocolVersion: 7 })
-		expect(room.getCanEmitStringAppend()).toBe(false)
-
-		const hasAppend = (msg: any) => JSON.stringify(msg).includes('"append"')
-
-		// a full put over an existing record whose only change is a string append
-		room.handleMessage('v8', {
-			type: 'push',
-			clientClock: 1,
-			diff: { [pageRecord.id]: ['put', { ...pageRecord, name: pageRecord.name + ' more' }] },
-		} as TLPushRequest<TLRecord>)
-		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
-		expect(sentDataMessages(v7)).toEqual([
-			{
-				type: 'patch',
-				diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more'] }] },
-				serverClock: 1,
-			},
-		])
-		expect(sentDataMessages(v8).some(hasAppend)).toBe(false)
-		clearSocket(v7)
-		clearSocket(v8)
-
-		// a patch whose recomputed broadcast would otherwise be an append
-		room.handleMessage('v8', {
-			type: 'push',
-			clientClock: 2,
-			diff: { [pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }] },
-		} as TLPushRequest<TLRecord>)
-		vi.advanceTimersByTime(DATA_MESSAGE_DEBOUNCE_INTERVAL + 1)
-		expect(sentDataMessages(v7)).toEqual([
-			{
-				type: 'patch',
-				diff: {
-					[pageRecord.id]: ['patch', { name: ['put', pageRecord.name + ' more and more'] }],
-				},
-				serverClock: 2,
-			},
-		])
-		expect(sentDataMessages(v8)).toEqual([
-			{ type: 'push_result', clientClock: 2, serverClock: 2, action: 'commit' },
-		])
 	})
 
 	it('[SES6] handleResumedSession rejects a session whose schema the server can no longer reconcile', () => {
@@ -2545,12 +2491,11 @@ describe('26. Session lifecycle (SES)', () => {
 			sessionId: 'resumed',
 			socket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 			serializedSchema: newerSchema,
 			presenceId: null,
 			presenceRecord: null,
 			requiresLegacyRejection: false,
-			supportsStringAppend: true,
 		})
 
 		expect(room.sessions.has('resumed')).toBe(false)
@@ -2577,12 +2522,11 @@ describe('26. Session lifecycle (SES)', () => {
 				sessionId,
 				socket,
 				meta: undefined,
-				isReadonly: false,
+				access: { userId: null, abilities: ['edit', 'comment'] },
 				serializedSchema,
 				presenceId: presenceRecord.id,
 				presenceRecord,
 				requiresLegacyRejection: false,
-				supportsStringAppend: true,
 			})
 			return { socket, presenceId: presenceRecord.id }
 		}

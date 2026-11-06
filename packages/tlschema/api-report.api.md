@@ -8,12 +8,14 @@ import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
+import { JsonValue } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
 import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -24,6 +26,12 @@ import { StoreSnapshot } from '@tldraw/store';
 import { StoreValidator } from '@tldraw/store';
 import { T } from '@tldraw/validate';
 import { UnknownRecord } from '@tldraw/store';
+
+// @public (undocumented)
+export function accessCan(access: TLAccess, ability: string): boolean;
+
+// @public
+export function ancestorIdsOf<R extends UnknownRecord>(records: TLRecordReader<R>, record: R | undefined): string[];
 
 // @public
 export const arrowBindingMigrations: TLPropsMigrations;
@@ -134,6 +142,9 @@ export const CameraRecordType: RecordType<TLCamera, never>;
 export const canvasUiColorTypeValidator: T.Validator<"accent" | "black" | "laser" | "muted-1" | "selection-fill" | "selection-stroke" | "white">;
 
 // @public
+export const COMMENT_RECORD_TYPES: readonly string[];
+
+// @public
 export const commentReactionRecordConfig: CustomRecordInfo;
 
 // @public
@@ -154,6 +165,13 @@ export function compressLegacySegments(segments: {
     points: VecModel[];
     type: 'free' | 'straight';
 }[]): TLDrawShapeSegment[];
+
+// @public
+export function confineToShape<R extends UnknownRecord>(opts: {
+    appliesTo(tx: TLTransaction<R>): boolean;
+    reason?: string;
+    rootId(tx: TLTransaction<R>): null | string;
+}): TLRule<R>;
 
 // @public
 export function createAssetPropsMigrationIds<S extends string, T extends Record<string, number>>(assetType: S, ids: T): {
@@ -289,6 +307,14 @@ export function createTLSchema({ shapes, bindings, assets, user, records, migrat
     user?: UserSchemaInfo;
 }): TLSchema;
 
+// @public
+export function createTransaction<R extends UnknownRecord>(opts: {
+    access: TLAccess;
+    after: TLRecordReader<R>;
+    diff: RecordsDiff<R>;
+    intent: null | TLIntent;
+}): TLTransaction<R>;
+
 // @public (undocumented)
 export function createUserId(id: string): TLUserId;
 
@@ -304,6 +330,9 @@ export interface CustomRecordInfo {
     scope: RecordScope;
     validator: T.Validatable<any>;
 }
+
+// @public
+export function defaultAbilityRules<R extends UnknownRecord>(): TLRule<R>[];
 
 // @public
 export const defaultAssetSchemas: {
@@ -441,6 +470,9 @@ export const DefaultTextAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 export const DefaultVerticalAlignStyle: EnumStyleProp<"end" | "middle" | "start">;
 
 // @public
+export function definePermissions<R extends UnknownRecord>(config: TLPermissionsConfig<R>): TLPermissions<R>;
+
+// @public
 export const DIM_2D = 2;
 
 // @public
@@ -574,6 +606,12 @@ export const InstancePageStateRecordType: RecordType<TLInstancePageState, "pageI
 
 // @public
 export const InstancePresenceRecordType: RecordType<TLInstancePresence, "currentPageId" | "userId" | "userName">;
+
+// @public
+export function intentOwnsTypes<R extends UnknownRecord>(intent: string, opts: {
+    ability?: string;
+    types: readonly string[];
+}): TLRule<R>;
 
 // @public
 export function isBinding(record?: UnknownRecord): record is TLBinding;
@@ -786,10 +824,35 @@ export const noteShapeProps: RecordProps<TLNoteShape>;
 export const opacityValidator: T.Validator<number>;
 
 // @public
+export function ownerOf(record: null | undefined | UnknownRecord): null | string;
+
+// @public
+export function ownShapesOnly<R extends UnknownRecord>(opts?: OwnShapesOnlyOptions<R>): TLRule<R>;
+
+// @public
+export interface OwnShapesOnlyOptions<R extends UnknownRecord = UnknownRecord> {
+    detach?: Record<string, (prev: R, next: R, terminals: ReadonlySet<string>) => boolean>;
+    unless?: string;
+}
+
+// @public
+export function pageIdOf<R extends UnknownRecord>(records: TLRecordReader<R>, record: R | undefined): null | string;
+
+// @public
 export const pageIdValidator: T.Validator<TLPageId>;
 
 // @public
+export function pageReadAccess<R extends UnknownRecord>(opts: {
+    canSeePage(page: R, ctx: TLReadContext<R>): boolean;
+}): (record: R, ctx: TLReadContext<R>) => boolean;
+
+// @public
 export const PageRecordType: RecordType<TLPage, "index" | "name">;
+
+// @public
+export function pageWriteAccess<R extends UnknownRecord>(opts: {
+    canEditPage(page: R, tx: TLTransaction<R>): boolean;
+}): TLRule<R>;
 
 // @public
 export const parentIdValidator: T.Validator<TLParentId>;
@@ -799,6 +862,9 @@ export function pluckPreservingValues(val?: null | TLInstance): null | Partial<T
 
 // @public
 export const PointerRecordType: RecordType<TLPointer, never>;
+
+// @public
+export function recordOf<R extends UnknownRecord>(change: TLRecordChange<R>): R;
 
 // @public
 export type RecordProps<R extends UnknownRecord & {
@@ -817,6 +883,12 @@ export function registerColorsFromThemes(definitions: TLThemes): void;
 
 // @public
 export function registerFontsFromThemes(definitions: TLThemes): void;
+
+// @public
+export function requireAbility<R extends UnknownRecord>(ability: string, opts?: {
+    except?: readonly string[];
+    types?: readonly string[];
+}): TLRule<R>;
 
 // @public
 export const richTextValidator: T.ObjectValidator<{
@@ -853,6 +925,9 @@ export type ShapeWithCrop = ExtractShapeByProps<{
     h: number;
     w: number;
 }>;
+
+// @public
+export function stampOwner<R extends UnknownRecord>(): (record: R, access: TLAccess) => R;
 
 // @public
 export class StyleProp<Type> implements T.Validatable<Type> {
@@ -896,10 +971,20 @@ export const TL_CANVAS_UI_COLOR_TYPES: Set<"accent" | "black" | "laser" | "muted
 export const TL_CURSOR_TYPES: Set<string>;
 
 // @public
+export const TL_FULL_ACCESS: TLAccess;
+
+// @public
 export const TL_HANDLE_TYPES: Set<"clone" | "create" | "vertex" | "virtual">;
 
 // @public
 export const TL_SCRIBBLE_STATES: Set<"active" | "complete" | "paused" | "starting" | "stopping">;
+
+// @public
+export interface TLAccess {
+    // (undocumented)
+    readonly abilities: readonly string[];
+    readonly userId: null | string;
+}
 
 // @public
 export type TLArrowBinding = TLBaseBinding<'arrow', TLArrowBindingProps>;
@@ -1628,6 +1713,14 @@ export interface TLInstancePresence extends BaseRecord<'instance_presence', TLIn
 export type TLInstancePresenceID = RecordId<TLInstancePresence>;
 
 // @public
+export interface TLIntent {
+    // (undocumented)
+    readonly args?: JsonValue;
+    // (undocumented)
+    readonly name: string;
+}
+
+// @public
 export type TLLanguage = (typeof LANGUAGES)[number];
 
 // @public
@@ -1653,6 +1746,21 @@ export interface TLLineShapeProps {
 
 // @public
 export type TLLineShapeSplineStyle = T.TypeOf<typeof LineShapeSplineStyle>;
+
+// @public
+export type TLMutator<R extends UnknownRecord, Args extends JsonValue = any> = (ctx: TLMutatorContext<R>, args: Args) => void;
+
+// @public
+export interface TLMutatorContext<R extends UnknownRecord> extends TLRecordReader<R> {
+    // (undocumented)
+    readonly access: TLAccess;
+    // (undocumented)
+    can(ability: string): boolean;
+    // (undocumented)
+    put(records: R[]): void;
+    // (undocumented)
+    remove(ids: string[]): void;
+}
 
 // @public
 export type TLNoteShape = TLBaseShape<'note', TLNoteShapeProps>;
@@ -1693,6 +1801,37 @@ export type TLPageId = RecordId<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public
+export interface TLPermissionDenial {
+    // (undocumented)
+    readonly intent: null | TLIntent;
+    // (undocumented)
+    readonly reason: string;
+    // (undocumented)
+    readonly source: 'local' | 'server';
+}
+
+// @public (undocumented)
+export interface TLPermissions<R extends UnknownRecord> {
+    // (undocumented)
+    readonly canRead?: TLPermissionsConfig<R>['canRead'];
+    check(tx: TLTransaction<R>): TLVerdict;
+    // (undocumented)
+    readonly mutators: Record<string, TLMutator<R>>;
+    // (undocumented)
+    readonly rules: readonly TLRule<R>[];
+    // (undocumented)
+    readonly stamps: readonly TLStamp<R>[];
+}
+
+// @public (undocumented)
+export interface TLPermissionsConfig<R extends UnknownRecord> {
+    canRead?(record: R, ctx: TLReadContext<R>): boolean;
+    mutators?: Record<string, TLMutator<R>>;
+    rules?: readonly TLRule<R>[];
+    stamps?: readonly TLStamp<R>[];
+}
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1730,8 +1869,43 @@ export interface TLPropsMigrations {
     readonly sequence: Array<StandaloneDependsOn | TLPropsMigration>;
 }
 
+// @public (undocumented)
+export interface TLReadContext<R extends UnknownRecord> {
+    // (undocumented)
+    readonly access: TLAccess;
+    // (undocumented)
+    can(ability: string): boolean;
+    // (undocumented)
+    readonly records: TLRecordReader<R>;
+}
+
 // @public
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
+
+// @public
+export type TLRecordChange<R extends UnknownRecord> = {
+    readonly id: string;
+    readonly next: null;
+    readonly op: 'delete';
+    readonly prev: R;
+} | {
+    readonly id: string;
+    readonly next: R;
+    readonly op: 'create';
+    readonly prev: null;
+} | {
+    readonly id: string;
+    readonly next: R;
+    readonly op: 'update';
+    readonly prev: R;
+};
+
+// @public (undocumented)
+export interface TLRecordReader<R extends UnknownRecord> {
+    all(): Iterable<R>;
+    // (undocumented)
+    get(id: string): R | undefined;
+}
 
 // @public
 export interface TLRemovedDefaultThemeColors {
@@ -1739,6 +1913,9 @@ export interface TLRemovedDefaultThemeColors {
 
 // @public
 export type TLRichText = T.TypeOf<typeof richTextValidator>;
+
+// @public
+export type TLRule<R extends UnknownRecord> = (tx: TLTransaction<R>) => string | undefined | void;
 
 // @public
 export type TLSchema = StoreSchema<TLRecord, TLStoreProps>;
@@ -1784,6 +1961,9 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 } & Partial<Omit<T, 'id' | 'meta' | 'props' | 'type'>> : never;
 
 // @public
+export type TLStamp<R extends UnknownRecord> = (record: R, access: TLAccess) => R;
+
+// @public
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public
@@ -1792,6 +1972,9 @@ export interface TLStoreProps {
     collaboration?: {
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
+        permissions?: null | TLPermissions<TLRecord>;
+        lastDenial?: null | Signal<null | TLPermissionDenial>;
+        access?: null | Signal<TLAccess>;
     };
     defaultName: string;
     onMount(editor: unknown): (() => void) | void;
@@ -1925,6 +2108,19 @@ export interface TLThemes {
 export type TLThemeUiColorKeys = 'background' | 'brushFill' | 'brushStroke' | 'cursor' | 'laser' | 'negativeSpace' | 'noteBorder' | 'selectedContrast' | 'selectionFill' | 'selectionStroke' | 'snap' | 'solid' | 'text';
 
 // @public
+export interface TLTransaction<R extends UnknownRecord> {
+    // (undocumented)
+    readonly access: TLAccess;
+    readonly after: TLRecordReader<R>;
+    readonly before: TLRecordReader<R>;
+    // (undocumented)
+    can(ability: string): boolean;
+    readonly changes: readonly TLRecordChange<R>[];
+    // (undocumented)
+    readonly intent: null | TLIntent;
+}
+
+// @public
 export type TLUnknownAsset = TLBaseAsset<string, object>;
 
 // @public
@@ -1953,6 +2149,14 @@ export interface TLUserStore {
     currentUser: Signal<null | TLUser>;
     resolve?(userId: string): Signal<null | TLUser>;
 }
+
+// @public (undocumented)
+export type TLVerdict = {
+    readonly ok: false;
+    readonly reason: string;
+} | {
+    readonly ok: true;
+};
 
 // @public
 export type TLVideoAsset = TLBaseAsset<'video', {
