@@ -10,7 +10,13 @@ import {
 	type TLPersistentClientSocket,
 	type WebSocketMinimal,
 } from '@tldraw/sync-core'
-import { commentSchemaRecords, createTLSchema, type TLRecord, type TLStore } from '@tldraw/tlschema'
+import {
+	commentSchemaRecords,
+	createTLSchema,
+	UserRecordType,
+	type TLRecord,
+	type TLStore,
+} from '@tldraw/tlschema'
 import {
 	createTLStore,
 	defaultAddFontsFromNode,
@@ -50,12 +56,19 @@ export class LocalRoom {
 	 * A session with no client, for pushes that a modified client could send. It returns the
 	 * server's answers to its pushes.
 	 */
-	forger(sessionId: string, actor: TLCommandActor) {
+	forger(sessionId: string, actor: TLCommandActor, opts: { protocolVersion?: number } = {}) {
 		const answers: any[] = []
+		let closed = false
 		this.room.handleSocketConnect({
 			sessionId,
 			actor,
-			socket: { readyState: 1, send: (data) => answers.push(JSON.parse(data)), close: () => {} },
+			socket: {
+				readyState: 1,
+				send: (data) => answers.push(JSON.parse(data)),
+				close: () => {
+					closed = true
+				},
+			},
 		})
 		let clock = 0
 		const send = (msg: object) =>
@@ -64,11 +77,12 @@ export class LocalRoom {
 			type: 'connect',
 			connectRequestId: 'forger',
 			lastServerClock: 0,
-			protocolVersion: getTlsyncProtocolVersion(),
+			protocolVersion: opts.protocolVersion ?? getTlsyncProtocolVersion(),
 			schema: schema.serialize(),
 		})
 		return {
 			answers,
+			isClosed: () => closed,
 			push: (push: Omit<TLPushRequest<TLRecord>, 'type' | 'clientClock'>) =>
 				send({ type: 'push', clientClock: clock++, ...push }),
 			lastResult: () =>
@@ -178,6 +192,18 @@ export class Peer {
 			schema,
 			id: sessionId,
 			collaboration: { status: atom('status', 'online'), mode: this.mode },
+			// as a host does: the editor's user is the actor
+			users: {
+				currentUser: atom(
+					'user',
+					actor.userId
+						? UserRecordType.create({
+								id: UserRecordType.createId(actor.userId),
+								name: actor.userId,
+							})
+						: null
+				),
+			},
 		})
 		this.client = new TLSyncClient<TLRecord, TLStore>({
 			store: this.store,

@@ -88,13 +88,32 @@ export interface TLCommand<R extends UnknownRecord = UnknownRecord, Args = any> 
 	run(ctx: TLCommandContext<R>, args: Args): TLCommandCall | void
 }
 
-/** @public */
-export interface TLEditPolicyContext<R extends UnknownRecord> {
+/**
+ * Read access to the records in a room, for policies.
+ *
+ * @public
+ */
+export interface TLRecordLookup<R extends UnknownRecord> {
+	get(id: string): R | undefined
+	/** Every record of a type. Can be slow: it may scan the room. */
+	getAll(typeName: string): readonly R[]
+}
+
+/**
+ * What an edit rule sees. `get` and `getAll` read the records as they will be after the push.
+ *
+ * @public
+ */
+export interface TLEditPolicyContext<R extends UnknownRecord> extends TLRecordLookup<R> {
 	readonly actor: TLCommandActor
 	readonly op: 'create' | 'update' | 'delete'
 	readonly prev: R | null
 	readonly next: R | null
-	get(id: string): R | undefined
+	/**
+	 * The records as they were before the push. A rule that needs a relation the push removes,
+	 * such as the binding that an unbind deletes, reads it here.
+	 */
+	readonly before: TLRecordLookup<R>
 }
 
 /**
@@ -139,8 +158,14 @@ export interface TLReadPolicy<R extends UnknownRecord> {
 	 * closed when it loses the permission. Leave it out to let the host decide alone.
 	 */
 	readonly requires?: string
-	/** Hide one record from the actor. `get` reads any record in the room. */
-	canRead?(actor: TLCommandActor, record: R, get: (id: string) => R | undefined): boolean
+	/**
+	 * Whether the actor can use the room with what it can read, for example whether it can read at
+	 * least one page. A session that cannot is refused at connect, and is closed when a change
+	 * takes away the last thing it needs.
+	 */
+	canOpen?(actor: TLCommandActor, records: TLRecordLookup<R>): boolean
+	/** Hide one record from the actor. `records` reads any record in the room. */
+	canRead?(actor: TLCommandActor, record: R, records: TLRecordLookup<R>): boolean
 	/**
 	 * Whether a change can change what other records the actor can read, for example a page's
 	 * readers or a shape's move to another page. After such a change the server checks every
@@ -232,8 +257,9 @@ export function runCommand<R extends UnknownRecord>(
 	}
 
 	// A command sees only what its actor can read, on the server as on the client.
+	const stored = lookupOf(reader)
 	const readable = (record: R | undefined) =>
-		record && canReadRecord(set, actor, record, (id) => reader.get(id)) ? record : undefined
+		record && canReadRecord(set, actor, record, stored) ? record : undefined
 	const puts = new Map<string, R>()
 	const deletes = new Set<string>()
 	const get = (id: string): R | undefined => {
@@ -283,12 +309,22 @@ export function runCommand<R extends UnknownRecord>(
 		throw e
 	}
 
+	// the room as it will be after the command, for the check that the actor can read its writes
+	const after = lookupOf({
+		get: (id) => (deletes.has(id) ? undefined : (puts.get(id) ?? reader.get(id))),
+		*values() {
+			for (const record of reader.values()) {
+				if (!deletes.has(record.id) && !puts.has(record.id)) yield record
+			}
+			yield* puts.values()
+		},
+	})
 	const finalPuts: R[] = []
 	for (const [id, record] of puts) {
 		const prev = reader.get(id)
 		if (prev && isEqual(prev, record)) continue
 		// a command cannot overwrite a hidden record, or write a record its actor cannot read
-		if ((prev && !readable(prev)) || !canReadRecord(set, actor, record, get)) {
+		if ((prev && !readable(prev)) || !canReadRecord(set, actor, record, after)) {
 			return { ok: false, reason: `not found: ${id}` }
 		}
 		finalPuts.push(record)
@@ -310,10 +346,49 @@ export function canReadRecord<R extends UnknownRecord>(
 	set: TLCommandSet<R>,
 	actor: TLCommandActor,
 	record: R,
-	get: (id: string) => R | undefined
+	records: TLRecordLookup<R>
 ): boolean {
 	if (!actorCan(actor, set.read.requires)) return false
-	return set.read.canRead ? set.read.canRead(actor, record, get) : true
+	return set.read.canRead ? set.read.canRead(actor, record, records) : true
+}
+
+/**
+ * Whether the actor can open the room: it has `read.requires`, and `read.canOpen` allows what it
+ * can read.
+ *
+ * @public
+ */
+export function canOpenRoom<R extends UnknownRecord>(
+	set: TLCommandSet<R>,
+	actor: TLCommandActor,
+	records: TLRecordLookup<R>
+): boolean {
+	if (!actorCan(actor, set.read.requires)) return false
+	return set.read.canOpen ? set.read.canOpen(actor, records) : true
+}
+
+/**
+ * A lookup over a reader. `getAll` scans the reader once per type and keeps the result, so make a
+ * new lookup when the records change.
+ *
+ * @public
+ */
+export function lookupOf<R extends UnknownRecord>(reader: TLCommandReader<R>): TLRecordLookup<R> {
+	const byType = new Map<string, R[]>()
+	return {
+		get: (id) => reader.get(id),
+		getAll(typeName) {
+			let records = byType.get(typeName)
+			if (!records) {
+				records = []
+				for (const record of reader.values()) {
+					if (record.typeName === typeName) records.push(record)
+				}
+				byType.set(typeName, records)
+			}
+			return records
+		},
+	}
 }
 
 /**
@@ -334,7 +409,7 @@ export function canEditRecord<R extends UnknownRecord>(
 	if (edit.commandOnlyTypes?.includes(typeName)) return false
 	if (!edit.openTypes?.includes(typeName) && !actorCan(actor, edit.requires ?? 'edit')) return false
 	// nobody edits what they cannot see, or moves a record somewhere they cannot see
-	if (ctx.prev && !canReadRecord(set, actor, ctx.prev, ctx.get)) return false
-	if (ctx.next && !canReadRecord(set, actor, ctx.next, ctx.get)) return false
+	if (ctx.prev && !canReadRecord(set, actor, ctx.prev, ctx.before)) return false
+	if (ctx.next && !canReadRecord(set, actor, ctx.next, ctx)) return false
 	return edit.authorize ? edit.authorize({ ...ctx, actor }) : true
 }

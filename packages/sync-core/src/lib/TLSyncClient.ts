@@ -24,6 +24,7 @@ import {
 	TLCommandWrites,
 	actorCan,
 	canEditRecord,
+	lookupOf,
 	defaultActor,
 	runCommand,
 } from './commands'
@@ -916,11 +917,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** Whether this client may make a record change on the edit lane, reactively. */
 	canEdit(op: 'create' | 'update' | 'delete', prev: R | null, next: R | null): boolean {
 		if (!this.commands) return true
+		// the client checks each record as it changes, so the store is the state before and after
+		const records = lookupOf<R>({
+			get: (id) => this.store.get(id as RecordId<R>),
+			values: () => this.store.allRecords(),
+		})
 		return canEditRecord(this.commands, this.actor.get(), {
 			op,
 			prev,
 			next,
-			get: (id) => this.store.get(id as RecordId<R>),
+			...records,
+			before: records,
 		})
 	}
 

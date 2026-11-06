@@ -3,8 +3,10 @@ export { chunk, JsonChunkAssembler } from './lib/chunk'
 export {
 	actorCan,
 	canEditRecord,
+	canOpenRoom,
 	canReadRecord,
 	defaultActor,
+	lookupOf,
 	defineCommand,
 	defineCommandSet,
 	runCommand,
@@ -20,6 +22,7 @@ export {
 	type TLEditPolicy,
 	type TLEditPolicyContext,
 	type TLReadPolicy,
+	type TLRecordLookup,
 } from './lib/commands'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {

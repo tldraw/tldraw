@@ -1,15 +1,19 @@
 import type { UnknownRecord } from '@tldraw/store'
 import { defineCommand, defineCommandSet, type TLCommandActor } from '@tldraw/sync-core'
 import {
+	AssetRecordType,
 	createShapeId,
 	InstancePresenceRecordType,
 	toRichText,
+	type TLArrowShape,
 	type TLComment,
 	type TLCommentThread,
 	type TLPageId,
 	type TLShape,
 	type TLShapeId,
+	type TLUser,
 	type TLUserId,
+	UserRecordType,
 } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 import { LocalRoom } from './test/harness'
@@ -480,11 +484,13 @@ describe('review fixes', () => {
 				prev: binding('shape:aliceArrow') as any,
 				next: binding('shape:bobArrow') as any,
 				get: (id) => shapes[id],
+				getAll: () => [],
+				before: { get: (id) => shapes[id], getAll: () => [] },
 			})
 		).toBe(false)
 	})
 
-	it('pages.delete stops on a stored parent cycle', () => {
+	it('pages.delete stops on a stored parent cycle', async () => {
 		// no editors here: the editor itself cannot render a parent cycle
 		const room = new LocalRoom(commands)
 		const forger = room.forger('t2', teacher)
@@ -514,7 +520,14 @@ describe('review fixes', () => {
 			} as any,
 		})
 		room.flush()
+		// the edit lane refuses to store a cycle
 		forger.push({ diff: { 'shape:x': ['patch', { parentId: ['put', 'shape:y'] }] } as any })
+		room.flush()
+		expect((room.room.getRecord('shape:x') as TLShape).parentId).toBe('page:two')
+		// a cycle that is already stored (from before the policy) must not hang the server
+		await room.room.updateStore((store) => {
+			store.put({ ...(store.get('shape:x') as TLShape), parentId: 'shape:y' as TLShapeId })
+		})
 		room.flush()
 		expect((room.room.getRecord('shape:x') as TLShape).parentId).toBe('shape:y')
 		forger.push({ command: { name: 'pages.delete', args: { id: 'page:two' } } })
@@ -746,7 +759,7 @@ describe('arrows across owners', () => {
 			type: 'arrow',
 			x: 0,
 			y: 50,
-			props: { start: { x: 0, y: 0 }, end: { x: 350, y: 0 } },
+			props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
 		})
 		editor.createBinding({
 			type: 'arrow',
@@ -785,7 +798,29 @@ describe('arrows across owners', () => {
 		expect(bindings()).toEqual([])
 		expect(a.getEditor().getBindingsFromShape(arrow, 'arrow')).toEqual([])
 		// Alice's arrow stays, and stays hers
-		expect(getShapeOwner(room.room.getRecord(arrow) as TLShape)).toBe('alice')
+		const stored = room.room.getRecord(arrow) as TLArrowShape
+		expect(getShapeOwner(stored)).toBe('alice')
+		// its loose end moved to where the box was, the same on the server and for Alice
+		expect(stored.props.end).not.toEqual({ x: 100, y: 0 })
+		expect(a.getEditor().getShape<TLArrowShape>(arrow)!.props).toEqual(stored.props)
+	})
+
+	it("the unbind exception lets Bob move only the ends of Alice's arrow that were on his shapes", () => {
+		const { room, arrow } = boundArrow()
+		const forger = room.forger('f', student('bob'))
+		room.flush()
+		const stored = () => room.room.getRecord(arrow) as TLArrowShape
+		const tryPatch = (props: object) => {
+			forger.push({ diff: { [arrow]: ['patch', { props: ['patch', props] }] } as any })
+			room.flush()
+			return forger.lastResult().action
+		}
+		// the start is not bound to Bob's shape, and color is not an end point
+		expect(tryPatch({ start: ['put', { x: 9, y: 9 }] })).toBe('discard')
+		expect(tryPatch({ color: ['put', 'red'] })).toBe('discard')
+		expect(stored().props.start).toEqual({ x: 0, y: 0 })
+		// the end is bound to Bob's box, so Bob may move it, as tldraw does when he deletes the box
+		expect(tryPatch({ end: ['put', { x: 7, y: 7 }] })).toBe('commit')
 	})
 
 	it("Bob cannot unbind Alice's arrow from a shape that is not his", () => {
@@ -805,6 +840,100 @@ describe('arrows across owners', () => {
 		room.flush()
 		expect(forger.lastResult().action).toBe('discard')
 		expect(room.room.getRecord('binding:alice')).toBeDefined()
+	})
+})
+
+describe('closed gaps', () => {
+	const answers = 'page:answers' as TLPageId
+
+	it('an asset that only a hidden page uses never reaches students', () => {
+		const { room, t, a } = setup()
+		t.run('pages.create', { id: answers, name: 'Answers' })
+		t.run('pages.setReaders', { id: answers, readers: [] })
+		room.flush()
+		const asset = AssetRecordType.create({
+			id: AssetRecordType.createId('photo'),
+			type: 'image',
+			props: {
+				name: 'answer.png',
+				src: 'https://example.com/a.png',
+				w: 10,
+				h: 10,
+				mimeType: 'image/png',
+				isAnimated: false,
+			},
+		})
+		const editor = t.getEditor()
+		editor.createAssets([asset])
+		editor.setCurrentPage(answers)
+		const image = createShapeId()
+		editor.createShape({ id: image, type: 'image', props: { assetId: asset.id, w: 10, h: 10 } })
+		room.flush()
+		expect(a.store.get(asset.id)).toBeUndefined()
+		// the teacher uses it on the lesson page too: now students need it, and get it
+		editor.setCurrentPage(page)
+		editor.createShape({ type: 'image', props: { assetId: asset.id, w: 10, h: 10 } })
+		room.flush()
+		expect(a.store.get(asset.id)).toBeDefined()
+	})
+
+	it('a student who can read no page is refused, at connect and when the last page is hidden', () => {
+		const room = new LocalRoom(commands)
+		const t = room.connect('t', teacher)
+		room.flush()
+		const a = room.connect('a', student('alice'))
+		room.flush()
+		expect(a.closedWith).toBeUndefined()
+		t.run('pages.setReaders', { id: page, readers: ['bob'] })
+		room.flush()
+		expect(a.closedWith).toBe('FORBIDDEN')
+		const c = room.connect('c', student('carol'))
+		room.flush()
+		expect(c.closedWith).toBe('FORBIDDEN')
+		// bob is a reader, so bob still gets in
+		const b = room.connect('b', student('bob'))
+		room.flush()
+		expect(b.closedWith).toBeUndefined()
+	})
+
+	it("nobody can rewrite another person's user record, or move a cursor as someone else", () => {
+		const { room, a } = setup()
+		// Alice's editor writes her user record on mount
+		a.getEditor()
+		const forger = room.forger('f', student('bob'))
+		room.flush()
+		const alice = UserRecordType.createId('alice')
+		expect(room.room.getRecord(alice)).toBeDefined()
+		forger.push({ diff: { [alice]: ['patch', { name: ['put', 'Bob was here'] }] } as any })
+		room.flush()
+		expect(forger.lastResult().action).toBe('discard')
+		expect((room.room.getRecord(alice) as TLUser).name).toBe('alice')
+		// Bob's cursor claims to be Alice's; the server stamps it with Bob's id
+		forger.push({
+			presence: [
+				'put',
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('f'),
+					currentPageId: page,
+					userId: alice,
+					userName: 'alice',
+				}),
+			],
+		} as any)
+		room.flush()
+		const cursors = a.store.query.records('instance_presence').get()
+		expect(cursors.find((p) => p.userName === 'alice' && p.userId === alice)).toBeUndefined()
+		expect(cursors.find((p) => p.userId === UserRecordType.createId('bob'))).toBeDefined()
+	})
+
+	it('an older client is reconnected when its actor changes, so it never acts on a stale actor', () => {
+		const room = new LocalRoom(commands)
+		const old = room.forger('old', student('alice'), { protocolVersion: 8 })
+		room.flush()
+		expect(old.isClosed()).toBe(false)
+		room.room.updateSessionActor('old', { userId: 'alice', permissions: [P.read] })
+		room.flush()
+		expect(old.isClosed()).toBe(true)
 	})
 })
 

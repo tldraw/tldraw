@@ -7,6 +7,7 @@ import {
 	type TLEditPolicy,
 	type TLEditPolicyContext,
 	type TLReadPolicy,
+	type TLRecordLookup,
 } from '@tldraw/sync-core'
 import {
 	PageRecordType,
@@ -17,12 +18,14 @@ import {
 	type TLCommentThread,
 	type TLCommentThreadId,
 	type TLPage,
+	type TLArrowBinding,
+	type TLArrowShape,
 	type TLPageId,
 	type TLRecord,
 	type TLRichText,
 	type TLShape,
 } from '@tldraw/tlschema'
-import { getIndexAbove, sortByIndex, type IndexKey } from '@tldraw/utils'
+import { getIndexAbove, isEqual, sortByIndex, type IndexKey } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
 /**
@@ -285,6 +288,17 @@ export interface OwnedShapesPolicyOptions {
 	canUseParent?(actor: TLCommandActor, parent: TLShape): boolean
 }
 
+/**
+ * The id of the actor's `user` record and of the `userId` on its cursor. tldraw user ids start
+ * with `user:`; an actor id without the prefix gets it.
+ *
+ * @public
+ */
+export function getActorUserRecordId(actor: TLCommandActor): string | null {
+	if (!actor.userId) return null
+	return actor.userId.startsWith('user:') ? actor.userId : `user:${actor.userId}`
+}
+
 /** The owner that {@link createOwnedShapesPolicy} stamps on a shape. @public */
 export function getShapeOwner(shape: TLShape): string | undefined {
 	const owner = shape.meta?.ownerId
@@ -315,6 +329,43 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 		return owner !== undefined && owner === actor.userId
 	}
 
+	// A parent chain that loops crashes the editor, so nobody may store one.
+	function hasParentCycle(ctx: TLEditPolicyContext<R>, shape: TLShape) {
+		const seen = new Set<string>([shape.id])
+		let parent = ctx.get(shape.parentId) as TLRecord | undefined
+		while (parent?.typeName === 'shape') {
+			if (seen.has(parent.id)) return true
+			seen.add(parent.id)
+			parent = ctx.get(parent.parentId) as TLRecord | undefined
+		}
+		return false
+	}
+
+	/**
+	 * When a shape is deleted, tldraw unbinds the arrows attached to it and moves each arrow's
+	 * loose end to where the shape was. That arrow may be someone else's. The actor may make that
+	 * one change: only the end points and the bend, and only the ends that were bound to a shape
+	 * the actor owns.
+	 */
+	function isUnbindFixup(ctx: TLEditPolicyContext<R>, prev: TLShape, next: TLShape) {
+		if (prev.type !== 'arrow' || next.type !== 'arrow') return false
+		const a = prev as TLArrowShape
+		const b = next as TLArrowShape
+		const rest = (s: TLArrowShape) => ({ ...s, props: { ...s.props, start: 0, end: 0, bend: 0 } })
+		if (!isEqual(rest(a), rest(b))) return false
+		const ownedEnds = new Set<string>()
+		for (const binding of ctx.before.getAll('binding') as unknown as TLArrowBinding[]) {
+			if (binding.fromId !== a.id || binding.type !== 'arrow') continue
+			const to = ctx.before.get(binding.toId) as TLShape | undefined
+			if (to && ownsShape(ctx.actor, to)) ownedEnds.add(binding.props.terminal)
+		}
+		if (ownedEnds.size === 0) return false
+		for (const end of ['start', 'end'] as const) {
+			if (!isEqual(a.props[end], b.props[end]) && !ownedEnds.has(end)) return false
+		}
+		return true
+	}
+
 	function parentOk(ctx: TLEditPolicyContext<R>, shape: TLShape) {
 		if (actorCan(ctx.actor, TLDRAW_PERMISSIONS.manageShapes)) return true
 		const parent = ctx.get(shape.parentId) as TLRecord | undefined
@@ -328,7 +379,12 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 		// every editor writes its user record on mount, read-only or not
 		openTypes: ['user'],
 		stamp(actor, record) {
-			if (record.typeName !== 'shape' || !actor.userId) return record
+			if (!actor.userId) return record
+			if (record.typeName === 'instance_presence') {
+				// a cursor always shows who really moves it
+				return { ...record, userId: getActorUserRecordId(actor) } as R
+			}
+			if (record.typeName !== 'shape') return record
 			const shape = record as unknown as TLShape
 			return { ...shape, meta: { ...shape.meta, ownerId: actor.userId } } as unknown as R
 		},
@@ -339,6 +395,10 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 					if (!ctx.actor.userId) return false
 					const prev = ctx.prev as TLShape | null
 					const next = ctx.next as TLShape | null
+					if (next && hasParentCycle(ctx, next)) return false
+					if (prev && next && !ownsShape(ctx.actor, prev) && isUnbindFixup(ctx, prev, next)) {
+						return true
+					}
 					if (prev && !ownsShape(ctx.actor, prev)) return false
 					if (next) {
 						if (!ownsShape(ctx.actor, next)) return false
@@ -373,6 +433,11 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 				case 'page':
 				case 'document':
 					return actorCan(ctx.actor, TLDRAW_PERMISSIONS.managePages)
+				case 'user':
+					// Each actor changes only its own user record (name, color). Any editor may add a
+					// missing one: editors keep user records as a cache for attribution, and refusing
+					// the add would make the editor try again forever.
+					return ctx.op === 'create' || record.id === getActorUserRecordId(ctx.actor)
 				default:
 					return true
 			}
@@ -430,30 +495,61 @@ export function getRecordPageId(
 /**
  * A read policy for "some pages are only for some people". A page with `meta.readers` (set by the
  * `pages.setReaders` command) is visible only to those user ids and to actors with
- * `pages:manage`. Everything on the page follows it: shapes, bindings, comments, and the cursors
- * of people on it. Opening the file needs the `read` permission.
+ * `pages:manage`. Everything on the page follows it: shapes, bindings, comments, the cursors of
+ * people on it, and assets that only its shapes use. Opening the file needs the `read`
+ * permission and at least one page the actor can read.
  *
  * @public
  */
 export function createPageReadPolicy<
 	Rec extends UnknownRecord = UnknownRecord,
 >(): TLReadPolicy<Rec> {
+	function canReadPage(actor: TLCommandActor, page: UnknownRecord | undefined) {
+		// a record on a missing page is a record nobody should see
+		if (!page || page.typeName !== 'page') return false
+		const readers = getPageReaders(page as TLPage)
+		return !readers || (!!actor.userId && readers.includes(actor.userId))
+	}
+
+	function canReadShape(actor: TLCommandActor, shape: UnknownRecord, records: TLRecordLookup<R>) {
+		const pageId = getRecordPageId(shape, records.get)
+		return !!pageId && canReadPage(actor, records.get(pageId))
+	}
+
 	const policy: TLReadPolicy<R> = {
 		requires: TLDRAW_PERMISSIONS.read,
-		canRead(actor, record, get) {
+		canOpen(actor, records) {
+			// the editor needs a page; an actor who can read none has no use for the file
 			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
-			const pageId = getRecordPageId(record, get)
+			return records.getAll('page').some((page) => canReadPage(actor, page))
+		},
+		canRead(actor, record, records) {
+			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
+			if (record.typeName === 'asset') {
+				// An asset is hidden when every shape that uses it is hidden. An asset that no shape
+				// uses yet (an upload in progress) is visible: it tells nobody anything.
+				let used = false
+				for (const shape of records.getAll('shape')) {
+					if ((shape as TLShape & { props: { assetId?: unknown } }).props.assetId !== record.id) {
+						continue
+					}
+					if (canReadShape(actor, shape, records)) return true
+					used = true
+				}
+				return !used
+			}
+			const pageId = getRecordPageId(record, records.get)
 			if (!pageId) return true
-			const page = get(pageId) as TLPage | undefined
-			// a record on a missing page is a record nobody should see
-			if (!page || page.typeName !== 'page') return false
-			const readers = getPageReaders(page)
-			return !readers || (!!actor.userId && readers.includes(actor.userId))
+			return canReadPage(actor, records.get(pageId))
 		},
 		isScopeChange(prev, next) {
 			const record = (next ?? prev) as TLRecord
 			if (record.typeName === 'page') return true
-			if (record.typeName !== 'shape' || !prev || !next) return false
+			if (record.typeName !== 'shape') return false
+			// a shape that comes, goes, or changes asset can show or hide that asset
+			const assetOf = (s: unknown) => (s as { props: { assetId?: unknown } } | null)?.props.assetId
+			if (assetOf(prev) !== assetOf(next)) return true
+			if (!prev || !next) return false
 			// a move between pages carries the shape's children with it
 			return (prev as TLShape).parentId !== (next as TLShape).parentId
 		},

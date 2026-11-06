@@ -13,6 +13,7 @@ export {
 	commentCommands,
 	createOwnedShapesPolicy,
 	createPageReadPolicy,
+	getActorUserRecordId,
 	getPageReaders,
 	getRecordPageId,
 	getShapeOwner,

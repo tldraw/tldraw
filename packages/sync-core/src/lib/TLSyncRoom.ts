@@ -23,14 +23,17 @@ import { createNanoEvents } from 'nanoevents'
 import {
 	actorCan,
 	canEditRecord,
+	canOpenRoom,
 	canReadRecord,
 	defaultActor,
+	lookupOf,
 	runCommand,
 	SERVER_ACTOR,
 	type TLCommandActor,
 	type TLCommandCall,
 	type TLCommandReader,
 	type TLCommandSet,
+	type TLRecordLookup,
 } from './commands'
 import {
 	applyObjectDiff,
@@ -59,6 +62,9 @@ import {
 	SESSION_START_WAIT_TIME,
 } from './RoomSession'
 import { TLSyncLog } from './TLSocketRoom'
+
+/** The room's records, documents and presence, for the read policy. */
+type RoomRecords<R extends UnknownRecord> = TLRecordLookup<R> & { values(): Iterable<R> }
 import { TLSyncError, TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 import {
 	TLSyncForwardDiff,
@@ -692,7 +698,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const filtered = this.isReadFiltered()
 		const resync = filtered && this.isScopeChange(diff)
 
-		const send = (reader?: { get(id: string): R | undefined; values(): Iterable<R> }) =>
+		const forbidden: string[] = []
+		const send = (records?: RoomRecords<R>) =>
 			this.sessions.forEach((session) => {
 				if (session.state !== RoomSessionState.Connected) return
 				if (sourceSessionId === session.sessionId && !resync) return
@@ -703,14 +710,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 				let sessionDiff = diff
 				let sessionNetworkDiff = unmigrated
-				if (reader) {
+				if (records) {
+					// a scope change can take away the last thing the session needs, such as its last page
+					if (resync && !this.canOpen(session.actor, records)) {
+						forbidden.push(session.sessionId)
+						return
+					}
 					// the source already has its own changes; it only needs what its access change shows
 					const own = sourceSessionId === session.sessionId
 					const out = this.filterForSession(
 						session,
 						own ? { puts: {}, deletes: [] } : diff,
 						own ? {} : unmigrated,
-						reader,
+						records,
 						resync
 					)
 					if (own) {
@@ -740,6 +752,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			})
 		if (filtered) this.withReader(txn, send)
 		else send()
+		for (const id of forbidden) this.rejectSession(id, TLSyncErrorCloseEventReason.FORBIDDEN)
 		return this
 	}
 
@@ -833,8 +846,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return !!this.commands?.read.canRead
 	}
 
-	private canOpen(actor: TLCommandActor) {
-		return !this.commands || actorCan(actor, this.commands.read.requires)
+	private canOpen(actor: TLCommandActor, records?: RoomRecords<R>) {
+		if (!this.commands) return true
+		if (!this.commands.read.canOpen) return actorCan(actor, this.commands.read.requires)
+		if (records) return canOpenRoom(this.commands, actor, records)
+		return this.withReader(undefined, (r) => canOpenRoom(this.commands!, actor, r))
 	}
 
 	/**
@@ -846,13 +862,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		session: { actor: TLCommandActor; presenceId: string | null; visible?: Set<string> },
 		diff: TLSyncForwardDiff<R>,
 		networkDiff: NetworkDiff<R>,
-		reader: { get(id: string): R | undefined; values(): Iterable<R> },
+		records: RoomRecords<R>,
 		resync: boolean
 	): { diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> } {
 		const visible = session.visible
 		if (!visible || !this.commands) return { diff, networkDiff }
 		const set = this.commands
-		const get = (id: string) => reader.get(id) ?? (this.presenceStore.get(id) as R | undefined)
 		const outDiff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const outNetwork: NetworkDiff<R> = {}
 		const show = (id: string, record: R) => {
@@ -873,17 +888,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const put = diff.puts[id]
 			const next = Array.isArray(put) ? put[1] : put
 			if (!next) continue
-			if (!canReadRecord(set, session.actor, next, get)) hide(id)
+			if (!canReadRecord(set, session.actor, next, records)) hide(id)
 			else if (visible.has(id)) {
 				outDiff.puts[id] = put
 				outNetwork[id] = op
 			} else show(id, next)
 		}
 		if (resync) {
-			const all = [...reader.values(), ...(this.presenceStore.values() as Iterable<R>)]
-			for (const record of all) {
+			for (const record of records.values()) {
 				if (record.id === session.presenceId || record.id in networkDiff) continue
-				const readable = canReadRecord(set, session.actor, record, get)
+				const readable = canReadRecord(set, session.actor, record, records)
 				if (readable && !visible.has(record.id)) show(record.id, record)
 				else if (!readable) hide(record.id)
 			}
@@ -902,22 +916,44 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		return false
 	}
 
-	/** Run `fn` with a reader of the stored records, inside the caller's transaction if any. */
+	/**
+	 * Run `fn` with the room's records (documents and presence), inside the caller's transaction
+	 * if any.
+	 */
 	private withReader<T>(
 		txn: TLSyncStorageTransaction<R> | undefined,
-		fn: (reader: { get(id: string): R | undefined; values(): Iterable<R> }) => T
+		fn: (records: RoomRecords<R>) => T
 	): T {
-		if (txn) return fn(txn as any)
-		return this.storage.transaction((t) => fn(t as any) as any).result as T
+		const run = (t: TLSyncStorageTransaction<R>) => fn(this.roomRecords(t))
+		if (txn) return run(txn)
+		return this.storage.transaction((t) => run(t) as any).result as T
+	}
+
+	private roomRecords(txn: TLSyncStorageTransaction<R>): RoomRecords<R> {
+		const presence = this.presenceStore
+		const reader = {
+			get: (id: string) => (txn.get(id) as R | undefined) ?? (presence.get(id) as R | undefined),
+			*values() {
+				yield* txn.values() as Iterable<R>
+				yield* presence.values() as Iterable<R>
+			},
+		}
+		return { ...lookupOf<R>(reader), values: () => reader.values() }
 	}
 
 	/** Send a session the records that appeared to it and remove the ones that disappeared. */
 	private resyncSession(sessionId: string) {
 		const session = this.sessions.get(sessionId)
 		if (!session || session.state !== RoomSessionState.Connected || !session.visible) return
-		const filtered = this.withReader(undefined, (reader) =>
-			this.filterForSession(session, { puts: {}, deletes: [] }, {}, reader, true)
+		const filtered = this.withReader(undefined, (records) =>
+			this.canOpen(session.actor, records)
+				? this.filterForSession(session, { puts: {}, deletes: [] }, {}, records, true)
+				: null
 		)
+		if (!filtered) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			return
+		}
 		if (objectMapKeys(filtered.networkDiff).length === 0) return
 		const migrated = this.migrateDiffOrRejectSession(
 			sessionId,
@@ -962,7 +998,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 			return
 		}
-		if (session.state === RoomSessionState.Connected && session.supportsCommands) {
+		if (session.state === RoomSessionState.Connected && !session.supportsCommands) {
+			// an older client cannot take a new actor, so it reconnects and the host gives it one
+			this.cancelSession(sessionId)
+			return
+		}
+		if (session.state === RoomSessionState.Connected) {
 			this._unsafe_sendMessage(sessionId, { type: 'actor', actor, isReadonly: session.isReadonly })
 		}
 		this.resyncSession(sessionId)
@@ -1051,12 +1092,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		const resumed = this.sessions.get(sessionId)
 		if (resumed?.state === RoomSessionState.Connected && resumed.visible) {
-			this.withReader(undefined, (reader) => {
-				for (const record of [
-					...reader.values(),
-					...(this.presenceStore.values() as Iterable<R>),
-				]) {
-					if (canReadRecord(this.commands!, actor, record, (id) => reader.get(id))) {
+			this.withReader(undefined, (records) => {
+				for (const record of records.values()) {
+					if (canReadRecord(this.commands!, actor, record, records)) {
 						resumed.visible!.add(record.id)
 					}
 				}
@@ -1417,7 +1455,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						puts: { ...docChanges.diff.puts, ...this.presencePuts(session.presenceId) },
 						deletes: [],
 					}),
-					txn as any,
+					this.roomRecords(txn),
 					false
 				)
 				const migrated = this.migrateDiffOrRejectSession(
@@ -1675,23 +1713,34 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					const id = session.presenceId
 					const [type, val] = message.presence
 					const { typeName } = this.presenceType
+					// the edit policy's stamp sets who a cursor belongs to; a patch cannot change it
+					const stamp = this.commands?.edit.stamp
+					const actor = session.actor
 					switch (type) {
 						case RecordOpType.Put: {
 							// Try to put the document. If it fails, stop here.
-							addDocument(this.presenceStore, presenceChanges, id, {
-								...val,
+							const record = { ...val, id, typeName } as R
+							addDocument(
+								this.presenceStore,
+								presenceChanges,
 								id,
-								typeName,
-							})
+								stamp ? stamp(actor, record) : record
+							)
 							break
 						}
 						case RecordOpType.Patch: {
 							// Try to patch the document. If it fails, stop here.
-							patchDocument(this.presenceStore, presenceChanges, id, {
-								...val,
-								id: [ValueOpType.Put, id],
-								typeName: [ValueOpType.Put, typeName],
-							})
+							patchDocument(
+								this.presenceStore,
+								presenceChanges,
+								id,
+								{
+									...val,
+									id: [ValueOpType.Put, id],
+									typeName: [ValueOpType.Put, typeName],
+								},
+								stamp ? (_prev, next) => (isEqual(stamp(actor, next), next) ? next : null) : undefined
+							)
 							break
 						}
 					}
@@ -1716,7 +1765,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// so a push never half-applies (an arrow without its binding, a child without its frame).
 				const { editDenied, stamped } =
 					session && this.commands && message.diff
-						? this.checkEditPush(txn, editActor(session), message.diff)
+						? this.checkEditPush(txn, session, editActor(session), message.diff)
 						: { editDenied: undefined, stamped: undefined }
 
 				if (message.diff && !editDenied) {
@@ -1955,6 +2004,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	private checkEditPush(
 		txn: TLSyncStorageTransaction<R>,
+		session: RoomSession<R, SessionMeta> & { serializedSchema?: SerializedSchema },
 		actor: TLCommandActor,
 		diff: NetworkDiff<R>
 	): { editDenied: string | undefined; stamped: Map<string, R> } {
@@ -1966,6 +2016,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			prev: R | null
 			next: R | null
 		}[] = []
+		// An older client's records are migrated up before they are stored. The policy must see
+		// the record that will be stored, not the one the client sent.
+		const schema = session.serializedSchema
+		const up = (record: R): R => {
+			if (!schema) return record
+			const res = this.schema.migratePersistedRecord(record, schema, 'up')
+			if (res.type === 'error') {
+				throw new TLSyncError(res.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			}
+			return res.value as R
+		}
+		const down = (record: R): R => {
+			if (!schema) return record
+			const res = this.schema.migratePersistedRecord(record, schema, 'down')
+			if (res.type === 'error') {
+				throw new TLSyncError(res.reason, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
+			}
+			return res.value as R
+		}
 		// The policy may read other records in the same push (a child and its new frame), so it
 		// sees the push applied over the stored state.
 		const overlay = new Map<string, R | null>()
@@ -1976,18 +2045,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (typeName && this.objectTypes.has(typeName)) continue
 			switch (op[0]) {
 				case RecordOpType.Put: {
-					let next = op[1]
+					let sent = op[1]
 					if (!prev && set.edit.stamp) {
-						next = set.edit.stamp(actor, next)
-						stamped.set(id, next)
+						sent = set.edit.stamp(actor, sent)
+						stamped.set(id, sent)
 					}
+					const next = up(sent)
 					changes.push({ id, op: prev ? 'update' : 'create', prev, next })
 					overlay.set(id, next)
 					break
 				}
 				case RecordOpType.Patch: {
 					if (!prev) continue
-					const next = applyObjectDiff(prev, op[1])
+					// the same steps as the write below: patch the client's version, then migrate up
+					const downgraded = down(prev)
+					const next =
+						downgraded === prev
+							? applyObjectDiff(prev, op[1])
+							: up(applyObjectDiff(downgraded, op[1]))
 					changes.push({ id, op: 'update', prev, next })
 					overlay.set(id, next)
 					break
@@ -2000,11 +2075,26 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 			}
 		}
-		const get = (id: string) =>
-			(overlay.has(id) ? (overlay.get(id) ?? undefined) : txn.get(id)) as R
+		const before = lookupOf<R>(txn as TLCommandReader<R>)
+		const after = lookupOf<R>({
+			get: (id) => (overlay.has(id) ? (overlay.get(id) ?? undefined) : (txn.get(id) as R)),
+			*values() {
+				for (const record of txn.values() as Iterable<R>) {
+					if (!overlay.has(record.id)) yield record
+				}
+				for (const record of overlay.values()) if (record) yield record
+			},
+		})
 		for (const change of changes) {
 			if (
-				!canEditRecord(set, actor, { op: change.op, prev: change.prev, next: change.next, get })
+				!canEditRecord(set, actor, {
+					op: change.op,
+					prev: change.prev,
+					next: change.next,
+					get: after.get,
+					getAll: after.getAll,
+					before,
+				})
 			) {
 				const typeName = (change.next ?? change.prev)!.typeName
 				this.log?.warn?.('edit policy denied push', change.op, typeName, change.id)

@@ -98,7 +98,8 @@ describe('runCommand', () => {
 
 describe('canEditRecord', () => {
 	const rec = { id: 'x:1', typeName: 'x' } as Rec
-	const ctx = { op: 'update' as const, prev: rec, next: rec, get: () => undefined }
+	const none = { get: () => undefined, getAll: () => [] }
+	const ctx = { op: 'update' as const, prev: rec, next: rec, ...none, before: none }
 
 	it('needs the edit permission unless the type is open', () => {
 		const s = defineCommandSet<Rec>({ edit: { openTypes: ['open'] } })
