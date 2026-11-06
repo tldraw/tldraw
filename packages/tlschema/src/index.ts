@@ -405,6 +405,7 @@ export {
 	intentOwnsTypes,
 	ownerOf,
 	ownShapesOnly,
+	type OwnShapesOnlyOptions,
 	pageIdOf,
 	pageReadAccess,
 	pageWriteAccess,

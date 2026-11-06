@@ -329,6 +329,69 @@ describe('classroom: students edit only their own shapes', () => {
 		expect(h.serverRecord(a)).toMatchObject({ x: 50 })
 	})
 
+	it("lets a student delete their shape when someone else's arrow points at it", () => {
+		const ann = h.connect('ann', student('ann'))
+		const bob = h.connect('bob', student('bob'))
+		const a = createShapeId('a')
+		const arrow = createShapeId('arrow')
+		ann.editor.createShapes([geo(a)])
+		h.settle()
+		bob.editor.createShapes([{ id: arrow, type: 'arrow', x: 300, y: 50 }])
+		bob.editor.createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: a,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+				snap: 'none',
+			},
+		})
+		h.settle()
+
+		ann.editor.deleteShapes([a])
+		h.settle()
+		expect(ann.denials).toEqual([])
+		expect(h.serverRecord(a)).toBeUndefined()
+		expect(h.serverRecords().filter((r) => r.typeName === 'binding')).toHaveLength(0)
+		// bob's arrow stays, unbound, where its end was
+		expect(h.serverRecord(arrow)).toBeDefined()
+		expect(bob.editor.getShape(arrow)).toBeDefined()
+	})
+
+	it("does not let cutting a binding move the rest of someone else's arrow", () => {
+		const ann = h.connect('ann', student('ann'))
+		const bob = h.connect('bob', student('bob'))
+		const a = createShapeId('a')
+		const arrow = createShapeId('arrow')
+		ann.editor.createShapes([geo(a)])
+		h.settle()
+		bob.editor.createShapes([{ id: arrow, type: 'arrow', x: 300, y: 50 }])
+		bob.editor.createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: a,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+				snap: 'none',
+			},
+		})
+		h.settle()
+		const binding = ann.editor.getBindingsToShape(a, 'arrow')[0]
+		ann.editor.run(() => {
+			ann.editor.deleteBinding(binding)
+			ann.editor.updateShapes([{ id: arrow, type: 'arrow', x: 900 }])
+		})
+		h.settle()
+		expect(ann.denials.at(-1)?.reason).toBe('You can only change your own shapes.')
+		expect(h.serverRecord(arrow)).toMatchObject({ x: 300 })
+	})
+
 	it('lets the teacher change any shape', () => {
 		const ann = h.connect('ann', student('ann'))
 		const tia = h.connect('tia', teacher)

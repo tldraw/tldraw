@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import { isEqual } from '@tldraw/utils'
 import {
 	TLAccess,
 	TLReadContext,
@@ -125,10 +126,49 @@ export function ownerOf(record: UnknownRecord | null | undefined): string | null
 }
 
 /**
+ * Options for {@link ownShapesOnly}.
+ *
+ * @public
+ */
+export interface OwnShapesOnlyOptions<R extends UnknownRecord = UnknownRecord> {
+	/** Sessions with this ability skip the rule, for example a teacher. */
+	unless?: string
+	/**
+	 * How someone else's shape may change when your change cuts its binding to your shape. For
+	 * example: you delete your shape, and another user's arrow that points at it lets go and keeps
+	 * its end where it was. Keyed by shape type. Return true when `next` differs from `prev` only
+	 * in what letting go changes. The default lets an arrow change `props.start`, `props.end`, and
+	 * `props.bend`.
+	 */
+	detach?: Record<string, (prev: R, next: R) => boolean>
+}
+
+const ARROW_TERMINAL_PROPS = new Set(['start', 'end', 'bend'])
+
+/** An arrow that lets go of a binding changes only its terminals and bend. */
+function arrowDetaches(prev: UnknownRecord, next: UnknownRecord) {
+	const a = prev as AnyRecord
+	const b = next as AnyRecord
+	for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+		if (key === 'props') continue
+		if (!isEqual(a[key], b[key])) return false
+	}
+	for (const key of new Set([...Object.keys(a.props ?? {}), ...Object.keys(b.props ?? {})])) {
+		if (ARROW_TERMINAL_PROPS.has(key)) continue
+		if (!isEqual(a.props?.[key], b.props?.[key])) return false
+	}
+	return true
+}
+
+/**
  * Shapes belong to their creator. A session may create a shape only with its own user id in
  * `meta.ownerId`, and may change or delete only shapes it owns. The owner never changes.
- * Bindings follow the shape they start from (`fromId`). Sessions with the `unless` ability skip
- * the rule. Anonymous sessions own nothing.
+ * Bindings belong to the shape they start from (`fromId`). Sessions with the `unless` ability
+ * skip the rule. Anonymous sessions own nothing.
+ *
+ * Your shape is yours to delete even when someone else's arrow points at it: you may remove a
+ * binding that ends at your shape, and the arrow it starts from may let go of it (see
+ * `detach`).
  *
  * The client stamps `meta.ownerId` on create (see `editor.permissions`). The server verifies it.
  * Because the whole transaction is checked, grouping your shape with someone else's shape fails
@@ -136,22 +176,42 @@ export function ownerOf(record: UnknownRecord | null | undefined): string | null
  *
  * @public
  */
-export function ownShapesOnly<R extends UnknownRecord>(opts: { unless?: string } = {}): TLRule<R> {
+export function ownShapesOnly<R extends UnknownRecord>(
+	opts: OwnShapesOnlyOptions<R> = {}
+): TLRule<R> {
+	const detach: Record<string, (prev: R, next: R) => boolean> = opts.detach ?? {
+		arrow: arrowDetaches,
+	}
 	return (tx) => {
 		if (opts.unless && tx.can(opts.unless)) return undefined
 		const userId = tx.access.userId
+		const owns = (id: string) => {
+			const shape = tx.before.get(id) ?? tx.after.get(id)
+			return !!userId && ownerOf(shape) === userId
+		}
+		// shapes that let go of a binding to one of your shapes in this transaction
+		const detached = new Set<string>()
+		for (const change of tx.changes) {
+			const binding = change.op === 'delete' ? (change.prev as AnyRecord) : null
+			if (binding?.typeName === 'binding' && owns(binding.toId)) detached.add(binding.fromId)
+		}
 		for (const change of tx.changes) {
 			const record = recordOf(change) as AnyRecord
 			if (record.typeName === 'shape') {
+				if (
+					change.op === 'update' &&
+					detached.has(record.id) &&
+					detach[record.type]?.(change.prev as R, change.next as R)
+				) {
+					continue
+				}
 				const reason = checkOwnedChange(change, userId)
 				if (reason) return reason
 			} else if (record.typeName === 'binding') {
+				if (change.op === 'delete' && owns((change.prev as AnyRecord).toId)) continue
 				for (const binding of [change.prev, change.next] as (AnyRecord | null)[]) {
 					if (!binding) continue
-					const from = tx.after.get(binding.fromId) ?? tx.before.get(binding.fromId)
-					if (!userId || ownerOf(from) !== userId) {
-						return 'You can only connect arrows that you own.'
-					}
+					if (!owns(binding.fromId)) return 'You can only connect arrows that you own.'
 				}
 			}
 		}

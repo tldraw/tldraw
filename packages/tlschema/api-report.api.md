@@ -827,9 +827,13 @@ export const opacityValidator: T.Validator<number>;
 export function ownerOf(record: null | undefined | UnknownRecord): null | string;
 
 // @public
-export function ownShapesOnly<R extends UnknownRecord>(opts?: {
+export function ownShapesOnly<R extends UnknownRecord>(opts?: OwnShapesOnlyOptions<R>): TLRule<R>;
+
+// @public
+export interface OwnShapesOnlyOptions<R extends UnknownRecord = UnknownRecord> {
+    detach?: Record<string, (prev: R, next: R) => boolean>;
     unless?: string;
-}): TLRule<R>;
+}
 
 // @public
 export function pageIdOf<R extends UnknownRecord>(records: TLRecordReader<R>, record: R | undefined): null | string;
