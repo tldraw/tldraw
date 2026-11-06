@@ -833,7 +833,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				delta = { puts: {}, deletes: [] }
 				const view = session.view!
 				for (const r of records) {
-					if (!view.ids.has(r.id) || this.roomRules!.hasFields(r.typeName)) delta.puts[r.id] = r
+					if (!view.ids.has(r.id) || view.masked.has(r.id) || this.roomRules!.hasFields(r.typeName))
+						delta.puts[r.id] = r
 				}
 				session.view = null
 			}
@@ -1630,7 +1631,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						const authorizePresence =
 							this.roomRules && this.roomRules.getDefinition().types?.[typeName]
 								? (prev: R | null, next: R): R | null => {
-										const result = this.roomRules!.presenceRules.checkWrite<any>({
+										const result = this.roomRules!.presenceRules(typeName).checkWrite<any>({
 											op: prev ? 'update' : 'create',
 											typeName,
 											prev,

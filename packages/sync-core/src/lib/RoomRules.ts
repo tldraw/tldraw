@@ -19,8 +19,19 @@ export class RulesDeniedPush extends Error {}
 
 type Get = (id: string) => UnknownRecord | undefined
 
-function compilePresenceRules(definition: TLRulesDefinition) {
-	return compileRules({ ...definition, default: { ...definition.default, write: 'true' } })
+/**
+ * The rules for presence writes. An op with no rule of its own is allowed: `default.write` is about
+ * the document, and a viewer still has a cursor. The presence type reads as `true` here because a
+ * session only ever writes its own presence: a read rule such as `!isAgent` decides who sees the
+ * agent's cursor, not whether the agent may move it.
+ */
+function compilePresenceRules(definition: TLRulesDefinition, presenceType: string) {
+	const types = definition.types ?? {}
+	return compileRules({
+		...definition,
+		types: { ...types, [presenceType]: { ...types[presenceType], read: 'true' } },
+		default: { ...definition.default, write: 'true' },
+	})
 }
 
 /**
@@ -82,23 +93,25 @@ export class SessionView {
  */
 export class RoomRules<R extends UnknownRecord> {
 	rules: TLRules
-	/**
-	 * The same rules for presence writes, where an op with no rule of its own is allowed:
-	 * `default.write` is about the document, and a viewer still has a cursor.
-	 */
-	presenceRules: TLRules
+	private presence: { typeName: string; rules: TLRules } | null = null
 
 	constructor(
 		definition: TLRulesDefinition,
 		private readonly typeNames: () => string[]
 	) {
 		this.rules = compileRules(definition)
-		this.presenceRules = compilePresenceRules(definition)
 	}
 
 	setDefinition(definition: TLRulesDefinition) {
 		this.rules = compileRules(definition)
-		this.presenceRules = compilePresenceRules(definition)
+		this.presence = null
+	}
+
+	presenceRules(typeName: string): TLRules {
+		if (this.presence?.typeName !== typeName) {
+			this.presence = { typeName, rules: compilePresenceRules(this.rules.definition, typeName) }
+		}
+		return this.presence.rules
 	}
 
 	getDefinition() {
@@ -196,6 +209,7 @@ export class RoomRules<R extends UnknownRecord> {
 
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 			handled.add(id)
+			const wasMasked = view.masked.has(id)
 			const before = Array.isArray(put) ? put[0] : null
 			const after = Array.isArray(put) ? put[1] : put
 			const had = opts.isSource || view.ids.has(id)
@@ -219,7 +233,7 @@ export class RoomRules<R extends UnknownRecord> {
 			view.ids.add(id)
 			if (opts.isSource) {
 				// the pusher holds what it wrote; correct it only where it may not read a field
-				if (shown !== after) out.puts[id] = shown
+				if (shown !== after || wasMasked) out.puts[id] = shown
 				continue
 			}
 			if (!had) {
@@ -270,12 +284,13 @@ export class RoomRules<R extends UnknownRecord> {
 	recompute(view: SessionView, get: Get, records: Iterable<R>): TLSyncForwardDiff<R> {
 		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const seen = new Set<string>()
+		const wasMasked = new Set(view.masked)
 		view.clearIndex()
 		for (const record of records) {
 			seen.add(record.id)
 			const shown = this.show(view, record, get)
 			const had = view.ids.has(record.id)
-			if (shown && (!had || this.hasFields(record.typeName))) {
+			if (shown && (!had || this.hasFields(record.typeName) || wasMasked.has(record.id))) {
 				view.ids.add(record.id)
 				out.puts[record.id] = shown
 			} else if (!shown && had) {

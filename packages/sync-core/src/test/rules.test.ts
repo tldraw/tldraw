@@ -3,155 +3,11 @@
  * permissions research, run end to end: real TLSyncClients with real stores, connected to a
  * TLSyncRoom that enforces a rule set from `@tldraw/rules`.
  */
-import {
-	pollPluginRules,
-	composeRules,
-	useCaseRules,
-	type TLRuleUser,
-	type TLRulesDefinition,
-} from '@tldraw/rules'
-import { Atom, atom } from '@tldraw/state'
-import { Store, StoreSchema, createRecordType } from '@tldraw/store'
-import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { TLRoomAccess } from '../lib/RoomRules'
-import { TLSyncClient } from '../lib/TLSyncClient'
-import { TestServer } from './TestServer'
+import { composeRules, pollPluginRules, useCaseRules, type TLRulesDefinition } from '@tldraw/rules'
+import { Store } from '@tldraw/store'
+import { describe, expect, it, vi } from 'vitest'
+import { Client, R, doc, makeRoom, page, schema, shape } from './rulesHarness'
 import { TestSocketPair } from './TestSocketPair'
-
-// A minimal tldraw-shaped schema: the rules read typeName, parentId, meta, and props, so the
-// records need nothing else. Validators pass everything through.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-type R = any
-const passthrough = { validate: (v: unknown) => v as R }
-const docType = (name: string) =>
-	createRecordType<R>(name, { scope: 'document', validator: passthrough })
-const schema = StoreSchema.create<R>({
-	document: docType('document'),
-	page: docType('page'),
-	shape: docType('shape'),
-	binding: docType('binding'),
-	comment: docType('comment'),
-	'comment-thread': docType('comment-thread'),
-	'comment-reaction': docType('comment-reaction'),
-	instance_presence: createRecordType<R>('instance_presence', {
-		scope: 'presence',
-		validator: passthrough,
-	}),
-})
-
-const doc = (meta: Record<string, unknown> = {}): R => ({
-	id: 'document:document',
-	typeName: 'document',
-	meta,
-})
-const page = (id: string, meta: Record<string, unknown> = {}): R => ({
-	id: `page:${id}`,
-	typeName: 'page',
-	name: id,
-	meta,
-})
-const shape = (id: string, extra: Record<string, any> = {}): R => ({
-	id: `shape:${id}`,
-	typeName: 'shape',
-	type: 'geo',
-	parentId: 'page:main',
-	x: 0,
-	y: 0,
-	rotation: 0,
-	props: {},
-	meta: {},
-	...extra,
-})
-
-const disposables: (() => void)[] = []
-afterEach(() => {
-	while (disposables.length) disposables.pop()!()
-})
-
-function makeRoom(rules: TLRulesDefinition, records: R[]) {
-	const server = new TestServer<R>(
-		schema,
-		{
-			documents: records.map((state) => ({ state, lastChangedClock: 0 })),
-			clock: 1,
-			documentClock: 1,
-			schema: schema.serialize(),
-		},
-		{ rules }
-	)
-	disposables.push(() => server.room.close())
-	let n = 0
-	const clients: Client[] = []
-
-	function flush() {
-		for (let i = 0; i < 20; i++) {
-			server.flushDebouncingMessages()
-			const busy = clients.filter((c) => c.socket.getNeedsFlushing())
-			if (!busy.length) return
-			for (const c of busy) {
-				c.socket.flushClientSentEvents()
-				c.socket.flushServerSentEvents()
-			}
-		}
-	}
-
-	function connect(user: TLRuleUser, presencePageId?: string): Client {
-		const id = `session-${++n}`
-		const socket = new TestSocketPair<R>(id, server)
-		socket.connectOpts = { user }
-		socket.connect()
-		const store = new Store<R>({ schema, props: {} })
-		const access = atom<TLRoomAccess | null>('access', null)
-		const presence = atom<R | null>(
-			'presence',
-			presencePageId
-				? {
-						id: `instance_presence:${id}`,
-						typeName: 'instance_presence',
-						currentPageId: presencePageId,
-						userName: String(user.id),
-					}
-				: null
-		)
-		const client = new TLSyncClient<R>({
-			store,
-			socket: socket.clientSocket,
-			presence,
-			presenceMode: atom('presence mode', 'full' as const),
-			onLoad: () => {},
-			onSyncError: (reason) => {
-				throw new Error(`unexpected sync error: ${reason}`)
-			},
-			onAccessChange: (a) => access.set(a),
-		})
-		disposables.push(() => client.close())
-		const c = { id, socket, store, client, access, presence, user }
-		clients.push(c)
-		flush()
-		return c
-	}
-
-	const ids = (c: Client, typeName?: string): string[] =>
-		c.store
-			.allRecords()
-			.filter((r) => !typeName || r.typeName === typeName)
-			.map((r) => r.id)
-			.sort()
-
-	const stored = (id: string): R =>
-		server.storage.getSnapshot().documents.find((d) => d.state.id === id)?.state
-
-	return { server, connect, flush, ids, stored }
-}
-interface Client {
-	id: string
-	socket: TestSocketPair<R>
-	store: Store<R>
-	client: TLSyncClient<R>
-	access: Atom<TLRoomAccess | null>
-	presence: Atom<R | null>
-	user: TLRuleUser
-}
 
 describe('the client gets the rules and its user facts', () => {
 	it('at connect, and again on a live change', () => {
@@ -860,5 +716,61 @@ describe('second review findings stay fixed', () => {
 		ann.store.put([{ ...(ann.store.get('shape:card' as any) as R), x: 5 }])
 		room.flush()
 		expect(room.stored('shape:card')).toMatchObject({ x: 5, props: { richText: face('A') } })
+	})
+})
+
+describe('third review findings stay fixed', () => {
+	const face = (text: string) => ({
+		type: 'doc',
+		content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+	})
+	const card = () => shape('card', { props: { richText: face('A') }, meta: { holder: 'a' } })
+	const held = (c: { store: Store<R> }) => (c.store.get('shape:card' as any) as R).props.richText
+
+	it('sends the pusher a field that its own push made readable', () => {
+		const shapeRules = (useCaseRules.reveal.types as any).shape
+		const rules = {
+			...useCaseRules.reveal,
+			types: { shape: { ...shapeRules, update: 'true' } },
+			default: { read: 'true', write: 'true' },
+		} as TLRulesDefinition
+		const room = makeRoom(rules, [doc(), page('main'), card()])
+		const b = room.connect({ id: 'b' })
+		expect(held(b)).toEqual(face('🂠'))
+		b.store.put([{ ...(b.store.get('shape:card' as any) as R), meta: { holder: 'b' } }])
+		room.flush()
+		expect(room.stored('shape:card')).toMatchObject({
+			meta: { holder: 'b' },
+			props: { richText: face('A') },
+		})
+		expect(held(b)).toEqual(face('A'))
+	})
+
+	it('sends the real field when new rules no longer hide it', () => {
+		const room = makeRoom(useCaseRules.reveal, [doc(), page('main'), card()])
+		const b = room.connect({ id: 'b' })
+		expect(held(b)).toEqual(face('🂠'))
+		room.server.room.updateRules(useCaseRules.agent)
+		room.flush()
+		expect(held(b)).toEqual(face('A'))
+	})
+
+	it('sends the real field when new rules filter nothing', () => {
+		const room = makeRoom(useCaseRules.reveal, [doc(), page('main'), card()])
+		const b = room.connect({ id: 'b' })
+		room.server.room.updateRules({ version: 1, default: { read: 'true', write: 'true' } })
+		room.flush()
+		expect(held(b)).toEqual(face('A'))
+	})
+
+	it("shows people the agent's cursor, though the agent may not see cursors", () => {
+		const room = makeRoom(useCaseRules.agent, [doc(), page('main'), shape('f1', { type: 'frame' })])
+		const human = room.connect({ id: 'human' }, 'page:main')
+		const agent = room.connect({ id: 'bot', role: 'agent', area: 'shape:f1' }, 'page:main')
+		room.flush()
+		// a client does not hold its own presence, so the human holds exactly the agent's
+		const agentPresence = (room.server.room as any).sessions.get(agent.id).presenceId
+		expect(room.ids(human, 'instance_presence')).toEqual([agentPresence])
+		expect(room.ids(agent, 'instance_presence')).toEqual([])
 	})
 })
