@@ -1,5 +1,6 @@
 import { Atom, Signal, atom, computed } from '@tldraw/state'
 import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
+import { TLAccess } from '@tldraw/tlschema'
 import {
 	CameraRecordType,
 	DocumentRecordType,
@@ -140,7 +141,7 @@ describe('TLSyncClient', () => {
 	let onCustomMessageReceived: (data: any) => void
 	let onAfterConnect: (
 		client: TLSyncClient<TestRecord, Store<TestRecord, any>>,
-		details: { isReadonly: boolean }
+		details: { access: TLAccess }
 	) => void
 	let client: TLSyncClient<TestRecord, Store<TestRecord, any>>
 
@@ -218,7 +219,7 @@ describe('TLSyncClient', () => {
 			hydrationType: 'wipe_all',
 			protocolVersion,
 			schema: schema.serialize(),
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 			serverClock: 1,
 			diff: documentScopeDiff(),
 			...overrides,
@@ -236,7 +237,7 @@ describe('TLSyncClient', () => {
 			onCustomMessageReceived?(data: any): void
 			onAfterConnect?(
 				self: TLSyncClient<TestRecord, Store<TestRecord, any>>,
-				details: { isReadonly: boolean }
+				details: { access: TLAccess }
 			): void
 			didCancel?(): boolean
 		}> = {}
@@ -284,13 +285,13 @@ describe('TLSyncClient', () => {
 			expect(socket.getLastSentMessage().type).toBe('connect')
 		})
 
-		it('[CL2] connect message carries a fresh request id, the serialized schema, protocol version 8, and lastServerClock -1', () => {
+		it('[CL2] connect message carries a fresh request id, the serialized schema, protocol version 9, and lastServerClock -1', () => {
 			client = createClient()
 			const msg = socket.getLastSentMessage() as TLConnectRequest
 			expect(msg.type).toBe('connect')
 			expect(msg.connectRequestId).toBe(client.latestConnectRequestId)
 			expect(msg.schema).toEqual(schema.serialize())
-			expect(msg.protocolVersion).toBe(8)
+			expect(msg.protocolVersion).toBe(9)
 			expect(msg.protocolVersion).toBe(getTlsyncProtocolVersion())
 			expect(msg.lastServerClock).toBe(-1)
 		})
@@ -533,23 +534,22 @@ describe('TLSyncClient', () => {
 			expect((pushWithPage!.diff![pageId][1] as any).name).toBe('Offline Page')
 		})
 
-		it('[CL7] calls onAfterConnect with the isReadonly flag from the connect message', () => {
+		it('[CL7] calls onAfterConnect with the access from the connect message', () => {
 			client = createClient()
-			socket.mockServerMessage(createConnectMessage({ isReadonly: false }))
+			socket.mockServerMessage(
+				createConnectMessage({ access: { userId: null, abilities: ['edit', 'comment'] } })
+			)
 			expect(client.isConnectedToRoom).toBe(true)
-			// objectAccess defaults to 'write' when the server doesn't send it
 			expect(onAfterConnect).toHaveBeenCalledWith(client, {
-				isReadonly: false,
-				objectAccess: 'write',
+				access: { userId: null, abilities: ['edit', 'comment'] },
 			})
 
 			// reconnect as readonly
 			socket.mockConnectionStatus('offline')
 			socket.mockConnectionStatus('online')
-			socket.mockServerMessage(createConnectMessage({ isReadonly: true }))
+			socket.mockServerMessage(createConnectMessage({ access: { userId: null, abilities: [] } }))
 			expect(onAfterConnect).toHaveBeenLastCalledWith(client, {
-				isReadonly: true,
-				objectAccess: 'write',
+				access: { userId: null, abilities: [] },
 			})
 		})
 

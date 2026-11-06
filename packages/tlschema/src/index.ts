@@ -377,6 +377,38 @@ export {
 	type TLLanguage,
 } from './translations/translations'
 export { type SetValue } from './util-types'
+export {
+	accessCan,
+	createTransaction,
+	definePermissions,
+	TL_FULL_ACCESS,
+	type TLAccess,
+	type TLIntent,
+	type TLMutator,
+	type TLMutatorContext,
+	type TLPermissions,
+	type TLPermissionsConfig,
+	type TLReadContext,
+	type TLRecordChange,
+	type TLRecordReader,
+	type TLRule,
+	type TLTransaction,
+	type TLVerdict,
+} from './permissions/TLPermissions'
+export {
+	ancestorIdsOf,
+	COMMENT_RECORD_TYPES,
+	confineToShape,
+	defaultAbilityRules,
+	intentOwnsTypes,
+	ownerOf,
+	ownShapesOnly,
+	pageIdOf,
+	pageReadAccess,
+	pageWriteAccess,
+	recordOf,
+	requireAbility,
+} from './permissions/rules'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

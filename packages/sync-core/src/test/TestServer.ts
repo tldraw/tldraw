@@ -1,6 +1,6 @@
 import { StoreSchema, UnknownRecord } from '@tldraw/store'
+import { TLAccess } from '@tldraw/tlschema'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
-import { TLObjectStoreAccess } from '../lib/protocol'
 import { RoomSnapshot, TLSyncRoom } from '../lib/TLSyncRoom'
 import { TestSocketPair } from './TestSocketPair'
 
@@ -25,16 +25,12 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 		this.room = new TLSyncRoom<R, undefined>({ schema, storage: this.storage, ...roomOpts })
 	}
 
-	connect(
-		socketPair: TestSocketPair<R>,
-		opts?: { isReadonly?: boolean; objectAccess?: TLObjectStoreAccess }
-	): void {
+	connect(socketPair: TestSocketPair<R>, opts?: { access?: TLAccess }): void {
 		this.room.handleNewSession({
 			sessionId: socketPair.id,
 			socket: socketPair.roomSocket,
 			meta: undefined,
-			isReadonly: opts?.isReadonly ?? false,
-			objectAccess: opts?.objectAccess,
+			access: opts?.access,
 		})
 
 		socketPair.clientSocket.connectionStatus = 'online'

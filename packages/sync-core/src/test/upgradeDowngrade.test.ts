@@ -11,7 +11,7 @@ import {
 	createRecordMigrationSequence,
 	createRecordType,
 } from '@tldraw/store'
-import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
+import { commentSchemaRecords, createTLSchema, definePermissions } from '@tldraw/tlschema'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
@@ -237,7 +237,12 @@ describe('record types unknown to older clients', () => {
 	function connectWith(server: TestServer<any>, schema: SerializedSchema) {
 		const id = 'stale-tab'
 		const socket = mockSocket()
-		server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+		server.room.handleNewSession({
+			sessionId: id,
+			socket,
+			meta: undefined,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 		server.room.handleMessage(id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -376,7 +381,7 @@ it('[MG1] clients will receive updates from a snapshot migration upon connection
 		sessionId: id,
 		socket: newClientSocket,
 		meta: undefined,
-		isReadonly: false,
+		access: { userId: null, abilities: ['edit', 'comment'] },
 	})
 	newServer.room.handleMessage(id, {
 		type: 'connect',
@@ -401,7 +406,12 @@ it('[HS3] out-of-date clients will receive incompatibility errors', () => {
 	const id = 'test_upgrade_v2'
 	const socket = mockSocket()
 
-	v3server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v3server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { userId: null, abilities: ['edit', 'comment'] },
+	})
 	v3server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -422,7 +432,12 @@ it.each([
 	const id = 'test_malformed_schema'
 	const socket = mockSocket()
 
-	server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { userId: null, abilities: ['edit', 'comment'] },
+	})
 	server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -443,7 +458,12 @@ it('[HS2] clients using an out-of-date protocol will receive compatibility error
 		const id = 'test_upgrade_v3'
 		const socket = mockSocket()
 
-		v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+		v2server.room.handleNewSession({
+			sessionId: id,
+			socket,
+			meta: undefined,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 		v2server.room.handleMessage(id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -461,13 +481,18 @@ it('[HS2] clients using an out-of-date protocol will receive compatibility error
 
 // protocol v5 is treated as v6: accepted, but with the legacy rejection scheme
 // and without string-append support
-it('[HS2] v5 special case should allow connections', () => {
+it('[HS2] v5 clients are rejected as too old, with the legacy incompatibility message', () => {
 	const v2server = new TestServer(schemaV2)
 
 	const id = 'test_upgrade_v5'
 	const socket = mockSocket()
 
-	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v2server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { userId: null, abilities: ['edit', 'comment'] },
+	})
 	v2server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -476,18 +501,11 @@ it('[HS2] v5 special case should allow connections', () => {
 		schema: schemaV2.serialize(),
 	})
 
-	expect(socket.close).not.toHaveBeenCalled()
-	expect((socket.sendMessage as Mock).mock.calls[0][0]).toMatchObject({
-		type: 'connect',
-		connectRequestId: 'test',
-		protocolVersion: getTlsyncProtocolVersion(),
-		isReadonly: false,
+	expect((socket.sendMessage as Mock).mock.calls[0][0]).toEqual({
+		type: 'incompatibility_error',
+		reason: 'clientTooOld',
 	})
-
-	const session = v2server.room.sessions.get(id) as any
-	expect(session?.state).toBe('connected')
-	expect(session?.requiresLegacyRejection).toBe(true)
-	expect(session?.supportsStringAppend).toBe(false)
+	expect(v2server.room.sessions.get(id)).toBeUndefined()
 })
 
 it('[HS2] clients using a too-new protocol will receive compatibility errors', () => {
@@ -496,7 +514,12 @@ it('[HS2] clients using a too-new protocol will receive compatibility errors', (
 	const id = 'test_upgrade_v3'
 	const socket = mockSocket()
 
-	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v2server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { userId: null, abilities: ['edit', 'comment'] },
+	})
 	v2server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -539,7 +562,7 @@ it('[HS3] when the client is too new it cannot connect', () => {
 		sessionId: v2_id,
 		socket: v2_socket as any,
 		meta: undefined,
-		isReadonly: false,
+		access: { userId: null, abilities: ['edit', 'comment'] },
 	})
 	v1Server.room.handleMessage(v2_id as any, {
 		type: 'connect',
@@ -604,7 +627,7 @@ describe('when the client is too old', () => {
 			sessionId: v1Id,
 			socket: v1Socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		v2Server.room.handleMessage(v1Id, {
 			type: 'connect',
@@ -618,7 +641,7 @@ describe('when the client is too old', () => {
 			sessionId: v2Id,
 			socket: v2Socket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		v2Server.room.handleMessage(v2Id, {
 			type: 'connect',
@@ -636,8 +659,7 @@ describe('when the client is too old', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
-			isReadonly: false,
-			objectAccess: 'write',
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1SendMessage).toHaveBeenCalledWith({
@@ -648,8 +670,7 @@ describe('when the client is too old', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
-			isReadonly: false,
-			objectAccess: 'write',
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		v2SendMessage.mockClear()
@@ -844,7 +865,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		// Connect with old schema - should succeed since migration has down function
@@ -887,7 +908,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		// Connect with old schema
@@ -947,7 +968,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		// Connect with old schema
@@ -998,7 +1019,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 
 		// Connect with old schema
@@ -1040,7 +1061,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId: oldId,
 			socket: oldSocket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		server.room.handleMessage(oldId, {
 			type: 'connect',
@@ -1057,7 +1078,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId: newId,
 			socket: newSocket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		server.room.handleMessage(newId, {
 			type: 'connect',
@@ -1138,7 +1159,7 @@ describe('when the client is the same version', () => {
 			sessionId: aId,
 			socket: aSocket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		v2Server.room.handleMessage(aId, {
 			type: 'connect',
@@ -1152,7 +1173,7 @@ describe('when the client is the same version', () => {
 			sessionId: bId,
 			socket: bSocket,
 			meta: undefined,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		})
 		v2Server.room.handleMessage(bId, {
 			type: 'connect',
@@ -1170,8 +1191,7 @@ describe('when the client is the same version', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
-			isReadonly: false,
-			objectAccess: 'write',
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
@@ -1182,8 +1202,7 @@ describe('when the client is the same version', () => {
 			protocolVersion: getTlsyncProtocolVersion(),
 			schema: schemaV2.serialize(),
 			serverClock: 10,
-			isReadonly: false,
-			objectAccess: 'write',
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		} satisfies TLSocketServerSentEvent<RV2>)
 		;(aSocket.sendMessage as Mock).mockClear()
 		;(bSocket.sendMessage as Mock).mockClear()
@@ -1259,18 +1278,28 @@ describe('when the client is the same version', () => {
 	})
 })
 
-describe('record authorizers see server-schema records', () => {
-	function makeInstance(authorizeUser: (args: any) => any) {
+describe('permission rules see server-schema records', () => {
+	// one rule that sees each changed record, like the old per-record authorizer
+	function makeInstance(onChange: (change: { op: string; prev: any; next: any }) => string | void) {
 		return new TestInstance(undefined, schemaV1, schemaV2, {
-			authorizeRecord: { user: authorizeUser },
+			permissions: definePermissions<any>({
+				rules: [
+					(tx) => {
+						for (const change of tx.changes) {
+							const reason = onChange(change)
+							if (reason) return reason
+						}
+						return undefined
+					},
+				],
+			}),
 		})
 	}
 
-	it('a put from an old client reaches the authorizer up-migrated', () => {
+	it('a put from an old client reaches the rule up-migrated', () => {
 		const seen: any[] = []
-		const t = makeInstance((args: any) => {
-			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
-			return args.next
+		const t = makeInstance((change) => {
+			seen.push(structuredClone({ op: change.op, prev: change.prev, next: change.next }))
 		})
 		t.oldSocketPair.connect()
 		t.flush()
@@ -1280,33 +1309,15 @@ describe('record authorizers see server-schema records', () => {
 		t.flush()
 
 		expect(seen).toHaveLength(1)
-		expect(seen[0].type).toBe('create')
+		expect(seen[0].op).toBe('create')
 		expect(seen[0].next).toMatchObject({ name: 'bob', birthdate: null })
 		expect(seen[0].next).not.toHaveProperty('age')
 	})
 
-	it('a stamp applied on create survives — no migration runs after the authorizer', () => {
-		const t = makeInstance((args: any) =>
-			args.type === 'create' ? { ...args.next, birthdate: '2001-02-03' } : args.next
-		)
-		t.oldSocketPair.connect()
-		t.flush()
-
-		const user = UserV1.create({ name: 'bob', age: 10 })
-		t.oldClient.store.put([user])
-		t.flush()
-
-		expect(t.server.storage.documents.get(user.id)?.state).toMatchObject({
-			name: 'bob',
-			birthdate: '2001-02-03',
-		})
-	})
-
-	it('a patch from an old client reaches the authorizer as the upgraded committed candidate', () => {
+	it('a patch from an old client reaches the rule as the upgraded committed candidate', () => {
 		const seen: any[] = []
-		const t = makeInstance((args: any) => {
-			seen.push(structuredClone({ type: args.type, prev: args.prev, next: args.next }))
-			return args.next
+		const t = makeInstance((change) => {
+			seen.push(structuredClone({ op: change.op, prev: change.prev, next: change.next }))
 		})
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()
@@ -1321,18 +1332,17 @@ describe('record authorizers see server-schema records', () => {
 		t.flush()
 
 		expect(seen).toHaveLength(1)
-		expect(seen[0].type).toBe('update')
+		expect(seen[0].op).toBe('update')
 		expect(seen[0].prev).toMatchObject({ name: 'bob', birthdate: '2022-01-09' })
 		// The down→patch→up round-trip through the lossy v1 schema resets birthdate to null.
-		// The authorizer must see exactly what will be committed — not a preview mixing the
-		// server record with the raw v1 diff (which would still show the old birthdate).
+		// The rule must see exactly what will be committed.
 		expect(seen[0].next).toMatchObject({ name: 'bobby', birthdate: null })
 		expect(seen[0].next).not.toHaveProperty('age')
 	})
 
-	it('vetoes based on the server-schema record', () => {
-		const t = makeInstance((args: any) =>
-			args.type === 'update' && args.next.name === 'forged' ? null : args.next
+	it('denies based on the server-schema record', () => {
+		const t = makeInstance((change) =>
+			change.op === 'update' && change.next.name === 'forged' ? 'no forging' : undefined
 		)
 		t.oldSocketPair.connect()
 		t.newSocketPair.connect()

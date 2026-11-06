@@ -42,6 +42,7 @@ export {
 	type RecordFromId,
 	type SerializedStore,
 	type StoreError,
+	type StoreIntent,
 	type StoreListener,
 	type StoreListenerFilters,
 	type StoreObject,

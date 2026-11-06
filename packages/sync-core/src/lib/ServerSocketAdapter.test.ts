@@ -38,7 +38,7 @@ describe('ServerSocketAdapter', () => {
 			schema: { schemaVersion: 1, storeVersion: 0, recordVersions: {} },
 			diff: {},
 			serverClock: 0,
-			isReadonly: false,
+			access: { userId: null, abilities: ['edit', 'comment'] },
 		}
 
 		adapter.sendMessage(message)

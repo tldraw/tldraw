@@ -7,6 +7,7 @@
 import { Atom } from '@tldraw/state';
 import { Computed } from '@tldraw/state';
 import { Expand } from '@tldraw/utils';
+import { JsonValue } from '@tldraw/utils';
 import { Result } from '@tldraw/utils';
 import { Signal } from '@tldraw/state';
 import { UNINITIALIZED } from '@tldraw/state';
@@ -140,6 +141,7 @@ export function devFreeze<T>(object: T): T;
 // @public
 export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
     changes: RecordsDiff<R>;
+    intent?: null | StoreIntent;
     source: ChangeSource;
 }
 
@@ -419,6 +421,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     // (undocumented)
     _flushHistory(): void;
     get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
+    getCurrentIntent(): null | StoreIntent;
     getStoreSnapshot(scope?: 'all' | RecordScope): StoreSnapshot<R>;
     has<K extends IdOf<R>>(id: K): boolean;
     readonly history: Atom<number, RecordsDiff<R>>;
@@ -445,6 +448,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
+    withIntent<T>(intent: null | StoreIntent, fn: () => T): T;
 }
 
 // @public
@@ -472,6 +476,14 @@ export interface StoreError {
     phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord';
     recordAfter: unknown;
     recordBefore?: unknown;
+}
+
+// @public
+export interface StoreIntent {
+    // (undocumented)
+    readonly args?: JsonValue;
+    // (undocumented)
+    readonly name: string;
 }
 
 // @public

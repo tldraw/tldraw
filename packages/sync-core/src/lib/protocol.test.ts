@@ -4,8 +4,8 @@ import { TLRemoteSyncError } from './TLRemoteSyncError'
 import { TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 
 describe('protocol constants and errors', () => {
-	it('[PV1] getTlsyncProtocolVersion() returns 8', () => {
-		expect(getTlsyncProtocolVersion()).toBe(8)
+	it('[PV1] getTlsyncProtocolVersion() returns 9', () => {
+		expect(getTlsyncProtocolVersion()).toBe(9)
 	})
 
 	it('[PV2] TLSyncErrorCloseEventCode is 4099', () => {

@@ -7,6 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
+import { TLAccess, TLIntent } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -24,7 +25,6 @@ import {
 } from './diff'
 import { interval } from './interval'
 import {
-	TLObjectStoreAccess,
 	TLPushRequest,
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
@@ -361,11 +361,12 @@ function getPresenceOp<R extends UnknownRecord>(
  *       showChatMessage(data.message, data.from)
  *     }
  *   },
- *   onAfterConnect: (client, { isReadonly }) => {
- *     if (isReadonly) {
+ *   onAfterConnect: (client, { access }) => {
+ *     if (!access.abilities.includes('edit')) {
  *       showNotification('Connected in read-only mode')
  *     }
- *   }
+ *   },
+ *   onPushDenied: ({ reason }) => showNotification(reason),
  * })
  * ```
  *
@@ -383,10 +384,15 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: TLPushRequest<R>[] = []
+	/**
+	 * Local changes not sent yet. Each entry becomes one push. Consecutive changes with the same
+	 * intent share an entry; a new intent starts a new one, so the server checks each named
+	 * operation on its own and never denies one operation for another's sake.
+	 */
 	private unsentChanges: {
-		nextDiff?: RecordsDiff<R>
+		nextDiffs: Array<{ intent: TLIntent | null; diff: RecordsDiff<R> }>
 		nextPresence?: R | null
-	} = { nextDiff: undefined, nextPresence: undefined }
+	} = { nextDiffs: [], nextPresence: undefined }
 
 	/**
 	 * The diff of 'unconfirmed', 'optimistic' changes that have been made locally by the user if we
@@ -450,14 +456,15 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 *
 	 * @param self - The TLSyncClient instance that connected
 	 * @param details - Connection details
-	 *   - isReadonly - Whether the connection is in read-only mode
-	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write'
-	 *     when the server doesn't send it, e.g. older servers or rooms with no object lane)
+	 *   - access - What this session may do
 	 */
-	private readonly onAfterConnect?: (
-		self: this,
-		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
-	) => void
+	private readonly onAfterConnect?: (self: this, details: { access: TLAccess }) => void
+
+	/** Called when the server changes this session's access, with no reconnect. */
+	private readonly onAccessChange?: (access: TLAccess) => void
+
+	/** Called when the server's permissions deny a push. The push was rolled back. */
+	private readonly onPushDenied?: (info: { reason: string; intent: TLIntent | null }) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
@@ -497,10 +504,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
-		onAfterConnect?(
-			self: TLSyncClient<R, S>,
-			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
-		): void
+		onAfterConnect?(self: TLSyncClient<R, S>, details: { access: TLAccess }): void
+		onAccessChange?(access: TLAccess): void
+		onPushDenied?(info: { reason: string; intent: TLIntent | null }): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -520,36 +526,36 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
 				return
 			}
-			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
+			if (!this.unsentChanges.nextDiffs.length && !this.unsentChanges.nextPresence) {
 				return
 			}
-			const diff = this.unsentChanges.nextDiff
-				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
-				: undefined
 			const presence = this.unsentChanges.nextPresence
 				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
 				: undefined
-
-			if (!diff && !presence) {
-				return
+			const requests: TLPushRequest<R>[] = []
+			for (const { intent, diff } of this.unsentChanges.nextDiffs) {
+				const networkDiff = getNetworkDiff(diff)
+				if (!networkDiff) continue
+				const request: TLPushRequest<R> = { type: 'push', clientClock: 0, diff: networkDiff }
+				if (intent) request.intent = intent
+				requests.push(request)
+			}
+			if (presence) {
+				if (requests.length) requests[requests.length - 1].presence = presence
+				else requests.push({ type: 'push', clientClock: 0, presence })
 			}
 
-			const pushRequest: TLPushRequest<R> = {
-				type: 'push',
-				clientClock: this.clientClock,
-				diff,
-				presence,
+			for (const pushRequest of requests) {
+				pushRequest.clientClock = this.clientClock++
+				this.debug('sending push request', pushRequest)
+				this.socket.sendMessage(pushRequest)
+				this.pendingPushRequests.push(pushRequest)
 			}
-
-			this.debug('sending push request', pushRequest)
-			this.socket.sendMessage(pushRequest)
 
 			if (this.unsentChanges.nextPresence) {
 				this.lastPushedPresenceState = this.unsentChanges.nextPresence
 			}
-			this.clientClock++
-			this.pendingPushRequests.push(pushRequest)
-			this.unsentChanges.nextDiff = undefined
+			this.unsentChanges.nextDiffs = []
 			this.unsentChanges.nextPresence = undefined
 		})
 
@@ -561,6 +567,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.store = config.store
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
+		this.onAccessChange = config.onAccessChange
+		this.onPushDenied = config.onPushDenied
 		this.onCustomMessageReceived = config.onCustomMessageReceived
 
 		let didLoad = false
@@ -572,10 +580,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// when local 'user' changes are made, send them to the server
 			// or stash them locally in offline mode
 			this.store.listen(
-				({ changes }) => {
+				({ changes, intent }) => {
 					if (this.didCancel?.()) return this.close()
 					this.debug('received store changes', { changes })
-					this.push(changes)
+					this.push(changes, intent ?? null)
 				},
 				{ source: 'user', scope: 'document' }
 			),
@@ -724,7 +732,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.firstUnansweredPingAt = null
 		this.pendingPushRequests = []
 		this.incomingDiffBuffer = []
-		this.unsentChanges.nextDiff = undefined
+		this.unsentChanges.nextDiffs = []
 		this.unsentChanges.nextPresence = undefined
 		if (this.socket.connectionStatus === 'online') {
 			this.socket.restart()
@@ -813,10 +821,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
-			this.onAfterConnect?.(this, {
-				isReadonly: event.isReadonly,
-				objectAccess: event.objectAccess ?? 'write',
-			})
+			this.onAfterConnect?.(this, { access: event.access })
+			this.onAccessChange?.(event.access)
 			const presence = this.presenceState?.get()
 			if (presence) {
 				this.pushPresence(presence)
@@ -859,6 +865,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				break
 			case 'custom':
 				this.onCustomMessageReceived?.call(null, event.data)
+				break
+			case 'access':
+				this.onAccessChange?.(event.access)
 				break
 
 			default:
@@ -905,17 +914,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	}
 
 	/** Push a change to the server, or stash it locally if we're offline */
-	private push(change: RecordsDiff<any>) {
+	private push(change: RecordsDiff<any>, intent: TLIntent | null = null) {
 		this.debug('push', change)
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
-		// in offline mode, we only accumulate in speculativeChanges
+		// in offline mode, we only accumulate in speculativeChanges. Offline changes go up as one
+		// push with no intent when the client reconnects.
 		if (!this.isConnectedToRoom) return
-		if (!this.unsentChanges.nextDiff) {
-			this.unsentChanges.nextDiff = { added: {} as any, updated: {} as any, removed: {} as any }
+		const queue = this.unsentChanges.nextDiffs
+		let entry = queue[queue.length - 1]
+		if (!entry || entry.intent !== intent) {
+			entry = { intent, diff: { added: {} as any, updated: {} as any, removed: {} as any } }
+			queue.push(entry)
 		}
 		// records are immutable, so sharing their references with `change` is fine — the
-		// squash gives nextDiff its own containers and tuples without deep-cloning records
-		squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
+		// squash gives the entry its own containers and tuples without deep-cloning records
+		squashRecordDiffsMutable(entry.diff, [change])
 		this.sendUnsentChanges()
 	}
 
@@ -974,6 +987,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+		const denials: Array<{ reason: string; intent: TLIntent | null }> = []
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -996,7 +1010,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						)
 					}
 					if (diff.action === 'discard') {
-						this.pendingPushRequests.shift()
+						const request = this.pendingPushRequests.shift()!
+						if (diff.denied)
+							denials.push({ reason: diff.denied.reason, intent: request.intent ?? null })
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1014,10 +1030,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 							if (!('diff' in request) || !request.diff) continue
 							this.applyNetworkDiff(request.diff, true)
 						}
-						if (!this.unsentChanges.nextDiff) return
-						const diff = getNetworkDiff(this.unsentChanges.nextDiff)
-						if (!diff) return
-						this.applyNetworkDiff(diff, true)
+						for (const { diff: unsent } of this.unsentChanges.nextDiffs) {
+							const diff = getNetworkDiff(unsent)
+							if (diff) this.applyNetworkDiff(diff, true)
+						}
 					})
 				} catch (e) {
 					console.error(e)
@@ -1027,6 +1043,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 			})
 			this.lastServerClock = diffs.at(-1)?.serverClock ?? this.lastServerClock
+			for (const denial of denials) this.onPushDenied?.(denial)
 		} catch (e) {
 			console.error(e)
 			this.store.ensureStoreIsUsable()

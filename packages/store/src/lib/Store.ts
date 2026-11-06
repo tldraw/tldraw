@@ -9,6 +9,7 @@ import {
 	transact,
 } from '@tldraw/state'
 import {
+	JsonValue,
 	WeakCache,
 	assert,
 	filterEntries,
@@ -119,6 +120,22 @@ export interface HistoryEntry<R extends UnknownRecord = UnknownRecord> {
 	changes: RecordsDiff<R>
 	/** The source of these changes */
 	source: ChangeSource
+	/**
+	 * The named operation these changes belong to, if the writer gave one (see
+	 * {@link Store.withIntent}). Entries with different intents are never squashed together.
+	 */
+	intent?: StoreIntent | null
+}
+
+/**
+ * A named operation that a set of changes belongs to. The sync client sends it with the changes,
+ * so the server can check or run the operation by name.
+ *
+ * @public
+ */
+export interface StoreIntent {
+	readonly name: string
+	readonly args?: JsonValue
 }
 
 /**
@@ -536,7 +553,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const errors: unknown[] = []
 			const wasFlushingHistory = this.isFlushingHistory
 			this.isFlushingHistory = true
-			for (const { changes, source } of entries) {
+			for (const { changes, source, intent } of entries) {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
 				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
@@ -556,7 +573,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 					// The entries are already dequeued, so a listener that throws must not stop the others
 					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
 					try {
-						onHistory({ changes: listenerChanges, source })
+						onHistory({ changes: listenerChanges, source, intent })
 					} catch (error) {
 						errors.push(error)
 					}
@@ -611,6 +628,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			{
 				changes,
 				source: this.isMergingRemoteChanges ? 'remote' : 'user',
+				intent: this.isMergingRemoteChanges ? null : this.currentIntent,
 			},
 			version
 		)
@@ -1061,6 +1079,30 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	private isMergingRemoteChanges = false
 
+	private currentIntent: StoreIntent | null = null
+
+	/**
+	 * Run `fn` as one named operation. Changes that `fn` makes carry `intent` to store listeners,
+	 * and the sync client sends them as one push with the intent attached. When calls nest, the
+	 * outermost intent wins: it is the one the user asked for.
+	 *
+	 * @public
+	 */
+	withIntent<T>(intent: StoreIntent | null, fn: () => T): T {
+		if (this.currentIntent || !intent) return fn()
+		this.currentIntent = intent
+		try {
+			return fn()
+		} finally {
+			this.currentIntent = null
+		}
+	}
+
+	/** The intent of the operation that is running now, if any. @public */
+	getCurrentIntent(): StoreIntent | null {
+		return this.currentIntent
+	}
+
 	/**
 	 * Merge changes from a remote source. Changes made within the provided function
 	 * will be marked with source 'remote' instead of 'user'.
@@ -1390,7 +1432,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
-		if (chunk[0].source !== entry.source) {
+		if (chunk[0].source !== entry.source || chunk[0].intent !== entry.intent) {
 			chunked.push(chunk)
 			chunk = []
 		}
@@ -1402,6 +1444,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 	return devFreeze(
 		chunked.map((chunk) => ({
 			source: chunk[0].source,
+			intent: chunk[0].intent,
 			// a single-entry chunk needs no squashing — skip the O(N) copy of its diff
 			changes:
 				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),

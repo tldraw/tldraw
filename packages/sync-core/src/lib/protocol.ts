@@ -1,7 +1,8 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import { TLAccess, TLIntent } from '@tldraw/tlschema'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
 
-const TLSYNC_PROTOCOL_VERSION = 8
+const TLSYNC_PROTOCOL_VERSION = 9
 
 /**
  * Gets the current tldraw sync protocol version number.
@@ -23,17 +24,6 @@ const TLSYNC_PROTOCOL_VERSION = 8
 export function getTlsyncProtocolVersion() {
 	return TLSYNC_PROTOCOL_VERSION
 }
-
-/**
- * Access level for object-store lane record types (see `objectTypes` on the room).
- *
- * Object-lane records (e.g. comments) are gated by this per-session value instead of the
- * document-lane `isReadonly` flag, so a session can be allowed to write objects without
- * being allowed to edit the document ("can comment but not edit"), or vice versa.
- *
- * @public
- */
-export type TLObjectStoreAccess = 'read' | 'write'
 
 /**
  * Constants defining the different types of protocol incompatibility reasons.
@@ -118,13 +108,13 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			schema: SerializedSchema
 			diff: NetworkDiff<R>
 			serverClock: number
-			isReadonly: boolean
-			/**
-			 * Write access for object-store lane record types, when the room has an object lane.
-			 * Optional and additive: servers without an object lane (or older servers) omit it, and
-			 * older clients ignore it — no protocol version bump needed.
-			 */
-			objectAccess?: TLObjectStoreAccess
+			/** What this session may do. Changes later arrive as an `access` message. */
+			access: TLAccess
+	  }
+	| {
+			/** The session's access changed. Sent at any time, with no reconnect. */
+			type: 'access'
+			access: TLAccess
 	  }
 	| {
 			type: 'incompatibility_error'
@@ -174,6 +164,8 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** Set when the permissions denied the push. The whole push was discarded. */
+			denied?: { reason: string }
 	  }
 
 /**
@@ -205,6 +197,11 @@ export interface TLPushRequest<R extends UnknownRecord> {
 	clientClock: number
 	diff?: NetworkDiff<R>
 	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
+	/**
+	 * The named operation this push carries. One push holds one intent at most, so the server
+	 * checks (or runs) it as one unit.
+	 */
+	intent?: TLIntent
 }
 
 /**

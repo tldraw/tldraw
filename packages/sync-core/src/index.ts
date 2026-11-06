@@ -24,7 +24,6 @@ export {
 	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	TLIncompatibilityReason,
 	type TLConnectRequest,
-	type TLObjectStoreAccess,
 	type TLPingRequest,
 	type TLPushRequest,
 	type TLSocketClientSentEvent,
@@ -70,8 +69,6 @@ export {
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
-	type TLRecordAuthorizer,
-	type TLRecordAuthorizers,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {
