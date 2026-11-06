@@ -173,6 +173,33 @@ describe('feed query shape', () => {
 // missing the groupMembers hop, or a feed that lost `authorId != me` all keep the same shape. The
 // client re-derives each reason from the rows it gets, so e2e can't see an over-fetch either.
 // These run the real queries over a seeded in-memory replica instead.
+type Rows = Record<string, Record<string, unknown>[]>
+
+function seed(rows: Rows) {
+	const lc: any = { withContext: () => lc, info() {}, warn() {}, error() {} }
+	const db = new Database(lc, ':memory:')
+	for (const [name, table] of Object.entries(schema.tables)) {
+		const ident = (c: string) => `"${c}"`
+		db.exec(`CREATE TABLE "${name}" (${Object.keys(table.columns).map(ident).join(', ')})`)
+		db.exec(
+			`CREATE UNIQUE INDEX "${name}_pk" ON "${name}" (${table.primaryKey.map(ident).join(', ')})`
+		)
+		for (const row of rows[name] ?? []) {
+			const cols = Object.keys(row)
+			db.prepare(
+				`INSERT INTO "${name}" (${cols.map(ident).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
+			).run(
+				...cols.map((c) => {
+					const v = row[c]
+					const type = (table.columns as Record<string, { type: string }>)[c].type
+					return type === 'boolean' ? (v ? 1 : 0) : type === 'json' ? JSON.stringify(v) : v
+				})
+			)
+		}
+	}
+	return new QueryDelegate(lc, db, schema)
+}
+
 describe('feed query results', () => {
 	const me = ctx.userId
 	const other = 'user_other'
@@ -180,7 +207,6 @@ describe('feed query results', () => {
 	const W = 'group_w' // a workspace I'm in
 	const X = 'group_x' // a workspace I'm not in
 
-	type Rows = Record<string, Record<string, unknown>[]>
 	const file = (id: string, owningGroupId: string, isDeleted = false) => ({
 		id,
 		owningGroupId,
@@ -268,31 +294,6 @@ describe('feed query results', () => {
 		],
 	}
 
-	function seed(rows: Rows) {
-		const lc: any = { withContext: () => lc, info() {}, warn() {}, error() {} }
-		const db = new Database(lc, ':memory:')
-		for (const [name, table] of Object.entries(schema.tables)) {
-			const ident = (c: string) => `"${c}"`
-			db.exec(`CREATE TABLE "${name}" (${Object.keys(table.columns).map(ident).join(', ')})`)
-			db.exec(
-				`CREATE UNIQUE INDEX "${name}_pk" ON "${name}" (${table.primaryKey.map(ident).join(', ')})`
-			)
-			for (const row of rows[name] ?? []) {
-				const cols = Object.keys(row)
-				db.prepare(
-					`INSERT INTO "${name}" (${cols.map(ident).join(', ')}) VALUES (${cols.map(() => '?').join(', ')})`
-				).run(
-					...cols.map((c) => {
-						const v = row[c]
-						const type = (table.columns as Record<string, { type: string }>)[c].type
-						return type === 'boolean' ? (v ? 1 : 0) : type === 'json' ? JSON.stringify(v) : v
-					})
-				)
-			}
-		}
-		return new QueryDelegate(lc, db, schema)
-	}
-
 	const delegate = seed(rows)
 	async function ids(name: keyof typeof queries) {
 		const query = (queries as any)[name].fn({ ctx, args: {} })
@@ -335,5 +336,41 @@ describe('feed query results', () => {
 		['comments'],
 	] as const)('bounds %s to the most recent comments', (name) => {
 		expect(astOf(name).limit).toBe(50)
+	})
+})
+
+describe('collections query', () => {
+	const me = ctx.userId
+	const W = 'group_w' // a workspace I'm in
+	const X = 'group_x' // a workspace I'm not in
+
+	const delegate = seed({
+		group: [
+			{ id: me, isDeleted: false },
+			{ id: W, isDeleted: false },
+			{ id: X, isDeleted: false },
+		],
+		group_user: [
+			{ userId: me, groupId: me },
+			{ userId: me, groupId: W },
+			{ userId: 'user_other', groupId: X },
+		],
+		collection: [
+			{ id: 'c_private', owningGroupId: me, createdAt: 1 },
+			{ id: 'c_w', owningGroupId: W, createdAt: 2 },
+			{ id: 'c_x', owningGroupId: X, createdAt: 3 },
+		],
+		collection_item: [
+			{ id: 'i_w', collectionId: 'c_w', createdAt: 1 },
+			{ id: 'i_x', collectionId: 'c_x', createdAt: 1 },
+		],
+	})
+
+	it("returns the collections of every workspace I'm in, home included, with their items", async () => {
+		const result = await delegate.run(queries.collections.fn({ ctx, args: undefined }))
+		expect(result.map((c) => [c.id, c.items.map((i) => i.id)])).toEqual([
+			['c_private', []],
+			['c_w', ['i_w']],
+		])
 	})
 })

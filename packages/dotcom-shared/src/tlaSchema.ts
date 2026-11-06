@@ -9,7 +9,7 @@ import {
 	string,
 	table,
 } from '@rocicorp/zero'
-import { IndexKey } from '@tldraw/utils'
+import { IndexKey, JsonObject } from '@tldraw/utils'
 import { Role } from './roles'
 
 export interface ZColumn {
@@ -225,6 +225,32 @@ export const comment_reaction = table('comment_reaction')
 	})
 	.primaryKey('id')
 
+// A workspace's collection of saved shapes. Its items' content and thumbnails are stored in R2 by
+// the sync worker, so these rows carry listing metadata only.
+export const collection = table('collection')
+	.columns({
+		id: string(),
+		name: string(),
+		owningGroupId: string(),
+		createdBy: string(),
+		createdAt: number(),
+		updatedAt: number(),
+		meta: json<JsonObject>(),
+	})
+	.primaryKey('id')
+
+export const collection_item = table('collection_item')
+	.columns({
+		id: string(),
+		collectionId: string(),
+		name: string().optional(),
+		thumbnailType: string().optional(),
+		createdBy: string(),
+		createdAt: number(),
+		updatedAt: number(),
+	})
+	.primaryKey('id')
+
 const fileRelationships = relationships(file, ({ many }) => ({
 	states: many({
 		sourceField: ['id'],
@@ -383,6 +409,19 @@ const commentThreadRelationships = relationships(comment_thread, ({ one, many })
 	}),
 }))
 
+const collectionRelationships = relationships(collection, ({ one, many }) => ({
+	group: one({
+		sourceField: ['owningGroupId'],
+		destField: ['id'],
+		destSchema: group,
+	}),
+	items: many({
+		sourceField: ['id'],
+		destField: ['collectionId'],
+		destSchema: collection_item,
+	}),
+}))
+
 export type TlaFilePartial = Partial<TlaFile> & {
 	id: TlaFile['id']
 }
@@ -515,6 +554,8 @@ export interface DB {
 	comment_mention: TlaCommentMention
 	comment_reaction: TlaCommentReaction & CommentReactionPersistenceColumns
 	effect_outbox: TlaEffectOutbox
+	collection: TlaCollection
+	collection_item: TlaCollectionItem
 }
 
 export const schema = createSchema({
@@ -531,6 +572,8 @@ export const schema = createSchema({
 		comment_read,
 		comment_mention,
 		comment_reaction,
+		collection,
+		collection_item,
 	],
 	relationships: [
 		fileRelationships,
@@ -541,6 +584,7 @@ export const schema = createSchema({
 		groupFileRelationships,
 		commentRelationships,
 		commentThreadRelationships,
+		collectionRelationships,
 	],
 })
 
@@ -557,6 +601,8 @@ export type TlaCommentThread = Row<typeof schema.tables.comment_thread>
 export type TlaCommentRead = Row<typeof schema.tables.comment_read>
 export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
 export type TlaCommentReaction = Row<typeof schema.tables.comment_reaction>
+export type TlaCollection = Row<typeof schema.tables.collection>
+export type TlaCollectionItem = Row<typeof schema.tables.collection_item>
 
 // Permissions are now handled via Synced Queries in queries.ts
 
