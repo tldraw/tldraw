@@ -2,8 +2,9 @@ import type { UnknownRecord } from '@tldraw/store'
 import type { TLBeforeWriteHook, TLBeforeWriteHooks } from './TLSyncRoom'
 
 /**
- * An access check for one client write: return `true` to allow it, `false` to reject it. It gets
- * the same arguments as a {@link TLBeforeWriteHook}, including `get` to read other records.
+ * An access check for one client write: return `true` to allow it, `false` to reject it. Only
+ * `true` allows the write, so a non-boolean result, such as the Promise of an async check, rejects
+ * it. It gets the same arguments as a {@link TLBeforeWriteHook}, including `get` to read other records.
  *
  * @public
  */
@@ -48,7 +49,7 @@ export function canWrite<R extends UnknownRecord, SessionMeta>(
 	const hooks: Record<string, TLBeforeWriteHook<R, SessionMeta>> = {}
 	for (const [typeName, check] of Object.entries(checks as Record<string, AnyCheck | undefined>)) {
 		if (!check) continue
-		hooks[typeName] = (args) => (check(args) ? undefined : args.prev)
+		hooks[typeName] = (args) => (check(args) === true ? undefined : args.prev)
 	}
 	return hooks as unknown as TLBeforeWriteHooks<R, SessionMeta>
 }

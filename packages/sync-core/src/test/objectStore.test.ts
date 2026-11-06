@@ -38,7 +38,12 @@ interface PresenceRecord extends BaseRecord<'presence', RecordId<PresenceRecord>
 
 const Doc = createRecordType<DocRecord>('doc', {
 	scope: 'document',
-	validator: { validate: (value) => value as DocRecord },
+	validator: {
+		validate: (value) => {
+			if (typeof (value as DocRecord).title !== 'string') throw new Error('title must be a string')
+			return value as DocRecord
+		},
+	},
 })
 const Note = createRecordType<NoteRecord>('note', {
 	scope: 'document',
@@ -920,6 +925,16 @@ describe('canWrite', () => {
 		expect(storedNote(storage, note.id)?.text).toBe('x')
 	})
 
+	it('rejects a write when a check returns a truthy non-boolean or a Promise', () => {
+		for (const check of [() => 'yes', async () => true]) {
+			const { room, storage, note } = roomWith(canWrite<R, undefined>({ note: check as any }))
+
+			push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'x'] }] })
+
+			expect(storedNote(storage, note.id)?.text).toBe('seeded')
+		}
+	})
+
 	it('composes with a stamping hook, and the later check sees the stamped record', () => {
 		const seen: string[] = []
 		const { room, storage, note } = roomWith(
@@ -1218,6 +1233,7 @@ describe('beforeRead', () => {
 			],
 			['changes the id', ({ record }: any) => ({ ...record, id: 'doc:other' })],
 			['changes the typeName', ({ record }: any) => ({ ...record, typeName: 'note' })],
+			['returns an invalid copy', ({ record }: any) => ({ ...record, title: 42 })],
 		])('sends nothing when the hook %s', (_, hook) => {
 			const log = { error: vi.fn(), warn: vi.fn() }
 			const { room } = roomWith({ doc: hook }, log)
