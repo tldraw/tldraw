@@ -23,6 +23,7 @@ import {
 	TLBaseShape,
 	TLAccess,
 	TLDOCUMENT_ID,
+	TL_FULL_ACCESS,
 	TLRecord,
 	TLShapeId,
 	createTLSchema,
@@ -223,7 +224,7 @@ function connectSession(
 		sessionId,
 		socket,
 		meta: undefined,
-		access: opts.access,
+		access: opts.access ?? TL_FULL_ACCESS,
 	})
 	room.handleMessage(sessionId, {
 		type: 'connect',

@@ -12,7 +12,6 @@ import {
 	createTransaction,
 	defaultAbilityRules,
 	definePermissions,
-	TL_FULL_ACCESS,
 	TLAccess,
 	TLIntent,
 	TLMutatorContext,
@@ -27,6 +26,7 @@ import {
 	isEqual,
 	isNativeStructuredClone,
 	objectMapEntriesIterable,
+	objectMapKeys,
 	Result,
 	throttle,
 	type ThrottledFunction,
@@ -66,6 +66,31 @@ import {
 	TLSyncStorageTransaction,
 	toNetworkDiff,
 } from './TLSyncStorage'
+
+/** What a session gets when the host passes no access: nothing. */
+const NO_ACCESS: TLAccess = Object.freeze({ userId: null, abilities: Object.freeze([]) })
+
+/**
+ * The room's own copy of an access. Indexes and denials are keyed by access, so a host that
+ * changed its object in place would desync the session from its index.
+ */
+function freezeAccess(access: TLAccess): TLAccess {
+	if (Object.isFrozen(access) && Object.isFrozen(access.abilities)) return access
+	return Object.freeze({ userId: access.userId, abilities: Object.freeze([...access.abilities]) })
+}
+
+/**
+ * Denials of pushes that touch hidden records all use this one reason, so the answer does not
+ * say whether the record exists. It matches the canRead check in `definePermissions`.
+ */
+const CANNOT_SEE = 'You cannot change records you cannot see.'
+
+/**
+ * Most ids a session keeps from denied pushes. A client that never acknowledges its denials
+ * would otherwise grow the set forever. At the cap the room no longer knows every denied id,
+ * so it denies every push until the client has seen the denials.
+ */
+const MAX_DENIED_IDS = 5000
 
 /**
  * WebSocket interface for server-side room connections. This defines the contract
@@ -318,7 +343,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly permissions: TLPermissions<R>
 	/** What each access can see, when the room filters reads. */
-	private readonly visibility: RoomVisibility<R> | null
+	private visibility: RoomVisibility<R> | null
 	private onPushDenied?(args: TLPushDeniedInfo<SessionMeta>): void
 	private readonly sessionIdleTimeout: number
 
@@ -677,7 +702,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 *   - sessionId - Unique identifier for this session
 	 *   - socket - WebSocket adapter for communication
 	 *   - meta - Application-specific metadata for this session
-	 *   - access - What this session may do (defaults to full access)
+	 *   - access - What this session may do. Left out, it may do nothing.
 	 * @returns This room instance for method chaining
 	 * @example
 	 * ```ts
@@ -697,7 +722,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		access?: TLAccess
 	}) {
-		const { sessionId, socket, meta, access } = opts
+		const { sessionId, socket, meta } = opts
+		if (!opts.access) {
+			this.log?.warn?.('session connected with no access: it can read but not write')
+		}
+		const access = opts.access ? freezeAccess(opts.access) : NO_ACCESS
 		// a connect racing close() would otherwise create a session nothing ever prunes
 		if (this._isClosed) {
 			socket.close()
@@ -712,7 +741,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			presenceId: existing?.presenceId ?? this.presenceType?.createId() ?? null,
 			sessionStartTime: Date.now(),
 			meta,
-			access: access ?? TL_FULL_ACCESS,
+			access,
 			visibleIds: null,
 			deniedCount: 0,
 			deniedIds: new Set(),
@@ -769,7 +798,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			debounceTimer: null,
 			outstandingDataMessages: [],
 			meta,
-			access,
+			access: freezeAccess(access),
 			visibleIds: null,
 			deniedCount: 0,
 			deniedIds: new Set(),
@@ -985,6 +1014,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (session.state !== RoomSessionState.Connected) continue
 			this.removeSession(session.sessionId)
 		}
+		// The indexes may be out of date, and sessions still waiting to connect would build on
+		// them. Start over: each access builds its index again on its next connect.
+		if (this.permissions.canRead) this.visibility = new RoomVisibility(this.permissions.canRead)
 	}
 
 	private broadcastChanges(txn: TLSyncStorageTransaction<R>) {
@@ -1363,7 +1395,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// the client has seen every denial, so nothing it sends can build on one
 					session.deniedIds.clear()
 				}
-				if (session && message.diff && dependsOnAny(message.diff, session.deniedIds)) {
+				// Chained denial keeps an honest client consistent. It is not a security control:
+				// the client sets deniedCount, and every push is still checked by the permissions.
+				if (
+					session &&
+					message.diff &&
+					(session.deniedIds.size >= MAX_DENIED_IDS ||
+						dependsOnAny(message.diff, session.deniedIds))
+				) {
 					// The client made this change before it knew that an earlier push was denied, and
 					// the change touches or points at records from that push (a child of a denied
 					// frame, say). Deny it too, or it would land on records that do not exist.
@@ -1372,10 +1411,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					// A server mutator: run the named operation here, and ignore the client's diff.
 					// The client's diff was its prediction; the rebase replaces it with this result.
 					try {
-						mutator(this.mutatorContext(overlay, docChanges, session.access), intent!.args)
+						mutator(this.mutatorContext(overlay, session), intent!.args)
+						// From the net change, not op by op: a mutator that writes a record twice
+						// must still send a create for a new record.
+						docChanges.diffs = overlay.getNetworkChanges()
 					} catch (e) {
+						// The message goes to the client as is. ctx only reads what the session can
+						// see, so it holds hidden data only if the mutator got it from elsewhere.
 						denied = { reason: e instanceof Error ? e.message : String(e) }
 					}
+				} else if (
+					message.diff &&
+					session?.visibleIds &&
+					touchesHidden(message.diff, session.visibleIds, overlay)
+				) {
+					// Decided before any diff or validation runs on the hidden record, so the answer is
+					// the same whether it exists, what type it is, or what is in it.
+					denied = { reason: CANNOT_SEE }
 				} else if (message.diff) {
 					// The push request was for the document scope.
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
@@ -1453,7 +1505,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					this.log?.warn?.('push denied', denied.reason, 'session:', session?.sessionId)
 					if (session) {
 						session.deniedCount++
-						for (const id in message.diff) session.deniedIds.add(id)
+						for (const id in message.diff) {
+							if (session.deniedIds.size >= MAX_DENIED_IDS) break
+							session.deniedIds.add(id)
+						}
 						const info = {
 							sessionId: session.sessionId,
 							meta: session.meta,
@@ -1689,6 +1744,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	updateSessionAccess(sessionId: string, access: TLAccess) {
 		const session = this.sessions.get(sessionId)
 		if (!session) return
+		access = freezeAccess(access)
 		session.access = access
 		if (session.state !== RoomSessionState.Connected) {
 			this.visibility?.retain(this.sessionAccesses())
@@ -1727,24 +1783,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		})
 	}
 
-	/** The write surface a server mutator gets: reads and writes go through the push overlay. */
+	/**
+	 * The write surface a server mutator gets: reads and writes go through the push overlay. When
+	 * the room filters reads, the mutator sees only what the session can see, plus what it wrote,
+	 * and cannot write records hidden from the session.
+	 */
 	private mutatorContext(
 		overlay: PushOverlay<R>,
-		changes: { diffs: { networkDiff: NetworkDiff<R>; diff: TLSyncForwardDiff<R> } | null },
-		access: TLAccess
+		session: RoomSession<R, SessionMeta>
 	): TLMutatorContext<R> {
-		const record = (id: string, op: RecordOp<R>, before: R | undefined, after: R | undefined) => {
-			if (!changes.diffs) changes.diffs = { networkDiff: {}, diff: { puts: {}, deletes: [] } }
-			changes.diffs.networkDiff[id] = op
-			if (op[0] === RecordOpType.Put) changes.diffs.diff.puts[id] = op[1]
-			else if (op[0] === RecordOpType.Patch) changes.diffs.diff.puts[id] = [before!, after!]
-			else changes.diffs.diff.deletes.push(id)
-		}
+		const { access, visibleIds } = session
+		const sees = (id: string) => !visibleIds || visibleIds.has(id) || overlay.wrote(id)
 		return {
 			access,
 			can: (ability) => accessCan(access, ability),
-			get: (id) => overlay.get(id) as R | undefined,
-			all: () => overlay.all(),
+			get: (id) => (sees(id) ? (overlay.get(id) as R | undefined) : undefined),
+			all: function* () {
+				for (const record of overlay.all()) if (sees(record.id)) yield record
+			},
 			put: (records) => {
 				for (const next of records) {
 					const recordType = getOwnProperty(this.schema.types, next.typeName)
@@ -1755,24 +1811,22 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						throw new Error(`Mutators cannot write ${next.typeName} records.`)
 					}
 					const prev = overlay.get(next.id) as R | undefined
+					// creating an id that does not exist is fine; overwriting a hidden record is not
+					if (prev && !sees(next.id)) throw new Error(CANNOT_SEE)
 					if (prev) {
-						const diff = diffAndValidateRecord(prev, next, recordType)
-						if (!diff) continue
-						overlay.set(next.id, next)
-						record(next.id, [RecordOpType.Patch, diff], prev, next)
+						if (!diffAndValidateRecord(prev, next, recordType)) continue
 					} else {
 						validateRecord(next, recordType)
-						overlay.set(next.id, next)
-						record(next.id, [RecordOpType.Put, next], undefined, undefined)
 					}
+					overlay.set(next.id, next)
 				}
 			},
 			remove: (ids) => {
 				for (const id of ids) {
-					const prev = overlay.get(id) as R | undefined
-					if (!prev) continue
+					// deny whether or not a hidden id exists, so removing is no existence test
+					if (!sees(id)) throw new Error(CANNOT_SEE)
+					if (!overlay.get(id)) continue
 					overlay.delete(id)
-					record(id, [RecordOpType.Remove], prev, undefined)
 				}
 			},
 		}
@@ -1802,14 +1856,39 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
  */
 function dependsOnAny(diff: NetworkDiff<any>, ids: ReadonlySet<string>): boolean {
 	if (ids.size === 0) return false
-	const mentions = (value: unknown): boolean => {
-		if (typeof value === 'string') return ids.has(value)
-		if (Array.isArray(value)) return value.some(mentions)
-		if (value && typeof value === 'object') return Object.values(value).some(mentions)
-		return false
-	}
+	// A stack, not recursion: a deeply nested value must not overflow the call stack.
+	const stack: unknown[] = []
 	for (const [id, op] of objectMapEntriesIterable(diff)) {
-		if (ids.has(id) || mentions(op[1])) return true
+		if (ids.has(id)) return true
+		stack.push(op[1])
+	}
+	while (stack.length) {
+		const value = stack.pop()
+		if (typeof value === 'string') {
+			if (ids.has(value)) return true
+		} else if (Array.isArray(value)) {
+			for (const item of value) stack.push(item)
+		} else if (value && typeof value === 'object') {
+			for (const item of Object.values(value)) stack.push(item)
+		}
+	}
+	return false
+}
+
+/**
+ * Does a push touch a record the session cannot see? A put of an id that does not exist is a
+ * create and passes. It still tells the client that no record has that id; ids are random, so
+ * that is accepted.
+ */
+function touchesHidden<R extends UnknownRecord>(
+	diff: NetworkDiff<R>,
+	visibleIds: ReadonlySet<string>,
+	overlay: PushOverlay<R>
+): boolean {
+	for (const [id, op] of objectMapEntriesIterable(diff)) {
+		if (visibleIds.has(id)) continue
+		if (op[0] === RecordOpType.Put && !overlay.get(id)) continue
+		return true
 	}
 	return false
 }
@@ -1849,6 +1928,32 @@ class PushOverlay<R extends UnknownRecord> implements MinimalDocStore<R>, TLReco
 
 	hasChanges() {
 		return this.writes.size > 0
+	}
+
+	wrote(id: string) {
+		return this.writes.has(id)
+	}
+
+	/** The net change of the push as ops: a record created and then changed is one put. */
+	getNetworkChanges(): { networkDiff: NetworkDiff<R>; diff: TLSyncForwardDiff<R> } | null {
+		const { added, updated, removed } = this.getRecordsDiff()
+		const networkDiff: NetworkDiff<R> = {}
+		const diff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+		for (const [id, record] of objectMapEntriesIterable(added)) {
+			networkDiff[id] = [RecordOpType.Put, record]
+			diff.puts[id] = record
+		}
+		for (const [id, [prev, next]] of objectMapEntriesIterable(updated)) {
+			const patch = diffRecord(prev, next)
+			if (!patch) continue
+			networkDiff[id] = [RecordOpType.Patch, patch]
+			diff.puts[id] = [prev, next]
+		}
+		for (const id of objectMapKeys(removed)) {
+			networkDiff[id] = [RecordOpType.Remove]
+			diff.deletes.push(id)
+		}
+		return diff.deletes.length || Object.keys(diff.puts).length ? { networkDiff, diff } : null
 	}
 
 	/** The net change of the push, for the permissions. */

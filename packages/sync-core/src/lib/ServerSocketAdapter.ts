@@ -123,7 +123,7 @@ export interface ServerSocketAdapterOptions<R extends UnknownRecord> {
  * room.handleNewSession({
  *   sessionId: 'session-123',
  *   socket: adapter,
- *   isReadonly: false
+ *   access: { userId: 'user-1', abilities: ['edit'] }
  * })
  * ```
  */

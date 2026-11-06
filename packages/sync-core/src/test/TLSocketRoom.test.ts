@@ -13,6 +13,7 @@ import {
 	TLPage,
 	TLRecord,
 	TLScribble,
+	TL_FULL_ACCESS,
 } from '@tldraw/tlschema'
 import {
 	createTLSchema,
@@ -57,7 +58,7 @@ function connectSession(
 	socket: WebSocketMinimal,
 	opts: { access?: TLAccess } = {}
 ) {
-	room.handleSocketConnect({ sessionId, socket, ...opts })
+	room.handleSocketConnect({ sessionId, socket, access: opts.access ?? TL_FULL_ACCESS })
 	const connectRequest = {
 		type: 'connect' as const,
 		connectRequestId: `connect-${sessionId}`,
@@ -273,7 +274,7 @@ describe('28. TLSocketRoom (SR)', () => {
 	})
 
 	describe('handleSocketConnect', () => {
-		it('[SR4] registers sessions with readonly defaulting to false', () => {
+		it('[SR4] registers sessions with the access they connect with', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()
 			connectSession(room, 'test-session', socket)
@@ -285,6 +286,37 @@ describe('28. TLSocketRoom (SR)', () => {
 				isConnected: true,
 				access: { userId: null, abilities: ['edit', 'comment'] },
 			})
+		})
+
+		it('[SR4] gives a session that connects with no access no abilities', () => {
+			const room = new TLSocketRoom({})
+			const socket = createMockSocket()
+			room.handleSocketConnect({ sessionId: 'test-session', socket })
+			room.handleSocketMessage(
+				'test-session',
+				JSON.stringify({
+					type: 'connect',
+					connectRequestId: 'connect-1',
+					lastServerClock: 0,
+					protocolVersion: getTlsyncProtocolVersion(),
+					schema: createTLSchema().serialize(),
+				})
+			)
+			expect(room.getSessions()[0].access).toEqual({ userId: null, abilities: [] })
+		})
+
+		it('[SR4] throws when a caller still passes the removed isReadonly or objectAccess options', () => {
+			const room = new TLSocketRoom({})
+			for (const removed of ['isReadonly', 'objectAccess']) {
+				expect(() =>
+					room.handleSocketConnect({
+						sessionId: 'test-session',
+						socket: createMockSocket(),
+						[removed]: true,
+					} as any)
+				).toThrow(`the "${removed}" option was removed`)
+			}
+			expect(room.getSessions()).toHaveLength(0)
 		})
 
 		it('[SR4][SR7] handles readonly sessions correctly', () => {

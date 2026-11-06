@@ -39,7 +39,12 @@ app.register(async (app) => {
 		// Here we make or get an existing instance of TLSocketRoom for the given roomId
 		const room = makeOrLoadRoom(roomId)
 		// and finally connect the socket to the room
-		room.handleSocketConnect({ sessionId, socket })
+		// This example has no auth, so every session gets full access.
+		room.handleSocketConnect({
+			sessionId,
+			socket,
+			access: { userId: null, abilities: ['edit', 'comment'] },
+		})
 
 		socket.off('message', collectMessagesListener)
 

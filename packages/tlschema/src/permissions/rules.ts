@@ -137,16 +137,18 @@ export interface OwnShapesOnlyOptions<R extends UnknownRecord = UnknownRecord> {
 	 * How someone else's shape may change when your change cuts its binding to your shape. For
 	 * example: you delete your shape, and another user's arrow that points at it lets go and keeps
 	 * its end where it was. Keyed by shape type. Return true when `next` differs from `prev` only
-	 * in what letting go changes. The default lets an arrow change `props.start`, `props.end`, and
-	 * `props.bend`.
+	 * in what letting go changes. `terminals` holds the `props.terminal` of each cut binding. The
+	 * default lets an arrow move the ends that were cut (`props.start`, `props.end`) and change
+	 * `props.bend`, and nothing else.
 	 */
-	detach?: Record<string, (prev: R, next: R) => boolean>
+	detach?: Record<string, (prev: R, next: R, terminals: ReadonlySet<string>) => boolean>
 }
 
-const ARROW_TERMINAL_PROPS = new Set(['start', 'end', 'bend'])
-
-/** An arrow that lets go of a binding changes only its terminals and bend. */
-function arrowDetaches(prev: UnknownRecord, next: UnknownRecord) {
+/**
+ * An arrow that lets go of a binding changes only the ends that were cut, and its bend. Without
+ * the end check, cutting one binding would let you move the other end of someone else's arrow.
+ */
+function arrowDetaches(prev: UnknownRecord, next: UnknownRecord, terminals: ReadonlySet<string>) {
 	const a = prev as AnyRecord
 	const b = next as AnyRecord
 	for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
@@ -154,7 +156,8 @@ function arrowDetaches(prev: UnknownRecord, next: UnknownRecord) {
 		if (!isEqual(a[key], b[key])) return false
 	}
 	for (const key of new Set([...Object.keys(a.props ?? {}), ...Object.keys(b.props ?? {})])) {
-		if (ARROW_TERMINAL_PROPS.has(key)) continue
+		if (key === 'bend') continue
+		if ((key === 'start' || key === 'end') && terminals.has(key)) continue
 		if (!isEqual(a.props?.[key], b.props?.[key])) return false
 	}
 	return true
@@ -179,9 +182,8 @@ function arrowDetaches(prev: UnknownRecord, next: UnknownRecord) {
 export function ownShapesOnly<R extends UnknownRecord>(
 	opts: OwnShapesOnlyOptions<R> = {}
 ): TLRule<R> {
-	const detach: Record<string, (prev: R, next: R) => boolean> = opts.detach ?? {
-		arrow: arrowDetaches,
-	}
+	const detach: Record<string, (prev: R, next: R, terminals: ReadonlySet<string>) => boolean> =
+		opts.detach ?? { arrow: arrowDetaches }
 	return (tx) => {
 		if (opts.unless && tx.can(opts.unless)) return undefined
 		const userId = tx.access.userId
@@ -189,19 +191,25 @@ export function ownShapesOnly<R extends UnknownRecord>(
 			const shape = tx.before.get(id) ?? tx.after.get(id)
 			return !!userId && ownerOf(shape) === userId
 		}
-		// shapes that let go of a binding to one of your shapes in this transaction
-		const detached = new Set<string>()
+		// shapes that let go of a binding to one of your shapes in this transaction, and the
+		// terminals they let go of
+		const detached = new Map<string, Set<string>>()
 		for (const change of tx.changes) {
 			const binding = change.op === 'delete' ? (change.prev as AnyRecord) : null
-			if (binding?.typeName === 'binding' && owns(binding.toId)) detached.add(binding.fromId)
+			if (binding?.typeName !== 'binding' || !owns(binding.toId)) continue
+			let terminals = detached.get(binding.fromId)
+			if (!terminals) detached.set(binding.fromId, (terminals = new Set()))
+			const terminal = binding.props?.terminal
+			if (typeof terminal === 'string') terminals.add(terminal)
 		}
 		for (const change of tx.changes) {
 			const record = recordOf(change) as AnyRecord
 			if (record.typeName === 'shape') {
+				const terminals = detached.get(record.id)
 				if (
 					change.op === 'update' &&
-					detached.has(record.id) &&
-					detach[record.type]?.(change.prev as R, change.next as R)
+					terminals &&
+					detach[record.type]?.(change.prev as R, change.next as R, terminals)
 				) {
 					continue
 				}
@@ -237,14 +245,18 @@ function checkOwnedChange(change: TLRecordChange<UnknownRecord>, userId: string 
 
 /**
  * The client half of {@link ownShapesOnly}: put the user's id in `meta.ownerId` on every new
- * shape. Shapes that already have an owner keep it (undo and redo bring back the old owner).
+ * shape. It replaces an owner the record already has: a pasted or duplicated copy of someone
+ * else's shape would carry their id, and {@link ownShapesOnly} would deny creating it. Undo of
+ * your own delete brings the shape back with your id, which is what it had. When a session that
+ * skips the rule (a teacher) undoes deleting someone else's shape, the shape comes back as the
+ * teacher's.
  *
  * @public
  */
 export function stampOwner<R extends UnknownRecord>(): (record: R, access: TLAccess) => R {
 	return (record, access) => {
 		const r = record as AnyRecord
-		if (r.typeName !== 'shape' || !access.userId || ownerOf(r)) return record
+		if (r.typeName !== 'shape' || !access.userId || ownerOf(r) === access.userId) return record
 		return { ...r, meta: { ...r.meta, ownerId: access.userId } } as unknown as R
 	}
 }
@@ -319,9 +331,25 @@ export function pageWriteAccess<R extends UnknownRecord>(opts: {
 	}
 }
 
+/** Record types that belong to a page. The ones {@link pageIdOf} can walk to a page. */
+const PAGED_TYPES = new Set([
+	'page',
+	'shape',
+	'binding',
+	'comment',
+	'comment-thread',
+	'comment-reaction',
+	'instance_page_state',
+	'instance_presence',
+])
+
 /**
  * Read control per page, for `canRead`. A record on a page the session cannot see is hidden: the
  * page itself, its shapes and bindings, comments on it, and the cursors of people on it.
+ *
+ * A record that belongs to a page but whose page cannot be found is hidden too: a shape whose
+ * parent or page was deleted, a parent cycle. Otherwise deleting a hidden page alone would show
+ * its shapes to everyone. Records with no page (the document, assets, users) are shown.
  *
  * @public
  */
@@ -329,10 +357,10 @@ export function pageReadAccess<R extends UnknownRecord>(opts: {
 	canSeePage(page: R, ctx: TLReadContext<R>): boolean
 }): (record: R, ctx: TLReadContext<R>) => boolean {
 	return (record, ctx) => {
+		if (!PAGED_TYPES.has(record.typeName)) return true
 		const pageId = pageIdOf(ctx.records, record)
-		if (!pageId) return true
-		const page = ctx.records.get(pageId)
-		if (!page) return true
+		const page = pageId ? ctx.records.get(pageId) : undefined
+		if (!page || page.typeName !== 'page') return false
 		return opts.canSeePage(page, ctx)
 	}
 }

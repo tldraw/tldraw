@@ -326,8 +326,10 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param opts - Connection options
 	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
 	 *   - socket - WebSocket-like object for client communication
-	 *   - access - What the session may do (defaults to full access). Change it later with
-	 *     {@link TLSocketRoom.updateSessionAccess}, with no reconnect.
+	 *   - access - What the session may do. Change it later with
+	 *     {@link TLSocketRoom.updateSessionAccess}, with no reconnect. Left out, the session gets
+	 *     no abilities: it can read, but every write is denied. Pass
+	 *     `{ userId, abilities: ['edit', 'comment'] }` for full access.
 	 *   - meta - Additional session metadata (required if SessionMeta is not void)
 	 *
 	 * @example
@@ -357,6 +359,16 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			access?: TLAccess
 		} & (SessionMeta extends void ? object : { meta: SessionMeta })
 	) {
+		// Removed options. Ignoring them would silently change what the session may do.
+		for (const removed of ['isReadonly', 'objectAccess']) {
+			if (removed in opts) {
+				throw new Error(
+					`TLSocketRoom.handleSocketConnect: the "${removed}" option was removed. Pass ` +
+						'"access" instead, for example { userId, abilities: ["comment"] } for a read-only ' +
+						'session that may comment.'
+				)
+			}
+		}
 		const { sessionId, socket, access } = opts
 		const handleSocketMessage = (event: MessageEvent) =>
 			this.handleSocketMessage(sessionId, event.data, socket)

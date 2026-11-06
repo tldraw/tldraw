@@ -182,7 +182,7 @@ class CollaborationServer {
 		room.handleSocketConnect(socket, {
 			sessionId: generateSessionId(),
 			userId: extractUserId(socket),
-			isReadonly: checkPermissions(socket),
+			access: accessFor(socket),
 		})
 	}
 }
@@ -587,7 +587,10 @@ class AuthenticatedSocketAdapter extends ClientWebSocketAdapter {
 room.handleSocketConnect(socket, {
 	sessionId: generateSessionId(),
 	userId: extractUserFromToken(authToken),
-	isReadonly: !hasEditPermission(authToken, roomId),
+	access: {
+		userId: extractUserFromToken(authToken),
+		abilities: hasEditPermission(authToken, roomId) ? ['edit', 'comment'] : [],
+	},
 })
 ```
 

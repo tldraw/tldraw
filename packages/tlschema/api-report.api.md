@@ -831,7 +831,7 @@ export function ownShapesOnly<R extends UnknownRecord>(opts?: OwnShapesOnlyOptio
 
 // @public
 export interface OwnShapesOnlyOptions<R extends UnknownRecord = UnknownRecord> {
-    detach?: Record<string, (prev: R, next: R) => boolean>;
+    detach?: Record<string, (prev: R, next: R, terminals: ReadonlySet<string>) => boolean>;
     unless?: string;
 }
 

@@ -6,7 +6,7 @@ import {
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
-import { TLRecord } from '@tldraw/tlschema'
+import { TL_FULL_ACCESS, TLRecord } from '@tldraw/tlschema'
 import { ExecutionQueue, throttle, type ThrottledFunction } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 import { createSentry, parseRequestQuery } from '@tldraw/worker-shared'
@@ -109,6 +109,7 @@ export class BemoDO extends DurableObject<Environment> {
 			room.handleSocketConnect({
 				sessionId,
 				socket: serverWebSocket,
+				access: TL_FULL_ACCESS,
 				meta: { origin },
 			})
 			this.writeEvent({

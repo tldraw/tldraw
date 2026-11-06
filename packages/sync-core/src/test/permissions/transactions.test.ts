@@ -1,6 +1,7 @@
 import {
 	Editor,
 	IndexKey,
+	TLArrowShape,
 	TLRecord,
 	TLShape,
 	TLShapeId,
@@ -237,12 +238,12 @@ describe('classroom: students edit only their own shapes', () => {
 		h.settle()
 		expect(h.serverRecord(createShapeId('a'))?.meta).toEqual({ ownerId: 'ann' })
 
-		// a forged owner never reaches the server
+		// a copy of someone else's shape (a paste, a duplicate) becomes yours
 		ann.store.withTransaction(() =>
-			ann.store.put([{ ...shapeRecord(ann, 'forged'), meta: { ownerId: 'bob' } }])
+			ann.store.put([{ ...shapeRecord(ann, 'copy'), meta: { ownerId: 'bob' } }])
 		)
 		h.settle()
-		expect(h.serverRecord(createShapeId('forged'))).toBeUndefined()
+		expect(h.serverRecord(createShapeId('copy'))?.meta).toEqual({ ownerId: 'ann' })
 	})
 
 	it("denies changes to another student's shape, locally and with a reason", () => {
@@ -390,6 +391,40 @@ describe('classroom: students edit only their own shapes', () => {
 		h.settle()
 		expect(ann.denials.at(-1)?.reason).toBe('You can only change your own shapes.')
 		expect(h.serverRecord(arrow)).toMatchObject({ x: 300 })
+	})
+
+	it("does not let cutting one end of someone else's arrow move its other end", () => {
+		const ann = h.connect('ann', student('ann'))
+		const bob = h.connect('bob', student('bob'))
+		const a = createShapeId('a')
+		const arrow = createShapeId('arrow')
+		ann.editor.createShapes([geo(a)])
+		h.settle()
+		bob.editor.createShapes([{ id: arrow, type: 'arrow', x: 300, y: 50 }])
+		bob.editor.createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: a,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+				snap: 'none',
+			},
+		})
+		h.settle()
+		const startBefore = (h.serverRecord(arrow) as TLArrowShape).props.start
+		const binding = ann.editor.getBindingsToShape(a, 'arrow')[0]
+		ann.editor.run(() => {
+			ann.editor.deleteBinding(binding)
+			ann.editor.updateShapes([
+				{ id: arrow, type: 'arrow', props: { start: { x: -500, y: -500 } } },
+			])
+		})
+		h.settle()
+		expect(ann.denials.at(-1)?.reason).toBe('You can only change your own shapes.')
+		expect((h.serverRecord(arrow) as TLArrowShape).props.start).toEqual(startBefore)
 	})
 
 	it('lets the teacher change any shape', () => {

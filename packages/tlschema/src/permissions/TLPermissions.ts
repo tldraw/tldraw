@@ -97,6 +97,10 @@ export interface TLMutatorContext<R extends UnknownRecord> extends TLRecordReade
  * truth). The server ignores the client's diff for this push and keeps what its own run wrote.
  * Throw to refuse. The rules still check the result.
  *
+ * When the room filters reads, `ctx` on the server sees only the records the session can see,
+ * and writing a hidden record throws. The message of a thrown error goes to the client as the
+ * denial reason, so never put data in it that the session may not see.
+ *
  * @public
  */
 export type TLMutator<R extends UnknownRecord, Args extends JsonValue = any> = (
@@ -112,6 +116,11 @@ export interface TLPermissionsConfig<R extends UnknownRecord> {
 	 * Which records a session may see. The server sends a session only what this allows, and
 	 * denies writes that touch a record the session cannot see, before or after. Leave it out
 	 * to show everything.
+	 *
+	 * It must depend only on `record`, `ctx.access` and the records it reads through
+	 * `ctx.records`. The server keeps each answer and checks a record again only when the record
+	 * or one it read changes, so an answer that also depends on outside state (a flag, a map in
+	 * a closure) goes stale and can show a record that should be hidden.
 	 */
 	canRead?(record: R, ctx: TLReadContext<R>): boolean
 	/** Named operations that the server runs itself. See {@link TLMutator}. */
@@ -269,5 +278,10 @@ export function createTransaction<R extends UnknownRecord>(opts: {
 	}
 }
 
-/** Full access, used when no access is set: everything is allowed, as before permissions. @public */
+/**
+ * Full access: `edit` and `comment`. The client assumes it until the server sends the real
+ * access. The server never assumes it: a session connected with no access may do nothing.
+ *
+ * @public
+ */
 export const TL_FULL_ACCESS: TLAccess = { userId: null, abilities: ['edit', 'comment'] }

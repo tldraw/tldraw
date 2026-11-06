@@ -1,5 +1,5 @@
 import { StoreSchema, UnknownRecord } from '@tldraw/store'
-import { TLAccess } from '@tldraw/tlschema'
+import { TL_FULL_ACCESS, TLAccess } from '@tldraw/tlschema'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import { RoomSnapshot, TLSyncRoom } from '../lib/TLSyncRoom'
 import { TestSocketPair } from './TestSocketPair'
@@ -30,7 +30,7 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 			sessionId: socketPair.id,
 			socket: socketPair.roomSocket,
 			meta: undefined,
-			access: opts?.access,
+			access: opts?.access ?? TL_FULL_ACCESS,
 		})
 
 		socketPair.clientSocket.connectionStatus = 'online'

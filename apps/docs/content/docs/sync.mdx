@@ -111,7 +111,13 @@ The `@tldraw/sync-core` package exports a class called [TLSocketRoom](?) that sh
 Attach each incoming WebSocket to the room and forward its events:
 
 ```tsx
-room.handleSocketConnect({ sessionId, socket })
+// `access` says what this session may do. The room denies every write from a
+// session without it. Set it from your own auth.
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	access: { userId: user.id, abilities: ['edit', 'comment'] },
+})
 // If your platform doesn't let the room add listeners to the socket itself
 // (Bun.serve, Cloudflare hibernation), forward events by hand:
 room.handleSocketMessage(sessionId, message, socket)

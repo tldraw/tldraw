@@ -90,7 +90,8 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	deniedCount: number
 	/**
 	 * Ids that denied pushes touched, kept until the client has seen those denials. A later push
-	 * that touches or points at one of them is denied too.
+	 * that touches or points at one of them is denied too. Capped: a full set denies every push
+	 * until the client has seen the denials.
 	 */
 	deniedIds: Set<string>
 	/** Whether this session requires legacy protocol rejection handling */
