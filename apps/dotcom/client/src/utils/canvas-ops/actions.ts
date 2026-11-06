@@ -132,13 +132,9 @@ function resolveTerminal(
 	return { point: { x: terminal.x, y: terminal.y } }
 }
 
-/** What a batch did. */
 export interface BatchJournal {
-	batchId: string
 	stamp: AgentShapeMeta
 	created: TLShapeId[]
-	/** Previous values of shapes the batch changed (only the fields it touched, plus meta) */
-	updated: Array<TLShapePartial<TLShape>>
 }
 
 /** Shapes created through ops on this editor, in order, across batches; backs `{ created }` refs. */
@@ -163,11 +159,6 @@ function applyAction(
 ) {
 	// Spread into a fresh object literal so it satisfies tldraw's JsonObject meta type.
 	const meta = { agent: { ...journal.stamp } }
-	const isAgentBatch = Boolean(journal.stamp.runId || journal.stamp.userId)
-	if (isAgentBatch && 'text' in action && typeof action.text === 'string') {
-		// Models often double-escape newlines inside JSON strings.
-		action = { ...action, text: action.text.replace(/\\n/g, '\n') }
-	}
 	const created = (id: TLShapeId) => {
 		journal.created.push(id)
 		createdIds.push(fromShapeId(id))
@@ -373,17 +364,7 @@ function applyAction(
 			if (action.dash !== undefined && 'dash' in current) props.dash = action.dash
 			if (action.size !== undefined && 'size' in current) props.size = action.size
 			if (Object.keys(props).length) partial.props = props as never
-			const previous: TLShapePartial<TLShape> = {
-				id,
-				type: shape.type,
-				x: shape.x,
-				y: shape.y,
-				meta: shape.meta,
-			}
-			previous.props = Object.fromEntries(Object.keys(props).map((k) => [k, current[k]])) as never
-			journal.updated.push(previous)
 			partial.meta = { ...shape.meta, agentEdit: { ...journal.stamp } }
-			if (action.assembly !== undefined) partial.meta.assembly = action.assembly
 			editor.updateShape(partial)
 			return
 		}
@@ -424,7 +405,7 @@ export function runBatch(
 	if (attribution.runId) stamp.runId = attribution.runId
 	if (attribution.userId) stamp.userId = attribution.userId
 	if (attribution.userName) stamp.userName = attribution.userName
-	const journal: BatchJournal = { batchId, stamp, created: [], updated: [] }
+	const journal: BatchJournal = { stamp, created: [] }
 	const memory = runMemory(editor)
 	const ctx: BatchContext = {
 		editor,

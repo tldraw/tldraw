@@ -16,7 +16,7 @@ Ops (each batch is one undo step; a failing op is reported and the rest still ru
 - place: move an existing shape (\`at\`, or \`relation\` + \`target\`) and/or change its w, h, text, and style.
 - label: attach a text label to a shape or a page point, optionally with an arrow.
 - connect: an arrow between two shapes (bound to them) or points. Reusing an existing arrow's id replaces that arrow.
-- rename (change text; fit: widen, shrink_text, or wrap), restyle (color/fill/dash/size, or \`like\` another shape), resize (w/h/scale, anchor), remove, untangle (spread overlapping shapes near anchors).
+- rename (change text; fit: widen or shrink_text), restyle (color/fill/dash/size, or \`like\` another shape), resize (w/h/scale, anchor), remove, untangle (spread overlapping shapes near anchors).
 - path: a polyline or curve through page points; closed: true makes a fillable outline; smooth: true curves it.
 - duplicate: copy a shape to a new position.
 

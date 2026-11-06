@@ -3,7 +3,6 @@ import { applyOps, createOpsStream } from './ops'
 import {
 	AttributionSchema,
 	CanvasOpSchema,
-	expandOpsBatch,
 	OpsBatchSchema,
 	type ApplyOpsResult,
 	type Attribution,
@@ -11,7 +10,6 @@ import {
 } from './schema'
 
 export type { ApplyOpsResult, Attribution, CanvasOp, OpResult, OpsBatch } from './schema'
-export { applyOps, createOpsStream }
 
 /**
  * Receives canvas ops from an untrusted sender (a canvas agent, a socket, a postMessage) and
@@ -23,9 +21,9 @@ export function createCanvasOpsReceiver(editor: Editor) {
 	const parseAttribution = (raw: unknown): Attribution => AttributionSchema.parse(raw ?? {})
 
 	return {
-		/** Apply a whole `{ assembly?, ops }` batch as one undo step. */
+		/** Apply a whole `{ ops }` batch as one undo step. */
 		async applyBatch(batch: unknown, attribution?: unknown): Promise<ApplyOpsResult> {
-			const ops = expandOpsBatch(OpsBatchSchema.parse(batch))
+			const { ops } = OpsBatchSchema.parse(batch)
 			return applyOps(editor, ops, parseAttribution(attribution))
 		},
 

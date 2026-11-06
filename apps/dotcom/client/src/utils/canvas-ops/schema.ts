@@ -1,10 +1,8 @@
 import { z } from 'zod'
 
-/**
- * The canvas op vocabulary, ported from the agent-pattern canvas agent. Ops are what a collaborator
- * would say ("put a label above the heart", "connect these"); they compile to bare actions, which
- * are the only things that touch the editor.
- */
+// The canvas op vocabulary. Ops are what a collaborator would say ("put a label above the heart",
+// "connect these"); they compile to bare actions (CanvasAction), the only thing that touches the
+// editor.
 
 export const CanvasColorSchema = z.enum([
 	'black',
@@ -107,17 +105,14 @@ export interface NewSubject {
 	id?: string
 }
 
-/** Illustration id: shapes in one assembly keep their positions and may overlap. null clears it. */
-const Assembly = z.string().min(1).max(200).nullable().optional()
 const Relation = z.enum(['above', 'below', 'left_of', 'right_of', 'inside', 'centered_on'])
 const Align = z.enum(['start', 'center', 'end'])
 const TargetOrPoint = z.union([RefSchema, z.strictObject({ point: PointSchema })])
 
 export const CanvasOpSchema = z.discriminatedUnion('op', [
-	z.strictObject({ op: z.literal('path'), ...PathFields, assembly: Assembly }),
+	z.strictObject({ op: z.literal('path'), ...PathFields }),
 	z.strictObject({
 		op: z.literal('duplicate'),
-		assembly: Assembly,
 		subject: RefSchema,
 		id: optionalId,
 		at: PointSchema,
@@ -125,7 +120,6 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 	}),
 	z.strictObject({
 		op: z.literal('add'),
-		assembly: Assembly,
 		kind: NewSubjectKind.optional(),
 		text: text.optional(),
 		id: optionalId,
@@ -144,7 +138,6 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 	}),
 	z.strictObject({
 		op: z.literal('place'),
-		assembly: Assembly,
 		subject: RefSchema,
 		relation: Relation.optional(),
 		target: RefSchema.optional(),
@@ -161,7 +154,6 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 	}),
 	z.strictObject({
 		op: z.literal('label'),
-		assembly: Assembly,
 		target: TargetOrPoint,
 		text,
 		side: z.enum(['above', 'below', 'left', 'right', 'auto']).optional(),
@@ -173,7 +165,6 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 	}),
 	z.strictObject({
 		op: z.literal('connect'),
-		assembly: Assembly,
 		from: TargetOrPoint,
 		to: TargetOrPoint,
 		text: text.optional(),
@@ -185,7 +176,7 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 		op: z.literal('rename'),
 		target: RefSchema,
 		text,
-		fit: z.enum(['widen', 'shrink_text', 'wrap']).optional(),
+		fit: z.enum(['widen', 'shrink_text']).optional(),
 	}),
 	z.strictObject({
 		op: z.literal('restyle'),
@@ -219,28 +210,10 @@ export type CanvasOp = z.infer<typeof CanvasOpSchema>
 
 export const OpsBatchSchema = z
 	.object({
-		assembly: Assembly,
 		ops: z.array(CanvasOpSchema),
 	})
 	.strict()
 export type OpsBatch = z.infer<typeof OpsBatchSchema>
-
-const ASSEMBLY_OPS: ReadonlySet<CanvasOp['op']> = new Set([
-	'add',
-	'path',
-	'duplicate',
-	'label',
-	'connect',
-])
-
-/** Apply a batch's default assembly to its ops, so streamed and complete batches run identical ops. */
-export function expandOpsBatch(batch: OpsBatch): CanvasOp[] {
-	return batch.ops.map((op) => {
-		if (batch.assembly === undefined || !ASSEMBLY_OPS.has(op.op)) return op
-		const own = 'assembly' in op ? op.assembly : undefined
-		return { ...op, assembly: own !== undefined ? own : batch.assembly } as CanvasOp
-	})
-}
 
 /** Who asked for a batch; stamped on every shape the batch creates or changes. */
 export const AttributionSchema = z.object({
@@ -267,7 +240,7 @@ export interface OpResult {
 	ok: boolean
 	shapeIds: string[]
 	message: string
-	/** Set when the solver could not honour the request exactly and did something nearby */
+	/** What the op did beyond the literal request (a nudge, a shrink, an inherited style), if anything */
 	adjusted?: string
 }
 
@@ -337,7 +310,6 @@ export type CanvasAction =
 	| ({
 			type: 'update_shape'
 			shapeId: string
-			assembly?: string | null
 			x?: number
 			y?: number
 			w?: number
