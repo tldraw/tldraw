@@ -14,9 +14,10 @@ const frameId = createShapeId('frame')
 const childId = createShapeId('child')
 const emptyFrameId = createShapeId('empty')
 const boxId = createShapeId('box')
+const bigBoxId = createShapeId('big')
 
 let editor: Editor
-let exported: { svg: SVGSVGElement; darkMode?: boolean }[]
+let exported: { svg: SVGSVGElement; darkMode?: boolean; pixels: number }[]
 
 beforeEach(() => {
 	editor = new Editor({
@@ -40,6 +41,7 @@ beforeEach(() => {
 		{ id: childId, type: 'geo', parentId: frameId, x: 40, y: 40, props: { w: 100, h: 50 } },
 		{ id: emptyFrameId, type: 'frame', x: 0, y: 400, props: { w: 200, h: 100, name: 'Empty' } },
 		{ id: boxId, type: 'geo', x: 500, y: 0, props: { w: 100, h: 100 } },
+		{ id: bigBoxId, type: 'geo', x: 0, y: 1000, props: { w: 4000, h: 1000 } },
 	])
 	// jsdom can't rasterise, so the thumbnails are checked as the SVG the PNG would be made from.
 	exported = []
@@ -47,7 +49,9 @@ beforeEach(() => {
 		const result = await editor.getSvgString(ids as TLShapeId[], opts)
 		const svg = new DOMParser().parseFromString(result!.svg, 'image/svg+xml')
 			.firstElementChild as SVGSVGElement
-		exported.push({ svg, darkMode: opts.darkMode })
+		// The longest side of the PNG this SVG would be rasterised to.
+		const pixels = Math.max(result!.width, result!.height) * (opts.pixelRatio ?? 2)
+		exported.push({ svg, darkMode: opts.darkMode, pixels })
 		return { blob: new Blob([result!.svg]), width: result!.width, height: result!.height }
 	}
 })
@@ -96,4 +100,18 @@ it('renders other shapes as the export draws them', async () => {
 		expect(svg.querySelector('rect')).toBeNull()
 		expect(svg.querySelector('path')).not.toBeNull()
 	}
+})
+
+it('caps a big item’s thumbnail at 512 pixels', async () => {
+	for (const { pixels } of await save([bigBoxId])) {
+		expect(pixels).toBeLessThanOrEqual(512)
+		expect(pixels).toBeGreaterThan(500)
+	}
+})
+
+it('keeps a small item’s thumbnail as sharp as before', async () => {
+	const [{ svg, pixels }] = await save([boxId])
+	expect(pixels).toBe(
+		Math.max(Number(svg.getAttribute('width')), Number(svg.getAttribute('height'))) * 2
+	)
 })
