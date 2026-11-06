@@ -1,13 +1,12 @@
 import type { TLCollectionItemContent } from './schema'
 
 /**
- * A set of items shipped as data, such as starter shapes bundled with an app. The panel's "Browse
- * collections" offers packs, and adding one copies it into the user's collections with
- * {@link copyPack}.
+ * A set of items shipped as data, such as starter shapes bundled with an app. {@link copyPack}
+ * copies one into a source as an ordinary collection.
  * @public
  */
 export interface CollectionPack {
-	/** Stable across versions: a copy of the pack records it. */
+	/** Stable across versions, so a copy can record which pack it came from. */
 	id: string
 	name: string
 	version: number

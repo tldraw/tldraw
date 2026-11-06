@@ -38,6 +38,9 @@
   "093ac7483a": {
     "translation": "Can’t open {extension} files yet"
   },
+  "0a8b8802c9": {
+    "translation": "Added {pack} to your private collections."
+  },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
   },
@@ -46,6 +49,9 @@
   },
   "0b9a4cde72": {
     "translation": "File menu"
+  },
+  "0b9e9037d5": {
+    "translation": "Browse collections"
   },
   "0c4383617a": {
     "translation": "Something went wrong loading this invite. Please try again."
@@ -284,11 +290,17 @@
   "625fd29749": {
     "translation": "Older"
   },
+  "6378731a5e": {
+    "translation": "Couldn't add"
+  },
   "639bae9ac6": {
     "translation": "you"
   },
   "63a6a88c06": {
     "translation": "Refresh"
+  },
+  "6544c494b4": {
+    "translation": "Browse collections…"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -313,6 +325,9 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6e79784488": {
+    "translation": "You may not be allowed to create collections, or copying failed."
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -600,6 +615,9 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
+  "c3bf447eab": {
+    "translation": "Open"
+  },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
@@ -696,6 +714,9 @@
   "ebfe9ce86e": {
     "translation": "Yesterday"
   },
+  "ec211f7c20": {
+    "translation": "Add"
+  },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
   },
@@ -725,6 +746,9 @@
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
+  },
+  "f29ddbfb90": {
+    "translation": "Added"
   },
   "f2a6c498fb": {
     "translation": "Delete"

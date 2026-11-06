@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useEditor } from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { getEditorCollections } from './editorCollections'
-import { STARTER_PACKS } from './starterPacks'
+import { TlaBrowseStarterPacksMenuItem } from './TlaStarterPacksDialog'
 
 function useEditorCollections(fileId: string) {
 	const app = useMaybeApp()
@@ -16,9 +16,18 @@ function useEditorCollections(fileId: string) {
 }
 
 export function TlaCollectionsPanel({ fileId }: { fileId: string }) {
+	const app = useMaybeApp()
 	const source = useEditorCollections(fileId)
-	if (!source) return null
-	return <CollectionsPanel source={source} catalogue={STARTER_PACKS} side="right" />
+	if (!app || !source) return null
+	return (
+		<CollectionsPanel
+			source={source}
+			side="right"
+			menuItems={
+				<TlaBrowseStarterPacksMenuItem source={source} ownerId={app.getHomeWorkspaceId()} />
+			}
+		/>
+	)
 }
 
 export function TlaAddToCollectionMenuItem({ fileId }: { fileId: string }) {

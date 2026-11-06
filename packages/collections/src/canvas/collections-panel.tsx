@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { type ReactNode, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -7,7 +7,6 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import type { CollectionPack } from '../lib/CollectionPack'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
 import { CollectionGroupSection } from './collection-group-section'
@@ -15,7 +14,6 @@ import { groupCollectionList, useCollectionGrouping } from './collection-groups'
 import { CollectionSection } from './collection-section'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { NoCollections } from './no-collections'
-import { useOpenPackCatalogue } from './pack-catalogue-dialog'
 import { placeCollectionItem } from './place-item'
 import { collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
@@ -35,11 +33,10 @@ export interface CollectionsPanelProps {
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
 	side?: 'left' | 'right'
 	/**
-	 * Packs users can add: the panel's ⋯ menu and its empty state offer "Browse collections", where
-	 * adding a pack copies it into the source's default owner, e.g. the user's personal workspace,
-	 * as an ordinary collection.
+	 * Items of the host's own for the panel's ⋯ menu, placed after "New collection", e.g.
+	 * {@link CollectionMenuItem}s. Shown in a read-only editor too.
 	 */
-	catalogue?: readonly CollectionPack[]
+	menuItems?: ReactNode
 }
 
 /**
@@ -49,9 +46,8 @@ export interface CollectionsPanelProps {
  * out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source, side = 'left', catalogue }: CollectionsPanelProps) {
+export function CollectionsPanel({ source, side = 'left', menuItems }: CollectionsPanelProps) {
 	const editor = useEditor()
-	const openCatalogue = useOpenPackCatalogue(source, catalogue)
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
@@ -81,9 +77,9 @@ export function CollectionsPanel({ source, side = 'left', catalogue }: Collectio
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				<CollectionsPanelHeader source={source} catalogue={catalogue} />
+				<CollectionsPanelHeader source={source} menuItems={menuItems} />
 				{collections.length === 0 ? (
-					<NoCollections onBrowse={openCatalogue} />
+					<NoCollections />
 				) : (
 					<div className="tlui-collections-sections">
 						{groupCollectionList(collections, grouping).map((group) => (

@@ -119,6 +119,20 @@
       "value": " files yet"
     }
   ],
+  "0a8b8802c9": [
+    {
+      "type": 0,
+      "value": "Added "
+    },
+    {
+      "type": 1,
+      "value": "pack"
+    },
+    {
+      "type": 0,
+      "value": " to your private collections."
+    }
+  ],
   "0a91f7fa87": [
     {
       "type": 0,
@@ -135,6 +149,12 @@
     {
       "type": 0,
       "value": "File menu"
+    }
+  ],
+  "0b9e9037d5": [
+    {
+      "type": 0,
+      "value": "Browse collections"
     }
   ],
   "0c4383617a": [
@@ -692,6 +712,12 @@
       "value": "Older"
     }
   ],
+  "6378731a5e": [
+    {
+      "type": 0,
+      "value": "Couldn't add"
+    }
+  ],
   "639bae9ac6": [
     {
       "type": 0,
@@ -702,6 +728,12 @@
     {
       "type": 0,
       "value": "Refresh"
+    }
+  ],
+  "6544c494b4": [
+    {
+      "type": 0,
+      "value": "Browse collections…"
     }
   ],
   "6609dd239e": [
@@ -750,6 +782,12 @@
     {
       "type": 0,
       "value": "Follow these steps to import the content manually:"
+    }
+  ],
+  "6e79784488": [
+    {
+      "type": 0,
+      "value": "You may not be allowed to create collections, or copying failed."
     }
   ],
   "70a6facb9d": [
@@ -1596,6 +1634,12 @@
       "value": "Unable to publish the file."
     }
   ],
+  "c3bf447eab": [
+    {
+      "type": 0,
+      "value": "Open"
+    }
+  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1888,6 +1932,12 @@
       "value": "Yesterday"
     }
   ],
+  "ec211f7c20": [
+    {
+      "type": 0,
+      "value": "Add"
+    }
+  ],
   "ec59b960ea": [
     {
       "type": 0,
@@ -1960,6 +2010,12 @@
     {
       "type": 0,
       "value": "We use these cookies to save your files and settings."
+    }
+  ],
+  "f29ddbfb90": [
+    {
+      "type": 0,
+      "value": "Added"
     }
   ],
   "f2a6c498fb": [

@@ -1,9 +1,8 @@
 import 'fake-indexeddb/auto'
-import { copyPack } from '@tldraw/collections'
 import { describe, expect, it, vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
 import { TldrawAppCollectionsSource } from './collectionsSource'
-import { STARTER_PACKS } from './starterPacks'
+import { addStarterPack, STARTER_PACKS } from './starterPacks'
 
 let lastUserId = 0
 const newUserId = () => `user-${++lastUserId}`
@@ -55,7 +54,7 @@ describe('TldrawAppCollectionsSource', () => {
 		const userId = newUserId()
 		const source = createSource(userId)
 		const doodles = STARTER_PACKS.find((pack) => pack.id === 'doodles')!
-		const copy = await copyPack(source, doodles)
+		const copy = await addStarterPack(source, doodles, 'home')
 		expect(copy).toMatchObject({ name: doodles.name, ownerId: 'home' })
 		expect(source.getItems(copy.id)).toHaveLength(doodles.items.length)
 		source.dispose()

@@ -1,6 +1,7 @@
 import {
 	AddToCollectionMenuItem,
 	BoardCollectionSource,
+	CollectionMenuItem,
 	CollectionRecordType,
 	CollectionsPanel,
 	CollectionsQuickActions,
@@ -8,6 +9,7 @@ import {
 	collectionsPanelOpen,
 	type CollectionSource,
 	CompositeCollectionSource,
+	copyPack,
 	InMemoryCollectionSource,
 	saveShapesToCollection,
 	type TLCollectionId,
@@ -320,7 +322,28 @@ function ExamplePanel() {
 	const source = usePageSource()
 	const pageName = useValue('page name', () => editor.getCurrentPage().name as PageName, [editor])
 	useEffect(() => seedPage(editor, pageName), [editor, pageName])
-	return <CollectionsPanel source={source} catalogue={STARTER_PACKS} />
+	return (
+		<CollectionsPanel
+			source={source}
+			menuItems={<AddStarterCollectionsMenuItem source={source} />}
+		/>
+	)
+}
+
+function AddStarterCollectionsMenuItem({ source }: { source: CollectionSource }) {
+	const addStarterCollections = async () => {
+		for (const pack of STARTER_PACKS) await copyPack(source, pack)
+	}
+	return (
+		<CollectionMenuItem
+			label="Add starter collections"
+			onClick={() =>
+				addStarterCollections().catch((error) =>
+					console.error('[collections] adding starter collections failed', error)
+				)
+			}
+		/>
+	)
 }
 
 function ExampleSaveMenu() {
