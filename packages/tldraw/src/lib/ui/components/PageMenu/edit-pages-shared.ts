@@ -4,9 +4,28 @@ import {
 	getIndexBelow,
 	getIndexBetween,
 	IndexKey,
+	PageRecordType,
 	TLPageId,
 } from '@tldraw/editor'
 import { TLUiEventContextType } from '../../context/events'
+
+// What the `canWrite` editor option lets this person do to pages
+export function canCreatePage(editor: Editor) {
+	return editor.canWrite({
+		type: 'create',
+		record: PageRecordType.create({ name: '', index: 'a1' as IndexKey }),
+	})
+}
+
+export function canUpdatePage(editor: Editor, id: TLPageId) {
+	const page = editor.getPage(id)
+	return !!page && editor.canWrite({ type: 'update', record: page })
+}
+
+export function canDeletePage(editor: Editor, id: TLPageId) {
+	const page = editor.getPage(id)
+	return !!page && editor.canWrite({ type: 'delete', record: page })
+}
 
 export function onMovePage(
 	editor: Editor,
@@ -16,6 +35,7 @@ export function onMovePage(
 	trackEvent: TLUiEventContextType
 ) {
 	if (from === to) return
+	if (!canUpdatePage(editor, id)) return
 
 	let index: IndexKey
 

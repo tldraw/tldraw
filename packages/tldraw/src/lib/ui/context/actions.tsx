@@ -44,6 +44,7 @@ import {
 	areAllSelectedFrames,
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
+	canCreateShapeOfType,
 	canFitFrameToContent,
 	canFlatten,
 	canFlipSelection,
@@ -51,6 +52,7 @@ import {
 	canReadClipboard,
 	canToggleAutoSize,
 	canWriteClipboard,
+	canWriteSelection,
 	hasDownloadableMediaSelected,
 	hasLinkShapeSelected,
 	hasLockedShapesOnPage,
@@ -305,8 +307,12 @@ export interface TLUiActionItem<
 	id: string
 	kbd?: string
 	label?: TransationKey | { [key: string]: TransationKey }
-	/** When `true`, the action runs while the editor is readonly. Defaults to `false`. */
-	readonlyOk?: boolean
+	/**
+	 * When `true`, the action runs while the editor is readonly. A function decides each time, for
+	 * an action whose writes the readonly mode does not cover, such as one that only writes records
+	 * the `canWrite` editor option allows. Defaults to `false`.
+	 */
+	readonlyOk?: boolean | ((editor: Editor) => boolean)
 	checkbox?: boolean
 	isRequiredA11yAction?: boolean
 	/**
@@ -551,6 +557,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-embed',
+				isEnabled: (editor) => canCreateShapeOfType(editor, 'embed'),
 				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
@@ -571,6 +578,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-media',
+				isEnabled: (editor) => canCreateShapeOfType(editor, 'image'),
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
@@ -1781,7 +1789,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-lock',
-				isEnabled: canApplySelection,
+				isEnabled: (editor) => canApplySelection(editor) && canWriteSelection(editor),
 				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
 				onSelect(source) {

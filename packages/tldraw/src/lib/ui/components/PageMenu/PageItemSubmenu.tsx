@@ -12,7 +12,7 @@ import {
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 } from '../primitives/TldrawUiDropdownMenu'
-import { onMovePage } from './edit-pages-shared'
+import { canCreatePage, canDeletePage, canUpdatePage, onMovePage } from './edit-pages-shared'
 
 const messages = defineMessages({
 	pageMenuSubmenuDelete: { id: 'page-menu.submenu.delete', defaultMessage: 'Delete' },
@@ -42,6 +42,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()
+	const canUpdate = canUpdatePage(editor, item.id as TLPageId)
 
 	const onDuplicate = useCallback(() => {
 		editor.markHistoryStoppingPoint('creating page')
@@ -84,18 +85,22 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="rename"
 								label={messages.pageMenuSubmenuRename.id}
 								onSelect={onRename}
+								disabled={!canUpdate}
 							/>
 						)}
 						<TldrawUiMenuItem
 							id="duplicate"
 							label={messages.pageMenuSubmenuDuplicatePage.id}
 							onSelect={onDuplicate}
-							disabled={editor.getPages().length >= editor.options.maxPages}
+							disabled={
+								editor.getPages().length >= editor.options.maxPages || !canCreatePage(editor)
+							}
 						/>
 						{index > 0 && (
 							<TldrawUiMenuItem
 								id="move-up"
 								onSelect={onMoveUp}
+								disabled={!canUpdate}
 								label={messages.pageMenuSubmenuMoveUp.id}
 							/>
 						)}
@@ -104,6 +109,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="move-down"
 								label={messages.pageMenuSubmenuMoveDown.id}
 								onSelect={onMoveDown}
+								disabled={!canUpdate}
 							/>
 						)}
 					</TldrawUiMenuGroup>
@@ -113,6 +119,7 @@ export const PageItemSubmenu = track(function PageItemSubmenu({
 								id="delete"
 								onSelect={onDelete}
 								label={messages.pageMenuSubmenuDelete.id}
+								disabled={!canDeletePage(editor, item.id as TLPageId)}
 							/>
 						</TldrawUiMenuGroup>
 					)}

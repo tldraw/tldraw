@@ -17,6 +17,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { useEffect } from 'react'
+import { isToolAvailable } from '../context/action-state'
 import { useActions } from '../context/actions'
 import { splitKbd } from '../kbd-utils'
 import { useCommentingEnabled } from './useCommentingEnabled'
@@ -71,7 +72,7 @@ export function useKeyboardShortcuts() {
 		}
 
 		for (const tool of Object.values(tools)) {
-			if (!tool.kbd || (!tool.readonlyOk && editor.getIsReadonly())) {
+			if (!tool.kbd || (!tool.readonlyOk && isReadonlyMode)) {
 				continue
 			}
 
@@ -83,6 +84,7 @@ export function useKeyboardShortcuts() {
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
 				preventDefault(event)
+				if (!isToolAvailable(editor, tool)) return
 				tool.onSelect('kbd')
 			})
 		}

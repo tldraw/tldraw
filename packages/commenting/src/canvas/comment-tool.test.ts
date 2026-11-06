@@ -228,6 +228,27 @@ describe('commentToolOverrides', () => {
 		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(pendingComment.get(editor)).toBeNull()
 	})
+
+	it('is not readonlyOk in a readonly editor without a canWrite option', () => {
+		editor.updateInstanceState({ isReadonly: true })
+		const readonlyOk = getCommentTool().readonlyOk as (editor: Editor) => boolean
+		expect(readonlyOk(editor)).toBe(false)
+	})
+
+	it('is readonlyOk where the canWrite option lets a readonly person comment', () => {
+		editor.dispose()
+		editor = new Editor({
+			store: createTLStore({ schema: createTLSchema({ records: commentSchemaRecords }) }),
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [...defaultTools, CommentTool],
+			getContainer: () => document.body,
+			canWrite: ({ record }) => record.typeName.startsWith('comment'),
+		})
+		editor.updateInstanceState({ isReadonly: true })
+		const readonlyOk = getCommentTool().readonlyOk as (editor: Editor) => boolean
+		expect(readonlyOk(editor)).toBe(true)
+	})
 })
 
 describe('comment tool placement hints with regions enabled', () => {

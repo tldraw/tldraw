@@ -5,11 +5,14 @@ import {
 	preventDefault,
 	TLPointerEventInfo,
 	useEditor,
+	useMaybeEditor,
+	useValue,
 	Vec,
 	VecModel,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { useMemo } from 'react'
+import { isReadonlyOk } from '../../../context/action-state'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
 import { useReadonly } from '../../../hooks/useReadonly'
@@ -51,9 +54,10 @@ export interface TLUiMenuItemProps<
 	 */
 	label?: TranslationKey | { [key: string]: TranslationKey }
 	/**
-	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be rendered.
+	 * If the editor is in readonly mode and the item is not marked as readonlyok, it will not be
+	 * rendered. A function decides each time.
 	 */
-	readonlyOk?: boolean
+	readonlyOk?: boolean | ((editor: Editor) => boolean)
 	/**
 	 * The function to call when the item is clicked.
 	 */
@@ -103,8 +107,14 @@ export function TldrawUiMenuItem<
 	const msg = useTranslation()
 	const dir = useDirection()
 
+	const editor = useMaybeEditor()
 	const isReadonlyMode = useReadonly()
-	if (isReadonlyMode && !readonlyOk) return null
+	const isAllowedInReadonly = useValue(
+		'readonly ok',
+		() => (editor ? isReadonlyOk(editor, readonlyOk) : !!readonlyOk),
+		[editor, readonlyOk]
+	)
+	if (isReadonlyMode && !isAllowedInReadonly) return null
 
 	const labelToUse = unwrapLabel(label, menuType)
 	const kbdToUse = kbd ? kbdStr(kbd) : undefined

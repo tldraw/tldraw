@@ -23,7 +23,7 @@ import {
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
-import { onMovePage } from './edit-pages-shared'
+import { canCreatePage, canUpdatePage, onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
@@ -175,6 +175,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 		() => editor.getPages().length >= editor.options.maxPages,
 		[editor]
 	)
+	const canCreate = useValue('can create page', () => canCreatePage(editor), [editor])
 	const createPageButtonLabel = msg(
 		hasReachedMaxPages ? messages.pageMenuMaxPagesReached : messages.pageMenuCreateNewPage
 	)
@@ -511,7 +512,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
-			if (isReadonlyMode) return
+			if (isReadonlyMode || !canUpdatePage(editor, id)) return
 			if (shouldUseWindowPrompt) {
 				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
@@ -526,7 +527,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	const handleCreatePageClick = useCallback(() => {
-		if (isReadonlyMode) return
+		if (isReadonlyMode || !canCreatePage(editor)) return
 
 		const newPageId = PageRecordType.createId()
 		const initialName = msg(messages.pageMenuNewPageInitialName)
@@ -720,7 +721,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						data-testid="page-menu.create"
 						tooltip={createPageButtonLabel}
 						title={createPageButtonLabel}
-						disabled={isReadonlyMode || hasReachedMaxPages}
+						disabled={isReadonlyMode || hasReachedMaxPages || !canCreate}
 						onClick={handleCreatePageClick}
 					>
 						<TldrawUiButtonLabel>{createPageButtonLabel}</TldrawUiButtonLabel>
