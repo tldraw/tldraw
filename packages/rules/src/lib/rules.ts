@@ -411,23 +411,6 @@ export class TLRules {
 		let next = input.next
 		const prev = input.prev
 
-		if (op === 'update' && prev && next && t) {
-			for (const path of [...t.frozen, ...t.stamp.map((s) => s.path)]) {
-				if (!deepEqual(getPath(prev, path), getPath(next, path))) {
-					return {
-						ok: false,
-						denial: {
-							rule: `${typeName}.frozen`,
-							message: `${path} cannot change`,
-							clause: path,
-							result: 'false',
-							reason: `${path} is frozen`,
-						},
-					}
-				}
-			}
-		}
-
 		if (op === 'update' && prev && next && t?.fields.length) {
 			// You cannot change what you cannot see. The client holds `hidden` for the field, so a
 			// write that sends `hidden` back (a full put after a drag, say) keeps the real value.
@@ -449,6 +432,23 @@ export class TLRules {
 					}
 				}
 				next = setPath(next, field.path, real)
+			}
+		}
+
+		if (op === 'update' && prev && next && t) {
+			for (const path of [...t.frozen, ...t.stamp.map((s) => s.path)]) {
+				if (!deepEqual(getPath(prev, path), getPath(next, path))) {
+					return {
+						ok: false,
+						denial: {
+							rule: `${typeName}.frozen`,
+							message: `${path} cannot change`,
+							clause: path,
+							result: 'false',
+							reason: `${path} is frozen`,
+						},
+					}
+				}
 			}
 		}
 
@@ -510,6 +510,11 @@ export class TLRules {
 			if (evaluate(field.rule.expr, host) !== true) out = setPath(out, field.path, field.hidden)
 		}
 		return out
+	}
+
+	/** Does this type have any field rules? */
+	hasFieldRules(typeName: string): boolean {
+		return !!this.types[typeName]?.fields.length
 	}
 
 	/** Could some record of this type have a field this user may not read? */
@@ -689,6 +694,17 @@ export class TLRules {
 						otherSet.add('typeName')
 					}
 					if (e.fn === 'canRead' || e.fn === 'canEdit') flags.crossType = true
+					if (e.fn === 'can') {
+						// an action reads no record of its own: whatever it reads is another record
+						const [arg] = e.args
+						const name = arg.k === 'lit' && typeof arg.v === 'string' ? arg.v : null
+						const action = name ? this.actions[name] : null
+						if (action && !visited.has(`action:${name}`)) {
+							visited.add(`action:${name}`)
+							collect(action.expr, otherSet, otherSet)
+							visited.delete(`action:${name}`)
+						}
+					}
 					return e.args.forEach((x) => recurse(x))
 				}
 			}

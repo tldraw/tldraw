@@ -256,6 +256,7 @@ export class TLRules {
     explainRead(record: TLRuleRecord, user: TLRuleUser, get: (id: string) => unknown): null | TLRuleDenial;
     getActionNames(): string[];
     getTypeNames(): string[];
+    hasFieldRules(typeName: string): boolean;
     // (undocumented)
     readonly lets: Record<string, {
         expr: TLRuleExpr;

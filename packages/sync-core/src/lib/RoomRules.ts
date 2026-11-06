@@ -19,6 +19,10 @@ export class RulesDeniedPush extends Error {}
 
 type Get = (id: string) => UnknownRecord | undefined
 
+function compilePresenceRules(definition: TLRulesDefinition) {
+	return compileRules({ ...definition, default: { ...definition.default, write: 'true' } })
+}
+
 /**
  * What one filtered session holds, and what its read rules looked at to decide it.
  *
@@ -78,16 +82,23 @@ export class SessionView {
  */
 export class RoomRules<R extends UnknownRecord> {
 	rules: TLRules
+	/**
+	 * The same rules for presence writes, where an op with no rule of its own is allowed:
+	 * `default.write` is about the document, and a viewer still has a cursor.
+	 */
+	presenceRules: TLRules
 
 	constructor(
 		definition: TLRulesDefinition,
 		private readonly typeNames: () => string[]
 	) {
 		this.rules = compileRules(definition)
+		this.presenceRules = compilePresenceRules(definition)
 	}
 
 	setDefinition(definition: TLRulesDefinition) {
 		this.rules = compileRules(definition)
+		this.presenceRules = compilePresenceRules(definition)
 	}
 
 	getDefinition() {
@@ -106,7 +117,7 @@ export class RoomRules<R extends UnknownRecord> {
 	}
 
 	hasFields(typeName: string) {
-		return !!this.rules.definition.types?.[typeName]?.fields
+		return this.rules.hasFieldRules(typeName)
 	}
 
 	/**
@@ -175,19 +186,20 @@ export class RoomRules<R extends UnknownRecord> {
 	): TLSyncForwardDiff<R> | null {
 		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const handled = new Set<string>()
+		// Readers of what changed, collected first: a record that changed only `x` in the same push
+		// as the frame it reads must still be checked again, not passed through as unchanged.
 		const recheck = new Set<string>()
-		const reachOut = (id: string) => {
-			if (!opts.reach.has(id)) return
+		for (const id of [...Object.keys(diff.puts), ...diff.deletes]) {
+			if (!opts.reach.has(id)) continue
 			for (const reader of view.readers.get(id) ?? []) recheck.add(reader)
 		}
 
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 			handled.add(id)
-			reachOut(id)
 			const before = Array.isArray(put) ? put[0] : null
 			const after = Array.isArray(put) ? put[1] : put
 			const had = opts.isSource || view.ids.has(id)
-			const unchanged = opts.unchanged.has(id)
+			const unchanged = opts.unchanged.has(id) && !recheck.has(id)
 			// whether hidden fields can be involved, so a patch must be cut to what the session sees
 			const fields = unchanged ? view.masked.has(id) : this.hasFields(after.typeName)
 			let shown: R | null
@@ -215,18 +227,19 @@ export class RoomRules<R extends UnknownRecord> {
 				out.puts[id] = shown
 			} else if (!fields) {
 				out.puts[id] = put
-			} else if (before) {
+			} else if (before && unchanged) {
+				// Which fields hide is as before, so the client holds `before` as redacted now, and a
+				// change to a hidden field is no change at all for this session.
 				const shownBefore = this.redact(view, before, get)
-				// a change to a hidden field is no change at all for this session
 				if (!isEqual(shownBefore, shown)) out.puts[id] = [shownBefore, shown]
 			} else {
+				// which fields hide may have changed, so what the client holds is not known: send all
 				out.puts[id] = shown
 			}
 		}
 
 		for (const id of diff.deletes) {
 			handled.add(id)
-			reachOut(id)
 			view.forget(id)
 			if (view.ids.delete(id) && !opts.isSource) out.deletes.push(id)
 		}

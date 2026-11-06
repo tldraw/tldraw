@@ -745,3 +745,120 @@ describe('review findings stay fixed', () => {
 		expect(closed).toBe('CLIENT_TOO_OLD')
 	})
 })
+
+describe('second review findings stay fixed', () => {
+	const face = (text: string) => ({
+		type: 'doc',
+		content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+	})
+	const dealer = { id: 'd', role: 'dealer' }
+
+	it('hides a child whose frame is hidden in the same push as the child moves', () => {
+		const room = makeRoom(useCaseRules.reveal, [
+			doc(),
+			page('main'),
+			shape('box', { type: 'frame', meta: { hidden: false } }),
+			shape('answer', { parentId: 'shape:box' }),
+		])
+		const ann = room.connect({ id: 'ann', role: 'player' })
+		const d = room.connect(dealer)
+		expect(room.ids(ann, 'shape')).toEqual(['shape:answer', 'shape:box'])
+		d.store.put([
+			{ ...(d.store.get('shape:box' as any) as R), meta: { hidden: true } },
+			{ ...(d.store.get('shape:answer' as any) as R), x: 50 },
+		])
+		room.flush()
+		expect(room.ids(ann, 'shape')).toEqual([])
+		d.store.put([
+			{ ...(d.store.get('shape:box' as any) as R), meta: { hidden: false } },
+			{ ...(d.store.get('shape:answer' as any) as R), x: 60 },
+		])
+		room.flush()
+		expect(room.ids(ann, 'shape')).toEqual(['shape:answer', 'shape:box'])
+	})
+
+	it('hides a field when what its rule reads changes in the same push as the record', () => {
+		const rules: TLRulesDefinition = {
+			version: 1,
+			types: {
+				shape: {
+					fields: {
+						'props.richText': {
+							read: "get('document:document').meta.open == true || record.meta.owner == user.id",
+							hidden: face('?'),
+						},
+					},
+				},
+			},
+			default: { read: 'true', write: 'true' },
+		}
+		const room = makeRoom(rules, [
+			doc({ open: true }),
+			page('main'),
+			shape('card', { props: { richText: face('A') }, meta: { owner: 'bob' } }),
+		])
+		const ann = room.connect({ id: 'ann' })
+		const bob = room.connect({ id: 'bob' })
+		bob.store.put([
+			{ ...(bob.store.get('document:document' as any) as R), meta: { open: false } },
+			{ ...(bob.store.get('shape:card' as any) as R), x: 9 },
+		])
+		room.flush()
+		bob.store.put([
+			{ ...(bob.store.get('shape:card' as any) as R), props: { richText: face('NEW') } },
+		])
+		room.flush()
+		expect((ann.store.get('shape:card' as any) as R).props.richText).toEqual(face('?'))
+	})
+
+	it('allows presence ops that have no rule of their own', () => {
+		const rules = composeRules(useCaseRules.shareLinks, {
+			types: { instance_presence: { create: 'exists(user.id)' } },
+		})
+		const room = makeRoom(rules, [doc(), page('main')])
+		const editor = room.connect({ id: 'e', access: 'edit' })
+		const viewer = room.connect({ id: 'v', access: 'view' }, 'page:main')
+		viewer.presence.set({ ...viewer.presence.get(), userName: 'moved' })
+		room.flush()
+		const cursors = editor.store.allRecords().filter((r) => r.typeName === 'instance_presence')
+		expect(cursors.map((r) => r.userName)).toEqual(['moved'])
+	})
+
+	it('rechecks a read rule that reads through an action', () => {
+		const rules: TLRulesDefinition = {
+			version: 1,
+			actions: { see: "get('document:document').meta.open == true" },
+			types: { shape: { read: "can('see')" } },
+			default: { read: 'true', write: 'true' },
+		}
+		const room = makeRoom(rules, [doc({ open: true }), page('main'), shape('c')])
+		const ann = room.connect({ id: 'ann' })
+		const bob = room.connect({ id: 'bob' })
+		expect(room.ids(ann, 'shape')).toEqual(['shape:c'])
+		bob.store.put([{ ...(bob.store.get('document:document' as any) as R), meta: { open: false } }])
+		room.flush()
+		expect(room.ids(ann, 'shape')).toEqual([])
+	})
+
+	it('a full put of a hidden, frozen field is not a change to it', () => {
+		const rules: TLRulesDefinition = {
+			version: 1,
+			types: {
+				shape: {
+					frozen: ['props.richText'],
+					fields: { 'props.richText': { read: 'record.meta.owner == user.id', hidden: face('?') } },
+				},
+			},
+			default: { read: 'true', write: 'true' },
+		}
+		const room = makeRoom(rules, [
+			doc(),
+			page('main'),
+			shape('card', { props: { richText: face('A') }, meta: { owner: 'bob' } }),
+		])
+		const ann = room.connect({ id: 'ann' })
+		ann.store.put([{ ...(ann.store.get('shape:card' as any) as R), x: 5 }])
+		room.flush()
+		expect(room.stored('shape:card')).toMatchObject({ x: 5, props: { richText: face('A') } })
+	})
+})

@@ -1627,11 +1627,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 						// Presence is checked only against rules written for it: `default.write` is
 						// about the document, and a viewer still has a cursor. A denied presence write
 						// is skipped, never a reason to roll back the document part of the push.
-						const presenceRules = this.roomRules?.getDefinition().types?.[typeName]
 						const authorizePresence =
-							presenceRules && (presenceRules.create || presenceRules.update || presenceRules.stamp)
+							this.roomRules && this.roomRules.getDefinition().types?.[typeName]
 								? (prev: R | null, next: R): R | null => {
-										const result = this.roomRules!.rules.checkWrite<any>({
+										const result = this.roomRules!.presenceRules.checkWrite<any>({
 											op: prev ? 'update' : 'create',
 											typeName,
 											prev,
