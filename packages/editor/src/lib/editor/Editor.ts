@@ -298,7 +298,9 @@ export interface TLEditorOptions {
 	 * shape's `isLocked` prop does not change, so other users are not affected, and "unlock" does
 	 * not remove this lock.
 	 *
-	 * Like `isLocked`, the lock applies to the shape's descendants too.
+	 * Unlike `isLocked`, the lock applies to the shape only, not to its descendants: each shape gets
+	 * its own answer. The result is cached per shape and recomputed when the signals or records that
+	 * the callback reads change, so read reactive state only.
 	 *
 	 * @example
 	 * ```ts
@@ -1013,6 +1015,34 @@ export class Editor extends EventEmitter<TLEventMap> {
 					unsafe__withoutCapture(() =>
 						this._updateInstanceState({ isReadonly }, { history: 'ignore' })
 					)
+				})
+			)
+		}
+
+		if (this._isShapeLocked) {
+			// A shape can become locked while it is selected or edited, for example when the user's
+			// access changes. Let it go, as `toggleLock` does, so that no edits to it are dropped.
+			this.disposables.add(
+				react('release newly locked shapes', () => {
+					// read the page state record directly: during a page change it can be missing
+					const instance = this.store.get(TLINSTANCE_ID)
+					const pageState =
+						instance && this.store.get(InstancePageStateRecordType.createId(instance.currentPageId))
+					if (!pageState) return
+					const selected = pageState.selectedShapeIds
+					const editingId = pageState.editingShapeId
+					const locked = selected.filter((id) => this.isShapeLocked(id))
+					const editingLocked = !!editingId && this.isShapeLocked(editingId)
+					if (!locked.length && !editingLocked) return
+					this.timers.setTimeout(() => {
+						if (editingLocked && this.getEditingShapeId() === editingId) {
+							this.setCurrentTool('select.idle')
+							this.setEditingShape(null)
+						}
+						const stillSelected = this.getSelectedShapeIds()
+						const next = stillSelected.filter((id) => !this.isShapeLocked(id))
+						if (next.length !== stillSelected.length) this.setSelectedShapes(next)
+					}, 0)
 				})
 			)
 		}
@@ -5820,8 +5850,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
+		// The `isShapeLocked` option is for the shape itself. Only the stored `isLocked` prop locks
+		// descendants: a frame that this user may not change can still hold shapes that they may.
 		if (this.isShapeLocked(_shape)) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		let parent = this.getShapeParent(_shape)
+		while (parent) {
+			if (parent.isLocked) return true
+			parent = this.getShapeParent(parent)
+		}
+		return false
+	}
+
+	@computed
+	private getIsShapeLockedCache() {
+		if (!this._isShapeLocked) return null
+		return this.store.createComputedCache<boolean, TLShape>('isShapeLocked', (shape: TLShape) =>
+			this._isShapeLocked!(shape, this)
+		)
+	}
+
+	/** Whether the `isShapeLocked` option locks the shape, apart from its `isLocked` prop. */
+	private isShapeLockedByOption(shape: TLShape): boolean {
+		return !!this.getIsShapeLockedCache()?.get(shape.id)
 	}
 
 	/**
@@ -5837,7 +5887,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _shape = this.getShape(shape)
 		if (!_shape) return false
 		if (_shape.isLocked) return true
-		return this._isShapeLocked?.(_shape, this) ?? false
+		return this.isShapeLockedByOption(_shape)
 	}
 
 	/**
@@ -6734,7 +6784,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}).filter(
 			(s) =>
 				!droppingShapes.includes(s) &&
-				!this.isShapeLocked(s) &&
+				// a drop changes the dropped shapes, not the target, so only a stored lock stops it
+				!s.isLocked &&
 				!this.isShapeHidden(s) &&
 				!excludedIds.has(s.id)
 		)
@@ -7301,7 +7352,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const currentPageId = this.getCurrentPageId()
 
 		if (pageId === currentPageId) return this
-		if (!this.store.has(pageId)) return this
+		const page = this.getPage(pageId)
+		if (!page) return this
+		// the shapes could not be put onto a page that is read-only for this editor
+		if (this._isPageReadonly?.(page, this)) return this
 
 		// Basically copy the shapes
 		const content = this.getContentFromCurrentPage(ids)
@@ -7362,11 +7416,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapesToToggle: TLShape[] = []
 		for (const id of ids) {
 			const shape = this.getShape(id)
-			if (shape) {
+			// the `isShapeLocked` option's lock is not this user's to toggle
+			if (shape && !this.isShapeLockedByOption(shape)) {
 				shapesToToggle.push(shape)
 				if (!shape.isLocked) allLocked = false
 			}
 		}
+		if (shapesToToggle.length === 0) return this
 		this.run(() => {
 			if (allLocked) {
 				this.updateShapes(
@@ -8837,7 +8893,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// Apply the same lock rule as updateShapes up front: the intermediate frames go through
 			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
 			// every frame but the last and end up stranded at the penultimate one
-			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
+			const unlocks =
+				shape.isLocked &&
+				!this.isShapeLockedByOption(shape) &&
+				Object.hasOwn(partial, 'isLocked') &&
+				!partial.isLocked
 			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
 				continue
 			}
@@ -9115,9 +9175,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// If we're "forcing" the update, then we'll update the shape
 			// regardless of whether it / its ancestor is locked
 			if (!this._shouldIgnoreShapeLock) {
-				if (shape.isLocked) {
+				if (shape.isLocked && !this.isShapeLockedByOption(shape)) {
 					// If the shape itself is locked (even if one of its ancestors is
 					// also locked) then only allow an update that unlocks the shape.
+					// "Unlock" does not lift the `isShapeLocked` option's lock.
 					if (!(Object.hasOwn(partial, 'isLocked') && !partial.isLocked)) {
 						continue
 					}

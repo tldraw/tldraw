@@ -59,11 +59,11 @@ export abstract class BaseFrameLikeShapeUtil<
 	}
 
 	override canReceiveNewChildrenOfType(shape: Shape, _type: TLShape['type']): boolean {
-		return !this.editor.isShapeLocked(shape)
+		return !shape.isLocked
 	}
 
 	override canRemoveChildrenOfType(shape: Shape, _type: TLShape['type']): boolean {
-		return !this.editor.isShapeLocked(shape)
+		return !shape.isLocked
 	}
 
 	override getClipPath(shape: Shape): Vec[] | undefined {

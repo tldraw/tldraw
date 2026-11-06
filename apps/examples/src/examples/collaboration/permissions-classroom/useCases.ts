@@ -24,6 +24,8 @@ export interface Classroom {
 	editor(userId: string): Promise<Editor>
 	setRole(userId: string, role: Role): void
 	getRole(userId: string): Role
+	/** Why the host refused the person's connection, or null if it did not. */
+	refusal(userId: string): Promise<string | null>
 }
 
 export interface UseCase {
@@ -97,6 +99,29 @@ async function createNote(c: Classroom, userId: string, x: number) {
 	return { editor, id, kept: !!c.room.getRecord(id) }
 }
 
+/** A note made with side effects off, so that only the server can stop it. */
+function forceNote(editor: Editor, userId: string, pageId: TLPageId) {
+	const id = createShapeId()
+	const util = editor.getShapeUtil('note')
+	forcePut(editor, [
+		{
+			id,
+			typeName: 'shape',
+			type: 'note',
+			parentId: pageId,
+			index: 'a9',
+			x: -300,
+			y: 400,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: { ownerId: userId },
+			props: { ...util.getDefaultProps(), richText: toRichText('forced') },
+		},
+	])
+	return id
+}
+
 function startThread(editor: Editor, userId: string, pageId: TLPageId, x: number) {
 	const thread = createCommentThread({
 		pageId,
@@ -123,31 +148,25 @@ export const USE_CASES: UseCase[] = [
 		async run(c) {
 			await reset(c)
 			c.setRole('carol', 'none')
-			await settle()
-			const refused = !c.room.getSessions().some((s) => s.sessionId === 'carol' && s.isConnected)
-			return [yes('Carol is refused at connect', refused, true)]
+			const reason = await c.refusal('carol')
+			return [yes('Carol is refused at connect with FORBIDDEN', reason === 'FORBIDDEN', true)]
 		},
 	},
 	{
 		title: 'File write control',
 		story:
-			"With a view link, Carol's editor is read-only. A modified client could still send a write, so the script forces one past the editor: the server rejects it.",
+			"With a view link, Carol's editor is read-only. A modified client could still send a write, so the script forces a note past the editor: the server rejects it. A student may make that note, so only the read-only session stops it.",
 		people: ['carol'],
 		api: 'isReadonly at connect; the server rejects forced writes',
 		async run(c) {
 			await reset(c)
 			c.setRole('carol', 'viewer')
 			const { editor: carol, kept } = await createNote(c, 'carol', -200)
-			const page = carol.getPage(LESSON)!
-			forcePut(carol, [{ ...page, name: 'Hacked' }])
+			const forced = forceNote(carol, 'carol', LESSON)
 			await settle()
 			return [
 				allowed('View link draws a note', kept, false),
-				allowed(
-					'View link forces a page rename past the editor',
-					(c.room.getRecord(LESSON) as any).name === 'Hacked',
-					false
-				),
+				allowed('View link forces a note past the editor', !!c.room.getRecord(forced), false),
 			]
 		},
 	},
@@ -190,9 +209,13 @@ export const USE_CASES: UseCase[] = [
 			alice.setCurrentPage(LESSON)
 			const readonly = alice.getIsReadonly()
 			const { kept } = await createNote(c, 'alice', 0)
+			// the editor stopped that one; a forced note reaches the server's page rule
+			const forced = forceNote(alice, 'alice', LESSON)
+			await settle()
 			return [
 				yes("Alice's editor is read-only on the Lesson page", readonly, true),
 				allowed('Alice draws on the Lesson page', kept, false),
+				allowed('Alice forces a note onto the Lesson page', !!c.room.getRecord(forced), false),
 			]
 		},
 	},
@@ -373,10 +396,12 @@ export const USE_CASES: UseCase[] = [
 			await reset(c)
 			c.setRole('alice', 'teacher')
 			const alice = await c.editor('alice')
+			const hasPrompt = !!alice.getShape(PROMPT)
 			const locked = alice.isShapeLocked(PROMPT)
 			const seesAnswers = !!alice.getPage(ANSWERS)
 			c.setRole('alice', 'student')
 			return [
+				yes("After the reconnect, Alice has the teacher's prompt", hasPrompt, true),
 				yes("As co-teacher, the teacher's prompt is locked for Alice", locked, false),
 				yes('As co-teacher, Alice receives the private Answers page', seesAnswers, true),
 			]

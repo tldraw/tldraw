@@ -662,9 +662,11 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 				hitInside: true,
 				hitFrameInside: true,
 				margin: 0,
+				// a binding does not change its target, so a lock for this editor only does not stop it
+				hitLocked: true,
 				filter: (targetShape) => {
 					return (
-						!this.editor.isShapeLocked(targetShape) &&
+						!targetShape.isLocked &&
 						this.editor.canBindShapes({ fromShape: shape, toShape: targetShape, binding: 'arrow' })
 					)
 				},

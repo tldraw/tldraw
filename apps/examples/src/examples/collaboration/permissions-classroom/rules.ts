@@ -154,6 +154,16 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 				(ctx.action !== 'edit-comment' && ctx.session.meta.role === 'teacher'),
 		}),
 		page: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
+		document: ({ session, next, prev }) =>
+			session.meta.role === 'teacher' ? (next ?? prev) : null,
+		// anyone who may draw may add an image; only its owner or the teacher may change it
+		asset: ({ session, type, prev, next }) => {
+			const { meta } = session
+			if (type === 'create') return { ...next, meta: { ...next.meta, ownerId: meta.userId } }
+			if (meta.role !== 'teacher' && prev.meta.ownerId !== meta.userId) return null
+			if (type === 'update' && next.meta.ownerId !== prev.meta.ownerId) return null
+			return next ?? prev
+		},
 		grade: ({ session, next, prev }) => (session.meta.role === 'teacher' ? (next ?? prev) : null),
 		// A binding changes how its `from` shape (an arrow) behaves, so it needs write access to
 		// that shape. A delete also follows from deleting either end, so either end is enough.
@@ -177,6 +187,8 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 			}
 			if (!canWriteShape(session, prev, get)) return null
 			if (type === 'delete') return prev
+			// a type is chosen at create, where the type limits apply
+			if (next.type !== prev.type) return null
 			if (next.meta.ownerId !== prev.meta.ownerId) return null
 			// the lock action is the teacher's: the UI hides it, and this rule enforces it
 			if (next.isLocked !== prev.isLocked && meta.role !== 'teacher') return null

@@ -4,6 +4,7 @@ import {
 	registerRecordRules,
 	TLAuthorizerSession,
 	TLRecordWrite,
+	TLRemoteSyncError,
 	TLSocketRoom,
 	useSync,
 } from '@tldraw/sync'
@@ -72,6 +73,9 @@ const access = atom<Record<string, ClassroomMeta>>('access', {
 	carol: { userId: 'carol', role: 'commenter' },
 	agent: { userId: 'agent', role: 'agent', areaId: AGENT_AREA },
 })
+
+/** Why the host refused each person's connection, if it did. The use case scripts read it. */
+const refusals = atom<Record<string, string | null>>('refusals', {})
 
 // [2]
 function createRoom() {
@@ -195,6 +199,13 @@ function Pane({
 	})
 	const role = useValue('role', () => socket.session.get()?.meta.role, [socket])
 	const [denials, setDenials] = useState<string[]>([])
+	const refusedReason =
+		store.status === 'error'
+			? ((store.error as TLRemoteSyncError).reason ?? store.error.message)
+			: null
+	useEffect(() => {
+		refusals.update((r) => ({ ...r, [userId]: refusedReason }))
+	}, [userId, refusedReason])
 	const [editor, setEditor] = useState<Editor | null>(null)
 	useEffect(() => {
 		if (!editor || !role) return
@@ -269,7 +280,8 @@ function Pane({
 				tools(_editor, tools) {
 					const role = socket.session.get()?.meta.role
 					// the comment tool is hidden on a read-only canvas unless it says otherwise
-					if (tools.comment) tools.comment.readonlyOk = role === 'commenter'
+					// anyone who may comment keeps the comment tool on a read-only canvas or page
+					if (tools.comment) tools.comment.readonlyOk = role !== 'viewer'
 					if (role !== 'student') return tools
 					for (const id of Object.keys(tools)) {
 						const keep = ['select', 'hand', 'eraser', 'laser', 'comment', ...STUDENT_SHAPE_TYPES]
@@ -358,6 +370,14 @@ function UseCasePanel({
 				throw new Error(`${userId} is not connected`)
 			},
 			setRole: (userId, role) => setRole(room, userId, role),
+			async refusal(userId) {
+				for (let i = 0; i < 40; i++) {
+					const reason = refusals.get()[userId]
+					if (reason) return reason
+					await new Promise((r) => setTimeout(r, 50))
+				}
+				return null
+			},
 			getRole: (userId) => access.get()[userId].role,
 		}),
 		[room, editors]

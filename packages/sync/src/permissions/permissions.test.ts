@@ -5,6 +5,7 @@ import {
 	TLSyncErrorCloseEventReason,
 } from '@tldraw/sync-core'
 import {
+	AssetRecordType,
 	createBindingId,
 	createShapeId,
 	createTLSchema,
@@ -444,6 +445,58 @@ describe('bindings follow their shapes', () => {
 	})
 })
 
+describe('rules for every document type', () => {
+	it('stops a student from changing a shape into another type', async () => {
+		const alice = join('alice', 'student')
+		await settle()
+		const id = createShapeId('a1')
+		alice.editor.createShape(geo(id))
+		await settle()
+		const shape = alice.editor.getShape(id)!
+		const asFrame = { ...shape, type: 'frame', props: { w: 100, h: 100, name: '', color: 'black' } }
+		alice.editor.store.put([asFrame as any])
+		forcePut(alice.editor, [asFrame])
+		await settle()
+		expect(shapeInRoom(id).type).toBe('geo')
+	})
+
+	it('lets only the teacher change the document, and the owner change an asset', async () => {
+		const teacher = users[0]
+		const alice = join('alice', 'student')
+		await settle()
+		alice.editor.updateDocumentSettings({ name: 'hacked' })
+		forcePut(alice.editor, [{ ...alice.editor.getDocumentSettings(), name: 'hacked' }])
+		await settle()
+		expect(room.getRecord('document:document')!).toMatchObject({ name: '' })
+		teacher.editor.updateDocumentSettings({ name: 'Geometry' })
+		await settle()
+		expect(room.getRecord('document:document')!).toMatchObject({ name: 'Geometry' })
+
+		const asset = AssetRecordType.create({
+			id: AssetRecordType.createId('img'),
+			type: 'image',
+			props: {
+				src: 'https://example.com/a.png',
+				w: 10,
+				h: 10,
+				name: 'a',
+				isAnimated: false,
+				mimeType: 'image/png',
+			},
+		})
+		teacher.editor.createAssets([asset])
+		await settle()
+		const stored = () => room.getRecord(asset.id) as any
+		expect(stored().meta.ownerId).toBe('teacher')
+		forcePut(alice.editor, [
+			{ ...stored(), props: { ...stored().props, src: 'https://evil.example/x.png' } },
+		])
+		alice.editor.deleteAssets([asset.id])
+		await settle()
+		expect(stored().props.src).toBe('https://example.com/a.png')
+	})
+})
+
 describe('agents limited to an area', () => {
 	it('writes only inside its frame, and cannot move a shape out of it', async () => {
 		const teacher = users[0]
@@ -459,8 +512,18 @@ describe('agents limited to an area', () => {
 		expect(shapeInRoom(createShapeId('in'))).toBeDefined()
 		expect(shapeInRoom(createShapeId('out'))).toBeUndefined()
 
-		// move out of the frame: allowed by `prev`, denied by `next`
+		// its own note inside the frame is not locked by the frame's lock
+		expect(agent.editor.isShapeOrAncestorLocked(createShapeId('in'))).toBe(false)
+		agent.editor.updateShape({ id: createShapeId('in'), type: 'geo', x: 30 })
+		await settle()
+		expect(shapeInRoom(createShapeId('in'))!.x).toBe(30)
+
+		// move out of the frame: allowed by `prev`, denied by `next`. The editor does not stop it,
+		// so this is the client rule; forced, it is the server rule.
 		agent.editor.reparentShapes([createShapeId('in')], page1)
+		await settle()
+		expect(shapeInRoom(createShapeId('in'))!.parentId).toBe(area)
+		forcePut(agent.editor, [{ ...agent.editor.getShape(createShapeId('in'))!, parentId: page1 }])
 		await settle()
 		expect(shapeInRoom(createShapeId('in'))!.parentId).toBe(area)
 		// the agent cannot touch the frame itself
