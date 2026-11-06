@@ -1,4 +1,4 @@
-import { createShapeId, TLShapeId } from '@tldraw/editor'
+import { createShapeId, createUserId, TLShapeId } from '@tldraw/editor'
 import { useCaseRules } from '@tldraw/rules'
 import { TestEditor } from './TestEditor'
 
@@ -101,6 +101,31 @@ describe('local write checks', () => {
 		asStudent()
 		editor.deleteShapes([bobs])
 		expect(editor.getShape(bobs)).toBeDefined()
+	})
+
+	it('does not deny a no-op re-put of a record the user may not write', () => {
+		const frame = editor.getShape(frameA)!
+		asStudent()
+		editor.store.put([structuredClone(frame)])
+		expect(editor.rules.getLastDenial()).toBeNull()
+	})
+
+	it('lets each person write only their own user record', () => {
+		asStudent()
+		const own = {
+			id: createUserId('ann'),
+			typeName: 'user',
+			name: 'Ann',
+			color: '#000',
+			imageUrl: '',
+			meta: {},
+		} as const
+		editor.store.put([own])
+		expect(editor.store.get(own.id)).toBeDefined()
+		const other = { ...own, id: createUserId('bob'), name: 'Not Bob' }
+		editor.store.put([other])
+		expect(editor.store.get(other.id)).toBeUndefined()
+		expect(editor.rules.getLastDenial()?.denial.message).toBe('You can only add your own name')
 	})
 
 	it('lets everything through when no rules are set', () => {

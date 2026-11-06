@@ -80,7 +80,12 @@ export function ToolbarItem({ tool }: ToolbarItemProps) {
 	const tools = useTools()
 	const isSelected = useIsToolSelected(tools[tool])
 	// in a rules room, a tool whose shape the user can never create is not offered
-	const canUse = useValue('can use tool', () => editor.rules.canUseTool(tool), [editor, tool])
+	// (geo items such as `rectangle` are the geo tool with a style)
+	const editorTool = tools[tool]?.meta?.geo ? 'geo' : tool
+	const canUse = useValue('can use tool', () => editor.rules.canUseTool(editorTool), [
+		editor,
+		editorTool,
+	])
 	if (!canUse) return null
 	return <TldrawUiMenuToolItem toolId={tool} isSelected={isSelected} />
 }

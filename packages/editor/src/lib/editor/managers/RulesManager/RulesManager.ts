@@ -9,6 +9,7 @@ import {
 } from '@tldraw/rules'
 import { Atom, Computed, atom, computed, unsafe__withoutCapture } from '@tldraw/state'
 import { TLAccessState, TLRecord, TLShape } from '@tldraw/tlschema'
+import { isEqual } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
 
@@ -50,7 +51,9 @@ export class RulesManager extends EditorManager {
 			)
 			this.register(
 				handlers.registerBeforeChangeHandler(t, (prev: any, next: any, source) => {
-					if (!isGated(next, source)) return next
+					// The editor re-puts records it already has (the current user's record after a
+					// sync, for example). A no-op is not a write, so it must not show a denial.
+					if (!isGated(next, source) || isEqual(prev, next)) return next
 					return this.check('update', prev, next) ? next : prev
 				})
 			)

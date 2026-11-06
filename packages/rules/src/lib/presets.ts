@@ -59,3 +59,24 @@ export const commentRules = {
 		},
 	},
 } satisfies TLRulesFragment
+
+/**
+ * `user` records carry the display names that attribution shows. Each person writes only their
+ * own, at `user:<user.id>`, so nobody can rename someone else. Without this, a type falls to the
+ * rule set's default write rule, and a view-only person could not publish their own name.
+ *
+ * @public
+ */
+export const userRecordRules = {
+	types: {
+		user: {
+			read: 'true',
+			create: { allow: "next.id == 'user:' + user.id", message: 'You can only add your own name' },
+			update: {
+				allow: "next.id == 'user:' + user.id",
+				message: 'You can only change your own name',
+			},
+			delete: 'false',
+		},
+	},
+} satisfies TLRulesFragment

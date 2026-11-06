@@ -536,7 +536,7 @@ describe('rules change live', () => {
 			...useCaseRules.teamPages,
 			types: {
 				...useCaseRules.teamPages.types,
-				page: { ...useCaseRules.teamPages.types.page, read: 'true' },
+				page: { ...useCaseRules.teamPages.types!.page, read: 'true' },
 			},
 		})
 		room.flush()

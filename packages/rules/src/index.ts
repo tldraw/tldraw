@@ -27,5 +27,5 @@ export {
 	type TLWriteOp,
 } from './lib/rules'
 export { composeRules, type TLRulesFragment } from './lib/compose'
-export { commentRules } from './lib/presets'
+export { commentRules, userRecordRules } from './lib/presets'
 export { pollPluginRules, useCaseRules } from './lib/use-cases'
