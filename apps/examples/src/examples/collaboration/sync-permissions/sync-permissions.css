@@ -1,0 +1,404 @@
+.perm-root {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: 250px 1fr;
+	font-family: system-ui, sans-serif;
+	font-size: 13px;
+	color: #1d1d1d;
+	background: #f4f4f5;
+}
+
+.perm-scenes {
+	overflow-y: auto;
+	padding: 8px;
+	border-right: 1px solid #ddd;
+	background: #fff;
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.perm-scenes button {
+	display: grid;
+	grid-template-columns: 20px 1fr auto;
+	gap: 6px;
+	align-items: center;
+	padding: 6px 8px;
+	border: 0;
+	border-radius: 6px;
+	background: none;
+	text-align: left;
+	cursor: pointer;
+	font: inherit;
+}
+
+.perm-scenes button:hover {
+	background: #f1f3f5;
+}
+
+.perm-scenes button.is-active {
+	background: #e7f0ff;
+}
+
+.perm-num {
+	color: #868e96;
+	font-variant-numeric: tabular-nums;
+}
+
+.perm-status {
+	font-size: 11px;
+	padding: 1px 6px;
+	border-radius: 10px;
+	white-space: nowrap;
+}
+
+.perm-status--solved {
+	background: #d3f9d8;
+	color: #2b8a3e;
+}
+
+.perm-status--partly {
+	background: #fff3bf;
+	color: #946200;
+}
+
+.perm-status--not {
+	background: #ffe3e3;
+	color: #c92a2a;
+}
+
+.perm-main {
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	padding: 8px;
+}
+
+.perm-info {
+	background: #fff;
+	border-radius: 8px;
+	padding: 10px 12px;
+	box-shadow: 0 0 0 1px #e5e5e5;
+}
+
+.perm-info header,
+.perm-panel-header {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+
+.perm-info h2 {
+	margin: 0;
+	font-size: 16px;
+}
+
+.perm-info h3 {
+	margin: 0 0 2px;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	color: #868e96;
+}
+
+.perm-info p {
+	margin: 6px 0;
+}
+
+.perm-info ol {
+	margin: 0;
+	padding-left: 18px;
+}
+
+.perm-columns {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 12px;
+}
+
+.perm-gap {
+	background: #fff9db;
+	border-left: 3px solid #fab005;
+	padding: 4px 8px;
+	border-radius: 4px;
+}
+
+.perm-gap p {
+	margin: 0;
+}
+
+.perm-primitives {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	margin-top: 6px;
+}
+
+.perm-primitives code {
+	background: #f1f3f5;
+	padding: 1px 6px;
+	border-radius: 4px;
+	font-size: 12px;
+}
+
+.perm-spacer {
+	flex: 1;
+}
+
+.perm-controls {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 16px;
+	background: #fff;
+	border-radius: 8px;
+	padding: 8px 12px;
+	box-shadow: 0 0 0 1px #e5e5e5;
+}
+
+.perm-row {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px 12px;
+	width: 100%;
+}
+
+.perm-control {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.perm-segmented {
+	display: flex;
+	border-radius: 6px;
+	box-shadow: 0 0 0 1px #ced4da;
+	overflow: hidden;
+}
+
+.perm-segmented button {
+	border: 0;
+	padding: 4px 8px;
+	background: #fff;
+	cursor: pointer;
+	font: inherit;
+}
+
+.perm-segmented button + button {
+	border-left: 1px solid #ced4da;
+}
+
+.perm-segmented button.is-active {
+	background: #1971c2;
+	color: #fff;
+}
+
+.perm-action {
+	border: 0;
+	border-radius: 6px;
+	padding: 5px 10px;
+	background: #e7f0ff;
+	color: #1864ab;
+	cursor: pointer;
+	font: inherit;
+}
+
+.perm-action:hover {
+	background: #d0e2ff;
+}
+
+.perm-check {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	cursor: pointer;
+}
+
+.perm-editors {
+	flex: 1;
+	min-height: 320px;
+	display: grid;
+	gap: 8px;
+}
+
+.perm-panel {
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	background: #fff;
+	border-radius: 8px;
+	border-top: 4px solid;
+	box-shadow: 0 0 0 1px #e5e5e5;
+	overflow: hidden;
+}
+
+.perm-panel-header {
+	padding: 6px 8px;
+	border-bottom: 1px solid #eee;
+	white-space: nowrap;
+}
+
+.perm-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.perm-role {
+	color: #868e96;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.perm-holds {
+	color: #868e96;
+	font-size: 11px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.perm-badge {
+	font-size: 11px;
+	padding: 1px 6px;
+	border-radius: 10px;
+	background: #d3f9d8;
+	color: #2b8a3e;
+}
+
+.perm-badge.is-off,
+.perm-badge--offline,
+.perm-badge--loading {
+	background: #f1f3f5;
+	color: #495057;
+}
+
+.perm-badge--error {
+	background: #ffe3e3;
+	color: #c92a2a;
+}
+
+.perm-canvas {
+	position: relative;
+	flex: 1;
+}
+
+.perm-empty {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 4px;
+	color: #868e96;
+	background: repeating-linear-gradient(45deg, #fafafa, #fafafa 10px, #f4f4f5 10px, #f4f4f5 20px);
+}
+
+.perm-empty strong {
+	font-size: 16px;
+	color: #c92a2a;
+}
+
+.perm-log {
+	height: 130px;
+	overflow-y: auto;
+	background: #fff;
+	border-radius: 8px;
+	padding: 6px 12px;
+	box-shadow: 0 0 0 1px #e5e5e5;
+}
+
+.perm-log h3 {
+	margin: 0 0 4px;
+	font-size: 12px;
+	text-transform: uppercase;
+	color: #868e96;
+}
+
+.perm-log ul {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.perm-log li {
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+	padding: 2px 0;
+}
+
+.perm-log li.is-denied > span:nth-child(2) {
+	color: #c92a2a;
+}
+
+.perm-log li.is-allowed > span:nth-child(2) {
+	color: #2b8a3e;
+}
+
+.perm-side {
+	font-size: 11px;
+	padding: 0 6px;
+	border-radius: 4px;
+	background: #f1f3f5;
+}
+
+.perm-side--server {
+	background: #e5dbff;
+	color: #5f3dc4;
+}
+
+.perm-reason {
+	color: #495057;
+	font-style: italic;
+}
+
+.perm-muted {
+	color: #868e96;
+}
+
+.perm-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 0 0 1.5px #343a40;
+	font-size: 30px;
+	font-weight: 600;
+	pointer-events: all;
+}
+
+.perm-card small {
+	font-size: 10px;
+	font-weight: 400;
+	color: #868e96;
+}
+
+.perm-card--red {
+	color: #e03131;
+}
+
+.perm-card--back {
+	background: repeating-linear-gradient(45deg, #1971c2, #1971c2 6px, #1c7ed6 6px, #1c7ed6 12px);
+}
+
+.perm-card--back small {
+	color: #fff;
+}
+
+.perm-redacted {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	background: #1d1d1d;
+	color: #fff;
+	font-size: 11px;
+	letter-spacing: 0.2em;
+	pointer-events: all;
+}
