@@ -1210,6 +1210,77 @@ describe('undo and redo of commands', () => {
 		expect(room.room.getRecord('page:new')).toBeUndefined()
 		expect(a.get('page:new' as TLPageId)).toBeUndefined()
 	})
+
+	it('the teacher undoes a page delete: the page, its shapes, and its comments come back', () => {
+		const { room, t, a } = setup()
+		t.run('pages.create', { id: 'page:two', name: 'Two' })
+		room.flush()
+		t.getEditor().setCurrentPage('page:two' as TLPageId)
+		const shape = geo(t, 0)
+		a.getEditor().setCurrentPage('page:two' as TLPageId)
+		const mine = geo(a, 200)
+		room.flush()
+		a.run('comments.add', {
+			threadId: 'comment-thread:1',
+			commentId: 'comment:1',
+			pageId: 'page:two',
+			anchor: { type: 'page' },
+			body: toRichText('hi'),
+			now: 1,
+		})
+		room.flush()
+		const ids = ['page:two', shape, mine, 'comment-thread:1', 'comment:1']
+		const before = ids.map((id) => room.room.getRecord(id))
+		t.getEditor().setCurrentPage(page)
+		t.getEditor().markHistoryStoppingPoint()
+		t.run('pages.delete', { id: 'page:two' })
+		room.flush()
+		expect(ids.map((id) => room.room.getRecord(id))).toEqual(ids.map(() => undefined))
+		t.getEditor().undo()
+		room.flush()
+		// the same records, owners and authors as before
+		expect(ids.map((id) => room.room.getRecord(id))).toEqual(before)
+		expect(ids.map((id) => a.store.get(id as any))).toEqual(before)
+		expect(t.rejections).toEqual([])
+		t.getEditor().redo()
+		room.flush()
+		expect(ids.map((id) => room.room.getRecord(id))).toEqual(ids.map(() => undefined))
+	})
+
+	it('pages.restore cannot forge records: only one page, its own records, nothing that exists', () => {
+		const { room, t } = setup()
+		const restore = (records: object[]) => t.run('pages.restore', { records })
+		const pageRec = { ...(room.room.getRecord(page) as object), id: 'page:x', name: 'X' }
+		expect(restore([])).toMatchObject({ ok: false, reason: 'restore needs exactly one page' })
+		expect(restore([room.room.getRecord(page)!])).toMatchObject({ ok: false })
+		const elsewhere = { ...(room.room.getRecord(page) as object), id: 'page:y' }
+		const shape = (parentId: string, ownerId: string) => ({
+			id: createShapeId(),
+			typeName: 'shape',
+			type: 'geo',
+			parentId,
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			isLocked: false,
+			opacity: 1,
+			meta: { ownerId },
+			props: geoProps(),
+		})
+		expect(restore([pageRec, elsewhere])).toMatchObject({ ok: false })
+		expect(restore([pageRec, shape(page, 'teacher')])).toMatchObject({
+			ok: false,
+			reason: expect.stringContaining('not on the page'),
+		})
+		// a page manager without shapes:manage cannot bring back a shape as someone else's
+		const manager = room.connect('m', { userId: 'm', permissions: [P.read, P.managePages] })
+		room.flush()
+		expect(
+			manager.run('pages.restore', { records: [pageRec, shape('page:x', 'alice')] })
+		).toMatchObject({ ok: false, reason: 'restoring shapes of others needs shapes:manage' })
+		void t
+	})
 })
 
 describe('reconnect and offline', () => {

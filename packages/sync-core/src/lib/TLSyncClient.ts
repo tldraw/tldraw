@@ -832,15 +832,21 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private rememberUndo(inverse: TLCommandCall, changes: RecordsDiff<R>) {
 		const before = new Map<string, R | undefined>()
 		const after = new Map<string, R | undefined>()
+		// Only synced records: the editor's own reactions to a command (a deleted page's camera)
+		// are not in the undo history the same way.
+		const synced = (record: R) => this.store.scopedTypes.document.has(record.typeName)
 		for (const [id, record] of objectMapEntries(changes.added)) {
+			if (!synced(record)) continue
 			before.set(id, undefined)
 			after.set(id, record)
 		}
 		for (const [id, [from, to]] of objectMapEntries(changes.updated)) {
+			if (!synced(to)) continue
 			before.set(id, from)
 			after.set(id, to)
 		}
 		for (const [id, record] of objectMapEntries(changes.removed)) {
+			if (!synced(record)) continue
 			before.set(id, record)
 			after.set(id, undefined)
 		}
@@ -977,6 +983,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.disposables.push(
 				sideEffects.registerBeforeCreateHandler(typeName, (record, source) => {
 					if (source !== 'user' || this.applyingCommand || !set.edit.stamp) return record
+					// an undo brings back a record as it was, owner and all
+					if (this.isUndoStep(record.id, record)) return record
 					return set.edit.stamp(this.actor.get(), record)
 				}),
 				// A before-create handler cannot veto, so remove a denied record right after. The

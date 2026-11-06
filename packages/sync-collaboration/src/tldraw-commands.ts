@@ -15,6 +15,7 @@ import {
 	type TLComment,
 	type TLCommentAnchor,
 	type TLCommentId,
+	type TLCommentReaction,
 	type TLCommentThread,
 	type TLCommentThreadId,
 	type TLPage,
@@ -265,16 +266,87 @@ export const pageCommands = [
 				return parent
 			}
 			const gone = new Set(shapes.filter((s) => pageOf(s) === args.id).map((s) => s.id as string))
-			for (const shapeId of gone) ctx.delete(shapeId)
+			// everything deleted, for the undo
+			const removed: R[] = [ctx.get(args.id)!]
+			const remove = (record: R) => {
+				removed.push(record)
+				ctx.delete(record.id)
+			}
+			for (const shapeId of gone) remove(byId.get(shapeId)! as TLShape & R)
 			for (const binding of ctx.getAll<TLBinding & R>('binding')) {
-				if (gone.has(binding.fromId) || gone.has(binding.toId)) ctx.delete(binding.id)
+				if (gone.has(binding.fromId) || gone.has(binding.toId)) remove(binding)
 			}
 			for (const typeName of COMMENT_TYPES) {
 				for (const record of ctx.getAll<R & { pageId: string }>(typeName)) {
-					if (record.pageId === args.id) ctx.delete(record.id)
+					if (record.pageId === args.id) remove(record)
 				}
 			}
 			ctx.delete(args.id)
+			return { name: 'pages.restore', args: { records: removed } }
+		},
+	}),
+	defineCommand<R, { records: R[] }>({
+		name: 'pages.restore',
+		requires: TLDRAW_PERMISSIONS.managePages,
+		args: T.object({ records: T.arrayOf(T.unknownObject as T.Validator<any>) }),
+		run(ctx, args) {
+			// The undo of pages.delete: the page and what was on it. The args come from a client, so
+			// check that they are one page and its own records, and that nobody else's authorship
+			// is forged. The server validates each record against the schema when it stores it.
+			const pages = args.records.filter((r) => r.typeName === 'page')
+			if (pages.length !== 1) return ctx.deny('restore needs exactly one page')
+			const pageId = pages[0].id as string
+			const byId = new Map(args.records.map((r) => [r.id as string, r]))
+			const rootOf = (shape: TLShape) => {
+				let parent: string = shape.parentId
+				const seen = new Set<string>()
+				while (byId.get(parent)?.typeName === 'shape' && !seen.has(parent)) {
+					seen.add(parent)
+					parent = (byId.get(parent) as unknown as TLShape).parentId
+				}
+				return parent
+			}
+			for (const record of args.records) {
+				if (ctx.get(record.id)) return ctx.deny(`exists: ${record.id}`)
+				const r = record as unknown as TLRecord | TLComment | TLCommentThread | TLCommentReaction
+				switch (r.typeName) {
+					case 'page':
+						break
+					case 'shape':
+						if (rootOf(r) !== pageId) return ctx.deny(`not on the page: ${r.id}`)
+						if (
+							getShapeOwner(r) !== ctx.actor.userId &&
+							!ctx.can(TLDRAW_PERMISSIONS.manageShapes)
+						) {
+							return ctx.deny('restoring shapes of others needs shapes:manage')
+						}
+						break
+					case 'binding':
+						if (!byId.has(r.fromId) && !byId.has(r.toId)) {
+							return ctx.deny(`not on the page: ${r.id}`)
+						}
+						break
+					case 'comment':
+					case 'comment-thread':
+					case 'comment-reaction': {
+						if (r.pageId !== pageId) return ctx.deny(`not on the page: ${r.id}`)
+						const author =
+							r.typeName === 'comment'
+								? r.authorId
+								: r.typeName === 'comment-thread'
+									? r.createdBy
+									: r.userId
+						if (author !== ctx.actor.userId && !ctx.can(TLDRAW_PERMISSIONS.manageComments)) {
+							return ctx.deny('restoring comments of others needs comments:manage')
+						}
+						break
+					}
+					default:
+						return ctx.deny(`cannot restore a ${r.typeName}`)
+				}
+			}
+			for (const record of args.records) ctx.put(record)
+			return { name: 'pages.delete', args: { id: pageId } }
 		},
 	}),
 ] satisfies TLCommand<R>[]
