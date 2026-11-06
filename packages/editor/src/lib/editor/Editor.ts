@@ -1221,6 +1221,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		return this._checkWrite(write)
 	}
 
+	// The editor checks these up front where a partial write would corrupt the document even when
+	// the operation cannot be rolled back. A refused delete is a blocked write, so it rolls back the
+	// operation in progress like one.
+	private _canDeleteShapes(ids: Iterable<TLShapeId>) {
+		if (!this._canWrite) return true
+		for (const id of ids) {
+			const shape = this.getShape(id)
+			if (shape && !this.canWrite({ type: 'delete', record: shape })) {
+				this.history._rollBackOperation()
+				return false
+			}
+		}
+		return true
+	}
+
 	readonly options: TldrawOptions
 
 	/**
@@ -5340,6 +5355,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 				// Don't leave the person with no page they can see
 				const visiblePages = this.getVisiblePages()
 				if (!this.isPageHidden(id) && visiblePages.length === 1) return
+				// A page that stays would keep shapes that are gone, or the other way around
+				if (!this.canWrite({ type: 'delete', record: deletedPage })) return
+				if (!this._canDeleteShapes(this.getPageShapeIds(id))) return
 
 				if (id === this.getCurrentPageId()) {
 					const index = visiblePages.findIndex((page) => page.id === id)
@@ -5386,6 +5404,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.createPage({ name: freshPage.name + ' Copy', id: createId, index })
 			// set the new page as the current page
 			this.setCurrentPage(createId)
+			// The copy is hidden (see getPageVisibility). Pasting now would double the source page.
+			if (this.getCurrentPageId() !== createId) return
 			// update the new page's camera to the previous page's camera
 			this.setCamera(prevCamera)
 
@@ -7475,6 +7495,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (pageId === currentPageId) return this
 		if (!this.store.has(pageId)) return this
 		if (this.isPageHidden(pageId)) return this
+		// The shapes are deleted and pasted again, so a shape that stays would be doubled
+		if (!this._canDeleteShapes(this.getShapeAndDescendantIds(ids))) return this
 
 		// Basically copy the shapes
 		const content = this.getContentFromCurrentPage(ids)
@@ -9156,6 +9178,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 					props: {},
 				},
 			])
+			// A blocked create (see the canWrite option) that is not rolled back leaves no group
+			if (!this.getShape(groupId)) return
 			this.reparentShapes(sortedShapeIds, groupId)
 			if (select) {
 				// the select option determines whether the grouped shapes' children are selected
@@ -9218,6 +9242,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		if (groups.length === 0) return this
+		// A group that cannot be deleted would be left empty
+		if (!this._canDeleteShapes(groups.map((group) => group.id))) return this
 
 		this.run(() => {
 			for (let i = 0, n = groups.length; i < n; i++) {
@@ -9395,6 +9421,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				allShapeIdsToDelete.add(childId)
 			})
 		}
+
+		// Checked up front as well as by the rollback (see the canWrite option): a delete that
+		// runs inside a store operation is not rolled back, and would orphan a child it may not
+		// delete. Not deleting also keeps the 'deleted-shapes' event true.
+		if (!this._canDeleteShapes(allShapeIdsToDelete)) return this
 
 		this.emit('deleted-shapes', [...allShapeIdsToDelete])
 		this.emit('edit')

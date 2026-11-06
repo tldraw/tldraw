@@ -111,7 +111,8 @@ export function TldrawUiMenuItem<
 	const isReadonlyMode = useReadonly()
 	const isAllowedInReadonly = useValue(
 		'readonly ok',
-		() => (editor ? isReadonlyOk(editor, readonlyOk) : !!readonlyOk),
+		// only call a readonlyOk function while readonly: it may do work, such as a canWrite check
+		() => (editor?.getIsReadonly() ? isReadonlyOk(editor, readonlyOk) : !!readonlyOk),
 		[editor, readonlyOk]
 	)
 	if (isReadonlyMode && !isAllowedInReadonly) return null

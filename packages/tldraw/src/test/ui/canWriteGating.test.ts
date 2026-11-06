@@ -8,6 +8,7 @@ import {
 import {
 	canApplyToUnlockedSelection,
 	canCreateShapeOfType,
+	canDuplicateSelection,
 	canWriteSelection,
 	hasLockedShapesOnPage,
 } from '../../lib/ui/context/action-predicates'
@@ -43,8 +44,8 @@ beforeEach(() => {
 	})
 })
 
-const tool = (id: string, readonlyOk?: TLUiToolItem['readonlyOk']) =>
-	({ id, label: id, icon: 'tool-pointer', onSelect() {}, readonlyOk }) as TLUiToolItem
+const tool = (id: string, readonlyOk?: TLUiToolItem['readonlyOk'], meta?: TLUiToolItem['meta']) =>
+	({ id, label: id, icon: 'tool-pointer', onSelect() {}, readonlyOk, meta }) as TLUiToolItem
 
 describe('selection actions', () => {
 	it('are disabled while the selection holds a shape the person cannot write', () => {
@@ -55,6 +56,13 @@ describe('selection actions', () => {
 		editor.select(mine, theirs)
 		expect(canWriteSelection(editor)).toBe(false)
 		expect(canApplyToUnlockedSelection(editor, 1)).toBe(false)
+	})
+
+	it('still allow duplicating a shape the person cannot write', () => {
+		editor.select(theirs)
+		expect(canDuplicateSelection(editor)).toBe(true)
+		blocksShapeCreates.set(true)
+		expect(canDuplicateSelection(editor)).toBe(false)
 	})
 
 	it('update when the canWrite answer changes', () => {
@@ -94,6 +102,8 @@ describe('tools', () => {
 		expect(canCreateShapeOfType(editor, 'geo')).toBe(false)
 		expect(isToolAvailable(editor, tool('geo'))).toBe(false)
 		expect(isToolAvailable(editor, tool('draw'))).toBe(false)
+		expect(isToolAvailable(editor, tool('rectangle', undefined, { geo: 'rectangle' }))).toBe(false)
+		expect(isToolAvailable(editor, tool('asset'))).toBe(false)
 		// a tool that is not named after a shape type stays
 		expect(isToolAvailable(editor, tool('select', true))).toBe(true)
 		expect(isToolAvailable(editor, tool('comment'))).toBe(true)

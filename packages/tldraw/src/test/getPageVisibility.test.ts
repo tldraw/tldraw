@@ -97,6 +97,18 @@ describe('page operations with hidden pages', () => {
 	})
 })
 
+describe('duplicating a page into a hidden copy', () => {
+	it('does not paste the copy onto the source page', () => {
+		const copy = PageRecordType.createId('copy')
+		hidden.set(new Set([copy]))
+		const page = editor.getCurrentPageId()
+		editor.createShapes([{ id: createShapeId('a'), type: 'geo' }])
+		editor.duplicatePage(page, copy)
+		expect(editor.getCurrentPageId()).toBe(page)
+		expect(editor.getPageShapeIds(page).size).toBe(1)
+	})
+})
+
 describe('following a user onto a hidden page', () => {
 	it('stops following, and never shows the hidden page', () => {
 		const leaderId = createUserId('leader')

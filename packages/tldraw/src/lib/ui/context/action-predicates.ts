@@ -1,4 +1,6 @@
 import {
+	Computed,
+	computed,
 	createShapeId,
 	Editor,
 	IndexKey,
@@ -28,13 +30,38 @@ export function canApplySelectionAction(editor: Editor) {
  * @internal
  */
 export function canWriteSelection(editor: Editor) {
-	for (const id of editor.getShapeAndDescendantIds(editor.getSelectedShapeIds())) {
-		const shape = editor.getShape(id)
-		if (!shape) continue
-		if (!editor.canWrite({ type: 'update', record: shape })) return false
-		if (!editor.canWrite({ type: 'delete', record: shape })) return false
+	let cached = canWriteSelectionCache.get(editor)
+	if (!cached) {
+		// Many predicates ask this on every selection change, so walk the selection once
+		cached = computed('can write selection', () => {
+			for (const id of editor.getShapeAndDescendantIds(editor.getSelectedShapeIds())) {
+				const shape = editor.getShape(id)
+				if (!shape) continue
+				if (!editor.canWrite({ type: 'update', record: shape })) return false
+				if (!editor.canWrite({ type: 'delete', record: shape })) return false
+			}
+			return true
+		})
+		canWriteSelectionCache.set(editor, cached)
 	}
-	return true
+	return cached.get()
+}
+
+const canWriteSelectionCache = new WeakMap<Editor, Computed<boolean>>()
+
+/**
+ * Duplicating writes only the new shapes, so unlike other selection actions it does not need to
+ * write the selection.
+ *
+ * @internal
+ */
+export function canDuplicateSelection(editor: Editor) {
+	const shapes = getUnlockedSelectedShapes(editor)
+	return (
+		editor.isIn('select') &&
+		shapes.length > 0 &&
+		shapes.every((shape) => canCreateShapeOfType(editor, shape.type))
+	)
 }
 
 /**

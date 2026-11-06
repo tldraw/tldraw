@@ -356,6 +356,25 @@ describe('operations on more than one record', () => {
 		expect(editor.getBindingsToShape(box, 'arrow')).toEqual(bindings)
 	})
 
+	it('does not orphan a child when a delete inside a store operation cannot roll back', () => {
+		const frame = createShapeId('frame')
+		const child = createShapeId('child')
+		const trigger = createShapeId('trigger')
+		editor.store.mergeRemoteChanges(() => {
+			editor.createShapes([
+				{ id: frame, type: 'frame', x: 500, y: 0, meta: { owner: 'alice' } },
+				{ id: child, type: 'geo', parentId: frame, x: 10, y: 10, meta: { owner: 'bob' } },
+				{ id: trigger, type: 'geo', x: 900, meta: { owner: 'alice' } },
+			])
+		})
+		editor.sideEffects.registerAfterChangeHandler('shape', (_prev, next) => {
+			if (next.id === trigger) editor.deleteShapes([frame])
+		})
+		editor.store.update(trigger, (s) => ({ ...s, x: 950 }))
+		expect(editor.getShape(frame)).toBeDefined()
+		expect(editor.getShape(child)!.parentId).toBe(frame)
+	})
+
 	it('does not roll back an operation that merged remote changes', () => {
 		editor.run(() => {
 			editor.updateShapes([{ id: ids.theirs, type: 'geo', x: 250 }])

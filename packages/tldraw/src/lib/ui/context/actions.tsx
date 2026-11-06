@@ -45,6 +45,7 @@ import {
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
 	canCreateShapeOfType,
+	canDuplicateSelection,
 	canFitFrameToContent,
 	canFlatten,
 	canFlipSelection,
@@ -884,7 +885,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: canDuplicateSelection,
 				kbd: 'cmd+d,ctrl+d',
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',

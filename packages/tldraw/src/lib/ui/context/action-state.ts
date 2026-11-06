@@ -30,14 +30,16 @@ export function isReadonlyOk(
 
 /**
  * Whether a tool shows and runs now: in readonly mode only when it is `readonlyOk`, and a tool
- * named after a shape type only when the `canWrite` editor option lets this person create that
- * shape on the current page.
+ * that creates shapes only when the `canWrite` editor option lets this person create that shape
+ * on the current page. A tool creates the shape type it is named after, the geo tools (such as
+ * `rectangle`) create geo shapes, and the media tool creates images.
  *
  * @internal
  */
 export function isToolAvailable(editor: Editor, tool: TLUiToolItem) {
 	if (editor.getIsReadonly() && !isReadonlyOk(editor, tool.readonlyOk)) return false
-	return canCreateShapeOfType(editor, tool.id as TLShape['type'])
+	const type = tool.meta?.geo ? 'geo' : tool.id === 'asset' ? 'image' : tool.id
+	return canCreateShapeOfType(editor, type as TLShape['type'])
 }
 
 function isActionAvailable(editor: Editor, action: TLUiActionItem) {
