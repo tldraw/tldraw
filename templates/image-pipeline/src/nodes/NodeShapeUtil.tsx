@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import { useCallback } from 'react'
 import {
 	Circle2d,
 	Group2d,
@@ -29,6 +28,7 @@ import {
 	NODE_ROW_BOTTOM_PADDING_PX,
 	NODE_ROW_HEADER_GAP_PX,
 	PORT_RADIUS_PX,
+	PortDataType,
 } from '../constants'
 import { executionState, startExecution, stopExecution } from '../execution/executionState'
 import { Port } from '../ports/Port'
@@ -117,37 +117,29 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 
 	override onResize(shape: any, info: TLResizeInfo<any>) {
 		const definition = getNodeDefinition(this.editor, shape.props.node)
-		if (definition.canResizeNode) {
-			const node = shape.props.node as { w: number; h: number; type: string }
-			const prevW = getNodeWidthPx(this.editor, shape)
-			const prevH = getNodeHeightPx(this.editor, shape)
-			const newW = Math.max(200, Math.round(prevW * info.scaleX))
-			const newH = Math.max(120, Math.round(prevH * info.scaleY))
-			const bodyH =
-				newH -
-				NODE_HEADER_HEIGHT_PX -
-				NODE_ROW_HEADER_GAP_PX -
-				NODE_ROW_BOTTOM_PADDING_PX -
-				NODE_FOOTER_HEIGHT_PX
+		if (!definition.canResizeNode) return resizeBox(shape, info)
 
-			return {
-				...resizeNode(shape, info),
-				props: {
-					...shape.props,
-					node: {
-						...node,
-						w: newW,
-						h:
-							NODE_HEADER_HEIGHT_PX +
-							NODE_ROW_HEADER_GAP_PX +
-							Math.max(0, bodyH) +
-							NODE_ROW_BOTTOM_PADDING_PX +
-							NODE_FOOTER_HEIGHT_PX,
-					},
+		const node = shape.props.node as { w: number; h: number; type: string }
+		const prevW = getNodeWidthPx(this.editor, shape)
+		const prevH = getNodeHeightPx(this.editor, shape)
+		const chromeH =
+			NODE_HEADER_HEIGHT_PX +
+			NODE_ROW_HEADER_GAP_PX +
+			NODE_ROW_BOTTOM_PADDING_PX +
+			NODE_FOOTER_HEIGHT_PX
+
+		return {
+			...resizeNode(shape, info),
+			props: {
+				...shape.props,
+				node: {
+					...node,
+					w: Math.max(200, Math.round(prevW * info.scaleX)),
+					// The body can shrink to zero, but the header/footer chrome can't
+					h: Math.max(chromeH, 120, Math.round(prevH * info.scaleY)),
 				},
-			}
+			},
 		}
-		return resizeBox(shape, info)
 	}
 
 	component(shape: NodeShape) {
@@ -171,11 +163,10 @@ export class NodeShapeUtil extends ShapeUtil<NodeShape> {
 function NodeShapeComponent({ shape }: { shape: NodeShape }) {
 	const editor = useEditor()
 
-	const output = useValue(
-		'output',
-		() => getNodeOutputPortInfo(editor, shape.id)?.output ?? undefined,
-		[editor, shape.id]
-	)
+	const output = useValue('output', () => getNodeOutputPortInfo(editor, shape.id).output, [
+		editor,
+		shape.id,
+	])
 
 	const isExecuting = useValue(
 		'is executing',
@@ -257,32 +248,31 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 		shape.id,
 	])
 
+	const findStringOutput = (dataType: PortDataType) =>
+		Object.values(outputInfo).find(
+			(info) => info.dataType === dataType && typeof info.value === 'string' && info.value !== ''
+		)?.value as string | undefined
+
 	// Find any image output that has a valid URL
-	const imageUrl = Object.values(outputInfo).find(
-		(info) =>
-			info.dataType === 'image' && typeof info.value === 'string' && info.value && info.value !== ''
-	)?.value as string | undefined
+	const imageUrl = findStringOutput('image')
 
 	const node = shape.props.node as Record<string, unknown>
 	const definition = getNodeDefinition(editor, shape.props.node)
 	const resultKeys = definition.resultKeys
 	const defaults = definition.getDefault() as Record<string, unknown>
-	const hasResult = resultKeys ? resultKeys.some((key) => node[key] !== defaults[key]) : false
-	const textOutput = Object.values(outputInfo).find(
-		(info) => info.dataType === 'text' && typeof info.value === 'string' && info.value !== ''
-	)?.value as string | undefined
+	const hasResult = resultKeys?.some((key) => node[key] !== defaults[key]) ?? false
 	const textResult =
-		textOutput ??
+		findStringOutput('text') ??
 		(typeof node.lastResultText === 'string' && node.lastResultText !== ''
-			? (node.lastResultText as string)
+			? node.lastResultText
 			: null)
 
-	const handleDuplicate = useCallback(() => {
+	const handleDuplicate = () => {
 		editor.markHistoryStoppingPoint('duplicate node')
 		editor.duplicateShapes([shape.id])
-	}, [editor, shape.id])
+	}
 
-	const handleDownloadImage = useCallback(async () => {
+	const handleDownloadImage = async () => {
 		if (!imageUrl) return
 		const response = await fetch(imageUrl)
 		const blob = await response.blob()
@@ -295,20 +285,16 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 		a.click()
 		document.body.removeChild(a)
 		URL.revokeObjectURL(blobUrl)
-	}, [imageUrl])
+	}
 
-	const handleCopyText = useCallback(async () => {
+	const handleCopyText = async () => {
 		if (!textResult) return
 		await navigator.clipboard.writeText(textResult)
-	}, [textResult])
+	}
 
-	const handleClearResult = useCallback(() => {
-		if (!resultKeys || resultKeys.length === 0) return
-		const updates: Record<string, unknown> = {}
-		for (const key of resultKeys) {
-			updates[key] = defaults[key]
-		}
-
+	const handleClearResult = () => {
+		if (!resultKeys?.length) return
+		const updates = Object.fromEntries(resultKeys.map((key) => [key, defaults[key]]))
 		editor.updateShape({
 			id: shape.id,
 			type: shape.type,
@@ -317,7 +303,7 @@ function NodeFooterMenu({ shape }: { shape: NodeShape }) {
 				isOutOfDate: true,
 			},
 		})
-	}, [editor, resultKeys, defaults, shape])
+	}
 
 	return (
 		<div className="NodeFooterMenu" onPointerDown={(e) => e.stopPropagation()}>
