@@ -92,7 +92,9 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 			shapeAfter.type === 'geo' &&
 			shapeBefore.props.geo !== shapeAfter.props.geo &&
 			this.editor.isIn('select.idle') &&
-			!this.editor.isReplayingHistory()
+			!this.editor.isReplayingHistory() &&
+			// someone else's arrow: changing your shape must not need the right to edit it
+			this.editor.access.can('update', binding.fromId)
 		) {
 			updateBindingAnchorIfOutsideShape(this.editor, binding, shapeAfter)
 		}
@@ -116,7 +118,8 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		if (this.editor.isReplayingHistory()) return
 
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
-		if (!arrow) return
+		// someone else's arrow: the binding still goes with the shape, the arrow stays as it is
+		if (!arrow || !this.editor.access.can('update', arrow)) return
 		updateArrowTerminal({
 			editor: this.editor,
 			arrow,
@@ -167,7 +170,8 @@ function updateBindingAnchorIfOutsideShape(
 
 function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	const arrow = editor.getShape<TLArrowShape>(arrowId)
-	if (!arrow) return
+	// moving your shape must not need the right to move someone else's arrow bound to it
+	if (!arrow || !editor.access.can('update', arrow)) return
 	const bindings = getArrowBindings(editor, arrow)
 	const { start, end } = bindings
 	const startShape = start ? editor.getShape(start.toId) : undefined

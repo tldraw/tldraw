@@ -1,0 +1,122 @@
+.access-model {
+	display: flex;
+	flex-direction: column;
+	background: var(--tl-color-low, #f6f6f6);
+	font-family: var(--tl-font-sans, sans-serif);
+	font-size: 13px;
+}
+
+.access-model__tabs {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+	padding: 8px;
+}
+
+.access-model__tab {
+	border: 1px solid #ccc;
+	border-radius: 6px;
+	background: white;
+	padding: 4px 10px;
+	cursor: pointer;
+}
+
+.access-model__tab[data-active='true'] {
+	background: #2f80ed;
+	border-color: #2f80ed;
+	color: white;
+}
+
+.access-model__panel {
+	padding: 0 12px 8px;
+	display: flow-root;
+}
+
+.access-model__how {
+	float: right;
+	margin: 0 0 6px 12px;
+	padding: 6px 8px;
+	max-width: 50%;
+	max-height: 190px;
+	overflow: auto;
+	background: #1e1e2e;
+	color: #e4e4ef;
+	border-radius: 6px;
+	font-size: 11px;
+	line-height: 1.35;
+}
+
+.access-model__panel p {
+	margin: 0 0 4px;
+	max-width: 900px;
+}
+
+.access-model__panel ol {
+	margin: 0 0 6px;
+	padding-left: 20px;
+}
+
+.access-model__actions {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 6px;
+}
+
+.access-model__actions .tlui-button {
+	border: 1px solid #ccc;
+	background: white;
+}
+
+.access-model__panes {
+	display: flex;
+	flex: 1;
+	gap: 8px;
+	padding: 0 8px 8px;
+	min-height: 0;
+}
+
+.access-model__pane {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	border: 2px solid;
+	border-radius: 8px;
+	overflow: hidden;
+	background: white;
+	min-width: 0;
+}
+
+.access-model__header {
+	padding: 6px 8px;
+	border-bottom: 1px solid #eee;
+	/* room for the why lines, so hovering a shape does not move the canvas */
+	min-height: 112px;
+}
+
+.access-model__muted {
+	color: #666;
+}
+
+.access-model__denial {
+	color: #c0392b;
+}
+
+.access-model__canvas {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+.access-model__why {
+	font-family: var(--tl-font-mono, monospace);
+	font-size: 11px;
+	line-height: 1.4;
+}
+
+.access-model__why [data-allowed='true'] {
+	color: #1f8a55;
+}
+
+.access-model__why [data-allowed='false'] {
+	color: #c0392b;
+}

@@ -7,6 +7,7 @@ import {
 	StoreValidationFailure,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
+import { AccessModel, SessionAccess } from './access/AccessModel'
 import { TLAsset, TLAssetId } from './records/TLAsset'
 import { CameraRecordType, TLCameraId } from './records/TLCamera'
 import { DocumentRecordType, TLDOCUMENT_ID } from './records/TLDocument'
@@ -330,6 +331,14 @@ export interface TLStoreProps {
 	 * @returns Optional cleanup function
 	 */
 	onMount(editor: unknown): void | (() => void)
+	/**
+	 * The access model, and the session's access in it (from the sync server). The editor checks
+	 * every local write against it, and derives readonly and locks from it.
+	 */
+	access?: {
+		model: AccessModel<any>
+		session: Signal<SessionAccess | null>
+	}
 	/** Optional collaboration configuration for multiplayer features */
 	collaboration?: {
 		/** Signal indicating online/offline collaboration status */

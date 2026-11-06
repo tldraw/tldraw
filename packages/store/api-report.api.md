@@ -440,6 +440,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         readonly [K in RecordScope]: ReadonlySet<R['typeName']>;
     };
     serialize(scope?: 'all' | RecordScope): SerializedStore<R>;
+    setWriteGuard(guard: null | StoreWriteGuard<R>): void;
     readonly sideEffects: StoreSideEffects<R>;
     unsafeGetWithoutCapture<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
@@ -674,6 +675,9 @@ export type StoreValidators<R extends UnknownRecord> = {
         typeName: K;
     }>>;
 };
+
+// @public
+export type StoreWriteGuard<R extends UnknownRecord> = (changes: RecordsDiff<R>) => boolean;
 
 // @public
 export interface SynchronousRecordStorage<R extends UnknownRecord> {

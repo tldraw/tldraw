@@ -4,6 +4,7 @@
 
 ```ts
 
+import { AccessModel } from 'tldraw';
 import { Editor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
@@ -58,6 +59,7 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 
 // @public
 export interface UseSyncOptionsBase {
+    access?: AccessModel<any>;
     assets: TLAssetStore;
     getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;

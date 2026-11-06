@@ -284,14 +284,14 @@ describe('TLSyncClient', () => {
 			expect(socket.getLastSentMessage().type).toBe('connect')
 		})
 
-		it('[CL2] connect message carries a fresh request id, the serialized schema, protocol version 8, and lastServerClock -1', () => {
+		it('[CL2] connect message carries a fresh request id, the serialized schema, protocol version 8 (no access model), and lastServerClock -1', () => {
 			client = createClient()
 			const msg = socket.getLastSentMessage() as TLConnectRequest
 			expect(msg.type).toBe('connect')
 			expect(msg.connectRequestId).toBe(client.latestConnectRequestId)
 			expect(msg.schema).toEqual(schema.serialize())
 			expect(msg.protocolVersion).toBe(8)
-			expect(msg.protocolVersion).toBe(getTlsyncProtocolVersion())
+			expect(msg.protocolVersion).toBe(getTlsyncProtocolVersion() - 1)
 			expect(msg.lastServerClock).toBe(-1)
 		})
 
@@ -541,6 +541,7 @@ describe('TLSyncClient', () => {
 			expect(onAfterConnect).toHaveBeenCalledWith(client, {
 				isReadonly: false,
 				objectAccess: 'write',
+				access: null,
 			})
 
 			// reconnect as readonly
@@ -550,6 +551,7 @@ describe('TLSyncClient', () => {
 			expect(onAfterConnect).toHaveBeenLastCalledWith(client, {
 				isReadonly: true,
 				objectAccess: 'write',
+				access: null,
 			})
 		})
 

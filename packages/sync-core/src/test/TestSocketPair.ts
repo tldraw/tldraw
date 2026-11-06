@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import { SessionAccess } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
 import { TLSocketClientSentEvent, TLSocketServerSentEvent } from '../lib/protocol'
 import {
@@ -13,6 +14,8 @@ import { TestServer } from './TestServer'
 export class TestSocketPair<R extends UnknownRecord> {
 	clientSentEventQueue: TLSocketClientSentEvent<R>[] = []
 	serverSentEventQueue: TLSocketServerSentEvent<R>[] = []
+	/** The access this pair connects with, in rooms with an access model. */
+	access?: SessionAccess
 	flushServerSentEvents() {
 		const queue = this.serverSentEventQueue
 		this.serverSentEventQueue = []

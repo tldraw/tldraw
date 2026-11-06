@@ -10,6 +10,7 @@ import {
 import {
 	ComputedCache,
 	RecordType,
+	RecordsDiff,
 	StoreSideEffects,
 	StoreSnapshot,
 	UnknownRecord,
@@ -162,6 +163,7 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { AccessManager } from './managers/AccessManager/AccessManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -592,6 +594,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		}
 
 		this.sideEffects = this.store.sideEffects
+		this.access = new AccessManager(this)
+		this.disposables.add(() => this.access.dispose())
 
 		let deletedBindings = new Map<TLBindingId, BindingOnDeleteOptions<any>>()
 		const deletedShapeIds = new Set<TLShapeId>()
@@ -1208,6 +1212,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	readonly sideEffects: StoreSideEffects<TLRecord>
+
+	/**
+	 * The access model for this editor: what the current session may read and write. See
+	 * {@link AccessManager}.
+	 *
+	 * @public
+	 */
+	readonly access: AccessManager
 
 	/**
 	 * A manager for moving the camera when the mouse is at the edge of the screen.
@@ -4465,6 +4477,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return
 		}
+		// Runs in a reaction: a write the access guard rolls back would re-run it forever.
+		const diff = existing
+			? { added: {}, updated: { [user.id]: [existing, user] }, removed: {} }
+			: { added: { [user.id]: user }, updated: {}, removed: {} }
+		if (this.access.check(diff as RecordsDiff<TLRecord>)) return
 		this.run(
 			() => {
 				this.store.put([user])
@@ -5783,6 +5800,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
 		if (_shape.isLocked) return true
+		// a shape the access model will not let you update behaves as locked: no select, no edit
+		if (!this.access.can('update', _shape.id)) return true
 		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
 	}
 
@@ -10441,7 +10460,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @returns true if the editor is in readonly mode
 	 */
 	@computed getIsReadonly() {
-		return this.getInstanceState().isReadonly
+		if (this.getInstanceState().isReadonly) return true
+		// with an access model, readonly is derived: nothing to create on this page means no tools
+		return !this.access.canCreateOnPage(this.getCurrentPageId())
 	}
 
 	/**

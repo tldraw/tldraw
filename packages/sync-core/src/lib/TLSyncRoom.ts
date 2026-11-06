@@ -6,6 +6,7 @@ import {
 	StoreSchema,
 	UnknownRecord,
 } from '@tldraw/store'
+import { AccessModel, createAccessView, overlayAccessView, SessionAccess } from '@tldraw/tlschema'
 import {
 	assert,
 	assertExists,
@@ -354,6 +355,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
+	/** The room's access model. When set, it replaces `isReadonly`, `objectAccess`, and `authorizeRecord`. */
+	readonly access: AccessModel<R> | null
+	// every document and presence record, so the model can walk the tree outside a storage
+	// transaction (in broadcasts) and check a push against "before" without extra reads
+	private readonly accessView: ReturnType<typeof createAccessView<R>> | null
 
 	/**
 	 * The authorizer registered for a record type, widened to the room's record union. Each entry in
@@ -401,6 +407,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+		/**
+		 * The access model. The room then checks every push as a whole against it (one denied
+		 * record rejects the push), sends each session only the records it may read, and pushes
+		 * access changes live. Each session needs `access` (see `handleNewSession`).
+		 */
+		access?: AccessModel<R>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -411,6 +423,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.authorizeRecord = opts.authorizeRecord
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
+		this.access = opts.access ?? null
+		assert(
+			!this.access || (!opts.authorizeRecord && !opts.objectTypes?.length),
+			'TLSyncRoom: the access model replaces authorizeRecord and objectTypes; pass one or the other'
+		)
+		this.accessView = this.access
+			? createAccessView(
+					this.access,
+					this.storage.transaction((txn) => [...txn.values()] as R[]).result
+				)
+			: null
 
 		assert(
 			isNativeStructuredClone,
@@ -629,6 +652,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
+			access: session.access,
+			visible: null,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
 		})
@@ -657,6 +682,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		networkDiff?: NetworkDiff<R> | null,
 		sourceSessionId?: string
 	) {
+		if (this.access) return this.broadcastAccessPatch(diff, sourceSessionId)
 		// Computed once and shared by every session that needs no down-migration; the push path
 		// hands us the diff it already computed (in legacy append mode when needed), and re-deriving
 		// it per session would both repeat the diffing work and lose that legacy handling.
@@ -688,6 +714,167 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			})
 		})
 		return this
+	}
+
+	/** Ids of every record the session may read. */
+	/** @internal see {@link TLSocketRoom.getSnapshotFor} */
+	getSnapshotFor(access: SessionAccess, snapshot: RoomSnapshot): RoomSnapshot {
+		assert(this.access, 'TLSyncRoom: getSnapshotFor needs a room with an access model')
+		const model = this.access
+		const view = this.accessView!
+		const read = model.reader(access, view)
+		const documents: RoomSnapshot['documents'] = []
+		for (const doc of snapshot.documents) {
+			if (!read(doc.state.id)) continue
+			documents.push({ ...doc, state: model.redact(access, doc.state as R, view) })
+		}
+		return { ...snapshot, documents, tombstones: {} }
+	}
+
+	private readableIds(access: SessionAccess): Set<string> {
+		const view = this.accessView!
+		const read = this.access!.reader(access, view)
+		const out = new Set<string>()
+		for (const id of view.ids()) if (read(id)) out.add(id)
+		return out
+	}
+
+	/**
+	 * Apply a committed diff to the access view, then send each session the part it may read.
+	 * A record that becomes readable is sent whole; one that stops being readable is removed.
+	 *
+	 * Only records a change can affect are checked again: each changed record with its subtree
+	 * (an entry counts as a change to its resource), and the records that `alsoRead` or
+	 * `references` any of them. Without custom relations, readability depends on nothing else, so
+	 * a move into a frame checks the moved shapes, and a new entry on a page checks that page.
+	 */
+	private broadcastAccessPatch(diff: TLSyncForwardDiff<R>, sourceSessionId?: string) {
+		const model = this.access!
+		const view = this.accessView!
+		const roots: string[] = []
+		const changed = (record: R | null | undefined) => {
+			const entry = model.entryOf(record)
+			if (entry) roots.push(entry.resource)
+		}
+		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
+			const after = Array.isArray(put) ? put[1] : put
+			changed(view.get(id))
+			changed(after)
+			roots.push(id)
+			view.set(after)
+		}
+		for (const id of diff.deletes) {
+			changed(view.get(id))
+			roots.push(id)
+			view.delete(id)
+		}
+		// a custom relation may look at any record
+		if (model.hasCustomRelations()) roots.push(...view.ids())
+		const affected = new Set<string>()
+		while (roots.length) {
+			const id = roots.pop()!
+			if (affected.has(id)) continue
+			affected.add(id)
+			for (const child of view.childrenOf(id)) roots.push(child)
+			for (const reader of view.readersOf(id)) roots.push(reader)
+		}
+
+		for (const session of this.sessions.values()) {
+			if (session.state !== RoomSessionState.Connected) continue
+			if (!session.access || !session.visible) continue
+			if (!session.socket.isOpen) {
+				this.cancelSession(session.sessionId)
+				continue
+			}
+			const isSource = session.sessionId === sourceSessionId
+			const visible = session.visible
+			const read = model.reader(session.access, view)
+			const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+			const flipped: string[] = []
+			for (const id of affected) {
+				const record = view.get(id)
+				if (record && read(id)) {
+					if (!visible.has(id)) {
+						visible.add(id)
+						flipped.push(id)
+						out.puts[id] = record
+					} else if (!isSource && id in diff.puts) {
+						out.puts[id] = diff.puts[id]
+					}
+				} else if (visible.delete(id)) {
+					flipped.push(id)
+					// the source deleted it itself; a record it can no longer read is news to it
+					if (record || !isSource) out.deletes.push(id)
+				}
+			}
+			// a record whose redacted copy names one of these (a presence selection) is sent again
+			for (const id of flipped) {
+				for (const other of view.readersOf(id)) {
+					const record = view.get(other)
+					if (!record || !visible.has(other)) continue
+					if (model.getTypeRule(record.typeName)?.redact) out.puts[other] = record
+				}
+			}
+			if (session.presenceId) {
+				delete out.puts[session.presenceId]
+				out.deletes = out.deletes.filter((id) => id !== session.presenceId)
+			}
+			this.sendAccessDiff(session.sessionId, out)
+		}
+		return this
+	}
+
+	private sendAccessDiff(sessionId: string, diff: TLSyncForwardDiff<R>) {
+		const session = this.sessions.get(sessionId)
+		if (!session || session.state !== RoomSessionState.Connected || !session.access) return
+		if (!diff.deletes.length && !Object.keys(diff.puts).length) return
+		// every record leaves the room through here (or the connect hydrate), so redact here
+		const model = this.access!
+		const view = this.accessView!
+		const access = session.access
+		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
+			diff.puts[id] = Array.isArray(put)
+				? [model.redact(access, put[0], view), model.redact(access, put[1], view)]
+				: model.redact(access, put, view)
+		}
+		const result = this.migrateDiffOrRejectSession(
+			sessionId,
+			session.serializedSchema,
+			session.requiresDownMigrations,
+			diff
+		)
+		if (!result.ok) return
+		this._unsafe_sendMessage(sessionId, {
+			type: 'patch',
+			diff: result.value,
+			serverClock: this.lastDocumentClock,
+		})
+	}
+
+	/**
+	 * Change a session's access live: the client gets its new access, plus the records it may now
+	 * read and the removal of the ones it may not. Writes the session sends after this are checked
+	 * against the new access. Use it when a grant changes in the host's database, or to move an
+	 * editor role from one student to the next.
+	 */
+	updateSessionAccess(sessionId: string, access: SessionAccess) {
+		const session = this.sessions.get(sessionId)
+		if (!session) return
+		assert(this.access, 'TLSyncRoom: updateSessionAccess needs a room with an access model')
+		session.access = access
+		if (session.state !== RoomSessionState.Connected || !session.visible) return
+		this.storage.transaction((txn) => this.broadcastChanges(txn))
+		const next = this.readableIds(access)
+		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+		for (const id of next) if (!session.visible.has(id)) out.puts[id] = this.accessView!.get(id)!
+		for (const id of session.visible) if (!next.has(id)) out.deletes.push(id)
+		session.visible = next
+		if (session.presenceId) {
+			delete out.puts[session.presenceId]
+			out.deletes = out.deletes.filter((id) => id !== session.presenceId)
+		}
+		this._unsafe_sendMessage(sessionId, { type: 'access', access })
+		this.sendAccessDiff(sessionId, out)
 	}
 
 	/**
@@ -744,8 +931,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
+		access?: SessionAccess | null
 	}) {
 		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
+		assert(
+			!this.access || opts.access,
+			'TLSyncRoom: a room with an access model needs `access` for every session'
+		)
 		// a connect racing close() would otherwise create a session nothing ever prunes
 		if (this._isClosed) {
 			socket.close()
@@ -762,6 +954,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
+			access: opts.access ?? null,
+			visible: null,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
@@ -782,6 +976,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
+		access?: SessionAccess | null
 		serializedSchema: SerializedSchema
 		presenceId: string | null
 		presenceRecord: UnknownRecord | null
@@ -822,6 +1017,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly,
 			objectAccess: objectAccess ?? 'write',
+			access: opts.access ?? null,
+			// the room slept, so nothing changed: the client holds what it may read now
+			visible: this.access && opts.access ? this.readableIds(opts.access) : null,
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
@@ -830,6 +1028,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// socket slept, and a rejection only broadcasts its removal if it's in the store
 		if (presenceRecord && presenceId) {
 			this.presenceStore.set(presenceId, presenceRecord as R)
+		}
+
+		// a snapshot saved before the host turned on the model has no grant: make the client
+		// connect again, so the host gives it one, instead of resuming with no check at all
+		if (this.access && !opts.access) {
+			this.removeSession(sessionId)
+			return
 		}
 
 		// The server may have changed builds while the socket slept, so re-run the handshake's
@@ -1114,6 +1319,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			theirProtocolVersion++
 			session.supportsStringAppend = false
 		}
+		// 8 is 9 without access messages: fine for rooms without an access model
+		if (theirProtocolVersion === 8 && !this.access) {
+			theirProtocolVersion++
+		}
 
 		if (theirProtocolVersion == null || theirProtocolVersion < getTlsyncProtocolVersion()) {
 			this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
@@ -1161,9 +1370,48 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
+				access: session.access,
+				visible,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
 			this._unsafe_sendMessage(session.sessionId, msg)
+		}
+
+		let visible: Set<string> | null = null
+		if (this.access && session.access) {
+			// bring the room's view up to date with any change made outside a push
+			this.storage.transaction((txn) => this.broadcastChanges(txn))
+			// Access rooms always hydrate in full: the client may hold records it can no longer
+			// read, and a diff since its clock cannot remove them.
+			const access = session.access
+			visible = this.readableIds(access)
+			const puts: Record<string, R> = {}
+			for (const id of visible) {
+				puts[id] = this.access.redact(access, this.accessView!.get(id)!, this.accessView!)
+			}
+			const diff = this.migrateDiffOrRejectSession(
+				session.sessionId,
+				sessionSchema,
+				requiresDownMigrations,
+				{ puts, deletes: [] }
+			)
+			if (!diff.ok) return
+			for (const id of Object.keys(puts)) {
+				// presence ids are per session; its own is pushed fresh after connect
+				if (id === session.presenceId) delete diff.value[id]
+			}
+			connect({
+				type: 'connect',
+				connectRequestId: message.connectRequestId,
+				hydrationType: 'wipe_all',
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: this.schema.serialize(),
+				serverClock: this.lastDocumentClock,
+				diff: diff.value,
+				isReadonly: false,
+				access,
+			})
+			return
 		}
 
 		const { documentClock, result } = this.storage.transaction((txn) => {
@@ -1418,7 +1666,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// Server-initiated pushes (no session) are always allowed.
 				const canWrite = (typeName: string) =>
 					!session ||
-					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
+					(this.access
+						? !!session.access
+						: this.objectTypes.has(typeName)
+							? session.objectAccess !== 'read'
+							: !session.isReadonly)
+
+				// With an access model, the push is staged first and checked as a whole: one denied
+				// record rejects all of it, so a push never lands in part (an arrow without its
+				// binding, children without their frame).
+				const staged = this.access && session?.access ? new Map<string, R | null>() : null
+				const docStore: MinimalDocStore<R> = staged
+					? {
+							get: (id) => (staged.has(id) ? (staged.get(id) ?? undefined) : txn.get(id)),
+							set: (id, record) => staged.set(id, record),
+							delete: (id) => staged.set(id, null),
+						}
+					: txn
 
 				// what authorizers see of the pushing session, shared by every authorized op in this push
 				const authSession = session
@@ -1455,7 +1719,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// against the stored one, so a swap would consult the wrong authorizer (or
 								// none). Skip it like a veto; the client self-corrects.
 								// `undefined` (no session) means the guard didn't fetch, so addDocument will.
-								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
+								const prevRecord = session
+									? ((docStore.get(id) as R | undefined) ?? null)
+									: undefined
 								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
 									this.log?.warn?.(
 										'skipping put that changes typeName',
@@ -1469,7 +1735,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// Per-type authorizer: stamp/veto the write from the session's identity.
 								// Client pushes only; runs inside `addDocument`, on the up-migrated record.
 								let authorize: ((prev: R | null, next: R) => R | null) | undefined
-								if (session && this.authorizeRecord) {
+								if (staged && session?.access) {
+									// the owner is the pushing actor, whatever the client sent
+									const access = session.access
+									authorize = (prevRec, next) =>
+										prevRec ? next : this.access!.stamp(access, null, next)
+								} else if (session && this.authorizeRecord) {
 									const authorizePut = this.authorizerFor(record.typeName)
 									if (authorizePut) {
 										authorize = (prevRec, next) => {
@@ -1494,11 +1765,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									}
 								}
 								// The guard above already fetched this, so don't hit storage again.
-								addDocument(txn, docChanges, id, record, authorize, prevRecord)
+								addDocument(docStore, docChanges, id, record, authorize, prevRecord)
 								break
 							}
 							case RecordOpType.Patch: {
-								const doc = txn.get(id) as R | undefined
+								const doc = docStore.get(id) as R | undefined
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
@@ -1527,11 +1798,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
 								// already fetched the record, so pass it through.
-								patchDocument(txn, docChanges, id, op[1], authorize, doc)
+								patchDocument(docStore, docChanges, id, op[1], authorize, doc)
 								break
 							}
 							case RecordOpType.Remove: {
-								const doc = txn.get(id) as R | undefined
+								const doc = docStore.get(id) as R | undefined
 								if (!doc) {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
@@ -1556,11 +1827,38 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 								// Delete the document and propagate the delete op
 								// delete automatically creates tombstones
-								txn.delete(id)
+								docStore.delete(id)
 								propagateOp(docChanges, id, op, doc, undefined)
 								break
 							}
 						}
+					}
+				}
+
+				if (staged && session?.access && staged.size) {
+					const model = this.access!
+					const before = this.accessView!
+					const changes = [...staged]
+						.map(([id, next]) => ({ prev: (txn.get(id) as R | undefined) ?? null, next }))
+						.filter(({ prev, next }) => prev || next)
+					const denial = model.checkChanges(
+						session.access,
+						changes,
+						before,
+						overlayAccessView(model, before, staged)
+					)
+					if (denial) {
+						this.log?.warn?.(
+							'access model rejected push',
+							denial.reason,
+							'session:',
+							session.sessionId
+						)
+						return { docChanges: { diffs: null } as ActualChanges, presenceChanges }
+					}
+					for (const [id, next] of staged) {
+						if (next) txn.set(id, next)
+						else txn.delete(id)
 					}
 				}
 
