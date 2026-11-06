@@ -7,7 +7,7 @@ import {
 	WebSocketMinimal,
 } from '@tldraw/sync-core'
 import { PermissionChain, TLRecord, TLSchema } from 'tldraw'
-import { ClassroomActor, ClassroomMeta } from './classroomPermissions'
+import { ClassroomActor, ClassroomMeta, changesReadRules } from './classroomPermissions'
 
 type ClientSocket = TLPersistentClientSocket<
 	TLSocketClientSentEvent<TLRecord>,
@@ -39,15 +39,10 @@ export function createInPageRoom({
 				onDenied(`${sessionId}: ${reason} (${type} ${id})`)
 			},
 		},
-		// The read rules of a shape read its page. A page change does not change its shapes, so
-		// re-run the reads when a page changes. The document's meta decides who may open the room
-		// (file read control), so re-run them when it changes too.
+		// Read rules read other records (a shape's page and parents, the document), so a change to
+		// those re-runs the reads.
 		onCommittedChanges: ({ diff }) => {
-			const touchesPage = Object.values(diff.puts).some((put) => {
-				const typeName = (Array.isArray(put) ? put[1] : put).typeName
-				return typeName === 'page' || typeName === 'document'
-			})
-			if (touchesPage) room.refreshReads()
+			if (changesReadRules(diff)) room.refreshReads()
 		},
 	})
 

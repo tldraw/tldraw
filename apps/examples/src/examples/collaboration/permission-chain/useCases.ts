@@ -38,7 +38,7 @@ export const USE_CASES: UseCase[] = [
 		id: 'page-read',
 		title: 'Page read control',
 		layers: ['privatePages'],
-		how: 'A read layer. A private page, and every shape, comment and cursor on it, is not sent to a student. A write may not move a record into or out of a hidden page.',
+		how: 'A read layer. A private page, and every shape, binding, comment and cursor on it, is not sent to a student. When a frame moves onto a private page, the host refreshes reads, so its children go too. A write may not move a record into or out of a hidden page.',
 		steps: [
 			'Students have no "Answers" page.',
 			'As the teacher, go to the "Answers" page. The students stop seeing the teacher\'s cursor.',
@@ -67,8 +67,8 @@ export const USE_CASES: UseCase[] = [
 	{
 		id: 'shape-write',
 		title: 'Shape write control',
-		layers: ['stampOwner', 'ownShapes'],
-		how: 'The chain stamps the owner of a new shape, on the client and on the server. A student changes only their own shapes, and cannot put a shape into a frame of someone else. The editor asks the chain about each shape with a dry run, and a shape that the user may not change acts as locked.',
+		layers: ['stampOwner', 'ownShapes', 'ownBindings', 'ownAssets', 'closedByDefault'],
+		how: 'The chain stamps the owner of a new shape or asset, on the client and on the server. A student changes only their own shapes, assets, and arrow bindings, and cannot put a shape into a frame of someone else. A shape created in the same operation counts as their own, so a pasted frame keeps its children. A record type with no rules is closed. The editor asks the chain about each shape with a dry run, and a shape that the user may not change acts as locked.',
 		steps: [
 			'As Alice, point at the star: "Locked for you: not your shape". She cannot select it.',
 			'As Alice, draw a rectangle and move it. It syncs.',
@@ -79,7 +79,7 @@ export const USE_CASES: UseCase[] = [
 		id: 'atomic',
 		title: 'No half-applied pushes',
 		layers: ['atomic', 'ownShapes'],
-		how: 'The room runs the chain once per push. `atomic()` denies the whole push if it denies one write, so a push is never applied in part.',
+		how: 'The editor checks each editor operation as one batch when it ends, and the room runs the chain once per push. `atomic()` denies the whole batch if it denies one write, so an operation is never applied in part. A push can hold several operations, so a denied push undoes all of them.',
 		steps: [
 			'As Alice, check "Skip client checks". Her editor now sends what it likes.',
 			'Draw a rectangle. Select it and the star, and move both.',
@@ -90,7 +90,7 @@ export const USE_CASES: UseCase[] = [
 		id: 'comments',
 		title: 'Comments',
 		layers: ['comments'],
-		how: '`createCommentAuthorizers` from `@tldraw/sync-collaboration` as one layer: post as yourself, edit and delete your own, a teacher deletes any. The comment menu asks the same chain, so it shows only what the chain allows.',
+		how: '`createCommentAuthorizers` from `@tldraw/sync-collaboration` as one layer: post as yourself, edit and delete your own, a teacher deletes any. A comment that follows its thread to another page is not an edit, so the teacher can move a shape with student comments. The comment menu asks the same chain, so it shows only what the chain allows.',
 		steps: [
 			'Use the comment tool as Alice to post a comment.',
 			'As Bob, open it: there is no "Delete". As the teacher: there is.',
@@ -112,7 +112,7 @@ export const USE_CASES: UseCase[] = [
 		id: 'agents',
 		title: 'Agents',
 		layers: ['agentScope'],
-		how: 'An agent writes only shapes inside its frame, and at most 50 writes per batch. A limit per batch needs the whole batch, which a per-record hook does not see.',
+		how: 'An agent writes only shapes inside its frame, and the bindings of its arrows there, at most 50 writes per batch. A limit per batch needs the whole batch, which a per-record hook does not see. An agent reads what a student reads.',
 		steps: ['Set the third pane to "Agent", and try each button.'],
 	},
 	{

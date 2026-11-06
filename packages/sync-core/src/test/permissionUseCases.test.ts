@@ -5,21 +5,17 @@ import {
 	PermissionDenial,
 	PermissionMiddleware,
 	RecordId,
-	allow,
 } from '@tldraw/store'
 import {
-	TLComment,
-	TLCommentThread,
+	TLAsset,
+	TLAssetId,
 	TLDOCUMENT_ID,
 	TLShape,
 	defaultShapeSchemas,
 	TLPageId,
 	TLRecord,
 	TLShapeId,
-	createComment,
-	createCommentThread,
 	createTLSchema,
-	toRichText,
 } from '@tldraw/tlschema'
 import {
 	BaseBoxShapeUtil,
@@ -40,6 +36,7 @@ import {
 	ClassroomMeta,
 	GRADE_TYPE,
 	MAX_AGENT_WRITES_PER_BATCH,
+	changesReadRules,
 	classroomActor,
 	classroomPermissions,
 } from './classroomPermissions'
@@ -136,7 +133,13 @@ class Peer {
 
 function classroom({ atomicPushes = true } = {}) {
 	const chain = classroomPermissions({ atomicPushes })
-	const server = new TestServer<TLRecord>(schema, undefined, { permissions: chain })
+	const server: TestServer<TLRecord> = new TestServer<TLRecord>(schema, undefined, {
+		permissions: chain,
+		// as the demo host does: re-run reads when a change can change what others may read
+		onCommittedChanges: ({ diff }) => {
+			if (changesReadRules(diff)) server.room.refreshReads()
+		},
+	})
 	const peers: Peer[] = []
 	const flush = () => {
 		for (let i = 0; i < 50; i++) {
@@ -230,6 +233,195 @@ describe('shape write control: students edit only their own shapes', () => {
 		expect(alice.denied.map((d) => d.reason)).toEqual(['not your frame'])
 		flush()
 		expect(stored(box)).toBeUndefined()
+	})
+})
+
+describe('ordinary editor work at the edges of the shape rules', () => {
+	it('a student makes a frame and a shape in it in one operation', () => {
+		const { join, flush, stored } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const frame = createShapeId('alice-frame')
+		const child = createShapeId('alice-child')
+		alice.editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } },
+			{ id: child, type: 'geo', parentId: frame, x: 10, y: 10 },
+		])
+		flush()
+		expect([alice.denied, stored(frame)?.meta, stored(child)?.meta]).toEqual([
+			[],
+			{ ownerId: 'alice' },
+			{ ownerId: 'alice' },
+		])
+	})
+
+	it("a student pastes a copy of the teacher's frame: the copy is the student's", () => {
+		const { join, teacher, flush, stored } = classroom()
+		const frame = createShapeId('teacher-frame')
+		teacher.editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } },
+			{ id: createShapeId('teacher-child'), type: 'geo', parentId: frame, x: 10, y: 10 },
+		])
+		flush()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const content = alice.editor.getContentFromCurrentPage([frame])!
+		alice.editor.putContentOntoCurrentPage(content)
+		flush()
+		const teacherIds = new Set([
+			frame,
+			createShapeId('teacher-child'),
+			createShapeId('teacher-box'),
+		])
+		const pasted = alice.editor
+			.getCurrentPageShapes()
+			.filter((shape) => !teacherIds.has(shape.id))
+			.map((shape) => [shape.type, stored(shape.id)?.meta])
+		expect([alice.denied, pasted]).toEqual([
+			[],
+			[
+				['frame', { ownerId: 'alice' }],
+				['geo', { ownerId: 'alice' }],
+			],
+		])
+	})
+
+	it('one editor operation is one batch: with atomic(), a partly denied one changes nothing', () => {
+		const { join, teacherBox, flush, stored } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const own = createShapeId('own')
+		alice.editor.createShape({ id: own, type: 'geo', x: 0, y: 0 })
+		flush()
+		alice.editor.run(() => {
+			alice.editor.updateShapes([{ id: own, type: 'geo', x: 300 }])
+			alice.editor.updateShapes([{ id: teacherBox, type: 'geo', x: 300 }])
+		})
+		flush()
+		expect([(stored(own) as any).x, (stored(teacherBox) as any).x]).toEqual([0, 0])
+	})
+
+	it('moving a shape onto a locked page is refused, and the editor does not break', () => {
+		const { join, teacher, page1, flush, stored } = classroom()
+		const locked = PageRecordType.createId('locked')
+		teacher.editor.createPage({ id: locked, name: 'Locked', meta: { locked: true } })
+		flush()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const own = createShapeId('own')
+		alice.editor.createShape({ id: own, type: 'geo', x: 0, y: 0 })
+		alice.editor.moveShapesToPage([own], locked)
+		flush()
+		expect([alice.denied.map((d) => d.reason)[0], (stored(own) as TLShape).parentId]).toEqual([
+			'page is locked',
+			page1,
+		])
+	})
+})
+
+describe('assets and bindings follow the shape rules', () => {
+	const assetId = 'asset:teacher-image' as TLAssetId
+	function withAsset() {
+		const room = classroom()
+		room.teacher.editor.createAssets([
+			{
+				id: assetId,
+				typeName: 'asset',
+				type: 'image',
+				props: {
+					src: 'https://example.com/a.png',
+					w: 10,
+					h: 10,
+					name: 'a',
+					isAnimated: false,
+					mimeType: 'image/png',
+				},
+				meta: {},
+			},
+		])
+		room.flush()
+		return room
+	}
+
+	it("a student cannot change the teacher's asset, on the client or in the room", () => {
+		const { join, flush, stored } = withAsset()
+		expect(stored(assetId)!.meta).toEqual({ ownerId: 'teacher' })
+		const alice = join({ userId: 'alice', role: 'student' })
+		const asset = alice.editor.getAsset(assetId) as TLAsset & { type: 'image' }
+		const evil = {
+			id: assetId,
+			type: 'image' as const,
+			props: { ...asset.props, src: 'https://evil/x.png' },
+		}
+		alice.editor.updateAssets([evil])
+		expect(alice.denied.map((d) => d.reason)).toEqual(['not your asset'])
+		alice.store.setPermissions(null)
+		alice.editor.updateAssets([evil])
+		flush()
+		expect((stored(assetId) as TLAsset).props).toMatchObject({ src: 'https://example.com/a.png' })
+	})
+
+	function arrowTo(peer: Peer, arrow: TLShapeId, target: TLShapeId, parentId?: TLPageId) {
+		peer.editor.createShape({ id: arrow, type: 'arrow', parentId, x: -100, y: 0 })
+		peer.editor.createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: target,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+			},
+		})
+	}
+
+	it('a student does not receive a binding on a private page, which names a hidden shape', () => {
+		const { join, teacher, page2, secretBox, flush } = classroom()
+		arrowTo(teacher, createShapeId('secret-arrow'), secretBox, page2)
+		flush()
+		const bindingIds = (peer: Peer) =>
+			peer.store.allRecords().filter((r) => r.typeName === 'binding').length
+		const alice = join({ userId: 'alice', role: 'student' })
+		expect([bindingIds(teacher), bindingIds(alice)]).toEqual([1, 0])
+	})
+
+	it("a student cannot unbind the teacher's arrow, even without the client check", () => {
+		const { join, teacher, teacherBox, flush, stored } = classroom()
+		arrowTo(teacher, createShapeId('teacher-arrow'), teacherBox)
+		flush()
+		const binding = teacher.store.allRecords().find((r) => r.typeName === 'binding')!
+		const mallory = join({ userId: 'mallory', role: 'student' })
+		mallory.store.setPermissions(null)
+		mallory.store.remove([binding.id])
+		flush()
+		expect(stored(binding.id)).toBeDefined()
+	})
+
+	it("a student binds their own arrow to the teacher's shape", () => {
+		const { join, teacherBox, flush, stored } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		arrowTo(alice, createShapeId('alice-arrow'), teacherBox)
+		flush()
+		const binding = alice.store.allRecords().find((r) => r.typeName === 'binding')!
+		expect([alice.denied, stored(binding.id)?.id]).toEqual([[], binding.id])
+	})
+})
+
+describe('reads follow a move to another parent', () => {
+	it('a frame moved onto a private page takes its child out of view too', async () => {
+		const { join, teacher, page2, flush } = classroom()
+		const frame = createShapeId('teacher-frame')
+		const child = createShapeId('teacher-child')
+		teacher.editor.createShapes([
+			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 400 } },
+			{ id: child, type: 'geo', parentId: frame, x: 10, y: 10 },
+		])
+		flush()
+		const alice = join({ userId: 'alice', role: 'student' })
+		expect([alice.shape(frame)?.id, alice.shape(child)?.id]).toEqual([frame, child])
+		teacher.editor.moveShapesToPage([frame], page2)
+		flush()
+		// the host refreshes reads after the commit
+		await Promise.resolve()
+		flush()
+		expect([alice.shape(frame), alice.shape(child)]).toEqual([undefined, undefined])
 	})
 })
 
@@ -478,6 +670,30 @@ describe('agents', () => {
 		expect(stored(box)!.meta).toEqual({ ownerId: 'agent' })
 	})
 
+	it('an agent connects its own arrows inside its frame', () => {
+		const { agent, frame, flush, stored } = agentRoom()
+		const box = createShapeId('agent-box')
+		const arrow = createShapeId('agent-arrow')
+		agent.editor.createShapes([
+			{ id: box, type: 'geo', parentId: frame, x: 300, y: 10 },
+			{ id: arrow, type: 'arrow', parentId: frame, x: 10, y: 10 },
+		])
+		agent.editor.createBinding({
+			type: 'arrow',
+			fromId: arrow,
+			toId: box,
+			props: {
+				terminal: 'end',
+				normalizedAnchor: { x: 0.5, y: 0.5 },
+				isExact: false,
+				isPrecise: false,
+			},
+		})
+		flush()
+		const binding = agent.store.allRecords().find((r) => r.typeName === 'binding')!
+		expect([agent.denied, stored(binding.id)?.id]).toEqual([[], binding.id])
+	})
+
 	it('an agent cannot write outside its frame', () => {
 		const { agent } = agentRoom()
 		agent.editor.createShape({ id: createShapeId('loose'), type: 'geo', x: 2000, y: 0 })
@@ -512,55 +728,8 @@ describe('actions', () => {
 	})
 })
 
-describe('comments: add your own, a teacher manages any', () => {
-	type CommentRecord = TLComment | TLCommentThread
-	const commentRules: PermissionMiddleware<CommentRecord, ClassroomActor> = allow(
-		(access, { actor }) => {
-			if (access.type === 'read' || access.type === 'action') return
-			const record = access.type === 'delete' ? access.prev : access.next
-			const owner = (r: CommentRecord) => (r.typeName === 'comment' ? r.authorId : r.createdBy)
-			if (access.type === 'create')
-				return owner(access.next) === actor.meta.userId || 'post as yourself'
-			if (actor.meta.role === 'teacher') return
-			return owner(access.prev) === actor.meta.userId || `not your ${record.typeName}`
-		}
-	)
-	const chain = new PermissionChain<CommentRecord, ClassroomActor>(commentRules)
-	const thread = createCommentThread({
-		pageId: 'page:p' as TLPageId,
-		anchor: { type: 'page' },
-		createdBy: 'alice',
-	})
-	const comment = createComment({
-		threadId: thread.id,
-		pageId: thread.pageId,
-		authorId: 'alice',
-		body: toRichText('hi'),
-	})
-	const write = (role: ClassroomMeta['role'], userId: string, access: any) =>
-		chain
-			.run({
-				kind: 'write',
-				actor: classroomActor({ userId, role }),
-				items: [access],
-				get: () => undefined,
-			})
-			.denied.map((d) => d.reason)
-
-	it('anyone posts as themselves only', () => {
-		expect(write('student', 'alice', { type: 'create', prev: null, next: comment })).toEqual([])
-		expect(write('student', 'bob', { type: 'create', prev: null, next: comment })).toEqual([
-			'post as yourself',
-		])
-	})
-
-	it('a student edits only their own comment, a teacher manages any', () => {
-		const edit = { type: 'update', prev: comment, next: { ...comment, isDeleted: true } }
-		expect(write('student', 'bob', edit)).toEqual(['not your comment'])
-		expect(write('student', 'alice', edit)).toEqual([])
-		expect(write('teacher', 'carol', edit)).toEqual([])
-	})
-})
+// Comments: the demo's comment layer runs the real `createCommentAuthorizers` rules, which live in
+// a package that depends on this one. Its tests are next to the demo's copy of the rules.
 
 describe('plugin record types', () => {
 	// A plugin adds a record type and its own layer: one vote per user per page, and the

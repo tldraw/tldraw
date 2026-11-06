@@ -503,6 +503,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
+    // @internal
+    batchPermissions<T>(fn: () => T): T;
     checkWrites(items: readonly RecordAccess<R>[]): PermissionResult<R>;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {

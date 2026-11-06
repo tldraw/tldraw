@@ -1753,7 +1753,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			this.history.batch(() => this.store.batchPermissions(fn), opts)
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}

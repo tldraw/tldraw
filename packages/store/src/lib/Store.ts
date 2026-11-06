@@ -1342,7 +1342,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.permissionsAtom.__unsafe__getWithoutCapture() &&
 				!isMergingRemoteChanges &&
 				!this.permissionsPaused
-					? new Map()
+					? (this.permissionBatch?.changes ?? new Map())
 					: null
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 			// an operation may switch side effects off, but never on while they are disabled
@@ -1360,6 +1360,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
 				const changes = this.permissionChanges
 				this.permissionChanges = null
+				// in an open permission batch, the batch checks these changes when it ends
+				if (this.permissionBatch?.open) return result
 				const corrections = this.applyPermissions(changes, true)
 				if (corrections) {
 					// The after-handlers of the corrections run now. What the handlers write is
@@ -1382,10 +1384,39 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private readonly permissionsAtom = atom<StorePermissions<R> | null>('Store.permissions', null)
 	private permissionsPaused = false
 	private permissionChanges: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
+	private permissionBatch: {
+		changes: Map<IdOf<R>, { before: R | null; after: R | null }>
+		open: boolean
+	} | null = null
+
+	/**
+	 * Check all writes of `fn` as one permission batch, when `fn` ends, and not at the end of each
+	 * store operation in it. The editor runs each editor operation in one, so that a partly denied
+	 * operation is not half applied, and a record that the chain denies does not vanish while the
+	 * operation still reads it. Side effects still run at the end of each store operation.
+	 *
+	 * @internal
+	 */
+	batchPermissions<T>(fn: () => T): T {
+		if (this.permissionBatch || this._isInAtomicOp) return fn()
+		const batch = { changes: new Map(), open: true }
+		this.permissionBatch = batch
+		try {
+			return fn()
+		} finally {
+			batch.open = false
+			try {
+				// an empty operation that checks the batch's changes
+				if (batch.changes.size) this.atomic(() => {})
+			} finally {
+				this.permissionBatch = null
+			}
+		}
+	}
 
 	/**
 	 * Check local writes with a {@link PermissionChain}. At the end of each top-level operation
-	 * (an outermost {@link Store.atomic}, which is one editor operation), the store runs the chain
+	 * (an outermost {@link Store.atomic}, or one editor operation, `editor.run`), the store runs the chain
 	 * once on all document-record writes of the operation, as one batch. It then puts back each
 	 * denied record, and stores the changed `next` of each allowed write. Listeners, history and
 	 * the sync client see only the result, so a denied write is never sent.

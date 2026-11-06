@@ -1,4 +1,4 @@
-import { PermissionChain, TLRecord, allow, createShapeId } from '@tldraw/editor'
+import { PermissionChain, TLRecord, allow, atomic, createShapeId } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 // The editor side of a permission chain (`Store.setPermissions`): what the user may not change
@@ -136,5 +136,29 @@ describe('the store puts back a denied create', () => {
 			editor.select(id)
 		})
 		expect([editor.getShape(id), editor.getSelectedShapeIds()]).toEqual([undefined, []])
+	})
+})
+
+describe('one editor operation', () => {
+	it('is one batch: with atomic(), a partly denied operation changes nothing', () => {
+		editor.store.setPermissions({
+			chain: new PermissionChain<TLRecord, { userId: string }>(atomic(), chain),
+			getActor: () => ({ userId: 'me' }),
+		})
+		editor.run(() => {
+			editor.updateShapes([{ id: ids.mine, type: 'geo', x: 100 }])
+			editor.updateShapes([{ id: ids.theirs, type: 'geo', x: 400 }])
+		})
+		expect([editor.getShape(ids.mine)!.x, editor.getShape(ids.theirs)!.x]).toEqual([0, 300])
+	})
+
+	it('is checked when it ends, so a denied record does not vanish while the operation reads it', () => {
+		const id = createShapeId('far')
+		let seenInside: unknown
+		editor.run(() => {
+			editor.createShape({ id, type: 'geo', x: 2000, y: 0 })
+			seenInside = editor.getShape(id)?.id
+		})
+		expect([seenInside, editor.getShape(id)]).toEqual([id, undefined])
 	})
 })

@@ -1,10 +1,11 @@
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
-import { recordAuthorizers, type TLSyncActor } from '@tldraw/sync-core'
+import { recordAuthorizers, type TLSyncActor, type TLSyncForwardDiff } from '@tldraw/sync-core'
 import {
 	allow,
 	atomic,
 	denyAll,
 	forType,
+	isEqual,
 	PermissionChain,
 	PermissionMiddleware,
 	RecordAccess,
@@ -51,14 +52,35 @@ type Get = (id: string) => TLRecord | undefined
 export const MAX_AGENT_WRITES_PER_BATCH = 50
 
 /**
- * The page that a record is on: the page itself, the page above a shape, the page a user's
- * presence is on, or the page of a record with a `pageId` (comments and their threads).
+ * The document record types that the layers below have rules for. `user` records are open: each
+ * editor writes its own user's profile (name and color).
+ */
+const RULED_TYPES = new Set([
+	'document',
+	'page',
+	'shape',
+	'binding',
+	'asset',
+	'user',
+	'comment',
+	'comment-thread',
+	'comment-reaction',
+])
+
+/**
+ * The page that a record is on: the page itself, the page above a shape, the page of a binding's
+ * `from` shape, the page a user's presence is on, or the page of a record with a `pageId`
+ * (comments and their threads).
  */
 export function pageOf(record: TLRecord | undefined, get: Get): TLPage | undefined {
 	for (let i = 0; record && i < 100; i++) {
 		if (record.typeName === 'page') return record
 		if (record.typeName === 'shape') {
 			record = get(record.parentId)
+			continue
+		}
+		if (record.typeName === 'binding') {
+			record = get(record.fromId)
 			continue
 		}
 		// a user's presence is on the page they look at: their cursor and selection are there
@@ -80,6 +102,24 @@ function ancestors(shape: TLShape, get: Get): TLShapeId[] {
 		parent = get(parent.parentId)
 	}
 	return ids
+}
+
+/**
+ * The records a read of `record` shows: a binding also shows the ids of both its shapes, so it is
+ * readable only where both shapes are.
+ */
+function shownBy(record: TLRecord, get: Get): (TLRecord | undefined)[] {
+	return record.typeName === 'binding' ? [get(record.fromId), get(record.toId)] : [record]
+}
+
+/**
+ * Whether the actor owns a shape. A shape that this batch creates is the actor's, because
+ * `stampOwner` sets its owner, so a new frame and its children can arrive in one batch.
+ */
+function ownsShape(id: string, batch: Parameters<Layer>[0]) {
+	const before = batch.get(id)
+	if (!before) return batch.getAfter(id)?.typeName === 'shape'
+	return before.typeName === 'shape' && before.meta.ownerId === batch.actor.meta.userId
 }
 
 const isTeacher = (actor: ClassroomActor) => actor.meta.role === 'teacher'
@@ -114,7 +154,11 @@ export const closedClass: Layer = allow((access, batch) => {
 /** Page read control: a private page, and all that is on it, is for teachers only. */
 export const privatePages: Layer = allow((access, batch) => {
 	if (access.type === 'read') {
-		return isHiddenPage(pageOf(access.record, batch.get), batch.actor) ? 'private page' : undefined
+		return shownBy(access.record, batch.get).some((record) =>
+			isHiddenPage(pageOf(record, batch.get), batch.actor)
+		)
+			? 'private page'
+			: undefined
 	}
 	const write = writeOf(access)
 	if (!write) return undefined
@@ -132,21 +176,20 @@ export const lockedPages: Layer = allow((access, batch) => {
 	const typeName = (write.prev ?? write.next)!.typeName
 	if (typeName === 'document') return 'only teachers change the file'
 	if (typeName === 'page') return 'only teachers change pages'
-	if (typeName !== 'shape') return undefined
+	if (typeName !== 'shape' && typeName !== 'binding') return undefined
 	const before = write.prev ? pageOf(write.prev, batch.get) : undefined
 	const after = write.next ? pageOf(write.next, batch.getAfter) : undefined
 	return before?.meta.locked || after?.meta.locked ? 'page is locked' : undefined
 })
 
-/** Shape write control, part 1: the server sets the owner of a new shape. */
-export const stampOwner: Layer = forType(
-	'shape',
-	rewrite((access, { actor }) => {
-		if (access.type !== 'create') return undefined
-		const next = { ...access.next, meta: { ...access.next.meta, ownerId: actor.meta.userId } }
-		return { ...access, next }
-	})
-)
+/** Shape write control, part 1: the server sets the owner of a new shape or asset. */
+export const stampOwner: Layer = rewrite((access, { actor }) => {
+	if (access.type !== 'create') return undefined
+	const record = access.next
+	if (record.typeName !== 'shape' && record.typeName !== 'asset') return undefined
+	const meta = { ...record.meta, ownerId: actor.meta.userId }
+	return { ...access, next: { ...record, meta } }
+})
 
 /**
  * Shape write control, part 2: a student or agent changes only their own shapes, and cannot put a
@@ -163,11 +206,11 @@ export const ownShapes: Layer = forType(
 			return 'owner is fixed'
 		}
 		if (access.next) {
-			const parent = batch.getAfter(access.next.parentId)
+			const parentId = access.next.parentId
 			if (
-				parent?.typeName === 'shape' &&
-				parent.meta.ownerId !== me &&
-				parent.id !== batch.actor.meta.frameId
+				batch.getAfter(parentId)?.typeName === 'shape' &&
+				!ownsShape(parentId, batch) &&
+				parentId !== batch.actor.meta.frameId
 			) {
 				return 'not your frame'
 			}
@@ -177,8 +220,39 @@ export const ownShapes: Layer = forType(
 )
 
 /**
- * Agents: work only inside their frame, and at most a fixed number of writes per batch. A limit
- * per batch needs the whole batch, which a per-record hook does not see.
+ * Shape write control, part 3: a binding belongs to its `from` shape (an arrow). A student or
+ * agent binds, moves and unbinds only their own arrows.
+ */
+export const ownBindings: Layer = forType(
+	'binding',
+	allow((access, batch) => {
+		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
+			return undefined
+		for (const binding of [access.prev, access.next]) {
+			if (binding && !ownsShape(binding.fromId, batch)) return 'not your shape'
+		}
+		return undefined
+	})
+)
+
+/** Asset write control: a student or agent changes only their own assets (an image's `src`). */
+export const ownAssets: Layer = forType(
+	'asset',
+	allow((access, batch) => {
+		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
+			return undefined
+		if (access.prev && access.prev.meta.ownerId !== batch.actor.meta.userId) return 'not your asset'
+		if (access.type === 'update' && access.next.meta.ownerId !== access.prev.meta.ownerId) {
+			return 'owner is fixed'
+		}
+		return undefined
+	})
+)
+
+/**
+ * Agents: work only inside their frame (shapes, and the bindings of their arrows there), and at
+ * most a fixed number of writes per batch. A limit per batch needs the whole batch, which a
+ * per-record hook does not see. Agents read what a student reads.
  */
 export function agentScope(...[batch, next]: Parameters<Layer>): ReturnType<Layer> {
 	if (batch.kind !== 'write' || batch.actor.meta.role !== 'agent') return next()
@@ -193,19 +267,15 @@ export function agentScope(...[batch, next]: Parameters<Layer>): ReturnType<Laye
 			[write.next, batch.getAfter],
 		] as const) {
 			if (!record) continue
-			if (record.typeName !== 'shape') return 'agents write shapes only'
-			if (!inFrame(record, get)) return 'outside your frame'
+			const shape = record.typeName === 'binding' ? get(record.fromId) : record
+			if (shape?.typeName !== 'shape') return 'agents write shapes only'
+			if (!inFrame(shape, get)) return 'outside your frame'
 		}
 		return undefined
 	})(batch, next)
 }
 
-/**
- * Comments: anyone but a viewer posts, always as themselves. Authors edit and delete their own
- * comments, and a teacher may delete any. The rules are `createCommentAuthorizers` from
- * `@tldraw/sync-collaboration`, which dotcom uses too, run as one layer.
- */
-export const comments: Layer = recordAuthorizers<TLRecord, ClassroomMeta>(
+const commentRules: Layer = recordAuthorizers<TLRecord, ClassroomMeta>(
 	createCommentAuthorizers<ClassroomMeta>({
 		getUserId: (session) => session.meta.userId,
 		canComment: (session) => session.meta.role !== 'viewer',
@@ -215,6 +285,44 @@ export const comments: Layer = recordAuthorizers<TLRecord, ClassroomMeta>(
 	})
 )
 
+/**
+ * A comment that follows its thread to another page. When a shape moves to another page, the
+ * editor changes the `pageId` of each comment on it in the same operation. That is not an edit by
+ * the person who moved the shape, so the author check does not apply to it.
+ */
+function followsThread(access: RecordAccess<TLRecord>, batch: Parameters<Layer>[0]) {
+	if (access.type !== 'update') return false
+	const { prev, next } = access
+	if (prev.typeName !== 'comment' || next.typeName !== 'comment') return false
+	if (prev.pageId === next.pageId || !isEqual({ ...prev, pageId: next.pageId }, next)) return false
+	const thread = batch.getAfter(next.threadId)
+	return thread?.typeName === 'comment-thread' && thread.pageId === next.pageId
+}
+
+/**
+ * Comments: anyone but a viewer posts, always as themselves. Authors edit and delete their own
+ * comments, and a teacher may delete any. The rules are `createCommentAuthorizers` from
+ * `@tldraw/sync-collaboration`, which dotcom uses too, run as one layer. A comment that only
+ * follows its thread skips them, and the later layers (page rules) still check it.
+ */
+export function comments(...[batch, next]: Parameters<Layer>): ReturnType<Layer> {
+	const following = batch.kind === 'write' ? batch.items.filter((a) => followsThread(a, batch)) : []
+	if (following.length === 0) return commentRules(batch, next)
+	const own = batch.items.filter((access) => !following.includes(access))
+	let rest: ReturnType<Layer> | null = null
+	const result = commentRules({ ...batch, items: own }, (items = own) => {
+		rest = next([...items, ...following])
+		return rest
+	})
+	if (rest) return result
+	// the comment rules denied all of their part without calling next
+	const followed = next(following)
+	return {
+		allowed: [...result.allowed, ...followed.allowed],
+		denied: [...result.denied, ...followed.denied],
+	}
+}
+
 /** A plugin shape type: a teacher's grade for one student. */
 export const GRADE_TYPE = 'grade'
 const gradeFor = (shape: TLShape) => (shape.props as { studentId?: string }).studentId
@@ -223,17 +331,20 @@ const gradeFor = (shape: TLShape) => (shape.props as { studentId?: string }).stu
  * A plugin type with its own rules. Shape read control: a student reads only their own grade.
  * Shape write control: only a teacher writes grades.
  */
-export const grades: Layer = forType(
-	'shape',
-	allow((access, batch) => {
-		if (access.type === 'action' || isTeacher(batch.actor)) return undefined
-		if (access.type === 'read') {
-			if (access.record.type !== GRADE_TYPE) return undefined
-			return gradeFor(access.record) === batch.actor.meta.userId ? undefined : 'not your grade'
-		}
-		return (access.prev ?? access.next).type === GRADE_TYPE ? 'only teachers grade' : undefined
-	})
-)
+export const grades: Layer = allow((access, batch) => {
+	if (access.type === 'action' || isTeacher(batch.actor)) return undefined
+	const isGrade = (record: TLRecord | undefined): record is TLShape =>
+		record?.typeName === 'shape' && record.type === GRADE_TYPE
+	if (access.type === 'read') {
+		// a binding to someone else's grade would show that grade's id
+		return shownBy(access.record, batch.get).some(
+			(record) => isGrade(record) && gradeFor(record) !== batch.actor.meta.userId
+		)
+			? 'not your grade'
+			: undefined
+	}
+	return isGrade(access.prev ?? access.next) ? 'only teachers grade' : undefined
+})
 
 /** Actions that are not record writes: the client hides the UI, a server endpoint asks too. */
 export const teacherActions: Layer = allow((access, { actor }) => {
@@ -244,6 +355,36 @@ export const teacherActions: Layer = allow((access, { actor }) => {
 	}
 	return undefined
 })
+
+/**
+ * Closed by default: a write to a document record type that no layer above has rules for is
+ * denied. A plugin that adds a record type adds its layer, and the type opens with it.
+ */
+export const closedByDefault: Layer = allow((access) => {
+	const write = writeOf(access)
+	if (!write) return undefined
+	return RULED_TYPES.has((write.prev ?? write.next)!.typeName)
+		? undefined
+		: 'no rules for this type'
+})
+
+/**
+ * Whether a committed change can change what sessions may read beyond the records it changes. A
+ * shape's read rules read its page and its parents, and `room.open` reads the document, so the
+ * host calls `refreshReads()` after such a change.
+ */
+export function changesReadRules(diff: TLSyncForwardDiff<TLRecord>) {
+	return Object.values(diff.puts).some((put) => {
+		if (!Array.isArray(put)) return put.typeName === 'page' || put.typeName === 'document'
+		const [before, after] = put
+		if (after.typeName === 'page' || after.typeName === 'document') return true
+		return (
+			before.typeName === 'shape' &&
+			after.typeName === 'shape' &&
+			before.parentId !== after.parentId
+		)
+	})
+}
 
 export function classroomPermissions({ atomicPushes = true } = {}) {
 	return new PermissionChain<TLRecord, ClassroomActor>(
@@ -258,7 +399,10 @@ export function classroomPermissions({ atomicPushes = true } = {}) {
 		grades,
 		stampOwner,
 		ownShapes,
-		teacherActions
+		ownBindings,
+		ownAssets,
+		teacherActions,
+		closedByDefault
 	)
 }
 

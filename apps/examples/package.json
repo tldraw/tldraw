@@ -103,6 +103,7 @@
 		"remark-frontmatter": "^5.0.0",
 		"remark-html": "^16.0.1",
 		"vfile-matter": "^5.0.0",
+		"vitest": "^5.0.0",
 		"webdriverio": "^9.0.0"
 	},
 	"type": "module"
