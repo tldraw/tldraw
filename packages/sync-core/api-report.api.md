@@ -282,6 +282,7 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
     sessionId: string;
     socket: TLRoomSocket<R>;
     supportsStringAppend: boolean;
+    userId: null | string;
 }
 
 // @internal
@@ -332,6 +333,7 @@ export interface SessionStateSnapshot {
     serializedSchema: SerializedSchema;
     // (undocumented)
     supportsStringAppend: boolean;
+    userId?: null | string;
 }
 
 // @public
@@ -540,6 +542,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         isConnected: boolean;
         meta: SessionMeta;
         sessionId: string;
+        userId: null | string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
     handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
@@ -547,6 +550,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
         access?: TLSessionAccess;
+        userId?: null | string;
         sessionId: string;
         socket: WebSocketMinimal;
     } & (SessionMeta extends void ? object : {
@@ -695,6 +699,7 @@ export interface TLSyncAuthorizerSession<SessionMeta> {
     meta: SessionMeta;
     // (undocumented)
     sessionId: string;
+    userId: null | string;
 }
 
 // @public
@@ -804,6 +809,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
         access?: TLSessionAccess;
+        userId?: null | string;
         meta: SessionMeta;
         sessionId: string;
         socket: TLRoomSocket<R>;
@@ -820,6 +826,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         sessionId: string;
         socket: TLRoomSocket<R>;
         supportsStringAppend: boolean;
+        userId?: null | string;
     }): void;
     // (undocumented)
     readonly internalTxnId = "TLSyncRoom.txn";

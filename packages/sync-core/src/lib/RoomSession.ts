@@ -78,6 +78,8 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	socket: TLRoomSocket<R>
 	/** Custom metadata associated with this session */
 	meta: Meta
+	/** The authenticated user, set at connect; `null` for anonymous */
+	userId: string | null
 	/** Write access per lane, set at connect */
 	access: TLSessionAccess
 	/** Whether this session requires legacy protocol rejection handling */

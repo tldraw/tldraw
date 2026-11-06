@@ -609,8 +609,8 @@ import { createLaneAccessAuthorizer } from '@tldraw/sync-core'
 
 const objectTypes = ['comment', 'comment-thread', 'comment-reaction']
 const byLane = createLaneAccessAuthorizer<MyRecord, SessionMeta>(objectTypes)
+// authorship comes from `session.userId`, the user you passed to `handleSocketConnect`
 const comments = createCommentAuthorizer<MyRecord, SessionMeta>({
-	getUserId: (session) => session.meta.userId,
 	// Moderators may take anything down. Editing stays the author's, whoever you are.
 	canModifyComment: (ctx) =>
 		(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) || ctx.userId === ctx.ownerId,

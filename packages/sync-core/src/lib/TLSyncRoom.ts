@@ -222,13 +222,16 @@ export type TLRecordChange<R extends UnknownRecord> =
 	| { type: 'delete'; prev: R; next: null }
 
 /**
- * What the write rule sees of a session: the host's `meta` and the per-lane `access` set at
- * connect. `sessionId` is chosen by the client and carries no authority; use it for logging.
+ * What the write rule sees of a session: the authenticated `userId`, the host's `meta`, and the
+ * per-lane `access` set at connect. `sessionId` is chosen by the client and carries no authority;
+ * use it for logging.
  *
  * @public
  */
 export interface TLSyncAuthorizerSession<SessionMeta> {
 	sessionId: string
+	/** The authenticated user the host connected this session as, or `null` for anonymous. */
+	userId: string | null
 	meta: SessionMeta
 	access: TLSessionAccess
 }
@@ -481,7 +484,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (this.authorize) {
 			try {
 				return this.authorize({
-					session: { sessionId: session.sessionId, meta: session.meta, access: session.access },
+					session: {
+						sessionId: session.sessionId,
+						userId: session.userId,
+						meta: session.meta,
+						access: session.access,
+					},
 					get,
 					record: change.type === 'delete' ? change.prev : change.next,
 					...change,
@@ -775,6 +783,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			socket: session.socket,
 			cancellationTime: Date.now(),
 			meta: session.meta,
+			userId: session.userId,
 			access: session.access,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
@@ -889,6 +898,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		sessionId: string
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
+		/** The authenticated user, or `null` (the default) for anonymous. */
+		userId?: string | null
 		/** Per-lane write access. The deprecated `isReadonly`/`objectAccess` are spellings of it. */
 		access?: TLSessionAccess
 		/** @deprecated use `access.document` */
@@ -912,6 +923,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			presenceId: existing?.presenceId ?? this.presenceType?.createId() ?? null,
 			sessionStartTime: Date.now(),
 			meta,
+			userId: opts.userId ?? null,
 			access,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
@@ -931,6 +943,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		sessionId: string
 		socket: TLRoomSocket<R>
 		meta: SessionMeta
+		userId?: string | null
 		access?: TLSessionAccess
 		/** @deprecated use `access.document` */
 		isReadonly?: boolean
@@ -972,6 +985,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			debounceTimer: null,
 			outstandingDataMessages: [],
 			meta,
+			userId: opts.userId ?? null,
 			access: opts.access ?? accessFromFlags(opts),
 			requiresLegacyRejection,
 			supportsStringAppend,
@@ -1310,6 +1324,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				outstandingDataMessages: [],
 				supportsStringAppend: session.supportsStringAppend,
 				meta: session.meta,
+				userId: session.userId,
 				access: session.access,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})

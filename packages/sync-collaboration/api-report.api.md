@@ -32,7 +32,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 export interface CommentAuthorizerRuleOptions<SessionMeta> {
     canComment?(session: TLSyncAuthorizerSession<SessionMeta>): boolean;
     canModifyComment?(ctx: CommentModificationRuleContext<SessionMeta>): boolean;
-    getUserId(session: TLSyncAuthorizerSession<SessionMeta>): null | string;
+    getUserId?(session: TLSyncAuthorizerSession<SessionMeta>): null | string;
 }
 
 // @public
@@ -66,7 +66,7 @@ export type CommentModificationRuleContext<SessionMeta> = {
 } & CommentModification;
 
 // @public
-export function createCommentAuthorizer<R extends UnknownRecord, SessionMeta>(opts: CommentAuthorizerRuleOptions<SessionMeta>): TLSyncAuthorizer<R, SessionMeta>;
+export function createCommentAuthorizer<R extends UnknownRecord, SessionMeta>(opts?: CommentAuthorizerRuleOptions<SessionMeta>): TLSyncAuthorizer<R, SessionMeta>;
 
 // @public @deprecated
 export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLCommentRecord, SessionMeta>;

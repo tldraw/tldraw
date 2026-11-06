@@ -53,7 +53,7 @@ function connectSession(
 	room: TLSocketRoom<any, any>,
 	sessionId: string,
 	socket: WebSocketMinimal,
-	opts: { objectAccess?: 'read' | 'write' } = {}
+	opts: { objectAccess?: 'read' | 'write'; userId?: string | null } = {}
 ) {
 	room.handleSocketConnect({ sessionId, socket, ...opts })
 	const connectRequest = {
@@ -1230,6 +1230,31 @@ describe('28. TLSocketRoom (SR)', () => {
 			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
 			// such sessions predate the record types gated by objectAccess, so they have nothing to write anyway
 			expect(room2.getSessions()[0].objectAccess).toBe('read')
+		})
+
+		it('[SR13] round-trips userId through snapshot and resume', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'test', createMockSocket(), { userId: 'user-1' })
+			expect(room.getSessions()[0].userId).toBe('user-1')
+
+			const snapshot = room.getSessionSnapshot('test')!
+			expect(snapshot.userId).toBe('user-1')
+
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].userId).toBe('user-1')
+		})
+
+		it('[SR13] resumes legacy snapshots without userId as anonymous', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'test', createMockSocket(), { userId: 'user-1' })
+
+			const snapshot = room.getSessionSnapshot('test')!
+			delete snapshot.userId
+
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].userId).toBeNull()
 		})
 
 		it('[SR13] includes presence record when present', () => {

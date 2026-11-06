@@ -77,6 +77,8 @@ export interface TLSyncLog {
  */
 export interface SessionStateSnapshot {
 	serializedSchema: SerializedSchema
+	/** The authenticated user. Optional so snapshots persisted before it existed resume as anonymous. */
+	userId?: string | null
 	/** Write access per lane. Optional so snapshots persisted before it existed resume from the flags below. */
 	access?: TLSessionAccess
 	/** @deprecated use `access.document`; still written for readers of older snapshots */
@@ -336,6 +338,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 * @param opts - Connection options
 	 *   - sessionId - Unique identifier for the client session (typically from browser tab)
 	 *   - socket - WebSocket-like object for client communication
+	 *   - userId - The authenticated user, from your own auth (defaults to null, anonymous)
 	 *   - isReadonly - Whether the client can modify the document (defaults to false)
 	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write').
 	 *     Independent of isReadonly, so a session can be allowed to write objects (e.g. comments)
@@ -354,11 +357,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * @example
 	 * ```ts
-	 * // With session metadata
+	 * // With an authenticated user and session metadata
 	 * room.handleSocketConnect({
 	 *   sessionId: 'session-xyz',
 	 *   socket: ws,
-	 *   meta: { userId: 'user-123', name: 'Alice' }
+	 *   userId: 'user-123',
+	 *   meta: { name: 'Alice' }
 	 * })
 	 * ```
 	 */
@@ -366,6 +370,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 		opts: {
 			sessionId: string
 			socket: WebSocketMinimal
+			/** The authenticated user, read by the `authorize` rule. Defaults to `null` (anonymous). */
+			userId?: string | null
 			/** Per-lane write access. Defaults to write on both lanes. */
 			access?: TLSessionAccess
 			/** @deprecated use `access.document` */
@@ -400,6 +406,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleNewSession({
 			sessionId,
+			userId: opts.userId ?? null,
 			access,
 			socket: new ServerSocketAdapter({
 				ws: socket,
@@ -651,6 +658,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		this.room.handleResumedSession({
 			sessionId,
+			userId: snapshot.userId ?? null,
 			access: snapshot.access ?? {
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
 				document: snapshot.isReadonly ? 'read' : 'write',
@@ -713,6 +721,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 		return {
 			serializedSchema: session.serializedSchema,
+			userId: session.userId,
 			access: session.access,
 			isReadonly: session.access.document === 'read',
 			objectAccess: session.access.objects,
@@ -790,6 +799,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	getSessions(): Array<{
 		sessionId: string
 		isConnected: boolean
+		userId: string | null
 		access: TLSessionAccess
 		/** @deprecated use `access.document` */
 		isReadonly: boolean
@@ -801,6 +811,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 			return {
 				sessionId: session.sessionId,
 				isConnected: session.state === RoomSessionState.Connected,
+				userId: session.userId,
 				access: session.access,
 				isReadonly: session.access.document === 'read',
 				objectAccess: session.access.objects,
