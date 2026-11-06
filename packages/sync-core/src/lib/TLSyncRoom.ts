@@ -662,10 +662,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/** A fresh view per batch: the access layer memoizes per view. */
+	// One view per transaction, so the access layer can carry state across the writes of one push
+	// (for example a grant created earlier in the same push).
+	private readonly accessViews = new WeakMap<object, TLRoomAccessView<R>>()
 	private accessView(txn: TLSyncStorageTransaction<R>): TLRoomAccessView<R> {
-		return {
-			get: (id) => (txn.get(id) as R | undefined) ?? (this.presenceStore.get(id) as R | undefined),
+		let view = this.accessViews.get(txn)
+		if (!view) {
+			view = {
+				get: (id) =>
+					(txn.get(id) as R | undefined) ?? (this.presenceStore.get(id) as R | undefined),
+			}
+			this.accessViews.set(txn, view)
 		}
+		return view
 	}
 
 	private resetAccessIndex(txn?: TLSyncStorageTransaction<R>) {
@@ -718,7 +727,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.storage.transaction((txn) => {
 			this.sendAccessDiff(session, { puts: {}, deletes: [] }, this.accessView(txn), txn, {
 				isSource: false,
-				recheckAll: true,
+				recheck: 'all',
 			})
 		}) // no id needed because this only reads, no writes.
 	}
@@ -731,7 +740,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * - not readable and held: send a remove
 	 *
 	 * The session that made the change already holds its own writes, so it only gets removes for
-	 * records it can no longer read. With `recheckAll`, every record is checked, for changes that can
+	 * records it can no longer read. `recheck` names other records to check, for changes that can
 	 * change what is readable elsewhere (a new grant, a moved frame).
 	 */
 	private sendAccessDiff(
@@ -739,7 +748,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		diff: TLSyncForwardDiff<R>,
 		view: TLRoomAccessView<R>,
 		txn: TLSyncStorageTransaction<R>,
-		opts: { isSource: boolean; recheckAll: boolean }
+		opts: { isSource: boolean; recheck: 'none' | 'all' | ((record: R) => boolean) }
 	) {
 		const access = this.access!
 		const visible = (session.visible ??= new Set())
@@ -762,12 +771,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			handled.add(id)
 			if (visible.delete(id) && !opts.isSource) out.deletes.push(id)
 		}
-		if (opts.recheckAll) {
+		if (opts.recheck !== 'none') {
+			const all = opts.recheck === 'all'
+			const inScope = opts.recheck
 			const seen = new Set<string>()
 			for (const record of this.accessRecords(txn)) {
 				const id = record.id
 				seen.add(id)
 				if (id === session.presenceId || handled.has(id)) continue
+				if (inScope !== 'all' && !inScope(record)) continue
 				const can = access.canRead(session.access, record, view)
 				const had = visible.has(id)
 				if (can && !had) {
@@ -778,7 +790,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					out.deletes.push(id)
 				}
 			}
-			for (const id of visible) {
+			for (const id of all ? visible : []) {
 				if (!seen.has(id)) {
 					visible.delete(id)
 					out.deletes.push(id)
@@ -817,13 +829,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			puts: puts.map((p) => (Array.isArray(p) ? p[1] : p)),
 			deletes: diff.deletes,
 		})
-		const recheckAll =
-			puts.some((p) =>
-				Array.isArray(p)
-					? access.affectsReadAccess({ id: p[1].id, prev: p[0], next: p[1] })
-					: access.affectsReadAccess({ id: p.id, prev: null, next: p })
-			) || diff.deletes.some((id) => access.affectsReadAccess({ id, prev: null, next: null }))
 		const view = this.accessView(txn)
+		const recheck = access.readRecheck(
+			[
+				...puts.map((p) =>
+					Array.isArray(p)
+						? { id: p[1].id, prev: p[0], next: p[1] }
+						: { id: p.id, prev: null, next: p }
+				),
+				...diff.deletes.map((id) => ({ id, prev: null, next: null })),
+			],
+			view
+		)
 		this.sessions.forEach((session) => {
 			if (session.state !== RoomSessionState.Connected) return
 			if (!session.socket.isOpen) {
@@ -832,7 +849,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			this.sendAccessDiff(session, diff, view, txn, {
 				isSource: session.sessionId === sourceSessionId,
-				recheckAll,
+				recheck,
 			})
 		})
 	}
@@ -963,7 +980,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
-			access: access ?? existing?.access ?? null,
+			// never carry access over from an earlier socket: session ids come from the client
+			access: access ?? null,
 			visible: null,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
@@ -1043,6 +1061,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// After hibernation the room no longer knows which records the client holds. Assume it holds
 		// what it may read now; a context change while it slept shows up on the next access update.
 		const resumed = this.sessions.get(sessionId)
+		if (this.access && resumed && resumed.access == null) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			return
+		}
 		if (this.access && resumed) {
 			const access = this.access
 			this.storage.transaction((txn) => {
@@ -1396,6 +1418,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		let forbidden = false
 		const { documentClock, result } = this.storage.transaction((txn) => {
 			this.broadcastChanges(txn)
+			if (this.access && session.access == null) {
+				forbidden = true
+				return null
+			}
 			if (this.access) {
 				// With an access layer the client gets only what it may read. It always gets a full
 				// hydration: a diff since its last clock could not remove records it may no longer read.
@@ -1646,6 +1672,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
+		// presence lives outside the transaction, so a discarded push has to put it back itself
+		const presenceBefore =
+			this.access && session?.presenceId ? this.presenceStore.get(session.presenceId) : undefined
 		let txnResult
 		try {
 			txnResult = this.storage.transaction(
@@ -1876,6 +1905,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (!(e instanceof TLRoomAccessDenied) || !session) throw e
 			// One denied write discards the whole push, so the client rolls back the whole
 			// operation instead of keeping part of it. The transaction has rolled back.
+			if (session.presenceId) {
+				if (presenceBefore) this.presenceStore.set(session.presenceId, presenceBefore as R)
+				else this.presenceStore.delete(session.presenceId)
+			}
 			this.log?.warn?.('access denied; discarding push', e.message, 'session:', session.sessionId)
 			this._unsafe_sendMessage(session.sessionId, {
 				type: 'push_result',

@@ -66,6 +66,7 @@ export class LocalRoom {
 	readonly room: TLSocketRoom<TLRecord, void>
 	readonly log = atom<string[]>('server log', [])
 	private readonly identities = new Map<string, Identity>()
+	private readonly versions = new Map<string, number>()
 	private readonly disposers: Array<() => void> = []
 
 	constructor(
@@ -93,7 +94,13 @@ export class LocalRoom {
 					`${op === 'write' ? 'grant' : 'revoke'} ${tuple.object}#${tuple.relation}@${tuple.subject}`
 				)
 				for (const { sessionId } of this.room.getSessions()) {
-					this.resolve(sessionId).then((ctx) => this.room.updateSessionAccess(sessionId, ctx))
+					// resolutions can finish out of order; only the latest one may apply
+					const version = (this.versions.get(sessionId) ?? 0) + 1
+					this.versions.set(sessionId, version)
+					this.resolve(sessionId).then((ctx) => {
+						if (this.versions.get(sessionId) === version)
+							this.room.updateSessionAccess(sessionId, ctx)
+					})
 				}
 			})
 		)

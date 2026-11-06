@@ -343,9 +343,13 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 export class RelationEvaluator {
     constructor(schema: TLRelationSchema, source: TLRelationSource, ctx: TLRelationContext, op?: TLRelationWriteOp);
     ancestors(object: string): string[];
+    anchorOf(object: string): string | undefined;
+    // (undocumented)
     check(object: string, relation: string): boolean;
     // (undocumented)
     readonly ctx: TLRelationContext;
+    // (undocumented)
+    hasParentRelation(object: string): boolean;
     listSubjects(object: string, relation: string): string[];
     // (undocumented)
     parentOf(object: string): string | undefined;
@@ -361,6 +365,7 @@ export class RelationTupleIndex {
     clear(): void;
     // (undocumented)
     getSubjects(object: string, relation: string): readonly string[];
+    objectsWithUsersetOf(object: string): string[];
     // (undocumented)
     put(record: {
         id: string;
@@ -764,11 +769,6 @@ export class TLRemoteSyncError extends Error {
 
 // @public
 export interface TLRoomAccess<R extends UnknownRecord, Ctx = any> {
-    affectsReadAccess(change: {
-        id: string;
-        next: null | R;
-        prev: null | R;
-    }): boolean;
     authorizeWrite(ctx: Ctx, write: TLRoomAccessWrite<R>, view: TLRoomAccessView<R>): null | R;
     canConnect(ctx: Ctx, visible: ReadonlySet<string>, view: TLRoomAccessView<R>): boolean;
     // (undocumented)
@@ -778,6 +778,11 @@ export interface TLRoomAccess<R extends UnknownRecord, Ctx = any> {
         puts: readonly R[];
         reset: boolean;
     }): void;
+    readRecheck(changes: ReadonlyArray<{
+        id: string;
+        next: null | R;
+        prev: null | R;
+    }>, view: TLRoomAccessView<R>): 'all' | 'none' | ((record: R) => boolean);
     toClient(ctx: Ctx): unknown;
 }
 

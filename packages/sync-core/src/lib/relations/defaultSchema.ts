@@ -80,8 +80,8 @@ export const defaultRelationSchema = defineRelationSchema({
 	user: {
 		self: field((r) => r?.id),
 		read: anyone(),
-		// the editor creates its user record on its own, before anyone can approve it
-		create: anyone(),
+		// only for yourself, so nobody can claim another person's name and color first
+		create: 'self',
 		update: 'self',
 		delete: nobody(),
 	},
@@ -141,7 +141,7 @@ export const defaultRelationSchema = defineRelationSchema({
 		target: field((r) => r?.toId),
 		read: allOf(from('source', 'read'), from('target', 'read')),
 		create: allOf(from('source', 'update'), from('target', 'read')),
-		update: from('source', 'update'),
+		update: allOf(from('source', 'update'), from('target', 'read')),
 		// either end may remove it, so deleting your shape can unbind someone else's arrow
 		delete: anyOf(from('source', 'update'), from('target', 'update')),
 	},

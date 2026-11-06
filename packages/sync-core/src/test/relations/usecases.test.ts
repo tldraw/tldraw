@@ -499,6 +499,8 @@ describe('agents', () => {
 		const outside = createShapeId('outside')
 		frame(teacher, workspace)
 		box(teacher, outside, { x: 900 })
+		const otherPage = PageRecordType.createId('other')
+		teacher.ed().createPage({ id: otherPage, name: 'Other' })
 		await h.flush()
 		const token = await createCapabilityToken(
 			{ subject: 'agent:helper', actingFor: 'user:ann', ceilings: [{ within: [workspace] }] },
@@ -507,14 +509,20 @@ describe('agents', () => {
 		const agent = await h.connectWithToken('agent', token)
 		const made = createShapeId('made-by-agent')
 		box(agent, made, { parentId: workspace })
-		agent.ed().updateShape({ id: outside, type: 'geo', x: 0 })
 		box(agent, createShapeId('loose'), { x: 2000 })
 		await h.flush()
 		expect(teacher.ed().getShape(made)?.parentId).toBe(workspace)
-		expect(xOf(teacher, outside)).toBe(900)
 		expect(teacher.has(createShapeId('loose'))).toBe(false)
-		// it reads everything its user can read
-		expect(agent.has(outside)).toBe(true)
+		// it reads its frame and the path down to it, but not the rest of its user's file
+		expect(agent.has(workspace)).toBe(true)
+		expect(agent.has(made)).toBe(true)
+		expect(agent.has(teacher.ed().getCurrentPageId())).toBe(true)
+		expect(agent.has(outside)).toBe(false)
+		expect(agent.has(otherPage)).toBe(false)
+		// a forged edit to a record it cannot read is denied by the server
+		agent.forge(() => agent.store.put([{ ...teacher.ed().getShape(outside)!, x: 0 }]))
+		await h.flush()
+		expect(xOf(teacher, outside)).toBe(900)
 	})
 
 	it('an agent never gets more access than the user it acts for', async () => {

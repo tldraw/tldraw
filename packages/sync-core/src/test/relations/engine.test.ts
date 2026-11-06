@@ -1,3 +1,4 @@
+import { createRelationId } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import { defaultRelationSchema } from '../../lib/relations/defaultSchema'
 import {
@@ -5,9 +6,12 @@ import {
 	TLRelationContext,
 	TLRelationSource,
 	authorizeRelationWrite,
+	canReadRelationRecord,
 } from '../../lib/relations/evaluate'
+import { createRelationRoomAccess } from '../../lib/relations/roomAccess'
 import {
 	anyOf,
+	anyone,
 	butNot,
 	defineRelationSchema,
 	direct,
@@ -262,5 +266,206 @@ describe('capability tokens', () => {
 		const parts = narrowed.split('.')
 		const stripped = [parts[0], parts[1], parts[3]].join('.')
 		expect(await verifyCapabilityToken(stripped, secret, 1000)).toBe(null)
+	})
+})
+
+describe('room access', () => {
+	it('a grant written earlier in a push applies to later writes in the same push', () => {
+		const schema = defineRelationSchema({
+			doc: { editor: direct(), read: anyone(), update: 'editor' },
+			relation: {
+				object: field((r) => r?.object),
+				read: anyone(),
+				create: anyone(),
+				delete: anyone(),
+			},
+		})
+		const access = createRelationRoomAccess<any>(schema)
+		const doc = { id: 'doc:1', typeName: 'doc', title: 'a' }
+		const grant = {
+			id: createRelationId('doc:1', 'editor', 'user:ann'),
+			typeName: 'relation',
+			object: 'doc:1',
+			relation: 'editor',
+			subject: 'user:ann',
+		}
+		const records = new Map<string, any>([[doc.id, doc]])
+		const view = () => ({ get: (id: string) => records.get(id) })
+		const edit = { type: 'update', prev: doc, next: { ...doc, title: 'b' } } as const
+
+		const push = view()
+		expect(access.authorizeWrite(ctx(), edit, push)).toBe(null)
+		expect(access.authorizeWrite(ctx(), { type: 'create', prev: null, next: grant }, push)).toEqual(
+			grant
+		)
+		expect(access.authorizeWrite(ctx(), edit, push)).toEqual(edit.next)
+		// another push does not see the staged grant until it is committed
+		expect(access.authorizeWrite(ctx(), edit, view())).toBe(null)
+	})
+})
+
+describe('within caveats on reads', () => {
+	it('show the subtree and the path to it, hide siblings and other pages, keep the document', () => {
+		const records = [
+			page,
+			{ id: 'page:other', typeName: 'page' },
+			{ id: 'document:document', typeName: 'document' },
+			shape('shape:f', 'page:p'),
+			shape('shape:in', 'shape:f'),
+			shape('shape:out', 'page:p'),
+			{
+				id: 'relation:r1',
+				typeName: 'relation',
+				object: 'shape:out',
+				relation: 'viewer',
+				subject: '*',
+			},
+			{
+				id: 'relation:r2',
+				typeName: 'relation',
+				object: 'page:p',
+				relation: 'viewer',
+				subject: '*',
+			},
+		]
+		const s = source(records)
+		const c = ctx({ rootRelations: ['read'], ceilings: [{ within: ['shape:f'] }] })
+		const read = (id: string) =>
+			canReadRelationRecord(defaultRelationSchema, s, c, records.find((r) => r.id === id)!)
+		expect(Object.fromEntries(records.map((r) => [r.id, read(r.id)]))).toEqual({
+			'page:p': true,
+			'page:other': false,
+			'document:document': true,
+			'shape:f': true,
+			'shape:in': true,
+			'shape:out': false,
+			'relation:r1': false,
+			'relation:r2': true,
+		})
+	})
+})
+
+describe('review regressions', () => {
+	it('a userset cycle cannot make a restriction miss', () => {
+		const s = source(
+			[page],
+			[
+				['page:p', 'contributor', 'page:a#viewer'],
+				['page:a', 'viewer', 'page:b#viewer'],
+				['page:a', 'viewer', 'user:u'],
+				['page:b', 'viewer', 'page:a#viewer'],
+				['shape_type:geo', 'restricted', 'page:b#viewer'],
+			]
+		)
+		const c = ctx({ actor: 'user:u', subjects: ['user:u'], rootRelations: ['read'] })
+		const result = authorizeRelationWrite(defaultRelationSchema, s, c, {
+			type: 'create',
+			prev: null,
+			next: shape('shape:s', 'page:p'),
+		})
+		expect(result).toEqual({ ok: false, reason: 'no create' })
+	})
+
+	it('a caveat cannot remove an expiry or carry malformed limits', async () => {
+		const token = await createCapabilityToken({ subject: 'link:l', expiresAt: 1000 }, 's')
+		const bad = [{ expiresAt: 'never' }, { relations: 'read' }, { within: 'shape:x' }]
+		for (const caveat of bad) {
+			const t = await attenuateCapabilityToken(token, caveat as any)
+			expect(await verifyCapabilityToken(t, 's', 500)).toBe(null)
+		}
+	})
+
+	it('a ceiling also applies to changing a locked field', () => {
+		const mine = shape('shape:s', 'page:p', 'user:ann')
+		const result = authorizeRelationWrite(
+			defaultRelationSchema,
+			source([page, mine]),
+			ctx({
+				rootRelations: ['read', 'edit', 'manage', 'contribute'],
+				ceilings: [{ relations: ['read', 'create', 'update', 'delete'] }],
+			}),
+			{ type: 'update', prev: mine, next: { ...mine, meta: { owner: 'user:bob' } } }
+		)
+		expect(result).toEqual({ ok: false, reason: "field relation 'owner' is locked" })
+	})
+
+	it('a binding cannot be pointed at a shape the user cannot read', () => {
+		const hiddenPage = { id: 'page:hidden', typeName: 'page' }
+		const a = shape('shape:a', 'page:p')
+		const hidden = shape('shape:hidden', 'page:hidden')
+		const binding = { id: 'binding:b', typeName: 'binding', fromId: 'shape:a', toId: 'shape:a' }
+		const result = authorizeRelationWrite(
+			defaultRelationSchema,
+			source([page, hiddenPage, a, hidden, binding], [['page:hidden', 'restricted', '*']]),
+			ctx({ rootRelations: ['read', 'edit', 'contribute'] }),
+			{ type: 'update', prev: binding, next: { ...binding, toId: 'shape:hidden' } }
+		)
+		expect(result).toEqual({ ok: false, reason: 'no update after' })
+	})
+
+	it('the server rejects a tuple whose id does not name it', () => {
+		const access = createRelationRoomAccess<any>(defaultRelationSchema)
+		const forged = {
+			id: createRelationId('page:p', 'viewer', 'user:ann'),
+			typeName: 'relation',
+			object: 'page:p',
+			relation: 'restricted',
+			subject: '*',
+			meta: {},
+		}
+		const view = { get: (id: string) => (id === 'page:p' ? page : undefined) }
+		const owner = ctx({ rootRelations: ['read', 'edit', 'manage', 'share'] })
+		expect(access.authorizeWrite(owner, { type: 'create', prev: null, next: forged }, view)).toBe(
+			null
+		)
+		const honest = { ...forged, id: createRelationId('page:p', 'restricted', '*') }
+		expect(
+			access.authorizeWrite(owner, { type: 'create', prev: null, next: honest }, view)
+		).toEqual(honest)
+	})
+
+	it('a team owner gets access granted to team members', async () => {
+		const store = new InMemoryTupleStore([
+			{ object: 'team:t', relation: 'owner', subject: 'user:o' },
+			{ object: 'file:f', relation: 'editor', subject: 'team:t#member' },
+		])
+		const result = await resolveRelationContext({
+			schema: defaultRelationSchema,
+			store,
+			root: 'file:f',
+			actor: 'user:o',
+		})
+		expect(result.rootRelations).toContain('edit')
+		expect(result.subjects).toContain('team:t#member')
+	})
+
+	it('a user record can be created only by that user', () => {
+		const result = authorizeRelationWrite(defaultRelationSchema, source([]), ctx(), {
+			type: 'create',
+			prev: null,
+			next: { id: 'user:bob', typeName: 'user', name: 'Bob' },
+		})
+		expect(result.ok).toBe(false)
+	})
+})
+
+describe('owner on re-create', () => {
+	it('a manager who undoes a delete keeps the original owner; a contributor cannot', () => {
+		const restored = shape('shape:s', 'page:p', 'user:bob')
+		const create = { type: 'create', prev: null, next: restored } as const
+		const asManager = authorizeRelationWrite(
+			defaultRelationSchema,
+			source([page]),
+			ctx({ rootRelations: ['read', 'edit', 'manage', 'contribute'] }),
+			create
+		)
+		expect(asManager).toMatchObject({ ok: true, record: { meta: { owner: 'user:bob' } } })
+		const asContributor = authorizeRelationWrite(
+			defaultRelationSchema,
+			source([page]),
+			ctx({ rootRelations: ['read', 'contribute'] }),
+			create
+		)
+		expect(asContributor).toMatchObject({ ok: true, record: { meta: { owner: 'user:ann' } } })
 	})
 })

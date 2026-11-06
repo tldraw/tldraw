@@ -4,6 +4,7 @@ import {
 	TLRecord,
 	TLShape,
 	TLStore,
+	TLUserId,
 	UserRecordType,
 	commentSchemaRecords,
 	createPresenceStateDerivation,
@@ -132,7 +133,18 @@ export class RelationsHarness {
 	}
 
 	private async addPeer(name: string): Promise<Peer> {
-		const store = createTLStore({ schema, id: name })
+		// the editor writes the current user's record, which only that user may do: the current
+		// user is the actor, or nobody for a token session
+		const id = this.identities.get(name)!
+		const userRecord =
+			id.actor?.startsWith('user:') && !id.extraSubjects
+				? UserRecordType.create({ id: id.actor as TLUserId, name })
+				: null
+		const store = createTLStore({
+			schema,
+			id: name,
+			users: { currentUser: computed('current user', () => userRecord) },
+		})
 		const relations = new TLRelationsClient(store, this.relationSchema)
 		let removeGuard = relations.install()
 		const pair = new TestSocketPair<TLRecord>(name, this.server)

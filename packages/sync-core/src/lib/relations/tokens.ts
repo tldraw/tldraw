@@ -114,8 +114,14 @@ export async function verifyCapabilityToken(
 		const cap = decode(payload) as TLCapability
 		let expiresAt = cap.expiresAt
 		const ceilings: TLRelationCeiling[] = [...(cap.ceilings ?? [])]
+		if (!isValidCaveat(cap) || typeof cap.subject !== 'string') return null
+		if (cap.actingFor != null && typeof cap.actingFor !== 'string') return null
 		for (const c of caveats) {
-			const { expiresAt: e, ...ceiling } = decode(c) as TLCapabilityCaveat
+			const caveat = decode(c)
+			// a caveat the holder wrote must not be able to widen the token, for example by an
+			// expiry that is not a number
+			if (!isValidCaveat(caveat)) return null
+			const { expiresAt: e, ...ceiling } = caveat as TLCapabilityCaveat
 			if (e !== undefined) expiresAt = expiresAt === undefined ? e : Math.min(expiresAt, e)
 			if (ceiling.relations || ceiling.within) ceilings.push(ceiling)
 		}
@@ -129,4 +135,17 @@ export async function verifyCapabilityToken(
 	} catch {
 		return null
 	}
+}
+
+const isStringArray = (v: unknown) => Array.isArray(v) && v.every((x) => typeof x === 'string')
+
+function isValidCaveat(c: any): boolean {
+	if (typeof c !== 'object' || c === null) return false
+	if (c.expiresAt !== undefined && !Number.isFinite(c.expiresAt)) return false
+	if (c.relations !== undefined && !isStringArray(c.relations)) return false
+	if (c.within !== undefined && !isStringArray(c.within)) return false
+	if (c.ceilings !== undefined) {
+		if (!Array.isArray(c.ceilings) || !c.ceilings.every(isValidCaveat)) return false
+	}
+	return true
 }

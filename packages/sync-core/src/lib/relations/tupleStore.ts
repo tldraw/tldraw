@@ -162,6 +162,7 @@ export async function resolveRelationContext(
 
 	const tuples = new Map<string, string[]>()
 	const loaded = new Set<string>()
+	const usersets = new Set<string>()
 	const objects = [root]
 	while (objects.length && loaded.size < MAX_LOAD) {
 		const object = objects.shift()!
@@ -176,6 +177,14 @@ export async function resolveRelationContext(
 			if (follow.has(t.relation) && !t.subject.includes('#') && t.subject !== '*') {
 				objects.push(t.subject)
 			}
+			// a userset subject (`team:t#member`) is checked through the schema, which may grant it
+			// in ways that are not a direct tuple (team owners are members too)
+			const hash = t.subject.indexOf('#')
+			if (hash !== -1) {
+				const usersetObject = t.subject.slice(0, hash)
+				usersets.add(t.subject)
+				objects.push(usersetObject)
+			}
 		}
 	}
 
@@ -188,6 +197,12 @@ export async function resolveRelationContext(
 	const rootRelations = Object.keys(schema.types[objectType(root)] ?? {}).filter((r) =>
 		evaluator.check(root, r)
 	)
+	// usersets the actor is in only through a rule, so the client can match them too
+	for (const userset of usersets) {
+		if (subjects.has(userset)) continue
+		const hash = userset.indexOf('#')
+		if (evaluator.check(userset.slice(0, hash), userset.slice(hash + 1))) subjects.add(userset)
+	}
 
 	return {
 		actor,

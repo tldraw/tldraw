@@ -82,6 +82,8 @@ export class RelationEvaluator {
 	}
 
 	/** Does the session have `relation` on `object`? Ceilings are not applied here. */
+	private cuts = 0
+
 	check(object: string, relation: string): boolean {
 		return this.checkAt(object, relation, 0, new Set())
 	}
@@ -115,13 +117,19 @@ export class RelationEvaluator {
 		const cached = this.memo.get(key)
 		if (cached !== undefined) return cached
 		// cycles (a parent loop in corrupt data, or a userset that refers to itself) deny
-		if (depth > MAX_DEPTH || path.has(key)) return false
+		if (depth > MAX_DEPTH || path.has(key)) {
+			this.cuts++
+			return false
+		}
 		const expr = this.schema.types[objectType(object)]?.[relation]
 		if (expr === undefined) return false
 		path.add(key)
+		const cutsBefore = this.cuts
 		const result = this.evalExpr(object, relation, expr, depth, path)
 		path.delete(key)
-		this.memo.set(key, result)
+		// A result that leaned on a cycle being cut short is only true for this path. Caching it
+		// would let a `butNot` elsewhere read a false "not restricted".
+		if (this.cuts === cutsBefore) this.memo.set(key, result)
 		return result
 	}
 
@@ -212,6 +220,20 @@ export class RelationEvaluator {
 		return out
 	}
 
+	hasParentRelation(object: string): boolean {
+		return this.schema.types[objectType(object)]?.[this.schema.parentRelation] !== undefined
+	}
+
+	/** The object a record without a parent hangs off: the value of its first field relation. */
+	anchorOf(object: string): string | undefined {
+		const def = this.schema.types[objectType(object)]
+		if (!def) return undefined
+		for (const expr of Object.values(def)) {
+			if (typeof expr !== 'string' && expr.kind === 'field') return this.readField(object, expr)[0]
+		}
+		return undefined
+	}
+
 	parentOf(object: string): string | undefined {
 		const expr = this.schema.types[objectType(object)]?.[this.schema.parentRelation]
 		if (expr === undefined) return undefined
@@ -230,6 +252,10 @@ export function overlaySource(source: TLRelationSource, record: { id: string }):
 	}
 }
 
+function fieldName(def: Readonly<Record<string, TLRelationExpr>>, expr: TLRelationExpr) {
+	return Object.keys(def).find((k) => def[k] === expr)!
+}
+
 export function ceilingsAllow(
 	evaluator: RelationEvaluator,
 	ctx: TLRelationContext,
@@ -240,12 +266,62 @@ export function ceilingsAllow(
 	if (!ctx.ceilings) return true
 	for (const ceiling of ctx.ceilings) {
 		if (ceiling.relations && !ceiling.relations.includes(relation)) return false
-		if (isWrite && ceiling.within) {
-			const chain = [object, ...evaluator.ancestors(object)]
-			if (!ceiling.within.some((w) => chain.includes(w))) return false
+		if (ceiling.within) {
+			const ok = isWrite
+				? isInside(evaluator, object, ceiling.within)
+				: withinAllowsRead(evaluator, ctx, object, ceiling.within, 0)
+			if (!ok) return false
 		}
 	}
 	return true
+}
+
+function isInside(evaluator: RelationEvaluator, object: string, within: readonly string[]) {
+	// a record linked by another field (a binding to its source shape) is inside if that is
+	let target = object
+	for (let i = 0; i < 8 && !evaluator.hasParentRelation(target); i++) {
+		const anchor = evaluator.anchorOf(target)
+		if (anchor === undefined || anchor === target) break
+		target = anchor
+	}
+	const chain = [object, target, ...evaluator.ancestors(target)]
+	return within.some((w) => chain.includes(w))
+}
+
+/**
+ * Reads under a `within` caveat. A session may read inside the subtrees, and the path down to them
+ * (so the client can show them), and anything outside the tree (the document, users). It may not
+ * read siblings off that path: other shapes on the page, or other pages. A record linked to the
+ * tree by a field other than its parent (a relation tuple, a binding, a presence) follows the
+ * record it links to.
+ */
+function withinAllowsRead(
+	evaluator: RelationEvaluator,
+	ctx: TLRelationContext,
+	object: string,
+	within: readonly string[],
+	depth: number
+): boolean {
+	if (depth > 8) return false
+	if (!evaluator.hasParentRelation(object)) {
+		const anchor = evaluator.anchorOf(object)
+		return anchor === undefined || anchor === object
+			? true
+			: withinAllowsRead(evaluator, ctx, anchor, within, depth + 1)
+	}
+	const chain = [object, ...evaluator.ancestors(object)]
+	if (within.some((w) => chain.includes(w))) return true
+	const path = new Set<string>()
+	for (const w of within) for (const a of [w, ...evaluator.ancestors(w)]) path.add(a)
+	if (path.has(object)) return true
+	const branch = chain.find((c) => path.has(c))
+	if (branch === undefined) return true
+	if (branch !== ctx.root) return false
+	// it branches off at the root: hide it if it is the same kind of thing as the path (another
+	// page), keep it if it is not (the document)
+	const top = chain[chain.indexOf(branch) - 1]
+	const pathTops = [...path].filter((p) => evaluator.parentOf(p) === ctx.root)
+	return !pathTops.some((p) => objectType(p) === objectType(top))
 }
 
 /**
@@ -299,8 +375,19 @@ export function authorizeRelationWrite<R extends { id: string; typeName: string 
 	switch (op.type) {
 		case 'create': {
 			let record = op.next as R
+			const asSent = new RelationEvaluator(schema, overlaySource(source, record), ctx, op)
 			for (const expr of Object.values(def)) {
 				if (typeof expr === 'string' || expr.kind !== 'field' || !expr.stamp) continue
+				// someone who may change the field anyway may also keep the value it has, so undoing
+				// a manager's delete of Ann's shape gives it back to Ann
+				if (
+					typeof expr.lock === 'string' &&
+					asSent.listSubjects(record.id, fieldName(def, expr)).length > 0 &&
+					asSent.check(record.id, expr.lock) &&
+					ceilingsAllow(asSent, ctx, expr.lock, record.id, true)
+				) {
+					continue
+				}
 				const stamped = expr.stamp(record, ctx.actor)
 				if (!stamped) return { ok: false, reason: 'stamp rejected the actor' }
 				record = stamped
@@ -330,7 +417,11 @@ export function authorizeRelationWrite<R extends { id: string; typeName: string 
 				const a = before.listSubjects(op.prev.id, name)
 				const b = after.listSubjects(op.next.id, name)
 				if (a.length === b.length && a.every((v, i) => v === b[i])) continue
-				if (expr.lock === true || !before.check(op.prev.id, expr.lock)) {
+				if (
+					expr.lock === true ||
+					!before.check(op.prev.id, expr.lock) ||
+					!ceilingsAllow(before, ctx, expr.lock, op.prev.id, true)
+				) {
 					return { ok: false, reason: `field relation '${name}' is locked` }
 				}
 			}

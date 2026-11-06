@@ -44,11 +44,19 @@ export interface TLRoomAccess<R extends UnknownRecord, Ctx = any> {
 	/** Return the record to store (a create may be stamped), or `null` to deny. */
 	authorizeWrite(ctx: Ctx, write: TLRoomAccessWrite<R>, view: TLRoomAccessView<R>): R | null
 	/**
-	 * Whether a committed change can change what sessions may read of other records (a new grant,
-	 * a shape moved into a hidden frame). If so, the room re-checks every record for every session.
+	 * Which other records a batch of committed changes can make readable or unreadable (a new
+	 * grant, a shape moved into a hidden frame). The room re-checks those records for every session.
+	 *
+	 * - `'none'`: only the changed records themselves.
+	 * - `'all'`: every record.
+	 * - a function: the records it returns `true` for.
+	 *
 	 * For a delete, `prev` and `next` are both `null`: the record is already gone.
 	 */
-	affectsReadAccess(change: { id: string; prev: R | null; next: R | null }): boolean
+	readRecheck(
+		changes: ReadonlyArray<{ id: string; prev: R | null; next: R | null }>,
+		view: TLRoomAccessView<R>
+	): 'none' | 'all' | ((record: R) => boolean)
 	/**
 	 * Called with every committed change, and once at start (and after a storage reset) with
 	 * `reset: true` and every record. Keep indexes here.
