@@ -224,14 +224,20 @@ export class RelationEvaluator {
 		return this.schema.types[objectType(object)]?.[this.schema.parentRelation] !== undefined
 	}
 
-	/** The object a record without a parent hangs off: the value of its first field relation. */
-	anchorOf(object: string): string | undefined {
+	/**
+	 * The objects a record without a parent hangs off: the values of its field relations. A binding
+	 * has two (source and target), and is only as visible as the less visible of them.
+	 */
+	anchorsOf(object: string): string[] {
 		const def = this.schema.types[objectType(object)]
-		if (!def) return undefined
+		if (!def) return []
+		const out: string[] = []
 		for (const expr of Object.values(def)) {
-			if (typeof expr !== 'string' && expr.kind === 'field') return this.readField(object, expr)[0]
+			if (typeof expr === 'string' || expr.kind !== 'field') continue
+			for (const v of this.readField(object, expr))
+				if (v !== object && !out.includes(v)) out.push(v)
 		}
-		return undefined
+		return out
 	}
 
 	parentOf(object: string): string | undefined {
@@ -276,15 +282,21 @@ export function ceilingsAllow(
 	return true
 }
 
-function isInside(evaluator: RelationEvaluator, object: string, within: readonly string[]) {
-	// a record linked by another field (a binding to its source shape) is inside if that is
-	let target = object
-	for (let i = 0; i < 8 && !evaluator.hasParentRelation(target); i++) {
-		const anchor = evaluator.anchorOf(target)
-		if (anchor === undefined || anchor === target) break
-		target = anchor
+function isInside(
+	evaluator: RelationEvaluator,
+	object: string,
+	within: readonly string[],
+	depth = 0
+): boolean {
+	if (depth > 8) return false
+	// a record linked by fields (a binding to its source and target shapes) is inside if all of
+	// them are; otherwise a token could bind to a shape outside its subtree
+	if (!evaluator.hasParentRelation(object)) {
+		const anchors = evaluator.anchorsOf(object)
+		if (anchors.length === 0) return within.includes(object)
+		return anchors.every((a) => isInside(evaluator, a, within, depth + 1))
 	}
-	const chain = [object, target, ...evaluator.ancestors(target)]
+	const chain = [object, ...evaluator.ancestors(object)]
 	return within.some((w) => chain.includes(w))
 }
 
@@ -304,10 +316,9 @@ function withinAllowsRead(
 ): boolean {
 	if (depth > 8) return false
 	if (!evaluator.hasParentRelation(object)) {
-		const anchor = evaluator.anchorOf(object)
-		return anchor === undefined || anchor === object
-			? true
-			: withinAllowsRead(evaluator, ctx, anchor, within, depth + 1)
+		return evaluator
+			.anchorsOf(object)
+			.every((a) => withinAllowsRead(evaluator, ctx, a, within, depth + 1))
 	}
 	const chain = [object, ...evaluator.ancestors(object)]
 	if (within.some((w) => chain.includes(w))) return true
@@ -315,7 +326,9 @@ function withinAllowsRead(
 	for (const w of within) for (const a of [w, ...evaluator.ancestors(w)]) path.add(a)
 	if (path.has(object)) return true
 	const branch = chain.find((c) => path.has(c))
-	if (branch === undefined) return true
+	// Outside the tree (users, the document) is readable. But if the record is in the tree and the
+	// path is not (a `within` object that was deleted or never existed), nothing in the tree is.
+	if (branch === undefined) return !chain.includes(ctx.root)
 	if (branch !== ctx.root) return false
 	// it branches off at the root: hide it if it is the same kind of thing as the path (another
 	// page), keep it if it is not (the document)

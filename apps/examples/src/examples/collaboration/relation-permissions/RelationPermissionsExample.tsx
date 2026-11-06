@@ -4,6 +4,7 @@ import {
 	DefaultToolbar,
 	Editor,
 	TLComponents,
+	TLRelation,
 	TLRecord,
 	Tldraw,
 	ToolbarItem,
@@ -72,6 +73,13 @@ function ScenarioView({ scenario }: { scenario: Scenario }) {
 		<div className="rp-scenario">
 			<div className="rp-side">
 				<p>{scenario.description}</p>
+				<div className="rp-section-title">Try this</div>
+				<ol className="rp-try">
+					{scenario.tryThis.map((step) => (
+						<li key={step}>{step}</li>
+					))}
+				</ol>
+				<div className="rp-section-title">Change a grant</div>
 				<div className="rp-controls">
 					{scenario.controls.map((c) => (
 						<button key={c.label} onClick={() => c.run(fullEnv)}>
@@ -79,6 +87,7 @@ function ScenarioView({ scenario }: { scenario: Scenario }) {
 						</button>
 					))}
 				</div>
+				<Grants room={env.room} owner={env.clients[scenario.people[0].name]} />
 				<ServerLog room={env.room} />
 			</div>
 			<div className="rp-panes">
@@ -242,6 +251,38 @@ function PermissionToolbar({ relations }: { relations: TLRelationsClient<TLRecor
 				<ToolbarItem key={id} tool={id} />
 			))}
 		</DefaultToolbar>
+	)
+}
+
+/**
+ * Every tuple in play: the ones the host keeps above the room (file roles, team members), and the
+ * ones stored in the room as records (page and shape grants). The owner holds all of them.
+ */
+function Grants({ room, owner }: { room: LocalRoom; owner: LocalClient }) {
+	const [host, setHost] = useState(() => room.tuples.all())
+	useEffect(() => room.tuples.onChange(() => setHost(room.tuples.all())), [room])
+	const inRoom = useValue(
+		'room tuples',
+		() =>
+			(owner.store.query.records('relation' as any).get() as unknown as TLRelation[])
+				.map((r) => `${r.object}#${r.relation}@${r.subject}`)
+				.sort(),
+		[owner]
+	)
+	return (
+		<div className="rp-log">
+			<div className="rp-log-title">Grants on the host</div>
+			{host.map((t) => (
+				<div key={`${t.object}#${t.relation}@${t.subject}`}>
+					{t.object}#{t.relation}@{t.subject}
+				</div>
+			))}
+			<div className="rp-log-title">Grants in the room</div>
+			{inRoom.length === 0 && <div className="rp-log-empty">None.</div>}
+			{inRoom.map((t) => (
+				<div key={t}>{t}</div>
+			))}
+		</div>
 	)
 }
 

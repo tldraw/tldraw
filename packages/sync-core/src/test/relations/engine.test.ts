@@ -298,6 +298,10 @@ describe('room access', () => {
 		expect(access.authorizeWrite(ctx(), { type: 'create', prev: null, next: grant }, push)).toEqual(
 			grant
 		)
+		// the host's authorizer vetoed it, so the transaction does not hold it: it does not count
+		expect(access.authorizeWrite(ctx(), edit, push)).toBe(null)
+		// the transaction applies it
+		records.set(grant.id, grant)
 		expect(access.authorizeWrite(ctx(), edit, push)).toEqual(edit.next)
 		// another push does not see the staged grant until it is committed
 		expect(access.authorizeWrite(ctx(), edit, view())).toBe(null)
@@ -467,5 +471,107 @@ describe('owner on re-create', () => {
 			create
 		)
 		expect(asContributor).toMatchObject({ ok: true, record: { meta: { owner: 'user:ann' } } })
+	})
+})
+
+describe('second review regressions', () => {
+	const tuple = (object: string, relation: string, subject: string) => ({
+		id: createRelationId(object, relation, subject),
+		typeName: 'relation',
+		object,
+		relation,
+		subject,
+	})
+	const binding = (id: string, fromId: string, toId: string) => ({
+		id,
+		typeName: 'binding',
+		type: 'arrow',
+		fromId,
+		toId,
+	})
+	const viewOf = (records: any[]) => {
+		const byId = new Map(records.map((r) => [r.id, r]))
+		return { get: (id: string) => byId.get(id) }
+	}
+
+	it('a within caveat whose object is gone shows nothing in the tree', () => {
+		const records = [page, { id: 'page:q', typeName: 'page' }, shape('shape:x', 'page:q')]
+		const c = ctx({ rootRelations: ['read'], ceilings: [{ within: ['shape:gone'] }] })
+		const read = (r: any) => canReadRelationRecord(defaultRelationSchema, source(records), c, r)
+		expect(records.map(read)).toEqual([false, false, false])
+	})
+
+	it('a binding under a within caveat is hidden when its target is outside', () => {
+		const records = [
+			page,
+			shape('shape:f', 'page:p'),
+			shape('shape:in', 'shape:f'),
+			shape('shape:out', 'page:p'),
+			binding('binding:b', 'shape:in', 'shape:out'),
+		]
+		const c = ctx({ rootRelations: ['read', 'edit'], ceilings: [{ within: ['shape:f'] }] })
+		const b = records[4]
+		expect(canReadRelationRecord(defaultRelationSchema, source(records), c, b)).toBe(false)
+		expect(
+			authorizeRelationWrite(defaultRelationSchema, source(records), c, {
+				type: 'create',
+				prev: null,
+				next: b,
+			}).ok
+		).toBe(false)
+	})
+
+	it('moving a record re-checks its old and new pages', () => {
+		const access = createRelationRoomAccess<any>(defaultRelationSchema)
+		const q = { id: 'page:q', typeName: 'page' }
+		const before = shape('shape:f', 'page:p')
+		const after = shape('shape:f', 'page:q')
+		const records = [page, q, after, { id: 'page:z', typeName: 'page' }]
+		access.didChange({ reset: true, puts: records, deletes: [] })
+		const recheck = access.readRecheck(
+			[{ id: after.id, prev: before, next: after }],
+			viewOf(records)
+		)
+		if (typeof recheck !== 'function') throw new Error(`expected a predicate, got ${recheck}`)
+		expect(records.map(recheck)).toEqual([true, true, true, false])
+	})
+
+	it('moving a binding target re-checks the binding', () => {
+		const access = createRelationRoomAccess<any>(defaultRelationSchema)
+		const q = { id: 'page:q', typeName: 'page' }
+		const before = shape('shape:t', 'page:p')
+		const after = shape('shape:t', 'page:q')
+		const records = [
+			page,
+			q,
+			shape('shape:s', 'page:p'),
+			after,
+			binding('binding:b', 'shape:s', 'shape:t'),
+		]
+		access.didChange({ reset: true, puts: records, deletes: [] })
+		const recheck = access.readRecheck(
+			[{ id: after.id, prev: before, next: after }],
+			viewOf(records)
+		)
+		if (typeof recheck !== 'function') throw new Error(`expected a predicate, got ${recheck}`)
+		expect(recheck(records[4])).toBe(true)
+	})
+
+	it('a grant above a userset record re-checks the objects that name it', () => {
+		const access = createRelationRoomAccess<any>(defaultRelationSchema)
+		const pageA = { id: 'page:a', typeName: 'page' }
+		const grant = tuple('page:p', 'editor', 'user:bob')
+		const records = [
+			page,
+			pageA,
+			shape('shape:s', 'page:p'),
+			tuple('page:a', 'restricted', '*'),
+			tuple('page:a', 'viewer', 'shape:s#edit'),
+			grant,
+		]
+		access.didChange({ reset: true, puts: records, deletes: [] })
+		const recheck = access.readRecheck([{ id: grant.id, prev: null, next: grant }], viewOf(records))
+		if (typeof recheck !== 'function') throw new Error(`expected a predicate, got ${recheck}`)
+		expect(recheck(pageA)).toBe(true)
 	})
 })

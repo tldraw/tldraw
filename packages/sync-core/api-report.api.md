@@ -343,7 +343,7 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 export class RelationEvaluator {
     constructor(schema: TLRelationSchema, source: TLRelationSource, ctx: TLRelationContext, op?: TLRelationWriteOp);
     ancestors(object: string): string[];
-    anchorOf(object: string): string | undefined;
+    anchorsOf(object: string): string[];
     // (undocumented)
     check(object: string, relation: string): boolean;
     // (undocumented)
@@ -375,6 +375,7 @@ export class RelationTupleIndex {
     }): void;
     // (undocumented)
     remove(id: string): void;
+    usersetObjects(): string[];
 }
 
 // @public

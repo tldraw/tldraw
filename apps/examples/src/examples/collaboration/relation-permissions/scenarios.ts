@@ -38,6 +38,8 @@ export interface Scenario {
 	id: string
 	title: string
 	description: string
+	/** What to do in the demo, and what to look for. */
+	tryThis: string[]
 	tuples: TLRelationTuple[]
 	people: Person[]
 	/** Run once by the first person (always an owner) when their editor mounts. */
@@ -87,6 +89,11 @@ export const scenarios: Scenario[] = [
 		title: 'File roles',
 		description:
 			'Olivia owns the file, Ann edits, Ben views. Roles are tuples on the file. Shapes Ben cannot change are locked for him, and his tools are hidden. Change a role and every open session updates with no reconnect. Remove Ben and his session closes.',
+		tryThis: [
+			"Click Ben's rectangle. It is locked for him: he cannot select it to move or delete it, and his toolbar has no creating tools.",
+			'Click Make Ben an editor. His badge, toolbar and rectangle unlock at once, with no reload.',
+			'Click Remove Ben from the file. The server closes his session because he can read nothing.',
+		],
 		tuples: [
 			{ object: ROOT, relation: 'owner', subject: 'user:olivia' },
 			{ object: ROOT, relation: 'editor', subject: 'user:ann' },
@@ -126,6 +133,12 @@ export const scenarios: Scenario[] = [
 		title: 'Classroom',
 		description:
 			'Students may add shapes only inside their own area, and change only what they made. The teacher can open the whole board to the class, call on one student to edit everything, or limit students to the draw tool. Each change is one tuple.',
+		tryThis: [
+			"As Ann, draw inside Ann's area: it syncs to everyone. Try to draw outside it or in Ben's area: nothing is created.",
+			'As the teacher, click Open the board to the class, then draw as Ann anywhere.',
+			'Click Students may only draw. Both student toolbars lose every tool except draw and image.',
+			"Call on Ann: she can now move Ben's shapes too. Release Ann to take it back.",
+		],
 		tuples: [
 			{ object: ROOT, relation: 'owner', subject: 'user:teacher' },
 			{ object: ROOT, relation: 'viewer', subject: 'team:class#member' },
@@ -209,6 +222,11 @@ export const scenarios: Scenario[] = [
 		title: 'Private pages',
 		description:
 			'Staff notes are hidden from students only. Answers are hidden from everyone but the owner until the teacher shares them. A page a session cannot read never reaches it: not the page, its shapes, or the cursors of people on it.',
+		tryThis: [
+			'Open the page menu (top left) in each column. The teacher sees three pages, the TA two, Ann one.',
+			"Click Share answers with students. Answers appears in Ann's page menu; the TA still does not get it.",
+			'Go to the Answers page as the teacher and move the cursor. Ann sees the cursor only while she can read the page.',
+		],
 		tuples: [
 			{ object: ROOT, relation: 'owner', subject: 'user:teacher' },
 			{ object: ROOT, relation: 'editor', subject: 'team:staff#member' },
@@ -268,6 +286,11 @@ export const scenarios: Scenario[] = [
 		title: 'Links and agents',
 		description:
 			'The guest opened a link that shares one page; a link is just a subject with tuples. The agent has a token that acts for Olivia, narrowed by a caveat to one frame. Anyone holding a token can narrow it, nobody can widen it. Run the agent: its writes inside the frame land. It then skips its client guard to write outside the frame, and the server denies that push.',
+		tryThis: [
+			"The guest's column has only the shared page. The rest of the file never reached that browser.",
+			'Click Run the agent. Three shapes appear inside its frame. A moment later a red shape flashes outside the frame and is rolled back: the server denied it. See the server log.',
+			"Click Revoke the link. The guest's session closes.",
+		],
 		tuples: [{ object: ROOT, relation: 'owner', subject: 'user:olivia' }],
 		people: [
 			user('Olivia', 'owner', '#e03131'),
@@ -357,6 +380,10 @@ export const scenarios: Scenario[] = [
 		title: 'Reveal and cards',
 		description:
 			'Step 2 is a restricted frame: nobody but the dealer receives it or its contents until it is revealed. Each card is readable only by its holder. Turning a card over is one tuple: viewer for everyone.',
+		tryThis: [
+			'Each player sees only their own card, and nobody but the dealer sees step 2.',
+			'Click Reveal step 2, then Turn the cards over. Each is one grant, and the hidden records arrive.',
+		],
 		tuples: [
 			{ object: ROOT, relation: 'owner', subject: 'user:dealer' },
 			{ object: ROOT, relation: 'viewer', subject: 'user:ann' },

@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import { createRelationId } from '@tldraw/tlschema'
 import { TLRoomAccess, TLRoomAccessView } from '../TLRoomAccess'
 import {
 	RelationEvaluator,
@@ -40,6 +41,16 @@ export class RelationTupleIndex {
 		const set = this.bySlot.get(entry.slot)
 		set?.delete(entry.subject)
 		if (set?.size === 0) this.bySlot.delete(entry.slot)
+	}
+
+	/** Objects named by a userset subject in any tuple: `page:p` for `page:p#editor`. */
+	usersetObjects(): string[] {
+		const out = new Set<string>()
+		for (const { subject } of this.byId.values()) {
+			const hash = subject.indexOf('#')
+			if (hash !== -1) out.add(subject.slice(0, hash))
+		}
+		return [...out]
 	}
 
 	/** Objects that have a tuple whose subject is a userset of `object`, such as `page:p#editor`. */
@@ -108,7 +119,9 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 	// one memo per view: a view lives for one batch, so the memo can never be stale
 	const memos = new WeakMap<object, Map<string, Map<string, boolean>>>()
 	// Tuples written earlier in the same push, which the index does not have until commit. Without
-	// this, a push that shares a page and then writes on it would be denied.
+	// this, a push that shares a page and then writes on it would be denied. A write is staged when
+	// it passes this layer, but the host's authorizer can still veto it, so an entry counts only
+	// while the transaction holds (or lacks) its record.
 	const pending = new WeakMap<object, { added: RelationTupleIndex; removed: Set<string> }>()
 	const sourceFor = (view: TLRoomAccessView<R>): TLRelationSource => ({
 		getRecord: (id) => view.get(id),
@@ -117,8 +130,11 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 			const p = pending.get(view)
 			if (!p) return stored
 			const slot = `${object}#${relation}`
-			const out = stored.filter((s) => !p.removed.has(`${slot}@${s}`))
-			for (const s of p.added.getSubjects(object, relation)) if (!out.includes(s)) out.push(s)
+			const inTxn = (s: string) => view.get(createRelationId(object, relation, s)) !== undefined
+			const out = stored.filter((s) => !p.removed.has(`${slot}@${s}`) || inTxn(s))
+			for (const s of p.added.getSubjects(object, relation)) {
+				if (!out.includes(s) && inTxn(s)) out.push(s)
+			}
 			return out
 		},
 	})
@@ -180,8 +196,17 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 			return result.record
 		},
 		readRecheck(changes, view) {
+			const evaluator = new RelationEvaluator(schema, sourceFor(view), {
+				actor: null,
+				subjects: [],
+				root: '',
+				rootRelations: [],
+			})
 			// Objects whose relations may have changed. Records at or under them are re-checked.
 			const roots = new Set<string>()
+			const addWithAncestors = (id: string) => {
+				for (const a of [id, ...evaluator.ancestors(id)]) if (view.get(a)) roots.add(a)
+			}
 			for (const { id, prev, next } of changes) {
 				const tuple = parseRelationId(id)
 				if (tuple) {
@@ -191,42 +216,51 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 					roots.add(tuple.object)
 					continue
 				}
-				if (prev && next && fieldRelationsChanged(schema, prev, next)) roots.add(id)
+				if (prev && next) {
+					const moved = changedFieldValues(schema, prev, next)
+					if (moved === 'unknown') return 'all'
+					if (moved.length) {
+						roots.add(id)
+						// A `within` caveat reads the path down to its subtree: if the subtree moved, the old
+						// and new paths (and their siblings) change visibility too.
+						for (const v of moved) addWithAncestors(v)
+					}
+				}
 				// a deleted record's children (if a client left any) follow it
 				if (!prev && !next) roots.add(id)
 			}
 			if (roots.size === 0) return 'none'
-			// a userset subject such as `page:p#editor` makes the tuple's object depend on page:p
-			const queue = [...roots]
-			while (queue.length) {
-				const object = queue.pop()!
-				for (const dependent of index.objectsWithUsersetOf(object)) {
-					if (roots.has(dependent)) continue
-					if (!view.get(dependent)) return 'all'
-					roots.add(dependent)
-					queue.push(dependent)
-				}
-			}
-			const evaluator = new RelationEvaluator(schema, sourceFor(view), {
-				actor: null,
-				subjects: [],
-				root: '',
-				rootRelations: [],
-			})
-			const memo = new Map<string, boolean>()
+
+			let memo = new Map<string, boolean>()
 			const under = (id: string, depth: number): boolean => {
 				const cached = memo.get(id)
 				if (cached !== undefined) return cached
 				memo.set(id, false)
 				let result = roots.has(id)
 				if (!result && depth < 48) {
+					// a binding is under a root if its source or its target is
 					const up = evaluator.hasParentRelation(id)
-						? evaluator.parentOf(id)
-						: evaluator.anchorOf(id)
-					if (up !== undefined && up !== id) result = under(up, depth + 1)
+						? [evaluator.parentOf(id)]
+						: evaluator.anchorsOf(id)
+					result = up.some((u) => u !== undefined && u !== id && under(u, depth + 1))
 				}
 				memo.set(id, result)
 				return result
+			}
+			// A userset subject such as `page:p#editor` or `shape:s#edit` makes the tuple's object
+			// depend on that record, and so on anything above it. Add those objects until none is new.
+			for (let changed = true; changed; ) {
+				changed = false
+				for (const object of index.usersetObjects()) {
+					if (!under(object, 0)) continue
+					for (const dependent of index.objectsWithUsersetOf(object)) {
+						if (roots.has(dependent)) continue
+						if (!view.get(dependent)) return 'all'
+						roots.add(dependent)
+						changed = true
+					}
+				}
+				if (changed) memo = new Map()
 			}
 			return (record) => under(record.id, 0)
 		},
@@ -262,24 +296,28 @@ function parseRelationId(id: string) {
 	}
 }
 
-function fieldRelationsChanged(schema: TLRelationSchema, prev: any, next: any) {
+/** The old and new values of the field relations that differ, or 'unknown' if one cannot be read. */
+function changedFieldValues(schema: TLRelationSchema, prev: any, next: any): string[] | 'unknown' {
 	const def = schema.types[next.typeName]
-	if (!def) return false
+	if (!def) return []
 	const env = { root: '', actor: null }
+	const out: string[] = []
 	for (const expr of Object.values(def)) {
 		if (typeof expr === 'string' || expr.kind !== 'field') continue
 		try {
-			if (
-				JSON.stringify(expr.read(prev, env) ?? null) !==
-				JSON.stringify(expr.read(next, env) ?? null)
-			) {
-				return true
-			}
+			const a = toList(expr.read(prev, env))
+			const b = toList(expr.read(next, env))
+			if (JSON.stringify(a) !== JSON.stringify(b)) out.push(...a, ...b)
 		} catch {
-			return true
+			return 'unknown'
 		}
 	}
-	return false
+	return out
+}
+
+function toList(value: unknown): string[] {
+	if (value == null) return []
+	return (Array.isArray(value) ? value : [value]).filter((v): v is string => typeof v === 'string')
 }
 
 const ctxKeys = new WeakMap<object, string>()

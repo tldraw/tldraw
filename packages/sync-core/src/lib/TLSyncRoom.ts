@@ -1058,25 +1058,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.presenceStore.set(presenceId, presenceRecord as R)
 		}
 
-		// After hibernation the room no longer knows which records the client holds. Assume it holds
-		// what it may read now; a context change while it slept shows up on the next access update.
-		const resumed = this.sessions.get(sessionId)
-		if (this.access && resumed && resumed.access == null) {
-			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
-			return
-		}
-		if (this.access && resumed) {
-			const access = this.access
-			this.storage.transaction((txn) => {
-				const view = this.accessView(txn)
-				const visible = new Set<string>()
-				for (const record of this.accessRecords(txn)) {
-					if (access.canRead(resumed.access, record, view)) visible.add(record.id)
-				}
-				resumed.visible = visible
-			}) // no id needed because this only reads, no writes.
-		}
-
 		// The server may have changed builds while the socket slept, so re-run the handshake's
 		// schema checks (HS3): a schema we can no longer reconcile must not be served raw diffs.
 		if (!migrations.ok) {
@@ -1086,6 +1067,43 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		if (migrations.value.some((m) => m.scope !== 'record' || !m.down)) {
 			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
+		}
+
+		// After hibernation the room no longer knows which records the client holds. It sends a remove
+		// for every record the session may not read now (a remove of a record the client does not hold
+		// does nothing), so nothing it lost access to while asleep stays on its screen.
+		const resumed = this.sessions.get(sessionId)
+		if (this.access && resumed && resumed.access == null) {
+			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			return
+		}
+		if (this.access && resumed?.state === RoomSessionState.Connected) {
+			const access = this.access
+			const hidden: string[] = []
+			this.storage.transaction((txn) => {
+				const view = this.accessView(txn)
+				const visible = new Set<string>()
+				for (const record of this.accessRecords(txn)) {
+					if (record.id === resumed.presenceId) continue
+					if (access.canRead(resumed.access, record, view)) visible.add(record.id)
+					else hidden.push(record.id)
+				}
+				resumed.visible = visible
+			}) // no id needed because this only reads, no writes.
+			if (hidden.length) {
+				const result = this.migrateDiffOrRejectSession(
+					sessionId,
+					resumed.serializedSchema,
+					resumed.requiresDownMigrations,
+					{ puts: {}, deletes: hidden }
+				)
+				if (!result.ok) return
+				this._unsafe_sendMessage(sessionId, {
+					type: 'patch',
+					diff: result.value,
+					serverClock: this.lastDocumentClock,
+				})
+			}
 		}
 	}
 
