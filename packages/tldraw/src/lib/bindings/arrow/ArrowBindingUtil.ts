@@ -116,7 +116,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		if (this.editor.isReplayingHistory()) return
 
 		const arrow = this.editor.getShape<TLArrowShape>(binding.fromId)
-		if (!arrow) return
+		if (!arrow || !mayChange(this.editor, arrow)) return
 		updateArrowTerminal({
 			editor: this.editor,
 			arrow,
@@ -149,6 +149,7 @@ function updateBindingAnchorIfOutsideShape(
 
 	// If the anchor still lands on or inside the shape, there's nothing to do.
 	if (geometry.hitTestPoint(anchorPoint, 0, true)) return
+	if (!mayChange(editor, binding)) return
 
 	// Otherwise re-snap it to the closest point on the new outline and store it back as a normalized
 	// anchor.
@@ -165,9 +166,16 @@ function updateBindingAnchorIfOutsideShape(
 	})
 }
 
+// Someone else's arrow that is bound to your shape is theirs: when your change would repair it
+// (move its end, reparent it, re-snap its anchor) and the record policies do not let you change
+// it, the repair is skipped instead of the whole change being reverted.
+function mayChange(editor: Editor, record: TLArrowShape | TLArrowBinding) {
+	return editor.can({ verb: 'update', prev: record, next: record })
+}
+
 function reparentArrow(editor: Editor, arrowId: TLShapeId) {
 	const arrow = editor.getShape<TLArrowShape>(arrowId)
-	if (!arrow) return
+	if (!arrow || !mayChange(editor, arrow)) return
 	const bindings = getArrowBindings(editor, arrow)
 	const { start, end } = bindings
 	const startShape = start ? editor.getShape(start.toId) : undefined

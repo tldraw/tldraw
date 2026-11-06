@@ -1,5 +1,6 @@
 import { PageRecordType, PolicyContext, toRichText, useValue } from 'tldraw'
-import { Scenario, mayParent, ownsShape, pageOf } from './scenario'
+import { refreshLocalRoomAccess } from './localRoom'
+import { Scenario, getActions, mayParent, ownsShape, setActions } from './scenario'
 
 // The teacher locks the board through the document record. Only `document:write` changes it.
 const isBoardLocked = (ctx: PolicyContext) =>
@@ -14,7 +15,7 @@ export const classroom: Scenario = {
 	rules:
 		'Students add shapes and change only their own. The teacher changes anything, locks the board, and hides the private Answers page.',
 	tryThis:
-		'As Sam, draw a shape, then try to move the teacher’s note. Turn off “Check locally” and try again: the server rejects it. As the teacher, lock the board or show the answers.',
+		'As Sam, draw a shape, then try to move the teacher’s note. Turn off “Check locally” and try again: the server rejects it. As the teacher, lock the board, show the answers to everyone, or give only the students access to the Answers page.',
 	people: [
 		{
 			id: 'teacher',
@@ -45,25 +46,11 @@ export const classroom: Scenario = {
 					(ctx.next.parentId === ctx.prev.parentId || mayParent(ctx, ctx.next.parentId))),
 			delete: (ctx) =>
 				ctx.base() || (ctx.can('shapes:create') && !isBoardLocked(ctx) && ownsShape(ctx, ctx.prev)),
-			// Shapes on a private page are not sent to students.
-			read: (ctx) => {
-				const pageId = pageOf(ctx.record, ctx.get)
-				const page = pageId && ctx.get(pageId)
-				return !page || ctx.authorize({ verb: 'read', record: page })
-			},
 		},
+		// Only the page needs a read rule: shapes follow their page, and arrows follow the shapes
+		// they join, so students get nothing from the private page.
 		page: {
 			read: (ctx) => !ctx.record.meta.private || ctx.can('pages:read-private'),
-		},
-		binding: {
-			read: (ctx) => {
-				const from = ctx.get(ctx.record.fromId)
-				const to = ctx.get(ctx.record.toId)
-				return (
-					(!from || ctx.authorize({ verb: 'read', record: from })) &&
-					(!to || ctx.authorize({ verb: 'read', record: to }))
-				)
-			},
 		},
 	},
 	seed(editor, person) {
@@ -98,7 +85,13 @@ export const classroom: Scenario = {
 			editor.setCurrentPage(pageId)
 		})
 	},
-	Controls({ editor, person }) {
+	Controls({ editor, person, scenario }) {
+		const students = scenario.people.filter((p) => p.role === 'student')
+		const studentsSeeAnswers = useValue(
+			'students see answers',
+			() => students.every((p) => getActions(p).includes('pages:read-private')),
+			[students]
+		)
 		const isLocked = useValue('locked', () => !!editor.getDocumentSettings().meta.locked, [editor])
 		const isPrivate = useValue('private', () => !!editor.getPage(ANSWERS_PAGE)?.meta.private, [
 			editor,
@@ -123,6 +116,18 @@ export const classroom: Scenario = {
 					}}
 				>
 					{isPrivate ? 'Show answers' : 'Hide answers'}
+				</button>
+				<button
+					onClick={() => {
+						for (const student of students) {
+							const others = getActions(student).filter((a) => a !== 'pages:read-private')
+							setActions(student, studentsSeeAnswers ? others : [...others, 'pages:read-private'])
+						}
+						// The students' panes get the Answers page, or lose it, without a reconnect.
+						refreshLocalRoomAccess(scenario)
+					}}
+				>
+					{studentsSeeAnswers ? 'Take back answer access' : 'Give students answer access'}
 				</button>
 			</>
 		)

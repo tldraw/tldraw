@@ -277,7 +277,7 @@ export interface StoreSchemaOptions<R extends UnknownRecord, P> {
 }
 
 // A rule may ask the policy of another record. This stops a cycle of such calls.
-const MAX_POLICY_DEPTH = 16
+const MAX_POLICY_DEPTH = 32
 
 /**
  * Manages the schema definition, validation, and migration system for a Store.
@@ -376,11 +376,11 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 				// Presence is written by each session for itself, so only its read rule applies. It
 				// does not turn on read filtering by itself: it only narrows presence when a document
 				// type has read rules.
-				const read = layerPolicies(
+				const { read, readFollows } = layerPolicies(
 					type.policy,
 					getOwnProperty(options.policies ?? {}, typeName) as RecordPolicy<any> | undefined
-				).read
-				if (read) this.policies.set(typeName, { read })
+				)
+				if (read || readFollows) this.policies.set(typeName, { read, readFollows })
 				continue
 			}
 			if (type.scope !== 'document') continue
@@ -403,7 +403,7 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 
 	/**
 	 * The layered policy of a document record type: the schema default, the type's own policy,
-	 * and the host's policy. For a presence type, only its `read` rule. `undefined` for unknown
+	 * and the host's policy. For a presence type, only its `read` rule and `readFollows`. `undefined` for unknown
 	 * types and for session types, which policies do not cover.
 	 *
 	 * @public
@@ -465,7 +465,24 @@ export class StoreSchema<R extends UnknownRecord, P = unknown> {
 			return false
 		}
 		const noRule = request.verb !== 'action'
-		const rule = getPolicyRule(this.policies.get(type.typeName), request)
+		const policy = this.policies.get(type.typeName)
+		if (request.verb === 'read' && policy?.readFollows) {
+			let followed: readonly (string | undefined)[]
+			try {
+				followed = policy.readFollows(request.record)
+			} catch {
+				return false
+			}
+			for (const id of followed) {
+				const record = id === undefined ? undefined : get(id)
+				if (
+					record &&
+					!this._authorize(actor, { verb: 'read', record: record as R }, get, depth + 1)
+				)
+					return false
+			}
+		}
+		const rule = getPolicyRule(policy, request)
 		if (!rule) return noRule
 		const ctx: PolicyContext = {
 			actor,

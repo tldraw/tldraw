@@ -28,21 +28,21 @@ export function mayUpdate(ctx: PolicyContext, record: UnknownRecord | undefined)
 
 /**
  * A binding follows the shape it starts from (`fromId`): the actor may write the binding when
- * they may update that shape. So a student may bind their own arrow to a teacher's shape, but may
- * not bind the teacher's arrow.
+ * they may update that shape. So a student may bind their own arrow to a teacher's shape, or
+ * move its end to another shape, but may not bind or unbind the teacher's arrow.
  *
- * A binding whose shape was deleted in the same change may be deleted.
+ * A binding whose shape at either end was deleted in the same change may be deleted, so deleting
+ * your own shape also removes other people's bindings to it.
  *
  * @public
  */
 export const defaultBindingPolicy: RecordPolicy<TLBinding> = {
+	// A reader gets a binding only with both of its shapes.
+	readFollows: (binding) => [binding.fromId, binding.toId],
 	create: (ctx) => mayUpdate(ctx, ctx.get(ctx.next.fromId)),
-	update: (ctx) =>
-		ctx.prev.fromId === ctx.next.fromId &&
-		ctx.prev.toId === ctx.next.toId &&
-		mayUpdate(ctx, ctx.get(ctx.next.fromId)),
+	update: (ctx) => ctx.prev.fromId === ctx.next.fromId && mayUpdate(ctx, ctx.get(ctx.next.fromId)),
 	delete: (ctx) => {
 		const from = ctx.get(ctx.prev.fromId)
-		return !from || mayUpdate(ctx, from)
+		return !from || !ctx.get(ctx.prev.toId) || mayUpdate(ctx, from)
 	},
 }

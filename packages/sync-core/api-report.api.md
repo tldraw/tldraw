@@ -236,6 +236,8 @@ export interface ReadView {
     // (undocumented)
     dependents: Map<string, Set<string>>;
     // (undocumented)
+    reads: Map<string, Set<string>>;
+    // (undocumented)
     visible: Set<string>;
 }
 
@@ -332,6 +334,7 @@ export interface SessionStateSnapshot {
     presenceId: null | string;
     // (undocumented)
     presenceRecord: null | UnknownRecord;
+    readViewHash?: string;
     // (undocumented)
     requiresLegacyRejection: boolean;
     // (undocumented)
@@ -554,6 +557,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     readonly log?: TLSyncLog;
     // (undocumented)
     readonly opts: TLSocketRoomOptions<R, SessionMeta>;
+    refreshAccess(sessionId?: string): void;
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
@@ -760,6 +764,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     getCanEmitStringAppend(): boolean;
+    getReadViewHash(sessionId: string): string | undefined;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {
@@ -775,6 +780,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         objectAccess?: TLObjectStoreAccess;
         presenceId: null | string;
         presenceRecord: null | UnknownRecord;
+        readViewHash?: string;
         requiresLegacyRejection: boolean;
         serializedSchema: SerializedSchema;
         sessionId: string;
@@ -791,6 +797,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
     pruneSessions: ThrottledFunction<() => void>;
+    refreshAccess(sessionId?: string): void;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;

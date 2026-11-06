@@ -80,9 +80,14 @@ export function ownsShape(ctx: PolicyContext, shape: TLShape) {
 	return isOwnedBy(ctx.actor, shape.meta.ownerId)
 }
 
-// A parent the actor may put a shape in: a page, or a shape that they may change.
+// A parent the actor may put a shape in: a page that they may read, or a shape that they may
+// change. Without the read check, a student could move a shape onto a hidden page.
 export function mayParent(ctx: PolicyContext, parentId: TLParentId) {
-	return parentId.startsWith('page:') || mayUpdate(ctx, ctx.get(parentId))
+	const parent = ctx.get(parentId)
+	if (!parent) return false
+	return parentId.startsWith('page:')
+		? ctx.authorize({ verb: 'read', record: parent })
+		: mayUpdate(ctx, parent)
 }
 
 // Everyone writes their own user record (name and color for attribution), nobody else's.

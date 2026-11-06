@@ -1370,6 +1370,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		const get = (id: string) => this.records.__unsafe__getWithoutCapture(id as IdOf<R>)
 		const denied: PolicyRequest<R>[] = []
 		for (const { before, after } of changes.values()) {
+			// Created and deleted again in the same operation: no net change.
+			if (!before && !after) continue
 			const record = (after ?? before)!
 			if ((this.schema.types as any)[record.typeName]?.scope !== 'document') continue
 			const request: PolicyRequest<R> | null =
@@ -1507,7 +1509,9 @@ function dropNoOpChanges<T extends UnknownRecord>(entries: HistoryEntry<T>[]): H
 	const result: HistoryEntry<T>[] = []
 	for (const entry of entries) {
 		const updated = Object.fromEntries(
-			(Object.entries(entry.changes.updated) as [string, [T, T]][]).filter(([, change]) => !isNoOp(change))
+			(Object.entries(entry.changes.updated) as [string, [T, T]][]).filter(
+				([, change]) => !isNoOp(change)
+			)
 		) as RecordsDiff<T>['updated']
 		const changes = { ...entry.changes, updated }
 		if (!isRecordsDiffEmpty(changes)) result.push({ ...entry, changes })

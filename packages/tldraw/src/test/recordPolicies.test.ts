@@ -174,6 +174,94 @@ describe('the classroom, as a student', () => {
 	})
 })
 
+describe('review cases', () => {
+	const arrowFrom = (x: number, toX: number) => {
+		editor.setCurrentTool('arrow').pointerDown(x, 50).pointerMove(toX, 50).pointerUp()
+		return editor.getOnlySelectedShape()!
+	}
+	const endBinding = (arrowId: TLShape['id']) =>
+		editor
+			.getBindingsFromShape(arrowId, 'arrow')
+			.find((b) => (b.props as { terminal: string }).terminal === 'end')
+
+	it('creates and deletes a shape in one run without an error', () => {
+		const id = createShapeId('brief')
+		editor.run(() => {
+			editor.createShapes([{ id, type: 'geo', x: 900, y: 0 }])
+			editor.deleteShapes([id])
+		})
+		expect(editor.getShape(id)).toBeUndefined()
+		expect(denied).toEqual([])
+	})
+
+	it('moves the end of their own arrow from one shape to another', () => {
+		const arrow = arrowFrom(600, 350)
+		expect(endBinding(arrow.id)?.toId).toBe(ids.samBox)
+		const binding = endBinding(arrow.id)!
+		editor.updateBinding({ ...binding, toId: ids.teacherBox })
+		expect(endBinding(arrow.id)?.toId).toBe(ids.teacherBox)
+		expect(denied).toEqual([])
+	})
+
+	it('deletes their own shape when the teacher’s arrow points to it', () => {
+		setActor(teacher)
+		const arrow = arrowFrom(50, 350)
+		expect(endBinding(arrow.id)?.toId).toBe(ids.samBox)
+		setActor(student)
+		editor.deleteShapes([ids.samBox])
+		expect(editor.getShape(ids.samBox)).toBeUndefined()
+		// The teacher's arrow loses its binding, and is not changed by the student.
+		expect(endBinding(arrow.id)).toBeUndefined()
+		expect(editor.getShape(arrow.id)).toEqual(arrow)
+		expect(denied).toEqual([])
+	})
+
+	it('cannot turn a shape into another kind to get around its rules', () => {
+		const policies: TLPolicies = {
+			shape: { create: (ctx) => ctx.base() || ctx.next.type === 'note' },
+		}
+		const e = new TestEditor({}, { policies })
+		const noteId = createShapeId('n')
+		e.setActor(createPolicyActor({ id: 'a', actions: [] }))
+		e.createShapes([{ id: noteId, type: 'note', x: 0, y: 0 }])
+		const note = e.getShape(noteId)!
+		expect(note).toBeDefined()
+		const asGeo = { ...note, type: 'geo', props: e.getShapeUtil('geo').getDefaultProps() } as any
+		expect(e.can({ verb: 'update', prev: note, next: asGeo })).toBe(false)
+		e.dispose()
+	})
+
+	it('keeps undo and redo in step with the document when an undo is denied', () => {
+		setActor(teacher)
+		editor.markHistoryStoppingPoint()
+		editor.createShapes([{ id: createShapeId('t2'), type: 'geo', x: 0, y: 500 }])
+		editor.markHistoryStoppingPoint()
+		editor.updateShape({ id: createShapeId('t2'), type: 'geo', x: 100 })
+		setActor(viewer)
+		editor.undo()
+		expect(shape(createShapeId('t2')).x).toBe(100)
+		expect(editor.canRedo()).toBe(false)
+		setActor(teacher)
+		editor.undo()
+		// The undo that was denied is still the next one: the move, not the creation.
+		expect(shape(createShapeId('t2')).x).toBe(0)
+	})
+
+	it('lets a student change their own shape inside the teacher’s frame', () => {
+		setActor(teacher)
+		const frameId = createShapeId('frame')
+		editor.createShapes([{ id: frameId, type: 'frame', x: 0, y: 300, props: { w: 400, h: 400 } }])
+		const own = createShapeId('own')
+		// A teacher places a shape that belongs to the student in the frame.
+		editor.createShapes([
+			{ id: own, type: 'geo', parentId: frameId, x: 10, y: 10, meta: { ownerId: 'sam' } },
+		])
+		setActor(student)
+		expect(editor.isShapeOrAncestorLocked(frameId)).toBe(true)
+		expect(editor.isShapeOrAncestorLocked(own)).toBe(false)
+	})
+})
+
 describe('a viewer', () => {
 	it('changes nothing with any tool', () => {
 		setActor(viewer)

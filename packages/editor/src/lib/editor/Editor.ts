@@ -5785,11 +5785,23 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
 		// A shape the actor may not update behaves like a locked shape: it cannot be selected,
-		// moved, or edited.
-		if (this.getActor() && !this.can({ verb: 'update', prev: _shape, next: _shape })) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		// moved, or edited. Only the shape itself is checked: a student's own shape inside the
+		// teacher's frame stays theirs to change.
+		if (this.getActor() && !this._getMayUpdateShapeCache().get(_shape.id)) return true
+		return this._isShapeOrAncestorFlaggedLocked(_shape)
+	}
+
+	private _isShapeOrAncestorFlaggedLocked(shape: TLShape | undefined): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this._isShapeOrAncestorFlaggedLocked(this.getShapeParent(shape))
+	}
+
+	@computed private _getMayUpdateShapeCache(): ComputedCache<boolean, TLShape> {
+		return this.store.createComputedCache<boolean, TLShape>('mayUpdateShape', (shape) =>
+			this.can({ verb: 'update', prev: shape, next: shape })
+		)
 	}
 
 	/**

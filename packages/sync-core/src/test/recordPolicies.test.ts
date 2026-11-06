@@ -1,4 +1,4 @@
-import { atom, computed } from '@tldraw/state'
+import { computed } from '@tldraw/state'
 import {
 	PolicyActor,
 	PolicyContext,
@@ -146,26 +146,11 @@ const classroom: TLPolicies = {
 
 // Private pages: a page with `meta.private` is hidden from everyone without `pages:read-private`,
 // and so is every shape, binding, and comment thread on it. Only `document:write` changes a page.
+// Only the page has a read rule: shapes follow their parent, and bindings follow both of their
+// shapes (`readFollows` in tlschema), so a private page hides everything on it.
 const privatePages: TLPolicies = {
 	page: {
 		read: (ctx) => !ctx.record.meta.private || ctx.can('pages:read-private'),
-	},
-	shape: {
-		read: (ctx) => {
-			const pageId = pageOf(ctx.record, ctx.get)
-			const page = pageId && ctx.get(pageId)
-			return !page || ctx.authorize({ verb: 'read', record: page })
-		},
-	},
-	binding: {
-		read: (ctx) => {
-			const from = ctx.get(ctx.record.fromId)
-			const to = ctx.get(ctx.record.toId)
-			return (
-				(!from || ctx.authorize({ verb: 'read', record: from })) &&
-				(!to || ctx.authorize({ verb: 'read', record: to }))
-			)
-		},
 	},
 }
 
@@ -996,6 +981,45 @@ describe('access changes, resume, and presence', () => {
 		expect(presences(s)).toEqual(['user:teacher'])
 		// A session never receives its own presence.
 		expect(presences(t)).toEqual([])
+	})
+
+	it('denies a write to a record that the session may not read, even with its id', () => {
+		const editorWithoutPrivate = createPolicyActor({ id: 'ed', actions: ['document:write'] })
+		const { client, deliver, stored } = setup({ policies: privatePages, seed: seed() })
+		const ed = client('ed', editorWithoutPrivate)
+		expect(ed.store.has(createShapeId('secret'))).toBe(false)
+		const secret = stored(createShapeId('secret')) as any
+		const push = (diff: object) => {
+			ed.pair.didReceiveFromClient!({ type: 'push', clientClock: 99, diff } as any)
+			deliver()
+		}
+		push({ [secret.id]: [RecordOpType.Put, { ...secret, x: 999 }] })
+		push({ [secret.id]: [RecordOpType.Remove] })
+		expect(stored(createShapeId('secret'))).toEqual(secret)
+	})
+
+	it('does not send a session its own new records back', () => {
+		const { client, deliver, stored } = setup({ policies: privatePages, seed: seed() })
+		const sam = client('sam', actor('sam', 'editor'))
+		sam.received.length = 0
+		sam.store.put([box('mine', 'sam')])
+		deliver()
+		expect(stored(createShapeId('mine'))).toBeDefined()
+		const messages = sam.received.flatMap((m) => (m.type === 'data' ? m.data : [m]))
+		expect(messages.map((m) => m.type)).toEqual(['push_result'])
+	})
+
+	it('does not filter reads for a schema whose shape types have only write rules', () => {
+		const schema = createTLSchema({
+			shapes: {
+				box: {
+					props: { w: num, h: num },
+					policy: { update: (ctx) => ctx.can('document:write') },
+				},
+			},
+			bindings: { link: { props: {} } },
+		})
+		expect(schema.hasReadRules()).toBe(false)
 	})
 
 	it('a rule that stops reading a record is no longer re-checked when that record changes', () => {

@@ -124,6 +124,26 @@ export class HistoryManager<R extends UnknownRecord> {
 		}
 	}
 
+	/**
+	 * Applies an undo or redo. Returns false when the record policies of the store denied it (the
+	 * store has then reverted it), so the stacks stay where they were and a later undo or redo
+	 * still matches the document.
+	 */
+	private applyUnlessDenied(diff: RecordsDiff<R>) {
+		let isDenied = false
+		const stopListening = this.store.addPolicyDeniedListener(() => {
+			isDenied = true
+		})
+		try {
+			this.store.applyDiff(diff, { ignoreEphemeralKeys: true })
+		} finally {
+			stopListening()
+		}
+		if (isDenied) return false
+		this.store.ensureStoreIsUsable()
+		return true
+	}
+
 	// History
 	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
 		const previousState = this.state
@@ -190,8 +210,10 @@ export class HistoryManager<R extends UnknownRecord> {
 				this.pendingDiff.restore(pendingDiff)
 				return this
 			}
-			this.store.applyDiff(diffToUndo, { ignoreEphemeralKeys: true })
-			this.store.ensureStoreIsUsable()
+			if (!this.applyUnlessDenied(diffToUndo)) {
+				this.pendingDiff.restore(pendingDiff)
+				return this
+			}
 			this.stacks.set({ undos, redos })
 		} finally {
 			this._isReplaying = previousIsReplaying
@@ -240,8 +262,7 @@ export class HistoryManager<R extends UnknownRecord> {
 					break
 				}
 			}
-			this.store.applyDiff(diffToRedo, { ignoreEphemeralKeys: true })
-			this.store.ensureStoreIsUsable()
+			if (!this.applyUnlessDenied(diffToRedo)) return this
 			this.stacks.set({ undos, redos })
 		} finally {
 			this._isReplaying = previousIsReplaying

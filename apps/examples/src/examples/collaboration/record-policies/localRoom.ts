@@ -45,6 +45,12 @@ function getRoom(scenario: Scenario) {
 	return room
 }
 
+// Call after a change of access that changes what someone may read. Writes always use the actor
+// from `getActor`, but what a session already holds changes only on a refresh.
+export function refreshLocalRoomAccess(scenario: Scenario) {
+	getRoom(scenario).refreshAccess()
+}
+
 let nextSessionId = 0
 
 // A pair of in-memory sockets: one side for the room, one side for `useSync({ connect })`.

@@ -366,6 +366,7 @@ export interface RecordPolicy<R extends UnknownRecord = UnknownRecord> {
     read?(ctx: PolicyContext & {
         readonly record: R;
     }): boolean;
+    readFollows?(record: R): readonly (string | undefined)[];
     // (undocumented)
     update?(ctx: PolicyContext & {
         readonly next: R;
@@ -534,6 +535,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     update<K extends IdOf<R>>(id: K, updater: (record: RecordFromId<K>) => RecordFromId<K>): void;
     // (undocumented)
     validate(phase: 'createRecord' | 'initialize' | 'tests' | 'updateRecord'): void;
+    // @internal
+    withPolicyScope<T>(fn: () => T): T;
 }
 
 // @public

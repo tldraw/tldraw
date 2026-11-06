@@ -234,7 +234,8 @@ function softDelete<R extends UnknownRecord & { isDeleted: boolean }>(
  *   someone else.
  * - Update: needs `comments:write`. `createdBy`, `createdAt`, and `pageId` never change. A new
  *   resolution must name the actor. A soft delete needs the `delete` action and changes nothing
- *   else.
+ *   else. Anyone who may comment may move a thread's anchor: when a shape is deleted, the client
+ *   of the person who deleted it moves the threads on that shape to a point.
  * - Hard delete: never from a client.
  * - Actions: `resolve` (anyone who may comment), `delete` (the creator, or `comments:manage`).
  *

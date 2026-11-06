@@ -428,7 +428,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		view: ReadView
 	) {
 		// Forget what the rule read last time, so that dependents do not only grow.
-		for (const id of view.reads.get(record.id) ?? []) view.dependents.get(id)?.delete(record.id)
+		forgetReads(view, record.id)
 		const reads = new Set<string>()
 		view.reads.set(record.id, reads)
 		const get = (id: string) => {
@@ -446,7 +446,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	/** Removes a deleted record from a read view. */
 	private forgetRead(view: ReadView, id: string) {
 		view.visible.delete(id)
-		for (const read of view.reads.get(id) ?? []) view.dependents.get(read)?.delete(id)
+		forgetReads(view, id)
 		view.reads.delete(id)
 	}
 
@@ -461,7 +461,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		diff: TLSyncForwardDiff<R>,
 		networkDiff: NetworkDiff<R>,
 		reader: SynchronousRecordStorage<R>,
-		changedIds: Iterable<string>
+		changedIds: Iterable<string>,
+		isSource = false
 	): { diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> } {
 		const view = (session.readView ??= this.buildReadView(actor, reader))
 
@@ -488,10 +489,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
+		// The session that made the change already holds what it changed: it gets only the
+		// records whose visibility changed as a result.
+		const deletedBySource = isSource ? new Set(diff.deletes) : null
+		const isHeld = (id: string) =>
+			!!deletedBySource && (getOwnProperty(diff.puts, id) !== undefined || deletedBySource.has(id))
 		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const outNetwork: NetworkDiff<R> = {}
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
-			if (!nextVisible.has(id)) continue
+			if (isSource || !nextVisible.has(id)) continue
 			if (prevVisible.has(id)) {
 				out.puts[id] = put
 				if (networkDiff[id]) outNetwork[id] = networkDiff[id]
@@ -502,20 +508,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 		for (const id of diff.deletes) {
-			if (prevVisible.has(id)) {
+			if (!isSource && prevVisible.has(id)) {
 				out.deletes.push(id)
 				outNetwork[id] = [RecordOpType.Remove]
 			}
 		}
 		for (const id of nextVisible) {
-			if (prevVisible.has(id) || getOwnProperty(out.puts, id)) continue
+			if (prevVisible.has(id) || getOwnProperty(out.puts, id) || isHeld(id)) continue
 			const record = this.getReadable(id, reader)
 			if (!record) continue
 			out.puts[id] = record
 			outNetwork[id] = [RecordOpType.Put, record]
 		}
 		for (const id of prevVisible) {
-			if (nextVisible.has(id) || getOwnProperty(outNetwork, id)) continue
+			if (nextVisible.has(id) || getOwnProperty(outNetwork, id) || isHeld(id)) continue
 			out.deletes.push(id)
 			outNetwork[id] = [RecordOpType.Remove]
 		}
@@ -584,12 +590,19 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private findDeniedChanges(
 		actor: PolicyActor,
 		overlay: OverlayDocStore<R>,
-		txn: TLSyncStorageTransaction<R>
+		txn: TLSyncStorageTransaction<R>,
+		readView: ReadView | undefined
 	) {
 		const denied: { verb: string; id: string }[] = []
 		const get = (id: string) => overlay.get(id)
 		for (const [id, after] of overlay.writes) {
 			const before = (txn.get(id) as R | undefined) ?? null
+			// A session may only change or delete what it may read. Without this, an id that leaks
+			// (through a binding or a selection) would let a client write a record it cannot see.
+			if (before && readView && !readView.visible.has(id)) {
+				denied.push({ verb: after ? 'update' : 'delete', id })
+				continue
+			}
 			const request: PolicyRequest<R> | null =
 				before && after
 					? { verb: 'update', prev: before, next: after }
@@ -949,10 +962,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				const filtered = this.filterDiffForSession(
 					session,
 					actor,
-					sourceSessionId === session.sessionId ? { puts: {}, deletes: [] } : diff,
-					sourceSessionId === session.sessionId ? {} : unmigrated,
+					diff,
+					unmigrated,
 					reader,
-					changedIds
+					changedIds,
+					sourceSessionId === session.sessionId
 				)
 				sessionDiff = filtered.diff
 				sessionNetworkDiff = filtered.networkDiff
@@ -1894,7 +1908,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				}
 
 				if (overlay && session && actor) {
-					const denied = this.findDeniedChanges(actor, overlay, txn)
+					const denied = this.findDeniedChanges(actor, overlay, txn, session.readView)
 					if (denied.length) {
 						this.log?.warn?.(
 							'policy denied push',
@@ -2065,6 +2079,15 @@ export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R
 
 	values() {
 		return this.presences.values()
+	}
+}
+
+/** Removes `id` from the dependents of every record that its read rule read last time. */
+function forgetReads(view: ReadView, id: string) {
+	for (const read of view.reads.get(id) ?? []) {
+		const dependents = view.dependents.get(read)
+		dependents?.delete(id)
+		if (dependents?.size === 0) view.dependents.delete(read)
 	}
 }
 

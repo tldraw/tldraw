@@ -107,6 +107,16 @@ export interface RecordPolicy<R extends UnknownRecord = UnknownRecord> {
 	readonly actions?: {
 		readonly [action: string]: (ctx: PolicyContext & { readonly record: R }) => boolean
 	}
+	/**
+	 * The ids of the records that a record of this type is part of. A reader who may not read one
+	 * of them may not read this record either, whatever the read rules say. So a binding follows
+	 * the two shapes it joins, a shape follows its parent, and a presence follows its page, and a
+	 * reader never gets half of a structure. Ids of records that do not exist are skipped.
+	 *
+	 * Unlike a read rule, this hides nothing by itself, so it does not turn on read filtering.
+	 * The lists of all layers apply together.
+	 */
+	readFollows?(record: R): readonly (string | undefined)[]
 }
 
 type Verb = 'read' | 'create' | 'update' | 'delete'
@@ -174,6 +184,11 @@ export function layerPolicies<R extends UnknownRecord>(
 		const l = lower[verb] as PolicyRule | undefined
 		layered[verb] = layerRule(l, u)
 	}
+	const follows = [lower.readFollows, upper.readFollows].filter((f) => f !== undefined)
+	if (follows.length) {
+		layered.readFollows =
+			follows.length === 1 ? follows[0] : (r: R) => [...follows[0](r), ...follows[1](r)]
+	}
 	const actionNames = new Set([
 		...Object.keys(lower.actions ?? {}),
 		...Object.keys(upper.actions ?? {}),
@@ -212,10 +227,24 @@ export function createKindPolicy<R extends UnknownRecord>(
 	if (layered.size === 0) return base
 	const pick = (record: R) => layered.get(kindOf(record)) ?? base
 	const dispatch = (verb: Verb) => (ctx: any) => {
+		// A change of kind (a note that becomes a geo shape) is the removal of one kind and the
+		// creation of another: each kind's own rules decide, so a kind cannot be used to get around
+		// the rules of another.
+		if (verb === 'update' && kindOf(ctx.prev) !== kindOf(ctx.next)) {
+			return (
+				ctx.authorize({ verb: 'delete', prev: ctx.prev }) &&
+				ctx.authorize({ verb: 'create', next: ctx.next })
+			)
+		}
 		const subject: R = verb === 'create' ? ctx.next : verb === 'read' ? ctx.record : ctx.prev
 		const rule = pick(subject)?.[verb] as PolicyRule | undefined
 		return rule ? rule(ctx) : ctx.base()
 	}
+	// Only the verbs that some layer has a rule for: a schema whose kinds have only write rules
+	// must not look like it has read rules, because read rules turn on per-session filtering.
+	const policies = [...layered.values()]
+	const has = (verb: Verb) => policies.some((p) => p[verb])
+	const isWriteRuled = has('create') || has('update') || has('delete')
 	const actionNames = new Set<string>(Object.keys(base?.actions ?? {}))
 	for (const p of layered.values()) for (const n of Object.keys(p.actions ?? {})) actionNames.add(n)
 	const actions: Record<string, PolicyRule> = {}
@@ -225,11 +254,13 @@ export function createKindPolicy<R extends UnknownRecord>(
 			return rule ? rule(ctx) : ctx.base()
 		}
 	}
+	const isFollowing = policies.some((p) => p.readFollows)
 	return {
-		read: dispatch('read'),
-		create: dispatch('create'),
-		update: dispatch('update'),
-		delete: dispatch('delete'),
+		readFollows: isFollowing ? (r: R) => pick(r)?.readFollows?.(r) ?? [] : undefined,
+		read: has('read') ? dispatch('read') : undefined,
+		create: has('create') ? dispatch('create') : undefined,
+		update: isWriteRuled ? dispatch('update') : undefined,
+		delete: has('delete') ? dispatch('delete') : undefined,
 		actions,
 	}
 }
