@@ -411,10 +411,16 @@ To decide what each session receives, pass hooks to the room's `beforeRead` opti
 [TLBeforeReadHooks](?)). A hook returns nothing to send the record as stored, a changed copy (for
 example a card without its face), or `null` to send nothing. When a session can no longer see a record
 it holds, the room removes it from that client. For plain "who may see what" rules, write boolean
-checks and turn them into hooks with [canRead](?). A hook runs again only when its record changes, so a
-rule that reads other records with `get` (such as "hidden when its frame is hidden") does not update
-when only those records change. A client writes against what it received, so guard the fields it
-cannot see with `beforeWrite` or `canWrite`. Presence records do not go through the hooks, so a user's presence can name records that another session cannot see, such as selected shape ids. Combine read hook maps with [composeBeforeRead](?).
+checks and turn them into hooks with [canRead](?). The room remembers which records each hook read with
+`get`, and runs the hook again when one of them changes. So a rule such as "hidden when its page is
+hidden" follows the page: when the page hides, the session gets removes for its shapes, and when it
+shows again, the shapes come back. Read other records only through `get`. The hook gets frozen records,
+so return a new object for a changed copy. A client writes against what it received, so guard the
+fields it cannot see with `beforeWrite` or `canWrite`. Add a hook for the presence type to filter what
+each session receives of other users' presence, such as selected shape ids; without one, presence can
+name records that another session cannot see. After a hibernation resume, the first broadcast to a
+resumed session sends every hooked record again, as the record or a remove, so the client learns the
+ids of records it cannot see. Combine read hook maps with [composeBeforeRead](?).
 
 ### Deployment concerns
 

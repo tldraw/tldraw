@@ -271,6 +271,8 @@ export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
     held: {
         complete: boolean;
+        readBy: Map<string, Set<string>>;
+        reads: Map<string, Set<string>>;
         records: Map<string, 'none' | 'same' | R>;
     };
     state: typeof RoomSessionState.Connected;
