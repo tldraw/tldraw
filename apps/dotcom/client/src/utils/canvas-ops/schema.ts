@@ -208,8 +208,13 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 ])
 export type CanvasOp = z.infer<typeof CanvasOpSchema>
 
-/** A batch runs synchronously in the user's tab, so its size bounds how long the tab can stall. */
-export const MAX_OPS_PER_BATCH = 200
+/**
+ * A batch runs synchronously in the user's tab, so its size bounds how long the tab stalls. MCP
+ * can't stream, so a whole agent reply arrives as one batch. Measured in the headless test
+ * editor, 1,000 ops took 0.5s placed at points and 1.1s placed relative to targets (the solver
+ * checks every shape on the page, so 2,000 took 4.3s); a real tab also renders, so it's slower.
+ */
+const MAX_OPS_PER_BATCH = 1000
 
 export const OpsBatchSchema = z
 	.object({

@@ -1344,31 +1344,3 @@ export async function applyOps(
 	await settle(editor)
 	return resultOf(batchId, opCtx, results, errors)
 }
-
-/**
- * Apply ops as they stream in, all under one batch id. Each call applies the ops that have
- * arrived; finishing squashes the whole stream into one undo step. Anything the user did on the
- * board while it streamed is squashed into that step too: one undo for the agent's work beats an
- * undo stack interleaved with partial agent chunks.
- */
-export function createOpsStream(editor: Editor, attribution: Attribution = {}) {
-	const selected = selectionFor(editor, attribution.userId)
-	const { batchId, markId, ctx } = runBatch(editor, attribution, () => {})
-	const opCtx: OpContext = { ...ctx, refs: { created: ctx.memory.created, selected } }
-	const results: OpResult[] = []
-	const errors: string[] = []
-	let finished = false
-	return async (ops: CanvasOp[], finish: boolean): Promise<ApplyOpsResult> => {
-		if (finished) throw new Error('Operation stream already finished')
-		if (finish) finished = true
-		editor.run(
-			() => {
-				for (const op of ops) results.push(runOp(opCtx, op, results.length, errors))
-			},
-			{ history: 'record' }
-		)
-		if (finish) editor.squashToMark(markId)
-		await settle(editor)
-		return resultOf(batchId, opCtx, results, errors)
-	}
-}

@@ -2,7 +2,7 @@ import { createShapeId, Editor, type Box, type TLGeoShape, type TLLineShape } fr
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { describeShapes, runBatch } from './actions'
 import { createCanvasOpsReceiver } from './index'
-import { applyOps, createOpsStream } from './ops'
+import { applyOps } from './ops'
 import type { CanvasAction } from './schema'
 import { createTestEditor } from './testEditor'
 
@@ -405,7 +405,7 @@ describe('paths and duplicates', () => {
 	})
 })
 
-describe('batches and streams', () => {
+describe('batches', () => {
 	it('rolls back an op that fails partway and keeps the rest', async () => {
 		seedDiagram()
 		seed([
@@ -439,17 +439,6 @@ describe('batches and streams', () => {
 		])
 	})
 
-	it('squashes a whole stream into one undo step', async () => {
-		seedDiagram()
-		const before = editor.getCurrentPageShapeIds()
-		const stream = createOpsStream(editor, { runId: 'run' })
-		await stream([{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 700 } }], false)
-		editor.markHistoryStoppingPoint('something else')
-		await stream([{ op: 'add', kind: 'box', text: 'B', id: 'b', at: { x: 300, y: 700 } }], true)
-		editor.undo()
-		expect(editor.getCurrentPageShapeIds()).toEqual(before)
-	})
-
 	it('keeps { created } refs to the shapes this run made', async () => {
 		await applyOps(
 			editor,
@@ -478,20 +467,17 @@ describe('batches and streams', () => {
 		expect(editor.getCurrentPageShapeIds()).toEqual(before)
 	})
 
-	it('a stream keeps one batch id and resolves references across arrivals', async () => {
-		const stream = createOpsStream(editor, { runId: 'run' })
-		const first = await stream(
-			[{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 0 } }],
-			false
+	it('resolves { created } refs across batches from the same run', async () => {
+		await applyOps(editor, [{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 0 } }], {
+			runId: 'run',
+		})
+		const next = await applyOps(
+			editor,
+			[{ op: 'add', kind: 'label', text: 'under A', id: 'under', target: { created: 'last' } }],
+			{ runId: 'run' }
 		)
-		const done = await stream(
-			[{ op: 'add', kind: 'label', text: 'under A', target: { created: 'last' } }],
-			true
-		)
-		expect(done.batchId).toBe(first.batchId)
-		expect(done.errors).toEqual([])
-		expect(done.createdIds).toHaveLength(2)
-		await expect(stream([], true)).rejects.toThrow(/already finished/)
+		expect(next.errors).toEqual([])
+		expect(rect('under').y).toBeGreaterThan(rect('a').y + rect('a').h)
 	})
 })
 
@@ -504,26 +490,5 @@ describe('receiver', () => {
 			})
 		).rejects.toThrow()
 		expect(editor.getCurrentPageShapeIds().size).toBe(0)
-	})
-
-	it('streams by id and closes the stream on finish', async () => {
-		const receiver = createCanvasOpsReceiver(editor)
-		const a = await receiver.streamOps(
-			's1',
-			[{ op: 'add', text: 'one', at: { x: 0, y: 0 } }],
-			false
-		)
-		const b = await receiver.streamOps(
-			's1',
-			[{ op: 'add', text: 'two', at: { x: 0, y: 100 } }],
-			true
-		)
-		const c = await receiver.streamOps(
-			's1',
-			[{ op: 'add', text: 'three', at: { x: 0, y: 200 } }],
-			true
-		)
-		expect(b.batchId).toBe(a.batchId)
-		expect(c.batchId).not.toBe(a.batchId)
 	})
 })

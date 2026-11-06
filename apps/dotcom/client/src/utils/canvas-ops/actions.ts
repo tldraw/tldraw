@@ -401,7 +401,7 @@ export function runBatch(
 	editor: Editor,
 	attribution: Attribution,
 	body: (ctx: BatchContext) => void
-): { batchId: string; markId: string; ctx: BatchContext } {
+): { batchId: string; ctx: BatchContext } {
 	const batchId = uniqueId()
 	const stamp: AgentShapeMeta = { batchId, at: new Date().toISOString() }
 	if (attribution.runId) stamp.runId = attribution.runId
@@ -423,7 +423,7 @@ export function runBatch(
 		},
 	}
 	// One history entry per batch so a user can undo the whole batch at once.
-	const markId = editor.markHistoryStoppingPoint('canvas ops batch')
+	editor.markHistoryStoppingPoint('canvas ops batch')
 	editor.run(() => body(ctx), { history: 'record' })
-	return { batchId, markId, ctx }
+	return { batchId, ctx }
 }
