@@ -64,7 +64,7 @@ spec:
   labels:
     service: zero
     severity: critical
-  noDataState: OK
+  noDataState: Ok
   notificationSettings:
     receiver: Discord
     type: SimplifiedRouting
