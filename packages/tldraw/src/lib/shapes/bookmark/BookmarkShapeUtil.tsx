@@ -30,6 +30,7 @@ import {
 	getBookmarkShapeHeight,
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
+	isUrlOnlyBookmarkUrl,
 	setBookmarkHeight,
 	resolveBookmarkAssetForUrlChange,
 } from './bookmarks'
@@ -135,7 +136,7 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 			next = resolveBookmarkAssetForUrlChange(this.editor, shape)
 		}
 
-		if (prev.props.assetId !== next.props.assetId) {
+		if (prev.props.assetId !== next.props.assetId || prev.props.url !== next.props.url) {
 			return setBookmarkHeight(this.editor, next)
 		}
 
@@ -175,6 +176,7 @@ export function BookmarkShapeComponent({
 	const isSafariExport = !!useSvgExportContext() && tlenv.isSafari
 
 	const address = getHumanReadableAddress(url)
+	const title = asset ? asset.props.title : isUrlOnlyBookmarkUrl(url) ? url : ''
 
 	const [isFaviconValid, setIsFaviconValid] = useState(true)
 	const onFaviconError = () => setIsFaviconValid(false)
@@ -198,7 +200,7 @@ export function BookmarkShapeComponent({
 					maxHeight: h,
 				}}
 			>
-				{showImageContainer && (!asset || asset.props.image) && (
+				{showImageContainer && (asset ? asset.props.image : !isUrlOnlyBookmarkUrl(url)) && (
 					<div className="tl-bookmark__image_container">
 						{asset ? (
 							<img
@@ -215,7 +217,7 @@ export function BookmarkShapeComponent({
 					</div>
 				)}
 				<div className="tl-bookmark__copy_container">
-					{asset?.props.title ? (
+					{title ? (
 						<a
 							className="tl-bookmark__link"
 							href={url || ''}
@@ -225,9 +227,7 @@ export function BookmarkShapeComponent({
 							onPointerDown={markAsHandledOnShiftKey}
 							onPointerUp={markAsHandledOnShiftKey}
 						>
-							<h2 className="tl-bookmark__heading">
-								{convertCommonTitleHTMLEntities(asset.props.title)}
-							</h2>
+							<h2 className="tl-bookmark__heading">{convertCommonTitleHTMLEntities(title)}</h2>
 						</a>
 					) : null}
 					{asset?.props.description && asset?.props.image ? (
