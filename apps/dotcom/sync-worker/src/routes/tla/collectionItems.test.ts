@@ -25,7 +25,11 @@ function mockPool(resultSets: unknown[][]) {
 }
 
 function makeEnv() {
-	return { ROOMS: createFakeR2() } as unknown as Environment
+	return {
+		ROOMS: createFakeR2(),
+		UPLOADS: createFakeR2(),
+		USER_CONTENT_URL: 'https://content.test',
+	} as unknown as Environment
 }
 
 function addRequest(fields: Record<string, string | Blob>) {
@@ -133,6 +137,54 @@ describe('addCollectionItem', () => {
 		mockPool([[collectionAccess(W, 'member')]])
 		const response = await addCollectionItem(addRequest(fields), makeEnv())
 		expect(response.status).toBe(400)
+	})
+})
+
+describe('addCollectionItem, with uploaded images in the content', () => {
+	const image = (src: string, fileId?: string) => ({
+		id: 'asset:photo',
+		typeName: 'asset',
+		type: 'image',
+		props: { src, w: 10, h: 10 },
+		meta: fileId ? { fileId } : {},
+	})
+	const withAssets = (assets: unknown[]) =>
+		JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets } })
+
+	it('copies each uploaded image to an object the item owns and points the content at it', async () => {
+		const fake = mockPool([[collectionAccess(W, 'member')]])
+		const env = makeEnv()
+		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
+
+		const response = await addCollectionItem(
+			addRequest({ content: withAssets([image('https://content.test/abc123-png', 'file-a')]) }),
+			env
+		)
+
+		const { id } = (await response.json()) as { id: string }
+		const uploads = (await env.UPLOADS.list()).objects.map((o: { key: string }) => o.key)
+		const copyName = uploads.find((key: string) => key !== 'abc123-png')!
+		expect(copyName).toMatch(/-png$/)
+		const stored = await (await env.ROOMS.get(getCollectionItemContentKey(id)))!.json<any>()
+		expect(stored.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
+		// so a board it's placed on copies the image for itself
+		expect(stored.content.assets[0].meta).toEqual({})
+		const ownership = fake.queries.find((q) =>
+			q.sql.startsWith('insert into "collection_item_asset"')
+		)!
+		expect(ownership.parameters).toEqual([id, copyName])
+	})
+
+	it('leaves an asset whose upload is missing, or that is not an upload, as it was', async () => {
+		const fake = mockPool([[collectionAccess(W, 'member')]])
+		const env = makeEnv()
+		const assets = [image('https://content.test/gone-png'), image('data:image/png;base64,AAAA')]
+		const response = await addCollectionItem(addRequest({ content: withAssets(assets) }), env)
+
+		const { id } = (await response.json()) as { id: string }
+		const stored = await (await env.ROOMS.get(getCollectionItemContentKey(id)))!.json<any>()
+		expect(stored.content.assets).toEqual(assets)
+		expect(fake.queries.some((q) => q.sql.includes('collection_item_asset'))).toBe(false)
 	})
 })
 

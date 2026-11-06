@@ -1,6 +1,7 @@
-import { can, isRole, TlaCollectionItem } from '@tldraw/dotcom-shared'
+import { can, isRole, TlaCollectionItem, TlaCollectionItemAsset } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { copyItemAssets, StoredItemContent } from '../../collectionItemAssets'
 import {
 	getCollectionAccess,
 	getCollectionItemContentKey,
@@ -21,7 +22,7 @@ export interface CopyCollectionResponseBody {
 
 /**
  * Copies a collection, with its items, into a workspace: new rows, and copies of each item's
- * stored objects made here rather than through the client. The caller must be a member of the
+ * stored objects and of the uploads it owns, made here rather than through the client. The caller must be a member of the
  * collection's workspace and able to manage collections in the destination. An item whose content
  * is missing is left out.
  */
@@ -53,12 +54,13 @@ export async function copyCollection(request: IRequest, env: Environment) {
 
 		const id = uniqueId()
 		const now = Date.now()
-		const copiedKeys: string[] = []
+		const copied: CopiedObjects = { keys: [], uploads: [] }
 		const rows: TlaCollectionItem[] = []
+		const owned: TlaCollectionItemAsset[] = []
 		try {
 			for (const item of items) {
 				const newItemId = uniqueId()
-				const copy = await copyItemObjects(env, item, newItemId, copiedKeys)
+				const copy = await copyItemObjects(env, item, newItemId, copied)
 				if (!copy) continue
 				rows.push({
 					id: newItemId,
@@ -69,6 +71,8 @@ export async function copyCollection(request: IRequest, env: Environment) {
 					createdAt: now,
 					updatedAt: now,
 				})
+				for (const objectName of copy.ownedObjectNames)
+					owned.push({ itemId: newItemId, objectName })
 			}
 			await db.transaction().execute(async (tx) => {
 				await tx
@@ -84,9 +88,11 @@ export async function copyCollection(request: IRequest, env: Environment) {
 					})
 					.execute()
 				if (rows.length > 0) await tx.insertInto('collection_item').values(rows).execute()
+				if (owned.length > 0) await tx.insertInto('collection_item_asset').values(owned).execute()
 			})
 		} catch (error) {
-			if (copiedKeys.length > 0) await env.ROOMS.delete(copiedKeys)
+			if (copied.keys.length > 0) await env.ROOMS.delete(copied.keys)
+			if (copied.uploads.length > 0) await env.UPLOADS.delete(copied.uploads)
 			throw error
 		}
 		return Response.json({ id } satisfies CopyCollectionResponseBody)
@@ -95,20 +101,34 @@ export async function copyCollection(request: IRequest, env: Environment) {
 	}
 }
 
-/** Copies an item's stored objects to a new id; null when its content is missing. */
+interface CopiedObjects {
+	keys: string[]
+	uploads: string[]
+}
+
+/**
+ * Copies an item's stored objects to a new id, the copy owning its own copies of the uploads its
+ * content refers to; null when its content is missing.
+ */
 async function copyItemObjects(
 	env: Environment,
 	item: TlaCollectionItem,
 	newId: string,
-	copiedKeys: string[]
+	copied: CopiedObjects
 ) {
-	const content = await env.ROOMS.get(getCollectionItemContentKey(item.id))
-	if (!content) return null
+	const stored = await env.ROOMS.get(getCollectionItemContentKey(item.id))
+	if (!stored) return null
+	const { content, ownedObjectNames } = await copyItemAssets(
+		env,
+		(await stored.json()) as StoredItemContent,
+		newId
+	)
+	copied.uploads.push(...ownedObjectNames)
 	const contentKey = getCollectionItemContentKey(newId)
-	await env.ROOMS.put(contentKey, await content.arrayBuffer(), {
+	await env.ROOMS.put(contentKey, JSON.stringify(content), {
 		httpMetadata: { contentType: 'application/json' },
 	})
-	copiedKeys.push(contentKey)
+	copied.keys.push(contentKey)
 
 	let thumbnailType = item.thumbnailType
 	if (thumbnailType) {
@@ -118,10 +138,10 @@ async function copyItemObjects(
 			await env.ROOMS.put(thumbnailKey, await thumbnail.arrayBuffer(), {
 				httpMetadata: { contentType: thumbnailType },
 			})
-			copiedKeys.push(thumbnailKey)
+			copied.keys.push(thumbnailKey)
 		} else {
 			thumbnailType = null
 		}
 	}
-	return { thumbnailType }
+	return { thumbnailType, ownedObjectNames }
 }

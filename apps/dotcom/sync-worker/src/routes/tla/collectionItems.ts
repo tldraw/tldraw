@@ -1,6 +1,7 @@
 import { can, isRole, MAX_COLLECTION_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { copyItemAssets, StoredItemContent } from '../../collectionItemAssets'
 import {
 	COLLECTION_ITEM_THUMBNAIL_TYPES,
 	getCollectionAccess,
@@ -29,15 +30,17 @@ async function readText(value: FormDataEntryValue | null) {
 	return typeof value === 'string' ? value : await value.text()
 }
 
-function isItemContent(value: unknown) {
+function isItemContent(value: unknown): value is StoredItemContent {
 	if (!value || typeof value !== 'object') return false
-	const { formatVersion, content } = value as { formatVersion?: unknown; content?: unknown }
-	return formatVersion === 1 && !!content && typeof content === 'object'
+	const { formatVersion, content } = value as { formatVersion?: unknown; content?: any }
+	if (formatVersion !== 1 || !content || typeof content !== 'object') return false
+	return content.assets === undefined || Array.isArray(content.assets)
 }
 
 /**
- * Adds an item to a collection: stores its content (a TLCollectionItemContent as JSON) and
- * optional thumbnail, then inserts its row, which reaches clients through Zero. The worker picks
+ * Adds an item to a collection: gives it its own copies of the uploads its content refers to (see
+ * copyItemAssets), stores its content (a TLCollectionItemContent as JSON) and optional thumbnail,
+ * then inserts its row, which reaches clients through Zero, and records the copies it owns. The worker picks
  * the item's id, so a request can't name an existing item and overwrite its content.
  *
  * Form fields: `content`, `thumbnail` (optional, PNG, WebP or JPEG), `name` (optional).
@@ -84,34 +87,46 @@ export async function addCollectionItem(request: IRequest, env: Environment) {
 		}
 
 		const id = uniqueId()
-		const keys = [getCollectionItemContentKey(id)]
-		await env.ROOMS.put(keys[0], contentText, {
-			httpMetadata: { contentType: 'application/json' },
-		})
-		if (thumbnailFile) {
-			keys.push(getCollectionItemThumbnailKey(id))
-			await env.ROOMS.put(keys[1], await thumbnailFile.arrayBuffer(), {
-				httpMetadata: { contentType: thumbnailFile.type },
-			})
-		}
-
 		const now = Date.now()
+		const keys: string[] = []
+		let ownedObjectNames: string[] = []
 		try {
-			await db
-				.insertInto('collection_item')
-				.values({
-					id,
-					collectionId,
-					name,
-					thumbnailType: thumbnailFile?.type ?? null,
-					createdBy: auth.userId,
-					createdAt: now,
-					updatedAt: now,
+			const owned = await copyItemAssets(env, content, id)
+			ownedObjectNames = owned.ownedObjectNames
+			keys.push(getCollectionItemContentKey(id))
+			await env.ROOMS.put(keys[0], JSON.stringify(owned.content), {
+				httpMetadata: { contentType: 'application/json' },
+			})
+			if (thumbnailFile) {
+				keys.push(getCollectionItemThumbnailKey(id))
+				await env.ROOMS.put(keys[1], await thumbnailFile.arrayBuffer(), {
+					httpMetadata: { contentType: thumbnailFile.type },
 				})
-				.execute()
+			}
+			await db.transaction().execute(async (tx) => {
+				await tx
+					.insertInto('collection_item')
+					.values({
+						id,
+						collectionId,
+						name,
+						thumbnailType: thumbnailFile?.type ?? null,
+						createdBy: auth.userId,
+						createdAt: now,
+						updatedAt: now,
+					})
+					.execute()
+				if (ownedObjectNames.length > 0) {
+					await tx
+						.insertInto('collection_item_asset')
+						.values(ownedObjectNames.map((objectName) => ({ itemId: id, objectName })))
+						.execute()
+				}
+			})
 		} catch (error) {
 			// e.g. the collection was deleted meanwhile; nothing refers to the objects yet
-			await env.ROOMS.delete(keys)
+			if (keys.length > 0) await env.ROOMS.delete(keys)
+			if (ownedObjectNames.length > 0) await env.UPLOADS.delete(ownedObjectNames)
 			throw error
 		}
 		return Response.json({ id, createdAt: now } satisfies AddCollectionItemResponseBody)

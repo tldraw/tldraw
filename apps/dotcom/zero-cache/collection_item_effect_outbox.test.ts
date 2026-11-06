@@ -4,8 +4,8 @@ import { fileURLToPath } from 'url'
 import pg from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
-// Integration test for the collection tables (055) and the collection_item delete trigger (056),
-// which queues the R2 cleanup TLFileEffectProcessor runs. The cases that need a real Postgres are
+// Integration test for the collection tables (055), the collection_item delete trigger (056),
+// which queues the R2 cleanup TLFileEffectProcessor runs, and the item asset ownership table (057). The cases that need a real Postgres are
 // the cascades: items removed with their collection, or with a workspace that is hard-deleted,
 // must still produce outbox rows.
 //
@@ -54,7 +54,9 @@ describeMaybe('collection_item effect_outbox trigger', () => {
 	})
 
 	beforeEach(async () => {
-		await client.query(`TRUNCATE "group", collection, collection_item, effect_outbox CASCADE`)
+		await client.query(
+			`TRUNCATE "group", collection, collection_item, collection_item_asset, effect_outbox CASCADE`
+		)
 		await client.query(`INSERT INTO "group" ("id", "name") VALUES ('g1', 'g1')`)
 		await client.query(
 			`INSERT INTO collection ("id", "name", "owningGroupId", "createdBy", "createdAt", "updatedAt")
@@ -100,6 +102,15 @@ describeMaybe('collection_item effect_outbox trigger', () => {
 		await client.query(`DELETE FROM "group" WHERE "id" = 'g1'`)
 		expect(await client.query(`SELECT 1 FROM collection`)).toMatchObject({ rowCount: 0 })
 		expect((await outbox()).map((r) => r.entityId)).toEqual(['i1', 'i2'])
+	})
+
+	it("keeps an item's owned uploads until the worker's cleanup removes them (057)", async () => {
+		await client.query(
+			`INSERT INTO collection_item_asset ("itemId", "objectName") VALUES ('i1', 'abc-png')`
+		)
+		await client.query(`DELETE FROM collection WHERE "id" = 'c1'`)
+		const owned = await client.query(`SELECT "objectName" FROM collection_item_asset`)
+		expect(owned.rows).toEqual([{ objectName: 'abc-png' }])
 	})
 
 	it('refuses a collection whose workspace does not exist', async () => {

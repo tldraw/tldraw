@@ -12,6 +12,7 @@ const { requireAuth } = await import('../../utils/tla/getAuth')
 const { copyCollection } = await import('./copyCollection')
 
 const ME = 'user_aaaa11112222bbbb'
+const STORED = JSON.stringify({ formatVersion: 1, content: { shapes: [], assets: [] } })
 const W = 'group_www11112222www'
 const V = 'group_vvv11112222vvv'
 const COLLECTION_ID = 'coll_aaaa11112222bbbb'
@@ -32,6 +33,14 @@ const item = (id: string, thumbnailType: string | null) => ({
 	createdAt: 1,
 	updatedAt: 1,
 })
+
+function makeEnv() {
+	return {
+		ROOMS: createFakeR2(),
+		UPLOADS: createFakeR2(),
+		USER_CONTENT_URL: 'https://content.test',
+	} as unknown as Environment
+}
 
 function mockPool(resultSets: unknown[][]) {
 	const fake = createFakeKysely(resultSets)
@@ -57,10 +66,10 @@ afterEach(() => vi.clearAllMocks())
 
 describe('copyCollection', () => {
 	it("copies the rows and each item's stored objects to new ids", async () => {
-		const env = { ROOMS: createFakeR2() } as unknown as Environment
-		await env.ROOMS.put(getCollectionItemContentKey('item_a'), '{"formatVersion":1}')
+		const env = makeEnv()
+		await env.ROOMS.put(getCollectionItemContentKey('item_a'), STORED)
 		await env.ROOMS.put(getCollectionItemThumbnailKey('item_a'), new Uint8Array([1]))
-		await env.ROOMS.put(getCollectionItemContentKey('item_b'), '{"formatVersion":1}')
+		await env.ROOMS.put(getCollectionItemContentKey('item_b'), STORED)
 		const fake = mockPool([
 			[access('member')],
 			[{ role: 'member' }],
@@ -89,20 +98,54 @@ describe('copyCollection', () => {
 
 	it("answers 404 when I'm not a member of the collection's workspace", async () => {
 		mockPool([[access(null)]])
-		const env = { ROOMS: createFakeR2() } as unknown as Environment
+		const env = makeEnv()
 		expect((await copyCollection(request(V), env)).status).toBe(404)
 	})
 
 	it("answers 403 when I'm not a member of the destination", async () => {
 		const fake = mockPool([[access('member')], []])
-		const env = { ROOMS: createFakeR2() } as unknown as Environment
+		const env = makeEnv()
 		expect((await copyCollection(request(V), env)).status).toBe(403)
 		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
 	it('copies into my home workspace, which may have no group_user row', async () => {
 		mockPool([[access('member')], [], []])
-		const env = { ROOMS: createFakeR2() } as unknown as Environment
+		const env = makeEnv()
 		expect((await copyCollection(request(ME), env)).status).toBe(200)
+	})
+})
+
+describe('copyCollection, with uploads the items own', () => {
+	it("gives each copied item its own copies of the source item's uploads", async () => {
+		const env = makeEnv()
+		const asset = {
+			id: 'asset:photo',
+			typeName: 'asset',
+			type: 'image',
+			props: { src: 'https://content.test/owned1-png' },
+			meta: {},
+		}
+		await env.UPLOADS.put('owned1-png', new Uint8Array([7]))
+		await env.ROOMS.put(
+			getCollectionItemContentKey('item_a'),
+			JSON.stringify({ formatVersion: 1, content: { shapes: [], assets: [asset] } })
+		)
+		const fake = mockPool([[access('member')], [{ role: 'member' }], [item('item_a', null)]])
+
+		expect((await copyCollection(request(V), env)).status).toBe(200)
+
+		const uploads = (await env.UPLOADS.list()).objects.map((o: { key: string }) => o.key)
+		expect(uploads).toHaveLength(2)
+		const copyName = uploads.find((key: string) => key !== 'owned1-png')!
+		expect(copyName).toMatch(/-png$/)
+		const ownership = fake.queries.find((q) =>
+			q.sql.startsWith('insert into "collection_item_asset"')
+		)!
+		expect(ownership.parameters).toContain(copyName)
+		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "collection_item"'))!
+		const newItemId = itemInsert.parameters[0] as string
+		const copied = await (await env.ROOMS.get(getCollectionItemContentKey(newItemId)))!.json<any>()
+		expect(copied.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
 	})
 })
