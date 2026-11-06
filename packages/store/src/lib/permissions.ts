@@ -170,7 +170,8 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 
 	/**
 	 * Run the chain on one batch. It fails closed: if a layer throws, every access is denied with the
-	 * reason `'error'`. Accesses that a layer dropped are denied with the reason `'denied'`. An
+	 * reason `'error'`, and `onError` is called. A layer that changes an access's id or typeName is a
+	 * bug too: `onError` is called, and the access is denied. Accesses that a layer dropped are denied with the reason `'denied'`. An
 	 * allowed access whose kind, type, id or typeName was changed by a layer is denied with the
 	 * reason `'invalid change'`.
 	 */
@@ -240,9 +241,14 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 		for (const access of result.allowed) {
 			const key = getRecordAccessKey(access)
 			const input = inputs.get(key)
-			if (!input || seen.has(key)) continue
+			if (!input || seen.has(key)) {
+				if (!input)
+					opts.onError?.(new Error(`a layer allowed an access that is not in the batch: ${key}`))
+				continue
+			}
 			seen.add(key)
 			if (!isSameTarget(input, access) || kindOf(access) !== kind) {
+				opts.onError?.(new Error(`a layer changed the type, id or typeName of ${key}`))
 				denied.push({ access: input, reason: 'invalid change' })
 			} else {
 				allowed.push(access)

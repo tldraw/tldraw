@@ -34,9 +34,10 @@ function session(
 ): {
 	sessionId: string
 	isReadonly: boolean
+	objectAccess: 'write'
 	meta: TestMeta
 } {
-	return { sessionId: 's1', isReadonly, meta: { userId } }
+	return { sessionId: 's1', isReadonly, objectAccess: 'write', meta: { userId } }
 }
 
 describe('createCommentAuthorizers', () => {

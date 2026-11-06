@@ -100,8 +100,8 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 }
 
 /**
- * Server-side write authorization for comment records, for use with a sync server's
- * `authorizeRecord` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
+ * Server-side write authorization for comment records. Run it as one layer of a sync server's
+ * permission chain with `recordAuthorizers` (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
  * session's identity so nothing can be posted, resolved, or deleted in someone else's name:
  *
  * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after,
@@ -119,7 +119,7 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  *   grants no more than those three writes on records the session doesn't own.
  *
  * Comment records ride alongside your document records, so widen the room's record union to
- * include them, then spread the result into the authorizer map alongside your own entries:
+ * include them, then add the result to the room's chain:
  *
  * @example
  * ```ts
@@ -130,9 +130,11 @@ export interface CommentAuthorizerOptions<SessionMeta> {
  * type MyRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
  *
  * new TLSocketRoom<MyRecord, SessionMeta>({
- * 	authorizeRecord: {
- * 		...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
- * 	},
+ * 	permissions: new PermissionChain(
+ * 		recordAuthorizers(
+ * 			createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId })
+ * 		)
+ * 	),
  * })
  * ```
  *

@@ -398,7 +398,8 @@ room.handleSocketConnect({
 [TLSocketRoom#getCurrentObjectsSnapshot](?), and use the room's `onCommittedChanges` callback to
 mirror committed records into your own database. That callback only fires for client pushes, not for
 `updateStore`, `loadSnapshot`, or direct storage writes. For per-record rules like "only the author
-may edit a comment", pass authorizers to the room's `authorizeRecord` option (see [TLRecordAuthorizers](?)).
+may edit a comment", give the room a permission chain in its `permissions` option, and add per-type
+rules to it with [recordAuthorizers](?).
 See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
 ### Deployment concerns

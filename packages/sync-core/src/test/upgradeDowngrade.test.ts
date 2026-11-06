@@ -1,4 +1,5 @@
 import { computed } from '@tldraw/state'
+import { PermissionChain } from '@tldraw/store'
 import {
 	BaseRecord,
 	RecordId,
@@ -14,6 +15,7 @@ import {
 import { commentSchemaRecords, createTLSchema } from '@tldraw/tlschema'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
+import { recordAuthorizers } from '../lib/permissions'
 import { TLSocketServerSentEvent, getTlsyncProtocolVersion } from '../lib/protocol'
 import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import { RoomSnapshot, TLRoomSocket } from '../lib/TLSyncRoom'
@@ -1262,7 +1264,7 @@ describe('when the client is the same version', () => {
 describe('record authorizers see server-schema records', () => {
 	function makeInstance(authorizeUser: (args: any) => any) {
 		return new TestInstance(undefined, schemaV1, schemaV2, {
-			authorizeRecord: { user: authorizeUser },
+			permissions: new PermissionChain(recordAuthorizers({ user: authorizeUser } as any)),
 		})
 	}
 

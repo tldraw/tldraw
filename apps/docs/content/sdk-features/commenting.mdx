@@ -602,23 +602,27 @@ const room = new TLSocketRoom({
 
 `onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
 
-This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — pass it to the room's `authorizeRecord`:
+This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — add it to the room's permission chain:
 
 ```ts
+import { PermissionChain } from '@tldraw/store'
+import { recordAuthorizers } from '@tldraw/sync-core'
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 
 const room = new TLSocketRoom({
 	schema,
 	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
-	authorizeRecord: {
-		...createCommentAuthorizers<SessionMeta>({
-			getUserId: (session) => session.meta.userId,
-			// Moderators may take anything down. Editing stays the author's, whoever you are.
-			canModifyComment: (ctx) =>
-				(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
-				ctx.userId === ctx.ownerId,
-		}),
-	},
+	permissions: new PermissionChain(
+		recordAuthorizers(
+			createCommentAuthorizers<SessionMeta>({
+				getUserId: (session) => session.meta.userId,
+				// Moderators may take anything down. Editing stays the author's, whoever you are.
+				canModifyComment: (ctx) =>
+					(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
+					ctx.userId === ctx.ownerId,
+			})
+		)
+	),
 })
 ```
 
