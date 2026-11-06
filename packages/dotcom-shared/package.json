@@ -12,6 +12,7 @@
 		"@rocicorp/zero": "1.11.3",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
+		"@tldraw/sync-collaboration": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",

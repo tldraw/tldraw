@@ -1,13 +1,6 @@
-import {
-	createComment,
-	createCommentThread,
-	TLComment,
-	TLPageId,
-	TLShape,
-	toRichText,
-} from '@tldraw/tlschema'
+import { filePermissions } from '@tldraw/dotcom-shared'
+import type { TLPushDeniedInfo } from '@tldraw/sync-core'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { authorizeFileRecord } from './authorizeFileRecord'
 import { TLFileDurableObject } from './TLFileDurableObject'
 
 vi.mock('cloudflare:workers', () => ({ DurableObject: class {} }))
@@ -45,11 +38,12 @@ async function harness(saved = new Map<string, unknown>()) {
 		getStorage: async () => ({}),
 		maybeAssociateFileAssets: vi.fn(),
 	})
-	const auth = (await object.getRoom()).options.authorizeRecord as typeof authorizeFileRecord
+	const options = (await object.getRoom()).options
 	points.length = 0
 	return {
 		object,
-		auth,
+		options,
+		deny: (reason: string) => options.onPushDenied(denial(reason)),
 		points,
 		warnings,
 		flush: async () => {
@@ -57,110 +51,68 @@ async function harness(saved = new Map<string, unknown>()) {
 		},
 	}
 }
-const session = {
-	sessionId: 'secret-session',
-	isReadonly: false,
-	meta: { userId: 'alice', storeId: 'secret-store' },
-}
-const note = (userId: string) =>
-	({
-		id: 'shape:secret',
-		typeName: 'shape',
-		type: 'note',
-		props: { textLastEditedBy: userId },
-	}) as TLShape
 
-function point(type: string, operation: string, shapeType: string, count = 1) {
+function denial(reason: string): TLPushDeniedInfo<unknown> {
 	return {
-		blobs: ['record_vetoed', 'test-worker', type, operation, shapeType],
+		sessionId: 'secret-session',
+		meta: { userId: 'alice', storeId: 'secret-store' },
+		access: { userId: 'alice', abilities: ['edit', 'comment'] },
+		reason,
+		intent: { name: 'secret-client-intent' },
+	}
+}
+
+function point(reason: string, count = 1) {
+	return {
+		blobs: ['push_denied', 'test-worker', reason],
 		indexes: ['durable-object-id'],
 		doubles: [count],
 	}
 }
+
+const NOTE = 'You can only attribute note text to yourself.'
+const THREAD = 'Threads are deleted with their isDeleted flag, not removed.'
 
 afterEach(() => {
 	vi.useRealTimers()
 	vi.restoreAllMocks()
 })
 
-describe('file room record veto telemetry', () => {
-	it('indexes every create/update/delete veto by room with bounded record dimensions', async () => {
-		vi.useFakeTimers()
-		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValueOnce(null).mockReturnValueOnce(null)
+describe('file room push denial telemetry', () => {
+	it('gives the room the shared file permissions', async () => {
 		const h = await harness()
-		const { auth } = h
-		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
-		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
-		expect(
-			auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
-		).toBeNull()
-		const thread = createCommentThread({
-			pageId: 'page:test' as TLPageId,
-			anchor: { type: 'page' },
-			createdBy: 'alice',
-		})
-		expect(
-			auth['comment-thread']!({ session, type: 'delete', prev: thread, next: null })
-		).toBeNull()
+		expect(h.options.permissions).toBe(filePermissions)
+	})
+
+	it('indexes denials by room and reason, without session or intent details', async () => {
+		vi.useFakeTimers()
+		const h = await harness()
+		h.deny(NOTE)
+		h.deny(NOTE)
+		h.deny(THREAD)
 		expect(h.points).toEqual([])
 		await h.flush()
-		expect(h.points).toEqual([
-			point('shape', 'create', 'note', 2),
-			point('shape', 'update', 'note'),
-			point('comment-thread', 'delete', ''),
-		])
+		expect(h.points).toEqual([point(NOTE, 2), point(THREAD)])
 		expect(h.warnings).toEqual([
-			{
-				durableObjectId: 'durable-object-id',
-				slug: 'file-id',
-				typeName: 'shape',
-				operation: 'create',
-				shapeType: 'note',
-			},
-			{ message: 'File record vetoed', level: 'warning' },
+			{ durableObjectId: 'durable-object-id', slug: 'file-id', reason: NOTE },
+			{ message: 'File push denied', level: 'warning' },
 		])
 	})
-	it('batches a thousand vetoes after authorization and resets the queue for the next push', async () => {
+
+	it('batches a thousand denials and resets the queue for the next push', async () => {
 		vi.useFakeTimers()
 		const h = await harness()
-		const { auth } = h
 		const waitUntil = vi.spyOn(h.object.state, 'waitUntil')
-		for (let i = 0; i < 1000; i++) {
-			expect(
-				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
-			).toBeNull()
-		}
+		for (let i = 0; i < 1000; i++) h.deny(NOTE)
 		expect(h.points).toEqual([])
 		expect(waitUntil).toHaveBeenCalledTimes(1)
 		await h.flush()
-		expect(h.points).toEqual([point('shape', 'update', 'note', 1000)])
-		auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+		expect(h.points).toEqual([point(NOTE, 1000)])
+		h.deny(NOTE)
 		await h.flush()
 		expect(h.points).toHaveLength(2)
-		expect(h.points[1]).toEqual(point('shape', 'update', 'note'))
+		expect(h.points[1]).toEqual(point(NOTE))
 		expect(h.warnings).toHaveLength(2)
-	})
-
-	it('preserves allowed creates, updates, and deletes without scheduling telemetry', async () => {
-		vi.useFakeTimers()
-		const h = await harness()
-		const { auth } = h
-		const waitUntil = vi.spyOn(h.object.state, 'waitUntil')
-		const read = vi.spyOn(h.object.storage, 'get')
-		const write = vi.spyOn(h.object.storage, 'put')
-		const capture = vi.spyOn(h.object.sentry, 'captureMessage')
-		const next = note('alice')
-		for (let i = 0; i < 1000; i++) {
-			expect(auth.shape({ session, type: 'create', prev: null, next })).toBe(next)
-			expect(auth.shape({ session, type: 'update', prev: next, next })).toBe(next)
-			expect(auth.shape({ session, type: 'delete', prev: next, next: null })).toBe(next)
-		}
-		await h.flush()
-		expect(h.points).toEqual([])
-		expect(waitUntil).not.toHaveBeenCalled()
-		expect(read).not.toHaveBeenCalled()
-		expect(write).not.toHaveBeenCalled()
-		expect(capture).not.toHaveBeenCalled()
 	})
 
 	it('retains the warning cooldown across hibernation and permits a later boot warning', async () => {
@@ -173,17 +125,16 @@ describe('file room record veto telemetry', () => {
 		]) {
 			vi.setSystemTime(new Date('2026-01-01T00:00:00Z').getTime() + minutes * 60_000)
 			const h = await harness(saved)
-			const { auth } = h
-			auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+			h.deny(NOTE)
 			await h.flush()
 			expect(h.warnings).toHaveLength(expected)
 		}
 	})
-	it('keeps vetoes when analytics, storage, or Sentry fail', async () => {
+
+	it('survives analytics, storage, or Sentry failures', async () => {
 		vi.useFakeTimers()
 		for (const dependency of ['analytics', 'storage', 'sentry']) {
 			const h = await harness()
-			const { auth } = h
 			const fail = () => {
 				throw new Error('telemetry unavailable')
 			}
@@ -191,70 +142,22 @@ describe('file room record veto telemetry', () => {
 			if (dependency === 'analytics') h.object.measure.writeDataPoint = fail
 			if (dependency === 'storage') h.object.storage.put = fail
 			if (dependency === 'sentry') h.object.sentry.captureMessage = fail
-			expect(
-				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
-			).toBeNull()
+			h.deny(NOTE)
 			await expect(h.flush()).resolves.toBeUndefined()
 			if (dependency === 'analytics') {
 				h.object.measure.writeDataPoint = writeDataPoint
-				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+				h.deny(NOTE)
 				await h.flush()
-				expect(h.points).toEqual([point('shape', 'update', 'note')])
+				expect(h.points).toEqual([point(NOTE)])
 			}
 		}
 	})
 
-	it('bounds unvalidated shape types without including the client record type name', async () => {
-		vi.useFakeTimers()
-		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValue(null)
+	it('never throws out of onPushDenied', async () => {
 		const h = await harness()
-		const { auth } = h
-		const next = {
-			...note('bob'),
-			type: 'secret-client-content',
-			typeName: 'secret-type-name',
-		} as unknown as TLShape
-		expect(auth.shape({ session, type: 'create', prev: null, next })).toBeNull()
-		expect(h.points).toEqual([])
-		await h.flush()
-		expect(h.points).toEqual([point('shape', 'create', 'unknown')])
-		expect(h.warnings[0]).toEqual({
-			durableObjectId: 'durable-object-id',
-			slug: 'file-id',
-			typeName: 'shape',
-			operation: 'create',
-			shapeType: 'unknown',
-		})
-	})
-
-	it('preserves canonicalized results, missing authorizers, and policy exceptions', async () => {
-		vi.useFakeTimers()
-		const comment = createComment({
-			pageId: 'page:test' as TLPageId,
-			threadId: 'comment-thread:test' as TLComment['threadId'],
-			authorId: 'bob',
-			body: toRichText('Hello'),
-		})
-		vi.spyOn(authorizeFileRecord, 'shape').mockImplementation(() => {
-			throw new Error('policy failed')
-		})
-		const original = authorizeFileRecord['comment-reaction']
-		try {
-			authorizeFileRecord['comment-reaction'] = undefined
-			const h = await harness()
-			expect(h.auth['comment-reaction']).toBeUndefined()
-			expect(h.auth.comment!({ session, type: 'create', prev: null, next: comment })).toEqual({
-				...comment,
-				authorId: 'alice',
-			})
-			expect(() =>
-				h.auth.shape({ session, type: 'create', prev: null, next: note('bob') })
-			).toThrow('policy failed')
-			await h.flush()
-			expect(h.points).toEqual([])
-			expect(h.warnings).toEqual([])
-		} finally {
-			authorizeFileRecord['comment-reaction'] = original
+		h.object.state.waitUntil = () => {
+			throw new Error('telemetry unavailable')
 		}
+		expect(() => h.deny(NOTE)).not.toThrow()
 	})
 })

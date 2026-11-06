@@ -20,8 +20,8 @@ import {
 	type FeatureFlagValue,
 	type Role,
 	type RoomOpenMode,
+	filePermissions,
 } from '@tldraw/dotcom-shared'
-import { UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -35,7 +35,7 @@ import {
 	loadSnapshotIntoStorage,
 	type PersistedRoomSnapshotForSupabase,
 	type SessionStateSnapshot,
-	type TLObjectStoreAccess,
+	type TLPushDeniedInfo,
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
@@ -44,29 +44,22 @@ import {
 	TLCommentReaction,
 	TLDOCUMENT_ID,
 	TLDocument,
+	TLAccess,
 	TLRecord,
+	accessCan,
 	commentSchemaRecords,
 	createTLSchema,
-	defaultShapeSchemas,
 	isCommentId,
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import {
-	ExecutionQueue,
-	assert,
-	assertExists,
-	exhaustiveSwitchError,
-	objectMapEntries,
-	retry,
-} from '@tldraw/utils'
+import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -219,16 +212,60 @@ class FileRecordNotFoundError extends Error {
 	}
 }
 
+/** Per-session metadata attached to each socket: the local store id and the authenticated user (if any). */
+interface SessionMeta {
+	storeId: string
+	userId: string | null
+}
+
+/**
+ * What a file room session may do. Read-only sessions (view links, legacy rooms) get nothing.
+ * Otherwise `edit`, plus `comment` when signed in: comment authors are stored in Postgres with a
+ * foreign key to the user table, so an anonymous author can't be represented.
+ */
+function fileSessionAccess({
+	isReadonly,
+	userId,
+}: {
+	isReadonly: boolean
+	userId: string | null
+}): TLAccess {
+	if (isReadonly) return { userId, abilities: [] }
+	return { userId, abilities: userId ? ['edit', 'comment'] : ['edit'] }
+}
+
+// Persisted across hibernation, so it is data on disk: old attachments outlive a deploy.
 interface SocketAttachment {
 	sessionId: string
 	meta: SessionMeta
-	isReadonly: boolean
-	// optional: attachments serialized before the object-store lane existed lack this field
-	objectAccess?: TLObjectStoreAccess
+	// optional: attachments serialized before permissions carry `isReadonly`/`objectAccess` instead
+	access?: TLAccess
+	isReadonly?: boolean
+	objectAccess?: 'read' | 'write'
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
 	snapshot: SessionStateSnapshot | null
+}
+
+/** The attachment's access, derived from the pre-permissions fields when it predates `access`. */
+function getAttachmentAccess(attachment: SocketAttachment): TLAccess {
+	if (attachment.access) return attachment.access
+	if (attachment.isReadonly) return { userId: attachment.meta.userId, abilities: [] }
+	return {
+		userId: attachment.meta.userId,
+		abilities: attachment.objectAccess === 'write' ? ['edit', 'comment'] : ['edit'],
+	}
+}
+
+/**
+ * The attachment's session snapshot, ready to resume. A snapshot written before permissions has no
+ * access, and the room would close its socket; give it the access the old fields granted instead.
+ */
+function getResumableSnapshot(attachment: SocketAttachment): SessionStateSnapshot | null {
+	const snapshot = attachment.snapshot
+	if (!snapshot || snapshot.access) return snapshot
+	return { ...snapshot, access: getAttachmentAccess(attachment) }
 }
 
 /** The user behind an MCP access token, in the shape the file checks already take. */
@@ -272,15 +309,10 @@ const MB = 1024 * 1024
 const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 
 // Record types served through the room's object-store lane rather than the document lane.
-// Object-lane records sync over the same socket but are gated per session by `objectAccess`
-// (instead of `isReadonly`), are excluded from `.tldr` downloads, and are persisted in Postgres
-// rather than the R2 document blob. Every entry must have an `authorizeFileRecord` authorizer —
-// that's where per-tier write policy lives (the `satisfies` enforces it).
-const OBJECT_TYPES = [
-	'comment-thread',
-	'comment',
-	'comment-reaction',
-] as const satisfies readonly (keyof typeof authorizeFileRecord)[]
+// Object-lane records sync over the same socket, are excluded from `.tldr` downloads, and are
+// persisted in Postgres rather than the R2 document blob. Who may write them is up to
+// `filePermissions` (the `comment` ability and the comment attribution rules).
+const OBJECT_TYPES = ['comment-thread', 'comment', 'comment-reaction'] as const
 
 // The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
@@ -397,32 +429,8 @@ export class TLFileDurableObject extends DurableObject {
 
 	sentry: ReturnType<typeof createSentry> | null = null
 
-	private recordVetoWarningScheduled = false
-	private recordVetoCounts?: Map<string, number>
-
-	private observeRecordAuthorizers(
-		authorizers: typeof authorizeFileRecord
-	): typeof authorizeFileRecord {
-		return Object.fromEntries(
-			objectMapEntries(authorizers).map(([typeName, authorize]) => {
-				if (!authorize) return [typeName, undefined]
-				return [
-					typeName,
-					(args: Parameters<typeof authorize>[0]) => {
-						const result = authorize(args as never)
-						if (result === null) {
-							try {
-								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
-							} catch {
-								// Failed telemetry must never change authorization.
-							}
-						}
-						return result
-					},
-				]
-			})
-		) as typeof authorizeFileRecord
-	}
+	private pushDeniedWarningScheduled = false
+	private pushDeniedCounts?: Map<string, number>
 
 	getRoom() {
 		if (!this._documentInfo) {
@@ -516,7 +524,14 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						permissions: filePermissions,
+						onPushDenied: (info) => {
+							try {
+								this.recordPushDenied(info)
+							} catch {
+								// Failed telemetry must never change authorization.
+							}
+						},
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -531,11 +546,12 @@ export class TLFileDurableObject extends DurableObject {
 					for (const ws of this.state.getWebSockets()) {
 						const attachment = ws.deserializeAttachment() as SocketAttachment | null
 						if (!attachment?.sessionId) continue
-						if (attachment.snapshot) {
+						const snapshot = getResumableSnapshot(attachment)
+						if (snapshot) {
 							resumes.push({
 								sessionId: attachment.sessionId,
 								socket: ws,
-								snapshot: attachment.snapshot,
+								snapshot,
 								meta: attachment.meta,
 							})
 						}
@@ -806,11 +822,12 @@ export class TLFileDurableObject extends DurableObject {
 			// Re-read after the await: a same-id reconnect during boot clears this socket's snapshot,
 			// and resuming from the stale copy would hand the new session to this closing socket.
 			const latest = this.getSocketAttachment(ws)
-			if (latest?.snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
+			const snapshot = latest && getResumableSnapshot(latest)
+			if (snapshot && !room.getSessionSnapshot(attachment.sessionId)) {
 				room.handleSocketResume({
 					sessionId: attachment.sessionId,
 					socket: ws,
-					snapshot: latest.snapshot,
+					snapshot,
 					meta: latest.meta,
 				})
 			}
@@ -1219,17 +1236,14 @@ export class TLFileDurableObject extends DurableObject {
 				storeId: storeId ?? sessionId,
 				userId: auth?.userId ? auth.userId : null,
 			}
-			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
-			// Only authenticated users can write comments — authors are stored in Postgres with a
-			// foreign key to the user table, so an anonymous author can't be represented. Tier
-			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
-			// `isReadonly`.
-			const objectAccess: TLObjectStoreAccess = auth?.userId ? 'write' : 'read'
+			const access = fileSessionAccess({
+				isReadonly: openMode === ROOM_OPEN_MODE.READ_ONLY,
+				userId: meta.userId,
+			})
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,
-				isReadonly,
-				objectAccess,
+				access,
 				clientBuildTimestamp,
 				snapshot: null,
 			}
@@ -1253,8 +1267,7 @@ export class TLFileDurableObject extends DurableObject {
 				sessionId,
 				socket: serverWebSocket,
 				meta,
-				isReadonly,
-				objectAccess,
+				access,
 			})
 			// Mapped here and on resume, never from webSocketMessage: a superseded socket for the same
 			// session id can still deliver messages, and would steal the session's snapshot writes.
@@ -1485,59 +1498,47 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	private recordVeto(
-		typeName: keyof typeof authorizeFileRecord,
-		operation: 'create' | 'update' | 'delete',
-		record: UnknownRecord
-	) {
-		const shape = record as UnknownRecord & { type?: unknown }
-		const shapeType =
-			typeName !== 'shape'
-				? ''
-				: typeof shape.type === 'string' && Object.hasOwn(defaultShapeSchemas, shape.type)
-					? shape.type
-					: 'unknown'
-		const key = `${typeName}|${operation}|${shapeType}`
-		if (this.recordVetoCounts) {
-			this.recordVetoCounts.set(key, (this.recordVetoCounts.get(key) ?? 0) + 1)
+	private recordPushDenied({ reason }: TLPushDeniedInfo<SessionMeta>) {
+		// Reasons are the rules' own fixed strings; the cap only guards the analytics blob size.
+		const key = reason.slice(0, 200)
+		if (this.pushDeniedCounts) {
+			this.pushDeniedCounts.set(key, (this.pushDeniedCounts.get(key) ?? 0) + 1)
 			return
 		}
-		const counts = (this.recordVetoCounts = new Map([[key, 1]]))
-		// Coalesce a push's vetoes to avoid per-record I/O and Analytics Engine's write limit.
-		this.state.waitUntil(Promise.resolve().then(() => this.flushRecordVetoes(counts, key)))
+		const counts = (this.pushDeniedCounts = new Map([[key, 1]]))
+		// Coalesce denials to avoid per-push I/O and Analytics Engine's write limit.
+		this.state.waitUntil(Promise.resolve().then(() => this.flushPushDenials(counts, key)))
 	}
 
-	private async flushRecordVetoes(counts: Map<string, number>, firstCategory: string) {
-		this.recordVetoCounts = undefined
-		for (const [dimensions, count] of counts) {
+	private async flushPushDenials(counts: Map<string, number>, firstReason: string) {
+		this.pushDeniedCounts = undefined
+		for (const [reason, count] of counts) {
 			try {
-				this.writeEvent('record_vetoed', { blobs: dimensions.split('|'), doubles: [count] })
+				this.writeEvent('push_denied', { blobs: [reason], doubles: [count] })
 			} catch {
 				// A failed category must not prevent the remaining counters from flushing.
 			}
 		}
-		if (this.recordVetoWarningScheduled || !this.sentry) return
-		this.recordVetoWarningScheduled = true
+		if (this.pushDeniedWarningScheduled || !this.sentry) return
+		this.pushDeniedWarningScheduled = true
 		try {
+			// Keeps the pre-permissions storage key so a deploy doesn't reset the cooldown.
 			const key = 'recordVetoWarningAt'
 			const previous = await this.storage.get<number>(key)
 			const now = Date.now()
 			// Hibernation resets fields: persist before capture so waking cannot flood Sentry.
 			if (previous !== undefined && now - previous < 60 * 60 * 1000) return
 			await this.storage.put(key, now)
-			const [typeName, operation, shapeType] = firstCategory.split('|')
 			// eslint-disable-next-line @typescript-eslint/no-deprecated
 			this.sentry?.withScope((scope) => {
-				scope.setFingerprint(['file-record-vetoed'])
+				scope.setFingerprint(['file-push-denied'])
 				scope.setExtras({
 					durableObjectId: this.id.toString(),
 					slug: this._documentInfo?.slug,
-					typeName,
-					operation,
-					shapeType,
+					reason: firstReason,
 				})
 				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				this.sentry?.captureMessage('File record vetoed', 'warning')
+				this.sentry?.captureMessage('File push denied', 'warning')
 			})
 		} catch {
 			// Failed telemetry must not retry on every edit.
@@ -3352,8 +3353,8 @@ export class TLFileDurableObject extends DurableObject {
 		// in which case we should kick people out or change their permissions
 		//
 		// Only `edit` links grant guests canvas write; anything else fails closed. A tier change
-		// flips `isReadonly`, and the reconnect refreshes the session state the comment
-		// authorizers gate on — so comparing the readonly lane alone covers both.
+		// flips `edit` and `comment` together (see fileSessionAccess), so comparing `edit` alone
+		// covers both.
 		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
 
 		for (const session of room.getSessions()) {
@@ -3371,13 +3372,33 @@ export class TLFileDurableObject extends DurableObject {
 				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
-			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
+			} else if (accessCan(session.access, 'edit') === roomIsReadOnlyForGuests) {
 				if (!(await canAccessFiles())) {
-					// not passing a reason means they will try to reconnect
-					room.closeSession(session.sessionId)
+					this.updateSessionAccess(
+						room,
+						session.sessionId,
+						fileSessionAccess({
+							isReadonly: roomIsReadOnlyForGuests,
+							userId: session.meta.userId,
+						})
+					)
 				}
 			}
 		}
+	}
+
+	/** Change a live session's access, and the copy its socket keeps across hibernation. */
+	private updateSessionAccess(
+		room: TLSocketRoom<TLRecord, SessionMeta>,
+		sessionId: string,
+		access: TLAccess
+	) {
+		// the room writes a fresh session snapshot through onSessionSnapshot before this returns
+		room.updateSessionAccess(sessionId, access)
+		const ws = this.sessionIdToWs.get(sessionId)
+		const attachment = ws && this.getSocketAttachment(ws)
+		if (!ws || !attachment) return
+		ws.serializeAttachment({ ...attachment, access })
 	}
 
 	async appFileRecordDidDelete({ id, publishedSlug }: Pick<TlaFile, 'id' | 'publishedSlug'>) {
@@ -3596,11 +3617,12 @@ export class TLFileDurableObject extends DurableObject {
 			const sessionId = attachment?.sessionId
 			// If the DO was hibernating, this session was never re-added to the room; resume it
 			// so closeSession can reject it with the session's negotiated protocol.
-			if (room && sessionId && attachment.snapshot && !room.getSessionSnapshot(sessionId)) {
+			const snapshot = attachment && getResumableSnapshot(attachment)
+			if (room && sessionId && snapshot && !room.getSessionSnapshot(sessionId)) {
 				room.handleSocketResume({
 					sessionId,
 					socket: ws,
-					snapshot: attachment.snapshot,
+					snapshot,
 					meta: attachment.meta,
 				})
 			}

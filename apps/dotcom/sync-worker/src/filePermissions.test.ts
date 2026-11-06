@@ -1,3 +1,4 @@
+import { filePermissions } from '@tldraw/dotcom-shared'
 import {
 	RecordOpType,
 	TLSocketRoom,
@@ -7,8 +8,8 @@ import {
 import {
 	DocumentRecordType,
 	PageRecordType,
+	TLAccess,
 	TLDOCUMENT_ID,
-	TLComment,
 	TLNoteShape,
 	TLPageId,
 	TLRecord,
@@ -17,82 +18,98 @@ import {
 	createCommentThread,
 	createShapeId,
 	createTLSchema,
+	createTransaction,
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
 
-function session(
-	userId: string | null,
-	isReadonly = false
-): {
-	sessionId: string
-	isReadonly: boolean
-	meta: SessionMeta
-} {
-	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId } }
+function session(userId: string | null, isReadonly = false): TLAccess {
+	return { userId, abilities: isReadonly ? [] : userId ? ['edit', 'comment'] : ['edit'] }
 }
 
-describe('authorizeFileRecord', () => {
-	// The comment/thread policy itself is tested in @tldraw/sync-collaboration; these two only
-	// verify the factory is wired in with getUserId mapped to session.meta.userId.
-	describe('comment authorizer wiring', () => {
+interface Write {
+	session: TLAccess
+	type: 'create' | 'update' | 'delete'
+	prev: TLRecord | null
+	next: TLRecord | null
+}
+
+/** Check one write against the file rules, as the room checks a push of it. */
+function allowed({ session, type, prev, next }: Write) {
+	const id = (next ?? prev)!.id
+	return filePermissions.check(
+		createTransaction<TLRecord>({
+			access: session,
+			intent: null,
+			diff: {
+				added: type === 'create' ? { [id]: next } : {},
+				updated: type === 'update' ? { [id]: [prev, next] } : {},
+				removed: type === 'delete' ? { [id]: prev } : {},
+			} as any,
+			after: { get: () => undefined, all: () => [] },
+		})
+	).ok
+}
+
+function stamp(record: TLRecord, access: TLAccess) {
+	return filePermissions.stamps.reduce((r, s) => s(r, access), record)
+}
+
+describe('filePermissions', () => {
+	// The comment/thread policy itself is tested in @tldraw/sync-collaboration; these only verify
+	// the comment rules and stamps are wired in.
+	describe('comment wiring', () => {
 		const thread = createCommentThread({
 			pageId,
 			anchor: { type: 'page' },
 			createdBy: 'real-bob',
 		})
+		const comment = (authorId: string) =>
+			createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') }) as any
 
 		it('stamps authorId from the session user id', () => {
-			const next = createComment({
-				threadId: thread.id,
-				pageId,
-				authorId: 'client-claims-alice',
-				body: toRichText('hi'),
-			})
-			const result = authorizeFileRecord.comment!({
-				session: session('real-bob'),
-				type: 'create',
-				prev: null,
-				next,
-			}) as TLComment
-			expect(result.authorId).toBe('real-bob')
-		})
-
-		it('vetoes thread hard-deletes (deletion is soft)', () => {
-			expect(
-				authorizeFileRecord['comment-thread']!({
-					session: session('real-bob'),
-					type: 'delete',
-					prev: thread,
-					next: null,
-				})
-			).toBeNull()
-		})
-
-		it('vetoes a comment create from a canvas read-only session', () => {
-			const next = createComment({
-				threadId: thread.id,
-				pageId,
+			expect(stamp(comment('client-claims-alice'), session('real-bob'))).toMatchObject({
 				authorId: 'real-bob',
-				body: toRichText('hi'),
 			})
+		})
+
+		it('denies a comment attributed to someone else', () => {
+			const next = comment('client-claims-alice')
+			expect(allowed({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
+				false
+			)
 			expect(
-				authorizeFileRecord.comment!({
-					session: session('real-bob', true),
+				allowed({
+					session: session('real-bob'),
 					type: 'create',
 					prev: null,
-					next,
+					next: comment('real-bob'),
 				})
-			).toBeNull()
+			).toBe(true)
+		})
+
+		it('denies thread hard-deletes (deletion is soft)', () => {
+			expect(
+				allowed({ session: session('real-bob'), type: 'delete', prev: thread as any, next: null })
+			).toBe(false)
+		})
+
+		it('denies a comment create from a canvas read-only session', () => {
+			const next = comment('real-bob')
+			expect(
+				allowed({ session: session('real-bob', true), type: 'create', prev: null, next })
+			).toBe(false)
+		})
+
+		it('denies a comment create from an anonymous session', () => {
+			const next = comment('real-bob')
+			expect(allowed({ session: session(null), type: 'create', prev: null, next })).toBe(false)
 		})
 	})
 
-	describe('shape', () => {
-		const authorize = authorizeFileRecord.shape!
-
+	describe('note attribution', () => {
 		function makeNote(textLastEditedBy: string | null): TLNoteShape {
 			return {
 				id: createShapeId('note1'),
@@ -129,38 +146,48 @@ describe('authorizeFileRecord', () => {
 			return { ...note, id: createShapeId('geo1'), type: 'geo', props } as unknown as TLShape
 		}
 
-		it('re-stamps a create with foreign attribution instead of dropping imported notes', () => {
+		it('denies a create with foreign attribution', () => {
 			const next = makeNote('real-alice')
-			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toEqual(
-				{ ...next, props: { ...next.props, textLastEditedBy: 'real-bob' } }
+			expect(allowed({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
+				false
 			)
+			expect(allowed({ session: session(null), type: 'create', prev: null, next })).toBe(false)
+		})
+
+		it('stamps foreign attribution on create to the session user, or to nobody signed out', () => {
+			const next = makeNote('real-alice')
+			expect(stamp(next, session('real-bob'))).toEqual({
+				...next,
+				props: { ...next.props, textLastEditedBy: 'real-bob' },
+			})
+			expect(stamp(next, session(null))).toEqual({
+				...next,
+				props: { ...next.props, textLastEditedBy: null },
+			})
 			expect(next.props.textLastEditedBy).toBe('real-alice')
+		})
+
+		it('leaves own, empty, and non-note records unstamped', () => {
+			const own = makeNote('real-bob')
+			const empty = makeNote(null)
+			const geo = makeGeo()
+			expect(stamp(own, session('real-bob'))).toBe(own)
+			expect(stamp(empty, session('real-bob'))).toBe(empty)
+			expect(stamp(geo, session('real-bob'))).toBe(geo)
 		})
 
 		it('allows a create attributed to the session user', () => {
 			const next = makeNote('real-bob')
-			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
-				next
-			)
+			expect(allowed({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(true)
 		})
 
 		it('allows a create with no attribution (empty or anonymous note)', () => {
 			const next = makeNote(null)
-			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(
-				next
-			)
-			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBe(next)
+			expect(allowed({ session: session('real-bob'), type: 'create', prev: null, next })).toBe(true)
+			expect(allowed({ session: session(null), type: 'create', prev: null, next })).toBe(true)
 		})
 
-		it('clears foreign attribution when an anonymous session creates a note', () => {
-			const next = makeNote('real-alice')
-			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toEqual({
-				...next,
-				props: { ...next.props, textLastEditedBy: null },
-			})
-		})
-
-		it('keeps local notes when a signed-in session pushes a slurped snapshot', () => {
+		it('keeps local notes when a signed-in client stamps a slurped snapshot', () => {
 			const schema = createTLSchema()
 			const document = DocumentRecordType.create({
 				id: TLDOCUMENT_ID,
@@ -171,10 +198,11 @@ describe('authorizeFileRecord', () => {
 				name: 'Page',
 				index: 'a1' as TLNoteShape['index'],
 			})
+			const access = session('real-bob')
 			const note = makeNote('browser-generated-user-id')
-			const room = new TLSocketRoom<TLRecord, SessionMeta>({
+			const room = new TLSocketRoom<TLRecord, { userId: string }>({
 				schema,
-				authorizeRecord: authorizeFileRecord,
+				permissions: filePermissions,
 			})
 			const socket: WebSocketMinimal = {
 				send: vi.fn(),
@@ -183,12 +211,21 @@ describe('authorizeFileRecord', () => {
 				addEventListener: vi.fn(),
 				removeEventListener: vi.fn(),
 			}
+			// `deniedCount` acknowledges the first denial, so the retry isn't denied as dependent on it
+			const push = (clientClock: number, records: TLRecord[]) =>
+				room.handleSocketMessage(
+					's1',
+					JSON.stringify({
+						type: 'push',
+						clientClock,
+						deniedCount: clientClock,
+						diff: Object.fromEntries(records.map((r) => [r.id, [RecordOpType.Put, r]])),
+					})
+				)
+			const stored = () =>
+				room.storage.transaction((txn) => [txn.get(document.id), txn.get(note.id)]).result
 			try {
-				room.handleSocketConnect({
-					sessionId: 's1',
-					socket,
-					meta: { userId: 'real-bob', storeId: 'store' },
-				})
+				room.handleSocketConnect({ sessionId: 's1', socket, meta: { userId: 'real-bob' }, access })
 				room.handleSocketMessage(
 					's1',
 					JSON.stringify({
@@ -199,25 +236,15 @@ describe('authorizeFileRecord', () => {
 						schema: schema.serialize(),
 					})
 				)
-				room.handleSocketMessage(
-					's1',
-					JSON.stringify({
-						type: 'push',
-						clientClock: 0,
-						diff: Object.fromEntries(
-							[document, page, note].map((r) => [r.id, [RecordOpType.Put, r]])
-						),
-					})
-				)
-				const [storedDocument, storedNote] = room.storage.transaction((txn) => [
-					txn.get(document.id),
-					txn.get(note.id),
-				]).result
-				expect(storedDocument).toEqual(document)
-				expect(storedNote).toEqual({
-					...note,
-					props: { ...note.props, textLastEditedBy: 'real-bob' },
-				})
+				// unstamped, the whole push is denied: the document's slurp marker doesn't land either
+				push(0, [document, page, note])
+				expect(stored()).toEqual([{ ...document, meta: {} }, undefined])
+
+				push(1, [document, page, stamp(note, access)])
+				expect(stored()).toEqual([
+					document,
+					{ ...note, props: { ...note.props, textLastEditedBy: 'real-bob' } },
+				])
 			} finally {
 				room.close()
 			}
@@ -226,63 +253,58 @@ describe('authorizeFileRecord', () => {
 		it('allows updates that do not touch attribution, from any user', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, x: 100 }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
+			expect(allowed({ session: session('real-bob'), type: 'update', prev, next })).toBe(true)
+			expect(allowed({ session: session(null), type: 'update', prev, next })).toBe(true)
 		})
 
 		it('allows changing attribution to the session user', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-bob' } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
+			expect(allowed({ session: session('real-bob'), type: 'update', prev, next })).toBe(true)
 		})
 
 		it('allows clearing attribution to null (text emptied, or anonymous edit)', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: null } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBe(next)
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
+			expect(allowed({ session: session('real-bob'), type: 'update', prev, next })).toBe(true)
+			expect(allowed({ session: session(null), type: 'update', prev, next })).toBe(true)
 		})
 
-		it('vetoes changing attribution to someone else', () => {
+		it('denies changing attribution to someone else', () => {
 			const prev = makeNote('real-bob')
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(allowed({ session: session('real-bob'), type: 'update', prev, next })).toBe(false)
 		})
 
-		it('vetoes an anonymous session setting any non-null attribution', () => {
+		it('denies an anonymous session setting any non-null attribution', () => {
 			const prev = makeNote(null)
 			const next = { ...prev, props: { ...prev.props, textLastEditedBy: 'real-alice' } }
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBeNull()
+			expect(allowed({ session: session(null), type: 'update', prev, next })).toBe(false)
 		})
 
-		it('vetoes smuggling attribution in via a shape-type change', () => {
+		it('denies smuggling attribution in via a shape-type change', () => {
 			const prev = makeGeo()
 			const next = { ...makeNote('real-alice'), id: prev.id }
-			expect(authorize({ session: session('real-bob'), type: 'update', prev, next })).toBeNull()
+			expect(allowed({ session: session('real-bob'), type: 'update', prev, next })).toBe(false)
 		})
 
 		it('ignores non-note shapes', () => {
 			const prev = makeGeo()
 			const next = { ...prev, x: 50 }
-			expect(authorize({ session: session(null), type: 'update', prev, next })).toBe(next)
-			// creates of non-note shapes carry no attribution to enforce, so they pass through
-			expect(authorize({ session: session(null), type: 'create', prev: null, next: prev })).toBe(
-				prev
-			)
+			expect(allowed({ session: session(null), type: 'update', prev, next })).toBe(true)
+			expect(allowed({ session: session(null), type: 'create', prev: null, next: prev })).toBe(true)
 		})
 
 		it('allows deletes', () => {
 			const prev = makeNote('real-alice')
-			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(
-				prev
-			)
+			expect(allowed({ session: session('real-bob'), type: 'delete', prev, next: null })).toBe(true)
 		})
 
-		it('allows a legal note update from a canvas read-only session (gated at the protocol level, not here)', () => {
+		it('denies any canvas write from a read-only session', () => {
 			const prev = makeNote('real-alice')
 			const next = { ...prev, x: 100 }
-			expect(authorize({ session: session('real-bob', true), type: 'update', prev, next })).toBe(
-				next
+			expect(allowed({ session: session('real-bob', true), type: 'update', prev, next })).toBe(
+				false
 			)
 		})
 	})

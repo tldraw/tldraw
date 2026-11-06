@@ -1,4 +1,9 @@
-import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
+import {
+	ROOM_OPEN_MODE,
+	RoomOpenMode,
+	RoomOpenModeToPath,
+	filePermissions,
+} from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
 import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
@@ -78,6 +83,7 @@ function TlaEditorInner({
 		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
 		// session as too old. Legacy rooms don't render a comments UI.
 		records: commentSchemaRecords,
+		permissions: filePermissions,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})

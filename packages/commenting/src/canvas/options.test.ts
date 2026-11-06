@@ -61,10 +61,11 @@ describe('CommentTool.configure', () => {
 
 // A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
 // getStateDescendant, and commitCommentMutation forwards to run().
-function stubEditor(options: CommentingOptions) {
+function stubEditor(options: CommentingOptions, abilities: string[] = ['comment']) {
 	const runCalls: Array<{ history: unknown }> = []
 	const editor = {
 		getStateDescendant: () => ({ options }),
+		permissions: { can: (ability: string) => abilities.includes(ability) },
 		run: (fn: () => void, opts: { history: unknown }) => {
 			runCalls.push(opts)
 			fn()
@@ -93,6 +94,11 @@ describe('getCanComment', () => {
 		expect(getCanComment(editor, 'alice')).toBe(true)
 		expect(getCanComment(editor, null)).toBe(false)
 		expect(getCanComment(editor, undefined)).toBe(false)
+	})
+
+	it('defaults to requiring the comment ability', () => {
+		const { editor } = stubEditor(defaultCommentingOptions, [])
+		expect(getCanComment(editor, 'alice')).toBe(false)
 	})
 
 	it('normalizes an undefined viewer to null for the callback', () => {

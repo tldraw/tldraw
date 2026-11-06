@@ -795,6 +795,12 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 */
 	updateSessionAccess(sessionId: string, access: TLAccess) {
 		this.room.updateSessionAccess(sessionId, access)
+		// Snapshot at once, not debounced: a stored snapshot with the old access would give a
+		// downgraded session its old rights back when it resumes.
+		if (!this.opts.onSessionSnapshot) return
+		this.clearSnapshotTimer(sessionId)
+		const snapshot = this.getSessionSnapshot(sessionId)
+		if (snapshot) this.opts.onSessionSnapshot(sessionId, snapshot)
 	}
 
 	/**

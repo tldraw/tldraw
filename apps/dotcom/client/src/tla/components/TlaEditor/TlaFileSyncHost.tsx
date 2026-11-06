@@ -1,4 +1,4 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { TLCustomServerEvent, filePermissions } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import {
 	ReactNode,
@@ -22,6 +22,8 @@ import {
 	useEvent,
 	useValue,
 } from 'tldraw'
+// No package both apps depend on can hold the file room's permissions yet, so the client takes the
+// worker's definition directly: client and server must check pushes with the same rules.
 import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
@@ -57,7 +59,7 @@ export const VIA_LAST_FILE_CACHE = 'viaLastFileCache'
 
 function createPresenceUserStore(userId: string | undefined): TLUserStore {
 	// Signed out, attribute nothing: useSync's default store would stamp the local preferences id,
-	// which authorizeFileRecord rejects for a guest session, rolling back note edits and duplicates.
+	// which filePermissions denies for a guest session, rolling back note edits and duplicates.
 	if (!userId) return { currentUser: computed('currentUser', () => null) }
 	return {
 		currentUser: computed('currentUser', () => {
@@ -112,6 +114,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
+		permissions: filePermissions,
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
 				if (message.type === 'first_load_server') {

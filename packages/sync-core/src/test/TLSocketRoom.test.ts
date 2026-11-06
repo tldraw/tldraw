@@ -1220,6 +1220,19 @@ describe('28. TLSocketRoom (SR)', () => {
 			expect(room2.getSessions()[0].access).toEqual(access)
 		})
 
+		it('[SR13] snapshots at once when access changes, so a resume cannot restore old rights', () => {
+			const snapshots: any[] = []
+			const room = new TLSocketRoom({
+				onSessionSnapshot: (_id, snapshot) => snapshots.push(snapshot),
+			})
+			connectSession(room, 'test', createMockSocket(), {
+				access: { userId: 'ann', abilities: ['edit'] },
+			})
+			snapshots.length = 0
+			room.updateSessionAccess('test', { userId: 'ann', abilities: [] })
+			expect(snapshots.map((s) => s.access)).toEqual([{ userId: 'ann', abilities: [] }])
+		})
+
 		it('[SR13] closes a session resumed from a snapshot persisted before access existed', () => {
 			const room = new TLSocketRoom({})
 			const socket = createMockSocket()

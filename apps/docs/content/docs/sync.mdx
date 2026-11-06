@@ -381,25 +381,53 @@ const room = new TLSocketRoom({
 ```
 
 `objectTypes` serves those record types through the room's object-store lane instead of the document
-lane. Lane records are persisted separately from the document, left out of document snapshots, and
-gated by a per-session `objectAccess` permission rather than by `isReadonly`. That's how a session
-can be allowed to comment without being allowed to edit:
+lane. Lane records are persisted separately from the document and left out of document snapshots.
+Read the lane's contents with [TLSocketRoom#getCurrentObjectsSnapshot](?), and use the room's
+`onCommittedChanges` callback to mirror committed records into your own database. That callback only
+fires for client pushes, not for `updateStore`, `loadSnapshot`, or direct storage writes.
+
+See [Permissions](#permissions) for who may comment, and [Commenting](/sdk-features/commenting) for
+the client side and the comment rules.
+
+### Permissions
+
+Each session has an access: a user id and a list of abilities. Your server decides it when the socket
+connects, for example from a cookie or a share link token. Abilities are plain strings. The default
+rules use `edit` to change the canvas and `comment` to write comments, and your own rules can add more,
+like `teach` or `poll:vote`.
 
 ```ts
 room.handleSocketConnect({
 	sessionId,
 	socket,
-	isReadonly: true,
-	objectAccess: 'write',
+	access: { userId, abilities: ['comment'] }, // can comment, can't edit the canvas
 })
+
+// later, with no reconnect: the client becomes read-only at once
+room.updateSessionAccess(sessionId, { userId, abilities: [] })
 ```
 
-`objectAccess` is `'read'` or `'write'` and defaults to `'write'` on connect. Read the lane's contents with
-[TLSocketRoom#getCurrentObjectsSnapshot](?), and use the room's `onCommittedChanges` callback to
-mirror committed records into your own database. That callback only fires for client pushes, not for
-`updateStore`, `loadSnapshot`, or direct storage writes. For per-record rules like "only the author
-may edit a comment", pass authorizers to the room's `authorizeRecord` option (see [TLRecordAuthorizers](?)).
-See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
+`definePermissions` holds the rules. Every rule gets the whole client push as one transaction (each
+changed record with its value before and after, readers over the document before and after, the
+session's access, and the named action, if any). One deny reason denies the whole push, so a group is
+never created without its children. `canRead` decides which records each session receives, and
+`mutators` are named actions that the server runs itself.
+
+```ts
+const permissions = definePermissions<TLRecord>({
+	rules: [...defaultAbilityRules(), ownShapesOnly({ unless: 'teach' })],
+	canRead: pageReadAccess({ canSeePage: (page, ctx) => !page.meta.hidden || ctx.can('teach') }),
+	stamps: [stampOwner()],
+})
+
+const room = new TLSocketRoom({ schema, permissions, onPushDenied: ({ reason }) => log(reason) })
+```
+
+Pass the same object to the client with `useSync({ uri, permissions, ... })`. The editor checks each
+`editor.run` against the rules before it commits, so a denied change is never applied, even for a
+moment. It emits `permission-denied`, and the default UI shows a toast. `editor.permissions.can()`
+answers UI questions, and `editor.permissions.wouldAllow(fn)` tells you whether an action would pass.
+See the Permissions example for classroom, page, agent, and plugin setups.
 
 ### Deployment concerns
 
