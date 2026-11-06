@@ -11,6 +11,7 @@ import {
 	TLShape,
 	TLShapePartial,
 	createShapeId,
+	getIndexAbove,
 	react,
 	toRichText,
 } from 'tldraw'
@@ -95,6 +96,8 @@ function note(editor: Editor, name: string, x: number, y: number, label: string,
 }
 
 const isTeacher = (meta: Meta) => meta.role === 'teacher'
+const teacherPages = ({ session }: { session: { meta: Meta } }) =>
+	isTeacher(session.meta) || 'only the teacher manages pages'
 
 // 1. Offline scripts and server actions -------------------------------------------------------
 
@@ -141,15 +144,17 @@ const serverActions = defineScene({
 			if (verdict !== true) return
 			ctx.room.storage.transaction((txn) => {
 				// Copy a stored box, so the new record has every prop the schema needs.
-				const template = [...txn.values()].find((s) => isShape(s) && s.type === 'geo') as
-					| TLShape
-					| undefined
+				const shapes = [...txn.values()].filter(isShape)
+				const template = shapes.find((s) => s.type === 'geo')
 				if (!template) return
+				// Fractional indexes sort as strings.
+				const top = shapes.reduce((max, s) => (s.index > max ? s.index : max), template.index)
 				const id = createShapeId()
 				txn.set(id, {
 					...template,
 					id,
-					y: template.y + 120,
+					index: getIndexAbove(top),
+					y: Math.max(...shapes.map((s) => s.y)) + 120,
 					props: { ...template.props, richText: toRichText(`Added by a route for ${userId}`) },
 				} as TLShape)
 			})
@@ -249,6 +254,8 @@ const classroomSections = defineScene({
 			shape: (args) =>
 				isTeacher(args.session.meta) ||
 				bothSides(args, (s) => inSection(args.get, s, args.session.meta)),
+			page: teacherPages,
+			document: teacherPages,
 		},
 		read: {
 			shape: ({ session, record, get }) => {
@@ -292,7 +299,8 @@ const workspaceRoles = defineScene({
 	],
 	expect:
 		"Max's new page does not appear until he is an owner. Gil's editor is read-only as a guest and shows no access when removed.",
-	primitives: ['handleSocketConnect', 'isReadonly', 'canWrite'],
+	gap: "Deleting a page deletes its shapes, then the page, in one push. Rules see one record at a time. The server uses writeRejection 'push', so it rejects all of it. But with client checks on, the client blocks only the page and still sends the shape deletes, which a member may make: the page stays, empty.",
+	primitives: ['handleSocketConnect', 'isReadonly', 'canWrite', 'writeRejection'],
 	users: workspaceUsers,
 	initialState: {
 		roles: { ona: 'owner', max: 'member', gil: 'guest' } as Record<string, WorkspaceRole>,
@@ -308,7 +316,7 @@ const workspaceRoles = defineScene({
 	policy: () => {
 		const ownersOnly = ({ session }: { session: { meta: Meta } }) =>
 			session.meta.role === 'owner' || 'only owners manage pages'
-		return { write: { page: ownersOnly, document: ownersOnly } }
+		return { writeRejection: 'push', write: { page: ownersOnly, document: ownersOnly } }
 	},
 	Controls: ({ ctx }) => (
 		<>
@@ -427,6 +435,7 @@ const callOn = defineScene({
 			shape: ({ session, get }) =>
 				isTeacher(session.meta) || calledOn(get) === session.meta.userId || 'not called on',
 			document: ({ session }) => isTeacher(session.meta) || 'only the teacher calls on students',
+			page: teacherPages,
 		},
 	}),
 	setup(editor, u, getSession) {
@@ -640,7 +649,7 @@ const cadchat = defineScene({
 						userId: args.session.meta.userId,
 						op: args.type,
 						recordId: (args.next ?? args.prev).id,
-						reason: 'audit: allowed',
+						reason: 'audit: passed the checks',
 					})
 				},
 			},
@@ -924,6 +933,8 @@ const penAndText = defineScene({
 				if (next && next.meta.ownerId !== prev.meta.ownerId) return 'the owner is fixed'
 				return true
 			},
+			page: teacherPages,
+			document: teacherPages,
 		},
 	}),
 	tools: (u) =>
@@ -942,8 +953,8 @@ const deck = ['A♠', 'K♥', '7♦', '2♣', 'Q♠', '9♥', '5♦', 'J♣']
 const players = ['pia', 'pete']
 
 const pokerRule: Rule<TLShape> = ({ session, type, prev, next }) => {
-	if ((prev ?? next).type !== 'poker-card') return true
-	if (type !== 'update') return 'only the dealer deals'
+	if (prev?.type !== 'poker-card' && next?.type !== 'poker-card') return true
+	if (type !== 'update' || prev.type !== next.type) return 'only the dealer deals'
 	const p = prev as CardShape
 	const n = next as CardShape
 	if (n.props.face !== p.props.face) return 'cards cannot change'
@@ -1095,7 +1106,8 @@ const redactedShapes = defineScene({
 			shape: (args) => {
 				if (args.next?.type === 'redacted') return 'nobody writes redacted shapes'
 				if (args.session.meta.clearance) return true
-				return bothSides(args, (s) => !s.meta.redacted || 'redacted')
+				// The reader's copy is a redacted shape with no meta, so check both.
+				return bothSides(args, (s) => (!s.meta.redacted && s.type !== 'redacted') || 'redacted')
 			},
 		},
 		mask: {

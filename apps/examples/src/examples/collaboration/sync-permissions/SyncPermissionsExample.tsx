@@ -177,7 +177,6 @@ function SceneRunner({ scene, onReset }: { scene: Scene; onReset(): void }) {
 						user={user}
 						room={room}
 						state={state}
-						getState={getState}
 						accessVersion={accessVersions[user.id] ?? 0}
 						onEditor={onEditor}
 					/>
@@ -242,7 +241,6 @@ interface PanelProps {
 	user: DemoUser
 	room: Room
 	state: unknown
-	getState(): unknown
 	accessVersion: number
 	onEditor(userId: string, editor: Editor | undefined): void
 }
@@ -251,13 +249,16 @@ interface PanelProps {
 function EditorPanel(props: PanelProps) {
 	const [epoch, setEpoch] = useState(0)
 	const status = useRef('loading')
+	const onStatus = useCallback((s: string) => {
+		status.current = s
+	}, [])
 	useEffect(() => {
 		// A client that was refused stops for good: mount a new one, which connects again.
 		if (status.current === 'error') setEpoch((e) => e + 1)
 	}, [props.accessVersion])
 	return (
 		<div className="perm-panel" style={{ borderTopColor: props.user.color }}>
-			<UserEditor key={epoch} {...props} onStatus={(s) => (status.current = s)} />
+			<UserEditor key={epoch} {...props} onStatus={onStatus} />
 		</div>
 	)
 }
@@ -267,17 +268,16 @@ function UserEditor({
 	user,
 	room,
 	state,
-	getState,
 	onEditor,
 	onStatus,
 }: PanelProps & { onStatus(status: string): void }) {
 	const decision = scene.connect(user, state)
 	const getSession = useCallback((): Session => {
-		const d = scene.connect(user, getState())
-		return d.allow
+		const d = room.local.grantFor(user.id)
+		return d?.allow
 			? { sessionId: user.id, isReadonly: d.isReadonly, meta: d.meta }
 			: { sessionId: user.id, isReadonly: true, meta: { userId: user.id, role: 'none' } }
-	}, [scene, user, getState])
+	}, [room, user])
 
 	const connect = useMemo(() => room.local.connect(user.id), [room, user.id])
 	const users = useMemo(

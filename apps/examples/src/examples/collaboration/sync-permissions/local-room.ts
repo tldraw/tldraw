@@ -38,6 +38,8 @@ const LATENCY_MS = 60
  * new role.
  */
 export class LocalRoom {
+	private readonly granted = new Map<string, ConnectDecision>()
+
 	constructor(
 		readonly room: TLSocketRoom<TLRecord, Meta>,
 		private readonly resolve: (userId: string) => ConnectDecision
@@ -55,9 +57,18 @@ export class LocalRoom {
 		}
 	}
 
+	/**
+	 * What the user's session was given when it last connected. A client's own checks use this,
+	 * not the app's current state, so they agree with the server until the session reconnects.
+	 */
+	grantFor(userId: string) {
+		return this.granted.get(userId)
+	}
+
 	/** @internal */
 	_open(userId: string, client: LocalClientSocket): FakeServerSocket | null {
 		const decision = this.resolve(userId)
+		this.granted.set(userId, decision)
 		if (!decision.allow) return null
 		const sessionId = `${userId}:${client.id}`
 		const socket = new FakeServerSocket(client)
