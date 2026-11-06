@@ -413,7 +413,7 @@ example a card without its face), or `null` to send nothing. When a session can 
 it holds, the room removes it from that client. A hook runs again only when its record changes, so a
 rule that reads other records with `get` (such as "hidden when its frame is hidden") does not update
 when only those records change. A client writes against what it received, so guard the fields it
-cannot see with `beforeWrite` or `canWrite`. Combine read hook maps with [composeBeforeRead](?).
+cannot see with `beforeWrite` or `canWrite`. Presence records do not go through the hooks, so a user's presence can name records that another session cannot see, such as selected shape ids. Combine read hook maps with [composeBeforeRead](?).
 
 ### Deployment concerns
 

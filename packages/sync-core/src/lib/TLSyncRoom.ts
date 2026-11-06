@@ -306,7 +306,8 @@ function groupHooksByType<Hook>(maps: object[]): Map<string, Hook[]> {
  *
  * - nothing, to send the record as stored;
  * - a record, to send that record instead. It must keep the record's `id` and `typeName`, and pass
- *   the record type's validator;
+ *   the record type's validator. Return a new object: `record` is the stored record, so a change
+ *   to it changes what every session receives;
  * - `null`, to send nothing. If the session already holds the record, the room removes it there.
  *
  * The hook runs for every record when a session connects, and for each record change the session
@@ -319,7 +320,8 @@ function groupHooksByType<Hook>(maps: object[]): Map<string, Hook[]> {
  * {@link canWrite} to stop a session from writing records or fields that it cannot read.
  *
  * Presence records never run through hooks; registering the presence typeName is a
- * construction-time error.
+ * construction-time error. Presence goes to every session as it is, so it can name records that a
+ * session cannot see, such as the ids of the shapes another user selected.
  *
  * ⚠︎ Runs synchronously, once for each session for each change, on the same path as every document
  * edit — it must be fast and do **no** I/O. A throw, or a result that changes the `id` or
@@ -645,6 +647,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			return result
 		}
+	}
+
+	/** Whether a diff puts a record that has a `beforeRead` hook, so that its views read storage. */
+	private hasHookedPut(diff: TLSyncForwardDiff<R> | undefined) {
+		if (!diff || this.readHooks.size === 0) return false
+		for (const put of Object.values(diff.puts)) {
+			if (this.readHooks.has((Array.isArray(put) ? put[1] : put).typeName)) return true
+		}
+		return false
 	}
 
 	/** Whether a changed copy may be sent. The client validates what it receives, and an invalid record breaks its store. */
@@ -2019,7 +2030,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// Read hooks read stored records, which needs a transaction. The views run after the push
 		// commits, because the storage may change what was written (`changes` above), and each view
 		// updates what its session holds, so it must run once, on the final diff.
-		if (this.readHooks.size > 0) {
+		if (this.hasHookedPut(result.docChanges.diffs?.diff)) {
 			this.storage.transaction((txn) =>
 				this.sendPushResults(session, message, result, documentClock, (id) => txn.get(id))
 			)
