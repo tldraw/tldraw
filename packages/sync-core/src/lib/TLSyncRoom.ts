@@ -52,6 +52,8 @@ import {
 	TLSyncRollback,
 	TLSyncStorage,
 	TLSyncStorageTransaction,
+	TLSyncStorageTransactionOptions,
+	TLSyncStorageTransactionResult,
 	toNetworkDiff,
 } from './TLSyncStorage'
 
@@ -445,6 +447,40 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private readonly readDependents = new Map<string, Set<string>>()
 	/** The reverse of `readDependents`, to drop a deleted record's edges. */
 	private readonly readDependencies = new Map<string, Set<string>>()
+	/**
+	 * A broadcast rechecks a changed record for every session, so it can replace the record's
+	 * edges instead of adding to them: edges from sessions that left, or from older data, go.
+	 * `readEdgeGeneration` is the broadcast that last replaced a record's edges.
+	 */
+	private readGeneration = 0
+	private readonly readEdgeGeneration = new Map<string, number>()
+
+	private clearReadDependencies() {
+		this.readDependents.clear()
+		this.readDependencies.clear()
+		this.readEdgeGeneration.clear()
+	}
+
+	/** The storage transaction that is open now, so that work inside it does not open another. */
+	private openTxn: TLSyncStorageTransaction<R> | null = null
+
+	private transact<T>(
+		fn: (txn: TLSyncStorageTransaction<R>) => T,
+		opts?: TLSyncStorageTransactionOptions
+	): TLSyncStorageTransactionResult<T, R> {
+		return this.storage.transaction(
+			((txn: TLSyncStorageTransaction<R>) => {
+				const prev = this.openTxn
+				this.openTxn = txn
+				try {
+					return fn(txn)
+				} finally {
+					this.openTxn = prev
+				}
+			}) as any,
+			opts
+		) as TLSyncStorageTransactionResult<T, R>
+	}
 
 	private addReadDependency(dependentId: string, id: string) {
 		let dependents = this.readDependents.get(id)
@@ -456,6 +492,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	private dropReadDependencies(dependentId: string) {
+		this.readEdgeGeneration.delete(dependentId)
 		const dependencies = this.readDependencies.get(dependentId)
 		if (!dependencies) return
 		this.readDependencies.delete(dependentId)
@@ -468,20 +505,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/**
 	 * Whether a session may read a record. Fails closed when the read authorizer throws. With
-	 * `track`, the records that the rule reads are kept as read dependencies of the record. Only
-	 * reads of stored records track: a write check must not grow the map for a record that may
-	 * never be stored.
+	 * `track`, the records that the rule reads are kept as read dependencies of the record:
+	 * 'add' adds to the record's edges, 'refresh' replaces them once per broadcast. Only reads of
+	 * stored records track: a write check must not grow the map for a record that may never be
+	 * stored.
 	 */
 	private canRead(
 		session: TLAuthorizerSession<SessionMeta>,
 		record: R,
 		get: (id: string) => R | undefined,
-		track = false
+		track: false | 'add' | 'refresh' = false
 	): boolean {
 		const authorize = this.authorizeRead?.[record.typeName as R['typeName']] as
 			| TLRecordReadAuthorizer<R, SessionMeta>
 			| undefined
 		if (!authorize) return true
+		if (track === 'refresh' && this.readEdgeGeneration.get(record.id) !== this.readGeneration) {
+			this.dropReadDependencies(record.id)
+			this.readEdgeGeneration.set(record.id, this.readGeneration)
+		}
 		const read = track
 			? (id: string) => {
 					this.addReadDependency(record.id, id)
@@ -582,7 +624,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			)
 		}
 
-		const { documentClock } = this.storage.transaction((txn) => {
+		const { documentClock } = this.transact((txn) => {
 			this.schema.migrateStorage(txn)
 		})
 
@@ -615,7 +657,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 	private broadcastExternalStorageChanges() {
-		this.storage.transaction((txn) => {
+		this.transact((txn) => {
 			this.broadcastChanges(txn)
 			this.lastDocumentClock = txn.getClock()
 		}) // no id needed because this only reads, no writes.
@@ -728,6 +770,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.events.emit('session_removed', { sessionId, meta: session.meta })
 		if (this.sessions.size === 0) {
+			// nobody to filter for; the next connect rebuilds the edges
+			this.clearReadDependencies()
 			this.events.emit('room_became_empty')
 		}
 	}
@@ -776,12 +820,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * removed. `dependents` are records that the diff does not change but whose read rules read a
 	 * record that it does change (the shapes of a page that became private): they are checked
 	 * again, and sent or removed when their visibility changes.
+	 *
+	 * For the session that made the diff (`isSource`), only the changes to what it may read are
+	 * returned: it already has its own writes, but they can hide records from it, including the
+	 * records that it just wrote.
 	 */
 	private filterDiffForSession(
 		session: RoomSession<R, SessionMeta>,
 		diff: TLSyncForwardDiff<R>,
 		dependents: string[],
-		txn: TLSyncStorageTransaction<R>
+		txn: TLSyncStorageTransaction<R>,
+		isSource: boolean,
+		fullPutsMayBeUpdates: boolean
 	): TLSyncForwardDiff<R> | null {
 		const hidden = this.getHiddenIds(session.sessionId)
 		const authSession = {
@@ -791,46 +841,44 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		const get = (id: string) => txn.get(id) as R | undefined
 		const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
-		let changed = false
-		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
-			const isUpdate = Array.isArray(put)
-			const record = isUpdate ? put[1] : put
-			const visible = this.canRead(authSession, record, get, true)
-			const wasHidden = hidden.has(id)
-			if (visible && !wasHidden) {
-				out.puts[id] = put
-				continue
-			}
-			changed = true
-			if (visible) {
-				hidden.delete(id)
-				out.puts[id] = record
-			} else if (!wasHidden) {
-				hidden.add(id)
-				// a new record that the session may not read is never sent; an existing one is removed
-				if (isUpdate) out.deletes.push(id)
-			}
-		}
-		for (const id of diff.deletes) {
-			if (hidden.delete(id)) {
-				changed = true
-				continue
-			}
-			out.deletes.push(id)
-		}
-		for (const id of dependents) {
-			const record = (txn.get(id) ?? this.presenceStore.get(id)) as R | undefined
-			if (!record) continue
-			const visible = this.canRead(authSession, record, get, true)
+		let changed = isSource
+		const check = (id: string, record: R, maybeHeld: boolean) => {
+			// a session's own presence is never sent back to it
+			if (id === session.presenceId) return
+			const visible = this.canRead(authSession, record, get, 'refresh')
 			if (visible && hidden.has(id)) {
 				hidden.delete(id)
 				out.puts[id] = record
 				changed = true
 			} else if (!visible && !hidden.has(id)) {
 				hidden.add(id)
-				out.deletes.push(id)
 				changed = true
+				// a new record that the session may not read is never sent; one that it may hold is
+				// removed. (A remove of an id that the client does not have is a no-op.)
+				if (maybeHeld) out.deletes.push(id)
 			}
+		}
+		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
+			const isUpdate = Array.isArray(put)
+			const record = isUpdate ? put[1] : put
+			const wasHidden = hidden.has(id)
+			// In a push, a full-record put is a create. In a change made straight to storage, an
+			// update is a full-record put too, so the session may hold the record. A hidden create
+			// made there sends the session a remove of an id that it does not have.
+			const maybeHeld = isUpdate || fullPutsMayBeUpdates
+			check(id, record, maybeHeld)
+			if (!isSource && !wasHidden && !hidden.has(id)) out.puts[id] = put
+		}
+		for (const id of diff.deletes) {
+			if (hidden.delete(id)) {
+				changed = true
+				continue
+			}
+			if (!isSource) out.deletes.push(id)
+		}
+		for (const id of dependents) {
+			const record = (txn.get(id) ?? this.presenceStore.get(id)) as R | undefined
+			if (record) check(id, record, true)
 		}
 		if (!changed) return diff
 		if (Object.keys(out.puts).length === 0 && out.deletes.length === 0) return null
@@ -867,17 +915,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 *                      If not provided, will be computed from recordsDiff.
 	 * @param sourceSessionId - Optional session ID to exclude from the broadcast
 	 * @param txn - The open transaction, if any. Read rules use it to read the room's records.
+	 * @param fullPutsMayBeUpdates - True for changes made straight to storage, whose updates are
+	 *   full records rather than `[prev, next]` pairs.
 	 */
 	private broadcastPatch(
 		diff: TLSyncForwardDiff<R>,
 		networkDiff?: NetworkDiff<R> | null,
 		sourceSessionId?: string,
-		txn?: TLSyncStorageTransaction<R>
+		txn: TLSyncStorageTransaction<R> | null = this.openTxn,
+		fullPutsMayBeUpdates = false
 	) {
 		if (this.authorizeRead && !txn) {
 			// read rules need the room's records, so read them in a transaction
-			this.storage.transaction((t) => {
-				this.broadcastPatch(diff, networkDiff, sourceSessionId, t)
+			this.transact((t) => {
+				this.broadcastPatch(diff, networkDiff, sourceSessionId, t, fullPutsMayBeUpdates)
 			})
 			return
 		}
@@ -889,6 +940,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// computed before the sessions are filtered, which can add edges
 		const dependents = this.authorizeRead ? this.getReadDependents(diff) : []
 		if (this.authorizeRead) {
+			this.readGeneration++
 			for (const id of diff.deletes) this.dropReadDependencies(id)
 		}
 
@@ -896,8 +948,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			if (session.state !== RoomSessionState.Connected) return
 			const isSource = sourceSessionId === session.sessionId
 			// The source session already has its own changes, but they can change what it may read
-			// of other records, so it still gets the dependents.
-			if (isSource && !(dependents.length && txn)) return
+			if (isSource && !(this.authorizeRead && txn)) return
 			if (!session.socket.isOpen) {
 				this.cancelSession(session.sessionId)
 				return
@@ -906,9 +957,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			let sessionDiff = diff
 			let sessionNetworkDiff = unmigrated
 			if (this.authorizeRead && txn) {
-				const input = isSource ? { puts: {}, deletes: [] } : diff
-				const filtered = this.filterDiffForSession(session, input, dependents, txn)
-				if (!filtered || (isSource && filtered === input)) return
+				const filtered = this.filterDiffForSession(
+					session,
+					diff,
+					dependents,
+					txn,
+					isSource,
+					fullPutsMayBeUpdates
+				)
+				if (!filtered || (isSource && filtered === diff)) return
 				if (filtered !== diff) {
 					sessionDiff = filtered
 					sessionNetworkDiff = toNetworkDiff(filtered, legacyAppendMode)
@@ -1090,15 +1147,15 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// The hidden set is not in the session snapshot. Rebuild it on the assumption that the
 		// client holds what it may read now.
 		if (this.authorizeRead) {
-			this.storage.transaction((txn) => {
+			this.transact((txn) => {
 				const hidden = new Set<string>()
 				const authSession = { sessionId, isReadonly, meta }
 				const get = (id: string) => txn.get(id) as R | undefined
 				for (const [id, record] of txn.entries()) {
-					if (!this.canRead(authSession, record, get, true)) hidden.add(id)
+					if (!this.canRead(authSession, record, get, 'add')) hidden.add(id)
 				}
 				for (const p of this.presenceStore.values()) {
-					if (!this.canRead(authSession, p, get, true)) hidden.add(p.id)
+					if (!this.canRead(authSession, p, get, 'add')) hidden.add(p.id)
 				}
 				this.hiddenIds.set(sessionId, hidden)
 			})
@@ -1303,6 +1360,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	private forceAllReconnect() {
+		// every client reconnects and hydrates again, which rebuilds the edges
+		this.clearReadDependencies()
 		for (const session of this.sessions.values()) {
 			// Only connected clients hold state at a clock we can no longer diff from. A session
 			// mid-handshake gets hydrated from its own lastServerClock in the same transaction, so
@@ -1323,7 +1382,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.forceAllReconnect()
 			return
 		}
-		this.broadcastPatch(diff, undefined, undefined, txn)
+		this.broadcastPatch(diff, undefined, undefined, txn, true)
 	}
 
 	/**
@@ -1427,7 +1486,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this._unsafe_sendMessage(session.sessionId, msg)
 		}
 
-		const { documentClock, result } = this.storage.transaction((txn) => {
+		const { documentClock, result } = this.transact((txn) => {
 			this.broadcastChanges(txn)
 			// With read rules, the client may hold records that it may no longer read, so it gets
 			// a full, filtered hydration instead of the changes since its last clock.
@@ -1450,14 +1509,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					docChanges.wipeAll = true
 					for (const [id, put] of Object.entries(docChanges.diff.puts)) {
 						const record = Array.isArray(put) ? put[1] : put
-						if (!this.canRead(authSession, record, get, true)) {
+						if (!this.canRead(authSession, record, get, 'add')) {
 							hidden.add(id)
 							delete docChanges.diff.puts[id]
 						}
 					}
 				}
 				presences = presences.filter((p) => {
-					if (this.canRead(authSession, p, get, true)) return true
+					if (this.canRead(authSession, p, get, 'add')) return true
 					hidden.add(p.id)
 					return false
 				})
@@ -1665,7 +1724,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		// A push is one unit: when a rule vetoes any document op, the transaction is rolled back
-		// and the client gets 'discard', so a push is never half applied.
+		// and the client gets 'discard', so a push is never half applied by a rule. (The lane write
+		// gate below, `isReadonly` and `objectAccess`, still skips ops one by one, as it always has.)
 		let vetoed = false
 		const veto = (...logArgs: unknown[]) => {
 			this.log?.warn?.(...logArgs)
@@ -1675,7 +1735,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		let txnResult
 		try {
-			txnResult = this.storage.transaction(
+			txnResult = this.transact(
 				(txn) => {
 					this.broadcastChanges(txn)
 					// collect actual ops that resulted from the push
@@ -1768,7 +1828,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									// `undefined` (no session) means the guard didn't fetch, so addDocument will.
 									const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
 									if (session && prevRecord && prevRecord.typeName !== record.typeName) {
-										this.log?.warn?.(
+										veto(
 											'skipping put that changes typeName',
 											`${prevRecord.typeName} -> ${record.typeName}`,
 											id,

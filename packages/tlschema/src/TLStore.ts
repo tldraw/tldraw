@@ -463,7 +463,24 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 	const $pageIds = store.query.ids('page')
 	const $pageStates = store.query.records('instance_page_state')
 
+	// Each fix below puts a record and checks again. A side effect that cancels or reverts the
+	// put (for example permission rules on a client store) would make that loop forever.
+	let depth = 0
 	const ensureStoreIsUsable = (): void => {
+		depth++
+		try {
+			return fixStore()
+		} finally {
+			depth--
+		}
+	}
+
+	const fixStore = (): void => {
+		if (depth > 50) {
+			throw new Error(
+				'[tldraw] The store cannot be made usable: a side effect canceled a record that the editor needs (a document, a page, or the instance). Permission rules must let each user read at least one page, and create these records.'
+			)
+		}
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
 			store.put([DocumentRecordType.create({ id: TLDOCUMENT_ID, name: store.props.defaultName })])
@@ -479,12 +496,6 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 		const pageIds = $pageIds.get()
 		if (pageIds.size === 0) {
 			store.put(getDefaultPages())
-			// a `beforeCreate` side effect (for example permission rules) can cancel the page
-			if ($pageIds.get().size === 0) {
-				throw new Error(
-					'[tldraw] The store has no page and a side effect canceled the default page. Rules must leave each user at least one page that they can read.'
-				)
-			}
 			return ensureStoreIsUsable()
 		}
 
