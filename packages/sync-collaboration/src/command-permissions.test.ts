@@ -759,11 +759,7 @@ describe('arrows across owners', () => {
 			},
 		})
 		s.room.flush()
-		const bindings = () =>
-			s.room.room
-				.getCurrentSnapshot()
-				.documents.filter((d) => d.state.typeName === 'binding')
-				.map((d) => d.state)
+		const bindings = () => s.room.serverRecords('binding') as any[]
 		return { ...s, box, arrow, bindings }
 	}
 

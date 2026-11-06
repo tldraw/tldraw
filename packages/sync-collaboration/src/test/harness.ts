@@ -79,6 +79,14 @@ export class LocalRoom {
 		}
 	}
 
+	/** Every record the server stores, of one type. */
+	serverRecords(typeName: string): TLRecord[] {
+		const storage = (this.room as any).room.storage
+		return storage.transaction((txn: any) =>
+			[...txn.values()].filter((r: TLRecord) => r.typeName === typeName)
+		).result
+	}
+
 	/** @internal */
 	enqueue(fn: () => void) {
 		this.queue.push(fn)

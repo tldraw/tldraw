@@ -676,6 +676,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param networkDiff - Optional pre-computed NetworkDiff for sessions not needing migration.
 	 *                      If not provided, will be computed from recordsDiff.
 	 * @param sourceSessionId - Optional session ID to exclude from the broadcast
+	 * @param txn - The open transaction, when the caller has one; read filtering reads through it
 	 */
 	private broadcastPatch(
 		diff: TLSyncForwardDiff<R>,
@@ -688,7 +689,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// it per session would both repeat the diffing work and lose that legacy handling.
 		const legacyAppendMode = !this.getCanEmitStringAppend()
 		const unmigrated = networkDiff ?? toNetworkDiff(diff, legacyAppendMode)
-		const filtered = this.readFiltered
+		const filtered = this.isReadFiltered()
 		const resync = filtered && this.isScopeChange(diff)
 
 		const send = (reader?: { get(id: string): R | undefined; values(): Iterable<R> }) =>
@@ -828,7 +829,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/** Whether the room filters what each session sees. */
-	private get readFiltered() {
+	private isReadFiltered() {
 		return !!this.commands?.read.canRead
 	}
 
@@ -1029,7 +1030,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			requiresLegacyRejection,
 			supportsStringAppend,
 			// the client held what it could read before the socket slept; nothing changed since
-			visible: this.readFiltered ? new Set() : undefined,
+			visible: this.isReadFiltered() ? new Set() : undefined,
 		})
 
 		// Restore presence before the schema checks: other clients still hold it from before the
@@ -1376,7 +1377,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 		// With a read policy, the client may hold records it can no longer read, so it always
 		// gets a full hydration of what it can read.
-		const visible = this.readFiltered ? new Set<string>() : undefined
+		const visible = this.isReadFiltered() ? new Set<string>() : undefined
 
 		const connect = (msg: Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>) => {
 			this.sessions.set(session.sessionId, {
