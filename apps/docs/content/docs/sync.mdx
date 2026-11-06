@@ -414,8 +414,10 @@ room then stores and broadcasts none of its records, and the client undoes all o
 every change the client made since its last push, so it can hold more than one user action, but a
 store transaction is never split between two pushes. Each push is judged on its own, so a later push
 that builds on a rejected one, such as shapes moved into the rejected group, is applied when its own
-records pass. Check such references in a hook with `get`. Hooks may run for records of a push that is
-then rolled back, so keep them free of side effects.
+records pass. Check such references in a hook with `get`. Hooks run for every record of a push, also
+for one that is then rolled back, and only the room's storage rolls back. State that a hook changes,
+such as an audit log, keeps its changes, so do not take an allowed write as stored. React to stored
+changes in `onCommittedChanges`.
 
 To decide what each session receives, pass hooks to the room's `beforeRead` option (see
 [TLBeforeReadHooks](?)). A hook returns nothing to send the record as stored, a changed copy (for

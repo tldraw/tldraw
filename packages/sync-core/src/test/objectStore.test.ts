@@ -1,3 +1,4 @@
+import { atom } from '@tldraw/state'
 import { BaseRecord, RecordId, StoreSchema, createRecordType } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
 import { canRead } from '../lib/canRead'
@@ -1833,6 +1834,36 @@ describe('writeRejection', () => {
 
 		expect(storedIds(storage)).toEqual([existing.id])
 		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+	})
+
+	it("rolls back only storage with 'push': signals that hooks changed keep their changes", () => {
+		const audit = atom<string[]>('audit', [])
+		const log = (entry: string) => audit.update((entries) => [...entries, entry])
+		const { room, storage, alice } = roomWith({
+			writeRejection: 'push',
+			beforeWrite: {
+				doc: ({ next, prev }: any) => {
+					log('rejected ' + next.id)
+					return prev
+				},
+				note: ({ next }: any) => {
+					log('allowed ' + next.id)
+				},
+			},
+		})
+		const clock = storage.getClock()
+
+		push(room, 'alice', groupAndChildren)
+
+		expect(storedIds(storage)).toEqual([existing.id])
+		expect(storedText(storage)).toBe('existing')
+		expect(storage.getClock()).toBe(clock)
+		expect(lastPushResult(alice)).toMatchObject({ action: 'discard' })
+		expect(audit.get()).toEqual([
+			'rejected ' + group.id,
+			'allowed ' + child.id,
+			'allowed ' + existing.id,
+		])
 	})
 
 	it("rejects the whole push with 'push' when the session may not write a type", () => {
