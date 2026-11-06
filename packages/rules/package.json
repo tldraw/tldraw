@@ -52,7 +52,9 @@
 	"dependencies": {
 		"@tldraw/utils": "workspace:*"
 	},
-	"devDependencies": {},
+	"devDependencies": {
+		"vitest": "^5.0.0"
+	},
 	"engines": {
 		"node": ">=22.12.0"
 	}
