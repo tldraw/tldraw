@@ -9,6 +9,7 @@ import {
 import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
+import { useMenuWheelPassThrough } from '../../hooks/useMenuWheelPassThrough'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
@@ -22,6 +23,7 @@ const messages = defineMessages({
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
 	const editor = useEditor()
 	const container = useContainer()
+	const setMenuContent = useMenuWheelPassThrough()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const trackEvent = useUiEvents()
@@ -105,6 +107,7 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 			</_Popover.Trigger>
 			<_Popover.Portal container={container}>
 				<_Popover.Content
+					ref={setMenuContent}
 					dir={dir}
 					className="tlui-menu tlui-people-menu__user__color-picker"
 					align="start"
