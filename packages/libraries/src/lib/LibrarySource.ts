@@ -131,6 +131,13 @@ export interface LibrarySource {
 	 * owners, or can't move libraries between them, leave it out.
 	 */
 	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<void>
+	/**
+	 * Copies a library and its items to an owner, as a new library with the same name, and
+	 * returns the copy. Optional: for sources that can copy without the caller loading and adding
+	 * every item again, e.g. on a server. Without it, `copyLibrary` copies item by item through
+	 * {@link LibrarySource.getItemContent} and {@link LibrarySource.addItem}.
+	 */
+	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

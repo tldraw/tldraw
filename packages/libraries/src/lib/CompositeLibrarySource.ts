@@ -1,6 +1,6 @@
 import { computed, type Computed } from '@tldraw/state'
 import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
-import { copyLibrary, copyItem } from './copyLibrary'
+import { copyLibraryItemByItem, copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -172,8 +172,21 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteLibrary', libraryId)) {
 			throw new LibraryPermissionError('deleteLibrary', libraryId)
 		}
-		await copyLibrary(this, libraryId, ownerId)
+		await copyLibraryItemByItem(this, libraryId, ownerId)
 		await from.source.deleteLibrary(libraryId)
+	}
+
+	/**
+	 * Within a part whose source can copy libraries itself, that source makes the copy; anywhere
+	 * else, each item is loaded and added to the new library.
+	 */
+	async copyLibrary(libraryId: TLLibraryId, ownerId: string) {
+		const from = this.getLibraryPart(libraryId)
+		const to = this.getOwnerPart(ownerId)
+		if (from === to && !from.owner && from.source.copyLibrary) {
+			return from.source.copyLibrary(libraryId, ownerId)
+		}
+		return copyLibraryItemByItem(this, libraryId, ownerId)
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
