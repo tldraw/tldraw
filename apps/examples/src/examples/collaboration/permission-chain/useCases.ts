@@ -89,8 +89,8 @@ export const USE_CASES: UseCase[] = [
 	{
 		id: 'comments',
 		title: 'Comments',
-		layers: ['comments'],
-		how: '`createCommentAuthorizers` from `@tldraw/sync-collaboration` as one layer: post as yourself, edit and delete your own, a teacher deletes any. A comment that follows its thread to another page is not an edit, so the teacher can move a shape with student comments. The comment menu asks the same chain, so it shows only what the chain allows.',
+		layers: ['threadPlaces', 'comments'],
+		how: '`createCommentAuthorizers` from `@tldraw/sync-collaboration` as one layer: post as yourself, edit and delete your own, a teacher deletes any. A comment that follows its thread to another page is not an edit, so the teacher can move a shape with student comments. A student can move or re-anchor only their own thread. The comment menu asks the same chain, so it shows only what the chain allows.',
 		steps: [
 			'Use the comment tool as Alice to post a comment.',
 			'As Bob, open it: there is no "Delete". As the teacher: there is.',

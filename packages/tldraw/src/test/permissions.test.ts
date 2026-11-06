@@ -161,4 +161,27 @@ describe('one editor operation', () => {
 		})
 		expect([seenInside, editor.getShape(id)]).toEqual([id, undefined])
 	})
+
+	it('keeps a host write made in it, and still puts back a denied write to the same record', () => {
+		editor.run(() => {
+			editor.updateShapes([{ id: ids.theirs, type: 'geo', x: 400 }])
+			editor.store.withoutPermissions(() =>
+				editor.updateShapes([{ id: ids.theirs, type: 'geo', y: 77 }])
+			)
+		})
+		const { x, y } = editor.getShape(ids.theirs)!
+		expect([x, y]).toEqual([300, 77])
+	})
+
+	it('reports nothing when it throws, because the writes roll back', () => {
+		const onDenied = vi.fn()
+		editor.store.setPermissions({ chain, getActor: () => ({ userId: 'me' }), onDenied })
+		expect(() =>
+			editor.run(() => {
+				editor.updateShapes([{ id: ids.theirs, type: 'geo', x: 400 }])
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect([onDenied.mock.calls.length, editor.getShape(ids.theirs)!.x]).toEqual([0, 300])
+	})
 })

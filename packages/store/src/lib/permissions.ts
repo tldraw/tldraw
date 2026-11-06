@@ -186,7 +186,8 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 	 *
 	 * `hostDenials` are accesses that the host denies on its own, by key (see
 	 * {@link getRecordAccessKey}), for example a sync room's read-only lane. They are denied at the
-	 * end of the chain, so a layer that wraps the chain, such as {@link atomic}, sees them.
+	 * end of the chain, so a layer that wraps the chain, such as {@link atomic}, sees them, and again
+	 * after the chain, so a layer that allows without calling `next` cannot let them through.
 	 */
 	run(opts: {
 		kind: PermissionBatchKind
@@ -264,7 +265,17 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 		}
 
 		try {
-			return normalize(items, dispatch(0, items), opts.onError)
+			const result = normalize(items, dispatch(0, items), opts.onError)
+			if (!hostDenials?.size) return result
+			// A layer that allows without calling `next` never reaches `end`. Host denials hold anyway.
+			const allowed = result.allowed.filter((a) => !hostDenials.has(getRecordAccessKey(a)))
+			if (allowed.length === result.allowed.length) return result
+			const denied = [...result.denied]
+			for (const access of result.allowed) {
+				const reason = hostDenials.get(getRecordAccessKey(access))
+				if (reason !== undefined) denied.push({ access, reason })
+			}
+			return { allowed, denied }
 		} catch (error) {
 			opts.onError?.(error)
 			return denyAll({ items }, 'error')

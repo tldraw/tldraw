@@ -1,43 +1,61 @@
 import {
 	createComment,
 	createCommentThread,
+	createShapeId,
 	PageRecordType,
 	RecordAccess,
 	TLComment,
-	TLPage,
+	TLPageId,
 	TLRecord,
+	TLShape,
 	toRichText,
 } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { ClassroomMeta, classroomActor, classroomPermissions } from './classroomPermissions'
 
-// The demo's comment layer: the real `createCommentAuthorizers` rules, in the demo's chain.
+// The demo's comment layers: the real `createCommentAuthorizers` rules, in the demo's chain.
 
 const chain = classroomPermissions()
-const page = PageRecordType.create({
-	id: PageRecordType.createId('p1'),
-	name: 'p1',
-	index: 'a1' as any,
-})
-const answers: TLPage = PageRecordType.create({
-	id: PageRecordType.createId('answers'),
-	name: 'Answers',
-	index: 'a2' as any,
-	meta: { private: true },
-})
+const makePage = (name: string, meta = {}) =>
+	PageRecordType.create({ id: PageRecordType.createId(name), name, index: 'a1' as any, meta })
+const p1 = makePage('p1')
+const p2 = makePage('p2')
+const answers = makePage('answers', { private: true })
+const lockedPage = makePage('locked', { locked: true })
+
+// Alice's box on p1, with her thread on it. Bob replied in it.
+const box = {
+	id: createShapeId('box'),
+	typeName: 'shape',
+	type: 'geo',
+	parentId: p1.id,
+	index: 'a1',
+	x: 0,
+	y: 0,
+	rotation: 0,
+	isLocked: false,
+	opacity: 1,
+	props: {},
+	meta: { ownerId: 'alice' },
+} as unknown as TLShape
 const thread = createCommentThread({
-	pageId: page.id,
-	anchor: { type: 'page' },
+	pageId: p1.id,
+	anchor: { type: 'shape', shapeId: box.id, x: 0, y: 0, isPrecise: false },
 	createdBy: 'alice',
 })
-const comment = createComment({
-	threadId: thread.id,
-	pageId: page.id,
-	authorId: 'alice',
-	body: toRichText('hi'),
-})
-const stored = new Map<string, TLRecord>([page, answers, thread, comment].map((r) => [r.id, r]))
+const comment = (authorId: string) =>
+	createComment({ threadId: thread.id, pageId: p1.id, authorId, body: toRichText('hi') })
+const fromAlice = comment('alice')
+const fromBob = comment('bob')
+const stored = new Map<string, TLRecord>(
+	[p1, p2, answers, lockedPage, box, thread, fromAlice, fromBob].map((r) => [r.id, r])
+)
 
+const alice: ClassroomMeta = { userId: 'alice', role: 'student' }
+const bob: ClassroomMeta = { userId: 'bob', role: 'student' }
+const teacher: ClassroomMeta = { userId: 'teacher', role: 'teacher' }
+const update = (prev: TLRecord, change: object) =>
+	({ type: 'update', prev, next: { ...prev, ...change } }) as RecordAccess<TLRecord>
 function write(meta: ClassroomMeta, ...items: RecordAccess<TLRecord>[]) {
 	return chain.run({
 		kind: 'write',
@@ -46,29 +64,29 @@ function write(meta: ClassroomMeta, ...items: RecordAccess<TLRecord>[]) {
 		get: (id) => stored.get(id),
 	})
 }
-const reasons = (meta: ClassroomMeta, ...items: RecordAccess<TLRecord>[]) =>
-	write(meta, ...items).denied.map((d) => d.reason)
-const alice: ClassroomMeta = { userId: 'alice', role: 'student' }
-const bob: ClassroomMeta = { userId: 'bob', role: 'student' }
-const teacher: ClassroomMeta = { userId: 'teacher', role: 'teacher' }
-const update = (prev: TLRecord, change: object) =>
-	({ type: 'update', prev, next: { ...prev, ...change } }) as RecordAccess<TLRecord>
+const reasons = (meta: ClassroomMeta, ...items: RecordAccess<TLRecord>[]) => [
+	...new Set(write(meta, ...items).denied.map((d) => d.reason)),
+]
+/** What the editor writes when the box moves to another page: its thread and comments follow. */
+const moveBox = (pageId: TLPageId) => [
+	update(box, { parentId: pageId }),
+	update(thread, { pageId }),
+	update(fromAlice, { pageId }),
+	update(fromBob, { pageId }),
+]
 
 describe('comments in the demo chain', () => {
 	it('a new comment is posted as the session user', () => {
-		const result = write(bob, {
-			type: 'create',
-			prev: null,
-			next: { ...comment, id: 'comment:new' as TLComment['id'] },
-		})
+		const next = { ...fromAlice, id: 'comment:new' as TLComment['id'] }
+		const result = write(bob, { type: 'create', prev: null, next })
 		expect(
 			result.allowed.map((a) => (a.type === 'create' ? (a.next as TLComment).authorId : null))
 		).toEqual(['bob'])
 	})
 
 	it('a student edits only their own comment; a teacher deletes any, and edits none', () => {
-		const edit = update(comment, { body: toRichText('changed') })
-		const del = update(comment, { isDeleted: true })
+		const edit = update(fromAlice, { body: toRichText('changed') })
+		const del = update(fromAlice, { isDeleted: true })
 		expect([
 			reasons(alice, edit),
 			reasons(bob, edit),
@@ -77,17 +95,23 @@ describe('comments in the demo chain', () => {
 		]).toEqual([[], ['comment rule'], ['comment rule'], []])
 	})
 
-	it('a comment that follows its thread to another page is not an edit', () => {
-		const p3 = PageRecordType.createId('p3')
-		const moved = [update(thread, { pageId: p3 }), update(comment, { pageId: p3 })]
-		stored.set(p3, PageRecordType.create({ id: p3, name: 'p3', index: 'a3' as any }))
-		expect(reasons(teacher, ...moved)).toEqual([])
-		// without its thread, the same change is an edit of alice's comment
-		expect(reasons(teacher, update(comment, { pageId: p3 }))[0]).toBeDefined()
+	it("comments follow their shape to another page, also someone else's comments", () => {
+		expect([reasons(alice, ...moveBox(p2.id)), reasons(teacher, ...moveBox(p2.id))]).toEqual([
+			[],
+			[],
+		])
+		// without the shape and its thread, the same change is an edit of someone else's comment
+		expect(reasons(alice, update(fromBob, { pageId: p2.id }))).toEqual(['comment rule'])
 	})
 
-	it('a comment that follows its thread is still checked by the page rules', () => {
-		const moved = [update(thread, { pageId: answers.id }), update(comment, { pageId: answers.id })]
-		expect(reasons(alice, ...moved)).toEqual(['private page', 'private page'])
+	it("a student cannot move someone else's thread to a page of their choice", () => {
+		expect(reasons(bob, update(thread, { pageId: lockedPage.id }))).toEqual(['not your thread'])
+		expect(reasons(bob, update(thread, { anchor: { type: 'point', x: 0, y: 0 } }))).toEqual([
+			'not your thread',
+		])
+	})
+
+	it('comments that follow their shape are still checked by the page rules', () => {
+		expect(reasons(alice, ...moveBox(answers.id))).toEqual(['private page'])
 	})
 })

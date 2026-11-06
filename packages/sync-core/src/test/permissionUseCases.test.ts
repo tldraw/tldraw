@@ -394,6 +394,39 @@ describe('assets and bindings follow the shape rules', () => {
 		expect(stored(binding.id)).toBeDefined()
 	})
 
+	it("a student deletes their own shape that the teacher's arrow points at", () => {
+		for (const atomicPushes of [true, false]) {
+			const { join, teacher, flush, stored } = classroom({ atomicPushes })
+			const alice = join({ userId: 'alice', role: 'student' })
+			const box = createShapeId('alice-box')
+			alice.editor.createShape({ id: box, type: 'geo', x: 300, y: 0 })
+			flush()
+			arrowTo(teacher, createShapeId('teacher-arrow'), box)
+			flush()
+			const binding = teacher.store.allRecords().find((r) => r.typeName === 'binding')!
+			alice.editor.deleteShapes([box])
+			flush()
+			expect([alice.denied, stored(box), stored(binding.id)]).toEqual([[], undefined, undefined])
+		}
+	})
+
+	it('a record type with no rules is closed', () => {
+		const { join, flush, stored } = classroom()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const camera = alice.store.allRecords().find((r) => r.typeName === 'camera')!
+		const result = classroomPermissions().run({
+			kind: 'write',
+			actor: classroomActor(alice.meta),
+			items: [{ type: 'create', prev: null, next: { ...camera, typeName: 'vote' } as any }],
+			get: () => undefined,
+		})
+		flush()
+		expect([result.denied.map((d) => d.reason), stored(camera.id)]).toEqual([
+			['no rules for this type'],
+			undefined,
+		])
+	})
+
 	it("a student binds their own arrow to the teacher's shape", () => {
 		const { join, teacherBox, flush, stored } = classroom()
 		const alice = join({ userId: 'alice', role: 'student' })

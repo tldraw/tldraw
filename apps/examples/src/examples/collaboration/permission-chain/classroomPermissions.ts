@@ -195,39 +195,70 @@ export const stampOwner: Layer = rewrite((access, { actor }) => {
  * Shape write control, part 2: a student or agent changes only their own shapes, and cannot put a
  * shape into someone else's frame. The owner never changes.
  */
-export const ownShapes: Layer = forType(
-	'shape',
-	allow((access, batch) => {
-		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
-			return undefined
-		const me = batch.actor.meta.userId
-		if (access.prev && access.prev.meta.ownerId !== me) return 'not your shape'
-		if (access.type === 'update' && access.next.meta.ownerId !== access.prev.meta.ownerId) {
-			return 'owner is fixed'
+export const ownShapes: Layer = allow((access, batch) => {
+	if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor)) return undefined
+	if ((access.prev ?? access.next).typeName !== 'shape') return undefined
+	const prev = access.prev as TLShape | null
+	const next = access.next as TLShape | null
+	const me = batch.actor.meta.userId
+	if (prev && prev.meta.ownerId !== me && !(next && arrowLetsGo(prev, next, batch))) {
+		return 'not your shape'
+	}
+	if (prev && next && next.meta.ownerId !== prev.meta.ownerId) return 'owner is fixed'
+	if (next) {
+		const parentId = next.parentId
+		if (
+			batch.getAfter(parentId)?.typeName === 'shape' &&
+			!ownsShape(parentId, batch) &&
+			parentId !== batch.actor.meta.frameId
+		) {
+			return 'not your frame'
 		}
-		if (access.next) {
-			const parentId = access.next.parentId
-			if (
-				batch.getAfter(parentId)?.typeName === 'shape' &&
-				!ownsShape(parentId, batch) &&
-				parentId !== batch.actor.meta.frameId
-			) {
-				return 'not your frame'
-			}
-		}
-		return undefined
-	})
-)
+	}
+	return undefined
+})
+
+/** A binding that the batch removes because it deletes the actor's own shape at the `to` end. */
+function unbindsFromOwnDeletedShape(access: RecordAccess<TLRecord>, batch: Parameters<Layer>[0]) {
+	if (access.type !== 'delete' || access.prev.typeName !== 'binding') return false
+	const { toId } = access.prev
+	return batch.getAfter(toId) === undefined && ownsShape(toId, batch)
+}
+
+/**
+ * When the actor deletes their own shape, someone else's arrow that points at it lets go: its
+ * binding is deleted and its end becomes a point. Only the arrow's `start` and `end` change.
+ */
+function arrowLetsGo(prev: TLShape, next: TLShape, batch: Parameters<Layer>[0]) {
+	if (prev.type !== 'arrow') return false
+	const props = next.props as { start?: unknown; end?: unknown }
+	const onlyEnds = isEqual(
+		{ ...prev, props: { ...prev.props, start: props.start, end: props.end } },
+		next
+	)
+	return (
+		onlyEnds &&
+		batch.items.some(
+			(access) =>
+				unbindsFromOwnDeletedShape(access, batch) &&
+				access.type === 'delete' &&
+				access.prev.typeName === 'binding' &&
+				access.prev.fromId === prev.id
+		)
+	)
+}
 
 /**
  * Shape write control, part 3: a binding belongs to its `from` shape (an arrow). A student or
- * agent binds, moves and unbinds only their own arrows.
+ * agent binds, moves and unbinds only their own arrows, and the arrows of others let go of a shape
+ * that its owner deletes.
  */
 export const ownBindings: Layer = forType(
 	'binding',
 	allow((access, batch) => {
 		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
 			return undefined
+		if (unbindsFromOwnDeletedShape(access, batch)) return undefined
 		for (const binding of [access.prev, access.next]) {
 			if (binding && !ownsShape(binding.fromId, batch)) return 'not your shape'
 		}
@@ -285,10 +316,17 @@ const commentRules: Layer = recordAuthorizers<TLRecord, ClassroomMeta>(
 	})
 )
 
+/** A thread anchored to a shape, on the page where that shape is after the batch. */
+function followsShape(thread: TLRecord | undefined, batch: Parameters<Layer>[0]) {
+	if (thread?.typeName !== 'comment-thread' || thread.anchor.type !== 'shape') return false
+	return pageOf(batch.getAfter(thread.anchor.shapeId), batch.getAfter)?.id === thread.pageId
+}
+
 /**
- * A comment that follows its thread to another page. When a shape moves to another page, the
- * editor changes the `pageId` of each comment on it in the same operation. That is not an edit by
- * the person who moved the shape, so the author check does not apply to it.
+ * A comment that follows its thread, and the thread its shape, to another page. When a shape moves
+ * to another page, the editor changes the `pageId` of its threads and their comments in the same
+ * operation. That is not an edit by the person who moved the shape, so the author check does not
+ * apply to it. The page rules still do.
  */
 function followsThread(access: RecordAccess<TLRecord>, batch: Parameters<Layer>[0]) {
 	if (access.type !== 'update') return false
@@ -296,8 +334,28 @@ function followsThread(access: RecordAccess<TLRecord>, batch: Parameters<Layer>[
 	if (prev.typeName !== 'comment' || next.typeName !== 'comment') return false
 	if (prev.pageId === next.pageId || !isEqual({ ...prev, pageId: next.pageId }, next)) return false
 	const thread = batch.getAfter(next.threadId)
-	return thread?.typeName === 'comment-thread' && thread.pageId === next.pageId
+	return (
+		thread?.typeName === 'comment-thread' &&
+		thread.pageId === next.pageId &&
+		followsShape(thread, batch)
+	)
 }
+
+/**
+ * `createCommentAuthorizers` lets anyone with access move a thread. Here only its author or a
+ * teacher moves or re-anchors a thread; anyone else's change to its page follows its shape.
+ */
+export const threadPlaces: Layer = forType(
+	'comment-thread',
+	allow((access, batch) => {
+		if (access.type !== 'update' || isTeacher(batch.actor)) return undefined
+		const { prev, next } = access
+		if (prev.createdBy === batch.actor.meta.userId) return undefined
+		if (!isEqual(prev.anchor, next.anchor)) return 'not your thread'
+		if (prev.pageId !== next.pageId && !followsShape(next, batch)) return 'not your thread'
+		return undefined
+	})
+)
 
 /**
  * Comments: anyone but a viewer posts, always as themselves. Authors edit and delete their own
@@ -391,6 +449,7 @@ export function classroomPermissions({ atomicPushes = true } = {}) {
 		...(atomicPushes ? [atomic<TLRecord, ClassroomActor>()] : []),
 		viewersReadOnly,
 		closedClass,
+		threadPlaces,
 		comments,
 		privatePages,
 		lockedPages,

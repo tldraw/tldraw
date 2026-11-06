@@ -1401,17 +1401,22 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		if (this.permissionBatch || this._isInAtomicOp) return fn()
 		const batch = { changes: new Map(), open: true }
 		this.permissionBatch = batch
+		let result: T
 		try {
-			return fn()
-		} finally {
-			batch.open = false
-			try {
-				// an empty operation that checks the batch's changes
-				if (batch.changes.size) this.atomic(() => {})
-			} finally {
-				this.permissionBatch = null
-			}
+			result = fn()
+		} catch (error) {
+			// the caller's transaction rolls the writes back, so there is nothing to check
+			this.permissionBatch = null
+			throw error
 		}
+		batch.open = false
+		try {
+			// an empty operation that checks the batch's changes
+			if (batch.changes.size) this.atomic(() => {})
+		} finally {
+			this.permissionBatch = null
+		}
+		return result
 	}
 
 	/**
@@ -1465,6 +1470,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 */
 	withoutPermissions<T>(fn: () => T): T {
 		if (this.permissionsPaused) return fn()
+		// Check the actor's writes so far first, so that a put-back cannot undo the host's writes.
+		const batch = this.permissionBatch
+		if (batch?.open && batch.changes.size && !this._isInAtomicOp) {
+			batch.open = false
+			this.atomic(() => {})
+			batch.changes = new Map()
+			batch.open = true
+		}
 		this.permissionsPaused = true
 		try {
 			return fn()

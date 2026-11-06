@@ -9,6 +9,7 @@ import {
 	rewrite,
 } from '@tldraw/store'
 import { TLDOCUMENT_ID, TLPage, TLPageId, TLRecord, TLShape, TLShapeId } from '@tldraw/tlschema'
+import { isEqual } from '@tldraw/utils'
 import { TLSyncActor } from '../lib/permissions'
 import { TLSyncForwardDiff } from '../lib/TLSyncStorage'
 
@@ -167,39 +168,70 @@ export const stampOwner: Layer = rewrite((access, { actor }) => {
  * Shape write control, part 2: a student or agent changes only their own shapes, and cannot put a
  * shape into someone else's frame. The owner never changes.
  */
-export const ownShapes: Layer = forType(
-	'shape',
-	allow((access, batch) => {
-		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
-			return undefined
-		const me = batch.actor.meta.userId
-		if (access.prev && access.prev.meta.ownerId !== me) return 'not your shape'
-		if (access.type === 'update' && access.next.meta.ownerId !== access.prev.meta.ownerId) {
-			return 'owner is fixed'
+export const ownShapes: Layer = allow((access, batch) => {
+	if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor)) return undefined
+	if ((access.prev ?? access.next).typeName !== 'shape') return undefined
+	const prev = access.prev as TLShape | null
+	const next = access.next as TLShape | null
+	const me = batch.actor.meta.userId
+	if (prev && prev.meta.ownerId !== me && !(next && arrowLetsGo(prev, next, batch))) {
+		return 'not your shape'
+	}
+	if (prev && next && next.meta.ownerId !== prev.meta.ownerId) return 'owner is fixed'
+	if (next) {
+		const parentId = next.parentId
+		if (
+			batch.getAfter(parentId)?.typeName === 'shape' &&
+			!ownsShape(parentId, batch) &&
+			parentId !== batch.actor.meta.frameId
+		) {
+			return 'not your frame'
 		}
-		if (access.next) {
-			const parentId = access.next.parentId
-			if (
-				batch.getAfter(parentId)?.typeName === 'shape' &&
-				!ownsShape(parentId, batch) &&
-				parentId !== batch.actor.meta.frameId
-			) {
-				return 'not your frame'
-			}
-		}
-		return undefined
-	})
-)
+	}
+	return undefined
+})
+
+/** A binding that the batch removes because it deletes the actor's own shape at the `to` end. */
+function unbindsFromOwnDeletedShape(access: RecordAccess<TLRecord>, batch: Parameters<Layer>[0]) {
+	if (access.type !== 'delete' || access.prev.typeName !== 'binding') return false
+	const { toId } = access.prev
+	return batch.getAfter(toId) === undefined && ownsShape(toId, batch)
+}
+
+/**
+ * When the actor deletes their own shape, someone else's arrow that points at it lets go: its
+ * binding is deleted and its end becomes a point. Only the arrow's `start` and `end` change.
+ */
+function arrowLetsGo(prev: TLShape, next: TLShape, batch: Parameters<Layer>[0]) {
+	if (prev.type !== 'arrow') return false
+	const props = next.props as { start?: unknown; end?: unknown }
+	const onlyEnds = isEqual(
+		{ ...prev, props: { ...prev.props, start: props.start, end: props.end } },
+		next
+	)
+	return (
+		onlyEnds &&
+		batch.items.some(
+			(access) =>
+				unbindsFromOwnDeletedShape(access, batch) &&
+				access.type === 'delete' &&
+				access.prev.typeName === 'binding' &&
+				access.prev.fromId === prev.id
+		)
+	)
+}
 
 /**
  * Shape write control, part 3: a binding belongs to its `from` shape (an arrow). A student or
- * agent binds, moves and unbinds only their own arrows.
+ * agent binds, moves and unbinds only their own arrows, and the arrows of others let go of a shape
+ * that its owner deletes.
  */
 export const ownBindings: Layer = forType(
 	'binding',
 	allow((access, batch) => {
 		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
 			return undefined
+		if (unbindsFromOwnDeletedShape(access, batch)) return undefined
 		for (const binding of [access.prev, access.next]) {
 			if (binding && !ownsShape(binding.fromId, batch)) return 'not your shape'
 		}

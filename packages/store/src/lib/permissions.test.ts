@@ -521,4 +521,25 @@ describe('run', () => {
 			['b', 'read-only lane'],
 		])
 	})
+
+	it('keeps host denials when a layer allows without calling next', () => {
+		const allowAll = new PermissionChain<Item, null>((batch) => ({
+			allowed: batch.items,
+			denied: [],
+		}))
+		const result = allowAll.run({
+			kind: 'write',
+			actor: null,
+			items: [
+				{ type: 'create', prev: null, next: item('a', null) },
+				{ type: 'create', prev: null, next: item('b', null) },
+			],
+			get: () => undefined,
+			hostDenials: new Map([['b', 'read-only lane']]),
+		})
+		expect([
+			result.allowed.map(getRecordAccessKey),
+			result.denied.map((d) => [getRecordAccessKey(d.access), d.reason]),
+		]).toEqual([['a'], [['b', 'read-only lane']]])
+	})
 })
