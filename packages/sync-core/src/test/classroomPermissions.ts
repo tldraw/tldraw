@@ -19,6 +19,11 @@ export interface ClassroomMeta {
 	role: 'teacher' | 'student' | 'viewer' | 'agent'
 	/** For an agent: the frame it may work in. */
 	frameId?: TLShapeId
+	/**
+	 * A guest who came in through a share link. The link's role can change while the guest is
+	 * connected (`updateSessionMeta`), so the room lane stays open and the chain enforces the role.
+	 */
+	viaLink?: boolean
 }
 export type ClassroomActor = TLSyncActor<ClassroomMeta>
 type Layer = PermissionMiddleware<TLRecord, ClassroomActor>
@@ -26,12 +31,19 @@ type Get = (id: string) => TLRecord | undefined
 
 export const MAX_AGENT_WRITES_PER_BATCH = 50
 
-/** The page that a record is on: the page itself, or the page above a shape. */
+/**
+ * The page that a record is on: the page itself, the page above a shape, or the page of a record
+ * with a `pageId` (comments and their threads).
+ */
 export function pageOf(record: TLRecord | undefined, get: Get): TLPage | undefined {
 	for (let i = 0; record && i < 100; i++) {
 		if (record.typeName === 'page') return record
-		if (record.typeName !== 'shape') return undefined
-		record = get(record.parentId)
+		if (record.typeName === 'shape') {
+			record = get(record.parentId)
+			continue
+		}
+		const pageId = (record as { pageId?: unknown }).pageId
+		return typeof pageId === 'string' ? pageOf(get(pageId), get) : undefined
 	}
 	return undefined
 }
@@ -159,10 +171,33 @@ export function agentScope(...[batch, next]: Parameters<Layer>): ReturnType<Laye
 	})(batch, next)
 }
 
+/** A plugin shape type: a teacher's grade for one student. */
+export const GRADE_TYPE = 'grade'
+function isGrade(record: TLRecord | null | undefined): record is TLShape {
+	return record?.typeName === 'shape' && record.type === GRADE_TYPE
+}
+const gradeFor = (shape: TLShape) => (shape.props as { studentId?: string }).studentId
+
+/**
+ * A plugin type with its own rules. Shape read control: a student reads only their own grade.
+ * Shape write control: only a teacher writes grades.
+ */
+export const grades: Layer = allow((access, batch) => {
+	if (access.type === 'action' || isTeacher(batch.actor)) return undefined
+	if (access.type === 'read') {
+		if (!isGrade(access.record)) return undefined
+		return gradeFor(access.record) === batch.actor.meta.userId ? undefined : 'not your grade'
+	}
+	return isGrade(access.prev) || isGrade(access.next) ? 'only teachers grade' : undefined
+})
+
 /** Actions that are not record writes: the client hides the UI, a server endpoint asks too. */
 export const teacherActions: Layer = allow((access, { actor }) => {
 	if (access.type !== 'action') return undefined
-	if (access.name.startsWith('page.') || access.name === 'file.share') return isTeacher(actor)
+	const { name } = access
+	if (name.startsWith('page.') || name.startsWith('grade.') || name === 'file.share') {
+		return isTeacher(actor)
+	}
 	return undefined
 })
 
@@ -175,6 +210,7 @@ export function classroomPermissions({ atomicPushes = true } = {}) {
 		lockedPages,
 		// before the per-shape rules: the limit counts the batch as the client sent it
 		agentScope,
+		grades,
 		stampOwner,
 		ownShapes,
 		teacherActions

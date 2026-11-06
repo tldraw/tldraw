@@ -11,6 +11,8 @@ import {
 	TLComment,
 	TLCommentThread,
 	TLDOCUMENT_ID,
+	TLShape,
+	defaultShapeSchemas,
 	TLPageId,
 	TLRecord,
 	TLShapeId,
@@ -20,7 +22,9 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import {
+	BaseBoxShapeUtil,
 	Editor,
+	T,
 	PageRecordType,
 	TLStore,
 	createShapeId,
@@ -34,6 +38,7 @@ import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
 import {
 	ClassroomActor,
 	ClassroomMeta,
+	GRADE_TYPE,
 	MAX_AGENT_WRITES_PER_BATCH,
 	classroomActor,
 	classroomPermissions,
@@ -44,7 +49,30 @@ import { TestSocketPair } from './TestSocketPair'
 // Backtests of the permission use cases, from end to end: a real room, and real editors whose
 // stores run the same chain as the room (see classroomPermissions.ts).
 
-const schema = createTLSchema()
+// A plugin shape type: a teacher's grade for one student (see `grades` in classroomPermissions.ts).
+const gradeProps = { w: T.number, h: T.number, studentId: T.string, text: T.string }
+declare module '@tldraw/tlschema' {
+	export interface TLGlobalShapePropsMap {
+		[GRADE_TYPE]: { w: number; h: number; studentId: string; text: string }
+	}
+}
+class GradeShapeUtil extends BaseBoxShapeUtil<TLShape<typeof GRADE_TYPE>> {
+	static override type = GRADE_TYPE
+	static override props = gradeProps
+	override getDefaultProps() {
+		return { w: 100, h: 50, studentId: '', text: '' }
+	}
+	override component() {
+		return null
+	}
+	override getIndicatorPath() {
+		return undefined
+	}
+}
+
+const schema = createTLSchema({
+	shapes: { ...defaultShapeSchemas, [GRADE_TYPE]: { props: gradeProps } },
+})
 const disposables: (() => void)[] = []
 afterEach(() => {
 	while (disposables.length) disposables.pop()!()
@@ -73,8 +101,9 @@ class Peer {
 		this.pair = new TestSocketPair(meta.userId, server)
 		this.pair.connectOpts = {
 			meta,
-			isReadonly: meta.role === 'viewer',
-			objectAccess: meta.role === 'viewer' ? 'read' : 'write',
+			// A link guest's role can change while connected, so its lane stays open.
+			isReadonly: meta.role === 'viewer' && !meta.viaLink,
+			objectAccess: meta.role === 'viewer' && !meta.viaLink ? 'read' : 'write',
 		}
 		this.client = new TLSyncClient<TLRecord>({
 			store: this.store,
@@ -84,7 +113,7 @@ class Peer {
 			},
 			onLoad: () => {
 				this.editor = new Editor({
-					shapeUtils: defaultShapeUtils,
+					shapeUtils: [...defaultShapeUtils, GradeShapeUtil],
 					bindingUtils: defaultBindingUtils,
 					tools: defaultTools,
 					store: this.store,
@@ -309,6 +338,85 @@ describe('file read control', () => {
 		expect(alice.denied.map((d) => d.reason)).toEqual(['only teachers change the file'])
 		flush()
 		expect(teacher.store.get(TLDOCUMENT_ID)!.meta.closed).toBeUndefined()
+	})
+})
+
+describe('shape read control, with a plugin shape type', () => {
+	function graded() {
+		const room = classroom()
+		const aliceGrade = createShapeId('grade-alice')
+		const bobGrade = createShapeId('grade-bob')
+		room.teacher.editor.createShapes([
+			{ id: aliceGrade, type: GRADE_TYPE, x: 0, y: 0, props: { studentId: 'alice', text: 'A' } },
+			{ id: bobGrade, type: GRADE_TYPE, x: 0, y: 0, props: { studentId: 'bob', text: 'B' } },
+		])
+		room.flush()
+		return { ...room, aliceGrade, bobGrade }
+	}
+
+	it('a student receives only their own grade, a teacher all', () => {
+		const { join, teacher, aliceGrade, bobGrade } = graded()
+		const alice = join({ userId: 'alice', role: 'student' })
+		const bob = join({ userId: 'bob', role: 'student' })
+		expect([!!alice.store.get(aliceGrade), !!alice.store.get(bobGrade)]).toEqual([true, false])
+		expect([!!bob.store.get(aliceGrade), !!bob.store.get(bobGrade)]).toEqual([false, true])
+		expect([!!teacher.store.get(aliceGrade), !!teacher.store.get(bobGrade)]).toEqual([true, true])
+	})
+
+	it('only a teacher writes grades, on the client and in the room', () => {
+		const { join, flush, stored, aliceGrade } = graded()
+		const alice = join({ userId: 'alice', role: 'student' })
+		alice.editor.updateShape({ id: aliceGrade, type: GRADE_TYPE, props: { text: 'A+' } })
+		expect(alice.denied.map((d) => d.reason)).toEqual(['only teachers grade'])
+		alice.store.setPermissions(null)
+		alice.editor.updateShape({ id: aliceGrade, type: GRADE_TYPE, props: { text: 'A+' } })
+		flush()
+		expect((stored(aliceGrade) as any).props.text).toBe('A')
+	})
+
+	it('a grade change reaches its student, and no one else', () => {
+		const { join, teacher, flush, aliceGrade, bobGrade } = graded()
+		const alice = join({ userId: 'alice', role: 'student' })
+		teacher.editor.updateShapes([
+			{ id: aliceGrade, type: GRADE_TYPE, props: { text: 'B' } },
+			{ id: bobGrade, type: GRADE_TYPE, props: { text: 'C' } },
+		])
+		flush()
+		expect((alice.store.get(aliceGrade) as any).props.text).toBe('B')
+		expect(alice.store.get(bobGrade)).toBeUndefined()
+	})
+
+	it('plugin actions ask the same chain', () => {
+		const { chain } = graded()
+		const can = (role: ClassroomMeta['role']) =>
+			chain.can({ actor: classroomActor({ userId: 'u', role }), action: 'grade.change' })
+		expect([can('teacher'), can('student')]).toEqual([true, false])
+	})
+})
+
+describe('share links', () => {
+	it('a link role change applies to the next write, with no reconnect', () => {
+		const { join, server, flush, stored } = classroom()
+		const guest = join({ userId: 'guest', role: 'viewer', viaLink: true })
+		const draw = (id: string) => {
+			const shapeId = createShapeId(id)
+			guest.editor.createShape({ id: shapeId, type: 'geo', x: 0, y: 0 })
+			flush()
+			return stored(shapeId)
+		}
+		expect(draw('a')).toBeUndefined()
+		expect(guest.denied.map((d) => d.reason)).toEqual(['read only'])
+
+		// the host's "change link" endpoint
+		guest.meta = { userId: 'guest', role: 'student', viaLink: true }
+		server.room.updateSessionMeta('guest', guest.meta)
+		expect(draw('b')).toBeDefined()
+
+		guest.meta = { userId: 'guest', role: 'viewer', viaLink: true }
+		server.room.updateSessionMeta('guest', guest.meta)
+		guest.store.setPermissions(null)
+		expect(draw('c')).toBeUndefined()
+		expect(guest.syncErrors).toEqual([])
 	})
 })
 

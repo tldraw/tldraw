@@ -6,7 +6,7 @@ import {
 	TLSyncErrorCloseEventCode,
 	WebSocketMinimal,
 } from '@tldraw/sync-core'
-import { PermissionChain, TLRecord } from 'tldraw'
+import { PermissionChain, TLRecord, TLSchema } from 'tldraw'
 import { ClassroomActor, ClassroomMeta } from './classroomPermissions'
 
 type ClientSocket = TLPersistentClientSocket<
@@ -18,9 +18,27 @@ type ClientSocket = TLPersistentClientSocket<
  * A sync server in the page, so that the demo can show the room's side of the chain with no
  * backend. Each editor talks to it through a pair of in-memory sockets.
  */
-export function createInPageRoom(chain: PermissionChain<TLRecord, ClassroomActor>) {
+export function createInPageRoom({
+	chain,
+	schema,
+	onDenied,
+}: {
+	chain: PermissionChain<TLRecord, ClassroomActor>
+	schema: TLSchema
+	/** Called for each write that the room denies, so the demo can show the server's side. */
+	onDenied(message: string): void
+}) {
 	const room: TLSocketRoom<TLRecord, ClassroomMeta> = new TLSocketRoom<TLRecord, ClassroomMeta>({
+		schema,
 		permissions: chain,
+		log: {
+			warn: (...args: unknown[]) => {
+				// 'permission chain denied a write', type, id, reason, 'session:', sessionId
+				if (args[0] !== 'permission chain denied a write') return
+				const [, type, id, reason, , sessionId] = args
+				onDenied(`${sessionId}: ${reason} (${type} ${id})`)
+			},
+		},
 		// The read rules of a shape read its page. A page change does not change its shapes, so
 		// re-run the reads when a page changes. The document's meta decides who may open the room
 		// (file read control), so re-run them when it changes too.
@@ -92,8 +110,9 @@ export function createInPageRoom(chain: PermissionChain<TLRecord, ClassroomActor
 			sessionId,
 			socket: serverSocket,
 			meta,
-			isReadonly: meta.role === 'viewer',
-			objectAccess: meta.role === 'viewer' ? 'read' : 'write',
+			// A link guest's role can change while connected, so its lane stays open.
+			isReadonly: meta.role === 'viewer' && !meta.viaLink,
+			objectAccess: meta.role === 'viewer' && !meta.viaLink ? 'read' : 'write',
 		})
 		setTimeout(() => {
 			client.connectionStatus = 'online'

@@ -935,6 +935,9 @@ importers:
       '@tldraw/sync':
         specifier: workspace:*
         version: link:../../packages/sync
+      '@tldraw/sync-collaboration':
+        specifier: workspace:*
+        version: link:../../packages/sync-collaboration
       '@tldraw/sync-core':
         specifier: workspace:*
         version: link:../../packages/sync-core
