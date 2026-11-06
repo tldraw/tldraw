@@ -4,6 +4,8 @@ import { describe, expect, it } from 'vitest'
 import { createMutators, parseFlags, userHasFlag } from './mutators'
 import { FILE_PREFIX, PUBLISH_PREFIX } from './routes'
 import {
+	TlaCollection,
+	TlaCollectionItem,
 	TlaComment,
 	TlaCommentRead,
 	TlaFile,
@@ -143,6 +145,8 @@ interface TableStore {
 	group_file: TlaGroupFile[]
 	comment: TlaComment[]
 	comment_read: TlaCommentRead[]
+	collection: TlaCollection[]
+	collection_item: TlaCollectionItem[]
 }
 
 const TABLE_PKS: Record<keyof TableStore, string[]> = {
@@ -154,6 +158,8 @@ const TABLE_PKS: Record<keyof TableStore, string[]> = {
 	group_file: ['fileId', 'groupId'],
 	comment: ['id'],
 	comment_read: ['userId', 'commentId'],
+	collection: ['id'],
+	collection_item: ['id'],
 }
 
 function makeStore(tables: Partial<TableStore>): TableStore {
@@ -166,6 +172,8 @@ function makeStore(tables: Partial<TableStore>): TableStore {
 		group_file: [],
 		comment: [],
 		comment_read: [],
+		collection: [],
+		collection_item: [],
 		...tables,
 	}
 }
@@ -1704,5 +1712,229 @@ describe('comment.markManyRead', () => {
 		const mutators = createMutators('other1')
 		await mutators.comment.markManyRead(tx, { commentIds: ['c1', 'c2'], readAt: Date.now() })
 		expect(store.comment_read).toHaveLength(2)
+	})
+})
+
+describe('collections', () => {
+	const me = 'user_aaaa11112222bbbb'
+	const other = 'user_cccc11112222dddd'
+	const W = 'group_www11112222www' // a workspace I'm in
+	const V = 'group_vvv11112222vvv' // another workspace I'm in
+	const X = 'group_xxx11112222xxx' // a workspace I'm not in
+	const collectionId = 'coll_aaaa11112222bbbb'
+
+	const makeCollection = (
+		overrides: Partial<TlaCollection> & { id: string; owningGroupId: string }
+	): TlaCollection => ({
+		name: 'Shapes',
+		createdBy: me,
+		createdAt: 1,
+		updatedAt: 1,
+		meta: {},
+		...overrides,
+	})
+	const makeItem = (id: string, inCollection: string): TlaCollectionItem => ({
+		id,
+		collectionId: inCollection,
+		name: null,
+		thumbnailType: null,
+		createdBy: me,
+		createdAt: 1,
+		updatedAt: 1,
+	})
+
+	function setup(tables: Partial<TableStore> = {}) {
+		const store = makeStore({
+			user: [makeUser({ id: me }), makeUser({ id: other })],
+			group: [makeGroup({ id: W }), makeGroup({ id: V }), makeGroup({ id: X })],
+			group_user: [
+				makeGroupUser({ userId: me, groupId: W, role: 'member' }),
+				makeGroupUser({ userId: me, groupId: V, role: 'member' }),
+				makeGroupUser({ userId: other, groupId: X, role: 'owner' }),
+			],
+			...tables,
+		})
+		const { tx } = createMockTx(store)
+		return { store, tx, mutators: createMutators(me) }
+	}
+
+	describe('collection.create', () => {
+		it('creates a private collection in my home workspace', async () => {
+			const { store, tx, mutators } = setup()
+			await mutators.collection.create(tx, {
+				id: collectionId,
+				name: ' Shapes ',
+				owningGroupId: me,
+			})
+			expect(store.collection).toMatchObject([
+				{ id: collectionId, name: 'Shapes', owningGroupId: me, createdBy: me, meta: {} },
+			])
+		})
+
+		it('lets a member, not only an owner, create in a workspace', async () => {
+			const { store, tx, mutators } = setup()
+			await mutators.collection.create(tx, {
+				id: collectionId,
+				name: 'Shapes',
+				owningGroupId: W,
+				meta: { packId: 'wireframing', packVersion: 1 },
+			})
+			expect(store.collection[0]).toMatchObject({
+				owningGroupId: W,
+				meta: { packId: 'wireframing', packVersion: 1 },
+			})
+		})
+
+		it("can't create in a workspace I'm not in, or in someone else's home", async () => {
+			const { tx, mutators } = setup()
+			await expectForbidden(() =>
+				mutators.collection.create(tx, { id: collectionId, name: 'Shapes', owningGroupId: X })
+			)
+			await expectForbidden(() =>
+				mutators.collection.create(tx, { id: collectionId, name: 'Shapes', owningGroupId: other })
+			)
+		})
+
+		it('rejects a blank name, a bad id, a reused id and non-object meta', async () => {
+			const { tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: X })],
+			})
+			const create = (args: Partial<Parameters<typeof mutators.collection.create>[1]>) =>
+				mutators.collection.create(tx, {
+					id: 'coll_bbbb11112222cccc',
+					name: 'Shapes',
+					owningGroupId: W,
+					...args,
+				})
+			await expectBadRequest(() => create({ name: '   ' }))
+			await expectBadRequest(() => create({ id: 'short' }))
+			await expectBadRequest(() => create({ id: collectionId }))
+			await expectBadRequest(() => create({ meta: [] as any }))
+		})
+	})
+
+	describe('collection.rename / delete', () => {
+		it('lets any member rename and delete, deleting the items too', async () => {
+			const { store, tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: W, createdBy: other })],
+				collection_item: [
+					makeItem('item_1111222233334444', collectionId),
+					makeItem('item_5555666677778888', 'coll_elsewhere0000000'),
+				],
+			})
+			await mutators.collection.rename(tx, { id: collectionId, name: 'Icons' })
+			expect(store.collection[0].name).toBe('Icons')
+			await mutators.collection.delete(tx, { id: collectionId })
+			expect(store.collection).toEqual([])
+			expect(store.collection_item.map((i) => i.id)).toEqual(['item_5555666677778888'])
+		})
+
+		it("can't rename or delete a collection in a workspace I'm not in", async () => {
+			const { store, tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: X })],
+			})
+			await expectForbidden(() =>
+				mutators.collection.rename(tx, { id: collectionId, name: 'Mine' })
+			)
+			await expectForbidden(() => mutators.collection.delete(tx, { id: collectionId }))
+			expect(store.collection).toHaveLength(1)
+		})
+
+		it("can't touch another user's private collections", async () => {
+			const { tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: other })],
+			})
+			await expectForbidden(() =>
+				mutators.collection.rename(tx, { id: collectionId, name: 'Mine' })
+			)
+		})
+	})
+
+	describe('collection.move', () => {
+		it('moves between two workspaces I belong to, home included', async () => {
+			const { store, tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: me })],
+			})
+			await mutators.collection.move(tx, { id: collectionId, owningGroupId: W })
+			expect(store.collection[0].owningGroupId).toBe(W)
+			await mutators.collection.move(tx, { id: collectionId, owningGroupId: V })
+			expect(store.collection[0].owningGroupId).toBe(V)
+		})
+
+		it("can't move out of a workspace I'm not in", async () => {
+			const { tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: X })],
+			})
+			await expectForbidden(() =>
+				mutators.collection.move(tx, { id: collectionId, owningGroupId: W })
+			)
+		})
+
+		it("can't move into a workspace I'm not in", async () => {
+			const { store, tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: W })],
+			})
+			await expectForbidden(() =>
+				mutators.collection.move(tx, { id: collectionId, owningGroupId: X })
+			)
+			await expectForbidden(() =>
+				mutators.collection.move(tx, { id: collectionId, owningGroupId: other })
+			)
+			expect(store.collection[0].owningGroupId).toBe(W)
+		})
+	})
+
+	describe('collection_item', () => {
+		const itemId = 'item_1111222233334444'
+		const otherCollection = 'coll_cccc11112222dddd'
+
+		it('lets a member rename, move and delete items', async () => {
+			const { store, tx, mutators } = setup({
+				collection: [
+					makeCollection({ id: collectionId, owningGroupId: W }),
+					makeCollection({ id: otherCollection, owningGroupId: me }),
+				],
+				collection_item: [makeItem(itemId, collectionId)],
+			})
+			await mutators.collection_item.rename(tx, { id: itemId, name: 'Button' })
+			expect(store.collection_item[0].name).toBe('Button')
+			await mutators.collection_item.move(tx, { id: itemId, collectionId: otherCollection })
+			expect(store.collection_item[0].collectionId).toBe(otherCollection)
+			await mutators.collection_item.delete(tx, { id: itemId })
+			expect(store.collection_item).toEqual([])
+		})
+
+		it("can't change items in a workspace I'm not in", async () => {
+			const { store, tx, mutators } = setup({
+				collection: [makeCollection({ id: collectionId, owningGroupId: X })],
+				collection_item: [makeItem(itemId, collectionId)],
+			})
+			await expectForbidden(() => mutators.collection_item.rename(tx, { id: itemId, name: 'x' }))
+			await expectForbidden(() => mutators.collection_item.delete(tx, { id: itemId }))
+			expect(store.collection_item).toHaveLength(1)
+		})
+
+		it("can't move an item into, or out of, a collection in a workspace I'm not in", async () => {
+			const { store, tx, mutators } = setup({
+				collection: [
+					makeCollection({ id: collectionId, owningGroupId: W }),
+					makeCollection({ id: otherCollection, owningGroupId: X }),
+				],
+				collection_item: [
+					makeItem(itemId, collectionId),
+					makeItem('item_x000111122223333', otherCollection),
+				],
+			})
+			await expectForbidden(() =>
+				mutators.collection_item.move(tx, { id: itemId, collectionId: otherCollection })
+			)
+			await expectForbidden(() =>
+				mutators.collection_item.move(tx, { id: 'item_x000111122223333', collectionId })
+			)
+			expect(store.collection_item.map((i) => i.collectionId)).toEqual([
+				collectionId,
+				otherCollection,
+			])
+		})
 	})
 })

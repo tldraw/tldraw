@@ -4,7 +4,13 @@ import { can, isRole } from './roles'
 
 describe('capabilities', () => {
 	it('is the expected set, with no duplicates', () => {
-		expect([...capabilities]).toEqual(['accessFiles', 'addFiles', 'removeFiles', 'manageWorkspace'])
+		expect([...capabilities]).toEqual([
+			'accessFiles',
+			'addFiles',
+			'removeFiles',
+			'manageWorkspace',
+			'manageCollections',
+		])
 		expect(new Set(capabilities).size).toBe(capabilities.length)
 	})
 })
@@ -18,7 +24,12 @@ describe('can', () => {
 
 	it('grants members the non-administrative capabilities only', () => {
 		const memberCapabilities = capabilities.filter((capability) => can('member', capability))
-		expect(memberCapabilities).toEqual(['accessFiles', 'addFiles', 'removeFiles'])
+		expect(memberCapabilities).toEqual([
+			'accessFiles',
+			'addFiles',
+			'removeFiles',
+			'manageCollections',
+		])
 	})
 
 	it('denies members the administrative capabilities', () => {

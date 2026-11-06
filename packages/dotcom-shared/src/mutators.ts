@@ -3,11 +3,16 @@ import {
 	assert,
 	getIndexBelow,
 	IndexKey,
+	type JsonObject,
 	sortByIndex,
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants'
+import {
+	MAX_COLLECTION_NAME_LENGTH,
+	MAX_NUMBER_OF_WORKSPACES,
+	MAX_WORKSPACE_NAME_LENGTH,
+} from './constants'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -184,6 +189,42 @@ export const USER_PREFERENCE_KEYS = Object.keys(
 	USER_PREFERENCE_VALIDATORS
 ) as readonly TlaUserPreferenceKey[]
 
+/** A collection or item name as stored: trimmed, clamped like a workspace name, never blank. */
+function collectionName(name: string) {
+	assert(typeof name === 'string', ZErrorCode.bad_request)
+	const clamped = name.trim().slice(0, MAX_COLLECTION_NAME_LENGTH)
+	assert(clamped.length > 0, ZErrorCode.bad_request)
+	return clamped
+}
+
+const MAX_COLLECTION_META_LENGTH = 4096
+
+function assertValidCollectionMeta(meta: JsonObject) {
+	assert(meta && typeof meta === 'object' && !Array.isArray(meta), ZErrorCode.bad_request)
+	assert(JSON.stringify(meta).length <= MAX_COLLECTION_META_LENGTH, ZErrorCode.bad_request)
+}
+
+/**
+ * Resolve a collection the user may change: their role in its owning workspace must grant
+ * `manageCollections`. Any member can, the same as seeing it in the collections query.
+ */
+async function assertCanManageCollection(tx: Tx, userId: string, collectionId: string) {
+	assert(collectionId, ZErrorCode.bad_request)
+	const collection = await tx.run(zql.collection.where('id', '=', collectionId).one())
+	assert(collection, ZErrorCode.bad_request)
+	const role = await getRole(tx, userId, collection.owningGroupId)
+	assert(can(role, 'manageCollections'), ZErrorCode.forbidden)
+	return collection
+}
+
+async function assertCanManageCollectionItem(tx: Tx, userId: string, itemId: string) {
+	assert(itemId, ZErrorCode.bad_request)
+	const item = await tx.run(zql.collection_item.where('id', '=', itemId).one())
+	assert(item, ZErrorCode.bad_request)
+	await assertCanManageCollection(tx, userId, item.collectionId)
+	return item
+}
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -247,6 +288,82 @@ export function createMutators(userId: string) {
 				if (!exists) return
 
 				await tx.mutate.file_state.upsert(fileState)
+			},
+		},
+
+		collection: {
+			/**
+			 * Creates an empty collection in a workspace the user is a member of. Items are added by
+			 * the sync worker, which stores their content first.
+			 */
+			create: async (
+				tx: Tx,
+				{
+					id,
+					name,
+					owningGroupId,
+					meta = {},
+				}: { id: string; name: string; owningGroupId: string; meta?: JsonObject }
+			) => {
+				assertValidId(id)
+				assertValidCollectionMeta(meta)
+				const role = await getRole(tx, userId, owningGroupId)
+				assert(can(role, 'manageCollections'), ZErrorCode.forbidden)
+				// The server's insert ignores a conflicting id, which would report success for nothing.
+				const existing = await tx.run(zql.collection.where('id', '=', id).one())
+				assert(!existing, ZErrorCode.bad_request)
+				const now = Date.now()
+				await tx.mutate.collection.insert({
+					id,
+					name: collectionName(name),
+					owningGroupId,
+					createdBy: userId,
+					createdAt: now,
+					updatedAt: now,
+					meta,
+				})
+			},
+			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertCanManageCollection(tx, userId, id)
+				await tx.mutate.collection.update({ id, name: collectionName(name), updatedAt: Date.now() })
+			},
+			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertCanManageCollection(tx, userId, id)
+				// The foreign key cascades in Postgres, but a client's local store has no cascade.
+				const items = await tx.run(zql.collection_item.where('collectionId', '=', id))
+				for (const item of items) await tx.mutate.collection_item.delete({ id: item.id })
+				await tx.mutate.collection.delete({ id })
+			},
+			/** Gives a collection, with its items, to another workspace the user is a member of. */
+			move: async (tx: Tx, { id, owningGroupId }: { id: string; owningGroupId: string }) => {
+				assert(owningGroupId, ZErrorCode.bad_request)
+				const collection = await assertCanManageCollection(tx, userId, id)
+				if (collection.owningGroupId === owningGroupId) return
+				const toRole = await getRole(tx, userId, owningGroupId)
+				assert(can(toRole, 'manageCollections'), ZErrorCode.forbidden)
+				await tx.mutate.collection.update({ id, owningGroupId, updatedAt: Date.now() })
+			},
+		},
+
+		collection_item: {
+			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertCanManageCollectionItem(tx, userId, id)
+				await tx.mutate.collection_item.update({
+					id,
+					name: collectionName(name),
+					updatedAt: Date.now(),
+				})
+			},
+			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertCanManageCollectionItem(tx, userId, id)
+				await tx.mutate.collection_item.delete({ id })
+			},
+			/** Moves an item to another collection, which may belong to another workspace. */
+			move: async (tx: Tx, { id, collectionId }: { id: string; collectionId: string }) => {
+				const item = await assertCanManageCollectionItem(tx, userId, id)
+				if (item.collectionId === collectionId) return
+				await assertCanManageCollection(tx, userId, collectionId)
+				await tx.mutate.collection_item.update({ id, collectionId, updatedAt: Date.now() })
 			},
 		},
 

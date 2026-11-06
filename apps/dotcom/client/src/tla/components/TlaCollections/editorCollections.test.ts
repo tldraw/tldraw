@@ -1,4 +1,3 @@
-import 'fake-indexeddb/auto'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -9,29 +8,25 @@ import {
 	Editor,
 	type TLRecord,
 } from 'tldraw'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
-import type { TldrawApp } from '../../app/TldrawApp'
 import { TldrawAppCollectionsSource } from './collectionsSource'
 import { getEditorCollections } from './editorCollections'
+import { createFakeCollectionsBackend } from './fakeCollectionsBackend'
 
-let lastUserId = 0
 let editors: Editor[] = []
 
 afterEach(() => {
 	for (const editor of editors) editor.dispose()
 	editors = []
+	vi.unstubAllGlobals()
 })
 
 function setUp() {
-	const userId = `editor-collections-user-${++lastUserId}`
-	const app = {
-		userId,
-		getHomeWorkspaceId: () => 'home',
-		getWorkspaceMemberships: () => [{ groupId: 'home', group: { name: 'Home' } }],
-		msg: (message: { defaultMessage: string }) => message.defaultMessage,
-	} as unknown as TldrawApp
-	const collections = new TldrawAppCollectionsSource(app)
+	const backend = createFakeCollectionsBackend({ userId: 'home', workspaces: [] })
+	vi.stubGlobal('fetch', backend.fetch)
+	const { app } = backend
+	const collections = new TldrawAppCollectionsSource(app, backend.getToken)
 	const editor = new Editor({
 		store: createTLStore({ schema: createTLSchema({ records: fileSchemaRecords }) }),
 		shapeUtils: defaultShapeUtils,

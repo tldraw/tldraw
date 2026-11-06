@@ -3,12 +3,23 @@ import type { TLCollection, TLCollectionId, TLCollectionItem } from './schema'
 
 /**
  * Copies a collection and its items to an owner, as a new collection with the same name. The
- * original is left as it is, so this works for read-only collections too. Item thumbnails are
- * fetched from their URLs and copied; one that can't be fetched is left out. If an item can't be
+ * original is left as it is, so this works for read-only collections too. A source that has its
+ * own {@link CollectionSource.copyCollection} makes the copy; otherwise item thumbnails are fetched
+ * from their URLs and copied, one that can't be fetched being left out, and if an item can't be
  * copied, the partial copy is deleted and the error rethrown.
  * @public
  */
 export async function copyCollection(
+	source: CollectionSource,
+	collectionId: TLCollectionId,
+	ownerId: string
+): Promise<TLCollection> {
+	if (source.copyCollection) return source.copyCollection(collectionId, ownerId)
+	return copyCollectionItemByItem(source, collectionId, ownerId)
+}
+
+/** {@link copyCollection} for a source without its own: each item is loaded and added again. */
+export async function copyCollectionItemByItem(
 	source: CollectionSource,
 	collectionId: TLCollectionId,
 	ownerId: string

@@ -137,6 +137,19 @@ export const queries = defineQueries({
 	),
 
 	/**
+	 * Collections of every workspace the user is a member of, with their items. Collections private
+	 * to the user come through the same path: their home workspace has a group_user row for them.
+	 */
+	collections: defineQuery(({ ctx }) =>
+		zql.collection
+			.whereExists('group', (g) =>
+				g.whereExists('groupMembers', (gm) => gm.where('userId', '=', ctx.userId))
+			)
+			.related('items', (items) => items.orderBy('createdAt', 'asc'))
+			.orderBy('createdAt', 'asc')
+	),
+
+	/**
 	 * Recent comments that concern the current user, for the app-level notifications feed, in four
 	 * feeds the client merges ({@link homeBoardComments}, {@link threadStarterComments},
 	 * {@link threadParticipantComments}, {@link mentionComments}). Each takes someone else's live

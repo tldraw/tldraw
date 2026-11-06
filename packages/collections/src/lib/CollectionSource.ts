@@ -109,6 +109,13 @@ export interface CollectionSource {
 	 * one owner.
 	 */
 	moveCollection?(collectionId: TLCollectionId, ownerId: string): Promise<void>
+	/**
+	 * Copies a collection and its items to an owner, as a new collection with the same name, and
+	 * returns the copy. Optional: for sources that can copy without the caller loading and adding
+	 * every item again, e.g. on a server. Without it, `copyCollection` copies item by item through
+	 * {@link CollectionSource.getItemContent} and {@link CollectionSource.addItem}.
+	 */
+	copyCollection?(collectionId: TLCollectionId, ownerId: string): Promise<TLCollection>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

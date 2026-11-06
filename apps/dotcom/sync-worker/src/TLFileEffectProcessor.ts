@@ -2,6 +2,7 @@ import { TlaEffectOutbox } from '@tldraw/dotcom-shared'
 import { createSentry } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { sql } from 'kysely'
+import { CollectionItemEffectDeps, processCollectionItemEffect } from './collectionEffects'
 import { FileEffectDeps, processFileEffect } from './fileEffects'
 import {
 	EFFECT_TIMEOUT_MS,
@@ -116,10 +117,26 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 				),
 			unpublish: (file) => unpublishSnapshot(this.env, file),
 		}
+		const collectionItemDeps: CollectionItemEffectDeps = {
+			deleteStoredObjects: (keys) => this.env.ROOMS.delete(keys),
+			getOwnedUploads: async (itemId) => {
+				const rows = await db
+					.selectFrom('collection_item_asset')
+					.select('objectName')
+					.where('itemId', '=', itemId)
+					.execute()
+				return rows.map((r) => r.objectName)
+			},
+			deleteUploads: (objectNames) => this.env.UPLOADS.delete(objectNames),
+			forgetOwnedUploads: async (itemId) => {
+				await db.deleteFrom('collection_item_asset').where('itemId', '=', itemId).execute()
+			},
+		}
 		// One handler per source table. Future effect sources (e.g. notifications)
 		// register here alongside their trigger.
 		const handlers: Record<string, (row: TlaEffectOutbox) => Promise<void>> = {
 			file: (row) => processFileEffect(fileDeps, row),
+			collection_item: (row) => processCollectionItemEffect(collectionItemDeps, row),
 		}
 		try {
 			await drainOutbox({

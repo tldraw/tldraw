@@ -1,6 +1,7 @@
 export const MAX_NUMBER_OF_FILES = 200
 export const MAX_NUMBER_OF_WORKSPACES = 20
 export const MAX_WORKSPACE_NAME_LENGTH = 100
+export const MAX_COLLECTION_NAME_LENGTH = 100
 
 export const ROOM_SIZE_LIMIT_MB = 25
 
