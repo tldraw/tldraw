@@ -2204,6 +2204,7 @@ export function hardResetEditor(): void;
 // @public (undocumented)
 export class HistoryManager<R extends UnknownRecord> {
     constructor(opts: {
+        rollsBackOperations?: boolean;
         annotateError?(error: unknown): void;
         store: Store<R>;
     });

@@ -8,6 +8,7 @@ import {
 import {
 	canApplyToUnlockedSelection,
 	canCreateShapeOfType,
+	canDeleteSelection,
 	canDuplicateSelection,
 	canWriteSelection,
 	hasLockedShapesOnPage,
@@ -56,6 +57,20 @@ describe('selection actions', () => {
 		editor.select(mine, theirs)
 		expect(canWriteSelection(editor)).toBe(false)
 		expect(canApplyToUnlockedSelection(editor, 1)).toBe(false)
+	})
+
+	it('keep update actions when only deletes are blocked', () => {
+		const noDeletes = new TestEditor({ canWrite: ({ type }) => type !== 'delete' })
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		noDeletes.createShapes([
+			{ id: a, type: 'geo' },
+			{ id: b, type: 'geo', x: 200 },
+		])
+		noDeletes.select(a, b)
+		expect(canWriteSelection(noDeletes)).toBe(true)
+		expect(canApplyToUnlockedSelection(noDeletes, 2)).toBe(true)
+		expect(canDeleteSelection(noDeletes)).toBe(false)
 	})
 
 	it('still allow duplicating a shape the person cannot write', () => {

@@ -456,6 +456,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.store = store
 		this.history = new HistoryManager<TLRecord>({
 			store,
+			// only the canWrite option asks for a rollback, so skip the tracking it needs otherwise
+			rollsBackOperations: !!canWrite,
 			annotateError: (error: any) => {
 				this.annotateError(error, { origin: 'history.batch', willCrashApp: true })
 				this.crash(error)
@@ -4781,6 +4783,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			return this
 		}
 
+		// Following would switch to a page this person cannot see
+		if (this.isPageHidden(leaderPresence.currentPageId)) return this
+
 		const latestLeaderPresence = computed('latestLeaderPresence', () => {
 			return this._getFollowingPresence(userId)
 		})
@@ -5356,7 +5361,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const visiblePages = this.getVisiblePages()
 				if (!this.isPageHidden(id) && visiblePages.length === 1) return
 				// A page that stays would keep shapes that are gone, or the other way around
-				if (!this.canWrite({ type: 'delete', record: deletedPage })) return
+				if (!this.canWrite({ type: 'delete', record: deletedPage })) {
+					this.history._rollBackOperation()
+					return
+				}
 				if (!this._canDeleteShapes(this.getPageShapeIds(id))) return
 
 				if (id === this.getCurrentPageId()) {

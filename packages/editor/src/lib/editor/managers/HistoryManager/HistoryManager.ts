@@ -38,10 +38,17 @@ export class HistoryManager<R extends UnknownRecord> {
 	)
 
 	private readonly annotateError: (error: unknown) => void
+	private readonly rollsBackOperations: boolean
 
-	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
+	constructor(opts: {
+		store: Store<R>
+		annotateError?(error: unknown): void
+		/** Whether {@link HistoryManager._rollBackOperation} is used. Tracking what to roll back costs time. */
+		rollsBackOperations?: boolean
+	}) {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
+		this.rollsBackOperations = opts.rollsBackOperations ?? false
 		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
 			if (source !== 'user') {
 				// Rolling back would also undo the remote change, which the server has already accepted
@@ -135,7 +142,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	private _runOperation(fn: () => void) {
 		// Inside a store operation, its after-handlers have already seen these changes and would
 		// not see them reverted, so leave the blocked records to the store.
-		if (this._operation || this.store.isInAtomicOp()) {
+		if (!this.rollsBackOperations || this._operation || this.store.isInAtomicOp()) {
 			transact(fn)
 			return
 		}

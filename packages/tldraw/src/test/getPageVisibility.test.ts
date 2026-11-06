@@ -136,4 +136,24 @@ describe('following a user onto a hidden page', () => {
 		expect(pages).toEqual([page3])
 		expect(editor.getInstanceState().followingUserId).toBeNull()
 	})
+
+	it('does not start following a user who is on a hidden page', () => {
+		const leaderId = createUserId('leader')
+		hidden.set(new Set([page2]))
+		editor.store.put([
+			InstancePresenceRecordType.create({
+				id: InstancePresenceRecordType.createId(leaderId),
+				userId: leaderId,
+				userName: 'leader',
+				currentPageId: page2,
+				camera: { x: 0, y: 0, z: 1 },
+				screenBounds: { x: 0, y: 0, w: 1080, h: 720 },
+				lastActivityTimestamp: Date.now(),
+			}),
+		])
+		const before = editor.getCurrentPageId()
+		editor.startFollowingUser(leaderId)
+		expect(editor.getInstanceState().followingUserId).toBeNull()
+		expect(editor.getCurrentPageId()).toBe(before)
+	})
 })

@@ -23,31 +23,44 @@ export function canApplySelectionAction(editor: Editor) {
 }
 
 /**
- * Whether the `canWrite` editor option lets this person update and delete every selected shape
- * and its descendants. An action on a selection that holds one they may not write would be rolled
- * back whole, so it shows as disabled instead.
+ * Whether the `canWrite` editor option lets this person update every selected shape and its
+ * descendants. An action on a selection that holds one they may not write would be rolled back
+ * whole, so it shows as disabled instead. It does not check other shapes that an action can
+ * write, such as arrows bound to the selection.
  *
  * @internal
  */
 export function canWriteSelection(editor: Editor) {
-	let cached = canWriteSelectionCache.get(editor)
-	if (!cached) {
-		// Many predicates ask this on every selection change, so walk the selection once
-		cached = computed('can write selection', () => {
-			for (const id of editor.getShapeAndDescendantIds(editor.getSelectedShapeIds())) {
-				const shape = editor.getShape(id)
-				if (!shape) continue
-				if (!editor.canWrite({ type: 'update', record: shape })) return false
-				if (!editor.canWrite({ type: 'delete', record: shape })) return false
-			}
-			return true
-		})
-		canWriteSelectionCache.set(editor, cached)
-	}
-	return cached.get()
+	return getSelectionChecks(editor).update.get()
 }
 
-const canWriteSelectionCache = new WeakMap<Editor, Computed<boolean>>()
+/**
+ * Like {@link canWriteSelection}, for deletes.
+ *
+ * @internal
+ */
+export function canDeleteSelection(editor: Editor) {
+	return getSelectionChecks(editor).delete.get()
+}
+
+// Many predicates ask these on every selection change, so walk the selection once for each
+const selectionChecks = new WeakMap<Editor, Record<'update' | 'delete', Computed<boolean>>>()
+function getSelectionChecks(editor: Editor) {
+	let checks = selectionChecks.get(editor)
+	if (!checks) {
+		const check = (type: 'update' | 'delete') =>
+			computed(`can ${type} selection`, () => {
+				for (const id of editor.getShapeAndDescendantIds(editor.getSelectedShapeIds())) {
+					const shape = editor.getShape(id)
+					if (shape && !editor.canWrite({ type, record: shape })) return false
+				}
+				return true
+			})
+		checks = { update: check('update'), delete: check('delete') }
+		selectionChecks.set(editor, checks)
+	}
+	return checks
+}
 
 /**
  * Duplicating writes only the new shapes, so unlike other selection actions it does not need to
@@ -120,6 +133,7 @@ export function hasLockedShapesOnPage(editor: Editor) {
 /** @internal */
 export function isGroupAllowed(editor: Editor) {
 	if (!hasUnlockedSelection(editor, 2)) return false
+	if (!canCreateShapeOfType(editor, 'group')) return false
 	const selected = editor.getSelectedShapes()
 	const selectedIds = new Set(selected.map((s) => s.id))
 	// An arrow grouped without a shape it's bound to gets reparented back out of the group.
@@ -136,7 +150,8 @@ export function isGroupAllowed(editor: Editor) {
 export function isUngroupAllowed(editor: Editor) {
 	return (
 		getUnlockedSelectedShapes(editor).some((s) => editor.isShapeOfType(s, 'group')) &&
-		canWriteSelection(editor)
+		canWriteSelection(editor) &&
+		canDeleteSelection(editor)
 	)
 }
 
@@ -188,7 +203,7 @@ export function canFrameSelection(editor: Editor) {
 	if (editor.getSelectedShapeIds().length === 0) return false
 	// An all-frame selection is disabled; remove-frame covers it.
 	if (areAllSelectedFrames(editor)) return false
-	if (!canWriteSelection(editor)) return false
+	if (!canWriteSelection(editor) || !canCreateShapeOfType(editor, 'frame')) return false
 	return getFrameableShapeIds(editor, editor.getSelectedShapeIds()).length > 0
 }
 
@@ -249,7 +264,12 @@ export function isOnlyEmbeddableBookmarkSelected(editor: Editor) {
 export function canFlatten(editor: Editor) {
 	if (editor.getSelectedShapeIds().length === 0) return false
 	const shape = editor.getOnlySelectedShape()
-	return !(shape && editor.isShapeOfType(shape, 'image')) && canWriteSelection(editor)
+	return (
+		!(shape && editor.isShapeOfType(shape, 'image')) &&
+		canWriteSelection(editor) &&
+		canDeleteSelection(editor) &&
+		canCreateShapeOfType(editor, 'image')
+	)
 }
 
 /** @public */

@@ -83,8 +83,9 @@ export function useKeyboardShortcuts() {
 
 			register(getHotkeysStringFromKbd(tool.kbd), (event) => {
 				if (areShortcutsDisabled(editor)) return
-				preventDefault(event)
+				// a tool that is not available lets its key through, like an unregistered one
 				if (!isToolAvailable(editor, tool)) return
+				preventDefault(event)
 				tool.onSelect('kbd')
 			})
 		}

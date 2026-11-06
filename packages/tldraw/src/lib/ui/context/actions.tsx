@@ -45,6 +45,7 @@ import {
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
 	canCreateShapeOfType,
+	canDeleteSelection,
 	canDuplicateSelection,
 	canFitFrameToContent,
 	canFlatten,
@@ -1244,7 +1245,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'cut',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canDeleteSelection(editor),
 				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
@@ -1347,7 +1348,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'delete',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canDeleteSelection(editor),
 				label: messages.actionDelete.id,
 				kbd: '⌫,del',
 				icon: 'trash',
