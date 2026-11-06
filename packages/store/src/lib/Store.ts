@@ -1358,8 +1358,15 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.isMergingRemoteChanges = false
 
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
-				this.applyPermissions()
-				this.flushAtomicCallbacks(false)
+				const changes = this.permissionChanges
+				this.permissionChanges = null
+				const corrections = this.applyPermissions(changes, true)
+				if (corrections) {
+					// The after-handlers of the corrections run now. What the handlers write is
+					// checked once more, without side effects, so nothing unchecked is sent.
+					this.flushAtomicCallbacks(false)
+					this.checkCorrectionEffects(corrections)
+				}
 
 				return result
 			} finally {
@@ -1435,11 +1442,18 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		}
 	}
 
-	private applyPermissions() {
-		const changes = this.permissionChanges
+	/**
+	 * Run the chain on the writes of one operation, and put back what it denies. With
+	 * `sideEffects`, the corrections run the store's side effects (removing a denied shape removes
+	 * its bindings and clears its selection), the store collects what those write, and this returns
+	 * what each corrected record must be. See {@link Store.checkCorrectionEffects}.
+	 */
+	private applyPermissions(
+		changes: Map<IdOf<R>, { before: R | null; after: R | null }> | null,
+		sideEffects: boolean
+	): Map<IdOf<R>, R | null> | null {
 		const permissions = this.permissionsAtom.__unsafe__getWithoutCapture()
-		this.permissionChanges = null
-		if (!changes || !permissions || changes.size === 0) return
+		if (!changes || !permissions || changes.size === 0) return null
 
 		const items: RecordAccess<R>[] = []
 		for (const { before, after } of changes.values()) {
@@ -1455,7 +1469,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				items.push({ type: 'delete', prev: before, next: null })
 			}
 		}
-		if (items.length === 0) return
+		if (items.length === 0) return null
 
 		const result = permissions.chain.run({
 			kind: 'write',
@@ -1480,16 +1494,50 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const current = changes.get(access.next.id)?.after
 			if (current !== access.next) toPut.push(access.next)
 		}
+		let corrections: Map<IdOf<R>, R | null> | null = null
 		if (toPut.length || toRemove.length) {
-			// The corrections run the side effects, like any write: they keep the store whole (for
-			// example, removing a denied shape removes its bindings and its selection). They are not
-			// checked again. The caller runs the after-handlers.
+			if (sideEffects) {
+				corrections = new Map()
+				for (const id of toRemove) corrections.set(id, null)
+				for (const record of toPut) corrections.set(record.id, record)
+				this.permissionChanges = new Map()
+			}
 			this.atomic(() => {
 				if (toRemove.length) this.remove(toRemove)
 				if (toPut.length) this.put(toPut)
-			})
+			}, sideEffects)
 		}
 		if (result.denied.length) permissions.onDenied?.(result.denied)
+		return corrections
+	}
+
+	/**
+	 * After corrections with side effects: a record that a handler changed from its corrected value
+	 * is set back to it, and the other writes of the handlers go through the chain, with no side
+	 * effects this time. So the gate ends in two rounds, and sends nothing that it did not check.
+	 */
+	private checkCorrectionEffects(corrections: Map<IdOf<R>, R | null>) {
+		const changes = this.permissionChanges
+		this.permissionChanges = null
+		if (!changes) return
+		const toPut: R[] = []
+		const toRemove: IdOf<R>[] = []
+		for (const [id, change] of changes) {
+			if (!corrections.has(id)) continue
+			changes.delete(id)
+			const corrected = corrections.get(id)!
+			if (change.after === corrected) continue
+			if (corrected && change.after && isEqual(corrected, change.after)) continue
+			if (corrected) toPut.push(corrected)
+			else toRemove.push(id)
+		}
+		if (toPut.length || toRemove.length) {
+			this.atomic(() => {
+				if (toRemove.length) this.remove(toRemove)
+				if (toPut.length) this.put(toPut)
+			}, false)
+		}
+		this.applyPermissions(changes, false)
 	}
 
 	/** @internal */
@@ -1507,7 +1555,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
  */
 export interface StorePermissions<R extends UnknownRecord> {
 	readonly chain: PermissionChain<R, any>
-	/** The actor for the current write. Called once per operation. */
+	/**
+	 * The actor for the current write. Called once per operation, and by each dry run
+	 * ({@link Store.checkWrites}). It is not tracked: when the actor changes, call
+	 * {@link Store.setPermissions} again, so that computed values that use a dry run update.
+	 */
 	getActor(): unknown
 	/** Called after the store put back writes that the chain denied. */
 	onDenied?(denials: readonly PermissionDenial<R>[]): void

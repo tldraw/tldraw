@@ -179,7 +179,8 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 	 *   `'invalid change'`, and `onError` is called.
 	 *
 	 * A write batch whose run denies some writes runs again on the writes it allowed, until a run
-	 * allows all that it gets. `getAfter` shows each run's batch as it came in, so without this a
+	 * allows all that it gets. So layers must be pure: a layer that counts or logs runs once per
+	 * round. `getAfter` shows each run's batch as it came in, so without this a
 	 * rule could allow a write because of the proposed state of a record whose write a later rule
 	 * denied (for example a shape created on a page that the same push tried to make public).
 	 *
@@ -493,7 +494,8 @@ export function forType<R extends UnknownRecord, Actor, T extends R['typeName']>
 		const result = dispatch(0, own)
 
 		// The typed layers denied all of their part without calling next: run the rest on `others`.
-		const restResult: PermissionResult<R> = rest ?? next(others)
+		const restResult: PermissionResult<R> =
+			rest ?? (others.length > 0 ? next(others) : { allowed: [], denied: [] })
 		return {
 			allowed: [...result.allowed, ...restResult.allowed.filter((a) => !isOfType(a))],
 			denied: [...result.denied, ...restResult.denied.filter((d) => !isOfType(d.access))],

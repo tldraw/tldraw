@@ -201,8 +201,7 @@ describe('shape write control: students edit only their own shapes', () => {
 		alice.editor.updateShape({ id: teacherBox, type: 'geo', x: 500 })
 		expect(alice.shape(teacherBox)!.x).toBe(0)
 		expect(alice.pair.clientSentEventQueue.filter((m) => m.type === 'push')).toEqual([])
-		// The editor skipped the locked shape: no write was made, so none was denied.
-		expect(alice.denied).toEqual([])
+		expect(alice.denied.map((d) => d.reason)).toEqual(['not your shape'])
 		flush()
 		expect((stored(teacherBox) as any).x).toBe(0)
 	})

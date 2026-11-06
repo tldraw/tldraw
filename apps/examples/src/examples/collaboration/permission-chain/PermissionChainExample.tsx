@@ -114,6 +114,8 @@ export default function PermissionChainExample() {
 	const [isSeeded, setIsSeeded] = useState(false)
 	const [third, setThird] = useState('bob')
 	const [linkRole, setLinkRole] = useState<LinkRole>('view')
+	// One meta object per role, so the pane's actor only changes when the role does.
+	const thirdPaneMeta = useMemo(() => thirdMeta(third, linkRole), [third, linkRole])
 
 	const changeLinkRole = (role: LinkRole) => {
 		setLinkRole(role)
@@ -146,7 +148,7 @@ export default function PermissionChainExample() {
 									<option value="agent">Agent (works in its area)</option>
 								</select>
 							}
-							meta={thirdMeta(third, linkRole)}
+							meta={thirdPaneMeta}
 							connect={connect}
 						/>
 					)}

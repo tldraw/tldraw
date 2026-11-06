@@ -264,7 +264,9 @@ export interface TldrawEditorBaseProps {
 
 	/**
 	 * Check the user's document writes with a permission chain before they are applied (and
-	 * before a sync client sends them). The editor runs the chain once per editor operation, as one
+	 * before a sync client sends them). Keep `actor` the same object while the user's role does
+	 * not change (for example with `useMemo`): a new actor makes the editor ask the chain about
+	 * every shape again. The editor runs the chain once per editor operation, as one
 	 * write batch, and puts back what it denies. Use the same chain as the server, with an actor of
 	 * the same shape, so that the client and the server agree. See `Store.setPermissions`.
 	 *
@@ -694,12 +696,29 @@ function TldrawEditorWithReadyStore({
 		}
 	}, [editor, deepLinks])
 
+	// Set the permissions again only when the chain or the actor changes: each set makes the editor
+	// ask the chain about every shape again (see `Editor.getShapePermissionDenial`). An inline
+	// `permissions` object or `onDenied` function must not do that on each render.
+	const permissionChain = permissions?.chain
+	const permissionActor = permissions?.actor
+	const onDeniedRef = useRef(permissions?.onDenied)
+	onDeniedRef.current = permissions?.onDenied
 	useLayoutEffect(() => {
-		if (!editor || !permissions) return
-		const { chain, actor, onDenied } = permissions
-		editor.store.setPermissions({ chain, getActor: () => actor, onDenied })
+		if (!editor) return
+		editor.store.setPermissions(
+			permissionChain
+				? {
+						chain: permissionChain,
+						getActor: () => permissionActor,
+						onDenied: (denials) => onDeniedRef.current?.(denials),
+					}
+				: null
+		)
+	}, [editor, permissionChain, permissionActor])
+	useLayoutEffect(() => {
+		if (!editor) return
 		return () => editor.store.setPermissions(null)
-	}, [editor, permissions])
+	}, [editor])
 
 	// keep the editor up to date with the latest camera options
 	// options.cameraOptions takes precedence over the deprecated cameraOptions prop

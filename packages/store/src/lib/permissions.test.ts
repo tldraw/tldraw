@@ -1,3 +1,4 @@
+import { isEqual } from '@tldraw/utils'
 import { describe, expect, it, vi } from 'vitest'
 import { BaseRecord, RecordId } from './BaseRecord'
 import {
@@ -245,6 +246,30 @@ describe('Store.setPermissions', () => {
 		expect(store.has(Note.createId('new'))).toBe(false)
 		store.remove([existing.id])
 		expect(store.get(existing.id)).toEqual(existing)
+	})
+
+	it('checks what the side effects of a correction write, and sends nothing unchecked', () => {
+		const { store, onDenied } = makeStore(alice, ownNotesOnly)
+		const theirs = note('theirs', 'bob')
+		const log = note('log', 'bob', { text: '0' })
+		store.withoutPermissions(() => store.put([theirs, log]))
+		// a handler that writes bob's log whenever bob's note changes, also when it is put back
+		store.sideEffects.registerAfterChangeHandler('note', (_prev, next) => {
+			if (next.id !== theirs.id) return
+			const current = store.get(log.id)!
+			store.put([{ ...current, text: String(Number(current.text) + 1) }])
+		})
+		const sent: unknown[] = []
+		store.listen((entry) => sent.push(entry.changes), { source: 'user' })
+		store.put([{ ...theirs, text: 'hacked' }])
+		expect([store.get(theirs.id), store.get(log.id)]).toEqual([theirs, log])
+		expect(onDenied).toHaveBeenCalled()
+		store._flushHistory()
+		// what listeners (a sync client) see: the note and the log end where they began
+		const updated = sent.flatMap((changes: any) =>
+			Object.values(changes.updated).filter(([from, to]: any) => !isEqual(from, to))
+		)
+		expect(updated).toEqual([])
 	})
 
 	it('checks one operation as one batch', () => {

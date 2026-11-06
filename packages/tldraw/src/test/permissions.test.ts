@@ -77,10 +77,26 @@ describe('a shape that the chain does not let the user change', () => {
 		expect(editor.isShapeOrAncestorLocked(ids.mine)).toBe(false)
 	})
 
-	it('is skipped by updateShapes and deleteShapes', () => {
+	it('is not skipped by updateShapes: the store checks the write and puts it back', () => {
+		const onDenied = vi.fn()
+		editor.store.setPermissions({ chain, getActor: () => ({ userId: 'me' }), onDenied })
 		editor.updateShape({ id: ids.theirs, type: 'geo', x: 999 })
 		editor.deleteShapes([ids.theirs])
 		expect(editor.getShape(ids.theirs)!.x).toBe(300)
+		expect(onDenied).toHaveBeenCalledTimes(2)
+	})
+
+	it('can be changed by the host in withoutPermissions', () => {
+		editor.store.withoutPermissions(() =>
+			editor.updateShape({ id: ids.theirs, type: 'geo', x: 500 })
+		)
+		expect(editor.getShape(ids.theirs)!.x).toBe(500)
+	})
+
+	it('is not hit or selected by select all', () => {
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds().sort()).toEqual([ids.mine])
+		expect(editor.getShapeAtPoint({ x: 350, y: 50 })).toBeUndefined()
 	})
 })
 
