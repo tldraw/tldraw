@@ -164,8 +164,15 @@ export interface TLReadPolicy<R extends UnknownRecord> {
 	 * takes away the last thing it needs.
 	 */
 	canOpen?(actor: TLCommandActor, records: TLRecordLookup<R>): boolean
-	/** Hide one record from the actor. `records` reads any record in the room. */
-	canRead?(actor: TLCommandActor, record: R, records: TLRecordLookup<R>): boolean
+	/**
+	 * The scope a record is in: records in one scope are visible to the same actors, such as
+	 * everything on one page. `null` for a record that every actor who can open the room reads.
+	 * The server works out each record's scope once per change and each scope's access once per
+	 * session, so a change of access costs one check per scope, not one per record.
+	 */
+	getScope?(record: R, records: TLRecordLookup<R>): string | null
+	/** Whether the actor can read the records in a scope. `records` reads any record in the room. */
+	canReadScope?(actor: TLCommandActor, scope: string, records: TLRecordLookup<R>): boolean
 	/**
 	 * Whether a change can change what other records the actor can read, for example a page's
 	 * readers or a shape's move to another page. After such a change the server checks every
@@ -346,10 +353,35 @@ export function canReadRecord<R extends UnknownRecord>(
 	set: TLCommandSet<R>,
 	actor: TLCommandActor,
 	record: R,
-	records: TLRecordLookup<R>
+	records: TLRecordLookup<R>,
+	cache?: TLReadCache
 ): boolean {
 	if (!actorCan(actor, set.read.requires)) return false
-	return set.read.canRead ? set.read.canRead(actor, record, records) : true
+	const { getScope, canReadScope } = set.read
+	if (!getScope) return true
+	let scope = cache?.scopes.get(record.id)
+	if (scope === undefined) {
+		scope = getScope(record, records)
+		cache?.scopes.set(record.id, scope)
+	}
+	if (scope === null) return true
+	let readable = cache?.readable.get(scope)
+	if (readable === undefined) {
+		readable = canReadScope ? canReadScope(actor, scope, records) : true
+		cache?.readable.set(scope, readable)
+	}
+	return readable
+}
+
+/**
+ * Saved answers of a read policy while the records do not change. `scopes` can be shared by every
+ * session; `readable` belongs to one actor.
+ *
+ * @public
+ */
+export interface TLReadCache {
+	scopes: Map<string, string | null>
+	readable: Map<string, boolean>
 }
 
 /**

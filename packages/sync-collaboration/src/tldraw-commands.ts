@@ -7,7 +7,6 @@ import {
 	type TLEditPolicy,
 	type TLEditPolicyContext,
 	type TLReadPolicy,
-	type TLRecordLookup,
 } from '@tldraw/sync-core'
 import {
 	PageRecordType,
@@ -285,7 +284,7 @@ export const pageCommands = [
 			return { name: 'pages.restore', args: { records: removed } }
 		},
 	}),
-	defineCommand<R, { records: R[] }>({
+	defineCommand<R, { records: UnknownRecord[] }>({
 		name: 'pages.restore',
 		requires: TLDRAW_PERMISSIONS.managePages,
 		args: T.object({ records: T.arrayOf(T.unknownObject as T.Validator<any>) }),
@@ -583,10 +582,7 @@ export function createPageReadPolicy<
 		return !readers || (!!actor.userId && readers.includes(actor.userId))
 	}
 
-	function canReadShape(actor: TLCommandActor, shape: UnknownRecord, records: TLRecordLookup<R>) {
-		const pageId = getRecordPageId(shape, records.get)
-		return !!pageId && canReadPage(actor, records.get(pageId))
-	}
+	const ASSET_SCOPE = 'asset:'
 
 	const policy: TLReadPolicy<R> = {
 		requires: TLDRAW_PERMISSIONS.read,
@@ -595,23 +591,27 @@ export function createPageReadPolicy<
 			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
 			return records.getAll('page').some((page) => canReadPage(actor, page))
 		},
-		canRead(actor, record, records) {
+		// A record's scope is its page id. An asset is its own scope: who can read it depends on
+		// the shapes that use it.
+		getScope(record, records) {
+			if (record.typeName === 'asset') return record.id
+			return getRecordPageId(record, records.get) ?? null
+		},
+		canReadScope(actor, scope, records) {
 			if (actorCan(actor, TLDRAW_PERMISSIONS.managePages)) return true
-			if (record.typeName === 'asset') {
+			if (scope.startsWith(ASSET_SCOPE)) {
 				// An asset is visible when a shape the actor can read uses it. An asset that no shape
-				// uses is hidden too: it may be left over from a hidden page. Its uploader still has it,
-				// and others get it with the first shape that uses it.
-				return records
-					.getAll('shape')
-					.some(
-						(shape) =>
-							(shape as TLShape & { props: { assetId?: unknown } }).props.assetId === record.id &&
-							canReadShape(actor, shape, records)
-					)
+				// uses is hidden too: it may be left over from a hidden page. Its uploader still has
+				// it, and others get it with the first shape that uses it.
+				return records.getAll('shape').some((shape) => {
+					if ((shape as TLShape & { props: { assetId?: unknown } }).props.assetId !== scope) {
+						return false
+					}
+					const pageId = getRecordPageId(shape, records.get)
+					return !!pageId && canReadPage(actor, records.get(pageId))
+				})
 			}
-			const pageId = getRecordPageId(record, records.get)
-			if (!pageId) return true
-			return canReadPage(actor, records.get(pageId))
+			return canReadPage(actor, records.get(scope))
 		},
 		isScopeChange(prev, next) {
 			const record = (next ?? prev) as TLRecord

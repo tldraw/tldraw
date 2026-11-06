@@ -21,6 +21,7 @@ export {
 	type TLCommandWrites,
 	type TLEditPolicy,
 	type TLEditPolicyContext,
+	type TLReadCache,
 	type TLReadPolicy,
 	type TLRecordLookup,
 } from './lib/commands'

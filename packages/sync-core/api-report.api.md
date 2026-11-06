@@ -36,7 +36,10 @@ export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectD
 export function canEditRecord<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, ctx: Omit<TLEditPolicyContext<R>, 'actor'>): boolean;
 
 // @public
-export function canReadRecord<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, record: R, get: (id: string) => R | undefined): boolean;
+export function canOpenRoom<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, records: TLRecordLookup<R>): boolean;
+
+// @public
+export function canReadRecord<R extends UnknownRecord>(set: TLCommandSet<R>, actor: TLCommandActor, record: R, records: TLRecordLookup<R>, cache?: TLReadCache): boolean;
 
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
@@ -130,6 +133,8 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
         onChange?(arg: TLSyncStorageOnChangeCallbackProps): unknown;
         snapshot?: RoomSnapshot;
     });
+    // @internal
+    commandIds: AtomMap<string, true>;
     // @internal (undocumented)
     documentClock: Atom<number>;
     // @internal (undocumented)
@@ -183,6 +188,9 @@ export class JsonChunkAssembler {
 
 // @public
 export function loadSnapshotIntoStorage<R extends UnknownRecord>(txn: TLSyncStorageTransaction<R>, schema: StoreSchema<R, any>, snapshot: RoomSnapshot | TLStoreSnapshot): void;
+
+// @public
+export function lookupOf<R extends UnknownRecord>(reader: TLCommandReader<R>): TLRecordLookup<R>;
 
 // @internal (undocumented)
 export interface MinimalDocStore<R extends UnknownRecord> {
@@ -321,6 +329,7 @@ export type RoomSessionState = (typeof RoomSessionState)[keyof typeof RoomSessio
 // @public
 export interface RoomSnapshot {
     clock?: number;
+    commandIds?: string[];
     documentClock?: number;
     documents: Array<{
         lastChangedClock: number;
@@ -525,12 +534,11 @@ export interface TLEditPolicy<R extends UnknownRecord> {
     stamp?(actor: TLCommandActor, record: R): R;
 }
 
-// @public (undocumented)
-export interface TLEditPolicyContext<R extends UnknownRecord> {
+// @public
+export interface TLEditPolicyContext<R extends UnknownRecord> extends TLRecordLookup<R> {
     // (undocumented)
     readonly actor: TLCommandActor;
-    // (undocumented)
-    get(id: string): R | undefined;
+    readonly before: TLRecordLookup<R>;
     // (undocumented)
     readonly next: null | R;
     // (undocumented)
@@ -594,8 +602,18 @@ export interface TLPushRequest<R extends UnknownRecord> {
 }
 
 // @public
+export interface TLReadCache {
+    // (undocumented)
+    readable: Map<string, boolean>;
+    // (undocumented)
+    scopes: Map<string, null | string>;
+}
+
+// @public
 export interface TLReadPolicy<R extends UnknownRecord> {
-    canRead?(actor: TLCommandActor, record: R, get: (id: string) => R | undefined): boolean;
+    canOpen?(actor: TLCommandActor, records: TLRecordLookup<R>): boolean;
+    canReadScope?(actor: TLCommandActor, scope: string, records: TLRecordLookup<R>): boolean;
+    getScope?(record: R, records: TLRecordLookup<R>): null | string;
     isScopeChange?(prev: null | R, next: null | R): boolean;
     readonly requires?: string;
 }
@@ -627,6 +645,13 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
         typeName: K;
     }>, SessionMeta>;
 };
+
+// @public
+export interface TLRecordLookup<R extends UnknownRecord> {
+    // (undocumented)
+    get(id: string): R | undefined;
+    getAll(typeName: string): readonly R[];
+}
 
 // @public
 export class TLRemoteSyncError extends Error {
@@ -1013,8 +1038,10 @@ export interface TLSyncStorageOnChangeCallbackProps {
 
 // @public
 export interface TLSyncStorageTransaction<R extends UnknownRecord> extends SynchronousStorage<R> {
+    addCommandId?(id: string): void;
     getChangesSince(sinceClock: number): TLSyncStorageGetChangesSinceResult<R> | undefined;
     getClock(): number;
+    hasCommandId?(id: string): boolean;
 }
 
 // @public

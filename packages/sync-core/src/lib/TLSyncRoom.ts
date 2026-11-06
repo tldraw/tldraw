@@ -33,6 +33,7 @@ import {
 	type TLCommandCall,
 	type TLCommandReader,
 	type TLCommandSet,
+	type TLReadCache,
 	type TLRecordLookup,
 } from './commands'
 import {
@@ -64,7 +65,13 @@ import {
 import { TLSyncLog } from './TLSocketRoom'
 
 /** The room's records, documents and presence, for the read policy. */
-type RoomRecords<R extends UnknownRecord> = TLRecordLookup<R> & { values(): Iterable<R> }
+type RoomRecords<R extends UnknownRecord> = TLRecordLookup<R> & {
+	values(): Iterable<R>
+	/** Each record's read scope, worked out once for every session in one pass. */
+	scopes: Map<string, string | null>
+	/** The records grouped by read scope, worked out once for every session in one pass. */
+	byScope(set: TLCommandSet<R>): Map<string | null, R[]>
+}
 import { TLSyncError, TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason } from './TLSyncClient'
 import {
 	MAX_COMMAND_IDS,
@@ -688,6 +695,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * @param networkDiff - Optional pre-computed NetworkDiff for sessions not needing migration.
 	 *                      If not provided, will be computed from recordsDiff.
 	 * @param sourceSessionId - Optional session ID to exclude from the broadcast
+	 * @param opts - `resync`: check every record again for each filtered session, not only the changed ones
 	 * @param txn - The open transaction, when the caller has one; read filtering reads through it
 	 */
 	private broadcastPatch(
@@ -850,7 +858,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/** Whether the room filters what each session sees. */
 	private isReadFiltered() {
-		return !!this.commands?.read.canRead
+		return !!this.commands?.read.getScope
 	}
 
 	private canOpen(actor: TLCommandActor, records?: RoomRecords<R>) {
@@ -875,6 +883,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		const visible = session.visible
 		if (!visible || !this.commands) return { diff, networkDiff }
 		const set = this.commands
+		const cache: TLReadCache = { scopes: records.scopes, readable: new Map() }
 		const outDiff: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
 		const outNetwork: NetworkDiff<R> = {}
 		const show = (id: string, record: R) => {
@@ -895,18 +904,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const put = diff.puts[id]
 			const next = Array.isArray(put) ? put[1] : put
 			if (!next) continue
-			if (!canReadRecord(set, session.actor, next, records)) hide(id)
+			if (!canReadRecord(set, session.actor, next, records, cache)) hide(id)
 			else if (visible.has(id)) {
 				outDiff.puts[id] = put
 				outNetwork[id] = op
 			} else show(id, next)
 		}
 		if (resync) {
-			for (const record of records.values()) {
-				if (record.id === session.presenceId || record.id in networkDiff) continue
-				const readable = canReadRecord(set, session.actor, record, records)
-				if (readable && !visible.has(record.id)) show(record.id, record)
-				else if (!readable) hide(record.id)
+			// one read check per scope, not per record: a room has few pages and many shapes
+			const canRead = actorCan(session.actor, set.read.requires)
+			for (const [scope, group] of records.byScope(set)) {
+				const readable =
+					canRead && (scope === null || canReadRecord(set, session.actor, group[0], records, cache))
+				for (const record of group) {
+					if (record.id === session.presenceId || record.id in networkDiff) continue
+					if (readable && !visible.has(record.id)) show(record.id, record)
+					else if (!readable) hide(record.id)
+				}
 			}
 		}
 		return { diff: outDiff, networkDiff: outNetwork }
@@ -945,7 +959,33 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				yield* presence.values() as Iterable<R>
 			},
 		}
-		return { ...lookupOf<R>(reader), values: () => reader.values() }
+		// one scan of the room, shared by every session in this pass
+		let all: R[] | null = null
+		let groups: Map<string | null, R[]> | null = null
+		const scopes = new Map<string, string | null>()
+		const lookup = lookupOf<R>(reader)
+		const values = () => (all ??= [...reader.values()])
+		return {
+			...lookup,
+			values,
+			scopes,
+			byScope: (set) => {
+				if (groups) return groups
+				groups = new Map()
+				const getScope = set.read.getScope
+				for (const record of values()) {
+					let scope = scopes.get(record.id)
+					if (scope === undefined) {
+						scope = getScope ? getScope(record, lookup) : null
+						scopes.set(record.id, scope)
+					}
+					const group = groups.get(scope)
+					if (group) group.push(record)
+					else groups.set(scope, [record])
+				}
+				return groups
+			},
+		}
 	}
 
 	/** Send a session the records that appeared to it and remove the ones that disappeared. */

@@ -3,6 +3,7 @@ import {
 	defineCommand,
 	defineCommandSet,
 	getTlsyncProtocolVersion,
+	InMemorySyncStorage,
 	TLSocketRoom,
 	type TLCommandActor,
 } from '@tldraw/sync-core'
@@ -531,9 +532,11 @@ describe('review fixes', () => {
 		room.flush()
 		expect((room.room.getRecord('shape:x') as TLShape).parentId).toBe('page:two')
 		// a cycle that is already stored (from before the policy) must not hang the server
-		await room.room.updateStore((store) => {
-			store.put({ ...(store.get('shape:x') as TLShape), parentId: 'shape:y' as TLShapeId })
+		room.room.storage.transaction((txn) => {
+			txn.set('shape:x', { ...(txn.get('shape:x') as TLShape), parentId: 'shape:y' as TLShapeId })
 		})
+		// the room hears of a storage write in a microtask
+		await Promise.resolve()
 		room.flush()
 		expect((room.room.getRecord('shape:x') as TLShape).parentId).toBe('shape:y')
 		forger.push({ command: { name: 'pages.delete', args: { id: 'page:two' } } })
@@ -1008,7 +1011,9 @@ describe('review findings', () => {
 		const restarted = new TLSocketRoom<any, void>({
 			schema,
 			commands: commands as any,
-			initialSnapshot: first.room.getCurrentSnapshot(),
+			storage: new InMemorySyncStorage({
+				snapshot: (first.room.storage as InMemorySyncStorage<any>).getSnapshot(),
+			}),
 			log: { warn: () => {}, error: console.error },
 		})
 		const again = rawSession({ room: restarted })
@@ -1056,9 +1061,11 @@ describe('review findings', () => {
 		t.getEditor().createShape({ id: child, type: 'geo', parentId: frame, x: 10, y: 10 })
 		room.flush()
 		expect(a.get(child)).toBeDefined()
-		await room.room.updateStore((store) => {
-			store.put({ ...(store.get(frame) as TLShape), parentId: answers })
+		room.room.storage.transaction((txn) => {
+			txn.set(frame, { ...(txn.get(frame) as TLShape), parentId: answers })
 		})
+		// the room hears of a storage write in a microtask
+		await Promise.resolve()
 		room.flush()
 		expect(a.get(frame)).toBeUndefined()
 		expect(a.get(child)).toBeUndefined()
