@@ -1,6 +1,5 @@
 import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
-import type { CollectionSource } from '@tldraw/collections'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
@@ -68,10 +67,11 @@ import {
 import { routes } from '../../routeDefs'
 import { trackEvent } from '../../utils/analytics'
 import { ZERO_SERVER } from '../../utils/config'
+import { fileSchemaRecords } from '../../utils/fileSchemaRecords'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { createCollectionsSource } from '../components/TlaCollections/collectionsSource'
+import { TldrawAppCollectionsSource } from '../components/TlaCollections/collectionsSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -209,7 +209,7 @@ export class TldrawApp {
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
 	/** Null when the `collections` flag is off for this user. */
-	readonly collections: CollectionSource | null
+	readonly collections: TldrawAppCollectionsSource | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -299,7 +299,7 @@ export class TldrawApp {
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		if (flags.collections?.enabled) {
-			const collections = createCollectionsSource(userId)
+			const collections = new TldrawAppCollectionsSource(this)
 			this.collections = collections
 			this.disposables.push(() => collections.dispose())
 		} else {
@@ -1432,7 +1432,7 @@ export class TldrawApp {
 	) {
 		const json = await file.text()
 		const parseFileResult = parseTldrawJsonFile({
-			schema: createTLSchema(),
+			schema: createTLSchema({ records: fileSchemaRecords }),
 			json,
 		})
 

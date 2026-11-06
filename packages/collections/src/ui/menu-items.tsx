@@ -1,5 +1,7 @@
-import { type PointerEvent, type ReactNode, type RefObject } from 'react'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { createContext, type PointerEvent, type ReactNode, type RefObject, useContext } from 'react'
 import {
+	preventDefault,
 	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
@@ -8,20 +10,43 @@ import {
 	TldrawUiDropdownMenuSubTrigger,
 } from 'tldraw'
 
+const InContextMenuContext = createContext(false)
+
+/**
+ * Renders the {@link MenuItem}s inside it as context menu items, for placing them in a submenu of
+ * tldraw's context menu, whose items come from a different menu than a dropdown's.
+ */
+export function InContextMenu({ children }: { children: ReactNode }) {
+	return <InContextMenuContext.Provider value>{children}</InContextMenuContext.Provider>
+}
+
+function MenuItemRoot({ noClose, children }: { noClose?: boolean; children: ReactNode }) {
+	const inContextMenu = useContext(InContextMenuContext)
+	if (!inContextMenu) {
+		return <TldrawUiDropdownMenuItem noClose={noClose}>{children}</TldrawUiDropdownMenuItem>
+	}
+	return (
+		<_ContextMenu.Item
+			asChild
+			onSelect={noClose ? preventDefault : undefined}
+			// Releasing a right-click over an item would otherwise select it.
+			onPointerUp={(e) => {
+				if (e.button !== 0) preventDefault(e)
+			}}
+		>
+			{children}
+		</_ContextMenu.Item>
+	)
+}
+
 function keepFocusWhile(holdFocus: boolean) {
 	return (e: PointerEvent) => {
 		if (holdFocus) e.preventDefault()
 	}
 }
 
-export function MenuItem({
-	buttonRef,
-	label,
-	danger,
-	noClose,
-	holdFocus = false,
-	onClick,
-}: {
+/** @public */
+export interface MenuItemProps {
 	buttonRef?: RefObject<HTMLButtonElement | null>
 	label: string
 	danger?: boolean
@@ -29,10 +54,24 @@ export function MenuItem({
 	/** Stops the menu moving focus to the item on hover, which would blur and commit a rename. */
 	holdFocus?: boolean
 	onClick(): void
-}) {
+}
+
+/**
+ * An item in the panel's menus, exported as `CollectionMenuItem` for a host's own items in
+ * {@link CollectionsPanelProps.menuItems}.
+ * @public @react
+ */
+export function MenuItem({
+	buttonRef,
+	label,
+	danger,
+	noClose,
+	holdFocus = false,
+	onClick,
+}: MenuItemProps) {
 	const keepFocus = keepFocusWhile(holdFocus)
 	return (
-		<TldrawUiDropdownMenuItem noClose={noClose}>
+		<MenuItemRoot noClose={noClose}>
 			<button
 				ref={buttonRef}
 				type="button"
@@ -47,7 +86,7 @@ export function MenuItem({
 			>
 				<span>{label}</span>
 			</button>
-		</TldrawUiDropdownMenuItem>
+		</MenuItemRoot>
 	)
 }
 

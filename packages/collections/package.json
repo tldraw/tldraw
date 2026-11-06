@@ -5,6 +5,11 @@
 	"private": true,
 	"main": "./src/index.ts",
 	"types": "./.tsbuild/index.d.ts",
+	"exports": {
+		".": "./src/index.ts",
+		"./schema": "./src/lib/schema.ts",
+		"./*.css": "./*.css"
+	},
 	"style": "./collections.css",
 	"files": [
 		"collections.css"
@@ -17,6 +22,7 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
+		"radix-ui": "^1.4.2",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {

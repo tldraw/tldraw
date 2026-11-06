@@ -1,11 +1,12 @@
 /* Floats on the left below the main menu, or on the right where the comments sidebar sits: 48px
-   from the top on either side, sized to its content and scrolling past max-height. */
+   from the top on either side, sized to its content and scrolling past max-height. Hosts can change
+   the cap with --tlui-collections-panel-max-height. */
 .tlui-collections-panel {
 	position: absolute;
 	top: 48px;
 	left: 8px;
 	width: 240px;
-	max-height: calc(100% - 56px);
+	max-height: var(--tlui-collections-panel-max-height, min(calc(100% - 56px), 720px));
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
 	display: flex;
@@ -23,8 +24,7 @@
 	right: 8px;
 }
 
-/* Spaced like the comments sidebar header: the picker's own 12px button padding plus 2px here puts
-   its label 14px in, level with a bare title. */
+/* Spaced like the comments sidebar header: 2px here and the title's 12px put it 14px in. */
 .tlui-collections-panel__header {
 	flex-shrink: 0;
 	display: flex;
@@ -36,35 +36,174 @@
 }
 
 .tlui-collections-panel__title {
+	display: flex;
+	flex: 1;
+	min-width: 0;
 	padding: 0 12px;
 	line-height: 40px;
 	font-weight: 500;
+	white-space: nowrap;
 }
 
-.tlui-collections-picker .tlui-select__value {
-	font-weight: 500;
-}
-
-/* Flush like tldraw's other menus, which leave the spacing to each item's highlight inset. */
-.tlui-collections-picker__content .tlui-select__viewport {
-	padding: 0px;
+.tlui-collections-panel__name {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
 }
 
 .tlui-collections-panel__empty {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
 	margin: 0;
 	padding: 24px;
 	text-align: center;
 	color: var(--tl-color-text-3);
 }
 
+.tlui-collections-panel__empty > p {
+	margin: 0;
+}
+
 .tlui-collections-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 4px;
 	margin: 0;
-	padding: 4px 8px 8px;
+	padding: 4px 10px 8px;
 	list-style: none;
 	overflow-y: auto;
+}
+
+.tlui-collections-menu-heading {
+	padding: 6px 10px 2px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	cursor: default;
+}
+
+.tlui-collections-group__heading {
+	margin: 0;
+	padding: 10px 12px 2px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+}
+
+/* A group's heading stays at the top of the list while its collections scroll under it, and its
+   collections' headers stick beneath it. */
+.tlui-collections-group {
+	--tlui-collections-group-heading-height: 44px;
+	--tlui-collections-sticky-top: var(--tlui-collections-group-heading-height);
+}
+
+.tlui-collections-group > .tlui-collections-group__heading {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	height: var(--tlui-collections-group-heading-height);
+	display: flex;
+	align-items: center;
+	padding: 2px;
+}
+
+.tlui-collections-group__toggle {
+	all: unset;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex: 0 1 auto;
+	min-width: 0;
+	height: 32px;
+	margin-left: 2px;
+	margin-right: auto;
+	padding: 0 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	cursor: pointer;
+}
+
+.tlui-collections-group__toggle:hover {
+	color: var(--tl-color-text-1);
+}
+
+.tlui-collections-group__toggle:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-collections-group__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+/* Points down while open, and to the side while folded shut. */
+.tlui-icon.tlui-collections-chevron {
+	width: 12px;
+	height: 12px;
+	transition: transform 120ms ease-out;
+}
+
+[aria-expanded='false'] > .tlui-collections-chevron {
+	transform: rotate(-90deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tlui-icon.tlui-collections-chevron {
+		transition: none;
+	}
+}
+
+.tlui-collections-sections {
+	overflow-y: auto;
+}
+
+.tlui-collections-sections .tlui-collections-grid {
+	overflow: visible;
+	padding: 0 10px 4px;
+}
+
+/* Scrolled to, a section stops below its group's heading rather than under it. */
+.tlui-collections-section {
+	scroll-margin-top: var(--tlui-collections-sticky-top, 0);
+}
+
+/* Stays at the top of the list, under its group's heading, while its own items scroll under it,
+   until the next section's header pushes it out. */
+.tlui-collections-section > .tlui-collections-panel__header {
+	position: sticky;
+	top: var(--tlui-collections-sticky-top, 0);
+	z-index: 1;
+	border-bottom: none;
+}
+
+/* The whole name row folds the section, with the chevron straight after the name. */
+.tlui-collections-panel__toggle {
+	align-items: center;
+	gap: 2px;
+	margin: 0;
+	border: none;
+	background: none;
+	color: inherit;
+	font-family: inherit;
+	font-size: inherit;
+	font-weight: 500;
+	text-align: left;
+	cursor: pointer;
+}
+
+.tlui-collections-panel__toggle:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-collections-panel__toggle > .tlui-collections-chevron {
+	color: var(--tl-color-text-3);
 }
 
 .tlui-collections-tile {
@@ -134,7 +273,7 @@
 }
 
 @media (hover: hover) {
-	.tlui-collections-tile:hover:not(:has(.tlui-collections-tile__menu-button:hover))
+	.tlui-collections-tile:hover:not(:has(.tlui-collections-tile__menu-button:hover, :disabled))
 		.tlui-collections-tile__thumbnail {
 		background: var(--tl-color-muted-2);
 	}
@@ -159,6 +298,24 @@
 	max-width: 80%;
 	max-height: 80%;
 	object-fit: contain;
+}
+
+.tlui-collections-add-tile .tlui-collections-tile__thumbnail {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-add-tile .tlui-collections-tile__button:disabled {
+	cursor: default;
+}
+
+.tlui-collections-add-tile .tlui-collections-tile__button:disabled .tlui-icon {
+	opacity: 0.4;
+}
+
+@media (hover: hover) {
+	.tlui-collections-add-tile:not(:has(:disabled)):hover .tlui-collections-tile__thumbnail {
+		color: var(--tl-color-text-1);
+	}
 }
 
 .tlui-collections-menu,
@@ -207,10 +364,17 @@
 	padding: 0 12px;
 }
 
+.tlui-collections-menu__divider {
+	height: 1px;
+	margin: 4px -4px;
+	background: var(--tl-color-divider);
+}
+
 .tlui-collections-menu__item {
 	position: relative;
 	display: flex;
 	align-items: center;
+	gap: var(--tl-space-2);
 	width: 100%;
 	min-height: 36px;
 	padding: 0 10px;
@@ -272,7 +436,63 @@
 	height: 40px;
 }
 
+.tlui-collections-section > .tlui-collections-panel__header:has(.tlui-input__wrapper) {
+	min-height: 44px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-input__wrapper {
+	height: 32px;
+	margin-left: 4px;
+	margin-right: 44px;
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
+	height: 32px;
+	max-height: 32px;
+	padding-left: 8px;
+}
+
 .tlui-input.tlui-collections-panel__rename {
-	padding: 0px 12px;
+	padding: 0 12px 2px;
 	font-weight: 500;
+	border-radius: var(--tl-radius-2);
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
+}
+
+.tlui-collections-section > .tlui-collections-panel__header > .tlui-collections-panel__toggle {
+	flex: 0 1 auto;
+	height: 32px;
+	margin-left: 4px;
+	margin-right: auto;
+	padding: 0 8px;
+	line-height: 32px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+}
+
+.tlui-collections-group__heading .tlui-button::before,
+.tlui-collections-section > .tlui-collections-panel__header .tlui-button::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	z-index: -1;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+}
+
+.tlui-collections-group__heading .tlui-button[data-state='open']::before,
+.tlui-collections-section
+	> .tlui-collections-panel__header
+	.tlui-button[data-state='open']::before {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%)
+		var(--tl-color-panel);
+}
+
+.tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
+	background: var(--tl-color-panel);
+}
+
+.tlui-collections-panel > .tlui-collections-panel__header .tlui-button[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
 }
