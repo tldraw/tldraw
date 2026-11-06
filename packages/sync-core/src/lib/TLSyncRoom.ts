@@ -154,7 +154,8 @@ export interface RoomSnapshot {
  *
  * It is not an access control API. It sees one write at a time and knows nothing of roles,
  * grants, or reads. For who may edit or view a document, use the session's `isReadonly` and
- * `objectAccess` when it connects (see {@link TLSocketRoom.handleSocketConnect}).
+ * `objectAccess` when it connects (see {@link TLSocketRoom.handleSocketConnect}). For who may
+ * write a record, use {@link canWrite}, which builds these hooks from boolean checks.
  *
  * Called on **create**, **update**, and **delete** of records whose `typeName` it's registered for
  * (see {@link TLBeforeWriteHooks}), and only for client pushes — never for server-initiated writes.

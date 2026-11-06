@@ -1,5 +1,6 @@
 import { BaseRecord, RecordId, StoreSchema, createRecordType } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
+import { canWrite } from '../lib/canWrite'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
 import {
@@ -871,5 +872,77 @@ describe('composeBeforeWrite', () => {
 		const hooks = composeBeforeWrite<R, null>({ note: first }, { note: later })
 		expect(hooks.note!(update)).toBe(first(update))
 		expect(later).not.toHaveBeenCalled()
+	})
+})
+
+describe('canWrite', () => {
+	const storedNote = (storage: InMemorySyncStorage<R>, id: string) =>
+		storage.getObjectsSnapshot().find((d) => d.state.id === id)?.state as NoteRecord | undefined
+
+	function roomWith(hooks: any) {
+		const note = Note.create({ text: 'seeded' })
+		const { room, storage } = makeRoom({
+			objectTypes: ['note'],
+			beforeWrite: hooks,
+			snapshot: {
+				documents: [{ state: note, lastChangedClock: 0 }],
+				clock: 0,
+				documentClock: 0,
+				schema: schema.serialize(),
+			},
+		})
+		const socket = connectSession(room, 'alice', { meta: { userId: 'u' } })
+		return { room, storage, note, socket }
+	}
+
+	it('keeps the stored record when a check returns false, on create, update and delete', () => {
+		const { room, storage, note, socket } = roomWith(canWrite<R, undefined>({ note: () => false }))
+		const created = Note.create({ text: 'new' })
+
+		push(room, 'alice', { [created.id]: [RecordOpType.Put, created] }, 1)
+		push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'x'] }] }, 2)
+		push(room, 'alice', { [note.id]: [RecordOpType.Remove] }, 3)
+
+		expect(storedIds(storage)).toEqual([note.id])
+		expect(storedNote(storage, note.id)?.text).toBe('seeded')
+		expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+	})
+
+	it('applies the write as sent when a check returns true', () => {
+		const { room, storage, note } = roomWith(canWrite<R, undefined>({ note: () => true }))
+
+		push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'x'] }] })
+
+		expect(storedNote(storage, note.id)?.text).toBe('x')
+	})
+
+	it('rejects a write when a check returns a truthy non-boolean or a Promise', () => {
+		for (const check of [() => 'yes', async () => true]) {
+			const { room, storage, note } = roomWith(canWrite<R, undefined>({ note: check as any }))
+
+			push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'x'] }] })
+
+			expect(storedNote(storage, note.id)?.text).toBe('seeded')
+		}
+	})
+
+	it('composes with a stamping hook, and the later check sees the stamped record', () => {
+		const seen: string[] = []
+		const { room, storage, note } = roomWith(
+			composeBeforeWrite<R, undefined>(
+				{ note: ({ next }) => (next ? { ...next, text: next.text + '-stamped' } : undefined) },
+				canWrite<R, undefined>({
+					note: ({ next }) => {
+						seen.push(next!.text)
+						return true
+					},
+				})
+			)
+		)
+
+		push(room, 'alice', { [note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'x'] }] })
+
+		expect(seen).toEqual(['x-stamped'])
+		expect(storedNote(storage, note.id)?.text).toBe('x-stamped')
 	})
 })

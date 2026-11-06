@@ -30,6 +30,9 @@ export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown
 // @internal
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
 
+// @public
+export function canWrite<R extends UnknownRecord, SessionMeta>(checks: TLCanWriteChecks<R, SessionMeta>): TLBeforeWriteHooks<R, SessionMeta>;
+
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
@@ -407,6 +410,16 @@ export type TLBeforeWriteHook<Rec extends UnknownRecord, SessionMeta> = (args: {
 // @public
 export type TLBeforeWriteHooks<R extends UnknownRecord, SessionMeta> = {
     [K in R['typeName']]?: TLBeforeWriteHook<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
+
+// @public
+export type TLCanWriteCheck<Rec extends UnknownRecord, SessionMeta> = (args: Parameters<TLBeforeWriteHook<Rec, SessionMeta>>[0]) => boolean;
+
+// @public
+export type TLCanWriteChecks<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLCanWriteCheck<Extract<R, {
         typeName: K;
     }>, SessionMeta>;
 };
