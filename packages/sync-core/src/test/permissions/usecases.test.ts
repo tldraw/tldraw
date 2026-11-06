@@ -4,13 +4,16 @@ import {
 	TLRecord,
 	TLRule,
 	TLShapeId,
+	ancestorIdsOf,
 	confineToShape,
 	createShapeId,
 	defaultAbilityRules,
 	definePermissions,
 	intentOwnsTypes,
+	ownShapesOnly,
 	pageReadAccess,
 	pageWriteAccess,
+	stampOwner,
 	toRichText,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -310,6 +313,69 @@ describe('agents: write only inside their frame', () => {
 		expect(h.serverRecord(createShapeId('inside'))).toMatchObject({ parentId: frame })
 		expect(h.serverRecord(createShapeId('escape'))).toBeUndefined()
 		expect(h.serverRecord(createShapeId('outside'))).toMatchObject({ x: 900 })
+	})
+})
+
+describe('agents: see only their frame', () => {
+	const FRAME = createShapeId('frame')
+	beforeEach(() => {
+		h = new SyncHarness(
+			definePermissions<TLRecord>({
+				rules: defaultAbilityRules(),
+				// an agent reads pages and its frame's subtree, and no other shapes
+				canRead: (record: any, ctx) => {
+					if (!ctx.can('agent') || record.typeName !== 'shape') return true
+					return record.id === FRAME || ancestorIdsOf(ctx.records, record).includes(FRAME)
+				},
+			})
+		)
+	})
+
+	it('hides shapes outside the frame, and shows shapes moved into it', () => {
+		const ann = h.connect('ann', { userId: 'ann', abilities: ['edit'] })
+		ann.editor.createShapes([{ id: FRAME, type: 'frame', x: 0, y: 0, props: { w: 500, h: 500 } }])
+		ann.editor.createShapes([{ ...geo(createShapeId('inside'), 10), parentId: FRAME }])
+		ann.editor.createShapes([geo(createShapeId('secret'), 900)])
+		h.settle()
+
+		const bot = h.connect('bot', { userId: 'bot', abilities: ['edit', 'agent'] })
+		expect(ids(bot, 'shape')).toEqual([FRAME, createShapeId('inside')].sort())
+
+		ann.editor.reparentShapes([createShapeId('secret')], FRAME)
+		h.settle()
+		expect(bot.editor.getShape(createShapeId('secret'))).toBeDefined()
+		ann.editor.reparentShapes([createShapeId('secret')], ann.editor.getCurrentPageId())
+		h.settle()
+		expect(bot.editor.getShape(createShapeId('secret'))).toBeUndefined()
+	})
+})
+
+describe('private shapes: real read control, not just hidden rendering', () => {
+	beforeEach(() => {
+		h = new SyncHarness(
+			definePermissions<TLRecord>({
+				rules: [...defaultAbilityRules(), ownShapesOnly()],
+				stamps: [stampOwner()],
+				canRead: (record: any, ctx) =>
+					record.typeName !== 'shape' ||
+					!record.meta.private ||
+					record.meta.ownerId === ctx.access.userId,
+			})
+		)
+	})
+
+	it('never sends a private shape to anyone but its owner', () => {
+		const ann = h.connect('ann', { userId: 'ann', abilities: ['edit'] })
+		const bob = h.connect('bob', { userId: 'bob', abilities: ['edit'] })
+		const note = createShapeId('note')
+		ann.editor.createShapes([{ ...geo(note), meta: { private: true } }])
+		h.settle()
+		expect(bob.store.get(note)).toBeUndefined()
+		expect(h.serverRecord(note)).toBeDefined()
+
+		ann.editor.updateShapes([{ id: note, type: 'geo', meta: { private: false, ownerId: 'ann' } }])
+		h.settle()
+		expect(bob.store.get(note)).toBeDefined()
 	})
 })
 
