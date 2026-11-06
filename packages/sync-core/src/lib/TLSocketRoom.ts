@@ -171,8 +171,10 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * - `'record'` (the default): the room skips only that record and applies the rest of the push.
 	 * - `'push'`: the room rejects the whole push. It stores and broadcasts none of its records, and
 	 *   the client undoes all of them. Use it when records depend on each other, for example a
-	 *   group and the `parentId` changes of its children. Hooks may already have run for earlier
-	 *   records of the push, so they must not have side effects. Presence in the push is still
+	 *   group and the `parentId` changes of its children. Hooks run for every record of the push,
+	 *   also after a rejection, and the room rolls back only its storage: state that a hook
+	 *   changes, such as an audit log, keeps its changes. So a hook must not take a write that it
+	 *   allowed as stored; use `onCommittedChanges` for that. Presence in the push is still
 	 *   applied.
 	 *
 	 * A push is what the client sends in one network frame: every change made since the last
@@ -191,7 +193,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 	 * Per-type hooks that decide what each session receives: the record, a changed copy, or
 	 * nothing. See {@link TLBeforeReadHook}. Combine maps with {@link composeBeforeRead}.
 	 *
-	 * A rule that reads other records with `get` runs again only when the record itself changes.
+	 * A hook runs again when a record that it read with `get` changes.
 	 */
 	beforeRead?: TLBeforeReadHooks<R, SessionMeta>
 	/**
