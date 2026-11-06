@@ -553,10 +553,22 @@
 	background: var(--tl-color-panel);
 }
 
-.tlui-collections-group__heading .tlui-button,
-.tlui-collections-section > .tlui-collections-panel__header .tlui-button {
-	background: linear-gradient(var(--tl-color-panel), var(--tl-color-panel)) center / 32px 32px
-		no-repeat;
+.tlui-collections-group__heading .tlui-button::before,
+.tlui-collections-section > .tlui-collections-panel__header .tlui-button::before {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	z-index: -1;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+}
+
+.tlui-collections-group__heading .tlui-button[data-state='open']::before,
+.tlui-collections-section
+	> .tlui-collections-panel__header
+	.tlui-button[data-state='open']::before {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%)
+		var(--tl-color-panel);
 }
 
 .tlui-collections-section > .tlui-collections-panel__header .tlui-collections-panel__rename {
