@@ -96,3 +96,37 @@ describe('resumed sessions', () => {
 		expect(s.close).toHaveBeenCalled()
 	})
 })
+
+describe('denied pushes', () => {
+	it('close a session that keeps sending them', () => {
+		const room = new TLSocketRoom<TLRecord, void>({
+			schema,
+			initialSnapshot: DEFAULT_INITIAL_SNAPSHOT,
+			access: createRelationRoomAccess(defaultRelationSchema),
+		})
+		const s = socket()
+		room.handleSocketConnect({ sessionId: 'ann', socket: s, access: viewer })
+		room.handleSocketMessage(
+			'ann',
+			JSON.stringify({
+				type: 'connect',
+				connectRequestId: 'c',
+				lastServerClock: 0,
+				protocolVersion: getTlsyncProtocolVersion(),
+				schema: schema.serialize(),
+			})
+		)
+		// a viewer may not create pages; a client without the guard sends the write again and again
+		const push = (i: number) => {
+			const page = PageRecordType.create({ name: 'Mine', index: 'a3' as any })
+			room.handleSocketMessage(
+				'ann',
+				JSON.stringify({ type: 'push', clientClock: i, diff: { [page.id]: ['put', page] } })
+			)
+		}
+		for (let i = 0; i < 20; i++) push(i)
+		expect(s.close).not.toHaveBeenCalled()
+		push(20)
+		expect(s.close).toHaveBeenCalledWith(expect.any(Number), 'RATE_LIMITED')
+	})
+})

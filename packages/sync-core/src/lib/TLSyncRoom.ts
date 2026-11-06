@@ -88,6 +88,12 @@ export interface TLRoomSocket<R extends UnknownRecord> {
  */
 export const DATA_MESSAGE_DEBOUNCE_INTERVAL = 1000 / 60
 
+/**
+ * A session whose pushes are denied this many times in a row is closed with `RATE_LIMITED`. A
+ * guarded client stops writing what it may not write, so a long run of denials means a loop.
+ */
+const MAX_DENIED_PUSHES_IN_A_ROW = 20
+
 const timeSince = (time: number) => Date.now() - time
 
 // WebSocket close frames cap the reason at 123 UTF-8 bytes; a longer one makes `close()` throw
@@ -581,6 +587,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/** @internal */
 	private removeSession(sessionId: string, fatalReason?: string) {
+		this.deniedPushes.delete(sessionId)
 		const session = this.sessions.get(sessionId)
 		if (!session) {
 			this.log?.warn?.('Tried to remove unknown session')
@@ -665,6 +672,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	// One view per transaction, so the access layer can carry state across the writes of one push
 	// (for example a grant created earlier in the same push).
 	private readonly accessViews = new WeakMap<object, TLRoomAccessView<R>>()
+	// Denied pushes in a row, per session. A client without the access guard, or with code that
+	// re-creates what was rolled back, sends the same denied write after every discard.
+	private readonly deniedPushes = new Map<string, number>()
 	private accessView(txn: TLSyncStorageTransaction<R>): TLRoomAccessView<R> {
 		let view = this.accessViews.get(txn)
 		if (!view) {
@@ -1928,6 +1938,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				else this.presenceStore.delete(session.presenceId)
 			}
 			this.log?.warn?.('access denied; discarding push', e.message, 'session:', session.sessionId)
+			const denied = (this.deniedPushes.get(session.sessionId) ?? 0) + 1
+			this.deniedPushes.set(session.sessionId, denied)
+			if (denied > MAX_DENIED_PUSHES_IN_A_ROW) {
+				this.rejectSession(session.sessionId, TLSyncErrorCloseEventReason.RATE_LIMITED)
+				return
+			}
 			this._unsafe_sendMessage(session.sessionId, {
 				type: 'push_result',
 				clientClock: message.clientClock,
@@ -1936,6 +1952,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			})
 			return
 		}
+		if (session) this.deniedPushes.delete(session.sessionId)
 		const { result, documentClock, changes } = txnResult
 
 		this.lastDocumentClock = documentClock
