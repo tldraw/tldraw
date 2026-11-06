@@ -225,14 +225,32 @@ describe('connect-time resolution', () => {
 			actor: 'user:ann',
 		})
 		expect([...result.rootRelations].sort()).toEqual(['comment', 'commenter', 'read', 'viewer'])
-		// every userset the actor is in, directly or through a group
+		// every userset the actor is in, directly, through a group, or through a rule
 		expect(result.subjects).toEqual([
 			'user:ann',
 			'team:t#member',
 			'file:other#owner',
 			'folder:x#commenter',
+			'folder:x#viewer',
+			'folder:x#read',
+			'folder:x#comment',
 		])
 		expect(reads).not.toContainEqual({ object: 'file:other' })
+	})
+
+	it('adds groups the actor is in only through a rule, even if nothing above the root names them', async () => {
+		const store = new InMemoryTupleStore([
+			{ object: 'file:f', relation: 'viewer', subject: 'user:ann' },
+			{ object: 'team:class', relation: 'owner', subject: 'user:ann' },
+		])
+		const result = await resolveRelationContext({
+			schema: defaultRelationSchema,
+			store,
+			root: 'file:f',
+			actor: 'user:ann',
+		})
+		// so an in-room `page:p#restricted@team:class#member` applies to her
+		expect(result.subjects).toContain('team:class#member')
 	})
 })
 
@@ -574,4 +592,89 @@ describe('second review regressions', () => {
 		if (typeof recheck !== 'function') throw new Error(`expected a predicate, got ${recheck}`)
 		expect(recheck(pageA)).toBe(true)
 	})
+})
+
+describe('third review regressions', () => {
+	const c = ctx({ rootRelations: ['read', 'contribute', 'comment', 'view'] })
+	const write = (records: any[], tuples: [string, string, string][], op: any) =>
+		authorizeRelationWrite(defaultRelationSchema, source(records, tuples), c, op).ok
+
+	it('a shape cannot be turned into a restricted type', () => {
+		const geo = shape('shape:s', 'page:p', 'user:ann')
+		const embed = { ...geo, type: 'embed' }
+		const tuples: [string, string, string][] = [['shape_type:embed', 'restricted', '*']]
+		expect(write([page, geo], tuples, { type: 'create', prev: null, next: embed })).toBe(false)
+		expect(write([page, geo], tuples, { type: 'update', prev: geo, next: embed })).toBe(false)
+	})
+
+	it('an author cannot move a comment into another thread, and needs comment to edit it', () => {
+		const threads = [
+			{ id: 'comment-thread:a', typeName: 'comment-thread', pageId: 'page:p', createdBy: 'ann' },
+			{ id: 'comment-thread:b', typeName: 'comment-thread', pageId: 'page:p', createdBy: 'ann' },
+		]
+		const comment = {
+			id: 'comment:c',
+			typeName: 'comment',
+			threadId: 'comment-thread:a',
+			authorId: 'ann',
+			body: 'hi',
+		}
+		const records = [page, ...threads, comment]
+		const moved = { ...comment, threadId: 'comment-thread:b' }
+		const edited = { ...comment, body: 'hello' }
+		expect(write(records, [], { type: 'update', prev: comment, next: edited })).toBe(true)
+		expect(write(records, [], { type: 'update', prev: comment, next: moved })).toBe(false)
+		const viewer = ctx({ rootRelations: ['read', 'view'] })
+		expect(
+			authorizeRelationWrite(defaultRelationSchema, source(records), viewer, {
+				type: 'update',
+				prev: comment,
+				next: edited,
+			}).ok
+		).toBe(false)
+	})
+
+	it('a relation record must have the canonical id, and a malformed id does not throw', () => {
+		const access = createRelationRoomAccess<any>(defaultRelationSchema)
+		const owner = ctx({ rootRelations: ['read', 'share', 'manage', 'edit'] })
+		const view = { get: (id: string) => (id === page.id ? page : undefined) }
+		const tuple = {
+			typeName: 'relation',
+			object: 'page:p',
+			relation: 'editor',
+			subject: 'user:bob',
+		}
+		const create = (id: string) =>
+			access.authorizeWrite(owner, { type: 'create', prev: null, next: { ...tuple, id } }, view)
+		expect(create(createRelationId('page:p', 'editor', 'user:bob'))).not.toBe(null)
+		expect(create('relation:page:p#editor@user:bob')).toBe(null)
+		expect(create('relation:%E0%A4%A#x@y')).toBe(null)
+		expect(
+			access.readRecheck([{ id: 'relation:%E0%A4%A#x@y', prev: null, next: null }], view)
+		).toBe('all')
+	})
+
+	it('creating a record re-checks records whose usersets name it', () => {
+		const access = createRelationRoomAccess<any>(defaultRelationSchema)
+		const t = shape('shape:t', 'page:p', 'user:ann')
+		const s = shape('shape:s', 'page:p')
+		const records = [page, s, t, tuple('shape:s', 'restricted', 'shape:t#owner')]
+		access.didChange({ reset: true, puts: records, deletes: [] })
+		const byId = new Map(records.map((r: any) => [r.id, r]))
+		const recheck = access.readRecheck([{ id: t.id, prev: null, next: t }], {
+			get: (id: string) => byId.get(id),
+		})
+		if (typeof recheck !== 'function') throw new Error(`expected a predicate, got ${recheck}`)
+		expect(recheck(s)).toBe(true)
+	})
+
+	function tuple(object: string, relation: string, subject: string) {
+		return {
+			id: createRelationId(object, relation, subject),
+			typeName: 'relation',
+			object,
+			relation,
+			subject,
+		}
+	}
 })

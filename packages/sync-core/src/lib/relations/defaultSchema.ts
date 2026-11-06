@@ -120,7 +120,8 @@ export const defaultRelationSchema = defineRelationSchema({
 			stamp: (r, actor) => (actor ? { ...r, meta: { ...r.meta, owner: actor } } : null),
 			lock: 'manage',
 		}),
-		kind: field((r) => (r?.type ? `shape_type:${r.type}` : null)),
+		// locked: otherwise a contributor creates a geo shape and turns it into a restricted type
+		kind: field((r) => (r?.type ? `shape_type:${r.type}` : null), { lock: true }),
 		restricted: direct(),
 		editor: direct(),
 		contributor: direct(),
@@ -191,19 +192,20 @@ export const defaultRelationSchema = defineRelationSchema({
 	},
 
 	comment: {
-		parent: field((r) => r?.threadId),
+		// locked: otherwise an author moves their comment into a thread they cannot read
+		parent: field((r) => r?.threadId, { lock: true }),
 		author: userField('authorId'),
 		read: from('parent', 'read'),
 		comment: from('parent', 'comment'),
 		moderate: from('parent', 'moderate'),
 		create: from('parent', 'comment'),
 		// authors edit their own; moderators may only hide (soft delete) anyone's
-		update: anyOf('author', allOf('moderate', onlyChanges(['isDeleted']))),
+		update: anyOf(allOf('author', 'comment'), allOf('moderate', onlyChanges(['isDeleted']))),
 		delete: nobody(),
 	},
 
 	'comment-reaction': {
-		parent: field((r) => r?.commentId),
+		parent: field((r) => r?.commentId, { lock: true }),
 		reactor: userField('userId'),
 		read: from('parent', 'read'),
 		create: from('parent', 'comment'),

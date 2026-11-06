@@ -139,8 +139,11 @@ export interface ResolveRelationContextOptions {
  *
  * 1. Subjects: the actor, then every userset the actor is a direct member of, transitively (Ann is
  *    in `team:design#member`, which is in `team:all#member`).
- * 2. The root and its ancestors, following only the relations that the schema traverses.
- * 3. Every relation of the root's type, evaluated against what was loaded.
+ * 2. The root and its ancestors, the objects from step 1, and the objects behind userset subjects,
+ *    following only the relations that the schema traverses.
+ * 3. Every relation the actor holds on a loaded object through a rule is added to the subjects
+ *    (a team owner is a member too), until nothing new is added.
+ * 4. Every relation of the root's type, evaluated against what was loaded.
  *
  * @public
  */
@@ -150,6 +153,7 @@ export async function resolveRelationContext(
 	const { schema, store, root, actor } = opts
 
 	const subjects = new Set<string>()
+	const objects = [root]
 	const queue = [...(actor ? [actor] : []), ...(opts.extraSubjects ?? [])]
 	while (queue.length && subjects.size < MAX_LOAD) {
 		const s = queue.shift()!
@@ -157,13 +161,13 @@ export async function resolveRelationContext(
 		subjects.add(s)
 		for (const t of await store.read({ subject: s })) {
 			queue.push(`${t.object}#${t.relation}`)
+			// groups the actor is in (teams, folders) may imply more groups; other files do not
+			if (objectType(t.object) !== objectType(root)) objects.push(t.object)
 		}
 	}
 
 	const tuples = new Map<string, string[]>()
 	const loaded = new Set<string>()
-	const usersets = new Set<string>()
-	const objects = [root]
 	while (objects.length && loaded.size < MAX_LOAD) {
 		const object = objects.shift()!
 		if (loaded.has(object)) continue
@@ -180,29 +184,41 @@ export async function resolveRelationContext(
 			// a userset subject (`team:t#member`) is checked through the schema, which may grant it
 			// in ways that are not a direct tuple (team owners are members too)
 			const hash = t.subject.indexOf('#')
-			if (hash !== -1) {
-				const usersetObject = t.subject.slice(0, hash)
-				usersets.add(t.subject)
-				objects.push(usersetObject)
-			}
+			if (hash !== -1) objects.push(t.subject.slice(0, hash))
 		}
 	}
 
-	// evaluate with no boundary: the root is just another object in the loaded tuples
-	const evaluator = new RelationEvaluator(
-		schema,
-		{ getRecord: () => undefined, getSubjects: (o, r) => tuples.get(`${o}#${r}`) ?? [] },
-		{ actor, subjects: [...subjects], root: '', rootRelations: [] }
-	)
+	// Evaluate with no boundary: the root is just another object in the loaded tuples. A userset
+	// can hold through a rule and not only a direct tuple (team owners are members), and an in-room
+	// tuple such as `page:p#restricted@team:t#member` must match those members too.
+	const source = {
+		getRecord: () => undefined,
+		getSubjects: (o: string, r: string) => tuples.get(`${o}#${r}`) ?? [],
+	}
+	const evaluatorFor = () =>
+		new RelationEvaluator(schema, source, {
+			actor,
+			subjects: [...subjects],
+			root: '',
+			rootRelations: [],
+		})
+	for (let changed = true; changed; ) {
+		changed = false
+		const evaluator = evaluatorFor()
+		for (const object of loaded) {
+			if (object === root) continue
+			for (const relation of Object.keys(schema.types[objectType(object)] ?? {})) {
+				const userset = `${object}#${relation}`
+				if (subjects.has(userset) || !evaluator.check(object, relation)) continue
+				subjects.add(userset)
+				changed = true
+			}
+		}
+	}
+	const evaluator = evaluatorFor()
 	const rootRelations = Object.keys(schema.types[objectType(root)] ?? {}).filter((r) =>
 		evaluator.check(root, r)
 	)
-	// usersets the actor is in only through a rule, so the client can match them too
-	for (const userset of usersets) {
-		if (subjects.has(userset)) continue
-		const hash = userset.indexOf('#')
-		if (evaluator.check(userset.slice(0, hash), userset.slice(hash + 1))) subjects.add(userset)
-	}
 
 	return {
 		actor,

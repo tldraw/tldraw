@@ -167,18 +167,11 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 		authorizeWrite(ctx, write, view) {
 			const source = sourceFor(view)
 			if (write.prev && !canReadWithParents(schema, source, ctx, write.prev, new Map())) return null
-			// a tuple's id must name the tuple, so the id alone says what a delete changed
+			// A tuple's id must be the canonical id of the tuple. Two ids for one tuple would share one
+			// index slot, so deleting one would revoke the grant while the other record keeps it.
 			const tuple = write.next?.typeName === RELATION_TYPE_NAME ? (write.next as any) : null
-			if (tuple) {
-				const parsed = parseRelationId(tuple.id)
-				if (
-					!parsed ||
-					parsed.object !== tuple.object ||
-					parsed.relation !== tuple.relation ||
-					parsed.subject !== tuple.subject
-				) {
-					return null
-				}
+			if (tuple && tuple.id !== createRelationId(tuple.object, tuple.relation, tuple.subject)) {
+				return null
 			}
 			const result = authorizeRelationWrite<R & { id: string; typeName: string }>(
 				schema,
@@ -209,6 +202,7 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 			}
 			for (const { id, prev, next } of changes) {
 				const tuple = parseRelationId(id)
+				if (!tuple && id.startsWith(RELATION_TYPE_NAME + ':')) return 'all'
 				if (tuple) {
 					// a tuple on something that is not a record here (a shape type, an action) can
 					// matter to any record
@@ -226,8 +220,9 @@ export function createRelationRoomAccess<R extends UnknownRecord>(
 						for (const v of moved) addWithAncestors(v)
 					}
 				}
-				// a deleted record's children (if a client left any) follow it
-				if (!prev && !next) roots.add(id)
+				// A created or deleted record: its children (if a client left any) follow it, and a
+				// userset that names it (`shape:t#owner`) may now match differently.
+				if (!prev) roots.add(id)
 			}
 			if (roots.size === 0) return 'none'
 
@@ -289,10 +284,15 @@ function parseRelationId(id: string) {
 	const hash = rest.indexOf('#')
 	const at = rest.indexOf('@', hash)
 	if (hash === -1 || at === -1) return null
-	return {
-		object: decodeURIComponent(rest.slice(0, hash)),
-		relation: decodeURIComponent(rest.slice(hash + 1, at)),
-		subject: decodeURIComponent(rest.slice(at + 1)),
+	try {
+		return {
+			object: decodeURIComponent(rest.slice(0, hash)),
+			relation: decodeURIComponent(rest.slice(hash + 1, at)),
+			subject: decodeURIComponent(rest.slice(at + 1)),
+		}
+	} catch {
+		// a malformed escape such as `%E0%A4%A`
+		return null
 	}
 }
 

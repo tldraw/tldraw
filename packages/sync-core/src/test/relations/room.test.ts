@@ -33,24 +33,26 @@ const viewer: TLRelationContext = {
 }
 
 describe('resumed sessions', () => {
-	it('get a remove for every record they may not read now', async () => {
+	it('reconnect, so a grant that changed while the room slept applies', async () => {
 		const room = new TLSocketRoom<TLRecord, void>({
 			schema,
 			initialSnapshot: DEFAULT_INITIAL_SNAPSHOT,
 			access: createRelationRoomAccess(defaultRelationSchema),
 		})
-		const s1 = socket()
-		room.handleSocketConnect({ sessionId: 'ann', socket: s1, access: viewer })
-		room.handleSocketMessage(
-			'ann',
-			JSON.stringify({
-				type: 'connect',
-				connectRequestId: 'c',
-				lastServerClock: 0,
-				protocolVersion: getTlsyncProtocolVersion(),
-				schema: schema.serialize(),
-			})
-		)
+		const connect = (s: ReturnType<typeof socket>) => {
+			room.handleSocketConnect({ sessionId: 'ann', socket: s, access: viewer })
+			room.handleSocketMessage(
+				'ann',
+				JSON.stringify({
+					type: 'connect',
+					connectRequestId: 'c',
+					lastServerClock: 0,
+					protocolVersion: getTlsyncProtocolVersion(),
+					schema: schema.serialize(),
+				})
+			)
+		}
+		connect(socket())
 		const snapshot = room.getSessionSnapshot('ann')!
 		expect(snapshot.access).toEqual(viewer)
 
@@ -63,15 +65,21 @@ describe('resumed sessions', () => {
 		})
 		await Promise.resolve()
 
-		const s2 = socket()
-		room.handleSocketResume({ sessionId: 'ann', socket: s2, snapshot })
-		const sent = s2.send.mock.calls.map(([m]) => JSON.parse(m))
-		const removed = sent
-			.flatMap((m) => (m.type === 'data' ? m.data : [m]))
-			.filter((m) => m.type === 'patch')
-			.flatMap((m) => Object.keys(m.diff))
-		expect(removed).toContain(secret)
-		expect(removed).not.toContain('page:page')
+		// the room does not know what her client holds: it closes the socket without a fatal reason
+		const resumed = socket()
+		room.handleSocketResume({ sessionId: 'ann', socket: resumed, snapshot })
+		expect(resumed.close).toHaveBeenCalledWith(undefined, undefined)
+		expect(resumed.send).not.toHaveBeenCalled()
+
+		// the client reconnects and gets a full snapshot of what it may read now
+		const fresh = socket()
+		connect(fresh)
+		const hello = fresh.send.mock.calls
+			.map(([m]) => JSON.parse(m))
+			.find((m) => m.type === 'connect')
+		expect(hello.hydrationType).toBe('wipe_all')
+		expect(Object.keys(hello.diff)).toContain('page:page')
+		expect(Object.keys(hello.diff)).not.toContain(secret)
 	})
 
 	it('are closed when the snapshot has no access context', () => {

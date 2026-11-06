@@ -1079,40 +1079,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			return
 		}
 
-		// After hibernation the room no longer knows which records the client holds. It sends a remove
-		// for every record the session may not read now (a remove of a record the client does not hold
-		// does nothing), so nothing it lost access to while asleep stays on its screen.
-		const resumed = this.sessions.get(sessionId)
-		if (this.access && resumed && resumed.access == null) {
-			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
-			return
-		}
-		if (this.access && resumed?.state === RoomSessionState.Connected) {
-			const access = this.access
-			const hidden: string[] = []
-			this.storage.transaction((txn) => {
-				const view = this.accessView(txn)
-				const visible = new Set<string>()
-				for (const record of this.accessRecords(txn)) {
-					if (record.id === resumed.presenceId) continue
-					if (access.canRead(resumed.access, record, view)) visible.add(record.id)
-					else hidden.push(record.id)
-				}
-				resumed.visible = visible
-			}) // no id needed because this only reads, no writes.
-			if (hidden.length) {
-				const result = this.migrateDiffOrRejectSession(
-					sessionId,
-					resumed.serializedSchema,
-					resumed.requiresDownMigrations,
-					{ puts: {}, deletes: hidden }
-				)
-				if (!result.ok) return
-				this._unsafe_sendMessage(sessionId, {
-					type: 'patch',
-					diff: result.value,
-					serverClock: this.lastDocumentClock,
-				})
+		// In a room with access, a resumed session cannot be served from its snapshot. The room no
+		// longer knows which records the client holds, the context in the snapshot may be stale (a
+		// grant on the host may have changed while the room slept), and records may have become
+		// readable, unreadable or deleted. Close the socket without a fatal reason: the client
+		// reconnects, the host resolves a fresh context, and connect sends a full filtered snapshot.
+		if (this.access) {
+			const resumed = this.sessions.get(sessionId)
+			if (resumed && resumed.access == null) {
+				this.rejectSession(sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			} else {
+				this.removeSession(sessionId)
 			}
 		}
 	}
@@ -1952,8 +1929,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			})
 			return
 		}
-		if (session) this.deniedPushes.delete(session.sessionId)
 		const { result, documentClock, changes } = txnResult
+		// only a document change resets it: presence pushes go through all the time
+		if (session && result.docChanges.diffs?.networkDiff) this.deniedPushes.delete(session.sessionId)
 
 		this.lastDocumentClock = documentClock
 
