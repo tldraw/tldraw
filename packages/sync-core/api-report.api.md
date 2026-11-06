@@ -519,6 +519,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         sessionId: string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
+    getSnapshotFor(access: SessionAccess): RoomSnapshot;
     handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
         access?: SessionAccess;
@@ -758,6 +759,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     _flushDataMessages(sessionId: string): void;
     getCanEmitStringAppend(): boolean;
+    getSnapshotFor(access: SessionAccess, snapshot: RoomSnapshot): RoomSnapshot;
     handleClose(sessionId: string): void;
     handleMessage(sessionId: string, message: TLSocketClientSentEvent<R>): Promise<void>;
     handleNewSession(opts: {

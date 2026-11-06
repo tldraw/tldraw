@@ -518,6 +518,51 @@ describe('use cases', () => {
 	})
 })
 
+describe('reader', () => {
+	it('gives the same answer as canRead for every record, including odd trees', () => {
+		const model = createTLAccessModel({
+			types: {
+				// a custom type with children and an alsoRead, and two that alsoRead each other
+				board: { parent: (r: any) => r.pageId, alsoRead: (r: any) => [r.cover] },
+				loop: { parent: () => TL_ACCESS_ROOT, alsoRead: (r: any) => [r.other] },
+			},
+		})
+		const records = room(
+			[
+				{ resource: 'page:gone', subject: { type: 'anyone' }, effect: 'allow', verbs: ['read'] },
+				{ resource: 'shape:card', subject: { type: 'anyone' }, effect: 'block', verbs: ['read'] },
+				{ resource: 'page:team', subject: { type: 'anyone' }, effect: 'block', verbs: ['read'] },
+				{ ...ownerEdits, resource: 'page:a' },
+			],
+			[
+				...base,
+				shape('shape:orphan', 'page:gone', 'bob'),
+				{ id: 'board:b', typeName: 'board', pageId: 'page:a', cover: 'shape:card' } as any,
+				shape('shape:onBoard', 'board:b', 'bob'),
+				{ id: 'loop:1', typeName: 'loop', other: 'loop:2' } as any,
+				{ id: 'loop:2', typeName: 'loop', other: 'loop:1' } as any,
+				{ id: 'mystery:1', typeName: 'mystery' } as any,
+			]
+		)
+		const view = createAccessView(model, records)
+		for (const session of [
+			user('bob', [role(['viewer'])]),
+			user('tess', [role(['admin'])]),
+			user(null, [role(['viewer'])], { limit: ['viewer'] }),
+			user('cy'),
+		]) {
+			const read = model.reader(session, view)
+			for (const id of view.ids()) {
+				expect([id, read(id)]).toEqual([id, model.canRead(session, id, view)])
+			}
+		}
+		const bob = user('bob', [role(['viewer'])])
+		expect(model.canRead(bob, 'shape:orphan', view)).toBe(false)
+		expect(model.canRead(bob, 'shape:onBoard', view)).toBe(false) // its board's cover is hidden
+		expect(model.canRead(bob, 'loop:1', view)).toBe(false)
+	})
+})
+
 describe('views', () => {
 	it('an overlay sees added and removed entries', () => {
 		const model = createTLAccessModel()

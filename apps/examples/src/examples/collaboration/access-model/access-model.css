@@ -89,7 +89,8 @@
 .access-model__header {
 	padding: 6px 8px;
 	border-bottom: 1px solid #eee;
-	min-height: 52px;
+	/* room for the why lines, so hovering a shape does not move the canvas */
+	min-height: 112px;
 }
 
 .access-model__muted {

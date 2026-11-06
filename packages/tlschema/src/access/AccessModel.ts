@@ -89,7 +89,7 @@ export interface IndexedAccessView<R extends UnknownRecord = UnknownRecord> exte
 	ids(): Iterable<string>
 	/** Records whose parent is `id`, including ones left behind when `id` was deleted. */
 	childrenOf(id: string): Iterable<string>
-	/** Records that name `id` in `alsoRead`. */
+	/** Records that name `id` in `alsoRead` or `references`. */
 	readersOf(id: string): Iterable<string>
 }
 
@@ -122,6 +122,8 @@ export interface AccessTypeRule<R extends UnknownRecord = UnknownRecord> {
 	 * would reach everyone on the page. Return the record itself when nothing changes.
 	 */
 	redact?(record: R, canRead: (id: string) => boolean): R
+	/** The records `redact` looks at. When one of them changes, the server sends this record again. */
+	references?(record: R): readonly string[]
 }
 
 /**
@@ -265,6 +267,14 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 			: null
 	}
 
+	/**
+	 * True when the model has its own relations. A relation may look at any record, so the server
+	 * cannot tell which records a change affects, and checks them all.
+	 */
+	hasCustomRelations(): boolean {
+		return Object.keys(this.relations).length > 0
+	}
+
 	ownerOf(record: R): string | null {
 		return this.getTypeRule(record.typeName)?.owner?.get(record) ?? null
 	}
@@ -375,8 +385,19 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 		if (session.limit && !this.expand(session.limit).has('read')) {
 			return deny('read', id, null, null, `read is above this session's ceiling`)
 		}
+		return this.readDecision(session, id, view, new Set())
+	}
+
+	// `reader` below must give the same answers: change both together
+	private readDecision(
+		session: SessionAccess,
+		id: string,
+		view: AccessView<R>,
+		path: Set<string>
+	): AccessDecision {
+		if (path.has(id)) return deny('read', id, null, null, 'the read rule has a cycle')
 		const record = view.get(id)
-		const rule = record && this.getTypeRule(record.typeName)
+		if (!record && id !== this.root) return deny('read', id, null, null, `${id} is missing`)
 		const entry = this.entryOf(record)
 		if (entry) {
 			// a relation entry is judged on each record below it (an owner entry on a page applies
@@ -389,21 +410,24 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 			}
 			return this.explain(session, this.manageVerb, entry.resource, view)
 		}
-		let cur: string | null | undefined = id
-		let first: AccessDecision | null = null
-		while (cur) {
-			const decision = this.decide(session, 'read', cur, view)
-			if (!decision.allowed) return { ...decision, id }
-			first ??= decision
-			cur = this.parentOf(cur, view)
+		const decision = this.decide(session, 'read', id, view)
+		if (!decision.allowed) return decision
+		const parent = this.parentOf(id, view)
+		if (parent === undefined) {
+			return deny('read', id, id, null, `${record!.typeName} is not in the access model`)
 		}
-		if (record && rule?.alsoRead) {
-			for (const other of rule.alsoRead(record)) {
-				const decision = this.explainRead(session, other, view)
-				if (!decision.allowed) return { ...decision, id }
+		path.add(id)
+		try {
+			const others = [parent, ...(this.getTypeRule(record!.typeName)?.alsoRead?.(record!) ?? [])]
+			for (const other of others) {
+				if (!other) continue
+				const up = this.readDecision(session, other, view, path)
+				if (!up.allowed) return { ...up, id }
 			}
+		} finally {
+			path.delete(id)
 		}
-		return first ?? deny('read', id, null, null, 'nothing to read')
+		return decision
 	}
 
 	canRead(session: SessionAccess, id: string, view: AccessView<R>): boolean {
@@ -412,7 +436,8 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 
 	/**
 	 * `canRead` for many records of one view that does not change meanwhile. Each ancestor is
-	 * decided once, so a whole room costs one walk per record, not one per ancestor.
+	 * decided once, so a whole room costs one walk per record, not one per ancestor. It must give
+	 * the same answers as `explainRead`.
 	 */
 	reader(session: SessionAccess, view: AccessView<R>): (id: string) => boolean {
 		const memo = new Map<string, boolean>()
@@ -427,7 +452,8 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
 			else if (ok) {
 				ok = this.decide(session, 'read', id, view).allowed
 				const parent = ok ? this.parentOf(id, view) : null
-				if (parent) ok = read(parent)
+				if (parent === undefined) ok = false
+				else if (parent) ok = read(parent)
 				const alsoRead = record && this.getTypeRule(record.typeName)?.alsoRead
 				if (ok && alsoRead) ok = alsoRead(record).every(read)
 			}
@@ -578,7 +604,10 @@ export function createAccessView<R extends UnknownRecord>(
 	}
 	const links = (record: R) => {
 		const rule = model.getTypeRule(record.typeName)
-		return { parent: rule?.parent(record) ?? null, alsoRead: rule?.alsoRead?.(record) ?? [] }
+		return {
+			parent: rule?.parent(record) ?? null,
+			alsoRead: [...(rule?.alsoRead?.(record) ?? []), ...(rule?.references?.(record) ?? [])],
+		}
 	}
 	const index = (record: R) => {
 		const { parent, alsoRead } = links(record)

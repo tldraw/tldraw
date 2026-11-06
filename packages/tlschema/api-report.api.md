@@ -89,6 +89,7 @@ export class AccessModel<R extends UnknownRecord = UnknownRecord> {
     explain(session: SessionAccess, verb: string, id: string, view: AccessView<R>): AccessDecision;
     explainRead(session: SessionAccess, id: string, view: AccessView<R>): AccessDecision;
     getTypeRule(typeName: string): AccessTypeRule<any> | undefined;
+    hasCustomRelations(): boolean;
     // (undocumented)
     readonly manageVerb: string;
     // (undocumented)
@@ -147,6 +148,7 @@ export interface AccessTypeRule<R extends UnknownRecord = UnknownRecord> {
     };
     parent(record: R): null | string;
     redact?(record: R, canRead: (id: string) => boolean): R;
+    references?(record: R): readonly string[];
     verbs?: Partial<Record<AccessOp, string>>;
 }
 

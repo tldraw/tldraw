@@ -717,6 +717,20 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/** Ids of every record the session may read. */
+	/** @internal see {@link TLSocketRoom.getSnapshotFor} */
+	getSnapshotFor(access: SessionAccess, snapshot: RoomSnapshot): RoomSnapshot {
+		assert(this.access, 'TLSyncRoom: getSnapshotFor needs a room with an access model')
+		const model = this.access
+		const view = this.accessView!
+		const read = model.reader(access, view)
+		const documents: RoomSnapshot['documents'] = []
+		for (const doc of snapshot.documents) {
+			if (!read(doc.state.id)) continue
+			documents.push({ ...doc, state: model.redact(access, doc.state as R, view) })
+		}
+		return { ...snapshot, documents, tombstones: {} }
+	}
+
 	private readableIds(access: SessionAccess): Set<string> {
 		const view = this.accessView!
 		const read = this.access!.reader(access, view)
@@ -730,9 +744,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	 * A record that becomes readable is sent whole; one that stops being readable is removed.
 	 *
 	 * Only records a change can affect are checked again: each changed record with its subtree
-	 * (an entry counts as a change to its resource), and the records that `alsoRead` any of them.
-	 * Readability depends on nothing else, so a move into a frame checks the moved shapes, and a
-	 * new entry on a page checks that page, not the room.
+	 * (an entry counts as a change to its resource), and the records that `alsoRead` or
+	 * `references` any of them. Without custom relations, readability depends on nothing else, so
+	 * a move into a frame checks the moved shapes, and a new entry on a page checks that page.
 	 */
 	private broadcastAccessPatch(diff: TLSyncForwardDiff<R>, sourceSessionId?: string) {
 		const model = this.access!
@@ -754,6 +768,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			roots.push(id)
 			view.delete(id)
 		}
+		// a custom relation may look at any record
+		if (model.hasCustomRelations()) roots.push(...view.ids())
 		const affected = new Set<string>()
 		while (roots.length) {
 			const id = roots.pop()!
@@ -774,18 +790,29 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const visible = session.visible
 			const read = model.reader(session.access, view)
 			const out: TLSyncForwardDiff<R> = { puts: {}, deletes: [] }
+			const flipped: string[] = []
 			for (const id of affected) {
 				const record = view.get(id)
 				if (record && read(id)) {
 					if (!visible.has(id)) {
 						visible.add(id)
+						flipped.push(id)
 						out.puts[id] = record
 					} else if (!isSource && id in diff.puts) {
 						out.puts[id] = diff.puts[id]
 					}
 				} else if (visible.delete(id)) {
+					flipped.push(id)
 					// the source deleted it itself; a record it can no longer read is news to it
 					if (record || !isSource) out.deletes.push(id)
+				}
+			}
+			// a record whose redacted copy names one of these (a presence selection) is sent again
+			for (const id of flipped) {
+				for (const other of view.readersOf(id)) {
+					const record = view.get(other)
+					if (!record || !visible.has(other)) continue
+					if (model.getTypeRule(record.typeName)?.redact) out.puts[other] = record
 				}
 			}
 			if (session.presenceId) {
@@ -969,9 +996,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			supportsStringAppend,
 		} = opts
 
-		// a snapshot saved before the host turned on the model has no grant: make the client
-		// connect again, so the host gives it one, instead of resuming with no check at all
-		if (this._isClosed || (this.access && !opts.access)) {
+		if (this._isClosed) {
 			socket.close()
 			return
 		}
@@ -1003,6 +1028,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// socket slept, and a rejection only broadcasts its removal if it's in the store
 		if (presenceRecord && presenceId) {
 			this.presenceStore.set(presenceId, presenceRecord as R)
+		}
+
+		// a snapshot saved before the host turned on the model has no grant: make the client
+		// connect again, so the host gives it one, instead of resuming with no check at all
+		if (this.access && !opts.access) {
+			this.removeSession(sessionId)
+			return
 		}
 
 		// The server may have changed builds while the socket slept, so re-run the handshake's

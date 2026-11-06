@@ -841,6 +841,22 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	}
 
 	/**
+	 * The room's document as one person may read it, for a download, an export or a copy. Records
+	 * they may not read are left out and the rest are redacted, as in their live store. Needs a
+	 * room with an access model.
+	 *
+	 * @example
+	 * ```ts
+	 * const file = room.getSnapshotFor({ actor: { id: userId }, entries: [viewerOnRoot] })
+	 * ```
+	 */
+	getSnapshotFor(access: SessionAccess): RoomSnapshot {
+		const snapshot = this.storage.getSnapshot?.()
+		if (!snapshot) throw new Error('getSnapshotFor is not supported for this storage type')
+		return this.room.getSnapshotFor(access, snapshot)
+	}
+
+	/**
 	 * Returns a snapshot of the object-store lane (see `objectTypes`), for persisting
 	 * object-lane records separately from the document. Same entry shape as
 	 * {@link RoomSnapshot.documents}.

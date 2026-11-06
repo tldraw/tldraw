@@ -92,7 +92,9 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 			shapeAfter.type === 'geo' &&
 			shapeBefore.props.geo !== shapeAfter.props.geo &&
 			this.editor.isIn('select.idle') &&
-			!this.editor.isReplayingHistory()
+			!this.editor.isReplayingHistory() &&
+			// someone else's arrow: changing your shape must not need the right to edit it
+			this.editor.access.can('update', binding.fromId)
 		) {
 			updateBindingAnchorIfOutsideShape(this.editor, binding, shapeAfter)
 		}

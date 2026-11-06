@@ -326,6 +326,55 @@ describe('read: each session gets only what it may read', () => {
 		flush()
 		expect(presenceIn(ann.store).selectedShapeIds).toEqual(['shape:card'])
 		expect(presenceIn(bob.store).selectedShapeIds).toEqual([])
+		// the card is shown to bob: tess's selection is sent to him again, now with the card
+		const showBob = entry({
+			id: 'cardBob',
+			resource: 'shape:card',
+			subject: { type: 'user', id: 'bob' },
+			effect: 'allow',
+			verbs: ['read'],
+		})
+		server.storage.transaction((txn) => txn.set(showBob.id, showBob))
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		flush()
+		expect(bob.store.get('shape:card' as any)).toBeDefined()
+		expect(presenceIn(bob.store).selectedShapeIds).toEqual(['shape:card'])
+	})
+
+	it('a custom relation that looks at another record: a change there updates what each person sees', async () => {
+		// "members" of page:a may read the team page
+		const withMembers = createTLAccessModel<TLRecord>({
+			relations: {
+				member: (actor, _leaf, view) =>
+					((view.get('page:a') as any)?.meta?.members ?? []).includes(actor.id),
+			},
+			entries: [
+				{
+					resource: 'page:team',
+					subject: { type: 'relation', relation: 'member' },
+					effect: 'allow',
+					verbs: ['admin'],
+				},
+			],
+		})
+		server = new TestServer<TLRecord>(
+			schema,
+			{
+				documents: seed().map((state) => ({ state, lastChangedClock: 0 })),
+				clock: 0,
+				documentClock: 0,
+				schema: schema.serialize(),
+			},
+			{ access: withMembers }
+		)
+		const bob = join('bob', as('bob', ['viewer']))
+		expect(bob.store.get('page:team' as any)).toBeUndefined()
+		server.storage.transaction((txn) =>
+			txn.set('page:a', { ...(txn.get('page:a') as any), meta: { members: ['bob'] } })
+		)
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		flush()
+		expect(bob.store.get('page:team' as any)).toBeDefined()
 	})
 
 	it('a shape moved into a page you cannot read disappears for you', () => {
@@ -514,6 +563,18 @@ describe('hibernation', () => {
 			})
 		)
 	}
+
+	it('a download for one person holds only what they may read', () => {
+		const room = makeRoom()
+		const ids = (access: SessionAccess) =>
+			room
+				.getSnapshotFor(access)
+				.documents.map((d) => d.state.id)
+				.filter((id) => id.startsWith('shape:') || id.startsWith('page:'))
+				.sort()
+		expect(ids(as('bob', ['viewer']))).toEqual(['page:a', 'shape:bob', 'shape:tess'])
+		expect(ids(as('ann', ['viewer']))).toEqual(['page:a', 'shape:bob', 'shape:card', 'shape:tess'])
+	})
 
 	it('a snapshot without access (saved before the model) does not resume: the client connects again', () => {
 		const room = makeRoom()
