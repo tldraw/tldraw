@@ -153,3 +153,17 @@
 	font-size: 13px;
 	color: #b3261e;
 }
+
+.permission-chain__locked {
+	position: absolute;
+	top: 8px;
+	left: 50%;
+	transform: translateX(-50%);
+	padding: 4px 8px;
+	border-radius: 6px;
+	background: #fff4d6;
+	color: #6b4a00;
+	font-size: 12px;
+	pointer-events: none;
+	z-index: 1000;
+}

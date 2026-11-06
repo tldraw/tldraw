@@ -23,7 +23,7 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { PermissionChain, PermissionDenial, RecordAccess } from './permissions'
+import { PermissionChain, PermissionDenial, PermissionResult, RecordAccess } from './permissions'
 import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
@@ -1244,6 +1244,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	/** @internal */
 	ensureStoreIsUsable() {
+		// The permission check runs on repairs too. A repair the user may not make (for example a
+		// new page for a student who can see none) must not be sent: the server would deny it, the
+		// store would repair again, and the two would loop.
 		this.atomic(() => {
 			this._integrityChecker ??= this.schema.createIntegrityChecker(this)
 			this._integrityChecker?.()
@@ -1336,7 +1339,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			// Writes merged from the server were checked there. Writes made while permissions are
 			// paused (snapshot loads, host system writes) are not the actor's.
 			this.permissionChanges =
-				this.permissions && !isMergingRemoteChanges && !this.permissionsPaused ? new Map() : null
+				this.permissionsAtom.__unsafe__getWithoutCapture() &&
+				!isMergingRemoteChanges &&
+				!this.permissionsPaused
+					? new Map()
+					: null
 			const prevSideEffectsEnabled = this.sideEffects.isEnabled()
 			// an operation may switch side effects off, but never on while they are disabled
 			this.sideEffects.setIsEnabled(runCallbacks && prevSideEffectsEnabled)
@@ -1352,6 +1359,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 				this.flushAtomicCallbacks(isMergingRemoteChanges)
 				this.applyPermissions()
+				this.flushAtomicCallbacks(false)
 
 				return result
 			} finally {
@@ -1364,7 +1372,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		})
 	}
 
-	private permissions: StorePermissions<R> | null = null
+	private readonly permissionsAtom = atom<StorePermissions<R> | null>('Store.permissions', null)
 	private permissionsPaused = false
 	private permissionChanges: Map<IdOf<R>, { before: R | null; after: R | null }> | null = null
 
@@ -1383,12 +1391,32 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * @public
 	 */
 	setPermissions(permissions: StorePermissions<R> | null) {
-		this.permissions = permissions
+		this.permissionsAtom.set(permissions)
 	}
 
-	/** The permissions set with {@link Store.setPermissions}, if any. @public */
+	/** The permissions set with {@link Store.setPermissions}, if any. Reactive. @public */
 	getPermissions(): StorePermissions<R> | null {
-		return this.permissions
+		return this.permissionsAtom.get()
+	}
+
+	/**
+	 * Ask the chain about writes without making them: a dry run with the current actor. Use it to
+	 * decide what the UI offers, for example to stop a drag before it starts. It reads records
+	 * reactively, so a computed value that calls it updates when the records, the chain or the
+	 * actor change. With no permissions set, it allows everything.
+	 *
+	 * @public
+	 */
+	checkWrites(items: readonly RecordAccess<R>[]): PermissionResult<R> {
+		const permissions = this.permissionsAtom.get()
+		if (!permissions) return { allowed: items, denied: [] }
+		return permissions.chain.run({
+			kind: 'write',
+			actor: permissions.getActor(),
+			items,
+			get: (id) => this.get(id as IdOf<R>) as R | undefined,
+			onError: (error) => console.error('permission chain threw; denying the writes', error),
+		})
 	}
 
 	/**
@@ -1409,7 +1437,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	private applyPermissions() {
 		const changes = this.permissionChanges
-		const permissions = this.permissions
+		const permissions = this.permissionsAtom.__unsafe__getWithoutCapture()
 		this.permissionChanges = null
 		if (!changes || !permissions || changes.size === 0) return
 
@@ -1453,11 +1481,13 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			if (current !== access.next) toPut.push(access.next)
 		}
 		if (toPut.length || toRemove.length) {
-			// The corrections are the store's own writes: no side effects, and no second check.
+			// The corrections run the side effects, like any write: they keep the store whole (for
+			// example, removing a denied shape removes its bindings and its selection). They are not
+			// checked again. The caller runs the after-handlers.
 			this.atomic(() => {
 				if (toRemove.length) this.remove(toRemove)
 				if (toPut.length) this.put(toPut)
-			}, false)
+			})
 		}
 		if (result.denied.length) permissions.onDenied?.(result.denied)
 	}

@@ -194,13 +194,15 @@ describe('shape write control: students edit only their own shapes', () => {
 		expect(alice.denied).toEqual([])
 	})
 
-	it("stops a move of the teacher's shape on the client, so nothing is sent", () => {
+	it("the teacher's shape is locked for a student, so nothing is sent", () => {
 		const { join, teacherBox, flush, stored } = classroom()
 		const alice = join({ userId: 'alice', role: 'student' })
+		expect(alice.editor.getShapePermissionDenial(teacherBox)).toBe('not your shape')
 		alice.editor.updateShape({ id: teacherBox, type: 'geo', x: 500 })
 		expect(alice.shape(teacherBox)!.x).toBe(0)
 		expect(alice.pair.clientSentEventQueue.filter((m) => m.type === 'push')).toEqual([])
-		expect(alice.denied.map((d) => d.reason)).toEqual(['not your shape'])
+		// The editor skipped the locked shape: no write was made, so none was denied.
+		expect(alice.denied).toEqual([])
 		flush()
 		expect((stored(teacherBox) as any).x).toBe(0)
 	})
@@ -366,8 +368,7 @@ describe('shape read control, with a plugin shape type', () => {
 	it('only a teacher writes grades, on the client and in the room', () => {
 		const { join, flush, stored, aliceGrade } = graded()
 		const alice = join({ userId: 'alice', role: 'student' })
-		alice.editor.updateShape({ id: aliceGrade, type: GRADE_TYPE, props: { text: 'A+' } })
-		expect(alice.denied.map((d) => d.reason)).toEqual(['only teachers grade'])
+		expect(alice.editor.getShapePermissionDenial(aliceGrade)).toBe('only teachers grade')
 		alice.store.setPermissions(null)
 		alice.editor.updateShape({ id: aliceGrade, type: GRADE_TYPE, props: { text: 'A+' } })
 		flush()
@@ -444,7 +445,8 @@ describe('page and file write control', () => {
 	it('a viewer writes nothing, and the room lane enforces it before the chain', () => {
 		const { join, teacherBox, flush, stored } = classroom()
 		const viewer = join({ userId: 'v', role: 'viewer' })
-		viewer.editor.updateShape({ id: teacherBox, type: 'geo', x: 99 })
+		expect(viewer.editor.getShapePermissionDenial(teacherBox)).toBe('read only')
+		viewer.editor.createShape({ type: 'geo', x: 0, y: 0 })
 		expect(viewer.denied.map((d) => d.reason)).toEqual(['read only'])
 		viewer.store.setPermissions(null)
 		viewer.editor.updateShape({ id: teacherBox, type: 'geo', x: 99 })

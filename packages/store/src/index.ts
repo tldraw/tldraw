@@ -9,6 +9,7 @@ export {
 	allow,
 	atomic,
 	denyAll,
+	forType,
 	getAccessRecord,
 	getRecordAccessKey,
 	PermissionChain,

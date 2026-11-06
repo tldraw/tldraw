@@ -29,16 +29,20 @@ export const USE_CASES: UseCase[] = [
 		title: 'File write control',
 		layers: ['viewersReadOnly'],
 		how: 'A viewer writes nothing. The room lane (`isReadonly`) stops it before the chain. The same layer on the client gives the reason.',
-		steps: ['Set the third pane to "Visitor".', 'Drag the star. It snaps back with "read only".'],
+		steps: [
+			'Set the third pane to "Visitor".',
+			'Point at the star: "Locked for you: read only". It cannot be selected.',
+		],
 	},
 	{
 		id: 'page-read',
 		title: 'Page read control',
 		layers: ['privatePages'],
-		how: 'A read layer. A private page, and every shape and comment on it, is not sent to a student. A write may not move a record into or out of a hidden page.',
+		how: 'A read layer. A private page, and every shape, comment and cursor on it, is not sent to a student. A write may not move a record into or out of a hidden page.',
 		steps: [
 			'Students have no "Answers" page.',
-			'As the teacher, click "Show answers". The page appears for the students.',
+			'As the teacher, go to the "Answers" page. The students stop seeing the teacher\'s cursor.',
+			'Click "Show answers". The page appears for the students.',
 		],
 	},
 	{
@@ -48,7 +52,8 @@ export const USE_CASES: UseCase[] = [
 		how: 'Only a teacher changes the file and its pages. A locked page is read only for students.',
 		steps: [
 			'As the teacher, click "Lock page".',
-			'As Alice, draw. The shape goes away with "page is locked".',
+			'As Alice, point at a shape: "Locked for you: page is locked".',
+			'Draw. The shape goes away with "page is locked".',
 			'As Alice, rename the page. It is put back with "only teachers change pages".',
 		],
 	},
@@ -63,9 +68,9 @@ export const USE_CASES: UseCase[] = [
 		id: 'shape-write',
 		title: 'Shape write control',
 		layers: ['stampOwner', 'ownShapes'],
-		how: 'The chain stamps the owner of a new shape, on the client and on the server. A student changes only their own shapes, and cannot put a shape into a frame of someone else.',
+		how: 'The chain stamps the owner of a new shape, on the client and on the server. A student changes only their own shapes, and cannot put a shape into a frame of someone else. The editor asks the chain about each shape with a dry run, and a shape that the user may not change acts as locked.',
 		steps: [
-			'As Alice, drag the star. It snaps back with "not your shape".',
+			'As Alice, point at the star: "Locked for you: not your shape". She cannot select it.',
 			'As Alice, draw a rectangle and move it. It syncs.',
 			'Drag it into "Agent area". It snaps back with "not your frame".',
 		],
@@ -117,7 +122,7 @@ export const USE_CASES: UseCase[] = [
 		how: 'A plugin adds a shape type and a layer for it. Named actions (`page.lock`, `grade.change`, `file.share`) use `chain.can`, so the UI and a server endpoint ask the same question.',
 		steps: [
 			'"Change grades" is disabled for students: `chain.can` says no.',
-			'As Alice, drag her grade. It snaps back with "only teachers grade".',
+			'As Alice, point at her grade: "Locked for you: only teachers grade".',
 		],
 	},
 ]

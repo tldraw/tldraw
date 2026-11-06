@@ -29,10 +29,11 @@ export type PermissionBatchKind = 'write' | 'read' | 'action'
  *
  * @public
  */
-export interface PermissionBatch<R extends UnknownRecord, Actor> {
+export interface PermissionBatch<R extends UnknownRecord, Actor, S extends R = R> {
 	readonly kind: PermissionBatchKind
 	readonly actor: Actor
-	readonly items: readonly RecordAccess<R>[]
+	/** The accesses to decide on. In a layer made with {@link forType}, only those of one type. */
+	readonly items: readonly RecordAccess<S>[]
 	/** The stored record, before this batch. */
 	get(id: string): R | undefined
 	/**
@@ -90,10 +91,10 @@ export type PermissionNext<R extends UnknownRecord> = (
  *
  * @public
  */
-export type PermissionMiddleware<R extends UnknownRecord, Actor> = (
-	batch: PermissionBatch<R, Actor>,
-	next: PermissionNext<R>
-) => PermissionResult<R>
+export type PermissionMiddleware<R extends UnknownRecord, Actor, S extends R = R> = (
+	batch: PermissionBatch<R, Actor, S>,
+	next: PermissionNext<S>
+) => PermissionResult<S>
 
 /**
  * The key that identifies an access in a batch. Two accesses in one batch never share a key.
@@ -169,11 +170,22 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 	}
 
 	/**
-	 * Run the chain on one batch. It fails closed: if a layer throws, every access is denied with the
-	 * reason `'error'`, and `onError` is called. A layer that changes an access's id or typeName is a
-	 * bug too: `onError` is called, and the access is denied. Accesses that a layer dropped are denied with the reason `'denied'`. An
-	 * allowed access whose kind, type, id or typeName was changed by a layer is denied with the
-	 * reason `'invalid change'`.
+	 * Run the chain on one batch. It fails closed:
+	 *
+	 * - If a layer throws, or returns something that is not a result, every access is denied with
+	 *   the reason `'error'`, and `onError` is called.
+	 * - Accesses that a layer dropped are denied with the reason `'denied'`.
+	 * - An allowed access whose kind, type, id or typeName a layer changed is denied with the reason
+	 *   `'invalid change'`, and `onError` is called.
+	 *
+	 * A write batch whose run denies some writes runs again on the writes it allowed, until a run
+	 * allows all that it gets. `getAfter` shows each run's batch as it came in, so without this a
+	 * rule could allow a write because of the proposed state of a record whose write a later rule
+	 * denied (for example a shape created on a page that the same push tried to make public).
+	 *
+	 * `hostDenials` are accesses that the host denies on its own, by key (see
+	 * {@link getRecordAccessKey}), for example a sync room's read-only lane. They are denied at the
+	 * end of the chain, so a layer that wraps the chain, such as {@link atomic}, sees them.
 	 */
 	run(opts: {
 		kind: PermissionBatchKind
@@ -181,10 +193,32 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 		items: readonly RecordAccess<R>[]
 		get(id: string): R | undefined
 		onError?(error: unknown): void
+		hostDenials?: ReadonlyMap<string, string>
 	}): PermissionResult<R> {
-		const { kind, actor, items, get } = opts
-		if (items.length === 0) return { allowed: [], denied: [] }
-		if (this.layers.length === 0) return { allowed: items, denied: [] }
+		if (opts.items.length === 0) return { allowed: [], denied: [] }
+		if (this.layers.length === 0 && !opts.hostDenials?.size) {
+			return { allowed: opts.items, denied: [] }
+		}
+		let result = this.runOnce(opts, opts.items)
+		if (opts.kind !== 'write' || result.denied.length === 0) return result
+
+		const denied = [...result.denied]
+		let remaining = opts.items
+		while (result.denied.length > 0) {
+			const allowedKeys = new Set(result.allowed.map(getRecordAccessKey))
+			remaining = remaining.filter((access) => allowedKeys.has(getRecordAccessKey(access)))
+			if (remaining.length === 0) return { allowed: [], denied }
+			result = this.runOnce(opts, remaining)
+			denied.push(...result.denied)
+		}
+		return { allowed: result.allowed, denied }
+	}
+
+	private runOnce(
+		opts: Parameters<PermissionChain<R, Actor>['run']>[0],
+		items: readonly RecordAccess<R>[]
+	): PermissionResult<R> {
+		const { kind, actor, get, hostDenials } = opts
 
 		let proposed: Map<string, R | null> | null = null
 		const getAfter = (id: string) => {
@@ -208,56 +242,32 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 			getAfter,
 		})
 
+		const end = (batchItems: readonly RecordAccess<R>[]): PermissionResult<R> => {
+			if (!hostDenials?.size) return { allowed: batchItems, denied: [] }
+			const allowed: RecordAccess<R>[] = []
+			const denied: PermissionDenial<R>[] = []
+			for (const access of batchItems) {
+				const reason = hostDenials.get(getRecordAccessKey(access))
+				if (reason === undefined) allowed.push(access)
+				else denied.push({ access, reason })
+			}
+			return { allowed, denied }
+		}
 		const dispatch = (
 			index: number,
 			batchItems: readonly RecordAccess<R>[]
 		): PermissionResult<R> => {
-			if (index === this.layers.length) return { allowed: batchItems, denied: [] }
+			if (index === this.layers.length) return end(batchItems)
 			const batch = makeBatch(batchItems)
 			return this.layers[index](batch, (nextItems = batchItems) => dispatch(index + 1, nextItems))
 		}
 
-		let result: PermissionResult<R>
 		try {
-			result = dispatch(0, items)
+			return normalize(items, dispatch(0, items), opts.onError)
 		} catch (error) {
 			opts.onError?.(error)
 			return denyAll({ items }, 'error')
 		}
-
-		// Normalize: the result must account for each input access exactly once.
-		const inputs = new Map<string, RecordAccess<R>>()
-		for (const access of items) inputs.set(getRecordAccessKey(access), access)
-		const allowed: RecordAccess<R>[] = []
-		const denied: PermissionDenial<R>[] = []
-		const seen = new Set<string>()
-		for (const denial of result.denied) {
-			const key = getRecordAccessKey(denial.access)
-			const input = inputs.get(key)
-			if (!input || seen.has(key)) continue
-			seen.add(key)
-			denied.push({ access: input, reason: denial.reason })
-		}
-		for (const access of result.allowed) {
-			const key = getRecordAccessKey(access)
-			const input = inputs.get(key)
-			if (!input || seen.has(key)) {
-				if (!input)
-					opts.onError?.(new Error(`a layer allowed an access that is not in the batch: ${key}`))
-				continue
-			}
-			seen.add(key)
-			if (!isSameTarget(input, access) || kindOf(access) !== kind) {
-				opts.onError?.(new Error(`a layer changed the type, id or typeName of ${key}`))
-				denied.push({ access: input, reason: 'invalid change' })
-			} else {
-				allowed.push(access)
-			}
-		}
-		for (const [key, access] of inputs) {
-			if (!seen.has(key)) denied.push({ access, reason: 'denied' })
-		}
-		return { allowed, denied }
 	}
 
 	/**
@@ -282,6 +292,52 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
 			}).denied.length === 0
 		)
 	}
+}
+
+/**
+ * Check a chain's result against its input: it must account for each input access exactly once.
+ * Throws if the result is not a result at all (an `async` layer, a missing `return`).
+ */
+function normalize<R extends UnknownRecord>(
+	items: readonly RecordAccess<R>[],
+	result: PermissionResult<R>,
+	onError: ((error: unknown) => void) | undefined
+): PermissionResult<R> {
+	if (!result || !Array.isArray(result.allowed) || !Array.isArray(result.denied)) {
+		throw new Error('a permission layer returned something that is not a result')
+	}
+	const kind = kindOf(items[0])
+	const inputs = new Map<string, RecordAccess<R>>()
+	for (const access of items) inputs.set(getRecordAccessKey(access), access)
+	const allowed: RecordAccess<R>[] = []
+	const denied: PermissionDenial<R>[] = []
+	const seen = new Set<string>()
+	for (const denial of result.denied) {
+		const key = getRecordAccessKey(denial.access)
+		const input = inputs.get(key)
+		if (!input || seen.has(key)) continue
+		seen.add(key)
+		denied.push({ access: input, reason: denial.reason })
+	}
+	for (const access of result.allowed) {
+		const key = getRecordAccessKey(access)
+		const input = inputs.get(key)
+		if (!input || seen.has(key)) {
+			if (!input) onError?.(new Error(`a layer allowed an access that is not in the batch: ${key}`))
+			continue
+		}
+		seen.add(key)
+		if (!isSameTarget(input, access) || kindOf(access) !== kind) {
+			onError?.(new Error(`a layer changed the type, id or typeName of ${key}`))
+			denied.push({ access: input, reason: 'invalid change' })
+		} else {
+			allowed.push(access)
+		}
+	}
+	for (const [key, access] of inputs) {
+		if (!seen.has(key)) denied.push({ access, reason: 'denied' })
+	}
+	return { allowed, denied }
 }
 
 function isSameTarget<R extends UnknownRecord>(a: RecordAccess<R>, b: RecordAccess<R>) {
@@ -326,12 +382,12 @@ export function getAccessRecord<R extends UnknownRecord>(access: RecordAccess<R>
  *
  * @public
  */
-export function allow<R extends UnknownRecord, Actor>(
-	test: (access: RecordAccess<R>, batch: PermissionBatch<R, Actor>) => boolean | string | void
-): PermissionMiddleware<R, Actor> {
+export function allow<R extends UnknownRecord, Actor, S extends R = R>(
+	test: (access: RecordAccess<S>, batch: PermissionBatch<R, Actor, S>) => boolean | string | void
+): PermissionMiddleware<R, Actor, S> {
 	return (batch, next) => {
-		const passed: RecordAccess<R>[] = []
-		const denied: PermissionDenial<R>[] = []
+		const passed: RecordAccess<S>[] = []
+		const denied: PermissionDenial<S>[] = []
 		for (const access of batch.items) {
 			const verdict = test(access, batch)
 			if (verdict === undefined || verdict === true) passed.push(access)
@@ -350,9 +406,9 @@ export function allow<R extends UnknownRecord, Actor>(
  *
  * @public
  */
-export function rewrite<R extends UnknownRecord, Actor>(
-	fn: (access: RecordAccess<R>, batch: PermissionBatch<R, Actor>) => RecordAccess<R> | void
-): PermissionMiddleware<R, Actor> {
+export function rewrite<R extends UnknownRecord, Actor, S extends R = R>(
+	fn: (access: RecordAccess<S>, batch: PermissionBatch<R, Actor, S>) => RecordAccess<S> | void
+): PermissionMiddleware<R, Actor, S> {
 	return (batch, next) => {
 		let changed = false
 		const items = batch.items.map((access) => {
@@ -389,6 +445,58 @@ export function atomic<R extends UnknownRecord, Actor>(): PermissionMiddleware<R
 				)
 				return { access, reason: own?.reason ?? reason }
 			}),
+		}
+	}
+}
+
+/**
+ * A layer that runs `layers` on the accesses to records of one type only, so that each layer gets
+ * typed records and needs no narrowing. Accesses to other records, and actions with no record,
+ * pass on to the next layer as they are. The layers still see the whole store through `get` and
+ * `getAfter`.
+ *
+ * @example
+ * ```ts
+ * const ownShapes = forType('shape', allow((access, { actor }) => {
+ * 	if (access.type === 'update' && access.prev.meta.ownerId !== actor.userId) return 'not your shape'
+ * }))
+ * ```
+ *
+ * @public
+ */
+export function forType<R extends UnknownRecord, Actor, T extends R['typeName']>(
+	typeName: T,
+	...layers: NoInfer<PermissionMiddleware<R, Actor, Extract<R, { typeName: T }>>>[]
+): PermissionMiddleware<R, Actor> {
+	type S = Extract<R, { typeName: T }>
+	const isOfType = (access: RecordAccess<R>): access is RecordAccess<S> =>
+		getAccessRecord(access)?.typeName === typeName
+	return (batch, next) => {
+		const own = batch.items.filter(isOfType)
+		if (own.length === 0) return next()
+		const others = batch.items.filter((access) => !isOfType(access))
+
+		// The typed layers decide on `own`. The rest of the chain then runs once, on what they pass
+		// and on `others`, and its decision is split back: the typed layers see their part only.
+		let rest: PermissionResult<R> | null = null
+		const runRest = (passed: readonly RecordAccess<S>[]): PermissionResult<S> => {
+			rest = next([...others, ...passed])
+			return {
+				allowed: rest.allowed.filter(isOfType),
+				denied: rest.denied.filter((d): d is PermissionDenial<S> => isOfType(d.access)),
+			}
+		}
+		const dispatch = (index: number, items: readonly RecordAccess<S>[]): PermissionResult<S> =>
+			index === layers.length
+				? runRest(items)
+				: layers[index]({ ...batch, items }, (nextItems = items) => dispatch(index + 1, nextItems))
+		const result = dispatch(0, own)
+
+		// The typed layers denied all of their part without calling next: run the rest on `others`.
+		const restResult: PermissionResult<R> = rest ?? next(others)
+		return {
+			allowed: [...result.allowed, ...restResult.allowed.filter((a) => !isOfType(a))],
+			denied: [...result.denied, ...restResult.denied.filter((d) => !isOfType(d.access))],
 		}
 	}
 }

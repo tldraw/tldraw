@@ -15,8 +15,11 @@ import {
 	TLEditorPermissions,
 	TLRecord,
 	Tldraw,
+	UserRecordType,
 	commentSchemaRecords,
+	computed,
 	createShapeId,
+	createUserId,
 	createTLSchema,
 	defaultShapeSchemas,
 	toRichText,
@@ -25,7 +28,6 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import {
-	ClassroomActor,
 	ClassroomMeta,
 	GRADE_TYPE,
 	classroomActor,
@@ -69,6 +71,14 @@ const thirdMeta = (third: string, linkRole: LinkRole): ClassroomMeta => {
 	}
 }
 
+const COLORS: Record<string, string> = {
+	teacher: '#e03131',
+	alice: '#1971c2',
+	bob: '#2f9e44',
+	guest: '#f08c00',
+	visitor: '#868e96',
+	agent: '#9c36b5',
+}
 const NAMES: Record<string, string> = {
 	teacher: 'Teacher',
 	alice: 'Alice',
@@ -179,6 +189,19 @@ function Pane({
 		),
 		assets,
 		schema,
+		// One user per pane, so each pane sees the others' cursors (presence passes the read chain).
+		users: useMemo(
+			() => ({
+				currentUser: computed('pane user', () =>
+					UserRecordType.create({
+						id: createUserId(meta.userId),
+						name: NAMES[meta.userId] ?? meta.userId,
+						color: COLORS[meta.userId] ?? '#888888',
+					})
+				),
+			}),
+			[meta.userId]
+		),
 	})
 	// [6]
 	const permissions = useMemo<TLEditorPermissions | undefined>(
@@ -188,7 +211,8 @@ function Pane({
 				: {
 						chain,
 						actor: classroomActor(meta),
-						// A denied drag is denied again on each pointer move, so show each reason once in a row.
+						// A drag that the chain denies on its way (into another's frame) is denied again on
+						// each pointer move, so show each reason once in a row.
 						onDenied: (denials) =>
 							setLog((prev) => {
 								const reasons = [...new Set(denials.map((d) => d.reason))].filter(
@@ -200,22 +224,18 @@ function Pane({
 		[meta, skipChecks]
 	)
 	// [7]
-	const tools = useMemo(
-		() => [
-			CommentTool.configure({
-				canModifyComment: (ctx) => mayModifyComment(classroomActor(meta), ctx),
-			}),
-		],
-		[meta]
-	)
+	const tools = useMemo(() => [CommentTool.configure({ canModifyComment: mayModifyComment })], [])
 	const components = useMemo(
 		() => ({
 			SharePanel: () => <Controls meta={meta} />,
 			InFrontOfTheCanvas: () => (
-				<CanvasComments
-					currentUserId={meta.role === 'viewer' ? null : meta.userId}
-					resolveAuthor={(id) => ({ name: NAMES[id] ?? id })}
-				/>
+				<>
+					<LockedHint />
+					<CanvasComments
+						currentUserId={meta.role === 'viewer' ? null : meta.userId}
+						resolveAuthor={(id) => ({ name: NAMES[id] ?? id })}
+					/>
+				</>
 			),
 		}),
 		[meta]
@@ -266,19 +286,39 @@ function Pane({
 	)
 }
 
-/** Ask the chain whether a comment write would pass, so the comment menu offers only that. */
-function mayModifyComment(actor: ClassroomActor, ctx: CommentModificationContext) {
-	// Comment records are not in the `TLRecord` union, so the access is cast to the chain's type.
-	const update = <T extends object>(prev: T, next: T) =>
-		({ type: 'update', prev, next }) as unknown as RecordAccess<TLRecord>
-	const access =
-		ctx.action === 'delete-comment'
-			? update(ctx.comment, { ...ctx.comment, isDeleted: true })
-			: ctx.action === 'edit-comment'
-				? update(ctx.comment, { ...ctx.comment, editedAt: Date.now() })
-				: update(ctx.thread, { ...ctx.thread, isDeleted: true })
-	const get = (id: string) => ctx.editor.store.get(id as TLRecord['id'])
-	return chain.run({ kind: 'write', actor, items: [access], get }).denied.length === 0
+/**
+ * Why the shape under the pointer is locked for this user. The editor asks the chain with a dry
+ * run (`editor.getShapePermissionDenial`), and treats a denied shape as locked.
+ */
+function LockedHint() {
+	const editor = useEditor()
+	const reason = useValue(
+		'locked reason',
+		() => {
+			const shape = editor.getShapeAtPoint(editor.inputs.getCurrentPagePoint(), {
+				hitInside: true,
+				hitLocked: true,
+				renderingOnly: true,
+			})
+			return shape ? editor.getShapePermissionDenial(shape) : undefined
+		},
+		[editor]
+	)
+	if (!reason) return null
+	return <div className="permission-chain__locked">Locked for you: {reason}</div>
+}
+
+/** Ask the editor's chain whether a comment write would pass, so the menu offers only that. */
+function mayModifyComment(ctx: CommentModificationContext) {
+	let access: RecordAccess<TLRecord>
+	if (ctx.action === 'delete-comment') {
+		access = { type: 'update', prev: ctx.comment, next: { ...ctx.comment, isDeleted: true } }
+	} else if (ctx.action === 'edit-comment') {
+		access = { type: 'update', prev: ctx.comment, next: { ...ctx.comment, editedAt: Date.now() } }
+	} else {
+		access = { type: 'update', prev: ctx.thread, next: { ...ctx.thread, isDeleted: true } }
+	}
+	return ctx.editor.store.checkWrites([access]).denied.length === 0
 }
 
 // [8]
@@ -484,8 +524,8 @@ The actor has the same shape as the one the room builds from the session. "Skip 
 removes it, to show that the room enforces the same rules.
 
 [7]
-The comment tool asks the same chain before it offers "Delete": `mayModifyComment` runs the chain
-on the write that the menu item would make.
+The comment tool asks the editor's chain before it offers "Delete": `store.checkWrites` is a dry run
+of the write that the menu item would make, with this editor's actor.
 
 [8]
 Actions that are not record writes ask the same chain with `chain.can`. A server endpoint (for

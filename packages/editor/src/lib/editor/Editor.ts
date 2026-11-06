@@ -5782,8 +5782,39 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (_shape === undefined) return false
-		if (_shape.isLocked) return true
-		return this.isShapeOrAncestorLocked(this.getShapeParent(_shape))
+		if (this.getShapePermissionDenial(_shape) !== undefined) return true
+		return this._isShapeOrAncestorFlaggedLocked(_shape)
+	}
+
+	private _isShapeOrAncestorFlaggedLocked(shape: TLShape | undefined): boolean {
+		if (shape === undefined) return false
+		if (shape.isLocked) return true
+		return this._isShapeOrAncestorFlaggedLocked(this.getShapeParent(shape))
+	}
+
+	/**
+	 * Why the store's permission chain (see `Store.setPermissions`) does not let the user change a
+	 * shape, or `undefined` if it does. The editor asks the chain about an update of the shape that
+	 * changes nothing. A shape that the chain denies acts as locked: the user cannot select, move,
+	 * resize or delete it, so a drag never starts and never snaps back. Only the shape itself is
+	 * checked, not its ancestors: a shape of yours in a frame that you may not change stays yours.
+	 *
+	 * Rules that depend on the change itself (for example "not into another user's frame") still
+	 * deny at the end of the operation, and the store puts the change back.
+	 *
+	 * @public
+	 */
+	getShapePermissionDenial(shape: TLShape | TLShapeId): string | undefined {
+		if (!this.store.getPermissions()) return undefined
+		const id = typeof shape === 'string' ? shape : shape.id
+		return this._getShapePermissionDenialCache().get(id) ?? undefined
+	}
+
+	@computed private _getShapePermissionDenialCache(): ComputedCache<string | null, TLShape> {
+		return this.store.createComputedCache('shapePermissionDenial', (shape) => {
+			const { denied } = this.store.checkWrites([{ type: 'update', prev: shape, next: shape }])
+			return denied[0]?.reason ?? null
+		})
 	}
 
 	/**

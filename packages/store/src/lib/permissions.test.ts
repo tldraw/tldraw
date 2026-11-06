@@ -4,6 +4,9 @@ import {
 	allow,
 	atomic,
 	denyAll,
+	forType,
+	getAccessRecord,
+	getRecordAccessKey,
 	PermissionChain,
 	PermissionMiddleware,
 	RecordAccess,
@@ -318,5 +321,179 @@ describe('Store.setPermissions', () => {
 			store.put([note('a', 'alice', { text: 'after' })])
 		})
 		expect(seen).toBe('before')
+	})
+})
+
+describe('forType', () => {
+	interface Shape extends BaseRecord<'shape', RecordId<Shape>> {
+		ownerId: string
+	}
+	interface Page extends BaseRecord<'page', RecordId<Page>> {
+		name: string
+	}
+	type Rec = Shape | Page
+	const shape = (id: string, ownerId: string): Shape => ({
+		id: id as RecordId<Shape>,
+		typeName: 'shape',
+		ownerId,
+	})
+	const page = (id: string): Page => ({ id: id as RecordId<Page>, typeName: 'page', name: id })
+	const writeAll = (chain: PermissionChain<Rec, string>, items: RecordAccess<Rec>[]) =>
+		chain.run({ kind: 'write', actor: 'me', items, get: () => undefined })
+
+	it('runs typed layers on one type only, and passes the rest on', () => {
+		const seen: string[] = []
+		const chain = new PermissionChain<Rec, string>(
+			forType(
+				'shape',
+				allow((access, { actor }) => {
+					// typed: no narrowing on typeName
+					if (access.type === 'read' || access.type === 'action') return
+					const record = access.prev ?? access.next
+					seen.push(record.id)
+					return record.ownerId === actor ? undefined : 'not yours'
+				})
+			),
+			allow((access) => (getAccessRecord(access)?.id === 'p2' ? 'no p2' : undefined))
+		)
+		const result = writeAll(chain, [
+			{ type: 'create', prev: null, next: shape('s1', 'me') },
+			{ type: 'create', prev: null, next: shape('s2', 'them') },
+			{ type: 'create', prev: null, next: page('p1') },
+			{ type: 'create', prev: null, next: page('p2') },
+		])
+		// The second run is on what the first allowed (see `run`).
+		expect(seen).toEqual(['s1', 's2', 's1'])
+		expect({
+			allowed: result.allowed.map(getRecordAccessKey).sort(),
+			denied: result.denied.map((d) => [getRecordAccessKey(d.access), d.reason]).sort(),
+		}).toEqual({
+			allowed: ['p1', 's1'],
+			denied: [
+				['p2', 'no p2'],
+				['s2', 'not yours'],
+			],
+		})
+	})
+
+	it('runs the rest of the chain once, also when the typed layers deny all of their part', () => {
+		let runs = 0
+		const chain = new PermissionChain<Rec, string>(
+			forType('shape', (batch) => denyAll(batch, 'no shapes')),
+			(_batch, next) => {
+				runs++
+				return next()
+			}
+		)
+		const result = chain.run({
+			kind: 'read',
+			actor: 'me',
+			items: [
+				{ type: 'read', record: shape('s1', 'me') },
+				{ type: 'read', record: page('p1') },
+			],
+			get: () => undefined,
+		})
+		expect([
+			runs,
+			result.allowed.map(getRecordAccessKey),
+			result.denied.map((d) => d.reason),
+		]).toEqual([1, ['p1'], ['no shapes']])
+	})
+
+	it('lets a later layer deny a typed access that the typed layers passed', () => {
+		const chain = new PermissionChain<Rec, string>(
+			atomic(),
+			forType(
+				'shape',
+				rewrite((access) =>
+					access.type === 'create'
+						? { ...access, next: { ...access.next, ownerId: 'me' } }
+						: undefined
+				)
+			),
+			allow((access) => (getAccessRecord(access)?.id === 's1' ? 'later' : undefined))
+		)
+		const result = writeAll(chain, [
+			{ type: 'create', prev: null, next: shape('s1', 'x') },
+			{ type: 'create', prev: null, next: page('p1') },
+		])
+		expect(result.denied.map((d) => [getRecordAccessKey(d.access), d.reason])).toEqual([
+			['s1', 'later'],
+			['p1', 'atomic: later'],
+		])
+	})
+})
+
+describe('run', () => {
+	interface Item extends BaseRecord<'item', RecordId<Item>> {
+		parentId: string | null
+		open: boolean
+	}
+	const item = (id: string, parentId: string | null, open = true): Item => ({
+		id: id as RecordId<Item>,
+		typeName: 'item',
+		parentId,
+		open,
+	})
+
+	it('denies all when a layer returns something that is not a result', () => {
+		const onError = vi.fn()
+		const chain = new PermissionChain<Item, null>((async (_b: unknown, next: () => unknown) =>
+			next()) as unknown as PermissionMiddleware<Item, null>)
+		const result = chain.run({
+			kind: 'write',
+			actor: null,
+			items: [{ type: 'create', prev: null, next: item('a', null) }],
+			get: () => undefined,
+			onError,
+		})
+		expect([result.allowed, result.denied.map((d) => d.reason), onError.mock.calls.length]).toEqual(
+			[[], ['error'], 1]
+		)
+	})
+
+	it('runs again on what it allowed, so a rule never trusts the state of a denied write', () => {
+		// The parent must be open, as the batch proposes it. Opening a closed parent is denied.
+		const chain = new PermissionChain<Item, null>(
+			allow((access, batch) => {
+				if (access.type !== 'create' && access.type !== 'update') return undefined
+				if (access.type === 'update' && access.next.open && !access.prev.open) return 'no opening'
+				const parent = access.next.parentId ? batch.getAfter(access.next.parentId) : undefined
+				return parent && !parent.open ? 'parent is closed' : undefined
+			})
+		)
+		const closed = item('p', null, false)
+		const result = chain.run({
+			kind: 'write',
+			actor: null,
+			items: [
+				{ type: 'update', prev: closed, next: { ...closed, open: true } },
+				{ type: 'create', prev: null, next: item('child', 'p') },
+			],
+			get: (id) => (id === 'p' ? closed : undefined),
+		})
+		expect(result.denied.map((d) => [getRecordAccessKey(d.access), d.reason])).toEqual([
+			['p', 'no opening'],
+			['child', 'parent is closed'],
+		])
+	})
+
+	it('denies host denials at the end, where atomic() sees them', () => {
+		const chain = new PermissionChain<Item, null>(atomic())
+		const result = chain.run({
+			kind: 'write',
+			actor: null,
+			items: [
+				{ type: 'create', prev: null, next: item('a', null) },
+				{ type: 'create', prev: null, next: item('b', null) },
+			],
+			get: () => undefined,
+			hostDenials: new Map([['b', 'read-only lane']]),
+		})
+		expect(result.denied.map((d) => [getRecordAccessKey(d.access), d.reason])).toEqual([
+			['a', 'atomic: read-only lane'],
+			['b', 'read-only lane'],
+		])
 	})
 })

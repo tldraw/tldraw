@@ -1410,6 +1410,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getShapePageTransform(shape: TLShape | TLShapeId): Mat;
     getShapeParent(shape?: TLShape | TLShapeId): TLShape | undefined;
     getShapeParentTransform(shape: TLShape | TLShapeId): Mat;
+    getShapePermissionDenial(shape: TLShape | TLShapeId): string | undefined;
     getShapesAtPoint(point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;

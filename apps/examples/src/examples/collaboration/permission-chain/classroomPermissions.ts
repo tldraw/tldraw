@@ -4,12 +4,31 @@ import {
 	allow,
 	atomic,
 	denyAll,
+	forType,
 	PermissionChain,
 	PermissionMiddleware,
 	RecordAccess,
 	rewrite,
 } from 'tldraw'
-import { TLDOCUMENT_ID, TLPage, TLRecord, TLShape, TLShapeId } from 'tldraw'
+import {
+	TLComment,
+	TLCommentReaction,
+	TLCommentThread,
+	TLDOCUMENT_ID,
+	TLPage,
+	TLRecord,
+	TLShape,
+	TLShapeId,
+} from 'tldraw'
+
+// Comment records are opt-in. Adding them to `TLRecord` lets one chain type cover them.
+declare module 'tldraw' {
+	interface TLGlobalRecordPropsMap {
+		comment: TLComment
+		'comment-thread': TLCommentThread
+		'comment-reaction': TLCommentReaction
+	}
+}
 
 // A copy of packages/sync-core/src/test/classroomPermissions.ts, which the use case tests run
 // against a real room. The same chain runs in the in-page room and in each editor below.
@@ -32,14 +51,19 @@ type Get = (id: string) => TLRecord | undefined
 export const MAX_AGENT_WRITES_PER_BATCH = 50
 
 /**
- * The page that a record is on: the page itself, the page above a shape, or the page of a record
- * with a `pageId` (comments and their threads).
+ * The page that a record is on: the page itself, the page above a shape, the page a user's
+ * presence is on, or the page of a record with a `pageId` (comments and their threads).
  */
 export function pageOf(record: TLRecord | undefined, get: Get): TLPage | undefined {
 	for (let i = 0; record && i < 100; i++) {
 		if (record.typeName === 'page') return record
 		if (record.typeName === 'shape') {
 			record = get(record.parentId)
+			continue
+		}
+		// a user's presence is on the page they look at: their cursor and selection are there
+		if (record.typeName === 'instance_presence') {
+			record = get(record.currentPageId)
 			continue
 		}
 		const pageId = (record as { pageId?: unknown }).pageId
@@ -75,13 +99,6 @@ function writeOf(access: RecordAccess<TLRecord>) {
 	return { type: access.type, prev: access.prev, next: access.next }
 }
 
-/** A shape write's shapes before and after, or undefined for anything else. */
-function shapeWriteOf(access: RecordAccess<TLRecord>) {
-	const write = writeOf(access)
-	if (!write || (write.prev ?? write.next)!.typeName !== 'shape') return undefined
-	return write as { type: typeof write.type; prev: TLShape | null; next: TLShape | null }
-}
-
 /**
  * File read control: when a teacher closes the class, only teachers may open the file. The room
  * asks this at connect (action `room.open`) and again on `refreshReads`.
@@ -115,43 +132,49 @@ export const lockedPages: Layer = allow((access, batch) => {
 	const typeName = (write.prev ?? write.next)!.typeName
 	if (typeName === 'document') return 'only teachers change the file'
 	if (typeName === 'page') return 'only teachers change pages'
-	if (!shapeWriteOf(access)) return undefined
+	if (typeName !== 'shape') return undefined
 	const before = write.prev ? pageOf(write.prev, batch.get) : undefined
 	const after = write.next ? pageOf(write.next, batch.getAfter) : undefined
 	return before?.meta.locked || after?.meta.locked ? 'page is locked' : undefined
 })
 
 /** Shape write control, part 1: the server sets the owner of a new shape. */
-export const stampOwner: Layer = rewrite((access, { actor }) => {
-	if (access.type !== 'create' || access.next.typeName !== 'shape') return undefined
-	const next = { ...access.next, meta: { ...access.next.meta, ownerId: actor.meta.userId } }
-	return { ...access, next }
-})
+export const stampOwner: Layer = forType(
+	'shape',
+	rewrite((access, { actor }) => {
+		if (access.type !== 'create') return undefined
+		const next = { ...access.next, meta: { ...access.next.meta, ownerId: actor.meta.userId } }
+		return { ...access, next }
+	})
+)
 
 /**
  * Shape write control, part 2: a student or agent changes only their own shapes, and cannot put a
  * shape into someone else's frame. The owner never changes.
  */
-export const ownShapes: Layer = allow((access, batch) => {
-	const write = shapeWriteOf(access)
-	if (!write || isTeacher(batch.actor)) return undefined
-	const me = batch.actor.meta.userId
-	if (write.prev && write.prev.meta.ownerId !== me) return 'not your shape'
-	if (write.prev && write.next && write.next.meta.ownerId !== write.prev.meta.ownerId) {
-		return 'owner is fixed'
-	}
-	if (write.next) {
-		const parent = batch.getAfter(write.next.parentId)
-		if (
-			parent?.typeName === 'shape' &&
-			parent.meta.ownerId !== me &&
-			parent.id !== batch.actor.meta.frameId
-		) {
-			return 'not your frame'
+export const ownShapes: Layer = forType(
+	'shape',
+	allow((access, batch) => {
+		if (access.type === 'read' || access.type === 'action' || isTeacher(batch.actor))
+			return undefined
+		const me = batch.actor.meta.userId
+		if (access.prev && access.prev.meta.ownerId !== me) return 'not your shape'
+		if (access.type === 'update' && access.next.meta.ownerId !== access.prev.meta.ownerId) {
+			return 'owner is fixed'
 		}
-	}
-	return undefined
-})
+		if (access.next) {
+			const parent = batch.getAfter(access.next.parentId)
+			if (
+				parent?.typeName === 'shape' &&
+				parent.meta.ownerId !== me &&
+				parent.id !== batch.actor.meta.frameId
+			) {
+				return 'not your frame'
+			}
+		}
+		return undefined
+	})
+)
 
 /**
  * Agents: work only inside their frame, and at most a fixed number of writes per batch. A limit
@@ -163,10 +186,16 @@ export function agentScope(...[batch, next]: Parameters<Layer>): ReturnType<Laye
 	const frameId = batch.actor.meta.frameId
 	const inFrame = (shape: TLShape, get: Get) => !!frameId && ancestors(shape, get).includes(frameId)
 	return allow<TLRecord, ClassroomActor>((access) => {
-		const write = shapeWriteOf(access)
-		if (!write) return 'agents write shapes only'
-		if (write.prev && !inFrame(write.prev, batch.get)) return 'outside your frame'
-		if (write.next && !inFrame(write.next, batch.getAfter)) return 'outside your frame'
+		const write = writeOf(access)
+		if (!write) return undefined
+		for (const [record, get] of [
+			[write.prev, batch.get],
+			[write.next, batch.getAfter],
+		] as const) {
+			if (!record) continue
+			if (record.typeName !== 'shape') return 'agents write shapes only'
+			if (!inFrame(record, get)) return 'outside your frame'
+		}
 		return undefined
 	})(batch, next)
 }
@@ -176,7 +205,7 @@ export function agentScope(...[batch, next]: Parameters<Layer>): ReturnType<Laye
  * comments, and a teacher may delete any. The rules are `createCommentAuthorizers` from
  * `@tldraw/sync-collaboration`, which dotcom uses too, run as one layer.
  */
-export const comments = recordAuthorizers(
+export const comments: Layer = recordAuthorizers<TLRecord, ClassroomMeta>(
 	createCommentAuthorizers<ClassroomMeta>({
 		getUserId: (session) => session.meta.userId,
 		canComment: (session) => session.meta.role !== 'viewer',
@@ -184,27 +213,27 @@ export const comments = recordAuthorizers(
 			ctx.userId === ctx.ownerId ||
 			(ctx.action !== 'edit-comment' && ctx.session.meta.role === 'teacher'),
 	})
-) as unknown as Layer
+)
 
 /** A plugin shape type: a teacher's grade for one student. */
 export const GRADE_TYPE = 'grade'
-function isGrade(record: TLRecord | null | undefined): record is TLShape {
-	return record?.typeName === 'shape' && record.type === GRADE_TYPE
-}
 const gradeFor = (shape: TLShape) => (shape.props as { studentId?: string }).studentId
 
 /**
  * A plugin type with its own rules. Shape read control: a student reads only their own grade.
  * Shape write control: only a teacher writes grades.
  */
-export const grades: Layer = allow((access, batch) => {
-	if (access.type === 'action' || isTeacher(batch.actor)) return undefined
-	if (access.type === 'read') {
-		if (!isGrade(access.record)) return undefined
-		return gradeFor(access.record) === batch.actor.meta.userId ? undefined : 'not your grade'
-	}
-	return isGrade(access.prev) || isGrade(access.next) ? 'only teachers grade' : undefined
-})
+export const grades: Layer = forType(
+	'shape',
+	allow((access, batch) => {
+		if (access.type === 'action' || isTeacher(batch.actor)) return undefined
+		if (access.type === 'read') {
+			if (access.record.type !== GRADE_TYPE) return undefined
+			return gradeFor(access.record) === batch.actor.meta.userId ? undefined : 'not your grade'
+		}
+		return (access.prev ?? access.next).type === GRADE_TYPE ? 'only teachers grade' : undefined
+	})
+)
 
 /** Actions that are not record writes: the client hides the UI, a server endpoint asks too. */
 export const teacherActions: Layer = allow((access, { actor }) => {

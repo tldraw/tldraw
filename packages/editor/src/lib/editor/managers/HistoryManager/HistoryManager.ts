@@ -365,6 +365,21 @@ class PendingDiff<R extends UnknownRecord> {
 
 	apply(diff: RecordsDiff<R>) {
 		squashRecordDiffsMutable(this.diff, [diff])
+		// A write that was put back in the same operation (for example by the store's permission
+		// check) squashes to an update from a record to the same record. Without this, it would
+		// leave an undo entry that does nothing.
+		let cancelled = false
+		for (const id in diff.updated) {
+			const update = this.diff.updated[id as keyof typeof this.diff.updated]
+			if (update && update[0] === update[1]) {
+				delete this.diff.updated[id as keyof typeof this.diff.updated]
+				cancelled = true
+			}
+		}
+		if (cancelled) {
+			this.isEmptyAtom.set(isRecordsDiffEmpty(this.diff))
+			return
+		}
 		// Recomputing emptiness from the accumulated diff is O(N) (for-in over a
 		// dictionary-mode object pays an O(N) key-collection prologue), and this runs on
 		// every history interceptor call — e.g. every input tick while resizing many

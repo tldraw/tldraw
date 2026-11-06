@@ -330,13 +330,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 	}
 
-	/** Whether a diff puts a record that the read chain must see, so that views read storage. */
-	private hasFilteredPut(diff: TLSyncForwardDiff<R> | undefined) {
-		if (!diff || !this.readPermissions) return false
-		for (const put of Object.values(diff.puts)) {
-			if ((Array.isArray(put) ? put[1] : put).typeName !== this.presenceType?.typeName) return true
+	/**
+	 * All presence records but the session's own. A connecting session pushes fresh presence at
+	 * once: an echo of its stale record would stay in its store as an orphan.
+	 */
+	private othersPresence(presenceId: string | null): TLSyncForwardDiff<R> {
+		return {
+			puts: Object.fromEntries(
+				[...this.presenceStore.values()].filter((p) => p.id !== presenceId).map((p) => [p.id, p])
+			),
+			deletes: [],
 		}
-		return false
+	}
+
+	/** Whether a diff puts a record that the read chain must see, so that views read storage. */
+	private hasFilteredPut(...diffs: (TLSyncForwardDiff<R> | undefined)[]) {
+		if (!this.readPermissions) return false
+		return diffs.some((diff) => !!diff && Object.keys(diff.puts).length > 0)
 	}
 
 	/** Whether a changed copy may be sent. The client validates what it receives, and an invalid record breaks its store. */
@@ -383,9 +393,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		const items: RecordAccess<R>[] = []
 		for (const put of objectMapValues(diff.puts)) {
-			const record = Array.isArray(put) ? put[1] : put
-			if (record.typeName === this.presenceType?.typeName) continue
-			items.push({ type: 'read', record })
+			// Presence too: a cursor, a selection or a current page can tell what a hidden page holds.
+			items.push({ type: 'read', record: Array.isArray(put) ? put[1] : put })
 		}
 		let sentById: Map<string, R> | null = null
 		if (items.length > 0) {
@@ -414,7 +423,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		for (const [id, put] of objectMapEntriesIterable(diff.puts)) {
 			const record = Array.isArray(put) ? put[1] : put
-			if (record.typeName === this.presenceType?.typeName) continue
 			const held_ = holds(id)
 			let sent: R | 'same' | null = sentById!.get(id) ?? null
 			if (sent === record) sent = 'same'
@@ -476,7 +484,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			const legacyAppendMode = !this.getCanEmitStringAppend()
 			for (const session of sessions) {
 				if (closed.includes(session.sessionId)) continue
-				const view = this.diffForSession(session, all.diff, get, true)
+				const presence = this.othersPresence(session.presenceId)
+				const view = this.diffForSession(
+					session,
+					{ puts: { ...all.diff.puts, ...presence.puts }, deletes: all.diff.deletes },
+					get,
+					true
+				)
 				if (isEmptyForwardDiff(view)) continue
 				const diffResult = this.migrateDiffOrRejectSession(
 					session.sessionId,
@@ -983,6 +997,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			this.rejectSession(sessionId, TLSyncErrorCloseEventReason.CLIENT_TOO_OLD)
 			return
 		}
+		// What the session may open and see can have changed while it slept (a closed class, a
+		// private page). Check `room.open` again, and send what its view lost or gained.
+		if (this.permissions) this.refreshReads(sessionId)
 	}
 
 	/**
@@ -1329,18 +1346,13 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.sessionId,
 				sessionSchema,
 				requiresDownMigrations,
-				{
-					// Exclude the connecting session's own presence — it will push fresh
-					// data immediately after connecting. Sending the stale record back
-					// would leave an orphaned presence in the client's local store (the
-					// server never echoes a session's own updates back to it).
-					puts: Object.fromEntries(
-						[...this.presenceStore.values()]
-							.filter((p) => p.id !== session.presenceId)
-							.map((p) => [p.id, p])
-					),
-					deletes: [],
-				}
+				this.readPermissions
+					? this.diffForSession(
+							{ ...session, held },
+							this.othersPresence(session.presenceId),
+							(id) => txn.get(id)
+						)
+					: this.othersPresence(session.presenceId)
 			)
 			if (!presenceDiff.ok) return null
 
@@ -1672,7 +1684,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// allowed as it came in.
 				type WriteAccess = Extract<RecordAccess<R>, { type: 'create' | 'update' | 'delete' }>
 				type Decide = (id: string, access: WriteAccess) => R | null | 'keep'
-				const runOps = (decide: Decide | null) => {
+				// Called for an op that the room skips before the chain sees it (a lane it may not
+				// write, a typeName swap), so the chain can count it as denied.
+				type Skip = (access: WriteAccess, reason: string) => void
+				const runOps = (decide: Decide | null, skip?: Skip) => {
 					if (!message.diff) return
 					for (const [id, op] of objectMapEntriesIterable(message.diff)) {
 						switch (op[0]) {
@@ -1680,7 +1695,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// The write gate is checked before type validation so that a denied
 								// session's ops are skipped without rejection, matching the previous
 								// whole-diff readonly behavior.
-								if (!canWrite(op[1].typeName)) continue
+								if (!canWrite(op[1].typeName)) {
+									if (skip) {
+										const prev = (txn.get(id) as R | undefined) ?? null
+										skip(
+											prev
+												? { type: 'update', prev, next: op[1] as R }
+												: { type: 'create', prev: null, next: op[1] as R },
+											'read-only lane'
+										)
+									}
+									continue
+								}
 								// If we're putting a record with a type that we don't recognize, fail
 								if (
 									!this.documentTypes.has(op[1].typeName) &&
@@ -1706,6 +1732,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 										'session:',
 										session.sessionId
 									)
+									skip?.({ type: 'update', prev: prevRecord, next: record as R }, 'typeName change')
 									continue
 								}
 								// Runs inside `addDocument`, on the up-migrated record.
@@ -1724,7 +1751,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const doc = txn.get(id) as R | undefined
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
-								if (!canWrite(doc.typeName)) continue
+								if (!canWrite(doc.typeName)) {
+									skip?.({ type: 'update', prev: doc, next: doc }, 'read-only lane')
+									continue
+								}
 								// Runs inside `patchDocument` on the committed candidate.
 								const resolve = decide
 									? (prev: R, next: R) => decide(id, { type: 'update', prev, next })
@@ -1736,7 +1766,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const doc = txn.get(id) as R | undefined
 								// If the doc was already deleted, there is nothing to propagate
 								if (!doc) continue
-								if (!canWrite(doc.typeName)) continue
+								if (!canWrite(doc.typeName)) {
+									skip?.({ type: 'delete', prev: doc, next: null }, 'read-only lane')
+									continue
+								}
 								if (decide && decide(id, { type: 'delete', prev: doc, next: null }) === 'keep') {
 									continue
 								}
@@ -1754,25 +1787,56 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				} else {
 					// Pass 1 collects what each op would do, without writing. Pass 2 runs the chain once
 					// on the whole push. Pass 3 applies the ops again, with the chain's decisions.
+					//
+					// Ops that the room skips on its own are passed to the chain as host denials, so that
+					// `atomic()` denies the rest of the push with them.
 					const proposed: RecordAccess<R>[] = []
+					const proposedKeys = new Set<string>()
+					const propose = (access: WriteAccess) => {
+						const key = getRecordAccessKey(access)
+						if (proposedKeys.has(key)) return false
+						proposedKeys.add(key)
+						proposed.push(access)
+						return true
+					}
+					const hostDenials = new Map<string, string>()
+					const deny = (access: WriteAccess, reason: string) => {
+						if (propose(access)) hostDenials.set(getRecordAccessKey(access), reason)
+					}
 					runOps((id, access) => {
 						// An op whose key is not its record's id would miss its decision in pass 3.
-						if (getRecordAccessKey(access) !== id) return 'keep'
-						if (access.type !== 'update' || !isEqual(access.prev, access.next)) {
-							proposed.push(access)
+						if (getRecordAccessKey(access) !== id) {
+							deny(access, 'id mismatch')
+							return 'keep'
 						}
+						if (access.type !== 'update' || !isEqual(access.prev, access.next)) propose(access)
 						return 'keep'
-					})
+					}, deny)
 					const result = this.permissions.run({
 						kind: 'write',
 						actor: this.actorOf(session),
 						items: proposed,
+						hostDenials,
 						get: (id) => txn.get(id) as R | undefined,
 						onError: (e) => this.log?.error?.('the write chain failed; rejecting the push', e),
 					})
 					const proposedById = new Map(proposed.map((p) => [getRecordAccessKey(p), p]))
 					const decisions = new Map<string, RecordAccess<R> | 'denied'>()
-					for (const access of result.allowed) decisions.set(getRecordAccessKey(access), access)
+					for (const access of result.allowed) {
+						const key = getRecordAccessKey(access)
+						// A layer that changed a record into an invalid one is a server bug. Deny the write
+						// rather than reject the client for it.
+						if (
+							(access.type === 'create' || access.type === 'update') &&
+							access !== proposedById.get(key) &&
+							!this.isValidCopy(access.next)
+						) {
+							this.log?.error?.('a permission layer made an invalid record; denying the write', key)
+							decisions.set(key, 'denied')
+							continue
+						}
+						decisions.set(key, access)
+					}
 					for (const { access, reason } of result.denied) {
 						decisions.set(getRecordAccessKey(access), 'denied')
 						this.log?.warn?.(
@@ -1817,7 +1881,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		// Read hooks read stored records, which needs a transaction. The views run after the push
 		// commits, because the storage may change what was written (`changes` above), and each view
 		// updates what its session holds, so it must run once, on the final diff.
-		if (this.hasFilteredPut(result.docChanges.diffs?.diff)) {
+		if (this.hasFilteredPut(result.docChanges.diffs?.diff, result.presenceChanges.diffs?.diff)) {
 			this.storage.transaction((txn) =>
 				this.sendPushResults(session, message, result, documentClock, (id) => txn.get(id))
 			)

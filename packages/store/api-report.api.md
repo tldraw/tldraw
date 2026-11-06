@@ -12,7 +12,7 @@ import { Signal } from '@tldraw/state';
 import { UNINITIALIZED } from '@tldraw/state';
 
 // @public
-export function allow<R extends UnknownRecord, Actor>(test: (access: RecordAccess<R>, batch: PermissionBatch<R, Actor>) => boolean | string | void): PermissionMiddleware<R, Actor>;
+export function allow<R extends UnknownRecord, Actor, S extends R = R>(test: (access: RecordAccess<S>, batch: PermissionBatch<R, Actor, S>) => boolean | string | void): PermissionMiddleware<R, Actor, S>;
 
 // @public
 export function assertIdType<R extends UnknownRecord>(id: string | undefined, type: RecordType<R, any>): asserts id is IdOf<R>;
@@ -145,6 +145,11 @@ export function denyAll<R extends UnknownRecord>(batch: Pick<PermissionBatch<R, 
 
 // @public
 export function devFreeze<T>(object: T): T;
+
+// @public
+export function forType<R extends UnknownRecord, Actor, T extends R['typeName']>(typeName: T, ...layers: NoInfer<PermissionMiddleware<R, Actor, Extract<R, {
+    typeName: T;
+}>>>[]): PermissionMiddleware<R, Actor>;
 
 // @public
 export function getAccessRecord<R extends UnknownRecord>(access: RecordAccess<R>): R | undefined;
@@ -283,13 +288,12 @@ export function parseMigrationId(id: MigrationId): {
 };
 
 // @public
-export interface PermissionBatch<R extends UnknownRecord, Actor> {
+export interface PermissionBatch<R extends UnknownRecord, Actor, S extends R = R> {
     // (undocumented)
     readonly actor: Actor;
     get(id: string): R | undefined;
     getAfter(id: string): R | undefined;
-    // (undocumented)
-    readonly items: readonly RecordAccess<R>[];
+    readonly items: readonly RecordAccess<S>[];
     // (undocumented)
     readonly kind: PermissionBatchKind;
 }
@@ -310,6 +314,7 @@ export class PermissionChain<R extends UnknownRecord, Actor> {
     run(opts: {
         actor: Actor;
         get(id: string): R | undefined;
+        hostDenials?: ReadonlyMap<string, string>;
         items: readonly RecordAccess<R>[];
         kind: PermissionBatchKind;
         onError?(error: unknown): void;
@@ -326,7 +331,7 @@ export interface PermissionDenial<R extends UnknownRecord> {
 }
 
 // @public
-export type PermissionMiddleware<R extends UnknownRecord, Actor> = (batch: PermissionBatch<R, Actor>, next: PermissionNext<R>) => PermissionResult<R>;
+export type PermissionMiddleware<R extends UnknownRecord, Actor, S extends R = R> = (batch: PermissionBatch<R, Actor, S>, next: PermissionNext<S>) => PermissionResult<S>;
 
 // @public
 export type PermissionNext<R extends UnknownRecord> = (items?: readonly RecordAccess<R>[]) => PermissionResult<R>;
@@ -426,7 +431,7 @@ export class RecordType<R extends UnknownRecord, RequiredProperties extends keyo
 export function reverseRecordsDiff(diff: RecordsDiff<any>): RecordsDiff<any>;
 
 // @public
-export function rewrite<R extends UnknownRecord, Actor>(fn: (access: RecordAccess<R>, batch: PermissionBatch<R, Actor>) => RecordAccess<R> | void): PermissionMiddleware<R, Actor>;
+export function rewrite<R extends UnknownRecord, Actor, S extends R = R>(fn: (access: RecordAccess<S>, batch: PermissionBatch<R, Actor, S>) => RecordAccess<S> | void): PermissionMiddleware<R, Actor, S>;
 
 // @public
 export type RSIndex<R extends UnknownRecord> = Computed<RSIndexMap<R>, RSIndexDiff<R>>;
@@ -498,6 +503,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
     }): void;
     // @internal (undocumented)
     atomic<T>(fn: () => T, runCallbacks?: boolean, isMergingRemoteChanges?: boolean): T;
+    checkWrites(items: readonly RecordAccess<R>[]): PermissionResult<R>;
     clear(): void;
     createCache<Result, Record extends R = R>(create: (id: IdOf<Record>, recordSignal: Signal<R>) => Signal<Result>): {
         get: (id: IdOf<Record>) => Result | undefined;

@@ -1,11 +1,13 @@
 import {
 	BaseRecord,
 	allow,
+	atomic,
 	PermissionChain,
 	PermissionMiddleware,
 	RecordId,
 	StoreSchema,
 	createRecordType,
+	rewrite,
 } from '@tldraw/store'
 import { vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
@@ -392,7 +394,7 @@ describe('beforeRead', () => {
 			])
 		})
 
-		it('sends whole records to a resumed session, which may hold anything', () => {
+		it('refreshes a resumed session at once, then sends patches as usual', () => {
 			const { room } = roomWith()
 			connectSession(room, 'alice', { meta: { role: 'owner' } })
 			const bob = makeSocket()
@@ -421,9 +423,11 @@ describe('beforeRead', () => {
 				2
 			)
 
+			// The resumed session may hold anything, so it gets its whole view first. After that the
+			// room knows what it holds.
 			expect(patches(room, 'bob', bob)).toEqual([
-				{ [plain.id]: [RecordOpType.Put, { ...plain, title: 'other' }] },
-				{ [secret.id]: [RecordOpType.Remove] },
+				{ [plain.id]: [RecordOpType.Put, plain], [secret.id]: [RecordOpType.Remove] },
+				{ [plain.id]: [RecordOpType.Patch, { title: [ValueOpType.Put, 'other'] }] },
 			])
 		})
 	})
@@ -646,5 +650,108 @@ describe('write-only chains', () => {
 		push(room, 'bob', { ['doc:decoy']: [RecordOpType.Put, other] })
 
 		expect(storedIds(storage)).toEqual([plain.id])
+	})
+})
+
+describe('presence', () => {
+	// A cursor, a selection or a current page can tell what a hidden record holds, so presence
+	// passes through the read chain like any other record.
+	const chain = new PermissionChain<R, TLSyncActor<any>>(
+		allow((access, { actor }) => {
+			if (access.type !== 'read' || access.record.typeName !== 'presence') return undefined
+			if (actor.meta?.role === 'owner') return undefined
+			return (access.record as PresenceRecord).name === 'hidden' ? 'hidden presence' : undefined
+		})
+	)
+	const presenceIdsIn = (diff: Record<string, unknown> | undefined) =>
+		Object.keys(diff ?? {}).filter((id) => id.startsWith('presence:'))
+
+	it('is filtered on broadcast and on connect', () => {
+		const { room } = makeRoom({ permissions: chain })
+		connectSession(room, 'owner', { meta: { role: 'owner' } })
+		const guest = connectSession(room, 'guest', { meta: { role: 'guest' } })
+		const owner2 = connectSession(room, 'owner2', { meta: { role: 'owner' } })
+		room.handleMessage('owner', {
+			type: 'push',
+			clientClock: 1,
+			presence: [RecordOpType.Put, { name: 'hidden' }],
+		} as TLPushRequest<any>)
+		room._flushDataMessages('guest')
+		room._flushDataMessages('owner2')
+		const patched = (socket: MockSocket) =>
+			sentDataMessages(socket)
+				.filter((m) => m.type === 'patch')
+				.flatMap((m) => presenceIdsIn(m.diff))
+		expect([patched(guest).length, patched(owner2).length]).toEqual([0, 1])
+
+		const late = connectSession(room, 'late', { meta: { role: 'guest' }, clear: false })
+		const lateOwner = connectSession(room, 'lateOwner', { meta: { role: 'owner' }, clear: false })
+		const connectPresence = (socket: MockSocket) =>
+			presenceIdsIn((socket.__messages.find((m: any) => m.type === 'connect') as any).diff)
+		expect([connectPresence(late).length, connectPresence(lateOwner).length]).toEqual([0, 1])
+	})
+})
+
+describe('ops the room skips before the chain', () => {
+	it('count as denied, so atomic() rejects the whole push', () => {
+		const { room, storage } = makeRoom({
+			objectTypes: ['note'],
+			permissions: new PermissionChain<R, TLSyncActor<any>>(atomic()),
+		})
+		connectSession(room, 'reader', { objectAccess: 'read' })
+		const doc = Doc.create({ title: 'needs its note' })
+		const note = Note.create({ text: 'the note' })
+		push(room, 'reader', {
+			[doc.id]: [RecordOpType.Put, doc],
+			[note.id]: [RecordOpType.Put, note],
+		})
+		expect(storedIds(storage)).toEqual([])
+	})
+})
+
+describe('a resumed session', () => {
+	it('is checked for room.open again', () => {
+		const chain = new PermissionChain<R, TLSyncActor<any>>(
+			allow((access, { actor }) =>
+				access.type === 'action' && access.name === 'room.open' && actor.meta?.banned
+					? 'banned'
+					: undefined
+			)
+		)
+		const { room } = makeRoom({ permissions: chain })
+		const socket = makeSocket()
+		room.handleResumedSession({
+			sessionId: 'resumed',
+			socket,
+			meta: { banned: true } as any,
+			isReadonly: false,
+			serializedSchema: room.serializedSchema,
+			presenceId: null,
+			presenceRecord: null,
+			requiresLegacyRejection: false,
+			supportsStringAppend: true,
+		})
+		expect(socket.close).toHaveBeenCalled()
+	})
+})
+
+describe('a layer that makes an invalid record', () => {
+	it('denies the write, and does not reject the client', () => {
+		const error = vi.fn()
+		const { room, storage } = makeRoom({
+			log: { error },
+			permissions: new PermissionChain<R, TLSyncActor<any>>(
+				rewrite((access) =>
+					access.type === 'create'
+						? { ...access, next: { ...access.next, title: 7 } as any }
+						: undefined
+				)
+			),
+		})
+		const socket = connectSession(room, 'writer')
+		const doc = Doc.create({ title: 'ok' })
+		push(room, 'writer', { [doc.id]: [RecordOpType.Put, doc] })
+		const logged = error.mock.calls.some((call) => String(call[0]).includes('invalid record'))
+		expect([storedIds(storage), socket.close.mock.calls.length, logged]).toEqual([[], 0, true])
 	})
 })
