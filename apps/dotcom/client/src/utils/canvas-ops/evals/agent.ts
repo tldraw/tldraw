@@ -11,7 +11,7 @@ const MAX_TURNS = 8
 
 const SYSTEM = `You edit a tldraw whiteboard for a user by calling the apply_ops tool. You cannot see the canvas; you get a list of its shapes (page coordinates, y grows downward) before you start and again after every apply_ops call.
 
-Ops (each batch is one undo step; a failing op is reported and the rest still run):
+Ops (each batch is one undo step; a failing op is reported and the rest still run). Split large work into several apply_ops calls, one part of the drawing each, rather than one huge batch: each call shows up on the board as soon as it lands, and you see what landed before building on it.
 - add: create a label (text), note, box, ellipse, or shape (any geo). Place it with \`at\` (top-left) or relative to a \`target\` with \`relation\` (above, below, left_of, right_of, inside, centered_on), \`gap\`, \`align\`. Boxes size themselves to their text unless you give w/h. A box's text is its label, drawn inside it; use \\n for line breaks.
 - place: move an existing shape (\`at\`, or \`relation\` + \`target\`) and/or change its w, h, text, and style.
 - label: attach a text label to a shape or a page point, optionally with an arrow.
@@ -28,7 +28,8 @@ Keep shapes from overlapping unless one is meant to sit inside another, and keep
 
 const tool: Anthropic.Beta.BetaTool = {
 	name: 'apply_ops',
-	description: 'Apply a batch of canvas ops. Returns what each op did and the updated shape list.',
+	description:
+		'Apply a batch of canvas ops. Returns what each op did and the updated shape list. For large work, make several calls, one part at a time.',
 	input_schema: z.toJSONSchema(OpsBatchSchema, {
 		target: 'draft-7',
 	}) as Anthropic.Beta.BetaTool.InputSchema,
