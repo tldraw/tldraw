@@ -1,0 +1,145 @@
+.permissions-root {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: 1fr 320px;
+	background: #ddd;
+	gap: 4px;
+}
+
+.permissions-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	grid-template-rows: 1fr 1fr;
+	gap: 4px;
+	min-width: 0;
+	min-height: 0;
+}
+
+.permissions-panel {
+	overflow-y: auto;
+	background: white;
+	font-size: 12px;
+	padding: 8px;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+}
+
+.permissions-panel-header,
+.permissions-case-title {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.permissions-case {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding-top: 8px;
+	border-top: 1px solid #eee;
+}
+
+.permissions-case-title span {
+	font-weight: 600;
+}
+
+.permissions-case code {
+	color: #555;
+	font-size: 11px;
+}
+
+.permissions-case-result {
+	padding: 2px 6px;
+	border-radius: 4px;
+	background: #f1f3f5;
+}
+
+.permissions-refused {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: #c92a2a;
+	font-size: 14px;
+}
+
+.permissions-stamp {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+}
+
+.permissions-pane {
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+	background: white;
+}
+
+.permissions-header {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 8px;
+	font-size: 12px;
+}
+
+.permissions-dot {
+	width: 10px;
+	height: 10px;
+	border-radius: 50%;
+}
+
+.permissions-role {
+	padding: 1px 6px;
+	border-radius: 4px;
+	background: #eee;
+}
+
+.permissions-controls {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-left: auto;
+}
+
+.permissions-denials {
+	padding: 0 8px 4px;
+	font-size: 11px;
+	color: #c92a2a;
+	min-height: 14px;
+}
+
+.permissions-canvas {
+	position: relative;
+	flex: 1;
+	min-height: 0;
+}
+
+.permissions-intro {
+	margin: 0;
+	color: #555;
+	line-height: 1.4;
+}
+
+.permissions-summary {
+	padding: 4px 6px;
+	border-radius: 4px;
+	background: #e6f4ea;
+	font-weight: 600;
+}
+
+.permissions-unexpected {
+	background: #fde2e1;
+}
+
+.permissions-pane-focused {
+	outline: 3px solid #1971c2;
+	outline-offset: -3px;
+	z-index: 1;
+}

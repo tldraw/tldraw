@@ -1,5 +1,6 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
+	TLPage,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -249,6 +250,24 @@ export interface TldrawEditorBaseProps {
 		shape: TLShape,
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
+
+	/**
+	 * Lock shapes for this editor only, for example the shapes that the current user may not
+	 * change. See {@link @tldraw/editor#TLEditorOptions.isShapeLocked}.
+	 *
+	 * @param shape - The shape to check.
+	 * @param editor - The editor instance.
+	 */
+	isShapeLocked?(shape: TLShape, editor: Editor): boolean
+
+	/**
+	 * Make pages read-only for this editor only. See
+	 * {@link @tldraw/editor#TLEditorOptions.isPageReadonly}.
+	 *
+	 * @param page - The page to check.
+	 * @param editor - The editor instance.
+	 */
+	isPageReadonly?(page: TLPage, editor: Editor): boolean
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -524,6 +543,8 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	isShapeLocked,
+	isPageReadonly,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -612,6 +633,8 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				isShapeLocked,
+				isPageReadonly,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -656,6 +679,8 @@ function TldrawEditorWithReadyStore({
 			licenseKey,
 			licenseManager,
 			getShapeVisibility,
+			isShapeLocked,
+			isPageReadonly,
 			assetUrls,
 			stableI18n,
 		]

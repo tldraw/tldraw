@@ -79,7 +79,10 @@ export class Idle extends StateNode {
 				// Check to see if we hit any shape under the pointer; if so,
 				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && (this.editor.options.selectLockedShapes || !hitShape.isLocked)) {
+				if (
+					hitShape &&
+					(this.editor.options.selectLockedShapes || !this.editor.isShapeLocked(hitShape))
+				) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -220,7 +223,7 @@ export class Idle extends StateNode {
 						if (
 							hoveredShape &&
 							!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
-							(this.editor.options.selectLockedShapes || !hoveredShape.isLocked)
+							(this.editor.options.selectLockedShapes || !this.editor.isShapeLocked(hoveredShape))
 						) {
 							this.onPointerDown({
 								...info,

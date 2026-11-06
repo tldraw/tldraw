@@ -37,7 +37,7 @@ export function strokeShapeIndicators(
 
 	for (const shapeId of shapeIds) {
 		const shape = editor.getShape(shapeId)
-		if (!shape || shape.isLocked) continue
+		if (!shape || editor.isShapeLocked(shape)) continue
 
 		const pageTransform = editor.getShapePageTransform(shape)
 

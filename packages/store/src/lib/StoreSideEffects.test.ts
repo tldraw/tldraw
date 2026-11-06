@@ -118,6 +118,27 @@ describe('side effect handlers (SE)', () => {
 		expect(store.get(book1Id)!.title).toBe('transformed')
 	})
 
+	it('[SE2] beforeCreate can cancel the create by returning false', () => {
+		const afterCreate = vi.fn()
+		const later = vi.fn((record: Book) => record)
+		store.sideEffects.registerBeforeCreateHandler('book', (record) =>
+			record.id === book1Id ? false : record
+		)
+		store.sideEffects.registerBeforeCreateHandler('book', later)
+		store.sideEffects.registerAfterCreateHandler('book', afterCreate)
+		const history = vi.fn()
+		store.listen(history)
+
+		store.put([book1, book2])
+		store._flushHistory()
+
+		expect(store.get(book1Id)).toBeUndefined()
+		expect(store.get(book2Id)).toBeDefined()
+		expect(later).toHaveBeenCalledTimes(1)
+		expect(afterCreate).toHaveBeenCalledTimes(1)
+		expect(Object.keys(history.mock.calls[0][0].changes.added)).toEqual([book2Id])
+	})
+
 	it('[SE3] beforeChange transforms the update', () => {
 		store.put([book1])
 

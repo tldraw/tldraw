@@ -57,6 +57,7 @@ async function harness(saved = new Map<string, unknown>()) {
 		},
 	}
 }
+const noGet = () => undefined
 const session = {
 	sessionId: 'secret-session',
 	isReadonly: false,
@@ -89,10 +90,14 @@ describe('file room record veto telemetry', () => {
 		vi.spyOn(authorizeFileRecord, 'shape').mockReturnValueOnce(null).mockReturnValueOnce(null)
 		const h = await harness()
 		const { auth } = h
-		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
-		expect(auth.shape({ session, type: 'create', prev: null, next: note('bob') })).toBeNull()
 		expect(
-			auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+			auth.shape({ session, get: noGet, type: 'create', prev: null, next: note('bob') })
+		).toBeNull()
+		expect(
+			auth.shape({ session, get: noGet, type: 'create', prev: null, next: note('bob') })
+		).toBeNull()
+		expect(
+			auth.shape({ session, get: noGet, type: 'update', prev: note('alice'), next: note('bob') })
 		).toBeNull()
 		const thread = createCommentThread({
 			pageId: 'page:test' as TLPageId,
@@ -100,7 +105,7 @@ describe('file room record veto telemetry', () => {
 			createdBy: 'alice',
 		})
 		expect(
-			auth['comment-thread']!({ session, type: 'delete', prev: thread, next: null })
+			auth['comment-thread']!({ session, get: noGet, type: 'delete', prev: thread, next: null })
 		).toBeNull()
 		expect(h.points).toEqual([])
 		await h.flush()
@@ -127,14 +132,14 @@ describe('file room record veto telemetry', () => {
 		const waitUntil = vi.spyOn(h.object.state, 'waitUntil')
 		for (let i = 0; i < 1000; i++) {
 			expect(
-				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+				auth.shape({ session, get: noGet, type: 'update', prev: note('alice'), next: note('bob') })
 			).toBeNull()
 		}
 		expect(h.points).toEqual([])
 		expect(waitUntil).toHaveBeenCalledTimes(1)
 		await h.flush()
 		expect(h.points).toEqual([point('shape', 'update', 'note', 1000)])
-		auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+		auth.shape({ session, get: noGet, type: 'update', prev: note('alice'), next: note('bob') })
 		await h.flush()
 		expect(h.points).toHaveLength(2)
 		expect(h.points[1]).toEqual(point('shape', 'update', 'note'))
@@ -151,9 +156,9 @@ describe('file room record veto telemetry', () => {
 		const capture = vi.spyOn(h.object.sentry, 'captureMessage')
 		const next = note('alice')
 		for (let i = 0; i < 1000; i++) {
-			expect(auth.shape({ session, type: 'create', prev: null, next })).toBe(next)
-			expect(auth.shape({ session, type: 'update', prev: next, next })).toBe(next)
-			expect(auth.shape({ session, type: 'delete', prev: next, next: null })).toBe(next)
+			expect(auth.shape({ session, get: noGet, type: 'create', prev: null, next })).toBe(next)
+			expect(auth.shape({ session, get: noGet, type: 'update', prev: next, next })).toBe(next)
+			expect(auth.shape({ session, get: noGet, type: 'delete', prev: next, next: null })).toBe(next)
 		}
 		await h.flush()
 		expect(h.points).toEqual([])
@@ -174,7 +179,7 @@ describe('file room record veto telemetry', () => {
 			vi.setSystemTime(new Date('2026-01-01T00:00:00Z').getTime() + minutes * 60_000)
 			const h = await harness(saved)
 			const { auth } = h
-			auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+			auth.shape({ session, get: noGet, type: 'update', prev: note('alice'), next: note('bob') })
 			await h.flush()
 			expect(h.warnings).toHaveLength(expected)
 		}
@@ -192,12 +197,12 @@ describe('file room record veto telemetry', () => {
 			if (dependency === 'storage') h.object.storage.put = fail
 			if (dependency === 'sentry') h.object.sentry.captureMessage = fail
 			expect(
-				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+				auth.shape({ session, get: noGet, type: 'update', prev: note('alice'), next: note('bob') })
 			).toBeNull()
 			await expect(h.flush()).resolves.toBeUndefined()
 			if (dependency === 'analytics') {
 				h.object.measure.writeDataPoint = writeDataPoint
-				auth.shape({ session, type: 'update', prev: note('alice'), next: note('bob') })
+				auth.shape({ session, get: noGet, type: 'update', prev: note('alice'), next: note('bob') })
 				await h.flush()
 				expect(h.points).toEqual([point('shape', 'update', 'note')])
 			}
@@ -214,7 +219,7 @@ describe('file room record veto telemetry', () => {
 			type: 'secret-client-content',
 			typeName: 'secret-type-name',
 		} as unknown as TLShape
-		expect(auth.shape({ session, type: 'create', prev: null, next })).toBeNull()
+		expect(auth.shape({ session, get: noGet, type: 'create', prev: null, next })).toBeNull()
 		expect(h.points).toEqual([])
 		await h.flush()
 		expect(h.points).toEqual([point('shape', 'create', 'unknown')])
@@ -243,12 +248,14 @@ describe('file room record veto telemetry', () => {
 			authorizeFileRecord['comment-reaction'] = undefined
 			const h = await harness()
 			expect(h.auth['comment-reaction']).toBeUndefined()
-			expect(h.auth.comment!({ session, type: 'create', prev: null, next: comment })).toEqual({
+			expect(
+				h.auth.comment!({ session, get: noGet, type: 'create', prev: null, next: comment })
+			).toEqual({
 				...comment,
 				authorId: 'alice',
 			})
 			expect(() =>
-				h.auth.shape({ session, type: 'create', prev: null, next: note('bob') })
+				h.auth.shape({ session, get: noGet, type: 'create', prev: null, next: note('bob') })
 			).toThrow('policy failed')
 			await h.flush()
 			expect(h.points).toEqual([])

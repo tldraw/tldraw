@@ -29,6 +29,9 @@ export type AppendOp = [type: typeof ValueOpType.Append, value: string | unknown
 // @internal
 export function applyObjectDiff<T extends object>(object: T, objectDiff: ObjectDiff): T;
 
+// @public
+export function checkRecordWrite<R extends UnknownRecord, SessionMeta>(rules: TLRecordRules<R, SessionMeta>, session: TLAuthorizerSession<SessionMeta>, get: (id: string) => undefined | UnknownRecord, write: TLRecordWrite<R>): null | R;
+
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
@@ -254,6 +257,11 @@ export const RecordOpType: {
 // @internal
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
+// @public
+export function registerRecordRules<R extends UnknownRecord, SessionMeta>(store: Store<R, any>, rules: TLRecordRules<R, SessionMeta>, getSession: () => TLAuthorizerSession<SessionMeta>, opts?: {
+    onDeny?(write: TLRecordWrite<R>): void;
+}): () => void;
+
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
     state: typeof RoomSessionState.AwaitingConnectMessage;
@@ -377,6 +385,16 @@ export interface SyncSqliteDatabase {
     };
 }
 
+// @public
+export interface TLAuthorizerSession<SessionMeta> {
+    // (undocumented)
+    isReadonly: boolean;
+    // (undocumented)
+    meta: SessionMeta;
+    // (undocumented)
+    sessionId: string;
+}
+
 // @internal
 export interface TLConnectRequest {
     // (undocumented)
@@ -448,11 +466,8 @@ export interface TLPushRequest<R extends UnknownRecord> {
 
 // @public
 export type TLRecordAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
-    session: {
-        isReadonly: boolean;
-        meta: SessionMeta;
-        sessionId: string;
-    };
+    get(id: string): undefined | UnknownRecord;
+    session: TLAuthorizerSession<SessionMeta>;
 } & ({
     next: null;
     prev: Rec;
@@ -472,6 +487,43 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
     [K in R['typeName']]?: TLRecordAuthorizer<Extract<R, {
         typeName: K;
     }>, SessionMeta>;
+};
+
+// @public
+export type TLRecordReadAuthorizer<Rec extends UnknownRecord, SessionMeta> = (args: {
+    get(id: string): undefined | UnknownRecord;
+    record: Rec;
+    session: TLAuthorizerSession<SessionMeta>;
+}) => boolean;
+
+// @public
+export type TLRecordReadAuthorizers<R extends UnknownRecord, SessionMeta> = {
+    [K in R['typeName']]?: TLRecordReadAuthorizer<Extract<R, {
+        typeName: K;
+    }>, SessionMeta>;
+};
+
+// @public
+export interface TLRecordRules<R extends UnknownRecord, SessionMeta> {
+    // (undocumented)
+    authorizeRead?: TLRecordReadAuthorizers<R, SessionMeta>;
+    // (undocumented)
+    authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+}
+
+// @public
+export type TLRecordWrite<R extends UnknownRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
 };
 
 // @public
@@ -547,6 +599,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
+    authorizeRead?: TLRecordReadAuthorizers<R, SessionMeta>;
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
@@ -721,6 +774,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
             documentClock: number;
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+        authorizeRead?: TLRecordReadAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
         clientTimeout?: number;
         log?: TLSyncLog;

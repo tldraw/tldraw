@@ -6,6 +6,7 @@
 	"references": [
 		{ "path": "../state" },
 		{ "path": "../state-react" },
+		{ "path": "../sync-collaboration" },
 		{ "path": "../sync-core" },
 		{ "path": "../tldraw" },
 		{ "path": "../utils" }

@@ -881,7 +881,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, isShapeLocked, isPageReadonly, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1498,6 +1498,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeHidden(shapeOrId: TLShape | TLShapeId): boolean;
     isShapeInPage(shape: TLShape | TLShapeId, pageId?: TLPageId): boolean;
+    isShapeLocked(shape: TLShape | TLShapeId): boolean;
     isShapeOfType<K extends TLShape['type']>(shape: TLShape, type: K): shape is Extract<TLShape, {
         type: K;
     }>;
@@ -3812,6 +3813,8 @@ export interface TldrawEditorBaseProps {
     i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
+    isPageReadonly?(page: TLPage, editor: Editor): boolean;
+    isShapeLocked?(shape: TLShape, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -4018,6 +4021,8 @@ export interface TLEditorOptions {
     i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
+    isPageReadonly?(page: TLPage, editor: Editor): boolean;
+    isShapeLocked?(shape: TLShape, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;

@@ -552,6 +552,26 @@ describe('object store lane', () => {
 			expect(stored?.title).toBe('stamped')
 		})
 
+		it('rejects the whole push when the authorizer denies one of its ops', () => {
+			const { room, storage, note } = seededWithNote(authorizeNote)
+			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })
+			const other = connectSession(room, 'other', { meta: { userId: 'user-other' } })
+			clearSocket(other)
+
+			const doc = Doc.create({ title: 'allowed alone' })
+			push(room, 'mallory', {
+				[doc.id]: [RecordOpType.Put, doc],
+				[note.id]: [RecordOpType.Patch, { text: [ValueOpType.Put, 'tampered'] }],
+			})
+
+			expect(socket.close).not.toHaveBeenCalled()
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard' })
+			expect(storedIds(storage)).toEqual([note.id])
+			expect(storedNote(storage, note.id)?.text).toBe('by:user-alice')
+			// nothing from the rejected push reaches other sessions
+			expect(sentDataMessages(other)).toEqual([])
+		})
+
 		it('vetoes an update that changes an immutable field (patch)', () => {
 			const { room, storage, note } = seededWithNote(authorizeNote)
 			const socket = connectSession(room, 'mallory', { meta: { userId: 'user-mallory' } })

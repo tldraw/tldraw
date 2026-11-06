@@ -463,15 +463,26 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 	const $pageIds = store.query.ids('page')
 	const $pageStates = store.query.records('instance_page_state')
 
+	// Each fix below puts a record and checks again. A side effect that cancels the put (for
+	// example permission rules on a client store) would make that loop forever, so check it held.
+	const assertPutHeld = (held: boolean) => {
+		if (held) return
+		throw new Error(
+			'[tldraw] The store cannot be made usable: a side effect canceled a record that the editor needs (a document, a page, or the instance). Permission rules must let each user read at least one page, and create these records.'
+		)
+	}
+
 	const ensureStoreIsUsable = (): void => {
 		// make sure we have exactly one document
 		if (!store.has(TLDOCUMENT_ID)) {
 			store.put([DocumentRecordType.create({ id: TLDOCUMENT_ID, name: store.props.defaultName })])
+			assertPutHeld(store.has(TLDOCUMENT_ID))
 			return ensureStoreIsUsable()
 		}
 
 		if (!store.has(TLPOINTER_ID)) {
 			store.put([PointerRecordType.create({ id: TLPOINTER_ID })])
+			assertPutHeld(store.has(TLPOINTER_ID))
 			return ensureStoreIsUsable()
 		}
 
@@ -479,6 +490,7 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 		const pageIds = $pageIds.get()
 		if (pageIds.size === 0) {
 			store.put(getDefaultPages())
+			assertPutHeld($pageIds.get().size > 0)
 			return ensureStoreIsUsable()
 		}
 
@@ -494,9 +506,12 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 				}),
 			])
 
+			assertPutHeld(store.has(TLINSTANCE_ID))
 			return ensureStoreIsUsable()
 		} else if (!pageIds.has(instanceState.currentPageId)) {
-			store.put([{ ...instanceState, currentPageId: getFirstPageId() }])
+			const currentPageId = getFirstPageId()
+			store.put([{ ...instanceState, currentPageId }])
+			assertPutHeld(store.get(TLINSTANCE_ID)?.currentPageId === currentPageId)
 			return ensureStoreIsUsable()
 		}
 

@@ -68,6 +68,13 @@ export type TLSyncStorageTransactionCallback<R extends UnknownRecord, T> = (
 	: T
 
 /**
+ * Thrown inside a transaction to roll it back on purpose. Storages do not log it as an error.
+ *
+ * @internal
+ */
+export class TLSyncRollback extends Error {}
+
+/**
  * Pluggable synchronous transactional storage layer for TLSyncRoom.
  * Provides methods for managing documents, tombstones, and clocks within transactions.
  *

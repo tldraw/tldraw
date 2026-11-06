@@ -123,6 +123,8 @@ export function updateArrowTargetState({
 		hitInside: true,
 		hitFrameInside: true,
 		margin: arrowKind === 'elbow' ? 8 : [8, 0],
+		// a binding does not change its target, so a lock for this editor only does not stop it
+		hitLocked: true,
 		filter: (targetShape) => {
 			return (
 				!targetShape.isLocked &&
