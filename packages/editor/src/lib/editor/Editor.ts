@@ -1780,16 +1780,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.store.withTransaction(() => {
-				if (!this.permissions.isActive()) {
-					this.history.batch(fn, opts)
-					return
-				}
-				this.permissions.runChecked(
-					() => this.history.batch(fn, opts),
-					this.store.getCurrentTransaction()?.intent ?? null
-				)
-			}, opts)
+			// Without permissions, a run is no transaction: changes batch as they always have, and
+			// the sync client sends a frame's changes as one push.
+			if (!this.permissions.isActive() && !opts?.intent) {
+				this.history.batch(fn, opts)
+			} else {
+				this.store.withTransaction(() => {
+					this.permissions.runChecked(
+						() => this.history.batch(fn, opts),
+						this.store.getCurrentTransaction() ?? null
+					)
+				}, opts)
+			}
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}

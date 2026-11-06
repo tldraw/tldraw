@@ -1,5 +1,5 @@
-import { atom, computed, react, transaction } from '@tldraw/state'
-import { RecordsDiff } from '@tldraw/store'
+import { atom, computed, react, transact, transaction } from '@tldraw/state'
+import { RecordsDiff, reverseRecordsDiff, StoreTransaction } from '@tldraw/store'
 import {
 	accessCan,
 	createTransaction,
@@ -12,7 +12,7 @@ import {
 	TLRecord,
 	TLVerdict,
 } from '@tldraw/tlschema'
-import { JsonValue, getOwnProperty } from '@tldraw/utils'
+import { JsonValue, getOwnProperty, isEqual } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 import { EditorManager } from '../EditorManager'
 import type { HistoryManager } from '../HistoryManager/HistoryManager'
@@ -127,19 +127,23 @@ export class PermissionsManager extends EditorManager {
 	 * menus and buttons ("can I delete these shapes?"), not on every pointer move.
 	 */
 	wouldAllow(fn: () => void, intent: TLIntent | null = null): TLVerdict {
-		let verdict: TLVerdict = OK
 		const editor = this.editor
-		this.history._withRollback(() => {
+		let verdict: TLVerdict = OK
+		const checkpoint = this.history._checkpoint()
+		const previousScope = this._scope
+		// a dry run: the runs inside it join it, and nothing is reported
+		this._scope = { transaction: null, touched: new Set(), dryRun: true }
+		try {
 			transaction((rollback) => {
-				const diff = editor.store.extractingChanges(() =>
-					this.asOneTransaction(() => this.history.batch(fn))
-				)
-				const documentDiff = editor.store.filterChangesByScope(diff, 'document')
+				const diff = editor.store.extractingChanges(() => this.history.batch(fn))
+				const documentDiff = documentChanges(editor, diff, this._scope!.touched)
 				if (documentDiff) verdict = this.checkChanges(documentDiff, intent)
 				rollback()
 			})
-			return false
-		})
+		} finally {
+			this._scope = previousScope
+			checkpoint.rollback()
+		}
 		return verdict
 	}
 
@@ -165,13 +169,19 @@ export class PermissionsManager extends EditorManager {
 		let error: unknown = null
 		this.editor.run(
 			() => {
-				// A throwing mutator is a denial, as on the server. The inner transaction undoes its
-				// partial writes; catching here keeps the throw from crashing the editor.
-				try {
-					transaction(() => mutator(ctx, args))
-				} catch (e) {
-					error = e
-				}
+				// A throwing mutator is a denial, as on the server: undo its partial writes and their
+				// history, and keep the throw from crashing the editor.
+				const checkpoint = this.history._checkpoint()
+				const diff = store.extractingChanges(() => {
+					try {
+						mutator(ctx, args)
+					} catch (e) {
+						error = e
+					}
+				})
+				if (!error) return checkpoint.release()
+				this.revert(store.filterChangesByScope(diff, 'document'))
+				checkpoint.rollback()
 			},
 			{ intent }
 		)
@@ -184,19 +194,6 @@ export class PermissionsManager extends EditorManager {
 		}
 	}
 
-	private _inTransaction = false
-
-	/** Run `fn` so that the runs inside it are checked with it, not on their own. */
-	private asOneTransaction(fn: () => void) {
-		if (this._inTransaction) return fn()
-		this._inTransaction = true
-		try {
-			fn()
-		} finally {
-			this._inTransaction = false
-		}
-	}
-
 	/** @internal */
 	reportDenial(denial: TLPermissionDenial) {
 		this._lastDenial.set(denial)
@@ -204,32 +201,82 @@ export class PermissionsManager extends EditorManager {
 	}
 
 	/**
-	 * Run `fn` as one checked transaction. A denied run is rolled back as a whole, including the
-	 * undo history it recorded.
+	 * The checked run in progress. Runs inside it that share its store transaction join it;
+	 * a run that starts its own transaction (one with its own intent) is checked on its own, as
+	 * the server will check its push on its own.
+	 */
+	private _scope: {
+		transaction: StoreTransaction | null
+		/** document ids changed by runs checked on their own inside this one */
+		touched: Set<string>
+		dryRun: boolean
+	} | null = null
+
+	/**
+	 * Run `fn` as one checked transaction. A denied run's document changes are reverted, and the
+	 * undo history drops what the run recorded. Session state (selection, tool state, camera) is
+	 * left alone: rolling it back would leave tools half-transitioned.
 	 *
 	 * @internal
 	 */
-	runChecked(fn: () => void, intent: TLIntent | null) {
-		// only the outermost run is the transaction: inner runs are part of it
-		if (this._inTransaction) return fn()
-		let denial: TLVerdict | null = null
+	runChecked(fn: () => void, transaction: StoreTransaction | null) {
+		const parent = this._scope
+		if (parent && (parent.transaction === transaction || parent.dryRun)) return fn()
+		// one reactive transaction around the run and its revert, so store listeners (and the
+		// sync client) never see a denied change on its own
+		transact(() => this._runChecked(fn, transaction, parent))
+	}
+
+	private _runChecked(
+		fn: () => void,
+		transaction: StoreTransaction | null,
+		parent: PermissionsManager['_scope']
+	) {
 		const editor = this.editor
-		this.history._withRollback(() => {
-			transaction((rollback) => {
-				const diff = editor.store.extractingChanges(() => this.asOneTransaction(fn))
-				const documentDiff = editor.store.filterChangesByScope(diff, 'document')
-				if (!documentDiff) return
-				const verdict = this.checkChanges(documentDiff, intent)
-				if (!verdict.ok) {
-					denial = verdict
-					rollback()
-				}
-			})
-			return !denial
-		})
-		if (denial) {
-			this.reportDenial({ reason: (denial as { reason: string }).reason, intent, source: 'local' })
+		const scope = { transaction, touched: new Set<string>(), dryRun: false }
+		const checkpoint = this.history._checkpoint()
+		let diff: RecordsDiff<TLRecord>
+		this._scope = scope
+		try {
+			diff = editor.store.extractingChanges(fn)
+		} catch (e) {
+			checkpoint.release()
+			throw e
+		} finally {
+			this._scope = parent
 		}
+		const documentDiff = documentChanges(editor, diff, scope.touched)
+		const verdict = documentDiff ? this.checkChanges(documentDiff, transaction?.intent ?? null) : OK
+		if (verdict.ok) {
+			checkpoint.release()
+		} else {
+			this.revert(documentDiff)
+			checkpoint.rollback()
+		}
+		if (parent) {
+			for (const changes of [diff.added, diff.updated, diff.removed]) {
+				for (const id in changes) parent.touched.add(id)
+			}
+		}
+		if (!verdict.ok) {
+			this.reportDenial({
+				reason: verdict.reason,
+				intent: transaction?.intent ?? null,
+				source: 'local',
+			})
+		}
+	}
+
+	/**
+	 * Put the document back as it was before `diff`. It is a user change, so it cancels the
+	 * denied change before the sync client sends it. History is ignored: the checkpoint drops
+	 * the run's undo steps.
+	 */
+	private revert(diff: RecordsDiff<TLRecord> | null) {
+		if (!diff) return
+		this.history.batch(() => this.editor.store.applyDiff(reverseRecordsDiff(diff)), {
+			history: 'ignore',
+		})
 	}
 
 	private registerStamps() {
@@ -251,4 +298,33 @@ export class PermissionsManager extends EditorManager {
 			)
 		}
 	}
+}
+
+/**
+ * The document part of `diff`, without records that runs checked on their own already covered,
+ * and without updates that change nothing (a denied inner run leaves an update back to where it
+ * started).
+ */
+function documentChanges(
+	editor: Editor,
+	diff: RecordsDiff<TLRecord>,
+	skip: ReadonlySet<string>
+): RecordsDiff<TLRecord> | null {
+	const document = editor.store.filterChangesByScope(diff, 'document')
+	if (!document) return null
+	let empty = true
+	for (const changes of [document.added, document.updated, document.removed] as Record<
+		string,
+		unknown
+	>[]) {
+		for (const id in changes) {
+			const change = changes[id]
+			if (skip.has(id) || (Array.isArray(change) && isEqual(change[0], change[1]))) {
+				delete changes[id]
+			} else {
+				empty = false
+			}
+		}
+	}
+	return empty ? null : document
 }

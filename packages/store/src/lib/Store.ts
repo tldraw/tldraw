@@ -1099,16 +1099,17 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	 * whole. Without this, all changes made in one frame go up together, so a denied change could
 	 * take unrelated changes down with it.
 	 *
-	 * Nested calls join the outer transaction. A nested call with an `intent` inside an outer
-	 * transaction without one starts its own transaction: a named operation must not carry
-	 * unrelated changes, because the server may run it by name and ignore the client's diff.
+	 * Nested calls without an `intent` join the outer transaction. A nested call with an `intent`
+	 * always starts its own transaction: a named operation must not carry unrelated changes, and
+	 * must not lose its name inside another, because the server may run it by name and ignore the
+	 * client's diff.
 	 *
 	 * @public
 	 */
 	withTransaction<T>(fn: () => T, opts?: { intent?: StoreIntent | null }): T {
 		const intent = opts?.intent ?? null
 		const outer = this.currentTransaction
-		if (outer && (outer.intent || !intent)) return fn()
+		if (outer && !intent) return fn()
 		this.currentTransaction = { intent }
 		try {
 			return fn()

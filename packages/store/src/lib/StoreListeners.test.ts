@@ -194,6 +194,12 @@ describe('listeners (H)', () => {
 		store.withTransaction(() => {
 			store.withTransaction(() => store.put([c]), { intent: { name: 'add-c' } })
 		})
+		// and inside a named one, it keeps its own name
+		const d = { ...tolkein(), id: Author.createId('d') }
+		store.withTransaction(
+			() => store.withTransaction(() => store.put([d]), { intent: { name: 'add-d' } }),
+			{ intent: { name: 'outer' } }
+		)
 
 		await new Promise((resolve) => requestAnimationFrame(resolve))
 		const entries = listener.mock.calls.map(([e]) => ({
@@ -204,6 +210,7 @@ describe('listeners (H)', () => {
 			{ ids: [a.id], intent: null },
 			{ ids: [b.id], intent: null },
 			{ ids: [c.id], intent: { name: 'add-c' } },
+			{ ids: [d.id], intent: { name: 'add-d' } },
 		])
 	})
 

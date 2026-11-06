@@ -95,22 +95,24 @@ export class HistoryManager<R extends UnknownRecord> {
 	_isInBatch = false
 
 	/**
-	 * Run `fn`, which returns whether to keep what it did. When it returns false (or throws), the
-	 * changes it recorded are dropped from the pending undo entry. The caller rolls the store back
-	 * itself: this only keeps the history in step with it.
+	 * Remember the undo history as it is now. `rollback` puts it back: the undo and redo stacks,
+	 * and the pending undo entry, drop everything recorded since, marks included. `release` keeps
+	 * it. The caller reverts the store itself; this only keeps the history in step.
+	 *
+	 * Marks and bails inside the checkpoint see the real history, so a denied run's undo steps
+	 * vanish, and an allowed run's stay exactly as they would without a checkpoint.
 	 *
 	 * @internal
 	 */
-	_withRollback(fn: () => boolean) {
-		const saved = this.pendingDiff.clear()
-		let keep = false
-		try {
-			keep = fn()
-		} finally {
-			if (keep) {
-				squashRecordDiffsMutable(saved, [this.pendingDiff.clear()])
-			}
-			this.pendingDiff.restore(saved)
+	_checkpoint(): { rollback(): void; release(): void } {
+		const stacks = this.stacks.get()
+		const journal = this.pendingDiff.openJournal()
+		return {
+			rollback: () => {
+				this.pendingDiff.closeJournal(journal, true)
+				this.stacks.set(stacks)
+			},
+			release: () => this.pendingDiff.closeJournal(journal, false),
 		}
 	}
 
@@ -363,9 +365,61 @@ const modeToState = {
 	ignore: HistoryRecorderState.Paused,
 } as const
 
+/**
+ * What the pending diff held, for each id a checkpoint's run touched, before the run touched it.
+ * Only touches to `target` count: once a mark moves `target` onto the undo stack, it no longer
+ * changes, and restoring the stacks drops what came after.
+ */
+interface PendingDiffJournal<R extends UnknownRecord> {
+	readonly target: RecordsDiff<R>
+	readonly before: Map<string, { added?: R; updated?: [R, R]; removed?: R }>
+}
+
 class PendingDiff<R extends UnknownRecord> {
 	private diff = createEmptyRecordsDiff<R>()
 	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
+	private journals: PendingDiffJournal<R>[] = []
+
+	openJournal(): PendingDiffJournal<R> {
+		const journal = { target: this.diff, before: new Map() }
+		this.journals.push(journal)
+		return journal
+	}
+
+	closeJournal(journal: PendingDiffJournal<R>, rollback: boolean) {
+		const index = this.journals.indexOf(journal)
+		if (index !== -1) this.journals.splice(index, 1)
+		if (!rollback) return
+		const { target } = journal
+		const maps = target as unknown as Record<'added' | 'updated' | 'removed', Record<string, any>>
+		for (const [id, before] of journal.before) {
+			for (const key of ['added', 'updated', 'removed'] as const) {
+				if (before[key] === undefined) delete maps[key][id]
+				else maps[key][id] = before[key]
+			}
+		}
+		this.diff = target
+		this.isEmptyAtom.set(isRecordsDiffEmpty(target))
+	}
+
+	private journal(diff: RecordsDiff<R>) {
+		for (const journal of this.journals) {
+			if (journal.target !== this.diff) continue
+			const { target, before } = journal
+			for (const changes of [diff.added, diff.updated, diff.removed]) {
+				for (const id in changes) {
+					if (before.has(id)) continue
+					const updated = target.updated[id as keyof typeof target.updated]
+					before.set(id, {
+						added: target.added[id as keyof typeof target.added],
+						// squashing mutates update tuples in place, so keep a copy
+						updated: updated && [updated[0], updated[1]],
+						removed: target.removed[id as keyof typeof target.removed],
+					})
+				}
+			}
+		}
+	}
 
 	clear() {
 		const diff = this.diff
@@ -384,6 +438,7 @@ class PendingDiff<R extends UnknownRecord> {
 	}
 
 	apply(diff: RecordsDiff<R>) {
+		if (this.journals.length) this.journal(diff)
 		squashRecordDiffsMutable(this.diff, [diff])
 		// Recomputing emptiness from the accumulated diff is O(N) (for-in over a
 		// dictionary-mode object pays an O(N) key-collection prologue), and this runs on

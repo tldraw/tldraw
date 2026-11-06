@@ -76,14 +76,84 @@ it('leaves the undo stack as it was', () => {
 	expect(editor.getShape(A)).toBeUndefined()
 })
 
-it('emits no store change for a denied run', () => {
+it('emits no net store change for a denied run, so the sync client sends nothing', () => {
 	editor.permissions.setAccess(bob)
 	const listener = vi.fn()
 	const off = editor.store.listen(listener, { source: 'user', scope: 'document' })
 	editor.updateShapes([{ id: A, type: 'geo', x: 500 }])
 	editor.store._flushHistory()
 	off()
-	expect(listener).not.toHaveBeenCalled()
+	for (const [{ changes }] of listener.mock.calls) {
+		expect(changes.added).toEqual({})
+		expect(changes.removed).toEqual({})
+		for (const [from, to] of Object.values(changes.updated) as [unknown, unknown][]) {
+			expect(to).toEqual(from)
+		}
+	}
+})
+
+it('keeps undo steps exactly as without permissions', () => {
+	function drawThree(e: TestEditor) {
+		for (let i = 0; i < 3; i++) {
+			e.setCurrentTool('geo')
+			e.pointerDown(i * 200, 300)
+				.pointerMove(i * 200 + 100, 400)
+				.pointerUp(i * 200 + 100, 400)
+			e.setCurrentTool('select')
+		}
+		const counts = [e.getCurrentPageShapeIds().size]
+		for (let i = 0; i < 3; i++) {
+			e.undo()
+			counts.push(e.getCurrentPageShapeIds().size)
+		}
+		return counts
+	}
+	const plain = new TestEditor()
+	plain.createShapes([geo()])
+	plain.markHistoryStoppingPoint()
+	expect(drawThree(editor)).toEqual(drawThree(plain))
+	plain.dispose()
+})
+
+it('cancels a drag with escape as without permissions', () => {
+	function dragThenEscape(e: TestEditor) {
+		e.selectNone()
+		e.pointerDown(50, 50, { target: 'shape', shape: e.getShape(A)! })
+		e.pointerMove(150, 50).pointerMove(250, 50)
+		e.keyDown('Escape')
+		return e.getShape(A)!.x
+	}
+	const plain = new TestEditor()
+	plain.createShapes([geo()])
+	expect(dragThenEscape(editor)).toBe(dragThenEscape(plain))
+	plain.dispose()
+})
+
+it('leaves the tool working when the drop of a drag is denied', () => {
+	const frameRule = definePermissions<TLRecord>({
+		rules: [
+			(tx) =>
+				tx.changes.some(
+					(c) => c.op === 'update' && (c.prev as any).parentId !== (c.next as any).parentId
+				)
+					? 'No moving into frames.'
+					: undefined,
+		],
+	})
+	editor.dispose()
+	editor = new TestEditor({ permissions: frameRule })
+	denials = []
+	editor.on('permission-denied', (d) => denials.push(d))
+	const F = createShapeId('F')
+	editor.createShapes([geo(), { id: F, type: 'frame', x: 300, y: 0, props: { w: 300, h: 300 } }])
+	editor.pointerDown(50, 50, A)
+	for (let x = 50; x <= 450; x += 50) editor.pointerMove(x, 50)
+	editor.pointerUp(450, 50)
+	expect(denials.map((d) => d.reason)).toContain('No moving into frames.')
+	expect(editor.getPath()).toBe('select.idle')
+	expect(editor.getShape(A)!.parentId).toBe(editor.getCurrentPageId())
+	// the editor still works
+	expect(() => editor.pointerDown(450, 50, A).pointerMove(500, 50).pointerUp(500, 50)).not.toThrow()
 })
 
 it('checks nested runs once, as the outermost transaction', () => {
@@ -143,8 +213,19 @@ describe('mutate', () => {
 		expect(editor.getShape(A)!.x).toBe(50)
 	})
 
+	it('runs a mutator inside another run with its own intent', () => {
+		editor.run(() => editor.permissions.mutate('move', { x: 70 }))
+		expect(editor.getShape(A)!.x).toBe(70)
+		expect(denials).toEqual([])
+	})
+
 	it('denies a mutator that throws, with its partial writes undone', () => {
+		editor.markHistoryStoppingPoint()
 		editor.permissions.mutate('move', { x: -5 })
+		expect(editor.getShape(A)!.x).toBe(0)
+		// nothing to redo: the partial write never reached the history
+		editor.undo()
+		editor.redo()
 		expect(editor.getShape(A)!.x).toBe(0)
 		expect(denials).toEqual([
 			{ reason: 'No negative x.', intent: { name: 'move', args: { x: -5 } }, source: 'local' },

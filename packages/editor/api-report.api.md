@@ -45,6 +45,7 @@ import { Signal } from '@tldraw/state';
 import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSideEffects } from '@tldraw/store';
+import { StoreTransaction } from '@tldraw/store';
 import { StyleProp } from '@tldraw/tlschema';
 import { StylePropValue } from '@tldraw/tlschema';
 import { T } from '@tldraw/validate';
@@ -2217,6 +2218,11 @@ export class HistoryManager<R extends UnknownRecord> {
     bailToMark(id: string): this;
     // (undocumented)
     batch(fn: () => void, opts?: TLHistoryBatchOptions): this;
+    // @internal
+    _checkpoint(): {
+        release(): void;
+        rollback(): void;
+    };
     // (undocumented)
     clear(): void;
     // @internal (undocumented)
@@ -2254,8 +2260,6 @@ export class HistoryManager<R extends UnknownRecord> {
         pushToRedoStack: boolean;
         toMark?: string;
     }): this;
-    // @internal
-    _withRollback(fn: () => boolean): void;
 }
 
 // @public (undocumented)
@@ -2823,7 +2827,7 @@ export class PermissionsManager extends EditorManager {
     // @internal (undocumented)
     reportDenial(denial: TLPermissionDenial): void;
     // @internal
-    runChecked(fn: () => void, intent: null | TLIntent): void;
+    runChecked(fn: () => void, transaction: null | StoreTransaction): void;
     setAccess(access: null | TLAccess): void;
     wouldAllow(fn: () => void, intent?: null | TLIntent): TLVerdict;
 }
