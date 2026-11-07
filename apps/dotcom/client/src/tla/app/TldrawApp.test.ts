@@ -416,3 +416,47 @@ describe('TldrawApp.getFallbackFileName', () => {
 		)
 	})
 })
+
+describe('TldrawApp.acceptWorkspaceInvite', () => {
+	function createInviteAppStub() {
+		return Object.assign(createAppStub(), {
+			messages: {
+				accept_invite_error_title: { id: 'title', defaultMessage: 'Could not join' },
+				accept_invite_try_again: { id: 'retry', defaultMessage: 'Please try again' },
+			},
+			toasts: { addToast: vi.fn() },
+			navigate: vi.fn(),
+		})
+	}
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	// A rejected fetch used to throw past the error toast, so clicking accept while offline
+	// did nothing visible and left the rejection unhandled.
+	it('toasts and resolves false when the request fails to send', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+		const app = createInviteAppStub()
+
+		await expect(app.acceptWorkspaceInvite('secret')).resolves.toBe(false)
+		expect(app.toasts!.addToast).toHaveBeenCalledWith({
+			severity: 'error',
+			title: 'Could not join',
+			description: 'Please try again',
+		})
+		expect(app.navigate).not.toHaveBeenCalled()
+	})
+
+	it('navigates home and resolves true when the server rejects the invite', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({ ok: false, json: async () => ({ error: true }) })
+		)
+		const app = createInviteAppStub()
+
+		await expect(app.acceptWorkspaceInvite('secret')).resolves.toBe(true)
+		expect(app.toasts!.addToast).toHaveBeenCalledTimes(1)
+		expect(app.navigate).toHaveBeenCalledTimes(1)
+	})
+})

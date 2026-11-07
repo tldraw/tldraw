@@ -7,6 +7,7 @@ import {
 	deleteFromSessionStorage,
 	fetch,
 	getFromSessionStorage,
+	setInSessionStorage,
 	useDialogs,
 	useToasts,
 	useTranslation,
@@ -120,13 +121,17 @@ export function WorkspaceInviteHandler() {
 		// Consume the token: this is the only place it is deleted.
 		deleteFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 
-		const showError = () =>
+		const showError = () => {
+			// The toast says to try again, so put the token back: otherwise a reload
+			// has nothing to retry and the invite is lost.
+			setInSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN, storedToken)
 			addToast({
 				id: 'workspace-invite-error',
 				severity: 'error',
 				title: errorMsg,
 				keepOpen: true,
 			})
+		}
 
 		// Fetch invite info from API
 		fetch(`/api/app/invite/${storedToken}`)
