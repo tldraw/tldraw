@@ -20,6 +20,7 @@ import {
 } from '../../selection-logic/updateHoveredShapeId'
 import {
 	hasRichText,
+	isPlainDoubleClickDown,
 	isPointInRotatedSelectionBounds,
 	startEditingShapeWithRichText,
 } from '../selectHelpers'
@@ -238,10 +239,7 @@ export class Idle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (this.editor.inputs.getShiftKey() || info.phase !== 'down') return
-
-		// We don't want to double click while toggling shapes
-		if (info.ctrlKey || info.shiftKey) return
+		if (!isPlainDoubleClickDown(this.editor, info)) return
 
 		switch (info.target) {
 			case 'canvas': {
@@ -516,7 +514,10 @@ export class Idle extends StateNode {
 					return
 				}
 
-				this.editor.selectNone()
+				if (selectedShapeIds.length > 0) {
+					this.editor.markHistoryStoppingPoint('selecting none')
+					this.editor.selectNone()
+				}
 				break
 			}
 			case 'shape': {
@@ -645,6 +646,7 @@ export class Idle extends StateNode {
 
 				// On enter, if every selected shape is a group, then select all of the children of the groups
 				if (selectedShapes.every((shape) => this.editor.isShapeOfType(shape, 'group'))) {
+					this.editor.markHistoryStoppingPoint('selecting group children')
 					this.editor.setSelectedShapes(
 						selectedShapes.flatMap((shape) => this.editor.getSortedChildIdsForParent(shape.id))
 					)

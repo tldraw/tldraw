@@ -38,7 +38,7 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 			}
 		})
 		editor.setSelectedShapes(allChildren)
-		editor.deleteShapes(ids)
+		editor.deleteShapes(frames)
 	})
 }
 

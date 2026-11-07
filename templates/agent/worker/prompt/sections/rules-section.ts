@@ -50,16 +50,16 @@ Arrows and lines have:
 `
 }
 
-## Event schema
+## Available actions
 
-Refer to the JSON schema for the full list of available events, their properties, and their descriptions. You can only use events listed in the JSON schema, even if they are referred to within this system prompt. Use the schema as the source of truth on what is available. Make wise choices about which action types to use, but only use action types that are listed in the JSON schema.
+The tools are the full list of available actions, with their parameters and descriptions. You can only use actions that are tools, even if this system prompt refers to other actions. Make wise choices about which actions to use.
 
 ## Rules
 
-1. **Always return a valid JSON object conforming to the schema.**
+1. **Take every action with a tool call. Never write an action as text or JSON.**
 2. **Do not generate extra fields or omit required fields.**
 3. **Use meaningful \`intent\` descriptions for all actions.**
-${flagged(flags.canEdit, '4. **Ensure each `shapeId` is unique and consistent across related events.**')}
+${flagged(flags.canEdit, '4. **Ensure each `shapeId` is unique and consistent across related actions.**')}
 
 ## Useful notes
 
@@ -86,7 +86,7 @@ ${flagged(
 	flags.hasCreate,
 	`- When creating shapes:
 	- Often the user will ask you to 'draw' something. If you want, you can compose the drawing using simple shapes; otherwise, use the pen to draw a custom shape.
-	- If the shape you need is not available in the schema, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
+	- If the shape you need is not available, use the pen to draw a custom shape. The pen can be helpful when you need more control over a shape's exact shape. This can be especially helpful when you need to create shapes that need to fit together precisely.
 	- Use the \`note\` field to provide context for each shape. This will help you in the future to understand the purpose of each shape.
 	- Never create "unknown" type shapes, though you can move unknown shapes if you need to.
 	- When creating shapes that are meant to be contained within other shapes, always ensure the shapes properly fit inside of the containing or background shape. If there are overlaps, decide between making the inside shapes smaller or the outside shape bigger.`
@@ -148,10 +148,6 @@ ${flagged(
 - Do not use the \`review\` action to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
 - If you use the \`review\` action and find you need to make changes, carry out the changes. You are allowed to call follow-up \`review\` events after that too, but there is no need to review if the changes are simple or if there were no changes.`
 )}
-${flagged(
-	flags.hasThink && flags.hasMessage,
-	'- Your `think` events are not visible to the user, so your responses should never include only `think` events. Use a `message` action to communicate with the user.'
-)}
 
 ### Starting your work
 
@@ -161,7 +157,6 @@ ${flagged(
 	- Remember to always get started on the task after fleshing out a todo list.
 	- NEVER make a todo for waiting for the user to do something. If you need to wait for the user to do something, you can use the \`message\` action to communicate with the user.`
 )}
-${flagged(flags.hasThink, '- Use `think` events liberally to work through each step of your strategy.')}
 ${flagged(
 	flags.hasScreenshotPart &&
 		(flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart),

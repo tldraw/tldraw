@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	preventDefault,
 	useContainer,
 	useEditor,
@@ -21,6 +22,10 @@ import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
+
+const messages = defineMessages({
+	contextMenuTitle: { id: 'context-menu.title', defaultMessage: 'Context menu' },
+})
 
 // Controlled `open`: tldraw can close the menu itself (MenuClickCapture's
 // clearOpenMenus), and radix >=2.3.0 only fires onOpenChange on real state
@@ -94,6 +99,19 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const suppressDismissDuringGrace = useCallback((e: Event) => {
 		if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
 	}, [])
+
+	// Radix returns focus to the trigger in a setTimeout after the menu unmounts. An item that
+	// focuses something itself (e.g. cursor chat's input) can win that race, and the late
+	// return would steal focus back and blur it closed. Only restore focus if nothing claimed it.
+	const preventCloseAutoFocusIfClaimed = useCallback(
+		(e: Event) => {
+			const { activeElement, body } = editor.getContainerDocument()
+			if (activeElement && activeElement !== body) {
+				e.preventDefault()
+			}
+		},
+		[editor]
+	)
 
 	const rContextMenuPagePoint = useContext(ContextMenuPagePointContext)
 
@@ -171,13 +189,14 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					<_ContextMenu.Content
 						className="tlui-menu tlui-scrollable"
 						data-testid="context-menu"
-						aria-label={msg('context-menu.title')}
+						aria-label={msg(messages.contextMenuTitle)}
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}
 						onPointerDownOutside={suppressDismissDuringGrace}
 						onInteractOutside={suppressDismissDuringGrace}
 						onFocusOutside={suppressDismissDuringGrace}
+						onCloseAutoFocus={preventCloseAutoFocusIfClaimed}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							{content}

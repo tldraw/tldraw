@@ -74,6 +74,7 @@
 		"e2e-dotcom-smoke-x10": "pnpm --filter dotcom e2e-smoke-x10",
 		"e2e-dotcom-all-x10": "pnpm --filter dotcom e2e-all-x10",
 		"i18n-check": "i18n-check",
+		"i18n-extract": "tsx internal/scripts/i18n-extract.ts",
 		"i18n-upload-strings": "tsx internal/scripts/i18n-upload-strings.ts",
 		"i18n-download-strings": "tsx internal/scripts/i18n-download-strings.ts",
 		"i18n-fix-strings": "tsx internal/scripts/i18n-fix-strings.ts"
@@ -82,7 +83,7 @@
 		"npm": ">=7.0.0",
 		"node": ">=22.12.0"
 	},
-	"packageManager": "pnpm@12.4.2",
+	"packageManager": "pnpm@12.16.1",
 	"lint-staged": {
 		"*.{js,jsx,ts,tsx,cjs,mjs}": [
 			"oxfmt --no-error-on-unmatched-pattern",
@@ -108,7 +109,6 @@
 		"@vitest/coverage-v8": "^5.0.0",
 		"@vitest/ui": "^5.0.0",
 		"adm-zip": "^0.6.0",
-		"fs-extra": "^11.3.0",
 		"husky": "^8.0.3",
 		"jsdom": "^29.1.1",
 		"license-report": "^6.7.1",
@@ -117,7 +117,6 @@
 		"oxfmt": "^0.41.0",
 		"oxlint": "^1.66.0",
 		"oxlint-tsgolint": "^0.23.0",
-		"rimraf": "^4.4.1",
 		"tsx": "^4.19.2",
 		"turbo": "^2.10.13",
 		"typescript": "^7.0.2",

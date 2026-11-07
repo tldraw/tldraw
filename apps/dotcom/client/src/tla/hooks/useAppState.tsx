@@ -1,4 +1,4 @@
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/react'
 import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -7,6 +7,7 @@ import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
 import { useTldrawAppUiEvents } from '../utils/app-ui-events'
+import { tokenOrUndefinedWhenOffline } from '../utils/auth'
 import {
 	DEFAULT_FLAGS,
 	FeatureFlags,
@@ -44,9 +45,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const navigate = useNavigate()
 	const email = user.primaryEmailAddress?.emailAddress
 
-	// Cleared on unmount only. A Clerk user change (accepting the legal terms updates the user)
-	// re-runs the bootstrap below; nulling the atom there would blank every gated route for the
-	// whole preload, so the old app stays in place until the new one replaces it.
+	// Cleared on unmount only. When the bootstrap below re-runs (the userId or email changed),
+	// nulling the atom there would blank every gated route for the whole preload, so the old app
+	// stays in place until the new one replaces it.
 	useEffect(() => {
 		return () => {
 			currentApp$.set(null)
@@ -90,10 +91,9 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				// until it is nearly expired, and the refresh schedules itself from the *remaining*
 				// life of whatever it is given. Cached tokens would shorten that interval on every
 				// pass — 90s, then 45s, then 22s — until it bottomed out against its floor.
-				getZeroToken: async () => {
-					const token = await auth.getToken({ template: 'zero', skipCache: true })
-					return token || undefined
-				},
+				// Zero boots tokenless and picks a token up on its next refresh, so offline must not reject.
+				getZeroToken: () =>
+					tokenOrUndefinedWhenOffline(() => auth.getToken({ template: 'zero', skipCache: true })),
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},
@@ -128,8 +128,11 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				_app.dispose()
 			}
 		}
+		// Depend on email, not the Clerk `user` object: Clerk v6 hands back a fresh user object on
+		// every token refresh (Zero refreshes ~once a minute with skipCache), and depending on it
+		// would dispose and recreate the whole app — and the editor below it — on each refresh.
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [auth.userId, user])
+	}, [auth.userId, email])
 
 	if (error) {
 		// A swallowed bootstrap failure would leave the blank loading state below up for the

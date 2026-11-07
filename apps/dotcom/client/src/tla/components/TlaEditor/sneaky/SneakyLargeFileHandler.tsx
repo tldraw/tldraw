@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from 'react'
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -12,7 +13,6 @@ import {
 	useValue,
 } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { F } from '../../../utils/i18n'
 
 function RoomSizeDialog({
 	title,

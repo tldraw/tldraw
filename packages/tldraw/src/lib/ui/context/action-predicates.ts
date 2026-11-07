@@ -8,8 +8,6 @@ import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 // Every function must stay pure and read only editor state or values fixed for the session (like
 // clipboard support): menus re-run them when editor state changes, so anything else goes stale.
 
-const FLIPPABLE_TYPES = new Set(['group', 'image', 'arrow', 'line', 'draw', 'geo'])
-
 /** @internal */
 export function canApplySelectionAction(editor: Editor) {
 	return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
@@ -73,7 +71,18 @@ export function hasThreeStackableShapes(editor: Editor) {
 /** @internal */
 export function isOnlyFlippableShapeSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
-	return !!shape && FLIPPABLE_TYPES.has(shape.type) && !editor.isShapeOrAncestorLocked(shape)
+	if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+	const util = editor.getShapeUtil(shape)
+	// A lone bound arrow opts out of the flip via canBeLaidOut, so flipping it would do nothing.
+	return util.canFlip(shape) && util.canBeLaidOut(shape, { type: 'flip', shapes: [shape] })
+}
+
+/** @internal */
+export function canFlipSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		(hasUnlockedSelection(editor, 2) || isOnlyFlippableShapeSelected(editor))
+	)
 }
 
 /** @internal */
@@ -89,11 +98,21 @@ export function hasLinkShapeSelected(editor: Editor) {
 
 /** @internal */
 export function canFrameSelection(editor: Editor) {
-	const selected = editor.getSelectedShapes()
-	if (selected.length === 0) return false
-	// An all-frame selection unframes instead; remove-frame covers that.
-	if (selected.every((s) => editor.isShapeOfType(s, 'frame'))) return false
+	if (editor.getSelectedShapeIds().length === 0) return false
+	// An all-frame selection is disabled; remove-frame covers it.
+	if (areAllSelectedFrames(editor)) return false
 	return getFrameableShapeIds(editor, editor.getSelectedShapeIds()).length > 0
+}
+
+/**
+ * Strictly `frame`, unlike {@link areAllSelectedFrameLike}: the frame toggle shortcut wraps custom
+ * frame-like shapes rather than removing them.
+ *
+ * @internal
+ */
+export function areAllSelectedFrames(editor: Editor) {
+	const selected = editor.getSelectedShapes()
+	return selected.length > 0 && selected.every((s) => editor.isShapeOfType(s, 'frame'))
 }
 
 /** @internal */

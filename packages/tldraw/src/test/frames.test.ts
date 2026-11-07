@@ -1,6 +1,7 @@
 import {
 	DefaultFillStyle,
 	GeoShapeGeoStyle,
+	Group2d,
 	TLArrowShape,
 	TLFrameShape,
 	TLGeoShape,
@@ -11,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
+import { FRAME_HEADING_MAX_SCALE } from '../lib/shapes/frame/frameHelpers'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
@@ -2019,6 +2021,25 @@ describe('When double-clicking a frame edge', () => {
 	})
 })
 
+describe('removeFrame', () => {
+	it('leaves non-frame shapes passed alongside a frame in place', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+		const rectId = createShapeId('rect')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+			{ id: childId, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			{ id: rectId, type: 'geo', x: 400, y: 0 },
+		])
+
+		removeFrame(editor, [frameId, rectId])
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(childId)?.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(rectId)).toBeDefined()
+	})
+})
+
 describe('Undoing a double-click fit to content', () => {
 	let frameId: TLShapeId
 	let boxId: TLShapeId
@@ -2086,5 +2107,44 @@ describe('Undoing a double-click fit to content', () => {
 			x: 300,
 			y: 300,
 		})
+	})
+})
+
+describe('frame heading geometry', () => {
+	const frameId = createShapeId('frame')
+
+	beforeEach(() => {
+		editor.createShape<TLFrameShape>({
+			id: frameId,
+			type: 'frame',
+			x: 0,
+			y: 0,
+			props: { w: 10000, h: 10000 },
+		})
+	})
+
+	function getHeadingBounds() {
+		const geometry = editor.getShapeGeometry(frameId) as Group2d
+		return geometry.children.find((child) => child.isLabel)!.bounds
+	}
+
+	it('stops growing past the max heading scale when zoomed out', () => {
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+		expect(getHeadingBounds().h).toBeCloseTo(24)
+
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		expect(getHeadingBounds().h).toBeCloseTo(48)
+
+		editor.setCamera({ x: 0, y: 0, z: 0.1 })
+		expect(getHeadingBounds().h).toBeCloseTo(24 * FRAME_HEADING_MAX_SCALE)
+		expect(getHeadingBounds().maxY).toBeCloseTo(-4 * FRAME_HEADING_MAX_SCALE)
+	})
+
+	it('does not select the frame from empty space above its heading when zoomed out', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.1 })
+
+		// Above the capped heading (~98 page units) but inside the old 1 / z area (~280)
+		expect(editor.getShapeAtPoint({ x: 100, y: -200 }, { hitLabels: true })).toBeUndefined()
+		expect(editor.getShapeAtPoint({ x: 100, y: -40 }, { hitLabels: true })?.id).toBe(frameId)
 	})
 })

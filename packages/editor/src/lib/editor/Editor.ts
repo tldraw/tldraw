@@ -107,6 +107,7 @@ import {
 	getSnapshot,
 	loadSnapshot,
 } from '../config/TLEditorSnapshot'
+import { TLI18nAdapter, defaultI18n } from '../config/TLI18n'
 import {
 	DEFAULT_ANIMATION_OPTIONS,
 	DEFAULT_CAMERA_OPTIONS,
@@ -266,6 +267,11 @@ export interface TLEditorOptions {
 	 * given, the body element will be used.
 	 */
 	getContainer(): HTMLElement
+
+	/**
+	 * An i18n adapter for translating strings.
+	 */
+	i18n?: TLI18nAdapter
 	/**
 	 * Provides a way to hide shapes.
 	 *
@@ -373,9 +379,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 		fontAssetUrls,
 		themes,
 		initialTheme,
+		i18n,
 	}: TLEditorOptions) {
 		super()
 
+		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
 
 		// Merge deprecated textOptions prop with options.text
@@ -1017,6 +1025,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	licenseManager?: LicenseManager
 
 	readonly contextId = uniqueId()
+
+	/**
+	 * The i18n adapter for translating strings.
+	 *
+	 * @public
+	 */
+	readonly i18n: TLI18nAdapter
 
 	/**
 	 * The editor's store
@@ -2292,12 +2307,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			firstParentId &&
 			selectedShapeIds.every((shapeId) => this.getShape(shapeId)?.parentId === firstParentId) &&
 			!isPageId(firstParentId)
-		// Locked shapes (and children of locked containers) can't be selected by clicking or
-		// select all, so traversal skips them too
-		const filteredShapes = this.getCurrentPageShapes().filter(
-			(shape) =>
-				!this.isShapeOrAncestorLocked(shape) &&
-				(isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId))
+		const filteredShapes = this.getCurrentPageShapes().filter((shape) =>
+			isSelectedWithinContainer ? shape.parentId === firstParentId : isPageId(shape.parentId)
 		)
 		const readingOrderShapes = this._getShapesInReadingOrder(filteredShapes)
 		const currentShapeId: TLShapeId | undefined =
@@ -2308,8 +2319,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let adjacentShapeId: TLShapeId
 		if (direction === 'next' || direction === 'prev') {
 			const shapeIds = readingOrderShapes.map((shape) => shape.id)
-			// Every candidate can be filtered out (e.g. a locked shape is selected and nothing
-			// else is unlocked); indexing an empty list would hand getShape undefined
+			// Every candidate can be filtered out (e.g. every util returns false from canTabTo);
+			// indexing an empty list would hand getShape undefined
 			if (shapeIds.length === 0) return
 
 			const currentIndex = currentShapeId ? shapeIds.indexOf(currentShapeId) : -1
@@ -2333,6 +2344,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * Generates a reading order for shapes based on rows grouping.
 	 * Tries to keep a natural reading order (left-to-right, top-to-bottom).
+	 * Shapes whose util returns `false` from {@link ShapeUtil.canTabTo} are left out. Locked
+	 * shapes are included, so keyboard users can reach them to unlock them.
 	 *
 	 * @public
 	 */
@@ -2514,6 +2527,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private _selectShapesAndZoom(ids: TLShapeId[]) {
+		// setSelectedShapes is a no-op for an unchanged selection (Tab with a single shape,
+		// Ctrl+arrow with no neighbour); marking anyway would leave an empty stopping point
+		// that makes undo available with nothing to undo
+		const selectedShapeIds = this.getSelectedShapeIds()
+		const isSelectionChanging =
+			ids.length !== selectedShapeIds.length || ids.some((id) => !selectedShapeIds.includes(id))
+		if (isSelectionChanging) {
+			this.markHistoryStoppingPoint('selecting adjacent shape')
+		}
 		this.setSelectedShapes(ids)
 		this.zoomToSelectionIfOffscreen(256, {
 			animation: {
@@ -11553,7 +11575,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 						break
 					}
 					case 'key_repeat': {
-						// noop
+						// A repeat is the only positive evidence that a key is still physically
+						// down, so it is also the only way one we lost track of can get back in.
+						// A key still held when Meta is released is dropped there on the
+						// assumption macOS ate its keyup; this is what corrects that.
+						inputs.keys.add(info.code)
 						break
 					}
 				}

@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "<a><strong>{appName}</strong></a> adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
   },
-  "03b3e13197": {
-    "translation": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
-  },
   "043973ec1f": {
     "translation": "Sorun devam ediyor mu? {GetHelpLink}"
   },
@@ -209,9 +206,6 @@
   "54286b1d01": {
     "translation": "Ortak çalışan sınırına ulaşıldı"
   },
-  "545241e7dd": {
-    "translation": "{count} okunmamış"
-  },
   "550b25cc0c": {
     "translation": "Yerel çiziminiz geri yüklenemedi. Lütfen bu sayfayı yeniden yüklemeyi deneyin."
   },
@@ -386,9 +380,6 @@
   "85a082de1b": {
     "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr dosyası eklendi."
-  },
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
@@ -457,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "<strong>{workspaceName}</strong>'e katılmaya davet edildiniz."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# okunmamış} other {# okunmamış}}"
   },
   "a0da245992": {
     "translation": "İçeriği .tldr dosyası olarak dışa aktarın: Sol üst menüden 'İndir'i seçin."
@@ -537,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Mal sahibi"
   },
+  "b74dbb40c5": {
+    "translation": "Dosyayı bu sayfanın kenar çubuğuna sürükleyin. Veya sol üst köşedeki Dosya menüsünden 'Dosya içe aktar' seçeneğini seçin."
+  },
   "b758336699": {
     "translation": "Bağlantıyı kopyala"
   },
@@ -558,14 +555,14 @@
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# .tldr dosyası eklendi.} other {# .tldr dosyaları eklendi.}}"
+  },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
   },
   "c4b39a1cc3": {
     "translation": "Temel çerezler"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Uzun Dizi"
   },
   "c6a00f137b": {
     "translation": "Davet et"
@@ -592,7 +589,7 @@
     "translation": "Yayınlama hakkında daha fazla bilgi edinin."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> ve {count, plural, one {# other} other {# others}} yorumunuza tepki verdi."
+    "translation": "<name>{author}</name> ve {count, plural, one {# kişi daha} other {# kişi daha}} yorumunuza tepki verdi."
   },
   "d3d2e61733": {
     "translation": "Kapat"
@@ -660,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Hesap menüsü"
   },
-  "ed53713239": {
-    "translation": "i18n: Aksanlı"
-  },
   "ed75712b0e": {
     "translation": "Kopya oluştur"
   },
@@ -691,7 +685,7 @@
     "translation": "Sil"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# other} other {# others}} yorumunuza tepki verdi."
+    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# kişi daha} other {# kişi daha}} yorumunuza tepki verdi."
   },
   "f4f70727dc": {
     "translation": "Ayarlar"

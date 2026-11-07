@@ -44,7 +44,11 @@ async function storeThumbnail(
 
 beforeEach(() => {
 	vi.mocked(getAuth).mockResolvedValue({ userId: 'user-1' } as any)
-	vi.mocked(resolveSharedBoardForUser).mockResolvedValue({ ok: true, board: BOARD as any })
+	vi.mocked(resolveSharedBoardForUser).mockResolvedValue({
+		ok: true,
+		board: BOARD as any,
+		fileName: 'Board',
+	})
 })
 
 afterEach(() => vi.clearAllMocks())

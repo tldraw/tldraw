@@ -1,16 +1,23 @@
 import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
 import {
 	Editor,
+	TLArrowShape,
+	TLShapeId,
+	b64Vecs,
+	createBindingId,
 	createShapeId,
 	createTLStore,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	defaultTldrawOptions,
 } from 'tldraw'
-import { beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	SHAPES_NOT_ON_PAGE,
+	acquireThumbnailRenderData,
 	exportThumbnailImage,
+	measureArrow,
+	measureDimensions,
 	prepareLiveCapture,
 	setThumbnailError,
 	signalThumbnailReady,
@@ -44,20 +51,24 @@ beforeEach(() => {
 	delete document.documentElement.dataset.thumbnailReady
 })
 
-// Two pages with one shape each, left on the first — which stands in for the page a job named. The
-// shape on the second page is the one a live snapshot moved away after the token was minted.
-function setupTwoPageEditor() {
+function setupEditor() {
 	const store = createTLStore({
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 	})
-	const editor = new Editor({
+	return new Editor({
 		store,
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 		tools: [],
 		getContainer: () => document.createElement('div'),
 	})
+}
+
+// Two pages with one shape each, left on the first — which stands in for the page a job named. The
+// shape on the second page is the one a live snapshot moved away after the token was minted.
+function setupTwoPageEditor() {
+	const editor = setupEditor()
 	const renderedPageId = editor.getCurrentPageId()
 	const renderedId = createShapeId('rendered')
 	editor.createShape({ id: renderedId, type: 'geo', x: 0, y: 0 })
@@ -101,6 +112,131 @@ describe('prepareLiveCapture', () => {
 	})
 })
 
+describe('measureArrow', () => {
+	// The record of a bound arrow is a stub at its origin; only the editor knows where it runs.
+	it('reports a bound arrow where it is drawn, between the shapes it is bound to', () => {
+		const editor = setupEditor()
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 400, y: 0, props: { w: 100, h: 100 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				x: 0,
+				y: 0,
+				props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } },
+			},
+		])
+		const bind = (toId: typeof a, terminal: 'start' | 'end') => ({
+			id: createBindingId(),
+			type: 'arrow' as const,
+			fromId: arrowId,
+			toId,
+			props: { terminal, normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false },
+		})
+		editor.createBindings([bind(a, 'start'), bind(b, 'end')])
+
+		const measured = measureArrow(editor, editor.getShape<TLArrowShape>(arrowId)!)!
+		// Clipped to each box's edge, along the line between their centres.
+		expect(measured.start.x).toBeGreaterThanOrEqual(100)
+		expect(measured.start.x).toBeLessThan(150)
+		expect(measured.end.x).toBeGreaterThan(350)
+		expect(measured.end.x).toBeLessThanOrEqual(400)
+		expect(measured.start.y).toBeCloseTo(50)
+		expect(measured.end.y).toBeCloseTo(50)
+		editor.dispose()
+	})
+
+	it('reports a free arrow inside a frame in page space', () => {
+		const editor = setupEditor()
+		const frame = createShapeId('frame')
+		const arrowId = createShapeId('arrow')
+		editor.createShapes([
+			{ id: frame, type: 'frame', x: 1000, y: 500, props: { w: 400, h: 300 } },
+			{
+				id: arrowId,
+				type: 'arrow',
+				parentId: frame,
+				x: 10,
+				y: 20,
+				props: { start: { x: 0, y: 0 }, end: { x: 100, y: 0 } },
+			},
+		])
+
+		expect(measureArrow(editor, editor.getShape<TLArrowShape>(arrowId)!)).toEqual({
+			start: { x: 1010, y: 520 },
+			end: { x: 1110, y: 520 },
+		})
+		editor.dispose()
+	})
+})
+
+describe('measureDimensions', () => {
+	// The group's own size, not the larger axis-aligned page box a rotation gives it.
+	it('reports a rotated group at the unrotated size of its children', () => {
+		const editor = setupEditor()
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: a, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: b, type: 'geo', x: 300, y: 50, props: { w: 100, h: 100 } },
+		])
+		editor.groupShapes([a, b])
+		const groupId = editor.getShape(a)!.parentId as TLShapeId
+		editor.updateShape({ id: groupId, type: 'group', rotation: Math.PI / 4 })
+		expect(editor.getShapePageBounds(groupId)!.h).toBeGreaterThan(150)
+		expect(measureDimensions(editor, editor.getShape(groupId)!)).toEqual({ w: 400, h: 150 })
+		editor.dispose()
+	})
+
+	it('reports a freehand stroke at the size it is drawn', () => {
+		const editor = setupEditor()
+		const id = createShapeId('scribble')
+		editor.createShape({
+			id,
+			type: 'draw',
+			x: 0,
+			y: 0,
+			props: {
+				segments: [
+					{
+						type: 'free',
+						path: b64Vecs.encodePoints(
+							[0, 50, 100, 150].map((x) => ({ x, y: x % 100 ? 40 : 0, z: 0.5 })),
+							2
+						),
+						dim: 2,
+					},
+				],
+				isComplete: true,
+			},
+		})
+		const dimensions = measureDimensions(editor, editor.getShape(id)!)!
+		expect(dimensions.w).toBeGreaterThanOrEqual(150)
+		expect(dimensions.h).toBeGreaterThanOrEqual(40)
+		editor.dispose()
+	})
+
+	it('leaves out shapes whose size is on the record or is not a w and h', () => {
+		const editor = setupEditor()
+		const geo = createShapeId('geo')
+		const note = createShapeId('note')
+		const arrow = createShapeId('arrow')
+		editor.createShapes([
+			{ id: geo, type: 'geo', x: 0, y: 0 },
+			{ id: note, type: 'note', x: 0, y: 0 },
+			{ id: arrow, type: 'arrow', x: 0, y: 0, props: { end: { x: 100, y: 0 } } },
+		])
+		expect(measureDimensions(editor, editor.getShape(geo)!)).toBeUndefined()
+		expect(measureDimensions(editor, editor.getShape(note)!)).toBeUndefined()
+		expect(measureDimensions(editor, editor.getShape(arrow)!)).toBeUndefined()
+		editor.dispose()
+	})
+})
+
 describe('exportThumbnailImage', () => {
 	// The export path resolves the requested ids the same way the live path does, so a job whose
 	// shapes moved pages has to fail there too. Without the refusal it falls through to
@@ -134,5 +270,104 @@ describe('signalThumbnailReady', () => {
 		expect(document.body.dataset.thumbnailReady).toBeUndefined()
 		expect(document.documentElement.dataset.thumbnailReady).toBeUndefined()
 		expect(document.body.dataset.thumbnailError).toBe(SHAPES_NOT_ON_PAGE)
+	})
+})
+
+describe('acquireThumbnailRenderData', () => {
+	const pushed = {
+		error: false as const,
+		records: [],
+		schema: { schemaVersion: 2, sequences: {} },
+		renderParams: { x: 0, y: 0, z: 1, width: 1200, height: 630, theme: 'light' as const },
+	}
+	const renderUrl = (params: string) =>
+		new URL(`https://www.tldraw.com/__thumbnail-render?token=t${params}`)
+
+	let fetchMock: ReturnType<typeof vi.fn>
+	beforeEach(() => {
+		fetchMock = vi.fn(async () => Response.json({ ...pushed, records: [{ id: 'fetched' }] }))
+		vi.stubGlobal('fetch', fetchMock)
+	})
+	afterEach(() => {
+		vi.useRealTimers()
+		vi.unstubAllGlobals()
+		delete (window as any).__TLDRAW_RENDER__
+	})
+
+	it('takes records pushed after the page started waiting, without fetching', async () => {
+		const acquiring = acquireThumbnailRenderData(renderUrl('&push=1'))
+		;(window as any).__TLDRAW_RENDER__ = pushed
+
+		expect(await acquiring).toEqual({
+			ok: true,
+			token: 't',
+			records: [],
+			schema: pushed.schema,
+			renderParams: pushed.renderParams,
+		})
+		expect(fetchMock).not.toHaveBeenCalled()
+	})
+
+	it('waits for an announced push rather than fetching', async () => {
+		vi.useFakeTimers()
+		let settled = false
+		const acquiring = acquireThumbnailRenderData(renderUrl('&push=1')).then((data) => {
+			settled = true
+			return data
+		})
+		await vi.advanceTimersByTimeAsync(30_000)
+		expect(settled).toBe(false)
+		expect(fetchMock).not.toHaveBeenCalled()
+
+		;(window as any).__TLDRAW_RENDER__ = pushed
+		expect(await acquiring).toMatchObject({ ok: true, records: [] })
+	})
+
+	it('fetches straight away when no push was announced', async () => {
+		expect(await acquireThumbnailRenderData(renderUrl(''))).toMatchObject({
+			ok: true,
+			records: [{ id: 'fetched' }],
+		})
+		expect(fetchMock).toHaveBeenCalledTimes(1)
+	})
+})
+
+describe('the failure beacon', () => {
+	// The page's state is module-scoped because it renders once; a fresh module per test is a fresh page.
+	beforeEach(() => {
+		vi.resetModules()
+	})
+
+	afterEach(() => {
+		vi.unstubAllGlobals()
+	})
+
+	// Browser Run reports only that the capture element was missing, so the page's own reason and how
+	// far it got are the only way a failure can be told apart from any other.
+	it('reports the first error once, with the last phase the page completed', async () => {
+		// What the page had marked when each request went out: the beacon has to leave before the
+		// error marker, which is what ends the Browser Run session.
+		const markedAtSend: (string | undefined)[] = []
+		const fetchMock = vi.fn(async (_url: RequestInfo | URL, _init?: RequestInit) => {
+			markedAtSend.push(document.body.dataset.thumbnailError)
+			return new Response(null, { status: 404 })
+		})
+		vi.stubGlobal('fetch', fetchMock)
+		const { acquireThumbnailRenderData, setThumbnailError } = await import('./thumbnail-render')
+
+		const data = await acquireThumbnailRenderData(
+			new URL('https://x.test/__thumbnail-render?token=t')
+		)
+		expect(data).toEqual({ ok: false, message: 'Could not load render job (404)' })
+		setThumbnailError('Could not load render job (404)')
+		setThumbnailError('a later failure')
+
+		const beacons = fetchMock.mock.calls.filter(([url]) =>
+			String(url).endsWith('/api/app/thumbnail-render/result')
+		)
+		expect(beacons.map(([, init]) => JSON.parse(init!.body as string))).toEqual([
+			{ token: 't', error: { message: 'Could not load render job (404)', phase: 'boot' } },
+		])
+		expect(markedAtSend).toEqual([undefined, undefined])
 	})
 })

@@ -50,6 +50,8 @@
 		"build-types": "tsc --build"
 	},
 	"dependencies": {
+		"@algolia/client-search": "^4.24.0",
+		"@algolia/recommend": "^4.24.0",
 		"@ariakit/react": "^0.4.15",
 		"@headlessui/react": "^2.2.0",
 		"@heroicons/react": "^2.2.0",
@@ -82,7 +84,6 @@
 		"remark": "^15.0.1",
 		"remark-gfm": "^4.0.0",
 		"remark-mdx": "^3.1.0",
-		"rimraf": "^4.4.1",
 		"shiki": "^1.29.1",
 		"sqlite": "^5.1.1",
 		"sqlite3": "^5.1.7",
@@ -95,7 +96,6 @@
 		"@types/node": "^22.15.31",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
-		"@types/sqlite3": "^3.1.11",
 		"@types/ws": "^8.18.1",
 		"autoprefixer": "^10.4.20",
 		"concurrently": "^9.1.2",

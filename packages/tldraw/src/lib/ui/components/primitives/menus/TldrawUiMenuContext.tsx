@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react'
+import { createContext, useContext, useMemo } from 'react'
 import { TLUiEventSource } from '../../../context/events'
 
 /** @public */
@@ -39,5 +39,7 @@ export function TldrawUiMenuContextProvider({
 	sourceId,
 	children,
 }: TLUiMenuContextProviderProps) {
-	return <menuContext.Provider value={{ type, sourceId }}>{children}</menuContext.Provider>
+	// A fresh value each render would re-render every item in the menu whenever the menu renders.
+	const value = useMemo(() => ({ type, sourceId }), [type, sourceId])
+	return <menuContext.Provider value={value}>{children}</menuContext.Provider>
 }

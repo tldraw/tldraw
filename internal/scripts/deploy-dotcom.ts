@@ -87,7 +87,6 @@ const env = makeEnv([
 	'SUPABASE_LITE_ANON_KEY',
 	'SUPABASE_LITE_URL',
 	'TLDRAW_ENV',
-	'TLDRAW_LICENSE',
 	'VERCEL_ORG_ID',
 	'VERCEL_PROJECT_ID',
 	'VERCEL_TOKEN',
@@ -621,6 +620,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 						// Staging opts in through its own wrangler.toml vars block; production stays on the
 						// export until the trial is judged. Injected here because previews have no such block.
 						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
+						THUMBNAIL_RENDER_PUSH: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml

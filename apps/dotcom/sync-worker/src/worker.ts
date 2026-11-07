@@ -45,11 +45,14 @@ import { getInviteInfo } from './routes/tla/getInviteInfo'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
-import { initUser } from './routes/tla/initUser'
+import { handleInitUser } from './routes/tla/initUser'
 import {
+	ROOT_MCP_SERVER_PATH,
+	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
+	isMcpHostRequest,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
@@ -67,7 +70,7 @@ import { testRoutes } from './testRoutes'
 import { Environment, OgImageRenderQueueMessage, QueueMessage, isDebugLogging } from './types'
 import { getFileEffectProcessor, getLogger } from './utils/durableObjects'
 import { getFeatureFlags } from './utils/featureFlags'
-import { getAuth, getZeroAuth, requireAuth, getMcpTokenAuth } from './utils/tla/getAuth'
+import { getAuth, getZeroAuth, getMcpTokenAuth } from './utils/tla/getAuth'
 import { hasWriteAccessToFile } from './utils/tla/hasWriteAccessToFile'
 import { createMcpMutators } from './utils/tla/mcpMutators'
 export { TLFileDurableObject } from './TLFileDurableObject'
@@ -166,11 +169,7 @@ const router = createRouter<Environment>()
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
-	.post('/app/:userId/init', async (req, env) => {
-		const auth = await requireAuth(req, env)
-		if (req.params.userId !== auth.userId) return notFound()
-		return initUser(req, env)
-	})
+	.post('/app/:userId/init', handleInitUser)
 	.post('/app/tldr', createFiles)
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
 	// for an uninstantiated DO, so without this a restarted dev stack drains nothing until the
@@ -296,18 +295,31 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
+// The MCP host (`mcp.tldraw.com`) serves MCP servers and nothing else, one per path. A router of its
+// own rather than routes on the main one, so no API route is reachable through the host and no
+// server's path can collide with one.
+const mcpHostRouter = createRouter<Environment>()
+	.options(ROOT_MCP_SERVER_PATH, mcpCorsPreflight)
+	.options(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.all(ROOT_MCP_SERVER_PATH, async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
+	.get(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	.all('*', notFound)
+
 export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
+		const onMcpHost = isMcpHostRequest(request, this.env)
 		// if we get a request that starts with /api/, strip it before handling.
 		const url = new URL(request.url)
 		const pathname = url.pathname.replace(/^\/api\//, '/')
-		if (pathname !== url.pathname) {
+		if (!onMcpHost && pathname !== url.pathname) {
 			url.pathname = pathname
 			request = new Request(url.toString(), request)
 		}
 
 		return await handleApiRequest({
-			router,
+			router: onMcpHost ? mcpHostRouter : router,
 			request,
 			env: this.env,
 			ctx: this.ctx,

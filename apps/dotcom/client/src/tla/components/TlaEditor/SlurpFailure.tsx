@@ -1,4 +1,5 @@
 import {
+	F,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
@@ -8,7 +9,6 @@ import {
 	TldrawUiDialogTitle,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
-import { F } from '../../utils/i18n'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 
 export function SlurpFailure({
@@ -51,7 +51,7 @@ export function SlurpFailure({
 						</ExternalLink>
 					</li>
 					<li>
-						<F defaultMessage="Export the content as a .tldr file: Select 'Download' in the top left menu." />
+						<F defaultMessage="Save the content as a .tldr file: select 'Save a copy' in the top left menu." />
 					</li>
 					<li>
 						<F defaultMessage="Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left." />

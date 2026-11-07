@@ -33,12 +33,6 @@
       "value": " adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -487,16 +481,6 @@
       "value": "Ortak çalışan sınırına ulaşıldı"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " okunmamış"
-    }
-  ],
   "550b25cc0c": [
     {
       "type": 0,
@@ -926,16 +910,6 @@
       "value": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr dosyası eklendi."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1106,6 +1080,38 @@
     {
       "type": 0,
       "value": "'e katılmaya davet edildiniz."
+    }
+  ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " okunmamış"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " okunmamış"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a0da245992": [
@@ -1280,6 +1286,12 @@
       "value": "Mal sahibi"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Dosyayı bu sayfanın kenar çubuğuna sürükleyin. Veya sol üst köşedeki Dosya menüsünden 'Dosya içe aktar' seçeneğini seçin."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1358,6 +1370,38 @@
       "value": "Paylaşım hakkında daha fazla bilgi edinin."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr dosyası eklendi."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr dosyaları eklendi."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1368,12 +1412,6 @@
     {
       "type": 0,
       "value": "Temel çerezler"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Uzun Dizi"
     }
   ],
   "c6a00f137b": [
@@ -1449,7 +1487,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " kişi daha"
             }
           ]
         },
@@ -1460,7 +1498,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " kişi daha"
             }
           ]
         }
@@ -1658,12 +1696,6 @@
       "value": "Hesap menüsü"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Aksanlı"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1771,7 +1803,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " kişi daha"
             }
           ]
         },
@@ -1782,7 +1814,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " kişi daha"
             }
           ]
         }

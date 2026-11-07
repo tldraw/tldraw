@@ -1,11 +1,16 @@
 import { existsSync, readFileSync, rmSync } from 'fs'
 import { resolve } from 'path'
-import kleur from 'kleur'
-import minimist from 'minimist'
+import { parseArgs, styleText } from 'util'
 import { exec } from './lib/exec'
 import { WORKER_EXTERNAL_DEPS } from './lib/worker-externals'
 
-const args = minimist(process.argv.slice(2))
+const { values: args } = parseArgs({
+	options: {
+		'size-limit-bytes': { type: 'string' },
+		entry: { type: 'string' },
+	},
+	strict: false,
+})
 const sizeLimit = Number(args['size-limit-bytes'])
 if (!isFinite(sizeLimit) || sizeLimit < 1) {
 	console.error(
@@ -14,9 +19,10 @@ if (!isFinite(sizeLimit) || sizeLimit < 1) {
 	process.exit(1)
 }
 
-const entry = args['entry']
+// strict: false yields `true` for a bare `--entry`, which should fail like a missing file
+const entry = typeof args['entry'] === 'string' ? args['entry'] : ''
 if (!existsSync(entry)) {
-	console.error('Entry file does not exist:', entry)
+	console.error('Entry file does not exist:', args['entry'])
 	process.exit(1)
 }
 
@@ -44,7 +50,7 @@ async function checkBundleSize() {
 		...WORKER_EXTERNAL_DEPS.map((dep) => '--external:' + dep),
 	])
 
-	console.log(kleur.cyan().bold('Checking bundle size'), 'of', resolve(entry) + '\n')
+	console.log(styleText(['cyan', 'bold'], 'Checking bundle size'), 'of', resolve(entry) + '\n')
 
 	const meta = JSON.parse(readFileSync(bundleMetaFileName).toString()) as Meta
 	const totalSize = Object.values(meta.outputs).reduce((acc, output) => acc + output.bytes, 0)
@@ -54,7 +60,7 @@ async function checkBundleSize() {
 
 	if (totalSize > sizeLimit) {
 		console.error(
-			`${kleur.red().bold('ERROR')} Bundle size exceeds limit: ${totalSize} > ${sizeLimit}`
+			`${styleText(['red', 'bold'], 'ERROR')} Bundle size exceeds limit: ${totalSize} > ${sizeLimit}`
 		)
 		process.exit(1)
 	}

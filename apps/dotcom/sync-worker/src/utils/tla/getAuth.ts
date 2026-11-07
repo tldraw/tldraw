@@ -22,19 +22,24 @@ export function getClerkClient(env: Environment) {
 	})
 }
 
-function getAuthorizedParties(env: Environment): string[] {
-	const parties = ['https://tldraw.com', 'https://www.tldraw.com', 'https://staging.tldraw.com']
-	// Only include localhost in non-production environments
-	if (env.TLDRAW_ENV !== 'production') {
-		parties.push('http://localhost:3000')
+function getAuthorizedParties(env: Environment): string[] | undefined {
+	switch (env.TLDRAW_ENV) {
+		case 'development':
+			// Local dev is also opened from phones and tablets via the machine's network address, which
+			// the worker can't know. Only Clerk's dev instance signs these tokens, so the check adds nothing.
+			return undefined
+		case 'staging':
+			return ['https://staging.tldraw.com']
+		case 'preview': {
+			// A missing or empty list disables Clerk's check, so a preview without its name must throw.
+			if (!env.WORKER_NAME) throw new Error('WORKER_NAME is required on previews')
+			// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
+			const previewId = env.WORKER_NAME.replace(/-tldraw-multiplayer$/, '')
+			return [`https://${previewId}-preview-deploy.tldraw.com`]
+		}
+		default:
+			return ['https://tldraw.com', 'https://www.tldraw.com']
 	}
-	// For preview envs, add the preview domain
-	// WORKER_NAME is like "pr-7731-tldraw-multiplayer"
-	if (env.TLDRAW_ENV === 'preview' && env.WORKER_NAME) {
-		const previewId = env.WORKER_NAME.replace(/-tldraw-multiplayer$/, '')
-		parties.push(`https://${previewId}-preview-deploy.tldraw.com`)
-	}
-	return parties
 }
 
 export async function getAuth(request: IRequest, env: Environment): Promise<SignedInAuth | null> {
@@ -167,9 +172,15 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
  * from "presented something bad" from "signed in and still not allowed" — three refusals that call
  * for entirely different answers, and that the MCP endpoint reports separately during the rollout.
  */
-export type McpTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured' | 'not_allowlisted'
+export type McpTokenRefusal = OAuthAccessTokenRefusal | 'not_allowlisted'
 
 export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
+
+export type OAuthAccessTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured'
+
+export type OAuthAccessTokenAuth =
+	| { ok: true; userId: string }
+	| { ok: false; reason: OAuthAccessTokenRefusal }
 
 export interface McpTokenOptions {
 	/**
@@ -203,8 +214,8 @@ export interface McpTokenOptions {
 }
 
 /**
- * The user behind an OAuth access token this Clerk instance issued, for a user `canUseMcpServer`
- * admits: one the `mcp_server_access` flag names, or a `@tldraw.com` account.
+ * The user behind an OAuth access token this Clerk instance issued, with no access check: see
+ * {@link getMcpTokenAuth} for that.
  *
  * Separate from {@link getAuth} rather than folded into it, and opted into one route at a time: a
  * session token is a credential the user's browser holds for tldraw.com itself, while this is one
@@ -247,11 +258,11 @@ export interface McpTokenOptions {
  * allowlist here would be the belt to that setting's braces if we ever want one — the claim is on
  * every token.
  */
-export async function getMcpTokenAuth(
+export async function verifyOAuthAccessToken(
 	request: IRequest,
 	env: Environment,
 	{ allowSubprotocolToken = false, allowQueryToken = false }: McpTokenOptions = {}
-): Promise<McpTokenAuth> {
+): Promise<OAuthAccessTokenAuth> {
 	const token =
 		getBearerToken(request) ??
 		(allowSubprotocolToken ? getSubprotocolToken(request) : null) ??
@@ -281,12 +292,25 @@ export async function getMcpTokenAuth(
 		return { ok: false, reason: 'invalid_token' }
 	}
 
-	const userId = state.toAuth().userId
-	if (!(await canUseMcpServer(env, userId))) {
+	return { ok: true, userId: state.toAuth().userId }
+}
+
+/**
+ * {@link verifyOAuthAccessToken}, for a user `canUseMcpServer` admits: one the `mcp_server_access`
+ * flag names, or a `@tldraw.com` account. That check also creates the user's rows when they have
+ * none, so an account that signed up on the consent screen has a workspace by the time it is let in.
+ */
+export async function getMcpTokenAuth(
+	request: IRequest,
+	env: Environment,
+	options: McpTokenOptions = {}
+): Promise<McpTokenAuth> {
+	const result = await verifyOAuthAccessToken(request, env, options)
+	if (!result.ok) return result
+	if (!(await canUseMcpServer(env, result.userId))) {
 		return { ok: false, reason: 'not_allowlisted' }
 	}
-
-	return { ok: true, userId }
+	return result
 }
 
 /** The bearer token on a request, if it carries one. */
@@ -345,9 +369,11 @@ function getSubprotocolToken(request: IRequest): string | null {
  * columns. Deliberately not a licence to cache it: it is safe only for a caller re-applying the gate
  * microseconds later inside one function, which is exactly where `loadBoardSnapshot` already accepts
  * one and where the render page's own read deliberately does not.
+ *
+ * `name` rides along for get_board_info, which would otherwise dial again for it.
  */
 export type ReadAccessToFile =
-	| { ok: true; file: { id: string; shared: boolean; isDeleted: boolean } }
+	| { ok: true; file: { id: string; name: string; shared: boolean; isDeleted: boolean } }
 	| { ok: false }
 
 export async function hasReadAccessToFile(
@@ -360,14 +386,14 @@ export async function hasReadAccessToFile(
 	try {
 		const file = await db
 			.selectFrom('file')
-			.select(['id', 'owningGroupId', 'shared', 'isDeleted'])
+			.select(['id', 'name', 'owningGroupId', 'shared', 'isDeleted'])
 			.where('id', '=', fileId)
 			.executeTakeFirst()
 
 		if (!file || file.isDeleted) return { ok: false }
 		const granted = {
 			ok: true,
-			file: { id: file.id, shared: file.shared, isDeleted: false },
+			file: { id: file.id, name: file.name, shared: file.shared, isDeleted: false },
 		} as const
 		if (file.owningGroupId) {
 			const role = await getRole(db, userId, file.owningGroupId)
