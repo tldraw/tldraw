@@ -52,6 +52,20 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Shows the collections UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
 		},
+		thumbnail_render_push: {
+			type: 'percentage',
+			// 0% by default: a deployment whose KV read fails keeps fetching, the path that predates push.
+			percentage: 0,
+			enabled: true,
+			description:
+				'Board thumbnail and OG renders send the board to the render page instead of the page fetching it. Bucketed per BOARD, not per user: the sync worker passes the board kind and slug as the id, and the per-user value browsers see is meaningless. MCP renders follow mcp_render_push instead. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH (dev, previews, staging push every board). A change lands within about a minute',
+		},
+		mcp_render_push: {
+			type: 'boolean',
+			enabled: true,
+			description:
+				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
+		},
 	}
 }
 
