@@ -61,6 +61,20 @@ describe('WorkspaceInviteHandler', () => {
 		expect(getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)).toBe('token-1')
 	})
 
+	// The restored token used to be re-fetched on every route change, re-showing the
+	// error toast each time.
+	it('does not retry a failed invite on route changes', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+
+		await act(async () => root.render(<WorkspaceInviteHandler />))
+		// The mocked useLocation returns a new location on every render, like a navigation.
+		await act(async () => root.render(<WorkspaceInviteHandler />))
+
+		expect(fetch).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)).toBe('token-1')
+	})
+
 	it('consumes the invite token once the invite loads', async () => {
 		vi.stubGlobal(
 			'fetch',

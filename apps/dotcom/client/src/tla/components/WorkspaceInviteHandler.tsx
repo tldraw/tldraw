@@ -1,6 +1,6 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/react'
 import { GetInviteInfoResponseBody } from '@tldraw/dotcom-shared'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useLocation, useSearchParams } from 'react-router-dom'
 import {
 	defineMessages,
@@ -48,6 +48,10 @@ export function WorkspaceInviteHandler() {
 	const [searchParams, setSearchParams] = useSearchParams()
 
 	const { user } = useClerkUser()
+	// The join effect re-runs on every navigation. A failed token stays in session
+	// storage so a reload can retry it, so without this each route change would
+	// re-fetch it and re-show the error toast.
+	const failedTokensRef = useRef(new Set<string>())
 
 	// Signed out with a pending invite: show the sign-in dialog with the invite
 	// context on top of the anonymous editor.
@@ -117,6 +121,7 @@ export function WorkspaceInviteHandler() {
 
 		const storedToken = getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
 		if (!storedToken) return
+		if (failedTokensRef.current.has(storedToken)) return
 
 		// Consume the token: this is the only place it is deleted.
 		deleteFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)
@@ -125,6 +130,7 @@ export function WorkspaceInviteHandler() {
 			// The toast says to try again, so put the token back: otherwise a reload
 			// has nothing to retry and the invite is lost.
 			setInSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN, storedToken)
+			failedTokensRef.current.add(storedToken)
 			addToast({
 				id: 'workspace-invite-error',
 				severity: 'error',
