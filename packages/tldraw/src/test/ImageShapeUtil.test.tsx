@@ -1,5 +1,12 @@
 import { act, fireEvent } from '@testing-library/react'
-import { AssetRecordType, Editor, TLAssetId, TLShapeId, createShapeId } from '@tldraw/editor'
+import {
+	AssetRecordType,
+	Editor,
+	TLAssetId,
+	TLAssetStore,
+	TLShapeId,
+	createShapeId,
+} from '@tldraw/editor'
 import { Tldraw } from '../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
@@ -7,10 +14,34 @@ let editor: Editor
 let imageShapeId: TLShapeId
 let imageAssetId: TLAssetId
 
+// Resolves to `meta.resolvedUrl` when set, so a test can give the same asset a new URL the way a
+// resolution change would.
+const assetStore: TLAssetStore = {
+	upload: async () => ({ src: '' }),
+	resolve: (asset) =>
+		typeof asset.meta.resolvedUrl === 'string' ? asset.meta.resolvedUrl : asset.props.src,
+}
+
 function getShapeContainer() {
 	const container = document.getElementById(imageShapeId)
 	expect(container).toBeTruthy()
 	return container!
+}
+
+function getImageSrcs() {
+	return [...getShapeContainer().querySelectorAll('img')].map((img) => img.getAttribute('src'))
+}
+
+function getImg(src: string) {
+	const img = getShapeContainer().querySelector(`img[src="${src}"]`)
+	expect(img).toBeTruthy()
+	return img!
+}
+
+async function flushAssetResolution() {
+	await act(async () => {
+		await new Promise((resolve) => setTimeout(resolve, 0))
+	})
 }
 
 async function createImage(src: string) {
@@ -34,19 +65,34 @@ async function createImage(src: string) {
 			},
 		])
 	})
-	// Wait for the async asset URL resolution so the <img> element renders
+	await flushAssetResolution()
+}
+
+// Re-resolves the same asset to a new URL, past the hook's 500ms debounce.
+async function resolveSameAssetTo(resolvedUrl: string) {
 	await act(async () => {
-		await new Promise((resolve) => setTimeout(resolve, 0))
+		const asset = editor.getAsset(imageAssetId)!
+		editor.updateAssets([{ ...asset, meta: { resolvedUrl } }])
+		for (let i = 0; i < 40; i++) editor.emit('tick', 16)
 	})
+	await flushAssetResolution()
+}
+
+function expectBrokenState() {
+	const container = getShapeContainer()
+	expect(container.querySelector('img')).toBeNull()
+	expect(container.querySelector('svg')).toBeTruthy()
+	expect(container.querySelector('.tl-image-container-loading')).toBeNull()
 }
 
 beforeEach(async () => {
 	imageShapeId = createShapeId('image')
 	imageAssetId = AssetRecordType.createId('imageAsset')
 
-	const result = await renderTldrawComponentWithEditor((onMount) => <Tldraw onMount={onMount} />, {
-		waitForPatterns: false,
-	})
+	const result = await renderTldrawComponentWithEditor(
+		(onMount) => <Tldraw onMount={onMount} assets={assetStore} />,
+		{ waitForPatterns: false }
+	)
 	editor = result.editor
 })
 
@@ -54,26 +100,35 @@ describe('ImageShapeUtil load errors', () => {
 	it('shows the broken asset state when the image fails to load', async () => {
 		await createImage('http://localhost/missing.png')
 
-		const container = getShapeContainer()
-		const img = container.querySelector('img')
-		expect(img).toBeTruthy()
-		expect(container.querySelector('svg')).toBeNull()
+		expect(getImageSrcs()).toEqual(['http://localhost/missing.png'])
+		expect(getShapeContainer().querySelector('svg')).toBeNull()
 
 		await act(async () => {
-			fireEvent.error(img!)
+			fireEvent.error(getImg('http://localhost/missing.png'))
 		})
 
-		expect(container.querySelector('img')).toBeNull()
-		expect(container.querySelector('svg')).toBeTruthy()
-		expect(container.querySelector('.tl-image-container-loading')).toBeNull()
+		expectBrokenState()
 	})
 
-	it('keeps showing an already loaded image when a newer URL fails to load', async () => {
+	it('keeps showing an already loaded image when a new resolution of the same asset fails', async () => {
 		await createImage('http://localhost/first.png')
-
-		const container = getShapeContainer()
 		await act(async () => {
-			fireEvent.load(container.querySelector('img')!)
+			fireEvent.load(getImg('http://localhost/first.png'))
+		})
+
+		await resolveSameAssetTo('http://localhost/first-2x.png')
+		await act(async () => {
+			fireEvent.error(getImg('http://localhost/first-2x.png'))
+		})
+
+		expect(getImageSrcs()).toEqual(['http://localhost/first.png'])
+		expect(getShapeContainer().querySelector('svg')).toBeNull()
+	})
+
+	it('shows the broken asset state when the shape switches to an asset that fails to load', async () => {
+		await createImage('http://localhost/first.png')
+		await act(async () => {
+			fireEvent.load(getImg('http://localhost/first.png'))
 		})
 
 		const secondAssetId = AssetRecordType.createId('secondImageAsset')
@@ -88,19 +143,29 @@ describe('ImageShapeUtil load errors', () => {
 			])
 			editor.updateShape({ id: imageShapeId, type: 'image', props: { assetId: secondAssetId } })
 		})
+		await flushAssetResolution()
+
+		expect(getImageSrcs()).toEqual(['http://localhost/second.png'])
 		await act(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 0))
+			fireEvent.error(getImg('http://localhost/second.png'))
 		})
 
-		const next = container.querySelector('img[src="http://localhost/second.png"]')
-		expect(next).toBeTruthy()
+		expectBrokenState()
+	})
+
+	it('stays broken when resolution changes alternate between URLs that already failed', async () => {
+		await createImage('http://localhost/a.png')
 		await act(async () => {
-			fireEvent.error(next!)
+			fireEvent.error(getImg('http://localhost/a.png'))
 		})
 
-		expect([...container.querySelectorAll('img')].map((img) => img.getAttribute('src'))).toEqual([
-			'http://localhost/first.png',
-		])
-		expect(container.querySelector('svg')).toBeNull()
+		await resolveSameAssetTo('http://localhost/b.png')
+		await act(async () => {
+			fireEvent.error(getImg('http://localhost/b.png'))
+		})
+		expectBrokenState()
+
+		await resolveSameAssetTo('http://localhost/a.png')
+		expectBrokenState()
 	})
 })
