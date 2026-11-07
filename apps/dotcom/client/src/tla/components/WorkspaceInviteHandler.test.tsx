@@ -13,9 +13,12 @@ vi.mock('@clerk/react', () => ({
 	useUser: () => ({ user: { legalAcceptedAt: new Date() } }),
 }))
 
+let location = { pathname: '/', search: '', key: 'default' }
+
 vi.mock('react-router-dom', () => ({
-	useLocation: () => ({ pathname: '/' }),
-	useSearchParams: () => [new URLSearchParams(), vi.fn()],
+	// A new object on every render, like a navigation.
+	useLocation: () => ({ ...location }),
+	useSearchParams: () => [new URLSearchParams(location.search), vi.fn()],
 }))
 
 vi.mock('../hooks/useAppState', () => ({
@@ -37,6 +40,7 @@ describe('WorkspaceInviteHandler', () => {
 		vi.stubGlobal('IS_REACT_ACT_ENVIRONMENT', true)
 		container = document.createElement('div')
 		root = createRoot(container)
+		location = { pathname: '/', search: '', key: 'default' }
 		setInSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN, 'token-1')
 	})
 
@@ -66,13 +70,30 @@ describe('WorkspaceInviteHandler', () => {
 	it('does not retry a failed invite on route changes', async () => {
 		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
+		location = { pathname: '/', search: '?invite=true', key: 'arrival' }
 		await act(async () => root.render(<WorkspaceInviteHandler />))
-		// The mocked useLocation returns a new location on every render, like a navigation.
+		// A re-render on the same invite location.
+		await act(async () => root.render(<WorkspaceInviteHandler />))
+		location = { pathname: '/f/file-1', search: '', key: 'route-change' }
 		await act(async () => root.render(<WorkspaceInviteHandler />))
 
 		expect(fetch).toHaveBeenCalledTimes(1)
 		expect(addToast).toHaveBeenCalledTimes(1)
 		expect(getFromSessionStorage(SESSION_STORAGE_KEYS.WORKSPACE_INVITE_TOKEN)).toBe('token-1')
+	})
+
+	it('retries a failed invite when the invite link is opened again', async () => {
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
+
+		location = { pathname: '/', search: '?invite=true', key: 'first-arrival' }
+		await act(async () => root.render(<WorkspaceInviteHandler />))
+		location = { pathname: '/f/file-1', search: '', key: 'route-change' }
+		await act(async () => root.render(<WorkspaceInviteHandler />))
+		location = { pathname: '/', search: '?invite=true', key: 'second-arrival' }
+		await act(async () => root.render(<WorkspaceInviteHandler />))
+
+		expect(fetch).toHaveBeenCalledTimes(2)
+		expect(addToast).toHaveBeenCalledTimes(2)
 	})
 
 	it('consumes the invite token once the invite loads', async () => {
