@@ -32,6 +32,7 @@ import { TLAnyAssetUtilConstructor } from './config/defaultAssets'
 import { TLAnyBindingUtilConstructor } from './config/defaultBindings'
 import { TLAnyShapeUtilConstructor } from './config/defaultShapes'
 import { TLEditorSnapshot } from './config/TLEditorSnapshot'
+import { defaultI18n, TLI18nAdapter } from './config/TLI18n'
 import { Editor } from './editor/Editor'
 import { resolveThemes } from './editor/managers/ThemeManager/ThemeManager'
 import { TLAnyOverlayUtilConstructor } from './editor/overlays/OverlayUtil'
@@ -46,7 +47,7 @@ import { EditorProvider, useEditor } from './hooks/useEditor'
 import { EditorComponentsProvider } from './hooks/useEditorComponents'
 import { useEvent } from './hooks/useEvent'
 import { useForceUpdate } from './hooks/useForceUpdate'
-import { useShallowObjectIdentity } from './hooks/useIdentity'
+import { useDeepObjectIdentity, useShallowObjectIdentity } from './hooks/useIdentity'
 import { useLocalStore } from './hooks/useLocalStore'
 import { useRefState } from './hooks/useRefState'
 import { useStateAttribute } from './hooks/useStateAttribute'
@@ -106,11 +107,7 @@ export interface TldrawEditorWithoutStoreProps extends TLStoreBaseOptions {
 /** @public */
 export type TldrawEditorStoreProps = TldrawEditorWithStoreProps | TldrawEditorWithoutStoreProps
 
-/**
- * Props for the {@link tldraw#Tldraw} and {@link TldrawEditor} components.
- *
- * @public
- **/
+/** @public */
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps
 
 /**
@@ -257,6 +254,11 @@ export interface TldrawEditorBaseProps {
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
+
+	/**
+	 * An i18n adapter for translating strings.
+	 */
+	i18n?: TLI18nAdapter
 }
 
 /**
@@ -284,7 +286,13 @@ const EMPTY_TOOLS_ARRAY = [] as const
 /** @internal */
 export const TL_CONTAINER_CLASS = 'tl-container'
 
-/** @public @react */
+/**
+ * The editor component without any of the default shapes, tools, or UI. It renders the canvas, or
+ * your own children in its place, with the shape utils, binding utils, tools, and components you
+ * pass in; the `Tldraw` component in the `tldraw` package wraps it with those defaults.
+ *
+ * @public @react
+ */
 export const TldrawEditor = memo(function TldrawEditor({
 	store,
 	components,
@@ -311,18 +319,24 @@ export const TldrawEditor = memo(function TldrawEditor({
 	const ErrorFallback =
 		components?.ErrorFallback === undefined ? DefaultErrorFallback : components?.ErrorFallback
 
-	// Merge deprecated props with options
-	// options values take precedence over the deprecated props
-	const mergedOptions = useMemo(() => {
-		let result = _options
-		if (_textOptions) {
-			result = { ...result, text: result?.text ?? _textOptions }
-		}
-		if (_deepLinks !== undefined) {
-			result = { ...result, deepLinks: result?.deepLinks ?? _deepLinks }
-		}
-		return result
-	}, [_options, _textOptions, _deepLinks])
+	// Merge deprecated props with options (options win). `options` is a dependency of the
+	// editor-creating effect, so it's shallow-stabilised below; the nested objects are
+	// deep-stabilised here first, or an inline `options={{ camera: { ... } }}` would still
+	// recreate the editor on every render. `text` needs the deep comparison as well: `<Tldraw>`
+	// builds a fresh `tipTapConfig` inside it whenever its own `options.text` is a new identity.
+	const camera = useDeepObjectIdentity(_options?.camera)
+	const gridSteps = useDeepObjectIdentity(_options?.gridSteps)
+	const text = useDeepObjectIdentity(_options?.text ?? _textOptions)
+	const mergedDeepLinks = _options?.deepLinks ?? _deepLinks
+	const deepLinkOptions = useDeepObjectIdentity(
+		mergedDeepLinks === true ? undefined : mergedDeepLinks
+	)
+	const deepLinks = mergedDeepLinks === true ? true : deepLinkOptions
+	let mergedOptions = _options
+	if (camera !== undefined) mergedOptions = { ...mergedOptions, camera }
+	if (gridSteps !== undefined) mergedOptions = { ...mergedOptions, gridSteps }
+	if (text !== undefined) mergedOptions = { ...mergedOptions, text }
+	if (deepLinks !== undefined) mergedOptions = { ...mergedOptions, deepLinks }
 
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
@@ -476,6 +490,23 @@ const TldrawEditorWithLoadingStore = memo(function TldrawEditorBeforeLoading({
 
 const noAutoFocus = () => getGlobalDocument().location.search.includes('tldraw_preserve_focus')
 
+/**
+ * A slot the UI fills with its own i18n, for an editor whose host passed none. Every app that
+ * composes `<TldrawEditor>` and `<TldrawUi>` by hand rather than rendering `<Tldraw>` is one: the
+ * `i18n` prop is new, so none of them pass it, and their shape names — which shapes now resolve
+ * through the editor's i18n — would have been announced in English. The UI renders inside the
+ * editor in every composition, so it can hand its translations up. An `i18n` prop still wins.
+ *
+ * `<Tldraw>` relies on this too, rather than passing a prop: the translation provider it renders
+ * above the editor has its locale fixed at mount, so an adapter read from there kept announcing
+ * shapes in the first language after the user switched.
+ *
+ * @internal
+ */
+export const EditorI18nFallbackContext = React.createContext<{
+	current: TLI18nAdapter | null
+} | null>(null)
+
 function TldrawEditorWithReadyStore({
 	onMount,
 	children,
@@ -497,6 +528,7 @@ function TldrawEditorWithReadyStore({
 	assetUrls,
 	themes,
 	initialTheme,
+	i18n,
 }: Required<
 	TldrawEditorProps & {
 		store: TLStore
@@ -541,6 +573,18 @@ function TldrawEditorWithReadyStore({
 		}
 	}, [autoFocus, initialState, colorScheme, cameraOptions, deepLinks, themes, initialTheme])
 
+	// The adapter is called on each use rather than held as a value, so the editor can keep one
+	// stable function that reads whichever adapter is current. Listing `i18n` among the deps that
+	// recreate the editor instead tore it down — camera, selection, undo history — whenever the
+	// adapter's identity changed, which is every render for one written inline.
+	const i18nRef = useRef(i18n)
+	i18nRef.current = i18n
+	const fallbackI18nRef = useRef<TLI18nAdapter | null>(null)
+	const stableI18n = useCallback<TLI18nAdapter>(
+		() => (i18nRef.current ?? fallbackI18nRef.current ?? defaultI18n)(),
+		[]
+	)
+
 	useLayoutEffect(
 		() => {
 			const {
@@ -572,6 +616,7 @@ function TldrawEditorWithReadyStore({
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
 				initialTheme: initialTheme,
+				i18n: stableI18n,
 			})
 			editor.licenseManager = licenseManager
 
@@ -612,6 +657,7 @@ function TldrawEditorWithReadyStore({
 			licenseManager,
 			getShapeVisibility,
 			assetUrls,
+			stableI18n,
 		]
 	)
 
@@ -669,19 +715,25 @@ function TldrawEditorWithReadyStore({
 	useEffect(
 		function handleFocusOnPointerDownForPreserveFocusMode() {
 			if (!editor) return
+			const container = editor.getContainer()
 
 			function handleFocusOnPointerDown() {
 				if (!editor) return
 				editor.focus()
 			}
 
-			function handleBlurOnPointerDown() {
+			function handleBlurOnPointerDown(e: PointerEvent) {
 				if (!editor) return
+				// The same pointerdown bubbles from the container to the body; blurring here would
+				// cancel the interaction the container listener just focused for. Check the composed
+				// path rather than `e.target`: when the editor lives in an open shadow root the target
+				// is retargeted to the shadow host by the time the event reaches the body. (A closed
+				// shadow root truncates the path at the host, so those still blur.)
+				if (e.composedPath().includes(container)) return
 				editor.blur()
 			}
 
 			if (autoFocus && noAutoFocus()) {
-				const container = editor.getContainer()
 				container.addEventListener('pointerdown', handleFocusOnPointerDown)
 				container.ownerDocument.body.addEventListener('pointerdown', handleBlurOnPointerDown)
 
@@ -753,10 +805,12 @@ function TldrawEditorWithReadyStore({
 				<Crash crashingError={crashingError} />
 			) : (
 				<EditorProvider editor={editor}>
-					<Layout onMount={onMount}>
-						{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
-						<Watermark />
-					</Layout>
+					<EditorI18nFallbackContext.Provider value={fallbackI18nRef}>
+						<Layout onMount={onMount}>
+							{children ?? (Canvas ? <Canvas key={editor.contextId} /> : null)}
+							<Watermark />
+						</Layout>
+					</EditorI18nFallbackContext.Provider>
 				</EditorProvider>
 			)}
 		</OptionalErrorBoundary>

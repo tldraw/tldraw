@@ -1,5 +1,5 @@
 import '@tiptap/extension-text-style'
-import { Extension } from '@tiptap/core'
+import { Extension } from 'tldraw'
 
 export interface FontSizeOptions {
 	/**

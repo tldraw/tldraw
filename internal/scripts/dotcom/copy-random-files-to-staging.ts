@@ -100,9 +100,7 @@ async function copyFilesToStaging(fileIds: string[]) {
 				const testFile: TlaFile = {
 					id: newId,
 					name: 'Test File',
-					ownerId: null,
 					ownerName: 'Test User',
-					ownerAvatar: null,
 					thumbnail: '',
 					shared: false,
 					sharedLinkType: 'link',

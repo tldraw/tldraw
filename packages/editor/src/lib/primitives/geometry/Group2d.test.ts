@@ -340,18 +340,36 @@ describe('Group2d.transform', () => {
 		expect(t.vertices.length).toBe(8)
 	})
 
-	it('carries the label, debug colour and ignore flags forward', () => {
+	it('carries all the flags forward', () => {
 		const g = new Group2d({
 			children: [rectA()],
 			isLabel: true,
+			isEmptyLabel: true,
+			isInternal: true,
+			excludeFromShapeBounds: true,
 			debugColor: 'red',
 			ignore: true,
 		})
 		expect(g.transform(Mat.Identity())).toMatchObject({
 			isLabel: true,
+			isEmptyLabel: true,
+			isInternal: true,
+			excludeFromShapeBounds: true,
 			debugColor: 'red',
 			ignore: true,
 		})
+	})
+
+	it('applies the transform options over the carried flags', () => {
+		const g = new Group2d({ children: [rectA()], isLabel: true, isInternal: true })
+		expect(
+			g.transform(Mat.Identity(), {
+				isLabel: false,
+				isInternal: false,
+				debugColor: 'red',
+				ignore: true,
+			})
+		).toMatchObject({ isLabel: false, isInternal: false, debugColor: 'red', ignore: true })
 	})
 
 	it('scales hit testing with the transform', () => {
@@ -361,12 +379,15 @@ describe('Group2d.transform', () => {
 		expect(t.distanceToPoint(new Vec(300, 50))).toBe(100)
 	})
 
-	// Locks in current behaviour, see #10562.
-	it('drops the ignored children', () => {
+	// #10562: transform used to drop the ignored children.
+	it('keeps the transformed ignored children', () => {
 		const ignored = new Rectangle2d({ x: 500, width: 10, height: 10, isFilled: true, ignore: true })
 		const g = new Group2d({ children: [rectA(), ignored] })
-		expect(g.ignoredChildren.length).toBe(1)
-		expect((g.transform(Mat.Identity()) as Group2d).ignoredChildren).toEqual([])
+		const t = g.transform(Mat.Translate(10, 20)) as Group2d
+		expect(t.children.length).toBe(1)
+		expect(t.ignoredChildren.length).toBe(1)
+		expect(t.ignoredChildren[0].ignore).toBe(true)
+		expect(t.ignoredChildren[0].bounds).toMatchObject({ x: 510, y: 20, w: 10, h: 10 })
 	})
 })
 

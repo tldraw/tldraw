@@ -1,4 +1,11 @@
-import { USER_COLORS, getOwnerWindow, track, useContainer, useEditor } from '@tldraw/editor'
+import {
+	defineMessages,
+	getOwnerWindow,
+	track,
+	useContainer,
+	useEditor,
+	USER_COLORS,
+} from '@tldraw/editor'
 import { Popover as _Popover } from 'radix-ui'
 import React, { useCallback, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
@@ -6,6 +13,10 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid } from '../primitives/layout'
+
+const messages = defineMessages({
+	peopleMenuChangeColor: { id: 'people-menu.change-color', defaultMessage: 'Change color' },
+})
 
 /** @public @react */
 export const UserPresenceColorPicker = track(function UserPresenceColorPicker() {
@@ -18,9 +29,6 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	const rPointing = useRef(false)
 
 	const [isOpen, setIsOpen] = useState(false)
-	const handleOpenChange = useCallback((isOpen: boolean) => {
-		setIsOpen(isOpen)
-	}, [])
 
 	const value = editor.user.getColor()
 
@@ -84,13 +92,13 @@ export const UserPresenceColorPicker = track(function UserPresenceColorPicker() 
 	}, [container, value, onValueChange])
 
 	return (
-		<_Popover.Root onOpenChange={handleOpenChange} open={isOpen}>
+		<_Popover.Root onOpenChange={setIsOpen} open={isOpen}>
 			<_Popover.Trigger dir={dir} asChild>
 				<TldrawUiButton
 					type="icon"
 					className="tlui-people-menu__user__color"
-					style={{ color: editor.user.getColor() }}
-					title={msg('people-menu.change-color')}
+					style={{ color: value }}
+					title={msg(messages.peopleMenuChangeColor)}
 				>
 					<TldrawUiButtonIcon icon="color" />
 				</TldrawUiButton>

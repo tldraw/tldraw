@@ -1,10 +1,9 @@
 import { mkdtempSync, rmSync, writeFileSync } from 'fs'
 import { tmpdir } from 'os'
 import { join } from 'path'
+import { parseArgs, styleText } from 'util'
 import { gzipSync } from 'zlib'
 import { build } from 'esbuild'
-import kleur from 'kleur'
-import minimist from 'minimist'
 import { REPO_ROOT } from './lib/file'
 import { nicelog } from './lib/nicelog'
 
@@ -47,10 +46,11 @@ const ENTRIES: Entry[] = [
 	{
 		name: "import { Tldraw } from 'tldraw'",
 		source: `export { Tldraw } from ${specifier('packages/tldraw/src/index')}`,
-		// Measured at 1,657,637 B when this check was added, and 1,738,900 B with every
-		// sideEffects declaration ignored, so the limit sits between the two. Bump it deliberately
-		// when the SDK legitimately grows; it exists to make growth visible, not to forbid it.
-		sizeLimitBytes: 1_700_000,
+		// Measured at about 1,741,800 B in November 2026, and about 1,867,800 B with
+		// every sideEffects declaration ignored, so the limit sits between the two. Bump it
+		// deliberately when the SDK legitimately grows; it exists to make growth visible, not to
+		// forbid it.
+		sizeLimitBytes: 1_780_000,
 		mustNotInclude: [...TLDRAW_CANARIES, ...EDITOR_CANARIES],
 	},
 	{
@@ -104,7 +104,7 @@ function kb(bytes: number) {
 }
 
 async function main() {
-	const args = minimist(process.argv.slice(2))
+	const { values: args } = parseArgs({ options: { verbose: { type: 'boolean' } }, strict: false })
 	const dir = mkdtempSync(join(tmpdir(), 'tldraw-bundle-'))
 	let tooBig = false
 	let badInputs = false
@@ -112,13 +112,13 @@ async function main() {
 		for (const entry of ENTRIES) {
 			const { minified, gzipped, inputs } = await measure(entry, dir)
 			nicelog(
-				`${kleur.cyan().bold(entry.name)}  ${kb(minified)} minified, ${kb(gzipped)} gzipped, ${inputs.length} modules`
+				`${styleText(['cyan', 'bold'], entry.name)}  ${kb(minified)} minified, ${kb(gzipped)} gzipped, ${inputs.length} modules`
 			)
 
 			if (entry.sizeLimitBytes && minified > entry.sizeLimitBytes) {
 				tooBig = true
 				nicelog(
-					`  ${kleur.red().bold('ERROR')} exceeds the size limit of ${kb(entry.sizeLimitBytes)} minified`
+					`  ${styleText(['red', 'bold'], 'ERROR')} exceeds the size limit of ${kb(entry.sizeLimitBytes)} minified`
 				)
 			}
 
@@ -126,7 +126,7 @@ async function main() {
 				if (inputs.some((file) => file.includes(pattern))) {
 					badInputs = true
 					nicelog(
-						`  ${kleur.red().bold('ERROR')} includes ${pattern}, which nothing in this entry should need`
+						`  ${styleText(['red', 'bold'], 'ERROR')} includes ${pattern}, which nothing in this entry should need`
 					)
 				}
 			}
@@ -135,7 +135,7 @@ async function main() {
 				if (!inputs.some((file) => file.includes(pattern))) {
 					badInputs = true
 					nicelog(
-						`  ${kleur.red().bold('ERROR')} does not include ${pattern}; was the canary renamed or removed?`
+						`  ${styleText(['red', 'bold'], 'ERROR')} does not include ${pattern}; was the canary renamed or removed?`
 					)
 				}
 			}
@@ -150,14 +150,16 @@ async function main() {
 
 	if (badInputs) {
 		nicelog(
-			kleur.red(
-				'\nThe SDK bundle includes code that consumers should not pay for. Check that every package in packages/* declares "sideEffects" (yarn check-packages) and that no module runs code at import time. Canaries live in internal/scripts/check-sdk-bundle.ts.'
+			styleText(
+				'red',
+				'\nThe SDK bundle includes code that consumers should not pay for. Check that every package in packages/* declares "sideEffects" (pnpm check-packages) and that no module runs code at import time. Canaries live in internal/scripts/check-sdk-bundle.ts.'
 			)
 		)
 	}
 	if (tooBig) {
 		nicelog(
-			kleur.red(
+			styleText(
+				'red',
 				'\nThe SDK bundle has grown past its size limit. If the growth is intended, bump sizeLimitBytes in internal/scripts/check-sdk-bundle.ts.'
 			)
 		)

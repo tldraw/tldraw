@@ -1,0 +1,12 @@
+-- The thread-starter notifications feed can start from the caller's own threads. Without this the
+-- planner's cheapest plan is a walk of every comment_thread row.
+--
+-- A plain build, so it runs inside the runner's transaction and takes SHARE on comment_thread for
+-- the build (a few thousand rows: milliseconds). If 052 is in the same run, that transaction
+-- already holds SHARE on "file" and keeps it until COMMIT, so this extends 052's write-block
+-- window on "file" by the build time. No deadlock is possible with it: nothing writes
+-- comment_thread and then waits on "file" in one transaction. The comment drain never touches
+-- "file" in its transaction, bumpFileUpdatedAt runs on its own connection (TLFileDurableObject),
+-- and the comment_thread -> file foreign key check takes a row KEY SHARE, which SHARE doesn't
+-- block.
+CREATE INDEX IF NOT EXISTS comment_thread_created_by_idx ON comment_thread("createdBy");

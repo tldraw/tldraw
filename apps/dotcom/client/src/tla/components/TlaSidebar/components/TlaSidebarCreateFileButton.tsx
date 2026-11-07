@@ -1,12 +1,11 @@
 import { useCallback, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { TldrawUiButton, tltime } from 'tldraw'
+import { TldrawUiButton, tltime, useTranslation } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { useMsg } from '../../../utils/i18n'
 import { toggleMobileSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages } from './sidebar-shared'
@@ -26,14 +25,14 @@ export function useHandleSidebarCreateFile() {
 		if (!rCanCreate.current) return
 		const res = await app.createFile({ workspaceId: activeWorkspaceId })
 		if (res.ok) {
+			const { fileId } = res.value
 			const isMobile = getIsCoarsePointer()
 			if (!isMobile) {
 				app.sidebarState.update((prev) => ({
 					...prev,
-					renameState: { fileId: res.value.fileId, workspaceId: activeWorkspaceId },
+					renameState: { fileId, workspaceId: activeWorkspaceId },
 				}))
 			}
-			const { fileId } = res.value
 			navigate(routes.tlaFile(fileId))
 			trackEvent('create-file', { source: 'sidebar' })
 			rCanCreate.current = false
@@ -46,7 +45,8 @@ export function useHandleSidebarCreateFile() {
 }
 
 export function TlaSidebarCreateFileButton() {
-	const createTitle = useMsg(messages.create)
+	const msg = useTranslation()
+	const createTitle = msg(messages.create)
 	const handleSidebarCreate = useHandleSidebarCreateFile()
 
 	return (

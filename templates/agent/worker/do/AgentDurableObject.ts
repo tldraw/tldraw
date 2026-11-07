@@ -43,12 +43,17 @@ export class AgentDurableObject extends DurableObject<Environment> {
 			try {
 				const prompt = (await request.json()) as AgentPrompt
 
-				for await (const change of this.service.stream(prompt)) {
+				const finish = { toolCalls: 0 }
+				for await (const change of this.service.stream(prompt, finish)) {
 					response.changes.push(change)
 					const data = `data: ${JSON.stringify(change)}\n\n`
 					await writer.write(encoder.encode(data))
 					await writer.ready
 				}
+				// The model expects the results of its tool calls, which the client sends back.
+				await writer.write(
+					encoder.encode(`data: ${JSON.stringify({ toolCalls: finish.toolCalls })}\n\n`)
+				)
 				await writer.close()
 			} catch (error: any) {
 				console.error('Stream error:', error)

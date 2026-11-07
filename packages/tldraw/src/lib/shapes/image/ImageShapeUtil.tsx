@@ -1,14 +1,24 @@
 // oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
+	createShapeId,
+	defineMessages,
 	Editor,
 	Ellipse2d,
+	fetch,
 	FileHelpers,
 	Geometry2d,
+	getGlobalDocument,
 	HTMLContainer,
 	Image,
+	imageShapeMigrations,
+	imageShapeProps,
+	lerp,
 	MediaHelpers,
+	modulate,
 	Rectangle2d,
+	resizeBox,
+	structuredClone,
 	SvgExportContext,
 	TLAsset,
 	TLAssetId,
@@ -17,21 +27,13 @@ import {
 	TLImageShapeProps,
 	TLResizeInfo,
 	TLShapePartial,
-	Vec,
-	VecModel,
-	WeakCache,
-	createShapeId,
-	fetch,
-	getGlobalDocument,
-	imageShapeMigrations,
-	imageShapeProps,
-	lerp,
-	modulate,
-	resizeBox,
-	structuredClone,
+	translateMessage,
 	useEditor,
 	useUniqueSafeId,
 	useValue,
+	Vec,
+	VecModel,
+	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
@@ -62,6 +64,10 @@ export interface ImageShapeOptions extends ShapeOptionsWithDisplayValues<
 	ImageShapeUtilDisplayValues
 > {}
 
+const messages = defineMessages({
+	name: { id: 'a11y.shape-image', defaultMessage: 'Image' },
+})
+
 /** @public */
 export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 	static override type = 'image' as const
@@ -76,6 +82,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		getCustomDisplayValues(): Partial<ImageShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
 	}
 
 	override isAspectRatioLocked(shape: TLImageShape) {
@@ -168,6 +178,10 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 		return shape.props.altText
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: TLImageShape, info: TLResizeInfo<TLImageShape>) {
 		let resized: TLImageShape = resizeBox(shape, info)
 		const { scaleX, scaleY } = info
@@ -231,7 +245,7 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const { w } = getUncroppedSize(shape.props, props.crop)
 
-		const src = await imageSvgExportCache.get(asset, async () => {
+		const promise = imageSvgExportCache.get(asset, async () => {
 			let src = await ctx.resolveAssetUrl(asset.id, w)
 			if (!src) return null
 			if (
@@ -250,6 +264,14 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 				src = await promise
 			}
 			return src
+		})
+		const src = await promise.catch((error) => {
+			// A failure (e.g. a CORS-blocked fetch) must not stay memoized, or every later export of
+			// this asset fails too. Only evict our own entry: a concurrent export may have started a
+			// fresh one in the meantime. Skip the image rather than failing the whole export.
+			if (imageSvgExportCache.items.get(asset) === promise) imageSvgExportCache.items.delete(asset)
+			console.error(`Could not export image ${asset.id}`, error)
+			return null
 		})
 
 		if (!src) return null
@@ -342,10 +364,15 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		if (url && isAnimated) {
 			const { promise, cancel } = getFirstFrameOfAnimatedImage(url)
 
-			promise.then((dataUrl) => {
-				setStaticFrameSrc(dataUrl)
-				setLoadedUrl(url)
-			})
+			promise.then(
+				(dataUrl) => {
+					setStaticFrameSrc(dataUrl)
+					setLoadedUrl(url)
+				},
+				() => {
+					// couldn't decode a first frame; keep showing the animated source
+				}
+			)
 
 			return () => {
 				cancel()
@@ -610,7 +637,9 @@ function SvgImage({ shape, src }: { shape: TLImageShape; src: string }) {
 function getFirstFrameOfAnimatedImage(url: string) {
 	let cancelled = false
 
-	const promise = new Promise<string>((resolve) => {
+	// Must settle on failure too: an image that never loads would otherwise leave the
+	// export awaiting this promise forever.
+	const promise = new Promise<string>((resolve, reject) => {
 		const image = Image()
 		image.onload = () => {
 			if (cancelled) return
@@ -620,10 +649,17 @@ function getFirstFrameOfAnimatedImage(url: string) {
 			canvas.height = image.height
 
 			const ctx = canvas.getContext('2d')
-			if (!ctx) return
+			if (!ctx) {
+				reject(new Error('Could not get a 2d canvas context'))
+				return
+			}
 
 			ctx.drawImage(image, 0, 0)
 			resolve(canvas.toDataURL())
+		}
+		image.onerror = () => {
+			if (cancelled) return
+			reject(new Error(`Could not load image: ${url}`))
 		}
 		image.crossOrigin = 'anonymous'
 		image.src = url

@@ -1,12 +1,17 @@
-import { createTLSchema, fetch, parseTldrawJsonFile, TLDocument } from 'tldraw'
+import {
+	createTLSchema,
+	fetch,
+	parseTldrawJsonFile,
+	TLDocument,
+	TLDRAW_FILE_EXTENSION,
+} from 'tldraw'
 import type { TldrawApp } from '../app/TldrawApp'
 
-export async function importFromUrl(
-	app: TldrawApp,
-	url: string
-): Promise<
-	{ ok: true; fileId: string } | { ok: false; error: string; toastAlreadyShown?: boolean }
-> {
+type ImportResult =
+	| { ok: true; fileId: string }
+	| { ok: false; error: string; toastAlreadyShown?: boolean }
+
+export async function importFromUrl(app: TldrawApp, url: string): Promise<ImportResult> {
 	try {
 		const res = await fetch(url, { mode: 'cors' })
 		if (!res.ok) {
@@ -26,11 +31,11 @@ export async function importFromUrl(
 		)
 		const rawName = documentRecord?.name?.trim()
 		const sanitized = rawName?.replace(/[/\\:*?"<>|]/g, '_').slice(0, 200) || 'import'
-		const fileName = sanitized.endsWith('.tldr') ? sanitized : `${sanitized}.tldr`
+		const fileName = sanitized.toLowerCase().endsWith(TLDRAW_FILE_EXTENSION)
+			? sanitized
+			: `${sanitized}${TLDRAW_FILE_EXTENSION}`
 		const file = new File([json], fileName, { type: 'application/json' })
-		return new Promise<
-			{ ok: true; fileId: string } | { ok: false; error: string; toastAlreadyShown?: boolean }
-		>((resolve) => {
+		return new Promise<ImportResult>((resolve) => {
 			app.uploadTldrFiles([file], {
 				source: 'import-url',
 				onFirstFileUploaded: (fileId) => resolve({ ok: true, fileId }),

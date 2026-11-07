@@ -30,31 +30,34 @@ The `type` determines the visual appearance—like `'default'`, `'grab'`, or `'n
 
 tldraw supports these cursor types:
 
-| Type          | Description                                    |
-| ------------- | ---------------------------------------------- |
-| `default`     | Standard pointer arrow                         |
-| `pointer`     | Hand indicating clickable element              |
-| `cross`       | Crosshair for precise positioning              |
-| `comment`     | Speech bubble for placing comments             |
-| `grab`        | Open hand for draggable content                |
-| `grabbing`    | Closed hand while dragging                     |
-| `text`        | I-beam for text editing                        |
-| `move`        | Four-way arrow for moving elements             |
-| `zoom-in`     | Magnifying glass with plus                     |
-| `zoom-out`    | Magnifying glass with minus                    |
-| `ew-resize`   | Horizontal resize (east-west)                  |
-| `ns-resize`   | Vertical resize (north-south)                  |
-| `nesw-resize` | Diagonal resize (northeast-southwest)          |
-| `nwse-resize` | Diagonal resize (northwest-southeast)          |
-| `nesw-rotate` | Rotation handle (northeast-southwest position) |
-| `nwse-rotate` | Rotation handle (northwest-southeast position) |
-| `senw-rotate` | Rotation handle (southeast-northwest position) |
-| `swne-rotate` | Rotation handle (southwest-northeast position) |
-| `none`        | Hidden cursor                                  |
+| Type            | Description                                               |
+| --------------- | --------------------------------------------------------- |
+| `default`       | Standard pointer arrow                                    |
+| `pointer`       | Hand indicating clickable element                         |
+| `cross`         | Crosshair for precise positioning                         |
+| `comment`       | Speech bubble for placing comments                        |
+| `grab`          | Open hand for draggable content                           |
+| `grabbing`      | Closed hand while dragging                                |
+| `text`          | I-beam for text editing                                   |
+| `move`          | Four-way arrow for moving elements                        |
+| `zoom-in`       | Magnifying glass with plus                                |
+| `zoom-out`      | Magnifying glass with minus                               |
+| `ew-resize`     | Horizontal resize (east-west)                             |
+| `ns-resize`     | Vertical resize (north-south)                             |
+| `nesw-resize`   | Diagonal resize (northeast-southwest)                     |
+| `nwse-resize`   | Diagonal resize (northwest-southeast)                     |
+| `nesw-rotate`   | Rotation handle (northeast-southwest position)            |
+| `nwse-rotate`   | Rotation handle (northwest-southeast position)            |
+| `senw-rotate`   | Rotation handle (southeast-northwest position)            |
+| `swne-rotate`   | Rotation handle (southwest-northeast position)            |
+| `none`          | Hidden cursor                                             |
+| `rotate`        | Static rotation cursor (falls back to `pointer`)          |
+| `resize-edge`   | Static edge resize cursor (falls back to `ew-resize`)     |
+| `resize-corner` | Static corner resize cursor (falls back to `nesw-resize`) |
 
 Static cursors like `default`, `pointer`, and `grab` are prerendered SVG cursors defined as CSS custom properties in tldraw's stylesheet (`--tl-cursor-default`, `--tl-cursor-grab`, and so on). Dynamic cursors like the resize and rotate types are generated at runtime as SVGs with the current rotation applied. The canvas reads the result from the `--tl-cursor` variable.
 
-> `TLCursorType` also includes `resize-edge`, `resize-corner`, and `rotate` for schema compatibility. The default cursor rendering doesn't support them, so don't pass them to `setCursor`.
+The `rotate`, `resize-edge`, and `resize-corner` types are static too: they map to `--tl-cursor-rotate`, `--tl-cursor-resize-edge`, and `--tl-cursor-resize-corner`, which default to the browser's `pointer`, `ew-resize`, and `nesw-resize` cursors and ignore the cursor rotation. Use the direction-specific `*-resize` and `*-rotate` types when you want the rotated SVG cursors.
 
 ## Setting the cursor
 

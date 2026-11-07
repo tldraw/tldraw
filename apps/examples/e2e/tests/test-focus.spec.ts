@@ -1,6 +1,7 @@
 import test, { expect } from '@playwright/test'
 import { Editor } from 'tldraw'
 
+declare const editor: Editor
 declare const EDITOR_A: Editor
 declare const EDITOR_B: Editor
 declare const EDITOR_C: Editor
@@ -211,18 +212,23 @@ test.describe('Focus', () => {
 		await (await page.$('body'))?.click()
 		await page.waitForSelector('.tl-shape')
 		await page.keyboard.type('test')
+		const firstNoteId = await page.evaluate(() => editor.getEditingShapeId())
+		const firstNote = page.locator(`.tl-shape[data-shape-id="${firstNoteId}"]`)
 
 		// create new note next to it
 		await page.keyboard.press('Tab')
+		await expect(page.locator('.tl-shape')).toHaveCount(2)
 
-		await (await page.$('body'))?.click()
+		// Tab pans to the new note; let the camera settle so the first note is where
+		// the locator resolves it before clicking.
+		await page.waitForFunction(() => editor.getCameraState() === 'idle')
+
+		await firstNote.click()
 
 		await page.waitForTimeout(1000)
 
-		// First note's contenteditable should be focused.
-		expect(
-			await EditorA.evaluate(() => !!document.querySelector('.tl-shape div[contenteditable]:focus'))
-		).toBe(true)
+		// The first note, not the one Tab created, should be the focused one.
+		await expect(firstNote.locator('div[contenteditable]')).toBeFocused()
 	})
 
 	test('exits edit mode when dragging from text label with blurred input', async ({ page }) => {

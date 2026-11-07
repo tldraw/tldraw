@@ -1,6 +1,13 @@
 import {
+	assert,
 	AssetRecordType,
+	createShapeId,
+	defineMessages,
 	Editor,
+	fetch,
+	getHashForBuffer,
+	getHashForString,
+	maybeSnapToGrid,
 	T,
 	TLAsset,
 	TLAssetId,
@@ -17,15 +24,9 @@ import {
 	TLTextShapeProps,
 	TLUrlExternalAsset,
 	TLVideoAsset,
+	toRichText,
 	Vec,
 	VecLike,
-	assert,
-	createShapeId,
-	fetch,
-	getHashForBuffer,
-	getHashForString,
-	maybeSnapToGrid,
-	toRichText,
 } from '@tldraw/editor'
 import { EmbedDefinition } from './defaultEmbedDefinitions'
 import { createBookmarkFromUrl } from './shapes/bookmark/bookmarks'
@@ -33,10 +34,32 @@ import { EmbedShapeUtil } from './shapes/embed/EmbedShapeUtil'
 import { getCroppedImageDataForReplacedImage } from './shapes/shared/crop'
 import { FONT_SIZES, TEXT_PROPS, getFontFamily } from './shapes/shared/default-shape-constants'
 import { TLUiToastsContextType } from './ui/context/toasts'
-import { useTranslation } from './ui/hooks/useTranslation/useTranslation'
+import { TLUiTranslationValues } from './ui/hooks/useTranslation/useTranslation'
 import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
+import { isShapeWithLink } from './utils/shapes/shapes'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
+
+const messages = defineMessages({
+	assetsFilesAmountTooMany: {
+		id: 'assets.files.amount-too-many',
+		defaultMessage: 'Too many files',
+	},
+	assetsFilesMaximumSize: {
+		id: 'assets.files.maximum-size',
+		defaultMessage: 'Maximum file size is {size}',
+	},
+	assetsFilesSizeTooBig: {
+		id: 'assets.files.size-too-big',
+		defaultMessage: 'File size is too big',
+	},
+	assetsFilesTypeNotAllowed: {
+		id: 'assets.files.type-not-allowed',
+		defaultMessage: 'File type is not allowed',
+	},
+	assetsFilesUploadFailed: { id: 'assets.files.upload-failed', defaultMessage: 'Upload failed' },
+	assetsUrlFailed: { id: 'assets.url.failed', defaultMessage: 'Couldn’t load URL preview' },
+})
 
 /**
  * 5000px
@@ -84,7 +107,8 @@ export interface TLExternalContentProps {
 /** @public */
 export interface TLDefaultExternalContentHandlerOpts extends TLExternalContentProps {
 	toasts: TLUiToastsContextType
-	msg: ReturnType<typeof useTranslation>
+	// Takes ids, not declared messages: an app may supply its own `msg` that only knows string keys.
+	msg(id: string, values?: TLUiTranslationValues): string
 }
 
 /** @public */
@@ -179,12 +203,25 @@ export async function defaultHandleExternalFileReplaceContent(
 
 	const hash = getHashForBuffer(await sanitizedFile.arrayBuffer())
 	const assetId = AssetRecordType.createId(hash)
-	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
-	const assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
-		| TLImageAsset
-		| TLVideoAsset
-		| null
+	// Callers don't await replacement, so an undecodable file (e.g. an audio-only video,
+	// #11218) would otherwise reject unhandled with no toast.
+	let assetInfoPartial: TLImageAsset | TLVideoAsset | null
+	try {
+		assetInfoPartial = (await getAssetInfo(editor, sanitizedFile, assetId)) as
+			| TLImageAsset
+			| TLVideoAsset
+			| null
+	} catch (error) {
+		options.toasts.addToast({
+			title: options.msg(messages.assetsFilesUploadFailed.id),
+			severity: 'error',
+		})
+		console.error(error)
+		return
+	}
 	if (!assetInfoPartial) return
+	const assetExisted = !!editor.getAsset(assetId)
+	editor.createTemporaryAssetPreview(assetId, sanitizedFile)
 	editor.createAssets([assetInfoPartial])
 
 	// And update the shape
@@ -242,11 +279,25 @@ export async function defaultHandleExternalFileReplaceContent(
 		])
 	}
 
-	const asset = (await editor.getAssetForExternalContent({
-		type: 'file',
-		file: sanitizedFile,
-		assetId,
-	})) as TLAsset
+	let asset: TLAsset | undefined
+	try {
+		asset = await editor.getAssetForExternalContent({
+			type: 'file',
+			file: sanitizedFile,
+			assetId,
+		})
+		if (!asset) throw Error('Could not create an asset')
+	} catch (error) {
+		// The shape already shows the new asset's local preview, which has no src to persist.
+		options.toasts.addToast({
+			title: options.msg(messages.assetsFilesUploadFailed.id),
+			severity: 'error',
+		})
+		console.error(error)
+		editor.updateShapes([shape])
+		if (!assetExisted) editor.deleteAssets([assetId])
+		return
+	}
 
 	editor.updateAssets([{ ...asset, id: assetId }])
 
@@ -287,7 +338,7 @@ export async function defaultHandleExternalUrlAsset(
 	} catch (error) {
 		console.error(error)
 		toasts.addToast({
-			title: msg('assets.url.failed'),
+			title: msg(messages.assetsUrlFailed.id),
 			severity: 'error',
 		})
 		meta = { image: '', favicon: '', title: '', description: '' }
@@ -396,7 +447,7 @@ export async function defaultHandleExternalFileContent(
 ) {
 	const { toasts, msg } = options
 	if (files.length > editor.options.maxFilesAtOnce) {
-		toasts.addToast({ title: msg('assets.files.amount-too-many'), severity: 'error' })
+		toasts.addToast({ title: msg(messages.assetsFilesAmountTooMany.id), severity: 'error' })
 		return
 	}
 
@@ -419,7 +470,7 @@ export async function defaultHandleExternalFileContent(
 		const sanitizedFile = await maybeSanitizeSvgFile(file)
 		if (!sanitizedFile) {
 			toasts.addToast({
-				title: msg('assets.files.upload-failed'),
+				title: msg(messages.assetsFilesUploadFailed.id),
 				severity: 'error',
 			})
 			continue
@@ -431,7 +482,7 @@ export async function defaultHandleExternalFileContent(
 			assetInfo = await getAssetInfo(editor, sanitizedFile)
 		} catch (error) {
 			toasts.addToast({
-				title: msg('assets.files.upload-failed'),
+				title: msg(messages.assetsFilesUploadFailed.id),
 				severity: 'error',
 			})
 			console.error(error)
@@ -461,7 +512,7 @@ export async function defaultHandleExternalFileContent(
 				editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
 			} catch (error) {
 				toasts.addToast({
-					title: msg('assets.files.upload-failed'),
+					title: msg(messages.assetsFilesUploadFailed.id),
 					severity: 'error',
 				})
 				console.error(error)
@@ -595,7 +646,7 @@ export async function defaultHandleExternalTextContent(
 /** @public */
 export async function defaultHandleExternalUrlContent(
 	editor: Editor,
-	{ point, url }: { point?: VecLike; url: string },
+	{ point, url, shapeId }: { point?: VecLike; url: string; shapeId?: TLShapeId },
 	{ toasts, msg }: TLDefaultExternalContentHandlerOpts
 ) {
 	// Bookmark shapes validate their `url` prop with T.linkUrl, so a url we can't
@@ -608,10 +659,21 @@ export async function defaultHandleExternalUrlContent(
 	if (!T.linkUrl.isValid(url)) {
 		console.warn(`Could not create a bookmark from an invalid url: ${JSON.stringify(url)}`)
 		toasts.addToast({
-			title: msg('assets.url.failed'),
+			title: msg(messages.assetsUrlFailed.id),
 			severity: 'error',
 		})
 		return
+	}
+
+	// A url aimed at a shape decorates that shape: no bookmark, and no embed even when the url is
+	// one we could embed, since the user aimed it at something that already exists.
+	if (shapeId) {
+		const shape = editor.getShape(shapeId)
+		if (isShapeWithLink(shape)) {
+			editor.updateShapes([{ id: shape.id, type: shape.type, props: { url } }])
+			editor.select(shape.id)
+			return
+		}
 	}
 
 	// try to paste as an embed first
@@ -638,7 +700,7 @@ export async function defaultHandleExternalUrlContent(
 
 	if (!result.ok) {
 		toasts.addToast({
-			title: msg('assets.url.failed'),
+			title: msg(messages.assetsUrlFailed.id),
 			severity: 'error',
 		})
 		return
@@ -728,6 +790,11 @@ export async function createShapesForAssets(
 	assets: TLAsset[],
 	position: VecLike
 ): Promise<TLShapeId[]> {
+	assets = assets.filter((asset) => {
+		if (hasValidSize(asset)) return true
+		console.error(`Skipped asset ${asset.id}: it has no size`)
+		return false
+	})
 	if (!assets.length) return []
 
 	const currentPoint = Vec.From(position)
@@ -901,7 +968,7 @@ export function notifyIfFileNotAllowed(
 		(acceptedVideoMimeTypes?.includes(file.type) ?? false)
 	if (!isFileTypeAllowed) {
 		toasts.addToast({
-			title: msg('assets.files.type-not-allowed'),
+			title: msg(messages.assetsFilesTypeNotAllowed.id),
 			severity: 'error',
 		})
 		return false
@@ -922,8 +989,8 @@ export function notifyIfFileNotAllowed(
 		}
 
 		toasts.addToast({
-			title: msg('assets.files.size-too-big'),
-			description: msg('assets.files.maximum-size').replace('{size}', formatBytes(maxAssetSize)),
+			title: msg(messages.assetsFilesSizeTooBig.id),
+			description: msg(messages.assetsFilesMaximumSize.id, { size: formatBytes(maxAssetSize) }),
 			severity: 'error',
 		})
 		return false
@@ -934,7 +1001,7 @@ export function notifyIfFileNotAllowed(
 	// of copied files.
 	if (!file.type) {
 		toasts.addToast({
-			title: msg('assets.files.upload-failed'),
+			title: msg(messages.assetsFilesUploadFailed.id),
 			severity: 'error',
 		})
 		console.error('No mime type')
@@ -954,5 +1021,17 @@ export async function getAssetInfo(editor: Editor, file: File, assetId?: TLAsset
 	const assetUtil = editor.getAssetUtilForMimeType(file.type)
 	if (!assetUtil) return null
 
-	return await assetUtil.getAssetFromFile(file, assetId)
+	const asset = await assetUtil.getAssetFromFile(file, assetId)
+	if (asset && !hasValidSize(asset)) {
+		throw new Error(`Asset from "${file.name}" has no size`)
+	}
+	return asset
+}
+
+// Shapes made from a sized asset take its size, and a zero size fails shape validation and
+// crashes the editor (#11218): e.g. an audio-only video or an SVG with no intrinsic size.
+function hasValidSize(asset: TLAsset) {
+	if (!('w' in asset.props) || !('h' in asset.props)) return true
+	const { w, h } = asset.props
+	return Number.isFinite(w) && Number.isFinite(h) && w > 0 && h > 0
 }

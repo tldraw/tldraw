@@ -97,9 +97,10 @@ The note's text color is determined by its `labelColor` property. When set to `'
 
 Notes support the following configuration options:
 
-| Option       | Type                  | Default  | Description                                                       |
-| ------------ | --------------------- | -------- | ----------------------------------------------------------------- |
-| `resizeMode` | `'none'` \| `'scale'` | `'none'` | How the note resizes. Set to `'scale'` for manual resize handles. |
+| Option                 | Type                                                   | Default                       | Description                                                                                       |
+| ---------------------- | ------------------------------------------------------ | ----------------------------- | ------------------------------------------------------------------------------------------------- |
+| `resizeMode`           | `'none'` \| `'scale'`                                  | `'none'`                      | How the note resizes. Set to `'scale'` for manual resize handles.                                 |
+| `AttributionComponent` | `ComponentType<TLNoteShapeAttributionProps>` \| `null` | `DefaultNoteShapeAttribution` | Component for the attribution badge. Set to `null` to hide it, or provide your own to replace it. |
 
 By default, notes can't be manually resized—they only grow based on text content. To allow user resizing with locked aspect ratio:
 
@@ -122,9 +123,13 @@ export default function App() {
 
 See the [note resizing example](/examples/configuration/resize-note) for a working demo. Other display values, such as `noteWidth`, `noteHeight`, and colors, can be customized through the display value hooks on `NoteShapeUtil` options; see [Themes](/sdk-features/themes).
 
+### Attribution badge
+
+Notes show the name of the user who last edited their text as a small badge in the corner. This badge is rendered by the `AttributionComponent` option above, which you can override or hide with `NoteShapeUtil.configure`—it applies on the canvas and in image exports. See [attribution](/sdk-features/attribution) for details.
+
 ## Dynamic resize mode
 
-When `editor.user.getIsDynamicResizeMode()` is true, new notes are created at a scale inversely proportional to the current zoom level, so they stay visually consistent regardless of zoom. [Editor#getResizeScaleFactor](?) returns that scale. See [Text shape](/sdk-features/text-shape#dynamic-resize-mode) for details.
+When `editor.user.getIsDynamicResizeMode()` is true, new notes are created at a scale inversely proportional to the current zoom level, so they stay visually consistent regardless of zoom. [Editor#getResizeScaleFactor](?) returns that scale. See [Text shape](/sdk-features/text-shape#Dynamic-resize-mode) for details.
 
 ## Related articles
 

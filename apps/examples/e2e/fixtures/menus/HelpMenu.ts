@@ -14,9 +14,6 @@ export class HelpMenu {
 		this.languagesContent = this.page.getByTestId('help-menu-sub.language-content')
 		this.keyboardShortcutsMenu = new KeyboardShortcutsMenu(this.page)
 		this.linkGroup = {
-			github: this.page.getByTestId('help-menu.github'),
-			twitter: this.page.getByTestId('help-menu.twitter'),
-			discord: this.page.getByTestId('help-menu.discord'),
 			about: this.page.getByTestId('help-menu.about'),
 		}
 	}

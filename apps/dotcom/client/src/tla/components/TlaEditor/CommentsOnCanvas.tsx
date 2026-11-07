@@ -9,12 +9,20 @@ import {
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { TLUiOverrides, useDialogs, useEditor, useValue } from 'tldraw'
+import {
+	defineMessages,
+	F,
+	TLUiOverrides,
+	useDialogs,
+	useEditor,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { routes } from '../../../routeDefs'
+import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCommentTracking } from '../../hooks/useCommentTracking'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { latestForeignReactionAt } from '../TlaSidebar/components/commentNotifications'
@@ -40,13 +48,14 @@ const commentMessages = defineMessages({
  * old the comment is.
  */
 export function CommentsOnCanvas({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const app = useMaybeApp()
 	const currentUserId = app?.userId ?? null
 	useCommentTracking()
 	// Guests who signed in by email have no name yet, so their roster rows would be blank. Name them
 	// the same way the rest of the commenting UI names an author it can't resolve.
-	const unknownAuthor = useMsg(commentMessages.unknownAuthor)
+	const unknownAuthor = msg(commentMessages.unknownAuthor)
 
 	const currentUser = useValue(
 		'current user',
@@ -61,34 +70,11 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		[app]
 	)
 
-	// This file's comments (denormalized author fields + the caller's read receipts) from Zero. A
-	// live view we own — resubscribed when the file changes and destroyed on unmount.
-	const [fileComments, setFileComments] = useState<FileComments>([])
-	useEffect(() => {
-		if (!app) return
-		const view = app.materializeQuery<FileComments>(queries.fileComments({ fileId }))
-		setFileComments(view.data)
-		const unlisten = view.addListener((data) => setFileComments(data))
-		return () => {
-			unlisten()
-			view.destroy()
-		}
-	}, [app, fileId])
-
-	// Everyone who has opened this file (identity denormalized onto their file_visitor row — see
-	// migration 044), so past viewers — not just workspace members — can be @-mentioned. Same
-	// live-view lifecycle as above.
-	const [fileVisitors, setFileVisitors] = useState<FileVisitors>([])
-	useEffect(() => {
-		if (!app) return
-		const view = app.materializeQuery<FileVisitors>(queries.fileVisitors({ fileId }))
-		setFileVisitors(view.data)
-		const unlisten = view.addListener((data) => setFileVisitors(data))
-		return () => {
-			unlisten()
-			view.destroy()
-		}
-	}, [app, fileId])
+	// This file's comments (denormalized author fields + the caller's read receipts), and everyone
+	// who has opened it (identity denormalized onto their file_visitor row — see migration 044) so
+	// past viewers — not just workspace members — can be @-mentioned.
+	const fileComments = useFileQuery<FileComments>(app, fileId, queries.fileComments)
+	const fileVisitors = useFileQuery<FileVisitors>(app, fileId, queries.fileVisitors)
 
 	const commentAuthors = useMemo(() => {
 		const authors = new Map<string, CommentAuthor>()
@@ -249,6 +235,27 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	)
 }
 
+/** A live view of a Zero query scoped to one file, resubscribed when the file changes and
+ *  destroyed on unmount. */
+function useFileQuery<T extends readonly unknown[]>(
+	app: TldrawApp | null,
+	fileId: string,
+	query: (args: { fileId: string }) => unknown
+): T {
+	const [data, setData] = useState<T>([] as unknown as T)
+	useEffect(() => {
+		if (!app) return
+		const view = app.materializeQuery<T>(query({ fileId }))
+		setData(view.data)
+		const unlisten = view.addListener((next) => setData(next as T))
+		return () => {
+			unlisten()
+			view.destroy()
+		}
+	}, [app, fileId, query])
+	return data
+}
+
 /** Value equality for the presence-author maps: same ids, each with the same name and color. */
 function presenceAuthorsEqual(
 	a: ReadonlyMap<string, CommentAuthor>,
@@ -269,9 +276,10 @@ const signInMessages = defineMessages({
 /** For signed-out viewers, the comment tool button and its `c` shortcut open the sign-in dialog
  *  instead of entering the tool. Compose after `commentToolOverrides`, which registers the tool. */
 export function useAnonCommentToolOverrides(): TLUiOverrides {
+	const msg = useTranslation()
 	const app = useMaybeApp()
 	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = useMsg(signInMessages.signInToComment)
+	const ctaString = msg(signInMessages.signInToComment)
 	return useMemo(() => {
 		if (app) return {}
 		return {
@@ -292,6 +300,7 @@ export function useAnonCommentToolOverrides(): TLUiOverrides {
 /** Anon viewers read comments but don't compose — the toolkit's `ComposerFallback` slot holds
  *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */
 export function SignInToComment() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	// Fallback slots render for every non-composing session; the CTA is only honest for a
 	// signed-out visitor on an editable canvas — signing in unlocks nothing on view-only.
@@ -299,14 +308,16 @@ export function SignInToComment() {
 	const app = useMaybeApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = useMsg(signInMessages.signInToComment)
 	if (isReadonly || app) return null
 	return (
 		<TlaCtaButton
 			canvas
 			data-testid="tla-sign-in-to-comment-button"
 			onClick={() => {
-				trackEvent('sign-up-clicked', { source: 'comments', ctaMessage: ctaString })
+				trackEvent('sign-up-clicked', {
+					source: 'comments',
+					ctaMessage: msg(signInMessages.signInToComment),
+				})
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>

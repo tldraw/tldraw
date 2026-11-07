@@ -8,6 +8,9 @@ export const TemplateDeployConfig = T.object({
 	target: T.literalEnum('cloudflare'),
 	// The hostname the demo is served from. Must match the custom domain route in wrangler.toml.
 	host: T.string,
+	// Worker secrets the demo needs, uploaded with each deploy. Each value comes from the deploy
+	// environment variable TEMPLATES_<TEMPLATE>_<SECRET>, e.g. TEMPLATES_AGENT_OPENROUTER_API_KEY.
+	secrets: T.arrayOf(T.string).optional(),
 })
 export type TemplateDeployConfig = T.TypeOf<typeof TemplateDeployConfig>
 
@@ -56,7 +59,6 @@ export const PackageJson = T.object({
 	name: T.string,
 	private: T.boolean.optional(),
 	sideEffects: T.or(T.boolean, T.arrayOf(T.string)).optional(),
-	workspaces: T.arrayOf(T.string).optional(),
 	[EXPORT_CONFIG_KEY]: TemplateConfig.optional(),
 	[PRODUCT_CONFIG_KEY]: ProductConfig.optional(),
 	license: T.string.optional(),
@@ -65,6 +67,9 @@ export const PackageJson = T.object({
 	dependencies: T.dict(T.string, T.string).optional(),
 	devDependencies: T.dict(T.string, T.string).optional(),
 	peerDependencies: T.dict(T.string, T.string).optional(),
+	optionalDependencies: T.dict(T.string, T.string).optional(),
+	engines: T.dict(T.string, T.string).optional(),
+	packageManager: T.string.optional(),
 }).allowUnknownProperties()
 export type PackageJson = T.TypeOf<typeof PackageJson>
 

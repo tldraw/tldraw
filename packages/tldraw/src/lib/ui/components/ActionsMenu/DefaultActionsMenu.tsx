@@ -1,3 +1,4 @@
+import { defineMessages } from '@tldraw/editor'
 import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
@@ -14,6 +15,10 @@ import {
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
 import { DefaultActionsMenuContent } from './DefaultActionsMenuContent'
 
+const messages = defineMessages({
+	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
+})
+
 /** @public */
 export interface TLUiActionsMenuProps {
 	children?: ReactNode
@@ -28,10 +33,6 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 	const isReadonlyMode = useReadonly()
 	const { orientation } = useTldrawUiOrientation()
 
-	// Get the actions menu content, either the default component or the user's
-	// override. If there's no menu content, then the user has set it to null,
-	// so skip rendering the menu.
-
 	const content = children ?? <DefaultActionsMenuContent />
 
 	// Every default action edits shapes, so in readonly mode the menu would open empty
@@ -43,7 +44,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				<TldrawUiToolbarButton
 					type="icon"
 					data-testid="actions-menu.button"
-					title={msg('actions-menu.title')}
+					title={msg(messages.actionsMenuTitle)}
 				>
 					<TldrawUiButtonIcon
 						icon={orientation === 'horizontal' ? 'dots-vertical' : 'dots-horizontal'}
@@ -62,7 +63,7 @@ export const DefaultActionsMenu = memo(function DefaultActionsMenu({
 				sideOffset={6}
 			>
 				<TldrawUiToolbar
-					label={msg('actions-menu.title')}
+					label={msg(messages.actionsMenuTitle)}
 					className="tlui-actions-menu"
 					data-testid="actions-menu.content"
 					orientation="grid"

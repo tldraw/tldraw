@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Kéo tệp vào thanh bên ở trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu người dùng."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -253,6 +247,12 @@
       "value": " đã bình luận trên diễn đàn của bạn"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Không thể gửi phản hồi"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +269,12 @@
     {
       "type": 0,
       "value": "Tìm kiếm..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Vui lòng thử lại."
     }
   ],
   "2de510be71": [
@@ -417,12 +423,6 @@
       "value": "Để tiếp tục chỉnh sửa, vui lòng sao chép tệp vào thư mục của bạn."
     }
   ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
-    }
-  ],
   "47f493a590": [
     {
       "type": 0,
@@ -489,14 +489,10 @@
       "value": "Đã đạt tới giới hạn cộng tác viên"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
+  "550b25cc0c": [
     {
       "type": 0,
-      "value": " chưa đọc"
+      "value": "Không thể khôi phục bản vẽ cục bộ của bạn. Hãy thử tải lại trang này."
     }
   ],
   "554a05155c": [
@@ -918,20 +914,6 @@
       "value": "Vui lòng làm mới trang để tải phiên bản mới nhất của tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Đã thêm "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " tệp .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1062,6 +1044,12 @@
       "value": "Xóa tệp"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Có vẻ như bạn đang ngoại tuyến. Hãy kiểm tra kết nối của mình và thử lại."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1104,6 +1092,27 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " chưa đọc"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a0da245992": [
@@ -1278,6 +1287,12 @@
       "value": "Người sở hữu"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Kéo tệp vào thanh bên trên trang này. Hoặc chọn tùy chọn 'Nhập tệp' từ menu Tệp ở góc trên bên trái."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1352,6 +1367,31 @@
       "value": "Tìm hiểu thêm về chia sẻ."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Đã thêm "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " tệp .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1362,12 +1402,6 @@
     {
       "type": 0,
       "value": "Cookie thiết yếu"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Chuỗi dài"
     }
   ],
   "c6a00f137b": [
@@ -1436,17 +1470,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1454,7 +1477,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " người khác"
             }
           ]
         }
@@ -1652,12 +1675,6 @@
       "value": "Menu tài khoản"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Có dấu"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1758,17 +1775,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1776,7 +1782,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " người khác"
             }
           ]
         }

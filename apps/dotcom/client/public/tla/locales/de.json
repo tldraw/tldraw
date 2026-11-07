@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Wir arbeiten an der Unterstützung für Dateien von <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
-  },
   "043973ec1f": {
     "translation": "Immer noch Probleme? {GetHelpLink}"
   },
@@ -95,6 +92,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> hat Ihren Beitrag kommentiert"
   },
+  "28b2464e1f": {
+    "translation": "Feedback konnte nicht übermittelt werden"
+  },
   "299cb00a7a": {
     "translation": "Hochladen fehlgeschlagen"
   },
@@ -103,6 +103,9 @@
   },
   "2a37324bb4": {
     "translation": "Suchen..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Bitte versuchen Sie es erneut."
   },
   "2de510be71": {
     "translation": "Durch die Neugenerierung wird der aktuelle Einladungslink durch einen neuen ersetzt. Alle, die den alten Link verwenden, benötigen den neuen, um beitreten zu können."
@@ -170,9 +173,6 @@
   "477df802ca": {
     "translation": "Um die Bearbeitung fortzusetzen, kopieren Sie bitte die Datei in Ihren Dateien."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "Pin-Datei"
   },
@@ -206,8 +206,8 @@
   "54286b1d01": {
     "translation": "Limit für Mitwirkende erreicht"
   },
-  "545241e7dd": {
-    "translation": "{count} ungelesen"
+  "550b25cc0c": {
+    "translation": "Ihre lokale Zeichnung konnte nicht wiederhergestellt werden. Versuchen Sie, diese Seite neu zu laden."
   },
   "554a05155c": {
     "translation": "Immer noch Probleme? <a>Problem melden</a>"
@@ -380,9 +380,6 @@
   "85a082de1b": {
     "translation": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr-Dateien hinzugefügt."
-  },
   "86c66437fd": {
     "translation": "Datei umbenennen"
   },
@@ -434,6 +431,9 @@
   "9bef626805": {
     "translation": "Datei löschen"
   },
+  "9c228b6834": {
+    "translation": "Sie scheinen offline zu sein. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+  },
   "9ccb565b86": {
     "translation": "Es gibt derzeit Probleme mit der Verbindung zu unserem Authentifizierungsdienst. Dies ist in der Regel nur vorübergehend. Bitte aktualisieren Sie die Seite."
   },
@@ -448,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Sie wurden eingeladen, dem <strong>{workspaceName}</strong> beizutreten."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# ungelesen} other {# ungelesen}}"
   },
   "a0da245992": {
     "translation": "Exportieren Sie den Inhalt als .tldr-Datei: Wählen Sie im Menü oben links „Herunterladen“."
@@ -528,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Eigentümer"
   },
+  "b74dbb40c5": {
+    "translation": "Ziehen Sie die Datei in die Seitenleiste dieser Seite. Alternativ können Sie im Menü „Datei“ oben links die Option „Datei importieren“ auswählen."
+  },
   "b758336699": {
     "translation": "Link kopieren"
   },
@@ -549,14 +555,14 @@
   "c2276c9127": {
     "translation": "Erfahren Sie mehr über das Teilen."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# .tldr-Datei hinzugefügt.} other {# .tldr-Dateien hinzugefügt.}}"
+  },
   "c303bd1095": {
     "translation": "Diese Datei kann nicht veröffentlicht werden."
   },
   "c4b39a1cc3": {
     "translation": "Notwendige Cookies"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Langer String"
   },
   "c6a00f137b": {
     "translation": "Einladen"
@@ -583,7 +589,7 @@
     "translation": "Erfahren Sie mehr über das Veröffentlichen."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> und {count, plural, one {# other} other {# others}} haben auf Ihren Kommentar reagiert"
+    "translation": "<name>{author}</name> und {count, plural, one {# weitere Person} other {# weitere Personen}} haben auf Ihren Kommentar reagiert"
   },
   "d3d2e61733": {
     "translation": "Schließen"
@@ -651,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Kontomenü"
   },
-  "ed53713239": {
-    "translation": "i18n: akzentuiert"
-  },
   "ed75712b0e": {
     "translation": "Duplizieren"
   },
@@ -682,7 +685,7 @@
     "translation": "Löschen"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> und {count, plural, one {# other} other {# others}} haben auf Ihren Kommentar reagiert"
+    "translation": "<name>{a}</name>, <name>{b}</name> und {count, plural, one {# weitere Person} other {# weitere Personen}} haben auf Ihren Kommentar reagiert"
   },
   "f4f70727dc": {
     "translation": "Einstellungen"

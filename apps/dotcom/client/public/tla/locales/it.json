@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Stiamo lavorando al supporto per i file provenienti da <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Trascina il file nella barra laterale su questa pagina. Oppure seleziona l'opzione \"Importa file\" dal menu utente."
-  },
   "043973ec1f": {
     "translation": "Hai ancora difficoltà? {GetHelpLink}"
   },
@@ -95,6 +92,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> ha commentato sulla tua bacheca"
   },
+  "28b2464e1f": {
+    "translation": "Impossibile inviare il feedback"
+  },
   "299cb00a7a": {
     "translation": "Caricamento non riuscito"
   },
@@ -103,6 +103,9 @@
   },
   "2a37324bb4": {
     "translation": "Ricerca..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Per favore, riprova."
   },
   "2de510be71": {
     "translation": "La rigenerazione sostituisce il link di invito corrente con uno nuovo. Chiunque utilizzi il vecchio link dovrà utilizzare quello nuovo per partecipare."
@@ -170,9 +173,6 @@
   "477df802ca": {
     "translation": "Per continuare la modifica, copia il file nei tuoi file."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "File Pin"
   },
@@ -206,8 +206,8 @@
   "54286b1d01": {
     "translation": "Limite di collaboratori raggiunto"
   },
-  "545241e7dd": {
-    "translation": "{count} non letto"
+  "550b25cc0c": {
+    "translation": "Impossibile ripristinare il disegno locale. Prova a ricaricare questa pagina."
   },
   "554a05155c": {
     "translation": "Hai ancora problemi? <a>Segnala un problema</a>"
@@ -380,9 +380,6 @@
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
   },
-  "86353d2c41": {
-    "translation": "Aggiunti {total} file .tldr."
-  },
   "86c66437fd": {
     "translation": "Rinomina file"
   },
@@ -434,6 +431,9 @@
   "9bef626805": {
     "translation": "Elimina file"
   },
+  "9c228b6834": {
+    "translation": "Sembra che tu sia offline. Verifica la tua connessione e riprova."
+  },
   "9ccb565b86": {
     "translation": "Stiamo riscontrando problemi di connessione al nostro servizio di autenticazione. Di solito si tratta di un problema temporaneo. Prova ad aggiornare la pagina."
   },
@@ -448,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Sei stato invitato a unirti a <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# non letto} other {# non letto}}"
   },
   "a0da245992": {
     "translation": "Esportare il contenuto come file .tldr: selezionare \"Scarica\" nel menu in alto a sinistra."
@@ -528,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Proprietario"
   },
+  "b74dbb40c5": {
+    "translation": "Trascina il file nella barra laterale di questa pagina. In alternativa, seleziona l'opzione \"Importa file\" dal menu File in alto a sinistra."
+  },
   "b758336699": {
     "translation": "Copia link"
   },
@@ -549,14 +555,14 @@
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Aggiunto # file .tldr.} other {Aggiunti # file .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Impossibile pubblicare il file."
   },
   "c4b39a1cc3": {
     "translation": "Cookie essenziali"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: stringa lunga"
   },
   "c6a00f137b": {
     "translation": "Invita"
@@ -650,9 +656,6 @@
   },
   "ec611e9a08": {
     "translation": "Menu account"
-  },
-  "ed53713239": {
-    "translation": "i18n: lettera accentata"
   },
   "ed75712b0e": {
     "translation": "Duplica"

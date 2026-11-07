@@ -362,7 +362,7 @@ Note shapes now track and display a "first edited by" attribution label in the b
 <details>
 <summary>Migration guide</summary>
 
-**`useTldrawUser` has been removed.** Previously it bundled user *preferences* (color, color scheme) and user *identity* (id, name) into a single object. These are now separate concerns:
+**`useTldrawUser` has been removed.** Previously it bundled user _preferences_ (color, color scheme) and user _identity_ (id, name) into a single object. These are now separate concerns:
 
 - **Preferences** (color, color scheme, snap mode, etc.) are managed via `TLUserPreferences`. Set them with the editor's user-preferences API directly.
 - **Identity** for attribution comes from a `TLUserStore` provider passed to the new `users` prop on `<Tldraw>`.

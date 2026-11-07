@@ -2,6 +2,7 @@ import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/react'
 import { createJavaScriptRegexEngine } from '@shikijs/engine-javascript'
 import { createHighlighterCoreSync, hastToHtml } from 'shiki/core'
 import css from 'shiki/dist/langs/css.mjs'
+import tsx from 'shiki/dist/langs/tsx.mjs'
 import ts from 'shiki/dist/langs/typescript.mjs'
 import theme from 'shiki/dist/themes/github-dark.mjs'
 import { cn } from '@/utils/cn'
@@ -11,7 +12,7 @@ import { CopyButton } from './copy-button'
 // So here we create a synchronous version of the highlighter.
 const shiki = createHighlighterCoreSync({
 	themes: [theme],
-	langs: [ts, css],
+	langs: [ts, tsx, css],
 	engine: createJavaScriptRegexEngine(),
 })
 
@@ -55,7 +56,12 @@ export function CodeFiles({
 				)}
 			>
 				{files.map(({ content, name }, index) => {
-					const lang = name.endsWith('.css') ? 'css' : 'ts'
+					// the typescript grammar has no JSX, so .tsx/.jsx need the tsx grammar
+					const lang = name.endsWith('.css')
+						? 'css'
+						: name.endsWith('.tsx') || name.endsWith('.jsx')
+							? 'tsx'
+							: 'ts'
 					const ast = shiki.codeToHast(content, { lang, theme })
 					const codeElem = (ast.children[0] as any).children[0]
 					return (

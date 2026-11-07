@@ -1,4 +1,11 @@
-import { tlenv, useContainer, useEditor, useReactor, useValue } from '@tldraw/editor'
+import {
+	defineMessages,
+	tlenv,
+	useContainer,
+	useEditor,
+	useReactor,
+	useValue,
+} from '@tldraw/editor'
 import classNames from 'classnames'
 import React, { ReactNode, useEffect, useMemo, useRef, useState } from 'react'
 import { TLUiAssetUrlOverrides } from './assetUrls'
@@ -18,6 +25,13 @@ import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
 import { useReadonly } from './hooks/useReadonly'
 import { useDirection, useTranslation } from './hooks/useTranslation/useTranslation'
+
+const messages = defineMessages({
+	focusModeToggleFocusMode: {
+		id: 'focus-mode.toggle-focus-mode',
+		defaultMessage: 'Toggle focus mode',
+	},
+})
 
 /** @public */
 export interface TldrawUiProps extends TLUiContextProviderProps {
@@ -67,8 +81,6 @@ export const TldrawUi = React.memo(function TldrawUi({
 
 interface TldrawUiContentProps {
 	hideUi?: boolean
-	shareZone?: ReactNode
-	topZone?: ReactNode
 	renderDebugMenuItems?(): React.ReactNode
 }
 
@@ -128,7 +140,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	useEditorEvents()
 
 	const rIsEditingAnything = useRef(false)
-	const rHidingTimeout = useRef(-1 as any)
+	const rHidingTimeout = useRef(-1)
 	const [hideToolbarWhileEditing, setHideToolbarWhileEditing] = useState(false)
 
 	useReactor(
@@ -167,16 +179,11 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const { 'toggle-focus-mode': toggleFocus } = useActions()
 
 	const { breakpointsAbove, breakpointsBelow } = useMemo(() => {
-		const breakpointsAbove = []
-		const breakpointsBelow = []
-		for (let bp = 0; bp < PORTRAIT_BREAKPOINTS.length; bp++) {
-			if (bp <= breakpoint) {
-				breakpointsAbove.push(bp)
-			} else {
-				breakpointsBelow.push(bp)
-			}
+		const all = PORTRAIT_BREAKPOINTS.map((_, bp) => bp)
+		return {
+			breakpointsAbove: all.slice(0, breakpoint + 1).join(' '),
+			breakpointsBelow: all.slice(breakpoint + 1).join(' '),
 		}
-		return { breakpointsAbove, breakpointsBelow }
 	}, [breakpoint])
 
 	return (
@@ -194,8 +201,8 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 			// But when the virtual keyboard is closing we want to wait a bit before showing it again.
 			data-iseditinganything={hideToolbarWhileEditing}
 			data-breakpoint={breakpoint}
-			data-breakpoints-above={breakpointsAbove.join(' ')}
-			data-breakpoints-below={breakpointsBelow.join(' ')}
+			data-breakpoints-above={breakpointsAbove}
+			data-breakpoints-below={breakpointsBelow}
 		>
 			<SkipToMainContent />
 			{isFocusMode ? (
@@ -203,7 +210,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 					<TldrawUiButton
 						type="icon"
 						className="tlui-focus-button"
-						title={msg('focus-mode.toggle-focus-mode')}
+						title={msg(messages.focusModeToggleFocusMode)}
 						onClick={() => toggleFocus.onSelect('menu')}
 					>
 						<TldrawUiButtonIcon icon="dot" />

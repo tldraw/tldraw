@@ -26,24 +26,32 @@ Perfect for building chatbots, interactive storytelling, conversation design too
 ### 1. Install Dependencies
 
 ```bash
-yarn install
+npm install
 ```
 
 ### 2. Environment setup
 
-Create a `.env` file in the root directory and add your Google Generative API key:
+Create a `.env` file in the root directory and add a Google Gemini API key:
 
 ```
-GOOGLE_GENERATIVE_AI_API_KEY=your_gemini_api_key_here
+GOOGLE_API_KEY=your_gemini_api_key_here
 ```
 
-Get your API key from [Google AI Studio](https://aistudio.google.com/apikey).
+Get the key from [Google AI Studio](https://aistudio.google.com/apikey).
+
+Or use an [OpenRouter](https://openrouter.ai/settings/keys) key instead:
+
+```
+OPENROUTER_API_KEY=your_openrouter_api_key_here
+```
+
+When `OPENROUTER_API_KEY` is set, requests go through OpenRouter and `GOOGLE_API_KEY` is not used.
 You can also switch to a different provider using the [Vercel AI SDK](https://ai-sdk.dev/providers/ai-sdk-providers).
 
 ### 3. Start Development
 
 ```bash
-yarn dev
+npm run dev
 ```
 
 Open [http://localhost:5173](http://localhost:5173) to see your branching chat interface.
@@ -80,13 +88,19 @@ Ready to deploy to Cloudflare Workers:
 
 ```bash
 # Build the frontend
-yarn build
+npm run build
 
 # Deploy to Cloudflare (requires wrangler CLI)
 npx wrangler deploy
 ```
 
-Make sure to set your `GOOGLE_GENERATIVE_AI_API_KEY` in your Cloudflare Workers environment variables.
+The deployed worker does not read `.env`. Add your key to it as a secret:
+
+```bash
+npx wrangler secret put GOOGLE_API_KEY
+```
+
+If you use OpenRouter, add `OPENROUTER_API_KEY` instead.
 
 ## Customization
 

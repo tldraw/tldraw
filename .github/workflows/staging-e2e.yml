@@ -38,7 +38,7 @@ jobs:
         uses: ./.github/actions/setup-playwright
 
       - name: Run cleanup of test files
-        run: yarn tsx internal/scripts/dotcom/cleanup-test-files.ts
+        run: pnpm exec tsx internal/scripts/dotcom/cleanup-test-files.ts
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -47,7 +47,7 @@ jobs:
           STAGING_OWNER_ID: ${{ secrets.STAGING_OWNER_ID }}
 
       - name: Copy random files to staging
-        run: yarn tsx internal/scripts/dotcom/copy-random-files-to-staging.ts
+        run: pnpm exec tsx internal/scripts/dotcom/copy-random-files-to-staging.ts
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
@@ -58,7 +58,7 @@ jobs:
           STAGING_TEST_FILES_COUNT: ${{ github.event.inputs.test_files_count || '10' }}
 
       - name: Run staging e2e tests
-        run: yarn e2e-staging
+        run: pnpm e2e-staging
         working-directory: apps/dotcom/client
         env:
           CLERK_PUBLISHABLE_KEY: ${{ secrets.VITE_CLERK_PUBLISHABLE_KEY }}

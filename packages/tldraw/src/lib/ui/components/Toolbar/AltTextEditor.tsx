@@ -1,10 +1,22 @@
-import { ExtractShapeByProps, preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
+import {
+	defineMessages,
+	ExtractShapeByProps,
+	preventDefault,
+	TLShape,
+	TLShapeId,
+	useEditor,
+} from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
+
+const messages = defineMessages({
+	toolMediaAltTextConfirm: { id: 'tool.media-alt-text-confirm', defaultMessage: 'Confirm' },
+	toolMediaAltTextDesc: { id: 'tool.media-alt-text-desc', defaultMessage: 'Give a description…' },
+})
 
 /** @public */
 export interface AltTextEditorProps {
@@ -27,8 +39,6 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 	const trackEvent = useUiEvents()
 	const isReadonly = editor.getIsReadonly()
 
-	const handleValueChange = (value: string) => setAltText(value)
-
 	const handleComplete = useCallback(() => {
 		trackEvent('set-alt-text', { source })
 		const shape = editor.getShape<ExtractShapeByProps<{ altText: string }>>(shapeId)
@@ -44,9 +54,6 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		onClose()
 	}, [trackEvent, source, editor, shapeId, altText, onClose])
 
-	const handleConfirm = () => handleComplete()
-	const handleAltTextCancel = useCallback(() => onClose(), [onClose])
-
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
 		ref.current?.select()
@@ -54,7 +61,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		function handleKeyDown(event: KeyboardEvent) {
 			if (event.key === 'Escape') {
 				event.stopPropagation()
-				handleAltTextCancel()
+				onClose()
 			}
 		}
 
@@ -62,7 +69,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 		return () => {
 			doc.removeEventListener('keydown', handleKeyDown, { capture: true })
 		}
-	}, [editor, handleAltTextCancel])
+	}, [editor, onClose])
 
 	useEffect(() => {
 		const doc = editor.getContainerDocument()
@@ -86,20 +93,20 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				className="tlui-media__toolbar-alt-text-input"
 				data-testid="media-toolbar.alt-text-input"
 				value={altText}
-				placeholder={msg('tool.media-alt-text-desc')}
-				aria-label={msg('tool.media-alt-text-desc')}
-				onValueChange={handleValueChange}
+				placeholder={msg(messages.toolMediaAltTextDesc)}
+				aria-label={msg(messages.toolMediaAltTextDesc)}
+				onValueChange={setAltText}
 				onComplete={handleComplete}
-				onCancel={handleAltTextCancel}
+				onCancel={onClose}
 				disabled={isReadonly}
 			/>
 			{!isReadonly && (
 				<TldrawUiButton
-					title={msg('tool.media-alt-text-confirm')}
+					title={msg(messages.toolMediaAltTextConfirm)}
 					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}
-					onClick={handleConfirm}
+					onClick={handleComplete}
 				>
 					<TldrawUiButtonIcon small icon="check" />
 				</TldrawUiButton>

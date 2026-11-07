@@ -15,10 +15,11 @@ import { getArrowBindings } from '../../../shapes/arrow/shared'
 import {
 	getNoteAdjacentPositions,
 	getNoteShapeForAdjacentPosition,
+	startEditingAdjacentNote,
 } from '../../../shapes/note/noteHelpers'
 import type { NoteShapeUtil } from '../../../shapes/note/NoteShapeUtil'
 import { getDisplayValues } from '../../../shapes/shared/getDisplayValues'
-import { startEditingShapeWithRichText } from '../selectHelpers'
+import { DeferredDoubleClick, startEditingShapeWithRichText } from '../selectHelpers'
 
 export class PointingHandle extends StateNode {
 	static override id = 'pointing_handle'
@@ -26,11 +27,11 @@ export class PointingHandle extends StateNode {
 	didCtrlOnEnter = false
 
 	info = {} as TLPointerEventInfo & { target: 'handle' }
-	isDoubleClick = false
+	private doubleClick = new DeferredDoubleClick(this)
 
 	override onEnter(info: TLPointerEventInfo & { target: 'handle' }) {
 		this.info = info
-		this.isDoubleClick = false
+		this.doubleClick.start(info)
 
 		this.didCtrlOnEnter = info.accelKey
 
@@ -66,22 +67,20 @@ export class PointingHandle extends StateNode {
 	override onPointerUp() {
 		const { shape, handle } = this.info
 
-		if (this.isDoubleClick) {
+		// The shape may have been deleted since pointer down (remote user, undo); the note
+		// branch below would clone a new note from the dead record
+		if (!this.editor.getShape(shape.id)) {
 			this.parent.transition('idle')
-			this.parent.getCurrent()?.handleEvent({
-				...this.info,
-				type: 'click',
-				name: 'double_click',
-				phase: 'down',
-			})
 			return
 		}
+
+		if (this.doubleClick.replay()) return
 
 		if (this.editor.isShapeOfType(shape, 'note')) {
 			const { editor } = this
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, false)
 			if (nextNote) {
-				startEditingShapeWithRichText(editor, nextNote, { selectAll: true })
+				startEditingAdjacentNote(editor, nextNote)
 				return
 			}
 		}
@@ -90,16 +89,7 @@ export class PointingHandle extends StateNode {
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.isDoubleClick = true
+		this.doubleClick.defer(info)
 	}
 
 	override onPointerMove(info: TLPointerEventInfo) {
@@ -122,10 +112,17 @@ export class PointingHandle extends StateNode {
 		if (editor.getIsReadonly()) return
 		const { shape, handle } = this.info
 
+		if (!editor.getShape(shape.id)) {
+			this.parent.transition('idle')
+			return
+		}
+
 		if (editor.isShapeOfType(shape, 'note')) {
 			const noteUtil = editor.getShapeUtil(shape) as NoteShapeUtil
 			const dv = getDisplayValues(noteUtil, shape)
 
+			// Cancelling the drag bails to this mark, which removes the note created below
+			const creatingMarkId = editor.markHistoryStoppingPoint('creating note from handle')
 			const nextNote = getNoteForAdjacentPosition(editor, shape, handle, true)
 			if (nextNote) {
 				// Center the shape on the current pointer
@@ -147,8 +144,8 @@ export class PointingHandle extends StateNode {
 						...this.info,
 						target: 'shape',
 						shape: editor.getShape(nextNote),
-						onInteractionEnd: 'note',
 						isCreating: true,
+						creatingMarkId,
 						onCreate: () => {
 							// When we're done, start editing it
 							startEditingShapeWithRichText(editor, nextNote, { selectAll: true })

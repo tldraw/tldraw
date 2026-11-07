@@ -668,7 +668,6 @@ export interface DebugFlagDefaults<T> {
 // @internal (undocumented)
 export const debugFlags: {
     readonly a11y: DebugFlag<boolean>;
-    readonly debugCursors: DebugFlag<boolean>;
     readonly debugElbowArrows: DebugFlag<boolean>;
     readonly debugGeometry: DebugFlag<boolean>;
     readonly debugSvg: DebugFlag<boolean>;
@@ -679,7 +678,6 @@ export const debugFlags: {
     readonly logPointerCaptures: DebugFlag<boolean>;
     readonly logPreventDefaults: DebugFlag<boolean>;
     readonly measurePerformance: DebugFlag<boolean>;
-    readonly reconnectOnPing: DebugFlag<boolean>;
     readonly showFps: DebugFlag<boolean>;
     readonly throwToBlob: DebugFlag<boolean>;
 };
@@ -706,16 +704,19 @@ export function DefaultCanvas({ className }: TLCanvasComponentProps): JSX.Elemen
 export const DefaultCursor: MemoExoticComponent<({ className, zoom, point, color, name, chatMessage, }: TLCursorProps) => JSX.Element | null>;
 
 // @public (undocumented)
-export const DefaultErrorFallback: TLErrorFallbackComponent;
+export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultGrid({ x, y, z, size }: TLGridProps): JSX.Element;
+
+// @public
+export function defaultI18n(): TLI18n;
 
 // @public (undocumented)
 export const DefaultShapeWrapper: ForwardRefExoticComponent<TLShapeWrapperProps & RefAttributes<HTMLDivElement>>;
 
 // @public (undocumented)
-export function DefaultSpinner(props: React.SVGProps<SVGSVGElement>): JSX.Element;
+export function DefaultSpinner(props: TLSpinnerProps): JSX.Element;
 
 // @public (undocumented)
 export function DefaultSvgDefs(): null;
@@ -770,7 +771,7 @@ export const defaultTldrawOptions: {
         readonly step: 1;
     }];
     readonly handleRadius: 12;
-    readonly hitTestMargin: 3;
+    readonly hitTestMargin: 4.5;
     readonly laserDelayMs: 1200;
     readonly laserFadeoutMs: 500;
     readonly longPressDurationMs: 500;
@@ -818,6 +819,11 @@ export const defaultUserPreferences: Readonly<{
 
 // @public (undocumented)
 export const defaultUserStore: TLUserStore;
+
+// @public
+export function defineMessages<const Messages extends Record<string, TLI18nMessageInput>>(msgs: Messages): {
+    [K in keyof Messages]: Messages[K] & TLI18nMessage;
+};
 
 // @public
 export function degreesToRadians(d: number): number;
@@ -875,7 +881,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -1212,6 +1218,10 @@ export class Editor extends EventEmitter<TLEventMap> {
     deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
         isolateShapes?: boolean | undefined;
     }): this;
+    // @internal
+    _deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes }?: {
+        isolateShapes?: boolean | undefined;
+    }): this;
     deletePage(page: TLPage | TLPageId): this;
     deleteShape(id: TLShapeId): this;
     // (undocumented)
@@ -1469,6 +1479,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     hasShapeUtil<T extends ShapeUtil>(type: T extends ShapeUtil<infer R> ? R['type'] : string): boolean;
     protected readonly history: HistoryManager<TLRecord>;
+    readonly i18n: TLI18nAdapter;
     // (undocumented)
     readonly id: string;
     readonly inputs: InputsManager;
@@ -1634,6 +1645,9 @@ export class Editor extends EventEmitter<TLEventMap> {
     };
     readonly textMeasure: TextManager;
     readonly timers: {
+        cancelAnimationFrame: (id: number | undefined) => void;
+        clearInterval: (id: number | undefined) => void;
+        clearTimeout: (id: number | undefined) => void;
         dispose: () => void;
         requestAnimationFrame: (callback: FrameRequestCallback) => number;
         setInterval: (handler: TimerHandler, timeout?: number, ...args: any[]) => number;
@@ -1717,10 +1731,15 @@ export class EditorAtom<T> {
 // @public (undocumented)
 export const EditorContext: React_3.Context<Editor | null>;
 
+// @internal
+export const EditorI18nFallbackContext: React_3.Context<{
+    current: null | TLI18nAdapter;
+} | null>;
+
 // @public
 export abstract class EditorManager {
     constructor(editor: Editor);
-    protected addEditorEvent<E extends keyof TLEventMap>(event: E, fn: (...args: TLEventMap[E]) => void): void;
+    protected addEditorEvent<E extends keyof TLEventMap>(event: E, fn: (...args: TLEventMap[E]) => void): () => void;
     // (undocumented)
     protected readonly disposables: Set<() => void>;
     // @internal (undocumented)
@@ -1728,6 +1747,7 @@ export abstract class EditorManager {
     // (undocumented)
     protected readonly editor: Editor;
     protected register(dispose: () => void): () => void;
+    protected unregister(dispose: () => void): void;
 }
 
 // @public
@@ -1821,6 +1841,8 @@ export class FontManager {
     dispose(): void;
     // (undocumented)
     ensureFontIsLoaded(font: TLFontFace): Promise<void>;
+    // @internal (undocumented)
+    getFontLoadEpoch(): number;
     // (undocumented)
     getShapeFontFaces(shape: TLShape | TLShapeId): TLFontFace[];
     // (undocumented)
@@ -1956,6 +1978,9 @@ export function getColorValue(colors: TLThemeColors, color: string | TLDefaultCo
 
 // @public (undocumented)
 export function getCursor(cursor: TLCursorType, rotation?: number, color?: string): string;
+
+// @internal
+export function getDeclaredMessages(): Readonly<Record<string, string>>;
 
 // @public
 export function getDefaultCdnBaseUrl(): string;
@@ -2105,7 +2130,7 @@ export class Group2d extends Geometry2d {
     // (undocumented)
     toSimpleSvgPath(): string;
     // (undocumented)
-    transform(transform: Mat): Geometry2d;
+    transform(transform: MatModel, opts?: TransformedGeometry2dOptions): Geometry2d;
     // (undocumented)
     uninterpolateAlongEdge(point: VecLike, filters?: Geometry2dFilters): number;
 }
@@ -2114,6 +2139,8 @@ export class Group2d extends Geometry2d {
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
     // (undocumented)
     canBind(): boolean;
+    // (undocumented)
+    canFlip(): boolean;
     // (undocumented)
     canResize(): boolean;
     // (undocumented)
@@ -2446,6 +2473,7 @@ export class LicenseManager {
     constructor(licenseKey: string | undefined, testPublicKey?: string);
     // (undocumented)
     static className: string;
+    dispose(): void;
     // (undocumented)
     featureFlags: Atom<Record<LicenseFeatureName, boolean>, unknown>;
     // (undocumented)
@@ -2502,8 +2530,9 @@ export class LocalIndexedDb {
         sessionStateSnapshot: TLSessionStateSnapshot | undefined;
     }>;
     pending(): Promise<void>;
-    // (undocumented)
-    pruneSessions(): Promise<void>;
+    pruneSessions({ keepSessionId }?: {
+        keepSessionId?: string;
+    }): Promise<void>;
     // (undocumented)
     removeAssets(assetId: string[]): Promise<void>;
     // (undocumented)
@@ -2751,8 +2780,7 @@ export class PerformanceApiAdapter {
 }
 
 // @public
-export class PerformanceManager {
-    constructor(editor: Editor);
+export class PerformanceManager extends EditorManager {
     // @internal (undocumented)
     dispose(): void;
     // @internal (undocumented)
@@ -3058,6 +3086,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     canEdit(shape: Shape, info: TLEditStartInfo): boolean;
     canEditInReadonly(shape: Shape): boolean;
     canEditWhileLocked(shape: Shape): boolean;
+    canFlip(shape: Shape): boolean;
     canReceiveNewChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canRemoveChildrenOfType(shape: Shape, type: TLShape['type']): boolean;
     canResize(shape: Shape): boolean;
@@ -3088,6 +3117,7 @@ export abstract class ShapeUtil<Shape extends TLShape = TLShape> {
     abstract getIndicatorPath(shape: Shape): TLIndicatorPath | undefined;
     getInterpolatedProps?(startShape: Shape, endShape: Shape, progress: number): Shape['props'];
     getReferencedUserIds(shape: Shape): string[];
+    getShapeName(_shape: Shape): string | undefined;
     // (undocumented)
     getText(shape: Shape): string | undefined;
     static handledAssetTypes?: readonly string[];
@@ -3757,7 +3787,7 @@ export interface TLDragShapesOverInfo {
     initialParentIds: Map<TLShapeId, TLParentId>;
 }
 
-// @public (undocumented)
+// @public
 export const TldrawEditor: React_3.MemoExoticComponent<({ store, components, className, user: _user, options: _options, textOptions: _textOptions, deepLinks: _deepLinks, ...rest }: TldrawEditorProps) => JSX.Element>;
 
 // @public
@@ -3779,6 +3809,7 @@ export interface TldrawEditorBaseProps {
     // @deprecated
     deepLinks?: TLDeepLinkOptions | true;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
     licenseKey?: string;
@@ -3793,7 +3824,7 @@ export interface TldrawEditorBaseProps {
     user?: TLCurrentUser;
 }
 
-// @public
+// @public (undocumented)
 export type TldrawEditorProps = TldrawEditorBaseProps & TldrawEditorStoreProps;
 
 // @public (undocumented)
@@ -3965,7 +3996,7 @@ export interface TLEditorComponents {
     // (undocumented)
     ShapeWrapper?: ComponentType<TLShapeWrapperProps & RefAttributes<HTMLDivElement>> | null;
     // (undocumented)
-    Spinner?: ComponentType<React.SVGProps<SVGSVGElement>> | null;
+    Spinner?: ComponentType<TLSpinnerProps> | null;
     // (undocumented)
     SvgDefs?: ComponentType | null;
 }
@@ -3984,6 +4015,7 @@ export interface TLEditorOptions {
     };
     getContainer(): HTMLElement;
     getShapeVisibility?(shape: TLShape, editor: Editor): 'hidden' | 'inherit' | 'visible' | null | undefined;
+    i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
     // (undocumented)
@@ -4078,10 +4110,13 @@ export interface TLErrorExternalContentSource {
 }
 
 // @public (undocumented)
-export type TLErrorFallbackComponent = ComponentType<{
+export type TLErrorFallbackComponent = ComponentType<TLErrorFallbackProps>;
+
+// @public (undocumented)
+export interface TLErrorFallbackProps {
     editor?: Editor;
     error: unknown;
-}>;
+}
 
 // @public (undocumented)
 export interface TLEventHandlers {
@@ -4318,6 +4353,36 @@ export interface TLHistoryMark {
     // (undocumented)
     type: 'stop';
 }
+
+// @public
+export interface TLI18n {
+    // (undocumented)
+    dir: 'ltr' | 'rtl';
+    // (undocumented)
+    locale: string;
+    translate(message: TLI18nMessage, values?: TLI18nValues): string;
+}
+
+// @public
+export type TLI18nAdapter = () => TLI18n;
+
+// @public
+export interface TLI18nMessage {
+    // (undocumented)
+    defaultMessage: string;
+    // (undocumented)
+    description?: string;
+    // (undocumented)
+    id: string;
+}
+
+// @public
+export type TLI18nMessageInput = Omit<TLI18nMessage, 'id'> & {
+    id?: string;
+};
+
+// @public
+export type TLI18nValues = Record<string, bigint | boolean | Date | null | number | string | undefined>;
 
 // @public (undocumented)
 export interface TLImageExportOptions extends TLSvgExportOptions {
@@ -4755,6 +4820,9 @@ export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement
 }
 
 // @public (undocumented)
+export type TLSpinnerProps = React.SVGProps<SVGSVGElement>;
+
+// @public (undocumented)
 export interface TLStateNodeConstructor {
     // (undocumented)
     new (editor: Editor, parent?: StateNode): StateNode;
@@ -4948,6 +5016,7 @@ export interface TLUrlExternalAsset {
 
 // @public (undocumented)
 export interface TLUrlExternalContent extends TLBaseExternalContent {
+    shapeId?: TLShapeId;
     // (undocumented)
     type: 'url';
     // (undocumented)
@@ -5056,6 +5125,9 @@ export interface TransformedGeometry2dOptions {
     // (undocumented)
     isLabel?: boolean;
 }
+
+// @public
+export function translateMessage(i18n: null | TLI18n | undefined, message: TLI18nMessage, values?: TLI18nValues): string;
 
 // @public (undocumented)
 export type UiEvent = TLCancelEvent | TLClickEvent | TLCompleteEvent | TLKeyboardEvent | TLPinchEvent | TLPointerEvent;

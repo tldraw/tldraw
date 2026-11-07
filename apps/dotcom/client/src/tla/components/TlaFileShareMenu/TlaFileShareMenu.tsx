@@ -1,9 +1,14 @@
 import { ReactNode, useCallback } from 'react'
-import { TldrawUiPopover, TldrawUiPopoverContent, TldrawUiPopoverTrigger, useValue } from 'tldraw'
+import {
+	F,
+	TldrawUiPopover,
+	TldrawUiPopoverContent,
+	TldrawUiPopoverTrigger,
+	useValue,
+} from 'tldraw'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { F } from '../../utils/i18n'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import {
 	TLA_MENU_POSITION,
@@ -43,7 +48,7 @@ export function TlaFileShareMenu({
 
 	const hasAdminRights = useHasFileAdminRights(fileId)
 
-	const file = useValue('file', () => app?.getFile(fileId), [app])
+	const file = useValue('file', () => app?.getFile(fileId), [app, fileId])
 
 	const handleTabChange = useCallback(
 		(value: 'share' | 'export' | 'publish') => {
