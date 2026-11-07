@@ -1,4 +1,5 @@
 import { AssetRecordType, TLContent, createShapeId, structuredClone } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from '../TestEditor'
 
 let editor: TestEditor
@@ -9,6 +10,10 @@ const clipboardContent: TLContent = JSON.parse(
 
 beforeEach(() => {
 	editor = new TestEditor()
+})
+
+afterEach(() => {
+	vi.restoreAllMocks()
 })
 
 describe('Migrations', () => {
@@ -69,6 +74,50 @@ describe('Input content', () => {
 		expect(content.assets[0].props.src).toBe(src)
 		expect(content.rootShapeIds).toEqual([imageId])
 		expect(editor.getAsset(assetId)!.props.src).toBe(src)
+		other.dispose()
+	})
+
+	it('does not re-create a data url asset removed before its upload finished', async () => {
+		const assetId = AssetRecordType.createId('imageAsset')
+		const imageId = createShapeId('image')
+		editor.createAssets([
+			{
+				type: 'image',
+				id: assetId,
+				typeName: 'asset',
+				props: {
+					w: 100,
+					h: 100,
+					name: '',
+					isAnimated: false,
+					mimeType: 'image/png',
+					src: 'data:image/png;base64,AAAA',
+				},
+				meta: {},
+			},
+		])
+		editor.createShape({ id: imageId, type: 'image', props: { w: 100, h: 100, assetId } })
+		const content = editor.getContentFromCurrentPage([imageId])!
+
+		vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(new Uint8Array([0])))
+		const other = new TestEditor()
+		let finishUpload!: () => void
+		const uploaded = new Promise<void>((resolve) => (finishUpload = resolve))
+		const upload = vi.spyOn(other, 'getAssetForExternalContent').mockImplementation(async () => {
+			await uploaded
+			return {
+				...content.assets[0],
+				props: { ...content.assets[0].props, src: 'https://up' },
+			} as any
+		})
+		other.putContentOntoCurrentPage(content)
+		other.deleteShapes([...other.getCurrentPageShapeIds()])
+		other.deleteAssets([assetId])
+		await vi.waitFor(() => expect(upload).toHaveBeenCalled())
+		finishUpload()
+		for (let i = 0; i < 10; i++) await Promise.resolve()
+
+		expect(other.getAssets()).toEqual([])
 		other.dispose()
 	})
 })

@@ -508,6 +508,10 @@ export async function defaultHandleExternalFileContent(
 					throw Error('Could not create an asset')
 				}
 
+				// The drop may have been refused (page full) or its asset removed while uploading;
+				// updateAssets would then create an asset that no shape references.
+				if (!editor.getAsset(assetAndFile.asset.id)) return
+
 				// Save the new asset under the old asset's id
 				editor.updateAssets([{ ...newAsset, id: assetAndFile.asset.id }])
 			} catch (error) {

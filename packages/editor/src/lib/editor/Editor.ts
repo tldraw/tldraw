@@ -10040,6 +10040,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					return
 				}
 
+				// If the asset was removed while uploading, updateAssets would re-create it orphaned.
+				if (!this.getAsset(asset.id)) return
+
 				// Save the new asset under the old asset's id
 				this.updateAssets([{ ...newAsset, id: asset.id }])
 			})
