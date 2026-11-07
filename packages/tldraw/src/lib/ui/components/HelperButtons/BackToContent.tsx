@@ -109,7 +109,10 @@ export function BackToContent() {
 			actionId="back-to-content"
 			onSelect={() => {
 				actions['back-to-content'].onSelect('helper-buttons')
-				setShowBackToContent(false)
+				// Hiding through the reactor keeps rIsShowing in sync, and the end of the
+				// suppression re-runs it, so the button comes back if the jump was
+				// interrupted or the camera is locked.
+				suppressBackToContent(editor, editor.options.animationMediumMs)
 			}}
 		/>
 	)

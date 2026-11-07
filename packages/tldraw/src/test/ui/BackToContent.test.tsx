@@ -1,4 +1,4 @@
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { Box, Editor, Vec } from '@tldraw/editor'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
@@ -168,6 +168,29 @@ describe('BackToContent button', () => {
 		// Hiding is immediate, with no delay.
 		bringContentBackIntoView()
 		expect(button()).toBeNull()
+	})
+
+	it('reappears after a click that does not bring content into view', async () => {
+		vi.useFakeTimers()
+		createShapeInViewport()
+		panAllShapesOffScreen()
+
+		act(() => {
+			vi.advanceTimersByTime(BACK_TO_CONTENT_APPEAR_DELAY_MS + 1)
+		})
+		expect(button()).not.toBeNull()
+
+		// With the camera locked, the jump back to content is a no-op.
+		act(() => {
+			editor.setCameraOptions({ isLocked: true })
+		})
+		fireEvent.click(button()!)
+		expect(button()).toBeNull()
+
+		act(() => {
+			vi.advanceTimersByTime(editor.options.animationMediumMs + BACK_TO_CONTENT_APPEAR_DELAY_MS + 1)
+		})
+		expect(button()).not.toBeNull()
 	})
 
 	it('cancels a pending appearance when back-to-content is suppressed', async () => {
