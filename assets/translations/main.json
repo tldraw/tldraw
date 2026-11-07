@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Rotate shape clockwise (fine)",
 	"a11y.select-shape": "Select next shape",
 	"a11y.select-shape-direction": "Select shape in direction",
+	"a11y.shape-group": "Group",
 	"a11y.shape-image": "Image",
 	"a11y.shape-index": "{num} of {total}",
 	"a11y.shape-video": "Video",
