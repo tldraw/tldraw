@@ -98,6 +98,10 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	}, [editor, onClose])
 
 	const handleComplete = useCallback(() => {
+		// Enter reaches here even while Continue is disabled. An invalid input's `safe` value is the
+		// bare `https://`, which the shape's url validator rejects.
+		if (!urlInputState.valid) return
+
 		const onlySelectedShape = editor.getOnlySelectedShape()
 
 		if (!onlySelectedShape) return
