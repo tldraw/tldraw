@@ -177,6 +177,17 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 			this.statusListeners.forEach((cb) =>
 				cb(newStatus === 'error' ? { status: 'error', reason: closeReason } : { status: newStatus })
 			)
+
+			if (newStatus === 'error') {
+				// The server rejected the session and TLSyncClient closes itself on 'error', so a
+				// reconnect would only be rejected again, forever, unless the host closed us (#11363).
+				// The socket may still be open (the oversized-message path), so close it too.
+				this._reconnectManager.close()
+				const ws = this._ws
+				this._ws = null
+				ws?.close()
+				return
+			}
 		}
 
 		this._reconnectManager.disconnected()

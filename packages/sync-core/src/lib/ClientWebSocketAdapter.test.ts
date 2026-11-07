@@ -186,6 +186,30 @@ describe('ClientWebSocketAdapter', () => {
 			expect(adapter.connectionStatus).toBe('error')
 		})
 
+		it('[CW3] stops reconnecting after the server closes with code 4099', async () => {
+			const onStatusChange = vi.fn()
+			adapter.onStatusChange(onStatusChange)
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			expect(connectMock).toHaveBeenCalledTimes(1)
+
+			connectedServerSocket.close(TLSyncErrorCloseEventCode, TLSyncErrorCloseEventReason.NOT_FOUND)
+			await waitFor(() => adapter.connectionStatus === 'error')
+
+			vi.advanceTimersByTime(ACTIVE_MAX_DELAY * 10)
+			adapter._reconnectManager.maybeReconnected()
+			vi.useRealTimers()
+			await sleep(100)
+			vi.useFakeTimers()
+
+			expect(connectMock).toHaveBeenCalledTimes(1)
+			expect(adapter._ws).toBeNull()
+			expect(adapter.connectionStatus).toBe('error')
+			expect(onStatusChange.mock.calls).toEqual([
+				[{ status: 'online' }],
+				[{ status: 'error', reason: TLSyncErrorCloseEventReason.NOT_FOUND }],
+			])
+		})
+
 		it('[CW3] a close with code 4099 and an empty reason reports UNKNOWN_ERROR', async () => {
 			const onStatusChange = vi.fn()
 			adapter.onStatusChange(onStatusChange)
@@ -425,6 +449,26 @@ describe('ClientWebSocketAdapter', () => {
 				status: 'error',
 				reason: TLSyncErrorCloseEventReason.MESSAGE_TOO_LARGE,
 			})
+		})
+
+		it('[CW6] closes the socket and stops reconnecting after refusing a too-large message', async () => {
+			await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
+			const ws = adapter._ws!
+
+			adapter.sendMessage({
+				...connectMessage(),
+				largeData: 'x'.repeat(MAX_ASSEMBLED_MESSAGE_CHARS),
+			} as any)
+
+			expect(adapter._ws).toBeNull()
+			await waitFor(() => ws.readyState === WebSocket.CLOSED)
+			vi.advanceTimersByTime(ACTIVE_MAX_DELAY * 10)
+			vi.useRealTimers()
+			await sleep(100)
+			vi.useFakeTimers()
+
+			expect(connectMock).toHaveBeenCalledTimes(1)
+			expect(adapter.connectionStatus).toBe('error')
 		})
 
 		it('[CW6] silently drops the message when there is no socket', async () => {
