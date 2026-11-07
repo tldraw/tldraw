@@ -45,7 +45,7 @@ describe('__admin__hardDeleteIfLegacy', () => {
 		expect(await object.__admin__hardDeleteIfLegacy()).toBe(true)
 
 		expect(calls).toEqual(['deleteAlarm', 'deleteAll'])
-		expect(object._storage).toBeNull()
+		expect((object as any)._storage).toBeNull()
 		expect([...saved.keys()]).toEqual(['documentInfo'])
 		expect(saved.get('documentInfo')).toMatchObject({
 			slug: 'legacy-slug',
