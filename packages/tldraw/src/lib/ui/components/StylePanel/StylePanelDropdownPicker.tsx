@@ -70,7 +70,6 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 	} = props
 	const msg = useTranslation()
 	const editor = useEditor()
-	const [isOpen, setIsOpen] = React.useState(false)
 
 	const icon = React.useMemo(() => {
 		if (value.type === 'mixed') return 'mixed' as TLUiIconType
@@ -95,12 +94,7 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 
 	const popoverId = `style panel ${id}`
 	return (
-		<TldrawUiPopover
-			id={popoverId}
-			open={isOpen}
-			onOpenChange={setIsOpen}
-			className="tlui-style-panel__dropdown-picker"
-		>
+		<TldrawUiPopover id={popoverId} className="tlui-style-panel__dropdown-picker">
 			<TldrawUiPopoverTrigger>
 				<TldrawUiToolbarButton
 					type={type}
@@ -128,7 +122,6 @@ function StylePanelDropdownPickerInlineInner<T extends string>(
 										ctx.onHistoryMark('select style dropdown item')
 										onValueChange(style, item.value)
 										tlmenus.deleteOpenMenu(popoverId, editor.contextId)
-										setIsOpen(false)
 									}}
 								>
 									<TldrawUiButtonIcon icon={item.icon} />
