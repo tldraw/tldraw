@@ -32,7 +32,7 @@ export default function OnCreateShapeMetaExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				persistenceKey="example"
+				persistenceKey="meta-on-create-example"
 				components={components}
 				onMount={(editor) => {
 					// [3]

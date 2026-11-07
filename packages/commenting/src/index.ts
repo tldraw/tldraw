@@ -80,7 +80,12 @@ export {
 	toggleCommentReaction,
 	useCommentReactions,
 } from './canvas/comment-reactions'
-export { CommentTool, commentToolOverrides, commentTools } from './canvas/comment-tool'
+export {
+	CommentTool,
+	commentToolOverrides,
+	commentTools,
+	startCommentAt,
+} from './canvas/comment-tool'
 export {
 	getCommentReactions,
 	getCommentRecord,

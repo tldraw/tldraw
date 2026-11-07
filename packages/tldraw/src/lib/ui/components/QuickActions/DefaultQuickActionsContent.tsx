@@ -1,10 +1,4 @@
 import { useEditor, useValue } from '@tldraw/editor'
-import {
-	useCanRedo,
-	useCanUndo,
-	useIsInSelectState,
-	useUnlockedSelectedShapesCount,
-} from '../../hooks/menu-hooks'
 import { useCommentingEnabled } from '../../hooks/useCommentingEnabled'
 import { useReadonly } from '../../hooks/useReadonly'
 import { TldrawUiMenuActionItem } from '../primitives/menus/TldrawUiMenuActionItem'
@@ -34,13 +28,10 @@ export function DefaultQuickActionsContent() {
 }
 
 function DeleteDuplicateGroup() {
-	const oneSelected = useUnlockedSelectedShapesCount(1)
-	const isInSelectState = useIsInSelectState()
-	const selectDependentActionsEnabled = oneSelected && isInSelectState
 	return (
 		<>
-			<TldrawUiMenuActionItem actionId="delete" disabled={!selectDependentActionsEnabled} />
-			<TldrawUiMenuActionItem actionId="duplicate" disabled={!selectDependentActionsEnabled} />
+			<TldrawUiMenuActionItem actionId="delete" />
+			<TldrawUiMenuActionItem actionId="duplicate" />
 		</>
 	)
 }
@@ -60,12 +51,10 @@ function CommentQuickAction() {
 }
 
 function UndoRedoGroup() {
-	const canUndo = useCanUndo()
-	const canRedo = useCanRedo()
 	return (
 		<>
-			<TldrawUiMenuActionItem actionId="undo" disabled={!canUndo} />
-			<TldrawUiMenuActionItem actionId="redo" disabled={!canRedo} />
+			<TldrawUiMenuActionItem actionId="undo" />
+			<TldrawUiMenuActionItem actionId="redo" />
 		</>
 	)
 }

@@ -41,6 +41,9 @@ export interface TldrawAppSessionState {
 	>
 	sidebarWidth?: number
 	shouldShowWelcomeDialog?: boolean
+	// The file this browser last synced to, keyed by account so a different sign-in on the same
+	// browser never lands on someone else's board. Only a hint: Zero's file_state is authoritative.
+	lastVisitedFile?: { userId: string; fileId: string }
 }
 
 const defaultSessionState: TldrawAppSessionState = {
@@ -135,6 +138,23 @@ export function getLocalSessionState() {
 	return localSessionState.get()
 }
 
+/**
+ * The resolved light/dark theme the running app last mirrored to local storage (via
+ * `SneakyDarkModeSync`), or null when this browser has no stored session. Signed-in theme changes
+ * persist to the user's account record, not the SDK's global preferences, so this mirror is the only
+ * copy readable outside the app's providers — e.g. the OAuth consent page. A missing session returns
+ * null rather than the `light` default, so callers can fall back to the OS preference instead of
+ * mistaking it for an explicit light choice.
+ */
+export function getStoredThemePreference(): 'light' | 'dark' | null {
+	try {
+		if (!getFromLocalStorage(STORAGE_KEY)) return null
+	} catch {
+		return null
+	}
+	return getLocalSessionState().theme
+}
+
 export function getColorThemePreview() {
 	return colorThemePreview.get()
 }
@@ -160,9 +180,17 @@ export function toggleMobileSidebar(open: boolean = !getIsSidebarOpenMobile()) {
 	})
 }
 
-export function setLocalSessionState(state: TldrawAppSessionState) {
-	localSessionState.set(state)
-	setInLocalStorage(STORAGE_KEY, JSON.stringify(localSessionState.get()))
+export function getLastVisitedFileId(userId: string): string | null {
+	const cached = getLocalSessionStateUnsafe().lastVisitedFile
+	return cached?.userId === userId ? cached.fileId : null
+}
+
+export function setLastVisitedFile(userId: string, fileId: string) {
+	updateLocalSessionState(() => ({ lastVisitedFile: { userId, fileId } }))
+}
+
+export function clearLastVisitedFile() {
+	updateLocalSessionState(() => ({ lastVisitedFile: undefined }))
 }
 
 export function updateLocalSessionState(
@@ -172,8 +200,4 @@ export function updateLocalSessionState(
 		return { ...state, ...fn(state) }
 	})
 	setInLocalStorage(STORAGE_KEY, JSON.stringify(localSessionState.get()))
-}
-
-export function useLocalSessionState() {
-	return useValue('session', () => getLocalSessionState(), [])
 }

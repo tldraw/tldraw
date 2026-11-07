@@ -25,7 +25,7 @@ export class ClickManager {
 	@bind
 	_getClickTimeout(state: TLClickState, id = uniqueId()) {
 		this._clickId = id
-		clearTimeout(this._clickTimeout)
+		this.editor.timers.clearTimeout(this._clickTimeout)
 		this._clickTimeout = this.editor.timers.setTimeout(
 			() => {
 				if (this._clickState === state && this._clickId === id) {
@@ -94,7 +94,7 @@ export class ClickManager {
 				switch (this._clickState) {
 					case 'pendingDouble': {
 						this._clickState = 'pendingOverflow'
-						this._clickTimeout = this._getClickTimeout(this._clickState)
+						this._getClickTimeout(this._clickState)
 						return {
 							...info,
 							type: 'click',
@@ -114,7 +114,7 @@ export class ClickManager {
 						// overflow
 					}
 				}
-				this._clickTimeout = this._getClickTimeout(this._clickState)
+				this._getClickTimeout(this._clickState)
 				return info
 			}
 			case 'pointer_up': {
@@ -141,10 +141,12 @@ export class ClickManager {
 				return info
 			}
 			case 'pointer_move': {
+				// Compare in client coordinates like _clickScreenPoint; the container-relative
+				// inputs screen point would add the container offset and cancel on any movement.
 				if (
 					this._clickState !== 'idle' &&
 					this._clickScreenPoint &&
-					Vec.Dist2(this._clickScreenPoint, this.editor.inputs.getCurrentScreenPoint()) >
+					Vec.Dist2(this._clickScreenPoint, info.point) >
 						(this.editor.getInstanceState().isCoarsePointer
 							? this.editor.options.coarseDragDistanceSquared
 							: this.editor.options.dragDistanceSquared)
@@ -164,7 +166,8 @@ export class ClickManager {
 	 */
 	@bind
 	cancelDoubleClickTimeout() {
-		this._clickTimeout = clearTimeout(this._clickTimeout)
+		this.editor.timers.clearTimeout(this._clickTimeout)
+		this._clickTimeout = undefined
 		this._clickState = 'idle'
 		// when a double click is cancelled, we are no longer pending any further
 		// clicks, so we set this to false even if the user is still pressing

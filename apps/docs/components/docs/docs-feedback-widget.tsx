@@ -42,24 +42,14 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 		'idle' | 'thumbs-up' | 'thumbs-down' | 'loading' | 'success' | 'error'
 	>('idle')
 
-	const handleThumbsDown = async () => {
-		setState((s) => {
-			const next = s === 'thumbs-down' ? 'idle' : 'thumbs-down'
-			if (s === 'thumbs-down') {
-				submitThumbsFeedback(sessionId, pathname, -1)
-			}
-			return next
-		})
-	}
-
-	const handleThumbsUp = () => {
-		setState((s) => {
-			const next = s === 'thumbs-up' ? 'idle' : 'thumbs-up'
-			if (s === 'thumbs-up') {
-				submitThumbsFeedback(sessionId, pathname, 1)
-			}
-			return next
-		})
+	// Track outside the setState updater: React double-invokes updaters in StrictMode, which
+	// would double-count the vote.
+	const handleThumbs = (thumb: 'thumbs-up' | 'thumbs-down') => {
+		const next = state === thumb ? 'idle' : thumb
+		if (next === thumb) {
+			submitThumbsFeedback(sessionId, pathname, thumb === 'thumbs-up' ? 1 : -1)
+		}
+		setState(next)
 	}
 
 	const handleSubmit: FormEventHandler<HTMLFormElement> = async (e) => {
@@ -98,7 +88,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 					<span>Is this page helpful?</span>
 					<div className="flex">
 						<button
-							onClick={handleThumbsDown}
+							onClick={() => handleThumbs('thumbs-down')}
 							className={cn(
 								'h-9 w-7 flex items-center justify-center pt-0.5',
 								state === 'thumbs-down' && 'text-blue-500',
@@ -108,7 +98,7 @@ export function DocsFeedbackWidget({ className }: { className?: string }) {
 							<HandThumbDownIcon className="h-4" />
 						</button>
 						<button
-							onClick={handleThumbsUp}
+							onClick={() => handleThumbs('thumbs-up')}
 							className={cn(
 								'h-9 w-7 flex items-center justify-center pb-0.5 -mr-1',
 								state === 'thumbs-up' && 'text-blue-500',

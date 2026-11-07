@@ -25,7 +25,7 @@ const SKIPPED_DIR_NAMES = new Set([
 	'dist',
 	'dist-cjs',
 	'dist-esm',
-	'.lazy',
+	'.turbo',
 	'.next',
 	'.wrangler',
 	'.vercel',
@@ -99,6 +99,8 @@ function findOwningPackage(filePath) {
 /** Strip a subpath off an import specifier, leaving the bare package name. */
 function getImportedPackageName(specifier) {
 	if (!specifier || specifier.startsWith('.') || specifier.startsWith('/')) return null
+	// `@/components` is a tsconfig path alias, not a scoped package.
+	if (specifier.startsWith('@/')) return null
 	// `node:fs`, `cloudflare:workers`, `data:`, and friends are never packages.
 	if (specifier.includes(':')) return null
 	if (NODE_BUILTINS.has(specifier.split('/')[0])) return null
@@ -274,6 +276,12 @@ function getAssignableIdentifier(node) {
 // Rules ported from the legacy ESLint plugin
 // ---------------------------------------------------------------------------
 
+// Packages that exist only as their `@types/*` declaration: type-only specs (`mdast`,
+// `topojson-specification`) and modules the host provides at runtime (`vscode`). Kept as an explicit
+// list rather than honoring any declared `@types/*`, so `@types/react` can't stand in for an
+// undeclared `react`. A new type-only import fails lint until it is added here.
+const TYPES_ONLY_PACKAGES = new Set(['mdast', 'topojson-specification', 'vscode'])
+
 const rules = {
 	'no-whilst': {
 		meta: {
@@ -432,7 +440,7 @@ const rules = {
 		meta: {
 			messages: {
 				undeclared:
-					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. Yarn's hoisted node_modules resolves it anyway, but package managers with strict isolation (pnpm, Yarn PnP) can't.",
+					"'{{name}}' is imported here but isn't declared in {{owner}}'s package.json. pnpm's hoisted node_modules resolves it anyway, but package managers with strict isolation (pnpm, Yarn PnP) can't.",
 			},
 			type: 'problem',
 			schema: [],
@@ -447,6 +455,7 @@ const rules = {
 				const name = getImportedPackageName(specifier)
 				if (!name || name === owner.name) return
 				if (owner.declared.has(name)) return
+				if (TYPES_ONLY_PACKAGES.has(name) && owner.declared.has(`@types/${name}`)) return
 
 				context.report({ node, messageId: 'undeclared', data: { name, owner: owner.name } })
 			}
@@ -1088,6 +1097,39 @@ const rules = {
 		},
 	},
 
+	// `msg()` takes any string, so a mistyped key renders as itself and nothing catches it: not the
+	// types, and not `i18n-extract --check`, which only sees ids declared through `defineMessages`.
+	// A template with placeholders is left alone — a key built at runtime can't be declared.
+	'no-bare-translation-key': {
+		meta: {
+			messages: {
+				bare: 'Pass a declared message, as `msg(messages.x)`, not a bare key. Declare it with `defineMessages` so the extractor and typecheck see it.',
+			},
+			type: 'problem',
+			schema: [],
+		},
+		create(context) {
+			return {
+				CallExpression(node) {
+					if (node.callee.type !== 'Identifier' || node.callee.name !== 'msg') return
+					const isBare = (arg) =>
+						(arg.type === 'Literal' && typeof arg.value === 'string') ||
+						(arg.type === 'TemplateLiteral' && arg.expressions.length === 0)
+					const check = (arg) => {
+						if (!arg) return
+						// `msg(open ? 'a' : 'b')` is a bare key either way.
+						if (arg.type === 'ConditionalExpression') {
+							check(arg.consequent)
+							check(arg.alternate)
+						} else if (isBare(arg)) {
+							context.report({ node: arg, messageId: 'bare' })
+						}
+					}
+					check(node.arguments[0])
+				},
+			}
+		},
+	},
 	'enforce-default-message': {
 		meta: {
 			messages: {

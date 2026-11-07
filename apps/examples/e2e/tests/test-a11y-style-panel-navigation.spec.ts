@@ -275,6 +275,8 @@ async function startEditingSelectedShapeViaKeyboard(page: Page) {
 // keystrokes during the editor's async setup. Each attempt re-selects everything
 // and retypes, so a partially-typed result from a previous attempt is fully
 // overwritten rather than appended to — the poll converges once nothing drops.
+// The select-all must be ControlOrMeta: plain Meta+a selects nothing on Linux, so
+// every retry would append another copy instead of replacing.
 async function replaceSelectedShapeLabel(page: Page, text: string) {
 	const getText = () =>
 		page.evaluate(() => {
@@ -284,7 +286,7 @@ async function replaceSelectedShapeLabel(page: Page, text: string) {
 	await expect
 		.poll(
 			async () => {
-				await page.keyboard.press('Meta+a')
+				await page.keyboard.press('ControlOrMeta+a')
 				await page.keyboard.type(text)
 				return getText()
 			},

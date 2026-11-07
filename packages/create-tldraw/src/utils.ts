@@ -1,6 +1,37 @@
-import { existsSync, lstatSync, readdirSync } from 'node:fs'
-import { basename, resolve } from 'node:path'
+import { existsSync, readdirSync, rmSync, statSync } from 'node:fs'
+import { basename, join, resolve } from 'node:path'
+import { parse as parseArgs } from '@bomb.sh/args'
 import { isCancel, outro } from '@clack/prompts'
+
+export interface CliArgs {
+	help: boolean
+	template?: string
+	telemetry: boolean
+	targetDir?: string
+}
+
+export function parseCliArgs(argv: string[]): CliArgs {
+	const args = parseArgs(argv, {
+		alias: {
+			h: 'help',
+			t: 'template',
+		},
+		// The parser reports `--no-telemetry` as `telemetry: false`, never as a `no-telemetry` key.
+		// It still has to be listed as a boolean: otherwise `--no-telemetry my-app` treats the
+		// directory as the flag's value and swallows it.
+		boolean: ['help', 'telemetry', 'no-telemetry'],
+		string: ['template'],
+		default: { telemetry: true },
+	})
+
+	return {
+		help: !!args.help,
+		template: args.template ? String(args.template) : undefined,
+		telemetry: args.telemetry !== false,
+		// Bare arguments are coerced, so a directory like `2026` arrives as a number.
+		targetDir: args._[0] === undefined ? undefined : String(args._[0]),
+	}
+}
 
 export function nicelog(...args: unknown[]) {
 	// eslint-disable-next-line no-console
@@ -13,12 +44,20 @@ export function isDirEmpty(path: string) {
 	}
 
 	// Existing files block the target path, so only directories should be inspected with readdirSync.
-	if (!lstatSync(path).isDirectory()) {
+	if (!statSync(path).isDirectory()) {
 		return false
 	}
 
 	const files = readdirSync(path)
 	return files.length === 0 || (files.length === 1 && files[0] === '.git')
+}
+
+// Keeps .git so scaffolding into a freshly initialised repo doesn't destroy its history.
+export function emptyDir(path: string) {
+	for (const file of readdirSync(path)) {
+		if (file === '.git') continue
+		rmSync(join(path, file), { recursive: true, force: true })
+	}
 }
 
 export function pathToName(path: string) {
@@ -41,7 +80,7 @@ function toValidPackageName(projectName: string) {
 		.replace(/[^a-z\d\-~]+/g, '-')
 }
 
-function cancel(): never {
+export function cancel(): never {
 	outro('Setup cancelled.\n   Try again or visit https://tldraw.dev/docs to learn more.')
 	process.exit(1)
 }

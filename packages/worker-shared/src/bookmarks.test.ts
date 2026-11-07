@@ -137,6 +137,10 @@ describe('bookmarks', () => {
 
 			// Should update metadata with processed image URLs
 			expect(result.image).toBe('https://cdn.example.com/processed-image')
+			// Hosts like Wikimedia refuse an image request with no user agent.
+			for (const [, init] of mockFetch.mock.calls) {
+				expect(init.headers['user-agent']).toMatch(/^tldraw-bot\//)
+			}
 			expect(result.favicon).toBe('https://cdn.example.com/processed-favicon')
 		})
 

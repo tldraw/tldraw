@@ -1,3 +1,5 @@
+import { COMMON_ROOM_SNIPPET_CSP_HASH } from '../../../../../internal/shared/common-room-signals'
+
 export const cspDirectives: { [key: string]: string[] } = {
 	'default-src': [`'self'`],
 	'connect-src': [
@@ -33,6 +35,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://stats.g.doubleclick.net',
 		'https://*.google-analytics.com',
 		'https://api.reo.dev',
+		'https://api.cr-relay.com',
 		'https://fonts.googleapis.com',
 		// asset uploads/serving
 		'https://tldrawusercontent.com',
@@ -44,6 +47,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 	'media-src': [`'self'`, `http:`, `https:`, `data:`, `blob:`],
 	'script-src': [
 		`'self'`,
+		`'${COMMON_ROOM_SNIPPET_CSP_HASH}'`,
 		'https://challenges.cloudflare.com',
 		'https://*.clerk.accounts.dev',
 		'https://clerk.tldraw.com',
@@ -56,6 +60,7 @@ export const cspDirectives: { [key: string]: string[] } = {
 		'https://*.google-analytics.com',
 		'https://analytics.tldraw.com',
 		'https://static.reo.dev',
+		'https://cdn.cr-relay.com',
 	],
 	'worker-src': [`'self'`, `blob:`],
 	'style-src': [`'self'`, `'unsafe-inline'`, `https://fonts.googleapis.com`],
@@ -71,6 +76,22 @@ export const cspDirectives: { [key: string]: string[] } = {
 
 export const csp = Object.keys(cspDirectives)
 	.map((directive) => `${directive} ${cspDirectives[directive].join(' ')}`)
+	.join('; ')
+
+// The thumbnail render page's policy: the app's, plus inline script, which Browser Run's
+// addScriptTag needs to push the records in. Without it the browser blocks the push silently and
+// every render fetches (each push times out, then falls back). Confined to that route, which has no
+// user session for a script to reach. Hashes and nonces go: a browser ignores 'unsafe-inline' in any
+// list that has one, and the page loads none of the snippets they allow.
+export const thumbnailRenderCsp = Object.keys(cspDirectives)
+	.map((directive) => {
+		const values = cspDirectives[directive]
+		if (directive === 'script-src') {
+			const sources = values.filter((value) => !/^'(sha(256|384|512)|nonce)-/.test(value))
+			return `${directive} ${[...sources, `'unsafe-inline'`].join(' ')}`
+		}
+		return `${directive} ${values.join(' ')}`
+	})
 	.join('; ')
 
 export const cspDev = Object.keys(cspDirectives)

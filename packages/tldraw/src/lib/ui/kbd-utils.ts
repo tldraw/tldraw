@@ -9,47 +9,50 @@ import { tlenv } from '@tldraw/editor'
  * Source: https://github.com/jaywcjlove/hotkeys-js
  */
 
-// N.B. We rework these Windows placeholders down below.
-const cmdKey = tlenv.isDarwin ? '⌘' : '__CTRL__'
-const ctrlKey = tlenv.isDarwin ? '⌃' : '__CTRL__'
-const altKey = tlenv.isDarwin ? '⌥' : '__ALT__'
-
 /** @public */
 export function kbd(str: string) {
+	// N.B. We rework these Windows placeholders down below.
+	const cmdKey = tlenv.isDarwin ? '⌘' : '__CTRL__'
+	const ctrlKey = tlenv.isDarwin ? '⌃' : '__CTRL__'
+	const altKey = tlenv.isDarwin ? '⌥' : '__ALT__'
+	const shiftKey = tlenv.isDarwin ? '⇧' : '__SHIFT__'
+
 	return (
 		(splitKbd(str)[0] ?? '')
 			// If the string contains [[Tab]], we don't split these up
 			// as they're meant to be atomic.
 			.split(/(\[\[[^\]]+\]\])/g)
-			.map((s) =>
+			.flatMap((s) =>
 				s.startsWith('[[')
 					? s.replace(/[[\]]/g, '')
 					: s
 							.replace(/cmd\+/g, cmdKey)
 							.replace(/ctrl\+/g, ctrlKey)
 							.replace(/alt\+/g, altKey)
-							.replace(/shift\+/g, '⇧')
+							.replace(/shift\+/g, shiftKey)
 							// Backwards compatibility with the old system.
 							.replace(/\$/g, cmdKey)
 							.replace(/\?/g, altKey)
-							.replace(/!/g, '⇧')
-							.match(/__CTRL__|__ALT__|./g) || []
+							.replace(/!/g, shiftKey)
+							.match(/__CTRL__|__ALT__|__SHIFT__|./g) || []
 			)
-			.flat()
-			.map((sub, index) => {
-				if (sub[0] === '+') return []
-
+			// A `+` is a separator unless it is the key itself, which is always last. Filter before
+			// mapping so `index` below counts rendered parts, else `++` gets a separator prepended.
+			// An empty atomic token (`[[]]`) yields an empty sub that would throw on `sub[0]` below.
+			.filter((sub, index, arr) => sub !== '' && (sub[0] !== '+' || index === arr.length - 1))
+			.flatMap((sub, index) => {
 				let modifiedKey
 				if (sub === '__CTRL__') {
 					modifiedKey = 'Ctrl'
 				} else if (sub === '__ALT__') {
 					modifiedKey = 'Alt'
+				} else if (sub === '__SHIFT__') {
+					modifiedKey = 'Shift'
 				} else {
 					modifiedKey = sub[0].toUpperCase() + sub.slice(1)
 				}
 				return tlenv.isDarwin || !index ? modifiedKey : ['+', modifiedKey]
 			})
-			.flat()
 	)
 }
 

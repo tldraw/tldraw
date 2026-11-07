@@ -103,14 +103,14 @@ const config: PlaywrightTestConfig = {
 	/* Run your local dev server before starting the tests */
 	webServer: [
 		{
-			command: process.env.CI ? 'yarn preview' : 'yarn preview-examples',
+			command: process.env.CI ? 'pnpm preview' : 'pnpm preview-examples',
 			port: 5420,
 			reuseExistingServer: !process.env.CI,
 			cwd: process.env.CI ? path.join(__dirname, '..') : path.join(__dirname, '../../..'),
 			timeout: process.env.CI ? 30_000 : 300_000,
 		},
 		{
-			command: 'yarn dev',
+			command: 'pnpm dev',
 			port: 8989,
 			reuseExistingServer: !process.env.CI,
 			cwd: path.join(__dirname, '../../../apps/bemo-worker'),

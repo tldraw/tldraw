@@ -1,4 +1,4 @@
-import { useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
+import { defineMessages, useEditor, usePassThroughWheelEvents, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -12,6 +12,10 @@ import { TldrawUiToolbar } from '../primitives/TldrawUiToolbar'
 import { DefaultToolbarContent } from './DefaultToolbarContent'
 import { OverflowingToolbar } from './OverflowingToolbar'
 import { ToggleToolLockedButton } from './ToggleToolLockedButton'
+
+const messages = defineMessages({
+	actionsMenuTitle: { id: 'actions-menu.title', defaultMessage: 'Actions' },
+})
 
 /** @public */
 export interface DefaultToolbarProps {
@@ -36,8 +40,8 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 	orientation = 'horizontal',
 	minItems = 4,
 	minSizePx = 310,
-	maxItems,
-	maxSizePx,
+	maxItems = 8,
+	maxSizePx = 470,
 }: DefaultToolbarProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -74,7 +78,7 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 									<TldrawUiToolbar
 										orientation={orientation}
 										className="tlui-main-toolbar__extras__controls"
-										label={msg('actions-menu.title')}
+										label={msg(messages.actionsMenuTitle)}
 									>
 										{QuickActions && <QuickActions />}
 										{ActionsMenu && <ActionsMenu />}
@@ -87,9 +91,9 @@ export const DefaultToolbar = memo(function DefaultToolbar({
 							orientation={orientation}
 							sizingParentClassName="tlui-main-toolbar"
 							minItems={minItems}
-							maxItems={maxItems ?? 8}
+							maxItems={maxItems}
 							minSizePx={minSizePx}
-							maxSizePx={maxSizePx ?? 470}
+							maxSizePx={maxSizePx}
 						>
 							{children ?? <DefaultToolbarContent />}
 						</OverflowingToolbar>

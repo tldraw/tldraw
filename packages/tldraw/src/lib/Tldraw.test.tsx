@@ -322,4 +322,20 @@ describe('<Tldraw />', () => {
 			textarea.remove()
 		}
 	})
+
+	// The adapter used to come from the provider `Tldraw` renders above the editor, whose locale is
+	// fixed at mount, so shapes kept announcing themselves in the first language after a switch. 'zz'
+	// is a locale the SDK ships no catalog for, so nothing is fetched.
+	it("keeps the editor's i18n on the user's current locale", async () => {
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		expect(editor.i18n().locale).toBe('en')
+
+		await act(async () => {
+			editor.user.updateUserPreferences({ locale: 'zz' })
+		})
+		expect(editor.i18n().locale).toBe('zz')
+	})
 })

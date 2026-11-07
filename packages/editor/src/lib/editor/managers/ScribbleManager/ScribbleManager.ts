@@ -1,4 +1,4 @@
-import { TLScribble, VecModel } from '@tldraw/tlschema'
+import { TLPageId, TLScribble, VecModel } from '@tldraw/tlschema'
 import { uniqueId } from '@tldraw/utils'
 import { Vec } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
@@ -47,6 +47,7 @@ export interface ScribbleSessionOptions {
 // Internal session state (not exported)
 interface Session {
 	id: string
+	pageId: TLPageId
 	items: ScribbleItem[]
 	state: 'active' | 'stopping' | 'complete'
 	options: Required<Omit<ScribbleSessionOptions, 'id'>>
@@ -75,6 +76,7 @@ export class ScribbleManager {
 		const id = options.id ?? uniqueId()
 		const session: Session = {
 			id,
+			pageId: this.editor.getCurrentPageId(),
 			items: [],
 			state: 'active',
 			options: {
@@ -357,6 +359,15 @@ export class ScribbleManager {
 		if (this.sessions.size === 0 && currentScribbles.length === 0) return
 
 		this.editor.run(() => {
+			// Drop sessions from other pages, otherwise a still-fading laser trail
+			// keeps playing out over the page the user switched to (#10449).
+			const currentPageId = this.editor.getCurrentPageId()
+			for (const session of this.sessions.values()) {
+				if (session.pageId !== currentPageId) {
+					this.clearSession(session.id)
+				}
+			}
+
 			// Tick all sessions
 			for (const session of this.sessions.values()) {
 				this.tickSession(session, elapsed)
@@ -398,7 +409,7 @@ export class ScribbleManager {
 
 	private clearIdleTimeout(session: Session): void {
 		if (session.idleTimeoutHandle !== undefined) {
-			clearTimeout(session.idleTimeoutHandle)
+			this.editor.timers.clearTimeout(session.idleTimeoutHandle)
 			session.idleTimeoutHandle = undefined
 		}
 	}
@@ -433,13 +444,11 @@ export class ScribbleManager {
 			}
 		}
 
-		// Remove completed items in individual fade mode
+		// Keep starting scribbles with no point yet, or addPoint can't find them (#7681).
 		if (session.options.fadeMode === 'individual') {
-			for (let i = session.items.length - 1; i >= 0; i--) {
-				if (session.items[i].scribble.points.length === 0) {
-					session.items.splice(i, 1)
-				}
-			}
+			session.items = session.items.filter(
+				({ scribble }) => scribble.points.length > 0 || scribble.state === 'starting'
+			)
 		}
 	}
 

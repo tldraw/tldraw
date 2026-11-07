@@ -185,15 +185,17 @@ describe('POST /app/admin/feature-flags', () => {
 		expect(kv.has('mcp_server_access')).toBe(false)
 	})
 
-	it('toggles the master switch without touching the list', async () => {
+	// Allowlists have no master toggle. Refused rather than dropped, like the other type mismatches
+	// above: a caller that believes it just closed the flag must not be told the save succeeded.
+	it('refuses enabled for an allowlist flag, leaving the list alone', async () => {
 		const env = makeEnv()
 		mockUsers([{ id: 'user_1', email: 'one@tldraw.com' }])
 		await post(env, { flag: 'mcp_server_access', emails: 'one@tldraw.com' })
 
-		await post(env, { flag: 'mcp_server_access', enabled: true })
+		const response = await post(env, { flag: 'mcp_server_access', enabled: false })
 
+		expect(response.status).toBe(400)
 		expect(storedFlag('mcp_server_access')).toMatchObject({
-			enabled: true,
 			users: [{ userId: 'user_1', email: 'one@tldraw.com' }],
 		})
 	})
