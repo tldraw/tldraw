@@ -10,6 +10,9 @@ interface Reactor {
 
 class Transaction {
 	asyncProcessCount = 0
+	// Set by a failing async process that is not the last to finish, so the last one aborts the
+	// shared transaction instead of committing the failed process's changes (AT3).
+	asyncError: { error: any } | null = null
 	constructor(
 		public readonly parent: Transaction | null,
 		public readonly isSync: boolean
@@ -388,6 +391,10 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 		error = e ?? null
 	}
 
+	if (typeof error !== 'undefined' && !txn.asyncError) {
+		txn.asyncError = { error }
+	}
+
 	if (--txn.asyncProcessCount > 0) {
 		// Other processes still share this transaction; it settles when the last one finishes.
 		if (typeof error !== 'undefined') {
@@ -396,6 +403,10 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 		} else {
 			return result
 		}
+	}
+
+	if (typeof error === 'undefined' && txn.asyncError) {
+		error = txn.asyncError.error
 	}
 
 	// Settle while this is still the current transaction (see `Transaction.abort`): clearing it
