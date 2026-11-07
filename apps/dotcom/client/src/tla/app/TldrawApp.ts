@@ -1532,10 +1532,24 @@ export class TldrawApp {
 		return true
 	}
 
-	async acceptWorkspaceInvite(inviteSecret: string) {
-		const response = await fetch(`/api/app/invite/${inviteSecret}/accept`, {
-			method: 'POST',
-		})
+	/**
+	 * Resolves false when the request never reached the server (e.g. offline), so the
+	 * caller can keep the invite open for a retry. Every other outcome navigates away.
+	 */
+	async acceptWorkspaceInvite(inviteSecret: string): Promise<boolean> {
+		let response: Response
+		try {
+			response = await fetch(`/api/app/invite/${inviteSecret}/accept`, {
+				method: 'POST',
+			})
+		} catch {
+			this.toasts?.addToast({
+				severity: 'error',
+				title: this.msg(this.messages.accept_invite_error_title),
+				description: this.msg(this.messages.accept_invite_try_again),
+			})
+			return false
+		}
 
 		// A gateway error page or the router's own 401 body isn't an AcceptInviteResponseBody;
 		// parsing it first would throw past the toast below.
@@ -1555,7 +1569,7 @@ export class TldrawApp {
 				),
 			})
 			this.navigate(routes.tlaRoot())
-			return
+			return true
 		}
 
 		this.trackEvent('accept-workspace-invite', { source: 'sidebar' })
@@ -1570,7 +1584,7 @@ export class TldrawApp {
 					description: this.msg(this.messages.accept_invite_try_again),
 				})
 				this.navigate(routes.tlaRoot())
-				return
+				return true
 			}
 			await sleep(100)
 		}
@@ -1581,6 +1595,7 @@ export class TldrawApp {
 		if (!this.navigateToWorkspaceFiles(payload.workspaceId)) {
 			this.navigate(routes.tlaRoot())
 		}
+		return true
 	}
 
 	navigateToWorkspaceFiles(workspaceId: string, opts: { replace?: boolean } = {}) {
