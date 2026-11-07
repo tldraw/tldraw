@@ -358,6 +358,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
 	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
+	const [failedUrl, setFailedUrl] = useState<null | string>(null)
 	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
@@ -408,11 +409,13 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 
 	const containerStyle = getCroppedContainerStyle(shape)
 
-	const nextSrc = url === loadedUrl ? null : url
+	const nextSrc = url === loadedUrl || url === failedUrl ? null : url
 	const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
+	// If an earlier URL loaded, keep showing it rather than replacing it with the broken state.
+	const didFailToLoad = !!url && url === failedUrl && !loadedUrl
 
 	// This logic path is for when it's broken/missing asset.
-	if (!url && !asset?.props.src) {
+	if ((!url && !asset?.props.src) || didFailToLoad) {
 		return (
 			<HTMLContainer
 				id={shape.id}
@@ -426,10 +429,13 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 				}}
 			>
 				<div
-					className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
+					className={classNames(
+						'tl-image-container',
+						asset && !didFailToLoad && 'tl-image-container-loading'
+					)}
 					style={containerStyle}
 				>
-					{asset ? null : <BrokenAssetIcon />}
+					{asset && !didFailToLoad ? null : <BrokenAssetIcon />}
 				</div>
 				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
@@ -494,6 +500,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							draggable={false}
 							alt={shape.props.altText}
 							onLoad={() => setLoadedUrl(nextSrc)}
+							onError={() => setFailedUrl(nextSrc)}
 						/>
 					)}
 				</div>
