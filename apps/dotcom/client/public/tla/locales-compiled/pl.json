@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -253,6 +247,12 @@
       "value": " skomentował Twoją tablicę"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Nie udało się przesłać opinii"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +269,12 @@
     {
       "type": 0,
       "value": "Szukaj..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Spróbuj ponownie."
     }
   ],
   "2de510be71": [
@@ -417,12 +423,6 @@
       "value": "Aby kontynuować edycję skopiuj plik do swoich plików."
     }
   ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
-    }
-  ],
   "47f493a590": [
     {
       "type": 0,
@@ -489,14 +489,10 @@
       "value": "Osiągnięto limit współpracowników"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
+  "550b25cc0c": [
     {
       "type": 0,
-      "value": " nieprzeczytane"
+      "value": "Nie udało się przywrócić lokalnego rysunku. Spróbuj odświeżyć tę stronę."
     }
   ],
   "554a05155c": [
@@ -948,20 +944,6 @@
       "value": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Dodano pliki "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1092,6 +1074,12 @@
       "value": "Usuń plik"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Wygląda na to, że jesteś offline. Sprawdź połączenie i spróbuj ponownie."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1134,6 +1122,60 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytane"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytanych"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytane"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytanych"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a0da245992": [
@@ -1308,6 +1350,12 @@
       "value": "Właściciel"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Przeciągnij plik na pasek boczny na tej stronie. Możesz też wybrać opcję „Importuj plik” z menu Plik w lewym górnym rogu."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1332,10 +1380,50 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Przesyłanie "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " z "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " plików .tldr…"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 0,
+              "value": "Przesyłanie "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " z "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " plików .tldr…"
+            }
           ]
         },
         "one": {
@@ -1398,6 +1486,76 @@
       "value": "Dowiedz się więcej o udostępnianiu."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pliki .tldr."
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " plików .tldr."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " plik .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pliku .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1408,12 +1566,6 @@
     {
       "type": 0,
       "value": "Niezbędne pliki cookie"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Długi ciąg"
     }
   ],
   "c6a00f137b": [
@@ -1482,6 +1634,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " inne osoby"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " innych osób"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1489,7 +1663,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " inna osoba"
             }
           ]
         },
@@ -1500,7 +1674,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " innej osoby"
             }
           ]
         }
@@ -1698,12 +1872,6 @@
       "value": "Menu konta"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: akcentowany"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1804,6 +1972,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " inne osoby"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " innych osób"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1811,7 +2001,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " inna osoba"
             }
           ]
         },
@@ -1822,7 +2012,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " innej osoby"
             }
           ]
         }

@@ -75,6 +75,15 @@ export class Editor {
 	}
 
 	@step
+	async copyFileLinkFromFileHeader() {
+		await this.openPageMenu()
+		await this.page.getByRole('menuitem', { name: 'File' }).click()
+		await this.sidebar.clearClipboard()
+		await this.page.getByRole('menuitem', { name: 'Copy link' }).click()
+		return await this.sidebar.readClipboardUrl(/^\/f\//)
+	}
+
+	@step
 	async createNewPage() {
 		await this.page.getByTestId('page-menu.button').click()
 		await expect(this.page.getByTestId('page-menu.create')).toBeVisible()

@@ -1,6 +1,5 @@
 import { devFreeze, Migration, MigrationId } from '@tldraw/store'
 import { mockUniqueId, structuredClone } from '@tldraw/utils'
-import { vi } from 'vitest'
 import { createTLSchema } from '../createTLSchema'
 
 let nextNanoId = 0
@@ -8,11 +7,24 @@ mockUniqueId(() => `nanoid_${++nextNanoId}`)
 
 export const testSchema = createTLSchema()
 
-// mock all migrator fns
+// Records which migrator fns ran, so migrations.test.ts can assert every one is covered by a
+// test. This deliberately isn't a vi.fn: vitest clears mock call history before each test, which
+// would wipe the record before the coverage check runs.
+const calledMigrators = new Set<string>()
+
+/** Whether any test in this run exercised the given migrator. */
+export function wasMigratorCalled(id: MigrationId, direction: 'up' | 'down') {
+	return calledMigrators.has(`${id}/${direction}`)
+}
+
 for (const migration of testSchema.sortedMigrations) {
-	;(migration as any).up = vi.fn(migration.up as any)
-	if (typeof migration.down === 'function') {
-		;(migration as any).down = vi.fn(migration.down as any)
+	for (const direction of ['up', 'down'] as const) {
+		const fn = migration[direction]
+		if (typeof fn !== 'function') continue
+		;(migration as any)[direction] = (...args: any[]) => {
+			calledMigrators.add(`${migration.id}/${direction}`)
+			return (fn as any)(...args)
+		}
 	}
 }
 

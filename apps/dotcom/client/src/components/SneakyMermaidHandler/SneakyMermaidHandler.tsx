@@ -1,6 +1,11 @@
 import { useEffect } from 'react'
-import { defaultHandleExternalTextContent, useEditor, useToasts } from 'tldraw'
-import { defineMessages, useMsg } from '../../tla/utils/i18n'
+import {
+	defaultHandleExternalTextContent,
+	defineMessages,
+	useEditor,
+	useToasts,
+	useTranslation,
+} from 'tldraw'
 import { simpleMermaidStringTest, stripMarkdownMermaidFence } from './simpleMermaidStringTest'
 
 const messages = defineMessages({
@@ -9,10 +14,11 @@ const messages = defineMessages({
 })
 
 export function SneakyMermaidHandler() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const { addToast } = useToasts()
-	const unsupportedTitle = useMsg(messages.unsupportedTitle)
-	const unsupportedDescription = useMsg(messages.unsupportedDescription)
+	const unsupportedTitle = msg(messages.unsupportedTitle)
+	const unsupportedDescription = msg(messages.unsupportedDescription)
 
 	useEffect(() => {
 		editor.registerExternalContentHandler('text', async (content) => {

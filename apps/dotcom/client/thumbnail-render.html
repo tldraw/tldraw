@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<meta name="robots" content="noindex" />
+		<!-- Mirrors the #root sizing from index.html so the editor lays out identically here. -->
+		<style>
+			#root {
+				position: relative;
+				inset: 0;
+				width: 100%;
+				height: 100%;
+				overflow: hidden;
+			}
+			/* The app's license shows the "made with tldraw" mark on the canvas. editor.toImage never
+			   drew it, and a live capture rasterizes the DOM, so without this every live screenshot
+			   carries the mark the export path never had. !important because the SDK injects its own
+			   rule for this class (display: flex) after this sheet. */
+			.tl-watermark_SEE-LICENSE {
+				display: none !important;
+			}
+		</style>
+		<!-- Filled by scripts/build.ts with the same font preloads as index.html. -->
+		<!-- $PRELOADED_FONTS -->
+		<title>tldraw thumbnail render</title>
+	</head>
+
+	<body>
+		<div id="root"></div>
+		<script type="module" src="./src/thumbnail-render-main.tsx"></script>
+	</body>
+</html>

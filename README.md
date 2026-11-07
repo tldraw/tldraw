@@ -81,7 +81,7 @@ npx create-tldraw@latest
 
 ## Local development
 
-The development server runs the examples app at `localhost:5420`. You'll need [Node.js](https://nodejs.org) `^20.0.0`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct yarn version:
+The development server runs the examples app at `localhost:5420`. You'll need [Node.js](https://nodejs.org) `^20.0.0`. Clone the repo, then enable [corepack](https://nodejs.org/api/corepack.html) for the correct pnpm version:
 
 ```bash
 npm i -g corepack
@@ -90,8 +90,8 @@ npm i -g corepack
 Install dependencies and start the dev server:
 
 ```bash
-yarn
-yarn dev
+pnpm install
+pnpm dev
 ```
 
 ## Documentation
@@ -128,18 +128,12 @@ Please see our [trademark guidelines](https://github.com/tldraw/tldraw/blob/main
   <img src="https://contrib.rocks/image?repo=tldraw/tldraw&max=400&columns=20" width="100%"/>
 </a>
 
-## Star history
+## Star History
 
-<a href="https://star-history.com/#tldraw/tldraw">
-	<picture>
-	  <source
-	    media="(prefers-color-scheme: dark)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date&theme=dark"
-	  />
-	  <source
-	    media="(prefers-color-scheme: light)"
-	    srcset="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date"
-	  />
-	  <img src="https://api.star-history.com/svg?repos=tldraw/tldraw&type=Date" alt="Star History Chart" width="100%" />
-	</picture>
+<a href="https://www.star-history.com/?repos=tldraw%2Ftldraw&type=date&legend=top-left">
+ <picture>
+   <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/chart?repos=tldraw/tldraw&type=date&theme=dark&legend=top-left&sealed_token=YTo3tyinAnKu6ejENN9D7GqA1uojjEwF1sh1zJsYGDOp0BmB2_UZbnYBZmhW6UZ7ObW96D5J9M5ww8M2d6AniQZ6fIWxWHqpnnFw02hhk5UfAsz52Y-VFJ0ooQDSyIwW6VL64YD4HGQIwmq_0_jIhposmAekoBMCsIZeMX2lQo3j9l59kintv74U5X0y" />
+   <source media="(prefers-color-scheme: light)" srcset="https://api.star-history.com/chart?repos=tldraw/tldraw&type=date&legend=top-left&sealed_token=YTo3tyinAnKu6ejENN9D7GqA1uojjEwF1sh1zJsYGDOp0BmB2_UZbnYBZmhW6UZ7ObW96D5J9M5ww8M2d6AniQZ6fIWxWHqpnnFw02hhk5UfAsz52Y-VFJ0ooQDSyIwW6VL64YD4HGQIwmq_0_jIhposmAekoBMCsIZeMX2lQo3j9l59kintv74U5X0y" />
+   <img alt="Star History Chart" src="https://api.star-history.com/chart?repos=tldraw/tldraw&type=date&legend=top-left&sealed_token=YTo3tyinAnKu6ejENN9D7GqA1uojjEwF1sh1zJsYGDOp0BmB2_UZbnYBZmhW6UZ7ObW96D5J9M5ww8M2d6AniQZ6fIWxWHqpnnFw02hhk5UfAsz52Y-VFJ0ooQDSyIwW6VL64YD4HGQIwmq_0_jIhposmAekoBMCsIZeMX2lQo3j9l59kintv74U5X0y" />
+ </picture>
 </a>

@@ -94,7 +94,10 @@ export class HomePage {
 	async isLoaded() {
 		// Swat away the terms dialog if it appears.
 		await this.handleTermsIfNeeded()
+		await this.expectEditorVisible()
+	}
 
+	async expectEditorVisible() {
 		await expect(async () => {
 			await expect(this.tldrawEditor).toBeVisible({ timeout: 10000 })
 			await expect(this.tldrawCanvas).toBeVisible({ timeout: 10000 })

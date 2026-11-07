@@ -1,7 +1,8 @@
 import { computed } from '@tldraw/state'
 import { TLHandle, TLShape, TLShapeId, VecModel } from '@tldraw/tlschema'
 import { assertExists, uniqueId } from '@tldraw/utils'
-import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
+import { Geometry2d, Geometry2dFilters } from '../../../primitives/geometry/Geometry2d'
+import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Vec } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
 import type { PointsSnapIndicator, SnapData, SnapManager } from './SnapManager'
@@ -156,11 +157,21 @@ export class HandleSnaps {
 		let minDistanceForOutline = snapThreshold
 		let nearestPointOnOutline: Vec | null = null
 
+		// Labels and internal detail (a note's label, a geo check mark) are not outlines
+		// to snap to. Group2d.nearestPoint throws when the filter leaves no child, so
+		// skip those groups.
+		const filters = Geometry2dFilters.EXCLUDE_NON_STANDARD
 		for (const { shapeId, outline } of this.iterateSnapOutlines(currentShapeId, handle)) {
+			if (
+				outline instanceof Group2d &&
+				outline.children.every((child) => child.isExcludedByFilter(filters))
+			) {
+				continue
+			}
 			const shapePageTransform = assertExists(this.editor.getShapePageTransform(shapeId))
 			const pointInShapeSpace = this.editor.getPointInShapeSpace(shapeId, handleInPageSpace)
 
-			const nearestShapePointInShapeSpace = outline.nearestPoint(pointInShapeSpace)
+			const nearestShapePointInShapeSpace = outline.nearestPoint(pointInShapeSpace, filters)
 			const nearestInPageSpace = shapePageTransform.applyToPoint(nearestShapePointInShapeSpace)
 
 			if (Vec.DistMin(handleInPageSpace, nearestInPageSpace, minDistanceForOutline)) {

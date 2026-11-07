@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -12,8 +11,8 @@ import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallba
 import { TlaEditorPublishedSharePanel } from './editor-components/TlaEditorPublishedSharePanel'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { TlaEditorTopLeftPanel } from './TlaEditorTopLeftPanel'
+import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
-import styles from './editor.module.css'
 
 const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
@@ -32,9 +31,7 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 
 	const handleUiEvent = useHandleUiEvents()
 	const trackPerformance = usePerformanceTracking()
-	const fileEditorOverrides = useFileEditorOverrides({
-		fileSlug: undefined,
-	})
+	const fileEditorOverrides = useFileEditorOverrides({})
 
 	const snapshot = useMemo(
 		() => ({
@@ -45,9 +42,8 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	)
 
 	return (
-		<div className={styles.editor} data-testid="tla-editor">
+		<TlaEditorWrapper>
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				snapshot={snapshot}
@@ -66,6 +62,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 				<ThemeUpdater />
 				<SneakyDarkModeSync />
 			</Tldraw>
-		</div>
+		</TlaEditorWrapper>
 	)
 }

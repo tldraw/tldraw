@@ -1,21 +1,18 @@
-import { useEditor } from 'tldraw'
+import { F, useEditor } from 'tldraw'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
-import { F } from '../../../utils/i18n'
 import { TlaMenuSection } from '../../tla-menu/tla-menu'
 import { TlaShareMenuCopyButton } from '../file-share-menu-primitives'
 import { QrCode } from '../QrCode'
 
 export function TlaAnonCopyLinkTab() {
-	const url = useEditorDeepLink()
+	const url = useEditorDeepLink() ?? ''
 	return (
-		<>
-			<TlaMenuSection>
-				<TlaAnonCopyLinkButton url={url ?? ''} />
-				<QrCode url={url ?? ''} />
-			</TlaMenuSection>
-		</>
+		<TlaMenuSection>
+			<TlaAnonCopyLinkButton url={url} />
+			<QrCode url={url} />
+		</TlaMenuSection>
 	)
 }
 

@@ -1,5 +1,9 @@
-import { TldrawUiMenuCheckboxItem, useEditor, useValue } from 'tldraw'
+import { defineMessages, TldrawUiMenuCheckboxItem, useEditor, useValue } from 'tldraw'
 import { commentsHidden, toggleCommentsHidden } from './state'
+
+const messages = defineMessages({
+	commentsTitle: { id: 'comments.title', defaultMessage: 'Comments' },
+})
 
 /**
  * A checkbox menu item for a "View" menu that shows/hides comment pins on the canvas — checked
@@ -14,7 +18,7 @@ export function CommentsMenuItem() {
 	return (
 		<TldrawUiMenuCheckboxItem
 			id="comments-visible"
-			label="comments.title"
+			label={messages.commentsTitle.id}
 			kbd="!c"
 			readonlyOk
 			checked={!hidden}

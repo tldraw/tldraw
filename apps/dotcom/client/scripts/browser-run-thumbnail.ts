@@ -199,9 +199,9 @@ async function captureWithLocalPlaywright(renderUrl: string, options: Options) {
 			deviceScaleFactor: 1,
 		})
 		// The terminal selectors are the real completion signal; waiting for network idle is both
-		// unnecessary and fragile (background app requests like feature-flag polling can keep the
-		// network busy indefinitely). Waiting on the error marker too makes a failed render fail
-		// immediately with the page's own message instead of timing out.
+		// unnecessary and fragile (background app requests can keep the network busy indefinitely).
+		// Waiting on the error marker too makes a failed render fail immediately with the page's own
+		// message instead of timing out.
 		await page.goto(renderUrl, {
 			waitUntil: 'domcontentloaded',
 			timeout: THUMBNAIL_RENDER_TIMEOUT_MS,
@@ -264,7 +264,7 @@ function requireNumber(arg: string, value: string | undefined) {
 
 function printHelp() {
 	writeLine(`Usage:
-  yarn workspace dotcom browser-run-thumbnail [options]
+  pnpm --filter dotcom browser-run-thumbnail [options]
 
 Options:
   --base-url <url>      Origin running the dotcom client. Default: http://127.0.0.1:3000

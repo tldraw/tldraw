@@ -1,6 +1,8 @@
 import { MAX_WORKSPACE_NAME_LENGTH } from '@tldraw/dotcom-shared'
 import { useEffect, useRef, useState } from 'react'
 import {
+	defineMessages,
+	F,
 	TldrawUiButton,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -8,8 +10,8 @@ import {
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
 	TldrawUiInput,
+	useTranslation,
 } from 'tldraw'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
@@ -24,9 +26,8 @@ interface CreateWorkspaceDialogProps {
 }
 
 export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDialogProps) {
-	const defaultName = useMsg(messages.defaultName)
-	const [workspaceName, setWorkspaceName] = useState(defaultName)
-	const placeholderMsg = useMsg(messages.placeholder)
+	const msg = useTranslation()
+	const [workspaceName, setWorkspaceName] = useState(msg(messages.defaultName))
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	useEffect(() => {
@@ -69,7 +70,7 @@ export function CreateWorkspaceDialog({ onClose, onCreate }: CreateWorkspaceDial
 						onValueChange={setWorkspaceName}
 						onComplete={handleCreate}
 						onCancel={onClose}
-						placeholder={placeholderMsg}
+						placeholder={msg(messages.placeholder)}
 						maxLength={MAX_WORKSPACE_NAME_LENGTH}
 						autoFocus
 					/>

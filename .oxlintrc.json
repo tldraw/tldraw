@@ -30,7 +30,7 @@
 		"**/dist-cjs/*",
 		"**/dist-esm/*",
 		"**/.tsbuild*",
-		"**/.lazy/*",
+		"**/.turbo/*",
 		"**/.next/*",
 		"**/.wrangler/*",
 		"**/.vercel/*",
@@ -42,7 +42,6 @@
 		"**/api/*",
 		"!**/pages/api/*",
 		"**/*.json",
-		"**/lazy.config.ts",
 		"**/next.config.js",
 		"**/setupTests.js",
 		"apps/vscode/extension/editor",
@@ -65,7 +64,6 @@
 		"**/.*.js",
 		"packages/assets/*",
 		"packages/create-tldraw/cli.cjs",
-		"yarn.config.cjs",
 		"**/*/vitest.config.ts",
 		"**/*/setupVitest.js",
 		"**/*/zod-locales-shim.js",
@@ -271,7 +269,7 @@
 			}
 		},
 		{
-			"files": ["packages/**/*"],
+			"files": ["packages/**/*", "apps/**/*", "internal/**/*", "templates/**/*"],
 			"rules": {
 				"tldraw/no-undeclared-dependencies": "error"
 			}
@@ -388,7 +386,8 @@
 						"paths": [
 							{
 								"name": "react-intl",
-								"message": "Please import useIntl from src/utils/intl instead."
+								"importNames": ["FormattedMessage", "defineMessages"],
+								"message": "Use F and defineMessages from 'tldraw' instead. The SDK's F renders the pseudo-locales and the marker span the language-debug overlay looks for; react-intl's does neither."
 							},
 							{
 								"name": "lodash",
@@ -424,8 +423,15 @@
 			}
 		},
 		{
+			"files": ["packages/**/*"],
+			"rules": {
+				"tldraw/no-bare-translation-key": "error"
+			}
+		},
+		{
 			"files": ["**/*.test.ts", "**/*.test.tsx", "**/*.spec.ts"],
 			"rules": {
+				"tldraw/no-bare-translation-key": "off",
 				"tldraw/no-restricted-properties": "off",
 				"no-restricted-globals": "off",
 				"react/jsx-key": "off",

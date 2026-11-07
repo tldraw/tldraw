@@ -61,7 +61,7 @@ fi
 GEMINI_API_KEY="${GEMINI_API_KEY:?Set GEMINI_API_KEY environment variable or add it to .env}"
 
 # --- Config ---
-TTS_MODEL="gemini-2.5-pro-preview-tts"
+TTS_MODEL="gemini-3.1-flash-tts-preview"
 TTS_ENDPOINT="https://generativelanguage.googleapis.com/v1beta/models/${TTS_MODEL}:generateContent"
 SPEED=1.2  # Speed up narration (1.0 = no change)
 

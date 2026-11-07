@@ -1,6 +1,6 @@
 import { existsSync } from 'fs'
 import path, { join, relative } from 'path'
-import kleur from 'kleur'
+import { styleText } from 'util'
 import {
 	REPO_ROOT,
 	readFileIfExists,
@@ -11,19 +11,23 @@ import {
 } from './lib/file'
 import { nicelog } from './lib/nicelog'
 import { PRODUCT_CONFIG_KEY } from './lib/types'
-import { Package, getAllWorkspacePackages } from './lib/workspace'
+import { Package, getAllWorkspacePackages, getRootPackage } from './lib/workspace'
 
 const packagesWithoutTSConfigs: ReadonlySet<string> = new Set(['config'])
 
 // all packages should have these scripts
 const expectedPackageJsonScriptsForAll = {
 	lint: tsScript('lint.ts'),
+	// Templates type-check with their own pinned TypeScript, as a user's copy would. `--build` would
+	// follow their references and rebuild the workspace packages with that older compiler.
+	'build-types': (packageDir: string) =>
+		relative(REPO_ROOT, packageDir).startsWith('templates/') ? 'tsc' : 'tsc --build',
 }
 
 const expectedTestScripts = {
-	test: () => 'yarn run -T vitest --passWithNoTests',
-	'test-ci': () => 'yarn run -T vitest run --passWithNoTests',
-	'test-coverage': () => 'yarn run -T vitest run --coverage --passWithNoTests',
+	test: () => 'pnpm exec vitest --passWithNoTests',
+	'test-ci': () => 'pnpm exec vitest run --passWithNoTests',
+	'test-coverage': () => 'pnpm exec vitest run --coverage --passWithNoTests',
 }
 
 // packages (in packages/) should have these scripts
@@ -44,7 +48,7 @@ const expectedPackageJsonScriptsForPublishedLibraries = {
 	'build-api': tsScript('build-api.ts'),
 	prepack: tsScript('prepack.ts'),
 	postpack: (packageDir: string) => scriptPath(packageDir, 'postpack.sh'),
-	'pack-tarball': () => 'yarn pack',
+	'pack-tarball': () => 'pnpm pack',
 }
 
 // individual packages can have different scripts than the above if needed
@@ -69,7 +73,7 @@ const packageJsonScriptExceptions: Record<string, Record<string, () => string | 
 	'create-tldraw': {
 		build: () => './scripts/build.sh',
 		'build-api': () => undefined,
-		prepack: () => 'yarn build',
+		prepack: () => 'pnpm build',
 		postpack: () => undefined,
 	},
 }
@@ -112,13 +116,13 @@ async function checkPackageJsonScripts({
 				nicelog(
 					[
 						'❌ ',
-						kleur.red(`${name}: `),
-						kleur.blue(`$ yarn ${scriptName}`),
-						kleur.grey(' -> '),
-						kleur.red(actualScript ?? '<missing>'),
-						kleur.gray(' (expected: '),
-						kleur.green(expectedScript),
-						kleur.gray(')'),
+						styleText('red', `${name}: `),
+						styleText('blue', `$ pnpm ${scriptName}`),
+						styleText('gray', ' -> '),
+						styleText('red', actualScript ?? '<missing>'),
+						styleText('gray', ' (expected: '),
+						styleText('green', expectedScript),
+						styleText('gray', ')'),
 					].join('')
 				)
 				packageScripts[scriptName] = expectedScript
@@ -128,10 +132,10 @@ async function checkPackageJsonScripts({
 				nicelog(
 					[
 						'✅ ',
-						kleur.green(`${name}: `),
-						kleur.blue(`$ yarn ${scriptName}`),
-						kleur.grey(' -> '),
-						kleur.green(actualScript ?? '<missing>'),
+						styleText('green', `${name}: `),
+						styleText('blue', `$ pnpm ${scriptName}`),
+						styleText('gray', ' -> '),
+						styleText('green', actualScript ?? '<missing>'),
 					].join('')
 				)
 			}
@@ -142,14 +146,14 @@ async function checkPackageJsonScripts({
 		if (fix) {
 			for (const { packageJson, name, relativePath } of packages) {
 				if (needsFix.has(name)) {
-					nicelog(kleur.yellow(`Fixing ${name}...`))
+					nicelog(styleText('yellow', `Fixing ${name}...`))
 					await writeJsonFile(path.join(REPO_ROOT, relativePath, 'package.json'), packageJson)
 				}
 			}
-			nicelog(kleur.yellow(`Fixed ${errorCount} errors`))
+			nicelog(styleText('yellow', `Fixed ${errorCount} errors`))
 			return true
 		} else {
-			nicelog(kleur.red(`Found ${errorCount} errors`))
+			nicelog(styleText('red', `Found ${errorCount} errors`))
 			return false
 		}
 	}
@@ -213,10 +217,10 @@ async function checkTsConfigs({
 				nicelog(
 					[
 						'❌ ',
-						kleur.red(`${workspace.name}: `),
-						kleur.blue(relative(process.cwd(), tsconfigPath)),
-						kleur.grey(' has unnecessary reference(s) to '),
-						kleur.red([...currentRefs].join(', ')),
+						styleText('red', `${workspace.name}: `),
+						styleText('blue', relative(process.cwd(), tsconfigPath)),
+						styleText('gray', ' has unnecessary reference(s) to '),
+						styleText('red', [...currentRefs].join(', ')),
 					].join('')
 				)
 			}
@@ -230,10 +234,10 @@ async function checkTsConfigs({
 				nicelog(
 					[
 						'❌ ',
-						kleur.red(`${workspace.name}: `),
-						kleur.blue(relative(process.cwd(), tsconfigPath)),
-						kleur.grey(' is missing reference(s) to '),
-						kleur.red(missingRefs.join(', ')),
+						styleText('red', `${workspace.name}: `),
+						styleText('blue', relative(process.cwd(), tsconfigPath)),
+						styleText('gray', ' is missing reference(s) to '),
+						styleText('red', missingRefs.join(', ')),
 					].join('')
 				)
 				nicelog('The references entry should look like this:')
@@ -242,11 +246,11 @@ async function checkTsConfigs({
 		}
 
 		if (currentRefs.size === 0 && missingRefs.length === 0) {
-			nicelog(['✅ ', kleur.green(`${workspace.name}`)].join(''))
+			nicelog(['✅ ', styleText('green', `${workspace.name}`)].join(''))
 		}
 	}
 	if (numErrors > 0) {
-		nicelog('Run `yarn check-tsconfigs --fix` to fix these problems')
+		nicelog('Run `pnpm check-packages --fix` to fix these problems')
 		return false
 	}
 
@@ -258,7 +262,7 @@ function scriptPath(packageDir: string, scriptName: string) {
 }
 
 function tsScript(scriptName: string) {
-	return (packageDir: string) => `yarn run -T tsx ${scriptPath(packageDir, scriptName)}`
+	return (packageDir: string) => `pnpm exec tsx ${scriptPath(packageDir, scriptName)}`
 }
 
 async function checkLibraryContents({
@@ -276,7 +280,7 @@ async function checkLibraryContents({
 		const sourceFilePath = join(path, 'src', 'index.ts')
 		const sourceFileContents = await readFileIfExists(sourceFilePath)
 		if (!sourceFileContents) {
-			nicelog(['⏩ ', kleur.blue(`${name}: `), 'skipped (no src/index.ts)'].join(''))
+			nicelog(['⏩ ', styleText('blue', `${name}: `), 'skipped (no src/index.ts)'].join(''))
 			continue
 		}
 
@@ -289,7 +293,7 @@ async function checkLibraryContents({
 		].join('\n')
 
 		if (sourceFileContents.includes(search)) {
-			nicelog(['✅ ', kleur.green(name)].join(''))
+			nicelog(['✅ ', styleText('green', name)].join(''))
 			continue
 		}
 
@@ -310,18 +314,18 @@ async function checkLibraryContents({
 			nicelog(
 				[
 					'⚠️ ',
-					kleur.yellow(`${name}: `),
+					styleText('yellow', `${name}: `),
 					'added call to ',
-					kleur.blue('registerTldrawLibraryVersion'),
+					styleText('blue', 'registerTldrawLibraryVersion'),
 				].join('')
 			)
 		} else {
 			nicelog(
 				[
 					'❌ ',
-					kleur.red(`${name}: `),
+					styleText('red', `${name}: `),
 					'missing call to ',
-					kleur.blue('registerTldrawLibraryVersion'),
+					styleText('blue', 'registerTldrawLibraryVersion'),
 				].join('')
 			)
 		}
@@ -329,10 +333,10 @@ async function checkLibraryContents({
 
 	if (errorCount) {
 		if (fix) {
-			nicelog(kleur.yellow(`Fixed ${errorCount} errors`))
+			nicelog(styleText('yellow', `Fixed ${errorCount} errors`))
 			return true
 		} else {
-			nicelog(kleur.red(`Found ${errorCount} errors`))
+			nicelog(styleText('red', `Found ${errorCount} errors`))
 			return false
 		}
 	}
@@ -356,7 +360,7 @@ async function checkProductMetadata({
 	let errorCount = 0
 	const error = (name: string, message: string) => {
 		errorCount++
-		nicelog(['❌ ', kleur.red(`${name}: `), message].join(''))
+		nicelog(['❌ ', styleText('red', `${name}: `), message].join(''))
 	}
 
 	const licenseManagerSource = await readFileIfExists(
@@ -381,9 +385,9 @@ async function checkProductMetadata({
 			if (!existsSync(licensePath)) {
 				if (fix) {
 					await writeStringFile(licensePath, LICENSE_POINTER_CONTENTS)
-					nicelog(['⚠️ ', kleur.yellow(`${name}: `), 'added missing LICENSE.md'].join(''))
+					nicelog(['⚠️ ', styleText('yellow', `${name}: `), 'added missing LICENSE.md'].join(''))
 				} else {
-					error(name, 'is missing LICENSE.md (run `yarn check-packages --fix`)')
+					error(name, 'is missing LICENSE.md (run `pnpm check-packages --fix`)')
 				}
 			}
 		}
@@ -458,11 +462,11 @@ async function checkProductMetadata({
 	}
 
 	if (errorCount) {
-		nicelog(kleur.red(`Found ${errorCount} errors`))
+		nicelog(styleText('red', `Found ${errorCount} errors`))
 		return false
 	}
 
-	nicelog(['✅ ', kleur.green('product metadata ok')].join(''))
+	nicelog(['✅ ', styleText('green', 'product metadata ok')].join(''))
 	return true
 }
 
@@ -474,6 +478,123 @@ async function group<T>(name: string, cb: () => Promise<T>) {
 		console.groupEnd()
 		console.log('')
 	}
+}
+
+// Every workspace uses the same version range for a dependency, so the lockfile resolves one
+// copy. To let a dependency diverge, list the workspaces that step off the shared range here:
+// they must agree with each other, and everything else must agree with everything else.
+const ALLOWED_VERSION_DIVERGENCE: Record<string, { workspaces: string[]; reason: string }> = {
+	typescript: {
+		workspaces: ['templates/'],
+		reason: 'templates are independently published starters',
+	},
+	'@rocicorp/zero': {
+		workspaces: ['apps/dotcom/zero-cache'],
+		reason: 'zero-cache must reach a new Zero version before the clients; it sets the server image',
+	},
+}
+
+// Node 22.12 is the first version where `require()` of an ES module works unflagged, so
+// published packages can depend on ESM-only modules without breaking CommonJS consumers.
+// Earlier versions throw `ERR_REQUIRE_ESM`.
+const PUBLISHED_NODE_ENGINE = '>=22.12.0'
+
+const DEPENDENCY_FIELDS = [
+	'dependencies',
+	'devDependencies',
+	'optionalDependencies',
+	'peerDependencies',
+] as const
+type DependencyField = (typeof DEPENDENCY_FIELDS)[number]
+
+async function checkDependencyVersions({
+	packages,
+	fix,
+}: {
+	packages: Package[]
+	fix: boolean
+}): Promise<boolean> {
+	let errorCount = 0
+	const changed = new Set<Package>()
+	const report = (name: string, message: string) => {
+		errorCount++
+		nicelog([fix ? '⚠️ ' : '❌ ', styleText(fix ? 'yellow' : 'red', `${name}: `), message].join(''))
+	}
+
+	const root = await getRootPackage()
+
+	// Peer ranges are deliberately wider than installed ranges, so they're only compared with
+	// each other.
+	const usages = new Map<string, { pkg: Package; field: DependencyField; range: string }[]>()
+	for (const pkg of [root, ...packages]) {
+		for (const field of DEPENDENCY_FIELDS) {
+			for (const [dep, range] of Object.entries(pkg.packageJson[field] ?? {})) {
+				const diverges = ALLOWED_VERSION_DIVERGENCE[dep]?.workspaces.some((prefix) =>
+					pkg.relativePath.startsWith(prefix)
+				)
+				const kind = field === 'peerDependencies' ? 'peer' : 'installed'
+				const key = `${dep}\0${kind}\0${diverges ? 'diverged' : 'shared'}`
+				if (!usages.has(key)) usages.set(key, [])
+				usages.get(key)!.push({ pkg, field, range })
+			}
+		}
+	}
+
+	for (const [key, group] of usages) {
+		const counts = new Map<string, number>()
+		for (const { range } of group) counts.set(range, (counts.get(range) ?? 0) + 1)
+		if (counts.size === 1) continue
+
+		const dep = key.split('\0')[0]
+		const [expected] = [...counts].sort((a, b) => b[1] - a[1])[0]
+		for (const { pkg, field, range } of group) {
+			if (range === expected) continue
+			report(pkg.name, `${field}.${dep} is ${range}, but other workspaces use ${expected}`)
+			if (fix) {
+				pkg.packageJson[field]![dep] = expected
+				changed.add(pkg)
+			}
+		}
+	}
+
+	for (const pkg of packages) {
+		if ('packageManager' in pkg.packageJson) {
+			report(pkg.name, 'only the root package.json may set packageManager')
+			if (fix) {
+				delete pkg.packageJson.packageManager
+				changed.add(pkg)
+			}
+		}
+
+		if (!pkg.relativePath.startsWith('packages/')) continue
+		const engines = pkg.packageJson.engines ?? {}
+		if (engines.node !== PUBLISHED_NODE_ENGINE) {
+			report(pkg.name, `engines.node must be ${PUBLISHED_NODE_ENGINE}`)
+			if (fix) {
+				pkg.packageJson.engines = { ...engines, node: PUBLISHED_NODE_ENGINE }
+				changed.add(pkg)
+			}
+		}
+	}
+
+	for (const pkg of changed) {
+		await writeJsonFile(join(pkg.path, 'package.json'), pkg.packageJson)
+	}
+
+	if (errorCount) {
+		nicelog(
+			fix
+				? styleText('yellow', `Fixed ${errorCount} errors. Run \`pnpm\` to update the lockfile.`)
+				: styleText(
+						'red',
+						`Found ${errorCount} errors. Run \`pnpm check-packages --fix\` to fix them.`
+					)
+		)
+		return fix
+	}
+
+	nicelog('  ✅ dependency versions ok')
+	return true
 }
 
 async function main({ fix }: { fix: boolean }) {
@@ -492,7 +613,11 @@ async function main({ fix }: { fix: boolean }) {
 		checkProductMetadata({ packages, fix })
 	)
 
-	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk) {
+	const dependencyVersionsOk = await group('Checking dependency versions...', () =>
+		checkDependencyVersions({ packages, fix })
+	)
+
+	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk || !dependencyVersionsOk) {
 		process.exit(1)
 	}
 }

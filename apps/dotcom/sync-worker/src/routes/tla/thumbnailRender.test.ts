@@ -2,7 +2,11 @@ import { getShapeClusters } from '@tldraw/dotcom-shared'
 import { describe, expect, it } from 'vitest'
 import { enumerateBoardPages } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
-import { buildThumbnailRenderUrl } from './thumbnailRender'
+import {
+	buildThumbnailRenderUrl,
+	readMeasureResult,
+	summarizeSnapshotContent,
+} from './thumbnailRender'
 
 describe('enumerateBoardPages', () => {
 	it('lists pages in fractional-index order with names and content flags', () => {
@@ -76,5 +80,117 @@ describe('getShapeClusters', () => {
 		const after = getShapeClusters([frame, shape('shape:child', frame.id)], 'page:a')[0]
 
 		expect(after.id).not.toBe(before.id)
+	})
+})
+
+describe('summarizeSnapshotContent', () => {
+	const doc = (state: Record<string, unknown>) => ({ state, lastChangedClock: 0 })
+	const snapshot = {
+		clock: 0,
+		schema: { schemaVersion: 2, sequences: {} },
+		documents: [
+			doc({ id: 'document:document', typeName: 'document' }),
+			doc({ id: 'page:a', typeName: 'page' }),
+			doc({ id: 'page:b', typeName: 'page' }),
+			doc({
+				id: 'shape:1',
+				typeName: 'shape',
+				type: 'geo',
+				parentId: 'page:a',
+				x: 100,
+				y: 50,
+				props: { w: 200, h: 100 },
+			}),
+			doc({
+				id: 'shape:2',
+				typeName: 'shape',
+				type: 'draw',
+				parentId: 'page:a',
+				x: 1000,
+				y: 700,
+				props: {},
+			}),
+			doc({
+				id: 'shape:3',
+				typeName: 'shape',
+				type: 'geo',
+				parentId: 'shape:1',
+				x: 0,
+				y: 0,
+				props: { w: 10, h: 10 },
+			}),
+			doc({
+				id: 'shape:4',
+				typeName: 'shape',
+				type: 'geo',
+				parentId: 'page:b',
+				x: -5000,
+				y: 0,
+				props: { w: 10, h: 10 },
+			}),
+			doc({ id: 'asset:img', typeName: 'asset', type: 'image' }),
+			doc({ id: 'asset:vid', typeName: 'asset', type: 'video' }),
+			doc({ id: 'asset:bm', typeName: 'asset', type: 'bookmark' }),
+		],
+	} as any
+
+	it('counts the rendered page and sizes its top-level shapes', () => {
+		// The child inside shape:1 and the shape on page:b are not top-level on page:a; the draw
+		// stroke has no stored size and counts as a point.
+		expect(summarizeSnapshotContent(snapshot, 'page:a')).toEqual({
+			records: 10,
+			pageShapes: 2,
+			mediaAssets: 2,
+			bboxWidth: 900,
+			bboxHeight: 650,
+		})
+	})
+
+	it('reports zero size for a page with nothing on it', () => {
+		expect(summarizeSnapshotContent(snapshot, 'page:none')).toEqual({
+			records: 10,
+			pageShapes: 0,
+			mediaAssets: 2,
+			bboxWidth: 0,
+			bboxHeight: 0,
+		})
+	})
+})
+
+describe('readMeasureResult', () => {
+	const read = (reported: Record<string, unknown>) =>
+		readMeasureResult(
+			new TextEncoder().encode(
+				`<html><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported)}</script></body></html>`
+			).buffer as ArrayBuffer
+		)
+	const box = { x: 0, y: 0, w: 10, h: 10 }
+	const bounds = { minX: 0, minY: 0, maxX: 10, maxY: 10 }
+
+	// The shape keeps the bounds it is clustered on; only the malformed geometry is dropped.
+	it('keeps well-formed arrow geometry and drops malformed geometry without the shape', () => {
+		expect(
+			read({
+				'shape:good': { ...box, arrow: { start: { x: 0, y: 0, z: 0.5 }, end: { x: 10, y: 10 } } },
+				'shape:bad': { ...box, arrow: { start: { x: 0, y: null }, end: { x: 10, y: 10 } } },
+			})
+		).toEqual({
+			'shape:good': { ...bounds, arrow: { start: { x: 0, y: 0 }, end: { x: 10, y: 10 } } },
+			'shape:bad': bounds,
+		})
+	})
+
+	it('keeps well-formed dimensions and drops malformed ones without the shape', () => {
+		expect(
+			read({
+				'shape:good': { ...box, dimensions: { w: 8, h: 12, d: 1 } },
+				'shape:infinite': { ...box, dimensions: { w: 8, h: null } },
+				'shape:negative': { ...box, dimensions: { w: -1, h: 12 } },
+			})
+		).toEqual({
+			'shape:good': { ...bounds, dimensions: { w: 8, h: 12 } },
+			'shape:infinite': bounds,
+			'shape:negative': bounds,
+		})
 	})
 })

@@ -158,11 +158,12 @@ reacted` past three names.
 
 There are two levels of customisation, smallest first:
 
-1. **Reword it — translation, no code.** The sentence is built from the `comments.reacted-1`,
-   `comments.reacted-2`, `comments.reacted-3`, `comments.reacted-more`, and `comments.reacted-more-one`
-   strings (plus `comments.mention-you` for "You"). Override them through the standard tldraw
-   translation `overrides` to change the words or reorder the `{a}` / `{b}` / `{c}` / `{count}`
-   placeholders per locale. This is also how the grammar gets localised.
+1. **Reword it — translation, no code.** The sentence is the single ICU message `comments.reacted`
+   (plus `comments.mention-you` for "You"). It plurals on `{count}`, the number of reactors, and on
+   `{others}`, how many are left once three are named; `{a}` / `{b}` / `{c}` are the names. Override
+   it through the standard tldraw translation `overrides` to change the words or reorder the
+   placeholders per locale. This is also how the grammar gets localised, including languages with
+   more plural forms than English.
 
 2. **Replace it — `components.ReactionTooltip`.** To change more than the wording, replace the whole
    affordance. The component receives the reactors **and the pill itself** (as `children`) and

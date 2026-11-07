@@ -1,5 +1,3 @@
-import { buildResponseSchema } from '../../shared/schema/buildResponseSchema'
-import type { ModePart } from '../../shared/schema/PromptPartDefinitions'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
 import { getSystemPromptFlags } from './getSystemPromptFlags'
 import { buildIntroPromptSection } from './sections/intro-section'
@@ -13,16 +11,9 @@ import { buildRulesPromptSection } from './sections/rules-section'
  * what actions and parts are available.
  *
  * @param prompt - The prompt containing all parts including the mode part.
- * @param opts - Options for building the system prompt.
- * @param opts.withSchema - Whether to include the JSON schema in the system prompt. Defaults to true.
  * @returns The system prompt string.
  */
-export function buildSystemPrompt(
-	prompt: AgentPrompt,
-	opts: { withSchema: boolean } = { withSchema: true }
-): string {
-	const { withSchema = true } = opts
-
+export function buildSystemPrompt(prompt: AgentPrompt): string {
 	const modePart = prompt.mode
 	if (!modePart) {
 		throw new Error('A mode part is always required.')
@@ -33,24 +24,9 @@ export function buildSystemPrompt(
 
 	const lines = [buildIntroPromptSection(flags), buildRulesPromptSection(flags)]
 
-	if (withSchema) {
-		lines.push(buildSchemaPromptSection(modePart))
-	}
-
 	const result = normalizeNewlines(lines.join('\n'))
 
 	return result
-}
-
-function buildSchemaPromptSection(modePart: ModePart) {
-	const schema = buildResponseSchema(modePart.actionTypes, modePart.modeType)
-
-	return `## JSON schema
-
-This is the JSON schema for the events you can return. You must conform to this schema. You must only return things in this format, otherwise your response will error. Output ONLY the JSON itself — do not add any preamble, explanation, or commentary before or after it, and do NOT wrap your response in a markdown code block (e.g. \`\`\`json). Just the raw JSON object.
-
-${JSON.stringify(schema, null, 2)}
-`
 }
 
 function normalizeNewlines(text: string): string {

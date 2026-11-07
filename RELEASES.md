@@ -12,6 +12,19 @@ Unlike many JavaScript packages distributed on [NPM](https://www.npmjs.com/), th
 
 New cadence releases are published from `production`. You trigger a release manually by running the workflow defined in `publish.yml`.
 
+### Before you publish
+
+The release notes are read from two places at publish time, and both have to be current:
+
+- **`production`'s `apps/docs/content/releases/next.mdx`.** `prepack.ts` generates the `RELEASE_NOTES.md` that ships inside the `tldraw` npm package from the checkout being published, so whatever `next.mdx` says on `production` at that moment is baked into the tarball. It can't be fixed afterwards without a patch release. During the freeze `production` only moves by hotfix, so release-notes updates merged to `main` have to be brought over (the `dotcom-hotfix-please` label on the release-notes PR does this). The gate is an empty diff:
+
+  ```sh
+  git fetch origin production main
+  git diff --stat origin/production origin/main -- apps/docs/content/releases/next.mdx
+  ```
+
+- **The draft GitHub release named `vX.Y.0`.** `publish-new.ts` publishes its body verbatim and refuses to run if it doesn't exist. The `update-release-notes` skill keeps it in sync with `next.mdx` (`.claude/skills/update-release-notes/scripts/update-draft-release.sh`); re-run that if `next.mdx` changed after the last sync.
+
 1. Go [here](https://github.com/tldraw/tldraw/actions/workflows/publish.yml), select the `production` branch, and click the 'Run workflow' button.
 2. Set the publish type to `new`.
 3. Fill out the form that appears. You can leave the defaults as they are if you want to publish a new 'minor' release. If you want to publish a new 'major' release, select that option from the dropdown.
@@ -20,10 +33,21 @@ New cadence releases are published from `production`. You trigger a release manu
 When you click the 'run' button after selecting how to bump the version number, the github action will do the following things:
 
 - Update the version numbers in package.json files.
-- Update the changelog.
-- Create a new release on github with the release notes from the changelog entry.
+- Publish the draft GitHub release for the new version.
 - Publish the new packages to npm.
 - Create a new release branch for the new version. e.g. for version `3.4.0` it will create a branch called `v3.4.x`.
+- Push `production`'s docs and examples to `docs-production`, and its bemo worker to `bemo-production`.
+- Trigger a version bump on `main` so its package versions match.
+
+### After you publish
+
+- Check the notes that shipped inside the package match what you expected. The section for the new version should have the same entries as `next.mdx` did on `production`:
+
+  ```sh
+  curl -sL "$(npm view tldraw@X.Y.0 dist.tarball)" | tar -xzO package/RELEASE_NOTES.md | head -40
+  ```
+
+- The version bump lands on `main`, not `production`, so the publish itself doesn't push to `production`. The post-release `update-release-notes` run (which archives `next.mdx` to `vX.Y.0.mdx` and needs `docs-hotfix-please` to reach the new release branch) is triggered by the next `production` push, normally the post-launch dotcom release from `main`. Dispatch `update-release-notes.yml` by hand if you want the docs page sooner.
 
 ## How to publish a new patch release
 

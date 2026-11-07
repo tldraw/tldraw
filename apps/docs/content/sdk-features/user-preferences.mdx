@@ -51,7 +51,7 @@ export default function App() {
 
 Preferences cover visual settings (color scheme, animation speed), interaction settings (snap mode, edge scroll speed), and identity (user name, color, locale). By default the editor stores them in localStorage and syncs them across tabs with a BroadcastChannel.
 
-To supply preferences from your own auth or state instead, pass a `user` created with [useTldrawCurrentUser](?) (or [createTLCurrentUser](?)) to the `Tldraw` component. Preferences you provide this way are yours to persist and sync. See [Collaboration](/sdk-features/collaboration#integrating-with-usetldrawcurrentuser) for a full example.
+To supply preferences from your own auth or state instead, pass a `user` created with [useTldrawCurrentUser](?) (or [createTLCurrentUser](?)) to the `Tldraw` component. Preferences you provide this way are yours to persist and sync. See [Collaboration](/sdk-features/collaboration#Integrating-with-useTldrawCurrentUser) for a full example.
 
 ## Reading preferences
 
@@ -132,7 +132,7 @@ const isDark = editor.user.getIsDarkMode()
 // true if colorScheme is 'dark', or 'system' with OS in dark mode
 ```
 
-The editor-level `colorScheme` prop sets the default color scheme. When a user preference is set, it takes priority over the prop. See [Themes](/sdk-features/themes#color-mode) for more.
+The editor-level `colorScheme` prop sets the default color scheme. When a user preference is set, it takes priority over the prop. See [Themes](/sdk-features/themes#Color-mode) for more.
 
 ## Persistence and synchronization
 

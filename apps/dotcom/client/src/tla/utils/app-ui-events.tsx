@@ -15,9 +15,10 @@ export type TLAppUiEventSource =
 	| 'anon-landing-page'
 	| 'anon-top-bar'
 	| 'comments'
-	| 'account-menu'
 	| 'top-bar'
 	| 'legacy-import-button'
+	| 'file-drop'
+	| 'import-url'
 	| 'new-page'
 	| 'app'
 	| 'cookie-settings'
@@ -26,6 +27,30 @@ export type TLAppUiEventSource =
 
 /** @public */
 export interface TLAppUiEventMap {
+	slurp_skipped: {
+		reason:
+			| 'permission'
+			| 'already_finished'
+			| 'aborted'
+			| 'no_local_data'
+			| 'read_error'
+			| 'restore_error'
+		local_db_exists: boolean | null
+	}
+	slurp_restored: {
+		record_count: number
+		shape_count: number
+		note_count: number
+		asset_count: number
+	}
+	slurp_restore_removed: TLAppUiEventMap['slurp_restored']
+	slurp_finished: {
+		completion: 'client_asset_work'
+		outcome: 'success' | 'failure' | 'aborted'
+		asset_count: number
+		uploaded_count: number
+		failed_count: number
+	}
 	'create-file': null
 	'create-workspace': null
 	'rename-workspace': null
@@ -45,6 +70,7 @@ export interface TLAppUiEventMap {
 	'open-share-menu': null
 	'change-share-menu-tab': { tab: TldrawAppSessionState['shareMenuActiveTab'] }
 	'copy-share-link': null
+	'open-share-link': null
 	'copy-file-link': null
 	'toggle-shared': { shared: boolean }
 	'set-theme': { theme: 'dark' | 'light' | 'auto' }
@@ -109,6 +135,5 @@ export const EventsContext = createContext<TLAppUiContextType>(defaultEventHandl
 
 /** @public */
 export function useTldrawAppUiEvents(): TLAppUiContextType {
-	const eventHandler = useContext(EventsContext)
-	return eventHandler
+	return useContext(EventsContext)
 }

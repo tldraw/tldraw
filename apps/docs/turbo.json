@@ -1,0 +1,28 @@
+{
+	"$schema": "https://turborepo.com/schema.json",
+	"extends": ["//"],
+	"tasks": {
+		"build": {
+			"dependsOn": [
+				"$TURBO_EXTENDS$",
+				"@tldraw/collaboration#build-api",
+				"@tldraw/commenting#build-api",
+				"@tldraw/driver#build-api",
+				"@tldraw/editor#build-api",
+				"@tldraw/mentions#build-api",
+				"@tldraw/mermaid#build-api",
+				"@tldraw/state#build-api",
+				"@tldraw/state-react#build-api",
+				"@tldraw/store#build-api",
+				"@tldraw/sync#build-api",
+				"@tldraw/sync-collaboration#build-api",
+				"@tldraw/sync-core#build-api",
+				"@tldraw/tldraw#build-api",
+				"@tldraw/tlschema#build-api",
+				"@tldraw/utils#build-api",
+				"@tldraw/validate#build-api",
+				"tldraw#build-api"
+			]
+		}
+	}
+}

@@ -1,4 +1,4 @@
-import { usePassThroughWheelEvents } from '@tldraw/editor'
+import { defineMessages, usePassThroughWheelEvents } from '@tldraw/editor'
 import { memo, useCallback, useRef } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { unwrapLabel, useActions } from '../../context/actions'
@@ -9,6 +9,14 @@ import { useDirection, useTranslation } from '../../hooks/useTranslation/useTran
 import { kbdStr } from '../../kbd-utils'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiToolbar, TldrawUiToolbarButton } from '../primitives/TldrawUiToolbar'
+
+const messages = defineMessages({
+	navigationZoneTitle: { id: 'navigation-zone.title', defaultMessage: 'Navigation' },
+	navigationZoneToggleMinimap: {
+		id: 'navigation-zone.toggle-minimap',
+		defaultMessage: 'Toggle minimap',
+	},
+})
 
 /** @public @react */
 export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
@@ -32,23 +40,26 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 		return null
 	}
 
+	const isRtl = dir === 'rtl'
+	const minimapToggle = Minimap && (
+		<TldrawUiToolbarButton
+			type="icon"
+			data-testid="minimap.toggle-button"
+			title={msg(messages.navigationZoneToggleMinimap)}
+			onClick={toggleMinimap}
+		>
+			<TldrawUiButtonIcon small icon={collapsed !== isRtl ? 'chevron-right' : 'chevron-left'} />
+		</TldrawUiToolbarButton>
+	)
+
 	return (
 		<div ref={ref} className="tlui-navigation-panel">
-			<TldrawUiToolbar orientation="horizontal" label={msg('navigation-zone.title')}>
+			<TldrawUiToolbar orientation="horizontal" label={msg(messages.navigationZoneTitle)}>
 				{ZoomMenu && breakpoint < PORTRAIT_BREAKPOINT.TABLET ? (
 					<ZoomMenu />
 				) : (
 					<>
-						{Minimap && dir === 'rtl' && (
-							<TldrawUiToolbarButton
-								type="icon"
-								data-testid="minimap.toggle-button"
-								title={msg('navigation-zone.toggle-minimap')}
-								onClick={toggleMinimap}
-							>
-								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-left' : 'chevron-right'} />
-							</TldrawUiToolbarButton>
-						)}
+						{isRtl && minimapToggle}
 						{!collapsed && (
 							<TldrawUiToolbarButton
 								type="icon"
@@ -70,16 +81,7 @@ export const DefaultNavigationPanel = memo(function DefaultNavigationPanel() {
 								<TldrawUiButtonIcon small icon="plus" />
 							</TldrawUiToolbarButton>
 						)}
-						{Minimap && dir !== 'rtl' && (
-							<TldrawUiToolbarButton
-								type="icon"
-								data-testid="minimap.toggle-button"
-								title={msg('navigation-zone.toggle-minimap')}
-								onClick={toggleMinimap}
-							>
-								<TldrawUiButtonIcon small icon={collapsed ? 'chevron-right' : 'chevron-left'} />
-							</TldrawUiToolbarButton>
-						)}
+						{!isRtl && minimapToggle}
 					</>
 				)}
 			</TldrawUiToolbar>

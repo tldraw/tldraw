@@ -1,8 +1,10 @@
-import { MAX_WORKSPACE_NAME_LENGTH, Role, ZErrorCode, can } from '@tldraw/dotcom-shared'
+import { MAX_WORKSPACE_NAME_LENGTH, Role, can } from '@tldraw/dotcom-shared'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	F,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -10,12 +12,12 @@ import {
 	TldrawUiInput,
 	TldrawUiTooltip,
 	useDialogs,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlLabel,
@@ -72,6 +74,7 @@ function useScrollbarWhenScrollable() {
 }
 
 export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
+	const msg = useTranslation()
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
@@ -80,10 +83,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const scrollableRef = useScrollbarWhenScrollable()
 
-	const namePlaceholderMsg = useMsg(messages.namePlaceholder)
-	const ownerMsg = useMsg(messages.owner)
-	const memberMsg = useMsg(messages.member)
-	const youMsg = useMsg(messages.you)
+	const namePlaceholderMsg = msg(messages.namePlaceholder)
 
 	const workspaceMembership = useValue(
 		'workspaceMembership',
@@ -145,10 +145,8 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// note — no shareable invite link, members list, or settings tabs.
 	const isHomeWorkspace = workspaceId === app.getHomeWorkspaceId()
 
-	const currentUser = workspaceMembership.groupMembers.find(
-		(member) => member.userId === app.getUser().id
-	)
-	const role = currentUser?.role
+	const currentUserId = app.getUser().id
+	const role = workspaceMembership.groupMembers.find((m) => m.userId === currentUserId)?.role
 	const ownersCount = workspaceMembership.groupMembers.filter((m) => m.role === 'owner').length
 	// Leaving is allowed for everyone except the last owner — a workspace invariant
 	// (it must always keep at least one owner), not a capability.
@@ -157,7 +155,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// Optional column: older cached rows without it (and the migration's default)
 	// mean "enabled", so treat a missing value as true.
 	const inviteLinkEnabled = workspace.inviteLinkEnabled ?? true
-	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
+	const roleLabels: Record<Role, string> = {
+		owner: msg(messages.owner),
+		member: msg(messages.member),
+	}
 	// Owners sort above members; within a role the current user is pinned to the top.
 	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
 	const roleOptions = (Object.keys(roleLabels) as Role[]).map((value) => ({
@@ -173,65 +174,71 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	}
 
 	const handleToggleInviteLink = async (enabled: boolean) => {
-		try {
-			await app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled }).client
-			trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
-		} catch (error) {
-			console.error('Error toggling invite link:', error)
-			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		const res = await app.z.mutate.setWorkspaceInviteLinkEnabled({ id: workspaceId, enabled })
+			.client
+		if (res.type === 'error') {
+			app.showMutationRejectionToast(res.error)
+			return
 		}
+		trackEvent('set-workspace-invite-link-enabled', { source: 'workspace-settings', enabled })
 	}
 
 	const handleRegenerateInviteLink = async () => {
-		try {
-			await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
-			trackEvent('regenerate-workspace-invite-secret', { source: 'workspace-settings' })
-		} catch (error) {
-			console.error('Error regenerating invite link:', error)
-			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		const res = await app.z.mutate.regenerateWorkspaceInviteSecret({ id: workspaceId }).server
+		if (res.type === 'error') {
+			app.showMutationRejectionToast(res.error)
+			return
 		}
+		trackEvent('regenerate-workspace-invite-secret', { source: 'workspace-settings' })
 	}
 
+	// Read before the mutation: afterwards the file may already be gone from the local store.
+	const isViewingFileInThisWorkspace = () =>
+		!!currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
+
 	const handleLeaveWorkspace = async () => {
-		try {
-			const isCurrentlyOnAFileInThisWorkspace =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
-			await app.z.mutate.leaveWorkspace({ workspaceId }).client
-			trackEvent('leave-workspace', { source: 'workspace-settings' })
-			onClose()
-			if (isCurrentlyOnAFileInThisWorkspace) {
-				navigate('/')
-			}
-		} catch (error) {
-			console.error('Error leaving workspace:', error)
-			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		const isCurrentlyOnAFileInThisWorkspace = isViewingFileInThisWorkspace()
+		const mutation = app.z.mutate.leaveWorkspace({ workspaceId })
+		const clientRes = await mutation.client
+		if (clientRes.type === 'error') {
+			app.showMutationRejectionToast(clientRes.error)
+			return
+		}
+		// The last-owner check runs against local rows, so two owners leaving at once both pass
+		// locally and the server rejects one. Wait for it before navigating away.
+		const serverRes = await mutation.server
+		if (serverRes.type === 'error') {
+			app.showMutationRejectionToast(serverRes.error)
+			return
+		}
+		trackEvent('leave-workspace', { source: 'workspace-settings' })
+		onClose()
+		if (isCurrentlyOnAFileInThisWorkspace) {
+			navigate('/')
 		}
 	}
 
 	const handleDeleteWorkspace = async () => {
-		try {
-			const isCurrentlyOnAFileInThisWorkspace =
-				currentFileId && app.getFile(currentFileId)?.owningGroupId === workspaceId
-			await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
-			trackEvent('delete-workspace', { source: 'workspace-settings' })
-			onClose()
-			if (isCurrentlyOnAFileInThisWorkspace) {
-				navigate('/')
-			}
-		} catch (error) {
-			console.error('Error deleting workspace:', error)
-			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		const isCurrentlyOnAFileInThisWorkspace = isViewingFileInThisWorkspace()
+		const res = await app.z.mutate.deleteWorkspace({ id: workspaceId }).client
+		if (res.type === 'error') {
+			app.showMutationRejectionToast(res.error)
+			return
+		}
+		trackEvent('delete-workspace', { source: 'workspace-settings' })
+		onClose()
+		if (isCurrentlyOnAFileInThisWorkspace) {
+			navigate('/')
 		}
 	}
 
 	const handleRemoveMember = async (targetUserId: string) => {
-		try {
-			await app.z.mutate.removeWorkspaceMember({ workspaceId, targetUserId }).client
-			trackEvent('remove-workspace-member', { source: 'workspace-settings' })
-		} catch (error) {
-			console.error('Error removing member:', error)
-			app.showMutationRejectionToast((error as Error).message as ZErrorCode)
+		const res = await app.z.mutate.removeWorkspaceMember({ workspaceId, targetUserId }).client
+		if (res.type === 'error') {
+			app.showMutationRejectionToast(res.error)
+			return
 		}
+		trackEvent('remove-workspace-member', { source: 'workspace-settings' })
 	}
 
 	const openRegenerateConfirmDialog = () => {
@@ -313,12 +320,11 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 		})
 	}
 
+	// Owners first, then members; within a role, pin the current user to the top.
 	const members = [...workspaceMembership.groupMembers].sort((a, b) => {
-		const currentId = app.getUser().id
-		// Owners first, then members; within a role, pin the current user to the top.
 		if (a.role !== b.role) return roleOrder[a.role] - roleOrder[b.role]
-		if (a.userId === currentId) return -1
-		if (b.userId === currentId) return 1
+		if (a.userId === currentUserId) return -1
+		if (b.userId === currentUserId) return 1
 		return 0
 	})
 
@@ -414,7 +420,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 								<div className={styles.tabPage} ref={scrollableRef}>
 									<div className={styles.membersList}>
 										{members.map((member) => {
-											const isSelf = member.userId === app.getUser().id
+											const isSelf = member.userId === currentUserId
 											// Whether this member is an owner; used to hide non-owner roles from
 											// viewers who can't manage the workspace.
 											const memberIsOwner = can(member.role, 'manageWorkspace')
@@ -438,7 +444,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 													</div>
 													<span className={styles.memberName}>
 														{member.userName}
-														{isSelf ? ` (${youMsg})` : ''}
+														{isSelf ? ` (${msg(messages.you)})` : ''}
 													</span>
 													{canManageWorkspace ? (
 														<TlaMenuSelect
@@ -470,22 +476,19 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 															]}
 															onChange={async (value) => {
 																if (value === member.role) return
-																try {
-																	await app.z.mutate.setWorkspaceMemberRole({
-																		workspaceId,
-																		targetUserId: member.userId,
-																		role: value,
-																	}).client
-																	trackEvent('set-workspace-member-role', {
-																		source: 'workspace-settings',
-																		role: value,
-																	})
-																} catch (err) {
-																	console.error('Failed to change member role', err)
-																	app.showMutationRejectionToast(
-																		(err as Error).message as ZErrorCode
-																	)
+																const res = await app.z.mutate.setWorkspaceMemberRole({
+																	workspaceId,
+																	targetUserId: member.userId,
+																	role: value,
+																}).client
+																if (res.type === 'error') {
+																	app.showMutationRejectionToast(res.error)
+																	return
 																}
+																trackEvent('set-workspace-member-role', {
+																	source: 'workspace-settings',
+																	role: value,
+																})
 															}}
 														/>
 													) : memberIsOwner ? (

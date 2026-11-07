@@ -177,30 +177,27 @@ export function usePrint() {
 			}
 
 			const selectedShapeIds = editor.getSelectedShapeIds()
-			const currentPageId = editor.getCurrentPageId()
-			const pages = editor.getPages()
-
-			const preserveAspectRatio = 'xMidYMid meet'
 
 			const svgOpts = {
 				scale: 1,
 				background: false,
 				darkMode: false,
-				preserveAspectRatio,
+				preserveAspectRatio: 'xMidYMid meet',
 			}
 
-			if (editor.getSelectedShapeIds().length > 0) {
+			if (selectedShapeIds.length > 0) {
 				// Print the selected ids from the current page
+				const pageName = editor.getCurrentPage().name
 				const svgExport = await editor.getSvgString(selectedShapeIds, svgOpts)
 
 				if (svgExport) {
-					const page = pages.find((p) => p.id === currentPageId)
-					addPageToPrint(`tldraw — ${page?.name}`, null, svgExport.svg)
+					addPageToPrint(`tldraw — ${pageName}`, null, svgExport.svg)
 					triggerPrint()
 				}
 			} else {
 				if (allowAllPages) {
 					// Print all pages
+					const pages = editor.getPages()
 					for (let i = 0; i < pages.length; i++) {
 						const page = pages[i]
 						const svgExport = await editor.getSvgString(

@@ -1,10 +1,41 @@
+import { ThumbnailRenderPhase } from '@tldraw/dotcom-shared'
 import { createSentry } from '@tldraw/worker-shared'
 import { Environment } from '../../types'
 
 // Leaf helpers shared by the board-reading and thumbnail/OG-image surfaces
-// (get{Published,SharedFile}, the render core in thumbnailRender.ts, sharedBoardScreenshotMcp.ts,
+// (get{Published,SharedFile}, the render core in thumbnailRender.ts, mcpServer.ts,
 // the OG route, and the OG queue consumer). This module imports nothing from those files so it can
 // be depended on from any of them without creating an import cycle.
+
+// Shared by the OG route and the board view read. `if-none-match` is a list, each entry optionally weak-prefixed and quoted; R2's `etag` is the bare
+// value, so both sides are normalised before comparing.
+export function etagMatches(ifNoneMatch: string, etag: string) {
+	return ifNoneMatch
+		.split(',')
+		.map((candidate) => candidate.trim().replace(/^W\//, '').replace(/^"|"$/g, ''))
+		.some((candidate) => candidate === '*' || candidate === etag)
+}
+
+// Whether a stored image still depicts the board's current content, which every surface serving one
+// records as its `cacheStatus` telemetry dimension: a hit-rate panel that always read 100% hit could
+// not tell a healthy cache from one serving years-old tiles.
+//
+// Takes the version rather than the resolved board so this module keeps importing nothing from the
+// render modules.
+export function cacheStatusOf(cached: R2Object, version: string | number): 'hit' | 'stale' {
+	return cached.customMetadata?.version === String(version) ? 'hit' : 'stale'
+}
+
+// A rate limit binding could not be consulted. Distinct from every other failure on these routes
+// because nothing the caller did caused it and nothing they can do fixes it: the work was never
+// attempted, so telling them the database or the renderer failed sends them, and whoever reads the
+// dashboard, at a subsystem that is fine.
+export class RateLimiterUnavailableError extends Error {
+	constructor(cause: unknown) {
+		super('Rate limiter unavailable', { cause })
+		this.name = 'RateLimiterUnavailableError'
+	}
+}
 
 // A board's snapshot could not be read: Postgres, R2, or a malformed payload. Distinct from a render
 // failure so telemetry can tell "the database is down" apart from "Chrome fell over".
@@ -46,6 +77,22 @@ export class BrowserRenderError extends Error {
 	}
 }
 
+// The render page's own `data-thumbnail-error`: from its failure beacon, or read off a measure's
+// `/content` response. The page's message stays out of `message` for the same Sentry grouping reason
+// as BrowserRenderError: one issue, with the reasons in its events.
+export class RenderPageError extends Error {
+	readonly detail: string
+	/** Absent when read off `/content`, which carries the message but not how far the page got. */
+	readonly phase?: ThumbnailRenderPhase
+
+	constructor(options: { detail: string; phase?: ThumbnailRenderPhase }) {
+		super('Render page failed')
+		this.name = 'RenderPageError'
+		this.detail = options.detail
+		this.phase = options.phase
+	}
+}
+
 // Maps an arbitrary render error to a bounded set of reason codes for the `failure` telemetry blob.
 // Raw `error.message` strings are unbounded and must never reach that dimension, so keep this a
 // small, stable vocabulary. The typed cases are matched first and by type: a failed snapshot read is
@@ -55,8 +102,10 @@ export class BrowserRenderError extends Error {
 // `snapshot_read_error` with everything else the readers throw. That race is a few milliseconds wide,
 // so separating it out isn't worth a dedicated error type threaded through every reporting path.
 export function classifyScreenshotFailure(error: unknown): string {
+	if (error instanceof RateLimiterUnavailableError) return 'rate_limiter_unavailable'
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
 	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
+	if (error instanceof RenderPageError) return 'page_error'
 	const message = error instanceof Error ? error.message : String(error)
 	if (/not configured/i.test(message)) return 'not_configured'
 	if (/timeout|timed out/i.test(message)) return 'browser_timeout'
@@ -82,7 +131,7 @@ function classifyBrowserRenderFailure(error: BrowserRenderError): string {
 // Caller-facing explanation for a classified failure, as a clause to follow a tool's own prefix.
 // Derived from the bounded reason code and never from `error.message`: these tools answer anonymous,
 // unauthenticated callers, and Postgres and R2 errors carry internal hostnames, ports, and database
-// usernames (the pool is built from BOTCOM_POSTGRES_POOLED_CONNECTION_STRING). The unbounded
+// usernames (from the pool's connection string). The unbounded
 // original still reaches Sentry through reportThumbnailError, which is where it is useful.
 export function describeThumbnailFailure(reason: string): string {
 	switch (reason) {
@@ -92,6 +141,18 @@ export function describeThumbnailFailure(reason: string): string {
 			return 'rendering is not configured'
 		case 'browser_timeout':
 			return 'rendering timed out'
+		case 'board_lookup_error':
+			// The tools that fail this way start no render, so the default 'the render failed' would
+			// be a plainly wrong thing to tell a caller.
+			return 'the board database could not be reached'
+		case 'board_create_error':
+			return 'the board could not be saved'
+		case 'board_rename_error':
+			return 'the new name could not be saved'
+		case 'rate_limiter_unavailable':
+			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
+			// message saying otherwise would have them back off for a minute that would not help.
+			return 'a rate limit could not be checked'
 		default:
 			return 'the render failed'
 	}
@@ -104,11 +165,25 @@ export type ThumbnailErrorSurface =
 	| 'og_queue'
 	| 'thumbnail_snapshot'
 	| 'mcp_board_info'
+	| 'mcp_board_search'
+	| 'mcp_board_create'
+	| 'mcp_board_rename'
+	| 'mcp_workspace_list'
 	| 'mcp_screenshot'
 	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
 	// call is re-spending Browser Run.
 	| 'mcp_screenshot_cache_write'
+	// The cluster index cache in the file's Durable Object. Neither of these is ever a caller-visible
+	// failure — both fall back to measuring the page — but both mean the clustering tools are paying
+	// for a browser session per call again, which is the thing that cache exists to stop.
+	| 'mcp_cluster_index_read'
+	| 'mcp_cluster_index_write'
+	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
+	| 'board_view'
+	// The render page's failure beacon. Pairs with an og_queue or mcp_screenshot failure from the same
+	// session, which only knows Browser Run's side of it.
+	| 'render_page'
 
 // Every thumbnail/OG surface swallows its own errors — the OG route falls back to the default image,
 // the snapshot route 404s, the MCP tools return a tool error, the queue retries or drops. Right for
@@ -180,6 +255,9 @@ function safeRequestContext(request: Request | undefined): Record<string, unknow
 // file a new Sentry issue per distinct detail string. Without them an event says only "Browser
 // Rendering screenshot failed (422)", which is true of a crash, an OOM render and a timeout alike.
 function browserRenderContextOf(error: unknown): Record<string, unknown> | null {
+	if (error instanceof RenderPageError) {
+		return { render_page_error: error.detail, render_page_phase: error.phase }
+	}
 	if (!(error instanceof BrowserRenderError)) return null
 	return {
 		browser_render_status: error.status,

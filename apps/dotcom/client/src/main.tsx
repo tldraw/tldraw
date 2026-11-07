@@ -1,4 +1,4 @@
-import { ClerkProvider } from '@clerk/clerk-react'
+import { ClerkProvider } from '@clerk/react'
 import { createRoot } from 'react-dom/client'
 import { HelmetProvider } from 'react-helmet-async'
 import { RouterProvider, createBrowserRouter } from 'react-router-dom'
@@ -8,7 +8,13 @@ import { RefreshErrorBoundary } from './components/ErrorPage/ErrorPage'
 import { Head } from './components/Head/Head'
 import { routes } from './routeDefs'
 import { router } from './routes'
+import { bootedOnOAuthConsent } from './utils/clerkUi'
 import { showConsoleBranding } from './utils/consoleBranding'
+import { fileLoads } from './utils/fileLoad'
+import { markFirstLoad } from './utils/firstLoad'
+import { shouldPrintLoads } from './utils/loadTracker'
+
+markFirstLoad('js-started')
 
 const TOP_LEVEL_ERROR_MESSAGES = {
 	header: 'Unable to connect',
@@ -18,6 +24,8 @@ const TOP_LEVEL_ERROR_MESSAGES = {
 }
 
 const browserRouter = createBrowserRouter(router)
+// Fires inside navigate(), before React renders the new route: the start of a file switch.
+browserRouter.subscribe((state) => fileLoads.noteNavigation(state.location.pathname))
 
 // @ts-ignore this is fine
 const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY
@@ -26,10 +34,17 @@ if (!PUBLISHABLE_KEY) {
 	throw new Error('Missing VITE_CLERK_PUBLISHABLE_KEY in .env.local')
 }
 
+// Core 3 dropped the version pin from ClerkProvider's types but still forwards it to the script
+// loader. If Clerk stops forwarding it, the preload from vite.config.ts misses and clerk-js downloads twice.
+const clerkScriptProps = { __internal_clerkJSVersion: process.env.CLERK_JS_VERSION } as object
+
 createRoot(document.getElementById('root')!).render(
 	<RefreshErrorBoundary messages={TOP_LEVEL_ERROR_MESSAGES}>
 		<ClerkProvider
 			publishableKey={PUBLISHABLE_KEY}
+			{...clerkScriptProps}
+			// The app draws its own auth UI; only the consent page uses Clerk's prebuilt components.
+			prefetchUI={bootedOnOAuthConsent}
 			afterSignOutUrl={routes.tlaRoot()}
 			signInUrl="/"
 			signInFallbackRedirectUrl={routes.tlaRoot()}
@@ -43,7 +58,8 @@ createRoot(document.getElementById('root')!).render(
 	</RefreshErrorBoundary>
 )
 
-showConsoleBranding()
+// The banner buries the load timings the debug flag asked for.
+if (!shouldPrintLoads()) showConsoleBranding()
 try {
 	// we have a dummy service worker that unregisters itself immediately
 	// this was needed to remove the service worker we used to have from the cache
