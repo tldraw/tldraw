@@ -102,6 +102,8 @@ interface TLFilesExternalContent extends TLBaseExternalContent {
 
 The default handler creates temporary previews for images, uploads the files, and creates image or video shapes arranged horizontally from the drop point.
 
+`.tldr` files in the drop are imported instead. A file with one page is placed on the current page in empty space near the drop point. A file with several pages, or one whose page wouldn't fit under `maxShapesPerPage`, is added as new pages. The files import as one undo step, and if their pages would go over `maxPages` nothing is imported. Images and videos stored in the file are uploaded like pasted media.
+
 ### File replace
 
 File replace content swaps an existing image or video shape's asset. The Replace media action dispatches it through [Editor#replaceExternalContent](?).
