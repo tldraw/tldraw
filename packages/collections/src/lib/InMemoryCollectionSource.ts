@@ -33,6 +33,8 @@ export interface InMemoryCollectionSourceOptions {
 	}
 	/** Makes every collection read-only, like a prefab pack. Items can still be used. */
 	readOnly?: boolean
+	/** Makes these collections read-only while the rest stay writable. Items can still be used. */
+	readOnlyCollectionIds?: TLCollectionId[]
 }
 
 const schema = StoreSchema.create<TLCollectionRecord>(
@@ -51,6 +53,7 @@ const schema = StoreSchema.create<TLCollectionRecord>(
 export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly readOnly: boolean
+	private readonly readOnlyCollectionIds: Set<TLCollectionId>
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
@@ -60,6 +63,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
 		this.id = options.id ?? 'in-memory'
 		this.readOnly = options.readOnly ?? false
+		this.readOnlyCollectionIds = new Set(options.readOnlyCollectionIds)
 		if (options.initial) {
 			const { collections, items, contents } = options.initial
 			// Bad starting data would only fail later, in the UI, so it is checked as a whole up front.
@@ -112,7 +116,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		const collection = collectionId === undefined ? undefined : this.store.get(collectionId)
 		if (collectionId !== undefined && !collection) return false
 		if (this.readOnly) return false
-		return !collection?.readOnly
+		return collectionId === undefined || !this.readOnlyCollectionIds.has(collectionId)
 	}
 
 	async createCollection(name: string) {

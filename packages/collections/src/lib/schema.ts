@@ -14,11 +14,6 @@ export type TLCollectionId = RecordId<TLCollection>
 /** A named list of items. Where it is stored is up to the source that provides it. */
 export interface TLCollection extends BaseRecord<'collection', TLCollectionId> {
 	name: string
-	/**
-	 * True for collections users can't change, such as a prefab pack shipped with an app.
-	 * Sources can leave it out; absent means false.
-	 */
-	readOnly?: boolean
 	meta: JsonObject
 }
 
@@ -58,7 +53,6 @@ export const collectionValidator: T.Validator<TLCollection> = T.object({
 	id: idValidator<TLCollectionId>('collection'),
 	typeName: T.literal('collection'),
 	name: nonEmptyString,
-	readOnly: T.boolean.optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
