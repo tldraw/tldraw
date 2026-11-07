@@ -62,6 +62,13 @@ export interface TLUiContextProviderProps {
 	 * Supported mime types for media files.
 	 */
 	mediaMimeTypes?: string[]
+
+	/**
+	 * The locale to translate the UI into. Defaults to the editor user's locale or, with no
+	 * editor, the browser's language. Set it when the UI mounts without an editor, such as an
+	 * app's sidebar, so that it follows your user's chosen language.
+	 */
+	locale?: string
 }
 
 /** @public @react */
@@ -72,6 +79,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 	onUiEvent,
 	forceMobile,
 	mediaMimeTypes,
+	locale,
 	children,
 }: TLUiContextProviderProps) {
 	// To allow mounting the sidebar without an editor running, we use a 'maybe' editor here
@@ -83,7 +91,7 @@ export const TldrawUiContextProvider = track(function TldrawUiContextProvider({
 			<AssetUrlsProvider assetUrls={useDefaultUiAssetUrlsWithOverrides(assetUrls)}>
 				<TldrawUiTranslationProvider
 					overrides={useMergedTranslationOverrides(overrides)}
-					locale={editor?.user.getLocale() ?? defaultUserPreferences.locale}
+					locale={locale ?? editor?.user.getLocale() ?? defaultUserPreferences.locale}
 				>
 					<SupplyEditorI18n />
 					<TldrawUiTooltipProvider>
