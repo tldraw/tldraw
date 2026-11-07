@@ -218,7 +218,14 @@ function renderListToText(
 			const childPos = itemPos + 1 + childOffset
 			if (childPos >= range.to || childPos + child.nodeSize <= range.from) return
 			if (isListNode(child)) {
-				lines.push(renderListToText(child, childPos, range, textSerializers, indent + continuation))
+				const nested = renderListToText(
+					child,
+					childPos,
+					range,
+					textSerializers,
+					indent + continuation
+				)
+				if (nested) lines.push(nested)
 				return
 			}
 			const contentStart = childPos + 1
@@ -232,6 +239,9 @@ function renderListToText(
 				},
 				{ blockSeparator: '\n', textSerializers }
 			)
+			// A selection that starts at the very end of a line overlaps only its closing token;
+			// that line contributes nothing, not an empty line.
+			if (!prefix && !text) return
 			lines.push(prefix + text)
 		})
 	})

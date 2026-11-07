@@ -207,6 +207,10 @@ describe('renderPlaintextFromRichTextRange', () => {
 		expect(between(13, 25)).toBe('- eggs\n- milk')
 	})
 
+	it('does not add a blank line when the selection starts at the end of an item', () => {
+		expect(between(17, 25)).toBe('- milk')
+	})
+
 	it('renders a selection inside a single item without a marker', () => {
 		expect(between(22, 24)).toBe('il')
 		expect(between(21, 25)).toBe('milk')
