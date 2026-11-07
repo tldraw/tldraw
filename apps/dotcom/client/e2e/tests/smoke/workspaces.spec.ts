@@ -414,6 +414,32 @@ test.describe('workspaces', () => {
 			await sidebar.expectActiveWorkspace(workspaceName)
 			await sidebar.expectFileActive(file1)
 		})
+
+		test('deleting a file that is not open stays on the open file', async ({
+			sidebar,
+			deleteFileDialog,
+		}) => {
+			const workspaceName = getRandomName()
+			const pinnedFile = getRandomName()
+			const fileToDelete = getRandomName()
+			const openFile = getRandomName()
+
+			// The pinned file sorts first, which is where a delete used to navigate to.
+			await sidebar.createWorkspace(workspaceName)
+			await sidebar.createNewDocument(pinnedFile)
+			await sidebar.pinFile(pinnedFile)
+			await sidebar.createNewDocument(fileToDelete)
+			await sidebar.createNewDocument(openFile)
+			await sidebar.expectFileActive(openFile)
+
+			await sidebar.deleteFileByName(fileToDelete)
+			await deleteFileDialog.expectIsVisible()
+			await deleteFileDialog.confirmDeletion()
+			await deleteFileDialog.expectIsNotVisible()
+
+			await sidebar.expectFileNotVisible(fileToDelete)
+			await sidebar.expectFileActive(openFile)
+		})
 	})
 
 	test.describe('sharing', () => {
