@@ -53,7 +53,7 @@ editor.setCameraOptions({
 
 Set `isLocked` to freeze the camera for fixed-viewport apps. Camera methods then do nothing unless you pass `force: true`.
 
-`wheelBehavior` decides what the mouse wheel or trackpad scroll does: `'pan'`, `'zoom'`, or `'none'`. If the user has set an input mode in their preferences, that preference wins: `'trackpad'` pans and `'mouse'` zooms.
+`wheelBehavior` decides what the mouse wheel or trackpad scroll does: `'pan'`, `'zoom'`, or `'none'`. If the user has set an input mode in their preferences, that preference wins between the two: `'trackpad'` pans and `'mouse'` zooms. `'none'` disables the wheel regardless of the preference.
 
 `panSpeed` and `zoomSpeed` are multipliers on input sensitivity. Values below 1 slow movement down, values above 1 speed it up.
 

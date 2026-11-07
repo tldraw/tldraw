@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -20,32 +19,41 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
-/** @internal */
-export const components: TLComponents = {
+const legacyComponents: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
 	MenuPanel: TlaEditorMenuPanel,
 	SharePanel: TlaEditorLegacySharePanel,
 	TopPanel: TlaEditorTopPanel,
 }
 
+/** A read-only editor over a static snapshot. Legacy snapshot pages use the default legacy
+ *  panels; history snapshot pages pass their own `components`. */
 export function TlaLegacySnapshotEditor({
 	snapshot,
 	fileSlug,
+	components = legacyComponents,
 }: {
 	fileSlug: string
 	snapshot: TLStoreSnapshot
+	components?: TLComponents
 }) {
 	return (
 		<>
 			<SneakySetDocumentTitle />
 			<ReadyWrapper key={fileSlug}>
-				<TlaEditorInner snapshot={snapshot} />
+				<TlaEditorInner snapshot={snapshot} components={components} />
 			</ReadyWrapper>
 		</>
 	)
 }
 
-function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
+function TlaEditorInner({
+	snapshot,
+	components,
+}: {
+	snapshot: TLStoreSnapshot
+	components: TLComponents
+}) {
 	const app = useMaybeApp()
 
 	const setIsReady = useSetIsReady()
@@ -73,7 +81,6 @@ function TlaEditorInner({ snapshot }: { snapshot: TLStoreSnapshot }) {
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}

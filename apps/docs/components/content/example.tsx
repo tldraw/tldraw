@@ -4,9 +4,10 @@ import { CodeFiles } from './code-files'
 
 export function Example({ article }: { article: Article }) {
 	const server = 'https://examples.tldraw.com'
-	const additionalFiles = JSON.parse(article.componentCodeFiles ?? '')
+	// both are null when the README has no `component:` frontmatter
+	const additionalFiles = article.componentCodeFiles ? JSON.parse(article.componentCodeFiles) : {}
 	const files = [
-		{ name: 'App.tsx', content: article.componentCode },
+		...(article.componentCode ? [{ name: 'App.tsx', content: article.componentCode }] : []),
 		...Object.keys(additionalFiles).map((key) => ({ name: key, content: additionalFiles[key] })),
 	]
 

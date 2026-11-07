@@ -4,7 +4,7 @@ import 'tldraw/tldraw.css'
 export default function ForceMobileExample() {
 	return (
 		<div className="tldraw__editor">
-			<Tldraw persistenceKey="example" forceMobile />
+			<Tldraw persistenceKey="force-mobile-example" forceMobile />
 		</div>
 	)
 }

@@ -154,8 +154,7 @@ test.describe('signed in user on published file', () => {
 		// Publish the user's current file
 		await shareMenu.open()
 		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
-		await shareMenu.publishFile()
-		const url = await shareMenu.copyLink()
+		const url = await shareMenu.publishFile()
 
 		// Open published file link in other user window
 		const { newShareMenu, newContext } = await openNewTab(browser, {
@@ -263,8 +262,7 @@ test.describe('logged out user on published file', () => {
 		// Publish the user's current file
 		await shareMenu.open()
 		expect(await shareMenu.isInviteButtonVisible()).toBe(true)
-		await shareMenu.publishFile()
-		const url = await shareMenu.copyLink()
+		const url = await shareMenu.publishFile()
 
 		// Open published file link in an incognito window
 		const { newShareMenu, newContext, newEditor } = await openNewTab(browser, {

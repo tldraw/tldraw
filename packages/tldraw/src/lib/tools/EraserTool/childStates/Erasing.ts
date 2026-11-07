@@ -9,19 +9,22 @@ export class Erasing extends StateNode {
 	private markId = ''
 	private excludedShapeIds = new Set<TLShapeId>()
 
-	_erasingShapeIds: TLShapeId[] = []
-
 	override onEnter(info: TLPointerEventInfo) {
 		this.markId = this.editor.markHistoryStoppingPoint('erase scribble begin')
 		this.info = info
 
 		const originPagePoint = this.editor.inputs.getOriginPagePoint()
+		const pressedShapeIds = new Set(this.editor.getErasingShapeIds())
 		this.excludedShapeIds = new Set(
 			this.editor
 				.getCurrentPageShapes()
 				.filter((shape) => {
 					//If the shape is locked, we shouldn't erase it
 					if (this.editor.isShapeOrAncestorLocked(shape)) return true
+					// A frame the press hit on its outline stays marked: a press just inside the outline
+					// is within the frame's bounds, so the containment check below would otherwise
+					// unmark it on the first move while a press just outside would erase it
+					if (this.editor.isShapeFrameLike(shape) && pressedShapeIds.has(shape.id)) return false
 					//If the shape is a group or frame-like, check we're inside it when we start erasing
 					if (this.editor.isShapeOfType(shape, 'group') || this.editor.isShapeFrameLike(shape)) {
 						const pointInShapeShape = this.editor.getPointInShapeSpace(shape, originPagePoint)
@@ -34,13 +37,13 @@ export class Erasing extends StateNode {
 				.map((shape) => shape.id)
 		)
 
-		this._erasingShapeIds = this.editor
+		const hitShapeIds = this.editor
 			.getShapesAtPoint(originPagePoint)
 			.filter((s) => !this.excludedShapeIds.has(s.id))
 			.map((s) => s.id)
 
 		this.editor.setErasingShapes([
-			...new Set([...this.editor.getErasingShapeIds(), ...this._erasingShapeIds]),
+			...new Set([...this.editor.getErasingShapeIds(), ...hitShapeIds]),
 		])
 
 		const scribble = this.editor.scribbles.addScribble({
@@ -143,21 +146,18 @@ export class Erasing extends StateNode {
 					erasing.add(outermost.id)
 				}
 			}
-
-			this._erasingShapeIds = [...erasing]
 		}
 
 		// Remove the hit shapes, except if they're in the list of excluded shapes
 		// (these excluded shapes will be any frames or groups the pointer was inside of
 		// when the user started erasing)
-		this.editor.setErasingShapes(this._erasingShapeIds.filter((id) => !excludedShapeIds.has(id)))
+		this.editor.setErasingShapes([...erasing].filter((id) => !excludedShapeIds.has(id)))
 	}
 
 	complete(info?: TLPointerEventInfo) {
 		const { editor } = this
 		editor.deleteShapes(editor.getCurrentPageState().erasingShapeIds)
 		this.parent.transition('idle', info)
-		this._erasingShapeIds = []
 	}
 
 	cancel() {

@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -253,6 +247,12 @@
       "value": " hat Ihren Beitrag kommentiert"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Feedback konnte nicht übermittelt werden"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +269,12 @@
     {
       "type": 0,
       "value": "Suchen..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Bitte versuchen Sie es erneut."
     }
   ],
   "2de510be71": [
@@ -417,12 +423,6 @@
       "value": "Um die Bearbeitung fortzusetzen, kopieren Sie bitte die Datei in Ihren Dateien."
     }
   ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
-    }
-  ],
   "47f493a590": [
     {
       "type": 0,
@@ -489,14 +489,10 @@
       "value": "Limit für Mitwirkende erreicht"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
+  "550b25cc0c": [
     {
       "type": 0,
-      "value": " ungelesen"
+      "value": "Ihre lokale Zeichnung konnte nicht wiederhergestellt werden. Versuchen Sie, diese Seite neu zu laden."
     }
   ],
   "554a05155c": [
@@ -926,16 +922,6 @@
       "value": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr-Dateien hinzugefügt."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1066,6 +1052,12 @@
       "value": "Datei löschen"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Sie scheinen offline zu sein. Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1108,6 +1100,38 @@
     {
       "type": 0,
       "value": " beizutreten."
+    }
+  ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ungelesen"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ungelesen"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a0da245992": [
@@ -1282,6 +1306,12 @@
       "value": "Eigentümer"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Ziehen Sie die Datei in die Seitenleiste dieser Seite. Alternativ können Sie im Menü „Datei“ oben links die Option „Datei importieren“ auswählen."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1368,6 +1398,38 @@
       "value": "Erfahren Sie mehr über das Teilen."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-Datei hinzugefügt."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-Dateien hinzugefügt."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1378,12 +1440,6 @@
     {
       "type": 0,
       "value": "Notwendige Cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Langer String"
     }
   ],
   "c6a00f137b": [
@@ -1459,7 +1515,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " weitere Person"
             }
           ]
         },
@@ -1470,7 +1526,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " weitere Personen"
             }
           ]
         }
@@ -1668,12 +1724,6 @@
       "value": "Kontomenü"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: akzentuiert"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1781,7 +1831,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " weitere Person"
             }
           ]
         },
@@ -1792,7 +1842,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " weitere Personen"
             }
           ]
         }

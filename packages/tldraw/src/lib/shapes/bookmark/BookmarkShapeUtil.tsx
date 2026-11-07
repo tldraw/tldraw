@@ -1,17 +1,19 @@
 // oxlint-disable typescript/no-empty-object-type
 import {
 	BaseBoxShapeUtil,
+	bookmarkShapeMigrations,
+	bookmarkShapeProps,
+	defineMessages,
 	HTMLContainer,
+	lerp,
 	Rectangle2d,
 	T,
 	TLAssetId,
 	TLBookmarkAsset,
 	TLBookmarkShape,
 	TLBookmarkShapeProps,
-	bookmarkShapeMigrations,
-	bookmarkShapeProps,
-	lerp,
 	tlenv,
+	translateMessage,
 	useEditor,
 	useSvgExportContext,
 } from '@tldraw/editor'
@@ -29,7 +31,7 @@ import {
 	getHumanReadableAddress,
 	getResolvedBookmarkAssetId,
 	setBookmarkHeight,
-	updateBookmarkAssetOnUrlChange,
+	resolveBookmarkAssetForUrlChange,
 } from './bookmarks'
 
 /** @public */
@@ -40,6 +42,10 @@ export interface BookmarkShapeOptions extends ShapeOptionsWithDisplayValues<
 	TLBookmarkShape,
 	BookmarkShapeUtilDisplayValues
 > {}
+
+const messages = defineMessages({
+	name: { id: 'tool.bookmark', defaultMessage: 'Bookmark' },
+})
 
 /** @public */
 export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
@@ -54,6 +60,10 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 		getCustomDisplayValues(): Partial<BookmarkShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
 	}
 
 	override canResize(shape: TLBookmarkShape) {
@@ -117,19 +127,19 @@ export class BookmarkShapeUtil extends BaseBoxShapeUtil<TLBookmarkShape> {
 	}
 
 	override onBeforeUpdate(prev: TLBookmarkShape, shape: TLBookmarkShape) {
+		let next = shape
 		if (prev.props.url !== shape.props.url) {
 			if (!T.linkUrl.isValid(shape.props.url)) {
 				return { ...shape, props: { ...shape.props, url: prev.props.url } }
-			} else {
-				updateBookmarkAssetOnUrlChange(this.editor, shape)
 			}
+			next = resolveBookmarkAssetForUrlChange(this.editor, shape)
 		}
 
-		if (prev.props.assetId !== shape.props.assetId) {
-			return setBookmarkHeight(this.editor, shape)
+		if (prev.props.assetId !== next.props.assetId) {
+			return setBookmarkHeight(this.editor, next)
 		}
 
-		return undefined
+		return next === shape ? undefined : next
 	}
 	override getInterpolatedProps(
 		startShape: TLBookmarkShape,

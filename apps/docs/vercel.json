@@ -1,0 +1,7 @@
+{
+	"framework": "nextjs",
+	"installCommand": "cd ../.. && bash internal/scripts/vercel/install.sh",
+	"buildCommand": "cd ../.. && bash internal/scripts/vercel/build-docs.sh",
+	"ignoreCommand": "cd ../.. && bash internal/scripts/vercel/should-build-docs.sh",
+	"outputDirectory": ".next"
+}

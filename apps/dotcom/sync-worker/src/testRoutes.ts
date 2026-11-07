@@ -12,6 +12,7 @@ import {
 } from './routes/tla/evalsLocalMcp'
 import { isDebugLogging, type Environment } from './types'
 import { getFileEffectProcessor, getRoomDurableObject } from './utils/durableObjects'
+import { versionKey } from './versionChain'
 
 interface CreateLegacyRoomBody {
 	slug?: string
@@ -121,27 +122,23 @@ export const testRoutes = createRouter<Environment>()
 		const historyTimestamp = body.historyTimestamp ?? new Date().toISOString()
 		const snapshot = DEFAULT_INITIAL_SNAPSHOT
 
-		await getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug)
-		await getRoomDurableObject(env, legacyReadonlyActualSlug).__admin__createLegacyRoom(
-			legacyReadonlyActualSlug
-		)
-
-		await env.SLUG_TO_READONLY_SLUG.put(slug, readonlySlug)
-		await env.READONLY_SLUG_TO_SLUG.put(readonlySlug, slug)
-
-		await env.ROOMS_HISTORY_EPHEMERAL.put(
-			`${getR2KeyForRoom({ slug, isApp: false })}/${historyTimestamp}`,
-			JSON.stringify(snapshot)
-		)
-
-		await env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(snapshotSlug, slug)
-		await env.ROOM_SNAPSHOTS.put(
-			getR2KeyForSnapshot({ parentSlug: slug, snapshotSlug, isApp: false }),
-			JSON.stringify({
-				parent_slug: slug,
-				drawing: snapshot,
-			})
-		)
+		await Promise.all([
+			getRoomDurableObject(env, slug).__admin__createLegacyRoom(slug),
+			getRoomDurableObject(env, legacyReadonlyActualSlug).__admin__createLegacyRoom(
+				legacyReadonlyActualSlug
+			),
+			env.SLUG_TO_READONLY_SLUG.put(slug, readonlySlug),
+			env.READONLY_SLUG_TO_SLUG.put(readonlySlug, slug),
+			env.ROOMS_HISTORY.put(
+				versionKey(getR2KeyForRoom({ slug, isApp: false }), historyTimestamp, 'keyframe'),
+				JSON.stringify(snapshot)
+			),
+			env.SNAPSHOT_SLUG_TO_PARENT_SLUG.put(snapshotSlug, slug),
+			env.ROOM_SNAPSHOTS.put(
+				getR2KeyForSnapshot({ parentSlug: slug, snapshotSlug, isApp: false }),
+				JSON.stringify({ parent_slug: slug, drawing: snapshot })
+			),
+		])
 
 		return Response.json({
 			slug,

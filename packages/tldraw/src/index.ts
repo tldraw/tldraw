@@ -52,6 +52,12 @@ export {
 	type TLUiMenuToolItemProps,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuToolItem'
 export { DefaultToasts } from './lib/ui/components/Toasts'
+export {
+	F,
+	useTldrawI18n,
+	type TLUiMessageProps,
+	type TLUiMessageValues,
+} from './lib/ui/context/i18n'
 export { TldrawUiTranslationProvider } from './lib/ui/hooks/useTranslation/useTranslation'
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/editor'
@@ -241,6 +247,11 @@ export {
 	type LineShapeOptions,
 	type LineShapeUtilDisplayValues,
 } from './lib/shapes/line/LineShapeUtil'
+export {
+	DefaultNoteShapeAttribution,
+	type TLNoteShapeAttributionComponent,
+	type TLNoteShapeAttributionProps,
+} from './lib/shapes/note/DefaultNoteShapeAttribution'
 export { NoteShapeTool } from './lib/shapes/note/NoteShapeTool'
 export {
 	NoteShapeUtil,
@@ -797,6 +808,7 @@ export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
+export { useSomeActionsEnabled } from './lib/ui/hooks/useActionState'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
 export {
 	onDragFromToolbarToCreateShape,
@@ -815,6 +827,7 @@ export {
 	useTranslation,
 	type TLUiTranslationContextType,
 	type TLUiTranslationProviderProps,
+	type TLUiTranslationValues,
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { iconTypes, type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'
@@ -844,6 +857,24 @@ export {
 	tipTapDefaultExtensions,
 } from './lib/utils/text/richText'
 export { truncateStringWithEllipsis } from './lib/utils/text/text'
+export {
+	Extension,
+	getSchema,
+	Mark,
+	mergeAttributes,
+	Node,
+	TaskItem,
+	TaskList,
+	type Extensions,
+	type JSONContent,
+	type TaskItemOptions,
+	type TaskListOptions,
+} from './lib/utils/text/tiptap'
+export {
+	defaultWrappingPairs,
+	WrapSelectionExtension,
+	type WrapSelectionOptions,
+} from './lib/utils/text/wrapSelection'
 export {
 	buildFromV1Document,
 	TLV1AlignStyle,

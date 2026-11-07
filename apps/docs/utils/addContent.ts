@@ -8,6 +8,23 @@ export async function addContentToDb(
 	db: Database<sqlite3.Database, sqlite3.Statement>,
 	content: GeneratedContent
 ) {
+	// One transaction for the whole batch: each statement is otherwise its own autocommit with
+	// an fsync, which turns the ~13k inserts of a refresh into seconds of wall time.
+	await db.exec('BEGIN')
+	try {
+		await insertContent(db, content)
+		await db.exec('COMMIT')
+	} catch (e) {
+		// Don't let a failed rollback mask the insert error
+		await db.exec('ROLLBACK').catch(() => {})
+		throw e
+	}
+}
+
+async function insertContent(
+	db: Database<sqlite3.Database, sqlite3.Statement>,
+	content: GeneratedContent
+) {
 	const sectionInsert = await db.prepare(
 		`INSERT INTO sections (id, idx, title, description, path, sidebar_behavior) VALUES (?, ?, ?, ?, ?, ?)`
 	)
@@ -52,12 +69,14 @@ export async function addContentToDb(
     ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
 	)
 
-	for (let i = 0; i < content.sections.length; i++) {
-		const section = content.sections[i]
+	for (const section of content.sections) {
 		try {
+			// `section.index` is assigned by the generators across all content sources (regular
+			// sections 0..n, examples and reference far away). addContentToDb is called once per
+			// source, so a per-call loop index would give two sections the same idx.
 			await sectionInsert.run(
 				section.id,
-				section.id === 'reference' ? 99999 : i,
+				section.index,
 				section.title,
 				section.description,
 				section.path,
@@ -127,8 +146,6 @@ export async function addContentToDb(
 			throw e
 		}
 
-		await db.run(`DELETE FROM headings WHERE articleId = ?`, article.id)
-
 		await Promise.all(
 			parseMarkdown(article.content ?? '', article.path ?? article.id).headings.map((heading, i) =>
 				headingsInsert.run(
@@ -142,4 +159,11 @@ export async function addContentToDb(
 			)
 		)
 	}
+
+	await Promise.all([
+		sectionInsert.finalize(),
+		categoryInsert.finalize(),
+		headingsInsert.finalize(),
+		articleInsert.finalize(),
+	])
 }

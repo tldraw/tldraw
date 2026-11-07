@@ -3,14 +3,11 @@ import { existsSync, readFileSync, readdirSync } from 'fs'
 import { createServer } from 'http'
 import { Kysely, PostgresDialect, sql } from 'kysely'
 import pg from 'pg'
+import { hasTransactionBlock } from './migrationSql'
 
-const postgresConnectionString: string =
+const postgresConnectionString =
 	process.env.BOTCOM_POSTGRES_POOLED_CONNECTION_STRING ||
 	'postgresql://user:password@127.0.0.1:6543/postgres'
-
-if (!postgresConnectionString) {
-	throw new Error('Missing BOTCOM_POSTGRES_POOLED_CONNECTION_STRING env var')
-}
 console.log('Using connection string:', postgresConnectionString)
 
 const migrationsPath = `./migrations`
@@ -60,17 +57,35 @@ const dryRun = process.argv.includes('--dry-run')
 
 const DRY_RUN_ROLLBACK = new Error('dry-run-rollback')
 
-const db = new Kysely({
-	dialect: new PostgresDialect({
-		pool: new pg.Pool({
-			connectionString: postgresConnectionString,
-			application_name: 'migrate',
-			idleTimeoutMillis: 10_000,
-			max: 1,
-		}),
-	}),
-	log: ['error'],
-})
+function createDb() {
+	const pool = new pg.Pool({
+		connectionString: postgresConnectionString,
+		application_name: 'migrate',
+		idleTimeoutMillis: 10_000,
+		max: 1,
+	})
+	// Without a listener, a server-side disconnect is an uncaught 'error' event that kills
+	// the process before the retry in run() can catch it.
+	pool.on('error', () => {})
+	pool.on('connect', (client) => client.on('error', () => {}))
+	return new Kysely({ dialect: new PostgresDialect({ pool }), log: ['error'] })
+}
+let db = createDb()
+
+// A new Supabase preview branch restarts shortly after it reports ready, terminating open
+// connections ~35-50s after creation (57P01). The migration is a single transaction, so a
+// dropped connection rolls it back and retrying from scratch is safe.
+const MAX_CONNECTION_LOSS_RETRIES = 5
+function isConnectionLoss(e: unknown) {
+	const err = e as { code?: string; message?: string }
+	return (
+		err?.code === '57P01' || // admin_shutdown
+		err?.code === '57P02' || // crash_shutdown
+		err?.code === '57P03' || // cannot_connect_now
+		err?.code === 'ECONNRESET' ||
+		/Connection terminated/i.test(err?.message ?? '')
+	)
+}
 
 async function waitForPostgres() {
 	let attempts = 0
@@ -90,12 +105,12 @@ async function waitForPostgres() {
 	await sql.raw(init).execute(db)
 }
 
-async function migrate(summary: string[], dryRun: boolean) {
+async function migrate(summary: string[]) {
 	await db.transaction().execute(async (tx) => {
 		const appliedMigrations = await sql<{
 			filename: string
 		}>`SELECT filename FROM migrations.applied_migrations`.execute(tx)
-		const migrations = readdirSync(`./migrations`).sort()
+		const migrations = readdirSync(migrationsPath).sort()
 		if (migrations.length === 0) {
 			throw new Error('No migrations found')
 		}
@@ -123,16 +138,23 @@ async function migrate(summary: string[], dryRun: boolean) {
 			)
 		}
 
+		// DDL on a replicated table takes ACCESS EXCLUSIVE. Without a lock timeout, one long-running
+		// reader makes the deploy hang while every room persist queues behind the waiting DDL.
+		// Failing here aborts the deploy before Zero and the sync-worker roll, and a rerun picks up
+		// where it left off. SET LOCAL is transaction-scoped, so it holds through a
+		// transaction-mode pooler.
+		await sql`SET LOCAL lock_timeout = '10s'`.execute(tx)
+
 		let appliedNewMigration = false
 		for (const migration of migrations) {
-			if (appliedMigrations.rows.some((m: any) => m.filename === migration)) {
+			if (appliedMigrations.rows.some((m) => m.filename === migration)) {
 				summary.push(`🏃 ${migration} already applied`)
 				continue
 			}
 
 			try {
-				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8').toString()
-				if (migrationSql.match(/(BEGIN|COMMIT);/)) {
+				const migrationSql = readFileSync(`${migrationsPath}/${migration}`, 'utf8')
+				if (hasTransactionBlock(migrationSql)) {
 					throw new Error(
 						`Migration ${migration} contains a transaction block. Migrations run in transactions, so you don't need to include them in the migration file.`
 					)
@@ -168,9 +190,22 @@ async function run() {
 		process.exit(1)
 	}
 
-	const summary: string[] = []
+	let summary: string[] = []
 	try {
-		await migrate(summary, dryRun)
+		for (let attempt = 1; ; attempt++) {
+			summary = []
+			try {
+				await migrate(summary)
+				break
+			} catch (e) {
+				if (!isConnectionLoss(e) || attempt > MAX_CONNECTION_LOSS_RETRIES) throw e
+				console.log(`Lost the postgres connection (${(e as Error).message}), retrying...`)
+				await db.destroy().catch(() => {})
+				await new Promise((resolve) => setTimeout(resolve, 2000))
+				db = createDb()
+				await waitForPostgres()
+			}
+		}
 		console.log(summary.join('\n'))
 		// need to do this to close the db connection
 		if (shouldSignalSuccess) {

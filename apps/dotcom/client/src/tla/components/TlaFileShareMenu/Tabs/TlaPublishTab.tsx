@@ -1,13 +1,13 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
+import { FormattedRelativeTime } from 'react-intl'
 import { useParams } from 'react-router-dom'
-import { useEditor } from 'tldraw'
+import { F, useEditor } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
-import { F, FormattedRelativeTime } from '../../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -36,7 +36,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const isOwner = app.canUpdateFile(file.id)
 	const auth = useAuth()
 	const trackEvent = useTldrawAppUiEvents()
-	const [uploadState, setUploadState] = useState<'idle' | 'uploading' | 'success'>('idle')
+	const [hasPublishedChanges, setHasPublishedChanges] = useState(false)
 
 	const publish = useCallback(
 		async (isPublishingChanges: boolean) => {
@@ -47,7 +47,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 			if (!token) throw Error('no token')
 
 			if (isPublishingChanges) {
-				setUploadState('success')
+				setHasPublishedChanges(true)
 			}
 
 			app.publishFile(file.id)
@@ -69,7 +69,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 
 	const publishShareUrl = publishedSlug ? routes.tlaPublish(publishedSlug, { asUrl: true }) : null
 
-	const secondsSince = Math.min(0, Math.floor((Date.now() - file.lastPublished) / 1000))
+	const secondsSince = Math.min(0, Math.floor((file.lastPublished - Date.now()) / 1000))
 	const learnMoreUrl = 'https://tldraw.notion.site/Publishing-1283e4c324c08059a1a1d9ba9833ddc9'
 	return (
 		<TlaMenuTabsPage id="publish">
@@ -104,15 +104,13 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 						{publishShareUrl && <TlaCopyPublishLinkButton url={publishShareUrl} />}
 						{isOwner && (
 							<TlaButton
-								iconRight={uploadState === 'success' ? 'check' : 'update'}
-								isLoading={uploadState === 'uploading'}
+								iconRight={hasPublishedChanges ? 'check' : 'update'}
 								variant="secondary"
 								onClick={() => publish(true)}
 							>
 								<F defaultMessage="Publish changes" />
 							</TlaButton>
 						)}
-						{/* todo: make this data actually true based on file.lastPublished */}
 						<TlaMenuDetail>
 							<F
 								defaultMessage="Last published <date></date>"

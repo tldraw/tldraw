@@ -1,0 +1,41 @@
+name: Build cache
+description: Restore turbo's cache and tsc's incremental build state, and optionally save them
+
+inputs:
+  name:
+    description: Cache key prefix
+    required: true
+  save:
+    description: Save the cache at the end of the job
+    default: 'false'
+
+runs:
+  using: composite
+  steps:
+    # The two steps must use the same `path`, or the restore misses the saved entry.
+    # No `**`: it follows workspace symlinks through node_modules and the save times out.
+    - if: inputs.save == 'true'
+      uses: actions/cache@v5
+      with:
+        path: |
+          .turbo
+          */*/.tsbuild
+          apps/*/*/.tsbuild
+          *.tsbuildinfo
+          */*/*.tsbuildinfo
+          apps/*/*/*.tsbuildinfo
+        key: ${{ inputs.name }}-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+        restore-keys: ${{ inputs.name }}-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-
+
+    - if: inputs.save != 'true'
+      uses: actions/cache/restore@v5
+      with:
+        path: |
+          .turbo
+          */*/.tsbuild
+          apps/*/*/.tsbuild
+          *.tsbuildinfo
+          */*/*.tsbuildinfo
+          apps/*/*/*.tsbuildinfo
+        key: ${{ inputs.name }}-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-${{ github.sha }}
+        restore-keys: ${{ inputs.name }}-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'turbo.json') }}-

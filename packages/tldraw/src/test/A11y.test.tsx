@@ -1,7 +1,7 @@
 import { createShapeId, toRichText } from '@tldraw/editor'
+import { createIntl } from 'react-intl'
 import { Mock, vi } from 'vitest'
 import { generateShapeAnnouncementMessage } from '../lib/ui/components/A11y'
-import { DEFAULT_TRANSLATION } from '../lib/ui/hooks/useTranslation/defaultTranslation'
 import { TestEditor } from './TestEditor'
 
 describe('A11y Shape Announcements', () => {
@@ -11,17 +11,27 @@ describe('A11y Shape Announcements', () => {
 	beforeEach(() => {
 		editor = new TestEditor()
 
-		// Create a simple translation mock
-		mockTranslate = vi.fn((key) => {
-			if (key === 'a11y.multiple-shapes') return '{num} shapes selected'
-			if (key === 'a11y.shape') return 'Shape'
-			if (key === 'a11y.text') return 'Text'
-			if (key === 'a11y.shape-index') return '{num} of {total}'
-			if (key === 'a11y.shape-image') return 'image'
-			if (key === 'a11y.shape-video') return 'video'
-			if (key.startsWith('geo-style.')) return key.split('.')[1]
-			if (key.startsWith('tool.')) return key.split('.')[1]
-			return key
+		// Formats through real ICU like `useTranslation` does, so a malformed message here fails the
+		// test rather than announcing its own placeholders.
+		//
+		// A shape's name no longer comes through here: each util returns its own via `getShapeName`,
+		// resolved against the editor's i18n. So "Rectangle" and "Image" below are the catalogue's
+		// real text, where this stub would have produced the key's last segment.
+		const intl = createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
+		mockTranslate = vi.fn((key: string, values?: Record<string, unknown>) => {
+			let defaultMessage = key
+			if (key === 'a11y.multiple-shapes')
+				defaultMessage = '{num, plural, one {# shape selected} other {# shapes selected}}'
+			else if (key === 'a11y.shape') defaultMessage = 'Shape'
+			else if (key === 'a11y.text') defaultMessage = 'Text'
+			else if (key === 'a11y.shape-index') defaultMessage = '{num} of {total}'
+			else if (key === 'a11y.shape-image') defaultMessage = 'image'
+			else if (key === 'a11y.shape-video') defaultMessage = 'video'
+			else if (key.startsWith('geo-style.')) defaultMessage = key.split('.')[1]
+			else if (key.startsWith('tool.')) defaultMessage = key.split('.')[1]
+			// The message is chosen above, so it can't be the literal the rule wants here.
+			// eslint-disable-next-line tldraw/enforce-default-message
+			return intl.formatMessage({ id: key, defaultMessage }, values as any)
 		})
 	})
 
@@ -70,7 +80,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('Hello, rectangle. 1 of 1')
+		expect(message).toBe('Hello, Rectangle. 1 of 1')
 	})
 
 	it('announces image shape with alt text', () => {
@@ -88,7 +98,42 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('A test image, image. 1 of 1')
+		expect(message).toBe('A test image, Image. 1 of 1')
+	})
+
+	it('counts locked shapes in the shape count', () => {
+		const box1 = createShapeId('box1')
+		const locked = createShapeId('locked')
+		const box2 = createShapeId('box2')
+
+		editor.createShapes([
+			{ id: box1, type: 'geo', x: 0, y: 0 },
+			{ id: locked, type: 'geo', x: 100, y: 0, isLocked: true },
+			{ id: box2, type: 'geo', x: 200, y: 0 },
+		])
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [locked],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Rectangle. 2 of 3')
+	})
+
+	it('announces a shape outside the reading order without a position', () => {
+		const box = createShapeId('box')
+		editor.createShapes([{ id: box, type: 'geo', x: 0, y: 0 }])
+		// A shape that can't be tabbed to has no place in the reading order, and "0 of N" would be wrong
+		vi.spyOn(editor.getShapeUtil('geo'), 'canTabTo').mockReturnValue(false)
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [box],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Rectangle.')
 	})
 
 	it('announces a group by name rather than a missing tool key', () => {
@@ -102,11 +147,12 @@ describe('A11y Shape Announcements', () => {
 		])
 		editor.groupShapes([box1, box2], { groupId })
 
-		// Use the real translations: the mock above would turn a missing `tool.group` into "group"
+		// The name comes from GroupShapeUtil.getShapeName, not the mock, which would turn a missing
+		// `tool.group` into "group"
 		const message = generateShapeAnnouncementMessage({
 			editor,
 			selectedShapeIds: [groupId],
-			msg: (id) => (DEFAULT_TRANSLATION as Record<string, string>)[id] ?? id,
+			msg: mockTranslate,
 		})
 
 		expect(message).toBe('Group. 1 of 1')
@@ -133,7 +179,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('rectangle. 2 of 3')
+		expect(message).toBe('Rectangle. 2 of 3')
 	})
 
 	it('announces a shape inside a group by its position among its siblings', () => {
@@ -153,7 +199,7 @@ describe('A11y Shape Announcements', () => {
 			msg: mockTranslate,
 		})
 
-		expect(message).toBe('rectangle. 2 of 2')
+		expect(message).toBe('Rectangle. 2 of 2')
 	})
 
 	it('returns empty string when no shapes are selected', () => {
@@ -165,5 +211,28 @@ describe('A11y Shape Announcements', () => {
 		})
 
 		expect(message).toBe('')
+	})
+
+	// Each util names itself. Only the convention is left in A11y: a shape that doesn't override
+	// `getShapeName` is announced by its tool's label.
+	it('lets a shape name itself, and falls back to the tool label otherwise', () => {
+		const geo = createShapeId('geo')
+		const note = createShapeId('note')
+		editor.createShapes([
+			{ id: geo, type: 'geo', x: 0, y: 0, props: { geo: 'ellipse' } },
+			{ id: note, type: 'note', x: 200, y: 0 },
+		])
+
+		// geo names itself by which geo it is, not by its shared type
+		expect(editor.getShapeUtil('geo').getShapeName(editor.getShape(geo)!)).toBe('Ellipse')
+		// a note doesn't override, so A11y's convention supplies the name
+		expect(editor.getShapeUtil('note').getShapeName(editor.getShape(note)!)).toBeUndefined()
+		expect(
+			generateShapeAnnouncementMessage({
+				editor,
+				selectedShapeIds: [note],
+				msg: mockTranslate,
+			})
+		).toContain('note')
 	})
 })

@@ -1,6 +1,15 @@
 import { ComponentType, ReactNode } from 'react'
-import { TldrawUiTooltip, useTranslation } from 'tldraw'
+import { defineMessages, TldrawUiTooltip, useTranslation } from 'tldraw'
 import { ReactionReactor } from './reactions'
+
+const messages = defineMessages({
+	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },
+	commentsReacted: {
+		id: 'comments.reacted',
+		defaultMessage:
+			'{count, plural, =1 {{a} reacted} =2 {{a} and {b} reacted} =3 {{a}, {b} and {c} reacted} other {{a}, {b}, {c} and {others, plural, one {# other} other {# others}} reacted}}',
+	},
+})
 
 /** Render a reaction token to its visual — the emoji glyph by default. @public */
 export type RenderReaction = (token: string) => ReactNode
@@ -99,37 +108,27 @@ export function DefaultReactionTooltip({ reactors, children }: ReactionTooltipPr
 /**
  * The default reactor sentence naming who reacted — up to three names spelled out, then "and N
  * others" (e.g. "You reacted", "You and Bo reacted", "You, Bo and Ada reacted", "You, Bo, Ada and 2
- * others reacted"). The wording lives in the `comments.reacted-*` translation strings so each locale
- * controls the grammar. Exported so a custom `ReactionTooltip` can reuse it inside its own box.
+ * others reacted"). The wording lives in the `comments.reacted` translation string, whose ICU
+ * plural picks the phrasing, so each locale controls both the grammar and how it counts. Exported
+ * so a custom `ReactionTooltip` can reuse it inside its own box.
  * @public @react
  */
 export function DefaultReactionTooltipContent({ reactors }: { reactors: ReactionReactor[] }) {
 	const msg = useTranslation()
 	const names = reactors.map((reactor) =>
-		reactor.you ? msg('comments.mention-you') : reactor.name
+		reactor.you ? msg(messages.commentsMentionYou) : reactor.name
 	)
+	if (names.length === 0) return null
 	const [a, b, c] = names
-	switch (names.length) {
-		case 0:
-			return null
-		case 1:
-			return <>{msg('comments.reacted-1').replace('{a}', a)}</>
-		case 2:
-			return <>{msg('comments.reacted-2').replace('{a}', a).replace('{b}', b)}</>
-		case 3:
-			return <>{msg('comments.reacted-3').replace('{a}', a).replace('{b}', b).replace('{c}', c)}</>
-		default: {
-			const others = names.length - 3
-			const template = others === 1 ? 'comments.reacted-more-one' : 'comments.reacted-more'
-			return (
-				<>
-					{msg(template)
-						.replace('{a}', a)
-						.replace('{b}', b)
-						.replace('{c}', c)
-						.replace('{count}', String(others))}
-				</>
-			)
-		}
-	}
+	return (
+		<>
+			{msg(messages.commentsReacted, {
+				count: names.length,
+				others: names.length - 3,
+				a,
+				b,
+				c,
+			})}
+		</>
+	)
 }

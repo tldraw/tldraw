@@ -11,7 +11,7 @@ import { killProcessTree } from '../../../../internal/scripts/lib/kill-tree'
 
 // A process that records its own pid, optionally spawns one more level below itself, then idles.
 // Running `node nest.cjs <depth> <pidfile>` builds a chain `depth` levels deep so we can prove the
-// reap crosses more than one wrapper layer (the real tree is orchestrator → yarn → tsx → wrangler →
+// reap crosses more than one wrapper layer (the real tree is orchestrator → pnpm → tsx → wrangler →
 // workerd).
 const NEST_SCRIPT = `
 const { spawn } = require('child_process')

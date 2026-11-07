@@ -35,6 +35,8 @@ OPENAI_API_KEY=<your key>
 
 We recommend Anthropic for best results. Get an API key from the [Anthropic dashboard](https://console.anthropic.com/settings/keys).
 
+To use one [OpenRouter](https://openrouter.ai) key for every model instead, set `OPENROUTER_API_KEY`. The provider keys are then not used.
+
 ---
 
 ## Use cases
@@ -59,11 +61,7 @@ With its default configuration, the agent can perform the following actions:
 
 ### Architecture
 
-<img
-	src="/images/starter-kits/chart-agent.png"
-	alt="Flowchart showing how user input is processed by an agent, which gathers a canvas screenshot, analyzes shapes, and builds context. These feed into an AI model, which performs further shape analysis, updates the canvas, and produces results that go back to the user as feedback."
-	style={{ maxWidth: '400px', height: 'auto', display: 'block', margin: '0 auto' }}
-/>
+![Flowchart showing how user input is processed by an agent, which gathers a canvas screenshot, analyzes shapes, and builds context. These feed into an AI model, which performs further shape analysis, updates the canvas, and produces results that go back to the user as feedback.](/images/starter-kits/chart-agent.png)
 
 ### 1. User input
 
@@ -113,6 +111,8 @@ This starter kit supports multiple AI providers (Anthropic, OpenAI, Google) with
 Aside from using the chat panel UI, you can also prompt the agent programmatically.
 
 Call the `prompt()` method to start an agentic loop. The agent will continue until it has finished the task you've given it.
+
+Each action is a tool call. The browser carries out the tool calls as they stream in, then sends their results back to the model in a follow-up request, with a new view of the canvas. The loop ends when the model replies without tool calls. A turn has at most 20 follow-up requests, and near that limit the model is told how many steps it has left.
 
 ```tsx
 // Inside a component wrapped by TldrawAgentAppProvider
@@ -418,6 +418,24 @@ override async applyAction(action: Streaming<CountryInfoAction>) {
 }
 ```
 
+### Report what an action did
+
+The model reads what each action did as the result of its tool call. By default, the result lists the shapes that the action created, updated or deleted. To report something else, override `getResult` in the action util.
+
+```ts
+override getResult() {
+	return `Number of shapes on the canvas: ${this.editor.getCurrentPageShapes().length}`
+}
+```
+
+When the model asks for something that cannot be done, throw an `ActionFailedError` from `applyAction`. Its message becomes the result, so the model can correct its mistake.
+
+```ts
+if (!existingShape) {
+	throw new ActionFailedError(`Shape ${action.update.shapeId} not found in canvas.`)
+}
+```
+
 ### Sanitize data received from the model
 
 The model can make mistakes. Sometimes this is due to hallucinations, and sometimes this is due to the canvas changing since the last time the model saw it. Either way, an incoming action might contain invalid data by the time you receive it.
@@ -534,6 +552,10 @@ override getPart(request: AgentRequest, helpers: AgentHelpers): RandomShapePart 
 }
 ```
 
+### Limit usage before you deploy
+
+The starter kit has no usage limits. A public deployment pays for every request with your API keys, so add a limit per user, such as a budget of requests or spend, enforced on your server, before you deploy it publicly.
+
 ### Change the system prompt
 
 To change the default system prompt, edit the sections in `worker/prompt/sections/`. These sections are assembled by `worker/prompt/buildSystemPrompt.ts`.
@@ -545,14 +567,14 @@ The system prompt is rebuilt for each step in the agentic loop depending on whic
 You can set an agent's model by calling `setModelName` on the `modelName` manager.
 
 ```tsx
-agent.modelName.setModelName('gemini-3-flash-preview')
+agent.modelName.setModelName('gemini-3.8-flash')
 ```
 
 To override an agent's model, specify a different model name with a request.
 
 ```tsx
 agent.prompt({
-	modelName: 'gemini-3-flash-preview',
+	modelName: 'gemini-3.8-flash',
 	message: 'Draw a diagram of a volcano.',
 })
 ```
@@ -561,7 +583,7 @@ You can conditionally override the model name by overriding the `getModelName()`
 
 ```tsx
 override getModelName(part: MyCustomPromptPart) {
-	return part.fastMode ? 'gemini-3-flash-preview' : 'claude-sonnet-4-5'
+	return part.fastMode ? 'gemini-3.8-flash' : 'claude-sonnet-5'
 }
 ```
 
@@ -570,18 +592,24 @@ override getModelName(part: MyCustomPromptPart) {
 To add support for a different model, add the model's definition to `AGENT_MODEL_DEFINITIONS` in the `shared/models.ts` file.
 
 ```tsx
-'claude-sonnet-4-5': {
-	name: 'claude-sonnet-4-5',
-	id: 'claude-sonnet-4-5',
+'claude-sonnet-5': {
+	name: 'claude-sonnet-5',
+	id: 'claude-sonnet-5',
+	openRouterId: 'anthropic/claude-sonnet-5',
 	provider: 'anthropic',
+	supportsTemperature: false,
+	thinking: 'adaptive',
+	effort: 'low',
 }
 ```
+
+`openRouterId` is the model's id on [OpenRouter](https://openrouter.ai/models), which the kit uses when `OPENROUTER_API_KEY` is set.
 
 If you need to add any extra setup or configuration for your provider, you can add it to the `worker/do/AgentService.ts` file.
 
 ### Support custom shapes
 
-If your app includes [custom shapes](/docs/shapes#custom-shapes), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, you might want to also let the agent create and edit them, and read their custom properties.
+If your app includes [custom shapes](/docs/shapes#Custom-shapes), the agent will be able to see, move, delete, resize, rotate and arrange them with no extra setup. However, you might want to also let the agent create and edit them, and read their custom properties.
 
 To support custom shapes, you have two main options:
 
@@ -758,7 +786,7 @@ export function convertFocusedShapeToTldrawShape(
 
 - **[Multiplayer starter kit](/starter-kits/multiplayer)**: Use the tldraw multiplayer sync starter kit to build multi-user agent environments.
 
-- **[Shape utilities](/docs/shapes#custom-shapes)**: Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
+- **[Shape utilities](/docs/shapes#Custom-shapes)**: Learn how to create custom shapes and extend tldraw's shape system with advanced geometry, rendering, and interaction patterns.
 
 - **[Editor state management](/docs/editor)**: Learn how to work with tldraw's reactive state system, editor lifecycle, and event handling for complex canvas applications.
 

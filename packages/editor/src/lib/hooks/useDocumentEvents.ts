@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { Editor } from '../editor/Editor'
 import { TLKeyboardEventInfo } from '../editor/types/event-types'
 import { activeElementShouldCaptureKeys, preventDefault } from '../utils/dom'
@@ -13,6 +13,14 @@ export function useDocumentEvents() {
 
 	const isEditing = useValue('isEditing', () => editor.getEditingShapeId(), [editor])
 	const isAppFocused = useValue('isFocused', () => editor.getIsFocused(), [editor])
+
+	// `inputs.keys` only stores codes, but tools match `onKeyUp` on `info.key`, so the window
+	// blur release below needs the key remembered per code.
+	const heldKeysRef = useRef(new Map<string, string>())
+
+	// Non-modifier keys pressed while Meta was down. macOS never delivers their keyup, so
+	// `inputs.keys` would count them as held for good; see the Meta branch in `handleKeyUp`.
+	const keysPressedWithMetaRef = useRef(new Set<string>())
 
 	// Prevent the browser's default drag and drop behavior on our container (UI, etc)
 	useEffect(() => {
@@ -212,6 +220,13 @@ export function useDocumentEvents() {
 				accelKey: isAccelKey(e),
 			}
 
+			heldKeysRef.current.set(e.code, e.key)
+			// Only a fresh press counts. A key held from before Meta went down keeps auto-
+			// repeating, and those repeats carry `metaKey` too, which would make it look like
+			// it was pressed during the Meta window.
+			if (!e.repeat && e.metaKey && !MODIFIER_CODES.has(e.code)) {
+				keysPressedWithMetaRef.current.add(e.code)
+			}
 			editor.dispatch(info)
 		}
 
@@ -227,6 +242,13 @@ export function useDocumentEvents() {
 				return
 			}
 
+			// The native `metaKey` is still true on Meta's own keyup. Reported as-is it matches
+			// neither branch of the editor's modifier handling - which ignores `metaKey` on a
+			// key_up, then only arms the 150ms release when it reads false - so a cmd tap left
+			// `getMetaKey()` true until some later event happened to say otherwise.
+			const isMetaRelease = e.code === 'MetaLeft' || e.code === 'MetaRight'
+			const metaKey = isMetaRelease ? false : e.metaKey
+
 			const info: TLKeyboardEventInfo = {
 				type: 'keyboard',
 				name: 'key_up',
@@ -234,12 +256,32 @@ export function useDocumentEvents() {
 				code: e.code,
 				shiftKey: e.shiftKey,
 				altKey: e.altKey,
-				ctrlKey: e.metaKey || e.ctrlKey,
-				metaKey: e.metaKey,
-				accelKey: isAccelKey(e),
+				ctrlKey: metaKey || e.ctrlKey,
+				metaKey,
+				accelKey: isAccelKey({ ctrlKey: e.ctrlKey, metaKey }),
 			}
 
+			heldKeysRef.current.delete(e.code)
+			keysPressedWithMetaRef.current.delete(e.code)
 			editor.dispatch(info)
+
+			// macOS swallows the keyup of a non-modifier key pressed while Meta is held, so a
+			// stuck ArrowUp from Cmd+ArrowUp made every later arrow nudge diagonally: the nudge
+			// sums all held arrows. Anything held from before the Meta window still gets its
+			// own keyup, so only drop what was pressed inside it. That is still one too many -
+			// the key you are *still* holding is not owed anything - and the key_repeat case
+			// in `Editor.dispatch` is what takes that one back.
+			//
+			// Drop them rather than replaying a key_up: a tool's onKeyUp is a real action at
+			// the wrong moment, and a synthetic Enter re-entered shape editing and stole the
+			// focus that cmd+Enter's a11y action had just put on the style toolbar.
+			if (isMetaRelease) {
+				for (const code of keysPressedWithMetaRef.current) {
+					editor.inputs.keys.delete(code)
+					heldKeysRef.current.delete(code)
+				}
+				keysPressedWithMetaRef.current.clear()
+			}
 		}
 
 		function handleTouchStart(e: TouchEvent) {
@@ -305,7 +347,49 @@ export function useDocumentEvents() {
 			container.removeEventListener('keyup', handleKeyUp)
 		}
 	}, [editor, container, isAppFocused, isEditing])
+
+	// Alt+Tab / Cmd+Tab away while holding a key delivers the keyup to the other app, so without
+	// this Space-panning (grab cursor, drags pan) stuck until the key was pressed again (#10442).
+	// Replaying a key_up per held key runs the normal release path, including tool onKeyUp.
+	useEffect(() => {
+		const win = editor.getContainerWindow()
+
+		const handleWindowBlur = () => {
+			const heldKeys = heldKeysRef.current
+			for (const code of [...editor.inputs.keys]) {
+				editor.dispatch({
+					type: 'keyboard',
+					name: 'key_up',
+					key: heldKeys.get(code) ?? code,
+					code,
+					shiftKey: false,
+					altKey: false,
+					ctrlKey: false,
+					metaKey: false,
+					accelKey: false,
+				})
+			}
+			heldKeys.clear()
+			keysPressedWithMetaRef.current.clear()
+		}
+
+		win.addEventListener('blur', handleWindowBlur)
+		return () => {
+			win.removeEventListener('blur', handleWindowBlur)
+		}
+	}, [editor])
 }
+
+const MODIFIER_CODES = new Set([
+	'ShiftLeft',
+	'ShiftRight',
+	'AltLeft',
+	'AltRight',
+	'ControlLeft',
+	'ControlRight',
+	'MetaLeft',
+	'MetaRight',
+])
 
 function areShortcutsDisabled(editor: Editor) {
 	return (

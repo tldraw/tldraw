@@ -1,5 +1,6 @@
 import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
+import { defineMessages, translateMessage } from '../../../config/TLI18n'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
@@ -7,13 +8,26 @@ import { ShapeUtil } from '../ShapeUtil'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
+const messages = defineMessages({
+	name: { id: 'a11y.shape-group', defaultMessage: 'Group' },
+})
+
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override type = 'group' as const
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
 
+	// Groups have no tool of their own, so there's no `tool.group` label to fall back on.
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
+	}
+
 	override hideSelectionBoundsFg(shape: TLGroupShape) {
+		return true
+	}
+
+	override canFlip() {
 		return true
 	}
 
@@ -39,14 +53,29 @@ export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 			return new Rectangle2d({ width: 1, height: 1, isFilled: false })
 		}
 
-		return new Group2d({
-			children: children.map((childId) => {
-				const shape = this.editor.getShape(childId)!
-				return this.editor
-					.getShapeGeometry(childId)
-					.transform(this.editor.getShapeLocalTransform(shape)!, { isLabel: false })
-			}),
-		})
+		// A child id can outlive its record. The children index and the geometry cache are separate
+		// derivations, so inside a transaction that removes a child the index can still name it while
+		// `getShapeGeometry` already answers nothing — its `!` hides that it returns `undefined` for a
+		// record the store no longer holds. Asserting instead of checking threw a `TypeError` out of a
+		// reactive recompute, where no caller could catch it.
+		const geometries: Geometry2d[] = []
+		for (const childId of children) {
+			const child = this.editor.getShape(childId)
+			if (!child) continue
+			const geometry = this.editor.getShapeGeometry(childId)
+			if (!geometry) continue
+			const transform = this.editor.getShapeLocalTransform(child)
+			if (!transform) continue
+			geometries.push(geometry.transform(transform, { isLabel: false }))
+		}
+
+		// Every child resolved to nothing, so there is no meaningful extent to report. Matches the
+		// no-children case above rather than building an empty `Group2d`, whose bounds are `NaN`.
+		if (geometries.length === 0) {
+			return new Rectangle2d({ width: 1, height: 1, isFilled: false })
+		}
+
+		return new Group2d({ children: geometries })
 	}
 
 	component(shape: TLGroupShape) {
