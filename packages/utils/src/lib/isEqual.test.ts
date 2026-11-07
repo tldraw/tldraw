@@ -255,4 +255,29 @@ describe('isEqualWith', () => {
 		expect(isEqualWith({ a: 1 }, { a: 2 })).toBe(false)
 		expect(isEqualWith(new Map([[{ id: 1 }, 'x']]), new Map([[{ id: 1 }, 'x']]))).toBe(true)
 	})
+	it('lets the customizer match primitive set members and map keys that differ', () => {
+		const near = (x: unknown, y: unknown) =>
+			typeof x === 'number' && typeof y === 'number' ? Math.abs(x - y) < 0.01 : undefined
+		expect(isEqualWith(new Set([1, 2]), new Set([1, 2.001]), near)).toBe(true)
+		expect(isEqualWith(new Set([1, 2]), new Set([1, 2.5]), near)).toBe(false)
+		expect(isEqualWith(new Set([1, 2]), new Set([2.001, 1.001]), near)).toBe(true)
+		expect(isEqualWith(new Map([[1, 'a']]), new Map([[1.001, 'a']]), near)).toBe(true)
+		expect(isEqualWith(new Map([[1, 'a']]), new Map([[1.001, 'b']]), near)).toBe(false)
+		expect(
+			isEqualWith(
+				new Map([
+					[1, 'a'],
+					[2, 'b'],
+				]),
+				new Map([
+					[2, 'b'],
+					[1.5, 'a'],
+				]),
+				near
+			)
+		).toBe(false)
+		// Without a customizer, primitives still only match themselves.
+		expect(isEqual(new Set([1, 2]), new Set([1, 2.001]))).toBe(false)
+		expect(isEqual(new Map([[1, 'a']]), new Map([[1.001, 'a']]))).toBe(false)
+	})
 })

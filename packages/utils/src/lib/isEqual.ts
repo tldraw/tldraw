@@ -192,8 +192,8 @@ function compareMaps(
 	// claimed, the same as set members.
 	let unmatched: [unknown, unknown][] | undefined
 	outer: for (const [key, value] of a) {
-		if (typeof key !== 'object' || key === null) {
-			if (!b.has(key)) return false
+		const isPrimitiveKey = typeof key !== 'object' || key === null
+		if (isPrimitiveKey && b.has(key)) {
 			// Map keys that aren't valid property keys (booleans, bigints) are not reported to the customizer
 			const reportedKey =
 				typeof key === 'string' || typeof key === 'number' || typeof key === 'symbol'
@@ -202,7 +202,12 @@ function compareMaps(
 			if (!baseIsEqual(value, b.get(key), reportedKey, a, b, customizer, stack)) return false
 			continue
 		}
-		unmatched ??= Array.from(b).filter(([other]) => typeof other === 'object' && other !== null)
+		// Without a customizer a primitive key can only match itself. With one, the customizer gets a
+		// chance to match it against the other keys of `b` that weren't matched exactly.
+		if (isPrimitiveKey && !customizer) return false
+		unmatched ??= Array.from(b).filter(([other]) =>
+			typeof other === 'object' && other !== null ? true : !!customizer && !a.has(other)
+		)
 		for (let i = 0; i < unmatched.length; i++) {
 			const [otherKey, otherValue] = unmatched[i]
 			if (
@@ -230,7 +235,8 @@ function compareSets(
 	let unmatched: unknown[] | undefined
 	outer: for (const value of a) {
 		if (b.has(value)) continue
-		if (typeof value !== 'object' || value === null) return false
+		// Without a customizer a primitive can only match itself; with one, let it try the rest of `b`.
+		if ((typeof value !== 'object' || value === null) && !customizer) return false
 		unmatched ??= Array.from(b).filter((other) => !a.has(other))
 		for (let i = 0; i < unmatched.length; i++) {
 			if (baseIsEqual(value, unmatched[i], undefined, a, b, customizer, stack)) {
