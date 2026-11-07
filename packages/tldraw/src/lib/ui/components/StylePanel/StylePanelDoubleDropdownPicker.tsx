@@ -117,7 +117,6 @@ function DropdownHalf<T extends string>({
 	const ctx = useStylePanelContext()
 	const editor = useEditor()
 	const msg = useTranslation()
-	const [isOpen, setIsOpen] = React.useState(false)
 
 	const icon = React.useMemo(
 		() =>
@@ -126,7 +125,7 @@ function DropdownHalf<T extends string>({
 	)
 
 	return (
-		<TldrawUiPopover id={id} open={isOpen} onOpenChange={setIsOpen}>
+		<TldrawUiPopover id={id}>
 			<TldrawUiPopoverTrigger>
 				<TldrawUiToolbarButton
 					type="icon"
@@ -155,7 +154,6 @@ function DropdownHalf<T extends string>({
 									ctx.onHistoryMark('select style dropdown item')
 									onValueChange(style, item.value)
 									tlmenus.deleteOpenMenu(id, editor.contextId)
-									setIsOpen(false)
 								}}
 							>
 								<TldrawUiButtonIcon icon={item.icon} invertIcon={invertIcon} />
