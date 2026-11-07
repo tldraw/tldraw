@@ -177,6 +177,26 @@ describe('deferAsyncEffects (AT)', () => {
 		expect(b.get()).toBe(0)
 	})
 
+	it('[AT3][AT4] commits when the outer call catches a nested call that throws', async () => {
+		const a = atom('', 'initial')
+
+		await expect(
+			deferAsyncEffects(async () => {
+				try {
+					await deferAsyncEffects(async () => {
+						a.set('inner')
+						throw new Error('inner error')
+					})
+				} catch {
+					a.set('fallback')
+				}
+				return 'done'
+			})
+		).resolves.toBe('done')
+
+		expect(a.get()).toBe('fallback')
+	})
+
 	it('[AT4] nested async transactions join the outer one', async () => {
 		const a = atom('', 0)
 

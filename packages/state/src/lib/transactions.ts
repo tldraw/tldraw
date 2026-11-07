@@ -70,6 +70,8 @@ const inst = singleton('transactions', () => ({
 	// Whether any transaction is reacting.
 	globalIsReacting: false,
 	currentTransaction: null as Transaction | null,
+	// How many `deferAsyncEffects` bodies are in their synchronous first segment (see AT4).
+	asyncBodyDepth: 0,
 
 	cleanupReactors: null as null | Set<Reactor>,
 }))
@@ -357,6 +359,12 @@ export function transact<T>(fn: () => T): T {
  * @internal
  */
 export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
+	// A call made while another body is still running synchronously is nested in it, so its error
+	// reaches that body, which may catch it. Recording it on the transaction would then roll back a
+	// call that recovered. Without AsyncContext, a call made after the enclosing body's first
+	// `await` can't be told apart from an overlapping call and still counts as one.
+	const isNested = inst.asyncBodyDepth > 0
+
 	// Can't kick off async transactions during a sync transaction because
 	// the async transaction won't finish until after the sync transaction
 	// is done.
@@ -385,13 +393,20 @@ export async function deferAsyncEffects<T>(fn: () => Promise<T>) {
 	let error = undefined as any
 	try {
 		// Run the function.
-		result = await fn()
+		inst.asyncBodyDepth++
+		let promise: Promise<T>
+		try {
+			promise = fn()
+		} finally {
+			inst.asyncBodyDepth--
+		}
+		result = await promise
 	} catch (e) {
 		// Abort the transaction if the function throws.
 		error = e ?? null
 	}
 
-	if (typeof error !== 'undefined' && !txn.asyncError) {
+	if (typeof error !== 'undefined' && !isNested && !txn.asyncError) {
 		txn.asyncError = { error }
 	}
 
