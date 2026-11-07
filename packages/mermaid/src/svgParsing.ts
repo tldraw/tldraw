@@ -64,6 +64,51 @@ export function parseDomId(domId: string, pattern: RegExp): string {
 	return bareId.match(pattern)?.[1] ?? bareId
 }
 
+/**
+ * Split mermaid's edge id, `L_<start>_<end>_<n>` (`id_…` in a class diagram), back into the two ids
+ * it joins. Node ids can contain underscores themselves, so the split is ambiguous: `L_a_b_c_0`
+ * joins `a` to `b_c` in a diagram with those, and `a_b` to `c` in one with those. A diagram with all
+ * four settles it the only way left, by which pair the path was actually drawn between. `centers`
+ * holds everything an edge can end on, subgraphs as well as nodes, since mermaid links those too.
+ */
+export function parseEdgeId(
+	dataId: string,
+	points: Vec2[],
+	centers: Map<string, Vec2>,
+	pattern: RegExp
+) {
+	const match = dataId.match(pattern)
+	if (!match) return null
+
+	const joined = match[1]
+	const last = points[points.length - 1]
+	let best: { start: string; end: string } | undefined
+	let bestDistance = Infinity
+	for (let at = joined.indexOf('_'); at > 0; at = joined.indexOf('_', at + 1)) {
+		const start = joined.slice(0, at)
+		const end = joined.slice(at + 1)
+		const startCenter = centers.get(start)
+		const endCenter = centers.get(end)
+		if (!startCenter || !endCenter) continue
+
+		const distance = last
+			? Math.hypot(points[0].x - startCenter.x, points[0].y - startCenter.y) +
+				Math.hypot(last.x - endCenter.x, last.y - endCenter.y)
+			: 0
+		if (distance < bestDistance) {
+			bestDistance = distance
+			best = { start, end }
+		}
+	}
+	if (best) return best
+
+	// An id naming no pair the diagram drew, such as an edge to a node mermaid left out. Splitting at
+	// the last underscore is right whenever the end id has none, and leaves the edge to be matched by
+	// proximity when it isn't.
+	const at = joined.lastIndexOf('_')
+	return at > 0 ? { start: joined.slice(0, at), end: joined.slice(at + 1) } : null
+}
+
 function parseTranslate(attr: string | null): Vec2 {
 	// Matches SVG translate transforms, e.g. transform="translate(123.45, 67.8)".
 	// Handles scientific notation (1.2e+3). Group 1 = x offset, group 2 = y offset.
