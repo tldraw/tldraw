@@ -1,0 +1,514 @@
+/* ---- Sequence shape ---- */
+.midi-seq {
+	pointer-events: all;
+	background: #1e2026;
+	border: 1px solid #3a3f4b;
+	border-radius: 8px;
+	overflow: hidden;
+	font-family: var(--tl-font-sans, system-ui, sans-serif);
+	color: #d7dbe3;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.midi-seq__header {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 0 6px;
+	background: #262a32;
+	border-bottom: 1px solid #3a3f4b;
+	font-size: 11px;
+}
+/* The header (minus its interactive controls) drags the whole shape. */
+.midi-seq__drag-handle {
+	cursor: move;
+}
+
+.midi-seq__power {
+	border: none;
+	background: transparent;
+	color: #6b7280;
+	font-size: 13px;
+	cursor: pointer;
+	padding: 2px;
+}
+.midi-seq__power.is-on {
+	color: #4ade80;
+}
+
+.midi-seq__solo {
+	border: 1px solid #3a3f4b;
+	background: #1b1d22;
+	color: #6b7280;
+	font-size: 9px;
+	font-weight: 700;
+	border-radius: 4px;
+	width: 16px;
+	height: 16px;
+	line-height: 1;
+	cursor: pointer;
+	padding: 0;
+}
+.midi-seq__solo.is-on {
+	background: #fbbf24;
+	color: #2a1c02;
+	border-color: #fbbf24;
+}
+
+.midi-seq__icon {
+	display: inline-flex;
+	color: #818cf8;
+}
+.midi-seq__name {
+	flex: 1 1 auto;
+	min-width: 0;
+	background: transparent;
+	border: none;
+	color: #e7eaf0;
+	font-size: 11px;
+	font-weight: 600;
+	outline: none;
+}
+.midi-seq__name--display {
+	cursor: move;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	user-select: none;
+}
+
+.midi-seq__field,
+.midi-seq__trig {
+	font-size: 10px;
+	color: #9aa3b2;
+}
+.midi-seq__field select,
+.midi-seq__trig {
+	background: #1b1d22;
+	color: #d7dbe3;
+	border: 1px solid #3a3f4b;
+	border-radius: 4px;
+	font-size: 10px;
+	margin-left: 3px;
+}
+
+.midi-seq__clear {
+	background: #1b1d22;
+	color: #9aa3b2;
+	border: 1px solid #3a3f4b;
+	border-radius: 4px;
+	font-size: 10px;
+	cursor: pointer;
+	padding: 2px 6px;
+}
+
+.midi-seq__body {
+	position: absolute;
+	display: flex;
+}
+
+.midi-seq__labels {
+	position: relative;
+	background: #16181d;
+	border-right: 1px solid #3a3f4b;
+}
+.midi-seq__label {
+	position: absolute;
+	right: 3px;
+	font-size: 7px;
+	color: #5b6374;
+	line-height: 1;
+}
+
+.midi-seq__footer {
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	display: flex;
+	flex-wrap: wrap;
+	align-content: flex-start;
+	align-items: center;
+	gap: 4px 8px;
+	padding: 4px 6px;
+	background: #1b1d22;
+	border-top: 1px solid #3a3f4b;
+	font-size: 9px;
+	color: #8a93a3;
+	overflow-y: auto;
+}
+.midi-seq__gen {
+	gap: 3px;
+}
+.midi-seq__gen button {
+	background: #2c313a;
+	color: #cbd3e1;
+	border: 1px solid #3a3f4b;
+	border-radius: 4px;
+	font-size: 9px;
+	padding: 1px 5px;
+	cursor: pointer;
+}
+.midi-seq__gen button:hover {
+	border-color: #6366f1;
+}
+.midi-seq__foot-field {
+	display: flex;
+	align-items: center;
+	gap: 3px;
+}
+.midi-seq__foot-field select,
+.midi-seq__foot-field input {
+	background: #262a32;
+	color: #d7dbe3;
+	border: 1px solid #3a3f4b;
+	border-radius: 4px;
+	font-size: 9px;
+}
+.midi-seq__foot-field input {
+	width: 32px;
+}
+
+.midi-seq__grid {
+	position: absolute;
+	display: block;
+	cursor: crosshair;
+}
+.midi-seq__grid .row--white {
+	fill: #20242c;
+}
+.midi-seq__grid .row--black {
+	fill: #191c22;
+}
+.midi-seq__grid .row--root {
+	fill: #2d2541;
+}
+.midi-seq__grid .row--in {
+	fill: #20242c;
+}
+.midi-seq__grid .row--out {
+	fill: #15171c;
+}
+.midi-seq__grid .divider {
+	stroke: #2c313a;
+	stroke-width: 1;
+}
+.midi-seq__grid .divider--beat {
+	stroke: #444b58;
+	stroke-width: 1;
+}
+.midi-seq__grid .active-step {
+	fill: rgba(99, 102, 241, 0.12);
+}
+.midi-seq__grid .note {
+	fill: #6366f1;
+	stroke: #a5b4fc;
+	stroke-width: 0.5;
+	cursor: move;
+}
+.midi-seq__grid .note-g:hover .note {
+	fill: #818cf8;
+}
+.midi-seq__grid .note-ratchet {
+	stroke: #1b1d22;
+	stroke-width: 1;
+	pointer-events: none;
+}
+.midi-seq__grid .note-handle {
+	fill: #c7d2fe;
+	cursor: ew-resize;
+	opacity: 0;
+}
+.midi-seq__grid .note-g:hover .note-handle {
+	opacity: 1;
+}
+.midi-seq__grid .playhead {
+	stroke: #f472b6;
+	stroke-width: 1.5;
+}
+
+/* ---- Chain shape ---- */
+.midi-chain {
+	pointer-events: all;
+	background: rgba(34, 38, 47, 0.55);
+	border: 1.5px dashed #4b5563;
+	border-radius: 10px;
+	font-family: var(--tl-font-sans, system-ui, sans-serif);
+	color: #cbd3e1;
+	overflow: hidden;
+}
+
+.midi-chain__header {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 0 10px;
+	background: rgba(38, 42, 50, 0.9);
+	border-bottom: 1px solid #3a3f4b;
+	font-size: 12px;
+}
+.midi-chain__title {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	font-weight: 700;
+}
+.midi-chain__field {
+	font-size: 11px;
+	color: #9aa3b2;
+	pointer-events: all;
+}
+.midi-chain__field input {
+	width: 44px;
+	margin-left: 4px;
+	background: #1b1d22;
+	color: #d7dbe3;
+	border: 1px solid #3a3f4b;
+	border-radius: 4px;
+	font-size: 11px;
+	pointer-events: all;
+}
+.midi-chain__hint {
+	margin-left: auto;
+	font-size: 10px;
+	color: #6b7280;
+	font-style: italic;
+}
+
+.midi-chain__track {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	padding: 6px 10px;
+	height: 30px;
+}
+.midi-chain__empty {
+	font-size: 11px;
+	color: #6b7280;
+}
+.midi-chain__pill {
+	pointer-events: all;
+	cursor: pointer;
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	padding: 3px 8px;
+	background: #262a32;
+	border: 1px solid #3a3f4b;
+	border-radius: 999px;
+	font-size: 11px;
+	color: #aeb6c4;
+}
+.midi-chain__pill:hover {
+	border-color: #6366f1;
+}
+.midi-chain__pill.is-active {
+	background: #6366f1;
+	border-color: #a5b4fc;
+	color: white;
+}
+.midi-chain__index {
+	font-size: 9px;
+	opacity: 0.7;
+}
+
+/* ---- Clock shape ---- */
+.midi-clock {
+	pointer-events: all;
+	background: #1e2026;
+	border: 1px solid #3a3f4b;
+	border-radius: 8px;
+	padding: 8px 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	font-family: var(--tl-font-sans, system-ui, sans-serif);
+	color: #d7dbe3;
+	box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+.midi-clock__title {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 12px;
+	font-weight: 700;
+	color: #e7eaf0;
+}
+.midi-clock__row {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+}
+.midi-clock__play {
+	width: 30px;
+	height: 26px;
+	border-radius: 6px;
+	border: 1px solid #3a3f4b;
+	background: #4ade80;
+	color: #0b1f12;
+	font-weight: 700;
+	cursor: pointer;
+}
+.midi-clock__play.is-playing {
+	background: #f87171;
+	color: #2a0b0b;
+}
+.midi-clock__bpm {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	font-size: 11px;
+	color: #9aa3b2;
+}
+.midi-clock__bpm input {
+	width: 52px;
+	background: #16181d;
+	color: #d7dbe3;
+	border: 1px solid #3a3f4b;
+	border-radius: 4px;
+}
+.midi-clock__emitter {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	font-size: 10px;
+	color: #8a93a3;
+}
+.midi-clock__emitter code {
+	color: #f472b6;
+}
+.midi-clock__dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 50%;
+	background: #555;
+	display: inline-block;
+}
+.midi-clock__emitter.is-pulsing .midi-clock__dot {
+	background: #f472b6;
+	animation: midi-pulse 0.5s ease-out infinite;
+}
+@keyframes midi-pulse {
+	0% {
+		box-shadow: 0 0 0 0 rgba(244, 114, 182, 0.6);
+	}
+	100% {
+		box-shadow: 0 0 0 6px rgba(244, 114, 182, 0);
+	}
+}
+
+/* ---- Event-flow wires ---- */
+.midi-wires {
+	position: absolute;
+	inset: 0;
+	pointer-events: none;
+	overflow: visible;
+}
+.midi-wire__line {
+	stroke-width: 2;
+	stroke-linecap: round;
+	opacity: 0.7;
+}
+.midi-wire--tick .midi-wire__line {
+	stroke: #f472b6;
+}
+.midi-wire--note .midi-wire__line {
+	stroke: #4ade80;
+}
+.midi-wire.is-flowing .midi-wire__line {
+	stroke-dasharray: 6 8;
+	animation: midi-flow 0.6s linear infinite;
+}
+@keyframes midi-flow {
+	to {
+		stroke-dashoffset: -14;
+	}
+}
+.midi-wire__label-bg {
+	fill: #11131a;
+	stroke: #3a3f4b;
+	stroke-width: 1;
+}
+.midi-wire__label {
+	fill: #cbd3e1;
+	font-size: 10px;
+	font-family: var(--tl-font-sans, system-ui, sans-serif);
+}
+
+/* ---- Draggable toolbar items ---- */
+.midi-tool-button {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 48px;
+	height: 48px;
+	border-radius: 9px;
+	cursor: grab;
+	color: var(--color-text, #1d1d1d);
+}
+.midi-tool-button svg {
+	display: block;
+}
+.midi-tool-button:hover {
+	background: var(--color-muted-2, rgba(0, 0, 0, 0.05));
+}
+.midi-tool-button.is-selected {
+	background: var(--color-selected, #4263eb);
+	color: var(--color-selected-contrast, #fff);
+}
+.midi-tool-button:active {
+	cursor: grabbing;
+}
+.midi-tool-drag-preview {
+	position: fixed;
+	z-index: 99999;
+	pointer-events: none;
+	transform: translate(-50%, -50%);
+	color: var(--color-selected, #4263eb);
+	opacity: 0.85;
+}
+
+/* ---- Transport panel ---- */
+.midi-transport {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin: 8px;
+	padding: 6px 10px;
+	font-size: 12px;
+}
+.midi-transport__play {
+	font-weight: 700;
+	padding: 5px 12px;
+	border-radius: 6px;
+	border: 1px solid #3a3f4b;
+	background: #4ade80;
+	color: #0b1f12;
+	cursor: pointer;
+}
+.midi-transport__play.is-playing {
+	background: #f87171;
+	color: #2a0b0b;
+}
+.midi-transport__bpm,
+.midi-transport__out {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+}
+.midi-transport__bpm input {
+	width: 56px;
+}
+.midi-transport__file {
+	padding: 5px 10px;
+	border-radius: 6px;
+	border: 1px solid #3a3f4b;
+	background: #2c313a;
+	color: #cbd3e1;
+	cursor: pointer;
+}
+.midi-transport__warn {
+	color: #f59e0b;
+	max-width: 280px;
+	font-size: 11px;
+}
