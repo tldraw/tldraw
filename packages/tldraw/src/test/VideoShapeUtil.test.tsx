@@ -224,4 +224,61 @@ describe('VideoShapeUtil loading state', () => {
 		expect(container.querySelector('video')!.hidden).toBe(true)
 		expect(container.querySelector('.tl-spinner')).toBeTruthy()
 	})
+
+	async function switchToAsset(assetId: TLAssetId, src: string) {
+		await act(async () => {
+			const asset = editor.getAsset<TLVideoAsset>(videoAssetId)!
+			if (!editor.getAsset(assetId)) {
+				editor.createAssets([{ ...asset, id: assetId, props: { ...asset.props, src } }])
+			}
+			editor.updateShape({ id: videoShapeId, type: 'video', props: { assetId } })
+		})
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 0))
+		})
+	}
+
+	it('clears the broken-asset state from a mid-playback error once the asset changes', async () => {
+		await createLoadingVideo('http://localhost/video.mp4')
+
+		const container = getShapeContainer()
+		await act(async () => {
+			fireEvent.loadedData(container.querySelector('video')!)
+		})
+		await act(async () => {
+			fireEvent.error(container.querySelector('video')!)
+		})
+		expect(container.querySelector('video')).toBeNull()
+
+		await switchToAsset(AssetRecordType.createId('otherVideoAsset'), 'http://localhost/other.mp4')
+		expect(container.querySelector('source')!.getAttribute('src')).toBe(
+			'http://localhost/other.mp4'
+		)
+
+		// Going back to the asset that failed tries it again rather than showing the stale error
+		await switchToAsset(videoAssetId, 'http://localhost/video.mp4')
+		expect(container.querySelector('source')!.getAttribute('src')).toBe(
+			'http://localhost/video.mp4'
+		)
+		expect(container.querySelector('svg')).toBeNull()
+	})
+
+	it('retries a failed video when the shape switches to another asset with the same src', async () => {
+		await createLoadingVideo('http://localhost/video.mp4')
+
+		const container = getShapeContainer()
+		await act(async () => {
+			fireEvent.error(container.querySelector('source')!)
+		})
+		expect(container.querySelector('video')).toBeNull()
+
+		await switchToAsset(
+			AssetRecordType.createId('reuploadedVideoAsset'),
+			'http://localhost/video.mp4'
+		)
+		expect(container.querySelector('source')!.getAttribute('src')).toBe(
+			'http://localhost/video.mp4'
+		)
+		expect(container.querySelector('.tl-spinner')).toBeTruthy()
+	})
 })

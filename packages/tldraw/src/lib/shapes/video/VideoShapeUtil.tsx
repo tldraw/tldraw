@@ -171,6 +171,17 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	const isLoaded = !!url && loadedUrl === url
 	const isFailed = !!url && failedUrl === url
 
+	// The <video> is unmounted while failed, so nothing else would ever clear the error: without
+	// this, switching back to a url that failed once (or to another asset with the same src) would
+	// show the broken icon without trying to load it again. Reset during render rather than in an
+	// effect so the stale broken icon is never committed.
+	const sourceKey = `${asset?.id}|${asset?.props.src}|${url}`
+	const [prevSourceKey, setPrevSourceKey] = useState(sourceKey)
+	if (prevSourceKey !== sourceKey) {
+		setPrevSourceKey(sourceKey)
+		setFailedUrl(null)
+	}
+
 	const handleLoadedData = useCallback(() => setLoadedUrl(url), [url])
 	// A missing or unreachable file fires `error` on the <source>, not on the <video>; the
 	// <video> only fires it for decode failures such as an unsupported codec.
