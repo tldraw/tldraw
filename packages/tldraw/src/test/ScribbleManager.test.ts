@@ -332,14 +332,55 @@ describe('ScribbleManager', () => {
 				const sessionId = editor.scribbles.startSession({ fadeMode: 'individual' })
 				const item = editor.scribbles.addScribbleToSession(sessionId, {})
 				item.scribble.points.push({ x: 0, y: 0, z: 0.5 })
-				item.scribble.state = 'stopping'
-				item.delayRemaining = 0
+				editor.scribbles.stopSession(sessionId)
 
 				// Tick until scribble is removed
 				for (let i = 0; i < 20; i++) {
 					editor.scribbles.tick(16)
 				}
 
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
+				expect(() => editor.scribbles.addScribbleToSession(sessionId, {})).toThrow()
+			})
+
+			it('removes the implicit session of a stopped simple-API scribble', () => {
+				const item = editor.scribbles.addScribble({})
+				item.scribble.points.push({ x: 0, y: 0, z: 0.5 })
+				editor.scribbles.stop(item.id)
+
+				for (let i = 0; i < 20; i++) {
+					editor.scribbles.tick(16)
+				}
+
+				expect(() => editor.scribbles.addPoint(item.id, 0, 0)).toThrow()
+				expect(editor.getInstanceState().scribbles).toEqual([])
+			})
+
+			it('keeps an active session with no scribbles until it is stopped (#11369)', () => {
+				const sessionId = editor.scribbles.startSession()
+				editor.scribbles.tick(16)
+
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(true)
+				expect(() => editor.scribbles.addScribbleToSession(sessionId, {})).not.toThrow()
+			})
+
+			it('keeps an active individual-fade session after all its scribbles fade (#11369)', () => {
+				const sessionId = editor.scribbles.startSession({ fadeMode: 'individual' })
+				const item = editor.scribbles.addScribbleToSession(sessionId, {})
+				item.scribble.points.push({ x: 0, y: 0, z: 0.5 })
+				editor.scribbles.stop(item.id)
+
+				for (let i = 0; i < 20; i++) {
+					editor.scribbles.tick(16)
+				}
+
+				expect(editor.getInstanceState().scribbles).toEqual([])
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(true)
+				expect(() => editor.scribbles.addScribbleToSession(sessionId, {})).not.toThrow()
+
+				editor.scribbles.stopSession(sessionId)
+				editor.scribbles.tick(16)
+				editor.scribbles.tick(16)
 				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
 			})
 
@@ -382,7 +423,7 @@ describe('ScribbleManager', () => {
 				editor.scribbles.complete(item.id)
 				editor.scribbles.tick(16)
 
-				expect(editor.scribbles.isSessionActive(sessionId)).toBe(false)
+				expect(editor.scribbles.isSessionActive(sessionId)).toBe(true)
 				expect(() => editor.scribbles.addPoint(item.id, 0, 0)).toThrow()
 			})
 		})
