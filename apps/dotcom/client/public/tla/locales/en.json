@@ -509,6 +509,9 @@
   "aaec8f7cde": {
     "translation": "Someone"
   },
+  "aaf40d216c": {
+    "translation": "It isn’t a valid .tldr file."
+  },
   "ab0df9ba36": {
     "translation": "File limit reached"
   },
@@ -638,6 +641,9 @@
   },
   "e0aa021e21": {
     "translation": "OK"
+  },
+  "e0b2269586": {
+    "translation": "Couldn’t import {fileName}."
   },
   "e2198d6228": {
     "translation": "Copy invite link"
