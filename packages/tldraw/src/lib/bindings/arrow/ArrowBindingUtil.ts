@@ -18,10 +18,12 @@ import {
 	approximately,
 	arrowBindingMigrations,
 	arrowBindingProps,
+	clamp,
 	getIndexAbove,
 	getIndexBetween,
 	intersectLineSegmentCircle,
 } from '@tldraw/editor'
+import type { ArrowShapeUtil } from '../../shapes/arrow/ArrowShapeUtil'
 import { getArrowInfo } from '../../shapes/arrow/getArrowInfo'
 import { getArrowBindings, removeArrowBinding } from '../../shapes/arrow/shared'
 
@@ -82,19 +84,33 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
 		shapeBefore,
 		shapeAfter,
 		reason,
+		source,
 	}: BindingOnShapeChangeOptions<TLArrowBinding>): void {
-		// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can move
-		// out from under a precise anchor, leaving the arrow floating off the shape. Re-snap the anchor
-		// to the new geometry.
-		if (
-			binding.props.isPrecise &&
-			shapeBefore.type === 'geo' &&
-			shapeAfter.type === 'geo' &&
-			shapeBefore.props.geo !== shapeAfter.props.geo &&
-			this.editor.isIn('select.idle') &&
-			!this.editor.isReplayingHistory()
-		) {
-			updateBindingAnchorIfOutsideShape(this.editor, binding, shapeAfter)
+		if (binding.props.isPrecise && !this.editor.isReplayingHistory()) {
+			let nextBinding = binding
+			// Moves and rotations leave props alone; bail before measuring geometry.
+			if (
+				source === 'user' &&
+				shapeBefore.props !== shapeAfter.props &&
+				this.editor.getShapeUtil<ArrowShapeUtil>('arrow').options.preciseAnchorResizeBehavior ===
+					'nearest-corner'
+			) {
+				nextBinding = keepAnchorFixedToNearestCorner(this.editor, binding, shapeBefore, shapeAfter)
+				if (nextBinding !== binding) this.editor.updateBinding(nextBinding)
+			}
+
+			// When a bound geo shape's geo type changes (e.g. rectangle to triangle) its outline can
+			// move out from under a precise anchor, leaving the arrow floating off the shape. A fixed
+			// distance from a corner of the bounds can do the same on an ellipse or triangle. Re-snap
+			// the anchor to the new geometry.
+			const didGeoChange =
+				shapeBefore.type === 'geo' &&
+				shapeAfter.type === 'geo' &&
+				shapeBefore.props.geo !== shapeAfter.props.geo &&
+				this.editor.isIn('select.idle')
+			if (nextBinding !== binding || didGeoChange) {
+				updateBindingAnchorIfOutsideShape(this.editor, nextBinding, shapeAfter)
+			}
 		}
 
 		if (
@@ -163,6 +179,60 @@ function updateBindingAnchorIfOutsideShape(
 			},
 		},
 	})
+}
+
+/**
+ * Precise anchors are fractions of the bound shape's bounds, so they slide when it changes size (20px
+ * from a corner becomes 40px after doubling). Keep each axis's distance from its nearer edge instead.
+ *
+ * Lossy: this works from the previous change, not the start of a gesture, so shrinking past an
+ * anchor parks it mid-axis and growing back doesn't restore it.
+ */
+function keepAnchorFixedToNearestCorner(
+	editor: Editor,
+	binding: TLArrowBinding,
+	shapeBefore: TLShape,
+	shapeAfter: TLShape
+): TLArrowBinding {
+	// A scale change zooms the whole shape, and strokes (draw, line) scale their points with it, so
+	// only a proportional anchor stays on them.
+	const scaleProps = ['scale', 'scaleX', 'scaleY']
+	const propsBefore = shapeBefore.props as Record<string, unknown>
+	const propsAfter = shapeAfter.props as Record<string, unknown>
+	if (scaleProps.some((key) => propsBefore[key] !== propsAfter[key])) return binding
+
+	const geometryAfter = editor.getShapeGeometry(shapeAfter)
+	if (!geometryAfter.isClosed) return binding
+
+	// getShapeGeometry is cached by id and already reflects shapeAfter.
+	const before = editor.getShapeUtil(shapeBefore).getGeometry(shapeBefore).bounds
+	const after = geometryAfter.bounds
+	if (approximately(before.w, after.w) && approximately(before.h, after.h)) return binding
+
+	const { normalizedAnchor } = binding.props
+	const nextAnchor = {
+		x: keepDistanceFromNearestEdge(normalizedAnchor.x, before.w, after.w),
+		y: keepDistanceFromNearestEdge(normalizedAnchor.y, before.h, after.h),
+	}
+	if (Vec.Equals(nextAnchor, normalizedAnchor)) return binding
+
+	return { ...binding, props: { ...binding.props, normalizedAnchor: nextAnchor } }
+}
+
+/**
+ * Anchors this close to the middle of an axis, such as ones snapped to an edge midpoint or the
+ * center, stay in the middle rather than drifting toward one edge.
+ */
+const CENTERED_ANCHOR_TOLERANCE = 0.01
+
+function keepDistanceFromNearestEdge(t: number, sizeBefore: number, sizeAfter: number) {
+	if (sizeBefore === 0 || sizeAfter === 0) return t
+	if (Math.abs(t - 0.5) < CENTERED_ANCHOR_TOLERANCE) return t
+	const isNearStart = t < 0.5
+	const distance = (isNearStart ? t : 1 - t) * sizeBefore
+	// stop at the middle so a shrinking shape doesn't push the anchor over to the far edge
+	const nextT = clamp(distance / sizeAfter, 0, 0.5)
+	return isNearStart ? nextT : 1 - nextT
 }
 
 function reparentArrow(editor: Editor, arrowId: TLShapeId) {

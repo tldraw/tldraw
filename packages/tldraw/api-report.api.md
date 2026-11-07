@@ -253,7 +253,7 @@ export class ArrowBindingUtil extends BindingUtil<TLArrowBinding> {
     // (undocumented)
     onAfterChangeFromShape({ shapeBefore, shapeAfter, reason, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
-    onAfterChangeToShape({ binding, shapeBefore, shapeAfter, reason, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
+    onAfterChangeToShape({ binding, shapeBefore, shapeAfter, reason, source, }: BindingOnShapeChangeOptions<TLArrowBinding>): void;
     // (undocumented)
     onAfterCreate({ binding }: BindingOnCreateOptions<TLArrowBinding>): void;
     // (undocumented)
@@ -308,6 +308,7 @@ export interface ArrowShapeOptions extends ShapeOptionsWithDisplayValues<TLArrow
     readonly minElbowHandleDistance: number;
     readonly minElbowLegLength: Record<TLDefaultSizeStyle_2, number>;
     readonly pointingPreciseTimeout: number;
+    readonly preciseAnchorResizeBehavior: 'nearest-corner' | 'proportional';
     shouldBeExact(editor: Editor, isPrecise: boolean): boolean;
     shouldIgnoreTargets(editor: Editor): boolean;
     readonly showTextOutline: boolean;
