@@ -50,8 +50,12 @@ export function TlaInviteDialog({
 					onClick={async () => {
 						if (!app) return
 						setIsAccepting(true)
-						const done = await app.acceptWorkspaceInvite(inviteInfo.inviteSecret)
-						setIsAccepting(false)
+						let done = false
+						try {
+							done = await app.acceptWorkspaceInvite(inviteInfo.inviteSecret)
+						} finally {
+							setIsAccepting(false)
+						}
 						if (done) onClose()
 					}}
 				>
