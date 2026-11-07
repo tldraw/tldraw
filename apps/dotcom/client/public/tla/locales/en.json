@@ -74,6 +74,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1a7222b4e5": {
+    "translation": "Move to"
+  },
   "1d2591253e": {
     "translation": "Workspace settings"
   },
@@ -142,6 +145,9 @@
   },
   "375396d6e5": {
     "translation": "Remove member"
+  },
+  "398f51738e": {
+    "translation": "Sign in to accept this invite."
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -317,6 +323,9 @@
   "7408cf0d7b": {
     "translation": "Please reload the page"
   },
+  "747ee44424": {
+    "translation": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
+  },
   "74e92a4dc1": {
     "translation": "Regenerate link"
   },
@@ -434,6 +443,9 @@
   "92e36cb6cf": {
     "translation": "Invite link"
   },
+  "930390d222": {
+    "translation": "Copied invite link"
+  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -479,9 +491,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# unread} other {# unread}}"
   },
-  "a0da245992": {
-    "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -523,6 +532,9 @@
   },
   "a9ded1e5ce": {
     "translation": "Background"
+  },
+  "a9fc91939a": {
+    "translation": "Collections"
   },
   "aac449eef6": {
     "translation": "Create workspace"
@@ -723,6 +735,9 @@
   "e81c4e4f2b": {
     "translation": "or"
   },
+  "ea13ecec38": {
+    "translation": "File history"
+  },
   "ea4788705e": {
     "translation": "Cancel"
   },
@@ -771,6 +786,9 @@
   "f2a6c498fb": {
     "translation": "Delete"
   },
+  "f408fa5fbd": {
+    "translation": "This invite link is invalid or has expired."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
@@ -803,6 +821,9 @@
   },
   "ff52811b98": {
     "translation": "Create a free account to save your files and tldraw with your teammates."
+  },
+  "ffad261a48": {
+    "translation": "Error accepting invite"
   },
   "ffcd73e997": {
     "translation": "Import file…"

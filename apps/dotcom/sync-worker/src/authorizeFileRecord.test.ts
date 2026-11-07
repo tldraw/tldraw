@@ -1,14 +1,25 @@
 import {
+	RecordOpType,
+	TLSocketRoom,
+	WebSocketMinimal,
+	getTlsyncProtocolVersion,
+} from '@tldraw/sync-core'
+import {
+	DocumentRecordType,
+	PageRecordType,
+	TLDOCUMENT_ID,
 	TLComment,
 	TLNoteShape,
 	TLPageId,
+	TLRecord,
 	TLShape,
 	createComment,
 	createCommentThread,
 	createShapeId,
+	createTLSchema,
 	toRichText,
 } from '@tldraw/tlschema'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 
 const pageId = 'page:test' as TLPageId
@@ -118,11 +129,12 @@ describe('authorizeFileRecord', () => {
 			return { ...note, id: createShapeId('geo1'), type: 'geo', props } as unknown as TLShape
 		}
 
-		it('vetoes a create with foreign attribution (duplication now re-stamps the copy)', () => {
+		it('re-stamps a create with foreign attribution instead of dropping imported notes', () => {
 			const next = makeNote('real-alice')
-			expect(
-				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
-			).toBeNull()
+			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toEqual(
+				{ ...next, props: { ...next.props, textLastEditedBy: 'real-bob' } }
+			)
+			expect(next.props.textLastEditedBy).toBe('real-alice')
 		})
 
 		it('allows a create attributed to the session user', () => {
@@ -140,9 +152,75 @@ describe('authorizeFileRecord', () => {
 			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBe(next)
 		})
 
-		it('vetoes an anonymous session creating a note with any attribution', () => {
+		it('clears foreign attribution when an anonymous session creates a note', () => {
 			const next = makeNote('real-alice')
-			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toBeNull()
+			expect(authorize({ session: session(null), type: 'create', prev: null, next })).toEqual({
+				...next,
+				props: { ...next.props, textLastEditedBy: null },
+			})
+		})
+
+		it('keeps local notes when a signed-in session pushes a slurped snapshot', () => {
+			const schema = createTLSchema()
+			const document = DocumentRecordType.create({
+				id: TLDOCUMENT_ID,
+				meta: { slurpFinished: true },
+			})
+			const page = PageRecordType.create({
+				id: pageId,
+				name: 'Page',
+				index: 'a1' as TLNoteShape['index'],
+			})
+			const note = makeNote('browser-generated-user-id')
+			const room = new TLSocketRoom<TLRecord, SessionMeta>({
+				schema,
+				authorizeRecord: authorizeFileRecord,
+			})
+			const socket: WebSocketMinimal = {
+				send: vi.fn(),
+				close: vi.fn(),
+				readyState: 1,
+				addEventListener: vi.fn(),
+				removeEventListener: vi.fn(),
+			}
+			try {
+				room.handleSocketConnect({
+					sessionId: 's1',
+					socket,
+					meta: { userId: 'real-bob', storeId: 'store' },
+				})
+				room.handleSocketMessage(
+					's1',
+					JSON.stringify({
+						type: 'connect',
+						connectRequestId: 'connect',
+						lastServerClock: 0,
+						protocolVersion: getTlsyncProtocolVersion(),
+						schema: schema.serialize(),
+					})
+				)
+				room.handleSocketMessage(
+					's1',
+					JSON.stringify({
+						type: 'push',
+						clientClock: 0,
+						diff: Object.fromEntries(
+							[document, page, note].map((r) => [r.id, [RecordOpType.Put, r]])
+						),
+					})
+				)
+				const [storedDocument, storedNote] = room.storage.transaction((txn) => [
+					txn.get(document.id),
+					txn.get(note.id),
+				]).result
+				expect(storedDocument).toEqual(document)
+				expect(storedNote).toEqual({
+					...note,
+					props: { ...note.props, textLastEditedBy: 'real-bob' },
+				})
+			} finally {
+				room.close()
+			}
 		})
 
 		it('allows updates that do not touch attribution, from any user', () => {

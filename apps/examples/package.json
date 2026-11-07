@@ -52,8 +52,8 @@
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/starter-kit": "^3.12.1",
 		"@tldraw/assets": "workspace:*",
+		"@tldraw/collections": "workspace:*",
 		"@tldraw/commenting": "workspace:*",
-		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/driver": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",
 		"@tldraw/state": "workspace:*",
@@ -81,7 +81,6 @@
 	},
 	"devDependencies": {
 		"@types/d3-geo": "^3.1.0",
-		"@types/katex": "^0.16.8",
 		"@types/lodash": "^4.17.14",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",

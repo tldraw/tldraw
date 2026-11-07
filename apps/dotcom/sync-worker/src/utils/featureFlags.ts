@@ -52,6 +52,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'The tldraw.com v3 UI: a workspace home page with a board grid, and an editor without the sidebar. Read once per page load, so a change reaches a user on their next reload',
 		},
+		collections: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'Shows the collections UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
+		},
 	}
 }
 

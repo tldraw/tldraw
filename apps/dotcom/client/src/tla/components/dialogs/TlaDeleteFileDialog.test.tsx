@@ -17,7 +17,7 @@ const { app, onClose, trackEvent } = vi.hoisted(() => ({
 	trackEvent: vi.fn(),
 }))
 
-vi.mock('@clerk/clerk-react', () => ({ useAuth: () => ({ getToken: async () => 'test-token' }) }))
+vi.mock('@clerk/react', () => ({ useAuth: () => ({ getToken: async () => 'test-token' }) }))
 vi.mock('../../hooks/useAppState', () => ({ useApp: () => app }))
 vi.mock('../../hooks/useIsFileOwner', () => ({ useHasFileAdminRights: () => true }))
 vi.mock('../../utils/app-ui-events', () => ({ useTldrawAppUiEvents: () => trackEvent }))

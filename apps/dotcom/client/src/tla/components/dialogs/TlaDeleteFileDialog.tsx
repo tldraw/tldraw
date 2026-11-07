@@ -1,4 +1,4 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { useLayoutEffect, useRef } from 'react'
 import { useMatch, useNavigate } from 'react-router-dom'
 import {

@@ -1,3 +1,4 @@
+import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
@@ -11,16 +12,6 @@ export interface CreateRoomRequestBody {
 	origin: string
 	snapshot: Snapshot
 }
-
-export type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 export interface GetReadonlySlugResponseBody {
 	slug: string
@@ -44,28 +35,25 @@ export type CreateFilesResponseBody =
 			error: false
 			slugs: string[]
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
-export type PublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+/**
+ * Error codes the app's HTTP routes return instead of prose, so the client can show the failure in
+ * the user's language. Same idea as {@link ZErrorCode} for Zero mutation rejections.
+ */
+export const TlaApiErrorCode = stringEnum(
+	'bad_request',
+	'unauthorized',
+	'invite_not_found',
+	'user_not_found',
+	'internal_error'
+)
+export type TlaApiErrorCode = keyof typeof TlaApiErrorCode
 
-export type UnpublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+export interface TlaApiErrorResponseBody {
+	error: true
+	code: TlaApiErrorCode
+}
 
 export type GetInviteInfoResponseBody =
 	| {
@@ -75,30 +63,22 @@ export type GetInviteInfoResponseBody =
 			isValid: true
 			inviteSecret: string
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 export type AcceptInviteResponseBody =
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			alreadyMember: true
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 /**
  * The most pages the board-info tool will enumerate for a board. Bounds the page list the MCP
@@ -155,9 +135,26 @@ export interface ThumbnailRenderParams {
 }
 
 /**
- * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
- * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
- * behaviour rather than something readable off the record.
+ * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
+ * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
+ */
+export interface MeasuredArrow {
+	start: VecModel
+	end: VecModel
+}
+
+/**
+ * A shape's own unrotated size as the editor draws it. The record cannot say: a text's height comes
+ * from laying out its text, and a group or a freehand stroke has no size of its own.
+ */
+export type MeasuredDimensions = Pick<BoxModel, 'w' | 'h'>
+
+/**
+ * What the editor reports for one shape: its page-space box, the plain text its ShapeUtil says it
+ * holds, for an arrow where it is drawn, and for some shapes their own size. All are things only an
+ * editor can answer — sizing needs font metrics, getText is shape behaviour rather than something
+ * readable off the record, and a bound arrow's ends depend on the geometry of the shapes it is bound
+ * to.
  */
 export interface ThumbnailShapeMeasurement {
 	x: number
@@ -166,6 +163,10 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
+	/** An arrow's drawn ends, in page space. */
+	arrow?: MeasuredArrow
+	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
+	dimensions?: MeasuredDimensions
 }
 
 /**
@@ -177,6 +178,12 @@ export interface ThumbnailShapeMeasurement {
  */
 export interface ThumbnailRenderTimingsRequestBody {
 	token: string
+	/**
+	 * How the page got its records: `push` read them off the injected global, `fetch` asked the
+	 * snapshot route. The worker can only say what it sent; this is what the page actually used.
+	 * Optional because a page from before this field existed sends none.
+	 */
+	acquiredBy?: 'push' | 'fetch'
 	timings: {
 		bootAt: number
 		dataAt: number
@@ -205,12 +212,6 @@ export interface ThumbnailRenderErrorRequestBody {
 		message: string
 		phase: ThumbnailRenderPhase
 	}
-}
-
-/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
-export interface ThumbnailRenderResultRequestBody {
-	token: string
-	bounds: Record<string, ThumbnailShapeMeasurement>
 }
 
 export type ThumbnailSnapshotResponseBody =
@@ -303,6 +304,7 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'ui_v3',
+	'collections',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
@@ -447,6 +449,30 @@ export interface AdminFileAssetsResponseBody {
 	}
 	dbRows: { forThisFile: number; orphaned: number }
 	warnings: string[]
+}
+
+/**
+ * Response of the admin file endpoint: the file row's metadata and who owns it, so an admin can
+ * confirm they have the right file without opening it. Unlike the board-stats report, this names
+ * people, so keep it out of issues and support replies.
+ */
+export interface AdminFileResponseBody {
+	id: string
+	name: string
+	createdAt: number
+	updatedAt: number
+	isDeleted: boolean
+	isEmpty: boolean
+	shared: boolean
+	sharedLinkType: string
+	published: boolean
+	publishedSlug: string
+	lastPublished: number
+	createSource: string | null
+	/** null for a file with no owning workspace */
+	workspace: { id: string; name: string; isDeleted: boolean } | null
+	/** the owning workspace's owners */
+	owners: { id: string; name: string; email: string }[]
 }
 
 /**

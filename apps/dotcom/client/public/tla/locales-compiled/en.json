@@ -191,6 +191,12 @@
       "value": "Create file"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Move to"
+    }
+  ],
   "1d2591253e": [
     {
       "type": 0,
@@ -351,6 +357,12 @@
     {
       "type": 0,
       "value": "Remove member"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Sign in to accept this invite."
     }
   ],
   "3bc7d6ea2f": [
@@ -758,6 +770,12 @@
       "value": "Please reload the page"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
+    }
+  ],
   "74e92a4dc1": [
     {
       "type": 0,
@@ -1024,6 +1042,12 @@
       "value": "Invite link"
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Copied invite link"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1168,12 +1192,6 @@
       "value": "count"
     }
   ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Export the content as a .tldr file: Select 'Download' in the top left menu."
-    }
-  ],
   "a104439641": [
     {
       "type": 0,
@@ -1256,6 +1274,12 @@
     {
       "type": 0,
       "value": "Background"
+    }
+  ],
+  "a9fc91939a": [
+    {
+      "type": 0,
+      "value": "Collections"
     }
   ],
   "aac449eef6": [
@@ -1874,6 +1898,12 @@
       "value": "or"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "File history"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1982,6 +2012,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "This invite link is invalid or has expired."
     }
   ],
   "f476ba8646": [
@@ -2136,6 +2172,12 @@
     {
       "type": 0,
       "value": "Create a free account to save your files and tldraw with your teammates."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Error accepting invite"
     }
   ],
   "ffcd73e997": [
