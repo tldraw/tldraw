@@ -1,4 +1,11 @@
-import { TLExternalContent, TLFilesExternalContent } from '@tldraw/editor'
+import {
+	TLExternalContent,
+	TLFilesExternalContent,
+	TLGeoShape,
+	TLShapeId,
+	TLUrlExternalContent,
+	createShapeId,
+} from '@tldraw/editor'
 import { vi } from 'vitest'
 import {
 	handlePasteFromClipboardApi,
@@ -540,5 +547,178 @@ describe('sources in external content handlers and callbacks', () => {
 		})
 
 		expect(spy).not.toHaveBeenCalled()
+	})
+})
+
+describe('pasting a link onto the selected shape', () => {
+	const URL = 'https://example.com/'
+
+	function createGeo(id: TLShapeId, isLocked = false) {
+		editor.createShape<TLGeoShape>({
+			id,
+			type: 'geo',
+			x: 100,
+			y: 100,
+			isLocked,
+			props: { w: 200, h: 200 },
+		})
+	}
+
+	/** The shape the paste aimed its link at, as handed to the url content handler. */
+	function pastedShapeId(spy: ReturnType<typeof mockPutExternalContent>) {
+		expect(spy).toHaveBeenCalledTimes(1)
+		const content = spy.mock.calls[0][0]
+		expect(content).toMatchObject({ type: 'url' })
+		return (content as TLUrlExternalContent).shapeId
+	}
+
+	async function pasteText(text: string, type = 'text/plain') {
+		await handlePasteFromClipboardApi({
+			editor,
+			clipboardItems: [makeClipboardItem({ [type]: text })],
+			clipboardPasteSource: 'clipboard-read',
+		})
+	}
+
+	it('aims the link at the selected shape', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBe(id)
+	})
+
+	it('reaches the link through the uri-list and html clipboard types too', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
+
+		await pasteText(URL, 'text/uri-list')
+		expect(pastedShapeId(spy)).toBe(id)
+
+		spy.mockClear()
+		await pasteText(`<a href="${URL}">Example</a>`, 'text/html')
+		expect(pastedShapeId(spy)).toBe(id)
+	})
+
+	it('aims at nothing when no shape is selected', async () => {
+		const spy = mockPutExternalContent()
+		createGeo(createShapeId())
+		editor.selectNone()
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when several shapes are selected', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		const other = createShapeId()
+		createGeo(id)
+		editor.createShape<TLGeoShape>({
+			id: other,
+			type: 'geo',
+			x: 400,
+			y: 100,
+			props: { w: 200, h: 200 },
+		})
+		editor.select(id, other)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when the selected shape is an embed', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		editor.createShape({
+			id,
+			type: 'embed',
+			x: 100,
+			y: 100,
+			props: { w: 200, h: 200, url: 'https://www.youtube.com/embed/dQw4w9WgXcQ' },
+		})
+		editor.select(id)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when the selected shape cannot hold a link', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		editor.createShape({ id, type: 'frame', x: 100, y: 100 })
+		editor.select(id)
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims at nothing when the selected shape is locked', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id, true)
+		editor.setSelectedShapes([id])
+
+		await pasteText(URL)
+
+		expect(pastedShapeId(spy)).toBeUndefined()
+	})
+
+	it('aims the link at the selected shape when the url has a trailing line break', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
+
+		// A uri-list terminates every url with a line break, including a single one.
+		await pasteText(`${URL}\r\n`, 'text/uri-list')
+
+		expect(pastedShapeId(spy)).toBe(id)
+		expect(spy.mock.calls[0][0]).toMatchObject({ url: URL })
+	})
+
+	it('aims at nothing when the clipboard holds several urls', async () => {
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
+
+		// Copying several links puts one url per line on a uri-list, and `new URL()` accepts the
+		// whole thing, so the list would otherwise be written to the shape verbatim.
+		await pasteText(`${URL}\nhttps://tldraw.dev/`, 'text/uri-list')
+		expect(pastedShapeId(spy)).toBeUndefined()
+
+		spy.mockClear()
+		await pasteText(`${URL} https://tldraw.dev/`)
+		expect(spy).toHaveBeenCalledTimes(2)
+		expect(spy.mock.calls.map((call) => (call[0] as TLUrlExternalContent).shapeId)).toEqual([
+			undefined,
+			undefined,
+		])
+	})
+
+	it('leaves content that onBeforePasteFromClipboard replaced alone', async () => {
+		editor.dispose()
+		editor = new TestEditor({
+			options: { onBeforePasteFromClipboard: () => ({ type: 'text', text: 'hello' }) },
+		})
+		const spy = mockPutExternalContent()
+		const id = createShapeId()
+		createGeo(id)
+		editor.select(id)
+
+		await pasteText(URL)
+
+		expect(spy).toHaveBeenCalledTimes(1)
+		expect(spy.mock.calls[0][0]).toEqual({ type: 'text', text: 'hello' })
 	})
 })

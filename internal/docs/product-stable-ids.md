@@ -52,18 +52,18 @@ Individual npm packages are not part of this taxonomy. A package declares the co
 - A new stable id is minted only for a genuinely new commercial component — something sales would list on an order form. Major version bumps do not mint new ids; the order form grants "all versions made available during the Order Form Term", so version entitlement is handled by the term and the license key's expiry, never by the id.
 - Moving a package to a different component is the expensive operation, because customers have signed order forms citing the old one. When a package is likely to become separately licensable later, give it its own component up front.
 - All packages sharing a stable id must have identical metadata.
-- Every published package in `packages/` must have the field. `yarn check-packages` (run in CI) enforces this, validates `licenseFlag` values against `LicenseManager`, checks that every `parent` resolves, and checks that packages pointing at `LICENSE.md` actually ship one.
+- Every published package in `packages/` must have the field. `pnpm check-packages` (run in CI) enforces this, validates `licenseFlag` values against `LicenseManager`, checks that every `parent` resolves, and checks that packages pointing at `LICENSE.md` actually ship one.
 
 ## How legal references a component
 
 Reference components by stable id, for example: "SDK (`tldraw:sdk-core`) and the Collaboration module (`tldraw:collaboration`), including Commenting (`tldraw:commenting`)".
 
-- `yarn product-manifest` prints the manifest as a JSON tree: products, their features, and the packages implementing each.
+- `pnpm product-manifest` prints the manifest as a JSON tree: products, their features, and the packages implementing each.
 - For any published version, the npm registry copy of each package's `package.json` is the immutable record.
 
 ## Current components
 
-Run `yarn product-manifest` for the authoritative list. As of the introduction of this convention:
+Run `pnpm product-manifest` for the authoritative list. As of the introduction of this convention:
 
 | Stable id              | Name                 | Parent                 | Premium                    | Packages                                                                                                                                                                         |
 | ---------------------- | -------------------- | ---------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

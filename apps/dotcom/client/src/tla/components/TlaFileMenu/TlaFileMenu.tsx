@@ -1,9 +1,11 @@
 /* ---------------------- Menu ---------------------- */
 
-import { FILE_PREFIX, TlaFile, ZErrorCode } from '@tldraw/dotcom-shared'
+import { FILE_PREFIX, TlaFile } from '@tldraw/dotcom-shared'
 import { Fragment, ReactNode, useCallback, useId } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	getIncrementedName,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -12,11 +14,11 @@ import {
 	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
-	getIncrementedName,
 	uniqueId,
 	useDialogs,
 	useMaybeEditor,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
@@ -27,7 +29,6 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useIsFilePinned } from '../../hooks/useIsFilePinned'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
-import { defineMessages, useMsg } from '../../utils/i18n'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
 import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
@@ -45,6 +46,8 @@ const messages = defineMessages({
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
 	myWorkspace: { defaultMessage: 'My workspace' },
+	moveTo: { defaultMessage: 'Move to' },
+	newWorkspace: { defaultMessage: 'New workspace' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -111,18 +114,20 @@ export function FileItems({
 	onRenameAction(): void
 	workspaceId: string | null
 }) {
+	const msg = useTranslation()
 	const app = useApp()
 	const editor = useMaybeEditor()
 	const { addDialog } = useDialogs()
 	const navigate = useNavigate()
 	const { addToast } = useToasts()
 	const trackEvent = useTldrawAppUiEvents()
-	const copiedMsg = useMsg(messages.copied)
+	const copiedMsg = msg(messages.copied)
 	const hasAdminRights = useHasFileAdminRights(fileId)
 	const isPinned = useIsFilePinned(fileId, workspaceId ?? '')
 	const activeWorkspaceId = useActiveWorkspaceId()
 
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
+	const homeWorkspaceId = app.getHomeWorkspaceId()
 
 	// Get all workspace memberships (including the home workspace, filtered out below)
 	const workspaceMemberships = useValue(
@@ -137,17 +142,19 @@ export function FileItems({
 	// labelled with its own name like any other workspace.
 	// (This is the workspace the file belongs to, which is not necessarily one the current user
 	// can write to — for that, see activeWorkspaceId above.)
-	const fileWorkspaceId = file?.owningGroupId ?? app.getHomeWorkspaceId()
-	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === app.getHomeWorkspaceId())
-		?.group?.name
+	const fileWorkspaceId = file?.owningGroupId ?? homeWorkspaceId
+	const homeWorkspaceName = workspaceMemberships.find((g) => g.groupId === homeWorkspaceId)?.group
+		?.name
 	const moveToWorkspaces = workspaceMemberships.filter(
 		(g): g is typeof g & { group: NonNullable<(typeof g)['group']> } =>
-			g.groupId !== app.getHomeWorkspaceId() && !!g.group
+			g.groupId !== homeWorkspaceId && !!g.group
 	)
 
 	const handleCopyLinkClick = useCallback(() => {
 		const url = routes.tlaFile(fileId, { asUrl: true })
-		copyTextToClipboard(editor?.createDeepLink({ url }).toString() ?? url)
+		// The mounted editor is the open file's, which a sidebar row may not be.
+		const deepLink = source === 'file-header' ? editor?.createDeepLink({ url }).toString() : null
+		copyTextToClipboard(deepLink ?? url)
 		addToast({
 			id: 'copied-link',
 			title: copiedMsg,
@@ -209,44 +216,42 @@ export function FileItems({
 		downloadAppFile(fileId)
 	}, [fileId, source, trackEvent])
 
-	const copyLinkMsg = useMsg(messages.copyLink)
-	const renameMsg = useMsg(messages.rename)
-	const duplicateMsg = useMsg(messages.duplicate)
-	const pinMsg = useMsg(messages.pin)
-	const unpinMsg = useMsg(messages.unpin)
-	const deleteOrForgetMsg = useMsg(hasAdminRights ? messages.delete : messages.forget)
-	const downloadFile = useMsg(editorMessages.downloadFile)
-	const myWorkspaceMsg = useMsg(messages.myWorkspace)
+	const unpinMsg = msg(messages.unpin)
 
 	return (
 		<Fragment>
 			<TldrawUiMenuGroup id="file-actions">
 				{/* todo: in published rooms, support copying link */}
 				<TldrawUiMenuItem
-					label={copyLinkMsg}
+					label={msg(messages.copyLink)}
 					id="copy-link"
 					readonlyOk
 					onSelect={handleCopyLinkClick}
 				/>
 				{hasAdminRights && (
-					<TldrawUiMenuItem label={renameMsg} id="rename" readonlyOk onSelect={onRenameAction} />
+					<TldrawUiMenuItem
+						label={msg(messages.rename)}
+						id="rename"
+						readonlyOk
+						onSelect={onRenameAction}
+					/>
 				)}
 				{/* todo: in published rooms, support duplication / forking */}
 				<TldrawUiMenuItem
-					label={duplicateMsg}
+					label={msg(messages.duplicate)}
 					id="duplicate"
 					readonlyOk
 					onSelect={handleDuplicateClick}
 				/>
 				<TldrawUiMenuItem
-					label={downloadFile}
+					label={msg(editorMessages.downloadFile)}
 					id="download-file"
 					readonlyOk
 					onSelect={handleDownloadClick}
 				/>
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={isPinned ? unpinMsg : pinMsg}
+						label={isPinned ? unpinMsg : msg(messages.pin)}
 						id="pin-unpin"
 						readonlyOk
 						onSelect={handlePinUnpinClick}
@@ -255,20 +260,17 @@ export function FileItems({
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				{hasAdminRights && (
-					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
+					<TldrawUiMenuSubmenu id="move-to-workspace" label={msg(messages.moveTo)} size="small">
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
-								label={homeWorkspaceName ?? myWorkspaceMsg}
+								label={homeWorkspaceName ?? msg(messages.myWorkspace)}
 								id="my-files"
 								readonlyOk
-								checked={fileWorkspaceId === app.getHomeWorkspaceId()}
+								checked={fileWorkspaceId === homeWorkspaceId}
 								onSelect={() => {
-									if (fileWorkspaceId === app.getHomeWorkspaceId()) return
-									app.z.mutate.moveFileToWorkspace({
-										fileId,
-										workspaceId: app.getHomeWorkspaceId(),
-									})
+									if (fileWorkspaceId === homeWorkspaceId) return
+									app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: homeWorkspaceId })
 								}}
 							/>
 							{moveToWorkspaces.map((membership) => (
@@ -287,7 +289,7 @@ export function FileItems({
 						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="create-new-workspace">
 							<TldrawUiMenuItem
-								label="New workspace"
+								label={msg(messages.newWorkspace)}
 								id="create-new-workspace"
 								iconLeft={'plus'}
 								readonlyOk
@@ -298,19 +300,19 @@ export function FileItems({
 												onClose={onClose}
 												onCreate={async (name) => {
 													const id = uniqueId()
-													try {
-														await app.z.mutate.createWorkspace({ id, name }).client
-													} catch (e) {
-														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+													const createRes = await app.z.mutate.createWorkspace({ id, name }).client
+													if (createRes.type === 'error') {
+														app.showMutationRejectionToast(createRes.error)
 														return
 													}
 													trackEvent('create-workspace', { source })
-													try {
-														await app.z.mutate.moveFileToWorkspace({ fileId, workspaceId: id })
-															.client
-													} catch (e) {
+													const moveRes = await app.z.mutate.moveFileToWorkspace({
+														fileId,
+														workspaceId: id,
+													}).client
+													if (moveRes.type === 'error') {
 														// the workspace was created; only the move failed
-														app.showMutationRejectionToast((e as Error).message as ZErrorCode)
+														app.showMutationRejectionToast(moveRes.error)
 													}
 												}}
 											/>
@@ -323,7 +325,7 @@ export function FileItems({
 				)}
 				{workspaceId && (
 					<TldrawUiMenuItem
-						label={deleteOrForgetMsg}
+						label={msg(hasAdminRights ? messages.delete : messages.forget)}
 						id="delete"
 						readonlyOk
 						onSelect={handleDeleteClick}

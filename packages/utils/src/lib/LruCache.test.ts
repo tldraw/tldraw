@@ -19,6 +19,18 @@ describe('LruCache', () => {
 		expect(cache.size).toBe(2)
 	})
 
+	it('delete() removes an entry and frees its slot', () => {
+		const cache = new LruCache<string, number>(2)
+		cache.set('a', 1)
+		cache.set('b', 2)
+		expect(cache.delete('a')).toBe(true)
+		expect(cache.delete('a')).toBe(false)
+		expect(cache.has('a')).toBe(false)
+		cache.set('c', 3)
+		expect(cache.get('b')).toBe(2)
+		expect(cache.size).toBe(2)
+	})
+
 	it('has() checks existence without promoting', () => {
 		const cache = new LruCache<string, number>(2)
 		cache.set('a', 1)

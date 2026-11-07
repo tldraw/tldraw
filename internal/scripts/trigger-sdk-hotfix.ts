@@ -1,4 +1,4 @@
-import kleur from 'kleur'
+import { styleText } from 'util'
 import { Octokit } from 'octokit'
 import * as semver from 'semver'
 import { formatDiff, getAnyPackageDiff } from './lib/didAnyPackageChange'
@@ -7,6 +7,7 @@ import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 import { getPrDetailsAndCommitSha, labelPresent, PullRequest } from './lib/pr-info'
+import { stripSkipCiMarkers } from './lib/skip-ci'
 import { getAllWorkspacePackages } from './lib/workspace'
 
 function getEnv() {
@@ -37,6 +38,47 @@ function getTriggerType(pr: PullRequest): 'none' | 'SDK' | 'docs' {
 
 	const isDocsOnly = hasDocsHotfixLabel && !hasSdkHotfixLabel
 	return isDocsOnly ? 'docs' : 'SDK'
+}
+
+// The release branch's dependencies aren't installed yet when we commit, so its pre-commit hook
+// would fail.
+const SKIP_HOOKS = ['-c', 'core.hooksPath=/dev/null']
+
+const RELEASE_NOTES_FILE = /^apps\/docs\/content\/releases\/[^/]+\.mdx$/
+
+/**
+ * Release-notes PRs regenerate `next.mdx` in full from main, but each commit is still a diff
+ * against the previous version. If one release-notes PR misses the release branch (e.g. #10700,
+ * #10825), every later cherry-pick conflicts on it. Main's copy is authoritative, so resolve
+ * conflicts confined to the release notes by taking the commit's version. Any other conflict
+ * still fails.
+ */
+async function cherryPickTakingReleaseNotesFromCommit(commitSha: string) {
+	try {
+		await exec('git', ['cherry-pick', commitSha])
+		return
+	} catch (err) {
+		const conflicted = (await exec('git', ['diff', '--name-only', '--diff-filter=U']))
+			.split('\n')
+			.filter(Boolean)
+		if (!conflicted.length || !conflicted.every((file) => RELEASE_NOTES_FILE.test(file))) {
+			throw err
+		}
+
+		nicelog('Release notes conflicted, taking the version from', commitSha)
+		for (const file of conflicted) {
+			const existsInCommit = await exec('git', ['cat-file', '-e', `${commitSha}:${file}`]).then(
+				() => true,
+				() => false
+			)
+			if (existsInCommit) {
+				await exec('git', ['checkout', commitSha, '--', file])
+			} else {
+				await exec('git', ['rm', '--quiet', '--', file])
+			}
+		}
+		await exec('git', [...SKIP_HOOKS, '-c', 'core.editor=true', 'cherry-pick', '--continue'])
+	}
 }
 
 async function main() {
@@ -87,32 +129,30 @@ async function main() {
 			await exec('git', ['checkout', latestReleaseBranch])
 			await exec('git', ['reset', `origin/${latestReleaseBranch}`, '--hard'])
 			await exec('git', ['log', '-1', '--oneline'])
-			await exec('git', ['cherry-pick', commitSha])
+			await cherryPickTakingReleaseNotesFromCommit(commitSha)
 
 			// the push to the release branch below must trigger publish.yml, but some
 			// merge commits (e.g. release-notes updates) carry `[skip ci]`, which would
 			// suppress it. strip skip-ci markers from the cherry-picked commit message.
 			const message = (await exec('git', ['log', '-1', '--format=%B'])).trim()
-			const cleanedMessage = message
-				.replace(/ *\[(?:skip ci|ci skip|no ci|skip actions|actions skip)\]/gi, '')
-				.trim()
+			const cleanedMessage = stripSkipCiMarkers(message)
 			if (cleanedMessage !== message) {
-				await exec('git', ['commit', '--amend', '-m', cleanedMessage])
+				await exec('git', [...SKIP_HOOKS, 'commit', '--amend', '-m', cleanedMessage])
 			}
 		}
 	)
 
 	if (triggerType === 'docs') {
 		await discord.step(`Ensuring no SDK changes are present`, async () => {
-			// run yarn again before building packages to make sure everything is ready
+			// run pnpm install again before building packages to make sure everything is ready
 			// in case HEAD included dev dependency changes
-			await exec('yarn', ['install'])
-			await exec('yarn', ['refresh-assets', '--force'])
+			await exec('pnpm', ['install'])
+			await exec('pnpm', ['refresh-assets', '--force'])
 
 			const diff = await getAnyPackageDiff(version.format())
 			if (diff) {
-				let message = kleur.red().bold(`・ERROR・`)
-				message += `\nCannot cherry-pick docs changes from PR '${kleur.cyan().bold(pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
+				let message = styleText(['red', 'bold'], `・ERROR・`)
+				message += `\nCannot cherry-pick docs changes from PR '${styleText(['cyan', 'bold'], pr.title)}' https://github.com/tldraw/tldraw/pulls/${pr}`
 				message += '\nThis PR contains changes to the SDK.\n\n'
 				let formattedDiff = formatDiff(diff)
 				// truncate long diffs for discord's sake, it's not that valuable to see the whole thing
@@ -130,10 +170,10 @@ async function main() {
 		})
 	} else {
 		await discord.step('Running sdk tests', async () => {
-			await exec('yarn', ['install'])
+			await exec('pnpm', ['install'])
 			const packages = await getAllWorkspacePackages()
 
-			await exec('yarn', [
+			await exec('pnpm', [
 				'test',
 				...packages
 					.filter((p) => !p.packageJson.private)

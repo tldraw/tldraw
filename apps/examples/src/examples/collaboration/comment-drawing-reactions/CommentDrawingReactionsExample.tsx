@@ -5,7 +5,6 @@ import {
 	commentToolOverrides,
 	isAllowedReactionEmoji,
 } from '@tldraw/commenting'
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback, useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -36,9 +35,7 @@ const resolveAuthor = (id: string): CommentAuthor => AUTHORS[id] ?? { name: id }
 function ReactionPalette(props: DrawingReactionPaletteProps) {
 	const editor = useEditor()
 	const saveDrawing = useCallback((src: string) => saveDrawingReaction(editor, src), [editor])
-	return (
-		<DrawingReactionPalette {...props} licenseKey={getLicenseKey()} saveDrawing={saveDrawing} />
-	)
+	return <DrawingReactionPalette {...props} saveDrawing={saveDrawing} />
 }
 
 // [2]
@@ -74,7 +71,6 @@ export default function CommentDrawingReactionsExample() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				store={store}
 				tools={COMMENT_TOOLS}
 				overrides={[commentToolOverrides]}
@@ -94,10 +90,10 @@ hold an uploaded asset's URL instead of inline bytes, since document records rep
 client on the file.
 
 [1]
-`DrawingReactionPalette` renders a nested `<Tldraw>`, which is a second editor and wants its own
-license key. The wrapper also binds `saveDrawing` to the host editor (this component renders in
-the host's UI, so `useEditor` is the host), which is how a submitted drawing lands in the host
-document rather than the palette's scratch canvas.
+The wrapper binds `saveDrawing` to the host editor. `DrawingReactionPalette` renders a nested
+`<Tldraw>`, a second editor, but this component renders in the host's UI, so `useEditor` is the
+host. That is how a submitted drawing lands in the host document rather than the palette's
+scratch canvas.
 
 [2]
 The pieces are configured together on the comment tool, and they have to agree: the palette emits

@@ -114,8 +114,8 @@ Attach each incoming WebSocket to the room and forward its events:
 room.handleSocketConnect({ sessionId, socket })
 // If your platform doesn't let the room add listeners to the socket itself
 // (Bun.serve, Cloudflare hibernation), forward events by hand:
-room.handleSocketMessage(sessionId, message)
-room.handleSocketClose(sessionId)
+room.handleSocketMessage(sessionId, message, socket)
+room.handleSocketClose(sessionId, socket)
 ```
 
 <Callout type="info">
@@ -214,7 +214,8 @@ interface SocketAttachment {
 
 export class TldrawDurableObject extends DurableObject {
 	private room: TLSocketRoom<TLRecord, void> | null = null
-	// Maps sessionId → ws. Populate this in your webSocketMessage handler.
+	// Maps sessionId → ws. Set it on connect and on resume, never from webSocketMessage: a
+	// superseded socket for the same session id can still deliver messages.
 	private readonly sessionIdToWs = new Map<string, WebSocket>()
 
 	private getOrCreateRoom() {
@@ -243,6 +244,7 @@ export class TldrawDurableObject extends DurableObject {
 					socket: ws,
 					snapshot: attachment.snapshot,
 				})
+				this.sessionIdToWs.set(attachment.sessionId, ws)
 			}
 		}
 
@@ -253,7 +255,7 @@ export class TldrawDurableObject extends DurableObject {
 
 Three pieces make this work. The `onSessionSnapshot` callback persists each session's state to its WebSocket's attachment so the snapshot is still around after hibernation. When the object wakes up with sockets still open, `handleSocketResume` replays each saved snapshot and the session lands straight in `Connected` state; the client never sees a reconnect. Setting `clientTimeout: Infinity` disables the room's idle timer; hibernating platforms handle keep-alive themselves and would otherwise see the room disconnect healthy clients.
 
-For a complete implementation, including the hibernation event handlers that populate `sessionIdToWs`, see the [sync-cloudflare template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare).
+For a complete implementation, including the connect handler and the hibernation event handlers that pass each socket to the room, see the [sync-cloudflare template](https://github.com/tldraw/tldraw/tree/main/templates/sync-cloudflare).
 
 For non-hibernating environments (Node servers, long-lived processes), you don't need any of this. The in-memory `TLSocketRoom` outlives individual sockets, and the default `clientTimeout` (20 seconds) removes idle sessions.
 
@@ -323,7 +325,7 @@ function MyApp() {
 Use [createTLSchema](?) to create a store schema, and pass that into [TLSocketRoom](?). You can
 use shape/binding utils here, but the schema only reads three properties:
 [`props`](/reference/editor/ShapeUtil#props), `meta`, and
-[`migrations`](/sdk-features/persistence#migrations). You need to provide the default shape
+[`migrations`](/sdk-features/persistence#Migrations). You need to provide the default shape
 schemas if you're using them.
 
 ```tsx

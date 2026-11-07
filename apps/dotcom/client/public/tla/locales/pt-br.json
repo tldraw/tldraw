@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Estamos trabalhando no suporte para arquivos de <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu do usuário."
-  },
   "043973ec1f": {
     "translation": "Ainda está com dificuldades? {GetHelpLink}"
   },
@@ -95,6 +92,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> comentou no seu fórum"
   },
+  "28b2464e1f": {
+    "translation": "Não foi possível enviar o feedback."
+  },
   "299cb00a7a": {
     "translation": "Falha ao fazer upload"
   },
@@ -103,6 +103,9 @@
   },
   "2a37324bb4": {
     "translation": "Procurar..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Por favor, tente novamente."
   },
   "2de510be71": {
     "translation": "A regeneração substitui o link de convite atual por um novo. Qualquer pessoa que estiver usando o link antigo precisará do novo para participar."
@@ -170,9 +173,6 @@
   "477df802ca": {
     "translation": "Para continuar a edição, copie o arquivo para a sua pasta de arquivos."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "Arquivo PIN"
   },
@@ -206,8 +206,8 @@
   "54286b1d01": {
     "translation": "O limite de colaboradores foi atingido"
   },
-  "545241e7dd": {
-    "translation": "{count} não lido"
+  "550b25cc0c": {
+    "translation": "Não foi possível restaurar seu desenho local. Tente recarregar esta página."
   },
   "554a05155c": {
     "translation": "Ainda está com problemas? <a>Reportar um problema</a>"
@@ -380,9 +380,6 @@
   "85a082de1b": {
     "translation": "Atualize a página para obter a versão mais recente do tldraw."
   },
-  "86353d2c41": {
-    "translation": "Adicionados {total} arquivos .tldr."
-  },
   "86c66437fd": {
     "translation": "Renomear arquivo"
   },
@@ -434,6 +431,9 @@
   "9bef626805": {
     "translation": "Excluir arquivo"
   },
+  "9c228b6834": {
+    "translation": "Parece que você está offline. Verifique sua conexão e tente novamente."
+  },
   "9ccb565b86": {
     "translation": "Estamos com dificuldades para conectar ao nosso serviço de autenticação. Isso geralmente é temporário. Por favor, tente atualizar a página."
   },
@@ -448,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Você foi convidado(a) a participar do <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# não lido} other {# não lido}}"
   },
   "a0da245992": {
     "translation": "Exporte o conteúdo como um arquivo .tldr: Selecione \"Download\" no menu superior esquerdo."
@@ -528,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Proprietário"
   },
+  "b74dbb40c5": {
+    "translation": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu Arquivo, no canto superior esquerdo."
+  },
   "b758336699": {
     "translation": "Copiar link"
   },
@@ -549,14 +555,14 @@
   "c2276c9127": {
     "translation": "Saiba mais sobre como compartilhar."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# arquivo .tldr adicionado.} other {# arquivos .tldr adicionados.}}"
+  },
   "c303bd1095": {
     "translation": "Não foi possível publicar o arquivo."
   },
   "c4b39a1cc3": {
     "translation": "Cookies essenciais"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Sequência de caracteres longa"
   },
   "c6a00f137b": {
     "translation": "Convidar"
@@ -583,7 +589,7 @@
     "translation": "Saiba mais sobre como publicar."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> e {count, plural, one {# other} other {# others}} reagiram ao seu comentário"
+    "translation": "<name>{author}</name> e {count, plural, one {# outra pessoa} other {# outras pessoas}} reagiram ao seu comentário"
   },
   "d3d2e61733": {
     "translation": "Fechar"
@@ -651,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Guia da conta"
   },
-  "ed53713239": {
-    "translation": "i18n: Acentuado"
-  },
   "ed75712b0e": {
     "translation": "Duplicar"
   },
@@ -682,7 +685,7 @@
     "translation": "Excluir"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# other} other {# others}} reagiram ao seu comentário"
+    "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# outra pessoa} other {# outras pessoas}} reagiram ao seu comentário"
   },
   "f4f70727dc": {
     "translation": "Configurações"

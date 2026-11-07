@@ -442,3 +442,30 @@ test('onAfterChangeToShape is called after the to shape is updated', () => {
 	})
 	expect.assertions(3)
 })
+
+test('a binding from a shape to itself is indexed once', () => {
+	bindShapes(ids.box1, ids.box1)
+	expect(editor.getBindingsInvolvingShape(ids.box1)).toHaveLength(1)
+
+	calls.length = 0
+	editor.updateShape({ id: ids.box1, type: 'geo', x: 10 })
+	expect(calls).toEqual([
+		'onAfterChangeFromShape: box1->box1',
+		'onAfterChangeToShape: box1->box1',
+		'onOperationComplete',
+	])
+})
+
+test('bindings cannot be created, updated, or deleted in readonly mode', () => {
+	const bindingId = bindShapes(ids.box1, ids.box2)
+	editor.updateInstanceState({ isReadonly: true })
+
+	editor.createBinding({ type: TEST_TYPE, fromId: ids.box3, toId: ids.box4 })
+	expect(editor.getBindingsInvolvingShape(ids.box3)).toHaveLength(0)
+
+	editor.updateBinding({ id: bindingId, type: TEST_TYPE, meta: { foo: 'bar' } })
+	expect(editor.getBinding(bindingId)?.meta).toEqual({})
+
+	editor.deleteBinding(bindingId)
+	expect(editor.getBinding(bindingId)).toBeDefined()
+})

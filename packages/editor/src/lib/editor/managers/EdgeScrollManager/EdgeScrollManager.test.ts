@@ -164,6 +164,23 @@ describe('EdgeScrollManager', () => {
 			edgeScrollManager.updateEdgeScrolling(150)
 			expect(editor.setCamera).toHaveBeenCalled()
 		})
+
+		it('should start easing after the edge scroll delay', () => {
+			mockInputs.setCurrentScreenPoint(new Vec(0, 300))
+
+			edgeScrollManager.updateEdgeScrolling(200)
+			expect(editor.setCamera).not.toHaveBeenCalled()
+
+			// 20ms into a 200ms cubic ease, the speed factor is 0.1³.
+			edgeScrollManager.updateEdgeScrolling(20)
+			expect((editor.setCamera.mock.calls[0][0] as Vec).x).toBeCloseTo(0.03)
+
+			editor.setCamera.mockClear()
+
+			// The ease reaches full speed 200ms after the delay.
+			edgeScrollManager.updateEdgeScrolling(180)
+			expect((editor.setCamera.mock.calls[0][0] as Vec).x).toBeCloseTo(270)
+		})
 	})
 
 	describe('edge proximity detection', () => {
@@ -262,15 +279,46 @@ describe('EdgeScrollManager', () => {
 		})
 
 		it('should adjust scroll speed based on zoom level', () => {
-			editor.getZoomLevel.mockReturnValue(2)
 			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
 
 			edgeScrollManager.updateEdgeScrolling(300)
+			const atZoom1 = (editor.setCamera.mock.calls[0][0] as Vec).x
 
-			expect(editor.setCamera).toHaveBeenCalled()
-			const callArgs = editor.setCamera.mock.calls[0][0] as Vec
+			editor.setCamera.mockClear()
+			edgeScrollManager = new EdgeScrollManager(editor)
+			editor.getZoomLevel.mockReturnValue(2)
+			edgeScrollManager.updateEdgeScrolling(300)
+			const atZoom2 = (editor.setCamera.mock.calls[0][0] as Vec).x
+
 			// Higher zoom should result in smaller camera movement
-			expect(Math.abs(callArgs.x)).toBeLessThan(25)
+			expect(atZoom2).toBeCloseTo(atZoom1 / 2)
+		})
+
+		it('should move the same distance per second regardless of tick rate', () => {
+			mockInputs.setCurrentScreenPoint(new Vec(5, 300))
+
+			// Get past the delay and easing ramp so each tick moves at full speed
+			edgeScrollManager.updateEdgeScrolling(1000)
+			editor.setCamera.mockClear()
+
+			// One second of 60 Hz ticks
+			for (let i = 0; i < 60; i++) edgeScrollManager.updateEdgeScrolling(1000 / 60)
+			const at60Hz = editor.setCamera.mock.calls.reduce(
+				(sum, [camera]) => sum + (camera as Vec).x,
+				0
+			)
+
+			editor.setCamera.mockClear()
+
+			// One second of 120 Hz ticks
+			for (let i = 0; i < 120; i++) edgeScrollManager.updateEdgeScrolling(1000 / 120)
+			const at120Hz = editor.setCamera.mock.calls.reduce(
+				(sum, [camera]) => sum + (camera as Vec).x,
+				0
+			)
+
+			expect(at60Hz).toBeGreaterThan(0)
+			expect(at120Hz).toBeCloseTo(at60Hz)
 		})
 
 		it('should add scroll delta to current camera position', () => {

@@ -91,6 +91,28 @@ Attribution is opt-in per shape type. Each shape util decides what to track and 
 
 The built-in note shape tracks who last edited its text. Whenever a note's rich text changes and is non-empty, [NoteShapeUtil](?) sets the `textLastEditedBy` prop to the current user's ID via `editor.getAttributionUserId()`. Clearing the text resets it to `null`, and duplicating or pasting a note with text re-stamps the copy to the current user. The note renders the last editor's first name as a small label in the corner.
 
+The label is rendered by the note shape util's `AttributionComponent` option, which you can override or hide with `NoteShapeUtil.configure`, passed through the `shapeUtils` prop. This applies on the canvas and in image exports:
+
+```tsx
+import { NoteShapeUtil, Tldraw } from 'tldraw'
+
+// Hide the attribution badge
+;<Tldraw shapeUtils={[NoteShapeUtil.configure({ AttributionComponent: null })]} />
+
+// Or render your own
+;<Tldraw
+	shapeUtils={[
+		NoteShapeUtil.configure({
+			AttributionComponent: ({ firstName, color }) => (
+				<div className="tl-note__attribution" style={{ color }}>
+					✍️ {firstName}
+				</div>
+			),
+		}),
+	]}
+/>
+```
+
 ## Reading attribution
 
 The [Editor](?) provides three methods for working with attribution. [Editor#getAttributionUserId](?) returns the current user's raw ID string (without the `user:` prefix). [Editor#getAttributionDisplayName](?) and [Editor#getAttributionUser](?) check the `TLUserStore` first, then fall back to `user:` records in the store:
@@ -187,7 +209,7 @@ Custom metadata is validated and persisted alongside the standard user fields. A
 | [createCachedUserResolve](?)          | Create a cached resolve function for `TLUserStore`                      |
 | [createUserRecordType](?)             | Build a user record type with custom meta validators                    |
 
-For setting up user identity in multiplayer, see the [Collaboration](/sdk-features/collaboration#user-identity) page.
+For setting up user identity in multiplayer, see the [Collaboration](/sdk-features/collaboration#User-identity) page.
 
 ## Related examples
 

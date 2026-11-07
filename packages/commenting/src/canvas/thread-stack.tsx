@@ -1,5 +1,6 @@
 import { type MouseEvent as ReactMouseEvent, memo, useEffect, useRef } from 'react'
 import {
+	defineMessages,
 	Editor,
 	TLCommentThread,
 	usePassThroughWheelEvents,
@@ -8,14 +9,13 @@ import {
 } from 'tldraw'
 import { CommentCard } from '../ui/comment-card'
 import { CountBadge } from '../ui/count-badge'
-import { UNKNOWN_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { useCommentingOptions } from './options'
 import { pinStackKey } from './pin-stacking'
 import { openStackId, openThreadId } from './state'
 import { ThreadPreview, useMarkerPreview } from './thread-preview'
-import { anchorPagePoint, impreciseShapePinInset } from './thread-state'
+import { anchorPagePoint, anchorViewportPoint } from './thread-state'
 import {
 	POPOVER_OFFSET,
 	ThreadPopover,
@@ -23,6 +23,19 @@ import {
 	toCardProps,
 	useResolveName,
 } from './thread-view'
+
+const messages = defineMessages({
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
+	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
+	commentsPinLabelResolved: {
+		id: 'comments.pin-label-resolved',
+		defaultMessage: 'Resolved comment by {name}',
+	},
+	commentsStackLabel: {
+		id: 'comments.stack-label',
+		defaultMessage: '{count, plural, one {# comment at this spot} other {# comments at this spot}}',
+	},
+})
 
 /**
  * The pin for threads whose anchors resolve to the same page point — pins zooming can never
@@ -73,11 +86,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 			// The badge hangs off its anchor point bottom-left like a pin, and applies the same imprecise-shape
 			// inset the pins it stands in for would (see ThreadPin) — otherwise the marker would snap from tucked
 			// inside the shape to the raw corner the moment a second comment turns a pin into a stack.
-			const pagePoint = anchorPagePoint(editor, first.anchor)
-			if (!pagePoint) return null
-			const viewportPoint = editor.pageToViewport(pagePoint)
-			const inset = impreciseShapePinInset(editor, first.anchor)
-			return inset ? { x: viewportPoint.x + inset.x, y: viewportPoint.y + inset.y } : viewportPoint
+			return anchorViewportPoint(editor, first.anchor)
 		},
 		[editor, threads]
 	)
@@ -132,7 +141,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 	// The expanded thread gains a header that pushes its first comment down from where the hover preview
 	// showed it. When that thread is the list's first, lift the whole list so its "You" holds position
 	// across hover -> open. Only the first entry — lifting can't also hold a lower thread's neighbours.
-	const liftForHeader = threads[0]?.id === openId ? 42 : 0
+	const liftForHeader = threads[0].id === openId ? 42 : 0
 
 	return (
 		<>
@@ -141,7 +150,7 @@ export const ThreadStackPin = memo(function ThreadStackPin({
 					ref={badgeRef}
 					type="button"
 					className="tlui-cmt-button tlui-cmt-canvas-stack-badge"
-					aria-label={msg('comments.stack-label').replace('{count}', String(threads.length))}
+					aria-label={msg(messages.commentsStackLabel, { count: threads.length })}
 					aria-expanded={open}
 					onPointerDown={(e) => e.stopPropagation()}
 					onClick={(e) => {
@@ -232,8 +241,12 @@ function StackThreadCard({
 				type="button"
 				className="tlui-cmt-button tlui-cmt-stack-list__card-action"
 				aria-label={msg(
-					thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
-				).replace('{name}', props.resolveAuthor(thread.createdBy)?.name ?? UNKNOWN_AUTHOR)}
+					thread.resolved ? messages.commentsPinLabelResolved : messages.commentsPinLabel,
+					{
+						name:
+							props.resolveAuthor(thread.createdBy)?.name ?? msg(messages.commentsUnknownAuthor),
+					}
+				)}
 				onClick={open}
 			/>
 			<CommentCard {...toCardProps(first, props, options.components, resolveName)} />

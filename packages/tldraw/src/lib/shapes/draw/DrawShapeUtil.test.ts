@@ -1,4 +1,4 @@
-import { createShapeId, TLDrawShape } from '@tldraw/editor'
+import { Circle2d, createShapeId, TLDrawShape } from '@tldraw/editor'
 import { TestEditor } from '../../../test/TestEditor'
 import { createDrawSegments, pointsToBase64 } from '../../utils/test-helpers'
 
@@ -25,6 +25,22 @@ describe('DrawShapeUtil dot detection', () => {
 		])
 		return editor.getShape(shapeId) as TLDrawShape
 	}
+
+	describe('empty segments', () => {
+		it('treats a shape created from its default props as a dot', () => {
+			editor.createShape({ id: shapeId, type: 'draw' })
+			const shape = editor.getShape<TLDrawShape>(shapeId)!
+			expect(shape.props.segments).toEqual([])
+			expect(editor.getShapeGeometry(shape)).toBeInstanceOf(Circle2d)
+			expect(editor.getShapeAtPoint({ x: 0, y: 0 })?.id).toBe(shapeId)
+		})
+
+		it('treats a single segment with an empty path as a dot', () => {
+			const shape = createDrawShape([{ type: 'free', path: '' }])
+			expect(editor.getShapeGeometry(shape)).toBeInstanceOf(Circle2d)
+			expect(editor.getShapeAtPoint({ x: 0, y: 0 })?.id).toBe(shapeId)
+		})
+	})
 
 	describe('getIsDot behavior via hideResizeHandles', () => {
 		it('treats a shape with one segment and zero points as a dot', () => {
@@ -192,5 +208,37 @@ describe('DrawShapeUtil dot detection', () => {
 			const util = editor.getShapeUtil('draw')
 			expect(util.hideResizeHandles(shape)).toBe(true)
 		})
+	})
+})
+
+describe('DrawShapeUtil getInterpolatedProps', () => {
+	it('interpolates from a shape created with default props, which has no segments', () => {
+		// https://github.com/tldraw/tldraw/issues/10737
+		const startId = createShapeId('start')
+		const endId = createShapeId('end')
+		editor.createShapes([
+			{ id: startId, type: 'draw' },
+			{
+				id: endId,
+				type: 'draw',
+				props: {
+					segments: createDrawSegments([
+						[
+							{ x: 0, y: 0, z: 0.5 },
+							{ x: 10, y: 10, z: 0.5 },
+						],
+					]),
+				},
+			},
+		])
+		const start = editor.getShape<TLDrawShape>(startId)!
+		const end = editor.getShape<TLDrawShape>(endId)!
+		expect(start.props.segments).toEqual([])
+		const util = editor.getShapeUtil('draw')
+
+		expect(() => util.getInterpolatedProps!(start, end, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(start, end, 1).segments).toEqual(end.props.segments)
+		expect(() => util.getInterpolatedProps!(end, start, 0.5)).not.toThrow()
+		expect(util.getInterpolatedProps!(end, start, 0).segments).toEqual(end.props.segments)
 	})
 })

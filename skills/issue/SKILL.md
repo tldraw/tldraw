@@ -55,9 +55,9 @@ Confidence: {n}%, {ready_status}.
    - If a shallow code search is needed to avoid asking a bad question, do it, but do not add file paths, function names, line numbers, code snippets, likely causes, or fix recipes to the issue body.
    - Anything you can answer yourself from repo context should not become an open question.
 3. For visual bugs, identify a reproduction target when possible:
-   - Examples app: `localhost:5420` from `yarn dev`.
-   - tldraw.com app: `localhost:3000` from `yarn dev-app`.
-   - Docs site: `localhost:3001` from `yarn dev-docs`.
+   - Examples app: `localhost:5420` from `pnpm dev`.
+   - tldraw.com app: `localhost:3000` from `pnpm dev-app`.
+   - Docs site: `localhost:3001` from `pnpm dev-docs`.
    - If the user provided an image and you have a path or URL for it, embed or attach it in the GitHub issue.
    - If the image is visible only in the chat and cannot be attached, describe it as visual context. Do not write "screenshot attached" unless the issue actually contains the image.
    - If screenshots are useful but not feasible locally and the user has not provided one, make a screenshot request one of your open questions.

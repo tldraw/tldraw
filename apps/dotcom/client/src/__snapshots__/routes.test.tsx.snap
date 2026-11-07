@@ -11,16 +11,16 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/__debug-tail/?$",
   },
   {
-    "reactRouterPattern": "/__thumbnail-render",
-    "vercelRouterPattern": "^/__thumbnail-render/?$",
-  },
-  {
     "reactRouterPattern": "/admin",
     "vercelRouterPattern": "^/admin/?$",
   },
   {
     "reactRouterPattern": "/admin/:section",
     "vercelRouterPattern": "^/admin/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/admin/:section/:fileId",
+    "vercelRouterPattern": "^/admin/[^/]*/[^/]*/?$",
   },
   {
     "reactRouterPattern": "/f/:fileSlug",
@@ -55,6 +55,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/new/?$",
   },
   {
+    "reactRouterPattern": "/oauth-consent",
+    "vercelRouterPattern": "^/oauth-consent/?$",
+  },
+  {
     "reactRouterPattern": "/p/:fileSlug",
     "vercelRouterPattern": "^/p/[^/]*/?$",
   },
@@ -81,6 +85,10 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/s/:roomId",
     "vercelRouterPattern": "^/s/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/sso-callback",
+    "vercelRouterPattern": "^/sso-callback/?$",
   },
   {
     "reactRouterPattern": "/v/:roomId",

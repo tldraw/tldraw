@@ -4,19 +4,25 @@ import { IRequest } from 'itty-router'
 import { sql } from 'kysely'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
-import { requireAuth } from '../../utils/tla/getAuth'
+import { getAuth } from '../../utils/tla/getAuth'
 import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorkspaceFromInvite'
 
 export async function acceptInvite(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
 	if (!token) {
-		return Response.json(
-			{ error: true, message: 'Invite token is required' } satisfies AcceptInviteResponseBody,
-			{ status: 400 }
-		)
+		return Response.json({ error: true, code: 'bad_request' } satisfies AcceptInviteResponseBody, {
+			status: 400,
+		})
 	}
 
-	const auth = await requireAuth(request, env)
+	// Return our own 401 body: the router's generic one isn't an AcceptInviteResponseBody, so it
+	// carries no `code` for the client to translate.
+	const auth = await getAuth(request, env)
+	if (!auth) {
+		return Response.json({ error: true, code: 'unauthorized' } satisfies AcceptInviteResponseBody, {
+			status: 401,
+		})
+	}
 	const db = createPostgresConnectionPool(env, 'acceptInvite')
 
 	try {
@@ -28,13 +34,12 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json(
 					{
 						error: true,
-						message: 'Invalid or expired invite token',
+						code: 'invite_not_found',
 					} satisfies AcceptInviteResponseBody,
 					{ status: 404 }
 				)
 			}
 
-			// Check if user is already a member of this group (with row lock to prevent race conditions)
 			const existingMember = await tx
 				.selectFrom('group_user')
 				.select('userId')
@@ -45,7 +50,6 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			if (existingMember) {
 				return Response.json({
 					error: false,
-					message: 'You are already a member of this group',
 					workspaceId: workspace.id,
 					workspaceName: workspace.name,
 					alreadyMember: true,
@@ -63,7 +67,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 				return Response.json(
 					{
 						error: true,
-						message: 'User not found',
+						code: 'user_not_found',
 					} satisfies AcceptInviteResponseBody,
 					{ status: 404 }
 				)
@@ -78,17 +82,14 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 			)
 
 			// Use tldraw's fractional indexing to place new group at the top
-			let index: IndexKey
-			if (!lowestIndexGroup.rows[0]) {
-				// First group gets 'a1'
-				index = 'a1' as IndexKey
-			} else {
-				// Generate a new index below the current lowest (to place at top)
-				index = getIndexBelow(lowestIndexGroup.rows[0].index as IndexKey)
-			}
+			const lowestIndex = lowestIndexGroup.rows[0]?.index as IndexKey | undefined
+			// Generate a new index below the current lowest (to place at top); first group gets 'a1'
+			const index = lowestIndex ? getIndexBelow(lowestIndex) : ('a1' as IndexKey)
 
-			// Add user to the group
-			await tx
+			// Add user to the group. Two accepts racing past the membership check above (two tabs,
+			// two devices) would otherwise turn the second into a unique violation and a 500 for a
+			// join that succeeded.
+			const inserted = await tx
 				.insertInto('group_user')
 				.values({
 					groupId: workspace.id,
@@ -100,11 +101,20 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 					createdAt: Date.now(),
 					updatedAt: Date.now(),
 				})
-				.execute()
+				.onConflict((oc) => oc.columns(['userId', 'groupId']).doNothing())
+				.executeTakeFirst()
+
+			if (inserted.numInsertedOrUpdatedRows === 0n) {
+				return Response.json({
+					error: false,
+					workspaceId: workspace.id,
+					workspaceName: workspace.name,
+					alreadyMember: true,
+				} satisfies AcceptInviteResponseBody)
+			}
 
 			return Response.json({
 				error: false,
-				message: 'Successfully joined the group',
 				workspaceId: workspace.id,
 				workspaceName: workspace.name,
 				success: true,
@@ -115,7 +125,7 @@ export async function acceptInvite(request: IRequest, env: Environment): Promise
 		return Response.json(
 			{
 				error: true,
-				message: 'Internal server error',
+				code: 'internal_error',
 			} satisfies AcceptInviteResponseBody,
 			{ status: 500 }
 		)

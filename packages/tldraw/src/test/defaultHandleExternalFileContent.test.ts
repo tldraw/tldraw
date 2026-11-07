@@ -1,0 +1,271 @@
+import { MediaHelpers, TLImageShape, TLVideoAsset, createShapeId } from '@tldraw/editor'
+import { vi } from 'vitest'
+import { defaultAssetUtils } from '../lib/defaultAssetUtils'
+import {
+	createShapesForAssets,
+	defaultHandleExternalFileContent,
+	defaultHandleExternalFileReplaceContent,
+	getAssetInfo,
+} from '../lib/defaultExternalContentHandlers'
+import { TestEditor } from './TestEditor'
+
+let editor: TestEditor
+let addToast: ReturnType<typeof vi.fn>
+
+function makeOptions() {
+	addToast = vi.fn()
+	return {
+		toasts: { addToast } as any,
+		msg: ((key: string) => key) as any,
+	}
+}
+
+beforeEach(() => {
+	editor = new TestEditor({ assetUtils: defaultAssetUtils })
+	vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+	// Stand in for the upload stage so only the decode stage is under test.
+	vi.spyOn(editor, 'getAssetForExternalContent').mockImplementation(async (info) => {
+		if (info.type !== 'file') return undefined
+		const asset = await getAssetInfo(editor, info.file)
+		if (!asset) return undefined
+		return { ...asset, props: { ...asset.props, src: 'data:ok' } } as any
+	})
+})
+
+afterEach(() => {
+	editor?.dispose()
+	vi.restoreAllMocks()
+})
+
+describe('defaultHandleExternalFileContent', () => {
+	it('skips an undecodable image with a toast and still places the others', async () => {
+		const goodFile = new File(['good'], 'good.png', { type: 'image/png' })
+		const badFile = new File(['not really a png'], 'bad.png', { type: 'image/png' })
+
+		vi.spyOn(MediaHelpers, 'getImageSize').mockImplementation(async (file) => {
+			if (file === badFile) throw new Error('Could not load image')
+			return { w: 100, h: 50, pixelRatio: 1 }
+		})
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [badFile, goodFile] },
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+
+		const images = editor.getCurrentPageShapes().filter((s) => s.type === 'image')
+		expect(images).toHaveLength(1)
+		const asset = editor.getAsset((images[0] as TLImageShape).props.assetId!)
+		expect(asset?.props).toMatchObject({ name: 'good.png', w: 100, h: 50 })
+	})
+
+	it('shows a toast and creates nothing when the only file is undecodable', async () => {
+		const badFile = new File(['not really a png'], 'bad.png', { type: 'image/png' })
+		vi.spyOn(MediaHelpers, 'getImageSize').mockRejectedValue(new Error('Could not load image'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [badFile] },
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	// An audio-only file has no video track, so the element reports a 0x0 size (#11218).
+	it.each([
+		['audio-only.webm', 'video/webm'],
+		['audio-only.mp4', 'video/mp4'],
+		['audio-only.mov', 'video/quicktime'],
+	])('shows a toast and creates nothing for %s', async (name, type) => {
+		const file = new File(['audio'], name, { type })
+		vi.spyOn(MediaHelpers, 'usingObjectURL').mockImplementation((_blob, fn) => fn('blob:audio'))
+		vi.spyOn(MediaHelpers, 'loadVideo').mockResolvedValue({
+			videoWidth: 0,
+			videoHeight: 0,
+		} as HTMLVideoElement)
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [file] },
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	it('shows a toast and creates nothing for an image with no size', async () => {
+		const file = new File(['png'], 'no-size.png', { type: 'image/png' })
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 0, h: 0, pixelRatio: 1 })
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileContent(
+			editor,
+			{ point: { x: 0, y: 0 }, files: [file] },
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+})
+
+describe('createShapesForAssets', () => {
+	it('skips assets with no size and still places the others', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		const videoAsset = (id: string, w: number, h: number): TLVideoAsset => ({
+			id: `asset:${id}` as TLVideoAsset['id'],
+			typeName: 'asset',
+			type: 'video',
+			props: {
+				name: id,
+				src: 'data:ok',
+				w,
+				h,
+				fileSize: 1,
+				mimeType: 'video/mp4',
+				isAnimated: true,
+			},
+			meta: {},
+		})
+
+		await createShapesForAssets(editor, [videoAsset('empty', 0, 0), videoAsset('good', 160, 90)], {
+			x: 0,
+			y: 0,
+		})
+
+		expect(editor.getCurrentPageShapes().map((s) => s.props)).toMatchObject([
+			{ assetId: 'asset:good', w: 160, h: 90 },
+		])
+		expect(editor.getAssets().map((a) => a.id)).toEqual(['asset:good'])
+	})
+})
+
+describe('defaultHandleExternalFileReplaceContent', () => {
+	it('shows a toast and keeps the video when the replacement is audio-only', async () => {
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'video', props: { w: 160, h: 90 } })
+		const before = editor.getShape(shapeId)
+
+		vi.spyOn(MediaHelpers, 'usingObjectURL').mockImplementation((_blob, fn) => fn('blob:audio'))
+		vi.spyOn(MediaHelpers, 'loadVideo').mockResolvedValue({
+			videoWidth: 0,
+			videoHeight: 0,
+		} as HTMLVideoElement)
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileReplaceContent(
+			editor,
+			{
+				type: 'file-replace',
+				file: new File(['audio'], 'audio-only.webm', { type: 'video/webm' }),
+				shapeId,
+				isImage: false,
+			},
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getShape(shapeId)).toEqual(before)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	it('shows a toast and restores the video when the upload fails', async () => {
+		const shapeId = createShapeId()
+		editor.createShape({ id: shapeId, type: 'video', props: { w: 160, h: 90 } })
+		const before = editor.getShape(shapeId)
+
+		vi.spyOn(MediaHelpers, 'getVideoSize').mockResolvedValue({ w: 320, h: 180 })
+		vi.spyOn(editor, 'getAssetForExternalContent').mockRejectedValue(new Error('Upload failed'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileReplaceContent(
+			editor,
+			{
+				type: 'file-replace',
+				file: new File(['video'], 'video.mp4', { type: 'video/mp4' }),
+				shapeId,
+				isImage: false,
+			},
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getShape(shapeId)).toEqual(before)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+
+	// Replacing a cropped image also moves the shape and rewrites its crop.
+	it('shows a toast and restores the cropped image when the upload fails', async () => {
+		const shapeId = createShapeId()
+		editor.createShape({
+			id: shapeId,
+			type: 'image',
+			x: 40,
+			y: 30,
+			props: {
+				w: 160,
+				h: 90,
+				crop: { topLeft: { x: 0.1, y: 0.2 }, bottomRight: { x: 0.8, y: 0.9 } },
+			},
+		})
+		const before = editor.getShape(shapeId)
+
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 400, h: 400, pixelRatio: 1 })
+		vi.spyOn(editor, 'getAssetForExternalContent').mockRejectedValue(new Error('Upload failed'))
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		await defaultHandleExternalFileReplaceContent(
+			editor,
+			{
+				type: 'file-replace',
+				file: new File(['image'], 'image.png', { type: 'image/png' }),
+				shapeId,
+				isImage: true,
+			},
+			makeOptions()
+		)
+
+		expect(addToast).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'assets.files.upload-failed',
+			severity: 'error',
+		})
+		expect(editor.getShape(shapeId)).toEqual(before)
+		expect(editor.getAssets()).toHaveLength(0)
+	})
+})

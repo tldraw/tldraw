@@ -1,5 +1,7 @@
 import {
 	BaseBoxShapeUtil,
+	createShapeId,
+	defineMessages,
 	HTMLContainer,
 	MediaHelpers,
 	SvgExportContext,
@@ -7,14 +9,14 @@ import {
 	TLShapePartial,
 	TLVideoAsset,
 	TLVideoShape,
-	VecModel,
-	WeakCache,
-	createShapeId,
+	translateMessage,
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
+	VecModel,
 	videoShapeMigrations,
 	videoShapeProps,
+	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
@@ -41,6 +43,10 @@ export interface VideoShapeOptions extends ShapeOptionsWithDisplayValues<
 	autoplay: boolean
 }
 
+const messages = defineMessages({
+	name: { id: 'a11y.shape-video', defaultMessage: 'Video' },
+})
+
 /** @public */
 export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 	static override type = 'video' as const
@@ -56,6 +62,10 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		getCustomDisplayValues(): Partial<VideoShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
 	}
 
 	override canEdit(shape: TLVideoShape) {
@@ -116,11 +126,20 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 		const asset = this.editor.getAsset<TLAsset>(props.assetId)
 		if (!asset) return null
 
-		const src = await videoSvgExportCache.get(asset, async () => {
+		const promise = videoSvgExportCache.get(asset, async () => {
 			const assetUrl = await ctx.resolveAssetUrl(asset.id, props.w)
 			if (!assetUrl) return null
 			const video = await MediaHelpers.loadVideo(assetUrl, this.editor.getContainerDocument())
 			return await MediaHelpers.getVideoFrameAsDataUrl(video, 0)
+		})
+		const src = await promise.catch((error) => {
+			// A failure must not stay memoized, or every later export of this asset fails too. Only
+			// evict our own entry: a concurrent export may have started a fresh one. Skip the video
+			// rather than rejecting: toSvg rejections are not caught by the exporter, which then
+			// waits out the export delay and emits an SVG with no shapes at all.
+			if (videoSvgExportCache.items.get(asset) === promise) videoSvgExportCache.items.delete(asset)
+			console.error(`Could not export video ${asset.id}`, error)
+			return null
 		})
 
 		if (!src) return null

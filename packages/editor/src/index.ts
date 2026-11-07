@@ -25,6 +25,7 @@ export {
 export {
 	DefaultErrorFallback,
 	type TLErrorFallbackComponent,
+	type TLErrorFallbackProps,
 } from './lib/components/default-components/DefaultErrorFallback'
 export { DefaultGrid, type TLGridProps } from './lib/components/default-components/DefaultGrid'
 export { type TLShapeErrorFallbackComponent } from './lib/components/default-components/DefaultShapeErrorFallback'
@@ -32,7 +33,10 @@ export {
 	DefaultShapeWrapper,
 	type TLShapeWrapperProps,
 } from './lib/components/default-components/DefaultShapeWrapper'
-export { DefaultSpinner } from './lib/components/default-components/DefaultSpinner'
+export {
+	DefaultSpinner,
+	type TLSpinnerProps,
+} from './lib/components/default-components/DefaultSpinner'
 export { DefaultSvgDefs } from './lib/components/default-components/DefaultSvgDefs'
 export {
 	EditorPortal,
@@ -71,6 +75,17 @@ export {
 	type TLEditorSnapshot,
 	type TLLoadSnapshotOptions,
 } from './lib/config/TLEditorSnapshot'
+export {
+	defaultI18n,
+	defineMessages,
+	getDeclaredMessages,
+	translateMessage,
+	type TLI18n,
+	type TLI18nAdapter,
+	type TLI18nMessage,
+	type TLI18nMessageInput,
+	type TLI18nValues,
+} from './lib/config/TLI18n'
 export {
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
@@ -435,17 +450,18 @@ export {
 } from './lib/primitives/utils'
 export { Vec, type VecLike } from './lib/primitives/Vec'
 export {
+	EditorI18nFallbackContext,
 	ErrorScreen,
 	LoadingScreen,
-	TldrawEditor,
-	useOnMount,
 	type LoadingScreenProps,
+	TldrawEditor,
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 	type TldrawEditorStoreProps,
 	type TldrawEditorWithoutStoreProps,
 	type TldrawEditorWithStoreProps,
 	type TLOnMountHandler,
+	useOnMount,
 } from './lib/TldrawEditor'
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'

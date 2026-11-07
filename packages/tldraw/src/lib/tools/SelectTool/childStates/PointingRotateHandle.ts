@@ -1,4 +1,5 @@
 import { RotateCorner, StateNode, TLClickEventInfo, TLPointerEventInfo } from '@tldraw/editor'
+import { DeferredDoubleClick } from '../selectHelpers'
 import { CursorTypeMap } from './PointingResizeHandle'
 
 type PointingRotateHandleInfo = Extract<TLPointerEventInfo, { target: 'selection' }> & {
@@ -9,6 +10,7 @@ export class PointingRotateHandle extends StateNode {
 	static override id = 'pointing_rotate_handle'
 
 	private info = {} as PointingRotateHandleInfo
+	private doubleClick = new DeferredDoubleClick(this)
 
 	private updateCursor() {
 		this.editor.setCursor({
@@ -19,6 +21,7 @@ export class PointingRotateHandle extends StateNode {
 
 	override onEnter(info: PointingRotateHandleInfo) {
 		this.info = info
+		this.doubleClick.start(info)
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -46,21 +49,12 @@ export class PointingRotateHandle extends StateNode {
 	}
 
 	override onPointerUp() {
+		if (this.doubleClick.replay()) return
 		this.complete()
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.parent.transition('idle')
-		this.parent.getCurrent()?.handleEvent(info)
+		this.doubleClick.defer(info)
 	}
 
 	override onCancel() {

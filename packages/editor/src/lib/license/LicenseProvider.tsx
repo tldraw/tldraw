@@ -1,5 +1,5 @@
 import { useValue } from '@tldraw/state-react'
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { useMaybeEditor } from '../hooks/useEditor'
 import { LicenseManager } from './LicenseManager'
 
@@ -46,21 +46,35 @@ export function LicenseProvider({
 	licenseKey?: string
 	children: ReactNode
 }) {
-	const [licenseManager] = useState(() => new LicenseManager(licenseKey))
+	// Keyed on the license key: the editor is recreated when the key changes, and must not be
+	// handed a manager that validated the old key.
+	const licenseManager = useMemo(() => new LicenseManager(licenseKey), [licenseKey])
 	const licenseState = useValue(licenseManager.state)
-	const [showEditor, setShowEditor] = useState(true)
+	// The manager whose LICENSE_TIMEOUT elapsed; compared by identity so a new key un-gates the editor.
+	const [gatedManager, setGatedManager] = useState<LicenseManager | null>(null)
+	const showEditor = gatedManager !== licenseManager
+
+	// Dispose only the replaced manager, never on cleanup: strict mode re-runs effects with the
+	// same manager, and disposing it there would silence the live one.
+	const previousManager = useRef<LicenseManager | null>(null)
+	useEffect(() => {
+		if (previousManager.current && previousManager.current !== licenseManager) {
+			previousManager.current.dispose()
+		}
+		previousManager.current = licenseManager
+	}, [licenseManager])
 
 	// When license expires or no license in production, show for 5 seconds then hide
 	useEffect(() => {
 		if (shouldHideEditorAfterDelay(licenseState) && showEditor) {
 			// eslint-disable-next-line no-restricted-globals
 			const timer = setTimeout(() => {
-				setShowEditor(false)
+				setGatedManager(licenseManager)
 			}, LICENSE_TIMEOUT)
 
 			return () => clearTimeout(timer)
 		}
-	}, [licenseState, showEditor])
+	}, [licenseManager, licenseState, showEditor])
 
 	// If license is expired or no license in production and 5 seconds have passed, don't render anything (blank screen)
 	if (shouldHideEditorAfterDelay(licenseState) && !showEditor) {

@@ -18,7 +18,7 @@ export function descendantPids(pid: number): number[] {
 /**
  * SIGKILL `pid` and its entire descendant tree.
  *
- * Our dev orchestrators spawn children through wrapper layers (`yarn run -T tsx …`) and processes
+ * Our dev orchestrators spawn children through wrapper layers (`pnpm exec tsx …`) and processes
  * that fork their own grandchildren (vite → esbuild, wrangler → workerd, zero-cache → worker
  * subprocesses). `child.kill()` only signals the direct child, and SIGKILL is uncatchable and does
  * not cascade — so killing a wrapper or parent just orphans everything beneath it, leaving processes

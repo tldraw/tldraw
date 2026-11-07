@@ -4,7 +4,6 @@ import {
 	CommentTool,
 	commentToolOverrides,
 } from '@tldraw/commenting'
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -143,14 +142,15 @@ export default function Develop() {
 	const debuggingOverrides = useDebugging()
 
 	// The comment records live in the store alongside shapes, so the schema needs them registered
-	// before the persisted document loads.
+	// before the persisted document loads. That makes this schema newer than the default one, so
+	// no other example may share the 'example' persistence key: a newer-schema tab ignores an
+	// older tab's changes and overwrites the shared database with its own copy (#10514).
 	const schema = useMemo(() => createTLSchema({ records: commentSchemaRecords }), [])
 	const store = useLocalStore({ persistenceKey: 'example', schema })
 
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides, commentToolOverrides]}
 				store={store}
 				tools={tools}

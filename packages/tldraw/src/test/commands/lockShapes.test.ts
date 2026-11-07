@@ -88,6 +88,17 @@ describe('Locking', () => {
 		// Locking deselects the shape
 		expect(editor.getSelectedShapeIds()).toEqual([])
 	})
+
+	it('Locks and deselects a mixed selection of locked and unlocked shapes', () => {
+		editor.run(() => editor.setSelectedShapes([ids.lockedShapeA, ids.unlockedShapeA]), {
+			ignoreShapeLock: true,
+		})
+		editor.toggleLock(editor.getSelectedShapeIds())
+		expect(
+			[ids.lockedShapeA, ids.unlockedShapeA].map((id) => editor.getShape(id)!.isLocked)
+		).toStrictEqual([true, true])
+		expect(editor.getSelectedShapeIds()).toEqual([])
+	})
 })
 
 describe('Locked shapes', () => {
@@ -150,6 +161,66 @@ describe('Locked shapes', () => {
 
 		const parentAfter = editor.getShape(ids.lockedShapeA)!.parentId
 		expect(parentAfter).toBe(parentBefore)
+	})
+})
+
+describe('Children of locked shapes', () => {
+	it('Can be selected with select all', () => {
+		editor.select(ids.groupedBoxA)
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toEqual([ids.groupedBoxA, ids.groupedBoxB])
+	})
+
+	it('Cannot be grouped, without throwing', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+
+		expect(() => editor.groupShapes([ids.groupedBoxA, ids.groupedBoxB])).not.toThrow()
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+		expect(editor.getShape(ids.groupedBoxA)!.parentId).toBe(ids.lockedGroup)
+	})
+
+	it('Cannot be deleted', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.deleteShapes([ids.groupedBoxA])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+		expect(editor.getShape(ids.groupedBoxA)).toBeDefined()
+	})
+
+	it('Cannot be duplicated', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.duplicateShapes([ids.groupedBoxA])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+	})
+
+	it('Cannot be ungrouped', () => {
+		const innerGroup = createShapeId('innerGroup')
+		editor.createShapes([
+			{ id: innerGroup, type: 'group', parentId: ids.lockedGroup },
+			{ id: createShapeId('innerBox'), type: 'geo', parentId: innerGroup, x: 1000, y: 1000 },
+		])
+		expect(editor.getShape(innerGroup)).toBeDefined()
+
+		editor.ungroupShapes([innerGroup])
+		expect(editor.getShape(innerGroup)).toBeDefined()
+		expect(editor.getShape(createShapeId('innerBox'))!.parentId).toBe(innerGroup)
+	})
+
+	it('Can be deleted, duplicated and grouped when forced', () => {
+		editor.run(
+			() => {
+				const shapeCount = editor.getCurrentPageShapes().length
+				editor.duplicateShapes([ids.groupedBoxA])
+				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+
+				editor.groupShapes([ids.groupedBoxA, ids.groupedBoxB])
+				expect(editor.getShape(ids.groupedBoxA)!.parentId).not.toBe(ids.lockedGroup)
+				expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 2)
+
+				editor.deleteShapes([ids.groupedBoxA])
+				expect(editor.getShape(ids.groupedBoxA)).toBeUndefined()
+			},
+			{ ignoreShapeLock: true }
+		)
 	})
 })
 
@@ -359,5 +430,65 @@ describe('When the selectLockedShapes option is enabled', () => {
 	it('Still cannot be deleted via deleteShapes', () => {
 		lockEditor.deleteShapes([ids.lockedShapeA])
 		expect(lockEditor.getShape(ids.lockedShapeA)).not.toBeUndefined()
+	})
+})
+
+describe('Children of locked shapes', () => {
+	const framedBox = createShapeId('framedBox')
+
+	beforeEach(() => {
+		editor.createShape({
+			id: framedBox,
+			type: 'geo',
+			x: 10,
+			y: 10,
+			parentId: ids.lockedFrame,
+			isLocked: false,
+		})
+	})
+
+	it('Cannot be deleted', () => {
+		editor.deleteShapes([framedBox, ids.groupedBoxA])
+		expect(editor.getShape(framedBox)).toBeDefined()
+		expect(editor.getShape(ids.groupedBoxA)).toBeDefined()
+	})
+
+	it('Cannot be deleted when selected via the context menu path', () => {
+		// Right-clicking a child of a locked frame selects it so the context menu can show it
+		editor.setSelectedShapes([framedBox])
+		editor.deleteShapes(editor.getSelectedShapeIds())
+		expect(editor.getShape(framedBox)).toBeDefined()
+	})
+
+	it('Cannot be duplicated', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.duplicateShapes([framedBox, ids.groupedBoxA])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount)
+	})
+
+	it('Cannot be grouped', () => {
+		const shapeCount = editor.getCurrentPageShapes().length
+		editor.groupShapes([framedBox, ids.unlockedShapeA, ids.unlockedShapeB])
+		expect(editor.getCurrentPageShapes().length).toBe(shapeCount + 1)
+		expect(editor.getShape(framedBox)!.parentId).toBe(ids.lockedFrame)
+	})
+
+	it('Can be selected with select all, but the selection cannot be deleted', () => {
+		// Selecting inside a locked frame is allowed; mutating is not
+		editor.setSelectedShapes([framedBox])
+		editor.selectAll()
+		expect(editor.getSelectedShapeIds()).toEqual([framedBox])
+		editor.deleteShapes(editor.getSelectedShapeIds())
+		expect(editor.getShape(framedBox)).toBeDefined()
+	})
+
+	it('Can be deleted when forced', () => {
+		editor.run(
+			() => {
+				editor.deleteShapes([framedBox])
+				expect(editor.getShape(framedBox)).toBeUndefined()
+			},
+			{ ignoreShapeLock: true }
+		)
 	})
 })
