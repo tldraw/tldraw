@@ -162,7 +162,7 @@ export function AppLanguageMenu() {
 	if (!preferences) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="help menu language" label="menu.language">
+		<TldrawUiMenuSubmenu id="help-menu-language" label="menu.language">
 			<TldrawUiMenuGroup id="languages" className="tlui-language-menu">
 				{LANGUAGES.map(({ locale, label }) => (
 					<TldrawUiMenuCheckboxItem
