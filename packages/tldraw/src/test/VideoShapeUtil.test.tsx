@@ -1,5 +1,12 @@
 import { act, fireEvent } from '@testing-library/react'
-import { AssetRecordType, Editor, TLAssetId, TLShapeId, createShapeId } from '@tldraw/editor'
+import {
+	AssetRecordType,
+	Editor,
+	TLAssetId,
+	TLShapeId,
+	TLVideoAsset,
+	createShapeId,
+} from '@tldraw/editor'
 import { Tldraw } from '../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
@@ -122,5 +129,99 @@ describe('VideoShapeUtil loading state', () => {
 		expect(container.style.backgroundColor).toBe('transparent')
 		// jsdom doesn't round-trip the `border: none` shorthand, so check the style directly
 		expect(container.style.borderStyle).toBe('none')
+	})
+
+	async function createLoadingVideo(src: string) {
+		await act(async () => {
+			editor.createAssets([
+				{
+					id: videoAssetId,
+					type: 'video',
+					typeName: 'asset',
+					props: {
+						w: 100,
+						h: 100,
+						name: 'video.mp4',
+						isAnimated: true,
+						mimeType: 'video/mp4',
+						src,
+					},
+					meta: {},
+				},
+			])
+			editor.createShapes([
+				{
+					id: videoShapeId,
+					type: 'video',
+					x: 0,
+					y: 0,
+					props: { w: 100, h: 100, assetId: videoAssetId },
+				},
+			])
+		})
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 0))
+		})
+	}
+
+	it('shows the broken-asset state instead of a spinner when the source fails to load', async () => {
+		await createLoadingVideo('http://localhost/missing.mp4')
+
+		const container = getShapeContainer()
+		expect(container.querySelector('.tl-spinner')).toBeTruthy()
+
+		await act(async () => {
+			fireEvent.error(container.querySelector('source')!)
+		})
+
+		expect(container.querySelector('.tl-spinner')).toBeNull()
+		expect(container.querySelector('video')).toBeNull()
+		expect(container.querySelector('svg')).toBeTruthy()
+		expect(container.style.backgroundColor).toBe(LOADING_BACKGROUND)
+	})
+
+	it('shows the broken-asset state when the video fails to decode', async () => {
+		await createLoadingVideo('http://localhost/bad-codec.mp4')
+
+		const container = getShapeContainer()
+		await act(async () => {
+			fireEvent.error(container.querySelector('video')!)
+		})
+
+		expect(container.querySelector('.tl-spinner')).toBeNull()
+		expect(container.querySelector('video')).toBeNull()
+	})
+
+	it('shows the loading state again when the url changes', async () => {
+		await createLoadingVideo('http://localhost/video.mp4')
+
+		const container = getShapeContainer()
+		await act(async () => {
+			fireEvent.loadedData(container.querySelector('video')!)
+		})
+		expect(container.style.backgroundColor).toBe('transparent')
+
+		await act(async () => {
+			const asset = editor.getAsset<TLVideoAsset>(videoAssetId)!
+			const otherAssetId = AssetRecordType.createId('otherVideoAsset')
+			editor.createAssets([
+				{
+					...asset,
+					id: otherAssetId,
+					props: { ...asset.props, src: 'http://localhost/other.mp4' },
+				},
+			])
+			editor.updateShape({ id: videoShapeId, type: 'video', props: { assetId: otherAssetId } })
+		})
+		await act(async () => {
+			await new Promise((resolve) => setTimeout(resolve, 0))
+		})
+
+		expect(container.querySelector('source')!.getAttribute('src')).toBe(
+			'http://localhost/other.mp4'
+		)
+		expect(container.style.backgroundColor).toBe(LOADING_BACKGROUND)
+		expect(container.querySelector('video')!.hidden).toBe(true)
+		expect(container.querySelector('.tl-spinner')).toBeTruthy()
 	})
 })

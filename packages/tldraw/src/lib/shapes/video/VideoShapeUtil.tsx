@@ -19,7 +19,7 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -164,13 +164,17 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 
 	const rVideo = useRef<HTMLVideoElement>(null!)
 
-	const [isLoaded, setIsLoaded] = useState(false)
+	// Keyed by url so that a new url starts out loading rather than inheriting the previous
+	// video's loaded or failed state.
+	const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
+	const [failedUrl, setFailedUrl] = useState<string | null>(null)
+	const isLoaded = !!url && loadedUrl === url
+	const isFailed = !!url && failedUrl === url
 
-	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
-		const video = e.currentTarget
-		if (!video) return
-		setIsLoaded(true)
-	}, [])
+	const handleLoadedData = useCallback(() => setLoadedUrl(url), [url])
+	// A missing or unreachable file fires `error` on the <source>, not on the <video>; the
+	// <video> only fires it for decode failures such as an unsupported codec.
+	const handleError = useCallback(() => setFailedUrl(url), [url])
 
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -208,7 +212,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			>
 				<div className="tl-counter-scaled">
 					<div className="tl-video-container">
-						{!asset ? (
+						{!asset || isFailed ? (
 							<BrokenAssetIcon />
 						) : Spinner && !asset.props.src ? (
 							<Spinner />
@@ -238,10 +242,11 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									disablePictureInPicture
 									controls={isEditing && showControls}
 									onLoadedData={handleLoadedData}
+									onError={handleError}
 									hidden={!isLoaded}
 									aria-label={shape.props.altText}
 								>
-									<source src={url} />
+									<source src={url} onError={handleError} />
 								</video>
 								{!isLoaded && Spinner && <Spinner />}
 							</>
