@@ -1252,6 +1252,12 @@
       "value": "Someone"
     }
   ],
+  "aaf40d216c": [
+    {
+      "type": 0,
+      "value": "It isn’t a valid .tldr file."
+    }
+  ],
   "ab0df9ba36": [
     {
       "type": 0,
@@ -1670,6 +1676,20 @@
     {
       "type": 0,
       "value": "OK"
+    }
+  ],
+  "e0b2269586": [
+    {
+      "type": 0,
+      "value": "Couldn’t import "
+    },
+    {
+      "type": 1,
+      "value": "fileName"
+    },
+    {
+      "type": 0,
+      "value": "."
     }
   ],
   "e2198d6228": [
