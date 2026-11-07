@@ -183,8 +183,9 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 	}
 
 	const handleLoadedData = useCallback(() => setLoadedUrl(url), [url])
-	// A missing or unreachable file fires `error` on the <source>, not on the <video>; the
-	// <video> only fires it for decode failures such as an unsupported codec.
+	// A missing or unreachable file fires `error` on the <source>, not on the <video>. The DOM
+	// event doesn't bubble, but React propagates it up the component tree, so this one handler on
+	// the <video> catches those as well as its own errors (decode failures, mid-playback drops).
 	const handleError = useCallback(() => setFailedUrl(url), [url])
 
 	const [isFullscreen, setIsFullscreen] = useState(false)
@@ -257,7 +258,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									hidden={!isLoaded}
 									aria-label={shape.props.altText}
 								>
-									<source src={url} onError={handleError} />
+									<source src={url} />
 								</video>
 								{!isLoaded && Spinner && <Spinner />}
 							</>
