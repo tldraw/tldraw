@@ -91,7 +91,12 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	isDisposed = false
 
 	/** @internal */
-	readonly _reconnectManager: ReconnectManager
+	_reconnectManager: ReconnectManager
+
+	// Set after a fatal error tore down the reconnect manager; only an explicit restart() re-arms it.
+	private _stoppedOnError = false
+
+	private readonly getUri: () => Promise<string> | string
 
 	/**
 	 * Permanently closes the WebSocket adapter and disposes of all resources.
@@ -102,14 +107,18 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	//       can only be garbage collected, and can't be used anymore)
 	close() {
 		this.isDisposed = true
+		this._teardown()
+		this._connectionStatus.set('offline')
+	}
+
+	private _teardown() {
 		this._reconnectManager.close()
 		// orphan the socket before closing it (as _closeSocket does) so its onclose can't run
-		// _handleDisconnect after disposal — that would notify listeners and schedule a reconnect
+		// _handleDisconnect after teardown — that would notify listeners and schedule a reconnect
 		const ws = this._ws
 		this._ws = null
 		//  WebSocket.close() is idempotent
 		ws?.close()
-		this._connectionStatus.set('offline')
 	}
 
 	/**
@@ -121,6 +130,7 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	 *                 allowing for dynamic URI generation (e.g., for authentication tokens).
 	 */
 	constructor(getUri: () => Promise<string> | string) {
+		this.getUri = getUri
 		this._reconnectManager = new ReconnectManager(this, getUri)
 	}
 
@@ -167,6 +177,18 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 			)
 		}
 
+		const isFatal = newStatus === 'error'
+		if (isFatal) {
+			// The server rejected the session and TLSyncClient closes itself on 'error', so a
+			// reconnect would only be rejected again, forever, unless the host closed us (#11363).
+			// This must not depend on the CW4 notify guard below: a 4099 close arriving while
+			// already 'offline' is still fatal. Tear down before notifying so a listener that
+			// throws or re-enters the adapter can't skip or undo it. The socket may still be open
+			// (the oversized-message path), so the teardown closes it too.
+			this._stoppedOnError = true
+			this._teardown()
+		}
+
 		if (
 			// it the status changed
 			this.connectionStatus !== newStatus &&
@@ -177,20 +199,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 			this.statusListeners.forEach((cb) =>
 				cb(newStatus === 'error' ? { status: 'error', reason: closeReason } : { status: newStatus })
 			)
-
-			if (newStatus === 'error') {
-				// The server rejected the session and TLSyncClient closes itself on 'error', so a
-				// reconnect would only be rejected again, forever, unless the host closed us (#11363).
-				// The socket may still be open (the oversized-message path), so close it too.
-				this._reconnectManager.close()
-				const ws = this._ws
-				this._ws = null
-				ws?.close()
-				return
-			}
 		}
 
-		this._reconnectManager.disconnected()
+		if (!isFatal) this._reconnectManager.disconnected()
 	}
 
 	_setNewSocket(ws: WebSocket) {
@@ -391,6 +402,10 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	 * This closes the current connection (if any) and attempts to establish a new one.
 	 * Useful for implementing connection loss detection and recovery.
 	 *
+	 * After a fatal sync error (status `'error'`) the adapter stops reconnecting on its own;
+	 * calling `restart()` is the only way to make it reconnect, for example after refreshing
+	 * the auth token that `getUri` returns.
+	 *
 	 * @example
 	 * ```ts
 	 * // Restart connection after detecting it's stale
@@ -402,6 +417,14 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	restart() {
 		assert(!this.isDisposed, 'Tried to restart a disposed socket')
 		debug('restarting')
+
+		if (this._stoppedOnError) {
+			// An explicit restart after a fatal error is the host retrying, e.g. with a refreshed
+			// auth token from getUri, so re-arm reconnection; automatic hints stay inert until then.
+			this._stoppedOnError = false
+			this._reconnectManager = new ReconnectManager(this, this.getUri)
+			return
+		}
 
 		this._closeSocket()
 		this._reconnectManager.maybeReconnected()
