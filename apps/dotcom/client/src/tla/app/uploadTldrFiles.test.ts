@@ -140,4 +140,22 @@ describe('uploadTldrFiles', () => {
 			})
 		)
 	})
+
+	it('calls onUploadError once and stops when the app is disposed mid-import', async () => {
+		const { app, uploadTldrFile, addToast } = createAppStub({
+			ownedFileCount: 0,
+			maxNumberOfFiles: 200,
+		})
+		uploadTldrFile.mockImplementation(async () => {
+			;(app as any).abortController.abort()
+			return { ok: false, error: 'aborted' } as any
+		})
+		const onUploadError = vi.fn()
+
+		await app.uploadTldrFiles(makeFiles(3), { source: 'file-drop', onUploadError })
+
+		expect(uploadTldrFile).toHaveBeenCalledTimes(1)
+		expect(onUploadError).toHaveBeenCalledTimes(1)
+		expect(addToast).not.toHaveBeenCalled()
+	})
 })

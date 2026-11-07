@@ -1396,10 +1396,10 @@ export class TldrawApp {
 			})
 
 			if (!res.ok) {
-				// Disposing the app aborts every remaining upload, so don't toast each of them.
-				if (this.abortController.signal.aborted) return
-				console.error(res.error)
 				didFail = true
+				// Disposing the app aborts every remaining upload, so don't toast each of them.
+				if (this.abortController.signal.aborted) break
+				console.error(res.error)
 				this.toasts?.addToast({
 					severity: 'error',
 					title: this.msg(this.messages.could_not_import_tldr_file, { fileName: f.name }),
@@ -1425,7 +1425,9 @@ export class TldrawApp {
 
 		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 
+		// importFromUrl waits on a promise that only this or onFirstFileUploaded settles.
 		if (didFail) onUploadError?.()
+		if (this.abortController.signal.aborted) return
 
 		if (totalFiles > 1 && createdFiles > 0) {
 			this.toasts?.addToast({
