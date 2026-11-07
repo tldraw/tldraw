@@ -75,3 +75,17 @@ it('closes itself when the shape is deselected while the dialog is open', async 
 
 	await expectDialogClosed()
 })
+
+it('does not save an invalid url when Enter is pressed', async () => {
+	editor = await renderWithOpenDialog()
+	const input = document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
+
+	fireEvent.change(input, { target: { value: 'foo bar' } })
+	expect(screen.getByText('A link must be a valid URL.')).toBeTruthy()
+
+	fireEvent.keyDown(input, { key: 'Enter' })
+	await act(async () => {})
+
+	expect(editor.getShape(shapeId)?.props).toMatchObject({ url: 'https://tldraw.com' })
+	expect(getDialogFrame()).not.toBeNull()
+})
