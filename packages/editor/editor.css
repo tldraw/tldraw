@@ -813,17 +813,17 @@ input,
 	/* `start`, not `left`: RTL list items need the marker on the right. */
 	text-align: start;
 	margin: 0;
-	padding-left: 1.625ch;
+	padding-inline-start: 1.625ch;
 	/* Some resets, like Tailwind, nix the list styling. */
 	list-style: revert;
 }
 
 .tl-rich-text ol:has(> li:nth-child(10)) {
-	padding-left: 2.625ch;
+	padding-inline-start: 2.625ch;
 }
 
 .tl-rich-text ol:has(> li:nth-child(100)) {
-	padding-left: 3.625ch;
+	padding-inline-start: 3.625ch;
 }
 
 .tl-rich-text h1,
