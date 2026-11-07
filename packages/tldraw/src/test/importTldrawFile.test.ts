@@ -3,12 +3,14 @@ import {
 	Box,
 	createBindingId,
 	createShapeId,
+	MediaHelpers,
 	TLAssetId,
 	TLImageShape,
 	TldrawOptions,
 	TLShape,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
+import { defaultAssetUtils } from '../lib/defaultAssetUtils'
 import { defaultHandleExternalFileContent } from '../lib/defaultExternalContentHandlers'
 import { serializeTldrawJson } from '../lib/utils/tldr/file'
 import { TestEditor } from './TestEditor'
@@ -27,7 +29,7 @@ function makeOptions() {
 
 function createEditor(options: Partial<TldrawOptions> = {}) {
 	editor?.dispose()
-	editor = new TestEditor({ options })
+	editor = new TestEditor({ options, assetUtils: defaultAssetUtils })
 	vi.spyOn(editor, 'getAssetForExternalContent').mockImplementation(async (info) => {
 		if (info.type !== 'file') return undefined
 		return AssetRecordType.create({
@@ -45,7 +47,6 @@ function createEditor(options: Partial<TldrawOptions> = {}) {
 	})
 }
 
-/** Build a .tldr file from a source editor set up by `setup`. */
 async function makeTldrFile(setup: (source: TestEditor) => void) {
 	const source = new TestEditor()
 	setup(source)
@@ -74,6 +75,7 @@ beforeEach(() => {
 afterEach(() => {
 	editor?.dispose()
 	vi.restoreAllMocks()
+	vi.unstubAllGlobals()
 })
 
 describe('dropping a single-page .tldr file', () => {
@@ -152,10 +154,10 @@ describe('dropping a single-page .tldr file', () => {
 		await drop(file)
 
 		const arrow = editor.getCurrentPageShapes().find((s) => s.type === 'arrow')!
-		const boundIds = editor
+		const boundTypes = editor
 			.getBindingsFromShape(arrow, 'arrow')
 			.map((b) => editor.getShape(b.toId)?.type)
-		expect(boundIds).toEqual(['geo', 'geo'])
+		expect(boundTypes).toEqual(['geo', 'geo'])
 	})
 
 	it('uploads embedded images instead of keeping them as data urls', async () => {
@@ -193,6 +195,35 @@ describe('dropping a single-page .tldr file', () => {
 		const image = editor.getCurrentPageShapes()[0] as TLImageShape
 		expect(image.props.assetId).toBe(assetId)
 		expect(editor.getAssetForExternalContent).toHaveBeenCalledTimes(1)
+	})
+
+	it('moves locked shapes into place along with the rest', async () => {
+		editor.createShapes([geo(0, 0, 1000, 1000)])
+		const file = await makeTldrFile((source) => {
+			source.createShapes([{ ...geo(0, 0), isLocked: true }, geo(200, 0)])
+		})
+
+		await drop(file, { x: 500, y: 300 })
+
+		const imported = editor.getCurrentPageShapes().slice(1)
+		expect(imported).toHaveLength(2)
+		expect(pageBoundsOf(imported)).toMatchObject({ x: 1100, y: 0, w: 300, h: 100 })
+	})
+
+	it('places other dropped files first and the imported content beside them', async () => {
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 200, h: 200, pixelRatio: 1 })
+		const image = new File(['img'], 'img.png', { type: 'image/png' })
+		const tldr = await makeTldrFile((source) => {
+			source.createShapes([geo(0, 0)])
+		})
+
+		await drop([tldr, image], { x: 500, y: 300 })
+
+		const shapes = editor.getCurrentPageShapes()
+		expect(shapes.map((s) => s.type).sort()).toEqual(['geo', 'image'])
+		const [a, b] = shapes.map((s) => editor.getShapePageBounds(s)!)
+		expect(a.collides(b)).toBe(false)
 	})
 
 	it('adds the file as a new page when it would go over the shape limit', async () => {
@@ -241,6 +272,25 @@ describe('dropping a multi-page .tldr file', () => {
 		})
 	})
 
+	it('imports nothing when one of its pages has more shapes than the limit', async () => {
+		createEditor({ maxShapesPerPage: 2 })
+		const file = await makeTldrFile((source) => {
+			source.createShapes([geo(0, 0)])
+			source.createPage({ name: 'Second' })
+			source.setCurrentPage(source.getPages()[1].id)
+			source.createShapes([geo(0, 0), geo(200, 0), geo(400, 0)])
+		})
+
+		await drop(file)
+
+		expect(editor.getPages()).toHaveLength(1)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'file-system.import-error.title',
+			description: 'file-system.import-error.too-many-shapes {"max":2}',
+			severity: 'error',
+		})
+	})
+
 	it('imports nothing and shows an error when it would go over the page limit', async () => {
 		createEditor({ maxPages: 2 })
 		const file = await makeTldrFile((source) => {
@@ -260,14 +310,19 @@ describe('dropping a multi-page .tldr file', () => {
 	})
 })
 
-it('shows an error for a .tldr file that is not a tldraw file', async () => {
-	await drop(new File(['nope'], 'broken.tldr'))
+describe('dropping an invalid .tldr file', () => {
+	it('shows an error and imports nothing', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.stubGlobal('reportError', vi.fn())
 
-	expect(editor.getCurrentPageShapes()).toHaveLength(0)
-	expect(addToast).toHaveBeenCalledWith({
-		title: 'file-system.import-error.title',
-		description: 'file-system.file-open-error.not-a-tldraw-file',
-		severity: 'error',
+		await drop(new File(['nope'], 'broken.tldr'))
+
+		expect(editor.getCurrentPageShapes()).toHaveLength(0)
+		expect(addToast).toHaveBeenCalledWith({
+			title: 'file-system.import-error.title',
+			description: 'file-system.file-open-error.not-a-tldraw-file',
+			severity: 'error',
+		})
 	})
 })
 
@@ -326,6 +381,8 @@ describe('dropping several .tldr files at once', () => {
 	})
 
 	it('still imports the good files when one cannot be parsed', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+		vi.stubGlobal('reportError', vi.fn())
 		await drop([new File(['nope'], 'broken.tldr'), await onePage()])
 
 		expect(editor.getCurrentPageShapes()).toHaveLength(1)

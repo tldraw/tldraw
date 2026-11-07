@@ -458,12 +458,21 @@ export async function defaultHandleExternalFileContent(
 			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
 
-	const tldrawFiles = files.filter(isTldrawFile)
+	const tldrawFiles: File[] = []
+	const otherFiles: File[] = []
+	for (const file of files) (isTldrawFile(file) ? tldrawFiles : otherFiles).push(file)
 	if (tldrawFiles.length) {
-		await importTldrawFiles(editor, { files: tldrawFiles, point }, options)
+		// Place the other files first, so the imported content lands beside them rather than on top
+		if (otherFiles.length) {
+			await defaultHandleExternalFileContent(
+				editor,
+				{ point: position, files: otherFiles },
+				options
+			)
+		}
+		await importTldrawFiles(editor, { files: tldrawFiles, point: position }, options)
+		return
 	}
-	files = files.filter((file) => !isTldrawFile(file))
-	if (!files.length) return
 
 	const pagePoint = new Vec(position.x, position.y)
 	const assetPartials: TLAsset[] = []

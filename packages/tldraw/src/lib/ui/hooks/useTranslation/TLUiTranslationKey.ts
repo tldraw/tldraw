@@ -287,6 +287,7 @@ export type TLUiTranslationKey =
 	| 'file-system.file-open-error.title'
 	| 'file-system.import-error.title'
 	| 'file-system.import-error.too-many-pages'
+	| 'file-system.import-error.too-many-shapes'
 	| 'file-system.imported-pages'
 	| 'file-system.shared-document-file-open-error.description'
 	| 'file-system.shared-document-file-open-error.title'

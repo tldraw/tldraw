@@ -283,6 +283,7 @@
 	"file-system.file-open-error.title": "Could not open file",
 	"file-system.import-error.title": "Could not import file",
 	"file-system.import-error.too-many-pages": "Importing this file would go over the limit of {max} pages.",
+	"file-system.import-error.too-many-shapes": "A page in this file has more than {max} shapes.",
 	"file-system.imported-pages": "Imported {count, plural, one {# page} other {# pages}}.",
 	"file-system.shared-document-file-open-error.description": "Opening files from shared projects is not supported.",
 	"file-system.shared-document-file-open-error.title": "Could not open file",

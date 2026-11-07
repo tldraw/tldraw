@@ -32,6 +32,7 @@ import {
 	TLShape,
 	TLShapeId,
 	TLStore,
+	TLUser,
 	TLVideoAsset,
 	transact,
 	UnknownRecord,
@@ -65,6 +66,10 @@ const messages = defineMessages({
 	fileSystemImportErrorTitle: {
 		id: 'file-system.import-error.title',
 		defaultMessage: 'Could not import file',
+	},
+	fileSystemImportErrorTooManyShapes: {
+		id: 'file-system.import-error.too-many-shapes',
+		defaultMessage: 'A page in this file has more than {max} shapes.',
 	},
 	fileSystemImportErrorTooManyPages: {
 		id: 'file-system.import-error.too-many-pages',
@@ -413,8 +418,9 @@ async function extractAssets(
 	)
 }
 
-/** Empty space kept between imported content and the shapes already on the page. */
 const IMPORT_GAP = 100
+// Far enough right of the page's content that staged shapes can't overlap it
+const IMPORT_STAGING_OFFSET = 100_000
 
 /**
  * Import the contents of dropped `.tldr` files into the editor's current document. A single-page
@@ -427,12 +433,11 @@ const IMPORT_GAP = 100
  */
 export async function importTldrawFiles(
 	editor: Editor,
-	{ files, point }: { files: File[]; point?: VecLike },
+	{ files, point }: { files: File[]; point: VecLike },
 	{ toasts, msg }: Pick<TLDefaultExternalContentHandlerOpts, 'toasts' | 'msg'>
 ) {
 	if (editor.getIsReadonly()) return
 
-	// A file that can't be parsed is reported and skipped; the others still import.
 	const parsedFiles: { pages: TLPage[]; contents: TLContent[] }[] = []
 	for (const file of files) {
 		const parseResult = parseTldrawJsonFile({
@@ -442,7 +447,7 @@ export async function importTldrawFiles(
 		if (!parseResult.ok) {
 			toasts.addToast({
 				title: msg(messages.fileSystemImportErrorTitle.id),
-				description: getImportErrorDescription(parseResult.error, msg),
+				description: getImportErrorDescription(editor, parseResult.error, msg),
 				severity: 'error',
 			})
 			continue
@@ -475,6 +480,18 @@ export async function importTldrawFiles(
 
 	if (!contentForCurrentPage.length && !pagesToAdd.length) return
 
+	// putContentOntoCurrentPage would refuse these, leaving an empty page behind
+	if (pagesToAdd.some(({ content }) => content.shapes.length > editor.options.maxShapesPerPage)) {
+		toasts.addToast({
+			title: msg(messages.fileSystemImportErrorTitle.id),
+			description: msg(messages.fileSystemImportErrorTooManyShapes.id, {
+				max: editor.options.maxShapesPerPage,
+			}),
+			severity: 'error',
+		})
+		return
+	}
+
 	if (editor.getPages().length + pagesToAdd.length > editor.options.maxPages) {
 		toasts.addToast({
 			title: msg(messages.fileSystemImportErrorTitle.id),
@@ -486,40 +503,44 @@ export async function importTldrawFiles(
 		return
 	}
 
-	editor.run(() => {
-		editor.markHistoryStoppingPoint('import tldraw files')
+	// Locked shapes in the file still have to move into place
+	editor.run(
+		() => {
+			editor.markHistoryStoppingPoint('import tldraw files')
 
-		const placedIds: TLShapeId[] = []
-		for (const content of contentForCurrentPage) {
-			placedIds.push(...putContentInEmptySpace(editor, content, point))
-		}
-
-		if (pagesToAdd.length) {
-			const originalPageId = editor.getCurrentPageId()
-			for (const { page, content } of pagesToAdd) {
-				const newPageId = PageRecordType.createId()
-				editor.createPage({ id: newPageId, name: page.name, meta: page.meta })
-				editor.setCurrentPage(newPageId)
-				if (content.shapes.length === 0) continue
-				editor.putContentOntoCurrentPage(content, { preservePosition: true })
-				// The new page's camera starts at the origin, which may be nowhere near the content.
-				const bounds = editor.getCurrentPageBounds()
-				if (bounds) editor.zoomToBounds(bounds, { targetZoom: 1, immediate: true })
+			const placedIds: TLShapeId[] = []
+			for (const content of contentForCurrentPage) {
+				placedIds.push(...putContentInEmptySpace(editor, content, point))
 			}
-			editor.setCurrentPage(originalPageId)
-		}
 
-		if (placedIds.length) {
-			editor.select(...placedIds)
-			const bounds = editor.getSelectionPageBounds()
-			if (bounds) {
-				editor.zoomToBounds(bounds, {
-					targetZoom: 1,
-					animation: { duration: editor.options.animationMediumMs },
-				})
+			if (pagesToAdd.length) {
+				const originalPageId = editor.getCurrentPageId()
+				for (const { page, content } of pagesToAdd) {
+					const newPageId = PageRecordType.createId()
+					editor.createPage({ id: newPageId, name: page.name, meta: page.meta })
+					editor.setCurrentPage(newPageId)
+					if (content.shapes.length === 0) continue
+					editor.putContentOntoCurrentPage(content, { preservePosition: true })
+					// The new page's camera starts at the origin, which may be nowhere near the content.
+					const bounds = editor.getCurrentPageBounds()
+					if (bounds) editor.zoomToBounds(bounds, { targetZoom: 1, immediate: true })
+				}
+				editor.setCurrentPage(originalPageId)
 			}
-		}
-	})
+
+			if (placedIds.length) {
+				editor.select(...placedIds)
+				const bounds = editor.getSelectionPageBounds()
+				if (bounds) {
+					editor.zoomToBounds(bounds, {
+						targetZoom: 1,
+						animation: { duration: editor.options.animationMediumMs },
+					})
+				}
+			}
+		},
+		{ ignoreShapeLock: true }
+	)
 
 	if (pagesToAdd.length) {
 		toasts.addToast({
@@ -530,9 +551,18 @@ export async function importTldrawFiles(
 }
 
 function getImportErrorDescription(
+	editor: Editor,
 	error: TldrawFileParseError,
 	msg: TLDefaultExternalContentHandlerOpts['msg']
 ) {
+	if (error.type === 'notATldrawFile' || error.type === 'invalidRecords') {
+		editor.annotateError(error.cause, {
+			origin: 'file-system.import.parse',
+			willCrashApp: false,
+			tags: { parseErrorType: error.type },
+		})
+		reportError(error.cause)
+	}
 	switch (error.type) {
 		case 'fileFormatVersionTooNew':
 			return msg(messages.fileSystemFileOpenErrorFileFormatVersionTooNew.id)
@@ -574,8 +604,7 @@ function getPageContent(editor: Editor, records: TLRecord[], pageId: TLPageId): 
 	const shapeIds = new Set<string>(shapes.map((s) => s.id))
 	const assetIds = new Set<string>()
 	for (const shape of shapes) {
-		const assetId = (shape.props as { assetId?: unknown }).assetId
-		if (typeof assetId === 'string') assetIds.add(assetId)
+		if ('assetId' in shape.props && shape.props.assetId) assetIds.add(shape.props.assetId)
 	}
 
 	return {
@@ -588,6 +617,8 @@ function getPageContent(editor: Editor, records: TLRecord[], pageId: TLPageId): 
 				r.typeName === 'binding' && shapeIds.has(r.fromId) && shapeIds.has(r.toId)
 		),
 		assets: records.filter((r): r is TLAsset => r.typeName === 'asset' && assetIds.has(r.id)),
+		// Notes are attributed to users; putContentOntoCurrentPage only creates ones that are missing
+		users: records.filter((r): r is TLUser => r.typeName === 'user'),
 	}
 }
 
@@ -596,16 +627,16 @@ function getPageContent(editor: Editor, records: TLRecord[], pageId: TLPageId): 
  * if that space is free, otherwise to the right of everything on the page. Returns the ids of
  * the root shapes it placed.
  */
-function putContentInEmptySpace(editor: Editor, content: TLContent, point?: VecLike): TLShapeId[] {
+function putContentInEmptySpace(editor: Editor, content: TLContent, point: VecLike): TLShapeId[] {
 	const occupied = compact(
 		editor.getCurrentPageShapes().map((shape) => editor.getShapePageBounds(shape))
 	)
 	const pageBounds = editor.getCurrentPageBounds()
-	const target = Vec.From(point ?? editor.getViewportPageBounds().center)
+	const target = Vec.From(point)
 
 	// We can't measure the content until its shapes exist, so put it somewhere far from
 	// everything first. Putting it on top of existing shapes could reparent it into a frame.
-	const staging = new Vec((pageBounds?.maxX ?? 0) + 100_000, pageBounds?.midY ?? 0)
+	const staging = new Vec((pageBounds?.maxX ?? 0) + IMPORT_STAGING_OFFSET, pageBounds?.midY ?? 0)
 	editor.selectNone()
 	editor.putContentOntoCurrentPage(content, { point: staging, select: true })
 
