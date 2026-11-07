@@ -190,6 +190,28 @@ describe('VideoShapeUtil loading state', () => {
 
 		expect(container.querySelector('.tl-spinner')).toBeNull()
 		expect(container.querySelector('video')).toBeNull()
+		expect(container.querySelector('svg')).toBeTruthy()
+		expect(container.style.backgroundColor).toBe(LOADING_BACKGROUND)
+		expect(container.style.border).toBe(LOADING_BORDER)
+	})
+
+	it('shows the broken-asset state on the loading plate when a loaded video errors', async () => {
+		await createLoadingVideo('http://localhost/video.mp4')
+
+		const container = getShapeContainer()
+		await act(async () => {
+			fireEvent.loadedData(container.querySelector('video')!)
+		})
+		expect(container.style.backgroundColor).toBe('transparent')
+
+		await act(async () => {
+			fireEvent.error(container.querySelector('video')!)
+		})
+
+		expect(container.querySelector('video')).toBeNull()
+		expect(container.querySelector('svg')).toBeTruthy()
+		expect(container.style.backgroundColor).toBe(LOADING_BACKGROUND)
+		expect(container.style.border).toBe(LOADING_BORDER)
 	})
 
 	it('shows the loading state again when the url changes', async () => {

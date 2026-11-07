@@ -209,7 +209,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		}
 	}, [isEditing, isLoaded])
 
-	const hasVideo = !!asset?.props.src && !!url && isLoaded
+	const hasVideo = !!asset?.props.src && !!url && isLoaded && !isFailed
 
 	return (
 		<>
