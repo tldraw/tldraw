@@ -39,6 +39,7 @@ import { putExcalidrawContent } from './utils/excalidraw/putExcalidrawContent'
 import { isShapeWithLink } from './utils/shapes/shapes'
 import { renderHtmlFromRichTextForMeasurement, renderRichTextFromHTML } from './utils/text/richText'
 import { cleanupText, isRightToLeftLanguage } from './utils/text/text'
+import { importTldrawFiles, TLDRAW_FILE_EXTENSION, TLDRAW_FILE_MIMETYPE } from './utils/tldr/file'
 
 const messages = defineMessages({
 	assetsFilesAmountTooMany: {
@@ -456,6 +457,13 @@ export async function defaultHandleExternalFileContent(
 		(editor.inputs.getShiftKey()
 			? editor.inputs.getCurrentPagePoint()
 			: editor.getViewportPageBounds().center)
+
+	const tldrawFiles = files.filter(isTldrawFile)
+	if (tldrawFiles.length) {
+		await importTldrawFiles(editor, { files: tldrawFiles, point }, options)
+	}
+	files = files.filter((file) => !isTldrawFile(file))
+	if (!files.length) return
 
 	const pagePoint = new Vec(position.x, position.y)
 	const assetPartials: TLAsset[] = []
@@ -918,6 +926,13 @@ export function createEmptyBookmarkShape(
 	})
 
 	return editor.getShape(partial.id) as TLBookmarkShape
+}
+
+function isTldrawFile(file: File) {
+	// Browsers don't know the .tldr extension, so dropped files usually have an empty type
+	return (
+		file.type === TLDRAW_FILE_MIMETYPE || file.name.toLowerCase().endsWith(TLDRAW_FILE_EXTENSION)
+	)
 }
 
 async function maybeSanitizeSvgFile(file: File): Promise<File | null> {
