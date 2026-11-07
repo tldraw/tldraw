@@ -19,6 +19,7 @@ export type TLUiTranslationKey =
 	| 'a11y.rotate-shape-cw-fine'
 	| 'a11y.select-shape'
 	| 'a11y.select-shape-direction'
+	| 'a11y.shape-group'
 	| 'a11y.shape-image'
 	| 'a11y.shape-index'
 	| 'a11y.shape-video'
