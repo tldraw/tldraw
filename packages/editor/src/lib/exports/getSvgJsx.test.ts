@@ -1,4 +1,13 @@
-import { Geometry2d, RecordProps, Rectangle2d, ShapeUtil, T, TLShape, createShapeId } from '../..'
+import {
+	BaseFrameLikeShapeUtil,
+	Geometry2d,
+	RecordProps,
+	Rectangle2d,
+	ShapeUtil,
+	T,
+	TLShape,
+	createShapeId,
+} from '../..'
 import { createTLStore } from '../config/createTLStore'
 import { Editor } from '../editor/Editor'
 import { Box } from '../primitives/Box'
@@ -859,5 +868,38 @@ describe('getExportDefaultBounds', () => {
 			expect(result.box?.w).toBe(100)
 			expect(result.box?.h).toBe(80)
 		})
+	})
+})
+
+// Deliberately not registered in TLGlobalShapePropsMap (test-only types leak into the api report)
+const FRAME_LIKE_TYPE = 'test-frame-like'
+
+class FrameLikeShape extends BaseFrameLikeShapeUtil<any> {
+	static override type = FRAME_LIKE_TYPE
+	static override props = { w: T.number, h: T.number }
+	getDefaultProps() {
+		return { w: 100, h: 100 }
+	}
+	getIndicatorPath() {
+		return undefined
+	}
+	component() {}
+}
+
+describe('exporting a single frame-like shape', () => {
+	it('does not need the default frame shape util to be registered', async () => {
+		const editor = new Editor({
+			shapeUtils: [FrameLikeShape],
+			bindingUtils: [],
+			tools: [],
+			store: createTLStore({ shapeUtils: [FrameLikeShape], bindingUtils: [] }),
+			getContainer: () => document.body,
+		})
+		const id = createShapeId('frame-like')
+		editor.createShape({ id, type: FRAME_LIKE_TYPE, x: 0, y: 0, props: { w: 100, h: 100 } } as any)
+
+		const result = await editor.getSvgElement([id], { background: true })
+		expect(result?.svg.style.backgroundColor).not.toBe('')
+		expect(result?.svg.style.backgroundColor).not.toBe('transparent')
 	})
 })

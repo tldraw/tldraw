@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { createMermaidDiagram } from '@tldraw/mermaid'
 import { useEffect, useLayoutEffect } from 'react'
 import {
@@ -20,6 +19,7 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { EndToEndApi } from './EndToEndApi'
+import { checkMermaidReadability } from './mermaidReadability'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
 
@@ -65,12 +65,16 @@ function HtmlCssShapeComponent({ shape }: { shape: HtmlCssShape }) {
 	return <div id={id} dangerouslySetInnerHTML={{ __html: shape.props.html }} />
 }
 
+// A watermarked key, so e2e runs on localhost render the licensed watermark that the overlay
+// snapshots and the "Watermarked license" test expect. Without a key, dev mode shows the larger
+// unlicensed watermark instead.
+const E2E_LICENSE_KEY =
+	'tldraw-tldraw-2027-07-10/WyJ2UFhWM3pQXyIsWyIqLnRsZHJhdy5jb20iLCIqLnRsZHJhdy5kZXYiLCIqLnRsZHJhdy5jbHViIiwiKi50bGRyYXcud29ya2Vycy5kZXYiXSw3MywiMjAyNy0wNy0xMCJd.FrzdF5VBeeeGIqQELpXvNAyIy/Ow9ZJJT5qkuRD42atd5FyhlR0xYasIZvaQcG9tSAFgjq8DMcc/yopspHmWyw'
+
 export default function EndToEnd() {
-	// Use test license key if available, otherwise use the default
-	// Check if __TLDRAW_LICENSE_KEY__ was explicitly set (including null/undefined/empty string)
-	const testLicenseKey = (window as any).__TLDRAW_LICENSE_KEY__
+	// Licensing tests set __TLDRAW_LICENSE_KEY__, including to null/undefined/'', to override the default
 	const hasExplicitTestKey = Object.prototype.hasOwnProperty.call(window, '__TLDRAW_LICENSE_KEY__')
-	const licenseKey = hasExplicitTestKey ? testLicenseKey : getLicenseKey()
+	const licenseKey = hasExplicitTestKey ? (window as any).__TLDRAW_LICENSE_KEY__ : E2E_LICENSE_KEY
 
 	useLayoutEffect(() => {
 		if (customElements.get('custom-element')) return
@@ -162,6 +166,7 @@ function SneakyExportButton() {
 					},
 				})
 			},
+			checkMermaidReadability: (definition: string) => checkMermaidReadability(editor, definition),
 			toRichText: (text: string) => toRichText(text),
 			preloadFonts: async () => {
 				// Load every default font face up front. Text geometry is measured from the

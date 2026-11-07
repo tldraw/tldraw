@@ -1,9 +1,10 @@
-import { useAuth } from '@clerk/clerk-react'
+import { useAuth } from '@clerk/react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
@@ -25,7 +26,6 @@ import { useMaybeApp } from '../../hooks/useAppState'
 import { UI_THEMES } from '../../themes/ui-themes'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import { defineMessages, isInternalLocale, useMsg } from '../../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
@@ -59,23 +59,29 @@ const messages = defineMessages({
 	colorThemeDefault: { defaultMessage: 'Default' },
 	// debug
 	appDebugFlags: { defaultMessage: 'App debug flags' },
-	langAccented: { defaultMessage: 'i18n: Accented' },
-	langLongString: { defaultMessage: 'i18n: Long String' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
 export function SignOutMenuItem() {
+	const msg = useTranslation()
 	const auth = useAuth()
+	const app = useMaybeApp()
 
 	const trackEvent = useTldrawAppUiEvents()
 
-	const label = useMsg(messages.signOut)
-
 	const handleSignout = useCallback(() => {
 		signoutAnalytics()
-		auth.signOut().then(resetLocalSessionStateButKeepTheme)
+		auth
+			.signOut()
+			.then(async () => {
+				resetLocalSessionStateButKeepTheme()
+				// After sign-out rather than before: an IndexedDB delete waits for every connection to
+				// the database to close, and other tabs only drop theirs once Clerk propagates sign-out.
+				await app?.deleteLocalData()
+			})
+			.catch((err) => console.error('Sign out failed:', err))
 		trackEvent('sign-out-clicked', { source: 'sidebar' })
-	}, [auth, trackEvent])
+	}, [auth, app, trackEvent])
 
 	if (!auth.isSignedIn) return
 	return (
@@ -84,7 +90,7 @@ export function SignOutMenuItem() {
 				id="sign-out"
 				data-testid="tla-user-sign-out"
 				onSelect={handleSignout}
-				label={label}
+				label={msg(messages.signOut)}
 				readonlyOk
 			/>
 		</TldrawUiMenuGroup>
@@ -175,64 +181,35 @@ function UIThemeMenuCheckboxItem({
 	)
 }
 
-export function UIThemeSubmenu() {
+function useUIThemeIds() {
 	const editor = useMaybeEditor()
-	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
-	const trackEvent = useTldrawAppUiEvents()
-	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const colorThemeLabel = useMsg(messages.colorTheme)
-	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
+	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
+}
 
-	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
-		editor,
-	])
+export function UIThemeSubmenu() {
+	const msg = useTranslation()
+	const themeIds = useUIThemeIds()
 
-	useEffect(() => clearThemePreview, [clearThemePreview])
-
-	if (!editor || themeIds.length === 0) return null
+	if (themeIds.length === 0) return null
 
 	return (
-		<TldrawUiMenuSubmenu id="ui-theme" label={colorThemeLabel}>
-			<div
-				className="tlui-menu__group"
-				onPointerCancel={clearThemePreview}
-				onPointerLeave={clearThemePreview}
-			>
-				{themeIds.map((id) => (
-					<UIThemeMenuCheckboxItem
-						key={id}
-						label={id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id)}
-						checked={colorTheme === id}
-						onPreview={() => setColorThemePreview(id)}
-						onSelect={() => {
-							updateLocalSessionState(() => ({ colorTheme: id }))
-							clearThemePreview()
-							trackEvent('set-color-theme', {
-								source: 'user-preferences',
-								theme: id,
-							})
-						}}
-					/>
-				))}
-			</div>
+		<TldrawUiMenuSubmenu id="ui-theme" label={msg(messages.colorTheme)}>
+			<UIThemeMenuGroup />
 		</TldrawUiMenuSubmenu>
 	)
 }
 
 function UIThemeMenuGroup() {
-	const editor = useMaybeEditor()
+	const msg = useTranslation()
 	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const trackEvent = useTldrawAppUiEvents()
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const defaultThemeLabel = useMsg(messages.colorThemeDefault)
-
-	const themeIds = useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [
-		editor,
-	])
+	const defaultThemeLabel = msg(messages.colorThemeDefault)
+	const themeIds = useUIThemeIds()
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
 
-	if (!editor || themeIds.length === 0) return null
+	if (themeIds.length === 0) return null
 
 	return (
 		<div
@@ -275,11 +252,12 @@ export function ThemeSubmenu() {
 }
 
 export function CookieConsentMenuItem() {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
 			id="cookie-consent"
-			label={useMsg(messages.manageCookies)}
+			label={msg(messages.manageCookies)}
 			readonlyOk
 			onSelect={() => {
 				addDialog({ component: () => <TlaManageCookiesDialog /> })
@@ -289,11 +267,12 @@ export function CookieConsentMenuItem() {
 }
 
 export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
-			label={useMsg(messages.getHelp)}
+			label={msg(messages.getHelp)}
 			iconLeft={icon ? 'manual' : undefined}
 			readonlyOk
 			onSelect={() => {
@@ -304,11 +283,12 @@ export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
 }
 
 export function GiveUsFeedbackMenuItem() {
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	return (
 		<TldrawUiMenuItem
 			id="give-us-feedback"
-			label={useMsg(messages.submitFeedback)}
+			label={msg(messages.submitFeedback)}
 			iconLeft="comment"
 			readonlyOk
 			onSelect={() => {
@@ -319,11 +299,12 @@ export function GiveUsFeedbackMenuItem() {
 }
 
 export function LegalSummaryMenuItem() {
+	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="tos"
-			label={useMsg(messages.legalSummary)}
+			label={msg(messages.legalSummary)}
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('/legal.html')
@@ -333,25 +314,25 @@ export function LegalSummaryMenuItem() {
 }
 
 export function ImportFileActionItem() {
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
 	const app = useMaybeApp()
 
 	const navigate = useNavigate()
 
-	const importFileMsg = useMsg(messages.importFile)
 	const rejectTldrawOfflineFiles = useRejectTldrawOfflineFiles()
 
 	return (
 		<TldrawUiMenuItem
-			id="about"
-			label={importFileMsg}
+			id="import-file"
+			label={msg(messages.importFile)}
 			readonlyOk
 			onSelect={async () => {
 				const editor = getCurrentEditor()
 				if (!editor) return
 				if (!app) return
 
-				trackEvent('import-tldr-file', { source: 'account-menu' })
+				trackEvent('import-tldr-file', { source: 'file-menu' })
 
 				try {
 					// tldraw offline files are selectable so that we can explain why we can't open them
@@ -366,7 +347,7 @@ export function ImportFileActionItem() {
 					if (!tldrawFiles.length) return
 
 					app.uploadTldrFiles(tldrawFiles, {
-						source: 'account-menu',
+						source: 'file-menu',
 						onFirstFileUploaded: (fileId) => {
 							navigate(routes.tlaFile(fileId), { state: { mode: 'create' } })
 						},
@@ -393,59 +374,30 @@ export function DebugMenuGroup() {
 }
 
 export function DebugSubmenu() {
-	const editor = useMaybeEditor()
-	const appFlagsLbl = useMsg(messages.appDebugFlags)
+	const msg = useTranslation()
 
 	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
 		document.body.classList.contains('tla-lang-highlight-missing')
 	)
-	const debugLanguageFlags = [
-		{ name: useMsg(messages.langAccented), locale: 'xx-AE' },
-		{ name: useMsg(messages.langLongString), locale: 'xx-LS' },
-		{ name: useMsg(messages.langHighlightMissing), locale: 'xx-MS' },
-	]
-
-	// Remember the user's real locale so an internal debug locale can be toggled back off.
-	// Falls back to 'en' if we load already stuck in a debug locale.
-	const previousLocale = useRef('en')
-	const currentLocale = editor?.user.getLocale() ?? 'en'
-	if (!isInternalLocale(currentLocale)) {
-		previousLocale.current = currentLocale
-	}
 
 	useEffect(() => {
 		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
 	}, [shouldHighlightMissing])
 
+	const highlightMissingLbl = msg(messages.langHighlightMissing)
+
 	return (
-		<TldrawUiMenuSubmenu id="debug" label={appFlagsLbl}>
+		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags)}>
 			<TldrawUiMenuGroup id="debug app flags">
-				{debugLanguageFlags.map((flag) => (
-					<TldrawUiMenuCheckboxItem
-						key={flag.name}
-						id={flag.name}
-						title={flag.name}
-						label={flag.name
-							.replace(/([a-z0-9])([A-Z])/g, (m) => `${m[0]} ${m[1].toLowerCase()}`)
-							.replace(/^[a-z]/, (m) => m.toUpperCase())}
-						checked={
-							flag.locale === 'xx-MS'
-								? shouldHighlightMissing
-								: editor?.user.getLocale() === flag.locale
-						}
-						onSelect={() => {
-							if (flag.locale === 'xx-MS') {
-								setShouldHighlightMissing(!shouldHighlightMissing)
-							} else {
-								// Selecting the active locale again restores the user's real language.
-								const isActive = editor?.user.getLocale() === flag.locale
-								editor?.user.updateUserPreferences({
-									locale: isActive ? previousLocale.current : flag.locale,
-								})
-							}
-						}}
-					/>
-				))}
+				{/* Shadows every string the UI rendered without going through `F`, which is what
+				    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
+				<TldrawUiMenuCheckboxItem
+					id="highlight-missing"
+					title={highlightMissingLbl}
+					label={highlightMissingLbl}
+					checked={shouldHighlightMissing}
+					onSelect={() => setShouldHighlightMissing(!shouldHighlightMissing)}
+				/>
 			</TldrawUiMenuGroup>
 		</TldrawUiMenuSubmenu>
 	)

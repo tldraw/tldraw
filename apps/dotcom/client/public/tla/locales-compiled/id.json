@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Seret file ke bilah samping di halaman ini atau pilih opsi 'Impor file' dari menu pengguna."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -253,6 +247,12 @@
       "value": " berkomentar di papan Anda"
     }
   ],
+  "28b2464e1f": [
+    {
+      "type": 0,
+      "value": "Tidak dapat mengirimkan umpan balik."
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -269,6 +269,12 @@
     {
       "type": 0,
       "value": "Mencari..."
+    }
+  ],
+  "2d3cdcfdd4": [
+    {
+      "type": 0,
+      "value": "Silakan coba lagi."
     }
   ],
   "2de510be71": [
@@ -417,12 +423,6 @@
       "value": "Untuk melanjutkan pengeditan, salin berkas ke berkas Anda."
     }
   ],
-  "47839e47a5": [
-    {
-      "type": 0,
-      "value": "tldraw"
-    }
-  ],
   "47f493a590": [
     {
       "type": 0,
@@ -489,14 +489,10 @@
       "value": "Batas kolaborator terpenuhi"
     }
   ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
+  "550b25cc0c": [
     {
       "type": 0,
-      "value": " belum dibaca"
+      "value": "Gambar lokal Anda tidak dapat dipulihkan. Coba muat ulang halaman ini."
     }
   ],
   "554a05155c": [
@@ -918,20 +914,6 @@
       "value": "Muat ulang halaman untuk mendapatkan versi terbaru tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Menambahkan file "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": ".tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1062,6 +1044,12 @@
       "value": "Hapus file"
     }
   ],
+  "9c228b6834": [
+    {
+      "type": 0,
+      "value": "Anda tampaknya sedang offline. Periksa koneksi Anda dan coba lagi."
+    }
+  ],
   "9ccb565b86": [
     {
       "type": 0,
@@ -1104,6 +1092,27 @@
     {
       "type": 0,
       "value": "."
+    }
+  ],
+  "a0a19d5145": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " belum dibaca"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a0da245992": [
@@ -1278,6 +1287,12 @@
       "value": "Pemilik"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Seret file ke bilah sisi pada halaman ini. Atau pilih opsi 'Impor file' dari menu File di kiri atas."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1352,6 +1367,27 @@
       "value": "Pelajari lebih lanjut tentang berbagi."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " file .tldr ditambahkan."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1362,12 +1398,6 @@
     {
       "type": 0,
       "value": "Cookie penting"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Deret Panjang"
     }
   ],
   "c6a00f137b": [
@@ -1436,17 +1466,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1454,7 +1473,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " lainnya"
             }
           ]
         }
@@ -1652,12 +1671,6 @@
       "value": "Menu akun"
     }
   ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Beraksen"
-    }
-  ],
   "ed75712b0e": [
     {
       "type": 0,
@@ -1758,17 +1771,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1776,7 +1778,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " lainnya"
             }
           ]
         }

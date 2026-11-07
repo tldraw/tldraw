@@ -327,25 +327,44 @@ const commentRelationships = relationships(comment, ({ one, many }) => ({
 		destSchema: comment_thread,
 	}),
 	// singular name despite many() cardinality (one row per user): every consumer scopes it to
-	// one user and calls .one(), yielding at most one row (see the comments query). Always scope
+	// one user and calls .one(), yielding at most one row (see withFeedRelations). Always scope
 	// it to ctx.userId in synced queries — unscoped it replicates every user's receipts.
 	read: many({
 		sourceField: ['id'],
 		destField: ['commentId'],
 		destSchema: comment_read,
 	}),
-	// the users this comment @-mentions; used with whereExists in the comments query, never
-	// synced as a related row set
+	// the users this comment @-mentions; used with whereExists in mentionComments, never pulled in
+	// with .related() (the rows still sync, as every EXISTS's rows do)
 	mentions: many({
 		sourceField: ['id'],
 		destField: ['commentId'],
 		destSchema: comment_mention,
 	}),
-	// every reaction to this comment, one row per reacting user
+	// every reaction to this comment, one row per reacting user. Joined on fileId too: a reaction's
+	// id is derived from (comment, user, emoji), so unlike a comment or a thread it carries no proof
+	// that its client-supplied commentId belongs to the file the reaction was written in. Matching
+	// fileId keeps a reaction written elsewhere off this comment, whatever its commentId claims —
+	// the reaction's own fileId is stamped by the owning room's drain, not by the client.
 	reactions: many({
-		sourceField: ['id'],
-		destField: ['commentId'],
+		sourceField: ['id', 'fileId'],
+		destField: ['commentId', 'fileId'],
 		destSchema: comment_reaction,
+	}),
+	// the file's access rows, correlated straight on fileId rather than through `file`, so the
+	// feed queries can gate access one hop from the root — Zero's planner then starts from the
+	// caller's own file_state / group_user rows instead of scanning every comment (see
+	// `canAccessCommentFile` in queries.ts). Only used under whereExists, never .related(), but
+	// the rows still sync to the client like every EXISTS's rows
+	fileStates: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+	groupFiles: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: group_file,
 	}),
 }))
 
@@ -443,6 +462,8 @@ export interface TlaEffectOutbox {
 	attempts: number
 	createdAt: Date
 	nextRetryAt: Date | null
+	/** Latest failed attempt's error text; survives an admin retry. */
+	lastError: string | null
 }
 
 /**

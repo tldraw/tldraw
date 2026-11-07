@@ -5,6 +5,7 @@ import {
 	TLPointerEventInfo,
 	TLSelectionHandle,
 } from '@tldraw/editor'
+import { DeferredDoubleClick } from '../selectHelpers'
 
 export const CursorTypeMap: Record<TLSelectionHandle, TLCursorType> = {
 	bottom: 'ns-resize',
@@ -30,6 +31,7 @@ export class PointingResizeHandle extends StateNode {
 	static override id = 'pointing_resize_handle'
 
 	private info = {} as PointingResizeHandleInfo
+	private doubleClick = new DeferredDoubleClick(this)
 
 	private updateCursor() {
 		const cursorType = CursorTypeMap[this.info.handle!]
@@ -41,6 +43,7 @@ export class PointingResizeHandle extends StateNode {
 
 	override onEnter(info: PointingResizeHandleInfo) {
 		this.info = info
+		this.doubleClick.start(info)
 		if (typeof info.onInteractionEnd === 'string') {
 			this.parent.setCurrentToolIdMask(info.onInteractionEnd)
 		}
@@ -67,21 +70,12 @@ export class PointingResizeHandle extends StateNode {
 	}
 
 	override onPointerUp() {
+		if (this.doubleClick.replay()) return
 		this.complete()
 	}
 
 	override onDoubleClick(info: TLClickEventInfo) {
-		if (
-			this.editor.inputs.getShiftKey() ||
-			info.phase !== 'down' ||
-			info.ctrlKey ||
-			info.shiftKey
-		) {
-			return
-		}
-
-		this.parent.transition('idle')
-		this.parent.getCurrent()?.handleEvent(info)
+		this.doubleClick.defer(info)
 	}
 
 	override onCancel() {

@@ -1,10 +1,12 @@
 import {
 	AssetUtil,
+	createShapeId,
 	DEFAULT_SUPPORT_VIDEO_TYPES,
 	DEFAULT_SUPPORTED_IMAGE_TYPES,
 	T,
 	TLAsset,
 	TLAssetId,
+	TLGeoShape,
 } from '@tldraw/editor'
 import { TestEditor } from '../test/TestEditor'
 import { defaultAssetUtils } from './defaultAssetUtils'
@@ -215,6 +217,56 @@ describe('defaultHandleExternalUrlContent', () => {
 		const [bookmark] = editor.getCurrentPageShapes()
 		expect(bookmark.type).toBe('bookmark')
 		expect(editor.getSelectedShapeIds()).toEqual([bookmark.id])
+	})
+
+	it('sets the url on the shape named by shapeId instead of creating a bookmark', async () => {
+		editor = new TestEditor()
+		const { opts } = makeOpts()
+		const id = createShapeId()
+		editor.createShape<TLGeoShape>({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		await defaultHandleExternalUrlContent(
+			editor,
+			{ url: 'https://example.com/', point: { x: 0, y: 0 }, shapeId: id },
+			opts
+		)
+
+		expect(editor.getCurrentPageShapes()).toEqual([
+			expect.objectContaining({
+				id,
+				props: expect.objectContaining({ url: 'https://example.com/' }),
+			}),
+		])
+		expect(editor.getSelectedShapeIds()).toEqual([id])
+	})
+
+	it('sets the url on a shape rather than embedding an embeddable url', async () => {
+		editor = new TestEditor()
+		const { opts } = makeOpts()
+		const id = createShapeId()
+		const url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+		editor.createShape<TLGeoShape>({ id, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } })
+
+		await defaultHandleExternalUrlContent(editor, { url, point: { x: 0, y: 0 }, shapeId: id }, opts)
+
+		expect(editor.getCurrentPageShapes()).toEqual([
+			expect.objectContaining({ id, props: expect.objectContaining({ url }) }),
+		])
+	})
+
+	it('creates a bookmark when shapeId names a shape that cannot hold a link', async () => {
+		editor = new TestEditor()
+		const { opts } = makeOpts()
+		const id = createShapeId()
+		editor.createShape({ id, type: 'frame', x: 0, y: 0 })
+
+		await defaultHandleExternalUrlContent(
+			editor,
+			{ url: 'https://example.com/', point: { x: 0, y: 0 }, shapeId: id },
+			opts
+		)
+
+		expect(editor.getCurrentPageShapes().map((s) => s.type)).toEqual(['frame', 'bookmark'])
 	})
 
 	it('shows a toast and logs the url for a url with an invalid protocol', async () => {

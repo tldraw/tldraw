@@ -22,7 +22,7 @@ export function kbd(str: string) {
 			// If the string contains [[Tab]], we don't split these up
 			// as they're meant to be atomic.
 			.split(/(\[\[[^\]]+\]\])/g)
-			.map((s) =>
+			.flatMap((s) =>
 				s.startsWith('[[')
 					? s.replace(/[[\]]/g, '')
 					: s
@@ -36,10 +36,11 @@ export function kbd(str: string) {
 							.replace(/!/g, shiftKey)
 							.match(/__CTRL__|__ALT__|__SHIFT__|./g) || []
 			)
-			.flat()
-			.map((sub, index) => {
-				if (sub[0] === '+') return []
-
+			// A `+` is a separator unless it is the key itself, which is always last. Filter before
+			// mapping so `index` below counts rendered parts, else `++` gets a separator prepended.
+			// An empty atomic token (`[[]]`) yields an empty sub that would throw on `sub[0]` below.
+			.filter((sub, index, arr) => sub !== '' && (sub[0] !== '+' || index === arr.length - 1))
+			.flatMap((sub, index) => {
 				let modifiedKey
 				if (sub === '__CTRL__') {
 					modifiedKey = 'Ctrl'
@@ -52,7 +53,6 @@ export function kbd(str: string) {
 				}
 				return tlenv.isDarwin || !index ? modifiedKey : ['+', modifiedKey]
 			})
-			.flat()
 	)
 }
 

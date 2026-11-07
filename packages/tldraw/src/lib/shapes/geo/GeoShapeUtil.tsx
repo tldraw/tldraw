@@ -1,14 +1,23 @@
 /* eslint-disable react-hooks/rules-of-hooks */
 import {
+	approximately,
+	areAnglesCompatible,
 	BaseBoxShapeUtil,
 	Box,
-	EMPTY_ARRAY,
 	Editor,
+	EMPTY_ARRAY,
 	GeoShapeGeoStyle,
+	geoShapeMigrations,
+	geoShapeProps,
+	getColorValue,
+	getFontsFromRichText,
 	Group2d,
-	HTMLContainer,
 	HandleSnapGeometry,
+	HTMLContainer,
+	isEqual,
+	lerp,
 	Rectangle2d,
+	resolveLineHeightPx,
 	SVGContainer,
 	SvgExportContext,
 	TLGeoShape,
@@ -19,22 +28,15 @@ import {
 	TLShapeId,
 	TLShapeUtilCanvasSvgDef,
 	TLShapeUtilConstructor,
+	toRichText,
+	translateMessage,
+	useColorMode,
+	useValue,
 	Vec,
 	VecLike,
 	WeakCache,
-	approximately,
-	areAnglesCompatible,
-	geoShapeMigrations,
-	geoShapeProps,
-	getColorValue,
-	getFontsFromRichText,
-	isEqual,
-	lerp,
-	resolveLineHeightPx,
-	toRichText,
-	useColorMode,
-	useValue,
 } from '@tldraw/editor'
+import { styleMessages } from '../../ui/styleMessages'
 import {
 	isEmptyRichText,
 	renderHtmlFromRichTextForMeasurement,
@@ -225,6 +227,16 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		getCustomDisplayValues(_editor, _shape): Partial<GeoShapeUtilDisplayValues> {
 			return {}
 		},
+	}
+
+	// A geo shape is announced by which geo it is — "Rectangle", not "Shape" — so the name comes
+	// from the style's label rather than this util's type, which every geo shares. Resolved through
+	// the declared message so it reads as English rather than as an id when no translations are
+	// wired up; an unrecognised geo returns undefined and falls back to the shape's tool label.
+	override getShapeName(shape: TLGeoShape) {
+		const message = styleMessages[`geo-style.${shape.props.geo}` as keyof typeof styleMessages]
+		if (!message) return undefined
+		return translateMessage(this.editor.i18n(), message)
 	}
 
 	override canEdit(shape: TLGeoShape) {
@@ -509,6 +521,10 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		return [getFillDefForCanvas()]
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(
 		shape: TLGeoShape,
 		{ handle, newPoint, scaleX, scaleY, initialShape }: TLResizeInfo<TLGeoShape>
@@ -559,6 +575,9 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 
 		const scaledW = unscaledW * shape.props.scale
 		const scaledH = unscaledH * shape.props.scale
+		// the offset is in the shape's (scaled) units, so the label over-shrink must be scaled too
+		const scaledOverShrinkX = overShrinkX * shape.props.scale
+		const scaledOverShrinkY = overShrinkY * shape.props.scale
 
 		const offset = new Vec(0, 0)
 
@@ -569,7 +588,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (handle === 'left' || handle === 'top_left' || handle === 'bottom_left') {
-			offset.x += scaleX < 0 ? overShrinkX : -overShrinkX
+			offset.x += scaleX < 0 ? scaledOverShrinkX : -scaledOverShrinkX
 		}
 
 		// y offsets
@@ -579,7 +598,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 		}
 
 		if (handle === 'top' || handle === 'top_left' || handle === 'top_right') {
-			offset.y += scaleY < 0 ? overShrinkY : -overShrinkY
+			offset.y += scaleY < 0 ? scaledOverShrinkY : -scaledOverShrinkY
 		}
 
 		const { x, y } = offset.rot(shape.rotation).add(newPoint)

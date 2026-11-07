@@ -1,11 +1,13 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useIntl } from 'react-intl'
 import { useParams } from 'react-router-dom'
 import {
 	AccessibilityMenu,
 	ColorSchemeMenu,
 	DefaultPageMenu,
+	defineMessages,
 	EditSubmenu,
 	ExportFileContentSubMenu,
 	ExtrasGroup,
@@ -13,17 +15,8 @@ import {
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
 	PreferencesGroup,
-	ToggleDebugModeItem,
-	ToggleDynamicSizeModeItem,
-	ToggleEdgeScrollingItem,
-	ToggleFocusModeItem,
-	ToggleGridItem,
-	TogglePasteAtCursorItem,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
-	ToggleSnapModeItem,
-	ToggleToolLockItem,
-	ToggleWrapModeItem,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -32,13 +25,23 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	TldrawUiMenuSubmenu,
-	ZoomTo100MenuItem,
-	ZoomToFitMenuItem,
-	ZoomToSelectionMenuItem,
+	ToggleDebugModeItem,
+	ToggleDynamicSizeModeItem,
+	ToggleEdgeScrollingItem,
+	ToggleFocusModeItem,
+	ToggleGridItem,
+	TogglePasteAtCursorItem,
+	ToggleSnapModeItem,
+	ToggleToolLockItem,
+	ToggleWrapModeItem,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
+	useTranslation,
 	useValue,
+	ZoomTo100MenuItem,
+	ZoomToFitMenuItem,
+	ZoomToSelectionMenuItem,
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
@@ -46,7 +49,6 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
-import { defineMessages, useIntl, useMsg } from '../../utils/i18n'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -61,12 +63,13 @@ import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { editorMessages } from './editor-messages'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
-/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, only for users
- *  the commenting flag covers). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component
- *  with no slot to inject into. */
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
+ *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
+ *  into. */
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabled()
 	return (
@@ -89,11 +92,10 @@ function TlaViewSubmenu() {
 
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
-	file: { defaultMessage: 'File' },
 	pageMenu: { defaultMessage: 'Page menu' },
-	brand: { defaultMessage: 'tldraw' },
-	untitledProject: { defaultMessage: 'Untitled file' },
 })
+
+const SEPARATOR = '/'
 
 // There are some styles in tla.css that adjust the regular tlui top panels
 
@@ -110,9 +112,9 @@ export function TlaEditorTopLeftPanel({ isAnonUser }: { isAnonUser: boolean }) {
 	)
 }
 
-export function TlaEditorTopLeftPanelAnonymous() {
-	const separator = '/'
-	const pageMenuLbl = useMsg(messages.pageMenu)
+function TlaEditorTopLeftPanelAnonymous() {
+	const msg = useTranslation()
+	const pageMenuLbl = msg(messages.pageMenu)
 	// GOTCHA: 'anonymous' doesn't always mean logged out
 	// we show this version of the panel for published files as well.
 	const app = useMaybeApp()
@@ -150,7 +152,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 						// undo nth-last-of-type rule in top.module.css
 						style={{ marginRight: 0 }}
 					>
-						{separator}
+						{SEPARATOR}
 					</span>
 					<div className={classNames(styles.topLeftInputWrapper)}>
 						<button className={styles.topLeftInputNameWidthSetter} data-testid="tla-file-name">
@@ -161,7 +163,7 @@ export function TlaEditorTopLeftPanelAnonymous() {
 			)}
 			{hasPages && (
 				<>
-					<span className={styles.topLeftPanelSeparator}>{separator}</span>
+					<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 					<DefaultPageMenu />
 				</>
 			)}
@@ -206,12 +208,12 @@ export function TlaEditorTopLeftPanelAnonymous() {
 	)
 }
 
-export function TlaEditorTopLeftPanelSignedIn() {
+function TlaEditorTopLeftPanelSignedIn() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
-	const pageMenuLbl = useMsg(messages.pageMenu)
-	const fileSubmenuMsg = useMsg(messages.file)
+	const pageMenuLbl = msg(messages.pageMenu)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
 
@@ -219,34 +221,31 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const isOwner = useHasFileAdminRights(fileSlug)
 
 	const app = useApp()
-	const fileId = useCurrentFileId()!
+	// Undefined on legacy routes (/r, /ro, /v, /s): the file-bound actions have nothing to act on.
+	const fileId = useCurrentFileId()
 	const fileName = useValue(
 		'fileName',
 		// TODO(david): This is a temporary fix for allowing guests to see the file name.
 		// We update the name in the document record on it's DO when the file record changes.
 		// We should figure out a way to have a single source of truth for the file name.
 		// And to allow guests to 'subscribe' to file metadata updates somehow.
-		() => {
+		() =>
 			// we need that backup file name for empty file names (the initial value for the name is empty)
-			return (
-				app.getFileName(fileId, false)?.trim() ||
-				editor.getDocumentSettings().name ||
-				// rather than displaying the date for the project here, display Untitled project
-				intl.formatMessage(messages.untitledProject)
-			)
-		},
+			app.getFileName(fileId ?? null, false)?.trim() ||
+			editor.getDocumentSettings().name ||
+			// rather than displaying the date for the project here, display Untitled project
+			intl.formatMessage(editorMessages.untitledProject),
 		[app, editor, fileId, intl]
 	)
 	const handleFileNameChange = useCallback(
 		(name: string) => {
-			if (isOwner) {
-				setIsRenaming(false)
-				// only actually update the name if name is a value, otherwise keep the previous name
-				if (name) {
-					// don't allow guests to update the file name
-					app.updateFile(fileId, { name })
-					editor.updateDocumentSettings({ name })
-				}
+			if (!isOwner || !fileId) return
+			setIsRenaming(false)
+			// only actually update the name if name is a value, otherwise keep the previous name
+			if (name) {
+				// don't allow guests to update the file name
+				app.updateFile(fileId, { name })
+				editor.updateDocumentSettings({ name })
 			}
 		},
 		[app, editor, fileId, isOwner]
@@ -255,7 +254,7 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	const handleRenameAction = () => {
 		if (getIsCoarsePointer()) {
 			const newName = prompt(intl.formatMessage(sidebarMessages.renameFile), fileName)?.trim()
-			if (newName) {
+			if (newName && fileId) {
 				app.updateFile(fileId, { name: newName })
 			}
 		} else {
@@ -264,7 +263,6 @@ export function TlaEditorTopLeftPanelSignedIn() {
 	}
 	const handleRenameEnd = () => setIsRenaming(false)
 
-	const separator = '/'
 	return (
 		<>
 			{/* spacer for the sidebar toggle button */}
@@ -276,10 +274,10 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				onChange={isOwner ? handleFileNameChange : undefined}
 				onEnd={handleRenameEnd}
 			/>
-			<span className={styles.topLeftPanelSeparator}>{separator}</span>
+			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 			<DefaultPageMenu />
 			<TlaFileMenu
-				fileId={fileId}
+				fileId={fileId ?? ''}
 				workspaceId={null}
 				source="file-header"
 				onRenameAction={handleRenameAction}
@@ -296,15 +294,17 @@ export function TlaEditorTopLeftPanelSignedIn() {
 				}
 			>
 				<TldrawUiMenuGroup id="regular-stuff">
-					<TldrawUiMenuSubmenu id="file" label={fileSubmenuMsg}>
-						<FileItems
-							source="file-header"
-							fileId={fileId}
-							onRenameAction={handleRenameAction}
-							workspaceId={null}
-						/>
-						<ImportFileActionItem />
-					</TldrawUiMenuSubmenu>
+					{fileId && (
+						<TldrawUiMenuSubmenu id="file" label={msg(editorMessages.file)}>
+							<FileItems
+								source="file-header"
+								fileId={fileId}
+								onRenameAction={handleRenameAction}
+								workspaceId={null}
+							/>
+							<ImportFileActionItem />
+						</TldrawUiMenuSubmenu>
+					)}
 					<EditSubmenu />
 					<TlaViewSubmenu />
 					<ExportFileContentSubMenu />
@@ -406,6 +406,8 @@ function TlaFileNameEditorInput({
 	onComplete(name: string): void
 	onBlur(): void
 }) {
+	// Mirrors the state so blur reads the latest value: TldrawUiInput passes '' on blur after Escape,
+	// which would otherwise commit an empty rename.
 	const rTemporaryName = useRef<string>(fileName)
 	const [temporaryFileName, setTemporaryFileName] = useState(fileName)
 
@@ -450,7 +452,7 @@ function TlaFileNameEditorInput({
 }
 
 function SignInMenuItem() {
-	const msg = useMsg(messages.signIn)
+	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 
 	return (
@@ -461,7 +463,7 @@ function SignInMenuItem() {
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<TldrawUiButtonLabel>{msg}</TldrawUiButtonLabel>
+			<TldrawUiButtonLabel>{msg(messages.signIn)}</TldrawUiButtonLabel>
 			<TlaIcon icon="sign-in" />
 		</TldrawUiButton>
 	)

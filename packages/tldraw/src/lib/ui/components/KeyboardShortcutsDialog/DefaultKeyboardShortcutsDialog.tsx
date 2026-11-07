@@ -1,3 +1,4 @@
+import { defineMessages, useEditor, useValue } from '@tldraw/editor'
 import classNames from 'classnames'
 import { ReactNode, memo } from 'react'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
@@ -13,6 +14,15 @@ import {
 } from '../primitives/TldrawUiDialog'
 import { DefaultKeyboardShortcutsDialogContent } from './DefaultKeyboardShortcutsDialogContent'
 
+const messages = defineMessages({
+	shortcutsDialogDisabledNotice: {
+		id: 'shortcuts-dialog.disabled-notice',
+		defaultMessage:
+			'Keyboard shortcuts are turned off. Turn them back on under Preferences > Accessibility.',
+	},
+	shortcutsDialogTitle: { id: 'shortcuts-dialog.title', defaultMessage: 'Keyboard shortcuts' },
+})
+
 /** @public */
 export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 	children?: ReactNode
@@ -22,17 +32,32 @@ export type TLUiKeyboardShortcutsDialogProps = TLUiDialogProps & {
 export const DefaultKeyboardShortcutsDialog = memo(function DefaultKeyboardShortcutsDialog({
 	children,
 }: TLUiKeyboardShortcutsDialogProps) {
+	const editor = useEditor()
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
+	const areKeyboardShortcutsEnabled = useValue(
+		'areKeyboardShortcutsEnabled',
+		() => editor.user.getAreKeyboardShortcutsEnabled(),
+		[editor]
+	)
 
 	const content = children ?? <DefaultKeyboardShortcutsDialogContent />
 
 	return (
 		<>
 			<TldrawUiDialogHeader className="tlui-shortcuts-dialog__header">
-				<TldrawUiDialogTitle>{msg('shortcuts-dialog.title')}</TldrawUiDialogTitle>
+				<TldrawUiDialogTitle>{msg(messages.shortcutsDialogTitle)}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
+			{!areKeyboardShortcutsEnabled && (
+				<div
+					className="tlui-shortcuts-dialog__disabled-notice"
+					data-testid="kbd.disabled-notice"
+					role="status"
+				>
+					{msg(messages.shortcutsDialogDisabledNotice)}
+				</div>
+			)}
 			<TldrawUiDialogBody
 				className={classNames('tlui-shortcuts-dialog__body', {
 					'tlui-shortcuts-dialog__body__mobile': breakpoint <= PORTRAIT_BREAKPOINT.MOBILE_XS,

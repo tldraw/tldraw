@@ -23,46 +23,27 @@ function getImageDimensionsMeta(meta: ResponseBody | null): {
 }
 
 export async function createAssetFromUrl({ url }: { type: 'url'; url: string }): Promise<TLAsset> {
-	const urlHash = getHashForString(url)
+	let meta: ResponseBody | null = null
 	try {
 		// First, try to get the meta data from our endpoint
-		const fetchUrl =
-			BOOKMARK_ENDPOINT +
-			'?' +
-			new URLSearchParams({
-				url,
-			}).toString()
-
-		const meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as ResponseBody | null
-
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: meta?.description ?? '',
-				image: meta?.image ?? '',
-				favicon: meta?.favicon ?? '',
-				title: meta?.title ?? '',
-			},
-			meta: getImageDimensionsMeta(meta),
-		}
+		const fetchUrl = `${BOOKMARK_ENDPOINT}?${new URLSearchParams({ url })}`
+		meta = (await (await fetch(fetchUrl, { method: 'POST' })).json()) as ResponseBody | null
 	} catch (error) {
 		// Otherwise, fallback to a blank bookmark
 		console.error(error)
-		return {
-			id: AssetRecordType.createId(urlHash),
-			typeName: 'asset',
-			type: 'bookmark',
-			props: {
-				src: url,
-				description: '',
-				image: '',
-				favicon: '',
-				title: '',
-			},
-			meta: {},
-		}
+	}
+
+	return {
+		id: AssetRecordType.createId(getHashForString(url)),
+		typeName: 'asset',
+		type: 'bookmark',
+		props: {
+			src: url,
+			description: meta?.description ?? '',
+			image: meta?.image ?? '',
+			favicon: meta?.favicon ?? '',
+			title: meta?.title ?? '',
+		},
+		meta: getImageDimensionsMeta(meta),
 	}
 }

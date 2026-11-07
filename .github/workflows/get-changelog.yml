@@ -7,6 +7,9 @@ defaults:
   run:
     shell: bash
 
+permissions:
+  contents: read
+
 jobs:
   deploy:
     name: 'Get draft changlog'
@@ -23,7 +26,7 @@ jobs:
         uses: ./.github/actions/setup
 
       - name: Extract changelog
-        run: yarn extract-draft-changelog
+        run: pnpm extract-draft-changelog
 
       - name: Upload changelog.md to artifacts
         uses: actions/upload-artifact@v6

@@ -92,6 +92,7 @@ const test = base.extend<Fixtures>({
 				createShapeId: true,
 				resetMockShapeIds: true,
 				createMermaidDiagram: true,
+				checkMermaidReadability: true,
 				toRichText: true,
 				preloadFonts: true,
 				markAllArrowBindings: true,

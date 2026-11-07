@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Kami sedang berusaha untuk menyokong fail daripada <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Seret fail ke dalam bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu pengguna."
-  },
   "043973ec1f": {
     "translation": "Masih menghadapi masalah? {GetHelpLink}"
   },
@@ -95,6 +92,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> telah mengulas di papan anda"
   },
+  "28b2464e1f": {
+    "translation": "Tidak dapat menghantar maklum balas"
+  },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
   },
@@ -103,6 +103,9 @@
   },
   "2a37324bb4": {
     "translation": "Cari..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Sila cuba lagi."
   },
   "2de510be71": {
     "translation": "Penjanaan semula akan menggantikan pautan jemputan semasa dengan yang baharu. Sesiapa sahaja yang menggunakan pautan lama memerlukan pautan baharu untuk menyertai."
@@ -170,9 +173,6 @@
   "477df802ca": {
     "translation": "Untuk meneruskan pengeditan sila salin fail ke fail anda."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "Pin fail"
   },
@@ -206,8 +206,8 @@
   "54286b1d01": {
     "translation": "Had kolaborator dicapai"
   },
-  "545241e7dd": {
-    "translation": "{count} belum dibaca"
+  "550b25cc0c": {
+    "translation": "Tidak dapat memulihkan lukisan setempat anda. Cuba muat semula halaman ini."
   },
   "554a05155c": {
     "translation": "Masih menghadapi masalah? <a>Laporkan masalah</a>"
@@ -380,9 +380,6 @@
   "85a082de1b": {
     "translation": "Sila muat semula halaman untuk mendapatkan versi terkini tldraw."
   },
-  "86353d2c41": {
-    "translation": "Menambahkan {total} fail .tldr."
-  },
   "86c66437fd": {
     "translation": "Namakan semula fail"
   },
@@ -434,6 +431,9 @@
   "9bef626805": {
     "translation": "Padam fail"
   },
+  "9c228b6834": {
+    "translation": "Anda nampaknya berada di luar talian. Semak sambungan anda dan cuba lagi."
+  },
   "9ccb565b86": {
     "translation": "Kami menghadapi masalah untuk menyambung ke perkhidmatan pengesahan kami. Ini biasanya bersifat sementara. Sila cuba muat semula halaman."
   },
@@ -448,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Anda telah dijemput untuk menyertai <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, other {# belum dibaca}}"
   },
   "a0da245992": {
     "translation": "Eksport kandungan sebagai fail .tldr: Pilih 'Muat turun' dalam menu kiri atas."
@@ -528,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Pemilik"
   },
+  "b74dbb40c5": {
+    "translation": "Seret fail ke bar sisi pada halaman ini. Atau pilih pilihan 'Import fail' daripada menu Fail di bahagian atas kiri."
+  },
   "b758336699": {
     "translation": "Salin pautan"
   },
@@ -549,14 +555,14 @@
   "c2276c9127": {
     "translation": "Ketahui lebih lanjut tentang perkongsian."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, other {# fail .tldr telah ditambahkan.}}"
+  },
   "c303bd1095": {
     "translation": "Tidak dapat menerbitkan fail."
   },
   "c4b39a1cc3": {
     "translation": "Kuki penting"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Rentetan Panjang"
   },
   "c6a00f137b": {
     "translation": "Jemput"
@@ -583,7 +589,7 @@
     "translation": "Ketahui lebih lanjut tentang penerbitan."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> dan {count, plural, one {# other} other {# others}} memberi reaksi terhadap komen anda"
+    "translation": "<name>{author}</name> dan {count, plural, other {# orang lain}} memberi reaksi terhadap komen anda"
   },
   "d3d2e61733": {
     "translation": "tutup"
@@ -651,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Menu akaun"
   },
-  "ed53713239": {
-    "translation": "i18n: Beraksen"
-  },
   "ed75712b0e": {
     "translation": "Pendua"
   },
@@ -682,7 +685,7 @@
     "translation": "Padam"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, one {# lagi} other {# lagi}} telah memberi reaksi terhadap komen anda"
+    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, other {# orang lain}} telah memberi reaksi terhadap komen anda"
   },
   "f4f70727dc": {
     "translation": "tetapan"

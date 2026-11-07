@@ -128,23 +128,50 @@ export function isSameFingerprint(
 	return a.lastDocumentChangeClock === b.lastDocumentChangeClock && a.schemaHash === b.schemaHash
 }
 
-// Object keys are sorted so that a serializer emitting the same schema in a different order can't
-// read as a change and re-upload every board. This is why `getHashForObject` from @tldraw/utils
-// isn't used here: it hashes `JSON.stringify` output directly, so key order changes the result.
-function canonicalJson(value: unknown): string {
-	if (value === null || typeof value !== 'object') return JSON.stringify(value) ?? 'undefined'
-	if (Array.isArray(value)) return `[${value.map(canonicalJson).join(',')}]`
-	return `{${Object.keys(value)
-		.sort()
-		.map((key) => `${JSON.stringify(key)}:${canonicalJson((value as any)[key])}`)
-		.join(',')}}`
+/**
+ * `JSON.stringify` with object keys sorted, so a serializer emitting the same object in a
+ * different key order cannot read as a change. (This is why `getHashForObject` from @tldraw/utils
+ * isn't used: it hashes `JSON.stringify` output directly, so key order changes the result.)
+ *
+ * Follows `JSON.stringify`'s own rules for what survives: properties whose value is `undefined`, a
+ * function or a symbol are omitted, such array items and holes become `null`, non-finite numbers
+ * become `null`, and `toJSON` is honoured. That contract is the point — the version chain hashes a
+ * snapshot from live objects when it is written and from decoded JSON when it is read back, and a
+ * naive key-sorted walk emits `{"a":undefined}` on one side and `{}` on the other. For any value
+ * `v`, `canonicalJson(v) === canonicalJson(JSON.parse(JSON.stringify(v)))`.
+ *
+ * A top-level `undefined` yields the string `'undefined'` rather than no string at all.
+ */
+export function canonicalJson(value: unknown): string {
+	return canonicalize(value) ?? 'undefined'
+}
+
+function canonicalize(value: unknown): string | undefined {
+	if (value !== null && typeof value === 'object' && typeof (value as any).toJSON === 'function') {
+		value = (value as any).toJSON()
+	}
+	if (value === null || typeof value !== 'object') {
+		// Covers primitives exactly as JSON.stringify does, including NaN → null and dropping
+		// undefined, functions and symbols (for which it returns undefined).
+		return JSON.stringify(value)
+	}
+	if (Array.isArray(value)) {
+		// Array.from, not map: map skips holes, and a hole must serialize as null like JSON does.
+		return `[${Array.from(value, (item) => canonicalize(item) ?? 'null').join(',')}]`
+	}
+	const entries: string[] = []
+	for (const key of Object.keys(value).sort()) {
+		const encoded = canonicalize((value as any)[key])
+		if (encoded !== undefined) entries.push(`${JSON.stringify(key)}:${encoded}`)
+	}
+	return `{${entries.join(',')}}`
 }
 
 // FNV-1a run with two offsets. Wider than @tldraw/utils' 32-bit getHashForString because a
 // collision here silently skips an upload that was owed; 64 bits makes that implausible. Staying
 // non-cryptographic is fine — this only answers "did the schema change?", and a false mismatch
 // costs one redundant upload rather than losing a migration.
-function fnv1a64(value: string): string {
+export function fnv1a64(value: string): string {
 	let h1 = 0x811c9dc5
 	let h2 = 0xc59d1c81
 	for (let i = 0; i < value.length; i++) {

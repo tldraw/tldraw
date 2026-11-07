@@ -365,6 +365,29 @@ describe('Misc', () => {
 		expect(Array.from(editor.getCurrentPageShapeIds().values()).length).toEqual(2)
 	})
 
+	it('duplicates a zero-length line without mutating the source', () => {
+		// onBeforeCreate nudges on create, so collapse the points afterwards
+		editor.updateShapes([
+			{
+				id,
+				type: 'line',
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 5, y: 5 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 5, y: 5 },
+					},
+				},
+			},
+		])
+		const before = structuredClone(getShape().props.points)
+
+		expect(() => editor.duplicateShapes([id])).not.toThrow()
+
+		expect(getShape().props.points).toEqual(before)
+		const duplicate = editor.getCurrentPageShapes().find((s) => s.id !== id) as TLLineShape
+		expect(duplicate.props.points.a2).toMatchObject({ x: 5.1, y: 5.1 })
+	})
+
 	it('deletes', () => {
 		editor.select(id)
 
@@ -462,9 +485,9 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 		expect(vertexHandles).toHaveLength(2)
 	})
 
-	it('tolerates a line animation that transiently produces duplicate indices (#9397)', () => {
-		// animating to a different point count makes getInterpolatedProps emit duplicate
-		// indices each tick; reading handles must not throw while that is in the store.
+	it('keeps every point while animating to a line with more points (#9397)', () => {
+		// getInterpolatedProps used to clone extra start points with duplicate indices, which
+		// linePointsToArray collapsed, so the line lost points until the animation ended.
 		const id = createShapeId('line-animate')
 		editor.createShapes([
 			{
@@ -498,7 +521,7 @@ describe('Line points: id-mapped object with a decoupled index', () => {
 
 		for (let i = 0; i < 12; i++) {
 			editor.emit('tick', 16)
-			expect(() => editor.getShapeHandles(id)).not.toThrow()
+			expect(getHandlesFor(id).filter((h) => h.type === 'vertex')).toHaveLength(3)
 		}
 	})
 })

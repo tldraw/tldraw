@@ -8,8 +8,14 @@ import {
 	useCallback,
 	useContext,
 } from 'react'
-import { TldrawUiButton, TldrawUiIcon, TldrawUiTooltip, useContainer } from 'tldraw'
-import { defineMessages, useMsg } from '../../utils/i18n'
+import {
+	defineMessages,
+	TldrawUiButton,
+	TldrawUiIcon,
+	TldrawUiTooltip,
+	useContainer,
+	useTranslation,
+} from 'tldraw'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import styles from './menu.module.css'
 
@@ -68,7 +74,8 @@ export function TlaMenuControlInfoTooltip({
 	children: ReactNode
 	showOnMobile?: boolean
 }) {
-	const helpMsg = useMsg(messages.help)
+	const msg = useTranslation()
+	const helpMsg = msg(messages.help)
 
 	return (
 		<div className={styles.menuInfoTriggerContainer}>
@@ -77,7 +84,8 @@ export function TlaMenuControlInfoTooltip({
 					<a
 						onClick={onClick}
 						href={href}
-						target="_blank nofollow noreferrer"
+						target="_blank"
+						rel="noopener noreferrer nofollow"
 						className={styles.menuInfoTrigger}
 					>
 						<TldrawUiIcon label={helpMsg} icon="help-circle" small />
@@ -274,7 +282,7 @@ export function TlaMenuSwitch({ id, checked, onChange, disabled, ...rest }: TlaM
 /* ---------------------- Tabs ---------------------- */
 
 /*
-This is a set of primitives for creating tabs in the UI. Structure is:
+Primitives for tabs. Structure is:
 
 <Root>
 	<Tabs>

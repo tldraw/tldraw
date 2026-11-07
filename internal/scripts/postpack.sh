@@ -17,5 +17,7 @@ mv package.json.bak package.json
 # - generates tldraw package documentation files
 restore_generated_file DOCS.md
 restore_generated_file RELEASE_NOTES.md
+# - inlines the @imports in the package's root stylesheets
+for css in *.css; do restore_generated_file "$css"; done
 # - generates an index.d.ts file
 rm -rf index.d.ts

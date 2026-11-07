@@ -38,8 +38,27 @@ export function removeFrame(editor: Editor, ids: TLShapeId[]) {
 			}
 		})
 		editor.setSelectedShapes(allChildren)
-		editor.deleteShapes(ids)
+		editor.deleteShapes(frames)
 	})
+}
+
+/**
+ * The ids from `ids` that a new frame could actually hold. Locked shapes stay put, matching
+ * group, and an arrow bound to a shape that will not be in the frame is skipped because the
+ * arrow binding util would reparent it straight back out.
+ *
+ * @internal
+ */
+export function getFrameableShapeIds(editor: Editor, ids: TLShapeId[]): TLShapeId[] {
+	const unlocked = compact(ids.map((id) => editor.getShape(id))).filter((shape) => !shape.isLocked)
+	// Check bound targets against the unlocked set rather than `ids`: a locked target stays out
+	// of the frame, so its arrow must too. Arrows can't bind to arrows, so one pass is enough.
+	const unlockedIds = new Set(unlocked.map((shape) => shape.id))
+	return unlocked
+		.filter((shape) =>
+			editor.getBindingsFromShape(shape, 'arrow').every((binding) => unlockedIds.has(binding.toId))
+		)
+		.map((shape) => shape.id)
 }
 
 /** @internal */

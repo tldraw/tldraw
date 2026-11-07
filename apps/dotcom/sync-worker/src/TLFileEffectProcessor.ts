@@ -8,6 +8,7 @@ import {
 	MAX_ATTEMPTS,
 	computeNextAlarm,
 	drainOutbox,
+	formatOutboxError,
 	shouldReportEffectFailure,
 } from './outboxDrain'
 import { createPostgresConnectionPool } from './postgres'
@@ -137,7 +138,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 					await db.deleteFrom('effect_outbox').where('id', '=', id).execute()
 					processed++
 				},
-				bumpAttempts: async (row) => {
+				bumpAttempts: async (row, error) => {
 					failed++
 					// Exponential backoff from the row's current attempt count, capped at 5 minutes.
 					// The base IS the effect timeout, so the first retry can't land before a
@@ -155,6 +156,7 @@ export class TLFileEffectProcessor extends DurableObject<Environment> {
 						.set((eb) => ({
 							attempts: eb('attempts', '+', 1),
 							nextRetryAt: backoff,
+							lastError: formatOutboxError(error),
 						}))
 						.where('id', '=', row.id)
 						.execute()

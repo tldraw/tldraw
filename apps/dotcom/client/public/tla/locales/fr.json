@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Nous travaillons à la prise en charge des fichiers provenant de <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
-  },
   "043973ec1f": {
     "translation": "Vous rencontrez encore des difficultés ? {GetHelpLink}"
   },
@@ -95,6 +92,9 @@
   "2755e3ab39": {
     "translation": "<name>{author}</name> a commenté votre tableau"
   },
+  "28b2464e1f": {
+    "translation": "Impossible de soumettre les commentaires"
+  },
   "299cb00a7a": {
     "translation": "Échec de l'importation"
   },
@@ -103,6 +103,9 @@
   },
   "2a37324bb4": {
     "translation": "Recherche..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "Veuillez réessayer."
   },
   "2de510be71": {
     "translation": "La régénération remplace le lien d'invitation actuel par un nouveau. Toute personne utilisant l'ancien lien aura besoin du nouveau pour s'inscrire."
@@ -170,9 +173,6 @@
   "477df802ca": {
     "translation": "Pour continuer la modification, veuillez copier le fichier dans vos fichiers."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "Épingler le fichier"
   },
@@ -206,8 +206,8 @@
   "54286b1d01": {
     "translation": "Limite de collaborateurs atteinte"
   },
-  "545241e7dd": {
-    "translation": "{count} non lu"
+  "550b25cc0c": {
+    "translation": "Impossible de restaurer votre dessin local. Veuillez recharger cette page."
   },
   "554a05155c": {
     "translation": "Vous rencontrez toujours des problèmes ? <a>Signaler un problème</a>"
@@ -380,9 +380,6 @@
   "85a082de1b": {
     "translation": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
   },
-  "86353d2c41": {
-    "translation": "Ajout de {total} fichiers .tldr."
-  },
   "86c66437fd": {
     "translation": "Renommer le fichier"
   },
@@ -434,6 +431,9 @@
   "9bef626805": {
     "translation": "Supprimer le fichier"
   },
+  "9c228b6834": {
+    "translation": "Vous semblez être hors ligne. Vérifiez votre connexion et réessayez."
+  },
   "9ccb565b86": {
     "translation": "Nous rencontrons des difficultés pour nous connecter à notre service d'authentification. Ce problème est généralement temporaire. Veuillez actualiser la page."
   },
@@ -448,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "Vous avez été invité à rejoindre <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# non lu} other {# non lu}}"
   },
   "a0da245992": {
     "translation": "Exporter le contenu sous forme de fichier .tldr : sélectionnez « Télécharger » dans le menu en haut à gauche."
@@ -528,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "Propriétaire"
   },
+  "b74dbb40c5": {
+    "translation": "Faites glisser le fichier dans la barre latérale de cette page. Ou sélectionnez l'option « Importer un fichier » dans le menu Fichier en haut à gauche."
+  },
   "b758336699": {
     "translation": "Copier le lien"
   },
@@ -538,7 +544,7 @@
     "translation": "Les invitations sont désactivées"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Téléchargement du fichier .tldr…} other {Téléchargement de {uploaded} sur {total} fichiers .tldr…}}"
+    "translation": "{total, plural, one {Envoi du fichier .tldr…} other {Envoi de {uploaded} sur {total} fichiers .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Partagé par {ownerName}"
@@ -549,14 +555,14 @@
   "c2276c9127": {
     "translation": "En savoir plus sur le partage."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# fichier .tldr ajouté.} other {# fichiers .tldr ajoutés.}}"
+  },
   "c303bd1095": {
     "translation": "Impossible de publier le fichier."
   },
   "c4b39a1cc3": {
     "translation": "Cookies essentiels"
-  },
-  "c655b27b1e": {
-    "translation": "i18n : chaîne longue"
   },
   "c6a00f137b": {
     "translation": "Inviter"
@@ -583,7 +589,7 @@
     "translation": "En savoir plus sur la publication."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> et {count, plural, one {# other} other {# others}} ont réagi à votre commentaire"
+    "translation": "<name>{author}</name> et {count, plural, one {# autre personne} other {# autres personnes}} ont réagi à votre commentaire"
   },
   "d3d2e61733": {
     "translation": "Fermer"
@@ -651,9 +657,6 @@
   "ec611e9a08": {
     "translation": "Menu du compte"
   },
-  "ed53713239": {
-    "translation": "i18n : avec accents"
-  },
   "ed75712b0e": {
     "translation": "Dupliquer"
   },
@@ -682,7 +685,7 @@
     "translation": "Supprimer"
   },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> et {count, plural, one {# other} other {# others}} ont réagi à votre commentaire"
+    "translation": "<name>{a}</name>, <name>{b}</name> et {count, plural, one {# autre personne} other {# autres personnes}} ont réagi à votre commentaire"
   },
   "f4f70727dc": {
     "translation": "Paramètres"

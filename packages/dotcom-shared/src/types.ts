@@ -1,3 +1,4 @@
+import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
@@ -11,22 +12,6 @@ export interface CreateRoomRequestBody {
 	origin: string
 	snapshot: Snapshot
 }
-
-export interface CreateSnapshotRequestBody {
-	schema: SerializedSchema
-	snapshot: SerializedStore<TLRecord>
-	parent_slug?: string | undefined
-}
-
-export type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 export interface GetReadonlySlugResponseBody {
 	slug: string
@@ -50,28 +35,25 @@ export type CreateFilesResponseBody =
 			error: false
 			slugs: string[]
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
-export type PublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+/**
+ * Error codes the app's HTTP routes return instead of prose, so the client can show the failure in
+ * the user's language. Same idea as {@link ZErrorCode} for Zero mutation rejections.
+ */
+export const TlaApiErrorCode = stringEnum(
+	'bad_request',
+	'unauthorized',
+	'invite_not_found',
+	'user_not_found',
+	'internal_error'
+)
+export type TlaApiErrorCode = keyof typeof TlaApiErrorCode
 
-export type UnpublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+export interface TlaApiErrorResponseBody {
+	error: true
+	code: TlaApiErrorCode
+}
 
 export type GetInviteInfoResponseBody =
 	| {
@@ -81,30 +63,22 @@ export type GetInviteInfoResponseBody =
 			isValid: true
 			inviteSecret: string
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 export type AcceptInviteResponseBody =
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			alreadyMember: true
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 /**
  * The most pages the board-info tool will enumerate for a board. Bounds the page list the MCP
@@ -142,6 +116,14 @@ export interface ThumbnailRenderParams {
 	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
 	 */
 	shapeIds?: string[]
+	/**
+	 * `live` means: prune the page to `shapeIds`, settle and fit as normal, then signal ready
+	 * without running `editor.toImage` — the screenshotting browser rasterizes the live canvas
+	 * instead of the page rasterizing itself. Skips the export phase (the expensive part on heavy
+	 * boards) at the cost of the export path's pixel-exact sizing, so only agent-facing surfaces
+	 * opt in. Absent means export as always.
+	 */
+	capture?: 'live'
 	/** `measure` means: skip the export, POST the page's measured geometry back, then signal ready. */
 	mode?: 'screenshot' | 'measure'
 	x: number
@@ -153,9 +135,26 @@ export interface ThumbnailRenderParams {
 }
 
 /**
- * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
- * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
- * behaviour rather than something readable off the record.
+ * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
+ * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
+ */
+export interface MeasuredArrow {
+	start: VecModel
+	end: VecModel
+}
+
+/**
+ * A shape's own unrotated size as the editor draws it. The record cannot say: a text's height comes
+ * from laying out its text, and a group or a freehand stroke has no size of its own.
+ */
+export type MeasuredDimensions = Pick<BoxModel, 'w' | 'h'>
+
+/**
+ * What the editor reports for one shape: its page-space box, the plain text its ShapeUtil says it
+ * holds, for an arrow where it is drawn, and for some shapes their own size. All are things only an
+ * editor can answer — sizing needs font metrics, getText is shape behaviour rather than something
+ * readable off the record, and a bound arrow's ends depend on the geometry of the shapes it is bound
+ * to.
  */
 export interface ThumbnailShapeMeasurement {
 	x: number
@@ -164,12 +163,55 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
+	/** An arrow's drawn ends, in page space. */
+	arrow?: MeasuredArrow
+	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
+	dimensions?: MeasuredDimensions
 }
 
-/** Body of POST /app/thumbnail-render/result — `shapeId -> measurement`, as the editor measured it. */
-export interface ThumbnailRenderResultRequestBody {
+/**
+ * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
+ * page is ready. All values are `performance.now()` stamps (ms since navigation start), so the
+ * deltas between them are the phase costs a worker-side clock cannot see: script boot, snapshot
+ * fetch, editor mount, the settle wait, and the export itself (on a `live` capture there is no
+ * export, and `exportedAt` is the ready stamp).
+ */
+export interface ThumbnailRenderTimingsRequestBody {
 	token: string
-	bounds: Record<string, ThumbnailShapeMeasurement>
+	/**
+	 * How the page got its records: `push` read them off the injected global, `fetch` asked the
+	 * snapshot route. The worker can only say what it sent; this is what the page actually used.
+	 * Optional because a page from before this field existed sends none.
+	 */
+	acquiredBy?: 'push' | 'fetch'
+	timings: {
+		bootAt: number
+		dataAt: number
+		mountAt: number
+		settledAt: number
+		exportedAt: number
+	}
+}
+
+/** The last render page phase that completed before a failure, in the order the page runs them. */
+export const THUMBNAIL_RENDER_PHASES = ['boot', 'data', 'mount', 'settle'] as const
+export type ThumbnailRenderPhase = (typeof THUMBNAIL_RENDER_PHASES)[number]
+
+// Both ends cap the message: the page so a huge one never leaves the browser, the worker because
+// the beacon is signed but its body is still caller-shaped.
+export const THUMBNAIL_RENDER_ERROR_MAX_LENGTH = 500
+
+/**
+ * The render page's failure beacon, POSTed to the result route when the page marks
+ * `data-thumbnail-error`. Browser Run only tells the worker that the capture element was missing;
+ * this is the page's own reason, and how far it got.
+ */
+export interface ThumbnailRenderErrorRequestBody {
+	token: string
+	error: {
+		message: string
+		phase: ThumbnailRenderPhase
+	}
 }
 
 export type ThumbnailSnapshotResponseBody =
@@ -189,6 +231,7 @@ export const ZErrorCode = stringEnum(
 	'unpublish_failed',
 	'republish_failed',
 	'unknown_error',
+	'offline_error',
 	'client_too_old',
 	'forbidden',
 	'bad_request',
@@ -223,11 +266,45 @@ export interface SubmitFeedbackRequestBody {
 
 export const MAX_PROBLEM_DESCRIPTION_LENGTH = 2000
 
-export type TLCustomServerEvent = { type: 'persistence_good' } | { type: 'persistence_bad' }
+export const CONNECT_STEPS = [
+	'route',
+	'do_init',
+	'auth',
+	'file_record',
+	'rate_limit',
+	'boot',
+	'get_room',
+	'client_connect',
+	'handshake',
+] as const
+export type ConnectStep = (typeof CONNECT_STEPS)[number]
+
+export type TLCustomServerEvent =
+	| { type: 'persistence_good' }
+	| { type: 'persistence_bad' }
+	// Sent once to a session that connected with a `loadId`, feeding the client's first_load and
+	// file_load reports. `d_*`/`t_*` are ms; boot fields only when this connect booted the room.
+	| ({
+			type: 'first_load_server'
+			loadId: string
+			cold: boolean
+			edge_colo?: string
+			do_colo?: string
+			pg_via?: string
+			connect_bytes?: number
+			boot_r2_ms?: number
+			boot_comments_ms?: number
+	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
 
 /* ----------------------- Feature Flags ---------------------- */
 
-export const FEATURE_FLAG_KEYS = ['rum_enabled', 'commenting_enabled', 'mcp_server_access'] as const
+export const FEATURE_FLAG_KEYS = [
+	'rum_enabled',
+	'load_rum',
+	'mcp_server_access',
+	'version_chain',
+	'collections',
+] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
 export type FeatureFlagValue = BooleanFeatureFlag | PercentageFeatureFlag | AllowlistFeatureFlag
@@ -262,10 +339,18 @@ export interface PercentageFeatureFlag {
  */
 export interface AllowlistFeatureFlag {
 	type: 'allowlist'
+	// No master toggle, unlike the other two. An empty list already admits nobody, so a separate
+	// "off" would only be a second way to say the same thing — and on `mcp_server_access` it could
+	// not even say it, since the staff bypass in `canUseMcpServer` does not consult this flag.
 	/** The users the flag is on for. Anyone not named here evaluates false. */
 	users: AllowlistEntry[]
-	/** Master toggle — when false, disabled for everyone regardless of the list. */
-	enabled: boolean
+	/**
+	 * Skips the list and admits everybody.
+	 *
+	 * Optional because stored values predate it, and absent reads as false: a KV value written before
+	 * this existed must not start admitting everyone when the code that reads it is deployed.
+	 */
+	allowEveryone?: boolean
 	description: string
 }
 
@@ -363,6 +448,30 @@ export interface AdminFileAssetsResponseBody {
 	}
 	dbRows: { forThisFile: number; orphaned: number }
 	warnings: string[]
+}
+
+/**
+ * Response of the admin file endpoint: the file row's metadata and who owns it, so an admin can
+ * confirm they have the right file without opening it. Unlike the board-stats report, this names
+ * people, so keep it out of issues and support replies.
+ */
+export interface AdminFileResponseBody {
+	id: string
+	name: string
+	createdAt: number
+	updatedAt: number
+	isDeleted: boolean
+	isEmpty: boolean
+	shared: boolean
+	sharedLinkType: string
+	published: boolean
+	publishedSlug: string
+	lastPublished: number
+	createSource: string | null
+	/** null for a file with no owning workspace */
+	workspace: { id: string; name: string; isDeleted: boolean } | null
+	/** the owning workspace's owners */
+	owners: { id: string; name: string; email: string }[]
 }
 
 /**

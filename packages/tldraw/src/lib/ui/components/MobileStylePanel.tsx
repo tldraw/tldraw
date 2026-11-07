@@ -9,6 +9,7 @@ import { useCallback } from 'react'
 import { useTldrawUiComponents } from '../context/components'
 import { useRelevantStyles } from '../hooks/useRelevantStyles'
 import { useTranslation } from '../hooks/useTranslation/useTranslation'
+import { stylePanelMessages } from '../styleMessages'
 import { TldrawUiButton } from './primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from './primitives/Button/TldrawUiButtonIcon'
 import { useTldrawUiOrientation } from './primitives/layout'
@@ -29,9 +30,11 @@ export function MobileStylePanel() {
 		'mobile style panel current color',
 		() => {
 			const colors = editor.getCurrentTheme().colors[editor.getColorMode()]
-			return color?.type === 'shared'
-				? getColorValue(colors, color.value as TLDefaultColorStyle, 'solid')
-				: getColorValue(colors, 'black', 'solid')
+			return getColorValue(
+				colors,
+				color?.type === 'shared' ? (color.value as TLDefaultColorStyle) : 'black',
+				'solid'
+			)
 		},
 		[editor, color]
 	)
@@ -63,16 +66,16 @@ export function MobileStylePanel() {
 					style={{
 						color: disableStylePanel ? 'var(--tl-color-muted-1)' : currentColor,
 					}}
-					title={msg('style-panel.title')}
+					title={msg(stylePanelMessages.title)}
 					disabled={disableStylePanel}
 				>
 					<TldrawUiButtonIcon
-						icon={disableStylePanel ? 'blob' : color?.type === 'mixed' ? 'mixed' : 'blob'}
+						icon={!disableStylePanel && color?.type === 'mixed' ? 'mixed' : 'blob'}
 					/>
 				</TldrawUiButton>
 			</TldrawUiPopoverTrigger>
 			<TldrawUiPopoverContent side={orientation === 'horizontal' ? 'top' : 'right'} align="end">
-				{StylePanel && <StylePanel isMobile />}
+				<StylePanel isMobile />
 			</TldrawUiPopoverContent>
 		</TldrawUiPopover>
 	)

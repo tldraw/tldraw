@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	preventDefault,
 	useContainer,
 	useEditor,
@@ -6,12 +7,33 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { ReactNode, memo, useCallback, useContext, useEffect, useRef } from 'react'
+import {
+	ComponentProps,
+	ComponentType,
+	ReactNode,
+	memo,
+	useCallback,
+	useContext,
+	useEffect,
+	useRef,
+} from 'react'
 import { ContextMenuPagePointContext } from '../../context/actions'
 import { useMenuIsOpen } from '../../hooks/useMenuIsOpen'
 import { useDirection, useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiMenuContextProvider } from '../primitives/menus/TldrawUiMenuContext'
 import { DefaultContextMenuContent } from './DefaultContextMenuContent'
+
+const messages = defineMessages({
+	contextMenuTitle: { id: 'context-menu.title', defaultMessage: 'Context menu' },
+})
+
+// Controlled `open`: tldraw can close the menu itself (MenuClickCapture's
+// clearOpenMenus), and radix >=2.3.0 only fires onOpenChange on real state
+// changes — a stale internal `open` would swallow every later right-click.
+// radix <2.3 ignores the prop and omits it from its types, hence the widening.
+const ContextMenuRoot = _ContextMenu.Root as ComponentType<
+	ComponentProps<typeof _ContextMenu.Root> & { open?: boolean }
+>
 
 /** @public */
 export interface TLUiContextMenuProps {
@@ -74,6 +96,22 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	// short grace window after open so the menu stays put until the user actually
 	// interacts again.
 	const suppressDismissUntilRef = useRef(0)
+	const suppressDismissDuringGrace = useCallback((e: Event) => {
+		if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
+	}, [])
+
+	// Radix returns focus to the trigger in a setTimeout after the menu unmounts. An item that
+	// focuses something itself (e.g. cursor chat's input) can win that race, and the late
+	// return would steal focus back and blur it closed. Only restore focus if nothing claimed it.
+	const preventCloseAutoFocusIfClaimed = useCallback(
+		(e: Event) => {
+			const { activeElement, body } = editor.getContainerDocument()
+			if (activeElement && activeElement !== body) {
+				e.preventDefault()
+			}
+		},
+		[editor]
+	)
 
 	const rContextMenuPagePoint = useContext(ContextMenuPagePointContext)
 
@@ -105,17 +143,12 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 
 					// Weird route: selecting locked shapes on long press
 					const selectedShapes = editor.getSelectedShapes()
-					const currentPagePoint = editor.inputs.getCurrentPagePoint()
-
 					// get all of the shapes under the current pointer
-					const shapesAtPoint = editor.getShapesAtPoint(currentPagePoint)
+					const shapesAtPoint = editor.getShapesAtPoint(editor.inputs.getCurrentPagePoint())
 
-					if (
-						// if there are no selected shapes
-						!editor.getSelectedShapes().length ||
-						// OR if none of the shapes at the point include the selected shape
-						!shapesAtPoint.some((s) => selectedShapes.includes(s))
-					) {
+					// if there are no selected shapes
+					// OR if none of the shapes at the point include the selected shape
+					if (!selectedShapes.length || !shapesAtPoint.some((s) => selectedShapes.includes(s))) {
 						// then are there any locked shapes under the current pointer?
 						const lockedShapes = shapesAtPoint.filter((s) => editor.isShapeOrAncestorLocked(s))
 
@@ -140,7 +173,7 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 	const content = children ?? <DefaultContextMenuContent />
 
 	return (
-		<_ContextMenu.Root dir={dir} onOpenChange={handleOpenChange} modal={false}>
+		<ContextMenuRoot dir={dir} open={isOpen} onOpenChange={handleOpenChange} modal={false}>
 			<_ContextMenu.Trigger
 				// When suppressed, disabling the trigger stops Radix from opening the
 				// menu, but it also stops Radix from preventing the native contextmenu —
@@ -156,19 +189,14 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					<_ContextMenu.Content
 						className="tlui-menu tlui-scrollable"
 						data-testid="context-menu"
-						aria-label={msg('context-menu.title')}
+						aria-label={msg(messages.contextMenuTitle)}
 						alignOffset={-4}
 						collisionPadding={4}
 						onContextMenu={preventDefault}
-						onPointerDownOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
-						onInteractOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
-						onFocusOutside={(e) => {
-							if (Date.now() < suppressDismissUntilRef.current) e.preventDefault()
-						}}
+						onPointerDownOutside={suppressDismissDuringGrace}
+						onInteractOutside={suppressDismissDuringGrace}
+						onFocusOutside={suppressDismissDuringGrace}
+						onCloseAutoFocus={preventCloseAutoFocusIfClaimed}
 					>
 						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
 							{content}
@@ -176,6 +204,6 @@ export const DefaultContextMenu = memo(function DefaultContextMenu({
 					</_ContextMenu.Content>
 				</_ContextMenu.Portal>
 			)}
-		</_ContextMenu.Root>
+		</ContextMenuRoot>
 	)
 })

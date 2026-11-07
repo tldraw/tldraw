@@ -1,4 +1,4 @@
-import { createShapeId } from '@tldraw/editor'
+import { IndexKey, createShapeId } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { createDrawSegments } from '../lib/utils/test-helpers'
 import { TestEditor } from './TestEditor'
@@ -285,6 +285,47 @@ describe('When clicking', () => {
 		expect(editor.getErasingShapeIds()).toEqual([])
 		expect(editor.getShape(ids.box1)).toBeDefined()
 		expect(shapesAfterCount).toBe(shapesBeforeCount)
+	})
+})
+
+describe('When the drag starts over shapes that were hit with a margin', () => {
+	it('keeps a shape the pointing state marked when the first drag step only crosses other shapes', () => {
+		const lineId = createShapeId('line')
+		const groupA = createShapeId('groupA')
+		const groupB = createShapeId('groupB')
+		editor.selectAll().deleteShapes(editor.getSelectedShapeIds())
+		editor.createShapes([
+			{
+				id: lineId,
+				type: 'line',
+				x: 100,
+				y: 100,
+				props: {
+					points: {
+						a1: { id: 'a1', index: 'a1' as IndexKey, x: 0, y: 0 },
+						a2: { id: 'a2', index: 'a2' as IndexKey, x: 100, y: 0 },
+					},
+				},
+			},
+			{ id: groupA, type: 'geo', x: 0, y: 0, props: { w: 10, h: 10 } },
+			{ id: groupB, type: 'geo', x: 400, y: 400, props: { w: 10, h: 10 } },
+		])
+		// A group whose bounds cover the area makes the first erasing update see a candidate
+		// (the group) without hit-testing anything else.
+		editor.groupShapes([groupA, groupB])
+
+		editor.setCurrentTool('eraser')
+		editor.pointerDown(150, 102) // 2px from the line, inside the hit-test margin
+		editor.expectToBeIn('eraser.pointing')
+		expect(editor.getErasingShapeIds()).toEqual([lineId])
+
+		editor.pointerMove(150, 105)
+		editor.pointerMove(150, 108)
+		editor.expectToBeIn('eraser.erasing')
+		expect(editor.getErasingShapeIds()).toEqual([lineId])
+
+		editor.pointerUp()
+		expect(editor.getShape(lineId)).toBeUndefined()
 	})
 })
 

@@ -1,27 +1,29 @@
+import { rmSync } from 'fs'
+import { rm } from 'fs/promises'
 import path from 'path'
 import { glob } from 'glob'
 import isCI from 'is-ci'
-import { rimraf } from 'rimraf'
 import { exec } from './lib/exec'
 import { sortUnions } from './lib/sort-unions'
 
 async function buildApi(sourcePackageDir: string) {
-	// this depends on `build-types` being run first, but we'll rely on turbo to
-	// make that happen.
+	// turbo runs `build-types` before this.
 
 	const relativeSourcePackageDir = path.relative(path.resolve(__dirname, '../..'), sourcePackageDir)
 
 	// we need to copy the .tsbuild dir to another location so we can edit it without busting the cache
-	await rimraf(path.join(sourcePackageDir, '.tsbuild-api'))
+	await rm(path.join(sourcePackageDir, '.tsbuild-api'), { recursive: true, force: true })
 	await exec('cp', ['-R', './.tsbuild', './.tsbuild-api'], { pwd: sourcePackageDir })
 
 	sortUnions(path.join(sourcePackageDir, '.tsbuild-api'))
 
 	// clear api-extractor build files
-	rimraf.sync(glob.sync(path.join(sourcePackageDir, 'api')))
+	for (const p of glob.sync(path.join(sourcePackageDir, 'api'))) {
+		rmSync(p, { recursive: true, force: true })
+	}
 	// extract public api
 	try {
-		await exec('yarn', ['run', '-T', 'api-extractor', 'run', isCI ? null : '--local'], {
+		await exec('pnpm', ['exec', 'api-extractor', 'run', isCI ? null : '--local'], {
 			pwd: sourcePackageDir,
 			processStderrLine: (line) => {
 				process.stderr.write(`${line}\n`)

@@ -1,11 +1,12 @@
-import { Mark, mergeAttributes } from '@tiptap/core'
 import { useEffect, useState } from 'react'
 import {
 	DefaultRichTextToolbar,
 	DefaultRichTextToolbarContent,
+	Mark,
 	TLComponents,
 	Tldraw,
 	TldrawUiButton,
+	mergeAttributes,
 	preventDefault,
 	tipTapDefaultExtensions,
 	useEditor,

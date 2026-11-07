@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "نحن نعمل على دعم الملفات من <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "اسحب الملف إلى الشريط الجانبي في هذه الصفحة. أو حدد خيار \"استيراد الملف\" من قائمة المستخدم."
-  },
   "043973ec1f": {
     "translation": "هل ما زلت تواجه صعوبة؟ {GetHelpLink}"
   },
@@ -95,6 +92,9 @@
   "2755e3ab39": {
     "translation": "قام <name>{author}</name> بالتعليق على لوحتك"
   },
+  "28b2464e1f": {
+    "translation": "لم أتمكن من إرسال التعليقات"
+  },
   "299cb00a7a": {
     "translation": "فشل التحميل"
   },
@@ -103,6 +103,9 @@
   },
   "2a37324bb4": {
     "translation": "يبحث..."
+  },
+  "2d3cdcfdd4": {
+    "translation": "يرجى المحاولة مرة أخرى."
   },
   "2de510be71": {
     "translation": "يؤدي التحديث إلى استبدال رابط الدعوة الحالي برابط جديد. سيحتاج أي شخص يستخدم الرابط القديم إلى الرابط الجديد للانضمام."
@@ -170,9 +173,6 @@
   "477df802ca": {
     "translation": "لمواصلة التحرير، يرجى نسخ الملف إلى ملفاتك."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "ملف الدبوس"
   },
@@ -206,8 +206,8 @@
   "54286b1d01": {
     "translation": "تم الوصول إلى الحد الأقصى لعدد المتعاونين"
   },
-  "545241e7dd": {
-    "translation": "{count} غير مقروء"
+  "550b25cc0c": {
+    "translation": "تعذر استعادة الرسم المحلي. حاول إعادة تحميل هذه الصفحة."
   },
   "554a05155c": {
     "translation": "هل لا تزال تواجه مشكلة؟ <a>إبلاغ عن مشكلة</a>"
@@ -380,9 +380,6 @@
   "85a082de1b": {
     "translation": "يُرجى تحديث الصفحة للحصول على أحدث إصدار من tldraw."
   },
-  "86353d2c41": {
-    "translation": "تمت إضافة ملفات {total} .tldr."
-  },
   "86c66437fd": {
     "translation": "إعادة تسمية الملف"
   },
@@ -434,6 +431,9 @@
   "9bef626805": {
     "translation": "حذف الملف"
   },
+  "9c228b6834": {
+    "translation": "يبدو أنك غير متصل بالإنترنت. تحقق من اتصالك وحاول مرة أخرى."
+  },
   "9ccb565b86": {
     "translation": "نواجه مشكلة في الاتصال بخدمة المصادقة الخاصة بنا. عادةً ما تكون هذه المشكلة مؤقتة. يُرجى محاولة تحديث الصفحة."
   },
@@ -448,6 +448,9 @@
   },
   "a078644c42": {
     "translation": "لقد تمت دعوتك للانضمام إلى <strong>{workspaceName}</strong>."
+  },
+  "a0a19d5145": {
+    "translation": "{count, plural, zero {# غير مقروءة} one {# غير مقروء} two {# غير مقروءين} few {# غير مقروءة} many {# غير مقروءة} other {# غير مقروءة}}"
   },
   "a0da245992": {
     "translation": "تصدير المحتوى كملف .tldr: حدد \"تنزيل\" في القائمة الموجودة في أعلى اليسار."
@@ -528,6 +531,9 @@
   "b6f4a2ec63": {
     "translation": "مالك"
   },
+  "b74dbb40c5": {
+    "translation": "اسحب الملف إلى الشريط الجانبي في هذه الصفحة. أو اختر خيار \"استيراد ملف\" من قائمة \"ملف\" في أعلى اليسار."
+  },
   "b758336699": {
     "translation": "نسخ الرابط"
   },
@@ -538,7 +544,7 @@
     "translation": "تم تعطيل الدعوات"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, zero {} one {جاري تحميل ملف .tldr…} two {} few {} many {} other {جاري تحميل {uploaded} من {total} ملفات .tldr…}}"
+    "translation": "{total, plural, zero {جارٍ تحميل {uploaded} من {total} ملف .tldr…} one {جارٍ تحميل ملف .tldr…} two {جارٍ تحميل {uploaded} من {total} ملف .tldr…} few {جارٍ تحميل {uploaded} من {total} ملفات .tldr…} many {جارٍ تحميل {uploaded} من {total} ملفًا .tldr…} other {جارٍ تحميل {uploaded} من {total} ملف .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "شاركه {ownerName}"
@@ -549,14 +555,14 @@
   "c2276c9127": {
     "translation": "اعرف المزيد عن المشاركة."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, zero {تمت إضافة # ملف .tldr.} one {تمت إضافة # ملف .tldr.} two {تمت إضافة # ملفين .tldr.} few {تمت إضافة # ملفات .tldr.} many {تمت إضافة # ملفًا .tldr.} other {تمت إضافة # ملف .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "يتعذّر نشر الملف."
   },
   "c4b39a1cc3": {
     "translation": "ملفات تعريف الارتباط الأساسية"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: سلسلة طويلة"
   },
   "c6a00f137b": {
     "translation": "الدعوة"
@@ -583,7 +589,7 @@
     "translation": "اعرف المزيد عن النشر."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> و {count, plural, one {# other} other {# others}} تفاعلوا مع تعليقك"
+    "translation": "<name>{author}</name> و {count, plural, zero {# آخرون} one {# شخص آخر} two {# شخصان آخران} few {# أشخاص آخرون} many {# شخصًا آخر} other {# شخص آخر}} تفاعلوا مع تعليقك"
   },
   "d3d2e61733": {
     "translation": "إغلاق"
@@ -651,9 +657,6 @@
   "ec611e9a08": {
     "translation": "قائمة الحسابات"
   },
-  "ed53713239": {
-    "translation": "i18n: مبرز"
-  },
   "ed75712b0e": {
     "translation": "تكرار"
   },
@@ -682,7 +685,7 @@
     "translation": "حذف"
   },
   "f476ba8646": {
-    "translation": "تفاعل كل من <name>{a}</name> و <name>{b}</name> و {count, plural, one {# other} other {# others}} مع تعليقك"
+    "translation": "تفاعل كل من <name>{a}</name> و <name>{b}</name> و {count, plural, zero {# آخرون} one {# شخص آخر} two {# شخصان آخران} few {# أشخاص آخرون} many {# شخصًا آخر} other {# شخص آخر}} مع تعليقك"
   },
   "f4f70727dc": {
     "translation": "إعدادات"

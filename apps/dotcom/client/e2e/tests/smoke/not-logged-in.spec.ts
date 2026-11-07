@@ -32,3 +32,16 @@ test('shows anonymous SDK content', async ({ page, homePage }) => {
 	await page.getByTestId('tla-anon-dotdev-dismiss-button').click()
 	await expect(page.getByTestId('tla-anon-dotdev-link')).not.toBeVisible()
 })
+
+test('shows a comment button that prompts sign in', async ({ page, homePage, signInDialog }) => {
+	await homePage.expectSignInButtonVisible()
+
+	const commentButton = page.getByTestId('quick-actions.comment')
+	await expect(commentButton).toBeVisible()
+	await commentButton.click()
+
+	await signInDialog.expectInitialElements()
+	// The comment tool itself is never registered for signed-out visitors, so the button only opens
+	// the dialog — it can't drop the canvas into a half-mounted tool.
+	await expect(commentButton).toHaveAttribute('aria-pressed', 'false')
+})

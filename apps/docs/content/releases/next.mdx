@@ -2,20 +2,35 @@
 title: Next release
 description: Changes coming in the next release
 author: tldraw
-date: 09/02/2026
+date: 10/28/2026
 order: 0
 status: published
-last_version: v5.4.0
+last_version: v5.6.0
 ---
 
-So far this release is a set of fixes: camera coasting and edge scrolling now move at the same rate on high-refresh displays, rotated images stay put when a crop changes their size, and embed hostname matching no longer trusts lookalike hosts.
+So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, improves crop mode, and runs agent starter kit actions through tool calls. It also includes bug fixes across media asset handling, frame hit testing, text shape bounds, cursor chat, and the comment composer.
+
+## API changes
+
+- 💥 Add `ShapeUtil.canFlip(shape)`, which decides whether the flip menu items and shift+H / shift+V act on a single selected shape. It defaults to `false`, so a lone custom shape no longer gets the flip menu items or shortcuts. If your shape changes when flipped (for example it handles negative scale in `onResize`), add `override canFlip() { return true }` to its util. Multi-shape flips are unchanged. ([#11041](https://github.com/tldraw/tldraw/pull/11041))
+- 💥 Move the Cmd+G and Cmd+Alt+G shortcuts from the `group` and `frame-selection` actions to new `toggle-group` and `toggle-frame` actions, which pick `group` or `ungroup`, and `frame-selection` or `remove-frame`, from the selection. `group` and `frame-selection` no longer have a `kbd`, so menus no longer show a shortcut next to them. To rebind or disable these shortcuts, override `actions['toggle-group']` or `actions['toggle-frame']` instead, for example `actions['toggle-group'].kbd = 'cmd+k,ctrl+k'` or `delete actions['toggle-group']`; setting `kbd` on `group` or `frame-selection` now registers a separate shortcut that only groups or frames. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+- 💥 Remove unused `help-menu.discord`, `help-menu.github`, and `help-menu.twitter` keys from `TLUiTranslationKey`. ([#11258](https://github.com/tldraw/tldraw/pull/11258))
+- Actions don't run when `isAvailable` or `isEnabled` returns false, or when the editor is readonly and the action isn't `readonlyOk`, whether they're triggered from a menu, a keyboard shortcut or an `onSelect` call on an action from `useActions()`. The copy, cut and paste shortcuts still come from native clipboard events and aren't gated. If your app calls a custom action directly in readonly mode, set `readonlyOk: true` on it. An override that replaces a built-in's `onSelect`, in place or by spreading it, keeps the built-in's `isEnabled`, so the action no longer runs from a shortcut or `useActions()` when that returns false; override `isEnabled` too if your `onSelect` handles that case. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+
+## Improvements
+
+- Keyboard shortcuts no longer do things the menus don't allow: Shift+H and Shift+V no longer flip a lone text, Shift+F no longer flattens a lone image, Cmd+A and Cmd+P do nothing on an empty page, and Cmd+G no longer groups an arrow away from a shape it's bound to. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+- Add Cmd+Alt+Shift+G as an explicit Remove frame shortcut. Cmd+G and Cmd+Alt+G continue to toggle grouping and framing when the selection allows the corresponding action. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+- Cursor chat opens with `/` in any tool, and its menu item shows in any tool. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
+- Exit crop mode when clicking any shape other than the one being cropped, instead of moving the crop to the clicked image. ([#10832](https://github.com/tldraw/tldraw/pull/10832))
+- Run agent starter kit actions through tool calls rather than plain JSON text output, with streaming partial updates and follow-up turns, and let actions provide their own results via `AgentActionUtil.getResult`. ([#11147](https://github.com/tldraw/tldraw/pull/11147))
+- Add OpenRouter support to the agent and branching-chat starter kits via `OPENROUTER_API_KEY`. ([#11103](https://github.com/tldraw/tldraw/pull/11103))
 
 ## Bug fixes
 
-- Fix camera coasting after a fling, and edge scrolling, running roughly twice as fast on a 120 Hz display as on a 60 Hz one. Both now scale by the elapsed tick time, so motion per second is the same at any refresh rate. ([#10501](https://github.com/tldraw/tldraw/pull/10501))
-- Fix rotated images jumping on the canvas when their aspect ratio or crop zoom changed, or when the image was replaced. ([#10233](https://github.com/tldraw/tldraw/pull/10233))
-- Fix embed hostname matching trusting lookalike hosts such as `tldraw.com.evil.io`, which were rendered with the matched definition's relaxed iframe permissions. A host must now be the pattern itself or a subdomain of it. ([#10196](https://github.com/tldraw/tldraw/pull/10196))
-- Fix geometry hit tests, nearest-point, and length calculations losing precision after a shape's SVG path data was generated. `getSvgPathData` rounded the geometry's stored points to two decimals in place, and geometries are cached per shape, so every later calculation used the rounded points. ([#10600](https://github.com/tldraw/tldraw/pull/10600))
-- Fix keyboard shape navigation, and `Editor.selectAdjacentShape('prev')`, selecting the second-to-last shape instead of the last one when nothing is selected. ([#10601](https://github.com/tldraw/tldraw/pull/10601))
-- Fix `Editor.getCurrentTheme()` returning `undefined` after `setCurrentTheme()` was called with an unregistered theme id. The call is now rejected and the current theme is kept. ([#10602](https://github.com/tldraw/tldraw/pull/10602))
-- Fix `Group2d.transform` dropping its ignored children, resetting the `isInternal`, `excludeFromShapeBounds`, and `isEmptyLabel` flags, and discarding its `opts` argument. It now matches the base `Geometry2d.transform` signature. ([#10603](https://github.com/tldraw/tldraw/pull/10603))
+- Fix a crash when dropping an audio-only video file (for example `.webm`) or a file with no size on the canvas. ([#11220](https://github.com/tldraw/tldraw/pull/11220))
+- Fix replacing an image or video when the upload fails: the shape now keeps its previous media and an error toast shows. ([#11220](https://github.com/tldraw/tldraw/pull/11220))
+- Fix clicks in the empty space above a frame selecting the frame when zoomed out. ([#11253](https://github.com/tldraw/tldraw/pull/11253))
+- Fix cursor chat closing immediately when opened from the context menu. ([#11054](https://github.com/tldraw/tldraw/pull/11054))
+- Fix the comment composer's text jumping up when a comment wraps onto a second line. ([#11255](https://github.com/tldraw/tldraw/pull/11255))
+- Fix the selection box of a text shape shrinking when an empty heading is created. ([#11219](https://github.com/tldraw/tldraw/pull/11219))
