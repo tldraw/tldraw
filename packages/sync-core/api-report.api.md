@@ -21,6 +21,7 @@ import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import type { TLUser } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @public (undocumented)
@@ -119,6 +120,12 @@ export class DurableObjectSqliteSyncWrapper implements TLSyncSqliteWrapper {
     // (undocumented)
     transaction<T>(callback: () => T): T;
 }
+
+// @public
+export function getActorUser(user: null | TLUser, actor: TLCommandActor): null | TLUser;
+
+// @public
+export function getActorUserRecordId(actor: TLCommandActor): null | string;
 
 // @internal
 export function getNetworkDiff<R extends UnknownRecord>(diff: RecordsDiff<R>): NetworkDiff<R> | null;
@@ -866,8 +873,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         store: S;
     });
     readonly actor: Atom<TLCommandActor>;
-    can(permission: string): boolean;
     canEdit(op: 'create' | 'delete' | 'update', prev: null | R, next: null | R): boolean;
+    canRun(name: string, args: unknown): boolean;
     close(): void;
     // @internal (undocumented)
     isConnectedToRoom: boolean;

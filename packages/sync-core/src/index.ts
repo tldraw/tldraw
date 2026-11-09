@@ -12,6 +12,8 @@ export {
 	runCommand,
 	TLCommandDenied,
 	type TLCommand,
+	getActorUser,
+	getActorUserRecordId,
 	type TLCommandActor,
 	type TLCommandCall,
 	type TLCommandContext,

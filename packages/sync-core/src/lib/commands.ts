@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import type { TLUser } from '@tldraw/tlschema'
 import { isEqual } from '@tldraw/utils'
 
 /**
@@ -20,6 +21,31 @@ export interface TLCommandActor {
 export function actorCan(actor: TLCommandActor, permission: string | undefined): boolean {
 	if (permission === undefined) return true
 	return actor.permissions.includes('*') || actor.permissions.includes(permission)
+}
+
+/**
+ * The id of the actor's `user` record and of the `userId` on its cursor. tldraw user ids start
+ * with `user:`; an actor id without the prefix gets it.
+ *
+ * @public
+ */
+export function getActorUserRecordId(actor: TLCommandActor): string | null {
+	if (!actor.userId) return null
+	return actor.userId.startsWith('user:') ? actor.userId : `user:${actor.userId}`
+}
+
+/**
+ * The editor's user as the actor: its name and color, with the actor's id. The edit policy keys
+ * a user record and a cursor to the actor, so an editor whose own user has another id would
+ * write a record that counts as someone else's (its name blanked) and could never be followed.
+ * An actor without a user id keeps the editor's user.
+ *
+ * @public
+ */
+export function getActorUser(user: TLUser | null, actor: TLCommandActor): TLUser | null {
+	const id = getActorUserRecordId(actor)
+	if (!user || !id || user.id === id) return user
+	return { ...user, id: id as TLUser['id'] }
 }
 
 /**

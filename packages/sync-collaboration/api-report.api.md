@@ -75,9 +75,6 @@ export function createOwnedShapesPolicy<Rec extends UnknownRecord = UnknownRecor
 export function createPageReadPolicy<Rec extends UnknownRecord = UnknownRecord>(): TLReadPolicy<Rec>;
 
 // @public
-export function getActorUserRecordId(actor: TLCommandActor): null | string;
-
-// @public
 export function getPageReaders(page: TLPage): null | string[];
 
 // @public

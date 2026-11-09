@@ -1,6 +1,7 @@
-import { atom } from '@tldraw/state'
+import { atom, computed } from '@tldraw/state'
 import type { UnknownRecord } from '@tldraw/store'
 import {
+	getActorUser,
 	getTlsyncProtocolVersion,
 	TLCommandActor,
 	TLCommandSet,
@@ -46,8 +47,9 @@ export class LocalRoom {
 		})
 	}
 
-	connect(sessionId: string, actor: TLCommandActor): Peer {
-		const peer = new Peer(this, sessionId, actor)
+	/** `editorUserId` is the host's own user id for the editor, when it is not the actor's. */
+	connect(sessionId: string, actor: TLCommandActor, opts: { editorUserId?: string } = {}): Peer {
+		const peer = new Peer(this, sessionId, actor, opts.editorUserId)
 		this.peers.set(sessionId, peer)
 		return peer
 	}
@@ -134,6 +136,7 @@ export class Peer {
 	readonly syncErrors: string[] = []
 	/** This peer's cursor and page, as the editor would publish it. */
 	readonly presence = atom<TLRecord | null>('presence', null)
+	private readonly serverActor = atom<TLCommandActor | null>('server actor', null)
 	/** The reason the server closed this session with, if it did. */
 	closedWith: string | undefined
 	readonly mode = atom<'readonly' | 'readwrite'>('mode', 'readwrite')
@@ -147,7 +150,8 @@ export class Peer {
 	constructor(
 		private readonly local: LocalRoom,
 		readonly sessionId: string,
-		private readonly actor: TLCommandActor
+		private readonly actor: TLCommandActor,
+		editorUserId = actor.userId
 	) {
 		const serverSocket: WebSocketMinimal = {
 			readyState: 1,
@@ -192,17 +196,18 @@ export class Peer {
 			schema,
 			id: sessionId,
 			collaboration: { status: atom('status', 'online'), mode: this.mode },
-			// as a host does: the editor's user is the actor
+			// as useSync does: the editor's user takes the id of the actor the server sent
 			users: {
-				currentUser: atom(
-					'user',
-					actor.userId
+				currentUser: computed('user', () => {
+					const user = editorUserId
 						? UserRecordType.create({
-								id: UserRecordType.createId(actor.userId),
-								name: actor.userId,
+								id: UserRecordType.createId(editorUserId),
+								name: actor.userId ?? editorUserId,
 							})
 						: null
-				),
+					const current = this.serverActor.get()
+					return current ? getActorUser(user, current) : user
+				}),
 			},
 		})
 		this.client = new TLSyncClient<TLRecord, TLStore>({
@@ -215,7 +220,10 @@ export class Peer {
 			onSyncError: (reason) => this.syncErrors.push(reason),
 			onPushRejected: ({ reason }) => this.rejections.push(reason),
 			// as useSync does: the editor is read-only when the actor has no edit lane
-			onActorChange: ({ isReadonly }) => this.mode.set(isReadonly ? 'readonly' : 'readwrite'),
+			onActorChange: ({ actor, isReadonly }) => {
+				this.serverActor.set(actor)
+				this.mode.set(isReadonly ? 'readonly' : 'readwrite')
+			},
 		})
 	}
 

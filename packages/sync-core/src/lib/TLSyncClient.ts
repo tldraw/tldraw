@@ -23,7 +23,6 @@ import {
 	TLCommandResult,
 	TLCommandSet,
 	TLCommandWrites,
-	actorCan,
 	canEditRecord,
 	lookupOf,
 	defaultActor,
@@ -968,9 +967,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		return runCommand(set, reader, this.actor.get(), call)
 	}
 
-	/** Whether this client's actor has a permission, reactively. */
-	can(permission: string): boolean {
-		return actorCan(this.actor.get(), permission)
+	/**
+	 * Whether a command would run now, reactively. It runs the command's own rules on this
+	 * client's records, as {@link TLSyncClient.runCommand} and the server do, and drops the
+	 * writes, so UI that enables a button asks the same question the server will.
+	 */
+	canRun(name: string, args: unknown): boolean {
+		if (!this.commands) return false
+		return this.runOwnCommand(this.commands, this.commandReader(), { name, args }).ok
 	}
 
 	private storeLookup() {

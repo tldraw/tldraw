@@ -37,8 +37,8 @@ export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
 
 // @public
 export interface TLSyncCommandsApi {
-    can(permission: string): boolean;
     canEdit(op: 'create' | 'delete' | 'update', prev: null | TLRecord, next: null | TLRecord): boolean;
+    canRun(name: string, args: unknown): boolean;
     getActor(): TLCommandActor;
     run(name: string, args: unknown): TLCommandResult<TLRecord>;
 }

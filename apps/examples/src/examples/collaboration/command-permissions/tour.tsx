@@ -36,9 +36,9 @@ export const TOUR: TourStep[] = [
 	{
 		title: 'Comments: add your own, manage any',
 		panes: ['alice', 'bob', 'teacher'],
-		try: "Click Comment as Alice. As Bob, click × on Alice's comment. Then click × as the teacher.",
-		see: "Bob gets “Not allowed”. The teacher's delete works.",
-		why: 'Comments are command-only records. comments.delete lets the author or a user with comments:manage remove a comment.',
+		try: "Click Comment as Alice. As Bob, click 🔒 on Alice's comment. Then click × as the teacher.",
+		see: "Bob's pane shows 🔒 before he tries, and the server says “Not allowed” when he does. The teacher's delete works.",
+		why: 'Comments are command-only records. comments.delete lets the author or a user with comments:manage remove a comment. The 🔒 comes from canRun, which runs that same command rule on the client.',
 	},
 	{
 		title: 'Undo sends the inverse command',

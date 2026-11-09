@@ -1,3 +1,4 @@
+import { react } from '@tldraw/state'
 import type { UnknownRecord } from '@tldraw/store'
 import {
 	defineCommand,
@@ -368,7 +369,15 @@ describe('live access changes', () => {
 		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.read] })
 		room.flush()
 		expect(a.getEditor().getIsReadonly()).toBe(true)
-		expect(a.client.can(P.writeComments)).toBe(false)
+		// the UI asks the same command rules the server runs
+		const comment = {
+			threadId: 'comment-thread:x',
+			commentId: 'comment:x',
+			pageId: page,
+			anchor: { type: 'page' },
+			body: toRichText('hi'),
+		}
+		expect(a.client.canRun('comments.add', comment)).toBe(false)
 
 		room.room.updateSessionActor('a', student('alice'))
 		room.flush()
@@ -1769,5 +1778,67 @@ describe('review cycle 3', () => {
 		expect(b.get<TLArrowShape>(arrow)!.props.bend).toBe(0)
 		room.flush()
 		expect(b.rejections).toEqual([])
+	})
+})
+
+describe('one set of rules for the server and the UI', () => {
+	const add = (threadId: string, commentId: string) => ({
+		threadId,
+		commentId,
+		pageId: page,
+		anchor: { type: 'page' },
+		body: toRichText('hello'),
+	})
+
+	it('canRun gives the answer the server gives, from the same command rules', () => {
+		const { room, t, a, b } = setup()
+		a.run('comments.add', add('comment-thread:a', 'comment:a'))
+		room.flush()
+		const del = { commentId: 'comment:a' }
+		expect([
+			a.client.canRun('comments.delete', del),
+			b.client.canRun('comments.delete', del),
+		]).toEqual([true, false])
+		expect(t.client.canRun('comments.delete', del)).toBe(true)
+		// nothing was written by asking
+		expect((a.get('comment:a' as any) as unknown as TLComment).isDeleted).toBe(false)
+		// and the server agrees with each answer
+		expect(b.run('comments.delete', del).ok).toBe(false)
+		room.flush()
+		expect((room.room.getRecord('comment:a') as unknown as TLComment).isDeleted).toBe(false)
+		expect(t.run('comments.delete', del).ok).toBe(true)
+		room.flush()
+		expect((room.room.getRecord('comment:a') as unknown as TLComment).isDeleted).toBe(true)
+	})
+
+	it('canRun is reactive: it follows the actor the host sets', () => {
+		const { room, a } = setup()
+		const vote = { shapeId: geo(a, 0) }
+		room.flush()
+		const answers: boolean[] = []
+		const stop = react('can vote', () => {
+			answers.push(a.client.canRun('votes.toggle', vote))
+		})
+		room.room.updateSessionActor('a', { userId: 'alice', permissions: [P.read] })
+		room.flush()
+		room.room.updateSessionActor('a', student('alice'))
+		room.flush()
+		stop()
+		expect(answers).toEqual([true, false, true])
+	})
+
+	it("an editor whose own user id is not the actor's writes its user record under the actor's id", () => {
+		const room = new LocalRoom(commands)
+		const t = room.connect('t', teacher)
+		// the host's user store gives the editor its own id, not the actor's
+		const a = room.connect('a', student('alice'), { editorUserId: 'local-7' })
+		room.flush()
+		const editor = a.getEditor()
+		room.flush()
+		expect(editor.getAttributionUserId()).toBe('alice')
+		const stored = room.room.getRecord('user:alice') as TLUser | undefined
+		expect(stored?.name).toBe('alice')
+		expect(room.room.getRecord('user:local-7')).toBeUndefined()
+		expect(t.get('user:alice' as any)).toMatchObject({ name: 'alice' })
 	})
 })

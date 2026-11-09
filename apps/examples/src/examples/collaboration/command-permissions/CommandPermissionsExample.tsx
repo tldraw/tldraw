@@ -82,7 +82,7 @@ function focusPane(editor: Editor | null) {
 	focusedEditor = editor
 }
 
-const CommandsContext = createContext<{ commands: TLSyncCommandsApi; userId: string } | null>(null)
+const CommandsContext = createContext<TLSyncCommandsApi | null>(null)
 
 export default function CommandPermissionsExample() {
 	// the server closes a session that loses read; when access comes back, Carol opens the file again
@@ -157,7 +157,7 @@ function Pane({ person }: { person: Person }) {
 	}
 
 	return (
-		<CommandsContext.Provider value={{ commands, userId: person.id }}>
+		<CommandsContext.Provider value={commands}>
 			<div
 				className="cp-pane"
 				style={{ '--cp-color': person.color } as React.CSSProperties}
@@ -184,6 +184,27 @@ function PaneHeader({
 }) {
 	const permissions = useValue('permissions', () => commands.getActor().permissions, [commands])
 	const selected = useValue('selected', () => editor?.getOnlySelectedShape() ?? null, [editor])
+	// [11]
+	const canVote = useValue(
+		'can vote',
+		() => !!selected && commands.canRun('votes.toggle', { shapeId: selected.id }),
+		[commands, selected]
+	)
+	const canComment = useValue(
+		'can comment',
+		() => !!editor && commands.canRun('comments.add', newComment(editor, '')),
+		[commands, editor]
+	)
+	const canManagePages = useValue(
+		'can manage pages',
+		() => commands.canRun('pages.create', { id: PageRecordType.createId(), name: 'Group work' }),
+		[commands]
+	)
+	const canDeletePage = useValue(
+		'can delete page',
+		() => !!editor && commands.canRun('pages.delete', { id: editor.getCurrentPageId() }),
+		[commands, editor]
+	)
 	const [online, setOnline] = useState(true)
 	const canEditAlice = useValue(aliceCanEdit)
 	const shared = useValue(answersShared)
@@ -200,7 +221,7 @@ function PaneHeader({
 			</div>
 			<div className="cp-actions">
 				<button
-					disabled={!selected || !commands.can('votes:cast')}
+					disabled={!canVote}
 					onClick={() => {
 						if (!selected || !editor) return
 						editor.markHistoryStoppingPoint('vote')
@@ -210,17 +231,11 @@ function PaneHeader({
 					Vote on selection
 				</button>
 				<button
-					disabled={!editor}
+					disabled={!canComment}
 					onClick={() => {
 						if (!editor) return
 						editor.markHistoryStoppingPoint('comment')
-						run('comments.add', {
-							threadId: 'comment-thread:' + uniqueId(),
-							commentId: 'comment:' + uniqueId(),
-							pageId: editor.getCurrentPageId(),
-							anchor: { type: 'page' },
-							body: toRichText(`Hello from ${person.name}`),
-						})
+						run('comments.add', newComment(editor, `Hello from ${person.name}`))
 					}}
 				>
 					Comment
@@ -237,7 +252,7 @@ function PaneHeader({
 					/>
 					Online
 				</label>
-				{person.role === 'teacher' && (
+				{canManagePages && (
 					<>
 						<button
 							onClick={() =>
@@ -246,6 +261,37 @@ function PaneHeader({
 						>
 							New page
 						</button>
+						<label>
+							<input
+								type="checkbox"
+								checked={shared}
+								onChange={(e) => {
+									answersShared.set(e.target.checked)
+									// [7]
+									run('pages.setReaders', {
+										id: ANSWERS,
+										readers: e.target.checked ? ['alice'] : [],
+									})
+								}}
+							/>
+							Share answers with Alice
+						</label>
+						<button
+							disabled={!canDeletePage}
+							onClick={() => {
+								if (!editor) return
+								editor.markHistoryStoppingPoint('delete page')
+								// [10]
+								run('pages.delete', { id: editor.getCurrentPageId() })
+							}}
+						>
+							Delete page
+						</button>
+					</>
+				)}
+				{/* [12] */}
+				{person.role === 'teacher' && (
+					<>
 						<label>
 							<input
 								type="checkbox"
@@ -262,21 +308,6 @@ function PaneHeader({
 						<label>
 							<input
 								type="checkbox"
-								checked={shared}
-								onChange={(e) => {
-									answersShared.set(e.target.checked)
-									// [7]
-									run('pages.setReaders', {
-										id: ANSWERS,
-										readers: e.target.checked ? ['alice'] : [],
-									})
-								}}
-							/>
-							Share answers with Alice
-						</label>
-						<label>
-							<input
-								type="checkbox"
 								checked={carolAccess}
 								onChange={(e) => {
 									carolHasAccess.set(e.target.checked)
@@ -289,16 +320,6 @@ function PaneHeader({
 							/>
 							Carol has access
 						</label>
-						<button
-							onClick={() => {
-								if (!editor) return
-								editor.markHistoryStoppingPoint('delete page')
-								// [10]
-								run('pages.delete', { id: editor.getCurrentPageId() })
-							}}
-						>
-							Delete page
-						</button>
 						<button onClick={askAgent}>Ask the agent</button>
 					</>
 				)}
@@ -317,13 +338,32 @@ function CommentList({ editor, commands }: { editor: Editor; commands: TLSyncCom
 			),
 		[editor]
 	)
+	// the same rule the server runs; the button stays clickable so you can see the server refuse
+	const deletable = useValue(
+		'deletable comments',
+		() =>
+			new Set(
+				comments
+					.filter((c) => commands.canRun('comments.delete', { commentId: c.id }))
+					.map((c) => c.id)
+			),
+		[comments, commands]
+	)
 	if (comments.length === 0) return null
 	return (
 		<ul className="cp-comments">
 			{comments.map((c) => (
 				<li key={c.id}>
 					<b>{c.authorId}</b>: {renderPlaintextFromRichText(editor, c.body)}
-					<button onClick={() => commands.run('comments.delete', { commentId: c.id })}>×</button>
+					<button
+						data-locked={!deletable.has(c.id)}
+						title={
+							deletable.has(c.id) ? 'Delete' : 'Only the author or a moderator can delete this'
+						}
+						onClick={() => commands.run('comments.delete', { commentId: c.id })}
+					>
+						{deletable.has(c.id) ? '×' : '🔒'}
+					</button>
 				</li>
 			))}
 		</ul>
@@ -354,7 +394,7 @@ function VoteBadges() {
 					<div
 						key={shape.id}
 						className="cp-votes"
-						data-mine={ctx ? votes.includes(ctx.userId) : false}
+						data-mine={ctx ? votes.includes(ctx.getActor().userId ?? '') : false}
 						style={{ left: at.x - 12, top: at.y - 12 }}
 					>
 						{votes.length}
@@ -385,7 +425,7 @@ function OwnerLabels() {
 	return (
 		<>
 			{shapes.map(({ shape, at }) => {
-				const canEdit = ctx.commands.canEdit('update', shape, shape)
+				const canEdit = ctx.canEdit('update', shape, shape)
 				return (
 					<div
 						key={shape.id}
@@ -411,6 +451,16 @@ const components: TLComponents = {
 			<OwnerLabels />
 		</>
 	),
+}
+
+function newComment(editor: Editor, text: string) {
+	return {
+		threadId: 'comment-thread:' + uniqueId(),
+		commentId: 'comment:' + uniqueId(),
+		pageId: editor.getCurrentPageId(),
+		anchor: { type: 'page' },
+		body: toRichText(text),
+	}
 }
 
 function seedLesson(editor: Editor, commands: TLSyncCommandsApi) {
@@ -487,6 +537,14 @@ teacher's note, which the edit lane would never let them change.
 
 [6]
 canEdit runs the shared edit policy, so the UI can show what is locked before you try.
+
+[11]
+The buttons ask canRun, which runs the command's own rules on this client's records and drops the
+writes. It is the same code the server runs, so the UI never keeps a second copy of the rules.
+
+[12]
+These controls stand for the host, the app's own server code. Changing an actor or a share link is
+not a command: the host decides it and the room applies it.
 
 [7]
 The "Answers" page has readers set to nobody, so only the teacher (who manages pages) gets it. The

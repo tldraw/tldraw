@@ -1,6 +1,7 @@
 import { atom, transact } from '@tldraw/state'
 import {
 	ClientWebSocketAdapter,
+	getActorUser,
 	TLCommandActor,
 	TLCommandCall,
 	TLCommandResult,
@@ -129,8 +130,11 @@ export type RemoteTLStoreWithStatus =
 export interface TLSyncCommandsApi {
 	/** Run a command optimistically. The server runs it again and is the authority. */
 	run(name: string, args: unknown): TLCommandResult<TLRecord>
-	/** Whether this session's actor has a permission. */
-	can(permission: string): boolean
+	/**
+	 * Whether a command would run now, reactively: the command's own rules, run on this client's
+	 * records without writing. Use it to enable or hide UI.
+	 */
+	canRun(name: string, args: unknown): boolean
 	/** Whether the edit policy allows a record change, for showing or hiding UI. */
 	canEdit(op: 'create' | 'update' | 'delete', prev: TLRecord | null, next: TLRecord | null): boolean
 	/** Who this session acts as, as the server last said. */
@@ -261,7 +265,14 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	useEffect(() => {
 		const storeId = uniqueId()
 
-		const currentUserSignal = _users?.currentUser ?? defaultUserStore.currentUser
+		const hostUser = _users?.currentUser ?? defaultUserStore.currentUser
+		// With commands, the server's actor is who this session is, so the editor's user takes its id
+		const actor = atom<TLCommandActor | null>('actor', null)
+		const currentUserSignal = computed('current user', () => {
+			const user = hostUser.get()
+			const current = actor.get()
+			return current ? getActorUser(user, current) : user
+		})
 		const users: Required<TLUserStore> = {
 			currentUser: currentUserSignal,
 			resolve:
@@ -290,11 +301,13 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			const user = users.currentUser.get()
 			if (user) return user
 			const prefs = getUserPreferences()
-			return UserRecordType.create({
+			const anonymous = UserRecordType.create({
 				id: createUserId(prefs.id),
 				name: prefs.name ?? '',
 				color: prefs.color ?? defaultUserPreferences.color,
 			})
+			const current = actor.get()
+			return (current && getActorUser(anonymous, current)) || anonymous
 		})
 
 		let socket: SyncSocket
@@ -370,7 +383,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			socket,
 			commands,
 			onPushRejected,
-			onActorChange({ isReadonly }) {
+			onActorChange({ actor: next, isReadonly }) {
+				actor.set(next)
 				// the server re-sends this whenever the host changes the actor, so the canvas
 				// turns read-only (or back) without a reconnect
 				syncMode.set(isReadonly ? 'readonly' : 'readwrite')
@@ -458,7 +472,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 function createCommandsApi(client: TLSyncClient<TLRecord, TLStore>): TLSyncCommandsApi {
 	return {
 		run: (name, args) => client.runCommand(name, args),
-		can: (permission) => client.can(permission),
+		canRun: (name, args) => client.canRun(name, args),
 		canEdit: (op, prev, next) => client.canEdit(op, prev, next),
 		getActor: () => client.actor.get(),
 	}

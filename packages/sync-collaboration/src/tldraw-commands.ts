@@ -8,6 +8,7 @@ import {
 	type TLEditPolicyContext,
 	type TLReadPolicy,
 	type TLRecordLookup,
+	getActorUserRecordId,
 } from '@tldraw/sync-core'
 import {
 	PageRecordType,
@@ -366,17 +367,6 @@ export interface OwnedShapesPolicyOptions {
 	 * parent. Pages are always allowed.
 	 */
 	canUseParent?(actor: TLCommandActor, parent: TLShape): boolean
-}
-
-/**
- * The id of the actor's `user` record and of the `userId` on its cursor. tldraw user ids start
- * with `user:`; an actor id without the prefix gets it.
- *
- * @public
- */
-export function getActorUserRecordId(actor: TLCommandActor): string | null {
-	if (!actor.userId) return null
-	return actor.userId.startsWith('user:') ? actor.userId : `user:${actor.userId}`
 }
 
 /** The owner that {@link createOwnedShapesPolicy} stamps on a shape. @public */
