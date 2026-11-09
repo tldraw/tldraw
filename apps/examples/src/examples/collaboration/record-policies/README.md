@@ -28,3 +28,5 @@ Each tab is one use case: a classroom, share links, edit access per page, commen
 Each scenario file holds its rules as `policies`. The editors and the room both put them in their schema, together with the rules that record types (comments, votes) and shape utils (stickers) bring. Each editor calls `editor.setActor` with the same actor that the room gets from `getActor`. Turn off "Check locally" in a pane to see the server reject changes on its own.
 
 Read access needs few rules. In the classroom, only the page has a `read` rule: shapes follow their page, and arrows follow the shapes they join. When the teacher gives students access to the Answers page, the example calls `room.refreshAccess()`, and the students' panes get the page without a reconnect.
+
+The UI asks the same rules. A shape you may not change behaves like a locked shape. The teacher's buttons, the comment tool, and the vote and sticker buttons call `may` or `mayPut` in `scenario.ts`, which run the policies of the schema for that person. No UI check restates a rule.

@@ -11,7 +11,7 @@ import {
 	toRichText,
 	useValue,
 } from 'tldraw'
-import { Scenario, ownsShape } from './scenario'
+import { Scenario, mayPut, ownsShape } from './scenario'
 
 const STICKER = 'policy-sticker'
 
@@ -80,7 +80,7 @@ export const plugins: Scenario = {
 	rules:
 		'A sticker shape and a vote record bring their own rules. Stickers: `stickers:place` adds and moves your own stickers, without canvas edit access. Votes: one per person, in your own name.',
 	tryThis:
-		'Add a sticker as Sam and drag it. Try to drag the owner’s sticker. Vote as each person, then try “Add sticker” as Ann, who may only vote.',
+		'Add a sticker as Sam and drag it. Try to drag the owner’s sticker. Vote as each person. Ann may only vote, so her “Add sticker” button is off: it asks the same sticker policy.',
 	people: [
 		{
 			id: 'owner',
@@ -124,16 +124,30 @@ export const plugins: Scenario = {
 				editor.store.allRecords().filter((r) => r.typeName === ('vote' as any)) as any as Vote[],
 			[editor]
 		)
-		const vote = (choice: Vote['choice']) =>
-			editor.store.put([
-				{ id: `vote:${person.id}`, typeName: 'vote', userId: person.id, choice } as any,
-			])
+		const voteFor = (choice: Vote['choice']) =>
+			({ id: `vote:${person.id}`, typeName: 'vote', userId: person.id, choice }) as any
+		const vote = (choice: Vote['choice']) => editor.store.put([voteFor(choice)])
 		const count = (choice: Vote['choice']) => votes.filter((v) => v.choice === choice).length
+		// The buttons ask the vote and sticker policies, the same rules the store and server run.
+		const mayVote = useValue('may vote', () => mayPut(editor, person, voteFor('yes')), [
+			editor,
+			person,
+		])
+		const mayAddSticker = useValue(
+			'may add sticker',
+			() => mayPut(editor, person, stickerFor(editor, person.id, '⭐', 0, 0)),
+			[editor, person]
+		)
 		return (
 			<>
-				<button onClick={() => vote('yes')}>Yes ({count('yes')})</button>
-				<button onClick={() => vote('no')}>No ({count('no')})</button>
+				<button disabled={!mayVote} onClick={() => vote('yes')}>
+					Yes ({count('yes')})
+				</button>
+				<button disabled={!mayVote} onClick={() => vote('no')}>
+					No ({count('no')})
+				</button>
 				<button
+					disabled={!mayAddSticker}
 					onClick={() =>
 						addSticker(
 							editor,
@@ -151,13 +165,19 @@ export const plugins: Scenario = {
 	},
 }
 
-function addSticker(editor: Editor, ownerId: string, emoji: string, x: number, y: number) {
-	editor.createShape({
+function stickerFor(editor: Editor, ownerId: string, emoji: string, x: number, y: number) {
+	return editor.store.schema.types.shape.create({
 		id: createShapeId(),
 		type: STICKER,
+		parentId: editor.getCurrentPageId(),
+		index: editor.getHighestIndexForParent(editor.getCurrentPageId()),
 		x,
 		y,
-		props: { emoji },
+		props: { w: 64, h: 64, emoji },
 		meta: { ownerId },
-	})
+	}) as StickerShape
+}
+
+function addSticker(editor: Editor, ownerId: string, emoji: string, x: number, y: number) {
+	editor.createShape(stickerFor(editor, ownerId, emoji, x, y))
 }

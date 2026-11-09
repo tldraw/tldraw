@@ -15,7 +15,7 @@ import {
 	createCommentThreadId,
 	toRichText,
 } from 'tldraw'
-import { Person, Scenario } from './scenario'
+import { Person, Scenario, may, mayPut } from './scenario'
 
 const COLORS: Record<string, string> = { ann: '#EC5E41', ben: '#4465E9', mo: '#0E9F6E' }
 
@@ -73,10 +73,21 @@ export const comments: Scenario = {
 		return {
 			tools: [
 				CommentTool.configure({
-					canComment: ({ editor }) => editor.getActor()?.can('comments:write') ?? true,
+					// A new thread in the actor's name: the same `commentThreadPolicy.create` rule that
+					// the store and the server run.
+					canComment: ({ editor }) =>
+						mayPut(
+							editor,
+							person,
+							createCommentThread({
+								pageId: editor.getCurrentPageId(),
+								anchor: { type: 'page' },
+								createdBy: person.id,
+							}) as any
+						),
 					// The comment policies define `edit` and `delete` actions for the UI.
 					canModifyComment: (ctx) =>
-						ctx.editor.can({
+						may(ctx.editor, person, {
 							verb: 'action',
 							action: ctx.action === 'edit-comment' ? 'edit' : 'delete',
 							record: (ctx.action === 'delete-thread' ? ctx.thread : ctx.comment) as any,

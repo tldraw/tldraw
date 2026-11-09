@@ -1,6 +1,6 @@
-import { PageRecordType, PolicyContext, toRichText, useValue } from 'tldraw'
+import { PageRecordType, PolicyContext, TLDOCUMENT_ID, toRichText, useValue } from 'tldraw'
 import { refreshLocalRoomAccess } from './localRoom'
-import { Scenario, getActions, mayParent, ownsShape, setActions } from './scenario'
+import { Scenario, getActions, mayParent, mayPut, ownsShape, setActions } from './scenario'
 
 // The teacher locks the board through the document record. Only `document:write` changes it.
 const isBoardLocked = (ctx: PolicyContext) =>
@@ -96,39 +96,67 @@ export const classroom: Scenario = {
 		const isPrivate = useValue('private', () => !!editor.getPage(ANSWERS_PAGE)?.meta.private, [
 			editor,
 		])
-		if (person.id !== 'teacher') return null
+		// Each button shows only when the policies allow its change, so the UI cannot drift from
+		// the rules. Who may change the Answers page also decides who may read it.
+		const mayLock = useValue(
+			'may lock',
+			() => {
+				const doc = editor.store.get(TLDOCUMENT_ID)
+				return !!doc && mayPut(editor, person, { ...doc, meta: { ...doc.meta, locked: !isLocked } })
+			},
+			[editor, person, isLocked]
+		)
+		const mayChangeAnswers = useValue(
+			'may change answers',
+			() => {
+				const page = editor.getPage(ANSWERS_PAGE)
+				return (
+					!!page && mayPut(editor, person, { ...page, meta: { ...page.meta, private: !isPrivate } })
+				)
+			},
+			[editor, person, isPrivate]
+		)
 		return (
 			<>
-				<button
-					onClick={() =>
-						editor.updateDocumentSettings({
-							meta: { ...editor.getDocumentSettings().meta, locked: !isLocked },
-						})
-					}
-				>
-					{isLocked ? 'Unlock board' : 'Lock board'}
-				</button>
-				<button
-					onClick={() => {
-						const page = editor.getPage(ANSWERS_PAGE)
-						if (page)
-							editor.updatePage({ id: page.id, meta: { ...page.meta, private: !isPrivate } })
-					}}
-				>
-					{isPrivate ? 'Show answers' : 'Hide answers'}
-				</button>
-				<button
-					onClick={() => {
-						for (const student of students) {
-							const others = getActions(student).filter((a) => a !== 'pages:read-private')
-							setActions(student, studentsSeeAnswers ? others : [...others, 'pages:read-private'])
+				{mayLock && (
+					<button
+						onClick={() =>
+							editor.updateDocumentSettings({
+								meta: { ...editor.getDocumentSettings().meta, locked: !isLocked },
+							})
 						}
-						// The students' panes get the Answers page, or lose it, without a reconnect.
-						refreshLocalRoomAccess(scenario)
-					}}
-				>
-					{studentsSeeAnswers ? 'Take back answer access' : 'Give students answer access'}
-				</button>
+					>
+						{isLocked ? 'Unlock board' : 'Lock board'}
+					</button>
+				)}
+				{mayChangeAnswers && (
+					<>
+						<button
+							onClick={() => {
+								const page = editor.getPage(ANSWERS_PAGE)
+								if (page)
+									editor.updatePage({ id: page.id, meta: { ...page.meta, private: !isPrivate } })
+							}}
+						>
+							{isPrivate ? 'Show answers' : 'Hide answers'}
+						</button>
+						<button
+							onClick={() => {
+								for (const student of students) {
+									const others = getActions(student).filter((a) => a !== 'pages:read-private')
+									setActions(
+										student,
+										studentsSeeAnswers ? others : [...others, 'pages:read-private']
+									)
+								}
+								// The students' panes get the Answers page, or lose it, without a reconnect.
+								refreshLocalRoomAccess(scenario)
+							}}
+						>
+							{studentsSeeAnswers ? 'Take back answer access' : 'Give students answer access'}
+						</button>
+					</>
+				)}
 			</>
 		)
 	},

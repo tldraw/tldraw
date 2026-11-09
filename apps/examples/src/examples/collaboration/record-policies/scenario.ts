@@ -3,10 +3,12 @@ import {
 	CustomRecordInfo,
 	Editor,
 	PolicyContext,
+	PolicyRequest,
 	TLAnyBindingUtilConstructor,
 	TLAnyShapeUtilConstructor,
 	TLParentId,
 	TLPolicies,
+	TLRecord,
 	TLShape,
 	TldrawProps,
 	atom,
@@ -88,6 +90,21 @@ export function mayParent(ctx: PolicyContext, parentId: TLParentId) {
 	return parentId.startsWith('page:')
 		? ctx.authorize({ verb: 'read', record: parent })
 		: mayUpdate(ctx, parent)
+}
+
+// The UI asks the same policies as the store and the server, so a button or tool shows only what
+// the rules allow. A UI check never restates a rule. It asks for the person even when "Check
+// locally" is off: that switch turns off the store guard, not what the person may do.
+export function may(editor: Editor, person: Person, request: PolicyRequest<TLRecord>) {
+	return editor.store.schema.authorize(actorFor(person), request, (id) =>
+		editor.store.get(id as TLRecord['id'])
+	)
+}
+
+/** {@link may} for a create, or an update when the record exists. */
+export function mayPut(editor: Editor, person: Person, next: TLRecord) {
+	const prev = editor.store.get(next.id)
+	return may(editor, person, prev ? { verb: 'update', prev, next } : { verb: 'create', next })
 }
 
 // Everyone writes their own user record (name and color for attribution), nobody else's.
