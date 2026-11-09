@@ -57,7 +57,7 @@ import {
 	STROKE_SIZES,
 	getFontFamily,
 } from '../shared/default-shape-constants'
-import { DEFAULT_FILL_COLOR_NAMES } from '../shared/defaultFills'
+import { DEFAULT_FILL_COLOR_NAMES, getStrokeColorForFill } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getDisplayValues } from '../shared/getDisplayValues'
@@ -168,7 +168,7 @@ export class ArrowShapeUtil extends ShapeUtil<TLArrowShape> {
 			const { color, fill, labelColor, size, font } = shape.props
 			const colors = theme.colors[colorMode]
 			return {
-				strokeColor: getColorValue(colors, color, 'solid'),
+				strokeColor: getColorValue(colors, getStrokeColorForFill(color, fill), 'solid'),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'

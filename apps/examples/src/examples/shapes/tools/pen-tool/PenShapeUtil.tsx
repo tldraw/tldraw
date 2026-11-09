@@ -299,11 +299,13 @@ const PenPath = track(function PenPath({
 				: getColorValue(
 						colors,
 						color,
-						{ solid: 'semi', pattern: 'pattern', fill: 'fill', 'lined-fill': 'linedFill' }[fill] as
-							| 'semi'
-							| 'pattern'
-							| 'fill'
-							| 'linedFill'
+						{
+							solid: 'semi',
+							pattern: 'pattern',
+							fill: 'fill',
+							'lined-fill': 'linedFill',
+							inked: 'semi',
+						}[fill] as 'semi' | 'pattern' | 'fill' | 'linedFill'
 					)
 	const patternId = useUniqueSafeId('pen-hatch')
 	return (

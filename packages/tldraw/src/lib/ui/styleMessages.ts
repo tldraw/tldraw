@@ -65,6 +65,7 @@ export const styleMessages = defineMessages({
 	'dash-style.solid': { id: 'dash-style.solid', defaultMessage: 'Solid' },
 
 	'fill-style.fill': { id: 'fill-style.fill', defaultMessage: 'Fill' },
+	'fill-style.inked': { id: 'fill-style.inked', defaultMessage: 'Inked' },
 	'fill-style.lined-fill': { id: 'fill-style.lined-fill', defaultMessage: 'Lined fill' },
 	'fill-style.none': { id: 'fill-style.none', defaultMessage: 'None' },
 	'fill-style.pattern': { id: 'fill-style.pattern', defaultMessage: 'Pattern' },
