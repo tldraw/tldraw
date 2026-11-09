@@ -85,6 +85,17 @@ const grantsAreServerManaged = perRecord<FileRecord, SessionMeta>((change) =>
 // (`studentEditable`, set by a teacher); they may not change that policy themselves.
 const students = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
 	if (session.meta.userId !== null) return null
+	// SPIKE: students only create red shapes, and may only recolour to red
+	if (change.type !== 'delete' && change.next.typeName === 'shape') {
+		const color = (change.next.props as { color?: string }).color
+		const prevColor =
+			change.type === 'update'
+				? (change.prev as { props: { color?: string } }).props.color
+				: undefined
+		if ((change.type === 'create' || color !== prevColor) && color !== 'red') {
+			return 'students can only use red shapes'
+		}
+	}
 	if (
 		change.type === 'update' &&
 		change.next.typeName === 'page' &&

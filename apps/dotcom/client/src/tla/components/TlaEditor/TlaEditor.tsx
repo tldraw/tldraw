@@ -189,6 +189,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				isPageId(pageId) && editor.getPage(pageId)?.meta.studentEditable === true
 			if (record.typeName === 'page') return record.meta.studentEditable === true
 			if (record.typeName === 'shape') {
+				// SPIKE: students only create red shapes, and may only recolour to red
+				const color = (record.props as { color?: string }).color
+				const current = editor.getShape(record.id)
+				const currentColor = (current?.props as { color?: string } | undefined)?.color
+				if ((!current || color !== currentColor) && color !== 'red') return false
 				let parent: TLParentId = record.parentId
 				while (!isPageId(parent)) {
 					const next: TLShape | undefined = editor.getShape(parent)
