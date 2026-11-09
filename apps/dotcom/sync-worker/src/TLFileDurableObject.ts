@@ -129,6 +129,7 @@ import {
 	TabRenderBroker,
 	TabRenderOutcome,
 	TabRenderSocket,
+	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
 } from './tabRenderBroker'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
@@ -3583,7 +3584,15 @@ export class TLFileDurableObject extends DurableObject {
 			sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null),
 		])
 		if (!room) return { status: 'room_timeout' }
-		return this.tabRenders.dispatch(sessionIds, request, (sessionId, jobId) => {
+		// Only now: sessionIdToWs is filled in as the room boots.
+		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
+			const ws = this.sessionIdToWs.get(sessionId)
+			const attachment = ws ? this.getSocketAttachment(ws) : null
+			if (!attachment) return null
+			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
+		})
+		if (deliverable.length === 0) return { status: 'no_tab' }
+		return this.tabRenders.dispatch(deliverable, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})

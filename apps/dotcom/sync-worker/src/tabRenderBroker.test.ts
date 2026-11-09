@@ -6,6 +6,8 @@ import {
 	TAB_RENDER_WORK_TIMEOUT_MS,
 	TabRenderBroker,
 	TabRenderSocket,
+	TabRenderTarget,
+	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
 } from './tabRenderBroker'
 
@@ -53,6 +55,24 @@ describe('pickTabRenderSessions', () => {
 			NOW
 		)
 		expect(picked).toEqual(['newest', 'middle', 'third'].slice(0, MAX_TAB_RENDER_SESSIONS))
+	})
+})
+
+describe('keepDeliverableTabRenderSessions', () => {
+	const targets: Record<string, TabRenderTarget> = {
+		tab: { userId: 'user_a', canTabRender: true },
+		// A superseded tab socket qualified at pick time, but these hold the session id now.
+		agent: { userId: 'user_a', canTabRender: false },
+		teammate: { userId: 'user_b', canTabRender: true },
+	}
+
+	it('keeps only sessions whose current socket is a tab of the user who asked', () => {
+		const kept = keepDeliverableTabRenderSessions(
+			['tab', 'agent', 'teammate', 'gone'],
+			'user_a',
+			(sessionId) => targets[sessionId] ?? null
+		)
+		expect(kept).toEqual(['tab'])
 	})
 })
 

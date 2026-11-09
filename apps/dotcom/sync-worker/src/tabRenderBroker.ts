@@ -67,6 +67,29 @@ export function pickTabRenderSessions(
 	return [...new Set(live)].slice(0, MAX_TAB_RENDER_SESSIONS)
 }
 
+/** What a session's current socket says about it: the one the room would send a job to. */
+export interface TabRenderTarget {
+	userId: string | null
+	canTabRender: boolean
+}
+
+/**
+ * The picked sessions whose current socket can still take the job. Picking reads every socket,
+ * superseded ones included, but the room sends to the newest socket for a session id. Without this, a
+ * lingering socket that qualifies would hand the job id to a newer one that doesn't, such as an OAuth
+ * client or another user connected under the same session id.
+ */
+export function keepDeliverableTabRenderSessions(
+	sessionIds: string[],
+	userId: string,
+	currentTarget: (sessionId: string) => TabRenderTarget | null
+): string[] {
+	return sessionIds.filter((sessionId) => {
+		const target = currentTarget(sessionId)
+		return !!target?.canTabRender && target.userId === userId
+	})
+}
+
 interface TabRenderJob {
 	/**
 	 * The tabs that can still answer, by job id. Each tab gets its own id, so a reply can only ever
