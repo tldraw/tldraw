@@ -12,6 +12,7 @@ const { requireAuth } = await import('../../utils/tla/getAuth')
 const { copyLibrary } = await import('./copyLibrary')
 
 const ME = 'user_aaaa11112222bbbb'
+const STORED = JSON.stringify({ formatVersion: 1, content: { shapes: [], assets: [] } })
 const W = 'group_www11112222www'
 const V = 'group_vvv11112222vvv'
 const LIBRARY_ID = 'coll_aaaa11112222bbbb'
@@ -71,9 +72,9 @@ afterEach(() => vi.clearAllMocks())
 describe('copyLibrary', () => {
 	it("copies the rows, each item's content, and its thumbnail to new public uploads", async () => {
 		const env = makeEnv()
-		await env.ROOMS.put(getLibraryItemContentKey('item_a'), '{"formatVersion":1}')
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
 		await env.UPLOADS.put('thumb_a-png', new Uint8Array([1]))
-		await env.ROOMS.put(getLibraryItemContentKey('item_b'), '{"formatVersion":1}')
+		await env.ROOMS.put(getLibraryItemContentKey('item_b'), STORED)
 		const fake = mockPool([
 			[access('member')],
 			[{ role: 'member' }],
@@ -107,7 +108,7 @@ describe('copyLibrary', () => {
 	it('copies both of a light and dark pair, and a light one alone without its dark one', async () => {
 		const env = makeEnv()
 		for (const id of ['item_a', 'item_b', 'item_c']) {
-			await env.ROOMS.put(getLibraryItemContentKey(id), '{"formatVersion":1}')
+			await env.ROOMS.put(getLibraryItemContentKey(id), STORED)
 		}
 		await env.UPLOADS.put('light_a-png', new Uint8Array([1]))
 		await env.UPLOADS.put('dark_a-png', new Uint8Array([2]))
@@ -139,7 +140,7 @@ describe('copyLibrary', () => {
 
 	it('removes the copies it made when the rows cannot be inserted', async () => {
 		const env = makeEnv()
-		await env.ROOMS.put(getLibraryItemContentKey('item_a'), '{"formatVersion":1}')
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
 		await env.UPLOADS.put('thumb_a-png', new Uint8Array([1]))
 		const fake = mockPool([
 			[access('member')],
@@ -172,5 +173,39 @@ describe('copyLibrary', () => {
 		mockPool([[access('member')], [], []])
 		const env = makeEnv()
 		expect((await copyLibrary(request(ME), env)).status).toBe(200)
+	})
+})
+
+describe('copyLibrary, with uploads the items own', () => {
+	it("gives each copied item its own copies of the source item's uploads", async () => {
+		const env = makeEnv()
+		const asset = {
+			id: 'asset:photo',
+			typeName: 'asset',
+			type: 'image',
+			props: { src: 'https://content.test/owned1-png' },
+			meta: {},
+		}
+		await env.UPLOADS.put('owned1-png', new Uint8Array([7]))
+		await env.ROOMS.put(
+			getLibraryItemContentKey('item_a'),
+			JSON.stringify({ formatVersion: 1, content: { shapes: [], assets: [asset] } })
+		)
+		const fake = mockPool([[access('member')], [{ role: 'member' }], [item('item_a', null)]])
+
+		expect((await copyLibrary(request(V), env)).status).toBe(200)
+
+		const uploads = await keysOf(env.UPLOADS)
+		expect(uploads).toHaveLength(2)
+		const copyName = uploads.find((key: string) => key !== 'owned1-png')!
+		expect(copyName).toMatch(/-png$/)
+		const ownership = fake.queries.find((q) =>
+			q.sql.startsWith('insert into "library_item_asset"')
+		)!
+		expect(ownership.parameters).toContain(copyName)
+		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
+		const newItemId = itemInsert.parameters[0] as string
+		const copied = await (await env.ROOMS.get(getLibraryItemContentKey(newItemId)))!.json<any>()
+		expect(copied.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
 	})
 })

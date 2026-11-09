@@ -497,6 +497,12 @@ export interface TlaAsset {
 	userId: string | null
 }
 
+/** An uploads-bucket object a library item owns. Server-only: not in the Zero schema. */
+export interface TlaLibraryItemAsset {
+	itemId: string
+	objectName: string
+}
+
 export interface TlaEffectOutbox {
 	id: number
 	tableName: string
@@ -562,6 +568,7 @@ export interface DB {
 	effect_outbox: TlaEffectOutbox
 	library: TlaLibrary
 	library_item: TlaLibraryItem
+	library_item_asset: TlaLibraryItemAsset
 }
 
 export const schema = createSchema({
