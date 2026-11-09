@@ -31,8 +31,8 @@ declare module 'tldraw' {
 	}
 }
 
-// A copy of packages/sync-core/src/test/classroomPermissions.ts, which the use case tests run
-// against a real room. The same chain runs in the in-page room and in each editor below.
+// The one set of rules. The in-page room, each editor, the demo's UI checks and the tests
+// (permissionUseCases.test.ts, classroomPermissions.test.ts) all use this chain.
 
 export interface ClassroomMeta {
 	userId: string

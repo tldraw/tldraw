@@ -1,91 +1,74 @@
-import { computed } from '@tldraw/state'
+import { TLSyncClient, TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import {
 	BaseRecord,
+	Editor,
+	PageRecordType,
 	PermissionChain,
 	PermissionDenial,
 	PermissionMiddleware,
 	RecordId,
-} from '@tldraw/store'
-import {
 	TLAsset,
 	TLAssetId,
 	TLDOCUMENT_ID,
-	TLShape,
-	defaultShapeSchemas,
 	TLPageId,
 	TLRecord,
+	TLShape,
 	TLShapeId,
-	createTLSchema,
-} from '@tldraw/tlschema'
-import {
-	BaseBoxShapeUtil,
-	Editor,
-	T,
-	PageRecordType,
 	TLStore,
+	commentSchemaRecords,
+	computed,
 	createShapeId,
+	createTLSchema,
 	createTLStore,
 	defaultBindingUtils,
+	defaultShapeSchemas,
 	defaultShapeUtils,
 	defaultTools,
 } from 'tldraw'
-import { afterEach, describe, expect, it } from 'vitest'
-import { TLSyncClient, TLSyncErrorCloseEventReason } from '../lib/TLSyncClient'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	ClassroomActor,
 	ClassroomMeta,
 	GRADE_TYPE,
 	MAX_AGENT_WRITES_PER_BATCH,
-	changesReadRules,
 	classroomActor,
 	classroomPermissions,
 } from './classroomPermissions'
-import { TestServer } from './TestServer'
-import { TestSocketPair } from './TestSocketPair'
+import { GradeShapeUtil } from './GradeShape'
+import { createInPageRoom } from './inPageRoom'
 
-// Backtests of the permission use cases, from end to end: a real room, and real editors whose
-// stores run the same chain as the room (see classroomPermissions.ts).
-
-// A plugin shape type: a teacher's grade for one student (see `grades` in classroomPermissions.ts).
-const gradeProps = { w: T.number, h: T.number, studentId: T.string, text: T.string }
-declare module '@tldraw/tlschema' {
-	export interface TLGlobalShapePropsMap {
-		[GRADE_TYPE]: { w: number; h: number; studentId: string; text: string }
-	}
-}
-class GradeShapeUtil extends BaseBoxShapeUtil<TLShape<typeof GRADE_TYPE>> {
-	static override type = GRADE_TYPE
-	static override props = gradeProps
-	override getDefaultProps() {
-		return { w: 100, h: 50, studentId: '', text: '' }
-	}
-	override component() {
-		return null
-	}
-	override getIndicatorPath() {
-		return undefined
-	}
-}
+// Backtests of the permission use cases, from end to end: the demo's in-page room, and real
+// editors whose stores run the same chain as the room (see classroomPermissions.ts).
 
 const schema = createTLSchema({
-	shapes: { ...defaultShapeSchemas, [GRADE_TYPE]: { props: gradeProps } },
+	shapes: { ...defaultShapeSchemas, [GRADE_TYPE]: { props: GradeShapeUtil.props } },
+	records: commentSchemaRecords,
 })
 const disposables: (() => void)[] = []
+beforeEach(() => {
+	vi.useFakeTimers({
+		toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval', 'Date'],
+	})
+})
 afterEach(() => {
 	while (disposables.length) disposables.pop()!()
+	vi.useRealTimers()
 })
+
+type Room = ReturnType<typeof createInPageRoom>
 
 class Peer {
 	store: TLStore
-	pair: TestSocketPair<TLRecord>
+	socket: ReturnType<Room['connect']>
 	client: TLSyncClient<TLRecord>
 	editor!: Editor
 	denied: PermissionDenial<TLRecord>[] = []
 	syncErrors: string[] = []
 	expectsSyncError = false
+	pushes = 0
 
 	constructor(
-		readonly server: TestServer<TLRecord>,
+		room: Room,
 		public meta: ClassroomMeta,
 		chain: PermissionChain<TLRecord, ClassroomActor>
 	) {
@@ -95,16 +78,15 @@ class Peer {
 			getActor: () => classroomActor(this.meta),
 			onDenied: (d) => this.denied.push(...d),
 		})
-		this.pair = new TestSocketPair(meta.userId, server)
-		this.pair.connectOpts = {
-			meta,
-			// A link guest's role can change while connected, so its lane stays open.
-			isReadonly: meta.role === 'viewer' && !meta.viaLink,
-			objectAccess: meta.role === 'viewer' && !meta.viaLink ? 'read' : 'write',
+		this.socket = room.connect(meta.userId, meta)
+		const send = this.socket.sendMessage
+		this.socket.sendMessage = (msg) => {
+			if (msg.type === 'push') this.pushes++
+			send(msg)
 		}
 		this.client = new TLSyncClient<TLRecord>({
 			store: this.store,
-			socket: this.pair.clientSocket,
+			socket: this.socket,
 			onSyncError: (reason) => {
 				this.syncErrors.push(reason)
 			},
@@ -123,7 +105,6 @@ class Peer {
 			this.editor?.dispose()
 			this.client.close()
 		})
-		this.pair.connect()
 	}
 
 	shape(id: TLShapeId) {
@@ -133,43 +114,27 @@ class Peer {
 
 function classroom({ atomicPushes = true } = {}) {
 	const chain = classroomPermissions({ atomicPushes })
-	const server: TestServer<TLRecord> = new TestServer<TLRecord>(schema, undefined, {
-		permissions: chain,
-		// as the demo host does: re-run reads when a change can change what others may read
-		onCommittedChanges: ({ diff }) => {
-			if (changesReadRules(diff)) server.room.refreshReads()
-		},
-	})
+	const { room, connect } = createInPageRoom({ chain, schema, onDenied: () => {} })
+	disposables.push(() => room.close())
 	const peers: Peer[] = []
+	// The in-page sockets and the room deliver on timers. Run them until all is delivered.
 	const flush = () => {
-		for (let i = 0; i < 50; i++) {
-			server.flushDebouncingMessages()
-			if (!peers.some((p) => p.pair.getNeedsFlushing())) {
-				for (const p of peers) {
-					if (p.syncErrors.length && !p.expectsSyncError) {
-						throw new Error(`sync error for ${p.meta.userId}: ${p.syncErrors.join(', ')}`)
-					}
-				}
-				return
-			}
-			for (const p of peers) {
-				p.pair.flushClientSentEvents()
-				p.pair.flushServerSentEvents()
+		vi.advanceTimersByTime(1000)
+		for (const p of peers) {
+			if (p.syncErrors.length && !p.expectsSyncError) {
+				throw new Error(`sync error for ${p.meta.userId}: ${p.syncErrors.join(', ')}`)
 			}
 		}
-		throw new Error('did not settle')
 	}
 	const join = (meta: ClassroomMeta, { expectsSyncError = false } = {}) => {
-		const peer = new Peer(server, meta, chain)
+		const peer = new Peer({ room, connect }, meta, chain)
 		peer.expectsSyncError = expectsSyncError
 		peers.push(peer)
 		flush()
 		return peer
 	}
-	const stored = (id: string) =>
-		server.storage.getSnapshot().documents.find((d) => d.state.id === id)?.state as
-			| TLRecord
-			| undefined
+	// every record that these tests read back from the room has `meta`
+	const stored = (id: string) => room.getRecord(id) as TLShape | TLAsset | undefined
 
 	// The teacher sets up the room: a public page with shapes, and a private page.
 	const teacher = join({ userId: 'teacher', role: 'teacher' })
@@ -182,7 +147,7 @@ function classroom({ atomicPushes = true } = {}) {
 	teacher.editor.createShape({ id: secretBox, type: 'geo', parentId: page2, x: 0, y: 0 })
 	flush()
 
-	return { server, chain, flush, join, stored, teacher, page1, page2, teacherBox, secretBox }
+	return { room, chain, flush, join, stored, teacher, page1, page2, teacherBox, secretBox }
 }
 
 describe('shape write control: students edit only their own shapes', () => {
@@ -200,12 +165,13 @@ describe('shape write control: students edit only their own shapes', () => {
 	it("the teacher's shape is locked for a student, so nothing is sent", () => {
 		const { join, teacherBox, flush, stored } = classroom()
 		const alice = join({ userId: 'alice', role: 'student' })
+		const pushes = alice.pushes
 		expect(alice.editor.getShapePermissionDenial(teacherBox)).toBe('not your shape')
 		alice.editor.updateShape({ id: teacherBox, type: 'geo', x: 500 })
 		expect(alice.shape(teacherBox)!.x).toBe(0)
-		expect(alice.pair.clientSentEventQueue.filter((m) => m.type === 'push')).toEqual([])
 		expect(alice.denied.map((d) => d.reason)).toEqual(['not your shape'])
 		flush()
+		expect(alice.pushes).toBe(pushes)
 		expect((stored(teacherBox) as any).x).toBe(0)
 	})
 
@@ -512,23 +478,23 @@ describe('page read control', () => {
 	})
 
 	it('when a page turns private, the page goes, but its shapes stay until a refresh', () => {
-		const { join, teacher, page1, teacherBox, flush, server } = classroom()
+		const { join, teacher, page1, teacherBox, flush, room } = classroom()
 		const alice = join({ userId: 'alice', role: 'student' })
 		teacher.editor.updatePage({ id: page1, meta: { private: true } })
 		flush()
 		expect(alice.store.get(page1)).toBeUndefined()
 		// The read chain ran on the page only. The shape did not change, so it was not re-checked.
 		expect(alice.store.get(teacherBox)).toBeDefined()
-		server.room.refreshReads()
+		room.refreshReads()
 		flush()
 		expect(alice.store.get(teacherBox)).toBeUndefined()
 	})
 
 	it('a role change takes effect on writes and reads at once', () => {
-		const { join, server, page2, secretBox, flush } = classroom()
+		const { join, room, page2, secretBox, flush } = classroom()
 		const alice = join({ userId: 'alice', role: 'student' })
 		alice.meta = { userId: 'alice', role: 'teacher' }
-		server.room.updateSessionMeta('alice', alice.meta)
+		room.updateSessionMeta('alice', alice.meta)
 		flush()
 		expect(alice.store.get(page2)).toBeDefined()
 		expect(alice.store.get(secretBox)).toBeDefined()
@@ -546,12 +512,12 @@ describe('file read control', () => {
 	})
 
 	it('closing the class closes the open sessions of students on refresh', () => {
-		const { join, teacher, server, flush } = classroom()
+		const { join, teacher, room, flush } = classroom()
 		const alice = join({ userId: 'alice', role: 'student' }, { expectsSyncError: true })
 		const other = join({ userId: 'teacher2', role: 'teacher' })
 		teacher.editor.updateDocumentSettings({ meta: { closed: true } })
 		flush()
-		server.room.refreshReads()
+		room.refreshReads()
 		flush()
 		expect(alice.syncErrors).toEqual([TLSyncErrorCloseEventReason.FORBIDDEN])
 		expect(other.syncErrors).toEqual([])
@@ -621,7 +587,7 @@ describe('shape read control, with a plugin shape type', () => {
 
 describe('share links', () => {
 	it('a link role change applies to the next write, with no reconnect', () => {
-		const { join, server, flush, stored } = classroom()
+		const { join, room, flush, stored } = classroom()
 		const guest = join({ userId: 'guest', role: 'viewer', viaLink: true })
 		const draw = (id: string) => {
 			const shapeId = createShapeId(id)
@@ -634,11 +600,11 @@ describe('share links', () => {
 
 		// the host's "change link" endpoint
 		guest.meta = { userId: 'guest', role: 'student', viaLink: true }
-		server.room.updateSessionMeta('guest', guest.meta)
+		room.updateSessionMeta('guest', guest.meta)
 		expect(draw('b')).toBeDefined()
 
 		guest.meta = { userId: 'guest', role: 'viewer', viaLink: true }
-		server.room.updateSessionMeta('guest', guest.meta)
+		room.updateSessionMeta('guest', guest.meta)
 		guest.store.setPermissions(null)
 		expect(draw('c')).toBeUndefined()
 		expect(guest.syncErrors).toEqual([])

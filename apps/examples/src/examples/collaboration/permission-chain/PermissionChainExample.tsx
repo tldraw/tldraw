@@ -18,6 +18,7 @@ import {
 	UserRecordType,
 	commentSchemaRecords,
 	computed,
+	createCommentThread,
 	createShapeId,
 	createUserId,
 	createTLSchema,
@@ -233,10 +234,7 @@ function Pane({
 			InFrontOfTheCanvas: () => (
 				<>
 					<LockedHint />
-					<CanvasComments
-						currentUserId={meta.role === 'viewer' ? null : meta.userId}
-						resolveAuthor={(id) => ({ name: NAMES[id] ?? id })}
-					/>
+					<Comments userId={meta.userId} />
 				</>
 			),
 		}),
@@ -308,6 +306,31 @@ function LockedHint() {
 	)
 	if (!reason) return null
 	return <div className="permission-chain__locked">Locked for you: {reason}</div>
+}
+
+/** The composer shows only when the chain lets this user start a thread on this page. */
+function Comments({ userId }: { userId: string }) {
+	const editor = useEditor()
+	const mayComment = useValue(
+		'may comment',
+		() => {
+			const thread = createCommentThread({
+				pageId: editor.getCurrentPageId(),
+				anchor: { type: 'point', x: 0, y: 0 },
+				createdBy: userId,
+			})
+			return (
+				editor.store.checkWrites([{ type: 'create', prev: null, next: thread }]).denied.length === 0
+			)
+		},
+		[editor, userId]
+	)
+	return (
+		<CanvasComments
+			currentUserId={mayComment ? userId : null}
+			resolveAuthor={(id) => ({ name: NAMES[id] ?? id })}
+		/>
+	)
 }
 
 /** Ask the editor's chain whether a comment write would pass, so the menu offers only that. */
@@ -527,7 +550,8 @@ removes it, to show that the room enforces the same rules.
 
 [7]
 The comment tool asks the editor's chain before it offers "Delete": `store.checkWrites` is a dry run
-of the write that the menu item would make, with this editor's actor.
+of the write that the menu item would make, with this editor's actor. The composer asks the same way whether
+this user may start a thread. No UI check has its own copy of a rule.
 
 [8]
 Actions that are not record writes ask the same chain with `chain.can`. A server endpoint (for
