@@ -378,33 +378,39 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 				left: '50%',
 				transform: 'translateX(-50%)',
 				display: 'flex',
-				alignItems: 'center',
-				gap: 8,
-				padding: '6px 12px',
-				borderRadius: 8,
+				flexDirection: 'column',
+				minWidth: 240,
+				padding: 4,
+				borderRadius: 'var(--tl-radius-3)',
 				background: 'var(--tl-color-panel)',
 				boxShadow: 'var(--tl-shadow-2)',
-				font: '500 12px var(--tl-font-sans)',
-				color: 'var(--tl-color-text)',
 				pointerEvents: 'all',
 				zIndex: 'var(--tl-layer-canvas-in-front)' as any,
 			}}
 			onPointerDown={(e) => e.stopPropagation()}
 		>
-			{msg(messages.blockedHeading)}
-			<TldrawUiButton type="normal" onClick={tryPolicy}>
+			<div
+				style={{
+					padding: '8px 12px 4px',
+					font: '500 12px var(--tl-font-sans)',
+					color: 'var(--tl-color-text-3)',
+				}}
+			>
+				{msg(messages.blockedHeading)}
+			</div>
+			<TldrawUiButton type="menu" onClick={tryPolicy}>
 				<TldrawUiButtonLabel>{msg(messages.tryPolicy)}</TldrawUiButtonLabel>
 			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={tryOtherPage}>
+			<TldrawUiButton type="menu" onClick={tryOtherPage}>
 				<TldrawUiButtonLabel>{msg(messages.tryOtherPage)}</TldrawUiButtonLabel>
 			</TldrawUiButton>
 			{redOnly && (
-				<TldrawUiButton type="normal" onClick={tryRecolour}>
+				<TldrawUiButton type="menu" onClick={tryRecolour}>
 					<TldrawUiButtonLabel>{msg(messages.tryRecolour)}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			)}
 			{redOnly && (
-				<TldrawUiButton type="normal" onClick={tryBlue}>
+				<TldrawUiButton type="menu" onClick={tryBlue}>
 					<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			)}
