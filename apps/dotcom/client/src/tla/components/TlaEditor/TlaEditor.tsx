@@ -15,6 +15,7 @@ import {
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	createShapeId,
 	DefaultColorStyle,
 	DefaultStylePanel,
 	defineMessages,
@@ -37,6 +38,13 @@ import {
 	StylePanelTextAlignPicker,
 	throttle,
 	TLAsset,
+	TldrawUiButton,
+	TldrawUiButtonLabel,
+	TldrawUiDialogBody,
+	TldrawUiDialogCloseButton,
+	TldrawUiDialogFooter,
+	TldrawUiDialogHeader,
+	TldrawUiDialogTitle,
 	TLBinding,
 	TLComponents,
 	Tldraw,
@@ -44,6 +52,7 @@ import {
 	TLPage,
 	TLParentId,
 	TLRecordChange,
+	TLRefusal,
 	TLSessionStateSnapshot,
 	TLShape,
 	tltime,
@@ -113,6 +122,12 @@ const messages = defineMessages({
 	studentsCanEditAll: { defaultMessage: 'Students can edit everything' },
 	sharePage: { defaultMessage: 'Students can see this page' },
 	color: { defaultMessage: 'Color' },
+	refusedTitle: { defaultMessage: 'Change not saved' },
+	ok: { defaultMessage: 'OK' },
+	blockedHeading: { defaultMessage: 'Things that will fail' },
+	tryPolicy: { defaultMessage: 'Change the permissions' },
+	tryOtherPage: { defaultMessage: "Edit the teacher's page" },
+	tryBlue: { defaultMessage: 'Add a blue shape' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -234,6 +249,121 @@ function putPolicy(
 				} as any,
 			]),
 		{ history: 'ignore' }
+	)
+}
+
+// SPIKE: the dialog shown when the server refuses a change.
+function RefusedDialog({ reason, onClose }: { reason: string; onClose(): void }) {
+	const msg = useTranslation()
+	return (
+		<>
+			<TldrawUiDialogHeader>
+				<TldrawUiDialogTitle>{msg(messages.refusedTitle)}</TldrawUiDialogTitle>
+				<TldrawUiDialogCloseButton />
+			</TldrawUiDialogHeader>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{reason}</TldrawUiDialogBody>
+			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
+				<TldrawUiButton type="primary" onClick={onClose}>
+					<TldrawUiButtonLabel>{msg(messages.ok)}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			</TldrawUiDialogFooter>
+		</>
+	)
+}
+
+// SPIKE: opens the dialog for every refusal the server sends back.
+function ShowRefusals() {
+	const editor = useEditor()
+	const { addDialog } = useDialogs()
+	useEffect(() => {
+		const onRefused = ({ reason }: TLRefusal) => {
+			addDialog({
+				id: 'refused-dialog',
+				component: ({ onClose }) => <RefusedDialog reason={reason} onClose={onClose} />,
+			})
+		}
+		editor.on('refused', onRefused)
+		return () => void editor.off('refused', onRefused)
+	}, [editor, addDialog])
+	return null
+}
+
+// SPIKE: for a restricted student, buttons that try things the server will refuse. They write
+// straight to the store, past the editor's own checks, so the server has to say no.
+function TryBlockedActions({ grantId }: { grantId: string }) {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const isRestrictedStudent = useValue(
+		'isRestrictedStudent',
+		() =>
+			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
+				'student' && getPolicy(editor.store)?.studentsCanEditAll !== true,
+		[editor, grantId]
+	)
+	if (!isRestrictedStudent) return null
+
+	const tryPolicy = () => putPolicy(editor, { studentsCanEditAll: true })
+	const tryOtherPage = () => {
+		const shared = getPolicy(editor.store)?.studentPages ?? []
+		const shape = editor.store.allRecords().find((record) => {
+			if (record.typeName !== 'shape') return false
+			const pageId = editor.getAncestorPageId(record as TLShape)
+			return !!pageId && !shared.includes(pageId)
+		})
+		if (shape) editor.store.put([{ ...shape, x: (shape as TLShape).x + 10 } as TLShape])
+	}
+	const tryBlue = () => {
+		const parentId = editor.getCurrentPageId()
+		editor.store.put([
+			{
+				id: createShapeId(),
+				typeName: 'shape',
+				type: 'geo',
+				x: 100,
+				y: 100,
+				rotation: 0,
+				isLocked: false,
+				opacity: 1,
+				meta: {},
+				parentId,
+				index: editor.getHighestIndexForParent(parentId),
+				props: { ...editor.getShapeUtil('geo').getDefaultProps(), color: 'blue' },
+			} as TLShape,
+		])
+	}
+
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				top: 8,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				display: 'flex',
+				alignItems: 'center',
+				gap: 8,
+				padding: '6px 12px',
+				borderRadius: 8,
+				background: 'var(--tl-color-panel)',
+				boxShadow: 'var(--tl-shadow-2)',
+				font: '500 12px var(--tl-font-sans)',
+				color: 'var(--tl-color-text)',
+				pointerEvents: 'all',
+				zIndex: 'var(--tl-layer-canvas-in-front)' as any,
+			}}
+			onPointerDown={(e) => e.stopPropagation()}
+		>
+			{msg(messages.blockedHeading)}
+			<TldrawUiButton type="normal" onClick={tryPolicy}>
+				<TldrawUiButtonLabel>{msg(messages.tryPolicy)}</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" onClick={tryOtherPage}>
+				<TldrawUiButtonLabel>{msg(messages.tryOtherPage)}</TldrawUiButtonLabel>
+			</TldrawUiButton>
+			<TldrawUiButton type="normal" onClick={tryBlue}>
+				<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>
+			</TldrawUiButton>
+		</div>
 	)
 }
 
@@ -615,6 +745,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			InFrontOfTheCanvas: () => (
 				<>
 					<TeacherEditingToggle grantId={grantId} />
+					<TryBlockedActions grantId={grantId} />
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
 					<TlaCollectionsPanel />
 				</>
@@ -651,6 +782,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				canChangeRecord={canChangeRecord}
 			>
 				<ThemeUpdater />
+				<ShowRefusals />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
 				<SneakyMermaidHandler />

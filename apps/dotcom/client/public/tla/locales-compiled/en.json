@@ -463,6 +463,12 @@
       "value": "Reload"
     }
   ],
+  "4ff3c2aac0": [
+    {
+      "type": 0,
+      "value": "Add a blue shape"
+    }
+  ],
   "5097d89907": [
     {
       "type": 0,
@@ -674,6 +680,12 @@
       "value": "Refresh"
     }
   ],
+  "64390f1c3a": [
+    {
+      "type": 0,
+      "value": "Change not saved"
+    }
+  ],
   "6609dd239e": [
     {
       "type": 0,
@@ -834,6 +846,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7b3285a359": [
+    {
+      "type": 0,
+      "value": "Change the permissions"
     }
   ],
   "7be10fc592": [
@@ -1648,6 +1666,12 @@
       "value": "Theme"
     }
   ],
+  "d7a18d8512": [
+    {
+      "type": 0,
+      "value": "Edit the teacher's page"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1950,6 +1974,12 @@
     {
       "type": 0,
       "value": " to use it here."
+    }
+  ],
+  "f713687778": [
+    {
+      "type": 0,
+      "value": "Things that will fail"
     }
   ],
   "fa2ead697d": [

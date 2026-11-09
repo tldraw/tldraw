@@ -191,6 +191,9 @@
   "4d1c8263ba": {
     "translation": "Reload"
   },
+  "4ff3c2aac0": {
+    "translation": "Add a blue shape"
+  },
   "5097d89907": {
     "translation": "Unsupported diagram, will generate SVG instead"
   },
@@ -275,6 +278,9 @@
   "63a6a88c06": {
     "translation": "Refresh"
   },
+  "64390f1c3a": {
+    "translation": "Change not saved"
+  },
   "6609dd239e": {
     "translation": "Something went wrong"
   },
@@ -355,6 +361,9 @@
   },
   "7b1329f5ca": {
     "translation": "User manual"
+  },
+  "7b3285a359": {
+    "translation": "Change the permissions"
   },
   "7be10fc592": {
     "translation": "Restore version"
@@ -627,6 +636,9 @@
   "d721757161": {
     "translation": "Theme"
   },
+  "d7a18d8512": {
+    "translation": "Edit the teacher's page"
+  },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
@@ -719,6 +731,9 @@
   },
   "f5ddc8d9c1": {
     "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
+  },
+  "f713687778": {
+    "translation": "Things that will fail"
   },
   "fa2ead697d": {
     "translation": "Privacy Policy"
