@@ -28,6 +28,7 @@ import {
 } from './library-groups'
 import { LibrarySection } from './library-section'
 import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
+import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
 import { placeLibraryItem } from './place-item'
@@ -91,6 +92,7 @@ function LibrariesPanelContent({
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
@@ -145,7 +147,7 @@ function LibrariesPanelContent({
 		[source, grouping]
 	)
 
-	if (!open) return null
+	if (!librariesEnabled || !open) return null
 
 	const newLibraryAction = (ownerName: string | undefined, ownerId: string | undefined) => ({
 		label: ownerName ? msg(messages.newLibraryIn, { name: ownerName }) : msg(messages.newLibrary),
