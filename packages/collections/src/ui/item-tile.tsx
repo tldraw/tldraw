@@ -31,7 +31,9 @@ export function ItemTile({
 				{...buttonProps}
 			>
 				<span className="tlui-collections-tile__thumbnail">
-					{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
+					{thumbnailUrl && (
+						<img src={thumbnailUrl} alt="" draggable={false} loading="lazy" decoding="async" />
+					)}
 				</span>
 			</button>
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}
