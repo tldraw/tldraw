@@ -20,6 +20,7 @@ import { ThrottledFunction } from '@tldraw/utils';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
+import type { TLRecordChange } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -485,20 +486,7 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
     }>, SessionMeta>;
 };
 
-// @public
-export type TLRecordChange<R extends UnknownRecord> = {
-    next: null;
-    prev: R;
-    type: 'delete';
-} | {
-    next: R;
-    prev: null;
-    type: 'create';
-} | {
-    next: R;
-    prev: R;
-    type: 'update';
-};
+export { TLRecordChange }
 
 // @public
 export class TLRemoteSyncError extends Error {
@@ -721,7 +709,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         onAfterConnect?(self: TLSyncClient<R, S>, details: TLSyncConnectDetails): void;
         onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
-        onPushRefused?(refusal: TLSyncRefusal): void;
+        onPushRefused?(refusal: TLSyncClientRefusal<R>): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         presenceMode?: Signal<TLPresenceMode>;
@@ -741,6 +729,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
     // @internal (undocumented)
     readonly store: S;
+}
+
+// @public
+export interface TLSyncClientRefusal<R extends UnknownRecord> extends TLSyncRefusal {
+    // (undocumented)
+    changes?: RecordsDiff<R>;
 }
 
 // @public

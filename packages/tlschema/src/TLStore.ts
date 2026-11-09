@@ -1,10 +1,12 @@
 import { Signal, computed } from '@tldraw/state'
 import {
+	RecordsDiff,
 	SerializedStore,
 	Store,
 	StoreSchema,
 	StoreSnapshot,
 	StoreValidationFailure,
+	UnknownRecord,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
 import { TLAsset, TLAssetId } from './records/TLAsset'
@@ -293,6 +295,33 @@ export function createCachedUserResolve(
 }
 
 /**
+ * One write to a record, as a write rule sees it: the record before and after. A create has no
+ * `prev`, a delete has no `next`. On an update, `next` is the fully applied result.
+ *
+ * @public
+ */
+export type TLRecordChange<R extends UnknownRecord> =
+	| { type: 'create'; prev: null; next: R }
+	| { type: 'update'; prev: R; next: R }
+	| { type: 'delete'; prev: R; next: null }
+
+/**
+ * A server's reason for refusing a change of this user's, as reported to the editor.
+ *
+ * @public
+ */
+export interface TLRefusal {
+	reason: string
+	/** Ids of the records that caused the refusal, when the rule knows. */
+	ids?: string[]
+	/**
+	 * The refused change as this user made it: records they added, removed, or changed from the
+	 * server's version to theirs. Sync reports it; a host that only knows ids can leave it out.
+	 */
+	changes?: RecordsDiff<TLRecord>
+}
+
+/**
  * Configuration properties for a tldraw store, defining its behavior and integrations.
  * These props are passed when creating a new store instance.
  *
@@ -336,6 +365,11 @@ export interface TLStoreProps {
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/**
+		 * Refusals of this user's changes by the server. The editor re-emits each one as its
+		 * `'refused'` event. Set by sync; a custom transport can provide its own.
+		 */
+		refusals?: { subscribe(listener: (refusal: TLRefusal) => void): () => void } | null
 	}
 }
 

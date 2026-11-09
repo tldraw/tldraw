@@ -14,7 +14,10 @@ export class Pointing extends StateNode {
 
 		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
-			if (this.editor.isShapeOrAncestorLocked(shape) || this.editor.isShapeOfType(shape, 'group')) {
+			if (
+				!this.editor.canChangeRecord({ type: 'delete', prev: shape, next: null }) ||
+				this.editor.isShapeOfType(shape, 'group')
+			) {
 				continue
 			}
 

@@ -329,6 +329,17 @@ function getPresenceOp<R extends UnknownRecord>(
 }
 
 /**
+ * A server refusal as the client reports it: the server's reason and ids, plus `changes`, the
+ * refused push as this user made it (records they added, removed, or changed from the server's
+ * version to theirs). `changes` is absent when the revert changed nothing.
+ *
+ * @public
+ */
+export interface TLSyncClientRefusal<R extends UnknownRecord> extends TLSyncRefusal {
+	changes?: RecordsDiff<R>
+}
+
+/**
  * Main client-side synchronization engine for collaborative tldraw applications.
  *
  * TLSyncClient manages bidirectional synchronization between a local tldraw Store
@@ -475,7 +486,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
 	/** Called when the server's `authorize` rule refused one of this client's pushes. */
-	private readonly onPushRefused?: (refusal: TLSyncRefusal) => void
+	private readonly onPushRefused?: (refusal: TLSyncClientRefusal<R>) => void
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -514,7 +525,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
 		onAfterConnect?(self: TLSyncClient<R, S>, details: TLSyncConnectDetails): void
-		onPushRefused?(refusal: TLSyncRefusal): void
+		onPushRefused?(refusal: TLSyncClientRefusal<R>): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -987,6 +998,35 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
+	/**
+	 * The refused push as the user made it, in the same direction as their history entries: a record
+	 * they added, removed, or changed from the server's version to theirs. It compares against the
+	 * store after the revert, so a later push still pending on the same record is part of "theirs".
+	 */
+	private withRefusedChanges(
+		refusal: TLSyncRefusal,
+		ids: string[],
+		userStates: Map<string, R | undefined>
+	): TLSyncClientRefusal<R> {
+		const changes: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
+		let hasChanges = false
+		for (const id of ids) {
+			const user = userStates.get(id)
+			const server = this.store.get(id as RecordId<any>) as R | undefined
+			if (user && !server) {
+				changes.added[id as keyof typeof changes.added] = user as any
+				hasChanges = true
+			} else if (!user && server) {
+				changes.removed[id as keyof typeof changes.removed] = server as any
+				hasChanges = true
+			} else if (user && server && !isEqual(user, server)) {
+				changes.updated[id as keyof typeof changes.updated] = [server, user] as any
+				hasChanges = true
+			}
+		}
+		return hasChanges ? { ...refusal, changes } : refusal
+	}
+
 	// eslint-disable-next-line tldraw/prefer-class-methods
 	private rebase = () => {
 		// need to make sure that our speculative changes are in sync with the actual store instance before
@@ -997,7 +1037,18 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
 		// Host callbacks run after the merge: a throw inside it would reset the connection.
-		const refusals: TLSyncRefusal[] = []
+		const refusals: { refusal: TLSyncRefusal; ids: string[] }[] = []
+
+		// The user's version of every record a refused push touched, before the revert below
+		// overwrites it. Reported with the refusal so the editor can drop those changes from undo.
+		const userStates = new Map<string, R | undefined>()
+		for (const diff of diffs) {
+			if (diff.type !== 'push_result' || diff.action !== 'discard' || !diff.refused) continue
+			const request = this.pendingPushRequests.find((r) => r.clientClock === diff.clientClock)
+			if (!request || !('diff' in request) || !request.diff) continue
+			for (const id of Object.keys(request.diff))
+				userStates.set(id, this.store.get(id as RecordId<any>))
+		}
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -1020,8 +1071,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						)
 					}
 					if (diff.action === 'discard') {
-						this.pendingPushRequests.shift()
-						if (diff.refused) refusals.push(diff.refused)
+						const request = this.pendingPushRequests.shift()
+						if (diff.refused) {
+							const ids =
+								request && 'diff' in request && request.diff ? Object.keys(request.diff) : []
+							refusals.push({ refusal: diff.refused, ids })
+						}
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1057,9 +1112,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.store.ensureStoreIsUsable()
 			this.resetConnection()
 		}
-		for (const refusal of refusals) {
+		for (const { refusal, ids } of refusals) {
 			try {
-				this.onPushRefused?.(refusal)
+				this.onPushRefused?.(this.withRefusedChanges(refusal, ids, userStates))
 			} catch (e) {
 				console.error('onPushRefused threw', e)
 			}

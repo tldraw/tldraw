@@ -470,7 +470,7 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
 		const onlyShapeUtil = onlyShape ? editor.getShapeUtil(onlyShape) : null
-		const isLockedShape = !!(onlyShape && editor.isShapeOrAncestorLocked(onlyShape))
+		const isLockedShape = !!(onlyShape && editor.isShapeOrAncestorFrozen(onlyShape))
 
 		const expandOutlineBy =
 			onlyShape && onlyShapeUtil ? onlyShapeUtil.expandSelectionOutlinePx(onlyShape) : 0

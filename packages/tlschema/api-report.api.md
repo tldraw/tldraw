@@ -14,6 +14,7 @@ import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -1734,6 +1735,29 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export type TLRecordChange<R extends UnknownRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
+};
+
+// @public
+export interface TLRefusal {
+    changes?: RecordsDiff<TLRecord>;
+    ids?: string[];
+    // (undocumented)
+    reason: string;
+}
+
+// @public
 export interface TLRemovedDefaultThemeColors {
 }
 
@@ -1790,6 +1814,9 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
     collaboration?: {
+        refusals?: {
+            subscribe(listener: (refusal: TLRefusal) => void): () => void;
+        } | null;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };

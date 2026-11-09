@@ -8,7 +8,7 @@ import {
 	Store,
 	UnknownRecord,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, noop } from '@tldraw/utils'
+import { exhaustiveSwitchError, isEqual, noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
 
 const HistoryRecorderState = {
@@ -73,6 +73,49 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.push({ type: 'diff', diff }),
 			redos,
 		}))
+	}
+
+	/**
+	 * Take a change the server refused out of the undo and redo stacks, so undo can't replay a step
+	 * that never happened. With `changes` (the refused change as the user made it) only that
+	 * chain of steps is removed from the undo stack: starting from the user's version, steps whose
+	 * result is the current version are dropped until the server's version is reached. With ids
+	 * alone, every step on those records is dropped. Redo steps on those records are always dropped.
+	 *
+	 * @internal
+	 */
+	removeRefused(refusal: { ids?: readonly string[]; changes?: RecordsDiff<R> }) {
+		this.flushPendingDiff()
+		const { undos, redos } = this.stacks.get()
+		if (undos.length === 0 && redos.length === 0) return
+
+		const changes = refusal.changes
+		const ids = new Set<string>(
+			changes
+				? [
+						...Object.keys(changes.added),
+						...Object.keys(changes.updated),
+						...Object.keys(changes.removed),
+					]
+				: (refusal.ids ?? [])
+		)
+		if (ids.size === 0) return
+
+		const undoEntries = stackToArray(undos).slice()
+		if (changes) {
+			for (const id of ids) subtractRefusedChain(undoEntries, id, changes)
+		} else {
+			for (const id of ids) dropRecord(undoEntries, id)
+		}
+		const redoEntries = stackToArray(redos).slice()
+		for (const id of ids) dropRecord(redoEntries, id)
+
+		// a mark with nothing left under it would make getCanUndo() true for no work
+		for (const entries of [undoEntries, redoEntries]) {
+			while (entries.length > 0 && entries[entries.length - 1].type === 'stop') entries.pop()
+		}
+
+		this.stacks.set({ undos: arrayToStack(undoEntries), redos: arrayToStack(redoEntries) })
 	}
 
 	getNumUndos() {
@@ -416,6 +459,81 @@ class StackItem<T> {
 
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
+	}
+}
+
+/** Entries are newest first, like the stacks. */
+function arrayToStack<T>(entries: T[]): Stack<T> {
+	let result = stack<T>()
+	for (let i = entries.length - 1; i >= 0; i--) result = result.push(entries[i])
+	return result
+}
+
+type RecordState<R> = R | undefined
+
+/** A record's state before and after one history step, or null if the step didn't touch it. */
+function getStepStates<R extends UnknownRecord>(
+	diff: RecordsDiff<R>,
+	id: string
+): [RecordState<R>, RecordState<R>] | null {
+	if (id in diff.added) return [undefined, diff.added[id as R['id']]]
+	if (id in diff.updated) return diff.updated[id as R['id']]
+	if (id in diff.removed) return [diff.removed[id as R['id']], undefined]
+	return null
+}
+
+function withoutRecord<R extends UnknownRecord>(diff: RecordsDiff<R>, id: string): RecordsDiff<R> {
+	const omit = <T>(map: Record<string, T>) =>
+		Object.fromEntries(Object.entries(map).filter(([key]) => key !== id))
+	return {
+		added: omit(diff.added),
+		updated: omit(diff.updated),
+		removed: omit(diff.removed),
+	} as RecordsDiff<R>
+}
+
+/** Remove a record's changes from entries (newest first); an entry left empty is removed. */
+function dropRecord<R extends UnknownRecord>(entries: TLHistoryEntry<R>[], id: string) {
+	for (let i = entries.length - 1; i >= 0; i--) {
+		const entry = entries[i]
+		if (entry.type !== 'diff' || !getStepStates(entry.diff, id)) continue
+		const diff = withoutRecord(entry.diff, id)
+		if (isRecordsDiffEmpty(diff)) entries.splice(i, 1)
+		else entries[i] = { type: 'diff', diff }
+	}
+}
+
+function subtractRefusedChain<R extends UnknownRecord>(
+	entries: TLHistoryEntry<R>[],
+	id: string,
+	refused: RecordsDiff<R>
+) {
+	let user: RecordState<R>
+	let server: RecordState<R>
+	if (id in refused.added) {
+		;[server, user] = [undefined, refused.added[id as R['id']]]
+	} else if (id in refused.updated) {
+		;[server, user] = refused.updated[id as R['id']]
+	} else {
+		;[server, user] = [refused.removed[id as R['id']], undefined]
+	}
+
+	let current = user
+	for (let i = 0; i < entries.length && !isEqual(current, server); i++) {
+		const entry = entries[i]
+		if (entry.type !== 'diff') continue
+		const states = getStepStates(entry.diff, id)
+		if (!states) continue
+		// a step that doesn't continue the chain means the record moved on without us: leave it
+		if (!isEqual(states[1], current)) return
+		current = states[0]
+		const diff = withoutRecord(entry.diff, id)
+		if (isRecordsDiffEmpty(diff)) {
+			entries.splice(i, 1)
+			i--
+		} else {
+			entries[i] = { type: 'diff', diff }
+		}
 	}
 }
 

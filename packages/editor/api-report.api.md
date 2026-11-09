@@ -80,6 +80,8 @@ import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRecordChange } from '@tldraw/tlschema';
+import { TLRefusal } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
@@ -881,7 +883,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, canChangeRecord, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -921,6 +923,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
+    canChangeRecord(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>): boolean;
     canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
     canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
     canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
@@ -1507,6 +1510,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }>;
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
+    isShapeOrAncestorFrozen(shape?: TLShape | TLShapeId): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
     // @internal
     licenseManager?: LicenseManager;
@@ -2238,6 +2242,11 @@ export class HistoryManager<R extends UnknownRecord> {
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
+    // @internal
+    removeRefused(refusal: {
+        changes?: RecordsDiff<R>;
+        ids?: readonly string[];
+    }): void;
     // (undocumented)
     squashToMark(id: string): this;
     // (undocumented)
@@ -3802,6 +3811,7 @@ export interface TldrawEditorBaseProps {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
+    canChangeRecord?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
     children?: ReactNode;
     className?: string;
     colorScheme?: 'dark' | 'light' | 'system';
@@ -4008,6 +4018,7 @@ export interface TLEditorOptions {
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
+    canChangeRecord?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
     colorScheme?: 'dark' | 'light' | 'system';
     // (undocumented)
     fontAssetUrls?: {
@@ -4203,6 +4214,7 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    refused: [TLRefusal];
     // (undocumented)
     resize: [BoxModel];
     // (undocumented)
@@ -4857,6 +4869,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
+        refusals?: NonNullable<TLStoreProps['collaboration']>['refusals'];
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };

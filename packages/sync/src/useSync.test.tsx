@@ -97,4 +97,20 @@ describe('useSync', () => {
 			objectAccess: 'write',
 		})
 	})
+
+	it('feeds server refusals to the store, then to the host callback', () => {
+		const onPushRefused = vi.fn(() => {
+			throw new Error('host bug')
+		})
+		render({ connect: () => makeSocket() as any, roomId: 'a', assets, onPushRefused })
+		const client = Mock.instances[0]
+		const seen: unknown[] = []
+		client.store.props.collaboration.refusals.subscribe((r: unknown) => seen.push(r))
+
+		const refusal = { reason: 'not your page', ids: ['shape:a'] }
+		expect(() => client.opts.onPushRefused(refusal)).toThrow('host bug')
+
+		expect(seen).toEqual([refusal])
+		expect(onPushRefused).toHaveBeenCalledWith(refusal)
+	})
 })
