@@ -25,6 +25,36 @@ export interface TLCollection extends BaseRecord<'collection', TLCollectionId> {
 export type TLCollectionItemId = RecordId<TLCollectionItem>
 
 /**
+ * An item's preview: one image for every colour mode, or a light and a dark one for apps that have
+ * both. `Src` is a URL on a listed item and a `Blob` when adding one.
+ */
+export type TLCollectionThumbnail<Src = string> = Src | { light: Src; dark: Src }
+
+function isThumbnailPair<Src>(
+	thumbnail: TLCollectionThumbnail<Src>
+): thumbnail is { light: Src; dark: Src } {
+	return typeof thumbnail === 'object' && thumbnail !== null && 'light' in thumbnail
+}
+
+/** The image to show in a colour mode. */
+export function getThumbnailForColorMode<Src>(
+	thumbnail: TLCollectionThumbnail<Src>,
+	colorMode: 'light' | 'dark'
+): Src {
+	return isThumbnailPair(thumbnail) ? thumbnail[colorMode] : thumbnail
+}
+
+/** Converts each image of a thumbnail, keeping it a single image or a pair. */
+export function mapThumbnail<A, B>(
+	thumbnail: TLCollectionThumbnail<A>,
+	convert: (src: A) => B
+): TLCollectionThumbnail<B> {
+	return isThumbnailPair(thumbnail)
+		? { light: convert(thumbnail.light), dark: convert(thumbnail.dark) }
+		: convert(thumbnail)
+}
+
+/**
  * The listing entry for an item. Its content is loaded separately, with
  * `CollectionSource.getItemContent`, so showing a collection never loads every item's shapes and
  * assets.
@@ -36,8 +66,8 @@ export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollec
 	 * The UI decides what to show instead. When present it is never blank.
 	 */
 	name?: string
-	/** Left out when the item has no thumbnail. When present it is never blank. */
-	thumbnailUrl?: string
+	/** Left out when the item has no thumbnail. Its URLs are never blank. */
+	thumbnail?: TLCollectionThumbnail
 	/**
 	 * When the item was saved, in milliseconds since the epoch. Left out by sources that don't
 	 * track it; orderings by date put those items last.
@@ -67,7 +97,10 @@ export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
 	typeName: T.literal('collection-item'),
 	collectionId: idValidator<TLCollectionId>('collection'),
 	name: nonEmptyString.optional(),
-	thumbnailUrl: nonEmptyString.optional(),
+	thumbnail: T.or(
+		nonEmptyString,
+		T.object({ light: nonEmptyString, dark: nonEmptyString })
+	).optional(),
 	createdAt: T.number.optional(),
 	version: T.positiveInteger,
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,

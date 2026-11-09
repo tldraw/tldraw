@@ -9,7 +9,11 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
+import {
+	getThumbnailForColorMode,
+	type TLCollectionId,
+	type TLCollectionItemId,
+} from '../lib/schema'
 import { ItemGrid } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { CollectionsPanelHeader } from './collections-panel-header'
@@ -114,6 +118,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 		},
 		[editor, source, addToast, msg]
 	)
+	const isDarkMode = useValue('is dark mode', () => editor.getColorMode() === 'dark', [editor])
 	const getItemProps = useItemDrag(source, placeItem)
 	const canRename = useValue(
 		'can rename items',
@@ -223,7 +228,9 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 							id: item.id,
 							name: item.name,
 							accessibleLabel: item.name ?? msg(messages.unnamedItem),
-							thumbnailUrl: item.thumbnailUrl,
+							thumbnailUrl:
+								item.thumbnail &&
+								getThumbnailForColorMode(item.thumbnail, isDarkMode ? 'dark' : 'light'),
 						}))}
 						getItemProps={getTileProps}
 						renderItemMenu={(item) => (

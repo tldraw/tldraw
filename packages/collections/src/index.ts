@@ -37,6 +37,8 @@ export {
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	collectionItemValidator,
 	collectionValidator,
+	getThumbnailForColorMode,
+	mapThumbnail,
 	parseCollectionItemContent,
 	type TLCollection,
 	type TLCollectionId,
@@ -44,4 +46,5 @@ export {
 	type TLCollectionItemContent,
 	type TLCollectionItemId,
 	type TLCollectionRecord,
+	type TLCollectionThumbnail,
 } from './lib/schema'
