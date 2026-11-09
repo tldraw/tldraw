@@ -12,6 +12,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { isFeatureFlagEnabledForUser } from '../../utils/featureFlags'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
+import { getAuth } from '../../utils/tla/getAuth'
 import { ShapeMeasurement } from './boardTools'
 import { ResolvedThumbnailBoard, readMeasurements } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
@@ -138,13 +139,14 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 }
 
 /**
- * A tab's reply to a job. Takes no sign-in: the job id is a random UUID sent to one authenticated
- * socket and dead within seconds. A session token would only add a failure, since a hidden tab's Clerk
- * token is routinely expired and refreshing it loses to the ack window.
+ * A tab's reply to a job. Needs a website session for the user the job was made for, so a job id that
+ * reaches anyone else, or one of the user's own agents, can't be used to answer it. The tab fetches a
+ * fresh token for each reply, and a tab that can't get one doesn't answer, which falls back like any
+ * other silent tab.
  *
- * That makes this reachable by anyone, so the size is checked from the header and the job before the
- * body is read: without a live job id, a request's bytes never reach the room's object, where enough
- * of them at once could reset it and disconnect everyone on the board.
+ * The size is checked from the header, and the job before the body is read: without a live job id, a
+ * request's bytes never reach the room's object, where enough of them at once could reset it and
+ * disconnect everyone on the board.
  */
 export async function postTabRenderReply(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId, jobId } = request.params
@@ -157,8 +159,12 @@ export async function postTabRenderReply(request: IRequest, env: Environment): P
 		return Response.json({ error: true, message: 'Reply too large' }, { status: 413 })
 	}
 
+	// Website sessions only: getAuth refuses an OAuth access token.
+	const auth = await getAuth(request, env)
+	if (!auth) return Response.json({ error: true, message: 'Unauthorized' }, { status: 401 })
+
 	const room = getRoomDurableObject(env, roomId)
-	if (!(await room.hasTabRenderJob(jobId))) return notFound()
+	if (!(await room.hasTabRenderJob(jobId, auth.userId))) return notFound()
 
 	let parsed: unknown
 	try {
@@ -171,7 +177,7 @@ export async function postTabRenderReply(request: IRequest, env: Environment): P
 		return Response.json({ error: true, message: 'Invalid reply' }, { status: 400 })
 	}
 
-	return (await room.receiveTabRenderReply(jobId, reply))
+	return (await room.receiveTabRenderReply(jobId, auth.userId, reply))
 		? Response.json({ error: false })
 		: notFound()
 }

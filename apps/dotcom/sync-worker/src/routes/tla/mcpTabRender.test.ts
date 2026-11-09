@@ -1,6 +1,14 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { parseTabRenderReply, postTabRenderReply } from './mcpTabRender'
+import { SignedInAuth } from '../../utils/tla/getAuth'
+
+vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
+	...(await importOriginal<typeof import('../../utils/tla/getAuth')>()),
+	getAuth: vi.fn(),
+}))
+
+const { getAuth } = await import('../../utils/tla/getAuth')
+const { parseTabRenderReply, postTabRenderReply } = await import('./mcpTabRender')
 
 const JOB_ID = '6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90'
 
@@ -28,13 +36,33 @@ function makeRequest(body: string, { jobId = JOB_ID, length = String(body.length
 const ACCEPTED = JSON.stringify({ status: 'accepted' })
 
 describe('postTabRenderReply', () => {
+	beforeEach(() => {
+		vi.mocked(getAuth).mockResolvedValue({ userId: 'user_a' } as SignedInAuth)
+	})
+
+	it('refuses a reply without a website session, without reaching the object', async () => {
+		vi.mocked(getAuth).mockResolvedValue(null)
+		const { env, hasTabRenderJob } = makeEnv()
+
+		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
+
+		expect(response.status).toBe(401)
+		expect(hasTabRenderJob).not.toHaveBeenCalled()
+	})
+
+	it('checks the job against the signed-in user', async () => {
+		const { env, hasTabRenderJob } = makeEnv()
+		await postTabRenderReply(makeRequest(ACCEPTED), env)
+		expect(hasTabRenderJob).toHaveBeenCalledWith(JOB_ID, 'user_a')
+	})
+
 	it('hands a valid reply to the job in that room', async () => {
 		const { env, receiveTabRenderReply } = makeEnv()
 
 		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
 
 		expect(response.status).toBe(200)
-		expect(receiveTabRenderReply).toHaveBeenCalledWith(JOB_ID, { status: 'accepted' })
+		expect(receiveTabRenderReply).toHaveBeenCalledWith(JOB_ID, 'user_a', { status: 'accepted' })
 	})
 
 	// Same answer for a job that finished and one that never existed: late replies are normal, since

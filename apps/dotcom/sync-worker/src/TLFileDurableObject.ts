@@ -3592,18 +3592,22 @@ export class TLFileDurableObject extends DurableObject {
 			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
 		})
 		if (deliverable.length === 0) return { status: 'no_tab' }
-		return this.tabRenders.dispatch(deliverable, request, (sessionId, jobId) => {
+		return this.tabRenders.dispatch(userId, deliverable, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
 	}
 
-	async hasTabRenderJob(jobId: string): Promise<boolean> {
-		return this.tabRenders.has(jobId)
+	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId, userId)
 	}
 
-	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
-		return this.tabRenders.receive(jobId, reply)
+	async receiveTabRenderReply(
+		jobId: string,
+		userId: string,
+		reply: TabRenderReply
+	): Promise<boolean> {
+		return this.tabRenders.receive(jobId, userId, reply)
 	}
 
 	/**
