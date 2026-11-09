@@ -190,7 +190,7 @@ import {
 import { RootState } from './tools/RootState'
 import { StateNode, TLStateNodeConstructor } from './tools/StateNode'
 import { TLContent } from './types/clipboard-types'
-import { TLEventMap } from './types/emit-types'
+import { TLEventMap, TLSkippedWrite, TLWriteSkipReason } from './types/emit-types'
 import { TLEventInfo, TLPointerEventInfo } from './types/event-types'
 import { TLExternalAsset, TLExternalContent } from './types/external-content'
 import { TLHistoryBatchOptions } from './types/history-types'
@@ -1993,7 +1993,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 **/
 	updateDocumentSettings(settings: Partial<TLDocument>): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'updateDocumentSettings')
 		this.run(
 			() => {
 				this.store.put([{ ...this.getDocumentSettings(), ...settings }])
@@ -5049,10 +5049,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updatePage(partial: RequiredKeys<Partial<TLPage>, 'id'>): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'updatePage')
 
 		const prev = this.getPage(partial.id)
-		if (!prev) return this
+		if (!prev) return this._reportSkippedWrite('not-found', 'updatePage', [partial.id])
 
 		return this.run(() => this.store.update(partial.id, (page) => ({ ...page, ...partial })))
 	}
@@ -5072,8 +5072,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createPage(page: Partial<TLPage>): this {
 		this.run(() => {
-			if (this.getIsReadonly()) return
-			if (this.getPages().length >= this.options.maxPages) return
+			if (this.getIsReadonly()) {
+				this._reportSkippedWrite('readonly', 'createPage')
+				return
+			}
+			if (this.getPages().length >= this.options.maxPages) {
+				this._reportSkippedWrite('max-pages', 'createPage', page.id ? [page.id] : [])
+				return
+			}
 			const pages = this.getPages()
 
 			const name = getIncrementedName(
@@ -5115,9 +5121,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const id = typeof page === 'string' ? page : page.id
 		this.run(
 			() => {
-				if (this.getIsReadonly()) return
+				if (this.getIsReadonly()) {
+					this._reportSkippedWrite('readonly', 'deletePage')
+					return
+				}
 				const pages = this.getPages()
-				if (pages.length === 1) return
+				if (pages.length === 1) {
+					this._reportSkippedWrite('not-allowed', 'deletePage', [id])
+					return
+				}
 
 				const deletedPage = this.getPage(id)
 				if (!deletedPage) return
@@ -5147,10 +5159,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	duplicatePage(page: TLPageId | TLPage, createId: TLPageId = PageRecordType.createId()): this {
-		if (this.getPages().length >= this.options.maxPages) return this
 		const id = typeof page === 'string' ? page : page.id
+		if (this.getPages().length >= this.options.maxPages) {
+			return this._reportSkippedWrite('max-pages', 'duplicatePage', [id])
+		}
 		const freshPage = this.getPage(id) // get the most recent version of the page anyway
-		if (!freshPage) return this
+		if (!freshPage) return this._reportSkippedWrite('not-found', 'duplicatePage', [id])
 
 		// Read the source page's own camera rather than getCamera(), which is the
 		// current page's and is wrong when duplicating a page that isn't being viewed
@@ -5195,7 +5209,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	renamePage(page: TLPageId | TLPage, name: string) {
 		const id = typeof page === 'string' ? page : page.id
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'renamePage')
 		this.updatePage({ id, name })
 		return this
 	}
@@ -5229,7 +5243,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	createAssets(assets: TLAsset[]): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'createAssets')
 		if (assets.length <= 0) return this
 		this.run(() => this.store.put(assets), { history: 'ignore' })
 		return this
@@ -5248,7 +5262,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateAssets(assets: TLAssetPartial[]): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'updateAssets')
 		if (assets.length <= 0) return this
 		this.run(
 			() => {
@@ -5277,7 +5291,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	deleteAssets(assets: TLAssetId[] | TLAsset[]): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'deleteAssets')
 
 		const ids =
 			typeof assets[0] === 'string'
@@ -6543,6 +6557,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const invertedParentTransform = parentTransform.clone().invert()
 
 		const shapesToReparent = compact(ids.map((id) => this.getShape(id))).sort(sortByIndex)
+		if (shapesToReparent.length < ids.length) {
+			const missingIds = ids.filter((id) => !this.getShape(id))
+			this._reportSkippedWrite('not-found', 'reparentShapes', missingIds)
+		}
 
 		// Ignore locked shapes so that we can reparent locked shapes, for example
 		// when a locked shape's parent is deleted.
@@ -6840,14 +6858,24 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding, but the `type`, `toId`, and `fromId` must all be provided.
 	 */
 	createBindings<B extends TLBinding = TLBinding>(partials: TLBindingCreate<B>[]) {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'createBindings')
 
 		const bindings: TLBinding[] = []
 		for (const partial of partials) {
 			const fromShape = this.getShape(partial.fromId)
 			const toShape = this.getShape(partial.toId)
-			if (!fromShape || !toShape) continue
-			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) continue
+			if (!fromShape || !toShape) {
+				this._reportSkippedWrite(
+					'missing-reference',
+					'createBindings',
+					compact([fromShape ? null : partial.fromId, toShape ? null : partial.toId])
+				)
+				continue
+			}
+			if (!this.canBindShapes({ fromShape, toShape, binding: partial })) {
+				this._reportSkippedWrite('not-allowed', 'createBindings', [fromShape.id, toShape.id])
+				continue
+			}
 
 			const util = this.getBindingUtil(partial.type)
 			const defaultProps = util.getDefaultProps()
@@ -6881,7 +6909,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * binding is skipped. The changes from the partial are merged into the existing record.
 	 */
 	updateBindings(partials: (TLBindingUpdate | null | undefined)[]) {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'updateBindings')
 
 		const updated: TLBinding[] = []
 
@@ -6889,15 +6917,28 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (!partial) continue
 
 			const current = this.getBinding(partial.id)
-			if (!current) continue
+			if (!current) {
+				this._reportSkippedWrite('not-found', 'updateBindings', [partial.id])
+				continue
+			}
 
 			const updatedBinding = applyPartialToRecordWithProps(current, partial)
 			if (updatedBinding === current) continue
 
 			const fromShape = this.getShape(updatedBinding.fromId)
 			const toShape = this.getShape(updatedBinding.toId)
-			if (!fromShape || !toShape) continue
-			if (!this.canBindShapes({ fromShape, toShape, binding: updatedBinding })) continue
+			if (!fromShape || !toShape) {
+				this._reportSkippedWrite(
+					'missing-reference',
+					'updateBindings',
+					compact([fromShape ? null : updatedBinding.fromId, toShape ? null : updatedBinding.toId])
+				)
+				continue
+			}
+			if (!this.canBindShapes({ fromShape, toShape, binding: updatedBinding })) {
+				this._reportSkippedWrite('not-allowed', 'updateBindings', [fromShape.id, toShape.id])
+				continue
+			}
 
 			updated.push(updatedBinding)
 		}
@@ -6920,7 +6961,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * Delete several bindings by their IDs. If a binding ID doesn't exist, it's ignored.
 	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'deleteBindings')
 		return this._deleteBindings(bindings, { isolateShapes })
 	}
 
@@ -7106,7 +7147,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.run(() => {
 			const _ids = toShapeIds(shapes)
 
-			const ids = this._shouldIgnoreShapeLock ? _ids : this._getUnlockedShapeIds(_ids)
+			const ids = this._getUnlockedShapeIds(_ids, 'duplicateShapes')
 			if (ids.length <= 0) return this
 
 			const initialIds = new Set(ids)
@@ -7197,7 +7238,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 
 			if (!this.canCreateShapes(shapesToCreate)) {
-				alertMaxShapes(this)
+				this._reportMaxShapes('duplicateShapes', ids)
 				return
 			}
 
@@ -7249,12 +7290,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const ids = toShapeIds(shapes)
 
 		if (ids.length === 0) return this
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'moveShapesToPage')
 
 		const currentPageId = this.getCurrentPageId()
 
 		if (pageId === currentPageId) return this
-		if (!this.store.has(pageId)) return this
+		if (!this.store.has(pageId)) {
+			return this._reportSkippedWrite('missing-reference', 'moveShapesToPage', [pageId])
+		}
 
 		// Basically copy the shapes
 		const content = this.getContentFromCurrentPage(ids)
@@ -7265,7 +7308,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// If there is no space on pageId, or if the selected shapes
 		// would take the new page above the limit, don't move the shapes
 		if (this.getPageShapeIds(pageId).size + content.shapes.length > this.options.maxShapesPerPage) {
-			alertMaxShapes(this, pageId)
+			this._reportMaxShapes('moveShapesToPage', ids, pageId)
 			return this
 		}
 
@@ -7309,17 +7352,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	toggleLock(shapes: TLShapeId[] | TLShape[]): this {
 		const ids = toShapeIds(shapes)
 
-		if (this.getIsReadonly() || ids.length === 0) return this
+		if (ids.length === 0) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'toggleLock')
 
 		let allLocked = true
 		const shapesToToggle: TLShape[] = []
+		const missingIds: TLShapeId[] = []
 		for (const id of ids) {
 			const shape = this.getShape(id)
 			if (shape) {
 				shapesToToggle.push(shape)
 				if (!shape.isLocked) allLocked = false
+			} else {
+				missingIds.push(id)
 			}
 		}
+		if (missingIds.length) this._reportSkippedWrite('not-found', 'toggleLock', missingIds)
 		this.run(() => {
 			if (allLocked) {
 				this.updateShapes(
@@ -7555,7 +7603,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	flipShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'flipShapes')
 
 		const ids = toShapeIds(shapes)
 
@@ -7651,7 +7699,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		gap?: number
 	): this {
 		const _gap = gap ?? this.options.adjacentShapeMargin
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'stackShapes')
 
 		// todo: this has a lot of extra code to handle stacking with custom gaps or auto gaps or other things like that. I don't think anyone has ever used this stuff.
 
@@ -7742,7 +7790,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @param gap - The padding to apply to the packed shapes. Defaults to the editor's `adjacentShapeMargin` option.
 	 */
 	packShapes(shapes: TLShapeId[] | TLShape[], _gap?: number): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'packShapes')
 
 		const gap = _gap ?? this.options.adjacentShapeMargin
 
@@ -7870,7 +7918,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			| 'bottom'
 			| 'center'
 	): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'alignShapes')
 		if (operation === 'center') {
 			return this.alignShapes(shapes, 'center-horizontal').alignShapes(shapes, 'center-vertical')
 		}
@@ -7937,7 +7985,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	distributeShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'distributeShapes')
 
 		const { clusters: shapeClustersToDistribute } = this.getShapeClusters(shapes, 'distribute')
 
@@ -8011,7 +8059,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	stretchShapes(shapes: TLShapeId[] | TLShape[], operation: 'horizontal' | 'vertical'): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'stretchShapes')
 
 		const { clusters: shapeClustersToStretch, allBounds } = this.getShapeClusters(
 			shapes,
@@ -8069,7 +8117,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	resizeToBounds(shapes: TLShapeId[] | TLShape[], bounds: BoxLike): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'resizeToBounds')
 
 		const targetBounds = Box.From(bounds)
 
@@ -8151,7 +8199,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts: TLResizeShapeOptions = {}
 	): TLShapePartial | null {
 		const id = typeof shape === 'string' ? shape : shape.id
-		if (this.getIsReadonly()) return null
+		if (this.getIsReadonly()) {
+			this._reportSkippedWrite('readonly', 'resizeShape')
+			return null
+		}
 
 		if (!Number.isFinite(scale.x)) scale = new Vec(1, scale.y)
 		if (!Number.isFinite(scale.y)) scale = new Vec(scale.x, 1)
@@ -8527,7 +8578,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.createShapes: must provide an array of shapes or shape partials')
 		}
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'createShapes')
 		if (shapes.length <= 0) return this
 
 		const currentPageShapeIds = this.getCurrentPageShapeIds()
@@ -8536,9 +8587,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 			shapes.length + currentPageShapeIds.size > this.options.maxShapesPerPage
 
 		if (maxShapesReached) {
-			// can't create more shapes than fit on the page
-			alertMaxShapes(this)
-			// todo: throw an error here? Otherwise we'll need to check every time whether the shapes were actually created
+			this._reportMaxShapes('createShapes', compact(shapes.map((s) => s.id)))
 			return this
 		}
 
@@ -8567,6 +8616,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 					!partial.parentId ||
 					!(this.store.has(partial.parentId) || shapes.some((p) => p.id === partial.parentId))
 				) {
+					if (partial.parentId) {
+						this._reportSkippedWrite('missing-reference', 'createShapes', [partial.parentId])
+					}
 					let parentId: TLParentId = this.getFocusedGroupId()
 
 					const isPositioned = partial.x !== undefined && partial.y !== undefined
@@ -8784,14 +8836,18 @@ export class Editor extends EventEmitter<TLEventMap> {
 			partial = partials[i]
 			if (!partial) continue
 
-			const shape = this.getShape(partial.id)!
-			if (!shape) continue
+			const shape = this.getShape(partial.id)
+			if (!shape) {
+				this._reportSkippedWrite('not-found', 'animateShapes', [partial.id])
+				continue
+			}
 
 			// Apply the same lock rule as updateShapes up front: the intermediate frames go through
 			// _updateShapes, which doesn't check locks, so a locked shape would otherwise be moved by
 			// every frame but the last and end up stranded at the penultimate one
 			const unlocks = shape.isLocked && Object.hasOwn(partial, 'isLocked') && !partial.isLocked
 			if (!ignoreShapeLock && !unlocks && this.isShapeOrAncestorLocked(shape)) {
+				this._reportSkippedWrite('locked', 'animateShapes', [shape.id])
 				continue
 			}
 
@@ -8880,14 +8936,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!Array.isArray(shapes)) {
 			throw Error('Editor.groupShapes: must provide an array of shapes or shape ids')
 		}
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'groupShapes')
 
 		const ids = toShapeIds(shapes)
 
 		const shapesToGroup = compact(
-			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
-				this.getShape(id)
-			)
+			this._getUnlockedShapeIds(ids, 'groupShapes').map((id) => this.getShape(id))
 		)
 		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
 		if (shapesToGroup.length <= 1) return this
@@ -8907,7 +8961,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// createShapes bails out when the page is full, so check first; otherwise the shapes get
 		// reparented into a group that was never created and vanish from the page
 		if (!this.canCreateShapes([groupId])) {
-			alertMaxShapes(this)
+			this._reportMaxShapes('groupShapes', [groupId])
 			return this
 		}
 
@@ -8963,15 +9017,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	ungroupShapes(ids: TLShapeId[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShape[], opts?: Partial<{ select: boolean }>): this
 	ungroupShapes(shapes: TLShapeId[] | TLShape[], opts = {} as Partial<{ select: boolean }>) {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'ungroupShapes')
 
 		const { select = true } = opts
 		const ids = toShapeIds(shapes)
 
 		const shapesToUngroup = compact(
-			(this._shouldIgnoreShapeLock ? ids : this._getUnlockedShapeIds(ids)).map((id) =>
-				this.getShape(id)
-			)
+			this._getUnlockedShapeIds(ids, 'ungroupShapes').map((id) => this.getShape(id))
 		)
 
 		if (shapesToUngroup.length === 0) return this
@@ -9056,14 +9108,22 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	updateShapes<T extends TLShape>(partials: (TLShapePartial<T> | null | undefined)[]) {
+		if (this.getIsReadonly() && partials.some(Boolean)) {
+			this._reportSkippedWrite('readonly', 'updateShapes')
+		}
 		const compactedPartials: TLShapePartial<T>[] = []
+		let missingIds: TLShapeId[] | undefined
+		let lockedIds: TLShapeId[] | undefined
 
 		for (let i = 0, n = partials.length; i < n; i++) {
 			const partial = partials[i]
 			if (!partial) continue
 			// Get the current shape referenced by the partial
 			const shape = this.getShape(partial.id)
-			if (!shape) continue
+			if (!shape) {
+				;(missingIds ??= []).push(partial.id)
+				continue
+			}
 
 			// If we're "forcing" the update, then we'll update the shape
 			// regardless of whether it / its ancestor is locked
@@ -9072,11 +9132,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 					// If the shape itself is locked (even if one of its ancestors is
 					// also locked) then only allow an update that unlocks the shape.
 					if (!(Object.hasOwn(partial, 'isLocked') && !partial.isLocked)) {
+						;(lockedIds ??= []).push(partial.id)
 						continue
 					}
 				} else if (this.isShapeOrAncestorLocked(shape)) {
 					// If the shape itself is unlocked, and any of the shape's
 					// ancestors are locked then we'll skip the update
+					;(lockedIds ??= []).push(partial.id)
 					continue
 				}
 			}
@@ -9085,6 +9147,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 			this.animatingShapes.delete(partial.id)
 
 			compactedPartials.push(partial)
+		}
+
+		if (!this.getIsReadonly()) {
+			if (missingIds) this._reportSkippedWrite('not-found', 'updateShapes', missingIds)
+			if (lockedIds) this._reportSkippedWrite('locked', 'updateShapes', lockedIds)
 		}
 
 		this._updateShapes(compactedPartials)
@@ -9131,10 +9198,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
+	private _getUnlockedShapeIds(ids: TLShapeId[], method: string): TLShapeId[] {
+		if (this._shouldIgnoreShapeLock) return ids
 		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
 		// of a locked frame can't be moved but can still be deleted or duplicated
-		return ids.filter((id) => !this.isShapeOrAncestorLocked(id))
+		const unlockedIds: TLShapeId[] = []
+		const lockedIds: TLShapeId[] = []
+		for (const id of ids) {
+			;(this.isShapeOrAncestorLocked(id) ? lockedIds : unlockedIds).push(id)
+		}
+		if (lockedIds.length) this._reportSkippedWrite('locked', method, lockedIds)
+		return unlockedIds
 	}
 
 	/**
@@ -9152,7 +9226,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	deleteShapes(ids: TLShapeId[]): this
 	deleteShapes(shapes: TLShape[]): this
 	deleteShapes(_ids: TLShapeId[] | TLShape[]): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly()) return this._reportSkippedWrite('readonly', 'deleteShapes')
 
 		if (!Array.isArray(_ids)) {
 			throw Error('Editor.deleteShapes: must provide an array of shapes or shapeIds')
@@ -9160,10 +9234,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const shapeIds = toShapeIds(_ids)
 
-		// Normally we don't want to delete locked shapes, but if the force option is set, we'll delete them anyway
-		const shapeIdsToDelete = this._shouldIgnoreShapeLock
-			? shapeIds
-			: this._getUnlockedShapeIds(shapeIds)
+		const shapeIdsToDelete = this._getUnlockedShapeIds(shapeIds, 'deleteShapes')
 
 		if (shapeIdsToDelete.length === 0) return this
 
@@ -9602,7 +9673,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		if (!opts.force && this.getIsReadonly()) {
+			this._reportSkippedWrite('readonly', 'putExternalContent')
+			return
+		}
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -9617,7 +9691,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		info: TLExternalContent<E>,
 		opts = {} as { force?: boolean }
 	): Promise<void> {
-		if (!opts.force && this.getIsReadonly()) return
+		if (!opts.force && this.getIsReadonly()) {
+			this._reportSkippedWrite('readonly', 'replaceExternalContent')
+			return
+		}
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
@@ -9771,7 +9848,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 			preserveIds?: boolean
 		} = {}
 	): this {
-		if (this.getIsReadonly()) return this
+		if (this.getIsReadonly())
+			return this._reportSkippedWrite('readonly', 'putContentOntoCurrentPage')
 
 		// todo: make this able to support putting content onto any page, not just the current page
 
@@ -9979,7 +10057,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 			// There's some complexity here involving children
 			// that might be created without their parents, so
 			// if we're going over the limit then just don't paste.
-			alertMaxShapes(this)
+			this._reportMaxShapes(
+				'putContentOntoCurrentPage',
+				newShapes.map((s) => s.id)
+			)
 			return this
 		}
 
@@ -10449,6 +10530,50 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getIsReadonly() {
 		return this.getInstanceState().isReadonly
+	}
+
+	private _lastSkippedWrite: TLSkippedWrite | null = null
+
+	/**
+	 * Get the most recent write that the editor skipped instead of applying, such as an update to
+	 * a locked shape or any write in readonly mode. Each skip also emits a `write-skipped` event.
+	 *
+	 * Methods like {@link Editor.updateShapes} return the editor whether or not their changes were
+	 * applied, so compare this before and after a call to tell whether any part was skipped.
+	 *
+	 * @example
+	 * ```ts
+	 * const before = editor.getLastSkippedWrite()
+	 * editor.updateShapes([{ id: myShapeId, type: 'geo', x: 100 }])
+	 * const skipped = editor.getLastSkippedWrite()
+	 * if (skipped && skipped !== before) console.warn(`${skipped.method} skipped: ${skipped.reason}`)
+	 * ```
+	 *
+	 * @public
+	 */
+	getLastSkippedWrite(): TLSkippedWrite | null {
+		return this._lastSkippedWrite
+	}
+
+	/** @internal */
+	_isSkipReportingPaused = false
+
+	private _reportSkippedWrite(
+		reason: TLWriteSkipReason,
+		method: string,
+		ids: TLRecord['id'][] = []
+	): this {
+		if (this._isSkipReportingPaused) return this
+		const skipped: TLSkippedWrite = { reason, method, ids }
+		this._lastSkippedWrite = skipped
+		this.emit('write-skipped', skipped)
+		return this
+	}
+
+	private _reportMaxShapes(method: string, ids: TLShapeId[], pageId = this.getCurrentPageId()) {
+		const name = this.getPage(pageId)!.name
+		this.emit('max-shapes', { name, pageId, count: this.options.maxShapesPerPage })
+		this._reportSkippedWrite('max-shapes', method, ids)
 	}
 
 	/**
@@ -11665,11 +11790,6 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 }
 
-function alertMaxShapes(editor: Editor, pageId = editor.getCurrentPageId()) {
-	const name = editor.getPage(pageId)!.name
-	editor.emit('max-shapes', { name, pageId, count: editor.options.maxShapesPerPage })
-}
-
 function applyPartialToRecordWithProps<
 	T extends UnknownRecord & { type: string; props: object; meta: object },
 >(
@@ -11742,42 +11862,49 @@ function withIsolatedShapes<T>(
 ): T {
 	let result!: Result<T, unknown>
 
-	editor.run(
-		() => {
-			const changes = editor.store.extractingChanges(() => {
-				const bindingsWithBoth = new Set<TLBindingId>()
-				const bindingsToRemove = new Set<TLBindingId>()
+	// These writes are transient and reverted, so a readonly copy shouldn't report them
+	const wasSkipReportingPaused = editor._isSkipReportingPaused
+	editor._isSkipReportingPaused = true
+	try {
+		editor.run(
+			() => {
+				const changes = editor.store.extractingChanges(() => {
+					const bindingsWithBoth = new Set<TLBindingId>()
+					const bindingsToRemove = new Set<TLBindingId>()
 
-				for (const shapeId of shapeIds) {
-					const shape = editor.getShape(shapeId)
-					if (!shape) continue
+					for (const shapeId of shapeIds) {
+						const shape = editor.getShape(shapeId)
+						if (!shape) continue
 
-					for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
-						const hasFrom = shapeIds.has(binding.fromId)
-						const hasTo = shapeIds.has(binding.toId)
-						if (hasFrom && hasTo) {
-							bindingsWithBoth.add(binding.id)
-							continue
-						}
-						if (!hasFrom || !hasTo) {
-							bindingsToRemove.add(binding.id)
+						for (const binding of editor.getBindingsInvolvingShape(shapeId)) {
+							const hasFrom = shapeIds.has(binding.fromId)
+							const hasTo = shapeIds.has(binding.toId)
+							if (hasFrom && hasTo) {
+								bindingsWithBoth.add(binding.id)
+								continue
+							}
+							if (!hasFrom || !hasTo) {
+								bindingsToRemove.add(binding.id)
+							}
 						}
 					}
-				}
 
-				editor._deleteBindings([...bindingsToRemove], { isolateShapes: true })
+					editor._deleteBindings([...bindingsToRemove], { isolateShapes: true })
 
-				try {
-					result = Result.ok(callback(bindingsWithBoth))
-				} catch (error) {
-					result = Result.err(error)
-				}
-			})
+					try {
+						result = Result.ok(callback(bindingsWithBoth))
+					} catch (error) {
+						result = Result.err(error)
+					}
+				})
 
-			editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
-		},
-		{ history: 'ignore' }
-	)
+				editor.store.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false })
+			},
+			{ history: 'ignore' }
+		)
+	} finally {
+		editor._isSkipReportingPaused = wasSkipReportingPaused
+	}
 
 	if (result.ok) {
 		return result.value
