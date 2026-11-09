@@ -1,6 +1,12 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 export { canRead, type TLCanReadCheck, type TLCanReadChecks } from './lib/canRead'
-export { canWrite, type TLCanWriteCheck, type TLCanWriteChecks } from './lib/canWrite'
+export {
+	canWrite,
+	canWriteOnClient,
+	type TLCanWriteCheck,
+	type TLCanWriteChecks,
+	type TLCanWriteClientArgs,
+} from './lib/canWrite'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {

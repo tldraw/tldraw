@@ -24,7 +24,8 @@ const theirs = createShapeId('theirs')
 // Shapes are written by their owner, and only comments may be created in a readonly editor
 const me = atom('me', 'alice')
 const blocksShapeCreates = atom('blocks shape creates', false)
-function canWrite({ type, record }: TLRecordWrite) {
+function canWrite({ type, prev, next }: TLRecordWrite) {
+	const record = prev ?? next
 	if (record.typeName === 'page') return type !== 'delete'
 	if (record.typeName !== 'shape') return true
 	if (type === 'create') return !blocksShapeCreates.get()
@@ -162,15 +163,27 @@ describe('Editor.canWrite in readonly mode', () => {
 	it('allows nothing without the option', () => {
 		const plain = new TestEditor()
 		const shape = { id: createShapeId(), typeName: 'shape' } as TLShape
-		expect(plain.canWrite({ type: 'create', record: shape })).toBe(true)
+		expect(plain.canWrite({ type: 'create', prev: null, next: shape })).toBe(true)
 		plain.updateInstanceState({ isReadonly: true })
-		expect(plain.canWrite({ type: 'create', record: shape })).toBe(false)
+		expect(plain.canWrite({ type: 'create', prev: null, next: shape })).toBe(false)
 	})
 
 	it('leaves the answer to the option', () => {
 		editor.updateInstanceState({ isReadonly: true })
-		expect(editor.canWrite({ type: 'update', record: editor.getShape(mine)! })).toBe(true)
-		expect(editor.canWrite({ type: 'update', record: editor.getShape(theirs)! })).toBe(false)
+		expect(
+			editor.canWrite({
+				type: 'update',
+				prev: editor.getShape(mine)!,
+				next: editor.getShape(mine)!,
+			})
+		).toBe(true)
+		expect(
+			editor.canWrite({
+				type: 'update',
+				prev: editor.getShape(theirs)!,
+				next: editor.getShape(theirs)!,
+			})
+		).toBe(false)
 	})
 })
 

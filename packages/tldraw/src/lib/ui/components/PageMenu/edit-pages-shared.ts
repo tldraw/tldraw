@@ -9,22 +9,24 @@ import {
 } from '@tldraw/editor'
 import { TLUiEventContextType } from '../../context/events'
 
-// What the `canWrite` editor option lets this person do to pages
+// What the `canWrite` editor option lets this person do to pages. An update asks with
+// `next === prev`, so a rule about a page's new name can still block the rename itself.
 export function canCreatePage(editor: Editor) {
 	return editor.canWrite({
 		type: 'create',
-		record: PageRecordType.create({ name: '', index: 'a1' as IndexKey }),
+		prev: null,
+		next: PageRecordType.create({ name: '', index: 'a1' as IndexKey }),
 	})
 }
 
 export function canUpdatePage(editor: Editor, id: TLPageId) {
 	const page = editor.getPage(id)
-	return !!page && editor.canWrite({ type: 'update', record: page })
+	return !!page && editor.canWrite({ type: 'update', prev: page, next: page })
 }
 
 export function canDeletePage(editor: Editor, id: TLPageId) {
 	const page = editor.getPage(id)
-	return !!page && editor.canWrite({ type: 'delete', record: page })
+	return !!page && editor.canWrite({ type: 'delete', prev: page, next: null })
 }
 
 export function onMovePage(

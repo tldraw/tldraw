@@ -243,7 +243,7 @@ describe('commentToolOverrides', () => {
 			bindingUtils: defaultBindingUtils,
 			tools: [...defaultTools, CommentTool],
 			getContainer: () => document.body,
-			canWrite: ({ record }) => record.typeName.startsWith('comment'),
+			canWrite: ({ prev, next }) => (next ?? prev).typeName.startsWith('comment'),
 		})
 		editor.updateInstanceState({ isReadonly: true })
 		const readonlyOk = getCommentTool().readonlyOk as (editor: Editor) => boolean

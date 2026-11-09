@@ -33,6 +33,7 @@ import { default as React_3 } from 'react';
 import { ReactElement } from 'react';
 import { ReactNode } from 'react';
 import { ReactPortal } from 'react';
+import { RecordId } from '@tldraw/store';
 import { RecordProps } from '@tldraw/tlschema';
 import { RecordsDiff } from '@tldraw/store';
 import { RefAttributes } from 'react';
@@ -3622,6 +3623,12 @@ export interface TLCanvasComponentProps {
     className?: string;
 }
 
+// @public
+export type TLCanWriteArgs<R extends TLRecord = TLRecord> = TLRecordWrite<R> & {
+    get(id: string): undefined | UnknownRecord;
+    get<Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined;
+};
+
 // @public (undocumented)
 export type TLClickEvent = (info: TLClickEventInfo) => void;
 
@@ -4016,7 +4023,7 @@ export interface TLEditorOptions {
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
-    canWrite?(write: TLRecordWrite, editor: Editor): boolean;
+    canWrite?(write: TLCanWriteArgs, editor: Editor): boolean;
     colorScheme?: 'dark' | 'light' | 'system';
     // (undocumented)
     fontAssetUrls?: {
@@ -4667,12 +4674,19 @@ export type TLPointerEventTarget = {
 };
 
 // @public
-export interface TLRecordWrite {
-    // (undocumented)
-    record: TLRecord;
-    // (undocumented)
-    type: 'create' | 'delete' | 'update';
-}
+export type TLRecordWrite<R extends TLRecord = TLRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
+};
 
 // @public (undocumented)
 export interface TLRenderingShape {

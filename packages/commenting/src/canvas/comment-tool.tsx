@@ -332,7 +332,8 @@ export const commentToolOverrides: TLUiOverrides = {
 				editor.store.scopedTypes.document.has('comment-thread' as TLRecord['typeName']) &&
 				editor.canWrite({
 					type: 'create',
-					record: createCommentThread({
+					prev: null,
+					next: createCommentThread({
 						pageId: editor.getCurrentPageId(),
 						anchor: { type: 'point', x: 0, y: 0 },
 						createdBy: editor.user.getExternalId(),

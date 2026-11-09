@@ -25,8 +25,9 @@ export function canApplySelectionAction(editor: Editor) {
 /**
  * Whether the `canWrite` editor option lets this person update every selected shape and its
  * descendants. An action on a selection that holds one they may not write would be rolled back
- * whole, so it shows as disabled instead. It does not check other shapes that an action can
- * write, such as arrows bound to the selection.
+ * whole, so it shows as disabled instead. It asks with `next === prev`, because the action's
+ * new values do not exist yet, so a rule about new field values can still roll the action back.
+ * It does not check other shapes that an action can write, such as arrows bound to the selection.
  *
  * @internal
  */
@@ -52,7 +53,12 @@ function getSelectionChecks(editor: Editor) {
 			computed(`can ${type} selection`, () => {
 				for (const id of editor.getShapeAndDescendantIds(editor.getSelectedShapeIds())) {
 					const shape = editor.getShape(id)
-					if (shape && !editor.canWrite({ type, record: shape })) return false
+					if (!shape) continue
+					const allowed =
+						type === 'update'
+							? editor.canWrite({ type, prev: shape, next: shape })
+							: editor.canWrite({ type, prev: shape, next: null })
+					if (!allowed) return false
 				}
 				return true
 			})
@@ -101,7 +107,7 @@ export function canCreateShapeOfType(editor: Editor, type: TLShape['type']) {
 		meta: {},
 	} as TLShape
 	shape.meta = editor.getInitialMetaForShape(shape)
-	return editor.canWrite({ type: 'create', record: shape })
+	return editor.canWrite({ type: 'create', prev: null, next: shape })
 }
 
 /** @internal */
@@ -127,7 +133,12 @@ export function hasShapesOnPage(editor: Editor) {
 /** @internal */
 export function hasLockedShapesOnPage(editor: Editor) {
 	const locked = editor.getCurrentPageShapes().filter((s) => s.isLocked)
-	return locked.length > 0 && locked.every((s) => editor.canWrite({ type: 'update', record: s }))
+	return (
+		locked.length > 0 &&
+		locked.every((s) =>
+			editor.canWrite({ type: 'update', prev: s, next: { ...s, isLocked: false } })
+		)
+	)
 }
 
 /** @internal */

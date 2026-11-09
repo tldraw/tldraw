@@ -9,6 +9,7 @@ import {
 } from '@tldraw/state'
 import {
 	ComputedCache,
+	RecordId,
 	RecordType,
 	StoreSideEffects,
 	StoreSnapshot,
@@ -317,26 +318,34 @@ export interface TLEditorOptions {
 	 * {@link Editor.canWrite}, so what the UI offers and what the store accepts come from one
 	 * answer.
 	 *
-	 * The check gets the kind of write and one record: the new record for a create, and the stored
-	 * record for an update or a delete. It does not get the new values of an update, because the UI
-	 * asks before they exist. Put rules about field values in a store side effect.
+	 * The check gets the same arguments as a server write check from `@tldraw/sync-core`, except
+	 * `session`: the kind of write, `prev` (the stored record, or `null` for a create), `next` (the
+	 * new record, or `null` for a delete), and `get` to read another record from this client's
+	 * store. So one set of rule functions can run on the server and on the client. See
+	 * `canWriteOnClient` in `@tldraw/sync-core`.
 	 *
+	 * - A write that the editor stores gets its real `next` value.
+	 * - A UI question gets the most likely write: the new record for a create, `next === prev` for
+	 *   "can this person edit this record", and the stored record for a delete. So a rule about the
+	 *   new value of a field can allow a UI item and then block the write. The write then rolls back
+	 *   the whole operation.
 	 * - Remote changes and the store's own integrity repairs are never blocked.
 	 * - Session records, such as the camera and the instance state, are not checked.
 	 * - A check that throws counts as `false`.
 	 *
-	 * The editor caches the answer for each stored record and computes it again when the state
-	 * that the check read changes. So keep the check pure apart from reading editor state.
+	 * The editor caches the UI answer for each stored record and computes it again when the state
+	 * that the check read changes. A stored write runs the check each time, for example on each
+	 * frame of a drag. So keep the check pure and cheap.
 	 *
 	 * @example
 	 * ```ts
-	 * canWrite={({ record }, editor) => record.meta.ownerId === myUserId}
+	 * canWrite={({ prev, next }) => (next ?? prev).meta.ownerId === myUserId}
 	 * ```
 	 *
-	 * @param write - The kind of write and the record it is about.
+	 * @param write - The write, and `get` to read other records.
 	 * @param editor - The editor instance.
 	 */
-	canWrite?(write: TLRecordWrite, editor: Editor): boolean
+	canWrite?(write: TLCanWriteArgs, editor: Editor): boolean
 	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
@@ -375,14 +384,26 @@ export interface TLEditorOptions {
 }
 
 /**
- * A write that {@link TLEditorOptions.canWrite} decides on: the kind of write, and the new record
- * for a create or the stored record for an update or a delete.
+ * A write of one document record: the kind of write, the stored record (`prev`, `null` for a
+ * create) and the new record (`next`, `null` for a delete). The names and the `null` cases are the
+ * same as in the server's write hooks.
  *
  * @public
  */
-export interface TLRecordWrite {
-	type: 'create' | 'update' | 'delete'
-	record: TLRecord
+export type TLRecordWrite<R extends TLRecord = TLRecord> =
+	| { type: 'create'; prev: null; next: R }
+	| { type: 'update'; prev: R; next: R }
+	| { type: 'delete'; prev: R; next: null }
+
+/**
+ * What {@link TLEditorOptions.canWrite} gets: a {@link TLRecordWrite}, and `get` to read another
+ * record from this client's store, as of this write.
+ *
+ * @public
+ */
+export type TLCanWriteArgs<R extends TLRecord = TLRecord> = TLRecordWrite<R> & {
+	get<Id extends RecordId<UnknownRecord>>(id: Id): Id['__type__'] | undefined
+	get(id: string): UnknownRecord | undefined
 }
 
 /**
@@ -659,13 +680,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (canWrite) {
 			// Registered first, so a blocked write stops before the editor's own handlers react to it.
 			// The store ignores these blocks for remote changes and its integrity repairs.
-			const blocks = (type: TLRecordWrite['type'], record: TLRecord, next?: TLRecord) => {
+			const blocks = (write: TLRecordWrite) => {
 				// The store ignores a block of remote changes and integrity repairs anyway, so don't ask
 				if (!this.store.canVeto()) return false
+				// An unchanged record is not a write, and must not roll back the operation
+				if (write.type === 'update' && isEqual(write.prev, write.next)) return false
 				// Removing a binding to a shape that is gone, or is being deleted, is cleanup, not a
 				// choice. A blocked cleanup leaves a binding that points at nothing.
-				if (type === 'delete' && record.typeName === 'binding') {
-					const { fromId, toId } = record as TLBinding
+				if (write.type === 'delete' && write.prev.typeName === 'binding') {
+					const { fromId, toId } = write.prev
 					if (
 						deletedShapeIds.has(fromId) ||
 						deletedShapeIds.has(toId) ||
@@ -675,9 +698,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 						return false
 					}
 				}
-				if (this.canWrite({ type, record })) return false
-				// An unchanged record is not a write, and must not roll back the operation
-				if (next && isEqual(record, next)) return false
+				if (this.canWrite(write)) return false
 				// One operation lands whole or not at all. A partial write can leave the document
 				// broken for everyone: children moved into a group that was not created, or a page
 				// that stays while its shapes go.
@@ -688,10 +709,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 				this.disposables.add(
 					this.sideEffects.register({
 						[typeName]: {
-							beforeCreate: (record: TLRecord) => (blocks('create', record) ? false : record),
+							beforeCreate: (record: TLRecord) =>
+								blocks({ type: 'create', prev: null, next: record }) ? false : record,
 							beforeChange: (prev: TLRecord, next: TLRecord) =>
-								blocks('update', prev, next) ? prev : next,
-							beforeDelete: (record: TLRecord) => (blocks('delete', record) ? false : undefined),
+								blocks({ type: 'update', prev, next }) ? prev : next,
+							beforeDelete: (record: TLRecord) =>
+								blocks({ type: 'delete', prev: record, next: null }) ? false : undefined,
 						},
 					} as any)
 				)
@@ -1172,7 +1195,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private _checkWrite(write: TLRecordWrite): boolean {
 		try {
-			return this._canWrite!(write, this) === true
+			const get = (id: string) => this.store.get(id as TLRecord['id'])
+			return this._canWrite!({ ...write, get } as TLCanWriteArgs, this) === true
 		} catch (error) {
 			console.error('The canWrite check threw, so the write is not allowed', error)
 			return false
@@ -1184,10 +1208,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this._canWrite) return null
 		return {
 			update: this.store.createComputedCache<boolean, TLRecord>('canUpdate', (record) =>
-				this._checkWrite({ type: 'update', record })
+				this._checkWrite({ type: 'update', prev: record, next: record })
 			),
 			delete: this.store.createComputedCache<boolean, TLRecord>('canDelete', (record) =>
-				this._checkWrite({ type: 'delete', record })
+				this._checkWrite({ type: 'delete', prev: record, next: null })
 			),
 		}
 	}
@@ -1198,27 +1222,33 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * option decides, also while readonly: an app can let a readonly person write some records,
 	 * such as comments. Session records, such as the camera, are always allowed.
 	 *
-	 * For an update or a delete, the editor checks the stored record with the same id, and caches
-	 * the answer. A record that is not stored is checked as given. The answer is reactive: call it
-	 * inside a computed value or `useValue` and it updates when the state the check read changes.
+	 * Pass the write as the editor would store it. For "can this person edit this record", pass an
+	 * update with `next === prev`. For that question and for a delete of a stored record, the editor
+	 * checks the stored record with the same id and caches the answer. The answer is reactive: call
+	 * it inside a computed value or `useValue` and it updates when the state the check read changes.
 	 *
 	 * The editor blocks a local write that this returns `false` for, so the UI can use it to hide or
 	 * disable what a person cannot do.
 	 *
 	 * @example
 	 * ```ts
-	 * const canDelete = editor.canWrite({ type: 'delete', record: shape })
+	 * const canDelete = editor.canWrite({ type: 'delete', prev: shape, next: null })
+	 * const canEdit = editor.canWrite({ type: 'update', prev: shape, next: shape })
 	 * ```
 	 *
-	 * @param write - The kind of write and the record it is about.
+	 * @param write - The write to check.
 	 *
 	 * @public
 	 */
 	canWrite(write: TLRecordWrite): boolean {
-		if (!this.store.scopedTypes.document.has(write.record.typeName)) return true
+		const record = write.next ?? write.prev
+		if (!this.store.scopedTypes.document.has(record.typeName)) return true
 		if (!this._canWrite) return !this.getIsReadonly()
-		if (write.type !== 'create' && this.store.has(write.record.id)) {
-			return !!this.getCanWriteCaches()![write.type].get(write.record.id)
+		if (write.type === 'delete' && this.store.has(write.prev.id)) {
+			return !!this.getCanWriteCaches()!.delete.get(write.prev.id)
+		}
+		if (write.type === 'update' && write.next === write.prev && this.store.has(write.prev.id)) {
+			return !!this.getCanWriteCaches()!.update.get(write.prev.id)
 		}
 		return this._checkWrite(write)
 	}
@@ -1230,7 +1260,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!this._canWrite) return true
 		for (const id of ids) {
 			const shape = this.getShape(id)
-			if (shape && !this.canWrite({ type: 'delete', record: shape })) {
+			if (shape && !this.canWrite({ type: 'delete', prev: shape, next: null })) {
 				this.history._rollBackOperation()
 				return false
 			}
@@ -3060,7 +3090,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (!util.canEditInReadonly(_shape) && !this.canWrite({ type: 'update', record: _shape })) {
+		if (
+			!util.canEditInReadonly(_shape) &&
+			!this.canWrite({ type: 'update', prev: _shape, next: _shape })
+		) {
 			return false // the canWrite option says no, and editing this shape writes to it
 		}
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
@@ -3321,7 +3354,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		if (!util.canCrop(_shape)) return false
 		if (this.getIsReadonly()) return false
-		if (!this.canWrite({ type: 'update', record: _shape })) return false
+		if (!this.canWrite({ type: 'update', prev: _shape, next: _shape })) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
 		return true
 	}
@@ -5361,7 +5394,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				const visiblePages = this.getVisiblePages()
 				if (!this.isPageHidden(id) && visiblePages.length === 1) return
 				// A page that stays would keep shapes that are gone, or the other way around
-				if (!this.canWrite({ type: 'delete', record: deletedPage })) {
+				if (!this.canWrite({ type: 'delete', prev: deletedPage, next: null })) {
 					this.history._rollBackOperation()
 					return
 				}
