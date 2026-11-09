@@ -20,6 +20,8 @@ import {
 	type FeatureFlagValue,
 	type Role,
 	type RoomOpenMode,
+	accessGrantId,
+	accessGrantSchemaRecords,
 } from '@tldraw/dotcom-shared'
 import { StoreSchema, UnknownRecord } from '@tldraw/store'
 import {
@@ -269,7 +271,7 @@ const MB = 1024 * 1024
 // drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
 // client (see useSync in the dotcom client) or the schemas won't match.
 const fileSyncSchema = createTLSchema({
-	records: commentSchemaRecords,
+	records: { ...commentSchemaRecords, ...accessGrantSchemaRecords },
 }) as unknown as StoreSchema<FileRecord, TLStoreProps>
 
 // The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
@@ -1231,6 +1233,20 @@ export class TLFileDurableObject extends DurableObject {
 			if (room.getNumActiveSessions() >= MAX_CONNECTIONS) {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
+
+			// SPIKE: the role is a record in the object store, written from the verified session
+			// before the connect so it is in the snapshot the client receives.
+			const grantId = accessGrantId(meta.userId)
+			room.storage.transaction((txn) => {
+				if (txn.get(grantId)) return
+				txn.set(grantId, {
+					id: grantId,
+					typeName: 'access-grant',
+					userId: meta.userId ?? 'anonymous',
+					role: meta.userId ? 'teacher' : 'student',
+					meta: {},
+				} as any)
+			})
 
 			// all good
 			room.handleSocketConnect({

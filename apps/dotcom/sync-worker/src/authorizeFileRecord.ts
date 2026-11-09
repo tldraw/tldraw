@@ -1,4 +1,4 @@
-import { createCommentAuthorizer, isCommentRecord } from '@tldraw/sync-collaboration'
+import { createCommentAuthorizer, getOwningPage, isCommentRecord } from '@tldraw/sync-collaboration'
 import {
 	createAccessAuthorizer,
 	perRecord,
@@ -25,7 +25,12 @@ export interface SessionMeta {
 
 // Record types served through the room's object store: persisted in Postgres via the
 // comment outbox rather than the R2 document blob, and judged by the shared comment rules below.
-export const OBJECT_TYPES = ['comment-thread', 'comment', 'comment-reaction'] as const
+export const OBJECT_TYPES = [
+	'comment-thread',
+	'comment',
+	'comment-reaction',
+	'access-grant',
+] as const
 
 // The file room's record union, widened to include the object-store comment records.
 export type FileRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
@@ -69,6 +74,39 @@ function authorizeShape(change: TLRecordChange<FileRecord>, session: FileSession
 	return null
 }
 
+// SPIKE: role grants are written by the server only.
+const grantsAreServerManaged = perRecord<FileRecord, SessionMeta>((change) =>
+	(change.record as { typeName: string }).typeName === 'access-grant'
+		? 'role grants are managed by the server'
+		: null
+)
+
+// SPIKE: signed-out visitors are "students". A page is theirs when its meta says so
+// (`studentEditable`, set by a teacher); they may not change that policy themselves.
+const students = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
+	if (session.meta.userId !== null) return null
+	if (
+		change.type === 'update' &&
+		change.next.typeName === 'page' &&
+		change.prev.typeName === 'page' &&
+		change.prev.meta.studentEditable !== change.next.meta.studentEditable
+	) {
+		return 'students cannot change page policy'
+	}
+	const ends = [
+		[change.type === 'create' ? null : change.prev, before],
+		[change.type === 'delete' ? null : change.next, after],
+	] as const
+	for (const [record, get] of ends) {
+		if (!record) continue
+		const owning = getOwningPage(get, record)
+		if (owning.page && owning.page.meta.studentEditable !== true) {
+			return 'students can only edit pages shared with them'
+		}
+	}
+	return null
+})
+
 /** The parts of the file rule, kept as an object so a test can stub one. */
 export const fileRecordRules = {
 	comments: createCommentAuthorizer<FileRecord, SessionMeta>({
@@ -105,5 +143,11 @@ export function transformFileRecord(
 export function authorizeFileRecord(
 	args: Parameters<TLSyncAuthorizer<FileRecord, SessionMeta>>[0]
 ): TLSyncRefusal | null {
-	return fileRecordRules.access(args) ?? fileRecordRules.comments.authorize(args) ?? shapes(args)
+	return (
+		grantsAreServerManaged(args) ??
+		fileRecordRules.access(args) ??
+		fileRecordRules.comments.authorize(args) ??
+		shapes(args) ??
+		students(args)
+	)
 }

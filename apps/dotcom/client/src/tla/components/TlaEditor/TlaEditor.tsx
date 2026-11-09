@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import { accessGrantId, TLAccessGrant } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	createDebugValue,
@@ -11,12 +12,19 @@ import {
 	DefaultDebugMenuContent,
 	defineMessages,
 	Editor,
+	isPageId,
 	react,
 	throttle,
+	TLAsset,
+	TLBinding,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
+	TLPage,
+	TLPageId,
+	TLParentId,
 	TLSessionStateSnapshot,
+	TLShape,
 	tltime,
 	TLUiDialogsContextType,
 	useAtom,
@@ -154,9 +162,49 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
+	// SPIKE: the sync server writes each session's role as an `access-grant` record; a teacher marks
+	// pages students may use with `page.meta.studentEditable`. Both arrive over sync.
+	const grantId = accessGrantId(app?.userId)
+	const isStudentIn = useCallback(
+		(editor: Editor) =>
+			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
+			'student',
+		[grantId]
+	)
 	const getShapeVisibility = useCallback(
-		() => (hideAllShapes.get() ? 'hidden' : 'inherit'),
-		[hideAllShapes]
+		(shape: TLShape, editor: Editor) => {
+			if (hideAllShapes.get()) return 'hidden'
+			if (isStudentIn(editor)) {
+				const page = editor.getPage(editor.getAncestorPageId(shape) ?? ('' as TLPageId))
+				if (page?.meta.studentEditable !== true) return 'hidden'
+			}
+			return 'inherit'
+		},
+		[hideAllShapes, isStudentIn]
+	)
+	const canChangeRecord = useCallback(
+		(record: TLShape | TLPage | TLBinding | TLAsset, editor: Editor) => {
+			if (!isStudentIn(editor)) return true
+			const isStudentPage = (pageId: TLParentId) =>
+				isPageId(pageId) && editor.getPage(pageId)?.meta.studentEditable === true
+			if (record.typeName === 'page') return record.meta.studentEditable === true
+			if (record.typeName === 'shape') {
+				let parent: TLParentId = record.parentId
+				while (!isPageId(parent)) {
+					const next: TLShape | undefined = editor.getShape(parent)
+					if (!next) return true
+					parent = next.parentId
+				}
+				return isStudentPage(parent)
+			}
+			if (record.typeName === 'binding') {
+				const from = editor.getShape(record.fromId)
+				const pageId = from && editor.getAncestorPageId(from)
+				return !pageId || isStudentPage(pageId)
+			}
+			return true
+		},
+		[isStudentIn]
 	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
@@ -166,6 +214,13 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}, [hideAllShapes])
 
 	const store = useFileSyncStore()
+	const isStudent = useValue(
+		'isStudent',
+		() =>
+			store.status === 'synced-remote' &&
+			(store.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role === 'student',
+		[store, grantId]
+	)
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
@@ -176,6 +231,14 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		(editor: Editor) => {
 			markFirstLoad('editor-mounted')
 			fileLoad.mark('editor-mounted')
+			// SPIKE: keep a student on a page shared with them
+			const stopStudentPageGuard = react('student page guard', () => {
+				if (!isStudentIn(editor)) return
+				const current = editor.getCurrentPage()
+				if (current.meta.studentEditable === true) return
+				const first = editor.getPages().find((p) => p.meta.studentEditable === true)
+				if (first) editor.setCurrentPage(first.id)
+			})
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -276,6 +339,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				})
 
 			return () => {
+				stopStudentPageGuard()
 				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
@@ -291,6 +355,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			app,
 			fileId,
 			isEmbed,
+			isStudentIn,
 			remountImageShapes,
 			setIsReady,
 			showSlurpFailure,
@@ -344,6 +409,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
+			...(isStudent ? { PageMenu: null } : null),
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
@@ -358,7 +424,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				</>
 			),
 		}
-	}, [fileId, commentingEnabled])
+	}, [fileId, commentingEnabled, isStudent])
 
 	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
 	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut
@@ -386,6 +452,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				}}
 				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
+				canChangeRecord={canChangeRecord}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

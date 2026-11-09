@@ -1,4 +1,5 @@
 /* eslint-disable tldraw/no-export-star */
+export * from './accessGrant'
 export * from './capabilities'
 export * from './commentMentions'
 export * from './constants'
