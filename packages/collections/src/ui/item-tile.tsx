@@ -31,7 +31,11 @@ export function ItemTile({
 				{...buttonProps}
 			>
 				<span className="tlui-collections-tile__thumbnail">
-					{thumbnailUrl && <img src={thumbnailUrl} alt="" draggable={false} />}
+					{thumbnailUrl && (
+						// Without these, every tile in a long collection decodes its image at once, even
+						// those scrolled out of view: a megabyte or more each, enough to crash a phone's tab.
+						<img src={thumbnailUrl} alt="" draggable={false} loading="lazy" decoding="async" />
+					)}
 				</span>
 			</button>
 			{menu && <div className="tlui-collections-tile__menu">{menu}</div>}
