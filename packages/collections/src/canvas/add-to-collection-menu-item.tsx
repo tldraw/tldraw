@@ -1,20 +1,19 @@
 import {
 	defineMessages,
+	TldrawUiDropdownMenuGroup,
 	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useEditor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { InContextMenu, MenuItem } from '../ui/menu-items'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
 	addToCollection: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
-	newCollection: {
-		id: 'collections.add-to-new-collection',
-		defaultMessage: 'New collection',
-	},
+	newCollection: { id: 'collections.add-to-new-collection', defaultMessage: 'New collection' },
 })
 
 /** @public */
@@ -30,6 +29,7 @@ export interface AddToCollectionMenuItemProps {
  */
 export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
+	const msg = useTranslation()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
@@ -48,27 +48,25 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 	return (
 		<TldrawUiMenuGroup id="collections">
 			<TldrawUiMenuSubmenu id="add-to-collection" label={messages.addToCollection.id}>
-				{collections.length > 0 && (
-					<TldrawUiMenuGroup id="add-to-collection-targets">
+				<InContextMenu>
+					<TldrawUiDropdownMenuGroup className="tlui-collections-menu__submenu">
 						{collections.map((collection) => (
-							<TldrawUiMenuItem
+							<MenuItem
 								key={collection.id}
-								id={`add-to-collection-${collection.id}`}
 								label={collection.name}
-								onSelect={() => saveSelection(collection.id)}
+								onClick={() => saveSelection(collection.id)}
 							/>
 						))}
-					</TldrawUiMenuGroup>
-				)}
-				{canCreate && (
-					<TldrawUiMenuGroup id="add-to-new-collection">
-						<TldrawUiMenuItem
-							id="add-to-new-collection"
-							label={messages.newCollection.id}
-							onSelect={saveToNewCollection}
-						/>
-					</TldrawUiMenuGroup>
-				)}
+						{canCreate && (
+							<>
+								{collections.length > 0 && (
+									<div role="separator" className="tlui-collections-menu__divider" />
+								)}
+								<MenuItem label={msg(messages.newCollection)} onClick={saveToNewCollection} />
+							</>
+						)}
+					</TldrawUiDropdownMenuGroup>
+				</InContextMenu>
 			</TldrawUiMenuSubmenu>
 		</TldrawUiMenuGroup>
 	)
