@@ -13,6 +13,7 @@ import { LibrariesPanelHeader } from './libraries-panel-header'
 import { LibraryGroupSection } from './library-group-section'
 import { groupLibraryList, useLibraryGrouping } from './library-groups'
 import { LibrarySection } from './library-section'
+import { useLibrariesEnabled } from './license'
 import { NoLibraries } from './no-libraries'
 import { placeLibraryItem } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
@@ -58,6 +59,7 @@ export function LibrariesPanel({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
@@ -75,7 +77,7 @@ export function LibrariesPanel({
 	)
 	const getItemProps = useItemDrag(source, placeItem)
 
-	if (!open) return null
+	if (!librariesEnabled || !open) return null
 
 	return (
 		<EditorPortal>
