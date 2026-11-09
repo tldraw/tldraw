@@ -1,7 +1,9 @@
+import { getColorValue } from '@tldraw/editor'
 import {
 	type TLDefaultColor,
 	type TLDefaultColorStyle,
 	type TLDefaultFillStyle,
+	type TLThemeColors,
 } from '@tldraw/tlschema'
 
 export const DEFAULT_FILL_COLOR_NAMES: Record<
@@ -15,10 +17,11 @@ export const DEFAULT_FILL_COLOR_NAMES: Record<
 	inked: 'semi',
 }
 
-/** The `inked` fill draws its outline in the foreground color rather than the shape's color. */
-export function getStrokeColorForFill(
+// 'black' is the theme's foreground color, so the outline flips to light in dark mode.
+export function getStrokeColor(
+	colors: TLThemeColors,
 	color: TLDefaultColorStyle,
 	fill: TLDefaultFillStyle
-): TLDefaultColorStyle {
-	return fill === 'inked' ? 'black' : color
+): string {
+	return getColorValue(colors, fill === 'inked' ? 'black' : color, 'solid')
 }

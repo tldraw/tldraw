@@ -50,6 +50,7 @@ const FILL_ITEMS = [
 	{ value: 'solid', icon: 'fill-solid' },
 	{ value: 'pattern', icon: 'fill-pattern' },
 	{ value: 'lined-fill', icon: 'fill-lined-fill' },
+	{ value: 'inked', icon: 'fill-inked' },
 	{ value: 'fill', icon: 'fill-fill' },
 ] as const
 

@@ -22,7 +22,7 @@ import {
 	useValue,
 } from '@tldraw/editor'
 import { STROKE_SIZES } from '../shared/default-shape-constants'
-import { DEFAULT_FILL_COLOR_NAMES, getStrokeColorForFill } from '../shared/defaultFills'
+import { DEFAULT_FILL_COLOR_NAMES, getStrokeColor } from '../shared/defaultFills'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getStrokePoints } from '../shared/freehand/getStrokePoints'
 import { getSvgPathFromStrokePoints } from '../shared/freehand/svg'
@@ -68,7 +68,7 @@ export class DrawShapeUtil extends ShapeUtil<TLDrawShape> {
 			const { color, fill, size } = shape.props
 			const colors = theme.colors[colorMode]
 			return {
-				strokeColor: getColorValue(colors, getStrokeColorForFill(color, fill), 'solid'),
+				strokeColor: getStrokeColor(colors, color, fill),
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
 					fill === 'none'

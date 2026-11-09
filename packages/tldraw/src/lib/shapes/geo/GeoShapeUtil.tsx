@@ -49,7 +49,7 @@ import {
 	TEXT_PROPS,
 	getFontFamily,
 } from '../shared/default-shape-constants'
-import { DEFAULT_FILL_COLOR_NAMES, getStrokeColorForFill } from '../shared/defaultFills'
+import { DEFAULT_FILL_COLOR_NAMES, getStrokeColor } from '../shared/defaultFills'
 import { getThemeFontFaces } from '../shared/defaultFonts'
 import { getFillDefForCanvas, getFillDefForExport } from '../shared/defaultStyleDefs'
 import { getFlipForResize } from '../shared/flip'
@@ -196,7 +196,7 @@ export class GeoShapeUtil extends BaseBoxShapeUtil<TLGeoShape> {
 			const colors = theme.colors[colorMode]
 
 			return {
-				strokeColor: getColorValue(colors, getStrokeColorForFill(color, fill), 'solid'),
+				strokeColor: getStrokeColor(colors, color, fill),
 				strokeRoundness: theme.strokeWidth * STROKE_SIZES[size] * 2,
 				strokeWidth: theme.strokeWidth * STROKE_SIZES[size],
 				fillColor:
