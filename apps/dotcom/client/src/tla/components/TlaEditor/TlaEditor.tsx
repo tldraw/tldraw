@@ -43,6 +43,7 @@ import {
 	TldrawUiMenuItem,
 	TLPage,
 	TLParentId,
+	TLRecordChange,
 	TLSessionStateSnapshot,
 	TLShape,
 	tltime,
@@ -363,17 +364,22 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		[hideAllShapes, isStudentIn]
 	)
 	const canChangeRecord = useCallback(
-		(record: TLShape | TLPage | TLBinding | TLAsset, editor: Editor) => {
+		(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>, editor: Editor) => {
 			if (!isStudentIn(editor)) return true
+			const record = change.next ?? change.prev
 			const isStudentPage = (pageId: TLParentId) =>
 				isPageId(pageId) && !!getPolicy(editor.store)?.studentPages.includes(pageId)
 			if (record.typeName === 'page') return isStudentPage(record.id)
 			if (record.typeName === 'shape') {
 				// SPIKE: students only create red shapes, and may only recolour to red
-				const color = (record.props as { color?: string }).color
-				const current = editor.getShape(record.id)
-				const currentColor = (current?.props as { color?: string } | undefined)?.color
-				if ((!current || color !== currentColor) && color !== 'red') return false
+				if (change.type !== 'delete') {
+					const color = (record.props as { color?: string }).color
+					const prevColor =
+						change.type === 'update'
+							? ((change.prev as TLShape).props as { color?: string }).color
+							: undefined
+					if ((change.type === 'create' || color !== prevColor) && color !== 'red') return false
+				}
 				let parent: TLParentId = record.parentId
 				while (!isPageId(parent)) {
 					const next: TLShape | undefined = editor.getShape(parent)
