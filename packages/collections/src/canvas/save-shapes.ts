@@ -41,8 +41,14 @@ export async function saveShapesToCollection(
 	})
 }
 
-// Tiles are a few hundred pixels across; uncapped, a photo item's thumbnail came out at 5 MB.
-const MAX_THUMBNAIL_SIZE = 512
+// Every thumbnail is zoomed to this many pixels on its longest side, whatever the item's size, so
+// a small item fills its tile like a big one and only two images are ever kept per item. Tiles are
+// a few hundred pixels across; a photo item at its own size came out at 5 MB.
+const THUMBNAIL_SIZE = 512
+// Exports that aren't a frame are drawn with padding and then trimmed to their content, so a tiny
+// item zoomed to THUMBNAIL_SIZE would need a canvas many times bigger. Caps that, for items under
+// about 9 units across.
+const MAX_RENDER_SIZE = 4096
 
 // Exported alone, a frame draws only its contents, cropped like a slide (#5993), but a thumbnail
 // should show what gets placed: the frame, border and name. That rule only applies to a single id,
@@ -57,13 +63,18 @@ function getThumbnailExport(
 	const bounds = frame
 		? getFrameOutline(editor, frame)
 		: (editor.getShapesPageBounds(shapeIds) ?? undefined)
+	const longest = bounds && Math.max(bounds.w, bounds.h)
 	const options: TLImageExportOptions = {
 		format: 'png',
 		background: false,
-		// The default is 2; shrink it for big exports, so small ones stay as sharp as before.
-		pixelRatio: bounds
-			? Math.min(2, MAX_THUMBNAIL_SIZE / (Math.max(bounds.w, bounds.h) + padding * 2))
-			: undefined,
+		pixelRatio:
+			longest === undefined
+				? undefined
+				: Math.min(
+						// A frame keeps its padding; anything else is trimmed down to its content.
+						THUMBNAIL_SIZE / (frame ? longest + padding * 2 : longest),
+						MAX_RENDER_SIZE / (longest + padding * 2)
+					),
 	}
 	if (!frame) return { ...options, ids: shapeIds }
 	return { ...options, ids: [frame.id, frame.id], bounds, padding }
