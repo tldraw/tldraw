@@ -294,8 +294,8 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 	const isRestrictedStudent = useValue(
 		'isRestrictedStudent',
 		() =>
-			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
-				'student' && getPolicy(editor.store)?.studentsCanEditAll !== true,
+			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
+				'teacher' && getPolicy(editor.store)?.studentsCanEditAll !== true,
 		[editor, grantId]
 	)
 	const redOnly = useValue('redOnly', () => getPolicy(editor.store)?.studentsRedOnly === true, [
@@ -486,8 +486,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// A student is restricted until the teacher's policy says otherwise.
 	const isStudentIn = useCallback(
 		(editor: Editor) =>
-			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
-				'student' && getPolicy(editor.store)?.studentsCanEditAll !== true,
+			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
+				'teacher' && getPolicy(editor.store)?.studentsCanEditAll !== true,
 		[grantId]
 	)
 	const getShapeVisibility = useCallback(
@@ -547,8 +547,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		'isStudent',
 		() =>
 			store.status === 'synced-remote' &&
-			(store.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
-				'student' &&
+			(store.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
+				'teacher' &&
 			getPolicy(store.store)?.studentsCanEditAll !== true,
 		[store, grantId]
 	)

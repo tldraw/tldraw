@@ -1242,9 +1242,7 @@ export class TLFileDurableObject extends DurableObject {
 				txn.set(grantId, {
 					id: grantId,
 					typeName: 'access-grant',
-					userId: meta.userId ?? 'anonymous',
 					role: meta.userId ? 'teacher' : 'student',
-					meta: {},
 				} as any)
 			})
 

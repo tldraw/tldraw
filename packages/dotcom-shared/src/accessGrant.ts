@@ -1,14 +1,12 @@
 import { CustomRecordInfo } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 
-// SPIKE: a role grant, a record in the room's object store. The server writes it from its own
-// auth; clients read their own grant and cannot write it.
+// SPIKE: a role, as a record in the file room's object store. The server writes it from its own
+// auth. The room's rule and the client both read it. Clients cannot write it.
 export interface TLAccessGrant {
 	id: string
 	typeName: 'access-grant'
-	userId: string
 	role: 'teacher' | 'student'
-	meta: Record<string, unknown>
 }
 
 export const ANONYMOUS_GRANT_USER = 'anonymous'
@@ -22,9 +20,10 @@ export const accessGrantRecordConfig: CustomRecordInfo = {
 	validator: T.object({
 		id: T.string,
 		typeName: T.literal('access-grant'),
-		userId: T.string,
 		role: T.literalEnum('teacher', 'student'),
-		meta: T.jsonValue,
+		// rooms written earlier still hold these; nothing reads them
+		userId: T.string.optional(),
+		meta: T.jsonValue.optional(),
 	}),
 }
 

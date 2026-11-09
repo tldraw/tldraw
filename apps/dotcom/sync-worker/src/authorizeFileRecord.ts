@@ -1,4 +1,9 @@
-import { ACCESS_POLICY_ID, TLAccessPolicy } from '@tldraw/dotcom-shared'
+import {
+	ACCESS_POLICY_ID,
+	accessGrantId,
+	TLAccessGrant,
+	TLAccessPolicy,
+} from '@tldraw/dotcom-shared'
 import { createCommentAuthorizer, getOwningPage, isCommentRecord } from '@tldraw/sync-collaboration'
 import {
 	createAccessAuthorizer,
@@ -83,18 +88,23 @@ const grantsAreServerManaged = perRecord<FileRecord, SessionMeta>((change) =>
 		: null
 )
 
-// SPIKE: only signed-in users (teachers) change the policy students are held to.
-const policyIsForTeachers = perRecord<FileRecord, SessionMeta>((change, { session }) =>
+// SPIKE: the session's role, read from its grant record. No grant means student.
+function roleOf(session: FileSession, get: (id: string) => unknown) {
+	return (get(accessGrantId(session.meta.userId)) as TLAccessGrant | undefined)?.role ?? 'student'
+}
+
+// SPIKE: only teachers change the policy students are held to.
+const policyIsForTeachers = perRecord<FileRecord, SessionMeta>((change, { session, before }) =>
 	(change.record as { typeName: string }).typeName === 'access-policy' &&
-	session.meta.userId === null
+	roleOf(session, before) !== 'teacher'
 		? 'only teachers change the student policy'
 		: null
 )
 
-// SPIKE: signed-out visitors are "students". A page is theirs when the teacher's policy record
+// SPIKE: students are held to the teacher's policy. A page is theirs when the teacher's policy record
 // lists it; they cannot write that record (see policyIsForTeachers).
 const students = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
-	if (session.meta.userId !== null) return null
+	if (roleOf(session, before) === 'teacher') return null
 	const policy = before(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
 	if (policy?.studentsCanEditAll === true) return null
 	// SPIKE: students only create red shapes, and may only recolour to red

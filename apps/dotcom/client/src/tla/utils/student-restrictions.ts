@@ -12,7 +12,8 @@ export function getPolicy(store: { get(id: any): unknown }) {
 	return store.get(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
 }
 
-// SPIKE: true for a student the teacher has not opened everything up for.
+// SPIKE: true unless the grant says teacher, or the teacher has opened everything up. No grant
+// yet means restricted.
 export function useIsRestrictedStudent() {
 	const editor = useEditor()
 	const app = useMaybeApp()
@@ -20,8 +21,8 @@ export function useIsRestrictedStudent() {
 	return useValue(
 		'isRestrictedStudent',
 		() =>
-			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
-				'student' && getPolicy(editor.store)?.studentsCanEditAll !== true,
+			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
+				'teacher' && getPolicy(editor.store)?.studentsCanEditAll !== true,
 		[editor, grantId]
 	)
 }
