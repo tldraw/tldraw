@@ -339,7 +339,7 @@ export type TLSyncTransform<R extends UnknownRecord, SessionMeta> = (
  * Build a {@link TLSyncAuthorizer} from a rule about one record at a time. The rule gets the
  * change (plus `record`: `next`, or `prev` on a delete), and the session and readers; it returns
  * `null` to allow the change or a reason to refuse it. One refused change refuses the push: the
- * refusal carries the first reason and the ids of every refused record.
+ * refusal carries the ids of every refused record, sorted, and the first one's reason.
  *
  * @example
  * ```ts
@@ -357,15 +357,16 @@ export function perRecord<R extends UnknownRecord, SessionMeta>(
 	) => string | null
 ): TLSyncAuthorizer<R, SessionMeta> {
 	return ({ changes, ...ctx }) => {
-		let refusal: TLSyncRefusal | null = null
+		const refused: { id: string; reason: string }[] = []
 		for (const change of changes) {
 			const record = change.type === 'delete' ? change.prev : change.next
 			const reason = rule({ ...change, record }, ctx)
-			if (reason === null) continue
-			if (!refusal) refusal = { reason, ids: [] }
-			refusal.ids!.push(record.id)
+			if (reason !== null) refused.push({ id: record.id, reason })
 		}
-		return refusal
+		if (refused.length === 0) return null
+		// Sorted so the reported reason and ids don't depend on the client's push order.
+		refused.sort((a, b) => (a.id < b.id ? -1 : a.id > b.id ? 1 : 0))
+		return { reason: refused[0].reason, ids: refused.map((r) => r.id) }
 	}
 }
 
@@ -1650,7 +1651,12 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								}
 								const next = migrateUp(record)
 								if (prev) {
-									const diff = diffAndValidateRecord(prev, next, recordTypeOf(prev), legacyAppendMode)
+									const diff = diffAndValidateRecord(
+										prev,
+										next,
+										recordTypeOf(prev),
+										legacyAppendMode
+									)
 									if (!diff) continue
 									staged.push({ id, change: { type: 'update', prev, next }, diff })
 								} else {
@@ -1709,7 +1715,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 							const overlay = new Map<string, R | undefined>()
 							for (const s of staged) overlay.set(s.id, s.change.next ?? undefined)
 							const ctx = {
-								session: { sessionId: session.sessionId, meta: session.meta, access: session.access },
+								session: {
+									sessionId: session.sessionId,
+									meta: session.meta,
+									access: session.access,
+								},
 								before: (id: string) => txn.get(id) as R | undefined,
 								after: (id: string) =>
 									overlay.has(id) ? overlay.get(id) : (txn.get(id) as R | undefined),

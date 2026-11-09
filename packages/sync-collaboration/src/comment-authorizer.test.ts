@@ -86,7 +86,7 @@ describe('createCommentAuthorizer', () => {
 				{ type: 'create', prev: null, next: page },
 				{ type: 'delete', prev: b, next: null }
 			)
-		).toEqual({ reason: 'comment delete refused', ids: [a.id, b.id] })
+		).toEqual({ reason: 'comment delete refused', ids: [a.id, b.id].sort() })
 	})
 
 	it('follows object-store access by default, independent of the canvas', () => {
@@ -117,12 +117,18 @@ describe('createCommentAuthorizer', () => {
 			next: comment('x'),
 		}
 		const pageCreate: TLRecordChange<UnknownRecord> = { type: 'create', prev: null, next: page }
-		expect(compound({ session: session('bob', false), changes: [commentCreate], ...readers })).toBeNull()
-		expect(compound({ session: session('bob', false), changes: [pageCreate], ...readers })).toEqual({
-			reason: 'read-only',
-			ids: [page.id],
-		})
-		expect(compound({ session: session('bob', true), changes: [pageCreate], ...readers })).toBeNull()
+		expect(
+			compound({ session: session('bob', false), changes: [commentCreate], ...readers })
+		).toBeNull()
+		expect(compound({ session: session('bob', false), changes: [pageCreate], ...readers })).toEqual(
+			{
+				reason: 'read-only',
+				ids: [page.id],
+			}
+		)
+		expect(
+			compound({ session: session('bob', true), changes: [pageCreate], ...readers })
+		).toBeNull()
 	})
 
 	it('agrees with the deprecated map on every comment decision', () => {
