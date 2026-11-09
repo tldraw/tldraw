@@ -132,7 +132,7 @@ describe('addLibraryItem', () => {
 
 	it("removes what it stored when the row can't be inserted", async () => {
 		const fake = mockPool([[libraryAccess(W, 'member')]])
-		vi.spyOn(fake.db, 'insertInto').mockImplementation(() => {
+		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
 			throw new Error('the library was deleted')
 		})
 		const env = makeEnv()
@@ -193,6 +193,54 @@ describe('addLibraryItem', () => {
 		mockPool([[libraryAccess(W, 'member')]])
 		const response = await addLibraryItem(addRequest(fields), makeEnv())
 		expect(response.status).toBe(400)
+	})
+})
+
+describe('addLibraryItem, with uploaded images in the content', () => {
+	const image = (src: string, fileId?: string) => ({
+		id: 'asset:photo',
+		typeName: 'asset',
+		type: 'image',
+		props: { src, w: 10, h: 10 },
+		meta: fileId ? { fileId } : {},
+	})
+	const withAssets = (assets: unknown[]) =>
+		JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets } })
+
+	it('copies each uploaded image to an object the item owns and points the content at it', async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
+
+		const response = await addLibraryItem(
+			addRequest({ content: withAssets([image('https://content.test/abc123-png', 'file-a')]) }),
+			env
+		)
+
+		const { id } = (await response.json()) as { id: string }
+		const uploads = await uploadNames(env)
+		const copyName = uploads.find((key: string) => key !== 'abc123-png')!
+		expect(copyName).toMatch(/-png$/)
+		const stored = await (await env.ROOMS.get(getLibraryItemContentKey(id)))!.json<any>()
+		expect(stored.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
+		// so a board it's placed on copies the image for itself
+		expect(stored.content.assets[0].meta).toEqual({})
+		const ownership = fake.queries.find((q) =>
+			q.sql.startsWith('insert into "library_item_asset"')
+		)!
+		expect(ownership.parameters).toEqual([id, copyName])
+	})
+
+	it('leaves an asset whose upload is missing, or that is not an upload, as it was', async () => {
+		const fake = mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		const assets = [image('https://content.test/gone-png'), image('data:image/png;base64,AAAA')]
+		const response = await addLibraryItem(addRequest({ content: withAssets(assets) }), env)
+
+		const { id } = (await response.json()) as { id: string }
+		const stored = await (await env.ROOMS.get(getLibraryItemContentKey(id)))!.json<any>()
+		expect(stored.content.assets).toEqual(assets)
+		expect(fake.queries.some((q) => q.sql.includes('library_item_asset'))).toBe(false)
 	})
 })
 
