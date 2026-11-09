@@ -22,8 +22,11 @@ export {
 	CollectionPermissionError,
 	type CollectionSource,
 	type TLCollectionAction,
+	type TLCollectionOwner,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from './lib/CollectionSource'
+export { copyCollection } from './lib/copyCollection'
 export {
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,
