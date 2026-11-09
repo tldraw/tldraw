@@ -1734,6 +1734,13 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export interface TLRefusal {
+    ids?: string[];
+    // (undocumented)
+    reason: string;
+}
+
+// @public
 export interface TLRemovedDefaultThemeColors {
 }
 
@@ -1790,6 +1797,9 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
     collaboration?: {
+        refusals?: {
+            subscribe(listener: (refusal: TLRefusal) => void): () => void;
+        } | null;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };

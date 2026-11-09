@@ -80,6 +80,7 @@ import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRefusal } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
@@ -4207,6 +4208,7 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    refused: [TLRefusal];
     // (undocumented)
     resize: [BoxModel];
     // (undocumented)
@@ -4861,6 +4863,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
+        refusals?: NonNullable<TLStoreProps['collaboration']>['refusals'];
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };

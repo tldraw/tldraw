@@ -20,6 +20,7 @@ import {
 	TLAssetStore,
 	TLPresenceStateInfo,
 	TLRecord,
+	TLRefusal,
 	TLStore,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
@@ -310,6 +311,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+		const refusalListeners = new Set<(refusal: TLRefusal) => void>()
 
 		const store = createTLStore({
 			id: storeId,
@@ -320,6 +322,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
+				refusals: {
+					subscribe: (listener) => (
+						refusalListeners.add(listener), () => void refusalListeners.delete(listener)
+					),
+				},
 			},
 		})
 
@@ -378,7 +385,17 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
-			onPushRefused,
+			onPushRefused(refusal) {
+				// Editor listeners first, so a throwing host callback can't swallow the editor event
+				for (const listener of refusalListeners) {
+					try {
+						listener(refusal)
+					} catch (e) {
+						console.error('refusal listener threw', e)
+					}
+				}
+				onPushRefused(refusal)
+			},
 			presence,
 			presenceMode,
 		})

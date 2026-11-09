@@ -293,6 +293,17 @@ export function createCachedUserResolve(
 }
 
 /**
+ * A server's reason for refusing a change of this user's, as reported to the editor.
+ *
+ * @public
+ */
+export interface TLRefusal {
+	reason: string
+	/** Ids of the records that caused the refusal, when the rule knows. */
+	ids?: string[]
+}
+
+/**
  * Configuration properties for a tldraw store, defining its behavior and integrations.
  * These props are passed when creating a new store instance.
  *
@@ -336,6 +347,11 @@ export interface TLStoreProps {
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/**
+		 * Refusals of this user's changes by the server. The editor re-emits each one as its
+		 * `'refused'` event. Set by sync; a custom transport can provide its own.
+		 */
+		refusals?: { subscribe(listener: (refusal: TLRefusal) => void): () => void } | null
 	}
 }
 
