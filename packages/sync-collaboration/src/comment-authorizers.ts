@@ -501,7 +501,10 @@ export function createCommentAuthorizer<R extends UnknownRecord, SessionMeta>(
 		canModifyComment: opts.canModifyComment ?? ownerOnly,
 	})
 	// The per-type rules return the record to allow (stamped on create) or null to refuse.
-	const judge = (session: Session, change: TLRecordChange<TLCommentRecord>): UnknownRecord | null => {
+	const judge = (
+		session: Session,
+		change: TLRecordChange<TLCommentRecord>
+	): UnknownRecord | null => {
 		const args = { session, ...change }
 		switch ((change.type === 'delete' ? change.prev : change.next).typeName) {
 			case 'comment':
@@ -517,10 +520,51 @@ export function createCommentAuthorizer<R extends UnknownRecord, SessionMeta>(
 			if (!isCommentRecord(record)) return record
 			return (judge(session, { type: 'create', prev: null, next: record }) as R | null) ?? record
 		},
-		authorize: perRecord(({ record, ...change }, { session }) => {
+		authorize: perRecord(({ record, ...change }, { session, after }) => {
 			if (!isCommentRecord(record)) return null
+			if (change.type === 'update' && isMove(change.prev, change.next)) {
+				return authorizeMove(session, change.next as unknown as TLCommentRecord, after)
+			}
 			if (judge(session, change as unknown as TLRecordChange<TLCommentRecord>)) return null
 			return `${record.typeName} ${change.type} refused`
 		}),
 	}
+}
+
+/**
+ * A move is the commenting plugin keeping a thread attached to its shape: the thread's `pageId`
+ * and `anchor` follow the shape, and each comment's denormalized `pageId` follows the thread.
+ * These writes ride in the push of whoever moved or deleted the shape, who is usually not the
+ * author, so they are judged by document access rather than by `canComment` or ownership.
+ */
+function isMove(prev: UnknownRecord, next: UnknownRecord): boolean {
+	switch (prev.typeName) {
+		case 'comment-thread':
+			return isEqual(
+				{
+					...next,
+					pageId: (prev as TLCommentThread).pageId,
+					anchor: (prev as TLCommentThread).anchor,
+				},
+				prev
+			)
+		case 'comment':
+			return isEqual({ ...next, pageId: (prev as TLComment).pageId }, prev)
+		default:
+			return false
+	}
+}
+
+function authorizeMove(
+	session: TLSyncAuthorizerSession<unknown>,
+	next: TLCommentRecord,
+	after: (id: string) => UnknownRecord | undefined
+): string | null {
+	if (session.access.document !== 'write') return `${next.typeName} move refused`
+	// A comment may only follow its thread, never move on its own.
+	if (next.typeName === 'comment') {
+		const thread = after(next.threadId) as TLCommentThread | undefined
+		if (!thread || thread.pageId !== next.pageId) return 'comment must stay on its thread page'
+	}
+	return null
 }

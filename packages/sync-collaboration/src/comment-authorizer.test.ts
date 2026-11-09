@@ -162,6 +162,85 @@ describe('createCommentAuthorizer', () => {
 	})
 })
 
+describe('moves: a thread following its shape', () => {
+	const p2 = 'page:2' as TLPageId
+	const shapeThread = {
+		...thread,
+		anchor: { type: 'shape', shapeId: 'shape:x', normalizedAnchor: { x: 0.5, y: 0.5 } },
+	} as unknown as typeof thread
+	const alices = comment('alice')
+	const withAfter = (...records: UnknownRecord[]) => ({
+		before: () => undefined,
+		after: (id: string) => records.find((r) => r.id === id),
+	})
+
+	it('lets a non-author re-home a thread and its comments when the shape changes page', () => {
+		const movedThread = { ...shapeThread, pageId: p2 }
+		const r = rules.authorize({
+			session: session('bob'),
+			changes: [
+				{ type: 'update', prev: shapeThread, next: movedThread },
+				{ type: 'update', prev: alices, next: { ...alices, pageId: p2 } as UnknownRecord },
+			],
+			...withAfter(movedThread),
+		})
+		expect(r).toBeNull()
+	})
+
+	it('lets an anonymous editor convert the anchor when the shape is deleted', () => {
+		const r = rules.authorize({
+			session: session(null, true, 'read'),
+			changes: [
+				{
+					type: 'update',
+					prev: shapeThread,
+					next: {
+						...shapeThread,
+						anchor: { type: 'point', x: 1, y: 2 },
+					} as unknown as typeof thread,
+				},
+			],
+			...withAfter(),
+		})
+		expect(r).toBeNull()
+	})
+
+	it('refuses a move from a session without document write access', () => {
+		const movedThread = { ...shapeThread, pageId: p2 }
+		const r = rules.authorize({
+			session: session('bob', false),
+			changes: [{ type: 'update', prev: shapeThread, next: movedThread }],
+			...withAfter(movedThread),
+		})
+		expect(r).toEqual({ reason: 'comment-thread move refused', ids: [shapeThread.id] })
+	})
+
+	it('refuses a comment moving to a page its thread is not on', () => {
+		const r = rules.authorize({
+			session: session('bob'),
+			changes: [{ type: 'update', prev: alices, next: { ...alices, pageId: p2 } as UnknownRecord }],
+			...withAfter(shapeThread),
+		})
+		expect(r).toEqual({ reason: 'comment must stay on its thread page', ids: [alices.id] })
+	})
+
+	it('still treats a pageId change bundled with a content edit as an edit', () => {
+		const movedThread = { ...shapeThread, pageId: p2 }
+		const r = rules.authorize({
+			session: session('bob'),
+			changes: [
+				{
+					type: 'update',
+					prev: alices,
+					next: { ...alices, pageId: p2, body: toRichText('rewritten') } as UnknownRecord,
+				},
+			],
+			...withAfter(movedThread),
+		})
+		expect(r).toEqual({ reason: 'comment update refused', ids: [alices.id] })
+	})
+})
+
 describe('isCommentRecord', () => {
 	it('is true for the three comment types and false otherwise', () => {
 		expect(isCommentRecord(thread)).toBe(true)

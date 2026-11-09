@@ -604,11 +604,14 @@ const room = new TLSocketRoom({
 This is also where per-record permissions belong. Object store access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced by the room's write rule, which sees each incoming push and the session's identity. `createCommentAuthorizer` gives you that ready-made, as a `transform` that stamps authorship on created comment records and an `authorize` that refuses what the session may not do. Both pass every other record through, so compose them with your own:
 
 ```ts
-import { createCommentAuthorizer } from '@tldraw/sync-collaboration'
+import { createCommentAuthorizer, isCommentRecord } from '@tldraw/sync-collaboration'
 import { createAccessAuthorizer } from '@tldraw/sync-core'
 
 const objectTypes = ['comment', 'comment-thread', 'comment-reaction']
-const byAccess = createAccessAuthorizer<MyRecord, SessionMeta>(objectTypes)
+// comment records are the comment rule's alone; its `canComment` is their access check
+const byAccess = createAccessAuthorizer<MyRecord, SessionMeta>(objectTypes, {
+	except: isCommentRecord,
+})
 const comments = createCommentAuthorizer<MyRecord, SessionMeta>({
 	getUserId: (session) => session.meta.userId,
 	// Moderators may take anything down. Editing stays the author's, whoever you are.
@@ -627,7 +630,7 @@ const room = new TLSocketRoom<MyRecord, SessionMeta>({
 
 (`createCommentAuthorizers`, the older per-type map for the deprecated `authorizeRecord` option, still works and is deprecated.)
 
-It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
+It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Moves are different: when a shape changes page or is deleted, the commenting plugin re-homes the thread (its `pageId` and `anchor`) and each comment's `pageId` in the same push as the shape change, from whoever made that change. The rule allows those location-only updates for any session with document write access, without asking `canComment` or the owner, and lets a comment follow its thread only to the page the thread is on. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
 
 This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
 
