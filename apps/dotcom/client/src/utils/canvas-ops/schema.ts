@@ -1,5 +1,9 @@
 import { z } from 'zod'
 
+// Zod compiles validators with `new Function` when it thinks it can. tldraw.com's CSP forbids eval, so
+// a batch from an agent could throw an EvalError in the tab instead of being validated.
+z.config({ jitless: true })
+
 // The canvas op vocabulary. Ops are what a collaborator would say ("put a label above the heart",
 // "connect these"); they compile to bare actions (CanvasAction), the only thing that touches the
 // editor.
