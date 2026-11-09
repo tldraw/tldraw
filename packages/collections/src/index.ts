@@ -55,6 +55,7 @@ export {
 	collectionItemContentMigrations,
 	collectionItemContentValidator,
 	collectionItemMigrations,
+	collectionItemRecordValidator,
 	collectionMigrations,
 	CollectionRecordType,
 	collectionSchemaRecords,
@@ -72,6 +73,7 @@ export {
 	type TLCollectionItemContentRecord,
 	type TLCollectionItemContentRecordId,
 	type TLCollectionItemId,
+	type TLCollectionItemRecord,
 	type TLCollectionRecord,
 	type TLCollectionThumbnail,
 } from './lib/schema'

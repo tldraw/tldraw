@@ -1,7 +1,7 @@
 import type { Editor } from '@tldraw/editor'
-import type { Computed } from '@tldraw/state'
-import type { TLAsset, TLRecord } from '@tldraw/tlschema'
-import { FileHelpers, structuredClone } from '@tldraw/utils'
+import { atom, computed, unsafe__withoutCapture, type Atom, type Computed } from '@tldraw/state'
+import { AssetRecordType, type TLAsset, type TLAssetId, type TLRecord } from '@tldraw/tlschema'
+import { structuredClone } from '@tldraw/utils'
 import {
 	CollectionNotFoundError,
 	CollectionPermissionError,
@@ -16,6 +16,8 @@ import {
 	CollectionRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	getCollectionItemContentId,
+	getThumbnailForColorMode,
+	mapThumbnail,
 	parseCollectionItemContent,
 	type TLCollection,
 	type TLCollectionId,
@@ -23,6 +25,7 @@ import {
 	type TLCollectionItemContent,
 	type TLCollectionItemContentRecord,
 	type TLCollectionItemId,
+	type TLCollectionItemRecord,
 	type TLCollectionRecord,
 	type TLCollectionThumbnail,
 } from './schema'
@@ -40,7 +43,8 @@ export interface BoardCollectionSourceOptions {
  * An item's content is a record of its own, and its assets are the document's ordinary asset
  * records, which the content names by id: an item saved from this board shares the assets its
  * shapes already use, and an item added from elsewhere brings its assets into the document.
- * Thumbnails are data URLs on the item, so they need nothing outside the document either.
+ * Thumbnails are image assets too, uploaded through the editor as a pasted image is, and the item
+ * names them by id. Listing an item resolves them to URLs through the editor's asset store.
  *
  * Changes don't go on the undo stack, as with comments: saving to a collection isn't an edit to the
  * canvas. Nothing can be changed while the editor is read-only.
@@ -50,6 +54,7 @@ export class BoardCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly collections: Computed<TLCollection[]>
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
+	private readonly thumbnailUrls = new Map<TLAssetId, ResolvedUrl>()
 
 	constructor(
 		private readonly editor: Editor,
@@ -71,11 +76,15 @@ export class BoardCollectionSource implements CollectionSource {
 	}
 
 	// One query per collection, kept so its result stays the same array until that collection's
-	// items change. Counting a collection's items reads only this listing, never their content.
+	// items or their thumbnails change. Counting a collection's items reads only this listing, never
+	// their content.
 	getItems(collectionId: TLCollectionId) {
 		let items = this.itemsByCollection.get(collectionId)
 		if (!items) {
-			items = this.query('collection-item', () => ({ collectionId: { eq: collectionId } }))
+			const records = this.query('collection-item', () => ({ collectionId: { eq: collectionId } }))
+			items = computed(`board collection items ${collectionId}`, () =>
+				records.get().map((record) => this.toListedItem(record))
+			)
 			this.itemsByCollection.set(collectionId, items)
 		}
 		return items.get()
@@ -139,14 +148,19 @@ export class BoardCollectionSource implements CollectionSource {
 		this.write([{ ...collection, name }])
 	}
 
-	// The assets stay: they belong to the document, and its shapes may use them.
+	// The content's assets stay: they belong to the document, and its shapes may use them. The
+	// thumbnails belong to the items alone and go with them.
 	async deleteCollection(collectionId: TLCollectionId) {
 		this.getCollection(collectionId)
 		this.assertCan('deleteCollection', collectionId)
-		const itemIds = this.getItems(collectionId).map((item) => item.id)
+		const records = this.query('collection-item', () => ({
+			collectionId: { eq: collectionId },
+		})).get()
+		const itemIds = records.map((item) => item.id)
 		this.write(
 			[],
-			[collectionId, ...itemIds, ...itemIds.map((itemId) => getCollectionItemContentId(itemId))]
+			[collectionId, ...itemIds, ...itemIds.map((itemId) => getCollectionItemContentId(itemId))],
+			records.flatMap(getThumbnailAssetIds)
 		)
 		this.itemsByCollection.delete(collectionId)
 	}
@@ -154,6 +168,9 @@ export class BoardCollectionSource implements CollectionSource {
 	/**
 	 * Assets the document doesn't have yet are added to it as they are: content saved from this
 	 * board names assets already here, while content from another source carries its own.
+	 *
+	 * The thumbnail is uploaded first, and the item appears once it has been: it never names an
+	 * image that isn't stored yet. If the upload fails, nothing is added.
 	 */
 	async addItem(collectionId: TLCollectionId, newItem: TLNewCollectionItem) {
 		this.getCollection(collectionId)
@@ -164,24 +181,37 @@ export class BoardCollectionSource implements CollectionSource {
 			assets.filter((asset) => !this.editor.store.has(asset.id)),
 			content.schema
 		)
-		const thumbnail = newItem.thumbnail && (await toDataUrls(newItem.thumbnail))
-		// Checked again after reading the thumbnail, which the collection may not have outlived.
-		this.getCollection(collectionId)
-		this.assertCan('addItem', collectionId)
-		const item = CollectionItemRecordType.create({
+		const thumbnailAssets = newItem.thumbnail
+			? await this.uploadThumbnail(newItem.thumbnail, newItem.name)
+			: undefined
+		const thumbnailAssetList = thumbnailAssets ? listThumbnail(thumbnailAssets) : []
+		// Checked again after the upload, which the collection may not have outlived.
+		try {
+			this.getCollection(collectionId)
+			this.assertCan('addItem', collectionId)
+		} catch (error) {
+			this.editor.deleteAssets(thumbnailAssetList)
+			throw error
+		}
+		const item: TLCollectionItemRecord = {
+			id: CollectionItemRecordType.createId(),
+			typeName: 'collection-item',
 			collectionId,
 			...(newItem.name === undefined ? {} : { name: newItem.name }),
-			...(thumbnail ? { thumbnail } : {}),
+			...(thumbnailAssets ? { thumbnail: mapThumbnail(thumbnailAssets, (asset) => asset.id) } : {}),
 			createdAt: Date.now(),
-		})
+			version: 1,
+			meta: {},
+		}
 		const contentRecord = CollectionItemContentRecordType.create({
 			id: getCollectionItemContentId(item.id),
 			itemId: item.id,
 			content: structuredClone(rest),
 			assetIds: [...new Set(assets.map((asset) => asset.id))],
 		})
-		this.write([...newAssets, item, contentRecord])
-		return item
+		this.write([...newAssets, ...thumbnailAssetList, item, contentRecord])
+		await Promise.all(getThumbnailAssetIds(item).map((id) => this.getResolvedUrl(id)?.ready))
+		return this.toListedItem(item)
 	}
 
 	async renameItem(itemId: TLCollectionItemId, name: string) {
@@ -193,7 +223,7 @@ export class BoardCollectionSource implements CollectionSource {
 	async deleteItem(itemId: TLCollectionItemId) {
 		const item = this.getItem(itemId)
 		this.assertCan('deleteItem', item.collectionId)
-		this.write([], [itemId, getCollectionItemContentId(itemId)])
+		this.write([], [itemId, getCollectionItemContentId(itemId)], getThumbnailAssetIds(item))
 	}
 
 	async moveItem(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) {
@@ -218,14 +248,90 @@ export class BoardCollectionSource implements CollectionSource {
 		return Object.values(migrated.value) as TLAsset[]
 	}
 
-	private write(put: (TLCollectionRecord | TLAsset)[], remove: string[] = []) {
+	/**
+	 * Each image goes through the editor's handler for files, as a pasted image does: it is checked
+	 * and uploaded to the editor's asset store, and comes back as an image asset to add to the
+	 * document. Every item gets its own assets, so deleting it can delete them.
+	 */
+	private async uploadThumbnail(
+		thumbnail: TLCollectionThumbnail<Blob>,
+		name = 'thumbnail'
+	): Promise<TLCollectionThumbnail<TLAsset>> {
+		const upload = async (blob: Blob, suffix: string) => {
+			const file = new File([blob], `${name}${suffix}.${blob.type.split('/')[1] ?? 'png'}`, {
+				type: blob.type,
+			})
+			const asset = await this.editor.getAssetForExternalContent({
+				type: 'file',
+				file,
+				assetId: AssetRecordType.createId(),
+			})
+			if (!asset) throw new Error("The editor can't store images: it has no handler for files")
+			return asset
+		}
+		if (thumbnail instanceof Blob) return upload(thumbnail, '')
+		const [light, dark] = await Promise.allSettled([
+			upload(thumbnail.light, '-light'),
+			upload(thumbnail.dark, '-dark'),
+		])
+		if (light.status === 'fulfilled' && dark.status === 'fulfilled') {
+			return { light: light.value, dark: dark.value }
+		}
+		// Half a pair is no use: whichever uploaded is removed from the asset store again.
+		const uploaded = [light, dark].flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))
+		this.editor.deleteAssets(uploaded)
+		throw [light, dark].find((r) => r.status === 'rejected')!.reason
+	}
+
+	private toListedItem(record: TLCollectionItemRecord): TLCollectionItem {
+		const { thumbnail, ...rest } = record
+		if (!thumbnail) return rest
+		const urls = mapThumbnail(thumbnail, (id) => this.getResolvedUrl(id)?.url.get())
+		const resolved = listThumbnail(urls).every((url) => url !== undefined)
+		return resolved ? { ...rest, thumbnail: urls as TLCollectionThumbnail } : rest
+	}
+
+	/**
+	 * A thumbnail asset's URL from the editor's asset store, which resolves asynchronously: it is
+	 * undefined until then, and an item lists no thumbnail until all of its images have one. Kept
+	 * per asset, and resolved again when its src changes.
+	 */
+	private getResolvedUrl(assetId: TLAssetId): ResolvedUrl | undefined {
+		const asset = this.editor.getAsset(assetId)
+		if (!asset?.props.src) return undefined
+		const src = asset.props.src
+		const existing = this.thumbnailUrls.get(assetId)
+		if (existing?.src === src) return existing
+		const url = atom<string | undefined>(`thumbnail url ${assetId}`, undefined)
+		// Resolving reads editor state, such as the device pixel ratio, that a listing shouldn't
+		// recompute for.
+		const ready = unsafe__withoutCapture(() =>
+			this.editor.resolveAssetUrl(assetId, { shouldResolveToOriginal: true })
+		).then(
+			(resolved) => {
+				url.set(resolved ?? undefined)
+			},
+			(error) => console.error(`Couldn't resolve the thumbnail ${assetId}`, error)
+		)
+		const entry = { src, url, ready }
+		this.thumbnailUrls.set(assetId, entry)
+		return entry
+	}
+
+	private write(
+		put: (TLCollectionRecord | TLAsset)[],
+		remove: string[] = [],
+		removeAssets: TLAssetId[] = []
+	) {
 		this.editor.run(
 			() => {
 				if (put.length) this.editor.store.put(put as unknown as TLRecord[])
 				if (remove.length) this.editor.store.remove(remove as TLRecord['id'][])
+				if (removeAssets.length) this.editor.deleteAssets(removeAssets)
 			},
 			{ history: 'ignore' }
 		)
+		for (const id of removeAssets) this.thumbnailUrls.delete(id)
 	}
 
 	// The editor's store is typed for tldraw's own records, so collection records are read through
@@ -251,7 +357,7 @@ export class BoardCollectionSource implements CollectionSource {
 	}
 
 	private getItem(itemId: TLCollectionItemId) {
-		const item = this.get<TLCollectionItem>(itemId)
+		const item = this.get<TLCollectionItemRecord>(itemId)
 		if (!item) throw new CollectionNotFoundError(itemId)
 		return item
 	}
@@ -261,11 +367,18 @@ export class BoardCollectionSource implements CollectionSource {
 	}
 }
 
-async function toDataUrls(thumbnail: TLCollectionThumbnail<Blob>): Promise<TLCollectionThumbnail> {
-	if (thumbnail instanceof Blob) return FileHelpers.blobToDataUrl(thumbnail)
-	const [light, dark] = await Promise.all([
-		FileHelpers.blobToDataUrl(thumbnail.light),
-		FileHelpers.blobToDataUrl(thumbnail.dark),
-	])
-	return { light, dark }
+interface ResolvedUrl {
+	src: string
+	url: Atom<string | undefined>
+	ready: Promise<void>
+}
+
+function listThumbnail<Src>(thumbnail: TLCollectionThumbnail<Src>): Src[] {
+	const light = getThumbnailForColorMode(thumbnail, 'light')
+	const dark = getThumbnailForColorMode(thumbnail, 'dark')
+	return light === dark ? [light] : [light, dark]
+}
+
+function getThumbnailAssetIds(item: TLCollectionItemRecord): TLAssetId[] {
+	return item.thumbnail ? listThumbnail(item.thumbnail) : []
 }

@@ -6,13 +6,15 @@ import {
 	defaultBindingUtils,
 	defaultShapeUtils,
 	Editor,
+	type TLAssetStore,
 	type TLImageAsset,
 	type TLRecord,
 } from 'tldraw'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { BoardCollectionSource } from './BoardCollectionSource'
 import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
 import { CompositeCollectionSource } from './CompositeCollectionSource'
+import { copyItem } from './copyCollection'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
 import {
 	collectionSchemaRecords,
@@ -20,6 +22,7 @@ import {
 	getCollectionItemContentId,
 	type TLCollectionItemContent,
 	type TLCollectionItemContentRecord,
+	type TLCollectionItemRecord,
 } from './schema'
 
 let editors: Editor[] = []
@@ -27,19 +30,60 @@ let editors: Editor[] = []
 afterEach(() => {
 	for (const editor of editors) editor.dispose()
 	editors = []
+	vi.unstubAllGlobals()
 })
 
-function makeEditor(records: typeof collectionSchemaRecords | undefined = collectionSchemaRecords) {
+// An asset store that keeps uploads in memory, at URLs it resolves with a marker so tests can tell
+// a resolved URL from a stored src.
+function makeAssetStore() {
+	const uploads = new Map<string, Blob>()
+	const store: TLAssetStore = {
+		upload: async (asset, file) => {
+			const src = `https://uploads.example/${asset.id}`
+			uploads.set(src, file)
+			return { src }
+		},
+		resolve: async (asset) => (asset.props.src ? `${asset.props.src}?resolved` : null),
+		remove: async (ids) => {
+			for (const id of ids) uploads.delete(`https://uploads.example/${id}`)
+		},
+	}
+	return { store, uploads }
+}
+
+function makeEditor(
+	records: typeof collectionSchemaRecords | undefined = collectionSchemaRecords,
+	assets = makeAssetStore()
+) {
 	const editor = new Editor({
-		store: createTLStore({ schema: createTLSchema({ records }) }),
+		store: createTLStore({ schema: createTLSchema({ records }), assets: assets.store }),
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
 		tools: [],
 		getContainer: () => document.body,
 	})
+	// What tldraw's handler for a pasted file does, without decoding the image.
+	editor.registerExternalAssetHandler('file', async ({ file, assetId }) => {
+		const asset = AssetRecordType.create({
+			id: assetId,
+			type: 'image',
+			props: {
+				name: file.name,
+				src: null,
+				w: 512,
+				h: 256,
+				mimeType: file.type,
+				isAnimated: false,
+			},
+		})
+		const { src } = await editor.uploadAsset(asset, file)
+		return { ...asset, props: { ...asset.props, src } } as TLImageAsset
+	})
 	editors.push(editor)
 	return editor
 }
+
+const png = (text = 'png') => new Blob([text], { type: 'image/png' })
 
 const assetId = AssetRecordType.createId('photo')
 
@@ -105,11 +149,9 @@ describe('BoardCollectionSource', () => {
 		const item = await source.addItem(collection.id, {
 			name: 'Photo',
 			content: contentOf(editor, [imageId]),
-			thumbnail: new Blob(['png'], { type: 'image/png' }),
 		})
 
 		expect(source.getItems(collection.id)).toEqual([item])
-		expect(item.thumbnail).toMatch(/^data:image\/png;base64,/)
 		const stored = editor.store.get(
 			getCollectionItemContentId(item.id) as any
 		) as unknown as TLCollectionItemContentRecord
@@ -200,6 +242,136 @@ describe('BoardCollectionSource', () => {
 		expect(allOfType(editor, 'collection-item-content')).toEqual([])
 		expect(allOfType(editor, 'asset')).toHaveLength(1)
 		await expect(source.getItemContent(first.id)).rejects.toThrow(CollectionNotFoundError)
+	})
+
+	describe('thumbnails', () => {
+		async function addWithThumbnail(editor: Editor, source = new BoardCollectionSource(editor)) {
+			const collection = await source.createCollection('Photos')
+			const item = await source.addItem(collection.id, {
+				name: 'Photo',
+				content: contentOf(editor, [addImage(editor)]),
+				thumbnail: { light: png('light'), dark: png('dark') },
+			})
+			const stored = editor.store.get(item.id as any) as unknown as TLCollectionItemRecord
+			return { source, collection, item, stored }
+		}
+
+		const isLight = (asset: TLImageAsset) => Number(asset.props.name.includes('-light'))
+		// The light image first, then the dark one.
+		const thumbnailAssets = (editor: Editor) =>
+			(allOfType(editor, 'asset') as TLImageAsset[])
+				.filter((asset) => asset.id !== assetId)
+				.sort((a, b) => isLight(b) - isLight(a))
+
+		it('uploads the images and keeps them as image assets the item names', async () => {
+			const assets = makeAssetStore()
+			const editor = makeEditor(collectionSchemaRecords, assets)
+			const { stored } = await addWithThumbnail(editor)
+
+			const [light, dark] = thumbnailAssets(editor)
+			expect(stored.thumbnail).toEqual({ light: light.id, dark: dark.id })
+			expect(light).toMatchObject({
+				type: 'image',
+				props: {
+					name: 'Photo-light.png',
+					src: `https://uploads.example/${light.id}`,
+					mimeType: 'image/png',
+					w: 512,
+					h: 256,
+				},
+			})
+			expect(dark.props.name).toBe('Photo-dark.png')
+			expect(await assets.uploads.get(light.props.src!)!.text()).toBe('light')
+			expect(await assets.uploads.get(dark.props.src!)!.text()).toBe('dark')
+		})
+
+		it('lists the item with the asset store’s URLs', async () => {
+			const editor = makeEditor()
+			const { source, collection, item } = await addWithThumbnail(editor)
+			const [light, dark] = thumbnailAssets(editor)
+
+			const urls = {
+				light: `https://uploads.example/${light.id}?resolved`,
+				dark: `https://uploads.example/${dark.id}?resolved`,
+			}
+			expect(item.thumbnail).toEqual(urls)
+			expect(source.getItems(collection.id)).toEqual([item])
+		})
+
+		it('lists an item stored by another session once its URLs resolve', async () => {
+			const editor = makeEditor()
+			const { collection, stored } = await addWithThumbnail(editor)
+
+			const { light, dark } = stored.thumbnail as { light: string; dark: string }
+			const fresh = new BoardCollectionSource(editor)
+			expect(fresh.getItems(collection.id)[0]).not.toHaveProperty('thumbnail')
+			await vi.waitFor(() =>
+				expect(fresh.getItems(collection.id)[0].thumbnail).toEqual({
+					light: `https://uploads.example/${light}?resolved`,
+					dark: `https://uploads.example/${dark}?resolved`,
+				})
+			)
+		})
+
+		it('deletes the images with the item, from the document and the asset store', async () => {
+			const assets = makeAssetStore()
+			const editor = makeEditor(collectionSchemaRecords, assets)
+			const { source, item } = await addWithThumbnail(editor)
+
+			await source.deleteItem(item.id)
+			expect(thumbnailAssets(editor)).toEqual([])
+			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
+			expect(allOfType(editor, 'asset')).toHaveLength(1)
+		})
+
+		it('deletes the images with the collection', async () => {
+			const editor = makeEditor()
+			const { source, collection } = await addWithThumbnail(editor)
+
+			await source.deleteCollection(collection.id)
+			expect(thumbnailAssets(editor)).toEqual([])
+		})
+
+		it('adds nothing when an image fails to upload, and removes the one that did', async () => {
+			const assets = makeAssetStore()
+			const upload = assets.store.upload
+			assets.store.upload = async (asset, file, signal) => {
+				if (file.name.includes('dark')) throw new Error('upload failed')
+				return upload(asset, file, signal)
+			}
+			const editor = makeEditor(collectionSchemaRecords, assets)
+			const source = new BoardCollectionSource(editor)
+			const collection = await source.createCollection('Photos')
+
+			await expect(
+				source.addItem(collection.id, {
+					content: contentOf(editor, [addImage(editor)]),
+					thumbnail: { light: png(), dark: png() },
+				})
+			).rejects.toThrow('upload failed')
+			expect(source.getItems(collection.id)).toEqual([])
+			expect(thumbnailAssets(editor)).toEqual([])
+			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
+		})
+
+		it('copies the images out of the board, not the asset ids', async () => {
+			const assets = makeAssetStore()
+			const editor = makeEditor(collectionSchemaRecords, assets)
+			const { source, item } = await addWithThumbnail(editor)
+			vi.stubGlobal('fetch', async (url: string) => {
+				const blob = assets.uploads.get(url.replace('?resolved', ''))
+				return blob ? new Response(await blob.text()) : new Response(null, { status: 404 })
+			})
+			const workspace = new InMemoryCollectionSource()
+			const addItem = vi.spyOn(workspace, 'addItem')
+			const to = await workspace.createCollection('Photos')
+
+			await copyItem(source, item, workspace, to.id)
+
+			const { thumbnail } = addItem.mock.calls[0][1] as { thumbnail: { light: Blob; dark: Blob } }
+			expect(await thumbnail.light.text()).toBe('light')
+			expect(await thumbnail.dark.text()).toBe('dark')
+		})
 	})
 
 	it('moves items between its collections', async () => {

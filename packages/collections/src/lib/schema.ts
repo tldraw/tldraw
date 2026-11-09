@@ -1,5 +1,6 @@
 import type { TLContent } from '@tldraw/editor'
 import {
+	createMigrationIds,
 	createRecordMigrationSequence,
 	createRecordType,
 	type BaseRecord,
@@ -89,6 +90,17 @@ export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollec
 	meta: JsonObject
 }
 
+/**
+ * An item as a record in a document's store, for sources that keep collections there. Its
+ * thumbnail names image asset records in the same store instead of holding URLs, so the images are
+ * uploaded, synced and copied like any other asset in the document. The source resolves them to
+ * URLs when it lists the item.
+ */
+export interface TLCollectionItemRecord extends Omit<TLCollectionItem, 'thumbnail'> {
+	/** Left out when the item has no thumbnail. */
+	thumbnail?: TLCollectionThumbnail<TLAssetId>
+}
+
 export type TLCollectionItemContentRecordId = RecordId<TLCollectionItemContentRecord>
 
 /**
@@ -111,7 +123,10 @@ export interface TLCollectionItemContentRecord extends BaseRecord<
 	meta: JsonObject
 }
 
-export type TLCollectionRecord = TLCollection | TLCollectionItem | TLCollectionItemContentRecord
+export type TLCollectionRecord =
+	| TLCollection
+	| TLCollectionItemRecord
+	| TLCollectionItemContentRecord
 
 const nonEmptyString = T.string.check((value) => {
 	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
@@ -144,6 +159,22 @@ export const CollectionRecordType = createRecordType<TLCollection>('collection',
 	validator: collectionValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({ meta: {} }))
+
+const assetIdValidator = idValidator<TLAssetId>('asset')
+
+export const collectionItemRecordValidator: T.Validator<TLCollectionItemRecord> = T.object({
+	id: idValidator<TLCollectionItemId>('collection-item'),
+	typeName: T.literal('collection-item'),
+	collectionId: idValidator<TLCollectionId>('collection'),
+	name: nonEmptyString.optional(),
+	thumbnail: T.or(
+		assetIdValidator,
+		T.object({ light: assetIdValidator, dark: assetIdValidator })
+	).optional(),
+	createdAt: T.number.optional(),
+	version: T.positiveInteger,
+	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+})
 
 export const CollectionItemRecordType = createRecordType<TLCollectionItem>('collection-item', {
 	validator: collectionItemValidator,
@@ -186,10 +217,27 @@ export const collectionMigrations = createRecordMigrationSequence({
 	sequence: [],
 })
 
+const collectionItemVersions = createMigrationIds('com.tldraw.collection-item', {
+	ThumbnailAssets: 1,
+})
+
+/** Migrations for items kept as records in a document's store: see {@link TLCollectionItemRecord}. */
 export const collectionItemMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.collection-item',
 	recordType: 'collection-item',
-	sequence: [],
+	sequence: [
+		{
+			// Thumbnails were data URLs on the item. They are dropped rather than turned into assets,
+			// which needs the app's asset store; the item shows a placeholder.
+			id: collectionItemVersions.ThumbnailAssets,
+			up: (record: any) => {
+				delete record.thumbnail
+			},
+			down: (record: any) => {
+				delete record.thumbnail
+			},
+		},
+	],
 })
 
 export const collectionItemContentMigrations = createRecordMigrationSequence({
@@ -212,7 +260,7 @@ export const collectionSchemaRecords = {
 	},
 	'collection-item': {
 		scope: 'document',
-		validator: collectionItemValidator,
+		validator: collectionItemRecordValidator,
 		migrations: collectionItemMigrations,
 		createDefaultProperties: () => ({ version: 1, meta: {} }),
 	},

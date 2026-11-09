@@ -9,12 +9,21 @@ describe('pruneUnusedAssetsForTldr', () => {
 		const records = [
 			asset('asset:on-canvas'),
 			asset('asset:in-collection'),
+			asset('asset:thumbnail'),
 			asset('asset:unused'),
 			{
 				id: 'shape:image',
 				typeName: 'shape',
 				type: 'image',
 				props: { assetId: 'asset:on-canvas' },
+			},
+			{
+				id: 'collection-item:photo',
+				typeName: 'collection-item',
+				collectionId: 'collection:photos',
+				thumbnail: 'asset:thumbnail',
+				version: 1,
+				meta: {},
 			},
 			{
 				id: 'collection-item-content:photo',
@@ -30,6 +39,6 @@ describe('pruneUnusedAssetsForTldr', () => {
 			pruneUnusedAssetsForTldr(records)
 				.filter((r) => r.typeName === 'asset')
 				.map((r) => r.id)
-		).toEqual(['asset:on-canvas', 'asset:in-collection'])
+		).toEqual(['asset:on-canvas', 'asset:in-collection', 'asset:thumbnail'])
 	})
 })
