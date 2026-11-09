@@ -1,5 +1,5 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
-import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
+import { librariesPanelOpen, toggleLibrariesPanel, useLibrariesEnabled } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
@@ -326,11 +326,12 @@ function TlaEditorTopLeftPanelSignedIn() {
 function LibrariesPanelButton() {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const librariesEnabled = useLibrariesEnabled()
 	const hasLibraries = !!useMaybeApp()?.libraries
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const label = msg(messages.libraries)
 
-	if (!hasLibraries) return null
+	if (!librariesEnabled || !hasLibraries) return null
 
 	return (
 		<TldrawUiButton
