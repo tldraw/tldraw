@@ -76,7 +76,7 @@ describe('copyCollection', () => {
 		const item = CollectionItemRecordType.create({ collectionId: pack.id, name: 'Card' })
 		const source = new InMemoryCollectionSource({
 			owners,
-			readOnlyCollectionIds: [pack.id],
+			can: (_, collectionId) => collectionId !== pack.id,
 			initial: { collections: [pack], items: [item], contents: { [item.id]: content() } },
 		})
 		const copy = await copyCollection(source, pack.id, 'acme')

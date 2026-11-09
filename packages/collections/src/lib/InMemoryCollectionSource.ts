@@ -34,8 +34,6 @@ export interface InMemoryCollectionSourceOptions {
 		items: TLCollectionItem[]
 		contents: Record<TLCollectionItemId, TLCollectionItemContent>
 	}
-	/** Makes every collection read-only, like a prefab pack. Items can still be used. */
-	readOnly?: boolean
 	/**
 	 * Who collections can belong to. Leave out for a source without owners, whose collections can't
 	 * be moved, or for a subclass that lists its own by overriding `getCollectionOwners`. When
@@ -44,8 +42,20 @@ export interface InMemoryCollectionSourceOptions {
 	owners?: TLCollectionOwner[]
 	/** Who new collections belong to unless they name an owner. Defaults to the first owner. */
 	defaultOwnerId?: string
-	/** Makes these collections read-only while the rest stay writable. Items can still be used. */
-	readOnlyCollectionIds?: TLCollectionId[]
+	/**
+	 * Decides what the user may do, answering `can` for the source. Leave it out to allow
+	 * everything. A collection that doesn't exist is refused before this is asked. Listing items
+	 * and loading their content aren't actions, so they work even when this refuses everything.
+	 *
+	 * @example
+	 * ```ts
+	 * // A read-only source, like a prefab pack
+	 * new InMemoryCollectionSource({ can: () => false })
+	 * // One read-only collection in an otherwise writable source
+	 * new InMemoryCollectionSource({ can: (_, collectionId) => collectionId !== packId })
+	 * ```
+	 */
+	can?(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
 }
 
 const schema = StoreSchema.create<TLCollectionRecord>(
@@ -63,10 +73,9 @@ const schema = StoreSchema.create<TLCollectionRecord>(
  */
 export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
-	private readonly readOnly: boolean
 	private readonly owners: TLCollectionOwner[]
 	private readonly defaultOwnerId: string | undefined
-	private readonly readOnlyCollectionIds: Set<TLCollectionId>
+	private readonly allows: (action: TLCollectionAction, collectionId?: TLCollectionId) => boolean
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
@@ -75,7 +84,6 @@ export class InMemoryCollectionSource implements CollectionSource {
 
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
 		this.id = options.id ?? 'in-memory'
-		this.readOnly = options.readOnly ?? false
 		this.owners = options.owners ?? []
 		this.defaultOwnerId = options.defaultOwnerId
 		// Checked against the option, not getCollectionOwners: a subclass's owners may not be ready yet.
@@ -84,7 +92,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 		if (this.defaultOwnerId !== undefined && !isOwner(this.defaultOwnerId)) {
 			throw new Error(`Default owner ${this.defaultOwnerId} is not one of the owners`)
 		}
-		this.readOnlyCollectionIds = new Set(options.readOnlyCollectionIds)
+		this.allows = options.can ?? (() => true)
 		if (options.initial) {
 			const { collections, items, contents } = options.initial
 			// Bad starting data would only fail later, in the UI, so it is checked as a whole up front.
@@ -141,10 +149,8 @@ export class InMemoryCollectionSource implements CollectionSource {
 	}
 
 	can(action: TLCollectionAction, collectionId?: TLCollectionId) {
-		const collection = collectionId === undefined ? undefined : this.store.get(collectionId)
-		if (collectionId !== undefined && !collection) return false
-		if (this.readOnly) return false
-		return collectionId === undefined || !this.readOnlyCollectionIds.has(collectionId)
+		if (collectionId !== undefined && !this.store.has(collectionId)) return false
+		return this.allows(action, collectionId)
 	}
 
 	getCollectionOwners() {

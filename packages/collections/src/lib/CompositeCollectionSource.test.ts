@@ -36,7 +36,7 @@ const shared = () => {
 	const button = CollectionItemRecordType.create({ collectionId: wireframing, name: 'Button' })
 	const card = CollectionItemRecordType.create({ collectionId: wireframing, name: 'Card' })
 	return new InMemoryCollectionSource({
-		readOnly: true,
+		can: () => false,
 		initial: {
 			collections: [CollectionRecordType.create({ id: wireframing, name: 'Wireframing' })],
 			items: [button, card],
