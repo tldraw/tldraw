@@ -131,6 +131,9 @@ const messages = defineMessages({
 	tryPolicy: { defaultMessage: 'Change the permissions' },
 	tryOtherPage: { defaultMessage: "Edit the teacher's page" },
 	tryBlue: { defaultMessage: 'Add a blue shape' },
+	tryRecolour: { defaultMessage: 'One shape red, one blue' },
+	refusedCount: { defaultMessage: 'Refused' },
+	revertedCount: { defaultMessage: 'Reverted' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -251,15 +254,35 @@ function putPolicy(
 }
 
 // SPIKE: the dialog shown when the server refuses a change.
-function RefusedDialog({ reason, onClose }: { reason: string; onClose(): void }) {
+function RefusedDialog({ refusal, onClose }: { refusal: TLRefusal; onClose(): void }) {
 	const msg = useTranslation()
+	const refused = refusal.ids?.length ?? 0
+	const changes = refusal.changes
+	const reverted = changes
+		? Object.keys(changes.added).length +
+			Object.keys(changes.updated).length +
+			Object.keys(changes.removed).length
+		: 0
+	const summary = [
+		msg(messages.refusedCount),
+		': ',
+		refused,
+		'. ',
+		msg(messages.revertedCount),
+		': ',
+		reverted,
+		'.',
+	].join('')
 	return (
 		<>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>{msg(messages.refusedTitle)}</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>{reason}</TldrawUiDialogBody>
+			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
+				<div>{refusal.reason}</div>
+				<div>{summary}</div>
+			</TldrawUiDialogBody>
 			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
 				<TldrawUiButton type="primary" onClick={onClose}>
 					<TldrawUiButtonLabel>{msg(messages.ok)}</TldrawUiButtonLabel>
@@ -274,10 +297,10 @@ function ShowRefusals() {
 	const editor = useEditor()
 	const { addDialog } = useDialogs()
 	useEffect(() => {
-		const onRefused = ({ reason }: TLRefusal) => {
+		const onRefused = (refusal: TLRefusal) => {
 			addDialog({
 				id: 'refused-dialog',
-				component: ({ onClose }) => <RefusedDialog reason={reason} onClose={onClose} />,
+				component: ({ onClose }) => <RefusedDialog refusal={refusal} onClose={onClose} />,
 			})
 		}
 		editor.on('refused', onRefused)
@@ -312,6 +335,20 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 			return !!pageId && !shared.includes(pageId)
 		})
 		if (shape) editor.store.put([{ ...shape, x: (shape as TLShape).x + 10 } as TLShape])
+	}
+	// One change, two shapes: one goes to red (the rule accepts it), one to blue (it refuses it).
+	// The room judges the whole change, so both are reverted.
+	const tryRecolour = () => {
+		const shapes = editor.getCurrentPageShapes().filter((shape) => 'color' in shape.props) as Array<
+			TLShape & { props: { color: string } }
+		>
+		const toRed = shapes.find((shape) => shape.props.color !== 'red')
+		const toBlue = shapes.find((shape) => shape !== toRed && shape.props.color !== 'blue')
+		if (!toRed || !toBlue) return
+		editor.store.put([
+			{ ...toRed, props: { ...toRed.props, color: 'red' } },
+			{ ...toBlue, props: { ...toBlue.props, color: 'blue' } },
+		] as TLShape[])
 	}
 	const tryBlue = () => {
 		const parentId = editor.getCurrentPageId()
@@ -361,6 +398,11 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 			<TldrawUiButton type="normal" onClick={tryOtherPage}>
 				<TldrawUiButtonLabel>{msg(messages.tryOtherPage)}</TldrawUiButtonLabel>
 			</TldrawUiButton>
+			{redOnly && (
+				<TldrawUiButton type="normal" onClick={tryRecolour}>
+					<TldrawUiButtonLabel>{msg(messages.tryRecolour)}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			)}
 			{redOnly && (
 				<TldrawUiButton type="normal" onClick={tryBlue}>
 					<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>

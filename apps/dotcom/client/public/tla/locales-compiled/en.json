@@ -215,6 +215,12 @@
       "value": "Workspace name"
     }
   ],
+  "23ca55fd18": [
+    {
+      "type": 0,
+      "value": "Reverted"
+    }
+  ],
   "23dcace54a": [
     {
       "type": 0,
@@ -1376,6 +1382,12 @@
       "value": "Copy link"
     }
   ],
+  "b82bb78c5b": [
+    {
+      "type": 0,
+      "value": "One shape red, one blue"
+    }
+  ],
   "b89a6c3361": [
     {
       "type": 0,
@@ -1946,6 +1958,12 @@
     {
       "type": 0,
       "value": " reacted to your comment"
+    }
+  ],
+  "f48b206184": [
+    {
+      "type": 0,
+      "value": "Refused"
     }
   ],
   "f4f70727dc": [

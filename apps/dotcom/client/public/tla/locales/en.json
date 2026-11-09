@@ -86,6 +86,9 @@
   "21f66c9c00": {
     "translation": "Workspace name"
   },
+  "23ca55fd18": {
+    "translation": "Reverted"
+  },
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
@@ -564,6 +567,9 @@
   "b758336699": {
     "translation": "Copy link"
   },
+  "b82bb78c5b": {
+    "translation": "One shape red, one blue"
+  },
   "b89a6c3361": {
     "translation": "Show only this page to students"
   },
@@ -728,6 +734,9 @@
   },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+  },
+  "f48b206184": {
+    "translation": "Refused"
   },
   "f4f70727dc": {
     "translation": "Settings"
