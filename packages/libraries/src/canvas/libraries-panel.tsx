@@ -14,6 +14,7 @@ import { LibrariesPanelHeader } from './libraries-panel-header'
 import { groupLibraryList, useLibraryGrouping } from './library-groups'
 import { LibrarySection } from './library-section'
 import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
+import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries } from './no-libraries'
 import { placeLibraryItem } from './place-item'
@@ -65,6 +66,7 @@ export function LibrariesPanel({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
@@ -118,7 +120,7 @@ export function LibrariesPanel({
 		[source, grouping, newLibraryOwnerId, activeOwnerName]
 	)
 
-	if (!open) return null
+	if (!librariesEnabled || !open) return null
 
 	const renderSections = (list: TLLibrary[]) =>
 		list.length === 0 ? (

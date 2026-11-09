@@ -7,6 +7,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { LibraryIcon } from '../ui/library-icon'
+import { useLibrariesEnabled } from './license'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 
 const messages = defineMessages({
@@ -21,8 +22,11 @@ const messages = defineMessages({
 export function LibrariesPanelButton() {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const label = msg(messages.title)
+
+	if (!librariesEnabled) return null
 
 	return (
 		<TldrawUiButton
