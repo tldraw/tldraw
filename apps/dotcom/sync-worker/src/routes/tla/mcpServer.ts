@@ -1289,7 +1289,8 @@ async function callApplyOpsTool(
 		)
 		if (!applied.ok) return toolError(applied.message, applied.reason)
 		const { pageId, pageName, result } = applied.value
-		return toolJsonResult({ pageId, pageName, ...result })
+		// Last, so a field in what the tab reported can't stand in for the page it was applied on.
+		return toolJsonResult({ ...result, pageId, pageName })
 	} catch (error) {
 		return toolFailure(error, {
 			env,

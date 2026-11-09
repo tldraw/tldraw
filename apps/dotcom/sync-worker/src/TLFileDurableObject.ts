@@ -3553,13 +3553,14 @@ export class TLFileDurableObject extends DurableObject {
 		const now = Date.now()
 		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
 		// The tab applies a write as its own session, which is what the room authorizes. The access
-		// check above is current, but a session keeps the mode it connected with until it reconnects.
+		// check above is current, but a session keeps the mode it connected with until it reconnects,
+		// so a tab opened before the user could edit has to be reloaded.
 		const sessionIds = pickTabRenderSessions(
 			request.mode === 'apply_ops' ? sockets.filter((s) => !s.isReadonly) : sockets,
 			userId,
 			now
 		)
-		if (sessionIds.length === 0) return { status: 'read_only' }
+		if (sessionIds.length === 0) return { status: 'reload_needed' }
 
 		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }

@@ -169,6 +169,24 @@ describe('parseTabRenderReply', () => {
 		[{ status: 'applied', pageId: 'page:a', pageName: 'One' }],
 		[{ status: 'applied', pageId: 1, pageName: 'One', result: {} }],
 		[{ status: 'user_state', pageId: 'page:a', pageName: 'One', selectedShapeIds: 'a' }],
+		[
+			{
+				status: 'user_state',
+				pageId: 'page:a',
+				pageName: 'One',
+				selectedShapeIds: [7],
+				viewport: { x: 0, y: 0, w: 1, h: 1 },
+			},
+		],
+		[
+			{
+				status: 'user_state',
+				pageId: 'page:a',
+				pageName: 'One',
+				selectedShapeIds: [],
+				viewport: { x: 0, y: 0, w: 'wide', h: 1 },
+			},
+		],
 		[{ status: 'declined', reason: 'invalid_ops', detail: 7 }],
 		[{ status: 'declined', reason: 'invalid_ops', detail: 'x'.repeat(2001) }],
 	])('refuses %.60j', (reply) => {

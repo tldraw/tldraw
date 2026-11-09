@@ -1590,6 +1590,46 @@ describe('apply_ops', () => {
 		expect(result.content[0].text).toContain('switch to the board')
 	})
 
+	// They can edit now, but the tab they have open connected before they could, so it can't write.
+	it('tells the agent to have the user reload a tab that connected read-only', async () => {
+		const env = makeEnv({ tab: tabAnswering({ status: 'reload_needed' }) })
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('reload the tab')
+		expect(result.content[0].text).not.toContain('view-only')
+	})
+
+	it('warns that a batch which failed partway may have applied', async () => {
+		const env = makeEnv({ tab: tabAnswering({ status: 'declined', reason: 'apply_failed' }) })
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, env, 'user_tab')
+
+		expect(result.content[0].text).toContain('may or may not have applied')
+	})
+
+	it('reports the page from the tab, not from a field in its result', async () => {
+		const tab = tabAnswering({
+			status: 'applied',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			result: { applied: 1, pageId: 'page:forged', pageName: 'Forged' },
+		})
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			pageId: 'page:a',
+			pageName: 'Cover',
+		})
+	})
+
 	it("says so when the caller's tab is view-only", async () => {
 		const env = makeEnv({ tab: tabAnswering({ status: 'read_only' }) })
 

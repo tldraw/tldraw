@@ -228,6 +228,8 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'read_only',
 	/** A batch for a tab the user isn't looking at, which they could neither watch nor undo. */
 	'tab_hidden',
+	/** Something threw while a batch was applying, so some of it may have landed. */
+	'apply_failed',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]

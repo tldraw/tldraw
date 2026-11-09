@@ -51,7 +51,15 @@ export type TabRenderOutcome =
 			TabRenderReply,
 			{ status: 'measured' | 'captured' | 'applied' | 'user_state' | 'declined' }
 	  >
-	| { status: 'no_tab' | 'read_only' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
+	| {
+			status:
+				| 'no_tab'
+				| 'read_only'
+				| 'reload_needed'
+				| 'room_timeout'
+				| 'ack_timeout'
+				| 'work_timeout'
+	  }
 
 export interface TabRenderSocket {
 	sessionId: string

@@ -99,6 +99,8 @@ const DECLINE_MESSAGES: Record<(typeof TAB_RENDER_DECLINE_REASONS)[number], stri
 	read_only: 'You have view-only access to this board, so it cannot be edited.',
 	tab_hidden:
 		'The board is open, but not in the tab the user is looking at, so nothing was done. Ask the user to switch to the board, then try again.',
+	apply_failed:
+		'The browser tab hit an error partway through, so these ops may or may not have applied. Check the board before sending them again.',
 	failed: 'The browser tab could not do that. Try again in a moment.',
 }
 
@@ -123,6 +125,12 @@ function describeFailure(
 			}
 		case 'read_only':
 			return { message: DECLINE_MESSAGES.read_only, reason: 'tab_read_only' }
+		case 'reload_needed':
+			return {
+				message:
+					'The board is open, but the tab connected before you could edit it, so nothing was done. Ask the user to reload the tab, then try again.',
+				reason: 'tab_reload_needed',
+			}
 		case 'room_timeout':
 		case 'ack_timeout':
 			return { message: notResponding, reason: `tab_${result.status}` }
@@ -185,7 +193,10 @@ export async function readLivePage(
 			surface: 'mcp_tab_render',
 			extras: { mode: 'live_page' },
 		})
-		return { ok: false, ...describeFailure({ status: 'error' }, boardUrlOf(env, request, fileId)) }
+		return {
+			ok: false,
+			...describeFailure({ status: 'error' }, null, boardUrlOf(env, request, fileId)),
+		}
 	}
 	if (result.status === 'ok') return { ok: true, value: result.page }
 	return { ok: false, ...describeFailure(result, null, boardUrlOf(env, request, fileId)) }
@@ -263,6 +274,16 @@ const PNG_BASE64_PREFIX = 'iVBORw0KGgo'
 
 const MAX_DECLINE_DETAIL_LENGTH = 2_000
 
+function isStringArray(value: unknown) {
+	return Array.isArray(value) && value.every((item) => typeof item === 'string')
+}
+
+function isBox(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const { x, y, w, h } = value as Record<string, unknown>
+	return [x, y, w, h].every((n) => typeof n === 'number' && Number.isFinite(n))
+}
+
 /** A reply off the wire, or null if it is not one. It comes from a client, so nothing is assumed. */
 export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 	if (!value || typeof value !== 'object') return null
@@ -287,9 +308,8 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 		case 'user_state':
 			return typeof reply.pageId === 'string' &&
 				typeof reply.pageName === 'string' &&
-				Array.isArray(reply.selectedShapeIds) &&
-				reply.viewport &&
-				typeof reply.viewport === 'object'
+				isStringArray(reply.selectedShapeIds) &&
+				isBox(reply.viewport)
 				? (reply as TabRenderReply)
 				: null
 		case 'applied':

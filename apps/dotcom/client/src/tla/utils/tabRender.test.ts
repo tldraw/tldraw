@@ -599,6 +599,39 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
+		// The ops had landed when settle threw. Reported as a plain failure, the agent would resend them.
+		it('reports a failure after the ops ran as one that may have landed', async () => {
+			const { editor } = setupEditor()
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			vi.stubGlobal('requestAnimationFrame', () => {
+				throw new Error('no frames')
+			})
+
+			await answerTabRender(editor, 'file-1', getToken, applyOps())
+
+			expect(editor.getShape(hello)).toBeDefined()
+			expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'apply_failed' })
+			editor.dispose()
+		})
+
+		// The claim reached the worker, then the tab froze before reading the answer. By the time it
+		// wakes, the job has timed out and the agent may have sent the batch again.
+		it('drops a batch when the tab wakes long after the job arrived', async () => {
+			const { editor } = setupEditor()
+			const now = Date.now()
+			vi.mocked(fetch).mockImplementationOnce(async (_url, init) => {
+				replies.push(JSON.parse((init as RequestInit).body as string))
+				vi.spyOn(Date, 'now').mockReturnValue(now + 5_001)
+				return new Response('{}')
+			})
+
+			await answerTabRender(editor, 'file-1', getToken, applyOps())
+
+			expect(editor.getShape(hello)).toBeUndefined()
+			expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'busy' }])
+			editor.dispose()
+		})
+
 		// The agent was told to check and may have resent it, so landing now would apply it twice.
 		it('drops a batch that waited too long in the queue', async () => {
 			const { editor, firstPageId, firstShapeId } = setupEditor()

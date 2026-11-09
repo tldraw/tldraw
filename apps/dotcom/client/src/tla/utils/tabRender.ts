@@ -49,9 +49,10 @@ const FONT_WAIT_MS = 1_500
 // tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
 const MAX_EXPORT_SHAPES = 500
 
-// Longer than this in the queue and the worker has likely stopped waiting. For a read that would be
-// main thread time spent on nobody. For a write it's worse: the agent has been told the batch may have
-// landed and may have sent it again, so the two would both land.
+// Longer than this since the job arrived and its answer may not reach the worker before the job's
+// timeout. For a read that would be main thread time spent on nobody. For a write it's worse: the agent
+// is told a timed-out batch may have landed, and may send it again. Counted from arrival rather than
+// from the claim, so a tab that froze after claiming a write drops it when it wakes.
 const MAX_QUEUE_MS = 5_000
 
 // Enough for the model to see what to fix on a large batch, and well inside what the reply route takes.
@@ -73,6 +74,7 @@ export async function answerTabRender(
 	getToken: () => Promise<string>,
 	{ jobId, request }: TabRenderServerEvent
 ) {
+	const receivedAt = Date.now()
 	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, getToken, body)
 
 	const refusal = editor ? getRefusal(editor, request) : 'editor_not_ready'
@@ -91,21 +93,21 @@ export async function answerTabRender(
 	}
 
 	try {
-		await reply(await doWork(editor, request))
+		await reply(await doWork(editor, request, receivedAt))
 	} catch (error) {
 		console.error('Could not answer a tab render job', error)
 		await reply({ status: 'declined', reason: 'failed' })
 	}
 }
 
-function doWork(editor: Editor, request: TabRenderRequest) {
+function doWork(editor: Editor, request: TabRenderRequest, receivedAt: number) {
 	switch (request.mode) {
 		case 'measure':
 			return measurePage(editor, request.pageId as TLPageId)
 		case 'screenshot':
-			return queueCapture(editor, request)
+			return queueCapture(editor, request, receivedAt)
 		case 'apply_ops':
-			return queueApplyOps(editor, request)
+			return queueApplyOps(editor, request, receivedAt)
 		case 'user_state':
 			return readUserState(editor)
 	}
@@ -160,18 +162,16 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 
 // Checked again at the front of the queue, because the page, the shapes and the user's drag can all
 // have moved on while it waited.
-function queueCapture(editor: Editor, request: TabRenderScreenshotRequest) {
-	const queuedAt = Date.now()
+function queueCapture(editor: Editor, request: TabRenderScreenshotRequest, receivedAt: number) {
 	return enqueueWork(async () => {
-		const reason = Date.now() - queuedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		return reason ? { status: 'declined', reason } : capturePage(editor, request)
 	})
 }
 
-function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest) {
-	const queuedAt = Date.now()
+function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest, receivedAt: number) {
 	return enqueueWork(async (): Promise<TabRenderReply> => {
-		const reason = Date.now() - queuedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		if (reason) return { status: 'declined', reason }
 		try {
 			// Read first: the batch settles for a moment, and the user can change page in it.
@@ -182,12 +182,17 @@ function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest) {
 			)
 			return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 		} catch (error) {
-			if (!(error instanceof z.ZodError)) throw error
-			return {
-				status: 'declined',
-				reason: 'invalid_ops',
-				detail: z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL),
+			if (error instanceof z.ZodError) {
+				return {
+					status: 'declined',
+					reason: 'invalid_ops',
+					detail: z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL),
+				}
 			}
+			// Validation passed, so the ops may have run before this, such as in the settle after them.
+			// Calling it a plain failure would have the agent send the batch again.
+			console.error('A batch of ops failed partway', error)
+			return { status: 'declined', reason: 'apply_failed' }
 		}
 	})
 }
