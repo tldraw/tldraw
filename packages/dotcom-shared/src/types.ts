@@ -185,7 +185,7 @@ export interface TabRenderScreenshotRequest {
 	height: number
 }
 
-/** What an MCP tool asks an open tab to work out, so it doesn't have to start a Browser Run session. */
+/** What an MCP tool asks the caller's open tab to work out. Tabs are the only way these get done. */
 export type TabRenderRequest = { mode: 'measure'; pageId: string } | TabRenderScreenshotRequest
 
 /**
@@ -354,7 +354,6 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'mcp_server_access',
-	'mcp_tab_render',
 	'version_chain',
 	'collections',
 ] as const

@@ -3,7 +3,6 @@ import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MeasuredArrow,
 	MeasuredDimensions,
-	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
@@ -914,78 +913,6 @@ async function callLocalScreenshotService(
 // at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
 // the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and leaves the
 // result in its own HTML for the worker's `/content` read.
-
-/**
- * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
- *
- * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
- * geometry the Worker cannot compute. Callers own the rate limiting that implies; the session
- * itself lands on the `browser_run_session` spend ledger with `mode:measure`, written at the render
- * choke point rather than by callers.
- */
-export async function measurePageShapes(
-	env: Environment,
-	board: ResolvedThumbnailBoard,
-	pageId: string,
-	{ surface, snapshot }: { surface: ThumbnailRenderSurface; snapshot?: RoomSnapshot }
-): Promise<Record<string, ShapeMeasurement>> {
-	const job: ThumbnailRenderJob = {
-		v: 1,
-		kind: board.kind,
-		slug: board.slug,
-		version: board.version,
-		// Taken from the resolution rather than the caller, same as captureThumbnailScreenshot: a
-		// measure token for a private board reads the whole document through the snapshot route, so it
-		// carries the gate the board resolved under rather than defaulting to `public`.
-		access: board.access,
-		surface,
-		mode: 'measure',
-		pageId,
-		x: 0,
-		y: 0,
-		z: 1,
-		// Nothing is exported, but the viewport still has to be a sane size: shapes are measured
-		// against a laid-out document, not a zero-sized one.
-		width: DEFAULT_THUMBNAIL_WIDTH,
-		height: DEFAULT_THUMBNAIL_HEIGHT,
-		theme: 'light',
-		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	}
-	// Minted even for a push: a board too big to push falls back to fetching with it.
-	const token = await mintRecordedRenderToken(env, job)
-
-	try {
-		const { buffer } = await runRenderSession(
-			env,
-			buildThumbnailRenderUrl(getRenderOrigin(env), token),
-			{
-				width: DEFAULT_THUMBNAIL_WIDTH,
-				height: DEFAULT_THUMBNAIL_HEIGHT,
-				// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
-				// signed job, not the telemetry source, so this is stated rather than derived.
-				session: { source: 'mcp', mode: 'measure' },
-				transport: await renderTransportFor(env, snapshot, job),
-				pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
-			}
-		)
-
-		return readMeasureResult(buffer)
-	} finally {
-		// The record is keyed by its own token, so concurrent measures of one page cannot invalidate each
-		// other — which also means nothing later overwrites it, and it has to be dropped here.
-		await deleteMintedRenderToken(env, job, token)
-	}
-}
-
-// The page's result element out of a `/content` response.
-export function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
-	const html = new TextDecoder().decode(buffer)
-	const match = new RegExp(
-		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
-	).exec(html)
-	if (!match) throw new Error('The render page did not report any measurements')
-	return readMeasurements(JSON.parse(match[1]))
-}
 
 // What an editor reported, whichever editor that was. Malformed boxes are dropped rather than kept: a
 // non-finite value would produce NaN distances and silently detach that shape from the minimum

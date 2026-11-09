@@ -1,6 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	MAX_TAB_RENDER_SESSIONS,
 	TAB_RENDER_ACK_TIMEOUT_MS,
 	TAB_RENDER_MAX_PING_AGE_MS,
 	TAB_RENDER_WORK_TIMEOUT_MS,
@@ -42,7 +41,7 @@ describe('pickTabRenderSessions', () => {
 		expect(picked).toEqual([])
 	})
 
-	it('caps the tabs asked, most recently pinged first, and dedupes a superseded socket', () => {
+	it('orders tabs most recently pinged first, and dedupes a superseded socket', () => {
 		const picked = pickTabRenderSessions(
 			[
 				socket({ sessionId: 'oldest', lastSeenAt: NOW - 400 }),
@@ -54,7 +53,7 @@ describe('pickTabRenderSessions', () => {
 			'user_a',
 			NOW
 		)
-		expect(picked).toEqual(['newest', 'middle', 'third'].slice(0, MAX_TAB_RENDER_SESSIONS))
+		expect(picked).toEqual(['newest', 'middle', 'third', 'oldest'])
 	})
 })
 
