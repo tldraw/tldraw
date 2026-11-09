@@ -1350,9 +1350,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	}
 
 	/** @internal */
-	addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void) {
-		return this.historyAccumulator.addInterceptor((entry) =>
-			fn(entry, this.isMergingRemoteChanges ? 'remote' : 'user')
+	addHistoryInterceptor(
+		fn: (entry: HistoryEntry<R>, source: ChangeSource, version: number) => void
+	) {
+		// `version` lets a caller drop entries a rolled-back transaction left behind, as `extractingChanges` does
+		return this.historyAccumulator.addInterceptor((entry, version) =>
+			fn(entry, this.isMergingRemoteChanges ? 'remote' : 'user', version)
 		)
 	}
 }

@@ -8,12 +8,12 @@ import {
 	TLShapeId,
 	TLStore,
 } from '@tldraw/tlschema'
-import { isEqual } from '@tldraw/utils'
+import { IndexKey, isEqual } from '@tldraw/utils'
 import { createTLSchema, createTLStore } from 'tldraw'
 import { afterEach, describe, expect, it } from 'vitest'
 import { TLSyncRefusal } from '../lib/protocol'
 import { TLSyncClient } from '../lib/TLSyncClient'
-import { perRecord, TLSyncAuthorizer } from '../lib/TLSyncRoom'
+import { perRecord, TLSyncAuthorizer, TLSyncTransform } from '../lib/TLSyncRoom'
 import { TestServer } from './TestServer'
 import { TestSocketPair } from './TestSocketPair'
 
@@ -51,7 +51,7 @@ const rule: TLSyncAuthorizer<TLRecord, Meta> = perRecord(
 )
 
 function page(id: TLPageId, ownerId: string): TLRecord {
-	return PageRecordType.create({ id, name: ownerId, index: 'a1' as any, meta: { ownerId } })
+	return PageRecordType.create({ id, name: ownerId, index: 'a1' as IndexKey, meta: { ownerId } })
 }
 
 function frame(id: TLShapeId, parentId: TLPageId | TLShapeId, locked = false): TLFrameShape {
@@ -59,7 +59,7 @@ function frame(id: TLShapeId, parentId: TLPageId | TLShapeId, locked = false): T
 		id,
 		type: 'frame',
 		parentId,
-		index: 'a1' as any,
+		index: 'a1' as IndexKey,
 		meta: locked ? { locked } : {},
 		props: { w: 100, h: 100, name: '', color: 'black' },
 	}) as TLFrameShape
@@ -98,23 +98,29 @@ interface Peer {
 	refusedByServer: TLSyncRefusal[]
 }
 
-function setup(documents: TLRecord[] = board()) {
+function setup(
+	room: {
+		authorize?: TLSyncAuthorizer<TLRecord, Meta>
+		transform?: TLSyncTransform<TLRecord, Meta>
+	} = {}
+) {
+	const authorize = room.authorize ?? rule
 	const server = new TestServer<TLRecord>(
 		schema,
 		{
 			clock: 0,
 			documentClock: 0,
 			schema: schema.serialize(),
-			documents: documents.map((state) => ({ state, lastChangedClock: 0 })),
+			documents: board().map((state) => ({ state, lastChangedClock: 0 })),
 		},
-		{ authorize: rule }
+		{ authorize, transform: room.transform }
 	)
 	const peers: Peer[] = []
 
 	function join(
 		id: string,
 		meta: Meta,
-		opts: { gate?: boolean; unit?: 'transaction' | 'record' } = {}
+		opts: { authorize?: false; undo?: 'transaction' | 'record'; transform?: boolean } = {}
 	): Peer {
 		const store = createTLStore({ schema, id })
 		const pair = new TestSocketPair<TLRecord>(id, server)
@@ -130,13 +136,14 @@ function setup(documents: TLRecord[] = board()) {
 			},
 			onPushRefused: (refusal) => peer.refusedByServer.push(refusal),
 			authorize:
-				opts.gate === false
+				opts.authorize === false
 					? undefined
 					: {
-							rule,
+							rule: authorize,
+							transform: opts.transform === false ? undefined : room.transform,
 							meta,
-							unit: opts.unit,
-							onRefused: (refusal) => peer.refusedLocally.push(refusal),
+							undo: opts.undo,
+							onRefusedLocally: (refusal) => peer.refusedLocally.push(refusal),
 						},
 		})
 		disposables.push(() => client.close())
@@ -160,13 +167,16 @@ function setup(documents: TLRecord[] = board()) {
 	}
 
 	const onServer = (id: string) =>
-		server.storage.getSnapshot().documents.find((d) => d.state.id === id)?.state as any
+		server.storage.getSnapshot().documents.find((d) => d.state.id === id)?.state as
+			| TLFrameShape
+			| undefined
 
 	return { server, join, settle, onServer }
 }
 
 const move = (store: TLStore, id: TLShapeId, x: number) =>
 	store.put([{ ...(store.get(id) as TLFrameShape), x }])
+const xOf = (store: TLStore, id: TLShapeId) => (store.get(id) as TLFrameShape).x
 const setLocked = (store: TLStore, id: TLShapeId, locked: boolean) =>
 	store.put([{ ...(store.get(id) as TLFrameShape), meta: { locked } }])
 
@@ -178,20 +188,20 @@ describe('authorize on the client', () => {
 		move(a.store, onB, 50)
 		settle()
 
-		expect((a.store.get(onB) as TLFrameShape).x).toBe(0)
-		expect(onServer(onB).x).toBe(0)
+		expect(xOf(a.store, onB)).toBe(0)
+		expect(onServer(onB)?.x).toBe(0)
 		expect(a.refusedLocally).toMatchObject([{ reason: 'not your page', ids: [onB] }])
 		expect(a.refusedByServer).toEqual([])
 	})
 
 	it('without it, the room refuses the same write', () => {
 		const { join, settle } = setup()
-		const a = join('a', studentA, { gate: false })
+		const a = join('a', studentA, { authorize: false })
 
 		move(a.store, onB, 50)
 		settle()
 
-		expect((a.store.get(onB) as TLFrameShape).x).toBe(0)
+		expect(xOf(a.store, onB)).toBe(0)
 		expect(a.refusedByServer).toMatchObject([{ reason: 'not your page' }])
 	})
 
@@ -204,7 +214,7 @@ describe('authorize on the client', () => {
 		move(a.store, inLocked, 50)
 		settle()
 
-		expect(onServer(inLocked).x).toBe(50)
+		expect(onServer(inLocked)?.x).toBe(50)
 		expect(a.refusedLocally).toEqual([])
 		expect(a.refusedByServer).toEqual([])
 	})
@@ -220,7 +230,7 @@ describe('authorize on the client', () => {
 		settle()
 
 		expect((a.store.get(lockedOnA) as TLFrameShape).meta.locked).toBe(true)
-		expect(onServer(lockedOnA).meta.locked).toBe(true)
+		expect(onServer(lockedOnA)?.meta.locked).toBe(true)
 		expect(a.refusedLocally).toMatchObject([{ reason: 'frame is locked' }])
 		expect(a.refusedByServer).toEqual([])
 	})
@@ -233,20 +243,20 @@ describe('authorize on the client', () => {
 		setLocked(a.store, lockedOnA, false)
 		// fine on its own, but replayed in one push with the unlock, the room reads the frame locked
 		move(a.store, inLocked, 50)
-		expect((a.store.get(inLocked) as TLFrameShape).x).toBe(0)
+		expect(xOf(a.store, inLocked)).toBe(0)
 
 		a.pair.connect()
 		settle()
 
-		expect(onServer(lockedOnA).meta.locked).toBe(false)
-		expect(onServer(inLocked).x).toBe(0)
+		expect(onServer(lockedOnA)?.meta.locked).toBe(false)
+		expect(onServer(inLocked)?.x).toBe(0)
 		expect(a.refusedLocally).toMatchObject([{ reason: 'frame is locked' }])
 		expect(a.refusedByServer).toEqual([])
 	})
 
-	it("with unit 'record', undoes only the refused records of a transaction", () => {
+	it("with undo 'record', undoes only the refused records of a transaction", () => {
 		const { join, settle, onServer } = setup()
-		const a = join('a', studentA, { unit: 'record' })
+		const a = join('a', studentA, { undo: 'record' })
 
 		a.store.atomic(() => {
 			move(a.store, inOpen, 50)
@@ -254,16 +264,16 @@ describe('authorize on the client', () => {
 		})
 		settle()
 
-		expect(onServer(inOpen).x).toBe(50)
-		expect(onServer(onB).x).toBe(0)
-		expect((a.store.get(onB) as TLFrameShape).x).toBe(0)
+		expect(onServer(inOpen)?.x).toBe(50)
+		expect(onServer(onB)?.x).toBe(0)
+		expect(xOf(a.store, onB)).toBe(0)
 		expect(a.refusedLocally).toMatchObject([{ ids: [onB] }])
 		expect(a.refusedByServer).toEqual([])
 	})
 
 	it('rechecks offline changes against the board it reconnects to', () => {
 		const { join, settle, onServer } = setup()
-		const a = join('a', studentA, { unit: 'record' })
+		const a = join('a', studentA, { undo: 'record' })
 		const t = join('t', teacher)
 
 		a.pair.disconnect()
@@ -276,16 +286,60 @@ describe('authorize on the client', () => {
 		settle()
 
 		// the frame itself isn't inside a locked frame, so its move survives
-		expect(onServer(openOnA).x).toBe(70)
-		expect(onServer(inOpen).x).toBe(0)
-		expect((a.store.get(inOpen) as TLFrameShape).x).toBe(0)
+		expect(onServer(openOnA)?.x).toBe(70)
+		expect(onServer(inOpen)?.x).toBe(0)
+		expect(xOf(a.store, inOpen)).toBe(0)
 		expect(a.refusedLocally).toMatchObject([{ reason: 'frame is locked', ids: [inOpen] }])
 		expect(a.refusedByServer).toEqual([])
+	})
+
+	it('forgets a transaction that rolled back', () => {
+		const { join, settle, onServer } = setup()
+		const a = join('a', studentA)
+
+		expect(() =>
+			a.store.atomic(() => {
+				move(a.store, onB, 50)
+				throw new Error('rolled back')
+			})
+		).toThrow()
+		move(a.store, inOpen, 50)
+		settle()
+
+		expect(onServer(inOpen)?.x).toBe(50)
+		expect(a.refusedLocally).toEqual([])
+	})
+
+	it("judges creates as the room's transform stamps them", () => {
+		const stamped: TLSyncAuthorizer<TLRecord, Meta> = (args) =>
+			args.changes.some(
+				(c) => c.type === 'create' && c.next.meta.author !== args.session.meta.userId
+			)
+				? { reason: 'unstamped' }
+				: rule(args)
+		const room = {
+			authorize: stamped,
+			transform: ({ record, session }: { record: TLRecord; session: { meta: Meta } }) =>
+				({ ...record, meta: { ...record.meta, author: session.meta.userId } }) as TLRecord,
+		}
+		const { join, settle, onServer } = setup(room)
+		const a = join('a', studentA)
+		const b = join('b', studentB, { transform: false })
+
+		const fromA = createShapeId('from-a')
+		const fromB = createShapeId('from-b')
+		a.store.put([frame(fromA, pageA)])
+		b.store.put([frame(fromB, pageB)])
+		settle()
+
+		expect(onServer(fromA)?.meta.author).toBe('A')
+		// without the transform the client refuses what the room would allow
+		expect(b.refusedLocally).toMatchObject([{ reason: 'unstamped' }])
 	})
 })
 
 describe('authorize on the client, fuzzed', () => {
-	function run(seed: number, gate: boolean) {
+	function run(seed: number, authorize: false | undefined) {
 		let state = seed
 		const random = () => {
 			// mulberry32
@@ -298,9 +352,9 @@ describe('authorize on the client, fuzzed', () => {
 
 		const { join, settle, server } = setup()
 		const peers = [
-			join('t', teacher, { gate }),
-			join('a', studentA, { gate, unit: random() < 0.5 ? 'record' : 'transaction' }),
-			join('b', studentB, { gate, unit: random() < 0.5 ? 'record' : 'transaction' }),
+			join('t', teacher, { authorize }),
+			join('a', studentA, { authorize, undo: random() < 0.5 ? 'record' : 'transaction' }),
+			join('b', studentB, { authorize, undo: random() < 0.5 ? 'record' : 'transaction' }),
 		]
 		let created = 0
 
@@ -365,7 +419,7 @@ describe('authorize on the client, fuzzed', () => {
 	it('never sends a push the room refuses, and converges', () => {
 		let refusedLocally = 0
 		for (let seed = 1; seed <= 100; seed++) {
-			const result = run(seed, true)
+			const result = run(seed, undefined)
 			expect(result.refusedByServer, `seed ${seed}`).toEqual([])
 			expect(result.diverged, `seed ${seed}`).toEqual([])
 			refusedLocally += result.refusedLocally.length

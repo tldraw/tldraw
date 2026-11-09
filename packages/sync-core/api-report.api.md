@@ -717,7 +717,7 @@ export interface TLSyncAuthorizerSession<SessionMeta> {
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
-        authorize?: TLSyncClientAuthorize<R>;
+        authorize?: TLSyncClientAuthorizeOptions<R>;
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: TLSyncConnectDetails): void;
         onCustomMessageReceived?: TLCustomMessageHandler;
@@ -745,11 +745,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 }
 
 // @public
-export interface TLSyncClientAuthorize<R extends UnknownRecord, SessionMeta = any> {
+export interface TLSyncClientAuthorizeOptions<R extends UnknownRecord, SessionMeta = any> {
     meta: SessionMeta;
-    onRefused?(refusal: TLSyncRefusal): void;
+    onRefusedLocally?(refusal: TLSyncRefusal): void;
     rule: TLSyncAuthorizer<R, SessionMeta>;
-    unit?: 'record' | 'transaction';
+    transform?: TLSyncTransform<R, SessionMeta>;
+    undo?: 'record' | 'transaction';
 }
 
 // @public

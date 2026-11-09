@@ -392,7 +392,7 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
         initialData?: SerializedStore<R>;
     });
     // @internal (undocumented)
-    addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource) => void): () => void;
+    addHistoryInterceptor(fn: (entry: HistoryEntry<R>, source: ChangeSource, version: number) => void): () => void;
     allRecords(): R[];
     // (undocumented)
     applyDiff(diff: RecordsDiff<R>, { runCallbacks, ignoreEphemeralKeys, }?: {
