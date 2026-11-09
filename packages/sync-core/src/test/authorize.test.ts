@@ -424,6 +424,23 @@ describe('authorize', () => {
 		expect(seen.map((r) => r.meta)).toEqual([{ createdBy: 'A' }])
 	})
 
+	it('runs transform without an authorize rule', () => {
+		const { room, storage } = makeRoom({
+			transform: ({ record, session }) =>
+				record.typeName === 'shape'
+					? { ...record, meta: { ...(record as TLRecord).meta, createdBy: session.meta.userId } }
+					: record,
+			documents: [page(pageA, 'A')],
+		})
+		connect(room, 'student-a', { userId: 'A', role: 'student' })
+
+		const shapeId = createShapeId('stamped-no-rule')
+		push(room, 'student-a', { [shapeId]: [RecordOpType.Put, frame(shapeId, pageA)] })
+
+		const stored = storage.getSnapshot().documents.find((d) => d.state.id === shapeId)!.state
+		expect((stored as TLRecord).meta).toEqual({ createdBy: 'A' })
+	})
+
 	it('does not transform updates', () => {
 		const myFrame = createShapeId('my-frame')
 		const transform = vi.fn(({ record }) => record)

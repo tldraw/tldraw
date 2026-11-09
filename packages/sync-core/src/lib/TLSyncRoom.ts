@@ -1711,57 +1711,51 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 					// Phase 2: judge. Server-initiated pushes (no session) are never authorized.
 					if (session && staged.length > 0) {
-						if (this.authorize) {
-							const overlay = new Map<string, R | undefined>()
-							for (const s of staged) overlay.set(s.id, s.change.next ?? undefined)
-							const ctx = {
-								session: {
-									sessionId: session.sessionId,
-									meta: session.meta,
-									access: session.access,
-								},
-								before: (id: string) => txn.get(id) as R | undefined,
-								after: (id: string) =>
-									overlay.has(id) ? overlay.get(id) : (txn.get(id) as R | undefined),
-							}
-							let refusal: TLSyncRefusal | null = null
-							// Fail closed: a throwing transform or rule refuses the push rather than letting
-							// anything through. Both are logged.
-							if (this.transform) {
-								try {
-									for (const s of staged) {
-										if (s.change.type !== 'create') continue
-										const next = this.transform({ ...ctx, record: s.change.next, prev: null })
-										if (next === s.change.next) continue
-										validateRecord(next, recordTypeOf(next))
-										s.change = { type: 'create', prev: null, next }
-										overlay.set(s.id, next)
-									}
-								} catch (e) {
-									this.log?.error?.('transform threw; refusing the push', e)
-									refusal = { reason: 'something went wrong' }
+						const overlay = new Map<string, R | undefined>()
+						for (const s of staged) overlay.set(s.id, s.change.next ?? undefined)
+						const ctx = {
+							session: { sessionId: session.sessionId, meta: session.meta, access: session.access },
+							before: (id: string) => txn.get(id) as R | undefined,
+							after: (id: string) =>
+								overlay.has(id) ? overlay.get(id) : (txn.get(id) as R | undefined),
+						}
+						let refusal: TLSyncRefusal | null = null
+						// Fail closed: a throwing transform or rule refuses the push rather than letting
+						// anything through. Both are logged.
+						if (this.transform) {
+							try {
+								for (const s of staged) {
+									if (s.change.type !== 'create') continue
+									const next = this.transform({ ...ctx, record: s.change.next, prev: null })
+									if (next === s.change.next) continue
+									validateRecord(next, recordTypeOf(next))
+									s.change = { type: 'create', prev: null, next }
+									overlay.set(s.id, next)
 								}
+							} catch (e) {
+								this.log?.error?.('transform threw; refusing the push', e)
+								refusal = { reason: 'something went wrong' }
 							}
-							if (!refusal) {
-								try {
-									refusal = this.authorize({ ...ctx, changes: staged.map((s) => s.change) })
-								} catch (e) {
-									this.log?.error?.('authorize threw; refusing the push', e)
-									refusal = { reason: 'something went wrong' }
-								}
+						}
+						if (!refusal && this.authorize) {
+							try {
+								refusal = this.authorize({ ...ctx, changes: staged.map((s) => s.change) })
+							} catch (e) {
+								this.log?.error?.('authorize threw; refusing the push', e)
+								refusal = { reason: 'something went wrong' }
 							}
-							if (refusal) {
-								this.log?.warn?.(
-									'authorize refused push:',
-									refusal.reason,
-									refusal.ids ?? [],
-									'session:',
-									session.sessionId
-								)
-								refused = refusal
-								staged = []
-							}
-						} else if (this.authorizeRecord) {
+						}
+						if (refusal) {
+							this.log?.warn?.(
+								'authorize refused push:',
+								refusal.reason,
+								refusal.ids ?? [],
+								'session:',
+								session.sessionId
+							)
+							refused = refusal
+							staged = []
+						} else if (!this.authorize && this.authorizeRecord) {
 							// Legacy default: the deprecated per-type map judges each record on its own and
 							// a refusal skips only that record. Goes away with `authorizeRecord`.
 							const legacySession = {
