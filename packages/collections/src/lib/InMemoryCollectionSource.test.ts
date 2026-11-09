@@ -19,6 +19,8 @@ const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs', r
 const cardItem = () =>
 	CollectionItemRecordType.create({ id: card, collectionId: pack, name: 'Card' })
 
+const png = () => new Blob(['png'], { type: 'image/png' })
+
 function content(): TLCollectionItemContent {
 	return {
 		formatVersion: 1,
@@ -71,15 +73,27 @@ describe('InMemoryCollectionSource', () => {
 		expect(item).not.toHaveProperty('name')
 	})
 
-	it('gives thumbnails a url', async () => {
+	it('gives each image of a light and dark pair its own url', async () => {
 		const source = new InMemoryCollectionSource()
 		const collection = await source.createCollection('Wireframes')
 		const item = await source.addItem(collection.id, {
 			name: 'Card',
 			content: content(),
-			thumbnail: new Blob(['png'], { type: 'image/png' }),
+			thumbnail: { light: png(), dark: png() },
 		})
-		expect(item.thumbnailUrl).toMatch(/^blob:/)
+		expect(item.thumbnail).toEqual({
+			light: expect.stringMatching(/^blob:/),
+			dark: expect.stringMatching(/^blob:/),
+		})
+		const { light, dark } = item.thumbnail as { light: string; dark: string }
+		expect(dark).not.toBe(light)
+	})
+
+	it('keeps a single thumbnail a single url', async () => {
+		const source = new InMemoryCollectionSource()
+		const collection = await source.createCollection('Wireframes')
+		const item = await source.addItem(collection.id, { content: content(), thumbnail: png() })
+		expect(item.thumbnail).toMatch(/^blob:/)
 	})
 
 	it('renames items and rejects blank names', async () => {
@@ -102,16 +116,18 @@ describe('InMemoryCollectionSource', () => {
 	describe('thumbnail urls', () => {
 		afterEach(() => vi.restoreAllMocks())
 
-		it('releases the url when its item is deleted', async () => {
+		it('releases the urls when their item is deleted', async () => {
 			const revoke = vi.spyOn(URL, 'revokeObjectURL')
 			const source = new InMemoryCollectionSource()
 			const collection = await source.createCollection('Wireframes')
 			const item = await source.addItem(collection.id, {
 				content: content(),
-				thumbnail: new Blob(['png'], { type: 'image/png' }),
+				thumbnail: { light: png(), dark: png() },
 			})
 			await source.deleteItem(item.id)
-			expect(revoke).toHaveBeenCalledWith(item.thumbnailUrl)
+			const { light, dark } = item.thumbnail as { light: string; dark: string }
+			expect(revoke).toHaveBeenCalledWith(light)
+			expect(revoke).toHaveBeenCalledWith(dark)
 		})
 
 		it('creates no url for an item that fails validation', async () => {
@@ -122,7 +138,7 @@ describe('InMemoryCollectionSource', () => {
 				source.addItem(collection.id, {
 					name: ' ',
 					content: content(),
-					thumbnail: new Blob(['png']),
+					thumbnail: { light: png(), dark: png() },
 				})
 			).rejects.toThrow()
 			expect(create).not.toHaveBeenCalled()
@@ -339,10 +355,12 @@ describe('InMemoryCollectionSource', () => {
 		const collection = await source.createCollection('Wireframes')
 		const item = await source.addItem(collection.id, {
 			content: content(),
-			thumbnail: new Blob(['png']),
+			thumbnail: { light: png(), dark: png() },
 		})
 		source.dispose()
-		expect(revoke).toHaveBeenCalledWith(item.thumbnailUrl)
+		const { light, dark } = item.thumbnail as { light: string; dark: string }
+		expect(revoke).toHaveBeenCalledWith(light)
+		expect(revoke).toHaveBeenCalledWith(dark)
 		revoke.mockRestore()
 	})
 })

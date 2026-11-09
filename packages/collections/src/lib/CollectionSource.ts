@@ -4,6 +4,7 @@ import type {
 	TLCollectionItem,
 	TLCollectionItemContent,
 	TLCollectionItemId,
+	TLCollectionThumbnail,
 } from './schema'
 
 /**
@@ -25,8 +26,11 @@ export interface TLNewCollectionItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
 	name?: string
 	content: TLCollectionItemContent
-	/** A rendered preview. Leave it out and the UI shows a placeholder. */
-	thumbnail?: Blob
+	/**
+	 * A rendered preview, or a light and a dark one for an app with both modes. Leave it out and the
+	 * UI shows a placeholder.
+	 */
+	thumbnail?: TLCollectionThumbnail<Blob>
 }
 
 /**
