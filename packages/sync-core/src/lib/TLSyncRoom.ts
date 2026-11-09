@@ -258,13 +258,20 @@ function accessFromFlags(flags: {
  * The room's default rule as a function: allow a write when `session.access` grants it for the
  * record's store. Call it first inside a custom `authorize` to keep that and add rules on top.
  *
+ * `except` skips records another rule owns outright, so they are not judged twice. The comment
+ * rule from `@tldraw/sync-collaboration` is one: its `canComment` already decides object-store
+ * access for comment records, and it allows maintenance writes (a thread following its shape)
+ * that this check would refuse.
+ *
  * @public
  */
 export function createAccessAuthorizer<R extends UnknownRecord, SessionMeta>(
-	objectTypes: readonly string[]
+	objectTypes: readonly string[],
+	opts: { except?(record: R): boolean } = {}
 ): TLSyncAuthorizer<R, SessionMeta> {
 	const objects = new Set(objectTypes)
 	return perRecord(({ record }, { session }) => {
+		if (opts.except?.(record)) return null
 		if (objects.has(record.typeName)) {
 			return session.access.objects === 'write' ? null : 'object store is read-only'
 		}

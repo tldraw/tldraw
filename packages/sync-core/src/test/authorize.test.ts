@@ -20,6 +20,7 @@ import {
 	TLSocketServerSentEvent,
 } from '../lib/protocol'
 import {
+	createAccessAuthorizer,
 	perRecord,
 	TLRoomSocket,
 	TLSyncAuthorizer,
@@ -521,6 +522,32 @@ describe('authorize', () => {
 		expect(lastPushResult(socket)).toMatchObject({
 			action: 'discard',
 			refused: { reason: 'dangling parent', ids: [bindingId] },
+		})
+	})
+
+	it('createAccessAuthorizer skips records another rule owns', () => {
+		const { room, storage } = makeRoom({
+			authorize: createAccessAuthorizer<TLRecord, Meta>([], {
+				except: (record) => record.typeName === 'shape',
+			}),
+			documents: [page(pageA, 'A')],
+		})
+		connect(room, 'student-a', { userId: 'A', role: 'student' }, { isReadonly: true })
+
+		const shapeId = createShapeId('skipped-by-access')
+		push(room, 'student-a', { [shapeId]: [RecordOpType.Put, frame(shapeId, pageA)] })
+		expect(ids(storage)).toContain(shapeId)
+
+		const socket = connect(
+			room,
+			'student-a-2',
+			{ userId: 'A', role: 'student' },
+			{ isReadonly: true }
+		)
+		push(room, 'student-a-2', { [pageB]: [RecordOpType.Put, page(pageB, 'A')] })
+		expect(ids(storage)).not.toContain(pageB)
+		expect(lastPushResult(socket)).toMatchObject({
+			refused: { reason: 'document is read-only', ids: [pageB] },
 		})
 	})
 

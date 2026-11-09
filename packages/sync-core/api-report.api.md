@@ -56,7 +56,9 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocket
 }
 
 // @public
-export function createAccessAuthorizer<R extends UnknownRecord, SessionMeta>(objectTypes: readonly string[]): TLSyncAuthorizer<R, SessionMeta>;
+export function createAccessAuthorizer<R extends UnknownRecord, SessionMeta>(objectTypes: readonly string[], opts?: {
+    except?(record: R): boolean;
+}): TLSyncAuthorizer<R, SessionMeta>;
 
 // @public
 export const DEFAULT_INITIAL_SNAPSHOT: {
