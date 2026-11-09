@@ -8,6 +8,7 @@ import {
 	TLRecord,
 	toRichText,
 } from '@tldraw/editor'
+import { computed, react } from '@tldraw/state'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
@@ -214,6 +215,58 @@ it('wouldAllow answers without changing anything', () => {
 	expect(verdict).toEqual({ ok: false, reason: 'You can only delete your own shapes.' })
 	expect(editor.getShape(A)).toBeDefined()
 	expect(denials).toEqual([])
+})
+
+describe('wouldAllowPut', () => {
+	it('checks a known change against the rules without writing it', () => {
+		editor.permissions.setAccess(bob)
+		const moved = { ...editor.getShape(A)!, x: 500 }
+		expect(editor.permissions.wouldAllowPut([moved])).toEqual({
+			ok: false,
+			reason: 'You can only change your own shapes.',
+		})
+		expect(editor.getShape(A)!.x).toBe(0)
+		expect(denials).toEqual([])
+	})
+
+	it('stamps new records, as a real create would', () => {
+		editor.permissions.setAccess(bob)
+		const B = createShapeId('b')
+		const shape = { ...editor.getShape(A)!, id: B, meta: {} }
+		expect(editor.permissions.wouldAllowPut([shape])).toEqual({ ok: true })
+		// a forged owner is overwritten by the stamp, so it passes too, as on the server
+		expect(editor.permissions.wouldAllowPut([{ ...shape, meta: { ownerId: 'ann' } }])).toEqual({
+			ok: true,
+		})
+		expect(editor.getShape(B)).toBeUndefined()
+	})
+
+	it('is reactive: a computed answer follows the access and the store', () => {
+		const answer = computed('can move A', () => {
+			const shape = editor.getShape(A)
+			return !!shape && editor.permissions.wouldAllowPut([{ ...shape, x: shape.x + 10 }]).ok
+		})
+		const seen: boolean[] = []
+		const stop = react('watch', () => {
+			seen.push(answer.get())
+		})
+		editor.permissions.setAccess(bob)
+		editor.permissions.setAccess({ userId: 'tia', abilities: ['edit', 'teach'] })
+		stop()
+		expect(seen).toEqual([true, false, true])
+	})
+
+	it('agrees with the commit check for the same change', () => {
+		for (const access of [ann, bob, { userId: 'val', abilities: [] }]) {
+			editor.permissions.setAccess(access)
+			const moved = { ...editor.getShape(A)!, x: 500 }
+			const predicted = editor.permissions.wouldAllowPut([moved]).ok
+			editor.updateShapes([{ id: A, type: 'geo', x: 500 }])
+			expect(editor.getShape(A)!.x === 500).toBe(predicted)
+			editor.permissions.setAccess(ann)
+			editor.updateShapes([{ id: A, type: 'geo', x: 0 }])
+		}
+	})
 })
 
 it('is read-only without the edit ability', () => {

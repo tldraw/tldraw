@@ -14,6 +14,7 @@ import { useEffect } from 'react'
 import {
 	Editor,
 	TAB_ID,
+	accessCan,
 	TLAssetStore,
 	TLPresenceStateInfo,
 	TLRecord,
@@ -314,8 +315,9 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		const lastDenial = atom<TLPermissionDenial | null>('sync last denial', null)
 		const setAccess = (access: TLAccess) => {
 			accessSignal.set(access)
-			// read-only mode follows the `edit` ability, so tools and menus update with no extra code
-			syncMode.set(access.abilities.includes('edit') ? 'readwrite' : 'readonly')
+			// read-only mode follows the `edit` ability that `defaultAbilityRules` checks, through the
+			// same `accessCan`, so tools and menus update with no extra code
+			syncMode.set(accessCan(access, 'edit') ? 'readwrite' : 'readonly')
 		}
 
 		const store = createTLStore({

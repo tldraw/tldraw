@@ -1,4 +1,9 @@
-import { CanvasComments, CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import {
+	CanvasComments,
+	CommentTool,
+	commentToolOverrides,
+	useCanComment,
+} from '@tldraw/commenting'
 import '@tldraw/commenting/commenting.css'
 import { useSync } from '@tldraw/sync'
 import { ComponentType, useCallback, useEffect, useMemo, useRef, useState } from 'react'
@@ -10,6 +15,7 @@ import {
 	T,
 	TLAccess,
 	TLComponents,
+	TLPage,
 	TLPageId,
 	TLPermissionDenial,
 	TLRecord,
@@ -34,7 +40,6 @@ import {
 	pageWriteAccess,
 	stampOwner,
 	toRichText,
-	useEditor,
 	useValue,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
@@ -93,6 +98,25 @@ const lockedFrames: TLRule<TLRecord> = (tx) => {
 		}
 	}
 	return undefined
+}
+
+// [10]
+const pageSettingsByTeacher: TLRule<TLRecord> = (tx) => {
+	if (tx.can('teach')) return
+	for (const change of tx.changes) {
+		if ((change.next ?? change.prev)?.typeName !== 'page') continue
+		const before = ((change.prev as TLPage | null)?.meta ?? {}) as TLPageMeta
+		const after = ((change.next as TLPage | null)?.meta ?? {}) as TLPageMeta
+		if (!!before.locked !== !!after.locked || !!before.hidden !== !!after.hidden) {
+			return 'Only the teacher can lock or hide pages.'
+		}
+	}
+	return undefined
+}
+
+interface TLPageMeta {
+	locked?: boolean
+	hidden?: boolean
 }
 
 /** UI that one pane adds to its header. */
@@ -212,6 +236,7 @@ const SCENARIOS: Record<string, Scenario> = {
 				permissions: definePermissions<TLRecord>({
 					rules: [
 						...defaultAbilityRules(),
+						pageSettingsByTeacher,
 						pageWriteAccess({
 							canEditPage: (page: any, tx) => !page.meta.locked || tx.can('teach'),
 						}),
@@ -571,7 +596,7 @@ function useCommentsUi(userId: string | null) {
 		const components: TLComponents = {
 			Toolbar: () => (
 				<DefaultToolbar>
-					<CommentToolbarButton />
+					<CommentToolbarButton userId={userId} />
 					<DefaultToolbarContent />
 				</DefaultToolbar>
 			),
@@ -586,16 +611,13 @@ function useCommentsUi(userId: string | null) {
 	}, [userId])
 }
 
-function CommentToolbarButton() {
-	const editor = useEditor()
-	const canComment = useValue('can comment', () => editor.permissions.can('comment'), [editor])
+function CommentToolbarButton({ userId }: { userId: string }) {
+	const canComment = useCanComment(userId)
 	return canComment ? <ToolbarItem tool="comment" /> : null
 }
 
-function RevokeLinkButton({ editor, setRole }: { editor: Editor; setRole(role: string): void }) {
-	// [10]
-	const canEdit = useValue('can edit', () => editor.permissions.can('edit'), [editor])
-	if (!canEdit) return null
+// Revoking a link is the server's job, not a change to the document, so no rule decides it.
+function RevokeLinkButton({ setRole }: { editor: Editor; setRole(role: string): void }) {
 	return <button onClick={() => setRole('viewer')}>Revoke link</button>
 }
 
@@ -642,35 +664,52 @@ function PrivateShapeButtons({ editor }: { editor: Editor }) {
 }
 
 function AnswersToggle({ editor }: { editor: Editor }) {
-	const page = useValue('answers page', () => editor.getPage(ANSWERS_PAGE), [editor])
-	const canTeach = useValue('can teach', () => editor.permissions.can('teach'), [editor])
-	if (!page || !canTeach) return null
+	// [11]
+	const toggled = useValue(
+		'toggled answers page',
+		() => {
+			const page = editor.getPage(ANSWERS_PAGE)
+			return page && { ...page, meta: { ...page.meta, hidden: !page.meta.hidden } }
+		},
+		[editor]
+	)
+	const allowed = useValue(
+		'can toggle answers',
+		() => !!toggled && editor.permissions.wouldAllowPut([toggled]).ok,
+		[editor, toggled]
+	)
+	if (!toggled || !allowed) return null
 	return (
-		<button
-			onClick={() => editor.updatePage({ id: ANSWERS_PAGE, meta: { hidden: !page.meta.hidden } })}
-		>
-			{page.meta.hidden ? 'Show answers' : 'Hide answers'}
+		<button onClick={() => editor.updatePage(toggled)}>
+			{toggled.meta.hidden ? 'Hide answers' : 'Show answers'}
 		</button>
 	)
 }
 
 function LockHomeworkButton({ editor }: { editor: Editor }) {
-	const frame = useValue('homework', () => editor.getShape(HOMEWORK_FRAME), [editor])
-	const canTeach = useValue('can teach', () => editor.permissions.can('teach'), [editor])
-	if (!frame || !canTeach) return null
-	const locked = frame.meta.locked === true
-	return (
-		<button
-			onClick={() =>
-				editor.updateShape({
-					id: HOMEWORK_FRAME,
-					type: 'frame',
-					meta: { locked: !locked },
-					props: { name: locked ? 'Homework' : 'Homework (locked)' },
-				})
+	const toggled = useValue(
+		'toggled homework',
+		() => {
+			const frame = editor.getShape(HOMEWORK_FRAME)
+			if (!frame || frame.type !== 'frame') return undefined
+			const locked = !frame.meta.locked
+			return {
+				...frame,
+				meta: { ...frame.meta, locked },
+				props: { ...frame.props, name: locked ? 'Homework (locked)' : 'Homework' },
 			}
-		>
-			{locked ? 'Unlock homework' : 'Lock homework'}
+		},
+		[editor]
+	)
+	const allowed = useValue(
+		'can lock homework',
+		() => !!toggled && editor.permissions.wouldAllowPut([toggled]).ok,
+		[editor, toggled]
+	)
+	if (!toggled || !allowed) return null
+	return (
+		<button onClick={() => editor.updateShapes([toggled])}>
+			{toggled.meta.locked ? 'Lock homework' : 'Unlock homework'}
 		</button>
 	)
 }
@@ -762,6 +801,12 @@ against the room as it is now. If the teacher locked a frame in the meantime, on
 inside that frame are denied and rolled back. The rest are kept.
 
 [10]
-`editor.permissions.can(ability)` reads the session's current access, for showing or hiding UI.
-It updates when the server changes the access.
+Rules can be about any field. This one lets only the teacher change a page's `locked` or `hidden`
+flag. Without it, a student could hide "Page 1" from everyone.
+
+[11]
+UI asks the same rules that the server checks. `editor.permissions.wouldAllowPut(records)` checks
+one change without making it, so the button shows only when the click would be allowed, and it
+updates when the access changes. Do not copy a rule into the UI as an ability check, such as
+`can('teach')`: the two drift apart, and the button then offers a change that is denied.
 */

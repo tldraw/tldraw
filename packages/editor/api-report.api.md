@@ -2834,6 +2834,7 @@ export class PermissionsManager extends EditorManager {
     runChecked(fn: () => void, transaction: null | StoreTransaction): void;
     setAccess(access: null | TLAccess): void;
     wouldAllow(fn: () => void, intent?: null | TLIntent): TLVerdict;
+    wouldAllowPut(records: TLRecord[]): TLVerdict;
 }
 
 // @public (undocumented)

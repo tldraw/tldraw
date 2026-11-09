@@ -1,6 +1,7 @@
 import { atom } from '@tldraw/state'
 import {
 	CustomRecordInfo,
+	accessCan,
 	PageRecordType,
 	TL_FULL_ACCESS,
 	TLAccess,
@@ -182,7 +183,7 @@ export class SyncUser {
 
 	private setAccess(access: TLAccess) {
 		this.access.set(access)
-		this.mode.set(access.abilities.includes('edit') ? 'readwrite' : 'readonly')
+		this.mode.set(accessCan(access, 'edit') ? 'readwrite' : 'readonly')
 	}
 
 	/** @internal */

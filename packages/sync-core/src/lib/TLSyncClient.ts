@@ -363,7 +363,7 @@ function getPresenceOp<R extends UnknownRecord>(
  *     }
  *   },
  *   onAfterConnect: (client, { access }) => {
- *     if (!access.abilities.includes('edit')) {
+ *     if (!accessCan(access, 'edit')) {
  *       showNotification('Connected in read-only mode')
  *     }
  *   },

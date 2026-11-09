@@ -431,8 +431,12 @@ const room = new TLSocketRoom({ schema, permissions, onPushDenied: ({ reason }) 
 
 Pass the same object to the client with `useSync({ uri, permissions, ... })`. The editor checks each
 `editor.run` against the rules before it commits, so a denied change is never applied, even for a
-moment. It emits `permission-denied`, and the default UI shows a toast. `editor.permissions.can()`
-answers UI questions, and `editor.permissions.wouldAllow(fn)` tells you whether an action would pass.
+moment. It emits `permission-denied`, and the default UI shows a toast.
+
+UI should ask the same rules, not a copy of them. `editor.permissions.wouldAllowPut(records)` checks
+one known change without making it, and is safe in `useValue`, so a button can show only when its
+click would pass. `editor.permissions.wouldAllow(fn)` does the same for a change you only know by
+running it, in an event handler. `editor.permissions.can(ability)` reads the access itself.
 See the Permissions example for classroom, page, agent, and plugin setups.
 
 ### Deployment concerns

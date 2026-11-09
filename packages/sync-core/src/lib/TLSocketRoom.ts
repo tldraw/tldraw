@@ -769,7 +769,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * for (const session of sessions) {
 	 *   console.log(`${session.sessionId}: ${session.isConnected ? 'online' : 'offline'}`)
-	 *   if (!session.access.abilities.includes('edit')) {
+	 *   if (!accessCan(session.access, 'edit')) {
 	 *     console.log('  (read-only access)')
 	 *   }
 	 * }

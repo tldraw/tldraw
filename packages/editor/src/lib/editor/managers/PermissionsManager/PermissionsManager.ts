@@ -123,8 +123,55 @@ export class PermissionsManager extends EditorManager {
 	}
 
 	/**
-	 * Would `fn` be allowed? Runs it, checks the result, and rolls everything back. Use it for
-	 * menus and buttons ("can I delete these shapes?"), not on every pointer move.
+	 * Would putting `records` be allowed? Checks them against every rule, as the server would,
+	 * without writing anything. It only reads the store, so it is safe in `useValue` and
+	 * `computed`, and the answer updates when the records, the rules' inputs, or the access change.
+	 *
+	 * Use it to show or hide a button for one known change ("lock this frame"), so the UI asks the
+	 * same rules that the server checks instead of a copy of them. New records get the stamps.
+	 */
+	wouldAllowPut(records: TLRecord[]): TLVerdict {
+		const permissions = this.getPermissions()
+		if (!permissions) return OK
+		const store = this.editor.store
+		const access = this.getAccess()
+		const diff: RecordsDiff<TLRecord> = { added: {}, updated: {}, removed: {} }
+		const next = new Map<string, TLRecord>()
+		for (let record of records) {
+			const prev = store.get(record.id)
+			if (prev) {
+				if (isEqual(prev, record)) continue
+				diff.updated[record.id] = [prev, record]
+			} else {
+				for (const stamp of permissions.stamps) record = stamp(record, access)
+				diff.added[record.id] = record
+			}
+			next.set(record.id, record)
+		}
+		if (next.size === 0) return OK
+		return permissions.check(
+			createTransaction<TLRecord>({
+				access,
+				intent: null,
+				diff,
+				after: {
+					get: (id) => next.get(id) ?? (store.get(id as any) as TLRecord | undefined),
+					*all() {
+						for (const record of store.allRecords()) {
+							if (!next.has(record.id)) yield record
+						}
+						yield* next.values()
+					},
+				},
+			})
+		)
+	}
+
+	/**
+	 * Would `fn` be allowed? Runs it, checks the result, and rolls everything back. Use it when
+	 * the change is not known in advance ("can I delete these shapes?"), in an event handler, not
+	 * on every pointer move or in a reactive value. For a known change, use
+	 * {@link PermissionsManager.wouldAllowPut}.
 	 */
 	wouldAllow(fn: () => void, intent: TLIntent | null = null): TLVerdict {
 		const editor = this.editor
