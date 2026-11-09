@@ -80,7 +80,7 @@ export const plugins: Scenario = {
 	rules:
 		'A sticker shape and a vote record bring their own rules. Stickers: `stickers:place` adds and moves your own stickers, without canvas edit access. Votes: one per person, in your own name.',
 	tryThis:
-		'Add a sticker as Sam and drag it. Try to drag the owner’s sticker. Vote as each person. Ann may only vote, so her “Add sticker” button is off: it asks the same sticker policy.',
+		'Add a sticker as Sam and drag it. Try to drag the owner’s sticker. Vote as each person. Ann may only vote, so “Add sticker” is off in Ann’s pane: it asks the same sticker policy.',
 	people: [
 		{
 			id: 'owner',
