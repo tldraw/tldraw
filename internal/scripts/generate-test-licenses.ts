@@ -155,7 +155,7 @@ async function main() {
 			),
 		},
 		{
-			name: 'License with Collaboration Feature (grants commenting)',
+			name: 'License with Collaboration Feature (grants commenting and libraries)',
 			info: createLicenseInfo(
 				'test-feat-collaboration',
 				['localhost'],
