@@ -2,8 +2,8 @@ import {
 	AddToCollectionMenuItem,
 	CollectionsPanel,
 	CollectionRecordType,
-	CollectionsPanelButton,
 	collectionsPanelOpen,
+	CollectionsQuickActions,
 	InMemoryCollectionSource,
 	saveShapesToCollection,
 	type TLCollectionId,
@@ -12,7 +12,6 @@ import {
 	createShapeId,
 	DefaultContextMenu,
 	DefaultContextMenuContent,
-	DefaultMenuPanel,
 	Editor,
 	TLComponents,
 	Tldraw,
@@ -112,14 +111,7 @@ const components: TLComponents = {
 			<DefaultContextMenuContent />
 		</DefaultContextMenu>
 	),
-	MenuPanel: () => (
-		<div style={{ display: 'flex', alignItems: 'flex-start' }}>
-			<DefaultMenuPanel />
-			<div style={{ paddingTop: 2, paddingLeft: 4, pointerEvents: 'all' }}>
-				<CollectionsPanelButton />
-			</div>
-		</div>
-	),
+	QuickActions: CollectionsQuickActions,
 }
 
 const handleMount = (editor: Editor) => {
