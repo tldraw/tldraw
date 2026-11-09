@@ -3293,6 +3293,9 @@ export function PreferencesGroup(): JSX.Element;
 // @public (undocumented)
 export function preloadFont(id: string, font: TLTypeFace, targetDocument?: Document): Promise<FontFace>;
 
+// @public
+export function preloadTranslation(locale: TLUiTranslation['locale'], assetUrls?: TLUiAssetUrlOverrides): Promise<void>;
+
 // @public (undocumented)
 export function PrintItem(): JSX.Element;
 
@@ -4389,7 +4392,7 @@ export function TldrawUiPopoverContent({ side, children, align, sideOffset, alig
 export function TldrawUiPopoverTrigger({ children }: TLUiPopoverTriggerProps): JSX.Element;
 
 // @public (undocumented)
-export interface TldrawUiProps extends TLUiContextProviderProps {
+export interface TldrawUiProps extends Omit<TLUiContextProviderProps, 'locale'> {
     assetUrls?: TLUiAssetUrlOverrides;
     children?: ReactNode;
     components?: TLUiComponents;
@@ -4813,6 +4816,7 @@ export interface TLUiContextProviderProps {
     children?: ReactNode;
     components?: TLUiComponents;
     forceMobile?: boolean;
+    locale?: string;
     mediaMimeTypes?: string[];
     onUiEvent?: TLUiEventHandler;
     overrides?: TLUiOverrides | TLUiOverrides[];

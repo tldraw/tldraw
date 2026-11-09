@@ -9,9 +9,12 @@ import {
 	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
+	defaultUserPreferences,
 	defineMessages,
 	EditorContext,
 	fetch,
+	getUserPreferences,
+	preloadTranslation,
 	react,
 	RTL_LANGUAGES,
 	runtime,
@@ -105,19 +108,57 @@ const CLERK_ERROR_MESSAGES = {
 	cta: 'Refresh',
 }
 
+type AppMessages = typeof translationsEnJson
+
+// One request per locale for both catalogs, the app's and the SDK's, shared by the boot preload
+// below and `IntlWrapper`. A failed one is forgotten so that the next attempt retries it.
+const localeLoads = new Map<string, Promise<AppMessages>>()
+function loadLocale(locale: string): Promise<AppMessages> {
+	if (locale === 'en') return Promise.resolve(translationsEnJson)
+	let load = localeLoads.get(locale)
+	if (!load) {
+		load = Promise.all([fetchAppMessages(locale), preloadTranslation(locale, assetUrls)]).then(
+			([messages]) => messages
+		)
+		load.catch(() => localeLoads.delete(locale))
+		localeLoads.set(locale, load)
+	}
+	return load
+}
+
+async function fetchAppMessages(locale: string): Promise<AppMessages> {
+	const res = await fetch(`/tla/locales-compiled/${locale}.json`)
+	if (!res.ok) throw new Error(`Failed to load locale ${locale}: ${res.status}`)
+	return { ...translationsEnJson, ...(await res.json()) }
+}
+
+function getSignedOutLocale() {
+	return getUserPreferences().locale ?? defaultUserPreferences.locale
+}
+
+// A signed-in user's locale is in Zero, which isn't loaded until well after the first render.
+// Until then, use what this browser showed last, then a signed-out user's preference.
+const initialLocale = getLocalSessionState().locale ?? getSignedOutLocale()
+
+// Started here rather than on mount, so the catalogs download alongside Clerk and Zero instead of
+// after them. `IntlWrapper` reports a failure.
+loadLocale(initialLocale).catch(() => {})
+
+// Past this, show English rather than keep the page blank waiting for a catalog.
+const LOCALE_LOAD_TIMEOUT_MS = 3_000
+
 export function Component() {
 	const [container, setContainer] = useState<HTMLElement | null>(null)
-	// TODO: this needs to default to the global setting of whatever the last chosen locale was, not 'en'
-	const [locale, setLocale] = useState<string>('en')
+	const [locale, setLocale] = useState(initialLocale)
 	const [theme, setTheme] = useState<'light' | 'dark' | 'system'>(
 		() => getLocalSessionState().theme
 	)
 	const dir = getTextDirection(locale)
-	const handleLocaleChange = useCallback((locale: string) => {
-		setLocale(locale)
+	useLayoutEffect(() => {
 		document.documentElement.lang = locale
-		document.documentElement.dir = getTextDirection(locale)
-	}, [])
+		document.documentElement.dir = dir
+		updateLocalSessionState(() => ({ locale }))
+	}, [locale, dir])
 	const isFocusMode = useValue(
 		'isFocusMode',
 		() => !!globalEditor.get()?.getInstanceState().isFocusMode,
@@ -147,10 +188,10 @@ export function Component() {
 			<RefreshErrorBoundary messages={CLERK_ERROR_MESSAGES}>
 				<IntlWrapper locale={locale}>
 					<MaybeForceUserRefresh>
-						<SignedInProvider onThemeChange={setTheme} onLocaleChange={handleLocaleChange}>
+						<SignedInProvider onThemeChange={setTheme} onLocaleChange={setLocale}>
 							{container && (
 								<ContainerProvider container={container}>
-									<InsideOfContainerContext>
+									<InsideOfContainerContext locale={locale}>
 										<AppGate>
 											<Outlet />
 										</AppGate>
@@ -167,36 +208,41 @@ export function Component() {
 	)
 }
 
+// Renders nothing until the first catalog is in, rather than English that then changes language
+// under the user. After that, a locale switch keeps the old language up until the new one lands.
 function IntlWrapper({ children, locale }: { children: ReactNode; locale: string }) {
-	const [messages, setMessages] = useState(translationsEnJson)
+	const [messages, setMessages] = useState<AppMessages | null>(() =>
+		locale === 'en' ? translationsEnJson : null
+	)
 
 	useEffect(() => {
 		// Guard against a slower fetch for a previous locale landing after this one's and
 		// overwriting it, and against a missing/invalid locale file becoming an unhandled rejection.
 		let cancelled = false
-		async function fetchMessages() {
-			if (locale === 'en') {
-				setMessages(translationsEnJson)
-				return
+		loadLocale(locale).then(
+			(messages) => {
+				if (!cancelled) setMessages(messages)
+			},
+			(e) => {
+				reportError(e)
+				if (!cancelled) setMessages(translationsEnJson)
 			}
-
-			const res = await fetch(`/tla/locales-compiled/${locale}.json`)
-			if (!res.ok) throw new Error(`Failed to load locale ${locale}: ${res.status}`)
-			const messages = await res.json()
-			if (cancelled) return
-			setMessages({
-				...translationsEnJson,
-				...messages,
-			})
-		}
-		fetchMessages().catch((e) => {
-			reportError(e)
-			if (!cancelled) setMessages(translationsEnJson)
-		})
+		)
 		return () => {
 			cancelled = true
 		}
 	}, [locale])
+
+	useEffect(() => {
+		if (messages) return
+		const timeout = setTimeout(
+			() => setMessages((current) => current ?? translationsEnJson),
+			LOCALE_LOAD_TIMEOUT_MS
+		)
+		return () => clearTimeout(timeout)
+	}, [messages])
+
+	if (!messages) return null
 
 	return (
 		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
@@ -205,7 +251,7 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 	)
 }
 
-function InsideOfContainerContext({ children }: { children: ReactNode }) {
+function InsideOfContainerContext({ children, locale }: { children: ReactNode; locale: string }) {
 	const handleAppLevelUiEvent = useCallback<TLUiEventHandler>(() => {
 		// todo, implement handling ui events at the application layer
 	}, [])
@@ -218,6 +264,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					assetUrls={assetUrls}
 					components={components}
 					onUiEvent={handleAppLevelUiEvent}
+					locale={locale}
 				>
 					<PutI18nInApp />
 					<_Tooltip.Provider>{children}</_Tooltip.Provider>
@@ -283,14 +330,6 @@ function SignedInProvider({
 	const auth = useAuth()
 	const intl = useIntl()
 	const { user, isLoaded: isUserLoaded } = useClerkUser()
-	const locale = useValue(
-		'locale',
-		() => globalEditor.get()?.user.getUserPreferences().locale ?? 'en',
-		[]
-	)
-	useEffect(() => {
-		onLocaleChange(locale)
-	}, [locale, onLocaleChange])
 
 	useEffect(() => {
 		if (auth.isLoaded) markFirstLoad('clerk-loaded')
@@ -352,6 +391,7 @@ function SignedInProvider({
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
 				<SignedOutAnalytics />
+				<UserLocale onLocaleChange={onLocaleChange} />
 				{children}
 			</ThemeContainer>
 		)
@@ -362,6 +402,7 @@ function SignedInProvider({
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>
+						<UserLocale onLocaleChange={onLocaleChange} />
 						<WhenAppReady>
 							<SignedInAnalytics />
 						</WhenAppReady>
@@ -371,6 +412,27 @@ function SignedInProvider({
 			</AppStateProvider>
 		</>
 	)
+}
+
+// Read from the user rather than the editor, so pages without an editor follow it too. Reports
+// nothing while a signed-in user's app loads: the only preferences then are this browser's
+// signed-out ones, which would replace their saved locale with the wrong one.
+function UserLocale({ onLocaleChange }: { onLocaleChange(locale: string): void }) {
+	const app = useMaybeApp()
+	const isAppLoading = useIsAppLoading()
+	const locale = useValue(
+		'locale',
+		() => {
+			if (app) return app.tlUser.userPreferences.get().locale ?? defaultUserPreferences.locale
+			if (isAppLoading) return null
+			return getSignedOutLocale()
+		},
+		[app, isAppLoading]
+	)
+	useLayoutEffect(() => {
+		if (locale) onLocaleChange(locale)
+	}, [locale, onLocaleChange])
+	return null
 }
 
 function LegalTermsAcceptance() {

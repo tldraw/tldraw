@@ -26,8 +26,10 @@ const messages = defineMessages({
 	},
 })
 
+// Not `locale`: with an editor, the UI follows the user's locale, which the menu's language
+// picker changes. A prop overriding it would leave that picker doing nothing.
 /** @public */
-export interface TldrawUiProps extends TLUiContextProviderProps {
+export interface TldrawUiProps extends Omit<TLUiContextProviderProps, 'locale'> {
 	/**
 	 * The component's children.
 	 */
