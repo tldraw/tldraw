@@ -327,7 +327,8 @@ export interface TLSyncTransformArgs<R extends UnknownRecord, SessionMeta> {
  * the push.
  *
  * Today the room calls it for creates only (`prev` is `null`); updates go through as sent, so
- * guard a stamped field against later edits in `authorize`.
+ * guard a stamped field against later edits in `authorize`. Return a new record rather than
+ * mutating `record`: only a returned copy is validated before it is stored.
  *
  * @public
  */
