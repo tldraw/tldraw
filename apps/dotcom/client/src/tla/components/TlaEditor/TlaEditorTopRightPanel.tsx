@@ -11,7 +11,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
+import { librariesPanelOpen, toggleLibrariesPanel, useLibrariesEnabled } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -169,11 +169,12 @@ function CommentsSidebarButton() {
 function LibrariesPanelButton() {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const librariesEnabled = useLibrariesEnabled()
 	const hasLibraries = !!useMaybeApp()?.libraries
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const label = msg(librariesMessages.libraries)
 
-	if (!hasLibraries) return null
+	if (!librariesEnabled || !hasLibraries) return null
 
 	return (
 		<TldrawUiButton
