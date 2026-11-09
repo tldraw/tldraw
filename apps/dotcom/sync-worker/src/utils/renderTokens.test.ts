@@ -12,6 +12,7 @@ import {
 	recordMintedRenderToken,
 	verifyThumbnailRenderToken,
 	markRenderTokenServed,
+	renderParamsForJob,
 	wasRenderTokenServedSince,
 } from './renderTokens'
 
@@ -85,6 +86,19 @@ describe('thumbnail render tokens', () => {
 		const job = makeJob({ pageId: 'page:abc123' })
 		const token = await mintThumbnailRenderToken(env, job)
 		expect(await verifyThumbnailRenderToken(env, token)).toEqual(job)
+	})
+
+	it('round-trips a tight shapes job, and hands its fit to the render page', async () => {
+		const job = makeJob({ shapeIds: ['shape:a'], fit: 'tight', width: 2560, height: 640 })
+		const token = await mintThumbnailRenderToken(env, job)
+		const verified = await verifyThumbnailRenderToken(env, token)
+		expect(verified).toEqual(job)
+		expect(renderParamsForJob(verified!)).toMatchObject({ fit: 'tight', width: 2560, height: 640 })
+	})
+
+	it('rejects tokens with an unknown fit', async () => {
+		const token = await mintThumbnailRenderToken(env, makeJob({ fit: 'loose' as any }))
+		expect(await verifyThumbnailRenderToken(env, token)).toBeNull()
 	})
 
 	it('rejects tokens with a non-string pageId', async () => {

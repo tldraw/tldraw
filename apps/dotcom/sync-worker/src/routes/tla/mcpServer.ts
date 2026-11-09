@@ -1,4 +1,3 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT,
@@ -21,6 +20,7 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	ClusterScreenshotSize,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
@@ -38,6 +38,8 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getClusterScreenshotSize,
+	getClustersBox,
 	clusteringFromMeasure,
 	getCreatedBoardResult,
 	getPageInfo,
@@ -652,13 +654,32 @@ export type ResolvedBoardForUser =
 
 // A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
 // same shapes requested in a different order hit the same cached PNG — the render is identical.
+//
+// `tight-shapes-` rather than `shapes-`: the old margin-framed renders are still in the bucket until
+// they expire, and one whose size happened to match a tight render's would otherwise be served for it.
 export async function getShapesCacheKey(
 	board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug' | 'version'>,
 	theme: 'light' | 'dark',
-	shapeIds: string[]
+	shapeIds: string[],
+	{ width, height }: { width: number; height: number }
 ) {
 	const digest = await sha256([...shapeIds].sort().join(','))
-	return `mcp/${board.kind}/${board.slug}/${board.version}/${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT}/${theme}/shapes-${digest}.png`
+	return `mcp/${board.kind}/${board.slug}/${board.version}/${width}x${height}/${theme}/tight-shapes-${digest}.png`
+}
+
+// The pixel size a PNG says it is, read from its IHDR chunk, or null for bytes that aren't a PNG.
+export function readPngSize(base64: string): { width: number; height: number } | null {
+	let bytes: Uint8Array
+	try {
+		// 32 base64 characters decode to exactly the 24 bytes that hold the signature and IHDR size.
+		bytes = new Uint8Array(base64ToArrayBuffer(base64.slice(0, 32)))
+	} catch {
+		return null
+	}
+	const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
+	if (bytes.length < 24 || signature.some((byte, i) => bytes[i] !== byte)) return null
+	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
+	return { width: view.getUint32(16), height: view.getUint32(20) }
 }
 
 async function callSearchBoardsTool(
@@ -1352,7 +1373,13 @@ async function renderShapeSetScreenshot(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
 		): Promise<
-			| { ok: true; shapeIds: string[]; clusterCacheStatus: 'hit' | 'miss' }
+			| {
+					ok: true
+					shapeIds: string[]
+					/** The image to draw them into, edge to edge; see getClusterScreenshotSize. */
+					size: ClusterScreenshotSize
+					clusterCacheStatus: 'hit' | 'miss'
+			  }
 			| { ok: false; result: ReturnType<typeof toolError> }
 		>
 	}
@@ -1389,14 +1416,14 @@ async function renderShapeSetScreenshot(
 
 		const picked = await pickShapes(resolved, telemetry)
 		if (!picked.ok) return picked.result
-		const shapeIds = picked.shapeIds
+		const { shapeIds, size } = picked
 		// Carried onto every row below: whether this call had to measure is as much a part of what it
 		// spent as whether it had to capture.
 		clusterCacheStatus = picked.clusterCacheStatus
 
 		// Keyed on the shape set, so two requests naming the same shapes share one cached PNG — they
 		// render identically.
-		const cacheKey = await getShapesCacheKey(resolved.board, theme, shapeIds)
+		const cacheKey = await getShapesCacheKey(resolved.board, theme, shapeIds, size)
 		consultedCache = true
 		const cached = await env.MCP_DATA_BUCKET.get(cacheKey)
 		if (cached) {
@@ -1444,19 +1471,46 @@ async function renderShapeSetScreenshot(
 			surface: 'mcp',
 			pageId: resolved.page.pageId,
 			shapeIds,
+			fit: 'tight',
 			theme,
-			width: DEFAULT_THUMBNAIL_WIDTH,
-			height: DEFAULT_THUMBNAIL_HEIGHT,
+			width: size.width,
+			height: size.height,
 			telemetry: { source: 'mcp' },
 			content: summarizeSnapshotContent(resolved.snapshot, resolved.page.pageId),
 			snapshot: resolved.snapshot,
 			// Preview trial (see THUMBNAIL_RENDER_LIVE_CAPTURE in types.ts): let the screenshot
 			// rasterize the live canvas instead of running editor.toImage in the page. Agent-facing
-			// only — the OG surface keeps the export path's pixel-exact sizing.
-			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true'
+			// only — the OG surface keeps the export path's pixel-exact sizing. A live capture frames
+			// through the camera, whose zoom can't go below the editor's minimum, so a cluster too
+			// large to fit at that zoom takes the export path, which has no such floor.
+			...(envFlagWord(env.THUMBNAIL_RENDER_LIVE_CAPTURE) === 'true' &&
+			size.scale !== null &&
+			size.scale >= LIVE_CAPTURE_MIN_SCALE
 				? { capture: 'live' as const }
 				: null),
 		})
+
+		// Workers deploy before the client, so for a few minutes a render page that predates `tight`
+		// can answer this job with a margin-framed image of a different size. It is still a picture of
+		// the right shapes, so the caller gets it, but caching it would serve that framing until the
+		// board next changes.
+		const rendered = readPngSize(render.base64)
+		if (rendered && (rendered.width !== size.width || rendered.height !== size.height)) {
+			reportThumbnailError(
+				new Error(
+					`Tight render came back ${rendered.width}x${rendered.height}, expected ${size.width}x${size.height}`
+				),
+				{
+					ctx,
+					env,
+					request,
+					surface: 'mcp_screenshot_size_mismatch',
+					extras: { boardId, page: describePageSelector(page), theme, ...extras },
+				}
+			)
+			telemetry({ cacheStatus: 'miss', clusterCacheStatus })
+			return toolPageResult(resolved.page.pageName, render.base64)
+		}
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
 		// cache write must not throw it away — that would turn a working screenshot into a tool error
@@ -1496,6 +1550,10 @@ async function renderShapeSetScreenshot(
 	}
 }
 
+// The editor's minimum zoom, which a live capture's camera fit can't go below. See the capture flag
+// in renderShapeSetScreenshot.
+const LIVE_CAPTURE_MIN_SCALE = 0.05
+
 // The one-call path: a cluster id straight to a picture, without a get_cluster_info round trip to
 // pull its shape ids out first.
 async function callClusterScreenshotTool(
@@ -1517,12 +1575,21 @@ async function callClusterScreenshotTool(
 		page: input.page,
 		theme: input.theme,
 		userId,
-		extras: { clusterIds: input.clusterIds.join(',') },
+		extras: { clusterIds: input.clusterIds.join(','), size: input.size },
 		pickShapes: async (resolved, telemetry) => {
 			const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
 			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
-			if (picked.ok) return { ...picked, clusterCacheStatus: clustered.clusterCacheStatus }
+			if (picked.ok) {
+				return {
+					...picked,
+					size: getClusterScreenshotSize(
+						getClustersBox(clustered.bounds, input.clusterIds),
+						input.size
+					),
+					clusterCacheStatus: clustered.clusterCacheStatus,
+				}
+			}
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
 			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.

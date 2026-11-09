@@ -1,5 +1,6 @@
 import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
 import {
+	Box,
 	Editor,
 	TLArrowShape,
 	TLShapeId,
@@ -15,7 +16,10 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import {
 	SHAPES_NOT_ON_PAGE,
 	acquireThumbnailRenderData,
+	clampThumbnailDimension,
 	exportThumbnailImage,
+	getTightExportFrame,
+	isTightShapesRender,
 	measureArrow,
 	measureDimensions,
 	prepareLiveCapture,
@@ -251,6 +255,67 @@ describe('exportThumbnailImage', () => {
 		)
 		editor.dispose()
 	}, 5000)
+
+	// A tight render frames on the shapes themselves, not the viewport: the camera's zoom limits are
+	// what would otherwise crop a huge cluster or pad a tiny one.
+	it('exports a tight render on its shapes’ bounds, whatever the camera shows', async () => {
+		const editor = setupEditor()
+		const id = createShapeId('wide')
+		editor.createShape({ id, type: 'geo', x: 100, y: 50, props: { w: 400, h: 100 } })
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+		const toImage = vi.spyOn(editor, 'toImage').mockRejectedValue(new Error('stop'))
+
+		await expect(
+			exportThumbnailImage(editor, 'light', 2560, 640, [id], { tight: true })
+		).rejects.toThrow('stop')
+
+		const [ids, options] = toImage.mock.calls[0]
+		expect(ids).toEqual([id])
+		expect(options).toMatchObject({ scale: 6.4, padding: 0 })
+		expect(options!.bounds).toMatchObject({ x: 100, y: 50, w: 400, h: 100 })
+		editor.dispose()
+	})
+})
+
+describe('tight renders', () => {
+	it('is tight only with shapes to draw', () => {
+		expect(isTightShapesRender({ fit: 'tight', shapeIds: ['shape:a'] })).toBe(true)
+		expect(isTightShapesRender({ fit: 'tight' })).toBe(false)
+		expect(isTightShapesRender({ shapeIds: ['shape:a'] })).toBe(false)
+	})
+
+	// OG images and other thumbnails keep their 200-1600 range; only a tight render may go past it.
+	it('lets a tight render reach 2560px and go below the thumbnail minimum', () => {
+		expect(clampThumbnailDimension(2560)).toBe(1600)
+		expect(clampThumbnailDimension(40)).toBe(200)
+		expect(clampThumbnailDimension(2560, { tight: true })).toBe(2560)
+		expect(clampThumbnailDimension(4000, { tight: true })).toBe(2560)
+		expect(clampThumbnailDimension(1, { tight: true })).toBe(1)
+		expect(clampThumbnailDimension(0, { tight: true })).toBe(1)
+	})
+
+	it('fills the image edge to edge when the bounds match its aspect ratio', () => {
+		expect(getTightExportFrame(new Box(10, 20, 400, 100), 2560, 640)).toEqual({
+			bounds: new Box(10, 20, 400, 100),
+			scale: 6.4,
+		})
+	})
+
+	// The worker sized the image from a measure; if the bounds have shifted since, centre them rather
+	// than stretch the picture.
+	it('centres bounds that no longer match the image, rather than stretching them', () => {
+		expect(getTightExportFrame(new Box(0, 0, 400, 200), 2560, 640)).toEqual({
+			bounds: new Box(-200, 0, 800, 200),
+			scale: 3.2,
+		})
+	})
+
+	it('draws a zero-height line at the scale its length sets', () => {
+		expect(getTightExportFrame(new Box(0, 10, 500, 0), 2560, 1)).toEqual({
+			bounds: new Box(0, 10 - 1 / 5.12 / 2, 500, 1 / 5.12),
+			scale: 5.12,
+		})
+	})
 })
 
 describe('signalThumbnailReady', () => {

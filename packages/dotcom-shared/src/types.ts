@@ -93,6 +93,12 @@ export const DEFAULT_THUMBNAIL_HEIGHT = 630
 export const MIN_THUMBNAIL_DIMENSION = 200
 export const MAX_THUMBNAIL_DIMENSION = 1600
 
+// The largest side a `tight` shapes render may have (see ThumbnailRenderParams.fit). Separate from
+// MAX_THUMBNAIL_DIMENSION so the MCP cluster screenshot can grow without changing OG images. 2560 is
+// just under the 2576px long edge current vision models read at full resolution, and under the
+// 3000px per-image cap Claude enforces on requests with more than 20 images.
+export const TIGHT_SHAPES_MAX_DIMENSION = 2560
+
 // Browser Run screenshot deadlines, shared so the worker and the client render page stay in sync.
 // The worker's screenshot waits THUMBNAIL_RENDER_TIMEOUT_MS after navigation for the render page to
 // set `data-thumbnail-ready`. That whole window is the render page's budget; it must spend most of
@@ -116,6 +122,13 @@ export interface ThumbnailRenderParams {
 	 * drawn, so neighbouring shapes never leak into the frame. When omitted the whole page renders.
 	 */
 	shapeIds?: string[]
+	/**
+	 * `tight` draws `shapeIds` edge to edge with no margin, at the scale that fits their bounds into
+	 * width x height. The worker sizes width x height to the shapes' aspect ratio, so the image is
+	 * exactly their bounds. Either side may be anywhere from 1px to TIGHT_SHAPES_MAX_DIMENSION. Only
+	 * read alongside `shapeIds`; absent means the usual margin and thumbnail size limits.
+	 */
+	fit?: 'tight'
 	/**
 	 * `live` means: prune the page to `shapeIds`, settle and fit as normal, then signal ready
 	 * without running `editor.toImage` — the screenshotting browser rasterizes the live canvas

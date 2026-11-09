@@ -7,6 +7,7 @@ import {
 	MeasuredArrow,
 	MeasuredDimensions,
 	ShapeCluster,
+	TIGHT_SHAPES_MAX_DIMENSION,
 	can,
 	getShapeClusters,
 	getShapeText,
@@ -45,7 +46,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.8.0',
+	version: '3.9.0',
 }
 
 /**
@@ -440,6 +441,7 @@ export function parseClusterScreenshotInput(input: unknown): {
 	page: PageSelector
 	clusterIds: string[]
 	theme: 'light' | 'dark'
+	size: number
 } {
 	const value = requireArgumentsObject(input)
 	return {
@@ -447,7 +449,86 @@ export function parseClusterScreenshotInput(input: unknown): {
 		page: parsePageSelector(value.page),
 		clusterIds: parseClusterIds(value.clusterIds),
 		theme: parseTheme(value.theme),
+		size: parseScreenshotSize(value.size),
 	}
+}
+
+export const CLUSTER_SCREENSHOT_MIN_SIZE = 64
+export const CLUSTER_SCREENSHOT_MAX_SIZE = TIGHT_SHAPES_MAX_DIMENSION
+
+// A fractional size is floored rather than refused: a model asking for 1000.5 pixels wants about a
+// thousand, and refusing would cost it a round trip over nothing.
+function parseScreenshotSize(value: unknown): number {
+	if (value === undefined || value === null) return CLUSTER_SCREENSHOT_MAX_SIZE
+	if (
+		typeof value !== 'number' ||
+		!Number.isFinite(value) ||
+		value < CLUSTER_SCREENSHOT_MIN_SIZE ||
+		value > CLUSTER_SCREENSHOT_MAX_SIZE
+	) {
+		throw new Error(
+			`size must be a number of pixels from ${CLUSTER_SCREENSHOT_MIN_SIZE} to ${CLUSTER_SCREENSHOT_MAX_SIZE}`
+		)
+	}
+	return Math.floor(value)
+}
+
+// How far a cluster screenshot may enlarge the board. Without a cap, a single sticky note asked for
+// at 2560px would come back drawn at 12x, costing image tokens for pixels that add nothing. 8 is the
+// editor's own maximum zoom.
+export const CLUSTER_SCREENSHOT_MAX_SCALE = 8
+
+// The ratio a cluster screenshot uses when the measure render reported no box for its clusters, so
+// there is no aspect ratio to match. The render page still fits the shapes inside it.
+const FALLBACK_ASPECT_RATIO = DEFAULT_THUMBNAIL_WIDTH / DEFAULT_THUMBNAIL_HEIGHT
+
+export interface ClusterScreenshotSize {
+	width: number
+	height: number
+	/** Output pixels per page unit, or null when there was no box to scale. */
+	scale: number | null
+}
+
+/**
+ * The image size for a cluster screenshot: exactly the shape of `box`, with its longer side `size`
+ * pixels, or less where reaching `size` would enlarge the board past CLUSTER_SCREENSHOT_MAX_SCALE.
+ * Each side is rounded to whole pixels, so the aspect ratio can be off by under a pixel.
+ *
+ * A zero-width or zero-height box (a straight horizontal or vertical line) still gets a 1px side
+ * rather than none.
+ */
+export function getClusterScreenshotSize(
+	box: BoxModel | null,
+	size: number
+): ClusterScreenshotSize {
+	const longest = box ? Math.max(box.w, box.h) : 0
+	if (!box || !(longest > 0)) {
+		return { width: size, height: Math.round(size / FALLBACK_ASPECT_RATIO), scale: null }
+	}
+	const scale = Math.min(size / longest, CLUSTER_SCREENSHOT_MAX_SCALE)
+	return {
+		width: Math.max(1, Math.round(box.w * scale)),
+		height: Math.max(1, Math.round(box.h * scale)),
+		scale,
+	}
+}
+
+/**
+ * The box around the named clusters, from the boxes the measure render reported, or null when it
+ * reported none of them. A cluster with no box is skipped rather than failing the union: its shapes
+ * are still drawn, and the render page fits whatever it finds inside the size this box picks.
+ */
+export function getClustersBox(
+	bounds: Record<string, BoxModel>,
+	clusterIds: string[]
+): BoxModel | null {
+	const boxes = clusterIds.map((id) => bounds[id]).filter((box): box is BoxModel => !!box)
+	if (boxes.length === 0) return null
+	const minX = Math.min(...boxes.map((box) => box.x))
+	const minY = Math.min(...boxes.map((box) => box.y))
+	const maxX = Math.max(...boxes.map((box) => box.x + box.w))
+	const maxY = Math.max(...boxes.map((box) => box.y + box.h))
+	return { x: minX, y: minY, w: maxX - minX, h: maxY - minY }
 }
 
 export const BOARD_NAME_MAX_LENGTH = 200
@@ -1806,7 +1887,7 @@ function getClusterScreenshotToolDefinition() {
 	return {
 		name: CLUSTER_SCREENSHOT_TOOL_NAME,
 		title: 'Get tldraw cluster screenshot',
-		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of one or more clusters from get_page_info, preceded by the page name. The camera fits the clusters requested and only their shapes are drawn, so nothing else on the page appears. Pass several ids to see how those clusters sit relative to each other in a single image. This is the direct route from a cluster id to a picture — get_cluster_info is only needed when the individual shapes matter.`,
+		description: `Return a PNG of one or more clusters from get_page_info, preceded by the page name. Only their shapes are drawn, edge to edge with no margin, so the image has exactly the aspect ratio of the clusters' bounds and nothing else on the page appears. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size; small clusters come back smaller, because the board is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. Pass several ids to see how those clusters sit relative to each other in a single image. This is the direct route from a cluster id to a picture — get_cluster_info is only needed when the individual shapes matter.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1828,6 +1909,13 @@ function getClusterScreenshotToolDefinition() {
 					type: 'string',
 					enum: ['light', 'dark'],
 					default: 'light',
+				},
+				size: {
+					type: 'number',
+					minimum: CLUSTER_SCREENSHOT_MIN_SIZE,
+					maximum: CLUSTER_SCREENSHOT_MAX_SIZE,
+					default: CLUSTER_SCREENSHOT_MAX_SIZE,
+					description: `The image's longer side in pixels, ${CLUSTER_SCREENSHOT_MIN_SIZE} to ${CLUSTER_SCREENSHOT_MAX_SIZE}. The shorter side follows the clusters' aspect ratio. Pass a smaller size to spend fewer image tokens.`,
 				},
 			},
 			required: ['boardId', 'page', 'clusterIds'],

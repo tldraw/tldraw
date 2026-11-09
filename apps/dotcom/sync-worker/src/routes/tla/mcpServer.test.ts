@@ -39,6 +39,7 @@ import {
 	makeMeasuringBrowserBinding,
 	makeScreenshotTestEnv,
 	makeSnapshot,
+	measurePageHtml,
 	screenshotOf,
 	sessionsOf,
 } from './screenshotTestHelpers'
@@ -618,7 +619,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.8.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.9.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1910,6 +1911,16 @@ describe('rate limits', () => {
 	})
 })
 
+// The first 24 bytes of a PNG: its signature and the IHDR chunk's size fields, all readPngSize reads.
+function pngHeader(width: number, height: number) {
+	const bytes = new Uint8Array(24)
+	bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52])
+	const view = new DataView(bytes.buffer)
+	view.setUint32(16, width)
+	view.setUint32(20, height)
+	return bytes
+}
+
 describe('shape screenshots', () => {
 	it('renders a cluster and signs only that cluster’s shape ids into the render job', async () => {
 		mockPublishedBoard()
@@ -1928,7 +1939,16 @@ describe('shape screenshots', () => {
 		])
 
 		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
-		expect(job).toMatchObject({ pageId: 'page:a', shapeIds: ['shape:page:a-0'], camera: 'content' })
+		// The fixture's measure reports no boxes, so there is no aspect ratio to match and the size
+		// falls back to the thumbnail's ratio at the full 2560px.
+		expect(job).toMatchObject({
+			pageId: 'page:a',
+			shapeIds: ['shape:page:a-0'],
+			camera: 'content',
+			fit: 'tight',
+			width: 2560,
+			height: 1344,
+		})
 		// Every render — the measures included — targets the pinned render origin, never the
 		// user-facing board URL: the browser session only ever visits the tldraw-owned render page.
 		for (const call of screenshotOf(env).mock.calls) {
@@ -1940,8 +1960,122 @@ describe('shape screenshots', () => {
 		// age out — not in THUMBNAILS, whose keys live forever.
 		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
 		expect([...bucket.store.keys()]).toEqual([
-			expect.stringMatching(/^mcp\/published\/abc\/1751234567890\/1200x630\/light\/shapes-/),
+			expect.stringMatching(/^mcp\/published\/abc\/1751234567890\/2560x1344\/light\/tight-shapes-/),
 		])
+	})
+
+	describe('sizing to the clusters', () => {
+		// One wide cluster and one far-off square, so neither merges into the other.
+		const measured = () =>
+			makeEnv({
+				BROWSER: makeMeasuringBrowserBinding({
+					'shape:page:a-0': { minX: 0, minY: 0, maxX: 400, maxY: 100 },
+					'shape:page:a-1': { minX: 10_000, minY: 10_000, maxX: 10_080, maxY: 10_080 },
+				}),
+			})
+
+		async function clusterIdWithWidth(env: Environment, userId: string, w: number) {
+			const pageResult = await callTool('get_page_info', { boardId: 'abc' }, env, userId)
+			return JSON.parse(pageResult.content[0].text).clusters.find(
+				(cluster: any) => cluster.bounds?.w === w
+			).id as string
+		}
+
+		it('signs a size with exactly the clusters’ aspect ratio, longer side 2560px', async () => {
+			mockPublishedBoard()
+			const env = measured()
+			const clusterId = await clusterIdWithWidth(env, 'user_size_1', 400)
+
+			await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds: [clusterId] },
+				env,
+				'user_size_1'
+			)
+
+			const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
+			expect(job).toMatchObject({ fit: 'tight', width: 2560, height: 640 })
+		})
+
+		it('takes a smaller size when asked', async () => {
+			mockPublishedBoard()
+			const env = measured()
+			const clusterId = await clusterIdWithWidth(env, 'user_size_2', 400)
+
+			await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds: [clusterId], size: 800 },
+				env,
+				'user_size_2'
+			)
+
+			const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
+			expect(job).toMatchObject({ width: 800, height: 200 })
+		})
+
+		it('frames several clusters on the box around all of them', async () => {
+			mockPublishedBoard()
+			const env = measured()
+			const pageResult = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_size_3')
+			const clusterIds = JSON.parse(pageResult.content[0].text).clusters.map(
+				(cluster: any) => cluster.id
+			)
+			expect(clusterIds).toHaveLength(2)
+
+			await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds }, env, 'user_size_3')
+
+			// The union runs from (0, 0) to (10080, 10080): a square.
+			const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
+			expect(job).toMatchObject({ width: 2560, height: 2560 })
+		})
+	})
+
+	// A render page from before `tight` answers with its own framing at a different size. The caller
+	// still gets the picture; it just isn't cached, so the right render replaces it next time.
+	it('returns but does not cache a render that came back the wrong size', async () => {
+		mockPublishedBoard()
+		const binding = makeMeasuringBrowserBinding()
+		binding.quickAction.mockImplementation(async (action: string) =>
+			action === 'content'
+				? contentResponse(measurePageHtml({}))
+				: new Response(pngHeader(1600, 840), { status: 200 })
+		)
+		const env = makeEnv({ BROWSER: binding })
+		const clusterId = await firstClusterId(env, 'user_size_4', 'abc')
+
+		const result = await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_size_4'
+		)
+
+		expect(result.isError).toBeUndefined()
+		expect(result.content[1]).toMatchObject({ type: 'image', mimeType: 'image/png' })
+		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
+		expect([...bucket.store.keys()]).toEqual([])
+	})
+
+	it('caches a render that came back the size it was asked for', async () => {
+		mockPublishedBoard()
+		const binding = makeMeasuringBrowserBinding()
+		binding.quickAction.mockImplementation(async (action: string) =>
+			action === 'content'
+				? contentResponse(measurePageHtml({}))
+				: new Response(pngHeader(2560, 1344), { status: 200 })
+		)
+		const env = makeEnv({ BROWSER: binding })
+		const clusterId = await firstClusterId(env, 'user_size_5', 'abc')
+
+		await callTool(
+			'get_cluster_screenshot',
+			{ boardId: 'abc', clusterIds: [clusterId] },
+			env,
+			'user_size_5'
+		)
+
+		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
+		expect([...bucket.store.keys()]).toHaveLength(1)
 	})
 
 	// The point of taking more than one id: seeing how those clusters sit relative to each other in

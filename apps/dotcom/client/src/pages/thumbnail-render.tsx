@@ -7,6 +7,7 @@ import {
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PUSH_PARAM,
 	THUMBNAIL_SETTLE_TIMEOUT_MS,
+	TIGHT_SHAPES_MAX_DIMENSION,
 	ThumbnailRenderErrorRequestBody,
 	ThumbnailRenderParams,
 	ThumbnailRenderPhase,
@@ -231,8 +232,9 @@ function ThumbnailRenderPage({
 	schema: SerializedSchema
 	renderParams: ThumbnailRenderParams
 }) {
-	const width = clampThumbnailDimension(renderParams.width)
-	const height = clampThumbnailDimension(renderParams.height)
+	const tight = isTightShapesRender(renderParams)
+	const width = clampThumbnailDimension(renderParams.width, { tight })
+	const height = clampThumbnailDimension(renderParams.height, { tight })
 	const theme = renderParams.theme === 'dark' ? 'dark' : 'light'
 
 	useThumbnailPageSize(width, height)
@@ -290,7 +292,7 @@ function ThumbnailRenderPage({
 					// separate client deploy to teach this page how to handle it. A shape set overrides
 					// both, framing just those shapes.
 					if (renderParams.shapeIds?.length) {
-						fitShapesCamera(editor, renderParams.shapeIds, width, height)
+						fitShapesCamera(editor, renderParams.shapeIds, width, height, { tight })
 					} else if (renderParams.camera === 'content') {
 						fitContentCamera(editor, width, height)
 					} else {
@@ -310,6 +312,7 @@ function ThumbnailRenderPage({
 						height={height}
 						camera={renderParams.camera}
 						shapeIds={renderParams.shapeIds}
+						tight={tight}
 						capture={renderParams.capture}
 						onImage={handleImage}
 					/>
@@ -432,9 +435,19 @@ export function useThumbnailPageSize(width: number, height: number) {
 	}, [height, width])
 }
 
-export function clampThumbnailDimension(value: number) {
+export function isTightShapesRender(params: Pick<ThumbnailRenderParams, 'fit' | 'shapeIds'>) {
+	return params.fit === 'tight' && !!params.shapeIds?.length
+}
+
+// A tight render's sides follow its shapes' aspect ratio, so a long thin cluster legitimately has a
+// side far below MIN_THUMBNAIL_DIMENSION; raising it to the minimum would add the margin `tight`
+// exists to remove.
+export function clampThumbnailDimension(value: number, { tight = false } = {}) {
 	if (!Number.isFinite(value)) return DEFAULT_THUMBNAIL_WIDTH
-	return Math.max(MIN_THUMBNAIL_DIMENSION, Math.min(MAX_THUMBNAIL_DIMENSION, Math.floor(value)))
+	const [min, max] = tight
+		? [1, TIGHT_SHAPES_MAX_DIMENSION]
+		: [MIN_THUMBNAIL_DIMENSION, MAX_THUMBNAIL_DIMENSION]
+	return Math.max(min, Math.min(max, Math.floor(value)))
 }
 
 function getRepresentativeContentInset(width: number, height: number) {
@@ -445,13 +458,14 @@ function fitBoundsCamera(
 	editor: Editor,
 	bounds: Box | null | undefined,
 	width: number,
-	height: number
+	height: number,
+	{ tight = false } = {}
 ) {
 	if (bounds) {
 		editor.zoomToBounds(bounds, {
 			immediate: true,
 			force: true,
-			inset: getRepresentativeContentInset(width, height),
+			inset: tight ? 0 : getRepresentativeContentInset(width, height),
 		})
 	} else {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
@@ -524,15 +538,22 @@ function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
 	)
 }
 
-// Like fitContentCamera, but framed on a subset of the page. Uses the same inset so a shapes
-// screenshot and a page screenshot of the same board have matching margins. Run again before export
-// for the same reason content fits are: autosized text re-measures once web fonts load.
-function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, height: number) {
+// Like fitContentCamera, but framed on a subset of the page, with the same margins unless the render
+// is tight. Run again before export for the same reason content fits are: autosized text re-measures
+// once web fonts load.
+function fitShapesCamera(
+	editor: Editor,
+	shapeIds: string[],
+	width: number,
+	height: number,
+	{ tight = false } = {}
+) {
+	fitBoundsCamera(editor, getRequestedShapesBounds(editor, shapeIds), width, height, { tight })
+}
+
+function getRequestedShapesBounds(editor: Editor, shapeIds: string[]) {
 	const ids = getRequestedShapeIds(editor, shapeIds)
-	const bounds = ids.length
-		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-		: null
-	fitBoundsCamera(editor, bounds, width, height)
+	return ids.length ? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id)))) : null
 }
 
 // The pre-export fit for either capture kind. An explicit viewport capture is deliberately left
@@ -542,10 +563,11 @@ function fitExportCamera(
 	shapeIds: string[] | undefined,
 	camera: 'content' | undefined,
 	width: number,
-	height: number
+	height: number,
+	{ tight = false } = {}
 ) {
 	if (shapeIds?.length) {
-		fitShapesCamera(editor, shapeIds, width, height)
+		fitShapesCamera(editor, shapeIds, width, height, { tight })
 	} else if (camera === 'content') {
 		fitContentCamera(editor, width, height)
 	}
@@ -569,6 +591,7 @@ export function ThumbnailExportSignal({
 	height,
 	camera,
 	shapeIds,
+	tight = false,
 	settleTimeoutMs = THUMBNAIL_SETTLE_TIMEOUT_MS,
 	capture,
 	onImage,
@@ -578,6 +601,8 @@ export function ThumbnailExportSignal({
 	height: number
 	camera?: 'content'
 	shapeIds?: string[]
+	/** Draw `shapeIds` edge to edge; see ThumbnailRenderParams.fit. */
+	tight?: boolean
 	settleTimeoutMs?: number
 	/** `live`: signal ready after settle and fit, without exporting — see ThumbnailRenderParams. */
 	capture?: 'live'
@@ -597,7 +622,7 @@ export function ThumbnailExportSignal({
 					// bounds are final, and the export culls at this camera. Warming a set derived
 					// from the mount fit would skip the shapes this refit brings into view, and the
 					// capture would draw them unloaded.
-					fitExportCamera(editor, shapeIds, camera, width, height)
+					fitExportCamera(editor, shapeIds, camera, width, height, { tight })
 					await preloadImageAssets(editor, settleDeadline, shapeIds)
 					await waitForEditorImages(editor, settleDeadline)
 				})(),
@@ -607,7 +632,7 @@ export function ThumbnailExportSignal({
 			pageTimings.settledAt = performance.now()
 			// Runs again because the race may have timed out before the fit above: without this the
 			// export would fall back to onMount's pre-font camera and clip re-measured text.
-			fitExportCamera(editor, shapeIds, camera, width, height)
+			fitExportCamera(editor, shapeIds, camera, width, height, { tight })
 			// Live capture: the settled, fitted canvas is the picture — the screenshotting browser
 			// rasterizes it, so the export (and the paint of its result) has nothing left to do.
 			// The beacon's exportedAt stamp doubles as ready here; the deltas still read correctly.
@@ -623,7 +648,7 @@ export function ThumbnailExportSignal({
 				signalThumbnailReady()
 				return
 			}
-			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds)
+			const blob = await exportThumbnailImage(editor, theme, width, height, shapeIds, { tight })
 			if (cancelled) return
 			// Before onImage: the ready marker (and the session's teardown) follows the image paint.
 			sendTimingsBeacon(performance.now())
@@ -642,7 +667,7 @@ export function ThumbnailExportSignal({
 		return () => {
 			cancelled = true
 		}
-	}, [editor, theme, width, height, camera, shapeIds, settleTimeoutMs, capture, onImage])
+	}, [editor, theme, width, height, camera, shapeIds, tight, settleTimeoutMs, capture, onImage])
 
 	return null
 }
@@ -752,10 +777,10 @@ export async function exportThumbnailImage(
 	theme: 'light' | 'dark',
 	width: number,
 	height: number,
-	requestedShapeIds?: string[]
+	requestedShapeIds?: string[],
+	{ tight = false } = {}
 ): Promise<Blob> {
 	const camera = editor.getCamera()
-	const bounds = editor.getViewportPageBounds().clone()
 	const culled = editor.getCulledShapes()
 	// A shapes screenshot draws only what was asked for, so a neighbouring shape that happens to fall
 	// inside the fitted viewport never leaks into the frame. Culling still applies to the page export
@@ -777,16 +802,43 @@ export async function exportThumbnailImage(
 		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)
 	}
 
+	// A tight render frames its shapes directly rather than through the viewport. The camera can't
+	// zoom past the editor's limits, so a cluster too large or too small for them would come back
+	// cropped or inside a margin; the export has no such limits.
+	const frame =
+		tight && requestedShapeIds?.length
+			? getTightExportFrame(getRequestedShapesBounds(editor, requestedShapeIds), width, height)
+			: null
 	const { blob } = await editor.toImage(shapeIds, {
 		format: 'png',
-		bounds,
-		scale: camera.z,
+		bounds: frame?.bounds ?? editor.getViewportPageBounds().clone(),
+		scale: frame?.scale ?? camera.z,
 		padding: 0,
 		background: true,
 		darkMode: theme === 'dark',
 		pixelRatio: 1,
 	})
 	return normalizeThumbnailSize(blob, width, height)
+}
+
+// The page area that fills width x height with `bounds` touching both sides of its longer axis, and
+// the scale that draws it there. The worker sizes width x height to the bounds' aspect ratio, so the
+// other axis is filled too, give or take the rounding to whole pixels. If the bounds have moved since
+// they were measured (a font loading differently, say), they are centred rather than stretched.
+export function getTightExportFrame(bounds: Box | null, width: number, height: number) {
+	if (!bounds) return null
+	const fits = [
+		bounds.w > 0 ? width / bounds.w : Infinity,
+		bounds.h > 0 ? height / bounds.h : Infinity,
+	]
+	const scale = Math.min(...fits)
+	// A point has no extent to fit; draw it at 100%.
+	if (!Number.isFinite(scale)) return { bounds: centredBox(bounds, width, height), scale: 1 }
+	return { bounds: centredBox(bounds, width / scale, height / scale), scale }
+}
+
+function centredBox(around: Box, w: number, h: number) {
+	return new Box(around.center.x - w / 2, around.center.y - h / 2, w, h)
 }
 
 // The export's bitmap sizing floors fractional dimensions, so a fractional camera zoom can come

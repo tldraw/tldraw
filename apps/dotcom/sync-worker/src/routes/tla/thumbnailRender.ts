@@ -301,6 +301,7 @@ export async function captureThumbnailScreenshot(
 		surface,
 		pageId,
 		shapeIds,
+		fit,
 		theme,
 		width,
 		height,
@@ -321,6 +322,11 @@ export async function captureThumbnailScreenshot(
 		 * camera to their common bounds and draws only them.
 		 */
 		shapeIds?: string[]
+		/**
+		 * `tight` draws `shapeIds` edge to edge instead of inside the usual margin. The caller sizes
+		 * width x height to the shapes' aspect ratio. See ThumbnailRenderParams.fit.
+		 */
+		fit?: 'tight'
 		theme: 'light' | 'dark'
 		width: number
 		height: number
@@ -354,6 +360,7 @@ export async function captureThumbnailScreenshot(
 		camera: 'content',
 		...(pageId ? { pageId } : null),
 		...(shapeIds?.length ? { shapeIds } : null),
+		...(fit && shapeIds?.length ? { fit } : null),
 		...(capture ? { capture } : null),
 		// Ignored while `camera` is 'content', which is what every surface mints; carried because the
 		// job type keeps the explicit-viewport path available (see ThumbnailRenderJob).

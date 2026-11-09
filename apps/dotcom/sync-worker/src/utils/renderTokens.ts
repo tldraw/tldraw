@@ -70,6 +70,8 @@ export interface ThumbnailRenderJob {
 	 * fits the camera to their common bounds and draws only them. Omitted means the whole page.
 	 */
 	shapeIds?: string[]
+	/** `tight`: `shapeIds` drawn edge to edge, width x height sized to them. See ThumbnailRenderParams. */
+	fit?: 'tight'
 	/** `live`: the page prunes to `shapeIds`, settles, and lets the screenshot rasterize the canvas. */
 	capture?: 'live'
 	/**
@@ -156,6 +158,7 @@ export async function verifyThumbnailRenderToken(
 			(!Array.isArray(job.shapeIds) ||
 				job.shapeIds.length === 0 ||
 				!job.shapeIds.every((id) => typeof id === 'string'))) ||
+		(job.fit !== undefined && job.fit !== 'tight') ||
 		typeof job.exp !== 'number'
 	) {
 		return null
@@ -179,6 +182,7 @@ export function renderParamsForJob(job: ThumbnailRenderJob): ThumbnailRenderPara
 		...(job.camera ? { camera: job.camera } : null),
 		...(job.pageId ? { pageId: job.pageId } : null),
 		...(job.shapeIds ? { shapeIds: job.shapeIds } : null),
+		...(job.fit ? { fit: job.fit } : null),
 		...(job.capture ? { capture: job.capture } : null),
 		...(job.mode ? { mode: job.mode } : null),
 		x: job.x,
