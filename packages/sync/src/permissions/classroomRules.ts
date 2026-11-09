@@ -73,6 +73,18 @@ export const STUDENT_SHAPE_TYPES = ['draw', 'geo', 'note', 'text', 'arrow', 'hig
 /** Shape types that only the teacher may create, such as a plugin's `stamp` shape. */
 export const TEACHER_SHAPE_TYPES = ['stamp']
 
+/** Whether a role may create shapes of a type. The shape rule and the toolbar both ask it. */
+export function mayCreateShapeType(meta: ClassroomMeta, type: string) {
+	if (meta.role === 'student' && !STUDENT_SHAPE_TYPES.includes(type)) return false
+	if (meta.role !== 'teacher' && TEACHER_SHAPE_TYPES.includes(type)) return false
+	return true
+}
+
+/** Whether a role may lock and unlock shapes. The shape rule and the lock actions both ask it. */
+export function mayLockShapes(meta: ClassroomMeta) {
+	return meta.role === 'teacher'
+}
+
 export function getPageIdOfParent(parentId: TLParentId, get: Get): TLPageId | undefined {
 	let id: string = parentId
 	for (let i = 0; i < 100; i++) {
@@ -185,8 +197,7 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 		shape: ({ session, type, prev, next, get }) => {
 			const { meta } = session
 			if (type === 'create') {
-				if (meta.role === 'student' && !STUDENT_SHAPE_TYPES.includes(next.type)) return null
-				if (meta.role !== 'teacher' && TEACHER_SHAPE_TYPES.includes(next.type)) return null
+				if (!mayCreateShapeType(meta, next.type)) return null
 				// the owner is stamped from the session, never trusted from the client
 				const stamped = { ...next, meta: { ...next.meta, ownerId: meta.userId } }
 				return canWriteShape(session, stamped, get) ? stamped : null
@@ -196,8 +207,7 @@ export const classroomRules: TLRecordRules<ClassroomRecord, ClassroomMeta> = {
 			// a type is chosen at create, where the type limits apply
 			if (next.type !== prev.type) return null
 			if (next.meta.ownerId !== prev.meta.ownerId) return null
-			// the lock action is the teacher's: the UI hides it, and this rule enforces it
-			if (next.isLocked !== prev.isLocked && meta.role !== 'teacher') return null
+			if (next.isLocked !== prev.isLocked && !mayLockShapes(meta)) return null
 			// "before and after": a move must not take the shape somewhere the session may not write
 			return canWriteShape(session, next, get) ? next : null
 		},

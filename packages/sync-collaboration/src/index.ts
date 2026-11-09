@@ -6,6 +6,8 @@ export {
 	type CommentAuthorizerOptions,
 	type CommentModification,
 	type CommentModificationAuthContext,
+	type CommentWriteProbe,
+	checkCommentWrite,
 	createCommentAuthorizers,
 } from './comment-authorizers'
 

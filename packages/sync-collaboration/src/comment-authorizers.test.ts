@@ -11,7 +11,7 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { createCommentAuthorizers } from './comment-authorizers'
+import { checkCommentWrite, createCommentAuthorizers } from './comment-authorizers'
 
 interface TestMeta {
 	userId: string | null
@@ -1094,4 +1094,59 @@ describe('createCommentAuthorizers', () => {
 			})
 		})
 	})
+})
+
+describe('checkCommentWrite', () => {
+	const rules = {
+		authorizeRecord: createCommentAuthorizers<TestMeta>({
+			getUserId: (session) => session.meta.userId,
+			// moderators may take anything down, but edit only their own
+			canModifyComment: (ctx) =>
+				ctx.userId === ctx.ownerId || (ctx.action !== 'edit-comment' && ctx.userId === 'real-mod'),
+		}),
+		authorizeRead: {
+			comment: ({ record }: { record: TLComment }) => record.pageId === pageId,
+		},
+	}
+	const bobs = createComment({
+		threadId: thread.id,
+		pageId,
+		authorId: 'real-bob',
+		body: toRichText('hi'),
+	})
+	const bobsThread = createCommentThread({
+		pageId,
+		anchor: { type: 'page' },
+		createdBy: 'real-bob',
+	})
+	const may = (userId: string | null, probe: Parameters<typeof checkCommentWrite>[3]) =>
+		checkCommentWrite(rules, session(userId), noGet, probe)
+
+	it('asks the comment rules and the read rules whether a session may add a comment', () => {
+		expect(may('real-bob', { action: 'add-comment', pageId })).toBe(true)
+		expect(may(null, { action: 'add-comment', pageId })).toBe(false)
+		expect(
+			checkCommentWrite(rules, session('real-bob', true), noGet, { action: 'add-comment', pageId })
+		).toBe(false)
+		expect(may('real-bob', { action: 'add-comment', pageId: 'page:other' as TLPageId })).toBe(false)
+	})
+
+	it('tells an edit from a delete, as the rules do', () => {
+		const table = Object.fromEntries(
+			['real-bob', 'real-mod', 'real-mallory'].map((userId) => [
+				userId,
+				[
+					may(userId, { action: 'edit-comment', comment: bobs }),
+					may(userId, { action: 'delete-comment', comment: bobs }),
+					may(userId, { action: 'delete-thread', thread: bobsThread }),
+				],
+			])
+		)
+		expect(table).toEqual({
+			'real-bob': [true, true, true],
+			'real-mod': [false, true, true],
+			'real-mallory': [false, false, false],
+		})
+	})
+
 })

@@ -1,10 +1,20 @@
 import type { UnknownRecord } from '@tldraw/store'
-import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
+	checkRecordWrite,
+	type TLAuthorizerSession,
+	type TLRecordAuthorizer,
+	type TLRecordAuthorizers,
+	type TLRecordRules,
+	type TLRecordWrite,
+} from '@tldraw/sync-core'
+import {
+	createComment,
 	createCommentReactionId,
+	createCommentThreadId,
 	type TLComment,
 	type TLCommentReaction,
 	type TLCommentThread,
+	type TLPageId,
 } from '@tldraw/tlschema'
 import { isEqual } from '@tldraw/utils'
 
@@ -351,4 +361,71 @@ export function createCommentAuthorizers<SessionMeta>(
 		// thread deletion must sweep every reactor's records, not just the caller's own.
 		'comment-reaction': withUserId(authorizeReaction),
 	}
+}
+
+/**
+ * A comment write that the UI asks about before it offers it: the argument to
+ * {@link checkCommentWrite}. `add-comment` asks whether the session may post on a page at all;
+ * the other actions are the {@link CommentModification}s.
+ *
+ * @public
+ */
+export type CommentWriteProbe =
+	| { readonly action: 'add-comment'; readonly pageId: TLPageId }
+	| CommentModification
+
+/**
+ * Ask a room's record rules whether a session may make a comment write, so that the comment UI
+ * uses the same rules as the server and not a copy of them. Connect it to the `canComment` and
+ * `canModifyComment` options of `CommentTool` in `@tldraw/commenting`.
+ *
+ * Each probe is one write through `checkRecordWrite`: a new comment on the page, an update of a
+ * comment to itself (an edit), or an update that sets `isDeleted` (a delete). So the read rules
+ * apply too: a session may not comment on a page that it may not read.
+ *
+ * @example
+ * ```ts
+ * const get = (id: string) => editor.store.get(id as any)
+ * CommentTool.configure({
+ * 	canComment: ({ editor }) =>
+ * 		checkCommentWrite(rules, getSession(), get, {
+ * 			action: 'add-comment',
+ * 			pageId: editor.getCurrentPageId(),
+ * 		}),
+ * 	canModifyComment: (ctx) => checkCommentWrite(rules, getSession(), get, ctx),
+ * })
+ * ```
+ *
+ * @public
+ */
+export function checkCommentWrite<R extends UnknownRecord, SessionMeta>(
+	rules: TLRecordRules<R, SessionMeta>,
+	session: TLAuthorizerSession<SessionMeta>,
+	get: (id: string) => UnknownRecord | undefined,
+	probe: CommentWriteProbe
+): boolean {
+	let write: TLRecordWrite<TLComment | TLCommentThread>
+	switch (probe.action) {
+		case 'add-comment': {
+			const next = createComment({
+				threadId: createCommentThreadId(),
+				pageId: probe.pageId,
+				// the comment rule stamps the author from the session
+				authorId: '',
+				body: { type: 'doc', content: [] },
+			})
+			write = { type: 'create', prev: null, next }
+			break
+		}
+		case 'edit-comment':
+			write = { type: 'update', prev: probe.comment, next: probe.comment }
+			break
+		case 'delete-comment':
+			write = { type: 'update', prev: probe.comment, next: { ...probe.comment, isDeleted: true } }
+			break
+		case 'delete-thread':
+			write = { type: 'update', prev: probe.thread, next: { ...probe.thread, isDeleted: true } }
+			break
+	}
+	return !!checkRecordWrite(rules, session, get, write as unknown as TLRecordWrite<R>)
 }

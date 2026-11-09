@@ -340,7 +340,7 @@ export const USE_CASES: UseCase[] = [
 		story:
 			"Carol comments. Alice may not delete it. The teacher may take it down, but may not edit Carol's words.",
 		people: ['carol', 'alice', 'teacher'],
-		api: 'createCommentAuthorizers({ canModifyComment }), also on the client',
+		api: 'createCommentAuthorizers({ canModifyComment }); the UI asks it with checkCommentWrite',
 		async run(c) {
 			await reset(c)
 			const carol = await c.editor('carol')

@@ -8,6 +8,7 @@ import {
 	TLSocketRoom,
 	useSync,
 } from '@tldraw/sync'
+import { checkCommentWrite, CommentWriteProbe } from '@tldraw/sync-collaboration'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	atom,
@@ -41,8 +42,9 @@ import {
 	classroomRecords,
 	classroomRules,
 	isPageReadonlyFor,
+	mayCreateShapeType,
+	mayLockShapes,
 	Role,
-	STUDENT_SHAPE_TYPES,
 	TLGrade,
 } from './rules'
 import { StampShapeUtil, stampProps } from './stamp'
@@ -255,48 +257,54 @@ function Pane({
 	)
 
 	// [7]
+	const mayComment = useCallback(
+		(editor: Editor, probe: CommentWriteProbe) => {
+			const session = socket.session.get()
+			const get = (id: string) => editor.store.get(id as any) as ClassroomRecord | undefined
+			return !!session && checkCommentWrite(classroomRules, session, get, probe)
+		},
+		[socket]
+	)
 	const tools = useMemo(
 		() => [
 			CommentTool.configure({
-				canComment: () => socket.session.get()?.meta.role !== 'viewer',
-				canModifyComment: (ctx) => {
-					const owner = ctx.action === 'delete-thread' ? ctx.thread.createdBy : ctx.comment.authorId
-					return (
-						owner === ctx.currentUserId ||
-						(ctx.action !== 'edit-comment' && socket.session.get()?.meta.role === 'teacher')
-					)
-				},
+				canComment: ({ editor }) =>
+					mayComment(editor, { action: 'add-comment', pageId: editor.getCurrentPageId() }),
+				canModifyComment: (ctx) => mayComment(ctx.editor, ctx),
 			}),
 		],
-		[socket]
+		[mayComment]
 	)
 	const overrides = useMemo<TLUiOverrides[]>(
 		() => [
 			commentToolOverrides,
 			{
 				actions(_editor, actions) {
-					// locking is the teacher's; the shape rule enforces it on the server too
-					if (socket.session.get()?.meta.role !== 'teacher') {
+					const session = socket.session.get()
+					if (!session || !mayLockShapes(session.meta)) {
 						delete actions['toggle-lock']
 						delete actions['unlock-all']
 					}
 					return actions
 				},
-				tools(_editor, tools) {
-					const role = socket.session.get()?.meta.role
+				tools(editor, tools) {
+					const session = socket.session.get()
 					// the comment tool is hidden on a read-only canvas unless it says otherwise
-					// anyone who may comment keeps the comment tool on a read-only canvas or page
-					if (tools.comment) tools.comment.readonlyOk = role !== 'viewer'
-					if (role !== 'student') return tools
-					for (const id of Object.keys(tools)) {
-						const keep = ['select', 'hand', 'eraser', 'laser', 'comment', ...STUDENT_SHAPE_TYPES]
-						if (!keep.includes(id)) delete tools[id]
+					if (tools.comment) {
+						const pageId = editor.getCurrentPageId()
+						tools.comment.readonlyOk = mayComment(editor, { action: 'add-comment', pageId })
+					}
+					for (const [id, tool] of Object.entries(tools)) {
+						// the shape type that the tool creates; tools such as select create none
+						const type = tool.meta?.geo ? 'geo' : id === 'asset' ? 'image' : id
+						if (!editor.hasShapeUtil(type as TLShape['type'])) continue
+						if (!session || !mayCreateShapeType(session.meta, type)) delete tools[id]
 					}
 					return tools
 				},
 			},
 		],
-		[socket]
+		[socket, mayComment]
 	)
 	const components = useMemo<TLComponents>(
 		() => ({
@@ -616,8 +624,10 @@ probe: "may I update this shape to itself?"). A read-only page makes the editor 
 it is the current page.
 
 [7]
-Comment permissions follow the same rule as the server: add your own, and the teacher may take
-down any comment but edit none. Students see only the tools for the shape types they may create.
+The UI asks the same rule functions as the server, never a copy of them. The comment options
+probe the comment rules with checkCommentWrite: add your own, and the teacher may take down any
+comment but edit none. The toolbar and the lock actions call mayCreateShapeType and mayLockShapes,
+which the shape rule calls too.
 
 [8]
 Changing the role remounts the editor, so the tools and the UI match the new access.

@@ -32,6 +32,8 @@ The example runs a `TLSocketRoom` in the browser and connects four editors to it
 
 Each client registers the same rules on its store with `registerRecordRules`, so a denied write is canceled before it is sent. `isShapeLocked` locks the shapes that a person may not change, and `isPageReadonly` makes the Lesson page read-only for students when the teacher locks it.
 
+The UI never has its own copy of a rule. Each check calls the rule functions that the server uses: `checkRecordWrite` probes for locks, `checkCommentWrite` for the `canComment` and `canModifyComment` options of the comment tool, and `mayCreateShapeType` and `mayLockShapes` for the toolbar and the lock actions.
+
 The panel on the right lists every use case: what happens, the part of the API that solves it, and a "Try it" script. The script resets the board, makes the writes in the four editors, and outlines the panes to watch. Some scripts also force a write past the editor and the client rules, to show that the server stops it on its own. Each result line compares what the room kept with what the rules say. "Run all" runs every use case and counts the expected results.
 
 The room applies a push as one unit: if a rule denies one record in it, the room keeps none of it.

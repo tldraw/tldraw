@@ -1,3 +1,4 @@
+import { checkCommentWrite, CommentWriteProbe } from '@tldraw/sync-collaboration'
 import {
 	checkRecordWrite,
 	registerRecordRules,
@@ -595,6 +596,68 @@ describe('comments', () => {
 		teacher.editor.store.put([{ ...fromRoom(), isDeleted: true }])
 		await settle()
 		expect(fromRoom().isDeleted).toBe(true)
+	})
+
+	it('answers the comment UI with the same rules that the server enforces', async () => {
+		const teacher = users[0]
+		const carol = join('carol', 'commenter')
+		const victor = join('victor', 'viewer')
+		const alice = join('alice', 'student')
+		teacher.editor.updatePage({ id: page2, meta: { private: true } })
+		await settle()
+		const may = (user: User, probe: CommentWriteProbe) =>
+			checkCommentWrite(
+				classroomRules,
+				user.conn.socket.session.get()!,
+				(id) => user.editor.store.get(id as any),
+				probe
+			)
+
+		// add-comment: the probe agrees with what the server keeps from a forced write
+		for (const user of [teacher, carol, victor, alice]) {
+			const expected = may(user, { action: 'add-comment', pageId: page1 })
+			const thread = createCommentThread({
+				pageId: page1,
+				anchor: { type: 'page' } as any,
+				createdBy: user.userId,
+			})
+			const comment = createComment({
+				threadId: thread.id,
+				pageId: page1,
+				authorId: user.userId,
+				body: toRichText('hi'),
+			})
+			forcePut(user.editor, [thread, comment])
+			await settle()
+			expect({ user: user.userId, kept: !!shapeInRoom(comment.id) }).toEqual({
+				user: user.userId,
+				kept: expected,
+			})
+		}
+		expect(may(victor, { action: 'add-comment', pageId: page1 })).toBe(false)
+		// the read rules apply too: no comments on a page that the session may not read
+		expect(may(alice, { action: 'add-comment', pageId: page2 })).toBe(false)
+		expect(may(teacher, { action: 'add-comment', pageId: page2 })).toBe(true)
+
+		const { comment, thread } = startThread(carol.editor, 'carol', page1)
+		await settle()
+		const stored = shapeInRoom(comment.id)
+		const storedThread = shapeInRoom(thread.id)
+		const table = Object.fromEntries(
+			[teacher, carol, alice].map((user) => [
+				user.userId,
+				{
+					edit: may(user, { action: 'edit-comment', comment: stored }),
+					delete: may(user, { action: 'delete-comment', comment: stored }),
+					deleteThread: may(user, { action: 'delete-thread', thread: storedThread }),
+				},
+			])
+		)
+		expect(table).toEqual({
+			teacher: { edit: false, delete: true, deleteThread: true },
+			carol: { edit: true, delete: true, deleteThread: true },
+			alice: { edit: false, delete: false, deleteThread: false },
+		})
 	})
 
 	it('hides comments on a private page', async () => {

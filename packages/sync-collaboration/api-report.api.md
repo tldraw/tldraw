@@ -4,10 +4,17 @@
 
 ```ts
 
+import { TLAuthorizerSession } from '@tldraw/sync-core';
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
-import type { TLRecordAuthorizers } from '@tldraw/sync-core';
+import { TLPageId } from '@tldraw/tlschema';
+import { TLRecordAuthorizers } from '@tldraw/sync-core';
+import { TLRecordRules } from '@tldraw/sync-core';
+import type { UnknownRecord } from '@tldraw/store';
+
+// @public
+export function checkCommentWrite<R extends UnknownRecord, SessionMeta>(rules: TLRecordRules<R, SessionMeta>, session: TLAuthorizerSession<SessionMeta>, get: (id: string) => undefined | UnknownRecord, probe: CommentWriteProbe): boolean;
 
 // @public
 export interface CommentAuthorizerOptions<SessionMeta> {
@@ -46,6 +53,12 @@ export type CommentModificationAuthContext<SessionMeta> = {
     };
     readonly userId: null | string;
 } & CommentModification;
+
+// @public
+export type CommentWriteProbe = {
+    readonly action: 'add-comment';
+    readonly pageId: TLPageId;
+} | CommentModification;
 
 // @public
 export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
