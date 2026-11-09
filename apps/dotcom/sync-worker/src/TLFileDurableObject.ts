@@ -42,14 +42,11 @@ import {
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
-	TLAssetId,
 	TLComment,
 	TLCommentReaction,
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	commentSchemaRecords,
-	createTLSchema,
 	defaultShapeSchemas,
 	isCommentId,
 	isCommentReactionId,
@@ -91,6 +88,7 @@ import {
 	upsertCommentThreadRows,
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
+import { fileSyncSchema } from './fileSchema'
 import { Logger } from './Logger'
 import {
 	ensureMcpClusterIndexTable,
@@ -99,6 +97,7 @@ import {
 	writeMcpClusterIndexRow,
 } from './mcpClusterIndexStorage'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
+import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
 	deleteAllObjectsWithPrefix,
 	getR2KeyForRoom,
@@ -268,23 +267,7 @@ async function canAccessTestProductionFile(
 	}
 }
 
-function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
-	const usedAssets = new Set<TLAssetId>()
-	for (const record of records) {
-		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
-			usedAssets.add(record.props.assetId as TLAssetId)
-		}
-	}
-	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
-}
-
 const MB = 1024 * 1024
-
-// The schema for a file room. Includes the opt-in `comment` record type so comment records sync
-// through the room; comments are persisted to Postgres rather than the main document blob (see
-// drainCommentOutbox / loadCommentsFromPostgres). The same records must be registered on the
-// client (see useSync in the dotcom client) or the schemas won't match.
-const fileSyncSchema = createTLSchema({ records: commentSchemaRecords })
 
 // Record types served through the room's object-store lane rather than the document lane.
 // Object-lane records sync over the same socket but are gated per session by `objectAccess`

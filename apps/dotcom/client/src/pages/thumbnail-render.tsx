@@ -42,6 +42,7 @@ import {
 	renderThumbnailPng,
 } from '../utils/boardCapture'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
+import { fileSchemaRecords } from '../utils/fileSchemaRecords'
 
 // The thumbnail render page: a real editor, loaded with one board's records, that exports itself
 // and displays the export for Browser Run to screenshot. Served as its own Vite entry
@@ -274,6 +275,7 @@ function ThumbnailRenderPage({
 				shapeUtils={embedShapeUtils}
 				components={{ ErrorFallback: ThumbnailRenderCrash }}
 				snapshot={snapshot}
+				records={fileSchemaRecords}
 				onMount={(editor) => {
 					pageTimings.mountAt = performance.now()
 					editor.user.updateUserPreferences({ colorScheme: theme })

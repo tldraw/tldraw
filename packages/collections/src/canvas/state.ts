@@ -9,8 +9,8 @@ import type { TLCollectionId } from '../lib/schema'
 export const collectionsPanelOpen = new EditorAtom<boolean>('collectionsPanelOpen', () => false)
 
 /**
- * The collection the panel shows, or null for the first one. Kept on the editor so it survives the
- * panel closing.
+ * A collection to bring into view: the panel unfolds it and scrolls to it, then clears this. Set it
+ * with {@link collectionsPanelOpen} to show a collection, e.g. one just saved to.
  * @public
  */
 export const activeCollectionId = new EditorAtom<TLCollectionId | null>(
@@ -27,4 +27,19 @@ export function toggleCollectionsPanel(editor: Editor) {
 export const renamingCollectionId = new EditorAtom<TLCollectionId | null>(
 	'renamingCollectionId',
 	() => null
+)
+
+/** The collections folded shut in the panel's sections, kept while the panel is closed. */
+export const collapsedCollectionIds = new EditorAtom<TLCollectionId[]>(
+	'collapsedCollectionIds',
+	() => []
+)
+
+/**
+ * The groups of collections folded shut in the panel, by source id, each the keys of its groups
+ * (e.g. owner ids). Kept while the panel is closed.
+ */
+export const collapsedGroupKeys = new EditorAtom<Record<string, string[]>>(
+	'collapsedGroupKeys',
+	() => ({})
 )

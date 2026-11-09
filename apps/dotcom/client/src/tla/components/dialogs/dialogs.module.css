@@ -266,6 +266,67 @@
 	font-size: 12px;
 }
 
+.collectionsList {
+	display: flex;
+	flex-direction: column;
+}
+
+.collectionItem {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	height: 36px;
+}
+
+.collectionName {
+	flex: 1;
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.collectionCount {
+	flex-shrink: 0;
+	color: var(--tl-color-text-3);
+	font-size: 12px;
+}
+
+/* A bare icon, like the sidebar's file menu trigger, flush with the content's right edge. */
+.collectionMenuTrigger {
+	flex: 0 0 auto;
+	width: 36px;
+	height: 36px;
+	min-width: 0;
+	padding: 0;
+	margin-inline-end: -10px;
+	background: none;
+	color: var(--tl-color-text-3);
+}
+
+.collectionMenuTrigger:hover,
+.collectionMenuTrigger[data-state='open'] {
+	color: var(--tl-color-text-1);
+}
+
+/* Menus portal into the editor container beside the dialog, on the menus layer below it. Raise
+   the row menu and its "Move to" submenu to the dialog's layer, as .menuSelectContent does; the
+   submenu takes no class, so it is matched by the test id tldraw gives it. */
+.collectionMenu,
+:global([data-testid='dialog-sub.move-collection-content']) {
+	z-index: var(--tl-layer-canvas-overlays);
+}
+
+.collectionMenu :global([data-testid='dialog.delete']) {
+	color: var(--tl-color-danger);
+}
+
+.collectionsEmpty {
+	margin: 0;
+	line-height: 36px;
+	color: var(--tl-color-text-3);
+}
+
 /* Pull the tab strip out by the shared 12px tab padding so the first tab's label
    aligns with the headings, button, and member rows. Since the dialog body's padding
    also equals that 12px, the strip now spans the body's full width — so drop the tab
@@ -299,6 +360,11 @@
 
 .tabPage.scrollable {
 	overflow-y: auto;
+}
+
+/* The home workspace's collections sit under a section heading, not a tab bar. */
+.tabPage.untabbedPage {
+	padding-top: 0;
 }
 
 /* The toggle row and the action links below it sit at the content edge (no inset), so

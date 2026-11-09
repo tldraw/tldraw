@@ -1,10 +1,12 @@
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { AssetRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	CollectionItemContentTooNewError,
 	CollectionItemRecordType,
+	collectionItemRecordValidator,
 	collectionItemValidator,
 	CollectionRecordType,
+	collectionSchemaRecords,
 	collectionValidator,
 	getThumbnailForColorMode,
 	mapThumbnail,
@@ -43,6 +45,14 @@ describe('collectionValidator', () => {
 
 	it('rejects a blank name', () => {
 		expect(() => collectionValidator.validate({ ...collection, name: '  ' })).toThrow()
+	})
+
+	it('accepts an owner, but not a blank one', () => {
+		expect(collectionValidator.validate({ ...collection, ownerId: 'acme' })).toEqual({
+			...collection,
+			ownerId: 'acme',
+		})
+		expect(() => collectionValidator.validate({ ...collection, ownerId: ' ' })).toThrow()
 	})
 
 	it('rejects an id that is not a collection id', () => {
@@ -103,6 +113,58 @@ describe('collectionItemValidator', () => {
 
 	it('rejects a non-integer version', () => {
 		expect(() => collectionItemValidator.validate({ ...item, version: 1.5 })).toThrow()
+	})
+})
+
+describe('collectionItemRecordValidator', () => {
+	const item = {
+		...CollectionItemRecordType.create({
+			id: CollectionItemRecordType.createId('card'),
+			collectionId: CollectionRecordType.createId('wireframes'),
+			name: 'Card',
+		}),
+		thumbnail: {
+			light: AssetRecordType.createId('light'),
+			dark: AssetRecordType.createId('dark'),
+		},
+	}
+
+	it('accepts a stored item whose thumbnail names assets', () => {
+		expect(collectionItemRecordValidator.validate(item)).toEqual(item)
+		const withOne = { ...item, thumbnail: AssetRecordType.createId('one') }
+		expect(collectionItemRecordValidator.validate(withOne)).toEqual(withOne)
+	})
+
+	it('rejects a thumbnail that is a URL rather than an asset id', () => {
+		expect(() =>
+			collectionItemRecordValidator.validate({ ...item, thumbnail: 'https://x/t.png' })
+		).toThrow()
+		expect(() =>
+			collectionItemRecordValidator.validate({
+				...item,
+				thumbnail: { light: 'data:image/png;base64,AA', dark: 'data:image/png;base64,AA' },
+			})
+		).toThrow()
+	})
+})
+
+describe('stored item migrations', () => {
+	it('drops the data URL thumbnails items kept before thumbnails were assets', () => {
+		const schema = createTLSchema({ records: collectionSchemaRecords })
+		const id = CollectionItemRecordType.createId('card')
+		const oldSchema = structuredClone(schema.serialize()) as any
+		oldSchema.sequences['com.tldraw.collection-item'] = 0
+		const old = {
+			id,
+			typeName: 'collection-item',
+			collectionId: CollectionRecordType.createId('wireframes'),
+			thumbnail: { light: 'data:image/png;base64,AA', dark: 'data:image/png;base64,AA' },
+			version: 1,
+			meta: {},
+		}
+		const migrated = schema.migrateStoreSnapshot({ store: { [id]: old } as any, schema: oldSchema })
+		if (migrated.type === 'error') throw new Error(migrated.reason)
+		expect((migrated.value as any)[id]).not.toHaveProperty('thumbnail')
 	})
 })
 

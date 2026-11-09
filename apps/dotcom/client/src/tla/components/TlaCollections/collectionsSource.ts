@@ -1,8 +1,8 @@
 import {
-	CollectionRecordType,
 	InMemoryCollectionSource,
 	mapThumbnail,
 	type CollectionSource,
+	type InMemoryCollectionSourceOptions,
 	type TLCollection,
 	type TLCollectionAction,
 	type TLCollectionId,
@@ -10,21 +10,17 @@ import {
 	type TLCollectionItemContent,
 	type TLCollectionItemId,
 	type TLCollectionThumbnail,
+	type TLCollectionOwner,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from '@tldraw/collections'
 import { openDB, type IDBPDatabase } from 'idb'
-import { atom } from 'tldraw'
+import { atom, computed, defineMessages, type Atom } from 'tldraw'
+import type { TldrawApp } from '../../app/TldrawApp'
 
-const SAMPLE_COLLECTIONS = [
-	CollectionRecordType.create({
-		id: CollectionRecordType.createId('sample-wireframes'),
-		name: 'Wireframes',
-	}),
-	CollectionRecordType.create({
-		id: CollectionRecordType.createId('sample-icons'),
-		name: 'Icons',
-	}),
-]
+const messages = defineMessages({
+	privateToYou: { defaultMessage: 'Private to you' },
+})
 
 // Bytes rather than a Blob, which not every IndexedDB stores.
 interface StoredImage {
@@ -42,31 +38,62 @@ async function toStoredImage(blob: Blob): Promise<StoredImage> {
 	return { type: blob.type, data: await blob.arrayBuffer() }
 }
 
-// Until tldraw.com has a real source, collections are kept in this browser, per user: they survive
-// a reload but don't follow anyone to another browser or device.
-export function createCollectionsSource(userId: string) {
-	return new BrowserCollectionSource(userId)
+// The in-memory source checks owners against its own list, so it is given this source's.
+class OwnedInMemoryCollectionSource extends InMemoryCollectionSource {
+	constructor(
+		private readonly listOwners: () => TLCollectionOwner[],
+		options: InMemoryCollectionSourceOptions
+	) {
+		super(options)
+	}
+
+	override getCollectionOwners() {
+		return this.listOwners()
+	}
 }
 
 /**
- * An in-memory source, saved to IndexedDB after each change and loaded back on start. Until the
- * load finishes it shows the sample collections, and writes wait for it.
+ * Until tldraw.com has a real source, workspace collections are kept in this browser, per user:
+ * they survive a reload but don't follow anyone to another browser or device. A collection belongs
+ * to one of the user's workspaces, their home workspace first. A board's own collections are kept
+ * in its document instead (see editorCollections).
+ *
+ * An in-memory source, saved to IndexedDB after each change and loaded back on start. Each
+ * collection is saved with its owner. Until the load finishes nothing is listed, and writes wait
+ * for it.
  */
-class BrowserCollectionSource implements CollectionSource {
+export class TldrawAppCollectionsSource implements CollectionSource {
 	readonly id = 'dotcom-browser'
-	private readonly inner = atom(
-		'collections source',
-		new InMemoryCollectionSource({
-			initial: { collections: SAMPLE_COLLECTIONS, items: [], contents: {} },
-		})
-	)
+
+	private readonly owners$ = computed('collection owners', (): TLCollectionOwner[] => {
+		const homeId = this.app.getHomeWorkspaceId()
+		const memberships = this.app.getWorkspaceMemberships()
+		// The collections UI names the home workspace for who sees it, not by its name.
+		return [
+			{ id: homeId, name: this.app.msg(messages.privateToYou) },
+			...memberships.flatMap((m) =>
+				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
+			),
+		]
+	})
+
+	private readonly collections$ = computed('visible collections', () => {
+		const ownerIds = new Set(this.getCollectionOwners().map((owner) => owner.id))
+		return this.inner
+			.get()
+			.getCollections()
+			.filter((collection) => collection.ownerId === undefined || ownerIds.has(collection.ownerId))
+	})
+
+	private readonly inner: Atom<InMemoryCollectionSource>
 	private readonly db: Promise<IDBPDatabase>
 	private readonly ready: Promise<void>
 	// The in-memory source only releases URLs it created, so these are released here.
 	private readonly loadedThumbnailUrls: string[] = []
 
-	constructor(userId: string) {
-		this.db = openDB(`tldraw-collections-${userId}`, 1, {
+	constructor(private readonly app: TldrawApp) {
+		this.inner = atom('collections source', this.createInner())
+		this.db = openDB(`tldraw-collections-${app.userId}`, 1, {
 			upgrade(db) {
 				db.createObjectStore('state')
 				db.createObjectStore('items')
@@ -78,7 +105,7 @@ class BrowserCollectionSource implements CollectionSource {
 	}
 
 	getCollections() {
-		return this.inner.get().getCollections()
+		return this.collections$.get()
 	}
 
 	getItems(collectionId: TLCollectionId) {
@@ -94,9 +121,18 @@ class BrowserCollectionSource implements CollectionSource {
 		return this.inner.get().can(action, collectionId)
 	}
 
-	async createCollection(name: string) {
+	getCollectionOwners() {
+		return this.owners$.get()
+	}
+
+	getDefaultOwnerId() {
+		return this.app.getHomeWorkspaceId()
+	}
+
+	async createCollection(name: string, options: TLNewCollectionOptions = {}) {
 		await this.ready
-		const collection = await this.inner.get().createCollection(name)
+		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
+		const collection = await this.inner.get().createCollection(name, { ...options, ownerId })
 		await this.save()
 		return collection
 	}
@@ -112,6 +148,12 @@ class BrowserCollectionSource implements CollectionSource {
 		const itemIds = this.getItems(collectionId).map((item) => item.id)
 		await this.inner.get().deleteCollection(collectionId)
 		await this.save((db) => Promise.all(itemIds.map((itemId) => db.delete('items', itemId))))
+	}
+
+	async moveCollection(collectionId: TLCollectionId, ownerId: string) {
+		await this.ready
+		await this.inner.get().moveCollection(collectionId, ownerId)
+		await this.save()
 	}
 
 	async addItem(collectionId: TLCollectionId, newItem: TLNewCollectionItem) {
@@ -158,10 +200,14 @@ class BrowserCollectionSource implements CollectionSource {
 		this.db.then((db) => db.close()).catch(() => {})
 	}
 
+	private createInner(initial?: InMemoryCollectionSourceOptions['initial']) {
+		return new OwnedInMemoryCollectionSource(() => this.getCollectionOwners(), { initial })
+	}
+
 	private async load() {
 		const db = await this.db
 		const collections: TLCollection[] | undefined = await db.get('state', 'collections')
-		// Nothing saved yet: keep the samples.
+		// Nothing saved yet: stay empty.
 		if (!collections) return
 		const stored: StoredItem[] = await db.getAll('items')
 		const toUrl = (bytes: StoredImage) => {
@@ -175,19 +221,18 @@ class BrowserCollectionSource implements CollectionSource {
 		}))
 		const contents = Object.fromEntries(stored.map(({ item, content }) => [item.id, content]))
 		const previous = this.inner.get()
-		this.inner.set(new InMemoryCollectionSource({ initial: { collections, items, contents } }))
+		this.inner.set(this.createInner({ collections, items, contents }))
 		previous.dispose()
 	}
 
-	// The collection list is saved with every change, so an item added to a sample collection
-	// before anything else was saved still has its collection on the next load. The change has
+	// The whole collection list, other files' included, is saved with every change. The change has
 	// already happened in memory, so a failed save keeps it for this session instead of reporting
 	// an error for something that worked.
 	private async save(write?: (db: IDBPDatabase) => Promise<unknown>) {
 		try {
 			const db = await this.db
 			await write?.(db)
-			await db.put('state', this.getCollections(), 'collections')
+			await db.put('state', this.inner.get().getCollections(), 'collections')
 		} catch (error) {
 			console.error('[collections] failed to save', error)
 		}

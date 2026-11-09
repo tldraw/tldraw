@@ -1,13 +1,15 @@
 import { SerializedSchema, SerializedStore } from '@tldraw/store'
-import { TLRecord, createTLSchema } from '@tldraw/tlschema'
+import { TLRecord } from '@tldraw/tlschema'
 import { Result, objectMapEntries } from '@tldraw/utils'
+import { fileSyncSchema } from '../fileSchema'
 
 interface SnapshotRequestBody {
 	schema: SerializedSchema
 	snapshot: SerializedStore<TLRecord>
 }
 
-const schema = createTLSchema()
+// A file's own schema, so a snapshot from a .tldr export keeps its board collections.
+const schema = fileSyncSchema
 export function validateSnapshot(
 	body: SnapshotRequestBody
 ): Result<SerializedStore<TLRecord>, string> {

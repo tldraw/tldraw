@@ -17,7 +17,6 @@ import {
 	TLUserStore,
 	UserRecordType,
 	assertExists,
-	commentSchemaRecords,
 	computed,
 	createUserId,
 	getUserPreferences,
@@ -29,6 +28,7 @@ import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { FileLoad, fileLoads } from '../../../utils/fileLoad'
+import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { markFirstLoad } from '../../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
@@ -126,9 +126,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		}, [fileSlug, userId, getUserToken, fileLoad]),
 		assets,
 		users,
-		// Register the opt-in `comment` record type so comment records sync through the file room.
-		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
-		records: commentSchemaRecords,
+		records: fileSchemaRecords,
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
 				if (message.type === 'first_load_server') {

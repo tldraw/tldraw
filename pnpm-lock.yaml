@@ -727,6 +727,9 @@ importers:
       dotenv:
         specifier: ^16.4.7
         version: 16.4.7
+      fake-indexeddb:
+        specifier: ^4.0.2
+        version: 4.0.2
       identity-obj-proxy:
         specifier: ^3.0.0
         version: 3.0.0
@@ -794,6 +797,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.48.1
         version: 2.48.1
+      '@tldraw/collections':
+        specifier: workspace:*
+        version: link:../../../packages/collections
       '@tldraw/dotcom-shared':
         specifier: workspace:*
         version: link:../../../packages/dotcom-shared
@@ -1447,6 +1453,9 @@ importers:
       '@tldraw/validate':
         specifier: workspace:*
         version: link:../validate
+      radix-ui:
+        specifier: ^1.4.2
+        version: 1.4.2(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(@types/react@19.2.7)(react@19.2.1))(react@19.2.1)
       tldraw:
         specifier: workspace:*
         version: link:../tldraw

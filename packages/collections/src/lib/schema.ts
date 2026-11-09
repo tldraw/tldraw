@@ -1,11 +1,17 @@
 import type { TLContent } from '@tldraw/editor'
 import {
+	createMigrationIds,
 	createRecordMigrationSequence,
 	createRecordType,
 	type BaseRecord,
 	type RecordId,
 } from '@tldraw/store'
-import { idValidator, shapeIdValidator } from '@tldraw/tlschema'
+import {
+	idValidator,
+	shapeIdValidator,
+	type CustomRecordInfo,
+	type TLAssetId,
+} from '@tldraw/tlschema'
 import type { JsonObject } from '@tldraw/utils'
 import { T } from '@tldraw/validate'
 
@@ -19,6 +25,12 @@ export interface TLCollection extends BaseRecord<'collection', TLCollectionId> {
 	 * Sources can leave it out; absent means false.
 	 */
 	readOnly?: boolean
+	/**
+	 * Who the collection belongs to, such as a user or a workspace, as the source names them in
+	 * `CollectionSource.getCollectionOwners`. What an owner is stays up to the source. Left out by
+	 * sources that don't track owners.
+	 */
+	ownerId?: string
 	meta: JsonObject
 }
 
@@ -78,7 +90,43 @@ export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollec
 	meta: JsonObject
 }
 
-export type TLCollectionRecord = TLCollection | TLCollectionItem
+/**
+ * An item as a record in a document's store, for sources that keep collections there. Its
+ * thumbnail names image asset records in the same store instead of holding URLs, so the images are
+ * uploaded, synced and copied like any other asset in the document. The source resolves them to
+ * URLs when it lists the item.
+ */
+export interface TLCollectionItemRecord extends Omit<TLCollectionItem, 'thumbnail'> {
+	/** Left out when the item has no thumbnail. */
+	thumbnail?: TLCollectionThumbnail<TLAssetId>
+}
+
+export type TLCollectionItemContentRecordId = RecordId<TLCollectionItemContentRecord>
+
+/**
+ * An item's content, as a record of its own, for sources that keep collections in a document's
+ * store. Kept apart from the item so listing a collection never reads shapes, and keyed by the
+ * item's id so finding it needs no index.
+ *
+ * Assets are not copied in: `assetIds` names asset records that sit in the same store, so whatever
+ * the document does with its assets (uploading them, copying them along with a duplicated file)
+ * happens to these too. The shapes stay at the schema they were saved with, in `content.schema`,
+ * and are migrated when the content is loaded.
+ */
+export interface TLCollectionItemContentRecord extends BaseRecord<
+	'collection-item-content',
+	TLCollectionItemContentRecordId
+> {
+	itemId: TLCollectionItemId
+	content: Omit<TLContent, 'assets'>
+	assetIds: TLAssetId[]
+	meta: JsonObject
+}
+
+export type TLCollectionRecord =
+	| TLCollection
+	| TLCollectionItemRecord
+	| TLCollectionItemContentRecord
 
 const nonEmptyString = T.string.check((value) => {
 	if (value.trim().length === 0) throw new T.ValidationError('Expected a non-empty string')
@@ -89,6 +137,7 @@ export const collectionValidator: T.Validator<TLCollection> = T.object({
 	typeName: T.literal('collection'),
 	name: nonEmptyString,
 	readOnly: T.boolean.optional(),
+	ownerId: nonEmptyString.optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
@@ -111,10 +160,56 @@ export const CollectionRecordType = createRecordType<TLCollection>('collection',
 	scope: 'document',
 }).withDefaultProperties(() => ({ meta: {} }))
 
+const assetIdValidator = idValidator<TLAssetId>('asset')
+
+export const collectionItemRecordValidator: T.Validator<TLCollectionItemRecord> = T.object({
+	id: idValidator<TLCollectionItemId>('collection-item'),
+	typeName: T.literal('collection-item'),
+	collectionId: idValidator<TLCollectionId>('collection'),
+	name: nonEmptyString.optional(),
+	thumbnail: T.or(
+		assetIdValidator,
+		T.object({ light: assetIdValidator, dark: assetIdValidator })
+	).optional(),
+	createdAt: T.number.optional(),
+	version: T.positiveInteger,
+	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+})
+
 export const CollectionItemRecordType = createRecordType<TLCollectionItem>('collection-item', {
 	validator: collectionItemValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({ version: 1, meta: {} }))
+
+// Only the envelope is checked here, as for content handed to a source: see contentValidator.
+const storedContentValidator = T.object({
+	shapes: T.arrayOf(T.unknownObject),
+	bindings: T.arrayOf(T.unknownObject).optional(),
+	rootShapeIds: T.arrayOf(shapeIdValidator),
+	schema: T.unknownObject,
+	users: T.arrayOf(T.unknownObject).optional(),
+}) as T.Validator<unknown> as T.Validator<Omit<TLContent, 'assets'>>
+
+export const collectionItemContentValidator: T.Validator<TLCollectionItemContentRecord> = T.object({
+	id: idValidator<TLCollectionItemContentRecordId>('collection-item-content'),
+	typeName: T.literal('collection-item-content'),
+	itemId: idValidator<TLCollectionItemId>('collection-item'),
+	content: storedContentValidator,
+	assetIds: T.arrayOf(idValidator<TLAssetId>('asset')),
+	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
+})
+
+export const CollectionItemContentRecordType = createRecordType<TLCollectionItemContentRecord>(
+	'collection-item-content',
+	{ validator: collectionItemContentValidator, scope: 'document' }
+).withDefaultProperties(() => ({ meta: {} }))
+
+/** The id of the content record for an item: the item's own id, under the content type. */
+export function getCollectionItemContentId(
+	itemId: TLCollectionItemId
+): TLCollectionItemContentRecordId {
+	return CollectionItemContentRecordType.createId(itemId.slice('collection-item:'.length))
+}
 
 export const collectionMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.collection',
@@ -122,11 +217,60 @@ export const collectionMigrations = createRecordMigrationSequence({
 	sequence: [],
 })
 
+const collectionItemVersions = createMigrationIds('com.tldraw.collection-item', {
+	ThumbnailAssets: 1,
+})
+
+/** Migrations for items kept as records in a document's store: see {@link TLCollectionItemRecord}. */
 export const collectionItemMigrations = createRecordMigrationSequence({
 	sequenceId: 'com.tldraw.collection-item',
 	recordType: 'collection-item',
+	sequence: [
+		{
+			// Thumbnails were data URLs on the item. They are dropped rather than turned into assets,
+			// which needs the app's asset store; the item shows a placeholder.
+			id: collectionItemVersions.ThumbnailAssets,
+			up: (record: any) => {
+				delete record.thumbnail
+			},
+			down: (record: any) => {
+				delete record.thumbnail
+			},
+		},
+	],
+})
+
+export const collectionItemContentMigrations = createRecordMigrationSequence({
+	sequenceId: 'com.tldraw.collection-item-content',
+	recordType: 'collection-item-content',
 	sequence: [],
 })
+
+/**
+ * The `records` map that lets a tldraw store hold collections, for `createTLSchema` on a sync
+ * server and the `records` option on the client. Register it on both sides, or the client and
+ * server schemas won't match.
+ */
+export const collectionSchemaRecords = {
+	collection: {
+		scope: 'document',
+		validator: collectionValidator,
+		migrations: collectionMigrations,
+		createDefaultProperties: () => ({ meta: {} }),
+	},
+	'collection-item': {
+		scope: 'document',
+		validator: collectionItemRecordValidator,
+		migrations: collectionItemMigrations,
+		createDefaultProperties: () => ({ version: 1, meta: {} }),
+	},
+	'collection-item-content': {
+		scope: 'document',
+		validator: collectionItemContentValidator,
+		migrations: collectionItemContentMigrations,
+		createDefaultProperties: () => ({ meta: {} }),
+	},
+} satisfies Record<TLCollectionRecord['typeName'], CustomRecordInfo>
 
 /** The newest item content format this version of the package can read. */
 export const CURRENT_ITEM_CONTENT_FORMAT_VERSION = 1

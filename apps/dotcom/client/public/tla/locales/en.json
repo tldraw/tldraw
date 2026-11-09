@@ -14,6 +14,9 @@
   "04a2dd56d6": {
     "translation": "Invite teammates"
   },
+  "0571ee3934": {
+    "translation": "Couldn't change the collection"
+  },
   "05b2656486": {
     "translation": "<name>{author}</name> mentioned you"
   },
@@ -35,6 +38,9 @@
   "093ac7483a": {
     "translation": "Can’t open {extension} files yet"
   },
+  "0a8b8802c9": {
+    "translation": "Added {pack} to your private collections."
+  },
   "0a91f7fa87": {
     "translation": "This file has reached its size limit and changes might no longer be saved. Remove some content or start a new file."
   },
@@ -43,6 +49,9 @@
   },
   "0b9a4cde72": {
     "translation": "File menu"
+  },
+  "0b9e9037d5": {
+    "translation": "Browse collections"
   },
   "0c4383617a": {
     "translation": "Something went wrong loading this invite. Please try again."
@@ -85,6 +94,9 @@
   },
   "21f66c9c00": {
     "translation": "Workspace name"
+  },
+  "2361431171": {
+    "translation": "Private to you"
   },
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
@@ -221,6 +233,9 @@
   "55505ba281": {
     "translation": "PNG"
   },
+  "5555e27b9f": {
+    "translation": "This board"
+  },
   "5638176be5": {
     "translation": "Create a workspace"
   },
@@ -241,6 +256,9 @@
   },
   "5bffeebf03": {
     "translation": "<name>{author}</name> reacted to your comment"
+  },
+  "5cbe4b7faf": {
+    "translation": "No collections in this workspace yet."
   },
   "5d04a002ea": {
     "translation": "Unable to connect"
@@ -263,17 +281,26 @@
   "61057a0c84": {
     "translation": "Later"
   },
+  "611307b7ab": {
+    "translation": "Delete collection"
+  },
   "61fb03fd7b": {
     "translation": "{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
   },
   "625fd29749": {
     "translation": "Older"
   },
+  "6378731a5e": {
+    "translation": "Couldn't add"
+  },
   "639bae9ac6": {
     "translation": "you"
   },
   "63a6a88c06": {
     "translation": "Refresh"
+  },
+  "6544c494b4": {
+    "translation": "Browse collections…"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -298,6 +325,9 @@
   },
   "6dfc62f621": {
     "translation": "Follow these steps to import the content manually:"
+  },
+  "6e79784488": {
+    "translation": "You may not be allowed to create collections, or copying failed."
   },
   "70a6facb9d": {
     "translation": "This week"
@@ -416,6 +446,9 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
+  "92e423b077": {
+    "translation": "Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay."
+  },
   "930390d222": {
     "translation": "Copied invite link"
   },
@@ -445,6 +478,9 @@
   },
   "9c228b6834": {
     "translation": "You appear to be offline. Check your connection and try again."
+  },
+  "9c48785253": {
+    "translation": "{count, plural, one {# item} other {# items}}"
   },
   "9ccb565b86": {
     "translation": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
@@ -493,6 +529,9 @@
   },
   "a768caa988": {
     "translation": "Analytics"
+  },
+  "a8852f3a91": {
+    "translation": "Collection menu"
   },
   "a8873770ab": {
     "translation": "File is getting large"
@@ -570,8 +609,14 @@
   "c26f17786f": {
     "translation": "{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}"
   },
+  "c2d3219e36": {
+    "translation": "You may not be allowed to, or the collection no longer exists."
+  },
   "c303bd1095": {
     "translation": "Unable to publish the file."
+  },
+  "c3bf447eab": {
+    "translation": "Open"
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
@@ -639,6 +684,9 @@
   "e0aa021e21": {
     "translation": "OK"
   },
+  "e10a073cda": {
+    "translation": "Moved to {name}"
+  },
   "e2198d6228": {
     "translation": "Copy invite link"
   },
@@ -665,6 +713,9 @@
   },
   "ebfe9ce86e": {
     "translation": "Yesterday"
+  },
+  "ec211f7c20": {
+    "translation": "Add"
   },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
@@ -695,6 +746,9 @@
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
+  },
+  "f29ddbfb90": {
+    "translation": "Added"
   },
   "f2a6c498fb": {
     "translation": "Delete"

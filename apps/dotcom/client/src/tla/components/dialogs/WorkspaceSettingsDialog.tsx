@@ -30,10 +30,12 @@ import {
 } from '../tla-menu/tla-menu'
 import { TlaButton } from '../TlaButton/TlaButton'
 import { ConfirmDialog } from './ConfirmDialog'
+import { WorkspaceCollectionsList } from './WorkspaceCollectionsList'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
 	cancel: { defaultMessage: 'Cancel' },
+	collections: { defaultMessage: 'Collections' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	deleteWorkspace: { defaultMessage: 'Delete workspace' },
 	inviteTeammates: { defaultMessage: 'Invite teammates' },
@@ -142,8 +144,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	if (!workspace) return null
 	// The home workspace is a private, single-member space: it can be renamed but not shared,
 	// joined, or deleted, so it shows the name field and a disabled "private workspace" invite
-	// note — no shareable invite link, members list, or settings tabs.
+	// note — no shareable invite link, members list, or settings tabs. Its collections are
+	// listed under a heading rather than in a tab strip of one.
 	const isHomeWorkspace = workspaceId === app.getHomeWorkspaceId()
+	const collectionsSource = app.collections
 
 	const currentUserId = app.getUser().id
 	const role = workspaceMembership.groupMembers.find((m) => m.userId === currentUserId)?.role
@@ -377,6 +381,17 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 					</div>
 				)}
 
+				{isHomeWorkspace && collectionsSource && (
+					<div className={styles.section}>
+						<div className={styles.sectionLabel}>
+							<F {...messages.collections} />
+						</div>
+						<div className={`${styles.tabPage} ${styles.untabbedPage}`} ref={scrollableRef}>
+							<WorkspaceCollectionsList source={collectionsSource} workspaceId={workspaceId} />
+						</div>
+					</div>
+				)}
+
 				{/* Invite link, members, and settings apply only to shared workspaces. */}
 				{!isHomeWorkspace && (
 					<>
@@ -410,6 +425,11 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 									<TlaMenuTabsTab id="members">
 										<F defaultMessage="Members" />
 									</TlaMenuTabsTab>
+									{collectionsSource && (
+										<TlaMenuTabsTab id="collections">
+											<F {...messages.collections} />
+										</TlaMenuTabsTab>
+									)}
 									<TlaMenuTabsTab id="settings">
 										<F defaultMessage="Settings" />
 									</TlaMenuTabsTab>
@@ -500,6 +520,17 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 									</div>
 								</div>
 							</TlaMenuTabsPage>
+
+							{collectionsSource && (
+								<TlaMenuTabsPage id="collections">
+									<div className={styles.tabPage} ref={scrollableRef}>
+										<WorkspaceCollectionsList
+											source={collectionsSource}
+											workspaceId={workspaceId}
+										/>
+									</div>
+								</TlaMenuTabsPage>
+							)}
 
 							<TlaMenuTabsPage id="settings">
 								<div className={styles.tabPage} ref={scrollableRef}>

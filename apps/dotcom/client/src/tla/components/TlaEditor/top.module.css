@@ -220,6 +220,10 @@ button.topLeftInputNameWidthSetter {
 	inset: 2px;
 }
 
+.topRightIconButton + .topRightIconButton {
+	margin-inline-start: 4px;
+}
+
 /* A panel toggle shows the same open wash as the main menu trigger while the panel it controls
    is open. */
 .topRightIconButton[aria-pressed='true']::after {

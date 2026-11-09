@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
+import { createNewCollection } from './new-collection'
 import { saveShapesToCollection } from './save-shapes'
 import { activeCollectionId, collectionsPanelOpen, renamingCollectionId } from './state'
 
@@ -41,11 +42,11 @@ function showCollection(editor: Editor, collectionId: TLCollectionId) {
 }
 
 /**
- * Returns functions that save the current selection. `saveSelection` saves to an existing
- * collection: with the panel open, the panel shows that collection; otherwise a toast confirms the
- * save and can open it. `saveToNewCollection` creates a collection named "New collection" (or the
- * next free variant), saves into it, and opens the panel with the new name ready to edit. Failures
- * show a toast.
+ * Returns functions that save the current selection, unnamed. `saveSelection` saves to an existing
+ * collection: with the panel open, the panel brings that collection into view; otherwise a toast
+ * confirms the save and can open it. `saveToNewCollection` creates a collection named "New
+ * collection" (or the next free variant), saves into it, and opens the panel with the new name
+ * ready to edit. Failures show a toast.
  */
 export function useSaveSelection(source: CollectionSource) {
 	const editor = useEditor()
@@ -77,13 +78,12 @@ export function useSaveSelection(source: CollectionSource) {
 						],
 					})
 				},
-				() => {
+				() =>
 					addToast({
 						title: msg(messages.saveErrorTitle),
 						description: msg(messages.saveErrorDescription),
 						severity: 'error',
 					})
-				}
 			)
 		},
 		[editor, source, msg, addToast]
@@ -96,8 +96,7 @@ export function useSaveSelection(source: CollectionSource) {
 			msg(messages.newCollectionName),
 			source.getCollections().map((collection) => collection.name)
 		)
-		source
-			.createCollection(name)
+		createNewCollection(source, name)
 			.then(async (collection) => {
 				await saveShapesToCollection(editor, source, collection.id, shapeIds)
 				showCollection(editor, collection.id)
