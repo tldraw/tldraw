@@ -552,6 +552,41 @@ What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's
 
 The limiters follow the spend: the global Browser Run cap is consulted on the miss path only, since a call served from the index spends nothing to meter. The per-account budget still counts every call, cache hit or not — it is a ceiling on calls rather than on captures, so a caller looping over hits stays bounded.
 
+### Rendering in an open tab
+
+If the caller has the board open on tldraw.com, that tab already holds a running editor with the board's fonts loaded, which is everything a Browser Run session spends seconds building. So on a cache miss, before spending any Browser Run, the clustering and screenshot tools ask the caller's own open tab to do the work. It is gated per user by the `mcp_tab_render` flag.
+
+```
+MCP tool ──RPC──▶ file durable object ──custom sync message──▶ user's tab
+    ▲                     ▲                                        │
+    │                     └───POST /app/file/:id/tab-render/:job───┘
+    └─ falls back to Browser Run if no tab answers
+```
+
+**Every failure means "use Browser Run".** The tools ask, and carry on exactly as before if no answer comes back: no socket, a declined job, a timeout, an unreachable object. Measuring and capturing fall back separately, so a tab can measure a page and leave the picture to Browser Run. Published boards are never sent to a tab, because the room behind one holds the live file rather than the frozen copy the tool was asked about.
+
+**What a tab produces is never written to a cache.** The `mcp/` PNG keys and the cluster index have no viewer dimension, and a tab is a client whose owner can POST anything. Caching its answer would let one viewer of a shared board put text and images in front of every other viewer's agent. Uncached, a forged answer reaches only the agent of the person who forged it. So every index miss with a tab open re-measures, which costs a trip to the tab rather than a session, and each later page of a `get_page_info` answer is charged to the per-account budget because there is no index to serve it from. Tab results are also fresher than the rest of the call: which shapes exist still comes from the persisted snapshot, but their geometry and any picture come from the live editor. For the few seconds until the next persist the two can disagree: a shape just deleted in the tab has no measurement and reads as a lone cluster with no bounds, and `get_cluster_info` can report a just-dragged shape outside its cluster's box.
+
+**Who gets asked.** The sessions of the calling user that set `?tabRender=1` on connect and signed in with a website session. The param is ignored on an OAuth token: an agent can join a room as the same user, and honouring it there would let one of a user's agents answer with a forged result to another. A teammate's tab is never asked. The object reads this straight off its hibernated sockets, so the usual answer, that nobody has the board open, wakes neither the room nor the document.
+
+**Open sockets lie.** A sleeping laptop or a frozen tab keeps its socket, and `clientTimeout: Infinity` means the room never drops it. Three things bound what that can cost:
+
+- Sockets that have not pinged for `TAB_RENDER_MAX_PING_AGE_MS` (90s) are skipped, read from the runtime's auto-response timestamp. That has to clear the once-a-minute timers of a hidden tab.
+- A job goes to up to `MAX_TAB_RENDER_SESSIONS` (3) tabs at once and the first answer wins, so one dead tab can't sink a job another could answer.
+- A tab acknowledges a job immediately, within `TAB_RENDER_ACK_TIMEOUT_MS` (1.5s). That is what a tab that never answers adds to a fallback; without it, the price would be the whole work timeout.
+
+The room resuming comes first and has its own limit, `TAB_RENDER_ROOM_TIMEOUT_MS` (1.5s), because an idle tab lets the object hibernate and a wedged boot would otherwise hang a tool call that doesn't depend on the room in any other way. The worst case is a tab that acknowledges and then hangs, which costs the ack window plus `TAB_RENDER_WORK_TIMEOUT_MS` (5s to measure, 8s to capture) on top of the fallback, and a cold `get_cluster_screenshot` can pay that twice.
+
+**The reply route needs the job user's website session.** The job id is a random UUID delivered to one socket, one per tab, and it stops working when the job ends, but it is not enough on its own: a job id that reaches the wrong socket, or leaks, would let anyone answer. So the route takes only a Clerk session token, never an OAuth access token, and only for the user the job was made for. The tab sends one fetched with `getToken()` for each reply rather than relying on the session cookie, which a hidden tab lets expire; a tab that can't get a token, because its sign-in has ended, simply doesn't answer and the call falls back. The route checks the declared size and that the job exists for that user before reading the body, so bytes from anyone else never reach a room's object.
+
+Once the room has booted, a job also only goes to a session whose current socket qualifies. Picking reads every hibernated socket, including ones a newer connection under the same session id has replaced, while the room sends to the newest one.
+
+**The tab only reads.** It computes an export frame rather than borrowing the render page's zoom-to-fit, so the camera, page and selection never move, and `getThumbnailContentInset` keeps the framing the same as Browser Run's. Measuring works on any page, in time slices so a first measure of a large off-screen page doesn't block the main thread. A screenshot works only on the page in view, because the export draws the current page's rendering shapes; any other page is declined and goes to Browser Run. An export can't be sliced, so a tab also declines above `MAX_EXPORT_SHAPES` (500) and mid-drag, and runs exports one at a time. Those are queued rather than declined, because agents routinely ask for several clusters at once; a job re-checks the page and its shapes when its turn comes, and gives up after `MAX_EXPORT_QUEUE_MS` (5s), by when the worker has likely fallen back. An export that outlives `maxExportDelayMs` is declined too: past that delay it gives up on whatever it was waiting for, such as a slow image, and resolves with a valid PNG of an empty canvas. The two editors have to agree, since one call can be served by either, so what they share lives in `apps/dotcom/client/src/utils/boardCapture.ts`.
+
+**Hidden tabs answer, and pay for it.** Chrome clamps a hidden tab's timers to about once a second, and the export waits on a `sleep(0)` in `ExportDelay`, so a hidden screenshot costs roughly a second more than a visible one. Measuring doesn't wait on timers and isn't affected.
+
+The `mcp_tab_render` event records each attempt: `mode`, `outcome` (`measured`, `captured`, `no_tab`, `declined`, `room_timeout`, `ack_timeout`, `work_timeout` or `error`), `reason` for a decline, and its duration in `double1`. Set against `browser_run_session`, it is what shows whether this is paying off. Like the rest of this pipeline, it carries no board or user identity.
+
 ### Protocol versions
 
 `POST /app/mcp` serves two revisions of MCP at once: `2026-07-28` and `2025-11-25`. `2024-11-05` is no longer served — a client that asks for it during `initialize` is answered with `2025-11-25`, which is that handshake's own way of declining a version, and one that names it in an `MCP-Protocol-Version` header is rejected with `-32022` and the list of versions that are on offer.

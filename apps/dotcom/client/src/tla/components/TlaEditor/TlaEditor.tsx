@@ -70,7 +70,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
+import { useFileEditorRef, useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -108,6 +108,18 @@ interface TlaEditorProps {
 	fileSlug: string
 	isEmbed?: boolean
 	deepLinks?: boolean
+}
+
+function SneakyFileEditorRegistration() {
+	const editor = useEditor()
+	const editorRef = useFileEditorRef()
+	useEffect(() => {
+		editorRef.current = editor
+		return () => {
+			editorRef.current = null
+		}
+	}, [editor, editorRef])
+	return null
 }
 
 export function TlaEditor(props: TlaEditorProps) {
@@ -394,6 +406,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyFileEditorRegistration />
 				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>

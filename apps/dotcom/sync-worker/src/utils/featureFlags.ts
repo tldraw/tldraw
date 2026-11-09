@@ -36,6 +36,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Who may drive the MCP server at /api/app/mcp. The list starts empty, so an unconfigured flag names nobody. Anyone with a verified @tldraw.com email is admitted whatever the list says. Allow all opens it to every signed-in account',
 		},
+		mcp_tab_render: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				"Whose MCP tool calls may be answered by that user's own open tldraw.com tab instead of a Browser Run session. Anything a tab cannot answer still falls back to Browser Run, so closing this only makes those calls slower",
+		},
 		version_chain: {
 			type: 'percentage',
 			// On by default everywhere, production included: a durable object whose KV read fails lands

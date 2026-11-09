@@ -13,7 +13,10 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TAB_RENDER_PARAM,
 	TLCustomServerEvent,
+	TabRenderReply,
+	TabRenderRequest,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
@@ -59,6 +62,7 @@ import {
 	exhaustiveSwitchError,
 	objectMapEntries,
 	retry,
+	sleep,
 } from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
@@ -120,6 +124,14 @@ import {
 	resolvePersistedFingerprint,
 	SnapshotFingerprint,
 } from './snapshotUtils'
+import {
+	TAB_RENDER_ROOM_TIMEOUT_MS,
+	TabRenderBroker,
+	TabRenderOutcome,
+	TabRenderSocket,
+	keepDeliverableTabRenderSessions,
+	pickTabRenderSessions,
+} from './tabRenderBroker'
 import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
@@ -228,6 +240,9 @@ interface SocketAttachment {
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
+	// When a client that can answer `mcp_tab_render` jobs connected, which is what its liveness reads
+	// as until its first ping. Absent for every other socket.
+	tabRenderConnectedAt?: number
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -1120,6 +1135,7 @@ export class TLFileDurableObject extends DurableObject {
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
 		let auth: { userId: string } | null
+		let isWebsiteSession = false
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1134,8 +1150,10 @@ export class TLFileDurableObject extends DurableObject {
 			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
 			// a browser lets a client set there, which keeps it out of the URL that session tokens
 			// still use.
+			const session = await getAuth(req, this.env)
+			isWebsiteSession = !!session
 			auth =
-				(await getAuth(req, this.env)) ??
+				session ??
 				(await getMcpTokenUser(req, this.env, {
 					allowSubprotocolToken: true,
 					allowQueryToken: true,
@@ -1231,6 +1249,8 @@ export class TLFileDurableObject extends DurableObject {
 				isReadonly,
 				objectAccess,
 				clientBuildTimestamp,
+				tabRenderConnectedAt:
+					isWebsiteSession && params[TAB_RENDER_PARAM] === '1' ? Date.now() : undefined,
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -3530,6 +3550,64 @@ export class TLFileDurableObject extends DurableObject {
 		this.ensureMcpClusterIndex()
 		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
 		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
+	}
+
+	private tabRenders = new TabRenderBroker()
+
+	/**
+	 * Asks this user's open tabs to do something an MCP tool would otherwise start a browser for.
+	 *
+	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
+	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
+	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
+	 */
+	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
+		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
+
+		const sockets: TabRenderSocket[] = []
+		for (const ws of this.ctx.getWebSockets()) {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
+			sockets.push({
+				sessionId: attachment.sessionId,
+				userId: attachment.meta.userId,
+				lastSeenAt:
+					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
+					attachment.tabRenderConnectedAt,
+			})
+		}
+		const sessionIds = pickTabRenderSessions(sockets, userId, Date.now())
+		if (sessionIds.length === 0) return { status: 'no_tab' }
+
+		const room = await Promise.race([
+			this.getRoom(),
+			sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null),
+		])
+		if (!room) return { status: 'room_timeout' }
+		// Only now: sessionIdToWs is filled in as the room boots.
+		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
+			const ws = this.sessionIdToWs.get(sessionId)
+			const attachment = ws ? this.getSocketAttachment(ws) : null
+			if (!attachment) return null
+			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
+		})
+		if (deliverable.length === 0) return { status: 'no_tab' }
+		return this.tabRenders.dispatch(userId, deliverable, request, (sessionId, jobId) => {
+			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+			room.sendCustomMessage(sessionId, event)
+		})
+	}
+
+	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId, userId)
+	}
+
+	async receiveTabRenderReply(
+		jobId: string,
+		userId: string,
+		reply: TabRenderReply
+	): Promise<boolean> {
+		return this.tabRenders.receive(jobId, userId, reply)
 	}
 
 	/**

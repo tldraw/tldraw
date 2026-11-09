@@ -16,9 +16,9 @@ import { reportThumbnailError } from './thumbnailShared'
 // A cache in the strict sense: every path through here falls back to measuring, nothing depends on a
 // read succeeding, and a tool never fails because a write did not.
 //
-// The store is the file's own Durable Object, addressed by `ResolvedThumbnailBoard.fileId`. That is
-// the only Durable Object hop in the MCP request path — the tools otherwise read the room's
-// persisted snapshot straight out of R2 and never talk to the object that wrote it.
+// The store is the file's own Durable Object, addressed by `ResolvedThumbnailBoard.fileId`. The tools
+// otherwise read the room's persisted snapshot straight out of R2; the only other hop to this object
+// is asking an open tab, which is tried only once this cache has missed (see mcpTabRender.ts).
 //
 // Fresh relative to the snapshot, not to the board. An index is keyed to the content version it was
 // measured from, so it can never be staler than the snapshot the call is already reading — and that
