@@ -1,4 +1,9 @@
-import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
+import {
+	accessGrantSchemaRecords,
+	ROOM_OPEN_MODE,
+	RoomOpenMode,
+	RoomOpenModeToPath,
+} from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
 import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
@@ -26,6 +31,9 @@ import { SneakyLegacySetDocumentTitle } from './sneaky/SneakyLegacytSetDocumentT
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
+
+// SPIKE: stable identity, useSync recreates its store when `records` changes
+const fileSyncRecords = { ...commentSchemaRecords, ...accessGrantSchemaRecords }
 
 const components: TLComponents = {
 	ErrorFallback: TlaEditorErrorFallback,
@@ -77,7 +85,7 @@ function TlaEditorInner({
 		// Register the comment record types so the schema matches the server's (see
 		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
 		// session as too old. Legacy rooms don't render a comments UI.
-		records: commentSchemaRecords,
+		records: fileSyncRecords,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})

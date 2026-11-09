@@ -64,12 +64,23 @@ import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
 import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
 import { editorMessages } from './editor-messages'
+import { useCan } from './spike-access'
 import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
 /** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
  *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
  *  into. */
+// SPIKE: without the capability to create pages a session gets the current page's name, and
+// nothing to switch or create pages with.
+function PageMenuForRole() {
+	const editor = useEditor()
+	const canCreatePages = useCan('page:create')
+	const pageName = useValue('page name', () => editor.getCurrentPage().name, [editor])
+	if (canCreatePages) return <DefaultPageMenu />
+	return <span>{pageName}</span>
+}
+
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabled()
 	return (
@@ -164,7 +175,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 			{hasPages && (
 				<>
 					<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
-					<DefaultPageMenu />
+					<PageMenuForRole />
 				</>
 			)}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
@@ -275,7 +286,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
-			<DefaultPageMenu />
+			<PageMenuForRole />
 			<TlaFileMenu
 				fileId={fileId ?? ''}
 				workspaceId={null}

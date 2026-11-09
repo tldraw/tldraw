@@ -215,6 +215,12 @@
       "value": "Workspace name"
     }
   ],
+  "23ca55fd18": [
+    {
+      "type": 0,
+      "value": "Reverted"
+    }
+  ],
   "23dcace54a": [
     {
       "type": 0,
@@ -377,6 +383,12 @@
       "value": "Accept all"
     }
   ],
+  "3df377852c": [
+    {
+      "type": 0,
+      "value": "Delete a shape"
+    }
+  ],
   "3e2ae04ff0": [
     {
       "type": 0,
@@ -387,6 +399,12 @@
     {
       "type": 0,
       "value": "Color theme"
+    }
+  ],
+  "41c4201503": [
+    {
+      "type": 0,
+      "value": "Can create pages"
     }
   ],
   "42e53c47c1": [
@@ -461,6 +479,12 @@
     {
       "type": 0,
       "value": "Reload"
+    }
+  ],
+  "4ff3c2aac0": [
+    {
+      "type": 0,
+      "value": "Add a blue shape"
     }
   ],
   "5097d89907": [
@@ -549,6 +573,18 @@
     {
       "type": 0,
       "value": "Privacy policy"
+    }
+  ],
+  "5947db7f05": [
+    {
+      "type": 0,
+      "value": "Can create red shapes"
+    }
+  ],
+  "5a5305d11e": [
+    {
+      "type": 0,
+      "value": "Can delete shapes"
     }
   ],
   "5a95a425f7": [
@@ -662,6 +698,12 @@
       "value": "Older"
     }
   ],
+  "636c718e3f": [
+    {
+      "type": 0,
+      "value": "Can create any shape"
+    }
+  ],
   "639bae9ac6": [
     {
       "type": 0,
@@ -672,6 +714,12 @@
     {
       "type": 0,
       "value": "Refresh"
+    }
+  ],
+  "64390f1c3a": [
+    {
+      "type": 0,
+      "value": "Change not saved"
     }
   ],
   "6609dd239e": [
@@ -828,6 +876,12 @@
     {
       "type": 0,
       "value": "User manual"
+    }
+  ],
+  "7b3285a359": [
+    {
+      "type": 0,
+      "value": "Change the permissions"
     }
   ],
   "7be10fc592": [
@@ -1210,6 +1264,12 @@
       "value": "Leave"
     }
   ],
+  "a5552d8eb2": [
+    {
+      "type": 0,
+      "value": "Can edit shapes"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
@@ -1344,6 +1404,18 @@
     {
       "type": 0,
       "value": "Copy link"
+    }
+  ],
+  "b82bb78c5b": [
+    {
+      "type": 0,
+      "value": "One shape red, one blue"
+    }
+  ],
+  "b89a6c3361": [
+    {
+      "type": 0,
+      "value": "Show only this page to students"
     }
   ],
   "ba0318cb81": [
@@ -1498,6 +1570,12 @@
       "value": "Dismiss"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Color"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1628,6 +1706,12 @@
     {
       "type": 0,
       "value": "Theme"
+    }
+  ],
+  "d7a18d8512": [
+    {
+      "type": 0,
+      "value": "Edit the teacher's page"
     }
   ],
   "d876a9fe1a": [
@@ -1900,6 +1984,12 @@
       "value": " reacted to your comment"
     }
   ],
+  "f48b206184": [
+    {
+      "type": 0,
+      "value": "Refused"
+    }
+  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -1932,6 +2022,12 @@
     {
       "type": 0,
       "value": " to use it here."
+    }
+  ],
+  "f713687778": [
+    {
+      "type": 0,
+      "value": "Things that will fail"
     }
   ],
   "fa2ead697d": [

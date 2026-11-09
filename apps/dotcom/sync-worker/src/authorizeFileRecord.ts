@@ -1,4 +1,5 @@
-import { createCommentAuthorizer, isCommentRecord } from '@tldraw/sync-collaboration'
+import { accessGrantId, judgeChange, readGrant } from '@tldraw/dotcom-shared'
+import { createCommentAuthorizer, getOwningPage, isCommentRecord } from '@tldraw/sync-collaboration'
 import {
 	createAccessAuthorizer,
 	perRecord,
@@ -25,7 +26,13 @@ export interface SessionMeta {
 
 // Record types served through the room's object store: persisted in Postgres via the
 // comment outbox rather than the R2 document blob, and judged by the shared comment rules below.
-export const OBJECT_TYPES = ['comment-thread', 'comment', 'comment-reaction'] as const
+export const OBJECT_TYPES = [
+	'comment-thread',
+	'comment',
+	'comment-reaction',
+	'access-grant',
+	'access-policy',
+] as const
 
 // The file room's record union, widened to include the object-store comment records.
 export type FileRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
@@ -69,6 +76,20 @@ function authorizeShape(change: TLRecordChange<FileRecord>, session: FileSession
 	return null
 }
 
+// SPIKE: what a session can do comes from its grant record: no grant, no capabilities. Teachers'
+// grants are written by the server, the students' grant by a teacher. Records the capabilities
+// don't cover (assets, the document) pass.
+const capabilities = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
+	const grant = readGrant(before(accessGrantId(session.meta.userId)))
+	return judgeChange(grant, change as TLRecordChange<any>, {
+		pageOf(record, end) {
+			const owning = getOwningPage(end === 'prev' ? before : after, record)
+			return owning.page ? owning.page.id : null
+		},
+		unresolved: 'refuse',
+	})
+})
+
 /** The parts of the file rule, kept as an object so a test can stub one. */
 export const fileRecordRules = {
 	comments: createCommentAuthorizer<FileRecord, SessionMeta>({
@@ -105,5 +126,10 @@ export function transformFileRecord(
 export function authorizeFileRecord(
 	args: Parameters<TLSyncAuthorizer<FileRecord, SessionMeta>>[0]
 ): TLSyncRefusal | null {
-	return fileRecordRules.access(args) ?? fileRecordRules.comments.authorize(args) ?? shapes(args)
+	return (
+		fileRecordRules.access(args) ??
+		fileRecordRules.comments.authorize(args) ??
+		shapes(args) ??
+		capabilities(args)
+	)
 }

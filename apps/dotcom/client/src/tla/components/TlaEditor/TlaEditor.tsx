@@ -17,6 +17,7 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	TLSessionStateSnapshot,
+	TLShape,
 	tltime,
 	TLUiDialogsContextType,
 	useAtom,
@@ -68,6 +69,7 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { SpikeAccessPanels, spikeComponents, useSpikeAccess } from './spike-access'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
@@ -154,9 +156,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
+	const spike = useSpikeAccess(app?.userId)
 	const getShapeVisibility = useCallback(
-		() => (hideAllShapes.get() ? 'hidden' : 'inherit'),
-		[hideAllShapes]
+		(shape: TLShape, editor: Editor) =>
+			hideAllShapes.get() ? 'hidden' : spike.getShapeVisibility(shape, editor),
+		[hideAllShapes, spike]
 	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
@@ -344,6 +348,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
+			...spikeComponents,
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
@@ -353,6 +358,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			),
 			InFrontOfTheCanvas: () => (
 				<>
+					<SpikeAccessPanels />
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
 					<TlaCollectionsPanel />
 				</>
@@ -386,6 +392,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				}}
 				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
+				canChangeRecord={spike.canChangeRecord}
 			>
 				<ThemeUpdater />
 				<SneakyDarkModeSync />

@@ -1,4 +1,4 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { accessGrantSchemaRecords, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import {
 	ReactNode,
@@ -36,6 +36,9 @@ import {
 	resolveCachedFileVisit,
 } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
+
+// SPIKE: stable identity, useSync recreates its store when `records` changes
+const fileSyncRecords = { ...commentSchemaRecords, ...accessGrantSchemaRecords }
 
 type FileSyncStore = ReturnType<typeof useSync>
 
@@ -111,7 +114,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		users,
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
-		records: commentSchemaRecords,
+		records: fileSyncRecords,
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
 				if (message.type === 'first_load_server') {
