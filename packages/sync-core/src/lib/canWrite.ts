@@ -53,3 +53,60 @@ export function canWrite<R extends UnknownRecord, SessionMeta>(
 	}
 	return hooks as unknown as TLBeforeWriteHooks<R, SessionMeta>
 }
+
+/**
+ * The arguments of a {@link TLCanWriteCheck} without `session`. This is what a client has: the
+ * editor's `canWrite` option gets these arguments.
+ *
+ * @public
+ */
+export type TLCanWriteClientArgs<R extends UnknownRecord> = Parameters<
+	TLCanWriteCheck<R, any>
+>[0] extends infer Args
+	? // Distributes over the create, update and delete cases, so `type` still narrows `prev` and `next`
+		Args extends unknown
+		? Omit<Args, 'session'>
+		: never
+	: never
+
+/**
+ * Runs the same checks that {@link canWrite} gives the server, on the client, as the editor's
+ * `canWrite` option. So one set of rule functions decides what the server stores and what the
+ * client offers and writes. The client check is for the UI and for fast feedback: the server
+ * check still decides.
+ *
+ * `getSession` gives the session the client acts as, with the same `meta` that the server gets
+ * for this client. The editor runs the check inside reactive caches, so read changing state, such
+ * as an atom with the person's role, inside `getSession`.
+ *
+ * A record type with no check is allowed, as on the server. A check that returns anything other
+ * than `true` blocks the write.
+ *
+ * @example
+ * ```ts
+ * // rules.ts, imported by the server and by the client
+ * export const checks: TLCanWriteChecks<TLRecord, SessionMeta> = {
+ * 	shape: ({ session, prev, next }) => (next ?? prev).meta.ownerId === session.meta.userId,
+ * }
+ *
+ * // server
+ * new TLSocketRoom({ beforeWrite: canWrite(checks) })
+ *
+ * // client
+ * <Tldraw canWrite={canWriteOnClient(checks, () => ({ sessionId, isReadonly: false, meta }))} />
+ * ```
+ *
+ * @public
+ */
+export function canWriteOnClient<R extends UnknownRecord, SessionMeta>(
+	checks: TLCanWriteChecks<R, SessionMeta>,
+	getSession: () => Parameters<TLCanWriteCheck<R, SessionMeta>>[0]['session']
+): (write: TLCanWriteClientArgs<R>) => boolean {
+	const byType = checks as Record<string, TLCanWriteCheck<R, SessionMeta> | undefined>
+	return (write) => {
+		const record = (write.next ?? write.prev) as R
+		const check = byType[record.typeName]
+		if (!check) return true
+		return check({ ...write, session: getSession() } as any) === true
+	}
+}

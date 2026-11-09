@@ -117,6 +117,7 @@ export {
 } from './lib/editor/bindings/BindingUtil'
 export {
 	Editor,
+	type TLCanWriteArgs,
 	type TLEditorOptions,
 	type TLEditorRunOptions,
 	type TLRecordWrite,

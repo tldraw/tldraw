@@ -154,7 +154,8 @@ Readonly mode is all or nothing. To block only some writes, for example shapes t
 
 ```tsx
 <Tldraw
-	canWrite={({ type, record }, editor) => {
+	canWrite={({ prev, next }, editor) => {
+		const record = prev ?? next
 		if (record.typeName !== 'shape') return true
 		return record.meta.ownerId === myUserId
 	}}
@@ -163,7 +164,31 @@ Readonly mode is all or nothing. To block only some writes, for example shapes t
 
 The editor is created again when the `canWrite` function changes, so pass a stable function: define it outside the component, or wrap it in `useCallback`. Keep values that change, such as the current user, in a signal that the function reads.
 
-The check gets the kind of write and one record: the new record for a create, and the stored record for an update or a delete. It does not get the new values of an update, so a rule about field values belongs in a [side effect](/sdk-features/side-effects). Remote changes, session records (camera, selection, instance state) and the store's own integrity repairs are never checked. A check that throws counts as `false`.
+The check gets the same arguments as a server write check, except `session`: `type`, `prev` (the stored record, or `null` for a create), `next` (the new record, or `null` for a delete), and `get` to read another record from this client's store. A write that the editor stores gets its real `next` value, so a check can test field values. Remote changes, session records (camera, selection, instance state) and the store's own integrity repairs are never checked. A check that throws counts as `false`.
+
+### One set of rules for the server and the client
+
+Write each rule once, as a plain function, and use it on both sides. The server enforces it, and the client uses it to hide what a person cannot do and to block a write before it reaches the server. With `@tldraw/sync`, put the checks in a module that both sides import. Pass them to the room with [canWrite](?), and to the editor with [canWriteOnClient](?):
+
+```ts
+// rules.ts
+export const checks: TLCanWriteChecks<TLRecord, SessionMeta> = {
+	shape: ({ session, prev, next }) => (prev ?? next).meta.ownerId === session.meta.userId,
+}
+
+// server
+new TLSocketRoom<TLRecord, SessionMeta>({ beforeWrite: canWrite(checks) })
+
+// client
+const clientCanWrite = canWriteOnClient(checks, () => ({
+	sessionId,
+	isReadonly: false,
+	meta: { userId: currentUser.get() },
+}))
+<Tldraw canWrite={clientCanWrite} />
+```
+
+The client check is for the UI and for fast feedback. The server check still decides: the client code can be changed by the person who runs it. `get` reads the client's store, which holds only the records that the server sends to this client.
 
 ### One operation lands whole or not at all
 
@@ -178,12 +203,15 @@ The rollback has limits:
 
 ### Asking the check from the UI
 
-The UI can ask the same question before it acts, with [Editor#canWrite](?), so what the UI offers and what the editor accepts come from one answer. The answer is cached for each stored record and updates when the state the check read changes, so it works inside `useValue`:
+The UI can ask the same question before it acts, with [Editor#canWrite](?), so what the UI offers and what the editor accepts come from one answer. Pass the write as the editor would store it. For "can this person edit this record", pass an update with `next` equal to `prev`, because the new values do not exist yet. A rule about new field values can then allow a UI item and still block the write, and the write rolls back. The answer for a stored record is cached and updates when the state the check read changes, so it works inside `useValue`:
 
 ```tsx
 const canDelete = useValue(
 	'can delete',
-	() => editor.getSelectedShapes().every((record) => editor.canWrite({ type: 'delete', record })),
+	() =>
+		editor
+			.getSelectedShapes()
+			.every((shape) => editor.canWrite({ type: 'delete', prev: shape, next: null })),
 	[editor]
 )
 ```

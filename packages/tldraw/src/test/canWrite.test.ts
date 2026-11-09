@@ -6,7 +6,6 @@ import {
 	TLArrowBinding,
 	TLRecord,
 	TLRecordWrite,
-	TLShape,
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
@@ -18,9 +17,11 @@ const ids = {
 
 // Only shapes whose meta.owner is the current user may be written. Everything else is allowed.
 const me = atom('me', 'alice')
-function ownsShape({ record }: TLRecordWrite) {
+// The stored record decides for an update or a delete, and the new record for a create
+function ownsShape({ prev, next }: TLRecordWrite) {
+	const record = prev ?? next
 	if (record.typeName !== 'shape') return true
-	return (record as TLShape).meta.owner === me.get()
+	return record.meta.owner === me.get()
 }
 
 let editor: TestEditor
@@ -78,10 +79,54 @@ describe('canWrite option', () => {
 		expect(editor.getShape(ids.mine)).toBeUndefined()
 	})
 
-	it('checks the stored record for an update, not the new values', () => {
+	it('checks the stored record for an update, when the rule reads prev', () => {
 		// Changing the owner to yourself does not make the write allowed.
 		editor.updateShapes([{ id: ids.theirs, type: 'geo', meta: { owner: 'alice' } }])
 		expect(editor.getShape(ids.theirs)!.meta.owner).toBe('bob')
+	})
+
+	it('gives an update its real new value, so a rule can check fields', () => {
+		// Alice may move her shape, but not give it away
+		const fields = new TestEditor({
+			canWrite: ({ type, prev, next }) =>
+				type !== 'update' || prev.typeName !== 'shape' || prev.meta.owner === next.meta.owner,
+		})
+		const id = createShapeId('field')
+		fields.createShapes([{ id, type: 'geo', meta: { owner: 'alice' } }])
+		fields.updateShapes([{ id, type: 'geo', x: 50 }])
+		expect(fields.getShape(id)!.x).toBe(50)
+		fields.updateShapes([{ id, type: 'geo', meta: { owner: 'bob' } }])
+		expect(fields.getShape(id)!.meta.owner).toBe('alice')
+	})
+
+	it('gives the check get, to read other records as of this write', () => {
+		// A shape may go only inside a frame that Alice owns
+		const nested = new TestEditor({
+			canWrite: ({ type, next, get }) => {
+				if (type === 'delete' || next.typeName !== 'shape') return true
+				if (next.parentId.startsWith('page:')) return true
+				return get(next.parentId)?.meta.owner === 'alice'
+			},
+		})
+		const mineFrame = createShapeId('mineFrame')
+		const theirFrame = createShapeId('theirFrame')
+		nested.store.mergeRemoteChanges(() => {
+			nested.createShapes([
+				{ id: mineFrame, type: 'frame', meta: { owner: 'alice' } },
+				{ id: theirFrame, type: 'frame', x: 500, meta: { owner: 'bob' } },
+			])
+		})
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		nested.createShapes([
+			{ id: a, type: 'geo', parentId: mineFrame },
+			{ id: b, type: 'geo', parentId: theirFrame },
+		])
+		// One operation: the blocked create rolls back both
+		expect(nested.getShape(a)).toBeUndefined()
+		expect(nested.getShape(b)).toBeUndefined()
+		nested.createShapes([{ id: a, type: 'geo', parentId: mineFrame }])
+		expect(nested.getShape(a)!.parentId).toBe(mineFrame)
 	})
 
 	it('never blocks remote changes', () => {
@@ -95,7 +140,9 @@ describe('canWrite option', () => {
 		editor.setCamera({ x: 10, y: 10, z: 1 })
 		editor.select(ids.theirs)
 		expect(editor.getSelectedShapeIds()).toEqual([ids.theirs])
-		expect(checks.every((c) => editor.store.scopedTypes.document.has(c.record.typeName))).toBe(true)
+		expect(
+			checks.every((c) => editor.store.scopedTypes.document.has((c.next ?? c.prev).typeName))
+		).toBe(true)
 	})
 
 	it('treats a check that throws as false', () => {
@@ -108,9 +155,9 @@ describe('canWrite option', () => {
 		const id = createShapeId('x')
 		throwing.createShapes([{ id, type: 'geo' }])
 		expect(throwing.getShape(id)).toBeUndefined()
-		expect(throwing.canWrite({ type: 'create', record: { id, typeName: 'shape' } as any })).toBe(
-			false
-		)
+		expect(
+			throwing.canWrite({ type: 'create', prev: null, next: { id, typeName: 'shape' } as any })
+		).toBe(false)
 		expect(spy).toHaveBeenCalled()
 		spy.mockRestore()
 	})
@@ -120,28 +167,30 @@ describe('Editor.canWrite', () => {
 	it('gives the same answer as the gate', () => {
 		const mine = editor.getShape(ids.mine)!
 		const theirs = editor.getShape(ids.theirs)!
-		expect(editor.canWrite({ type: 'update', record: mine })).toBe(true)
-		expect(editor.canWrite({ type: 'update', record: theirs })).toBe(false)
-		expect(editor.canWrite({ type: 'delete', record: theirs })).toBe(false)
+		expect(editor.canWrite({ type: 'update', prev: mine, next: mine })).toBe(true)
+		expect(editor.canWrite({ type: 'update', prev: theirs, next: theirs })).toBe(false)
+		expect(editor.canWrite({ type: 'delete', prev: theirs, next: null })).toBe(false)
 	})
 
 	it('is reactive, and caches the answer for a stored record', () => {
 		const theirs = editor.getShape(ids.theirs)!
-		expect(editor.canWrite({ type: 'update', record: theirs })).toBe(false)
+		expect(editor.canWrite({ type: 'update', prev: theirs, next: theirs })).toBe(false)
 		const count = checks.length
-		expect(editor.canWrite({ type: 'update', record: theirs })).toBe(false)
+		expect(editor.canWrite({ type: 'update', prev: theirs, next: theirs })).toBe(false)
 		expect(checks.length).toBe(count)
 
 		// The check read the `me` atom, so a change to it updates the answer.
 		me.set('bob')
-		expect(editor.canWrite({ type: 'update', record: theirs })).toBe(true)
+		expect(editor.canWrite({ type: 'update', prev: theirs, next: theirs })).toBe(true)
 		editor.updateShapes([{ id: ids.theirs, type: 'geo', x: 300 }])
 		expect(editor.getShape(ids.theirs)!.x).toBe(300)
 	})
 
 	it('allows everything without the option', () => {
 		const plain = new TestEditor()
-		expect(plain.canWrite({ type: 'delete', record: editor.getShape(ids.theirs)! })).toBe(true)
+		expect(plain.canWrite({ type: 'delete', prev: editor.getShape(ids.theirs)!, next: null })).toBe(
+			true
+		)
 	})
 
 	it('makes a shape not editable or croppable', () => {
@@ -236,8 +285,8 @@ describe('operations on more than one record', () => {
 
 	it('sends nothing when the group create is blocked', () => {
 		const blocksGroups = new TestEditor({
-			canWrite: ({ type, record }) =>
-				!(type === 'create' && record.typeName === 'shape' && (record as TLShape).type === 'group'),
+			canWrite: ({ type, next }) =>
+				!(type === 'create' && next.typeName === 'shape' && next.type === 'group'),
 		})
 		const a = createShapeId('a')
 		const b = createShapeId('b')
@@ -255,7 +304,7 @@ describe('operations on more than one record', () => {
 
 	it('keeps the shapes of a page whose delete is blocked', () => {
 		const blocksPageDeletes = new TestEditor({
-			canWrite: ({ type, record }) => !(type === 'delete' && record.typeName === 'page'),
+			canWrite: ({ type, prev }) => !(type === 'delete' && prev.typeName === 'page'),
 		})
 		const page2 = PageRecordType.createId('page2')
 		const shape = createShapeId('shape')
@@ -282,7 +331,7 @@ describe('operations on more than one record', () => {
 
 	it('does not double the page when the duplicate page create is blocked', () => {
 		const blocksPages = new TestEditor({
-			canWrite: ({ type, record }) => !(type === 'create' && record.typeName === 'page'),
+			canWrite: ({ type, next }) => !(type === 'create' && next.typeName === 'page'),
 		})
 		blocksPages.createShapes([{ id: createShapeId('a'), type: 'geo' }])
 		const page = blocksPages.getCurrentPageId()
@@ -316,7 +365,7 @@ describe('operations on more than one record', () => {
 
 	it('removes the bindings of a deleted shape, even when binding deletes are blocked', () => {
 		const plain = new TestEditor({
-			canWrite: ({ type, record }) => !(type === 'delete' && record.typeName === 'binding'),
+			canWrite: ({ type, prev }) => !(type === 'delete' && prev.typeName === 'binding'),
 		})
 		const box = createShapeId('box')
 		plain.createShapes([{ id: box, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } }])

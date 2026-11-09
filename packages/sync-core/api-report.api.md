@@ -36,6 +36,9 @@ export function canRead<R extends UnknownRecord, SessionMeta>(checks: TLCanReadC
 // @public
 export function canWrite<R extends UnknownRecord, SessionMeta>(checks: TLCanWriteChecks<R, SessionMeta>): TLBeforeWriteHooks<R, SessionMeta>;
 
+// @public
+export function canWriteOnClient<R extends UnknownRecord, SessionMeta>(checks: TLCanWriteChecks<R, SessionMeta>, getSession: () => Parameters<TLCanWriteCheck<R, SessionMeta>>[0]['session']): (write: TLCanWriteClientArgs<R>) => boolean;
+
 // @internal
 export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
@@ -464,6 +467,9 @@ export type TLCanWriteChecks<R extends UnknownRecord, SessionMeta> = {
         typeName: K;
     }>, SessionMeta>;
 };
+
+// @public
+export type TLCanWriteClientArgs<R extends UnknownRecord> = Parameters<TLCanWriteCheck<R, any>>[0] extends infer Args ? Args extends unknown ? Omit<Args, 'session'> : never : never;
 
 // @internal
 export interface TLConnectRequest {
