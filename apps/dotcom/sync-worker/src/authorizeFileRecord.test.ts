@@ -75,6 +75,53 @@ describe('authorizeFileRecord', () => {
 			).not.toBeNull()
 		})
 
+		it("lets a non-author move a shape that carries someone else's thread", () => {
+			const otherPage = 'page:other' as TLPageId
+			const shapeThread = {
+				...thread,
+				anchor: {
+					type: 'shape',
+					shapeId: createShapeId('s'),
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			} as unknown as typeof thread
+			const moved = { ...shapeThread, pageId: otherPage }
+			const bobs = comment('real-bob')
+			expect(
+				authorizeFileRecord({
+					session: session('alice'),
+					changes: [
+						{ type: 'update', prev: shapeThread, next: moved },
+						{ type: 'update', prev: bobs, next: { ...bobs, pageId: otherPage } },
+					],
+					before: () => undefined,
+					after: (id) => (id === moved.id ? moved : undefined),
+				})
+			).toBeNull()
+		})
+
+		it('lets an anonymous editor delete a shape that carries a thread', () => {
+			const shapeThread = {
+				...thread,
+				anchor: {
+					type: 'shape',
+					shapeId: createShapeId('s'),
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+				},
+			} as unknown as typeof thread
+			expect(
+				authorize({
+					session: session(null),
+					type: 'update',
+					prev: shapeThread,
+					next: {
+						...shapeThread,
+						anchor: { type: 'point', x: 1, y: 2 },
+					} as unknown as typeof thread,
+				})
+			).toBeNull()
+		})
+
 		it('vetoes every comment write from an anonymous session, including reopening a thread', () => {
 			const resolved = { ...thread, resolved: { at: 1, by: 'real-bob' } }
 			expect(
@@ -99,7 +146,9 @@ describe('authorizeFileRecord', () => {
 		})
 
 		it('passes non-shape records through for a session with edit access', () => {
-			expect(authorize({ session: session(null), type: 'create', prev: null, next: page })).toBeNull()
+			expect(
+				authorize({ session: session(null), type: 'create', prev: null, next: page })
+			).toBeNull()
 			expect(stamp(session(null), page)).toBe(page)
 		})
 	})
@@ -153,7 +202,9 @@ describe('authorizeFileRecord', () => {
 		it('leaves a create attributed to the session user alone', () => {
 			const next = makeNote('real-bob')
 			expect(stamp(session('real-bob'), next)).toBe(next)
-			expect(authorize({ session: session('real-bob'), type: 'create', prev: null, next })).toBeNull()
+			expect(
+				authorize({ session: session('real-bob'), type: 'create', prev: null, next })
+			).toBeNull()
 		})
 
 		it('leaves a create with no attribution alone (empty or anonymous note)', () => {
@@ -282,7 +333,9 @@ describe('authorizeFileRecord', () => {
 
 		it('allows deletes', () => {
 			const prev = makeNote('real-alice')
-			expect(authorize({ session: session('real-bob'), type: 'delete', prev, next: null })).toBeNull()
+			expect(
+				authorize({ session: session('real-bob'), type: 'delete', prev, next: null })
+			).toBeNull()
 		})
 
 		it('refuses a note update from a canvas read-only session (the rule, not a gate, decides now)', () => {

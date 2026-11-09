@@ -1,4 +1,4 @@
-import { createCommentAuthorizer } from '@tldraw/sync-collaboration'
+import { createCommentAuthorizer, isCommentRecord } from '@tldraw/sync-collaboration'
 import {
 	createAccessAuthorizer,
 	perRecord,
@@ -54,7 +54,11 @@ function stampNoteAttribution(shape: TLShape, session: FileSession): TLShape {
 
 /** An update may keep a note's existing author, but may only claim the session's own identity. */
 function authorizeShape(change: TLRecordChange<FileRecord>, session: FileSession): string | null {
-	if (change.type !== 'update' || change.prev.typeName !== 'shape' || change.next.typeName !== 'shape') {
+	if (
+		change.type !== 'update' ||
+		change.prev.typeName !== 'shape' ||
+		change.next.typeName !== 'shape'
+	) {
 		return null
 	}
 	const before = getNoteAttribution(change.prev)
@@ -74,7 +78,10 @@ export const fileRecordRules = {
 		// gating (view-only sessions) is document access; commenting follows it today.
 		canComment: (session) => session.meta.userId !== null && session.access.document === 'write',
 	}),
-	access: createAccessAuthorizer<FileRecord, SessionMeta>(OBJECT_TYPES),
+	// Comment records are the comment rule's alone: its `canComment` is their access check.
+	access: createAccessAuthorizer<FileRecord, SessionMeta>(OBJECT_TYPES, {
+		except: isCommentRecord,
+	}),
 	shape: authorizeShape,
 }
 
