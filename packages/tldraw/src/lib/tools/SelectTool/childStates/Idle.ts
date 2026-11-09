@@ -79,7 +79,11 @@ export class Idle extends StateNode {
 				// Check to see if we hit any shape under the pointer; if so,
 				// handle this as a pointer down on the shape instead of the canvas
 				const hitShape = getHitShapeOnCanvasPointerDown(this.editor)
-				if (hitShape && (this.editor.options.selectLockedShapes || !hitShape.isLocked)) {
+				if (
+					hitShape &&
+					(this.editor.options.selectLockedShapes ||
+						(!hitShape.isLocked && !this.editor.isShapeOrAncestorFrozen(hitShape)))
+				) {
 					this.onPointerDown({
 						...info,
 						shape: hitShape,
@@ -162,7 +166,7 @@ export class Idle extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				if (!this.editor.options.selectLockedShapes && this.editor.isShapeOrAncestorLocked(shape)) {
+				if (!this.editor.options.selectLockedShapes && this.editor.isShapeOrAncestorFrozen(shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
@@ -220,7 +224,8 @@ export class Idle extends StateNode {
 						if (
 							hoveredShape &&
 							!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
-							(this.editor.options.selectLockedShapes || !hoveredShape.isLocked)
+							(this.editor.options.selectLockedShapes ||
+								(!hoveredShape.isLocked && !this.editor.isShapeOrAncestorFrozen(hoveredShape)))
 						) {
 							this.onPointerDown({
 								...info,
@@ -302,7 +307,7 @@ export class Idle extends StateNode {
 								// A child of a locked group would otherwise drill into (select) the locked group
 								filter: (shape) =>
 									this.editor.options.selectLockedShapes ||
-									!this.editor.isShapeOrAncestorLocked(shape),
+									!this.editor.isShapeOrAncestorFrozen(shape),
 							}))
 
 				if (hitShape) {
@@ -429,7 +434,7 @@ export class Idle extends StateNode {
 					}
 				}
 
-				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
+				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorFrozen(shape)) {
 					// crop image etc on double click
 					this.editor.markHistoryStoppingPoint('select and crop')
 					this.editor.select(info.shape?.id)

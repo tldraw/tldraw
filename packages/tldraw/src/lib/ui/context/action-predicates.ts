@@ -15,7 +15,7 @@ export function canApplySelectionAction(editor: Editor) {
 
 /** @internal */
 export function getUnlockedSelectedShapes(editor: Editor): TLShape[] {
-	return editor.getSelectedShapes().filter((s) => !editor.isShapeOrAncestorLocked(s))
+	return editor.getSelectedShapes().filter((s) => !editor.isShapeOrAncestorFrozen(s))
 }
 
 /** @internal */
@@ -71,7 +71,7 @@ export function hasThreeStackableShapes(editor: Editor) {
 /** @internal */
 export function isOnlyFlippableShapeSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
-	if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+	if (!shape || editor.isShapeOrAncestorFrozen(shape)) return false
 	const util = editor.getShapeUtil(shape)
 	// A lone bound arrow opts out of the flip via canBeLaidOut, so flipping it would do nothing.
 	return util.canFlip(shape) && util.canBeLaidOut(shape, { type: 'flip', shapes: [shape] })
@@ -136,7 +136,7 @@ export function isOnlyEmbedWithUrlSelected(editor: Editor) {
 		!!shape &&
 		editor.isShapeOfType(shape, 'embed') &&
 		!!shape.props.url &&
-		!editor.isShapeOrAncestorLocked(shape)
+		!editor.isShapeOrAncestorFrozen(shape)
 	)
 }
 
@@ -144,7 +144,7 @@ export function isOnlyEmbedWithUrlSelected(editor: Editor) {
 export function isOnlyEmbeddableBookmarkSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
 	if (!shape || !editor.isShapeOfType(shape, 'bookmark') || !shape.props.url) return false
-	if (editor.isShapeOrAncestorLocked(shape) || !editor.hasShapeUtil('embed')) return false
+	if (editor.isShapeOrAncestorFrozen(shape) || !editor.hasShapeUtil('embed')) return false
 	return !!(editor.getShapeUtil('embed') as EmbedShapeUtil).getEmbedDefinition(shape.props.url)
 }
 
