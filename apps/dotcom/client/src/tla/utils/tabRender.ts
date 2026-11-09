@@ -31,28 +31,27 @@ import {
 // This runs in the tab someone may be drawing in, so it only ever reads: the camera, the current page
 // and the selection stay put, which is why it computes an export frame rather than borrowing the
 // render page's zoom-to-fit. And a job this tab can't answer cheaply is declined rather than
-// attempted — the worker has a fallback, and an answer that costs the user a dropped frame is worse
-// than a slow one.
+// attempted: the agent can try again, and an answer that costs the user a dropped frame is worse than
+// a slow one.
 
 // Time budget per slice of a measure. Geometry is cached for the page in view, but a first measure of
 // another page lays out all of its text, which on a big page is long enough to be felt.
 const SLICE_MS = 8
 
 // Well inside the worker's measure timeout: text measured against a fallback font is a slightly wrong
-// answer, and no answer costs the whole Browser Run fallback.
+// answer, and no answer fails the call.
 const FONT_WAIT_MS = 1_500
 
 // An export can't be sliced: it renders every shape in one synchronous flush, on the main thread of a
 // tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
 const MAX_EXPORT_SHAPES = 500
 
-// Longer than this in the queue and the worker has likely gone to Browser Run, so an export would be
-// main thread time spent on an answer nobody is waiting for.
+// Longer than this in the queue and the worker has likely stopped waiting, so an export would be main
+// thread time spent on an answer nobody is waiting for.
 const MAX_EXPORT_QUEUE_MS = 5_000
 
 // One at a time, so an agent can't stack exports up on the main thread. Queued rather than declined:
-// agents routinely ask for several clusters at once, and the next in line waiting a moment beats
-// sending it to Browser Run for seconds.
+// agents routinely ask for several clusters at once.
 let exportQueue: Promise<unknown> = Promise.resolve()
 
 function enqueueExport(run: () => Promise<TabRenderReply>) {
@@ -168,9 +167,7 @@ async function capturePage(
 	return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
 }
 
-// The rectangle and zoom the render page reaches by calling zoomToBounds on its own disposable
-// camera, worked out without touching this one. The two have to frame alike: the same shapes should
-// read the same whether Browser Run drew them or a tab did.
+// What zoomToBounds would reach on a camera sized to the output, worked out without touching this one.
 function getExportFrame(editor: Editor, ids: TLShapeId[], width: number, height: number) {
 	const shapes = getRequestedBounds(editor, ids)
 	const inset = getThumbnailContentInset(width, height)
@@ -198,8 +195,8 @@ function yieldToMainThread() {
 	})
 }
 
-// A lost reply needs no handling: the worker times out and falls back to Browser Run. That includes
-// a tab that can't get a token, such as one whose sign-in has ended.
+// A lost reply needs no handling: the worker times out and tells the agent. That includes a tab that
+// can't get a token, such as one whose sign-in has ended.
 //
 // The token is fetched per reply rather than taken from the session cookie, which a hidden tab
 // lets expire: getToken() refreshes it when it has.
