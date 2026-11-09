@@ -9,6 +9,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { InContextMenu, MenuItem } from '../ui/menu-items'
+import { sortByRecentlyAddedTo } from './recent-collections'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -35,7 +36,11 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 	])
 	const collections = useValue(
 		'writable collections',
-		() => source.getCollections().filter((collection) => source.can('addItem', collection.id)),
+		() =>
+			sortByRecentlyAddedTo(
+				source.id,
+				source.getCollections().filter((collection) => source.can('addItem', collection.id))
+			),
 		[source]
 	)
 	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
