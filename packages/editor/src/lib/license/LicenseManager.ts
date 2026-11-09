@@ -30,6 +30,8 @@ export const FLAGS = {
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
 	TRACKED: 1 << 8,
+	// Libraries is a standalone feature, not part of the collaboration umbrella.
+	FEAT_LIBRARIES: 1 << 9,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -80,19 +82,22 @@ export interface LicenseInfo {
 
 /**
  * Names of the licensable product features gated by the license. `collaboration` is an umbrella
- * that also grants all of its sub-features (currently just `commenting`).
+ * that also grants all of its sub-features (currently just `commenting`). `libraries` stands on
+ * its own.
  *
  * @internal
  */
-export type LicenseFeatureName = 'collaboration' | 'commenting'
+export type LicenseFeatureName = 'collaboration' | 'commenting' | 'libraries'
 
 const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: false,
 	commenting: false,
+	libraries: false,
 }
 const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: true,
 	commenting: true,
+	libraries: true,
 }
 
 /** @internal */
@@ -136,6 +141,7 @@ export interface ValidLicenseKeyResult {
 	isEvaluationLicenseExpired: boolean
 	isCollaborationEnabled: boolean
 	isCommentingEnabled: boolean
+	isLibrariesEnabled: boolean
 	daysSinceExpiry: number
 }
 
@@ -253,7 +259,7 @@ export class LicenseManager {
 	/**
 	 * The license tldraw's own domains get without a key. It keeps the watermark — our properties
 	 * advertise the SDK the same way any other watermarked deployment does — and grants the
-	 * collaboration features our apps are built on.
+	 * collaboration and libraries features our apps are built on.
 	 *
 	 * Every expiry-derived field is a literal rather than something computed from a date, because
 	 * there is no key here to expire: the grant lasts as long as the host is ours.
@@ -264,7 +270,11 @@ export class LicenseManager {
 			license: {
 				id: CANONICAL_HOST_LICENSE_ID,
 				hosts: [window.location.hostname.toLowerCase()],
-				flags: FLAGS.WITH_WATERMARK | FLAGS.FEAT_COLLABORATION | FLAGS.FEAT_COMMENTING,
+				flags:
+					FLAGS.WITH_WATERMARK |
+					FLAGS.FEAT_COLLABORATION |
+					FLAGS.FEAT_COMMENTING |
+					FLAGS.FEAT_LIBRARIES,
 				expiryDate: CANONICAL_HOST_NEVER_EXPIRES.toISOString(),
 			},
 			isDevelopment: this.isDevelopment,
@@ -281,6 +291,7 @@ export class LicenseManager {
 			isEvaluationLicenseExpired: false,
 			isCollaborationEnabled: true,
 			isCommentingEnabled: true,
+			isLibrariesEnabled: true,
 			daysSinceExpiry: 0,
 		}
 	}
@@ -455,6 +466,7 @@ export class LicenseManager {
 			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
 			const isCommentingEnabled =
 				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
+			const isLibrariesEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_LIBRARIES)
 
 			// For perpetual licenses, the calendar expiry date only gates access to future
 			// major/minor releases; it does not "expire" the license itself. While the user
@@ -481,6 +493,7 @@ export class LicenseManager {
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
 				isCollaborationEnabled,
 				isCommentingEnabled,
+				isLibrariesEnabled,
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -693,6 +706,7 @@ export function getEnabledFeatures(
 	return {
 		collaboration: result.isCollaborationEnabled,
 		commenting: result.isCommentingEnabled,
+		libraries: result.isLibrariesEnabled,
 	}
 }
 
