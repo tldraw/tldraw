@@ -150,9 +150,21 @@ export async function readLivePage(
 	fileId: string,
 	userId: string,
 	page: PageSelector,
-	{ request }: TabRenderContext
+	{ request, ctx }: TabRenderContext
 ): Promise<TabRenderResult<ResolvedPage>> {
-	const result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
+	let result: Awaited<ReturnType<ReturnType<typeof getRoomDurableObject>['getMcpLivePage']>>
+	try {
+		result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
+	} catch (error) {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_tab_render',
+			extras: { mode: 'live_page' },
+		})
+		return { ok: false, ...describeFailure({ status: 'error' }, boardUrlOf(env, request, fileId)) }
+	}
 	if (result.status === 'ok') return { ok: true, value: result.page }
 	return { ok: false, ...describeFailure(result, boardUrlOf(env, request, fileId)) }
 }

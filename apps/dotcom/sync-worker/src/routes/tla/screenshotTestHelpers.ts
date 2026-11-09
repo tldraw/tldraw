@@ -2,7 +2,6 @@ import type { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { vi } from 'vitest'
 import type { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
-import { ShapeMeasurement } from './boardTools'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -40,7 +39,7 @@ export function makeSnapshot(
 	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
-// In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_DATA_BUCKET, which have the same shape).
+// In-memory stand-in for an R2 bucket such as THUMBNAILS.
 // Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
 // the routes read.
@@ -126,36 +125,6 @@ export function makeBrowserBinding(
 
 export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
-}
-
-// Stands in for the render page on a `measure` job: a real one leaves its measurements in its own
-// HTML for the worker's `/content` read, so the fake answers `content` with that page. Without this
-// every clustering tool would fail on a missing result, since they all measure the page before
-// clustering it. Bounds are given as boxes, the shape the worker stores, and converted to what the
-// page reports.
-export function makeMeasuringBrowserBinding(bounds: Record<string, ShapeMeasurement> = {}) {
-	const binding = makeBrowserBinding()
-	binding.quickAction.mockImplementation(async (action: string) =>
-		action === 'content'
-			? contentResponse(measurePageHtml(bounds))
-			: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-	)
-	return binding
-}
-
-// What Browser Run's `/content` answers with: the page's HTML wrapped in its JSON envelope.
-export function contentResponse(html: string) {
-	return Response.json({ success: true, result: html })
-}
-
-export function measurePageHtml(bounds: Record<string, ShapeMeasurement>) {
-	const reported = Object.fromEntries(
-		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, ...rest }]) => [
-			id,
-			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...rest },
-		])
-	)
-	return `<html data-thumbnail-ready="true"><head></head><body data-thumbnail-ready="true"><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported).replace(/</g, '\\u003c')}</script></body></html>`
 }
 
 // Stands in for the file's durable object: the fake answers the calls the MCP tools make of it.
