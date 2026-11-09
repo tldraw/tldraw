@@ -1003,9 +1003,9 @@ describe('LicenseManager', () => {
 				collaborationLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(true)
-			// The collaboration umbrella grants the commenting sub-feature.
+			// The collaboration umbrella grants the commenting and libraries sub-features.
 			expect(result.isCommentingEnabled).toBe(true)
-			expect(result.isLibrariesEnabled).toBe(false)
+			expect(result.isLibrariesEnabled).toBe(true)
 		})
 
 		it('Checks for the libraries feature flag', async () => {

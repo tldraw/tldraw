@@ -30,7 +30,7 @@ export const FLAGS = {
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
 	TRACKED: 1 << 8,
-	// Libraries is a standalone feature, not part of the collaboration umbrella.
+	// Libraries is a sub-feature of collaboration.
 	FEAT_LIBRARIES: 1 << 9,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
@@ -82,8 +82,7 @@ export interface LicenseInfo {
 
 /**
  * Names of the licensable product features gated by the license. `collaboration` is an umbrella
- * that also grants all of its sub-features (currently just `commenting`). `libraries` stands on
- * its own.
+ * that also grants all of its sub-features (currently `commenting` and `libraries`).
  *
  * @internal
  */
@@ -461,12 +460,13 @@ export class LicenseManager {
 			const isPerpetualLicenseExpired =
 				isPerpetualLicense && this.isPerpetualLicenseExpired(expiryDate)
 
-			// The collaboration umbrella grants all of its sub-features, so commenting is enabled
-			// by either the commenting flag or the collaboration flag.
+			// The collaboration umbrella grants all of its sub-features, so commenting and libraries
+			// are each enabled by their own flag or the collaboration flag.
 			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
 			const isCommentingEnabled =
 				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
-			const isLibrariesEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_LIBRARIES)
+			const isLibrariesEnabled =
+				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_LIBRARIES)
 
 			// For perpetual licenses, the calendar expiry date only gates access to future
 			// major/minor releases; it does not "expire" the license itself. While the user
