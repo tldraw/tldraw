@@ -42,6 +42,7 @@ import {
 	TLInstancePageState,
 	TLInstancePresence,
 	TLPage,
+	TLRecordChange,
 	TLPageId,
 	TLParentId,
 	TLRecord,
@@ -292,28 +293,34 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
-	 * Decides whether the current user may change a record. Return `false` to deny it: the editor
-	 * then treats the record like a locked one. Tools skip it, handles and menu items for changing
-	 * it are hidden, and editor methods such as `updateShapes` and
-	 * `deleteShapes` leave it alone. Unlike a lock, a denial has no unlock exception.
+	 * Decides whether the current user may make a change to a record. Return `false` to deny it: the
+	 * editor then treats the record like a locked one. Tools skip it, handles and menu items for
+	 * changing it are hidden, and editor methods such as `updateShapes` and `deleteShapes` leave it
+	 * alone. Unlike a lock, a denial has no unlock exception.
 	 *
-	 * Called for shapes, pages, bindings and assets. A new shape is judged before it is created, with its
-	 * parent and index resolved; its page is not in the store yet, so walk `parentId` yourself. Ancestors are
-	 * not checked for you: a rule that inherits (a frame on someone else's page) walks `parentId` too.
-	 * Reactive: read store state inside it and the answer follows.
+	 * It is called for shapes, pages, bindings and assets, with the change as the server's write rule
+	 * sees it: `type` is `'create'`, `'update'` or `'delete'`, and `prev` and `next` are the record
+	 * before and after (`null` for the side that doesn't exist). That lets a rule allow editing but
+	 * not deleting. A new shape is judged before it is created, with its parent and index resolved;
+	 * its page is not in the store yet, so walk `parentId` yourself. Ancestors are not checked for
+	 * you: a rule that inherits (a frame on someone else's page) walks `parentId` too. Reactive: read
+	 * store state inside it and the answer follows.
 	 *
-	 * This shapes the editor's behaviour, it does not enforce anything: the server decides. Writes made
-	 * straight to the store are not checked.
+	 * This shapes the editor's behaviour, it does not enforce anything: the server decides. Writes
+	 * made straight to the store are not checked.
 	 *
 	 * @example
 	 * ```ts
-	 * canChangeRecord={(record, editor) => record.typeName !== 'shape' || canEditPage(pageOf(record, editor))}
+	 * canChangeRecord={(change, editor) => change.type !== 'delete'}
 	 * ```
 	 *
-	 * @param record - The shape, page, binding or asset.
+	 * @param change - The change: `{ type, prev, next }`.
 	 * @param editor - The editor instance.
 	 */
-	canChangeRecord?(record: TLShape | TLPage | TLBinding | TLAsset, editor: Editor): boolean
+	canChangeRecord?(
+		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
+		editor: Editor
+	): boolean
 	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
@@ -2870,7 +2877,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
-		if (this._isDeniedByHost(_shape)) return false // denied by the host, no exceptions
+		if (this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })) return false // denied by the host, no exceptions
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -3129,7 +3136,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const util = this.getShapeUtil(_shape)
 		if (!util.canCrop(_shape)) return false
 		if (this.getIsReadonly()) return false
-		if (this.isShapeOrAncestorLocked(_shape) || this._isDeniedByHost(_shape)) return false
+		if (
+			this.isShapeOrAncestorLocked(_shape) ||
+			this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })
+		) {
+			return false
+		}
 		return true
 	}
 
@@ -5082,7 +5094,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const prev = this.getPage(partial.id)
 		if (!prev) return this
-		if (this._isDeniedByHost(prev) || this._isDeniedByHost({ ...prev, ...partial })) return this
+		if (this._isDeniedByHost({ type: 'update', prev, next: { ...prev, ...partial } })) return this
 
 		return this.run(() => this.store.update(partial.id, (page) => ({ ...page, ...partial })))
 	}
@@ -5123,7 +5135,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				name,
 				index,
 			})
-			if (this._isDeniedByHost(newPage)) return
+			if (this._isDeniedByHost({ type: 'create', prev: null, next: newPage })) return
 
 			this.store.put([newPage])
 		})
@@ -5152,7 +5164,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 				const deletedPage = this.getPage(id)
 				if (!deletedPage) return
-				if (this._isDeniedByHost(deletedPage)) return
+				if (this._isDeniedByHost({ type: 'delete', prev: deletedPage, next: null })) return
 
 				if (id === this.getCurrentPageId()) {
 					const index = pages.findIndex((page) => page.id === id)
@@ -5262,7 +5274,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	createAssets(assets: TLAsset[]): this {
 		if (this.getIsReadonly()) return this
-		assets = assets.filter((asset) => !this._isDeniedByHost(asset))
+		assets = assets.filter(
+			(asset) => !this._isDeniedByHost({ type: 'create', prev: null, next: asset })
+		)
 		if (assets.length <= 0) return this
 		this.run(() => this.store.put(assets), { history: 'ignore' })
 		return this
@@ -5284,7 +5298,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this.getIsReadonly()) return this
 		assets = assets.filter((partial) => {
 			const current = this.getAsset(partial.id)
-			return !current || !this._isDeniedByHost(current)
+			return (
+				!current ||
+				!this._isDeniedByHost({
+					type: 'update',
+					prev: current,
+					next: { ...current, ...partial } as TLAsset,
+				})
+			)
 		})
 		if (assets.length <= 0) return this
 		this.run(
@@ -5322,7 +5343,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				: (assets as TLAsset[]).map((a) => a.id)
 		).filter((id) => {
 			const asset = this.getAsset(id)
-			return !asset || !this._isDeniedByHost(asset)
+			return !asset || !this._isDeniedByHost({ type: 'delete', prev: asset, next: null })
 		})
 		if (ids.length <= 0) return this
 
@@ -5822,23 +5843,25 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private readonly _canChangeRecord?: TLEditorOptions['canChangeRecord']
 
-	private _isDeniedByHost(record: TLShape | TLPage | TLBinding | TLAsset): boolean {
-		return !!this._canChangeRecord && !this._canChangeRecord(record, this)
+	private _isDeniedByHost(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>): boolean {
+		return !!this._canChangeRecord && !this._canChangeRecord(change, this)
 	}
 
 	/**
-	 * Whether the current user may change a record: not readonly, not denied by the
-	 * `canChangeRecord` option, and, for a shape, not locked.
+	 * Whether the current user may make a change to a record: not readonly, not denied by the
+	 * `canChangeRecord` option, and, for an update or delete of a shape, not locked.
 	 *
-	 * @param record - The shape, page, binding or asset to check.
+	 * @param change - The change to check: `{ type, prev, next }`.
 	 *
 	 * @public
 	 */
-	canChangeRecord(record: TLShape | TLPage | TLBinding | TLAsset): boolean {
+	canChangeRecord(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>): boolean {
 		if (this.getIsReadonly()) return false
-		if (this._isDeniedByHost(record)) return false
+		if (this._isDeniedByHost(change)) return false
+		const record = change.next ?? change.prev
 		if (
 			record.typeName === 'shape' &&
+			change.type !== 'create' &&
 			!this._shouldIgnoreShapeLock &&
 			this.isShapeOrAncestorLocked(record)
 		) {
@@ -5858,7 +5881,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	isShapeOrAncestorFrozen(shape?: TLShape | TLShapeId): boolean {
 		const _shape = shape && this.getShape(shape)
 		if (!_shape) return false
-		return this.isShapeOrAncestorLocked(_shape) || this._isDeniedByHost(_shape)
+		return (
+			this.isShapeOrAncestorLocked(_shape) ||
+			this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })
+		)
 	}
 
 	/**
@@ -6941,7 +6967,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 					...partial.props,
 				},
 			}) as TLBinding
-			if (this._isDeniedByHost(binding)) continue
+			if (this._isDeniedByHost({ type: 'create', prev: null, next: binding })) continue
 
 			bindings.push(binding)
 		}
@@ -6976,7 +7002,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 			const updatedBinding = applyPartialToRecordWithProps(current, partial)
 			if (updatedBinding === current) continue
-			if (this._isDeniedByHost(current) || this._isDeniedByHost(updatedBinding)) continue
+			if (this._isDeniedByHost({ type: 'update', prev: current, next: updatedBinding })) continue
 
 			const fromShape = this.getShape(updatedBinding.fromId)
 			const toShape = this.getShape(updatedBinding.toId)
@@ -7008,7 +7034,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (this._canChangeRecord) {
 			bindings = bindings.filter((b) => {
 				const binding = typeof b === 'string' ? this.getBinding(b) : b
-				return !binding || !this._isDeniedByHost(binding)
+				return !binding || !this._isDeniedByHost({ type: 'delete', prev: binding, next: null })
 			})
 		}
 		return this._deleteBindings(bindings, { isolateShapes })
@@ -8801,7 +8827,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 			})
 
 			if (this._canChangeRecord) {
-				const allowed = shapeRecordsToCreate.filter((shape) => !this._isDeniedByHost(shape))
+				const allowed = shapeRecordsToCreate.filter(
+					(shape) => !this._isDeniedByHost({ type: 'create', prev: null, next: shape })
+				)
 				if (allowed.length === 0) return
 				shapeRecordsToCreate.splice(0, shapeRecordsToCreate.length, ...allowed)
 			}
@@ -8980,7 +9008,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const ids = toShapeIds(shapes)
 
-		const shapesToGroup = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShape(id)))
+		const shapesToGroup = compact(
+			this._getUnlockedShapeIds(ids, 'update').map((id) => this.getShape(id))
+		)
 		// Re-check after the lock filter: Box.Common of nothing is not a valid box and would throw
 		if (shapesToGroup.length <= 1) return this
 
@@ -9060,7 +9090,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const { select = true } = opts
 		const ids = toShapeIds(shapes)
 
-		const shapesToUngroup = compact(this._getUnlockedShapeIds(ids).map((id) => this.getShape(id)))
+		const shapesToUngroup = compact(
+			this._getUnlockedShapeIds(ids, 'update').map((id) => this.getShape(id))
+		)
 
 		if (shapesToUngroup.length === 0) return this
 
@@ -9205,7 +9237,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				if (updated === shape) continue
 
 				// Unlike a lock, a host denial has no unlock exception, and ignoreShapeLock does not lift it
-				if (this._isDeniedByHost(shape) || this._isDeniedByHost(updated)) continue
+				if (this._isDeniedByHost({ type: 'update', prev: shape, next: updated })) continue
 
 				//if any shape has an onBeforeUpdate handler, call it and, if the handler returns a
 				// new shape, replace the old shape with the new one. This is used for example when
@@ -9222,13 +9254,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/** @internal */
-	private _getUnlockedShapeIds(ids: TLShapeId[]): TLShapeId[] {
+	private _getUnlockedShapeIds(ids: TLShapeId[], operation?: 'update' | 'delete'): TLShapeId[] {
 		// Match updateShapes, which also refuses shapes under a locked ancestor; otherwise a child
-		// of a locked frame can't be moved but can still be deleted or duplicated
+		// of a locked frame can't be moved but can still be deleted or duplicated.
+		// With an operation, shapes the host denies that change are dropped too; a duplicate passes
+		// none, since its copies are judged as creates.
 		const ignoreLock = this._shouldIgnoreShapeLock
 		return ids.filter((id) => {
 			const shape = this.getShape(id)
-			if (shape && this._isDeniedByHost(shape)) return false
+			if (shape && operation) {
+				const change: TLRecordChange<TLShape> =
+					operation === 'delete'
+						? { type: 'delete', prev: shape, next: null }
+						: { type: 'update', prev: shape, next: shape }
+				if (this._isDeniedByHost(change)) return false
+			}
 			return ignoreLock || !this.isShapeOrAncestorLocked(id)
 		})
 	}
@@ -9257,7 +9297,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const shapeIds = toShapeIds(_ids)
 
 		// Normally we don't want to delete locked shapes, but if the force option is set, we'll delete them anyway
-		const shapeIdsToDelete = this._getUnlockedShapeIds(shapeIds)
+		const shapeIdsToDelete = this._getUnlockedShapeIds(shapeIds, 'delete')
 
 		if (shapeIdsToDelete.length === 0) return this
 

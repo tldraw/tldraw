@@ -20,6 +20,7 @@ import { ThrottledFunction } from '@tldraw/utils';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
+import type { TLRecordChange } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
@@ -485,20 +486,7 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
     }>, SessionMeta>;
 };
 
-// @public
-export type TLRecordChange<R extends UnknownRecord> = {
-    next: null;
-    prev: R;
-    type: 'delete';
-} | {
-    next: R;
-    prev: null;
-    type: 'create';
-} | {
-    next: R;
-    prev: R;
-    type: 'update';
-};
+export { TLRecordChange }
 
 // @public
 export class TLRemoteSyncError extends Error {

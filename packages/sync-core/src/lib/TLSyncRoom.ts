@@ -6,6 +6,7 @@ import {
 	StoreSchema,
 	UnknownRecord,
 } from '@tldraw/store'
+import type { TLRecordChange } from '@tldraw/tlschema'
 import {
 	assert,
 	assertExists,
@@ -213,14 +214,12 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 
 /**
  * One client write, as seen by {@link TLSyncAuthorizer}: the record before and after. On a patch,
- * `next` is the fully applied result, never the raw patch.
+ * `next` is the fully applied result, never the raw patch. Defined in `@tldraw/tlschema` so the
+ * editor can take the same shape.
  *
  * @public
  */
-export type TLRecordChange<R extends UnknownRecord> =
-	| { type: 'create'; prev: null; next: R }
-	| { type: 'update'; prev: R; next: R }
-	| { type: 'delete'; prev: R; next: null }
+export type { TLRecordChange }
 
 /**
  * What the write rule sees of a session: the host's `meta` and the `access` set at

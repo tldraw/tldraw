@@ -1735,6 +1735,21 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export type TLRecordChange<R extends UnknownRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
+};
+
+// @public
 export interface TLRefusal {
     changes?: RecordsDiff<TLRecord>;
     ids?: string[];

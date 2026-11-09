@@ -80,6 +80,7 @@ import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRecordChange } from '@tldraw/tlschema';
 import { TLRefusal } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
@@ -922,7 +923,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     }): boolean;
     cancel(): this;
     cancelDoubleClick(): void;
-    canChangeRecord(record: TLAsset | TLBinding | TLPage | TLShape): boolean;
+    canChangeRecord(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>): boolean;
     canCreateShape(shape: OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id']): boolean;
     canCreateShapes(shapes: (OptionalKeys<TLShapePartial<TLShape>, 'id'> | TLShape['id'])[]): boolean;
     canCropShape<T extends TLShape | TLShapeId>(shape: null | T): shape is T;
@@ -3810,7 +3811,7 @@ export interface TldrawEditorBaseProps {
     bindingUtils?: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
-    canChangeRecord?(record: TLAsset | TLBinding | TLPage | TLShape, editor: Editor): boolean;
+    canChangeRecord?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
     children?: ReactNode;
     className?: string;
     colorScheme?: 'dark' | 'light' | 'system';
@@ -4017,7 +4018,7 @@ export interface TLEditorOptions {
     bindingUtils: readonly TLAnyBindingUtilConstructor[];
     // @deprecated
     cameraOptions?: Partial<TLCameraOptions>;
-    canChangeRecord?(record: TLAsset | TLBinding | TLPage | TLShape, editor: Editor): boolean;
+    canChangeRecord?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
     colorScheme?: 'dark' | 'light' | 'system';
     // (undocumented)
     fontAssetUrls?: {
