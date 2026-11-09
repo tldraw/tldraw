@@ -40,6 +40,14 @@ export const cspDirectives: { [key: string]: string[] } = {
 		// asset uploads/serving
 		'https://tldrawusercontent.com',
 		'https://*.tldrawusercontent.com',
+		// exports draw embeds as their oEmbed thumbnail (see EmbedDefinition.oEmbedUrl)
+		'https://www.youtube.com',
+		'https://i.ytimg.com',
+		'https://vimeo.com',
+		'https://i.vimeocdn.com',
+		'https://open.spotify.com',
+		'https://*.spotifycdn.com',
+		'https://i.scdn.co',
 	],
 	'font-src': [`'self'`, `https://fonts.googleapis.com`, `https://fonts.gstatic.com`, 'data:'],
 	'frame-src': [`'self'`, `https:`],
