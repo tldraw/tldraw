@@ -118,7 +118,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	/** @internal */
 	documents: AtomMap<string, { state: R; lastChangedClock: number }>
 	/**
-	 * Object-store lane records, partitioned out of `documents` so they never appear in the
+	 * Object-store records, partitioned out of `documents` so they never appear in the
 	 * document snapshot. They share the same clock, tombstones, and transactions as documents.
 	 * @internal
 	 */
@@ -146,7 +146,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	}: {
 		snapshot?: RoomSnapshot
 		/**
-		 * Record type names stored in the object-store lane. Records of these types are routed to
+		 * Record type names stored in the object store. Records of these types are routed to
 		 * a separate partition: excluded from `getSnapshot()`, returned by `getObjectsSnapshot()`.
 		 */
 		objectTypes?: readonly string[]

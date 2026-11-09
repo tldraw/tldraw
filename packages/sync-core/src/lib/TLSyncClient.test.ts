@@ -539,6 +539,7 @@ describe('TLSyncClient', () => {
 			expect(client.isConnectedToRoom).toBe(true)
 			// objectAccess defaults to 'write' when the server doesn't send it
 			expect(onAfterConnect).toHaveBeenCalledWith(client, {
+				access: { document: 'write', objects: 'write' },
 				isReadonly: false,
 				objectAccess: 'write',
 			})
@@ -548,6 +549,7 @@ describe('TLSyncClient', () => {
 			socket.mockConnectionStatus('online')
 			socket.mockServerMessage(createConnectMessage({ isReadonly: true }))
 			expect(onAfterConnect).toHaveBeenLastCalledWith(client, {
+				access: { document: 'read', objects: 'write' },
 				isReadonly: true,
 				objectAccess: 'write',
 			})

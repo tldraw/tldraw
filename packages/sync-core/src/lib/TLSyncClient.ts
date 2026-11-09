@@ -29,8 +29,10 @@ import {
 	TLSocketClientSentEvent,
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
+	TLSyncRefusal,
 	getTlsyncProtocolVersion,
 } from './protocol'
+import type { TLSessionAccess } from './TLSyncRoom'
 
 /**
  * Function type for subscribing to events with a callback.
@@ -146,6 +148,20 @@ export class TLSyncError extends Error {
  */
 export type TLSyncErrorCloseEventReason =
 	(typeof TLSyncErrorCloseEventReason)[keyof typeof TLSyncErrorCloseEventReason]
+
+/**
+ * What the server granted this session, delivered to `onAfterConnect`.
+ *
+ * @public
+ */
+export interface TLSyncConnectDetails {
+	/** Write access to the document and the object store, as the server decided it for this session. */
+	access: TLSessionAccess
+	/** @deprecated use `access.document` */
+	isReadonly: boolean
+	/** @deprecated use `access.objects` */
+	objectAccess: TLObjectStoreAccess
+}
 
 /**
  * Handler function for custom application messages sent through the sync protocol.
@@ -451,15 +467,15 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 * @param self - The TLSyncClient instance that connected
 	 * @param details - Connection details
 	 *   - isReadonly - Whether the connection is in read-only mode
-	 *   - objectAccess - Write access for object-store lane record types (defaults to 'write'
-	 *     when the server doesn't send it, e.g. older servers or rooms with no object lane)
+	 *   - objectAccess - Write access for object-store record types (defaults to 'write'
+	 *     when the server doesn't send it, e.g. older servers or rooms with no object store)
 	 */
-	private readonly onAfterConnect?: (
-		self: this,
-		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
-	) => void
+	private readonly onAfterConnect?: (self: this, details: TLSyncConnectDetails) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
+
+	/** Called when the server's `authorize` rule refused one of this client's pushes. */
+	private readonly onPushRefused?: (refusal: TLSyncRefusal) => void
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -497,10 +513,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
-		onAfterConnect?(
-			self: TLSyncClient<R, S>,
-			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
-		): void
+		onAfterConnect?(self: TLSyncClient<R, S>, details: TLSyncConnectDetails): void
+		onPushRefused?(refusal: TLSyncRefusal): void
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -562,6 +576,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
+		this.onPushRefused = config.onPushRefused
 
 		let didLoad = false
 
@@ -813,9 +828,16 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
+			const access: TLSessionAccess = event.access ?? {
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				document: event.isReadonly ? 'read' : 'write',
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				objects: event.objectAccess ?? 'write',
+			}
 			this.onAfterConnect?.(this, {
-				isReadonly: event.isReadonly,
-				objectAccess: event.objectAccess ?? 'write',
+				access,
+				isReadonly: access.document === 'read',
+				objectAccess: access.objects,
 			})
 			const presence = this.presenceState?.get()
 			if (presence) {
@@ -974,6 +996,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+		// Host callbacks run after the merge: a throw inside it would reset the connection.
+		const refusals: TLSyncRefusal[] = []
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -997,6 +1021,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
+						if (diff.refused) refusals.push(diff.refused)
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1031,6 +1056,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			console.error(e)
 			this.store.ensureStoreIsUsable()
 			this.resetConnection()
+		}
+		for (const refusal of refusals) {
+			try {
+				this.onPushRefused?.(refusal)
+			} catch (e) {
+				console.error('onPushRefused threw', e)
+			}
 		}
 	}
 }
