@@ -4,7 +4,10 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	createEmptyRecordsDiff,
+	isRecordsDiffEmpty,
 	reverseRecordsDiff,
+	squashRecordDiffs,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import {
@@ -14,6 +17,11 @@ import {
 	objectMapEntries,
 	uniqueId,
 } from '@tldraw/utils'
+import {
+	TLSyncClientAuthorizeOptions,
+	authorizeRecordsDiff,
+	partitionRecordsDiff,
+} from './authorizeLocally'
 import {
 	NetworkDiff,
 	ObjectDiff,
@@ -477,6 +485,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** Called when the server's `authorize` rule refused one of this client's pushes. */
 	private readonly onPushRefused?: (refusal: TLSyncRefusal) => void
 
+	private readonly authorize?: TLSyncClientAuthorizeOptions<R>
+	private access: TLSessionAccess = { document: 'write', objects: 'write' }
+	/** Document changes of the store transaction in progress, by history version. */
+	private transactionChanges: Array<{ version: number; changes: RecordsDiff<R> }> = []
+	// otherwise the next transaction is judged without these
+	private unflushedChanges: RecordsDiff<R> = createEmptyRecordsDiff()
+	private isUndoingRefusal = false
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -515,6 +531,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onCustomMessageReceived?: TLCustomMessageHandler
 		onAfterConnect?(self: TLSyncClient<R, S>, details: TLSyncConnectDetails): void
 		onPushRefused?(refusal: TLSyncRefusal): void
+		/** Run the room's `authorize` rule locally. See {@link TLSyncClientAuthorizeOptions}. */
+		authorize?: TLSyncClientAuthorizeOptions<R>
 		didCancel?(): boolean
 	}) {
 		this.didCancel = config.didCancel
@@ -534,9 +552,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
 				return
 			}
+			// otherwise the check reads a store holding edits the push won't carry
+			if (this.authorize) this.store._flushHistory()
 			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
 				return
 			}
+			this.authorizeUnsent()
 			const diff = this.unsentChanges.nextDiff
 				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
 				: undefined
@@ -544,6 +565,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
 				: undefined
 
+			// otherwise a later squash carries a stale `from`
+			if (!diff) this.unsentChanges.nextDiff = undefined
 			if (!diff && !presence) {
 				return
 			}
@@ -577,6 +600,25 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
 		this.onPushRefused = config.onPushRefused
+		this.authorize = config.authorize
+		if (this.authorize) {
+			this.disposables.push(
+				this.store.addHistoryInterceptor((entry, source, version) => {
+					// otherwise a rolled-back transaction's changes are judged with the next one
+					const pending = this.transactionChanges
+					while (pending.length && pending[pending.length - 1].version >= version) pending.pop()
+					if (source !== 'user' || this.isUndoingRefusal) return
+					const changes = this.store.filterChangesByScope(entry.changes, 'document')
+					if (changes) pending.push({ version, changes })
+				}),
+				this.store.sideEffects.registerOperationCompleteHandler((source) => {
+					if (source !== 'user' || this.transactionChanges.length === 0) return
+					const changes = squashRecordDiffs(this.transactionChanges.map((t) => t.changes))
+					this.transactionChanges = []
+					this.authorizeTransaction(changes)
+				})
+			)
+		}
 
 		let didLoad = false
 
@@ -769,6 +811,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.resetConnection(true)
 			return
 		}
+		// otherwise replayed offline changes are judged with stale access
+		this.access = event.access ?? {
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			document: event.isReadonly ? 'read' : 'write',
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			objects: event.objectAccess ?? 'write',
+		}
 		// Local changes reach `push` (and so `speculativeChanges`) on the store's frame-throttled
 		// history flush. Anything still queued there would be neither reverted below nor
 		// re-applied on top of the server state, so bring speculativeChanges up to date first.
@@ -828,12 +877,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			// this.isConnectedToRoom = true
 			// this.store.applyDiff(stashedChanges, false)
 
-			const access: TLSessionAccess = event.access ?? {
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				document: event.isReadonly ? 'read' : 'write',
-				// eslint-disable-next-line @typescript-eslint/no-deprecated
-				objects: event.objectAccess ?? 'write',
-			}
+			const access = this.access
 			this.onAfterConnect?.(this, {
 				access,
 				isReadonly: access.document === 'read',
@@ -929,6 +973,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	/** Push a change to the server, or stash it locally if we're offline */
 	private push(change: RecordsDiff<any>) {
 		this.debug('push', change)
+		this.unflushedChanges = createEmptyRecordsDiff()
+		// a transaction that ran with side effects off never completed; the push-time check covers it
+		this.transactionChanges = []
 		squashRecordDiffsMutable(this.speculativeChanges, [change])
 		// in offline mode, we only accumulate in speculativeChanges
 		if (!this.isConnectedToRoom) return
@@ -939,6 +986,72 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		// squash gives nextDiff its own containers and tuples without deep-cloning records
 		squashRecordDiffsMutable(this.unsentChanges.nextDiff, [change])
 		this.sendUnsentChanges()
+	}
+
+	private authorizeLocally(diff: RecordsDiff<R>) {
+		const session = { sessionId: '', meta: this.authorize!.meta, access: this.access }
+		// the room's rule only ever reads document records
+		const get = (id: string) => {
+			const record = this.store.get(id as RecordId<R>)
+			return record && this.store.scopedTypes.document.has(record.typeName) ? record : undefined
+		}
+		return authorizeRecordsDiff(this.authorize!, session, diff, get)
+	}
+
+	/**
+	 * Judges `changes` on top of `pending`, as one push. Calls `undo` with what the rule refused and
+	 * what is left, and returns what it allowed.
+	 */
+	private authorizeChanges(
+		pending: RecordsDiff<R>[],
+		changes: RecordsDiff<R>,
+		undo: (refused: RecordsDiff<R>, rest: RecordsDiff<R> | undefined) => void
+	): RecordsDiff<R> | undefined {
+		const { undo: unit = 'transaction', onRefusedLocally } = this.authorize!
+		while (!isRecordsDiffEmpty(changes)) {
+			const refusal = this.authorizeLocally(squashRecordDiffs([...pending, changes]))
+			if (!refusal) return changes
+			const ids = new Set(unit === 'record' ? refusal.ids : [])
+			const [refused, rest] = partitionRecordsDiff(changes, ids)
+			// a refusal naming none of these records was caused by all of them
+			const whole = isRecordsDiffEmpty(refused)
+			undo(whole ? changes : refused, whole ? undefined : rest)
+			onRefusedLocally?.(refusal)
+			if (whole) return undefined
+			changes = rest
+		}
+		return undefined
+	}
+
+	// judged with everything unsent; otherwise it can pass alone and be refused in the push
+	private authorizeTransaction(changes: RecordsDiff<R>) {
+		const unsent = this.isConnectedToRoom
+			? (this.unsentChanges.nextDiff ?? createEmptyRecordsDiff<R>())
+			: this.speculativeChanges
+		const allowed = this.authorizeChanges([unsent, this.unflushedChanges], changes, (refused) => {
+			// tagged 'user' inside the transaction so it nets out of the next flush; otherwise it is sent
+			this.isUndoingRefusal = true
+			try {
+				this.store.applyDiff(reverseRecordsDiff(refused), { runCallbacks: false })
+			} finally {
+				this.isUndoingRefusal = false
+			}
+		})
+		if (allowed) squashRecordDiffsMutable(this.unflushedChanges, [allowed])
+	}
+
+	// catches offline changes replayed onto a newer server state
+	private authorizeUnsent() {
+		if (!this.authorize || !this.unsentChanges.nextDiff) return
+		this.authorizeChanges([], this.unsentChanges.nextDiff, (refused, rest) => {
+			const reverse = reverseRecordsDiff(refused)
+			this.unsentChanges.nextDiff = rest
+			squashRecordDiffsMutable(this.speculativeChanges, [reverse])
+			// remote, otherwise the undo is pushed
+			this.store.mergeRemoteChanges(() => {
+				this.store.applyDiff(reverse, { runCallbacks: false })
+			})
+		})
 	}
 
 	/** Get the target FPS for network operations based on presence mode */
@@ -1034,6 +1147,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				}
 				// update the speculative diff while re-applying pending changes
 				try {
+					let unsent: RecordsDiff<R> | undefined
 					this.speculativeChanges = this.store.extractingChanges(() => {
 						for (const request of this.pendingPushRequests) {
 							if (!('diff' in request) || !request.diff) continue
@@ -1042,8 +1156,10 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 						if (!this.unsentChanges.nextDiff) return
 						const diff = getNetworkDiff(this.unsentChanges.nextDiff)
 						if (!diff) return
-						this.applyNetworkDiff(diff, true)
+						unsent = this.store.extractingChanges(() => this.applyNetworkDiff(diff, true))
 					})
+					// otherwise the local rule judges stale records
+					this.unsentChanges.nextDiff = unsent && !isRecordsDiffEmpty(unsent) ? unsent : undefined
 				} catch (e) {
 					console.error(e)
 					// throw away the speculative changes and start over

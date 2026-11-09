@@ -1,4 +1,5 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
+export type { TLSyncClientAuthorizeOptions } from './lib/authorizeLocally'
 export { chunk, JsonChunkAssembler } from './lib/chunk'
 export { ClientWebSocketAdapter, ReconnectManager } from './lib/ClientWebSocketAdapter'
 export {
