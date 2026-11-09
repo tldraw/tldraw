@@ -43,10 +43,10 @@ function showCollection(editor: Editor, collectionId: TLCollectionId) {
 
 /**
  * Returns functions that save the current selection. `saveSelection` saves to an existing
- * collection: with the panel open, the panel shows that collection; otherwise a toast confirms the
- * save and can open it. `saveToNewCollection` creates a collection named "New collection" (or the
- * next free variant), saves into it, and opens the panel with the new name ready to edit. Failures
- * show a toast.
+ * collection: with the panel open, the panel brings that collection into view; otherwise a toast
+ * confirms the save and can open it. `saveToNewCollection` creates a collection named "New
+ * collection" (or the next free variant), saves into it, and opens the panel with the new name
+ * ready to edit. Failures show a toast.
  */
 export function useSaveSelection(source: CollectionSource) {
 	const editor = useEditor()

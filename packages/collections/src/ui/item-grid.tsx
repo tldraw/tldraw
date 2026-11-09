@@ -18,8 +18,10 @@ export interface ItemGridProps<Id extends string = string> {
 	getItemProps(id: Id): ButtonHTMLAttributes<HTMLButtonElement>
 	/** An item's menu, shown over its tile. Leave it out for tiles without one. */
 	renderItemMenu?(item: ItemGridItem<Id>): ReactNode
-	/** Shown when there are no items. */
+	/** Shown when there are no items and nothing comes after them. */
 	empty: ReactNode
+	/** A tile after the items, such as one that adds to the collection. */
+	after?: ReactNode
 }
 
 /** @public @react */
@@ -28,8 +30,9 @@ export function ItemGrid<Id extends string>({
 	getItemProps,
 	renderItemMenu,
 	empty,
+	after,
 }: ItemGridProps<Id>) {
-	if (items.length === 0) return <p className="tlui-collections-panel__empty">{empty}</p>
+	if (items.length === 0 && !after) return <p className="tlui-collections-panel__empty">{empty}</p>
 
 	return (
 		<ul className="tlui-collections-grid">
@@ -44,6 +47,7 @@ export function ItemGrid<Id extends string>({
 					/>
 				</li>
 			))}
+			{after && <li>{after}</li>}
 		</ul>
 	)
 }
