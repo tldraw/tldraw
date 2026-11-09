@@ -83,6 +83,7 @@ export function classroom(ctx: AuthorizeContext<TLRecord, Actor>): AuthorizeResu
 
 	// [1]
 	if (ctx.action === 'cards:reveal') return isTeacher
+	if (ctx.action === 'bot:run') return actor.role === 'agent'
 	if (ctx.action === 'comments:write') return actor.role === 'agent' ? false : undefined
 	if (ctx.action === 'comments:delete') return isTeacher || undefined
 	if (ctx.action.startsWith('tool:')) {
@@ -181,8 +182,8 @@ export const authorize: Authorize<TLRecord, Actor> = combineAuthorize(
 
 /*
 [1]
-Custom actions are questions with no record. The toolbar asks `tool:<id>`, and the reveal button
-asks `cards:reveal`. A custom action that no rule allows is denied. The comment UI asks
+Custom actions are questions with no record. The toolbar asks `tool:<id>`, the reveal button
+asks `cards:reveal`, and the bot's button asks `bot:run`. A custom action that no rule allows is denied. The comment UI asks
 `comments:write`, `comments:edit`, and `comments:delete`: the comment rules allow them for the
 author, and these lines widen delete to the teacher (a moderator) and stop the bot from commenting.
 

@@ -1,14 +1,37 @@
 {
 	"extends": "../../internal/config/tsconfig.base.json",
-	"include": ["src"],
-	"exclude": ["node_modules", ".tsbuild*"],
-	"compilerOptions": { "outDir": "./.tsbuild", "rootDir": "src" },
+	"include": [
+		"src"
+	],
+	"exclude": [
+		"node_modules",
+		".tsbuild*"
+	],
+	"compilerOptions": {
+		"outDir": "./.tsbuild",
+		"rootDir": "src"
+	},
 	"references": [
-		{ "path": "../state" },
-		{ "path": "../store" },
-		{ "path": "../tldraw" },
-		{ "path": "../tlschema" },
-		{ "path": "../utils" },
-		{ "path": "../validate" }
+		{
+			"path": "../state"
+		},
+		{
+			"path": "../store"
+		},
+		{
+			"path": "../sync-collaboration"
+		},
+		{
+			"path": "../tldraw"
+		},
+		{
+			"path": "../tlschema"
+		},
+		{
+			"path": "../utils"
+		},
+		{
+			"path": "../validate"
+		}
 	]
 }

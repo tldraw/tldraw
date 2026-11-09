@@ -180,7 +180,7 @@ function Panel({
 						</option>
 					))}
 				</select>
-				{editor && <PanelActions editor={editor} actor={actor} />}
+				{editor && <PanelActions editor={editor} />}
 				{/* [10] */}
 				<label className="sync-authorize__checks">
 					<input
@@ -223,8 +223,9 @@ function Panel({
 }
 
 // [5]
-function PanelActions({ editor, actor }: { editor: Editor; actor: Actor }) {
+function PanelActions({ editor }: { editor: Editor }) {
 	const canReveal = useValue('can reveal', () => editor.permissions.can('cards:reveal'), [editor])
+	const canRunBot = useValue('can run bot', () => editor.permissions.can('bot:run'), [editor])
 	if (canReveal) {
 		return (
 			<button
@@ -237,7 +238,7 @@ function PanelActions({ editor, actor }: { editor: Editor; actor: Actor }) {
 			</button>
 		)
 	}
-	if (actor.role === 'agent') {
+	if (canRunBot) {
 		return (
 			<button
 				onClick={() => {
@@ -325,7 +326,7 @@ const components: TLComponents = {
 		const actor = useContext(ActorContext)
 		return (
 			<CanvasComments
-				currentUserId={actor.role === 'viewer' ? null : actor.userId}
+				currentUserId={actor.userId}
 				resolveAuthor={(id) => {
 					const actor = Object.values(ACTORS).find((a) => a.userId === id)
 					return { name: actor?.name ?? id }
@@ -408,8 +409,10 @@ that they deny, so the user sees the result at once. The room still checks every
 client is not a security boundary.
 
 [5]
-`editor.permissions.can()` answers UI questions with the same rules. `cards:reveal` is a custom
-action. The bot's button writes one shape inside its frame and one outside: the second is denied.
+`editor.permissions.can()` answers UI questions with the same rules that the room runs. The UI
+has no permission logic of its own: each button shows only when its custom action
+(`cards:reveal`, `bot:run`) is allowed. The bot's button writes one shape inside its frame and one
+outside: the second is denied.
 
 [6]
 The last denied write, and the reason that the rule gave. With editor checks on, the editor denies

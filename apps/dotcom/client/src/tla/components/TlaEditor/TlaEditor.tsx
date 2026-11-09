@@ -1,5 +1,6 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
+import { authorizeFileRecord, SessionMeta } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	createDebugValue,
@@ -50,6 +51,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
+import { useTldrawCurrentUser } from '../../hooks/useUser'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import {
@@ -81,12 +83,12 @@ const messages = defineMessages({
 	fileHistory: { defaultMessage: 'File history' },
 })
 
-// Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
-// editable canvas get a sign-in prompt where the composers would be; view-only sessions
-// read threads without composers (the server rejects their writes in the authorizers).
+// Who may comment comes from the file rules (`authorizeFileRecord`), which the editor asks through
+// its `permissions` and the file room runs on every write: a signed-in author on an editable
+// canvas. Signed-out visitors on an editable canvas get a sign-in prompt where the composers
+// would be; view-only sessions read threads without composers.
 const tlaCommentTools = [
 	CommentTool.configure({
-		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
 		components: { ComposerFallback: SignInToComment },
 	}),
 ]
@@ -166,6 +168,18 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}, [hideAllShapes])
 
 	const store = useFileSyncStore()
+
+	// The actor of the file rules, as the file room sees this session.
+	const userId = useTldrawCurrentUser()?.id ?? null
+	const isReadonly = useValue(
+		'is readonly',
+		() => store.store?.props.collaboration?.mode?.get() === 'readonly',
+		[store.store]
+	)
+	const permissions = useMemo(() => {
+		const actor: SessionMeta = { storeId: store.store?.id ?? '', userId, isReadonly }
+		return { authorize: authorizeFileRecord, actor }
+	}, [store.store, userId, isReadonly])
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
@@ -362,7 +376,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
 	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut
-	// hide via the UI's readonly handling, and composing is gated by the tool's `canComment`.
+	// hide via the UI's readonly handling, and composing is gated by `comments:write` in the file rules.
 	const editorOverrides = useMemo(
 		() => [overrides, extraDragIconOverrides, commentToolOverrides, anonCommentToolOverrides],
 		[overrides, extraDragIconOverrides, anonCommentToolOverrides]
@@ -377,6 +391,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				shapeUtils={embedShapeUtils}
 				tools={commentingEnabled ? tlaCommentTools : undefined}
 				user={app?.tlUser}
+				permissions={permissions}
 				onMount={handleMount}
 				onUiEvent={handleUiEvent}
 				components={instanceComponents}

@@ -1,3 +1,5 @@
+import { SessionMeta, authorizeFileRecord, getObjectAccess } from '@tldraw/dotcom-shared'
+import { runAuthorize } from '@tldraw/store'
 import {
 	RecordOpType,
 	TLSocketRoom,
@@ -20,7 +22,6 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
-import { SessionMeta, authorizeFileRecord, getObjectAccess } from './authorizeFileRecord'
 import { asAuthorizerMap } from './authorizeFileRecord.testing'
 
 const fileAuth = asAuthorizerMap(authorizeFileRecord)
@@ -35,7 +36,7 @@ function session(
 	isReadonly: boolean
 	meta: SessionMeta
 } {
-	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId } }
+	return { sessionId: 's1', isReadonly, meta: { storeId: 'store', userId, isReadonly } }
 }
 
 describe('authorizeFileRecord', () => {
@@ -75,12 +76,29 @@ describe('authorizeFileRecord', () => {
 			).toBeNull()
 		})
 
-		// The comment rules no longer read `isReadonly`. View-only sessions get the object lane as
-		// read-only instead, so they still read comments but cannot write them.
+		// The file rules deny `comments:write` to view-only sessions, and the object lane follows
+		// them, so view-only sessions still read comments but cannot write them. The editor asks the
+		// same rule to hide the composer.
 		it('gives the object lane write access only to signed-in, non-readonly sessions', () => {
-			expect(getObjectAccess({ userId: 'real-bob', isReadonly: false })).toBe('write')
-			expect(getObjectAccess({ userId: 'real-bob', isReadonly: true })).toBe('read')
-			expect(getObjectAccess({ userId: null, isReadonly: false })).toBe('read')
+			expect(getObjectAccess({ storeId: 'store', userId: 'real-bob', isReadonly: false })).toBe(
+				'write'
+			)
+			expect(getObjectAccess({ storeId: 'store', userId: 'real-bob', isReadonly: true })).toBe(
+				'read'
+			)
+			expect(getObjectAccess({ storeId: 'store', userId: null, isReadonly: false })).toBe('read')
+		})
+
+		it('answers comments:write the same way for the editor', () => {
+			const ask = (meta: SessionMeta) =>
+				runAuthorize(
+					authorizeFileRecord,
+					{ action: 'comments:write' },
+					{ actor: meta, get: () => undefined }
+				).allowed
+			expect(ask(session('real-bob').meta)).toBe(true)
+			expect(ask(session('real-bob', true).meta)).toBe(false)
+			expect(ask(session(null).meta)).toBe(false)
 		})
 	})
 
@@ -181,7 +199,7 @@ describe('authorizeFileRecord', () => {
 				room.handleSocketConnect({
 					sessionId: 's1',
 					socket,
-					meta: { userId: 'real-bob', storeId: 'store' },
+					meta: { userId: 'real-bob', storeId: 'store', isReadonly: false },
 				})
 				room.handleSocketMessage(
 					's1',

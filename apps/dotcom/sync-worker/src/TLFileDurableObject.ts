@@ -13,10 +13,13 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	SessionMeta,
 	TLCustomServerEvent,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
+	authorizeFileRecord,
 	can,
+	getObjectAccess,
 	type FeatureFlagValue,
 	type Role,
 	type RoomOpenMode,
@@ -59,7 +62,6 @@ import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord, getObjectAccess } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -529,19 +531,17 @@ export class TLFileDurableObject extends DurableObject {
 						const attachment = ws.deserializeAttachment() as SocketAttachment | null
 						if (!attachment?.sessionId) continue
 						if (attachment.snapshot) {
+							// Attachments written before the file rules read `isReadonly` lack it in meta,
+							// and may carry objectAccess 'write' on a view-only session.
+							const meta: SessionMeta = {
+								...attachment.meta,
+								isReadonly: attachment.snapshot.isReadonly,
+							}
 							resumes.push({
 								sessionId: attachment.sessionId,
 								socket: ws,
-								// Attachments written before comment access followed the readonly
-								// lane may carry objectAccess 'write' on a view-only session.
-								snapshot: {
-									...attachment.snapshot,
-									objectAccess: getObjectAccess({
-										userId: attachment.meta.userId,
-										isReadonly: attachment.snapshot.isReadonly,
-									}),
-								},
-								meta: attachment.meta,
+								snapshot: { ...attachment.snapshot, objectAccess: getObjectAccess(meta) },
+								meta,
 							})
 						}
 					}
@@ -1220,15 +1220,13 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		try {
+			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
 			const meta: SessionMeta = {
 				storeId: storeId ?? sessionId,
 				userId: auth?.userId ? auth.userId : null,
-			}
-			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
-			const objectAccess: TLObjectStoreAccess = getObjectAccess({
-				userId: meta.userId,
 				isReadonly,
-			})
+			}
+			const objectAccess: TLObjectStoreAccess = getObjectAccess(meta)
 			const attachment: SocketAttachment = {
 				sessionId,
 				meta,

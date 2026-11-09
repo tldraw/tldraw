@@ -1551,6 +1551,9 @@ importers:
       '@tldraw/store':
         specifier: workspace:*
         version: link:../store
+      '@tldraw/sync-collaboration':
+        specifier: workspace:*
+        version: link:../sync-collaboration
       '@tldraw/tlschema':
         specifier: workspace:*
         version: link:../tlschema

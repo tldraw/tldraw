@@ -1,6 +1,6 @@
+import { SessionMeta } from '@tldraw/dotcom-shared'
 import { Authorize, AuthorizeRequest, runAuthorize } from '@tldraw/store'
 import { TLRecord } from '@tldraw/tlschema'
-import { SessionMeta } from './authorizeFileRecord'
 
 type Write = { session: { meta: SessionMeta } } & (
 	| { type: 'create'; prev: null; next: any }

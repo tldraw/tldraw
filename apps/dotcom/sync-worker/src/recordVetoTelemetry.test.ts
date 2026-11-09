@@ -1,3 +1,4 @@
+import { SessionMeta, authorizeFileRecord } from '@tldraw/dotcom-shared'
 import { Authorize } from '@tldraw/store'
 import {
 	createComment,
@@ -9,7 +10,6 @@ import {
 } from '@tldraw/tlschema'
 import { TLRecord } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import { asAuthorizerMap } from './authorizeFileRecord.testing'
 import { TLFileDurableObject } from './TLFileDurableObject'
 
@@ -69,7 +69,7 @@ async function harness(
 const session = {
 	sessionId: 'secret-session',
 	isReadonly: false,
-	meta: { userId: 'alice', storeId: 'secret-store' },
+	meta: { userId: 'alice', storeId: 'secret-store', isReadonly: false },
 }
 const note = (userId: string) =>
 	({
