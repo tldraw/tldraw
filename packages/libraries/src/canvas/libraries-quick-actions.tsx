@@ -10,6 +10,7 @@ import {
 	type TLUiQuickActionsProps,
 } from 'tldraw'
 import { LibraryIcon } from '../ui/library-icon'
+import { useLibrariesEnabled } from './license'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 
 const messages = defineMessages({
@@ -39,7 +40,10 @@ export function LibrariesQuickActions({ children }: TLUiQuickActionsProps) {
 function LibrariesToolbarButton() {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+
+	if (!librariesEnabled) return null
 
 	return (
 		<TldrawUiToolbarButton

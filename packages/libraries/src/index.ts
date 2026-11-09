@@ -23,6 +23,7 @@ export {
 	type LibrarySectionHeaderProps,
 } from './canvas/library-section-header'
 export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
+export { useLibrariesEnabled } from './canvas/license'
 export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
 export { placeLibraryItem } from './canvas/place-item'
 export {
