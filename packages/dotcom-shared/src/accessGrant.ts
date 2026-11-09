@@ -34,6 +34,7 @@ export interface TLAccessPolicy {
 	id: string
 	typeName: 'access-policy'
 	studentsCanEditAll: boolean
+	studentsRedOnly?: boolean
 	studentPages: string[]
 	meta: Record<string, unknown>
 }
@@ -46,6 +47,7 @@ export const accessPolicyRecordConfig: CustomRecordInfo = {
 		id: T.string,
 		typeName: T.literal('access-policy'),
 		studentsCanEditAll: T.boolean,
+		studentsRedOnly: T.boolean.optional(),
 		studentPages: T.arrayOf(T.string),
 		meta: T.jsonValue,
 	}),

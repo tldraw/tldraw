@@ -347,6 +347,12 @@
       "value": "Remove member"
     }
   ],
+  "38c328f266": [
+    {
+      "type": 0,
+      "value": "Only red shapes"
+    }
+  ],
   "398f51738e": [
     {
       "type": 0,
@@ -714,12 +720,6 @@
     {
       "type": 0,
       "value": "Delete workspace"
-    }
-  ],
-  "69fe950138": [
-    {
-      "type": 0,
-      "value": "Students can see this page"
     }
   ],
   "6a26f54883": [
@@ -1618,6 +1618,12 @@
     {
       "type": 0,
       "value": "Too many requests. Please slow down."
+    }
+  ],
+  "d48ed77a16": [
+    {
+      "type": 0,
+      "value": "Only this page for students"
     }
   ],
   "d4bbf74f3e": [

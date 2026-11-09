@@ -49,6 +49,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
+import { useIsRestrictedStudent } from '../../utils/student-restrictions'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -70,6 +71,15 @@ import styles from './top.module.css'
 /** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
  *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
  *  into. */
+// SPIKE: a restricted student gets the current page's name and nothing to switch or create with.
+function PageMenuForRole() {
+	const editor = useEditor()
+	const isRestrictedStudent = useIsRestrictedStudent()
+	const pageName = useValue('page name', () => editor.getCurrentPage().name, [editor])
+	if (!isRestrictedStudent) return <DefaultPageMenu />
+	return <span>{pageName}</span>
+}
+
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabled()
 	return (
@@ -164,7 +174,7 @@ function TlaEditorTopLeftPanelAnonymous() {
 			{hasPages && (
 				<>
 					<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
-					<DefaultPageMenu />
+					<PageMenuForRole />
 				</>
 			)}
 			<TldrawUiDropdownMenuRoot id={`file-menu-anon`}>
@@ -275,7 +285,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 				onEnd={handleRenameEnd}
 			/>
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
-			<DefaultPageMenu />
+			<PageMenuForRole />
 			<TlaFileMenu
 				fileId={fileId ?? ''}
 				workspaceId={null}

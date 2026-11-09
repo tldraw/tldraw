@@ -98,7 +98,11 @@ const students = perRecord<FileRecord, SessionMeta>((change, { session, before, 
 	const policy = before(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
 	if (policy?.studentsCanEditAll === true) return null
 	// SPIKE: students only create red shapes, and may only recolour to red
-	if (change.type !== 'delete' && change.next.typeName === 'shape') {
+	if (
+		policy?.studentsRedOnly === true &&
+		change.type !== 'delete' &&
+		change.next.typeName === 'shape'
+	) {
 		const color = (change.next.props as { color?: string }).color
 		const prevColor =
 			change.type === 'update'

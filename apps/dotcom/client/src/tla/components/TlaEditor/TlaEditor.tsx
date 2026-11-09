@@ -45,6 +45,7 @@ import {
 	TldrawUiDialogFooter,
 	TldrawUiDialogHeader,
 	TldrawUiDialogTitle,
+	TldrawUiIcon,
 	TLBinding,
 	TLComponents,
 	Tldraw,
@@ -91,6 +92,7 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { maybeSlurp } from '../../utils/slurping'
+import { getPolicy } from '../../utils/student-restrictions'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import {
 	TlaAddToCollectionMenuItem,
@@ -120,7 +122,8 @@ const messages = defineMessages({
 	},
 	fileHistory: { defaultMessage: 'File history' },
 	studentsCanEditAll: { defaultMessage: 'Students can edit everything' },
-	sharePage: { defaultMessage: 'Students can see this page' },
+	sharePage: { defaultMessage: 'Only this page for students' },
+	redOnly: { defaultMessage: 'Only red shapes' },
 	color: { defaultMessage: 'Color' },
 	refusedTitle: { defaultMessage: 'Change not saved' },
 	ok: { defaultMessage: 'OK' },
@@ -225,14 +228,9 @@ function RestrictedStylePanel(props: TLUiStylePanelProps) {
 	)
 }
 
-// SPIKE: the student policy is its own record in the room's object store, written by teachers.
-function getPolicy(store: { get(id: any): unknown }) {
-	return store.get(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
-}
-
 function putPolicy(
 	editor: Editor,
-	change: Partial<Pick<TLAccessPolicy, 'studentsCanEditAll' | 'studentPages'>>
+	change: Partial<Pick<TLAccessPolicy, 'studentsCanEditAll' | 'studentsRedOnly' | 'studentPages'>>
 ) {
 	const current = getPolicy(editor.store)
 	editor.run(
@@ -300,6 +298,9 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 				'student' && getPolicy(editor.store)?.studentsCanEditAll !== true,
 		[editor, grantId]
 	)
+	const redOnly = useValue('redOnly', () => getPolicy(editor.store)?.studentsRedOnly === true, [
+		editor,
+	])
 	if (!isRestrictedStudent) return null
 
 	const tryPolicy = () => putPolicy(editor, { studentsCanEditAll: true })
@@ -360,10 +361,30 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 			<TldrawUiButton type="normal" onClick={tryOtherPage}>
 				<TldrawUiButtonLabel>{msg(messages.tryOtherPage)}</TldrawUiButtonLabel>
 			</TldrawUiButton>
-			<TldrawUiButton type="normal" onClick={tryBlue}>
-				<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>
-			</TldrawUiButton>
+			{redOnly && (
+				<TldrawUiButton type="normal" onClick={tryBlue}>
+					<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>
+				</TldrawUiButton>
+			)}
 		</div>
+	)
+}
+
+// SPIKE: one row of the teacher's panel, in tldraw's own menu button style.
+function PolicyOption({
+	label,
+	checked,
+	onChange,
+}: {
+	label: string
+	checked: boolean
+	onChange(next: boolean): void
+}) {
+	return (
+		<TldrawUiButton type="menu" onClick={() => onChange(!checked)}>
+			<TldrawUiIcon small label={label} icon={checked ? 'toggle-on' : 'toggle-off'} />
+			<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+		</TldrawUiButton>
 	)
 }
 
@@ -378,18 +399,13 @@ function TeacherEditingToggle({ grantId }: { grantId: string }) {
 			'teacher',
 		[editor, grantId]
 	)
-	const editAll = useValue(
-		'studentsCanEditAll',
-		() => getPolicy(editor.store)?.studentsCanEditAll === true,
-		[editor]
-	)
+	const policy = useValue('policy', () => getPolicy(editor.store), [editor])
 	const pageShared = useValue(
 		'currentPageShared',
 		() => !!getPolicy(editor.store)?.studentPages.includes(editor.getCurrentPageId()),
 		[editor]
 	)
 	if (!isTeacher) return null
-	const row = { display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }
 	return (
 		<div
 			style={{
@@ -399,42 +415,34 @@ function TeacherEditingToggle({ grantId }: { grantId: string }) {
 				transform: 'translateX(-50%)',
 				display: 'flex',
 				flexDirection: 'column',
-				gap: 4,
-				padding: '6px 12px',
-				borderRadius: 8,
+				minWidth: 240,
+				padding: 4,
+				borderRadius: 'var(--tl-radius-3)',
 				background: 'var(--tl-color-panel)',
 				boxShadow: 'var(--tl-shadow-2)',
-				font: '500 12px var(--tl-font-sans)',
-				color: 'var(--tl-color-text)',
 				pointerEvents: 'all',
 				zIndex: 'var(--tl-layer-canvas-in-front)' as any,
 			}}
 			onPointerDown={(e) => e.stopPropagation()}
 		>
-			<label style={row}>
-				<input
-					type="checkbox"
-					checked={pageShared}
-					onChange={(e) => {
-						const id = editor.getCurrentPageId()
-						const pages = getPolicy(editor.store)?.studentPages ?? []
-						putPolicy(editor, {
-							studentPages: e.target.checked
-								? [...pages.filter((p) => p !== id), id]
-								: pages.filter((p) => p !== id),
-						})
-					}}
-				/>
-				{msg(messages.sharePage)}
-			</label>
-			<label style={row}>
-				<input
-					type="checkbox"
-					checked={editAll}
-					onChange={(e) => putPolicy(editor, { studentsCanEditAll: e.target.checked })}
-				/>
-				{msg(messages.studentsCanEditAll)}
-			</label>
+			<PolicyOption
+				label={msg(messages.sharePage)}
+				checked={pageShared}
+				// students get exactly one page: this one, or none
+				onChange={(next) =>
+					putPolicy(editor, { studentPages: next ? [editor.getCurrentPageId()] : [] })
+				}
+			/>
+			<PolicyOption
+				label={msg(messages.redOnly)}
+				checked={policy?.studentsRedOnly === true}
+				onChange={(next) => putPolicy(editor, { studentsRedOnly: next })}
+			/>
+			<PolicyOption
+				label={msg(messages.studentsCanEditAll)}
+				checked={policy?.studentsCanEditAll === true}
+				onChange={(next) => putPolicy(editor, { studentsCanEditAll: next })}
+			/>
 		</div>
 	)
 }
@@ -502,7 +510,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			if (record.typeName === 'page') return isStudentPage(record.id)
 			if (record.typeName === 'shape') {
 				// SPIKE: students only create red shapes, and may only recolour to red
-				if (change.type !== 'delete') {
+				if (getPolicy(editor.store)?.studentsRedOnly === true && change.type !== 'delete') {
 					const color = (record.props as { color?: string }).color
 					const prevColor =
 						change.type === 'update'
@@ -545,6 +553,15 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		[store, grantId]
 	)
 
+	const isRedOnlyStudent = useValue(
+		'isRedOnlyStudent',
+		() =>
+			isStudent &&
+			store.status === 'synced-remote' &&
+			getPolicy(store.store)?.studentsRedOnly === true,
+		[store, isStudent]
+	)
+
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
 	const trackShareLinkOpen = useShareLinkOpenTracking()
@@ -558,7 +575,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			const stopStudentPageGuard = react('student page guard', () => {
 				if (!isStudentIn(editor)) return
 				// shapes can only be red, so start every new shape red
-				editor.setStyleForNextShapes(DefaultColorStyle, 'red', { history: 'ignore' })
+				if (getPolicy(editor.store)?.studentsRedOnly === true) {
+					editor.setStyleForNextShapes(DefaultColorStyle, 'red', { history: 'ignore' })
+				}
 				const shared = getPolicy(editor.store)?.studentPages ?? []
 				if (shared.includes(editor.getCurrentPageId())) return
 				const first = editor.getPages().find((p) => shared.includes(p.id))
@@ -734,7 +753,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
-			...(isStudent ? { PageMenu: null, StylePanel: RestrictedStylePanel } : null),
+			...(isStudent ? { PageMenu: null } : null),
+			...(isRedOnlyStudent ? { StylePanel: RestrictedStylePanel } : null),
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
@@ -751,7 +771,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				</>
 			),
 		}
-	}, [fileId, commentingEnabled, isStudent, grantId])
+	}, [fileId, commentingEnabled, isStudent, isRedOnlyStudent, grantId])
 
 	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
 	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut

@@ -140,6 +140,9 @@
   "375396d6e5": {
     "translation": "Remove member"
   },
+  "38c328f266": {
+    "translation": "Only red shapes"
+  },
   "398f51738e": {
     "translation": "Sign in to accept this invite."
   },
@@ -295,9 +298,6 @@
   },
   "694f82ed9d": {
     "translation": "Delete workspace"
-  },
-  "69fe950138": {
-    "translation": "Students can see this page"
   },
   "6a26f54883": {
     "translation": "Help"
@@ -626,6 +626,9 @@
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."
+  },
+  "d48ed77a16": {
+    "translation": "Only this page for students"
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
