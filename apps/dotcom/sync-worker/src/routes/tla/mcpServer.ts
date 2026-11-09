@@ -1494,8 +1494,8 @@ async function renderShapeSetScreenshot(
 		// Workers deploy before the client, so for a few minutes a render page that predates `tight`
 		// can answer this job, with a margin, at its own 200-1600px limits. That is still a picture of
 		// the right shapes, so the caller gets it, but caching it would serve that framing until the
-		// board next changes. Only a size outside those limits shows up here, which the default
-		// 2560px always is; a smaller tight render from the old page is indistinguishable.
+		// board next changes. Only a size outside those limits shows up here: at the default size,
+		// any cluster over 200 page units across. A smaller one from the old page can't be told apart.
 		const rendered = readPngSize(render.base64)
 		if (rendered && (rendered.width !== size.width || rendered.height !== size.height)) {
 			reportThumbnailError(
