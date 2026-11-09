@@ -174,10 +174,6 @@ export type ThumbnailErrorSurface =
 	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
 	// call is re-spending Browser Run.
 	| 'mcp_screenshot_cache_write'
-	// Also a render the caller got: a tight cluster render whose PNG was not the size it was asked
-	// for, so it wasn't cached. Expected briefly during a deploy; anything lasting means the render
-	// page isn't honouring `fit: 'tight'`.
-	| 'mcp_screenshot_size_mismatch'
 	// The cluster index cache in the file's Durable Object. Neither of these is ever a caller-visible
 	// failure — both fall back to measuring the page — but both mean the clustering tools are paying
 	// for a browser session per call again, which is the thing that cache exists to stop.

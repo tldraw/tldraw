@@ -665,21 +665,6 @@ export async function getShapesCacheKey(
 	return `mcp/${board.kind}/${board.slug}/${board.version}/${width}x${height}/${theme}/tight-shapes-${digest}.png`
 }
 
-// The pixel size a PNG says it is, read from its IHDR chunk, or null for bytes that aren't a PNG.
-export function readPngSize(base64: string): { width: number; height: number } | null {
-	let bytes: Uint8Array
-	try {
-		// 32 base64 characters decode to exactly the 24 bytes that hold the signature and IHDR size.
-		bytes = new Uint8Array(base64ToArrayBuffer(base64.slice(0, 32)))
-	} catch {
-		return null
-	}
-	const signature = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]
-	if (bytes.length < 24 || signature.some((byte, i) => bytes[i] !== byte)) return null
-	const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength)
-	return { width: view.getUint32(16), height: view.getUint32(20) }
-}
-
 async function callSearchBoardsTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1490,29 +1475,6 @@ async function renderShapeSetScreenshot(
 				? { capture: 'live' as const }
 				: null),
 		})
-
-		// Workers deploy before the client, so for a few minutes a render page that predates `tight`
-		// can answer this job, with a margin, at its own 200-1600px limits. That is still a picture of
-		// the right shapes, so the caller gets it, but caching it would serve that framing until the
-		// board next changes. Only a size outside those limits shows up here: at the default size,
-		// any cluster over 200 page units across. A smaller one from the old page can't be told apart.
-		const rendered = readPngSize(render.base64)
-		if (rendered && (rendered.width !== size.width || rendered.height !== size.height)) {
-			reportThumbnailError(
-				new Error(
-					`Tight render came back ${rendered.width}x${rendered.height}, expected ${size.width}x${size.height}`
-				),
-				{
-					ctx,
-					env,
-					request,
-					surface: 'mcp_screenshot_size_mismatch',
-					extras: { boardId, page: describePageSelector(page), theme, ...extras },
-				}
-			)
-			telemetry({ cacheStatus: 'miss', clusterCacheStatus })
-			return toolPageResult(resolved.page.pageName, render.base64)
-		}
 
 		// The render is already paid for and the PNG in hand is what the caller asked for, so a failed
 		// cache write must not throw it away — that would turn a working screenshot into a tool error
