@@ -1,9 +1,4 @@
-import {
-	ACCESS_POLICY_ID,
-	accessGrantId,
-	TLAccessGrant,
-	TLAccessPolicy,
-} from '@tldraw/dotcom-shared'
+import { accessGrantId, judgeChange, readGrant } from '@tldraw/dotcom-shared'
 import { createCommentAuthorizer, getOwningPage, isCommentRecord } from '@tldraw/sync-collaboration'
 import {
 	createAccessAuthorizer,
@@ -81,59 +76,18 @@ function authorizeShape(change: TLRecordChange<FileRecord>, session: FileSession
 	return null
 }
 
-// SPIKE: role grants are written by the server only.
-const grantsAreServerManaged = perRecord<FileRecord, SessionMeta>((change) =>
-	(change.record as { typeName: string }).typeName === 'access-grant'
-		? 'role grants are managed by the server'
-		: null
-)
-
-// SPIKE: the session's role, read from its grant record. No grant means student.
-function roleOf(session: FileSession, get: (id: string) => unknown) {
-	return (get(accessGrantId(session.meta.userId)) as TLAccessGrant | undefined)?.role ?? 'student'
-}
-
-// SPIKE: only teachers change the policy students are held to.
-const policyIsForTeachers = perRecord<FileRecord, SessionMeta>((change, { session, before }) =>
-	(change.record as { typeName: string }).typeName === 'access-policy' &&
-	roleOf(session, before) !== 'teacher'
-		? 'only teachers change the student policy'
-		: null
-)
-
-// SPIKE: students are held to the teacher's policy. A page is theirs when the teacher's policy record
-// lists it; they cannot write that record (see policyIsForTeachers).
-const students = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
-	if (roleOf(session, before) === 'teacher') return null
-	const policy = before(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
-	if (policy?.studentsCanEditAll === true) return null
-	// SPIKE: students only create red shapes, and may only recolour to red
-	if (
-		policy?.studentsRedOnly === true &&
-		change.type !== 'delete' &&
-		change.next.typeName === 'shape'
-	) {
-		const color = (change.next.props as { color?: string }).color
-		const prevColor =
-			change.type === 'update'
-				? (change.prev as { props: { color?: string } }).props.color
-				: undefined
-		if ((change.type === 'create' || color !== prevColor) && color !== 'red') {
-			return 'students can only use red shapes'
-		}
-	}
-	const ends = [
-		[change.type === 'create' ? null : change.prev, before],
-		[change.type === 'delete' ? null : change.next, after],
-	] as const
-	for (const [record, get] of ends) {
-		if (!record) continue
-		const owning = getOwningPage(get, record)
-		if (owning.page && !policy?.studentPages.includes(owning.page.id)) {
-			return 'students can only edit pages shared with them'
-		}
-	}
-	return null
+// SPIKE: what a session can do comes from its grant record: no grant, no capabilities. Teachers'
+// grants are written by the server, the students' grant by a teacher. Records the capabilities
+// don't cover (assets, the document) pass.
+const capabilities = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
+	const grant = readGrant(before(accessGrantId(session.meta.userId)))
+	return judgeChange(grant, change as TLRecordChange<any>, {
+		pageOf(record, end) {
+			const owning = getOwningPage(end === 'prev' ? before : after, record)
+			return owning.page ? owning.page.id : null
+		},
+		unresolved: 'refuse',
+	})
 })
 
 /** The parts of the file rule, kept as an object so a test can stub one. */
@@ -173,11 +127,9 @@ export function authorizeFileRecord(
 	args: Parameters<TLSyncAuthorizer<FileRecord, SessionMeta>>[0]
 ): TLSyncRefusal | null {
 	return (
-		grantsAreServerManaged(args) ??
-		policyIsForTeachers(args) ??
 		fileRecordRules.access(args) ??
 		fileRecordRules.comments.authorize(args) ??
 		shapes(args) ??
-		students(args)
+		capabilities(args)
 	)
 }

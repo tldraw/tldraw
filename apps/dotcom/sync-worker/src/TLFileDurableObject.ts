@@ -20,8 +20,11 @@ import {
 	type FeatureFlagValue,
 	type Role,
 	type RoomOpenMode,
+	TEACHER_CAN,
+	TEACHER_PAGES,
 	accessGrantId,
 	accessGrantSchemaRecords,
+	readGrant,
 } from '@tldraw/dotcom-shared'
 import { StoreSchema, UnknownRecord } from '@tldraw/store'
 import {
@@ -1234,16 +1237,27 @@ export class TLFileDurableObject extends DurableObject {
 				return closeSocket(TLSyncErrorCloseEventReason.ROOM_FULL)
 			}
 
-			// SPIKE: the role is a record in the object store, written from the verified session
-			// before the connect so it is in the snapshot the client receives.
+			// SPIKE: what this session can do is a record in the object store, so it is in the snapshot
+			// the client receives. Signed-in users get the teacher grant, rewritten whenever it
+			// differs from the code's. Signed-out visitors share one grant that starts empty and that
+			// a teacher edits.
 			const grantId = accessGrantId(meta.userId)
 			room.storage.transaction((txn) => {
-				if (txn.get(grantId)) return
-				txn.set(grantId, {
-					id: grantId,
-					typeName: 'access-grant',
-					role: meta.userId ? 'teacher' : 'student',
-				} as any)
+				const existing = readGrant(txn.get(grantId))
+				if (meta.userId) {
+					const same =
+						existing?.can.join() === TEACHER_CAN.join() &&
+						existing?.pages.join() === TEACHER_PAGES.join()
+					if (same) return
+					txn.set(grantId, {
+						id: grantId,
+						typeName: 'access-grant',
+						can: TEACHER_CAN,
+						pages: TEACHER_PAGES,
+					} as any)
+				} else if (!txn.get(grantId)) {
+					txn.set(grantId, { id: grantId, typeName: 'access-grant', can: [], pages: [] } as any)
+				}
 			})
 
 			// all good

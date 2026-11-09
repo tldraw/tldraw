@@ -353,12 +353,6 @@
       "value": "Remove member"
     }
   ],
-  "38c328f266": [
-    {
-      "type": 0,
-      "value": "Only red shapes"
-    }
-  ],
   "398f51738e": [
     {
       "type": 0,
@@ -389,6 +383,12 @@
       "value": "Accept all"
     }
   ],
+  "3df377852c": [
+    {
+      "type": 0,
+      "value": "Delete a shape"
+    }
+  ],
   "3e2ae04ff0": [
     {
       "type": 0,
@@ -399,6 +399,12 @@
     {
       "type": 0,
       "value": "Color theme"
+    }
+  ],
+  "41c4201503": [
+    {
+      "type": 0,
+      "value": "Can create pages"
     }
   ],
   "42e53c47c1": [
@@ -569,6 +575,18 @@
       "value": "Privacy policy"
     }
   ],
+  "5947db7f05": [
+    {
+      "type": 0,
+      "value": "Can create red shapes"
+    }
+  ],
+  "5a5305d11e": [
+    {
+      "type": 0,
+      "value": "Can delete shapes"
+    }
+  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -678,6 +696,12 @@
     {
       "type": 0,
       "value": "Older"
+    }
+  ],
+  "636c718e3f": [
+    {
+      "type": 0,
+      "value": "Can create any shape"
     }
   ],
   "639bae9ac6": [
@@ -998,12 +1022,6 @@
       "value": "Check your email for a verification code."
     }
   ],
-  "8ea4bb56ff": [
-    {
-      "type": 0,
-      "value": "Students can edit everything"
-    }
-  ],
   "8eb2c00e96": [
     {
       "type": 0,
@@ -1244,6 +1262,12 @@
     {
       "type": 0,
       "value": "Leave"
+    }
+  ],
+  "a5552d8eb2": [
+    {
+      "type": 0,
+      "value": "Can edit shapes"
     }
   ],
   "a6cc403d56": [

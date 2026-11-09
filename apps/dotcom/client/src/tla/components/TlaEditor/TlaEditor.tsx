@@ -1,11 +1,5 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
-import {
-	ACCESS_POLICY_ID,
-	accessGrantId,
-	TLAccessGrant,
-	TLAccessPolicy,
-} from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	createDebugValue,
@@ -15,55 +9,21 @@ import {
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
-	createShapeId,
-	DefaultColorStyle,
-	DefaultStylePanel,
 	defineMessages,
 	Editor,
-	getColorStyleItems,
-	isPageId,
 	react,
-	StylePanelArrowheadPicker,
-	StylePanelArrowKindPicker,
-	StylePanelButtonPicker,
-	StylePanelDashPicker,
-	StylePanelFillPicker,
-	StylePanelFontPicker,
-	StylePanelGeoShapePicker,
-	StylePanelLabelAlignPicker,
-	StylePanelOpacityPicker,
-	StylePanelSection,
-	StylePanelSizePicker,
-	StylePanelSplinePicker,
-	StylePanelTextAlignPicker,
 	throttle,
-	TLAsset,
-	TldrawUiButton,
-	TldrawUiButtonLabel,
-	TldrawUiDialogBody,
-	TldrawUiDialogCloseButton,
-	TldrawUiDialogFooter,
-	TldrawUiDialogHeader,
-	TldrawUiDialogTitle,
-	TldrawUiIcon,
-	TLBinding,
 	TLComponents,
 	Tldraw,
 	TldrawUiMenuItem,
-	TLPage,
-	TLParentId,
-	TLRecordChange,
-	TLRefusal,
 	TLSessionStateSnapshot,
 	TLShape,
 	tltime,
 	TLUiDialogsContextType,
-	TLUiStylePanelProps,
 	useAtom,
 	useDialogs,
 	useEditor,
 	useEvent,
-	useStylePanelContext,
 	useToasts,
 	useTranslation,
 	useValue,
@@ -92,7 +52,6 @@ import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { maybeSlurp } from '../../utils/slurping'
-import { getPolicy } from '../../utils/student-restrictions'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import {
 	TlaAddToCollectionMenuItem,
@@ -110,6 +69,7 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { SpikeAccessPanels, spikeComponents, useSpikeAccess } from './spike-access'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
@@ -121,19 +81,6 @@ const messages = defineMessages({
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
 	fileHistory: { defaultMessage: 'File history' },
-	studentsCanEditAll: { defaultMessage: 'Students can edit everything' },
-	sharePage: { defaultMessage: 'Show only this page to students' },
-	redOnly: { defaultMessage: 'Only red shapes' },
-	color: { defaultMessage: 'Color' },
-	refusedTitle: { defaultMessage: 'Change not saved' },
-	ok: { defaultMessage: 'OK' },
-	blockedHeading: { defaultMessage: 'Things that will fail' },
-	tryPolicy: { defaultMessage: 'Change the permissions' },
-	tryOtherPage: { defaultMessage: "Edit the teacher's page" },
-	tryBlue: { defaultMessage: 'Add a blue shape' },
-	tryRecolour: { defaultMessage: 'One shape red, one blue' },
-	refusedCount: { defaultMessage: 'Refused' },
-	revertedCount: { defaultMessage: 'Reverted' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -177,324 +124,6 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
-// SPIKE: a restricted student can only use red, so the colour picker offers only red.
-function RedOnlyColorPicker() {
-	const editor = useEditor()
-	const msg = useTranslation()
-	const { styles } = useStylePanelContext()
-	const items = useValue(
-		'red-only color items',
-		() =>
-			getColorStyleItems(editor.getCurrentTheme().colors[editor.getColorMode()]).filter(
-				(item) => item.value === 'red'
-			),
-		[editor]
-	)
-	const color = styles.get(DefaultColorStyle)
-	if (color === undefined) return null
-	return (
-		<StylePanelButtonPicker
-			title={msg(messages.color)}
-			uiType="color"
-			style={DefaultColorStyle}
-			items={items}
-			value={color}
-		/>
-	)
-}
-
-// SPIKE: the default style panel with the colour picker swapped for the red-only one.
-function RestrictedStylePanel(props: TLUiStylePanelProps) {
-	return (
-		<DefaultStylePanel {...props}>
-			<StylePanelSection>
-				<RedOnlyColorPicker />
-				<StylePanelOpacityPicker />
-			</StylePanelSection>
-			<StylePanelSection>
-				<StylePanelFillPicker />
-				<StylePanelDashPicker />
-				<StylePanelSizePicker />
-			</StylePanelSection>
-			<StylePanelSection>
-				<StylePanelFontPicker />
-				<StylePanelTextAlignPicker />
-				<StylePanelLabelAlignPicker />
-			</StylePanelSection>
-			<StylePanelSection>
-				<StylePanelGeoShapePicker />
-				<StylePanelArrowKindPicker />
-				<StylePanelArrowheadPicker />
-				<StylePanelSplinePicker />
-			</StylePanelSection>
-		</DefaultStylePanel>
-	)
-}
-
-function putPolicy(
-	editor: Editor,
-	change: Partial<Pick<TLAccessPolicy, 'studentsCanEditAll' | 'studentsRedOnly' | 'studentPages'>>
-) {
-	const current = getPolicy(editor.store)
-	editor.run(
-		() =>
-			editor.store.put([
-				{
-					id: ACCESS_POLICY_ID,
-					typeName: 'access-policy',
-					studentsCanEditAll: false,
-					studentPages: [],
-					meta: {},
-					...current,
-					...change,
-				} as any,
-			]),
-		{ history: 'ignore' }
-	)
-}
-
-// SPIKE: the dialog shown when the server refuses a change.
-function RefusedDialog({ refusal, onClose }: { refusal: TLRefusal; onClose(): void }) {
-	const msg = useTranslation()
-	const refused = refusal.ids?.length ?? 0
-	const changes = refusal.changes
-	const reverted = changes
-		? Object.keys(changes.added).length +
-			Object.keys(changes.updated).length +
-			Object.keys(changes.removed).length
-		: 0
-	const summary = [
-		msg(messages.refusedCount),
-		': ',
-		refused,
-		'. ',
-		msg(messages.revertedCount),
-		': ',
-		reverted,
-		'.',
-	].join('')
-	return (
-		<>
-			<TldrawUiDialogHeader>
-				<TldrawUiDialogTitle>{msg(messages.refusedTitle)}</TldrawUiDialogTitle>
-				<TldrawUiDialogCloseButton />
-			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody style={{ maxWidth: 350 }}>
-				<div>{refusal.reason}</div>
-				<div>{summary}</div>
-			</TldrawUiDialogBody>
-			<TldrawUiDialogFooter className="tlui-dialog__footer__actions">
-				<TldrawUiButton type="primary" onClick={onClose}>
-					<TldrawUiButtonLabel>{msg(messages.ok)}</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			</TldrawUiDialogFooter>
-		</>
-	)
-}
-
-// SPIKE: opens the dialog for every refusal the server sends back.
-function ShowRefusals() {
-	const editor = useEditor()
-	const { addDialog } = useDialogs()
-	useEffect(() => {
-		const onRefused = (refusal: TLRefusal) => {
-			addDialog({
-				id: 'refused-dialog',
-				component: ({ onClose }) => <RefusedDialog refusal={refusal} onClose={onClose} />,
-			})
-		}
-		editor.on('refused', onRefused)
-		return () => void editor.off('refused', onRefused)
-	}, [editor, addDialog])
-	return null
-}
-
-// SPIKE: for a restricted student, buttons that try things the server will refuse. They write
-// straight to the store, past the editor's own checks, so the server has to say no.
-function TryBlockedActions({ grantId }: { grantId: string }) {
-	const editor = useEditor()
-	const msg = useTranslation()
-	// shown to every student, whatever the teacher has switched on, so the buttons can be tried
-	// with any policy
-	const isStudent = useValue(
-		'isStudent',
-		() =>
-			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
-			'teacher',
-		[editor, grantId]
-	)
-	const redOnly = useValue('redOnly', () => getPolicy(editor.store)?.studentsRedOnly === true, [
-		editor,
-	])
-	if (!isStudent) return null
-
-	const tryPolicy = () => putPolicy(editor, { studentsCanEditAll: true })
-	const tryOtherPage = () => {
-		const shared = getPolicy(editor.store)?.studentPages ?? []
-		const shape = editor.store.allRecords().find((record) => {
-			if (record.typeName !== 'shape') return false
-			const pageId = editor.getAncestorPageId(record as TLShape)
-			return !!pageId && !shared.includes(pageId)
-		})
-		if (shape) editor.store.put([{ ...shape, x: (shape as TLShape).x + 10 } as TLShape])
-	}
-	// One change, two shapes: one goes to red (the rule accepts it), one to blue (it refuses it).
-	// The room judges the whole change, so both are reverted.
-	const tryRecolour = () => {
-		const shapes = editor.getCurrentPageShapes().filter((shape) => 'color' in shape.props) as Array<
-			TLShape & { props: { color: string } }
-		>
-		const toRed = shapes.find((shape) => shape.props.color !== 'red')
-		const toBlue = shapes.find((shape) => shape !== toRed && shape.props.color !== 'blue')
-		if (!toRed || !toBlue) return
-		editor.store.put([
-			{ ...toRed, props: { ...toRed.props, color: 'red' } },
-			{ ...toBlue, props: { ...toBlue.props, color: 'blue' } },
-		] as TLShape[])
-	}
-	const tryBlue = () => {
-		const parentId = editor.getCurrentPageId()
-		editor.store.put([
-			{
-				id: createShapeId(),
-				typeName: 'shape',
-				type: 'geo',
-				x: 100,
-				y: 100,
-				rotation: 0,
-				isLocked: false,
-				opacity: 1,
-				meta: {},
-				parentId,
-				index: editor.getHighestIndexForParent(parentId),
-				props: { ...editor.getShapeUtil('geo').getDefaultProps(), color: 'blue' },
-			} as TLShape,
-		])
-	}
-
-	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: 8,
-				left: '50%',
-				transform: 'translateX(-50%)',
-				display: 'flex',
-				flexDirection: 'column',
-				minWidth: 240,
-				padding: 4,
-				borderRadius: 'var(--tl-radius-3)',
-				background: 'var(--tl-color-panel)',
-				boxShadow: 'var(--tl-shadow-2)',
-				pointerEvents: 'all',
-				zIndex: 'var(--tl-layer-canvas-in-front)' as any,
-			}}
-			onPointerDown={(e) => e.stopPropagation()}
-		>
-			<div
-				style={{
-					padding: '8px 12px 4px',
-					font: '500 12px var(--tl-font-sans)',
-					color: 'var(--tl-color-text-3)',
-				}}
-			>
-				{msg(messages.blockedHeading)}
-			</div>
-			<TldrawUiButton type="menu" onClick={tryPolicy}>
-				<TldrawUiButtonLabel>{msg(messages.tryPolicy)}</TldrawUiButtonLabel>
-			</TldrawUiButton>
-			<TldrawUiButton type="menu" onClick={tryOtherPage}>
-				<TldrawUiButtonLabel>{msg(messages.tryOtherPage)}</TldrawUiButtonLabel>
-			</TldrawUiButton>
-			<TldrawUiButton type="menu" onClick={tryRecolour}>
-				<TldrawUiButtonLabel>{msg(messages.tryRecolour)}</TldrawUiButtonLabel>
-			</TldrawUiButton>
-			{redOnly && (
-				<TldrawUiButton type="menu" onClick={tryBlue}>
-					<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			)}
-		</div>
-	)
-}
-
-// SPIKE: one row of the teacher's panel, in tldraw's own menu button style.
-function PolicyOption({
-	label,
-	checked,
-	onChange,
-}: {
-	label: string
-	checked: boolean
-	onChange(next: boolean): void
-}) {
-	return (
-		<TldrawUiButton type="menu" onClick={() => onChange(!checked)}>
-			<TldrawUiIcon small label={label} icon={checked ? 'toggle-on' : 'toggle-off'} />
-			<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
-		</TldrawUiButton>
-	)
-}
-
-// SPIKE: shown to teachers only; controls what students may do.
-function TeacherEditingToggle({ grantId }: { grantId: string }) {
-	const editor = useEditor()
-	const msg = useTranslation()
-	const isTeacher = useValue(
-		'isTeacher',
-		() =>
-			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
-			'teacher',
-		[editor, grantId]
-	)
-	const policy = useValue('policy', () => getPolicy(editor.store), [editor])
-	const pageShared = useValue(
-		'currentPageShared',
-		() => !!getPolicy(editor.store)?.studentPages.includes(editor.getCurrentPageId()),
-		[editor]
-	)
-	if (!isTeacher) return null
-	return (
-		<div
-			style={{
-				position: 'absolute',
-				top: 8,
-				left: '50%',
-				transform: 'translateX(-50%)',
-				display: 'flex',
-				flexDirection: 'column',
-				minWidth: 240,
-				padding: 4,
-				borderRadius: 'var(--tl-radius-3)',
-				background: 'var(--tl-color-panel)',
-				boxShadow: 'var(--tl-shadow-2)',
-				pointerEvents: 'all',
-				zIndex: 'var(--tl-layer-canvas-in-front)' as any,
-			}}
-			onPointerDown={(e) => e.stopPropagation()}
-		>
-			<PolicyOption
-				label={msg(messages.sharePage)}
-				checked={pageShared}
-				// students get exactly one page: this one, or none
-				onChange={(next) =>
-					putPolicy(editor, { studentPages: next ? [editor.getCurrentPageId()] : [] })
-				}
-			/>
-			<PolicyOption
-				label={msg(messages.redOnly)}
-				checked={policy?.studentsRedOnly === true}
-				onChange={(next) => putPolicy(editor, { studentsRedOnly: next })}
-			/>
-			<PolicyOption
-				label={msg(messages.studentsCanEditAll)}
-				checked={policy?.studentsCanEditAll === true}
-				onChange={(next) => putPolicy(editor, { studentsCanEditAll: next })}
-			/>
-		</div>
-	)
-}
-
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
 	const msg = useTranslation()
 	const fileLoad = useFileLoad()
@@ -527,61 +156,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	// SPIKE: the sync server writes each session's role as an `access-grant` record and a teacher
-	// writes the `access-policy` record (pages students may use, edit-everything switch).
-	// Both are object-store records and arrive over sync.
-	const grantId = accessGrantId(app?.userId)
-	// A student is restricted until the teacher's policy says otherwise.
-	const isStudentIn = useCallback(
-		(editor: Editor) =>
-			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
-				'teacher' && getPolicy(editor.store)?.studentsCanEditAll !== true,
-		[grantId]
-	)
+	const spike = useSpikeAccess(app?.userId)
 	const getShapeVisibility = useCallback(
-		(shape: TLShape, editor: Editor) => {
-			if (hideAllShapes.get()) return 'hidden'
-			if (isStudentIn(editor)) {
-				const pageId = editor.getAncestorPageId(shape)
-				if (!pageId || !getPolicy(editor.store)?.studentPages.includes(pageId)) return 'hidden'
-			}
-			return 'inherit'
-		},
-		[hideAllShapes, isStudentIn]
-	)
-	const canChangeRecord = useCallback(
-		(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>, editor: Editor) => {
-			if (!isStudentIn(editor)) return true
-			const record = change.next ?? change.prev
-			const isStudentPage = (pageId: TLParentId) =>
-				isPageId(pageId) && !!getPolicy(editor.store)?.studentPages.includes(pageId)
-			if (record.typeName === 'page') return isStudentPage(record.id)
-			if (record.typeName === 'shape') {
-				// SPIKE: students only create red shapes, and may only recolour to red
-				if (getPolicy(editor.store)?.studentsRedOnly === true && change.type !== 'delete') {
-					const color = (record.props as { color?: string }).color
-					const prevColor =
-						change.type === 'update'
-							? ((change.prev as TLShape).props as { color?: string }).color
-							: undefined
-					if ((change.type === 'create' || color !== prevColor) && color !== 'red') return false
-				}
-				let parent: TLParentId = record.parentId
-				while (!isPageId(parent)) {
-					const next: TLShape | undefined = editor.getShape(parent)
-					if (!next) return true
-					parent = next.parentId
-				}
-				return isStudentPage(parent)
-			}
-			if (record.typeName === 'binding') {
-				const from = editor.getShape(record.fromId)
-				const pageId = from && editor.getAncestorPageId(from)
-				return !pageId || isStudentPage(pageId)
-			}
-			return true
-		},
-		[isStudentIn]
+		(shape: TLShape, editor: Editor) =>
+			hideAllShapes.get() ? 'hidden' : spike.getShapeVisibility(shape, editor),
+		[hideAllShapes, spike]
 	)
 	const remountImageShapes = useCallback(() => {
 		hideAllShapes.set(true)
@@ -591,24 +170,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}, [hideAllShapes])
 
 	const store = useFileSyncStore()
-	const isStudent = useValue(
-		'isStudent',
-		() =>
-			store.status === 'synced-remote' &&
-			(store.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
-				'teacher' &&
-			getPolicy(store.store)?.studentsCanEditAll !== true,
-		[store, grantId]
-	)
-
-	const isRedOnlyStudent = useValue(
-		'isRedOnlyStudent',
-		() =>
-			isStudent &&
-			store.status === 'synced-remote' &&
-			getPolicy(store.store)?.studentsRedOnly === true,
-		[store, isStudent]
-	)
 
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
@@ -619,18 +180,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		(editor: Editor) => {
 			markFirstLoad('editor-mounted')
 			fileLoad.mark('editor-mounted')
-			// SPIKE: keep a student on a page shared with them
-			const stopStudentPageGuard = react('student page guard', () => {
-				if (!isStudentIn(editor)) return
-				// shapes can only be red, so start every new shape red
-				if (getPolicy(editor.store)?.studentsRedOnly === true) {
-					editor.setStyleForNextShapes(DefaultColorStyle, 'red', { history: 'ignore' })
-				}
-				const shared = getPolicy(editor.store)?.studentPages ?? []
-				if (shared.includes(editor.getCurrentPageId())) return
-				const first = editor.getPages().find((p) => shared.includes(p.id))
-				if (first) editor.setCurrentPage(first.id)
-			})
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
@@ -731,7 +280,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				})
 
 			return () => {
-				stopStudentPageGuard()
 				cleanupPerf()
 				fileStateUpdater.dispose()
 				abortController.abort()
@@ -747,7 +295,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			app,
 			fileId,
 			isEmbed,
-			isStudentIn,
 			remountImageShapes,
 			setIsReady,
 			showSlurpFailure,
@@ -801,8 +348,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
-			...(isStudent ? { PageMenu: null } : null),
-			...(isRedOnlyStudent ? { StylePanel: RestrictedStylePanel } : null),
+			...spikeComponents,
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
@@ -812,14 +358,13 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			),
 			InFrontOfTheCanvas: () => (
 				<>
-					<TeacherEditingToggle grantId={grantId} />
-					<TryBlockedActions grantId={grantId} />
+					<SpikeAccessPanels />
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
 					<TlaCollectionsPanel />
 				</>
 			),
 		}
-	}, [fileId, commentingEnabled, isStudent, isRedOnlyStudent, grantId])
+	}, [fileId, commentingEnabled])
 
 	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
 	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut
@@ -847,10 +392,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				}}
 				overrides={editorOverrides}
 				getShapeVisibility={getShapeVisibility}
-				canChangeRecord={canChangeRecord}
+				canChangeRecord={spike.canChangeRecord}
 			>
 				<ThemeUpdater />
-				<ShowRefusals />
 				<SneakyDarkModeSync />
 				<SneakyToolSwitcher />
 				<SneakyMermaidHandler />

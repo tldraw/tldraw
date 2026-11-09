@@ -1,12 +1,15 @@
 import { CustomRecordInfo } from '@tldraw/tlschema'
 import { T } from '@tldraw/validate'
 
-// SPIKE: a role, as a record in the file room's object store. The server writes it from its own
-// auth. The room's rule and the client both read it. Clients cannot write it.
+// SPIKE: what a session can do, as a record in the file room's object store. `can` is a list of
+// capabilities (see accessCan.ts) and `pages` the pages they apply to. The server writes teachers'
+// grants from its own auth, and creates the students' grant empty; teachers edit that one.
+// The room's rule and the client both read these, and nobody has a role.
 export interface TLAccessGrant {
 	id: string
 	typeName: 'access-grant'
-	role: 'teacher' | 'student'
+	can: string[]
+	pages: string[]
 }
 
 export const ANONYMOUS_GRANT_USER = 'anonymous'
@@ -20,15 +23,25 @@ export const accessGrantRecordConfig: CustomRecordInfo = {
 	validator: T.object({
 		id: T.string,
 		typeName: T.literal('access-grant'),
-		role: T.literalEnum('teacher', 'student'),
-		// rooms written earlier still hold these; nothing reads them
+		can: T.arrayOf(T.string).optional(),
+		pages: T.arrayOf(T.string).optional(),
+		// rooms written earlier hold these; nothing reads them
+		role: T.literalEnum('teacher', 'student').optional(),
 		userId: T.string.optional(),
 		meta: T.jsonValue.optional(),
 	}),
 }
 
-// SPIKE: what students may do, in its own record so it does not travel with the document's
-// own settings or page records. Teachers write it; students cannot.
+// A stored grant, with what an older room may have left out filled in as nothing.
+export function readGrant(record: unknown): TLAccessGrant | undefined {
+	if (!record || typeof record !== 'object') return undefined
+	const r = record as Partial<TLAccessGrant>
+	if (r.typeName !== 'access-grant' || !r.id) return undefined
+	return { id: r.id, typeName: 'access-grant', can: r.can ?? [], pages: r.pages ?? [] }
+}
+
+// SPIKE: the earlier students' policy record. Nothing reads it any more; it stays registered so
+// rooms that still hold one load.
 export interface TLAccessPolicy {
 	id: string
 	typeName: 'access-policy'
@@ -56,5 +69,3 @@ export const accessGrantSchemaRecords = {
 	'access-grant': accessGrantRecordConfig,
 	'access-policy': accessPolicyRecordConfig,
 }
-
-// Stable identity: useSync recreates its store when `records` changes.

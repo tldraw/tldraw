@@ -143,9 +143,6 @@
   "375396d6e5": {
     "translation": "Remove member"
   },
-  "38c328f266": {
-    "translation": "Only red shapes"
-  },
   "398f51738e": {
     "translation": "Sign in to accept this invite."
   },
@@ -161,11 +158,17 @@
   "3d0238bf16": {
     "translation": "Accept all"
   },
+  "3df377852c": {
+    "translation": "Delete a shape"
+  },
   "3e2ae04ff0": {
     "translation": "Unsupported Mermaid diagram"
   },
   "402bf0c47e": {
     "translation": "Color theme"
+  },
+  "41c4201503": {
+    "translation": "Can create pages"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
@@ -239,6 +242,12 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "5947db7f05": {
+    "translation": "Can create red shapes"
+  },
+  "5a5305d11e": {
+    "translation": "Can delete shapes"
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -277,6 +286,9 @@
   },
   "625fd29749": {
     "translation": "Older"
+  },
+  "636c718e3f": {
+    "translation": "Can create any shape"
   },
   "639bae9ac6": {
     "translation": "you"
@@ -416,9 +428,6 @@
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
   },
-  "8ea4bb56ff": {
-    "translation": "Students can edit everything"
-  },
   "8eb2c00e96": {
     "translation": "Shared with you"
   },
@@ -505,6 +514,9 @@
   },
   "a52945dbe2": {
     "translation": "Leave"
+  },
+  "a5552d8eb2": {
+    "translation": "Can edit shapes"
   },
   "a6cc403d56": {
     "translation": "Anyone with the link"
