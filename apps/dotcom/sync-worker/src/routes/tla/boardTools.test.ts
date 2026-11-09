@@ -528,7 +528,7 @@ describe('getClusterScreenshotSize', () => {
 		})
 	})
 
-	it('shrinks a cluster far wider than the editor could zoom out to, rather than cropping it', () => {
+	it('scales a very large cluster down to the requested size', () => {
 		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 200_000, h: 50_000 }, 2560)).toEqual({
 			width: 2560,
 			height: 640,

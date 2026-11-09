@@ -322,10 +322,7 @@ export async function captureThumbnailScreenshot(
 		 * camera to their common bounds and draws only them.
 		 */
 		shapeIds?: string[]
-		/**
-		 * `tight` draws `shapeIds` edge to edge instead of inside the usual margin. The caller sizes
-		 * width x height to the shapes' aspect ratio. See ThumbnailRenderParams.fit.
-		 */
+		/** See ThumbnailRenderParams.fit. */
 		fit?: 'tight'
 		theme: 'light' | 'dark'
 		width: number

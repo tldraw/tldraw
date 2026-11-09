@@ -70,7 +70,7 @@ export interface ThumbnailRenderJob {
 	 * fits the camera to their common bounds and draws only them. Omitted means the whole page.
 	 */
 	shapeIds?: string[]
-	/** `tight`: `shapeIds` drawn edge to edge, width x height sized to them. See ThumbnailRenderParams. */
+	/** See ThumbnailRenderParams.fit. */
 	fit?: 'tight'
 	/** `live`: the page prunes to `shapeIds`, settles, and lets the screenshot rasterize the canvas. */
 	capture?: 'live'

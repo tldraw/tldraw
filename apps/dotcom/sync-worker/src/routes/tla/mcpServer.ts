@@ -654,9 +654,7 @@ export type ResolvedBoardForUser =
 
 // A shape set has no bounded key the way a page ordinal does, so it is hashed. Sorted first, so the
 // same shapes requested in a different order hit the same cached PNG — the render is identical.
-//
-// `tight-shapes-` rather than `shapes-`: the old margin-framed renders are still in the bucket until
-// they expire, and one whose size happened to match a tight render's would otherwise be served for it.
+// `tight-` so a margin-framed render from before `fit: 'tight'` is never served for a tight one.
 export async function getShapesCacheKey(
 	board: Pick<ResolvedThumbnailBoard, 'kind' | 'slug' | 'version'>,
 	theme: 'light' | 'dark',
@@ -1340,6 +1338,9 @@ async function callClusterInfoTool(
 	}
 }
 
+// The editor's minimum zoom, which a live capture's camera fit can't go below.
+const LIVE_CAPTURE_MIN_SCALE = 0.05
+
 // Both shape-set screenshot tools do the same thing once they know which shapes to draw; they differ
 // only in how they get there — one is handed the ids, the other resolves them from a cluster. That
 // difference is `pickShapes`; everything downstream (rate limits, cache, capture, telemetry) is here.
@@ -1491,9 +1492,10 @@ async function renderShapeSetScreenshot(
 		})
 
 		// Workers deploy before the client, so for a few minutes a render page that predates `tight`
-		// can answer this job with a margin-framed image of a different size. It is still a picture of
+		// can answer this job, with a margin, at its own 200-1600px limits. That is still a picture of
 		// the right shapes, so the caller gets it, but caching it would serve that framing until the
-		// board next changes.
+		// board next changes. Only a size outside those limits shows up here, which the default
+		// 2560px always is; a smaller tight render from the old page is indistinguishable.
 		const rendered = readPngSize(render.base64)
 		if (rendered && (rendered.width !== size.width || rendered.height !== size.height)) {
 			reportThumbnailError(
@@ -1549,10 +1551,6 @@ async function renderShapeSetScreenshot(
 		})
 	}
 }
-
-// The editor's minimum zoom, which a live capture's camera fit can't go below. See the capture flag
-// in renderShapeSetScreenshot.
-const LIVE_CAPTURE_MIN_SCALE = 0.05
 
 // The one-call path: a cluster id straight to a picture, without a get_cluster_info round trip to
 // pull its shape ids out first.

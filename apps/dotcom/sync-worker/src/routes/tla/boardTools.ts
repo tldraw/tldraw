@@ -456,8 +456,7 @@ export function parseClusterScreenshotInput(input: unknown): {
 export const CLUSTER_SCREENSHOT_MIN_SIZE = 64
 export const CLUSTER_SCREENSHOT_MAX_SIZE = TIGHT_SHAPES_MAX_DIMENSION
 
-// A fractional size is floored rather than refused: a model asking for 1000.5 pixels wants about a
-// thousand, and refusing would cost it a round trip over nothing.
+// Floored rather than refused: refusing 1000.5 would cost a model a round trip over nothing.
 function parseScreenshotSize(value: unknown): number {
 	if (value === undefined || value === null) return CLUSTER_SCREENSHOT_MAX_SIZE
 	if (
@@ -476,7 +475,7 @@ function parseScreenshotSize(value: unknown): number {
 // How far a cluster screenshot may enlarge the board. Without a cap, a single sticky note asked for
 // at 2560px would come back drawn at 12x, costing image tokens for pixels that add nothing. 8 is the
 // editor's own maximum zoom.
-export const CLUSTER_SCREENSHOT_MAX_SCALE = 8
+const CLUSTER_SCREENSHOT_MAX_SCALE = 8
 
 // The ratio a cluster screenshot uses when the measure render reported no box for its clusters, so
 // there is no aspect ratio to match. The render page still fits the shapes inside it.
@@ -502,7 +501,7 @@ export function getClusterScreenshotSize(
 	size: number
 ): ClusterScreenshotSize {
 	const longest = box ? Math.max(box.w, box.h) : 0
-	if (!box || !(longest > 0)) {
+	if (!box || longest <= 0) {
 		return { width: size, height: Math.round(size / FALLBACK_ASPECT_RATIO), scale: null }
 	}
 	const scale = Math.min(size / longest, CLUSTER_SCREENSHOT_MAX_SCALE)
