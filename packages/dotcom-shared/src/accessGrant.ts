@@ -28,6 +28,32 @@ export const accessGrantRecordConfig: CustomRecordInfo = {
 	}),
 }
 
-export const accessGrantSchemaRecords = { 'access-grant': accessGrantRecordConfig }
+// SPIKE: what students may do, in its own record so it does not travel with the document's
+// own settings or page records. Teachers write it; students cannot.
+export interface TLAccessPolicy {
+	id: string
+	typeName: 'access-policy'
+	studentsCanEditAll: boolean
+	studentPages: string[]
+	meta: Record<string, unknown>
+}
+
+export const ACCESS_POLICY_ID = 'access-policy:file'
+
+export const accessPolicyRecordConfig: CustomRecordInfo = {
+	scope: 'document',
+	validator: T.object({
+		id: T.string,
+		typeName: T.literal('access-policy'),
+		studentsCanEditAll: T.boolean,
+		studentPages: T.arrayOf(T.string),
+		meta: T.jsonValue,
+	}),
+}
+
+export const accessGrantSchemaRecords = {
+	'access-grant': accessGrantRecordConfig,
+	'access-policy': accessPolicyRecordConfig,
+}
 
 // Stable identity: useSync recreates its store when `records` changes.

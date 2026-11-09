@@ -290,6 +290,9 @@
   "694f82ed9d": {
     "translation": "Delete workspace"
   },
+  "69fe950138": {
+    "translation": "Students can see this page"
+  },
   "6a26f54883": {
     "translation": "Help"
   },
@@ -400,6 +403,9 @@
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
+  },
+  "8ea4bb56ff": {
+    "translation": "Students can edit everything"
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
@@ -587,6 +593,9 @@
   },
   "c8a59e7135": {
     "translation": "Dismiss"
+  },
+  "cb5feb1b73": {
+    "translation": "Color"
   },
   "cceaefbc20": {
     "translation": "Share this file"

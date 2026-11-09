@@ -1,3 +1,4 @@
+import { ACCESS_POLICY_ID, TLAccessPolicy } from '@tldraw/dotcom-shared'
 import { createCommentAuthorizer, getOwningPage, isCommentRecord } from '@tldraw/sync-collaboration'
 import {
 	createAccessAuthorizer,
@@ -30,6 +31,7 @@ export const OBJECT_TYPES = [
 	'comment',
 	'comment-reaction',
 	'access-grant',
+	'access-policy',
 ] as const
 
 // The file room's record union, widened to include the object-store comment records.
@@ -81,10 +83,20 @@ const grantsAreServerManaged = perRecord<FileRecord, SessionMeta>((change) =>
 		: null
 )
 
-// SPIKE: signed-out visitors are "students". A page is theirs when its meta says so
-// (`studentEditable`, set by a teacher); they may not change that policy themselves.
+// SPIKE: only signed-in users (teachers) change the policy students are held to.
+const policyIsForTeachers = perRecord<FileRecord, SessionMeta>((change, { session }) =>
+	(change.record as { typeName: string }).typeName === 'access-policy' &&
+	session.meta.userId === null
+		? 'only teachers change the student policy'
+		: null
+)
+
+// SPIKE: signed-out visitors are "students". A page is theirs when the teacher's policy record
+// lists it; they cannot write that record (see policyIsForTeachers).
 const students = perRecord<FileRecord, SessionMeta>((change, { session, before, after }) => {
 	if (session.meta.userId !== null) return null
+	const policy = before(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
+	if (policy?.studentsCanEditAll === true) return null
 	// SPIKE: students only create red shapes, and may only recolour to red
 	if (change.type !== 'delete' && change.next.typeName === 'shape') {
 		const color = (change.next.props as { color?: string }).color
@@ -96,14 +108,6 @@ const students = perRecord<FileRecord, SessionMeta>((change, { session, before, 
 			return 'students can only use red shapes'
 		}
 	}
-	if (
-		change.type === 'update' &&
-		change.next.typeName === 'page' &&
-		change.prev.typeName === 'page' &&
-		change.prev.meta.studentEditable !== change.next.meta.studentEditable
-	) {
-		return 'students cannot change page policy'
-	}
 	const ends = [
 		[change.type === 'create' ? null : change.prev, before],
 		[change.type === 'delete' ? null : change.next, after],
@@ -111,7 +115,7 @@ const students = perRecord<FileRecord, SessionMeta>((change, { session, before, 
 	for (const [record, get] of ends) {
 		if (!record) continue
 		const owning = getOwningPage(get, record)
-		if (owning.page && owning.page.meta.studentEditable !== true) {
+		if (owning.page && !policy?.studentPages.includes(owning.page.id)) {
 			return 'students can only edit pages shared with them'
 		}
 	}
@@ -156,6 +160,7 @@ export function authorizeFileRecord(
 ): TLSyncRefusal | null {
 	return (
 		grantsAreServerManaged(args) ??
+		policyIsForTeachers(args) ??
 		fileRecordRules.access(args) ??
 		fileRecordRules.comments.authorize(args) ??
 		shapes(args) ??

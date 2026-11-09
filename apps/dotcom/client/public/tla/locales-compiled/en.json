@@ -704,6 +704,12 @@
       "value": "Delete workspace"
     }
   ],
+  "69fe950138": [
+    {
+      "type": 0,
+      "value": "Students can see this page"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
@@ -966,6 +972,12 @@
     {
       "type": 0,
       "value": "Check your email for a verification code."
+    }
+  ],
+  "8ea4bb56ff": [
+    {
+      "type": 0,
+      "value": "Students can edit everything"
     }
   ],
   "8eb2c00e96": [
@@ -1496,6 +1508,12 @@
     {
       "type": 0,
       "value": "Dismiss"
+    }
+  ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Color"
     }
   ],
   "cceaefbc20": [

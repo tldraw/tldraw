@@ -1,6 +1,11 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
-import { accessGrantId, TLAccessGrant } from '@tldraw/dotcom-shared'
+import {
+	ACCESS_POLICY_ID,
+	accessGrantId,
+	TLAccessGrant,
+	TLAccessPolicy,
+} from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
 	createDebugValue,
@@ -10,10 +15,26 @@ import {
 	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	DefaultColorStyle,
+	DefaultStylePanel,
 	defineMessages,
 	Editor,
+	getColorStyleItems,
 	isPageId,
 	react,
+	StylePanelArrowheadPicker,
+	StylePanelArrowKindPicker,
+	StylePanelButtonPicker,
+	StylePanelDashPicker,
+	StylePanelFillPicker,
+	StylePanelFontPicker,
+	StylePanelGeoShapePicker,
+	StylePanelLabelAlignPicker,
+	StylePanelOpacityPicker,
+	StylePanelSection,
+	StylePanelSizePicker,
+	StylePanelSplinePicker,
+	StylePanelTextAlignPicker,
 	throttle,
 	TLAsset,
 	TLBinding,
@@ -21,16 +42,17 @@ import {
 	Tldraw,
 	TldrawUiMenuItem,
 	TLPage,
-	TLPageId,
 	TLParentId,
 	TLSessionStateSnapshot,
 	TLShape,
 	tltime,
 	TLUiDialogsContextType,
+	TLUiStylePanelProps,
 	useAtom,
 	useDialogs,
 	useEditor,
 	useEvent,
+	useStylePanelContext,
 	useToasts,
 	useTranslation,
 	useValue,
@@ -87,6 +109,9 @@ const messages = defineMessages({
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
 	fileHistory: { defaultMessage: 'File history' },
+	studentsCanEditAll: { defaultMessage: 'Students can edit everything' },
+	sharePage: { defaultMessage: 'Students can see this page' },
+	color: { defaultMessage: 'Color' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -130,6 +155,159 @@ export function TlaEditor(props: TlaEditorProps) {
 	)
 }
 
+// SPIKE: a restricted student can only use red, so the colour picker offers only red.
+function RedOnlyColorPicker() {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const { styles } = useStylePanelContext()
+	const items = useValue(
+		'red-only color items',
+		() =>
+			getColorStyleItems(editor.getCurrentTheme().colors[editor.getColorMode()]).filter(
+				(item) => item.value === 'red'
+			),
+		[editor]
+	)
+	const color = styles.get(DefaultColorStyle)
+	if (color === undefined) return null
+	return (
+		<StylePanelButtonPicker
+			title={msg(messages.color)}
+			uiType="color"
+			style={DefaultColorStyle}
+			items={items}
+			value={color}
+		/>
+	)
+}
+
+// SPIKE: the default style panel with the colour picker swapped for the red-only one.
+function RestrictedStylePanel(props: TLUiStylePanelProps) {
+	return (
+		<DefaultStylePanel {...props}>
+			<StylePanelSection>
+				<RedOnlyColorPicker />
+				<StylePanelOpacityPicker />
+			</StylePanelSection>
+			<StylePanelSection>
+				<StylePanelFillPicker />
+				<StylePanelDashPicker />
+				<StylePanelSizePicker />
+			</StylePanelSection>
+			<StylePanelSection>
+				<StylePanelFontPicker />
+				<StylePanelTextAlignPicker />
+				<StylePanelLabelAlignPicker />
+			</StylePanelSection>
+			<StylePanelSection>
+				<StylePanelGeoShapePicker />
+				<StylePanelArrowKindPicker />
+				<StylePanelArrowheadPicker />
+				<StylePanelSplinePicker />
+			</StylePanelSection>
+		</DefaultStylePanel>
+	)
+}
+
+// SPIKE: the student policy is its own record in the room's object store, written by teachers.
+function getPolicy(store: { get(id: any): unknown }) {
+	return store.get(ACCESS_POLICY_ID) as TLAccessPolicy | undefined
+}
+
+function putPolicy(
+	editor: Editor,
+	change: Partial<Pick<TLAccessPolicy, 'studentsCanEditAll' | 'studentPages'>>
+) {
+	const current = getPolicy(editor.store)
+	editor.run(
+		() =>
+			editor.store.put([
+				{
+					id: ACCESS_POLICY_ID,
+					typeName: 'access-policy',
+					studentsCanEditAll: false,
+					studentPages: [],
+					meta: {},
+					...current,
+					...change,
+				} as any,
+			]),
+		{ history: 'ignore' }
+	)
+}
+
+// SPIKE: shown to teachers only; controls what students may do.
+function TeacherEditingToggle({ grantId }: { grantId: string }) {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const isTeacher = useValue(
+		'isTeacher',
+		() =>
+			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
+			'teacher',
+		[editor, grantId]
+	)
+	const editAll = useValue(
+		'studentsCanEditAll',
+		() => getPolicy(editor.store)?.studentsCanEditAll === true,
+		[editor]
+	)
+	const pageShared = useValue(
+		'currentPageShared',
+		() => !!getPolicy(editor.store)?.studentPages.includes(editor.getCurrentPageId()),
+		[editor]
+	)
+	if (!isTeacher) return null
+	const row = { display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer' }
+	return (
+		<div
+			style={{
+				position: 'absolute',
+				top: 8,
+				left: '50%',
+				transform: 'translateX(-50%)',
+				display: 'flex',
+				flexDirection: 'column',
+				gap: 4,
+				padding: '6px 12px',
+				borderRadius: 8,
+				background: 'var(--tl-color-panel)',
+				boxShadow: 'var(--tl-shadow-2)',
+				font: '500 12px var(--tl-font-sans)',
+				color: 'var(--tl-color-text)',
+				pointerEvents: 'all',
+				zIndex: 'var(--tl-layer-canvas-in-front)' as any,
+			}}
+			onPointerDown={(e) => e.stopPropagation()}
+		>
+			<label style={row}>
+				<input
+					type="checkbox"
+					checked={pageShared}
+					onChange={(e) => {
+						const id = editor.getCurrentPageId()
+						const pages = getPolicy(editor.store)?.studentPages ?? []
+						putPolicy(editor, {
+							studentPages: e.target.checked
+								? [...pages.filter((p) => p !== id), id]
+								: pages.filter((p) => p !== id),
+						})
+					}}
+				/>
+				{msg(messages.sharePage)}
+			</label>
+			<label style={row}>
+				<input
+					type="checkbox"
+					checked={editAll}
+					onChange={(e) => putPolicy(editor, { studentsCanEditAll: e.target.checked })}
+				/>
+				{msg(messages.studentsCanEditAll)}
+			</label>
+		</div>
+	)
+}
+
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
 	const msg = useTranslation()
 	const fileLoad = useFileLoad()
@@ -162,21 +340,23 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	// i.e. where it appears that they are not present. so the user knows which ones failed.
 	// There's probably a better way of doing this but I couldn't think of one.
 	const hideAllShapes = useAtom('hideAllShapes', false)
-	// SPIKE: the sync server writes each session's role as an `access-grant` record; a teacher marks
-	// pages students may use with `page.meta.studentEditable`. Both arrive over sync.
+	// SPIKE: the sync server writes each session's role as an `access-grant` record and a teacher
+	// writes the `access-policy` record (pages students may use, edit-everything switch).
+	// Both are object-store records and arrive over sync.
 	const grantId = accessGrantId(app?.userId)
+	// A student is restricted until the teacher's policy says otherwise.
 	const isStudentIn = useCallback(
 		(editor: Editor) =>
 			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
-			'student',
+				'student' && getPolicy(editor.store)?.studentsCanEditAll !== true,
 		[grantId]
 	)
 	const getShapeVisibility = useCallback(
 		(shape: TLShape, editor: Editor) => {
 			if (hideAllShapes.get()) return 'hidden'
 			if (isStudentIn(editor)) {
-				const page = editor.getPage(editor.getAncestorPageId(shape) ?? ('' as TLPageId))
-				if (page?.meta.studentEditable !== true) return 'hidden'
+				const pageId = editor.getAncestorPageId(shape)
+				if (!pageId || !getPolicy(editor.store)?.studentPages.includes(pageId)) return 'hidden'
 			}
 			return 'inherit'
 		},
@@ -186,8 +366,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		(record: TLShape | TLPage | TLBinding | TLAsset, editor: Editor) => {
 			if (!isStudentIn(editor)) return true
 			const isStudentPage = (pageId: TLParentId) =>
-				isPageId(pageId) && editor.getPage(pageId)?.meta.studentEditable === true
-			if (record.typeName === 'page') return record.meta.studentEditable === true
+				isPageId(pageId) && !!getPolicy(editor.store)?.studentPages.includes(pageId)
+			if (record.typeName === 'page') return isStudentPage(record.id)
 			if (record.typeName === 'shape') {
 				// SPIKE: students only create red shapes, and may only recolour to red
 				const color = (record.props as { color?: string }).color
@@ -223,7 +403,9 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		'isStudent',
 		() =>
 			store.status === 'synced-remote' &&
-			(store.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role === 'student',
+			(store.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role ===
+				'student' &&
+			getPolicy(store.store)?.studentsCanEditAll !== true,
 		[store, grantId]
 	)
 
@@ -239,9 +421,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			// SPIKE: keep a student on a page shared with them
 			const stopStudentPageGuard = react('student page guard', () => {
 				if (!isStudentIn(editor)) return
-				const current = editor.getCurrentPage()
-				if (current.meta.studentEditable === true) return
-				const first = editor.getPages().find((p) => p.meta.studentEditable === true)
+				// shapes can only be red, so start every new shape red
+				editor.setStyleForNextShapes(DefaultColorStyle, 'red', { history: 'ignore' })
+				const shared = getPolicy(editor.store)?.studentPages ?? []
+				if (shared.includes(editor.getCurrentPageId())) return
+				const first = editor.getPages().find((p) => shared.includes(p.id))
 				if (first) editor.setCurrentPage(first.id)
 			})
 			trackRoomLoaded(editor)
@@ -414,7 +598,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
-			...(isStudent ? { PageMenu: null } : null),
+			...(isStudent ? { PageMenu: null, StylePanel: RestrictedStylePanel } : null),
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
@@ -424,12 +608,13 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			),
 			InFrontOfTheCanvas: () => (
 				<>
+					<TeacherEditingToggle grantId={grantId} />
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
 					<TlaCollectionsPanel />
 				</>
 			),
 		}
-	}, [fileId, commentingEnabled, isStudent])
+	}, [fileId, commentingEnabled, isStudent, grantId])
 
 	// The comment tool overrides stay in for signed-out visitors too: `anonCommentToolOverrides`
 	// turns their button into the sign-in dialog. On read-only canvases the button and `c` shortcut
