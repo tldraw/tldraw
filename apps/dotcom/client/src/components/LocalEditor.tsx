@@ -1,5 +1,6 @@
 import { ReactNode, useMemo } from 'react'
 import { Editor, TLComponents, Tldraw, TldrawOptions, TLUiOverrides, useEvent } from 'tldraw'
+import { BackgroundRemovalSideEffects } from '../tla/components/TlaEditor/RemoveBackgroundButton'
 import { SneakyToolSwitcher } from '../tla/components/TlaEditor/sneaky/SneakyToolSwitcher'
 import { useExtraDragIconOverrides } from '../tla/components/TlaEditor/useExtraToolDragIcons'
 import { useFileEditorOverrides } from '../tla/components/TlaEditor/useFileEditorOverrides'
@@ -55,6 +56,7 @@ export function LocalEditor({
 				components={components}
 				options={options}
 			>
+				<BackgroundRemovalSideEffects />
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<SneakyToolSwitcher />
 				<SneakyMermaidHandler />

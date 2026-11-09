@@ -1498,6 +1498,12 @@
       "value": "Dismiss"
     }
   ],
+  "c9550fbcd7": [
+    {
+      "type": 0,
+      "value": "Could not remove the background"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1660,6 +1666,12 @@
       "value": "Leave workspace"
     }
   ],
+  "dd5dc42cdd": [
+    {
+      "type": 0,
+      "value": "Remove background"
+    }
+  ],
   "dfdb78a4e4": [
     {
       "type": 0,
@@ -1816,6 +1828,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f1d1a51310": [
+    {
+      "type": 0,
+      "value": "Restore background"
     }
   ],
   "f2569594b2": [
