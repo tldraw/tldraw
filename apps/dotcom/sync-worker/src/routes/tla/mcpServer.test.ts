@@ -1466,6 +1466,36 @@ describe('the open tab', () => {
 		expect(result.content[0].text).toContain('published board')
 	})
 
+	// Choosing the refusal is a row lookup. Downloading the published snapshot for it was wasted, and
+	// a published board with no snapshot was misreported as empty.
+	it('refuses a published board without reading its snapshot', async () => {
+		denyReadAccess()
+		mockPublishedBoard()
+		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(new Error('should not be read'))
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv(), 'user_tab')
+
+		expect(result.content[0].text).toContain('published board')
+		expect(getPublishedRoomSnapshot).not.toHaveBeenCalled()
+	})
+
+	it('answers with the board URL when the live read fails', async () => {
+		const env = makeEnv()
+		const objects = env.TLDR_DOC as any
+		const get = objects.get
+		objects.get = (id: unknown) => ({
+			...get(id),
+			getMcpLivePage: async () => {
+				throw new Error('room unavailable')
+			},
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('/f/abc')
+	})
+
 	it('records how each attempt went, with no board or user identity', async () => {
 		const env = makeEnv({ tab: tabAnswering({ status: 'declined', reason: 'page_missing' }) })
 

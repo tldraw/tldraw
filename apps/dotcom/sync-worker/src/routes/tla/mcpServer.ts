@@ -133,8 +133,8 @@ const META_SERVER_INFO = 'io.modelcontextprotocol/serverInfo'
 const TOOLS_LIST_TTL_MS = 3_600_000
 const TOOLS_LIST_CACHE_SCOPE = 'public'
 
-// The MCP rate limit budgets themselves live in config.ts (MCP_PER_USER_RATE_LIMIT and friends),
-// with the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They
+// The MCP rate limit budgets themselves live in config.ts (MCP_SEARCH_PER_USER_RATE_LIMIT and
+// friends), with the comment that maps each isolate-local fallback to its deployed Cloudflare binding. They
 // are applied here rather than in the shared render core so a new surface built on those helpers
 // cannot pick one up by accident.
 const RATE_LIMIT_FALLBACK = new Map<string, { count: number; resetAt: number }>()
@@ -924,8 +924,8 @@ type ResolvedBoardPage =
 	| { ok: false; reason: string; result: ToolCallResult }
 
 // The page as the room holds it now rather than as it was last persisted, since an agent has to be
-// able to read what it just drew. Anything that can't be read that way, because it isn't a file the
-// caller can see, goes through the same resolution get_board_info uses, so that the refusals match.
+// able to read what it just drew. A board that isn't a file the caller can see is either published,
+// which has no room to read, or not found, with the same answer get_board_info gives either way.
 async function resolveBoardPage(
 	env: Environment,
 	boardId: string,
@@ -935,8 +935,14 @@ async function resolveBoardPage(
 ): Promise<ResolvedBoardPage> {
 	const access = await hasReadAccessToFile(env, userId, boardId)
 	if (!access.ok) {
-		const loaded = await loadBoardForTool(env, boardId, userId)
-		if (!loaded.ok) return loaded
+		const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+		if (!published.ok && published.reason !== 'board_empty') {
+			return {
+				ok: false,
+				reason: 'not_found',
+				result: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found'),
+			}
+		}
 		const { reason, message } = PUBLISHED_BOARD_FAILURE
 		return { ok: false, reason, result: toolError(message, reason) }
 	}

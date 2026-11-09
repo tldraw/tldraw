@@ -264,7 +264,9 @@ The sync worker needs:
 
 ### Why two buckets
 
-Both key spaces used to live in `thumbnails`, separated only by prefix. They are now separate buckets for two reasons:
+The MCP tools no longer write `mcp/…` screenshots, so `MCP_DATA_BUCKET` is unbound and its objects expire on their lifecycle rule. What follows is why the two were split, kept because the `og/…` reasoning still holds.
+
+Both key spaces used to live in `thumbnails`, separated only by prefix. They were separate buckets for two reasons:
 
 - **Retention.** The two caches want opposite lifetimes:
   - **`og/…`** keys (`og/{kind}/{slug}/{theme}.png`) carry no version, so each render overwrites the same object in place and a board costs exactly one object for as long as it exists. Nothing accumulates and nothing deletes one, and the current thumbnail must outlive any lifecycle window — so `THUMBNAILS` gets **no expiration rule**.
@@ -344,20 +346,9 @@ Before the first deploy of this feature:
    ```bash
    wrangler r2 bucket create thumbnails-preview
    wrangler r2 bucket create thumbnails
-   wrangler r2 bucket create dotcom-mcp-data-preview
-   wrangler r2 bucket create dotcom-mcp-data
    ```
 
-2. Add the expiration rule to the MCP data buckets only (30 days is a starting point — these are a regenerable cache, so the only cost of expiring one is a re-render the next time an agent asks for that exact board version):
-
-   ```bash
-   wrangler r2 bucket lifecycle add dotcom-mcp-data-preview expire-screenshots --expire-days 30 -y
-   wrangler r2 bucket lifecycle add dotcom-mcp-data expire-screenshots --expire-days 30 -y
-   ```
-
-   Verify with `wrangler r2 bucket lifecycle list dotcom-mcp-data`. Do **not** add an equivalent rule to `thumbnails`.
-
-3. Enable Browser Rendering on the Cloudflare account (the `BROWSER` binding needs it) and add the `MCP_SCREENSHOT_TOKEN_SECRET` GitHub secret. Until the secret exists the deploy passes an empty string and the MCP tool returns a configuration error instead of failing the deploy.
+2. Enable Browser Rendering on the Cloudflare account (the `BROWSER` binding needs it) and add the `MCP_SCREENSHOT_TOKEN_SECRET` GitHub secret, which signs render tokens.
 
 Migration note: MCP screenshots previously lived under `mcp/…` in the `thumbnails` bucket, where nothing ever deleted them. Those objects are now orphaned — the tool reads and writes the new bucket, and the version in the key means nothing will ever hit them again. Clear them out with a one-off prefix-scoped rule (`wrangler r2 bucket lifecycle add thumbnails expire-legacy-mcp mcp/ --expire-days 1 -y`, removed once the prefix is empty) or by deleting the `mcp/` folder from the dashboard.
 
@@ -506,9 +497,9 @@ Search has a budget of its own, because the cost it drives is Postgres rather th
 
 What this does **not** bound is many accounts looping at once; that needs a global search limiter alongside it. Deliberately left until there is traffic to size it against, with `postgres_client_connect` volume from this surface as the signal.
 
-Every tool accepts the id of a tldraw.com board the authenticated caller can see: the `:slug` of a file URL (`https://www.tldraw.com/f/:slug`) they own, can reach through its owning group, or that is shared via link — or the `:slug` of a published board URL (`https://www.tldraw.com/p/:slug`). The id is resolved as a file first and a published slug second. Deleted files and test files are refused, as is any board the caller has no access to; all of these answer the same "no board was found with this id" as an id that names nothing at all.
+Every tool accepts the id of a tldraw.com board the authenticated caller can see: the `:slug` of a file URL (`https://www.tldraw.com/f/:slug`) they own, can reach through its owning group, or that is shared via link. `get_board_info` also accepts the `:slug` of a published board URL (`https://www.tldraw.com/p/:slug`), resolved as a file first and a published slug second; the tools that work in a tab refuse one, because the room behind it holds the live file rather than the published copy. Deleted files and test files are refused, as is any board the caller has no access to; all of these answer the same "no board was found with this id" as an id that names nothing at all.
 
-Each `get_cluster_screenshot` call renders one image, so an agent typically calls `get_board_info` once to enumerate pages (using `hasContent` to skip blank ones), `get_page_info` to list a page's clusters, then screenshots the clusters it cares about — one, or several together to see how they sit relative to each other. That whole drill-down costs **one measure render**, not one per call: the first tool to cluster a page stores its clustering and the rest read it (see below). A screenshot on top of that costs one capture, or none if the PNG cache already holds those shapes.
+Each `get_cluster_screenshot` call renders one image, so an agent typically calls `get_board_info` once to enumerate pages (using `hasContent` to skip blank ones), `get_page_info` to list a page's clusters, then screenshots the clusters it cares about — one, or several together to see how they sit relative to each other. Each clustering call measures the page in the caller's tab, and nothing is cached; see "Working in an open tab".
 
 The screenshot layer lives in the dotcom sync worker rather than the interactive `apps/mcp-app` canvas worker because it needs real tldraw.com published-file resolution and storage, not a live editor bridge.
 

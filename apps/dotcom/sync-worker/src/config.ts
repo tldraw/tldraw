@@ -124,7 +124,8 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
 
 /**
  * MCP rate limits, applied in mcpServer.ts, on the tools that spend Postgres or write rows. Tools that
- * work in the caller's own tab have none: that tab is the only thing they spend.
+ * work in the caller's own tab have none. They spend that tab, and a read of one page from the board's
+ * durable object, which has to be awake for the tab anyway.
  *
  * These constants are only the isolate-local fallback for local dev and tests. Deployed environments
  * are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here
