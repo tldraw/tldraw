@@ -173,6 +173,8 @@ export type ThumbnailErrorSurface =
 	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
 	// help. The caller is told the tab isn't responding.
 	| 'mcp_tab_render'
+	| 'mcp_apply_ops'
+	| 'mcp_board_presence'
 	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
 	| 'board_view'
 	// The render page's failure beacon. Pairs with an og_queue or mcp_screenshot failure from the same

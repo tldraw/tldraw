@@ -1,3 +1,4 @@
+import { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	TAB_RENDER_ACK_TIMEOUT_MS,
@@ -85,10 +86,16 @@ describe('TabRenderBroker', () => {
 		vi.useRealTimers()
 	})
 
-	function dispatch(sessionIds: string[]) {
+	const applyOps: TabRenderRequest = {
+		mode: 'apply_ops',
+		ops: [],
+		attribution: { userId: 'user_a', runId: 'run' },
+	}
+
+	function dispatch(sessionIds: string[], request: TabRenderRequest = measure) {
 		const broker = new TabRenderBroker()
 		const jobIds = new Map<string, string>()
-		const result = broker.dispatch('user_a', sessionIds, measure, (sessionId, jobId) => {
+		const result = broker.dispatch('user_a', sessionIds, request, (sessionId, jobId) => {
 			jobIds.set(sessionId, jobId)
 		})
 		return { broker, jobIds, result }
@@ -185,5 +192,31 @@ describe('TabRenderBroker', () => {
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
 		await result
 		expect(broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })).toBe(false)
+	})
+
+	// A frozen tab keeps its socket and runs the job when it thaws, long after the agent moved on.
+	it('refuses a tab that claims a write after the job ended', async () => {
+		const { broker, jobIds, result } = dispatch(['a'], applyOps)
+
+		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
+		await result
+
+		expect(broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })).toBe(false)
+	})
+
+	it('gives a write longer to finish than a read', async () => {
+		const { broker, jobIds, result } = dispatch(['a'], applyOps)
+		broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })
+
+		await vi.advanceTimersByTimeAsync(
+			TAB_RENDER_ACK_TIMEOUT_MS + TAB_RENDER_WORK_TIMEOUT_MS.apply_ops - 1
+		)
+		let settled = false
+		void result.then(() => (settled = true))
+		await vi.advanceTimersByTimeAsync(0)
+		expect(settled).toBe(false)
+
+		await vi.advanceTimersByTimeAsync(1)
+		await expect(result).resolves.toEqual({ status: 'work_timeout' })
 	})
 })

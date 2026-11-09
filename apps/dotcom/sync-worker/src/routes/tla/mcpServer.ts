@@ -13,9 +13,11 @@ import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	APPLY_OPS_TOOL_NAME,
 	BOARD_EMPTY_MESSAGE,
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
+	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
@@ -29,6 +31,7 @@ import {
 	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
+	USER_STATE_TOOL_NAME,
 	clusterPage,
 	describePageSelector,
 	getBoardInfo,
@@ -39,7 +42,9 @@ import {
 	getPageInfo,
 	getToolDefinitions,
 	getWorkspaceListResult,
+	parseApplyOpsInput,
 	parseBoardInfoInput,
+	parseBoardUsersInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
@@ -47,6 +52,7 @@ import {
 	parsePageInfoInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	parseUserStateInput,
 	pickClusterShapes,
 	toolError as modelToolError,
 	toolJsonResult,
@@ -57,9 +63,12 @@ import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
 	PUBLISHED_BOARD_FAILURE,
+	applyOpsInOpenTab,
 	captureInOpenTab,
 	measureInOpenTab,
+	readBoardUsers,
 	readLivePage,
+	readUserStateInOpenTab,
 } from './mcpTabRender'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
@@ -339,6 +348,9 @@ const TOOL_HANDLERS = new Map<
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
 	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+	[APPLY_OPS_TOOL_NAME, callApplyOpsTool],
+	[USER_STATE_TOOL_NAME, callUserStateTool],
+	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
 ])
 
 export async function mcpServer(
@@ -1239,6 +1251,126 @@ async function callClusterScreenshotTool(
 			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
 		},
 	})
+}
+
+// Goes straight to the tab rather than through the board snapshot: the tab is what writes, and a board
+// created a moment ago has no persisted snapshot yet, which every other tool would report as empty.
+async function callApplyOpsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseApplyOpsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const access = await hasReadAccessToFile(env, userId, input.boardId)
+		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+
+		const applied = await applyOpsInOpenTab(
+			env,
+			input.boardId,
+			userId,
+			{
+				ops: input.ops,
+				page: input.page ?? undefined,
+				attribution: { userId, runId: input.runId ?? crypto.randomUUID() },
+			},
+			{ request, ctx }
+		)
+		if (!applied.ok) return toolError(applied.message, applied.reason)
+		const { pageId, pageName, result } = applied.value
+		return toolJsonResult({ pageId, pageName, ...result })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_apply_ops',
+			extras: { boardId: input.boardId, opCount: input.ops.length },
+			summary: 'Could not apply ops',
+			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callUserStateTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseUserStateInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const access = await hasReadAccessToFile(env, userId, input.boardId)
+		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+
+		if (input.userId === null || input.userId === userId) {
+			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			if (!state.ok) return toolError(state.message, state.reason)
+			const { pageId, pageName, selectedShapeIds, viewport } = state.value
+			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
+		}
+
+		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		if (!users.ok) return toolError(users.message, users.reason)
+		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
+		if (!user) {
+			return toolError(
+				'That user is not on this board right now. Call get_board_users to see who is.',
+				'user_not_on_board'
+			)
+		}
+		return toolJsonResult(user)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_presence',
+			extras: { boardId: input.boardId },
+			summary: 'Could not read user state',
+			recordAs: () => 'board_lookup_error',
+		})
+	}
+}
+
+async function callBoardUsersTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseBoardUsersInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const access = await hasReadAccessToFile(env, userId, input.boardId)
+		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+
+		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		if (!users.ok) return toolError(users.message, users.reason)
+		return toolJsonResult(users.value)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_presence',
+			extras: { boardId: input.boardId },
+			summary: 'Could not list board users',
+			recordAs: () => 'board_lookup_error',
+		})
+	}
 }
 
 interface ToolCallResult extends ToolResult {

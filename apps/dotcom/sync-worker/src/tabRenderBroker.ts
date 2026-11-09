@@ -1,10 +1,12 @@
 import { TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
 
 // Runs an MCP tool's work in a user's open tldraw.com tab. Lives in the file's Durable Object, because
-// that is where the sockets are; see "Working in an open tab" in browser-run-thumbnails.md.
+// that is where the sockets are; see "Working in an open tab" and "Editing in an open tab" in
+// browser-run-thumbnails.md.
 //
-// A tab can stop answering without its socket closing, so a job goes to all of a user's live tabs and
-// the first answer wins.
+// A tab can stop answering without its socket closing, so a read goes to several of a user's live tabs
+// and the first answer wins. A write goes to one, and that tab waits for the 200 on its acknowledgement
+// before applying anything, which is what stops a frozen tab replaying a job when it wakes.
 
 /**
  * How long a tab has to acknowledge a job, which is how long a call waits on a tab that looks alive
@@ -20,8 +22,16 @@ export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
  */
 export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
 
-/** How long work may run once the ack window closes. */
-export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
+/**
+ * How long work may run once the ack window closes. A batch of ops gets the longest: it stalls a real
+ * tab for longer than an export, and a timeout on a write can't say whether the write landed.
+ */
+export const TAB_RENDER_WORK_TIMEOUT_MS = {
+	measure: 5_000,
+	screenshot: 8_000,
+	apply_ops: 10_000,
+	user_state: 3_000,
+} as const
 
 /**
  * The most tabs one job goes to. Every addressed tab does the work, so this bounds what a single
@@ -37,8 +47,11 @@ export const MAX_TAB_RENDER_SESSIONS = 3
 export const TAB_RENDER_MAX_PING_AGE_MS = 90_000
 
 export type TabRenderOutcome =
-	| Extract<TabRenderReply, { status: 'measured' | 'captured' | 'declined' }>
-	| { status: 'no_tab' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
+	| Extract<
+			TabRenderReply,
+			{ status: 'measured' | 'captured' | 'applied' | 'user_state' | 'declined' }
+	  >
+	| { status: 'no_tab' | 'read_only' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
 
 export interface TabRenderSocket {
 	sessionId: string
