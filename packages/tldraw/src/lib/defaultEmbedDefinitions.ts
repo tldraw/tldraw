@@ -283,6 +283,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		// Not opted into `sizeToContentAspectRatio`: YouTube advertises the same 16:9 thumbnail
 		// dimensions for every video (it pads vertical videos into a 16:9 thumbnail), so unfurled
 		// dimensions can never reveal a non-16:9 ratio — the correction would always be a no-op.
+		oEmbedUrl: 'https://www.youtube.com/oembed',
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (!urlObj) return
@@ -518,6 +519,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		overrideOutlineRadius: 12,
 		doesResize: true,
 		embedOnPaste: true,
+		oEmbedUrl: 'https://open.spotify.com/oembed',
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.pathname.match(/^\/(artist|album)\//)) {
@@ -543,6 +545,7 @@ export const DEFAULT_EMBED_DEFINITIONS = [
 		isAspectRatioLocked: true,
 		embedOnPaste: true,
 		sizeToContentAspectRatio: true,
+		oEmbedUrl: 'https://vimeo.com/api/oembed.json',
 		toEmbedUrl: (url) => {
 			const urlObj = safeParseUrl(url)
 			if (urlObj && urlObj.hostname === 'vimeo.com') {
@@ -754,6 +757,13 @@ export interface EmbedDefinition<Config = never> {
 	 * available.
 	 */
 	readonly sizeToContentAspectRatio?: boolean
+	/**
+	 * The provider's oEmbed endpoint, such as `https://vimeo.com/api/oembed.json`. Exports can't
+	 * capture an embed's iframe, so they ask the endpoint for the page's thumbnail and draw that,
+	 * or a card with the definition's title when there is none. Exports call the endpoint and fetch
+	 * the thumbnail from the browser, so both must allow cross-origin requests.
+	 */
+	readonly oEmbedUrl?: string
 	// eslint-disable-next-line tldraw/method-signature-style
 	readonly toEmbedUrl: (url: string, config?: Config) => string | undefined
 	// eslint-disable-next-line tldraw/method-signature-style

@@ -316,6 +316,23 @@ describe('embeds', () => {
 		return parseSvg(await editor.getSvgString([embedId], { darkMode }))
 	}
 	const texts = (svg: SVGSVGElement) => [...svg.querySelectorAll('text')].map((t) => t.textContent)
+	const imageHref = (svg: SVGSVGElement) => svg.querySelector('image')?.getAttribute('href') ?? null
+
+	const jpeg = new Blob(['jpeg'], { type: 'image/jpeg' })
+	// Answers only the urls given here; anything else fails, as a CORS error would. Unless a test
+	// serves something, no picture can be fetched and embeds export as the card.
+	const serve = (responses: Record<string, unknown>) => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async (url: string) => {
+				if (!(url in responses)) throw new TypeError('Failed to fetch')
+				const body = responses[url]
+				return { ok: true, blob: async () => body, json: async () => body }
+			})
+		)
+	}
+	beforeEach(() => serve({}))
+	afterEach(() => vi.unstubAllGlobals())
 
 	it('draws a card naming the service and the address, not a blank iframe', async () => {
 		const svg = await exportEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ')
@@ -335,5 +352,35 @@ describe('embeds', () => {
 		const dark = await exportEmbed('https://www.youtube.com/watch?v=dQw4w9WgXcQ', true)
 		expect(light.querySelector('text')!.getAttribute('fill')).toBe(colors.light.text)
 		expect(dark.querySelector('text')!.getAttribute('fill')).toBe(colors.dark.text)
+	})
+
+	const oEmbed = (endpoint: string, url: string) =>
+		`${endpoint}?format=json&maxwidth=1280&url=${encodeURIComponent(url)}`
+
+	it.each([
+		['https://www.youtube.com/oembed', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
+		['https://vimeo.com/api/oembed.json', 'https://vimeo.com/76979871'],
+		['https://open.spotify.com/oembed', 'https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3'],
+	])('draws the thumbnail that %s gives', async (endpoint, url) => {
+		serve({
+			[oEmbed(endpoint, url)]: { thumbnail_url: 'https://cdn.example.com/thumbnail.jpg' },
+			'https://cdn.example.com/thumbnail.jpg': jpeg,
+		})
+		const svg = await exportEmbed(url)
+		expect(imageHref(svg)).toMatch(/^data:image\/jpeg;base64,/)
+		expect(texts(svg)).toEqual([])
+	})
+
+	it('draws the card when the thumbnail isn’t an image', async () => {
+		const url = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+		serve({
+			[oEmbed('https://www.youtube.com/oembed', url)]: {
+				thumbnail_url: 'https://cdn.example.com/thumbnail.jpg',
+			},
+			'https://cdn.example.com/thumbnail.jpg': new Blob(['<html>']),
+		})
+		const svg = await exportEmbed(url)
+		expect(imageHref(svg)).toBeNull()
+		expect(texts(svg)).toEqual(['YouTube', 'youtube.com'])
 	})
 })

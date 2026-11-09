@@ -2,19 +2,23 @@
 
 import {
 	BaseBoxShapeUtil,
+	FileHelpers,
 	HTMLContainer,
 	SvgExportContext,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
+	TLShapeId,
 	clamp,
 	embedShapeMigrations,
 	embedShapeProps,
+	fetch,
 	lerp,
 	resizeBox,
 	toDomPrecision,
 	useColorMode,
 	useIsEditing,
+	useSharedSafeId,
 	useValue,
 } from '@tldraw/editor'
 import {
@@ -58,6 +62,55 @@ export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<
 	 * ```
 	 */
 	readonly embedConfig?: DefaultEmbedConfig & Record<string, unknown>
+}
+
+// An export shows nothing at all if any shape takes longer than maxExportDelayMs (5s).
+const PREVIEW_IMAGE_TIMEOUT_MS = 2500
+
+async function fetchPreviewImage(oEmbedUrl: string, url: string) {
+	const separator = oEmbedUrl.includes('?') ? '&' : '?'
+	const oEmbed = await fetch(
+		`${oEmbedUrl}${separator}format=json&maxwidth=1280&url=${encodeURIComponent(url)}`
+	)
+	if (!oEmbed.ok) return null
+	const { thumbnail_url } = await oEmbed.json()
+	if (typeof thumbnail_url !== 'string') return null
+	const image = await fetch(thumbnail_url)
+	if (!image.ok) return null
+	const blob = await image.blob()
+	if (!blob.type.startsWith('image/')) return null
+	// An SVG drawn as an image can't load remote ones, so the export inlines it.
+	return await FileHelpers.blobToDataUrl(blob)
+}
+
+function EmbedPreviewImage({
+	id,
+	w,
+	h,
+	radius,
+	href,
+}: {
+	id: TLShapeId
+	w: number
+	h: number
+	radius: number
+	href: string
+}) {
+	const clipPathId = useSharedSafeId(id + '_clip')
+	return (
+		<>
+			<clipPath id={clipPathId}>
+				<rect width={w} height={h} rx={radius} />
+			</clipPath>
+			<image
+				href={href}
+				width={w}
+				height={h}
+				preserveAspectRatio="xMidYMid slice"
+				clipPath={`url(#${clipPathId})`}
+			/>
+		</>
+	)
 }
 
 const getSandboxPermissions = (permissions: TLEmbedShapePermissions) => {
@@ -230,11 +283,16 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return getThemeFontFaces(this.editor.getCurrentTheme(), 'sans') ?? [sans.normal, sans.bold]
 	}
 
-	// An export can't capture the iframe, so without this an embed exports as a blank box.
-	override toSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
+	// An export can't capture the iframe, so it draws the page's oEmbed thumbnail, or a card.
+	override async toSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
 		const { w, h, url } = shape.props
-		const definition = this.getEmbedDefinition(url)?.definition
+		const info = this.getEmbedDefinition(url)
+		const definition = info?.definition
 		const radius = definition?.overrideOutlineRadius ?? 8
+		const image = info ? await this.getPreviewImage(info.definition, info.url) : null
+		if (image) {
+			return <EmbedPreviewImage id={shape.id} w={w} h={h} radius={radius} href={image} />
+		}
 		const address = getHumanReadableAddress(url)
 		const theme = this.editor.getCurrentTheme()
 		const colors = theme.colors[ctx.colorMode]
@@ -287,6 +345,16 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 				)}
 			</>
 		)
+	}
+
+	private getPreviewImage(definition: TLEmbedDefinition, url: string): Promise<string | null> {
+		if (!definition.oEmbedUrl) return Promise.resolve(null)
+		return Promise.race([
+			fetchPreviewImage(definition.oEmbedUrl, url).catch(() => null),
+			new Promise<null>((resolve) =>
+				this.editor.timers.setTimeout(() => resolve(null), PREVIEW_IMAGE_TIMEOUT_MS)
+			),
+		])
 	}
 
 	override isAspectRatioLocked(shape: TLEmbedShape) {

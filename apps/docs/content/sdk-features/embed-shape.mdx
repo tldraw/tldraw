@@ -194,6 +194,7 @@ export default function App() {
 | `canEditWhileLocked`       | `boolean`                              | No       | Allow interaction when shape is locked (default: true)                    |
 | `overridePermissions`      | `TLEmbedShapePermissions`              | No       | Custom iframe sandbox permissions                                         |
 | `sizeToContentAspectRatio` | `boolean`                              | No       | Correct the size to the content's real aspect ratio after creation        |
+| `oEmbedUrl`                | `string`                               | No       | The provider's oEmbed endpoint, for a thumbnail that exports draw         |
 | `icon`                     | `string`                               | No       | Icon URL for the Insert embed dialog (`CustomEmbedDefinition` only)       |
 | `backgroundColor`          | `string`                               | No       | Background color for the embed container                                  |
 | `overrideOutlineRadius`    | `number`                               | No       | Custom border radius (Spotify uses 12px)                                  |
@@ -216,7 +217,9 @@ The tldraw embed definition sets `embedOnPaste: false`, so pasting a tldraw.com 
 
 ## SVG export
 
-Exports can't capture an embed's iframe, so they draw a card in its place: the definition's title and the URL's address, in the export's color mode.
+Exports can't capture an embed's iframe, so they draw the page's thumbnail in its place. They ask the definition's `oEmbedUrl` for it, which the YouTube, Vimeo and Spotify definitions set. Exports call the endpoint and fetch the thumbnail from the browser, so both must allow cross-origin requests.
+
+Without a thumbnail, or when it can't be fetched within a couple of seconds, exports draw a card instead: the definition's title and the URL's address, in the export's color mode.
 
 ## Related articles
 

@@ -998,6 +998,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly height: 450;
     readonly hostnames: readonly ["*.youtube.com", "youtube.com", "youtu.be"];
     readonly isAspectRatioLocked: true;
+    readonly oEmbedUrl: 'https://www.youtube.com/oembed';
     readonly overridePermissions: {
         readonly 'allow-popups-to-escape-sandbox': true;
         readonly 'allow-presentation': true;
@@ -1074,6 +1075,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly height: 500;
     readonly hostnames: readonly ["open.spotify.com"];
     readonly minHeight: 500;
+    readonly oEmbedUrl: 'https://open.spotify.com/oembed';
     readonly overrideOutlineRadius: 12;
     readonly title: 'Spotify';
     readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1086,6 +1088,7 @@ export const DEFAULT_EMBED_DEFINITIONS: readonly [{
     readonly height: 360;
     readonly hostnames: readonly ["vimeo.com", "player.vimeo.com"];
     readonly isAspectRatioLocked: true;
+    readonly oEmbedUrl: 'https://vimeo.com/api/oembed.json';
     readonly sizeToContentAspectRatio: true;
     readonly title: 'Vimeo';
     readonly toEmbedUrl: (url: string) => string | undefined;
@@ -1802,6 +1805,7 @@ export interface EmbedDefinition<Config = never> {
     readonly minHeight?: number;
     // (undocumented)
     readonly minWidth?: number;
+    readonly oEmbedUrl?: string;
     // (undocumented)
     readonly overrideOutlineRadius?: number;
     // (undocumented)
@@ -1887,7 +1891,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
     // @deprecated (undocumented)
     static setEmbedDefinitions(embedDefinitions: readonly TLEmbedDefinition[]): void;
     // (undocumented)
-    toSvg(shape: TLEmbedShape, ctx: SvgExportContext): JSX.Element;
+    toSvg(shape: TLEmbedShape, ctx: SvgExportContext): Promise<JSX.Element>;
     // (undocumented)
     static type: 'embed';
 }
