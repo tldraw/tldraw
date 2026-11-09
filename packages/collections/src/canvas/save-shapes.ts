@@ -1,4 +1,10 @@
-import type { Editor, TLShapeId } from 'tldraw'
+import {
+	Box,
+	Geometry2dFilters,
+	type Editor,
+	type TLImageExportOptions,
+	type TLShapeId,
+} from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import {
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
@@ -22,13 +28,37 @@ export async function saveShapesToCollection(
 ): Promise<TLCollectionItem> {
 	const content = editor.getContentFromCurrentPage(shapeIds)
 	if (!content) throw new Error('No shapes to save')
+	const { ids, ...options } = getThumbnailExport(editor, shapeIds)
 	const [light, dark] = await Promise.all([
-		editor.toImage(shapeIds, { format: 'png', background: false, darkMode: false }),
-		editor.toImage(shapeIds, { format: 'png', background: false, darkMode: true }),
+		editor.toImage(ids, { ...options, darkMode: false }),
+		editor.toImage(ids, { ...options, darkMode: true }),
 	])
 	return source.addItem(collectionId, {
 		name,
 		content: { formatVersion: CURRENT_ITEM_CONTENT_FORMAT_VERSION, content },
 		thumbnail: { light: light.blob, dark: dark.blob },
 	})
+}
+
+// Exported alone, a frame draws only its contents, cropped like a slide (#5993), but a thumbnail
+// should show what gets placed: the frame, border and name. That rule only applies to a single id,
+// so the frame is passed twice (it's drawn once).
+function getThumbnailExport(
+	editor: Editor,
+	shapeIds: TLShapeId[]
+): TLImageExportOptions & { ids: TLShapeId[] } {
+	const options: TLImageExportOptions = { format: 'png', background: false }
+	const frame = shapeIds.length === 1 ? editor.getShape(shapeIds[0]) : undefined
+	if (!frame || !editor.isShapeFrameLike(frame)) return { ...options, ids: shapeIds }
+
+	// Not the name's bounds: they scale with the zoom, so the name would be cut off when zoomed in.
+	// The padding leaves room for it, drawn at a fixed size above the frame.
+	const outline = editor.getShapeGeometry(frame).getVertices(Geometry2dFilters.EXCLUDE_LABELS)
+	const bounds = Box.FromPoints(editor.getShapePageTransform(frame).applyToPoints(outline))
+	return {
+		...options,
+		ids: [frame.id, frame.id],
+		bounds,
+		padding: editor.options.defaultSvgPadding,
+	}
 }
