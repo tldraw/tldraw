@@ -7,15 +7,26 @@ import {
 	TLSocketRoomOptions,
 	canRead,
 	canWrite,
+	canWriteOnClient,
 	composeBeforeRead,
 	composeBeforeWrite,
 } from '@tldraw/sync'
-import { Editor, TLRecord, TLRecordWrite, TLShape, TLStore, UnknownRecord, atom } from 'tldraw'
+import {
+	TLCanWriteArgs,
+	TLRecord,
+	TLRecordWrite,
+	TLShape,
+	TLStore,
+	UnknownRecord,
+	atom,
+	isEqual,
+} from 'tldraw'
 
-// The app's access layer. The SDK gives primitives (`canWrite`, `canRead`, `beforeWrite`,
-// `beforeRead`, session options); the policy lives here, in app code. One set of write rules runs
-// in two places: on the server, where it is the real check, and in each client, where it stops a
-// write before it is sent, so the user is not shown an edit that the server then takes back.
+// The app's access layer. The SDK gives primitives (`canWrite`, `canWriteOnClient`, `canRead`,
+// `beforeWrite`, `beforeRead`, session options); the policy lives here, in app code. Each write
+// rule is one plain function, and `writeChecks` turns the rules into one set of checks for both
+// sides: on the server, where they are the real check, and in each client, where they stop a
+// write before it is sent and hide what the person cannot do.
 
 /** What the server knows about a session, from the app's auth at connect time. */
 export interface Meta {
@@ -106,20 +117,31 @@ function evaluate(rule: Rule<any>, args: WriteArgs<any>): true | string {
 	}
 }
 
-/** The room options for a policy, built from the public primitives only. */
-export function serverOptions(policy: Policy): Partial<TLSocketRoomOptions<TLRecord, Meta>> {
+/**
+ * The policy's write rules as `canWrite` checks. The server and the client use this one function,
+ * so they run the same rules. `onDenied` gets the rule's reason, for the log.
+ */
+function writeChecks(
+	policy: Policy,
+	onDenied?: (args: WriteArgs<TLRecord>, reason: string) => void
+): TLCanWriteChecks<TLRecord, Meta> {
 	const checks: Record<string, (args: WriteArgs<any>) => boolean> = {}
 	for (const [typeName, rule] of Object.entries(policy.write ?? {})) {
 		checks[typeName] = (args) => {
 			const result = evaluate(rule as Rule<any>, args)
-			if (result !== true) logDenial('server', args, result)
+			if (result !== true) onDenied?.(args, result)
 			return result === true
 		}
 	}
+	return checks as TLCanWriteChecks<TLRecord, Meta>
+}
+
+/** The room options for a policy, built from the public primitives only. */
+export function serverOptions(policy: Policy): Partial<TLSocketRoomOptions<TLRecord, Meta>> {
 	return {
 		beforeWrite: composeBeforeWrite(
 			...(policy.stamp ?? []),
-			canWrite(checks as TLCanWriteChecks<TLRecord, Meta>),
+			canWrite(writeChecks(policy, (args, reason) => logDenial('server', args, reason))),
 			...(policy.after ?? [])
 		),
 		beforeRead: composeBeforeRead(canRead(policy.read ?? {}), policy.mask ?? {}),
@@ -130,80 +152,55 @@ export function serverOptions(policy: Policy): Partial<TLSocketRoomOptions<TLRec
 
 /**
  * The same write rules, for a client: the editor's `canWrite` option. The editor asks before it
- * stores a local write, and the UI asks the same question, so a tool or action that the rules
- * refuse is hidden or disabled. For an update the editor gives only the stored record, so the
- * rule sees no change here; {@link installClientChecks} checks the new values.
+ * stores a local write, with the real new values, and rolls back the whole operation when a rule
+ * says no. The UI asks the same question, so a tool or action that the rules refuse is hidden or
+ * disabled.
  */
 export function clientCanWrite(policy: Policy, getSession: () => Session) {
-	return ({ type, record }: TLRecordWrite, editor: Editor) => {
-		const session = getSession()
+	const check = canWriteOnClient(writeChecks(policy), getSession)
+	return (args: TLCanWriteArgs) => {
+		const record = args.next ?? args.prev
 		// With this option the editor no longer blocks writes in readonly mode by itself. The server
 		// ignores a readonly session's document writes, so block them here too.
-		if (session.isReadonly && !policy.objectTypes?.includes(record.typeName)) return false
-		const rule = policy.write?.[record.typeName]
-		if (!rule || !clientChecksOn.get()) return true
-		const args = {
-			type,
-			prev: type === 'create' ? null : record,
-			next: type === 'delete' ? null : record,
-			session,
-			get: (id: string) => editor.store.get(id as TLRecord['id']),
-		} as WriteArgs<TLRecord>
-		return evaluate(rule as Rule<any>, args) === true
+		if (getSession().isReadonly && !policy.objectTypes?.includes(record.typeName)) return false
+		if (!clientChecksOn.get()) return true
+		return check(args)
 	}
 }
 
 /**
- * Log the client's denials, and check the new values of each local update, for rules about
- * fields such as moving a shape out of a section. Register this on the store before the editor
- * is made, so it runs before the editor's own `canWrite` check: that check blocks the write, and
- * rolls back the whole operation, after this has logged why. The store ignores these handlers'
- * vetoes for remote changes.
+ * Log why the client refused a write. The editor's `canWrite` option also answers questions from
+ * the UI, which are not writes, so the log runs the same checks from store side effects, which see
+ * only writes. Register it before the editor is made, so it runs before the editor blocks the
+ * write. It never blocks a write itself.
  */
-export function installClientChecks(store: TLStore, policy: Policy, getSession: () => Session) {
+export function installClientLog(store: TLStore, policy: Policy, getSession: () => Session) {
+	const check = canWriteOnClient(
+		writeChecks(policy, (args, reason) => logDenial('client', args, reason)),
+		getSession
+	)
 	const get = (id: string) => store.get(id as TLRecord['id'])
-	const denial = (args: Omit<WriteArgs<TLRecord>, 'session' | 'get'>) => {
-		if (!clientChecksOn.get()) return null
-		const rule = policy.write?.[(args.next ?? args.prev)!.typeName]
-		if (!rule) return null
-		const full = { ...args, session: getSession(), get } as WriteArgs<TLRecord>
-		const result = evaluate(rule as Rule<any>, full)
-		if (result === true) return null
-		logDenial('client', full, result)
-		return result
+	const logged = (write: TLRecordWrite) => {
+		if (clientChecksOn.get()) check({ ...write, get } as TLCanWriteArgs)
 	}
 	const cleanups = Object.keys(policy.write ?? {}).map((typeName) =>
 		store.sideEffects.register({
 			[typeName]: {
 				beforeCreate: (next: TLRecord, source: 'user' | 'remote') => {
-					if (source === 'user') denial({ type: 'create', prev: null, next })
+					if (source === 'user') logged({ type: 'create', prev: null, next })
 					return next
 				},
 				beforeChange: (prev: TLRecord, next: TLRecord, source: 'user' | 'remote') => {
-					if (source !== 'user' || !denial({ type: 'update', prev, next })) return next
-					// The editor's check sees only the stored record. When that alone is enough to
-					// deny, let the editor block the write, so it rolls back the whole operation.
-					return clientCanWriteRecord(policy, getSession, get, prev) ? prev : next
+					if (source === 'user' && !isEqual(prev, next)) logged({ type: 'update', prev, next })
+					return next
 				},
 				beforeDelete: (prev: TLRecord, source: 'user' | 'remote') => {
-					if (source === 'user') denial({ type: 'delete', prev, next: null })
+					if (source === 'user') logged({ type: 'delete', prev, next: null })
 				},
 			},
 		})
 	)
 	return () => cleanups.forEach((fn) => fn())
-}
-
-function clientCanWriteRecord(
-	policy: Policy,
-	getSession: () => Session,
-	get: Get,
-	record: TLRecord
-) {
-	const rule = policy.write?.[record.typeName]
-	if (!rule) return true
-	const args = { type: 'update', prev: record, next: record, session: getSession(), get }
-	return evaluate(rule as Rule<any>, args as WriteArgs<TLRecord>) === true
 }
 
 // Helpers for rules that depend on a record's parents.

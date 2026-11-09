@@ -77,6 +77,28 @@ test.describe('Sync permissions', () => {
 		await expect(cal).toHaveText('1 shape · Brief')
 	})
 
+	test('classroom sections: the client runs the server rule on the new parent, and logs why', async ({
+		page,
+		isMobile,
+	}) => {
+		// The phone layout puts the canvases below the fold, too small to drag in
+		test.skip(isMobile, 'needs the desktop layout')
+		await openScene(page, 'classroom-sections')
+		const sam = panel(page, 1)
+		const note = sam.locator('[data-shape-id="shape:na"]')
+		const box = (await note.boundingBox())!
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2)
+		await page.mouse.down()
+		await page.mouse.move(box.x + box.width / 2, box.y + box.height * 3, { steps: 10 })
+		await page.mouse.up()
+		// The rule that the server runs refuses the move to the page in Sam's own editor, with the
+		// real new parent. So the write never reaches the server.
+		const log = page.locator('.perm-log')
+		await expect(log).toContainText('outside your section', { timeout: 5000 })
+		await expect(log.locator('.perm-side--client').first()).toBeVisible()
+		await expect(log.locator('.perm-side--server')).toHaveCount(0)
+	})
+
 	test('share link: a guest reconnects with the access the link gives', async ({ page }) => {
 		await openScene(page, 'share-link')
 		await expect(panel(page, 1)).toContainText('read only')

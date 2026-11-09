@@ -39,7 +39,7 @@ import {
 	Session,
 	clientCanWrite,
 	clientChecksOn,
-	installClientChecks,
+	installClientLog,
 	serverOptions,
 	writeLog,
 } from './access'
@@ -380,7 +380,7 @@ function UserEditor({
 			{store.status === 'synced-remote' ? (
 				<div className="perm-canvas">
 					{room.policy.write && (
-						<ClientChecks store={store.store} policy={room.policy} getSession={getSession} />
+						<ClientLog store={store.store} policy={room.policy} getSession={getSession} />
 					)}
 					<Tldraw
 						store={store.store}
@@ -409,9 +409,9 @@ function UserEditor({
 	)
 }
 
-// Rendered before <Tldraw>, so its layout effect registers the store handlers before the editor
-// registers its own.
-function ClientChecks({
+// Rendered before <Tldraw>, so its layout effect registers the log's store handlers before the
+// editor registers its canWrite check, which blocks the write.
+function ClientLog({
 	store,
 	policy,
 	getSession,
@@ -420,7 +420,7 @@ function ClientChecks({
 	policy: Policy
 	getSession(): Session
 }) {
-	useLayoutEffect(() => installClientChecks(store, policy, getSession), [store, policy, getSession])
+	useLayoutEffect(() => installClientLog(store, policy, getSession), [store, policy, getSession])
 	return null
 }
 
@@ -509,7 +509,7 @@ when they connect, the write and read rules, and the controls. `?scene=<id>` ope
 
 [2]
 The room is a real `TLSocketRoom`. Only the WebSocket is fake (see local-room.ts). The policy is
-built from public primitives only (see access.ts): `canWrite` and `canRead` for who may write and
+built from public primitives only (see access.ts): `canWrite`, `canWriteOnClient` and `canRead` for who may write and
 see what, `beforeWrite` and `beforeRead` hooks for stamping and masking, composed with
 `composeBeforeWrite` and `composeBeforeRead`, and `writeRejection`.
 
@@ -523,10 +523,13 @@ session options again. A client that the server refused stops, so the panel moun
 read comments but gets no composer.
 
 [5]
-The same write rules that run on the server also run in the client, as the editor's `canWrite`
-option. The editor blocks a write that the rules refuse, and rolls back the whole operation, so a
-group or a page delete lands whole or not at all. The UI asks the same option, so a tool or action
-the user may not use is hidden or disabled. The option gets only the stored record for an update,
-so store side effects check the new values too, and log each denial (`installClientChecks`). Turn off "Client checks" to
-send every write and see the server undo it.
+Each write rule is one function (see `policy.write` in scenes.tsx). `writeChecks` in access.ts
+turns the rules into one set of checks. The server gets them through `canWrite`, and each client
+gets the same checks through `canWriteOnClient` as the editor's `canWrite` option. The editor gives
+the check the same arguments as the server does, with the real new values, so there is no second
+copy of any rule. The editor blocks a write that the rules refuse, and rolls back the whole
+operation, so a group or a page delete lands whole or not at all. The UI asks the same option, so a
+tool or action the user may not use is hidden or disabled. Store side effects run the same checks
+again only to log why a write was refused (`installClientLog`). Turn off "Client checks" to send
+every write and see the server undo it.
 */
