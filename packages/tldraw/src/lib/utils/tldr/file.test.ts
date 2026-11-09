@@ -1,19 +1,19 @@
-import { AssetRecordType, createShapeId, createTLSchema, T } from '@tldraw/editor'
+import { AssetRecordType, createShapeId, T, type TLRecord } from '@tldraw/editor'
 import { describe, expect, it } from 'vitest'
-import { parseTldrawJsonFile } from './file'
+import { TestEditor } from '../../../test/TestEditor'
+import { parseTldrawJsonFile, serializeTldrawJson } from './file'
 
-const schema = createTLSchema({
-	records: {
-		stash: {
-			scope: 'document',
-			validator: T.object({
-				id: T.string,
-				typeName: T.literal('stash'),
-				assetIds: T.arrayOf(T.string),
-			}),
-		},
+const records = {
+	stash: {
+		scope: 'document' as const,
+		validator: T.object({
+			id: T.string,
+			typeName: T.literal('stash'),
+			assetIds: T.arrayOf(T.string),
+			thumbnail: T.object({ light: T.string }),
+		}),
 	},
-})
+}
 
 const asset = (key: string) =>
 	AssetRecordType.create({
@@ -22,52 +22,51 @@ const asset = (key: string) =>
 		props: { name: key, src: null, w: 1, h: 1, mimeType: 'image/png', isAnimated: false },
 	})
 
-function parse(records: unknown[]) {
-	const result = parseTldrawJsonFile({
-		schema,
-		json: JSON.stringify({ tldrawFileFormatVersion: 1, schema: schema.serialize(), records }),
+function setup() {
+	const editor = new TestEditor({}, { records })
+	const byShape = asset('by-shape')
+	const inArray = asset('in-array')
+	const inObject = asset('in-object')
+	const unused = asset('unused')
+	editor.createAssets([byShape, inArray, inObject, unused])
+	editor.createShape({
+		id: createShapeId('image'),
+		type: 'image',
+		props: { assetId: byShape.id, w: 1, h: 1 },
 	})
-	if (!result.ok) throw new Error(JSON.stringify(result.error))
-	return result.value
-		.allRecords()
-		.filter((r) => r.typeName === 'asset')
-		.map((r) => r.id)
+	editor.store.put([
+		{
+			id: 'stash:1',
+			typeName: 'stash',
+			assetIds: [inArray.id],
+			thumbnail: { light: inObject.id },
+		} as unknown as TLRecord,
+	])
+	return { editor, kept: [byShape.id, inArray.id, inObject.id].sort() }
 }
 
-describe('parseTldrawJsonFile', () => {
-	it('drops assets that no record names, and keeps those any record does', () => {
-		const byShape = asset('by-shape')
-		const byRecord = asset('by-record')
-		const unused = asset('unused')
-		const image = {
-			id: createShapeId('image'),
-			typeName: 'shape',
-			type: 'image',
-			x: 0,
-			y: 0,
-			rotation: 0,
-			index: 'a1',
-			parentId: 'page:page',
-			isLocked: false,
-			opacity: 1,
-			meta: {},
-			props: {
-				assetId: byShape.id,
-				w: 1,
-				h: 1,
-				playing: true,
-				url: '',
-				crop: null,
-				flipX: false,
-				flipY: false,
-				altText: '',
-			},
-		}
-		const stash = { id: 'stash:1', typeName: 'stash', assetIds: [byRecord.id] }
-		const page = { id: 'page:page', typeName: 'page', name: 'Page', index: 'a1', meta: {} }
+const assetIds = (records: TLRecord[]) =>
+	records
+		.filter((r) => r.typeName === 'asset')
+		.map((r) => r.id)
+		.sort()
 
-		expect(parse([page, image, stash, byShape, byRecord, unused]).sort()).toEqual(
-			[byRecord.id, byShape.id].sort()
-		)
+describe('.tldr files', () => {
+	it('save the assets that a shape or any other record names, and drop the rest', async () => {
+		const { editor, kept } = setup()
+		const json = await serializeTldrawJson(editor)
+		expect(assetIds(JSON.parse(json).records)).toEqual(kept)
+	})
+
+	it('open with the assets that a shape or any other record names, and drop the rest', () => {
+		const { editor, kept } = setup()
+		const json = JSON.stringify({
+			tldrawFileFormatVersion: 1,
+			schema: editor.store.schema.serialize(),
+			records: editor.store.allRecords(),
+		})
+		const result = parseTldrawJsonFile({ schema: editor.store.schema, json })
+		if (!result.ok) throw new Error(JSON.stringify(result.error))
+		expect(assetIds(result.value.allRecords())).toEqual(kept)
 	})
 })
