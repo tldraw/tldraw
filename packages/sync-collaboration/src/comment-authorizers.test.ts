@@ -1148,5 +1148,4 @@ describe('checkCommentWrite', () => {
 			'real-mallory': [false, false, false],
 		})
 	})
-
 })
