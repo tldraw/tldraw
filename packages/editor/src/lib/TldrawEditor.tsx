@@ -3,6 +3,7 @@ import {
 	TLAsset,
 	TLBinding,
 	TLPage,
+	TLRecordChange,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -254,28 +255,34 @@ export interface TldrawEditorBaseProps {
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
-	 * Decides whether the current user may change a record. Return `false` to deny it: the editor
-	 * then treats the record like a locked one. Tools skip it, handles and menu items for changing
-	 * it are hidden, and editor methods such as `updateShapes` and
-	 * `deleteShapes` leave it alone. Unlike a lock, a denial has no unlock exception.
+	 * Decides whether the current user may make a change to a record. Return `false` to deny it: the
+	 * editor then treats the record like a locked one. Tools skip it, handles and menu items for
+	 * changing it are hidden, and editor methods such as `updateShapes` and `deleteShapes` leave it
+	 * alone. Unlike a lock, a denial has no unlock exception.
 	 *
-	 * Called for shapes, pages, bindings and assets. A new shape is judged before it is created, with its
-	 * parent and index resolved; its page is not in the store yet, so walk `parentId` yourself. Ancestors are
-	 * not checked for you: a rule that inherits (a frame on someone else's page) walks `parentId` too.
-	 * Reactive: read store state inside it and the answer follows.
+	 * It is called for shapes, pages, bindings and assets, with the change as the server's write rule
+	 * sees it: `type` is `'create'`, `'update'` or `'delete'`, and `prev` and `next` are the record
+	 * before and after (`null` for the side that doesn't exist). That lets a rule allow editing but
+	 * not deleting. A new shape is judged before it is created, with its parent and index resolved;
+	 * its page is not in the store yet, so walk `parentId` yourself. Ancestors are not checked for
+	 * you: a rule that inherits (a frame on someone else's page) walks `parentId` too. Reactive: read
+	 * store state inside it and the answer follows.
 	 *
-	 * This shapes the editor's behaviour, it does not enforce anything: the server decides. Writes made
-	 * straight to the store are not checked.
+	 * This shapes the editor's behaviour, it does not enforce anything: the server decides. Writes
+	 * made straight to the store are not checked.
 	 *
 	 * @example
 	 * ```ts
-	 * canChangeRecord={(record, editor) => record.typeName !== 'shape' || canEditPage(pageOf(record, editor))}
+	 * canChangeRecord={(change, editor) => change.type !== 'delete'}
 	 * ```
 	 *
-	 * @param record - The shape, page, binding or asset.
+	 * @param change - The change: `{ type, prev, next }`.
 	 * @param editor - The editor instance.
 	 */
-	canChangeRecord?(record: TLShape | TLPage | TLBinding | TLAsset, editor: Editor): boolean
+	canChangeRecord?(
+		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
+		editor: Editor
+	): boolean
 
 	/**
 	 * The URLs for the fonts to use in the editor.

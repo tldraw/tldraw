@@ -6,6 +6,7 @@ import {
 	StoreSchema,
 	StoreSnapshot,
 	StoreValidationFailure,
+	UnknownRecord,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
 import { TLAsset, TLAssetId } from './records/TLAsset'
@@ -292,6 +293,17 @@ export function createCachedUserResolve(
 		return signal
 	}
 }
+
+/**
+ * One write to a record, as a write rule sees it: the record before and after. A create has no
+ * `prev`, a delete has no `next`. On an update, `next` is the fully applied result.
+ *
+ * @public
+ */
+export type TLRecordChange<R extends UnknownRecord> =
+	| { type: 'create'; prev: null; next: R }
+	| { type: 'update'; prev: R; next: R }
+	| { type: 'delete'; prev: R; next: null }
 
 /**
  * A server's reason for refusing a change of this user's, as reported to the editor.
