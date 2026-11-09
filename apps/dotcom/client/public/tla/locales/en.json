@@ -65,6 +65,9 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
+  "14222689b0": {
+    "translation": "Hide shapes on other pages"
+  },
   "14b03eeeb5": {
     "translation": "Notification options"
   },
@@ -626,9 +629,6 @@
   },
   "d46632fe1f": {
     "translation": "Too many requests. Please slow down."
-  },
-  "d48ed77a16": {
-    "translation": "Only this page for students"
   },
   "d4bbf74f3e": {
     "translation": "Toggle sidebar"
