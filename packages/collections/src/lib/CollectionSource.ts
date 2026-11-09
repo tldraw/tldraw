@@ -21,7 +21,7 @@ export type TLCollectionAction =
 	| 'renameItem'
 	| 'deleteItem'
 
-/** Someone a collection can belong to, such as a user or a workspace. */
+/** Something a collection can belong to, such as a user or a workspace. */
 export interface TLCollectionOwner {
 	id: string
 	name: string
