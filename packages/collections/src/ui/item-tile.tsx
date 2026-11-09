@@ -32,8 +32,6 @@ export function ItemTile({
 			>
 				<span className="tlui-collections-tile__thumbnail">
 					{thumbnailUrl && (
-						// Without these, every tile in a long collection decodes its image at once, even
-						// those scrolled out of view: a megabyte or more each, enough to crash a phone's tab.
 						<img src={thumbnailUrl} alt="" draggable={false} loading="lazy" decoding="async" />
 					)}
 				</span>
