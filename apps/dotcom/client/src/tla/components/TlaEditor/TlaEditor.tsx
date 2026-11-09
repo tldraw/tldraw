@@ -122,7 +122,7 @@ const messages = defineMessages({
 	},
 	fileHistory: { defaultMessage: 'File history' },
 	studentsCanEditAll: { defaultMessage: 'Students can edit everything' },
-	sharePage: { defaultMessage: 'Hide shapes on other pages' },
+	sharePage: { defaultMessage: 'Show only this page to students' },
 	redOnly: { defaultMessage: 'Only red shapes' },
 	color: { defaultMessage: 'Color' },
 	refusedTitle: { defaultMessage: 'Change not saved' },

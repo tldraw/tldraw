@@ -173,12 +173,6 @@
       "value": "Export as"
     }
   ],
-  "14222689b0": [
-    {
-      "type": 0,
-      "value": "Hide shapes on other pages"
-    }
-  ],
   "14b03eeeb5": [
     {
       "type": 0,
@@ -1380,6 +1374,12 @@
     {
       "type": 0,
       "value": "Copy link"
+    }
+  ],
+  "b89a6c3361": [
+    {
+      "type": 0,
+      "value": "Show only this page to students"
     }
   ],
   "ba0318cb81": [

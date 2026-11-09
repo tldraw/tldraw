@@ -65,9 +65,6 @@
   "13ddd375ad": {
     "translation": "Export as"
   },
-  "14222689b0": {
-    "translation": "Hide shapes on other pages"
-  },
   "14b03eeeb5": {
     "translation": "Notification options"
   },
@@ -566,6 +563,9 @@
   },
   "b758336699": {
     "translation": "Copy link"
+  },
+  "b89a6c3361": {
+    "translation": "Show only this page to students"
   },
   "ba0318cb81": {
     "translation": "Sign in to share"
