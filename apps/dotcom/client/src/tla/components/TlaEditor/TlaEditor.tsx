@@ -314,17 +314,19 @@ function ShowRefusals() {
 function TryBlockedActions({ grantId }: { grantId: string }) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const isRestrictedStudent = useValue(
-		'isRestrictedStudent',
+	// shown to every student, whatever the teacher has switched on, so the buttons can be tried
+	// with any policy
+	const isStudent = useValue(
+		'isStudent',
 		() =>
 			(editor.store.get(grantId as any) as unknown as TLAccessGrant | undefined)?.role !==
-				'teacher' && getPolicy(editor.store)?.studentsCanEditAll !== true,
+			'teacher',
 		[editor, grantId]
 	)
 	const redOnly = useValue('redOnly', () => getPolicy(editor.store)?.studentsRedOnly === true, [
 		editor,
 	])
-	if (!isRestrictedStudent) return null
+	if (!isStudent) return null
 
 	const tryPolicy = () => putPolicy(editor, { studentsCanEditAll: true })
 	const tryOtherPage = () => {
@@ -404,11 +406,9 @@ function TryBlockedActions({ grantId }: { grantId: string }) {
 			<TldrawUiButton type="menu" onClick={tryOtherPage}>
 				<TldrawUiButtonLabel>{msg(messages.tryOtherPage)}</TldrawUiButtonLabel>
 			</TldrawUiButton>
-			{redOnly && (
-				<TldrawUiButton type="menu" onClick={tryRecolour}>
-					<TldrawUiButtonLabel>{msg(messages.tryRecolour)}</TldrawUiButtonLabel>
-				</TldrawUiButton>
-			)}
+			<TldrawUiButton type="menu" onClick={tryRecolour}>
+				<TldrawUiButtonLabel>{msg(messages.tryRecolour)}</TldrawUiButtonLabel>
+			</TldrawUiButton>
 			{redOnly && (
 				<TldrawUiButton type="menu" onClick={tryBlue}>
 					<TldrawUiButtonLabel>{msg(messages.tryBlue)}</TldrawUiButtonLabel>
