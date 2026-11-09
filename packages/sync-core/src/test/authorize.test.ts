@@ -445,6 +445,63 @@ describe('authorize', () => {
 		expect((stored as TLRecord).meta).toEqual({ createdBy: 'A' })
 	})
 
+	it("refuses the push when transform changes a record's typeName or id", () => {
+		for (const swap of ['typeName', 'id'] as const) {
+			const { room, storage } = makeRoom({
+				transform: ({ record }) =>
+					swap === 'typeName'
+						? ({ ...record, typeName: 'page' } as TLRecord)
+						: ({ ...record, id: createShapeId('other') } as TLRecord),
+				documents: [page(pageA, 'A')],
+			})
+			const socket = connect(room, 'student-a', { userId: 'A', role: 'student' })
+
+			const shapeId = createShapeId('swapped-' + swap)
+			push(room, 'student-a', { [shapeId]: [RecordOpType.Put, frame(shapeId, pageA)] })
+
+			expect(storage.getSnapshot().documents.map((d) => d.state.id)).toEqual([pageA])
+			expect(lastPushResult(socket)).toMatchObject({ action: 'discard', refused: {} })
+		}
+	})
+
+	it('validates what transform returns even when it mutated the record in place', () => {
+		const { room, storage } = makeRoom({
+			transform: ({ record }) => {
+				if (record.typeName === 'shape') (record as any).x = 'not a number'
+				return record
+			},
+			documents: [page(pageA, 'A')],
+		})
+		const socket = connect(room, 'student-a', { userId: 'A', role: 'student' })
+
+		const shapeId = createShapeId('mutated')
+		push(room, 'student-a', { [shapeId]: [RecordOpType.Put, frame(shapeId, pageA)] })
+
+		expect(storage.getSnapshot().documents.map((d) => d.state.id)).toEqual([pageA])
+		expect(lastPushResult(socket)).toMatchObject({ action: 'discard', refused: {} })
+	})
+
+	it('gives transform the board before the push, not the push in progress', () => {
+		const seen: (TLRecord | undefined)[] = []
+		const other = createShapeId('other-in-push')
+		const { room } = makeRoom({
+			transform: ({ record, before }) => {
+				if (record.id !== other) seen.push(before(other))
+				return record
+			},
+			documents: [page(pageA, 'A')],
+		})
+		connect(room, 'student-a', { userId: 'A', role: 'student' })
+
+		const shapeId = createShapeId('first')
+		push(room, 'student-a', {
+			[other]: [RecordOpType.Put, frame(other, pageA)],
+			[shapeId]: [RecordOpType.Put, frame(shapeId, pageA)],
+		})
+
+		expect(seen).toEqual([undefined])
+	})
+
 	it('does not transform updates', () => {
 		const myFrame = createShapeId('my-frame')
 		const transform = vi.fn(({ record }) => record)

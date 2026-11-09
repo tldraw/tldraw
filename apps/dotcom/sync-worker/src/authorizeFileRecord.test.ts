@@ -41,7 +41,7 @@ type Session = ReturnType<typeof session>
 const authorize = ({ session, ...change }: { session: Session } & Change) =>
 	authorizeFileRecord({ session, changes: [change], ...readers })
 const stamp = (session: Session, record: Change['prev'] | Change['next']) =>
-	transformFileRecord({ session, record: record!, prev: null, ...readers })
+	transformFileRecord({ session, record: record!, before: readers.before })
 
 describe('authorizeFileRecord', () => {
 	describe('comment rule wiring', () => {

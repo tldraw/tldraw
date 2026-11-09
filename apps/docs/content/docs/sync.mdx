@@ -442,7 +442,7 @@ The session id is chosen by the client and carries no authority; identity lives 
 
 #### Stamping fields on create
 
-A rule can only allow or refuse. For fields a client must not choose, like an author id, give the room a `transform`: it runs on every record a client creates, before the rule, and what it returns is what gets stored. Guard the field against later edits in the rule.
+A rule can only allow or refuse. For fields a client must not choose, like an author id, give the room a `transform`: it runs on every record a client creates, before the rule, and what it returns is what gets stored. It sees the record, the session and `before`, and must keep the record's `id` and `typeName`. Updates are never transformed, so guard a stamped field against later edits in the rule.
 
 ```ts
 const room = new TLSocketRoom<TLRecord, SessionMeta>({

@@ -315,27 +315,27 @@ export type TLSyncAuthorizer<R extends UnknownRecord, SessionMeta> = (
 ) => TLSyncRefusal | null
 
 /**
- * What the room's `transform` sees: the record a client is writing, what it replaces (`null` on
- * create), the session, and the same readers as {@link TLSyncAuthorizeArgs}.
+ * What the room's `transform` sees: the record a client is creating, the session, and `before`,
+ * the board as it was when the push started.
+ *
+ * There is no `after` here on purpose: transforms run one record at a time, so a view of the
+ * push mid-way would show some records stamped and others raw, depending on client order.
+ * Judge the finished push in `authorize`.
  *
  * @public
  */
 export interface TLSyncTransformArgs<R extends UnknownRecord, SessionMeta> {
 	session: TLSyncAuthorizerSession<SessionMeta>
 	record: R
-	prev: R | null
 	before(id: string): R | undefined
-	after(id: string): R | undefined
 }
 
 /**
- * Rewrites a record a client writes, before `authorize` judges the push: stamp fields the client
- * must not choose here (an author id, a timestamp). Returns the record to store. A throw refuses
- * the push.
- *
- * Today the room calls it for creates only (`prev` is `null`); updates go through as sent, so
- * guard a stamped field against later edits in `authorize`. Return a new record rather than
- * mutating `record`: only a returned copy is validated before it is stored.
+ * Rewrites a record a client creates, before `authorize` judges the push: stamp fields the client
+ * must not choose here (an author id, a timestamp). Returns the record to store, which must keep
+ * the record's `id` and `typeName`; changing either refuses the push. Updates are never
+ * transformed, so guard a stamped field against later edits in `authorize`. The returned record
+ * is validated whether or not it is a new object. A throw refuses the push.
  *
  * @public
  */
@@ -1734,9 +1734,23 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 							try {
 								for (const s of staged) {
 									if (s.change.type !== 'create') continue
-									const next = this.transform({ ...ctx, record: s.change.next, prev: null })
-									if (next === s.change.next) continue
+									const sent = s.change.next
+									const next = this.transform({
+										session: ctx.session,
+										before: ctx.before,
+										record: sent,
+									})
+									// The lane gate and type dispatch already judged `sent`'s typeName, and the
+									// op is keyed by its id: a transform that changes either dodges both.
+									if (next.id !== sent.id || next.typeName !== sent.typeName) {
+										throw new Error(
+											`transform changed ${next.id !== sent.id ? 'id' : 'typeName'} of ${sent.id}`
+										)
+									}
+									// Validate even an unchanged reference: a transform that mutated `record` in
+									// place would otherwise store an unvalidated record.
 									validateRecord(next, recordTypeOf(next))
+									if (next === sent) continue
 									s.change = { type: 'create', prev: null, next }
 									overlay.set(s.id, next)
 								}

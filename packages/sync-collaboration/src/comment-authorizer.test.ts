@@ -46,7 +46,7 @@ const judge = (
 	...changes: TLRecordChange<UnknownRecord>[]
 ) => authorize({ session: s, changes, ...readers })
 const stamp = ({ transform }: typeof rules, s: Session, record: UnknownRecord) =>
-	transform({ session: s, record, prev: null, ...readers })
+	transform({ session: s, record, before: readers.before })
 
 describe('createCommentAuthorizer', () => {
 	it('passes non-comment records through unchanged', () => {

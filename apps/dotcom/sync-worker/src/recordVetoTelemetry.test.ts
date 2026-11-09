@@ -54,7 +54,8 @@ async function harness(saved = new Map<string, unknown>()) {
 	const call = ({ session, ...change }: any) =>
 		options.authorize({ session, changes: [change], ...readers })
 	const auth = { shape: call, 'comment-thread': call }
-	const stamp = (session: any, record: any) => options.transform({ session, record, prev: null, ...readers })
+	const stamp = (session: any, record: any) =>
+		options.transform({ session, record, before: readers.before })
 	points.length = 0
 	return {
 		object,

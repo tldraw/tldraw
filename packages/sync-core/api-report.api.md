@@ -948,11 +948,7 @@ export type TLSyncTransform<R extends UnknownRecord, SessionMeta> = (args: TLSyn
 // @public
 export interface TLSyncTransformArgs<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
-    after(id: string): R | undefined;
-    // (undocumented)
     before(id: string): R | undefined;
-    // (undocumented)
-    prev: null | R;
     // (undocumented)
     record: R;
     // (undocumented)
