@@ -42,7 +42,10 @@ export function CollectionSection({
 		activeCollectionId.set(editor, null)
 	}, [editor, isActive, collectionId])
 
-	const choice = useValue('item order', () => getItemOrderChoice(source.id), [source])
+	const choice = useValue('item order', () => getItemOrderChoice(source.id, collectionId), [
+		source,
+		collectionId,
+	])
 	const ordering = itemOrderings.find((o) => o.id === choice.orderingId) ?? itemOrderings[0]
 
 	return (
@@ -55,9 +58,11 @@ export function CollectionSection({
 				sort={{
 					options: itemOrderings.map(({ id, label }) => ({ id, label })),
 					value: ordering.id,
-					onValueChange: (orderingId) => setItemOrderChoice(source.id, { ...choice, orderingId }),
+					onValueChange: (orderingId) =>
+						setItemOrderChoice(source.id, collectionId, { ...choice, orderingId }),
 					reversed: choice.reversed,
-					onReversedChange: (reversed) => setItemOrderChoice(source.id, { ...choice, reversed }),
+					onReversedChange: (reversed) =>
+						setItemOrderChoice(source.id, collectionId, { ...choice, reversed }),
 				}}
 			/>
 			{!collapsed && (
