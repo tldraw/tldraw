@@ -14,6 +14,7 @@ import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -1735,6 +1736,7 @@ export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
 export interface TLRefusal {
+    changes?: RecordsDiff<TLRecord>;
     ids?: string[];
     // (undocumented)
     reason: string;

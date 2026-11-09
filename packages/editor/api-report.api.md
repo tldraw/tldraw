@@ -2241,6 +2241,11 @@ export class HistoryManager<R extends UnknownRecord> {
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
+    // @internal
+    removeRefused(refusal: {
+        changes?: RecordsDiff<R>;
+        ids?: readonly string[];
+    }): void;
     // (undocumented)
     squashToMark(id: string): this;
     // (undocumented)

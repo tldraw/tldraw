@@ -1,5 +1,6 @@
 import { Signal, computed } from '@tldraw/state'
 import {
+	RecordsDiff,
 	SerializedStore,
 	Store,
 	StoreSchema,
@@ -301,6 +302,11 @@ export interface TLRefusal {
 	reason: string
 	/** Ids of the records that caused the refusal, when the rule knows. */
 	ids?: string[]
+	/**
+	 * The refused change as this user made it: records they added, removed, or changed from the
+	 * server's version to theirs. Sync reports it; a host that only knows ids can leave it out.
+	 */
+	changes?: RecordsDiff<TLRecord>
 }
 
 /**
