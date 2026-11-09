@@ -3,6 +3,7 @@ import React from 'react'
 import {
 	Atom,
 	TLComponents,
+	TLShape,
 	Tldraw,
 	react,
 	useAtom,
@@ -18,6 +19,18 @@ import './style.css'
 
 // There's a guide at the bottom of this file!
 
+// [8]
+// The access rules, as plain functions. A server that filters what each client receives (with
+// `canRead` on a `TLSocketRoom`) and checks writes (with `canWrite`) would import these same
+// functions, so the client and the server cannot disagree.
+function canSeeShape(shape: TLShape, userId: string) {
+	return !shape.meta.private || shape.meta.ownerId === userId
+}
+
+function canMakePublic(shape: TLShape, userId: string) {
+	return !!shape.meta.private && shape.meta.ownerId === userId
+}
+
 // [1]
 const PrivateModeContext = React.createContext<null | Atom<boolean>>(null)
 
@@ -29,10 +42,7 @@ const components: TLComponents = {
 		const userId = useValue('userId', () => editor.user.getExternalId(), [editor])
 		const myPrivateSelectedShapes = useValue(
 			'private shapes',
-			() =>
-				editor
-					.getSelectedShapes()
-					.filter((shape) => !!shape.meta.private && shape.meta.ownerId === userId),
+			() => editor.getSelectedShapes().filter((shape) => canMakePublic(shape, userId)),
 			[editor, userId]
 		)
 
@@ -86,13 +96,9 @@ function App({ roomId }: { roomId: string }) {
 				store={store}
 				options={{ deepLinks: true }}
 				// [4]
-				getShapeVisibility={(shape, editor) => {
-					const userId = editor.user.getExternalId()
-					if (!!shape.meta.private && shape.meta.ownerId !== userId) {
-						return 'hidden'
-					}
-					return 'inherit'
-				}}
+				getShapeVisibility={(shape, editor) =>
+					canSeeShape(shape, editor.user.getExternalId()) ? 'inherit' : 'hidden'
+				}
 				onMount={(editor) => {
 					// [5]
 					const removeCreateHandler = editor.store.sideEffects.registerBeforeCreateHandler(
@@ -170,4 +176,9 @@ now-hidden shape is selected would leave an invisible selection.
 [7]
 Child shapes inside groups and frames don't inherit their parent's `private` meta, so making a
 shape public also makes its descendants public, which is what the user almost certainly meant.
+
+[8]
+The demo sync server has no access rules, so a private shape is only hidden in the UI: every client
+still receives it. In a real app, write each rule once and use it on both sides: here for
+`getShapeVisibility` and the "make public" panel, and on your server for `canRead` and `canWrite`.
 */
