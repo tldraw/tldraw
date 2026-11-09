@@ -1008,7 +1008,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		const refusals = this.store.props.collaboration?.refusals
 		if (refusals) {
-			this.disposables.add(refusals.subscribe((refusal) => this.emit('refused', refusal)))
+			this.disposables.add(
+				refusals.subscribe((refusal) => {
+					this.history.removeRefused(refusal)
+					this.emit('refused', refusal)
+				})
+			)
 		}
 
 		this.disposables.add(
