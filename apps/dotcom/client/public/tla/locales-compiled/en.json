@@ -143,6 +143,12 @@
       "value": "Send feedback"
     }
   ],
+  "0dcda35158": [
+    {
+      "type": 0,
+      "value": "Board menu"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -189,6 +195,12 @@
     {
       "type": 0,
       "value": "Move to"
+    }
+  ],
+  "1d2591253e": [
+    {
+      "type": 0,
+      "value": "Workspace settings"
     }
   ],
   "1da2e8106b": [
@@ -363,6 +375,12 @@
     {
       "type": 0,
       "value": "Unable to publish the changes."
+    }
+  ],
+  "3bf4ed96b1": [
+    {
+      "type": 0,
+      "value": "Recently viewed"
     }
   ],
   "3c5e891bff": [
@@ -555,6 +573,12 @@
     {
       "type": 0,
       "value": "Share"
+    }
+  ],
+  "5ac173888a": [
+    {
+      "type": 0,
+      "value": "Leave some feedback"
     }
   ],
   "5bec508475": [
@@ -752,6 +776,12 @@
       "value": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
     }
   ],
+  "74e92a4dc1": [
+    {
+      "type": 0,
+      "value": "Regenerate link"
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -872,40 +902,6 @@
       "value": "New workspace"
     }
   ],
-  "815e116a2e": [
-    {
-      "type": 0,
-      "value": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "chat with us on Discord"
-        }
-      ],
-      "type": 8,
-      "value": "discord"
-    },
-    {
-      "type": 0,
-      "value": " or "
-    },
-    {
-      "children": [
-        {
-          "type": 0,
-          "value": "submit an issue on GitHub"
-        }
-      ],
-      "type": 8,
-      "value": "github"
-    },
-    {
-      "type": 0,
-      "value": "."
-    }
-  ],
   "81666c6e4a": [
     {
       "type": 0,
@@ -944,10 +940,22 @@
       "value": "Please refresh the page to get the latest version of tldraw."
     }
   ],
+  "85f71c89ae": [
+    {
+      "type": 0,
+      "value": "Read the docs"
+    }
+  ],
   "86c66437fd": [
     {
       "type": 0,
       "value": "Rename file"
+    }
+  ],
+  "8718bcf921": [
+    {
+      "type": 0,
+      "value": "Untitled workspace"
     }
   ],
   "87fdb09de6": [
@@ -966,6 +974,12 @@
     {
       "type": 0,
       "value": "Check your email for a verification code."
+    }
+  ],
+  "8cf04a9734": [
+    {
+      "type": 0,
+      "value": "Home"
     }
   ],
   "8eb2c00e96": [
@@ -1010,6 +1024,22 @@
     {
       "type": 0,
       "value": "? This action cannot be undone."
+    }
+  ],
+  "906e5ea01a": [
+    {
+      "type": 0,
+      "value": "Shared by "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
+  "92e36cb6cf": [
+    {
+      "type": 0,
+      "value": "Invite link"
     }
   ],
   "930390d222": [
@@ -1210,10 +1240,22 @@
       "value": "Leave"
     }
   ],
+  "a588b1abc5": [
+    {
+      "type": 0,
+      "value": "Copied"
+    }
+  ],
   "a6cc403d56": [
     {
       "type": 0,
       "value": "Anyone with the link"
+    }
+  ],
+  "a6fb260b8d": [
+    {
+      "type": 0,
+      "value": "Your feedback"
     }
   ],
   "a768caa988": [
@@ -1256,6 +1298,12 @@
     {
       "type": 0,
       "value": "File limit reached"
+    }
+  ],
+  "acf84eea1e": [
+    {
+      "type": 0,
+      "value": "Link copied"
     }
   ],
   "af3dc88931": [
@@ -1316,6 +1364,22 @@
       "value": "Email address"
     }
   ],
+  "b3d7c37eb8": [
+    {
+      "type": 0,
+      "value": "Grid view"
+    }
+  ],
+  "b4795ec590": [
+    {
+      "type": 1,
+      "value": "modifier"
+    },
+    {
+      "type": 0,
+      "value": " K"
+    }
+  ],
   "b48becc771": [
     {
       "type": 0,
@@ -1346,10 +1410,22 @@
       "value": "Copy link"
     }
   ],
+  "b7ea061b51": [
+    {
+      "type": 0,
+      "value": "Build with the SDK"
+    }
+  ],
   "ba0318cb81": [
     {
       "type": 0,
       "value": "Sign in to share"
+    }
+  ],
+  "bb8a0099e2": [
+    {
+      "type": 0,
+      "value": "Search your boards…"
     }
   ],
   "bbaaf8b6bf": [
@@ -1408,6 +1484,48 @@
     {
       "type": 1,
       "value": "ownerName"
+    }
+  ],
+  "bea4c2c8eb": [
+    {
+      "type": 0,
+      "value": "Feedback"
+    }
+  ],
+  "c042e3b259": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " board"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " boards"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " found"
     }
   ],
   "c17466812d": [
@@ -1486,6 +1604,12 @@
       "value": "Copy to my workspace"
     }
   ],
+  "c7d7403714": [
+    {
+      "type": 0,
+      "value": "New board"
+    }
+  ],
   "c87aacf567": [
     {
       "type": 0,
@@ -1496,6 +1620,18 @@
     {
       "type": 0,
       "value": "Dismiss"
+    }
+  ],
+  "c9cc8cce24": [
+    {
+      "type": 0,
+      "value": "Save"
+    }
+  ],
+  "cae8d14edd": [
+    {
+      "type": 0,
+      "value": "You"
     }
   ],
   "cceaefbc20": [
@@ -1590,6 +1726,12 @@
       "value": "Toggle sidebar"
     }
   ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Workspaces"
+    }
+  ],
   "d638a3344b": [
     {
       "type": 0,
@@ -1630,6 +1772,12 @@
       "value": "Theme"
     }
   ],
+  "d789869473": [
+    {
+      "type": 0,
+      "value": "Favorites"
+    }
+  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1648,6 +1796,12 @@
       "value": "Go here to see the content"
     }
   ],
+  "da075431c3": [
+    {
+      "type": 0,
+      "value": "Please provide as much detail as possible."
+    }
+  ],
   "dbbebf3c03": [
     {
       "type": 0,
@@ -1658,6 +1812,12 @@
     {
       "type": 0,
       "value": "Leave workspace"
+    }
+  ],
+  "de85e4ab12": [
+    {
+      "type": 0,
+      "value": "Anyone with this link can join this workspace."
     }
   ],
   "dfdb78a4e4": [
@@ -1718,6 +1878,18 @@
     {
       "type": 0,
       "value": " reacted to your comment"
+    }
+  ],
+  "e727b00944": [
+    {
+      "type": 0,
+      "value": "Archive"
+    }
+  ],
+  "e7fdcad3aa": [
+    {
+      "type": 0,
+      "value": "Have a bug, issue, or idea for tldraw? Let us know! We’ll follow up over email if needed."
     }
   ],
   "e81c4e4f2b": [
@@ -1806,6 +1978,12 @@
       "value": "selected"
     }
   ],
+  "f07e75296c": [
+    {
+      "type": 0,
+      "value": "Shared with me"
+    }
+  ],
   "f09b16bc5f": [
     {
       "type": 0,
@@ -1816,6 +1994,12 @@
     {
       "type": 0,
       "value": "User settings"
+    }
+  ],
+  "f13001876b": [
+    {
+      "type": 0,
+      "value": "List view"
     }
   ],
   "f2569594b2": [
@@ -1934,10 +2118,22 @@
       "value": " to use it here."
     }
   ],
+  "f92965e2c8": [
+    {
+      "type": 0,
+      "value": "Done"
+    }
+  ],
   "fa2ead697d": [
     {
       "type": 0,
       "value": "Privacy Policy"
+    }
+  ],
+  "fabfc25ef8": [
+    {
+      "type": 0,
+      "value": "Get help"
     }
   ],
   "fb15c53f22": [

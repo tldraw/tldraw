@@ -17,6 +17,7 @@ import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { hasNotAcceptedLegal } from '../utils/auth'
 import { startCachedFileVisit } from '../utils/cachedFileVisit'
+import { getCurrentFlags } from '../utils/featureFlags'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
 import { clearRedirectOnSignIn, OPEN_SIGN_IN } from '../utils/redirect'
@@ -39,6 +40,8 @@ export function Component() {
 		if (app || !isAppLoading || !userId) return
 		if (getFromSessionStorage(SESSION_STORAGE_KEYS.REDIRECT)) return
 		if (location.state?.importUrl || getShouldSlurpFile()) return
+		// Flagged users land on the workspace page, which needs the app; don't open a file early.
+		if (getCurrentFlags().ui_v3?.enabled) return
 		const cachedFileId = getLastVisitedFileId(userId)
 		if (!cachedFileId) return
 		navigate(routes.tlaFile(cachedFileId), {
@@ -96,6 +99,14 @@ export function Component() {
 					navigate(routes.tlaFile(res.value.fileId), { replace: true, state: location.state })
 					return
 				}
+			}
+
+			if (app.isUiV3Enabled) {
+				navigate(routes.tlaWorkspace(app.getHomeWorkspaceId()), {
+					replace: true,
+					state: location.state,
+				})
+				return
 			}
 
 			// Land on the file the user last had open, across all workspaces, not just home.

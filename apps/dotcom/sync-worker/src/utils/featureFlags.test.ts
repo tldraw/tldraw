@@ -551,6 +551,7 @@ describe('getAllFeatureFlagValues', () => {
 			'load_rum',
 			'mcp_server_access',
 			'rum_enabled',
+			'ui_v3',
 			'version_chain',
 		])
 	})

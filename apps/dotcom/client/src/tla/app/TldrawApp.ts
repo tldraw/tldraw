@@ -208,6 +208,8 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
+	/** Fixed for the app's lifetime: flags are read once per page load. */
+	readonly isUiV3Enabled: boolean
 	/** Null when the `collections` flag is off for this user. */
 	readonly collections: CollectionSource | null
 
@@ -298,6 +300,7 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
 		if (flags.collections?.enabled) {
 			const collections = createCollectionsSource(userId)
 			this.collections = collections

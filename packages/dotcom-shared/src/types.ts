@@ -303,6 +303,7 @@ export const FEATURE_FLAG_KEYS = [
 	'load_rum',
 	'mcp_server_access',
 	'version_chain',
+	'ui_v3',
 	'collections',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
