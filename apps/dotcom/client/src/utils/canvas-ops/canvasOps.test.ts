@@ -1,5 +1,6 @@
 import { createShapeId, Editor, type Box, type TLGeoShape, type TLLineShape } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { z } from 'zod'
 import { describeShapes, runBatch } from './actions'
 import { createCanvasOpsReceiver } from './index'
 import { applyOps } from './ops'
@@ -490,5 +491,11 @@ describe('receiver', () => {
 			})
 		).rejects.toThrow()
 		expect(editor.getCurrentPageShapeIds().size).toBe(0)
+	})
+
+	// tldraw.com's CSP forbids eval, so a compiled validator throws in the tab rather than validating.
+	// Nothing fails in a test without a CSP, which is why this is pinned rather than left to the behavior.
+	it('validates ops without compiling code', () => {
+		expect(z.config().jitless).toBe(true)
 	})
 })
