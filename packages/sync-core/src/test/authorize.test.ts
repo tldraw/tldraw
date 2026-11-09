@@ -179,7 +179,10 @@ function pageOf(get: (id: string) => TLRecord | undefined, record: TLRecord): TL
 		return page && page === pageOf(get, to) ? page : null
 	}
 	let cur: TLRecord | undefined = record
+	const seen = new Set<string>()
 	while (cur && cur.typeName === 'shape' && !cur.parentId.startsWith('page:')) {
+		if (seen.has(cur.id)) return null // forged parent cycle
+		seen.add(cur.id)
 		cur = get(cur.parentId)
 	}
 	if (!cur) return null
