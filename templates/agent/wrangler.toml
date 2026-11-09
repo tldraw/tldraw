@@ -13,6 +13,7 @@ custom_domain = true
 
 # Set up the durable object used for each tldraw room
 [durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [{ name = "AGENT_DURABLE_OBJECT", class_name = "AgentDurableObject" }]
 
 # Durable objects require migrations to create/modify/delete them

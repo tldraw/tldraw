@@ -58,6 +58,12 @@ export interface CollectionSource {
 	addItem(collectionId: TLCollectionId, item: TLNewCollectionItem): Promise<TLCollectionItem>
 	renameItem(itemId: TLCollectionItemId, name: string): Promise<void>
 	deleteItem(itemId: TLCollectionItemId): Promise<void>
+	/**
+	 * Moves an item to another collection, keeping its id, content and thumbnail. Needs
+	 * `deleteItem` on the collection it leaves and `addItem` on the one it joins. Optional: the UI
+	 * offers "Move to" only for sources that have it.
+	 */
+	moveItem?(itemId: TLCollectionItemId, toCollectionId: TLCollectionId): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

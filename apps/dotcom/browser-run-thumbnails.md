@@ -7,7 +7,7 @@ Issues:
 
 tldraw.com can capture PNG thumbnails of public boards by taking a Cloudflare Browser Rendering `/screenshot` of a tldraw-owned render page, called straight through the `BROWSER` binding's `quickAction` Quick Actions method — no `@cloudflare/puppeteer` and no API token (requires `compatibility_date >= 2026-03-24`). There are two consumers, both served by the sync worker:
 
-- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one cluster, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
+- an MCP server at `POST /api/app/mcp` exposing `search_boards`, which finds a caller's boards by name, and a drill-down over four more: `get_board_info` lists a board's pages (id, name, 0-based index, and whether each has content), `get_page_info` lists one page's clusters of shapes, `get_cluster_info` describes the shapes inside one or more clusters, and `get_cluster_screenshot` returns a content-fit PNG of one or more clusters. **It requires authentication** — see "Authentication on the MCP server"; and
 - a board OG image endpoint, `GET /api/app/social-preview/:prefix/:slug/image`, built for high-traffic paths (link unfurls, crawlers): it serves only from the R2 cache and delegates rendering to a queue consumer, so a request never waits on Browser Run. It lives under the `social-preview` route family alongside the crawler HTML that references it.
 
 Rendering runs through the Browser Rendering `/screenshot` Quick Action, invoked from the worker via the `BROWSER` binding's `quickAction` method (`env.BROWSER.quickAction('screenshot', …)`). Chrome runs in Cloudflare's Browser Rendering fleet, not in the worker isolate. The pipeline never hands the browser a user-provided URL: the worker resolves the board, mints a short-lived signed render job, and the screenshot only ever targets the internal render page with that token. **Rendering is not gated on public viewability — serving is.** A thumbnail is generated for every board, private ones included, so that an owner-facing surface has one to show; the OG image route re-applies the public gate on every request. See "Rendering every board" below for what that means for the render token. The MCP surface exposes page metadata, shape clusters — including their shape records, with rich text flattened to a plain string — and cluster screenshots: no arbitrary selectors or arbitrary URLs, and no board the authenticated caller could not already open in a browser.
@@ -456,15 +456,30 @@ get_board_info({
 get_page_info({
  boardId: string,
  page?: number | string, // 0-based page index or stable page id (see get_board_info). default 0
+ cursor?: string, // the nextCursor of a previous answer, for the same page
 })
-// → { name: string, clusterCount: number, clusters: { id: string, label: string, keywords: string[], numberOfShapes: number }[] }
+// → { name: string, bounds: Bounds | null, clusterCount: number,
+//     clusters: { id: string, label: string, keywords: string[], numberOfShapes: number, bounds: Bounds | null }[],
+//     nextCursor?: string }
+//   Clusters come largest first; an answer stops at ~40K characters of clusters with a nextCursor, and
+//   name, bounds and clusterCount repeat on every answer. Bounds is { x, y, w, h } in page space,
+//   rounded to whole numbers; null when the render measured none of it
 
 get_cluster_info({
  boardId: string,
  page?: number | string,
- clusterId: string,
+ clusterIds: string | string[], // up to 100; `clusterId: string` is still accepted
+ cursor?: string, // the nextCursor of a previous answer, with the same clusterIds
 })
-// → the cluster's label, keywords, and full shape records (rich text flattened to props.text)
+// → { pageName, clusters: [...], nextCursor? }, one entry per id in the order asked: the cluster's label,
+//   keywords, and its shapes: page-space pageX/pageY/pageRotation (an arrow's origin is its drawn
+//   start, and it has no rotation), arrows' props.start/end as drawn plus
+//   props.bindingFromId/bindingToId, props.w/h as drawn (a geo's h includes growY), and props with
+//   rich text flattened to props.text. Draw and highlight shapes give their size and
+//   props.pointCount instead of their segments. Every number rounded to thousandths, with angles in
+//   radians. Refused if any id is unknown. An answer that would pass ~60K characters stops
+//   part-way with a nextCursor; a cluster split across answers carries firstShapeIndex, where that
+//   slice starts within the whole cluster
 
 get_cluster_screenshot({
  boardId: string,
@@ -521,11 +536,11 @@ The screenshot layer lives in the dotcom sync worker rather than the interactive
 
 ### The cluster index
 
-Three of the four tools have to cluster a page before they can answer anything, and clustering needs two things only an editor can produce: where each shape sits, and what its `ShapeUtil.getText` reports. Getting them means a **measure render** — a full Browser Run session, the same cost as a screenshot. That used to happen on every call, so the documented drill-down (`get_page_info` → `get_cluster_info` → `get_cluster_screenshot`) spent three of them on one page, and `get_cluster_info` — the tool an agent calls most, often several times over the clusters one page listed — paid full price every time.
+Three of the four tools have to cluster a page before they can answer anything, and clustering needs three things only an editor can produce: where each shape sits, what its `ShapeUtil.getText` reports, and where each arrow is actually drawn, since a bound arrow's record holds only a placeholder stub and its ends depend on the geometry of the shapes it is bound to. Clustering joins an arrow to what its free ends sit near, and `get_cluster_info` reports the ends. Getting them means a **measure render** — a full Browser Run session, the same cost as a screenshot. That used to happen on every call, so the documented drill-down (`get_page_info` → `get_cluster_info` → `get_cluster_screenshot`) spent three of them on one page, and `get_cluster_info` — the tool an agent calls most, often several times over the clusters one page listed — paid full price every time.
 
 The answer, though, only moves when the board's content moves. So the first tool to measure a page reduces the render's output to a **cluster index** and stores it; every later call for the same content is served from that.
 
-What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords and the ids of its shapes, plus the plain text the editor reported for the shapes that have any. Bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership. The text is kept because it is the one thing that cannot be re-derived: `getShapeText` can approximate it from the stored record, and dropping the editor's answer would quietly change what `get_cluster_info` reports for exactly the shapes the fallback handles worst. Shape _records_ are not stored either; they come from the room snapshot, which every tool call loads anyway.
+What is stored, per page (`PageClusterIndex` in `boardTools.ts`): each cluster's id, label, keywords, the ids of its shapes and its page-space box, the plain text the editor reported for the shapes that have any, each arrow's drawn ends, and each text, group, draw and highlight shape's drawn width and height. Per-shape bounds are deliberately **not** kept — they exist to decide which atoms merge, and that decision is already baked into the cluster membership; each cluster's box is, because `get_page_info` reports it. Cluster boxes, arrow ends and dimensions are stored rounded to thousandths, which is how the tools report them; rounding is idempotent, so a call served from the index and one served from a fresh render answer identically. None of it can be re-derived: `getShapeText` can only approximate the text from the stored record, a bound arrow's ends need an editor, and so does a text's laid-out height or a group's or freehand stroke's size. A geo's size is not stored: it is w by h + growY, straight from its record. Shape _records_ and arrow bindings are not stored; they come from the room snapshot, which every tool call loads anyway, and so does each shape's page position, which is composed from the records' own transforms.
 
 **Where it lives: the file's own durable object** (`TLFileDurableObject`, table `mcp_cluster_index`, statements in `mcpClusterIndexStorage.ts`), addressed by `ResolvedThumbnailBoard.fileId` — the slug for a shared file, the parent file for a published board. This is the only durable object hop in the MCP request path; the tools otherwise read the persisted snapshot straight out of R2 and never talk to the object that wrote it. It sits there rather than in R2 beside the PNGs because it is content derived from the room, and the room is what that object owns: the row is strongly consistent, it dies with the file, and it needs no expiry policy.
 

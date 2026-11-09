@@ -1,3 +1,4 @@
+import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
@@ -134,9 +135,26 @@ export interface ThumbnailRenderParams {
 }
 
 /**
- * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
- * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
- * behaviour rather than something readable off the record.
+ * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
+ * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
+ */
+export interface MeasuredArrow {
+	start: VecModel
+	end: VecModel
+}
+
+/**
+ * A shape's own unrotated size as the editor draws it. The record cannot say: a text's height comes
+ * from laying out its text, and a group or a freehand stroke has no size of its own.
+ */
+export type MeasuredDimensions = Pick<BoxModel, 'w' | 'h'>
+
+/**
+ * What the editor reports for one shape: its page-space box, the plain text its ShapeUtil says it
+ * holds, for an arrow where it is drawn, and for some shapes their own size. All are things only an
+ * editor can answer — sizing needs font metrics, getText is shape behaviour rather than something
+ * readable off the record, and a bound arrow's ends depend on the geometry of the shapes it is bound
+ * to.
  */
 export interface ThumbnailShapeMeasurement {
 	x: number
@@ -145,6 +163,10 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
+	/** An arrow's drawn ends, in page space. */
+	arrow?: MeasuredArrow
+	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
+	dimensions?: MeasuredDimensions
 }
 
 /**

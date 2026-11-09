@@ -746,6 +746,12 @@
       "value": "Please reload the page"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -1156,12 +1162,6 @@
       "value": "count"
     }
   ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Export the content as a .tldr file: Select 'Download' in the top left menu."
-    }
-  ],
   "a104439641": [
     {
       "type": 0,
@@ -1232,6 +1232,12 @@
     {
       "type": 0,
       "value": "Background"
+    }
+  ],
+  "a9fc91939a": [
+    {
+      "type": 0,
+      "value": "Collections"
     }
   ],
   "aac449eef6": [

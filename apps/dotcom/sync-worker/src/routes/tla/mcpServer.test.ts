@@ -10,9 +10,11 @@ import { Environment } from '../../types'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	CLUSTER_INFO_MAX_IDS,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	encodePageInfoCursor,
 	parsePageInfoInput,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
@@ -341,15 +343,31 @@ describe('measure through /content', () => {
 })
 
 describe('tool inputs', () => {
+	it('reads a get_page_info cursor, and refuses one it cannot use', () => {
+		const page = { kind: 'id', id: 'page:b' } as const
+		const cursor = encodePageInfoCursor(40, page)
+		expect(parsePageInfoInput({ boardId: 'abc', page: 'page:b', cursor }).cursor).toBe(40)
+		expect(() => parsePageInfoInput({ boardId: 'abc', page: 'page:c', cursor })).toThrow(
+			'cursor is from a different page'
+		)
+		for (const bad of ['not base64!', btoa('x:y'), btoa('12'), 12]) {
+			expect(() => parsePageInfoInput({ boardId: 'abc', cursor: bad })).toThrow(
+				'cursor is not valid'
+			)
+		}
+	})
+
 	it('parses board and page selectors', () => {
 		expect(parseBoardInfoInput({ boardId: 'abc' })).toEqual({ boardId: 'abc' })
 		expect(parsePageInfoInput({ boardId: 'abc' })).toEqual({
 			boardId: 'abc',
 			page: { kind: 'ordinal', ordinal: 0 },
+			cursor: null,
 		})
 		expect(parsePageInfoInput({ boardId: 'abc', page: 'page:b' })).toEqual({
 			boardId: 'abc',
 			page: { kind: 'id', id: 'page:b' },
+			cursor: null,
 		})
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: -1 })).toThrow('page must be')
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: 1.5 })).toThrow('page must be')
@@ -359,8 +377,21 @@ describe('tool inputs', () => {
 
 	it('parses cluster arguments, accepting one id or several', () => {
 		expect(
-			parseClusterInfoInput({ boardId: 'abc', page: 1, clusterId: 'cluster:one' })
-		).toMatchObject({ boardId: 'abc', clusterId: 'cluster:one' })
+			parseClusterInfoInput({ boardId: 'abc', page: 1, clusterIds: ['cluster:one', 'cluster:two'] })
+		).toMatchObject({ boardId: 'abc', clusterIds: ['cluster:one', 'cluster:two'] })
+		expect(parseClusterInfoInput({ boardId: 'abc', clusterIds: 'cluster:one' })).toMatchObject({
+			clusterIds: ['cluster:one'],
+		})
+		// The argument the tool took before it took several, still sent by clients holding the old list.
+		expect(parseClusterInfoInput({ boardId: 'abc', clusterId: 'cluster:one' })).toMatchObject({
+			clusterIds: ['cluster:one'],
+		})
+		// A repeated id is answered once, in the place it was first asked for.
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:b', 'cluster:a', 'cluster:b'] })
+				.clusterIds
+		).toEqual(['cluster:b', 'cluster:a'])
+		expect(() => parseClusterInfoInput({ boardId: 'abc' })).toThrow('clusterIds is required')
 		expect(
 			parseClusterScreenshotInput({
 				boardId: 'abc',
@@ -375,6 +406,47 @@ describe('tool inputs', () => {
 		expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: [] })).toThrow(
 			'clusterIds is required'
 		)
+	})
+
+	// Naming the argument the caller sent: "clusterId is required" sent models looking for an argument
+	// they had never passed.
+	it('refuses a cluster id list with a bad entry, naming clusterIds', () => {
+		for (const clusterIds of [[42], [''], ['cluster:a', null]]) {
+			expect(() => parseClusterInfoInput({ boardId: 'abc', clusterIds })).toThrow(
+				'clusterIds must each be a cluster id from get_page_info'
+			)
+			expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds })).toThrow(
+				'clusterIds must each be a cluster id from get_page_info'
+			)
+		}
+	})
+
+	it('refuses more cluster ids than could fit in one get_cluster_info call', () => {
+		const ids = (count: number) => Array.from({ length: count }, (_, i) => `cluster:${i}`)
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ids(CLUSTER_INFO_MAX_IDS) }).clusterIds
+		).toHaveLength(CLUSTER_INFO_MAX_IDS)
+		expect(() =>
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ids(CLUSTER_INFO_MAX_IDS + 1) })
+		).toThrow(`at most ${CLUSTER_INFO_MAX_IDS} ids in one call. Split them across several calls.`)
+	})
+
+	// A cursor passed on with other clusterIds would point into clusters the caller never saw the start
+	// of, and one that can't be read would otherwise restart silently.
+	it('reads back a get_cluster_info cursor only for the clusterIds it came from', () => {
+		const cursor = btoa(`1:7:${encodeURIComponent('cluster:a,cluster:b')}`)
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a', 'cluster:b'], cursor })
+				.cursor
+		).toEqual({ cluster: 1, shape: 7 })
+		expect(() =>
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a'], cursor })
+		).toThrow('cursor is from a different set of clusterIds')
+		for (const bad of ['not base64!', btoa('1:x:cluster:a'), btoa('1:2'), 42]) {
+			expect(() =>
+				parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a'], cursor: bad })
+			).toThrow('cursor is not valid')
+		}
 	})
 
 	// An unrecognized theme is rejected rather than silently rendered as light, so a caller that
@@ -546,7 +618,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.8.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1175,11 +1247,24 @@ describe('page and cluster info', () => {
 
 		expect(info.name).toBe('Cover')
 		expect(info.clusters).toHaveLength(2)
-		// The fixture's shapes carry no text, so there is nothing to derive a keyword label from —
-		// an empty label is the honest answer rather than a made-up one.
+		// The fixture's shapes carry no text, so there are no keywords, and each is labelled by what it
+		// holds. Its geo records name no geo, so they read as plain geo shapes. Nothing is measured, so
+		// neither has a position.
 		expect(info.clusters).toEqual([
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+				bounds: null,
+			},
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+				bounds: null,
+			},
 		])
 	})
 
@@ -1191,11 +1276,59 @@ describe('page and cluster info', () => {
 		const info = JSON.parse(result.content[0].text)
 
 		expect(info).toMatchObject({
-			clusterId,
 			pageName: 'Cover',
-			numberOfShapes: 1,
-			shapes: [{ id: 'shape:page:a-0' }],
+			clusters: [{ clusterId, numberOfShapes: 1, shapes: [{ id: 'shape:page:a-0' }] }],
 		})
+	})
+
+	// One agent took 44 calls to read a flowchart, one per cluster, under a limit of about ten a
+	// minute. Several ids are one call, and still one measure.
+	it('returns several clusters in the order asked, from one measure', async () => {
+		mockPublishedBoard()
+		// Listed in a different env, so this one has nothing cached and has to measure.
+		const listed = await callTool('get_page_info', { boardId: 'abc' }, makeEnv(), 'user_7b')
+		const [first, second] = JSON.parse(listed.content[0].text).clusters.map((c: any) => c.id)
+		const env = makeEnv()
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterIds: [second, first] },
+			env,
+			'user_7b'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			pageName: 'Cover',
+			clusters: [
+				{ clusterId: second, shapes: [{ id: 'shape:page:a-1' }] },
+				{ clusterId: first, shapes: [{ id: 'shape:page:a-0' }] },
+			],
+		})
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:miss'])
+	})
+
+	it('refuses the whole call when any cluster id is unknown, naming the missing ones', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_7c', 'abc')
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterIds: [clusterId, 'cluster:nope'] },
+			env,
+			'user_7c'
+		)
+
+		expect(result).toMatchObject({
+			isError: true,
+			content: [
+				{
+					text: 'No cluster on page 0 with id "cluster:nope". Call get_page_info to list this page\'s clusters.',
+				},
+			],
+		})
+		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:cluster_not_found'])
 	})
 
 	// A shape's rich text is a deeply nested ProseMirror document, and a geo shape's label is not on
@@ -1210,12 +1343,12 @@ describe('page and cluster info', () => {
 
 		const clusterId = await firstClusterId(env, 'user_8', 'abc')
 		const result = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_8')
-		const shape = JSON.parse(result.content[0].text).shapes[0]
+		const shape = JSON.parse(result.content[0].text).clusters[0].shapes[0]
 
 		expect(shape.props.text).toBe('Checkout total')
 		expect(shape.props.richText).toBeUndefined()
-		// Everything else about the record is passed through untouched.
-		expect(shape).toMatchObject({ id: 'shape:page:a-0', typeName: 'shape' })
+		expect(shape.id).toBe('shape:page:a-0')
+		expect(shape.typeName).toBeUndefined()
 		expect(shape.plainText).toBeUndefined()
 	})
 })
@@ -1248,6 +1381,36 @@ describe('cluster index cache', () => {
 		expect(cached.content).toEqual(fresh.content)
 	})
 
+	// A later page spends nothing, so charging it would let paging a big board use up the budget for
+	// reading it.
+	it('does not charge the per-user budget for a later page of get_page_info', async () => {
+		mockPublishedBoard()
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITER: { limit } })
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_paging')
+		limit.mockClear()
+
+		const cursor = encodePageInfoCursor(1, { kind: 'ordinal', ordinal: 0 })
+		const result = await callTool('get_page_info', { boardId: 'abc', cursor }, env, 'user_paging')
+
+		expect(result.isError).toBeUndefined()
+		expect(limit).not.toHaveBeenCalled()
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
+	// Otherwise a made-up cursor on a cold board would be a free measure.
+	it('charges a get_page_info cursor that misses the index', async () => {
+		mockPublishedBoard()
+		const limit = vi.fn(async () => ({ success: true }))
+		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITER: { limit } })
+
+		const cursor = encodePageInfoCursor(1, { kind: 'ordinal', ordinal: 0 })
+		await callTool('get_page_info', { boardId: 'abc', cursor }, env, 'user_cold')
+
+		expect(limit).toHaveBeenCalledTimes(1)
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+	})
+
 	it('keeps the plain text only an editor can report', async () => {
 		mockPublishedBoard()
 		const env = makeEnv()
@@ -1264,10 +1427,124 @@ describe('cluster index cache', () => {
 			'user_ix_text'
 		)
 
-		// Served from the index, so this text came out of storage rather than out of a render — the one
-		// thing in a cluster that cannot be re-derived from the stored record.
+		// Served from the index, so this text came out of storage rather than out of a render: it cannot
+		// be re-derived from the stored record.
 		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
+		expect(JSON.parse(result.content[0].text).clusters[0].shapes[0].props.text).toBe(
+			'Checkout total'
+		)
+	})
+
+	// Geometry only an editor can resolve — a bound arrow's ends, a text's drawn size — has to survive
+	// the index too, or the second call of a drill-down would describe a different board.
+	it('keeps the measured arrow ends and shape dimensions', async () => {
+		const snapshot = makeSnapshot(PAGES)
+		snapshot.documents.push(
+			{
+				state: {
+					typeName: 'shape',
+					id: 'shape:arrow',
+					parentId: 'page:a',
+					type: 'arrow',
+					x: 0,
+					y: 0,
+					rotation: 0,
+					opacity: 1,
+					props: { start: { x: 0, y: 0 }, end: { x: 2, y: 0 }, bend: 0, labelPosition: 0.5 },
+				},
+			},
+			{
+				state: {
+					typeName: 'shape',
+					id: 'shape:caption',
+					parentId: 'page:a',
+					type: 'text',
+					x: 0,
+					y: 100,
+					rotation: 0,
+					opacity: 1,
+					props: { w: 80, autoSize: true, scale: 1 },
+				},
+			},
+			{
+				state: {
+					typeName: 'binding',
+					id: 'binding:end',
+					type: 'arrow',
+					fromId: 'shape:arrow',
+					toId: 'shape:page:a-1',
+					props: {
+						terminal: 'end',
+						normalizedAnchor: { x: 0.5, y: 0.5 },
+						isPrecise: false,
+						isExact: false,
+						snap: 'none',
+					},
+				},
+			}
+		)
+		mockPublishedBoard(snapshot)
+		const measurements = {
+			'shape:page:a-0': { minX: 0, minY: 0, maxX: 80, maxY: 80 },
+			'shape:page:a-1': { minX: 100, minY: 0, maxX: 180, maxY: 80 },
+			'shape:caption': {
+				minX: 0,
+				minY: 100,
+				maxX: 80,
+				maxY: 126.4,
+				dimensions: { w: 80.0001, h: 26.4 },
+			},
+			'shape:arrow': {
+				minX: 79.6,
+				minY: 39.5,
+				maxX: 100.4,
+				maxY: 40.5,
+				arrow: { start: { x: 79.6, y: 40.2 }, end: { x: 100.4, y: 39.8 } },
+			},
+		}
+		const measuringEnv = () => {
+			const env = makeEnv()
+			;(env as any).BROWSER = makeMeasuringBrowserBinding(measurements)
+			return env
+		}
+		const env = measuringEnv()
+
+		const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_ix_geo')
+		const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+		const shapes: any[] = []
+		for (const clusterId of clusterIds) {
+			const cached = await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterId },
+				env,
+				'user_ix_geo'
+			)
+			// A new env each time, so this one measures rather than reading an index.
+			const fresh = await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterId },
+				measuringEnv(),
+				'user_ix_geo'
+			)
+			expect(cached.content).toEqual(fresh.content)
+			shapes.push(...JSON.parse(cached.content[0].text).clusters[0].shapes)
+		}
+
+		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
+		expect(shapes.find((shape) => shape.id === 'shape:arrow')).toMatchObject({
+			pageX: 79.6,
+			pageY: 40.2,
+			props: {
+				start: { pageX: 79.6, pageY: 40.2 },
+				end: { pageX: 100.4, pageY: 39.8 },
+				bindingFromId: null,
+				bindingToId: 'shape:page:a-1',
+			},
+		})
+		expect(shapes.find((shape) => shape.id === 'shape:caption').props).toMatchObject({
+			w: 80,
+			h: 26.4,
+		})
 	})
 
 	it('indexes each page separately', async () => {

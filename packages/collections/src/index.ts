@@ -7,11 +7,15 @@ export { CollectionsPanelButton } from './canvas/collections-panel-button'
 export { placeCollectionItem } from './canvas/place-item'
 export { saveShapesToCollection } from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
-export { CollectionMenu, type CollectionMenuProps } from './ui/collection-menu'
+export {
+	CollectionMenu,
+	type CollectionMenuProps,
+	type CollectionMenuSort,
+} from './ui/collection-menu'
 export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
 export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
-export { ItemMenu, type ItemMenuProps } from './ui/item-menu'
-export { ItemTile, type ItemTileProps, type ItemTileRenaming } from './ui/item-tile'
+export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
+export { ItemTile, type ItemTileProps } from './ui/item-tile'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'
 export {
 	CollectionNotFoundError,

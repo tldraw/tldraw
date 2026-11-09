@@ -11,7 +11,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollection } from '../lib/schema'
-import { CollectionMenu } from '../ui/collection-menu'
+import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
@@ -48,6 +48,8 @@ export interface CollectionsPanelHeaderProps {
 	current?: TLCollection
 	/** How many items `current` holds, for the delete confirmation. */
 	itemCount: number
+	/** The menu's "Sort items by" submenu, when items can be ordered more than one way. */
+	sort?: CollectionMenuSort
 }
 
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
@@ -56,6 +58,7 @@ export function CollectionsPanelHeader({
 	collections,
 	current,
 	itemCount,
+	sort,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -130,6 +133,7 @@ export function CollectionsPanelHeader({
 			onCreate={can.create ? createCollection : undefined}
 			onRename={can.rename ? startRenaming : undefined}
 			onDelete={can.delete ? deleteCollection : undefined}
+			sort={sort}
 		/>
 	)
 

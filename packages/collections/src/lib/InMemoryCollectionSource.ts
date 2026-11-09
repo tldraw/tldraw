@@ -145,6 +145,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 			CollectionItemRecordType.create({
 				collectionId,
 				...(newItem.name === undefined ? {} : { name: newItem.name }),
+				createdAt: Date.now(),
 			})
 		)
 		// Created only after validation, so a rejected item can't leak its blob.
@@ -169,6 +170,15 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.assertCan('deleteItem', item.collectionId)
 		this.forgetItem(itemId)
 		this.store.remove([itemId])
+	}
+
+	async moveItem(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) {
+		const item = this.getItem(itemId)
+		this.getCollection(toCollectionId)
+		this.assertCan('deleteItem', item.collectionId)
+		this.assertCan('addItem', toCollectionId)
+		if (item.collectionId === toCollectionId) return
+		this.store.put([{ ...item, collectionId: toCollectionId }])
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */

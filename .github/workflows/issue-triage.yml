@@ -42,11 +42,18 @@ jobs:
           cat /tmp/issue_with_type.json >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
+      # On Actions, Gemini CLI strips GH_TOKEN from its shell commands and refuses to allowlist any
+      # name matching /TOKEN/. Without a stored login every gh call fails, nothing gets triaged, and
+      # the agent burns its turns on denied workarounds until FatalTurnLimitedError.
+      - name: Log in gh for Gemini CLI
+        run: gh auth login --with-token <<< "$GH_LOGIN_TOKEN"
+        env:
+          GH_LOGIN_TOKEN: ${{ github.token }}
+
       - name: Triage Issue with Gemini
         uses: google-github-actions/run-gemini-cli@v0
         env:
           GEMINI_CLI_TRUST_WORKSPACE: 'true'
-          GH_TOKEN: ${{ github.token }}
         with:
           gemini_api_key: ${{ secrets.GEMINI_API_KEY }}
           gemini_cli_version: '0.61.0'

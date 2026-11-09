@@ -29,13 +29,9 @@ function getNoteAttribution(shape: TLShape): string | null | undefined {
 }
 
 /**
- * Notes stamp `textLastEditedBy` client-side (the editor on text edit, `null` when emptied or
- * anonymous). Enforce it here on both create and update: the attribution may only be `null` or
- * the session's own user. Duplication and paste re-stamp the copy to the current user (via
- * `NoteShapeUtil.onBeforeDuplicate`), so a legitimate create never carries another user's
- * attribution and we can reject one that does — closing the forged-create loophole the create
- * passthrough previously had to accept. Updates still allow an unchanged attribution from any
- * user, so anyone with access can edit a note's other props.
+ * Slurped notes can carry a browser-local author ID. Rejecting their creates drops the notes
+ * from the imported board, so re-stamp foreign attribution from the session instead. Updates
+ * may retain an existing author but cannot claim a new identity other than the session's user.
  */
 const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	session,
@@ -44,10 +40,13 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	next,
 }) => {
 	if (type === 'delete') return prev
-	// On create there's no prior attribution; on update an unchanged attribution is always allowed.
 	const before = type === 'create' ? null : getNoteAttribution(prev)
 	const after = getNoteAttribution(next)
-	if (after !== before && after != null && after !== session.meta.userId) return null
+	if (after !== before && after != null && after !== session.meta.userId) {
+		if (type === 'update') return null
+		const note = next as TLNoteShape
+		return { ...note, props: { ...note.props, textLastEditedBy: session.meta.userId } }
+	}
 	return next
 }
 

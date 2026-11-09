@@ -1,11 +1,11 @@
 import { act } from '@testing-library/react'
-import { Editor } from '@tldraw/editor'
+import { Box, Editor } from '@tldraw/editor'
 import { Tldraw } from '../lib/Tldraw'
 import { renderTldrawComponentWithEditor } from './testutils/renderTldrawComponent'
 
 // These tests drive the toolbar button's real pointer handlers (useDraggableEvents) rather than
 // calling onDragStart directly, so the drag-out threshold is exercised the way a device exercises
-// it. jsdom has no layout, so the toolbar's rect is stubbed.
+// it. jsdom has no layout, so the toolbar's rect and the viewport are stubbed.
 
 // A 400×48 toolbar pill along the bottom of the window.
 const toolbarRect = { left: 100, top: 900, right: 500, bottom: 948 }
@@ -43,6 +43,9 @@ beforeEach(async () => {
 			height: toolbarRect.bottom - toolbarRect.top,
 			toJSON() {},
 		}) as DOMRect
+	// jsdom's viewport is 1×1, which puts every pointer at the screen edge. The editor's real tick
+	// loop then edge-scrolls the camera once 200ms pass mid-drag, so slow runs fail.
+	editor.updateViewportScreenBounds(new Box(0, 0, 1200, 1000))
 })
 
 async function press(x: number, y: number, pointerType: PointerType) {
