@@ -240,4 +240,79 @@ describe('bookmarks', () => {
 			author: 'John Doe',
 		})
 	})
+
+	describe('YouTube pages without a title or image', () => {
+		const video = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'
+		const oembed = (body: object, ok = true) => ({ ok, json: async () => body })
+		const unfurlTo = (url: string, value: object) => {
+			vi.mocked(parseRequestQuery).mockReturnValue({ url })
+			vi.mocked(unfurl).mockResolvedValue({ ok: true, value } as any)
+		}
+		const extract = async () =>
+			(await handleExtractBookmarkMetadataRequest({ request: mockRequest })).json()
+
+		it('takes them from YouTube’s oEmbed endpoint', async () => {
+			unfurlTo(video, { title: '', description: 'A video' })
+			mockFetch.mockResolvedValueOnce(
+				oembed({ title: 'Never Gonna Give You Up', thumbnail_url: 'https://i.ytimg.com/vi/1.jpg' })
+			)
+			expect(await extract()).toEqual({
+				title: 'Never Gonna Give You Up',
+				description: 'A video',
+				image: 'https://i.ytimg.com/vi/1.jpg',
+			})
+			expect(mockFetch).toHaveBeenCalledWith(
+				`https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(video)}`,
+				expect.objectContaining({
+					headers: { 'user-agent': expect.stringMatching(/^tldraw-bot\//) },
+				})
+			)
+		})
+
+		it('keeps what the page gave, without asking', async () => {
+			unfurlTo(video, { title: 'From the page', image: 'https://i.ytimg.com/page.jpg' })
+			expect(await extract()).toEqual({
+				title: 'From the page',
+				image: 'https://i.ytimg.com/page.jpg',
+			})
+			expect(mockFetch).not.toHaveBeenCalled()
+		})
+
+		it('asks only YouTube, short links included', async () => {
+			unfurlTo('https://example.com/video', { title: '' })
+			await extract()
+			expect(mockFetch).not.toHaveBeenCalled()
+
+			unfurlTo('https://youtu.be/dQw4w9WgXcQ', { title: '' })
+			mockFetch.mockResolvedValueOnce(oembed({ title: 'Short link' }))
+			expect(await extract()).toEqual({ title: 'Short link' })
+		})
+
+		it('leaves them empty when oEmbed fails or its image is not a web URL', async () => {
+			unfurlTo(video, { title: '' })
+			mockFetch.mockResolvedValueOnce(oembed({}, false))
+			expect(await extract()).toEqual({ title: '' })
+			mockFetch.mockResolvedValueOnce(oembed({ thumbnail_url: 'javascript:alert(1)' }))
+			expect(await extract()).toEqual({ title: '' })
+			mockFetch.mockRejectedValueOnce(new Error('timed out'))
+			expect(await extract()).toEqual({ title: '' })
+		})
+
+		it('copies the oEmbed image like a page’s own when uploading', async () => {
+			unfurlTo(video, {})
+			mockFetch.mockResolvedValueOnce(oembed({ thumbnail_url: 'https://i.ytimg.com/vi/1.jpg' }))
+			mockFetch.mockResolvedValueOnce({
+				ok: true,
+				headers: new Headers({ 'content-type': 'image/jpeg' }),
+				body: new ReadableStream(),
+			})
+			const uploadImage = vi.fn().mockResolvedValue('https://cdn.example.com/copy')
+			const response = await handleExtractBookmarkMetadataRequest({
+				request: { ...mockRequest, method: 'POST' },
+				uploadImage,
+			})
+			expect(((await response.json()) as any).image).toBe('https://cdn.example.com/copy')
+			expect(mockFetch).toHaveBeenLastCalledWith('https://i.ytimg.com/vi/1.jpg', expect.anything())
+		})
+	})
 })

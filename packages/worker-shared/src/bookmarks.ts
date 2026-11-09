@@ -6,12 +6,20 @@ import { parseRequestQuery } from './handleRequest'
 export { unfurl } from 'cloudflare-workers-unfurl'
 
 declare const fetch: typeof import('@cloudflare/workers-types').fetch
+type WorkerAbortSignal = import('@cloudflare/workers-types').AbortSignal
 
 const queryValidator = T.object({
 	url: T.httpUrl,
 })
 
 const BOT_USER_AGENT = 'tldraw-bot/1.0 (+https://tldraw.com)'
+
+// From Cloudflare's servers, YouTube serves many videos' pages with no title or preview image, but
+// its oEmbed endpoint still describes them. Only these endpoints are asked, never one a page names,
+// so a page can't send the worker to a URL of its choosing.
+const OEMBED_PROVIDERS = [
+	{ hosts: ['youtube.com', 'youtu.be'], endpoint: 'https://www.youtube.com/oembed' },
+]
 
 type UploadImage = (
 	headers: Headers,
@@ -80,6 +88,7 @@ export async function handleExtractBookmarkMetadataRequest({
 	}
 
 	const metadata = metadataResult.value
+	if (!metadata.title || !metadata.image) await fillFromOEmbed(url, metadata)
 	if (uploadImage) {
 		const id = crypto.randomUUID()
 		await Promise.all([
@@ -89,6 +98,31 @@ export async function handleExtractBookmarkMetadataRequest({
 	}
 
 	return Response.json(metadata)
+}
+
+async function fillFromOEmbed(url: string, metadata: { title?: string; image?: string }) {
+	const { hostname } = new URL(url)
+	const provider = OEMBED_PROVIDERS.find(({ hosts }) =>
+		hosts.some((host) => hostname === host || hostname.endsWith(`.${host}`))
+	)
+	if (!provider) return
+
+	try {
+		const response = await fetch(
+			`${provider.endpoint}?format=json&url=${encodeURIComponent(url)}`,
+			{
+				headers: { 'user-agent': BOT_USER_AGENT },
+				signal: AbortSignal.timeout(3000) as unknown as WorkerAbortSignal,
+			}
+		)
+		if (!response.ok) return
+		const oembed: { title?: unknown; thumbnail_url?: unknown } = await response.json()
+		if (!metadata.title && typeof oembed.title === 'string') metadata.title = oembed.title
+		const thumbnail = oembed.thumbnail_url
+		if (!metadata.image && thumbnail && T.httpUrl.isValid(thumbnail)) metadata.image = thumbnail
+	} catch (error) {
+		console.error('Error reading oEmbed:', error)
+	}
 }
 
 async function trySaveImage<const K extends string>(
