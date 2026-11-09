@@ -167,6 +167,7 @@ export const useCaseRules = {
 				inArea: 'record.id == user.area || ancestors(record).some(a => a.id == user.area)',
 				nextInArea: 'ancestors(next).some(a => a.id == user.area)',
 			},
+			actions: { 'agent:run': 'isAgent' },
 			types: {
 				shape: {
 					read: '!isAgent || inArea',

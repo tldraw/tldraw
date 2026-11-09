@@ -241,7 +241,7 @@ export const scenarios: Scenario[] = [
 				see: 'A note appears in the frame, in both panes. Then its note outside the frame is stopped, and then its delete. The bar shows the reason each time.',
 			},
 		],
-		rulePaths: ['let', 'types.shape', 'types.instance_presence'],
+		rulePaths: ['let', 'actions', 'types.shape', 'types.instance_presence'],
 		rules: useCaseRules.agent,
 		users: [
 			{ label: 'Human', user: { id: 'human', role: 'human' } },
@@ -254,7 +254,7 @@ export const scenarios: Scenario[] = [
 		},
 		action: {
 			label: 'Run the agent',
-			show: (editor) => editor.rules.getUser().role === 'agent',
+			show: (editor) => editor.rules.can('agent:run'),
 			run(editor) {
 				// a scripted "agent": three writes, through the same editor API a real one would use
 				const zone = createShapeId('zone')
