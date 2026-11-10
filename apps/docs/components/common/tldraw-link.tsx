@@ -8,9 +8,17 @@ const POSTHOG_HASH_HOSTNAMES = ['www.tldraw.com', 'tldraw.com']
 // in apps/dotcom), so they are stamped when the link is used rather than when it renders. Rendered
 // ids also ended up in links copied into other pages.
 function addPosthogHash(anchor: HTMLAnchorElement, href: string) {
+	anchor.href = href
+	if (window.tlanalytics?.getConsentState?.().analytics !== 'granted') return
 	const sessionId = window.posthog?.get_session_id?.()
 	const distinctId = window.posthog?.get_distinct_id?.()
-	if (!sessionId || !distinctId) return
+	if (
+		!sessionId ||
+		!distinctId ||
+		typeof distinctId !== 'string' ||
+		!/^[a-zA-Z0-9_-]{1,200}$/.test(distinctId)
+	)
+		return
 	const hash = new URLSearchParams({
 		session_id: sessionId,
 		distinct_id: distinctId,

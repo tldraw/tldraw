@@ -1,5 +1,6 @@
 import _posthog from 'posthog-js'
 import { POSTHOG_API_HOST, POSTHOG_TOKEN, POSTHOG_UI_HOST } from '../constants'
+import { copyEventMetadata, isProspectId, type CopyCodeEvent } from '../utils/copy-event'
 import { AnalyticsService } from './analytics-service'
 
 class PosthogAnalyticsService extends AnalyticsService {
@@ -49,7 +50,12 @@ class PosthogAnalyticsService extends AnalyticsService {
 		_posthog.capture('$pageview')
 	}
 
+	override trackCopyCode(data: CopyCodeEvent) {
+		_posthog.capture('click_copy_code', copyEventMetadata(data))
+	}
+
 	override trackFormSubmission(data: {
+		prospectId?: string
 		enquiry_type: string
 		page_category?: string
 		company_size?: string
@@ -60,10 +66,15 @@ class PosthogAnalyticsService extends AnalyticsService {
 		user_last_name?: string
 		user_phone_number?: string
 	}) {
-		// Ties the visitor's anonymous history to the person HubSpot knows by this email.
-		if (this.isEnabled && data.user_email) {
-			const email = data.user_email.trim().toLowerCase()
-			_posthog.identify(email, { email })
+		// A form is not proof that an existing signed-in account belongs to this email.
+		const knownId = _posthog.get_property('$user_id')
+		if (
+			this.isEnabled &&
+			data.user_email &&
+			isProspectId(data.prospectId) &&
+			(!knownId || knownId === data.prospectId)
+		) {
+			_posthog.identify(data.prospectId, { email: data.user_email.trim().toLowerCase() })
 		}
 		_posthog.capture('form submitted', { form: data.enquiry_type })
 	}

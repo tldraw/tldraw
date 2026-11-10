@@ -10,6 +10,7 @@ vi.mock('posthog-js', () => ({
 		identify: vi.fn(),
 		reset: vi.fn(),
 		capture: vi.fn(),
+		get_property: vi.fn(),
 	},
 }))
 
@@ -77,4 +78,19 @@ describe('tl_attribution consent gate', () => {
 		await loadAnalytics({ requiresConsent: true })
 		await vi.waitFor(() => expect(readAttribution()).toBeNull())
 	})
+})
+
+test('fans one action ID out to all copy destinations', async () => {
+	await loadAnalytics({ requiresConsent: true })
+	const { gtmService } = await import('./analytics-services/gtm')
+	const { posthogService } = await import('./analytics-services/posthog')
+	const { commonRoomService } = await import('./analytics-services/common-room')
+	const spies = [gtmService, posthogService, commonRoomService].map((service) =>
+		vi.spyOn(service, 'trackCopyCode').mockImplementation(() => {})
+	)
+	window.tlanalytics.trackCopyCode({ page_category: 'docs', text_snippet: 'code' })
+	const ids = spies.map((spy) => spy.mock.calls[0][0].event_id)
+	expect(new Set(ids).size).toBe(1)
+	expect(ids[0]).toMatch(/^[a-f0-9-]{36}$/)
+	spies.forEach((spy) => spy.mockRestore())
 })

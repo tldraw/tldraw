@@ -15,6 +15,8 @@ import {
 import { ThemeState } from './state/theme-state'
 import { ConsentPreferences, CookieConsent } from './types'
 import { shouldRequireConsent } from './utils/consent-check'
+import { createCopyEvent } from './utils/copy-event'
+import type { CopyCodeData } from './utils/copy-event'
 import styles from './styles.css?inline'
 
 function cookieConsentToPreferences(
@@ -141,6 +143,7 @@ class Analytics {
 			gtag: this.gtag.bind(this),
 			getConsentState: () => cookieConsentToPreferences(this.consent, this.consentOptInType),
 			getAttribution: () => attributionService.getAttribution(),
+			getCopyVisitorId: () => commonRoomService.getCopyVisitorId(),
 			onConsentUpdate: (callback: (preferences: ConsentPreferences) => void) => {
 				this.consentCallbacks.push(callback)
 				return () => {
@@ -271,17 +274,10 @@ class Analytics {
 	 * @param data - The code copy event data
 	 * @returns void
 	 */
-	trackCopyCode(data: {
-		page_category: string
-		text_snippet: string
-		user_email?: string
-		user_email_sha256?: string
-		user_first_name?: string
-		user_last_name?: string
-		user_phone_number?: string
-	}) {
+	trackCopyCode(data: CopyCodeData) {
+		const event = createCopyEvent(data)
 		for (const service of this.services) {
-			service.trackCopyCode?.(data)
+			service.trackCopyCode?.(event)
 		}
 	}
 
@@ -292,6 +288,9 @@ class Analytics {
 	 * @returns void
 	 */
 	trackFormSubmission(data: {
+		prospectId?: string
+		copyVisitorId?: string
+		previousCopyVisitorId?: string
 		enquiry_type: string
 		page_category?: string
 		company_size?: string
