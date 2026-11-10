@@ -28,7 +28,7 @@ function makeRequest(body: string, { jobId = JOB_ID, length = String(body.length
 const ACCEPTED = JSON.stringify({ status: 'accepted' })
 
 describe('postTabRenderReply', () => {
-	// A hidden tab's Clerk token is routinely expired, and refreshing it outlasts the ack window.
+	// An idle tab's Clerk token has usually expired, and refreshing it outlasts the ack window.
 	it('takes a reply with no sign-in, on the strength of a live job id', async () => {
 		const { env, hasTabRenderJob } = makeEnv()
 

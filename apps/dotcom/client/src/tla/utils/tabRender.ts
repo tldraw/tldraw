@@ -195,7 +195,7 @@ function yieldToMainThread() {
 }
 
 // A lost reply needs no handling: the worker times out and tells the agent. No token: the job id is
-// what the route checks, and waiting on a token refresh made hidden tabs miss the ack window.
+// what the route checks, and waiting on a token refresh made idle tabs miss the ack window.
 async function postTabRenderReply(fileId: string, jobId: string, reply: TabRenderReply) {
 	try {
 		await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {

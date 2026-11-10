@@ -227,8 +227,8 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 
 /**
  * A tab's reply to a job. Takes no sign-in: the job id is the capability, a random UUID sent to one
- * tab's socket and dead once the job ends. A session token made a hidden tab miss the ack window,
- * because its Clerk token is routinely expired and refreshing it takes longer than the window.
+ * tab's socket and dead once the job ends. A session token made an idle tab miss the ack window: its
+ * Clerk token had usually expired, and refreshing it took longer than the window.
  *
  * Anyone can reach this, so the size is checked from the header and the job before the body is read:
  * without a live job id, a request's bytes never reach the room's object, where enough of them at once
