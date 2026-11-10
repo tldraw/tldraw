@@ -86,6 +86,7 @@ vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
 
 beforeEach(() => {
+	resetFeatureFlagCacheForTests()
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
 		ok: true,
 		userId: request.headers.get('x-test-user') ?? 'user_default',
@@ -1630,6 +1631,42 @@ describe('rate limits', () => {
 			'screenshot',
 			'screenshot',
 		])
+	})
+})
+
+describe('render transport', () => {
+	async function transportsOf(env: Environment) {
+		mockPublishedBoard()
+		const clusterId = await firstClusterId(env, 'user_transport', 'abc')
+		await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }, env)
+		return blobValuesOf(env, 'browser_run_session', 'transport')
+	}
+
+	it('pushes measures and screenshots by default, with no deployment override', async () => {
+		const transports = await transportsOf(makeEnv({ THUMBNAIL_RENDER_PUSH: undefined }))
+		expect(transports.length).toBeGreaterThan(1)
+		expect(new Set(transports)).toEqual(new Set(['push']))
+	})
+
+	it('fetches for every MCP render when mcp_render_push is off', async () => {
+		const env = makeEnv({
+			THUMBNAIL_RENDER_PUSH: undefined,
+			FEATURE_FLAGS: {
+				get: async (key: string) => (key === 'mcp_render_push' ? '{"enabled":false}' : null),
+			},
+		})
+		expect(new Set(await transportsOf(env))).toEqual(new Set(['pull']))
+	})
+
+	it('ignores the OG percentage', async () => {
+		const env = makeEnv({
+			THUMBNAIL_RENDER_PUSH: undefined,
+			FEATURE_FLAGS: {
+				get: async (key: string) =>
+					key === 'thumbnail_render_push' ? '{"enabled":true,"percentage":0}' : null,
+			},
+		})
+		expect(new Set(await transportsOf(env))).toEqual(new Set(['push']))
 	})
 })
 
