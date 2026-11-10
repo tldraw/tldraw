@@ -63,7 +63,8 @@
 		"react-intl": "^12.1.4",
 		"react-markdown": "^10.1.0",
 		"react-router-dom": "^6.28.2",
-		"tldraw": "workspace:*"
+		"tldraw": "workspace:*",
+		"zod": "^4.1.8"
 	},
 	"devDependencies": {
 		"@clerk/testing": "^2.2.33",
@@ -90,7 +91,6 @@
 		"regexgen": "^1.3.0",
 		"vite": "^8.0.16",
 		"vitest": "^5.0.0",
-		"ws": "^8.18.0",
-		"zod": "^4.1.8"
+		"ws": "^8.18.0"
 	}
 }

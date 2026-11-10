@@ -675,6 +675,9 @@ importers:
       tldraw:
         specifier: workspace:*
         version: link:../../../packages/tldraw
+      zod:
+        specifier: ^4.1.8
+        version: 4.3.6
     devDependencies:
       '@clerk/testing':
         specifier: ^2.2.33
@@ -751,9 +754,6 @@ importers:
       ws:
         specifier: 8.21.0
         version: 8.21.0
-      zod:
-        specifier: ^4.1.8
-        version: 4.3.6
 
   apps/dotcom/image-resize-worker:
     dependencies:
