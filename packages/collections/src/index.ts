@@ -12,7 +12,15 @@ export {
 	type CollectionMenuProps,
 	type CollectionMenuSort,
 } from './ui/collection-menu'
-export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
+export {
+	ItemGrid,
+	ItemGridItems,
+	ItemGridTile,
+	type ItemGridItem,
+	type ItemGridItemsProps,
+	type ItemGridProps,
+	type ItemGridTileProps,
+} from './ui/item-grid'
 export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
 export { ItemTile, type ItemTileProps } from './ui/item-tile'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'

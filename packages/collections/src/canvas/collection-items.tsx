@@ -6,7 +6,7 @@ import {
 	type TLCollectionId,
 	type TLCollectionItemId,
 } from '../lib/schema'
-import { ItemGrid } from '../ui/item-grid'
+import { ItemGrid, ItemGridItems, ItemGridTile } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
@@ -161,50 +161,60 @@ export function CollectionItems({
 		[items, source, showChangeError, msg]
 	)
 
+	if (items.length === 0 && !canAdd) {
+		return <p className="tlui-collections-panel__empty">{msg(messages.emptyCollection)}</p>
+	}
+
 	return (
-		<ItemGrid
-			items={items.map((item) => ({
-				id: item.id,
-				name: item.name,
-				accessibleLabel: item.name ?? msg(messages.unnamedItem),
-				thumbnailUrl:
-					item.thumbnail && getThumbnailForColorMode(item.thumbnail, isDarkMode ? 'dark' : 'light'),
-			}))}
-			getItemProps={getTileProps}
-			renderItemMenu={(item) => (
-				<ItemMenu
-					id={item.id}
-					name={item.name}
-					onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
-					moveTargets={moveTargets}
-					onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
-					onDelete={
-						canDelete
-							? () =>
-									addDialog({
-										component: ({ onClose }) => (
-											<ConfirmDeleteDialog
-												title={msg(messages.deleteItemTitle)}
-												body={
-													item.name
-														? msg(messages.deleteItemBody, { name: item.name })
-														: msg(messages.deleteUnnamedItemBody)
-												}
-												onClose={onClose}
-												onConfirm={() =>
-													source
-														.deleteItem(item.id)
-														.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
-												}
-											/>
-										),
-									})
-							: undefined
-					}
-				/>
+		<ItemGrid>
+			<ItemGridItems
+				items={items.map((item) => ({
+					id: item.id,
+					name: item.name,
+					accessibleLabel: item.name ?? msg(messages.unnamedItem),
+					thumbnailUrl:
+						item.thumbnail &&
+						getThumbnailForColorMode(item.thumbnail, isDarkMode ? 'dark' : 'light'),
+				}))}
+				getItemProps={getTileProps}
+				renderItemMenu={(item) => (
+					<ItemMenu
+						id={item.id}
+						name={item.name}
+						onRename={canRename ? (name) => renameItem(item.id, name) : undefined}
+						moveTargets={moveTargets}
+						onMove={(toCollectionId) => moveItem(item.id, toCollectionId as TLCollectionId)}
+						onDelete={
+							canDelete
+								? () =>
+										addDialog({
+											component: ({ onClose }) => (
+												<ConfirmDeleteDialog
+													title={msg(messages.deleteItemTitle)}
+													body={
+														item.name
+															? msg(messages.deleteItemBody, { name: item.name })
+															: msg(messages.deleteUnnamedItemBody)
+													}
+													onClose={onClose}
+													onConfirm={() =>
+														source
+															.deleteItem(item.id)
+															.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
+													}
+												/>
+											),
+										})
+								: undefined
+						}
+					/>
+				)}
+			/>
+			{canAdd && (
+				<ItemGridTile>
+					<AddSelectionTile source={source} collectionId={collectionId} />
+				</ItemGridTile>
 			)}
-			after={canAdd && <AddSelectionTile source={source} collectionId={collectionId} />}
-			empty={msg(messages.emptyCollection)}
-		/>
+		</ItemGrid>
 	)
 }
