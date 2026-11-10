@@ -72,7 +72,7 @@ import { fileDocumentRecords } from '../../utils/fileSchemaRecords'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { createLibrariesSource } from '../components/TlaLibraries/librariesSource'
+import { TldrawAppLibrariesSource } from '../components/TlaLibraries/librariesSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -300,7 +300,7 @@ export class TldrawApp {
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
 		if (flags.libraries?.enabled) {
-			const libraries = createLibrariesSource(userId)
+			const libraries = new TldrawAppLibrariesSource(this)
 			this.libraries = libraries
 			this.disposables.push(() => libraries.dispose())
 		} else {

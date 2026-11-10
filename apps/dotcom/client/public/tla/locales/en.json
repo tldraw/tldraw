@@ -86,6 +86,9 @@
   "21f66c9c00": {
     "translation": "Workspace name"
   },
+  "2361431171": {
+    "translation": "Private to you"
+  },
   "23dcace54a": {
     "translation": "You have been invited to join <strong>{workspaceName}</strong>. Create a free account to continue."
   },
@@ -578,9 +581,6 @@
   },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
-  },
-  "c594f7f8c2": {
-    "translation": "Your libraries"
   },
   "c6a00f137b": {
     "translation": "Invite"
