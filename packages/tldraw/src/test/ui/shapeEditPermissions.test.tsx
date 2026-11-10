@@ -103,9 +103,18 @@ describe('actions on the selection', () => {
 		)
 	})
 
-	it('without tl:shape:update: nothing at all', () => {
+	it('without tl:shape:update: only what leaves the shapes as they are, or removes them', () => {
 		grant(...without('tl:shape:update'))
-		expect(readEnabled()).toEqual(off(...IDS))
+		expect(readEnabled()).toEqual(
+			off(
+				'group',
+				'frame-selection',
+				'flatten-to-image',
+				'move-to-new-page',
+				'toggle-lock',
+				'bring-to-front'
+			)
+		)
 	})
 })
 

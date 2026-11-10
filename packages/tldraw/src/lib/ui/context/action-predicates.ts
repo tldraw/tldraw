@@ -28,6 +28,35 @@ export function canApplyToUnlockedSelection(editor: Editor, min: number) {
 	return editor.isIn('select') && hasUnlockedSelection(editor, min)
 }
 
+/**
+ * A shape the user can't update can still be selected and deleted, so this asks about the delete
+ * itself rather than whether the selection can be changed.
+ *
+ * @internal
+ */
+export function canDeleteSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		editor.can('tl:shape:delete') &&
+		editor
+			.getSelectedShapes()
+			.some((shape) => editor.canChangeRecord({ type: 'delete', prev: shape, next: null }))
+	)
+}
+
+/**
+ * A copy is a new shape, so the original only has to be unlocked, not updatable.
+ *
+ * @internal
+ */
+export function canDuplicateSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		editor.can('tl:shape:create') &&
+		editor.getSelectedShapes().some((shape) => !editor.isShapeOrAncestorLocked(shape))
+	)
+}
+
 /** @internal */
 export function hasShapesOnPage(editor: Editor) {
 	return editor.getCurrentPageShapeIds().size > 0

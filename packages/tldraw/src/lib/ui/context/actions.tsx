@@ -43,6 +43,8 @@ import {
 	areAllSelectedFrameLike,
 	areAllSelectedFrames,
 	canApplySelectionAction as canApplySelection,
+	canDeleteSelection,
+	canDuplicateSelection,
 	canApplyToUnlockedSelection,
 	canFitFrameToContent,
 	canFlatten,
@@ -889,8 +891,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canCreateShapes(editor),
-				kbd: 'cmd+d,ctrl+d',
+				isEnabled: canDuplicateSelection,
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
 				onSelect(source) {
@@ -1259,7 +1260,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'cut',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canDeleteShapes(editor),
+				isEnabled: canDeleteSelection,
 				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
@@ -1365,7 +1366,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'delete',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1) && canDeleteShapes(editor),
+				isEnabled: canDeleteSelection,
 				label: messages.actionDelete.id,
 				kbd: '⌫,del',
 				icon: 'trash',
