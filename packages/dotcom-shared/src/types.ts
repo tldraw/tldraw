@@ -368,6 +368,8 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'collections',
+	'thumbnail_render_push',
+	'mcp_render_push',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 import { mustGetQuery } from '@rocicorp/zero'
-import { PushProcessor, handleQueryRequest } from '@rocicorp/zero/server'
+import { getMutation, handleMutateRequest, handleQueryRequest } from '@rocicorp/zero/server'
 import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
 import {
 	FILE_PREFIX,
@@ -242,16 +242,20 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
-		const processor = new PushProcessor(
-			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
-			undefined,
-			'debug'
-		)
-		const result = await processor.process(
-			auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId),
-			req
-		)
+		// Mutators close over userId. `userID` is what zero-cache checks the client's claim against.
+		const mutators = auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId)
+		const result = await handleMutateRequest({
+			dbProvider: zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
+			handler: (transact) =>
+				transact((tx, name, args) =>
+					// getMutator takes defineMutators registries and ignores `|` names; ours are plain defs.
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					getMutation(mutators, name)(tx, args, undefined)
+				),
+			request: req,
+			userID: auth.userId,
+			logLevel: 'debug',
+		})
 		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
 		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
 		ctx.waitUntil(

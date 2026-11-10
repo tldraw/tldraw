@@ -42,7 +42,6 @@ import {
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
-	TLAssetId,
 	TLComment,
 	TLCommentReaction,
 	TLDOCUMENT_ID,
@@ -93,6 +92,7 @@ import {
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
+import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
 	deleteAllObjectsWithPrefix,
 	getR2KeyForRoom,
@@ -261,16 +261,6 @@ async function canAccessTestProductionFile(
 	} catch (_e) {
 		return false
 	}
-}
-
-function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
-	const usedAssets = new Set<TLAssetId>()
-	for (const record of records) {
-		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
-			usedAssets.add(record.props.assetId as TLAssetId)
-		}
-	}
-	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
 }
 
 const MB = 1024 * 1024

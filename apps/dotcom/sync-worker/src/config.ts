@@ -130,7 +130,7 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * alone changes nothing in production. Each budget has its own binding, and the pairs must move
  * together:
  *
- *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
+ *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 120)
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
  *   MCP_TAB_PER_USER_RATE_LIMIT        ->  MCP_SERVER_TAB_RATE_LIMITER      (limit = 90)
@@ -146,14 +146,14 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * 400 calls to walk it, and an agent that reformulates a failed query spends a few more. A refusal
  * mid-page has no good recovery either — a model cannot wait, so it retries or reports a partial
  * answer as a complete one, which is worse than the load it would have prevented. Against that, the
- * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 60
- * a minute is well under a second of database time per caller per minute.
+ * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 120
+ * a minute is about a second of database time per caller per minute.
  *
  * Per account, and only per account. It does not bound many accounts looping at once; that would
  * need a global search limiter alongside it. Deliberately left until there is real traffic to size it
  * against.
  */
-export const MCP_SEARCH_PER_USER_RATE_LIMIT = 60
+export const MCP_SEARCH_PER_USER_RATE_LIMIT = 120
 
 /** The `create_board` budget. Each call writes rows, so it sits well below the search budget. */
 export const MCP_CREATE_PER_USER_RATE_LIMIT = 10

@@ -549,8 +549,10 @@ describe('getAllFeatureFlagValues', () => {
 		expect(Object.keys(flags).sort()).toEqual([
 			'collections',
 			'load_rum',
+			'mcp_render_push',
 			'mcp_server_access',
 			'rum_enabled',
+			'thumbnail_render_push',
 			'version_chain',
 		])
 	})
