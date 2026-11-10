@@ -1,22 +1,22 @@
 import {
-	MeasuredArrow,
-	MeasuredDimensions,
+	McpPageLookup,
+	McpPageRead,
 	TAB_RENDER_DECLINE_REASONS,
 	TabRenderApplyOpsRequest,
 	TabRenderReply,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
-	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
-import { TabRenderOutcome } from '../../tabRenderBroker'
+import { MAX_TAB_RENDER_SESSIONS, TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { PageSelector, ResolvedPage, ShapeMeasurement, getBoardUsers } from './boardTools'
+import { isTabRenderJobIdFor, mintTabRenderJobIds } from '../../utils/tabRenderJobIds'
+import { PageSelector, getBoardUsers } from './boardTools'
 import { reportThumbnailError } from './thumbnailShared'
 
 // The MCP side of working in an open tab, which is the only way these tools read a page, measure it,
@@ -42,13 +42,14 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 	fileId: string,
 	userId: string,
 	job: TabRenderRequest,
-	expected: S,
+	expected: readonly S[],
 	{ request, ctx }: TabRenderContext
 ): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: S }>>> {
 	const startedAt = Date.now()
 	let result: TabRenderOutcome | { status: 'error' }
 	try {
-		result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job)
+		const jobIds = await mintTabRenderJobIds(env, fileId, MAX_TAB_RENDER_SESSIONS)
+		result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job, jobIds)
 		const reason = result.status === 'declined' ? result.reason : 'none'
 		writeTabRenderTelemetry(env, job.mode, result.status, reason, Date.now() - startedAt)
 	} catch (error) {
@@ -62,7 +63,7 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 		writeTabRenderTelemetry(env, job.mode, 'error', 'none', Date.now() - startedAt)
 		result = { status: 'error' }
 	}
-	if (result.status === expected) {
+	if ((expected as readonly string[]).includes(result.status)) {
 		return { ok: true, value: result as Extract<TabRenderOutcome, { status: S }> }
 	}
 	return { ok: false, ...describeFailure(result, job.mode, boardUrlOf(env, request, fileId)) }
@@ -72,7 +73,7 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 // pipeline.
 function writeTabRenderTelemetry(
 	env: Environment,
-	mode: TabRenderRequest['mode'] | 'live_page',
+	mode: TabRenderRequest['mode'],
 	outcome: string,
 	reason: string,
 	durationMs: number
@@ -180,103 +181,42 @@ export const PUBLISHED_BOARD_FAILURE = {
 	reason: 'tab_published_board',
 } as const
 
-export type McpLivePageResult =
-	| { status: 'no_tab' | 'room_timeout' }
-	| { status: 'ok'; page: ResolvedPage }
+/** A page as the caller's open tab read it, or why its `page` names none. */
+export type TabPageRead =
+	| { found: true; read: McpPageRead }
+	| { found: false; lookup: Extract<McpPageLookup, { ok: false }> }
 
-export async function readLivePage(
+/**
+ * Reads a page in the caller's open tab: the tab resolves `page`, measures and clusters it, and sends
+ * back records only for `clusterIds`. The board's room only relays the job, so a read never makes it
+ * serialize the document, which blocked everyone on the board while it ran.
+ */
+export async function readPageInOpenTab(
 	env: Environment,
 	fileId: string,
 	userId: string,
 	page: PageSelector,
-	{ request, ctx }: TabRenderContext
-): Promise<TabRenderResult<ResolvedPage>> {
-	const startedAt = Date.now()
-	let result: McpLivePageResult | { status: 'error' }
-	try {
-		result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
-	} catch (error) {
-		reportThumbnailError(error, {
-			ctx,
-			env,
-			request,
-			surface: 'mcp_tab_render',
-			extras: { mode: 'live_page' },
-		})
-		result = { status: 'error' }
-	}
-	// Recorded here too: this runs first, so it is where a call with no tab open stops.
-	writeTabRenderTelemetry(env, 'live_page', result.status, 'none', Date.now() - startedAt)
-	if (result.status === 'ok') return { ok: true, value: result.page }
-	return { ok: false, ...describeFailure(result, null, boardUrlOf(env, request, fileId)) }
-}
-
-export async function measureInOpenTab(
-	env: Environment,
-	fileId: string,
-	userId: string,
-	pageId: string,
+	clusterIds: string[],
 	context: TabRenderContext
-): Promise<TabRenderResult<Record<string, ShapeMeasurement>>> {
-	const job: TabRenderRequest = { mode: 'measure', pageId }
-	const result = await runInOpenTab(env, fileId, userId, job, 'measured', context)
-	return result.ok ? { ok: true, value: readMeasurements(result.value.shapes) } : result
-}
-
-// A tab's measurements come from a client, so nothing is assumed. Malformed boxes are dropped rather
-// than kept: a non-finite value would produce NaN distances and silently detach that shape from the
-// minimum spanning tree.
-export function readMeasurements(
-	reported: Record<string, ThumbnailShapeMeasurement>
-): Record<string, ShapeMeasurement> {
-	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		const arrow = readArrow(box.arrow)
-		const dimensions = readDimensions(box.dimensions)
-		bounds[shapeId] = {
-			minX: box.x,
-			minY: box.y,
-			maxX: box.x + box.w,
-			maxY: box.y + box.h,
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-			...(arrow ? { arrow } : null),
-			...(dimensions ? { dimensions } : null),
-		}
+): Promise<TabRenderResult<TabPageRead>> {
+	const job: TabRenderRequest = { mode: 'read', page, clusterIds }
+	const result = await runInOpenTab(
+		env,
+		fileId,
+		userId,
+		job,
+		['page_read', 'page_not_found'] as const,
+		context
+	)
+	if (!result.ok) return result
+	const reply = result.value
+	return {
+		ok: true,
+		value:
+			reply.status === 'page_read'
+				? { found: true, read: reply.read }
+				: { found: false, lookup: { ok: false, reason: reply.reason, pageCount: reply.pageCount } },
 	}
-	return bounds
-}
-
-// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
-// arrow from its record.
-function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
-	const start = readPoint(value?.start)
-	const end = readPoint(value?.end)
-	return start && end ? { start, end } : undefined
-}
-
-function readPoint(value: unknown) {
-	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
-	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
-}
-
-// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
-function readDimensions(
-	value: ThumbnailShapeMeasurement['dimensions']
-): MeasuredDimensions | undefined {
-	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
-	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
-}
-
-function isFiniteNumber(value: unknown): value is number {
-	return Number.isFinite(value)
 }
 
 export async function captureInOpenTab(
@@ -287,7 +227,7 @@ export async function captureInOpenTab(
 	context: TabRenderContext
 ): Promise<TabRenderResult<string>> {
 	const job: TabRenderRequest = { mode: 'screenshot', ...capture }
-	const result = await runInOpenTab(env, fileId, userId, job, 'captured', context)
+	const result = await runInOpenTab(env, fileId, userId, job, ['captured'] as const, context)
 	return result.ok ? { ok: true, value: result.value.base64 } : result
 }
 
@@ -301,7 +241,7 @@ export function readUserStateInOpenTab(
 	userId: string,
 	context: TabRenderContext
 ) {
-	return runInOpenTab(env, fileId, userId, { mode: 'user_state' }, 'user_state', context)
+	return runInOpenTab(env, fileId, userId, { mode: 'user_state' }, ['user_state'] as const, context)
 }
 
 export function applyOpsInOpenTab(
@@ -312,7 +252,7 @@ export function applyOpsInOpenTab(
 	context: TabRenderContext
 ) {
 	const job: TabRenderRequest = { mode: 'apply_ops', ...apply }
-	return runInOpenTab(env, fileId, userId, job, 'applied', context)
+	return runInOpenTab(env, fileId, userId, job, ['applied'] as const, context)
 }
 
 export async function readBoardUsers(
@@ -331,8 +271,6 @@ export async function readBoardUsers(
 // In bytes, which also keeps the reply inside what one RPC can carry: a body this size serializes to
 // well under the 32 MiB limit, whatever text it holds.
 const MAX_TAB_RENDER_REPLY_BYTES = 16 * 1024 * 1024
-
-const JOB_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
 
 // The base64 of the PNG signature, minus the trailing characters that also encode the bytes after it.
 const PNG_BASE64_PREFIX = 'iVBORw0KGgo'
@@ -362,8 +300,12 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 			if ((reply.detail?.length ?? 0) > MAX_DECLINE_DETAIL_LENGTH) return null
 			return reply as TabRenderReply
 		}
-		case 'measured':
-			return reply.shapes && typeof reply.shapes === 'object' && !Array.isArray(reply.shapes)
+		case 'page_read':
+			return isPageRead(reply.read) ? (reply as TabRenderReply) : null
+		case 'page_not_found':
+			return (reply.reason === 'no_pages' || reply.reason === 'page_out_of_range') &&
+				Number.isInteger(reply.pageCount) &&
+				(reply.pageCount as number) >= 0
 				? (reply as TabRenderReply)
 				: null
 		case 'captured':
@@ -390,8 +332,74 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 	}
 }
 
+// Checks the shape the tool code walks, so a malformed read fails here as an invalid reply rather than
+// as a throw halfway through an answer. The values are the caller's own tab's word: a forged one only
+// ever reaches that caller's agent.
+function isPageRead(value: unknown): value is McpPageRead {
+	if (!value || typeof value !== 'object') return false
+	const read = value as Record<string, unknown>
+	return (
+		typeof read.pageId === 'string' &&
+		typeof read.pageName === 'string' &&
+		Array.isArray(read.clusters) &&
+		read.clusters.every(isClusterSummary) &&
+		Array.isArray(read.details) &&
+		read.details.every(isClusterDetail) &&
+		(read.detailBounds === undefined ||
+			(isPlainObject(read.detailBounds) &&
+				Object.values(read.detailBounds as object).every(isBox))) &&
+		Array.isArray(read.ancestors) &&
+		read.ancestors.every(isShapeLike) &&
+		Array.isArray(read.bindings) &&
+		read.bindings.every((b) => !!b && typeof b === 'object') &&
+		isPlainObject(read.arrows) &&
+		isPlainObject(read.dimensions)
+	)
+}
+
+function isClusterSummary(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const c = value as Record<string, unknown>
+	return (
+		typeof c.id === 'string' &&
+		typeof c.label === 'string' &&
+		Array.isArray(c.keywords) &&
+		c.keywords.every((k) => typeof k === 'string') &&
+		Number.isInteger(c.numberOfShapes) &&
+		(c.bounds === null || isBox(c.bounds))
+	)
+}
+
+function isClusterDetail(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const c = value as Record<string, unknown>
+	return (
+		typeof c.id === 'string' &&
+		typeof c.label === 'string' &&
+		Array.isArray(c.keywords) &&
+		Number.isInteger(c.numberOfShapes) &&
+		Array.isArray(c.shapes) &&
+		c.shapes.every(isShapeLike)
+	)
+}
+
+function isShapeLike(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const shape = value as Record<string, unknown>
+	return (
+		typeof shape.id === 'string' &&
+		typeof shape.type === 'string' &&
+		typeof shape.parentId === 'string' &&
+		isPlainObject(shape.props)
+	)
+}
+
+function isPlainObject(value: unknown) {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
 /**
- * A tab's reply to a job. Takes no sign-in: the job id is the capability, a random UUID sent to one
+ * A tab's reply to a job. Takes no sign-in: the job id is the capability, a signed nonce sent to one
  * tab's socket and dead once the job ends. A session token made an idle tab miss the ack window: its
  * Clerk token had usually expired, and refreshing it took longer than the window.
  *
@@ -404,8 +412,10 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
  */
 export async function postTabRenderReply(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId, jobId } = request.params
-	if (!roomId || !jobId || !JOB_ID_PATTERN.test(jobId)) return notFound()
+	if (!roomId || !jobId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
+	// Before anything reaches the room's object, so a made-up room id and job id can't wake it.
+	if (!(await isTabRenderJobIdFor(env, roomId, jobId))) return notFound()
 
 	const length = Number(request.headers.get('content-length'))
 	if (!length) return Response.json({ error: true, message: 'Length required' }, { status: 411 })

@@ -33,16 +33,20 @@ describe('collectionValidator', () => {
 		name: 'Wireframes',
 	})
 
-	it('accepts a collection, with readOnly left out or set', () => {
+	it('accepts a collection', () => {
 		expect(collectionValidator.validate(collection)).toEqual(collection)
-		expect(collectionValidator.validate({ ...collection, readOnly: true })).toEqual({
-			...collection,
-			readOnly: true,
-		})
 	})
 
 	it('rejects a blank name', () => {
 		expect(() => collectionValidator.validate({ ...collection, name: '  ' })).toThrow()
+	})
+
+	it('accepts an owner, but not a blank one', () => {
+		expect(collectionValidator.validate({ ...collection, ownerId: 'acme' })).toEqual({
+			...collection,
+			ownerId: 'acme',
+		})
+		expect(() => collectionValidator.validate({ ...collection, ownerId: ' ' })).toThrow()
 	})
 
 	it('rejects an id that is not a collection id', () => {

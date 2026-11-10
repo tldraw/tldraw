@@ -1,3 +1,4 @@
+import type { JsonObject } from '@tldraw/utils'
 import type {
 	TLCollection,
 	TLCollectionId,
@@ -21,6 +22,26 @@ export type TLCollectionAction =
 	| 'renameItem'
 	| 'deleteItem'
 
+/**
+ * What {@link CollectionSource.can} answers for: a collection, by its id, or an owner, by
+ * `{ ownerId }`, e.g. whether a collection may be created for that owner.
+ */
+export type TLCollectionTarget = TLCollectionId | { ownerId: string }
+
+/** Something a collection can belong to, such as a user or a workspace. */
+export interface TLCollectionOwner {
+	id: string
+	name: string
+}
+
+/** Choices for a new collection. */
+export interface TLNewCollectionOptions {
+	/** Who it belongs to. Left out, the source decides, e.g. its default owner. */
+	ownerId?: string
+	/** Stored on the collection as its `meta`, e.g. the pack it was copied from. */
+	meta?: JsonObject
+}
+
 /** What a source needs to store a new item. */
 export interface TLNewCollectionItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
@@ -31,6 +52,23 @@ export interface TLNewCollectionItem {
 	 * UI shows a placeholder.
 	 */
 	thumbnail?: TLCollectionThumbnail<Blob>
+}
+
+/**
+ * What a tile needs from a thumbnail, passed to {@link CollectionSource.resolveThumbnail}. The panel
+ * builds it each time it asks.
+ */
+export interface TLCollectionThumbnailContext {
+	colorMode: 'light' | 'dark'
+	/**
+	 * The tile's width in CSS pixels, rounded up to a power of two so that resizing the panel rarely
+	 * asks again.
+	 */
+	width: number
+	/** The screen's pixel ratio, at most 2: at tile size, 3× isn't visibly sharper. */
+	dpr: number
+	/** The browser's estimate of the connection, such as `'4g'`, or null where it gives none. */
+	networkEffectiveType: string | null
 }
 
 /**
@@ -48,14 +86,27 @@ export interface CollectionSource {
 	getItems(collectionId: TLCollectionId): TLCollectionItem[]
 	/** Loads an item's content. Kept separate from the listing because content can be large. */
 	getItemContent(itemId: TLCollectionItemId): Promise<TLCollectionItemContent>
+	/**
+	 * The URL of an item's thumbnail, sized for its tile, or null for none. Optional: without it,
+	 * tiles show the item's `thumbnail` for the editor's colour mode.
+	 *
+	 * Called for every item of the collection on show, and again when the item or the context
+	 * changes, so answer quickly. A source that makes `blob:` URLs here owns them: keep one per item and size,
+	 * and revoke them when the source is thrown away.
+	 */
+	resolveThumbnail?(
+		item: TLCollectionItem,
+		context: TLCollectionThumbnailContext
+	): string | null | Promise<string | null>
 
 	/**
-	 * Whether the current user may do `action`. With a `collectionId`, answers for that
-	 * collection; without one, for the source as a whole (e.g. may they create collections).
+	 * Whether the current user may do `action`. With a collection id, answers for that collection;
+	 * with `{ ownerId }`, for that owner (e.g. may they create collections for it); with neither,
+	 * for the source as a whole (e.g. may they create collections).
 	 */
-	can(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
+	can(action: TLCollectionAction, target?: TLCollectionTarget): boolean
 
-	createCollection(name: string): Promise<TLCollection>
+	createCollection(name: string, options?: TLNewCollectionOptions): Promise<TLCollection>
 	renameCollection(collectionId: TLCollectionId, name: string): Promise<void>
 	deleteCollection(collectionId: TLCollectionId): Promise<void>
 
@@ -68,6 +119,24 @@ export interface CollectionSource {
 	 * offers "Move to" only for sources that have it.
 	 */
 	moveItem?(itemId: TLCollectionItemId, toCollectionId: TLCollectionId): Promise<void>
+
+	/**
+	 * Who collections can belong to, each collection naming one in its `ownerId`. Listed in the
+	 * order the UI should show them, e.g. the user's own first, then their workspaces. Optional:
+	 * sources that don't track owners leave it out.
+	 */
+	getCollectionOwners?(): TLCollectionOwner[]
+	/**
+	 * Who new collections belong to unless the user picks, such as the owner of the open file. The
+	 * UI's "New collection" passes it to {@link CollectionSource.createCollection}. Optional: left
+	 * out, or returning undefined, the source decides.
+	 */
+	getDefaultOwnerId?(): string | undefined
+	/**
+	 * Gives a collection to another owner. Its items stay in it. Optional: sources that don't track
+	 * owners, or can't move collections between them, leave it out.
+	 */
+	moveCollection?(collectionId: TLCollectionId, ownerId: string): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */
@@ -85,10 +154,10 @@ export class CollectionPermissionError extends Error {
 	}
 }
 
-/** Thrown by a source when a collection or item doesn't exist (any more). */
+/** Thrown by a source when a collection, item or owner doesn't exist (any more). */
 export class CollectionNotFoundError extends Error {
 	override name = 'CollectionNotFoundError'
 	constructor(readonly id: string) {
-		super(`No collection or item with id ${id}`)
+		super(`No collection, item or owner with id ${id}`)
 	}
 }

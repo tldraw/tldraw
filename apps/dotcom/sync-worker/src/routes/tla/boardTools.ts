@@ -1,16 +1,22 @@
 import {
 	CANVAS_OPS_BATCH_JSON_SCHEMA,
 	ClusterBounds,
-	ClusterMeasurement,
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	MAX_THUMBNAIL_PAGES,
+	McpPageLookup,
+	McpPageRead,
 	MeasuredArrow,
 	MeasuredDimensions,
+	PageSelector,
 	ShapeCluster,
+	ShapeMeasurement,
 	can,
-	getShapeClusters,
+	findMcpPage,
 	getShapeText,
+	orderMcpPages,
+	readMcpPage,
+	toClusterBox,
+	toThousandths,
 	type TLShapeWithPlainText,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
@@ -32,8 +38,8 @@ import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 // are refused, how a page's shapes are grouped and labelled, what a shape record looks like once
 // it's readable, and the wording of every error a model has to recover from.
 //
-// Deliberately pure. It takes a room snapshot and a table of shape measurements — data — and returns
-// tool results. It knows nothing about Postgres, R2, Browser Rendering, rate limits, caching or
+// Deliberately pure. It takes data — a room snapshot, or a page as the caller's tab read it (see
+// mcpPageRead.ts in dotcom-shared) — and returns tool results. It knows nothing about Postgres, R2, Browser Rendering, rate limits, caching or
 // telemetry; mcpServer.ts owns all of that and calls in here.
 //
 // The split is what makes this server evaluable. The private eval harness sends checked-in board
@@ -117,15 +123,7 @@ export const BOARD_EMPTY_MESSAGE = 'This board has no saved content yet.'
 
 // --- Reading a snapshot -------------------------------------------------------------------------
 
-/**
- * What an editor reports for one shape: what clustering reads (its page bounds and, for an arrow,
- * where the editor drew it), plus the text its ShapeUtil reported and, for a text, group, draw or
- * highlight shape, its size as drawn.
- */
-export interface ShapeMeasurement extends ClusterMeasurement {
-	text?: string
-	dimensions?: MeasuredDimensions
-}
+export type { McpPageRead, PageSelector, ShapeMeasurement } from '@tldraw/dotcom-shared'
 
 // A board page in stable board order. `index` is the 0-based ordinal callers pass to the screenshot
 // tool; `id` is the internal TLPageId used to drive the render page.
@@ -136,20 +134,15 @@ export interface EnumeratedPage {
 	hasContent: boolean
 }
 
-// Lists a board's pages in the same order the editor shows them. tldraw page indexes are fractional
-// indexes that sort lexicographically, so a plain string sort matches the editor's ordering. A page
-// "has content" when at least one shape sits directly on it (nested shapes always have a top-level
-// ancestor on their page, so checking direct children is sufficient).
+// Lists a board's pages in the same order the editor shows them, the order a tab resolves `page`
+// against. A page "has content" when at least one shape sits directly on it (nested shapes always
+// have a top-level ancestor on their page, so checking direct children is sufficient).
 export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
 	const records = snapshot.documents.map((d) => d.state)
-	const pageRecords = records.filter(isPage)
-	pageRecords.sort((a, b) => (a.index < b.index ? -1 : a.index > b.index ? 1 : 0))
-	const parentIdsWithShapes = new Set(records.filter(isShape).map((s) => s.parentId))
-	return pageRecords.slice(0, MAX_THUMBNAIL_PAGES).map((p, index) => ({
-		index,
-		id: String(p.id),
-		name: typeof p.name === 'string' && p.name.length > 0 ? p.name : `Page ${index + 1}`,
-		hasContent: parentIdsWithShapes.has(p.id),
+	const parentIdsWithShapes = new Set<string>(records.filter(isShape).map((s) => s.parentId))
+	return orderMcpPages(records.filter(isPage)).map((page) => ({
+		...page,
+		hasContent: parentIdsWithShapes.has(page.id),
 	}))
 }
 
@@ -521,6 +514,10 @@ export function getClustersBox(
 	return toClusterBox(clusterIds.map((id) => bounds[id] && toClusterBounds(bounds[id])))
 }
 
+function toClusterBounds({ x, y, w, h }: BoxModel): ClusterBounds {
+	return { minX: x, minY: y, maxX: x + w, maxY: y + h }
+}
+
 export const BOARD_NAME_MAX_LENGTH = 200
 
 const APPLY_OPS_MAX_OPS = CANVAS_OPS_BATCH_JSON_SCHEMA.properties.ops.maxItems
@@ -654,11 +651,6 @@ function parseTheme(value: unknown): 'light' | 'dark' {
 	}
 	return value
 }
-
-// A page is named either by its 0-based ordinal or by its id. Ordinals read naturally but shift the
-// moment pages are reordered, so an id a caller is holding from an earlier call keeps pointing at the
-// same page. Both are accepted in the one argument so the tool surface stays small.
-export type PageSelector = { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
 
 function parsePageSelector(value: unknown): PageSelector {
 	if (value === undefined || value === null) return { kind: 'ordinal', ordinal: 0 }
@@ -955,65 +947,63 @@ export function getCreatedBoardResult({
 	})
 }
 
-// Every page-scoped tool needs the same steps before it can do anything: validate the page selector
-// and pull that page's shapes. Returning the tool's own error shape on failure keeps the wording
-// identical across tools.
-//
-// Separate from the tools below because the caller has to know the page id before it can measure the
-// page, and measuring is what produces the `measurements` those tools need.
-export type ResolvedPage =
-	| {
-			ok: true
-			pageId: string
-			pageName: string
-			shapes: TLShape[]
-			/**
-			 * The arrow bindings of this page's arrows, as stored. They are records rather than
-			 * geometry, so get_cluster_info reports them without a measure.
-			 */
-			bindings: TLArrowBinding[]
-	  }
-	| { ok: false; reason: 'no_pages' | 'page_out_of_range'; result: ToolResult }
+export type PageReadResult =
+	| { ok: true; read: McpPageRead }
+	| { ok: false; reason: 'board_empty' | 'page_not_found'; result: ToolResult }
 
-export function resolvePage(snapshot: RoomSnapshot, page: PageSelector): ResolvedPage {
-	const pages = enumerateBoardPages(snapshot)
-	if (pages.length === 0) {
-		return { ok: false, reason: 'no_pages', result: toolError('This board has no pages.') }
+/**
+ * The error for a page a tab couldn't find, worded here with every other message a model reads.
+ * `reason` is the telemetry code.
+ */
+export function pageLookupFailure(
+	lookup: Extract<McpPageLookup, { ok: false }>,
+	page: PageSelector
+): Extract<PageReadResult, { ok: false }> {
+	if (lookup.reason === 'no_pages') {
+		return { ok: false, reason: 'board_empty', result: toolError('This board has no pages.') }
 	}
+	return {
+		ok: false,
+		reason: 'page_not_found',
+		result: toolError(
+			page.kind === 'id'
+				? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
+				: `Page ${page.ordinal} is out of range: this board has ${lookup.pageCount} page(s) (0–${lookup.pageCount - 1}). Call get_board_info to list them.`
+		),
+	}
+}
 
-	const targetPage = page.kind === 'id' ? pages.find((p) => p.id === page.id) : pages[page.ordinal]
-	if (!targetPage) {
-		return {
-			ok: false,
-			reason: 'page_out_of_range',
-			result: toolError(
-				page.kind === 'id'
-					? `No page with id "${page.id}" on this board. Call get_board_info to list its pages; a page id is stable across reordering, an index is not.`
-					: `Page ${page.ordinal} is out of range: this board has ${pages.length} page(s) (0–${pages.length - 1}). Call get_board_info to list them.`
-			),
-		}
-	}
-	const shapes = getShapesOnPage(snapshot, targetPage.id)
+/**
+ * What a tab would answer for a page, worked out from a snapshot and a table of measurements instead.
+ * For the eval harness and tests, which have no tab.
+ */
+export function readSnapshotPage(
+	snapshot: RoomSnapshot,
+	page: PageSelector,
+	measurements: Record<string, ShapeMeasurement>,
+	clusterIds: readonly string[] = []
+): PageReadResult {
+	const records = snapshot.documents.map((d) => d.state)
+	const lookup = findMcpPage(records.filter(isPage), page)
+	if (!lookup.ok) return pageLookupFailure(lookup, page)
+	const shapes = getShapesOnPage(snapshot, lookup.page.id)
+	const shapeIds = new Set<string>(shapes.map((shape) => shape.id))
+	const bindings = records.filter(
+		(record): record is TLArrowBinding =>
+			isBinding(record) && record.type === 'arrow' && shapeIds.has(record.fromId)
+	)
 	return {
 		ok: true,
-		pageId: targetPage.id,
-		pageName: targetPage.name,
-		shapes,
-		bindings: getArrowBindingsOf(snapshot, shapes),
+		read: readMcpPage({
+			pageId: lookup.page.id,
+			pageName: lookup.page.name,
+			shapes,
+			bindings,
+			measurements,
+			clusterIds,
+		}),
 	}
 }
-
-function getArrowBindingsOf(snapshot: RoomSnapshot, shapes: TLShape[]): TLArrowBinding[] {
-	const shapeIds = new Set<string>(shapes.map((shape) => shape.id))
-	return snapshot.documents
-		.map((d) => d.state)
-		.filter(
-			(record): record is TLArrowBinding =>
-				isBinding(record) && record.type === 'arrow' && shapeIds.has(record.fromId)
-		)
-}
-
-export type ResolvedPageOk = Extract<ResolvedPage, { ok: true }>
 
 /** One signed-in user on a board. Everything but `userId` comes from their client. */
 export interface McpBoardUser {
@@ -1099,78 +1089,6 @@ function getPresenceViewport({ camera, screenBounds }: TLInstancePresence): BoxM
 	return Object.values(box).every(Number.isFinite) ? box : null
 }
 
-// Clustering takes three of the things a measure answers: where each shape sits, where
-// each arrow's ends are drawn, and what ShapeUtil.getText says a shape holds. Bounds and arrow ends
-// drive the linkage, alongside the page's bindings; the text is attached to the shapes so labelling
-// reads the editor's answer rather than re-deriving one from props.
-export function clusterPage(page: ResolvedPageOk, measurements: Record<string, ShapeMeasurement>) {
-	const shapes: TLShapeWithPlainText[] = page.shapes.map((shape) => {
-		const text = measurements[shape.id as string]?.text
-		return text ? { ...shape, plainText: text } : shape
-	})
-
-	return getShapeClusters(shapes, page.pageId, measurements, page.bindings)
-}
-
-/**
- * A page's clusters, each cluster's box by cluster id, and the geometry get_cluster_info describes
- * its shapes with, by shape id.
- */
-export interface PageClustering {
-	clusters: ShapeCluster[]
-	bounds: Record<string, BoxModel>
-	arrows: Record<string, MeasuredArrow>
-	dimensions: Record<string, MeasuredDimensions>
-}
-
-export function clusteringFromMeasure(
-	clusters: ShapeCluster[],
-	measurements: Record<string, ShapeMeasurement>
-): PageClustering {
-	const bounds: Record<string, BoxModel> = {}
-	for (const cluster of clusters) {
-		const box = toClusterBox(cluster.shapes.map((shape) => measurements[shape.id]))
-		if (box) bounds[cluster.id] = box
-	}
-	const arrows: Record<string, MeasuredArrow> = {}
-	const dimensions: Record<string, MeasuredDimensions> = {}
-	for (const [id, measurement] of Object.entries(measurements)) {
-		if (measurement.arrow) arrows[id] = measurement.arrow
-		if (measurement.dimensions) dimensions[id] = measurement.dimensions
-	}
-	return { clusters, bounds, arrows, dimensions }
-}
-
-function toClusterBounds({ x, y, w, h }: BoxModel): ClusterBounds {
-	return { minX: x, minY: y, maxX: x + w, maxY: y + h }
-}
-
-/**
- * The box around some shapes, rounded the way get_page_info reports it, or null when none were
- * measured.
- */
-function toClusterBox(boxes: (ClusterBounds | undefined)[]): BoxModel | null {
-	let union: ClusterBounds | null = null
-	for (const box of boxes) {
-		if (!box) continue
-		union = union
-			? {
-					minX: Math.min(union.minX, box.minX),
-					minY: Math.min(union.minY, box.minY),
-					maxX: Math.max(union.maxX, box.maxX),
-					maxY: Math.max(union.maxY, box.maxY),
-				}
-			: box
-	}
-	if (!union) return null
-	return {
-		x: toThousandths(union.minX),
-		y: toThousandths(union.minY),
-		w: toThousandths(union.maxX - union.minX),
-		h: toThousandths(union.maxY - union.minY),
-	}
-}
-
 /**
  * The most cluster JSON one get_page_info answer carries before it stops and hands back a nextCursor.
  * This JSON is denser than get_cluster_info's, mostly digits and punctuation, so it gets a limit of
@@ -1189,8 +1107,7 @@ function roundClusterBox(box: BoxModel | null): BoxModel | null {
 }
 
 export function getPageInfo(
-	page: ResolvedPageOk,
-	{ clusters, bounds }: PageClustering,
+	{ pageName, clusters }: McpPageRead,
 	{ selector, offset }: { selector: PageSelector; offset: number } = {
 		selector: { kind: 'ordinal', ordinal: 0 },
 		offset: 0,
@@ -1198,7 +1115,9 @@ export function getPageInfo(
 ): ToolResult {
 	// Bounds let a model see what is near what without opening every cluster. They are null rather
 	// than invented for a cluster the tab could not measure.
-	const pageBounds = toClusterBox(Object.values(bounds).map(toClusterBounds))
+	const pageBounds = toClusterBox(
+		clusters.flatMap(({ bounds }) => (bounds ? [toClusterBounds(bounds)] : []))
+	)
 
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
 	// ids against a single page, so listing every shape on the board here would hand out ids that
@@ -1216,7 +1135,7 @@ export function getPageInfo(
 			label: c.label,
 			keywords: c.keywords,
 			numberOfShapes: c.numberOfShapes,
-			bounds: roundClusterBox(bounds[c.id] ?? null),
+			bounds: roundClusterBox(c.bounds),
 		}
 		const entrySize = JSON.stringify(entry).length + 1 // the comma
 		if (answer.length > 0 && size + entrySize > PAGE_INFO_MAX_CHARS) break
@@ -1225,7 +1144,7 @@ export function getPageInfo(
 	}
 
 	return toolJsonResult({
-		name: page.pageName,
+		name: pageName,
 		bounds: roundClusterBox(pageBounds),
 		clusterCount: clusters.length,
 		clusters: answer,
@@ -1247,13 +1166,12 @@ export type ClusterInfoResult =
 	| { ok: false; reason: 'cluster_not_found' | 'invalid_input'; result: ToolResult }
 
 export function getClusterInfo(
-	page: ResolvedPageOk,
-	{ clusters, arrows, dimensions }: PageClustering,
+	{ pageName, details, ancestors, bindings, arrows, dimensions }: McpPageRead,
 	clusterIds: string[],
 	selector: PageSelector,
 	cursor: ClusterInfoCursor | null = null
 ): ClusterInfoResult {
-	const found = findClusters(clusters, clusterIds, selector)
+	const found = findClusters(details, clusterIds, selector)
 	if (!found.ok) return { ok: false, reason: 'cluster_not_found', result: found.result }
 
 	const start = cursor ?? { cluster: 0, shape: 0 }
@@ -1269,9 +1187,12 @@ export function getClusterInfo(
 		}
 	}
 
-	const pageTransformOf = getPageTransformResolver(page.shapes)
+	const pageTransformOf = getPageTransformResolver([
+		...details.flatMap((cluster) => cluster.shapes),
+		...ancestors,
+	])
 	const bindingsByArrow = new Map<string, TLArrowBinding[]>()
-	for (const binding of page.bindings) {
+	for (const binding of bindings) {
 		const existing = bindingsByArrow.get(binding.fromId)
 		if (existing) existing.push(binding)
 		else bindingsByArrow.set(binding.fromId, [binding])
@@ -1290,7 +1211,7 @@ export function getClusterInfo(
 		clusterIds
 	)
 	let size = JSON.stringify({
-		pageName: page.pageName,
+		pageName,
 		clusters: [],
 		nextCursor: longestCursor,
 	}).length
@@ -1329,7 +1250,7 @@ export function getClusterInfo(
 	return {
 		ok: true,
 		result: toolJsonResult({
-			pageName: page.pageName,
+			pageName,
 			clusters: answered,
 			...(next ? { nextCursor: encodeClusterInfoCursor(next, clusterIds) } : null),
 		}),
@@ -1536,10 +1457,6 @@ function roundProps(value: unknown): unknown {
 		return Object.fromEntries(Object.entries(value).map(([key, item]) => [key, roundProps(item)]))
 	}
 	return value
-}
-
-function toThousandths(value: number) {
-	return Math.round(value * 1000) / 1000
 }
 
 // Composed from parent and child, a page rotation can run past a full turn or below zero; reported

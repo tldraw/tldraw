@@ -9,12 +9,12 @@ import {
 	CLUSTER_INFO_MAX_CHARS,
 	PAGE_INFO_MAX_CHARS,
 	parsePageInfoInput,
+	McpPageRead,
+	PageSelector,
 	getBoardUsers,
 	ShapeMeasurement,
-	clusterPage,
 	compareBoardSearchOrder,
 	getClusterInfo,
-	clusteringFromMeasure,
 	getBoardInfo,
 	getBoardSearchResults,
 	getPageInfo,
@@ -23,13 +23,39 @@ import {
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
-	resolvePage,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	getClusterScreenshotSize,
 	getClustersBox,
+	readSnapshotPage,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
+
+function readPage(
+	source: any,
+	selector: PageSelector,
+	measurements: Record<string, ShapeMeasurement>,
+	clusterIds: string[] = []
+): McpPageRead {
+	const read = readSnapshotPage(source, selector, measurements, clusterIds)
+	if (!read.ok) throw new Error('Expected the page to resolve')
+	return read.read
+}
+
+// A page read the way a tab answers get_cluster_info for every cluster at once.
+function readEveryCluster(
+	source: any,
+	selector: PageSelector,
+	measurements: Record<string, ShapeMeasurement>
+) {
+	const listed = readPage(source, selector, measurements)
+	return readPage(
+		source,
+		selector,
+		measurements,
+		listed.clusters.map((c) => c.id)
+	)
+}
 
 function parsedJson(result: ReturnType<typeof getBoardSearchResults>) {
 	const block = result.content[0]
@@ -702,13 +728,9 @@ describe('getClusterInfo', () => {
 
 	const FIRST_PAGE = { kind: 'ordinal', ordinal: 0 } as const
 
+	// Read with every cluster named, so each one's shapes are there to look up.
 	function clusteredPage(source: any, measurements: Record<string, ShapeMeasurement>) {
-		const page = resolvePage(source, FIRST_PAGE)
-		if (!page.ok) throw new Error('Expected the page to resolve')
-		return {
-			page,
-			clustering: clusteringFromMeasure(clusterPage(page, measurements), measurements),
-		}
+		return readEveryCluster(source, FIRST_PAGE, measurements)
 	}
 
 	function textOf(result: { content: ReturnType<typeof getBoardSearchResults>['content'] }) {
@@ -717,11 +739,8 @@ describe('getClusterInfo', () => {
 		return block.text
 	}
 
-	function clusterIdOf(
-		clustering: ReturnType<typeof clusteredPage>['clustering'],
-		shapeId: string
-	): string {
-		return clustering.clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!.id
+	function clusterIdOf(read: McpPageRead, shapeId: string): string {
+		return read.details.find((c) => c.shapes.some((s) => s.id === shapeId))!.id
 	}
 
 	function shapesOfCluster(
@@ -730,8 +749,8 @@ describe('getClusterInfo', () => {
 		extraRecords: object[] = []
 	) {
 		const documents = [...records, ...extraRecords].map((state) => ({ state }))
-		const { page, clustering } = clusteredPage({ documents, schema: {} } as any, measurements)
-		const info = getClusterInfo(page, clustering, [clusterIdOf(clustering, shapeId)], FIRST_PAGE)
+		const read = clusteredPage({ documents, schema: {} } as any, measurements)
+		const info = getClusterInfo(read, [clusterIdOf(read, shapeId)], FIRST_PAGE)
 		if (!info.ok) throw new Error('Expected the cluster to resolve')
 		const shapes = JSON.parse(textOf(info.result)).clusters[0].shapes as any[]
 		return (id: string) => shapes.find((s) => s.id === id)
@@ -761,11 +780,11 @@ describe('getClusterInfo', () => {
 			shape('shape:child', { parentId: 'shape:frame', x: 10, y: 10 }),
 			shape('shape:three', { x: 200_000 }),
 		])
-		const { page, clustering } = clusteredPage(board.snapshot, board.measurements)
-		const ids = ['shape:three', 'shape:frame', 'shape:one'].map((id) => clusterIdOf(clustering, id))
+		const read = clusteredPage(board.snapshot, board.measurements)
+		const ids = ['shape:three', 'shape:frame', 'shape:one'].map((id) => clusterIdOf(read, id))
 		expect(new Set(ids).size).toBe(3)
 
-		const info = getClusterInfo(page, clustering, ids, FIRST_PAGE)
+		const info = getClusterInfo(read, ids, FIRST_PAGE)
 		if (!info.ok) throw new Error('Expected the clusters to resolve')
 		const answer = JSON.parse(textOf(info.result))
 
@@ -784,21 +803,16 @@ describe('getClusterInfo', () => {
 			'shapes',
 		])
 		// A cluster read alongside others reads exactly as it does on its own.
-		const alone = getClusterInfo(page, clustering, [ids[1]], FIRST_PAGE)
+		const alone = getClusterInfo(read, [ids[1]], FIRST_PAGE)
 		if (!alone.ok) throw new Error('Expected the cluster to resolve')
 		expect(answer.clusters[1]).toEqual(JSON.parse(textOf(alone.result)).clusters[0])
 	})
 
 	it('refuses the whole call when any id is unknown, naming every missing one', () => {
-		const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
-		const known = clustering.clusters[0].id
+		const read = clusteredPage(snapshot, MEASUREMENTS)
+		const known = read.details[0].id
 
-		const info = getClusterInfo(
-			page,
-			clustering,
-			['cluster:gone', known, 'cluster:also-gone'],
-			FIRST_PAGE
-		)
+		const info = getClusterInfo(read, ['cluster:gone', known, 'cluster:also-gone'], FIRST_PAGE)
 
 		expect(info.ok).toBe(false)
 		if (info.ok) return
@@ -821,12 +835,12 @@ describe('getClusterInfo', () => {
 		])
 
 		function readAll(source: any, measurements: Record<string, ShapeMeasurement>, ids: string[]) {
-			const { page, clustering } = clusteredPage(source, measurements)
-			const clusterIds = ids.map((id) => clusterIdOf(clustering, id))
+			const read = clusteredPage(source, measurements)
+			const clusterIds = ids.map((id) => clusterIdOf(read, id))
 			const answers: any[] = []
 			let cursor = null
 			do {
-				const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, cursor)
+				const info = getClusterInfo(read, clusterIds, FIRST_PAGE, cursor)
 				if (!info.ok) throw new Error(textOf(info.result))
 				const answer = JSON.parse(textOf(info.result))
 				answers.push(answer)
@@ -884,14 +898,14 @@ describe('getClusterInfo', () => {
 					`Quarterly planning review ${i} customer onboarding retention analysis roadmap ` +
 					'milestone '.repeat(25)
 			}
-			const { clustering } = clusteredPage(board.snapshot, board.measurements)
-			const clusterIds = clustering.clusters.map((c) => c.id)
+			const read = clusteredPage(board.snapshot, board.measurements)
+			const clusterIds = read.details.map((c) => c.id)
 			expect(clusterIds).toHaveLength(COUNT)
 
 			const { answers } = readAll(
 				board.snapshot,
 				board.measurements,
-				clustering.clusters.map((c) => c.shapes[0].id)
+				read.details.map((c) => c.shapes[0].id)
 			)
 			// The shapes alone would all fit in one answer.
 			const shapes = answers.flatMap((a) => a.clusters.flatMap((c: any) => c.shapes))
@@ -909,14 +923,11 @@ describe('getClusterInfo', () => {
 				...MEASUREMENTS,
 				'shape:a': { ...MEASUREMENTS['shape:a'], text: 'x'.repeat(70_000) },
 			}
-			const { page, clustering } = clusteredPage(snapshot, huge)
-			const clusterIds = [
-				clusterIdOf(clustering, 'shape:a'),
-				clusterIdOf(clustering, 'shape:frame'),
-			]
+			const read = clusteredPage(snapshot, huge)
+			const clusterIds = [clusterIdOf(read, 'shape:a'), clusterIdOf(read, 'shape:frame')]
 			expect(clusterIds[0]).not.toBe(clusterIds[1])
 
-			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE)
+			const info = getClusterInfo(read, clusterIds, FIRST_PAGE)
 			if (!info.ok) throw new Error('Expected the clusters to resolve')
 			const answer = JSON.parse(textOf(info.result))
 			expect(answer.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))).toContain(
@@ -926,10 +937,10 @@ describe('getClusterInfo', () => {
 		})
 
 		it('refuses a cursor that no longer points into the clusters', () => {
-			const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
-			const clusterIds = [clusterIdOf(clustering, 'shape:a')]
+			const read = clusteredPage(snapshot, MEASUREMENTS)
+			const clusterIds = [clusterIdOf(read, 'shape:a')]
 
-			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, {
+			const info = getClusterInfo(read, clusterIds, FIRST_PAGE, {
 				cluster: 0,
 				shape: 10_000,
 			})
@@ -1148,10 +1159,7 @@ describe('getPageInfo', () => {
 	}
 
 	it('gives each cluster, and the page, its page-space bounds', () => {
-		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
-		if (!page.ok) throw new Error('Expected the page to resolve')
-		const clusters = clusterPage(page, MEASUREMENTS)
-		const result = getPageInfo(page, clusteringFromMeasure(clusters, MEASUREMENTS))
+		const result = getPageInfo(readPage(snapshot, { kind: 'ordinal', ordinal: 0 }, MEASUREMENTS))
 		const block = result.content[0]
 		if (block.type !== 'text') throw new Error('Expected a text block')
 
@@ -1188,9 +1196,7 @@ describe('getPageInfo', () => {
 	})
 
 	it('reports null bounds when nothing was measured', () => {
-		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
-		if (!page.ok) throw new Error('Expected the page to resolve')
-		const block = getPageInfo(page, clusteringFromMeasure(clusterPage(page, {}), {})).content[0]
+		const block = getPageInfo(readPage(snapshot, { kind: 'ordinal', ordinal: 0 }, {})).content[0]
 		if (block.type !== 'text') throw new Error('Expected a text block')
 		const info = JSON.parse(block.text)
 		expect(info.bounds).toBeNull()
@@ -1203,8 +1209,6 @@ describe('getPageInfo', () => {
 
 	describe('paging', () => {
 		const selector = { kind: 'ordinal', ordinal: 0 } as const
-		const page = resolvePage(snapshot, selector)
-		if (!page.ok) throw new Error('Expected the page to resolve')
 
 		// Sizes run small to large, so the answer can only be largest first by sorting.
 		const clusters = Array.from({ length: 800 }, (_, i) => ({
@@ -1212,18 +1216,24 @@ describe('getPageInfo', () => {
 			label: `Cluster ${i}`,
 			keywords: ['one', 'two', 'three', 'four', 'five'],
 			numberOfShapes: i + 1,
-			shapes: [],
+			bounds: { x: i + 0.4, y: 0, w: 100.6, h: 100 },
 		}))
-		const bounds = Object.fromEntries(
-			clusters.map((c, i) => [c.id, { x: i + 0.4, y: 0, w: 100.6, h: 100 }])
-		)
-		const clustering = { clusters, bounds, arrows: {}, dimensions: {} } as any
+		const page: McpPageRead = {
+			pageId: 'page:a',
+			pageName: 'Cover',
+			clusters,
+			details: [],
+			ancestors: [],
+			bindings: [],
+			arrows: {},
+			dimensions: {},
+		}
 
 		function readAllAnswers() {
 			const answers = []
 			let offset = 0
 			for (;;) {
-				const block = getPageInfo(page as any, clustering, { selector, offset }).content[0]
+				const block = getPageInfo(page, { selector, offset }).content[0]
 				if (block.type !== 'text') throw new Error('Expected a text block')
 				const answer = JSON.parse(block.text)
 				answers.push(answer)
@@ -1260,7 +1270,7 @@ describe('getPageInfo', () => {
 		})
 
 		it('answers an offset past the end with no clusters and no cursor', () => {
-			const block = getPageInfo(page, clustering, { selector, offset: 5000 }).content[0]
+			const block = getPageInfo(page, { selector, offset: 5000 }).content[0]
 			if (block.type !== 'text') throw new Error('Expected a text block')
 			const answer = JSON.parse(block.text)
 			expect(answer.clusters).toEqual([])
@@ -1269,7 +1279,7 @@ describe('getPageInfo', () => {
 
 		it('still returns a cluster larger than the limit on its own', () => {
 			const huge = { ...clusters[0], label: 'x'.repeat(PAGE_INFO_MAX_CHARS * 2) }
-			const block = getPageInfo(page, { ...clustering, clusters: [huge, clusters[1]] }).content[0]
+			const block = getPageInfo({ ...page, clusters: [huge, clusters[1]] }).content[0]
 			if (block.type !== 'text') throw new Error('Expected a text block')
 			expect(JSON.parse(block.text).clusters).toHaveLength(1)
 		})

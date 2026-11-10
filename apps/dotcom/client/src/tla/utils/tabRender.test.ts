@@ -1,4 +1,9 @@
-import { TabRenderReply, TabRenderRequest, TabRenderServerEvent } from '@tldraw/dotcom-shared'
+import {
+	TabRenderReadRequest,
+	TabRenderReply,
+	TabRenderRequest,
+	TabRenderServerEvent,
+} from '@tldraw/dotcom-shared'
 import {
 	Editor,
 	TLPageId,
@@ -83,63 +88,102 @@ function job(request: TabRenderRequest): TabRenderServerEvent {
 	return { type: 'mcp_tab_render', jobId: 'job', request }
 }
 
+const readOf = (page: TabRenderReadRequest['page'], clusterIds: string[] = []) =>
+	job({ mode: 'read', page, clusterIds })
+
 const screenshotOf = (pageId: TLPageId, shapeIds: string[]) =>
 	job({ mode: 'screenshot', pageId, shapeIds, theme: 'light', width: 1200, height: 630 })
 
 describe('answerTabRender', () => {
 	it('posts to the job on this file, without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'id', id: firstPageId }))
 		const [url, init] = vi.mocked(fetch).mock.calls[0]
 		expect(url).toBe('/api/app/file/file-1/tab-render/job')
 		expect(new Headers((init as RequestInit).headers).has('Authorization')).toBe(false)
 		editor.dispose()
 	})
 
-	it('measures the page in view, acknowledging first', async () => {
-		const { editor, firstPageId, firstShapeId } = setupEditor()
+	it('reads the page in view, acknowledging first', async () => {
+		const { editor, firstPageId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },
 			{
-				status: 'measured',
-				shapes: {
-					[firstShapeId]: expect.objectContaining({ x: 100, y: 200, w: 300, text: 'Hello' }),
-				},
+				status: 'page_read',
+				read: expect.objectContaining({
+					pageId: firstPageId,
+					pageName: 'Page 1',
+					clusters: [
+						expect.objectContaining({
+							numberOfShapes: 1,
+							bounds: { x: 100, y: 200, w: 300, h: 150 },
+						}),
+					],
+					details: [],
+				}),
 			},
 		])
 		editor.dispose()
 	})
 
+	it('sends records only for the clusters it was asked about, with the measured text', async () => {
+		const { editor, firstShapeId } = setupEditor()
+
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+		const reply = replies.at(-1)
+		if (reply?.status !== 'page_read') throw new Error('expected a page read')
+		const clusterId = reply.read.clusters[0].id
+
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }, [clusterId]))
+
+		expect(replies.at(-1)).toMatchObject({
+			status: 'page_read',
+			read: {
+				details: [
+					{
+						id: clusterId,
+						shapes: [expect.objectContaining({ id: firstShapeId, plainText: 'Hello' })],
+					},
+				],
+			},
+		})
+		editor.dispose()
+	})
+
 	// An agent can ask about any page, and the user shouldn't be moved to answer it.
-	it('measures a page the tab is not showing, without leaving the current one', async () => {
-		const { editor, firstPageId, otherPageId, otherShapeId } = setupEditor()
+	it('reads a page the tab is not showing, without leaving the current one', async () => {
+		const { editor, firstPageId, otherPageId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: otherPageId }))
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'id', id: otherPageId }))
 
-		expect(replies.at(-1)).toEqual({
-			status: 'measured',
-			shapes: { [otherShapeId]: expect.objectContaining({ x: 10, y: 20, w: 50, h: 60 }) },
+		expect(replies.at(-1)).toMatchObject({
+			status: 'page_read',
+			read: {
+				pageId: otherPageId,
+				pageName: 'elsewhere',
+				clusters: [{ bounds: { x: 10, y: 20, w: 50, h: 60 } }],
+			},
 		})
 		expect(editor.getCurrentPageId()).toBe(firstPageId)
 		editor.dispose()
 	})
 
 	it('declines before an editor has mounted', async () => {
-		await answerTabRender(null, 'file-1', job({ mode: 'measure', pageId: 'page:a' as TLPageId }))
+		await answerTabRender(null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 		expect(replies).toEqual([{ status: 'declined', reason: 'editor_not_ready' }])
 	})
 
-	it('declines a page this tab does not have', async () => {
+	it('answers with the page count for a page this tab does not have', async () => {
 		const { editor } = setupEditor()
-		await answerTabRender(
-			editor,
-			'file-1',
-			job({ mode: 'measure', pageId: 'page:nope' as TLPageId })
-		)
-		expect(replies).toEqual([{ status: 'declined', reason: 'page_missing' }])
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 5 }))
+		expect(replies.at(-1)).toEqual({
+			status: 'page_not_found',
+			reason: 'page_out_of_range',
+			pageCount: 2,
+		})
 		editor.dispose()
 	})
 
