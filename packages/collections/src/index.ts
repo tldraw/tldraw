@@ -10,6 +10,8 @@ export { saveShapesToCollection } from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
 export {
 	CollectionMenu,
+	type CollectionMenuCopy,
+	type CollectionMenuMove,
 	type CollectionMenuProps,
 	type CollectionMenuSort,
 } from './ui/collection-menu'
