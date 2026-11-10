@@ -125,7 +125,10 @@ export class CompositeCollectionSource implements CollectionSource {
 		if (ownerId === undefined) throw new CollectionPermissionError('createCollection')
 		const part = this.getOwnerPart(ownerId)
 		if (!part.owner) return part.source.createCollection(name, { ...options, ownerId })
-		const collection = await part.source.createCollection(name)
+		const collection = await part.source.createCollection(
+			name,
+			options.meta === undefined ? {} : { meta: options.meta }
+		)
 		return { ...collection, ownerId: part.owner.id }
 	}
 
