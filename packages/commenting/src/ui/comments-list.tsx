@@ -24,6 +24,8 @@ export interface CommentListItemProps {
 	/** Tallied reactions for the row (a thread's, or a single comment's when the row is one
 	 *  comment), shown as inert pills under the preview. Omit to hide. */
 	reactions?: ReactionSummary[]
+	/** Draws the author's avatar. Defaults to `<Avatar>`. */
+	renderAvatar?(author: CommentAuthor): ReactNode
 	/**
 	 * Link target for the item. When set, the row renders as an anchor so browser affordances
 	 * (ctrl/cmd-click, middle-click) open it in a new tab; a plain click still calls `onSelect`.
@@ -122,6 +124,7 @@ export function CommentListItem({
 	selected,
 	reactions,
 	href,
+	renderAvatar,
 	resolvedLabel = 'Resolved',
 	onSelect,
 }: CommentListItemRenderProps) {
@@ -143,9 +146,9 @@ export function CommentListItem({
 			data-resolved={resolved || undefined}
 			onClick={handleClick}
 		>
-			<Avatar author={author} />
+			{renderAvatar ? renderAvatar(author) : <Avatar author={author} />}
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author} date={date} />
+				<Byline author={author} date={date} renderAvatar={renderAvatar} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
 				{reactions && <Reactions reactions={reactions} canReact={false} enableHoverList={false} />}
 				{(resolved || page !== undefined || replies) && (

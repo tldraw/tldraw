@@ -1,3 +1,4 @@
+import { type CommentAuthor } from '@tldraw/mentions'
 import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	createComment,
@@ -185,6 +186,19 @@ function useCopyLink(href: string | undefined) {
 	return [copied, copy] as const
 }
 
+/**
+ * The `Avatar` component slot as a `renderAvatar` callback for the presentational components, bound
+ * to the id the avatar stands for. Undefined without an override, so they draw their own default.
+ */
+export function avatarRenderer(
+	components: CommentingComponents,
+	authorId: string | null
+): ((author: CommentAuthor) => ReactNode) | undefined {
+	const Avatar = components.Avatar
+	if (!Avatar) return undefined
+	return (author) => <Avatar author={author} authorId={authorId} />
+}
+
 export function toCardProps(
 	comment: TLComment,
 	props: Pick<CommentingContext, 'currentUserId' | 'resolveAuthor'>,
@@ -202,6 +216,7 @@ export function toCardProps(
 	const author = props.resolveAuthor(comment.authorId) ?? UNKNOWN_COMMENT_AUTHOR
 	const date = new Date(comment.createdAt).toISOString()
 	const edited = comment.editedAt != null
+	const renderAvatar = avatarRenderer(components, comment.authorId)
 	const Byline = components.CommentByline
 	return {
 		author,
@@ -209,8 +224,15 @@ export function toCardProps(
 		date,
 		you: comment.authorId === props.currentUserId,
 		edited,
+		renderAvatar,
 		byline: Byline ? (
-			<Byline author={author} date={date} edited={edited} comment={comment} />
+			<Byline
+				author={author}
+				date={date}
+				edited={edited}
+				renderAvatar={renderAvatar}
+				comment={comment}
+			/>
 		) : undefined,
 	}
 }
@@ -489,6 +511,7 @@ export const ThreadView = memo(function ThreadView({
 				>
 					<CommentComposer
 						author={card.author}
+						leading={card.renderAvatar?.(card.author)}
 						placeholder={msg(messages.commentsEditPlaceholder)}
 						value={editText}
 						onChange={setEditText}
@@ -607,6 +630,10 @@ export const ThreadView = memo(function ThreadView({
 				canReply
 					? {
 							author: me ?? UNKNOWN_COMMENT_AUTHOR,
+							leading: avatarRenderer(
+								options.components,
+								currentUserId
+							)?.(me ?? UNKNOWN_COMMENT_AUTHOR),
 							placeholder: msg(messages.commentsReplyPlaceholder),
 							sendLabel: msg(messages.commentsSend),
 							value: reply,

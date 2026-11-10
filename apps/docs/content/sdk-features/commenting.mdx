@@ -363,6 +363,7 @@ Every visible piece of the layer is a slot. Set them through the `components` op
 | ------------------ | ---------------------------------------------------------------------- |
 | `CommentBody`      | A comment's body, normally the rich-text renderer.                     |
 | `CommentByline`    | A comment's avatar, name, and time, normally `Byline`.                 |
+| `Avatar`           | An author's avatar, wherever the layer draws one.                      |
 | `PinContent`       | A pin's inner content, normally the author's initial.                  |
 | `ThreadPreview`    | A sidebar row's preview, normally the body as plain text.              |
 | `ThreadRow`        | A whole sidebar row, normally `CommentListItem`.                       |
@@ -408,6 +409,24 @@ const tools = [CommentTool.configure({ components: { CommentByline: AgentAwareBy
 ```
 
 The slot covers a comment's byline wherever it's shown: the open thread, the hover preview, and the stacked list. A sidebar row is a summary of its thread, so change its author through `ThreadRow` instead.
+
+`Avatar` replaces the avatar in bylines, sidebar rows, the composers, and the default pin content. It receives the resolved author along with the id they were resolved from, so you can look up anything else you know about that person. The default is exported too, so an avatar that only adds something can wrap it:
+
+```tsx
+import { Avatar, AvatarProps, CommentTool } from '@tldraw/commenting'
+
+function PresenceAvatar({ authorId, ...avatar }: AvatarProps & { authorId: string | null }) {
+	return (
+		<div className={isOnline(authorId) ? 'avatar-online' : undefined}>
+			<Avatar {...avatar} />
+		</div>
+	)
+}
+
+const tools = [CommentTool.configure({ components: { Avatar: PresenceAvatar } })]
+```
+
+A `CommentByline` override that spreads its props into `Byline` keeps the `Avatar` slot, because the props include the `renderAvatar` callback that draws it.
 
 `ThreadRow` and `ThreadActions` are the two slots that add to a surface rather than replace a piece of it, so they get the records behind what's on screen.
 

@@ -1,3 +1,4 @@
+import { type AvatarProps } from '@tldraw/mentions'
 import { useMemo, type ComponentType } from 'react'
 import {
 	type Editor,
@@ -68,6 +69,13 @@ export interface CommentingComponents {
 	 * is what `resolveAuthor` returned for the comment's `authorId`.
 	 */
 	CommentByline?: ComponentType<BylineProps & { comment: TLComment }>
+	/**
+	 * An author's avatar, wherever the layer draws one: comment bylines, sidebar rows, the composers,
+	 * and the default pin content. Replaces the default `<Avatar>`, which is exported — so an avatar
+	 * that only adds something (a presence ring, a badge) can spread these props into it. `authorId`
+	 * is the id `author` was resolved from, or `null` in a composer with no signed-in user.
+	 */
+	Avatar?: ComponentType<AvatarProps & { authorId: string | null }>
 	/** A pin's inner content. Replaces the author-initial default. */
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
