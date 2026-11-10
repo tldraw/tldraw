@@ -88,6 +88,13 @@
 	overflow-y: auto;
 }
 
+.tlui-collections-menu-heading {
+	padding: 6px 10px 2px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	cursor: default;
+}
+
 /* A group's heading stays at the top of the list while its collections scroll under it, and its
    collections' headers stick beneath it. */
 .tlui-collections-group {
