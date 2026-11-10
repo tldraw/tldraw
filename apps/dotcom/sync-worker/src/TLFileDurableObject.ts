@@ -108,8 +108,9 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { PageSelector, ResolvedPage, resolvePage } from './routes/tla/boardTools'
+import { PageSelector, resolvePage } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { McpLivePageResult } from './routes/tla/mcpTabRender'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	generateSnapshotChunks,
@@ -3566,19 +3567,16 @@ export class TLFileDurableObject extends DurableObject {
 	 * Refuses before booting the room when this user has no tab, because the caller is about to need
 	 * one anyway.
 	 */
-	async getMcpLivePage(
-		userId: string,
-		page: PageSelector
-	): Promise<{ status: 'no_tab' | 'room_timeout' } | { status: 'ok'; page: ResolvedPage }> {
+	async getMcpLivePage(userId: string, page: PageSelector): Promise<McpLivePageResult> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 		const sockets = this.getTabRenderSockets()
 		if (pickTabRenderSessions(sockets, userId, Date.now()).length === 0) return { status: 'no_tab' }
 
 		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }
-		const snapshot = (await this.getStorage()).getSnapshot?.()
-		if (!snapshot) throw new Error('The room storage cannot be read as a snapshot')
-		return { status: 'ok', page: resolvePage(snapshot, page) }
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		return { status: 'ok', page: resolvePage(storage.getSnapshot(), page) }
 	}
 
 	async hasTabRenderJob(jobId: string): Promise<boolean> {

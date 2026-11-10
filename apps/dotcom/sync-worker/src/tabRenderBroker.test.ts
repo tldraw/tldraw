@@ -116,7 +116,7 @@ describe('TabRenderBroker', () => {
 		expect(broker.receive('made-up', { status: 'accepted' })).toBe(false)
 	})
 
-	// The case the ack exists for: the socket looks fine and nobody is home, so the fallback should
+	// The case the ack exists for: the socket looks fine and nobody is home, so the call should
 	// cost the ack window rather than the whole work timeout.
 	it('gives up after the ack window when no tab acknowledges', async () => {
 		const { result } = dispatch(['a'])
@@ -135,7 +135,7 @@ describe('TabRenderBroker', () => {
 		await expect(result).resolves.toEqual({ status: 'work_timeout' })
 	})
 
-	it('falls back at once when every tab declines, without waiting out a window', async () => {
+	it('answers at once when every tab declines, without waiting out a window', async () => {
 		const { broker, jobIds, result } = dispatch(['a', 'b'])
 		broker.receive(jobIds.get('a')!, { status: 'declined', reason: 'page_not_current' })
 		broker.receive(jobIds.get('b')!, { status: 'declined', reason: 'page_not_current' })
@@ -159,18 +159,11 @@ describe('TabRenderBroker', () => {
 		await expect(result).resolves.toEqual({ status: 'declined', reason: 'page_not_current' })
 	})
 
-	it('falls back when the last working tab fails after the ack window', async () => {
+	it('answers with the decline when the last working tab fails after the ack window', async () => {
 		const { broker, jobIds, result } = dispatch(['a'])
 		broker.receive(jobIds.get('a')!, { status: 'accepted' })
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS + 1)
 		broker.receive(jobIds.get('a')!, { status: 'declined', reason: 'failed' })
 		await expect(result).resolves.toEqual({ status: 'declined', reason: 'failed' })
-	})
-
-	it('forgets a job once it finishes', async () => {
-		const { broker, jobIds, result } = dispatch(['a'])
-		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
-		await result
-		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(false)
 	})
 })

@@ -26,7 +26,7 @@ import {
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
 
-// Answers MCP tool calls from this tab; see "Rendering in an open tab" in browser-run-thumbnails.md.
+// Answers MCP tool calls from this tab; see "Working in an open tab" in browser-run-thumbnails.md.
 //
 // This runs in the tab someone may be drawing in, so it only ever reads: the camera, the current page
 // and the selection stay put, which is why it computes an export frame rather than borrowing the
@@ -194,8 +194,8 @@ function yieldToMainThread() {
 	})
 }
 
-// A lost reply needs no handling: the worker times out and tells the agent. No token: the job id is
-// what the route checks, and waiting on a token refresh made idle tabs miss the ack window.
+// A lost reply needs no handling: the worker times out and tells the agent. The job id is all the
+// route checks; see postTabRenderReply in the sync worker.
 async function postTabRenderReply(fileId: string, jobId: string, reply: TabRenderReply) {
 	try {
 		await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {

@@ -490,7 +490,7 @@ bucket_name = "thumbnails"
 
 #################### Browser Rendering binding ####################
 # Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
-# mcpServer.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
+# thumbnailRender.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
 # worker's isolate. The dev binding is intentionally NOT marked `remote`: a remote binding makes
 # `wrangler dev` require a CLOUDFLARE_API_TOKEN, which the credential-free process-compose e2e stack
 # does not have, so it would fail to boot. Local dev therefore gets a non-functional local BROWSER
