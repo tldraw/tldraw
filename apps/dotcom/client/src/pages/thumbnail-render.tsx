@@ -24,7 +24,6 @@ import {
 	TLRecord,
 	TLShapeId,
 	Tldraw,
-	compact,
 	fetch,
 	sleep,
 	useEditor,
@@ -35,6 +34,13 @@ import {
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
+import {
+	getRequestedBounds,
+	getRequestedShapeIds,
+	getThumbnailContentInset,
+	measureShapeForMcp,
+	renderThumbnailPng,
+} from '../utils/boardCapture'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
 
 // The thumbnail render page: a real editor, loaded with one board's records, that exports itself
@@ -437,10 +443,6 @@ export function clampThumbnailDimension(value: number) {
 	return Math.max(MIN_THUMBNAIL_DIMENSION, Math.min(MAX_THUMBNAIL_DIMENSION, Math.floor(value)))
 }
 
-function getRepresentativeContentInset(width: number, height: number) {
-	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
-}
-
 function fitBoundsCamera(
 	editor: Editor,
 	bounds: Box | null | undefined,
@@ -451,7 +453,7 @@ function fitBoundsCamera(
 		editor.zoomToBounds(bounds, {
 			immediate: true,
 			force: true,
-			inset: getRepresentativeContentInset(width, height),
+			inset: getThumbnailContentInset(width, height),
 		})
 	} else {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
@@ -469,15 +471,6 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 // snapshot endpoint proves every requested id still exists *somewhere* on the board, which is all it
 // can see, so a live shared-file snapshot that moved them to another page since the mint gets here.
 export const SHAPES_NOT_ON_PAGE = 'requested shapes are not on the requested page'
-
-// The shapes the token asked for, filtered to those on the current page. Deliberately not a store
-// lookup: `editor.getShape` answers for a shape on any page, and both callers use this to decide
-// what to draw or delete on *this* one. Membership is read from the current page rather than from
-// each shape's `parentId`, which for a shape inside a frame names the frame instead of the page.
-function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
-	const onCurrentPage = editor.getCurrentPageShapeIds()
-	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
-}
 
 // Readies the canvas for a live capture, or refuses the render. Returns false once the error marker
 // is set, which is terminal — the worker's screenshot wait resolves on it.
@@ -529,9 +522,7 @@ function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
 // for the same reason content fits are: autosized text re-measures once web fonts load.
 function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, height: number) {
 	const ids = getRequestedShapeIds(editor, shapeIds)
-	const bounds = ids.length
-		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-		: null
+	const bounds = ids.length ? getRequestedBounds(editor, ids) : null
 	fitBoundsCamera(editor, bounds, width, height)
 }
 
@@ -660,16 +651,10 @@ function ThumbnailMeasureSignal() {
 			await Promise.race([waitForFonts(editor), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
 			if (cancelled) return
 
-			// Text comes from the shape's own util, which is the authoritative answer — a Worker
-			// reading the record can only approximate it, and gets nothing at all for shapes whose
-			// text is computed rather than stored.
 			const bounds: Record<string, ThumbnailShapeMeasurement> = {}
 			for (const id of editor.getCurrentPageShapeIds()) {
-				const shape = editor.getShape(id)
-				const box = editor.getShapePageBounds(id)
-				if (!shape || !box) continue
-				const text = editor.getShapeUtil(shape).getText(shape)
-				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
+				const measured = measureShapeForMcp(editor, id)
+				if (measured) bounds[id] = measured
 			}
 			if (cancelled) return
 			publishMeasureResult(bounds)
@@ -732,41 +717,7 @@ export async function exportThumbnailImage(
 		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)
 	}
 
-	const { blob } = await editor.toImage(shapeIds, {
-		format: 'png',
-		bounds,
-		scale: camera.z,
-		padding: 0,
-		background: true,
-		darkMode: theme === 'dark',
-		pixelRatio: 1,
-	})
-	return normalizeThumbnailSize(blob, width, height)
-}
-
-// The export's bitmap sizing floors fractional dimensions, so a fractional camera zoom can come
-// back a pixel short of the requested output (e.g. 500 / 0.82 * 0.82 = 499.99…). Redraw onto an
-// exactly-sized canvas when that happens; the sub-pixel stretch is invisible.
-async function normalizeThumbnailSize(blob: Blob, width: number, height: number): Promise<Blob> {
-	const bitmap = await createImageBitmap(blob)
-	try {
-		if (bitmap.width === width && bitmap.height === height) return blob
-
-		const canvas = document.createElement('canvas')
-		canvas.width = width
-		canvas.height = height
-		const context = canvas.getContext('2d')
-		if (!context) return blob
-		context.drawImage(bitmap, 0, 0, width, height)
-		return await new Promise<Blob>((resolve, reject) => {
-			canvas.toBlob(
-				(result) => (result ? resolve(result) : reject(new Error('Could not resize thumbnail'))),
-				'image/png'
-			)
-		})
-	} finally {
-		bitmap.close()
-	}
+	return renderThumbnailPng(editor, shapeIds, { theme, width, height, bounds, scale: camera.z })
 }
 
 // toImage cannot export an empty shape list, so pages with no (visible) shapes fall back to a

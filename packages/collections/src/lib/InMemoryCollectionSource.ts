@@ -6,7 +6,9 @@ import {
 	CollectionPermissionError,
 	type CollectionSource,
 	type TLCollectionAction,
+	type TLCollectionOwner,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from './CollectionSource'
 import {
 	CollectionItemRecordType,
@@ -14,6 +16,7 @@ import {
 	collectionItemValidator,
 	collectionMigrations,
 	CollectionRecordType,
+	mapThumbnail,
 	parseCollectionItemContent,
 	type TLCollection,
 	type TLCollectionId,
@@ -33,6 +36,14 @@ export interface InMemoryCollectionSourceOptions {
 	}
 	/** Makes every collection read-only, like a prefab pack. Items can still be used. */
 	readOnly?: boolean
+	/**
+	 * Who collections can belong to. Leave out for a source without owners, whose collections can't
+	 * be moved, or for a subclass that lists its own by overriding `getCollectionOwners`. When
+	 * given, the starting data and default owner are checked against them.
+	 */
+	owners?: TLCollectionOwner[]
+	/** Who new collections belong to unless they name an owner. Defaults to the first owner. */
+	defaultOwnerId?: string
 }
 
 const schema = StoreSchema.create<TLCollectionRecord>(
@@ -51,15 +62,25 @@ const schema = StoreSchema.create<TLCollectionRecord>(
 export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly readOnly: boolean
+	private readonly owners: TLCollectionOwner[]
+	private readonly defaultOwnerId: string | undefined
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
 	private readonly contents = new Map<TLCollectionItemId, TLCollectionItemContent>()
-	private readonly thumbnailUrls = new Map<TLCollectionItemId, string>()
+	private readonly thumbnailUrls = new Map<TLCollectionItemId, string[]>()
 
 	constructor(options: InMemoryCollectionSourceOptions = {}) {
 		this.id = options.id ?? 'in-memory'
 		this.readOnly = options.readOnly ?? false
+		this.owners = options.owners ?? []
+		this.defaultOwnerId = options.defaultOwnerId
+		// Checked against the option, not getCollectionOwners: a subclass's owners may not be ready yet.
+		const isOwner = (ownerId: string) =>
+			!options.owners || options.owners.some((owner) => owner.id === ownerId)
+		if (this.defaultOwnerId !== undefined && !isOwner(this.defaultOwnerId)) {
+			throw new Error(`Default owner ${this.defaultOwnerId} is not one of the owners`)
+		}
 		if (options.initial) {
 			const { collections, items, contents } = options.initial
 			// Bad starting data would only fail later, in the UI, so it is checked as a whole up front.
@@ -67,6 +88,13 @@ export class InMemoryCollectionSource implements CollectionSource {
 			// listed, which breaks "a collection someone may not use is simply not listed".
 			const ids = [...collections, ...items].map((r) => r.id)
 			if (new Set(ids).size !== ids.length) throw new Error('Duplicate ids in starting data')
+			for (const collection of collections) {
+				if (collection.ownerId !== undefined && !isOwner(collection.ownerId)) {
+					throw new Error(
+						`Collection ${collection.id} belongs to missing owner ${collection.ownerId}`
+					)
+				}
+			}
 			for (const item of items) {
 				if (!collections.some((c) => c.id === item.collectionId)) {
 					throw new Error(`Item ${item.id} belongs to missing collection ${item.collectionId}`)
@@ -115,9 +143,22 @@ export class InMemoryCollectionSource implements CollectionSource {
 		return !collection?.readOnly
 	}
 
-	async createCollection(name: string) {
+	getCollectionOwners() {
+		return this.owners
+	}
+
+	getDefaultOwnerId() {
+		return this.defaultOwnerId
+	}
+
+	async createCollection(name: string, options: TLNewCollectionOptions = {}) {
 		this.assertCan('createCollection')
-		const collection = CollectionRecordType.create({ name })
+		const ownerId = options.ownerId ?? this.getDefaultOwnerId() ?? this.getCollectionOwners()[0]?.id
+		if (ownerId !== undefined && !this.hasOwner(ownerId)) throw new CollectionNotFoundError(ownerId)
+		const collection = CollectionRecordType.create({
+			name,
+			...(ownerId === undefined ? {} : { ownerId }),
+		})
 		this.store.put([collection])
 		return collection
 	}
@@ -145,14 +186,20 @@ export class InMemoryCollectionSource implements CollectionSource {
 			CollectionItemRecordType.create({
 				collectionId,
 				...(newItem.name === undefined ? {} : { name: newItem.name }),
+				createdAt: Date.now(),
 			})
 		)
-		// Created only after validation, so a rejected item can't leak its blob.
+		// Created only after validation, so a rejected item can't leak its blobs.
+		const urls: string[] = []
 		if (newItem.thumbnail) {
-			const thumbnailUrl = URL.createObjectURL(newItem.thumbnail)
-			this.thumbnailUrls.set(item.id, thumbnailUrl)
-			item = { ...item, thumbnailUrl }
+			const thumbnail = mapThumbnail(newItem.thumbnail, (blob) => {
+				const url = URL.createObjectURL(blob)
+				urls.push(url)
+				return url
+			})
+			item = { ...item, thumbnail }
 		}
+		if (urls.length > 0) this.thumbnailUrls.set(item.id, urls)
 		this.contents.set(item.id, structuredClone(content))
 		this.store.put([item])
 		return item
@@ -171,9 +218,26 @@ export class InMemoryCollectionSource implements CollectionSource {
 		this.store.remove([itemId])
 	}
 
+	async moveItem(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) {
+		const item = this.getItem(itemId)
+		this.getCollection(toCollectionId)
+		this.assertCan('deleteItem', item.collectionId)
+		this.assertCan('addItem', toCollectionId)
+		if (item.collectionId === toCollectionId) return
+		this.store.put([{ ...item, collectionId: toCollectionId }])
+	}
+
+	// Items point at their collection, not its owner, so they move with it.
+	async moveCollection(collectionId: TLCollectionId, ownerId: string) {
+		const collection = this.getCollection(collectionId)
+		if (!this.hasOwner(ownerId)) throw new CollectionNotFoundError(ownerId)
+		if (collection.ownerId === ownerId) return
+		this.store.put([{ ...collection, ownerId }])
+	}
+
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */
 	dispose() {
-		for (const url of this.thumbnailUrls.values()) URL.revokeObjectURL(url)
+		for (const urls of this.thumbnailUrls.values()) urls.forEach((url) => URL.revokeObjectURL(url))
 		this.thumbnailUrls.clear()
 	}
 
@@ -181,6 +245,10 @@ export class InMemoryCollectionSource implements CollectionSource {
 		const collection = this.store.get(collectionId)
 		if (!collection) throw new CollectionNotFoundError(collectionId)
 		return collection
+	}
+
+	private hasOwner(ownerId: string) {
+		return this.getCollectionOwners().some((owner) => owner.id === ownerId)
 	}
 
 	private getItem(itemId: TLCollectionItemId) {
@@ -196,8 +264,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	// Object URLs keep their blob alive until revoked, so a deleted item would otherwise leak it.
 	private forgetItem(itemId: TLCollectionItemId) {
 		this.contents.delete(itemId)
-		const url = this.thumbnailUrls.get(itemId)
-		if (url) URL.revokeObjectURL(url)
+		this.thumbnailUrls.get(itemId)?.forEach((url) => URL.revokeObjectURL(url))
 		this.thumbnailUrls.delete(itemId)
 	}
 }

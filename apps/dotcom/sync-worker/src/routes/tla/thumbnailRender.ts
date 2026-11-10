@@ -1,6 +1,8 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	MeasuredArrow,
+	MeasuredDimensions,
 	RENDER_PUSH_BUDGET_BYTES,
 	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
@@ -26,6 +28,7 @@ import {
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { evaluateFlagForUser, getFeatureFlagValue } from '../../utils/featureFlags'
 import {
 	RenderPageReach,
 	ThumbnailRenderJob,
@@ -227,8 +230,7 @@ async function renderTransportFor(
 	snapshot: RoomSnapshot | undefined,
 	job: ThumbnailRenderJob
 ): Promise<RenderTransport> {
-	// The trial's kill switch: off, every render fetches, as before push existed.
-	if (!snapshot || envFlagWord(env.THUMBNAIL_RENDER_PUSH) !== 'true') return PULL
+	if (!snapshot || !(await isPushRolledOutFor(env, job))) return PULL
 	if (await didPushTimeOutRecently(env, job)) return { kind: 'push_fallback', pushChars: 0 }
 	// Built by the snapshot route's own function, so a pushed render and a fetched one cannot differ.
 	const body = thumbnailSnapshotBodyFor(snapshot, job)
@@ -241,6 +243,21 @@ async function renderTransportFor(
 		return { kind: 'push_fallback', pushChars: script.length }
 	}
 	return { kind: 'push', pushChars: script.length, script, board: job }
+}
+
+// The OG percentage is bucketed per board, not per render: otherwise a board's retries would flip
+// between transports and the per-board push-fallback marker would stop meaning anything.
+async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
+	if (envFlagWord(env.THUMBNAIL_RENDER_PUSH) === 'true') return true
+	if (job.surface === 'mcp') {
+		return evaluateFlagForUser(
+			await getFeatureFlagValue(env, 'mcp_render_push'),
+			'mcp_render_push',
+			null
+		)
+	}
+	const flag = await getFeatureFlagValue(env, 'thumbnail_render_push')
+	return evaluateFlagForUser(flag, 'thumbnail_render_push', `${job.kind}/${job.slug}`)
 }
 
 // The page waits for a push as long as the capture lasts, so a push that never lands is a
@@ -1039,17 +1056,22 @@ export async function measurePageShapes(
 	}
 }
 
-// The page's result element out of a `/content` response. Malformed boxes are dropped rather than
-// kept: a non-finite value would produce NaN distances and silently detach that shape from the
-// minimum spanning tree.
-function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
+// The page's result element out of a `/content` response.
+export function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
 	const html = new TextDecoder().decode(buffer)
 	const match = new RegExp(
 		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
 	).exec(html)
 	if (!match) throw new Error('The render page did not report any measurements')
-	const reported = JSON.parse(match[1]) as Record<string, ThumbnailShapeMeasurement>
+	return readMeasurements(JSON.parse(match[1]))
+}
 
+// What an editor reported, whichever editor that was. Malformed boxes are dropped rather than kept: a
+// non-finite value would produce NaN distances and silently detach that shape from the minimum
+// spanning tree.
+export function readMeasurements(
+	reported: Record<string, ThumbnailShapeMeasurement>
+): Record<string, ShapeMeasurement> {
 	const bounds: Record<string, ShapeMeasurement> = {}
 	for (const [shapeId, box] of Object.entries(reported)) {
 		if (
@@ -1060,15 +1082,44 @@ function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement
 		) {
 			continue
 		}
+		const arrow = readArrow(box.arrow)
+		const dimensions = readDimensions(box.dimensions)
 		bounds[shapeId] = {
 			minX: box.x,
 			minY: box.y,
 			maxX: box.x + box.w,
 			maxY: box.y + box.h,
 			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
+			...(arrow ? { arrow } : null),
+			...(dimensions ? { dimensions } : null),
 		}
 	}
 	return bounds
+}
+
+// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
+// arrow from its record, as it would for a render page that predates arrow measurement.
+function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
+	const start = readPoint(value?.start)
+	const end = readPoint(value?.end)
+	return start && end ? { start, end } : undefined
+}
+
+function readPoint(value: unknown) {
+	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
+	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
+}
+
+// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
+function readDimensions(
+	value: ThumbnailShapeMeasurement['dimensions']
+): MeasuredDimensions | undefined {
+	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
+	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
+}
+
+function isFiniteNumber(value: unknown): value is number {
+	return Number.isFinite(value)
 }
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version

@@ -19,10 +19,46 @@ export interface TLCollection extends BaseRecord<'collection', TLCollectionId> {
 	 * Sources can leave it out; absent means false.
 	 */
 	readOnly?: boolean
+	/**
+	 * Who the collection belongs to, such as a user or a workspace, as the source names them in
+	 * `CollectionSource.getCollectionOwners`. What an owner is stays up to the source. Left out by
+	 * sources that don't track owners.
+	 */
+	ownerId?: string
 	meta: JsonObject
 }
 
 export type TLCollectionItemId = RecordId<TLCollectionItem>
+
+/**
+ * An item's preview: one image for every colour mode, or a light and a dark one for apps that have
+ * both. `Src` is a URL on a listed item and a `Blob` when adding one.
+ */
+export type TLCollectionThumbnail<Src = string> = Src | { light: Src; dark: Src }
+
+function isThumbnailPair<Src>(
+	thumbnail: TLCollectionThumbnail<Src>
+): thumbnail is { light: Src; dark: Src } {
+	return typeof thumbnail === 'object' && thumbnail !== null && 'light' in thumbnail
+}
+
+/** The image to show in a colour mode. */
+export function getThumbnailForColorMode<Src>(
+	thumbnail: TLCollectionThumbnail<Src>,
+	colorMode: 'light' | 'dark'
+): Src {
+	return isThumbnailPair(thumbnail) ? thumbnail[colorMode] : thumbnail
+}
+
+/** Converts each image of a thumbnail, keeping it a single image or a pair. */
+export function mapThumbnail<A, B>(
+	thumbnail: TLCollectionThumbnail<A>,
+	convert: (src: A) => B
+): TLCollectionThumbnail<B> {
+	return isThumbnailPair(thumbnail)
+		? { light: convert(thumbnail.light), dark: convert(thumbnail.dark) }
+		: convert(thumbnail)
+}
 
 /**
  * The listing entry for an item. Its content is loaded separately, with
@@ -36,8 +72,13 @@ export interface TLCollectionItem extends BaseRecord<'collection-item', TLCollec
 	 * The UI decides what to show instead. When present it is never blank.
 	 */
 	name?: string
-	/** Left out when the item has no thumbnail. When present it is never blank. */
-	thumbnailUrl?: string
+	/** Left out when the item has no thumbnail. Its URLs are never blank. */
+	thumbnail?: TLCollectionThumbnail
+	/**
+	 * When the item was saved, in milliseconds since the epoch. Left out by sources that don't
+	 * track it; orderings by date put those items last.
+	 */
+	createdAt?: number
 	/** Always 1 for now: items aren't replaced. To change one, delete it and add it again. */
 	version: number
 	meta: JsonObject
@@ -54,6 +95,7 @@ export const collectionValidator: T.Validator<TLCollection> = T.object({
 	typeName: T.literal('collection'),
 	name: nonEmptyString,
 	readOnly: T.boolean.optional(),
+	ownerId: nonEmptyString.optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
@@ -62,7 +104,11 @@ export const collectionItemValidator: T.Validator<TLCollectionItem> = T.object({
 	typeName: T.literal('collection-item'),
 	collectionId: idValidator<TLCollectionId>('collection'),
 	name: nonEmptyString.optional(),
-	thumbnailUrl: nonEmptyString.optional(),
+	thumbnail: T.or(
+		nonEmptyString,
+		T.object({ light: nonEmptyString, dark: nonEmptyString })
+	).optional(),
+	createdAt: T.number.optional(),
 	version: T.positiveInteger,
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })

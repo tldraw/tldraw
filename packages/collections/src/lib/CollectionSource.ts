@@ -4,6 +4,7 @@ import type {
 	TLCollectionItem,
 	TLCollectionItemContent,
 	TLCollectionItemId,
+	TLCollectionThumbnail,
 } from './schema'
 
 /**
@@ -20,13 +21,28 @@ export type TLCollectionAction =
 	| 'renameItem'
 	| 'deleteItem'
 
+/** Something a collection can belong to, such as a user or a workspace. */
+export interface TLCollectionOwner {
+	id: string
+	name: string
+}
+
+/** Choices for a new collection. */
+export interface TLNewCollectionOptions {
+	/** Who it belongs to. Left out, the source decides, e.g. its default owner. */
+	ownerId?: string
+}
+
 /** What a source needs to store a new item. */
 export interface TLNewCollectionItem {
 	/** Optional: adding from the canvas shouldn't force people to name things first. */
 	name?: string
 	content: TLCollectionItemContent
-	/** A rendered preview. Leave it out and the UI shows a placeholder. */
-	thumbnail?: Blob
+	/**
+	 * A rendered preview, or a light and a dark one for an app with both modes. Leave it out and the
+	 * UI shows a placeholder.
+	 */
+	thumbnail?: TLCollectionThumbnail<Blob>
 }
 
 /**
@@ -51,13 +67,37 @@ export interface CollectionSource {
 	 */
 	can(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
 
-	createCollection(name: string): Promise<TLCollection>
+	createCollection(name: string, options?: TLNewCollectionOptions): Promise<TLCollection>
 	renameCollection(collectionId: TLCollectionId, name: string): Promise<void>
 	deleteCollection(collectionId: TLCollectionId): Promise<void>
 
 	addItem(collectionId: TLCollectionId, item: TLNewCollectionItem): Promise<TLCollectionItem>
 	renameItem(itemId: TLCollectionItemId, name: string): Promise<void>
 	deleteItem(itemId: TLCollectionItemId): Promise<void>
+	/**
+	 * Moves an item to another collection, keeping its id, content and thumbnail. Needs
+	 * `deleteItem` on the collection it leaves and `addItem` on the one it joins. Optional: the UI
+	 * offers "Move to" only for sources that have it.
+	 */
+	moveItem?(itemId: TLCollectionItemId, toCollectionId: TLCollectionId): Promise<void>
+
+	/**
+	 * Who collections can belong to, each collection naming one in its `ownerId`. Listed in the
+	 * order the UI should show them, e.g. the user's own first, then their workspaces. Optional:
+	 * sources that don't track owners leave it out.
+	 */
+	getCollectionOwners?(): TLCollectionOwner[]
+	/**
+	 * Who new collections belong to unless the user picks, such as the owner of the open file. The
+	 * UI's "New collection" passes it to {@link CollectionSource.createCollection}. Optional: left
+	 * out, or returning undefined, the source decides.
+	 */
+	getDefaultOwnerId?(): string | undefined
+	/**
+	 * Gives a collection to another owner. Its items stay in it. Optional: sources that don't track
+	 * owners, or can't move collections between them, leave it out.
+	 */
+	moveCollection?(collectionId: TLCollectionId, ownerId: string): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */
@@ -75,10 +115,10 @@ export class CollectionPermissionError extends Error {
 	}
 }
 
-/** Thrown by a source when a collection or item doesn't exist (any more). */
+/** Thrown by a source when a collection, item or owner doesn't exist (any more). */
 export class CollectionNotFoundError extends Error {
 	override name = 'CollectionNotFoundError'
 	constructor(readonly id: string) {
-		super(`No collection or item with id ${id}`)
+		super(`No collection, item or owner with id ${id}`)
 	}
 }

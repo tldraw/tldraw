@@ -1,5 +1,6 @@
 import { TLGroupShape, groupShapeMigrations, groupShapeProps } from '@tldraw/tlschema'
 import { SVGContainer } from '../../../components/SVGContainer'
+import { defineMessages, translateMessage } from '../../../config/TLI18n'
 import { Geometry2d } from '../../../primitives/geometry/Geometry2d'
 import { Group2d } from '../../../primitives/geometry/Group2d'
 import { Rectangle2d } from '../../../primitives/geometry/Rectangle2d'
@@ -7,11 +8,20 @@ import { ShapeUtil } from '../ShapeUtil'
 import { getPerfectDashProps } from '../shared/getPerfectDashProps'
 import { DashedOutlineBox } from './DashedOutlineBox'
 
+const messages = defineMessages({
+	name: { id: 'a11y.shape-group', defaultMessage: 'Group' },
+})
+
 /** @public */
 export class GroupShapeUtil extends ShapeUtil<TLGroupShape> {
 	static override type = 'group' as const
 	static override props = groupShapeProps
 	static override migrations = groupShapeMigrations
+
+	// Groups have no tool of their own, so there's no `tool.group` label to fall back on.
+	override getShapeName() {
+		return translateMessage(this.editor.i18n(), messages.name)
+	}
 
 	override hideSelectionBoundsFg(shape: TLGroupShape) {
 		return true

@@ -1,5 +1,8 @@
+import type { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { vi } from 'vitest'
+import type { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
+import { ShapeMeasurement } from './boardTools'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -130,12 +133,7 @@ export function makeFakeQueue() {
 // every clustering tool would fail on a missing result, since they all measure the page before
 // clustering it. Bounds are given as boxes, the shape the worker stores, and converted to what the
 // page reports.
-export function makeMeasuringBrowserBinding(
-	bounds: Record<
-		string,
-		{ minX: number; minY: number; maxX: number; maxY: number; text?: string }
-	> = {}
-) {
+export function makeMeasuringBrowserBinding(bounds: Record<string, ShapeMeasurement> = {}) {
 	const binding = makeBrowserBinding()
 	binding.quickAction.mockImplementation(async (action: string) =>
 		action === 'content'
@@ -150,13 +148,11 @@ export function contentResponse(html: string) {
 	return Response.json({ success: true, result: html })
 }
 
-export function measurePageHtml(
-	bounds: Record<string, { minX: number; minY: number; maxX: number; maxY: number; text?: string }>
-) {
+export function measurePageHtml(bounds: Record<string, ShapeMeasurement>) {
 	const reported = Object.fromEntries(
-		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, text }]) => [
+		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, ...rest }]) => [
 			id,
-			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...(text ? { text } : null) },
+			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...rest },
 		])
 	)
 	return `<html data-thumbnail-ready="true"><head></head><body data-thumbnail-ready="true"><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported).replace(/</g, '\\u003c')}</script></body></html>`
@@ -172,7 +168,12 @@ export function measurePageHtml(
 // a value rather than part of the key — so a write for new content replaces the old row exactly as
 // `INSERT OR REPLACE` does, a read for a stale version misses, and a write prunes the pages the board
 // no longer has. mcpClusterIndexStorage.test.ts is what holds this fake to the real statements.
-export function makeFakeFileDurableObjectNamespace() {
+export function makeFakeFileDurableObjectNamespace(
+	requestTabRender: (
+		userId: string,
+		request: TabRenderRequest
+	) => Promise<TabRenderOutcome> = async () => ({ status: 'no_tab' })
+) {
 	const objects = new Map<string, Map<string, { version: string; payload: string }>>()
 	const calls = { get: 0, put: 0 }
 	const keyOf = (key: { kind: string; pageId: string }) => `${key.kind}/${key.pageId}`
@@ -205,6 +206,7 @@ export function makeFakeFileDurableObjectNamespace() {
 					}
 					store.set(keyOf(key), { version: key.version, payload })
 				},
+				requestTabRender,
 			}
 		},
 	}
@@ -213,6 +215,8 @@ export function makeFakeFileDurableObjectNamespace() {
 export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>> = {}) {
 	return {
 		BROWSER: makeBrowserBinding(),
+		// Empty: every flag reads as its default.
+		FEATURE_FLAGS: { get: async () => null },
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://www.tldraw.com',
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },

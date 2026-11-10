@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import {
 	defineMessages,
 	getIncrementedName,
@@ -12,11 +11,12 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollection } from '../lib/schema'
-import { CollectionMenu } from '../ui/collection-menu'
+import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { CollectionPicker } from '../ui/collection-picker'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { activeCollectionId } from './state'
+import { createNewCollection } from './new-collection'
+import { activeCollectionId, renamingCollectionId } from './state'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -49,6 +49,8 @@ export interface CollectionsPanelHeaderProps {
 	current?: TLCollection
 	/** How many items `current` holds, for the delete confirmation. */
 	itemCount: number
+	/** The menu's "Sort items by" submenu, when items can be ordered more than one way. */
+	sort?: CollectionMenuSort
 }
 
 /** The panel's header: the collection picker, adding the selection, and managing collections. */
@@ -57,15 +59,21 @@ export function CollectionsPanelHeader({
 	collections,
 	current,
 	itemCount,
+	sort,
 }: CollectionsPanelHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const saveSelection = useSaveSelection(source)
-	const [renaming, setRenaming] = useState(false)
-	const startRenaming = () => setRenaming(true)
+	const { saveSelection } = useSaveSelection(source)
 	const currentId = current?.id
+	const renaming = useValue(
+		'renaming collection',
+		() => currentId !== undefined && renamingCollectionId.get(editor) === currentId,
+		[editor, currentId]
+	)
+	const startRenaming = () => renamingCollectionId.set(editor, currentId ?? null)
+	const stopRenaming = () => renamingCollectionId.set(editor, null)
 
 	const can = useValue(
 		'collection permissions',
@@ -93,14 +101,14 @@ export function CollectionsPanelHeader({
 			msg(messages.newCollectionName),
 			collections.map((collection) => collection.name)
 		)
-		source.createCollection(name).then((collection) => {
+		createNewCollection(source, name).then((collection) => {
 			activeCollectionId.set(editor, collection.id)
-			startRenaming()
+			renamingCollectionId.set(editor, collection.id)
 		}, showError)
 	}
 
 	const renameCollection = (name: string) => {
-		setRenaming(false)
+		stopRenaming()
 		const trimmed = name.trim()
 		// Collection names are never blank, so clearing the input keeps the old name.
 		if (!current || trimmed === '' || trimmed === current.name) return
@@ -126,6 +134,7 @@ export function CollectionsPanelHeader({
 			onCreate={can.create ? createCollection : undefined}
 			onRename={can.rename ? startRenaming : undefined}
 			onDelete={can.delete ? deleteCollection : undefined}
+			sort={sort}
 		/>
 	)
 
@@ -145,7 +154,7 @@ export function CollectionsPanelHeader({
 					className="tlui-collections-panel__rename"
 					defaultValue={current.name}
 					onComplete={renameCollection}
-					onCancel={() => setRenaming(false)}
+					onCancel={stopRenaming}
 				/>
 			) : (
 				<CollectionPicker

@@ -1,3 +1,4 @@
+import { b64Vecs } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
@@ -5,14 +6,24 @@ import {
 	CreatableWorkspace,
 	BOARD_SEARCH_PAGE_SIZE,
 	BoardSearchRow,
+	CLUSTER_INFO_MAX_CHARS,
+	PAGE_INFO_MAX_CHARS,
+	parsePageInfoInput,
+	ShapeMeasurement,
+	clusterPage,
 	compareBoardSearchOrder,
+	getClusterInfo,
+	clusteringFromMeasure,
 	getBoardInfo,
 	getBoardSearchResults,
+	getPageInfo,
 	isAfterBoardSearchCursor,
 	parseCreateBoardInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	resolveCreateBoardWorkspace,
+	resolvePage,
+	parseClusterInfoInput,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -458,5 +469,730 @@ describe('resolveCreateBoardWorkspace', () => {
 		expect(result).toMatchObject({ ok: false, reason: 'workspace_not_found' })
 		expect(errorText(result)).toContain('"Design" (id: group-design)')
 		expect(errorText(result)).toContain('"My workspace" (id: user-1, personal)')
+	})
+})
+
+describe('getClusterInfo', () => {
+	const PAGE = 'page:a'
+
+	function shape(id: string, overrides: Record<string, unknown> = {}) {
+		return {
+			typeName: 'shape',
+			id,
+			parentId: PAGE,
+			type: 'geo',
+			index: 'a1',
+			x: 0,
+			y: 0,
+			rotation: 0,
+			opacity: 1,
+			isLocked: false,
+			meta: {},
+			props: { w: 100, h: 100, scale: 1 },
+			...overrides,
+		}
+	}
+
+	function arrowBinding(id: string, arrowId: string, toId: string, terminal: 'start' | 'end') {
+		return {
+			typeName: 'binding',
+			id,
+			type: 'arrow',
+			fromId: arrowId,
+			toId,
+			meta: {},
+			props: {
+				terminal,
+				normalizedAnchor: { x: 0.25, y: 0.333333 },
+				isPrecise: true,
+				isExact: false,
+				snap: 'none',
+			},
+		}
+	}
+
+	// A frame turned a quarter turn, holding a box; two boxes joined by a bound arrow; and a free arrow
+	// inside the frame. Every case a stored record gets wrong without page space.
+	const records = [
+		{ typeName: 'document', id: 'document:document', name: 'Board' },
+		{ typeName: 'page', id: PAGE, name: 'Cover', index: 'a1' },
+		shape('shape:frame', {
+			type: 'frame',
+			x: 1000.4,
+			y: 500.6,
+			rotation: Math.PI / 2,
+			props: { w: 400.4, h: 299.7, name: 'Flow' },
+		}),
+		shape('shape:inner', { parentId: 'shape:frame', x: 10, y: 20, opacity: 0.55 }),
+		shape('shape:free', {
+			type: 'arrow',
+			parentId: 'shape:frame',
+			x: 50,
+			y: 0,
+			props: {
+				kind: 'arc',
+				start: { x: 0, y: 0 },
+				end: { x: 100, y: 0 },
+				bend: 12.345678901234567,
+				labelPosition: 0.5,
+				elbowMidPoint: 0.5,
+				scale: 1.5,
+			},
+		}),
+		shape('shape:a', { x: 0, y: 0, props: { w: 100, h: 100, growY: 40, size: 'xl', scale: 1 } }),
+		shape('shape:caption', {
+			type: 'text',
+			x: 0,
+			y: 150,
+			props: { w: 80, autoSize: true, scale: 1 },
+		}),
+		shape('shape:scribble', {
+			type: 'draw',
+			x: 0,
+			y: 300,
+			props: {
+				segments: [
+					{
+						type: 'free',
+						path: b64Vecs.encodePoints(
+							[0, 30, 60, 90, 120, 150].map((x) => ({ x, y: x % 60 ? 60 : 0, z: 0.5 })),
+							2
+						),
+						dim: 2,
+					},
+					{
+						type: 'straight',
+						points: [
+							{ x: 0, y: 0, z: 0.5 },
+							{ x: 10, y: 0, z: 0.5 },
+						],
+					},
+				],
+				size: 'l',
+				scale: 1,
+			},
+		}),
+		shape('shape:b', { x: 400, y: 0 }),
+		shape('shape:bound', {
+			type: 'arrow',
+			props: {
+				kind: 'arc',
+				start: { x: 0, y: 0 },
+				end: { x: 2, y: 0 },
+				bend: 0,
+				labelPosition: 0.5,
+				elbowMidPoint: 0.5,
+				scale: 1,
+			},
+		}),
+		arrowBinding('binding:start', 'shape:bound', 'shape:a', 'start'),
+		arrowBinding('binding:end', 'shape:bound', 'shape:b', 'end'),
+	]
+
+	const snapshot = { documents: records.map((state) => ({ state })), schema: {} } as any
+
+	const MEASUREMENTS: Record<string, ShapeMeasurement> = {
+		'shape:frame': { minX: 700.4, minY: 500.6, maxX: 1000.4, maxY: 900.6 },
+		'shape:inner': { minX: 880.4, minY: 510.6, maxX: 980.4, maxY: 610.6 },
+		'shape:free': { minX: 999.6, minY: 550.6, maxX: 1001.2, maxY: 650.6 },
+		'shape:a': { minX: 0, minY: 0, maxX: 100, maxY: 140, text: 'Start' },
+		'shape:caption': {
+			minX: 0,
+			minY: 150,
+			maxX: 80,
+			maxY: 176.4,
+			text: 'Caption',
+			dimensions: { w: 80.0004, h: 26.4 },
+		},
+		'shape:b': { minX: 400, minY: 0, maxX: 500, maxY: 100 },
+		'shape:scribble': {
+			minX: 0,
+			minY: 300,
+			maxX: 150,
+			maxY: 360,
+			dimensions: { w: 150.0002, h: 60 },
+		},
+		'shape:bound': {
+			minX: 100.2,
+			minY: 49.5,
+			maxX: 399.7,
+			maxY: 50.5,
+			arrow: { start: { x: 100.2, y: 50.1 }, end: { x: 399.7, y: 49.9 } },
+		},
+	}
+
+	const FIRST_PAGE = { kind: 'ordinal', ordinal: 0 } as const
+
+	function clusteredPage(source: any, measurements: Record<string, ShapeMeasurement>) {
+		const page = resolvePage(source, FIRST_PAGE)
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		return {
+			page,
+			clustering: clusteringFromMeasure(clusterPage(page, measurements), measurements),
+		}
+	}
+
+	function textOf(result: { content: ReturnType<typeof getBoardSearchResults>['content'] }) {
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		return block.text
+	}
+
+	function clusterIdOf(
+		clustering: ReturnType<typeof clusteredPage>['clustering'],
+		shapeId: string
+	): string {
+		return clustering.clusters.find((c) => c.shapes.some((s) => s.id === shapeId))!.id
+	}
+
+	function shapesOfCluster(
+		measurements: Record<string, ShapeMeasurement>,
+		shapeId: string,
+		extraRecords: object[] = []
+	) {
+		const documents = [...records, ...extraRecords].map((state) => ({ state }))
+		const { page, clustering } = clusteredPage({ documents, schema: {} } as any, measurements)
+		const info = getClusterInfo(page, clustering, [clusterIdOf(clustering, shapeId)], FIRST_PAGE)
+		if (!info.ok) throw new Error('Expected the cluster to resolve')
+		const shapes = JSON.parse(textOf(info.result)).clusters[0].shapes as any[]
+		return (id: string) => shapes.find((s) => s.id === id)
+	}
+
+	// Pages built from boxes far enough apart that each top-level shape is its own cluster, unless it
+	// is a frame holding children.
+	function farApart(shapes: Record<string, unknown>[]) {
+		const all = [records[0], records[1], ...shapes]
+		const measurements: Record<string, ShapeMeasurement> = {}
+		const byId = new Map((shapes as any[]).map((record) => [record.id, record]))
+		for (const record of shapes as any[]) {
+			// One level of nesting is all these pages use, and none of them rotate.
+			const x = record.x + (byId.get(record.parentId)?.x ?? 0)
+			measurements[record.id] = { minX: x, minY: 0, maxX: x + record.props.w, maxY: 100 }
+		}
+		return {
+			snapshot: { documents: all.map((state) => ({ state })), schema: {} } as any,
+			measurements,
+		}
+	}
+
+	it('answers several clusters in the order asked, each in the single-cluster shape', () => {
+		const board = farApart([
+			shape('shape:one', { x: 0 }),
+			shape('shape:frame', { type: 'frame', x: 100_000, props: { w: 400, h: 100, name: 'F' } }),
+			shape('shape:child', { parentId: 'shape:frame', x: 10, y: 10 }),
+			shape('shape:three', { x: 200_000 }),
+		])
+		const { page, clustering } = clusteredPage(board.snapshot, board.measurements)
+		const ids = ['shape:three', 'shape:frame', 'shape:one'].map((id) => clusterIdOf(clustering, id))
+		expect(new Set(ids).size).toBe(3)
+
+		const info = getClusterInfo(page, clustering, ids, FIRST_PAGE)
+		if (!info.ok) throw new Error('Expected the clusters to resolve')
+		const answer = JSON.parse(textOf(info.result))
+
+		expect(answer.pageName).toBe('Cover')
+		expect(answer.clusters.map((c: any) => c.clusterId)).toEqual(ids)
+		expect(answer.clusters.map((c: any) => c.shapes.map((s: any) => s.id))).toEqual([
+			['shape:three'],
+			['shape:frame', 'shape:child'],
+			['shape:one'],
+		])
+		expect(Object.keys(answer.clusters[0])).toEqual([
+			'clusterId',
+			'label',
+			'keywords',
+			'numberOfShapes',
+			'shapes',
+		])
+		// A cluster read alongside others reads exactly as it does on its own.
+		const alone = getClusterInfo(page, clustering, [ids[1]], FIRST_PAGE)
+		if (!alone.ok) throw new Error('Expected the cluster to resolve')
+		expect(answer.clusters[1]).toEqual(JSON.parse(textOf(alone.result)).clusters[0])
+	})
+
+	it('refuses the whole call when any id is unknown, naming every missing one', () => {
+		const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
+		const known = clustering.clusters[0].id
+
+		const info = getClusterInfo(
+			page,
+			clustering,
+			['cluster:gone', known, 'cluster:also-gone'],
+			FIRST_PAGE
+		)
+
+		expect(info.ok).toBe(false)
+		if (info.ok) return
+		expect(info.reason).toBe('cluster_not_found')
+		expect(textOf(info.result)).toBe(
+			'No cluster on page 0 with id "cluster:gone", "cluster:also-gone". Call get_page_info to list this page\'s clusters.'
+		)
+	})
+
+	describe('paging', () => {
+		// A frame holding enough boxes that its cluster runs past one answer on its own, and a lone box
+		// beside it, asked for after it.
+		const BOXES = 400
+		const { snapshot: bigSnapshot, measurements: bigMeasurements } = farApart([
+			shape('shape:big', { type: 'frame', props: { w: 2000, h: 100, name: 'Big' } }),
+			...Array.from({ length: BOXES }, (_, i) =>
+				shape(`shape:box-${i}`, { parentId: 'shape:big', props: { w: 10, h: 10 } })
+			),
+			shape('shape:lone', { x: 100_000 }),
+		])
+
+		function readAll(source: any, measurements: Record<string, ShapeMeasurement>, ids: string[]) {
+			const { page, clustering } = clusteredPage(source, measurements)
+			const clusterIds = ids.map((id) => clusterIdOf(clustering, id))
+			const answers: any[] = []
+			let cursor = null
+			do {
+				const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, cursor)
+				if (!info.ok) throw new Error(textOf(info.result))
+				const answer = JSON.parse(textOf(info.result))
+				answers.push(answer)
+				cursor = answer.nextCursor
+					? parseClusterInfoInput({ boardId: 'b', clusterIds, cursor: answer.nextCursor }).cursor
+					: null
+			} while (cursor)
+			return { answers, clusterIds }
+		}
+
+		it('splits an answer too large for one response, and every shape arrives once, in order', () => {
+			const { answers, clusterIds } = readAll(bigSnapshot, bigMeasurements, [
+				'shape:big',
+				'shape:lone',
+			])
+
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				const shapes = answer.clusters.flatMap((c: any) => c.shapes)
+				expect(JSON.stringify(shapes).length).toBeLessThanOrEqual(CLUSTER_INFO_MAX_CHARS)
+			}
+			const received = answers.flatMap((a) =>
+				a.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))
+			)
+			expect(received).toEqual([
+				'shape:big',
+				...Array.from({ length: BOXES }, (_, i) => `shape:box-${i}`),
+				'shape:lone',
+			])
+			expect(answers.at(-1).nextCursor).toBeUndefined()
+
+			// The big cluster is cut across answers, so each slice says where it starts; the lone one
+			// arrives whole and says nothing.
+			const slices = answers.flatMap((a) => a.clusters).filter((c) => c.clusterId === clusterIds[0])
+			expect(slices.map((c) => c.firstShapeIndex)).toEqual(
+				slices.map((_, i) =>
+					slices.slice(0, i).reduce((sum: number, c: any) => sum + c.shapes.length, 0)
+				)
+			)
+			expect(slices.every((c) => c.numberOfShapes === BOXES + 1)).toBe(true)
+			const lone = answers.at(-1).clusters.at(-1)
+			expect(lone.clusterId).toBe(clusterIds[1])
+			expect(lone).not.toHaveProperty('firstShapeIndex')
+		})
+
+		// Each cluster's label and keywords ride along with its shapes. Across many small clusters they
+		// come to nearly as much again, which an answer measured by its shapes alone never saw.
+		it('keeps the whole answer within budget, not just its shapes', () => {
+			const COUNT = 100
+			const board = farApart(
+				Array.from({ length: COUNT }, (_, i) => shape(`shape:note-${i}`, { x: i * 100_000 }))
+			)
+			for (let i = 0; i < COUNT; i++) {
+				board.measurements[`shape:note-${i}`].text =
+					`Quarterly planning review ${i} customer onboarding retention analysis roadmap ` +
+					'milestone '.repeat(25)
+			}
+			const { clustering } = clusteredPage(board.snapshot, board.measurements)
+			const clusterIds = clustering.clusters.map((c) => c.id)
+			expect(clusterIds).toHaveLength(COUNT)
+
+			const { answers } = readAll(
+				board.snapshot,
+				board.measurements,
+				clustering.clusters.map((c) => c.shapes[0].id)
+			)
+			// The shapes alone would all fit in one answer.
+			const shapes = answers.flatMap((a) => a.clusters.flatMap((c: any) => c.shapes))
+			expect(JSON.stringify(shapes).length).toBeLessThan(CLUSTER_INFO_MAX_CHARS)
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				expect(JSON.stringify(answer).length).toBeLessThanOrEqual(CLUSTER_INFO_MAX_CHARS)
+			}
+			expect(answers.flatMap((a) => a.clusters.map((c: any) => c.clusterId))).toEqual(clusterIds)
+		})
+
+		// Refusing it would leave that shape unreadable, and paging could never get past it.
+		it('still answers a single shape larger than one answer, then moves on', () => {
+			const huge = {
+				...MEASUREMENTS,
+				'shape:a': { ...MEASUREMENTS['shape:a'], text: 'x'.repeat(70_000) },
+			}
+			const { page, clustering } = clusteredPage(snapshot, huge)
+			const clusterIds = [
+				clusterIdOf(clustering, 'shape:a'),
+				clusterIdOf(clustering, 'shape:frame'),
+			]
+			expect(clusterIds[0]).not.toBe(clusterIds[1])
+
+			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE)
+			if (!info.ok) throw new Error('Expected the clusters to resolve')
+			const answer = JSON.parse(textOf(info.result))
+			expect(answer.clusters.flatMap((c: any) => c.shapes.map((s: any) => s.id))).toContain(
+				'shape:a'
+			)
+			expect(answer.nextCursor).toEqual(expect.any(String))
+		})
+
+		it('refuses a cursor that no longer points into the clusters', () => {
+			const { page, clustering } = clusteredPage(snapshot, MEASUREMENTS)
+			const clusterIds = [clusterIdOf(clustering, 'shape:a')]
+
+			const info = getClusterInfo(page, clustering, clusterIds, FIRST_PAGE, {
+				cluster: 0,
+				shape: 10_000,
+			})
+
+			expect(info.ok).toBe(false)
+			if (info.ok) return
+			expect(info.reason).toBe('invalid_input')
+		})
+	})
+
+	// The stored arrow is a 2-unit stub at the origin; what a model needs is where it is drawn and
+	// what it connects.
+	it('reports a bound arrow as drawn, with what each end is bound to', () => {
+		const bound = shapesOfCluster(MEASUREMENTS, 'shape:bound')('shape:bound')
+
+		// The stub is replaced, origin included, rather than left to contradict the resolved ends.
+		expect(bound).toMatchObject({ pageX: 100.2, pageY: 50.1 })
+		expect(bound).not.toHaveProperty('pageRotation')
+		expect(bound.props).toEqual({
+			kind: 'arc',
+			start: { pageX: 100.2, pageY: 50.1 },
+			end: { pageX: 399.7, pageY: 49.9 },
+			bend: 0,
+			labelPosition: 0.5,
+			elbowMidPoint: 0.5,
+			scale: 1,
+			bindingFromId: 'shape:a',
+			bindingToId: 'shape:b',
+		})
+	})
+
+	it('places every shape in page space, whatever its parent, and keeps the parent', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:inner')
+
+		expect(of('shape:frame')).toMatchObject({ pageX: 1000.4, pageY: 500.6, pageRotation: 1.571 })
+		// (10, 20) inside a frame at (1000.4, 500.6) turned 90°: x runs down the page, y runs left.
+		expect(of('shape:inner')).toMatchObject({
+			parentId: 'shape:frame',
+			pageX: 980.4,
+			pageY: 510.6,
+			pageRotation: 1.571,
+		})
+		expect(of('shape:inner').x).toBeUndefined()
+		expect(of('shape:inner').rotation).toBeUndefined()
+	})
+
+	it('rounds every number to thousandths, in the units the record uses', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:free')
+
+		expect(of('shape:inner').opacity).toBe(0.55)
+		expect(of('shape:free').props).toMatchObject({
+			bend: 12.346,
+			labelPosition: 0.5,
+			elbowMidPoint: 0.5,
+			scale: 1.5,
+		})
+		expect(of('shape:frame').props).toEqual({ w: 400.4, h: 299.7, name: 'Flow' })
+	})
+
+	// A fixture, or a render page older than the worker, has no arrow geometry. A free end can still
+	// be placed from the record; a bound one is reported by what it is bound to alone.
+	it('places a free arrow from its record when the render did not measure it', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:free')
+		// The free arrow sits at (50, 0) in the frame, so its ends run down the page from there.
+		expect(of('shape:free').props).toMatchObject({
+			start: { pageX: 1000.4, pageY: 550.6 },
+			end: { pageX: 1000.4, pageY: 650.6 },
+			bindingFromId: null,
+			bindingToId: null,
+		})
+
+		const { arrow: _arrow, ...unmeasured } = MEASUREMENTS['shape:bound']
+		const bound = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:bound': unmeasured },
+			'shape:bound'
+		)('shape:bound')
+		expect(bound.props).toMatchObject({ start: null, end: null, bindingFromId: 'shape:a' })
+	})
+
+	// The record's origin is the stub's, here the page origin: reporting it would place the arrow
+	// somewhere it is not drawn.
+	it('leaves an unmeasured bound arrow unplaced rather than at its stub', () => {
+		const { arrow: _arrow, ...unmeasured } = MEASUREMENTS['shape:bound']
+		const bound = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:bound': unmeasured },
+			'shape:bound'
+		)('shape:bound')
+		expect(bound).toMatchObject({ pageX: null, pageY: null })
+		expect(bound).not.toHaveProperty('pageRotation')
+	})
+
+	// Snapshots are read as stored, so a board untouched since before arrow bindings still holds its
+	// binding inside the terminal, with no x/y to place it by.
+	it('leaves an unmeasured end stored in the pre-bindings format unplaced', () => {
+		const legacy = shape('shape:legacy', {
+			type: 'arrow',
+			x: 600,
+			y: 600,
+			props: {
+				start: {
+					type: 'binding',
+					boundShapeId: 'shape:b',
+					normalizedAnchor: { x: 0.5, y: 0.5 },
+					isExact: false,
+				},
+				end: { type: 'point', x: 100, y: 0 },
+				bend: 0,
+			},
+		})
+		const of = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:legacy': { minX: 600, minY: 600, maxX: 700, maxY: 601 } },
+			'shape:legacy',
+			[legacy]
+		)
+		expect(of('shape:legacy')).toMatchObject({
+			pageX: null,
+			pageY: null,
+			props: { start: null, end: { pageX: 700, pageY: 600 }, bindingFromId: null },
+		})
+	})
+
+	it('carries the text the editor reported and drops the rich text', () => {
+		const of = shapesOfCluster(MEASUREMENTS, 'shape:a')
+		expect(of('shape:a').props.text).toBe('Start')
+		expect(of('shape:a').props.richText).toBeUndefined()
+	})
+
+	// A geo draws at w by h + growY. Left as two numbers, a model reading h would add growY again.
+	it("folds a geo shape's growY into its height, and keeps its size style", () => {
+		const props = shapesOfCluster(MEASUREMENTS, 'shape:a')('shape:a').props
+		expect(props).toMatchObject({ w: 100, h: 140, size: 'xl' })
+		expect(props).not.toHaveProperty('growY')
+	})
+
+	// A stroke's points don't say what was drawn and run to thousands on a page of handwriting, so
+	// they are counted and dropped; its size is what is left to report.
+	it('reports a draw shape by its measured size and point count, without its segments', () => {
+		const props = shapesOfCluster(MEASUREMENTS, 'shape:scribble')('shape:scribble').props
+		expect(props).toMatchObject({ w: 150, h: 60, size: 'l', pointCount: 8 })
+		expect(props).not.toHaveProperty('segments')
+	})
+
+	// A text's height only exists once its text is laid out, so it comes from the editor.
+	it('reports a text shape at its measured size, or its record without a measure', () => {
+		expect(shapesOfCluster(MEASUREMENTS, 'shape:caption')('shape:caption').props).toMatchObject({
+			w: 80,
+			h: 26.4,
+		})
+
+		const { dimensions: _dimensions, ...unmeasured } = MEASUREMENTS['shape:caption']
+		const fallback = shapesOfCluster(
+			{ ...MEASUREMENTS, 'shape:caption': unmeasured },
+			'shape:caption'
+		)('shape:caption')
+		expect(fallback.props.w).toBe(80)
+		expect(fallback.props).not.toHaveProperty('h')
+	})
+})
+
+describe('getPageInfo', () => {
+	const PAGE = 'page:a'
+
+	const shape = (id: string, x: number, y: number, type = 'geo') => ({
+		typeName: 'shape',
+		id,
+		parentId: PAGE,
+		type,
+		index: 'a1',
+		x,
+		y,
+		rotation: 0,
+		opacity: 1,
+		isLocked: false,
+		meta: {},
+		props: type === 'arrow' ? { start: { x: 0, y: 0 }, end: { x: 2, y: 0 } } : { w: 100, h: 100 },
+	})
+
+	const binding = (id: string, toId: string, terminal: 'start' | 'end') => ({
+		typeName: 'binding',
+		id,
+		type: 'arrow',
+		fromId: 'shape:link',
+		toId,
+		meta: {},
+		props: { terminal, normalizedAnchor: { x: 0.5, y: 0.5 }, isPrecise: false, isExact: false },
+	})
+
+	// Two boxes much too far apart for proximity, joined by a bound arrow; a box of notes on its own;
+	// and a shape the render did not measure.
+	const snapshot = {
+		documents: [
+			{ typeName: 'document', id: 'document:document', name: 'Board' },
+			{ typeName: 'page', id: PAGE, name: 'Cover', index: 'a1' },
+			shape('shape:a', 0, 11),
+			shape('shape:b', 20000, 0),
+			shape('shape:link', 0, 0, 'arrow'),
+			shape('shape:notes', 0, 9000),
+			shape('shape:ghost', 40000, 0),
+			binding('binding:start', 'shape:a', 'start'),
+			binding('binding:end', 'shape:b', 'end'),
+		].map((state) => ({ state })),
+		schema: {},
+	} as any
+
+	const MEASUREMENTS: Record<string, ShapeMeasurement> = {
+		'shape:a': { minX: 0.4, minY: 10.6, maxX: 100.4, maxY: 110.6, text: 'Start' },
+		'shape:b': { minX: 20000, minY: 0, maxX: 20100.5, maxY: 100 },
+		'shape:link': {
+			minX: 100,
+			minY: 50,
+			maxX: 20000,
+			maxY: 51,
+			arrow: { start: { x: 100, y: 50 }, end: { x: 20000, y: 51 } },
+		},
+		'shape:notes': { minX: 0, minY: 9000, maxX: 200, maxY: 9050, text: 'Notes' },
+	}
+
+	it('gives each cluster, and the page, its page-space bounds', () => {
+		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		const clusters = clusterPage(page, MEASUREMENTS)
+		const result = getPageInfo(page, clusteringFromMeasure(clusters, MEASUREMENTS))
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+
+		expect(JSON.parse(block.text)).toEqual({
+			name: 'Cover',
+			bounds: { x: 0, y: 0, w: 20101, h: 9050 },
+			clusterCount: 3,
+			clusters: [
+				// Joined through the arrow's bindings, at a distance proximity would never bridge.
+				{
+					id: expect.stringMatching(/^cluster:/),
+					label: 'Start',
+					keywords: ['start'],
+					numberOfShapes: 3,
+					bounds: { x: 0, y: 0, w: 20100, h: 111 },
+				},
+				{
+					id: expect.stringMatching(/^cluster:/),
+					label: 'Notes',
+					keywords: ['notes'],
+					numberOfShapes: 1,
+					bounds: { x: 0, y: 9000, w: 200, h: 50 },
+				},
+				// Unmeasured, so it has no position to report rather than an invented one.
+				{
+					id: expect.stringMatching(/^cluster:/),
+					label: '1 geo shape',
+					keywords: [],
+					numberOfShapes: 1,
+					bounds: null,
+				},
+			],
+		})
+	})
+
+	it('reports null bounds when nothing was measured', () => {
+		const page = resolvePage(snapshot, { kind: 'ordinal', ordinal: 0 })
+		if (!page.ok) throw new Error('Expected the page to resolve')
+		const block = getPageInfo(page, clusteringFromMeasure(clusterPage(page, {}), {})).content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		const info = JSON.parse(block.text)
+		expect(info.bounds).toBeNull()
+		expect(info.clusters.every((c: { bounds: unknown }) => c.bounds === null)).toBe(true)
+		// The bindings still hold without a measure.
+		expect(info.clusters.map((c: { numberOfShapes: number }) => c.numberOfShapes)).toEqual([
+			3, 1, 1,
+		])
+	})
+
+	describe('paging', () => {
+		const selector = { kind: 'ordinal', ordinal: 0 } as const
+		const page = resolvePage(snapshot, selector)
+		if (!page.ok) throw new Error('Expected the page to resolve')
+
+		// Sizes run small to large, so the answer can only be largest first by sorting.
+		const clusters = Array.from({ length: 800 }, (_, i) => ({
+			id: `cluster:${i}`,
+			label: `Cluster ${i}`,
+			keywords: ['one', 'two', 'three', 'four', 'five'],
+			numberOfShapes: i + 1,
+			shapes: [],
+		}))
+		const bounds = Object.fromEntries(
+			clusters.map((c, i) => [c.id, { x: i + 0.4, y: 0, w: 100.6, h: 100 }])
+		)
+		const clustering = { clusters, bounds, arrows: {}, dimensions: {} } as any
+
+		function readAllAnswers() {
+			const answers = []
+			let offset = 0
+			for (;;) {
+				const block = getPageInfo(page as any, clustering, { selector, offset }).content[0]
+				if (block.type !== 'text') throw new Error('Expected a text block')
+				const answer = JSON.parse(block.text)
+				answers.push(answer)
+				if (!answer.nextCursor) return answers
+				const { cursor } = parsePageInfoInput({ boardId: 'abc', cursor: answer.nextCursor })
+				offset = cursor as number
+			}
+		}
+
+		it('splits a large page into answers that fit, without losing a cluster', () => {
+			const answers = readAllAnswers()
+			expect(answers.length).toBeGreaterThan(1)
+			for (const answer of answers) {
+				expect(JSON.stringify(answer.clusters).length).toBeLessThan(PAGE_INFO_MAX_CHARS + 2)
+			}
+			const ids = answers.flatMap((a) => a.clusters.map((c: { id: string }) => c.id))
+			expect(new Set(ids).size).toBe(800)
+		})
+
+		it('leads with the largest clusters, across answers', () => {
+			const sizes = readAllAnswers().flatMap((a) =>
+				a.clusters.map((c: { numberOfShapes: number }) => c.numberOfShapes)
+			)
+			expect(sizes).toEqual([...sizes].sort((a, b) => b - a))
+			expect(sizes[0]).toBe(800)
+		})
+
+		it('repeats the page totals on every answer', () => {
+			for (const answer of readAllAnswers()) {
+				expect(answer.name).toBe('Cover')
+				expect(answer.clusterCount).toBe(800)
+				expect(answer.bounds).toEqual({ x: 0, y: 0, w: 900, h: 100 })
+			}
+		})
+
+		it('answers an offset past the end with no clusters and no cursor', () => {
+			const block = getPageInfo(page, clustering, { selector, offset: 5000 }).content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			const answer = JSON.parse(block.text)
+			expect(answer.clusters).toEqual([])
+			expect(answer.nextCursor).toBeUndefined()
+		})
+
+		it('still returns a cluster larger than the limit on its own', () => {
+			const huge = { ...clusters[0], label: 'x'.repeat(PAGE_INFO_MAX_CHARS * 2) }
+			const block = getPageInfo(page, { ...clustering, clusters: [huge, clusters[1]] }).content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			expect(JSON.parse(block.text).clusters).toHaveLength(1)
+		})
 	})
 })

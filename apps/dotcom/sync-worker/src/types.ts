@@ -165,7 +165,9 @@ export interface Environment {
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// 'true' pushes the board's records into the render page with the screenshot request, instead of
-	// the page fetching them back from the snapshot route. Off everywhere it is unset.
+	// the page fetching them back from the snapshot route, for every board. Where it is unset
+	// (production), the `mcp_render_push` flag gates MCP renders and `thumbnail_render_push` picks
+	// the boards whose OG renders push.
 	THUMBNAIL_RENDER_PUSH: string | undefined
 	// 'true' hands rendering to the private render worker (RENDER_WORKER) instead of the local render
 	// path in thumbnailRender.ts. Off everywhere it is unset; flipped per environment once the worker

@@ -1,3 +1,4 @@
+import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
@@ -11,16 +12,6 @@ export interface CreateRoomRequestBody {
 	origin: string
 	snapshot: Snapshot
 }
-
-export type CreateSnapshotResponseBody =
-	| {
-			error: false
-			roomId: string
-	  }
-	| {
-			error: true
-			message: string
-	  }
 
 export interface GetReadonlySlugResponseBody {
 	slug: string
@@ -44,28 +35,25 @@ export type CreateFilesResponseBody =
 			error: false
 			slugs: string[]
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
-export type PublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+/**
+ * Error codes the app's HTTP routes return instead of prose, so the client can show the failure in
+ * the user's language. Same idea as {@link ZErrorCode} for Zero mutation rejections.
+ */
+export const TlaApiErrorCode = stringEnum(
+	'bad_request',
+	'unauthorized',
+	'invite_not_found',
+	'user_not_found',
+	'internal_error'
+)
+export type TlaApiErrorCode = keyof typeof TlaApiErrorCode
 
-export type UnpublishFileResponseBody =
-	| {
-			error: false
-	  }
-	| {
-			error: true
-			message: string
-	  }
+export interface TlaApiErrorResponseBody {
+	error: true
+	code: TlaApiErrorCode
+}
 
 export type GetInviteInfoResponseBody =
 	| {
@@ -75,30 +63,22 @@ export type GetInviteInfoResponseBody =
 			isValid: true
 			inviteSecret: string
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 export type AcceptInviteResponseBody =
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			success: true
 	  }
 	| {
 			error: false
-			message: string
 			workspaceId: string
 			workspaceName: string
 			alreadyMember: true
 	  }
-	| {
-			error: true
-			message: string
-	  }
+	| TlaApiErrorResponseBody
 
 /**
  * The most pages the board-info tool will enumerate for a board. Bounds the page list the MCP
@@ -155,9 +135,26 @@ export interface ThumbnailRenderParams {
 }
 
 /**
- * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
- * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
- * behaviour rather than something readable off the record.
+ * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
+ * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
+ */
+export interface MeasuredArrow {
+	start: VecModel
+	end: VecModel
+}
+
+/**
+ * A shape's own unrotated size as the editor draws it. The record cannot say: a text's height comes
+ * from laying out its text, and a group or a freehand stroke has no size of its own.
+ */
+export type MeasuredDimensions = Pick<BoxModel, 'w' | 'h'>
+
+/**
+ * What the editor reports for one shape: its page-space box, the plain text its ShapeUtil says it
+ * holds, for an arrow where it is drawn, and for some shapes their own size. All are things only an
+ * editor can answer — sizing needs font metrics, getText is shape behaviour rather than something
+ * readable off the record, and a bound arrow's ends depend on the geometry of the shapes it is bound
+ * to.
  */
 export interface ThumbnailShapeMeasurement {
 	x: number
@@ -166,7 +163,62 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
+	/** An arrow's drawn ends, in page space. */
+	arrow?: MeasuredArrow
+	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
+	dimensions?: MeasuredDimensions
 }
+
+/**
+ * The sync socket query param a client sets to say it can answer `mcp_tab_render` jobs. Honoured only
+ * on a website session: an agent joining on an OAuth token could never answer honestly, and could use
+ * a job to put a forged answer in front of another of the same user's agents.
+ */
+export const TAB_RENDER_PARAM = 'tabRender'
+
+export interface TabRenderScreenshotRequest {
+	mode: 'screenshot'
+	pageId: string
+	shapeIds: string[]
+	theme: 'light' | 'dark'
+	width: number
+	height: number
+}
+
+/** What an MCP tool asks an open tab to work out, so it doesn't have to start a Browser Run session. */
+export type TabRenderRequest = { mode: 'measure'; pageId: string } | TabRenderScreenshotRequest
+
+/**
+ * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` names what a reply answers: it goes to this
+ * one session and nowhere else, and the reply route accepts it only with the job user's website session.
+ */
+export interface TabRenderServerEvent {
+	type: 'mcp_tab_render'
+	jobId: string
+	request: TabRenderRequest
+}
+
+export const TAB_RENDER_DECLINE_REASONS = [
+	'editor_not_ready',
+	'page_missing',
+	/** A screenshot of a page the tab isn't showing: the export only draws the current page. */
+	'page_not_current',
+	'shapes_missing',
+	'too_many_shapes',
+	/** Mid-drag, or queued behind other exports for too long. */
+	'busy',
+	/** The export gave up waiting for its shapes, so its picture can't be trusted. */
+	'export_timed_out',
+	'failed',
+] as const
+export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
+
+/** What a tab POSTs back for a job. Anything but `accepted` ends that tab's part in it. */
+export type TabRenderReply =
+	| { status: 'accepted' }
+	| { status: 'declined'; reason: TabRenderDeclineReason }
+	| { status: 'measured'; shapes: Record<string, ThumbnailShapeMeasurement> }
+	| { status: 'captured'; base64: string }
 
 /**
  * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
@@ -294,6 +346,7 @@ export type TLCustomServerEvent =
 			boot_r2_ms?: number
 			boot_comments_ms?: number
 	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
+	| TabRenderServerEvent
 
 /* ----------------------- Feature Flags ---------------------- */
 
@@ -301,8 +354,11 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'mcp_server_access',
+	'mcp_tab_render',
 	'version_chain',
 	'collections',
+	'thumbnail_render_push',
+	'mcp_render_push',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 
