@@ -929,6 +929,9 @@ importers:
       '@tldraw/mermaid':
         specifier: workspace:*
         version: link:../../packages/mermaid
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
       '@tldraw/state':
         specifier: workspace:*
         version: link:../../packages/state
@@ -1749,6 +1752,15 @@ importers:
       react-dom:
         specifier: ^19.2.1
         version: 19.2.1(@types/react@19.2.7)(react@19.2.1)
+
+  packages/permissions:
+    dependencies:
+      '@tldraw/tlschema':
+        specifier: workspace:*
+        version: link:../tlschema
+      '@tldraw/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/state:
     dependencies:

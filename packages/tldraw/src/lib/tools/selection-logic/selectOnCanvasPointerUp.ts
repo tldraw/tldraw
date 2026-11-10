@@ -17,7 +17,7 @@ export function selectOnCanvasPointerUp(
 		hitLocked: selectLockedShapes,
 		renderingOnly: true,
 		// A child of a locked group would otherwise resolve to the locked group and select it
-		filter: (shape) => selectLockedShapes || !editor.isShapeOrAncestorFrozen(shape),
+		filter: (shape) => selectLockedShapes || !editor.isShapeOrAncestorLocked(shape),
 	})
 
 	// Note at the start: if we select a shape that is inside of a group,

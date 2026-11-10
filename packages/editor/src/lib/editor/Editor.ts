@@ -42,6 +42,7 @@ import {
 	TLInstancePageState,
 	TLInstancePresence,
 	TLPage,
+	TLPermission,
 	TLRecordChange,
 	TLPageId,
 	TLParentId,
@@ -321,6 +322,11 @@ export interface TLEditorOptions {
 		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
 		editor: Editor
 	): boolean
+
+	/**
+	 * Whether the current user holds a named permission. See {@link TldrawEditorBaseProps.can}.
+	 */
+	can?(permission: TLPermission, editor: Editor): boolean
 	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
@@ -406,6 +412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		canChangeRecord,
+		can,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -417,6 +424,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
 		this._canChangeRecord = canChangeRecord
+		this._can = can
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -2929,6 +2937,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				{ history: 'ignore' }
 			)
+			this._settleShapesBeingCreated()
 		})
 
 		return this
@@ -5842,9 +5851,60 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _canChangeRecord?: TLEditorOptions['canChangeRecord']
+	private readonly _can?: TLEditorOptions['can']
+
+	/**
+	 * Whether the current user holds a named permission, as answered by the `can` option. True when
+	 * the option isn't set. Reactive when the option reads reactive state.
+	 *
+	 * This is for UI that has no record to ask {@link Editor.canChangeRecord} about, such as a button
+	 * that would create a page. It doesn't stop anything by itself.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.can('tl:page:create')
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 *
+	 * @public
+	 */
+	can(permission: TLPermission): boolean {
+		return this._can ? this._can(permission, this) : true
+	}
+
+	// Shapes created in the interaction still under way. Tools create a shape on pointer down and
+	// every drag frame after is an update, so a rule allowing create but not update would leave only
+	// dots. Until the interaction ends the host is asked about each update as a create of the result,
+	// and isn't asked about deleting the shape or about bindings from it.
+	private readonly _shapesBeingCreated = atom<ReadonlySet<TLShapeId>>(
+		'shapesBeingCreated',
+		new Set()
+	)
+	private _isHandlingEvents = false
+
+	private _isInteracting() {
+		return this._isHandlingEvents || this.inputs.getIsPointing() || !!this.getEditingShapeId()
+	}
+
+	private _settleShapesBeingCreated() {
+		if (this._shapesBeingCreated.__unsafe__getWithoutCapture().size === 0) return
+		if (this._isInteracting()) return
+		this._shapesBeingCreated.set(new Set())
+	}
 
 	private _isDeniedByHost(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>): boolean {
-		return !!this._canChangeRecord && !this._canChangeRecord(change, this)
+		if (!this._canChangeRecord) return false
+		const beingCreated = this._shapesBeingCreated.get()
+		if (beingCreated.size > 0) {
+			const record = change.next ?? change.prev
+			if (record.typeName === 'binding' && beingCreated.has(record.fromId)) return false
+			if (record.typeName === 'shape' && beingCreated.has(record.id)) {
+				if (change.type === 'delete') return false
+				change = { type: 'create', prev: null, next: record }
+			}
+		}
+		return !this._canChangeRecord(change, this)
 	}
 
 	/**
@@ -8605,6 +8665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	canCreateShapes(
 		shapes: (TLShape['id'] | OptionalKeys<TLShapePartial<TLShape>, 'id'>)[]
 	): boolean {
+		if (!this.can('tl:shape:create')) return false
 		return shapes.length + this.getCurrentPageShapeIds().size <= this.options.maxShapesPerPage
 	}
 
@@ -8832,6 +8893,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 				if (allowed.length === 0) return
 				shapeRecordsToCreate.splice(0, shapeRecordsToCreate.length, ...allowed)
+				if (this._isInteracting()) {
+					this._shapesBeingCreated.update(
+						(ids) => new Set([...ids, ...allowed.map((shape) => shape.id)])
+					)
+				}
 			}
 
 			this.emit('created-shapes', shapeRecordsToCreate)
@@ -9737,6 +9803,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		// Checked before the handler runs, so a file isn't uploaded for a shape that can't be made.
+		if (!this.can('tl:shape:create')) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -10510,7 +10578,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		event.accelKey = options?.accelKey ?? this.inputs.getAccelKey()
 
 		if (options?.immediate) {
-			this._flushEventForTick(event)
+			this._isHandlingEvents = true
+			try {
+				this._flushEventForTick(event)
+			} finally {
+				this._isHandlingEvents = false
+			}
 		} else {
 			this.dispatch(event)
 		}
@@ -11114,9 +11187,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
 				this._pendingEventsForNextTick.length = 0
-				for (const info of events) {
-					this._flushEventForTick(info)
+				this._isHandlingEvents = true
+				try {
+					for (const info of events) {
+						this._flushEventForTick(info)
+					}
+				} finally {
+					this._isHandlingEvents = false
 				}
+				this._settleShapesBeingCreated()
 			}
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })

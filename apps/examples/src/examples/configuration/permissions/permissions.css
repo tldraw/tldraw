@@ -1,0 +1,17 @@
+.permissions-panel {
+	display: grid;
+	grid-template-columns: repeat(3, auto);
+	gap: 4px 16px;
+	margin: 8px;
+	padding: 8px 12px;
+	font-size: 12px;
+	pointer-events: all;
+}
+
+.permissions-panel label {
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	white-space: nowrap;
+	cursor: pointer;
+}

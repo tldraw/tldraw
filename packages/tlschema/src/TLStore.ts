@@ -306,6 +306,19 @@ export type TLRecordChange<R extends UnknownRecord> =
 	| { type: 'delete'; prev: R; next: null }
 
 /**
+ * A permission the editor and its UI ask about. See the `can` option of the editor.
+ *
+ * @public
+ */
+export type TLPermission =
+	| 'tl:shape:create'
+	| 'tl:shape:update'
+	| 'tl:shape:delete'
+	| 'tl:page:create'
+	| 'tl:page:update'
+	| 'tl:page:delete'
+
+/**
  * A server's reason for refusing a change of this user's, as reported to the editor.
  *
  * @public

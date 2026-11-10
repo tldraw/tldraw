@@ -3,6 +3,7 @@ import {
 	TLAsset,
 	TLBinding,
 	TLPage,
+	TLPermission,
 	TLRecordChange,
 	TLShape,
 	TLStore,
@@ -268,6 +269,14 @@ export interface TldrawEditorBaseProps {
 	 * you: a rule that inherits (a frame on someone else's page) walks `parentId` too. Reactive: read
 	 * store state inside it and the answer follows.
 	 *
+	 * Tools create a shape on pointer down and then update it on every drag frame. So that a rule
+	 * allowing create and denying update can still draw, a shape created during an interaction is
+	 * treated as still being created until the interaction ends (the pointer is released, or editing
+	 * stops): each update to it is asked about as a `'create'` of the result, and deleting it or
+	 * binding it to other shapes isn't asked about. This covers custom tools too, as long as they
+	 * create the shape while handling an editor event. A shape created outside one (from a button,
+	 * say) is judged on its next update like any other.
+	 *
 	 * This shapes the editor's behaviour, it does not enforce anything: the server decides. Writes
 	 * made straight to the store are not checked.
 	 *
@@ -283,6 +292,31 @@ export interface TldrawEditorBaseProps {
 		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
 		editor: Editor
 	): boolean
+
+	/**
+	 * Whether the current user holds a named permission. The UI asks this where it has no record to
+	 * ask `canChangeRecord` about: a missing `tl:page:create` disables the new page button, a missing
+	 * `tl:shape:create` disables the shape tools. Unset means every permission is held.
+	 *
+	 * The default UI asks about `tl:shape:create`, `tl:shape:update`, `tl:shape:delete`,
+	 * `tl:page:create`, `tl:page:update` and `tl:page:delete`. This only shapes the UI: pair it with a
+	 * `canChangeRecord` that denies the same things. `createPermissionPolicy` from
+	 * `@tldraw/permissions` makes both from one list. Reactive: read store state or signals inside it
+	 * and the answer follows.
+	 *
+	 * Selecting is never restricted, since it changes no record: without `tl:shape:update` a shape
+	 * can still be selected, copied, duplicated and deleted, it just can't be moved or restyled. The
+	 * style panel is hidden when neither `tl:shape:create` nor `tl:shape:update` is held.
+	 *
+	 * @example
+	 * ```ts
+	 * can={(permission) => permission !== 'tl:page:create'}
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 * @param editor - The editor instance.
+	 */
+	can?(permission: TLPermission, editor: Editor): boolean
 
 	/**
 	 * The URLs for the fonts to use in the editor.
@@ -559,6 +593,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	canChangeRecord,
+	can,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -648,6 +683,7 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				canChangeRecord,
+				can,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -693,6 +729,7 @@ function TldrawEditorWithReadyStore({
 			licenseManager,
 			getShapeVisibility,
 			canChangeRecord,
+			can,
 			assetUrls,
 			stableI18n,
 		]

@@ -23,7 +23,7 @@ import {
 import { useNativeClipboardEvents } from './hooks/useClipboardEvents'
 import { useEditorEvents } from './hooks/useEditorEvents'
 import { useKeyboardShortcuts } from './hooks/useKeyboardShortcuts'
-import { useReadonly } from './hooks/useReadonly'
+import { useCanStyleShapes, useReadonly } from './hooks/useReadonly'
 import { useDirection, useTranslation } from './hooks/useTranslation/useTranslation'
 
 const messages = defineMessages({
@@ -110,6 +110,7 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 	const msg = useTranslation()
 	const breakpoint = useBreakpoint()
 	const isReadonlyMode = useReadonly()
+	const canStyleShapes = useCanStyleShapes()
 	const isFocusMode = useValue('focus', () => editor.getInstanceState().isFocusMode, [editor])
 	const isDebugMode = useValue('debug', () => editor.getInstanceState().isDebugMode, [editor])
 
@@ -226,9 +227,10 @@ const TldrawUiContent = React.memo(function TldrawUI() {
 						<div className="tlui-layout__top__center">{TopPanel && <TopPanel />}</div>
 						<div className="tlui-layout__top__right">
 							{SharePanel && <SharePanel />}
-							{StylePanel && breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM && !isReadonlyMode && (
-								<StylePanel />
-							)}
+							{StylePanel &&
+								breakpoint >= PORTRAIT_BREAKPOINT.TABLET_SM &&
+								!isReadonlyMode &&
+								canStyleShapes && <StylePanel />}
 						</div>
 					</div>
 					<div className="tlui-layout__bottom">

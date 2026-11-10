@@ -79,6 +79,16 @@ export function startEditingShape(
 }
 
 /**
+ * Whether a drag has anything to move: at least one selected shape the user can update. Shapes the
+ * user can't update can still be selected, so a drag on them must not start.
+ *
+ * @internal
+ */
+export function hasUpdatableSelection(editor: Editor) {
+	return editor.getSelectedShapes().some((shape) => !editor.isShapeOrAncestorFrozen(shape))
+}
+
+/**
  * Whether a page point is inside the selection's rotated bounding box. The box returned by
  * `getSelectionRotatedPageBounds` is expressed in the rotated frame, so a plain `containsPoint`
  * on it is only meaningful when the selection rotation is zero.

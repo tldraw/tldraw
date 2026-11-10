@@ -1694,6 +1694,9 @@ export type TLPageId = RecordId<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public
+export type TLPermission = 'tl:page:create' | 'tl:page:delete' | 'tl:page:update' | 'tl:shape:create' | 'tl:shape:delete' | 'tl:shape:update';
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;

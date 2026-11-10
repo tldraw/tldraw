@@ -128,7 +128,7 @@ export class ScribbleBrushing extends StateNode {
 			if (
 				editor.isShapeOfType(shape, 'group') ||
 				newlySelectedShapeIds.has(shape.id) ||
-				(!editor.options.selectLockedShapes && editor.isShapeOrAncestorFrozen(shape))
+				(!editor.options.selectLockedShapes && editor.isShapeOrAncestorLocked(shape))
 			) {
 				continue
 			}

@@ -82,7 +82,7 @@ export class Idle extends StateNode {
 				if (
 					hitShape &&
 					(this.editor.options.selectLockedShapes ||
-						(!hitShape.isLocked && !this.editor.isShapeOrAncestorFrozen(hitShape)))
+						(!hitShape.isLocked && !this.editor.isShapeOrAncestorLocked(hitShape)))
 				) {
 					this.onPointerDown({
 						...info,
@@ -166,7 +166,7 @@ export class Idle extends StateNode {
 			case 'shape': {
 				const { shape } = info
 
-				if (!this.editor.options.selectLockedShapes && this.editor.isShapeOrAncestorFrozen(shape)) {
+				if (!this.editor.options.selectLockedShapes && this.editor.isShapeOrAncestorLocked(shape)) {
 					this.parent.transition('pointing_canvas', info)
 					break
 				}
@@ -225,7 +225,7 @@ export class Idle extends StateNode {
 							hoveredShape &&
 							!this.editor.getSelectedShapeIds().includes(hoveredShape.id) &&
 							(this.editor.options.selectLockedShapes ||
-								(!hoveredShape.isLocked && !this.editor.isShapeOrAncestorFrozen(hoveredShape)))
+								(!hoveredShape.isLocked && !this.editor.isShapeOrAncestorLocked(hoveredShape)))
 						) {
 							this.onPointerDown({
 								...info,
@@ -307,7 +307,7 @@ export class Idle extends StateNode {
 								// A child of a locked group would otherwise drill into (select) the locked group
 								filter: (shape) =>
 									this.editor.options.selectLockedShapes ||
-									!this.editor.isShapeOrAncestorFrozen(shape),
+									!this.editor.isShapeOrAncestorLocked(shape),
 							}))
 
 				if (hitShape) {
@@ -709,7 +709,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.getIsReadonly()) return
+		if (this.editor.getIsReadonly() || !this.editor.can('tl:shape:create')) return
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 
