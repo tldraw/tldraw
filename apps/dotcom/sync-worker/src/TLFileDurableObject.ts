@@ -108,6 +108,7 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
+import { getBoardUsers } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -119,13 +120,13 @@ import {
 	SnapshotFingerprint,
 } from './snapshotUtils'
 import {
-	MAX_TAB_RENDER_SESSIONS,
 	TAB_RENDER_ROOM_TIMEOUT_MS,
 	TabRenderBroker,
 	TabRenderOutcome,
 	TabRenderSocket,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
+	pickTabRenderTargets,
 } from './tabRenderBroker'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -286,6 +287,12 @@ const OBJECT_TYPES = [
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
 function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
+}
+
+// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain string column with
+// legacy values in it, so anything else fails closed.
+function canEditFile(file: TlaFile, role: Role | null) {
+	return can(role, 'accessFiles') || (file.shared && file.sharedLinkType === 'edit')
 }
 
 export class TLFileDurableObject extends DurableObject {
@@ -1190,17 +1197,11 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					const hasOwnerAccess = can(role, 'accessFiles')
-
-					if (!hasOwnerAccess && !file.shared) {
+					if (!can(role, 'accessFiles') && !file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
 
-					// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
-					// string column with legacy values in it, so anything else fails closed.
-					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
-						openMode = ROOM_OPEN_MODE.READ_ONLY
-					}
+					if (!canEditFile(file, role)) openMode = ROOM_OPEN_MODE.READ_ONLY
 				} else {
 					// No file row means every check above was skipped, so admitting the socket would
 					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
@@ -3496,13 +3497,14 @@ export class TLFileDurableObject extends DurableObject {
 
 	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
 	private getTabRenderSockets() {
-		const sockets: TabRenderSocket[] = []
+		const sockets: (TabRenderSocket & { isReadonly: boolean })[] = []
 		for (const ws of this.ctx.getWebSockets()) {
 			const attachment = this.getSocketAttachment(ws)
 			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
 			sockets.push({
 				sessionId: attachment.sessionId,
 				userId: attachment.meta.userId,
+				isReadonly: attachment.isReadonly,
 				lastSeenAt:
 					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
 					attachment.tabRenderConnectedAt,
@@ -3516,8 +3518,15 @@ export class TLFileDurableObject extends DurableObject {
 		return Promise.race([this.getRoom(), sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null)])
 	}
 
+	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
+	private async canWriteToFile(userId: string) {
+		const access = await this.getAppFileRecordWithRole(userId)
+		return !!access && canEditFile(access.file, access.role)
+	}
+
 	/**
-	 * Runs an MCP tool's work in this user's open tabs.
+	 * Runs an MCP tool's work in this user's open tabs: a measure or screenshot that would otherwise
+	 * start a browser, a batch of ops, or the user's own selection and page.
 	 *
 	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
 	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
@@ -3529,9 +3538,26 @@ export class TLFileDurableObject extends DurableObject {
 		jobIds: string[]
 	): Promise<TabRenderOutcome> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
+		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
+		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
+			return { status: 'declined', reason: 'read_only' }
+		}
 
-		const sessionIds = pickTabRenderSessions(this.getTabRenderSockets(), userId, Date.now())
-		if (sessionIds.length === 0) return { status: 'no_tab' }
+		const isWrite = request.mode === 'apply_ops'
+		const sockets = this.getTabRenderSockets()
+		const now = Date.now()
+		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
+		// The tab applies a write as its own session, which is what the room authorizes. The access
+		// check above is current, but a session keeps the mode it connected with until it reconnects,
+		// so a tab opened before the user could edit has to be reloaded.
+		const sessionIds = isWrite
+			? pickTabRenderSessions(
+					sockets.filter((s) => !s.isReadonly),
+					userId,
+					now
+				)
+			: pickTabRenderSessions(sockets, userId, now)
+		if (sessionIds.length === 0) return { status: 'reload_needed' }
 
 		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }
@@ -3540,15 +3566,49 @@ export class TLFileDurableObject extends DurableObject {
 			const ws = this.sessionIdToWs.get(sessionId)
 			const attachment = ws ? this.getSocketAttachment(ws) : null
 			if (!attachment) return null
-			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
+			return {
+				userId: attachment.meta.userId,
+				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
+			}
 		})
 		if (deliverable.length === 0) return { status: 'no_tab' }
-		// Any answer will do, and a second tab can cover for a dead one.
-		const targets = deliverable.slice(0, Math.min(MAX_TAB_RENDER_SESSIONS, jobIds.length))
+
+		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
+		// presence, says which one they're in.
+		const targets = pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
+			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
+			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
+		}).slice(0, jobIds.length)
+
 		return this.tabRenders.dispatch(targets, request, jobIds, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
+	}
+
+	/**
+	 * Who is on the board. Identity comes from the session, which the server verified. A session's
+	 * presence is whatever its client sent, so it's joined on rather than trusted: anyone with a share
+	 * link can claim any `userId` there.
+	 */
+	async getMcpBoardUsers(): Promise<
+		{ status: 'room_timeout' } | ({ status: 'ok' } & ReturnType<typeof getBoardUsers>)
+	> {
+		if (!this._documentInfo || this._documentInfo.deleted || !this.ctx.getWebSockets().length) {
+			return { status: 'ok', users: [], anonymousViewers: 0 }
+		}
+		const room = await this.getRoomForTabRender()
+		if (!room) return { status: 'room_timeout' }
+
+		const presences = room.getPresenceRecords()
+		const sessions = room
+			.getSessions()
+			.filter((session) => session.isConnected)
+			.map(({ sessionId, meta }) => {
+				const presenceId = room.getSessionSnapshot(sessionId)?.presenceId
+				return { userId: meta.userId, presence: presenceId ? presences[presenceId] : undefined }
+			})
+		return { status: 'ok', ...getBoardUsers(sessions) }
 	}
 
 	async hasTabRenderJob(jobId: string): Promise<boolean> {

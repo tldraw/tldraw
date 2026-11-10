@@ -162,12 +162,12 @@ export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
 export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
 
 /**
- * The budget shared by `get_page_info`, `get_cluster_info` and `get_cluster_screenshot`, which all
- * work in the caller's open tab.
+ * The budget shared by every tool that goes through the board's durable object: `get_page_info`,
+ * `get_cluster_info`, `get_cluster_screenshot`, `apply_ops`, `get_user_state` and `get_board_users`.
  *
- * The tab does the work, but the board's durable object is shared with everyone on the board and
- * still carries each call: it wakes, relays the job, and takes the tab's reply, which on a large page
- * runs to megabytes. A durable object does one thing at a time, so a looping agent would slow the
+ * Most of them have the caller's open tab do the work, but the durable object is shared with everyone
+ * on the board and still carries each call: it wakes, relays the job, and takes the tab's reply, which
+ * on a large page runs to megabytes. `get_board_users` reads presence from it directly. A durable object does one thing at a time, so a looping agent would slow the
  * board down for everybody. A call and a half a second on average leaves room for an agent reading
  * a page cluster by cluster.
  */

@@ -20,6 +20,7 @@ import { Environment } from '../../types'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	CLUSTER_INFO_MAX_IDS,
+	McpBoardUser,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
@@ -127,13 +128,16 @@ let requestId = 0
 
 function makeEnv({
 	tab = openTab(),
+	boardUsers = [],
 	...overrides
-}: Partial<Record<string, unknown>> & { tab?: FakeTab } = {}) {
+}: Partial<Record<string, unknown>> & { tab?: FakeTab; boardUsers?: McpBoardUser[] } = {}) {
 	return makeScreenshotTestEnv({
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://render.example',
 		THUMBNAILS: makeFakeThumbnailsBucket(),
 		ROOMS: makeFakeRoomsBucket(),
-		TLDR_DOC: makeFakeFileDurableObjectNamespace(tab),
+		TLDR_DOC: makeFakeFileDurableObjectNamespace(tab, {
+			getMcpBoardUsers: async () => ({ status: 'ok', users: boardUsers, anonymousViewers: 0 }),
+		}),
 		...overrides,
 	})
 }
@@ -152,6 +156,21 @@ function openTab(shapes: Record<string, ThumbnailShapeMeasurement> = {}): FakeTa
 				return readInTab(request, shapes)
 			case 'screenshot':
 				return { status: 'captured', base64: PNG }
+			case 'apply_ops':
+				return {
+					status: 'applied',
+					pageId: 'page:a',
+					pageName: 'Cover',
+					result: { batchId: 'batch', applied: request.ops.length, errors: [] },
+				}
+			case 'user_state':
+				return {
+					status: 'user_state',
+					pageId: 'page:a',
+					pageName: 'Cover',
+					selectedShapeIds: ['shape:picked'],
+					viewport: { x: 0, y: 0, w: 1000, h: 800 },
+				}
 		}
 	})
 }
@@ -416,6 +435,9 @@ describe('MCP server', () => {
 			'get_page_info',
 			'get_cluster_info',
 			'get_cluster_screenshot',
+			'apply_ops',
+			'get_user_state',
+			'get_board_users',
 		])
 	})
 })
@@ -557,7 +579,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.8.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.9.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1450,12 +1472,192 @@ describe('the open tab', () => {
 	})
 })
 
+describe('apply_ops', () => {
+	const OPS = [{ op: 'add', kind: 'box', text: 'Hello', at: { x: 0, y: 0 } }]
+
+	beforeEach(() => {
+		grantReadAccess()
+	})
+
+	it('applies a batch in the tab as the verified user and reports what landed', async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS, runId: 'run-1' },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(tab).toHaveBeenCalledWith('user_tab', {
+			mode: 'apply_ops',
+			ops: OPS,
+			attribution: { userId: 'user_tab', runId: 'run-1' },
+		})
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			pageId: 'page:a',
+			pageName: 'Cover',
+			batchId: 'batch',
+			applied: 1,
+			errors: [],
+		})
+	})
+
+	// The tab keeps {created} refs to the batch itself when no run is named.
+	it('names no run when the agent gives none, and passes the page along for the tab to check', async () => {
+		const tab = openTab()
+		const env = makeEnv({ tab })
+
+		await callTool('apply_ops', { boardId: 'abc', ops: OPS, page: 1 }, env, 'user_tab')
+		await callTool('apply_ops', { boardId: 'abc', ops: OPS, page: null }, env, 'user_tab')
+
+		expect(tab.mock.calls.map(([, request]) => request)).toEqual([
+			{
+				mode: 'apply_ops',
+				ops: OPS,
+				page: { kind: 'ordinal', ordinal: 1 },
+				attribution: { userId: 'user_tab' },
+			},
+			// A model that fills in every field sends null, which means the page the user is on.
+			{ mode: 'apply_ops', ops: OPS, attribution: { userId: 'user_tab' } },
+		])
+	})
+
+	// create_board followed by apply_ops is the obvious flow, and a new board has no snapshot to read.
+	it('works on a board with nothing persisted yet', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(new Error('should not be read'))
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, makeEnv(), 'user_tab')
+
+		expect(result.isError).toBeUndefined()
+	})
+
+	// A retry on a write that did land would apply it twice, so the agent has to hear the difference
+	// between "nothing happened" and "we don't know".
+	it.each<[TabRenderOutcome, string, boolean]>([
+		[{ status: 'no_tab' }, 'tab_not_open', false],
+		[{ status: 'reload_needed' }, 'tab_reload_needed', false],
+		[{ status: 'ack_timeout' }, 'tab_ack_timeout', false],
+		[{ status: 'declined', reason: 'read_only' }, 'tab_read_only', false],
+		[{ status: 'declined', reason: 'tab_hidden' }, 'tab_tab_hidden', false],
+		[{ status: 'declined', reason: 'apply_failed' }, 'tab_apply_failed', true],
+		[{ status: 'work_timeout' }, 'tab_work_timeout', true],
+	])('answers %j as %s', async (outcome, reason, mayHaveApplied) => {
+		const env = makeEnv({ tab: tabAnswering(outcome) })
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual([reason])
+		expect(result.content[0].text.includes('may or may not have applied')).toBe(mayHaveApplied)
+	})
+
+	it('reports the page from the tab, not from a field in its result', async () => {
+		const tab = tabAnswering({
+			status: 'applied',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			result: { applied: 1, pageId: 'page:forged', pageName: 'Forged' },
+		})
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			pageId: 'page:a',
+			pageName: 'Cover',
+		})
+	})
+
+	// The object can reset after a tab claimed the batch, so "nothing happened" could be false.
+	it('warns that a batch may have applied when the object fails partway', async () => {
+		const tab: FakeTab = vi.fn(async () => {
+			throw new Error('object reset')
+		})
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(result.content[0].text).toContain('may or may not have applied')
+	})
+
+	it('hands back what the tab said was wrong with a batch', async () => {
+		const env = makeEnv({
+			tab: tabAnswering({
+				status: 'declined',
+				reason: 'invalid_ops',
+				detail: '✖ Invalid op "add"',
+			}),
+		})
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('nothing was applied')
+		expect(result.content[0].text).toContain('Invalid op "add"')
+	})
+
+	it('answers the same for an inaccessible board as for a missing one', async () => {
+		denyReadAccess()
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const tab = openTab()
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(result.content[0].text).toContain('No board was found with this id')
+		expect(tab).not.toHaveBeenCalled()
+	})
+
+	it('says a published board cannot be edited, rather than that it was not found', async () => {
+		denyReadAccess()
+		mockPublishedBoard()
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, makeEnv(), 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('published board')
+	})
+
+	it.each([
+		['no ops', { boardId: 'abc', ops: [] }, 'non-empty array'],
+		['ops that are not a list', { boardId: 'abc', ops: 'add a box' }, 'non-empty array'],
+		[
+			'too many ops',
+			{ boardId: 'abc', ops: Array.from({ length: 1001 }, () => OPS[0]) },
+			'at most 1000',
+		],
+		['a batch too large to send', { boardId: 'abc', ops: ['x'.repeat(2_000_000)] }, 'too large'],
+		['a bad runId', { boardId: 'abc', ops: OPS, runId: 7 }, 'runId'],
+	])('refuses %s without reaching a tab', async (_name, args, phrase) => {
+		const tab = openTab()
+
+		const result = await callTool('apply_ops', args, makeEnv({ tab }), 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain(phrase)
+		expect(tab).not.toHaveBeenCalled()
+	})
+})
+
 describe('live reads', () => {
 	beforeEach(() => {
 		mockSharedBoard()
 	})
 
-	// Reading what was drawn a moment ago would otherwise wait out the persist interval.
+	// An agent reading back what it just drew would otherwise wait out the persist interval.
 	it('lists what the room holds now, not what R2 last saved', async () => {
 		const persisted = vi.fn()
 		const env = makeEnv({ ROOMS: { get: persisted, head: persisted } })
@@ -1464,6 +1666,92 @@ describe('live reads', () => {
 
 		expect(result.isError).toBeUndefined()
 		expect(persisted).not.toHaveBeenCalled()
+	})
+})
+
+describe('presence', () => {
+	const PEER: McpBoardUser = {
+		userId: 'user_peer',
+		name: 'Peer',
+		pageId: 'page:a',
+		selectedShapeIds: ['shape:theirs'],
+		viewport: { x: 0, y: 0, w: 100, h: 100 },
+		lastActiveAt: null,
+	}
+
+	beforeEach(() => {
+		grantReadAccess()
+	})
+
+	it('lists who is on the board without asking a tab', async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'get_board_users',
+			{ boardId: 'abc' },
+			makeEnv({ tab, boardUsers: [PEER] }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toEqual({ users: [PEER], anonymousViewers: 0 })
+		expect(tab).not.toHaveBeenCalled()
+	})
+
+	// A hibernating room clears selections from presence, so presence would read as nothing selected.
+	it("asks the caller's own tab for their state", async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'get_user_state',
+			{ boardId: 'abc' },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(tab).toHaveBeenCalledWith('user_tab', { mode: 'user_state' })
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			userId: 'user_tab',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			selectedShapeIds: ['shape:picked'],
+			viewport: { x: 0, y: 0, w: 1000, h: 800 },
+		})
+	})
+
+	it("reads someone else's state from presence", async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'get_user_state',
+			{ boardId: 'abc', userId: 'user_peer' },
+			makeEnv({ tab, boardUsers: [PEER] }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toEqual(PEER)
+		expect(tab).not.toHaveBeenCalled()
+	})
+
+	it('says so when that user is not on the board', async () => {
+		const result = await callTool(
+			'get_user_state',
+			{ boardId: 'abc', userId: 'user_gone' },
+			makeEnv(),
+			'user_tab'
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('not on this board')
+	})
+
+	it('answers the same for a board the caller cannot see as for a missing one', async () => {
+		denyReadAccess()
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+
+		for (const name of ['get_board_users', 'get_user_state']) {
+			const result = await callTool(name, { boardId: 'abc' }, makeEnv(), 'user_tab')
+			expect(result.content[0].text).toContain('No board was found with this id')
+		}
 	})
 })
 
@@ -1492,18 +1780,23 @@ describe('rate limits', () => {
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
 	})
 
-	// One budget across all three tab tools, so an agent can't triple its share of the board's durable
-	// object by switching tools. The refused call must not reach the tab: that load is the point.
-	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} tab tool calls per account per minute, across the tools`, async () => {
+	// One budget across every tool that goes through the board's durable object, so an agent can't
+	// multiply its share of the object by switching tools. A refused call must not reach the tab: that
+	// load is the point.
+	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} calls through the board per account per minute, across the tools`, async () => {
 		mockSharedBoard()
 		const tab = openTab()
 		const env = makeEnv({ tab })
 		// Spends the first call of the budget.
 		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+		const ops = [{ op: 'add', kind: 'box', text: 'Hello', at: { x: 0, y: 0 } }]
 		const calls = [
 			['get_page_info', { boardId: 'abc' }],
 			['get_cluster_info', { boardId: 'abc', clusterId }],
 			['get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }],
+			['apply_ops', { boardId: 'abc', ops }],
+			['get_user_state', { boardId: 'abc' }],
+			['get_board_users', { boardId: 'abc' }],
 		] as const
 
 		const results = []
@@ -1512,20 +1805,18 @@ describe('rate limits', () => {
 			results.push(await callTool(tool, args, env, 'user_tab'))
 		}
 		const callsWithinBudget = tab.mock.calls.length
-		const blocked = await callTool(
-			'get_cluster_info',
-			{ boardId: 'abc', clusterId },
-			env,
-			'user_tab'
-		)
+		const blocked = []
+		for (const [tool, args] of calls) blocked.push(await callTool(tool, args, env, 'user_tab'))
 
 		expect(results.map((r) => r.isError)).toEqual(
 			Array(MCP_TAB_PER_USER_RATE_LIMIT - 1).fill(undefined)
 		)
-		expect(blocked.isError).toBe(true)
-		expect(blocked.content[0].text).toContain(
-			'Reading pages and screenshotting clusters is limited'
-		)
+		for (const result of blocked) {
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain(
+				`share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT}`
+			)
+		}
 		expect(tab).toHaveBeenCalledTimes(callsWithinBudget)
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
 	})

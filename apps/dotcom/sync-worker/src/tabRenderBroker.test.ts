@@ -1,3 +1,4 @@
+import { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	TAB_RENDER_ACK_TIMEOUT_MS,
@@ -8,6 +9,7 @@ import {
 	TabRenderTarget,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
+	pickTabRenderTargets,
 } from './tabRenderBroker'
 
 const NOW = 1_000_000
@@ -75,6 +77,22 @@ describe('keepDeliverableTabRenderSessions', () => {
 	})
 })
 
+describe('pickTabRenderTargets', () => {
+	const lastActiveAt = (sessionId: string) => ({ idle: 1, active: 9, older: 5 })[sessionId] ?? 0
+
+	// A batch sent to two tabs would land twice.
+	it('sends a write, and a question about the user, only to the tab they were last active in', () => {
+		const tabs = ['idle', 'active', 'older']
+		expect(pickTabRenderTargets('apply_ops', tabs, lastActiveAt)).toEqual(['active'])
+		expect(pickTabRenderTargets('user_state', tabs, lastActiveAt)).toEqual(['active'])
+	})
+
+	it('sends a read to several tabs, capped so one call cannot work every copy of a board', () => {
+		const tabs = ['a', 'b', 'c', 'd', 'e']
+		expect(pickTabRenderTargets('read', tabs, lastActiveAt)).toEqual(['a', 'b', 'c'])
+	})
+})
+
 describe('TabRenderBroker', () => {
 	const read = {
 		mode: 'read',
@@ -89,11 +107,17 @@ describe('TabRenderBroker', () => {
 		vi.useRealTimers()
 	})
 
-	function dispatch(sessionIds: string[]) {
+	const applyOps: TabRenderRequest = {
+		mode: 'apply_ops',
+		ops: [],
+		attribution: { userId: 'user_a', runId: 'run' },
+	}
+
+	function dispatch(sessionIds: string[], request: TabRenderRequest = read) {
 		const broker = new TabRenderBroker()
 		const jobIds = new Map<string, string>()
 		const issued = sessionIds.map((sessionId) => `job-${sessionId}`)
-		const result = broker.dispatch(sessionIds, read, issued, (sessionId, jobId) => {
+		const result = broker.dispatch(sessionIds, request, issued, (sessionId, jobId) => {
 			jobIds.set(sessionId, jobId)
 		})
 		return { broker, jobIds, result }
@@ -174,5 +198,15 @@ describe('TabRenderBroker', () => {
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS + 1)
 		broker.receive(jobIds.get('a')!, { status: 'declined', reason: 'failed' })
 		await expect(result).resolves.toEqual({ status: 'declined', reason: 'failed' })
+	})
+
+	// A frozen tab keeps its socket and runs the job when it thaws, long after the agent moved on.
+	it('refuses a tab that claims a write after the job ended', async () => {
+		const { broker, jobIds, result } = dispatch(['a'], applyOps)
+
+		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
+		await result
+
+		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(false)
 	})
 })

@@ -197,7 +197,22 @@ export interface TabRenderReadRequest {
 }
 
 /** What an MCP tool asks the caller's open tab to work out. Tabs are the only way these get done. */
-export type TabRenderRequest = TabRenderReadRequest | TabRenderScreenshotRequest
+export interface TabRenderApplyOpsRequest {
+	mode: 'apply_ops'
+	/** Validated by the tab, which owns the op vocabulary. */
+	ops: unknown[]
+	/** Which page the agent means. Absent means whichever page the tab is on. */
+	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
+	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
+	attribution: { userId: string; runId?: string }
+}
+
+/** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
+export type TabRenderRequest =
+	| TabRenderReadRequest
+	| TabRenderScreenshotRequest
+	| TabRenderApplyOpsRequest
+	| { mode: 'user_state' }
 
 /**
  * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
@@ -220,6 +235,13 @@ export const TAB_RENDER_DECLINE_REASONS = [
 	'busy',
 	/** The export gave up waiting for its shapes, so its picture can't be trusted. */
 	'export_timed_out',
+	/** The batch failed validation and nothing was applied. `detail` says why. */
+	'invalid_ops',
+	'read_only',
+	/** A batch for a tab the user isn't looking at, which they could neither watch nor undo. */
+	'tab_hidden',
+	/** Something threw while a batch was applying, so some of it may have landed. */
+	'apply_failed',
 	'failed',
 ] as const
 export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
@@ -227,10 +249,18 @@ export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
 /** What a tab POSTs back for a job. Anything but `accepted` ends that tab's part in it. */
 export type TabRenderReply =
 	| { status: 'accepted' }
-	| { status: 'declined'; reason: TabRenderDeclineReason }
+	| { status: 'declined'; reason: TabRenderDeclineReason; detail?: string }
 	| { status: 'page_read'; read: McpPageRead }
 	| { status: 'page_not_found'; reason: 'no_pages' | 'page_out_of_range'; pageCount: number }
 	| { status: 'captured'; base64: string }
+	| { status: 'applied'; pageId: string; pageName: string; result: Record<string, unknown> }
+	| {
+			status: 'user_state'
+			pageId: string
+			pageName: string
+			selectedShapeIds: string[]
+			viewport: { x: number; y: number; w: number; h: number }
+	  }
 
 /**
  * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the

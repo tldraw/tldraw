@@ -3,8 +3,10 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
+	APPLY_OPS_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
+	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
@@ -33,6 +35,7 @@ import {
 	readSnapshotPage,
 	toolError,
 	toolPageResult,
+	USER_STATE_TOOL_NAME,
 } from './boardTools'
 
 const HARNESS_GAP_MARKER = '[harness-gap]'
@@ -231,6 +234,15 @@ async function callFixtureTool(
 					`${HARNESS_GAP_MARKER} Boards cannot be renamed against fixtures. Run against staging or production to rename one.`
 				)
 			}
+			case USER_STATE_TOOL_NAME:
+			case BOARD_USERS_TOOL_NAME:
+				return toolError(
+					`${HARNESS_GAP_MARKER} Fixtures have nobody on them. Run against staging or production to test presence.`
+				)
+			case APPLY_OPS_TOOL_NAME:
+				return toolError(
+					`${HARNESS_GAP_MARKER} Ops cannot be applied to fixtures. Run against staging or production to test edits.`
+				)
 			default:
 				return toolError(`Unknown tool: ${name}`)
 		}

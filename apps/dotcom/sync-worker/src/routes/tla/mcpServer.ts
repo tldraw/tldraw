@@ -14,9 +14,11 @@ import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	APPLY_OPS_TOOL_NAME,
 	BOARD_EMPTY_MESSAGE,
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
+	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
@@ -29,6 +31,7 @@ import {
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
+	USER_STATE_TOOL_NAME,
 	describePageSelector,
 	getBoardInfo,
 	getBoardSearchResults,
@@ -37,7 +40,9 @@ import {
 	getPageInfo,
 	getToolDefinitions,
 	getWorkspaceListResult,
+	parseApplyOpsInput,
 	parseBoardInfoInput,
+	parseBoardUsersInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	parseCreateBoardInput,
@@ -46,6 +51,7 @@ import {
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pageLookupFailure,
+	parseUserStateInput,
 	pickClusterShapes,
 	toolError as modelToolError,
 	toolJsonResult,
@@ -54,7 +60,14 @@ import {
 import { createBoardForUser } from './createBoard'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
-import { PUBLISHED_BOARD_FAILURE, captureInOpenTab, readPageInOpenTab } from './mcpTabRender'
+import {
+	PUBLISHED_BOARD_FAILURE,
+	applyOpsInOpenTab,
+	captureInOpenTab,
+	readBoardUsers,
+	readPageInOpenTab,
+	readUserStateInOpenTab,
+} from './mcpTabRender'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -337,6 +350,9 @@ const TOOL_HANDLERS = new Map<
 	[PAGE_INFO_TOOL_NAME, callPageInfoTool],
 	[CLUSTER_INFO_TOOL_NAME, callClusterInfoTool],
 	[CLUSTER_SCREENSHOT_TOOL_NAME, callClusterScreenshotTool],
+	[APPLY_OPS_TOOL_NAME, callApplyOpsTool],
+	[USER_STATE_TOOL_NAME, callUserStateTool],
+	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
 ])
 
 export async function mcpServer(
@@ -874,13 +890,27 @@ async function loadBoardForTool(
 
 type BoardPageRead = { ok: true; read: McpPageRead } | { ok: false; result: ToolCallResult }
 
+// A board that isn't a file the caller can see is either published, which has no room to work in, or
+// not found, with the same answer get_board_info gives either way.
+async function refuseUnlessFile(
+	env: Environment,
+	boardId: string,
+	userId: string
+): Promise<{ reason: string; result: ToolCallResult } | null> {
+	const access = await hasReadAccessToFile(env, userId, boardId)
+	if (access.ok) return null
+	const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+	if (!published.ok) {
+		return { reason: 'not_found', result: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found') }
+	}
+	const { reason, message } = PUBLISHED_BOARD_FAILURE
+	return { reason, result: toolError(message, reason) }
+}
+
 // How get_page_info, get_cluster_info and get_cluster_screenshot read a page: the caller's open tab
 // resolves it, measures and clusters it, and sends back records only for `clusterIds`. Clustering
 // needs real geometry, which only an editor has. See mcpTabRender.ts for why a tab's answer is never
 // kept.
-//
-// A board that isn't a file the caller can see is either published, which has no room to read, or not
-// found, with the same answer get_board_info gives either way.
 async function readBoardPage(
 	boardId: string,
 	page: PageSelector,
@@ -907,15 +937,8 @@ async function readBoardPage(
 	const limited = await checkTabRateLimit(env, userId, telemetry)
 	if (limited) return { ok: false, result: limited }
 
-	const access = await hasReadAccessToFile(env, userId, boardId)
-	if (!access.ok) {
-		const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
-		if (!published.ok) {
-			return fail('not_found', toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found'))
-		}
-		const { reason, message } = PUBLISHED_BOARD_FAILURE
-		return fail(reason, toolError(message, reason))
-	}
+	const refusal = await refuseUnlessFile(env, boardId, userId)
+	if (refusal) return fail(refusal.reason, refusal.result)
 
 	const tab = await readPageInOpenTab(env, boardId, userId, page, clusterIds, { request, ctx })
 	if (!tab.ok) return fail(tab.reason, toolError(tab.message, tab.reason))
@@ -1019,7 +1042,7 @@ async function checkTabRateLimit(
 		callerHash: await sha256(userId),
 	})
 	return toolError(
-		`Rate limited. Reading pages and screenshotting clusters is limited to about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
+		`Rate limited. Reading, screenshotting and editing boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
 		'rate_limited_tab'
 	)
 }
@@ -1156,6 +1179,136 @@ async function callClusterScreenshotTool(
 			},
 			summary: 'Screenshot failed',
 			telemetry,
+			recordAs: recordAsBoardLookupError,
+		})
+	}
+}
+
+// Goes straight to the tab rather than through the board snapshot: the tab is what writes, and a board
+// created a moment ago has no persisted snapshot yet.
+async function callApplyOpsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseApplyOpsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const refusal = await refuseUnlessFile(env, input.boardId, userId)
+		if (refusal) return refusal.result
+
+		const applied = await applyOpsInOpenTab(
+			env,
+			input.boardId,
+			userId,
+			{
+				ops: input.ops,
+				page: input.page ?? undefined,
+				attribution: { userId, runId: input.runId ?? undefined },
+			},
+			{ request, ctx }
+		)
+		if (!applied.ok) return toolError(applied.message, applied.reason)
+		const { pageId, pageName, result } = applied.value
+		// Last, so a field in what the tab reported can't stand in for the page it was applied on.
+		return toolJsonResult({ ...result, pageId, pageName })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_apply_ops',
+			extras: { boardId: input.boardId, opCount: input.ops.length },
+			summary: 'Could not apply ops',
+			recordAs: recordAsBoardLookupError,
+		})
+	}
+}
+
+async function callUserStateTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseUserStateInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const refusal = await refuseUnlessFile(env, input.boardId, userId)
+		if (refusal) return refusal.result
+
+		if (input.userId === null || input.userId === userId) {
+			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			if (!state.ok) return toolError(state.message, state.reason)
+			const { pageId, pageName, selectedShapeIds, viewport } = state.value
+			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
+		}
+
+		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		if (!users.ok) return toolError(users.message, users.reason)
+		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
+		if (!user) {
+			return toolError(
+				'That user is not on this board right now. Call get_board_users to see who is.',
+				'user_not_on_board'
+			)
+		}
+		return toolJsonResult(user)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_presence',
+			extras: { boardId: input.boardId },
+			summary: 'Could not read user state',
+			recordAs: recordAsBoardLookupError,
+		})
+	}
+}
+
+async function callBoardUsersTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseBoardUsersInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
+		const refusal = await refuseUnlessFile(env, input.boardId, userId)
+		if (refusal) return refusal.result
+
+		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		if (!users.ok) return toolError(users.message, users.reason)
+		return toolJsonResult(users.value)
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_board_presence',
+			extras: { boardId: input.boardId },
+			summary: 'Could not list board users',
 			recordAs: recordAsBoardLookupError,
 		})
 	}
