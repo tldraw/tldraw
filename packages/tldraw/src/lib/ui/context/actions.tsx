@@ -287,11 +287,6 @@ const messages = defineMessages({
 		id: 'action.unflatten-image.error-title',
 		defaultMessage: 'Unflatten failed',
 	},
-	actionUnflattenImageErrorTransformed: {
-		id: 'action.unflatten-image.error-transformed',
-		defaultMessage:
-			'Images that were cropped, flipped or stretched after flattening can’t be unflattened.',
-	},
 	actionUnflattenImageErrorUnreadable: {
 		id: 'action.unflatten-image.error-unreadable',
 		defaultMessage: 'Could not read the shapes saved in this image.',
@@ -1888,11 +1883,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					if (result.type === 'error' && result.reason !== 'max-shapes') {
 						helpers.addToast({
 							title: helpers.msg(messages.actionUnflattenImageErrorTitle),
-							description: helpers.msg(
-								result.reason === 'transformed'
-									? messages.actionUnflattenImageErrorTransformed
-									: messages.actionUnflattenImageErrorUnreadable
-							),
+							description: helpers.msg(messages.actionUnflattenImageErrorUnreadable),
 							severity: 'error',
 						})
 					}

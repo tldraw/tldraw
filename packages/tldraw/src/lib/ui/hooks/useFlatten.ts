@@ -13,13 +13,12 @@ import {
 	compact,
 	createShapeId,
 	fetch,
-	isEqual,
 	isShapeId,
 	transact,
 	useEditor,
 } from '@tldraw/editor'
 import { useCallback } from 'react'
-import { getDefaultCrop } from '../../shapes/shared/crop'
+import { getUncroppedSize } from '../../shapes/shared/crop'
 
 export async function flattenShapesToImages(
 	editor: Editor,
@@ -295,30 +294,9 @@ export function isFlattenedImage(editor: Editor, shape: TLShape): shape is TLIma
 	return editor.getAsset(shape.props.assetId)?.meta[FLATTENED_ASSET_META_KEY] === true
 }
 
-/**
- * Unflatten only follows moves, rotation and uniform scale. A crop, flip or stretch has no
- * equivalent on the source shapes, so those images stay flattened.
- */
-function canRestoreFlattenSource(image: TLImageShape, source: TLFlattenSource) {
-	const { crop, flipX, flipY, w, h } = image.props
-	if (flipX || flipY) return false
-	const defaultCrop = getDefaultCrop()
-	if (
-		crop &&
-		(crop.isCircle ||
-			!isEqual(crop.topLeft, defaultCrop.topLeft) ||
-			!isEqual(crop.bottomRight, defaultCrop.bottomRight))
-	) {
-		return false
-	}
-	const scaleX = w / source.bounds.w
-	const scaleY = h / source.bounds.h
-	return Math.abs(scaleX - scaleY) <= 0.01 * Math.max(scaleX, scaleY)
-}
-
 // Resizing a frame doesn't scale its children, so scale every shape. Snapshot every page
 // transform first; once a parent moves, its children's transforms are wrong.
-function scaleShapeTrees(editor: Editor, rootIds: TLShapeId[], scale: number, origin: VecLike) {
+function scaleShapeTrees(editor: Editor, rootIds: TLShapeId[], scale: VecLike, origin: VecLike) {
 	// breadth-first, so parents come before their children
 	const ordered = [...rootIds]
 	for (let i = 0; i < ordered.length; i++) {
@@ -330,17 +308,15 @@ function scaleShapeTrees(editor: Editor, rootIds: TLShapeId[], scale: number, or
 		pageTransform: editor.getShapePageTransform(id),
 	}))
 	for (const { shape, bounds, pageTransform } of snapshots) {
-		editor.resizeShape(
-			shape.id,
-			{ x: scale, y: scale },
-			{
-				initialShape: shape,
-				initialBounds: bounds,
-				initialPageTransform: pageTransform,
-				mode: 'scale_shape',
-				scaleOrigin: origin,
-			}
-		)
+		editor.resizeShape(shape.id, scale, {
+			initialShape: shape,
+			initialBounds: bounds,
+			initialPageTransform: pageTransform,
+			mode: 'scale_shape',
+			scaleOrigin: origin,
+			// the saved shapes' axes, not each shape's own rotation
+			scaleAxisRotation: 0,
+		})
 	}
 }
 
@@ -352,16 +328,28 @@ function restoreFlattenSource(editor: Editor, image: TLImageShape, source: TLFla
 	// put returns without putting anything when, for example, the page is read-only
 	if (ids.length === 0) throw Error('Nothing was put')
 
-	// The shapes are back where they were flattened from; move them onto the image
-	const sourceOrigin = { x: source.bounds.x, y: source.bounds.y }
-	const imageTransform = editor.getShapePageTransform(image)
-	const scale = image.props.w / source.bounds.w
-	if (scale !== 1) scaleShapeTrees(editor, ids, scale, sourceOrigin)
-	const rotation = imageTransform.rotation()
-	if (rotation !== 0) {
-		editor.rotateShapesBy(ids, rotation, { center: sourceOrigin })
+	// The image shows the saved shapes scaled, flipped, cropped, rotated and moved, in that
+	// order. Do the same to the shapes, so they land where the image showed them.
+	const { flipX, flipY, crop } = image.props
+	const origin = { x: source.bounds.x, y: source.bounds.y }
+	const uncropped = getUncroppedSize(image.props, crop)
+	const cropTopLeft = crop?.topLeft ?? { x: 0, y: 0 }
+	const scale = {
+		x: (uncropped.w / source.bounds.w) * (flipX ? -1 : 1),
+		y: (uncropped.h / source.bounds.h) * (flipY ? -1 : 1),
 	}
-	editor.nudgeShapes(ids, Vec.Sub(imageTransform.point(), sourceOrigin))
+	// A negative scale flips, as in flipShapes
+	if (scale.x !== 1 || scale.y !== 1) scaleShapeTrees(editor, ids, scale, origin)
+	// From the origin to the visible part of the image. A crop is stored in the flipped image's
+	// frame, and a flip puts the shapes left of or above the origin.
+	const offset = new Vec(
+		uncropped.w * (flipX ? 1 - cropTopLeft.x : -cropTopLeft.x),
+		uncropped.h * (flipY ? 1 - cropTopLeft.y : -cropTopLeft.y)
+	)
+	const imageTransform = editor.getShapePageTransform(image)
+	const rotation = imageTransform.rotation()
+	if (rotation !== 0) editor.rotateShapesBy(ids, rotation, { center: origin })
+	editor.nudgeShapes(ids, Vec.Sub(imageTransform.point(), origin).add(offset.rot(rotation)))
 	editor.reparentShapes(ids, image.parentId, image.index)
 	// Put may have moved some roots into a frame that covers the original area, and
 	// reparenting orders them by those mixed indices, so restore the stacking order
@@ -376,7 +364,7 @@ function restoreFlattenSource(editor: Editor, image: TLImageShape, source: TLFla
 /** @internal */
 export type TLUnflattenResult =
 	| { type: 'success'; shapeIds: TLShapeId[] }
-	| { type: 'error'; reason: 'transformed' | 'unreadable' | 'max-shapes' }
+	| { type: 'error'; reason: 'unreadable' | 'max-shapes' }
 
 /**
  * Replace flattened images with the shapes they were flattened from. Images that can't be
@@ -408,8 +396,6 @@ export async function unflattenImages(
 		const source = sources[i]
 		if (!source) {
 			error ??= 'unreadable'
-		} else if (!canRestoreFlattenSource(image, source)) {
-			error ??= 'transformed'
 		} else {
 			restorable.push({ image, source })
 		}
@@ -431,13 +417,9 @@ export async function unflattenImages(
 	const selectionAtStart = editor.getSelectedShapeIds()
 
 	for (const { source, image: imageAtStart } of restorable) {
-		// The image may have been deleted, locked or changed while we fetched
+		// The image may have been deleted or locked while we fetched
 		const image = editor.getShape(imageAtStart.id)
 		if (!canUnflattenNow(image)) continue
-		if (!canRestoreFlattenSource(image, source)) {
-			error ??= 'transformed'
-			continue
-		}
 		// A run of its own, so a throw part way (e.g. a binding type this editor doesn't have)
 		// rolls back the shapes already put, and the image stays as it was
 		// The shapes are new, so moving them onto the image ignores their lock, which they keep;

@@ -144,7 +144,6 @@ export type TLUiTranslationKey =
 	| 'action.undo'
 	| 'action.unflatten-image'
 	| 'action.unflatten-image.error-title'
-	| 'action.unflatten-image.error-transformed'
 	| 'action.unflatten-image.error-unreadable'
 	| 'action.ungroup'
 	| 'action.unlock-all'

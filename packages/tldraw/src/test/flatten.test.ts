@@ -1,5 +1,6 @@
 import {
 	AssetRecordType,
+	Box,
 	Mat,
 	TLGeoShape,
 	TLImageAsset,
@@ -7,6 +8,7 @@ import {
 	TLShapeId,
 	TLShapePartial,
 	Vec,
+	VecLike,
 	createShapeId,
 	toRichText,
 } from '@tldraw/editor'
@@ -259,20 +261,126 @@ describe('unflattenImages', () => {
 		}
 	})
 
-	it.each([
-		['cropped', () => ({ crop: { topLeft: { x: 0.1, y: 0 }, bottomRight: { x: 1, y: 1 } } })],
-		['flipped', () => ({ flipX: true })],
-		['stretched', (image: TLImageShape) => ({ w: image.props.w * 2 })],
-	] as const)('keeps the image when it was %s', async (_, change) => {
-		const imageId = await flattenBoxes()
-		const image = editor.getShape<TLImageShape>(imageId)!
-		editor.updateShape({ id: imageId, type: 'image', props: change(image) })
+	describe('follows the image when it was', () => {
+		// box centers before flattening, mapped through what was done to the image
+		type Change = (imageId: TLShapeId) => (center: VecLike) => VecLike
 
-		const result = await unflattenImages(editor, [imageId])
+		function flip(imageId: TLShapeId, direction: 'horizontal' | 'vertical') {
+			const { center } = editor.getShapePageBounds(imageId)!
+			editor.flipShapes([imageId], direction)
+			return (p: VecLike) =>
+				direction === 'horizontal'
+					? { x: 2 * center.x - p.x, y: p.y }
+					: { x: p.x, y: 2 * center.y - p.y }
+		}
 
-		expect(result).toEqual({ type: 'error', reason: 'transformed' })
-		expect(editor.getShape(imageId)).toBeDefined()
-		expect(getRestoredBoxes()).toEqual([])
+		// Crops like the crop handles do: the visible part stays where it was
+		function cropLeft(imageId: TLShapeId) {
+			const image = editor.getShape<TLImageShape>(imageId)!
+			editor.updateShape({
+				id: imageId,
+				type: 'image',
+				x: image.x + image.props.w * 0.25,
+				props: {
+					w: image.props.w * 0.75,
+					crop: { topLeft: { x: 0.25, y: 0 }, bottomRight: { x: 1, y: 1 } },
+				},
+			})
+			return (p: VecLike) => p
+		}
+
+		it.each<[string, Change]>([
+			['flipped horizontally', (id) => flip(id, 'horizontal')],
+			['flipped vertically', (id) => flip(id, 'vertical')],
+			[
+				'stretched',
+				(id) => {
+					const image = editor.getShape<TLImageShape>(id)!
+					editor.updateShape({ id, type: 'image', props: { w: image.props.w * 2 } })
+					return (p) => ({ x: image.x + (p.x - image.x) * 2, y: p.y })
+				},
+			],
+			['cropped', cropLeft],
+			[
+				'cropped, then flipped',
+				(id) => {
+					cropLeft(id)
+					return flip(id, 'horizontal')
+				},
+			],
+			[
+				'flipped, then cropped',
+				(id) => {
+					const flipped = flip(id, 'horizontal')
+					cropLeft(id)
+					return flipped
+				},
+			],
+		])('%s', async (_, change) => {
+			editor.createShapes([box(a, 100, 100), box(b, 200, 150, 50, 80)])
+			const before = getRestoredBoxes()
+			const [imageId] = (await flattenShapesToImages(editor, [a, b]))!
+			const map = change(imageId)
+
+			const result = await unflattenImages(editor, [imageId])
+
+			expect(result.type).toBe('success')
+			const expected = before.map((b) => map(Box.From(b.bounds).center))
+			const actual = getRestoredBoxes().map((b) => Box.From(b.bounds).center)
+			expect(sortByX(actual).map(({ x, y }) => ({ x, y }))).toEqual(
+				sortByX(expected).map((p) => ({ x: expect.closeTo(p.x), y: expect.closeTo(p.y) }))
+			)
+		})
+
+		it.each([
+			['a frame', false],
+			['a group in a frame', true],
+		] as const)('flipped and stretched, with %s', async (_, withGroup) => {
+			const parentId = createShapeId('parent')
+			editor.createShapes([
+				{ id: parentId, type: 'frame', x: 50, y: 50, props: { w: 300, h: 200 } },
+				{ ...box(a, 50, 50), parentId },
+				{ ...box(b, 150, 50, 50, 80), parentId },
+			])
+			if (withGroup) editor.groupShapes([a, b])
+			const before = getRestoredBoxes()
+			const [imageId] = (await flattenShapesToImages(editor, [parentId]))!
+			const image = editor.getShape<TLImageShape>(imageId)!
+			editor.updateShape({ id: imageId, type: 'image', props: { w: image.props.w * 2 } })
+			const flipped = flip(imageId, 'horizontal')
+			const stretch = (p: VecLike) => ({ x: image.x + (p.x - image.x) * 2, y: p.y })
+
+			await unflattenImages(editor, [imageId])
+
+			const expected = before.map((b) => flipped(stretch(Box.From(b.bounds).center)))
+			const after = getRestoredBoxes()
+			expect(
+				sortByX(after.map((b) => Box.From(b.bounds).center)).map(({ x, y }) => ({ x, y }))
+			).toEqual(sortByX(expected).map((p) => ({ x: expect.closeTo(p.x), y: expect.closeTo(p.y) })))
+			expect(after.map((b) => [b.bounds.w, b.bounds.h]).sort()).toEqual(
+				before.map((b) => [b.bounds.w * 2, b.bounds.h]).sort()
+			)
+		})
+
+		function sortByX(points: VecLike[]) {
+			return [...points].sort((a, b) => a.x - b.x)
+		}
+
+		it('stretched, with a rotated shape inside', async () => {
+			editor.createShapes([{ ...box(a, 100, 100), rotation: Math.PI / 4 }])
+			const [imageId] = (await flattenShapesToImages(editor, [a]))!
+			const image = editor.getShape<TLImageShape>(imageId)!
+			editor.updateShape({ id: imageId, type: 'image', props: { w: image.props.w * 2 } })
+
+			const result = await unflattenImages(editor, [imageId])
+
+			// A rotated shape can't stretch, so it scales uniformly like it does with the
+			// selection handles, and stays inside the image
+			expect(result.type).toBe('success')
+			const [restored] = getRestoredBoxes()
+			expect(editor.getShapePageBounds(imageId)).toBeUndefined()
+			expect(Box.From(restored.bounds).w).toBeLessThanOrEqual(image.props.w * 2)
+		})
 	})
 
 	it('keeps the image when the shapes would go over the page limit', async () => {

@@ -140,7 +140,6 @@
 	"action.undo": "Undo",
 	"action.unflatten-image": "Unflatten",
 	"action.unflatten-image.error-title": "Unflatten failed",
-	"action.unflatten-image.error-transformed": "Images that were cropped, flipped or stretched after flattening can’t be unflattened.",
 	"action.unflatten-image.error-unreadable": "Could not read the shapes saved in this image.",
 	"action.ungroup": "Ungroup",
 	"action.unlock-all": "Unlock all",
