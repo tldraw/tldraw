@@ -110,7 +110,51 @@ describe('useSync', () => {
 		const refusal = { reason: 'not your page', ids: ['shape:a'] }
 		expect(() => client.opts.onPushRefused(refusal)).toThrow('host bug')
 
-		expect(seen).toEqual([refusal])
+		expect(seen).toEqual([{ ...refusal, source: 'server' }])
 		expect(onPushRefused).toHaveBeenCalledWith(refusal)
+	})
+
+	it('gives one authorize rule to the sync client and the editor, with one refusal feed', () => {
+		const rule = vi.fn(() => null)
+		const authorize = { rule, meta: { userId: 'a' } }
+		render({ connect: () => makeSocket() as any, roomId: 'a', assets, authorize })
+		const client = Mock.instances[0]
+		const onStore = client.store.props.collaboration.authorize
+		const seen: unknown[] = []
+		client.store.props.collaboration.refusals.subscribe((r: unknown) => seen.push(r))
+
+		// both copies call the host's rule
+		client.opts.authorize.rule({ changes: [] })
+		onStore.rule({ changes: [] })
+		expect(rule).toHaveBeenCalledTimes(2)
+		expect(client.opts.authorize.meta).toEqual({ userId: 'a' })
+
+		// the editor's session follows the access the room reports
+		expect(onStore.getSession().access).toEqual({ document: 'write', objects: 'write' })
+		act(() =>
+			client.opts.onAfterConnect(client, { access: { document: 'write', objects: 'read' } })
+		)
+		expect(onStore.getSession()).toEqual({
+			sessionId: '',
+			meta: { userId: 'a' },
+			access: { document: 'write', objects: 'read' },
+		})
+
+		client.opts.authorize.onRefusedLocally({ reason: 'local' })
+		client.opts.onPushRefused({ reason: 'server' })
+		expect(seen).toEqual([
+			{ reason: 'local', source: 'local' },
+			{ reason: 'server', source: 'server' },
+		])
+
+		// a new meta applies without a new client
+		render({
+			connect: () => makeSocket() as any,
+			roomId: 'a',
+			assets,
+			authorize: { rule, meta: { userId: 'b' } },
+		})
+		expect(client.opts.authorize.meta).toEqual({ userId: 'b' })
+		expect(onStore.getSession().meta).toEqual({ userId: 'b' })
 	})
 })

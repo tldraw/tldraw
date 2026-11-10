@@ -371,6 +371,9 @@ export {
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
+	type TLStoreWriteRule,
+	type TLWriteRuleArgs,
+	type TLWriteRuleSession,
 	type TLUserStore,
 } from './TLStore'
 export {

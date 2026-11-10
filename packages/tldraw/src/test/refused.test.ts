@@ -22,10 +22,13 @@ describe('refused event', () => {
 		const seen: TLRefusal[] = []
 		editor.on('refused', (refusal) => seen.push(refusal))
 
-		feed.emit({ reason: 'not your page', ids: ['shape:a'] })
-		feed.emit({ reason: 'again' })
+		feed.emit({ reason: 'not your page', ids: ['shape:a'], source: 'server' })
+		feed.emit({ reason: 'again', source: 'local' })
 
-		expect(seen).toEqual([{ reason: 'not your page', ids: ['shape:a'] }, { reason: 'again' }])
+		expect(seen).toEqual([
+			{ reason: 'not your page', ids: ['shape:a'], source: 'server' },
+			{ reason: 'again', source: 'local' },
+		])
 	})
 
 	it('stops listening when the editor is disposed', () => {

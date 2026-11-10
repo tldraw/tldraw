@@ -24,7 +24,7 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
-	/** The server refused a change of this user's; it has already been reverted. */
+	/** A change of this user's was refused, locally or by the server; it has already been reverted. */
 	refused: [TLRefusal]
 	dispose: []
 }

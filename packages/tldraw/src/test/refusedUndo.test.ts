@@ -29,6 +29,7 @@ function refuseDelete(
 	editor.store.mergeRemoteChanges(() => editor.store.put([restored]))
 	emit({
 		reason: 'not your page',
+		source: 'server',
 		ids: [id],
 		...(opts.withChanges
 			? { changes: { added: {}, updated: {}, removed: { [id]: restored } } }
@@ -92,6 +93,7 @@ describe('undo after a refusal', () => {
 		editor.store.mergeRemoteChanges(() => editor.store.put([server]))
 		emit({
 			reason: 'not your page',
+			source: 'server',
 			ids: [id],
 			changes: { added: {}, updated: { [id]: [server, user] }, removed: {} },
 		} as TLRefusal)

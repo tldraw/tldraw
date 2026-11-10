@@ -10,10 +10,11 @@ import {
 	TLSocketClientSentEvent,
 	TLSocketServerSentEvent,
 	TLSyncClient,
+	TLSyncClientAuthorizeOptions,
 	TLSyncErrorCloseEventReason,
 	TLSyncRefusal,
 } from '@tldraw/sync-core'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
 	Editor,
 	TAB_ID,
@@ -214,6 +215,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
 		onPushRefused: _onPushRefused,
+		authorize: _authorize,
 		themes,
 		...schemaOpts
 	} = opts
@@ -233,6 +235,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
 	const onPushRefused = useEvent((refusal: TLSyncRefusal) => _onPushRefused?.(refusal))
+	// read through a ref so a new rule or meta applies without reconnecting
+	const authorizeRef = useRef(_authorize)
+	authorizeRef.current = _authorize
+	const hasAuthorize = !!_authorize
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -312,6 +318,27 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
 		const refusalListeners = new Set<(refusal: TLRefusal) => void>()
+		const emitRefusal = (refusal: TLRefusal) => {
+			for (const listener of refusalListeners) {
+				try {
+					listener(refusal)
+				} catch (e) {
+					console.error('refusal listener threw', e)
+				}
+			}
+		}
+
+		const access = atom<TLSessionAccess>('sync access', { document: 'write', objects: 'write' })
+		const authorize: TLSyncClientAuthorizeOptions<TLRecord> | undefined = hasAuthorize
+			? {
+					rule: (args) => authorizeRef.current!.rule(args),
+					transform: (args) => authorizeRef.current!.transform?.(args) ?? args.record,
+					get meta() {
+						return authorizeRef.current!.meta
+					},
+					onRefusedLocally: (refusal) => emitRefusal({ ...refusal, source: 'local' }),
+				}
+			: undefined
 
 		const store = createTLStore({
 			id: storeId,
@@ -326,6 +353,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 					subscribe: (listener) => (
 						refusalListeners.add(listener), () => void refusalListeners.delete(listener)
 					),
+				},
+				authorize: authorize && {
+					rule: authorize.rule,
+					transform: authorize.transform,
+					getSession: () => ({ sessionId: '', meta: authorize.meta, access: access.get() }),
 				},
 			},
 		})
@@ -368,13 +400,14 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { access }) {
+			onAfterConnect(_, { access: sessionAccess }) {
 				// Access is decided per session by the server and can change on reconnect (e.g.
 				// when a share link changes), so surface it on the returned status for consumers
 				// that gate UI. This fires before the first onLoad, hence the merge in both directions.
-				setState((prev) => ({ ...prev, access }))
+				setState((prev) => ({ ...prev, access: sessionAccess }))
 				transact(() => {
-					syncMode.set(access.document === 'read' ? 'readonly' : 'readwrite')
+					access.set(sessionAccess)
+					syncMode.set(sessionAccess.document === 'read' ? 'readonly' : 'readwrite')
 					// if the server crashes and loses all data it can return an empty document
 					// when it comes back up. This is a safety check to make sure that if something like
 					// that happens, it won't render the app broken and require a restart. The user will
@@ -387,15 +420,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			onCustomMessageReceived,
 			onPushRefused(refusal) {
 				// Editor listeners first, so a throwing host callback can't swallow the editor event
-				for (const listener of refusalListeners) {
-					try {
-						listener(refusal)
-					} catch (e) {
-						console.error('refusal listener threw', e)
-					}
-				}
+				emitRefusal({ ...refusal, source: 'server' })
 				onPushRefused(refusal)
 			},
+			authorize,
 			presence,
 			presenceMode,
 		})
@@ -419,6 +447,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		getUserPresence,
 		onCustomMessageReceived,
 		onPushRefused,
+		hasAuthorize,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -539,6 +568,16 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	onPushRefused?(refusal: TLSyncRefusal): void
+
+	/**
+	 * The room's write rule, the same `authorize` (and `transform`) the room was given, plus the
+	 * `meta` the room holds for this session. Defined once and used three ways: the room enforces
+	 * it, the sync client holds back a push it would refuse, and the editor doesn't start a change
+	 * it would refuse. Either kind of refusal reaches the editor's `'refused'` event.
+	 *
+	 * The editor judges one change at a time, so write the rule with `perRecord` where you can.
+	 */
+	authorize?: Pick<TLSyncClientAuthorizeOptions<TLRecord>, 'rule' | 'transform' | 'meta'>
 
 	/** @internal */
 	onMount?(editor: Editor): void
