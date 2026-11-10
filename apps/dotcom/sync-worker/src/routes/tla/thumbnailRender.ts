@@ -1,12 +1,9 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	MeasuredArrow,
-	MeasuredDimensions,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
-	ThumbnailShapeMeasurement,
 	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
@@ -32,7 +29,6 @@ import {
 	recordMintedRenderToken,
 	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
-import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,
@@ -124,7 +120,6 @@ export async function resolveThumbnailBoard(
 				slug,
 				version: publishedFile.lastPublished,
 				access,
-				// The row this published slug resolved through, which is the file that owns the snapshot.
 			},
 		}
 	}
@@ -896,71 +891,6 @@ async function callLocalScreenshotService(
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
 // can be detected) alongside any surface-specific metadata.
-// --- Measuring a page in a real editor ----------------------------------------------------------
-//
-// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
-// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
-// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and leaves the
-// result in its own HTML for the worker's `/content` read.
-
-// What an editor reported, whichever editor that was. Malformed boxes are dropped rather than kept: a
-// non-finite value would produce NaN distances and silently detach that shape from the minimum
-// spanning tree.
-export function readMeasurements(
-	reported: Record<string, ThumbnailShapeMeasurement>
-): Record<string, ShapeMeasurement> {
-	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		const arrow = readArrow(box.arrow)
-		const dimensions = readDimensions(box.dimensions)
-		bounds[shapeId] = {
-			minX: box.x,
-			minY: box.y,
-			maxX: box.x + box.w,
-			maxY: box.y + box.h,
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-			...(arrow ? { arrow } : null),
-			...(dimensions ? { dimensions } : null),
-		}
-	}
-	return bounds
-}
-
-// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
-// arrow from its record, as it would for a render page that predates arrow measurement.
-function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
-	const start = readPoint(value?.start)
-	const end = readPoint(value?.end)
-	return start && end ? { start, end } : undefined
-}
-
-function readPoint(value: unknown) {
-	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
-	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
-}
-
-// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
-function readDimensions(
-	value: ThumbnailShapeMeasurement['dimensions']
-): MeasuredDimensions | undefined {
-	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
-	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
-}
-
-function isFiniteNumber(value: unknown): value is number {
-	return Number.isFinite(value)
-}
-
-// Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
-// can be detected) alongside any surface-specific metadata.
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,
@@ -1056,8 +986,6 @@ export function writeScreenshotTelemetry(
 			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
 			// it, instead of sweeping up every og and mcp datapoint too.
 			`followup:${data.followUp ?? 'none'}`,
-			// The MCP cluster index cache this recorded is gone. Kept, constant, so nothing after it shifts.
-			'clusters:none',
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,

@@ -1,9 +1,12 @@
 import {
+	MeasuredArrow,
+	MeasuredDimensions,
 	TAB_RENDER_DECLINE_REASONS,
 	TabRenderApplyOpsRequest,
 	TabRenderReply,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
+	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
@@ -13,9 +16,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { getAuth } from '../../utils/tla/getAuth'
 import { PageSelector, ResolvedPage, ShapeMeasurement, getBoardUsers } from './boardTools'
-import { readMeasurements } from './thumbnailRender'
 import { reportThumbnailError } from './thumbnailShared'
 
 // The MCP side of working in an open tab, which is the only way these tools read a page, measure it,
@@ -71,7 +72,7 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 // pipeline.
 function writeTabRenderTelemetry(
 	env: Environment,
-	mode: TabRenderRequest['mode'],
+	mode: TabRenderRequest['mode'] | 'live_page',
 	outcome: string,
 	reason: string,
 	durationMs: number
@@ -109,7 +110,6 @@ function describeFailure(
 	mode: TabRenderRequest['mode'] | null,
 	boardUrl: string
 ): { message: string; reason: string } {
-	const notResponding = `The browser tab for this board is not responding, so nothing was done. Ask the user to bring ${boardUrl} to the front, then try again.`
 	switch (result.status) {
 		case 'declined': {
 			const message = DECLINE_MESSAGES[result.reason]
@@ -123,38 +123,44 @@ function describeFailure(
 				message: `This board is not open in a browser tab, and this tool works through the user's open tab. Ask the user to open ${boardUrl} and keep it open, then try again.`,
 				reason: 'tab_not_open',
 			}
-		case 'read_only':
-			return { message: DECLINE_MESSAGES.read_only, reason: 'tab_read_only' }
 		case 'reload_needed':
 			return {
 				message:
 					'The board is open, but the tab connected before you could edit it, so nothing was done. Ask the user to reload the tab, then try again.',
 				reason: 'tab_reload_needed',
 			}
-		case 'room_timeout':
 		case 'ack_timeout':
-			return { message: notResponding, reason: `tab_${result.status}` }
-		// Both can happen after a tab claimed a write, so the batch may well have landed, and telling
-		// the agent nothing happened is how it lands twice.
-		case 'error':
-		case 'work_timeout':
-			if (mode === 'apply_ops') {
-				return {
-					message:
-						'The browser tab did not report back, so these ops may or may not have applied. Check the board before sending them again.',
-					reason: `tab_${result.status}`,
-				}
-			}
 			return {
-				message:
-					result.status === 'error'
-						? notResponding
-						: 'The browser tab took too long. Try again in a moment.',
-				reason: `tab_${result.status}`,
+				message: `The browser tab for this board is not responding, so nothing was done. Ask the user to bring ${boardUrl} to the front, then try again.`,
+				reason: 'tab_ack_timeout',
 			}
+		case 'work_timeout':
+			if (mode === 'apply_ops') return mayHaveApplied(result.status)
+			return {
+				message: 'The browser tab took too long. Try again in a moment.',
+				reason: 'tab_work_timeout',
+			}
+		// The room or the worker failed rather than the tab, so there is nothing for the user to do.
+		case 'room_timeout':
+			return { message: NOT_REACHED_MESSAGE, reason: 'tab_room_timeout' }
+		case 'error':
+			if (mode === 'apply_ops') return mayHaveApplied(result.status)
+			return { message: NOT_REACHED_MESSAGE, reason: 'tab_error' }
 		// A reply of the wrong kind for the job, which only a tab that isn't ours would send.
 		default:
 			return { message: DECLINE_MESSAGES.failed, reason: 'tab_failed' }
+	}
+}
+
+const NOT_REACHED_MESSAGE = 'The board could not be reached. Try again in a moment.'
+
+// A timeout or a failure can come after a tab claimed a write, so the batch may well have landed, and
+// telling the agent nothing happened is how it lands twice.
+function mayHaveApplied(status: string) {
+	return {
+		message:
+			'The browser tab did not report back, so these ops may or may not have applied. Check the board before sending them again.',
+		reason: `tab_${status}`,
 	}
 }
 
@@ -174,7 +180,10 @@ export const PUBLISHED_BOARD_FAILURE = {
 	reason: 'tab_published_board',
 } as const
 
-/** As the room holds it now, rather than the persisted copy, which lags it by up to 8s. */
+export type McpLivePageResult =
+	| { status: 'no_tab' | 'room_timeout' }
+	| { status: 'ok'; page: ResolvedPage }
+
 export async function readLivePage(
 	env: Environment,
 	fileId: string,
@@ -182,7 +191,8 @@ export async function readLivePage(
 	page: PageSelector,
 	{ request, ctx }: TabRenderContext
 ): Promise<TabRenderResult<ResolvedPage>> {
-	let result: Awaited<ReturnType<ReturnType<typeof getRoomDurableObject>['getMcpLivePage']>>
+	const startedAt = Date.now()
+	let result: McpLivePageResult | { status: 'error' }
 	try {
 		result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
 	} catch (error) {
@@ -193,11 +203,10 @@ export async function readLivePage(
 			surface: 'mcp_tab_render',
 			extras: { mode: 'live_page' },
 		})
-		return {
-			ok: false,
-			...describeFailure({ status: 'error' }, null, boardUrlOf(env, request, fileId)),
-		}
+		result = { status: 'error' }
 	}
+	// Recorded here too: this runs first, so it is where a call with no tab open stops.
+	writeTabRenderTelemetry(env, 'live_page', result.status, 'none', Date.now() - startedAt)
 	if (result.status === 'ok') return { ok: true, value: result.page }
 	return { ok: false, ...describeFailure(result, null, boardUrlOf(env, request, fileId)) }
 }
@@ -212,6 +221,62 @@ export async function measureInOpenTab(
 	const job: TabRenderRequest = { mode: 'measure', pageId }
 	const result = await runInOpenTab(env, fileId, userId, job, 'measured', context)
 	return result.ok ? { ok: true, value: readMeasurements(result.value.shapes) } : result
+}
+
+// A tab's measurements come from a client, so nothing is assumed. Malformed boxes are dropped rather
+// than kept: a non-finite value would produce NaN distances and silently detach that shape from the
+// minimum spanning tree.
+export function readMeasurements(
+	reported: Record<string, ThumbnailShapeMeasurement>
+): Record<string, ShapeMeasurement> {
+	const bounds: Record<string, ShapeMeasurement> = {}
+	for (const [shapeId, box] of Object.entries(reported)) {
+		if (
+			!Number.isFinite(box?.x) ||
+			!Number.isFinite(box?.y) ||
+			!Number.isFinite(box?.w) ||
+			!Number.isFinite(box?.h)
+		) {
+			continue
+		}
+		const arrow = readArrow(box.arrow)
+		const dimensions = readDimensions(box.dimensions)
+		bounds[shapeId] = {
+			minX: box.x,
+			minY: box.y,
+			maxX: box.x + box.w,
+			maxY: box.y + box.h,
+			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
+			...(arrow ? { arrow } : null),
+			...(dimensions ? { dimensions } : null),
+		}
+	}
+	return bounds
+}
+
+// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
+// arrow from its record.
+function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
+	const start = readPoint(value?.start)
+	const end = readPoint(value?.end)
+	return start && end ? { start, end } : undefined
+}
+
+function readPoint(value: unknown) {
+	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
+	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
+}
+
+// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
+function readDimensions(
+	value: ThumbnailShapeMeasurement['dimensions']
+): MeasuredDimensions | undefined {
+	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
+	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
+}
+
+function isFiniteNumber(value: unknown): value is number {
+	return Number.isFinite(value)
 }
 
 export async function captureInOpenTab(
@@ -326,17 +391,16 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 }
 
 /**
- * A tab's reply to a job. Needs a website session for the user the job was made for, so a job id that
- * reaches anyone else, or one of the user's own agents, can't be used to answer it. The tab fetches a
- * fresh token for each reply, and a tab that can't get one doesn't answer, which times out like any
- * other silent tab.
+ * A tab's reply to a job. Takes no sign-in: the job id is the capability, a random UUID sent to one
+ * tab's socket and dead once the job ends. A session token made an idle tab miss the ack window: its
+ * Clerk token had usually expired, and refreshing it took longer than the window.
  *
  * For a write, the 200 on `accepted` is the go-ahead, and a 404 stands down a tab that woke after the
  * job ended.
  *
- * The size is checked from the header, and the job before the body is read: without a live job id, a
- * request's bytes never reach the room's object, where enough of them at once could reset it and
- * disconnect everyone on the board.
+ * Anyone can reach this, so the size is checked from the header and the job before the body is read:
+ * without a live job id, a request's bytes never reach the room's object, where enough of them at once
+ * could reset it and disconnect everyone on the board.
  */
 export async function postTabRenderReply(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId, jobId } = request.params
@@ -349,12 +413,8 @@ export async function postTabRenderReply(request: IRequest, env: Environment): P
 		return Response.json({ error: true, message: 'Reply too large' }, { status: 413 })
 	}
 
-	// Website sessions only: getAuth refuses an OAuth access token.
-	const auth = await getAuth(request, env)
-	if (!auth) return Response.json({ error: true, message: 'Unauthorized' }, { status: 401 })
-
 	const room = getRoomDurableObject(env, roomId)
-	if (!(await room.hasTabRenderJob(jobId, auth.userId))) return notFound()
+	if (!(await room.hasTabRenderJob(jobId))) return notFound()
 
 	let parsed: unknown
 	try {
@@ -367,7 +427,7 @@ export async function postTabRenderReply(request: IRequest, env: Environment): P
 		return Response.json({ error: true, message: 'Invalid reply' }, { status: 400 })
 	}
 
-	return (await room.receiveTabRenderReply(jobId, auth.userId, reply))
+	return (await room.receiveTabRenderReply(jobId, reply))
 		? Response.json({ error: false })
 		: notFound()
 }

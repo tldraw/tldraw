@@ -1,7 +1,7 @@
 import { z } from 'zod'
 
-// Zod compiles validators with `new Function` when it thinks it can. tldraw.com's CSP forbids eval, so
-// a batch from an agent could throw an EvalError in the tab instead of being validated.
+// Zod decides whether to compile validators with `new Function` when a schema is created. In local dev
+// the CSP that forbids it is a meta tag that arrives after that, so the first batch threw an EvalError.
 z.config({ jitless: true })
 
 // The canvas op vocabulary. Ops are what a collaborator would say ("put a label above the heart",
@@ -50,23 +50,18 @@ export const CanvasGeoSchema = z.enum([
 ])
 export type CanvasGeo = z.infer<typeof CanvasGeoSchema>
 
-const finite = z.number()
+// Bounded because one shape at 1e300 makes the page's bounds useless for everyone on the board.
+const coordinate = z.number().min(-1_000_000).max(1_000_000)
+const extent = z.number().positive().max(100_000)
+const gap = z.number().min(0).max(10_000)
 const shapeIdString = z.string().min(1).max(200)
 const text = z.string().max(5000)
 const optionalId = shapeIdString.regex(/^[A-Za-z0-9:_-]+$/).optional()
-const PointSchema = z.object({ x: finite, y: finite })
+const PointSchema = z.object({ x: coordinate, y: coordinate })
 
 const PathFields = {
 	id: optionalId,
-	points: z
-		.array(
-			z.object({
-				x: finite.min(-1_000_000).max(1_000_000),
-				y: finite.min(-1_000_000).max(1_000_000),
-			})
-		)
-		.min(2)
-		.max(256),
+	points: z.array(PointSchema).min(2).max(256),
 	closed: z.boolean().optional(),
 	smooth: z.boolean().optional(),
 	color: CanvasColorSchema.optional(),
@@ -128,8 +123,8 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 		text: text.optional(),
 		id: optionalId,
 		geo: CanvasGeoSchema.optional(),
-		w: finite.positive().optional(),
-		h: finite.positive().optional(),
+		w: extent.optional(),
+		h: extent.optional(),
 		color: CanvasColorSchema.optional(),
 		fill: CanvasFillSchema.optional(),
 		dash: CanvasDashSchema.optional(),
@@ -137,7 +132,7 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 		relation: Relation.optional(),
 		target: RefSchema.optional(),
 		at: PointSchema.optional(),
-		gap: finite.min(0).optional(),
+		gap: gap.optional(),
 		align: Align.optional(),
 	}),
 	z.strictObject({
@@ -146,10 +141,10 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 		relation: Relation.optional(),
 		target: RefSchema.optional(),
 		at: PointSchema.optional(),
-		gap: finite.min(0).optional(),
+		gap: gap.optional(),
 		align: Align.optional(),
-		w: finite.positive().optional(),
-		h: finite.positive().optional(),
+		w: extent.optional(),
+		h: extent.optional(),
 		text: text.optional(),
 		color: CanvasColorSchema.optional(),
 		fill: CanvasFillSchema.optional(),
@@ -162,7 +157,7 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 		text,
 		side: z.enum(['above', 'below', 'left', 'right', 'auto']).optional(),
 		arrow: z.boolean().optional(),
-		gap: finite.min(0).optional(),
+		gap: gap.optional(),
 		color: CanvasColorSchema.optional(),
 		size: CanvasSizeSchema.optional(),
 		id: optionalId,
@@ -198,15 +193,15 @@ export const CanvasOpSchema = z.discriminatedUnion('op', [
 	z.strictObject({
 		op: z.literal('untangle'),
 		targets: RefListSchema,
-		keepNear: z.array(RefSchema).optional(),
-		maxDistance: finite.positive().max(2000).optional(),
+		keepNear: z.array(RefSchema).max(200).optional(),
+		maxDistance: z.number().positive().max(2000).optional(),
 	}),
 	z.strictObject({
 		op: z.literal('resize'),
 		target: RefSchema,
-		w: finite.positive().optional(),
-		h: finite.positive().optional(),
-		scale: finite.positive().optional(),
+		w: extent.optional(),
+		h: extent.optional(),
+		scale: z.number().positive().max(100).optional(),
 		anchor: z.enum(['top-left', 'center']).optional(),
 	}),
 ])
@@ -231,7 +226,6 @@ export type OpsBatch = z.infer<typeof OpsBatchSchema>
 export const AttributionSchema = z.object({
 	runId: z.string().max(200).optional(),
 	userId: z.string().max(200).optional(),
-	userName: z.string().max(200).optional(),
 })
 export type Attribution = z.infer<typeof AttributionSchema>
 
@@ -240,7 +234,6 @@ export interface AgentShapeMeta {
 	batchId: string
 	runId?: string
 	userId?: string
-	userName?: string
 	/** ISO timestamp of the batch */
 	at: string
 }
@@ -262,8 +255,6 @@ export interface ApplyOpsResult {
 	createdIds: string[]
 	errors: string[]
 	results: OpResult[]
-	/** Concrete actions the ops compiled to */
-	compiled: CanvasAction[]
 }
 
 /** An arrow endpoint: a point in page space, or a shape to bind to. */

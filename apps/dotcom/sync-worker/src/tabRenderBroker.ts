@@ -52,13 +52,7 @@ export type TabRenderOutcome =
 			{ status: 'measured' | 'captured' | 'applied' | 'user_state' | 'declined' }
 	  >
 	| {
-			status:
-				| 'no_tab'
-				| 'read_only'
-				| 'reload_needed'
-				| 'room_timeout'
-				| 'ack_timeout'
-				| 'work_timeout'
+			status: 'no_tab' | 'reload_needed' | 'room_timeout' | 'ack_timeout' | 'work_timeout'
 	  }
 
 export interface TabRenderSocket {
@@ -108,9 +102,23 @@ export function keepDeliverableTabRenderSessions(
 	})
 }
 
+/**
+ * Which of the deliverable sessions a job goes to. "The user's selection" and "the page they're on"
+ * mean the tab they're in, and a write must run once, so those go to the one tab the user was last
+ * active in. Reads go to several, where any answer will do and a second tab can cover for a dead one.
+ */
+export function pickTabRenderTargets(
+	mode: TabRenderRequest['mode'],
+	sessionIds: string[],
+	lastActiveAt: (sessionId: string) => number
+): string[] {
+	if (mode === 'apply_ops' || mode === 'user_state') {
+		return [...sessionIds].sort((a, b) => lastActiveAt(b) - lastActiveAt(a)).slice(0, 1)
+	}
+	return sessionIds.slice(0, MAX_TAB_RENDER_SESSIONS)
+}
+
 interface TabRenderJob {
-	/** The user whose tool call this is. Only that user's website session may answer. */
-	userId: string
 	/**
 	 * The tabs that can still answer, by job id. Each tab gets its own id, so a reply can only ever
 	 * speak for the tab it was sent to.
@@ -125,7 +133,6 @@ export class TabRenderBroker {
 
 	/** Resolves once a tab answers, or as soon as none of them can. */
 	dispatch(
-		userId: string,
 		sessionIds: string[],
 		request: TabRenderRequest,
 		send: (sessionId: string, jobId: string) => void
@@ -134,7 +141,6 @@ export class TabRenderBroker {
 			const jobIds: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
-				userId,
 				tabs: new Map(),
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
@@ -172,18 +178,15 @@ export class TabRenderBroker {
 		this.jobs.delete(jobId)
 	}
 
-	/** Whether this user may answer this job. False once the job finishes. */
-	has(jobId: string, userId: string) {
-		return this.jobs.get(jobId)?.userId === userId
+	/** Whether this job id can still be answered. False once the job finishes. */
+	has(jobId: string) {
+		return this.jobs.has(jobId)
 	}
 
-	/**
-	 * Whether the reply landed. False for an unknown job id, including one that already finished, and
-	 * for a reply from anyone but the job's user.
-	 */
-	receive(jobId: string, userId: string, reply: TabRenderReply): boolean {
+	/** Whether the reply landed. False for an unknown job id, including one that already finished. */
+	receive(jobId: string, reply: TabRenderReply): boolean {
 		const job = this.jobs.get(jobId)
-		if (!job || job.userId !== userId) return false
+		if (!job) return false
 
 		switch (reply.status) {
 			case 'accepted':

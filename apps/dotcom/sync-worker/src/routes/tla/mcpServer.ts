@@ -19,7 +19,6 @@ import {
 	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
-	ClusterScreenshotSize,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
@@ -190,8 +189,8 @@ async function isRateLimited(
 }
 
 // The isolate-local fallback map is module state that persists across a test file's cases. Tests that
-// exercise the MCP tools must reset it between cases, or accumulated counts (especially on the shared
-// `global` key) would trip the low limits and rate-limit later cases' happy paths.
+// exercise the MCP tools must reset it between cases, or accumulated counts would trip the low limits
+// and rate-limit later cases' happy paths.
 export function resetRateLimitFallbackForTests() {
 	RATE_LIMIT_FALLBACK.clear()
 }
@@ -652,9 +651,8 @@ async function callSearchBoardsTool(
 	// not — a query that matches nothing still reads every board the caller can see. See "MCP tools"
 	// in browser-run-thumbnails.md.
 	try {
-		// Inside the try for the reason spelled out on callPageInfoTool: a limiter that *throws* is a
-		// binding outage, not a caller over budget, and outside the try it escapes as a 500 the client
-		// cannot parse as MCP.
+		// Inside the try: a limiter that *throws* is a binding outage, not a caller over budget, and
+		// outside the try it escapes as a 500 the client cannot parse as MCP.
 		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
@@ -827,9 +825,6 @@ async function callPageInfoTool(
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
-	// Inside the try, so a limiter that throws — a binding erroring, not a caller over budget — becomes
-	// a structured MCP error rather than an unhandled throw the dispatcher turns into an unparseable
-	// 500. Same reason in every tool below.
 	try {
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
@@ -851,8 +846,6 @@ async function callPageInfoTool(
 			offset: input.cursor ?? 0,
 		})
 	} catch (error) {
-		// Unlike get_board_info, this tool can fail mid-measure, so its failures belong on the same
-		// request ledger as the screenshot tool's. The measure session itself reports separately.
 		return toolFailure(error, {
 			env,
 			request,
@@ -861,28 +854,14 @@ async function callPageInfoTool(
 			extras: { boardId: input.boardId },
 			summary: 'Could not read page info',
 			telemetry,
+			recordAs: recordAsBoardLookupError,
 		})
 	}
 }
 
-// The documented telemetry codes a board/page resolution can fail with — the bounded vocabulary in
-// browser-run-thumbnails.md. Carried on the failure shapes below alongside the caller-facing result,
-// so the request-level `mcp_shared_board_screenshot` event can record which failure this was without
-// re-deriving it from the message. `withTelemetryReason` carries the same code on the result for the
-// per-call `mcp_server_tool_call` event; the two events want it in different places.
-// boardTools' own `no_pages` and `page_out_of_range` are resolution states, not telemetry codes:
-// resolveBoardPage maps them onto `board_empty` and `page_not_found` before anything is recorded, so
-// they never reach a datapoint and are absent here.
-type BoardToolFailureReason = 'not_found' | 'board_empty' | 'page_not_found'
-
 type LoadedBoard =
-	| {
-			ok: true
-			board: ResolvedThumbnailBoard
-			fileName: string | null
-			snapshot: import('@tldraw/sync-core').RoomSnapshot
-	  }
-	| { ok: false; reason: BoardToolFailureReason; result: ToolCallResult }
+	| { ok: true; fileName: string | null; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| { ok: false; result: ToolCallResult }
 
 async function loadBoardForTool(
 	env: Environment,
@@ -893,11 +872,10 @@ async function loadBoardForTool(
 	if (!resolved.ok) {
 		return {
 			ok: false,
-			reason: resolved.reason === 'board_empty' ? 'board_empty' : 'not_found',
-			result: toolError(
-				resolved.reason === 'board_empty' ? BOARD_EMPTY_MESSAGE : BOARD_NOT_FOUND_MESSAGE,
-				resolved.reason === 'board_empty' ? 'board_empty' : 'not_found'
-			),
+			result:
+				resolved.reason === 'board_empty'
+					? toolError(BOARD_EMPTY_MESSAGE, 'board_empty')
+					: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found'),
 		}
 	}
 
@@ -911,23 +889,32 @@ async function loadBoardForTool(
 		access: resolved.board.access,
 		file: resolved.board.file,
 	})
-	if (!snapshot) {
-		return {
-			ok: false,
-			reason: 'board_empty',
-			result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty'),
-		}
-	}
-	return { ok: true, board: resolved.board, fileName: resolved.fileName, snapshot }
+	if (!snapshot) return { ok: false, result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty') }
+	return { ok: true, fileName: resolved.fileName, snapshot }
 }
 
 type ResolvedBoardPage =
 	| { ok: true; fileId: string; page: ResolvedPageOk }
 	| { ok: false; reason: string; result: ToolCallResult }
 
-// The page as the room holds it now rather than as it was last persisted, since an agent has to be
-// able to read what it just drew. A board that isn't a file the caller can see is either published,
-// which has no room to read, or not found, with the same answer get_board_info gives either way.
+// A board that isn't a file the caller can see is either published, which has no room to work in, or
+// not found, with the same answer get_board_info gives either way.
+async function refuseUnlessFile(
+	env: Environment,
+	boardId: string,
+	userId: string
+): Promise<{ reason: string; result: ToolCallResult } | null> {
+	const access = await hasReadAccessToFile(env, userId, boardId)
+	if (access.ok) return null
+	const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
+	if (!published.ok) {
+		return { reason: 'not_found', result: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found') }
+	}
+	const { reason, message } = PUBLISHED_BOARD_FAILURE
+	return { reason, result: toolError(message, reason) }
+}
+
+// `reason` is the bounded telemetry code for the request-level `mcp_shared_board_screenshot` event.
 async function resolveBoardPage(
 	env: Environment,
 	boardId: string,
@@ -935,19 +922,8 @@ async function resolveBoardPage(
 	userId: string,
 	context: { request: Request; ctx: ExecutionContext | undefined }
 ): Promise<ResolvedBoardPage> {
-	const access = await hasReadAccessToFile(env, userId, boardId)
-	if (!access.ok) {
-		const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
-		if (!published.ok && published.reason !== 'board_empty') {
-			return {
-				ok: false,
-				reason: 'not_found',
-				result: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found'),
-			}
-		}
-		const { reason, message } = PUBLISHED_BOARD_FAILURE
-		return { ok: false, reason, result: toolError(message, reason) }
-	}
+	const refusal = await refuseUnlessFile(env, boardId, userId)
+	if (refusal) return { ok: false, ...refusal }
 
 	const live = await readLivePage(env, boardId, userId, page, context)
 	if (!live.ok) {
@@ -1142,61 +1118,46 @@ async function callClusterInfoTool(
 			},
 			summary: 'Could not read cluster info',
 			telemetry,
+			recordAs: recordAsBoardLookupError,
 		})
 	}
 }
 
-// Both shape-set screenshot tools do the same thing once they know which shapes to draw; they differ
-// only in how they get there — one is handed the ids, the other resolves them from a cluster. That
-// difference is `pickShapes`; everything downstream (rate limits, capture, telemetry) is here.
-async function renderShapeSetScreenshot(
+// The one-call path: a cluster id straight to a picture, without a get_cluster_info round trip to
+// pull its shape ids out first.
+async function callClusterScreenshotTool(
+	argumentsValue: unknown,
 	request: Request,
 	env: Environment,
-	ctx: ExecutionContext | undefined,
-	{
-		boardId,
-		page,
-		theme,
-		userId,
-		extras,
-		pickShapes,
-	}: {
-		boardId: string
-		page: PageSelector
-		theme: 'light' | 'dark'
-		userId: string
-		/** Extra Sentry context identifying which tool asked. */
-		extras: Record<string, unknown>
-		/**
-		 * Resolves which shapes to draw. Owns the telemetry for its own refusals, which is why it is
-		 * handed the writer: only it knows what the failure was, and a row written here as well would
-		 * file one call on the ledger twice, under two different reason codes.
-		 */
-		pickShapes(
-			resolved: Extract<ResolvedBoardPage, { ok: true }>,
-			telemetry: McpTelemetryWriter
-		): Promise<
-			| {
-					ok: true
-					shapeIds: string[]
-					/** The image to draw them into, edge to edge; see getClusterScreenshotSize. */
-					size: ClusterScreenshotSize
-			  }
-			| { ok: false; result: ReturnType<typeof toolError> }
-		>
-	}
+	userId: string,
+	ctx?: ExecutionContext
 ) {
 	const telemetry = mcpTelemetryWriter(env)
+	const parsed = parseToolInput(() => parseClusterScreenshotInput(argumentsValue), telemetry)
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
 
 	try {
-		const resolved = await resolveBoardPage(env, boardId, page, userId, { request, ctx })
+		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
+			request,
+			ctx,
+		})
 		if (!resolved.ok) {
 			telemetry({ failureReason: resolved.reason })
 			return resolved.result
 		}
 
-		const picked = await pickShapes(resolved, telemetry)
-		if (!picked.ok) return picked.result
+		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
+		if (!clustered.ok) return clustered.result
+		const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
+		if (!picked.ok) {
+			telemetry({ failureReason: 'cluster_not_found' })
+			return withTelemetryReason(picked.result, 'cluster_not_found')
+		}
+		const size = getClusterScreenshotSize(
+			getClustersBox(clustered.bounds, input.clusterIds),
+			input.size
+		)
 
 		const image = await captureInOpenTab(
 			env,
@@ -1205,9 +1166,9 @@ async function renderShapeSetScreenshot(
 			{
 				pageId: resolved.page.pageId,
 				shapeIds: picked.shapeIds,
-				theme,
-				width: picked.size.width,
-				height: picked.size.height,
+				theme: input.theme,
+				width: size.width,
+				height: size.height,
 			},
 			{ request, ctx }
 		)
@@ -1224,54 +1185,22 @@ async function renderShapeSetScreenshot(
 			request,
 			ctx,
 			surface: 'mcp_screenshot',
-			extras: { boardId, page: describePageSelector(page), theme, ...extras },
+			extras: {
+				boardId: input.boardId,
+				page: describePageSelector(input.page),
+				theme: input.theme,
+				clusterIds: input.clusterIds.join(','),
+				size: input.size,
+			},
 			summary: 'Screenshot failed',
 			telemetry,
+			recordAs: recordAsBoardLookupError,
 		})
 	}
 }
 
-// The one-call path: a cluster id straight to a picture, without a get_cluster_info round trip to
-// pull its shape ids out first.
-async function callClusterScreenshotTool(
-	argumentsValue: unknown,
-	request: Request,
-	env: Environment,
-	userId: string,
-	ctx?: ExecutionContext
-) {
-	const parsed = parseToolInput(
-		() => parseClusterScreenshotInput(argumentsValue),
-		mcpTelemetryWriter(env)
-	)
-	if (!parsed.ok) return parsed.result
-	const input = parsed.input
-
-	return renderShapeSetScreenshot(request, env, ctx, {
-		boardId: input.boardId,
-		page: input.page,
-		theme: input.theme,
-		userId,
-		extras: { clusterIds: input.clusterIds.join(','), size: input.size },
-		pickShapes: async (resolved, telemetry) => {
-			const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
-			if (!clustered.ok) return { ok: false, result: clustered.result }
-			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
-			if (picked.ok) {
-				const box = getClustersBox(clustered.bounds, input.clusterIds)
-				return { ...picked, size: getClusterScreenshotSize(box, input.size) }
-			}
-			// `cluster_not_found` on both events. The request ledger used to file this as
-			// `failure:shape_not_found` while the per-call event filed the very same refusal as
-			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.
-			telemetry({ failureReason: 'cluster_not_found' })
-			return { ...picked, result: withTelemetryReason(picked.result, 'cluster_not_found') }
-		},
-	})
-}
-
 // Goes straight to the tab rather than through the board snapshot: the tab is what writes, and a board
-// created a moment ago has no persisted snapshot yet, which every other tool would report as empty.
+// created a moment ago has no persisted snapshot yet.
 async function callApplyOpsTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1284,8 +1213,8 @@ async function callApplyOpsTool(
 	const input = parsed.input
 
 	try {
-		const access = await hasReadAccessToFile(env, userId, input.boardId)
-		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+		const refusal = await refuseUnlessFile(env, input.boardId, userId)
+		if (refusal) return refusal.result
 
 		const applied = await applyOpsInOpenTab(
 			env,
@@ -1294,7 +1223,7 @@ async function callApplyOpsTool(
 			{
 				ops: input.ops,
 				page: input.page ?? undefined,
-				attribution: { userId, runId: input.runId ?? crypto.randomUUID() },
+				attribution: { userId, runId: input.runId ?? undefined },
 			},
 			{ request, ctx }
 		)
@@ -1310,7 +1239,7 @@ async function callApplyOpsTool(
 			surface: 'mcp_apply_ops',
 			extras: { boardId: input.boardId, opCount: input.ops.length },
 			summary: 'Could not apply ops',
-			recordAs: () => 'board_lookup_error',
+			recordAs: recordAsBoardLookupError,
 		})
 	}
 }
@@ -1327,8 +1256,8 @@ async function callUserStateTool(
 	const input = parsed.input
 
 	try {
-		const access = await hasReadAccessToFile(env, userId, input.boardId)
-		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+		const refusal = await refuseUnlessFile(env, input.boardId, userId)
+		if (refusal) return refusal.result
 
 		if (input.userId === null || input.userId === userId) {
 			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
@@ -1355,7 +1284,7 @@ async function callUserStateTool(
 			surface: 'mcp_board_presence',
 			extras: { boardId: input.boardId },
 			summary: 'Could not read user state',
-			recordAs: () => 'board_lookup_error',
+			recordAs: recordAsBoardLookupError,
 		})
 	}
 }
@@ -1372,8 +1301,8 @@ async function callBoardUsersTool(
 	const input = parsed.input
 
 	try {
-		const access = await hasReadAccessToFile(env, userId, input.boardId)
-		if (!access.ok) return toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
+		const refusal = await refuseUnlessFile(env, input.boardId, userId)
+		if (refusal) return refusal.result
 
 		const users = await readBoardUsers(env, input.boardId, { request, ctx })
 		if (!users.ok) return toolError(users.message, users.reason)
@@ -1386,7 +1315,7 @@ async function callBoardUsersTool(
 			surface: 'mcp_board_presence',
 			extras: { boardId: input.boardId },
 			summary: 'Could not list board users',
-			recordAs: () => 'board_lookup_error',
+			recordAs: recordAsBoardLookupError,
 		})
 	}
 }
@@ -1405,6 +1334,12 @@ function withTelemetryReason(result: ToolResult, reason: string): ToolCallResult
 
 function toolError(message: string, reason: string): ToolCallResult {
 	return withTelemetryReason(modelToolError(message), reason)
+}
+
+// The classifier reads render failures, and the tools that work in a tab start no render: what throws
+// is the board lookup, whose Postgres timeouts it would otherwise report as `browser_timeout`.
+function recordAsBoardLookupError() {
+	return 'board_lookup_error'
 }
 
 type ParsedToolInput<T> = { ok: true; input: T } | { ok: false; result: ToolCallResult }

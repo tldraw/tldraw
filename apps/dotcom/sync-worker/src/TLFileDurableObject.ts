@@ -108,8 +108,9 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { PageSelector, ResolvedPage, getBoardUsers, resolvePage } from './routes/tla/boardTools'
+import { PageSelector, getBoardUsers, resolvePage } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { McpLivePageResult } from './routes/tla/mcpTabRender'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	generateSnapshotChunks,
@@ -120,13 +121,13 @@ import {
 	SnapshotFingerprint,
 } from './snapshotUtils'
 import {
-	MAX_TAB_RENDER_SESSIONS,
 	TAB_RENDER_ROOM_TIMEOUT_MS,
 	TabRenderBroker,
 	TabRenderOutcome,
 	TabRenderSocket,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
+	pickTabRenderTargets,
 } from './tabRenderBroker'
 import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
@@ -3546,20 +3547,23 @@ export class TLFileDurableObject extends DurableObject {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
 		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
-			return { status: 'read_only' }
+			return { status: 'declined', reason: 'read_only' }
 		}
 
+		const isWrite = request.mode === 'apply_ops'
 		const sockets = this.getTabRenderSockets()
 		const now = Date.now()
 		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
 		// The tab applies a write as its own session, which is what the room authorizes. The access
 		// check above is current, but a session keeps the mode it connected with until it reconnects,
 		// so a tab opened before the user could edit has to be reloaded.
-		const sessionIds = pickTabRenderSessions(
-			request.mode === 'apply_ops' ? sockets.filter((s) => !s.isReadonly) : sockets,
-			userId,
-			now
-		)
+		const sessionIds = isWrite
+			? pickTabRenderSessions(
+					sockets.filter((s) => !s.isReadonly),
+					userId,
+					now
+				)
+			: pickTabRenderSessions(sockets, userId, now)
 		if (sessionIds.length === 0) return { status: 'reload_needed' }
 
 		const room = await this.getRoomForTabRender()
@@ -3569,24 +3573,21 @@ export class TLFileDurableObject extends DurableObject {
 			const ws = this.sessionIdToWs.get(sessionId)
 			const attachment = ws ? this.getSocketAttachment(ws) : null
 			if (!attachment) return null
-			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
+			return {
+				userId: attachment.meta.userId,
+				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
+			}
 		})
 		if (deliverable.length === 0) return { status: 'no_tab' }
 
-		// "The user's selection" and "the page they're on" mean the tab they're in, and a write must run
-		// once, so those go to one tab. A ping only says a tab is alive; their last pointer activity, from
-		// their own tabs' presence, says which one they're in. Reads go to several, where any answer will
-		// do and a second tab can cover for a dead one.
-		const isAboutTheUser = request.mode === 'apply_ops' || request.mode === 'user_state'
-		const lastActiveAt = (sessionId: string) => {
+		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
+		// presence, says which one they're in.
+		const targets = pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
 			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
 			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
-		}
-		const targets = isAboutTheUser
-			? [...deliverable].sort((a, b) => lastActiveAt(b) - lastActiveAt(a)).slice(0, 1)
-			: deliverable.slice(0, MAX_TAB_RENDER_SESSIONS)
+		})
 
-		return this.tabRenders.dispatch(userId, targets, request, (sessionId, jobId) => {
+		return this.tabRenders.dispatch(targets, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
@@ -3600,19 +3601,16 @@ export class TLFileDurableObject extends DurableObject {
 	 * Refuses before booting the room when this user has no tab, because the caller is about to need
 	 * one anyway.
 	 */
-	async getMcpLivePage(
-		userId: string,
-		page: PageSelector
-	): Promise<{ status: 'no_tab' | 'room_timeout' } | { status: 'ok'; page: ResolvedPage }> {
+	async getMcpLivePage(userId: string, page: PageSelector): Promise<McpLivePageResult> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 		const sockets = this.getTabRenderSockets()
 		if (pickTabRenderSessions(sockets, userId, Date.now()).length === 0) return { status: 'no_tab' }
 
 		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }
-		const snapshot = (await this.getStorage()).getSnapshot?.()
-		if (!snapshot) throw new Error('The room storage cannot be read as a snapshot')
-		return { status: 'ok', page: resolvePage(snapshot, page) }
+		const storage = await this.getStorage()
+		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
+		return { status: 'ok', page: resolvePage(storage.getSnapshot(), page) }
 	}
 
 	/**
@@ -3640,16 +3638,12 @@ export class TLFileDurableObject extends DurableObject {
 		return { status: 'ok', ...getBoardUsers(sessions) }
 	}
 
-	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
-		return this.tabRenders.has(jobId, userId)
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
 	}
 
-	async receiveTabRenderReply(
-		jobId: string,
-		userId: string,
-		reply: TabRenderReply
-	): Promise<boolean> {
-		return this.tabRenders.receive(jobId, userId, reply)
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
 	}
 
 	/**

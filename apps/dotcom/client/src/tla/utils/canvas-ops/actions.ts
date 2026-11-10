@@ -29,22 +29,6 @@ export function fromShapeId(id: TLShapeId): string {
 	return id.replace(/^shape:/, '')
 }
 
-/**
- * Wait for fonts and a couple of frames so auto-sized text is re-measured. Without this, bounds read
- * straight after a batch reflect fallback-font widths that change once the real font arrives.
- */
-export async function settle(editor: Editor): Promise<void> {
-	// jsdom has no FontFace API; there is nothing to wait for there.
-	if (typeof FontFace === 'function' && 'fonts' in document) {
-		await editor.fonts.loadRequiredFontsForCurrentPage()
-	}
-	if (typeof requestAnimationFrame === 'function') {
-		await new Promise<void>((resolve) =>
-			requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
-		)
-	}
-}
-
 export interface ShapeSummary {
 	id: string
 	type: string
@@ -145,7 +129,9 @@ export interface RunMemory {
 	created: TLShapeId[]
 }
 const runMemories = new WeakMap<Editor, Map<string, RunMemory>>()
-function runMemory(editor: Editor, runId = ''): RunMemory {
+function runMemory(editor: Editor, runId?: string): RunMemory {
+	// A batch that names no run remembers nothing past itself, and isn't kept.
+	if (!runId) return { created: [] }
 	let byRun = runMemories.get(editor)
 	if (!byRun) runMemories.set(editor, (byRun = new Map()))
 	let memory = byRun.get(runId)
@@ -162,6 +148,8 @@ function applyAction(
 	// Spread into a fresh object literal so it satisfies tldraw's JsonObject meta type.
 	const meta = { agent: { ...journal.stamp } }
 	const created = (id: TLShapeId) => {
+		// createShape returns quietly at the page's shape limit, which would report a shape that isn't there.
+		if (!editor.getShape(id)) throw new Error('The shape could not be created')
 		journal.created.push(id)
 		createdIds.push(fromShapeId(id))
 	}
@@ -328,6 +316,7 @@ function applyAction(
 			const id = toShapeId(action.shapeId)
 			const shape = editor.getShape(id)
 			if (!shape) throw new Error(`Unknown shape "${action.shapeId}"`)
+			assertUnlocked(editor, shape)
 			const partial: TLShapePartial<TLShape> = { id, type: shape.type }
 			if (action.x !== undefined) partial.x = action.x
 			if (action.y !== undefined) partial.y = action.y
@@ -371,14 +360,18 @@ function applyAction(
 			return
 		}
 		case 'delete_shapes': {
-			const ids = action.shapeIds.map(toShapeId).filter((id) => editor.getShape(id))
-			if (ids.length) editor.deleteShapes(ids)
+			const shapes = action.shapeIds.map((id) => editor.getShape(toShapeId(id))).filter((s) => !!s)
+			for (const shape of shapes) assertUnlocked(editor, shape)
+			if (shapes.length) editor.deleteShapes(shapes)
 			return
 		}
-		default: {
-			const unknown = action as { type: string }
-			throw new Error(`Unknown action type "${unknown.type}"`)
-		}
+	}
+}
+
+// The editor skips locked shapes without a word, which would report an edit that never happened.
+function assertUnlocked(editor: Editor, shape: TLShape) {
+	if (editor.isShapeOrAncestorLocked(shape)) {
+		throw new Error(`Shape "${fromShapeId(shape.id)}" is locked`)
 	}
 }
 
@@ -389,41 +382,37 @@ export interface BatchContext {
 	memory: RunMemory
 	/** Apply one bare action now; returns the short ids it created. Throws on failure. */
 	apply(action: CanvasAction): string[]
-	/** Every action applied so far in this batch */
-	compiled: CanvasAction[]
 }
 
 /**
  * Run a batch: one history entry and one batch id, stamped on every shape it creates or changes.
- * The body applies actions through `ctx.apply`.
+ * The body applies actions through `ctx.apply`. Returns the batch id.
  */
 export function runBatch(
 	editor: Editor,
 	attribution: Attribution,
 	body: (ctx: BatchContext) => void
-): { batchId: string; ctx: BatchContext } {
+): string {
 	const batchId = uniqueId()
 	const stamp: AgentShapeMeta = { batchId, at: new Date().toISOString() }
 	if (attribution.runId) stamp.runId = attribution.runId
 	if (attribution.userId) stamp.userId = attribution.userId
-	if (attribution.userName) stamp.userName = attribution.userName
 	const journal: BatchJournal = { stamp, created: [] }
 	const memory = runMemory(editor, attribution.runId)
 	const ctx: BatchContext = {
 		editor,
 		journal,
 		memory,
-		compiled: [],
 		apply(action) {
 			const created: string[] = []
 			applyAction(editor, action, journal, created)
-			ctx.compiled.push(action)
 			for (const id of created) memory.created.push(toShapeId(id))
 			return created
 		},
 	}
-	// One history entry per batch so a user can undo the whole batch at once.
-	editor.markHistoryStoppingPoint('canvas ops batch')
+	// Ops mark their own stopping points so each can be rolled back; squashing leaves one undo step.
+	const mark = editor.markHistoryStoppingPoint('canvas ops batch')
 	editor.run(() => body(ctx), { history: 'record' })
-	return { batchId, ctx }
+	editor.squashToMark(mark)
+	return batchId
 }

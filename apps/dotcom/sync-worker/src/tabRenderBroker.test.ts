@@ -9,6 +9,7 @@ import {
 	TabRenderTarget,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
+	pickTabRenderTargets,
 } from './tabRenderBroker'
 
 const NOW = 1_000_000
@@ -76,6 +77,22 @@ describe('keepDeliverableTabRenderSessions', () => {
 	})
 })
 
+describe('pickTabRenderTargets', () => {
+	const lastActiveAt = (sessionId: string) => ({ idle: 1, active: 9, older: 5 })[sessionId] ?? 0
+
+	// A batch sent to two tabs would land twice.
+	it('sends a write, and a question about the user, only to the tab they were last active in', () => {
+		const tabs = ['idle', 'active', 'older']
+		expect(pickTabRenderTargets('apply_ops', tabs, lastActiveAt)).toEqual(['active'])
+		expect(pickTabRenderTargets('user_state', tabs, lastActiveAt)).toEqual(['active'])
+	})
+
+	it('sends a read to several tabs, capped so one call cannot work every copy of a board', () => {
+		const tabs = ['a', 'b', 'c', 'd', 'e']
+		expect(pickTabRenderTargets('measure', tabs, lastActiveAt)).toEqual(['a', 'b', 'c'])
+	})
+})
+
 describe('TabRenderBroker', () => {
 	const measure = { mode: 'measure', pageId: 'page:a' } as const
 
@@ -95,7 +112,7 @@ describe('TabRenderBroker', () => {
 	function dispatch(sessionIds: string[], request: TabRenderRequest = measure) {
 		const broker = new TabRenderBroker()
 		const jobIds = new Map<string, string>()
-		const result = broker.dispatch('user_a', sessionIds, request, (sessionId, jobId) => {
+		const result = broker.dispatch(sessionIds, request, (sessionId, jobId) => {
 			jobIds.set(sessionId, jobId)
 		})
 		return { broker, jobIds, result }
@@ -108,36 +125,23 @@ describe('TabRenderBroker', () => {
 
 	it('resolves with the first answer and ignores the rest', async () => {
 		const { broker, jobIds, result } = dispatch(['a', 'b'])
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })
+		broker.receive(jobIds.get('a')!, { status: 'accepted' })
 
-		expect(
-			broker.receive(jobIds.get('b')!, 'user_a', { status: 'captured', base64: 'first' })
-		).toBe(true)
-		expect(
-			broker.receive(jobIds.get('a')!, 'user_a', { status: 'captured', base64: 'second' })
-		).toBe(false)
+		expect(broker.receive(jobIds.get('b')!, { status: 'captured', base64: 'first' })).toBe(true)
+		expect(broker.receive(jobIds.get('a')!, { status: 'captured', base64: 'second' })).toBe(false)
 
 		await expect(result).resolves.toEqual({ status: 'captured', base64: 'first' })
 	})
 
 	it('refuses a reply for a job it never issued', () => {
 		const { broker, jobIds } = dispatch(['a'])
-		expect(broker.has('made-up', 'user_a')).toBe(false)
-		expect(broker.has(jobIds.get('a')!, 'user_a')).toBe(true)
-		expect(broker.receive('made-up', 'user_a', { status: 'accepted' })).toBe(false)
+		expect(broker.has('made-up')).toBe(false)
+		expect(broker.has(jobIds.get('a')!)).toBe(true)
+		expect(broker.receive('made-up', { status: 'accepted' })).toBe(false)
 	})
 
-	// The case the ack exists for: the socket looks fine and nobody is home, so the fallback should
+	// The case the ack exists for: the socket looks fine and nobody is home, so the call should
 	// cost the ack window rather than the whole work timeout.
-	it("refuses a reply from anyone but the job's user, and still takes the user's own", async () => {
-		const { broker, jobIds, result } = dispatch(['a'])
-		const jobId = jobIds.get('a')!
-		expect(broker.has(jobId, 'user_b')).toBe(false)
-		expect(broker.receive(jobId, 'user_b', { status: 'captured', base64: 'forged' })).toBe(false)
-		expect(broker.receive(jobId, 'user_a', { status: 'captured', base64: 'real' })).toBe(true)
-		await expect(result).resolves.toEqual({ status: 'captured', base64: 'real' })
-	})
-
 	it('gives up after the ack window when no tab acknowledges', async () => {
 		const { result } = dispatch(['a'])
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
@@ -146,27 +150,27 @@ describe('TabRenderBroker', () => {
 
 	it('lets an acknowledged tab run past the ack window, up to the work timeout', async () => {
 		const { broker, jobIds, result } = dispatch(['a'])
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })
+		broker.receive(jobIds.get('a')!, { status: 'accepted' })
 
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS + 1)
-		expect(broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })).toBe(true)
+		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(true)
 
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_WORK_TIMEOUT_MS.measure)
 		await expect(result).resolves.toEqual({ status: 'work_timeout' })
 	})
 
-	it('falls back at once when every tab declines, without waiting out a window', async () => {
+	it('answers at once when every tab declines, without waiting out a window', async () => {
 		const { broker, jobIds, result } = dispatch(['a', 'b'])
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'declined', reason: 'page_not_current' })
-		broker.receive(jobIds.get('b')!, 'user_a', { status: 'declined', reason: 'page_not_current' })
+		broker.receive(jobIds.get('a')!, { status: 'declined', reason: 'page_not_current' })
+		broker.receive(jobIds.get('b')!, { status: 'declined', reason: 'page_not_current' })
 		await expect(result).resolves.toEqual({ status: 'declined', reason: 'page_not_current' })
 	})
 
 	it('waits for a tab still working when another declines', async () => {
 		const { broker, jobIds, result } = dispatch(['a', 'b'])
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })
-		broker.receive(jobIds.get('b')!, 'user_a', { status: 'declined', reason: 'editor_not_ready' })
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'measured', shapes: {} })
+		broker.receive(jobIds.get('a')!, { status: 'accepted' })
+		broker.receive(jobIds.get('b')!, { status: 'declined', reason: 'editor_not_ready' })
+		broker.receive(jobIds.get('a')!, { status: 'measured', shapes: {} })
 		await expect(result).resolves.toEqual({ status: 'measured', shapes: {} })
 	})
 
@@ -174,24 +178,17 @@ describe('TabRenderBroker', () => {
 	// should wait beyond the ack window for it.
 	it('stops at the ack window when the only other tab never answered', async () => {
 		const { broker, jobIds, result } = dispatch(['a', 'b'])
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'declined', reason: 'page_not_current' })
+		broker.receive(jobIds.get('a')!, { status: 'declined', reason: 'page_not_current' })
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
 		await expect(result).resolves.toEqual({ status: 'declined', reason: 'page_not_current' })
 	})
 
-	it('falls back when the last working tab fails after the ack window', async () => {
+	it('answers with the decline when the last working tab fails after the ack window', async () => {
 		const { broker, jobIds, result } = dispatch(['a'])
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })
+		broker.receive(jobIds.get('a')!, { status: 'accepted' })
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS + 1)
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'declined', reason: 'failed' })
+		broker.receive(jobIds.get('a')!, { status: 'declined', reason: 'failed' })
 		await expect(result).resolves.toEqual({ status: 'declined', reason: 'failed' })
-	})
-
-	it('forgets a job once it finishes', async () => {
-		const { broker, jobIds, result } = dispatch(['a'])
-		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
-		await result
-		expect(broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })).toBe(false)
 	})
 
 	// A frozen tab keeps its socket and runs the job when it thaws, long after the agent moved on.
@@ -201,22 +198,6 @@ describe('TabRenderBroker', () => {
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS)
 		await result
 
-		expect(broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })).toBe(false)
-	})
-
-	it('gives a write longer to finish than a read', async () => {
-		const { broker, jobIds, result } = dispatch(['a'], applyOps)
-		broker.receive(jobIds.get('a')!, 'user_a', { status: 'accepted' })
-
-		await vi.advanceTimersByTimeAsync(
-			TAB_RENDER_ACK_TIMEOUT_MS + TAB_RENDER_WORK_TIMEOUT_MS.apply_ops - 1
-		)
-		let settled = false
-		void result.then(() => (settled = true))
-		await vi.advanceTimersByTimeAsync(0)
-		expect(settled).toBe(false)
-
-		await vi.advanceTimersByTimeAsync(1)
-		await expect(result).resolves.toEqual({ status: 'work_timeout' })
+		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(false)
 	})
 })

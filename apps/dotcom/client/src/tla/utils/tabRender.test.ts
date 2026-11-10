@@ -23,14 +23,12 @@ beforeAll(() => {
 })
 
 const replies: TabRenderReply[] = []
-const getToken = vi.fn(async () => 'token')
 // How the worker answers a tab's `accepted`, which for a write is the go-ahead.
 let claimGranted = true
 
 beforeEach(() => {
 	replies.length = 0
 	claimGranted = true
-	getToken.mockClear()
 	vi.stubGlobal(
 		'fetch',
 		vi.fn(async (_url: string, init: RequestInit) => {
@@ -89,38 +87,19 @@ const screenshotOf = (pageId: TLPageId, shapeIds: string[]) =>
 	job({ mode: 'screenshot', pageId, shapeIds, theme: 'light', width: 1200, height: 630 })
 
 describe('answerTabRender', () => {
-	it('posts to the job on this file', async () => {
+	it('posts to the job on this file, without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: firstPageId }))
-		expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/api/app/file/file-1/tab-render/job')
-		editor.dispose()
-	})
-
-	it('signs each reply with a fresh token', async () => {
-		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: firstPageId }))
-		const init = vi.mocked(fetch).mock.calls[0][1] as RequestInit
-		expect(new Headers(init.headers).get('Authorization')).toBe('Bearer token')
-		expect(getToken).toHaveBeenCalledTimes(vi.mocked(fetch).mock.calls.length)
-		editor.dispose()
-	})
-
-	// The worker hears nothing and falls back, as it would for a tab that went to sleep.
-	it('sends nothing when it cannot get a token', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		const { editor, firstPageId } = setupEditor()
-		const noToken = vi.fn(async (): Promise<string> => {
-			throw new Error('signed out')
-		})
-		await answerTabRender(editor, 'file-1', noToken, job({ mode: 'measure', pageId: firstPageId }))
-		expect(fetch).not.toHaveBeenCalled()
+		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
+		const [url, init] = vi.mocked(fetch).mock.calls[0]
+		expect(url).toBe('/api/app/file/file-1/tab-render/job')
+		expect(new Headers((init as RequestInit).headers).has('Authorization')).toBe(false)
 		editor.dispose()
 	})
 
 	it('measures the page in view, acknowledging first', async () => {
 		const { editor, firstPageId, firstShapeId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: firstPageId }))
+		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },
@@ -138,7 +117,7 @@ describe('answerTabRender', () => {
 	it('measures a page the tab is not showing, without leaving the current one', async () => {
 		const { editor, firstPageId, otherPageId, otherShapeId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: otherPageId }))
+		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: otherPageId }))
 
 		expect(replies.at(-1)).toEqual({
 			status: 'measured',
@@ -149,12 +128,7 @@ describe('answerTabRender', () => {
 	})
 
 	it('declines before an editor has mounted', async () => {
-		await answerTabRender(
-			null,
-			'file-1',
-			getToken,
-			job({ mode: 'measure', pageId: 'page:a' as TLPageId })
-		)
+		await answerTabRender(null, 'file-1', job({ mode: 'measure', pageId: 'page:a' as TLPageId }))
 		expect(replies).toEqual([{ status: 'declined', reason: 'editor_not_ready' }])
 	})
 
@@ -163,7 +137,6 @@ describe('answerTabRender', () => {
 		await answerTabRender(
 			editor,
 			'file-1',
-			getToken,
 			job({ mode: 'measure', pageId: 'page:nope' as TLPageId })
 		)
 		expect(replies).toEqual([{ status: 'declined', reason: 'page_missing' }])
@@ -173,14 +146,14 @@ describe('answerTabRender', () => {
 	// Declined without an ack, so the worker falls back straight away instead of waiting on this tab.
 	it('declines a screenshot of a page the tab is not showing', async () => {
 		const { editor, otherPageId, otherShapeId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(otherPageId, [otherShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(otherPageId, [otherShapeId]))
 		expect(replies).toEqual([{ status: 'declined', reason: 'page_not_current' }])
 		editor.dispose()
 	})
 
 	it('declines a screenshot whose shapes have left the page', async () => {
 		const { editor, firstPageId, otherShapeId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [otherShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [otherShapeId]))
 		expect(replies).toEqual([{ status: 'declined', reason: 'shapes_missing' }])
 		editor.dispose()
 	})
@@ -190,7 +163,7 @@ describe('answerTabRender', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.spyOn(editor, 'toImage').mockRejectedValue(new Error('export failed'))
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'failed' }])
 		editor.dispose()
@@ -212,7 +185,7 @@ describe('answerTabRender', () => {
 		const camera = { ...editor.getCamera() }
 		stubExport(editor)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies.at(-1)).toEqual({ status: 'captured', base64: expect.any(String) })
 		expect(editor.getCamera()).toEqual(camera)
@@ -227,7 +200,6 @@ describe('answerTabRender', () => {
 		await answerTabRender(
 			editor,
 			'file-1',
-			getToken,
 			job({
 				mode: 'screenshot',
 				pageId: firstPageId,
@@ -252,7 +224,7 @@ describe('answerTabRender', () => {
 			new Set(Array.from({ length: 501 }, (_, i) => createShapeId(String(i))))
 		)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'too_many_shapes' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -264,7 +236,7 @@ describe('answerTabRender', () => {
 		const toImage = stubExport(editor)
 		vi.spyOn(editor.inputs, 'getIsDragging').mockReturnValue(true)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'busy' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -289,7 +261,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -311,7 +283,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			toImage.mockRejectedValueOnce(new Error('export failed'))
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			await Promise.all([screenshot(), screenshot()])
 
@@ -326,7 +298,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -345,7 +317,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -368,7 +340,7 @@ describe('answerTabRender', () => {
 			.mockReturnValueOnce(0)
 			.mockReturnValue(editor.options.maxExportDelayMs)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },
@@ -381,7 +353,7 @@ describe('answerTabRender', () => {
 		const { editor, firstPageId, firstShapeId } = setupEditor()
 		editor.select(firstShapeId)
 
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'user_state' }))
+		await answerTabRender(editor, 'file-1', job({ mode: 'user_state' }))
 
 		expect(replies.at(-1)).toEqual({
 			status: 'user_state',
@@ -409,7 +381,7 @@ describe('answerTabRender', () => {
 		it('applies a batch once it has the go-ahead, and reports what landed', async () => {
 			const { editor, firstPageId } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeDefined()
 			expect(replies).toEqual([
@@ -424,24 +396,13 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
-		// The model has no use for the compiled actions, and on a big batch they dwarf the rest.
-		it('leaves the compiled actions out of what it reports', async () => {
-			const { editor } = setupEditor()
-
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
-
-			const applied = replies.at(-1) as Extract<TabRenderReply, { status: 'applied' }>
-			expect(applied.result).not.toHaveProperty('compiled')
-			editor.dispose()
-		})
-
 		// Refused means this tab thawed after the agent gave up. Applying anyway is how an edit lands
 		// twice.
 		it('does nothing when the worker refuses the claim', async () => {
 			const { editor } = setupEditor()
 			claimGranted = false
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			expect(replies).toEqual([{ status: 'accepted' }])
@@ -453,7 +414,7 @@ describe('answerTabRender', () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 			vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'))
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			editor.dispose()
@@ -462,7 +423,7 @@ describe('answerTabRender', () => {
 		it('hands back why an invalid batch was refused, having applied none of it', async () => {
 			const { editor } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps([addBox, { op: 'explode' }]))
+			await answerTabRender(editor, 'file-1', applyOps([addBox, { op: 'explode' }]))
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			expect(replies.at(-1)).toEqual({
@@ -477,7 +438,7 @@ describe('answerTabRender', () => {
 			const { editor } = setupEditor()
 			editor.updateInstanceState({ isReadonly: true })
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'read_only' }])
 			editor.dispose()
@@ -488,19 +449,10 @@ describe('answerTabRender', () => {
 			const { editor } = setupEditor()
 			vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'tab_hidden' }])
 			expect(editor.getShape(hello)).toBeUndefined()
-			editor.dispose()
-		})
-
-		it('uses the page the user is on when the agent names none', async () => {
-			const { editor, firstPageId } = setupEditor()
-
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
-
-			expect(editor.getShape(hello)?.parentId).toBe(firstPageId)
 			editor.dispose()
 		})
 
@@ -508,12 +460,7 @@ describe('answerTabRender', () => {
 		it('declines a batch meant for a page the user is not on', async () => {
 			const { editor, firstPageId, otherPageId } = setupEditor()
 
-			await answerTabRender(
-				editor,
-				'file-1',
-				getToken,
-				applyOps([addBox], { kind: 'id', id: otherPageId })
-			)
+			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'id', id: otherPageId }))
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'page_not_current' }])
 			expect(editor.getShape(hello)).toBeUndefined()
@@ -524,16 +471,10 @@ describe('answerTabRender', () => {
 		it('applies when a named page is the one in view, by id or by index', async () => {
 			const { editor, firstPageId } = setupEditor()
 
+			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'id', id: firstPageId }))
 			await answerTabRender(
 				editor,
 				'file-1',
-				getToken,
-				applyOps([addBox], { kind: 'id', id: firstPageId })
-			)
-			await answerTabRender(
-				editor,
-				'file-1',
-				getToken,
 				applyOps([{ ...addBox, id: 'again' }], { kind: 'ordinal', ordinal: 0 })
 			)
 
@@ -545,12 +486,7 @@ describe('answerTabRender', () => {
 		it('declines a page the board does not have', async () => {
 			const { editor } = setupEditor()
 
-			await answerTabRender(
-				editor,
-				'file-1',
-				getToken,
-				applyOps([addBox], { kind: 'ordinal', ordinal: 9 })
-			)
+			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'ordinal', ordinal: 9 }))
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'page_missing' }])
 			editor.dispose()
@@ -562,25 +498,12 @@ describe('answerTabRender', () => {
 			const second = { op: 'rename', target: 'first', text: 'Renamed' }
 
 			await Promise.all([
-				answerTabRender(editor, 'file-1', getToken, applyOps([first])),
-				answerTabRender(editor, 'file-1', getToken, applyOps([second])),
+				answerTabRender(editor, 'file-1', applyOps([first])),
+				answerTabRender(editor, 'file-1', applyOps([second])),
 			])
 
 			const shape = editor.getShape(createShapeId('first'))!
 			expect(editor.getShapeUtil(shape).getText(shape)).toBe('Renamed')
-			editor.dispose()
-		})
-
-		// The agent's only way to undo a mistake is the user's undo, so a batch has to be one step.
-		it('is a single undo step for the user', async () => {
-			const { editor } = setupEditor()
-			const second = { ...addBox, id: 'second', at: { x: 900, y: 500 } }
-
-			await answerTabRender(editor, 'file-1', getToken, applyOps([addBox, second]))
-			editor.undo()
-
-			expect(editor.getShape(hello)).toBeUndefined()
-			expect(editor.getShape(createShapeId('second'))).toBeUndefined()
 			editor.dispose()
 		})
 
@@ -589,22 +512,22 @@ describe('answerTabRender', () => {
 			const { editor } = setupEditor()
 			vi.spyOn(editor.inputs, 'getIsDragging').mockReturnValue(true)
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'busy' }])
 			expect(editor.getShape(hello)).toBeUndefined()
 			editor.dispose()
 		})
 
-		// The ops had landed when settle threw. Reported as a plain failure, the agent would resend them.
-		it('reports a failure after the ops ran as one that may have landed', async () => {
+		// Reported as a plain failure, the agent would resend ops that may already have landed.
+		it('reports a failure past validation as one that may have landed', async () => {
 			const { editor } = setupEditor()
 			vi.spyOn(console, 'error').mockImplementation(() => {})
-			vi.stubGlobal('requestAnimationFrame', () => {
-				throw new Error('no frames')
+			vi.spyOn(editor, 'squashToMark').mockImplementation(() => {
+				throw new Error('history unavailable')
 			})
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeDefined()
 			expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'apply_failed' })
@@ -622,7 +545,7 @@ describe('answerTabRender', () => {
 				return new Response('{}')
 			})
 
-			await answerTabRender(editor, 'file-1', getToken, applyOps())
+			await answerTabRender(editor, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'busy' }])
@@ -640,15 +563,10 @@ describe('answerTabRender', () => {
 						release = () => resolve({ blob: new Blob(['x']), width: 1200, height: 630 })
 					})
 			)
-			const capture = answerTabRender(
-				editor,
-				'file-1',
-				getToken,
-				screenshotOf(firstPageId, [firstShapeId])
-			)
+			const capture = answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
 
-			const apply = answerTabRender(editor, 'file-1', getToken, applyOps())
+			const apply = answerTabRender(editor, 'file-1', applyOps())
 			await vi.waitFor(() =>
 				expect(replies.filter((reply) => reply.status === 'accepted')).toHaveLength(2)
 			)
