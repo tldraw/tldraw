@@ -3586,7 +3586,7 @@ export class TLFileDurableObject extends DurableObject {
 			? [...deliverable].sort((a, b) => lastActiveAt(b) - lastActiveAt(a)).slice(0, 1)
 			: deliverable.slice(0, MAX_TAB_RENDER_SESSIONS)
 
-		return this.tabRenders.dispatch(userId, targets, request, (sessionId, jobId) => {
+		return this.tabRenders.dispatch(targets, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
@@ -3640,16 +3640,12 @@ export class TLFileDurableObject extends DurableObject {
 		return { status: 'ok', ...getBoardUsers(sessions) }
 	}
 
-	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
-		return this.tabRenders.has(jobId, userId)
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
 	}
 
-	async receiveTabRenderReply(
-		jobId: string,
-		userId: string,
-		reply: TabRenderReply
-	): Promise<boolean> {
-		return this.tabRenders.receive(jobId, userId, reply)
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
 	}
 
 	/**

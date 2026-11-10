@@ -203,8 +203,8 @@ export type TabRenderRequest =
 	| { mode: 'user_state' }
 
 /**
- * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` names what a reply answers: it goes to this
- * one session and nowhere else, and the reply route accepts it only with the job user's website session.
+ * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
+ * this one session and nowhere else, and it is all the reply route checks.
  */
 export interface TabRenderServerEvent {
 	type: 'mcp_tab_render'
