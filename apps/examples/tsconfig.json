@@ -8,6 +8,7 @@
 		{ "path": "../../packages/collections" },
 		{ "path": "../../packages/commenting" },
 		{ "path": "../../packages/mermaid" },
+		{ "path": "../../packages/permissions" },
 		{ "path": "../../packages/sync" },
 		{ "path": "../../packages/state" },
 		{ "path": "../../packages/tldraw" },

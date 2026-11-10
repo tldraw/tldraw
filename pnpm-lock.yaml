@@ -929,6 +929,9 @@ importers:
       '@tldraw/mermaid':
         specifier: workspace:*
         version: link:../../packages/mermaid
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../../packages/permissions
       '@tldraw/state':
         specifier: workspace:*
         version: link:../../packages/state
