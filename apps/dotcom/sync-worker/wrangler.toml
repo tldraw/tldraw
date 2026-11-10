@@ -699,8 +699,8 @@ type = "ratelimit"
 namespace_id = "1028"
 simple = { limit = 10, period = 60 }
 
-# MCP server per-account guard on the tools that work in the caller's tab. Bounds load on a shared
-# board's durable object — see MCP_TAB_PER_USER_RATE_LIMIT in config.ts before changing this.
+# MCP server per-account guard on the tools that go through a board's durable object. Bounds load
+# on a shared board — see MCP_TAB_PER_USER_RATE_LIMIT in config.ts before changing this.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SERVER_TAB_RATE_LIMITER"
 type = "ratelimit"
