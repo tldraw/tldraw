@@ -304,6 +304,11 @@ export interface TldrawEditorBaseProps {
 	 * `@tldraw/permissions` makes both from one list. Reactive: read store state or signals inside it
 	 * and the answer follows.
 	 *
+	 * Selecting a shape needs `tl:shape:update`, so without it nothing that acts on a selection is
+	 * available, deleting included: a user with `tl:shape:delete` but not `tl:shape:update` can only
+	 * delete with the eraser. The style panel is hidden when neither `tl:shape:create` nor
+	 * `tl:shape:update` is held.
+	 *
 	 * @example
 	 * ```ts
 	 * can={(permission) => permission !== 'tl:page:create'}
