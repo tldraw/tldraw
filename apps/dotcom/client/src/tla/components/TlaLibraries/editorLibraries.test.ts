@@ -13,6 +13,7 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
+import { addStarterPack, isStarterPackAdded } from './starterPacks'
 
 let editors: Editor[] = []
 
@@ -121,5 +122,17 @@ describe('getEditorLibraries', () => {
 		const [onBoard] = source.getLibraries()
 		expect(onBoard.ownerId).toBe('file-a')
 		expect(ofType(editor, 'asset').map((a) => a.id)).toEqual([assetId])
+	})
+
+	it('adds a starter pack to the home workspace, not the board, and counts it added there', async () => {
+		const { editor, source } = setUp()
+		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
+		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+		const copy = await addStarterPack(source, pack)
+		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
+		expect(ofType(editor, 'library')).toEqual([])
+		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
+		await source.moveLibrary!(copy.id, 'acme')
+		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
 	})
 })
