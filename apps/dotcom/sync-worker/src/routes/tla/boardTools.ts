@@ -1,5 +1,6 @@
 import {
 	CANVAS_OPS_BATCH_JSON_SCHEMA,
+	ClusterBounds,
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
 	McpPageLookup,
@@ -52,7 +53,7 @@ export const MCP_PROTOCOL_VERSION = '2025-11-25'
 export const MCP_SERVER_INFO = {
 	name: 'tldraw-boards',
 	title: 'tldraw boards',
-	version: '3.9.0',
+	version: '3.10.0',
 }
 
 /**
@@ -440,6 +441,7 @@ export function parseClusterScreenshotInput(input: unknown): {
 	page: PageSelector
 	clusterIds: string[]
 	theme: 'light' | 'dark'
+	size: number
 } {
 	const value = requireArgumentsObject(input)
 	return {
@@ -447,7 +449,73 @@ export function parseClusterScreenshotInput(input: unknown): {
 		page: parsePageSelector(value.page),
 		clusterIds: parseClusterIds(value.clusterIds),
 		theme: parseTheme(value.theme),
+		size: parseScreenshotSize(value.size),
 	}
+}
+
+export const CLUSTER_SCREENSHOT_MIN_SIZE = 64
+// Just under the 2576px long edge current vision models read at full resolution, and under the 3000px
+// per-image cap Claude enforces on requests with more than 20 images.
+export const CLUSTER_SCREENSHOT_MAX_SIZE = 2560
+
+// Floored rather than refused: refusing 1000.5 would cost a model a round trip over nothing.
+function parseScreenshotSize(value: unknown): number {
+	if (value === undefined || value === null) return CLUSTER_SCREENSHOT_MAX_SIZE
+	if (
+		typeof value !== 'number' ||
+		!Number.isFinite(value) ||
+		value < CLUSTER_SCREENSHOT_MIN_SIZE ||
+		value > CLUSTER_SCREENSHOT_MAX_SIZE
+	) {
+		throw new Error(
+			`size must be a number of pixels from ${CLUSTER_SCREENSHOT_MIN_SIZE} to ${CLUSTER_SCREENSHOT_MAX_SIZE}`
+		)
+	}
+	return Math.floor(value)
+}
+
+// How far a cluster screenshot may enlarge the board. Without a cap, a single sticky note asked for
+// at 2560px would come back drawn at 12x, costing image tokens for pixels that add nothing. 8 is the
+// editor's own maximum zoom.
+const CLUSTER_SCREENSHOT_MAX_SCALE = 8
+
+// The ratio a cluster screenshot uses when the tab measured none of its clusters' shapes, so there is
+// no aspect ratio to match. The tab centres whatever it finds inside it.
+const FALLBACK_ASPECT_RATIO = DEFAULT_THUMBNAIL_WIDTH / DEFAULT_THUMBNAIL_HEIGHT
+
+/**
+ * The image size for a cluster screenshot: exactly the shape of `box`, with its longer side `size`
+ * pixels, or less where reaching `size` would enlarge the board past CLUSTER_SCREENSHOT_MAX_SCALE.
+ * Each side is rounded to whole pixels, so the aspect ratio can be off by under a pixel.
+ *
+ * A zero-width or zero-height box (a straight horizontal or vertical line) still gets a 1px side
+ * rather than none.
+ */
+export function getClusterScreenshotSize(
+	box: BoxModel | null,
+	size: number
+): { width: number; height: number } {
+	const longest = box ? Math.max(box.w, box.h) : 0
+	if (!box || longest <= 0) {
+		return { width: size, height: Math.round(size / FALLBACK_ASPECT_RATIO) }
+	}
+	const scale = Math.min(size / longest, CLUSTER_SCREENSHOT_MAX_SCALE)
+	return {
+		width: Math.max(1, Math.round(box.w * scale)),
+		height: Math.max(1, Math.round(box.h * scale)),
+	}
+}
+
+/** The box around the named clusters, or null when none of them was measured. */
+export function getClustersBox(
+	bounds: Record<string, BoxModel>,
+	clusterIds: string[]
+): BoxModel | null {
+	return toClusterBox(clusterIds.map((id) => bounds[id] && toClusterBounds(bounds[id])))
+}
+
+function toClusterBounds({ x, y, w, h }: BoxModel): ClusterBounds {
+	return { minX: x, minY: y, maxX: x + w, maxY: y + h }
 }
 
 export const BOARD_NAME_MAX_LENGTH = 200
@@ -1048,11 +1116,7 @@ export function getPageInfo(
 	// Bounds let a model see what is near what without opening every cluster. They are null rather
 	// than invented for a cluster the tab could not measure.
 	const pageBounds = toClusterBox(
-		clusters.flatMap(({ bounds }) =>
-			bounds
-				? [{ minX: bounds.x, minY: bounds.y, maxX: bounds.x + bounds.w, maxY: bounds.y + bounds.h }]
-				: []
-		)
+		clusters.flatMap(({ bounds }) => (bounds ? [toClusterBounds(bounds)] : []))
 	)
 
 	// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve cluster
@@ -1708,7 +1772,7 @@ function getClusterScreenshotToolDefinition() {
 	return {
 		name: CLUSTER_SCREENSHOT_TOOL_NAME,
 		title: 'Get tldraw cluster screenshot',
-		description: `Return a ${DEFAULT_THUMBNAIL_WIDTH}x${DEFAULT_THUMBNAIL_HEIGHT} PNG of one or more clusters from get_page_info, preceded by the page name. The board must be open in the user’s browser tab, on this page: if it is not, ask them to open it or switch to it. The camera fits the clusters requested and only their shapes are drawn, so nothing else on the page appears. Pass several ids to see how those clusters sit relative to each other in a single image. This is the direct route from a cluster id to a picture — get_cluster_info is only needed when the individual shapes matter.`,
+		description: `Return a PNG of one or more clusters from get_page_info, preceded by the page name. The board must be open in the user’s browser tab, on this page: if it is not, ask them to open it or switch to it. Only the clusters’ shapes are drawn, edge to edge, so the image has the aspect ratio of their bounds. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. Pass several ids to see how clusters sit relative to each other. Use get_cluster_info only when the individual shapes matter.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1730,6 +1794,14 @@ function getClusterScreenshotToolDefinition() {
 					type: 'string',
 					enum: ['light', 'dark'],
 					default: 'light',
+				},
+				size: {
+					type: 'number',
+					minimum: CLUSTER_SCREENSHOT_MIN_SIZE,
+					maximum: CLUSTER_SCREENSHOT_MAX_SIZE,
+					default: CLUSTER_SCREENSHOT_MAX_SIZE,
+					description:
+						'The image’s longer side in pixels. Pass a smaller size to spend fewer image tokens.',
 				},
 			},
 			required: ['boardId', 'page', 'clusterIds'],

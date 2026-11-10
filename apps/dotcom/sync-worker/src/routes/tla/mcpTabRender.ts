@@ -345,6 +345,9 @@ function isPageRead(value: unknown): value is McpPageRead {
 		read.clusters.every(isClusterSummary) &&
 		Array.isArray(read.details) &&
 		read.details.every(isClusterDetail) &&
+		(read.detailBounds === undefined ||
+			(isPlainObject(read.detailBounds) &&
+				Object.values(read.detailBounds as object).every(isBox))) &&
 		Array.isArray(read.ancestors) &&
 		read.ancestors.every(isShapeLike) &&
 		Array.isArray(read.bindings) &&

@@ -1,4 +1,3 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
@@ -36,6 +35,8 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getClusterScreenshotSize,
+	getClustersBox,
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
@@ -1144,6 +1145,10 @@ async function callClusterScreenshotTool(
 			telemetry({ failureReason: 'cluster_not_found' })
 			return withTelemetryReason(picked.result, 'cluster_not_found')
 		}
+		const size = getClusterScreenshotSize(
+			getClustersBox(page.read.detailBounds ?? {}, input.clusterIds),
+			input.size
+		)
 
 		const image = await captureInOpenTab(
 			env,
@@ -1153,8 +1158,8 @@ async function callClusterScreenshotTool(
 				pageId: page.read.pageId,
 				shapeIds: picked.shapeIds,
 				theme: input.theme,
-				width: DEFAULT_THUMBNAIL_WIDTH,
-				height: DEFAULT_THUMBNAIL_HEIGHT,
+				width: size.width,
+				height: size.height,
 			},
 			{ request, ctx }
 		)
@@ -1176,6 +1181,7 @@ async function callClusterScreenshotTool(
 				page: describePageSelector(input.page),
 				theme: input.theme,
 				clusterIds: input.clusterIds.join(','),
+				size: input.size,
 			},
 			summary: 'Screenshot failed',
 			telemetry,

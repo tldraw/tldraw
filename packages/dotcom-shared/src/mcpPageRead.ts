@@ -152,6 +152,11 @@ export interface McpPageRead {
 	clusters: McpClusterSummary[]
 	/** The named clusters that exist, with their shapes. A named id that isn't here wasn't found. */
 	details: ShapeCluster[]
+	/**
+	 * The box around each cluster in `details` that the tab could measure, by cluster id, which is what
+	 * get_cluster_screenshot sizes its image from. Absent from tabs running a client older than it.
+	 */
+	detailBounds?: Record<string, BoxModel>
 	/** Shapes outside `details` that its shapes sit inside, which their page positions depend on. */
 	ancestors: TLShape[]
 	/** The arrow bindings of the arrows in `details`, as stored. */
@@ -203,6 +208,11 @@ export function readMcpPage({
 	const byId = new Map(clusters.map((cluster) => [cluster.id, cluster]))
 	const details = [...new Set(clusterIds)].flatMap((id) => byId.get(id) ?? [])
 	const detailShapes = new Set<string>(details.flatMap((c) => c.shapes.map((shape) => shape.id)))
+	const detailBounds: Record<string, BoxModel> = {}
+	for (const cluster of details) {
+		const box = toClusterBox(cluster.shapes.map((shape) => measurements[shape.id]))
+		if (box) detailBounds[cluster.id] = box
+	}
 
 	const shapesById = new Map<string, TLShape>(shapes.map((shape) => [shape.id, shape]))
 	const ancestors = new Map<string, TLShape>()
@@ -228,6 +238,7 @@ export function readMcpPage({
 		pageName,
 		clusters: summaries,
 		details,
+		detailBounds,
 		ancestors: [...ancestors.values()],
 		bindings: bindings.filter((binding) => detailShapes.has(binding.fromId)),
 		arrows,

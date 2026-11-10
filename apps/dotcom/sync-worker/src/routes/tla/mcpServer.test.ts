@@ -579,7 +579,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.9.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.10.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -1341,13 +1341,15 @@ describe('the open tab', () => {
 
 		const result = await screenshot(makeEnv({ tab }))
 
+		// This tab measured no boxes, so there is no aspect ratio to match: the size falls back to the
+		// thumbnail's ratio at the full 2560px.
 		expect(tab).toHaveBeenLastCalledWith('user_tab', {
 			mode: 'screenshot',
 			pageId: 'page:a',
 			shapeIds: ['shape:page:a-0'],
 			theme: 'light',
-			width: 1200,
-			height: 630,
+			width: 2560,
+			height: 1344,
 		})
 		expect(result.content).toEqual([
 			{ type: 'text', text: 'Cover' },
@@ -1367,6 +1369,50 @@ describe('the open tab', () => {
 
 		const request = tab.mock.lastCall![1] as TabRenderScreenshotRequest
 		expect(request.shapeIds).toHaveLength(2)
+	})
+
+	describe('sizing to the clusters', () => {
+		// One wide cluster and one far-off square, so neither merges into the other.
+		const measuredTab = () =>
+			openTab({
+				'shape:page:a-0': { x: 0, y: 0, w: 400, h: 100 },
+				'shape:page:a-1': { x: 10_000, y: 10_000, w: 80, h: 80 },
+			})
+
+		async function clusterIdWithWidth(env: Environment, w: number) {
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			return JSON.parse(pageInfo.content[0].text).clusters.find(
+				(cluster: any) => cluster.bounds?.w === w
+			).id as string
+		}
+
+		it('asks for a smaller size when the agent does', async () => {
+			const tab = measuredTab()
+			const env = makeEnv({ tab })
+			const clusterId = await clusterIdWithWidth(env, 400)
+
+			await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds: [clusterId], size: 800 },
+				env,
+				'user_tab'
+			)
+
+			expect(tab.mock.lastCall![1]).toMatchObject({ width: 800, height: 200 })
+		})
+
+		it('frames several clusters on the box around all of them', async () => {
+			const tab = measuredTab()
+			const env = makeEnv({ tab })
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+			expect(clusterIds).toHaveLength(2)
+
+			await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds }, env, 'user_tab')
+
+			// The union runs from (0, 0) to (10080, 10080): a square.
+			expect(tab.mock.lastCall![1]).toMatchObject({ width: 2560, height: 2560 })
+		})
 	})
 
 	it('tells the agent to have the user open the board when no tab has it', async () => {
