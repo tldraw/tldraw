@@ -33,6 +33,7 @@ export {
 	type CollectionSource,
 	type TLCollectionAction,
 	type TLCollectionOwner,
+	type TLCollectionTarget,
 	type TLCollectionThumbnailContext,
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,

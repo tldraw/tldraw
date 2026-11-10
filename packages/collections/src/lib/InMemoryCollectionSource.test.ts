@@ -1,7 +1,12 @@
 import { react } from '@tldraw/state'
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
+import {
+	CollectionNotFoundError,
+	CollectionPermissionError,
+	type TLCollectionAction,
+	type TLCollectionTarget,
+} from './CollectionSource'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
 import {
 	CollectionItemRecordType,
@@ -322,6 +327,34 @@ describe('InMemoryCollectionSource', () => {
 		const source = new InMemoryCollectionSource({ can })
 		expect(source.can('addItem', missingCollection)).toBe(false)
 		expect(can).not.toHaveBeenCalled()
+	})
+
+	it('answers no for an owner it does not list, without asking the rule', () => {
+		const can = vi.fn(() => true)
+		const source = new InMemoryCollectionSource({ owners: [{ id: 'home', name: 'Home' }], can })
+		expect(source.can('createCollection', { ownerId: 'nobody' })).toBe(false)
+		expect(can).not.toHaveBeenCalled()
+	})
+
+	it('asks the rule about new collections for an owner', async () => {
+		const can = vi.fn(
+			(_: TLCollectionAction, target?: TLCollectionTarget) =>
+				typeof target !== 'object' || target.ownerId !== 'acme'
+		)
+		const source = new InMemoryCollectionSource({
+			owners: [
+				{ id: 'home', name: 'Home' },
+				{ id: 'acme', name: 'Acme' },
+			],
+			can,
+		})
+		expect(source.can('createCollection', { ownerId: 'home' })).toBe(true)
+		expect(source.can('createCollection', { ownerId: 'acme' })).toBe(false)
+		expect(can).toHaveBeenCalledWith('createCollection', { ownerId: 'acme' })
+		expect((await source.createCollection('Mine')).ownerId).toBe('home')
+		await expect(source.createCollection('Theirs', { ownerId: 'acme' })).rejects.toThrow(
+			CollectionPermissionError
+		)
 	})
 
 	it('refuses every write when read-only, but items stay usable', async () => {
