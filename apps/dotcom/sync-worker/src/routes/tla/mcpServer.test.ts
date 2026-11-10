@@ -1,27 +1,31 @@
 import {
+	TabRenderReadRequest,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
 	ThumbnailShapeMeasurement,
+	findMcpPage,
+	toShapeMeasurements,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { isPage } from '@tldraw/tlschema'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
+	MCP_TAB_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	CLUSTER_INFO_MAX_IDS,
-	PageSelector,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	encodePageInfoCursor,
 	parsePageInfoInput,
-	resolvePage,
+	readSnapshotPage,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
@@ -129,21 +133,7 @@ function makeEnv({
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://render.example',
 		THUMBNAILS: makeFakeThumbnailsBucket(),
 		ROOMS: makeFakeRoomsBucket(),
-		TLDR_DOC: makeFakeFileDurableObjectNamespace(tab, {
-			// What the room holds now, stood in for by the same mock the persisted read used.
-			getMcpLivePage: async (_userId: string, page: PageSelector) =>
-				tab.closed
-					? { status: 'no_tab' }
-					: {
-							status: 'ok',
-							page: resolvePage(
-								(await getSharedFileRoomSnapshot({} as Environment, 'abc', {
-									access: 'render',
-								})) as RoomSnapshot,
-								page
-							),
-						},
-		}),
+		TLDR_DOC: makeFakeFileDurableObjectNamespace(tab),
 		...overrides,
 	})
 }
@@ -158,12 +148,35 @@ const PNG = 'iVBORw0KGgoTAB'
 function openTab(shapes: Record<string, ThumbnailShapeMeasurement> = {}): FakeTab {
 	return vi.fn(async (_userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> => {
 		switch (request.mode) {
-			case 'measure':
-				return { status: 'measured', shapes }
+			case 'read':
+				return readInTab(request, shapes)
 			case 'screenshot':
 				return { status: 'captured', base64: PNG }
 		}
 	})
+}
+
+// What the tab would read, worked out from the board the test mocked: the same snapshot mock the
+// persisted read uses stands in for the tab's store.
+async function readInTab(
+	request: TabRenderReadRequest,
+	shapes: Record<string, ThumbnailShapeMeasurement>
+): Promise<TabRenderOutcome> {
+	const snapshot = (await getSharedFileRoomSnapshot({} as Environment, 'abc', {
+		access: 'render',
+	})) as RoomSnapshot
+	const lookup = findMcpPage(snapshot.documents.map((d) => d.state).filter(isPage), request.page)
+	if (!lookup.ok) {
+		return { status: 'page_not_found', reason: lookup.reason, pageCount: lookup.pageCount }
+	}
+	const read = readSnapshotPage(
+		snapshot,
+		request.page,
+		toShapeMeasurements(shapes),
+		request.clusterIds
+	)
+	if (!read.ok) throw new Error('expected the page to read')
+	return { status: 'page_read', read: read.read }
 }
 
 function tabAnswering(outcome: TabRenderOutcome): FakeTab {
@@ -1286,12 +1299,16 @@ describe('the open tab', () => {
 		mockSharedBoard()
 	})
 
-	it('measures a page for the user who asked', async () => {
+	it('reads a page in the tab of the user who asked', async () => {
 		const tab = openTab({ 'shape:page:a-0': { x: 0, y: 0, w: 10, h: 10, text: 'From the tab' } })
 
 		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv({ tab }), 'user_tab')
 
-		expect(tab).toHaveBeenCalledWith('user_tab', { mode: 'measure', pageId: 'page:a' })
+		expect(tab).toHaveBeenCalledWith('user_tab', {
+			mode: 'read',
+			page: { kind: 'ordinal', ordinal: 0 },
+			clusterIds: [],
+		})
 		expect(JSON.parse(result.content[0].text).clusters.map((c: any) => c.label)).toContain(
 			'From the tab'
 		)
@@ -1376,10 +1393,11 @@ describe('the open tab', () => {
 		[{ status: 'declined', reason: 'busy' }, 'tab_busy'],
 		[{ status: 'declined', reason: 'page_not_current' }, 'tab_page_not_current'],
 		// A reply of the wrong kind for the job.
-		[{ status: 'measured', shapes: {} }, 'tab_failed'],
+		[{ status: 'page_not_found', reason: 'no_pages', pageCount: 0 }, 'tab_failed'],
 	])('answers %j with a tool error, recorded as %s', async (outcome, reason) => {
-		const tab = vi.fn(async (_userId: string, request: TabRenderRequest) =>
-			request.mode === 'measure' ? { status: 'measured', shapes: {} } : outcome
+		const open = openTab()
+		const tab = vi.fn(async (userId: string, request: TabRenderRequest) =>
+			request.mode === 'read' ? open(userId, request) : outcome
 		) as FakeTab
 		const env = makeEnv({ tab })
 
@@ -1410,7 +1428,7 @@ describe('the open tab', () => {
 		const get = objects.get
 		objects.get = (id: unknown) => ({
 			...get(id),
-			getMcpLivePage: async () => {
+			requestTabRender: async () => {
 				throw new Error('room unavailable')
 			},
 		})
@@ -1427,8 +1445,7 @@ describe('the open tab', () => {
 		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 
 		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.blobs.slice(2))).toEqual([
-			['mode:live_page', 'outcome:ok', 'reason:none'],
-			['mode:measure', 'outcome:declined', 'reason:page_missing'],
+			['mode:read', 'outcome:declined', 'reason:page_missing'],
 		])
 	})
 })
@@ -1473,6 +1490,44 @@ describe('rate limits', () => {
 		expect(blocked.content[0].text).toContain('Searches are limited')
 		// A limit nobody can see firing is the failure this ledger row exists to prevent.
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
+	})
+
+	// One budget across all three tab tools, so an agent can't triple its share of the board's durable
+	// object by switching tools. The refused call must not reach the tab: that load is the point.
+	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} tab tool calls per account per minute, across the tools`, async () => {
+		mockSharedBoard()
+		const tab = openTab()
+		const env = makeEnv({ tab })
+		// Spends the first call of the budget.
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+		const calls = [
+			['get_page_info', { boardId: 'abc' }],
+			['get_cluster_info', { boardId: 'abc', clusterId }],
+			['get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }],
+		] as const
+
+		const results = []
+		for (let i = 1; i < MCP_TAB_PER_USER_RATE_LIMIT; i++) {
+			const [tool, args] = calls[i % calls.length]
+			results.push(await callTool(tool, args, env, 'user_tab'))
+		}
+		const callsWithinBudget = tab.mock.calls.length
+		const blocked = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterId },
+			env,
+			'user_tab'
+		)
+
+		expect(results.map((r) => r.isError)).toEqual(
+			Array(MCP_TAB_PER_USER_RATE_LIMIT - 1).fill(undefined)
+		)
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain(
+			'Reading pages and screenshotting clusters is limited'
+		)
+		expect(tab).toHaveBeenCalledTimes(callsWithinBudget)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
 	})
 
 	// Both halves matter: without the noisy caller actually being refused, the quiet one succeeding
@@ -1573,7 +1628,11 @@ describe('per-user board access', () => {
 
 		expect(result.isError).toBeUndefined()
 		expect(hasReadAccessToFile).toHaveBeenCalledWith(expect.anything(), 'user_owner', 'mine')
-		expect(tab).toHaveBeenCalledWith('user_owner', { mode: 'measure', pageId: 'page:a' })
+		expect(tab).toHaveBeenCalledWith('user_owner', {
+			mode: 'read',
+			page: { kind: 'ordinal', ordinal: 0 },
+			clusterIds: [],
+		})
 	})
 
 	it("does not reach anyone's tab for someone else's private file", async () => {

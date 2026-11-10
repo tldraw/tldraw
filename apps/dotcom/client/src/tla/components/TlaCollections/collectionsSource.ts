@@ -9,6 +9,7 @@ import {
 	type TLCollectionItem,
 	type TLCollectionItemContent,
 	type TLCollectionItemId,
+	type TLCollectionTarget,
 	type TLCollectionThumbnail,
 	type TLNewCollectionItem,
 } from '@tldraw/collections'
@@ -90,8 +91,8 @@ class BrowserCollectionSource implements CollectionSource {
 		return this.inner.get().getItemContent(itemId)
 	}
 
-	can(action: TLCollectionAction, collectionId?: TLCollectionId) {
-		return this.inner.get().can(action, collectionId)
+	can(action: TLCollectionAction, target?: TLCollectionTarget) {
+		return this.inner.get().can(action, target)
 	}
 
 	async createCollection(name: string) {

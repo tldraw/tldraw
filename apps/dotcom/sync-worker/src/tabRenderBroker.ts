@@ -21,7 +21,7 @@ export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
 
 /** How long work may run once the ack window closes. */
-export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
+export const TAB_RENDER_WORK_TIMEOUT_MS = { read: 5_000, screenshot: 8_000 } as const
 
 /**
  * The most tabs one job goes to. Every addressed tab does the work, so this bounds what a single
@@ -37,7 +37,7 @@ export const MAX_TAB_RENDER_SESSIONS = 3
 export const TAB_RENDER_MAX_PING_AGE_MS = 90_000
 
 export type TabRenderOutcome =
-	| Extract<TabRenderReply, { status: 'measured' | 'captured' | 'declined' }>
+	| Extract<TabRenderReply, { status: 'page_read' | 'page_not_found' | 'captured' | 'declined' }>
 	| { status: 'no_tab' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
 
 export interface TabRenderSocket {
@@ -100,21 +100,25 @@ interface TabRenderJob {
 export class TabRenderBroker {
 	private readonly jobs = new Map<string, TabRenderJob>()
 
-	/** Resolves once a tab answers, or as soon as none of them can. */
+	/**
+	 * Resolves once a tab answers, or as soon as none of them can. Each session takes the next of
+	 * `jobIds`, which the worker minted and signed: see tabRenderJobIds.ts.
+	 */
 	dispatch(
 		sessionIds: string[],
 		request: TabRenderRequest,
+		jobIds: readonly string[],
 		send: (sessionId: string, jobId: string) => void
 	): Promise<TabRenderOutcome> {
 		return new Promise((resolve) => {
-			const jobIds: string[] = []
+			const issued: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
 				tabs: new Map(),
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
-					for (const jobId of jobIds) this.jobs.delete(jobId)
+					for (const jobId of issued) this.jobs.delete(jobId)
 					resolve(outcome)
 				},
 			}
@@ -132,13 +136,13 @@ export class TabRenderBroker {
 				)
 			}, TAB_RENDER_ACK_TIMEOUT_MS)
 
-			for (const sessionId of sessionIds) {
-				const jobId = crypto.randomUUID()
-				jobIds.push(jobId)
+			sessionIds.forEach((sessionId, i) => {
+				const jobId = jobIds[i]
+				issued.push(jobId)
 				job.tabs.set(jobId, 'asked')
 				this.jobs.set(jobId, job)
 				send(sessionId, jobId)
-			}
+			})
 		})
 	}
 

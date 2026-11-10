@@ -21,6 +21,7 @@ import {
 } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { arrayBufferToBase64, base64ToArrayBuffer } from '../../utils/base64'
+import { evaluateFlagForUser, getFeatureFlagValue } from '../../utils/featureFlags'
 import {
 	RenderPageReach,
 	ThumbnailRenderJob,
@@ -208,8 +209,7 @@ async function renderTransportFor(
 	snapshot: RoomSnapshot | undefined,
 	job: ThumbnailRenderJob
 ): Promise<RenderTransport> {
-	// The trial's kill switch: off, every render fetches, as before push existed.
-	if (!snapshot || envFlagWord(env.THUMBNAIL_RENDER_PUSH) !== 'true') return PULL
+	if (!snapshot || !(await isPushRolledOutFor(env, job))) return PULL
 	if (await didPushTimeOutRecently(env, job)) return { kind: 'push_fallback', pushChars: 0 }
 	// Built by the snapshot route's own function, so a pushed render and a fetched one cannot differ.
 	const body = thumbnailSnapshotBodyFor(snapshot, job)
@@ -222,6 +222,21 @@ async function renderTransportFor(
 		return { kind: 'push_fallback', pushChars: script.length }
 	}
 	return { kind: 'push', pushChars: script.length, script, board: job }
+}
+
+// The OG percentage is bucketed per board, not per render: otherwise a board's retries would flip
+// between transports and the per-board push-fallback marker would stop meaning anything.
+async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
+	if (envFlagWord(env.THUMBNAIL_RENDER_PUSH) === 'true') return true
+	if (job.surface === 'mcp') {
+		return evaluateFlagForUser(
+			await getFeatureFlagValue(env, 'mcp_render_push'),
+			'mcp_render_push',
+			null
+		)
+	}
+	const flag = await getFeatureFlagValue(env, 'thumbnail_render_push')
+	return evaluateFlagForUser(flag, 'thumbnail_render_push', `${job.kind}/${job.slug}`)
 }
 
 // The page waits for a push as long as the capture lasts, so a push that never lands is a

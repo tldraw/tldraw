@@ -30,6 +30,7 @@ import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useOneSidePanelOpen } from '../../hooks/useOneSidePanelOpen'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -74,6 +75,7 @@ export function TlaEditorTopRightPanel({
 		},
 		[editor]
 	)
+	useOneSidePanelOpen(editor)
 
 	if (isAnonUser) {
 		return (

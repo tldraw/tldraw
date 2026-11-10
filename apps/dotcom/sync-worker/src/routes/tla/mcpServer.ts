@@ -4,6 +4,7 @@ import {
 	MCP_RATE_LIMIT_WINDOW_MS,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
+	MCP_TAB_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment, envFlagWord } from '../../types'
@@ -24,17 +25,14 @@ import {
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
-	PageClustering,
+	McpPageRead,
 	PageSelector,
-	ResolvedPageOk,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
-	clusterPage,
 	describePageSelector,
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
-	clusteringFromMeasure,
 	getCreatedBoardResult,
 	getPageInfo,
 	getToolDefinitions,
@@ -47,6 +45,7 @@ import {
 	parsePageInfoInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
+	pageLookupFailure,
 	pickClusterShapes,
 	toolError as modelToolError,
 	toolJsonResult,
@@ -55,12 +54,7 @@ import {
 import { createBoardForUser } from './createBoard'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
-import {
-	PUBLISHED_BOARD_FAILURE,
-	captureInOpenTab,
-	measureInOpenTab,
-	readLivePage,
-} from './mcpTabRender'
+import { PUBLISHED_BOARD_FAILURE, captureInOpenTab, readPageInOpenTab } from './mcpTabRender'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -145,6 +139,10 @@ function createRateLimitKey(userId: string) {
 
 function renameRateLimitKey(userId: string) {
 	return `rename:${userId}`
+}
+
+function tabRateLimitKey(userId: string) {
+	return `tab:${userId}`
 }
 
 async function isRateLimited(
@@ -816,22 +814,16 @@ async function callPageInfoTool(
 		// Scoped to the requested page: get_cluster_info and get_cluster_screenshot both resolve
 		// cluster ids against a single page, so listing every shape on the board here would hand out
 		// ids that neither of them can look up.
-		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
+		const page = await readBoardPage(input.boardId, input.page, [], {
+			env,
+			userId,
+			telemetry,
 			request,
 			ctx,
 		})
-		if (!resolved.ok) {
-			telemetry({ failureReason: resolved.reason })
-			return resolved.result
-		}
-
-		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
-		if (!clustered.ok) return clustered.result
+		if (!page.ok) return page.result
 		telemetry({})
-		return getPageInfo(resolved.page, clustered, {
-			selector: input.page,
-			offset: input.cursor ?? 0,
-		})
+		return getPageInfo(page.read, { selector: input.page, offset: input.cursor ?? 0 })
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -880,45 +872,58 @@ async function loadBoardForTool(
 	return { ok: true, fileName: resolved.fileName, snapshot }
 }
 
-type ResolvedBoardPage =
-	| { ok: true; fileId: string; page: ResolvedPageOk }
-	| { ok: false; reason: string; result: ToolCallResult }
+type BoardPageRead = { ok: true; read: McpPageRead } | { ok: false; result: ToolCallResult }
 
-// `reason` is the bounded telemetry code for the request-level `mcp_shared_board_screenshot` event.
+// How get_page_info, get_cluster_info and get_cluster_screenshot read a page: the caller's open tab
+// resolves it, measures and clusters it, and sends back records only for `clusterIds`. Clustering
+// needs real geometry, which only an editor has. See mcpTabRender.ts for why a tab's answer is never
+// kept.
 //
 // A board that isn't a file the caller can see is either published, which has no room to read, or not
 // found, with the same answer get_board_info gives either way.
-async function resolveBoardPage(
-	env: Environment,
+async function readBoardPage(
 	boardId: string,
 	page: PageSelector,
-	userId: string,
-	context: { request: Request; ctx: ExecutionContext | undefined }
-): Promise<ResolvedBoardPage> {
+	clusterIds: string[],
+	{
+		env,
+		userId,
+		telemetry,
+		request,
+		ctx,
+	}: {
+		env: Environment
+		userId: string
+		telemetry: McpTelemetryWriter
+		request: Request
+		ctx: ExecutionContext | undefined
+	}
+): Promise<BoardPageRead> {
+	const fail = (reason: string, result: ToolCallResult): BoardPageRead => {
+		telemetry({ failureReason: reason })
+		return { ok: false, result }
+	}
+
+	const limited = await checkTabRateLimit(env, userId, telemetry)
+	if (limited) return { ok: false, result: limited }
+
 	const access = await hasReadAccessToFile(env, userId, boardId)
 	if (!access.ok) {
 		const published = await resolveThumbnailBoard(env, 'published', boardId, { access: 'public' })
 		if (!published.ok) {
-			return {
-				ok: false,
-				reason: 'not_found',
-				result: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found'),
-			}
+			return fail('not_found', toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found'))
 		}
 		const { reason, message } = PUBLISHED_BOARD_FAILURE
-		return { ok: false, reason, result: toolError(message, reason) }
+		return fail(reason, toolError(message, reason))
 	}
 
-	const live = await readLivePage(env, boardId, userId, page, context)
-	if (!live.ok) {
-		return { ok: false, reason: live.reason, result: toolError(live.message, live.reason) }
+	const tab = await readPageInOpenTab(env, boardId, userId, page, clusterIds, { request, ctx })
+	if (!tab.ok) return fail(tab.reason, toolError(tab.message, tab.reason))
+	if (!tab.value.found) {
+		const failure = pageLookupFailure(tab.value.lookup, page)
+		return fail(failure.reason, withTelemetryReason(failure.result, failure.reason))
 	}
-	const pageResult = live.value
-	if (!pageResult.ok) {
-		const reason = pageResult.reason === 'no_pages' ? 'board_empty' : 'page_not_found'
-		return { ok: false, reason, result: withTelemetryReason(pageResult.result, reason) }
-	}
-	return { ok: true, fileId: boardId, page: pageResult }
+	return { ok: true, read: tab.value.read }
 }
 
 // One datapoint shape for every MCP tool: `source: 'mcp'`, plus whatever the row carries.
@@ -996,6 +1001,29 @@ async function checkCreateRateLimit(
 	)
 }
 
+async function checkTabRateLimit(
+	env: Environment,
+	userId: string,
+	telemetry: McpTelemetryWriter
+): Promise<ToolCallResult | undefined> {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_TAB_RATE_LIMITER, tabRateLimitKey(userId), {
+			fallbackLimit: MCP_TAB_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return undefined
+	}
+	telemetry({
+		rateLimitAllowed: false,
+		failureReason: 'rate_limited_tab',
+		callerHash: await sha256(userId),
+	})
+	return toolError(
+		`Rate limited. Reading pages and screenshotting clusters is limited to about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
+		'rate_limited_tab'
+	)
+}
+
 async function checkRenameRateLimit(
 	env: Environment,
 	userId: string,
@@ -1019,39 +1047,6 @@ async function checkRenameRateLimit(
 	)
 }
 
-type ClusteringResult = ({ ok: true } & PageClustering) | { ok: false; result: ToolCallResult }
-
-// How the three clustering tools get a page's clusters. Clustering needs real geometry, and the only
-// way to get it is to run an editor, so this asks the caller's open tab every time. See mcpTabRender.ts
-// for why a tab's answer is never kept.
-async function readClustering(
-	resolved: Extract<ResolvedBoardPage, { ok: true }>,
-	{
-		env,
-		userId,
-		telemetry,
-		request,
-		ctx,
-	}: {
-		env: Environment
-		userId: string
-		telemetry: McpTelemetryWriter
-		request: Request
-		ctx: ExecutionContext | undefined
-	}
-): Promise<ClusteringResult> {
-	const measured = await measureInOpenTab(env, resolved.fileId, userId, resolved.page.pageId, {
-		request,
-		ctx,
-	})
-	if (!measured.ok) {
-		telemetry({ failureReason: measured.reason })
-		return { ok: false, result: toolError(measured.message, measured.reason) }
-	}
-	const clusters = clusterPage(resolved.page, measured.value)
-	return { ok: true, ...clusteringFromMeasure(clusters, measured.value) }
-}
-
 async function callClusterInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -1065,24 +1060,15 @@ async function callClusterInfoTool(
 	const input = parsed.input
 
 	try {
-		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
+		const page = await readBoardPage(input.boardId, input.page, input.clusterIds, {
+			env,
+			userId,
+			telemetry,
 			request,
 			ctx,
 		})
-		if (!resolved.ok) {
-			telemetry({ failureReason: resolved.reason })
-			return resolved.result
-		}
-
-		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
-		if (!clustered.ok) return clustered.result
-		const info = getClusterInfo(
-			resolved.page,
-			clustered,
-			input.clusterIds,
-			input.page,
-			input.cursor
-		)
+		if (!page.ok) return page.result
+		const info = getClusterInfo(page.read, input.clusterIds, input.page, input.cursor)
 		if (!info.ok) {
 			telemetry({ failureReason: info.reason })
 			return withTelemetryReason(info.result, info.reason)
@@ -1122,18 +1108,15 @@ async function callClusterScreenshotTool(
 	const input = parsed.input
 
 	try {
-		const resolved = await resolveBoardPage(env, input.boardId, input.page, userId, {
+		const page = await readBoardPage(input.boardId, input.page, input.clusterIds, {
+			env,
+			userId,
+			telemetry,
 			request,
 			ctx,
 		})
-		if (!resolved.ok) {
-			telemetry({ failureReason: resolved.reason })
-			return resolved.result
-		}
-
-		const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
-		if (!clustered.ok) return clustered.result
-		const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
+		if (!page.ok) return page.result
+		const picked = pickClusterShapes(page.read.details, input.clusterIds, input.page)
 		if (!picked.ok) {
 			telemetry({ failureReason: 'cluster_not_found' })
 			return withTelemetryReason(picked.result, 'cluster_not_found')
@@ -1141,10 +1124,10 @@ async function callClusterScreenshotTool(
 
 		const image = await captureInOpenTab(
 			env,
-			resolved.fileId,
+			input.boardId,
 			userId,
 			{
-				pageId: resolved.page.pageId,
+				pageId: page.read.pageId,
 				shapeIds: picked.shapeIds,
 				theme: input.theme,
 				width: DEFAULT_THUMBNAIL_WIDTH,
@@ -1158,7 +1141,7 @@ async function callClusterScreenshotTool(
 		}
 
 		telemetry({})
-		return toolPageResult(resolved.page.pageName, image.value)
+		return toolPageResult(page.read.pageName, image.value)
 	} catch (error) {
 		return toolFailure(error, {
 			env,

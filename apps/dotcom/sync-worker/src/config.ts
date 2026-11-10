@@ -123,18 +123,17 @@ export const OG_FALLBACK_MAX_AGE_SECONDS = 60
 export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
 
 /**
- * MCP rate limits, applied in mcpServer.ts, on the tools that spend Postgres or write rows. Tools that
- * work in the caller's own tab have none. They spend that tab, and a read of one page from the board's
- * durable object, which has to be awake for the tab anyway.
+ * MCP rate limits, applied in mcpServer.ts: one budget per tool family, each per account.
  *
  * These constants are only the isolate-local fallback for local dev and tests. Deployed environments
  * are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here
  * alone changes nothing in production. Each budget has its own binding, and the pairs must move
  * together:
  *
- *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 60)
+ *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 120)
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
+ *   MCP_TAB_PER_USER_RATE_LIMIT        ->  MCP_SERVER_TAB_RATE_LIMITER      (limit = 90)
  *
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
@@ -147,20 +146,32 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * 400 calls to walk it, and an agent that reformulates a failed query spends a few more. A refusal
  * mid-page has no good recovery either — a model cannot wait, so it retries or reports a partial
  * answer as a complete one, which is worse than the load it would have prevented. Against that, the
- * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 60
- * a minute is well under a second of database time per caller per minute.
+ * worst measured call is ~9ms of database time (30,000 rows over three 10k-board workspaces), so 120
+ * a minute is about a second of database time per caller per minute.
  *
  * Per account, and only per account. It does not bound many accounts looping at once; that would
  * need a global search limiter alongside it. Deliberately left until there is real traffic to size it
  * against.
  */
-export const MCP_SEARCH_PER_USER_RATE_LIMIT = 60
+export const MCP_SEARCH_PER_USER_RATE_LIMIT = 120
 
 /** The `create_board` budget. Each call writes rows, so it sits well below the search budget. */
 export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
 
 /** The `rename_board` budget. A write, like create, so the same size and well below search. */
 export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
+
+/**
+ * The budget shared by `get_page_info`, `get_cluster_info` and `get_cluster_screenshot`, which all
+ * work in the caller's open tab.
+ *
+ * The tab does the work, but the board's durable object is shared with everyone on the board and
+ * still carries each call: it wakes, relays the job, and takes the tab's reply, which on a large page
+ * runs to megabytes. A durable object does one thing at a time, so a looping agent would slow the
+ * board down for everybody. A call and a half a second on average leaves room for an agent reading
+ * a page cluster by cluster.
+ */
+export const MCP_TAB_PER_USER_RATE_LIMIT = 90
 
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 

@@ -76,7 +76,11 @@ describe('keepDeliverableTabRenderSessions', () => {
 })
 
 describe('TabRenderBroker', () => {
-	const measure = { mode: 'measure', pageId: 'page:a' } as const
+	const read = {
+		mode: 'read',
+		page: { kind: 'ordinal', ordinal: 0 },
+		clusterIds: [] as string[],
+	} as const
 
 	beforeEach(() => {
 		vi.useFakeTimers()
@@ -88,7 +92,8 @@ describe('TabRenderBroker', () => {
 	function dispatch(sessionIds: string[]) {
 		const broker = new TabRenderBroker()
 		const jobIds = new Map<string, string>()
-		const result = broker.dispatch(sessionIds, measure, (sessionId, jobId) => {
+		const issued = sessionIds.map((sessionId) => `job-${sessionId}`)
+		const result = broker.dispatch(sessionIds, read, issued, (sessionId, jobId) => {
 			jobIds.set(sessionId, jobId)
 		})
 		return { broker, jobIds, result }
@@ -131,7 +136,7 @@ describe('TabRenderBroker', () => {
 		await vi.advanceTimersByTimeAsync(TAB_RENDER_ACK_TIMEOUT_MS + 1)
 		expect(broker.receive(jobIds.get('a')!, { status: 'accepted' })).toBe(true)
 
-		await vi.advanceTimersByTimeAsync(TAB_RENDER_WORK_TIMEOUT_MS.measure)
+		await vi.advanceTimersByTimeAsync(TAB_RENDER_WORK_TIMEOUT_MS.read)
 		await expect(result).resolves.toEqual({ status: 'work_timeout' })
 	})
 
@@ -146,8 +151,12 @@ describe('TabRenderBroker', () => {
 		const { broker, jobIds, result } = dispatch(['a', 'b'])
 		broker.receive(jobIds.get('a')!, { status: 'accepted' })
 		broker.receive(jobIds.get('b')!, { status: 'declined', reason: 'editor_not_ready' })
-		broker.receive(jobIds.get('a')!, { status: 'measured', shapes: {} })
-		await expect(result).resolves.toEqual({ status: 'measured', shapes: {} })
+		broker.receive(jobIds.get('a')!, { status: 'page_not_found', reason: 'no_pages', pageCount: 0 })
+		await expect(result).resolves.toEqual({
+			status: 'page_not_found',
+			reason: 'no_pages',
+			pageCount: 0,
+		})
 	})
 
 	// One tab declined and the other is asleep: the sleeper can no longer rescue the job, so nothing
