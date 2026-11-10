@@ -47,6 +47,7 @@ export {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
+export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
 export {
 	CompositeLibrarySource,
 	type CompositeLibrarySourceOptions,
