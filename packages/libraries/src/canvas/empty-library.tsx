@@ -1,5 +1,4 @@
-import { defineMessages, useTranslation } from 'tldraw'
-import type { TLLibrary } from '../lib/schema'
+import { defineMessages, useTranslation, type TLLibrary } from 'tldraw'
 
 const messages = defineMessages({
 	emptyLibrary: {

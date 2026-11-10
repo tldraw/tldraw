@@ -1,5 +1,6 @@
+import type { TLLibrary, TLLibraryId, TLLibraryThumbnail } from '@tldraw/tlschema'
 import { LibraryNotFoundError, type LibrarySource } from './LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItem, TLLibraryThumbnail } from './schema'
+import type { TLLibraryItem } from './schema'
 
 /**
  * Copies a library and its items to an owner, as a new library with the same name. The

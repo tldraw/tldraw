@@ -1,7 +1,14 @@
-import { useDialogs, useEditor, useToasts, useTranslation, useValue, defineMessages } from 'tldraw'
+import {
+	useDialogs,
+	useEditor,
+	useToasts,
+	useTranslation,
+	useValue,
+	defineMessages,
+	type TLLibrary,
+} from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
 import type { LibraryMenuProps } from '../ui/library-menu'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getOwnerChoices } from './owner-choices'
