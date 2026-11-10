@@ -33,7 +33,6 @@ import {
 	useValue,
 	Vec,
 	VecModel,
-	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
 import { memo, useEffect, useState } from 'react'
@@ -53,7 +52,31 @@ async function getDataURIFromURL(url: string): Promise<string> {
 	return FileHelpers.blobToDataUrl(blob)
 }
 
-const imageSvgExportCache = new WeakCache<TLAsset, Promise<string | null>>()
+// One entry per asset, tagged with the URL it was made from. A size-aware asset store resolves each
+// shape at its own size, so reusing another shape's entry would draw a larger shape from a smaller
+// variant. A different URL replaces the entry rather than adding one, so signed or otherwise
+// changing URLs cannot grow the cache.
+const imageSvgExportCache = new WeakMap<TLAsset, { url: string; promise: Promise<string> }>()
+
+async function getExportImageSrc(editor: Editor, assetId: TLAssetId, url: string) {
+	let src = url
+	if (
+		src.startsWith('blob:') ||
+		src.startsWith('http') ||
+		src.startsWith('/') ||
+		src.startsWith('./')
+	) {
+		// If it's a remote image, we need to fetch it and convert it to a data URI
+		src = (await getDataURIFromURL(src)) || ''
+	}
+
+	// If it's animated then we need to get the first frame
+	if (getIsAnimated(editor, assetId)) {
+		const { promise } = getFirstFrameOfAnimatedImage(src)
+		src = await promise
+	}
+	return src
+}
 
 /** @public */
 export interface ImageShapeUtilDisplayValues {}
@@ -245,34 +268,25 @@ export class ImageShapeUtil extends BaseBoxShapeUtil<TLImageShape> {
 
 		const { w } = getUncroppedSize(shape.props, props.crop)
 
-		const promise = imageSvgExportCache.get(asset, async () => {
-			let src = await ctx.resolveAssetUrl(asset.id, w)
-			if (!src) return null
-			if (
-				src.startsWith('blob:') ||
-				src.startsWith('http') ||
-				src.startsWith('/') ||
-				src.startsWith('./')
-			) {
-				// If it's a remote image, we need to fetch it and convert it to a data URI
-				src = (await getDataURIFromURL(src)) || ''
+		let entry: { url: string; promise: Promise<string> } | undefined
+		let src: string
+		try {
+			const url = await ctx.resolveAssetUrl(asset.id, w)
+			if (!url) return null
+			entry = imageSvgExportCache.get(asset)
+			if (entry?.url !== url) {
+				entry = { url, promise: getExportImageSrc(this.editor, asset.id, url) }
+				imageSvgExportCache.set(asset, entry)
 			}
-
-			// If it's animated then we need to get the first frame
-			if (getIsAnimated(this.editor, asset.id)) {
-				const { promise } = getFirstFrameOfAnimatedImage(src)
-				src = await promise
-			}
-			return src
-		})
-		const src = await promise.catch((error) => {
+			src = await entry.promise
+		} catch (error) {
 			// A failure (e.g. a CORS-blocked fetch) must not stay memoized, or every later export of
 			// this asset fails too. Only evict our own entry: a concurrent export may have started a
 			// fresh one in the meantime. Skip the image rather than failing the whole export.
-			if (imageSvgExportCache.items.get(asset) === promise) imageSvgExportCache.items.delete(asset)
+			if (entry && imageSvgExportCache.get(asset) === entry) imageSvgExportCache.delete(asset)
 			console.error(`Could not export image ${asset.id}`, error)
 			return null
-		})
+		}
 
 		if (!src) return null
 
