@@ -1043,7 +1043,7 @@ async function checkTabRateLimit(
 		callerHash: await sha256(userId),
 	})
 	return toolError(
-		`Rate limited. Reading pages and screenshotting clusters is limited to about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
+		`Rate limited. Reading, screenshotting and editing boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
 		'rate_limited_tab'
 	)
 }
@@ -1204,6 +1204,9 @@ async function callApplyOpsTool(
 	const input = parsed.input
 
 	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 
@@ -1247,6 +1250,9 @@ async function callUserStateTool(
 	const input = parsed.input
 
 	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 
@@ -1292,6 +1298,9 @@ async function callBoardUsersTool(
 	const input = parsed.input
 
 	try {
+		const limited = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (limited) return limited
+
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 

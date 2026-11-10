@@ -1826,18 +1826,23 @@ describe('rate limits', () => {
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
 	})
 
-	// One budget across all three tab tools, so an agent can't triple its share of the board's durable
-	// object by switching tools. The refused call must not reach the tab: that load is the point.
-	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} tab tool calls per account per minute, across the tools`, async () => {
+	// One budget across every tool that goes through the board's durable object, so an agent can't
+	// multiply its share of the object by switching tools. A refused call must not reach the tab: that
+	// load is the point.
+	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} calls through the board per account per minute, across the tools`, async () => {
 		mockSharedBoard()
 		const tab = openTab()
 		const env = makeEnv({ tab })
 		// Spends the first call of the budget.
 		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+		const ops = [{ op: 'add', kind: 'box', text: 'Hello', at: { x: 0, y: 0 } }]
 		const calls = [
 			['get_page_info', { boardId: 'abc' }],
 			['get_cluster_info', { boardId: 'abc', clusterId }],
 			['get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }],
+			['apply_ops', { boardId: 'abc', ops }],
+			['get_user_state', { boardId: 'abc' }],
+			['get_board_users', { boardId: 'abc' }],
 		] as const
 
 		const results = []
@@ -1846,20 +1851,18 @@ describe('rate limits', () => {
 			results.push(await callTool(tool, args, env, 'user_tab'))
 		}
 		const callsWithinBudget = tab.mock.calls.length
-		const blocked = await callTool(
-			'get_cluster_info',
-			{ boardId: 'abc', clusterId },
-			env,
-			'user_tab'
-		)
+		const blocked = []
+		for (const [tool, args] of calls) blocked.push(await callTool(tool, args, env, 'user_tab'))
 
 		expect(results.map((r) => r.isError)).toEqual(
 			Array(MCP_TAB_PER_USER_RATE_LIMIT - 1).fill(undefined)
 		)
-		expect(blocked.isError).toBe(true)
-		expect(blocked.content[0].text).toContain(
-			'Reading pages and screenshotting clusters is limited'
-		)
+		for (const result of blocked) {
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain(
+				`share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT}`
+			)
+		}
 		expect(tab).toHaveBeenCalledTimes(callsWithinBudget)
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
 	})
