@@ -32,6 +32,11 @@ export interface CollectionMenuSort {
 
 /** @public */
 export interface CollectionMenuProps {
+	/**
+	 * Unique among the menus on screen: tldraw keeps a menu's open state by its id, so menus sharing
+	 * one open and close together.
+	 */
+	id: string
 	/** Leave out any action the source doesn't allow; the menu hides it. */
 	onCreate?(): void
 	onRename?(): void
@@ -44,7 +49,7 @@ export interface CollectionMenuProps {
  * A ⋯ menu for the panel's collections. Renders nothing when it has no actions.
  * @public @react
  */
-export function CollectionMenu({ onCreate, onRename, onDelete, sort }: CollectionMenuProps) {
+export function CollectionMenu({ id, onCreate, onRename, onDelete, sort }: CollectionMenuProps) {
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
 	const create = isReadonly ? undefined : onCreate
@@ -53,7 +58,7 @@ export function CollectionMenu({ onCreate, onRename, onDelete, sort }: Collectio
 	if (!create && !rename && !remove && !sort) return null
 
 	return (
-		<TldrawUiDropdownMenuRoot id="collections-collection-menu">
+		<TldrawUiDropdownMenuRoot id={id}>
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
@@ -74,7 +79,7 @@ export function CollectionMenu({ onCreate, onRename, onDelete, sort }: Collectio
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
-						<MenuSubmenu id="collections-collection-menu-sort" label={msg(messages.sort)}>
+						<MenuSubmenu id={`${id}-sort`} label={msg(messages.sort)}>
 							{sort.options.map((option) => (
 								<MenuCheckboxItem
 									key={option.id}
