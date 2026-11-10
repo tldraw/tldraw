@@ -34,3 +34,9 @@ export const collapsedCollectionIds = new EditorAtom<TLCollectionId[]>(
 	'collapsedCollectionIds',
 	() => []
 )
+
+/** The owner groups folded shut in the panel, by source id, kept while the panel is closed. */
+export const collapsedGroupKeys = new EditorAtom<Record<string, string[]>>(
+	'collapsedGroupKeys',
+	() => ({})
+)
