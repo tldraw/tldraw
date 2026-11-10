@@ -185,12 +185,12 @@ export interface TabRenderScreenshotRequest {
 	height: number
 }
 
-/** What an MCP tool asks an open tab to work out, so it doesn't have to start a Browser Run session. */
+/** What an MCP tool asks the caller's open tab to work out. Tabs are the only way these get done. */
 export type TabRenderRequest = { mode: 'measure'; pageId: string } | TabRenderScreenshotRequest
 
 /**
- * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` names what a reply answers: it goes to this
- * one session and nowhere else, and the reply route accepts it only with the job user's website session.
+ * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
+ * this one session and nowhere else, and it is all the reply route checks.
  */
 export interface TabRenderServerEvent {
 	type: 'mcp_tab_render'
@@ -354,7 +354,6 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'mcp_server_access',
-	'mcp_tab_render',
 	'version_chain',
 	'collections',
 ] as const

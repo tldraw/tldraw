@@ -1,17 +1,15 @@
 import { TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
 
-// Lets an MCP tool borrow a user's open tldraw.com tab instead of starting a Browser Run session.
-// Lives in the file's Durable Object, because that is where the sockets are; see "Rendering in an
-// open tab" in browser-run-thumbnails.md.
+// Runs an MCP tool's work in a user's open tldraw.com tab. Lives in the file's Durable Object, because
+// that is where the sockets are; see "Working in an open tab" in browser-run-thumbnails.md.
 //
 // A tab can stop answering without its socket closing, so a job goes to all of a user's live tabs and
 // the first answer wins.
 
 /**
- * How long a tab has to acknowledge a job. This is what a tab that looks alive but isn't costs a
- * fallback. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
- * throttled to once a second. Too short and live tabs lose to Browser Run; too long and a dead one
- * taxes every fallback.
+ * How long a tab has to acknowledge a job, which is how long a call waits on a tab that looks alive
+ * but isn't. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
+ * throttled to once a second, so too short refuses live tabs.
  */
 export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 
@@ -22,11 +20,7 @@ export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
  */
 export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
 
-/**
- * How long work may run once the ack window closes. Both sit well under a Browser Run session, since
- * a timeout here is paid on top of the fallback: past this, the fallback would likely have been
- * faster.
- */
+/** How long work may run once the ack window closes. */
 export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
 
 /**
@@ -53,7 +47,10 @@ export interface TabRenderSocket {
 	lastSeenAt: number
 }
 
-/** The sessions worth sending one user's job to, most recently seen first. */
+/**
+ * The sessions worth sending one user's job to, most recently seen first. The caller decides how many
+ * to ask.
+ */
 export function pickTabRenderSessions(
 	sockets: TabRenderSocket[],
 	userId: string,
@@ -64,7 +61,7 @@ export function pickTabRenderSessions(
 		.sort((a, b) => b.lastSeenAt - a.lastSeenAt)
 		.map((s) => s.sessionId)
 	// A superseded socket for a session can linger, so sessions are deduped rather than sockets.
-	return [...new Set(live)].slice(0, MAX_TAB_RENDER_SESSIONS)
+	return [...new Set(live)]
 }
 
 /** What a session's current socket says about it: the one the room would send a job to. */
@@ -91,8 +88,6 @@ export function keepDeliverableTabRenderSessions(
 }
 
 interface TabRenderJob {
-	/** The user whose tool call this is. Only that user's website session may answer. */
-	userId: string
 	/**
 	 * The tabs that can still answer, by job id. Each tab gets its own id, so a reply can only ever
 	 * speak for the tab it was sent to.
@@ -107,7 +102,6 @@ export class TabRenderBroker {
 
 	/** Resolves once a tab answers, or as soon as none of them can. */
 	dispatch(
-		userId: string,
 		sessionIds: string[],
 		request: TabRenderRequest,
 		send: (sessionId: string, jobId: string) => void
@@ -116,7 +110,6 @@ export class TabRenderBroker {
 			const jobIds: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
-				userId,
 				tabs: new Map(),
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
@@ -154,18 +147,15 @@ export class TabRenderBroker {
 		this.jobs.delete(jobId)
 	}
 
-	/** Whether this user may answer this job. False once the job finishes. */
-	has(jobId: string, userId: string) {
-		return this.jobs.get(jobId)?.userId === userId
+	/** Whether this job id can still be answered. False once the job finishes. */
+	has(jobId: string) {
+		return this.jobs.has(jobId)
 	}
 
-	/**
-	 * Whether the reply landed. False for an unknown job id, including one that already finished, and
-	 * for a reply from anyone but the job's user.
-	 */
-	receive(jobId: string, userId: string, reply: TabRenderReply): boolean {
+	/** Whether the reply landed. False for an unknown job id, including one that already finished. */
+	receive(jobId: string, reply: TabRenderReply): boolean {
 		const job = this.jobs.get(jobId)
-		if (!job || job.userId !== userId) return false
+		if (!job) return false
 
 		switch (reply.status) {
 			case 'accepted':

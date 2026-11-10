@@ -1,14 +1,6 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { SignedInAuth } from '../../utils/tla/getAuth'
-
-vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('../../utils/tla/getAuth')>()),
-	getAuth: vi.fn(),
-}))
-
-const { getAuth } = await import('../../utils/tla/getAuth')
-const { parseTabRenderReply, postTabRenderReply } = await import('./mcpTabRender')
+import { parseTabRenderReply, postTabRenderReply } from './mcpTabRender'
 
 const JOB_ID = '6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90'
 
@@ -36,24 +28,14 @@ function makeRequest(body: string, { jobId = JOB_ID, length = String(body.length
 const ACCEPTED = JSON.stringify({ status: 'accepted' })
 
 describe('postTabRenderReply', () => {
-	beforeEach(() => {
-		vi.mocked(getAuth).mockResolvedValue({ userId: 'user_a' } as SignedInAuth)
-	})
-
-	it('refuses a reply without a website session, without reaching the object', async () => {
-		vi.mocked(getAuth).mockResolvedValue(null)
+	// An idle tab's Clerk token has usually expired, and refreshing it outlasts the ack window.
+	it('takes a reply with no sign-in, on the strength of a live job id', async () => {
 		const { env, hasTabRenderJob } = makeEnv()
 
 		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
 
-		expect(response.status).toBe(401)
-		expect(hasTabRenderJob).not.toHaveBeenCalled()
-	})
-
-	it('checks the job against the signed-in user', async () => {
-		const { env, hasTabRenderJob } = makeEnv()
-		await postTabRenderReply(makeRequest(ACCEPTED), env)
-		expect(hasTabRenderJob).toHaveBeenCalledWith(JOB_ID, 'user_a')
+		expect(response.status).toBe(200)
+		expect(hasTabRenderJob).toHaveBeenCalledWith(JOB_ID)
 	})
 
 	it('hands a valid reply to the job in that room', async () => {
@@ -62,7 +44,7 @@ describe('postTabRenderReply', () => {
 		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
 
 		expect(response.status).toBe(200)
-		expect(receiveTabRenderReply).toHaveBeenCalledWith(JOB_ID, 'user_a', { status: 'accepted' })
+		expect(receiveTabRenderReply).toHaveBeenCalledWith(JOB_ID, { status: 'accepted' })
 	})
 
 	// Same answer for a job that finished and one that never existed: late replies are normal, since
