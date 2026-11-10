@@ -26,6 +26,11 @@ export {
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './lib/CollectionSource'
+export {
+	CompositeCollectionSource,
+	type CompositeCollectionSourceOptions,
+	type CompositeCollectionSourcePart,
+} from './lib/CompositeCollectionSource'
 export { copyCollection } from './lib/copyCollection'
 export {
 	InMemoryCollectionSource,
