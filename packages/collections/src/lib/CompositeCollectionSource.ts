@@ -42,7 +42,7 @@ interface Part extends CompositeCollectionSourcePart {
  * One source made of several, such as the user's collections and the ones an app ships. Each
  * read and write goes to the part holding the collection or item, and new collections to the part
  * of the owner they name. Moving a collection to another part's owner copies it there, then
- * deletes the original if its part allows; a read-only original stays, so the move is a copy.
+ * deletes the original, so it needs the original's part to allow deleting it.
  * @public
  */
 export class CompositeCollectionSource implements CollectionSource {
@@ -159,10 +159,11 @@ export class CompositeCollectionSource implements CollectionSource {
 			}
 			return from.source.moveCollection(collectionId, ownerId)
 		}
-		await copyCollection(this, collectionId, ownerId)
-		if (from.source.can('deleteCollection', collectionId)) {
-			await from.source.deleteCollection(collectionId)
+		if (!from.source.can('deleteCollection', collectionId)) {
+			throw new CollectionPermissionError('deleteCollection', collectionId)
 		}
+		await copyCollection(this, collectionId, ownerId)
+		await from.source.deleteCollection(collectionId)
 	}
 
 	private async moveItemBetweenParts(itemId: TLCollectionItemId, toCollectionId: TLCollectionId) {

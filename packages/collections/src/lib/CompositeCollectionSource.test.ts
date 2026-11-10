@@ -3,6 +3,7 @@ import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
 import { CompositeCollectionSource } from './CompositeCollectionSource'
+import { copyCollection } from './copyCollection'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
 import {
 	CollectionItemRecordType,
@@ -142,9 +143,18 @@ describe('CompositeCollectionSource', () => {
 		expect(team.getCollections()).toHaveLength(1)
 	})
 
+	it("won't move a collection out of a read-only part, and copies nothing", async () => {
+		const { source, mine, kits } = setUp()
+		await expect(source.moveCollection(wireframing, 'home')).rejects.toThrow(
+			CollectionPermissionError
+		)
+		expect(mine.getCollections()).toEqual([])
+		expect(kits.getCollections()).toHaveLength(1)
+	})
+
 	it("copies a read-only part's collection into a writable part, leaving the original", async () => {
 		const { source, mine, kits } = setUp()
-		await source.moveCollection(wireframing, 'home')
+		await copyCollection(source, wireframing, 'home')
 		const [copy] = mine.getCollections()
 		expect(copy.name).toBe('Wireframing')
 		expect(mine.getItems(copy.id).map((item) => item.name)).toEqual(['Button', 'Card'])
@@ -211,9 +221,17 @@ describe('CompositeCollectionSource', () => {
 			expect(mine.getCollections()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
 		})
 
+		it("won't move a read-only part's collection to one of its owners", async () => {
+			const { source, mine } = setUpOwned()
+			await expect(source.moveCollection(wireframing, 'home')).rejects.toThrow(
+				CollectionPermissionError
+			)
+			expect(mine.getCollections()).toEqual([])
+		})
+
 		it("copies a read-only part's collection to one of its owners", async () => {
 			const { source, mine } = setUpOwned()
-			await source.moveCollection(wireframing, 'home')
+			await copyCollection(source, wireframing, 'home')
 			expect(mine.getCollections()).toMatchObject([{ name: 'Wireframing', ownerId: 'home' }])
 		})
 	})
