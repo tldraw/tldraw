@@ -7,6 +7,7 @@ import {
 	type CollectionSource,
 	type TLCollectionAction,
 	type TLCollectionOwner,
+	type TLCollectionTarget,
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './CollectionSource'
@@ -44,18 +45,25 @@ export interface InMemoryCollectionSourceOptions {
 	defaultOwnerId?: string
 	/**
 	 * Decides what the user may do, answering `can` for the source. Leave it out to allow
-	 * everything. A collection that doesn't exist is refused before this is asked. Listing items
-	 * and loading their content aren't actions, so they work even when this refuses everything.
+	 * everything. A collection or owner that doesn't exist is refused before this is asked. New
+	 * collections are asked about with the owner they will belong to, when there is one. Listing
+	 * items and loading their content aren't actions, so they work even when this refuses
+	 * everything.
 	 *
 	 * @example
 	 * ```ts
 	 * // A read-only source, like a prefab pack
 	 * new InMemoryCollectionSource({ can: () => false })
 	 * // One read-only collection in an otherwise writable source
-	 * new InMemoryCollectionSource({ can: (_, collectionId) => collectionId !== packId })
+	 * new InMemoryCollectionSource({ can: (_, target) => target !== packId })
+	 * // No new collections for one owner
+	 * new InMemoryCollectionSource({
+	 * 	owners,
+	 * 	can: (_, target) => typeof target !== 'object' || target.ownerId !== 'acme',
+	 * })
 	 * ```
 	 */
-	can?(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
+	can?(action: TLCollectionAction, target?: TLCollectionTarget): boolean
 }
 
 const schema = StoreSchema.create<TLCollectionRecord>(
@@ -75,7 +83,7 @@ export class InMemoryCollectionSource implements CollectionSource {
 	readonly id: string
 	private readonly owners: TLCollectionOwner[]
 	private readonly defaultOwnerId: string | undefined
-	private readonly allows: (action: TLCollectionAction, collectionId?: TLCollectionId) => boolean
+	private readonly allows: (action: TLCollectionAction, target?: TLCollectionTarget) => boolean
 	private readonly store = new Store<TLCollectionRecord>({ schema, props: {} })
 	private readonly collections = this.store.query.records('collection')
 	private readonly itemsByCollection = new Map<TLCollectionId, Computed<TLCollectionItem[]>>()
@@ -148,9 +156,12 @@ export class InMemoryCollectionSource implements CollectionSource {
 		return structuredClone(content)
 	}
 
-	can(action: TLCollectionAction, collectionId?: TLCollectionId) {
-		if (collectionId !== undefined && !this.store.has(collectionId)) return false
-		return this.allows(action, collectionId)
+	can(action: TLCollectionAction, target?: TLCollectionTarget) {
+		if (typeof target === 'string' && !this.store.has(target)) return false
+		if (typeof target === 'object' && this.getCollectionOwners().length > 0) {
+			if (!this.hasOwner(target.ownerId)) return false
+		}
+		return this.allows(action, target)
 	}
 
 	getCollectionOwners() {
@@ -162,9 +173,9 @@ export class InMemoryCollectionSource implements CollectionSource {
 	}
 
 	async createCollection(name: string, options: TLNewCollectionOptions = {}) {
-		this.assertCan('createCollection')
 		const ownerId = options.ownerId ?? this.getDefaultOwnerId() ?? this.getCollectionOwners()[0]?.id
 		if (ownerId !== undefined && !this.hasOwner(ownerId)) throw new CollectionNotFoundError(ownerId)
+		this.assertCan('createCollection', ownerId === undefined ? undefined : { ownerId })
 		const collection = CollectionRecordType.create({
 			name,
 			...(ownerId === undefined ? {} : { ownerId }),
@@ -268,8 +279,9 @@ export class InMemoryCollectionSource implements CollectionSource {
 		return item
 	}
 
-	private assertCan(action: TLCollectionAction, collectionId?: TLCollectionId) {
-		if (!this.can(action, collectionId)) throw new CollectionPermissionError(action, collectionId)
+	private assertCan(action: TLCollectionAction, target?: TLCollectionTarget) {
+		if (this.can(action, target)) return
+		throw new CollectionPermissionError(action, typeof target === 'string' ? target : undefined)
 	}
 
 	// Object URLs keep their blob alive until revoked, so a deleted item would otherwise leak it.

@@ -22,6 +22,12 @@ export type TLCollectionAction =
 	| 'renameItem'
 	| 'deleteItem'
 
+/**
+ * What {@link CollectionSource.can} answers for: a collection, by its id, or an owner, by
+ * `{ ownerId }`, e.g. whether a collection may be created for that owner.
+ */
+export type TLCollectionTarget = TLCollectionId | { ownerId: string }
+
 /** Something a collection can belong to, such as a user or a workspace. */
 export interface TLCollectionOwner {
 	id: string
@@ -94,10 +100,11 @@ export interface CollectionSource {
 	): string | null | Promise<string | null>
 
 	/**
-	 * Whether the current user may do `action`. With a `collectionId`, answers for that
-	 * collection; without one, for the source as a whole (e.g. may they create collections).
+	 * Whether the current user may do `action`. With a collection id, answers for that collection;
+	 * with `{ ownerId }`, for that owner (e.g. may they create collections for it); with neither,
+	 * for the source as a whole (e.g. may they create collections).
 	 */
-	can(action: TLCollectionAction, collectionId?: TLCollectionId): boolean
+	can(action: TLCollectionAction, target?: TLCollectionTarget): boolean
 
 	createCollection(name: string, options?: TLNewCollectionOptions): Promise<TLCollection>
 	renameCollection(collectionId: TLCollectionId, name: string): Promise<void>

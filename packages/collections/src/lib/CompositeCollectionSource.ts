@@ -5,6 +5,7 @@ import {
 	type CollectionSource,
 	type TLCollectionAction,
 	type TLCollectionOwner,
+	type TLCollectionTarget,
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './CollectionSource'
@@ -103,9 +104,15 @@ export class CompositeCollectionSource implements CollectionSource {
 		return this.getItemPart(itemId).part.source.getItemContent(itemId)
 	}
 
-	can(action: TLCollectionAction, collectionId?: TLCollectionId) {
-		if (collectionId === undefined) return this.getDefaultPart()?.source.can(action) ?? false
-		return this.partByCollection$.get().get(collectionId)?.source.can(action, collectionId) ?? false
+	can(action: TLCollectionAction, target?: TLCollectionTarget) {
+		if (target === undefined) return this.getDefaultPart()?.source.can(action) ?? false
+		if (typeof target === 'string') {
+			return this.partByCollection$.get().get(target)?.source.can(action, target) ?? false
+		}
+		const part = this.findOwnerPart(target.ownerId)
+		if (!part) return false
+		if (part.owner) return part.source.can(action)
+		return part.source.can(action, target)
 	}
 
 	getCollectionOwners() {

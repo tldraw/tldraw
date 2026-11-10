@@ -1,6 +1,6 @@
 import { react } from '@tldraw/state'
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
 import { CompositeCollectionSource } from './CompositeCollectionSource'
 import { copyCollection } from './copyCollection'
@@ -111,6 +111,23 @@ describe('CompositeCollectionSource', () => {
 		expect(source.can('createCollection')).toBe(true)
 		expect(source.can('renameCollection', wireframing)).toBe(false)
 		expect(source.can('addItem', wireframing)).toBe(false)
+	})
+
+	it('answers for an owner from its part', () => {
+		const { source } = setUp()
+		expect(source.can('createCollection', { ownerId: 'acme' })).toBe(true)
+		expect(source.can('createCollection', { ownerId: 'tldraw' })).toBe(false)
+		expect(source.can('createCollection', { ownerId: 'nobody' })).toBe(false)
+	})
+
+	it('passes the owner to a part that lists its own owners', () => {
+		const can = vi.fn(() => true)
+		const workspaces = new InMemoryCollectionSource({ owners: [personal, acme], can })
+		const source = new CompositeCollectionSource({
+			parts: [{ source: workspaces }, { owner: tldraw, source: shared() }],
+		})
+		expect(source.can('createCollection', { ownerId: 'acme' })).toBe(true)
+		expect(can).toHaveBeenCalledWith('createCollection', { ownerId: 'acme' })
 	})
 
 	it('creates collections in the default part, or the part of the owner they name', async () => {
