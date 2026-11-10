@@ -6,7 +6,11 @@ const MIN_RESIZE_DIMENSION = 400
 
 // The read half of multiplayerAssetStore, kept apart so the thumbnail render page can resize images
 // without pulling in the upload and local-file code.
-export function resolveUserContentImageUrl(asset: TLAsset, context: TLAssetContext): string | null {
+export function resolveUserContentImageUrl(
+	asset: TLAsset,
+	context: TLAssetContext,
+	{ stillAnimations = false }: { stillAnimations?: boolean } = {}
+): string | null {
 	if (!asset.props.src) return null
 
 	// We don't deal with videos at the moment.
@@ -21,9 +25,11 @@ export function resolveUserContentImageUrl(asset: TLAsset, context: TLAssetConte
 
 	if (context.shouldResolveToOriginal) return asset.props.src
 
-	// Don't try to transform animated images.
-	if (MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated)
-		return asset.props.src
+	// Resizing an animated image keeps only its first frame (anim=false), so animated images stay
+	// original unless the caller only ever draws a still.
+	const isAnimated =
+		MediaHelpers.isAnimatedImageType(asset?.props.mimeType) || asset.props.isAnimated
+	if (isAnimated && !stillAnimations) return asset.props.src
 
 	const url = new URL(asset.props.src)
 
@@ -59,6 +65,7 @@ export function resolveUserContentImageUrl(asset: TLAsset, context: TLAssetConte
 	const networkCompensation =
 		!context.networkEffectiveType || context.networkEffectiveType === '4g' ? 1 : 0.5
 
+	const anim = isAnimated ? ',anim=false' : ''
 	const pixelRatio = asset.props.pixelRatio ?? 1
 	const trueWidth = asset.props.w * pixelRatio
 	const width = Math.ceil(
@@ -75,8 +82,8 @@ export function resolveUserContentImageUrl(asset: TLAsset, context: TLAssetConte
 		asset.props.h * pixelRatio >= MIN_RESIZE_DIMENSION &&
 		width < trueWidth * 0.75
 	) {
-		return `${USER_CONTENT_URL}/cdn-cgi/image/w=${width},format=auto/${objectName}`
+		return `${USER_CONTENT_URL}/cdn-cgi/image/w=${width}${anim},format=auto/${objectName}`
 	}
 
-	return `${USER_CONTENT_URL}/cdn-cgi/image/format=auto/${objectName}`
+	return `${USER_CONTENT_URL}/cdn-cgi/image/${anim ? 'anim=false,' : ''}format=auto/${objectName}`
 }

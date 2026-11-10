@@ -263,6 +263,31 @@ describe('renderAssetStore', () => {
 		})
 		expect(url).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=250,format=auto/photo.png')
 	})
+
+	// The export draws only an animated image's first frame, so the original's other frames are
+	// bytes the capture downloads for nothing.
+	it('resizes an animated image to a still of its first frame', async () => {
+		const asset = {
+			type: 'image',
+			props: {
+				src: 'https://tldrawusercontent.com/party.gif',
+				w: 480,
+				h: 480,
+				mimeType: 'image/gif',
+				isAnimated: true,
+			},
+		} as TLAsset
+		const url = await renderAssetStore.resolve!(asset, {
+			screenScale: 0.125,
+			steppedScreenScale: 0.125,
+			dpr: 1,
+			networkEffectiveType: '4g',
+			shouldResolveToOriginal: false,
+		})
+		expect(url).toBe(
+			'https://tldrawusercontent.com/cdn-cgi/image/w=120,anim=false,format=auto/party.gif'
+		)
+	})
 })
 
 describe('preloadImageAssets', () => {

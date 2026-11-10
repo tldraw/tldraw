@@ -768,11 +768,15 @@ async function waitForFonts(editor: Editor) {
 // 1/32 widths that the app on a 2x screen never does (its floor lands at 1/16). At 2 the render page
 // asks for the variants the app has already asked for, so the edge cache can answer and no transform
 // exists only for thumbnails.
+//
+// Animated images resize to their first frame too: the export draws only that frame anyway, but
+// from the whole original file, so a few GIFs could outweigh every other image on the board.
 export const renderAssetStore: TLAssetStore = {
 	upload: async () => {
 		throw new Error('The thumbnail render page is read-only')
 	},
-	resolve: (asset, context) => resolveUserContentImageUrl(asset, { ...context, dpr: 2 }),
+	resolve: (asset, context) =>
+		resolveUserContentImageUrl(asset, { ...context, dpr: 2 }, { stillAnimations: true }),
 }
 
 // Warm the images the capture will draw, so the browser has the bytes before the shapes request
