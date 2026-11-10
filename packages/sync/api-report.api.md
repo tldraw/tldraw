@@ -9,10 +9,12 @@ import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLRecord } from 'tldraw';
 import { TLSessionAccess } from '@tldraw/sync-core';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
+import { TLSyncClientAuthorizeOptions } from '@tldraw/sync-core';
 import { TLSyncRefusal } from '@tldraw/sync-core';
 import { TLThemes } from 'tldraw';
 import { TLUser } from 'tldraw';
@@ -62,6 +64,7 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 // @public
 export interface UseSyncOptionsBase {
     assets: TLAssetStore;
+    authorize?: Pick<TLSyncClientAuthorizeOptions<TLRecord>, 'meta' | 'rule' | 'transform'>;
     getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)

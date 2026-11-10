@@ -1017,7 +1017,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (refusals) {
 			this.disposables.add(
 				refusals.subscribe((refusal) => {
-					this.history.removeRefused(refusal)
+					// a local refusal is undone inside its own transaction, so undo never held it
+					if (refusal.source === 'server') this.history.removeRefused(refusal)
 					this.emit('refused', refusal)
 				})
 			)
@@ -5844,7 +5845,40 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private readonly _canChangeRecord?: TLEditorOptions['canChangeRecord']
 
 	private _isDeniedByHost(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>): boolean {
-		return !!this._canChangeRecord && !this._canChangeRecord(change, this)
+		if (this._canChangeRecord && !this._canChangeRecord(change, this)) return true
+		return this._isRefusedByWriteRule(change)
+	}
+
+	private _hasHostRule(): boolean {
+		return !!this._canChangeRecord || !!this.store.props.collaboration?.authorize
+	}
+
+	/** Judges one change with the room's write rule, against the store as it is now. */
+	private _isRefusedByWriteRule(
+		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>
+	): boolean {
+		const writeRule = this.store.props.collaboration?.authorize
+		if (!writeRule) return false
+		const { store } = this
+		// the room's rule only reads document records
+		const before = (id: string) => {
+			const record = store.get(id as TLRecord['id'])
+			return record && store.scopedTypes.document.has(record.typeName) ? record : undefined
+		}
+		const changedId: string = (change.next ?? change.prev).id
+		let next: TLRecord | null = change.next
+		const after = (id: string) => (id === changedId ? (next ?? undefined) : before(id))
+		try {
+			const session = writeRule.getSession()
+			if (change.type === 'create' && writeRule.transform) {
+				next = writeRule.transform({ session, record: change.next, prev: null, before, after })
+			}
+			const judged = { ...change, next } as TLRecordChange<TLRecord>
+			return writeRule.rule({ session, changes: [judged], before, after }) !== null
+		} catch {
+			// the room refuses when its rule throws
+			return true
+		}
 	}
 
 	/**
@@ -7031,7 +7065,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	deleteBindings(bindings: (TLBinding | TLBindingId)[], { isolateShapes = false } = {}) {
 		if (this.getIsReadonly()) return this
-		if (this._canChangeRecord) {
+		if (this._hasHostRule()) {
 			bindings = bindings.filter((b) => {
 				const binding = typeof b === 'string' ? this.getBinding(b) : b
 				return !binding || !this._isDeniedByHost({ type: 'delete', prev: binding, next: null })
@@ -8826,7 +8860,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				}
 			})
 
-			if (this._canChangeRecord) {
+			if (this._hasHostRule()) {
 				const allowed = shapeRecordsToCreate.filter(
 					(shape) => !this._isDeniedByHost({ type: 'create', prev: null, next: shape })
 				)

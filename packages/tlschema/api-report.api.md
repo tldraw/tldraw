@@ -1755,6 +1755,7 @@ export interface TLRefusal {
     ids?: string[];
     // (undocumented)
     reason: string;
+    source: 'local' | 'server';
 }
 
 // @public
@@ -1817,6 +1818,7 @@ export interface TLStoreProps {
         refusals?: {
             subscribe(listener: (refusal: TLRefusal) => void): () => void;
         } | null;
+        authorize?: null | TLStoreWriteRule;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
@@ -1830,6 +1832,19 @@ export type TLStoreSchema = StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
 export type TLStoreSnapshot = StoreSnapshot<TLRecord>;
+
+// @public
+export interface TLStoreWriteRule {
+    getSession(): TLWriteRuleSession;
+    rule(args: TLWriteRuleArgs): {
+        ids?: string[];
+        reason: string;
+    } | null;
+    transform?(args: Omit<TLWriteRuleArgs, 'changes'> & {
+        prev: null | TLRecord;
+        record: TLRecord;
+    }): TLRecord;
+}
 
 // @public
 export type TLTextShape = TLBaseShape<'text', TLTextShapeProps>;
@@ -2013,6 +2028,31 @@ export interface TLVideoShapeProps {
     url: string;
     // (undocumented)
     w: number;
+}
+
+// @public
+export interface TLWriteRuleArgs {
+    // (undocumented)
+    after(id: string): TLRecord | undefined;
+    // (undocumented)
+    before(id: string): TLRecord | undefined;
+    // (undocumented)
+    changes: TLRecordChange<TLRecord>[];
+    // (undocumented)
+    session: TLWriteRuleSession;
+}
+
+// @public
+export interface TLWriteRuleSession {
+    // (undocumented)
+    access: {
+        document: 'read' | 'write';
+        objects: 'read' | 'write';
+    };
+    // (undocumented)
+    meta: unknown;
+    // (undocumented)
+    sessionId: string;
 }
 
 // @public

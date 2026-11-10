@@ -319,6 +319,50 @@ export interface TLRefusal {
 	 * server's version to theirs. Sync reports it; a host that only knows ids can leave it out.
 	 */
 	changes?: RecordsDiff<TLRecord>
+	/** Who refused: the client's own copy of the rule before sending, or the server. */
+	source: 'local' | 'server'
+}
+
+/**
+ * What a write rule sees of the session making a change.
+ *
+ * @public
+ */
+export interface TLWriteRuleSession {
+	sessionId: string
+	meta: unknown
+	access: { document: 'read' | 'write'; objects: 'read' | 'write' }
+}
+
+/**
+ * What a write rule sees of a set of changes: `before(id)` is the board without them, `after(id)`
+ * the board with all of them applied.
+ *
+ * @public
+ */
+export interface TLWriteRuleArgs {
+	session: TLWriteRuleSession
+	changes: TLRecordChange<TLRecord>[]
+	before(id: string): TLRecord | undefined
+	after(id: string): TLRecord | undefined
+}
+
+/**
+ * The room's write rule as the client carries it, in the shape the sync room's `authorize` and
+ * `transform` take. Sync judges each push with it; the editor judges one prospective change at a
+ * time, so only a per-record rule is predicted exactly there.
+ *
+ * @public
+ */
+export interface TLStoreWriteRule {
+	/** Returns `null` to allow the changes, or why they are refused. */
+	rule(args: TLWriteRuleArgs): { reason: string; ids?: string[] } | null
+	/** Stamps a created record the way the room does, before `rule` judges it. */
+	transform?(
+		args: Omit<TLWriteRuleArgs, 'changes'> & { record: TLRecord; prev: TLRecord | null }
+	): TLRecord
+	/** The session the room holds for this client. Read reactively. */
+	getSession(): TLWriteRuleSession
 }
 
 /**
@@ -370,6 +414,11 @@ export interface TLStoreProps {
 		 * `'refused'` event. Set by sync; a custom transport can provide its own.
 		 */
 		refusals?: { subscribe(listener: (refusal: TLRefusal) => void): () => void } | null
+		/**
+		 * The room's write rule. The editor derives its `canChangeRecord` behaviour from it, so a
+		 * change the room would refuse never starts. Set by sync.
+		 */
+		authorize?: TLStoreWriteRule | null
 	}
 }
 

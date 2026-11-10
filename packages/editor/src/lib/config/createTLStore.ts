@@ -77,6 +77,8 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 		mode?: Signal<'readonly' | 'readwrite'> | null
 		/** Refusals of this user's changes by the server; the editor re-emits them as `'refused'`. */
 		refusals?: NonNullable<TLStoreProps['collaboration']>['refusals']
+		/** The room's write rule; the editor derives `canChangeRecord` from it. */
+		authorize?: NonNullable<TLStoreProps['collaboration']>['authorize']
 	}
 } & TLStoreSchemaOptions
 

@@ -4870,6 +4870,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
         refusals?: NonNullable<TLStoreProps['collaboration']>['refusals'];
+        authorize?: NonNullable<TLStoreProps['collaboration']>['authorize'];
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
