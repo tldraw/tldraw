@@ -4,21 +4,20 @@ import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
 	thisBoard: { defaultMessage: 'This board' },
-	yourLibraries: { defaultMessage: 'Your libraries' },
 })
 
 const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
 
 /**
  * The libraries an open file's editor offers: the board's own, "This board", kept as records in
- * the file's document so it is saved, synced and duplicated with it, then the user's own
- * libraries. Anyone who can edit the file saves to the board's library. New libraries go to the
- * user's own.
+ * the file's document so it is saved, synced and duplicated with it, then the user's own libraries
+ * under the workspaces they belong to. Anyone who can edit the file saves to the board's library.
+ * New libraries go to the user's home workspace.
  *
  * Made once per editor, so the panel and the context menu share it.
  */
 export function getEditorLibraries(
-	app: Pick<TldrawApp, 'userId' | 'msg'>,
+	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg'>,
 	userLibraries: LibrarySource,
 	editor: Editor,
 	fileId: string
@@ -28,7 +27,7 @@ export function getEditorLibraries(
 	const source = new CompositeLibrarySource({
 		// The user source's id, so choices the UI keeps per source carry over.
 		id: userLibraries.id,
-		defaultOwnerId: app.userId,
+		defaultOwnerId: app.getHomeWorkspaceId(),
 		parts: [
 			{
 				owner: { id: fileId, name: app.msg(messages.thisBoard) },
@@ -37,10 +36,7 @@ export function getEditorLibraries(
 					documentLibrary: { name: app.msg(messages.thisBoard) },
 				}),
 			},
-			{
-				owner: { id: app.userId, name: app.msg(messages.yourLibraries) },
-				source: userLibraries,
-			},
+			{ source: userLibraries },
 		],
 	})
 	sources.set(editor, { fileId, source })
