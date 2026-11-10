@@ -64,9 +64,9 @@ export interface CommentingComponents {
 	CommentBody?: ComponentType<{ comment: TLComment }>
 	/**
 	 * A comment's byline: the author's avatar and name, the time, and the edited marker. Replaces the
-	 * default `<Byline>`, which is exported — so a byline that only changes who it shows (an agent
-	 * posting for its user, say) can spread these props into it with a different `author`. `author`
-	 * is what `resolveAuthor` returned for the comment's `authorId`.
+	 * default `<Byline>`, which is exported — so a byline that only changes how the author is shown
+	 * (a badge read from `comment.meta`, say) can spread these props into it with a different
+	 * `author`. `author` is what `resolveAuthor` returned for the comment's `authorId`.
 	 */
 	CommentByline?: ComponentType<BylineProps & { comment: TLComment }>
 	/**

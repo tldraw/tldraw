@@ -389,23 +389,25 @@ const tools = [CommentTool.configure({ components: { CommentBody: PriorityBody }
 
 Every comment record type carries a `meta` field the layer never reads. Use it for priorities, categories, external ticket ids, or anything else your app tracks alongside a comment.
 
-`CommentByline` receives the byline's props along with the comment record, and the default byline is exported. To change who a comment appears to be from, spread the props into `Byline` with a different `author`. An agent that posts for its user, for example, can mark its comments in `meta` and show them under its own name:
+`CommentByline` receives the byline's props along with the comment record, and the default byline is exported. To change how a comment's author is shown, spread the props into `Byline` with a different `author`. For example, comments your app imports from another tool can be marked in `meta` and labelled with where they came from:
 
 ```tsx
 import { Byline, BylineProps, CommentTool } from '@tldraw/commenting'
 import { TLComment } from 'tldraw'
 
-function AgentAwareByline({ comment, author, ...byline }: BylineProps & { comment: TLComment }) {
-	const fromAgent = comment.meta.source === 'agent'
+function SourceByline({ comment, author, ...byline }: BylineProps & { comment: TLComment }) {
+	const source = comment.meta.source
 	return (
 		<Byline
 			{...byline}
-			author={fromAgent ? { ...author, name: `${author.name}'s agent` } : author}
+			author={
+				typeof source === 'string' ? { ...author, name: `${author.name} (via ${source})` } : author
+			}
 		/>
 	)
 }
 
-const tools = [CommentTool.configure({ components: { CommentByline: AgentAwareByline } })]
+const tools = [CommentTool.configure({ components: { CommentByline: SourceByline } })]
 ```
 
 The slot covers a comment's byline wherever it's shown: the open thread, the hover preview, and the stacked list. A sidebar row is a summary of its thread, so change its author through `ThreadRow` instead.
