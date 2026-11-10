@@ -1,4 +1,9 @@
-import { copyLibrary, type TLLibraryItemContent } from '@tldraw/libraries'
+import {
+	LibraryItemRecordType,
+	LibraryNotFoundError,
+	copyLibrary,
+	type TLLibraryItemContent,
+} from '@tldraw/libraries'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
@@ -190,20 +195,27 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(await source.getItemContent(pending.id)).toEqual(content)
 		})
 
-		it("swaps an item being added for its row, keeping the thumbnail it's shown with", async () => {
+		it('keeps the id an item being added is listed under through to its row', async () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')
 			const requests = backend.holdRequests()
 			const rows = backend.holdItemRows()
 			const adding = source.addItem(kit.id, { name: 'Star', content, thumbnail: png() })
+			const [pending] = source.getItems(kit.id)
 			requests.release()
 			const item = await adding
+			expect(item.id).toBe(pending.id)
+			const [, init] = backend.fetch.mock.calls[0]
+			expect(LibraryItemRecordType.createId((init!.body as FormData).get('id') as string)).toBe(
+				pending.id
+			)
 			// answered, but the row hasn't arrived through Zero yet
 			expect(source.getItems(kit.id)).toEqual([item])
 			rows.release()
 			await vi.waitFor(() => expect(backend.rows.get()[0].items).toHaveLength(1))
+			expect(LibraryItemRecordType.createId(backend.rows.get()[0].items[0].id)).toBe(pending.id)
 			expect(source.getItems(kit.id)).toMatchObject([
-				{ id: item.id, name: 'Star', thumbnail: 'blob:local-1' },
+				{ id: pending.id, name: 'Star', thumbnail: 'blob:local-1' },
 			])
 			expect(URL.revokeObjectURL).not.toHaveBeenCalled()
 		})
@@ -214,10 +226,13 @@ describe('TldrawAppLibrariesSource', () => {
 			const requests = backend.holdRequests()
 			const adding = source.addItem(kit.id, { content, thumbnail: png() })
 			expect(source.getItems(kit.id)).toHaveLength(1)
+			const [pending] = source.getItems(kit.id)
+			const renaming = source.renameItem(pending.id, 'Moon')
 			requests.fail()
 			await expect(adding).rejects.toThrow("Couldn't add the item: 500")
 			expect(source.getItems(kit.id)).toEqual([])
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
+			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
 		})
 
 		it('renames an item being added once its row has arrived', async () => {
