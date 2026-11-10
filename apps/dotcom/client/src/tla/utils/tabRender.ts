@@ -27,7 +27,7 @@ import {
 	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
-import { createCanvasOpsReceiver } from '../../utils/canvas-ops'
+import { createCanvasOpsReceiver } from './canvas-ops/receiver'
 
 // Answers MCP tool calls from this tab; see "Working in an open tab" and "Editing in an open tab" in
 // browser-run-thumbnails.md.
@@ -173,12 +173,11 @@ function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest, receiv
 		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		if (reason) return { status: 'declined', reason }
 		try {
-			// Read first: the batch settles for a moment, and the user can change page in it.
-			const page = editor.getCurrentPage()
-			const { compiled: _, ...result } = await createCanvasOpsReceiver(editor).applyBatch(
+			const result = createCanvasOpsReceiver(editor).applyBatch(
 				{ ops: request.ops },
 				request.attribution
 			)
+			const page = editor.getCurrentPage()
 			return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
 		} catch (error) {
 			if (error instanceof z.ZodError) {
@@ -188,7 +187,7 @@ function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest, receiv
 					detail: z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL),
 				}
 			}
-			// Validation passed, so the ops may have run before this, such as in the settle after them.
+			// Validation passed, so some of the ops may have run before this.
 			// Calling it a plain failure would have the agent send the batch again.
 			console.error('A batch of ops failed partway', error)
 			return { status: 'declined', reason: 'apply_failed' }
@@ -278,8 +277,8 @@ function yieldToMainThread() {
 }
 
 // A lost reply needs no handling: the worker times out and tells the agent. Whether the worker took
-// the reply is what a write checks before it applies anything. No token: the job id is what the route
-// checks, and waiting on a token refresh made idle tabs miss the ack window.
+// the reply is what a write checks before it applies anything. The job id is all the route checks; see
+// postTabRenderReply in the sync worker.
 async function postTabRenderReply(fileId: string, jobId: string, reply: TabRenderReply) {
 	try {
 		const response = await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {

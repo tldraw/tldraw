@@ -1,6 +1,6 @@
-// Generated from OpsBatchSchema in apps/dotcom/client/src/utils/canvas-ops/schema.ts. The worker can't
-// import that without bundling zod, so canvas-ops/toolSchema.test.ts fails when the two disagree, and
-// prints what to paste here.
+// A copy of OpsBatchSchema in apps/dotcom/client/src/tla/utils/canvas-ops/schema.ts, as JSON schema. The
+// worker can't import that without bundling zod. canvas-ops/schema.test.ts fails when the two disagree;
+// run it with UPDATE_CANVAS_OPS_SCHEMA=1 to rewrite this file, then format it.
 export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 	$schema: 'http://json-schema.org/draft-07/schema#',
 	type: 'object',
@@ -99,7 +99,10 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 							id: { type: 'string', minLength: 1, maxLength: 200, pattern: '^[A-Za-z0-9:_-]+$' },
 							at: {
 								type: 'object',
-								properties: { x: { type: 'number' }, y: { type: 'number' } },
+								properties: {
+									x: { type: 'number', minimum: -1000000, maximum: 1000000 },
+									y: { type: 'number', minimum: -1000000, maximum: 1000000 },
+								},
 								required: ['x', 'y'],
 								additionalProperties: false,
 							},
@@ -134,8 +137,8 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 									'check-box',
 								],
 							},
-							w: { type: 'number', exclusiveMinimum: 0 },
-							h: { type: 'number', exclusiveMinimum: 0 },
+							w: { type: 'number', exclusiveMinimum: 0, maximum: 100000 },
+							h: { type: 'number', exclusiveMinimum: 0, maximum: 100000 },
 							color: {
 								type: 'string',
 								enum: [
@@ -199,11 +202,14 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 							},
 							at: {
 								type: 'object',
-								properties: { x: { type: 'number' }, y: { type: 'number' } },
+								properties: {
+									x: { type: 'number', minimum: -1000000, maximum: 1000000 },
+									y: { type: 'number', minimum: -1000000, maximum: 1000000 },
+								},
 								required: ['x', 'y'],
 								additionalProperties: false,
 							},
-							gap: { type: 'number', minimum: 0 },
+							gap: { type: 'number', minimum: 0, maximum: 10000 },
 							align: { type: 'string', enum: ['start', 'center', 'end'] },
 						},
 						required: ['op'],
@@ -291,14 +297,17 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 							},
 							at: {
 								type: 'object',
-								properties: { x: { type: 'number' }, y: { type: 'number' } },
+								properties: {
+									x: { type: 'number', minimum: -1000000, maximum: 1000000 },
+									y: { type: 'number', minimum: -1000000, maximum: 1000000 },
+								},
 								required: ['x', 'y'],
 								additionalProperties: false,
 							},
-							gap: { type: 'number', minimum: 0 },
+							gap: { type: 'number', minimum: 0, maximum: 10000 },
 							align: { type: 'string', enum: ['start', 'center', 'end'] },
-							w: { type: 'number', exclusiveMinimum: 0 },
-							h: { type: 'number', exclusiveMinimum: 0 },
+							w: { type: 'number', exclusiveMinimum: 0, maximum: 100000 },
+							h: { type: 'number', exclusiveMinimum: 0, maximum: 100000 },
 							text: { type: 'string', maxLength: 5000 },
 							color: {
 								type: 'string',
@@ -374,7 +383,10 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 										properties: {
 											point: {
 												type: 'object',
-												properties: { x: { type: 'number' }, y: { type: 'number' } },
+												properties: {
+													x: { type: 'number', minimum: -1000000, maximum: 1000000 },
+													y: { type: 'number', minimum: -1000000, maximum: 1000000 },
+												},
 												required: ['x', 'y'],
 												additionalProperties: false,
 											},
@@ -387,7 +399,7 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 							text: { type: 'string', maxLength: 5000 },
 							side: { type: 'string', enum: ['above', 'below', 'left', 'right', 'auto'] },
 							arrow: { type: 'boolean' },
-							gap: { type: 'number', minimum: 0 },
+							gap: { type: 'number', minimum: 0, maximum: 10000 },
 							color: {
 								type: 'string',
 								enum: [
@@ -461,7 +473,10 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 										properties: {
 											point: {
 												type: 'object',
-												properties: { x: { type: 'number' }, y: { type: 'number' } },
+												properties: {
+													x: { type: 'number', minimum: -1000000, maximum: 1000000 },
+													y: { type: 'number', minimum: -1000000, maximum: 1000000 },
+												},
 												required: ['x', 'y'],
 												additionalProperties: false,
 											},
@@ -516,7 +531,10 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 										properties: {
 											point: {
 												type: 'object',
-												properties: { x: { type: 'number' }, y: { type: 'number' } },
+												properties: {
+													x: { type: 'number', minimum: -1000000, maximum: 1000000 },
+													y: { type: 'number', minimum: -1000000, maximum: 1000000 },
+												},
 												required: ['x', 'y'],
 												additionalProperties: false,
 											},
@@ -870,6 +888,7 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 								],
 							},
 							keepNear: {
+								maxItems: 200,
 								type: 'array',
 								items: {
 									anyOf: [
@@ -953,9 +972,9 @@ export const CANVAS_OPS_BATCH_JSON_SCHEMA = {
 									},
 								],
 							},
-							w: { type: 'number', exclusiveMinimum: 0 },
-							h: { type: 'number', exclusiveMinimum: 0 },
-							scale: { type: 'number', exclusiveMinimum: 0 },
+							w: { type: 'number', exclusiveMinimum: 0, maximum: 100000 },
+							h: { type: 'number', exclusiveMinimum: 0, maximum: 100000 },
+							scale: { type: 'number', exclusiveMinimum: 0, maximum: 100 },
 							anchor: { type: 'string', enum: ['top-left', 'center'] },
 						},
 						required: ['op', 'target'],

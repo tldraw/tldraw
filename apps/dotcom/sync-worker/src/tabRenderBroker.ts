@@ -52,13 +52,7 @@ export type TabRenderOutcome =
 			{ status: 'measured' | 'captured' | 'applied' | 'user_state' | 'declined' }
 	  >
 	| {
-			status:
-				| 'no_tab'
-				| 'read_only'
-				| 'reload_needed'
-				| 'room_timeout'
-				| 'ack_timeout'
-				| 'work_timeout'
+			status: 'no_tab' | 'reload_needed' | 'room_timeout' | 'ack_timeout' | 'work_timeout'
 	  }
 
 export interface TabRenderSocket {
@@ -106,6 +100,22 @@ export function keepDeliverableTabRenderSessions(
 		const target = currentTarget(sessionId)
 		return !!target?.canTabRender && target.userId === userId
 	})
+}
+
+/**
+ * Which of the deliverable sessions a job goes to. "The user's selection" and "the page they're on"
+ * mean the tab they're in, and a write must run once, so those go to the one tab the user was last
+ * active in. Reads go to several, where any answer will do and a second tab can cover for a dead one.
+ */
+export function pickTabRenderTargets(
+	mode: TabRenderRequest['mode'],
+	sessionIds: string[],
+	lastActiveAt: (sessionId: string) => number
+): string[] {
+	if (mode === 'apply_ops' || mode === 'user_state') {
+		return [...sessionIds].sort((a, b) => lastActiveAt(b) - lastActiveAt(a)).slice(0, 1)
+	}
+	return sessionIds.slice(0, MAX_TAB_RENDER_SESSIONS)
 }
 
 interface TabRenderJob {

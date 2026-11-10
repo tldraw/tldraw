@@ -191,8 +191,8 @@ export interface TabRenderApplyOpsRequest {
 	ops: unknown[]
 	/** Which page the agent means. Absent means whichever page the tab is on. */
 	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
-	/** `userId` comes from the verified token, never from the agent. */
-	attribution: { userId: string; runId: string }
+	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
+	attribution: { userId: string; runId?: string }
 }
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */

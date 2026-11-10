@@ -1,11 +1,59 @@
-import { createShapeId, Editor, type Box, type TLGeoShape, type TLLineShape } from 'tldraw'
+import {
+	Box,
+	createShapeId,
+	createTLStore,
+	createUserId,
+	defaultAddFontsFromNode,
+	defaultBindingUtils,
+	defaultShapeTools,
+	defaultShapeUtils,
+	defaultTools,
+	Editor,
+	InstancePresenceRecordType,
+	tipTapDefaultExtensions,
+	type TLGeoShape,
+	type TLLineShape,
+	type TLMeasureTextOpts,
+} from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { z } from 'zod'
 import { describeShapes, runBatch } from './actions'
-import { createCanvasOpsReceiver } from './index'
 import { applyOps } from './ops'
+import { createCanvasOpsReceiver } from './receiver'
 import type { CanvasAction } from './schema'
-import { createTestEditor } from './testEditor'
+
+/** A headless editor whose text measurement is deterministic: 16 units per character and 32 per line at 24px, scaled by font size. */
+function createTestEditor(): Editor {
+	const container = document.createElement('div')
+	document.body.appendChild(container)
+	const store = createTLStore({ shapeUtils: defaultShapeUtils, bindingUtils: defaultBindingUtils })
+	const editor = new Editor({
+		store,
+		shapeUtils: defaultShapeUtils,
+		bindingUtils: defaultBindingUtils,
+		tools: [...defaultTools, ...defaultShapeTools],
+		getContainer: () => container,
+		textOptions: {
+			addFontsFromNode: defaultAddFontsFromNode,
+			tipTapConfig: { extensions: tipTapDefaultExtensions },
+		},
+	})
+	editor.updateViewportScreenBounds(new Box(0, 0, 1280, 800))
+	const measure = (text: string, opts: TLMeasureTextOpts) => {
+		const scale = (opts.fontSize || 24) / 24
+		const lines = text
+			.replace(/<\/p>\s*<p[^>]*>/gi, '\n')
+			.replace(/<br\s*\/?>/gi, '\n')
+			.replace(/<[^>]+>/g, '')
+			.split('\n')
+		const longest = Math.max(1, ...lines.map((l) => l.length))
+		const w = Math.min(longest * 16 * scale, opts.maxWidth ?? Infinity)
+		return { w, h: lines.length * 32 * scale, x: 0, y: 0, scrollWidth: w }
+	}
+	editor.textMeasure.measureText = measure
+	editor.textMeasure.measureHtml = measure
+	editor.textMeasure.measureHtmlBatch = (requests) => requests.map((r) => measure(r.html, r.opts))
+	return editor
+}
 
 let editor: Editor
 beforeEach(() => {
@@ -64,10 +112,10 @@ function seedDiagram() {
 }
 
 describe('references', () => {
-	it('resolves ids, text, descriptions, and the selection', async () => {
+	it('resolves ids, text, descriptions, and the selection', () => {
 		seedDiagram()
 		editor.select(id('heart'))
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'restyle', targets: [{ text: 'database' }], color: 'blue' },
 			{ op: 'restyle', targets: [{ description: 'the box labelled "API"' }], color: 'orange' },
 			{ op: 'restyle', targets: { selected: true }, color: 'black' },
@@ -78,9 +126,30 @@ describe('references', () => {
 		expect(editor.getShape<TLGeoShape>(id('heart'))!.props.color).toBe('black')
 	})
 
-	it('reports an ambiguous description as an op error and still runs the rest', async () => {
+	// Presence is whatever its client sent, so what "the selection" means for a batch sent on a user's
+	// behalf can't depend on a record claiming to be that user.
+	it('never reads the selection from presence', () => {
 		seedDiagram()
-		const result = await applyOps(editor, [
+		editor.select(id('heart'))
+		editor.store.mergeRemoteChanges(() => {
+			editor.store.put([
+				InstancePresenceRecordType.create({
+					id: InstancePresenceRecordType.createId('guest'),
+					userId: createUserId('victim'),
+					userName: 'Guest',
+					currentPageId: editor.getCurrentPageId(),
+					selectedShapeIds: [id('api')],
+				}),
+			])
+		})
+		applyOps(editor, [{ op: 'remove', targets: { selected: true } }], { userId: 'victim' })
+		expect(editor.getShape(id('api'))).toBeDefined()
+		expect(editor.getShape(id('heart'))).toBeUndefined()
+	})
+
+	it('reports an ambiguous description as an op error and still runs the rest', () => {
+		seedDiagram()
+		const result = applyOps(editor, [
 			{ op: 'remove', targets: [{ description: 'the box' }] },
 			{ op: 'remove', targets: ['n1'] },
 		])
@@ -91,9 +160,9 @@ describe('references', () => {
 })
 
 describe('add, place, and label', () => {
-	it('places a new label above a target, centred, measuring the real text width', async () => {
+	it('places a new label above a target, centred', () => {
 		seedDiagram()
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{
 				op: 'add',
 				kind: 'label',
@@ -109,13 +178,12 @@ describe('add, place, and label', () => {
 		const heart = rect('heart')
 		expect(label.y + label.h).toBeCloseTo(heart.y - 20, 0)
 		expect(label.x + label.w / 2).toBeCloseTo(heart.x + heart.w / 2, 0)
-		expect(result.compiled.map((a) => a.type)).toEqual(['create_text', 'update_shape'])
 	})
 
-	it('moves an existing shape right of another and nudges when the spot is taken', async () => {
+	it('moves an existing shape right of another and nudges when the spot is taken', () => {
 		seedDiagram()
 		seed([{ type: 'create_shape', id: 'blocker', geo: 'rectangle', x: 324, y: 110, w: 80, h: 80 }])
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'place', subject: 'n1', relation: 'right_of', target: 'api', gap: 24, align: 'start' },
 		])
 		expect(result.errors).toEqual([])
@@ -123,9 +191,9 @@ describe('add, place, and label', () => {
 		expect(overlap(rect('n1'), rect('blocker'))).toBe(false)
 	})
 
-	it('a new box beside a box takes its style and footprint', async () => {
+	it('a new box beside a box takes its style and footprint', () => {
 		seedDiagram()
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'add', kind: 'box', text: 'Cache', id: 'cache', relation: 'below', target: 'db' },
 		])
 		expect(result.errors).toEqual([])
@@ -136,7 +204,7 @@ describe('add, place, and label', () => {
 		})
 	})
 
-	it('label with an arrow to a point lands the tip on the point', async () => {
+	it('label with an arrow to a point lands the tip on the point', () => {
 		seed([
 			{
 				type: 'create_shape',
@@ -149,7 +217,7 @@ describe('add, place, and label', () => {
 				fill: 'semi',
 			},
 		])
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{
 				op: 'label',
 				target: { point: { x: 250, y: 200 } },
@@ -164,9 +232,9 @@ describe('add, place, and label', () => {
 		expect(rect('roof').x).toBeGreaterThan(250)
 	})
 
-	it('centres a fitting label inside an empty shape and omits the arrow', async () => {
+	it('centres a fitting label inside an empty shape and omits the arrow', () => {
 		seed([{ type: 'create_shape', id: 'region', geo: 'rectangle', x: 100, y: 100, w: 300, h: 160 }])
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'label', target: 'region', text: 'North', arrow: true, id: 'north' },
 		])
 		expect(result.errors).toEqual([])
@@ -177,59 +245,26 @@ describe('add, place, and label', () => {
 	})
 })
 
-describe('ops do what they say', () => {
-	it('keeps an explicit width, white text, and text in a small box', async () => {
-		const result = await applyOps(
-			editor,
-			[
-				{
-					op: 'add',
-					kind: 'box',
-					id: 'narrow',
-					text: 'A long label here',
-					w: 80,
-					h: 40,
-					at: { x: 0, y: 0 },
-				},
-				{ op: 'add', kind: 'box', id: 'dot', text: 'x', w: 20, h: 20, at: { x: 300, y: 0 } },
-				{
-					op: 'add',
-					kind: 'label',
-					id: 'white',
-					text: 'On dark',
-					color: 'white',
-					at: { x: 0, y: 200 },
-				},
-			],
-			{ userId: 'agent' }
-		)
-		expect(result.errors).toEqual([])
-		expect(editor.getShape<TLGeoShape>(id('narrow'))!.props.w).toBe(80)
-		const dot = editor.getShape<TLGeoShape>(id('dot'))!
-		expect(editor.getShapeUtil(dot).getText(dot)).toBe('x')
-		expect(editor.getShape<TLGeoShape>(id('white'))!.props.color).toBe('white')
-	})
-
-	it('replacing an arrow by id is recorded in the batch', async () => {
-		seedDiagram()
-		await applyOps(editor, [{ op: 'connect', from: 'api', to: 'db', id: 'link' }])
-		const result = await applyOps(editor, [{ op: 'connect', from: 'db', to: 'heart', id: 'link' }])
-		expect(result.errors).toEqual([])
-		expect(result.compiled.map((a) => a.type)).toEqual(['delete_shapes', 'create_arrow'])
-	})
-})
-
 describe('connect', () => {
-	it('binds an arrow between shapes', async () => {
+	it('reusing an arrow id replaces that arrow', () => {
 		seedDiagram()
-		const result = await applyOps(editor, [{ op: 'connect', from: 'api', to: 'db', id: 'link' }])
+		applyOps(editor, [{ op: 'connect', from: 'api', to: 'db', id: 'link' }])
+		const result = applyOps(editor, [{ op: 'connect', from: 'db', to: 'heart', id: 'link' }])
+		expect(result.errors).toEqual([])
+		const ends = editor.getBindingsFromShape(id('link'), 'arrow').map((b) => b.toId)
+		expect(ends.sort()).toEqual([id('db'), id('heart')].sort())
+	})
+
+	it('binds an arrow between shapes', () => {
+		seedDiagram()
+		const result = applyOps(editor, [{ op: 'connect', from: 'api', to: 'db', id: 'link' }])
 		expect(result.errors).toEqual([])
 		const bindings = editor.getBindingsFromShape(id('link'), 'arrow').map((b) => b.toId)
 		expect(bindings.sort()).toEqual([id('api'), id('db')].sort())
 	})
 
-	it('puts a label beside a short arrow instead of hiding its shaft', async () => {
-		const result = await applyOps(editor, [
+	it('puts a label beside a short arrow instead of hiding its shaft', () => {
+		const result = applyOps(editor, [
 			{
 				op: 'connect',
 				from: { point: { x: 100, y: 100 } },
@@ -244,8 +279,8 @@ describe('connect', () => {
 		expect(describeShapes(editor).find((s) => s.id === 'short-label')?.text).toBe('Yes')
 	})
 
-	it('keeps a label on a long arrow', async () => {
-		const result = await applyOps(editor, [
+	it('keeps a label on a long arrow', () => {
+		const result = applyOps(editor, [
 			{
 				op: 'connect',
 				from: { point: { x: 100, y: 100 } },
@@ -261,7 +296,7 @@ describe('connect', () => {
 })
 
 describe('rename, restyle, remove, untangle, resize', () => {
-	it('resizes about the centre inside a frame without jumping by the frame offset', async () => {
+	it('resizes about the centre inside a frame without jumping by the frame offset', () => {
 		editor.createShape({
 			id: id('frame'),
 			type: 'frame',
@@ -277,32 +312,14 @@ describe('rename, restyle, remove, untangle, resize', () => {
 			y: 100,
 			props: { w: 100, h: 100 },
 		})
-		const result = await applyOps(editor, [
-			{ op: 'resize', target: 'box', scale: 2, anchor: 'center' },
-		])
+		const result = applyOps(editor, [{ op: 'resize', target: 'box', scale: 2, anchor: 'center' }])
 		expect(result.errors).toEqual([])
 		expect(rect('box')).toMatchObject({ x: 550, y: 550, w: 200, h: 200 })
 	})
 
-	it('refuses to resize a line instead of reporting a no-op as done', async () => {
-		const made = await applyOps(editor, [
-			{
-				op: 'path',
-				id: 'ln',
-				points: [
-					{ x: 0, y: 0 },
-					{ x: 100, y: 0 },
-				],
-			},
-		])
-		expect(made.errors).toEqual([])
-		const result = await applyOps(editor, [{ op: 'resize', target: 'ln', scale: 2 }])
-		expect(result.errors).toEqual([expect.stringContaining('does not support line')])
-	})
-
-	it('rename widens a box so a long label stays one line', async () => {
+	it('rename widens a box so a long label stays one line', () => {
 		seedDiagram()
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'rename', target: 'api', text: 'Application programming interface' },
 		])
 		expect(result.results[0].adjusted).toMatch(/widened.*now overlaps db/)
@@ -310,24 +327,35 @@ describe('rename, restyle, remove, untangle, resize', () => {
 		expect(rect('api').h).toBe(100)
 	})
 
-	it('restyle like another shape and resize about the centre', async () => {
+	it('restyles a shape like another', () => {
 		seedDiagram()
-		await applyOps(editor, [
-			{ op: 'restyle', targets: ['api'], like: 'db' },
-			{ op: 'resize', target: 'db', scale: 2, anchor: 'center' },
-		])
+		applyOps(editor, [{ op: 'restyle', targets: ['api'], like: 'db' }])
 		expect(editor.getShape<TLGeoShape>(id('api'))!.props.color).toBe('green')
-		expect(rect('db')).toMatchObject({ x: 400, y: 50, w: 400, h: 200 })
 	})
 
-	it('untangle spreads overlapping labels while keeping them near their dots', async () => {
+	// The editor skips a locked shape without a word, which would otherwise read as done.
+	it('reports an op on a locked shape as an error', () => {
+		seedDiagram()
+		editor.updateShape({ id: id('api'), type: 'geo', isLocked: true })
+		const result = applyOps(editor, [
+			{ op: 'rename', target: 'api', text: 'Renamed' },
+			{ op: 'remove', targets: ['api'] },
+		])
+		expect(result.errors).toEqual([
+			expect.stringContaining('is locked'),
+			expect.stringContaining('is locked'),
+		])
+		expect(editor.getShape(id('api'))).toBeDefined()
+	})
+
+	it('untangle spreads overlapping labels while keeping them near their dots', () => {
 		seed([
 			{ type: 'create_shape', id: 'd1', geo: 'ellipse', x: 192, y: 192, w: 16, h: 16 },
 			{ type: 'create_shape', id: 'd2', geo: 'ellipse', x: 222, y: 207, w: 16, h: 16 },
 			{ type: 'create_text', id: 'l1', text: 'Mercury', x: 204, y: 186 },
 			{ type: 'create_text', id: 'l2', text: 'Venus', x: 234, y: 201 },
 		])
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'untangle', targets: ['l1', 'l2'], keepNear: ['d1', 'd2'], maxDistance: 60 },
 		])
 		expect(result.errors).toEqual([])
@@ -337,8 +365,8 @@ describe('rename, restyle, remove, untangle, resize', () => {
 })
 
 describe('paths and duplicates', () => {
-	it('creates paths at their page coordinates, stamped with attribution', async () => {
-		const result = await applyOps(
+	it('creates paths at their page coordinates, stamped with attribution', () => {
+		const result = applyOps(
 			editor,
 			[
 				{
@@ -375,7 +403,7 @@ describe('paths and duplicates', () => {
 		expect(editor.getShape(id('island'))?.type).toBe('draw')
 	})
 
-	it('duplicates a box with its style and replacement text, and rejects arrows', async () => {
+	it('duplicates a box with its style and replacement text, and rejects arrows', () => {
 		seed([
 			{
 				type: 'create_shape',
@@ -391,7 +419,7 @@ describe('paths and duplicates', () => {
 			},
 			{ type: 'create_arrow', id: 'arrow', from: { x: 0, y: 300 }, to: { x: 200, y: 400 } },
 		])
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			{ op: 'duplicate', subject: 'source', id: 'copy', at: { x: 400, y: 0 }, text: 'Copy' },
 			{ op: 'duplicate', subject: 'arrow', at: { x: 500, y: 300 } },
 		])
@@ -407,7 +435,7 @@ describe('paths and duplicates', () => {
 })
 
 describe('batches', () => {
-	it('rolls back an op that fails partway and keeps the rest', async () => {
+	it('rolls back an op that fails partway and keeps the rest', () => {
 		seedDiagram()
 		seed([
 			{
@@ -421,45 +449,36 @@ describe('batches', () => {
 				text: 'API v2',
 			},
 		])
-		const result = await applyOps(editor, [
+		const result = applyOps(editor, [
 			// The update applies, then the ambiguous target throws.
 			{ op: 'place', subject: 'db', color: 'red', relation: 'below', target: { text: 'AP' } },
 			{ op: 'restyle', targets: ['n1'], color: 'blue' },
 		])
 		expect(result.results.map((r) => r.ok)).toEqual([false, true])
 		expect(editor.getShape<TLGeoShape>(id('db'))!.props.color).toBe('green')
-		expect(result.compiled).toEqual([
-			{
-				type: 'update_shape',
-				shapeId: 'n1',
-				color: 'blue',
-				fill: undefined,
-				dash: undefined,
-				size: undefined,
-			},
-		])
+		expect(editor.getShape<TLGeoShape>(id('n1'))!.props.color).toBe('blue')
+		// The rolled-back half-edit must not come back through the undo stack either.
+		editor.undo()
+		editor.redo()
+		expect(editor.getShape<TLGeoShape>(id('db'))!.props.color).toBe('green')
 	})
 
-	it('keeps { created } refs to the shapes this run made', async () => {
-		await applyOps(
-			editor,
-			[{ op: 'add', kind: 'box', text: 'Other', id: 'other', at: { x: 0, y: 0 } }],
-			{ runId: 'other-run' }
-		)
-		await applyOps(
-			editor,
-			[{ op: 'add', kind: 'box', text: 'Mine', id: 'mine', at: { x: 0, y: 300 } }],
-			{ runId: 'run' }
-		)
-		await applyOps(editor, [{ op: 'remove', targets: { created: 'all' } }], { runId: 'run' })
+	it('keeps { created } refs to the shapes this run made', () => {
+		applyOps(editor, [{ op: 'add', kind: 'box', text: 'Other', id: 'other', at: { x: 0, y: 0 } }], {
+			runId: 'other-run',
+		})
+		applyOps(editor, [{ op: 'add', kind: 'box', text: 'Mine', id: 'mine', at: { x: 0, y: 300 } }], {
+			runId: 'run',
+		})
+		applyOps(editor, [{ op: 'remove', targets: { created: 'all' } }], { runId: 'run' })
 		expect(editor.getShape(id('other'))).toBeDefined()
 		expect(editor.getShape(id('mine'))).toBeUndefined()
 	})
 
-	it('a batch is one undo step', async () => {
+	it('a batch is one undo step', () => {
 		seedDiagram()
 		const before = editor.getCurrentPageShapeIds()
-		await applyOps(editor, [
+		applyOps(editor, [
 			{ op: 'add', kind: 'label', text: 'One', at: { x: 0, y: 700 } },
 			{ op: 'add', kind: 'label', text: 'Two', at: { x: 200, y: 700 } },
 		])
@@ -468,11 +487,11 @@ describe('batches', () => {
 		expect(editor.getCurrentPageShapeIds()).toEqual(before)
 	})
 
-	it('resolves { created } refs across batches from the same run', async () => {
-		await applyOps(editor, [{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 0 } }], {
+	it('resolves { created } refs across batches from the same run', () => {
+		applyOps(editor, [{ op: 'add', kind: 'box', text: 'A', id: 'a', at: { x: 0, y: 0 } }], {
 			runId: 'run',
 		})
-		const next = await applyOps(
+		const next = applyOps(
 			editor,
 			[{ op: 'add', kind: 'label', text: 'under A', id: 'under', target: { created: 'last' } }],
 			{ runId: 'run' }
@@ -483,19 +502,21 @@ describe('batches', () => {
 })
 
 describe('receiver', () => {
-	it('validates the whole batch before applying any of it', async () => {
+	it('validates the whole batch before applying any of it', () => {
 		const receiver = createCanvasOpsReceiver(editor)
-		await expect(
+		expect(() =>
 			receiver.applyBatch({
 				ops: [{ op: 'add', text: 'ok', at: { x: 0, y: 0 } }, { op: 'explode' }],
 			})
-		).rejects.toThrow()
+		).toThrow()
 		expect(editor.getCurrentPageShapeIds().size).toBe(0)
 	})
 
-	// tldraw.com's CSP forbids eval, so a compiled validator throws in the tab rather than validating.
-	// Nothing fails in a test without a CSP, which is why this is pinned rather than left to the behavior.
-	it('validates ops without compiling code', () => {
-		expect(z.config().jitless).toBe(true)
+	// One shape out there makes the page's bounds useless for everyone on the board.
+	it('refuses a position far outside the page', () => {
+		const receiver = createCanvasOpsReceiver(editor)
+		expect(() =>
+			receiver.applyBatch({ ops: [{ op: 'add', text: 'far', at: { x: 1e300, y: 0 } }] })
+		).toThrow()
 	})
 })

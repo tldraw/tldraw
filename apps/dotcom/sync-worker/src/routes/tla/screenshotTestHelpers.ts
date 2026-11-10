@@ -133,7 +133,7 @@ export function makeFakeFileDurableObjectNamespace(
 		userId: string,
 		request: TabRenderRequest
 	) => Promise<TabRenderOutcome> = async () => ({ status: 'no_tab' }),
-	room: { getMcpLivePage?: unknown; getMcpBoardUsers?: unknown } = {}
+	room: Record<string, unknown> = {}
 ) {
 	return {
 		// A legible id rather than an opaque hash, so an assertion that reaches one reads as `do(<name>)`.
@@ -191,10 +191,6 @@ export function blobValuesOf(env: Environment, name: string, prefix: string): st
 
 export function failureBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'failure:')
-}
-
-export function callerBlobsOf(env: Environment) {
-	return blobsWithPrefix(env, 'caller:')
 }
 
 // Every browser_run_session datapoint, parsed for whole-object assertions: one entry per browser

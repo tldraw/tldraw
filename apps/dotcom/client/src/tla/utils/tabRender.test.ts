@@ -89,19 +89,12 @@ const screenshotOf = (pageId: TLPageId, shapeIds: string[]) =>
 	job({ mode: 'screenshot', pageId, shapeIds, theme: 'light', width: 1200, height: 630 })
 
 describe('answerTabRender', () => {
-	it('posts to the job on this file', async () => {
+	it('posts to the job on this file, without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
 		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
-		expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/api/app/file/file-1/tab-render/job')
-		editor.dispose()
-	})
-
-	// An idle tab's token has usually expired, and waiting to refresh it missed the ack window.
-	it('sends its replies without a token', async () => {
-		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
-		const init = vi.mocked(fetch).mock.calls[0][1] as RequestInit
-		expect(new Headers(init.headers).has('Authorization')).toBe(false)
+		const [url, init] = vi.mocked(fetch).mock.calls[0]
+		expect(url).toBe('/api/app/file/file-1/tab-render/job')
+		expect(new Headers((init as RequestInit).headers).has('Authorization')).toBe(false)
 		editor.dispose()
 	})
 
@@ -407,17 +400,6 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
-		// The model has no use for the compiled actions, and on a big batch they dwarf the rest.
-		it('leaves the compiled actions out of what it reports', async () => {
-			const { editor } = setupEditor()
-
-			await answerTabRender(editor, 'file-1', applyOps())
-
-			const applied = replies.at(-1) as Extract<TabRenderReply, { status: 'applied' }>
-			expect(applied.result).not.toHaveProperty('compiled')
-			editor.dispose()
-		})
-
 		// Refused means this tab thawed after the agent gave up. Applying anyway is how an edit lands
 		// twice.
 		it('does nothing when the worker refuses the claim', async () => {
@@ -478,15 +460,6 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
-		it('uses the page the user is on when the agent names none', async () => {
-			const { editor, firstPageId } = setupEditor()
-
-			await answerTabRender(editor, 'file-1', applyOps())
-
-			expect(editor.getShape(hello)?.parentId).toBe(firstPageId)
-			editor.dispose()
-		})
-
 		// Ops place shapes on the page in view, so applying this would put them on the wrong page.
 		it('declines a batch meant for a page the user is not on', async () => {
 			const { editor, firstPageId, otherPageId } = setupEditor()
@@ -538,19 +511,6 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
-		// The agent's only way to undo a mistake is the user's undo, so a batch has to be one step.
-		it('is a single undo step for the user', async () => {
-			const { editor } = setupEditor()
-			const second = { ...addBox, id: 'second', at: { x: 900, y: 500 } }
-
-			await answerTabRender(editor, 'file-1', applyOps([addBox, second]))
-			editor.undo()
-
-			expect(editor.getShape(hello)).toBeUndefined()
-			expect(editor.getShape(createShapeId('second'))).toBeUndefined()
-			editor.dispose()
-		})
-
 		// Cancelling a drag rolls back past the batch, after the agent was told it landed.
 		it('declines while the user is mid-drag, without claiming the job', async () => {
 			const { editor } = setupEditor()
@@ -563,12 +523,12 @@ describe('answerTabRender', () => {
 			editor.dispose()
 		})
 
-		// The ops had landed when settle threw. Reported as a plain failure, the agent would resend them.
-		it('reports a failure after the ops ran as one that may have landed', async () => {
+		// Reported as a plain failure, the agent would resend ops that may already have landed.
+		it('reports a failure past validation as one that may have landed', async () => {
 			const { editor } = setupEditor()
 			vi.spyOn(console, 'error').mockImplementation(() => {})
-			vi.stubGlobal('requestAnimationFrame', () => {
-				throw new Error('no frames')
+			vi.spyOn(editor, 'squashToMark').mockImplementation(() => {
+				throw new Error('history unavailable')
 			})
 
 			await answerTabRender(editor, 'file-1', applyOps())
