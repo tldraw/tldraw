@@ -24,6 +24,9 @@ import {
 	resolveCreateBoardWorkspace,
 	resolvePage,
 	parseClusterInfoInput,
+	parseClusterScreenshotInput,
+	getClusterScreenshotSize,
+	getClustersBox,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -469,6 +472,102 @@ describe('resolveCreateBoardWorkspace', () => {
 		expect(result).toMatchObject({ ok: false, reason: 'workspace_not_found' })
 		expect(errorText(result)).toContain('"Design" (id: group-design)')
 		expect(errorText(result)).toContain('"My workspace" (id: user-1, personal)')
+	})
+})
+
+describe('parseClusterScreenshotInput', () => {
+	it('defaults the size to the largest, so a model need not ask for it', () => {
+		expect(parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c' }).size).toBe(2560)
+		expect(parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', size: null }).size).toBe(
+			2560
+		)
+	})
+
+	it('takes a smaller size, flooring a fractional one', () => {
+		expect(parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', size: 800 }).size).toBe(
+			800
+		)
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', size: 1000.7 }).size
+		).toBe(1000)
+	})
+
+	it('refuses a size outside the range, naming it', () => {
+		for (const size of [63, 2561, '800', Number.NaN]) {
+			expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', size })).toThrow(
+				'size must be a number of pixels from 64 to 2560'
+			)
+		}
+	})
+})
+
+describe('getClusterScreenshotSize', () => {
+	it('matches the box exactly, with the longer side at the requested size', () => {
+		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 4000, h: 1000 }, 2560)).toEqual({
+			width: 2560,
+			height: 640,
+			scale: 0.64,
+		})
+		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 1000, h: 4000 }, 2560)).toEqual({
+			width: 640,
+			height: 2560,
+			scale: 0.64,
+		})
+		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 4000, h: 1000 }, 800)).toEqual({
+			width: 800,
+			height: 200,
+			scale: 0.2,
+		})
+	})
+
+	it('never enlarges the board more than 8x, so a small cluster comes back small', () => {
+		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 80, h: 40 }, 2560)).toEqual({
+			width: 640,
+			height: 320,
+			scale: 8,
+		})
+	})
+
+	it('scales a very large cluster down to the requested size', () => {
+		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 200_000, h: 50_000 }, 2560)).toEqual({
+			width: 2560,
+			height: 640,
+			scale: 0.0128,
+		})
+	})
+
+	it('gives a straight line a 1px side rather than none', () => {
+		expect(getClusterScreenshotSize({ x: 0, y: 0, w: 500, h: 0 }, 2560)).toEqual({
+			width: 2560,
+			height: 1,
+			scale: 5.12,
+		})
+	})
+
+	it('falls back to the thumbnail aspect ratio when there is no box to match', () => {
+		expect(getClusterScreenshotSize(null, 2560)).toEqual({ width: 2560, height: 1344, scale: null })
+		expect(getClusterScreenshotSize({ x: 3, y: 4, w: 0, h: 0 }, 1200)).toEqual({
+			width: 1200,
+			height: 630,
+			scale: null,
+		})
+	})
+})
+
+describe('getClustersBox', () => {
+	it('is the union of the named clusters, skipping any the render could not measure', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 100, h: 50 },
+			b: { x: 300, y: -20, w: 100, h: 40 },
+			c: { x: 1000, y: 1000, w: 10, h: 10 },
+		}
+		expect(getClustersBox(bounds, ['a', 'b', 'unmeasured'])).toEqual({
+			x: 0,
+			y: -20,
+			w: 400,
+			h: 70,
+		})
+		expect(getClustersBox(bounds, ['unmeasured'])).toBeNull()
 	})
 })
 

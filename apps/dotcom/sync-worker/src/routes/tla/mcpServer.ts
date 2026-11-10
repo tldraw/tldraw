@@ -1,4 +1,3 @@
-import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
@@ -20,6 +19,7 @@ import {
 	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
+	ClusterScreenshotSize,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
@@ -37,6 +37,8 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getClusterScreenshotSize,
+	getClustersBox,
 	clusteringFromMeasure,
 	getCreatedBoardResult,
 	getPageInfo,
@@ -1174,7 +1176,13 @@ async function renderShapeSetScreenshot(
 			resolved: Extract<ResolvedBoardPage, { ok: true }>,
 			telemetry: McpTelemetryWriter
 		): Promise<
-			{ ok: true; shapeIds: string[] } | { ok: false; result: ReturnType<typeof toolError> }
+			| {
+					ok: true
+					shapeIds: string[]
+					/** The image to draw them into, edge to edge; see getClusterScreenshotSize. */
+					size: ClusterScreenshotSize
+			  }
+			| { ok: false; result: ReturnType<typeof toolError> }
 		>
 	}
 ) {
@@ -1198,8 +1206,8 @@ async function renderShapeSetScreenshot(
 				pageId: resolved.page.pageId,
 				shapeIds: picked.shapeIds,
 				theme,
-				width: DEFAULT_THUMBNAIL_WIDTH,
-				height: DEFAULT_THUMBNAIL_HEIGHT,
+				width: picked.size.width,
+				height: picked.size.height,
 			},
 			{ request, ctx }
 		)
@@ -1244,12 +1252,15 @@ async function callClusterScreenshotTool(
 		page: input.page,
 		theme: input.theme,
 		userId,
-		extras: { clusterIds: input.clusterIds.join(',') },
+		extras: { clusterIds: input.clusterIds.join(','), size: input.size },
 		pickShapes: async (resolved, telemetry) => {
 			const clustered = await readClustering(resolved, { env, userId, telemetry, request, ctx })
 			if (!clustered.ok) return { ok: false, result: clustered.result }
 			const picked = pickClusterShapes(clustered.clusters, input.clusterIds, input.page)
-			if (picked.ok) return picked
+			if (picked.ok) {
+				const box = getClustersBox(clustered.bounds, input.clusterIds)
+				return { ...picked, size: getClusterScreenshotSize(box, input.size) }
+			}
 			// `cluster_not_found` on both events. The request ledger used to file this as
 			// `failure:shape_not_found` while the per-call event filed the very same refusal as
 			// `reason:cluster_not_found`, so the two dashboards disagreed about what had happened.

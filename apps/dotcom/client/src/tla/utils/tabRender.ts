@@ -7,23 +7,12 @@ import {
 	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
-import {
-	Box,
-	Editor,
-	FileHelpers,
-	TLFontFace,
-	TLPageId,
-	TLShapeId,
-	clamp,
-	fetch,
-	last,
-	sleep,
-} from 'tldraw'
+import { Editor, FileHelpers, TLFontFace, TLPageId, fetch, sleep } from 'tldraw'
 import { z } from 'zod'
 import {
+	getEdgeToEdgeFrame,
 	getRequestedBounds,
 	getRequestedShapeIds,
-	getThumbnailContentInset,
 	measureShapeForMcp,
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
@@ -236,7 +225,7 @@ async function capturePage(
 ): Promise<TabRenderReply> {
 	const { theme, width, height } = request
 	const ids = getRequestedShapeIds(editor, request.shapeIds)
-	const { bounds, scale } = getExportFrame(editor, ids, width, height)
+	const { bounds, scale } = getEdgeToEdgeFrame(getRequestedBounds(editor, ids), width, height)
 
 	const startedAt = performance.now()
 	const blob = await renderThumbnailPng(editor, ids, { theme, width, height, bounds, scale })
@@ -248,21 +237,6 @@ async function capturePage(
 	}
 	const dataUrl = await FileHelpers.blobToDataUrl(blob)
 	return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
-}
-
-// What zoomToBounds would reach on a camera sized to the output, worked out without touching this one.
-function getExportFrame(editor: Editor, ids: TLShapeId[], width: number, height: number) {
-	const shapes = getRequestedBounds(editor, ids)
-	const inset = getThumbnailContentInset(width, height)
-	const { zoomSteps } = editor.getCameraOptions()
-	const scale = clamp(
-		Math.min((width - inset) / shapes.w, (height - inset) / shapes.h),
-		zoomSteps[0],
-		last(zoomSteps)!
-	)
-	const w = width / scale
-	const h = height / scale
-	return { bounds: new Box(shapes.midX - w / 2, shapes.midY - h / 2, w, h), scale }
 }
 
 // Not setTimeout: a hidden tab clamps those to once a second, which would turn a slice loop into a

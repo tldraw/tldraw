@@ -32,6 +32,27 @@ export function getRequestedBounds(editor: Editor, ids: TLShapeId[]) {
 }
 
 /**
+ * The page area that fills `width` x `height` with `bounds` touching both sides of its longer axis,
+ * and the scale that draws it there. The worker sizes `width` x `height` to the bounds' aspect ratio
+ * (getClusterScreenshotSize), so the other axis is filled too, give or take rounding to whole pixels.
+ * Bounds that have moved since the worker measured them are centred rather than stretched.
+ *
+ * Not clamped to the editor's zoom steps: the export doesn't go through the camera, and clamping is
+ * what used to crop a cluster too wide for the minimum zoom.
+ */
+export function getEdgeToEdgeFrame(bounds: Box, width: number, height: number) {
+	const scale = Math.min(
+		bounds.w > 0 ? width / bounds.w : Infinity,
+		bounds.h > 0 ? height / bounds.h : Infinity
+	)
+	// A point has no extent to fit; draw it at 100%.
+	const fitted = Number.isFinite(scale) ? scale : 1
+	const w = width / fitted
+	const h = height / fitted
+	return { bounds: new Box(bounds.midX - w / 2, bounds.midY - h / 2, w, h), scale: fitted }
+}
+
+/**
  * One shape as the MCP tools describe it, or undefined if it has no bounds.
  *
  * Text comes from the shape's own util, which is the authoritative answer — a Worker reading the

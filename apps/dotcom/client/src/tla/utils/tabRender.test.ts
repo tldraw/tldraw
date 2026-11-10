@@ -1,6 +1,5 @@
 import { TabRenderReply, TabRenderRequest, TabRenderServerEvent } from '@tldraw/dotcom-shared'
 import {
-	Box,
 	Editor,
 	TLPageId,
 	createShapeId,
@@ -12,7 +11,6 @@ import {
 	toRichText,
 } from 'tldraw'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getThumbnailContentInset } from '../../utils/boardCapture'
 import { answerTabRender } from './tabRender'
 
 // jsdom has no ResizeObserver, which the editor's container measurement uses.
@@ -221,30 +219,29 @@ describe('answerTabRender', () => {
 		editor.dispose()
 	})
 
-	// The render page reaches its frame by zooming a real camera. Compared against zoomToBounds itself
-	// rather than a copy of its formula, so the two can't drift apart unnoticed.
-	it('frames shapes exactly as zoomToBounds does on the render page', async () => {
+	// The worker sizes the image to the shapes' aspect ratio, so the export frame should be the shapes'
+	// own bounds, with no margin, at the scale that fills the image.
+	it('frames shapes edge to edge at the size the worker asked for', async () => {
 		const { editor, firstPageId, firstShapeId } = setupEditor()
 		const toImage = stubExport(editor)
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(
+			editor,
+			'file-1',
+			getToken,
+			job({
+				mode: 'screenshot',
+				pageId: firstPageId,
+				shapeIds: [firstShapeId],
+				theme: 'light',
+				width: 1200,
+				height: 600,
+			})
+		)
+
 		const options = toImage.mock.calls[0][1]!
-
-		const renderPage = setupEditor().editor
-		renderPage.updateViewportScreenBounds(new Box(0, 0, 1200, 630))
-		renderPage.zoomToBounds(renderPage.getShapePageBounds(firstShapeId)!, {
-			immediate: true,
-			force: true,
-			inset: getThumbnailContentInset(1200, 630),
-		})
-
-		expect(options.scale).toBeCloseTo(renderPage.getCamera().z)
-		const viewport = renderPage.getViewportPageBounds()
-		expect(options.bounds!.x).toBeCloseTo(viewport.x)
-		expect(options.bounds!.y).toBeCloseTo(viewport.y)
-		expect(options.bounds!.w).toBeCloseTo(viewport.w)
-		expect(options.bounds!.h).toBeCloseTo(viewport.h)
+		expect(options.scale).toBeCloseTo(4)
+		expect(options.bounds).toMatchObject(editor.getShapePageBounds(firstShapeId)!.toJson())
 		editor.dispose()
-		renderPage.dispose()
 	})
 
 	// An export can't be sliced, so a big one would stall a tab someone may be drawing in.
