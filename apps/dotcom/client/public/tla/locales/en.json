@@ -245,6 +245,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "57af9a64fa": {
+    "translation": "You may not be allowed to create libraries, or copying failed."
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -284,11 +287,17 @@
   "625fd29749": {
     "translation": "Older"
   },
+  "6378731a5e": {
+    "translation": "Couldn't add"
+  },
   "639bae9ac6": {
     "translation": "you"
   },
   "63a6a88c06": {
     "translation": "Refresh"
+  },
+  "6481836091": {
+    "translation": "Browse starter packs…"
   },
   "6609dd239e": {
     "translation": "Something went wrong"
@@ -597,6 +606,9 @@
   "c303bd1095": {
     "translation": "Unable to publish the file."
   },
+  "c3bf447eab": {
+    "translation": "Open"
+  },
   "c4b39a1cc3": {
     "translation": "Essential cookies"
   },
@@ -666,6 +678,9 @@
   "e10a073cda": {
     "translation": "Moved to {name}"
   },
+  "e19d2ede14": {
+    "translation": "Added {pack} to your libraries."
+  },
   "e2198d6228": {
     "translation": "Copy invite link"
   },
@@ -693,11 +708,17 @@
   "ebfe9ce86e": {
     "translation": "Yesterday"
   },
+  "ec211f7c20": {
+    "translation": "Add"
+  },
   "ec59b960ea": {
     "translation": "This file has reached the maximum number of active collaborators."
   },
   "ec611e9a08": {
     "translation": "Account menu"
+  },
+  "ec9ac32d83": {
+    "translation": "Starter packs"
   },
   "ed75712b0e": {
     "translation": "Duplicate"
@@ -722,6 +743,9 @@
   },
   "f2569594b2": {
     "translation": "We use these cookies to save your files and settings."
+  },
+  "f29ddbfb90": {
+    "translation": "Added"
   },
   "f2a6c498fb": {
     "translation": "Delete"
