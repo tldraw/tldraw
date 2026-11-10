@@ -22,6 +22,7 @@ import {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
@@ -48,7 +49,8 @@ export interface BoardLibrarySourceOptions {
  * records, which the content names by id: an item saved from this board shares the assets its
  * shapes already use, and an item added from elsewhere brings its assets into the document.
  * Thumbnails are image assets too, uploaded through the editor as a pasted image is, and the item
- * names them by id. Listing an item resolves them to URLs through the editor's asset store.
+ * names them by id. Tiles get a URL sized for them from `resolveThumbnail`; a listed item carries
+ * URLs to the original images, for copying it to another source.
  *
  * Changes don't go on the undo stack, as with comments: saving to a library isn't an edit to the
  * canvas. Nothing can be changed while the editor is read-only. The board doesn't track owners.
@@ -125,6 +127,22 @@ export class BoardLibrarySource implements LibrarySource {
 				assets,
 				schema: this.editor.store.schema.serialize(),
 			},
+		})
+	}
+
+	/**
+	 * The thumbnail asset for the colour mode, resolved through the editor's asset store at the
+	 * scale the tile shows it, as an image on the canvas is resolved at the scale it is drawn.
+	 */
+	async resolveThumbnail(item: TLLibraryItem, context: TLLibraryThumbnailContext) {
+		const record = this.get<TLLibraryItemRecord>(item.id)
+		if (!record?.thumbnail) return null
+		const assetId = getThumbnailForColorMode(record.thumbnail, context.colorMode)
+		const asset = this.editor.getAsset(assetId)
+		if (!asset || asset.type === 'bookmark' || !asset.props.w) return null
+		return this.editor.resolveAssetUrl(assetId, {
+			screenScale: context.width / asset.props.w,
+			dpr: context.dpr,
 		})
 	}
 
@@ -295,9 +313,10 @@ export class BoardLibrarySource implements LibrarySource {
 	}
 
 	/**
-	 * A thumbnail asset's URL from the editor's asset store, which resolves asynchronously: it is
-	 * undefined until then, and an item lists no thumbnail until all of its images have one. Kept
-	 * per asset, and resolved again when its src changes.
+	 * A thumbnail asset's URL from the editor's asset store, to the original image, as for copying
+	 * or exporting it: copying an item to another source fetches its thumbnail from these. It
+	 * resolves asynchronously, so it is undefined until then, and an item lists no thumbnail until
+	 * all of its images have one. Kept per asset, and resolved again when its src changes.
 	 */
 	private getResolvedUrl(assetId: TLAssetId): ResolvedUrl | undefined {
 		const asset = this.editor.getAsset(assetId)
