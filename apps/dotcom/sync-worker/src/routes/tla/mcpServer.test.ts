@@ -13,6 +13,7 @@ import {
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
+	MCP_TAB_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
@@ -1489,6 +1490,44 @@ describe('rate limits', () => {
 		expect(blocked.content[0].text).toContain('Searches are limited')
 		// A limit nobody can see firing is the failure this ledger row exists to prevent.
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
+	})
+
+	// One budget across all three tab tools, so an agent can't triple its share of the board's durable
+	// object by switching tools. The refused call must not reach the tab: that load is the point.
+	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} tab tool calls per account per minute, across the tools`, async () => {
+		mockSharedBoard()
+		const tab = openTab()
+		const env = makeEnv({ tab })
+		// Spends the first call of the budget.
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+		const calls = [
+			['get_page_info', { boardId: 'abc' }],
+			['get_cluster_info', { boardId: 'abc', clusterId }],
+			['get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }],
+		] as const
+
+		const results = []
+		for (let i = 1; i < MCP_TAB_PER_USER_RATE_LIMIT; i++) {
+			const [tool, args] = calls[i % calls.length]
+			results.push(await callTool(tool, args, env, 'user_tab'))
+		}
+		const callsWithinBudget = tab.mock.calls.length
+		const blocked = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterId },
+			env,
+			'user_tab'
+		)
+
+		expect(results.map((r) => r.isError)).toEqual(
+			Array(MCP_TAB_PER_USER_RATE_LIMIT - 1).fill(undefined)
+		)
+		expect(blocked.isError).toBe(true)
+		expect(blocked.content[0].text).toContain(
+			'Reading pages and screenshotting clusters is limited'
+		)
+		expect(tab).toHaveBeenCalledTimes(callsWithinBudget)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
 	})
 
 	// Both halves matter: without the noisy caller actually being refused, the quiet one succeeding

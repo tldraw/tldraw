@@ -699,6 +699,32 @@ type = "ratelimit"
 namespace_id = "1028"
 simple = { limit = 10, period = 60 }
 
+# MCP server per-account guard on the tools that work in the caller's tab. Bounds load on a shared
+# board's durable object — see MCP_TAB_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1029"
+simple = { limit = 90, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1030"
+simple = { limit = 90, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1031"
+simple = { limit = 90, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1032"
+simple = { limit = 90, period = 60 }
+
 #################### Queues ####################
 [[env.dev.queues.producers]]
 queue = "tldraw-multiplayer-queue-dev"
