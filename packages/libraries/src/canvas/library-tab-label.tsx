@@ -1,6 +1,5 @@
-import { defineMessages, TldrawUiIcon, useTranslation } from 'tldraw'
+import { defineMessages, TldrawUiIcon, useTranslation, type TLLibrary } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
 
 const messages = defineMessages({
 	other: { id: 'libraries.tabs.other', defaultMessage: 'Other' },

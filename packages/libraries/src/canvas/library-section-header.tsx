@@ -1,7 +1,6 @@
 import type { ReactNode } from 'react'
-import { TldrawUiIcon } from 'tldraw'
+import { TldrawUiIcon, type TLLibrary } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
 import type { LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 

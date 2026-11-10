@@ -1,7 +1,6 @@
 import { PointerEvent, useMemo } from 'react'
-import { getPointerInfo, react, TLContent, useEditor, Vec, VecModel } from 'tldraw'
+import { getPointerInfo, react, TLLibraryItemId, TLContent, useEditor, Vec, VecModel } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryItemId } from '../lib/schema'
 
 type DragState =
 	| { name: 'idle' }
