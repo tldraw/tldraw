@@ -88,16 +88,82 @@
 	overflow-y: auto;
 }
 
+.tlui-collections-menu-heading {
+	padding: 6px 10px 2px;
+	font-size: 11px;
+	color: var(--tl-color-text-3);
+	cursor: default;
+}
+
+/* A group's heading stays at the top of the list while its collections scroll under it, and its
+   collections' headers stick beneath it. */
+.tlui-collections-group {
+	--tlui-collections-group-heading-height: 44px;
+	--tlui-collections-sticky-top: var(--tlui-collections-group-heading-height);
+}
+
+.tlui-collections-group > .tlui-collections-group__heading {
+	position: sticky;
+	top: 0;
+	z-index: 2;
+	display: flex;
+	align-items: center;
+	height: var(--tlui-collections-group-heading-height);
+	margin: 0;
+	padding: 2px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-collections-group__toggle {
+	all: unset;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex: 0 1 auto;
+	min-width: 0;
+	height: 32px;
+	margin-left: 2px;
+	margin-right: auto;
+	padding: 0 8px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	cursor: pointer;
+}
+
+.tlui-collections-group__toggle:hover {
+	color: var(--tl-color-text-1);
+}
+
+.tlui-collections-group__toggle:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
+}
+
+.tlui-collections-group__label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
 .tlui-collections-sections .tlui-collections-grid {
 	overflow: visible;
 	padding: 0 10px 4px;
 }
 
-/* Stays at the top of the list while its own items scroll under it, until the next section's
-   header pushes it out. */
+/* Scrolled to, a section stops below its group's heading rather than under it. */
+.tlui-collections-section {
+	scroll-margin-top: var(--tlui-collections-sticky-top, 0);
+}
+
+/* Stays at the top of the list, under its group's heading, while its own items scroll under it,
+   until the next section's header pushes it out. */
 .tlui-collections-section > .tlui-collections-panel__header {
 	position: sticky;
-	top: 0;
+	top: var(--tlui-collections-sticky-top, 0);
 	z-index: 1;
 	border-bottom: none;
 }
@@ -393,6 +459,7 @@
 	background: var(--tl-color-panel);
 }
 
+.tlui-collections-group__heading .tlui-button::before,
 .tlui-collections-section > .tlui-collections-panel__header .tlui-button::before {
 	content: '';
 	position: absolute;
@@ -402,6 +469,7 @@
 	background: var(--tl-color-panel);
 }
 
+.tlui-collections-group__heading .tlui-button[data-state='open']::before,
 .tlui-collections-section
 	> .tlui-collections-panel__header
 	.tlui-button[data-state='open']::before {

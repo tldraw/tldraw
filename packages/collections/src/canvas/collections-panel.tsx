@@ -9,6 +9,8 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
+import { CollectionGroupSection } from './collection-group-section'
+import { groupCollectionList, useCollectionGrouping } from './collection-groups'
 import { CollectionSection } from './collection-section'
 import { CollectionsPanelHeader } from './collections-panel-header'
 import { NoCollections } from './no-collections'
@@ -34,9 +36,9 @@ export interface CollectionsPanelProps {
 
 /**
  * A floating panel on one side of the canvas for browsing a {@link CollectionSource}, shown while
- * {@link collectionsPanelOpen} is set. Each collection is a section that folds shut. Clicking an
- * item places a copy of it in the middle of the viewport; dragging one out drops it under the
- * pointer.
+ * {@link collectionsPanelOpen} is set. Each collection is a section that folds shut; a source with
+ * two or more owners groups them under each owner's name. Clicking an item places a copy of it in
+ * the middle of the viewport; dragging one out drops it under the pointer.
  * @public @react
  */
 export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProps) {
@@ -45,6 +47,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 	const { addToast } = useToasts()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const collections = useValue('collections', () => source.getCollections(), [source])
+	const grouping = useCollectionGrouping(source)
 	const placeItem = useCallback(
 		(itemId: TLCollectionItemId) => {
 			placeCollectionItem(editor, source, itemId).catch(() => {
@@ -74,13 +77,17 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 					<NoCollections />
 				) : (
 					<div className="tlui-collections-sections">
-						{collections.map((collection) => (
-							<CollectionSection
-								key={collection.id}
-								source={source}
-								collection={collection}
-								getItemProps={getItemProps}
-							/>
+						{groupCollectionList(collections, grouping).map((group) => (
+							<CollectionGroupSection key={group.key ?? ''} source={source} group={group}>
+								{group.collections.map((collection) => (
+									<CollectionSection
+										key={collection.id}
+										source={source}
+										collection={collection}
+										getItemProps={getItemProps}
+									/>
+								))}
+							</CollectionGroupSection>
 						))}
 					</div>
 				)}

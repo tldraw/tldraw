@@ -8,6 +8,7 @@ import {
 	useValue,
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
+import { copyCollection } from '../lib/copyCollection'
 import type { TLCollection } from '../lib/schema'
 import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { RenameInput } from '../ui/rename-input'
@@ -24,6 +25,10 @@ const messages = defineMessages({
 		defaultMessage:
 			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
 	},
+	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
+	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
+	copiedTitle: { id: 'collections.copied.title', defaultMessage: 'Copied' },
+	copiedDescription: { id: 'collections.copied.description', defaultMessage: 'Copied to {name}.' },
 	changeErrorTitle: {
 		id: 'collections.collection-error.title',
 		defaultMessage: "Couldn't change collections",
@@ -66,8 +71,14 @@ export function CollectionSectionHeader({
 		() => ({
 			rename: source.can('renameCollection', collectionId),
 			delete: source.can('deleteCollection', collectionId),
+			copy: source.can('createCollection'),
 		}),
 		[source, collectionId]
+	)
+	const owners = useValue(
+		'collection owners',
+		() => (source.getCollectionOwners ? source.getCollectionOwners() : []),
+		[source]
 	)
 
 	const showError = () =>
@@ -99,6 +110,33 @@ export function CollectionSectionHeader({
 		})
 	}
 
+	const moveCollection = (ownerId: string) => {
+		if (!source.moveCollection) return
+		const owner = owners.find((o) => o.id === ownerId)
+		source.moveCollection(collectionId, ownerId).then(
+			() =>
+				addToast({
+					title: msg(messages.movedTitle),
+					description: owner && msg(messages.movedDescription, { name: owner.name }),
+				}),
+			showError
+		)
+	}
+
+	const copyToOwner = (ownerId: string) => {
+		const owner = owners.find((o) => o.id === ownerId)
+		copyCollection(source, collectionId, ownerId).then(
+			() =>
+				addToast({
+					title: msg(messages.copiedTitle),
+					description: owner && msg(messages.copiedDescription, { name: owner.name }),
+				}),
+			showError
+		)
+	}
+
+	const copyTargets = owners.filter((o) => o.id !== collection.ownerId)
+
 	return (
 		<header className="tlui-collections-panel__header">
 			{renaming ? (
@@ -128,6 +166,16 @@ export function CollectionSectionHeader({
 						onRename={can.rename ? () => renamingCollectionId.set(editor, collectionId) : undefined}
 						onDelete={can.delete ? deleteCollection : undefined}
 						sort={sort}
+						move={
+							source.moveCollection && can.delete && owners.length > 1
+								? { owners, value: collection.ownerId, onValueChange: moveCollection }
+								: undefined
+						}
+						copy={
+							can.copy && copyTargets.length > 0
+								? { owners: copyTargets, onSelect: copyToOwner }
+								: undefined
+						}
 					/>
 				)}
 			</div>
