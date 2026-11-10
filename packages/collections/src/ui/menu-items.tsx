@@ -45,14 +45,8 @@ function keepFocusWhile(holdFocus: boolean) {
 	}
 }
 
-export function MenuItem({
-	buttonRef,
-	label,
-	danger,
-	noClose,
-	holdFocus = false,
-	onClick,
-}: {
+/** @public */
+export interface MenuItemProps {
 	buttonRef?: RefObject<HTMLButtonElement | null>
 	label: string
 	danger?: boolean
@@ -60,7 +54,21 @@ export function MenuItem({
 	/** Stops the menu moving focus to the item on hover, which would blur and commit a rename. */
 	holdFocus?: boolean
 	onClick(): void
-}) {
+}
+
+/**
+ * An item in the panel's menus, exported as `CollectionMenuItem` for a host's own items in
+ * {@link CollectionsPanelProps.menuItems}.
+ * @public @react
+ */
+export function MenuItem({
+	buttonRef,
+	label,
+	danger,
+	noClose,
+	holdFocus = false,
+	onClick,
+}: MenuItemProps) {
 	const keepFocus = keepFocusWhile(holdFocus)
 	return (
 		<MenuItemRoot noClose={noClose}>
