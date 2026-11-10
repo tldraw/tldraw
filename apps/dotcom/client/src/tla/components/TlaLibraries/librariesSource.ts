@@ -1,3 +1,4 @@
+import type { MutatorResultErrorDetails } from '@rocicorp/zero'
 import { can, type TlaLibrary, type TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
@@ -5,6 +6,7 @@ import {
 	LibraryPermissionError,
 	LibraryRecordType,
 	getThumbnailForColorMode,
+	mapThumbnail,
 	type LibrarySource,
 	type TLLibrary,
 	type TLLibraryAction,
@@ -14,19 +16,36 @@ import {
 	type TLLibraryItemId,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
+	type TLLibraryThumbnail,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
-import { computed, defineMessages, fetch, uniqueId } from 'tldraw'
+import { structuredClone } from '@tldraw/utils'
+import { atom, computed, defineMessages, fetch, react, uniqueId } from 'tldraw'
 import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
 	privateToYou: { defaultMessage: 'Private to you' },
 })
 
-interface MutationResult {
-	type: string
-	error?: unknown
+type MutationResult = { type: 'success' } | MutatorResultErrorDetails
+
+interface StoredItem {
+	id: string
+	createdAt: number
+	thumbnail: TlaLibraryItemThumbnail | null
+}
+
+/**
+ * An item being added: listed until its row arrives through Zero, first under an id made up here
+ * while the worker stores it, then under its row's id.
+ */
+interface PendingItem {
+	key: TLLibraryItemId
+	item: TLLibraryItem
+	content: TLLibraryItemContent
+	/** The row's id once the row has arrived, or undefined when adding failed. */
+	arrived: Promise<string | undefined>
 }
 
 // A row's id is the record id without its type prefix.
@@ -40,6 +59,9 @@ const toLibrary = (row: TlaLibrary): TLLibrary =>
 		meta: row.meta ?? {},
 	})
 
+const revokeThumbnail = (thumbnail: TLLibraryThumbnail) =>
+	mapThumbnail(thumbnail, (url) => URL.revokeObjectURL(url))
+
 /**
  * Workspace libraries, kept in tldraw.com's database and synced through Zero: those of every
  * workspace the user is a member of, the home workspace's being private to them. A board's own
@@ -49,9 +71,25 @@ const toLibrary = (row: TlaLibrary): TLLibrary =>
  * An item's content is stored by the sync worker, which also adds items and copies libraries,
  * and is fetched with the user's token. Its thumbnails are public uploads whose URLs are on its
  * row, so they load as ordinary images.
+ *
+ * A new library is listed as soon as Zero has applied it locally, and a new item as soon as it's
+ * asked for, with the thumbnails it was given, while the worker stores it. A library the server
+ * rejects disappears and the app shows its mutation error; an item the worker can't store
+ * disappears and `addItem` rejects.
  */
 export class TldrawAppLibrariesSource implements LibrarySource {
 	readonly id = 'dotcom-workspaces'
+
+	private readonly pendingItems = atom<PendingItem[]>('pending library items', [])
+	// Object URLs of thumbnails added here, by item row id, listed instead of the uploaded copies so
+	// a tile doesn't blank while those load.
+	private readonly localThumbnails = atom<ReadonlyMap<string, TLLibraryThumbnail>>(
+		'local library item thumbnails',
+		new Map()
+	)
+	// Libraries created here that the server hasn't confirmed yet, by row id. The worker can't add
+	// items to them or copy them until it has.
+	private readonly unconfirmedLibraries = new Map<string, Promise<boolean>>()
 
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
@@ -70,20 +108,29 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	)
 
 	private readonly items$ = computed('workspace library items', () => {
+		const localThumbnails = this.localThumbnails.get()
 		const byLibrary = new Map<string, TLLibraryItem[]>()
+		const itemRowIds = new Set<string>()
 		for (const row of this.app.getLibraryRows()) {
 			byLibrary.set(
 				row.id,
-				row.items.map((item) =>
-					LibraryItemRecordType.create({
+				row.items.map((item) => {
+					itemRowIds.add(item.id)
+					const thumbnail = localThumbnails.get(item.id) ?? item.thumbnail
+					return LibraryItemRecordType.create({
 						id: LibraryItemRecordType.createId(item.id),
 						libraryId: LibraryRecordType.createId(row.id),
 						...(item.name ? { name: item.name } : {}),
-						...(item.thumbnail ? { thumbnail: item.thumbnail } : {}),
+						...(thumbnail ? { thumbnail } : {}),
 						createdAt: item.createdAt,
 					})
-				)
+				})
 			)
+		}
+		for (const { item } of this.pendingItems.get()) {
+			if (itemRowIds.has(rowId(item.id))) continue
+			const libraryRowId = rowId(item.libraryId)
+			byLibrary.set(libraryRowId, [...(byLibrary.get(libraryRowId) ?? []), item])
 		}
 		return byLibrary
 	})
@@ -102,6 +149,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
+		const pending = this.findPendingItem(itemId)
+		if (pending) return structuredClone(pending.content)
 		const response = await this.request(`/api/app/library-items/${rowId(itemId)}/content`)
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)
@@ -127,8 +176,16 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const id = uniqueId()
 		const meta = options.meta ?? {}
-		await this.check(
-			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }).server
+		const mutation = this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta })
+		await this.check(mutation.client)
+		this.unconfirmedLibraries.set(
+			id,
+			(mutation.server as Promise<MutationResult>).then((result) => {
+				this.unconfirmedLibraries.delete(id)
+				if (result.type === 'success') return true
+				this.app.showMutationRejectionToast(result.error)
+				return false
+			})
 		)
 		return LibraryRecordType.create({
 			id: LibraryRecordType.createId(id),
@@ -155,6 +212,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async copyLibrary(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary> {
 		const library = this.findRow(libraryId)
 		if (!library) throw new LibraryNotFoundError(libraryId)
+		await this.whenConfirmed(libraryId)
 		const response = await this.request(`/api/app/libraries/${rowId(libraryId)}/copy`, {
 			method: 'POST',
 			headers: { 'content-type': 'application/json' },
@@ -169,6 +227,93 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (!this.can('addItem', libraryId)) {
 			throw new LibraryPermissionError('addItem', libraryId)
 		}
+		const thumbnail =
+			newItem.thumbnail && mapThumbnail(newItem.thumbnail, (blob) => URL.createObjectURL(blob))
+		const name = newItem.name ? { name: newItem.name } : {}
+		const key = LibraryItemRecordType.createId()
+		let arrive: (id: string | undefined) => void = () => {}
+		const pending: PendingItem = {
+			key,
+			item: LibraryItemRecordType.create({
+				id: key,
+				libraryId,
+				...name,
+				...(thumbnail ? { thumbnail } : {}),
+				createdAt: Date.now(),
+			}),
+			content: newItem.content,
+			arrived: new Promise((resolve) => {
+				arrive = resolve
+			}),
+		}
+		this.pendingItems.update((all) => [...all, pending])
+
+		let stored: StoredItem
+		try {
+			await this.whenConfirmed(libraryId)
+			stored = await this.storeItem(libraryId, newItem)
+		} catch (error) {
+			this.pendingItems.update((all) => all.filter((p) => p.key !== key))
+			if (thumbnail) revokeThumbnail(thumbnail)
+			arrive(undefined)
+			throw error
+		}
+
+		const listedThumbnail = thumbnail ?? stored.thumbnail
+		const item = LibraryItemRecordType.create({
+			id: LibraryItemRecordType.createId(stored.id),
+			libraryId,
+			...name,
+			...(listedThumbnail ? { thumbnail: listedThumbnail } : {}),
+			createdAt: stored.createdAt,
+		})
+		if (thumbnail) {
+			this.localThumbnails.update((all) => new Map(all).set(stored.id, thumbnail))
+		}
+		this.pendingItems.update((all) => all.map((p) => (p.key === key ? { ...p, item } : p)))
+		this.whenItemRowArrives(stored.id).then(() => {
+			this.pendingItems.update((all) => all.filter((p) => p.key !== key))
+			arrive(stored.id)
+		})
+		return item
+	}
+
+	async renameItem(itemId: TLLibraryItemId, name: string) {
+		const id = await this.getItemRowId(itemId)
+		await this.check(this.app.z.mutate.library_item.rename({ id, name }).server)
+	}
+
+	async deleteItem(itemId: TLLibraryItemId) {
+		const id = await this.getItemRowId(itemId)
+		await this.check(this.app.z.mutate.library_item.delete({ id }).server)
+		const thumbnail = this.localThumbnails.get().get(id)
+		if (!thumbnail) return
+		revokeThumbnail(thumbnail)
+		this.localThumbnails.update((all) => {
+			const rest = new Map(all)
+			rest.delete(id)
+			return rest
+		})
+	}
+
+	async moveItem(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
+		const id = await this.getItemRowId(itemId)
+		await this.check(
+			this.app.z.mutate.library_item.move({ id, libraryId: rowId(toLibraryId) }).server
+		)
+	}
+
+	/** Releases the thumbnail URLs this source made for items added here. */
+	dispose() {
+		for (const thumbnail of this.localThumbnails.get().values()) revokeThumbnail(thumbnail)
+		for (const { item } of this.pendingItems.get()) {
+			if (item.thumbnail) revokeThumbnail(item.thumbnail)
+		}
+		this.localThumbnails.set(new Map())
+		this.pendingItems.set([])
+	}
+
+	private async storeItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem): Promise<StoredItem> {
 		const form = new FormData()
 		form.set('content', JSON.stringify(newItem.content))
 		if (newItem.thumbnail) {
@@ -181,35 +326,40 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			body: form,
 		})
 		if (!response.ok) throw new Error(`Couldn't add the item: ${response.status}`)
-		const { id, createdAt, thumbnail } = (await response.json()) as {
-			id: string
-			createdAt: number
-			thumbnail: TlaLibraryItemThumbnail | null
-		}
-		return LibraryItemRecordType.create({
-			id: LibraryItemRecordType.createId(id),
-			libraryId,
-			...(newItem.name ? { name: newItem.name } : {}),
-			...(thumbnail ? { thumbnail } : {}),
-			createdAt,
+		return (await response.json()) as StoredItem
+	}
+
+	private findPendingItem(itemId: TLLibraryItemId) {
+		return this.pendingItems.get().find((p) => p.key === itemId || p.item.id === itemId)
+	}
+
+	// The mutators need the item's row in the local store, which a pending item doesn't have yet.
+	private async getItemRowId(itemId: TLLibraryItemId) {
+		const pending = this.findPendingItem(itemId)
+		if (!pending) return rowId(itemId)
+		const id = await pending.arrived
+		if (id === undefined) throw new LibraryNotFoundError(itemId)
+		return id
+	}
+
+	private hasItemRow(id: string) {
+		return this.app.getLibraryRows().some((row) => row.items.some((item) => item.id === id))
+	}
+
+	private whenItemRowArrives(id: string) {
+		if (this.hasItemRow(id)) return Promise.resolve()
+		return new Promise<void>((resolve) => {
+			const stop = react('library item row arrives', () => {
+				if (!this.hasItemRow(id)) return
+				stop()
+				resolve()
+			})
 		})
 	}
 
-	async renameItem(itemId: TLLibraryItemId, name: string) {
-		await this.check(this.app.z.mutate.library_item.rename({ id: rowId(itemId), name }).server)
-	}
-
-	async deleteItem(itemId: TLLibraryItemId) {
-		await this.check(this.app.z.mutate.library_item.delete({ id: rowId(itemId) }).server)
-	}
-
-	async moveItem(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
-		await this.check(
-			this.app.z.mutate.library_item.move({
-				id: rowId(itemId),
-				libraryId: rowId(toLibraryId),
-			}).server
-		)
+	private async whenConfirmed(libraryId: TLLibraryId) {
+		const confirmed = await this.unconfirmedLibraries.get(rowId(libraryId))
+		if (confirmed === false) throw new LibraryNotFoundError(libraryId)
 	}
 
 	private getTargetOwnerId(target?: TLLibraryTarget) {
@@ -227,12 +377,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return can(this.app.getWorkspaceMembership(workspaceId)?.role, 'manageLibraries')
 	}
 
-	// The local store has the change at once; waiting for the server is what reports a rejection,
-	// and lets items be added in the worker to a library that was just created. Zero's mutation
-	// promises resolve with an error result rather than rejecting.
+	// Zero's mutation promises resolve with an error result rather than rejecting.
 	private async check(result: Promise<MutationResult>) {
-		const { type, error } = await result
-		if (type === 'error') throw new Error('The change was rejected', { cause: error })
+		const outcome = await result
+		if (outcome.type === 'error') {
+			throw new Error('The change was rejected', { cause: outcome.error })
+		}
 	}
 
 	private async request(path: string, init: RequestInit = {}) {
