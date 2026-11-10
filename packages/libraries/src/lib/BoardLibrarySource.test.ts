@@ -325,6 +325,77 @@ describe('BoardLibrarySource', () => {
 			)
 		})
 
+		describe('resolveThumbnail', () => {
+			const context = {
+				colorMode: 'light',
+				width: 256,
+				dpr: 2,
+				networkEffectiveType: null,
+			} as const
+
+			function makeSizingAssetStore() {
+				const assets = makeAssetStore()
+				assets.store.resolve = vi.fn(async (asset, { screenScale, dpr }) =>
+					asset.props.src ? `${asset.props.src}?scale=${screenScale}&dpr=${dpr}` : null
+				)
+				return assets
+			}
+
+			it('resolves the image for the colour mode', async () => {
+				const editor = makeEditor(librarySchemaRecords, makeSizingAssetStore())
+				const { source, item } = await addWithThumbnail(editor)
+				const [light, dark] = thumbnailAssets(editor)
+
+				expect(await source.resolveThumbnail(item, context)).toMatch(
+					`https://uploads.example/${light.id}?`
+				)
+				expect(await source.resolveThumbnail(item, { ...context, colorMode: 'dark' })).toMatch(
+					`https://uploads.example/${dark.id}?`
+				)
+			})
+
+			it('resolves it at the scale the tile shows it, with the tile’s pixel ratio', async () => {
+				const assets = makeSizingAssetStore()
+				const editor = makeEditor(librarySchemaRecords, assets)
+				const { source, item } = await addWithThumbnail(editor)
+				const [light] = thumbnailAssets(editor)
+
+				// The uploaded image is 512 wide and the tile 256.
+				expect(await source.resolveThumbnail(item, context)).toBe(
+					`https://uploads.example/${light.id}?scale=0.5&dpr=2`
+				)
+				expect(assets.store.resolve).toHaveBeenLastCalledWith(
+					expect.objectContaining({ id: light.id }),
+					expect.objectContaining({
+						screenScale: 0.5,
+						steppedScreenScale: 0.5,
+						dpr: 2,
+						shouldResolveToOriginal: false,
+					})
+				)
+			})
+
+			it('resolves to null when the item has no thumbnail or its image is gone', async () => {
+				const editor = makeEditor()
+				const { source, library, item } = await addWithThumbnail(editor)
+				const plain = await source.addItem(library.id, {
+					content: contentOf(editor, [addImage(editor)]),
+				})
+				expect(await source.resolveThumbnail(plain, context)).toBeNull()
+
+				const [light] = thumbnailAssets(editor)
+				editor.run(() => editor.store.remove([light.id]), { history: 'ignore' })
+				expect(await source.resolveThumbnail(item, context)).toBeNull()
+			})
+
+			it('resolves to null for an item it no longer has', async () => {
+				const editor = makeEditor()
+				const { source, item } = await addWithThumbnail(editor)
+				await source.deleteItem(item.id)
+				expect(await source.resolveThumbnail(item, context)).toBeNull()
+			})
+		})
+
 		it('deletes the images with the item, from the document and the asset store', async () => {
 			const assets = makeAssetStore()
 			const editor = makeEditor(librarySchemaRecords, assets)
