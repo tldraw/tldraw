@@ -1,4 +1,4 @@
-import { useCallback } from 'react'
+import { type ReactNode, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -32,6 +32,11 @@ export interface CollectionsPanelProps {
 	source: CollectionSource
 	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
 	side?: 'left' | 'right'
+	/**
+	 * Items of the host's own for the panel's ⋯ menu, placed after "New collection", e.g.
+	 * {@link CollectionMenuItem}s. Shown in a read-only editor too.
+	 */
+	menuItems?: ReactNode
 }
 
 /**
@@ -41,7 +46,7 @@ export interface CollectionsPanelProps {
  * the middle of the viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProps) {
+export function CollectionsPanel({ source, side = 'left', menuItems }: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -72,7 +77,7 @@ export function CollectionsPanel({ source, side = 'left' }: CollectionsPanelProp
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				<CollectionsPanelHeader source={source} />
+				<CollectionsPanelHeader source={source} menuItems={menuItems} />
 				{collections.length === 0 ? (
 					<NoCollections />
 				) : (

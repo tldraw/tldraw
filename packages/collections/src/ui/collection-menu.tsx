@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
 	defineMessages,
 	TldrawUiButton,
@@ -66,6 +67,11 @@ export interface CollectionMenuProps {
 	move?: CollectionMenuMove
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: CollectionMenuCopy
+	/**
+	 * Items of the host's own, placed after "New collection", e.g. {@link CollectionMenuItem}s. Shown
+	 * in a read-only editor too, so leave out any that change the document.
+	 */
+	children?: ReactNode
 }
 
 /**
@@ -80,6 +86,7 @@ export function CollectionMenu({
 	sort,
 	move,
 	copy,
+	children,
 }: CollectionMenuProps) {
 	const msg = useTranslation()
 	const isReadonly = useReadonly()
@@ -88,7 +95,7 @@ export function CollectionMenu({
 	const remove = isReadonly ? undefined : onDelete
 	const moveTo = isReadonly ? undefined : move
 	const copyTo = isReadonly ? undefined : copy
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo) return null
+	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -110,6 +117,7 @@ export function CollectionMenu({
 			>
 				<TldrawUiDropdownMenuGroup>
 					{create && <MenuItem label={msg(messages.create)} onClick={create} />}
+					{children}
 					{rename && <MenuItem label={msg(messages.rename)} onClick={rename} />}
 					{sort && (
 						<MenuSubmenu id={`${id}-sort`} label={msg(messages.sort)}>

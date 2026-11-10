@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import {
 	defineMessages,
 	getIncrementedName,
@@ -24,7 +25,13 @@ const messages = defineMessages({
 	},
 })
 
-export function CollectionsPanelHeader({ source }: { source: CollectionSource }) {
+export function CollectionsPanelHeader({
+	source,
+	menuItems,
+}: {
+	source: CollectionSource
+	menuItems?: ReactNode
+}) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -66,7 +73,9 @@ export function CollectionsPanelHeader({ source }: { source: CollectionSource })
 					<CollectionMenu
 						id="collections-panel-menu"
 						onCreate={canCreate ? createCollection : undefined}
-					/>
+					>
+						{menuItems}
+					</CollectionMenu>
 				)}
 			</div>
 		</header>
