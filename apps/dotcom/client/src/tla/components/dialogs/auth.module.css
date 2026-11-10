@@ -5,6 +5,17 @@
 	overflow-y: auto;
 }
 
+/* The sign-in flow is black and white, matching the OAuth consent page it hands off to. Swapping
+   the accent tokens here covers TlaCtaButton too without forking its styles. */
+.authContainer,
+.legalContainer {
+	--tl-color-primary: var(--tl-color-text-0);
+	--tla-color-primary-hover: var(--tl-color-text-1);
+	--tl-color-selected: var(--tl-color-text-0);
+	--tl-color-focus: var(--tl-color-text-0);
+	--tl-color-selected-contrast: var(--tl-color-background);
+}
+
 .authDialogBody {
 	padding: 0;
 }
@@ -78,6 +89,8 @@
 
 .legalDescription a {
 	color: var(--tl-color-selected);
+	/* The selected colour is the text colour here, so colour alone no longer marks a link. */
+	text-decoration: underline;
 }
 
 /* Cta button */
@@ -98,7 +111,8 @@
 	height: 22px;
 	padding: var(--tl-space-2);
 	z-index: 2;
-	background-color: var(--tl-color-selected-contrast);
+	/* Not the contrast token: .authContainer remaps it, and the Google mark belongs on white. */
+	background-color: #fff;
 	border-radius: 100%;
 }
 
@@ -210,6 +224,7 @@
 
 .authCheckboxLabel a {
 	color: var(--tl-color-selected);
+	text-decoration: underline;
 }
 
 .authCheckbox {

@@ -79,9 +79,12 @@ function ConsentOnceLegalAccepted() {
 
 // Colours are literals: outside the app's providers the tla/tl colour variables aren't defined. The
 // light values match the page's own light palette; the dark values mirror the app's dark theme.
-const lightVariables = { colorPrimary: '#1d1d1d' }
+// The page is black and white: Clerk's default warning colour is orange, and the card shows a
+// warning for every self-registered (unverified) MCP client.
+const lightVariables = { colorPrimary: '#1d1d1d', colorWarning: '#1d1d1d' }
 const darkVariables = {
 	colorPrimary: '#f5f5f5',
+	colorWarning: '#f5f5f5',
 	colorBackground: '#1d1d1d',
 	colorText: '#f5f5f5',
 	colorInputBackground: '#2a2a2a',
