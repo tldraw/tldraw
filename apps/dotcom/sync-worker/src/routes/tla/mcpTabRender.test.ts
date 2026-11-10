@@ -1,13 +1,19 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
+import { mintTabRenderJobIds } from '../../utils/tabRenderJobIds'
 import { parseTabRenderReply, postTabRenderReply } from './mcpTabRender'
 
-const JOB_ID = '6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90'
+const SECRET = { MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret' } as Environment
+let JOB_ID: string
+beforeAll(async () => {
+	;[JOB_ID] = await mintTabRenderJobIds(SECRET, 'file-1', 1)
+})
 
 function makeEnv({ jobExists = true, received = true } = {}) {
 	const hasTabRenderJob = vi.fn(async () => jobExists)
 	const receiveTabRenderReply = vi.fn(async () => received)
 	const env = {
+		...SECRET,
 		TLDR_DOC: {
 			idFromName: (name: string) => name,
 			get: () => ({ hasTabRenderJob, receiveTabRenderReply }),
@@ -70,6 +76,18 @@ describe('postTabRenderReply', () => {
 		const response = await postTabRenderReply(makeRequest(ACCEPTED, { jobId: 'made-up' }), env)
 		expect(response.status).toBe(404)
 		expect(hasTabRenderJob).not.toHaveBeenCalled()
+	})
+
+	// The forged-id test above, but with an id that has the right shape: a bare UUID was a valid job
+	// id before they were signed, and one signed for another board must not open this one.
+	it('does not reach the object for an unsigned id, or one signed for another room', async () => {
+		const [otherRoomJobId] = await mintTabRenderJobIds(SECRET, 'file-2', 1)
+		for (const jobId of ['6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90', otherRoomJobId]) {
+			const { env, hasTabRenderJob } = makeEnv()
+			const response = await postTabRenderReply(makeRequest(ACCEPTED, { jobId }), env)
+			expect(response.status, jobId).toBe(404)
+			expect(hasTabRenderJob, jobId).not.toHaveBeenCalled()
+		}
 	})
 
 	it('refuses an oversized reply from its header, without reaching the object', async () => {

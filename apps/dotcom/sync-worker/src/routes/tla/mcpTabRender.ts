@@ -8,12 +8,13 @@ import {
 } from '@tldraw/dotcom-shared'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
-import { TabRenderOutcome } from '../../tabRenderBroker'
+import { MAX_TAB_RENDER_SESSIONS, TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
+import { isTabRenderJobIdFor, mintTabRenderJobIds } from '../../utils/tabRenderJobIds'
 import { PageSelector } from './boardTools'
 import { reportThumbnailError } from './thumbnailShared'
 
@@ -46,7 +47,8 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 	const startedAt = Date.now()
 	let result: TabRenderOutcome | { status: 'error' }
 	try {
-		result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job)
+		const jobIds = await mintTabRenderJobIds(env, fileId, MAX_TAB_RENDER_SESSIONS)
+		result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job, jobIds)
 		const reason = result.status === 'declined' ? result.reason : 'none'
 		writeTabRenderTelemetry(env, job.mode, result.status, reason, Date.now() - startedAt)
 	} catch (error) {
@@ -202,8 +204,6 @@ export async function captureInOpenTab(
 // well under the 32 MiB limit, whatever text it holds.
 const MAX_TAB_RENDER_REPLY_BYTES = 16 * 1024 * 1024
 
-const JOB_ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/
-
 // The base64 of the PNG signature, minus the trailing characters that also encode the bytes after it.
 const PNG_BASE64_PREFIX = 'iVBORw0KGgo'
 
@@ -305,7 +305,7 @@ function isPlainObject(value: unknown) {
 }
 
 /**
- * A tab's reply to a job. Takes no sign-in: the job id is the capability, a random UUID sent to one
+ * A tab's reply to a job. Takes no sign-in: the job id is the capability, a signed nonce sent to one
  * tab's socket and dead once the job ends. A session token made an idle tab miss the ack window: its
  * Clerk token had usually expired, and refreshing it took longer than the window.
  *
@@ -315,8 +315,10 @@ function isPlainObject(value: unknown) {
  */
 export async function postTabRenderReply(request: IRequest, env: Environment): Promise<Response> {
 	const { roomId, jobId } = request.params
-	if (!roomId || !jobId || !JOB_ID_PATTERN.test(jobId)) return notFound()
+	if (!roomId || !jobId) return notFound()
 	if (isRoomIdTooLong(roomId)) return roomIdIsTooLong()
+	// Before anything reaches the room's object, so a made-up room id and job id can't wake it.
+	if (!(await isTabRenderJobIdFor(env, roomId, jobId))) return notFound()
 
 	const length = Number(request.headers.get('content-length'))
 	if (!length) return Response.json({ error: true, message: 'Length required' }, { status: 411 })

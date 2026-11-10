@@ -138,7 +138,12 @@ export function makeFakeFileDurableObjectNamespace(
 	return {
 		// A legible id rather than an opaque hash, so an assertion that reaches one reads as `do(<name>)`.
 		idFromName: (name: string) => ({ toString: () => `do(${name})` }),
-		get: () => ({ requestTabRender, ...room }),
+		// Drops the minted job ids: they're random, and the broker tests cover how they're issued.
+		get: () => ({
+			requestTabRender: (userId: string, request: TabRenderRequest) =>
+				requestTabRender(userId, request),
+			...room,
+		}),
 	}
 }
 

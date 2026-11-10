@@ -92,7 +92,8 @@ describe('TabRenderBroker', () => {
 	function dispatch(sessionIds: string[]) {
 		const broker = new TabRenderBroker()
 		const jobIds = new Map<string, string>()
-		const result = broker.dispatch(sessionIds, read, (sessionId, jobId) => {
+		const issued = sessionIds.map((sessionId) => `job-${sessionId}`)
+		const result = broker.dispatch(sessionIds, read, issued, (sessionId, jobId) => {
 			jobIds.set(sessionId, jobId)
 		})
 		return { broker, jobIds, result }

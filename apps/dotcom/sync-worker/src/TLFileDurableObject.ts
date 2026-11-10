@@ -3533,7 +3533,11 @@ export class TLFileDurableObject extends DurableObject {
 	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
 	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
 	 */
-	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
+	async requestTabRender(
+		userId: string,
+		request: TabRenderRequest,
+		jobIds: string[]
+	): Promise<TabRenderOutcome> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 
 		const sessionIds = pickTabRenderSessions(this.getTabRenderSockets(), userId, Date.now())
@@ -3550,8 +3554,8 @@ export class TLFileDurableObject extends DurableObject {
 		})
 		if (deliverable.length === 0) return { status: 'no_tab' }
 		// Any answer will do, and a second tab can cover for a dead one.
-		const targets = deliverable.slice(0, MAX_TAB_RENDER_SESSIONS)
-		return this.tabRenders.dispatch(targets, request, (sessionId, jobId) => {
+		const targets = deliverable.slice(0, Math.min(MAX_TAB_RENDER_SESSIONS, jobIds.length))
+		return this.tabRenders.dispatch(targets, request, jobIds, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})

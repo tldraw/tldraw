@@ -100,21 +100,25 @@ interface TabRenderJob {
 export class TabRenderBroker {
 	private readonly jobs = new Map<string, TabRenderJob>()
 
-	/** Resolves once a tab answers, or as soon as none of them can. */
+	/**
+	 * Resolves once a tab answers, or as soon as none of them can. Each session takes the next of
+	 * `jobIds`, which the worker minted and signed: see tabRenderJobIds.ts.
+	 */
 	dispatch(
 		sessionIds: string[],
 		request: TabRenderRequest,
+		jobIds: readonly string[],
 		send: (sessionId: string, jobId: string) => void
 	): Promise<TabRenderOutcome> {
 		return new Promise((resolve) => {
-			const jobIds: string[] = []
+			const issued: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
 				tabs: new Map(),
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
-					for (const jobId of jobIds) this.jobs.delete(jobId)
+					for (const jobId of issued) this.jobs.delete(jobId)
 					resolve(outcome)
 				},
 			}
@@ -132,13 +136,13 @@ export class TabRenderBroker {
 				)
 			}, TAB_RENDER_ACK_TIMEOUT_MS)
 
-			for (const sessionId of sessionIds) {
-				const jobId = crypto.randomUUID()
-				jobIds.push(jobId)
+			sessionIds.forEach((sessionId, i) => {
+				const jobId = jobIds[i]
+				issued.push(jobId)
 				job.tabs.set(jobId, 'asked')
 				this.jobs.set(jobId, job)
 				send(sessionId, jobId)
-			}
+			})
 		})
 	}
 
