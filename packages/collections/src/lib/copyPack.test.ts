@@ -35,11 +35,11 @@ const owners = [
 ]
 
 describe('copyPack', () => {
-	it('copies a pack as an ordinary collection, with the meta it is given', async () => {
+	it('copies a pack as an ordinary collection, recording the pack beside the meta it is given', async () => {
 		const source = new InMemoryCollectionSource({ owners })
-		const meta = { from: 'wireframing' }
-		const copy = await copyPack(source, pack, { ownerId: 'acme', meta })
-		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'acme', meta })
+		const copy = await copyPack(source, pack, { ownerId: 'acme', meta: { addedFrom: 'catalogue' } })
+		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'acme' })
+		expect(copy.meta).toEqual({ addedFrom: 'catalogue', packId: 'wireframing', packVersion: 3 })
 		const items = source.getItems(copy.id)
 		expect(items.map((item) => item.name)).toEqual(['Button', undefined])
 		expect(await source.getItemContent(items[0].id)).toEqual(content('button'))
@@ -47,10 +47,17 @@ describe('copyPack', () => {
 		expect(source.can('addItem', copy.id)).toBe(true)
 	})
 
-	it("uses the source's default owner and no meta unless told otherwise", async () => {
+	it("uses the source's default owner and records only the pack unless told otherwise", async () => {
 		const source = new InMemoryCollectionSource({ owners, defaultOwnerId: 'home' })
 		const copy = await copyPack(source, pack)
-		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'home', meta: {} })
+		expect(copy).toMatchObject({ name: 'Wireframing', ownerId: 'home' })
+		expect(copy.meta).toEqual({ packId: 'wireframing', packVersion: 3 })
+	})
+
+	it("keeps the pack's id and version over the same keys in the meta it is given", async () => {
+		const source = new InMemoryCollectionSource({ owners })
+		const copy = await copyPack(source, pack, { meta: { packId: 'other', packVersion: 1 } })
+		expect(copy.meta).toEqual({ packId: 'wireframing', packVersion: 3 })
 	})
 
 	it("numbers the copy's name when the source already has one by the pack's name", async () => {

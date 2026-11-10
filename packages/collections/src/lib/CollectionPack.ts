@@ -6,9 +6,10 @@ import type { TLCollectionItemContent, TLCollectionThumbnail } from './schema'
  * @public
  */
 export interface CollectionPack {
-	/** Stable across versions, so a copy can record which pack it came from. */
+	/** Stable across versions. {@link copyPack} records it on the copy's `meta` as `packId`. */
 	id: string
 	name: string
+	/** {@link copyPack} records it on the copy's `meta` as `packVersion`. */
 	version: number
 	items: CollectionPackItem[]
 }
