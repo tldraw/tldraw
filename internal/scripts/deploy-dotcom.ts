@@ -101,6 +101,7 @@ const env = makeEnv([
 	'PLAIN_WORKSPACE_ID',
 	'DEPLOY_ZERO',
 	'ZERO_ADMIN_PASSWORD',
+	'ZERO_CHANGE_STREAMER_SECRET',
 	'ZERO_FORCE_DEPLOY',
 	'ZERO_R2_ENDPOINT',
 	'ZERO_R2_BUCKET_NAME',
@@ -881,6 +882,11 @@ async function deployZeroViaFlyIoMultiNode() {
 		throw new Error('Fly.io app names are not defined for multi-node deployment')
 	}
 
+	// An unset GH secret arrives as '' and zero-cache treats that as unset, leaving the change-streamer unauthenticated.
+	if (!env.ZERO_CHANGE_STREAMER_SECRET.trim()) {
+		throw new Error('ZERO_CHANGE_STREAMER_SECRET is empty; required for multi-node deployment')
+	}
+
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	const backupPath = previewId ?? env.TLDRAW_ENV
 	const secrets = [
@@ -912,7 +918,8 @@ async function deployZeroViaFlyIoMultiNode() {
 		inputs: {
 			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
 			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
-			secrets,
+			// Not on the RM yet: an RM with the secret rejects view-syncers still on the old deploy.
+			secrets: [...secrets, `ZERO_CHANGE_STREAMER_SECRET=${env.ZERO_CHANGE_STREAMER_SECRET}`],
 		},
 	})
 	assert('vsMinMachines' in zeroVm, 'multi-node VM sizes required')
