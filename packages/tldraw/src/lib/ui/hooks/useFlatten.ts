@@ -440,8 +440,12 @@ export async function unflattenImages(
 		}
 		// A run of its own, so a throw part way (e.g. a binding type this editor doesn't have)
 		// rolls back the shapes already put, and the image stays as it was
+		// The shapes are new, so moving them onto the image ignores their lock, which they keep;
+		// otherwise a locked child of a frame stays where it was flattened
 		try {
-			editor.run(() => restoredShapeIds.push(...restoreFlattenSource(editor, image, source)))
+			editor.run(() => restoredShapeIds.push(...restoreFlattenSource(editor, image, source)), {
+				ignoreShapeLock: true,
+			})
 		} catch {
 			error ??= 'unreadable'
 		}

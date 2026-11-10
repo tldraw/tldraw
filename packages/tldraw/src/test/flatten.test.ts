@@ -200,7 +200,11 @@ describe('unflattenImages', () => {
 		return editor
 			.getCurrentPageShapes()
 			.filter((s) => s.type === 'geo')
-			.map((s) => ({ bounds: editor.getShapePageBounds(s)!.toJson(), props: s.props }))
+			.map((s) => ({
+				bounds: editor.getShapePageBounds(s)!.toJson(),
+				props: s.props,
+				isLocked: s.isLocked,
+			}))
 			.sort((x, y) => x.bounds.x - y.bounds.x)
 	}
 
@@ -319,6 +323,27 @@ describe('unflattenImages', () => {
 			[100, 100],
 			[100, 100],
 		])
+	})
+
+	it('scales locked children of a flattened frame and keeps them locked', async () => {
+		const frameId = createShapeId('frame')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 50, y: 50, props: { w: 300, h: 200 } },
+			{ ...box(a, 50, 50), parentId: frameId, isLocked: true },
+		])
+		const [imageId] = (await flattenShapesToImages(editor, [frameId]))!
+		const image = editor.getShape<TLImageShape>(imageId)!
+		editor.updateShape({
+			id: imageId,
+			type: 'image',
+			props: { w: image.props.w * 2, h: image.props.h * 2 },
+		})
+
+		await unflattenImages(editor, [imageId])
+
+		const [restored] = getRestoredBoxes()
+		expect([restored.bounds.w, restored.bounds.h]).toEqual([100, 100])
+		expect(restored.isLocked).toBe(true)
 	})
 
 	it('keeps the stacking order of the shapes', async () => {
