@@ -2929,6 +2929,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 				},
 				{ history: 'ignore' }
 			)
+			this._settleShapesBeingCreated()
 		})
 
 		return this
@@ -5843,8 +5844,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 	private readonly _canChangeRecord?: TLEditorOptions['canChangeRecord']
 
+	// Shapes created in the interaction still under way. Tools create a shape on pointer down and
+	// every drag frame after is an update, so a rule allowing create but not update would leave only
+	// dots. Until the interaction ends the host is asked about each update as a create of the result,
+	// and isn't asked about deleting the shape or about bindings from it.
+	private readonly _shapesBeingCreated = atom<ReadonlySet<TLShapeId>>(
+		'shapesBeingCreated',
+		new Set()
+	)
+	private _isHandlingEvents = false
+
+	private _isInteracting() {
+		return this._isHandlingEvents || this.inputs.getIsPointing() || !!this.getEditingShapeId()
+	}
+
+	private _settleShapesBeingCreated() {
+		if (this._shapesBeingCreated.__unsafe__getWithoutCapture().size === 0) return
+		if (this._isInteracting()) return
+		this._shapesBeingCreated.set(new Set())
+	}
+
 	private _isDeniedByHost(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>): boolean {
-		return !!this._canChangeRecord && !this._canChangeRecord(change, this)
+		if (!this._canChangeRecord) return false
+		const beingCreated = this._shapesBeingCreated.get()
+		if (beingCreated.size > 0) {
+			const record = change.next ?? change.prev
+			if (record.typeName === 'binding' && beingCreated.has(record.fromId)) return false
+			if (record.typeName === 'shape' && beingCreated.has(record.id)) {
+				if (change.type === 'delete') return false
+				change = { type: 'create', prev: null, next: record }
+			}
+		}
+		return !this._canChangeRecord(change, this)
 	}
 
 	/**
@@ -8832,6 +8863,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 				)
 				if (allowed.length === 0) return
 				shapeRecordsToCreate.splice(0, shapeRecordsToCreate.length, ...allowed)
+				if (this._isInteracting()) {
+					this._shapesBeingCreated.update(
+						(ids) => new Set([...ids, ...allowed.map((shape) => shape.id)])
+					)
+				}
 			}
 
 			this.emit('created-shapes', shapeRecordsToCreate)
@@ -10510,7 +10546,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		event.accelKey = options?.accelKey ?? this.inputs.getAccelKey()
 
 		if (options?.immediate) {
-			this._flushEventForTick(event)
+			this._isHandlingEvents = true
+			try {
+				this._flushEventForTick(event)
+			} finally {
+				this._isHandlingEvents = false
+			}
 		} else {
 			this.dispatch(event)
 		}
@@ -11114,9 +11155,15 @@ export class Editor extends EventEmitter<TLEventMap> {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
 				this._pendingEventsForNextTick.length = 0
-				for (const info of events) {
-					this._flushEventForTick(info)
+				this._isHandlingEvents = true
+				try {
+					for (const info of events) {
+						this._flushEventForTick(info)
+					}
+				} finally {
+					this._isHandlingEvents = false
 				}
+				this._settleShapesBeingCreated()
 			}
 			if (elapsed > 0) {
 				this.root.handleEvent({ type: 'misc', name: 'tick', elapsed })

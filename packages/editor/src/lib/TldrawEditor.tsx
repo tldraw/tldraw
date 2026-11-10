@@ -268,6 +268,14 @@ export interface TldrawEditorBaseProps {
 	 * you: a rule that inherits (a frame on someone else's page) walks `parentId` too. Reactive: read
 	 * store state inside it and the answer follows.
 	 *
+	 * Tools create a shape on pointer down and then update it on every drag frame. So that a rule
+	 * allowing create and denying update can still draw, a shape created during an interaction is
+	 * treated as still being created until the interaction ends (the pointer is released, or editing
+	 * stops): each update to it is asked about as a `'create'` of the result, and deleting it or
+	 * binding it to other shapes isn't asked about. This covers custom tools too, as long as they
+	 * create the shape while handling an editor event. A shape created outside one (from a button,
+	 * say) is judged on its next update like any other.
+	 *
 	 * This shapes the editor's behaviour, it does not enforce anything: the server decides. Writes
 	 * made straight to the store are not checked.
 	 *
