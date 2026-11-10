@@ -3,9 +3,10 @@ import {
 	isRole,
 	MAX_LIBRARY_NAME_LENGTH,
 	TlaLibraryItemThumbnail,
+	type DB,
 } from '@tldraw/dotcom-shared'
-import { uniqueId } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
+import { Kysely } from 'kysely'
 import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
 import {
 	getLibraryAccess,
@@ -33,6 +34,10 @@ export interface AddLibraryItemResponseBody {
 // exist, so ids can't be probed.
 const notFound = () => Response.json({ error: 'Not found' }, { status: 404 })
 const badRequest = (error: string) => Response.json({ error }, { status: 400 })
+const conflict = () => Response.json({ error: 'The item id is taken' }, { status: 409 })
+
+// What uniqueId() makes, which is how clients pick item ids.
+const ITEM_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/
 
 async function readText(value: FormDataEntryValue | null) {
 	if (value === null) return null
@@ -51,6 +56,17 @@ function readThumbnail(value: FormDataEntryValue | null): File | null | Response
 	return value
 }
 
+// An id is taken while its item's row exists, and after the item is deleted until its content is
+// removed (see processLibraryItemEffect), which would otherwise remove the new item's too.
+async function isItemIdTaken(db: Kysely<DB>, env: Environment, id: string) {
+	const row = await db
+		.selectFrom('library_item')
+		.select('id')
+		.where('id', '=', id)
+		.executeTakeFirst()
+	return row !== undefined || (await env.ROOMS.head(getLibraryItemContentKey(id))) !== null
+}
+
 function isItemContent(value: unknown): value is StoredItemContent {
 	if (!value || typeof value !== 'object') return false
 	const { formatVersion, content } = value as { formatVersion?: unknown; content?: any }
@@ -62,11 +78,16 @@ function isItemContent(value: unknown): value is StoredItemContent {
  * Adds an item to a library: gives it its own copies of the uploads its content refers to (see
  * copyItemAssets), stores its content (a TLLibraryItemContent as JSON) privately and its
  * optional thumbnails as public uploads, then inserts its row, with the thumbnails' URLs, which
- * reaches clients through Zero, and records the copies it owns. The worker picks the item's id, so
- * a request can't name an existing item and overwrite its content.
+ * reaches clients through Zero, and records the copies it owns.
  *
- * Form fields: `content`, `thumbnail` (optional, PNG, WebP or JPEG), `darkThumbnail` (optional, and
- * only with `thumbnail`, which is then the light one of the pair) and `name` (optional).
+ * The client picks the item's id, as it does a file's, so it can list the item under that id while
+ * this runs. An id that's taken is refused with 409 before anything is stored, so a request can't
+ * overwrite another item's content; if another request takes it meanwhile, the row insert finds it
+ * and this answers 409 and removes the uploads it stored.
+ *
+ * Form fields: `id` (made by uniqueId), `content`, `thumbnail` (optional, PNG, WebP or JPEG),
+ * `darkThumbnail` (optional, and only with `thumbnail`, which is then the light one of the pair)
+ * and `name` (optional).
  */
 export async function addLibraryItem(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -75,6 +96,8 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 
 	const form = await request.formData().catch(() => null)
 	if (!form) return badRequest('Expected form data')
+	const id = await readText(form.get('id'))
+	if (id === null || !ITEM_ID_PATTERN.test(id)) return badRequest('A valid item id is required')
 	const contentText = await readText(form.get('content'))
 	if (contentText === null) return badRequest('Content is required')
 	if (new TextEncoder().encode(contentText).byteLength > MAX_LIBRARY_ITEM_CONTENT_BYTES) {
@@ -103,10 +126,15 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 			return Response.json({ error: 'Forbidden' }, { status: 403 })
 		}
 
-		const id = uniqueId()
+		if (await isItemIdTaken(db, env, id)) return conflict()
+
 		const contentKey = getLibraryItemContentKey(id)
 		const uploads: string[] = []
 		let ownedObjectNames: string[] = []
+		const removeUploads = async () => {
+			const stored = [...uploads, ...ownedObjectNames]
+			if (stored.length > 0) await env.UPLOADS.delete(stored)
+		}
 		const now = Date.now()
 		try {
 			const owned = await copyItemAssets(env, content, id)
@@ -116,8 +144,8 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 			})
 			const thumbnail =
 				thumbnailFile && (await putThumbnail(env, thumbnailFile, darkThumbnailFile, uploads))
-			await db.transaction().execute(async (tx) => {
-				await tx
+			const inserted = await db.transaction().execute(async (tx) => {
+				const row = await tx
 					.insertInto('library_item')
 					.values({
 						id,
@@ -128,14 +156,23 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 						createdAt: now,
 						updatedAt: now,
 					})
-					.execute()
+					.onConflict((oc) => oc.column('id').doNothing())
+					.returning('id')
+					.executeTakeFirst()
+				if (!row) return false
 				if (ownedObjectNames.length > 0) {
 					await tx
 						.insertInto('library_item_asset')
 						.values(ownedObjectNames.map((objectName) => ({ itemId: id, objectName })))
 						.execute()
 				}
+				return true
 			})
+			if (!inserted) {
+				// The content stored under the id is the other request's item's now, so it stays.
+				await removeUploads()
+				return conflict()
+			}
 			return Response.json({
 				id,
 				createdAt: now,
@@ -144,8 +181,7 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 		} catch (error) {
 			// e.g. the library was deleted meanwhile; nothing refers to the objects yet
 			await env.ROOMS.delete(contentKey)
-			const stored = [...uploads, ...ownedObjectNames]
-			if (stored.length > 0) await env.UPLOADS.delete(stored)
+			await removeUploads()
 			throw error
 		}
 	} finally {
