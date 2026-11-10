@@ -129,6 +129,17 @@ describe('CompositeCollectionSource', () => {
 		)
 	})
 
+	it('keeps the meta it is given, in parts with or without their own owners', async () => {
+		const { source } = setUp()
+		const kit = await source.createCollection('Kit', { meta: { packId: 'p' } })
+		expect(source.getCollections().find((c) => c.id === kit.id)?.meta).toEqual({ packId: 'p' })
+		const teamKit = await source.createCollection('Team kit', {
+			ownerId: 'acme',
+			meta: { packId: 'q' },
+		})
+		expect(source.getCollections().find((c) => c.id === teamKit.id)?.meta).toEqual({ packId: 'q' })
+	})
+
 	it('takes a default owner from the options', async () => {
 		const mine = new InMemoryCollectionSource()
 		const team = new InMemoryCollectionSource()

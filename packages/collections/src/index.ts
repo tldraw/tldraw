@@ -40,7 +40,9 @@ export {
 	type CompositeCollectionSourceOptions,
 	type CompositeCollectionSourcePart,
 } from './lib/CompositeCollectionSource'
+export type { CollectionPack, CollectionPackItem } from './lib/CollectionPack'
 export { copyCollection } from './lib/copyCollection'
+export { copyPack } from './lib/copyPack'
 export {
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,
