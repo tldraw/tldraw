@@ -3552,7 +3552,7 @@ export class TLFileDurableObject extends DurableObject {
 		if (deliverable.length === 0) return { status: 'no_tab' }
 		// Any answer will do, and a second tab can cover for a dead one.
 		const targets = deliverable.slice(0, MAX_TAB_RENDER_SESSIONS)
-		return this.tabRenders.dispatch(userId, targets, request, (sessionId, jobId) => {
+		return this.tabRenders.dispatch(targets, request, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
@@ -3581,16 +3581,12 @@ export class TLFileDurableObject extends DurableObject {
 		return { status: 'ok', page: resolvePage(snapshot, page) }
 	}
 
-	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
-		return this.tabRenders.has(jobId, userId)
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
 	}
 
-	async receiveTabRenderReply(
-		jobId: string,
-		userId: string,
-		reply: TabRenderReply
-	): Promise<boolean> {
-		return this.tabRenders.receive(jobId, userId, reply)
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
 	}
 
 	/**

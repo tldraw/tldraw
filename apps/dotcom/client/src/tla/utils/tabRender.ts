@@ -63,10 +63,9 @@ function enqueueExport(run: () => Promise<TabRenderReply>) {
 export async function answerTabRender(
 	editor: Editor | null,
 	fileId: string,
-	getToken: () => Promise<string>,
 	{ jobId, request }: TabRenderServerEvent
 ) {
-	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, getToken, body)
+	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, body)
 
 	const refusal = editor ? getRefusal(editor, request) : 'editor_not_ready'
 	if (refusal || !editor) {
@@ -195,24 +194,13 @@ function yieldToMainThread() {
 	})
 }
 
-// A lost reply needs no handling: the worker times out and tells the agent. That includes a tab that
-// can't get a token, such as one whose sign-in has ended.
-//
-// The token is fetched per reply rather than taken from the session cookie, which a hidden tab
-// lets expire: getToken() refreshes it when it has.
-async function postTabRenderReply(
-	fileId: string,
-	jobId: string,
-	getToken: () => Promise<string>,
-	reply: TabRenderReply
-) {
+// A lost reply needs no handling: the worker times out and tells the agent. No token: the job id is
+// what the route checks, and waiting on a token refresh made hidden tabs miss the ack window.
+async function postTabRenderReply(fileId: string, jobId: string, reply: TabRenderReply) {
 	try {
 		await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${await getToken()}`,
-			},
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(reply),
 		})
 	} catch (error) {
