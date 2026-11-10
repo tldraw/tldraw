@@ -1,5 +1,7 @@
-import { type PointerEvent, type ReactNode, type RefObject } from 'react'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
+import { createContext, type PointerEvent, type ReactNode, type RefObject, useContext } from 'react'
 import {
+	preventDefault,
 	TldrawUiDropdownMenuCheckboxItem,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
@@ -7,6 +9,35 @@ import {
 	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
 } from 'tldraw'
+
+const InContextMenuContext = createContext(false)
+
+/**
+ * Renders the {@link MenuItem}s inside it as context menu items, for placing them in a submenu of
+ * tldraw's context menu, whose items come from a different menu than a dropdown's.
+ */
+export function InContextMenu({ children }: { children: ReactNode }) {
+	return <InContextMenuContext.Provider value>{children}</InContextMenuContext.Provider>
+}
+
+function MenuItemRoot({ noClose, children }: { noClose?: boolean; children: ReactNode }) {
+	const inContextMenu = useContext(InContextMenuContext)
+	if (!inContextMenu) {
+		return <TldrawUiDropdownMenuItem noClose={noClose}>{children}</TldrawUiDropdownMenuItem>
+	}
+	return (
+		<_ContextMenu.Item
+			asChild
+			onSelect={noClose ? preventDefault : undefined}
+			// Releasing a right-click over an item would otherwise select it.
+			onPointerUp={(e) => {
+				if (e.button !== 0) preventDefault(e)
+			}}
+		>
+			{children}
+		</_ContextMenu.Item>
+	)
+}
 
 function keepFocusWhile(holdFocus: boolean) {
 	return (e: PointerEvent) => {
@@ -32,7 +63,7 @@ export function MenuItem({
 }) {
 	const keepFocus = keepFocusWhile(holdFocus)
 	return (
-		<TldrawUiDropdownMenuItem noClose={noClose}>
+		<MenuItemRoot noClose={noClose}>
 			<button
 				ref={buttonRef}
 				type="button"
@@ -47,7 +78,7 @@ export function MenuItem({
 			>
 				<span>{label}</span>
 			</button>
-		</TldrawUiDropdownMenuItem>
+		</MenuItemRoot>
 	)
 }
 
