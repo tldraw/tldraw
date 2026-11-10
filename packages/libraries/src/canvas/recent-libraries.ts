@@ -1,5 +1,5 @@
 import { atom, getFromLocalStorage, setInLocalStorage, type Atom } from '@tldraw/editor'
-import type { TLLibrary, TLLibraryId } from '../lib/schema'
+import type { TLLibrary, TLLibraryId } from '@tldraw/tlschema'
 
 const MAX_RECENT = 20
 

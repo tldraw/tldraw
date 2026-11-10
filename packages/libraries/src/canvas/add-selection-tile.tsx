@@ -1,6 +1,12 @@
-import { defineMessages, TldrawUiIcon, useEditor, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	TldrawUiIcon,
+	useEditor,
+	useTranslation,
+	useValue,
+	type TLLibraryId,
+} from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId } from '../lib/schema'
 import type { PrepareItemContent } from './save-shapes'
 import { useSaveSelection } from './use-save-selection'
 

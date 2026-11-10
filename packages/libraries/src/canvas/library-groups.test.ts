@@ -1,4 +1,4 @@
-import type { TLLibrary, TLLibraryId } from '../lib/schema'
+import type { TLLibrary, TLLibraryId } from 'tldraw'
 import { getLibraryGrouping, groupLibraryList } from './library-groups'
 
 const library = (id: string, ownerId?: string) =>
