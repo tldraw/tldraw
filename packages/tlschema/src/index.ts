@@ -117,6 +117,23 @@ export {
 } from './records/TLBinding'
 export { CameraRecordType, type TLCamera, type TLCameraId } from './records/TLCamera'
 export {
+	LibraryItemContentRecordType,
+	libraryItemContentValidator,
+	libraryItemRecordValidator,
+	LibraryRecordType,
+	librarySchemaRecords,
+	libraryValidator,
+	createLibraryItemContentId,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemContentRecord,
+	type TLLibraryItemContentRecordId,
+	type TLLibraryItemId,
+	type TLLibraryItemRecord,
+	type TLLibraryRecord,
+	type TLLibraryThumbnail,
+} from './records/TLLibrary'
+export {
 	commentReactionRecordConfig,
 	commentRecordConfig,
 	commentSchemaRecords,

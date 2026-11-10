@@ -6,10 +6,10 @@ import {
 	useToasts,
 	useTranslation,
 	useValue,
+	type TLLibrary,
 } from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
 import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'

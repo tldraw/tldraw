@@ -6,9 +6,10 @@ import {
 	useToasts,
 	useTranslation,
 	useValue,
+	type TLLibrary,
+	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
 import { LibrariesPanelHeader } from './libraries-panel-header'
 import { groupLibraryList, useLibraryGrouping } from './library-groups'
 import { LibrarySection } from './library-section'
