@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useFileSnapshotStore } from '../../../hooks/useFileSnapshotStore'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
 import { useHandleUiEvents } from '../../../utils/analytics'
@@ -40,13 +41,14 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 		}),
 		[schema, records]
 	)
+	const store = useFileSnapshotStore(snapshot, embedShapeUtils)
 
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
-				snapshot={snapshot}
+				store={store}
 				overrides={[fileEditorOverrides]}
 				onUiEvent={handleUiEvent}
 				onMount={(editor) => {
