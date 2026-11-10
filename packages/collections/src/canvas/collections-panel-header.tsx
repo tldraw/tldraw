@@ -9,7 +9,7 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import { CollectionMenu } from '../ui/collection-menu'
-import { createNewCollection } from './new-collection'
+import { canCreateNewCollection, createNewCollection } from './new-collection'
 import { activeCollectionId, renamingCollectionId } from './state'
 
 const messages = defineMessages({
@@ -35,7 +35,7 @@ export function CollectionsPanelHeader({
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
-	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
+	const canCreate = useValue('can create collection', () => canCreateNewCollection(source), [
 		source,
 	])
 	const renaming = useValue(

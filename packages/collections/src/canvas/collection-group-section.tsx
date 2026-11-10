@@ -34,8 +34,8 @@ const messages = defineMessages({
 
 /**
  * An owner's collections under a heading that folds them shut, with a "+" that creates a collection
- * for that owner. Unfolds when one of its collections becomes the active one. A group without an
- * owner has no heading.
+ * for that owner when the source allows it. Unfolds when one of its collections becomes the active
+ * one. A group without an owner has no heading.
  */
 export function CollectionGroupSection({
 	source,
@@ -56,9 +56,11 @@ export function CollectionGroupSection({
 		() => key !== undefined && (collapsedGroupKeys.get(editor)[source.id] ?? []).includes(key),
 		[editor, source, key]
 	)
-	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
-		source,
-	])
+	const canCreate = useValue(
+		'can create collection for owner',
+		() => key !== undefined && source.can('createCollection', { ownerId: key }),
+		[source, key]
+	)
 	const holdsActive = useValue(
 		'group holds active collection',
 		() => group.collections.some((c) => c.id === activeCollectionId.get(editor)),

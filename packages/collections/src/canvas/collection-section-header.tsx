@@ -13,6 +13,7 @@ import type { TLCollection } from '../lib/schema'
 import { CollectionMenu, type CollectionMenuSort } from '../ui/collection-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { getOwnerChoices } from './owner-choices'
 import { renamingCollectionId } from './state'
 
 const messages = defineMessages({
@@ -71,14 +72,13 @@ export function CollectionSectionHeader({
 		() => ({
 			rename: source.can('renameCollection', collectionId),
 			delete: source.can('deleteCollection', collectionId),
-			copy: source.can('createCollection'),
 		}),
 		[source, collectionId]
 	)
-	const owners = useValue(
-		'collection owners',
-		() => (source.getCollectionOwners ? source.getCollectionOwners() : []),
-		[source]
+	const ownerChoices = useValue(
+		'collection owner choices',
+		() => getOwnerChoices(source, collection.ownerId),
+		[source, collection.ownerId]
 	)
 
 	const showError = () =>
@@ -112,7 +112,7 @@ export function CollectionSectionHeader({
 
 	const moveCollection = (ownerId: string) => {
 		if (!source.moveCollection) return
-		const owner = owners.find((o) => o.id === ownerId)
+		const owner = ownerChoices.move.find((o) => o.id === ownerId)
 		source.moveCollection(collectionId, ownerId).then(
 			() =>
 				addToast({
@@ -124,7 +124,7 @@ export function CollectionSectionHeader({
 	}
 
 	const copyToOwner = (ownerId: string) => {
-		const owner = owners.find((o) => o.id === ownerId)
+		const owner = ownerChoices.copy.find((o) => o.id === ownerId)
 		copyCollection(source, collectionId, ownerId).then(
 			() =>
 				addToast({
@@ -134,8 +134,6 @@ export function CollectionSectionHeader({
 			showError
 		)
 	}
-
-	const copyTargets = owners.filter((o) => o.id !== collection.ownerId)
 
 	return (
 		<header className="tlui-collections-panel__header">
@@ -167,13 +165,17 @@ export function CollectionSectionHeader({
 						onDelete={can.delete ? deleteCollection : undefined}
 						sort={sort}
 						move={
-							source.moveCollection && can.delete && owners.length > 1
-								? { owners, value: collection.ownerId, onValueChange: moveCollection }
+							source.moveCollection && can.delete && ownerChoices.move.length > 0
+								? {
+										owners: ownerChoices.move,
+										value: collection.ownerId,
+										onValueChange: moveCollection,
+									}
 								: undefined
 						}
 						copy={
-							can.copy && copyTargets.length > 0
-								? { owners: copyTargets, onSelect: copyToOwner }
+							ownerChoices.copy.length > 0
+								? { owners: ownerChoices.copy, onSelect: copyToOwner }
 								: undefined
 						}
 					/>
