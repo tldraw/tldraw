@@ -1,9 +1,9 @@
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import { LibraryNotFoundError } from './LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType, type TLLibraryItemContent } from './schema'
+import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 const shapeId = createShapeId('box')
 const owners = [

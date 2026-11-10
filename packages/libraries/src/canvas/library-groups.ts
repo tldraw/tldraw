@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { useValue } from 'tldraw'
+import type { TLLibrary } from 'tldraw'
 import type { LibrarySource, TLLibraryOwner } from '../lib/LibrarySource'
-import type { TLLibrary } from '../lib/schema'
 
 export interface LibraryGroup {
 	/** The owner's id. Libraries without a known owner go in a group with none. */

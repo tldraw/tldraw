@@ -1,8 +1,8 @@
 import { getIncrementedName } from '@tldraw/editor'
+import type { TLLibrary } from '@tldraw/tlschema'
 import { fetchThumbnail } from './copyLibrary'
 import type { LibraryPack } from './LibraryPack'
 import type { LibrarySource, TLNewLibraryOptions } from './LibrarySource'
-import type { TLLibrary } from './schema'
 
 /**
  * Copies a pack into a source as an ordinary library the owner can change like any other, with

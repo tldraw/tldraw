@@ -1,7 +1,6 @@
 import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
 import { LibraryMenu as DefaultLibraryMenu } from '../ui/library-menu'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'

@@ -6,9 +6,9 @@ import {
 	useToasts,
 	useTranslation,
 	type Editor,
+	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibraryId } from '../lib/schema'
 import { createNewLibrary } from './new-library'
 import { recordRecentLibrary } from './recent-libraries'
 import { saveShapesToLibrary, type PrepareItemContent } from './save-shapes'

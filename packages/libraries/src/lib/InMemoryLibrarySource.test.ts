@@ -1,5 +1,5 @@
 import { react } from '@tldraw/state'
-import { createShapeId, createTLSchema } from '@tldraw/tlschema'
+import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import {
@@ -8,7 +8,7 @@ import {
 	type TLLibraryAction,
 	type TLLibraryTarget,
 } from './LibrarySource'
-import { LibraryItemRecordType, LibraryRecordType, type TLLibraryItemContent } from './schema'
+import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 const shapeId = createShapeId('box')
 const pack = LibraryRecordType.createId('pack')
