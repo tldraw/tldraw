@@ -19,6 +19,7 @@ export const ROUTES = {
 	tlaPublish: `/p/:fileSlug`,
 	tlaImport: `/import`,
 	tlaInvite: `/invite/:token`,
+	tlaSignIn: `/sign-in`,
 	tlaSsoCallback: `/sso-callback`,
 	tlaOAuthConsent: `/oauth-consent`,
 	// Legacy routes

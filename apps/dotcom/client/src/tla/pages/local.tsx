@@ -19,7 +19,7 @@ import { hasNotAcceptedLegal } from '../utils/auth'
 import { startCachedFileVisit } from '../utils/cachedFileVisit'
 import { importFromUrl } from '../utils/importFromUrl'
 import { getLastVisitedFileId } from '../utils/local-session-state'
-import { clearRedirectOnSignIn, OPEN_SIGN_IN } from '../utils/redirect'
+import { clearRedirectOnSignIn, isClerkFrontendApiUrl, OPEN_SIGN_IN } from '../utils/redirect'
 import { SESSION_STORAGE_KEYS } from '../utils/session-storage'
 import { clearShouldSlurpFile, getShouldSlurpFile, setShouldSlurpFile } from '../utils/slurping'
 
@@ -60,6 +60,11 @@ export function Component() {
 				clearRedirectOnSignIn()
 				if (redirectTo.startsWith('/')) {
 					navigate(redirectTo, { replace: true })
+					return
+				}
+				// /sign-in stores Clerk's OAuth authorize URL, which lives on Clerk's own origin.
+				if (isClerkFrontendApiUrl(redirectTo)) {
+					window.location.replace(redirectTo)
 					return
 				}
 			}
