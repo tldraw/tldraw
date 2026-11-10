@@ -7,6 +7,7 @@ import {
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
 import { Environment } from '../../types'
+import { resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
