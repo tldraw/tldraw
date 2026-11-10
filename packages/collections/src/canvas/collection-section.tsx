@@ -5,6 +5,7 @@ import type { TLCollection, TLCollectionItemId } from '../lib/schema'
 import { CollectionItems } from './collection-items'
 import { CollectionSectionHeader } from './collection-section-header'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
+import type { PrepareItemContent } from './save-shapes'
 import { activeCollectionId, collapsedCollectionIds } from './state'
 
 /** Unfolds and scrolls into view when it becomes the active collection, e.g. from a toast's "Open". */
@@ -12,10 +13,12 @@ export function CollectionSection({
 	source,
 	collection,
 	getItemProps,
+	prepareItemContent,
 }: {
 	source: CollectionSource
 	collection: TLCollection
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLElement | null>(null)
@@ -80,6 +83,7 @@ export function CollectionSection({
 					getItemProps={getItemProps}
 					ordering={ordering}
 					reversed={choice.reversed}
+					prepareItemContent={prepareItemContent}
 				/>
 			)}
 		</section>

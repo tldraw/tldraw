@@ -12,6 +12,7 @@ import { InContextMenu, MenuItem } from '../ui/menu-items'
 import { groupCollectionList, useCollectionGrouping } from './collection-groups'
 import { canCreateNewCollection } from './new-collection'
 import { sortByRecentlyAddedTo } from './recent-collections'
+import type { PrepareItemContent } from './save-shapes'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
@@ -22,6 +23,8 @@ const messages = defineMessages({
 /** @public */
 export interface AddToCollectionMenuItemProps {
 	source: CollectionSource
+	/** Changes an item's content before it's saved, e.g. {@link wrapInGroup}. */
+	prepareItemContent?: PrepareItemContent
 }
 
 /**
@@ -31,7 +34,10 @@ export interface AddToCollectionMenuItemProps {
  * context menu, e.g. above `DefaultContextMenuContent`.
  * @public @react
  */
-export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps) {
+export function AddToCollectionMenuItem({
+	source,
+	prepareItemContent,
+}: AddToCollectionMenuItemProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
@@ -50,7 +56,7 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 	const canCreate = useValue('can create collection', () => canCreateNewCollection(source), [
 		source,
 	])
-	const { saveSelection, saveToNewCollection } = useSaveSelection(source)
+	const { saveSelection, saveToNewCollection } = useSaveSelection(source, prepareItemContent)
 
 	if (!hasSelection || (collections.length === 0 && !canCreate)) return null
 

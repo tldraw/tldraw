@@ -7,6 +7,7 @@ import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { type ItemOrdering, sortItems } from './item-order'
+import type { PrepareItemContent } from './save-shapes'
 import { activeCollectionId, collectionsPanelOpen } from './state'
 import { useThumbnailUrls } from './use-thumbnail-urls'
 
@@ -53,6 +54,7 @@ export interface CollectionItemsProps {
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: ItemOrdering
 	reversed: boolean
+	prepareItemContent?: PrepareItemContent
 }
 
 export function CollectionItems({
@@ -62,6 +64,7 @@ export function CollectionItems({
 	getItemProps,
 	ordering,
 	reversed,
+	prepareItemContent,
 }: CollectionItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -210,7 +213,11 @@ export function CollectionItems({
 			/>
 			{canAdd && (
 				<ItemGridTile>
-					<AddSelectionTile source={source} collectionId={collectionId} />
+					<AddSelectionTile
+						source={source}
+						collectionId={collectionId}
+						prepareItemContent={prepareItemContent}
+					/>
 				</ItemGridTile>
 			)}
 		</ItemGrid>
