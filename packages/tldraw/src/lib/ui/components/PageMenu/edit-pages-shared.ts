@@ -4,6 +4,7 @@ import {
 	getIndexBelow,
 	getIndexBetween,
 	IndexKey,
+	TLPage,
 	TLPageId,
 } from '@tldraw/editor'
 import { TLUiEventContextType } from '../../context/events'
@@ -40,4 +41,31 @@ export function onMovePage(
 		})
 		trackEvent('move-page', { source: 'page-menu' })
 	}
+}
+
+// Each of these asks about the permission by name and about the page itself, so a rule that
+// only covers some pages still gets a say.
+
+export function canCreatePage(editor: Editor) {
+	return editor.can('tl:page:create')
+}
+
+export function canUpdatePage(editor: Editor, page: TLPage) {
+	return (
+		editor.can('tl:page:update') &&
+		editor.canChangeRecord({ type: 'update', prev: page, next: page })
+	)
+}
+
+// A copy of a page with shapes on it creates those shapes too.
+export function canDuplicatePage(editor: Editor, page: TLPage) {
+	if (!canCreatePage(editor)) return false
+	return editor.getPageShapeIds(page).size === 0 || editor.can('tl:shape:create')
+}
+
+// Deleting a page deletes the shapes on it.
+export function canDeletePage(editor: Editor, page: TLPage) {
+	if (!editor.can('tl:page:delete')) return false
+	if (!editor.canChangeRecord({ type: 'delete', prev: page, next: null })) return false
+	return editor.getPageShapeIds(page).size === 0 || editor.can('tl:shape:delete')
 }

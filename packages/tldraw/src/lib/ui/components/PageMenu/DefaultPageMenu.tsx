@@ -23,7 +23,7 @@ import {
 	TldrawUiPopoverContent,
 	TldrawUiPopoverTrigger,
 } from '../primitives/TldrawUiPopover'
-import { onMovePage } from './edit-pages-shared'
+import { canCreatePage, canUpdatePage, onMovePage } from './edit-pages-shared'
 import { PageItemInput } from './PageItemInput'
 import { PageItemSubmenu } from './PageItemSubmenu'
 
@@ -123,6 +123,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const currentPage = useValue('currentPage', () => editor.getCurrentPage(), [editor])
 
 	const isReadonlyMode = useReadonly()
+	const canCreate = useValue('canCreatePage', () => canCreatePage(editor), [editor])
+	const canReorder = useValue('canReorderPages', () => editor.can('tl:page:update'), [editor])
 
 	const isCoarsePointer = useValue(
 		'isCoarsePointer',
@@ -493,9 +495,9 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	}, [isOpen, resetDrag])
 
 	const shouldUseWindowPrompt = breakpoint < PORTRAIT_BREAKPOINT.TABLET_SM && isCoarsePointer
-	const shouldUseDragHandle = !isReadonlyMode && isCoarsePointer
+	const shouldUseDragHandle = !isReadonlyMode && canReorder && isCoarsePointer
 	const rowDragHandlers =
-		isReadonlyMode || isCoarsePointer
+		isReadonlyMode || !canReorder || isCoarsePointer
 			? undefined
 			: {
 					onPointerDown: handlePointerDown,
@@ -507,6 +509,8 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	const startRenamingPage = useCallback(
 		(id: TLPageId, currentName: string) => {
 			if (isReadonlyMode) return
+			const page = editor.getPage(id)
+			if (!page || !canUpdatePage(editor, page)) return
 			if (shouldUseWindowPrompt) {
 				const name = window.prompt(msg(messages.actionRename), currentName)
 				if (name && name !== currentName) {
@@ -521,7 +525,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 	)
 
 	const handleCreatePageClick = useCallback(() => {
-		if (isReadonlyMode) return
+		if (isReadonlyMode || !canCreate) return
 
 		const newPageId = PageRecordType.createId()
 		const initialName = msg(messages.pageMenuNewPageInitialName)
@@ -543,7 +547,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 			startRenamingPage(newPageId, initialName)
 		}
 		trackEvent('new-page', { source: 'page-menu' })
-	}, [editor, msg, isReadonlyMode, shouldUseWindowPrompt, startRenamingPage, trackEvent])
+	}, [editor, msg, isReadonlyMode, canCreate, shouldUseWindowPrompt, startRenamingPage, trackEvent])
 
 	const changePage = useCallback(
 		(id: TLPageId) => {
@@ -715,7 +719,7 @@ export const DefaultPageMenu = memo(function DefaultPageMenu() {
 						data-testid="page-menu.create"
 						tooltip={createPageButtonLabel}
 						title={createPageButtonLabel}
-						disabled={isReadonlyMode || hasReachedMaxPages}
+						disabled={isReadonlyMode || hasReachedMaxPages || !canCreate}
 						onClick={handleCreatePageClick}
 					>
 						<TldrawUiButtonLabel>{createPageButtonLabel}</TldrawUiButtonLabel>

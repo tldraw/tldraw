@@ -1793,7 +1793,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'move-to-new-page',
 				isEnabled: (editor) =>
-					hasUnlockedSelection(editor, 1) && editor.getPages().length < editor.options.maxPages,
+					hasUnlockedSelection(editor, 1) &&
+					editor.getPages().length < editor.options.maxPages &&
+					editor.can('tl:page:create'),
 				label: messages.contextPagesNewPage.id,
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
@@ -1890,8 +1892,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					// If we're on the last page...
 					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
-						// if the current page is blank or if we're in readonly mode, do nothing
-						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
+						// if the current page is blank, or we're in readonly mode or can't create pages, do nothing
+						if (
+							editor.getCurrentPageShapes().length <= 0 ||
+							editor.getIsReadonly() ||
+							!editor.can('tl:page:create')
+						) {
 							return
 						}
 						// Otherwise, create a new page
