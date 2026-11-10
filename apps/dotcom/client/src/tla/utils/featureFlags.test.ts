@@ -16,6 +16,8 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		mcp_tab_render: { enabled: false },
 		version_chain: { enabled: false },
 		collections: { enabled: false },
+		thumbnail_render_push: { enabled: false },
+		mcp_render_push: { enabled: false },
 		...overrides,
 	}
 }

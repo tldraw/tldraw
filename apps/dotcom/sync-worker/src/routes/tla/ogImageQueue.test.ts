@@ -1,5 +1,5 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
@@ -9,6 +9,7 @@ import {
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
 import { OgImageRenderQueueMessage } from '../../types'
+import { hashToPercentage, resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
@@ -513,6 +514,7 @@ describe('handleOgImageRenderMessage', () => {
 
 	describe('pushing the records into the render page', () => {
 		const board = { kind: 'published', slug: 'board' } as const
+		beforeEach(() => resetFeatureFlagCacheForTests())
 		// Run as the page would, so a script that evaluates differently from JSON.parse fails here.
 		function runPushedScript(script: string) {
 			const window: Record<string, unknown> = {}
@@ -592,6 +594,62 @@ describe('handleOgImageRenderMessage', () => {
 
 			expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
 			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+		})
+
+		describe('the thumbnail_render_push rollout, where the deployment does not force push', () => {
+			const bucket = hashToPercentage('published/board', 'thumbnail_render_push')
+
+			function arrangeRollout(flag: object) {
+				return arrange({
+					THUMBNAIL_RENDER_PUSH: undefined,
+					FEATURE_FLAGS: {
+						get: async (key: string) =>
+							key === 'thumbnail_render_push' ? JSON.stringify(flag) : null,
+					},
+				})
+			}
+
+			it('pushes a board whose bucket is inside the percentage', async () => {
+				const env = arrangeRollout({ enabled: true, percentage: bucket + 1 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(requestsOf(env).map((request) => request.push)).toEqual(['1'])
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
+			})
+
+			it('leaves a board whose bucket is outside the percentage to fetch', async () => {
+				const env = arrangeRollout({ enabled: true, percentage: bucket })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
+
+			it('fetches for every board when the flag is disabled, whatever the percentage', async () => {
+				const env = arrangeRollout({ enabled: false, percentage: 100 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
+
+			it('fetches when the flag cannot be read', async () => {
+				const env = arrange({
+					THUMBNAIL_RENDER_PUSH: undefined,
+					FEATURE_FLAGS: {
+						get: async () => {
+							throw new Error('KV is down')
+						},
+					},
+				})
+				vi.spyOn(console, 'error').mockImplementation(() => {})
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
 		})
 
 		it('falls back to the fetch when the binding refuses the request as too large', async () => {
