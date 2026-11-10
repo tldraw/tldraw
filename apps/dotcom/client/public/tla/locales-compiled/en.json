@@ -53,6 +53,12 @@
       "value": "Invite teammates"
     }
   ],
+  "05237cd80d": [
+    {
+      "type": 0,
+      "value": "Couldn't change the library"
+    }
+  ],
   "05b2656486": [
     {
       "children": [
@@ -305,6 +311,12 @@
       "value": "Include link to current file"
     }
   ],
+  "2e5ca5c344": [
+    {
+      "type": 0,
+      "value": "You may not be allowed to, or the library no longer exists."
+    }
+  ],
   "2e9856a31e": [
     {
       "type": 0,
@@ -393,6 +405,12 @@
     {
       "type": 0,
       "value": "Color theme"
+    }
+  ],
+  "4236087d6b": [
+    {
+      "type": 0,
+      "value": "Library menu"
     }
   ],
   "42e53c47c1": [
@@ -1024,6 +1042,60 @@
       "value": "? This action cannot be undone."
     }
   ],
+  "92e423b077": [
+    {
+      "type": 0,
+      "value": "Delete "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "name"
+        }
+      ],
+      "type": 8,
+      "value": "strong"
+    },
+    {
+      "type": 0,
+      "value": " and its "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": "? Copies already placed on canvases stay."
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1096,6 +1168,38 @@
     {
       "type": 0,
       "value": "You appear to be offline. Check your connection and try again."
+    }
+  ],
+  "9c48785253": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " item"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " items"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "9ccb565b86": [
@@ -1238,6 +1342,12 @@
     {
       "type": 0,
       "value": "File is getting large"
+    }
+  ],
+  "a8c92ffd87": [
+    {
+      "type": 0,
+      "value": "Delete library"
     }
   ],
   "a9ded1e5ce": [
@@ -1684,6 +1794,16 @@
       "value": "OK"
     }
   ],
+  "e10a073cda": [
+    {
+      "type": 0,
+      "value": "Moved to "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -1956,6 +2076,12 @@
     {
       "type": 0,
       "value": "Viewer"
+    }
+  ],
+  "fbbee7cbb5": [
+    {
+      "type": 0,
+      "value": "No libraries in this workspace yet."
     }
   ],
   "fc9d47046b": [

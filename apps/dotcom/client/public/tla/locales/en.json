@@ -14,6 +14,9 @@
   "04a2dd56d6": {
     "translation": "Invite teammates"
   },
+  "05237cd80d": {
+    "translation": "Couldn't change the library"
+  },
   "05b2656486": {
     "translation": "<name>{author}</name> mentioned you"
   },
@@ -119,6 +122,9 @@
   "2e2b3c700b": {
     "translation": "Include link to current file"
   },
+  "2e5ca5c344": {
+    "translation": "You may not be allowed to, or the library no longer exists."
+  },
   "2e9856a31e": {
     "translation": "Regenerate invite link"
   },
@@ -163,6 +169,9 @@
   },
   "402bf0c47e": {
     "translation": "Color theme"
+  },
+  "4236087d6b": {
+    "translation": "Library menu"
   },
   "42e53c47c1": {
     "translation": "Contact the owner to request access."
@@ -422,6 +431,9 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
+  "92e423b077": {
+    "translation": "Delete <strong>{name}</strong> and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay."
+  },
   "930390d222": {
     "translation": "Copied invite link"
   },
@@ -451,6 +463,9 @@
   },
   "9c228b6834": {
     "translation": "You appear to be offline. Check your connection and try again."
+  },
+  "9c48785253": {
+    "translation": "{count, plural, one {# item} other {# items}}"
   },
   "9ccb565b86": {
     "translation": "We're having trouble connecting to our authentication service. This is usually temporary. Please try refreshing the page."
@@ -502,6 +517,9 @@
   },
   "a8873770ab": {
     "translation": "File is getting large"
+  },
+  "a8c92ffd87": {
+    "translation": "Delete library"
   },
   "a9ded1e5ce": {
     "translation": "Background"
@@ -645,6 +663,9 @@
   "e0aa021e21": {
     "translation": "OK"
   },
+  "e10a073cda": {
+    "translation": "Moved to {name}"
+  },
   "e2198d6228": {
     "translation": "Copy invite link"
   },
@@ -722,6 +743,9 @@
   },
   "fb15c53f22": {
     "translation": "Viewer"
+  },
+  "fbbee7cbb5": {
+    "translation": "No libraries in this workspace yet."
   },
   "fc9d47046b": {
     "translation": "Are you sure you want to leave this workspace?"
