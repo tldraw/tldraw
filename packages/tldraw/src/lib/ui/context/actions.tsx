@@ -551,6 +551,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-embed',
+				isEnabled: (editor) => editor.can('tl:shape:create'),
 				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
@@ -571,6 +572,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-media',
+				isEnabled: (editor) => editor.can('tl:shape:create'),
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
@@ -876,7 +878,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: (editor) =>
+					canApplyToUnlockedSelection(editor, 1) && editor.can('tl:shape:create'),
 				kbd: 'cmd+d,ctrl+d',
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
@@ -1255,6 +1258,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'paste',
 				isAvailable: canReadClipboard,
+				isEnabled: (editor) => editor.can('tl:shape:create'),
 				label: messages.actionPaste.id,
 				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
@@ -1273,6 +1277,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				// Cmd+Option+V: paste at cursor (or center if paste-at-cursor pref is on)
 				id: 'paste-at-cursor',
+				isEnabled: (editor) => editor.can('tl:shape:create'),
 				label: messages.actionPaste.id,
 				kbd: '$?v',
 				onSelect(source) {
@@ -1287,6 +1292,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				// Cmd+Shift+Option+V: paste plain text at cursor (or center if pref is on)
 				id: 'paste-plain-text-at-cursor',
+				isEnabled: (editor) => editor.can('tl:shape:create'),
 				label: messages.actionPaste.id,
 				kbd: '$!?v',
 				onSelect() {

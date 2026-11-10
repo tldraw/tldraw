@@ -85,6 +85,11 @@ export interface TLUiToolItem<
 	 */
 	kbd?: string
 	readonlyOk?: boolean
+	/**
+	 * Whether the tool can be used right now. A tool that can't is shown disabled, and `onSelect` and
+	 * `onDragStart` do nothing. Read reactive state inside it and the toolbar follows.
+	 */
+	isEnabled?(editor: Editor): boolean
 	meta?: {
 		[key: string]: any
 	}
@@ -92,6 +97,9 @@ export interface TLUiToolItem<
 
 /** @public */
 export type TLUiToolsContextType = Record<string, TLUiToolItem>
+
+const canCreateShapes = (editor: Editor) => editor.can('tl:shape:create')
+const canDeleteShapes = (editor: Editor) => editor.can('tl:shape:delete')
 
 /** @internal */
 export const ToolsContext = React.createContext<null | TLUiToolsContextType>(null)
@@ -165,6 +173,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'eraser',
+				isEnabled: canDeleteShapes,
 				label: messages.toolEraser.id,
 				icon: 'tool-eraser',
 				kbd: 'e',
@@ -175,6 +184,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'draw',
+				isEnabled: canCreateShapes,
 				label: messages.toolDraw.id,
 				icon: 'tool-pencil',
 				kbd: 'd,b,x',
@@ -185,6 +195,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			...[...GeoShapeGeoStyle.values].map((geo) => ({
 				id: geo,
+				isEnabled: canCreateShapes,
 				// A geo type added through GeoShapeUtil.configure() is in GeoShapeGeoStyle.values with
 				// no message declared here. Dereferencing the missing one threw while the toolbar
 				// built, taking the whole editor down; the composed key lets an app translate it.
@@ -216,6 +227,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			})),
 			{
 				id: 'arrow',
+				isEnabled: canCreateShapes,
 				label: messages.toolArrow.id,
 				icon: 'tool-arrow',
 				kbd: 'a',
@@ -238,6 +250,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'line',
+				isEnabled: canCreateShapes,
 				label: messages.toolLine.id,
 				icon: 'tool-line',
 				kbd: 'l',
@@ -268,6 +281,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'frame',
+				isEnabled: canCreateShapes,
 				label: messages.toolFrame.id,
 				icon: 'tool-frame',
 				kbd: 'f',
@@ -290,6 +304,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'text',
+				isEnabled: canCreateShapes,
 				label: messages.toolText.id,
 				icon: 'tool-text',
 				kbd: 't',
@@ -315,6 +330,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'asset',
+				isEnabled: canCreateShapes,
 				label: messages.toolMedia.id,
 				icon: 'tool-media',
 				kbd: 'cmd+u,ctrl+u',
@@ -325,6 +341,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'note',
+				isEnabled: canCreateShapes,
 				label: messages.toolNote.id,
 				icon: 'tool-note',
 				kbd: 'n',
@@ -356,6 +373,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'embed',
+				isEnabled: canCreateShapes,
 				label: messages.toolEmbed.id,
 				icon: 'dot',
 				onSelect(source) {
@@ -365,6 +383,7 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 			},
 			{
 				id: 'highlight',
+				isEnabled: canCreateShapes,
 				label: messages.toolHighlight.id,
 				icon: 'tool-highlight',
 				// TODO: pick a better shortcut
@@ -380,14 +399,33 @@ export function ToolsProvider({ overrides, children }: TLUiToolsProviderProps) {
 
 		const tools = Object.fromEntries(toolsArray.map((t) => [t.id, t]))
 
-		if (overrides) {
-			return overrides(editor, tools, helpers)
-		}
-
-		return tools
+		return guardDisabledTools(editor, overrides ? overrides(editor, tools, helpers) : tools)
 	}, [overrides, editor, helpers, onToolSelect, trackEvent])
 
 	return <ToolsContext.Provider value={tools}>{children}</ToolsContext.Provider>
+}
+
+// Wraps every tool so it does nothing while its `isEnabled` says no, whoever calls it: the toolbar,
+// a keyboard shortcut, or an app's own button.
+function guardDisabledTools(editor: Editor, tools: TLUiToolsContextType): TLUiToolsContextType {
+	return Object.fromEntries(
+		Object.entries(tools).map(([id, tool]) => {
+			if (!tool.isEnabled) return [id, tool]
+			const { onSelect, onDragStart } = tool
+			const guarded: TLUiToolItem = {
+				...tool,
+				onSelect(source) {
+					if (tool.isEnabled!(editor)) onSelect.call(tool, source)
+				},
+			}
+			if (onDragStart) {
+				guarded.onDragStart = (source, info) => {
+					if (tool.isEnabled!(editor)) onDragStart.call(tool, source, info)
+				}
+			}
+			return [id, guarded]
+		})
+	)
 }
 
 /** @public */

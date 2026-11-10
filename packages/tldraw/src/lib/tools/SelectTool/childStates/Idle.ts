@@ -709,7 +709,7 @@ export class Idle extends StateNode {
 
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
-		if (this.editor.getIsReadonly()) return
+		if (this.editor.getIsReadonly() || !this.editor.can('tl:shape:create')) return
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 

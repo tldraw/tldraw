@@ -8665,6 +8665,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	canCreateShapes(
 		shapes: (TLShape['id'] | OptionalKeys<TLShapePartial<TLShape>, 'id'>)[]
 	): boolean {
+		if (!this.can('tl:shape:create')) return false
 		return shapes.length + this.getCurrentPageShapeIds().size <= this.options.maxShapesPerPage
 	}
 
@@ -9802,6 +9803,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		// Checked before the handler runs, so a file isn't uploaded for a shape that can't be made.
+		if (!this.can('tl:shape:create')) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
