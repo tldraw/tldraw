@@ -30,6 +30,7 @@ export {
 	type CollectionSource,
 	type TLCollectionAction,
 	type TLCollectionOwner,
+	type TLCollectionThumbnailContext,
 	type TLNewCollectionItem,
 	type TLNewCollectionOptions,
 } from './lib/CollectionSource'

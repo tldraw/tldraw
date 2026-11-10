@@ -1,4 +1,4 @@
-import { type ButtonHTMLAttributes, useEffect, useRef } from 'react'
+import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } from 'react'
 import { useEditor, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollection, TLCollectionItemId } from '../lib/schema'
@@ -18,7 +18,14 @@ export function CollectionSection({
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
 }) {
 	const editor = useEditor()
-	const ref = useRef<HTMLElement>(null)
+	const ref = useRef<HTMLElement | null>(null)
+	// Also in state, so the tiles can measure once it mounts. The ref stays for the scroll below,
+	// which runs before a state update would land.
+	const [element, setElement] = useState<HTMLElement | null>(null)
+	const setRef = useCallback((el: HTMLElement | null) => {
+		ref.current = el
+		setElement(el)
+	}, [])
 	const collectionId = collection.id
 	const collapsed = useValue(
 		'collection collapsed',
@@ -49,7 +56,7 @@ export function CollectionSection({
 	const ordering = itemOrderings.find((o) => o.id === choice.orderingId) ?? itemOrderings[0]
 
 	return (
-		<section ref={ref} className="tlui-collections-section">
+		<section ref={setRef} className="tlui-collections-section">
 			<CollectionSectionHeader
 				source={source}
 				collection={collection}
@@ -69,6 +76,7 @@ export function CollectionSection({
 				<CollectionItems
 					source={source}
 					collectionId={collectionId}
+					container={element}
 					getItemProps={getItemProps}
 					ordering={ordering}
 					reversed={choice.reversed}

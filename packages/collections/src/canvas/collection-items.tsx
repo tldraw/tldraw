@@ -1,17 +1,14 @@
 import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
 import { defineMessages, useDialogs, useEditor, useToasts, useTranslation, useValue } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
-import {
-	getThumbnailForColorMode,
-	type TLCollectionId,
-	type TLCollectionItemId,
-} from '../lib/schema'
+import type { TLCollectionId, TLCollectionItemId } from '../lib/schema'
 import { ItemGrid, ItemGridItems, ItemGridTile } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { type ItemOrdering, sortItems } from './item-order'
 import { activeCollectionId, collectionsPanelOpen } from './state'
+import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
 	emptyCollection: {
@@ -51,6 +48,8 @@ const messages = defineMessages({
 export interface CollectionItemsProps {
 	source: CollectionSource
 	collectionId: TLCollectionId
+	/** Where the tiles are measured for their thumbnail size. */
+	container: HTMLElement | null
 	getItemProps(itemId: TLCollectionItemId): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: ItemOrdering
 	reversed: boolean
@@ -59,6 +58,7 @@ export interface CollectionItemsProps {
 export function CollectionItems({
 	source,
 	collectionId,
+	container,
 	getItemProps,
 	ordering,
 	reversed,
@@ -72,7 +72,7 @@ export function CollectionItems({
 		() => sortItems(source.getItems(collectionId), ordering, reversed),
 		[source, collectionId, ordering, reversed]
 	)
-	const isDarkMode = useValue('is dark mode', () => editor.getColorMode() === 'dark', [editor])
+	const thumbnailUrls = useThumbnailUrls(source, items, container)
 	const canRename = useValue('can rename items', () => source.can('renameItem', collectionId), [
 		source,
 		collectionId,
@@ -172,9 +172,7 @@ export function CollectionItems({
 					id: item.id,
 					name: item.name,
 					accessibleLabel: item.name ?? msg(messages.unnamedItem),
-					thumbnailUrl:
-						item.thumbnail &&
-						getThumbnailForColorMode(item.thumbnail, isDarkMode ? 'dark' : 'light'),
+					thumbnailUrl: thumbnailUrls[item.id] ?? undefined,
 				}))}
 				getItemProps={getTileProps}
 				renderItemMenu={(item) => (

@@ -46,6 +46,23 @@ export interface TLNewCollectionItem {
 }
 
 /**
+ * What a tile needs from a thumbnail, passed to {@link CollectionSource.resolveThumbnail}. The panel
+ * builds it each time it asks.
+ */
+export interface TLCollectionThumbnailContext {
+	colorMode: 'light' | 'dark'
+	/**
+	 * The tile's width in CSS pixels, rounded up to a power of two so that resizing the panel rarely
+	 * asks again.
+	 */
+	width: number
+	/** The screen's pixel ratio, at most 2: at tile size, 3× isn't visibly sharper. */
+	dpr: number
+	/** The browser's estimate of the connection, such as `'4g'`, or null where it gives none. */
+	networkEffectiveType: string | null
+}
+
+/**
  * Where collections come from: tldraw.com workspaces, a prefab pack shipped with an app, the
  * browser. The collections UI only talks to this interface, so it works the same with any of them.
  *
@@ -60,6 +77,18 @@ export interface CollectionSource {
 	getItems(collectionId: TLCollectionId): TLCollectionItem[]
 	/** Loads an item's content. Kept separate from the listing because content can be large. */
 	getItemContent(itemId: TLCollectionItemId): Promise<TLCollectionItemContent>
+	/**
+	 * The URL of an item's thumbnail, sized for its tile, or null for none. Optional: without it,
+	 * tiles show the item's `thumbnail` for the editor's colour mode.
+	 *
+	 * Called for every item of the collection on show, and again when the item or the context
+	 * changes, so answer quickly. A source that makes `blob:` URLs here owns them: keep one per item and size,
+	 * and revoke them when the source is thrown away.
+	 */
+	resolveThumbnail?(
+		item: TLCollectionItem,
+		context: TLCollectionThumbnailContext
+	): string | null | Promise<string | null>
 
 	/**
 	 * Whether the current user may do `action`. With a `collectionId`, answers for that
