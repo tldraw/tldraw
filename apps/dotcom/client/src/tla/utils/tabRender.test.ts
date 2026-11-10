@@ -96,7 +96,7 @@ describe('answerTabRender', () => {
 		editor.dispose()
 	})
 
-	// A hidden tab's token is routinely expired, and waiting to refresh it missed the ack window.
+	// An idle tab's token has usually expired, and waiting to refresh it missed the ack window.
 	it('sends its replies without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
 		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))

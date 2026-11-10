@@ -326,8 +326,8 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 
 /**
  * A tab's reply to a job. Takes no sign-in: the job id is the capability, a random UUID sent to one
- * tab's socket and dead once the job ends. A session token made a hidden tab miss the ack window,
- * because its Clerk token is routinely expired and refreshing it takes longer than the window.
+ * tab's socket and dead once the job ends. A session token made an idle tab miss the ack window: its
+ * Clerk token had usually expired, and refreshing it took longer than the window.
  *
  * For a write, the 200 on `accepted` is the go-ahead, and a 404 stands down a tab that woke after the
  * job ended.
