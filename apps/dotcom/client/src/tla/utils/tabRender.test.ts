@@ -1,4 +1,9 @@
-import { TabRenderReply, TabRenderRequest, TabRenderServerEvent } from '@tldraw/dotcom-shared'
+import {
+	TabRenderReadRequest,
+	TabRenderReply,
+	TabRenderRequest,
+	TabRenderServerEvent,
+} from '@tldraw/dotcom-shared'
 import {
 	Box,
 	Editor,
@@ -25,11 +30,9 @@ beforeAll(() => {
 })
 
 const replies: TabRenderReply[] = []
-const getToken = vi.fn(async () => 'token')
 
 beforeEach(() => {
 	replies.length = 0
-	getToken.mockClear()
 	vi.stubGlobal(
 		'fetch',
 		vi.fn(async (_url: string, init: RequestInit) => {
@@ -81,102 +84,116 @@ function job(request: TabRenderRequest): TabRenderServerEvent {
 	return { type: 'mcp_tab_render', jobId: 'job', request }
 }
 
+const readOf = (page: TabRenderReadRequest['page'], clusterIds: string[] = []) =>
+	job({ mode: 'read', page, clusterIds })
+
 const screenshotOf = (pageId: TLPageId, shapeIds: string[]) =>
 	job({ mode: 'screenshot', pageId, shapeIds, theme: 'light', width: 1200, height: 630 })
 
 describe('answerTabRender', () => {
-	it('posts to the job on this file', async () => {
+	it('posts to the job on this file, without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: firstPageId }))
-		expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/api/app/file/file-1/tab-render/job')
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'id', id: firstPageId }))
+		const [url, init] = vi.mocked(fetch).mock.calls[0]
+		expect(url).toBe('/api/app/file/file-1/tab-render/job')
+		expect(new Headers((init as RequestInit).headers).has('Authorization')).toBe(false)
 		editor.dispose()
 	})
 
-	it('signs each reply with a fresh token', async () => {
+	it('reads the page in view, acknowledging first', async () => {
 		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: firstPageId }))
-		const init = vi.mocked(fetch).mock.calls[0][1] as RequestInit
-		expect(new Headers(init.headers).get('Authorization')).toBe('Bearer token')
-		expect(getToken).toHaveBeenCalledTimes(vi.mocked(fetch).mock.calls.length)
-		editor.dispose()
-	})
 
-	// The worker hears nothing and falls back, as it would for a tab that went to sleep.
-	it('sends nothing when it cannot get a token', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-		const { editor, firstPageId } = setupEditor()
-		const noToken = vi.fn(async (): Promise<string> => {
-			throw new Error('signed out')
-		})
-		await answerTabRender(editor, 'file-1', noToken, job({ mode: 'measure', pageId: firstPageId }))
-		expect(fetch).not.toHaveBeenCalled()
-		editor.dispose()
-	})
-
-	it('measures the page in view, acknowledging first', async () => {
-		const { editor, firstPageId, firstShapeId } = setupEditor()
-
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: firstPageId }))
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },
 			{
-				status: 'measured',
-				shapes: {
-					[firstShapeId]: expect.objectContaining({ x: 100, y: 200, w: 300, text: 'Hello' }),
-				},
+				status: 'page_read',
+				read: expect.objectContaining({
+					pageId: firstPageId,
+					pageName: 'Page 1',
+					clusters: [
+						expect.objectContaining({
+							numberOfShapes: 1,
+							bounds: { x: 100, y: 200, w: 300, h: 150 },
+						}),
+					],
+					details: [],
+				}),
 			},
 		])
 		editor.dispose()
 	})
 
+	it('sends records only for the clusters it was asked about, with the measured text', async () => {
+		const { editor, firstShapeId } = setupEditor()
+
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+		const reply = replies.at(-1)
+		if (reply?.status !== 'page_read') throw new Error('expected a page read')
+		const clusterId = reply.read.clusters[0].id
+
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }, [clusterId]))
+
+		expect(replies.at(-1)).toMatchObject({
+			status: 'page_read',
+			read: {
+				details: [
+					{
+						id: clusterId,
+						shapes: [expect.objectContaining({ id: firstShapeId, plainText: 'Hello' })],
+					},
+				],
+			},
+		})
+		editor.dispose()
+	})
+
 	// An agent can ask about any page, and the user shouldn't be moved to answer it.
-	it('measures a page the tab is not showing, without leaving the current one', async () => {
-		const { editor, firstPageId, otherPageId, otherShapeId } = setupEditor()
+	it('reads a page the tab is not showing, without leaving the current one', async () => {
+		const { editor, firstPageId, otherPageId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', getToken, job({ mode: 'measure', pageId: otherPageId }))
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'id', id: otherPageId }))
 
-		expect(replies.at(-1)).toEqual({
-			status: 'measured',
-			shapes: { [otherShapeId]: expect.objectContaining({ x: 10, y: 20, w: 50, h: 60 }) },
+		expect(replies.at(-1)).toMatchObject({
+			status: 'page_read',
+			read: {
+				pageId: otherPageId,
+				pageName: 'elsewhere',
+				clusters: [{ bounds: { x: 10, y: 20, w: 50, h: 60 } }],
+			},
 		})
 		expect(editor.getCurrentPageId()).toBe(firstPageId)
 		editor.dispose()
 	})
 
 	it('declines before an editor has mounted', async () => {
-		await answerTabRender(
-			null,
-			'file-1',
-			getToken,
-			job({ mode: 'measure', pageId: 'page:a' as TLPageId })
-		)
+		await answerTabRender(null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 		expect(replies).toEqual([{ status: 'declined', reason: 'editor_not_ready' }])
 	})
 
-	it('declines a page this tab does not have', async () => {
+	it('answers with the page count for a page this tab does not have', async () => {
 		const { editor } = setupEditor()
-		await answerTabRender(
-			editor,
-			'file-1',
-			getToken,
-			job({ mode: 'measure', pageId: 'page:nope' as TLPageId })
-		)
-		expect(replies).toEqual([{ status: 'declined', reason: 'page_missing' }])
+		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 5 }))
+		expect(replies.at(-1)).toEqual({
+			status: 'page_not_found',
+			reason: 'page_out_of_range',
+			pageCount: 2,
+		})
 		editor.dispose()
 	})
 
 	// Declined without an ack, so the worker falls back straight away instead of waiting on this tab.
 	it('declines a screenshot of a page the tab is not showing', async () => {
 		const { editor, otherPageId, otherShapeId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(otherPageId, [otherShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(otherPageId, [otherShapeId]))
 		expect(replies).toEqual([{ status: 'declined', reason: 'page_not_current' }])
 		editor.dispose()
 	})
 
 	it('declines a screenshot whose shapes have left the page', async () => {
 		const { editor, firstPageId, otherShapeId } = setupEditor()
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [otherShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [otherShapeId]))
 		expect(replies).toEqual([{ status: 'declined', reason: 'shapes_missing' }])
 		editor.dispose()
 	})
@@ -186,7 +203,7 @@ describe('answerTabRender', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.spyOn(editor, 'toImage').mockRejectedValue(new Error('export failed'))
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'failed' }])
 		editor.dispose()
@@ -208,7 +225,7 @@ describe('answerTabRender', () => {
 		const camera = { ...editor.getCamera() }
 		stubExport(editor)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies.at(-1)).toEqual({ status: 'captured', base64: expect.any(String) })
 		expect(editor.getCamera()).toEqual(camera)
@@ -220,7 +237,7 @@ describe('answerTabRender', () => {
 	it('frames shapes exactly as zoomToBounds does on the render page', async () => {
 		const { editor, firstPageId, firstShapeId } = setupEditor()
 		const toImage = stubExport(editor)
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 		const options = toImage.mock.calls[0][1]!
 
 		const renderPage = setupEditor().editor
@@ -249,7 +266,7 @@ describe('answerTabRender', () => {
 			new Set(Array.from({ length: 501 }, (_, i) => createShapeId(String(i))))
 		)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'too_many_shapes' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -261,7 +278,7 @@ describe('answerTabRender', () => {
 		const toImage = stubExport(editor)
 		vi.spyOn(editor.inputs, 'getIsDragging').mockReturnValue(true)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'busy' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -286,7 +303,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -308,7 +325,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			toImage.mockRejectedValueOnce(new Error('export failed'))
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			await Promise.all([screenshot(), screenshot()])
 
@@ -323,7 +340,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -342,7 +359,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -365,7 +382,7 @@ describe('answerTabRender', () => {
 			.mockReturnValueOnce(0)
 			.mockReturnValue(editor.options.maxExportDelayMs)
 
-		await answerTabRender(editor, 'file-1', getToken, screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },

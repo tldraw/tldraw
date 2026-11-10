@@ -91,12 +91,6 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
-import {
-	ensureMcpClusterIndexTable,
-	pruneMcpClusterIndexRows,
-	readMcpClusterIndexRow,
-	writeMcpClusterIndexRow,
-} from './mcpClusterIndexStorage'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -125,6 +119,7 @@ import {
 	SnapshotFingerprint,
 } from './snapshotUtils'
 import {
+	MAX_TAB_RENDER_SESSIONS,
 	TAB_RENDER_ROOM_TIMEOUT_MS,
 	TabRenderBroker,
 	TabRenderOutcome,
@@ -132,7 +127,7 @@ import {
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
 } from './tabRenderBroker'
-import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
+import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
 import {
@@ -3497,63 +3492,10 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	/**
-	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
-	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
-	 *
-	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
-	 * of the cache is to be cheaper than the browser render it replaces.
-	 */
-	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
-	// read path a write path — which is what lets a request in flight during a hard delete put storage
-	// back into an object that has already been emptied. Once per instance, after the delete check.
-	private mcpClusterIndexReady = false
-	private ensureMcpClusterIndex() {
-		if (this.mcpClusterIndexReady) return
-		ensureMcpClusterIndexTable(this.ctx.storage.sql)
-		this.mcpClusterIndexReady = true
-	}
-
-	/**
-	 * One page's stored cluster index, or null when nothing was stored for this content version.
-	 *
-	 * Refuses when documentInfo is absent or deleted rather than reading: `appFileRecordDidDelete`
-	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
-	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
-	 */
-	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
-		if (!this._documentInfo || this._documentInfo.deleted) return null
-		this.ensureMcpClusterIndex()
-		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
-	}
-
-	/**
-	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
-	 * pages the board no longer has.
-	 */
-	async putMcpClusterIndex(
-		key: McpClusterIndexKey,
-		payload: string,
-		livePageIds: string[]
-	): Promise<void> {
-		if (!this._documentInfo || this._documentInfo.deleted) return
-		this.ensureMcpClusterIndex()
-		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
-		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
-	}
-
 	private tabRenders = new TabRenderBroker()
 
-	/**
-	 * Asks this user's open tabs to do something an MCP tool would otherwise start a browser for.
-	 *
-	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
-	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
-	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
-	 */
-	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
-		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
-
+	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
+	private getTabRenderSockets() {
 		const sockets: TabRenderSocket[] = []
 		for (const ws of this.ctx.getWebSockets()) {
 			const attachment = this.getSocketAttachment(ws)
@@ -3566,13 +3508,32 @@ export class TLFileDurableObject extends DurableObject {
 					attachment.tabRenderConnectedAt,
 			})
 		}
-		const sessionIds = pickTabRenderSessions(sockets, userId, Date.now())
+		return sockets
+	}
+
+	/** The room, unless it takes too long: see TAB_RENDER_ROOM_TIMEOUT_MS. */
+	private getRoomForTabRender() {
+		return Promise.race([this.getRoom(), sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null)])
+	}
+
+	/**
+	 * Runs an MCP tool's work in this user's open tabs.
+	 *
+	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
+	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
+	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
+	 */
+	async requestTabRender(
+		userId: string,
+		request: TabRenderRequest,
+		jobIds: string[]
+	): Promise<TabRenderOutcome> {
+		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
+
+		const sessionIds = pickTabRenderSessions(this.getTabRenderSockets(), userId, Date.now())
 		if (sessionIds.length === 0) return { status: 'no_tab' }
 
-		const room = await Promise.race([
-			this.getRoom(),
-			sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null),
-		])
+		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }
 		// Only now: sessionIdToWs is filled in as the room boots.
 		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
@@ -3582,22 +3543,20 @@ export class TLFileDurableObject extends DurableObject {
 			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
 		})
 		if (deliverable.length === 0) return { status: 'no_tab' }
-		return this.tabRenders.dispatch(userId, deliverable, request, (sessionId, jobId) => {
+		// Any answer will do, and a second tab can cover for a dead one.
+		const targets = deliverable.slice(0, Math.min(MAX_TAB_RENDER_SESSIONS, jobIds.length))
+		return this.tabRenders.dispatch(targets, request, jobIds, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
 	}
 
-	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
-		return this.tabRenders.has(jobId, userId)
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
 	}
 
-	async receiveTabRenderReply(
-		jobId: string,
-		userId: string,
-		reply: TabRenderReply
-	): Promise<boolean> {
-		return this.tabRenders.receive(jobId, userId, reply)
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
 	}
 
 	/**

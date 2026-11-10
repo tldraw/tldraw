@@ -26,7 +26,6 @@ import {
 import {
 	blobValuesOf,
 	blobsWithPrefix,
-	clusterIndexStoreOf,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeQueue,
@@ -486,10 +485,6 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		// The MCP cluster index is the only thing in this pipeline that reaches a durable object, and
-		// only from a tool call. The OG path shares the render token, the render page and the browser
-		// binding with it, and must not pick this up by accident.
-		expect(clusterIndexStoreOf(env).calls).toEqual({ get: 0, put: 0 })
 		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({
 			kind: 'published',
@@ -1501,36 +1496,6 @@ describe('handleOgImageRenderMessage', () => {
 		)
 		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
 		expect(sessionsOf(emptyBoardEnv)).toEqual([])
-	})
-
-	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside
-	// caller can spend, and this consumer is not caller-driven. A saturated MCP limiter must not stop a
-	// board's own thumbnail refreshing.
-	it('renders even when the MCP rate limiters are saturated, and never consults them', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const queue = { send: vi.fn(async () => undefined) }
-		const browserLimiter = { limit: vi.fn(async () => ({ success: false })) }
-		const env = makeEnv({
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-			QUEUE: queue,
-			MCP_SERVER_BROWSER_RATE_LIMITER: browserLimiter,
-		})
-
-		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
-		await handleOgImageRenderMessage(env, message)
-
-		expect(browserLimiter.limit).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
-		expect(message.ack).toHaveBeenCalledTimes(1)
-		expect(message.retry).not.toHaveBeenCalled()
-		// No requeue chain: there is no backpressure signal left to requeue for.
-		expect(queue.send).not.toHaveBeenCalled()
-		expect(failureBlobsOf(env)).toEqual(['failure:none'])
 	})
 
 	it('records the trigger that asked for a completed render', async () => {

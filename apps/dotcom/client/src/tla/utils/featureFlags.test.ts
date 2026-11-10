@@ -13,7 +13,6 @@ function makeFlags(overrides: Partial<FeatureFlags> = {}): FeatureFlags {
 		rum_enabled: { enabled: false },
 		load_rum: { enabled: false },
 		mcp_server_access: { enabled: false },
-		mcp_tab_render: { enabled: false },
 		version_chain: { enabled: false },
 		collections: { enabled: false },
 		thumbnail_render_push: { enabled: false },

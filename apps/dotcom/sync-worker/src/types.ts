@@ -98,23 +98,17 @@ export interface Environment {
 	ANALYTICS_API_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
-	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
-	// All three bound what an agent calling the public MCP endpoint can spend; board thumbnail
-	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
-	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
-	// isolate-local guard when they are absent (local dev, tests).
-	/** One per-account budget (`user:`) across every Browser Run-spending MCP tool. */
-	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
-	/** Per-board Browser Run captures, applied only on cache misses. Measures are not counted here. */
-	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
-	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
-	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
+	// Rate limit bindings for the MCP tools that spend Postgres or write rows, declared in wrangler.toml.
+	// Separate bindings because a binding carries one `limit` applied per key. The route falls back to
+	// an isolate-local guard when they are absent (local dev, tests).
 	/** Per-account `search_boards` calls. Bounds Postgres, not Browser Run, which search never spends. */
 	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `create_board` calls. Bounds writes. */
 	MCP_SERVER_CREATE_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `rename_board` calls. Bounds writes. */
 	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
+	/** Per-account calls to the tools that work in the caller's tab. Bounds load on a shared board. */
+	MCP_SERVER_TAB_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -124,13 +118,6 @@ export interface Environment {
 	// thumbnail has to outlive any lifecycle window.
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
-
-	// R2 storage for MCP tool output (`mcp/…` keys, screenshots today). Its own bucket rather than a
-	// prefix inside THUMBNAILS because these keys include the board's content version, so the set grows
-	// without bound and needs the expiration rule that would be actively wrong on THUMBNAILS. See "Why
-	// two buckets" in browser-run-thumbnails.md.
-	// Optional on the same terms as THUMBNAILS.
-	MCP_DATA_BUCKET: R2Bucket | undefined
 
 	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
 	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and
@@ -156,8 +143,7 @@ export interface Environment {
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
 	// 'true' pushes the board's records into the render page with the screenshot request, instead of
 	// the page fetching them back from the snapshot route, for every board. Where it is unset
-	// (production), the `mcp_render_push` flag gates MCP renders and `thumbnail_render_push` picks
-	// the boards whose OG renders push.
+	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
 	THUMBNAIL_RENDER_PUSH: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
@@ -311,17 +297,6 @@ export type ThumbnailBoardKind = 'published' | 'shared_file'
 export interface ThumbnailBoardRef {
 	kind: ThumbnailBoardKind
 	slug: string
-}
-
-/**
- * Which page of which board a stored MCP cluster index belongs to. The object it is stored in is
- * already the board's file, so this addresses a page within that. See mcpClusterIndexStorage.ts.
- */
-export interface McpClusterIndexKey {
-	kind: ThumbnailBoardKind
-	pageId: string
-	/** The board's content version, so an index is only read back for the content it was built from. */
-	version: string
 }
 
 /**

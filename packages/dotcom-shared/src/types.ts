@@ -1,6 +1,7 @@
 import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import type { McpPageRead, PageSelector } from './mcpPageRead'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
 
 export interface Snapshot {
@@ -185,12 +186,22 @@ export interface TabRenderScreenshotRequest {
 	height: number
 }
 
-/** What an MCP tool asks an open tab to work out, so it doesn't have to start a Browser Run session. */
-export type TabRenderRequest = { mode: 'measure'; pageId: string } | TabRenderScreenshotRequest
+/**
+ * Reads a page for get_page_info, get_cluster_info and get_cluster_screenshot: resolves `page`,
+ * measures and clusters it, and keeps full records only for `clusterIds`.
+ */
+export interface TabRenderReadRequest {
+	mode: 'read'
+	page: PageSelector
+	clusterIds: string[]
+}
+
+/** What an MCP tool asks the caller's open tab to work out. Tabs are the only way these get done. */
+export type TabRenderRequest = TabRenderReadRequest | TabRenderScreenshotRequest
 
 /**
- * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` names what a reply answers: it goes to this
- * one session and nowhere else, and the reply route accepts it only with the job user's website session.
+ * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
+ * this one session and nowhere else, and it is all the reply route checks.
  */
 export interface TabRenderServerEvent {
 	type: 'mcp_tab_render'
@@ -217,7 +228,8 @@ export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
 export type TabRenderReply =
 	| { status: 'accepted' }
 	| { status: 'declined'; reason: TabRenderDeclineReason }
-	| { status: 'measured'; shapes: Record<string, ThumbnailShapeMeasurement> }
+	| { status: 'page_read'; read: McpPageRead }
+	| { status: 'page_not_found'; reason: 'no_pages' | 'page_out_of_range'; pageCount: number }
 	| { status: 'captured'; base64: string }
 
 /**
@@ -354,7 +366,6 @@ export const FEATURE_FLAG_KEYS = [
 	'rum_enabled',
 	'load_rum',
 	'mcp_server_access',
-	'mcp_tab_render',
 	'version_chain',
 	'collections',
 	'thumbnail_render_push',

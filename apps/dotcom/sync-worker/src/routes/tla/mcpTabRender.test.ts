@@ -1,21 +1,19 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { SignedInAuth } from '../../utils/tla/getAuth'
+import { mintTabRenderJobIds } from '../../utils/tabRenderJobIds'
+import { parseTabRenderReply, postTabRenderReply } from './mcpTabRender'
 
-vi.mock('../../utils/tla/getAuth', async (importOriginal) => ({
-	...(await importOriginal<typeof import('../../utils/tla/getAuth')>()),
-	getAuth: vi.fn(),
-}))
-
-const { getAuth } = await import('../../utils/tla/getAuth')
-const { parseTabRenderReply, postTabRenderReply } = await import('./mcpTabRender')
-
-const JOB_ID = '6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90'
+const SECRET = { MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret' } as Environment
+let JOB_ID: string
+beforeAll(async () => {
+	;[JOB_ID] = await mintTabRenderJobIds(SECRET, 'file-1', 1)
+})
 
 function makeEnv({ jobExists = true, received = true } = {}) {
 	const hasTabRenderJob = vi.fn(async () => jobExists)
 	const receiveTabRenderReply = vi.fn(async () => received)
 	const env = {
+		...SECRET,
 		TLDR_DOC: {
 			idFromName: (name: string) => name,
 			get: () => ({ hasTabRenderJob, receiveTabRenderReply }),
@@ -36,33 +34,14 @@ function makeRequest(body: string, { jobId = JOB_ID, length = String(body.length
 const ACCEPTED = JSON.stringify({ status: 'accepted' })
 
 describe('postTabRenderReply', () => {
-	beforeEach(() => {
-		vi.mocked(getAuth).mockResolvedValue({ userId: 'user_a' } as SignedInAuth)
-	})
-
-	it('refuses a reply without a website session, without reaching the object', async () => {
-		vi.mocked(getAuth).mockResolvedValue(null)
-		const { env, hasTabRenderJob } = makeEnv()
-
-		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
-
-		expect(response.status).toBe(401)
-		expect(hasTabRenderJob).not.toHaveBeenCalled()
-	})
-
-	it('checks the job against the signed-in user', async () => {
-		const { env, hasTabRenderJob } = makeEnv()
-		await postTabRenderReply(makeRequest(ACCEPTED), env)
-		expect(hasTabRenderJob).toHaveBeenCalledWith(JOB_ID, 'user_a')
-	})
-
-	it('hands a valid reply to the job in that room', async () => {
-		const { env, receiveTabRenderReply } = makeEnv()
+	it('takes a reply with no sign-in, on the strength of a live job id', async () => {
+		const { env, hasTabRenderJob, receiveTabRenderReply } = makeEnv()
 
 		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
 
 		expect(response.status).toBe(200)
-		expect(receiveTabRenderReply).toHaveBeenCalledWith(JOB_ID, 'user_a', { status: 'accepted' })
+		expect(hasTabRenderJob).toHaveBeenCalledWith(JOB_ID)
+		expect(receiveTabRenderReply).toHaveBeenCalledWith(JOB_ID, { status: 'accepted' })
 	})
 
 	// Same answer for a job that finished and one that never existed: late replies are normal, since
@@ -97,6 +76,18 @@ describe('postTabRenderReply', () => {
 		const response = await postTabRenderReply(makeRequest(ACCEPTED, { jobId: 'made-up' }), env)
 		expect(response.status).toBe(404)
 		expect(hasTabRenderJob).not.toHaveBeenCalled()
+	})
+
+	// The forged-id test above, but with an id that has the right shape: a bare UUID was a valid job
+	// id before they were signed, and one signed for another board must not open this one.
+	it('does not reach the object for an unsigned id, or one signed for another room', async () => {
+		const [otherRoomJobId] = await mintTabRenderJobIds(SECRET, 'file-2', 1)
+		for (const jobId of ['6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90', otherRoomJobId]) {
+			const { env, hasTabRenderJob } = makeEnv()
+			const response = await postTabRenderReply(makeRequest(ACCEPTED, { jobId }), env)
+			expect(response.status, jobId).toBe(404)
+			expect(hasTabRenderJob, jobId).not.toHaveBeenCalled()
+		}
 	})
 
 	it('refuses an oversized reply from its header, without reaching the object', async () => {
@@ -134,11 +125,35 @@ describe('postTabRenderReply', () => {
 	})
 })
 
+const CLUSTER = {
+	id: 'cluster:a',
+	label: 'Ideas',
+	keywords: ['ideas'],
+	numberOfShapes: 1,
+}
+
+const PAGE_READ = {
+	pageId: 'page:a',
+	pageName: 'Cover',
+	clusters: [{ ...CLUSTER, bounds: { x: 0, y: 0, w: 10, h: 10 } }],
+	details: [
+		{
+			...CLUSTER,
+			shapes: [{ id: 'shape:a', type: 'geo', parentId: 'page:a', x: 0, y: 0, props: {} }],
+		},
+	],
+	ancestors: [],
+	bindings: [],
+	arrows: {},
+	dimensions: {},
+}
+
 describe('parseTabRenderReply', () => {
 	it.each([
 		[{ status: 'accepted' }],
 		[{ status: 'declined', reason: 'page_not_current' }],
-		[{ status: 'measured', shapes: {} }],
+		[{ status: 'page_read', read: PAGE_READ }],
+		[{ status: 'page_not_found', reason: 'page_out_of_range', pageCount: 2 }],
 		[{ status: 'captured', base64: 'iVBORw0KGgoAAAANSUhEUg' }],
 	])('accepts %j', (reply) => {
 		expect(parseTabRenderReply(reply)).toEqual(reply)
@@ -149,8 +164,12 @@ describe('parseTabRenderReply', () => {
 		['accepted'],
 		[{ status: 'nonsense' }],
 		[{ status: 'declined', reason: 'not a reason' }],
-		[{ status: 'measured' }],
-		[{ status: 'measured', shapes: [] }],
+		[{ status: 'page_read' }],
+		[{ status: 'page_read', read: { ...PAGE_READ, clusters: [{ id: 'c', label: 'x' }] } }],
+		[{ status: 'page_read', read: { ...PAGE_READ, details: [{ ...CLUSTER, shapes: [{}] }] } }],
+		[{ status: 'page_read', read: { ...PAGE_READ, arrows: [] } }],
+		[{ status: 'page_not_found', reason: 'page_out_of_range', pageCount: -1 }],
+		[{ status: 'page_not_found', reason: 'nope', pageCount: 1 }],
 		[{ status: 'captured', base64: 42 }],
 		// Whatever this is, the tool result would call it a PNG.
 		[{ status: 'captured', base64: 'PHN2ZyB4bWxucz0' }],

@@ -1,17 +1,23 @@
 import {
 	TabRenderDeclineReason,
+	TabRenderReadRequest,
 	TabRenderReply,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
 	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
+	findMcpPage,
+	readMcpPage,
+	toShapeMeasurements,
 } from '@tldraw/dotcom-shared'
 import {
 	Box,
 	Editor,
 	FileHelpers,
+	TLArrowBinding,
 	TLFontFace,
 	TLPageId,
+	TLShape,
 	TLShapeId,
 	clamp,
 	fetch,
@@ -26,33 +32,32 @@ import {
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
 
-// Answers MCP tool calls from this tab; see "Rendering in an open tab" in browser-run-thumbnails.md.
+// Answers MCP tool calls from this tab; see "Working in an open tab" in browser-run-thumbnails.md.
 //
 // This runs in the tab someone may be drawing in, so it only ever reads: the camera, the current page
 // and the selection stay put, which is why it computes an export frame rather than borrowing the
 // render page's zoom-to-fit. And a job this tab can't answer cheaply is declined rather than
-// attempted — the worker has a fallback, and an answer that costs the user a dropped frame is worse
-// than a slow one.
+// attempted: the agent can try again, and an answer that costs the user a dropped frame is worse than
+// a slow one.
 
 // Time budget per slice of a measure. Geometry is cached for the page in view, but a first measure of
 // another page lays out all of its text, which on a big page is long enough to be felt.
 const SLICE_MS = 8
 
 // Well inside the worker's measure timeout: text measured against a fallback font is a slightly wrong
-// answer, and no answer costs the whole Browser Run fallback.
+// answer, and no answer fails the call.
 const FONT_WAIT_MS = 1_500
 
 // An export can't be sliced: it renders every shape in one synchronous flush, on the main thread of a
 // tab that may be in use. Past this, the frame it would drop is worth more than the second it saves.
 const MAX_EXPORT_SHAPES = 500
 
-// Longer than this in the queue and the worker has likely gone to Browser Run, so an export would be
-// main thread time spent on an answer nobody is waiting for.
+// Longer than this in the queue and the worker has likely stopped waiting, so an export would be main
+// thread time spent on an answer nobody is waiting for.
 const MAX_EXPORT_QUEUE_MS = 5_000
 
 // One at a time, so an agent can't stack exports up on the main thread. Queued rather than declined:
-// agents routinely ask for several clusters at once, and the next in line waiting a moment beats
-// sending it to Browser Run for seconds.
+// agents routinely ask for several clusters at once.
 let exportQueue: Promise<unknown> = Promise.resolve()
 
 function enqueueExport(run: () => Promise<TabRenderReply>) {
@@ -64,10 +69,9 @@ function enqueueExport(run: () => Promise<TabRenderReply>) {
 export async function answerTabRender(
 	editor: Editor | null,
 	fileId: string,
-	getToken: () => Promise<string>,
 	{ jobId, request }: TabRenderServerEvent
 ) {
-	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, getToken, body)
+	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, body)
 
 	const refusal = editor ? getRefusal(editor, request) : 'editor_not_ready'
 	if (refusal || !editor) {
@@ -79,8 +83,8 @@ export async function answerTabRender(
 	void reply({ status: 'accepted' })
 	try {
 		await reply(
-			request.mode === 'measure'
-				? await measurePage(editor, request.pageId as TLPageId)
+			request.mode === 'read'
+				? await readPage(editor, request)
 				: await queueCapture(editor, request)
 		)
 	} catch (error) {
@@ -90,9 +94,10 @@ export async function answerTabRender(
 }
 
 function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDeclineReason | undefined {
+	// A page this tab doesn't have is part of a read's answer: it says which pages there are.
+	if (request.mode === 'read') return undefined
 	const pageId = request.pageId as TLPageId
 	if (!editor.getPage(pageId)) return 'page_missing'
-	if (request.mode === 'measure') return undefined
 
 	// The export draws from the current page's rendering shapes, and switching a user's page underneath
 	// them to take a picture is not an option.
@@ -126,9 +131,39 @@ async function forEachInSlices<T>(items: T[], visit: (item: T) => void) {
 	}
 }
 
-async function measurePage(editor: Editor, pageId: TLPageId): Promise<TabRenderReply> {
-	const ids = [...editor.getPageShapeIds(pageId)]
+async function readPage(editor: Editor, request: TabRenderReadRequest): Promise<TabRenderReply> {
+	const lookup = findMcpPage(editor.getPages(), request.page)
+	if (!lookup.ok)
+		return { status: 'page_not_found', reason: lookup.reason, pageCount: lookup.pageCount }
 
+	const pageId = lookup.page.id as TLPageId
+	const ids = [...editor.getPageShapeIds(pageId)]
+	const measurements = await measureShapes(editor, ids)
+
+	const shapes: TLShape[] = []
+	const bindings: TLArrowBinding[] = []
+	for (const id of ids) {
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		shapes.push(shape)
+		if (shape.type === 'arrow')
+			bindings.push(...editor.getBindingsFromShape<TLArrowBinding>(id, 'arrow'))
+	}
+
+	// Clustering runs in one go rather than in slices. It is capped by MAX_CLUSTERING_ATOMS, and it is
+	// the caller's own tab that pays for it, where it used to block everyone on the board.
+	const read = readMcpPage({
+		pageId,
+		pageName: lookup.page.name,
+		shapes,
+		bindings,
+		measurements: toShapeMeasurements(measurements),
+		clusterIds: request.clusterIds,
+	})
+	return { status: 'page_read', read }
+}
+
+async function measureShapes(editor: Editor, ids: TLShapeId[]) {
 	// The editor only loads fonts for the page it's on, and an agent can ask about any of them.
 	// Autosizing text has no correct size until its real font has loaded.
 	const fonts = new Set<TLFontFace>()
@@ -140,12 +175,12 @@ async function measurePage(editor: Editor, pageId: TLPageId): Promise<TabRenderR
 		sleep(FONT_WAIT_MS),
 	])
 
-	const shapes: Record<string, ThumbnailShapeMeasurement> = {}
+	const measured: Record<string, ThumbnailShapeMeasurement> = {}
 	await forEachInSlices(ids, (id) => {
-		const measured = measureShapeForMcp(editor, id)
-		if (measured) shapes[id] = measured
+		const measurement = measureShapeForMcp(editor, id)
+		if (measurement) measured[id] = measurement
 	})
-	return { status: 'measured', shapes }
+	return measured
 }
 
 async function capturePage(
@@ -168,9 +203,7 @@ async function capturePage(
 	return { status: 'captured', base64: dataUrl.slice(dataUrl.indexOf(',') + 1) }
 }
 
-// The rectangle and zoom the render page reaches by calling zoomToBounds on its own disposable
-// camera, worked out without touching this one. The two have to frame alike: the same shapes should
-// read the same whether Browser Run drew them or a tab did.
+// What zoomToBounds would reach on a camera sized to the output, worked out without touching this one.
 function getExportFrame(editor: Editor, ids: TLShapeId[], width: number, height: number) {
 	const shapes = getRequestedBounds(editor, ids)
 	const inset = getThumbnailContentInset(width, height)
@@ -198,24 +231,13 @@ function yieldToMainThread() {
 	})
 }
 
-// A lost reply needs no handling: the worker times out and falls back to Browser Run. That includes
-// a tab that can't get a token, such as one whose sign-in has ended.
-//
-// The token is fetched per reply rather than taken from the session cookie, which a hidden tab
-// lets expire: getToken() refreshes it when it has.
-async function postTabRenderReply(
-	fileId: string,
-	jobId: string,
-	getToken: () => Promise<string>,
-	reply: TabRenderReply
-) {
+// A lost reply needs no handling: the worker times out and tells the agent. The job id is all the
+// route checks; see postTabRenderReply in the sync worker.
+async function postTabRenderReply(fileId: string, jobId: string, reply: TabRenderReply) {
 	try {
 		await fetch(`/api/app/file/${fileId}/tab-render/${jobId}`, {
 			method: 'POST',
-			headers: {
-				'Content-Type': 'application/json',
-				Authorization: `Bearer ${await getToken()}`,
-			},
+			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify(reply),
 		})
 	} catch (error) {
