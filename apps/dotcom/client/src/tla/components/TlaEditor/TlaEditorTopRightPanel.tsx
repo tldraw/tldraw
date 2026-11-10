@@ -13,14 +13,12 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
 import {
 	defineMessages,
-	Editor,
 	F,
 	PeopleMenu,
-	react,
 	TldrawUiButton,
 	useDialogs,
 	useEditor,
@@ -32,6 +30,7 @@ import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useOneSidePanelOpen } from '../../hooks/useOneSidePanelOpen'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -130,23 +129,6 @@ export function TlaEditorTopRightPanel({
 			)}
 		</div>
 	)
-}
-
-// The comments sidebar and the collections panel both open on the right, so opening either one closes
-// the other, whichever way it was opened.
-function useOneSidePanelOpen(editor: Editor) {
-	useEffect(() => {
-		let wasCommentsOpen = commentsSidebarOpen.get(editor)
-		let wasCollectionsOpen = collectionsPanelOpen.get(editor)
-		return react('one side panel open', () => {
-			const commentsOpen = commentsSidebarOpen.get(editor)
-			const collectionsOpen = collectionsPanelOpen.get(editor)
-			if (commentsOpen && !wasCommentsOpen) collectionsPanelOpen.set(editor, false)
-			else if (collectionsOpen && !wasCollectionsOpen) commentsSidebarOpen.set(editor, false)
-			wasCommentsOpen = commentsSidebarOpen.get(editor)
-			wasCollectionsOpen = collectionsPanelOpen.get(editor)
-		})
-	}, [editor])
 }
 
 /**
