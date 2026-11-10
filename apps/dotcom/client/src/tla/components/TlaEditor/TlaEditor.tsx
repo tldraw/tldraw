@@ -195,10 +195,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
-			const canvasAgent = createCanvasOpsReceiver(editor)
-			;(window as any).canvasAgent = canvasAgent
+			const canvasOpsReceiver = createCanvasOpsReceiver(editor)
+			;(window as any).canvasOpsReceiver = canvasOpsReceiver
 			editor.disposables.add(() => {
-				if ((window as any).canvasAgent === canvasAgent) delete (window as any).canvasAgent
+				if ((window as any).canvasOpsReceiver === canvasOpsReceiver)
+					delete (window as any).canvasOpsReceiver
 			})
 			// Register the editor globally
 			globalEditor.set(editor)
