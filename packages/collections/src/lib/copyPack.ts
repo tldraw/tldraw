@@ -1,4 +1,4 @@
-import { getIncrementedName } from 'tldraw'
+import { getIncrementedName } from '@tldraw/editor'
 import type { CollectionPack } from './CollectionPack'
 import type { CollectionSource, TLNewCollectionOptions } from './CollectionSource'
 import { fetchThumbnail } from './copyCollection'
