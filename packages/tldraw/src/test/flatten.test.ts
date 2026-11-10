@@ -274,13 +274,32 @@ describe('unflattenImages', () => {
 					: { x: p.x, y: 2 * center.y - p.y }
 		}
 
+		function rotate(imageId: TLShapeId, angle: number) {
+			const { center } = editor.getShapePageBounds(imageId)!
+			editor.rotateShapesBy([imageId], angle)
+			return (p: VecLike) => Vec.RotWith(p, center, angle)
+		}
+
+		function stretch(imageId: TLShapeId) {
+			const image = editor.getShape<TLImageShape>(imageId)!
+			editor.updateShape({ id: imageId, type: 'image', props: { w: image.props.w * 2 } })
+			// along the image's own x axis
+			const xAxis = Vec.FromAngle(image.rotation)
+			return (p: VecLike) => {
+				const along = Vec.Sub(p, image).dpr(xAxis)
+				return Vec.Add(p, Vec.Mul(xAxis, along))
+			}
+		}
+
 		// Crops like the crop handles do: the visible part stays where it was
 		function cropLeft(imageId: TLShapeId) {
 			const image = editor.getShape<TLImageShape>(imageId)!
+			const shift = Vec.FromAngle(image.rotation).mul(image.props.w * 0.25)
 			editor.updateShape({
 				id: imageId,
 				type: 'image',
-				x: image.x + image.props.w * 0.25,
+				x: image.x + shift.x,
+				y: image.y + shift.y,
 				props: {
 					w: image.props.w * 0.75,
 					crop: { topLeft: { x: 0.25, y: 0 }, bottomRight: { x: 1, y: 1 } },
@@ -292,14 +311,8 @@ describe('unflattenImages', () => {
 		it.each<[string, Change]>([
 			['flipped horizontally', (id) => flip(id, 'horizontal')],
 			['flipped vertically', (id) => flip(id, 'vertical')],
-			[
-				'stretched',
-				(id) => {
-					const image = editor.getShape<TLImageShape>(id)!
-					editor.updateShape({ id, type: 'image', props: { w: image.props.w * 2 } })
-					return (p) => ({ x: image.x + (p.x - image.x) * 2, y: p.y })
-				},
-			],
+			['stretched', stretch],
+			['rotated', (id) => rotate(id, Math.PI / 3)],
 			['cropped', cropLeft],
 			[
 				'cropped, then flipped',
@@ -314,6 +327,39 @@ describe('unflattenImages', () => {
 					const flipped = flip(id, 'horizontal')
 					cropLeft(id)
 					return flipped
+				},
+			],
+			[
+				'stretched, then rotated',
+				(id) => {
+					const stretched = stretch(id)
+					const rotated = rotate(id, Math.PI / 3)
+					return (p) => rotated(stretched(p))
+				},
+			],
+			[
+				'rotated, then stretched',
+				(id) => {
+					const rotated = rotate(id, Math.PI / 3)
+					const stretched = stretch(id)
+					return (p) => stretched(rotated(p))
+				},
+			],
+			[
+				'rotated, then flipped',
+				(id) => {
+					const rotated = rotate(id, Math.PI / 3)
+					const flipped = flip(id, 'horizontal')
+					return (p) => flipped(rotated(p))
+				},
+			],
+			[
+				'rotated, then cropped, then flipped',
+				(id) => {
+					const rotated = rotate(id, Math.PI / 3)
+					cropLeft(id)
+					const flipped = flip(id, 'vertical')
+					return (p) => flipped(rotated(p))
 				},
 			],
 		])('%s', async (_, change) => {
@@ -368,18 +414,38 @@ describe('unflattenImages', () => {
 
 		it('stretched, with a rotated shape inside', async () => {
 			editor.createShapes([{ ...box(a, 100, 100), rotation: Math.PI / 4 }])
+			const before = editor.getShape<TLGeoShape>(a)!
+			const beforeCenter = editor.getShapePageBounds(a)!.center
 			const [imageId] = (await flattenShapesToImages(editor, [a]))!
-			const image = editor.getShape<TLImageShape>(imageId)!
-			editor.updateShape({ id: imageId, type: 'image', props: { w: image.props.w * 2 } })
+			const map = stretch(imageId)
 
-			const result = await unflattenImages(editor, [imageId])
+			await unflattenImages(editor, [imageId])
 
-			// A rotated shape can't stretch, so it scales uniformly like it does with the
-			// selection handles, and stays inside the image
-			expect(result.type).toBe('success')
-			const [restored] = getRestoredBoxes()
-			expect(editor.getShapePageBounds(imageId)).toBeUndefined()
-			expect(Box.From(restored.bounds).w).toBeLessThanOrEqual(image.props.w * 2)
+			// A rotated shape can't stretch, so like with the selection handles it scales by the
+			// axis that changed least (here, not at all), and its center follows the image
+			const [restored] = editor.getSelectedShapes() as TLGeoShape[]
+			expect([restored.props.w, restored.props.h]).toEqual([before.props.w, before.props.h])
+			expect(restored.rotation).toBeCloseTo(Math.PI / 4)
+			const center = editor.getShapePageBounds(restored)!.center
+			const expected = map(beforeCenter)
+			expect(center.x).toBeCloseTo(expected.x)
+			expect(center.y).toBeCloseTo(expected.y)
+		})
+
+		it('cropped to a circle', async () => {
+			editor.createShapes([box(a, 100, 100), box(b, 200, 150, 50, 80)])
+			const before = getRestoredBoxes()
+			const [imageId] = (await flattenShapesToImages(editor, [a, b]))!
+			editor.updateShape({
+				id: imageId,
+				type: 'image',
+				props: { crop: { topLeft: { x: 0, y: 0 }, bottomRight: { x: 1, y: 1 }, isCircle: true } },
+			})
+
+			await unflattenImages(editor, [imageId])
+
+			// The parts the circle hid come back too
+			expect(getRestoredBoxes()).toEqual(before)
 		})
 	})
 
