@@ -10,6 +10,7 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import { InContextMenu, MenuItem } from '../ui/menu-items'
 import { groupCollectionList, useCollectionGrouping } from './collection-groups'
+import { canCreateNewCollection } from './new-collection'
 import { sortByRecentlyAddedTo } from './recent-collections'
 import { useSaveSelection } from './use-save-selection'
 
@@ -46,7 +47,7 @@ export function AddToCollectionMenuItem({ source }: AddToCollectionMenuItemProps
 		[source]
 	)
 	const grouping = useCollectionGrouping(source)
-	const canCreate = useValue('can create collection', () => source.can('createCollection'), [
+	const canCreate = useValue('can create collection', () => canCreateNewCollection(source), [
 		source,
 	])
 	const { saveSelection, saveToNewCollection } = useSaveSelection(source)
