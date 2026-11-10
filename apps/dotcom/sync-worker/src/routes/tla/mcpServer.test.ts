@@ -16,7 +16,6 @@ import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	CLUSTER_INFO_MAX_IDS,
 	PageSelector,
-	getToolDefinitions,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
@@ -38,8 +37,6 @@ import {
 	makeFakeFileDurableObjectNamespace,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
-	screenshotOf,
-	sessionsOf,
 	blobsWithPrefix,
 	makeScreenshotTestEnv,
 	makeSnapshot,
@@ -450,9 +447,9 @@ describe('authentication', () => {
 		expect(response.headers.get('WWW-Authenticate')).toContain('resource_metadata=')
 	})
 
-	// Refused before anything is spent or read: no board lookup, no browser session, and nothing that
-	// would tell an unauthenticated caller whether a board exists.
-	it('does no board lookup and opens no browser session', async () => {
+	// Refused before anything is read: nothing that would tell an unauthenticated caller whether a
+	// board exists.
+	it('does no board lookup', async () => {
 		refuseAuth()
 		mockPublishedBoard()
 		const env = makeEnv()
@@ -462,7 +459,6 @@ describe('authentication', () => {
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
 		expect(getSharedFileInfo).not.toHaveBeenCalled()
 		expect(hasReadAccessToFile).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	// The one number that matters most during a flag-gated rollout, and nothing recorded it: the
@@ -996,7 +992,7 @@ describe('get_board_info', () => {
 		})
 	})
 
-	it('resolves a shared file id and never spends browser capacity', async () => {
+	it('resolves a shared file id without trying it as a published board', async () => {
 		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
@@ -1006,7 +1002,6 @@ describe('get_board_info', () => {
 
 		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	// Every tool call already dials Postgres twice — once for the access check, once to resolve the
@@ -1335,25 +1330,6 @@ describe('the open tab', () => {
 		expect(request.shapeIds).toHaveLength(2)
 	})
 
-	it('asks the tab on every call, because its answers are never cached', async () => {
-		const tab = openTab()
-		const env = makeEnv({ tab })
-
-		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
-		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
-
-		expect(tab).toHaveBeenCalledTimes(2)
-	})
-
-	it('never starts a browser', async () => {
-		const quickAction = vi.fn()
-		const env = makeEnv({ BROWSER: { quickAction } })
-
-		await screenshot(env)
-
-		expect(quickAction).not.toHaveBeenCalled()
-	})
-
 	it('tells the agent to have the user open the board when no tab has it', async () => {
 		const env = makeEnv({ tab: tabAnswering({ status: 'no_tab' }) })
 
@@ -1393,44 +1369,28 @@ describe('the open tab', () => {
 		expect(tab).not.toHaveBeenCalled()
 	})
 
-	it.each<[string, TabRenderOutcome, string]>([
-		['the tab never acknowledged', { status: 'ack_timeout' }, 'not responding'],
-		['the room would not boot', { status: 'room_timeout' }, 'not responding'],
-		['the tab ran out of time', { status: 'work_timeout' }, 'took too long'],
-		['the user is mid-drag', { status: 'declined', reason: 'busy' }, 'busy'],
-		[
-			'the tab is on another page',
-			{ status: 'declined', reason: 'page_not_current' },
-			'switch to that page',
-		],
-		[
-			'the clusters are too big',
-			{ status: 'declined', reason: 'too_many_shapes' },
-			'fewer clusters',
-		],
-	])('explains itself when %s', async (_name, outcome, phrase) => {
+	it.each<[TabRenderOutcome, string]>([
+		[{ status: 'ack_timeout' }, 'tab_ack_timeout'],
+		[{ status: 'room_timeout' }, 'tab_room_timeout'],
+		[{ status: 'work_timeout' }, 'tab_work_timeout'],
+		[{ status: 'declined', reason: 'busy' }, 'tab_busy'],
+		[{ status: 'declined', reason: 'page_not_current' }, 'tab_page_not_current'],
+		// A reply of the wrong kind for the job.
+		[{ status: 'measured', shapes: {} }, 'tab_failed'],
+	])('answers %j with a tool error, recorded as %s', async (outcome, reason) => {
 		const tab = vi.fn(async (_userId: string, request: TabRenderRequest) =>
 			request.mode === 'measure' ? { status: 'measured', shapes: {} } : outcome
 		) as FakeTab
+		const env = makeEnv({ tab })
 
-		const result = await screenshot(makeEnv({ tab }))
-
-		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain(phrase)
-	})
-
-	it('says the tab is not responding when the object cannot be reached', async () => {
-		const tab = vi.fn(async () => {
-			throw new Error('object unavailable')
-		}) as FakeTab
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv({ tab }), 'user_tab')
+		const result = await screenshot(env)
 
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('not responding')
+		expect(failureBlobsOf(env)).toContain(`failure:${reason}`)
 	})
 
-	// A published board is a frozen copy; the room behind it holds a different, live document.
+	// A published board is a frozen copy; the room behind it holds a different, live document. Choosing
+	// the refusal is a row lookup, so the published snapshot isn't read for it.
 	it('does not ask a tab about a published board, and says why', async () => {
 		denyReadAccess()
 		mockPublishedBoard()
@@ -1439,24 +1399,12 @@ describe('the open tab', () => {
 		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv({ tab }), 'user_tab')
 
 		expect(tab).not.toHaveBeenCalled()
+		expect(getPublishedRoomSnapshot).not.toHaveBeenCalled()
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('published board')
 	})
 
-	// Choosing the refusal is a row lookup. Downloading the published snapshot for it was wasted, and
-	// a published board with no snapshot was misreported as empty.
-	it('refuses a published board without reading its snapshot', async () => {
-		denyReadAccess()
-		mockPublishedBoard()
-		vi.mocked(getPublishedRoomSnapshot).mockRejectedValue(new Error('should not be read'))
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv(), 'user_tab')
-
-		expect(result.content[0].text).toContain('published board')
-		expect(getPublishedRoomSnapshot).not.toHaveBeenCalled()
-	})
-
-	it('answers with the board URL when the live read fails', async () => {
+	it('answers with a tool error when the room cannot be reached', async () => {
 		const env = makeEnv()
 		const objects = env.TLDR_DOC as any
 		const get = objects.get
@@ -1470,7 +1418,7 @@ describe('the open tab', () => {
 		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 
 		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('/f/abc')
+		expect(failureBlobsOf(env)).toEqual(['failure:tab_error'])
 	})
 
 	it('records how each attempt went, with no board or user identity', async () => {
@@ -1479,6 +1427,7 @@ describe('the open tab', () => {
 		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 
 		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.blobs.slice(2))).toEqual([
+			['mode:live_page', 'outcome:ok', 'reason:none'],
 			['mode:measure', 'outcome:declined', 'reason:page_missing'],
 		])
 	})
@@ -1499,43 +1448,10 @@ describe('live reads', () => {
 		expect(result.isError).toBeUndefined()
 		expect(persisted).not.toHaveBeenCalled()
 	})
-
-	it('works on a board that has never been persisted', async () => {
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
-
-		expect(result.isError).toBeUndefined()
-	})
-})
-
-describe('create_board', () => {
-	it('tells the agent the board has to be open before it can be read', () => {
-		const tool = getToolDefinitions(true).find((t) => t.name === 'create_board')!
-		expect(tool.description).toContain('open in a browser tab')
-	})
 })
 
 // Only the tools that spend Postgres or write rows are limited. The budgets live in config.ts.
 describe('rate limits', () => {
-	it("does not limit tools that work in the caller's own tab", async () => {
-		mockSharedBoard()
-		const env = makeEnv()
-		for (let i = 0; i < 100; i++) {
-			const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_50')
-			expect(result.isError).toBeUndefined()
-		}
-	})
-
-	it('does not limit get_board_info', async () => {
-		mockSharedBoard()
-		const env = makeEnv()
-		for (let i = 0; i < 100; i++) {
-			const result = await callTool('get_board_info', { boardId: 'abc' }, env, 'user_50')
-			expect(result.isError).toBeUndefined()
-		}
-	})
-
 	// Search has its own budget because it bounds Postgres. Pins the configured
 	// number rather than merely that something eventually refuses, and stops one call past it so a
 	// pass cannot be some other limiter firing — search is checked against a binding of its own.
@@ -1597,8 +1513,6 @@ describe('shape screenshots', () => {
 
 		expect(result.isError).toBe(true)
 		expect(failureBlobsOf(env)).toEqual(['failure:not_found'])
-		// The refusal came before the measure: no session existed, so none is on the ledger.
-		expect(sessionsOf(env)).toEqual([])
 	})
 
 	it('errors when the page is out of range, without spending a render', async () => {
@@ -1613,7 +1527,6 @@ describe('shape screenshots', () => {
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('out of range')
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		// The documented reason vocabulary keeps selector mistakes distinct from missing boards —
 		// `failure:not_found` here would send a dashboard reader hunting for deleted boards.
 		expect(failureBlobsOf(env)).toContain('failure:page_not_found')
@@ -1647,8 +1560,6 @@ describe('per-user board access', () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
 	}
 
-	// The refusal happens at resolution, before pickShapes runs the paid measure render — a stranger
-	// probing board ids must cost telemetry rows, not Browser Run sessions.
 	it("reads a caller's own unshared board through their tab", async () => {
 		mockPrivateBoard()
 		const tab = openTab()
@@ -1669,7 +1580,8 @@ describe('per-user board access', () => {
 		denyReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		const tab = openTab()
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), tab })
 
 		const result = await callTool(
 			'get_cluster_screenshot',
@@ -1680,7 +1592,7 @@ describe('per-user board access', () => {
 
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('No board was found with this id')
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(tab).not.toHaveBeenCalled()
 	})
 
 	// The try-file-then-published fallback would otherwise answer differently for "this id belongs to

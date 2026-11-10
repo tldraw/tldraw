@@ -83,19 +83,12 @@ const screenshotOf = (pageId: TLPageId, shapeIds: string[]) =>
 	job({ mode: 'screenshot', pageId, shapeIds, theme: 'light', width: 1200, height: 630 })
 
 describe('answerTabRender', () => {
-	it('posts to the job on this file', async () => {
+	it('posts to the job on this file, without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
 		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
-		expect(vi.mocked(fetch).mock.calls[0][0]).toBe('/api/app/file/file-1/tab-render/job')
-		editor.dispose()
-	})
-
-	// An idle tab's token has usually expired, and waiting to refresh it missed the ack window.
-	it('sends its replies without a token', async () => {
-		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', job({ mode: 'measure', pageId: firstPageId }))
-		const init = vi.mocked(fetch).mock.calls[0][1] as RequestInit
-		expect(new Headers(init.headers).has('Authorization')).toBe(false)
+		const [url, init] = vi.mocked(fetch).mock.calls[0]
+		expect(url).toBe('/api/app/file/file-1/tab-render/job')
+		expect(new Headers((init as RequestInit).headers).has('Authorization')).toBe(false)
 		editor.dispose()
 	})
 

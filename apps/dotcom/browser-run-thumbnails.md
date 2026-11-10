@@ -538,7 +538,7 @@ Once the room has booted, a job also only goes to a session whose current socket
 
 **Hidden tabs answer, and pay for it.** Chrome clamps a hidden tab's timers to about once a second, and the export waits on a `sleep(0)` in `ExportDelay`, so a hidden screenshot costs seconds more than a visible one. Measuring doesn't wait on timers and isn't affected.
 
-The `mcp_tab_render` event records each attempt: `mode`, `outcome` (`measured`, `captured`, `no_tab`, `declined`, `room_timeout`, `ack_timeout`, `work_timeout` or `error`), `reason` for a decline, and its duration in `double1`. Like the rest of this pipeline, it carries no board or user identity.
+The `mcp_tab_render` event records each attempt: `mode` (`live_page` for the page read that comes first, then `measure` or `screenshot`), `outcome` (`ok` for a page read, `measured`, `captured`, `no_tab`, `declined`, `room_timeout`, `ack_timeout`, `work_timeout` or `error`), `reason` for a decline, and its duration in `double1`. Like the rest of this pipeline, it carries no board or user identity.
 
 ### Protocol versions
 

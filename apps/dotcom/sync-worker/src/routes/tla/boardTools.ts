@@ -847,7 +847,7 @@ export type ResolvedPage =
 			shapes: TLShape[]
 			/**
 			 * The arrow bindings of this page's arrows, as stored. They are records rather than
-			 * geometry, so get_cluster_info reports them without a render.
+			 * geometry, so get_cluster_info reports them without a measure.
 			 */
 			bindings: TLArrowBinding[]
 	  }
@@ -937,7 +937,7 @@ export function clusteringFromMeasure(
 
 /**
  * The box around some shapes, rounded the way get_page_info reports it, or null when none were
- * measured. A cluster's box is stored rather than its shapes' ones: it is all get_page_info reports.
+ * measured.
  */
 function toClusterBox(boxes: (ClusterBounds | undefined)[]): BoxModel | null {
 	let union: ClusterBounds | null = null
@@ -987,8 +987,7 @@ export function getPageInfo(
 	}
 ): ToolResult {
 	// Bounds let a model see what is near what without opening every cluster. They are null rather
-	// than invented for a cluster the tab could not measure. The page's box is built from the
-	// clusters' rounded ones, so a stored index and a fresh measure give the same answer.
+	// than invented for a cluster the tab could not measure.
 	const pageBounds = toClusterBox(
 		Object.values(bounds).map(({ x, y, w, h }) => ({ minX: x, minY: y, maxX: x + w, maxY: y + h }))
 	)
