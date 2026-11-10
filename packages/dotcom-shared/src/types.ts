@@ -1,6 +1,7 @@
 import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import type { McpPageRead, PageSelector } from './mcpPageRead'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
 
 export interface Snapshot {
@@ -185,6 +186,17 @@ export interface TabRenderScreenshotRequest {
 	height: number
 }
 
+/**
+ * Reads a page for get_page_info, get_cluster_info and get_cluster_screenshot: resolves `page`,
+ * measures and clusters it, and keeps full records only for `clusterIds`.
+ */
+export interface TabRenderReadRequest {
+	mode: 'read'
+	page: PageSelector
+	clusterIds: string[]
+}
+
+/** What an MCP tool asks the caller's open tab to work out. Tabs are the only way these get done. */
 export interface TabRenderApplyOpsRequest {
 	mode: 'apply_ops'
 	/** Validated by the tab, which owns the op vocabulary. */
@@ -197,7 +209,7 @@ export interface TabRenderApplyOpsRequest {
 
 /** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
 export type TabRenderRequest =
-	| { mode: 'measure'; pageId: string }
+	| TabRenderReadRequest
 	| TabRenderScreenshotRequest
 	| TabRenderApplyOpsRequest
 	| { mode: 'user_state' }
@@ -238,7 +250,8 @@ export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
 export type TabRenderReply =
 	| { status: 'accepted' }
 	| { status: 'declined'; reason: TabRenderDeclineReason; detail?: string }
-	| { status: 'measured'; shapes: Record<string, ThumbnailShapeMeasurement> }
+	| { status: 'page_read'; read: McpPageRead }
+	| { status: 'page_not_found'; reason: 'no_pages' | 'page_out_of_range'; pageCount: number }
 	| { status: 'captured'; base64: string }
 	| { status: 'applied'; pageId: string; pageName: string; result: Record<string, unknown> }
 	| {
@@ -385,6 +398,8 @@ export const FEATURE_FLAG_KEYS = [
 	'mcp_server_access',
 	'version_chain',
 	'collections',
+	'thumbnail_render_push',
+	'mcp_render_push',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

@@ -1,18 +1,24 @@
 import {
 	TabRenderApplyOpsRequest,
 	TabRenderDeclineReason,
+	TabRenderReadRequest,
 	TabRenderReply,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
 	TabRenderServerEvent,
 	ThumbnailShapeMeasurement,
+	findMcpPage,
+	readMcpPage,
+	toShapeMeasurements,
 } from '@tldraw/dotcom-shared'
 import {
 	Box,
 	Editor,
 	FileHelpers,
+	TLArrowBinding,
 	TLFontFace,
 	TLPageId,
+	TLShape,
 	TLShapeId,
 	clamp,
 	fetch,
@@ -101,8 +107,8 @@ export async function answerTabRender(
 
 function doWork(editor: Editor, request: TabRenderRequest, receivedAt: number) {
 	switch (request.mode) {
-		case 'measure':
-			return measurePage(editor, request.pageId as TLPageId)
+		case 'read':
+			return readPage(editor, request)
 		case 'screenshot':
 			return queueCapture(editor, request, receivedAt)
 		case 'apply_ops':
@@ -130,6 +136,8 @@ function getApplyPageId(editor: Editor, page: TabRenderApplyOpsRequest['page']) 
 }
 
 function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDeclineReason | undefined {
+	// A page this tab doesn't have is part of a read's answer: it says which pages there are.
+	if (request.mode === 'read') return undefined
 	if (request.mode === 'user_state') return undefined
 	if (request.mode === 'apply_ops') {
 		if (editor.getIsReadonly()) return 'read_only'
@@ -147,7 +155,6 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 
 	const pageId = request.pageId as TLPageId
 	if (!editor.getPage(pageId)) return 'page_missing'
-	if (request.mode === 'measure') return undefined
 
 	// The export draws from the current page's rendering shapes, and switching a user's page underneath
 	// them to take a picture is not an option.
@@ -206,9 +213,39 @@ async function forEachInSlices<T>(items: T[], visit: (item: T) => void) {
 	}
 }
 
-async function measurePage(editor: Editor, pageId: TLPageId): Promise<TabRenderReply> {
-	const ids = [...editor.getPageShapeIds(pageId)]
+async function readPage(editor: Editor, request: TabRenderReadRequest): Promise<TabRenderReply> {
+	const lookup = findMcpPage(editor.getPages(), request.page)
+	if (!lookup.ok)
+		return { status: 'page_not_found', reason: lookup.reason, pageCount: lookup.pageCount }
 
+	const pageId = lookup.page.id as TLPageId
+	const ids = [...editor.getPageShapeIds(pageId)]
+	const measurements = await measureShapes(editor, ids)
+
+	const shapes: TLShape[] = []
+	const bindings: TLArrowBinding[] = []
+	for (const id of ids) {
+		const shape = editor.getShape(id)
+		if (!shape) continue
+		shapes.push(shape)
+		if (shape.type === 'arrow')
+			bindings.push(...editor.getBindingsFromShape<TLArrowBinding>(id, 'arrow'))
+	}
+
+	// Clustering runs in one go rather than in slices. It is capped by MAX_CLUSTERING_ATOMS, and it is
+	// the caller's own tab that pays for it, where it used to block everyone on the board.
+	const read = readMcpPage({
+		pageId,
+		pageName: lookup.page.name,
+		shapes,
+		bindings,
+		measurements: toShapeMeasurements(measurements),
+		clusterIds: request.clusterIds,
+	})
+	return { status: 'page_read', read }
+}
+
+async function measureShapes(editor: Editor, ids: TLShapeId[]) {
 	// The editor only loads fonts for the page it's on, and an agent can ask about any of them.
 	// Autosizing text has no correct size until its real font has loaded.
 	const fonts = new Set<TLFontFace>()
@@ -220,12 +257,12 @@ async function measurePage(editor: Editor, pageId: TLPageId): Promise<TabRenderR
 		sleep(FONT_WAIT_MS),
 	])
 
-	const shapes: Record<string, ThumbnailShapeMeasurement> = {}
+	const measured: Record<string, ThumbnailShapeMeasurement> = {}
 	await forEachInSlices(ids, (id) => {
-		const measured = measureShapeForMcp(editor, id)
-		if (measured) shapes[id] = measured
+		const measurement = measureShapeForMcp(editor, id)
+		if (measurement) measured[id] = measurement
 	})
-	return { status: 'measured', shapes }
+	return measured
 }
 
 async function capturePage(

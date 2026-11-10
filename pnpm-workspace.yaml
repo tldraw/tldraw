@@ -41,9 +41,9 @@ allowBuilds:
 
 # Newly published versions must be at least 7 days old before pnpm will pick them (minutes).
 minimumReleaseAge: 10080
-# Remove once 1.11.3 clears the gate (2026-10-30T21:53Z).
+# Remove once 1.11.5 clears the gate (2026-11-17T13:52Z).
 minimumReleaseAgeExclude:
-  - '@rocicorp/zero@1.11.3'
+  - '@rocicorp/zero@1.11.5'
 
 overrides:
   '@types/node': ^22.15.31

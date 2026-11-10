@@ -4,26 +4,57 @@ export {
 } from './canvas/add-to-collection-menu-item'
 export { CollectionsPanel, type CollectionsPanelProps } from './canvas/collections-panel'
 export { CollectionsPanelButton } from './canvas/collections-panel-button'
+export { CollectionsQuickActions } from './canvas/collections-quick-actions'
 export { placeCollectionItem } from './canvas/place-item'
-export { saveShapesToCollection } from './canvas/save-shapes'
+export {
+	saveShapesToCollection,
+	type PrepareItemContent,
+	type SaveShapesOptions,
+} from './canvas/save-shapes'
 export { activeCollectionId, collectionsPanelOpen, toggleCollectionsPanel } from './canvas/state'
+export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	CollectionMenu,
+	type CollectionMenuCopy,
+	type CollectionMenuMove,
 	type CollectionMenuProps,
 	type CollectionMenuSort,
 } from './ui/collection-menu'
-export { CollectionPicker, type CollectionPickerProps } from './ui/collection-picker'
-export { ItemGrid, type ItemGridItem, type ItemGridProps } from './ui/item-grid'
+export {
+	ItemGrid,
+	ItemGridItems,
+	ItemGridTile,
+	type ItemGridItem,
+	type ItemGridItemsProps,
+	type ItemGridProps,
+	type ItemGridTileProps,
+} from './ui/item-grid'
 export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
 export { ItemTile, type ItemTileProps } from './ui/item-tile'
+export {
+	MenuItem as CollectionMenuItem,
+	type MenuItemProps as CollectionMenuItemProps,
+} from './ui/menu-items'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'
 export {
 	CollectionNotFoundError,
 	CollectionPermissionError,
 	type CollectionSource,
 	type TLCollectionAction,
+	type TLCollectionOwner,
+	type TLCollectionTarget,
+	type TLCollectionThumbnailContext,
 	type TLNewCollectionItem,
+	type TLNewCollectionOptions,
 } from './lib/CollectionSource'
+export {
+	CompositeCollectionSource,
+	type CompositeCollectionSourceOptions,
+	type CompositeCollectionSourcePart,
+} from './lib/CompositeCollectionSource'
+export type { CollectionPack, CollectionPackItem } from './lib/CollectionPack'
+export { copyCollection } from './lib/copyCollection'
+export { copyPack } from './lib/copyPack'
 export {
 	InMemoryCollectionSource,
 	type InMemoryCollectionSourceOptions,
