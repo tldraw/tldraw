@@ -9,6 +9,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { type BylineProps } from '../ui/byline'
 import { type CommentListItemRenderProps } from '../ui/comments-list'
 import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
 import { type ReactionTooltipProps } from '../ui/reaction'
@@ -60,6 +61,13 @@ export type CommentModificationContext = {
 export interface CommentingComponents {
 	/** A comment's body. Replaces the default rich-text `<CommentBody>`. */
 	CommentBody?: ComponentType<{ comment: TLComment }>
+	/**
+	 * A comment's byline: the author's avatar and name, the time, and the edited marker. Replaces the
+	 * default `<Byline>`, which is exported — so a byline that only changes who it shows (an agent
+	 * posting for its user, say) can spread these props into it with a different `author`. `author`
+	 * is what `resolveAuthor` returned for the comment's `authorId`.
+	 */
+	CommentByline?: ComponentType<BylineProps & { comment: TLComment }>
 	/** A pin's inner content. Replaces the author-initial default. */
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */

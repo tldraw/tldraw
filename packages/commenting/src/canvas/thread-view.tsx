@@ -199,12 +199,19 @@ export function toCardProps(
 	) : (
 		<CommentBody richText={comment.body} resolveName={resolveName} />
 	)
+	const author = props.resolveAuthor(comment.authorId) ?? UNKNOWN_COMMENT_AUTHOR
+	const date = new Date(comment.createdAt).toISOString()
+	const edited = comment.editedAt != null
+	const Byline = components.CommentByline
 	return {
-		author: props.resolveAuthor(comment.authorId) ?? UNKNOWN_COMMENT_AUTHOR,
+		author,
 		body,
-		date: new Date(comment.createdAt).toISOString(),
+		date,
 		you: comment.authorId === props.currentUserId,
-		edited: comment.editedAt != null,
+		edited,
+		byline: Byline ? (
+			<Byline author={author} date={date} edited={edited} comment={comment} />
+		) : undefined,
 	}
 }
 

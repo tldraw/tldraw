@@ -86,7 +86,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions, footer, }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, byline, actions, footer, }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -94,6 +94,7 @@ export interface CommentCardProps {
     // (undocumented)
     author: CommentAuthor;
     body: ReactNode;
+    byline?: ReactNode;
     date: string;
     edited?: boolean;
     footer?: ReactNode;
@@ -129,6 +130,9 @@ export interface CommentComposerProps {
 // @public
 export interface CommentingComponents {
     CommentBody?: ComponentType<{
+        comment: TLComment;
+    }>;
+    CommentByline?: ComponentType<BylineProps & {
         comment: TLComment;
     }>;
     ComposerFallback?: ComponentType<{

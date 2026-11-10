@@ -13,6 +13,8 @@ export interface CommentCardProps {
 	you: boolean
 	/** Whether the comment has been edited (shows an "edited" marker). */
 	edited?: boolean
+	/** Replaces the default `<Byline>` built from `author`, `date`, and `edited`. */
+	byline?: ReactNode
 	/** Hover-revealed controls at the card's top-right (e.g. an edit affordance). */
 	actions?: ReactNode
 	/** Content under the body, aligned with it rather than the avatar (e.g. a `<Reactions>` row). */
@@ -26,12 +28,13 @@ export function CommentCard({
 	date,
 	you,
 	edited,
+	byline,
 	actions,
 	footer,
 }: CommentCardProps) {
 	return (
 		<div className={you ? 'tlui-cmt-card tlui-cmt-card--you' : 'tlui-cmt-card'}>
-			<Byline author={author} date={date} edited={edited} />
+			{byline ?? <Byline author={author} date={date} edited={edited} />}
 			<div className="tlui-cmt-body">
 				{body}
 				{footer}
