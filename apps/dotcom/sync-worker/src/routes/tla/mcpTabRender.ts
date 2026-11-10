@@ -1,11 +1,10 @@
 import {
-	MeasuredArrow,
-	MeasuredDimensions,
+	McpPageLookup,
+	McpPageRead,
 	TAB_RENDER_DECLINE_REASONS,
 	TabRenderReply,
 	TabRenderRequest,
 	TabRenderScreenshotRequest,
-	ThumbnailShapeMeasurement,
 } from '@tldraw/dotcom-shared'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
@@ -15,7 +14,7 @@ import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { isRoomIdTooLong, roomIdIsTooLong } from '../../utils/roomIdIsTooLong'
-import { PageSelector, ResolvedPage, ShapeMeasurement } from './boardTools'
+import { PageSelector } from './boardTools'
 import { reportThumbnailError } from './thumbnailShared'
 
 // The MCP side of working in an open tab, which is the only way these tools read a page, measure it
@@ -41,7 +40,7 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 	fileId: string,
 	userId: string,
 	job: TabRenderRequest,
-	expected: S,
+	expected: readonly S[],
 	{ request, ctx }: TabRenderContext
 ): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: S }>>> {
 	const startedAt = Date.now()
@@ -61,7 +60,7 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 		writeTabRenderTelemetry(env, job.mode, 'error', 'none', Date.now() - startedAt)
 		result = { status: 'error' }
 	}
-	if (result.status === expected) {
+	if ((expected as readonly string[]).includes(result.status)) {
 		return { ok: true, value: result as Extract<TabRenderOutcome, { status: S }> }
 	}
 	return { ok: false, ...describeFailure(result, boardUrlOf(env, request, fileId)) }
@@ -71,7 +70,7 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 // pipeline.
 function writeTabRenderTelemetry(
 	env: Environment,
-	mode: TabRenderRequest['mode'] | 'live_page',
+	mode: TabRenderRequest['mode'],
 	outcome: string,
 	reason: string,
 	durationMs: number
@@ -149,103 +148,42 @@ export const PUBLISHED_BOARD_FAILURE = {
 	reason: 'tab_published_board',
 } as const
 
-export type McpLivePageResult =
-	| { status: 'no_tab' | 'room_timeout' }
-	| { status: 'ok'; page: ResolvedPage }
+/** A page as the caller's open tab read it, or why its `page` names none. */
+export type TabPageRead =
+	| { found: true; read: McpPageRead }
+	| { found: false; lookup: Extract<McpPageLookup, { ok: false }> }
 
-export async function readLivePage(
+/**
+ * Reads a page in the caller's open tab: the tab resolves `page`, measures and clusters it, and sends
+ * back records only for `clusterIds`. The board's room only relays the job, so a read never makes it
+ * serialize the document, which blocked everyone on the board while it ran.
+ */
+export async function readPageInOpenTab(
 	env: Environment,
 	fileId: string,
 	userId: string,
 	page: PageSelector,
-	{ request, ctx }: TabRenderContext
-): Promise<TabRenderResult<ResolvedPage>> {
-	const startedAt = Date.now()
-	let result: McpLivePageResult | { status: 'error' }
-	try {
-		result = await getRoomDurableObject(env, fileId).getMcpLivePage(userId, page)
-	} catch (error) {
-		reportThumbnailError(error, {
-			ctx,
-			env,
-			request,
-			surface: 'mcp_tab_render',
-			extras: { mode: 'live_page' },
-		})
-		result = { status: 'error' }
-	}
-	// Recorded here too: this runs first, so it is where a call with no tab open stops.
-	writeTabRenderTelemetry(env, 'live_page', result.status, 'none', Date.now() - startedAt)
-	if (result.status === 'ok') return { ok: true, value: result.page }
-	return { ok: false, ...describeFailure(result, boardUrlOf(env, request, fileId)) }
-}
-
-export async function measureInOpenTab(
-	env: Environment,
-	fileId: string,
-	userId: string,
-	pageId: string,
+	clusterIds: string[],
 	context: TabRenderContext
-): Promise<TabRenderResult<Record<string, ShapeMeasurement>>> {
-	const job: TabRenderRequest = { mode: 'measure', pageId }
-	const result = await runInOpenTab(env, fileId, userId, job, 'measured', context)
-	return result.ok ? { ok: true, value: readMeasurements(result.value.shapes) } : result
-}
-
-// A tab's measurements come from a client, so nothing is assumed. Malformed boxes are dropped rather
-// than kept: a non-finite value would produce NaN distances and silently detach that shape from the
-// minimum spanning tree.
-export function readMeasurements(
-	reported: Record<string, ThumbnailShapeMeasurement>
-): Record<string, ShapeMeasurement> {
-	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		const arrow = readArrow(box.arrow)
-		const dimensions = readDimensions(box.dimensions)
-		bounds[shapeId] = {
-			minX: box.x,
-			minY: box.y,
-			maxX: box.x + box.w,
-			maxY: box.y + box.h,
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-			...(arrow ? { arrow } : null),
-			...(dimensions ? { dimensions } : null),
-		}
+): Promise<TabRenderResult<TabPageRead>> {
+	const job: TabRenderRequest = { mode: 'read', page, clusterIds }
+	const result = await runInOpenTab(
+		env,
+		fileId,
+		userId,
+		job,
+		['page_read', 'page_not_found'] as const,
+		context
+	)
+	if (!result.ok) return result
+	const reply = result.value
+	return {
+		ok: true,
+		value:
+			reply.status === 'page_read'
+				? { found: true, read: reply.read }
+				: { found: false, lookup: { ok: false, reason: reply.reason, pageCount: reply.pageCount } },
 	}
-	return bounds
-}
-
-// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
-// arrow from its record.
-function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
-	const start = readPoint(value?.start)
-	const end = readPoint(value?.end)
-	return start && end ? { start, end } : undefined
-}
-
-function readPoint(value: unknown) {
-	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
-	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
-}
-
-// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
-function readDimensions(
-	value: ThumbnailShapeMeasurement['dimensions']
-): MeasuredDimensions | undefined {
-	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
-	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
-}
-
-function isFiniteNumber(value: unknown): value is number {
-	return Number.isFinite(value)
 }
 
 export async function captureInOpenTab(
@@ -256,7 +194,7 @@ export async function captureInOpenTab(
 	context: TabRenderContext
 ): Promise<TabRenderResult<string>> {
 	const job: TabRenderRequest = { mode: 'screenshot', ...capture }
-	const result = await runInOpenTab(env, fileId, userId, job, 'captured', context)
+	const result = await runInOpenTab(env, fileId, userId, job, ['captured'] as const, context)
 	return result.ok ? { ok: true, value: result.value.base64 } : result
 }
 
@@ -280,8 +218,12 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 			return (TAB_RENDER_DECLINE_REASONS as readonly unknown[]).includes(reply.reason)
 				? (reply as TabRenderReply)
 				: null
-		case 'measured':
-			return reply.shapes && typeof reply.shapes === 'object' && !Array.isArray(reply.shapes)
+		case 'page_read':
+			return isPageRead(reply.read) ? (reply as TabRenderReply) : null
+		case 'page_not_found':
+			return (reply.reason === 'no_pages' || reply.reason === 'page_out_of_range') &&
+				Number.isInteger(reply.pageCount) &&
+				(reply.pageCount as number) >= 0
 				? (reply as TabRenderReply)
 				: null
 		case 'captured':
@@ -291,6 +233,75 @@ export function parseTabRenderReply(value: unknown): TabRenderReply | null {
 		default:
 			return null
 	}
+}
+
+// Checks the shape the tool code walks, so a malformed read fails here as an invalid reply rather than
+// as a throw halfway through an answer. The values are the caller's own tab's word: a forged one only
+// ever reaches that caller's agent.
+function isPageRead(value: unknown): value is McpPageRead {
+	if (!value || typeof value !== 'object') return false
+	const read = value as Record<string, unknown>
+	return (
+		typeof read.pageId === 'string' &&
+		typeof read.pageName === 'string' &&
+		Array.isArray(read.clusters) &&
+		read.clusters.every(isClusterSummary) &&
+		Array.isArray(read.details) &&
+		read.details.every(isClusterDetail) &&
+		Array.isArray(read.ancestors) &&
+		read.ancestors.every(isShapeLike) &&
+		Array.isArray(read.bindings) &&
+		read.bindings.every((b) => !!b && typeof b === 'object') &&
+		isPlainObject(read.arrows) &&
+		isPlainObject(read.dimensions)
+	)
+}
+
+function isClusterSummary(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const c = value as Record<string, unknown>
+	return (
+		typeof c.id === 'string' &&
+		typeof c.label === 'string' &&
+		Array.isArray(c.keywords) &&
+		c.keywords.every((k) => typeof k === 'string') &&
+		Number.isInteger(c.numberOfShapes) &&
+		(c.bounds === null || isBox(c.bounds))
+	)
+}
+
+function isClusterDetail(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const c = value as Record<string, unknown>
+	return (
+		typeof c.id === 'string' &&
+		typeof c.label === 'string' &&
+		Array.isArray(c.keywords) &&
+		Number.isInteger(c.numberOfShapes) &&
+		Array.isArray(c.shapes) &&
+		c.shapes.every(isShapeLike)
+	)
+}
+
+function isShapeLike(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const shape = value as Record<string, unknown>
+	return (
+		typeof shape.id === 'string' &&
+		typeof shape.type === 'string' &&
+		typeof shape.parentId === 'string' &&
+		isPlainObject(shape.props)
+	)
+}
+
+function isBox(value: unknown) {
+	if (!value || typeof value !== 'object') return false
+	const { x, y, w, h } = value as Record<string, unknown>
+	return [x, y, w, h].every((n) => Number.isFinite(n))
+}
+
+function isPlainObject(value: unknown) {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
 }
 
 /**

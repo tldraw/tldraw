@@ -108,9 +108,7 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { PageSelector, resolvePage } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
-import { McpLivePageResult } from './routes/tla/mcpTabRender'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	generateSnapshotChunks,
@@ -3557,26 +3555,6 @@ export class TLFileDurableObject extends DurableObject {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
-	}
-
-	/**
-	 * A page as it is right now, for the read tools. The persisted snapshot in R2 lags the room by up
-	 * to the persist interval, so reading it would miss what was drawn a moment ago.
-	 *
-	 * Only that page's records come back: the whole document could outgrow what an RPC can carry.
-	 * Refuses before booting the room when this user has no tab, because the caller is about to need
-	 * one anyway.
-	 */
-	async getMcpLivePage(userId: string, page: PageSelector): Promise<McpLivePageResult> {
-		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
-		const sockets = this.getTabRenderSockets()
-		if (pickTabRenderSessions(sockets, userId, Date.now()).length === 0) return { status: 'no_tab' }
-
-		const room = await this.getRoomForTabRender()
-		if (!room) return { status: 'room_timeout' }
-		const storage = await this.getStorage()
-		assert(storage instanceof SQLiteSyncStorage, 'storage must be a SQLiteSyncStorage')
-		return { status: 'ok', page: resolvePage(storage.getSnapshot(), page) }
 	}
 
 	async hasTabRenderJob(jobId: string): Promise<boolean> {

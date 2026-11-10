@@ -21,7 +21,7 @@ export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
 
 /** How long work may run once the ack window closes. */
-export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
+export const TAB_RENDER_WORK_TIMEOUT_MS = { read: 5_000, screenshot: 8_000 } as const
 
 /**
  * The most tabs one job goes to. Every addressed tab does the work, so this bounds what a single
@@ -37,7 +37,7 @@ export const MAX_TAB_RENDER_SESSIONS = 3
 export const TAB_RENDER_MAX_PING_AGE_MS = 90_000
 
 export type TabRenderOutcome =
-	| Extract<TabRenderReply, { status: 'measured' | 'captured' | 'declined' }>
+	| Extract<TabRenderReply, { status: 'page_read' | 'page_not_found' | 'captured' | 'declined' }>
 	| { status: 'no_tab' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
 
 export interface TabRenderSocket {

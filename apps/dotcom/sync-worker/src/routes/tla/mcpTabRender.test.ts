@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Environment } from '../../types'
-import { parseTabRenderReply, postTabRenderReply, readMeasurements } from './mcpTabRender'
+import { parseTabRenderReply, postTabRenderReply } from './mcpTabRender'
 
 const JOB_ID = '6f1c1d3a-0b7e-4f6a-9a53-2c4d8e7f1a90'
 
@@ -107,11 +107,35 @@ describe('postTabRenderReply', () => {
 	})
 })
 
+const CLUSTER = {
+	id: 'cluster:a',
+	label: 'Ideas',
+	keywords: ['ideas'],
+	numberOfShapes: 1,
+}
+
+const PAGE_READ = {
+	pageId: 'page:a',
+	pageName: 'Cover',
+	clusters: [{ ...CLUSTER, bounds: { x: 0, y: 0, w: 10, h: 10 } }],
+	details: [
+		{
+			...CLUSTER,
+			shapes: [{ id: 'shape:a', type: 'geo', parentId: 'page:a', x: 0, y: 0, props: {} }],
+		},
+	],
+	ancestors: [],
+	bindings: [],
+	arrows: {},
+	dimensions: {},
+}
+
 describe('parseTabRenderReply', () => {
 	it.each([
 		[{ status: 'accepted' }],
 		[{ status: 'declined', reason: 'page_not_current' }],
-		[{ status: 'measured', shapes: {} }],
+		[{ status: 'page_read', read: PAGE_READ }],
+		[{ status: 'page_not_found', reason: 'page_out_of_range', pageCount: 2 }],
 		[{ status: 'captured', base64: 'iVBORw0KGgoAAAANSUhEUg' }],
 	])('accepts %j', (reply) => {
 		expect(parseTabRenderReply(reply)).toEqual(reply)
@@ -122,35 +146,16 @@ describe('parseTabRenderReply', () => {
 		['accepted'],
 		[{ status: 'nonsense' }],
 		[{ status: 'declined', reason: 'not a reason' }],
-		[{ status: 'measured' }],
-		[{ status: 'measured', shapes: [] }],
+		[{ status: 'page_read' }],
+		[{ status: 'page_read', read: { ...PAGE_READ, clusters: [{ id: 'c', label: 'x' }] } }],
+		[{ status: 'page_read', read: { ...PAGE_READ, details: [{ ...CLUSTER, shapes: [{}] }] } }],
+		[{ status: 'page_read', read: { ...PAGE_READ, arrows: [] } }],
+		[{ status: 'page_not_found', reason: 'page_out_of_range', pageCount: -1 }],
+		[{ status: 'page_not_found', reason: 'nope', pageCount: 1 }],
 		[{ status: 'captured', base64: 42 }],
 		// Whatever this is, the tool result would call it a PNG.
 		[{ status: 'captured', base64: 'PHN2ZyB4bWxucz0' }],
 	])('refuses %j', (reply) => {
 		expect(parseTabRenderReply(reply)).toBeNull()
-	})
-})
-
-describe('readMeasurements', () => {
-	// A non-finite box would give NaN distances and detach its shape from the clustering.
-	it('drops a malformed box, and malformed arrow ends or dimensions on a good one', () => {
-		const measured = readMeasurements({
-			good: { x: 1, y: 2, w: 3, h: 4, text: 'Hi', dimensions: { w: 3, h: 4 } },
-			unbounded: { x: 0, y: 0, w: Infinity, h: 1 },
-			badExtras: {
-				x: 0,
-				y: 0,
-				w: 1,
-				h: 1,
-				arrow: { start: { x: 0, y: NaN }, end: { x: 1, y: 1 } },
-				dimensions: { w: -1, h: 1 },
-			},
-		} as any)
-
-		expect(measured).toEqual({
-			good: { minX: 1, minY: 2, maxX: 4, maxY: 6, text: 'Hi', dimensions: { w: 3, h: 4 } },
-			badExtras: { minX: 0, minY: 0, maxX: 1, maxY: 1 },
-		})
 	})
 })
