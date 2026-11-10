@@ -1750,7 +1750,11 @@ importers:
         specifier: ^19.2.1
         version: 19.2.1(@types/react@19.2.7)(react@19.2.1)
 
-  packages/permissions: {}
+  packages/permissions:
+    dependencies:
+      '@tldraw/tlschema':
+        specifier: workspace:*
+        version: link:../tlschema
 
   packages/state:
     dependencies:

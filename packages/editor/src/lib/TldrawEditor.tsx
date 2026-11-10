@@ -3,6 +3,7 @@ import {
 	TLAsset,
 	TLBinding,
 	TLPage,
+	TLPermission,
 	TLRecordChange,
 	TLShape,
 	TLStore,
@@ -293,6 +294,27 @@ export interface TldrawEditorBaseProps {
 	): boolean
 
 	/**
+	 * Whether the current user holds a named permission. The UI asks this where it has no record to
+	 * ask `canChangeRecord` about: a missing `tl:page:create` disables the new page button, a missing
+	 * `tl:shape:create` disables the shape tools. Unset means every permission is held.
+	 *
+	 * The default UI asks about `tl:shape:create`, `tl:shape:update`, `tl:shape:delete`,
+	 * `tl:page:create`, `tl:page:update` and `tl:page:delete`. This only shapes the UI: pair it with a
+	 * `canChangeRecord` that denies the same things. `createPermissionPolicy` from
+	 * `@tldraw/permissions` makes both from one list. Reactive: read store state or signals inside it
+	 * and the answer follows.
+	 *
+	 * @example
+	 * ```ts
+	 * can={(permission) => permission !== 'tl:page:create'}
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 * @param editor - The editor instance.
+	 */
+	can?(permission: TLPermission, editor: Editor): boolean
+
+	/**
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
@@ -567,6 +589,7 @@ function TldrawEditorWithReadyStore({
 	licenseKey,
 	getShapeVisibility,
 	canChangeRecord,
+	can,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -656,6 +679,7 @@ function TldrawEditorWithReadyStore({
 				licenseKey,
 				getShapeVisibility,
 				canChangeRecord,
+				can,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -701,6 +725,7 @@ function TldrawEditorWithReadyStore({
 			licenseManager,
 			getShapeVisibility,
 			canChangeRecord,
+			can,
 			assetUrls,
 			stableI18n,
 		]

@@ -1,19 +1,18 @@
+import type { TLPermission } from '@tldraw/tlschema'
+
 /**
  * The permissions the tldraw editor and UI understand.
  *
  * @public
  */
-export const TL_PERMISSIONS = [
+export const TL_PERMISSIONS: readonly TLPermission[] = [
 	'tl:shape:create',
 	'tl:shape:update',
 	'tl:shape:delete',
 	'tl:page:create',
 	'tl:page:update',
 	'tl:page:delete',
-] as const
-
-/** @public */
-export type TLPermission = (typeof TL_PERMISSIONS)[number]
+]
 
 /**
  * An entry in a list of granted permissions: a permission, or a prefix ending in `:*` that covers
@@ -93,7 +92,7 @@ export function judgeChange(
 
 /** @public */
 export interface TLPermissionPolicy {
-	/** Whether the permission is granted. For UI that has no record to ask about. */
+	/** Whether the permission is granted. Pass as the editor's `can`, or ask about your own names. */
 	can(permission: TLPermissionGrant): boolean
 	/** Pass as the editor's `canChangeRecord`. */
 	canChangeRecord(change: TLPermissionChange): boolean

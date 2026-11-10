@@ -4,6 +4,8 @@
 
 ```ts
 
+import type { TLPermission } from '@tldraw/tlschema';
+
 // @public
 export function createPermissionPolicy(getGranted: () => readonly TLPermissionGrant[]): TLPermissionPolicy;
 
@@ -17,10 +19,7 @@ export function hasPermission(granted: readonly TLPermissionGrant[], needed: str
 export function judgeChange(granted: readonly TLPermissionGrant[], change: TLPermissionChange): null | string;
 
 // @public
-export const TL_PERMISSIONS: readonly ['tl:shape:create', 'tl:shape:update', 'tl:shape:delete', 'tl:page:create', 'tl:page:update', 'tl:page:delete'];
-
-// @public (undocumented)
-export type TLPermission = (typeof TL_PERMISSIONS)[number];
+export const TL_PERMISSIONS: readonly TLPermission[];
 
 // @public
 export interface TLPermissionChange {

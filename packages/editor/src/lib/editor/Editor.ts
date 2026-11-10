@@ -42,6 +42,7 @@ import {
 	TLInstancePageState,
 	TLInstancePresence,
 	TLPage,
+	TLPermission,
 	TLRecordChange,
 	TLPageId,
 	TLParentId,
@@ -321,6 +322,11 @@ export interface TLEditorOptions {
 		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
 		editor: Editor
 	): boolean
+
+	/**
+	 * Whether the current user holds a named permission. See {@link TldrawEditorBaseProps.can}.
+	 */
+	can?(permission: TLPermission, editor: Editor): boolean
 	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
@@ -406,6 +412,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		textOptions: _textOptions,
 		getShapeVisibility,
 		canChangeRecord,
+		can,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -417,6 +424,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
 		this._canChangeRecord = canChangeRecord
+		this._can = can
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -5843,6 +5851,27 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _canChangeRecord?: TLEditorOptions['canChangeRecord']
+	private readonly _can?: TLEditorOptions['can']
+
+	/**
+	 * Whether the current user holds a named permission, as answered by the `can` option. True when
+	 * the option isn't set. Reactive when the option reads reactive state.
+	 *
+	 * This is for UI that has no record to ask {@link Editor.canChangeRecord} about, such as a button
+	 * that would create a page. It doesn't stop anything by itself.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.can('tl:page:create')
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 *
+	 * @public
+	 */
+	can(permission: TLPermission): boolean {
+		return this._can ? this._can(permission, this) : true
+	}
 
 	// Shapes created in the interaction still under way. Tools create a shape on pointer down and
 	// every drag frame after is an update, so a rule allowing create but not update would leave only
