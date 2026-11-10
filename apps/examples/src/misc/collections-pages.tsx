@@ -14,6 +14,7 @@ import { Editor } from 'tldraw'
 import type { Showing } from './collections-example'
 import { LocalStorageCollectionSource } from './collections-local-storage-source'
 import diagramming from './collections-pack-diagramming.json'
+import doodles from './collections-pack-doodles.json'
 import tldrawCharacters from './collections-pack-tldraw-characters.json'
 import wireframing from './collections-pack-wireframing.json'
 import { saveSamples, WIREFRAMES } from './collections-samples'
@@ -25,7 +26,7 @@ export const PAGES = [
 ] as const
 export type PageName = (typeof PAGES)[number]
 
-const PACKS = [wireframing, diagramming, tldrawCharacters] as unknown as CollectionPack[]
+const PACKS = [wireframing, diagramming, tldrawCharacters, doodles] as unknown as CollectionPack[]
 
 // Packs the app ships as data, listed as they are: their items can be placed but nothing changed.
 function shippedPacks(packs: CollectionPack[]) {
