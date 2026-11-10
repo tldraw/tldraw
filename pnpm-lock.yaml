@@ -1758,6 +1758,9 @@ importers:
       '@tldraw/tlschema':
         specifier: workspace:*
         version: link:../tlschema
+      '@tldraw/utils':
+        specifier: workspace:*
+        version: link:../utils
 
   packages/state:
     dependencies:

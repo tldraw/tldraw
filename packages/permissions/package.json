@@ -7,12 +7,14 @@
 		"email": "hello@tldraw.com"
 	},
 	"homepage": "https://tldraw.dev",
-	"license": "MIT",
+	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
-		"stableId": "tldraw:sdk-core",
-		"name": "SDK",
-		"type": "product",
-		"premium": false
+		"stableId": "tldraw:commenting",
+		"name": "Commenting",
+		"type": "feature",
+		"parent": "tldraw:collaboration",
+		"premium": true,
+		"licenseFlag": "FEAT_COMMENTING"
 	},
 	"repository": {
 		"type": "git",
@@ -50,7 +52,8 @@
 		"build-types": "tsc --build"
 	},
 	"dependencies": {
-		"@tldraw/tlschema": "workspace:*"
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*"
 	},
 	"devDependencies": {},
 	"engines": {

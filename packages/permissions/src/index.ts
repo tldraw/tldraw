@@ -1,3 +1,5 @@
+import { registerTldrawLibraryVersion } from '@tldraw/utils'
+
 export {
 	createPermissionPolicy,
 	getRequiredPermission,
@@ -8,3 +10,9 @@ export {
 	type TLPermissionGrant,
 	type TLPermissionPolicy,
 } from './permissions'
+
+registerTldrawLibraryVersion(
+	(globalThis as any).TLDRAW_LIBRARY_NAME,
+	(globalThis as any).TLDRAW_LIBRARY_VERSION,
+	(globalThis as any).TLDRAW_LIBRARY_MODULES
+)
