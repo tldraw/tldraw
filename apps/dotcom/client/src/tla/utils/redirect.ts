@@ -50,13 +50,12 @@ export function getSignInRedirect(
 	} catch {
 		return null
 	}
-	if (url.protocol !== 'https:' && url.protocol !== 'http:') return null
 	if (url.origin === appOrigin) {
 		const path = url.pathname + url.search + url.hash
-		return path === '/' ? null : path
+		// `//host/x` is a path here but a protocol-relative URL to whatever navigates to it.
+		return path === '/' || path.startsWith('//') ? null : path
 	}
-	if (clerkOrigin && url.origin === clerkOrigin) return url.href
-	return null
+	return isClerkFrontendApiUrl(url.href, clerkOrigin) ? url.href : null
 }
 
 export const CLERK_FRONTEND_API_ORIGIN = getClerkFrontendApiOrigin(

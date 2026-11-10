@@ -91,8 +91,8 @@ const darkVariables = {
 	colorInputText: '#f5f5f5',
 }
 
-// `/` signs the user in (it ignores Clerk's `redirect_url`) or shows the legal terms, then comes
-// back here through the app's own post-sign-in redirect.
+// `/` shows the sign-in dialog or the legal terms, then comes back here through the stored
+// post-sign-in redirect.
 function ReturnViaRoot({ openSignIn = false }: { openSignIn?: boolean }) {
 	const navigate = useNavigate()
 	useEffect(() => {

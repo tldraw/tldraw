@@ -36,6 +36,7 @@ describe('getSignInRedirect', () => {
 		expect(getSignInRedirect(`${appOrigin}/`, opts)).toBe(null)
 		expect(getSignInRedirect('https://evil.example/oauth/authorize', opts)).toBe(null)
 		expect(getSignInRedirect('//evil.example/x', opts)).toBe(null)
+		expect(getSignInRedirect(`${appOrigin}//evil.example/x`, opts)).toBe(null)
 		expect(getSignInRedirect('https://clerk.tldraw.com.evil.example/x', opts)).toBe(null)
 		expect(getSignInRedirect('javascript:alert(1)', opts)).toBe(null)
 		expect(getSignInRedirect(`${clerkOrigin}/x`, { appOrigin, clerkOrigin: null })).toBe(null)
