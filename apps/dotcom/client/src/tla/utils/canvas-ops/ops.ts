@@ -1,11 +1,10 @@
-import { Editor, transaction, type TLShapeId } from 'tldraw'
+import { Editor, type TLShapeId } from 'tldraw'
 import {
 	describeShapes,
 	fromShapeId,
 	LABEL_PADDING,
 	measureLabel,
 	runBatch,
-	settle,
 	toShapeId,
 	type BatchContext,
 	type ShapeSummary,
@@ -102,9 +101,6 @@ function collides(
 	}
 	return null
 }
-
-// ---------------------------------------------------------------------------------------------
-// References
 
 const COLOR_WORDS: Record<string, CanvasColor> = {
 	black: 'black',
@@ -269,9 +265,6 @@ function resolveRefList(editor: Editor, list: RefList, ctx: RefContext): TLShape
 	if (ids.length === 0) throw new Error(`No shape has text containing "${list.text}"`)
 	return ids
 }
-
-// ---------------------------------------------------------------------------------------------
-// Placement solver
 
 type Relation = 'above' | 'below' | 'left_of' | 'right_of' | 'inside' | 'centered_on'
 type AlignMode = 'start' | 'center' | 'end'
@@ -518,9 +511,6 @@ function crowding(editor: Editor, id: TLShapeId): string | undefined {
 		? `now overlaps ${fromShapeId(worst.id)}`
 		: `now only ${Math.round(worst.gap)} clear of ${fromShapeId(worst.id)}`
 }
-
-// ---------------------------------------------------------------------------------------------
-// Ops
 
 /** Create a new subject at `at`; the caller moves it into place. */
 function materialise(
@@ -1070,7 +1060,7 @@ function applyOp(ctx: OpContext, op: CanvasOp, index: number): OpResult {
 			} else if (text) ctx.apply({ type: 'update_shape', shapeId: created[0], text })
 			return ok(
 				ids,
-				`arrow ${created[0]} from ${'shapeId' in from.action ? from.action.shapeId : `(${from.action.x}, ${from.action.y})`} to ${'shapeId' in to.action ? to.action.shapeId : `(${to.action.x}, ${to.action.y})`}${short ? `; label "${op.text}" beside it` : ''}`,
+				`arrow ${created[0]} from ${'shapeId' in from.action ? from.action.shapeId : `(${from.action.x}, ${from.action.y})`} to ${'shapeId' in to.action ? to.action.shapeId : `(${to.action.x}, ${to.action.y})`}${short ? `; label "${text}" beside it` : ''}`,
 				adjusted
 			)
 		}
@@ -1272,75 +1262,47 @@ function segmentCrossesRect(
 	return true
 }
 
-/** Presence records prefix user ids with "user:"; senders may pass either form. */
-function sameUser(presenceUserId: string, userId: string): boolean {
-	return (
-		presenceUserId === userId ||
-		presenceUserId === `user:${userId}` ||
-		`user:${presenceUserId}` === userId
-	)
-}
-
-/**
- * What `{ selected: true }` refers to. Ops sent on behalf of a collaborator resolve against that
- * collaborator's selection (from presence); otherwise against this editor's own selection.
- */
-function selectionFor(editor: Editor, userId?: string): TLShapeId[] {
-	if (userId) {
-		const presence = editor.getCollaborators().find((p) => sameUser(p.userId, userId))
-		if (presence) return presence.selectedShapeIds.filter((id) => editor.getShape(id))
-	}
-	return editor.getSelectedShapeIds()
-}
-
 /**
  * Apply one op atomically: an op that throws partway (an ambiguous ref after an update, an id that
  * already exists after a create) is rolled back, so a failed op never leaves half an edit behind.
+ *
+ * Rolled back through the history manager rather than a signal transaction, which would restore the
+ * store but leave the half-edit in the pending undo entry, to come back on undo then redo.
  */
 function runOp(ctx: OpContext, op: CanvasOp, index: number, errors: string[]): OpResult {
-	const lengths = [ctx.journal.created.length, ctx.memory.created.length, ctx.compiled.length]
+	const created = [ctx.journal.created.length, ctx.memory.created.length]
+	const mark = ctx.editor.markHistoryStoppingPoint('canvas op')
 	try {
-		return transaction(() => applyOp(ctx, op, index))
+		return applyOp(ctx, op, index)
 	} catch (e) {
-		ctx.journal.created.length = lengths[0]
-		ctx.memory.created.length = lengths[1]
-		ctx.compiled.length = lengths[2]
+		ctx.editor.bailToMark(mark)
+		ctx.journal.created.length = created[0]
+		ctx.memory.created.length = created[1]
 		const message = (e as Error).message
 		errors.push(`Op ${index} (${op.op}): ${message}`)
 		return { index, op: op.op, ok: false, shapeIds: [], message }
 	}
 }
 
-function resultOf(
-	batchId: string,
-	ctx: OpContext,
-	results: OpResult[],
-	errors: string[]
-): ApplyOpsResult {
-	return {
-		batchId,
-		applied: results.filter((r) => r.ok).length,
-		createdIds: ctx.journal.created.map(fromShapeId),
-		errors: [...errors],
-		results: [...results],
-		compiled: [...ctx.compiled],
-	}
-}
-
-/** Apply ops as one batch (one undo step). A failing op is reported and the rest still run. */
-export async function applyOps(
+/**
+ * Apply ops as one batch (one undo step). A failing op is reported and the rest still run.
+ *
+ * `{ selected: true }` is this editor's own selection, since a batch runs in the tab of the user it
+ * is for. Presence is never consulted: its records are whatever a client sent.
+ */
+export function applyOps(
 	editor: Editor,
 	ops: CanvasOp[],
 	attribution: Attribution = {}
-): Promise<ApplyOpsResult> {
+): ApplyOpsResult {
 	const results: OpResult[] = []
 	const errors: string[] = []
-	const selected = selectionFor(editor, attribution.userId)
-	let opCtx!: OpContext
-	const { batchId } = runBatch(editor, attribution, (batch) => {
-		opCtx = { ...batch, refs: { created: batch.memory.created, selected } }
-		for (const [index, op] of ops.entries()) results.push(runOp(opCtx, op, index, errors))
+	const selected = editor.getSelectedShapeIds()
+	let createdIds: string[] = []
+	const batchId = runBatch(editor, attribution, (batch) => {
+		const ctx: OpContext = { ...batch, refs: { created: batch.memory.created, selected } }
+		for (const [index, op] of ops.entries()) results.push(runOp(ctx, op, index, errors))
+		createdIds = batch.journal.created.map(fromShapeId)
 	})
-	await settle(editor)
-	return resultOf(batchId, opCtx, results, errors)
+	return { batchId, applied: results.filter((r) => r.ok).length, createdIds, errors, results }
 }
