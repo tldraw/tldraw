@@ -72,14 +72,15 @@ describe('copyCollection', () => {
 	})
 
 	it('copies a read-only collection', async () => {
-		const pack = CollectionRecordType.create({ name: 'Prefabs', readOnly: true, ownerId: 'home' })
+		const pack = CollectionRecordType.create({ name: 'Prefabs', ownerId: 'home' })
 		const item = CollectionItemRecordType.create({ collectionId: pack.id, name: 'Card' })
 		const source = new InMemoryCollectionSource({
 			owners,
+			can: (_, collectionId) => collectionId !== pack.id,
 			initial: { collections: [pack], items: [item], contents: { [item.id]: content() } },
 		})
 		const copy = await copyCollection(source, pack.id, 'acme')
-		expect(copy.readOnly).toBeUndefined()
+		expect(source.can('addItem', copy.id)).toBe(true)
 		expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Card'])
 	})
 

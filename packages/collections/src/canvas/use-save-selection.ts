@@ -10,7 +10,8 @@ import {
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionId } from '../lib/schema'
 import { createNewCollection } from './new-collection'
-import { saveShapesToCollection } from './save-shapes'
+import { recordRecentCollection } from './recent-collections'
+import { saveShapesToCollection, type PrepareItemContent } from './save-shapes'
 import { activeCollectionId, collectionsPanelOpen, renamingCollectionId } from './state'
 
 const messages = defineMessages({
@@ -43,12 +44,15 @@ function showCollection(editor: Editor, collectionId: TLCollectionId) {
 
 /**
  * Returns functions that save the current selection. `saveSelection` saves to an existing
- * collection: with the panel open, the panel shows that collection; otherwise a toast confirms the
- * save and can open it. `saveToNewCollection` creates a collection named "New collection" (or the
- * next free variant), saves into it, and opens the panel with the new name ready to edit. Failures
- * show a toast.
+ * collection: with the panel open, the panel brings that collection into view; otherwise a toast
+ * confirms the save and can open it. `saveToNewCollection` creates a collection named "New
+ * collection" (or the next free variant), saves into it, and opens the panel with the new name
+ * ready to edit. Failures show a toast.
  */
-export function useSaveSelection(source: CollectionSource) {
+export function useSaveSelection(
+	source: CollectionSource,
+	prepareItemContent?: PrepareItemContent
+) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -57,8 +61,9 @@ export function useSaveSelection(source: CollectionSource) {
 		(collectionId: TLCollectionId) => {
 			const shapeIds = editor.getSelectedShapeIds()
 			if (shapeIds.length === 0) return
-			saveShapesToCollection(editor, source, collectionId, shapeIds).then(
+			saveShapesToCollection(editor, source, collectionId, shapeIds, { prepareItemContent }).then(
 				() => {
+					recordRecentCollection(source.id, collectionId)
 					if (collectionsPanelOpen.get(editor)) {
 						activeCollectionId.set(editor, collectionId)
 						return
@@ -87,7 +92,7 @@ export function useSaveSelection(source: CollectionSource) {
 				}
 			)
 		},
-		[editor, source, msg, addToast]
+		[editor, source, prepareItemContent, msg, addToast]
 	)
 
 	const saveToNewCollection = useCallback(() => {
@@ -99,7 +104,10 @@ export function useSaveSelection(source: CollectionSource) {
 		)
 		createNewCollection(source, name)
 			.then(async (collection) => {
-				await saveShapesToCollection(editor, source, collection.id, shapeIds)
+				await saveShapesToCollection(editor, source, collection.id, shapeIds, {
+					prepareItemContent,
+				})
+				recordRecentCollection(source.id, collection.id)
 				showCollection(editor, collection.id)
 				renamingCollectionId.set(editor, collection.id)
 			})
@@ -110,7 +118,7 @@ export function useSaveSelection(source: CollectionSource) {
 					severity: 'error',
 				})
 			})
-	}, [editor, source, msg, addToast])
+	}, [editor, source, prepareItemContent, msg, addToast])
 
 	return { saveSelection, saveToNewCollection }
 }

@@ -1,7 +1,12 @@
 import { react } from '@tldraw/state'
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
+import {
+	CollectionNotFoundError,
+	CollectionPermissionError,
+	type TLCollectionAction,
+	type TLCollectionTarget,
+} from './CollectionSource'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
 import {
 	CollectionItemRecordType,
@@ -15,7 +20,7 @@ const card = CollectionItemRecordType.createId('card')
 const missingCollection = CollectionRecordType.createId('nope')
 const missingItem = CollectionItemRecordType.createId('nope')
 
-const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs', readOnly: true })
+const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs' })
 const cardItem = () =>
 	CollectionItemRecordType.create({ id: card, collectionId: pack, name: 'Card' })
 
@@ -108,7 +113,7 @@ describe('InMemoryCollectionSource', () => {
 	})
 
 	it('reports a missing item as not found, not as forbidden', async () => {
-		const source = new InMemoryCollectionSource({ readOnly: true })
+		const source = new InMemoryCollectionSource({ can: () => false })
 		await expect(source.renameItem(missingItem, 'Name')).rejects.toThrow(CollectionNotFoundError)
 		await expect(source.deleteItem(missingItem)).rejects.toThrow(CollectionNotFoundError)
 	})
@@ -172,6 +177,7 @@ describe('InMemoryCollectionSource', () => {
 	it('refuses to move an item out of or into a read-only collection', async () => {
 		const source = new InMemoryCollectionSource({
 			initial: { collections: [prefabs()], items: [], contents: {} },
+			can: (_, collectionId) => collectionId !== pack,
 		})
 		const writable = await source.createCollection('Mine')
 		const item = await source.addItem(writable.id, { content: content() })
@@ -307,14 +313,53 @@ describe('InMemoryCollectionSource', () => {
 		).rejects.toThrow(CollectionNotFoundError)
 	})
 
-	it('answers no for a collection that does not exist', () => {
-		const source = new InMemoryCollectionSource()
+	it('allows everything by default', () => {
+		const source = new InMemoryCollectionSource({
+			initial: { collections: [prefabs()], items: [], contents: {} },
+		})
+		expect(source.can('createCollection')).toBe(true)
+		expect(source.can('addItem', pack)).toBe(true)
+		expect(source.can('deleteCollection', pack)).toBe(true)
+	})
+
+	it('answers no for a collection that does not exist, without asking the rule', () => {
+		const can = vi.fn(() => true)
+		const source = new InMemoryCollectionSource({ can })
 		expect(source.can('addItem', missingCollection)).toBe(false)
+		expect(can).not.toHaveBeenCalled()
+	})
+
+	it('answers no for an owner it does not list, without asking the rule', () => {
+		const can = vi.fn(() => true)
+		const source = new InMemoryCollectionSource({ owners: [{ id: 'home', name: 'Home' }], can })
+		expect(source.can('createCollection', { ownerId: 'nobody' })).toBe(false)
+		expect(can).not.toHaveBeenCalled()
+	})
+
+	it('asks the rule about new collections for an owner', async () => {
+		const can = vi.fn(
+			(_: TLCollectionAction, target?: TLCollectionTarget) =>
+				typeof target !== 'object' || target.ownerId !== 'acme'
+		)
+		const source = new InMemoryCollectionSource({
+			owners: [
+				{ id: 'home', name: 'Home' },
+				{ id: 'acme', name: 'Acme' },
+			],
+			can,
+		})
+		expect(source.can('createCollection', { ownerId: 'home' })).toBe(true)
+		expect(source.can('createCollection', { ownerId: 'acme' })).toBe(false)
+		expect(can).toHaveBeenCalledWith('createCollection', { ownerId: 'acme' })
+		expect((await source.createCollection('Mine')).ownerId).toBe('home')
+		await expect(source.createCollection('Theirs', { ownerId: 'acme' })).rejects.toThrow(
+			CollectionPermissionError
+		)
 	})
 
 	it('refuses every write when read-only, but items stay usable', async () => {
 		const source = new InMemoryCollectionSource({
-			readOnly: true,
+			can: () => false,
 			initial: {
 				collections: [prefabs()],
 				items: [cardItem()],
@@ -337,6 +382,7 @@ describe('InMemoryCollectionSource', () => {
 				items: [],
 				contents: {},
 			},
+			can: (_, collectionId) => collectionId !== pack,
 		})
 		expect(source.can('createCollection')).toBe(true)
 		expect(source.can('addItem', pack)).toBe(false)
