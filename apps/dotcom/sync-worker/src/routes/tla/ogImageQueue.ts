@@ -12,6 +12,7 @@ import {
 	OgImageRenderReason,
 	ThumbnailBoardRef,
 } from '../../types'
+import { writeDataPoint } from '../../utils/analytics'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
 import { enumerateBoardPages } from './boardTools'
 import {
@@ -61,7 +62,7 @@ export function getOgImageCacheKey(board: ThumbnailBoardRef) {
 	return `og/${board.kind}/${board.slug}/light.png`
 }
 
-export type EnqueueOgImageResult = 'enqueued' | 'already_pending' | 'unavailable'
+export type EnqueueOgImageResult = 'enqueued' | 'already_pending' | 'cooling_down' | 'unavailable'
 
 // The single-flight marker. Its TTL and the retry constants live together in config.ts, where the
 // comment on OG_PENDING_MARKER_TTL_MS explains the inequality that binds them.
@@ -70,12 +71,12 @@ function getOgImagePendingKey(board: ThumbnailBoardRef) {
 }
 
 // Armed when a crawler-triggered job ends without an image — it gave up, or the board has nothing to
-// render — and consulted only by the OG route's published-board repair (see OG_REPAIR_COOLDOWN_MS in
-// config.ts). Deliberately not consulted by enqueueOgImageRender itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
-// went, so only the one ask an outside caller can cause is metered. For the same reason the publish
-// trigger *clears* it: the cooldown is evidence about the snapshot that failed, and a republish
-// replaces that snapshot, so the new one gets its own repair backstop — and re-arms the cooldown
-// itself if it turns out to fail too.
+// render — or when an edit-triggered job gives up (see OG_REPAIR_COOLDOWN_MS in config.ts). Consulted
+// by the OG route's published-board repair and by edit asks. Publish asks ignore it: a republish is a
+// genuine new snapshot and must render regardless of how the last attempt went. For the same reason
+// the publish trigger *clears* it: the cooldown is evidence about the snapshot that failed, and a
+// republish replaces that snapshot, so the new one gets its own repair backstop — and re-arms the
+// cooldown itself if it turns out to fail too.
 function getOgImageRepairCooldownKey(board: ThumbnailBoardRef) {
 	return getOgImageCacheKey(board).replace(/\.png$/, '.repair-cooldown')
 }
@@ -130,6 +131,13 @@ export async function enqueueOgImageRender(
 	}
 ): Promise<EnqueueOgImageResult> {
 	if (!env.THUMBNAILS || !env.QUEUE) return 'unavailable'
+
+	if (reason === 'edit' && (await isOgImageRepairOnCooldown(env, board))) {
+		writeDataPoint(undefined, env.MEASURE, env, 'og_render_cooling_down', {
+			blobs: [`kind:${board.kind}`],
+		})
+		return 'cooling_down'
+	}
 
 	const pendingKey = getOgImagePendingKey(board)
 	if (isMarkerAlive(await env.THUMBNAILS.head(pendingKey))) {
@@ -512,7 +520,22 @@ async function retryOrDrop(
 	// away for the rest of the TTL — which matters most here, since this board has no image at all.
 	await clearOgImagePendingMarker(env, board)
 	await armRepairCooldownIfCrawler(env, board, reason)
+	await armEditCooldown(env, board, reason)
 	message.ack()
+}
+
+// Without it, every edit window on a board that cannot render queues another full retry chain of
+// Browser Run, for as long as anyone keeps editing it. Only on a give-up, not on an empty board: the
+// next edit that draws something must render straight away.
+async function armEditCooldown(
+	env: Environment,
+	board: ThumbnailBoardRef,
+	reason: OgImageRenderReason
+) {
+	if (reason !== 'edit' || !env.THUMBNAILS) return
+	await putMarker(env.THUMBNAILS, getOgImageRepairCooldownKey(board), OG_REPAIR_COOLDOWN_MS).catch(
+		() => {}
+	)
 }
 
 // For a job that ended without an image. When the ask was the OG route's crawler-triggered repair,
