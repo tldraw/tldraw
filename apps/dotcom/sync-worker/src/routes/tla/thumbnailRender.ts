@@ -437,6 +437,11 @@ export interface RenderContentSummary {
 	mediaAssets: number
 	bboxWidth: number
 	bboxHeight: number
+	/**
+	 * Full-resolution megapixels of the image assets the rendered page's shapes use, each counted once,
+	 * whatever their nesting. What decoding the originals would cost the render page.
+	 */
+	imageMegapixels: number
 }
 
 const EMPTY_CONTENT_SUMMARY: RenderContentSummary = {
@@ -445,6 +450,7 @@ const EMPTY_CONTENT_SUMMARY: RenderContentSummary = {
 	mediaAssets: 0,
 	bboxWidth: 0,
 	bboxHeight: 0,
+	imageMegapixels: 0,
 }
 
 export function summarizeSnapshotContent(
@@ -457,20 +463,35 @@ export function summarizeSnapshotContent(
 	let minY = Infinity
 	let maxX = -Infinity
 	let maxY = -Infinity
+	const imagePixels = new Map<string, number>()
+	const parentOf = new Map<string, string>()
+	const assetUsers: { shapeId: string; assetId: string }[] = []
 	for (const { state } of snapshot.documents) {
 		const record = state as {
+			id?: string
 			typeName?: string
 			type?: string
 			parentId?: string
 			x?: number
 			y?: number
-			props?: { w?: unknown; h?: unknown }
+			props?: { w?: unknown; h?: unknown; pixelRatio?: unknown; assetId?: unknown }
 		}
 		if (record.typeName === 'asset') {
 			if (record.type === 'image' || record.type === 'video') mediaAssets++
+			if (record.type === 'image' && record.id) {
+				const w = typeof record.props?.w === 'number' ? record.props.w : 0
+				const h = typeof record.props?.h === 'number' ? record.props.h : 0
+				const ratio = typeof record.props?.pixelRatio === 'number' ? record.props.pixelRatio : 1
+				imagePixels.set(record.id, w * h * ratio * ratio)
+			}
 			continue
 		}
-		if (record.typeName !== 'shape' || (pageId && record.parentId !== pageId)) continue
+		if (record.typeName !== 'shape') continue
+		if (record.id && record.parentId) parentOf.set(record.id, record.parentId)
+		if (record.id && typeof record.props?.assetId === 'string') {
+			assetUsers.push({ shapeId: record.id, assetId: record.props.assetId })
+		}
+		if (pageId && record.parentId !== pageId) continue
 		pageShapes++
 		const x = record.x ?? 0
 		const y = record.y ?? 0
@@ -481,13 +502,27 @@ export function summarizeSnapshotContent(
 		maxX = Math.max(maxX, x + w)
 		maxY = Math.max(maxY, y + h)
 	}
+	const drawnAssets = new Set<string>()
+	for (const { shapeId, assetId } of assetUsers) {
+		if (!pageId || pageOfShape(parentOf, shapeId) === pageId) drawnAssets.add(assetId)
+	}
+	let imagePixelTotal = 0
+	for (const assetId of drawnAssets) imagePixelTotal += imagePixels.get(assetId) ?? 0
 	return {
 		records: snapshot.documents.length,
 		pageShapes,
 		mediaAssets,
 		bboxWidth: pageShapes ? maxX - minX : 0,
 		bboxHeight: pageShapes ? maxY - minY : 0,
+		imageMegapixels: imagePixelTotal / 1_000_000,
 	}
+}
+
+// Bounded by the map's size, so a parent cycle in a corrupt document ends instead of hanging.
+function pageOfShape(parentOf: Map<string, string>, shapeId: string): string | undefined {
+	let id: string | undefined = shapeId
+	for (let i = 0; i <= parentOf.size && id?.startsWith('shape:'); i++) id = parentOf.get(id)
+	return id
 }
 
 // The Browser Run spend ledger: one datapoint per browser session actually created, written here at
@@ -549,6 +584,8 @@ function writeBrowserRunSessionTelemetry(
 			content.bboxHeight,
 			// Appended. The push script's length in characters; for a fallback, the length refused.
 			transport.pushChars,
+			// Appended after pushChars.
+			content.imageMegapixels,
 		],
 	})
 }

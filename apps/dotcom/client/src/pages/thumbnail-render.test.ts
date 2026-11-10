@@ -1,7 +1,9 @@
 import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
 import {
+	AssetRecordType,
 	Editor,
 	TLArrowShape,
+	TLAsset,
 	TLShapeId,
 	b64Vecs,
 	createBindingId,
@@ -18,6 +20,8 @@ import {
 	acquireThumbnailRenderData,
 	exportThumbnailImage,
 	prepareLiveCapture,
+	preloadImageAssets,
+	renderAssetStore,
 	setThumbnailError,
 	signalThumbnailReady,
 } from './thumbnail-render'
@@ -232,6 +236,83 @@ describe('measureDimensions', () => {
 		expect(measureDimensions(editor, editor.getShape(geo)!)).toBeUndefined()
 		expect(measureDimensions(editor, editor.getShape(note)!)).toBeUndefined()
 		expect(measureDimensions(editor, editor.getShape(arrow)!)).toBeUndefined()
+		editor.dispose()
+	})
+})
+
+describe('renderAssetStore', () => {
+	// At the 1/32 zoom floor a 1x request would be a 1/32 width the app never asks for; at 2x it is
+	// the 1/16 width the app's most zoomed-out view on a 2x screen already uses.
+	it('resizes at a pixel ratio of 2, matching the variants the app requests', async () => {
+		const asset = {
+			type: 'image',
+			props: {
+				src: 'https://tldrawusercontent.com/photo.png',
+				w: 4000,
+				h: 3000,
+				mimeType: 'image/png',
+				isAnimated: false,
+			},
+		} as TLAsset
+		const url = await renderAssetStore.resolve!(asset, {
+			screenScale: 0.001,
+			steppedScreenScale: 1 / 1024,
+			dpr: 1,
+			networkEffectiveType: '4g',
+			shouldResolveToOriginal: false,
+		})
+		expect(url).toBe('https://tldrawusercontent.com/cdn-cgi/image/w=250,format=auto/photo.png')
+	})
+})
+
+describe('preloadImageAssets', () => {
+	// Warming the original would fetch the full-size bytes the render page's asset store exists to
+	// avoid, on exactly the image-heavy boards that were failing.
+	it('warms the URL the asset store resolves, not the original upload', async () => {
+		const store = createTLStore({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			assets: {
+				upload: async () => ({ src: '' }),
+				resolve: (asset, ctx) => `${asset.props.src}?w=${ctx.steppedScreenScale}`,
+			},
+		})
+		const editor = new Editor({
+			store,
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [],
+			getContainer: () => document.createElement('div'),
+		})
+		const assetId = AssetRecordType.createId('photo')
+		editor.createAssets([
+			{
+				id: assetId,
+				typeName: 'asset',
+				type: 'image',
+				props: {
+					src: 'https://example.com/photo.png',
+					w: 4000,
+					h: 3000,
+					name: 'photo.png',
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+				meta: {},
+			},
+		])
+		editor.createShape({ type: 'image', x: 0, y: 0, props: { assetId, w: 400, h: 300 } })
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		const srcs: string[] = []
+		vi.spyOn(HTMLImageElement.prototype, 'src', 'set').mockImplementation((src) => {
+			srcs.push(src)
+		})
+
+		await preloadImageAssets(editor, Date.now())
+
+		// 0.5 zoom of a shape drawn at a tenth of the asset's width: 0.05, stepped up to 1/16.
+		expect(srcs).toEqual(['https://example.com/photo.png?w=0.0625'])
+		vi.restoreAllMocks()
 		editor.dispose()
 	})
 })

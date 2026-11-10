@@ -28,6 +28,7 @@ import {
 	sleep,
 	useEditor,
 	TLAssetId,
+	TLAssetStore,
 	TLBookmarkShape,
 	AssetRecordType,
 	getHashForString,
@@ -42,6 +43,7 @@ import {
 	renderThumbnailPng,
 } from '../utils/boardCapture'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
+import { resolveUserContentImageUrl } from '../utils/resolveUserContentImageUrl'
 
 // The thumbnail render page: a real editor, loaded with one board's records, that exports itself
 // and displays the export for Browser Run to screenshot. Served as its own Vite entry
@@ -271,6 +273,7 @@ function ThumbnailRenderPage({
 			<Tldraw
 				hideUi
 				assetUrls={assetUrls}
+				assets={renderAssetStore}
 				shapeUtils={embedShapeUtils}
 				components={{ ErrorFallback: ThumbnailRenderCrash }}
 				snapshot={snapshot}
@@ -755,6 +758,23 @@ async function waitForFonts(editor: Editor) {
 	}
 }
 
+// Without it the SDK's default store resolves every image to its original upload, so a thumbnail of a
+// board full of photos downloaded and decoded each one at full size — enough to exhaust the tab on
+// image-heavy boards (Browser Run then fails with "Cannot read properties of null (reading
+// 'screenshot')", TLDRAW-SYNC-3VJ) or to run out the capture's time.
+//
+// Asked for at a pixel ratio of 2 whatever the context says. The resized width is the asset's width
+// times a power-of-two zoom step (floored at 1/32) times the pixel ratio, so at 1 the floor asks for
+// 1/32 widths that the app on a 2x screen never does (its floor lands at 1/16). At 2 the render page
+// asks for the variants the app has already asked for, so the edge cache can answer and no transform
+// exists only for thumbnails.
+export const renderAssetStore: TLAssetStore = {
+	upload: async () => {
+		throw new Error('The thumbnail render page is read-only')
+	},
+	resolve: (asset, context) => resolveUserContentImageUrl(asset, { ...context, dpr: 2 }),
+}
+
 // Warm the images the capture will draw, so the browser has the bytes before the shapes request
 // them. Only those: the store holds every asset on every page of the board, and the settle budget
 // is fixed, so a board with thousands of images elsewhere spent it fetching pictures the export
@@ -763,12 +783,19 @@ async function waitForFonts(editor: Editor) {
 // their descendants, or the page's shapes that survive culling at the camera the export will use —
 // so this must run after the pre-export fit, not before it.
 // Failures resolve rather than reject: a broken asset should not block the capture.
-async function preloadImageAssets(editor: Editor, deadline: number, requestedShapeIds?: string[]) {
+export async function preloadImageAssets(
+	editor: Editor,
+	deadline: number,
+	requestedShapeIds?: string[]
+) {
 	const culled = editor.getCulledShapes()
 	const roots = requestedShapeIds?.length
 		? getRequestedShapeIds(editor, requestedShapeIds)
 		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
+	const pending: Promise<string | null>[] = []
+	// The export's zoom: fitExportCamera has run, and the export uses the camera's zoom as its scale.
+	const scale = editor.getCamera().z
 	for (const id of editor.getShapeAndDescendantIds(roots)) {
 		const shape = editor.getShape(id)
 		if (!shape) continue
@@ -782,9 +809,19 @@ async function preloadImageAssets(editor: Editor, deadline: number, requestedSha
 				: null)
 		const asset = assetId ? editor.getAsset(assetId) : undefined
 		if (!asset) continue
-		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
+		if (asset.type === 'image' && asset.props.src) {
+			// The URL the export will ask for (see resolveAssetUrl in the SDK's getSvgJsx): warming the
+			// original instead would fetch exactly the full-size bytes the asset store exists to avoid.
+			const width = (shape.props as { w?: number }).w ?? asset.props.w
+			pending.push(
+				editor
+					.resolveAssetUrl(asset.id, { screenScale: scale * (width / asset.props.w), dpr: 1 })
+					.catch(() => null)
+			)
+		}
 		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
 	}
+	for (const url of await Promise.all(pending)) if (url) urls.add(url)
 	await Promise.all([...urls].map((url) => preloadImage(url, deadline)))
 }
 
