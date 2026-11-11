@@ -13,36 +13,34 @@ import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
 	emptyLibrary: {
-		id: 'collections.empty-collection',
+		id: 'libraries.empty-library',
 		defaultMessage: 'Nothing saved here yet.',
 	},
-	unnamedItem: { id: 'collections.unnamed-item', defaultMessage: 'Unnamed item' },
-	deleteItemTitle: { id: 'collections.delete-item-dialog.title', defaultMessage: 'Delete item' },
+	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
+	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
-		id: 'collections.delete-item-dialog.body',
-		defaultMessage: 'Delete “{name}” from this collection? Copies already placed on canvases stay.',
+		id: 'libraries.delete-item-dialog.body',
+		defaultMessage: 'Delete “{name}” from this library? Copies already placed on canvases stay.',
 	},
 	deleteUnnamedItemBody: {
-		id: 'collections.delete-unnamed-item-dialog.body',
-		defaultMessage:
-			'Delete this item from this collection? Copies already placed on canvases stay.',
+		id: 'libraries.delete-unnamed-item-dialog.body',
+		defaultMessage: 'Delete this item from this library? Copies already placed on canvases stay.',
 	},
 	renameErrorTitle: {
-		id: 'collections.rename-error.title',
+		id: 'libraries.rename-error.title',
 		defaultMessage: "Couldn't rename item",
 	},
 	deleteErrorTitle: {
-		id: 'collections.delete-error.title',
+		id: 'libraries.delete-error.title',
 		defaultMessage: "Couldn't delete item",
 	},
-	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
-	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
-	movedOpen: { id: 'collections.moved.open', defaultMessage: 'Open' },
-	moveErrorTitle: { id: 'collections.move-error.title', defaultMessage: "Couldn't move item" },
+	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
+	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
+	movedOpen: { id: 'libraries.moved.open', defaultMessage: 'Open' },
+	moveErrorTitle: { id: 'libraries.move-error.title', defaultMessage: "Couldn't move item" },
 	changeErrorDescription: {
-		id: 'collections.change-error.description',
-		defaultMessage:
-			'You may not be allowed to change this collection, or the item no longer exists.',
+		id: 'libraries.change-error.description',
+		defaultMessage: 'You may not be allowed to change this library, or the item no longer exists.',
 	},
 })
 

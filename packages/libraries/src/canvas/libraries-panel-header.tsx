@@ -13,15 +13,15 @@ import { canCreateNewLibrary, createNewLibrary } from './new-library'
 import { activeLibraryId, renamingLibraryId } from './state'
 
 const messages = defineMessages({
-	title: { id: 'collections.title', defaultMessage: 'Collections' },
-	newLibraryName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
+	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
 	changeErrorTitle: {
-		id: 'collections.collection-error.title',
-		defaultMessage: "Couldn't change collections",
+		id: 'libraries.library-error.title',
+		defaultMessage: "Couldn't change libraries",
 	},
 	changeErrorDescription: {
-		id: 'collections.collection-error.description',
-		defaultMessage: 'You may not be allowed to, or the collection no longer exists.',
+		id: 'libraries.library-error.description',
+		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
 	},
 })
 

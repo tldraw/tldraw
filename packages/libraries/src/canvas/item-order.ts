@@ -8,9 +8,9 @@ import {
 import type { TLLibraryItem } from '../lib/schema'
 
 const messages = defineMessages({
-	default: { id: 'collections.item-order.default', defaultMessage: 'Default' },
-	newest: { id: 'collections.item-order.newest', defaultMessage: 'Newest' },
-	name: { id: 'collections.item-order.name', defaultMessage: 'Name' },
+	default: { id: 'libraries.item-order.default', defaultMessage: 'Default' },
+	newest: { id: 'libraries.item-order.newest', defaultMessage: 'Newest' },
+	name: { id: 'libraries.item-order.name', defaultMessage: 'Name' },
 })
 
 /** A way to order a library's items. Leave out `compare` for the source's own order. */

@@ -11,8 +11,8 @@ import {
 } from 'tldraw'
 
 const messages = defineMessages({
-	cancel: { id: 'collections.delete-dialog.cancel', defaultMessage: 'Cancel' },
-	confirm: { id: 'collections.delete-dialog.confirm', defaultMessage: 'Delete' },
+	cancel: { id: 'libraries.delete-dialog.cancel', defaultMessage: 'Cancel' },
+	confirm: { id: 'libraries.delete-dialog.confirm', defaultMessage: 'Delete' },
 })
 
 export interface ConfirmDeleteDialogProps {

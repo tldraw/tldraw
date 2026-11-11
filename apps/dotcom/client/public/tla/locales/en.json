@@ -500,9 +500,6 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
-  "a9fc91939a": {
-    "translation": "Collections"
-  },
   "aac449eef6": {
     "translation": "Create workspace"
   },
@@ -511,6 +508,9 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
+  },
+  "aeb428554a": {
+    "translation": "Libraries"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",

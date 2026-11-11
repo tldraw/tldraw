@@ -1,7 +1,7 @@
 import { defineMessages, useTranslation } from 'tldraw'
 
 const messages = defineMessages({
-	empty: { id: 'collections.empty', defaultMessage: 'No collections yet.' },
+	empty: { id: 'libraries.empty', defaultMessage: 'No libraries yet.' },
 })
 
 export function NoLibraries() {

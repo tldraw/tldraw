@@ -47,7 +47,7 @@ const commentsMessages = defineMessages({
 })
 
 const librariesMessages = defineMessages({
-	libraries: { defaultMessage: 'Collections' },
+	libraries: { defaultMessage: 'Libraries' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'

@@ -5,8 +5,8 @@ import type { PrepareItemContent } from './save-shapes'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
-	addSelection: { id: 'collections.add-selection', defaultMessage: 'Add selection' },
-	selectToAdd: { id: 'collections.select-to-add', defaultMessage: 'Select shapes to add them' },
+	addSelection: { id: 'libraries.add-selection', defaultMessage: 'Add selection' },
+	selectToAdd: { id: 'libraries.select-to-add', defaultMessage: 'Select shapes to add them' },
 })
 
 export function AddSelectionTile({

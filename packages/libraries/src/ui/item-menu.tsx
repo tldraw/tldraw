@@ -14,10 +14,10 @@ import { MenuItem, MenuSubmenu } from './menu-items'
 import { RenameInput } from './rename-input'
 
 const messages = defineMessages({
-	moreOptions: { id: 'collections.item-menu.title', defaultMessage: 'Item options' },
-	rename: { id: 'collections.item-menu.rename', defaultMessage: 'Rename' },
-	delete: { id: 'collections.item-menu.delete', defaultMessage: 'Delete' },
-	moveTo: { id: 'collections.item-menu.move-to', defaultMessage: 'Move to' },
+	moreOptions: { id: 'libraries.item-menu.title', defaultMessage: 'Item options' },
+	rename: { id: 'libraries.item-menu.rename', defaultMessage: 'Rename' },
+	delete: { id: 'libraries.item-menu.delete', defaultMessage: 'Delete' },
+	moveTo: { id: 'libraries.item-menu.move-to', defaultMessage: 'Move to' },
 })
 
 /** @public */

@@ -18,25 +18,25 @@ import { renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	deleteTitle: {
-		id: 'collections.delete-collection-dialog.title',
-		defaultMessage: 'Delete collection',
+		id: 'libraries.delete-library-dialog.title',
+		defaultMessage: 'Delete library',
 	},
 	deleteBody: {
-		id: 'collections.delete-collection-dialog.body',
+		id: 'libraries.delete-library-dialog.body',
 		defaultMessage:
 			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
 	},
-	movedTitle: { id: 'collections.moved.title', defaultMessage: 'Moved' },
-	movedDescription: { id: 'collections.moved.description', defaultMessage: 'Moved to {name}.' },
-	copiedTitle: { id: 'collections.copied.title', defaultMessage: 'Copied' },
-	copiedDescription: { id: 'collections.copied.description', defaultMessage: 'Copied to {name}.' },
+	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
+	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
+	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
+	copiedDescription: { id: 'libraries.copied.description', defaultMessage: 'Copied to {name}.' },
 	changeErrorTitle: {
-		id: 'collections.collection-error.title',
-		defaultMessage: "Couldn't change collections",
+		id: 'libraries.library-error.title',
+		defaultMessage: "Couldn't change libraries",
 	},
 	changeErrorDescription: {
-		id: 'collections.collection-error.description',
-		defaultMessage: 'You may not be allowed to, or the collection no longer exists.',
+		id: 'libraries.library-error.description',
+		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
 	},
 })
 

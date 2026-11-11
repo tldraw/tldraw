@@ -16,8 +16,8 @@ import type { PrepareItemContent } from './save-shapes'
 import { useSaveSelection } from './use-save-selection'
 
 const messages = defineMessages({
-	addToLibrary: { id: 'collections.add-to-collection', defaultMessage: 'Add to collection' },
-	newLibrary: { id: 'collections.add-to-new-collection', defaultMessage: 'New collection' },
+	addToLibrary: { id: 'libraries.add-to-library', defaultMessage: 'Add to library' },
+	newLibrary: { id: 'libraries.add-to-new-library', defaultMessage: 'New library' },
 })
 
 /** @public */

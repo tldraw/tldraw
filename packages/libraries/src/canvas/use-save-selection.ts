@@ -15,25 +15,25 @@ import { saveShapesToLibrary, type PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen, renamingLibraryId } from './state'
 
 const messages = defineMessages({
-	savedTitle: { id: 'collections.saved.title', defaultMessage: 'Added to collection' },
-	savedDescription: { id: 'collections.saved.description', defaultMessage: 'Added to {name}.' },
-	savedOpen: { id: 'collections.saved.open', defaultMessage: 'Open' },
+	savedTitle: { id: 'libraries.saved.title', defaultMessage: 'Added to library' },
+	savedDescription: { id: 'libraries.saved.description', defaultMessage: 'Added to {name}.' },
+	savedOpen: { id: 'libraries.saved.open', defaultMessage: 'Open' },
 	saveErrorTitle: {
-		id: 'collections.save-error.title',
-		defaultMessage: "Couldn't save to collection",
+		id: 'libraries.save-error.title',
+		defaultMessage: "Couldn't save to library",
 	},
 	saveErrorDescription: {
-		id: 'collections.save-error.description',
-		defaultMessage: 'You may not be allowed to add to this collection, or it no longer exists.',
+		id: 'libraries.save-error.description',
+		defaultMessage: 'You may not be allowed to add to this library, or it no longer exists.',
 	},
-	newLibraryName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
 	newLibraryErrorTitle: {
-		id: 'collections.save-to-new-collection-error.title',
-		defaultMessage: "Couldn't add to a new collection",
+		id: 'libraries.save-to-new-library-error.title',
+		defaultMessage: "Couldn't add to a new library",
 	},
 	newLibraryErrorDescription: {
-		id: 'collections.save-to-new-collection-error.description',
-		defaultMessage: 'You may not be allowed to create collections, or saving failed.',
+		id: 'libraries.save-to-new-library-error.description',
+		defaultMessage: 'You may not be allowed to create libraries, or saving failed.',
 	},
 })
 

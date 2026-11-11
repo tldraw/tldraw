@@ -14,14 +14,14 @@ import type { TLLibraryOwner } from '../lib/LibrarySource'
 import { MenuCheckboxItem, MenuItem, MenuSubmenu } from './menu-items'
 
 const messages = defineMessages({
-	moreOptions: { id: 'collections.collection-menu.title', defaultMessage: 'Collection options' },
-	create: { id: 'collections.collection-menu.create', defaultMessage: 'New collection' },
-	rename: { id: 'collections.collection-menu.rename', defaultMessage: 'Rename collection' },
-	delete: { id: 'collections.collection-menu.delete', defaultMessage: 'Delete collection' },
-	sort: { id: 'collections.collection-menu.sort', defaultMessage: 'Sort items by' },
-	reverse: { id: 'collections.collection-menu.reverse', defaultMessage: 'Reverse order' },
-	move: { id: 'collections.collection-menu.move', defaultMessage: 'Move to' },
-	copy: { id: 'collections.collection-menu.copy', defaultMessage: 'Copy to' },
+	moreOptions: { id: 'libraries.library-menu.title', defaultMessage: 'Library options' },
+	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
+	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
+	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
+	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort items by' },
+	reverse: { id: 'libraries.library-menu.reverse', defaultMessage: 'Reverse order' },
+	move: { id: 'libraries.library-menu.move', defaultMessage: 'Move to' },
+	copy: { id: 'libraries.library-menu.copy', defaultMessage: 'Copy to' },
 })
 
 /** @public */

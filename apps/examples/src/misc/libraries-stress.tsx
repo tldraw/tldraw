@@ -6,7 +6,7 @@ import { saveSamples, shapeSample } from './libraries-samples'
 // Unlisted, like /develop: @tldraw/libraries is unreleased. Each page of the document loads the
 // panel with no items, many items, or many libraries. /libraries shows each LibrarySource.
 
-const PAGES = ['Empty', 'Many items', 'Many collections'] as const
+const PAGES = ['Empty', 'Many items', 'Many libraries'] as const
 type PageName = (typeof PAGES)[number]
 
 const MANY_ITEMS = 40
@@ -25,7 +25,7 @@ const manyLibraries = new InMemoryLibrarySource({
 	id: 'collections-many-collections',
 	initial: {
 		libraries: Array.from({ length: MANY_LIBRARIES }, (_, i) =>
-			LibraryRecordType.create({ name: `Collection ${i + 1}` })
+			LibraryRecordType.create({ name: `Library ${i + 1}` })
 		),
 		items: [],
 		contents: {},
@@ -42,7 +42,7 @@ const SHOWINGS: Record<PageName, Showing> = {
 			await saveSamples(editor, manyItems, shapes.id, samples)
 		},
 	},
-	'Many collections': {
+	'Many libraries': {
 		source: manyLibraries,
 		seed: async (editor) => {
 			for (const [i, library] of manyLibraries.getLibraries().entries()) {

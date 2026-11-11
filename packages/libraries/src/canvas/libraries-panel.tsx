@@ -20,10 +20,10 @@ import { librariesPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
 
 const messages = defineMessages({
-	title: { id: 'collections.title', defaultMessage: 'Collections' },
-	placeErrorTitle: { id: 'collections.place-error.title', defaultMessage: "Couldn't place item" },
+	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
+	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
 	placeErrorDescription: {
-		id: 'collections.place-error.description',
+		id: 'libraries.place-error.description',
 		defaultMessage: 'It may have been deleted. Try again, or pick another item.',
 	},
 })

@@ -12,7 +12,7 @@ import {
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 
 const messages = defineMessages({
-	title: { id: 'collections.title', defaultMessage: 'Collections' },
+	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 })
 
 /**

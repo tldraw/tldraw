@@ -18,17 +18,17 @@ import { activeLibraryId, collapsedGroupKeys, renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	newLibraryIn: {
-		id: 'collections.group.new-collection',
-		defaultMessage: 'New collection in {name}',
+		id: 'libraries.group.new-library',
+		defaultMessage: 'New library in {name}',
 	},
-	newLibraryName: { id: 'collections.new-collection-name', defaultMessage: 'New collection' },
+	newLibraryName: { id: 'libraries.new-library-name', defaultMessage: 'New library' },
 	changeErrorTitle: {
-		id: 'collections.collection-error.title',
-		defaultMessage: "Couldn't change collections",
+		id: 'libraries.library-error.title',
+		defaultMessage: "Couldn't change libraries",
 	},
 	changeErrorDescription: {
-		id: 'collections.collection-error.description',
-		defaultMessage: 'You may not be allowed to, or the collection no longer exists.',
+		id: 'libraries.library-error.description',
+		defaultMessage: 'You may not be allowed to, or the library no longer exists.',
 	},
 })
 
