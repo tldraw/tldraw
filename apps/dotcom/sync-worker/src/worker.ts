@@ -301,9 +301,9 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
-// The MCP host (`mcp.tldraw.com`) serves MCP servers and nothing else, one per path. A router of its
-// own rather than routes on the main one, so no API route is reachable through the host and no
-// server's path can collide with one.
+// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path, and the landing page around them.
+// A router of its own rather than routes on the main one, so no API route is reachable through the
+// host and no server's path can collide with one.
 const mcpHostRouter = createRouter<Environment>()
 	.options(ROOT_MCP_SERVER_PATH, mcpCorsPreflight)
 	.options(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
@@ -311,7 +311,16 @@ const mcpHostRouter = createRouter<Environment>()
 	.get(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
 		withMcpCors(getMcpProtectedResourceMetadata(req, env))
 	)
-	.all('*', notFound)
+	// Discovery paths the host doesn't serve keep this worker's JSON 404, whatever the site does with
+	// an unknown path.
+	.all('/.well-known/*', notFound)
+	// Everything else is the landing page (tldraw-internal's apps/public/mcp-web), a static-assets
+	// worker reached through the MCP_WEB service binding, so the page shares the host without any
+	// route of its own. Read-only methods only; unbound environments keep the 404.
+	.all('*', (req, env) => {
+		if (!env.MCP_WEB || (req.method !== 'GET' && req.method !== 'HEAD')) return notFound()
+		return env.MCP_WEB.fetch(req)
+	})
 
 export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
