@@ -200,30 +200,44 @@ export class InMemoryLibrarySource implements LibrarySource {
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
+		const [item] = await this.addItems(libraryId, [newItem])
+		return item
+	}
+
+	/**
+	 * Every item is checked before any is added, so if one is refused, none are. Each is a
+	 * millisecond newer than the one before, so ordering by `createdAt` keeps their order.
+	 */
+	async addItems(libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) {
 		this.getLibrary(libraryId)
 		this.assertCan('addItem', libraryId)
-		const content = parseLibraryItemContent(newItem.content)
-		let item = libraryItemValidator.validate(
-			LibraryItemRecordType.create({
-				libraryId,
-				...(newItem.name === undefined ? {} : { name: newItem.name }),
-				createdAt: Date.now(),
-			})
-		)
+		const now = Date.now()
+		const checked = newItems.map((newItem, index) => ({
+			newItem,
+			content: parseLibraryItemContent(newItem.content),
+			item: libraryItemValidator.validate(
+				LibraryItemRecordType.create({
+					libraryId,
+					...(newItem.name === undefined ? {} : { name: newItem.name }),
+					createdAt: now + index,
+				})
+			),
+		}))
 		// Created only after validation, so a rejected item can't leak its blobs.
-		const urls: string[] = []
-		if (newItem.thumbnail) {
+		const items = checked.map(({ newItem, content, item }) => {
+			this.contents.set(item.id, structuredClone(content))
+			if (!newItem.thumbnail) return item
+			const urls: string[] = []
 			const thumbnail = mapThumbnail(newItem.thumbnail, (blob) => {
 				const url = URL.createObjectURL(blob)
 				urls.push(url)
 				return url
 			})
-			item = { ...item, thumbnail }
-		}
-		if (urls.length > 0) this.thumbnailUrls.set(item.id, urls)
-		this.contents.set(item.id, structuredClone(content))
-		this.store.put([item])
-		return item
+			this.thumbnailUrls.set(item.id, urls)
+			return { ...item, thumbnail }
+		})
+		this.store.put(items)
+		return items
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {

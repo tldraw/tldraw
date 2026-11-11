@@ -26,6 +26,7 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { mapConcurrently } from './mapConcurrently'
 import {
 	LibraryItemRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
@@ -35,6 +36,8 @@ import {
 	type TLLibraryItem,
 	type TLLibraryItemContent,
 } from './schema'
+
+const UPLOAD_CONCURRENCY = 4
 
 export interface BoardLibrarySourceOptions {
 	id?: string
@@ -194,45 +197,78 @@ export class BoardLibrarySource implements LibrarySource {
 	 * image that isn't stored yet. If the upload fails, nothing is added.
 	 */
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
+		const [item] = await this.addItems(libraryId, [newItem])
+		return item
+	}
+
+	/**
+	 * As {@link BoardLibrarySource.addItem}, for several items at once: their thumbnails are
+	 * uploaded a few at a time, and the items appear together once all have been. If any upload
+	 * fails, nothing is added and the images that did upload are removed again.
+	 */
+	async addItems(libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) {
 		this.getLibrary(libraryId)
 		this.assertCan('addItem', libraryId)
-		const { content } = parseLibraryItemContent(newItem.content)
-		const { assets, ...rest } = content
-		const newAssets = this.migrateAssets(
-			assets.filter((asset) => !this.editor.store.has(asset.id)),
-			content.schema
-		)
-		const thumbnailAssets = newItem.thumbnail
-			? await this.uploadThumbnail(newItem.thumbnail, newItem.name)
-			: undefined
-		const thumbnailAssetList = thumbnailAssets ? listThumbnail(thumbnailAssets) : []
-		// Checked again after the upload, which the library may not have outlived.
+		const now = Date.now()
+		const prepared = newItems.map((newItem) => {
+			const { content } = parseLibraryItemContent(newItem.content)
+			const { assets, ...rest } = content
+			const newAssets = this.migrateAssets(
+				assets.filter((asset) => !this.editor.store.has(asset.id)),
+				content.schema
+			)
+			return { newItem, assets, rest, newAssets }
+		})
+		const uploaded: TLAsset[] = []
+		const removeUploaded = () => this.editor.deleteAssets(uploaded)
+		let thumbnails: (TLLibraryThumbnail<TLAsset> | undefined)[]
 		try {
+			thumbnails = await mapConcurrently(newItems, UPLOAD_CONCURRENCY, async (newItem) => {
+				if (!newItem.thumbnail) return undefined
+				const thumbnail = await this.uploadThumbnail(newItem.thumbnail, newItem.name)
+				uploaded.push(...listThumbnail(thumbnail))
+				return thumbnail
+			})
+			// Checked again after the uploads, which the library may not have outlived.
 			this.getLibrary(libraryId)
 			this.assertCan('addItem', libraryId)
 		} catch (error) {
-			this.editor.deleteAssets(thumbnailAssetList)
+			removeUploaded()
 			throw error
 		}
-		const item: TLLibraryItemRecord = {
-			id: LibraryItemRecordType.createId(),
-			typeName: 'library-item',
-			libraryId,
-			...(newItem.name === undefined ? {} : { name: newItem.name }),
-			...(thumbnailAssets ? { thumbnail: mapThumbnail(thumbnailAssets, (asset) => asset.id) } : {}),
-			createdAt: Date.now(),
-			version: 1,
-			meta: {},
-		}
-		const contentRecord = LibraryItemContentRecordType.create({
-			id: createLibraryItemContentId(item.id),
-			itemId: item.id,
-			content: structuredClone(rest),
-			assetIds: [...new Set(assets.map((asset) => asset.id))],
+		const records = prepared.map(({ newItem, assets, rest, newAssets }, index) => {
+			const thumbnailAssets = thumbnails[index]
+			const item: TLLibraryItemRecord = {
+				id: LibraryItemRecordType.createId(),
+				typeName: 'library-item',
+				libraryId,
+				...(newItem.name === undefined ? {} : { name: newItem.name }),
+				...(thumbnailAssets
+					? { thumbnail: mapThumbnail(thumbnailAssets, (asset) => asset.id) }
+					: {}),
+				createdAt: now + index,
+				version: 1,
+				meta: {},
+			}
+			const contentRecord = LibraryItemContentRecordType.create({
+				id: createLibraryItemContentId(item.id),
+				itemId: item.id,
+				content: structuredClone(rest),
+				assetIds: [...new Set(assets.map((asset) => asset.id))],
+			})
+			return { item, contentRecord, newAssets }
 		})
-		this.write([...newAssets, ...thumbnailAssetList, item, contentRecord])
-		await Promise.all(getThumbnailAssetIds(item).map((id) => this.getResolvedUrl(id)?.ready))
-		return this.toListedItem(item)
+		this.write([
+			...records.flatMap((r) => r.newAssets),
+			...uploaded,
+			...records.flatMap((r) => [r.item, r.contentRecord]),
+		])
+		await Promise.all(
+			records.flatMap(({ item }) =>
+				getThumbnailAssetIds(item).map((id) => this.getResolvedUrl(id)?.ready)
+			)
+		)
+		return records.map(({ item }) => this.toListedItem(item))
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {

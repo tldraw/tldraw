@@ -1,5 +1,6 @@
 import { computed, type Computed } from '@tldraw/state'
 import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
+import { addItemsToLibrary } from './addItemsToLibrary'
 import { copyLibraryItemByItem, copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
@@ -149,6 +150,11 @@ export class CompositeLibrarySource implements LibrarySource {
 
 	addItem(libraryId: TLLibraryId, item: TLNewLibraryItem) {
 		return this.getLibraryPart(libraryId).source.addItem(libraryId, item)
+	}
+
+	/** Added together by a part that can; by a part that can't, one at a time. */
+	addItems(libraryId: TLLibraryId, items: TLNewLibraryItem[]) {
+		return addItemsToLibrary(this.getLibraryPart(libraryId).source, libraryId, items)
 	}
 
 	renameItem(itemId: TLLibraryItemId, name: string) {

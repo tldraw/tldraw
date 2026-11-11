@@ -9,7 +9,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
+import { LibraryNotFoundError, LibraryPermissionError, type LibrarySource } from './LibrarySource'
 import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 function content(name: string): TLLibraryItemContent {
@@ -25,6 +25,16 @@ function content(name: string): TLLibraryItemContent {
 		},
 	}
 }
+
+// The source as one written without addItems would be.
+const withoutAddItems = (source: LibrarySource): LibrarySource =>
+	new Proxy(source, {
+		get: (target, key) => {
+			if (key === 'addItems') return undefined
+			const value = Reflect.get(target, key)
+			return typeof value === 'function' ? value.bind(target) : value
+		},
+	})
 
 const tldraw = { id: 'tldraw', name: 'tldraw' }
 const personal = { id: 'home', name: 'Personal' }
@@ -105,6 +115,34 @@ describe('CompositeLibrarySource', () => {
 
 		const [button] = source.getItems(wireframing)
 		expect(await source.getItemContent(button.id)).toEqual(content('button'))
+	})
+
+	it('adds several items through the part holding the library, together where it can', async () => {
+		const { source, team } = setUp()
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		const addItems = vi.spyOn(team, 'addItems')
+		const items = await source.addItems(kit.id, [
+			{ name: 'Star', content: content('star') },
+			{ name: 'Heart', content: content('heart') },
+		])
+		expect(addItems).toHaveBeenCalledTimes(1)
+		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
+		expect(team.getItems(kit.id)).toEqual(expect.arrayContaining(items))
+	})
+
+	it('adds several items one at a time to a part without addItems', async () => {
+		const mine = new InMemoryLibrarySource({ id: 'mine' })
+		const addItem = vi.spyOn(mine, 'addItem')
+		const source = new CompositeLibrarySource({
+			parts: [{ owner: personal, source: withoutAddItems(mine) }],
+		})
+		const kit = await source.createLibrary('Kit')
+		const items = await source.addItems(kit.id, [
+			{ name: 'Star', content: content('star') },
+			{ name: 'Heart', content: content('heart') },
+		])
+		expect(addItem).toHaveBeenCalledTimes(2)
+		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
 	})
 
 	it('delegates permissions to the part', () => {

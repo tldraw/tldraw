@@ -105,6 +105,13 @@ export interface LibrarySource {
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
 	addItem(libraryId: TLLibraryId, item: TLNewLibraryItem): Promise<TLLibraryItem>
+	/**
+	 * Adds several items to a library, in the order given, as one change where the source can,
+	 * and returns them in the same order. Optional: for sources where adding items together is
+	 * quicker than adding them one at a time, e.g. in one request to a server. Without it,
+	 * `addItemsToLibrary` adds them one at a time through {@link LibrarySource.addItem}.
+	 */
+	addItems?(libraryId: TLLibraryId, items: TLNewLibraryItem[]): Promise<TLLibraryItem[]>
 	renameItem(itemId: TLLibraryItemId, name: string): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**
