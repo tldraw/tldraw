@@ -2,6 +2,7 @@ import {
 	LibraryItemRecordType,
 	LibraryNotFoundError,
 	copyLibrary,
+	type TLLibrary,
 	type TLLibraryItemContent,
 } from '@tldraw/libraries'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -246,6 +247,46 @@ describe('TldrawAppLibrariesSource', () => {
 			await renaming
 			expect(source.getItems(kit.id)).toMatchObject([{ name: 'Moon' }])
 		})
+	})
+
+	describe('changes before the server confirms them', () => {
+		const mutations = {
+			renameLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
+				source.renameLibrary(kit.id, 'Renamed'),
+			moveLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
+				source.moveLibrary(kit.id, 'acme'),
+			deleteLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
+				source.deleteLibrary(kit.id),
+			renameItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
+				source.renameItem(source.getItems(kit.id)[0].id, 'Renamed'),
+			moveItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary, other: TLLibrary) =>
+				source.moveItem(source.getItems(kit.id)[0].id, other.id),
+			deleteItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
+				source.deleteItem(source.getItems(kit.id)[0].id),
+		}
+
+		it.each(Object.entries(mutations))(
+			'%s resolves once applied locally, and is rolled back with a toast if the server rejects it',
+			async (_, mutate) => {
+				const { backend, source } = setUp()
+				const kit = await source.createLibrary('Kit')
+				const other = await source.createLibrary('Other')
+				await source.addItem(kit.id, { name: 'Star', content })
+				const before = backend.rows.get()
+				const server = backend.holdServer()
+
+				await mutate(source, kit, other)
+				expect(backend.rows.get()).not.toEqual(before)
+				expect(backend.showMutationRejectionToast).not.toHaveBeenCalled()
+
+				server.fail()
+				await vi.waitFor(() => expect(backend.rows.get()).toEqual(before))
+				expect(backend.showMutationRejectionToast).toHaveBeenCalledWith({
+					type: 'app',
+					message: 'forbidden',
+				})
+			}
+		)
 	})
 
 	it('releases the thumbnails it made when deleting an item, and when disposed', async () => {
