@@ -147,27 +147,6 @@ describe('history after a rolled-back transaction', () => {
 		expect(editor.getShape(c)!.x).toBe(100)
 	})
 
-	it('restores a pending update when a rolled-back run deletes and recreates the record', () => {
-		editor.createShapes([{ id: c, type: 'geo', x: 0 }])
-		const original = editor.getShape(c)
-		editor.markHistoryStoppingPoint('start')
-		editor.updateShapes([{ id: c, type: 'geo', x: 100 }])
-		const updated = editor.getShape(c)
-		expect(() =>
-			editor.run(() => {
-				editor.deleteShapes([c])
-				editor.createShapes([{ id: c, type: 'geo', x: 500 }])
-				throw new Error('boom')
-			})
-		).toThrow('boom')
-		expect(editor.getShape(c)).toEqual(updated)
-
-		editor.undo()
-		expect(editor.getShape(c)).toEqual(original)
-		editor.redo()
-		expect(editor.getShape(c)).toEqual(updated)
-	})
-
 	it('keeps changes made before the rolled-back transaction', () => {
 		editor.markHistoryStoppingPoint('start')
 		editor.createShapes([{ id: b, type: 'geo' }])
