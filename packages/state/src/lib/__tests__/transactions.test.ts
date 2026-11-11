@@ -1,7 +1,8 @@
+import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
-import { getGlobalEpoch, transact, transaction } from '../transactions'
+import { getGlobalEpoch, onTransactionAbort, transact, transaction } from '../transactions'
 
 // Tests for SPEC.md §11 (transactions), plus rule EP6.
 // Rule IDs like [T4] in test names refer to that document.
@@ -261,5 +262,57 @@ describe('transact (T)', () => {
 		expect(a.get()).toBe('c')
 
 		expect.assertions(3)
+	})
+})
+
+describe('onTransactionAbort', () => {
+	it('runs undo steps newest first when the transaction aborts', () => {
+		const log: string[] = []
+		expect(() =>
+			transaction(() => {
+				onTransactionAbort(() => log.push('first'))
+				onTransactionAbort(() => log.push('second'))
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect(log).toEqual(['second', 'first'])
+	})
+
+	it('drops undo steps when the root transaction commits', () => {
+		const log: string[] = []
+		transaction(() => {
+			onTransactionAbort(() => log.push('undo'))
+		})
+		expect(log).toEqual([])
+	})
+
+	it('hands a committed nested transaction’s steps to its parent', () => {
+		const log: string[] = []
+		transaction((rollback) => {
+			onTransactionAbort(() => log.push('outer'))
+			transaction(() => {
+				onTransactionAbort(() => log.push('inner'))
+			})
+			rollback()
+		})
+		expect(log).toEqual(['inner', 'outer'])
+	})
+
+	it('runs only a rolled-back nested transaction’s steps', () => {
+		const log: string[] = []
+		transaction(() => {
+			onTransactionAbort(() => log.push('outer'))
+			transaction((rollback) => {
+				onTransactionAbort(() => log.push('inner'))
+				rollback()
+			})
+		})
+		expect(log).toEqual(['inner'])
+	})
+
+	it('does nothing outside a transaction', () => {
+		const undo = vi.fn()
+		onTransactionAbort(undo)
+		expect(undo).not.toHaveBeenCalled()
 	})
 })

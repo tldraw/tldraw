@@ -1,4 +1,4 @@
-import { atom, EMPTY_ARRAY, transact } from '@tldraw/state'
+import { atom, EMPTY_ARRAY, onTransactionAbort, transact } from '@tldraw/state'
 import {
 	createEmptyRecordsDiff,
 	isRecordsDiffEmpty,
@@ -343,20 +343,31 @@ const modeToState = {
 	ignore: HistoryRecorderState.Paused,
 } as const
 
+// `isEmptyAtom` rolls back with a transaction but `diff` is mutated in place, so every change to
+// `diff` registers its inverse: otherwise a rolled-back change stays in history and undo or redo
+// replays it (#11453).
 class PendingDiff<R extends UnknownRecord> {
 	private diff = createEmptyRecordsDiff<R>()
 	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
 
 	clear() {
 		const diff = this.diff
-		this.diff = createEmptyRecordsDiff<R>()
+		this.replace(createEmptyRecordsDiff<R>())
 		this.isEmptyAtom.set(true)
 		return diff
 	}
 
 	restore(diff: RecordsDiff<R>) {
-		this.diff = diff
+		this.replace(diff)
 		this.isEmptyAtom.set(isRecordsDiffEmpty(diff))
+	}
+
+	private replace(diff: RecordsDiff<R>) {
+		const previous = this.diff
+		this.diff = diff
+		onTransactionAbort(() => {
+			this.diff = previous
+		})
 	}
 
 	isEmpty() {
@@ -364,6 +375,7 @@ class PendingDiff<R extends UnknownRecord> {
 	}
 
 	apply(diff: RecordsDiff<R>) {
+		this.keepEntriesForAbort(diff)
 		squashRecordDiffsMutable(this.diff, [diff])
 		// Recomputing emptiness from the accumulated diff is O(N) (for-in over a
 		// dictionary-mode object pays an O(N) key-collection prologue), and this runs on
@@ -380,6 +392,40 @@ class PendingDiff<R extends UnknownRecord> {
 	debug() {
 		return { diff: this.diff, isEmpty: this.isEmpty() }
 	}
+
+	// Saves what `diff` holds for each id `incoming` touches, flat so a tick over many records
+	// doesn't allocate per record. Updated tuples are mutated in place, so their ends are copied.
+	private keepEntriesForAbort(incoming: RecordsDiff<R>) {
+		const target = this.diff
+		const kept: unknown[] = []
+		const keep = (id: R['id']) => {
+			const updated = target.updated[id]
+			kept.push(id, target.added[id], updated?.[0], updated?.[1], updated !== undefined)
+			kept.push(target.removed[id])
+		}
+		for (const id in incoming.added) keep(id as R['id'])
+		for (const id in incoming.updated) keep(id as R['id'])
+		for (const id in incoming.removed) keep(id as R['id'])
+		if (kept.length === 0) return
+
+		onTransactionAbort(() => {
+			for (let i = 0; i < kept.length; i += 6) {
+				const id = kept[i] as R['id']
+				setOrDelete(target.added, id, kept[i + 1] as R | undefined)
+				setOrDelete(
+					target.updated,
+					id,
+					kept[i + 4] ? ([kept[i + 2], kept[i + 3]] as [R, R]) : undefined
+				)
+				setOrDelete(target.removed, id, kept[i + 5] as R | undefined)
+			}
+		})
+	}
+}
+
+function setOrDelete<K extends string, V>(map: Record<K, V>, key: K, value: V | undefined) {
+	if (value === undefined) delete map[key]
+	else map[key] = value
 }
 
 function hasAnyKey(obj: object) {

@@ -17,6 +17,9 @@ class Transaction {
 
 	initialAtomValues = new Map<_Atom, any>()
 
+	// Undo steps for state outside atoms (see `onTransactionAbort`), oldest first.
+	abortCallbacks: (() => void)[] | null = null
+
 	commit() {
 		if (this.parent === null) {
 			// For root transactions, flush changed atoms
@@ -30,6 +33,10 @@ class Transaction {
 		// A parent that has recorded nothing yet adopts the map outright: this transaction is
 		// finished with it, and the common nested case is a single inner transaction doing all
 		// the writes.
+		if (this.abortCallbacks) {
+			if (this.parent.abortCallbacks) this.parent.abortCallbacks.push(...this.abortCallbacks)
+			else this.parent.abortCallbacks = this.abortCallbacks
+		}
 		const parentValues = this.parent!.initialAtomValues
 		if (parentValues.size === 0) {
 			this.parent!.initialAtomValues = this.initialAtomValues
@@ -56,6 +63,12 @@ class Transaction {
 			atom.set(value)
 			atom.historyBuffer?.clear()
 		})
+
+		const callbacks = this.abortCallbacks
+		this.abortCallbacks = null
+		if (callbacks) {
+			for (let i = callbacks.length - 1; i >= 0; i--) callbacks[i]()
+		}
 
 		this.commit()
 	}
@@ -90,6 +103,21 @@ export function getGlobalEpoch() {
  */
 export function getIsInTransaction() {
 	return inst.currentTransaction !== null
+}
+
+/**
+ * Undo a change to state that atoms don't hold if the current transaction, or one around it, is
+ * rolled back. Without this, such state keeps changes the rest of the transaction lost. Callbacks
+ * run newest first, after atoms are restored, and must not throw. Outside a transaction this does
+ * nothing.
+ *
+ * @internal
+ */
+export function onTransactionAbort(undo: () => void) {
+	const txn = inst.currentTransaction
+	if (!txn) return
+	if (txn.abortCallbacks) txn.abortCallbacks.push(undo)
+	else txn.abortCallbacks = [undo]
 }
 
 // The set `traverseChild` collects reactors into. Module-level rather than a closure so that a
