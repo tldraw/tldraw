@@ -1,4 +1,4 @@
-import { DB, extractMentionIds } from '@tldraw/dotcom-shared'
+import { DB, MCP_AGENT_ID_PREFIX, extractMentionIds } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	TLComment,
@@ -95,7 +95,8 @@ export interface CommentMentionReconcile {
 export function planMentionReconciles(commentRows: DB['comment'][]): CommentMentionReconcile[] {
 	return commentRows.map((row) => ({
 		commentId: row.id,
-		userIds: extractMentionIds(row.body),
+		// An agent isn't a user row, so its mention would only fail the user foreign key.
+		userIds: extractMentionIds(row.body).filter((id) => !id.startsWith(MCP_AGENT_ID_PREFIX)),
 	}))
 }
 

@@ -6,8 +6,9 @@ import {
 	CommentingContext,
 	filterMentionMembers,
 	MentionMember,
+	useComments,
 } from '@tldraw/commenting'
-import { queries } from '@tldraw/dotcom-shared'
+import { getMcpAgentFromCommentMeta, queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	defineMessages,
@@ -33,6 +34,7 @@ type FileVisitors = QueryResultType<typeof queries.fileVisitors>
 const commentMessages = defineMessages({
 	// Matches the notifications panel and the toolkit's own byline default for an unnamed author.
 	unknownAuthor: { defaultMessage: 'Someone' },
+	yourAgent: { defaultMessage: 'Your agent' },
 })
 
 /**
@@ -159,16 +161,32 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 			})),
 		[fileVisitors, unknownAuthor]
 	)
-	// The full @-mention roster: workspace members plus any past viewer who isn't already a member.
-	// Members win on id collision: both sources are trigger-synced to the user row, but member
-	// entries carry the `you` flag, so they're the richer representation of the same identity.
+	// The agents that have commented here through the MCP server as this user, named by their
+	// comments' meta. Only their owner sees them: the sync-worker only turns the owner's mentions into
+	// events for the agent, so offering one to anyone else would be a mention that goes nowhere.
+	const comments = useComments(editor)
+	const yourAgent = msg(commentMessages.yourAgent)
+	const agentMembers = useMemo(() => {
+		if (!currentUserId) return []
+		const byId = new Map<string, MentionMember>()
+		for (const comment of comments) {
+			if (comment.authorId !== currentUserId) continue
+			const agent = getMcpAgentFromCommentMeta(comment.meta)
+			if (agent) byId.set(agent.id, { id: agent.id, name: agent.name, secondary: yourAgent })
+		}
+		return [...byId.values()]
+	}, [comments, currentUserId, yourAgent])
+	// The full @-mention roster: workspace members, any past viewer who isn't already a member, and
+	// the current user's agents. Members win on id collision: both sources are trigger-synced to the
+	// user row, but member entries carry the `you` flag, so they're the richer representation of the
+	// same identity.
 	const roster = useMemo(() => {
 		const byId = new Map<string, MentionMember>(mentionMembers.map((m) => [m.id, m]))
-		for (const v of viewerMembers) {
+		for (const v of [...viewerMembers, ...agentMembers]) {
 			if (!byId.has(v.id)) byId.set(v.id, v)
 		}
 		return [...byId.values()]
-	}, [mentionMembers, viewerMembers])
+	}, [mentionMembers, viewerMembers, agentMembers])
 	// Roster authors keyed by id — a MentionMember is a CommentAuthor. The roster is the id→name
 	// source for a mentioned member or viewer who's committed no comment and isn't currently present —
 	// without it, they resolve to nothing and render as the byline default rather than their name.

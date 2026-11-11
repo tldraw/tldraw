@@ -10,6 +10,7 @@ import {
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { base64ToArrayBuffer } from '../../utils/base64'
+import { getRoomDurableObject } from '../../utils/durableObjects'
 import { getPublicOrigin } from '../../utils/getPublicOrigin'
 import { sha256 } from '../../utils/hash'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
@@ -70,6 +71,15 @@ import {
 import { createBoardForUser } from './createBoard'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
+import {
+	AGENT_MENTION_POLL_MS,
+	EVENTS_EXTENSION_ID,
+	EVENTS_FORBIDDEN,
+	EventsRequestError,
+	getEventDefinitions,
+	parseAgentMentionPoll,
+	toAgentMentionOccurrence,
+} from './mcpEvents'
 import {
 	PUBLISHED_BOARD_FAILURE,
 	applyOpsInOpenTab,
@@ -266,7 +276,7 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 
 // The name an agent goes by on a board when write_comment isn't told one: its client's family, which
 // is what the owner would call it. Bounded to these on purpose, like the families themselves — a raw
-// User-Agent is not a name anyone would recognise.
+// User-Agent is not a name anyone would type after an @.
 const AGENT_NAMES_BY_CLIENT_FAMILY: Record<string, string> = {
 	claude: 'Claude',
 	openai: 'ChatGPT',
@@ -466,7 +476,8 @@ export async function mcpServer(
 		return jsonRpcResult(rpcRequest.id, {
 			resultType: 'complete',
 			supportedVersions: SUPPORTED_PROTOCOL_VERSIONS,
-			capabilities: { tools: {} },
+			// Events is 2026-07-28-only, so `initialize` (the legacy handshake) doesn't offer it.
+			capabilities: { tools: {}, extensions: { [EVENTS_EXTENSION_ID]: {} } },
 			instructions: getMcpServerInstructions(isMcpSearchNameMatchingEnabled(env)),
 			ttlMs: TOOLS_LIST_TTL_MS,
 			cacheScope: TOOLS_LIST_CACHE_SCOPE,
@@ -504,6 +515,15 @@ export async function mcpServer(
 					era
 				)
 			)
+		case 'events/list':
+			if (era !== 'modern') break
+			return jsonRpcResult(
+				rpcRequest.id,
+				withResultEnvelope({ events: getEventDefinitions() }, era)
+			)
+		case 'events/poll':
+			if (era !== 'modern') break
+			return pollAgentMentions(rpcRequest, request, env, auth.userId)
 		case 'tools/call': {
 			const toolName = rpcRequest.params?.name ?? ''
 			const toolHandler = TOOL_HANDLERS.get(toolName)
@@ -559,6 +579,74 @@ export async function mcpServer(
 	})
 }
 
+/**
+ * `events/poll` for `comment.agent_mentioned`: the caller's agent mentions on one board since their
+ * cursor, from the board's Durable Object.
+ *
+ * A board the caller can't see answers `Forbidden`, the same as one that doesn't exist, so the poll is
+ * no more an existence oracle for file ids than the tools are. Polls share the search limiter's
+ * per-minute budget under their own key: at the recommended interval a client polling a handful of
+ * boards stays well inside it.
+ */
+async function pollAgentMentions(
+	rpcRequest: JsonRpcRequest,
+	request: IRequest,
+	env: Environment,
+	userId: string
+): Promise<Response> {
+	const id = rpcRequest.id ?? null
+	let poll
+	try {
+		poll = parseAgentMentionPoll(rpcRequest.params)
+	} catch (error) {
+		if (!(error instanceof EventsRequestError)) throw error
+		return jsonRpcError(id, error.code, error.message, { data: error.data })
+	}
+
+	if (
+		await isRateLimited(env.MCP_SERVER_SEARCH_RATE_LIMITER, `events:${userId}`, {
+			fallbackLimit: MCP_SEARCH_PER_USER_RATE_LIMIT,
+		})
+	) {
+		// ResourceExhausted, from the same provisional block as the extension's other codes.
+		return jsonRpcError(id, -32025, 'Rate limited', { data: { limit: 'requests_per_minute' } })
+	}
+
+	const forbidden = () =>
+		jsonRpcError(id, EVENTS_FORBIDDEN, 'Forbidden', {
+			data: { reason: 'No board with this id that this account can see' },
+		})
+	const access = await hasReadAccessToFile(env, userId, poll.boardId)
+	if (!access.ok) return forbidden()
+
+	const polled = await getRoomDurableObject(env, poll.boardId).pollMcpAgentMentions(poll.boardId, {
+		ownerUserId: userId,
+		agentNameKey: poll.agentNameKey,
+		cursor: poll.cursor,
+		maxEvents: poll.maxEvents,
+		maxAgeMs: poll.maxAgeMs,
+		now: Date.now(),
+	})
+	if (!polled.ok) return forbidden()
+
+	const origin = getPublicOrigin(request, env)
+	return jsonRpcResult(
+		id,
+		withResultEnvelope(
+			{
+				events: polled.events.map((event) =>
+					toAgentMentionOccurrence(event, { boardId: poll.boardId, origin })
+				),
+				cursor: String(polled.cursor),
+				truncated: polled.truncated,
+				hasMore: polled.hasMore,
+				nextPollMs: AGENT_MENTION_POLL_MS,
+			},
+			'modern'
+		)
+	)
+}
+
 /** Which era a request is speaking, or null for a version we don't implement. */
 function getProtocolEra(version: string | undefined): ProtocolEra | null {
 	// No version means legacy: clients are meant to send it and plenty don't, and the request is
@@ -605,11 +693,11 @@ function checkModernHeaders(request: Request, rpcRequest: JsonRpcRequest): Respo
 		)
 	}
 
-	// tools/call is the only method we implement that names a target, so the only one with Mcp-Name.
-	if (rpcRequest.method === 'tools/call') {
+	// The methods we implement that name a target: a tool, or (for the events extension) an event.
+	if (rpcRequest.method === 'tools/call' || rpcRequest.method === 'events/poll') {
 		const headerName = request.headers.get('mcp-name')
 		if (headerName === null) {
-			return headerMismatch(id, 'Mcp-Name header is required for tools/call')
+			return headerMismatch(id, `Mcp-Name header is required for ${rpcRequest.method}`)
 		}
 		const decoded = decodeHeaderValue(headerName)
 		if (decoded !== rpcRequest.params?.name) {

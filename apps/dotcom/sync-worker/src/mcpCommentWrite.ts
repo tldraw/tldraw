@@ -46,6 +46,10 @@ export type PlannedMcpComment =
  *
  * `isReadonly` is the caller's tier from `getFileRoomAccess`, the same value a socket session for
  * them would carry.
+ *
+ * The comment's `meta` names the agent, which is how tldraw.com learns there is an agent on this
+ * board its owner can @mention. The comment authorizers don't constrain `meta`, so this is a label,
+ * not a credential: the mention route trusts the agent table in the Durable Object, never this.
  */
 export function planMcpComment({
 	room,

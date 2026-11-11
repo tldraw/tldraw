@@ -11,6 +11,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	MCP_AGENT_ID_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TAB_RENDER_PARAM,
@@ -93,7 +94,15 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
-import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
+import {
+	PollAgentMentionsInput,
+	PollAgentMentionsResult,
+	ensureMcpAgentTables,
+	getOrCreateAgent,
+	pollAgentMentionEvents,
+	recordAgentMentions,
+	registerAgentThread,
+} from './mcpAgentStorage'
 import { planMcpComment } from './mcpCommentWrite'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
@@ -524,6 +533,7 @@ export class TLFileDurableObject extends DurableObject {
 						// replicates them to the app-level view quickly.
 						onCommittedChanges: ({ diff }) => {
 							this.enqueueCommentChanges(diff)
+							this.recordMcpAgentMentions(diff)
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
@@ -3700,10 +3710,11 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		this.ensureMcpAgents()
+		const now = Date.now()
 		const agent = getOrCreateAgent(this.ctx.storage.sql, {
 			ownerUserId: userId,
 			name: agentName,
-			now: Date.now(),
+			now,
 		})
 
 		const planned = storage.transaction((txn) => {
@@ -3723,6 +3734,11 @@ export class TLFileDurableObject extends DurableObject {
 		}).result
 		if (!planned.ok) return planned
 
+		registerAgentThread(this.ctx.storage.sql, {
+			agentId: agent.id,
+			threadId: planned.threadId,
+			now,
+		})
 		const { records, ...written } = planned
 		await this.enqueueCommentRecordIds(records.map((record) => record.id)).catch((error) => {
 			this.reportError(error)
@@ -3736,6 +3752,45 @@ export class TLFileDurableObject extends DurableObject {
 		if (this.mcpAgentsReady) return
 		ensureMcpAgentTables(this.ctx.storage.sql)
 		this.mcpAgentsReady = true
+	}
+
+	/**
+	 * Turns the owner's @mentions of their agents in committed comments into events for the MCP
+	 * server's `events/poll` (see `recordAgentMentions`). Runs in the commit hook, on records the
+	 * authorizers have already stamped, so `authorId` is the session's real user.
+	 *
+	 * The prefix check comes first so a board with no agents never creates the tables.
+	 */
+	private recordMcpAgentMentions(diff: TLSyncForwardDiff<TLRecord>) {
+		for (const put of Object.values(diff.puts)) {
+			// Comment records ride the object lane, so they're outside the document's TLRecord union.
+			const record = (Array.isArray(put) ? put[1] : put) as unknown as TLComment
+			if (record.typeName !== 'comment') continue
+			if (!JSON.stringify(record.body).includes(MCP_AGENT_ID_PREFIX)) continue
+			this.ensureMcpAgents()
+			recordAgentMentions(this.ctx.storage.sql, record, Date.now())
+		}
+	}
+
+	/**
+	 * One `events/poll` of the caller's agent mentions. Storage-only, like the cluster index reads: a
+	 * poll arrives every few seconds per subscription and must not boot the room. The route has
+	 * already checked the caller can see this board.
+	 */
+	async pollMcpAgentMentions(
+		fileId: string,
+		input: PollAgentMentionsInput
+	): Promise<({ ok: true } & PollAgentMentionsResult) | { ok: false; reason: 'not_found' }> {
+		const info = this._documentInfo
+		// Never initialized: no agent has commented here, so there is nothing to poll yet, and no reason
+		// to create tables for it. Cursor 0 is the head of an empty log.
+		if (!info) {
+			return { ok: true, events: [], cursor: 0, truncated: (input.cursor ?? 0) > 0, hasMore: false }
+		}
+		if (info.deleted || !info.isApp || info.slug !== fileId)
+			return { ok: false, reason: 'not_found' }
+		this.ensureMcpAgents()
+		return { ok: true, ...pollAgentMentionEvents(this.ctx.storage.sql, input) }
 	}
 
 	/**
