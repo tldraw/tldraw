@@ -14,6 +14,8 @@ const content: TLLibraryItemContent = {
 	content: { shapes: [], bindings: [], rootShapeIds: [], assets: [], schema: {} as any },
 }
 
+const rowId = (id: string) => id.slice(id.indexOf(':') + 1)
+
 const png = (text = 'png') => new Blob([text], { type: 'image/png' })
 
 function setUp() {
@@ -200,7 +202,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')
 			const requests = backend.holdRequests()
-			const rows = backend.holdItemRows()
+			const rows = backend.holdWorkerRows()
 			const adding = source.addItem(kit.id, { name: 'Star', content, thumbnail: png() })
 			const [pending] = source.getItems(kit.id)
 			requests.release()
@@ -246,6 +248,103 @@ describe('TldrawAppLibrariesSource', () => {
 			requests.release()
 			await renaming
 			expect(source.getItems(kit.id)).toMatchObject([{ name: 'Moon' }])
+		})
+	})
+
+	describe('copying a library', () => {
+		async function withKit() {
+			const setup = setUp()
+			const kit = await setup.source.createLibrary('Kit')
+			const star = await setup.source.addItem(kit.id, { name: 'Star', content, thumbnail: png() })
+			const moon = await setup.source.addItem(kit.id, { name: 'Moon', content })
+			return { ...setup, kit, star, moon }
+		}
+
+		it('lists the copy and its items at once, with the source items’ names and thumbnails', async () => {
+			const { backend, source, kit, star } = await withKit()
+			backend.holdRequests()
+			source.copyLibrary(kit.id, 'acme')
+			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
+			expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
+			expect(source.getItems(copy.id)).toMatchObject([
+				{ name: 'Star', thumbnail: star.thumbnail, libraryId: copy.id },
+				{ name: 'Moon', libraryId: copy.id },
+			])
+			expect(source.can('renameLibrary', copy.id)).toBe(true)
+		})
+
+		it('places an item being copied from its source item’s content', async () => {
+			const { backend, source, kit } = await withKit()
+			const requests = backend.holdRequests()
+			source.copyLibrary(kit.id, 'acme')
+			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
+			const [pending] = source.getItems(copy.id)
+			const loading = source.getItemContent(pending.id)
+			requests.release()
+			expect(await loading).toEqual(content)
+		})
+
+		it('sends the ids it listed the copy under, and keeps them once the rows arrive', async () => {
+			const { backend, source, kit, star, moon } = await withKit()
+			const rows = backend.holdWorkerRows()
+			const copying = source.copyLibrary(kit.id, 'acme')
+			const listed = source.getLibraries().find((c) => c.id !== kit.id)!
+			const listedItems = source.getItems(listed.id)
+			const copy = await copying
+			expect(copy.id).toBe(listed.id)
+			const [, init] = backend.fetch.mock.calls.at(-1)!
+			const body = JSON.parse(init!.body as string)
+			expect(body.id).toBe(rowId(listed.id))
+			expect(body.itemIds).toEqual({
+				[rowId(star.id)]: rowId(listedItems[0].id),
+				[rowId(moon.id)]: rowId(listedItems[1].id),
+			})
+			// answered, but the rows haven't arrived through Zero yet
+			expect(source.getItems(copy.id)).toEqual(listedItems)
+			rows.release()
+			await vi.waitFor(() => expect(backend.rows.get()).toHaveLength(2))
+			expect(source.getLibraries().map((c) => c.id)).toEqual([kit.id, listed.id])
+			expect(source.getItems(copy.id).map((i) => [i.id, i.name])).toEqual(
+				listedItems.map((i) => [i.id, i.name])
+			)
+			expect(source.getItems(copy.id)[0].thumbnail).toMatch(/^https:\/\/content\.test\//)
+		})
+
+		it('drops the copy when the worker fails, and rejects', async () => {
+			const { backend, source, kit } = await withKit()
+			const requests = backend.holdRequests()
+			const copying = source.copyLibrary(kit.id, 'acme')
+			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
+			const renaming = source.renameLibrary(copy.id, 'Copied kit')
+			requests.fail()
+			await expect(copying).rejects.toThrow("Couldn't copy the library: 500")
+			expect(source.getLibraries().map((c) => c.id)).toEqual([kit.id])
+			expect(source.getItems(copy.id)).toEqual([])
+			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
+		})
+
+		it('renames a copy once its row has arrived', async () => {
+			const { backend, source, kit } = await withKit()
+			const rows = backend.holdWorkerRows()
+			source.copyLibrary(kit.id, 'acme')
+			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
+			const renaming = source.renameLibrary(copy.id, 'Copied kit')
+			rows.release()
+			await renaming
+			expect(source.getLibraries().find((c) => c.id === copy.id)?.name).toBe('Copied kit')
+		})
+
+		it('copies a new library only once the server has it', async () => {
+			const { backend, source } = setUp()
+			const server = backend.holdServer()
+			const kit = await source.createLibrary('Kit')
+			const copying = source.copyLibrary(kit.id, 'acme')
+			await Promise.resolve()
+			expect(source.getLibraries()).toHaveLength(2)
+			expect(backend.fetch).not.toHaveBeenCalled()
+			server.release()
+			await copying
+			expect(backend.fetch).toHaveBeenCalledOnce()
 		})
 	})
 

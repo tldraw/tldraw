@@ -16,6 +16,8 @@ const STORED = JSON.stringify({ formatVersion: 1, content: { shapes: [], assets:
 const W = 'group_www11112222www'
 const V = 'group_vvv11112222vvv'
 const LIBRARY_ID = 'coll_aaaa11112222bbbb'
+const NEW_ID = 'coll_new_111122223333'
+const newItemId = (n: number) => `copy_${String(n).padStart(16, '0')}`
 
 const access = (role: string | null) => ({
 	id: LIBRARY_ID,
@@ -27,7 +29,7 @@ const access = (role: string | null) => ({
 const item = (id: string, thumbnail: string | { light: string; dark: string } | null) => ({
 	id,
 	libraryId: LIBRARY_ID,
-	name: 'Button',
+	name: `Button ${id}`,
 	thumbnail,
 	createdBy: 'user_cccc11112222dddd',
 	createdAt: 1,
@@ -53,15 +55,34 @@ function mockPool(resultSets: unknown[][]) {
 	return fake
 }
 
-function request(owningGroupId: string) {
+// The library and my role in it, my role in the destination, the source's items, no library
+// or items with the new ids, then the inserted rows' ids.
+function copying(items: ReturnType<typeof item>[], copied = items.map((_, i) => newItemId(i))) {
+	return [
+		[access('member')],
+		[{ role: 'member' }],
+		items,
+		[],
+		...(copied.length > 0 ? [[]] : []),
+		[{ id: NEW_ID }],
+		copied.map((id) => ({ id })),
+	]
+}
+
+const itemIdsFor = (ids: string[]) => Object.fromEntries(ids.map((id, i) => [id, newItemId(i)]))
+
+function request(owningGroupId: string, body: Record<string, unknown> = {}) {
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/copy`, {
 			method: 'POST',
-			body: JSON.stringify({ owningGroupId }),
+			body: JSON.stringify({ owningGroupId, id: NEW_ID, itemIds: {}, ...body }),
 		}),
 		{ params: { libraryId: LIBRARY_ID } }
 	) as any
 }
+
+const insertOf = (fake: ReturnType<typeof mockPool>, table: string) =>
+	fake.queries.find((q) => q.sql.startsWith(`insert into "${table}"`))
 
 beforeEach(() => {
 	vi.mocked(requireAuth).mockResolvedValue({ userId: ME } as any)
@@ -70,34 +91,37 @@ beforeEach(() => {
 afterEach(() => vi.clearAllMocks())
 
 describe('copyLibrary', () => {
-	it("copies the rows, each item's content, and its thumbnail to new public uploads", async () => {
+	it("copies the rows under the ids I picked, each item's content, and its thumbnail", async () => {
 		const env = makeEnv()
 		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
 		await env.UPLOADS.put('thumb_a-png', new Uint8Array([1]))
 		await env.ROOMS.put(getLibraryItemContentKey('item_b'), STORED)
-		const fake = mockPool([
-			[access('member')],
-			[{ role: 'member' }],
-			// item_c's content is missing, so it is left out
-			[item('item_a', url('thumb_a-png')), item('item_b', null), item('item_c', null)],
-		])
+		// item_c's content is missing, so it is left out
+		const items = [item('item_a', url('thumb_a-png')), item('item_b', null), item('item_c', null)]
+		const fake = mockPool(copying(items, [newItemId(0), newItemId(1)]))
 
-		const response = await copyLibrary(request(V), env)
+		const response = await copyLibrary(
+			request(V, { itemIds: itemIdsFor(['item_a', 'item_b', 'item_c']) }),
+			env
+		)
 
 		expect(response.status).toBe(200)
-		const { id } = (await response.json()) as { id: string }
-		const keys = await keysOf(env.ROOMS)
-		expect(keys).toHaveLength(2 + 2)
-		const libraryInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library"'))!
-		expect(libraryInsert.parameters).toEqual(
-			expect.arrayContaining([id, 'Shapes', V, ME, { packId: 'icons', packVersion: 1 }])
+		expect(await response.json()).toEqual({ id: NEW_ID })
+		expect(await keysOf(env.ROOMS)).toEqual(
+			expect.arrayContaining([
+				getLibraryItemContentKey(newItemId(0)),
+				getLibraryItemContentKey(newItemId(1)),
+			])
 		)
-		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
-		const newItemIds = itemInsert.parameters.filter(
-			(p) => typeof p === 'string' && keys.includes(getLibraryItemContentKey(p))
+		expect(await keysOf(env.ROOMS)).toHaveLength(2 + 2)
+		expect(insertOf(fake, 'library')!.parameters).toEqual(
+			expect.arrayContaining([NEW_ID, 'Shapes', V, ME, { packId: 'icons', packVersion: 1 }])
 		)
-		expect(newItemIds).toHaveLength(2)
-		expect(newItemIds).not.toContain('item_a')
+		const itemInsert = insertOf(fake, 'library_item')!
+		expect(itemInsert.parameters).toEqual(
+			expect.arrayContaining([newItemId(0), newItemId(1), NEW_ID])
+		)
+		expect(itemInsert.parameters).not.toContain(newItemId(2))
 		const uploads = await keysOf(env.UPLOADS)
 		expect(uploads).toHaveLength(2)
 		const copied = uploads.find((name) => name !== 'thumb_a-png')!
@@ -105,29 +129,44 @@ describe('copyLibrary', () => {
 		expect(itemInsert.parameters).toContain(JSON.stringify(url(copied)))
 	})
 
+	it('copies only the items I named, and leaves out ones the library no longer has', async () => {
+		const env = makeEnv()
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
+		await env.ROOMS.put(getLibraryItemContentKey('item_b'), STORED)
+		const fake = mockPool(copying([item('item_a', null), item('item_b', null)], [newItemId(0)]))
+
+		const response = await copyLibrary(
+			request(V, { itemIds: { item_a: newItemId(0), item_gone: newItemId(1) } }),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const itemInsert = insertOf(fake, 'library_item')!
+		expect(itemInsert.parameters).toContain(newItemId(0))
+		expect(itemInsert.parameters).not.toContain(newItemId(1))
+		expect(itemInsert.parameters).not.toContain('Button item_b')
+	})
+
 	it('copies both of a light and dark pair, and a light one alone without its dark one', async () => {
 		const env = makeEnv()
-		for (const id of ['item_a', 'item_b', 'item_c']) {
-			await env.ROOMS.put(getLibraryItemContentKey(id), STORED)
-		}
+		const ids = ['item_a', 'item_b', 'item_c']
+		for (const id of ids) await env.ROOMS.put(getLibraryItemContentKey(id), STORED)
 		await env.UPLOADS.put('light_a-png', new Uint8Array([1]))
 		await env.UPLOADS.put('dark_a-png', new Uint8Array([2]))
 		await env.UPLOADS.put('light_b-png', new Uint8Array([1]))
 		await env.UPLOADS.put('dark_c-png', new Uint8Array([2]))
-		const fake = mockPool([
-			[access('member')],
-			[{ role: 'member' }],
-			[
+		const fake = mockPool(
+			copying([
 				item('item_a', { light: url('light_a-png'), dark: url('dark_a-png') }),
 				// item_b's dark image is missing, so its light one is kept alone
 				item('item_b', { light: url('light_b-png'), dark: url('dark_b-png') }),
 				// item_c's light image is missing, so its dark one is left behind too
 				item('item_c', { light: url('light_c-png'), dark: url('dark_c-png') }),
-			],
-		])
+			])
+		)
 
-		expect((await copyLibrary(request(V), env)).status).toBe(200)
-		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
+		expect((await copyLibrary(request(V, { itemIds: itemIdsFor(ids) }), env)).status).toBe(200)
+		const itemInsert = insertOf(fake, 'library_item')!
 		expect(await keysOf(env.UPLOADS)).toHaveLength(4 + 3)
 		const [pair, single, ...rest] = itemInsert.parameters
 			.filter((p): p is string => typeof p === 'string' && p.includes('content.test'))
@@ -142,19 +181,96 @@ describe('copyLibrary', () => {
 		const env = makeEnv()
 		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
 		await env.UPLOADS.put('thumb_a-png', new Uint8Array([1]))
-		const fake = mockPool([
-			[access('member')],
-			[{ role: 'member' }],
-			[item('item_a', url('thumb_a-png'))],
-		])
+		const fake = mockPool(copying([item('item_a', url('thumb_a-png'))]))
 		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
 			throw new Error('insert failed')
 		})
 
-		await expect(copyLibrary(request(V), env)).rejects.toThrow('insert failed')
+		await expect(copyLibrary(request(V, { itemIds: itemIdsFor(['item_a']) }), env)).rejects.toThrow(
+			'insert failed'
+		)
 		expect(await keysOf(env.ROOMS)).toEqual([getLibraryItemContentKey('item_a')])
 		expect(await keysOf(env.UPLOADS)).toEqual(['thumb_a-png'])
 	})
+
+	it.each([
+		['no library id', { id: undefined }],
+		['a library id uniqueId would not make', { id: 'coll_1' }],
+		['item ids that are not a map', { itemIds: [newItemId(0)] }],
+		['an item id uniqueId would not make', { itemIds: { item_a: 'copy/../1' } }],
+		['the same item id twice', { itemIds: { item_a: newItemId(0), item_b: newItemId(0) } }],
+	])('refuses %s', async (_, body) => {
+		const fake = mockPool(copying([item('item_a', null)]))
+		const env = makeEnv()
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
+		expect((await copyLibrary(request(V, body), env)).status).toBe(400)
+		expect(fake.queries).toEqual([])
+		expect(await keysOf(env.ROOMS)).toEqual([getLibraryItemContentKey('item_a')])
+	})
+
+	it.each([
+		['a library id that names an existing library', [[{ id: NEW_ID }]]],
+		['an item id that names an existing item', [[], [{ id: newItemId(0) }]]],
+	])('refuses %s, before storing anything', async (_, taken) => {
+		const fake = mockPool([
+			[access('member')],
+			[{ role: 'member' }],
+			[item('item_a', null)],
+			...taken,
+		])
+		const env = makeEnv()
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
+		const response = await copyLibrary(request(V, { itemIds: itemIdsFor(['item_a']) }), env)
+		expect(response.status).toBe(409)
+		expect(await keysOf(env.ROOMS)).toEqual([getLibraryItemContentKey('item_a')])
+		expect(await keysOf(env.UPLOADS)).toEqual([])
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
+	})
+
+	it("refuses the id of a deleted item whose content hasn't been removed yet", async () => {
+		const fake = mockPool([
+			[access('member')],
+			[{ role: 'member' }],
+			[item('item_a', null)],
+			[],
+			[],
+		])
+		const env = makeEnv()
+		await env.ROOMS.put(getLibraryItemContentKey('item_a'), STORED)
+		await env.ROOMS.put(getLibraryItemContentKey(newItemId(0)), 'theirs')
+		const response = await copyLibrary(request(V, { itemIds: itemIdsFor(['item_a']) }), env)
+		expect(response.status).toBe(409)
+		expect(await (await env.ROOMS.get(getLibraryItemContentKey(newItemId(0))))!.text()).toBe(
+			'theirs'
+		)
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
+	})
+
+	it.each([
+		['the library id', [[]], []],
+		// the content stored under the item id the other request took is that request's
+		['an item id', [[{ id: NEW_ID }], [{ id: newItemId(0) }]], [newItemId(1)]],
+	])(
+		'answers 409 when another request inserts %s first, removing what it stored',
+		async (_, inserts, theirs) => {
+			const env = makeEnv()
+			const ids = ['item_a', 'item_b']
+			for (const id of ids) await env.ROOMS.put(getLibraryItemContentKey(id), STORED)
+			await env.UPLOADS.put('thumb_a-png', new Uint8Array([1]))
+			const items = [item('item_a', url('thumb_a-png')), item('item_b', null)]
+			const fake = mockPool([[access('member')], [{ role: 'member' }], items, [], [], ...inserts])
+
+			const response = await copyLibrary(request(V, { itemIds: itemIdsFor(ids) }), env)
+
+			expect(response.status).toBe(409)
+			expect(fake.queries.at(-1)!.sql).toBe('rollback')
+			expect(fake.queries.some((q) => q.sql.includes('library_item_asset'))).toBe(false)
+			expect(await keysOf(env.UPLOADS)).toEqual(['thumb_a-png'])
+			expect((await keysOf(env.ROOMS)).sort()).toEqual(
+				[...ids, ...theirs].map((id) => getLibraryItemContentKey(id)).sort()
+			)
+		}
+	)
 
 	it("answers 404 when I'm not a member of the library's workspace", async () => {
 		mockPool([[access(null)]])
@@ -170,7 +286,7 @@ describe('copyLibrary', () => {
 	})
 
 	it('copies into my home workspace, which may have no group_user row', async () => {
-		mockPool([[access('member')], [], []])
+		mockPool([[access('member')], [], [], [], [{ id: NEW_ID }]])
 		const env = makeEnv()
 		expect((await copyLibrary(request(ME), env)).status).toBe(200)
 	})
@@ -191,21 +307,18 @@ describe('copyLibrary, with uploads the items own', () => {
 			getLibraryItemContentKey('item_a'),
 			JSON.stringify({ formatVersion: 1, content: { shapes: [], assets: [asset] } })
 		)
-		const fake = mockPool([[access('member')], [{ role: 'member' }], [item('item_a', null)]])
+		const fake = mockPool(copying([item('item_a', null)]))
 
-		expect((await copyLibrary(request(V), env)).status).toBe(200)
+		expect((await copyLibrary(request(V, { itemIds: itemIdsFor(['item_a']) }), env)).status).toBe(
+			200
+		)
 
 		const uploads = await keysOf(env.UPLOADS)
 		expect(uploads).toHaveLength(2)
 		const copyName = uploads.find((key: string) => key !== 'owned1-png')!
 		expect(copyName).toMatch(/-png$/)
-		const ownership = fake.queries.find((q) =>
-			q.sql.startsWith('insert into "library_item_asset"')
-		)!
-		expect(ownership.parameters).toContain(copyName)
-		const itemInsert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
-		const newItemId = itemInsert.parameters[0] as string
-		const copied = await (await env.ROOMS.get(getLibraryItemContentKey(newItemId)))!.json<any>()
+		expect(insertOf(fake, 'library_item_asset')!.parameters).toEqual([newItemId(0), copyName])
+		const copied = await (await env.ROOMS.get(getLibraryItemContentKey(newItemId(0))))!.json<any>()
 		expect(copied.content.assets[0].props.src).toBe(`https://content.test/${copyName}`)
 	})
 })
