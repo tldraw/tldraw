@@ -1,4 +1,4 @@
-import { PointerEvent, useMemo } from 'react'
+import { MouseEvent, PointerEvent, useMemo } from 'react'
 import { getPointerInfo, react, TLContent, useEditor, Vec, VecModel } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
@@ -100,6 +100,11 @@ export function useItemDrag(
 		return (itemId: TLCollectionItemId) => ({
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
 				if (e.button !== 0) return
+				// Outside the canvas's MenuClickCapture, a press that closes a menu still lands here.
+				if (editor.menus.hasOpenMenus()) {
+					state = { name: 'idle' }
+					return
+				}
 				const panel = e.currentTarget.closest('.tlui-collections-panel') ?? e.currentTarget
 				state = {
 					name: 'pointing',
@@ -141,10 +146,11 @@ export function useItemDrag(
 				if (state.name === 'dragging') editor.cancel()
 				state = { name: 'idle' }
 			},
-			onClick() {
-				const wasDrag = state.name === 'dragging'
+			onClick(e: MouseEvent<HTMLButtonElement>) {
+				const wasPressedHere = state.name === 'pointing' && state.itemId === itemId
+				const isKeyboard = e.detail === 0
 				state = { name: 'idle' }
-				if (!wasDrag) onPlace(itemId)
+				if (wasPressedHere || isKeyboard) onPlace(itemId)
 			},
 		})
 	}, [editor, source, onPlace])
