@@ -12,19 +12,24 @@ import { nicelog } from './nicelog'
 // answer at `<app>.internal`:
 //
 //   1. create a fresh volume and start a second RM on it with the new config
-//   2. wait for its checks to pass. Zero only answers /keepalive once the first backup of the new
-//      RM's replica is confirmed, so a passing check means view-syncers can seed from it
-//   3. stop the old RM. SIGTERM makes it drain its subscribers over to the new RM, and Fly's
-//      restart policy does not apply to a stop. This must happen before the new RM's
-//      ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS (15s) runs out: past it the new RM takes the change
-//      log, the old RM exits with an error, and restart policy `always` brings it back to take the
-//      log back
+//   2. wait for its checks to pass. Zero only answers /keepalive once the new RM has restored its
+//      replica from the backup, so it is ready to serve view-syncers
+//   3. stop the old RM. The stop signal makes it drain: it signals its view-syncers to switch
+//      over, they subscribe to the new RM, and that subscription makes the new RM take over the
+//      change log, which shuts the old one down. Taking over cuts the old RM's subscriptions
+//      (Zero's RMv1 design), so view-syncers reconnect, but to an RM that is already warm. Fly's
+//      restart policy does not apply to a stop. The stop must come within the new RM's
+//      ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS (15s) of it becoming ready: past it the new RM takes
+//      the change log on its own, the old RM exits with an error, and restart policy `always`
+//      brings it back to take the log back
 //   4. destroy the old machine and its volume
 //
 // If the new RM never becomes healthy it is destroyed with its volume, and the old RM keeps
 // serving.
 
-const NEW_MACHINE_TIMEOUT_MS = 30 * 60 * 1000
+// Leaves room in the deploy job's timeout for the rest of the deploy: a job killed mid-handoff
+// skips the cleanup below and leaves two RMs, which the next deploy refuses to touch.
+const NEW_MACHINE_TIMEOUT_MS = 10 * 60 * 1000
 const POLL_INTERVAL_MS = 2000
 
 interface FlyMachineConfig {
@@ -138,12 +143,15 @@ export async function handOffReplicationManager({
 	renderedToml,
 	configFile,
 	pwd,
+	// TEMP(preview-handoff): lets the preview failure test time out quickly
+	newMachineTimeoutMs = NEW_MACHINE_TIMEOUT_MS,
 }: {
 	appName: string
 	renderedToml: string
 	/** Written already; only used for the first-deploy fallback. */
 	configFile: string
 	pwd: string
+	newMachineTimeoutMs?: number
 }) {
 	const machines = await listMachines(appName)
 	if (machines.length === 0) {
@@ -206,14 +214,14 @@ export async function handOffReplicationManager({
 		if (!newMachine) throw new Error(`${appName}: new machine ${name} not found after machine run`)
 		nicelog(`${appName}: started ${newMachine.id}, waiting for its first backup`)
 
-		const deadline = Date.now() + NEW_MACHINE_TIMEOUT_MS
+		const deadline = Date.now() + newMachineTimeoutMs
 		let lastLog = 0
 		for (;;) {
 			const current = (await listMachines(appName)).find((m) => m.id === newMachine!.id)
 			if (isHealthy(current)) break
 			if (Date.now() > deadline) {
 				throw new Error(
-					`${appName}: new machine ${newMachine.id} not healthy after ${NEW_MACHINE_TIMEOUT_MS / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
+					`${appName}: new machine ${newMachine.id} not healthy after ${newMachineTimeoutMs / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
 				)
 			}
 			if (Date.now() - lastLog > 60_000) {

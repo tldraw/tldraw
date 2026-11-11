@@ -883,6 +883,10 @@ function withPreviewInfoLogs(toml: string): string {
 	return previewId ? toml.replace('ZERO_LOG_LEVEL = "warn"', 'ZERO_LOG_LEVEL = "info"') : toml
 }
 
+// TEMP(preview-handoff): how the preview RM is deployed. 'in-place' is the flyctl deploy baseline;
+// 'fail' gives the new RM an invalid log level so it never becomes healthy.
+const PREVIEW_RM_MODE = 'handoff' as 'handoff' | 'in-place' | 'fail'
+
 // The view-syncer image; the replication manager runs the stock Zero image.
 function renderDockerfile(): string {
 	const dockerfileTemplate = path.join(zeroCacheFolder, 'Dockerfile.template')
@@ -927,19 +931,28 @@ async function deployZeroViaFlyIoMultiNode() {
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
 		inputs: {
-			config: withPreviewInfoLogs(renderFlyioReplicationManagerToml(flyioReplAppName, backupPath)),
+			config: withPreviewInfoLogs(
+				renderFlyioReplicationManagerToml(flyioReplAppName, backupPath)
+			).replace(
+				'ZERO_LOG_LEVEL = "info"',
+				previewId && PREVIEW_RM_MODE === 'fail'
+					? 'ZERO_LOG_LEVEL = "banana"'
+					: 'ZERO_LOG_LEVEL = "info"'
+			),
 			secrets,
 		},
 		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
 		deploy:
 			// TEMP(preview-handoff): previews too
-			env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'preview'
+			env.TLDRAW_ENV === 'staging' ||
+			(env.TLDRAW_ENV === 'preview' && PREVIEW_RM_MODE !== 'in-place')
 				? (renderedToml) =>
 						handOffReplicationManager({
 							appName: flyioReplAppName,
 							renderedToml,
 							configFile: rmConfigFile,
 							pwd: zeroCacheFolder,
+							newMachineTimeoutMs: previewId && PREVIEW_RM_MODE === 'fail' ? 90_000 : undefined,
 						})
 				: undefined,
 	})
