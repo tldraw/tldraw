@@ -19,3 +19,11 @@ export async function addItemsToLibrary(
 	for (const item of items) added.push(await source.addItem(libraryId, item))
 	return added
 }
+
+/**
+ * Resolves once the source has stored items added to it, rejecting if it couldn't (see
+ * {@link LibrarySource.whenStored}): for a copy or move to wait on before it counts as done.
+ */
+export async function whenItemsStored(source: LibrarySource, items: TLLibraryItem[]) {
+	if (source.whenStored) await source.whenStored(items.map((item) => item.id))
+}

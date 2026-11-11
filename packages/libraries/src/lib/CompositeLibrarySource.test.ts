@@ -4,6 +4,7 @@ import {
 	createShapeId,
 	createTLSchema,
 	type TLLibraryId,
+	type TLLibraryItemId,
 } from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
@@ -252,6 +253,61 @@ describe('CompositeLibrarySource', () => {
 		await source.moveItem!(item.id, to.id)
 		expect(mine.getItems(from.id)).toEqual([])
 		expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
+	})
+
+	describe('a part that stores added items after listing them', () => {
+		// Lists added items at once, then fails to store them and removes them again.
+		function failingToStore(source: InMemoryLibrarySource): LibrarySource {
+			return new Proxy(source, {
+				get: (target, key) => {
+					if (key === 'whenStored') {
+						return async (itemIds: TLLibraryItemId[]) => {
+							for (const itemId of itemIds) await target.deleteItem(itemId).catch(() => {})
+							throw new Error('storing failed')
+						}
+					}
+					const value = Reflect.get(target, key)
+					return typeof value === 'function' ? value.bind(target) : value
+				},
+			})
+		}
+
+		function setUpFailing() {
+			const mine = new InMemoryLibrarySource({ id: 'mine' })
+			const team = new InMemoryLibrarySource({ id: 'team' })
+			const source = new CompositeLibrarySource({
+				parts: [
+					{ owner: personal, source: mine },
+					{ owner: acme, source: failingToStore(team) },
+				],
+			})
+			return { source, mine, team }
+		}
+
+		it('asks each part when items are stored', async () => {
+			const { source } = setUpFailing()
+			await expect(source.whenStored([])).rejects.toThrow('storing failed')
+		})
+
+		it('keeps an item it failed to move', async () => {
+			const { source, mine, team } = setUpFailing()
+			const from = await source.createLibrary('Kit', { ownerId: 'home' })
+			const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
+			const item = await source.addItem(from.id, { name: 'Star', content: content('star') })
+			await expect(source.moveItem!(item.id, to.id)).rejects.toThrow('storing failed')
+			expect(mine.getItems(from.id).map((i) => i.name)).toEqual(['Star'])
+			expect(team.getItems(to.id)).toEqual([])
+		})
+
+		it('deletes a copy it failed to store, and keeps a library it failed to move', async () => {
+			const { source, mine, team } = setUpFailing()
+			const kit = await source.createLibrary('Kit', { ownerId: 'home' })
+			await source.addItem(kit.id, { name: 'Star', content: content('star') })
+			await expect(copyLibrary(source, kit.id, 'acme')).rejects.toThrow('storing failed')
+			await expect(source.moveLibrary(kit.id, 'acme')).rejects.toThrow('storing failed')
+			expect(team.getLibraries()).toEqual([])
+			expect(mine.getItems(kit.id).map((i) => i.name)).toEqual(['Star'])
+		})
 	})
 
 	describe('a part that lists its own owners', () => {

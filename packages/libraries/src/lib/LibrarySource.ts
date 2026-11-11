@@ -145,6 +145,13 @@ export interface LibrarySource {
 	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
+	/**
+	 * Resolves once items added to this source have been stored, or rejects if storing them failed,
+	 * in which case the source has removed them again. Items it isn't storing resolve at once.
+	 * Optional: for sources whose `addItem` and `addItems` resolve once the items are listed, while
+	 * their storing goes on, e.g. uploading their thumbnails. Without it, an added item is stored.
+	 */
+	whenStored?(itemIds: TLLibraryItemId[]): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

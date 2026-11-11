@@ -65,6 +65,7 @@ export class BoardLibrarySource implements LibrarySource {
 	private readonly libraries: Computed<TLLibrary[]>
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly thumbnailUrls = new Map<TLAssetId, ResolvedUrl>()
+	private readonly storing = new Map<TLLibraryItemId, Promise<void>>()
 
 	constructor(
 		private readonly editor: Editor,
@@ -197,9 +198,9 @@ export class BoardLibrarySource implements LibrarySource {
 	 * Assets the document doesn't have yet are added to it as they are: content saved from this
 	 * board names assets already here, while content from another source carries its own.
 	 *
-	 * The item appears at once, its thumbnail shown from the image itself while it uploads, as a
-	 * pasted image is. It resolves once the upload has finished; if it fails, the item is removed
-	 * again and it rejects.
+	 * The item is listed at once, its thumbnail shown from the image itself, and it resolves then,
+	 * while the thumbnail goes on uploading, as a pasted image does. If the upload fails, the item is
+	 * removed again: {@link BoardLibrarySource.whenStored} tells when it is stored, or rejects.
 	 */
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
 		const [item] = await this.addItems(libraryId, [newItem])
@@ -207,8 +208,8 @@ export class BoardLibrarySource implements LibrarySource {
 	}
 
 	/**
-	 * As {@link BoardLibrarySource.addItem}, for several items at once: they appear together, and
-	 * their thumbnails are uploaded a few at a time. If any upload fails, all of them are removed
+	 * As {@link BoardLibrarySource.addItem}, for several items at once: they are listed together,
+	 * and their thumbnails are uploaded a few at a time. If any upload fails, all of them are removed
 	 * again, with the images that did upload.
 	 */
 	async addItems(libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) {
@@ -257,25 +258,24 @@ export class BoardLibrarySource implements LibrarySource {
 			...images.map(({ asset }) => asset),
 			...records.flatMap((r) => [r.item, r.contentRecord]),
 		])
-		try {
-			await mapConcurrently(images, UPLOAD_CONCURRENCY, (image) => this.uploadImage(image))
-		} catch (error) {
-			const itemIds = records.map(({ item }) => item.id)
-			this.write(
-				[],
-				[...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
-				images.map(({ asset }) => asset.id)
-			)
-			throw error
-		}
-		this.getLibrary(libraryId)
-		await Promise.all(
-			images.map(({ asset }) => {
-				const stored = this.editor.getAsset(asset.id)
-				return stored?.props.src ? this.getResolvedUrl(asset.id, stored.props.src).ready : undefined
-			})
+		const itemIds = records.map(({ item }) => item.id)
+		const stored = this.uploadImages(images, itemIds)
+		for (const itemId of itemIds) this.storing.set(itemId, stored)
+		stored.then(
+			() => {
+				for (const itemId of itemIds) this.storing.delete(itemId)
+			},
+			(error) => console.error("Couldn't upload a library item's thumbnail", error)
 		)
 		return records.map(({ item }) => this.toListedItem(item))
+	}
+
+	/**
+	 * Resolves once the items' thumbnails have uploaded, or rejects with the error if one failed,
+	 * and they were removed again.
+	 */
+	async whenStored(itemIds: TLLibraryItemId[]) {
+		await Promise.all(itemIds.map((itemId) => this.storing.get(itemId)))
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
@@ -336,6 +336,20 @@ export class BoardLibrarySource implements LibrarySource {
 		return { light, dark }
 	}
 
+	// Removes the items again, with all of their images, if any image fails to upload.
+	private async uploadImages(images: PendingImage[], itemIds: TLLibraryItemId[]) {
+		try {
+			await mapConcurrently(images, UPLOAD_CONCURRENCY, (image) => this.uploadImage(image))
+		} catch (error) {
+			this.write(
+				[],
+				[...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
+				images.map(({ asset }) => asset.id)
+			)
+			throw error
+		}
+	}
+
 	/**
 	 * The image goes through the editor's handler for files, as a pasted image does: it is checked
 	 * and uploaded to the editor's asset store, and its asset gets the stored src. An asset deleted
@@ -385,7 +399,7 @@ export class BoardLibrarySource implements LibrarySource {
 		const url = atom<string | undefined>(`thumbnail url ${assetId}`, undefined)
 		// Resolving reads editor state, such as the device pixel ratio, that a listing shouldn't
 		// recompute for.
-		const ready = unsafe__withoutCapture(() =>
+		unsafe__withoutCapture(() =>
 			this.editor.resolveAssetUrl(assetId, { shouldResolveToOriginal: true })
 		).then(
 			(resolved) => {
@@ -393,7 +407,7 @@ export class BoardLibrarySource implements LibrarySource {
 			},
 			(error) => console.error(`Couldn't resolve the thumbnail ${assetId}`, error)
 		)
-		const entry = { src, url, ready }
+		const entry = { src, url }
 		this.thumbnailUrls.set(assetId, entry)
 		return entry
 	}
@@ -455,7 +469,6 @@ interface PendingImage {
 interface ResolvedUrl {
 	src: string
 	url: Atom<string | undefined>
-	ready: Promise<void>
 }
 
 function listThumbnail<Src>(thumbnail: TLLibraryThumbnail<Src>): Src[] {

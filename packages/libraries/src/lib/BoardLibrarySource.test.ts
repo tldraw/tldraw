@@ -290,6 +290,7 @@ describe('BoardLibrarySource', () => {
 				content: contentOf(editor, [addImage(editor)]),
 				thumbnail: { light: png('light'), dark: png('dark') },
 			})
+			await source.whenStored([item.id])
 			const stored = editor.store.get(item.id as any) as unknown as TLLibraryItemRecord
 			return { source, library, item, stored }
 		}
@@ -323,17 +324,17 @@ describe('BoardLibrarySource', () => {
 			expect(await assets.uploads.get(dark.props.src!)!.text()).toBe('dark')
 		})
 
-		it('lists the item with the asset store’s URLs', async () => {
+		it('lists the item with the asset store’s URLs once stored', async () => {
 			const editor = makeEditor()
-			const { source, library, item } = await addWithThumbnail(editor)
+			const { source, library } = await addWithThumbnail(editor)
 			const [light, dark] = thumbnailAssets(editor)
 
-			const urls = {
-				light: `https://uploads.example/${light.id}?resolved`,
-				dark: `https://uploads.example/${dark.id}?resolved`,
-			}
-			expect(item.thumbnail).toEqual(urls)
-			expect(source.getItems(library.id)).toEqual([item])
+			await vi.waitFor(() =>
+				expect(source.getItems(library.id)[0].thumbnail).toEqual({
+					light: `https://uploads.example/${light.id}?resolved`,
+					dark: `https://uploads.example/${dark.id}?resolved`,
+				})
+			)
 		})
 
 		it('lists an item stored by another session once its URLs resolve', async () => {
@@ -368,6 +369,18 @@ describe('BoardLibrarySource', () => {
 				const [item] = source.getItems(library.id)
 				return { assets, editor, source, library, adding, item }
 			}
+
+			it('resolves once the item is listed, before the images have uploaded', async () => {
+				const { assets, source, adding, item } = await startAdding()
+				const stored = vi.fn()
+				source.whenStored([item.id]).then(stored)
+
+				expect(await adding).toEqual(item)
+				await Promise.resolve()
+				expect(stored).not.toHaveBeenCalled()
+				for (const upload of assets.held) upload.finish()
+				await source.whenStored([item.id])
+			})
 
 			it('lists the item at once, with its images not yet stored', async () => {
 				const { editor, item } = await startAdding()
@@ -405,25 +418,29 @@ describe('BoardLibrarySource', () => {
 
 			it('stores the srcs once uploaded, and lists the asset store’s URLs', async () => {
 				const { assets, editor, source, library, adding } = await startAdding()
-				for (const upload of assets.held) upload.finish()
 				const item = await adding
+				for (const upload of assets.held) upload.finish()
+				await source.whenStored([item.id])
 				const [light, dark] = thumbnailAssets(editor)
 
 				expect(light.props.src).toBe(`https://uploads.example/${light.id}`)
 				expect(dark.props.src).toBe(`https://uploads.example/${dark.id}`)
-				expect(item.thumbnail).toEqual({
-					light: `https://uploads.example/${light.id}?resolved`,
-					dark: `https://uploads.example/${dark.id}?resolved`,
-				})
-				expect(source.getItems(library.id)).toEqual([item])
+				await vi.waitFor(() =>
+					expect(source.getItems(library.id)[0].thumbnail).toEqual({
+						light: `https://uploads.example/${light.id}?resolved`,
+						dark: `https://uploads.example/${dark.id}?resolved`,
+					})
+				)
 			})
 
-			it('removes the item again when an image fails to upload', async () => {
+			it('removes the item again when an image fails to upload, and reports it', async () => {
+				vi.spyOn(console, 'error').mockImplementation(() => {})
 				const { assets, editor, source, library, adding } = await startAdding()
+				const item = await adding
 				assets.held[0].finish()
 				assets.held[1].fail(new Error('upload failed'))
 
-				await expect(adding).rejects.toThrow('upload failed')
+				await expect(source.whenStored([item.id])).rejects.toThrow('upload failed')
 				expect(source.getItems(library.id)).toEqual([])
 				expect(allOfType(editor, 'library-item-content')).toEqual([])
 				expect(thumbnailAssets(editor)).toEqual([])
@@ -432,9 +449,10 @@ describe('BoardLibrarySource', () => {
 
 			it('doesn’t bring back the images of an item deleted meanwhile', async () => {
 				const { assets, editor, source, adding, item } = await startAdding()
+				await adding
 				await source.deleteItem(item.id)
 				for (const upload of assets.held) upload.finish()
-				await adding
+				await source.whenStored([item.id])
 
 				expect(thumbnailAssets(editor)).toEqual([])
 				await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
@@ -531,7 +549,8 @@ describe('BoardLibrarySource', () => {
 			expect(thumbnailAssets(editor)).toEqual([])
 		})
 
-		it('adds nothing when an image fails to upload, and removes the one that did', async () => {
+		it('removes the item when an image fails to upload, and the one that did', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
 			const assets = makeAssetStore()
 			const upload = assets.store.upload
 			assets.store.upload = async (asset, file, signal) => {
@@ -542,12 +561,11 @@ describe('BoardLibrarySource', () => {
 			const source = new BoardLibrarySource(editor)
 			const library = await source.createLibrary('Photos')
 
-			await expect(
-				source.addItem(library.id, {
-					content: contentOf(editor, [addImage(editor)]),
-					thumbnail: { light: png(), dark: png() },
-				})
-			).rejects.toThrow('upload failed')
+			const item = await source.addItem(library.id, {
+				content: contentOf(editor, [addImage(editor)]),
+				thumbnail: { light: png(), dark: png() },
+			})
+			await expect(source.whenStored([item.id])).rejects.toThrow('upload failed')
 			expect(source.getItems(library.id)).toEqual([])
 			expect(thumbnailAssets(editor)).toEqual([])
 			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
@@ -555,7 +573,7 @@ describe('BoardLibrarySource', () => {
 	})
 
 	describe('adding several items', () => {
-		it('adds them together, in the order given, and resolves once their thumbnails upload', async () => {
+		it('lists them together, in the order given, and stores their thumbnails', async () => {
 			const editor = makeEditor()
 			const source = new BoardLibrarySource(editor)
 			const library = await source.createLibrary('Photos')
@@ -574,6 +592,10 @@ describe('BoardLibrarySource', () => {
 				{ name: 'Two', content: contentOf(editor, [addImage(editor)]) },
 				{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png('3') },
 			])
+			await source.whenStored(items.map((item) => item.id))
+			await vi.waitFor(() =>
+				expect(source.getItems(library.id)[0].thumbnail).toMatch(/\?resolved$/)
+			)
 			stop()
 
 			expect(items.map((item) => item.name)).toEqual(['One', 'Two', 'Three'])
@@ -581,13 +603,13 @@ describe('BoardLibrarySource', () => {
 			expect(listings[0]).toEqual([])
 			expect(listings.length).toBeGreaterThan(2)
 			for (const listing of listings.slice(1)) expect(listing).toEqual(['One', 'Three', 'Two'])
-			expect(items[0].thumbnail).toMatch(/\?resolved$/)
+			expect(items[0].thumbnail).toMatch(/^blob:/)
 			expect(items[1].thumbnail).toBeUndefined()
-			expect(items[2].thumbnail).toMatch(/\?resolved$/)
 			expect(items[0].createdAt).toBeLessThan(items[2].createdAt!)
 		})
 
-		it('adds none when a thumbnail fails to upload, and removes the ones that did', async () => {
+		it('removes them all when a thumbnail fails to upload, with the ones that did', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
 			const assets = makeAssetStore()
 			const upload = assets.store.upload
 			assets.store.upload = async (asset, file, signal) => {
@@ -598,13 +620,12 @@ describe('BoardLibrarySource', () => {
 			const source = new BoardLibrarySource(editor)
 			const library = await source.createLibrary('Photos')
 
-			await expect(
-				source.addItems(library.id, [
-					{ name: 'One', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
-					{ name: 'Two', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
-					{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
-				])
-			).rejects.toThrow('upload failed')
+			const items = await source.addItems(library.id, [
+				{ name: 'One', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
+				{ name: 'Two', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
+				{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
+			])
+			await expect(source.whenStored([items[0].id])).rejects.toThrow('upload failed')
 			expect(source.getItems(library.id)).toEqual([])
 			expect(allOfType(editor, 'asset').filter((asset) => asset.id !== assetId)).toEqual([])
 			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
