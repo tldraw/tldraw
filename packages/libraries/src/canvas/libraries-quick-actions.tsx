@@ -9,6 +9,7 @@ import {
 	useValue,
 	type TLUiQuickActionsProps,
 } from 'tldraw'
+import { LibraryIcon } from '../ui/library-icon'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 
 const messages = defineMessages({
@@ -48,7 +49,7 @@ function LibrariesToolbarButton() {
 			title={msg(messages.title)}
 			onClick={() => toggleLibrariesPanel(editor)}
 		>
-			<TldrawUiButtonIcon icon="bookmark" small />
+			<TldrawUiButtonIcon icon={<LibraryIcon />} small />
 		</TldrawUiToolbarButton>
 	)
 }

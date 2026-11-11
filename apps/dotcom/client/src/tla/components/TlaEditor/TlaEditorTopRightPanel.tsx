@@ -185,7 +185,7 @@ function LibrariesPanelButton() {
 			title={label}
 			onClick={() => toggleLibrariesPanel(editor)}
 		>
-			<TlaIcon icon="bookmark" />
+			<TlaIcon icon="library" />
 		</TldrawUiButton>
 	)
 }
