@@ -1,7 +1,6 @@
 import {
 	activeLibraryId,
 	LibraryMenuItem,
-	type LibraryPack,
 	librariesPanelOpen,
 	getThumbnailForColorMode,
 } from '@tldraw/libraries'
@@ -20,12 +19,17 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { getStarterPackLibraryId, STARTER_PACKS, type StarterPacksSource } from './starterPacks'
+import {
+	getStarterPackLibraryId,
+	type StarterPackEntry,
+	type StarterPacksSource,
+} from './starterPacks'
 import styles from './TlaStarterPacksDialog.module.css'
 
 const messages = defineMessages({
 	browse: { defaultMessage: 'Browse starter packs…' },
 	itemCount: { defaultMessage: '{count, plural, one {# item} other {# items}}' },
+	loading: { defaultMessage: 'Loading…' },
 	add: { defaultMessage: 'Add' },
 	remove: { defaultMessage: 'Remove' },
 	added: { defaultMessage: 'Added' },
@@ -61,8 +65,8 @@ function TlaStarterPacksDialog({ packs }: { packs: StarterPacksSource }) {
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.body}>
 				<ul className={styles.packs}>
-					{STARTER_PACKS.map((pack) => (
-						<StarterPack key={pack.id} packs={packs} pack={pack} />
+					{packs.packs.map((entry) => (
+						<StarterPack key={entry.id} packs={packs} entry={entry} />
 					))}
 				</ul>
 			</TldrawUiDialogBody>
@@ -70,26 +74,31 @@ function TlaStarterPacksDialog({ packs }: { packs: StarterPacksSource }) {
 	)
 }
 
-function StarterPack({ packs, pack }: { packs: StarterPacksSource; pack: LibraryPack }) {
+function StarterPack({ packs, entry }: { packs: StarterPacksSource; entry: StarterPackEntry }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
-	const added = useValue('starter pack added', () => packs.isAdded(pack.id), [packs, pack.id])
+	const added = useValue('starter pack added', () => packs.isAdded(entry.id), [packs, entry.id])
+	const pack = useValue('starter pack', () => packs.getPack(entry.id), [packs, entry.id])
+	const failed = useValue('starter pack failed', () => packs.hasFailed(entry.id), [packs, entry.id])
 	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
+	const name = pack?.name ?? entry.name
+
+	if (failed) return null
 
 	// Adding stores the pack's id, nothing else: the pack shows read-only under tldraw, and
 	// removing it loses nothing.
 	const toggle = () => {
 		if (added) {
-			packs.setAdded(pack.id, false)
+			packs.setAdded(entry.id, false)
 			return
 		}
-		packs.setAdded(pack.id, true)
-		const libraryId = getStarterPackLibraryId(pack.id)
+		packs.setAdded(entry.id, true)
+		const libraryId = getStarterPackLibraryId(entry.id)
 		activeLibraryId.set(editor, libraryId)
 		addToast({
 			title: msg(messages.added),
-			description: msg(messages.addedDescription, { pack: pack.name }),
+			description: msg(messages.addedDescription, { pack: name }),
 			actions: [
 				{
 					label: msg(messages.open),
@@ -106,23 +115,27 @@ function StarterPack({ packs, pack }: { packs: StarterPacksSource; pack: Library
 	return (
 		<li className={styles.pack}>
 			<div className={styles.thumbnails} aria-hidden>
-				{pack.items.slice(0, THUMBNAILS_SHOWN).map((item) => (
-					<span key={item.id} className={styles.thumbnail}>
-						{item.thumbnail && (
-							<img
-								src={getThumbnailForColorMode(item.thumbnail, colorMode)}
-								alt=""
-								draggable={false}
-							/>
-						)}
-					</span>
-				))}
+				{pack
+					? pack.items.slice(0, THUMBNAILS_SHOWN).map((item) => (
+							<span key={item.id} className={styles.thumbnail}>
+								{item.thumbnail && (
+									<img
+										src={getThumbnailForColorMode(item.thumbnail, colorMode)}
+										alt=""
+										draggable={false}
+									/>
+								)}
+							</span>
+						))
+					: Array.from({ length: THUMBNAILS_SHOWN }, (_, i) => (
+							<span key={i} className={`${styles.thumbnail} ${styles.loading}`} />
+						))}
 			</div>
 			<div className={styles.footer}>
 				<div className={styles.text}>
-					<span className={styles.name}>{pack.name}</span>
+					<span className={styles.name}>{name}</span>
 					<span className={styles.detail}>
-						{msg(messages.itemCount, { count: pack.items.length })}
+						{pack ? msg(messages.itemCount, { count: pack.items.length }) : msg(messages.loading)}
 					</span>
 				</div>
 				<TldrawUiButton

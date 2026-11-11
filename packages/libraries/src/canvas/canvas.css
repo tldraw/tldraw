@@ -259,6 +259,24 @@
 	overflow: hidden;
 }
 
+/* A tile whose item hasn't arrived yet. */
+.tlui-libraries-tile__thumbnail--loading {
+	background: var(--tl-color-muted-2);
+	animation: tlui-libraries-loading 900ms ease-in-out infinite alternate;
+}
+
+@keyframes tlui-libraries-loading {
+	to {
+		opacity: 0.4;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tlui-libraries-tile__thumbnail--loading {
+		animation: none;
+	}
+}
+
 @media (hover: hover) {
 	.tlui-libraries-tile:hover:not(:has(.tlui-libraries-tile__menu-button:hover, :disabled))
 		.tlui-libraries-tile__thumbnail {

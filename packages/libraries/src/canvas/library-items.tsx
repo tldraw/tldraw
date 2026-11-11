@@ -19,12 +19,16 @@ import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useThumbnailUrls } from './use-thumbnail-urls'
 
+/** Two rows: enough to say "items go here" without guessing how many. */
+const PLACEHOLDER_TILES = 4
+
 const messages = defineMessages({
 	emptyLibrary: {
 		id: 'libraries.empty-library',
 		defaultMessage: 'Nothing saved here yet.',
 	},
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
+	loading: { id: 'libraries.loading', defaultMessage: 'Loading…' },
 	deleteItemTitle: { id: 'libraries.delete-item-dialog.title', defaultMessage: 'Delete item' },
 	deleteItemBody: {
 		id: 'libraries.delete-item-dialog.body',
@@ -81,6 +85,10 @@ export function LibraryItems({
 		() => sortItems(source.getItems(libraryId), ordering, reversed),
 		[source, libraryId, ordering, reversed]
 	)
+	const loading = useValue('library loading', () => source.isLoading?.(libraryId) ?? false, [
+		source,
+		libraryId,
+	])
 	const thumbnailUrls = useThumbnailUrls(source, items, container)
 	const canRename = useValue('can rename items', () => source.can('renameItem', libraryId), [
 		source,
@@ -169,6 +177,18 @@ export function LibraryItems({
 		},
 		[items, source, showChangeError, msg]
 	)
+
+	if (items.length === 0 && loading) {
+		return (
+			<ul className="tlui-libraries-grid" aria-busy aria-label={msg(messages.loading)}>
+				{Array.from({ length: PLACEHOLDER_TILES }, (_, i) => (
+					<li key={i} className="tlui-libraries-tile" aria-hidden>
+						<span className="tlui-libraries-tile__thumbnail tlui-libraries-tile__thumbnail--loading" />
+					</li>
+				))}
+			</ul>
+		)
+	}
 
 	if (items.length === 0 && !canAdd) {
 		return <p className="tlui-libraries-panel__empty">{msg(messages.emptyLibrary)}</p>

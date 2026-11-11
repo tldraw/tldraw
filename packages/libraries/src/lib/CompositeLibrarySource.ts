@@ -100,6 +100,10 @@ export class CompositeLibrarySource implements LibrarySource {
 		return this.partByLibrary$.get().get(libraryId)?.source.getItems(libraryId) ?? []
 	}
 
+	isLoading(libraryId: TLLibraryId) {
+		return this.partByLibrary$.get().get(libraryId)?.source.isLoading?.(libraryId) ?? false
+	}
+
 	getItemContent(itemId: TLLibraryItemId) {
 		return this.getItemPart(itemId).part.source.getItemContent(itemId)
 	}
