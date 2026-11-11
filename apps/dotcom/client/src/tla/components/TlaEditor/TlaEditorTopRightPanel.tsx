@@ -1,4 +1,3 @@
-import { collectionsPanelOpen, toggleCollectionsPanel } from '@tldraw/collections'
 import {
 	commentsSidebarOpen,
 	toggleCommentsSidebar,
@@ -12,6 +11,7 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
+import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -46,8 +46,8 @@ const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
 })
 
-const collectionsMessages = defineMessages({
-	collections: { defaultMessage: 'Collections' },
+const librariesMessages = defineMessages({
+	libraries: { defaultMessage: 'Collections' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -102,11 +102,11 @@ export function TlaEditorTopRightPanel({
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
-			{/* Only file editors mount the collections panel and comments sidebar (see TlaEditor); in
+			{/* Only file editors mount the libraries panel and comments sidebar (see TlaEditor); in
 			    legacy and published contexts these buttons would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && (
 				<>
-					<CollectionsPanelButton />
+					<LibrariesPanelButton />
 					<CommentsSidebarButton />
 				</>
 			)}
@@ -166,24 +166,24 @@ function CommentsSidebarButton() {
 	)
 }
 
-function CollectionsPanelButton() {
+function LibrariesPanelButton() {
 	const msg = useTranslation()
 	const editor = useEditor()
-	const hasCollections = !!useMaybeApp()?.collections
-	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
-	const label = msg(collectionsMessages.collections)
+	const hasLibraries = !!useMaybeApp()?.libraries
+	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+	const label = msg(librariesMessages.libraries)
 
-	if (!hasCollections) return null
+	if (!hasLibraries) return null
 
 	return (
 		<TldrawUiButton
 			type="icon"
 			className={styles.topRightIconButton}
-			data-testid="tla-collections-button"
+			data-testid="tla-libraries-button"
 			aria-pressed={open}
 			tooltip={label}
 			title={label}
-			onClick={() => toggleCollectionsPanel(editor)}
+			onClick={() => toggleLibrariesPanel(editor)}
 		>
 			<TlaIcon icon="bookmark" />
 		</TldrawUiButton>
