@@ -772,7 +772,8 @@ async function deployFlyAppIfChanged({
 	/** Rolls out the config already written to configFile; defaults to `flyctl deploy`. */
 	deploy?(stampedConfig: string): Promise<void>
 }) {
-	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
+	// TEMP(preview-handoff): previews only force the RM, so a handoff isn't hidden by a VS restart
+	const forced = env.ZERO_FORCE_DEPLOY === 'true' || (!!previewId && appName === flyioReplAppName)
 	const hash = hashFlyDeployInputs(inputs)
 	const deployed = forced ? null : await getDeployedInputHash(appName)
 	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
@@ -877,6 +878,11 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 }
 
+// TEMP(preview-handoff): info logs show the drain and switchover
+function withPreviewInfoLogs(toml: string): string {
+	return previewId ? toml.replace('ZERO_LOG_LEVEL = "warn"', 'ZERO_LOG_LEVEL = "info"') : toml
+}
+
 // The view-syncer image; the replication manager runs the stock Zero image.
 function renderDockerfile(): string {
 	const dockerfileTemplate = path.join(zeroCacheFolder, 'Dockerfile.template')
@@ -920,7 +926,10 @@ async function deployZeroViaFlyIoMultiNode() {
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
-		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
+		inputs: {
+			config: withPreviewInfoLogs(renderFlyioReplicationManagerToml(flyioReplAppName, backupPath)),
+			secrets,
+		},
 		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
 		deploy:
 			// TEMP(preview-handoff): previews too
@@ -942,7 +951,9 @@ async function deployZeroViaFlyIoMultiNode() {
 		appName: flyioAppName,
 		configFile: 'flyio-view-syncer.toml',
 		inputs: {
-			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
+			config: withPreviewInfoLogs(
+				renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath)
+			),
 			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
 			secrets,
 		},
