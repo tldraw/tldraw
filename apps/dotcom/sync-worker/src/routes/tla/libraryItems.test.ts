@@ -1,5 +1,9 @@
+import {
+	MAX_LIBRARY_ITEMS_PER_REQUEST,
+	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
+} from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { getLibraryItemContentKey } from '../../libraryStorage'
+import { getLibraryItemContentKey, STORAGE_CONCURRENCY } from '../../libraryStorage'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { createFakeR2 } from '../../test/fakeR2'
 import { Environment } from '../../types'
@@ -9,17 +13,18 @@ vi.mock('../../utils/tla/getAuth', () => ({ requireAuth: vi.fn() }))
 
 const { createPostgresConnectionPool } = await import('../../postgres')
 const { requireAuth } = await import('../../utils/tla/getAuth')
-const { addLibraryItem, getLibraryItemContent } = await import('./libraryItems')
+const { addLibraryItems, getLibraryItemContent } = await import('./libraryItems')
 
 const ME = 'user_aaaa11112222bbbb'
 const W = 'group_www11112222www'
 const LIBRARY_ID = 'coll_aaaa11112222bbbb'
 const ITEM_ID = 'item_1111222233334444'
+const OTHER_ID = 'item_5555666677778888'
 const CONTENT = { formatVersion: 1, content: { shapes: [], rootShapeIds: [], schema: {} } }
 const png = () => new Blob([new Uint8Array([1])], { type: 'image/png' })
 
-// The library and the user's role, no item with the id, then the inserted row's id.
-const adding = (access: unknown) => [[access], [], [{ id: ITEM_ID }]]
+// The library and the user's role, no item with the ids, then the inserted rows' ids.
+const adding = (access: unknown, ids = [ITEM_ID]) => [[access], [], ids.map((id) => ({ id }))]
 
 function mockPool(resultSets: unknown[][]) {
 	const fake = createFakeKysely(resultSets)
@@ -38,10 +43,26 @@ function makeEnv() {
 const uploadNames = async (env: Environment) =>
 	(await env.UPLOADS.list()).objects.map((o: { key: string }) => o.key)
 
-function addRequest(fields: Record<string, string | Blob | undefined>) {
+interface ItemFields {
+	id?: string
+	name?: string
+	content?: string
+	thumbnail?: Blob
+	darkThumbnail?: Blob
+}
+
+// A request adding the items, each listed by its id and name unless `list` replaces the listing.
+function addRequest(items: ItemFields[], list?: unknown) {
 	const form = new FormData()
-	for (const [key, value] of Object.entries({ id: ITEM_ID, ...fields })) {
-		if (value !== undefined) form.set(key, value)
+	const listed = items.map(({ id = ITEM_ID, name }) => ({
+		id,
+		...(name === undefined ? {} : { name }),
+	}))
+	form.set('items', JSON.stringify(list === undefined ? listed : list))
+	for (const { id = ITEM_ID, content, thumbnail, darkThumbnail } of items) {
+		if (content !== undefined) form.set(`content:${id}`, content)
+		if (thumbnail) form.set(`thumbnail:${id}`, thumbnail)
+		if (darkThumbnail) form.set(`darkThumbnail:${id}`, darkThumbnail)
 	}
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/items`, {
@@ -51,6 +72,8 @@ function addRequest(fields: Record<string, string | Blob | undefined>) {
 		{ params: { libraryId: LIBRARY_ID } }
 	) as any
 }
+
+const valid = (id = ITEM_ID): ItemFields => ({ id, content: JSON.stringify(CONTENT) })
 
 function getRequest() {
 	return Object.assign(
@@ -85,21 +108,25 @@ beforeEach(() => {
 
 afterEach(() => vi.clearAllMocks())
 
-describe('addLibraryItem', () => {
+describe('addLibraryItems', () => {
 	it("stores a member's item and inserts its row under the id the client picked", async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
-				name: '  Button  ',
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify(CONTENT),
+					thumbnail: new Blob([new Uint8Array([1, 2, 3])], { type: 'image/webp' }),
+					name: '  Button  ',
+				},
+			]),
 			env
 		)
 
 		expect(response.status).toBe(200)
-		const { id, thumbnail } = (await response.json()) as { id: string; thumbnail: string }
+		const {
+			items: [{ id, thumbnail }],
+		} = (await response.json()) as { items: { id: string; thumbnail: string }[] }
 		expect(id).toBe(ITEM_ID)
 		expect(await (await env.ROOMS.get(getLibraryItemContentKey(ITEM_ID)))!.json()).toEqual(CONTENT)
 		const [objectName] = await uploadNames(env)
@@ -115,19 +142,21 @@ describe('addLibraryItem', () => {
 	it('stores a light and a dark thumbnail', async () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
-				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/webp' }),
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify(CONTENT),
+					thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+					darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/webp' }),
+				},
+			]),
 			env
 		)
 
 		expect(response.status).toBe(200)
-		const { thumbnail } = (await response.json()) as {
-			thumbnail: { light: string; dark: string }
-		}
+		const {
+			items: [{ thumbnail }],
+		} = (await response.json()) as { items: { thumbnail: { light: string; dark: string } }[] }
 		const names = await uploadNames(env)
 		expect(names).toHaveLength(2)
 		expect(thumbnail.light).toMatch(/^https:\/\/content\.test\/.+-png$/)
@@ -143,11 +172,13 @@ describe('addLibraryItem', () => {
 		})
 		const env = makeEnv()
 		await expect(
-			addLibraryItem(
-				addRequest({
-					content: JSON.stringify(CONTENT),
-					thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
-				}),
+			addLibraryItems(
+				addRequest([
+					{
+						content: JSON.stringify(CONTENT),
+						thumbnail: new Blob([new Uint8Array([1])], { type: 'image/png' }),
+					},
+				]),
 				env
 			)
 		).rejects.toThrow('the library was deleted')
@@ -157,8 +188,8 @@ describe('addLibraryItem', () => {
 
 	it('adds to a library in my home workspace, which may have no group_user row', async () => {
 		mockPool(adding(libraryAccess(ME, null)))
-		const response = await addLibraryItem(
-			addRequest({ content: JSON.stringify(CONTENT) }),
+		const response = await addLibraryItems(
+			addRequest([{ content: JSON.stringify(CONTENT) }]),
 			makeEnv()
 		)
 		expect(response.status).toBe(200)
@@ -171,50 +202,89 @@ describe('addLibraryItem', () => {
 	])('answers 404 for %s and stores nothing', async (_, resultSets) => {
 		const fake = mockPool(resultSets)
 		const env = makeEnv()
-		const response = await addLibraryItem(addRequest({ content: JSON.stringify(CONTENT) }), env)
+		const response = await addLibraryItems(addRequest([{ content: JSON.stringify(CONTENT) }]), env)
 		expect(response.status).toBe(404)
 		expect((await env.ROOMS.list()).objects).toEqual([])
 		expect(await uploadNames(env)).toEqual([])
 		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
-	it.each([
-		['content that is not JSON', { content: '{' }],
-		['JSON that is not item content', { content: JSON.stringify({ shapes: [] }) }],
+	it.each<[string, ItemFields[], unknown?]>([
+		['content that is not JSON', [{ content: '{' }]],
+		['JSON that is not item content', [{ content: JSON.stringify({ shapes: [] }) }]],
+		['an item without content', [{}]],
 		[
 			'an SVG thumbnail',
-			{
-				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob(['<svg/>'], { type: 'image/svg+xml' }),
-			},
+			[{ ...valid(), thumbnail: new Blob(['<svg/>'], { type: 'image/svg+xml' }) }],
 		],
 		[
 			'a dark thumbnail without a light one',
-			{
-				content: JSON.stringify(CONTENT),
-				darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }),
-			},
+			[{ ...valid(), darkThumbnail: new Blob([new Uint8Array([2])], { type: 'image/png' }) }],
 		],
-		['a request without an id', { id: undefined, content: JSON.stringify(CONTENT) }],
-		['an id uniqueId would not make', { id: 'item_1', content: JSON.stringify(CONTENT) }],
-		[
-			'an id with characters uniqueId does not use',
-			{ id: 'item/../111222233334444', content: JSON.stringify(CONTENT) },
-		],
-	])('refuses %s', async (_, fields) => {
+		['a request without a list of items', [valid()], null],
+		['an empty list of items', [], []],
+		['an item without an id', [valid()], [{}]],
+		['an id uniqueId would not make', [valid('item_1')]],
+		['an id with characters uniqueId does not use', [valid('item/../111222233334444')]],
+		['the same id twice', [valid(), valid()]],
+		['a bad item after a good one', [valid(), { id: OTHER_ID, content: '{' }]],
+	])('refuses %s, storing nothing', async (_, items, list) => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
-		const response = await addLibraryItem(addRequest(fields), env)
+		const response = await addLibraryItems(addRequest(items, list), env)
 		expect(response.status).toBe(400)
 		expect((await env.ROOMS.list()).objects).toEqual([])
-		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
+		expect(await uploadNames(env)).toEqual([])
+		expect(fake.queries).toEqual([])
+	})
+
+	it.each<[string, ItemFields[]]>([
+		[
+			'more items than one request may add',
+			Array.from({ length: MAX_LIBRARY_ITEMS_PER_REQUEST + 1 }, (_, i) =>
+				valid(`item_${String(i).padStart(16, '0')}`)
+			),
+		],
+		[
+			'content that is too large',
+			[{ content: JSON.stringify({ ...CONTENT, padding: 'x'.repeat(5_000_000) }) }],
+		],
+		[
+			'a thumbnail that is too large',
+			[{ ...valid(), thumbnail: new Blob([new Uint8Array(1_000_001)], { type: 'image/png' }) }],
+		],
+		[
+			'items that are too large together',
+			Array.from({ length: 3 }, (_, i) => ({
+				id: `item_${String(i).padStart(16, '0')}`,
+				content: JSON.stringify({ ...CONTENT, padding: 'x'.repeat(4_000_000) }),
+			})),
+		],
+	])('refuses %s with 413, storing nothing', async (_, items) => {
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
+		const env = makeEnv()
+		const response = await addLibraryItems(addRequest(items), env)
+		expect(response.status).toBe(413)
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(fake.queries).toEqual([])
+	})
+
+	it('refuses a request too large to read, before reading it', async () => {
+		const fake = mockPool(adding(libraryAccess(W, 'member')))
+		const request = addRequest([valid()])
+		request.headers.set('content-length', String(MAX_LIBRARY_ITEMS_REQUEST_BYTES * 2))
+		const formData = vi.spyOn(request, 'formData')
+		const response = await addLibraryItems(request, makeEnv())
+		expect(response.status).toBe(413)
+		expect(formData).not.toHaveBeenCalled()
+		expect(fake.queries).toEqual([])
 	})
 
 	it('refuses an id that names an existing item, before storing anything', async () => {
 		const fake = mockPool([[libraryAccess(W, 'member')], [{ id: ITEM_ID }]])
 		const env = makeEnv()
-		const response = await addLibraryItem(
-			addRequest({ content: JSON.stringify(CONTENT), thumbnail: png() }),
+		const response = await addLibraryItems(
+			addRequest([{ content: JSON.stringify(CONTENT), thumbnail: png() }]),
 			env
 		)
 		expect(response.status).toBe(409)
@@ -227,13 +297,13 @@ describe('addLibraryItem', () => {
 		const fake = mockPool([[libraryAccess(W, 'member')], []])
 		const env = makeEnv()
 		await env.ROOMS.put(getLibraryItemContentKey(ITEM_ID), JSON.stringify(CONTENT))
-		const response = await addLibraryItem(addRequest({ content: JSON.stringify(CONTENT) }), env)
+		const response = await addLibraryItems(addRequest([{ content: JSON.stringify(CONTENT) }]), env)
 		expect(response.status).toBe(409)
 		expect(await (await env.ROOMS.get(getLibraryItemContentKey(ITEM_ID)))!.json()).toEqual(CONTENT)
 		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
-	it('answers 409 when another request inserts the id first, removing the uploads it stored', async () => {
+	it('answers 409 when another request inserts an id first, removing the uploads it stored', async () => {
 		// no item when it checks, but the insert finds one
 		const fake = mockPool([[libraryAccess(W, 'member')], [], []])
 		const env = makeEnv()
@@ -245,22 +315,108 @@ describe('addLibraryItem', () => {
 			props: { src: 'https://content.test/abc123-png', w: 10, h: 10 },
 			meta: {},
 		}
-		const response = await addLibraryItem(
-			addRequest({
-				content: JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets: [image] } }),
-				thumbnail: png(),
-			}),
+		const response = await addLibraryItems(
+			addRequest([
+				{
+					content: JSON.stringify({ ...CONTENT, content: { ...CONTENT.content, assets: [image] } }),
+					thumbnail: png(),
+				},
+			]),
 			env
 		)
 		expect(response.status).toBe(409)
 		expect(await env.ROOMS.head(getLibraryItemContentKey(ITEM_ID))).not.toBeNull()
 		expect(await uploadNames(env)).toEqual(['abc123-png'])
 		expect(fake.queries.some((q) => q.sql.includes('library_item_asset'))).toBe(false)
-		expect(fake.queries.at(-1)!.sql).toBe('commit')
+		expect(fake.queries.at(-1)!.sql).toBe('rollback')
+	})
+
+	it('inserts no row when another request takes one of the ids, removing the others', async () => {
+		// no item when it checks, but the insert finds the second taken
+		const fake = mockPool([[libraryAccess(W, 'member')], [], [{ id: ITEM_ID }]])
+		const env = makeEnv()
+		const response = await addLibraryItems(addRequest([valid(), valid(OTHER_ID)]), env)
+		expect(response.status).toBe(409)
+		expect(await env.ROOMS.head(getLibraryItemContentKey(ITEM_ID))).toBeNull()
+		expect(await env.ROOMS.head(getLibraryItemContentKey(OTHER_ID))).not.toBeNull()
+		expect(fake.queries.at(-1)!.sql).toBe('rollback')
+	})
+
+	it('adds several items in one insert, in the order listed, each a step newer', async () => {
+		const ids = [OTHER_ID, ITEM_ID, 'item_9999000011112222']
+		const fake = mockPool(adding(libraryAccess(W, 'member'), ids))
+		const env = makeEnv()
+		vi.spyOn(Date, 'now').mockReturnValue(1000)
+		const response = await addLibraryItems(
+			addRequest([
+				{ ...valid(ids[0]), name: 'First', thumbnail: png() },
+				{ ...valid(ids[1]), name: 'Second' },
+				{ ...valid(ids[2]), name: 'Third', thumbnail: png() },
+			]),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const body = (await response.json()) as {
+			items: { id: string; createdAt: number; thumbnail: string | null }[]
+		}
+		expect(body.items.map((item) => [item.id, item.createdAt])).toEqual([
+			[ids[0], 1000],
+			[ids[1], 1001],
+			[ids[2], 1002],
+		])
+		expect(body.items[0].thumbnail).toMatch(/^https:\/\/content\.test\//)
+		expect(body.items[1].thumbnail).toBeNull()
+		for (const id of ids) {
+			expect(await (await env.ROOMS.get(getLibraryItemContentKey(id)))!.json()).toEqual(CONTENT)
+		}
+		const inserts = fake.queries.filter((q) => q.sql.startsWith('insert into "library_item"'))
+		expect(inserts).toHaveLength(1)
+		const parameters = inserts[0].parameters as unknown[]
+		const order = ids.map((id) => parameters.indexOf(id))
+		expect(order).toEqual([...order].sort((a, b) => a - b))
+		expect(parameters).toEqual(expect.arrayContaining(['First', 'Second', 'Third']))
+		vi.restoreAllMocks()
+	})
+
+	it('stores a few items at a time', async () => {
+		const ids = Array.from({ length: 10 }, (_, i) => `item_${String(i).padStart(16, '0')}`)
+		mockPool(adding(libraryAccess(W, 'member'), ids))
+		const env = makeEnv()
+		const put = env.ROOMS.put.bind(env.ROOMS)
+		let storing = 0
+		let mostAtOnce = 0
+		env.ROOMS.put = (async (...args: Parameters<R2Bucket['put']>) => {
+			mostAtOnce = Math.max(mostAtOnce, ++storing)
+			await new Promise((resolve) => setTimeout(resolve, 5))
+			storing--
+			return put(...args)
+		}) as R2Bucket['put']
+		const response = await addLibraryItems(addRequest(ids.map((id) => valid(id))), env)
+		expect(response.status).toBe(200)
+		expect(mostAtOnce).toBe(STORAGE_CONCURRENCY)
+	})
+
+	it('removes everything every item stored when one fails to store', async () => {
+		const ids = Array.from({ length: 6 }, (_, i) => `item_${String(i).padStart(16, '0')}`)
+		const fake = mockPool(adding(libraryAccess(W, 'member'), ids))
+		const env = makeEnv()
+		const put = env.UPLOADS.put.bind(env.UPLOADS)
+		let thumbnails = 0
+		env.UPLOADS.put = (async (...args: Parameters<R2Bucket['put']>) => {
+			if (++thumbnails === 3) throw new Error('storage is down')
+			return put(...args)
+		}) as R2Bucket['put']
+		await expect(
+			addLibraryItems(addRequest(ids.map((id) => ({ ...valid(id), thumbnail: png() }))), env)
+		).rejects.toThrow('storage is down')
+		expect((await env.ROOMS.list()).objects).toEqual([])
+		expect(await uploadNames(env)).toEqual([])
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 })
 
-describe('addLibraryItem, with uploaded images in the content', () => {
+describe('addLibraryItems, with uploaded images in the content', () => {
 	const image = (src: string, fileId?: string) => ({
 		id: 'asset:photo',
 		typeName: 'asset',
@@ -276,8 +432,8 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		const env = makeEnv()
 		await env.UPLOADS.put('abc123-png', new Uint8Array([1, 2, 3]))
 
-		const response = await addLibraryItem(
-			addRequest({ content: withAssets([image('https://content.test/abc123-png', 'file-a')]) }),
+		const response = await addLibraryItems(
+			addRequest([{ content: withAssets([image('https://content.test/abc123-png', 'file-a')]) }]),
 			env
 		)
 
@@ -299,7 +455,7 @@ describe('addLibraryItem, with uploaded images in the content', () => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
 		const assets = [image('https://content.test/gone-png'), image('data:image/png;base64,AAAA')]
-		const response = await addLibraryItem(addRequest({ content: withAssets(assets) }), env)
+		const response = await addLibraryItems(addRequest([{ content: withAssets(assets) }]), env)
 
 		expect(response.status).toBe(200)
 		const stored = await (await env.ROOMS.get(getLibraryItemContentKey(ITEM_ID)))!.json<any>()
