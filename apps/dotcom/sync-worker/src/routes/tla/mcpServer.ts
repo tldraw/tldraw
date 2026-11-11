@@ -7,6 +7,7 @@ import {
 	MCP_TAB_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
 } from '../../config'
+import { parseWebhookSecret, verifyWebhookEndpoint } from '../../mcpWebhooks'
 import { Environment, envFlagWord } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { base64ToArrayBuffer } from '../../utils/base64'
@@ -73,11 +74,16 @@ import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
 	AGENT_MENTION_POLL_MS,
+	EVENTS_CALLBACK_ENDPOINT_ERROR,
 	EVENTS_EXTENSION_ID,
 	EVENTS_FORBIDDEN,
+	EVENTS_NOT_FOUND,
 	EventsRequestError,
 	getEventDefinitions,
+	getSubscriptionId,
 	parseAgentMentionPoll,
+	parseAgentMentionSubscribe,
+	parseAgentMentionUnsubscribe,
 	toAgentMentionOccurrence,
 } from './mcpEvents'
 import {
@@ -524,6 +530,12 @@ export async function mcpServer(
 		case 'events/poll':
 			if (era !== 'modern') break
 			return pollAgentMentions(rpcRequest, request, env, auth.userId)
+		case 'events/subscribe':
+			if (era !== 'modern') break
+			return subscribeAgentMentions(rpcRequest, request, env, auth.userId)
+		case 'events/unsubscribe':
+			if (era !== 'modern') break
+			return unsubscribeAgentMentions(rpcRequest, env, auth.userId)
 		case 'tools/call': {
 			const toolName = rpcRequest.params?.name ?? ''
 			const toolHandler = TOOL_HANDLERS.get(toolName)
@@ -603,21 +615,10 @@ async function pollAgentMentions(
 		return jsonRpcError(id, error.code, error.message, { data: error.data })
 	}
 
-	if (
-		await isRateLimited(env.MCP_SERVER_SEARCH_RATE_LIMITER, `events:${userId}`, {
-			fallbackLimit: MCP_SEARCH_PER_USER_RATE_LIMIT,
-		})
-	) {
-		// ResourceExhausted, from the same provisional block as the extension's other codes.
-		return jsonRpcError(id, -32025, 'Rate limited', { data: { limit: 'requests_per_minute' } })
-	}
-
-	const forbidden = () =>
-		jsonRpcError(id, EVENTS_FORBIDDEN, 'Forbidden', {
-			data: { reason: 'No board with this id that this account can see' },
-		})
+	const limited = await refuseRateLimitedEvents(id, env, userId)
+	if (limited) return limited
 	const access = await hasReadAccessToFile(env, userId, poll.boardId)
-	if (!access.ok) return forbidden()
+	if (!access.ok) return eventsForbidden(id)
 
 	const polled = await getRoomDurableObject(env, poll.boardId).pollMcpAgentMentions(poll.boardId, {
 		ownerUserId: userId,
@@ -627,7 +628,7 @@ async function pollAgentMentions(
 		maxAgeMs: poll.maxAgeMs,
 		now: Date.now(),
 	})
-	if (!polled.ok) return forbidden()
+	if (!polled.ok) return eventsForbidden(id)
 
 	const origin = getPublicOrigin(request, env)
 	return jsonRpcResult(
@@ -645,6 +646,138 @@ async function pollAgentMentions(
 			'modern'
 		)
 	)
+}
+
+/**
+ * `events/subscribe` for `comment.agent_mentioned`: webhook delivery, which is the mode ChatGPT uses.
+ *
+ * Before the first subscription from this caller to a URL, the endpoint must echo a signed challenge
+ * (the extension's anti-flooding rule — without it, anyone could point deliveries at someone else's
+ * URL). The handshake runs here, in the Worker, before the board's Durable Object hears about the
+ * subscription at all, so an endpoint that fails it leaves nothing behind.
+ */
+async function subscribeAgentMentions(
+	rpcRequest: JsonRpcRequest,
+	request: IRequest,
+	env: Environment,
+	userId: string
+): Promise<Response> {
+	const id = rpcRequest.id ?? null
+	let input
+	try {
+		input = parseAgentMentionSubscribe(rpcRequest.params)
+	} catch (error) {
+		if (!(error instanceof EventsRequestError)) throw error
+		return jsonRpcError(id, error.code, error.message, { data: error.data })
+	}
+	const limited = await refuseRateLimitedEvents(id, env, userId)
+	if (limited) return limited
+	if (!(await hasReadAccessToFile(env, userId, input.boardId)).ok) return eventsForbidden(id)
+
+	const subscriptionId = await getSubscriptionId({ userId, ...input })
+	const board = getRoomDurableObject(env, input.boardId)
+	let justVerified = false
+	if (!(await board.isMcpWebhookEndpointVerified(input.boardId, userId, input.url))) {
+		const verified = await verifyWebhookEndpoint({
+			url: input.url,
+			secret: parseWebhookSecret(input.secret)!,
+			subscriptionId,
+		})
+		if (!verified.ok) {
+			return jsonRpcError(id, EVENTS_CALLBACK_ENDPOINT_ERROR, 'Callback endpoint error', {
+				data: { reason: verified.failure },
+			})
+		}
+		justVerified = true
+	}
+
+	const refreshBefore = Date.now() + input.ttlMs
+	const subscribed = await board.subscribeMcpAgentMentions(input.boardId, {
+		id: subscriptionId,
+		ownerUserId: userId,
+		url: input.url,
+		secret: input.secret,
+		origin: getPublicOrigin(request, env),
+		agentNameKey: input.agentNameKey,
+		cursor: input.cursor,
+		refreshBefore,
+		justVerified,
+	})
+	if (!subscribed.ok) return eventsForbidden(id)
+
+	const iso = (ms: number | null) => (ms === null ? null : new Date(ms).toISOString())
+	return jsonRpcResult(
+		id,
+		withResultEnvelope(
+			{
+				id: subscriptionId,
+				refreshBefore: new Date(refreshBefore).toISOString(),
+				cursor: String(subscribed.cursor),
+				truncated: subscribed.truncated,
+				...(subscribed.refreshed
+					? {
+							deliveryStatus: {
+								active: subscribed.deliveryStatus.active,
+								lastDeliveryAt: iso(subscribed.deliveryStatus.lastDeliveryAt),
+								lastError: subscribed.deliveryStatus.lastError,
+								...(subscribed.deliveryStatus.failedSince === null
+									? {}
+									: { failedSince: iso(subscribed.deliveryStatus.failedSince) }),
+							},
+						}
+					: {}),
+			},
+			'modern'
+		)
+	)
+}
+
+/** `events/unsubscribe`: the same key as subscribe, so the same id; NotFound when there's none. */
+async function unsubscribeAgentMentions(
+	rpcRequest: JsonRpcRequest,
+	env: Environment,
+	userId: string
+): Promise<Response> {
+	const id = rpcRequest.id ?? null
+	let input
+	try {
+		input = parseAgentMentionUnsubscribe(rpcRequest.params)
+	} catch (error) {
+		if (!(error instanceof EventsRequestError)) throw error
+		return jsonRpcError(id, error.code, error.message, { data: error.data })
+	}
+	if (!(await hasReadAccessToFile(env, userId, input.boardId)).ok) return eventsForbidden(id)
+	const subscriptionId = await getSubscriptionId({ userId, ...input })
+	const { found } = await getRoomDurableObject(env, input.boardId).unsubscribeMcpAgentMentions(
+		input.boardId,
+		subscriptionId
+	)
+	if (!found) {
+		return jsonRpcError(id, EVENTS_NOT_FOUND, 'Subscription not found', {
+			data: { kind: 'subscription' },
+		})
+	}
+	return jsonRpcResult(id, withResultEnvelope({}, 'modern'))
+}
+
+// A board the caller can't see answers the same as one that doesn't exist, as for the tools.
+function eventsForbidden(id: JsonRpcId) {
+	return jsonRpcError(id, EVENTS_FORBIDDEN, 'Forbidden', {
+		data: { reason: 'No board with this id that this account can see' },
+	})
+}
+
+// The events methods share the search limiter's per-minute budget, under their own key.
+async function refuseRateLimitedEvents(id: JsonRpcId, env: Environment, userId: string) {
+	if (
+		!(await isRateLimited(env.MCP_SERVER_SEARCH_RATE_LIMITER, `events:${userId}`, {
+			fallbackLimit: MCP_SEARCH_PER_USER_RATE_LIMIT,
+		}))
+	) {
+		return null
+	}
+	// ResourceExhausted, from the same provisional block as the extension's other codes.
+	return jsonRpcError(id, -32025, 'Rate limited', { data: { limit: 'requests_per_minute' } })
 }
 
 /** Which era a request is speaking, or null for a version we don't implement. */
@@ -694,7 +827,7 @@ function checkModernHeaders(request: Request, rpcRequest: JsonRpcRequest): Respo
 	}
 
 	// The methods we implement that name a target: a tool, or (for the events extension) an event.
-	if (rpcRequest.method === 'tools/call' || rpcRequest.method === 'events/poll') {
+	if (rpcRequest.method === 'tools/call' || EVENT_METHODS_WITH_NAME.has(rpcRequest.method ?? '')) {
 		const headerName = request.headers.get('mcp-name')
 		if (headerName === null) {
 			return headerMismatch(id, `Mcp-Name header is required for ${rpcRequest.method}`)
@@ -710,6 +843,9 @@ function checkModernHeaders(request: Request, rpcRequest: JsonRpcRequest): Respo
 
 	return null
 }
+
+// The events methods that name an event in `params.name`, which the extension mirrors into Mcp-Name.
+const EVENT_METHODS_WITH_NAME = new Set(['events/poll', 'events/subscribe', 'events/unsubscribe'])
 
 function headerMismatch(id: JsonRpcId, message: string) {
 	return jsonRpcError(id, HEADER_MISMATCH, `Header mismatch: ${message}`, { status: 400 })

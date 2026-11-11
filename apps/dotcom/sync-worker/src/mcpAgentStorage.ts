@@ -76,6 +76,35 @@ export function ensureMcpAgentTables(sql: McpAgentSql) {
 		)`
 	)
 	sql.exec('CREATE TABLE IF NOT EXISTS mcp_agent_event_floor (id INTEGER PRIMARY KEY, seq INTEGER)')
+	// Webhook subscriptions (see `upsertWebhookSubscription`). `ackedSeq` is the delivery watermark:
+	// every one of the subscriber's events at or before it was accepted or abandoned, so it is the
+	// cursor a delivery or refresh may hand out.
+	sql.exec(
+		`CREATE TABLE IF NOT EXISTS mcp_event_subscription (
+			id TEXT PRIMARY KEY,
+			ownerUserId TEXT NOT NULL,
+			url TEXT NOT NULL,
+			secret TEXT NOT NULL,
+			origin TEXT NOT NULL,
+			agentNameKey TEXT,
+			refreshBefore INTEGER NOT NULL,
+			ackedSeq INTEGER NOT NULL,
+			active INTEGER NOT NULL,
+			lastDeliveryAt INTEGER,
+			lastError TEXT,
+			failedSince INTEGER
+		)`
+	)
+	// Endpoint verification is per (principal, url), so varying arguments can't multiply challenge
+	// POSTs at someone else's URL.
+	sql.exec(
+		`CREATE TABLE IF NOT EXISTS mcp_webhook_verification (
+			ownerUserId TEXT NOT NULL,
+			url TEXT NOT NULL,
+			verifiedAt INTEGER NOT NULL,
+			PRIMARY KEY (ownerUserId, url)
+		)`
+	)
 }
 
 export function agentNameKey(name: string) {
@@ -329,4 +358,222 @@ export function pollAgentMentionEvents(
 	// other owner's events, so the next poll doesn't rescan them.
 	const cursor = hasMore ? events[events.length - 1].seq : head
 	return { events, cursor, truncated, hasMore }
+}
+
+// --- Webhook subscriptions ----------------------------------------------------------------------
+
+/** How long a verified endpoint stays verified before the next subscribe challenges it again. */
+export const WEBHOOK_VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000
+
+export function isWebhookEndpointVerified(
+	sql: McpAgentSql,
+	{ ownerUserId, url, now }: { ownerUserId: string; url: string; now: number }
+): boolean {
+	const rows = sql
+		.exec(
+			'SELECT verifiedAt FROM mcp_webhook_verification WHERE ownerUserId = ? AND url = ?',
+			ownerUserId,
+			url
+		)
+		.toArray() as { verifiedAt: number }[]
+	return rows[0] !== undefined && Number(rows[0].verifiedAt) > now - WEBHOOK_VERIFICATION_TTL_MS
+}
+
+export function recordWebhookEndpointVerified(
+	sql: McpAgentSql,
+	{ ownerUserId, url, now }: { ownerUserId: string; url: string; now: number }
+) {
+	sql.exec(
+		`INSERT INTO mcp_webhook_verification (ownerUserId, url, verifiedAt) VALUES (?, ?, ?)
+			ON CONFLICT (ownerUserId, url) DO UPDATE SET verifiedAt = excluded.verifiedAt`,
+		ownerUserId,
+		url,
+		now
+	)
+}
+
+export interface WebhookSubscription {
+	id: string
+	ownerUserId: string
+	url: string
+	secret: string
+	/** tldraw.com's origin as the subscriber reached it, for the thread links in deliveries. */
+	origin: string
+	agentNameKey: string | null
+	refreshBefore: number
+	ackedSeq: number
+	active: boolean
+	lastDeliveryAt: number | null
+	lastError: string | null
+	failedSince: number | null
+}
+
+function toSubscription(row: Record<string, unknown>): WebhookSubscription {
+	return {
+		id: String(row.id),
+		ownerUserId: String(row.ownerUserId),
+		url: String(row.url),
+		secret: String(row.secret),
+		origin: String(row.origin),
+		agentNameKey: row.agentNameKey == null ? null : String(row.agentNameKey),
+		refreshBefore: Number(row.refreshBefore),
+		ackedSeq: Number(row.ackedSeq),
+		active: Number(row.active) === 1,
+		lastDeliveryAt: row.lastDeliveryAt == null ? null : Number(row.lastDeliveryAt),
+		lastError: row.lastError == null ? null : String(row.lastError),
+		failedSince: row.failedSince == null ? null : Number(row.failedSince),
+	}
+}
+
+/** Drops subscriptions whose grant ran out without a refresh, which is how the extension collects them. */
+export function pruneExpiredSubscriptions(sql: McpAgentSql, now: number) {
+	sql.exec('DELETE FROM mcp_event_subscription WHERE refreshBefore <= ?', now)
+}
+
+export function getWebhookSubscription(sql: McpAgentSql, id: string): WebhookSubscription | null {
+	const rows = sql
+		.exec('SELECT * FROM mcp_event_subscription WHERE id = ?', id)
+		.toArray() as Record<string, unknown>[]
+	return rows[0] ? toSubscription(rows[0]) : null
+}
+
+/** The live subscriptions that want this owner's mentions of this agent. */
+export function getSubscriptionsForMention(
+	sql: McpAgentSql,
+	{ ownerUserId, agentNameKey, now }: { ownerUserId: string; agentNameKey: string; now: number }
+): WebhookSubscription[] {
+	const rows = sql
+		.exec(
+			`SELECT * FROM mcp_event_subscription
+				WHERE ownerUserId = ? AND refreshBefore > ? AND active = 1
+				AND (agentNameKey IS NULL OR agentNameKey = ?)`,
+			ownerUserId,
+			now,
+			agentNameKey
+		)
+		.toArray() as Record<string, unknown>[]
+	return rows.map(toSubscription)
+}
+
+export interface UpsertWebhookSubscriptionInput {
+	id: string
+	ownerUserId: string
+	url: string
+	secret: string
+	origin: string
+	agentNameKey: string | null
+	cursor: number | null
+	refreshBefore: number
+	now: number
+}
+
+/**
+ * Creates the subscription, or refreshes the one with this id, per the extension's idempotent
+ * subscribe: the secret is replaced, the grant renewed, and delivery reactivated.
+ *
+ * A live subscription ignores the cursor — it already delivers from its own watermark, and the
+ * client's cursor is at or behind that. A new one starts from the cursor, or from now for null, under
+ * the same truncation rules as a poll.
+ */
+export function upsertWebhookSubscription(
+	sql: McpAgentSql,
+	input: UpsertWebhookSubscriptionInput
+): { subscription: WebhookSubscription; truncated: boolean; refreshed: boolean } {
+	const existing = getWebhookSubscription(sql, input.id)
+	if (existing && existing.refreshBefore > input.now) {
+		sql.exec(
+			`UPDATE mcp_event_subscription SET secret = ?, refreshBefore = ?, active = 1 WHERE id = ?`,
+			input.secret,
+			input.refreshBefore,
+			input.id
+		)
+		return {
+			subscription: getWebhookSubscription(sql, input.id)!,
+			truncated: false,
+			refreshed: true,
+		}
+	}
+
+	const head = readHeadSeq(sql)
+	let ackedSeq = head
+	let truncated = false
+	if (input.cursor !== null) {
+		const floor = readFloor(sql)
+		if (input.cursor > head) {
+			truncated = true
+		} else if (input.cursor < floor) {
+			ackedSeq = floor
+			truncated = true
+		} else {
+			ackedSeq = input.cursor
+		}
+	}
+	sql.exec('DELETE FROM mcp_event_subscription WHERE id = ?', input.id)
+	sql.exec(
+		`INSERT INTO mcp_event_subscription
+			(id, ownerUserId, url, secret, origin, agentNameKey, refreshBefore, ackedSeq, active)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1)`,
+		input.id,
+		input.ownerUserId,
+		input.url,
+		input.secret,
+		input.origin,
+		input.agentNameKey,
+		input.refreshBefore,
+		ackedSeq
+	)
+	return { subscription: getWebhookSubscription(sql, input.id)!, truncated, refreshed: false }
+}
+
+export function deleteWebhookSubscription(sql: McpAgentSql, id: string) {
+	sql.exec('DELETE FROM mcp_event_subscription WHERE id = ?', id)
+}
+
+/** The next events a subscription hasn't delivered, oldest first, and whether retention skipped some. */
+export function getPendingWebhookEvents(
+	sql: McpAgentSql,
+	subscription: WebhookSubscription,
+	{ maxEvents, now }: { maxEvents: number; now: number }
+): PollAgentMentionsResult {
+	return pollAgentMentionEvents(sql, {
+		ownerUserId: subscription.ownerUserId,
+		agentNameKey: subscription.agentNameKey,
+		cursor: subscription.ackedSeq,
+		maxEvents,
+		maxAgeMs: null,
+		now,
+	})
+}
+
+/** Advances the watermark past an event that was accepted, or that retries gave up on. */
+export function advanceWebhookWatermark(
+	sql: McpAgentSql,
+	{ id, seq, deliveredAt }: { id: string; seq: number; deliveredAt: number | null }
+) {
+	sql.exec(
+		`UPDATE mcp_event_subscription SET ackedSeq = MAX(ackedSeq, ?),
+			lastDeliveryAt = COALESCE(?, lastDeliveryAt),
+			lastError = CASE WHEN ? IS NULL THEN lastError ELSE NULL END,
+			failedSince = CASE WHEN ? IS NULL THEN failedSince ELSE NULL END
+			WHERE id = ?`,
+		seq,
+		deliveredAt,
+		deliveredAt,
+		deliveredAt,
+		id
+	)
+}
+
+/** Suspends delivery after retries ran out; the next refresh reactivates it. */
+export function suspendWebhookSubscription(
+	sql: McpAgentSql,
+	{ id, failure, now }: { id: string; failure: string; now: number }
+) {
+	sql.exec(
+		`UPDATE mcp_event_subscription SET active = 0, lastError = ?, failedSince = COALESCE(failedSince, ?)
+			WHERE id = ?`,
+		failure,
+		now,
+		id
+	)
 }
