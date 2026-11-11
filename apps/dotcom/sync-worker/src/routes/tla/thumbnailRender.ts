@@ -12,6 +12,7 @@ import {
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { AssetRecordType, isShape, isShapeId } from '@tldraw/tlschema'
 import { RENDER_PUSH_FALLBACK_TTL_MS, THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -469,14 +470,13 @@ export function summarizeSnapshotContent(
 	for (const { state } of snapshot.documents) {
 		const record = state as {
 			id?: string
-			typeName?: string
 			type?: string
 			parentId?: string
 			x?: number
 			y?: number
 			props?: { w?: unknown; h?: unknown; pixelRatio?: unknown; assetId?: unknown }
 		}
-		if (record.typeName === 'asset') {
+		if (AssetRecordType.isInstance(state)) {
 			if (record.type === 'image' || record.type === 'video') mediaAssets++
 			if (record.type === 'image' && record.id) {
 				const w = typeof record.props?.w === 'number' ? record.props.w : 0
@@ -486,7 +486,7 @@ export function summarizeSnapshotContent(
 			}
 			continue
 		}
-		if (record.typeName !== 'shape') continue
+		if (!isShape(state)) continue
 		if (record.id && record.parentId) parentOf.set(record.id, record.parentId)
 		if (record.id && typeof record.props?.assetId === 'string') {
 			assetUsers.push({ shapeId: record.id, assetId: record.props.assetId })
@@ -521,7 +521,7 @@ export function summarizeSnapshotContent(
 // Bounded by the map's size, so a parent cycle in a corrupt document ends instead of hanging.
 function pageOfShape(parentOf: Map<string, string>, shapeId: string): string | undefined {
 	let id: string | undefined = shapeId
-	for (let i = 0; i <= parentOf.size && id?.startsWith('shape:'); i++) id = parentOf.get(id)
+	for (let i = 0; i <= parentOf.size && isShapeId(id); i++) id = parentOf.get(id)
 	return id
 }
 
