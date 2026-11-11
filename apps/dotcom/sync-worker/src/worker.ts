@@ -314,9 +314,9 @@ const mcpHostRouter = createRouter<Environment>()
 	// Discovery paths the host doesn't serve keep this worker's JSON 404, whatever the site does with
 	// an unknown path.
 	.all('/.well-known/*', notFound)
-	// Everything else is the landing page (tldraw-internal's apps/public/mcp-web), a static-assets
-	// worker reached through the MCP_WEB service binding, so the page shares the host without any
-	// route of its own. Read-only methods only; unbound environments keep the 404.
+	// Everything else is the landing page, a static-assets worker reached through the MCP_WEB service
+	// binding, so the page shares the host without any route of its own. Read-only methods only;
+	// unbound environments keep the 404.
 	.all('*', (req, env) => {
 		if (!env.MCP_WEB || (req.method !== 'GET' && req.method !== 'HEAD')) return notFound()
 		return env.MCP_WEB.fetch(req)
