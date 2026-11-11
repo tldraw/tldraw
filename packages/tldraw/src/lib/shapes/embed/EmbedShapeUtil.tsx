@@ -67,20 +67,23 @@ export interface EmbedShapeOptions extends ShapeOptionsWithDisplayValues<
 // An export shows nothing at all if any shape takes longer than maxExportDelayMs (5s).
 const PREVIEW_IMAGE_TIMEOUT_MS = 2500
 
-async function fetchPreviewImage(oEmbedUrl: string, url: string) {
+async function fetchPreviewImage(
+	oEmbedUrl: string,
+	url: string
+): Promise<{ href: string; isVideo: boolean } | null> {
 	const separator = oEmbedUrl.includes('?') ? '&' : '?'
 	const oEmbed = await fetch(
 		`${oEmbedUrl}${separator}format=json&maxwidth=1280&url=${encodeURIComponent(url)}`
 	)
 	if (!oEmbed.ok) return null
-	const { thumbnail_url } = await oEmbed.json()
+	const { thumbnail_url, type } = await oEmbed.json()
 	if (typeof thumbnail_url !== 'string') return null
 	const image = await fetch(thumbnail_url)
 	if (!image.ok) return null
 	const blob = await image.blob()
 	if (!blob.type.startsWith('image/')) return null
 	// An SVG drawn as an image can't load remote ones, so the export inlines it.
-	return await FileHelpers.blobToDataUrl(blob)
+	return { href: await FileHelpers.blobToDataUrl(blob), isVideo: type === 'video' }
 }
 
 function EmbedPreviewImage({
@@ -89,14 +92,19 @@ function EmbedPreviewImage({
 	h,
 	radius,
 	href,
+	isVideo,
 }: {
 	id: TLShapeId
 	w: number
 	h: number
 	radius: number
 	href: string
+	isVideo: boolean
 }) {
 	const clipPathId = useSharedSafeId(id + '_clip')
+	// Without it, a video's thumbnail reads as a picture. Ours rather than each provider's, so it
+	// looks the same everywhere and needs no copies of their logos.
+	const r = Math.min(w, h) * 0.12
 	return (
 		<>
 			<clipPath id={clipPathId}>
@@ -109,6 +117,15 @@ function EmbedPreviewImage({
 				preserveAspectRatio="xMidYMid slice"
 				clipPath={`url(#${clipPathId})`}
 			/>
+			{isVideo && (
+				<g transform={`translate(${w / 2}, ${h / 2})`}>
+					<circle r={r} fill="black" fillOpacity={0.6} />
+					<path
+						d={`M ${-r * 0.3} ${-r * 0.42} L ${r * 0.48} 0 L ${-r * 0.3} ${r * 0.42} Z`}
+						fill="white"
+					/>
+				</g>
+			)}
 		</>
 	)
 }
@@ -291,7 +308,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		const radius = definition?.overrideOutlineRadius ?? 8
 		const image = info ? await this.getPreviewImage(info.definition, info.url) : null
 		if (image) {
-			return <EmbedPreviewImage id={shape.id} w={w} h={h} radius={radius} href={image} />
+			return <EmbedPreviewImage id={shape.id} w={w} h={h} radius={radius} {...image} />
 		}
 		const address = getHumanReadableAddress(url)
 		const theme = this.editor.getCurrentTheme()
@@ -347,7 +364,7 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		)
 	}
 
-	private getPreviewImage(definition: TLEmbedDefinition, url: string): Promise<string | null> {
+	private getPreviewImage(definition: TLEmbedDefinition, url: string) {
 		if (!definition.oEmbedUrl) return Promise.resolve(null)
 		return Promise.race([
 			fetchPreviewImage(definition.oEmbedUrl, url).catch(() => null),

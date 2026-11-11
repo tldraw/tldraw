@@ -358,17 +358,22 @@ describe('embeds', () => {
 		`${endpoint}?format=json&maxwidth=1280&url=${encodeURIComponent(url)}`
 
 	it.each([
-		['https://www.youtube.com/oembed', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ'],
-		['https://vimeo.com/api/oembed.json', 'https://vimeo.com/76979871'],
-		['https://open.spotify.com/oembed', 'https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3'],
-	])('draws the thumbnail that %s gives', async (endpoint, url) => {
+		['https://www.youtube.com/oembed', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 'video'],
+		['https://vimeo.com/api/oembed.json', 'https://vimeo.com/76979871', 'video'],
+		[
+			'https://open.spotify.com/oembed',
+			'https://open.spotify.com/album/1DFixLWuPkv3KT3TnV35m3',
+			'rich',
+		],
+	])('draws the thumbnail that %s gives', async (endpoint, url, type) => {
 		serve({
-			[oEmbed(endpoint, url)]: { thumbnail_url: 'https://cdn.example.com/thumbnail.jpg' },
+			[oEmbed(endpoint, url)]: { type, thumbnail_url: 'https://cdn.example.com/thumbnail.jpg' },
 			'https://cdn.example.com/thumbnail.jpg': jpeg,
 		})
 		const svg = await exportEmbed(url)
 		expect(imageHref(svg)).toMatch(/^data:image\/jpeg;base64,/)
 		expect(texts(svg)).toEqual([])
+		expect(svg.querySelector('circle') !== null).toBe(type === 'video')
 	})
 
 	it('draws the card when the thumbnail isn’t an image', async () => {
