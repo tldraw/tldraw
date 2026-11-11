@@ -3,29 +3,26 @@ import {
 	InMemoryLibrarySource,
 	mapThumbnail,
 	type LibrarySource,
+	type InMemoryLibrarySourceOptions,
 	type TLLibrary,
 	type TLLibraryAction,
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
 	type TLLibraryItemId,
+	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLLibraryThumbnail,
 	type TLNewLibraryItem,
+	type TLNewLibraryOptions,
 } from '@tldraw/libraries'
 import { openDB, type IDBPDatabase } from 'idb'
-import { atom } from 'tldraw'
+import { atom, computed, defineMessages, type Atom } from 'tldraw'
+import type { TldrawApp } from '../../app/TldrawApp'
 
-const SAMPLE_LIBRARIES = [
-	LibraryRecordType.create({
-		id: LibraryRecordType.createId('sample-wireframes'),
-		name: 'Wireframes',
-	}),
-	LibraryRecordType.create({
-		id: LibraryRecordType.createId('sample-icons'),
-		name: 'Icons',
-	}),
-]
+const messages = defineMessages({
+	privateToYou: { defaultMessage: 'Private to you' },
+})
 
 // Bytes rather than a Blob, which not every IndexedDB stores.
 interface StoredImage {
@@ -43,31 +40,80 @@ async function toStoredImage(blob: Blob): Promise<StoredImage> {
 	return { type: blob.type, data: await blob.arrayBuffer() }
 }
 
-// Until tldraw.com has a real source, libraries are kept in this browser, per user: they survive
-// a reload but don't follow anyone to another browser or device.
-export function createLibrariesSource(userId: string) {
-	return new BrowserLibrarySource(userId)
+// The in-memory source checks owners against its own list, so it is given this source's.
+class OwnedInMemoryLibrarySource extends InMemoryLibrarySource {
+	constructor(
+		private readonly listOwners: () => TLLibraryOwner[],
+		options: InMemoryLibrarySourceOptions
+	) {
+		super(options)
+	}
+
+	override getLibraryOwners() {
+		return this.listOwners()
+	}
 }
 
 /**
- * An in-memory source, saved to IndexedDB after each change and loaded back on start. Until the
- * load finishes it shows the sample libraries, and writes wait for it.
+ * Until tldraw.com has a real source, libraries are kept in this browser, per user: they survive
+ * a reload but don't follow anyone to another browser or device. Like files, each belongs to one of
+ * the user's workspaces, their home workspace first, and new ones go to the home workspace.
+ *
+ * An in-memory source, saved to IndexedDB after each change and loaded back on start. Each
+ * library is saved with its owner. Until the load finishes it shows the sample libraries, and
+ * writes wait for it.
  */
-class BrowserLibrarySource implements LibrarySource {
+export class TldrawAppLibrariesSource implements LibrarySource {
 	readonly id = 'dotcom-browser'
-	private readonly inner = atom(
-		'libraries source',
-		new InMemoryLibrarySource({
-			initial: { libraries: SAMPLE_LIBRARIES, items: [], contents: {} },
-		})
-	)
+
+	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
+		const homeId = this.app.getHomeWorkspaceId()
+		const memberships = this.app.getWorkspaceMemberships()
+		return [
+			{ id: homeId, name: this.app.msg(messages.privateToYou) },
+			...memberships.flatMap((m) =>
+				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
+			),
+		]
+	})
+
+	// A library whose workspace the user has left stays saved, but isn't listed.
+	private readonly libraries$ = computed('visible libraries', () => {
+		const ownerIds = new Set(this.getLibraryOwners().map((owner) => owner.id))
+		return this.inner
+			.get()
+			.getLibraries()
+			.filter((library) => library.ownerId === undefined || ownerIds.has(library.ownerId))
+	})
+
+	private readonly inner: Atom<InMemoryLibrarySource>
 	private readonly db: Promise<IDBPDatabase>
 	private readonly ready: Promise<void>
 	// The in-memory source only releases URLs it created, so these are released here.
 	private readonly loadedThumbnailUrls: string[] = []
 
-	constructor(userId: string) {
-		this.db = openDB(`tldraw-libraries-${userId}`, 1, {
+	constructor(private readonly app: TldrawApp) {
+		const homeId = app.getHomeWorkspaceId()
+		this.inner = atom(
+			'libraries source',
+			this.createInner({
+				libraries: [
+					LibraryRecordType.create({
+						id: LibraryRecordType.createId('sample-wireframes'),
+						name: 'Wireframes',
+						ownerId: homeId,
+					}),
+					LibraryRecordType.create({
+						id: LibraryRecordType.createId('sample-icons'),
+						name: 'Icons',
+						ownerId: homeId,
+					}),
+				],
+				items: [],
+				contents: {},
+			})
+		)
+		this.db = openDB(`tldraw-libraries-${app.userId}`, 1, {
 			upgrade(db) {
 				db.createObjectStore('state')
 				db.createObjectStore('items')
@@ -79,7 +125,7 @@ class BrowserLibrarySource implements LibrarySource {
 	}
 
 	getLibraries() {
-		return this.inner.get().getLibraries()
+		return this.libraries$.get()
 	}
 
 	getItems(libraryId: TLLibraryId) {
@@ -95,9 +141,18 @@ class BrowserLibrarySource implements LibrarySource {
 		return this.inner.get().can(action, target)
 	}
 
-	async createLibrary(name: string) {
+	getLibraryOwners() {
+		return this.owners$.get()
+	}
+
+	getDefaultOwnerId() {
+		return this.app.getHomeWorkspaceId()
+	}
+
+	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
 		await this.ready
-		const library = await this.inner.get().createLibrary(name)
+		const ownerId = options.ownerId ?? this.getDefaultOwnerId()
+		const library = await this.inner.get().createLibrary(name, { ...options, ownerId })
 		await this.save()
 		return library
 	}
@@ -113,6 +168,12 @@ class BrowserLibrarySource implements LibrarySource {
 		const itemIds = this.getItems(libraryId).map((item) => item.id)
 		await this.inner.get().deleteLibrary(libraryId)
 		await this.save((db) => Promise.all(itemIds.map((itemId) => db.delete('items', itemId))))
+	}
+
+	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
+		await this.ready
+		await this.inner.get().moveLibrary(libraryId, ownerId)
+		await this.save()
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
@@ -159,6 +220,10 @@ class BrowserLibrarySource implements LibrarySource {
 		this.db.then((db) => db.close()).catch(() => {})
 	}
 
+	private createInner(initial: InMemoryLibrarySourceOptions['initial']) {
+		return new OwnedInMemoryLibrarySource(() => this.getLibraryOwners(), { initial })
+	}
+
 	private async load() {
 		const db = await this.db
 		const libraries: TLLibrary[] | undefined = await db.get('state', 'libraries')
@@ -176,19 +241,20 @@ class BrowserLibrarySource implements LibrarySource {
 		}))
 		const contents = Object.fromEntries(stored.map(({ item, content }) => [item.id, content]))
 		const previous = this.inner.get()
-		this.inner.set(new InMemoryLibrarySource({ initial: { libraries, items, contents } }))
+		this.inner.set(this.createInner({ libraries, items, contents }))
 		previous.dispose()
 	}
 
-	// The library list is saved with every change, so an item added to a sample library
-	// before anything else was saved still has its library on the next load. The change has
+	// The whole library list, including those of workspaces the user has left, is saved with
+	// every change, so an item added to a sample library before anything else was saved still
+	// has its library on the next load. The change has
 	// already happened in memory, so a failed save keeps it for this session instead of reporting
 	// an error for something that worked.
 	private async save(write?: (db: IDBPDatabase) => Promise<unknown>) {
 		try {
 			const db = await this.db
 			await write?.(db)
-			await db.put('state', this.getLibraries(), 'libraries')
+			await db.put('state', this.inner.get().getLibraries(), 'libraries')
 		} catch (error) {
 			console.error('[libraries] failed to save', error)
 		}

@@ -11,8 +11,9 @@ import {
 } from 'tldraw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
+import type { TldrawApp } from '../../app/TldrawApp'
 import { getEditorLibraries } from './editorLibraries'
-import { createLibrariesSource } from './librariesSource'
+import { TldrawAppLibrariesSource } from './librariesSource'
 
 let lastUserId = 0
 const cleanups: (() => void)[] = []
@@ -37,13 +38,30 @@ function createEditor() {
 	return editor
 }
 
+// The home workspace's id is the user's id, as on tldraw.com.
+function createApp(userId: string) {
+	const names: Record<string, string> = { [userId]: 'Home', acme: 'Acme' }
+	return {
+		userId,
+		getHomeWorkspaceId: () => userId,
+		getWorkspaceMemberships: () =>
+			[userId, 'acme'].map((groupId) => ({ groupId, group: { name: names[groupId] } })),
+		msg: (message: { defaultMessage: string }) => message.defaultMessage,
+	} as unknown as TldrawApp
+}
+
+function createUserLibraries(app: TldrawApp) {
+	const userLibraries = new TldrawAppLibrariesSource(app)
+	cleanups.push(() => userLibraries.dispose())
+	return userLibraries
+}
+
 function setUp() {
 	const userId = `editor-libraries-user-${++lastUserId}`
-	const app = { userId, msg: (message: { defaultMessage: string }) => message.defaultMessage }
-	const userLibraries = createLibrariesSource(userId)
-	cleanups.push(() => userLibraries.dispose())
+	const app = createApp(userId)
+	const userLibraries = createUserLibraries(app)
 	const editor = createEditor()
-	const source = getEditorLibraries(app as any, userLibraries, editor, 'file-a')
+	const source = getEditorLibraries(app, userLibraries, editor, 'file-a')
 	return { app, userId, userLibraries, editor, source }
 }
 
@@ -79,25 +97,34 @@ function addImage(editor: Editor) {
 }
 
 describe('getEditorLibraries', () => {
-	it("lists the board first, then the user's own libraries", () => {
+	it("lists the board first, then the user's workspaces", () => {
 		const { userId, source } = setUp()
 		expect(source.getLibraryOwners?.()).toEqual([
 			{ id: 'file-a', name: 'This board' },
-			{ id: userId, name: 'Your libraries' },
+			{ id: userId, name: 'Private to you' },
+			{ id: 'acme', name: 'Acme' },
 		])
 		expect(namesOf(source, userId)).toEqual(['Wireframes', 'Icons'])
 	})
 
 	it('is made once per editor and file', () => {
 		const { app, userLibraries, editor, source } = setUp()
-		expect(getEditorLibraries(app as any, userLibraries, editor, 'file-a')).toBe(source)
-		expect(getEditorLibraries(app as any, userLibraries, editor, 'file-b')).not.toBe(source)
+		expect(getEditorLibraries(app, userLibraries, editor, 'file-a')).toBe(source)
+		expect(getEditorLibraries(app, userLibraries, editor, 'file-b')).not.toBe(source)
 	})
 
-	it("creates new libraries among the user's own", async () => {
+	it("creates new libraries in the user's home workspace", async () => {
 		const { userId, editor, source } = setUp()
+		expect(source.getDefaultOwnerId?.()).toBe(userId)
 		const library = await source.createLibrary('Team kit')
 		expect(library.ownerId).toBe(userId)
+		expect(ofType(editor, 'library')).toEqual([])
+	})
+
+	it("creates a library in another of the user's workspaces when asked", async () => {
+		const { editor, source } = setUp()
+		const library = await source.createLibrary('Acme kit', { ownerId: 'acme' })
+		expect(library.ownerId).toBe('acme')
 		expect(ofType(editor, 'library')).toEqual([])
 	})
 
@@ -131,12 +158,11 @@ describe('getEditorLibraries', () => {
 	})
 
 	it("keeps a board library out of the user's own libraries across a reload", async () => {
-		const { userId, source } = setUp()
+		const { app, source } = setUp()
 		await source.createLibrary('Board kit', { ownerId: 'file-a' })
 		await source.createLibrary('Team kit')
 
-		const reloaded = createLibrariesSource(userId)
-		cleanups.push(() => reloaded.dispose())
+		const reloaded = createUserLibraries(app)
 		await vi.waitFor(() =>
 			expect(reloaded.getLibraries().map((c) => c.name)).toEqual([
 				'Wireframes',
