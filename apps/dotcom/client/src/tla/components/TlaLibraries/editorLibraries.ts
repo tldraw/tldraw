@@ -1,4 +1,9 @@
-import { BoardLibrarySource, CompositeLibrarySource, type LibrarySource } from '@tldraw/libraries'
+import {
+	BoardLibrarySource,
+	CompositeLibrarySource,
+	type BoardLibrarySourceOptions,
+	type LibrarySource,
+} from '@tldraw/libraries'
 import { defineMessages, type Editor } from 'tldraw'
 import type { TldrawApp } from '../../app/TldrawApp'
 
@@ -13,13 +18,15 @@ const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
  * document so they are saved, synced and duplicated with it, then the user's own libraries under
  * the workspaces they belong to. New libraries go to the user's home workspace.
  *
- * Made once per editor, so the panel and the context menu share it.
+ * Made once per editor, so the panel and the context menu share it. `reporting` is where the
+ * board's source reports a thumbnail that fails to upload.
  */
 export function getEditorLibraries(
 	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg'>,
 	userLibraries: LibrarySource,
 	editor: Editor,
-	fileId: string
+	fileId: string,
+	reporting: Pick<BoardLibrarySourceOptions, 'toasts' | 'msg'> = {}
 ): LibrarySource {
 	const existing = sources.get(editor)
 	if (existing && existing.fileId === fileId) return existing.source
@@ -30,7 +37,7 @@ export function getEditorLibraries(
 		parts: [
 			{
 				owner: { id: fileId, name: app.msg(messages.thisBoard) },
-				source: new BoardLibrarySource(editor, { id: `board:${fileId}` }),
+				source: new BoardLibrarySource(editor, { id: `board:${fileId}`, ...reporting }),
 			},
 			{ source: userLibraries },
 		],

@@ -104,12 +104,18 @@ export interface LibrarySource {
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
+	/**
+	 * Adds an item to a library, and resolves with it once it is listed. A source may go on saving
+	 * it after that, e.g. while its thumbnail uploads, as a pasted image does; if saving fails, the
+	 * source removes the item again and reports the failure itself.
+	 */
 	addItem(libraryId: TLLibraryId, item: TLNewLibraryItem): Promise<TLLibraryItem>
 	/**
-	 * Adds several items to a library, in the order given, as one change where the source can,
-	 * and returns them in the same order. Optional: for sources where adding items together is
-	 * quicker than adding them one at a time, e.g. in one request to a server. Without it,
-	 * `addItemsToLibrary` adds them one at a time through {@link LibrarySource.addItem}.
+	 * Adds several items to a library, in the order given, as one change where the source can, and
+	 * resolves with them in the same order once they are listed, as {@link LibrarySource.addItem}
+	 * does. Optional: for sources where adding items together is quicker than adding them one at a
+	 * time, e.g. in one request to a server. Without it, `addItemsToLibrary` adds them one at a time
+	 * through {@link LibrarySource.addItem}.
 	 */
 	addItems?(libraryId: TLLibraryId, items: TLNewLibraryItem[]): Promise<TLLibraryItem[]>
 	renameItem(itemId: TLLibraryItemId, name: string): Promise<void>
@@ -145,13 +151,6 @@ export interface LibrarySource {
 	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
-	/**
-	 * Resolves once items added to this source have been stored, or rejects if storing them failed,
-	 * in which case the source has removed them again. Items it isn't storing resolve at once.
-	 * Optional: for sources whose `addItem` and `addItems` resolve once the items are listed, while
-	 * their storing goes on, e.g. uploading their thumbnails. Without it, an added item is stored.
-	 */
-	whenStored?(itemIds: TLLibraryItemId[]): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

@@ -1,4 +1,4 @@
-import { copyLibrary } from '@tldraw/libraries'
+import { copyLibrary, whenItemsStored, type TLLibraryItem } from '@tldraw/libraries'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -14,6 +14,13 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 let editors: Editor[] = []
 
@@ -104,9 +111,11 @@ describe('getEditorLibraries', () => {
 		const { editor, source } = setUp()
 		const { id, assetId } = addImage(editor)
 		const library = await source.createLibrary('Photos', { ownerId: 'file-a' })
-		await source.addItem(library.id, {
-			content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
-		})
+		await added(
+			source.addItem(library.id, {
+				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+			})
+		)
 
 		await source.moveLibrary!(library.id, 'home')
 		expect(ofType(editor, 'library')).toEqual([])
@@ -131,10 +140,12 @@ describe('getEditorLibraries', () => {
 		for (const name of names) {
 			const id = createShapeId()
 			editor.createShape({ id, type: 'geo' })
-			await source.addItem(library.id, {
-				name,
-				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
-			})
+			await added(
+				source.addItem(library.id, {
+					name,
+					content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+				})
+			)
 		}
 		const boardOrder = source.getItems(library.id).map((item) => item.name)
 

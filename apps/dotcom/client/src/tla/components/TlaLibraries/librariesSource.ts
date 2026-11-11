@@ -13,6 +13,8 @@ import {
 	LibraryRecordType,
 	getThumbnailForColorMode,
 	mapThumbnail,
+	saveErrorMessages,
+	trackItemsStoring,
 	type LibrarySource,
 	type TLLibrary,
 	type TLLibraryAction,
@@ -133,12 +135,13 @@ function splitIntoRequests(items: NewItem[]): NewItem[][] {
  * change the server rejects is rolled back and the app shows its mutation error. A new item is
  * listed as soon as it's asked for, with the thumbnails it was given, while the worker stores it,
  * and a copy of a library with its source's name and items' thumbnails while the worker copies
- * it; one the worker can't store disappears and `addItem` or `copyLibrary` rejects. Changes to
- * either wait until its row has arrived.
+ * it; `addItem` resolves once the item is listed. One the worker can't store disappears, with a
+ * toast for an item and `copyLibrary` rejecting for a copy. Changes to either wait until its row
+ * has arrived.
  *
  * Items added together are all listed at once and sent in as few requests as the worker allows,
- * one after another, usually one. If a request fails, its items and those after it disappear and
- * `addItems` rejects; items an earlier request stored stay.
+ * one after another, usually one. If a request fails, its items and those after it disappear, with
+ * one toast; items an earlier request stored stay.
  */
 export class TldrawAppLibrariesSource implements LibrarySource {
 	readonly id = 'dotcom-workspaces'
@@ -348,19 +351,21 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			this.listNewItem(libraryId, newItem, now + index)
 		)
 		this.pendingItems.update((all) => [...all, ...adding.map((a) => a.pending)])
-
-		const added: TLLibraryItem[] = []
-		try {
-			await this.whenConfirmed(libraryId)
-			for (const request of splitIntoRequests(adding)) {
-				const stored = await this.storeItems(libraryId, request)
-				added.push(...request.map((a, index) => this.listStoredItem(a, stored[index])))
-			}
-		} catch (error) {
-			this.unlistNewItems(adding.slice(added.length))
-			throw error
-		}
-		return added
+		const items = adding.map((a) => a.pending.item)
+		const stored = this.storeNewItems(libraryId, adding)
+		trackItemsStoring(
+			items.map((item) => item.id),
+			stored
+		)
+		stored.catch((error) => {
+			this.app.toasts?.addToast({
+				title: this.app.msg(saveErrorMessages.saveErrorTitle),
+				description: this.app.msg(saveErrorMessages.saveErrorDescription),
+				severity: 'error',
+			})
+			console.error("Couldn't add library items", error)
+		})
+		return items
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
@@ -460,6 +465,22 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		for (const { thumbnail, settleArrival } of adding) {
 			if (thumbnail) revokeThumbnail(thumbnail)
 			settleArrival(false)
+		}
+	}
+
+	// Unlists the items of a request that fails, and those after it.
+	private async storeNewItems(libraryId: TLLibraryId, adding: NewItem[]) {
+		let storedCount = 0
+		try {
+			await this.whenConfirmed(libraryId)
+			for (const request of splitIntoRequests(adding)) {
+				const stored = await this.storeItems(libraryId, request)
+				request.forEach((a, index) => this.listStoredItem(a, stored[index]))
+				storedCount += request.length
+			}
+		} catch (error) {
+			this.unlistNewItems(adding.slice(storedCount))
+			throw error
 		}
 	}
 

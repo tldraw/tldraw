@@ -30,8 +30,9 @@ export interface SaveShapesOptions {
 /**
  * Saves shapes from the current page to a library, with a thumbnail rendered in each colour
  * mode. Their bindings and assets go with them, as when copying, and several shapes keep their
- * layout without being grouped unless `prepareItemContent` does so. Rejects with the source's
- * error when the save is refused.
+ * layout without being grouped unless `prepareItemContent` does so. Resolves once the item is
+ * listed, as {@link LibrarySource.addItem} does. Rejects with the source's error when the save is
+ * refused.
  * @public
  */
 export async function saveShapesToLibrary(

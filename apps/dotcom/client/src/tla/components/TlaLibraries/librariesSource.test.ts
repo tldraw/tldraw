@@ -3,12 +3,21 @@ import {
 	LibraryItemRecordType,
 	LibraryNotFoundError,
 	copyLibrary,
+	whenItemsStored,
 	type TLLibrary,
+	type TLLibraryItem,
 	type TLLibraryItemContent,
 } from '@tldraw/libraries'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 const content: TLLibraryItemContent = {
 	formatVersion: 1,
@@ -71,11 +80,13 @@ describe('TldrawAppLibrariesSource', () => {
 	it("adds an item through the worker, with the user's token, and loads its content back", async () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
-		const item = await source.addItem(kit.id, {
-			name: 'Star',
-			content,
-			thumbnail: new Blob(['png'], { type: 'image/png' }),
-		})
+		const item = await added(
+			source.addItem(kit.id, {
+				name: 'Star',
+				content,
+				thumbnail: new Blob(['png'], { type: 'image/png' }),
+			})
+		)
 		const [, init] = backend.fetch.mock.calls[0]
 		expect(new Headers(init!.headers).get('Authorization')).toBe('Bearer token')
 		expect(source.getItems(kit.id)).toMatchObject([
@@ -89,7 +100,9 @@ describe('TldrawAppLibrariesSource', () => {
 	it("lists an item's thumbnail from its row, with no request", async () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
-		await source.addItem(kit.id, { content, thumbnail: new Blob(['png'], { type: 'image/png' }) })
+		await added(
+			source.addItem(kit.id, { content, thumbnail: new Blob(['png'], { type: 'image/png' }) })
+		)
 		const requests = backend.fetch.mock.calls.length
 		// another client of the same account, which sees the row arrive through Zero
 		const second = new TldrawAppLibrariesSource(backend.app, backend.getToken)
@@ -100,13 +113,15 @@ describe('TldrawAppLibrariesSource', () => {
 	it('stores a light and a dark thumbnail, and lists both', async () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
-		const item = await source.addItem(kit.id, {
-			content,
-			thumbnail: {
-				light: new Blob(['light'], { type: 'image/png' }),
-				dark: new Blob(['dark'], { type: 'image/png' }),
-			},
-		})
+		const item = await added(
+			source.addItem(kit.id, {
+				content,
+				thumbnail: {
+					light: new Blob(['light'], { type: 'image/png' }),
+					dark: new Blob(['dark'], { type: 'image/png' }),
+				},
+			})
+		)
 		const pair = {
 			light: 'https://content.test/thumbnail-1-png',
 			dark: 'https://content.test/thumbnail-2-png',
@@ -119,7 +134,7 @@ describe('TldrawAppLibrariesSource', () => {
 	it('copies a library in the worker rather than item by item', async () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
-		await source.addItem(kit.id, { name: 'Star', content })
+		await added(source.addItem(kit.id, { name: 'Star', content }))
 		const copy = await copyLibrary(source, kit.id, 'acme')
 		expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
 		expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
@@ -131,7 +146,7 @@ describe('TldrawAppLibrariesSource', () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Kit')
 		const other = await source.createLibrary('Other', { ownerId: 'acme' })
-		const item = await source.addItem(kit.id, { content })
+		const item = await added(source.addItem(kit.id, { content }))
 		await source.renameItem(item.id, 'Star')
 		await source.moveItem(item.id, other.id)
 		expect(source.getItems(other.id).map((i) => i.name)).toEqual(['Star'])
@@ -163,12 +178,12 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const server = backend.holdServer()
 			const kit = await source.createLibrary('Kit')
-			const adding = source.addItem(kit.id, { name: 'Star', content })
+			const item = await source.addItem(kit.id, { name: 'Star', content })
 			await Promise.resolve()
 			expect(backend.fetch).not.toHaveBeenCalled()
 			expect(source.getItems(kit.id)).toMatchObject([{ name: 'Star' }])
 			server.release()
-			await adding
+			await whenItemsStored([item.id])
 			expect(backend.fetch).toHaveBeenCalledOnce()
 		})
 
@@ -176,9 +191,9 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const server = backend.holdServer()
 			const kit = await source.createLibrary('Kit')
-			const adding = source.addItem(kit.id, { content })
+			const item = await source.addItem(kit.id, { content })
 			server.fail()
-			await expect(adding).rejects.toThrow()
+			await expect(whenItemsStored([item.id])).rejects.toThrow()
 			expect(backend.fetch).not.toHaveBeenCalled()
 		})
 
@@ -204,16 +219,23 @@ describe('TldrawAppLibrariesSource', () => {
 			const kit = await source.createLibrary('Kit')
 			const requests = backend.holdRequests()
 			const rows = backend.holdWorkerRows()
-			const adding = source.addItem(kit.id, { name: 'Star', content, thumbnail: png() })
+			const item = await source.addItem(kit.id, {
+				name: 'Star',
+				content,
+				thumbnail: png(),
+			})
 			const [pending] = source.getItems(kit.id)
+			expect(item).toEqual(pending)
 			requests.release()
-			const item = await adding
+			await whenItemsStored([item.id])
 			expect(item.id).toBe(pending.id)
 			const [, init] = backend.fetch.mock.calls[0]
 			const [{ id }] = JSON.parse((init!.body as FormData).get('items') as string)
 			expect(LibraryItemRecordType.createId(id)).toBe(pending.id)
 			// answered, but the row hasn't arrived through Zero yet
-			expect(source.getItems(kit.id)).toEqual([item])
+			expect(source.getItems(kit.id)).toMatchObject([
+				{ id: item.id, name: 'Star', thumbnail: item.thumbnail },
+			])
 			rows.release()
 			await vi.waitFor(() => expect(backend.rows.get()[0].items).toHaveLength(1))
 			expect(LibraryItemRecordType.createId(backend.rows.get()[0].items[0].id)).toBe(pending.id)
@@ -227,12 +249,15 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')
 			const requests = backend.holdRequests()
-			const adding = source.addItem(kit.id, { content, thumbnail: png() })
+			const item = await source.addItem(kit.id, { content, thumbnail: png() })
 			expect(source.getItems(kit.id)).toHaveLength(1)
 			const [pending] = source.getItems(kit.id)
 			const renaming = source.renameItem(pending.id, 'Moon')
 			requests.fail()
-			await expect(adding).rejects.toThrow("Couldn't add the items: 500")
+			await expect(whenItemsStored([item.id])).rejects.toThrow("Couldn't add the items: 500")
+			expect(backend.toasts.addToast).toHaveBeenCalledWith(
+				expect.objectContaining({ title: "Couldn't save to library", severity: 'error' })
+			)
 			expect(source.getItems(kit.id)).toEqual([])
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
 			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
@@ -243,7 +268,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const kit = await source.createLibrary('Kit')
 			const requests = backend.holdRequests()
 			const rows = backend.holdWorkerRows()
-			const adding = source.addItems(kit.id, [
+			const items = await source.addItems(kit.id, [
 				{ name: 'Star', content, thumbnail: png() },
 				{ name: 'Moon', content },
 				{ name: 'Sun', content, thumbnail: { light: png(), dark: png() } },
@@ -254,8 +279,9 @@ describe('TldrawAppLibrariesSource', () => {
 				['Moon', undefined],
 				['Sun', { light: 'blob:local-2', dark: 'blob:local-3' }],
 			])
+			expect(items).toEqual(pending)
 			requests.release()
-			const items = await adding
+			await whenItemsStored(items.map((item) => item.id))
 			expect(backend.fetch).toHaveBeenCalledTimes(1)
 			const [, init] = backend.fetch.mock.calls[0]
 			const form = init!.body as FormData
@@ -267,7 +293,9 @@ describe('TldrawAppLibrariesSource', () => {
 			expect(form.get(`darkThumbnail:${listed[2].id}`)).toBeInstanceOf(Blob)
 			expect(items.map((item) => item.id)).toEqual(pending.map((item) => item.id))
 			// answered, but the rows haven't arrived through Zero yet
-			expect(source.getItems(kit.id)).toEqual(items)
+			expect(source.getItems(kit.id).map((item) => [item.id, item.name, item.thumbnail])).toEqual(
+				items.map((item) => [item.id, item.name, item.thumbnail])
+			)
 
 			rows.release()
 			await vi.waitFor(() => expect(backend.rows.get()[0].items).toHaveLength(3))
@@ -283,7 +311,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const kit = await source.createLibrary('Kit')
 			const requests = backend.holdRequests()
-			const adding = source.addItems(kit.id, [
+			const items = await source.addItems(kit.id, [
 				{ content, thumbnail: png() },
 				{ content, thumbnail: png() },
 			])
@@ -292,7 +320,9 @@ describe('TldrawAppLibrariesSource', () => {
 			const loading = source.getItemContent(pending[1].id)
 			const renaming = source.renameItem(pending[0].id, 'Moon')
 			requests.fail()
-			await expect(adding).rejects.toThrow("Couldn't add the items: 500")
+			await expect(whenItemsStored(items.map((item) => item.id))).rejects.toThrow(
+				"Couldn't add the items: 500"
+			)
 			expect(source.getItems(kit.id)).toEqual([])
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-2')
@@ -308,10 +338,10 @@ describe('TldrawAppLibrariesSource', () => {
 				name: `Item ${i}`,
 				content,
 			}))
-			const adding = source.addItems(kit.id, newItems)
+			const items = await source.addItems(kit.id, newItems)
 			expect(source.getItems(kit.id)).toHaveLength(newItems.length)
 			requests.release()
-			const items = await adding
+			await whenItemsStored(items.map((item) => item.id))
 			expect(items.map((item) => item.name)).toEqual(newItems.map((item) => item.name))
 			const sizes = backend.fetch.mock.calls.map(
 				([, init]) => JSON.parse((init!.body as FormData).get('items') as string).length
@@ -336,8 +366,10 @@ describe('TldrawAppLibrariesSource', () => {
 		async function withKit() {
 			const setup = setUp()
 			const kit = await setup.source.createLibrary('Kit')
-			const star = await setup.source.addItem(kit.id, { name: 'Star', content, thumbnail: png() })
-			const moon = await setup.source.addItem(kit.id, { name: 'Moon', content })
+			const star = await added(
+				setup.source.addItem(kit.id, { name: 'Star', content, thumbnail: png() })
+			)
+			const moon = await added(setup.source.addItem(kit.id, { name: 'Moon', content }))
 			return { ...setup, kit, star, moon }
 		}
 
@@ -451,7 +483,7 @@ describe('TldrawAppLibrariesSource', () => {
 				const { backend, source } = setUp()
 				const kit = await source.createLibrary('Kit')
 				const other = await source.createLibrary('Other')
-				await source.addItem(kit.id, { name: 'Star', content })
+				await added(source.addItem(kit.id, { name: 'Star', content }))
 				const before = backend.rows.get()
 				const server = backend.holdServer()
 
@@ -472,8 +504,8 @@ describe('TldrawAppLibrariesSource', () => {
 	it('releases the thumbnails it made when deleting an item, and when disposed', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Kit')
-		const first = await source.addItem(kit.id, { content, thumbnail: png() })
-		await source.addItem(kit.id, { content, thumbnail: png() })
+		const first = await added(source.addItem(kit.id, { content, thumbnail: png() }))
+		await added(source.addItem(kit.id, { content, thumbnail: png() }))
 		await source.deleteItem(first.id)
 		expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
 		source.dispose()

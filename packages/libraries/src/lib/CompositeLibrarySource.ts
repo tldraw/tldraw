@@ -157,15 +157,6 @@ export class CompositeLibrarySource implements LibrarySource {
 		return addItemsToLibrary(this.getLibraryPart(libraryId).source, libraryId, items)
 	}
 
-	// Item ids are unique across parts, and a part resolves at once for items it isn't storing.
-	async whenStored(itemIds: TLLibraryItemId[]) {
-		await Promise.all(
-			this.parts.map((part) =>
-				part.source.whenStored ? part.source.whenStored(itemIds) : undefined
-			)
-		)
-	}
-
 	renameItem(itemId: TLLibraryItemId, name: string) {
 		return this.getItemPart(itemId).part.source.renameItem(itemId, name)
 	}

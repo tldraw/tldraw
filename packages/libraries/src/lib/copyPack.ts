@@ -1,10 +1,11 @@
 import { getIncrementedName } from '@tldraw/editor'
 import type { TLLibrary } from '@tldraw/tlschema'
-import { addItemsToLibrary, whenItemsStored } from './addItemsToLibrary'
+import { addItemsToLibrary } from './addItemsToLibrary'
 import { fetchThumbnail } from './copyLibrary'
 import type { LibraryPack } from './LibraryPack'
 import type { LibrarySource, TLNewLibraryOptions } from './LibrarySource'
 import { mapConcurrently } from './mapConcurrently'
+import { whenItemsStored } from './whenItemsStored'
 
 const FETCH_CONCURRENCY = 6
 
@@ -40,7 +41,8 @@ export async function copyPack(
 				...(thumbnail === undefined ? {} : { thumbnail }),
 			}
 		})
-		await whenItemsStored(source, await addItemsToLibrary(source, copy.id, newItems))
+		const added = await addItemsToLibrary(source, copy.id, newItems)
+		await whenItemsStored(added.map((item) => item.id))
 	} catch (error) {
 		await source.deleteLibrary(copy.id).catch(() => {})
 		throw error
