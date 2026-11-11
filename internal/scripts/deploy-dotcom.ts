@@ -885,7 +885,7 @@ function withPreviewInfoLogs(toml: string): string {
 
 // TEMP(preview-handoff): how the preview RM is deployed. 'in-place' is the flyctl deploy baseline;
 // 'fail' gives the new RM an invalid log level so it never becomes healthy.
-const PREVIEW_RM_MODE = 'in-place' as 'handoff' | 'in-place' | 'fail'
+const PREVIEW_RM_MODE = 'fail' as 'handoff' | 'in-place' | 'fail'
 
 // The view-syncer image; the replication manager runs the stock Zero image.
 function renderDockerfile(): string {
