@@ -358,14 +358,14 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
-					<TlaAddToLibraryMenuItem />
+					<TlaAddToLibraryMenuItem fileId={fileId} />
 					<DefaultContextMenuContent />
 				</DefaultContextMenu>
 			),
 			InFrontOfTheCanvas: () => (
 				<>
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
-					<TlaLibrariesPanel />
+					<TlaLibrariesPanel fileId={fileId} />
 				</>
 			),
 		}

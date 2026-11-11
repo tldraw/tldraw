@@ -1,6 +1,7 @@
 import { useCallback } from 'react'
 import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
+import { useFileSnapshotStore } from '../../../hooks/useFileSnapshotStore'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
@@ -63,6 +64,8 @@ function TlaEditorInner({
 
 	const handleUiEvent = useHandleUiEvents()
 
+	const store = useFileSnapshotStore(snapshot, embedShapeUtils)
+
 	const fileSystemUiOverrides = useFileEditorOverrides({})
 
 	const handleMount = useCallback(
@@ -81,7 +84,7 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				snapshot={snapshot}
+				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				onMount={handleMount}

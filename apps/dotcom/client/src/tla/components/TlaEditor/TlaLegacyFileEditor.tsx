@@ -1,7 +1,7 @@
 import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
-import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
+import { Editor, TLComponents, Tldraw } from 'tldraw'
 import { StoreErrorScreen } from '../../../components/StoreErrorScreen'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useLegacyUrlParams } from '../../../hooks/useLegacyUrlParams'
@@ -11,6 +11,7 @@ import { assetUrls } from '../../../utils/assetUrls'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
+import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -74,10 +75,7 @@ function TlaEditorInner({
 		roomId: fileSlug,
 		assets,
 		trackAnalyticsEvent: trackEvent,
-		// Register the comment record types so the schema matches the server's (see
-		// fileSyncSchema in TLFileDurableObject) — without them the server rejects the
-		// session as too old. Legacy rooms don't render a comments UI.
-		records: commentSchemaRecords,
+		records: fileSchemaRecords,
 	})
 
 	const fileSystemUiOverrides = useFileEditorOverrides({})
