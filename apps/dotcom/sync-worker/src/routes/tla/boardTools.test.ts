@@ -1,4 +1,4 @@
-import { b64Vecs } from '@tldraw/tlschema'
+import { b64Vecs, toRichText } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
@@ -28,11 +28,9 @@ import {
 	getClusterScreenshotSize,
 	getClustersBox,
 	readSnapshotPage,
-	AGENT_COMMENT_HEADER,
 	COMMENT_TEXT_MAX_LENGTH,
 	CommentRow,
 	CommentThreadRow,
-	buildAgentCommentBody,
 	commentBodyToPlainText,
 	getCommentRefusalMessage,
 	getPageCommentsResult,
@@ -1452,25 +1450,6 @@ describe('parseWriteCommentInput', () => {
 	})
 })
 
-describe('buildAgentCommentBody', () => {
-	// Real italics in the rich text, not asterisks a reader would see literally.
-	it('opens with the header as an italic paragraph of its own, then one paragraph per line', () => {
-		expect(buildAgentCommentBody('First line\n\nThird *line*')).toEqual({
-			type: 'doc',
-			content: [
-				{
-					type: 'paragraph',
-					content: [{ type: 'text', text: AGENT_COMMENT_HEADER, marks: [{ type: 'italic' }] }],
-				},
-				{ type: 'paragraph', content: [{ type: 'text', text: 'First line' }] },
-				{ type: 'paragraph' },
-				{ type: 'paragraph', content: [{ type: 'text', text: 'Third *line*' }] },
-			],
-		})
-		expect(AGENT_COMMENT_HEADER).toBe('Comment sent by my agent')
-	})
-})
-
 describe('commentBodyToPlainText', () => {
 	it('puts blocks on their own lines and spells mentions out', () => {
 		expect(
@@ -1501,9 +1480,6 @@ describe('commentBodyToPlainText', () => {
 				],
 			})
 		).toBe('Hey @Ada, look\none\ntwo')
-		expect(commentBodyToPlainText(buildAgentCommentBody('Done'))).toBe(
-			`${AGENT_COMMENT_HEADER}\nDone`
-		)
 	})
 })
 
@@ -1533,13 +1509,43 @@ describe('getPageCommentsResult', () => {
 			threadId: 'comment-thread:t',
 			authorId: 'user_other',
 			authorName: 'Ada',
-			body: buildAgentCommentBody('x'),
+			body: toRichText('x'),
 			createdAt: Date.UTC(2026, 0, 1),
+			fromAgent: false,
 			...overrides,
 		}
 	}
 
-	it('names the shape a thread is on, rounds page points, and marks the caller’s own comments', () => {
+	const threads = [
+		thread({
+			id: 'comment-thread:point',
+			anchor: { type: 'point', x: 10.4, y: 19.6 },
+			resolvedAt: 5,
+			createdAt: 2,
+		}),
+		thread({
+			id: 'comment-thread:shape',
+			anchor: { type: 'shape', shapeId: 'shape:page:a-0', x: 0.25, y: 0.5, isPrecise: true },
+			createdAt: 1,
+		}),
+	]
+
+	it('leaves resolved threads out unless asked for them', () => {
+		const comments = [
+			comment({ id: 'comment:p', threadId: 'comment-thread:point' }),
+			comment({ id: 'comment:s', threadId: 'comment-thread:shape' }),
+		]
+		const threadIds = (includeResolved: boolean) => {
+			const block = getPageCommentsResult(page, threads, comments, 'user_me', { includeResolved })
+				.content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			return JSON.parse(block.text).threads.map((t: { threadId: string }) => t.threadId)
+		}
+		expect(threadIds(false)).toEqual(['comment-thread:shape'])
+		expect(threadIds(true)).toEqual(['comment-thread:shape', 'comment-thread:point'])
+	})
+
+	it('names the shape a thread is on, rounds page points, and marks the caller’s and agents’ comments', () => {
 		const result = getPageCommentsResult(
 			page,
 			[
@@ -1568,8 +1574,9 @@ describe('getPageCommentsResult', () => {
 					threadId: 'comment-thread:shape',
 					authorId: 'user_me',
 					authorName: 'Me',
-					body: buildAgentCommentBody('On it'),
+					body: toRichText('On it'),
 					createdAt: Date.UTC(2026, 0, 2),
+					fromAgent: true,
 				}),
 				comment({
 					id: 'comment:first',
@@ -1582,7 +1589,8 @@ describe('getPageCommentsResult', () => {
 				comment({ id: 'comment:p', threadId: 'comment-thread:point', authorName: ' ' }),
 				comment({ id: 'comment:g', threadId: 'comment-thread:gone' }),
 			],
-			'user_me'
+			'user_me',
+			{ includeResolved: true }
 		)
 		const block = result.content[0]
 		if (block.type !== 'text') throw new Error('Expected a text block')
@@ -1605,6 +1613,7 @@ describe('getPageCommentsResult', () => {
 							commentId: 'comment:first',
 							authorName: 'Ada',
 							isCurrentUser: false,
+							fromAgent: false,
 							createdAt: '2026-01-01T00:00:00.000Z',
 							text: 'Wider?',
 						},
@@ -1612,8 +1621,9 @@ describe('getPageCommentsResult', () => {
 							commentId: 'comment:reply',
 							authorName: 'Me',
 							isCurrentUser: true,
+							fromAgent: true,
 							createdAt: '2026-01-02T00:00:00.000Z',
-							text: `${AGENT_COMMENT_HEADER}\nOn it`,
+							text: 'On it',
 						},
 					],
 				},

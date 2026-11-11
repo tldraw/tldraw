@@ -2,7 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
-import { AGENT_COMMENT_HEADER, COMMENT_BOARD_NOT_FOUND_MESSAGE } from './boardTools'
+import { COMMENT_BOARD_NOT_FOUND_MESSAGE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
@@ -63,11 +63,8 @@ describe('writeCommentForUser', () => {
 			userId: USER_ID,
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
 		})
-		expect(call.body.content[0].content[0]).toEqual({
-			type: 'text',
-			text: AGENT_COMMENT_HEADER,
-			marks: [{ type: 'italic' }],
-		})
+		// The text is the agent's own: tldraw.com marks the comment from its meta instead.
+		expect(call.body.content[0].content[0]).toEqual({ type: 'text', text: 'Done' })
 	})
 
 	// The same answer as a missing board, so ids cannot be probed — and no object is woken for it.
@@ -127,6 +124,7 @@ describe('readPageCommentRows', () => {
 							authorName: 'Ada',
 							body: { type: 'doc', content: [] },
 							createdAt: '2',
+							meta: { mcpAgent: true },
 						},
 					],
 				},
@@ -144,6 +142,7 @@ describe('readPageCommentRows', () => {
 					authorName: 'Ada',
 					body: { type: 'doc', content: [] },
 					createdAt: 2,
+					fromAgent: true,
 				},
 			],
 		})

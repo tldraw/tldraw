@@ -27,3 +27,13 @@ export function extractMentionIds(body: unknown): string[] {
 	visit(body)
 	return [...ids]
 }
+
+/** The comment `meta` key marking a comment an agent posted through the MCP server's write_comment. */
+export const MCP_AGENT_COMMENT_META_KEY = 'mcpAgent'
+
+/** Whether a comment's `meta` marks it as posted by an agent through the MCP server. */
+export function isMcpAgentComment(meta: unknown): boolean {
+	if (typeof meta !== 'object' || meta === null) return false
+	const value = (meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
+	return value !== undefined && value !== null && value !== false
+}

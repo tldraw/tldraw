@@ -1,3 +1,4 @@
+import { MCP_AGENT_COMMENT_META_KEY } from '@tldraw/dotcom-shared'
 import { UnknownRecord } from '@tldraw/store'
 import {
 	TLComment,
@@ -88,6 +89,10 @@ export function planMcpComment({
 		pageId: thread.pageId,
 		authorId: userId,
 		body,
+		// How tldraw.com tells an agent's comment from its user's: the comment is the user's own, so
+		// nothing else distinguishes it. A label rather than a credential — the comment authorizers
+		// leave `meta` alone, so a client could set it on its own comments too.
+		meta: { [MCP_AGENT_COMMENT_META_KEY]: true },
 	})
 
 	const session = {

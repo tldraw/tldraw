@@ -9,10 +9,9 @@ import {
 import { describe, expect, it } from 'vitest'
 import { getFileRoomAccess } from './authorizeFileRecord'
 import { planMcpComment } from './mcpCommentWrite'
-import { AGENT_COMMENT_HEADER, buildAgentCommentBody } from './routes/tla/boardTools'
 
 const ME = 'user_me'
-const body = buildAgentCommentBody('Looks good')
+const body = toRichText('Looks good')
 
 function makeRoom(records: object[]) {
 	const byId = new Map<string, UnknownRecord>(
@@ -63,10 +62,8 @@ describe('planMcpComment', () => {
 			authorId: ME,
 			isDeleted: false,
 		})
-		expect(comment.body.content[0]).toEqual({
-			type: 'paragraph',
-			content: [{ type: 'text', text: AGENT_COMMENT_HEADER, marks: [{ type: 'italic' }] }],
-		})
+		expect(comment.body).toEqual(body)
+		expect(comment.meta).toEqual({ mcpAgent: true })
 	})
 
 	it('starts a thread on a nested shape, on the page its ancestors are on', () => {

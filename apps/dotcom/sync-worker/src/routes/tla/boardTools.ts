@@ -26,14 +26,12 @@ import {
 	TLArrowBinding,
 	TLCommentAnchor,
 	TLInstancePresence,
-	TLRichText,
 	TLShape,
 	VecModel,
 	b64Vecs,
 	isBinding,
 	isPage,
 	isShape,
-	toRichText,
 } from '@tldraw/tlschema'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 
@@ -73,10 +71,10 @@ export function getMcpServerInstructions(nameMatchingEnabled: boolean) {
 }
 
 const SEARCHING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account under a line saying your agent left it. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to find a board by name, or to list your newest boards, when you do not already have a board id. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards covers your own boards, your workspaces’ boards, and boards shared with you by link that you have opened.'
 
 const LISTING_INSTRUCTIONS =
-	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account under a line saying your agent left it. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
+	'MCP server for tldraw.com boards you have access to. Start with search_boards to list the boards you can reach, when you do not already have a board id. It lists them in the order they reached you and takes no query: searching by name is not available on this deployment, so a board cannot be found by its title here. Then drill down: get_board_info lists a board’s pages, get_page_info lists one page’s clusters (shapes grouped by nearness, containment and the arrows between them) with where each sits on the page, and get_cluster_screenshot returns a PNG of one or more clusters. get_cluster_info describes the shapes inside one or more clusters when those matter. list_workspaces lists the workspaces you belong to, create_board makes a new, empty board in your personal workspace or in a workspace you name, and rename_board changes a board’s name. apply_ops edits a board. read_page_comments lists a page’s comment threads, and write_comment replies in one or starts a new one on a shape or point, posted from your account and marked on tldraw.com as left by your agent. get_board_users says who is on a board, and get_user_state what a user has selected and where they are looking. get_page_info, get_cluster_info, get_cluster_screenshot and apply_ops work through the user’s own browser tab, so the board has to be open at tldraw.com/f/:slug, and for apply_ops in view: if it is not, they say so, and you should ask the user to open it or switch to it. search_boards lists your own boards, your workspaces’ boards, and boards shared with you by link that you have opened. Because it cannot match on names, page through the list rather than expecting a title to narrow it.'
 
 export const SEARCH_BOARDS_TOOL_NAME = 'search_boards'
 export const BOARD_INFO_TOOL_NAME = 'get_board_info'
@@ -1554,13 +1552,6 @@ function getPageTransformResolver(shapes: TLShape[]) {
 
 export const COMMENT_TEXT_MAX_LENGTH = 5000
 
-/**
- * The line every comment write_comment posts opens with, in italics. The comment is stamped with the
- * caller's own account, so without it collaborators could not tell an agent's comment from its
- * user's. Added here rather than asked of the model, so it can be neither forgotten nor forged.
- */
-export const AGENT_COMMENT_HEADER = 'Comment sent by my agent'
-
 // A published /p/ board is a read-only copy with no comments, and its slug names no file to post on.
 export const COMMENT_BOARD_NOT_FOUND_MESSAGE =
 	'No board was found with this id, or this account does not have access to it. Pass the id from the board’s tldraw.com/f/ URL or from search_boards; a published tldraw.com/p/ board has no comments.'
@@ -1612,8 +1603,14 @@ export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
 export function parseReadPageCommentsInput(input: unknown): {
 	boardId: string
 	page: PageSelector
+	includeResolved: boolean
 } {
-	return parsePageInfoInput(input)
+	const { boardId, page } = parsePageInfoInput(input)
+	const { includeResolved } = requireArgumentsObject(input)
+	if (includeResolved != null && typeof includeResolved !== 'boolean') {
+		throw new Error('includeResolved must be true or false')
+	}
+	return { boardId, page, includeResolved: includeResolved === true }
 }
 
 /**
@@ -1682,21 +1679,6 @@ function ensureCommentThreadId(id: string) {
 	return id.startsWith('comment-thread:') ? id : `comment-thread:${id}`
 }
 
-/** The posted body: the italic header as its own paragraph, then the text, one paragraph per line. */
-export function buildAgentCommentBody(text: string): TLRichText {
-	const body = toRichText(text)
-	return {
-		...body,
-		content: [
-			{
-				type: 'paragraph',
-				content: [{ type: 'text', text: AGENT_COMMENT_HEADER, marks: [{ type: 'italic' }] }],
-			},
-			...body.content,
-		],
-	}
-}
-
 /**
  * A comment body as plain text: blocks on their own lines, mentions as `@name`. A stand-in for the
  * commenting package's renderer, which needs TipTap and the editor, neither of which a Worker has.
@@ -1742,6 +1724,8 @@ export interface CommentRow {
 	authorName: string
 	body: unknown
 	createdAt: number
+	/** Posted through write_comment, per the comment's `meta`; see `isMcpAgentComment`. */
+	fromAgent: boolean
 }
 
 const SHAPE_TEXT_MAX_LENGTH = 200
@@ -1755,7 +1739,8 @@ export function getPageCommentsResult(
 	page: SnapshotPage,
 	threads: CommentThreadRow[],
 	comments: CommentRow[],
-	userId: string
+	userId: string,
+	{ includeResolved }: { includeResolved: boolean }
 ): ToolResult {
 	const shapes = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
 	const byThread = new Map<string, CommentRow[]>()
@@ -1768,6 +1753,7 @@ export function getPageCommentsResult(
 	const results = [...threads]
 		.sort(compareCreated)
 		.filter((thread) => byThread.has(thread.id))
+		.filter((thread) => includeResolved || thread.resolvedAt === null)
 		.map((thread) => ({
 			threadId: thread.id,
 			resolved: thread.resolvedAt !== null,
@@ -1777,6 +1763,7 @@ export function getPageCommentsResult(
 				// tldraw.com's own fallback for an author it cannot name, such as a deleted account.
 				authorName: comment.authorName.trim() || 'Someone',
 				isCurrentUser: comment.authorId === userId,
+				fromAgent: comment.fromAgent,
 				createdAt: new Date(comment.createdAt).toISOString(),
 				text: commentBodyToPlainText(comment.body),
 			})),
@@ -2238,13 +2225,18 @@ function getReadPageCommentsToolDefinition() {
 		name: READ_PAGE_COMMENTS_TOOL_NAME,
 		title: 'Read tldraw page comments',
 		description:
-			'List the comment threads on one page of a tldraw.com board, oldest first, resolved ones included. Each thread has its threadId, whether it is resolved, its anchor — a shape (its shapeId, type and text), a point or region in page coordinates, or the page itself — and its comments: commentId, authorName, isCurrentUser (true for comments from your account, including ones your agent left), createdAt and plain text. Reply to a thread by passing its threadId to write_comment.',
+			'List the open comment threads on one page of a tldraw.com board, oldest first; pass includeResolved to include resolved ones too. Each thread has its threadId, whether it is resolved, its anchor — a shape (its shapeId, type and text), a point or region in page coordinates, or the page itself — and its comments: commentId, authorName, isCurrentUser (true for comments from your account, including ones your agent left), fromAgent (true for comments an agent left through write_comment), createdAt and plain text. Reply to a thread by passing its threadId to write_comment.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
 			properties: {
 				boardId: FILE_BOARD_ID_PROPERTY,
 				page: PAGE_PROPERTY,
+				includeResolved: {
+					type: 'boolean',
+					description: 'Include resolved threads. Defaults to false.',
+					default: false,
+				},
 			},
 			required: ['boardId'],
 		},
@@ -2256,7 +2248,7 @@ function getWriteCommentToolDefinition() {
 	return {
 		name: WRITE_COMMENT_TOOL_NAME,
 		title: 'Write tldraw comment',
-		description: `Post a comment on a tldraw.com board from your account, opening with an italic line saying your agent left it. Pass threadId to reply in a thread from read_page_comments; resolved threads take no replies. Or start a new thread: shapeId pins it to a shape, and x and y to a point on a page. Returns the threadId and commentId. You can comment on your own boards, your workspaces' boards, and boards shared with you by an edit link.`,
+		description: `Post a comment on a tldraw.com board from your account, marked on tldraw.com as left by your agent. Pass threadId to reply in a thread from read_page_comments; resolved threads take no replies. Or start a new thread: shapeId pins it to a shape, and x and y to a point on a page. Returns the threadId and commentId. You can comment on your own boards, your workspaces' boards, and boards shared with you by an edit link.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,

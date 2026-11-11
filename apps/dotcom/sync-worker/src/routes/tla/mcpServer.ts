@@ -1,7 +1,6 @@
 import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
-	MCP_COMMENT_PER_USER_RATE_LIMIT,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_TAB_PER_USER_RATE_LIMIT,
@@ -167,10 +166,6 @@ function renameRateLimitKey(userId: string) {
 
 function tabRateLimitKey(userId: string) {
 	return `tab:${userId}`
-}
-
-function commentRateLimitKey(userId: string) {
-	return `comment:${userId}`
 }
 
 async function isRateLimited(
@@ -837,7 +832,9 @@ async function callReadPageCommentsTool(
 			input.boardId,
 			resolved.page.pageId
 		)
-		return getPageCommentsResult(resolved.page, threads, comments, userId)
+		return getPageCommentsResult(resolved.page, threads, comments, userId, {
+			includeResolved: input.includeResolved,
+		})
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -864,7 +861,8 @@ async function callWriteCommentTool(
 	const input = parsed.input
 
 	try {
-		const refusal = await checkCommentRateLimit(env, userId, mcpTelemetryWriter(env))
+		// The budget every tool that goes through the board's durable object shares.
+		const refusal = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
 		const written = await writeCommentForUser(env, userId, input)
@@ -1154,7 +1152,7 @@ async function checkTabRateLimit(
 		callerHash: await sha256(userId),
 	})
 	return toolError(
-		`Rate limited. Reading, screenshotting and editing boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
+		`Rate limited. Reading, screenshotting, editing and commenting on boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
 		'rate_limited_tab'
 	)
 }
@@ -1179,30 +1177,6 @@ async function checkRenameRateLimit(
 	return toolError(
 		`Rate limited. Renaming boards is limited to about ${MCP_RENAME_PER_USER_RATE_LIMIT} per minute per account.`,
 		'rate_limited_rename'
-	)
-}
-
-/** The per-caller ceiling on `write_comment`. Its own binding because it bounds writes. */
-async function checkCommentRateLimit(
-	env: Environment,
-	userId: string,
-	telemetry: McpTelemetryWriter
-): Promise<ToolCallResult | undefined> {
-	if (
-		!(await isRateLimited(env.MCP_SERVER_COMMENT_RATE_LIMITER, commentRateLimitKey(userId), {
-			fallbackLimit: MCP_COMMENT_PER_USER_RATE_LIMIT,
-		}))
-	) {
-		return undefined
-	}
-	telemetry({
-		rateLimitAllowed: false,
-		failureReason: 'rate_limited_comment',
-		callerHash: await sha256(userId),
-	})
-	return toolError(
-		`Rate limited. Posting comments is limited to about ${MCP_COMMENT_PER_USER_RATE_LIMIT} per minute per account.`,
-		'rate_limited_comment'
 	)
 }
 

@@ -1,3 +1,5 @@
+import { isMcpAgentComment } from '@tldraw/dotcom-shared'
+import { toRichText } from '@tldraw/tlschema'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
@@ -9,7 +11,6 @@ import {
 	CommentThreadRow,
 	CommentWriteRefusal,
 	ToolResult,
-	buildAgentCommentBody,
 	getCommentRefusalMessage,
 	toolError,
 } from './boardTools'
@@ -42,7 +43,7 @@ export async function readPageCommentRows(
 				jsonArrayFrom(
 					eb
 						.selectFrom('comment')
-						.select(['id', 'threadId', 'authorId', 'authorName', 'body', 'createdAt'])
+						.select(['id', 'threadId', 'authorId', 'authorName', 'body', 'createdAt', 'meta'])
 						.where('fileId', '=', fileId)
 						.where('isDeleted', '=', false)
 						.where('threadId', 'in', (sub) =>
@@ -70,6 +71,7 @@ export async function readPageCommentRows(
 				authorName: row.authorName,
 				body: row.body,
 				createdAt: Number(row.createdAt),
+				fromAgent: isMcpAgentComment(row.meta),
 			})),
 		}
 	} finally {
@@ -82,7 +84,7 @@ export type WriteCommentOutcome =
 	| { ok: false; reason: CommentWriteRefusal['reason']; result: ToolResult }
 
 /**
- * Posts `text` as `userId`, under the agent header, through the file's Durable Object — the one
+ * Posts `text` as `userId`, marked as an agent's, through the file's Durable Object — the one
  * place a comment can be written so that connected collaborators see it and it reaches Postgres.
  *
  * The read access check runs first so an id the caller cannot see never wakes an object, and reads
@@ -99,7 +101,7 @@ export async function writeCommentForUser(
 	const written = await getRoomDurableObject(env, boardId).writeMcpComment({
 		fileId: boardId,
 		userId,
-		body: buildAgentCommentBody(text),
+		body: toRichText(text),
 		target,
 	})
 	if (!written.ok) return refused(written)

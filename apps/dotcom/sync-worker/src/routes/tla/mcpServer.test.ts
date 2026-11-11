@@ -10,7 +10,6 @@ import { RoomSnapshot } from '@tldraw/sync-core'
 import { isPage } from '@tldraw/tlschema'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
-	MCP_COMMENT_PER_USER_RATE_LIMIT,
 	MCP_CREATE_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
@@ -1052,6 +1051,7 @@ describe('read_page_comments', () => {
 						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }],
 					},
 					createdAt: Date.UTC(2026, 0, 1),
+					fromAgent: false,
 				},
 			],
 		})
@@ -1074,6 +1074,7 @@ describe('read_page_comments', () => {
 							commentId: 'comment:c',
 							authorName: 'Me',
 							isCurrentUser: true,
+							fromAgent: false,
 							createdAt: '2026-01-01T00:00:00.000Z',
 							text: 'Hi',
 						},
@@ -1178,24 +1179,22 @@ describe('write_comment', () => {
 		)
 	})
 
-	it(`allows ${MCP_COMMENT_PER_USER_RATE_LIMIT} comments per account per minute, then rate limits`, async () => {
+	it(`shares the board tools' limit of ${MCP_TAB_PER_USER_RATE_LIMIT} calls per account per minute`, async () => {
 		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
 		const env = makeEnv()
 		const results = []
-		for (let i = 0; i <= MCP_COMMENT_PER_USER_RATE_LIMIT; i++) {
+		for (let i = 0; i <= MCP_TAB_PER_USER_RATE_LIMIT; i++) {
 			results.push(
 				await callTool('write_comment', { boardId: 'b', text: 'Hi', threadId: 't' }, env, 'user_cm')
 			)
 		}
-		expect(results.slice(0, MCP_COMMENT_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
-			Array(MCP_COMMENT_PER_USER_RATE_LIMIT).fill(undefined)
+		expect(results.slice(0, MCP_TAB_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_TAB_PER_USER_RATE_LIMIT).fill(undefined)
 		)
-		const blocked = results[MCP_COMMENT_PER_USER_RATE_LIMIT]
+		const blocked = results[MCP_TAB_PER_USER_RATE_LIMIT]
 		expect(blocked.isError).toBe(true)
-		expect(blocked.content[0].text).toContain('Posting comments is limited')
-		expect(writeCommentForUser).toHaveBeenCalledTimes(MCP_COMMENT_PER_USER_RATE_LIMIT)
-		expect(failureBlobsOf(env)).toContain('failure:rate_limited_comment')
-		// Its own budget: another account is unaffected.
+		expect(writeCommentForUser).toHaveBeenCalledTimes(MCP_TAB_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
 		const other = await callTool(
 			'write_comment',
 			{ boardId: 'b', text: 'Hi', threadId: 't' },

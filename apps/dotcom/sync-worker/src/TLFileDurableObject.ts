@@ -3676,6 +3676,12 @@ export class TLFileDurableObject extends DurableObject {
 
 		let storage: TLSyncStorage<TLRecord>
 		try {
+			// With tabs connected, the room has to be running before the write: it is what broadcasts a
+			// storage change to them, and a hibernated object has none — the sockets survive, the room
+			// doesn't. Writing without one, the tabs never hear of the comment: the room that boots
+			// later starts from a clock that already includes it, so nothing replays it until they
+			// reconnect.
+			if (this.state.getWebSockets().length > 0) await this.getRoom()
 			storage = await this.getStorage()
 		} catch (error) {
 			if (error instanceof RoomNotFoundError) return { ok: false, reason: 'board_empty' }

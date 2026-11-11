@@ -1,3 +1,4 @@
+import { isMcpAgentComment } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { TLComment, TLCommentThread } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
@@ -251,7 +252,7 @@ async function callFixtureTool(
 					`${HARNESS_GAP_MARKER} Ops cannot be applied to fixtures. Run against staging or production to test edits.`
 				)
 			case READ_PAGE_COMMENTS_TOOL_NAME: {
-				const { boardId, page } = parseReadPageCommentsInput(args)
+				const { boardId, page, includeResolved } = parseReadPageCommentsInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const resolved = resolveSnapshotPage(board.snapshot, page)
@@ -282,8 +283,10 @@ async function callFixtureTool(
 						authorName: c.authorId,
 						body: c.body,
 						createdAt: c.createdAt,
+						fromAgent: isMcpAgentComment(c.meta),
 					})),
-					''
+					'',
+					{ includeResolved }
 				)
 			}
 			case WRITE_COMMENT_TOOL_NAME: {
