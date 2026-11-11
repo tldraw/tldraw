@@ -26,6 +26,11 @@ class Transaction {
 			flushChanges(this.initialAtomValues.keys())
 			return
 		}
+		if (this.abortCallbacks) {
+			const parentCallbacks = this.parent.abortCallbacks
+			if (!parentCallbacks) this.parent.abortCallbacks = this.abortCallbacks
+			else for (const callback of this.abortCallbacks) parentCallbacks.push(callback)
+		}
 		// For transactions with parents, add the transaction's initial values to the parent's, so
 		// an outer rollback can still undo them (T7). This must come before any "are we reacting?" special case: a nested
 		// transaction committed by an effect during the reaction phase used to skip this fold and
@@ -33,10 +38,6 @@ class Transaction {
 		// A parent that has recorded nothing yet adopts the map outright: this transaction is
 		// finished with it, and the common nested case is a single inner transaction doing all
 		// the writes.
-		if (this.abortCallbacks) {
-			if (this.parent.abortCallbacks) this.parent.abortCallbacks.push(...this.abortCallbacks)
-			else this.parent.abortCallbacks = this.abortCallbacks
-		}
 		const parentValues = this.parent!.initialAtomValues
 		if (parentValues.size === 0) {
 			this.parent!.initialAtomValues = this.initialAtomValues
@@ -65,10 +66,10 @@ class Transaction {
 		})
 
 		const callbacks = this.abortCallbacks
-		this.abortCallbacks = null
 		if (callbacks) {
 			for (let i = callbacks.length - 1; i >= 0; i--) callbacks[i]()
 		}
+		this.abortCallbacks = null
 
 		this.commit()
 	}
@@ -106,10 +107,9 @@ export function getIsInTransaction() {
 }
 
 /**
- * Undo a change to state that atoms don't hold if the current transaction, or one around it, is
- * rolled back. Without this, such state keeps changes the rest of the transaction lost. Callbacks
- * run newest first, after atoms are restored, and must not throw. Outside a transaction this does
- * nothing.
+ * Run `undo` if the current transaction, or one around it, aborts. For state that atoms don't
+ * hold, which would otherwise keep the rolled-back changes. Runs newest first, after atoms are
+ * restored, and must not throw. Does nothing outside a transaction.
  *
  * @internal
  */

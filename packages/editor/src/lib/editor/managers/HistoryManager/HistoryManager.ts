@@ -343,9 +343,8 @@ const modeToState = {
 	ignore: HistoryRecorderState.Paused,
 } as const
 
-// `isEmptyAtom` rolls back with a transaction but `diff` is mutated in place, so every change to
-// `diff` registers its inverse: otherwise a rolled-back change stays in history and undo or redo
-// replays it (#11453).
+// `diff` isn't an atom, so every change to it registers its inverse: otherwise a rolled-back
+// change stays in history and undo or redo replays it (#11453).
 class PendingDiff<R extends UnknownRecord> {
 	private diff = createEmptyRecordsDiff<R>()
 	private isEmptyAtom = atom('PendingDiff.isEmpty', true)
@@ -393,15 +392,14 @@ class PendingDiff<R extends UnknownRecord> {
 		return { diff: this.diff, isEmpty: this.isEmpty() }
 	}
 
-	// Saves what `diff` holds for each id `incoming` touches, flat so a tick over many records
-	// doesn't allocate per record. Updated tuples are mutated in place, so their ends are copied.
+	// Flat, so a tick over many records doesn't allocate per record. Squash only ever mutates an
+	// updated tuple's `to`, so keeping the tuple and its old `to` is enough to restore it.
 	private keepEntriesForAbort(incoming: RecordsDiff<R>) {
 		const target = this.diff
 		const kept: unknown[] = []
 		const keep = (id: R['id']) => {
 			const updated = target.updated[id]
-			kept.push(id, target.added[id], updated?.[0], updated?.[1], updated !== undefined)
-			kept.push(target.removed[id])
+			kept.push(id, target.added[id], updated, updated?.[1], target.removed[id])
 		}
 		for (const id in incoming.added) keep(id as R['id'])
 		for (const id in incoming.updated) keep(id as R['id'])
@@ -409,15 +407,13 @@ class PendingDiff<R extends UnknownRecord> {
 		if (kept.length === 0) return
 
 		onTransactionAbort(() => {
-			for (let i = 0; i < kept.length; i += 6) {
+			for (let i = 0; i < kept.length; i += 5) {
 				const id = kept[i] as R['id']
+				const updated = kept[i + 2] as [R, R] | undefined
+				if (updated) updated[1] = kept[i + 3] as R
 				setOrDelete(target.added, id, kept[i + 1] as R | undefined)
-				setOrDelete(
-					target.updated,
-					id,
-					kept[i + 4] ? ([kept[i + 2], kept[i + 3]] as [R, R]) : undefined
-				)
-				setOrDelete(target.removed, id, kept[i + 5] as R | undefined)
+				setOrDelete(target.updated, id, updated)
+				setOrDelete(target.removed, id, kept[i + 4] as R | undefined)
 			}
 		})
 	}
