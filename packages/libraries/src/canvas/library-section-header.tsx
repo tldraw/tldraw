@@ -14,7 +14,7 @@ import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getOwnerChoices } from './owner-choices'
-import { renamingLibraryId } from './state'
+import { activeLibraryId, renamingLibraryId } from './state'
 
 const messages = defineMessages({
 	deleteTitle: {
@@ -112,26 +112,24 @@ export function LibrarySectionHeader({
 	const moveLibrary = (ownerId: string) => {
 		if (!source.moveLibrary) return
 		const owner = ownerChoices.move.find((o) => o.id === ownerId)
-		source.moveLibrary(libraryId, ownerId).then(
-			() =>
-				addToast({
-					title: msg(messages.movedTitle),
-					description: owner && msg(messages.movedDescription, { name: owner.name }),
-				}),
-			showError
-		)
+		source.moveLibrary(libraryId, ownerId).then(() => {
+			activeLibraryId.set(editor, libraryId)
+			addToast({
+				title: msg(messages.movedTitle),
+				description: owner && msg(messages.movedDescription, { name: owner.name }),
+			})
+		}, showError)
 	}
 
 	const copyToOwner = (ownerId: string) => {
 		const owner = ownerChoices.copy.find((o) => o.id === ownerId)
-		copyLibrary(source, libraryId, ownerId).then(
-			() =>
-				addToast({
-					title: msg(messages.copiedTitle),
-					description: owner && msg(messages.copiedDescription, { name: owner.name }),
-				}),
-			showError
-		)
+		copyLibrary(source, libraryId, ownerId).then((copy) => {
+			activeLibraryId.set(editor, copy.id)
+			addToast({
+				title: msg(messages.copiedTitle),
+				description: owner && msg(messages.copiedDescription, { name: owner.name }),
+			})
+		}, showError)
 	}
 
 	return (
