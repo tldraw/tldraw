@@ -18,18 +18,24 @@ import { nicelog } from './nicelog'
 //      over, they subscribe to the new RM, and that subscription makes the new RM take over the
 //      change log, which shuts the old one down. Taking over cuts the old RM's subscriptions
 //      (Zero's RMv1 design), so view-syncers reconnect, but to an RM that is already warm. Fly's
-//      restart policy does not apply to a stop. The stop must come within the new RM's
-//      ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS (15s) of it becoming ready: past it the new RM takes
-//      the change log on its own, the old RM exits with an error, and restart policy `always`
-//      brings it back to take the log back
+//      restart policy does not apply to a stop
 //   4. destroy the old machine and its volume
 //
 // If the new RM never becomes healthy it is destroyed with its volume, and the old RM keeps
 // serving.
+//
+// The new RM is started with a startup delay long enough that it only takes over the change log
+// when a view-syncer subscribes to it (Zero cancels the delay then). With Zero's default 15s, a
+// deploy that died between steps 1 and 3 left both RMs running: the new one took the change log,
+// the old one exited with an error, restart policy `always` brought it back to take the log back,
+// and the two traded it every ~25s, each trade cutting every view-syncer's subscription. Now the
+// leftover RM idles until the next deploy, which finishes the handoff (see
+// planInterruptedHandoff).
 
-// Leaves room in the deploy job's timeout for the rest of the deploy: a job killed mid-handoff
-// skips the cleanup below and leaves two RMs, which the next deploy refuses to touch.
+// Leaves room in the deploy job's timeout for the rest of the deploy.
 const NEW_MACHINE_TIMEOUT_MS = 10 * 60 * 1000
+// "Never" for a deploy; a view-syncer subscribing cancels it.
+export const HANDOFF_STARTUP_DELAY_MS = 24 * 60 * 60 * 1000
 const POLL_INTERVAL_MS = 2000
 
 interface FlyMachineConfig {
@@ -44,10 +50,11 @@ interface FlyMachineConfig {
 	[key: string]: unknown
 }
 
-interface FlyMachine {
+export interface FlyMachine {
 	id: string
 	name?: string
 	state?: string
+	created_at?: string
 	region?: string
 	checks?: { name?: string; status?: string }[]
 	config?: FlyMachineConfig
@@ -95,6 +102,7 @@ export function buildHandoffMachineConfig(
 			...config.env,
 			FLY_PROCESS_GROUP: current.env?.FLY_PROCESS_GROUP ?? 'app',
 			PRIMARY_REGION: config.primary_region,
+			ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS: String(HANDOFF_STARTUP_DELAY_MS),
 		},
 		guest: { cpu_kind: vm.cpu_kind, cpus: vm.cpus, memory_mb: parseSizeMb(vm.memory) },
 		checks: config.checks,
@@ -102,6 +110,32 @@ export function buildHandoffMachineConfig(
 		stop_config: { ...current.stop_config, timeout: config.kill_timeout },
 		mounts: [{ volume: volumeId, path: config.mounts.destination, name: config.mounts.source }],
 	}
+}
+
+/**
+ * What to do with the RMs an interrupted handoff left behind, so the next deploy can finish it
+ * instead of needing a person. The newest machine is the one the handoff started:
+ * - older machines that aren't running (the handoff stopped them) are destroyed
+ * - an older machine that is still running is the one still serving, so it is only replaced once
+ *   the newest is healthy, as in a normal handoff
+ */
+export function planInterruptedHandoff(machines: FlyMachine[]): {
+	newest: FlyMachine
+	running: FlyMachine | undefined
+	stale: FlyMachine[]
+} {
+	const sorted = [...machines].sort((a, b) =>
+		(a.created_at ?? '').localeCompare(b.created_at ?? '')
+	)
+	const newest = sorted[sorted.length - 1]
+	const older = sorted.slice(0, -1)
+	const running = older.filter((m) => m.state === 'started' || m.state === 'starting')
+	if (running.length > 1) {
+		throw new Error(
+			`expected at most 1 running replication-manager besides the newest, found ${running.map((m) => m.id).join(', ')}. Destroy the stale ones, keeping the healthy one, and rerun the deploy.`
+		)
+	}
+	return { newest, running: running[0], stale: older.filter((m) => !running.includes(m)) }
 }
 
 export function isHealthy(machine: FlyMachine | undefined): boolean {
@@ -134,6 +168,61 @@ async function destroyMachineAndVolume(appName: string, machineId: string, volum
 	if (volumeId) await exec('flyctl', ['volumes', 'destroy', volumeId, '-a', appName, '--yes'])
 }
 
+async function waitUntilHealthy(appName: string, machineId: string) {
+	const deadline = Date.now() + NEW_MACHINE_TIMEOUT_MS
+	let lastLog = 0
+	for (;;) {
+		const current = (await listMachines(appName)).find((m) => m.id === machineId)
+		if (isHealthy(current)) return
+		if (Date.now() > deadline) {
+			throw new Error(
+				`${appName}: machine ${machineId} not healthy after ${NEW_MACHINE_TIMEOUT_MS / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
+			)
+		}
+		if (Date.now() - lastLog > 60_000) {
+			nicelog(`${appName}: ${machineId} is ${current?.state}, checks not passing yet`)
+			lastLog = Date.now()
+		}
+		await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+	}
+}
+
+async function stopAndDestroy(appName: string, machine: FlyMachine) {
+	await exec('flyctl', ['machine', 'stop', machine.id, '-a', appName])
+	await exec('flyctl', [
+		'machine',
+		'wait',
+		machine.id,
+		'-a',
+		appName,
+		'--state',
+		'stopped',
+		'--wait-timeout',
+		'6m',
+	])
+	await destroyMachineAndVolume(appName, machine.id, machine.config?.mounts?.[0]?.volume)
+}
+
+/** Leaves exactly one RM: the one serving, or the newest once it is healthy. */
+async function finishInterruptedHandoff(appName: string, machines: FlyMachine[]) {
+	const { newest, running, stale } = planInterruptedHandoff(machines)
+	nicelog(
+		`${appName}: found ${machines.length} replication-managers, finishing an interrupted handoff to ${newest.id}`
+	)
+	for (const m of stale) {
+		await destroyMachineAndVolume(appName, m.id, m.config?.mounts?.[0]?.volume)
+	}
+	if (!running) return
+	try {
+		await waitUntilHealthy(appName, newest.id)
+	} catch (e) {
+		nicelog(`${appName}: ${newest.id} never became healthy, keeping ${running.id}`, e)
+		await destroyMachineAndVolume(appName, newest.id, newest.config?.mounts?.[0]?.volume)
+		return
+	}
+	await stopAndDestroy(appName, running)
+}
+
 /**
  * Deploys `renderedToml` to the single-machine RM app with an overlap between the old and new RM.
  * Falls back to `flyctl deploy` when the app has no machine yet.
@@ -150,24 +239,23 @@ export async function handOffReplicationManager({
 	configFile: string
 	pwd: string
 }) {
-	const machines = await listMachines(appName)
+	let machines = await listMachines(appName)
 	if (machines.length === 0) {
 		nicelog(`${appName}: no machine yet, creating it with flyctl deploy`)
 		await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd })
 		return
 	}
-	// A second machine means an earlier handoff didn't finish; picking one to replace would be a
-	// guess, so leave it to a person.
-	if (machines.length !== 1) {
-		throw new Error(
-			`${appName}: expected 1 replication-manager machine, found ${machines.length} (${machines
-				.map((m) => `${m.id} ${m.state}`)
-				.join(', ')}). Destroy the stale one, keeping the healthy one, and rerun the deploy.`
-		)
+	if (machines.length > 1) {
+		await finishInterruptedHandoff(appName, machines)
+		machines = await listMachines(appName)
+		if (machines.length !== 1) {
+			throw new Error(
+				`${appName}: expected 1 replication-manager after cleanup, found ${machines.length}`
+			)
+		}
 	}
 	const [old] = machines
 	if (!old.config) throw new Error(`${appName}: machine ${old.id} has no config`)
-	const oldVolumeId = old.config.mounts?.[0]?.volume
 	const parsed = toml.parse(renderedToml) as RenderedRmToml
 	const region = old.region ?? parsed.primary_region
 
@@ -209,24 +297,8 @@ export async function handOffReplicationManager({
 		])
 		newMachine = (await listMachines(appName)).find((m) => m.name === name)
 		if (!newMachine) throw new Error(`${appName}: new machine ${name} not found after machine run`)
-		nicelog(`${appName}: started ${newMachine.id}, waiting for its first backup`)
-
-		const deadline = Date.now() + NEW_MACHINE_TIMEOUT_MS
-		let lastLog = 0
-		for (;;) {
-			const current = (await listMachines(appName)).find((m) => m.id === newMachine!.id)
-			if (isHealthy(current)) break
-			if (Date.now() > deadline) {
-				throw new Error(
-					`${appName}: new machine ${newMachine.id} not healthy after ${NEW_MACHINE_TIMEOUT_MS / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
-				)
-			}
-			if (Date.now() - lastLog > 60_000) {
-				nicelog(`${appName}: ${newMachine.id} is ${current?.state}, checks not passing yet`)
-				lastLog = Date.now()
-			}
-			await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
-		}
+		nicelog(`${appName}: started ${newMachine.id}, waiting for it to restore its replica`)
+		await waitUntilHealthy(appName, newMachine.id)
 	} catch (e) {
 		nicelog(`${appName}: handoff failed, removing the new machine; ${old.id} keeps serving`)
 		try {
@@ -241,19 +313,7 @@ export async function handOffReplicationManager({
 	}
 
 	nicelog(`${appName}: ${newMachine.id} is healthy, stopping ${old.id} so it drains to it`)
-	await exec('flyctl', ['machine', 'stop', old.id, '-a', appName])
-	await exec('flyctl', [
-		'machine',
-		'wait',
-		old.id,
-		'-a',
-		appName,
-		'--state',
-		'stopped',
-		'--wait-timeout',
-		'6m',
-	])
-	await destroyMachineAndVolume(appName, old.id, oldVolumeId)
+	await stopAndDestroy(appName, old)
 
 	const leftover = (await listVolumes(appName)).filter((v) => !v.attached_machine_id)
 	if (leftover.length > 0) {
