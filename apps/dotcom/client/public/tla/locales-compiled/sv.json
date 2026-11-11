@@ -185,6 +185,12 @@
       "value": "Skapa fil"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Flytta till"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Ta bort medlem"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Logga in för att acceptera den här inbjudan."
     }
   ],
   "3bc7d6ea2f": [
@@ -734,6 +746,12 @@
       "value": "Vänligen ladda om sidan"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Spara innehållet som en .tldr-fil: välj \"Spara en kopia\" i menyn uppe till vänster."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -994,6 +1012,12 @@
       "value": "? Den här åtgärden kan inte ångras."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kopierad inbjudningslänk"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1136,12 +1160,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Exportera innehållet som en .tldr-fil: Välj \"Ladda ner\" i menyn uppe till vänster."
     }
   ],
   "a104439641": [
@@ -1702,6 +1720,12 @@
       "value": "eller"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Filhistorik"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1798,6 +1822,12 @@
     {
       "type": 0,
       "value": "Radera"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Den här inbjudningslänken är ogiltig eller har löpt ut."
     }
   ],
   "f476ba8646": [
@@ -1940,6 +1970,12 @@
     {
       "type": 0,
       "value": "Skapa ett gratis konto för att spara dina filer och rita med dina lagkamrater med tldraw."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Fel vid godkännande av inbjudan"
     }
   ],
   "ffcd73e997": [

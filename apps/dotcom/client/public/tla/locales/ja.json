@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "ファイルを作成"
   },
+  "1a7222b4e5": {
+    "translation": "移動"
+  },
   "1da2e8106b": {
     "translation": "予期せぬエラーが発生しました。"
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "メンバーを削除する"
+  },
+  "398f51738e": {
+    "translation": "招待を受けるにはログインしてください。"
   },
   "3bc7d6ea2f": {
     "translation": "メールで続行"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "ページを再読み込みしてください"
   },
+  "747ee44424": {
+    "translation": "コンテンツを.tldrファイルとして保存するには、左上のメニューから「コピーを保存」を選択してください。"
+  },
   "74ff4bad28": {
     "translation": "ファイルが見つかりません"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong>を削除してもよろしいですか？この操作は元に戻せません。"
   },
+  "930390d222": {
+    "translation": "招待リンクをコピーしました"
+  },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, other {# 未読}}"
-  },
-  "a0da245992": {
-    "translation": "コンテンツを .tldr ファイルとしてエクスポートします。左上のメニューで「ダウンロード」を選択します。"
   },
   "a104439641": {
     "translation": "パディング"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "または"
   },
+  "ea13ecec38": {
+    "translation": "ファイル履歴"
+  },
   "ea4788705e": {
     "translation": "キャンセル"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "削除"
   },
+  "f408fa5fbd": {
+    "translation": "この招待リンクは無効であるか、期限切れです。"
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>、<name>{b}</name> と{count, plural, other {他 # 人}}があなたのコメントに反応しました"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "無料アカウントを作成してファイルを保存し、チームメイトとtldrawを共有しましょう。"
+  },
+  "ffad261a48": {
+    "translation": "招待の承諾エラー"
   },
   "ffcd73e997": {
     "translation": "ファイルをインポート…"
