@@ -118,12 +118,9 @@ assert(
 )
 
 // Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
+// TEMP(preview-handoff): previews run multi-node to exercise the RM handoff
 const deployZero =
-	env.DEPLOY_ZERO === 'false'
-		? false
-		: previewId && env.DEPLOY_ZERO === 'flyio-multinode'
-			? ('flyio' as const)
-			: (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 // For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
 const flyioAppName =
 	deployZero === 'flyio'
@@ -320,7 +317,15 @@ const zeroVmSizes = {
 		vsMinMachines: 13,
 		killTimeout: '5m',
 	},
-	preview: { single: { cpus: 2, memory: '2gb' } },
+	// TEMP(preview-handoff): multi-node sizes for previews
+	preview: {
+		single: { cpus: 2, memory: '2gb' },
+		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
+		vs: { cpus: 2, memory: '1gb' },
+		volumeSize: '1gb',
+		vsMinMachines: 1,
+		killTimeout: '5m',
+	},
 } as const
 
 const zeroConnectionLimits = {
@@ -335,6 +340,9 @@ const zeroConnectionLimits = {
 	// Previews use Supabase branch DB
 	preview: {
 		single: { upstream: 3, cvr: 5 },
+		// TEMP(preview-handoff): multi-node limits for previews
+		rm: { upstream: 1, cvr: 1 },
+		vs: { upstream: 2, cvr: 3 },
 	},
 } as const
 interface ConnLimits {
@@ -915,7 +923,8 @@ async function deployZeroViaFlyIoMultiNode() {
 		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
 		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
 		deploy:
-			env.TLDRAW_ENV === 'staging'
+			// TEMP(preview-handoff): previews too
+			env.TLDRAW_ENV === 'staging' || env.TLDRAW_ENV === 'preview'
 				? (renderedToml) =>
 						handOffReplicationManager({
 							appName: flyioReplAppName,
