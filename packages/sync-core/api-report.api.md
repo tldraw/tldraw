@@ -9,6 +9,7 @@ import { AtomMap } from '@tldraw/store';
 import { Emitter } from 'nanoevents';
 import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
+import { rejectAll } from '@tldraw/tlschema';
 import { SerializedSchema } from '@tldraw/store';
 import { SerializedSchemaV2 } from 'tldraw';
 import { Signal } from '@tldraw/state';
@@ -17,10 +18,15 @@ import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
 import { ThrottledFunction } from '@tldraw/utils';
+import { TLCanWrite } from '@tldraw/tlschema';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRecordChange } from '@tldraw/tlschema';
+import { TLRecordReader } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
+import { TLWriteContext } from '@tldraw/tlschema';
+import { TLWriteRejection } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 
 // @internal
@@ -254,6 +260,8 @@ export const RecordOpType: {
 // @internal
 export type RecordOpType = (typeof RecordOpType)[keyof typeof RecordOpType];
 
+export { rejectAll }
+
 // @internal
 export type RoomSession<R extends UnknownRecord, Meta> = (RoomSessionBase<R, Meta> & {
     state: typeof RoomSessionState.AwaitingConnectMessage;
@@ -377,6 +385,8 @@ export interface SyncSqliteDatabase {
     };
 }
 
+export { TLCanWrite }
+
 // @internal
 export interface TLConnectRequest {
     // (undocumented)
@@ -474,6 +484,10 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
     }>, SessionMeta>;
 };
 
+export { TLRecordChange }
+
+export { TLRecordReader }
+
 // @public
 export class TLRemoteSyncError extends Error {
     constructor(reason: string | TLSyncErrorCloseEventReason);
@@ -482,6 +496,14 @@ export class TLRemoteSyncError extends Error {
     // (undocumented)
     readonly reason: string | TLSyncErrorCloseEventReason;
 }
+
+// @public
+export type TLRoomCanWrite<R extends UnknownRecord, SessionMeta> = TLCanWrite<R, {
+    session: {
+        meta: SessionMeta;
+        sessionId: string;
+    };
+}>;
 
 // @internal
 export interface TLRoomSocket<R extends UnknownRecord> {
@@ -548,6 +570,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 // @public
 export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
     authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
+    canWrite?: TLRoomCanWrite<R, SessionMeta>;
     // (undocumented)
     clientTimeout?: number;
     // @deprecated (undocumented)
@@ -592,6 +615,7 @@ export interface TLSocketRoomOptions<R extends UnknownRecord, SessionMeta> {
 
 // @internal
 export type TLSocketServerSentDataEvent<R extends UnknownRecord> = {
+    rejections?: TLWriteRejection[];
     action: 'commit' | 'discard' | {
         rebaseWithDiff: NetworkDiff<R>;
     };
@@ -651,6 +675,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
+        onWriteRejected?(rejected: TLSyncClientRejectedWrite<R>): void;
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
@@ -677,6 +702,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
     // @internal (undocumented)
     readonly store: S;
+}
+
+// @public
+export interface TLSyncClientRejectedWrite<R extends UnknownRecord> {
+    // (undocumented)
+    changes: RecordsDiff<R>;
+    // (undocumented)
+    rejections: readonly TLWriteRejection[];
 }
 
 // @public
@@ -722,6 +755,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
         }): void;
         authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>;
         objectTypes?: readonly string[];
+        canWrite?: TLRoomCanWrite<R, SessionMeta>;
         clientTimeout?: number;
         log?: TLSyncLog;
         onPresenceChange?(): void;
@@ -856,6 +890,10 @@ export interface TLSyncStorageTransactionResult<T, R extends UnknownRecord = Unk
     // (undocumented)
     result: T;
 }
+
+export { TLWriteContext }
+
+export { TLWriteRejection }
 
 // @internal
 export type ValueOp = AppendOp | DeleteOp | PatchOp | PutOp;

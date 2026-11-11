@@ -8,7 +8,7 @@ import {
 	Store,
 	UnknownRecord,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, noop } from '@tldraw/utils'
+import { exhaustiveSwitchError, isEqual, noop } from '@tldraw/utils'
 import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
 
 const HistoryRecorderState = {
@@ -73,6 +73,39 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.push({ type: 'diff', diff }),
 			redos,
 		}))
+	}
+
+	/**
+	 * Takes changes that the server rejected out of undo and redo, otherwise undo replays a step
+	 * that never happened. `changes` is the rejected change as the user made it.
+	 *
+	 * @internal
+	 */
+	removeRejectedChanges(changes: RecordsDiff<R>) {
+		this.flushPendingDiff()
+		const { undos, redos } = this.stacks.get()
+		if (undos.length === 0 && redos.length === 0) return
+
+		const ids = [
+			...Object.keys(changes.added),
+			...Object.keys(changes.updated),
+			...Object.keys(changes.removed),
+		]
+		if (ids.length === 0) return
+
+		const undoEntries = stackToArray(undos).slice()
+		const redoEntries = stackToArray(redos).slice()
+		for (const id of ids) {
+			removeRejectedSteps(undoEntries, id, changes)
+			removeRecord(redoEntries, id)
+		}
+
+		// otherwise a mark with nothing under it leaves getCanUndo() true
+		for (const entries of [undoEntries, redoEntries]) {
+			while (entries.length > 0 && entries[entries.length - 1].type === 'stop') entries.pop()
+		}
+
+		this.stacks.set({ undos: arrayToStack(undoEntries), redos: arrayToStack(redoEntries) })
 	}
 
 	getNumUndos() {
@@ -416,6 +449,76 @@ class StackItem<T> {
 
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
+	}
+}
+
+/** Entries are newest first, like the stacks. */
+function arrayToStack<T>(entries: T[]): Stack<T> {
+	let result = stack<T>()
+	for (let i = entries.length - 1; i >= 0; i--) result = result.push(entries[i])
+	return result
+}
+
+/** A record before and after one history step, or null if the step did not touch it. */
+function getStepStates<R extends UnknownRecord>(
+	diff: RecordsDiff<R>,
+	id: string
+): [R | undefined, R | undefined] | null {
+	if (id in diff.added) return [undefined, diff.added[id as R['id']]]
+	if (id in diff.updated) return diff.updated[id as R['id']]
+	if (id in diff.removed) return [diff.removed[id as R['id']], undefined]
+	return null
+}
+
+function withoutRecord<R extends UnknownRecord>(diff: RecordsDiff<R>, id: string): RecordsDiff<R> {
+	const omit = <T>(map: Record<string, T>) =>
+		Object.fromEntries(Object.entries(map).filter(([key]) => key !== id))
+	return {
+		added: omit(diff.added),
+		updated: omit(diff.updated),
+		removed: omit(diff.removed),
+	} as RecordsDiff<R>
+}
+
+/** Removes a record from every entry; an entry left empty is removed. */
+function removeRecord<R extends UnknownRecord>(entries: TLHistoryEntry<R>[], id: string) {
+	for (let i = entries.length - 1; i >= 0; i--) {
+		const entry = entries[i]
+		if (entry.type !== 'diff' || !getStepStates(entry.diff, id)) continue
+		const diff = withoutRecord(entry.diff, id)
+		if (isRecordsDiffEmpty(diff)) entries.splice(i, 1)
+		else entries[i] = { type: 'diff', diff }
+	}
+}
+
+/**
+ * Removes the steps that led a record from the server's version to the user's, newest first. It
+ * stops at a step that does not continue that chain, because the record changed without us.
+ */
+function removeRejectedSteps<R extends UnknownRecord>(
+	entries: TLHistoryEntry<R>[],
+	id: string,
+	rejected: RecordsDiff<R>
+) {
+	const states = getStepStates(rejected, id)
+	if (!states) return
+	const server = states[0]
+	let current = states[1]
+
+	for (let i = 0; i < entries.length && !isEqual(current, server); i++) {
+		const entry = entries[i]
+		if (entry.type !== 'diff') continue
+		const step = getStepStates(entry.diff, id)
+		if (!step) continue
+		if (!isEqual(step[1], current)) return
+		current = step[0]
+		const diff = withoutRecord(entry.diff, id)
+		if (isRecordsDiffEmpty(diff)) {
+			entries.splice(i, 1)
+			i--
+		} else {
+			entries[i] = { type: 'diff', diff }
+		}
 	}
 }
 

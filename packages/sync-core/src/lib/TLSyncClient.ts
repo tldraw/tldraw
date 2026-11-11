@@ -7,6 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
+import type { TLWriteRejection } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -313,6 +314,17 @@ function getPresenceOp<R extends UnknownRecord>(
 }
 
 /**
+ * Changes of this client that the room's `canWrite` rejected, with `changes` as the user made
+ * them: from the server's version of each record to theirs.
+ *
+ * @public
+ */
+export interface TLSyncClientRejectedWrite<R extends UnknownRecord> {
+	rejections: readonly TLWriteRejection[]
+	changes: RecordsDiff<R>
+}
+
+/**
  * Main client-side synchronization engine for collaborative tldraw applications.
  *
  * TLSyncClient manages bidirectional synchronization between a local tldraw Store
@@ -461,6 +473,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
+	private readonly onWriteRejected?: (rejected: TLSyncClientRejectedWrite<R>) => void
+
 	private isDebugging = false
 	private debug(...args: any[]) {
 		if (this.isDebugging) {
@@ -497,6 +511,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onLoad(self: TLSyncClient<R, S>): void
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
+		/** Called after the room's `canWrite` rejected changes of this client and they were reverted. */
+		onWriteRejected?(rejected: TLSyncClientRejectedWrite<R>): void
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
@@ -562,6 +578,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.socket = config.socket
 		this.onAfterConnect = config.onAfterConnect
 		this.onCustomMessageReceived = config.onCustomMessageReceived
+		this.onWriteRejected = config.onWriteRejected
 
 		let didLoad = false
 
@@ -965,6 +982,30 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		}
 	}
 
+	/**
+	 * The rejected changes as the user made them. It compares against the store after the revert,
+	 * so a later pending push on the same record is part of the user's version.
+	 */
+	private getRejectedChanges(
+		rejections: readonly TLWriteRejection[],
+		userStates: Map<string, R | undefined>
+	): RecordsDiff<R> {
+		const changes = { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
+		for (const { id } of rejections) {
+			const key = id as R['id']
+			const user = userStates.get(id)
+			const server = this.store.get(id as RecordId<any>) as R | undefined
+			if (user && !server) {
+				changes.added[key] = user
+			} else if (!user && server) {
+				changes.removed[key] = server
+			} else if (user && server && !isEqual(user, server)) {
+				changes.updated[key] = [server, user]
+			}
+		}
+		return changes
+	}
+
 	// eslint-disable-next-line tldraw/prefer-class-methods
 	private rebase = () => {
 		// need to make sure that our speculative changes are in sync with the actual store instance before
@@ -974,6 +1015,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+
+		// The user's version of each rejected record, read before the merge below reverts it.
+		const rejected: (readonly TLWriteRejection[])[] = []
+		const userStates = new Map<string, R | undefined>()
+		for (const diff of diffs) {
+			if (diff.type !== 'push_result' || !diff.rejections?.length) continue
+			rejected.push(diff.rejections)
+			for (const { id } of diff.rejections) {
+				userStates.set(id, this.store.get(id as RecordId<any>))
+			}
+		}
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -1031,6 +1083,19 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			console.error(e)
 			this.store.ensureStoreIsUsable()
 			this.resetConnection()
+			return
+		}
+
+		// Reported after the merge, otherwise a throwing callback would reset the connection.
+		for (const rejections of rejected) {
+			try {
+				this.onWriteRejected?.({
+					rejections,
+					changes: this.getRejectedChanges(rejections, userStates),
+				})
+			} catch (e) {
+				console.error('onWriteRejected threw', e)
+			}
 		}
 	}
 }

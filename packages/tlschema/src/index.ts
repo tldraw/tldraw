@@ -362,14 +362,21 @@ export {
 } from './styles/TLVerticalAlignStyle'
 export {
 	createCachedUserResolve,
+	rejectAll,
 	type TLAssetContext,
 	type TLAssetStore,
+	type TLCanWrite,
+	type TLRecordChange,
+	type TLRecordReader,
+	type TLRejectedWrite,
 	type TLSerializedStore,
 	type TLStore,
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,
 	type TLUserStore,
+	type TLWriteContext,
+	type TLWriteRejection,
 } from './TLStore'
 export {
 	getDefaultTranslationLocale,

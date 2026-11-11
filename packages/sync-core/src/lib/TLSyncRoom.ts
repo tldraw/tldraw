@@ -7,6 +7,13 @@ import {
 	UnknownRecord,
 } from '@tldraw/store'
 import {
+	rejectAll,
+	type TLCanWrite,
+	type TLRecordChange,
+	type TLRecordReader,
+	type TLWriteRejection,
+} from '@tldraw/tlschema'
+import {
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
@@ -209,6 +216,17 @@ export type TLRecordAuthorizers<R extends UnknownRecord, SessionMeta> = {
 }
 
 /**
+ * A {@link @tldraw/tlschema#TLCanWrite} function as a room runs it: it also gets the session that
+ * pushed. Server-initiated writes do not go through it.
+ *
+ * @public
+ */
+export type TLRoomCanWrite<R extends UnknownRecord, SessionMeta> = TLCanWrite<
+	R,
+	{ session: { sessionId: string; meta: SessionMeta } }
+>
+
+/**
  * A collaborative workspace that manages multiple client sessions and synchronizes
  * document changes between them. The room serves as the authoritative source for
  * all document state and handles conflict resolution, schema migrations, and
@@ -353,6 +371,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	private readonly canWrite?: TLRoomCanWrite<R, SessionMeta>
 	private readonly sessionIdleTimeout: number
 
 	/**
@@ -401,6 +420,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+		/** Judges the document changes of each client push. See {@link TLRoomCanWrite}. */
+		canWrite?: TLRoomCanWrite<R, SessionMeta>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -409,6 +430,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.authorizeRecord = opts.authorizeRecord
+		this.canWrite = opts.canWrite
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -1425,6 +1447,10 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					? { sessionId: session.sessionId, isReadonly: session.isReadonly, meta: session.meta }
 					: null
 
+				// With canWrite, nothing is stored until it accepts the batch.
+				const staged = session && this.canWrite ? new StagedDocStore<R>(txn) : null
+				const docStore: MinimalDocStore<R> = staged ?? txn
+
 				if (message.diff) {
 					// The push request was for the document scope.
 					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
@@ -1455,7 +1481,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// against the stored one, so a swap would consult the wrong authorizer (or
 								// none). Skip it like a veto; the client self-corrects.
 								// `undefined` (no session) means the guard didn't fetch, so addDocument will.
-								const prevRecord = session ? ((txn.get(id) as R | undefined) ?? null) : undefined
+								const prevRecord = session
+									? ((docStore.get(id) as R | undefined) ?? null)
+									: undefined
 								if (session && prevRecord && prevRecord.typeName !== record.typeName) {
 									this.log?.warn?.(
 										'skipping put that changes typeName',
@@ -1494,11 +1522,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									}
 								}
 								// The guard above already fetched this, so don't hit storage again.
-								addDocument(txn, docChanges, id, record, authorize, prevRecord)
+								addDocument(docStore, docChanges, id, record, authorize, prevRecord)
 								break
 							}
 							case RecordOpType.Patch: {
-								const doc = txn.get(id) as R | undefined
+								const doc = docStore.get(id) as R | undefined
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
 								if (!canWrite(doc.typeName)) continue
@@ -1527,11 +1555,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									: undefined
 								// Try to patch the document. If it fails, stop here. The write gate above
 								// already fetched the record, so pass it through.
-								patchDocument(txn, docChanges, id, op[1], authorize, doc)
+								patchDocument(docStore, docChanges, id, op[1], authorize, doc)
 								break
 							}
 							case RecordOpType.Remove: {
-								const doc = txn.get(id) as R | undefined
+								const doc = docStore.get(id) as R | undefined
 								if (!doc) {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
@@ -1556,7 +1584,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 								// Delete the document and propagate the delete op
 								// delete automatically creates tombstones
-								txn.delete(id)
+								docStore.delete(id)
 								propagateOp(docChanges, id, op, doc, undefined)
 								break
 							}
@@ -1564,12 +1592,25 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 				}
 
-				return { docChanges, presenceChanges }
+				let rejections: TLWriteRejection[] = []
+				if (staged && session) {
+					const changes = staged.getChanges()
+					if (changes.length > 0) {
+						rejections = this.getWriteRejections(session, changes, txn, staged)
+					}
+					// One rejection discards the whole push, otherwise it could be stored in part.
+					if (rejections.length > 0) docChanges.diffs = null
+					else staged.flush()
+				}
+
+				return { docChanges, presenceChanges, rejections }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
 		)
 
 		this.lastDocumentClock = documentClock
+
+		const rejected = result.rejections.length > 0 ? { rejections: result.rejections } : null
 
 		let pushResult: TLSocketServerSentEvent<R> | undefined
 		if (changes && session) {
@@ -1586,6 +1627,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'commit',
+				...rejected,
 			}
 		} else if (!result.docChanges.diffs?.networkDiff) {
 			pushResult = {
@@ -1593,6 +1635,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'discard',
+				...rejected,
 			}
 		} else if (session) {
 			// if recordsDiff is null but diff is not, then there are no clients that need down migrations
@@ -1611,6 +1654,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					clientClock: message.clientClock,
 					serverClock: documentClock,
 					action: { rebaseWithDiff: diff.value },
+					...rejected,
 				}
 			}
 			// if the difff was not ok then the session was rejected and it's ok to continue without a push result
@@ -1658,6 +1702,47 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	}
 
 	/**
+	 * Asks `canWrite` about a push. Any rejection rejects every change: those it did not name get
+	 * the reason of the first one.
+	 */
+	private getWriteRejections(
+		session: RoomSession<R, SessionMeta>,
+		changes: TLRecordChange<R>[],
+		before: MinimalDocStore<R>,
+		after: MinimalDocStore<R>
+	): TLWriteRejection[] {
+		const failClosed = (problem: string, error?: unknown) => {
+			this.log?.error?.(`canWrite ${problem}; rejecting the push`, error ?? '', session.sessionId)
+			return rejectAll(changes, 'not-allowed')
+		}
+
+		let answer: readonly TLWriteRejection[]
+		try {
+			answer = this.canWrite!(changes, {
+				session: { sessionId: session.sessionId, meta: session.meta },
+				before: { get: (id: string) => before.get(id) } as TLRecordReader<R>,
+				after: { get: (id: string) => after.get(id) } as TLRecordReader<R>,
+			})
+		} catch (e) {
+			return failClosed('threw', e)
+		}
+		if (!Array.isArray(answer)) return failClosed('did not return a list')
+		if (answer.length === 0) return []
+
+		const ids = new Set<string>(changes.map((change) => change.id))
+		const reasons = new Map<string, string>()
+		for (const rejection of answer) {
+			if (typeof rejection?.id !== 'string' || typeof rejection.reason !== 'string') {
+				return failClosed('returned a malformed rejection')
+			}
+			if (!ids.has(rejection.id)) return failClosed('rejected an id that is not in the push')
+			if (!reasons.has(rejection.id)) reasons.set(rejection.id, rejection.reason)
+		}
+		const fallback = answer[0].reason
+		return changes.map(({ id }) => ({ id, reason: reasons.get(id) ?? fallback }))
+	}
+
+	/**
 	 * Handle the event when a client disconnects. Cleans up the session and
 	 * removes any presence information.
 	 *
@@ -1699,5 +1784,50 @@ export class PresenceStore<R extends UnknownRecord> implements MinimalDocStore<R
 
 	values() {
 		return this.presences.values()
+	}
+}
+
+/** Holds a push's document writes until the room decides to store them. */
+class StagedDocStore<R extends UnknownRecord> implements MinimalDocStore<R> {
+	// undefined marks a staged delete
+	private readonly staged = new Map<string, R | undefined>()
+
+	constructor(private readonly base: MinimalDocStore<R>) {}
+
+	get(id: string): UnknownRecord | undefined {
+		return this.staged.has(id) ? this.staged.get(id) : this.base.get(id)
+	}
+
+	set(id: string, record: R): void {
+		this.staged.set(id, record)
+	}
+
+	delete(id: string): void {
+		this.staged.set(id, undefined)
+	}
+
+	getChanges(): TLRecordChange<R>[] {
+		const changes: TLRecordChange<R>[] = []
+		for (const [id, next] of this.staged) {
+			const prev = this.base.get(id) as R | undefined
+			if (!prev && !next) continue
+			const typeName = (next ?? prev)!.typeName
+			const type = !prev ? 'create' : !next ? 'delete' : 'update'
+			changes.push({
+				id,
+				typeName,
+				type,
+				prev: prev ?? null,
+				next: next ?? null,
+			} as TLRecordChange<R>)
+		}
+		return changes
+	}
+
+	flush(): void {
+		for (const [id, next] of this.staged) {
+			if (next) this.base.set(id, next)
+			else this.base.delete(id)
+		}
 	}
 }

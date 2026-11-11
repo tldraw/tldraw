@@ -1,5 +1,5 @@
 import { HistoryEntry } from '@tldraw/store'
-import { BoxModel, TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
+import { BoxModel, TLPageId, TLRecord, TLShapeId, TLWriteRejection } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
 
 /** @public */
@@ -24,6 +24,8 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
+	/** Changes of this user's were rejected and reverted. */
+	'rejected-write': [{ rejections: readonly TLWriteRejection[]; rejectedBy: 'client' | 'server' }]
 	dispose: []
 }
 

@@ -1,10 +1,14 @@
 import { Signal, computed } from '@tldraw/state'
 import {
+	IdOf,
+	RecordFromId,
+	RecordsDiff,
 	SerializedStore,
 	Store,
 	StoreSchema,
 	StoreSnapshot,
 	StoreValidationFailure,
+	UnknownRecord,
 } from '@tldraw/store'
 import { IndexKey, JsonObject, annotateError, sortByIndex, structuredClone } from '@tldraw/utils'
 import { TLAsset, TLAssetId } from './records/TLAsset'
@@ -293,6 +297,95 @@ export function createCachedUserResolve(
 }
 
 /**
+ * One record that a batch creates, updates or deletes.
+ *
+ * @public
+ */
+export type TLRecordChange<R extends UnknownRecord = TLRecord> = R extends UnknownRecord
+	? { readonly id: R['id']; readonly typeName: R['typeName'] } & (
+			| { readonly type: 'create'; readonly prev: null; readonly next: R }
+			| { readonly type: 'update'; readonly prev: R; readonly next: R }
+			| { readonly type: 'delete'; readonly prev: R; readonly next: null }
+		)
+	: never
+
+/**
+ * A read-only view of the document at one point in time.
+ *
+ * @public
+ */
+export interface TLRecordReader<R extends UnknownRecord = TLRecord> {
+	get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined
+}
+
+/**
+ * One rejected change. The reason is a code or a message, and reaches the client as it is.
+ *
+ * @public
+ */
+export interface TLWriteRejection {
+	readonly id: string
+	readonly reason: string
+}
+
+/**
+ * What the room and the editor both give a {@link TLCanWrite} function.
+ *
+ * @public
+ */
+export interface TLWriteContext<R extends UnknownRecord = TLRecord> {
+	/** The document before the batch. */
+	readonly before: TLRecordReader<R>
+	/** The document after the batch. */
+	readonly after: TLRecordReader<R>
+}
+
+/**
+ * Returns the changes of a batch that cannot be written. An empty list allows the batch.
+ *
+ * A throw, a return value that is not a list, and a rejection for an id that is not in the batch
+ * all reject every change, with the reason `'not-allowed'`.
+ *
+ * Must be synchronous and pure, and must not change a record. It can run more than once for one
+ * batch.
+ *
+ * @public
+ */
+export type TLCanWrite<R extends UnknownRecord = TLRecord, Context = object> = (
+	changes: readonly TLRecordChange<R>[],
+	context: TLWriteContext<R> & Context
+) => readonly TLWriteRejection[]
+
+/**
+ * Rejects each change of a batch with one reason.
+ *
+ * @example
+ * ```ts
+ * const editorsOnly: TLCanWrite<TLRecord, { role: string }> = (changes, { role }) =>
+ * 	role === 'editor' ? [] : rejectAll(changes, 'view-only')
+ * ```
+ *
+ * @public
+ */
+export function rejectAll(
+	changes: readonly { readonly id: string }[],
+	reason: string
+): TLWriteRejection[] {
+	return changes.map(({ id }) => ({ id, reason }))
+}
+
+/**
+ * Changes of this user's that the server rejected, as reported to the editor.
+ *
+ * @public
+ */
+export interface TLRejectedWrite {
+	readonly rejections: readonly TLWriteRejection[]
+	/** The rejected changes as the user made them: from the server's version to theirs. */
+	readonly changes: RecordsDiff<TLRecord>
+}
+
+/**
  * Configuration properties for a tldraw store, defining its behavior and integrations.
  * These props are passed when creating a new store instance.
  *
@@ -336,6 +429,12 @@ export interface TLStoreProps {
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/**
+		 * Subscribes to the server's rejections of this user's changes. The editor removes them
+		 * from undo and redo and emits `'rejected-write'`. Set by sync; a custom transport can
+		 * provide its own.
+		 */
+		onWriteRejected?(callback: (rejected: TLRejectedWrite) => void): () => void
 	}
 }
 
