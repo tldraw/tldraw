@@ -1,5 +1,11 @@
 import type { MutatorResult } from '@rocicorp/zero'
-import { can, type TlaLibrary, type TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
+import {
+	can,
+	MAX_LIBRARY_ITEMS_PER_REQUEST,
+	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
+	type TlaLibrary,
+	type TlaLibraryItemThumbnail,
+} from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
 	LibraryNotFoundError,
@@ -44,6 +50,19 @@ interface PendingItem {
 	arrived: Promise<boolean>
 }
 
+/** An item being added: its pending listing, and what the worker needs to store it. */
+interface NewItem {
+	id: string
+	newItem: TLNewLibraryItem
+	contentJson: string
+	/** Its content and thumbnails, as counted against what one request may add. */
+	bytes: number
+	/** Object URLs of its thumbnails, listed while it's stored and after. */
+	thumbnail: TLLibraryThumbnail | undefined
+	pending: PendingItem
+	settleArrival(arrived: boolean): void
+}
+
 /** A library being copied, under the id its row will have: listed until the row arrives. */
 interface PendingLibrary {
 	library: TLLibrary
@@ -74,6 +93,32 @@ const toLibrary = (row: TlaLibrary): TLLibrary =>
 const revokeThumbnail = (thumbnail: TLLibraryThumbnail) =>
 	mapThumbnail(thumbnail, (url) => URL.revokeObjectURL(url))
 
+const getThumbnailBytes = (thumbnail: TLLibraryThumbnail<Blob> | undefined) => {
+	if (!thumbnail) return 0
+	return thumbnail instanceof Blob ? thumbnail.size : thumbnail.light.size + thumbnail.dark.size
+}
+
+/** The items to send in each request, in order, each request within what the worker accepts. */
+function splitIntoRequests(items: NewItem[]): NewItem[][] {
+	const requests: NewItem[][] = []
+	let bytes = 0
+	for (const item of items) {
+		const last = requests.at(-1)
+		if (
+			last &&
+			last.length < MAX_LIBRARY_ITEMS_PER_REQUEST &&
+			bytes + item.bytes <= MAX_LIBRARY_ITEMS_REQUEST_BYTES
+		) {
+			last.push(item)
+			bytes += item.bytes
+		} else {
+			requests.push([item])
+			bytes = item.bytes
+		}
+	}
+	return requests
+}
+
 /**
  * Workspace libraries, kept in tldraw.com's database and synced through Zero: those of every
  * workspace the user is a member of, the home workspace's being private to them. A board's own
@@ -90,6 +135,10 @@ const revokeThumbnail = (thumbnail: TLLibraryThumbnail) =>
  * and a copy of a library with its source's name and items' thumbnails while the worker copies
  * it; one the worker can't store disappears and `addItem` or `copyLibrary` rejects. Changes to
  * either wait until its row has arrived.
+ *
+ * Items added together are all listed at once and sent in as few requests as the worker allows,
+ * one after another, usually one. If a request fails, its items and those after it disappear and
+ * `addItems` rejects; items an earlier request stored stay.
  */
 export class TldrawAppLibrariesSource implements LibrarySource {
 	readonly id = 'dotcom-workspaces'
@@ -286,56 +335,32 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
+		const [item] = await this.addItems(libraryId, [newItem])
+		return item
+	}
+
+	async addItems(libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) {
 		if (!this.can('addItem', libraryId)) {
 			throw new LibraryPermissionError('addItem', libraryId)
 		}
-		const thumbnail =
-			newItem.thumbnail && mapThumbnail(newItem.thumbnail, (blob) => URL.createObjectURL(blob))
-		const name = newItem.name ? { name: newItem.name } : {}
-		const id = uniqueId()
-		const itemId = LibraryItemRecordType.createId(id)
-		const arrival = settleable<boolean>()
-		const pending: PendingItem = {
-			item: LibraryItemRecordType.create({
-				id: itemId,
-				libraryId,
-				...name,
-				...(thumbnail ? { thumbnail } : {}),
-				createdAt: Date.now(),
-			}),
-			loadContent: async () => structuredClone(newItem.content),
-			arrived: arrival.promise,
-		}
-		this.pendingItems.update((all) => [...all, pending])
+		const now = Date.now()
+		const adding = newItems.map((newItem, index) =>
+			this.listNewItem(libraryId, newItem, now + index)
+		)
+		this.pendingItems.update((all) => [...all, ...adding.map((a) => a.pending)])
 
-		let stored: StoredItem
+		const added: TLLibraryItem[] = []
 		try {
 			await this.whenConfirmed(libraryId)
-			stored = await this.storeItem(id, libraryId, newItem)
+			for (const request of splitIntoRequests(adding)) {
+				const stored = await this.storeItems(libraryId, request)
+				added.push(...request.map((a, index) => this.listStoredItem(a, stored[index])))
+			}
 		} catch (error) {
-			this.pendingItems.update((all) => all.filter((p) => p.item.id !== itemId))
-			if (thumbnail) revokeThumbnail(thumbnail)
-			arrival.settle(false)
+			this.unlistNewItems(adding.slice(added.length))
 			throw error
 		}
-
-		const listedThumbnail = thumbnail ?? stored.thumbnail
-		const item = LibraryItemRecordType.create({
-			id: itemId,
-			libraryId,
-			...name,
-			...(listedThumbnail ? { thumbnail: listedThumbnail } : {}),
-			createdAt: stored.createdAt,
-		})
-		if (thumbnail) {
-			this.localThumbnails.update((all) => new Map(all).set(id, thumbnail))
-		}
-		this.pendingItems.update((all) => all.map((p) => (p.item.id === itemId ? { ...p, item } : p)))
-		this.whenItemRowArrives(id).then(() => {
-			this.pendingItems.update((all) => all.filter((p) => p.item.id !== itemId))
-			arrival.settle(true)
-		})
-		return item
+		return added
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
@@ -372,25 +397,95 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		this.pendingLibraries.set([])
 	}
 
-	private async storeItem(
-		id: string,
+	/** Lists an item being added, under the id its row will have, until the row arrives. */
+	private listNewItem(
 		libraryId: TLLibraryId,
-		newItem: TLNewLibraryItem
-	): Promise<StoredItem> {
-		const form = new FormData()
-		form.set('id', id)
-		form.set('content', JSON.stringify(newItem.content))
-		if (newItem.thumbnail) {
-			form.set('thumbnail', getThumbnailForColorMode(newItem.thumbnail, 'light'))
-			if (!(newItem.thumbnail instanceof Blob)) form.set('darkThumbnail', newItem.thumbnail.dark)
+		newItem: TLNewLibraryItem,
+		createdAt: number
+	): NewItem {
+		const id = uniqueId()
+		const contentJson = JSON.stringify(newItem.content)
+		const thumbnail =
+			newItem.thumbnail && mapThumbnail(newItem.thumbnail, (blob) => URL.createObjectURL(blob))
+		const arrival = settleable<boolean>()
+		return {
+			id,
+			newItem,
+			contentJson,
+			bytes: new Blob([contentJson]).size + getThumbnailBytes(newItem.thumbnail),
+			thumbnail,
+			pending: {
+				item: LibraryItemRecordType.create({
+					id: LibraryItemRecordType.createId(id),
+					libraryId,
+					...(newItem.name ? { name: newItem.name } : {}),
+					...(thumbnail ? { thumbnail } : {}),
+					createdAt,
+				}),
+				loadContent: async () => structuredClone(newItem.content),
+				arrived: arrival.promise,
+			},
+			settleArrival: arrival.settle,
 		}
-		if (newItem.name) form.set('name', newItem.name)
+	}
+
+	/**
+	 * Lists a stored item as its row will be, its thumbnails still the local ones, until the row
+	 * arrives.
+	 */
+	private listStoredItem(adding: NewItem, stored: StoredItem): TLLibraryItem {
+		const { id, newItem, pending, thumbnail } = adding
+		const listedThumbnail = thumbnail ?? stored.thumbnail
+		const item = LibraryItemRecordType.create({
+			id: pending.item.id,
+			libraryId: pending.item.libraryId,
+			...(newItem.name ? { name: newItem.name } : {}),
+			...(listedThumbnail ? { thumbnail: listedThumbnail } : {}),
+			createdAt: stored.createdAt,
+		})
+		if (thumbnail) {
+			this.localThumbnails.update((all) => new Map(all).set(id, thumbnail))
+		}
+		this.pendingItems.update((all) => all.map((p) => (p.item.id === item.id ? { ...p, item } : p)))
+		this.whenItemRowArrives(id).then(() => {
+			this.pendingItems.update((all) => all.filter((p) => p.item.id !== item.id))
+			adding.settleArrival(true)
+		})
+		return item
+	}
+
+	private unlistNewItems(adding: NewItem[]) {
+		const itemIds = new Set(adding.map((a) => a.pending.item.id))
+		this.pendingItems.update((all) => all.filter((p) => !itemIds.has(p.item.id)))
+		for (const { thumbnail, settleArrival } of adding) {
+			if (thumbnail) revokeThumbnail(thumbnail)
+			settleArrival(false)
+		}
+	}
+
+	private async storeItems(libraryId: TLLibraryId, adding: NewItem[]): Promise<StoredItem[]> {
+		const form = new FormData()
+		form.set(
+			'items',
+			JSON.stringify(
+				adding.map(({ id, newItem }) => ({ id, ...(newItem.name ? { name: newItem.name } : {}) }))
+			)
+		)
+		for (const { id, newItem, contentJson } of adding) {
+			form.set(`content:${id}`, contentJson)
+			if (!newItem.thumbnail) continue
+			form.set(`thumbnail:${id}`, getThumbnailForColorMode(newItem.thumbnail, 'light'))
+			if (!(newItem.thumbnail instanceof Blob)) {
+				form.set(`darkThumbnail:${id}`, newItem.thumbnail.dark)
+			}
+		}
 		const response = await this.request(`/api/app/libraries/${rowId(libraryId)}/items`, {
 			method: 'POST',
 			body: form,
 		})
-		if (!response.ok) throw new Error(`Couldn't add the item: ${response.status}`)
-		return (await response.json()) as StoredItem
+		if (!response.ok) throw new Error(`Couldn't add the items: ${response.status}`)
+		const { items } = (await response.json()) as { items: StoredItem[] }
+		return items
 	}
 
 	/**

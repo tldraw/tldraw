@@ -154,21 +154,26 @@ export function createFakeLibrariesBackend({
 		let match = url.match(/^\/api\/app\/libraries\/([^/]+)\/items$/)
 		if (match && init.method === 'POST') {
 			const form = init.body as FormData
-			const id = form.get('id')
-			if (typeof id !== 'string') return new Response(null, { status: 400 })
+			const listed: { id: string; name?: string }[] = JSON.parse(form.get('items') as string)
 			const libraryId = match[1]
-			const item = newItem(
-				id,
-				libraryId,
-				(form.get('name') as string | null) ?? null,
-				newThumbnail(
-					form.get('thumbnail') instanceof Blob,
-					form.get('darkThumbnail') instanceof Blob
-				)
-			)
-			insertRows(() => updateRow(libraryId, (row) => ({ ...row, items: [...row.items, item] })))
-			contents.set(item.id, form.get('content') as string)
-			return Response.json({ id: item.id, createdAt: item.createdAt, thumbnail: item.thumbnail })
+			const now = Date.now()
+			const items = listed.map(({ id, name }, index) => ({
+				...newItem(
+					id,
+					libraryId,
+					name ?? null,
+					newThumbnail(
+						form.get(`thumbnail:${id}`) instanceof Blob,
+						form.get(`darkThumbnail:${id}`) instanceof Blob
+					)
+				),
+				createdAt: now + index,
+			}))
+			insertRows(() => updateRow(libraryId, (row) => ({ ...row, items: [...row.items, ...items] })))
+			for (const item of items) contents.set(item.id, form.get(`content:${item.id}`) as string)
+			return Response.json({
+				items: items.map(({ id, createdAt, thumbnail }) => ({ id, createdAt, thumbnail })),
+			})
 		}
 		match = url.match(/^\/api\/app\/libraries\/([^/]+)\/copy$/)
 		if (match && init.method === 'POST') {

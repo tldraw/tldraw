@@ -1,3 +1,4 @@
+import { MAX_LIBRARY_ITEMS_PER_REQUEST } from '@tldraw/dotcom-shared'
 import {
 	LibraryItemRecordType,
 	LibraryNotFoundError,
@@ -209,9 +210,8 @@ describe('TldrawAppLibrariesSource', () => {
 			const item = await adding
 			expect(item.id).toBe(pending.id)
 			const [, init] = backend.fetch.mock.calls[0]
-			expect(LibraryItemRecordType.createId((init!.body as FormData).get('id') as string)).toBe(
-				pending.id
-			)
+			const [{ id }] = JSON.parse((init!.body as FormData).get('items') as string)
+			expect(LibraryItemRecordType.createId(id)).toBe(pending.id)
 			// answered, but the row hasn't arrived through Zero yet
 			expect(source.getItems(kit.id)).toEqual([item])
 			rows.release()
@@ -232,10 +232,91 @@ describe('TldrawAppLibrariesSource', () => {
 			const [pending] = source.getItems(kit.id)
 			const renaming = source.renameItem(pending.id, 'Moon')
 			requests.fail()
-			await expect(adding).rejects.toThrow("Couldn't add the item: 500")
+			await expect(adding).rejects.toThrow("Couldn't add the items: 500")
 			expect(source.getItems(kit.id)).toEqual([])
 			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
 			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
+		})
+
+		it('lists several items being added at once, sends them in one request, and keeps their ids', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			const requests = backend.holdRequests()
+			const rows = backend.holdWorkerRows()
+			const adding = source.addItems(kit.id, [
+				{ name: 'Star', content, thumbnail: png() },
+				{ name: 'Moon', content },
+				{ name: 'Sun', content, thumbnail: { light: png(), dark: png() } },
+			])
+			const pending = source.getItems(kit.id)
+			expect(pending.map((item) => [item.name, item.thumbnail])).toEqual([
+				['Star', 'blob:local-1'],
+				['Moon', undefined],
+				['Sun', { light: 'blob:local-2', dark: 'blob:local-3' }],
+			])
+			requests.release()
+			const items = await adding
+			expect(backend.fetch).toHaveBeenCalledTimes(1)
+			const [, init] = backend.fetch.mock.calls[0]
+			const form = init!.body as FormData
+			const listed: { id: string; name?: string }[] = JSON.parse(form.get('items') as string)
+			expect(listed.map(({ id }) => LibraryItemRecordType.createId(id))).toEqual(
+				pending.map((item) => item.id)
+			)
+			expect(listed.map(({ name }) => name)).toEqual(['Star', 'Moon', 'Sun'])
+			expect(form.get(`darkThumbnail:${listed[2].id}`)).toBeInstanceOf(Blob)
+			expect(items.map((item) => item.id)).toEqual(pending.map((item) => item.id))
+			// answered, but the rows haven't arrived through Zero yet
+			expect(source.getItems(kit.id)).toEqual(items)
+
+			rows.release()
+			await vi.waitFor(() => expect(backend.rows.get()[0].items).toHaveLength(3))
+			expect(source.getItems(kit.id).map((item) => [item.id, item.name, item.thumbnail])).toEqual([
+				[pending[0].id, 'Star', 'blob:local-1'],
+				[pending[1].id, 'Moon', undefined],
+				[pending[2].id, 'Sun', { light: 'blob:local-2', dark: 'blob:local-3' }],
+			])
+			expect(URL.revokeObjectURL).not.toHaveBeenCalled()
+		})
+
+		it('drops every item being added together when the worker fails to store them', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			const requests = backend.holdRequests()
+			const adding = source.addItems(kit.id, [
+				{ content, thumbnail: png() },
+				{ content, thumbnail: png() },
+			])
+			const pending = source.getItems(kit.id)
+			expect(pending).toHaveLength(2)
+			const loading = source.getItemContent(pending[1].id)
+			const renaming = source.renameItem(pending[0].id, 'Moon')
+			requests.fail()
+			await expect(adding).rejects.toThrow("Couldn't add the items: 500")
+			expect(source.getItems(kit.id)).toEqual([])
+			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-1')
+			expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:local-2')
+			expect(await loading).toEqual(content)
+			await expect(renaming).rejects.toThrow(LibraryNotFoundError)
+		})
+
+		it('sends more items than one request may add in several, one after another', async () => {
+			const { backend, source } = setUp()
+			const kit = await source.createLibrary('Kit')
+			const requests = backend.holdRequests()
+			const newItems = Array.from({ length: MAX_LIBRARY_ITEMS_PER_REQUEST + 1 }, (_, i) => ({
+				name: `Item ${i}`,
+				content,
+			}))
+			const adding = source.addItems(kit.id, newItems)
+			expect(source.getItems(kit.id)).toHaveLength(newItems.length)
+			requests.release()
+			const items = await adding
+			expect(items.map((item) => item.name)).toEqual(newItems.map((item) => item.name))
+			const sizes = backend.fetch.mock.calls.map(
+				([, init]) => JSON.parse((init!.body as FormData).get('items') as string).length
+			)
+			expect(sizes).toEqual([MAX_LIBRARY_ITEMS_PER_REQUEST, 1])
 		})
 
 		it('renames an item being added once its row has arrived', async () => {
