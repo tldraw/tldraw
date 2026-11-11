@@ -5,7 +5,6 @@ import {
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemId,
-	type TLLibraryThumbnailContext,
 } from '@tldraw/libraries'
 import { atom } from 'tldraw'
 
@@ -60,10 +59,6 @@ export class PackReferencesSource implements LibrarySource {
 
 	getItemContent(itemId: TLLibraryItemId) {
 		return this.packs.getItemContent(itemId)
-	}
-
-	resolveThumbnail(item: TLLibraryItem, context: TLLibraryThumbnailContext) {
-		return this.packs.resolveThumbnail?.(item, context) ?? null
 	}
 
 	can() {
