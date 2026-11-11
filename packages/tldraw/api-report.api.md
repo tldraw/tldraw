@@ -4356,7 +4356,7 @@ export function TldrawUiMenuItem<TranslationKey extends string = string, IconTyp
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuToolItem({ toolId, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
+export function TldrawUiMenuToolItem({ toolId, disabled, ...rest }: TLUiMenuToolItemProps): JSX.Element | null;
 
 // @public (undocumented)
 export interface TldrawUiOrientationContext {
@@ -5840,6 +5840,7 @@ export interface TLUiToolItem<TranslationKey extends string = string, IconType e
     icon: IconType | TLUiIconJsx;
     // (undocumented)
     id: string;
+    isEnabled?(editor: Editor): boolean;
     kbd?: string;
     // (undocumented)
     label: TranslationKey;

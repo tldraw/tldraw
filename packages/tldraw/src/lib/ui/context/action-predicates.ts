@@ -1,6 +1,7 @@
 import { Editor, TLImageShape, TLShape, TLVideoShape } from '@tldraw/editor'
 import { getArrowBindings } from '../../shapes/arrow/shared'
 import { EmbedShapeUtil } from '../../shapes/embed/EmbedShapeUtil'
+import { canDeleteShape, canUpdateShape } from '../../tools/SelectTool/selectHelpers'
 import { getFrameableShapeIds } from '../../utils/frames/frames'
 import { getSelectedLinkShape } from '../../utils/shapes/shapes'
 
@@ -13,10 +14,18 @@ export function canApplySelectionAction(editor: Editor) {
 	return editor.isIn('select') && editor.getSelectedShapeIds().length > 0
 }
 
-/** @internal */
+/**
+ * The selected shapes the user can change: not locked, and not denied by the host's
+ * `isChangePermitted`. Actions that change the selection ask this.
+ *
+ * @internal
+ */
 export function getUnlockedSelectedShapes(editor: Editor): TLShape[] {
-	return editor.getSelectedShapes().filter((s) => !editor.isShapeOrAncestorLocked(s))
+	return editor.getSelectedShapes().filter((s) => canUpdate(editor, s))
 }
+
+const canUpdate = canUpdateShape
+const canDelete = canDeleteShape
 
 /** @internal */
 export function hasUnlockedSelection(editor: Editor, min: number) {
@@ -26,6 +35,48 @@ export function hasUnlockedSelection(editor: Editor, min: number) {
 /** @internal */
 export function canApplyToUnlockedSelection(editor: Editor, min: number) {
 	return editor.isIn('select') && hasUnlockedSelection(editor, min)
+}
+
+/**
+ * A shape the user can't update can still be selected and deleted, so this asks about the delete
+ * itself.
+ *
+ * @internal
+ */
+export function canDeleteSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		editor.isPermitted('tl:shape:delete') &&
+		editor.getSelectedShapes().some((shape) => canDelete(editor, shape))
+	)
+}
+
+/**
+ * A copy is a new shape, so the original only has to be unlocked, not updatable.
+ *
+ * @internal
+ */
+export function canDuplicateSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		editor.isPermitted('tl:shape:create') &&
+		editor.getSelectedShapes().some((shape) => !editor.isShapeOrAncestorLocked(shape))
+	)
+}
+
+/**
+ * Actions that swap the selection for new shapes (flatten, convert) create and delete, but don't
+ * update.
+ *
+ * @internal
+ */
+export function canReplaceSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		editor.isPermitted('tl:shape:create') &&
+		editor.isPermitted('tl:shape:delete') &&
+		editor.getSelectedShapes().some((shape) => canDelete(editor, shape))
+	)
 }
 
 /** @internal */
@@ -58,6 +109,20 @@ export function isUngroupAllowed(editor: Editor) {
 	return getUnlockedSelectedShapes(editor).some((s) => editor.isShapeOfType(s, 'group'))
 }
 
+/**
+ * Ungrouping deletes the group and reparents its children.
+ *
+ * @internal
+ */
+export function canUngroupSelection(editor: Editor) {
+	return (
+		editor.isIn('select') &&
+		isUngroupAllowed(editor) &&
+		editor.isPermitted('tl:shape:delete') &&
+		editor.isPermitted('tl:shape:update')
+	)
+}
+
 /** @internal */
 export function hasThreeStackableShapes(editor: Editor) {
 	const stackable = getUnlockedSelectedShapes(editor).filter((shape) => {
@@ -71,7 +136,7 @@ export function hasThreeStackableShapes(editor: Editor) {
 /** @internal */
 export function isOnlyFlippableShapeSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
-	if (!shape || editor.isShapeOrAncestorLocked(shape)) return false
+	if (!shape || !canUpdate(editor, shape)) return false
 	const util = editor.getShapeUtil(shape)
 	// A lone bound arrow opts out of the flip via canBeLaidOut, so flipping it would do nothing.
 	return util.canFlip(shape) && util.canBeLaidOut(shape, { type: 'flip', shapes: [shape] })
@@ -133,10 +198,7 @@ export function canFitFrameToContent(editor: Editor) {
 export function isOnlyEmbedWithUrlSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
 	return (
-		!!shape &&
-		editor.isShapeOfType(shape, 'embed') &&
-		!!shape.props.url &&
-		!editor.isShapeOrAncestorLocked(shape)
+		!!shape && editor.isShapeOfType(shape, 'embed') && !!shape.props.url && canDelete(editor, shape)
 	)
 }
 
@@ -144,7 +206,7 @@ export function isOnlyEmbedWithUrlSelected(editor: Editor) {
 export function isOnlyEmbeddableBookmarkSelected(editor: Editor) {
 	const shape = editor.getOnlySelectedShape()
 	if (!shape || !editor.isShapeOfType(shape, 'bookmark') || !shape.props.url) return false
-	if (editor.isShapeOrAncestorLocked(shape) || !editor.hasShapeUtil('embed')) return false
+	if (!canDelete(editor, shape) || !editor.hasShapeUtil('embed')) return false
 	return !!(editor.getShapeUtil('embed') as EmbedShapeUtil).getEmbedDefinition(shape.props.url)
 }
 

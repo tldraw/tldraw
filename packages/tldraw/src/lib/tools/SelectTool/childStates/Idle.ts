@@ -20,6 +20,8 @@ import {
 } from '../../selection-logic/updateHoveredShapeId'
 import {
 	hasRichText,
+	canUpdateShape,
+	hasUpdatableSelection,
 	isPlainDoubleClickDown,
 	isPointInRotatedSelectionBounds,
 	startEditingShapeWithRichText,
@@ -173,6 +175,7 @@ export class Idle extends StateNode {
 			}
 			case 'handle': {
 				if (this.editor.getIsReadonly()) break
+				if (!canUpdateShape(this.editor, info.shape)) break
 				if (this.editor.inputs.getAltKey()) {
 					this.parent.transition('pointing_shape', info)
 				} else {
@@ -182,6 +185,11 @@ export class Idle extends StateNode {
 				break
 			}
 			case 'selection': {
+				// a handle drag on a selection the user can't change would only be refused (readonly
+				// keeps its own handling below)
+				if (info.handle && !this.editor.getIsReadonly() && !hasUpdatableSelection(this.editor)) {
+					break
+				}
 				switch (info.handle) {
 					case 'mobile_rotate':
 					case 'top_left_rotate':
@@ -429,7 +437,7 @@ export class Idle extends StateNode {
 					}
 				}
 
-				if (util.canCrop(shape) && !this.editor.isShapeOrAncestorLocked(shape)) {
+				if (this.editor.canCropShape(shape)) {
 					// crop image etc on double click
 					this.editor.markHistoryStoppingPoint('select and crop')
 					this.editor.select(info.shape?.id)
@@ -450,6 +458,7 @@ export class Idle extends StateNode {
 			}
 			case 'handle': {
 				if (this.editor.getIsReadonly()) break
+				if (!canUpdateShape(this.editor, info.shape)) break
 				const { shape, handle } = info
 
 				const util = this.editor.getShapeUtil(shape)
@@ -705,6 +714,9 @@ export class Idle extends StateNode {
 	handleDoubleClickOnCanvas(info: TLClickEventInfo) {
 		// Create text shape and transition to editing_shape
 		if (this.editor.getIsReadonly()) return
+		// typing into it is an update
+		if (!this.editor.isPermitted('tl:shape:create') || !this.editor.isPermitted('tl:shape:update'))
+			return
 
 		if (!this.editor.options.createTextOnCanvasDoubleClick) return
 

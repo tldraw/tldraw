@@ -589,6 +589,29 @@ const policy = createPermissionPolicy(undefined, { types: { sticker: 'stickers:e
 
 Neither question stops anything: editor methods still try the change, and the rule decides. The UI can still offer something the rule then refuses, for example when permissions change or a record the operation depends on is protected. Selecting is never restricted.
 
+The default UI follows both. Controls are disabled rather than hidden (readonly still hides them):
+
+| Without           | What's off                                                                                                                                                                                                                                |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tl:shape:create` | drawing tools, duplicate, paste, insert media and embed, group, frame selection, flatten, convert to bookmark or embed, double click for text, note clone handles; dropped and pasted files aren't handled at all, so nothing is uploaded |
+| `tl:shape:update` | drawing tools (drawing updates the shape it creates on every frame), move, resize, rotate, restyle, reorder, align, flip, lock, group, ungroup, remove frame, move to page; replacing an image isn't handled                              |
+| `tl:shape:delete` | delete, cut, the eraser, ungroup, remove frame, flatten, convert to bookmark or embed                                                                                                                                                     |
+| `tl:page:create`  | new page, duplicate page, move to new page, alt+right past the last page                                                                                                                                                                  |
+| `tl:page:update`  | rename, move and reorder pages                                                                                                                                                                                                            |
+| `tl:page:delete`  | delete page                                                                                                                                                                                                                               |
+
+Shapes `isChangePermitted` refuses get the same treatment one by one: no handles, no drag, no text editing, and the eraser skips them. A selection that mixes shapes the user can and can't change still drags, and the rule refuses the whole operation. The style panel is hidden when shapes can be neither created nor updated.
+
+Your own tools can join in with `isEnabled` on the tool item: a disabled tool shows disabled in the toolbar and does nothing when selected, from a shortcut or anywhere else.
+
+```tsx
+tools.stamp = {
+	...tools.stamp,
+	isEnabled: (editor) =>
+		editor.isPermitted('tl:shape:create') && editor.isPermitted('tl:shape:update'),
+}
+```
+
 #### Keeping people off each other's shapes
 
 A rule that allows creating shapes but not updating them can't draw: tools create a shape on pointer down and update it on every drag frame. To keep people off each other's shapes, write it as ownership instead. The editor stamps the creator on every shape the user creates, before the rule sees it, and the rule checks the stamp against the session:

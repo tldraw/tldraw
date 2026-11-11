@@ -1099,13 +1099,21 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return false
 		}
+		return !this._isDeniedByHost(change)
+	}
+
+	/**
+	 * The host's `isChangePermitted` alone, without readonly or locks. Without one, the session's
+	 * permissions with the built-in mapping, when the app uses them.
+	 */
+	private _isDeniedByHost(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>) {
 		const { isChangePermitted } = this._hostPermissions.get()
 		const permissions = isChangePermitted ? null : this.getPermissions()
 		// checked only when something applies: an unlicensed check warns
-		if (!isChangePermitted && permissions === null) return true
-		if (!this._arePermissionsLicensed()) return true
-		if (isChangePermitted) return isChangePermitted(change, this)
-		return isChangePermittedByList(permissions, change)
+		if (!isChangePermitted && permissions === null) return false
+		if (!this._arePermissionsLicensed()) return false
+		if (isChangePermitted) return !isChangePermitted(change, this)
+		return !isChangePermittedByList(permissions, change)
 	}
 
 	/**
@@ -1125,12 +1133,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	isPermitted(permission: TLPermission): boolean {
 		if (this.getIsReadonly()) return false
+		return !this._isPermissionDeniedByHost(permission)
+	}
+
+	/**
+	 * The host's `isPermitted` alone, without readonly: `force` writes still get its answer. Without one,
+	 * the session's permissions, when the app uses them.
+	 */
+	private _isPermissionDeniedByHost(permission: TLPermission) {
 		const { isPermitted } = this._hostPermissions.get()
 		const permissions = isPermitted ? null : this.getPermissions()
-		if (!isPermitted && permissions === null) return true
-		if (!this._arePermissionsLicensed()) return true
-		if (isPermitted) return isPermitted(permission, this)
-		return isPermittedByList(permissions, permission)
+		if (!isPermitted && permissions === null) return false
+		if (!this._arePermissionsLicensed()) return false
+		if (isPermitted) return !isPermitted(permission, this)
+		return !isPermittedByList(permissions, permission)
 	}
 
 	/**
@@ -3022,6 +3038,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (
+			this._isPermissionDeniedByHost('tl:shape:update') ||
+			this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })
+		) {
+			return false // the host says the user can't change it
+		}
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -3281,6 +3303,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!util.canCrop(_shape)) return false
 		if (this.getIsReadonly()) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
+		if (this._isPermissionDeniedByHost('tl:shape:update')) return false
+		if (this._isDeniedByHost({ type: 'update', prev: _shape, next: _shape })) return false
 		return true
 	}
 
@@ -9785,6 +9809,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		// asked before the handler runs: a file uploaded for a shape the rule then refuses can't be
+		// taken back
+		if (this._isPermissionDeniedByHost('tl:shape:create')) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -9800,6 +9827,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		// as in putExternalContent: the upload happens before the rule sees the change
+		if (this._isPermissionDeniedByHost('tl:shape:update')) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 

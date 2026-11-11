@@ -744,6 +744,7 @@ async function copyOrCutSelection(
 	operation: 'copy' | 'cut',
 	source: TLClipboardWriteInfo['source']
 ) {
+	if (operation === 'cut' && !editor.isPermitted('tl:shape:delete')) return false
 	const didCopy = await handleNativeOrMenuCopy(editor, { operation, source })
 	if (didCopy && operation === 'cut') {
 		editor.markHistoryStoppingPoint('cut')
@@ -895,6 +896,7 @@ export function useNativeClipboardEvents() {
 			// we would want the user's paste interaction to go to that element or
 			// input instead; e.g. when pasting text into a text shape's content
 			if (editor.getEditingShapeId() !== null || areShortcutsDisabled(editor)) return
+			if (!editor.isPermitted('tl:shape:create')) return
 
 			// Cmd+Shift+V / Ctrl+Shift+V = paste as plain text (no formatting).
 			// If there's no plain text on the clipboard (e.g., a copied PNG), fall

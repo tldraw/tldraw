@@ -246,6 +246,8 @@ export class NoteShapeUtil extends ShapeUtil<TLNoteShape> {
 		const { scale } = shape.props
 		const isCoarsePointer = this.editor.getInstanceState().isCoarsePointer
 		if (isCoarsePointer) return []
+		// every note handle makes a new note
+		if (!this.editor.isPermitted('tl:shape:create')) return []
 
 		const zoom = this.editor.getEfficientZoomLevel()
 		if (zoom * scale < 0.25) return []
@@ -726,6 +728,7 @@ function useNoteKeydownHandler(id: TLShapeId) {
 
 			if (isTab || isCmdEnter) {
 				e.preventDefault()
+				if (!editor.isPermitted('tl:shape:create')) return
 
 				const pageTransform = editor.getShapePageTransform(id)
 				const pageRotation = pageTransform.rotation()
