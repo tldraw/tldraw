@@ -10,6 +10,10 @@ beforeEach(() => {
 	editor = new TestEditor()
 })
 
+afterEach(() => {
+	editor.dispose()
+})
+
 describe('history after a rolled-back transaction', () => {
 	it('drops changes from a throwing editor.run the caller catches', () => {
 		editor.createShapes([{ id: c, type: 'geo', x: 0 }])
@@ -106,6 +110,62 @@ describe('history after a rolled-back transaction', () => {
 		expect(editor.getShape(c)!.x).toBe(0)
 		editor.redo()
 		expect(editor.getShape(c)!.x).toBe(100)
+	})
+
+	it('restores pending entries when a rolled-back run deletes or recreates them', () => {
+		editor.createShapes([
+			{ id: b, type: 'geo', x: 0 },
+			{ id: c, type: 'geo', x: 0 },
+		])
+		editor.markHistoryStoppingPoint('start')
+		editor.createShapes([{ id: a, type: 'geo', x: 0 }])
+		editor.updateShapes([
+			{ id: b, type: 'geo', x: 100 },
+			{ id: c, type: 'geo', x: 100 },
+		])
+		expect(() =>
+			editor.run(() => {
+				editor.deleteShapes([a, b, c])
+				editor.createShapes([
+					{ id: a, type: 'geo', x: 500 },
+					{ id: c, type: 'geo', x: 500 },
+				])
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect(editor.getShape(a)!.x).toBe(0)
+		expect(editor.getShape(b)!.x).toBe(100)
+		expect(editor.getShape(c)!.x).toBe(100)
+
+		editor.undo()
+		expect(editor.getShape(a)).toBeUndefined()
+		expect(editor.getShape(b)!.x).toBe(0)
+		expect(editor.getShape(c)!.x).toBe(0)
+		editor.redo()
+		expect(editor.getShape(a)!.x).toBe(0)
+		expect(editor.getShape(b)!.x).toBe(100)
+		expect(editor.getShape(c)!.x).toBe(100)
+	})
+
+	it('restores a pending update when a rolled-back run deletes and recreates the record', () => {
+		editor.createShapes([{ id: c, type: 'geo', x: 0 }])
+		const original = editor.getShape(c)
+		editor.markHistoryStoppingPoint('start')
+		editor.updateShapes([{ id: c, type: 'geo', x: 100 }])
+		const updated = editor.getShape(c)
+		expect(() =>
+			editor.run(() => {
+				editor.deleteShapes([c])
+				editor.createShapes([{ id: c, type: 'geo', x: 500 }])
+				throw new Error('boom')
+			})
+		).toThrow('boom')
+		expect(editor.getShape(c)).toEqual(updated)
+
+		editor.undo()
+		expect(editor.getShape(c)).toEqual(original)
+		editor.redo()
+		expect(editor.getShape(c)).toEqual(updated)
 	})
 
 	it('keeps changes made before the rolled-back transaction', () => {
