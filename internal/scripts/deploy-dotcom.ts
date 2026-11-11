@@ -118,9 +118,12 @@ assert(
 )
 
 // Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
-// TEMP(preview-handoff): previews run multi-node to exercise the RM handoff
 const deployZero =
-	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+	env.DEPLOY_ZERO === 'false'
+		? false
+		: previewId && env.DEPLOY_ZERO === 'flyio-multinode'
+			? ('flyio' as const)
+			: (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 // For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
 const flyioAppName =
 	deployZero === 'flyio'
@@ -317,15 +320,7 @@ const zeroVmSizes = {
 		vsMinMachines: 13,
 		killTimeout: '5m',
 	},
-	// TEMP(preview-handoff): multi-node sizes for previews
-	preview: {
-		single: { cpus: 2, memory: '2gb' },
-		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
-		vs: { cpus: 2, memory: '1gb' },
-		volumeSize: '1gb',
-		vsMinMachines: 1,
-		killTimeout: '5m',
-	},
+	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
 
 const zeroConnectionLimits = {
@@ -340,9 +335,6 @@ const zeroConnectionLimits = {
 	// Previews use Supabase branch DB
 	preview: {
 		single: { upstream: 3, cvr: 5 },
-		// TEMP(preview-handoff): multi-node limits for previews
-		rm: { upstream: 1, cvr: 1 },
-		vs: { upstream: 2, cvr: 3 },
 	},
 } as const
 interface ConnLimits {
@@ -772,8 +764,7 @@ async function deployFlyAppIfChanged({
 	/** Rolls out the config already written to configFile; defaults to `flyctl deploy`. */
 	deploy?(stampedConfig: string): Promise<void>
 }) {
-	// TEMP(preview-handoff): previews only force the RM, so a handoff isn't hidden by a VS restart
-	const forced = env.ZERO_FORCE_DEPLOY === 'true' || (!!previewId && appName === flyioReplAppName)
+	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
 	const hash = hashFlyDeployInputs(inputs)
 	const deployed = forced ? null : await getDeployedInputHash(appName)
 	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
@@ -878,15 +869,6 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 }
 
-// TEMP(preview-handoff): info logs show the drain and switchover
-function withPreviewInfoLogs(toml: string): string {
-	return previewId ? toml.replace('ZERO_LOG_LEVEL = "warn"', 'ZERO_LOG_LEVEL = "info"') : toml
-}
-
-// TEMP(preview-handoff): how the preview RM is deployed. 'in-place' is the flyctl deploy baseline;
-// 'fail' gives the new RM an invalid log level so it never becomes healthy.
-const PREVIEW_RM_MODE = 'fail' as 'handoff' | 'in-place' | 'fail'
-
 // The view-syncer image; the replication manager runs the stock Zero image.
 function renderDockerfile(): string {
 	const dockerfileTemplate = path.join(zeroCacheFolder, 'Dockerfile.template')
@@ -930,29 +912,16 @@ async function deployZeroViaFlyIoMultiNode() {
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
-		inputs: {
-			config: withPreviewInfoLogs(
-				renderFlyioReplicationManagerToml(flyioReplAppName, backupPath)
-			).replace(
-				'ZERO_LOG_LEVEL = "info"',
-				previewId && PREVIEW_RM_MODE === 'fail'
-					? 'ZERO_LOG_LEVEL = "banana"'
-					: 'ZERO_LOG_LEVEL = "info"'
-			),
-			secrets,
-		},
+		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
 		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
 		deploy:
-			// TEMP(preview-handoff): previews too
-			env.TLDRAW_ENV === 'staging' ||
-			(env.TLDRAW_ENV === 'preview' && PREVIEW_RM_MODE !== 'in-place')
+			env.TLDRAW_ENV === 'staging'
 				? (renderedToml) =>
 						handOffReplicationManager({
 							appName: flyioReplAppName,
 							renderedToml,
 							configFile: rmConfigFile,
 							pwd: zeroCacheFolder,
-							newMachineTimeoutMs: previewId && PREVIEW_RM_MODE === 'fail' ? 90_000 : undefined,
 						})
 				: undefined,
 	})
@@ -964,9 +933,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		appName: flyioAppName,
 		configFile: 'flyio-view-syncer.toml',
 		inputs: {
-			config: withPreviewInfoLogs(
-				renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath)
-			),
+			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
 			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
 			secrets,
 		},

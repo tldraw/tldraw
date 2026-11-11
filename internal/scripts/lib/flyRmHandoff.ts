@@ -143,15 +143,12 @@ export async function handOffReplicationManager({
 	renderedToml,
 	configFile,
 	pwd,
-	// TEMP(preview-handoff): lets the preview failure test time out quickly
-	newMachineTimeoutMs = NEW_MACHINE_TIMEOUT_MS,
 }: {
 	appName: string
 	renderedToml: string
 	/** Written already; only used for the first-deploy fallback. */
 	configFile: string
 	pwd: string
-	newMachineTimeoutMs?: number
 }) {
 	const machines = await listMachines(appName)
 	if (machines.length === 0) {
@@ -214,14 +211,14 @@ export async function handOffReplicationManager({
 		if (!newMachine) throw new Error(`${appName}: new machine ${name} not found after machine run`)
 		nicelog(`${appName}: started ${newMachine.id}, waiting for its first backup`)
 
-		const deadline = Date.now() + newMachineTimeoutMs
+		const deadline = Date.now() + NEW_MACHINE_TIMEOUT_MS
 		let lastLog = 0
 		for (;;) {
 			const current = (await listMachines(appName)).find((m) => m.id === newMachine!.id)
 			if (isHealthy(current)) break
 			if (Date.now() > deadline) {
 				throw new Error(
-					`${appName}: new machine ${newMachine.id} not healthy after ${newMachineTimeoutMs / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
+					`${appName}: new machine ${newMachine.id} not healthy after ${NEW_MACHINE_TIMEOUT_MS / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
 				)
 			}
 			if (Date.now() - lastLog > 60_000) {

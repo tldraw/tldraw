@@ -63,8 +63,11 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          # TEMP(preview-handoff): previews run multi-node to exercise the RM handoff
-          echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
+          if [[ "${TLDRAW_ENV}" == "preview" ]]; then
+            echo "DEPLOY_ZERO=flyio" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_ZERO=flyio-multinode" >> $GITHUB_ENV
+          fi
 
       - name: Install Supabase CLI
         if: env.TLDRAW_ENV == 'preview'
