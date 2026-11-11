@@ -191,6 +191,9 @@
   "477df802ca": {
     "translation": "To continue editing please copy the file to your files."
   },
+  "47839e47a5": {
+    "translation": "tldraw"
+  },
   "47f493a590": {
     "translation": "Pin file"
   },
@@ -245,9 +248,6 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
-  "57af9a64fa": {
-    "translation": "You may not be allowed to create libraries, or copying failed."
-  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -286,9 +286,6 @@
   },
   "625fd29749": {
     "translation": "Older"
-  },
-  "6378731a5e": {
-    "translation": "Couldn't add"
   },
   "639bae9ac6": {
     "translation": "you"

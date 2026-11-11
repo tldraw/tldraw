@@ -1,5 +1,7 @@
+import { copyLibrary } from '@tldraw/libraries'
 import {
 	AssetRecordType,
+	clearLocalStorage,
 	createShapeId,
 	createTLSchema,
 	createTLStore,
@@ -13,7 +15,7 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
-import { addStarterPack, isStarterPackAdded } from './starterPacks'
+import { getStarterPackLibraryId, StarterPacksSource } from './starterPacks'
 
 let editors: Editor[] = []
 
@@ -36,7 +38,10 @@ function setUp() {
 		getContainer: () => document.body,
 	})
 	editors.push(editor)
-	return { editor, source: getEditorLibraries(app, libraries, editor, 'file-a') }
+	const packs = new StarterPacksSource('test-added-packs', [
+		{ id: 'doodles', name: 'Doodles', version: 2, items: [] },
+	])
+	return { editor, packs, source: getEditorLibraries(app, libraries, packs, editor, 'file-a') }
 }
 
 const ofType = (editor: Editor, typeName: string) =>
@@ -71,6 +76,7 @@ describe('getEditorLibraries', () => {
 			{ id: 'file-a', name: 'This board' },
 			{ id: 'home', name: 'Private to you' },
 			{ id: 'acme', name: 'Acme' },
+			{ id: 'tldraw', name: 'tldraw' },
 		])
 		const library = await source.createLibrary('Board kit', { ownerId: 'file-a' })
 		expect(library.ownerId).toBe('file-a')
@@ -124,15 +130,17 @@ describe('getEditorLibraries', () => {
 		expect(ofType(editor, 'asset').map((a) => a.id)).toEqual([assetId])
 	})
 
-	it('adds a starter pack to the home workspace, not the board, and counts it added there', async () => {
-		const { editor, source } = setUp()
-		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
+	it('lists added starter packs under tldraw, read-only, and copies one to a workspace', async () => {
+		const { editor, packs, source } = setUp()
+		packs.setAdded('doodles', true)
+		const libraryId = getStarterPackLibraryId('doodles')
+		const pack = source.getLibraries().find((library) => library.id === libraryId)
+		expect(pack).toMatchObject({ name: 'Doodles', ownerId: 'tldraw' })
+		expect(source.can('renameLibrary', libraryId)).toBe(false)
 		expect(ofType(editor, 'library')).toEqual([])
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary!(copy.id, 'acme')
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+		const copy = await copyLibrary(source, libraryId, 'home')
+		expect(copy).toMatchObject({ name: 'Doodles', ownerId: 'home' })
+		expect(packs.isAdded('doodles')).toBe(true)
+		clearLocalStorage()
 	})
 })

@@ -4,6 +4,7 @@ import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
 	thisBoard: { defaultMessage: 'This board' },
+	tldraw: { defaultMessage: 'tldraw' },
 })
 
 const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
@@ -11,13 +12,15 @@ const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
 /**
  * The libraries an open file's editor offers: the board's own, kept as records in the file's
  * document so they are saved, synced and duplicated with it, then the user's own libraries under
- * the workspaces they belong to. New libraries go to the user's home workspace.
+ * the workspaces they belong to, then the starter packs they added, read-only. New libraries go to
+ * the user's home workspace.
  *
  * Made once per editor, so the panel and the context menu share it.
  */
 export function getEditorLibraries(
 	app: Pick<TldrawApp, 'getHomeWorkspaceId' | 'msg'>,
 	userLibraries: LibrarySource,
+	starterPacks: LibrarySource,
 	editor: Editor,
 	fileId: string
 ): LibrarySource {
@@ -33,6 +36,7 @@ export function getEditorLibraries(
 				source: new BoardLibrarySource(editor, { id: `board:${fileId}` }),
 			},
 			{ source: userLibraries },
+			{ owner: { id: 'tldraw', name: app.msg(messages.tldraw) }, source: starterPacks },
 		],
 	})
 	sources.set(editor, { fileId, source })

@@ -1,4 +1,19 @@
-import { copyPack, type LibraryPack, type LibrarySource, type TLLibrary } from '@tldraw/libraries'
+import {
+	InMemoryLibrarySource,
+	LibraryItemRecordType,
+	type LibraryPack,
+	LibraryPermissionError,
+	LibraryRecordType,
+	type LibrarySource,
+	type TLLibrary,
+	type TLLibraryAction,
+	type TLLibraryId,
+	type TLLibraryItem,
+	type TLLibraryItemContent,
+	type TLLibraryItemId,
+	type TLLibraryTarget,
+} from '@tldraw/libraries'
+import { atom, getFromLocalStorage, setInLocalStorage, type Atom } from 'tldraw'
 import diagramming from './starterPackDiagramming.json'
 import doodles from './starterPackDoodles.json'
 import floorPlan from './starterPackFloorPlan.json'
@@ -13,39 +28,133 @@ export const STARTER_PACKS = [
 	doodles,
 ] as unknown as LibraryPack[]
 
-function getDefaultOwnerId(source: LibrarySource) {
-	return source.getDefaultOwnerId ? source.getDefaultOwnerId() : undefined
-}
-
-/** Whether the user may add a starter pack, i.e. create a library for the default owner. */
-export function canAddStarterPack(source: LibrarySource) {
-	const ownerId = getDefaultOwnerId(source)
-	return source.can('createLibrary', ownerId === undefined ? undefined : { ownerId })
-}
-
-/** Copies a starter pack into the source's default owner, or wherever the source puts new libraries. */
-export function addStarterPack(source: LibrarySource, pack: LibraryPack) {
-	const ownerId = getDefaultOwnerId(source)
-	return copyPack(source, pack, ownerId === undefined ? {} : { ownerId })
-}
-
-/** The pack a library was copied from, as recorded by `copyPack`, if any. */
-export function getStarterPackId(library: TLLibrary): string | undefined {
-	const { packId } = library.meta
-	return typeof packId === 'string' ? packId : undefined
+/** The library a starter pack shows as. Stable, so the UI can point at it before it's added. */
+export function getStarterPackLibraryId(packId: string): TLLibraryId {
+	return LibraryRecordType.createId(`starter-pack-${packId}`)
 }
 
 /**
- * Whether the source holds a copy of the pack, in its default owner if it has one. Deleting the
- * copy makes the pack addable again.
+ * Every pack, as read-only libraries. The items come from the packs shipped with this release, so
+ * a pack's new version reaches everyone who added it when they next load tldraw.com.
  */
-export function isStarterPackAdded(source: LibrarySource, packId: string) {
-	const ownerId = getDefaultOwnerId(source)
-	return source
-		.getLibraries()
-		.some(
-			(library) =>
-				(ownerId === undefined || library.ownerId === ownerId) &&
-				getStarterPackId(library) === packId
+function createPacksSource(packs: LibraryPack[]) {
+	const libraries = packs.map((pack) =>
+		LibraryRecordType.create({
+			id: getStarterPackLibraryId(pack.id),
+			name: pack.name,
+			meta: { packId: pack.id, packVersion: pack.version },
+		})
+	)
+	const entries = packs.flatMap((pack, i) =>
+		pack.items.map((item) => ({
+			record: LibraryItemRecordType.create({
+				libraryId: libraries[i].id,
+				name: item.name,
+				thumbnail: item.thumbnail,
+			}),
+			content: item.content,
+		}))
+	)
+	const contents: Record<TLLibraryItemId, TLLibraryItemContent> = Object.fromEntries(
+		entries.map(({ record, content }) => [record.id, content])
+	)
+	return new InMemoryLibrarySource({
+		id: 'starter-packs-all',
+		can: () => false,
+		initial: { libraries, items: entries.map(({ record }) => record), contents },
+	})
+}
+
+function readIds(storageKey: string): string[] {
+	try {
+		const ids = JSON.parse(getFromLocalStorage(storageKey) ?? '[]')
+		return Array.isArray(ids) ? ids.filter((id) => typeof id === 'string') : []
+	} catch {
+		return []
+	}
+}
+
+/**
+ * The starter packs a user added, shown read-only. All a user stores is the list of pack ids;
+ * adding or removing a pack copies and deletes nothing. To change a pack, copy it to one of your
+ * own workspaces with the library's "Copy to".
+ *
+ * SPIKE: the list lives in this browser's localStorage, per user. For real it would be a row of
+ * the user's, synced through Zero, so it follows them between browsers.
+ */
+export class StarterPacksSource implements LibrarySource {
+	readonly id = 'starter-packs'
+	private readonly added: Atom<string[]>
+	private readonly packs: InMemoryLibrarySource
+
+	constructor(
+		private readonly storageKey: string,
+		packs: LibraryPack[] = STARTER_PACKS
+	) {
+		this.added = atom('added starter packs', readIds(storageKey))
+		this.packs = createPacksSource(packs)
+	}
+
+	isAdded(packId: string) {
+		return this.added.get().includes(packId)
+	}
+
+	setAdded(packId: string, added: boolean) {
+		const ids = this.added.get().filter((id) => id !== packId)
+		if (added) ids.push(packId)
+		this.added.set(ids)
+		// Storage can be unavailable (private mode): the list then lasts until reload.
+		setInLocalStorage(this.storageKey, JSON.stringify(ids))
+	}
+
+	getLibraries(): TLLibrary[] {
+		const added = this.added.get()
+		const byId = new Map(
+			this.packs.getLibraries().map((library) => [library.meta.packId as string, library])
 		)
+		return added.flatMap((packId) => byId.get(packId) ?? [])
+	}
+
+	getItems(libraryId: TLLibraryId): TLLibraryItem[] {
+		return this.packs.getItems(libraryId)
+	}
+
+	getItemContent(itemId: TLLibraryItemId) {
+		return this.packs.getItemContent(itemId)
+	}
+
+	can(_action: TLLibraryAction, _target?: TLLibraryTarget) {
+		return false
+	}
+
+	async createLibrary(): Promise<TLLibrary> {
+		throw new LibraryPermissionError('createLibrary')
+	}
+	async renameLibrary(libraryId: TLLibraryId): Promise<void> {
+		throw new LibraryPermissionError('renameLibrary', libraryId)
+	}
+	async deleteLibrary(libraryId: TLLibraryId): Promise<void> {
+		throw new LibraryPermissionError('deleteLibrary', libraryId)
+	}
+	async addItem(libraryId: TLLibraryId): Promise<TLLibraryItem> {
+		throw new LibraryPermissionError('addItem', libraryId)
+	}
+	async renameItem(): Promise<void> {
+		throw new LibraryPermissionError('renameItem')
+	}
+	async deleteItem(): Promise<void> {
+		throw new LibraryPermissionError('deleteItem')
+	}
+}
+
+const sourcesByUser = new Map<string, StarterPacksSource>()
+
+/** One per user, so the panel, the dialog and every open file see the same list. */
+export function getStarterPacksSource(userId: string) {
+	let source = sourcesByUser.get(userId)
+	if (!source) {
+		source = new StarterPacksSource(`tldraw-starter-packs-added:${userId}`)
+		sourcesByUser.set(userId, source)
+	}
+	return source
 }

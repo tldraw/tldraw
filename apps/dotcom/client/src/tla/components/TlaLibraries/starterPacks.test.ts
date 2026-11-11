@@ -1,19 +1,33 @@
-import { type LibraryPack, InMemoryLibrarySource } from '@tldraw/libraries'
-import { describe, expect, it } from 'vitest'
-import {
-	addStarterPack,
-	canAddStarterPack,
-	getStarterPackId,
-	isStarterPackAdded,
-	STARTER_PACKS,
-} from './starterPacks'
+import { type LibraryPack } from '@tldraw/libraries'
+import { clearLocalStorage, setInLocalStorage } from 'tldraw'
+import { afterEach, describe, expect, it } from 'vitest'
+import { getStarterPackLibraryId, STARTER_PACKS, StarterPacksSource } from './starterPacks'
 
-const pack: LibraryPack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
+const item = (id: string, name: string) => ({
+	id,
+	name,
+	content: {
+		formatVersion: 1,
+		content: { shapes: [], bindings: [], rootShapeIds: [], assets: [], schema: {} },
+	},
+	thumbnail: 'data:image/webp;base64,AAAA',
+})
 
-const owners = [
-	{ id: 'acme', name: 'Acme' },
-	{ id: 'home', name: 'Home' },
-]
+const doodles = {
+	id: 'doodles',
+	name: 'Doodles',
+	version: 2,
+	items: [item('cat', 'Cat'), item('dog', 'Dog')],
+} as unknown as LibraryPack
+const wireframing = {
+	id: 'wireframing',
+	name: 'Wireframing',
+	version: 1,
+	items: [item('button', 'Button')],
+} as unknown as LibraryPack
+
+const KEY = 'test-added-packs'
+afterEach(() => clearLocalStorage())
 
 describe('starter pack data', () => {
 	it('gives every pack a unique id', () => {
@@ -33,57 +47,50 @@ describe('starter pack data', () => {
 	)
 })
 
-describe('starter packs in a source without owners', () => {
-	it('copies the pack as a new library', async () => {
-		const source = new InMemoryLibrarySource()
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ name: 'Doodles', meta: { packId: 'doodles', packVersion: 2 } })
-		expect(copy.ownerId).toBeUndefined()
-		expect(getStarterPackId(copy)).toBe('doodles')
+describe('starter packs added by reference', () => {
+	it('shows only the packs the user added, in the order they added them', () => {
+		const source = new StarterPacksSource(KEY, [doodles, wireframing])
+		expect(source.getLibraries()).toEqual([])
+		source.setAdded('wireframing', true)
+		source.setAdded('doodles', true)
+		expect(source.getLibraries().map((library) => library.name)).toEqual(['Wireframing', 'Doodles'])
+		expect(source.isAdded('doodles')).toBe(true)
 	})
 
-	it('names no pack for a library made any other way', async () => {
-		const source = new InMemoryLibrarySource()
-		expect(getStarterPackId(await source.createLibrary('Kit'))).toBeUndefined()
+	it("shows a pack's items from the pack, under a library id the UI can point at", () => {
+		const source = new StarterPacksSource(KEY, [doodles])
+		source.setAdded('doodles', true)
+		const [library] = source.getLibraries()
+		expect(library.id).toBe(getStarterPackLibraryId('doodles'))
+		expect(library.meta).toEqual({ packId: 'doodles', packVersion: 2 })
+		expect(source.getItems(library.id).map((i) => i.name)).toEqual(['Cat', 'Dog'])
 	})
 
-	it('counts a pack as added while the source holds a copy of it', async () => {
-		const source = new InMemoryLibrarySource()
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-		const copy = await addStarterPack(source, pack)
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		expect(isStarterPackAdded(source, 'wireframing')).toBe(false)
-		await source.deleteLibrary(copy.id)
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+	it('removing a pack only drops its id', () => {
+		const source = new StarterPacksSource(KEY, [doodles])
+		source.setAdded('doodles', true)
+		source.setAdded('doodles', false)
+		expect(source.getLibraries()).toEqual([])
+		source.setAdded('doodles', true)
+		expect(source.getItems(getStarterPackLibraryId('doodles'))).toHaveLength(2)
 	})
 
-	it("can't add a pack when the source refuses new libraries", () => {
-		expect(canAddStarterPack(new InMemoryLibrarySource())).toBe(true)
-		expect(canAddStarterPack(new InMemoryLibrarySource({ can: () => false }))).toBe(false)
-	})
-})
-
-describe('starter packs in a source with owners', () => {
-	it('copies the pack into the default owner', async () => {
-		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
+	it('keeps the list of added packs between loads', () => {
+		new StarterPacksSource(KEY, [doodles]).setAdded('doodles', true)
+		expect(new StarterPacksSource(KEY, [doodles]).isAdded('doodles')).toBe(true)
 	})
 
-	it("doesn't count a copy that has moved to another owner", async () => {
-		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
-		const copy = await addStarterPack(source, pack)
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary(copy.id, 'acme')
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+	it('ignores an added id whose pack no longer ships', () => {
+		setInLocalStorage(KEY, JSON.stringify(['gone', 'doodles']))
+		const source = new StarterPacksSource(KEY, [doodles])
+		expect(source.getLibraries().map((library) => library.name)).toEqual(['Doodles'])
 	})
 
-	it('asks whether the default owner may have new libraries', () => {
-		const source = new InMemoryLibrarySource({
-			owners,
-			defaultOwnerId: 'home',
-			can: (_, target) => typeof target !== 'object' || target.ownerId !== 'home',
-		})
-		expect(canAddStarterPack(source)).toBe(false)
+	it('refuses every change', async () => {
+		const source = new StarterPacksSource(KEY, [doodles])
+		source.setAdded('doodles', true)
+		const libraryId = getStarterPackLibraryId('doodles')
+		expect(source.can('renameLibrary', libraryId)).toBe(false)
+		await expect(source.deleteLibrary(libraryId)).rejects.toThrow()
 	})
 })
