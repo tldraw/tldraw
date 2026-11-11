@@ -1,6 +1,5 @@
 import { MutatorResultErrorDetails, QueryResultType, TypedView, Zero } from '@rocicorp/zero'
 import { captureException } from '@sentry/react'
-import type { CollectionSource } from '@tldraw/collections'
 import {
 	AcceptInviteResponseBody,
 	CreateFilesResponseBody,
@@ -28,6 +27,7 @@ import {
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
+import type { LibrarySource } from '@tldraw/libraries'
 import {
 	Result,
 	compact,
@@ -71,7 +71,7 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
-import { createCollectionsSource } from '../components/TlaCollections/collectionsSource'
+import { createLibrariesSource } from '../components/TlaLibraries/librariesSource'
 import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
@@ -208,8 +208,8 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
-	/** Null when the `collections` flag is off for this user. */
-	readonly collections: CollectionSource | null
+	/** Null when the `libraries` flag is off for this user. */
+	readonly libraries: LibrarySource | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -298,12 +298,12 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
-		if (flags.collections?.enabled) {
-			const collections = createCollectionsSource(userId)
-			this.collections = collections
-			this.disposables.push(() => collections.dispose())
+		if (flags.libraries?.enabled) {
+			const libraries = createLibrariesSource(userId)
+			this.libraries = libraries
+			this.disposables.push(() => libraries.dispose())
 		} else {
-			this.collections = null
+			this.libraries = null
 		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.

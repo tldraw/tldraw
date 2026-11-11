@@ -136,12 +136,12 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 					return
 				}
 				if (message.type === 'mcp_tab_render') {
-					void answerTabRender(editorRef.current, fileSlug, getUserToken, message)
+					void answerTabRender(editorRef.current, fileSlug, message)
 					return
 				}
 				trackEvent(message.type)
 			},
-			[fileLoad, fileSlug, getUserToken]
+			[fileLoad, fileSlug]
 		),
 		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
 		// the editor's mount work, seconds on big boards.

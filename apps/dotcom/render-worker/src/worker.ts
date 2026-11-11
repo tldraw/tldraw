@@ -1,3 +1,4 @@
+/// <reference types="@cloudflare/workers-types" />
 import { createSentry } from '@tldraw/worker-shared'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import {

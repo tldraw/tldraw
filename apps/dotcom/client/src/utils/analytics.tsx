@@ -14,6 +14,7 @@ import {
 	shouldUseCommonRoom,
 	trackCommonRoomPageview,
 } from './common-room-signals'
+import { posthogHashBootstrap } from './posthogHashBootstrap'
 
 // Local storage key for cookie consent
 export const COOKIE_CONSENT_KEY = 'tldraw_cookie_consent'
@@ -163,9 +164,6 @@ let eventBufferPosthog: null | Array<{ name: string; data: Properties | null | u
 function configurePosthog(options: AnalyticsOptions) {
 	if (!shouldUsePosthog) return
 
-	const hashParams = new URLSearchParams(window.location.hash.substring(1))
-	const sessionID = hashParams.get('session_id')
-	const distinctID = hashParams.get('distinct_id')
 	const config: Partial<PostHogConfig> = {
 		api_host: 'https://analytics.tldraw.com/i',
 		ui_host: 'https://eu.i.posthog.com',
@@ -193,13 +191,7 @@ function configurePosthog(options: AnalyticsOptions) {
 
 			return payload
 		},
-		bootstrap:
-			sessionID && distinctID
-				? {
-						sessionID,
-						distinctID,
-					}
-				: undefined,
+		bootstrap: posthogHashBootstrap,
 	}
 	if (!currentOptionsPosthog) {
 		// First time initialization only

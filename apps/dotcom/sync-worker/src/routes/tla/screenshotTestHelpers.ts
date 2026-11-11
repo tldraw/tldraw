@@ -2,7 +2,6 @@ import type { TabRenderRequest } from '@tldraw/dotcom-shared'
 import { vi } from 'vitest'
 import type { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
-import { ShapeMeasurement } from './boardTools'
 
 // Shared fakes for the Browser Run thumbnail / OG image tests (thumbnailRender,
 // mcpServer, ogImageQueue, getOgImage). The R2/browser/queue fakes, snapshot builder
@@ -40,7 +39,7 @@ export function makeSnapshot(
 	return { documents, schema: { schemaVersion: 2, sequences: {} } } as any
 }
 
-// In-memory stand-in for an R2 bucket (THUMBNAILS or MCP_DATA_BUCKET, which have the same shape).
+// In-memory stand-in for an R2 bucket such as THUMBNAILS.
 // Exposes `store` so tests can inspect or seed
 // entries directly. Covers get/head/put/delete; entries carry the customMetadata and upload time
 // the routes read.
@@ -128,87 +127,23 @@ export function makeFakeQueue() {
 	return { send: vi.fn(async (_message: unknown) => undefined) }
 }
 
-// Stands in for the render page on a `measure` job: a real one leaves its measurements in its own
-// HTML for the worker's `/content` read, so the fake answers `content` with that page. Without this
-// every clustering tool would fail on a missing result, since they all measure the page before
-// clustering it. Bounds are given as boxes, the shape the worker stores, and converted to what the
-// page reports.
-export function makeMeasuringBrowserBinding(bounds: Record<string, ShapeMeasurement> = {}) {
-	const binding = makeBrowserBinding()
-	binding.quickAction.mockImplementation(async (action: string) =>
-		action === 'content'
-			? contentResponse(measurePageHtml(bounds))
-			: new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-	)
-	return binding
-}
-
-// What Browser Run's `/content` answers with: the page's HTML wrapped in its JSON envelope.
-export function contentResponse(html: string) {
-	return Response.json({ success: true, result: html })
-}
-
-export function measurePageHtml(bounds: Record<string, ShapeMeasurement>) {
-	const reported = Object.fromEntries(
-		Object.entries(bounds).map(([id, { minX, minY, maxX, maxY, ...rest }]) => [
-			id,
-			{ x: minX, y: minY, w: maxX - minX, h: maxY - minY, ...rest },
-		])
-	)
-	return `<html data-thumbnail-ready="true"><head></head><body data-thumbnail-ready="true"><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported).replace(/</g, '\\u003c')}</script></body></html>`
-}
-
-// In-memory stand-in for the TLDR_DOC namespace, with the file object's MCP cluster index storage.
-//
-// One store per object id, because that is the property the design rests on: the index key carries no
-// slug precisely because each file has its own object, so a fake that pooled every file into one
-// store could not tell a right `fileId` from a wrong one.
-//
-// Within a store, rows are keyed the way the real table is — (kind, pageId), with the version held as
-// a value rather than part of the key — so a write for new content replaces the old row exactly as
-// `INSERT OR REPLACE` does, a read for a stale version misses, and a write prunes the pages the board
-// no longer has. mcpClusterIndexStorage.test.ts is what holds this fake to the real statements.
+// Stands in for the file's durable object: the fake answers the calls the MCP tools make of it.
 export function makeFakeFileDurableObjectNamespace(
 	requestTabRender: (
 		userId: string,
 		request: TabRenderRequest
-	) => Promise<TabRenderOutcome> = async () => ({ status: 'no_tab' })
+	) => Promise<TabRenderOutcome> = async () => ({ status: 'no_tab' }),
+	room: Record<string, unknown> = {}
 ) {
-	const objects = new Map<string, Map<string, { version: string; payload: string }>>()
-	const calls = { get: 0, put: 0 }
-	const keyOf = (key: { kind: string; pageId: string }) => `${key.kind}/${key.pageId}`
-	const storeFor = (id: string) => {
-		const existing = objects.get(id)
-		if (existing) return existing
-		const created = new Map<string, { version: string; payload: string }>()
-		objects.set(id, created)
-		return created
-	}
-
 	return {
-		objects,
-		calls,
 		// A legible id rather than an opaque hash, so an assertion that reaches one reads as `do(<name>)`.
 		idFromName: (name: string) => ({ toString: () => `do(${name})` }),
-		get: (id: { toString(): string }) => {
-			const store = storeFor(String(id))
-			return {
-				async getMcpClusterIndex(key: any) {
-					calls.get++
-					const row = store.get(keyOf(key))
-					return row && row.version === key.version ? row.payload : null
-				},
-				async putMcpClusterIndex(key: any, payload: string, livePageIds: string[]) {
-					calls.put++
-					for (const existing of [...store.keys()]) {
-						const [kind, pageId] = existing.split('/')
-						if (kind === key.kind && !livePageIds.includes(pageId)) store.delete(existing)
-					}
-					store.set(keyOf(key), { version: key.version, payload })
-				},
-				requestTabRender,
-			}
-		},
+		// Drops the minted job ids: they're random, and the broker tests cover how they're issued.
+		get: () => ({
+			requestTabRender: (userId: string, request: TabRenderRequest) =>
+				requestTabRender(userId, request),
+			...room,
+		}),
 	}
 }
 
@@ -221,24 +156,9 @@ export function makeScreenshotTestEnv(overrides: Partial<Record<string, unknown>
 		MCP_SCREENSHOT_TOKEN_SECRET: 'test-secret',
 		MEASURE: { writeDataPoint: vi.fn() },
 		QUEUE: makeFakeQueue(),
-		// The MCP cluster index cache lives on the file's durable object, so the default env has a
-		// working one: a test that measures twice for the same board and page is asserting that the
-		// cache did not hold, which is worth failing on rather than passing by accident.
 		TLDR_DOC: makeFakeFileDurableObjectNamespace(),
 		...overrides,
 	} as unknown as Environment
-}
-
-/** The fake TLDR_DOC namespace an env was built with, for tests that assert on cache traffic. */
-export function clusterIndexStoreOf(env: Environment) {
-	return env.TLDR_DOC as unknown as ReturnType<typeof makeFakeFileDurableObjectNamespace>
-}
-
-/** Every cluster index row an env holds, as `<object>|<kind>/<pageId>`, for whole-store assertions. */
-export function clusterIndexKeysOf(env: Environment) {
-	return [...clusterIndexStoreOf(env).objects].flatMap(([id, store]) =>
-		[...store.keys()].map((key) => `${id}|${key}`)
-	)
 }
 
 export function screenshotOf(env: Environment) {
@@ -278,10 +198,6 @@ export function blobValuesOf(env: Environment, name: string, prefix: string): st
 
 export function failureBlobsOf(env: Environment) {
 	return blobsWithPrefix(env, 'failure:')
-}
-
-export function callerBlobsOf(env: Environment) {
-	return blobsWithPrefix(env, 'caller:')
 }
 
 // Every browser_run_session datapoint, parsed for whole-object assertions: one entry per browser

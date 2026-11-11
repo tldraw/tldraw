@@ -91,12 +91,6 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
-import {
-	ensureMcpClusterIndexTable,
-	pruneMcpClusterIndexRows,
-	readMcpClusterIndexRow,
-	writeMcpClusterIndexRow,
-} from './mcpClusterIndexStorage'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -114,6 +108,7 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
+import { getBoardUsers } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -131,8 +126,9 @@ import {
 	TabRenderSocket,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
+	pickTabRenderTargets,
 } from './tabRenderBroker'
-import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
+import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
 import {
@@ -291,6 +287,12 @@ const OBJECT_TYPES = [
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
 function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
+}
+
+// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain string column with
+// legacy values in it, so anything else fails closed.
+function canEditFile(file: TlaFile, role: Role | null) {
+	return can(role, 'accessFiles') || (file.shared && file.sharedLinkType === 'edit')
 }
 
 export class TLFileDurableObject extends DurableObject {
@@ -1195,17 +1197,11 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					const hasOwnerAccess = can(role, 'accessFiles')
-
-					if (!hasOwnerAccess && !file.shared) {
+					if (!can(role, 'accessFiles') && !file.shared) {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
 
-					// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
-					// string column with legacy values in it, so anything else fails closed.
-					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
-						openMode = ROOM_OPEN_MODE.READ_ONLY
-					}
+					if (!canEditFile(file, role)) openMode = ROOM_OPEN_MODE.READ_ONLY
 				} else {
 					// No file row means every check above was skipped, so admitting the socket would
 					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
@@ -3497,107 +3493,130 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	/**
-	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
-	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
-	 *
-	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
-	 * of the cache is to be cheaper than the browser render it replaces.
-	 */
-	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
-	// read path a write path — which is what lets a request in flight during a hard delete put storage
-	// back into an object that has already been emptied. Once per instance, after the delete check.
-	private mcpClusterIndexReady = false
-	private ensureMcpClusterIndex() {
-		if (this.mcpClusterIndexReady) return
-		ensureMcpClusterIndexTable(this.ctx.storage.sql)
-		this.mcpClusterIndexReady = true
-	}
-
-	/**
-	 * One page's stored cluster index, or null when nothing was stored for this content version.
-	 *
-	 * Refuses when documentInfo is absent or deleted rather than reading: `appFileRecordDidDelete`
-	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
-	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
-	 */
-	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
-		if (!this._documentInfo || this._documentInfo.deleted) return null
-		this.ensureMcpClusterIndex()
-		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
-	}
-
-	/**
-	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
-	 * pages the board no longer has.
-	 */
-	async putMcpClusterIndex(
-		key: McpClusterIndexKey,
-		payload: string,
-		livePageIds: string[]
-	): Promise<void> {
-		if (!this._documentInfo || this._documentInfo.deleted) return
-		this.ensureMcpClusterIndex()
-		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
-		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
-	}
-
 	private tabRenders = new TabRenderBroker()
 
-	/**
-	 * Asks this user's open tabs to do something an MCP tool would otherwise start a browser for.
-	 *
-	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
-	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
-	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
-	 */
-	async requestTabRender(userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> {
-		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
-
-		const sockets: TabRenderSocket[] = []
+	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
+	private getTabRenderSockets() {
+		const sockets: (TabRenderSocket & { isReadonly: boolean })[] = []
 		for (const ws of this.ctx.getWebSockets()) {
 			const attachment = this.getSocketAttachment(ws)
 			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
 			sockets.push({
 				sessionId: attachment.sessionId,
 				userId: attachment.meta.userId,
+				isReadonly: attachment.isReadonly,
 				lastSeenAt:
 					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
 					attachment.tabRenderConnectedAt,
 			})
 		}
-		const sessionIds = pickTabRenderSessions(sockets, userId, Date.now())
-		if (sessionIds.length === 0) return { status: 'no_tab' }
+		return sockets
+	}
 
-		const room = await Promise.race([
-			this.getRoom(),
-			sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null),
-		])
+	/** The room, unless it takes too long: see TAB_RENDER_ROOM_TIMEOUT_MS. */
+	private getRoomForTabRender() {
+		return Promise.race([this.getRoom(), sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null)])
+	}
+
+	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
+	private async canWriteToFile(userId: string) {
+		const access = await this.getAppFileRecordWithRole(userId)
+		return !!access && canEditFile(access.file, access.role)
+	}
+
+	/**
+	 * Runs an MCP tool's work in this user's open tabs: a measure or screenshot that would otherwise
+	 * start a browser, a batch of ops, or the user's own selection and page.
+	 *
+	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
+	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
+	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
+	 */
+	async requestTabRender(
+		userId: string,
+		request: TabRenderRequest,
+		jobIds: string[]
+	): Promise<TabRenderOutcome> {
+		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
+		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
+		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
+			return { status: 'declined', reason: 'read_only' }
+		}
+
+		const isWrite = request.mode === 'apply_ops'
+		const sockets = this.getTabRenderSockets()
+		const now = Date.now()
+		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
+		// The tab applies a write as its own session, which is what the room authorizes. The access
+		// check above is current, but a session keeps the mode it connected with until it reconnects,
+		// so a tab opened before the user could edit has to be reloaded.
+		const sessionIds = isWrite
+			? pickTabRenderSessions(
+					sockets.filter((s) => !s.isReadonly),
+					userId,
+					now
+				)
+			: pickTabRenderSessions(sockets, userId, now)
+		if (sessionIds.length === 0) return { status: 'reload_needed' }
+
+		const room = await this.getRoomForTabRender()
 		if (!room) return { status: 'room_timeout' }
 		// Only now: sessionIdToWs is filled in as the room boots.
 		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
 			const ws = this.sessionIdToWs.get(sessionId)
 			const attachment = ws ? this.getSocketAttachment(ws) : null
 			if (!attachment) return null
-			return { userId: attachment.meta.userId, canTabRender: !!attachment.tabRenderConnectedAt }
+			return {
+				userId: attachment.meta.userId,
+				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
+			}
 		})
 		if (deliverable.length === 0) return { status: 'no_tab' }
-		return this.tabRenders.dispatch(userId, deliverable, request, (sessionId, jobId) => {
+
+		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
+		// presence, says which one they're in.
+		const targets = pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
+			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
+			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
+		}).slice(0, jobIds.length)
+
+		return this.tabRenders.dispatch(targets, request, jobIds, (sessionId, jobId) => {
 			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
 			room.sendCustomMessage(sessionId, event)
 		})
 	}
 
-	async hasTabRenderJob(jobId: string, userId: string): Promise<boolean> {
-		return this.tabRenders.has(jobId, userId)
+	/**
+	 * Who is on the board. Identity comes from the session, which the server verified. A session's
+	 * presence is whatever its client sent, so it's joined on rather than trusted: anyone with a share
+	 * link can claim any `userId` there.
+	 */
+	async getMcpBoardUsers(): Promise<
+		{ status: 'room_timeout' } | ({ status: 'ok' } & ReturnType<typeof getBoardUsers>)
+	> {
+		if (!this._documentInfo || this._documentInfo.deleted || !this.ctx.getWebSockets().length) {
+			return { status: 'ok', users: [], anonymousViewers: 0 }
+		}
+		const room = await this.getRoomForTabRender()
+		if (!room) return { status: 'room_timeout' }
+
+		const presences = room.getPresenceRecords()
+		const sessions = room
+			.getSessions()
+			.filter((session) => session.isConnected)
+			.map(({ sessionId, meta }) => {
+				const presenceId = room.getSessionSnapshot(sessionId)?.presenceId
+				return { userId: meta.userId, presence: presenceId ? presences[presenceId] : undefined }
+			})
+		return { status: 'ok', ...getBoardUsers(sessions) }
 	}
 
-	async receiveTabRenderReply(
-		jobId: string,
-		userId: string,
-		reply: TabRenderReply
-	): Promise<boolean> {
-		return this.tabRenders.receive(jobId, userId, reply)
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
+	}
+
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
 	}
 
 	/**

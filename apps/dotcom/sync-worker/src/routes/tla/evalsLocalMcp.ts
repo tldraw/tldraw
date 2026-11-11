@@ -3,8 +3,10 @@ import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import { getDocumentNameFromSnapshot } from '../getDocumentNameFromSnapshot'
 import {
+	APPLY_OPS_TOOL_NAME,
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
+	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
@@ -17,9 +19,7 @@ import {
 	compareBoardSearchOrder,
 	getBoardInfo,
 	getBoardSearchResults,
-	clusterPage,
 	getClusterInfo,
-	clusteringFromMeasure,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -32,9 +32,10 @@ import {
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pickClusterShapes,
-	resolvePage,
+	readSnapshotPage,
 	toolError,
 	toolPageResult,
+	USER_STATE_TOOL_NAME,
 } from './boardTools'
 
 const HARNESS_GAP_MARKER = '[harness-gap]'
@@ -92,18 +93,17 @@ export function getEvalsFixtureScreenshotPlan(
 	const plan: ScreenshotPlanEntry[] = []
 	for (const page of pages.pages) {
 		const selector = { kind: 'id', id: page.id } as const
-		const resolved = resolvePage(snapshot, selector)
-		if (!resolved.ok) continue
-		const clusters = clusterPage(resolved, measurements)
-		const info = JSON.parse(
-			textOf(getPageInfo(resolved, clusteringFromMeasure(clusters, measurements)))
-		) as {
+		const listed = readSnapshotPage(snapshot, selector, measurements)
+		if (!listed.ok) continue
+		const info = JSON.parse(textOf(getPageInfo(listed.read))) as {
 			clusters: Array<{ id: string }>
 		}
 		const clusterIds = info.clusters.map((cluster) => cluster.id)
+		const detailed = readSnapshotPage(snapshot, selector, measurements, clusterIds)
+		if (!detailed.ok) continue
 		const sets = [...clusterIds.map((id) => [id]), ...(clusterIds.length > 1 ? [clusterIds] : [])]
 		for (const set of sets) {
-			const picked = pickClusterShapes(clusters, set, selector)
+			const picked = pickClusterShapes(detailed.read.details, set, selector)
 			if (!picked.ok || picked.shapeIds.length === 0) continue
 			plan.push({ pageId: page.id, clusterIds: set, shapeIds: picked.shapeIds })
 		}
@@ -187,44 +187,27 @@ async function callFixtureTool(
 				const { boardId, page } = parsePageInfoInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
-				const resolved = resolvePage(board.snapshot, page)
-				return resolved.ok
-					? getPageInfo(
-							resolved,
-							clusteringFromMeasure(clusterPage(resolved, board.measurements), board.measurements)
-						)
-					: resolved.result
+				const listed = readSnapshotPage(board.snapshot, page, board.measurements)
+				return listed.ok ? getPageInfo(listed.read) : listed.result
 			}
 			case CLUSTER_INFO_TOOL_NAME: {
 				const { boardId, page, clusterIds, cursor } = parseClusterInfoInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
-				const resolved = resolvePage(board.snapshot, page)
-				return resolved.ok
-					? getClusterInfo(
-							resolved,
-							clusteringFromMeasure(clusterPage(resolved, board.measurements), board.measurements),
-							clusterIds,
-							page,
-							cursor
-						).result
-					: resolved.result
+				const read = readSnapshotPage(board.snapshot, page, board.measurements, clusterIds)
+				return read.ok ? getClusterInfo(read.read, clusterIds, page, cursor).result : read.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
 				const { boardId, page, clusterIds, theme } = parseClusterScreenshotInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
-				const resolved = resolvePage(board.snapshot, page)
-				if (!resolved.ok) return resolved.result
-				const picked = pickClusterShapes(
-					clusterPage(resolved, board.measurements),
-					clusterIds,
-					page
-				)
+				const read = readSnapshotPage(board.snapshot, page, board.measurements, clusterIds)
+				if (!read.ok) return read.result
+				const picked = pickClusterShapes(read.read.details, clusterIds, page)
 				if (!picked.ok) return picked.result
 				const png = board.shots[screenshotFileName(clusterIds, theme)]
 				return png
-					? toolPageResult(resolved.pageName, png)
+					? toolPageResult(read.read.pageName, png)
 					: toolError(
 							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
 						)
@@ -251,6 +234,15 @@ async function callFixtureTool(
 					`${HARNESS_GAP_MARKER} Boards cannot be renamed against fixtures. Run against staging or production to rename one.`
 				)
 			}
+			case USER_STATE_TOOL_NAME:
+			case BOARD_USERS_TOOL_NAME:
+				return toolError(
+					`${HARNESS_GAP_MARKER} Fixtures have nobody on them. Run against staging or production to test presence.`
+				)
+			case APPLY_OPS_TOOL_NAME:
+				return toolError(
+					`${HARNESS_GAP_MARKER} Ops cannot be applied to fixtures. Run against staging or production to test edits.`
+				)
 			default:
 				return toolError(`Unknown tool: ${name}`)
 		}

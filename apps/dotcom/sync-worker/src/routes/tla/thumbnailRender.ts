@@ -1,20 +1,17 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	MeasuredArrow,
-	MeasuredDimensions,
 	RENDER_PUSH_BUDGET_BYTES,
-	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
-	ThumbnailShapeMeasurement,
 	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
 	renderPushByteLength,
 	renderPushScript,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { AssetRecordType, isShape, isShapeId } from '@tldraw/tlschema'
 import { RENDER_PUSH_FALLBACK_TTL_MS, THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
@@ -37,7 +34,6 @@ import {
 	recordMintedRenderToken,
 	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
-import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,
@@ -69,16 +65,6 @@ import {
 // files), so it can key the thumbnail caches.
 export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	version: string | number
-	/**
-	 * The file this board's content belongs to: the slug itself for a shared file, and the parent file
-	 * a published slug resolves to for a published board.
-	 *
-	 * Carried because the file's Durable Object is addressed by it, and that object is where the MCP
-	 * server caches a page's cluster index (see mcpClusterIndex.ts). Kept off `ThumbnailBoardRef`,
-	 * which is the *identity* of a board and keys its caches: two kinds can share a file id, so a key
-	 * built from this would collide a published board's index with its file's.
-	 */
-	fileId: string
 	/**
 	 * The gate this board was resolved under, carried so a render cannot be minted under a weaker one
 	 * than the resolution used. `captureThumbnailScreenshot` signs it into the job, and the snapshot
@@ -140,8 +126,6 @@ export async function resolveThumbnailBoard(
 				slug,
 				version: publishedFile.lastPublished,
 				access,
-				// The row this published slug resolved through, which is the file that owns the snapshot.
-				fileId: publishedFile.id,
 			},
 		}
 	}
@@ -154,7 +138,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag, access, file, fileId: file.id } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -471,6 +455,11 @@ export interface RenderContentSummary {
 	mediaAssets: number
 	bboxWidth: number
 	bboxHeight: number
+	/**
+	 * Full-resolution megapixels of the image assets the rendered page's shapes use, each counted once,
+	 * whatever their nesting. What decoding the originals would cost the render page.
+	 */
+	imageMegapixels: number
 }
 
 const EMPTY_CONTENT_SUMMARY: RenderContentSummary = {
@@ -479,6 +468,7 @@ const EMPTY_CONTENT_SUMMARY: RenderContentSummary = {
 	mediaAssets: 0,
 	bboxWidth: 0,
 	bboxHeight: 0,
+	imageMegapixels: 0,
 }
 
 export function summarizeSnapshotContent(
@@ -491,20 +481,34 @@ export function summarizeSnapshotContent(
 	let minY = Infinity
 	let maxX = -Infinity
 	let maxY = -Infinity
+	const imagePixels = new Map<string, number>()
+	const parentOf = new Map<string, string>()
+	const assetUsers: { shapeId: string; assetId: string }[] = []
 	for (const { state } of snapshot.documents) {
 		const record = state as {
-			typeName?: string
+			id?: string
 			type?: string
 			parentId?: string
 			x?: number
 			y?: number
-			props?: { w?: unknown; h?: unknown }
+			props?: { w?: unknown; h?: unknown; pixelRatio?: unknown; assetId?: unknown }
 		}
-		if (record.typeName === 'asset') {
+		if (AssetRecordType.isInstance(state)) {
 			if (record.type === 'image' || record.type === 'video') mediaAssets++
+			if (record.type === 'image' && record.id) {
+				const w = typeof record.props?.w === 'number' ? record.props.w : 0
+				const h = typeof record.props?.h === 'number' ? record.props.h : 0
+				const ratio = typeof record.props?.pixelRatio === 'number' ? record.props.pixelRatio : 1
+				imagePixels.set(record.id, w * h * ratio * ratio)
+			}
 			continue
 		}
-		if (record.typeName !== 'shape' || (pageId && record.parentId !== pageId)) continue
+		if (!isShape(state)) continue
+		if (record.id && record.parentId) parentOf.set(record.id, record.parentId)
+		if (record.id && typeof record.props?.assetId === 'string') {
+			assetUsers.push({ shapeId: record.id, assetId: record.props.assetId })
+		}
+		if (pageId && record.parentId !== pageId) continue
 		pageShapes++
 		const x = record.x ?? 0
 		const y = record.y ?? 0
@@ -515,13 +519,27 @@ export function summarizeSnapshotContent(
 		maxX = Math.max(maxX, x + w)
 		maxY = Math.max(maxY, y + h)
 	}
+	const drawnAssets = new Set<string>()
+	for (const { shapeId, assetId } of assetUsers) {
+		if (!pageId || pageOfShape(parentOf, shapeId) === pageId) drawnAssets.add(assetId)
+	}
+	let imagePixelTotal = 0
+	for (const assetId of drawnAssets) imagePixelTotal += imagePixels.get(assetId) ?? 0
 	return {
 		records: snapshot.documents.length,
 		pageShapes,
 		mediaAssets,
 		bboxWidth: pageShapes ? maxX - minX : 0,
 		bboxHeight: pageShapes ? maxY - minY : 0,
+		imageMegapixels: imagePixelTotal / 1_000_000,
 	}
+}
+
+// Bounded by the map's size, so a parent cycle in a corrupt document ends instead of hanging.
+function pageOfShape(parentOf: Map<string, string>, shapeId: string): string | undefined {
+	let id: string | undefined = shapeId
+	for (let i = 0; i <= parentOf.size && isShapeId(id); i++) id = parentOf.get(id)
+	return id
 }
 
 // The Browser Run spend ledger: one datapoint per browser session actually created, written here at
@@ -583,6 +601,8 @@ function writeBrowserRunSessionTelemetry(
 			content.bboxHeight,
 			// Appended. The push script's length in characters; for a fallback, the length refused.
 			transport.pushChars,
+			// Appended after pushChars.
+			content.imageMegapixels,
 		],
 	})
 }
@@ -957,173 +977,6 @@ async function callLocalScreenshotService(
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
 // can be detected) alongside any surface-specific metadata.
-// --- Measuring a page in a real editor ----------------------------------------------------------
-//
-// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
-// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
-// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and leaves the
-// result in its own HTML for the worker's `/content` read.
-
-/**
- * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
- *
- * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
- * geometry the Worker cannot compute. Callers own the rate limiting that implies; the session
- * itself lands on the `browser_run_session` spend ledger with `mode:measure`, written at the render
- * choke point rather than by callers.
- */
-export async function measurePageShapes(
-	env: Environment,
-	board: ResolvedThumbnailBoard,
-	pageId: string,
-	{ surface, snapshot }: { surface: ThumbnailRenderSurface; snapshot?: RoomSnapshot }
-): Promise<Record<string, ShapeMeasurement>> {
-	const job: ThumbnailRenderJob = {
-		v: 1,
-		kind: board.kind,
-		slug: board.slug,
-		version: board.version,
-		// Taken from the resolution rather than the caller, same as captureThumbnailScreenshot: a
-		// measure token for a private board reads the whole document through the snapshot route, so it
-		// carries the gate the board resolved under rather than defaulting to `public`.
-		access: board.access,
-		surface,
-		mode: 'measure',
-		pageId,
-		x: 0,
-		y: 0,
-		z: 1,
-		// Nothing is exported, but the viewport still has to be a sane size: shapes are measured
-		// against a laid-out document, not a zero-sized one.
-		width: DEFAULT_THUMBNAIL_WIDTH,
-		height: DEFAULT_THUMBNAIL_HEIGHT,
-		theme: 'light',
-		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	}
-
-	// Flag-gated hand-off to the private render worker, as in captureThumbnailScreenshot. Push-only,
-	// so it needs the caller's snapshot; without one, fall through to the local path.
-	if (envFlagWord(env.THUMBNAIL_RENDER_VIA_WORKER) === 'true' && env.RENDER_WORKER && snapshot) {
-		const body = thumbnailSnapshotBodyFor(snapshot, job)
-		if (body.error) throw new Error(body.message)
-		// Refuse upstream, as in captureThumbnailScreenshot.
-		if (renderPushByteLength(renderPushScript(body)) > RENDER_PUSH_BUDGET_BYTES) {
-			throw new RenderWorkerError('board_too_large')
-		}
-		const result = await env.RENDER_WORKER.measure({
-			payload: body,
-			telemetry: { source: 'mcp', content: summarizeSnapshotContent(snapshot, pageId) },
-		})
-		if (!result.ok) throw new RenderWorkerError(result.reason)
-		// The worker returns the page's own { x, y, w, h } form; clustering wants min/max, so convert
-		// here, next to the clustering code — which keeps that coordinate type out of the worker's API.
-		const bounds: Record<string, ShapeMeasurement> = {}
-		for (const [shapeId, box] of Object.entries(result.measurements)) {
-			bounds[shapeId] = {
-				minX: box.x,
-				minY: box.y,
-				maxX: box.x + box.w,
-				maxY: box.y + box.h,
-				...(box.text ? { text: box.text } : null),
-			}
-		}
-		return bounds
-	}
-
-	// Minted even for a push: a board too big to push falls back to fetching with it.
-	const token = await mintRecordedRenderToken(env, job)
-
-	try {
-		const { buffer } = await runRenderSession(
-			env,
-			buildThumbnailRenderUrl(getRenderOrigin(env), token),
-			{
-				width: DEFAULT_THUMBNAIL_WIDTH,
-				height: DEFAULT_THUMBNAIL_HEIGHT,
-				// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
-				// signed job, not the telemetry source, so this is stated rather than derived.
-				session: { source: 'mcp', mode: 'measure' },
-				transport: await renderTransportFor(env, snapshot, job),
-				pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
-			}
-		)
-
-		return readMeasureResult(buffer)
-	} finally {
-		// The record is keyed by its own token, so concurrent measures of one page cannot invalidate each
-		// other — which also means nothing later overwrites it, and it has to be dropped here.
-		await deleteMintedRenderToken(env, job, token)
-	}
-}
-
-// The page's result element out of a `/content` response.
-export function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
-	const html = new TextDecoder().decode(buffer)
-	const match = new RegExp(
-		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
-	).exec(html)
-	if (!match) throw new Error('The render page did not report any measurements')
-	return readMeasurements(JSON.parse(match[1]))
-}
-
-// What an editor reported, whichever editor that was. Malformed boxes are dropped rather than kept: a
-// non-finite value would produce NaN distances and silently detach that shape from the minimum
-// spanning tree.
-export function readMeasurements(
-	reported: Record<string, ThumbnailShapeMeasurement>
-): Record<string, ShapeMeasurement> {
-	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		const arrow = readArrow(box.arrow)
-		const dimensions = readDimensions(box.dimensions)
-		bounds[shapeId] = {
-			minX: box.x,
-			minY: box.y,
-			maxX: box.x + box.w,
-			maxY: box.y + box.h,
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-			...(arrow ? { arrow } : null),
-			...(dimensions ? { dimensions } : null),
-		}
-	}
-	return bounds
-}
-
-// Malformed arrow geometry is dropped and the shape's bounds kept: get_cluster_info then reports the
-// arrow from its record, as it would for a render page that predates arrow measurement.
-function readArrow(value: ThumbnailShapeMeasurement['arrow']): MeasuredArrow | undefined {
-	const start = readPoint(value?.start)
-	const end = readPoint(value?.end)
-	return start && end ? { start, end } : undefined
-}
-
-function readPoint(value: unknown) {
-	const { x, y } = (value ?? {}) as { x?: unknown; y?: unknown }
-	return isFiniteNumber(x) && isFiniteNumber(y) ? { x, y } : undefined
-}
-
-// Malformed dimensions are dropped the same way: the shape reports the w and h on its record.
-function readDimensions(
-	value: ThumbnailShapeMeasurement['dimensions']
-): MeasuredDimensions | undefined {
-	const { w, h } = (value ?? {}) as { w?: unknown; h?: unknown }
-	return isFiniteNumber(w) && isFiniteNumber(h) && w >= 0 && h >= 0 ? { w, h } : undefined
-}
-
-function isFiniteNumber(value: unknown): value is number {
-	return Number.isFinite(value)
-}
-
-// Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
-// can be detected) alongside any surface-specific metadata.
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,
@@ -1184,13 +1037,6 @@ export function writeScreenshotTelemetry(
 		 */
 		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
 		/**
-		 * What the MCP cluster index cache did, which decides whether the call ran a measure render.
-		 * Its own dimension rather than part of `cacheStatus`, which is the PNG cache: the two save
-		 * different things, and one blob mixing them would make either hit rate unreadable. `none` on
-		 * every OG row and on any MCP row that never reached the clustering step.
-		 */
-		clusterCacheStatus?: 'hit' | 'miss' | 'none'
-		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
 		 * rows — see below.
 		 *
@@ -1226,8 +1072,6 @@ export function writeScreenshotTelemetry(
 			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
 			// it, instead of sweeping up every og and mcp datapoint too.
 			`followup:${data.followUp ?? 'none'}`,
-			// Appended, like the two above, so nothing shifts. Only the MCP clustering tools ever set it.
-			`clusters:${data.clusterCacheStatus ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,

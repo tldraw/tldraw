@@ -54,6 +54,10 @@ class GA4AnalyticsService extends AnalyticsService {
 			script.src = `https://www.googletagmanager.com/gtag/js?id=${this.measurementId}`
 			document.head.appendChild(script)
 
+			// Pairs with tldraw.com's linker for tldraw.dev, so a visitor crossing between the two
+			// keeps one GA4 client id.
+			gtag('set', 'linker', { domains: ['tldraw.com'] })
+
 			gtag('config', this.measurementId, {
 				anonymize_ip: true,
 			})

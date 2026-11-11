@@ -50,12 +50,10 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
+import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import {
-	TlaAddToCollectionMenuItem,
-	TlaCollectionsPanel,
-} from '../TlaCollections/TlaCollectionsPanel'
+import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -194,6 +192,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
+			;(window as any).canvasOpsReceiver = createCanvasOpsReceiver(editor)
 			// Register the editor globally
 			globalEditor.set(editor)
 
@@ -359,14 +358,14 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			DebugMenu: () => <CustomDebugMenu />,
 			ContextMenu: (props) => (
 				<DefaultContextMenu {...props}>
-					<TlaAddToCollectionMenuItem />
+					<TlaAddToLibraryMenuItem />
 					<DefaultContextMenuContent />
 				</DefaultContextMenu>
 			),
 			InFrontOfTheCanvas: () => (
 				<>
 					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
-					<TlaCollectionsPanel />
+					<TlaLibrariesPanel />
 				</>
 			),
 		}

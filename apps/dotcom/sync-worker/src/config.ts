@@ -123,55 +123,23 @@ export const OG_FALLBACK_MAX_AGE_SECONDS = 60
 export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
 
 /**
- * MCP rate limits: the only rate limiting anywhere in the thumbnail pipeline, applied in
- * mcpServer.ts. The MCP endpoint is the one Browser Run-spending surface an outside
- * caller can drive directly, so a rogue or looping agent is the threat being bounded, and only the
- * calls that actually spend Browser Run are limited — `get_board_info` does the same work the
- * ordinary board routes do for anyone. `search_boards` has its own budget, bounding a different
- * resource: it spends no Browser Run, but it drives the Postgres that serves all of dotcom, and
- * its matching is the one part no index reaches — `name ILIKE '%term%'` over the caller's whole
- * in-scope set, so a query matching nothing costs the most. See "MCP tools" in
- * browser-run-thumbnails.md for the measured query plans.
- * The global limit is applied per Cloudflare location, so it bounds a caller rather than the
- * account. See "Request limits" in browser-run-thumbnails.md.
+ * MCP rate limits, applied in mcpServer.ts: one budget per tool family, each per account.
  *
  * These constants are only the isolate-local fallback for local dev and tests. Deployed environments
  * are governed by the Cloudflare rate limit bindings in wrangler.toml, so changing a number here
  * alone changes nothing in production. Each budget has its own binding, and the pairs must move
  * together:
  *
- *   MCP_PER_USER_RATE_LIMIT            ->  MCP_SCREENSHOT_RATE_LIMITER      (limit = 60)
- *   MCP_PER_BOARD_RATE_LIMIT           ->  MCP_SERVER_BOARD_RATE_LIMITER    (limit = 2)
- *   MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT  ->  MCP_SERVER_BROWSER_RATE_LIMITER  (limit = 120)
  *   MCP_SEARCH_PER_USER_RATE_LIMIT     ->  MCP_SERVER_SEARCH_RATE_LIMITER   (limit = 120)
  *   MCP_CREATE_PER_USER_RATE_LIMIT     ->  MCP_SERVER_CREATE_RATE_LIMITER   (limit = 10)
  *   MCP_RENAME_PER_USER_RATE_LIMIT     ->  MCP_SERVER_RENAME_RATE_LIMITER   (limit = 10)
- *
- * The first of these keyed on client IP until the endpoint required authentication. An account is
- * the better key in both directions: a proxy pool no longer buys a caller more budget, and everyone
- * behind one NAT no longer shares a single one. IP limits still matter on endpoints with no caller
- * identity — the render page's snapshot route, and anything the OAuth flow exposes.
- *
- * Per-user counts *tool calls that can spend Browser Run*, not captures, and it is one budget across
- * every such tool — see `perUserRateLimitKey`. That distinction matters because the clustering tools
- * each run a measure render, which costs a full browser session: the ordinary one-screenshot flow is
- * get_page_info, get_cluster_info, get_cluster_screenshot, so 60 calls a minute is nearer 20 finished
- * screenshots a minute than 60. Sized for several agents sharing one account: at 10, parallel agents
- * on one account were refused mid-task in testing. Spend stays bounded by the per-board and global
- * limiters, since this budget also counts cache hits. The number here alone changes nothing deployed.
- *
- * Per-board is far below per-user on purpose: no single board may absorb more than 2 captures a
- * minute. Cache misses only, so this does not bound the usual "screenshot several pages of one board"
- * flow — a repeated capture of the same page is a cache hit. Measures are deliberately *not* counted
- * against it: three of them land on one board in the flow above, so a limit of 2 would refuse the
- * documented path rather than an abusive one. The global limiter is what bounds measure spend.
+ *   MCP_TAB_PER_USER_RATE_LIMIT        ->  MCP_SERVER_TAB_RATE_LIMITER      (limit = 90)
  *
  * The window matches the period configured on the Cloudflare bindings, which only support 60s (or
  * 10s) periods — this is the one number here that is Cloudflare's rather than ours.
  */
 /**
- * The `search_boards` budget, separate from the Browser Run one above because it bounds a different
- * cost and deserves its own number rather than a Browser Run number inherited.
+ * The `search_boards` budget.
  *
  * Set where a legitimate caller never meets it and a runaway loop is still capped. Paging is what
  * spends this, not abuse: the page size is fixed at 20, so a caller in an 8000-board workspace needs
@@ -182,8 +150,8 @@ export const THUMBNAIL_RENDER_TOKEN_TTL_MS = 60_000
  * a minute is about a second of database time per caller per minute.
  *
  * Per account, and only per account. It does not bound many accounts looping at once; that would
- * need a global search limiter alongside it, the way MCP_SERVER_BROWSER_RATE_LIMITER sits under the
- * per-user screenshot budget. Deliberately left until there is real traffic to size it against.
+ * need a global search limiter alongside it. Deliberately left until there is real traffic to size it
+ * against.
  */
 export const MCP_SEARCH_PER_USER_RATE_LIMIT = 120
 
@@ -193,9 +161,18 @@ export const MCP_CREATE_PER_USER_RATE_LIMIT = 10
 /** The `rename_board` budget. A write, like create, so the same size and well below search. */
 export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
 
-export const MCP_PER_USER_RATE_LIMIT = 60
-export const MCP_PER_BOARD_RATE_LIMIT = 2
-export const MCP_GLOBAL_BROWSER_RUN_RATE_LIMIT = 120
+/**
+ * The budget shared by every tool that goes through the board's durable object: `get_page_info`,
+ * `get_cluster_info`, `get_cluster_screenshot`, `apply_ops`, `get_user_state` and `get_board_users`.
+ *
+ * Most of them have the caller's open tab do the work, but the durable object is shared with everyone
+ * on the board and still carries each call: it wakes, relays the job, and takes the tab's reply, which
+ * on a large page runs to megabytes. `get_board_users` reads presence from it directly. A durable object does one thing at a time, so a looping agent would slow the
+ * board down for everybody. A call and a half a second on average leaves room for an agent reading
+ * a page cluster by cluster.
+ */
+export const MCP_TAB_PER_USER_RATE_LIMIT = 90
+
 export const MCP_RATE_LIMIT_WINDOW_MS = 60_000
 
 /**

@@ -1,17 +1,17 @@
 import { TabRenderReply, TabRenderRequest } from '@tldraw/dotcom-shared'
 
-// Lets an MCP tool borrow a user's open tldraw.com tab instead of starting a Browser Run session.
-// Lives in the file's Durable Object, because that is where the sockets are; see "Rendering in an
-// open tab" in browser-run-thumbnails.md.
+// Runs an MCP tool's work in a user's open tldraw.com tab. Lives in the file's Durable Object, because
+// that is where the sockets are; see "Working in an open tab" and "Editing in an open tab" in
+// browser-run-thumbnails.md.
 //
-// A tab can stop answering without its socket closing, so a job goes to all of a user's live tabs and
-// the first answer wins.
+// A tab can stop answering without its socket closing, so a read goes to several of a user's live tabs
+// and the first answer wins. A write goes to one, and that tab waits for the 200 on its acknowledgement
+// before applying anything, which is what stops a frozen tab replaying a job when it wakes.
 
 /**
- * How long a tab has to acknowledge a job. This is what a tab that looks alive but isn't costs a
- * fallback. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
- * throttled to once a second. Too short and live tabs lose to Browser Run; too long and a dead one
- * taxes every fallback.
+ * How long a tab has to acknowledge a job, which is how long a call waits on a tab that looks alive
+ * but isn't. Spans a socket message, a worker hop and a DO hop, and a hidden tab's timers can be
+ * throttled to once a second, so too short refuses live tabs.
  */
 export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 
@@ -23,11 +23,15 @@ export const TAB_RENDER_ACK_TIMEOUT_MS = 1_500
 export const TAB_RENDER_ROOM_TIMEOUT_MS = 1_500
 
 /**
- * How long work may run once the ack window closes. Both sit well under a Browser Run session, since
- * a timeout here is paid on top of the fallback: past this, the fallback would likely have been
- * faster.
+ * How long work may run once the ack window closes. A batch of ops gets the longest: it stalls a real
+ * tab for longer than an export, and a timeout on a write can't say whether the write landed.
  */
-export const TAB_RENDER_WORK_TIMEOUT_MS = { measure: 5_000, screenshot: 8_000 } as const
+export const TAB_RENDER_WORK_TIMEOUT_MS = {
+	read: 5_000,
+	screenshot: 8_000,
+	apply_ops: 10_000,
+	user_state: 3_000,
+} as const
 
 /**
  * The most tabs one job goes to. Every addressed tab does the work, so this bounds what a single
@@ -43,8 +47,15 @@ export const MAX_TAB_RENDER_SESSIONS = 3
 export const TAB_RENDER_MAX_PING_AGE_MS = 90_000
 
 export type TabRenderOutcome =
-	| Extract<TabRenderReply, { status: 'measured' | 'captured' | 'declined' }>
-	| { status: 'no_tab' | 'room_timeout' | 'ack_timeout' | 'work_timeout' }
+	| Extract<
+			TabRenderReply,
+			{
+				status: 'page_read' | 'page_not_found' | 'captured' | 'applied' | 'user_state' | 'declined'
+			}
+	  >
+	| {
+			status: 'no_tab' | 'reload_needed' | 'room_timeout' | 'ack_timeout' | 'work_timeout'
+	  }
 
 export interface TabRenderSocket {
 	sessionId: string
@@ -53,7 +64,10 @@ export interface TabRenderSocket {
 	lastSeenAt: number
 }
 
-/** The sessions worth sending one user's job to, most recently seen first. */
+/**
+ * The sessions worth sending one user's job to, most recently seen first. The caller decides how many
+ * to ask.
+ */
 export function pickTabRenderSessions(
 	sockets: TabRenderSocket[],
 	userId: string,
@@ -64,7 +78,7 @@ export function pickTabRenderSessions(
 		.sort((a, b) => b.lastSeenAt - a.lastSeenAt)
 		.map((s) => s.sessionId)
 	// A superseded socket for a session can linger, so sessions are deduped rather than sockets.
-	return [...new Set(live)].slice(0, MAX_TAB_RENDER_SESSIONS)
+	return [...new Set(live)]
 }
 
 /** What a session's current socket says about it: the one the room would send a job to. */
@@ -90,9 +104,23 @@ export function keepDeliverableTabRenderSessions(
 	})
 }
 
+/**
+ * Which of the deliverable sessions a job goes to. "The user's selection" and "the page they're on"
+ * mean the tab they're in, and a write must run once, so those go to the one tab the user was last
+ * active in. Reads go to several, where any answer will do and a second tab can cover for a dead one.
+ */
+export function pickTabRenderTargets(
+	mode: TabRenderRequest['mode'],
+	sessionIds: string[],
+	lastActiveAt: (sessionId: string) => number
+): string[] {
+	if (mode === 'apply_ops' || mode === 'user_state') {
+		return [...sessionIds].sort((a, b) => lastActiveAt(b) - lastActiveAt(a)).slice(0, 1)
+	}
+	return sessionIds.slice(0, MAX_TAB_RENDER_SESSIONS)
+}
+
 interface TabRenderJob {
-	/** The user whose tool call this is. Only that user's website session may answer. */
-	userId: string
 	/**
 	 * The tabs that can still answer, by job id. Each tab gets its own id, so a reply can only ever
 	 * speak for the tab it was sent to.
@@ -105,23 +133,25 @@ interface TabRenderJob {
 export class TabRenderBroker {
 	private readonly jobs = new Map<string, TabRenderJob>()
 
-	/** Resolves once a tab answers, or as soon as none of them can. */
+	/**
+	 * Resolves once a tab answers, or as soon as none of them can. Each session takes the next of
+	 * `jobIds`, which the worker minted and signed: see tabRenderJobIds.ts.
+	 */
 	dispatch(
-		userId: string,
 		sessionIds: string[],
 		request: TabRenderRequest,
+		jobIds: readonly string[],
 		send: (sessionId: string, jobId: string) => void
 	): Promise<TabRenderOutcome> {
 		return new Promise((resolve) => {
-			const jobIds: string[] = []
+			const issued: string[] = []
 			let workTimer: ReturnType<typeof setTimeout> | undefined
 			const job: TabRenderJob = {
-				userId,
 				tabs: new Map(),
 				finish: (outcome) => {
 					clearTimeout(ackTimer)
 					clearTimeout(workTimer)
-					for (const jobId of jobIds) this.jobs.delete(jobId)
+					for (const jobId of issued) this.jobs.delete(jobId)
 					resolve(outcome)
 				},
 			}
@@ -139,13 +169,13 @@ export class TabRenderBroker {
 				)
 			}, TAB_RENDER_ACK_TIMEOUT_MS)
 
-			for (const sessionId of sessionIds) {
-				const jobId = crypto.randomUUID()
-				jobIds.push(jobId)
+			sessionIds.forEach((sessionId, i) => {
+				const jobId = jobIds[i]
+				issued.push(jobId)
 				job.tabs.set(jobId, 'asked')
 				this.jobs.set(jobId, job)
 				send(sessionId, jobId)
-			}
+			})
 		})
 	}
 
@@ -154,18 +184,15 @@ export class TabRenderBroker {
 		this.jobs.delete(jobId)
 	}
 
-	/** Whether this user may answer this job. False once the job finishes. */
-	has(jobId: string, userId: string) {
-		return this.jobs.get(jobId)?.userId === userId
+	/** Whether this job id can still be answered. False once the job finishes. */
+	has(jobId: string) {
+		return this.jobs.has(jobId)
 	}
 
-	/**
-	 * Whether the reply landed. False for an unknown job id, including one that already finished, and
-	 * for a reply from anyone but the job's user.
-	 */
-	receive(jobId: string, userId: string, reply: TabRenderReply): boolean {
+	/** Whether the reply landed. False for an unknown job id, including one that already finished. */
+	receive(jobId: string, reply: TabRenderReply): boolean {
 		const job = this.jobs.get(jobId)
-		if (!job || job.userId !== userId) return false
+		if (!job) return false
 
 		switch (reply.status) {
 			case 'accepted':

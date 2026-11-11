@@ -105,6 +105,7 @@ const env = makeEnv([
 	'PLAIN_WORKSPACE_ID',
 	'DEPLOY_ZERO',
 	'ZERO_ADMIN_PASSWORD',
+	'ZERO_CHANGE_STREAMER_SECRET',
 	'ZERO_FORCE_DEPLOY',
 	'ZERO_R2_ENDPOINT',
 	'ZERO_R2_BUCKET_NAME',
@@ -943,6 +944,11 @@ async function deployZeroViaFlyIoMultiNode() {
 		throw new Error('Fly.io app names are not defined for multi-node deployment')
 	}
 
+	// An unset GH secret arrives as '' and zero-cache treats that as unset, leaving the change-streamer unauthenticated.
+	if (!env.ZERO_CHANGE_STREAMER_SECRET.trim()) {
+		throw new Error('ZERO_CHANGE_STREAMER_SECRET is empty; required for multi-node deployment')
+	}
+
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	const backupPath = previewId ?? env.TLDRAW_ENV
 	const secrets = [
@@ -950,6 +956,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CHANGE_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_ADMIN_PASSWORD=${env.ZERO_ADMIN_PASSWORD}`,
+		`ZERO_CHANGE_STREAMER_SECRET=${env.ZERO_CHANGE_STREAMER_SECRET}`,
 		// Zero uses the AWS SDK to talk to R2 (S3-compatible), so it expects AWS_* env vars
 		`AWS_ACCESS_KEY_ID=${env.ZERO_R2_ACCESS_KEY_ID}`,
 		`AWS_SECRET_ACCESS_KEY=${env.ZERO_R2_SECRET_ACCESS_KEY}`,

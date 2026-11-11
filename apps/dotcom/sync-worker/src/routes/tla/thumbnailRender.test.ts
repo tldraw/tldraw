@@ -2,11 +2,7 @@ import { getShapeClusters } from '@tldraw/dotcom-shared'
 import { describe, expect, it } from 'vitest'
 import { enumerateBoardPages } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
-import {
-	buildThumbnailRenderUrl,
-	readMeasureResult,
-	summarizeSnapshotContent,
-} from './thumbnailRender'
+import { buildThumbnailRenderUrl, summarizeSnapshotContent } from './thumbnailRender'
 
 describe('enumerateBoardPages', () => {
 	it('lists pages in fractional-index order with names and content flags', () => {
@@ -128,69 +124,67 @@ describe('summarizeSnapshotContent', () => {
 				y: 0,
 				props: { w: 10, h: 10 },
 			}),
-			doc({ id: 'asset:img', typeName: 'asset', type: 'image' }),
+			doc({
+				id: 'shape:5',
+				typeName: 'shape',
+				type: 'image',
+				parentId: 'shape:1',
+				x: 0,
+				y: 0,
+				props: { w: 10, h: 10, assetId: 'asset:img' },
+			}),
+			doc({
+				id: 'shape:6',
+				typeName: 'shape',
+				type: 'image',
+				parentId: 'shape:3',
+				x: 0,
+				y: 0,
+				props: { w: 10, h: 10, assetId: 'asset:img' },
+			}),
+			doc({
+				id: 'shape:7',
+				typeName: 'shape',
+				type: 'image',
+				parentId: 'page:b',
+				x: -5000,
+				y: 0,
+				props: { w: 10, h: 10, assetId: 'asset:other' },
+			}),
+			doc({
+				id: 'asset:img',
+				typeName: 'asset',
+				type: 'image',
+				props: { w: 2000, h: 1000, pixelRatio: 2 },
+			}),
+			doc({ id: 'asset:other', typeName: 'asset', type: 'image', props: { w: 500, h: 500 } }),
 			doc({ id: 'asset:vid', typeName: 'asset', type: 'video' }),
 			doc({ id: 'asset:bm', typeName: 'asset', type: 'bookmark' }),
 		],
 	} as any
 
 	it('counts the rendered page and sizes its top-level shapes', () => {
-		// The child inside shape:1 and the shape on page:b are not top-level on page:a; the draw
-		// stroke has no stored size and counts as a point.
+		// The children inside shape:1 and the shapes on page:b are not top-level on page:a; the draw
+		// stroke has no stored size and counts as a point. Both nested images on page:a use asset:img,
+		// counted once at its full resolution (2000x1000 at pixel ratio 2); page:b's image is not drawn.
 		expect(summarizeSnapshotContent(snapshot, 'page:a')).toEqual({
-			records: 10,
+			records: 14,
 			pageShapes: 2,
-			mediaAssets: 2,
+			mediaAssets: 3,
 			bboxWidth: 900,
 			bboxHeight: 650,
+			imageMegapixels: 8,
 		})
 	})
 
 	it('reports zero size for a page with nothing on it', () => {
 		expect(summarizeSnapshotContent(snapshot, 'page:none')).toEqual({
-			records: 10,
+			records: 14,
 			pageShapes: 0,
-			mediaAssets: 2,
+			mediaAssets: 3,
 			bboxWidth: 0,
 			bboxHeight: 0,
-		})
-	})
-})
-
-describe('readMeasureResult', () => {
-	const read = (reported: Record<string, unknown>) =>
-		readMeasureResult(
-			new TextEncoder().encode(
-				`<html><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(reported)}</script></body></html>`
-			).buffer as ArrayBuffer
-		)
-	const box = { x: 0, y: 0, w: 10, h: 10 }
-	const bounds = { minX: 0, minY: 0, maxX: 10, maxY: 10 }
-
-	// The shape keeps the bounds it is clustered on; only the malformed geometry is dropped.
-	it('keeps well-formed arrow geometry and drops malformed geometry without the shape', () => {
-		expect(
-			read({
-				'shape:good': { ...box, arrow: { start: { x: 0, y: 0, z: 0.5 }, end: { x: 10, y: 10 } } },
-				'shape:bad': { ...box, arrow: { start: { x: 0, y: null }, end: { x: 10, y: 10 } } },
-			})
-		).toEqual({
-			'shape:good': { ...bounds, arrow: { start: { x: 0, y: 0 }, end: { x: 10, y: 10 } } },
-			'shape:bad': bounds,
-		})
-	})
-
-	it('keeps well-formed dimensions and drops malformed ones without the shape', () => {
-		expect(
-			read({
-				'shape:good': { ...box, dimensions: { w: 8, h: 12, d: 1 } },
-				'shape:infinite': { ...box, dimensions: { w: 8, h: null } },
-				'shape:negative': { ...box, dimensions: { w: -1, h: 12 } },
-			})
-		).toEqual({
-			'shape:good': { ...bounds, dimensions: { w: 8, h: 12 } },
-			'shape:infinite': bounds,
-			'shape:negative': bounds,
+			imageMegapixels: 0,
 		})
 	})
 })
