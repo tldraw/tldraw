@@ -27,6 +27,6 @@ it('keeps each source to its own list', () => {
 })
 
 it('reads the list back from storage', () => {
-	setInLocalStorage('tldraw-collections-recent:stored', JSON.stringify([d.id, a.id]))
+	setInLocalStorage('tldraw-libraries-recent:stored', JSON.stringify([d.id, a.id]))
 	expect(names(sortByRecentlyAddedTo('stored', [a, b, c, d]))).toEqual(['d', 'a', 'b', 'c'])
 })

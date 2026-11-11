@@ -6,7 +6,7 @@ const MAX_RECENT = 20
 const recentsBySource = new Map<string, Atom<TLLibraryId[]>>()
 
 function storageKey(sourceId: string) {
-	return `tldraw-collections-recent:${sourceId}`
+	return `tldraw-libraries-recent:${sourceId}`
 }
 
 function getRecents(sourceId: string) {

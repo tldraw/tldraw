@@ -67,7 +67,7 @@ export interface InMemoryLibrarySourceOptions {
 }
 
 const schema = StoreSchema.create<TLLibraryRecord>(
-	{ collection: LibraryRecordType, 'collection-item': LibraryItemRecordType },
+	{ library: LibraryRecordType, 'library-item': LibraryItemRecordType },
 	{ migrations: [libraryMigrations, libraryItemMigrations] }
 )
 
@@ -85,7 +85,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 	private readonly defaultOwnerId: string | undefined
 	private readonly allows: (action: TLLibraryAction, target?: TLLibraryTarget) => boolean
 	private readonly store = new Store<TLLibraryRecord>({ schema, props: {} })
-	private readonly libraries = this.store.query.records('collection')
+	private readonly libraries = this.store.query.records('library')
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly contents = new Map<TLLibraryItemId, TLLibraryItemContent>()
 	private readonly thumbnailUrls = new Map<TLLibraryItemId, string[]>()
@@ -138,7 +138,7 @@ export class InMemoryLibrarySource implements LibrarySource {
 	getItems(libraryId: TLLibraryId) {
 		let items = this.itemsByLibrary.get(libraryId)
 		if (!items) {
-			items = this.store.query.records('collection-item', () => ({
+			items = this.store.query.records('library-item', () => ({
 				libraryId: { eq: libraryId },
 			}))
 			this.itemsByLibrary.set(libraryId, items)

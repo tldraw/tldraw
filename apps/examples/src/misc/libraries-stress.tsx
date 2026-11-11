@@ -13,7 +13,7 @@ const MANY_ITEMS = 40
 const MANY_LIBRARIES = 24
 
 const manyItems = new InMemoryLibrarySource({
-	id: 'collections-many-items',
+	id: 'libraries-many-items',
 	initial: {
 		libraries: [LibraryRecordType.create({ name: 'Shapes' })],
 		items: [],
@@ -22,7 +22,7 @@ const manyItems = new InMemoryLibrarySource({
 })
 
 const manyLibraries = new InMemoryLibrarySource({
-	id: 'collections-many-collections',
+	id: 'libraries-many-libraries',
 	initial: {
 		libraries: Array.from({ length: MANY_LIBRARIES }, (_, i) =>
 			LibraryRecordType.create({ name: `Library ${i + 1}` })
@@ -33,7 +33,7 @@ const manyLibraries = new InMemoryLibrarySource({
 })
 
 const SHOWINGS: Record<PageName, Showing> = {
-	Empty: { source: new InMemoryLibrarySource({ id: 'collections-empty' }) },
+	Empty: { source: new InMemoryLibrarySource({ id: 'libraries-empty' }) },
 	'Many items': {
 		source: manyItems,
 		seed: async (editor) => {
@@ -58,6 +58,6 @@ const getShowing = (editor: Editor): Showing =>
 
 export default function LibrariesStress() {
 	return (
-		<LibrariesExample persistenceKey="collections-stress" pages={PAGES} getShowing={getShowing} />
+		<LibrariesExample persistenceKey="libraries-stress" pages={PAGES} getShowing={getShowing} />
 	)
 }

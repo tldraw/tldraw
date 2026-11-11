@@ -6,6 +6,6 @@ import { getShowing, PAGES } from './libraries-pages'
 
 export default function Libraries() {
 	return (
-		<LibrariesExample persistenceKey="collections-sources" pages={PAGES} getShowing={getShowing} />
+		<LibrariesExample persistenceKey="libraries-sources" pages={PAGES} getShowing={getShowing} />
 	)
 }

@@ -67,7 +67,7 @@ class BrowserLibrarySource implements LibrarySource {
 	private readonly loadedThumbnailUrls: string[] = []
 
 	constructor(userId: string) {
-		this.db = openDB(`tldraw-collections-${userId}`, 1, {
+		this.db = openDB(`tldraw-libraries-${userId}`, 1, {
 			upgrade(db) {
 				db.createObjectStore('state')
 				db.createObjectStore('items')
@@ -161,7 +161,7 @@ class BrowserLibrarySource implements LibrarySource {
 
 	private async load() {
 		const db = await this.db
-		const libraries: TLLibrary[] | undefined = await db.get('state', 'collections')
+		const libraries: TLLibrary[] | undefined = await db.get('state', 'libraries')
 		// Nothing saved yet: keep the samples.
 		if (!libraries) return
 		const stored: StoredItem[] = await db.getAll('items')
@@ -188,7 +188,7 @@ class BrowserLibrarySource implements LibrarySource {
 		try {
 			const db = await this.db
 			await write?.(db)
-			await db.put('state', this.getLibraries(), 'collections')
+			await db.put('state', this.getLibraries(), 'libraries')
 		} catch (error) {
 			console.error('[libraries] failed to save', error)
 		}

@@ -12,7 +12,7 @@ import { T } from '@tldraw/validate'
 export type TLLibraryId = RecordId<TLLibrary>
 
 /** A named list of items. Where it is stored is up to the source that provides it. */
-export interface TLLibrary extends BaseRecord<'collection', TLLibraryId> {
+export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
 	name: string
 	/**
 	 * Who the library belongs to, such as a user or a workspace, as the source names them in
@@ -60,7 +60,7 @@ export function mapThumbnail<A, B>(
  * `LibrarySource.getItemContent`, so showing a library never loads every item's shapes and
  * assets.
  */
-export interface TLLibraryItem extends BaseRecord<'collection-item', TLLibraryItemId> {
+export interface TLLibraryItem extends BaseRecord<'library-item', TLLibraryItemId> {
 	libraryId: TLLibraryId
 	/**
 	 * Left out when nobody has named the item: adding from the canvas shouldn't force a name.
@@ -86,17 +86,17 @@ const nonEmptyString = T.string.check((value) => {
 })
 
 export const libraryValidator: T.Validator<TLLibrary> = T.object({
-	id: idValidator<TLLibraryId>('collection'),
-	typeName: T.literal('collection'),
+	id: idValidator<TLLibraryId>('library'),
+	typeName: T.literal('library'),
 	name: nonEmptyString,
 	ownerId: nonEmptyString.optional(),
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
 export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
-	id: idValidator<TLLibraryItemId>('collection-item'),
-	typeName: T.literal('collection-item'),
-	libraryId: idValidator<TLLibraryId>('collection'),
+	id: idValidator<TLLibraryItemId>('library-item'),
+	typeName: T.literal('library-item'),
+	libraryId: idValidator<TLLibraryId>('library'),
 	name: nonEmptyString.optional(),
 	thumbnail: T.or(
 		nonEmptyString,
@@ -107,25 +107,25 @@ export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
-export const LibraryRecordType = createRecordType<TLLibrary>('collection', {
+export const LibraryRecordType = createRecordType<TLLibrary>('library', {
 	validator: libraryValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({ meta: {} }))
 
-export const LibraryItemRecordType = createRecordType<TLLibraryItem>('collection-item', {
+export const LibraryItemRecordType = createRecordType<TLLibraryItem>('library-item', {
 	validator: libraryItemValidator,
 	scope: 'document',
 }).withDefaultProperties(() => ({ version: 1, meta: {} }))
 
 export const libraryMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw.collection',
-	recordType: 'collection',
+	sequenceId: 'com.tldraw.library',
+	recordType: 'library',
 	sequence: [],
 })
 
 export const libraryItemMigrations = createRecordMigrationSequence({
-	sequenceId: 'com.tldraw.collection-item',
-	recordType: 'collection-item',
+	sequenceId: 'com.tldraw.library-item',
+	recordType: 'library-item',
 	sequence: [],
 })
 

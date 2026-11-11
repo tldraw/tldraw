@@ -62,7 +62,7 @@ function choiceKey(sourceId: string, libraryId: string) {
 }
 
 function storageKey(key: string) {
-	return `tldraw-collections-item-order:${key}`
+	return `tldraw-libraries-item-order:${key}`
 }
 
 function getChoiceAtom(key: string) {

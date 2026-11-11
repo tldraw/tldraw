@@ -547,7 +547,7 @@ describe('getAllFeatureFlagValues', () => {
 		const flags = await getAllFeatureFlagValues(env as any)
 
 		expect(Object.keys(flags).sort()).toEqual([
-			'collections',
+			'libraries',
 			'load_rum',
 			'mcp_render_push',
 			'mcp_server_access',

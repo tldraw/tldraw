@@ -50,7 +50,7 @@ function shippedPacks(packs: LibraryPack[]) {
 		entries.map(({ record, content }) => [record.id, content])
 	)
 	return new InMemoryLibrarySource({
-		id: 'collections-packs',
+		id: 'libraries-packs',
 		can: () => false,
 		initial: { libraries, items: entries.map(({ record }) => record), contents },
 	})
@@ -58,9 +58,9 @@ function shippedPacks(packs: LibraryPack[]) {
 
 const packs = shippedPacks(PACKS)
 
-const library = new InMemoryLibrarySource({ id: 'collections-library' })
+const shared = new InMemoryLibrarySource({ id: 'libraries-shared' })
 
-const local = new LocalStorageLibrarySource('collections-local', 'collections-example-local')
+const local = new LocalStorageLibrarySource('libraries-local', 'libraries-example-local')
 
 function AddPackMenuItems({ source }: { source: LibrarySource }) {
 	const addPack = (pack: LibraryPack) =>
@@ -76,15 +76,15 @@ const SHOWINGS: Record<PageName, Showing> = {
 	InMemoryLibrarySource: { source: packs },
 	CompositeLibrarySource: {
 		source: new CompositeLibrarySource({
-			id: 'collections-composite',
+			id: 'libraries-composite',
 			parts: [
-				{ owner: { id: 'library', name: 'Library' }, source: library },
+				{ owner: { id: 'shared', name: 'Shared' }, source: shared },
 				{ owner: { id: 'packs', name: 'Packs' }, source: packs },
 			],
 		}),
 		seed: async (editor) => {
-			const wireframes = await library.createLibrary('Wireframes')
-			await saveSamples(editor, library, wireframes.id, WIREFRAMES)
+			const wireframes = await shared.createLibrary('Wireframes')
+			await saveSamples(editor, shared, wireframes.id, WIREFRAMES)
 		},
 	},
 	LocalStorageLibrarySource: {

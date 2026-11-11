@@ -208,7 +208,7 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
-	/** Null when the `collections` flag is off for this user. */
+	/** Null when the `libraries` flag is off for this user. */
 	readonly libraries: LibrarySource | null
 
 	private readonly abortController = new AbortController()
@@ -298,7 +298,7 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
-		if (flags.collections?.enabled) {
+		if (flags.libraries?.enabled) {
 			const libraries = createLibrariesSource(userId)
 			this.libraries = libraries
 			this.disposables.push(() => libraries.dispose())
