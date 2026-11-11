@@ -1,4 +1,5 @@
 import { react } from '@tldraw/state'
+import { MediaHelpers } from '@tldraw/utils'
 import {
 	AssetRecordType,
 	librarySchemaRecords,
@@ -6,6 +7,7 @@ import {
 	createShapeId,
 	createTLSchema,
 	createTLStore,
+	defaultAssetUtils,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	Editor,
@@ -15,14 +17,20 @@ import {
 	type TLImageAsset,
 	type TLRecord,
 } from 'tldraw'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BoardLibrarySource } from './BoardLibrarySource'
 import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
 import { CURRENT_ITEM_CONTENT_FORMAT_VERSION, type TLLibraryItemContent } from './schema'
 
 let editors: Editor[] = []
 
+// The thumbnails are read as a pasted image is, which jsdom can't decode.
+beforeEach(() => {
+	vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 512, h: 256, pixelRatio: 1 })
+})
+
 afterEach(() => {
+	vi.restoreAllMocks()
 	for (const editor of editors) editor.dispose()
 	editors = []
 })
@@ -45,6 +53,22 @@ function makeAssetStore() {
 	return { store, uploads }
 }
 
+// An asset store whose uploads wait until the test lets each one finish or fail.
+function makeHeldAssetStore() {
+	const assets = makeAssetStore()
+	const upload = assets.store.upload
+	const held: { name: string; finish(): void; fail(error: Error): void }[] = []
+	assets.store.upload = (asset, file, signal) =>
+		new Promise((resolve, reject) => {
+			held.push({
+				name: file instanceof File ? file.name : '',
+				finish: () => resolve(upload(asset, file, signal)),
+				fail: reject,
+			})
+		})
+	return { ...assets, held }
+}
+
 function makeEditor(
 	records: typeof librarySchemaRecords | undefined = librarySchemaRecords,
 	assets = makeAssetStore()
@@ -53,6 +77,7 @@ function makeEditor(
 		store: createTLStore({ schema: createTLSchema({ records }), assets: assets.store }),
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
+		assetUtils: defaultAssetUtils,
 		tools: [],
 		getContainer: () => document.body,
 	})
@@ -316,7 +341,9 @@ describe('BoardLibrarySource', () => {
 			const { library, stored } = await addWithThumbnail(editor)
 
 			const { light, dark } = stored.thumbnail as { light: string; dark: string }
-			const fresh = new BoardLibrarySource(editor)
+			const other = makeEditor()
+			other.store.mergeRemoteChanges(() => other.store.put(editor.store.allRecords()))
+			const fresh = new BoardLibrarySource(other)
 			expect(fresh.getItems(library.id)[0]).not.toHaveProperty('thumbnail')
 			await vi.waitFor(() =>
 				expect(fresh.getItems(library.id)[0].thumbnail).toEqual({
@@ -324,6 +351,94 @@ describe('BoardLibrarySource', () => {
 					dark: `https://uploads.example/${dark}?resolved`,
 				})
 			)
+		})
+
+		describe('while the images upload', () => {
+			async function startAdding() {
+				const assets = makeHeldAssetStore()
+				const editor = makeEditor(librarySchemaRecords, assets)
+				const source = new BoardLibrarySource(editor)
+				const library = await source.createLibrary('Photos')
+				const adding = source.addItem(library.id, {
+					name: 'Photo',
+					content: contentOf(editor, [addImage(editor)]),
+					thumbnail: { light: png('light'), dark: png('dark') },
+				})
+				await vi.waitFor(() => expect(assets.held).toHaveLength(2))
+				const [item] = source.getItems(library.id)
+				return { assets, editor, source, library, adding, item }
+			}
+
+			it('lists the item at once, with its images not yet stored', async () => {
+				const { editor, item } = await startAdding()
+				const stored = editor.store.get(item.id as any) as unknown as TLLibraryItemRecord
+				const [light, dark] = thumbnailAssets(editor)
+
+				expect(stored.thumbnail).toEqual({ light: light.id, dark: dark.id })
+				expect(light).toMatchObject({
+					type: 'image',
+					props: { name: 'Photo-light.png', src: '', mimeType: 'image/png', w: 512, h: 256 },
+				})
+				expect(dark.props).toMatchObject({ name: 'Photo-dark.png', src: '' })
+			})
+
+			it('shows the images’ temporary previews until they are stored', async () => {
+				const { editor, source, item } = await startAdding()
+				const [light, dark] = thumbnailAssets(editor)
+				const previews = {
+					light: editor.getTemporaryAssetPreview(light.id),
+					dark: editor.getTemporaryAssetPreview(dark.id),
+				}
+
+				expect(previews.light).toMatch(/^blob:/)
+				expect(previews.dark).toMatch(/^blob:/)
+				expect(item.thumbnail).toEqual(previews)
+				expect(
+					await source.resolveThumbnail(item, {
+						colorMode: 'dark',
+						width: 256,
+						dpr: 1,
+						networkEffectiveType: null,
+					})
+				).toBe(previews.dark)
+			})
+
+			it('stores the srcs once uploaded, and lists the asset store’s URLs', async () => {
+				const { assets, editor, source, library, adding } = await startAdding()
+				for (const upload of assets.held) upload.finish()
+				const item = await adding
+				const [light, dark] = thumbnailAssets(editor)
+
+				expect(light.props.src).toBe(`https://uploads.example/${light.id}`)
+				expect(dark.props.src).toBe(`https://uploads.example/${dark.id}`)
+				expect(item.thumbnail).toEqual({
+					light: `https://uploads.example/${light.id}?resolved`,
+					dark: `https://uploads.example/${dark.id}?resolved`,
+				})
+				expect(source.getItems(library.id)).toEqual([item])
+			})
+
+			it('removes the item again when an image fails to upload', async () => {
+				const { assets, editor, source, library, adding } = await startAdding()
+				assets.held[0].finish()
+				assets.held[1].fail(new Error('upload failed'))
+
+				await expect(adding).rejects.toThrow('upload failed')
+				expect(source.getItems(library.id)).toEqual([])
+				expect(allOfType(editor, 'library-item-content')).toEqual([])
+				expect(thumbnailAssets(editor)).toEqual([])
+				await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
+			})
+
+			it('doesn’t bring back the images of an item deleted meanwhile', async () => {
+				const { assets, editor, source, adding, item } = await startAdding()
+				await source.deleteItem(item.id)
+				for (const upload of assets.held) upload.finish()
+				await adding
+
+				expect(thumbnailAssets(editor)).toEqual([])
+				await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
+			})
 		})
 
 		describe('resolveThumbnail', () => {
@@ -440,7 +555,7 @@ describe('BoardLibrarySource', () => {
 	})
 
 	describe('adding several items', () => {
-		it('adds them together once their thumbnails have uploaded, in the order given', async () => {
+		it('adds them together, in the order given, and resolves once their thumbnails upload', async () => {
 			const editor = makeEditor()
 			const source = new BoardLibrarySource(editor)
 			const library = await source.createLibrary('Photos')
@@ -462,8 +577,9 @@ describe('BoardLibrarySource', () => {
 			stop()
 
 			expect(items.map((item) => item.name)).toEqual(['One', 'Two', 'Three'])
-			// Listed again as their thumbnails' URLs resolve, but never some without the others.
+			// Listed again as their thumbnails upload and resolve, but never some without the others.
 			expect(listings[0]).toEqual([])
+			expect(listings.length).toBeGreaterThan(2)
 			for (const listing of listings.slice(1)) expect(listing).toEqual(['One', 'Three', 'Two'])
 			expect(items[0].thumbnail).toMatch(/\?resolved$/)
 			expect(items[1].thumbnail).toBeUndefined()
