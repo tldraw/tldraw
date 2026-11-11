@@ -30,6 +30,8 @@ import {
 	TLAssetId,
 	TLAssetStore,
 	TLBookmarkShape,
+	TLImageShape,
+	getUncroppedSize,
 	AssetRecordType,
 	getHashForString,
 } from 'tldraw'
@@ -771,12 +773,36 @@ async function waitForFonts(editor: Editor) {
 //
 // Animated images resize to their first frame too: the export draws only that frame anyway, but
 // from the whole original file, so a few GIFs could outweigh every other image on the board.
+//
+// Every request for an asset is lifted to the largest scale any drawn shape of it needs. The SDK
+// caches an image's export per asset, from whichever shape resolves it first, so two shapes drawing
+// one asset at different sizes would otherwise both get the first one's variant, and the larger
+// would draw blurry from the smaller.
 export const renderAssetStore: TLAssetStore = {
 	upload: async () => {
 		throw new Error('The thumbnail render page is read-only')
 	},
-	resolve: (asset, context) =>
-		resolveUserContentImageUrl(asset, { ...context, dpr: 2 }, { stillAnimations: true }),
+	resolve: (asset, context) => {
+		const largest = largestScreenScaleByAsset.get(asset.id) ?? 0
+		return resolveUserContentImageUrl(
+			asset,
+			{
+				...context,
+				screenScale: Math.max(context.screenScale, largest),
+				steppedScreenScale: Math.max(context.steppedScreenScale, stepScreenScale(largest)),
+				dpr: 2,
+			},
+			{ stillAnimations: true }
+		)
+	},
+}
+
+// Filled by preloadImageAssets, which runs before the export and knows every shape it will draw.
+const largestScreenScaleByAsset = new Map<TLAssetId, number>()
+
+// The SDK's power-of-two zoom step (see Editor.resolveAssetUrl); stepping keeps the max of two scales.
+function stepScreenScale(screenScale: number) {
+	return screenScale > 0 ? 2 ** Math.ceil(Math.log2(screenScale)) : 0
 }
 
 // Warm the images the capture will draw, so the browser has the bytes before the shapes request
@@ -797,9 +823,9 @@ export async function preloadImageAssets(
 		? getRequestedShapeIds(editor, requestedShapeIds)
 		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
-	const pending: Promise<string | null>[] = []
 	// The export's zoom: fitExportCamera has run, and the export uses the camera's zoom as its scale.
 	const scale = editor.getCamera().z
+	largestScreenScaleByAsset.clear()
 	for (const id of editor.getShapeAndDescendantIds(roots)) {
 		const shape = editor.getShape(id)
 		if (!shape) continue
@@ -814,18 +840,27 @@ export async function preloadImageAssets(
 		const asset = assetId ? editor.getAsset(assetId) : undefined
 		if (!asset) continue
 		if (asset.type === 'image' && asset.props.src) {
-			// The URL the export will ask for (see resolveAssetUrl in the SDK's getSvgJsx): warming the
-			// original instead would fetch exactly the full-size bytes the asset store exists to avoid.
-			const width = (shape.props as { w?: number }).w ?? asset.props.w
-			pending.push(
-				editor
-					.resolveAssetUrl(asset.id, { screenScale: scale * (width / asset.props.w), dpr: 1 })
-					.catch(() => null)
+			// The scale the export will ask for (see resolveAssetUrl in the SDK's getSvgJsx, and the
+			// uncropped width ImageShapeUtil.toSvg passes it).
+			const width = editor.isShapeOfType<TLImageShape>(shape, 'image')
+				? getUncroppedSize(shape.props, shape.props.crop).w
+				: ((shape.props as { w?: number }).w ?? asset.props.w)
+			const screenScale = scale * (width / asset.props.w)
+			largestScreenScaleByAsset.set(
+				asset.id,
+				Math.max(largestScreenScaleByAsset.get(asset.id) ?? 0, screenScale)
 			)
 		}
 		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
 	}
-	for (const url of await Promise.all(pending)) if (url) urls.add(url)
+	// Warm the URL the export will ask for: warming the original instead would fetch exactly the
+	// full-size bytes the asset store exists to avoid.
+	const resolved = await Promise.all(
+		[...largestScreenScaleByAsset].map(([assetId, screenScale]) =>
+			editor.resolveAssetUrl(assetId, { screenScale, dpr: 1 }).catch(() => null)
+		)
+	)
+	for (const url of resolved) if (url) urls.add(url)
 	await Promise.all([...urls].map((url) => preloadImage(url, deadline)))
 }
 

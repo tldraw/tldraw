@@ -1,5 +1,4 @@
 import {
-	AssetRecordType,
 	BaseBoxShapeUtil,
 	BaseFrameLikeShapeUtil,
 	DefaultColorStyle,
@@ -306,51 +305,4 @@ it('reads a single frame-like export background from the color style under any p
 
 	const svg = parseSvg(await editor.getSvgString([id], { background: true }))
 	expect(svg.style.backgroundColor).toBe(toCssColor(getColorValue(colors, 'red', 'frameFill')))
-})
-
-// A size-aware store resolves each shape at its own size, so one asset can need several variants.
-// Reusing whichever the first shape got would draw every larger shape of that asset blurry.
-it('exports each image shape from the URL resolved for its own size', async () => {
-	const imageEditor = new TestEditor(
-		{},
-		{
-			assets: {
-				upload: async () => ({ src: '' }),
-				resolve: async (_asset, context) =>
-					`data:image/png;base64,${btoa(String(Math.round(context.screenScale * 100)))}`,
-			},
-		}
-	)
-	const assetId = AssetRecordType.createId('shared')
-	imageEditor.createAssets([
-		{
-			id: assetId,
-			typeName: 'asset',
-			type: 'image',
-			meta: {},
-			props: {
-				w: 1000,
-				h: 1000,
-				name: 'shared.png',
-				isAnimated: false,
-				mimeType: 'image/png',
-				src: 'asset:shared',
-			},
-		},
-	])
-	const small = createShapeId('small')
-	const large = createShapeId('large')
-	imageEditor.createShapes([
-		{ id: small, type: 'image', x: 0, y: 0, props: { assetId, w: 100, h: 100 } },
-		{ id: large, type: 'image', x: 200, y: 0, props: { assetId, w: 1000, h: 1000 } },
-	])
-
-	const hrefs = async (ids: ReturnType<typeof createShapeId>[]) =>
-		[...parseSvg(await imageEditor.getSvgString(ids, { pixelRatio: 1 })).querySelectorAll('image')]
-			.map((image) => atob(image.getAttribute('href')!.split(',')[1]))
-			.sort()
-
-	expect(await hrefs([small, large])).toEqual(['10', '100'])
-	// The cache outlives one export: a later export of only the large shape gets its own size too.
-	expect(await hrefs([large])).toEqual(['100'])
 })

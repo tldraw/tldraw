@@ -340,6 +340,58 @@ describe('preloadImageAssets', () => {
 		vi.restoreAllMocks()
 		editor.dispose()
 	})
+	// The SDK caches an image's export per asset, from whichever shape resolves it first, so a smaller
+	// shape of a shared asset must not leave the larger one drawing its variant.
+	it('resolves every shape of a shared asset at the largest size any of them needs', async () => {
+		const store = createTLStore({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			assets: renderAssetStore,
+		})
+		const editor = new Editor({
+			store,
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			tools: [],
+			getContainer: () => document.createElement('div'),
+		})
+		const assetId = AssetRecordType.createId('shared')
+		editor.createAssets([
+			{
+				id: assetId,
+				typeName: 'asset',
+				type: 'image',
+				props: {
+					src: 'https://tldrawusercontent.com/shared.png',
+					w: 4000,
+					h: 4000,
+					name: 'shared.png',
+					mimeType: 'image/png',
+					isAnimated: false,
+				},
+				meta: {},
+			},
+		])
+		editor.createShapes([
+			{ type: 'image', x: 0, y: 0, props: { assetId, w: 250, h: 250 } },
+			{ type: 'image', x: 300, y: 0, props: { assetId, w: 1000, h: 1000 } },
+		])
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		const srcs: string[] = []
+		vi.spyOn(HTMLImageElement.prototype, 'src', 'set').mockImplementation((src) => {
+			srcs.push(src)
+		})
+
+		await preloadImageAssets(editor, Date.now())
+		// What the export asks for the smaller shape: 0.5 zoom of a sixteenth of the asset's width.
+		const small = await editor.resolveAssetUrl(assetId, { screenScale: 0.5 / 16, dpr: 1 })
+
+		// The larger shape needs 0.5 zoom of a quarter: 1/8 of 4000 at a pixel ratio of 2.
+		const large = 'https://tldrawusercontent.com/cdn-cgi/image/w=1000,format=auto/shared.png'
+		expect({ srcs, small }).toEqual({ srcs: [large], small: large })
+		vi.restoreAllMocks()
+		editor.dispose()
+	})
 })
 
 describe('exportThumbnailImage', () => {
