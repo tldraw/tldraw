@@ -2359,7 +2359,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * can't be tabbed to. Use this for the children of a frame or group, which
 	 * {@link Editor.getCurrentPageShapesInReadingOrder} leaves out.
 	 *
-	 * @public
+	 * @internal
 	 */
 	getShapesInReadingOrder(shapes: TLShape[]): TLShape[] {
 		const SHALLOW_ANGLE = 20
