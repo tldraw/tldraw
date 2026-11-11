@@ -464,8 +464,54 @@ function fitBoundsCamera(
 // Fits the current page's content into the viewport with representative margins. Run both on mount
 // and again right before export (see ThumbnailExportSignal), because autosized text re-measures once
 // web fonts load and shifts the page bounds — a fit computed before fonts settle would clip content.
+//
+// A page too spread out to fit at MIN_CONTENT_FIT_ZOOM is framed at that zoom on its busiest part
+// instead: the warm-up and the export skip everything outside the frame, and the bounds' centre of a
+// spread-out board can be empty.
 function fitContentCamera(editor: Editor, width: number, height: number) {
-	fitBoundsCamera(editor, editor.getCurrentPageBounds(), width, height)
+	const bounds = editor.getCurrentPageBounds()
+	const inset = getThumbnailContentInset(width, height)
+	const frameW = (width - inset) / MIN_CONTENT_FIT_ZOOM
+	const frameH = (height - inset) / MIN_CONTENT_FIT_ZOOM
+	if (!bounds || (bounds.w <= frameW && bounds.h <= frameH)) {
+		fitBoundsCamera(editor, bounds, width, height)
+		return
+	}
+	const shapeBounds = [...editor.getCurrentPageShapeIds()]
+		.map((id) => editor.getShapePageBounds(id))
+		.filter((b) => b !== undefined)
+	fitBoundsCamera(editor, getBusiestFrame(shapeBounds, bounds, frameW, frameH), width, height)
+}
+
+// Renders failed several times as often once a board's longest side passed 12,000 (7 days of
+// production, 2026-11: 0.4% under 5,000, 7.6–12.9% past 12,000, a quarter with 100+ images). At 0.1
+// a 1200px thumbnail covers about 11,000 × 5,000 of page. The editor's own floor is 0.05.
+export const MIN_CONTENT_FIT_ZOOM = 0.1
+
+// The frameW × frameH window inside `content` holding the most shape centres. Candidate positions
+// are a grid over the content, at most 32 steps a side, so the cost stays shapes × 1,089 at worst.
+// An axis that already fits is centred on the content rather than searched.
+export function getBusiestFrame(shapeBounds: Box[], content: Box, frameW: number, frameH: number) {
+	const xs = framePositions(content.x, content.w, frameW)
+	const ys = framePositions(content.y, content.h, frameH)
+	const centres = shapeBounds.map((b) => b.center)
+	let best = { x: xs[Math.floor(xs.length / 2)], y: ys[Math.floor(ys.length / 2)], count: -1 }
+	for (const y of ys) {
+		for (const x of xs) {
+			let count = 0
+			for (const c of centres) {
+				if (c.x >= x && c.x <= x + frameW && c.y >= y && c.y <= y + frameH) count++
+			}
+			if (count > best.count) best = { x, y, count }
+		}
+	}
+	return new Box(best.x, best.y, frameW, frameH)
+}
+
+function framePositions(start: number, length: number, frame: number) {
+	if (length <= frame) return [start + (length - frame) / 2]
+	const steps = Math.min(32, Math.ceil(((length - frame) / frame) * 4))
+	return Array.from({ length: steps + 1 }, (_, i) => start + ((length - frame) * i) / steps)
 }
 
 // What both capture paths refuse: a job whose shapes are no longer on the page it named. The
