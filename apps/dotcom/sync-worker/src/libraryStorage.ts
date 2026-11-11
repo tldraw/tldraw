@@ -1,5 +1,6 @@
 import { DB, Role } from '@tldraw/dotcom-shared'
 import { Kysely } from 'kysely'
+import PQueue from 'p-queue'
 import { Environment } from './types'
 
 // An item's content is kept in the ROOMS bucket, which only this worker reads: the uploads bucket
@@ -10,6 +11,9 @@ export function getLibraryItemContentKey(itemId: string) {
 }
 
 export const MAX_LIBRARY_ITEM_CONTENT_BYTES = 5_000_000
+
+/** How many items' objects a request reads or writes at once. */
+export const STORAGE_CONCURRENCY = 4
 
 // What uniqueId() makes, which is how clients pick library and item ids.
 const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/
@@ -37,10 +41,11 @@ export async function isAnyItemIdTaken(db: Kysely<DB>, env: Environment, ids: st
 		.where('id', 'in', ids)
 		.executeTakeFirst()
 	if (row !== undefined) return true
-	for (const id of ids) {
-		if ((await env.ROOMS.head(getLibraryItemContentKey(id))) !== null) return true
-	}
-	return false
+	const heads = new PQueue({ concurrency: STORAGE_CONCURRENCY })
+	const stored = await heads.addAll(
+		ids.map((id) => () => env.ROOMS.head(getLibraryItemContentKey(id)))
+	)
+	return stored.some((object) => object !== null)
 }
 
 // The mutators' getRole counts the home workspace as its owner's whether or not a group_user row

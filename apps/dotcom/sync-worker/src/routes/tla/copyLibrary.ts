@@ -1,5 +1,6 @@
 import { can, isRole, TlaLibraryItem, TlaLibraryItemAsset } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
+import PQueue from 'p-queue'
 import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
 import {
 	getLibraryAccess,
@@ -8,6 +9,7 @@ import {
 	isAnyItemIdTaken,
 	isClientPickedId,
 	isLibraryIdTaken,
+	STORAGE_CONCURRENCY,
 } from '../../libraryStorage'
 import { copyThumbnail, toThumbnailColumn } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -51,8 +53,8 @@ function readBody(body: unknown): CopyLibraryRequestBody | null {
  * can list the copy under those ids while this runs. The items copied are the ones `itemIds`
  * names, in the library's order: one deleted meanwhile, or whose content is missing, is left
  * out. Ids that are taken are refused with 409 before anything is stored; if another request takes
- * one meanwhile, the inserts find it and this answers 409 and removes what it stored. The rows are
- * inserted together, so a failure leaves nothing behind.
+ * one meanwhile, the inserts find it and this answers 409 and removes what it stored. Items are
+ * copied a few at a time, and the rows are inserted together, so a failure leaves nothing behind.
  */
 export async function copyLibrary(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -177,15 +179,30 @@ interface CopiedItem {
 	ownedObjectNames: string[]
 }
 
-/** Copies each item's objects, in order; null for an item whose content is missing. */
+/**
+ * Copies each item's objects, a few at a time, in order; null for an item whose content is
+ * missing. If one fails, the ones under way finish, so `copied` holds everything stored, and the
+ * rest aren't started.
+ */
 async function copyEachItemsObjects(
 	env: Environment,
 	toCopy: { item: TlaLibraryItem; newId: string }[],
 	copied: CopiedObjects
 ) {
-	const copies: (CopiedItem | null)[] = []
-	for (const { item, newId } of toCopy) copies.push(await copyItemObjects(env, item, newId, copied))
-	return copies
+	const queue = new PQueue({ concurrency: STORAGE_CONCURRENCY })
+	try {
+		return await queue.addAll(
+			toCopy.map(
+				({ item, newId }) =>
+					() =>
+						copyItemObjects(env, item, newId, copied)
+			)
+		)
+	} catch (error) {
+		queue.clear()
+		await queue.onIdle()
+		throw error
+	}
 }
 
 /**
