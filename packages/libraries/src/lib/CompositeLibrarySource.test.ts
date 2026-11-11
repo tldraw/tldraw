@@ -1,5 +1,10 @@
 import { react } from '@tldraw/state'
-import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
+import {
+	LibraryRecordType,
+	createShapeId,
+	createTLSchema,
+	type TLLibraryId,
+} from '@tldraw/tlschema'
 import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
@@ -260,5 +265,38 @@ describe('CompositeLibrarySource', () => {
 			parts: [{ owner: tldraw, source: unmovable }],
 		})
 		expect(withoutMoving.moveItem).toBeUndefined()
+	})
+})
+
+describe('copyLibrary', () => {
+	// A part listing its own owners, which copies libraries itself, as a server-backed source does.
+	function setUpWithCopyingPart() {
+		const copies: [string, string][] = []
+		class CopyingSource extends InMemoryLibrarySource {
+			async copyLibrary(libraryId: TLLibraryId, ownerId: string) {
+				copies.push([libraryId, ownerId])
+				return this.createLibrary('Server copy', { ownerId })
+			}
+		}
+		const workspaces = new CopyingSource({ id: 'workspaces', owners: [personal, acme] })
+		const source = new CompositeLibrarySource({
+			parts: [{ source: workspaces }, { owner: tldraw, source: shared() }],
+		})
+		return { source, workspaces, copies }
+	}
+
+	it("lets a part's own copyLibrary copy within that part", async () => {
+		const { source, copies } = setUpWithCopyingPart()
+		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
+		const copy = await copyLibrary(source, kit.id, 'acme')
+		expect(copies).toEqual([[kit.id, 'acme']])
+		expect(copy.name).toBe('Server copy')
+	})
+
+	it('copies item by item from another part', async () => {
+		const { source, workspaces, copies } = setUpWithCopyingPart()
+		const copy = await copyLibrary(source, wireframing, 'home')
+		expect(copies).toEqual([])
+		expect(workspaces.getItems(copy.id).map((item) => item.name)).toEqual(['Button', 'Card'])
 	})
 })

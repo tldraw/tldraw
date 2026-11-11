@@ -3,11 +3,16 @@ import {
 	assert,
 	getIndexBelow,
 	IndexKey,
+	type JsonObject,
 	sortByIndex,
 	sortByMaybeIndex,
 	uniqueId,
 } from '@tldraw/utils'
-import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants'
+import {
+	MAX_LIBRARY_NAME_LENGTH,
+	MAX_NUMBER_OF_WORKSPACES,
+	MAX_WORKSPACE_NAME_LENGTH,
+} from './constants'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -184,6 +189,42 @@ export const USER_PREFERENCE_KEYS = Object.keys(
 	USER_PREFERENCE_VALIDATORS
 ) as readonly TlaUserPreferenceKey[]
 
+/** A library or item name as stored: trimmed, clamped like a workspace name, never blank. */
+function libraryName(name: string) {
+	assert(typeof name === 'string', ZErrorCode.bad_request)
+	const clamped = name.trim().slice(0, MAX_LIBRARY_NAME_LENGTH)
+	assert(clamped.length > 0, ZErrorCode.bad_request)
+	return clamped
+}
+
+const MAX_LIBRARY_META_LENGTH = 4096
+
+function assertValidLibraryMeta(meta: JsonObject) {
+	assert(meta && typeof meta === 'object' && !Array.isArray(meta), ZErrorCode.bad_request)
+	assert(JSON.stringify(meta).length <= MAX_LIBRARY_META_LENGTH, ZErrorCode.bad_request)
+}
+
+/**
+ * Resolve a library the user may change: their role in its owning workspace must grant
+ * `manageLibraries`. Any member can, the same as seeing it in the libraries query.
+ */
+async function assertCanManageLibrary(tx: Tx, userId: string, libraryId: string) {
+	assert(libraryId, ZErrorCode.bad_request)
+	const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+	assert(library, ZErrorCode.bad_request)
+	const role = await getRole(tx, userId, library.owningGroupId)
+	assert(can(role, 'manageLibraries'), ZErrorCode.forbidden)
+	return library
+}
+
+async function assertCanManageLibraryItem(tx: Tx, userId: string, itemId: string) {
+	assert(itemId, ZErrorCode.bad_request)
+	const item = await tx.run(zql.library_item.where('id', '=', itemId).one())
+	assert(item, ZErrorCode.bad_request)
+	await assertCanManageLibrary(tx, userId, item.libraryId)
+	return item
+}
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
@@ -247,6 +288,82 @@ export function createMutators(userId: string) {
 				if (!exists) return
 
 				await tx.mutate.file_state.upsert(fileState)
+			},
+		},
+
+		library: {
+			/**
+			 * Creates an empty library in a workspace the user is a member of. Items are added by
+			 * the sync worker, which stores their content first.
+			 */
+			create: async (
+				tx: Tx,
+				{
+					id,
+					name,
+					owningGroupId,
+					meta = {},
+				}: { id: string; name: string; owningGroupId: string; meta?: JsonObject }
+			) => {
+				assertValidId(id)
+				assertValidLibraryMeta(meta)
+				const role = await getRole(tx, userId, owningGroupId)
+				assert(can(role, 'manageLibraries'), ZErrorCode.forbidden)
+				// The server's insert ignores a conflicting id, which would report success for nothing.
+				const existing = await tx.run(zql.library.where('id', '=', id).one())
+				assert(!existing, ZErrorCode.bad_request)
+				const now = Date.now()
+				await tx.mutate.library.insert({
+					id,
+					name: libraryName(name),
+					owningGroupId,
+					createdBy: userId,
+					createdAt: now,
+					updatedAt: now,
+					meta,
+				})
+			},
+			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertCanManageLibrary(tx, userId, id)
+				await tx.mutate.library.update({ id, name: libraryName(name), updatedAt: Date.now() })
+			},
+			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertCanManageLibrary(tx, userId, id)
+				// The foreign key cascades in Postgres, but a client's local store has no cascade.
+				const items = await tx.run(zql.library_item.where('libraryId', '=', id))
+				for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+				await tx.mutate.library.delete({ id })
+			},
+			/** Gives a library, with its items, to another workspace the user is a member of. */
+			move: async (tx: Tx, { id, owningGroupId }: { id: string; owningGroupId: string }) => {
+				assert(owningGroupId, ZErrorCode.bad_request)
+				const library = await assertCanManageLibrary(tx, userId, id)
+				if (library.owningGroupId === owningGroupId) return
+				const toRole = await getRole(tx, userId, owningGroupId)
+				assert(can(toRole, 'manageLibraries'), ZErrorCode.forbidden)
+				await tx.mutate.library.update({ id, owningGroupId, updatedAt: Date.now() })
+			},
+		},
+
+		library_item: {
+			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertCanManageLibraryItem(tx, userId, id)
+				await tx.mutate.library_item.update({
+					id,
+					name: libraryName(name),
+					updatedAt: Date.now(),
+				})
+			},
+			delete: async (tx: Tx, { id }: { id: string }) => {
+				await assertCanManageLibraryItem(tx, userId, id)
+				await tx.mutate.library_item.delete({ id })
+			},
+			/** Moves an item to another library, which may belong to another workspace. */
+			move: async (tx: Tx, { id, libraryId }: { id: string; libraryId: string }) => {
+				const item = await assertCanManageLibraryItem(tx, userId, id)
+				if (item.libraryId === libraryId) return
+				await assertCanManageLibrary(tx, userId, libraryId)
+				await tx.mutate.library_item.update({ id, libraryId, updatedAt: Date.now() })
 			},
 		},
 
