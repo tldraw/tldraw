@@ -50,6 +50,7 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
+import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import {
@@ -70,7 +71,7 @@ import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
+import { useFileEditorRef, useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -108,6 +109,18 @@ interface TlaEditorProps {
 	fileSlug: string
 	isEmbed?: boolean
 	deepLinks?: boolean
+}
+
+function SneakyFileEditorRegistration() {
+	const editor = useEditor()
+	const editorRef = useFileEditorRef()
+	useEffect(() => {
+		editorRef.current = editor
+		return () => {
+			editorRef.current = null
+		}
+	}, [editor, editorRef])
+	return null
 }
 
 export function TlaEditor(props: TlaEditorProps) {
@@ -182,6 +195,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
+			;(window as any).canvasOpsReceiver = createCanvasOpsReceiver(editor)
 			// Register the editor globally
 			globalEditor.set(editor)
 
@@ -394,6 +408,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyFileEditorRegistration />
 				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>

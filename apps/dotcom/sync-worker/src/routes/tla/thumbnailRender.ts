@@ -1,11 +1,9 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
-	THUMBNAIL_MEASURE_RESULT_ID,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
-	ThumbnailShapeMeasurement,
 	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
 } from '@tldraw/dotcom-shared'
@@ -32,7 +30,6 @@ import {
 	recordMintedRenderToken,
 	wasRenderTokenServedSince,
 } from '../../utils/renderTokens'
-import { ShapeMeasurement } from './boardTools'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import {
 	SharedFileInfo,
@@ -63,16 +60,6 @@ import {
 // files), so it can key the thumbnail caches.
 export interface ResolvedThumbnailBoard extends ThumbnailBoardRef {
 	version: string | number
-	/**
-	 * The file this board's content belongs to: the slug itself for a shared file, and the parent file
-	 * a published slug resolves to for a published board.
-	 *
-	 * Carried because the file's Durable Object is addressed by it, and that object is where the MCP
-	 * server caches a page's cluster index (see mcpClusterIndex.ts). Kept off `ThumbnailBoardRef`,
-	 * which is the *identity* of a board and keys its caches: two kinds can share a file id, so a key
-	 * built from this would collide a published board's index with its file's.
-	 */
-	fileId: string
 	/**
 	 * The gate this board was resolved under, carried so a render cannot be minted under a weaker one
 	 * than the resolution used. `captureThumbnailScreenshot` signs it into the job, and the snapshot
@@ -134,8 +121,6 @@ export async function resolveThumbnailBoard(
 				slug,
 				version: publishedFile.lastPublished,
 				access,
-				// The row this published slug resolved through, which is the file that owns the snapshot.
-				fileId: publishedFile.id,
 			},
 		}
 	}
@@ -148,7 +133,7 @@ export async function resolveThumbnailBoard(
 	const persisted = await env.ROOMS.head(getR2KeyForRoom({ slug, isApp: true }))
 	if (!persisted) return { ok: false, reason: 'board_empty' }
 
-	return { ok: true, board: { kind, slug, version: persisted.etag, access, file, fileId: file.id } }
+	return { ok: true, board: { kind, slug, version: persisted.etag, access, file } }
 }
 
 // Reads a resolved board's snapshot, keeping the two outcomes callers must tell apart distinct.
@@ -921,109 +906,6 @@ async function callLocalScreenshotService(
 
 // Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
 // can be detected) alongside any surface-specific metadata.
-// --- Measuring a page in a real editor ----------------------------------------------------------
-//
-// A Worker cannot size a shape: autosizing text needs font metrics, and several shapes store no size
-// at all. So when clustering needs geometry, the render page is driven in `measure` mode — it loads
-// the same snapshot, waits for fonts, reads editor.getShapePageBounds for every shape, and leaves the
-// result in its own HTML for the worker's `/content` read.
-
-/**
- * Measures every shape on a page through a real editor, returning `shapeId -> bounds and text`.
- *
- * Costs one Browser Rendering session, the same as a screenshot — there is no cheaper way to get
- * geometry the Worker cannot compute. Callers own the rate limiting that implies; the session
- * itself lands on the `browser_run_session` spend ledger with `mode:measure`, written at the render
- * choke point rather than by callers.
- */
-export async function measurePageShapes(
-	env: Environment,
-	board: ResolvedThumbnailBoard,
-	pageId: string,
-	{ surface, snapshot }: { surface: ThumbnailRenderSurface; snapshot?: RoomSnapshot }
-): Promise<Record<string, ShapeMeasurement>> {
-	const job: ThumbnailRenderJob = {
-		v: 1,
-		kind: board.kind,
-		slug: board.slug,
-		version: board.version,
-		// Taken from the resolution rather than the caller, same as captureThumbnailScreenshot: a
-		// measure token for a private board reads the whole document through the snapshot route, so it
-		// carries the gate the board resolved under rather than defaulting to `public`.
-		access: board.access,
-		surface,
-		mode: 'measure',
-		pageId,
-		x: 0,
-		y: 0,
-		z: 1,
-		// Nothing is exported, but the viewport still has to be a sane size: shapes are measured
-		// against a laid-out document, not a zero-sized one.
-		width: DEFAULT_THUMBNAIL_WIDTH,
-		height: DEFAULT_THUMBNAIL_HEIGHT,
-		theme: 'light',
-		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
-	}
-	// Minted even for a push: a board too big to push falls back to fetching with it.
-	const token = await mintRecordedRenderToken(env, job)
-
-	try {
-		const { buffer } = await runRenderSession(
-			env,
-			buildThumbnailRenderUrl(getRenderOrigin(env), token),
-			{
-				width: DEFAULT_THUMBNAIL_WIDTH,
-				height: DEFAULT_THUMBNAIL_HEIGHT,
-				// The measure runs only on the MCP surface today; `surface` names the render pipeline for the
-				// signed job, not the telemetry source, so this is stated rather than derived.
-				session: { source: 'mcp', mode: 'measure' },
-				transport: await renderTransportFor(env, snapshot, job),
-				pageReached: (since) => wasRenderTokenServedSince(env, job, token, since),
-			}
-		)
-
-		return readMeasureResult(buffer)
-	} finally {
-		// The record is keyed by its own token, so concurrent measures of one page cannot invalidate each
-		// other — which also means nothing later overwrites it, and it has to be dropped here.
-		await deleteMintedRenderToken(env, job, token)
-	}
-}
-
-// The page's result element out of a `/content` response. Malformed boxes are dropped rather than
-// kept: a non-finite value would produce NaN distances and silently detach that shape from the
-// minimum spanning tree.
-function readMeasureResult(buffer: ArrayBuffer): Record<string, ShapeMeasurement> {
-	const html = new TextDecoder().decode(buffer)
-	const match = new RegExp(
-		`<script[^>]*\\bid="${THUMBNAIL_MEASURE_RESULT_ID}"[^>]*>([\\s\\S]*?)</script>`
-	).exec(html)
-	if (!match) throw new Error('The render page did not report any measurements')
-	const reported = JSON.parse(match[1]) as Record<string, ThumbnailShapeMeasurement>
-
-	const bounds: Record<string, ShapeMeasurement> = {}
-	for (const [shapeId, box] of Object.entries(reported)) {
-		if (
-			!Number.isFinite(box?.x) ||
-			!Number.isFinite(box?.y) ||
-			!Number.isFinite(box?.w) ||
-			!Number.isFinite(box?.h)
-		) {
-			continue
-		}
-		bounds[shapeId] = {
-			minX: box.x,
-			minY: box.y,
-			maxX: box.x + box.w,
-			maxY: box.y + box.h,
-			...(typeof box.text === 'string' && box.text ? { text: box.text } : null),
-		}
-	}
-	return bounds
-}
-
-// Writes one rendered PNG to a thumbnail cache, stamping the content version (so a stale version
-// can be detected) alongside any surface-specific metadata.
 export async function putThumbnailPng(
 	bucket: R2Bucket,
 	key: string,
@@ -1084,13 +966,6 @@ export function writeScreenshotTelemetry(
 		 */
 		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
 		/**
-		 * What the MCP cluster index cache did, which decides whether the call ran a measure render.
-		 * Its own dimension rather than part of `cacheStatus`, which is the PNG cache: the two save
-		 * different things, and one blob mixing them would make either hit rate unreadable. `none` on
-		 * every OG row and on any MCP row that never reached the clustering step.
-		 */
-		clusterCacheStatus?: 'hit' | 'miss' | 'none'
-		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
 		 * rows — see below.
 		 *
@@ -1126,8 +1001,6 @@ export function writeScreenshotTelemetry(
 			// follow-up concept at all, so a query for triggered renders can say `followup:false` and mean
 			// it, instead of sweeping up every og and mcp datapoint too.
 			`followup:${data.followUp ?? 'none'}`,
-			// Appended, like the two above, so nothing shifts. Only the MCP clustering tools ever set it.
-			`clusters:${data.clusterCacheStatus ?? 'none'}`,
 		],
 		doubles: [
 			DEFAULT_THUMBNAIL_WIDTH,

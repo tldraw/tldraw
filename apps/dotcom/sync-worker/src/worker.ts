@@ -62,6 +62,7 @@ import {
 	MCP_SERVER_CARD_WELL_KNOWN_PATH,
 	getMcpServerCard,
 } from './routes/tla/mcpServerCard'
+import { postTabRenderReply } from './routes/tla/mcpTabRender'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
@@ -169,6 +170,7 @@ const router = createRouter<Environment>()
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
+	.post('/app/file/:roomId/tab-render/:jobId', postTabRenderReply)
 	.post('/app/:userId/init', handleInitUser)
 	.post('/app/tldr', createFiles)
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms

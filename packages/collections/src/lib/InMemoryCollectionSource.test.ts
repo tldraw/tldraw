@@ -1,7 +1,12 @@
 import { react } from '@tldraw/state'
 import { createShapeId, createTLSchema } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import { CollectionNotFoundError, CollectionPermissionError } from './CollectionSource'
+import {
+	CollectionNotFoundError,
+	CollectionPermissionError,
+	type TLCollectionAction,
+	type TLCollectionTarget,
+} from './CollectionSource'
 import { InMemoryCollectionSource } from './InMemoryCollectionSource'
 import {
 	CollectionItemRecordType,
@@ -15,9 +20,11 @@ const card = CollectionItemRecordType.createId('card')
 const missingCollection = CollectionRecordType.createId('nope')
 const missingItem = CollectionItemRecordType.createId('nope')
 
-const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs', readOnly: true })
+const prefabs = () => CollectionRecordType.create({ id: pack, name: 'Prefabs' })
 const cardItem = () =>
 	CollectionItemRecordType.create({ id: card, collectionId: pack, name: 'Card' })
+
+const png = () => new Blob(['png'], { type: 'image/png' })
 
 function content(): TLCollectionItemContent {
 	return {
@@ -71,15 +78,27 @@ describe('InMemoryCollectionSource', () => {
 		expect(item).not.toHaveProperty('name')
 	})
 
-	it('gives thumbnails a url', async () => {
+	it('gives each image of a light and dark pair its own url', async () => {
 		const source = new InMemoryCollectionSource()
 		const collection = await source.createCollection('Wireframes')
 		const item = await source.addItem(collection.id, {
 			name: 'Card',
 			content: content(),
-			thumbnail: new Blob(['png'], { type: 'image/png' }),
+			thumbnail: { light: png(), dark: png() },
 		})
-		expect(item.thumbnailUrl).toMatch(/^blob:/)
+		expect(item.thumbnail).toEqual({
+			light: expect.stringMatching(/^blob:/),
+			dark: expect.stringMatching(/^blob:/),
+		})
+		const { light, dark } = item.thumbnail as { light: string; dark: string }
+		expect(dark).not.toBe(light)
+	})
+
+	it('keeps a single thumbnail a single url', async () => {
+		const source = new InMemoryCollectionSource()
+		const collection = await source.createCollection('Wireframes')
+		const item = await source.addItem(collection.id, { content: content(), thumbnail: png() })
+		expect(item.thumbnail).toMatch(/^blob:/)
 	})
 
 	it('renames items and rejects blank names', async () => {
@@ -94,7 +113,7 @@ describe('InMemoryCollectionSource', () => {
 	})
 
 	it('reports a missing item as not found, not as forbidden', async () => {
-		const source = new InMemoryCollectionSource({ readOnly: true })
+		const source = new InMemoryCollectionSource({ can: () => false })
 		await expect(source.renameItem(missingItem, 'Name')).rejects.toThrow(CollectionNotFoundError)
 		await expect(source.deleteItem(missingItem)).rejects.toThrow(CollectionNotFoundError)
 	})
@@ -102,16 +121,18 @@ describe('InMemoryCollectionSource', () => {
 	describe('thumbnail urls', () => {
 		afterEach(() => vi.restoreAllMocks())
 
-		it('releases the url when its item is deleted', async () => {
+		it('releases the urls when their item is deleted', async () => {
 			const revoke = vi.spyOn(URL, 'revokeObjectURL')
 			const source = new InMemoryCollectionSource()
 			const collection = await source.createCollection('Wireframes')
 			const item = await source.addItem(collection.id, {
 				content: content(),
-				thumbnail: new Blob(['png'], { type: 'image/png' }),
+				thumbnail: { light: png(), dark: png() },
 			})
 			await source.deleteItem(item.id)
-			expect(revoke).toHaveBeenCalledWith(item.thumbnailUrl)
+			const { light, dark } = item.thumbnail as { light: string; dark: string }
+			expect(revoke).toHaveBeenCalledWith(light)
+			expect(revoke).toHaveBeenCalledWith(dark)
 		})
 
 		it('creates no url for an item that fails validation', async () => {
@@ -122,7 +143,7 @@ describe('InMemoryCollectionSource', () => {
 				source.addItem(collection.id, {
 					name: ' ',
 					content: content(),
-					thumbnail: new Blob(['png']),
+					thumbnail: { light: png(), dark: png() },
 				})
 			).rejects.toThrow()
 			expect(create).not.toHaveBeenCalled()
@@ -140,6 +161,130 @@ describe('InMemoryCollectionSource', () => {
 		await source.deleteItem(item.id)
 		expect(source.getItems(collection.id)).toEqual([])
 		await expect(source.getItemContent(item.id)).rejects.toThrow(CollectionNotFoundError)
+	})
+
+	it('moves an item to another collection, keeping its id and content', async () => {
+		const source = new InMemoryCollectionSource()
+		const from = await source.createCollection('Wireframes')
+		const to = await source.createCollection('Icons')
+		const item = await source.addItem(from.id, { name: 'Card', content: content() })
+		await source.moveItem(item.id, to.id)
+		expect(source.getItems(from.id)).toEqual([])
+		expect(source.getItems(to.id).map((i) => i.id)).toEqual([item.id])
+		expect(await source.getItemContent(item.id)).toEqual(content())
+	})
+
+	it('refuses to move an item out of or into a read-only collection', async () => {
+		const source = new InMemoryCollectionSource({
+			initial: { collections: [prefabs()], items: [], contents: {} },
+			can: (_, collectionId) => collectionId !== pack,
+		})
+		const writable = await source.createCollection('Mine')
+		const item = await source.addItem(writable.id, { content: content() })
+		await expect(source.moveItem(item.id, pack)).rejects.toThrow(CollectionPermissionError)
+		await expect(source.moveItem(item.id, missingCollection)).rejects.toThrow(
+			CollectionNotFoundError
+		)
+	})
+
+	describe('owners', () => {
+		const owners = [
+			{ id: 'home', name: 'Personal' },
+			{ id: 'acme', name: 'Acme workspace' },
+		]
+
+		it('gives new collections to the first owner', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			expect(source.getCollectionOwners()).toEqual(owners)
+			const collection = await source.createCollection('Wireframes')
+			expect(collection.ownerId).toBe('home')
+		})
+
+		it('gives new collections to the default owner, unless they name one', async () => {
+			const source = new InMemoryCollectionSource({ owners, defaultOwnerId: 'acme' })
+			expect(source.getDefaultOwnerId()).toBe('acme')
+			expect((await source.createCollection('Wireframes')).ownerId).toBe('acme')
+			expect((await source.createCollection('Icons', { ownerId: 'home' })).ownerId).toBe('home')
+		})
+
+		it('refuses a new collection for a missing owner', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			await expect(source.createCollection('Wireframes', { ownerId: 'nobody' })).rejects.toThrow(
+				CollectionNotFoundError
+			)
+			expect(source.getCollections()).toEqual([])
+		})
+
+		it('lets a subclass list its own owners, checking starting data only against given ones', async () => {
+			class WorkspaceSource extends InMemoryCollectionSource {
+				override getCollectionOwners() {
+					return owners
+				}
+			}
+			const source = new WorkspaceSource({
+				initial: { collections: [{ ...prefabs(), ownerId: 'acme' }], items: [], contents: {} },
+			})
+			expect((await source.createCollection('Mine')).ownerId).toBe('home')
+			await expect(source.createCollection('Theirs', { ownerId: 'nobody' })).rejects.toThrow(
+				CollectionNotFoundError
+			)
+		})
+
+		it('refuses a default owner that is not an owner', () => {
+			expect(() => new InMemoryCollectionSource({ owners, defaultOwnerId: 'nobody' })).toThrow(
+				'not one of the owners'
+			)
+		})
+
+		it('leaves the owner out without owners', async () => {
+			const source = new InMemoryCollectionSource()
+			expect(source.getCollectionOwners()).toEqual([])
+			expect(source.getDefaultOwnerId()).toBeUndefined()
+			const collection = await source.createCollection('Wireframes')
+			expect(collection.ownerId).toBeUndefined()
+		})
+
+		it('moves a collection to another owner, keeping its items', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			const collection = await source.createCollection('Wireframes')
+			const item = await source.addItem(collection.id, { name: 'Card', content: content() })
+			const seen: (string | undefined)[] = []
+			const stop = react('owner', () => {
+				seen.push(source.getCollections()[0].ownerId)
+			})
+			await source.moveCollection(collection.id, 'acme')
+			stop()
+			expect(seen).toEqual(['home', 'acme'])
+			expect(source.getCollections()).toEqual([{ ...collection, ownerId: 'acme' }])
+			expect(source.getItems(collection.id).map((i) => i.id)).toEqual([item.id])
+			expect(await source.getItemContent(item.id)).toEqual(content())
+		})
+
+		it('refuses a missing collection or owner', async () => {
+			const source = new InMemoryCollectionSource({ owners })
+			const collection = await source.createCollection('Wireframes')
+			await expect(source.moveCollection(missingCollection, 'acme')).rejects.toThrow(
+				CollectionNotFoundError
+			)
+			await expect(source.moveCollection(collection.id, 'nobody')).rejects.toThrow(
+				CollectionNotFoundError
+			)
+			expect(source.getCollections()[0].ownerId).toBe('home')
+		})
+
+		it('refuses starting data owned by a missing owner', () => {
+			expect(
+				() =>
+					new InMemoryCollectionSource({
+						owners,
+						initial: {
+							collections: [{ ...prefabs(), ownerId: 'nobody' }],
+							items: [],
+							contents: {},
+						},
+					})
+			).toThrow('missing owner')
+		})
 	})
 
 	it('deleting a collection deletes its items', async () => {
@@ -168,14 +313,53 @@ describe('InMemoryCollectionSource', () => {
 		).rejects.toThrow(CollectionNotFoundError)
 	})
 
-	it('answers no for a collection that does not exist', () => {
-		const source = new InMemoryCollectionSource()
+	it('allows everything by default', () => {
+		const source = new InMemoryCollectionSource({
+			initial: { collections: [prefabs()], items: [], contents: {} },
+		})
+		expect(source.can('createCollection')).toBe(true)
+		expect(source.can('addItem', pack)).toBe(true)
+		expect(source.can('deleteCollection', pack)).toBe(true)
+	})
+
+	it('answers no for a collection that does not exist, without asking the rule', () => {
+		const can = vi.fn(() => true)
+		const source = new InMemoryCollectionSource({ can })
 		expect(source.can('addItem', missingCollection)).toBe(false)
+		expect(can).not.toHaveBeenCalled()
+	})
+
+	it('answers no for an owner it does not list, without asking the rule', () => {
+		const can = vi.fn(() => true)
+		const source = new InMemoryCollectionSource({ owners: [{ id: 'home', name: 'Home' }], can })
+		expect(source.can('createCollection', { ownerId: 'nobody' })).toBe(false)
+		expect(can).not.toHaveBeenCalled()
+	})
+
+	it('asks the rule about new collections for an owner', async () => {
+		const can = vi.fn(
+			(_: TLCollectionAction, target?: TLCollectionTarget) =>
+				typeof target !== 'object' || target.ownerId !== 'acme'
+		)
+		const source = new InMemoryCollectionSource({
+			owners: [
+				{ id: 'home', name: 'Home' },
+				{ id: 'acme', name: 'Acme' },
+			],
+			can,
+		})
+		expect(source.can('createCollection', { ownerId: 'home' })).toBe(true)
+		expect(source.can('createCollection', { ownerId: 'acme' })).toBe(false)
+		expect(can).toHaveBeenCalledWith('createCollection', { ownerId: 'acme' })
+		expect((await source.createCollection('Mine')).ownerId).toBe('home')
+		await expect(source.createCollection('Theirs', { ownerId: 'acme' })).rejects.toThrow(
+			CollectionPermissionError
+		)
 	})
 
 	it('refuses every write when read-only, but items stay usable', async () => {
 		const source = new InMemoryCollectionSource({
-			readOnly: true,
+			can: () => false,
 			initial: {
 				collections: [prefabs()],
 				items: [cardItem()],
@@ -198,6 +382,7 @@ describe('InMemoryCollectionSource', () => {
 				items: [],
 				contents: {},
 			},
+			can: (_, collectionId) => collectionId !== pack,
 		})
 		expect(source.can('createCollection')).toBe(true)
 		expect(source.can('addItem', pack)).toBe(false)
@@ -316,10 +501,12 @@ describe('InMemoryCollectionSource', () => {
 		const collection = await source.createCollection('Wireframes')
 		const item = await source.addItem(collection.id, {
 			content: content(),
-			thumbnail: new Blob(['png']),
+			thumbnail: { light: png(), dark: png() },
 		})
 		source.dispose()
-		expect(revoke).toHaveBeenCalledWith(item.thumbnailUrl)
+		const { light, dark } = item.thumbnail as { light: string; dark: string }
+		expect(revoke).toHaveBeenCalledWith(light)
+		expect(revoke).toHaveBeenCalledWith(dark)
 		revoke.mockRestore()
 	})
 })

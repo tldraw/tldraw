@@ -1,5 +1,7 @@
+import type { BoxModel, VecModel } from '@tldraw/tlschema'
 import { stringEnum } from '@tldraw/utils'
 import type { SerializedSchema, SerializedStore, TLRecord } from 'tldraw'
+import type { McpPageRead, PageSelector } from './mcpPageRead'
 import { TlaEffectOutbox, TlaFile, TlaUser } from './tlaSchema'
 
 export interface Snapshot {
@@ -134,9 +136,26 @@ export interface ThumbnailRenderParams {
 }
 
 /**
- * What the editor reports for one shape: its page-space box, and the plain text its ShapeUtil says it
- * holds. Both are things only an editor can answer — sizing needs font metrics, and getText is shape
- * behaviour rather than something readable off the record.
+ * An arrow as drawn, in page space. Only an editor can say: a bound arrow's record stores a
+ * placeholder stub, and its real ends depend on the geometry of the shapes it is bound to.
+ */
+export interface MeasuredArrow {
+	start: VecModel
+	end: VecModel
+}
+
+/**
+ * A shape's own unrotated size as the editor draws it. The record cannot say: a text's height comes
+ * from laying out its text, and a group or a freehand stroke has no size of its own.
+ */
+export type MeasuredDimensions = Pick<BoxModel, 'w' | 'h'>
+
+/**
+ * What the editor reports for one shape: its page-space box, the plain text its ShapeUtil says it
+ * holds, for an arrow where it is drawn, and for some shapes their own size. All are things only an
+ * editor can answer — sizing needs font metrics, getText is shape behaviour rather than something
+ * readable off the record, and a bound arrow's ends depend on the geometry of the shapes it is bound
+ * to.
  */
 export interface ThumbnailShapeMeasurement {
 	x: number
@@ -145,7 +164,103 @@ export interface ThumbnailShapeMeasurement {
 	h: number
 	/** `ShapeUtil.getText(shape)`, absent when the shape has no text. */
 	text?: string
+	/** An arrow's drawn ends, in page space. */
+	arrow?: MeasuredArrow
+	/** A text, group, draw or highlight shape's own unrotated size as drawn, unlike the page box. */
+	dimensions?: MeasuredDimensions
 }
+
+/**
+ * The sync socket query param a client sets to say it can answer `mcp_tab_render` jobs. Honoured only
+ * on a website session: an agent joining on an OAuth token could never answer honestly, and could use
+ * a job to put a forged answer in front of another of the same user's agents.
+ */
+export const TAB_RENDER_PARAM = 'tabRender'
+
+export interface TabRenderScreenshotRequest {
+	mode: 'screenshot'
+	pageId: string
+	shapeIds: string[]
+	theme: 'light' | 'dark'
+	width: number
+	height: number
+}
+
+/**
+ * Reads a page for get_page_info, get_cluster_info and get_cluster_screenshot: resolves `page`,
+ * measures and clusters it, and keeps full records only for `clusterIds`.
+ */
+export interface TabRenderReadRequest {
+	mode: 'read'
+	page: PageSelector
+	clusterIds: string[]
+}
+
+/** What an MCP tool asks the caller's open tab to work out. Tabs are the only way these get done. */
+export interface TabRenderApplyOpsRequest {
+	mode: 'apply_ops'
+	/** Validated by the tab, which owns the op vocabulary. */
+	ops: unknown[]
+	/** Which page the agent means. Absent means whichever page the tab is on. */
+	page?: { kind: 'ordinal'; ordinal: number } | { kind: 'id'; id: string }
+	/** `userId` comes from the verified token, never from the agent. No `runId` scopes `{ created }` refs to this batch. */
+	attribution: { userId: string; runId?: string }
+}
+
+/** What an MCP tool asks the caller's open tab to do. Tabs are the only way these get done. */
+export type TabRenderRequest =
+	| TabRenderReadRequest
+	| TabRenderScreenshotRequest
+	| TabRenderApplyOpsRequest
+	| { mode: 'user_state' }
+
+/**
+ * Sent only to sessions that set TAB_RENDER_PARAM. `jobId` is the capability to answer: it goes to
+ * this one session and nowhere else, and it is all the reply route checks.
+ */
+export interface TabRenderServerEvent {
+	type: 'mcp_tab_render'
+	jobId: string
+	request: TabRenderRequest
+}
+
+export const TAB_RENDER_DECLINE_REASONS = [
+	'editor_not_ready',
+	'page_missing',
+	/** A screenshot of a page the tab isn't showing: the export only draws the current page. */
+	'page_not_current',
+	'shapes_missing',
+	'too_many_shapes',
+	/** Mid-drag, or queued behind other exports for too long. */
+	'busy',
+	/** The export gave up waiting for its shapes, so its picture can't be trusted. */
+	'export_timed_out',
+	/** The batch failed validation and nothing was applied. `detail` says why. */
+	'invalid_ops',
+	'read_only',
+	/** A batch for a tab the user isn't looking at, which they could neither watch nor undo. */
+	'tab_hidden',
+	/** Something threw while a batch was applying, so some of it may have landed. */
+	'apply_failed',
+	'failed',
+] as const
+export type TabRenderDeclineReason = (typeof TAB_RENDER_DECLINE_REASONS)[number]
+
+/** What a tab POSTs back for a job. Anything but `accepted` ends that tab's part in it. */
+export type TabRenderReply =
+	| { status: 'accepted' }
+	| { status: 'declined'; reason: TabRenderDeclineReason; detail?: string }
+	| { status: 'page_read'; read: McpPageRead }
+	| { status: 'page_not_found'; reason: 'no_pages' | 'page_out_of_range'; pageCount: number }
+	| { status: 'captured'; base64: string }
+	| { status: 'applied'; pageId: string; pageName: string; result: Record<string, unknown> }
+	| {
+			status: 'user_state'
+			pageId: string
+			pageName: string
+			selectedShapeIds: string[]
+			viewport: { x: number; y: number; w: number; h: number }
+	  }
 
 /**
  * The render page's phase timings, POSTed to the result route as a fire-and-forget beacon once the
@@ -273,6 +388,7 @@ export type TLCustomServerEvent =
 			boot_r2_ms?: number
 			boot_comments_ms?: number
 	  } & { [K in `d_${ConnectStep}` | `t_${ConnectStep}`]?: number })
+	| TabRenderServerEvent
 
 /* ----------------------- Feature Flags ---------------------- */
 

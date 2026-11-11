@@ -145,15 +145,12 @@
 	},
 	"devDependencies": {
 		"@tldraw/editor": "workspace:*",
-		"@types/fs-extra": "^11.0.4",
 		"@types/lodash": "^4.17.14",
-		"@types/node-fetch": "^2.6.12",
 		"@types/react": "^19.2.7",
 		"@types/react-dom": "^19.2.3",
 		"@types/vscode": "^1.96.0",
 		"assert": "^2.1.0",
 		"esbuild": "^0.28.0",
-		"fs-extra": "^11.3.0",
 		"lodash": "^4.17.21",
 		"mocha": "^9.2.2",
 		"ovsx": "^0.10.7",
@@ -167,8 +164,7 @@
 	},
 	"gitHead": "4b1137849ad07da36fc8f0f19cb64e7535a79296",
 	"dependencies": {
-		"cheerio": "^1.0.0",
-		"node-fetch": "^2.7.0"
+		"cheerio": "^1.0.0"
 	},
 	"peerDependencies": {
 		"react": "^18.2.0 || ^19.2.1",

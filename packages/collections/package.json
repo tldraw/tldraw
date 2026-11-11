@@ -17,6 +17,7 @@
 		"@tldraw/tlschema": "workspace:*",
 		"@tldraw/utils": "workspace:*",
 		"@tldraw/validate": "workspace:*",
+		"radix-ui": "^1.4.2",
 		"tldraw": "workspace:*"
 	},
 	"devDependencies": {

@@ -1,20 +1,32 @@
-import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
+import {
+	TabRenderReadRequest,
+	TabRenderRequest,
+	TabRenderScreenshotRequest,
+	ThumbnailShapeMeasurement,
+	findMcpPage,
+	toShapeMeasurements,
+} from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/sync-core'
+import { isPage } from '@tldraw/tlschema'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	MCP_CREATE_PER_USER_RATE_LIMIT,
-	MCP_PER_USER_RATE_LIMIT,
 	MCP_RENAME_PER_USER_RATE_LIMIT,
 	MCP_SEARCH_PER_USER_RATE_LIMIT,
+	MCP_TAB_PER_USER_RATE_LIMIT,
 } from '../../config'
+import { TabRenderOutcome } from '../../tabRenderBroker'
 import { Environment } from '../../types'
-import { resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
-import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
+	CLUSTER_INFO_MAX_IDS,
+	McpBoardUser,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
+	encodePageInfoCursor,
 	parsePageInfoInput,
+	readSnapshotPage,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
@@ -25,21 +37,14 @@ import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from '.
 import { renameBoardForUser } from './renameBoard'
 import {
 	blobValuesOf,
-	blobsWithPrefix,
-	callerBlobsOf,
-	clusterIndexKeysOf,
-	clusterIndexStoreOf,
-	contentResponse,
 	datapointsNamed,
 	failureBlobsOf,
-	makeBrowserBinding,
+	makeFakeFileDurableObjectNamespace,
 	makeFakeRoomsBucket,
 	makeFakeThumbnailsBucket,
-	makeMeasuringBrowserBinding,
+	blobsWithPrefix,
 	makeScreenshotTestEnv,
 	makeSnapshot,
-	screenshotOf,
-	sessionsOf,
 } from './screenshotTestHelpers'
 import { searchAccessibleBoards } from './searchBoards'
 
@@ -70,6 +75,12 @@ function grantReadAccess(name = 'My Board') {
 	}))
 }
 
+function mockSharedBoard(snapshot = makeSnapshot(PAGES)) {
+	grantReadAccess()
+	vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'abc', shared: true, isDeleted: false })
+	vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(snapshot)
+}
+
 function denyReadAccess() {
 	vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
 }
@@ -87,7 +98,6 @@ vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
 
 beforeEach(() => {
-	resetFeatureFlagCacheForTests()
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
 		ok: true,
 		userId: request.headers.get('x-test-user') ?? 'user_default',
@@ -111,28 +121,87 @@ const PAGES = [
 
 // The MCP tests assert the render URL against a render origin that is deliberately not the client's
 // real origin, so pin a distinct one here rather than using the shared default. THUMBNAILS holds
-// measure results and render-token records; MCP_DATA_BUCKET is where the tools cache their PNGs.
+// render-token records.
 // The clustering tools measure the page in a render before they can group anything, so the fake
 // browser plays the render page's part and posts a measure result.
 let requestId = 0
 
-// A limiter binding that never refuses, for tests that are about one *other* limit and must not be
-// able to pass on this one firing instead. Load-bearing for the global limiter now that a measure
-// counts against it: one cluster screenshot spends two browser sessions, so a per-user run of ten
-// would exhaust the isolate-local global fallback before the per-user budget was reached.
-const UNLIMITED_LIMITER = { limit: async () => ({ success: true }) }
-
-function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
-	const env: Environment = makeScreenshotTestEnv({
+function makeEnv({
+	tab = openTab(),
+	boardUsers = [],
+	...overrides
+}: Partial<Record<string, unknown>> & { tab?: FakeTab; boardUsers?: McpBoardUser[] } = {}) {
+	return makeScreenshotTestEnv({
 		MCP_SCREENSHOT_RENDER_ORIGIN: 'https://render.example',
 		THUMBNAILS: makeFakeThumbnailsBucket(),
-		MCP_DATA_BUCKET: makeFakeThumbnailsBucket(),
+		ROOMS: makeFakeRoomsBucket(),
+		TLDR_DOC: makeFakeFileDurableObjectNamespace(tab, {
+			getMcpBoardUsers: async () => ({ status: 'ok', users: boardUsers, anonymousViewers: 0 }),
+		}),
 		...overrides,
 	})
-	if (!('BROWSER' in overrides)) {
-		;(env as any).BROWSER = makeMeasuringBrowserBinding()
+}
+
+type FakeTab = { closed?: boolean } & ReturnType<
+	typeof vi.fn<(userId: string, request: TabRenderRequest) => Promise<TabRenderOutcome>>
+>
+
+const PNG = 'iVBORw0KGgoTAB'
+
+// A tab with the board open, which is what every tool that needs an editor runs against now.
+function openTab(shapes: Record<string, ThumbnailShapeMeasurement> = {}): FakeTab {
+	return vi.fn(async (_userId: string, request: TabRenderRequest): Promise<TabRenderOutcome> => {
+		switch (request.mode) {
+			case 'read':
+				return readInTab(request, shapes)
+			case 'screenshot':
+				return { status: 'captured', base64: PNG }
+			case 'apply_ops':
+				return {
+					status: 'applied',
+					pageId: 'page:a',
+					pageName: 'Cover',
+					result: { batchId: 'batch', applied: request.ops.length, errors: [] },
+				}
+			case 'user_state':
+				return {
+					status: 'user_state',
+					pageId: 'page:a',
+					pageName: 'Cover',
+					selectedShapeIds: ['shape:picked'],
+					viewport: { x: 0, y: 0, w: 1000, h: 800 },
+				}
+		}
+	})
+}
+
+// What the tab would read, worked out from the board the test mocked: the same snapshot mock the
+// persisted read uses stands in for the tab's store.
+async function readInTab(
+	request: TabRenderReadRequest,
+	shapes: Record<string, ThumbnailShapeMeasurement>
+): Promise<TabRenderOutcome> {
+	const snapshot = (await getSharedFileRoomSnapshot({} as Environment, 'abc', {
+		access: 'render',
+	})) as RoomSnapshot
+	const lookup = findMcpPage(snapshot.documents.map((d) => d.state).filter(isPage), request.page)
+	if (!lookup.ok) {
+		return { status: 'page_not_found', reason: lookup.reason, pageCount: lookup.pageCount }
 	}
-	return env
+	const read = readSnapshotPage(
+		snapshot,
+		request.page,
+		toShapeMeasurements(shapes),
+		request.clusterIds
+	)
+	if (!read.ok) throw new Error('expected the page to read')
+	return { status: 'page_read', read: read.read }
+}
+
+function tabAnswering(outcome: TabRenderOutcome): FakeTab {
+	const tab: FakeTab = vi.fn(async () => outcome)
+	tab.closed = outcome.status === 'no_tab'
+	return tab
 }
 
 // `userId` is who the mocked auth layer will report for this request — the key the per-user rate
@@ -224,15 +293,6 @@ function mockPublishedBoard(snapshot = makeSnapshot(PAGES)) {
 	vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(snapshot)
 }
 
-// Every clustering tool measures the page in a render before it can do anything else, so the
-// quickAction calls are [measure, …, shot]: the first call carries the measure job and the last
-// carries the screenshot job with shapeIds.
-function jobTokenOfCall(env: Environment, index: number) {
-	const calls = screenshotOf(env).mock.calls
-	const body = calls.at(index)![1] as { url: string }
-	return new URL(body.url).searchParams.get('token')!
-}
-
 // Cluster ids are content-derived hashes and every fixture board shares one snapshot, so an id
 // fetched once names the same cluster on every board. Fetched by a helper user where the test is
 // about budgets, so the lookup spends nobody's budget but the helper's.
@@ -241,117 +301,32 @@ async function firstClusterId(env: Environment, userId: string, boardId: string,
 	return JSON.parse(pageResult.content[0].text).clusters[0].id as string
 }
 
-// Measures get the same worker-side deadline as screenshots now that their result comes back in the
-// response: there is no late POST left for an abandoned measure to strand.
-describe('measure deadline', () => {
-	it('abandons a measure at the render timeout', async () => {
-		vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout', 'Date'] })
-		mockPublishedBoard()
-		const env = makeEnv()
-		const measuring = makeMeasuringBrowserBinding()
-		;(env as any).BROWSER = {
-			quickAction: vi.fn(async (action: string, body: any) => {
-				await new Promise((resolve) => setTimeout(resolve, THUMBNAIL_RENDER_TIMEOUT_MS + 5000))
-				return measuring.quickAction(action, body)
-			}),
-		}
-
-		const call = callTool('get_page_info', { boardId: 'abc' }, env, 'user_slow_measure')
-		while (vi.getTimerCount() === 0) {
-			await new Promise((resolve) => setImmediate(resolve))
-		}
-		await vi.advanceTimersByTimeAsync(THUMBNAIL_RENDER_TIMEOUT_MS + 5001)
-		const result = await call
-
-		expect(result.isError).toBe(true)
-		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_timeout'])
-	})
-})
-
-describe('measure through /content', () => {
-	it('reads the result out of the page and sends no screenshot', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_content')
-
-		expect(result.isError).not.toBe(true)
-		expect(screenshotOf(env).mock.calls.map((call) => call[0])).toEqual(['content'])
-		const body = screenshotOf(env).mock.calls[0][1]
-		expect(body).toMatchObject({ cacheTTL: 0 })
-		expect(body).not.toHaveProperty('selector')
-		expect(body).not.toHaveProperty('screenshotOptions')
-	})
-
-	it('fails with the page’s own error, kept out of the message', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () =>
-				contentResponse(
-					'<html data-thumbnail-error="Snapshot &quot;x&quot; failed"><body data-thumbnail-error="Snapshot &quot;x&quot; failed"></body></html>'
-				)
-			),
-		})
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_page_error')
-
-		expect(result.isError).toBe(true)
-		expect(result.content[0].text).not.toContain('Snapshot')
-		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['page_error'])
-	})
-
-	it('fails a content response that carries no page as a browser failure', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () =>
-				Response.json({ success: false, errors: [{ code: 1, message: 'nope' }] })
-			),
-		})
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_no_page')
-
-		expect(result.isError).toBe(true)
-		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
-	})
-
-	it('keeps a session that answered JSON null on the ledger', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({ BROWSER: makeBrowserBinding(async () => Response.json(null)) })
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_null_content')
-
-		expect(result.isError).toBe(true)
-		expect(sessionsOf(env).map((s) => s.outcome)).toEqual(['browser_failed'])
-	})
-
-	it('drops malformed boxes rather than clustering NaN', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () =>
-				contentResponse(
-					`<html data-thumbnail-ready="true"><body><script type="application/json" id="tldraw-measure-result">${JSON.stringify(
-						{ 'shape:bad': { x: 'nope', y: 0, w: 1, h: 1 } }
-					)}</script></body></html>`
-				)
-			),
-		})
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_malformed')
-
-		expect(result.isError).not.toBe(true)
-	})
-})
-
 describe('tool inputs', () => {
+	it('reads a get_page_info cursor, and refuses one it cannot use', () => {
+		const page = { kind: 'id', id: 'page:b' } as const
+		const cursor = encodePageInfoCursor(40, page)
+		expect(parsePageInfoInput({ boardId: 'abc', page: 'page:b', cursor }).cursor).toBe(40)
+		expect(() => parsePageInfoInput({ boardId: 'abc', page: 'page:c', cursor })).toThrow(
+			'cursor is from a different page'
+		)
+		for (const bad of ['not base64!', btoa('x:y'), btoa('12'), 12]) {
+			expect(() => parsePageInfoInput({ boardId: 'abc', cursor: bad })).toThrow(
+				'cursor is not valid'
+			)
+		}
+	})
+
 	it('parses board and page selectors', () => {
 		expect(parseBoardInfoInput({ boardId: 'abc' })).toEqual({ boardId: 'abc' })
 		expect(parsePageInfoInput({ boardId: 'abc' })).toEqual({
 			boardId: 'abc',
 			page: { kind: 'ordinal', ordinal: 0 },
+			cursor: null,
 		})
 		expect(parsePageInfoInput({ boardId: 'abc', page: 'page:b' })).toEqual({
 			boardId: 'abc',
 			page: { kind: 'id', id: 'page:b' },
+			cursor: null,
 		})
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: -1 })).toThrow('page must be')
 		expect(() => parsePageInfoInput({ boardId: 'abc', page: 1.5 })).toThrow('page must be')
@@ -361,8 +336,21 @@ describe('tool inputs', () => {
 
 	it('parses cluster arguments, accepting one id or several', () => {
 		expect(
-			parseClusterInfoInput({ boardId: 'abc', page: 1, clusterId: 'cluster:one' })
-		).toMatchObject({ boardId: 'abc', clusterId: 'cluster:one' })
+			parseClusterInfoInput({ boardId: 'abc', page: 1, clusterIds: ['cluster:one', 'cluster:two'] })
+		).toMatchObject({ boardId: 'abc', clusterIds: ['cluster:one', 'cluster:two'] })
+		expect(parseClusterInfoInput({ boardId: 'abc', clusterIds: 'cluster:one' })).toMatchObject({
+			clusterIds: ['cluster:one'],
+		})
+		// The argument the tool took before it took several, still sent by clients holding the old list.
+		expect(parseClusterInfoInput({ boardId: 'abc', clusterId: 'cluster:one' })).toMatchObject({
+			clusterIds: ['cluster:one'],
+		})
+		// A repeated id is answered once, in the place it was first asked for.
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:b', 'cluster:a', 'cluster:b'] })
+				.clusterIds
+		).toEqual(['cluster:b', 'cluster:a'])
+		expect(() => parseClusterInfoInput({ boardId: 'abc' })).toThrow('clusterIds is required')
 		expect(
 			parseClusterScreenshotInput({
 				boardId: 'abc',
@@ -377,6 +365,47 @@ describe('tool inputs', () => {
 		expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: [] })).toThrow(
 			'clusterIds is required'
 		)
+	})
+
+	// Naming the argument the caller sent: "clusterId is required" sent models looking for an argument
+	// they had never passed.
+	it('refuses a cluster id list with a bad entry, naming clusterIds', () => {
+		for (const clusterIds of [[42], [''], ['cluster:a', null]]) {
+			expect(() => parseClusterInfoInput({ boardId: 'abc', clusterIds })).toThrow(
+				'clusterIds must each be a cluster id from get_page_info'
+			)
+			expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds })).toThrow(
+				'clusterIds must each be a cluster id from get_page_info'
+			)
+		}
+	})
+
+	it('refuses more cluster ids than could fit in one get_cluster_info call', () => {
+		const ids = (count: number) => Array.from({ length: count }, (_, i) => `cluster:${i}`)
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ids(CLUSTER_INFO_MAX_IDS) }).clusterIds
+		).toHaveLength(CLUSTER_INFO_MAX_IDS)
+		expect(() =>
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ids(CLUSTER_INFO_MAX_IDS + 1) })
+		).toThrow(`at most ${CLUSTER_INFO_MAX_IDS} ids in one call. Split them across several calls.`)
+	})
+
+	// A cursor passed on with other clusterIds would point into clusters the caller never saw the start
+	// of, and one that can't be read would otherwise restart silently.
+	it('reads back a get_cluster_info cursor only for the clusterIds it came from', () => {
+		const cursor = btoa(`1:7:${encodeURIComponent('cluster:a,cluster:b')}`)
+		expect(
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a', 'cluster:b'], cursor })
+				.cursor
+		).toEqual({ cluster: 1, shape: 7 })
+		expect(() =>
+			parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a'], cursor })
+		).toThrow('cursor is from a different set of clusterIds')
+		for (const bad of ['not base64!', btoa('1:x:cluster:a'), btoa('1:2'), 42]) {
+			expect(() =>
+				parseClusterInfoInput({ boardId: 'abc', clusterIds: ['cluster:a'], cursor: bad })
+			).toThrow('cursor is not valid')
+		}
 	})
 
 	// An unrecognized theme is rejected rather than silently rendered as light, so a caller that
@@ -406,6 +435,9 @@ describe('MCP server', () => {
 			'get_page_info',
 			'get_cluster_info',
 			'get_cluster_screenshot',
+			'apply_ops',
+			'get_user_state',
+			'get_board_users',
 		])
 	})
 })
@@ -450,9 +482,9 @@ describe('authentication', () => {
 		expect(response.headers.get('WWW-Authenticate')).toContain('resource_metadata=')
 	})
 
-	// Refused before anything is spent or read: no board lookup, no browser session, and nothing that
-	// would tell an unauthenticated caller whether a board exists.
-	it('does no board lookup and opens no browser session', async () => {
+	// Refused before anything is read: nothing that would tell an unauthenticated caller whether a
+	// board exists.
+	it('does no board lookup', async () => {
 		refuseAuth()
 		mockPublishedBoard()
 		const env = makeEnv()
@@ -462,7 +494,6 @@ describe('authentication', () => {
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
 		expect(getSharedFileInfo).not.toHaveBeenCalled()
 		expect(hasReadAccessToFile).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	// The one number that matters most during a flag-gated rollout, and nothing recorded it: the
@@ -548,7 +579,7 @@ describe('protocol versions', () => {
 		expect(modern).toMatchObject({
 			resultType: 'complete',
 			cacheScope: 'public',
-			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.4.0' } },
+			_meta: { 'io.modelcontextprotocol/serverInfo': { version: '3.10.0' } },
 		})
 		expect(modern.ttlMs).toBeGreaterThan(0)
 
@@ -745,16 +776,6 @@ describe('search_boards', () => {
 		expect(JSON.parse(result.content[0].text).boardCount).toBe(0)
 	})
 
-	// The limiters on this server bound Browser Run, and this tool spends none — counting it
-	// against them would make the documented per-account number untrue again.
-	it('does not consume the Browser Run rate limit budget', async () => {
-		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
-		const limit = vi.fn(async () => ({ success: true }))
-		const env = makeEnv({ MCP_SCREENSHOT_RATE_LIMITER: { limit } })
-		await callTool('search_boards', {}, env)
-		expect(limit).not.toHaveBeenCalled()
-	})
-
 	// The wire-legal call a model makes by following the tool's own description literally: MCP's
 	// `arguments` is optional, and this tool has `required: []`, so a real client can
 	// send `params: {name: "search_boards"}` with no `arguments` key at all. Built with
@@ -853,6 +874,7 @@ describe('create_board', () => {
 			boardId: 'board_new',
 			name: 'Roadmap',
 			url: 'https://render.example/f/board_new',
+			nextStep: expect.stringContaining('https://render.example/f/board_new'),
 			workspace: PERSONAL,
 		})
 	})
@@ -1005,7 +1027,7 @@ describe('get_board_info', () => {
 		})
 	})
 
-	it('resolves a shared file id and never spends browser capacity', async () => {
+	it('resolves a shared file id without trying it as a published board', async () => {
 		grantReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
@@ -1015,7 +1037,6 @@ describe('get_board_info', () => {
 
 		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
 	})
 
 	// Every tool call already dials Postgres twice — once for the access check, once to resolve the
@@ -1166,7 +1187,7 @@ describe('get_board_info', () => {
 
 describe('page and cluster info', () => {
 	it('lists one cluster per top-level shape', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const result = await callTool(
 			'get_page_info',
 			{ boardId: 'abc', page: 'page:a' },
@@ -1177,353 +1198,612 @@ describe('page and cluster info', () => {
 
 		expect(info.name).toBe('Cover')
 		expect(info.clusters).toHaveLength(2)
-		// The fixture's shapes carry no text, so there is nothing to derive a keyword label from —
-		// an empty label is the honest answer rather than a made-up one.
+		// The fixture's shapes carry no text, so there are no keywords, and each is labelled by what it
+		// holds. Its geo records name no geo, so they read as plain geo shapes. Nothing is measured, so
+		// neither has a position.
 		expect(info.clusters).toEqual([
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
-			{ id: expect.stringMatching(/^cluster:/), numberOfShapes: 1, label: '', keywords: [] },
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+				bounds: null,
+			},
+			{
+				id: expect.stringMatching(/^cluster:/),
+				numberOfShapes: 1,
+				label: '1 geo shape',
+				keywords: [],
+				bounds: null,
+			},
 		])
 	})
 
 	it('returns the shapes in a cluster', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 		const clusterId = await firstClusterId(env, 'user_7', 'abc')
 		const result = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_7')
 		const info = JSON.parse(result.content[0].text)
 
 		expect(info).toMatchObject({
-			clusterId,
 			pageName: 'Cover',
-			numberOfShapes: 1,
-			shapes: [{ id: 'shape:page:a-0' }],
+			clusters: [{ clusterId, numberOfShapes: 1, shapes: [{ id: 'shape:page:a-0' }] }],
 		})
+	})
+
+	// One agent took 44 calls to read a flowchart, one per cluster, under a limit of about ten a
+	// minute. Several ids are one call, and still one measure.
+	it('returns several clusters in the order asked, from one measure', async () => {
+		mockSharedBoard()
+		// Listed in a different env, so this one has nothing cached and has to measure.
+		const listed = await callTool('get_page_info', { boardId: 'abc' }, makeEnv(), 'user_7b')
+		const [first, second] = JSON.parse(listed.content[0].text).clusters.map((c: any) => c.id)
+		const env = makeEnv()
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterIds: [second, first] },
+			env,
+			'user_7b'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			pageName: 'Cover',
+			clusters: [
+				{ clusterId: second, shapes: [{ id: 'shape:page:a-1' }] },
+				{ clusterId: first, shapes: [{ id: 'shape:page:a-0' }] },
+			],
+		})
+	})
+
+	it('refuses the whole call when any cluster id is unknown, naming the missing ones', async () => {
+		mockSharedBoard()
+		const env = makeEnv()
+		const clusterId = await firstClusterId(env, 'user_7c', 'abc')
+
+		const result = await callTool(
+			'get_cluster_info',
+			{ boardId: 'abc', clusterIds: [clusterId, 'cluster:nope'] },
+			env,
+			'user_7c'
+		)
+
+		expect(result).toMatchObject({
+			isError: true,
+			content: [
+				{
+					text: 'No cluster on page 0 with id "cluster:nope". Call get_page_info to list this page\'s clusters.',
+				},
+			],
+		})
+		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:cluster_not_found'])
 	})
 
 	// A shape's rich text is a deeply nested ProseMirror document, and a geo shape's label is not on
 	// the record under any key at all — so the editor's getText answer replaces it on the way out.
 	it('replaces rich text with the plain text the editor reported', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding({
-			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
-			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
+		mockSharedBoard()
+		const env = makeEnv({
+			tab: openTab({
+				'shape:page:a-0': { x: 0, y: 0, w: 10, h: 10, text: 'Checkout total' },
+				'shape:page:a-1': { x: 5000, y: 0, w: 10, h: 10 },
+			}),
 		})
 
 		const clusterId = await firstClusterId(env, 'user_8', 'abc')
 		const result = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_8')
-		const shape = JSON.parse(result.content[0].text).shapes[0]
+		const shape = JSON.parse(result.content[0].text).clusters[0].shapes[0]
 
 		expect(shape.props.text).toBe('Checkout total')
 		expect(shape.props.richText).toBeUndefined()
-		// Everything else about the record is passed through untouched.
-		expect(shape).toMatchObject({ id: 'shape:page:a-0', typeName: 'shape' })
+		expect(shape.id).toBe('shape:page:a-0')
+		expect(shape.typeName).toBeUndefined()
 		expect(shape.plainText).toBeUndefined()
 	})
 })
 
-// What the cluster index buys: a page is measured once per content version, not once per call.
-//
-// Every test here is about the *browser sessions* a sequence of calls costs, since that is the whole
-// point — the answers themselves are covered above, and are asserted here only where a cached path
-// could quietly change one.
-describe('cluster index cache', () => {
-	it('answers get_cluster_info from the index get_page_info stored, spending nothing', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_ix', 'abc')
+describe('the open tab', () => {
+	const CLUSTER_ID = 'cluster:any'
 
-		const cached = await callTool('get_cluster_info', { boardId: 'abc', clusterId }, env, 'user_ix')
-
-		// One session for the whole sequence: get_page_info's measure. get_cluster_info added none.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:miss', 'clusters:hit'])
-
-		// And it is the same answer the measuring path gives, down to the shape records: a cached call
-		// that returned a different cluster would be worse than one that cost a render.
-		const fresh = await callTool(
-			'get_cluster_info',
-			{ boardId: 'abc', clusterId },
-			makeEnv(),
-			'user_ix'
+	async function screenshot(env: Environment, boardId = 'abc') {
+		const pageInfo = await callTool('get_page_info', { boardId }, env, 'user_tab')
+		const clusters = JSON.parse(pageInfo.content[0].text).clusters
+		return callTool(
+			'get_cluster_screenshot',
+			{ boardId, clusterIds: [clusters[0].id] },
+			env,
+			'user_tab'
 		)
-		expect(cached.content).toEqual(fresh.content)
+	}
+
+	beforeEach(() => {
+		mockSharedBoard()
 	})
 
-	it('keeps the plain text only an editor can report', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		;(env as any).BROWSER = makeMeasuringBrowserBinding({
-			'shape:page:a-0': { minX: 0, minY: 0, maxX: 10, maxY: 10, text: 'Checkout total' },
-			'shape:page:a-1': { minX: 5000, minY: 0, maxX: 5010, maxY: 10 },
+	it('reads a page in the tab of the user who asked', async () => {
+		const tab = openTab({ 'shape:page:a-0': { x: 0, y: 0, w: 10, h: 10, text: 'From the tab' } })
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv({ tab }), 'user_tab')
+
+		expect(tab).toHaveBeenCalledWith('user_tab', {
+			mode: 'read',
+			page: { kind: 'ordinal', ordinal: 0 },
+			clusterIds: [],
 		})
-		const clusterId = await firstClusterId(env, 'user_ix_text', 'abc')
+		expect(JSON.parse(result.content[0].text).clusters.map((c: any) => c.label)).toContain(
+			'From the tab'
+		)
+	})
+
+	it('captures a cluster, framing only its shapes, and answers with the image', async () => {
+		const tab = openTab()
+
+		const result = await screenshot(makeEnv({ tab }))
+
+		// This tab measured no boxes, so there is no aspect ratio to match: the size falls back to the
+		// thumbnail's ratio at the full 2560px.
+		expect(tab).toHaveBeenLastCalledWith('user_tab', {
+			mode: 'screenshot',
+			pageId: 'page:a',
+			shapeIds: ['shape:page:a-0'],
+			theme: 'light',
+			width: 2560,
+			height: 1344,
+		})
+		expect(result.content).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'image', data: PNG, mimeType: 'image/png' },
+		])
+	})
+
+	it('captures several clusters into one image, asking for the union of their shapes', async () => {
+		const tab = openTab()
+		const env = makeEnv({ tab })
+		const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+		const clusterIds = JSON.parse(pageInfo.content[0].text)
+			.clusters.slice(0, 2)
+			.map((cluster: any) => cluster.id)
+
+		await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds }, env, 'user_tab')
+
+		const request = tab.mock.lastCall![1] as TabRenderScreenshotRequest
+		expect(request.shapeIds).toHaveLength(2)
+	})
+
+	describe('sizing to the clusters', () => {
+		// One wide cluster and one far-off square, so neither merges into the other.
+		const measuredTab = () =>
+			openTab({
+				'shape:page:a-0': { x: 0, y: 0, w: 400, h: 100 },
+				'shape:page:a-1': { x: 10_000, y: 10_000, w: 80, h: 80 },
+			})
+
+		async function clusterIdWithWidth(env: Environment, w: number) {
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			return JSON.parse(pageInfo.content[0].text).clusters.find(
+				(cluster: any) => cluster.bounds?.w === w
+			).id as string
+		}
+
+		it('asks for a smaller size when the agent does', async () => {
+			const tab = measuredTab()
+			const env = makeEnv({ tab })
+			const clusterId = await clusterIdWithWidth(env, 400)
+
+			await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds: [clusterId], size: 800 },
+				env,
+				'user_tab'
+			)
+
+			expect(tab.mock.lastCall![1]).toMatchObject({ width: 800, height: 200 })
+		})
+
+		it('frames several clusters on the box around all of them', async () => {
+			const tab = measuredTab()
+			const env = makeEnv({ tab })
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+			expect(clusterIds).toHaveLength(2)
+
+			await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds }, env, 'user_tab')
+
+			// The union runs from (0, 0) to (10080, 10080): a square.
+			expect(tab.mock.lastCall![1]).toMatchObject({ width: 2560, height: 2560 })
+		})
+	})
+
+	it('tells the agent to have the user open the board when no tab has it', async () => {
+		const env = makeEnv({ tab: tabAnswering({ status: 'no_tab' }) })
+
+		for (const result of [
+			await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab'),
+			await callTool(
+				'get_cluster_info',
+				{ boardId: 'abc', clusterIds: [CLUSTER_ID] },
+				env,
+				'user_tab'
+			),
+			await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds: [CLUSTER_ID] },
+				env,
+				'user_tab'
+			),
+		]) {
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain('not open in a browser tab')
+			expect(result.content[0].text).toContain('/f/abc')
+		}
+		expect(failureBlobsOf(env)).toContain('failure:tab_not_open')
+	})
+
+	it('still answers get_board_info with no tab, since it needs no editor', async () => {
+		const tab = tabAnswering({ status: 'no_tab' })
 
 		const result = await callTool(
-			'get_cluster_info',
-			{ boardId: 'abc', clusterId },
-			env,
-			'user_ix_text'
+			'get_board_info',
+			{ boardId: 'abc' },
+			makeEnv({ tab }),
+			'user_tab'
 		)
-
-		// Served from the index, so this text came out of storage rather than out of a render — the one
-		// thing in a cluster that cannot be re-derived from the stored record.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-		expect(JSON.parse(result.content[0].text).shapes[0].props.text).toBe('Checkout total')
-	})
-
-	it('indexes each page separately', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix2')
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix2')
-		await callTool('get_page_info', { boardId: 'abc', page: 1 }, env, 'user_ix2')
-
-		// Page 0 measured once and was then served from the index; page 1 has an index of its own to
-		// build, so it measures too.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
-		expect(blobsWithPrefix(env, 'clusters:')).toEqual([
-			'clusters:miss',
-			'clusters:hit',
-			'clusters:miss',
-		])
-	})
-
-	it('caches a page with no clusters at all', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-
-		const first = await callTool('get_page_info', { boardId: 'abc', page: 2 }, env, 'user_ix_blank')
-		const second = await callTool(
-			'get_page_info',
-			{ boardId: 'abc', page: 2 },
-			env,
-			'user_ix_blank'
-		)
-
-		// An empty page's index is an empty list, which has to read back as a hit rather than as
-		// "nothing stored" — otherwise the one page that costs the least to answer re-measures forever.
-		expect(JSON.parse(first.content[0].text).clusterCount).toBe(0)
-		expect(second.content).toEqual(first.content)
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-	})
-
-	it('gives each file its own index, shared files included', async () => {
-		grantReadAccess()
-		vi.mocked(getSharedFileInfo).mockImplementation(async (_env, slug) => ({
-			id: slug,
-			shared: true,
-			isDeleted: false,
-		}))
-		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
-
-		const clusterId = await firstClusterId(env, 'user_ix_two', 'file-a')
-		await callTool('get_cluster_info', { boardId: 'file-a', clusterId }, env, 'user_ix_two')
-		await callTool('get_page_info', { boardId: 'file-b' }, env, 'user_ix_two')
-
-		// Two boards, two objects: the index key carries no slug precisely because each file has its
-		// own durable object, so file-b's page must miss even though it clusters identically.
-		expect(clusterIndexKeysOf(env)).toEqual([
-			'do(/r/file-a)|shared_file/page:a',
-			'do(/r/file-b)|shared_file/page:a',
-		])
-		// file-a: one measure for get_page_info, none for the get_cluster_info that followed it.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
-		expect(blobsWithPrefix(env, 'clusters:')).toEqual([
-			'clusters:miss',
-			'clusters:hit',
-			'clusters:miss',
-		])
-	})
-
-	it('answers from the index while global browser capacity is exhausted', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_ix_cap', 'abc')
-
-		// The global cap is the ceiling on Browser Run sessions, so it is checked on the miss path only:
-		// a call that spends nothing must not be refused by it.
-		;(env as any).MCP_SERVER_BROWSER_RATE_LIMITER = { limit: async () => ({ success: false }) }
-		const cached = await callTool(
-			'get_cluster_info',
-			{ boardId: 'abc', clusterId },
-			env,
-			'user_ix_cap'
-		)
-		const uncached = await callTool(
-			'get_page_info',
-			{ boardId: 'abc', page: 1 },
-			env,
-			'user_ix_cap'
-		)
-
-		expect(cached.isError).toBeUndefined()
-		expect(uncached.isError).toBe(true)
-		expect(uncached.content[0].text).toContain('Screenshot capacity is busy')
-		expect(failureBlobsOf(env)).toContain('failure:rate_limited_global')
-		expect(blobsWithPrefix(env, 'clusters:')).toEqual([
-			'clusters:miss',
-			'clusters:hit',
-			'clusters:miss',
-		])
-		// And the refusal cost nothing: only the first call ever reached a browser.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-	})
-
-	it('keys an index to the snapshot read during the publish gap', async () => {
-		const oldSnapshot = makeSnapshot(PAGES)
-		mockPublishedBoard(oldSnapshot)
-		const env = makeEnv()
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
-
-		// Postgres moves first during a republish. While R2 still holds the old snapshot, the old index
-		// remains valid for the content this call actually reads and avoids a redundant measure.
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1751234567891,
-		})
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
-
-		// Then R2 catches up with the same shape ids but changed geometry. Keying by lastPublished (and
-		// validating ids/counts alone) would serve the old clustering forever; keying by the snapshot
-		// bytes makes this a miss.
-		const newSnapshot = makeSnapshot(PAGES)
-		const firstShape = newSnapshot.documents.find(
-			(record: any) => record.state.typeName === 'shape'
-		)!
-		firstShape.state.x = 5000
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(newSnapshot)
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix3')
-
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
-		expect(clusterIndexKeysOf(env)).toEqual(['do(/r/file-1)|published/page:a'])
-	})
-
-	it('forgets a page the board no longer has', async () => {
-		const board = makeSnapshot(PAGES)
-		mockPublishedBoard(board)
-		const env = makeEnv()
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix_prune')
-		await callTool('get_page_info', { boardId: 'abc', page: 1 }, env, 'user_ix_prune')
-		expect(clusterIndexKeysOf(env)).toHaveLength(2)
-
-		// The second page is deleted, and the next write is the only moment anything knows the board's
-		// current page list — without a prune there, its row would sit there for the life of the file.
-		mockPublishedBoard(makeSnapshot([PAGES[0], PAGES[2]]))
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1751234567892,
-		})
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix_prune')
-
-		expect(clusterIndexKeysOf(env)).toEqual(['do(/r/file-1)|published/page:a'])
-	})
-
-	it('treats a row it cannot parse as a miss', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix4')
-
-		// Whatever is in there — a half-written row, or one from a build whose index format has since
-		// changed — the tool answers, and it answers by measuring.
-		for (const store of clusterIndexStoreOf(env).objects.values()) {
-			for (const [key, row] of store) {
-				store.set(key, { ...row, payload: '{"v":999,"clusters":[]}' })
-			}
-		}
-		const result = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix4')
 
 		expect(result.isError).toBeUndefined()
-		expect(JSON.parse(result.content[0].text).clusterCount).toBe(2)
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+		expect(tab).not.toHaveBeenCalled()
 	})
 
-	it('still answers when the durable object is unreachable', async () => {
+	it.each<[TabRenderOutcome, string]>([
+		[{ status: 'ack_timeout' }, 'tab_ack_timeout'],
+		[{ status: 'room_timeout' }, 'tab_room_timeout'],
+		[{ status: 'work_timeout' }, 'tab_work_timeout'],
+		[{ status: 'declined', reason: 'busy' }, 'tab_busy'],
+		[{ status: 'declined', reason: 'page_not_current' }, 'tab_page_not_current'],
+		// A reply of the wrong kind for the job.
+		[{ status: 'page_not_found', reason: 'no_pages', pageCount: 0 }, 'tab_failed'],
+	])('answers %j with a tool error, recorded as %s', async (outcome, reason) => {
+		const open = openTab()
+		const tab = vi.fn(async (userId: string, request: TabRenderRequest) =>
+			request.mode === 'read' ? open(userId, request) : outcome
+		) as FakeTab
+		const env = makeEnv({ tab })
+
+		const result = await screenshot(env)
+
+		expect(result.isError).toBe(true)
+		expect(failureBlobsOf(env)).toContain(`failure:${reason}`)
+	})
+
+	// A published board is a frozen copy; the room behind it holds a different, live document. Choosing
+	// the refusal is a row lookup, so the published snapshot isn't read for it.
+	it('does not ask a tab about a published board, and says why', async () => {
+		denyReadAccess()
 		mockPublishedBoard()
-		const broken = {
-			idFromName: (name: string) => ({ toString: () => `do(${name})` }),
-			get: () => ({
-				async getMcpClusterIndex() {
-					throw new Error('durable object unavailable')
-				},
-				async putMcpClusterIndex() {
-					throw new Error('durable object unavailable')
-				},
-			}),
-		}
-		const env = makeEnv({ TLDR_DOC: broken })
+		const tab = openTab()
 
-		const first = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix5')
-		const second = await callTool('get_page_info', { boardId: 'abc', page: 0 }, env, 'user_ix5')
+		const result = await callTool('get_page_info', { boardId: 'abc' }, makeEnv({ tab }), 'user_tab')
 
-		// Neither call fails, and both measure: an unreachable cache is the pipeline as it was before
-		// there was one.
-		expect(first.isError).toBeUndefined()
-		expect(second.isError).toBeUndefined()
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure', 'measure'])
+		expect(tab).not.toHaveBeenCalled()
+		expect(getPublishedRoomSnapshot).not.toHaveBeenCalled()
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('published board')
+	})
+
+	it('answers with a tool error when the room cannot be reached', async () => {
+		const env = makeEnv()
+		const objects = env.TLDR_DOC as any
+		const get = objects.get
+		objects.get = (id: unknown) => ({
+			...get(id),
+			requestTabRender: async () => {
+				throw new Error('room unavailable')
+			},
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(failureBlobsOf(env)).toEqual(['failure:tab_error'])
+	})
+
+	it('records how each attempt went, with no board or user identity', async () => {
+		const env = makeEnv({ tab: tabAnswering({ status: 'declined', reason: 'page_missing' }) })
+
+		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.blobs.slice(2))).toEqual([
+			['mode:read', 'outcome:declined', 'reason:page_missing'],
+		])
 	})
 })
 
-// Only the tools that spend Browser Run are limited — get_board_info is not, since it renders
-// nothing. The budgets themselves live in config.ts, and they are per account: the auth layer is
-// what made that identity trustworthy, where the per-IP keys this replaced were evaded by a proxy
-// pool and shared across a NAT.
-describe('rate limits', () => {
-	it('does not limit get_board_info, which spends no Browser Run', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		for (let i = 0; i < MCP_PER_USER_RATE_LIMIT + 4; i++) {
-			const result = await callTool('get_board_info', { boardId: 'abc' }, env, 'user_50')
-			expect(result.isError).toBeUndefined()
-		}
+describe('apply_ops', () => {
+	const OPS = [{ op: 'add', kind: 'box', text: 'Hello', at: { x: 0, y: 0 } }]
+
+	beforeEach(() => {
+		grantReadAccess()
 	})
 
-	it('limits a clustering tool, which does', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const outcomes: (boolean | undefined)[] = []
-		for (let i = 0; i < MCP_PER_USER_RATE_LIMIT + 2; i++) {
-			outcomes.push((await callTool('get_page_info', { boardId: 'abc' }, env, 'user_51')).isError)
-		}
-		expect(outcomes.some(Boolean)).toBe(true)
-	})
+	it('applies a batch in the tab as the verified user and reports what landed', async () => {
+		const tab = openTab()
 
-	// Pins the configured per-user budget, not merely that some limit eventually fires. Each call
-	// uses a distinct board so the per-board limiter can never be what trips, and the run stops one
-	// call past the budget so it stays below the global cap — otherwise a passing test could not say
-	// which of the three limits it had actually exercised.
-	it(`allows ${MCP_PER_USER_RATE_LIMIT} screenshots per account per minute, then rate limits`, async () => {
-		mockPublishedBoard()
-		const env = makeEnv({ MCP_SERVER_BROWSER_RATE_LIMITER: UNLIMITED_LIMITER })
-		const clusterId = await firstClusterId(env, 'user_helper', 'board-0')
-
-		const results = []
-		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
-			results.push(
-				await callTool(
-					'get_cluster_screenshot',
-					{ boardId: `board-${i}`, clusterIds: [clusterId] },
-					env,
-					'user_20'
-				)
-			)
-		}
-
-		expect(results.slice(0, MCP_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
-			Array(MCP_PER_USER_RATE_LIMIT).fill(undefined)
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS, runId: 'run-1' },
+			makeEnv({ tab }),
+			'user_tab'
 		)
-		const blocked = results[MCP_PER_USER_RATE_LIMIT]
-		expect(blocked.isError).toBe(true)
-		// The per-user message specifically, so this can't pass on the global cap firing instead.
-		expect(blocked.content[0].text).toContain('per minute per account')
-		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
+
+		expect(tab).toHaveBeenCalledWith('user_tab', {
+			mode: 'apply_ops',
+			ops: OPS,
+			attribution: { userId: 'user_tab', runId: 'run-1' },
+		})
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			pageId: 'page:a',
+			pageName: 'Cover',
+			batchId: 'batch',
+			applied: 1,
+			errors: [],
+		})
 	})
 
-	// Search has its own budget because it bounds Postgres, not Browser Run. Pins the configured
+	// The tab keeps {created} refs to the batch itself when no run is named.
+	it('names no run when the agent gives none, and passes the page along for the tab to check', async () => {
+		const tab = openTab()
+		const env = makeEnv({ tab })
+
+		await callTool('apply_ops', { boardId: 'abc', ops: OPS, page: 1 }, env, 'user_tab')
+		await callTool('apply_ops', { boardId: 'abc', ops: OPS, page: null }, env, 'user_tab')
+
+		expect(tab.mock.calls.map(([, request]) => request)).toEqual([
+			{
+				mode: 'apply_ops',
+				ops: OPS,
+				page: { kind: 'ordinal', ordinal: 1 },
+				attribution: { userId: 'user_tab' },
+			},
+			// A model that fills in every field sends null, which means the page the user is on.
+			{ mode: 'apply_ops', ops: OPS, attribution: { userId: 'user_tab' } },
+		])
+	})
+
+	// create_board followed by apply_ops is the obvious flow, and a new board has no snapshot to read.
+	it('works on a board with nothing persisted yet', async () => {
+		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValue(new Error('should not be read'))
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, makeEnv(), 'user_tab')
+
+		expect(result.isError).toBeUndefined()
+	})
+
+	// A retry on a write that did land would apply it twice, so the agent has to hear the difference
+	// between "nothing happened" and "we don't know".
+	it.each<[TabRenderOutcome, string, boolean]>([
+		[{ status: 'no_tab' }, 'tab_not_open', false],
+		[{ status: 'reload_needed' }, 'tab_reload_needed', false],
+		[{ status: 'ack_timeout' }, 'tab_ack_timeout', false],
+		[{ status: 'declined', reason: 'read_only' }, 'tab_read_only', false],
+		[{ status: 'declined', reason: 'tab_hidden' }, 'tab_tab_hidden', false],
+		[{ status: 'declined', reason: 'apply_failed' }, 'tab_apply_failed', true],
+		[{ status: 'work_timeout' }, 'tab_work_timeout', true],
+	])('answers %j as %s', async (outcome, reason, mayHaveApplied) => {
+		const env = makeEnv({ tab: tabAnswering(outcome) })
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual([reason])
+		expect(result.content[0].text.includes('may or may not have applied')).toBe(mayHaveApplied)
+	})
+
+	it('reports the page from the tab, not from a field in its result', async () => {
+		const tab = tabAnswering({
+			status: 'applied',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			result: { applied: 1, pageId: 'page:forged', pageName: 'Forged' },
+		})
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			pageId: 'page:a',
+			pageName: 'Cover',
+		})
+	})
+
+	// The object can reset after a tab claimed the batch, so "nothing happened" could be false.
+	it('warns that a batch may have applied when the object fails partway', async () => {
+		const tab: FakeTab = vi.fn(async () => {
+			throw new Error('object reset')
+		})
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(result.content[0].text).toContain('may or may not have applied')
+	})
+
+	it('hands back what the tab said was wrong with a batch', async () => {
+		const env = makeEnv({
+			tab: tabAnswering({
+				status: 'declined',
+				reason: 'invalid_ops',
+				detail: '✖ Invalid op "add"',
+			}),
+		})
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, env, 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('nothing was applied')
+		expect(result.content[0].text).toContain('Invalid op "add"')
+	})
+
+	it('answers the same for an inaccessible board as for a missing one', async () => {
+		denyReadAccess()
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+		const tab = openTab()
+
+		const result = await callTool(
+			'apply_ops',
+			{ boardId: 'abc', ops: OPS },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(result.content[0].text).toContain('No board was found with this id')
+		expect(tab).not.toHaveBeenCalled()
+	})
+
+	it('says a published board cannot be edited, rather than that it was not found', async () => {
+		denyReadAccess()
+		mockPublishedBoard()
+
+		const result = await callTool('apply_ops', { boardId: 'abc', ops: OPS }, makeEnv(), 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('published board')
+	})
+
+	it.each([
+		['no ops', { boardId: 'abc', ops: [] }, 'non-empty array'],
+		['ops that are not a list', { boardId: 'abc', ops: 'add a box' }, 'non-empty array'],
+		[
+			'too many ops',
+			{ boardId: 'abc', ops: Array.from({ length: 1001 }, () => OPS[0]) },
+			'at most 1000',
+		],
+		['a batch too large to send', { boardId: 'abc', ops: ['x'.repeat(2_000_000)] }, 'too large'],
+		['a bad runId', { boardId: 'abc', ops: OPS, runId: 7 }, 'runId'],
+	])('refuses %s without reaching a tab', async (_name, args, phrase) => {
+		const tab = openTab()
+
+		const result = await callTool('apply_ops', args, makeEnv({ tab }), 'user_tab')
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain(phrase)
+		expect(tab).not.toHaveBeenCalled()
+	})
+})
+
+describe('live reads', () => {
+	beforeEach(() => {
+		mockSharedBoard()
+	})
+
+	// An agent reading back what it just drew would otherwise wait out the persist interval.
+	it('lists what the room holds now, not what R2 last saved', async () => {
+		const persisted = vi.fn()
+		const env = makeEnv({ ROOMS: { get: persisted, head: persisted } })
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(result.isError).toBeUndefined()
+		expect(persisted).not.toHaveBeenCalled()
+	})
+})
+
+describe('presence', () => {
+	const PEER: McpBoardUser = {
+		userId: 'user_peer',
+		name: 'Peer',
+		pageId: 'page:a',
+		selectedShapeIds: ['shape:theirs'],
+		viewport: { x: 0, y: 0, w: 100, h: 100 },
+		lastActiveAt: null,
+	}
+
+	beforeEach(() => {
+		grantReadAccess()
+	})
+
+	it('lists who is on the board without asking a tab', async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'get_board_users',
+			{ boardId: 'abc' },
+			makeEnv({ tab, boardUsers: [PEER] }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toEqual({ users: [PEER], anonymousViewers: 0 })
+		expect(tab).not.toHaveBeenCalled()
+	})
+
+	// A hibernating room clears selections from presence, so presence would read as nothing selected.
+	it("asks the caller's own tab for their state", async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'get_user_state',
+			{ boardId: 'abc' },
+			makeEnv({ tab }),
+			'user_tab'
+		)
+
+		expect(tab).toHaveBeenCalledWith('user_tab', { mode: 'user_state' })
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			userId: 'user_tab',
+			pageId: 'page:a',
+			pageName: 'Cover',
+			selectedShapeIds: ['shape:picked'],
+			viewport: { x: 0, y: 0, w: 1000, h: 800 },
+		})
+	})
+
+	it("reads someone else's state from presence", async () => {
+		const tab = openTab()
+
+		const result = await callTool(
+			'get_user_state',
+			{ boardId: 'abc', userId: 'user_peer' },
+			makeEnv({ tab, boardUsers: [PEER] }),
+			'user_tab'
+		)
+
+		expect(JSON.parse(result.content[0].text)).toEqual(PEER)
+		expect(tab).not.toHaveBeenCalled()
+	})
+
+	it('says so when that user is not on the board', async () => {
+		const result = await callTool(
+			'get_user_state',
+			{ boardId: 'abc', userId: 'user_gone' },
+			makeEnv(),
+			'user_tab'
+		)
+
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('not on this board')
+	})
+
+	it('answers the same for a board the caller cannot see as for a missing one', async () => {
+		denyReadAccess()
+		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
+
+		for (const name of ['get_board_users', 'get_user_state']) {
+			const result = await callTool(name, { boardId: 'abc' }, makeEnv(), 'user_tab')
+			expect(result.content[0].text).toContain('No board was found with this id')
+		}
+	})
+})
+
+// Only the tools that spend Postgres or write rows are limited. The budgets live in config.ts.
+describe('rate limits', () => {
+	// Search has its own budget because it bounds Postgres. Pins the configured
 	// number rather than merely that something eventually refuses, and stops one call past it so a
 	// pass cannot be some other limiter firing — search is checked against a binding of its own.
 	it(`allows ${MCP_SEARCH_PER_USER_RATE_LIMIT} searches per account per minute, then rate limits`, async () => {
@@ -1546,6 +1826,47 @@ describe('rate limits', () => {
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_search')
 	})
 
+	// One budget across every tool that goes through the board's durable object, so an agent can't
+	// multiply its share of the object by switching tools. A refused call must not reach the tab: that
+	// load is the point.
+	it(`allows ${MCP_TAB_PER_USER_RATE_LIMIT} calls through the board per account per minute, across the tools`, async () => {
+		mockSharedBoard()
+		const tab = openTab()
+		const env = makeEnv({ tab })
+		// Spends the first call of the budget.
+		const clusterId = await firstClusterId(env, 'user_tab', 'abc')
+		const ops = [{ op: 'add', kind: 'box', text: 'Hello', at: { x: 0, y: 0 } }]
+		const calls = [
+			['get_page_info', { boardId: 'abc' }],
+			['get_cluster_info', { boardId: 'abc', clusterId }],
+			['get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }],
+			['apply_ops', { boardId: 'abc', ops }],
+			['get_user_state', { boardId: 'abc' }],
+			['get_board_users', { boardId: 'abc' }],
+		] as const
+
+		const results = []
+		for (let i = 1; i < MCP_TAB_PER_USER_RATE_LIMIT; i++) {
+			const [tool, args] = calls[i % calls.length]
+			results.push(await callTool(tool, args, env, 'user_tab'))
+		}
+		const callsWithinBudget = tab.mock.calls.length
+		const blocked = []
+		for (const [tool, args] of calls) blocked.push(await callTool(tool, args, env, 'user_tab'))
+
+		expect(results.map((r) => r.isError)).toEqual(
+			Array(MCP_TAB_PER_USER_RATE_LIMIT - 1).fill(undefined)
+		)
+		for (const result of blocked) {
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain(
+				`share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT}`
+			)
+		}
+		expect(tab).toHaveBeenCalledTimes(callsWithinBudget)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
+	})
+
 	// Both halves matter: without the noisy caller actually being refused, the quiet one succeeding
 	// says nothing, since a search nobody limits succeeds for everybody.
 	it('gives each account its own search budget', async () => {
@@ -1558,178 +1879,11 @@ describe('rate limits', () => {
 		expect(noisy?.isError).toBe(true)
 		expect((await callTool('search_boards', {}, env, 'user_search_quiet')).isError).toBeUndefined()
 	})
-
-	// The point of re-keying off IP: a second account gets its own budget, and one account
-	// exhausting its own does not touch it. Under the old key both callers behind one NAT shared a
-	// single budget, and one caller with a proxy pool had as many as it liked.
-	it('gives each account its own budget', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({ MCP_SERVER_BROWSER_RATE_LIMITER: UNLIMITED_LIMITER })
-		const clusterId = await firstClusterId(env, 'user_helper', 'board-0')
-
-		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
-			await callTool(
-				'get_cluster_screenshot',
-				{ boardId: `board-${i}`, clusterIds: [clusterId] },
-				env,
-				'user_noisy'
-			)
-		}
-		expect(failureBlobsOf(env)).toContain('failure:rate_limited_user')
-
-		const other = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'board-0', clusterIds: [clusterId] },
-			env,
-			'user_quiet'
-		)
-		expect(other.isError).toBeUndefined()
-	})
-
-	// Per-board is deliberately far tighter than per-account: this blocks on the third capture of
-	// one board while the same account still has plenty of budget left.
-	//
-	// Note what this can and cannot check. Tests run with no rate limit bindings, so both budgets
-	// take the isolate-local fallback and only the key and the fallback limit matter here — the part
-	// that makes different numbers possible in a *deployment* is per-board having its own Cloudflare
-	// binding (MCP_SERVER_BOARD_RATE_LIMITER), and no unit test can see that. wrangler.toml is the
-	// only place that goes wrong, and the only place to check it.
-	const PER_BOARD_RATE_LIMIT = 2
-	it(`allows ${PER_BOARD_RATE_LIMIT} captures per board per minute, well inside the per-account budget`, async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		// Distinct cache keys on one board: two pages, then the first page again in the other theme.
-		const coverCluster = await firstClusterId(env, 'user_helper', 'abc', 0)
-		const ideasCluster = await firstClusterId(env, 'user_helper', 'abc', 1)
-		const calls = [
-			{ boardId: 'abc', page: 0, clusterIds: [coverCluster] },
-			{ boardId: 'abc', page: 1, clusterIds: [ideasCluster] },
-			{ boardId: 'abc', page: 0, clusterIds: [coverCluster], theme: 'dark' },
-		]
-
-		const results = []
-		for (const args of calls) {
-			results.push(await callTool('get_cluster_screenshot', args, env, 'user_21'))
-		}
-
-		expect(results.slice(0, PER_BOARD_RATE_LIMIT).map((r) => r.isError)).toEqual(
-			Array(PER_BOARD_RATE_LIMIT).fill(undefined)
-		)
-		const blocked = results[PER_BOARD_RATE_LIMIT]
-		expect(blocked.isError).toBe(true)
-		expect(blocked.content[0].text).toContain('This board is being screenshotted too frequently')
-		expect(failureBlobsOf(env)).toContain('failure:rate_limited_board')
-		// Only 3 captures in, so neither the per-user (10) nor the global (20) budget can be what
-		// fired.
-		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_user')
-		expect(failureBlobsOf(env)).not.toContain('failure:rate_limited_global')
-		// The board guard now fires before anything is spent: both pages were measured once by the
-		// helper, so all three calls resolved their cluster ids from the stored cluster index and the
-		// blocked one ran no browser session at all.
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual([
-			'measure',
-			'measure',
-			'screenshot',
-			'screenshot',
-		])
-	})
-})
-
-describe('render transport', () => {
-	async function transportsOf(env: Environment) {
-		mockPublishedBoard()
-		const clusterId = await firstClusterId(env, 'user_transport', 'abc')
-		await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds: [clusterId] }, env)
-		return blobValuesOf(env, 'browser_run_session', 'transport')
-	}
-
-	it('pushes measures and screenshots by default, with no deployment override', async () => {
-		const transports = await transportsOf(makeEnv({ THUMBNAIL_RENDER_PUSH: undefined }))
-		expect(transports.length).toBeGreaterThan(1)
-		expect(new Set(transports)).toEqual(new Set(['push']))
-	})
-
-	it('fetches for every MCP render when mcp_render_push is off', async () => {
-		const env = makeEnv({
-			THUMBNAIL_RENDER_PUSH: undefined,
-			FEATURE_FLAGS: {
-				get: async (key: string) => (key === 'mcp_render_push' ? '{"enabled":false}' : null),
-			},
-		})
-		expect(new Set(await transportsOf(env))).toEqual(new Set(['pull']))
-	})
-
-	it('ignores the OG percentage', async () => {
-		const env = makeEnv({
-			THUMBNAIL_RENDER_PUSH: undefined,
-			FEATURE_FLAGS: {
-				get: async (key: string) =>
-					key === 'thumbnail_render_push' ? '{"enabled":true,"percentage":0}' : null,
-			},
-		})
-		expect(new Set(await transportsOf(env))).toEqual(new Set(['push']))
-	})
 })
 
 describe('shape screenshots', () => {
-	it('renders a cluster and signs only that cluster’s shape ids into the render job', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_60', 'abc')
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			env,
-			'user_60'
-		)
-		expect(result.content).toEqual([
-			{ type: 'text', text: 'Cover' },
-			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
-		])
-
-		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
-		expect(job).toMatchObject({ pageId: 'page:a', shapeIds: ['shape:page:a-0'], camera: 'content' })
-		// Every render — the measures included — targets the pinned render origin, never the
-		// user-facing board URL: the browser session only ever visits the tldraw-owned render page.
-		for (const call of screenshotOf(env).mock.calls) {
-			const url = (call[1] as { url: string }).url
-			expect(url).toContain('https://render.example')
-			expect(url).not.toContain('www.tldraw.com')
-		}
-		// Cached under the shape-set key in the MCP bucket, whose keys carry the content version and
-		// age out — not in THUMBNAILS, whose keys live forever.
-		const bucket = env.MCP_DATA_BUCKET as unknown as { store: Map<string, unknown> }
-		expect([...bucket.store.keys()]).toEqual([
-			expect.stringMatching(/^mcp\/published\/abc\/1751234567890\/1200x630\/light\/shapes-/),
-		])
-	})
-
-	// The point of taking more than one id: seeing how those clusters sit relative to each other in
-	// a single framed image, rather than one call per cluster.
-	it('renders several clusters into one image, signing the union of their shapes', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const pageResult = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_61')
-		const clusterIds = JSON.parse(pageResult.content[0].text)
-			.clusters.slice(0, 2)
-			.map((cluster: any) => cluster.id)
-		expect(clusterIds).toHaveLength(2)
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds },
-			env,
-			'user_61'
-		)
-		expect(result.isError).toBeUndefined()
-
-		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
-		expect(job!.shapeIds!.length).toBe(2)
-	})
-
 	it('rejects unknown cluster ids rather than rendering a subset', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 
 		const missing = await callTool(
@@ -1739,92 +1893,6 @@ describe('shape screenshots', () => {
 			'user_62'
 		)
 		expect(missing.isError).toBe(true)
-	})
-
-	// A PNG cache hit skips the capture, and the cluster index skips the measure that used to be
-	// unavoidable — the shape-set cache key cannot be built before the cluster ids are resolved
-	// against the page, but that resolution now reads an index instead of running a render.
-	it('serves a cached shape set without capturing again', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_63', 'abc')
-
-		await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			env,
-			'user_63'
-		)
-		const second = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			env,
-			'user_64'
-		)
-
-		expect(second.content).toEqual([
-			{ type: 'text', text: 'Cover' },
-			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
-		])
-		// helper measure (1) + first call's capture (1). The second call spends nothing: both caches hit.
-		expect(screenshotOf(env)).toHaveBeenCalledTimes(2)
-		// Two hits on two different caches, on two dimensions, so a panel can tell a saved capture
-		// from a saved measure.
-		expect(blobsWithPrefix(env, 'cache:').at(-1)).toBe('cache:hit')
-		expect(blobsWithPrefix(env, 'clusters:').at(-1)).toBe('clusters:hit')
-		expect(sessionsOf(env).map((s) => `${s.mode}:${s.outcome}`)).toEqual([
-			'measure:ok',
-			'screenshot:ok',
-		])
-	})
-
-	it('records the measure session of get_page_info on the spend ledger', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-
-		const result = await callTool(
-			'get_page_info',
-			{ boardId: 'abc', page: 0 },
-			env,
-			'user_pi_spend'
-		)
-
-		expect(result.isError).toBeUndefined()
-		// The request row has no cache to report on; the spend lives on the session row.
-		expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:none'])
-		expect(failureBlobsOf(env)).toEqual(['failure:none'])
-		expect(sessionsOf(env)).toEqual([
-			{
-				source: 'mcp',
-				mode: 'measure',
-				outcome: 'ok',
-				reason: 'none',
-				page: 'reached',
-				durationMs: expect.any(Number),
-				browserMsUsed: 0,
-				// A measure carries no content summary.
-				content: [0, 0, 0, 0, 0],
-			},
-		])
-	})
-
-	it('records the measure session of get_cluster_info on the spend ledger', async () => {
-		mockPublishedBoard()
-		// The cluster id is looked up in a different env, so this one reaches get_cluster_info with
-		// nothing cached — the case where it does have to measure.
-		const clusterId = await firstClusterId(makeEnv(), 'user_helper', 'abc')
-		const env = makeEnv()
-
-		const result = await callTool(
-			'get_cluster_info',
-			{ boardId: 'abc', clusterId },
-			env,
-			'user_ci_spend'
-		)
-
-		expect(result.isError).toBeUndefined()
-		expect(sessionsOf(env).map((s) => s.mode)).toEqual(['measure'])
-		expect(blobsWithPrefix(env, 'clusters:')).toEqual(['clusters:miss'])
 	})
 
 	it('writes a telemetry row when get_page_info cannot resolve the board', async () => {
@@ -1837,12 +1905,10 @@ describe('shape screenshots', () => {
 
 		expect(result.isError).toBe(true)
 		expect(failureBlobsOf(env)).toEqual(['failure:not_found'])
-		// The refusal came before the measure: no session existed, so none is on the ledger.
-		expect(sessionsOf(env)).toEqual([])
 	})
 
 	it('errors when the page is out of range, without spending a render', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 
 		const result = await callTool(
@@ -1853,31 +1919,13 @@ describe('shape screenshots', () => {
 		)
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('out of range')
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		// The documented reason vocabulary keeps selector mistakes distinct from missing boards —
 		// `failure:not_found` here would send a dashboard reader hunting for deleted boards.
 		expect(failureBlobsOf(env)).toContain('failure:page_not_found')
 	})
 
-	it('reports an empty board as board_empty in telemetry, not as a missing board', async () => {
-		grantReadAccess()
-		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'e', shared: true, isDeleted: false })
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(null) })
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'e', clusterIds: ['cluster:any'] },
-			env,
-			'user_empty_board'
-		)
-
-		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('no saved content')
-		expect(failureBlobsOf(env)).toContain('failure:board_empty')
-	})
-
 	it('reports a board with no pages as board_empty in telemetry', async () => {
-		mockPublishedBoard(makeSnapshot([]))
+		mockSharedBoard(makeSnapshot([]))
 		const env = makeEnv()
 
 		const result = await callTool(
@@ -1890,167 +1938,6 @@ describe('shape screenshots', () => {
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('no pages')
 		expect(failureBlobsOf(env)).toContain('failure:board_empty')
-	})
-
-	it('waits on either terminal selector and captures a success-only element so failed renders fail fast', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_66', 'abc')
-
-		await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			env,
-			'user_66'
-		)
-
-		const calls = screenshotOf(env).mock.calls
-		const body = calls.at(-1)![1] as {
-			gotoOptions: { waitUntil: string }
-			waitForSelector: { selector: string }
-			selector: string
-		}
-		// Navigation must not wait for `load`. It doesn't fire until every subresource settles, so one
-		// stalled image request holds it open for the whole timeout and the quick action fails before
-		// the selector wait below is reached — even though the page marked itself ready long earlier.
-		// The selector is the completion signal; navigation just has to get the page running.
-		expect(body.gotoOptions.waitUntil).toBe('domcontentloaded')
-		// Waits on ready OR error, so an errored render returns instead of burning the full timeout.
-		expect(body.waitForSelector.selector).toBe(
-			'[data-thumbnail-ready="true"], [data-thumbnail-error]'
-		)
-		// Captures a success-only element, so a failed render has nothing to screenshot and the Quick
-		// Action errors out immediately rather than screenshotting the error page.
-		expect(body.selector).toBe('body[data-thumbnail-ready="true"]')
-	})
-
-	// The counterpart to get_board_info's empty-board answer: a snapshot read that fails must not
-	// land in the same place an empty board does, and telemetry gets its own reason code so a
-	// database outage is distinguishable from a browser one on the dashboard.
-	it('reports a failed snapshot read as a read failure, not a render failure, without rendering', async () => {
-		grantReadAccess()
-		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f', shared: true, isDeleted: false })
-		vi.mocked(getSharedFileRoomSnapshot).mockRejectedValueOnce(
-			new Error('R2 GET failed: internal-bucket.example')
-		)
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'f', clusterIds: ['cluster:any'] },
-			env,
-			'user_67'
-		)
-		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toBe(
-			"Screenshot failed: the board's saved content could not be read."
-		)
-		// The caller must not learn anything about our infrastructure from a failure.
-		expect(result.content[0].text).not.toContain('internal-bucket')
-		expect(failureBlobsOf(env)).toEqual(['failure:snapshot_read_error'])
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
-	})
-
-	it('surfaces a render failure in bounded words when the browser call fails', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({
-			BROWSER: makeBrowserBinding(async () => new Response('nope', { status: 500 })),
-		})
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: ['cluster:any'] },
-			env,
-			'user_68'
-		)
-		expect(result.isError).toBe(true)
-		// One bounded reason code drives both the caller's message and the telemetry blob, so the raw
-		// error string reaches neither: it would blow up the blob's cardinality, and callers have no
-		// business seeing it.
-		expect(result.content[0].text).toBe('Screenshot failed: the render failed.')
-		expect(failureBlobsOf(env)).toContain('failure:browser_failed')
-		expect(failureBlobsOf(env).some((b) => b.includes('(500)'))).toBe(false)
-	})
-
-	// The cache write happens after the render, so a failure there means we are holding a PNG that
-	// already cost Browser Run capacity and a slot of the caller's rate-limit budget. Returning it is
-	// the only sensible outcome — the cache is an optimization, and the image is exactly what was
-	// asked for. Note what this pins: the write must stay outside the render's try block, or an R2
-	// outage turns every successful screenshot into a tool error.
-	it('returns the screenshot even when the cache write fails', async () => {
-		mockPublishedBoard()
-		const bucket = makeFakeThumbnailsBucket()
-		bucket.put = async () => {
-			throw new Error('R2 PUT failed: internal-bucket.example')
-		}
-		const env = makeEnv({ MCP_DATA_BUCKET: bucket })
-		const clusterId = await firstClusterId(env, 'user_69', 'abc')
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			env,
-			'user_69'
-		)
-
-		expect(result.isError).toBeUndefined()
-		expect(result.content).toEqual([
-			{ type: 'text', text: 'Cover' },
-			{ type: 'image', data: 'AQID', mimeType: 'image/png' },
-		])
-		// The render itself succeeded, so this is not recorded as a screenshot failure. Two rows:
-		// the firstClusterId helper's get_page_info measure, then the screenshot — neither failed.
-		expect(failureBlobsOf(env)).toEqual(['failure:none', 'failure:none'])
-	})
-
-	it('records the hashed account only on rate-limited rows', async () => {
-		mockPublishedBoard()
-		const successEnv = makeEnv()
-		const clusterId = await firstClusterId(successEnv, 'user_70', 'abc')
-		await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			successEnv,
-			'user_70'
-		)
-		// Both successful rows — the helper's get_page_info measure and the screenshot — omit the
-		// caller: the per-client dimension must stay off the common success path for every tool.
-		expect(callerBlobsOf(successEnv)).toEqual(['caller:none', 'caller:none'])
-
-		// An ordinary failure omits it too, which is the narrower part of the rule. A board id that
-		// resolves to nothing is the commonest mistake a model makes, so recording a caller for it
-		// would put a distinct blob value on very nearly every user — the cardinality this gate exists
-		// to avoid, just reached one wrong id at a time instead of one request at a time.
-		vi.mocked(getSharedFileInfo).mockResolvedValue(null)
-		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
-		const failEnv = makeEnv()
-		await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'missing', clusterIds: ['cluster:any'] },
-			failEnv,
-			'user_71'
-		)
-		expect(callerBlobsOf(failEnv)).toEqual(['caller:none'])
-
-		// A rate-limited row keeps it: that is the caller worth naming when spend spikes. Distinct
-		// boards each time, so the per-board budget can't be what fires first.
-		mockPublishedBoard()
-		const limitedEnv = makeEnv()
-		const limitedCluster = await firstClusterId(limitedEnv, 'user_helper', 'board-0')
-		for (let i = 0; i <= MCP_PER_USER_RATE_LIMIT; i++) {
-			await callTool(
-				'get_cluster_screenshot',
-				{ boardId: `board-${i}`, clusterIds: [limitedCluster] },
-				limitedEnv,
-				'user_72'
-			)
-		}
-		expect(failureBlobsOf(limitedEnv)).toContain('failure:rate_limited_user')
-		const named = callerBlobsOf(limitedEnv).filter((blob) => blob !== 'caller:none')
-		expect(named).not.toHaveLength(0)
-		// Hashed, not the raw user id: the dataset can attribute spend without carrying identities.
-		expect(named[0]).toMatch(/^caller:[0-9a-f]{64}$/)
-		expect(named[0]).not.toContain('user_72')
 	})
 })
 
@@ -2065,82 +1952,32 @@ describe('per-user board access', () => {
 		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
 	}
 
-	it("renders a caller's own unshared board, minting recorded render tokens", async () => {
+	it("reads a caller's own unshared board through their tab", async () => {
 		mockPrivateBoard()
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
-		const clusterId = await firstClusterId(env, 'user_owner', 'mine')
+		const tab = openTab()
 
 		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'mine', clusterIds: [clusterId] },
-			env,
+			'get_page_info',
+			{ boardId: 'mine' },
+			makeEnv({ tab }),
 			'user_owner'
 		)
 
 		expect(result.isError).toBeUndefined()
-		expect(hasReadAccessToFile).toHaveBeenCalledWith(env, 'user_owner', 'mine')
-		// `render`, not `public`: `public` re-applies the anonymous share gate at snapshot-read time,
-		// which an unshared board cannot pass. The tokens are recorded and short-lived to compensate —
-		// and that covers the measure job as much as the screenshot job, since a measure token reads
-		// the same private document through the same route.
-		const measureJob = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, 0))
-		expect(measureJob).toMatchObject({
-			kind: 'shared_file',
-			slug: 'mine',
-			mode: 'measure',
-			access: 'render',
-			surface: 'mcp',
-		})
-		const screenshotJob = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
-		expect(screenshotJob).toMatchObject({
-			kind: 'shared_file',
-			slug: 'mine',
-			access: 'render',
-			surface: 'mcp',
+		expect(hasReadAccessToFile).toHaveBeenCalledWith(expect.anything(), 'user_owner', 'mine')
+		expect(tab).toHaveBeenCalledWith('user_owner', {
+			mode: 'read',
+			page: { kind: 'ordinal', ordinal: 0 },
+			clusterIds: [],
 		})
 	})
 
-	// The reason the check runs before the cache read rather than only before the render: `mcp/` keys
-	// carry no viewer dimension, so a private board cached for its owner is one object that anyone
-	// naming the right board id would otherwise be handed.
-	it('does not serve a cached private board to a caller who cannot see it', async () => {
-		mockPrivateBoard()
-		const bucket = makeFakeThumbnailsBucket()
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), MCP_DATA_BUCKET: bucket })
-
-		// The owner populates the cache.
-		const clusterId = await firstClusterId(env, 'user_owner', 'mine')
-		await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'mine', clusterIds: [clusterId] },
-			env,
-			'user_owner'
-		)
-		expect(bucket.store.size).toBe(1)
-
-		// Someone else asks for the same board. The cached object is right there, keyed only by board
-		// and shapes.
-		denyReadAccess()
-		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'mine', clusterIds: [clusterId] },
-			env,
-			'user_stranger'
-		)
-
-		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('No board was found with this id')
-		expect(result.content.some((part: any) => part.type === 'image')).toBe(false)
-	})
-
-	// The refusal happens at resolution, before pickShapes runs the paid measure render — a stranger
-	// probing board ids must cost telemetry rows, not Browser Run sessions.
-	it("spends no Browser Run on someone else's private file", async () => {
+	it("does not reach anyone's tab for someone else's private file", async () => {
 		denyReadAccess()
 		vi.mocked(getSharedFileInfo).mockResolvedValue(PRIVATE_FILE)
 		vi.mocked(getPublishedFileInfo).mockResolvedValue(null)
-		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		const tab = openTab()
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), tab })
 
 		const result = await callTool(
 			'get_cluster_screenshot',
@@ -2151,7 +1988,7 @@ describe('per-user board access', () => {
 
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toContain('No board was found with this id')
-		expect(screenshotOf(env)).not.toHaveBeenCalled()
+		expect(tab).not.toHaveBeenCalled()
 	})
 
 	// The try-file-then-published fallback would otherwise answer differently for "this id belongs to
@@ -2175,25 +2012,6 @@ describe('per-user board access', () => {
 
 		expect(inaccessible).toEqual(nonexistent)
 	})
-
-	// Published boards keep the anonymous gate. The published slug is the whole capability, so no user
-	// check narrows or widens it — and minting `public` is what keeps them out of the token records.
-	it('still resolves published boards under the public gate', async () => {
-		mockPublishedBoard()
-		denyReadAccess()
-		const env = makeEnv()
-		const clusterId = await firstClusterId(env, 'user_anyone', 'abc')
-
-		await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'abc', clusterIds: [clusterId] },
-			env,
-			'user_anyone'
-		)
-
-		const job = await verifyThumbnailRenderToken(env, jobTokenOfCall(env, -1))
-		expect(job).toMatchObject({ kind: 'published', access: 'public', surface: 'mcp' })
-	})
 })
 
 // The render ledger (mcp_shared_board_screenshot) only fires when a screenshot is attempted, so on its
@@ -2206,7 +2024,7 @@ const INITIALIZE_EVENT = 'mcp_server_initialize'
 
 describe('protocol telemetry', () => {
 	it('records one datapoint per tool call, with the tool, outcome and duration', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 		await callTool('get_board_info', { boardId: 'abc' }, env)
 
@@ -2221,8 +2039,8 @@ describe('protocol telemetry', () => {
 	// The info tools do reach the request-level event, recording cache:none rather than a hit or a
 	// miss — they consult no PNG cache, and keeping those rows out of hit/miss is what lets a
 	// hit-rate-by-source panel read cache health instead of refusal volume.
-	it('records the info tools on both ledgers, with no cache verdict', async () => {
-		mockPublishedBoard()
+	it('records the info tools on both ledgers', async () => {
+		mockSharedBoard()
 		const env = makeEnv()
 		await callTool('get_page_info', { boardId: 'abc' }, env)
 
@@ -2231,7 +2049,7 @@ describe('protocol telemetry', () => {
 	})
 
 	it('records the reason a call failed, and never reports a failure as ok', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 		// Missing boardId, then a tool that does not exist.
 		await callTool('get_board_info', {}, env)
@@ -2247,7 +2065,7 @@ describe('protocol telemetry', () => {
 	// tools' refusals. `get_board_info` is absent by design: it spends no Browser Run and writes to
 	// that ledger at all, which is why the per-call event below is the one that covers it.
 	it('files bad arguments on the request ledger for every tool that is on it', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		for (const tool of ['get_page_info', 'get_cluster_info', 'get_cluster_screenshot']) {
 			const env = makeEnv()
 			// Missing boardId, which every one of these requires.
@@ -2260,27 +2078,13 @@ describe('protocol telemetry', () => {
 	})
 
 	it('keeps get_board_info off the screenshot ledger even when its arguments are bad', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 
 		await callTool('get_board_info', {}, env)
 
 		expect(datapointsNamed(env, SCREENSHOT_EVENT)).toEqual([])
 		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toEqual(['invalid_input'])
-	})
-
-	// The per-user limit on the clustering tools rejects callers silently: it returns a tool error
-	// without reaching the render path that writes the screenshot ledger. Every call names the same
-	// user, since the budget is per account and the default caller would otherwise be shared with
-	// whatever else ran in this file.
-	it('records a rate-limited info call', async () => {
-		mockPublishedBoard()
-		const env = makeEnv()
-		for (let i = 0; i < MCP_PER_USER_RATE_LIMIT + 2; i++) {
-			await callTool('get_page_info', { boardId: 'abc' }, env, 'user_rl_info')
-		}
-
-		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'reason')).toContain('rate_limited_user')
 	})
 
 	// The same failure on the search budget, which has its own binding and so is not covered by the
@@ -2303,57 +2107,6 @@ describe('protocol telemetry', () => {
 		expect(result.content[0].text).toBe(
 			'Could not search boards: a rate limit could not be checked.'
 		)
-	})
-
-	// A limiter binding that rejects is an outage on our side, not a caller mistake. The rate limit
-	// check used to sit outside the handler's try, so that rejection escaped and reached the client as
-	// an unparseable 500 — the one failure on this route that did not come back as MCP. Now it is
-	// caught where every other failure is. The dispatcher's own catch stays as a backstop for a handler
-	// that throws despite its try, which nothing here can now reach on purpose.
-	it('turns a failing rate limiter into a structured error rather than a 500', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({
-			MCP_SCREENSHOT_RATE_LIMITER: {
-				limit: async () => {
-					throw new Error('limiter unavailable')
-				},
-			},
-		})
-
-		const result = await callTool('get_page_info', { boardId: 'abc' }, env)
-
-		expect(result.isError).toBe(true)
-		expect(blobValuesOf(env, TOOL_CALL_EVENT, 'outcome')).toEqual(['error'])
-		// Recorded as itself, not as the board lookup this tool's `recordAs` turns its own failures
-		// into: a binding outage is nobody's own failure, and filing it as a database one sends a
-		// dashboard reader to a subsystem that is fine.
-		expect(result.content[0].text).toContain('a rate limit could not be checked')
-		expect(failureBlobsOf(env)).toContain('failure:rate_limiter_unavailable')
-	})
-
-	// The same outage on the per-board and global bindings, which the screenshot tool consults
-	// instead. One path per binding, because the tagging happens once in isRateLimited and the tools
-	// differ only in which limiter they reach for.
-	it('reports a failing board limiter as a limiter outage too', async () => {
-		mockPublishedBoard()
-		const env = makeEnv({
-			MCP_SERVER_BOARD_RATE_LIMITER: {
-				limit: async () => {
-					throw new Error('limiter unavailable')
-				},
-			},
-		})
-		const clusterId = await firstClusterId(env, 'user_helper', 'board-0')
-
-		const result = await callTool(
-			'get_cluster_screenshot',
-			{ boardId: 'board-0', clusterIds: [clusterId] },
-			env,
-			'user_board_limiter'
-		)
-
-		expect(result.isError).toBe(true)
-		expect(result.content[0].text).toContain('a rate limit could not be checked')
 	})
 
 	// The tool name comes straight off the wire, so the lookup must not resolve inherited names. A
@@ -2389,7 +2142,7 @@ describe('protocol telemetry', () => {
 	})
 
 	it('records the client family from the user agent', async () => {
-		mockPublishedBoard()
+		mockSharedBoard()
 		const env = makeEnv()
 		await mcpServer(
 			makeRpcRequest(

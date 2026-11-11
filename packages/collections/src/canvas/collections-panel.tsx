@@ -1,8 +1,7 @@
-import { type MouseEvent, useCallback, useState } from 'react'
+import { type ReactNode, useCallback } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
-	useDialogs,
 	useEditor,
 	useToasts,
 	useTranslation,
@@ -10,78 +9,58 @@ import {
 } from 'tldraw'
 import type { CollectionSource } from '../lib/CollectionSource'
 import type { TLCollectionItemId } from '../lib/schema'
-import { ItemGrid } from '../ui/item-grid'
-import { getItemMenuId, ItemMenu } from '../ui/item-menu'
+import { CollectionGroupSection } from './collection-group-section'
+import { groupCollectionList, useCollectionGrouping } from './collection-groups'
+import { CollectionSection } from './collection-section'
 import { CollectionsPanelHeader } from './collections-panel-header'
-import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { NoCollections } from './no-collections'
 import { placeCollectionItem } from './place-item'
-import { activeCollectionId, collectionsPanelOpen } from './state'
+import type { PrepareItemContent } from './save-shapes'
+import { collectionsPanelOpen } from './state'
 import { useItemDrag } from './use-item-drag'
 
 const messages = defineMessages({
 	title: { id: 'collections.title', defaultMessage: 'Collections' },
-	empty: { id: 'collections.empty', defaultMessage: 'No collections yet.' },
-	emptyCollection: {
-		id: 'collections.empty-collection',
-		defaultMessage: 'Nothing saved here yet.',
-	},
-	unnamedItem: { id: 'collections.unnamed-item', defaultMessage: 'Unnamed item' },
-	deleteItemTitle: { id: 'collections.delete-item-dialog.title', defaultMessage: 'Delete item' },
-	deleteItemBody: {
-		id: 'collections.delete-item-dialog.body',
-		defaultMessage: 'Delete “{name}” from this collection? Copies already placed on canvases stay.',
-	},
-	deleteUnnamedItemBody: {
-		id: 'collections.delete-unnamed-item-dialog.body',
-		defaultMessage:
-			'Delete this item from this collection? Copies already placed on canvases stay.',
-	},
 	placeErrorTitle: { id: 'collections.place-error.title', defaultMessage: "Couldn't place item" },
 	placeErrorDescription: {
 		id: 'collections.place-error.description',
 		defaultMessage: 'It may have been deleted. Try again, or pick another item.',
-	},
-	renameErrorTitle: {
-		id: 'collections.rename-error.title',
-		defaultMessage: "Couldn't rename item",
-	},
-	deleteErrorTitle: {
-		id: 'collections.delete-error.title',
-		defaultMessage: "Couldn't delete item",
-	},
-	changeErrorDescription: {
-		id: 'collections.change-error.description',
-		defaultMessage:
-			'You may not be allowed to change this collection, or the item no longer exists.',
 	},
 })
 
 /** @public */
 export interface CollectionsPanelProps {
 	source: CollectionSource
+	/** Which side of the canvas the panel floats on. Defaults to `'left'`. */
+	side?: 'left' | 'right'
+	/**
+	 * Items of the host's own for the panel's ⋯ menu, placed after "New collection", e.g.
+	 * {@link CollectionMenuItem}s. Shown in a read-only editor too.
+	 */
+	menuItems?: ReactNode
+	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
+	prepareItemContent?: PrepareItemContent
 }
 
 /**
- * A floating panel on the left of the canvas for browsing a {@link CollectionSource}, shown while
- * {@link collectionsPanelOpen} is set. Clicking an item places a copy of it in the middle of the
- * viewport; dragging one out drops it under the pointer.
+ * A floating panel on one side of the canvas for browsing a {@link CollectionSource}, shown while
+ * {@link collectionsPanelOpen} is set. Each collection is a section that folds shut; a source with
+ * two or more owners groups them under each owner's name. Clicking an item places a copy of it in
+ * the middle of the viewport; dragging one out drops it under the pointer.
  * @public @react
  */
-export function CollectionsPanel({ source }: CollectionsPanelProps) {
+export function CollectionsPanel({
+	source,
+	side = 'left',
+	menuItems,
+	prepareItemContent,
+}: CollectionsPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
-	const { addDialog } = useDialogs()
 	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
 	const collections = useValue('collections', () => source.getCollections(), [source])
-	const activeId = useValue('active collection', () => activeCollectionId.get(editor), [editor])
-	// A stale id (the collection was deleted) falls back to the first collection rather than an empty panel.
-	const current = collections.find((collection) => collection.id === activeId) ?? collections[0]
-	const currentId = current?.id
-	const items = useValue('collection items', () => (currentId ? source.getItems(currentId) : []), [
-		source,
-		currentId,
-	])
+	const grouping = useCollectionGrouping(source)
 	const placeItem = useCallback(
 		(itemId: TLCollectionItemId) => {
 			placeCollectionItem(editor, source, itemId).catch(() => {
@@ -95,54 +74,6 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		[editor, source, addToast, msg]
 	)
 	const getItemProps = useItemDrag(source, placeItem)
-	const [renamingId, setRenamingId] = useState<TLCollectionItemId>()
-	const canRename = useValue(
-		'can rename items',
-		() => currentId !== undefined && source.can('renameItem', currentId),
-		[source, currentId]
-	)
-	const canDelete = useValue(
-		'can delete items',
-		() => currentId !== undefined && source.can('deleteItem', currentId),
-		[source, currentId]
-	)
-	const getTileProps = useCallback(
-		(itemId: TLCollectionItemId) => {
-			const props = getItemProps(itemId)
-			if (!canRename && !canDelete) return props
-			return {
-				...props,
-				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
-					e.preventDefault()
-					const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
-					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
-					// releasing the button selects whichever item it lands on.
-					if (e.buttons === 0) openMenu()
-					else window.addEventListener('pointerup', openMenu, { once: true })
-				},
-			}
-		},
-		[getItemProps, canRename, canDelete, editor]
-	)
-	const showChangeError = useCallback(
-		(title: string) => {
-			addToast({ title, description: msg(messages.changeErrorDescription), severity: 'error' })
-		},
-		[addToast, msg]
-	)
-	const renameItem = useCallback(
-		(itemId: TLCollectionItemId, name: string) => {
-			setRenamingId(undefined)
-			const item = items.find((i) => i.id === itemId)
-			const trimmed = name.trim()
-			// Names are never blank, so clearing the input keeps the old name rather than removing it.
-			if (!item || trimmed === '' || trimmed === item.name) return
-			source
-				.renameItem(itemId, trimmed)
-				.catch(() => showChangeError(msg(messages.renameErrorTitle)))
-		},
-		[items, source, showChangeError, msg]
-	)
 
 	if (!open) return null
 
@@ -150,60 +81,29 @@ export function CollectionsPanel({ source }: CollectionsPanelProps) {
 		<EditorPortal>
 			<section
 				className="tlui-collections-panel"
+				data-side={side}
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				<CollectionsPanelHeader
-					source={source}
-					collections={collections}
-					current={current}
-					itemCount={items.length}
-				/>
-				{current ? (
-					<ItemGrid
-						items={items.map((item) => ({
-							id: item.id,
-							name: item.name,
-							accessibleLabel: item.name ?? msg(messages.unnamedItem),
-							thumbnailUrl: item.thumbnailUrl,
-						}))}
-						getItemProps={getTileProps}
-						renderItemMenu={(item) => (
-							<ItemMenu
-								id={item.id}
-								onRename={canRename ? () => setRenamingId(item.id) : undefined}
-								onDelete={
-									canDelete
-										? () =>
-												addDialog({
-													component: ({ onClose }) => (
-														<ConfirmDeleteDialog
-															title={msg(messages.deleteItemTitle)}
-															body={
-																item.name
-																	? msg(messages.deleteItemBody, { name: item.name })
-																	: msg(messages.deleteUnnamedItemBody)
-															}
-															onClose={onClose}
-															onConfirm={() =>
-																source
-																	.deleteItem(item.id)
-																	.catch(() => showChangeError(msg(messages.deleteErrorTitle)))
-															}
-														/>
-													),
-												})
-										: undefined
-								}
-							/>
-						)}
-						renamingId={renamingId}
-						onRename={renameItem}
-						onCancelRename={() => setRenamingId(undefined)}
-						empty={msg(messages.emptyCollection)}
-					/>
+				<CollectionsPanelHeader source={source} menuItems={menuItems} />
+				{collections.length === 0 ? (
+					<NoCollections />
 				) : (
-					<p className="tlui-collections-panel__empty">{msg(messages.empty)}</p>
+					<div className="tlui-collections-sections">
+						{groupCollectionList(collections, grouping).map((group) => (
+							<CollectionGroupSection key={group.key ?? ''} source={source} group={group}>
+								{group.collections.map((collection) => (
+									<CollectionSection
+										key={collection.id}
+										source={source}
+										collection={collection}
+										getItemProps={getItemProps}
+										prepareItemContent={prepareItemContent}
+									/>
+								))}
+							</CollectionGroupSection>
+						))}
+					</div>
 				)}
 			</section>
 		</EditorPortal>

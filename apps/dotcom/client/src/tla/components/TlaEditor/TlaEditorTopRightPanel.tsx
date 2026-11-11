@@ -1,3 +1,4 @@
+import { collectionsPanelOpen, toggleCollectionsPanel } from '@tldraw/collections'
 import {
 	commentsSidebarOpen,
 	toggleCommentsSidebar,
@@ -23,11 +24,13 @@ import {
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useOneSidePanelOpen } from '../../hooks/useOneSidePanelOpen'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -41,6 +44,10 @@ const ctaMessages = defineMessages({
 
 const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
+})
+
+const collectionsMessages = defineMessages({
+	collections: { defaultMessage: 'Collections' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -68,6 +75,7 @@ export function TlaEditorTopRightPanel({
 		},
 		[editor]
 	)
+	useOneSidePanelOpen(editor)
 
 	if (isAnonUser) {
 		return (
@@ -94,9 +102,14 @@ export function TlaEditorTopRightPanel({
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
-			{/* Only file editors mount the comments sidebar (see CommentsOnCanvas); in legacy and
-			    published contexts the button would toggle state nothing reads. */}
-			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
+			{/* Only file editors mount the collections panel and comments sidebar (see TlaEditor); in
+			    legacy and published contexts these buttons would toggle state nothing reads. */}
+			{context !== 'legacy' && context !== 'published-file' && (
+				<>
+					<CollectionsPanelButton />
+					<CommentsSidebarButton />
+				</>
+			)}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -138,7 +151,7 @@ function CommentsSidebarButton() {
 	return (
 		<TldrawUiButton
 			type="icon"
-			className={styles.commentsSidebarButton}
+			className={styles.topRightIconButton}
 			data-testid="tla-comments-button"
 			aria-pressed={open}
 			tooltip={label}
@@ -149,6 +162,30 @@ function CommentsSidebarButton() {
 			}}
 		>
 			<TlaIcon icon="comment" />
+		</TldrawUiButton>
+	)
+}
+
+function CollectionsPanelButton() {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const hasCollections = !!useMaybeApp()?.collections
+	const open = useValue('collections panel open', () => collectionsPanelOpen.get(editor), [editor])
+	const label = msg(collectionsMessages.collections)
+
+	if (!hasCollections) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topRightIconButton}
+			data-testid="tla-collections-button"
+			aria-pressed={open}
+			tooltip={label}
+			title={label}
+			onClick={() => toggleCollectionsPanel(editor)}
+		>
+			<TlaIcon icon="bookmark" />
 		</TldrawUiButton>
 	)
 }
