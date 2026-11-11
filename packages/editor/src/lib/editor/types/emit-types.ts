@@ -24,7 +24,7 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
-	/** Changes of this user's were rejected and reverted. */
+	/** The server rejected and reverted this user's changes. */
 	'rejected-write': [{ rejections: readonly TLWriteRejection[]; rejectedBy: 'client' | 'server' }]
 	dispose: []
 }

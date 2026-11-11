@@ -1,13 +1,6 @@
 import { computed } from '@tldraw/state'
-import {
-	BaseRecord,
-	RecordId,
-	RecordsDiff,
-	Store,
-	StoreSchema,
-	createRecordType,
-} from '@tldraw/store'
-import { rejectAll, type TLCanWrite, type TLWriteRejection } from '@tldraw/tlschema'
+import { BaseRecord, RecordId, Store, StoreSchema, createRecordType } from '@tldraw/store'
+import { rejectAll, type TLRejectedWrite } from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi, type Mock } from 'vitest'
 import { RecordOpType, ValueOpType } from '../lib/diff'
 import { InMemorySyncStorage } from '../lib/InMemorySyncStorage'
@@ -231,7 +224,7 @@ describe('canWrite in the room', () => {
 		])
 	})
 
-	it('reads a permission from `after`', () => {
+	it('can judge from the document after the push', () => {
 		const turn = Doc.create({ title: 'bob', ownerId: 'teacher' })
 		const note = Doc.create({ title: 'note', ownerId: 'alice' })
 		const myTurnOnly: TLRoomCanWrite<R, Meta> = (changes, { session, after }) =>
@@ -257,21 +250,24 @@ describe('canWrite in the room', () => {
 		['returns nothing', () => undefined],
 		['returns true', () => true],
 		['names an id that is not in the push', () => [{ id: 'doc:other', reason: 'x' }]],
-		['returns a rejection with no reason', () => [{ id: 'doc:other' }]],
-	] as [string, () => any][])('rejects the push when the function %s', (_name, canWrite) => {
-		const { room, storage, log } = makeRoom(canWrite)
-		const alice = connect(room, 'alice')
+		['returns a rejection with no reason', (changes: readonly any[]) => [{ id: changes[0].id }]],
+	] as [string, (changes: readonly any[]) => any][])(
+		'rejects the push when the function %s',
+		(_name, canWrite) => {
+			const { room, storage, log } = makeRoom(canWrite)
+			const alice = connect(room, 'alice')
 
-		const doc = Doc.create({ title: 'a', ownerId: 'alice' })
-		push(room, 'alice', { [doc.id]: [RecordOpType.Put, doc] })
+			const doc = Doc.create({ title: 'a', ownerId: 'alice' })
+			push(room, 'alice', { [doc.id]: [RecordOpType.Put, doc] })
 
-		expect(pushResult(alice)).toMatchObject({
-			action: 'discard',
-			rejections: [{ id: doc.id, reason: 'not-allowed' }],
-		})
-		expect(stored(storage)).toEqual([])
-		expect(log.error).toHaveBeenCalledTimes(1)
-	})
+			expect(pushResult(alice)).toMatchObject({
+				action: 'discard',
+				rejections: [{ id: doc.id, reason: 'not-allowed' }],
+			})
+			expect(stored(storage)).toEqual([])
+			expect(log.error).toHaveBeenCalledTimes(1)
+		}
+	)
 
 	it('does not judge presence, and applies it from a rejected push', () => {
 		const canWrite = vi.fn<TLRoomCanWrite<R, Meta>>((changes) => rejectAll(changes, 'no'))
@@ -325,9 +321,7 @@ describe('canWrite in the room', () => {
 })
 
 describe('a rejection in the sync client', () => {
-	function makeClient(
-		canWrite: TLCanWrite<R, { session: { sessionId: string; meta: undefined } }>
-	) {
+	function makeClient(canWrite: TLRoomCanWrite<R, undefined>) {
 		const seeded = Doc.create({ title: 'server', ownerId: 'bob' })
 		const server = new TestServer<R>(
 			schema,
@@ -342,7 +336,7 @@ describe('a rejection in the sync client', () => {
 		const socketPair = new TestSocketPair<R>('client', server)
 		socketPair.connect()
 
-		const rejected: { rejections: readonly TLWriteRejection[]; changes: RecordsDiff<R> }[] = []
+		const rejected: TLRejectedWrite<R>[] = []
 		const store = new Store<R>({ schema, props: {} })
 		const client = new TLSyncClient<R>({
 			store,

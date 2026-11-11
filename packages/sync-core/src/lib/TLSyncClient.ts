@@ -4,10 +4,11 @@ import {
 	RecordsDiff,
 	Store,
 	UnknownRecord,
+	createEmptyRecordsDiff,
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
-import type { TLWriteRejection } from '@tldraw/tlschema'
+import type { TLRejectedWrite, TLWriteRejection } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -314,17 +315,6 @@ function getPresenceOp<R extends UnknownRecord>(
 }
 
 /**
- * Changes of this client that the room's `canWrite` rejected, with `changes` as the user made
- * them: from the server's version of each record to theirs.
- *
- * @public
- */
-export interface TLSyncClientRejectedWrite<R extends UnknownRecord> {
-	rejections: readonly TLWriteRejection[]
-	changes: RecordsDiff<R>
-}
-
-/**
  * Main client-side synchronization engine for collaborative tldraw applications.
  *
  * TLSyncClient manages bidirectional synchronization between a local tldraw Store
@@ -473,7 +463,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
 
-	private readonly onWriteRejected?: (rejected: TLSyncClientRejectedWrite<R>) => void
+	private readonly onWriteRejected?: (rejected: TLRejectedWrite<R>) => void
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -512,7 +502,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onSyncError(reason: string): void
 		onCustomMessageReceived?: TLCustomMessageHandler
 		/** Called after the room's `canWrite` rejected changes of this client and they were reverted. */
-		onWriteRejected?(rejected: TLSyncClientRejectedWrite<R>): void
+		onWriteRejected?(rejected: TLRejectedWrite<R>): void
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
 			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
@@ -990,7 +980,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		rejections: readonly TLWriteRejection[],
 		userStates: Map<string, R | undefined>
 	): RecordsDiff<R> {
-		const changes = { added: {}, updated: {}, removed: {} } as RecordsDiff<R>
+		const changes = createEmptyRecordsDiff<R>()
 		for (const { id } of rejections) {
 			const key = id as R['id']
 			const user = userStates.get(id)
@@ -1016,7 +1006,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
 
-		// The user's version of each rejected record, read before the merge below reverts it.
+		// read before the merge, otherwise the user's version is already reverted
 		const rejected: (readonly TLWriteRejection[])[] = []
 		const userStates = new Map<string, R | undefined>()
 		for (const diff of diffs) {

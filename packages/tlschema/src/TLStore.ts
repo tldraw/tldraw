@@ -329,7 +329,7 @@ export interface TLWriteRejection {
 }
 
 /**
- * What the room and the editor both give a {@link TLCanWrite} function.
+ * The document on either side of a batch, given to a {@link TLCanWrite} function.
  *
  * @public
  */
@@ -379,10 +379,10 @@ export function rejectAll(
  *
  * @public
  */
-export interface TLRejectedWrite {
+export interface TLRejectedWrite<R extends UnknownRecord = TLRecord> {
 	readonly rejections: readonly TLWriteRejection[]
 	/** The rejected changes as the user made them: from the server's version to theirs. */
-	readonly changes: RecordsDiff<TLRecord>
+	readonly changes: RecordsDiff<R>
 }
 
 /**

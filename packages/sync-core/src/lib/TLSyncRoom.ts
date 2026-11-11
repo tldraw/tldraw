@@ -1438,7 +1438,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// records by `objectAccess`. Denied ops are skipped (the client is corrected by the
 				// resulting discard/rebase push_result, exactly as whole-diff readonly skips were).
 				// Server-initiated pushes (no session) are always allowed.
-				const canWrite = (typeName: string) =>
+				const canWriteType = (typeName: string) =>
 					!session ||
 					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
 
@@ -1447,7 +1447,6 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					? { sessionId: session.sessionId, isReadonly: session.isReadonly, meta: session.meta }
 					: null
 
-				// With canWrite, nothing is stored until it accepts the batch.
 				const staged = session && this.canWrite ? new StagedDocStore<R>(txn) : null
 				const docStore: MinimalDocStore<R> = staged ?? txn
 
@@ -1459,7 +1458,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								// The write gate is checked before type validation so that a denied
 								// session's ops are skipped without rejection, matching the previous
 								// whole-diff readonly behavior.
-								if (!canWrite(op[1].typeName)) continue
+								if (!canWriteType(op[1].typeName)) continue
 								// Try to add the document.
 								// If we're putting a record with a type that we don't recognize, fail
 								if (
@@ -1529,7 +1528,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 								const doc = docStore.get(id) as R | undefined
 								// if it was already deleted, there's no need to apply the patch
 								if (!doc) continue
-								if (!canWrite(doc.typeName)) continue
+								if (!canWriteType(doc.typeName)) continue
 								// Per-type authorizer (update, allow/veto only): runs inside `patchDocument`
 								// on the committed candidate, never on a raw client-version preview.
 								const authorizePatch = session && this.authorizerFor(doc.typeName)
@@ -1564,7 +1563,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 									// If the doc was already deleted, don't do anything, no need to propagate a delete op
 									continue
 								}
-								if (!canWrite(doc.typeName)) continue
+								if (!canWriteType(doc.typeName)) continue
 								// Per-type authorizer (delete): veto deletes the session isn't allowed to make,
 								// e.g. deleting someone else's comment. Allow/veto only.
 								const authorizeRemove = session && this.authorizerFor(doc.typeName)
@@ -1610,7 +1609,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		this.lastDocumentClock = documentClock
 
-		const rejected = result.rejections.length > 0 ? { rejections: result.rejections } : null
+		const rejectionsField = result.rejections.length > 0 ? { rejections: result.rejections } : null
 
 		let pushResult: TLSocketServerSentEvent<R> | undefined
 		if (changes && session) {
@@ -1627,7 +1626,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'commit',
-				...rejected,
+				...rejectionsField,
 			}
 		} else if (!result.docChanges.diffs?.networkDiff) {
 			pushResult = {
@@ -1635,7 +1634,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'discard',
-				...rejected,
+				...rejectionsField,
 			}
 		} else if (session) {
 			// if recordsDiff is null but diff is not, then there are no clients that need down migrations
@@ -1654,7 +1653,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					clientClock: message.clientClock,
 					serverClock: documentClock,
 					action: { rebaseWithDiff: diff.value },
-					...rejected,
+					...rejectionsField,
 				}
 			}
 			// if the difff was not ok then the session was rejected and it's ok to continue without a push result

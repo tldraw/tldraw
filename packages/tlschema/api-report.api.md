@@ -1769,8 +1769,8 @@ export interface TLRecordReader<R extends UnknownRecord = TLRecord> {
 }
 
 // @public
-export interface TLRejectedWrite {
-    readonly changes: RecordsDiff<TLRecord>;
+export interface TLRejectedWrite<R extends UnknownRecord = TLRecord> {
+    readonly changes: RecordsDiff<R>;
     // (undocumented)
     readonly rejections: readonly TLWriteRejection[];
 }

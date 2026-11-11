@@ -24,6 +24,7 @@ import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
 import { TLRecordChange } from '@tldraw/tlschema';
 import { TLRecordReader } from '@tldraw/tlschema';
+import { TLRejectedWrite } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
 import { TLWriteContext } from '@tldraw/tlschema';
 import { TLWriteRejection } from '@tldraw/tlschema';
@@ -488,6 +489,8 @@ export { TLRecordChange }
 
 export { TLRecordReader }
 
+export { TLRejectedWrite }
+
 // @public
 export class TLRemoteSyncError extends Error {
     constructor(reason: string | TLSyncErrorCloseEventReason);
@@ -675,7 +678,7 @@ export type TLSqliteRow = Record<string, TLSqliteOutputValue>;
 // @public
 export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>> {
     constructor(config: {
-        onWriteRejected?(rejected: TLSyncClientRejectedWrite<R>): void;
+        onWriteRejected?(rejected: TLRejectedWrite<R>): void;
         didCancel?(): boolean;
         onAfterConnect?(self: TLSyncClient<R, S>, details: {
             isReadonly: boolean;
@@ -702,14 +705,6 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
     // @internal (undocumented)
     readonly store: S;
-}
-
-// @public
-export interface TLSyncClientRejectedWrite<R extends UnknownRecord> {
-    // (undocumented)
-    changes: RecordsDiff<R>;
-    // (undocumented)
-    rejections: readonly TLWriteRejection[];
 }
 
 // @public

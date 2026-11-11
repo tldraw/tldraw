@@ -4867,8 +4867,8 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
-        onWriteRejected?: NonNullable<TLStoreProps['collaboration']>['onWriteRejected'];
         mode?: null | Signal<'readonly' | 'readwrite'>;
+        onWriteRejected?: NonNullable<TLStoreProps['collaboration']>['onWriteRejected'];
         status: null | Signal<'offline' | 'online'>;
     };
     id?: string;

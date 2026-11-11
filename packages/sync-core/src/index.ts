@@ -23,6 +23,7 @@ export {
 	type TLCanWrite,
 	type TLRecordChange,
 	type TLRecordReader,
+	type TLRejectedWrite,
 	type TLWriteContext,
 	type TLWriteRejection,
 } from '@tldraw/tlschema'
@@ -72,7 +73,6 @@ export {
 	type TLPresenceMode,
 	type TLSocketStatusChangeEvent,
 	type TLSocketStatusListener,
-	type TLSyncClientRejectedWrite,
 } from './lib/TLSyncClient'
 export {
 	TLSyncRoom,
