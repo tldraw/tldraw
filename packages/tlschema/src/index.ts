@@ -311,6 +311,15 @@ export {
 	type TLNoteShapeProps,
 } from './shapes/TLNoteShape'
 export {
+	tableShapeMigrations,
+	tableShapeProps,
+	type TLTableCell,
+	type TLTableColumn,
+	type TLTableRow,
+	type TLTableShape,
+	type TLTableShapeProps,
+} from './shapes/TLTableShape'
+export {
 	textShapeMigrations,
 	textShapeProps,
 	type TLTextShape,

@@ -1289,6 +1289,152 @@ input,
 	z-index: 1;
 }
 
+/* ------------------- Table shape ------------------- */
+
+.tl-table {
+	display: grid;
+	outline: 1px solid;
+	outline-color: inherit;
+	outline-offset: -1px;
+}
+
+.tl-table__cell {
+	box-sizing: border-box;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	border-right: 1px solid;
+	border-bottom: 1px solid;
+	display: flex;
+	align-items: center;
+}
+
+.tl-table__text,
+.tl-table__input {
+	width: 100%;
+	max-height: 100%;
+	overflow: hidden;
+	overflow-wrap: break-word;
+	white-space: pre-wrap;
+}
+
+.tl-table__input {
+	height: 100%;
+	margin: 0;
+	padding: 0;
+	border: none;
+	outline: none;
+	resize: none;
+	background: transparent;
+	font: inherit;
+	color: inherit;
+}
+
+.tl-table__cell:focus-within {
+	box-shadow: inset 0 0 0 2px var(--tl-color-selected);
+}
+
+.tl-table__add {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	border: none;
+	border-radius: var(--tl-radius-1);
+	background: var(--tl-color-low);
+	color: var(--tl-color-text-1);
+	font-family: var(--tl-font-sans);
+	font-size: 16px;
+	cursor: pointer;
+}
+
+.tl-table__add:hover {
+	background: var(--tl-color-selected);
+	color: var(--tl-color-selected-contrast);
+}
+
+.tl-table__handle {
+	position: absolute;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0;
+	border: none;
+	background: transparent;
+	cursor: pointer;
+}
+
+.tl-table__handle::after {
+	content: '';
+	border-radius: 999px;
+	background: var(--tl-color-low);
+	box-shadow: inset 0 0 0 1px var(--tl-color-muted-1);
+}
+
+.tl-table__handle-row::after {
+	width: var(--tl-table-handle-thickness);
+	height: 60%;
+}
+
+.tl-table__handle-column::after {
+	width: 60%;
+	height: var(--tl-table-handle-thickness);
+}
+
+.tl-table__handle:hover::after,
+.tl-table__handle[data-active]::after {
+	background: var(--tl-color-selected);
+	box-shadow: none;
+}
+
+.tl-table__menu {
+	position: absolute;
+	display: flex;
+	flex-direction: column;
+	min-width: 140px;
+	padding: 4px;
+	border-radius: var(--tl-radius-2);
+	background: var(--tl-color-panel);
+	box-shadow: var(--tl-shadow-3);
+	font-family: var(--tl-font-sans);
+	font-size: 12px;
+	z-index: 1;
+}
+
+.tl-table__menu > button {
+	padding: 6px 8px;
+	border: none;
+	border-radius: var(--tl-radius-1);
+	background: transparent;
+	color: var(--tl-color-text-1);
+	font: inherit;
+	text-align: left;
+	cursor: pointer;
+}
+
+.tl-table__menu > button:hover:not(:disabled) {
+	background: var(--tl-color-low);
+}
+
+.tl-table__menu > button:disabled {
+	opacity: 0.4;
+	cursor: default;
+}
+
+.tl-table__add-column {
+	top: 0;
+	right: -28px;
+	width: 20px;
+	height: 100%;
+}
+
+.tl-table__add-row {
+	left: 0;
+	bottom: -28px;
+	width: 100%;
+	height: 20px;
+}
+
 /* ------------------- Frame shape ------------------- */
 
 .tl-frame__body {

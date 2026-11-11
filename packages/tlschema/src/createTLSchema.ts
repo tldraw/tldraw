@@ -47,6 +47,7 @@ import { highlightShapeMigrations, highlightShapeProps } from './shapes/TLHighli
 import { imageShapeMigrations, imageShapeProps } from './shapes/TLImageShape'
 import { lineShapeMigrations, lineShapeProps } from './shapes/TLLineShape'
 import { noteShapeMigrations, noteShapeProps } from './shapes/TLNoteShape'
+import { tableShapeMigrations, tableShapeProps } from './shapes/TLTableShape'
 import { textShapeMigrations, textShapeProps } from './shapes/TLTextShape'
 import { videoShapeMigrations, videoShapeProps } from './shapes/TLVideoShape'
 import { storeMigrations } from './store-migrations'
@@ -125,6 +126,7 @@ export type TLSchema = StoreSchema<TLRecord, TLStoreProps>
  * - image: Raster image shapes referencing image assets
  * - line: Multi-point lines and splines
  * - note: Sticky note shapes with text content
+ * - table: Grids of plain-text cells
  * - text: Rich text shapes with formatting support
  * - video: Video shapes referencing video assets
  *
@@ -159,6 +161,7 @@ export const defaultShapeSchemas = {
 	image: { migrations: imageShapeMigrations, props: imageShapeProps },
 	line: { migrations: lineShapeMigrations, props: lineShapeProps },
 	note: { migrations: noteShapeMigrations, props: noteShapeProps },
+	table: { migrations: tableShapeMigrations, props: tableShapeProps },
 	text: { migrations: textShapeMigrations, props: textShapeProps },
 	video: { migrations: videoShapeMigrations, props: videoShapeProps },
 } satisfies {

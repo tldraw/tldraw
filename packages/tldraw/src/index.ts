@@ -259,6 +259,15 @@ export {
 	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
 export {
+	createTableShapeProps,
+	type CreateTableShapePropsOptions,
+} from './lib/shapes/table/tableHelpers'
+export {
+	TableShapeUtil,
+	type TableShapeOptions,
+	type TableShapeUtilDisplayValues,
+} from './lib/shapes/table/TableShapeUtil'
+export {
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,
 	getCropBox,

@@ -21,6 +21,7 @@ import { TLHighlightShape } from '../shapes/TLHighlightShape'
 import { TLImageShape } from '../shapes/TLImageShape'
 import { TLLineShape } from '../shapes/TLLineShape'
 import { TLNoteShape } from '../shapes/TLNoteShape'
+import { TLTableShape } from '../shapes/TLTableShape'
 import { TLTextShape } from '../shapes/TLTextShape'
 import { TLVideoShape } from '../shapes/TLVideoShape'
 import { StyleProp } from '../styles/StyleProp'
@@ -37,7 +38,7 @@ import { TLPageId } from './TLPage'
  * ```ts
  * // Check if a shape is a default shape type
  * function isDefaultShape(shape: TLShape): shape is TLDefaultShape {
- *   const defaultTypes = ['arrow', 'bookmark', 'draw', 'embed', 'frame', 'geo', 'group', 'image', 'line', 'note', 'text', 'video', 'highlight']
+ *   const defaultTypes = ['arrow', 'bookmark', 'draw', 'embed', 'frame', 'geo', 'group', 'image', 'line', 'note', 'table', 'text', 'video', 'highlight']
  *   return defaultTypes.includes(shape.type)
  * }
  * ```
@@ -55,6 +56,7 @@ export type TLDefaultShape =
 	| TLImageShape
 	| TLLineShape
 	| TLNoteShape
+	| TLTableShape
 	| TLTextShape
 	| TLVideoShape
 	| TLHighlightShape

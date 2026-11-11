@@ -20,6 +20,7 @@ describe('defaultShapeSchemas', () => {
 		'image',
 		'line',
 		'note',
+		'table',
 		'text',
 		'video',
 	]
