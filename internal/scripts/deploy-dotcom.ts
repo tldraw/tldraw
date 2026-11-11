@@ -23,6 +23,7 @@ import {
 	hashFlyDeployInputs,
 	stampDeployInputHash,
 } from './lib/flyDeployGate'
+import { handOffReplicationManager } from './lib/flyRmHandoff'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
@@ -128,9 +129,10 @@ const flyioAppName =
 	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
 		: deployZero === 'flyio-multinode'
-			? `${env.TLDRAW_ENV}-zero-vs`
+			? `${previewId ?? env.TLDRAW_ENV}-zero-vs`
 			: undefined
-const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
+const flyioReplAppName =
+	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -752,10 +754,15 @@ async function deployFlyAppIfChanged({
 	appName,
 	configFile,
 	inputs,
+	deploy = async () => {
+		await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
+	},
 }: {
 	appName: string
 	configFile: string
 	inputs: FlyDeployInputs
+	/** Rolls out the config already written to configFile; defaults to `flyctl deploy`. */
+	deploy?(stampedConfig: string): Promise<void>
 }) {
 	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
 	const hash = hashFlyDeployInputs(inputs)
@@ -771,11 +778,8 @@ async function deployFlyAppIfChanged({
 			? deployed.hash.slice(0, 12)
 			: `no stamp: ${deployed.reason}`
 	nicelog(`${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`)
-	fs.writeFileSync(
-		path.join(zeroCacheFolder, configFile),
-		stampDeployInputHash(inputs.config, hash),
-		'utf-8'
-	)
+	const stampedConfig = stampDeployInputHash(inputs.config, hash)
+	fs.writeFileSync(path.join(zeroCacheFolder, configFile), stampedConfig, 'utf-8')
 	if (inputs.dockerfile) {
 		fs.writeFileSync(
 			path.join(inputs.dockerfile.contextDir, 'Dockerfile'),
@@ -784,7 +788,7 @@ async function deployFlyAppIfChanged({
 		)
 	}
 	if (inputs.secrets) await stageZeroFlySecrets(appName, inputs.secrets)
-	await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
+	await deploy(stampedConfig)
 }
 
 async function deployZeroViaFlyIo() {
@@ -904,10 +908,22 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)
+	const rmConfigFile = 'flyio-replication-manager.toml'
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
-		configFile: 'flyio-replication-manager.toml',
+		configFile: rmConfigFile,
 		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
+		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
+		deploy:
+			env.TLDRAW_ENV === 'staging'
+				? (renderedToml) =>
+						handOffReplicationManager({
+							appName: flyioReplAppName,
+							renderedToml,
+							configFile: rmConfigFile,
+							pwd: zeroCacheFolder,
+						})
+				: undefined,
 	})
 
 	// Deploy view syncer with reference to replication manager
