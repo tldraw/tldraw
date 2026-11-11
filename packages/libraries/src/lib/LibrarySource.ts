@@ -141,8 +141,8 @@ export interface LibrarySource {
 	/**
 	 * Copies a library and its items to an owner, as a new library with the same name, and
 	 * returns the copy. Optional: for sources that can copy without the caller loading and adding
-	 * every item again, e.g. on a server. Without it, `copyLibrary` copies item by item through
-	 * {@link LibrarySource.getItemContent} and {@link LibrarySource.addItem}.
+	 * every item again, e.g. on a server. Without it, `copyLibrary` loads each item's content through
+	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
 }

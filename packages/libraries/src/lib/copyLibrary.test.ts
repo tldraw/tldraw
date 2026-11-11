@@ -1,8 +1,13 @@
-import { LibraryRecordType, createShapeId, createTLSchema } from '@tldraw/tlschema'
+import {
+	LibraryRecordType,
+	createShapeId,
+	createTLSchema,
+	type TLLibraryId,
+} from '@tldraw/tlschema'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError } from './LibrarySource'
+import { LibraryNotFoundError, type LibrarySource } from './LibrarySource'
 import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
 
 const shapeId = createShapeId('box')
@@ -23,6 +28,16 @@ function content(): TLLibraryItemContent {
 		},
 	}
 }
+
+// The source as one written without addItems would be.
+const withoutAddItems = (source: LibrarySource): LibrarySource =>
+	new Proxy(source, {
+		get: (target, key) => {
+			if (key === 'addItems') return undefined
+			const value = Reflect.get(target, key)
+			return typeof value === 'function' ? value.bind(target) : value
+		},
+	})
 
 function stubFetch(ok: (url: string) => boolean) {
 	vi.stubGlobal(
@@ -65,6 +80,54 @@ describe('copyLibrary', () => {
 		expect(await source.getItemContent(card.id)).toEqual(content())
 		expect(source.getLibraries().find((c) => c.id === original.id)?.ownerId).toBe('home')
 		expect(source.getItems(original.id)).toHaveLength(2)
+	})
+
+	it('loads the items a few at a time, then adds the copies together in their order', async () => {
+		stubFetch(() => true)
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		const names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
+		for (const name of names) await source.addItem(original.id, { name, content: content() })
+		const load = source.getItemContent.bind(source)
+		let loading = 0
+		let mostAtOnce = 0
+		vi.spyOn(source, 'getItemContent').mockImplementation(async (itemId) => {
+			mostAtOnce = Math.max(mostAtOnce, ++loading)
+			await new Promise((resolve) => setTimeout(resolve, 5))
+			loading--
+			return load(itemId)
+		})
+		const addItems = vi.spyOn(source, 'addItems')
+		const addItem = vi.spyOn(source, 'addItem')
+
+		const copy = await copyLibrary(source, original.id, 'acme')
+
+		expect(mostAtOnce).toBeGreaterThan(1)
+		expect(mostAtOnce).toBeLessThan(names.length)
+		expect(addItems).toHaveBeenCalledTimes(1)
+		expect(addItem).not.toHaveBeenCalled()
+		const listed = (id: TLLibraryId) => source.getItems(id).map((i) => i.name)
+		const byCreation = [...source.getItems(copy.id)]
+			.sort((a, b) => a.createdAt! - b.createdAt!)
+			.map((i) => i.name)
+		expect(byCreation).toEqual(listed(original.id))
+		expect(listed(copy.id)).toHaveLength(names.length)
+	})
+
+	it('adds the copies one at a time, in order, to a source without addItems', async () => {
+		const memory = new InMemoryLibrarySource({ owners })
+		const original = await memory.createLibrary('Wireframes')
+		for (const name of ['A', 'B', 'C'])
+			await memory.addItem(original.id, { name, content: content() })
+		const addItem = vi.spyOn(memory, 'addItem')
+
+		const copy = await copyLibrary(withoutAddItems(memory), original.id, 'acme')
+
+		expect(addItem).toHaveBeenCalledTimes(3)
+		const byCreation = [...memory.getItems(copy.id)]
+			.sort((a, b) => a.createdAt! - b.createdAt!)
+			.map((i) => i.name)
+		expect(byCreation).toEqual(memory.getItems(original.id).map((i) => i.name))
 	})
 
 	it('copies a read-only library', async () => {

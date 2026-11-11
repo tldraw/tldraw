@@ -331,7 +331,7 @@ describe('copyLibrary', () => {
 		expect(copy.name).toBe('Server copy')
 	})
 
-	it('copies item by item from another part', async () => {
+	it('copies the items from another part', async () => {
 		const { source, workspaces, copies } = setUpWithCopyingPart()
 		const copy = await copyLibrary(source, wireframing, 'home')
 		expect(copies).toEqual([])
