@@ -1693,6 +1693,12 @@ export type TLPageId = RecordId<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public
+export type TLPermission = 'tl:page:create' | 'tl:page:delete' | 'tl:page:update' | 'tl:shape:create' | 'tl:shape:delete' | 'tl:shape:update';
+
+// @public
+export type TLPermissionGrant = (string & {}) | TLPermission;
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1734,6 +1740,21 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export type TLRecordChange<R extends UnknownRecord = UnknownRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
+};
+
+// @public
 export interface TLRemovedDefaultThemeColors {
 }
 
@@ -1758,6 +1779,14 @@ export interface TLScribble {
 
 // @public
 export type TLSerializedStore = SerializedStore<TLRecord>;
+
+// @public
+export interface TLSessionAccess {
+    // (undocumented)
+    document: 'read' | 'write';
+    // (undocumented)
+    objects: 'read' | 'write';
+}
 
 // @public
 export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K];
@@ -1986,6 +2015,41 @@ export interface TLVideoShapeProps {
     url: string;
     // (undocumented)
     w: number;
+}
+
+// @public
+export interface TLWriteRefusal {
+    // (undocumented)
+    ids?: string[];
+    // (undocumented)
+    reason: string;
+}
+
+// @public
+export type TLWriteRule<R extends UnknownRecord = UnknownRecord, Meta = unknown> = (args: TLWriteRuleArgs<R, Meta>) => null | TLWriteRefusal;
+
+// @public
+export interface TLWriteRuleArgs<R extends UnknownRecord = UnknownRecord, Meta = unknown> {
+    // (undocumented)
+    after(id: string): R | undefined;
+    // (undocumented)
+    before(id: string): R | undefined;
+    // (undocumented)
+    changes: TLRecordChange<R>[];
+    // (undocumented)
+    session: TLWriteRuleSession<Meta>;
+}
+
+// @public
+export interface TLWriteRuleSession<Meta = unknown> {
+    // (undocumented)
+    access: TLSessionAccess;
+    // (undocumented)
+    meta: Meta;
+    permissions: null | readonly TLPermissionGrant[];
+    // (undocumented)
+    sessionId: string;
+    userId: null | string;
 }
 
 // @public

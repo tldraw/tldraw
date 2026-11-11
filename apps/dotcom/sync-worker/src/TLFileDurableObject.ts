@@ -3377,6 +3377,7 @@ export class TLFileDurableObject extends DurableObject {
 				if (!(await canAccessFiles())) {
 					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
 				}
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
 			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
 				if (!(await canAccessFiles())) {
 					// not passing a reason means they will try to reconnect

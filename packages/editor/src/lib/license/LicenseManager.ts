@@ -30,6 +30,8 @@ export const FLAGS = {
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
 	TRACKED: 1 << 8,
+	// Permissions is a sub-feature of collaboration.
+	FEAT_PERMISSIONS: 1 << 9,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 

@@ -568,3 +568,25 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 
 	return ensureStoreIsUsable
 }
+
+/**
+ * A permission the editor and its UI ask about. Hosts can grant names of their own as well; these
+ * are the ones tldraw itself checks.
+ *
+ * @public
+ */
+export type TLPermission =
+	| 'tl:shape:create'
+	| 'tl:shape:update'
+	| 'tl:shape:delete'
+	| 'tl:page:create'
+	| 'tl:page:update'
+	| 'tl:page:delete'
+
+/**
+ * An entry in a list of granted permissions: a permission, or a prefix ending in `:*` that covers
+ * everything under it (`tl:shape:*`, `tl:*`). A host can add names of its own under another prefix.
+ *
+ * @public
+ */
+export type TLPermissionGrant = TLPermission | (string & {})

@@ -1,10 +1,11 @@
 import { registerTldrawLibraryVersion } from '@tldraw/utils'
 
-// The collaboration umbrella. For now it re-exports the commenting package; over time it
-// will re-export the other collaboration packages as well.
+// The collaboration umbrella: re-exports the collaboration feature packages.
 
 // eslint-disable-next-line tldraw/no-export-star
 export * from '@tldraw/commenting'
+// eslint-disable-next-line tldraw/no-export-star
+export * from '@tldraw/permissions'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

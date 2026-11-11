@@ -238,6 +238,7 @@ describe('TLSyncClient', () => {
 				self: TLSyncClient<TestRecord, Store<TestRecord, any>>,
 				details: { isReadonly: boolean }
 			): void
+			onPermissionsChanged?(permissions: readonly string[]): void
 			didCancel?(): boolean
 		}> = {}
 	): TLSyncClient<TestRecord, Store<TestRecord, any>> {
@@ -533,12 +534,74 @@ describe('TLSyncClient', () => {
 			expect((pushWithPage!.diff![pageId][1] as any).name).toBe('Offline Page')
 		})
 
+		it('passes the userId from the connect message to onAfterConnect', () => {
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage({ userId: 'user-a' }))
+			expect(onAfterConnect).toHaveBeenCalledWith(
+				client,
+				expect.objectContaining({ userId: 'user-a' })
+			)
+		})
+
+		it('passes the permissions from the connect message, null when it lacks them', () => {
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage({ permissions: ['tl:shape:*'] }))
+			expect(onAfterConnect).toHaveBeenLastCalledWith(
+				client,
+				expect.objectContaining({ permissions: ['tl:shape:*'] })
+			)
+
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+			socket.mockServerMessage(createConnectMessage())
+			expect(onAfterConnect).toHaveBeenLastCalledWith(
+				client,
+				expect.objectContaining({ permissions: null })
+			)
+		})
+
+		it('hands a permissions update to onPermissionsChanged, not onCustomMessageReceived', () => {
+			const onPermissionsChanged = vi.fn()
+			client = createClient({ onPermissionsChanged })
+			socket.mockServerMessage(createConnectMessage())
+			socket.mockServerMessage({
+				type: 'custom',
+				data: { type: 'tl:permissions', permissions: ['tl:*'] },
+			})
+			socket.mockServerMessage({ type: 'custom', data: { type: 'app', hello: true } })
+
+			expect(onPermissionsChanged).toHaveBeenCalledWith(['tl:*'])
+			expect(onCustomMessageReceived).toHaveBeenCalledTimes(1)
+			expect(onCustomMessageReceived).toHaveBeenCalledWith({ type: 'app', hello: true })
+		})
+
+		it('passes the objectTypes from the connect message, undefined when it lacks them', () => {
+			client = createClient()
+			socket.mockServerMessage(createConnectMessage({ objectTypes: ['note'] }))
+			expect(onAfterConnect).toHaveBeenLastCalledWith(
+				client,
+				expect.objectContaining({ objectTypes: ['note'] })
+			)
+
+			socket.mockConnectionStatus('offline')
+			socket.mockConnectionStatus('online')
+			socket.mockServerMessage(createConnectMessage())
+			expect(onAfterConnect).toHaveBeenLastCalledWith(
+				client,
+				expect.objectContaining({ objectTypes: undefined })
+			)
+		})
+
 		it('[CL7] calls onAfterConnect with the isReadonly flag from the connect message', () => {
 			client = createClient()
 			socket.mockServerMessage(createConnectMessage({ isReadonly: false }))
 			expect(client.isConnectedToRoom).toBe(true)
 			// objectAccess defaults to 'write' when the server doesn't send it
 			expect(onAfterConnect).toHaveBeenCalledWith(client, {
+				access: { document: 'write', objects: 'write' },
+				userId: null,
+				permissions: null,
+				objectTypes: undefined,
 				isReadonly: false,
 				objectAccess: 'write',
 			})
@@ -548,6 +611,10 @@ describe('TLSyncClient', () => {
 			socket.mockConnectionStatus('online')
 			socket.mockServerMessage(createConnectMessage({ isReadonly: true }))
 			expect(onAfterConnect).toHaveBeenLastCalledWith(client, {
+				access: { document: 'read', objects: 'write' },
+				userId: null,
+				permissions: null,
+				objectTypes: undefined,
 				isReadonly: true,
 				objectAccess: 'write',
 			})

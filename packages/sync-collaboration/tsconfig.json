@@ -8,6 +8,9 @@
 	},
 	"references": [
 		{
+			"path": "../permissions"
+		},
+		{
 			"path": "../store"
 		},
 		{

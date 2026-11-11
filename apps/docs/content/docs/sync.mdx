@@ -360,6 +360,175 @@ Both `props` and `migrations` are optional. If you omit `props`, you won't have 
 validation for your shape, which could result in bad data being stored. If you omit `migrations`,
 clients on different versions won't be able to collaborate without errors.
 
+### Who may change what
+
+Every change a client pushes is a batch of record operations: create, update, or delete one record each. The room decides, for each operation, whether to store it. You control that in two ways: access set at connect, and a rule you write.
+
+#### Access set at connect
+
+A room keeps records in two places: the document (every document-scoped type in your schema) and, if you list `objectTypes`, the object store (see [Comments and the object-store lane](#comments-and-the-object-store-lane)). The simplest control is write access to each, per session, decided by your server at connect:
+
+```ts
+// on your server, when the WebSocket upgrade request arrives
+const { userId, userCanEdit } = await authenticate(request)
+
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	userId,
+	access: { document: userCanEdit ? 'write' : 'read', objects: userId ? 'write' : 'read' },
+})
+```
+
+`userId` is the authenticated user, from your own auth, or `null` for anonymous (the default). The room doesn't check it; it hands it to your rule as `session.userId` and keeps it across hibernation.
+
+A session with `document: 'read'` can't change the document, and one with `objects: 'read'` can't change the object store. The room refuses a push that writes to either, whole, whether or not you also give it a rule. The client receives the same object (as `access` on the `useSync` status) and locks its toolbar from it. The two are independent; rooms without object types give `objects` the same value as `document`.
+
+`access` is fixed for the life of the connection. To change it, call [TLSocketRoom#closeSession](?) without a reason: the client reconnects and you pass new values. `isReadonly` and `objectAccess` are the same two facts under their previous names, deprecated but working until a later major.
+
+#### Writing your own rule
+
+For anything finer than that, give the room one rule with the `authorize` option. The room calls it once per push, inside the commit transaction, with every change in the push. Return `null` to allow the push, or `{ reason, ids? }` to refuse all of it: nothing is stored, and the client is told why.
+
+Most rules are about one record at a time. `perRecord` builds a push rule from one of those: return `null` to allow the change or a reason to refuse it.
+
+What a session may do usually comes from your server as a list of named permissions, passed at connect. tldraw's own are `tl:shape:create`, `tl:shape:update`, `tl:shape:delete` and the same three for `tl:page`; a name ending in `:*` covers everything under it, and you can add names of your own under another prefix. `getMissingPermission` from `@tldraw/permissions` maps a change to the permission it needs and returns it when the list doesn't cover it:
+
+```ts
+import { getMissingPermission } from '@tldraw/permissions'
+import { perRecord, TLSocketRoom } from '@tldraw/sync-core'
+
+// students draw, but pages are the teacher's
+const authorize = perRecord<TLRecord>((change, { session }) => {
+	const missing = getMissingPermission(session.permissions, change)
+	return missing ? `Needs ${missing}` : null
+})
+
+const room = new TLSocketRoom<TLRecord>({ objectTypes, authorize })
+
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	userId: user.id,
+	access,
+	permissions: user.role === 'teacher' ? ['tl:*'] : ['tl:shape:*'],
+})
+```
+
+The permissions are sent to the client too, so a rule that reads them can give the same answer there. For facts you don't want the client to see, pass `meta` instead: the rule reads it as `session.meta`, and it never leaves the server.
+
+Leave `permissions` out and they're `null`: the app doesn't use named permissions, and nothing about them changes for that session. `[]` is different: granted nothing. `isPermitted` and `getMissingPermission` treat `null` as nothing granted too, so if one of your connect paths forgets the list, a rule that asks refuses rather than letting everything through. Watch out for `user.permissions ?? []` in your server code: it turns "not in use" into "nothing allowed".
+
+The rule only sees pushes the session's access allows, so it can only narrow what `access` grants, never widen it. Combine several rules with `composeRules` from `@tldraw/permissions`: the first refusal wins.
+
+What the rule sees:
+
+| Argument              | What it is                                                                                                                                                      |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `changes`             | every change in the push, one per record, as `{ type, prev, next }`; `type` is `'create'`, `'update'` or `'delete'`, `prev` is null on create, `next` on delete |
+| `session.userId`      | the authenticated user from connect, or `null` for anonymous                                                                                                    |
+| `session.permissions` | the named permissions from connect, or from the latest `updateSessionPermissions`; also sent to the client. `null` when not in use                              |
+| `session.meta`        | whatever else your server attached at connect; the room never reads it, and it isn't sent to the client                                                         |
+| `session.access`      | the document and object store access from connect                                                                                                               |
+| `before(id)`          | any record as it was when the push started                                                                                                                      |
+| `after(id)`           | any record as it will be once the whole push is applied                                                                                                         |
+
+A `perRecord` rule gets one change (plus `record`: `next`, or `prev` on a delete) and the same `session`, `before` and `after`.
+
+The session id is chosen by the client and carries no authority; identity is `session.userId`. The rule runs on every push: keep it fast and synchronous, and do no I/O. If it throws, the push is refused and the error is logged.
+
+#### Fields the client must not choose
+
+For a field the client must not choose, like an owner, check it in the rule: the client writes its own user id, and the rule refuses a create with anyone else's and any later change to it. The client becomes no more trusted; the room only accepts the right value, and the editor doesn't have to wait for the server to know it.
+
+```ts
+const authorize = perRecord<TLRecord>(({ type, prev, next }, { session }) => {
+	if (next?.typeName !== 'shape') return null
+	if (type === 'create' && next.meta.createdBy !== session.userId) return 'not your id'
+	if (type === 'update' && next.meta.createdBy !== prev.meta.createdBy) return 'createdBy is fixed'
+	return null
+})
+```
+
+The room never rewrites what a client sends, so a value only the server can know, like when it received a record, isn't part of a push. Your server can write it afterwards with [TLSocketRoom#updateStore](?).
+
+#### Rules that read other records
+
+`before` and `after` are what let you write rules about pages: a shape's record names its parent, which may be a frame, whose parent may be a group, whose parent is the page. [getOwningPage](?) from `@tldraw/permissions` does that walk. Read `prev` through `before` and `next` through `after`, so a change is judged against the board it leaves and the board it lands on.
+
+```ts
+import { getOwningPage, isPermitted } from '@tldraw/permissions'
+
+const authorize = perRecord<TLRecord>(({ prev, next }, { session, before, after }) => {
+	// a permission of your own, granted to teachers at connect
+	if (isPermitted(session.permissions, 'classroom:manage')) return null
+	// the page's policy is stored on the page record, so only a teacher may change it
+	if (next?.typeName === 'page' && next.meta.ownerId !== prev?.meta.ownerId) return 'teachers only'
+	// check both ends of the change, so a shape can't be moved off a page the student doesn't own
+	for (const [end, get] of [
+		[prev, before],
+		[next, after],
+	] as const) {
+		if (!end) continue
+		const owning = getOwningPage(get, end)
+		// a broken parent chain: refuse, the write would leave an orphan
+		if (!owning.page) return owning.reason === 'unscoped' ? null : 'dangling parent'
+		// students may only change records on their own page
+		if (owning.page.meta.ownerId !== session.userId) return 'not your page'
+	}
+	return null
+})
+```
+
+Here the page's policy lives on the page record, in its `meta`. Any client can send a change to that record, so the rule is what makes the field trustworthy: refuse policy changes from anyone but a trusted role, as the second line does. That line is enough on its own. A push that forges the policy and then uses it is refused whole, because the forgery is in it, so nothing it did on the strength of the forged policy is stored.
+
+Because the rule sees the whole push, the order of changes inside it never matters. A frame and the shapes inside it can be created in either order; a frame deleted together with its children goes, children and all; a shape reparented into a frame the same push deletes is refused.
+
+`getOwningPage` returns `{ page }` or `{ page: null, reason }`. The reason is `'dangling'` when a parent is missing (refuse: the write would leave an orphan), `'split'` for a binding whose two shapes are on different pages (refuse: the editor never makes one), or `'unscoped'` for records that don't live on a page, like the document record (your call).
+
+#### Keeping the document valid
+
+Your rule decides who may change what. Whether a push leaves the document intact is a separate question with the same answer for every app: a shape needs a parent that exists, and a binding needs both its shapes on one page. `createStructureRule` from `@tldraw/permissions` refuses pushes that break those. Put it first:
+
+```ts
+import { composeRules, createStructureRule } from '@tldraw/permissions'
+
+const room = new TLSocketRoom<TLRecord>({
+	objectTypes,
+	authorize: composeRules(createStructureRule(), authorize),
+})
+```
+
+It only judges what a push changes, so a document that already has a broken record keeps working, and the edit that repairs it goes through. It doesn't yet check what a delete leaves behind (the children of a deleted frame, a binding to a deleted shape): that needs a lookup of what points at a record, which rooms don't have yet.
+
+#### Permissions that change while people are connected
+
+`access` is fixed for the connection, but permissions aren't. When a teacher hands a student a page, or a share link changes, update the session:
+
+```ts
+room.updateSessionPermissions(sessionId, ['tl:*'])
+```
+
+The rule judges that session's next push with the new list, and its client gets it right away, with no reconnect. Updates are per session, so they reach anonymous sessions too. To change a user's permissions in every tab they have open, update each of their sessions:
+
+```ts
+for (const session of room.getSessions()) {
+	if (session.userId === userId) room.updateSessionPermissions(session.sessionId, permissions)
+}
+```
+
+Each client only gets its own permissions. A session still connecting gets the latest list with its connect. With [hibernation](#websocket-hibernation), the list is part of the session snapshot: `onSessionSnapshot` gets a fresh one on every update, and if you save snapshots yourself, save one again after updating, or a resumed room brings back the old list.
+
+#### What a refused push looks like
+
+A refused push is discarded whole; nothing in it is stored. The room tells the sending client in the `push_result`, with the rule's `reason` and `ids`, and the client reverts the push: the user sees their change snap back. Pass `onPushRefused` to `useSync` (or `TLSyncClient`) to show a message. The server logs a warning. Only rooms using the deprecated `authorizeRecord` still skip refused records one at a time, silently.
+
+#### What the rule never sees
+
+- Server-side writes through [TLSocketRoom#updateStore](?) or [TLSocketRoom#loadSnapshot](?). These have no session and are never authorized; check permissions before calling them.
+- Presence records (cursors, selections). They are per session and never authorized.
+- Malformed records. Schema validation runs before the rule and disconnects the client with an error rather than refusing.
+
 ### Comments and the object-store lane
 
 A room can serve some record types through a second partition, the object-store lane, which is persisted and permissioned separately from the document. Comments are the main use for it.
@@ -382,23 +551,22 @@ const room = new TLSocketRoom({
 
 `objectTypes` serves those record types through the room's object-store lane instead of the document
 lane. Lane records are persisted separately from the document, left out of document snapshots, and
-gated by a per-session `objectAccess` permission rather than by `isReadonly`. That's how a session
-can be allowed to comment without being allowed to edit:
+gated by the session's `access.objects` rather than by `access.document`. That's how a session can
+be allowed to comment without being allowed to edit:
 
 ```ts
 room.handleSocketConnect({
 	sessionId,
 	socket,
-	isReadonly: true,
-	objectAccess: 'write',
+	access: { document: 'read', objects: 'write' },
 })
 ```
 
-`objectAccess` is `'read'` or `'write'` and defaults to `'write'` on connect. Read the lane's contents with
+The lane's write access is `access.objects` at connect (`objectAccess` is its deprecated spelling), `'read'` or `'write'`, defaulting to `'write'`. Read the lane's contents with
 [TLSocketRoom#getCurrentObjectsSnapshot](?), and use the room's `onCommittedChanges` callback to
 mirror committed records into your own database. That callback only fires for client pushes, not for
 `updateStore`, `loadSnapshot`, or direct storage writes. For per-record rules like "only the author
-may edit a comment", pass authorizers to the room's `authorizeRecord` option (see [TLRecordAuthorizers](?)).
+may edit a comment", write them in the room's `authorize` rule (see [Who may change what](#who-may-change-what)).
 See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
 ### Deployment concerns

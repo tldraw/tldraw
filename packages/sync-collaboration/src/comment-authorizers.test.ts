@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-deprecated -- this file tests the deprecated createCommentAuthorizers */
 import {
 	TLComment,
 	TLCommentReaction,

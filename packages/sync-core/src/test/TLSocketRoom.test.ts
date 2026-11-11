@@ -53,7 +53,7 @@ function connectSession(
 	room: TLSocketRoom<any, any>,
 	sessionId: string,
 	socket: WebSocketMinimal,
-	opts: { objectAccess?: 'read' | 'write' } = {}
+	opts: { objectAccess?: 'read' | 'write'; userId?: string | null; permissions?: string[] } = {}
 ) {
 	room.handleSocketConnect({ sessionId, socket, ...opts })
 	const connectRequest = {
@@ -1083,6 +1083,22 @@ describe('28. TLSocketRoom (SR)', () => {
 	})
 
 	describe('onSessionSnapshot', () => {
+		it('saves a snapshot right away when permissions change, so a revoke survives hibernation', () => {
+			const onSessionSnapshot = vi.fn()
+			const room = new TLSocketRoom({ onSessionSnapshot })
+			connectSession(room, 'test', createMockSocket(), { permissions: ['tl:*'] })
+
+			room.updateSessionPermissions('test', [])
+
+			expect(onSessionSnapshot).toHaveBeenCalledTimes(1)
+			const [, snapshot] = onSessionSnapshot.mock.calls[0]
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].permissions).toEqual([])
+			room.close()
+			room2.close()
+		})
+
 		it('[SR12] calls onSessionSnapshot after debounce on message receipt', () => {
 			vi.useFakeTimers()
 			try {
@@ -1222,13 +1238,66 @@ describe('28. TLSocketRoom (SR)', () => {
 			connectSession(room, 'test', socket)
 
 			const snapshot = room.getSessionSnapshot('test')!
-			// simulate a snapshot persisted before the objectAccess field existed
+			// simulate a snapshot persisted before the objectAccess and access fields existed
 			delete snapshot.objectAccess
+			delete snapshot.access
 
 			const room2 = new TLSocketRoom({})
 			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
 			// such sessions predate the record types gated by objectAccess, so they have nothing to write anyway
 			expect(room2.getSessions()[0].objectAccess).toBe('read')
+		})
+
+		it('[SR13] round-trips userId through snapshot and resume', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'test', createMockSocket(), { userId: 'user-1' })
+			expect(room.getSessions()[0].userId).toBe('user-1')
+
+			const snapshot = room.getSessionSnapshot('test')!
+			expect(snapshot.userId).toBe('user-1')
+
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].userId).toBe('user-1')
+		})
+
+		it('[SR13] resumes legacy snapshots without userId as anonymous', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'test', createMockSocket(), { userId: 'user-1' })
+
+			const snapshot = room.getSessionSnapshot('test')!
+			delete snapshot.userId
+
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].userId).toBeNull()
+		})
+
+		it('[SR13] round-trips updated permissions through snapshot and resume', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'test', createMockSocket(), {
+				userId: 'user-1',
+				permissions: ['tl:shape:*'],
+			})
+			room.updateSessionPermissions('test', ['tl:*'])
+			expect(room.getSessions()[0].permissions).toEqual(['tl:*'])
+
+			const snapshot = room.getSessionSnapshot('test')!
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].permissions).toEqual(['tl:*'])
+		})
+
+		it('[SR13] resumes legacy snapshots without permissions as not in use', () => {
+			const room = new TLSocketRoom({})
+			connectSession(room, 'test', createMockSocket(), { permissions: ['tl:*'] })
+
+			const snapshot = room.getSessionSnapshot('test')!
+			delete snapshot.permissions
+
+			const room2 = new TLSocketRoom({})
+			room2.handleSocketResume({ sessionId: 'test', socket: createMockSocket(), snapshot })
+			expect(room2.getSessions()[0].permissions).toBeNull()
 		})
 
 		it('[SR13] includes presence record when present', () => {

@@ -1,6 +1,7 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
-import { TLObjectStoreAccess, TLSocketServerSentDataEvent } from './protocol'
-import { TLRoomSocket } from './TLSyncRoom'
+import type { TLPermissionGrant } from '@tldraw/tlschema'
+import { TLSocketServerSentDataEvent } from './protocol'
+import { TLRoomSocket, TLSessionAccess } from './TLSyncRoom'
 
 /**
  * Enumeration of possible states for a room session during its lifecycle.
@@ -78,13 +79,12 @@ export interface RoomSessionBase<R extends UnknownRecord, Meta> {
 	socket: TLRoomSocket<R>
 	/** Custom metadata associated with this session */
 	meta: Meta
-	/** Whether this session has read-only permissions for document-lane records */
-	isReadonly: boolean
-	/**
-	 * Write access for object-store lane record types (see `objectTypes` on the room).
-	 * Deliberately independent of `isReadonly` so "can comment but not edit" is expressible.
-	 */
-	objectAccess: TLObjectStoreAccess
+	/** The authenticated user, set at connect; `null` for anonymous */
+	userId: string | null
+	/** Write access to the document and the object store, set at connect */
+	access: TLSessionAccess
+	/** Named permissions, set at connect and changed by `updateSessionPermissions` */
+	permissions: readonly TLPermissionGrant[] | null
 	/** Whether this session requires legacy protocol rejection handling */
 	requiresLegacyRejection: boolean
 	/** Whether this session supports string append operations */

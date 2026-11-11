@@ -1,10 +1,19 @@
 import type { UnknownRecord } from '@tldraw/store'
-import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
+import {
+	perRecord,
+	type TLRecordAuthorizers,
+	type TLRecordChange,
+	type TLSyncRule,
+	type TLSyncRuleSession,
+} from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
+	isPageId,
+	isShapeId,
 	type TLComment,
 	type TLCommentReaction,
 	type TLCommentThread,
+	type TLShape,
 } from '@tldraw/tlschema'
 import { isEqual } from '@tldraw/utils'
 
@@ -34,6 +43,7 @@ export type CommentModification =
  * `ownerId` is that record's owner — a comment's `authorId`, a thread's `createdBy` — so a callback
  * widening the default doesn't have to know which field each record keeps it in.
  *
+ * @deprecated Use {@link CommentModificationRuleContext} with {@link createCommentRule}.
  * @public
  */
 export type CommentModificationAuthContext<SessionMeta> = {
@@ -43,8 +53,63 @@ export type CommentModificationAuthContext<SessionMeta> = {
 } & CommentModification
 
 /**
+ * The argument to {@link CommentRuleOptions.canModifyComment}: which write, against
+ * which stored record, by which session. Same as {@link CommentModificationAuthContext} but the
+ * session is what the room's `authorize` rule sees: `{ sessionId, meta }`.
+ *
+ * @public
+ */
+export type CommentModificationRuleContext<SessionMeta> = {
+	readonly session: TLSyncRuleSession<SessionMeta>
+	readonly userId: string | null
+	readonly ownerId: string
+} & CommentModification
+
+/** What the deprecated per-type map sees of a session. */
+interface LegacySession<SessionMeta> {
+	sessionId: string
+	isReadonly: boolean
+	meta: SessionMeta
+}
+
+type CommentModificationContext<S> = {
+	readonly session: S
+	readonly userId: string | null
+	readonly ownerId: string
+} & CommentModification
+
+type CommentRuleArgs<S, Rec extends UnknownRecord> = { session: S } & TLRecordChange<Rec>
+type CommentRule<S, Rec extends UnknownRecord> = (args: CommentRuleArgs<S, Rec>) => Rec | null
+interface CommentRules<S> {
+	comment: CommentRule<S, TLComment>
+	'comment-thread': CommentRule<S, TLCommentThread>
+	'comment-reaction': CommentRule<S, TLCommentReaction>
+}
+
+/**
+ * The record types the comment rules judge; every other record passes through untouched.
+ *
+ * @public
+ */
+export type TLCommentRecord = TLComment | TLCommentThread | TLCommentReaction
+
+/**
+ * Whether a record is one the comment rules judge: a thread, a comment, or a reaction.
+ *
+ * @public
+ */
+export function isCommentRecord(record: UnknownRecord): record is TLCommentRecord {
+	return (
+		record.typeName === 'comment' ||
+		record.typeName === 'comment-thread' ||
+		record.typeName === 'comment-reaction'
+	)
+}
+
+/**
  * Options for {@link createCommentAuthorizers}.
  *
+ * @deprecated Use {@link CommentRuleOptions} with {@link createCommentRule}.
  * @public
  */
 export interface CommentAuthorizerOptions<SessionMeta> {
@@ -76,7 +141,8 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 	 *
 	 * Asked after {@link CommentAuthorizerOptions.canComment} and after the structural rules, so it
 	 * can only widen *who* may write, never *what* a write may contain. However permissive the
-	 * callback, attribution is still stamped from the session and immutable, `isDeleted` is still
+	 * callback, attribution still comes from the session (stamped by this map, checked by
+	 * {@link createCommentRule}) and is immutable, `isDeleted` is still
 	 * write-once and never set at create, `threadId` and `createdAt` are still frozen, a
 	 * resolution is still the resolver's own, and clients still can't hard-delete.
 	 *
@@ -96,71 +162,29 @@ export interface CommentAuthorizerOptions<SessionMeta> {
 	 * })
 	 * ```
 	 */
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean
 }
 
-/**
- * Server-side write authorization for comment records, for use with a sync server's
- * `authorizeRecord` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
- * session's identity so nothing can be posted, resolved, or deleted in someone else's name:
- *
- * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after,
- *   and who may update is `canModifyComment`'s call — the author's, unless widened. `threadId` and
- *   `createdAt` are immutable too.
- * - `comment-thread`: `createdBy` and `createdAt` are fixed on create. Anyone with access may
- *   resolve/reopen, but a non-null `resolved.by` must be the session's own user.
- * - `comment-reaction`: `userId` is stamped and immutable, a create must land at the canonical id
- *   for its (comment, user, emoji) triple, and only the reactor may delete their own.
- * - Deletion is soft for comments and threads: a write-once `isDeleted` flag, never set at create.
- *   Client hard-deletes are always rejected — record removals are server-side only.
- * - `canComment` gates every write before the per-type rules, defaulting to `!isReadonly`.
- * - `canModifyComment` decides who may edit a comment, delete a comment, or delete a thread. It
- *   defaults to the record's owner, and is asked after the structural rules above, so widening it
- *   grants no more than those three writes on records the session doesn't own.
- *
- * Comment records ride alongside your document records, so widen the room's record union to
- * include them, then spread the result into the authorizer map alongside your own entries:
- *
- * @example
- * ```ts
- * interface SessionMeta {
- * 	userId: string | null
- * }
- *
- * type MyRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
- *
- * new TLSocketRoom<MyRecord, SessionMeta>({
- * 	authorizeRecord: {
- * 		...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
- * 	},
- * })
- * ```
- *
- * @public
- */
-export function createCommentAuthorizers<SessionMeta>(
-	opts: CommentAuthorizerOptions<SessionMeta>
-): TLRecordAuthorizers<TLComment | TLCommentThread | TLCommentReaction, SessionMeta> {
-	const {
-		getUserId,
-		canComment = ({ isReadonly }: { isReadonly: boolean }) => !isReadonly,
-		canModifyComment = ({ userId, ownerId }: CommentModificationAuthContext<SessionMeta>) =>
-			userId === ownerId,
-	} = opts
+/** The comment rules, generic over what the host's callbacks see of a session. */
+function buildCommentRules<S>(opts: {
+	getUserId(session: S): string | null
+	canComment(session: S): boolean
+	canModifyComment(ctx: CommentModificationContext<S>): boolean
+}): CommentRules<S> {
+	const { getUserId, canComment, canModifyComment } = opts
 
 	/** A rule is an authorizer that receives the session's user id, resolved for it exactly once. */
 	type Rule<Rec extends UnknownRecord> = (
 		userId: string | null,
-		args: Parameters<TLRecordAuthorizer<Rec, SessionMeta>>[0]
+		args: CommentRuleArgs<S, Rec>
 	) => Rec | null
 
 	/**
 	 * Adapt a rule to the authorizer signature: gate on `canComment` first, then resolve the
 	 * session's user id exactly once.
 	 */
-	function withUserId<Rec extends UnknownRecord>(
-		rule: Rule<Rec>
-	): TLRecordAuthorizer<Rec, SessionMeta> {
+	function withUserId<Rec extends UnknownRecord>(rule: Rule<Rec>): CommentRule<S, Rec> {
 		return (args) => {
 			if (!canComment(args.session)) return null
 			return rule(getUserId(args.session), args)
@@ -351,4 +375,244 @@ export function createCommentAuthorizers<SessionMeta>(
 		// thread deletion must sweep every reactor's records, not just the caller's own.
 		'comment-reaction': withUserId(authorizeReaction),
 	}
+}
+
+const ownerOnly = ({ userId, ownerId }: { userId: string | null; ownerId: string }) =>
+	userId === ownerId
+
+/**
+ * Server-side write authorization for comment records, for use with a sync server's
+ * `authorizeRecord` option (see `TLSocketRoom` in `@tldraw/sync-core`). Forces authorship from the
+ * session's identity so nothing can be posted, resolved, or deleted in someone else's name:
+ *
+ * - `comment`: `authorId` is stamped on create (anonymous creates rejected) and immutable after,
+ *   and who may update is `canModifyComment`'s call — the author's, unless widened. `threadId` and
+ *   `createdAt` are immutable too.
+ * - `comment-thread`: `createdBy` and `createdAt` are fixed on create. Anyone with access may
+ *   resolve/reopen, but a non-null `resolved.by` must be the session's own user.
+ * - `comment-reaction`: `userId` is stamped and immutable, a create must land at the canonical id
+ *   for its (comment, user, emoji) triple, and only the reactor may delete their own.
+ * - Deletion is soft for comments and threads: a write-once `isDeleted` flag, never set at create.
+ *   Client hard-deletes are always rejected — record removals are server-side only.
+ * - `canComment` gates every write before the per-type rules, defaulting to `!isReadonly`.
+ * - `canModifyComment` decides who may edit a comment, delete a comment, or delete a thread. It
+ *   defaults to the record's owner, and is asked after the structural rules above, so widening it
+ *   grants no more than those three writes on records the session doesn't own.
+ *
+ * Comment records ride alongside your document records, so widen the room's record union to
+ * include them, then spread the result into the authorizer map alongside your own entries:
+ *
+ * @example
+ * ```ts
+ * interface SessionMeta {
+ * 	userId: string | null
+ * }
+ *
+ * type MyRecord = TLRecord | TLComment | TLCommentThread | TLCommentReaction
+ *
+ * new TLSocketRoom<MyRecord, SessionMeta>({
+ * 	authorizeRecord: {
+ * 		...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
+ * 	},
+ * })
+ * ```
+ *
+ * @deprecated Use {@link createCommentRule}: one rule for the room's `authorize` option.
+ * @public
+ */
+export function createCommentAuthorizers<SessionMeta>(
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+	opts: CommentAuthorizerOptions<SessionMeta>
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
+): TLRecordAuthorizers<TLCommentRecord, SessionMeta> {
+	return buildCommentRules<LegacySession<SessionMeta>>({
+		getUserId: opts.getUserId,
+		canComment: opts.canComment ?? (({ isReadonly }) => !isReadonly),
+		canModifyComment: opts.canModifyComment ?? ownerOnly,
+	})
+}
+
+/**
+ * Options for {@link createCommentRule}.
+ *
+ * @public
+ */
+export interface CommentRuleOptions<SessionMeta> {
+	/**
+	 * Resolve the authenticated user id for a session. Defaults to `session.userId`. `null` means
+	 * anonymous: they can't create records, and own none, so the default
+	 * {@link CommentRuleOptions.canModifyComment} grants them no edits or deletes either.
+	 */
+	getUserId?(session: TLSyncRuleSession<SessionMeta>): string | null
+
+	/**
+	 * Whether a session may write comment records at all, checked before the per-type rules.
+	 * Defaults to the session's object-store access (`session.access.objects === 'write'`).
+	 * Anonymous sessions can't create comment records regardless, because `getUserId` is `null`.
+	 */
+	canComment?(session: TLSyncRuleSession<SessionMeta>): boolean
+
+	/**
+	 * Whether a session may edit or delete a comment, or delete a thread. Defaults to the record's
+	 * owner. Asked after the structural rules, so widening it grants those three writes and nothing
+	 * else. See {@link CommentAuthorizerOptions.canModifyComment} for the full contract.
+	 */
+	canModifyComment?(ctx: CommentModificationRuleContext<SessionMeta>): boolean
+}
+
+/**
+ * The comment rules for a room's `authorize` option (see `TLSocketRoom` in `@tldraw/sync-core`).
+ * Judges comment threads, comments and reactions with the same rules as
+ * {@link createCommentAuthorizers}, except that attribution is checked rather than stamped: a
+ * create must already carry the session's user as its author (`authorId`, `createdBy`, a
+ * reaction's `userId`). Every other record passes through, so compose with your own rule:
+ *
+ * @example
+ * ```ts
+ * const comments = createCommentRule<MyRecord, SessionMeta>({
+ * 	canComment: (session) => session.meta.canEdit,
+ * })
+ *
+ * new TLSocketRoom<MyRecord, SessionMeta>({
+ * 	authorize: (args) => comments(args) ?? myOwnRule(args),
+ * })
+ * ```
+ *
+ * @public
+ */
+export function createCommentRule<R extends UnknownRecord, SessionMeta>(
+	opts: CommentRuleOptions<SessionMeta> = {}
+): TLSyncRule<R, SessionMeta> {
+	type Session = TLSyncRuleSession<SessionMeta>
+	const rules = buildCommentRules<Session>({
+		getUserId: opts.getUserId ?? ((session) => session.userId),
+		canComment: opts.canComment ?? ((session) => session.access.objects === 'write'),
+		canModifyComment: opts.canModifyComment ?? ownerOnly,
+	})
+	// The per-type rules return the record to allow (stamped on create) or null to refuse. A create
+	// they would stamp differently is refused: the client chose someone else's name.
+	const judge = (
+		session: Session,
+		change: TLRecordChange<TLCommentRecord>
+	): UnknownRecord | null => {
+		const args = { session, ...change }
+		switch ((change.type === 'delete' ? change.prev : change.next).typeName) {
+			case 'comment':
+				return rules.comment(args as CommentRuleArgs<Session, TLComment>)
+			case 'comment-thread':
+				return rules['comment-thread'](args as CommentRuleArgs<Session, TLCommentThread>)
+			case 'comment-reaction':
+				return rules['comment-reaction'](args as CommentRuleArgs<Session, TLCommentReaction>)
+		}
+	}
+	return perRecord(({ record, ...change }, { session, before, after }) => {
+		if (!isCommentRecord(record)) return null
+		// Structural, so no edit permission overrides it: a comment lives on its thread's page.
+		if (record.typeName === 'comment' && change.type !== 'delete') {
+			const comment = record as unknown as TLComment
+			const prevPageId =
+				change.type === 'update' ? (change.prev as unknown as TLComment).pageId : null
+			if (comment.pageId !== prevPageId) {
+				const thread = after(comment.threadId) as TLCommentThread | undefined
+				if (thread?.pageId !== comment.pageId) return 'comment must stay on its thread page'
+			}
+		}
+		const moveRefusal =
+			change.type === 'update' && isMove(change.prev, change.next)
+				? authorizeMove(
+						session,
+						change.prev as unknown as TLCommentRecord,
+						change.next as unknown as TLCommentRecord,
+						before,
+						after
+					)
+				: undefined
+		if (moveRefusal === null) return null
+		const allowed = judge(session, change as unknown as TLRecordChange<TLCommentRecord>)
+		if (allowed && (change.type !== 'create' || isEqual(allowed, record))) return null
+		return moveRefusal ?? `${record.typeName} ${change.type} refused`
+	})
+}
+
+/**
+ * A move is a location-only update: a thread's `pageId`/`anchor`, or a comment's `pageId`. The
+ * commenting plugin writes these to keep a thread attached to its shape, in the push of whoever
+ * moved or deleted the shape, who is usually not the author. {@link authorizeMove} lets those
+ * through on document access alone; any other move is judged like an edit.
+ */
+function isMove(prev: UnknownRecord, next: UnknownRecord): boolean {
+	switch (prev.typeName) {
+		case 'comment-thread':
+			return isEqual(
+				{
+					...next,
+					pageId: (prev as TLCommentThread).pageId,
+					anchor: (prev as TLCommentThread).anchor,
+				},
+				prev
+			)
+		case 'comment':
+			return isEqual({ ...next, pageId: (prev as TLComment).pageId }, prev)
+		default:
+			return false
+	}
+}
+
+type Reader = (id: string) => UnknownRecord | undefined
+
+function authorizeMove(
+	session: TLSyncRuleSession<unknown>,
+	prev: TLCommentRecord,
+	next: TLCommentRecord,
+	before: Reader,
+	after: Reader
+): string | null {
+	if (session.access.document !== 'write') return `${next.typeName} move refused`
+	// already checked to land on its thread's page
+	if (next.typeName === 'comment') return null
+	return isShapeFollow(prev as TLCommentThread, next as TLCommentThread, before, after)
+		? null
+		: `${next.typeName} move refused`
+}
+
+/**
+ * Whether a thread move is what `registerCommentAnchorLifecycle` writes for a shape change in this
+ * same push:
+ *
+ * - shape moved page (itself or an ancestor): `pageId` follows it, anchor unchanged
+ * - shape deleted: anchor becomes a point, `pageId` unchanged
+ * - shape re-created (undo of a delete): point anchor re-attaches to it, `pageId` unchanged or its page
+ */
+function isShapeFollow(
+	prev: TLCommentThread,
+	next: TLCommentThread,
+	before: Reader,
+	after: Reader
+): boolean {
+	const was = prev.anchor
+	const now = next.anchor
+	if (was.type === 'shape' && isEqual(was, now)) {
+		const page = pageOfShape(after, was.shapeId)
+		return page === next.pageId && pageOfShape(before, was.shapeId) !== page
+	}
+	if (was.type === 'shape' && now.type === 'point') {
+		return next.pageId === prev.pageId && !!before(was.shapeId) && !after(was.shapeId)
+	}
+	if (was.type === 'point' && now.type === 'shape') {
+		if (before(now.shapeId) || !after(now.shapeId)) return false
+		return next.pageId === prev.pageId || next.pageId === pageOfShape(after, now.shapeId)
+	}
+	return false
+}
+
+function pageOfShape(read: Reader, shapeId: string): string | undefined {
+	const seen = new Set<string>()
+	let id = shapeId
+	while (isShapeId(id) && !seen.has(id)) {
+		seen.add(id)
+		const shape = read(id) as TLShape | undefined
+		if (!shape) return undefined
+		id = shape.parentId
+	}
+	return isPageId(id) ? id : undefined
 }

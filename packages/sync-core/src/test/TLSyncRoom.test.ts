@@ -1540,10 +1540,18 @@ describe('24. Push handling (RP)', () => {
 		room.handleMessage('sessionA', push)
 
 		expect(getDoc('page:page_3')).toBe(undefined)
-		// should tell the session to discard it
+		// should tell the session to discard it, and why
 		expect(socketA.__lastMessage).toEqual({
 			type: 'data',
-			data: [{ type: 'push_result', clientClock: 0, serverClock: 0, action: 'discard' }],
+			data: [
+				{
+					type: 'push_result',
+					clientClock: 0,
+					serverClock: 0,
+					action: 'discard',
+					refused: { reason: 'document is read-only', ids: ['page:page_3'] },
+				},
+			],
 		})
 		// should not have sent anything to sessionB
 		expect(socketB.__lastMessage).toBe(null)

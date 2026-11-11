@@ -33,6 +33,7 @@ function getNoteAttribution(shape: TLShape): string | null | undefined {
  * from the imported board, so re-stamp foreign attribution from the session instead. Updates
  * may retain an existing author but cannot claim a new identity other than the session's user.
  */
+// eslint-disable-next-line @typescript-eslint/no-deprecated
 const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	session,
 	type,
@@ -56,6 +57,8 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
  * or reacted in someone else's name.
  */
 export const authorizeFileRecord = {
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
 	shape: authorizeShape,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 } satisfies TLRecordAuthorizers<FileRecord, SessionMeta>

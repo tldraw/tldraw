@@ -364,6 +364,8 @@ export {
 	createCachedUserResolve,
 	type TLAssetContext,
 	type TLAssetStore,
+	type TLPermission,
+	type TLPermissionGrant,
 	type TLSerializedStore,
 	type TLStore,
 	type TLStoreProps,
@@ -371,6 +373,14 @@ export {
 	type TLStoreSnapshot,
 	type TLUserStore,
 } from './TLStore'
+export {
+	type TLRecordChange,
+	type TLSessionAccess,
+	type TLWriteRefusal,
+	type TLWriteRule,
+	type TLWriteRuleArgs,
+	type TLWriteRuleSession,
+} from './TLWriteRule'
 export {
 	getDefaultTranslationLocale,
 	LANGUAGES,
