@@ -173,6 +173,13 @@ THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 # types.ts). Production leaves it unset: thumbnail_render_push decides there.
 THUMBNAIL_RENDER_PUSH = "true"
 
+# The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
+# worker serves every environment's host, and it must exist before this one deploys. Production isn't
+# bound yet.
+[[env.staging.services]]
+binding = "MCP_WEB"
+service = "mcp-web"
+
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
