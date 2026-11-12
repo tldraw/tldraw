@@ -66,6 +66,7 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { TlaCommentByline } from './TlaCommentByline'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorRef, useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
@@ -85,7 +86,7 @@ const messages = defineMessages({
 const tlaCommentTools = [
 	CommentTool.configure({
 		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
-		components: { ComposerFallback: SignInToComment },
+		components: { ComposerFallback: SignInToComment, CommentByline: TlaCommentByline },
 	}),
 ]
 

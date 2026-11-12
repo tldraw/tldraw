@@ -98,6 +98,9 @@
   "28b2464e1f": {
     "translation": "Could not submit feedback"
   },
+  "2944edaa8d": {
+    "translation": "On behalf of {name}"
+  },
   "299cb00a7a": {
     "translation": "Upload failed"
   },
@@ -281,6 +284,9 @@
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
   },
+  "67ed6ddb7d": {
+    "translation": "Edited"
+  },
   "681e10aecb": {
     "translation": "New file"
   },
@@ -292,6 +298,9 @@
   },
   "6a26f54883": {
     "translation": "Help"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
