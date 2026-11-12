@@ -14,8 +14,9 @@ const FETCH_CONCURRENCY = 6
  * the pack's items and their thumbnails. The copy takes the pack's name, numbered if the source
  * already has a library by that name. The copy's `meta` records the pack's `packId` and
  * `packVersion`, alongside any `meta` passed in. The items' thumbnails are fetched a few at a time,
- * and the items added together (see `addItemsToLibrary`). If an item can't be added, the partial
- * copy is deleted and the error rethrown.
+ * and the items added together (see `addItemsToLibrary`). Resolves once the copy is listed, while
+ * the source may go on saving its items. If an item can't be added, or saving fails, the partial
+ * copy is deleted, and the error rethrown or, once resolved, reported by the source.
  * @public
  */
 export async function copyPack(
@@ -31,6 +32,7 @@ export async function copyPack(
 		...options,
 		meta: { ...options.meta, packId: pack.id, packVersion: pack.version },
 	})
+	const deleteCopy = () => source.deleteLibrary(copy.id).catch(() => {})
 	try {
 		const newItems = await mapConcurrently(pack.items, FETCH_CONCURRENCY, async (item) => {
 			const thumbnail =
@@ -42,9 +44,9 @@ export async function copyPack(
 			}
 		})
 		const added = await addItemsToLibrary(source, copy.id, newItems)
-		await whenItemsStored(added.map((item) => item.id))
+		whenItemsStored(added.map((item) => item.id)).catch(deleteCopy)
 	} catch (error) {
-		await source.deleteLibrary(copy.id).catch(() => {})
+		await deleteCopy()
 		throw error
 	}
 	return copy

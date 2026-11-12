@@ -256,7 +256,7 @@ describe('CompositeLibrarySource', () => {
 		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
 		await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
 		await source.moveLibrary(kit.id, 'acme')
-		expect(mine.getLibraries()).toEqual([])
+		await vi.waitFor(() => expect(mine.getLibraries()).toEqual([]))
 		const [moved] = team.getLibraries()
 		expect(moved.name).toBe('Kit')
 		expect(team.getItems(moved.id).map((item) => item.name)).toEqual(['Star'])
@@ -268,8 +268,8 @@ describe('CompositeLibrarySource', () => {
 		const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
 		const item = await added(source.addItem(from.id, { name: 'Star', content: content('star') }))
 		await source.moveItem!(item.id, to.id)
-		expect(mine.getItems(from.id)).toEqual([])
 		expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
+		await vi.waitFor(() => expect(mine.getItems(from.id)).toEqual([]))
 	})
 
 	describe('a part that stores added items after listing them', () => {
@@ -326,23 +326,31 @@ describe('CompositeLibrarySource', () => {
 			expect(team.getItems(kit.id)).toEqual([])
 		})
 
-		it('keeps an item it failed to move', async () => {
+		it('resolves a move once the copy is listed, and keeps the original if saving fails', async () => {
 			const { source, mine, team } = setUpFailing()
 			const from = await source.createLibrary('Kit', { ownerId: 'home' })
 			const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
 			const item = await added(source.addItem(from.id, { name: 'Star', content: content('star') }))
-			await expect(source.moveItem!(item.id, to.id)).rejects.toThrow('storing failed')
+			await source.moveItem!(item.id, to.id)
+			expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
+
+			await vi.waitFor(() => expect(team.getItems(to.id)).toEqual([]))
+			await new Promise((resolve) => setTimeout(resolve, 5))
 			expect(mine.getItems(from.id).map((i) => i.name)).toEqual(['Star'])
-			expect(team.getItems(to.id)).toEqual([])
 		})
 
-		it('deletes a copy it failed to store, and keeps a library it failed to move', async () => {
+		it('resolves a copy or move once listed, deleting the copy and keeping the original if saving fails', async () => {
 			const { source, mine, team } = setUpFailing()
 			const kit = await source.createLibrary('Kit', { ownerId: 'home' })
 			await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
-			await expect(copyLibrary(source, kit.id, 'acme')).rejects.toThrow('storing failed')
-			await expect(source.moveLibrary(kit.id, 'acme')).rejects.toThrow('storing failed')
-			expect(team.getLibraries()).toEqual([])
+			const copy = await copyLibrary(source, kit.id, 'acme')
+			expect(team.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
+			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
+
+			await source.moveLibrary(kit.id, 'acme')
+			expect(team.getLibraries()).toHaveLength(1)
+			await vi.waitFor(() => expect(team.getLibraries()).toEqual([]))
+			await new Promise((resolve) => setTimeout(resolve, 5))
 			expect(mine.getItems(kit.id).map((i) => i.name)).toEqual(['Star'])
 		})
 	})

@@ -118,7 +118,7 @@ describe('getEditorLibraries', () => {
 		)
 
 		await source.moveLibrary!(library.id, 'home')
-		expect(ofType(editor, 'library')).toEqual([])
+		await vi.waitFor(() => expect(ofType(editor, 'library')).toEqual([]))
 		const [inHome] = source.getLibraries()
 		expect(inHome.ownerId).toBe('home')
 		const [homeItem] = source.getItems(inHome.id)
@@ -128,6 +128,7 @@ describe('getEditorLibraries', () => {
 
 		editor.store.remove([assetId])
 		await source.moveLibrary!(inHome.id, 'file-a')
+		await vi.waitFor(() => expect(source.getLibraries()).toHaveLength(1))
 		const [onBoard] = source.getLibraries()
 		expect(onBoard.ownerId).toBe('file-a')
 		expect(ofType(editor, 'asset').map((a) => a.id)).toEqual([assetId])

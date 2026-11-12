@@ -16,12 +16,17 @@ import {
 	type TLLibraryItemRecord,
 	type TLImageAsset,
 	type TLRecord,
+	LibraryRecordType,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BoardLibrarySource } from './BoardLibrarySource'
+import { CompositeLibrarySource } from './CompositeLibrarySource'
+import { copyLibrary } from './copyLibrary'
+import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
 import {
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
+	LibraryItemRecordType,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
 } from './schema'
@@ -596,6 +601,69 @@ describe('BoardLibrarySource', () => {
 			expect(source.getItems(library.id)).toEqual([])
 			expect(thumbnailAssets(editor)).toEqual([])
 			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
+		})
+	})
+
+	describe('copying a library onto the board', () => {
+		function setUpCopy(upload: TLAssetStore['upload']) {
+			const assets = makeAssetStore()
+			assets.store.upload = upload
+			const editor = makeEditor(librarySchemaRecords, assets)
+			const toasts = { addToast: vi.fn() }
+			const board = new BoardLibrarySource(editor, {
+				toasts,
+				msg: (message) => message.defaultMessage ?? message.id,
+			})
+			const kit = LibraryRecordType.create({ name: 'Kit' })
+			const star = LibraryItemRecordType.create({
+				libraryId: kit.id,
+				name: 'Star',
+				thumbnail: 'data:image/png;base64,iVBORw0KGgo=',
+			})
+			const kits = new InMemoryLibrarySource({
+				initial: {
+					libraries: [kit],
+					items: [star],
+					contents: { [star.id]: contentOf(editor, [addImage(editor)]) },
+				},
+			})
+			const source = new CompositeLibrarySource({
+				parts: [
+					{ owner: { id: 'kits', name: 'Kits' }, source: kits },
+					{ owner: { id: 'board', name: 'This board' }, source: board },
+				],
+			})
+			return { source, board, kit, toasts }
+		}
+
+		it('resolves once the copy is listed, before its thumbnails have uploaded', async () => {
+			const uploads: (() => void)[] = []
+			const { source, board, kit } = setUpCopy(
+				(asset) =>
+					new Promise((resolve) =>
+						uploads.push(() => resolve({ src: `https://uploads.example/${asset.id}` }))
+					)
+			)
+			const copy = await copyLibrary(source, kit.id, 'board')
+			const [item] = board.getItems(copy.id)
+			expect(item.name).toBe('Star')
+			expect(uploads).toHaveLength(1)
+			for (const finish of uploads) finish()
+			await whenItemsStored([item.id])
+		})
+
+		it('deletes the copy and reports it when its thumbnails fail to upload', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			const { source, board, kit, toasts } = setUpCopy(async () => {
+				throw new Error('upload failed')
+			})
+			const copy = await copyLibrary(source, kit.id, 'board')
+			expect(board.getLibraries().map((library) => library.id)).toEqual([copy.id])
+
+			await vi.waitFor(() => expect(board.getLibraries()).toEqual([]))
+			expect(toasts.addToast).toHaveBeenCalledWith(
+				expect.objectContaining({ title: "Couldn't save to library", severity: 'error' })
+			)
 		})
 	})
 

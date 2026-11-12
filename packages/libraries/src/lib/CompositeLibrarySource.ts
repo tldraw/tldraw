@@ -44,7 +44,9 @@ interface Part extends CompositeLibrarySourcePart {
  * One source made of several, such as the user's libraries and the ones an app ships. Each
  * read and write goes to the part holding the library or item, and new libraries to the part
  * of the owner they name. Moving a library to another part's owner copies it there, then
- * deletes the original, so it needs the original's part to allow deleting it.
+ * deletes the original, so it needs the original's part to allow deleting it. Such a move resolves
+ * once the copy is listed; the original is deleted once the copy is saved, and stays if saving
+ * fails.
  * @public
  */
 export class CompositeLibrarySource implements LibrarySource {
@@ -178,8 +180,8 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteLibrary', libraryId)) {
 			throw new LibraryPermissionError('deleteLibrary', libraryId)
 		}
-		await copyLibraryItems(this, libraryId, ownerId)
-		await from.source.deleteLibrary(libraryId)
+		const { stored } = await copyLibraryItems(this, libraryId, ownerId)
+		deleteOnceStored(stored, () => from.source.deleteLibrary(libraryId))
 	}
 
 	/**
@@ -192,7 +194,8 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (from === to && !from.owner && from.source.copyLibrary) {
 			return from.source.copyLibrary(libraryId, ownerId)
 		}
-		return copyLibraryItems(this, libraryId, ownerId)
+		const { copied } = await copyLibraryItems(this, libraryId, ownerId)
+		return copied
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
@@ -205,8 +208,8 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteItem', item.libraryId)) {
 			throw new LibraryPermissionError('deleteItem', item.libraryId)
 		}
-		await copyItem(from.source, item, to.source, toLibraryId)
-		await from.source.deleteItem(itemId)
+		const { stored } = await copyItem(from.source, item, to.source, toLibraryId)
+		deleteOnceStored(stored, () => from.source.deleteItem(itemId))
 	}
 
 	private getDefaultPart() {
@@ -245,4 +248,15 @@ export class CompositeLibrarySource implements LibrarySource {
 function ownersOf(part: CompositeLibrarySourcePart): TLLibraryOwner[] {
 	if (part.owner) return [part.owner]
 	return part.source.getLibraryOwners ? part.source.getLibraryOwners() : []
+}
+
+// A move across parts resolves once the copy is listed, and deletes the original only once the
+// copy is saved. If saving fails, the destination has reported it and removed the copy, and the
+// original stays.
+function deleteOnceStored(stored: Promise<void>, deleteOriginal: () => Promise<void>) {
+	stored
+		.then(deleteOriginal, () => {})
+		.catch((error) => {
+			console.error("Couldn't delete the original of a moved library or item", error)
+		})
 }
