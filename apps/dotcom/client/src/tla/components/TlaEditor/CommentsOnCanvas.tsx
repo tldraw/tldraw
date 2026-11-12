@@ -3,17 +3,15 @@ import {
 	CanvasComments,
 	CanvasCommentsSidebar,
 	CommentAuthor,
-	CommentBody,
 	CommentingContext,
 	filterMentionMembers,
 	MentionMember,
 } from '@tldraw/commenting'
-import { isMcpAgentComment, queries } from '@tldraw/dotcom-shared'
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { queries } from '@tldraw/dotcom-shared'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
 	defineMessages,
 	F,
-	TLComment,
 	TLUiOverrides,
 	useDialogs,
 	useEditor,
@@ -35,34 +33,7 @@ type FileVisitors = QueryResultType<typeof queries.fileVisitors>
 const commentMessages = defineMessages({
 	// Matches the notifications panel and the toolkit's own byline default for an unnamed author.
 	unknownAuthor: { defaultMessage: 'Someone' },
-	leftByAgent: { defaultMessage: 'Comment left by my agent' },
 })
-
-// The `CommentBody` slot gets only the comment, so the name lookup the default body uses for
-// mentions comes down from `CommentsOnCanvas` this way. React context crosses the portals the
-// threads render in.
-const ResolveNameContext = createContext<((id: string) => string | undefined) | undefined>(
-	undefined
-)
-
-/**
- * dotcom's comment body: the toolkit's own, with a callout over comments an agent left through the
- * MCP server. The callout is drawn from the comment's `meta`, so the comment's text stays what the
- * agent wrote.
- */
-export function TlaCommentBody({ comment }: { comment: TLComment }) {
-	const resolveName = useContext(ResolveNameContext)
-	return (
-		<>
-			{isMcpAgentComment(comment.meta) && (
-				<div style={{ fontStyle: 'italic', opacity: 0.7 }}>
-					<F {...commentMessages.leftByAgent} />
-				</div>
-			)}
-			<CommentBody richText={comment.body} resolveName={resolveName} />
-		</>
-	)
-}
 
 /**
  * dotcom's comments layer: a thin consumer of `@tldraw/commenting`'s `<CanvasComments>`.
@@ -216,7 +187,6 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 		},
 		[currentUserId, currentUser, commentAuthors, presenceAuthors, memberAuthors]
 	)
-	const resolveName = useCallback((id: string) => resolveAuthor(id)?.name, [resolveAuthor])
 	const isCommentUnread = useCallback(
 		(commentId: string) => unreadCommentIds.has(commentId),
 		[unreadCommentIds]
@@ -258,10 +228,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	)
 
 	return (
-		<ResolveNameContext.Provider value={resolveName}>
+		<>
 			<CanvasComments {...commenting} />
 			<CanvasCommentsSidebar {...commenting} />
-		</ResolveNameContext.Provider>
+		</>
 	)
 }
 
