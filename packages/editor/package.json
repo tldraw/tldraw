@@ -56,6 +56,7 @@
 		"@tiptap/core": "^3.12.1",
 		"@tiptap/pm": "^3.12.1",
 		"@tiptap/react": "^3.12.1",
+		"@tldraw/permissions": "workspace:*",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/state-react": "workspace:*",
 		"@tldraw/store": "workspace:*",

@@ -368,6 +368,8 @@ export {
 	type TLPermissionGrant,
 	type TLSerializedStore,
 	type TLStore,
+	type TLStoreAuthorize,
+	type TLRefusal,
 	type TLStoreProps,
 	type TLStoreSchema,
 	type TLStoreSnapshot,

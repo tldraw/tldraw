@@ -78,8 +78,12 @@ import { TLOpacityType } from '@tldraw/tlschema';
 import { TLPage } from '@tldraw/tlschema';
 import { TLPageId } from '@tldraw/tlschema';
 import { TLParentId } from '@tldraw/tlschema';
+import { TLPermission } from '@tldraw/tlschema';
+import { TLPermissionGrant } from '@tldraw/tlschema';
 import { TLPropsMigrations } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
+import { TLRecordChange } from '@tldraw/tlschema';
+import { TLRefusal } from '@tldraw/tlschema';
 import { TLRichText } from '@tldraw/tlschema';
 import { TLScribble } from '@tldraw/tlschema';
 import { TLShape } from '@tldraw/tlschema';
@@ -87,6 +91,7 @@ import { TLShapeCrop } from '@tldraw/tlschema';
 import { TLShapeId } from '@tldraw/tlschema';
 import { TLShapePartial } from '@tldraw/tlschema';
 import { TLStore } from '@tldraw/tlschema';
+import { TLStoreAuthorize } from '@tldraw/tlschema';
 import { TLStoreProps } from '@tldraw/tlschema';
 import { TLStoreSchema } from '@tldraw/tlschema';
 import { TLStoreSnapshot } from '@tldraw/tlschema';
@@ -588,7 +593,7 @@ export function createTLCurrentUser(opts?: {
 export function createTLSchemaFromUtils(opts: TLStoreSchemaOptions): StoreSchema<TLRecord, TLStoreProps>;
 
 // @public
-export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, themes, ...rest }?: TLStoreOptions): TLStore;
+export function createTLStore({ initialData, defaultName, id, assets, users, onMount, collaboration, authorize, themes, ...rest }?: TLStoreOptions): TLStore;
 
 // @public (undocumented)
 export class CubicBezier2d extends Polyline2d {
@@ -881,7 +886,7 @@ export class EdgeScrollManager {
 
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
-    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, isChangePermitted, isPermitted, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
@@ -892,6 +897,8 @@ export class Editor extends EventEmitter<TLEventMap> {
         tags?: Record<string, boolean | number | string>;
         willCrashApp: boolean;
     }): this;
+    // @internal
+    _arePermissionsLicensed(): boolean;
     assetUtils: {
         readonly [K in string]?: AssetUtil<TLAsset>;
     };
@@ -1238,6 +1245,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     duplicateShapes(shapes: TLShape[] | TLShapeId[], offset?: VecLike): this;
     edgeScrollManager: EdgeScrollManager;
     // @internal
+    _endInteractionAfterRefusal(): void;
+    // @internal
     _ensureUserRecord(user: TLUser): void;
     // @internal (undocumented)
     externalAssetContentHandlers: {
@@ -1374,6 +1383,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getPageShapeIds(page: TLPage | TLPageId): Set<TLShapeId>;
     getPageStates(): TLInstancePageState[];
     getPath(): string;
+    getPermissions(): null | readonly TLPermissionGrant[];
     getPointInParentSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     getPointInShapeSpace(shape: TLShape | TLShapeId, point: VecLike): Vec;
     // @internal
@@ -1486,9 +1496,11 @@ export class Editor extends EventEmitter<TLEventMap> {
     readonly inputs: InputsManager;
     interrupt(): this;
     isAncestorSelected(shape: TLShape | TLShapeId): boolean;
+    isChangePermitted(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>): boolean;
     isDisposed: boolean;
     isIn(path: string): boolean;
     isInAny(...paths: string[]): boolean;
+    isPermitted(permission: TLPermission): boolean;
     isPointInShape(shape: TLShape | TLShapeId, point: VecLike, opts?: {
         hitInside?: boolean;
         margin?: number;
@@ -1613,6 +1625,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     setErasingShapes(shapes: TLShape[] | TLShapeId[]): this;
     setFocusedGroup(shape: null | TLGroupShape | TLShapeId): this;
     setHintingShapes(shapes: TLShape[] | TLShapeId[]): this;
+    // @internal
+    _setHostPermissions(callbacks: Pick<TLEditorOptions, 'isChangePermitted' | 'isPermitted'>): void;
     setHoveredShape(shape: null | TLShape | TLShapeId): this;
     setOpacityForNextShapes(opacity: number, historyOptions?: TLHistoryBatchOptions): this;
     setOpacityForSelectedShapes(opacity: number): this;
@@ -2241,12 +2255,17 @@ export class HistoryManager<R extends UnknownRecord> {
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
+    // @internal
+    removeRefused(refusal: {
+        changes?: RecordsDiff<R>;
+        ids?: readonly string[];
+    }): void;
     // (undocumented)
     squashToMark(id: string): this;
     // (undocumented)
     undo(): this;
     // (undocumented)
-    _undo({ pushToRedoStack, toMark }: {
+    _undo(opts: {
         pushToRedoStack: boolean;
         toMark?: string;
     }): this;
@@ -2454,7 +2473,7 @@ export function kickoutOccludedShapes(editor: Editor, shapeIds: TLShapeId[], opt
 export const LICENSE_TIMEOUT = 5000;
 
 // @internal
-export type LicenseFeatureName = 'collaboration' | 'commenting';
+export type LicenseFeatureName = 'collaboration' | 'commenting' | 'permissions';
 
 // @internal (undocumented)
 export type LicenseFromKeyResult = InvalidLicenseKeyResult | ValidLicenseKeyResult;
@@ -3815,6 +3834,8 @@ export interface TldrawEditorBaseProps {
     i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
+    isChangePermitted?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
+    isPermitted?(permission: TLPermission, editor: Editor): boolean;
     licenseKey?: string;
     onMount?: TLOnMountHandler;
     options?: Partial<TldrawOptions>;
@@ -4021,6 +4042,8 @@ export interface TLEditorOptions {
     i18n?: TLI18nAdapter;
     initialState?: string;
     initialTheme?: TLThemeId;
+    isChangePermitted?(change: TLRecordChange<TLAsset | TLBinding | TLPage | TLShape>, editor: Editor): boolean;
+    isPermitted?(permission: TLPermission, editor: Editor): boolean;
     // (undocumented)
     licenseKey?: string;
     options?: Partial<TldrawOptions>;
@@ -4206,6 +4229,7 @@ export interface TLEventMap {
     frame: [number];
     // (undocumented)
     mount: [];
+    refused: [TLRefusal];
     // (undocumented)
     resize: [BoxModel];
     // (undocumented)
@@ -4846,6 +4870,7 @@ export interface TLStateNodeConstructor {
 // @public (undocumented)
 export interface TLStoreBaseOptions {
     assets?: TLAssetStore;
+    authorize?: TLStoreAuthorize<any>;
     defaultName?: string;
     initialData?: SerializedStore<TLRecord>;
     onMount?(editor: Editor): (() => void) | void;
@@ -4860,6 +4885,8 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 // @public (undocumented)
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
+        refusals?: NonNullable<TLStoreProps['collaboration']>['refusals'];
+        permissions?: NonNullable<TLStoreProps['collaboration']>['permissions'];
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
@@ -5344,6 +5371,8 @@ export interface ValidLicenseKeyResult {
     isLicenseParseable: true;
     // (undocumented)
     isNativeLicense: boolean;
+    // (undocumented)
+    isPermissionsEnabled: boolean;
     // (undocumented)
     isPerpetualLicense: boolean;
     // (undocumented)

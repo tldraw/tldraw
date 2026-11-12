@@ -1,4 +1,8 @@
 import {
+	isChangePermitted as isChangePermittedByList,
+	isPermitted as isPermittedByList,
+} from '@tldraw/permissions'
+import {
 	Atom,
 	EMPTY_ARRAY,
 	atom,
@@ -42,6 +46,9 @@ import {
 	TLInstancePageState,
 	TLInstancePresence,
 	TLPage,
+	TLPermission,
+	TLPermissionGrant,
+	TLRecordChange,
 	TLPageId,
 	TLParentId,
 	TLRecord,
@@ -95,6 +102,7 @@ import {
 	sortByIndex,
 	structuredClone,
 	uniqueId,
+	warnOnce,
 } from '@tldraw/utils'
 import EventEmitter from 'eventemitter3'
 import { TLCurrentUser, createTLCurrentUser } from '../config/createTLCurrentUser'
@@ -177,6 +185,7 @@ import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
 import { TickManager } from './managers/TickManager/TickManager'
 import { UserPreferencesManager } from './managers/UserPreferencesManager/UserPreferencesManager'
+import { WriteRuleManager } from './managers/WriteRuleManager/WriteRuleManager'
 import { OverlayManager } from './overlays/OverlayManager'
 import { TLAnyOverlayUtilConstructor } from './overlays/OverlayUtil'
 import {
@@ -292,6 +301,49 @@ export interface TLEditorOptions {
 		editor: Editor
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 	/**
+	 * Whether the UI should offer a change to a record: tools, handles and menu items ask
+	 * {@link Editor.isChangePermitted}, which asks this after readonly and locks. Return `false` to
+	 * hide or disable that affordance. Advisory only: editor methods still try the change, and the
+	 * store's write rule (`authorize`), or the server, decides whether it's saved. The UI may offer
+	 * something the rule then refuses, for example when permissions changed or a dependent record is
+	 * protected.
+	 *
+	 * It gets the change as a write rule sees one: `type` is `'create'`, `'update'` or `'delete'`,
+	 * `prev` and `next` the record before and after. Reactive: read store state or signals inside it
+	 * and the answer follows. Unset, the editor answers from the session's permissions
+	 * (`editor.getPermissions()`) when the app uses them, and allows everything otherwise.
+	 * `createPermissionPolicy` from `@tldraw/permissions` builds this and `isPermitted` for your own
+	 * record types.
+	 *
+	 * @example
+	 * ```ts
+	 * isChangePermitted={(change) => change.type !== 'delete'}
+	 * ```
+	 *
+	 * @param change - The change: `{ type, prev, next }`.
+	 * @param editor - The editor instance.
+	 */
+	isChangePermitted?(
+		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
+		editor: Editor
+	): boolean
+
+	/**
+	 * Whether the UI should offer a kind of canvas action, for controls with no record to ask
+	 * `isChangePermitted` about: a missing `tl:page:create` disables the new page button, a missing
+	 * `tl:shape:create` the shape tools. Asked by {@link Editor.isPermitted}, after readonly. Unset, the
+	 * session's permissions decide when the app uses them, and nothing is restricted otherwise. Advisory, like `isChangePermitted`. Selecting is never restricted.
+	 *
+	 * @example
+	 * ```ts
+	 * isPermitted={(permission) => permission !== 'tl:page:create'}
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 * @param editor - The editor instance.
+	 */
+	isPermitted?(permission: TLPermission, editor: Editor): boolean
+	/**
 	 * Named theme definitions for the editor. Each theme contains shared
 	 * properties (font size, line height, stroke width) and color palettes
 	 * for both light and dark modes.
@@ -375,6 +427,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
 		textOptions: _textOptions,
 		getShapeVisibility,
+		isChangePermitted,
+		isPermitted,
 		colorScheme,
 		fontAssetUrls,
 		themes,
@@ -385,6 +439,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this.i18n = i18n ?? defaultI18n
 		this._getShapeVisibility = getShapeVisibility
+		this._hostPermissions = atom('hostPermissions', { isChangePermitted, isPermitted })
 
 		// Merge deprecated textOptions prop with options.text
 		// options.text takes precedence over the deprecated textOptions prop
@@ -981,6 +1036,19 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
+		const refusals = this.store.props.collaboration?.refusals
+		if (refusals) {
+			this.disposables.add(
+				refusals.subscribe((refusal) => {
+					this.history.removeRefused(refusal)
+					this.emit('refused', refusal)
+				})
+			)
+		}
+
+		const writeRules = new WriteRuleManager(this)
+		this.disposables.add(() => writeRules.dispose())
+
 		this.disposables.add(
 			react('sync current user record', () => {
 				const user = this.store.props.users.currentUser.get()
@@ -992,6 +1060,117 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	private readonly _getShapeVisibility?: TLEditorOptions['getShapeVisibility']
+	// an atom, not fields: hosts pass new callbacks on re-render, and cached answers must follow
+	private readonly _hostPermissions: Atom<
+		Pick<TLEditorOptions, 'isChangePermitted' | 'isPermitted'>
+	>
+
+	/**
+	 * Swap the `isChangePermitted` and `isPermitted` callbacks without recreating the editor.
+	 *
+	 * @internal
+	 */
+	_setHostPermissions(callbacks: Pick<TLEditorOptions, 'isChangePermitted' | 'isPermitted'>) {
+		this._hostPermissions.set(callbacks)
+	}
+
+	/**
+	 * Whether the UI should offer a change to a record: not on a readonly document, not an update
+	 * or delete of a locked shape (or one under a locked ancestor), and not denied by the
+	 * `isChangePermitted` option. Advisory: it doesn't stop editor methods, and it never asks the
+	 * store's write rule, which judges whole operations rather than one record. Reactive.
+	 *
+	 * @example
+	 * ```ts
+	 * const canDelete = editor.isChangePermitted({ type: 'delete', prev: shape, next: null })
+	 * ```
+	 *
+	 * @param change - The change: `{ type, prev, next }`.
+	 *
+	 * @public
+	 */
+	isChangePermitted(change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>): boolean {
+		if (this.getIsReadonly()) return false
+		const record = change.next ?? change.prev
+		if (
+			record.typeName === 'shape' &&
+			change.type !== 'create' &&
+			this.isShapeOrAncestorLocked(record)
+		) {
+			return false
+		}
+		const { isChangePermitted } = this._hostPermissions.get()
+		const permissions = isChangePermitted ? null : this.getPermissions()
+		// checked only when something applies: an unlicensed check warns
+		if (!isChangePermitted && permissions === null) return true
+		if (!this._arePermissionsLicensed()) return true
+		if (isChangePermitted) return isChangePermitted(change, this)
+		return isChangePermittedByList(permissions, change)
+	}
+
+	/**
+	 * Whether the UI should offer a kind of canvas action: not on a readonly document, and not
+	 * denied by the `isPermitted` option. For controls with no record to ask {@link Editor.isChangePermitted}
+	 * about, such as a button that creates a page. Only knows tldraw's canvas permissions; an app's
+	 * own names belong to its own policy. Advisory and reactive, like `isChangePermitted`.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.isPermitted('tl:page:create')
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 *
+	 * @public
+	 */
+	isPermitted(permission: TLPermission): boolean {
+		if (this.getIsReadonly()) return false
+		const { isPermitted } = this._hostPermissions.get()
+		const permissions = isPermitted ? null : this.getPermissions()
+		if (!isPermitted && permissions === null) return true
+		if (!this._arePermissionsLicensed()) return true
+		if (isPermitted) return isPermitted(permission, this)
+		return isPermittedByList(permissions, permission)
+	}
+
+	/**
+	 * The named permissions this session was granted: by the sync server, kept current as it
+	 * changes them, or without sync by the store's `authorize.getSession`. `null` when the app
+	 * doesn't use named permissions, or there's no session yet. Reactive. Without `isPermitted` and
+	 * `isChangePermitted` options, the editor answers both from this list with the built-in
+	 * mapping (`getRequiredPermission` from `@tldraw/permissions`); with `null`, it allows everything.
+	 *
+	 * @example
+	 * ```ts
+	 * editor.getPermissions() // ['tl:shape:*']
+	 * ```
+	 *
+	 * @public
+	 */
+	getPermissions(): readonly TLPermissionGrant[] | null {
+		const { collaboration, authorize } = this.store.props
+		if (collaboration?.permissions) return collaboration.permissions.get()
+		return authorize?.getSession?.()?.permissions ?? null
+	}
+
+	/**
+	 * Whether client permissions (the store's `authorize`, `isChangePermitted`, `isPermitted`) apply: they need
+	 * the license's `permissions` feature. Still validating counts as licensed, so checks don't
+	 * switch off and on during load. An editor with no license manager (made outside
+	 * `<TldrawEditor />`) is unlicensed. Reactive.
+	 *
+	 * @internal
+	 */
+	_arePermissionsLicensed(): boolean {
+		const license = this.licenseManager
+		if (license && (license.state.get() === 'pending' || license.isFeatureEnabled('permissions'))) {
+			return true
+		}
+		warnOnce(
+			'Client permissions (`authorize`, `isChangePermitted`, `isPermitted`) need a tldraw license with the permissions feature, so this editor ignores them. A sync server still enforces its own rule.'
+		)
+		return false
+	}
 
 	@computed
 	private getIsShapeHiddenCache() {
@@ -1753,7 +1932,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			// one editor operation is one checked unit, however many store operations it makes
+			this.store.checkAsOneOperation(() => this.history.batch(fn, opts))
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
@@ -4472,11 +4652,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return
 		}
-		this.run(
-			() => {
-				this.store.put([user])
-			},
-			{ history: 'ignore' }
+		this.store.runUnchecked(() =>
+			this.run(
+				() => {
+					this.store.put([user])
+				},
+				{ history: 'ignore' }
+			)
 		)
 	}
 
@@ -10976,6 +11158,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	private _pendingEventsForNextTick: TLEventInfo[] = []
 
 	private _flushEventsForTick(elapsed: number) {
+		this._handlingEvents(() => this._runEventsForTick(elapsed))
+	}
+
+	private _runEventsForTick(elapsed: number) {
 		this.run(() => {
 			if (this._pendingEventsForNextTick.length > 0) {
 				const events = [...this._pendingEventsForNextTick]
@@ -10992,6 +11178,51 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	_flushEventForTick(info: TLEventInfo) {
+		return this._handlingEvents(() => this._handleEventForTick(info))
+	}
+
+	private _eventDepth = 0
+	private _wasRefusedDuringEvent = false
+	private _isEndingRefusedInteraction = false
+
+	/**
+	 * A tool that keeps going after the write rule refused part of its gesture would act on records
+	 * that were reverted (a text shape it's editing, a shape it's resizing). Once the event that
+	 * caused a refusal is handled, complete the interaction: work accepted so far stays.
+	 *
+	 * @internal
+	 */
+	_endInteractionAfterRefusal() {
+		if (this._eventDepth > 0) {
+			this._wasRefusedDuringEvent = true
+			return
+		}
+		if (this._isEndingRefusedInteraction) return
+		// an editor made without an initial state has no tool to end
+		const state = this.getCurrentTool()?.getCurrent()
+		if (!state || state.id === 'idle') return
+		this._isEndingRefusedInteraction = true
+		try {
+			this._flushEventForTick({ type: 'misc', name: 'complete' })
+		} finally {
+			this._isEndingRefusedInteraction = false
+		}
+	}
+
+	private _handlingEvents<T>(fn: () => T): T {
+		this._eventDepth++
+		try {
+			return fn()
+		} finally {
+			this._eventDepth--
+			if (this._eventDepth === 0 && this._wasRefusedDuringEvent) {
+				this._wasRefusedDuringEvent = false
+				this._endInteractionAfterRefusal()
+			}
+		}
+	}
+
+	private _handleEventForTick(info: TLEventInfo) {
 		// prevent us from spamming similar event errors if we're crashed.
 		// todo: replace with new readonly mode?
 		if (this.getCrashingError()) return this

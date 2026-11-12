@@ -66,6 +66,7 @@ export {
 	type TLPresenceMode,
 	type TLSocketStatusChangeEvent,
 	type TLSocketStatusListener,
+	type TLSyncClientRefusal,
 } from './lib/TLSyncClient'
 export {
 	TLSyncRoom,

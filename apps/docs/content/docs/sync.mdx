@@ -415,7 +415,7 @@ room.handleSocketConnect({
 })
 ```
 
-The permissions are sent to the client too, so a rule that reads them can give the same answer there. For facts you don't want the client to see, pass `meta` instead: the rule reads it as `session.meta`, and it never leaves the server.
+The permissions are sent to the client too, so the same rule gives the same answer in the editor, and the UI can follow them (see [Showing what someone can do](#showing-what-someone-can-do)). For facts you don't want the client to see, pass `meta` instead: the rule reads it as `session.meta`, and it never leaves the server.
 
 Leave `permissions` out and they're `null`: the app doesn't use named permissions, and nothing about them changes for that session. `[]` is different: granted nothing. `isPermitted` and `getMissingPermission` treat `null` as nothing granted too, so if one of your connect paths forgets the list, a rule that asks refuses rather than letting everything through. Watch out for `user.permissions ?? []` in your server code: it turns "not in use" into "nothing allowed".
 
@@ -528,6 +528,110 @@ A refused push is discarded whole; nothing in it is stored. The room tells the s
 - Server-side writes through [TLSocketRoom#updateStore](?) or [TLSocketRoom#loadSnapshot](?). These have no session and are never authorized; check permissions before calling them.
 - Presence records (cursors, selections). They are per session and never authorized.
 - Malformed records. Schema validation runs before the rule and disconnects the client with an error rather than refusing.
+
+#### Running the rule in the editor
+
+The same rule can run in the editor too, so a change the room would refuse is reverted before it's sent. Pass it to `useSync`:
+
+```tsx
+const store = useSync({ uri, assets, authorize: { rule: authorize } })
+```
+
+The room sends its `objectTypes` on connect, so the editor knows which records `access.objects` covers. The editor judges it the way the room does: the session's `access` first, then the rule. The unit is one editor operation (one `editor.run`, side effects included), so a group, a delete and its binding cleanup are judged whole. The session is what the server granted: `userId` and `access` from connect, and `permissions`, kept current as the server updates them. Until the first connect every change is refused. A rule that reads a database or other server-only data can only run on the server.
+
+The room's `meta` isn't sent to the client, so `session.meta` is undefined in the editor. Keep `meta` for server-only facts; anything the editor's copy of the rule needs to know goes in `permissions`, as names of your own if needed (`classroom:manage`, `plan:pro`).
+
+The write rule enforces submitted client changes on the server and configured local edits in the editor. The editor's check covers its own document writes, not uploads or other effects your code starts. The two also group changes differently, the editor by operation and the server by push, so their answers can differ. The room stays the authority: whatever the editor lets through, it judges again, and its answer is the one that counts.
+
+When the editor refuses a change, it reverts it before history or sync see it, so there's nothing to undo and nothing is pushed. The interaction in progress ends, keeping what was accepted earlier in it: a drag stops where the last allowed frame put the shape. History is left as it was too, redo included, and an undo or redo the rule refuses changes nothing. Listen for both kinds of refusal with `editor.on('refused', ...)`; `source` is `'local'` or `'server'`.
+
+Without sync, give the store its rule directly: `createTLStore({ authorize: { rule } })`, or the `authorize` prop on `<Tldraw />` when it creates the store. By default there is no user (`session.userId` is `null`) and access is `'write'`, and `permissions` is `null`, so a rule that reads `session.userId` or `session.permissions`, such as ownership, needs `getSession` too. So does an app that switches users or acts for an agent:
+
+```tsx
+<Tldraw
+	authorize={{
+		rule,
+		getSession: () => ({ sessionId: 'local', userId, meta, access, permissions }),
+	}}
+/>
+```
+
+Changes made offline aren't judged again on reconnect. They're sent as one push, so if the room now refuses one of them (access or permissions changed in the meantime), it refuses all of them.
+
+Client permissions need a tldraw license with the permissions feature, which collaboration licenses include. Without one the editor ignores `authorize`, `isChangePermitted` and `isPermitted`, and logs a warning; your server still enforces its rule. An [Editor](?) created outside `<TldrawEditor />` has no license manager, so it skips them too.
+
+#### Showing what someone can do
+
+The rule judges whole operations after the fact, so the UI can't ask it whether to show a button: one record on its own isn't the whole operation (deleting a frame also deletes its children). The editor asks two questions instead, before the user does anything:
+
+- [Editor#isPermitted](?): is this kind of action available at all? For controls with no record yet: the new page button asks `tl:page:create`, the drawing tools ask `tl:shape:create` and `tl:shape:update`. A student holding `['tl:shape:*']` gets a disabled new page button.
+- [Editor#isChangePermitted](?): may this record change this way? For controls tied to one shape or page: drag, resize, handles, text editing, the eraser, renaming or deleting a page. It gets the change as a rule sees one, `{ type: 'update', prev, next }`. With an ownership policy, your own shapes get handles and other people's don't.
+
+Each is answered in this order:
+
+1. Readonly and locked shapes, always.
+2. Your app's `isPermitted` or `isChangePermitted` option, if you pass one.
+3. Otherwise the session's permissions, [Editor#getPermissions](?), with the built-in mapping (`getRequiredPermission`), so the UI agrees with a rule that reads the same list and follows every update. There's nothing to pass:
+
+   ```tsx
+   <Tldraw store={store} />
+   ```
+
+4. With `null` permissions (not in use), everything is allowed.
+
+A list of names covers `isPermitted` and the simple cases of `isChangePermitted`. Policies that depend on the record itself, like who owns it, which page it's on or a custom shape type, need your own `isChangePermitted`. `createPermissionPolicy` from `@tldraw/permissions` builds both options, for example with permissions for your own record types:
+
+```tsx
+const policy = createPermissionPolicy(undefined, { types: { sticker: 'stickers:edit' } })
+
+<Tldraw store={store} isChangePermitted={policy.isChangePermitted} isPermitted={policy.isPermitted} />
+```
+
+Neither question stops anything: editor methods still try the change, and the rule decides. The UI can still offer something the rule then refuses, for example when permissions change or a record the operation depends on is protected. Selecting is never restricted.
+
+#### Keeping people off each other's shapes
+
+A rule that allows creating shapes but not updating them can't draw: tools create a shape on pointer down and update it on every drag frame. To keep people off each other's shapes, write it as ownership instead. The editor stamps the creator on every shape the user creates, before the rule sees it, and the rule checks the stamp against the session:
+
+```ts
+// stamps meta.createdBy on shapes this user creates; copies become theirs
+function stampOwnership(editor: Editor, getUserId: () => string | null) {
+	// moveShapesToPage deletes and re-creates with the same ids: that's a move, keep the owner
+	const recreated = new Map<TLShapeId, unknown>()
+	editor.sideEffects.registerBeforeDeleteHandler('shape', (shape, source) => {
+		if (source !== 'user') return
+		if (recreated.size === 0) queueMicrotask(() => recreated.clear())
+		recreated.set(shape.id, shape.meta.createdBy)
+	})
+	editor.sideEffects.registerBeforeCreateHandler('shape', (shape, source) => {
+		// remote shapes keep the server's owner, undo restores the one it had
+		if (source !== 'user' || editor.isReplayingHistory()) return shape
+		const createdBy = recreated.has(shape.id) ? recreated.get(shape.id) : getUserId()
+		return { ...shape, meta: { ...shape.meta, createdBy } }
+	})
+}
+
+// yours to change, unless you manage the board; ownership itself never changes
+const ownership: TLWriteRule<TLRecord> = ({ session, changes }) => {
+	const me = session.userId
+	const manage = isPermitted(session.permissions, 'board:manage')
+	const mine = (shape: TLShape) => !!me && (shape.meta.createdBy === me || manage)
+	for (const c of changes) {
+		const shape = (c.next ?? c.prev) as TLShape
+		if (shape.typeName !== 'shape') continue
+		const ok =
+			c.type === 'create'
+				? !!me && (c.next.meta.createdBy === me || manage)
+				: c.type === 'update'
+					? mine(c.prev as TLShape) && c.next.meta.createdBy === c.prev.meta.createdBy
+					: mine(c.prev as TLShape)
+		if (!ok) return { reason: 'not yours', ids: [shape.id] }
+	}
+	return null
+}
+```
+
+Run the stamp from `onMount` with the session's `userId`, not the attribution user. The rule is what makes the stamp trustworthy: the room refuses a create stamped with someone else's id. Anonymous sessions own nothing. Decide what undoing a deletion of someone else's shape should do: here it's allowed for whoever manages the board, since the restored shape keeps its owner.
 
 ### Comments and the object-store lane
 

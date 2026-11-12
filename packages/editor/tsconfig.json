@@ -16,6 +16,7 @@
 		"types": ["node", "vitest/globals", "vitest"]
 	},
 	"references": [
+		{ "path": "../permissions" },
 		{ "path": "../state" },
 		{ "path": "../state-react" },
 		{ "path": "../store" },

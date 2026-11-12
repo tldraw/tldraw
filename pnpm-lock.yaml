@@ -1607,6 +1607,9 @@ importers:
       '@tiptap/react':
         specifier: ^3.12.1
         version: 3.13.0(@floating-ui/dom@1.6.1)(@tiptap/core@3.13.0(@tiptap/pm@3.13.0))(@tiptap/pm@3.13.0)(@types/react-dom@19.2.3(@types/react@19.2.7))(@types/react@19.2.7)(react-dom@19.2.1(@types/react@19.2.7)(react@19.2.1))(react@19.2.1)
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../permissions
       '@tldraw/state':
         specifier: workspace:*
         version: link:../state

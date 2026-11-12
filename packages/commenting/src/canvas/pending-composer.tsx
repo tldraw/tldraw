@@ -20,7 +20,7 @@ import {
 	NEW_COMMENT_DRAFT,
 	saveCommentDraft,
 } from './comment-drafts'
-import { commitCommentMutation } from './comment-mutations'
+import { commitCommentPost } from './comment-mutations'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { PendingComment } from './comment-tool'
 import { type CommentingContext } from './context'
@@ -97,7 +97,7 @@ export function PendingComposer({
 
 	const submit = () => {
 		if (isCommentEmpty(text) || !currentUserId) return
-		const comment = commitCommentMutation(editor, ({ put }) => {
+		const comment = commitCommentPost(editor, ({ put }) => {
 			const pageId = editor.getCurrentPageId()
 			const thread = createCommentThread({
 				pageId,
@@ -113,6 +113,8 @@ export function PendingComposer({
 			put([thread, comment])
 			return comment
 		})
+		// refused: keep the draft, the editor already said why
+		if (!comment) return
 		setText(EMPTY_COMMENT)
 		clearCommentDraft(NEW_COMMENT_DRAFT)
 		pendingComment.set(editor, null)

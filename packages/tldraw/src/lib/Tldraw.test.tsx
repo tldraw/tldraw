@@ -1,6 +1,7 @@
 import { act, screen } from '@testing-library/react'
 import { BaseBoxShapeUtil, Editor, StateNode, TLStateNodeConstructor } from '@tldraw/editor'
 import { useState } from 'react'
+import { vi } from 'vitest'
 import {
 	renderTldrawComponent,
 	renderTldrawComponentWithEditor,
@@ -127,6 +128,15 @@ describe('<Tldraw />', () => {
 		expect(editor!.root.children!['eraser']).toBeDefined()
 		expect(editor!.root.children!['hand']).toBeDefined()
 		expect(editor!.root.children!['zoom']).toBeDefined()
+	})
+
+	it('leaves getSession omitted when the authorize prop omits it', async () => {
+		const rule = vi.fn(() => null)
+		const { editor } = await renderTldrawComponentWithEditor(
+			(onMount) => <Tldraw hideUi authorize={{ rule }} onMount={onMount} />,
+			{ waitForPatterns: false }
+		)
+		expect(editor.store.props.authorize?.getSession).toBeUndefined()
 	})
 
 	it('keyboard shortcuts work when hideUi is true', async () => {

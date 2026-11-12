@@ -14,6 +14,7 @@ import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -1755,6 +1756,13 @@ export type TLRecordChange<R extends UnknownRecord = UnknownRecord> = {
 };
 
 // @public
+export interface TLRefusal extends TLWriteRefusal {
+    changes?: RecordsDiff<TLRecord>;
+    // (undocumented)
+    source: 'local' | 'server';
+}
+
+// @public
 export interface TLRemovedDefaultThemeColors {
 }
 
@@ -1816,9 +1824,22 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public
+export interface TLStoreAuthorize<Meta = unknown> {
+    getSession?(): null | TLWriteRuleSession<Meta>;
+    objectTypes?: readonly string[];
+    // (undocumented)
+    rule: TLWriteRule<TLRecord, Meta>;
+}
+
+// @public
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
+    authorize?: TLStoreAuthorize<any>;
     collaboration?: {
+        refusals?: {
+            subscribe(listener: (refusal: TLRefusal) => void): () => void;
+        } | null;
+        permissions?: null | Signal<null | readonly TLPermissionGrant[]>;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };

@@ -8,8 +8,8 @@ import {
 	Store,
 	UnknownRecord,
 } from '@tldraw/store'
-import { exhaustiveSwitchError, noop } from '@tldraw/utils'
-import { TLHistoryBatchOptions, TLHistoryEntry } from '../../types/history-types'
+import { exhaustiveSwitchError, isEqual, noop } from '@tldraw/utils'
+import { TLHistoryBatchOptions, TLHistoryDiff, TLHistoryEntry } from '../../types/history-types'
 
 const HistoryRecorderState = {
 	Recording: 'recording',
@@ -42,8 +42,9 @@ export class HistoryManager<R extends UnknownRecord> {
 	constructor(opts: { store: Store<R>; annotateError?(error: unknown): void }) {
 		this.store = opts.store
 		this.annotateError = opts.annotateError ?? noop
-		this.dispose = this.store.addHistoryInterceptor((entry, source) => {
+		const stopIntercepting = this.store.addHistoryInterceptor((entry, source) => {
 			if (source !== 'user') return
+			if (this.state !== HistoryRecorderState.Paused) this.keepForRefusal()
 
 			switch (this.state) {
 				case HistoryRecorderState.Recording:
@@ -63,6 +64,33 @@ export class HistoryManager<R extends UnknownRecord> {
 					exhaustiveSwitchError(this.state)
 			}
 		})
+		const stopSettling = this.store.onCheckedOperationSettled((outcome) => {
+			const kept = this.keptForRefusal
+			this.keptForRefusal = null
+			// an aborted operation's transaction rolled the stacks back already, but not the pending
+			// diff, which isn't an atom
+			if (outcome !== 'accepted' && kept) {
+				this.stacks.set(kept.stacks)
+				this.pendingDiff.restore(kept.pendingDiff)
+			}
+		})
+		this.dispose = () => {
+			stopIntercepting()
+			stopSettling()
+		}
+	}
+
+	// History as it was when the checked operation in progress first touched it. A refused or
+	// aborted operation leaves no trace in history, so this is put back: a redo stack the edit
+	// cleared, the steps an undo or bail inside an outer operation moved.
+	private keptForRefusal: {
+		stacks: { undos: Stack<TLHistoryEntry<R>>; redos: Stack<TLHistoryEntry<R>> }
+		pendingDiff: RecordsDiff<R>
+	} | null = null
+
+	private keepForRefusal() {
+		if (this.keptForRefusal || !this.store.isInCheckedOperation()) return
+		this.keptForRefusal = { stacks: this.stacks.get(), pendingDiff: this.pendingDiff.copy() }
 	}
 
 	private flushPendingDiff() {
@@ -73,6 +101,51 @@ export class HistoryManager<R extends UnknownRecord> {
 			undos: undos.push({ type: 'diff', diff }),
 			redos,
 		}))
+	}
+
+	/**
+	 * Take a change the server refused out of the undo and redo stacks, so undo can't replay a step
+	 * that never happened. With `changes` (the refused change as the user made it) only the refused
+	 * fields are taken out of that chain of steps: from the newest step that wrote the user's
+	 * version back to the server's version; a step left empty is removed. Newer steps on those records (pushes still pending)
+	 * are kept, rebased to start from where the chain started. With ids alone, every step on those
+	 * records is dropped. Redo steps on those records are always dropped.
+	 *
+	 * @internal
+	 */
+	removeRefused(refusal: { ids?: readonly string[]; changes?: RecordsDiff<R> }) {
+		this.keepForRefusal()
+		this.flushPendingDiff()
+		const { undos, redos } = this.stacks.get()
+		if (undos.length === 0 && redos.length === 0) return
+
+		const changes = refusal.changes
+		const ids = new Set<string>(
+			changes
+				? [
+						...Object.keys(changes.added),
+						...Object.keys(changes.updated),
+						...Object.keys(changes.removed),
+					]
+				: (refusal.ids ?? [])
+		)
+		if (ids.size === 0) return
+
+		const undoEntries = stackToArray(undos).slice()
+		if (changes) {
+			for (const id of ids) subtractRefusedChain(undoEntries, id, changes)
+		} else {
+			for (const id of ids) dropRecord(undoEntries, id)
+		}
+		const redoEntries = stackToArray(redos).slice()
+		for (const id of ids) dropRecord(redoEntries, id)
+
+		// a mark with nothing left under it would make getCanUndo() true for no work
+		for (const entries of [undoEntries, redoEntries]) {
+			while (entries.length > 0 && entries[entries.length - 1].type === 'stop') entries.pop()
+		}
+
+		this.stacks.set({ undos: arrayToStack(undoEntries), redos: arrayToStack(redoEntries) })
 	}
 
 	getNumUndos() {
@@ -125,7 +198,20 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	// History
-	_undo({ pushToRedoStack, toMark = undefined }: { pushToRedoStack: boolean; toMark?: string }) {
+	_undo(opts: { pushToRedoStack: boolean; toMark?: string }) {
+		// an undo is judged like any other change; refused, it leaves history where it was
+		this.store.checkAsOneOperation(() => this._undoUnchecked(opts))
+		return this
+	}
+
+	private _undoUnchecked({
+		pushToRedoStack,
+		toMark = undefined,
+	}: {
+		pushToRedoStack: boolean
+		toMark?: string
+	}) {
+		this.keepForRefusal()
 		const previousState = this.state
 		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
@@ -208,6 +294,12 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	redo() {
+		this.store.checkAsOneOperation(() => this._redoUnchecked())
+		return this
+	}
+
+	private _redoUnchecked() {
+		this.keepForRefusal()
 		const previousState = this.state
 		const previousIsReplaying = this._isReplaying
 		this.state = HistoryRecorderState.Paused
@@ -266,6 +358,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	squashToMark(id: string) {
+		this.keepForRefusal()
 		// remove marks between head and the mark
 
 		let top = this.stacks.get().undos
@@ -302,6 +395,7 @@ export class HistoryManager<R extends UnknownRecord> {
 
 	/** @internal */
 	_mark(id: string) {
+		this.keepForRefusal()
 		transact(() => {
 			this.flushPendingDiff()
 			this.stacks.update(({ undos, redos }) => ({ undos: undos.push({ type: 'stop', id }), redos }))
@@ -309,6 +403,7 @@ export class HistoryManager<R extends UnknownRecord> {
 	}
 
 	clear() {
+		this.keepForRefusal()
 		this.stacks.set({ undos: stack(), redos: stack() })
 		this.pendingDiff.clear()
 	}
@@ -351,6 +446,12 @@ class PendingDiff<R extends UnknownRecord> {
 		const diff = this.diff
 		this.diff = createEmptyRecordsDiff<R>()
 		this.isEmptyAtom.set(true)
+		return diff
+	}
+
+	copy() {
+		const diff = createEmptyRecordsDiff<R>()
+		squashRecordDiffsMutable(diff, [this.diff])
 		return diff
 	}
 
@@ -417,6 +518,233 @@ class StackItem<T> {
 	push(head: T): Stack<T> {
 		return new StackItem(head, this)
 	}
+}
+
+/** Entries are newest first, like the stacks. */
+function arrayToStack<T>(entries: T[]): Stack<T> {
+	let result = stack<T>()
+	for (let i = entries.length - 1; i >= 0; i--) result = result.push(entries[i])
+	return result
+}
+
+type RecordState<R> = R | undefined
+
+/** A record's state before and after one history step, or null if the step didn't touch it. */
+function getStepStates<R extends UnknownRecord>(
+	diff: RecordsDiff<R>,
+	id: string
+): [RecordState<R>, RecordState<R>] | null {
+	if (id in diff.added) return [undefined, diff.added[id as R['id']]]
+	if (id in diff.updated) return diff.updated[id as R['id']]
+	if (id in diff.removed) return [diff.removed[id as R['id']], undefined]
+	return null
+}
+
+function withoutRecord<R extends UnknownRecord>(diff: RecordsDiff<R>, id: string): RecordsDiff<R> {
+	const omit = <T>(map: Record<string, T>) =>
+		Object.fromEntries(Object.entries(map).filter(([key]) => key !== id))
+	return {
+		added: omit(diff.added),
+		updated: omit(diff.updated),
+		removed: omit(diff.removed),
+	} as RecordsDiff<R>
+}
+
+/** Remove a record's changes from entries (newest first); an entry left empty is removed. */
+function dropRecord<R extends UnknownRecord>(entries: TLHistoryEntry<R>[], id: string) {
+	for (let i = entries.length - 1; i >= 0; i--) {
+		const entry = entries[i]
+		if (entry.type !== 'diff' || !getStepStates(entry.diff, id)) continue
+		const diff = withoutRecord(entry.diff, id)
+		if (isRecordsDiffEmpty(diff)) entries.splice(i, 1)
+		else entries[i] = { type: 'diff', diff }
+	}
+}
+
+function subtractRefusedChain<R extends UnknownRecord>(
+	entries: TLHistoryEntry<R>[],
+	id: string,
+	refused: RecordsDiff<R>
+) {
+	let user: RecordState<R>
+	let server: RecordState<R>
+	if (id in refused.added) {
+		;[server, user] = [undefined, refused.added[id as R['id']]]
+	} else if (id in refused.updated) {
+		;[server, user] = refused.updated[id as R['id']]
+	} else {
+		;[server, user] = [refused.removed[id as R['id']], undefined]
+	}
+
+	if (isEqual(user, server)) return
+	// Steps of pushes still pending sit above the refused chain, so its head is the newest step
+	// that wrote the refused values, not simply the newest step on the record.
+	const refusedPaths = changedPaths(server, user)
+	let head = -1
+	let refusedState: RecordState<R> = undefined
+	for (let i = 0; i < entries.length && head === -1; i++) {
+		const states = getEntryStates(entries[i], id)
+		if (
+			states &&
+			agreesOn(states[1], user, refusedPaths) &&
+			!agreesOn(states[0], user, refusedPaths)
+		) {
+			head = i
+			refusedState = states[1]
+		}
+	}
+	if (head === -1) return
+
+	const chain: number[] = []
+	let current = refusedState
+	for (let i = head; i < entries.length; i++) {
+		const states = getEntryStates(entries[i], id)
+		if (!states) continue
+		// a step that doesn't continue the chain means the record moved on without us: leave it
+		if (!isEqual(states[1], current)) break
+		chain.push(i)
+		current = states[0]
+	}
+
+	// Each refused field reaches back to the step that moved it off the server's value. A field
+	// no step brings back (a peer changed it since) extends nothing, or accepted steps would go.
+	const reach = new Map<string, number>()
+	for (const path of refusedPaths) {
+		const only = new Set([path])
+		const k = chain.findIndex((i) => agreesOn(getEntryStates(entries[i], id)![0], server, only))
+		if (k !== -1) reach.set(path, k)
+	}
+
+	// One step can hold several pushes: take out only the refused fields, so an accepted change
+	// in the same step stays undoable. Oldest first, so splicing keeps newer indices valid.
+	for (let k = chain.length - 1; k >= 0; k--) {
+		const paths = new Set([...reach].filter(([, end]) => end >= k).map(([path]) => path))
+		if (paths.size === 0) continue
+		const i = chain[k]
+		if (paths.has(EXISTS)) {
+			setStepStates(entries, i, id, null)
+			continue
+		}
+		const [before, after] = getEntryStates(entries[i], id)!
+		const before2 = withValuesAt(before, server, paths)
+		const after2 = withValuesAt(after, server, paths)
+		setStepStates(entries, i, id, isEqual(before2, after2) ? null : [before2, after2])
+	}
+
+	// Newer steps still hold the refused values, and undo or redo would write them back: move
+	// each refused field to the server's value until a newer step changes it.
+	const refusedFields = new Set(reach.keys())
+	for (let i = head - 1; i >= 0 && refusedFields.size > 0; i--) {
+		const states = getEntryStates(entries[i], id)
+		if (!states) continue
+		// a refused create or delete leaves no version for newer steps to build on
+		if (refusedFields.has(EXISTS)) {
+			setStepStates(entries, i, id, null)
+			continue
+		}
+		const [before, after] = states
+		const before2 = withValuesAt(before, server, refusedFields)
+		for (const path of refusedFields) {
+			if (!isEqual(valueAt(after, path), valueAt(refusedState, path))) refusedFields.delete(path)
+		}
+		const after2 = withValuesAt(after, server, refusedFields)
+		setStepStates(entries, i, id, isEqual(before2, after2) ? null : [before2, after2])
+	}
+}
+
+function getEntryStates<R extends UnknownRecord>(entry: TLHistoryEntry<R>, id: string) {
+	return entry.type === 'diff' ? getStepStates(entry.diff, id) : null
+}
+
+/** Replace a step's change to a record, or remove it with null; true if the entry was removed. */
+function setStepStates<R extends UnknownRecord>(
+	entries: TLHistoryEntry<R>[],
+	i: number,
+	id: string,
+	states: [RecordState<R>, RecordState<R>] | null
+) {
+	const diff = withoutRecord((entries[i] as TLHistoryDiff<R>).diff, id)
+	if (states) {
+		const [before, after] = states
+		if (before && after) diff.updated[id as R['id']] = [before, after]
+		else if (after) diff.added[id as R['id']] = after
+		else if (before) diff.removed[id as R['id']] = before
+	}
+	if (isRecordsDiffEmpty(diff)) {
+		entries.splice(i, 1)
+		return true
+	}
+	entries[i] = { type: 'diff', diff }
+	return false
+}
+
+// The path for "the record exists"; every other path is dot-joined keys.
+const EXISTS = ''
+
+function changedPaths(a: unknown, b: unknown): Set<string> {
+	const out = new Set<string>()
+	if (a === undefined || b === undefined) {
+		if (a !== b) out.add(EXISTS)
+		return out
+	}
+	collectChangedPaths(a, b, '', out)
+	return out
+}
+
+function collectChangedPaths(a: any, b: any, prefix: string, out: Set<string>) {
+	for (const key of new Set([...Object.keys(a), ...Object.keys(b)])) {
+		if (isEqual(a[key], b[key])) continue
+		if (isPlainObject(a[key]) && isPlainObject(b[key])) {
+			collectChangedPaths(a[key], b[key], `${prefix}${key}.`, out)
+		} else {
+			out.add(prefix + key)
+		}
+	}
+}
+
+function agreesOn(a: unknown, b: unknown, paths: Set<string>) {
+	for (const path of paths) {
+		if (path === EXISTS) {
+			if ((a === undefined) !== (b === undefined)) return false
+		} else if (!isEqual(valueAt(a, path), valueAt(b, path))) {
+			return false
+		}
+	}
+	return true
+}
+
+function valueAt(record: unknown, path: string) {
+	let value: any = record
+	for (const key of path.split('.')) value = value?.[key]
+	return value
+}
+
+/** A copy of `record` with `source`'s value at each path. */
+function withValuesAt<R extends UnknownRecord>(
+	record: RecordState<R>,
+	source: RecordState<R>,
+	paths: Set<string>
+): RecordState<R> {
+	if (!record || !source || paths.size === 0) return record
+	const out: any = { ...record }
+	for (const path of paths) {
+		const keys = path.split('.')
+		let target = out
+		let from: any = source
+		for (const key of keys.slice(0, -1)) {
+			target[key] = { ...target[key] }
+			target = target[key]
+			from = from?.[key]
+		}
+		const last = keys[keys.length - 1]
+		if (from && last in from) target[last] = from[last]
+		else delete target[last]
+	}
+	return out
+}
+
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
 function stackToArray<T>(stack: Stack<T>) {

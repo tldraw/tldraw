@@ -691,7 +691,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         onCustomMessageReceived?: TLCustomMessageHandler;
         onLoad(self: TLSyncClient<R, S>): void;
         onPermissionsChanged?(permissions: null | readonly TLPermissionGrant[]): void;
-        onPushRefused?(refusal: TLSyncRefusal): void;
+        onPushRefused?(refusal: TLSyncClientRefusal<R>): void;
         onSyncError(reason: string): void;
         presence: Signal<null | R>;
         presenceMode?: Signal<TLPresenceMode>;
@@ -711,6 +711,12 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
     readonly socket: TLPersistentClientSocket<TLSocketClientSentEvent<R>, TLSocketServerSentEvent<R>>;
     // @internal (undocumented)
     readonly store: S;
+}
+
+// @public
+export interface TLSyncClientRefusal<R extends UnknownRecord> extends TLSyncRefusal {
+    // (undocumented)
+    changes?: RecordsDiff<R>;
 }
 
 // @public

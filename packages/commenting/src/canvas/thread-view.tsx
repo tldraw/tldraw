@@ -31,7 +31,7 @@ import {
 	saveCommentDraft,
 } from './comment-drafts'
 import {
-	commitCommentMutation,
+	commitCommentPost,
 	deleteComment,
 	deleteThread,
 	editComment,
@@ -411,7 +411,7 @@ export const ThreadView = memo(function ThreadView({
 
 	const postReply = () => {
 		if (isCommentEmpty(reply) || !currentUserId) return
-		const comment = commitCommentMutation(editor, ({ put }) => {
+		const comment = commitCommentPost(editor, ({ put }) => {
 			const comment = createComment({
 				threadId: thread.id,
 				pageId: thread.pageId,
@@ -421,6 +421,8 @@ export const ThreadView = memo(function ThreadView({
 			put([comment])
 			return comment
 		})
+		// refused: keep the draft, the editor already said why
+		if (!comment) return
 		setReply(EMPTY_COMMENT)
 		clearCommentDraft(replyDraftSlot(thread.id))
 		// The host's callback is its own operation, not part of the post's history scope. It runs
