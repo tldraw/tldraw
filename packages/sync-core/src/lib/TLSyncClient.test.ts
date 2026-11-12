@@ -1405,6 +1405,92 @@ describe('TLSyncClient', () => {
 		})
 	})
 
+	// A hidden tab gets no animation frames, so nothing scheduled on one ever runs.
+	describe('flushChanges, with no animation frames', () => {
+		beforeEach(() => {
+			// @ts-expect-error - testing flag
+			globalThis.__FORCE_RAF_IN_TESTS__ = true
+			vi.stubGlobal('requestAnimationFrame', () => 1)
+			vi.stubGlobal('cancelAnimationFrame', () => {})
+			connectClient()
+			socket.clearSentMessages()
+		})
+
+		afterEach(() => {
+			// @ts-expect-error - testing flag
+			delete globalThis.__FORCE_RAF_IN_TESTS__
+			vi.unstubAllGlobals()
+		})
+
+		const confirm = (clientClock: number, action: 'commit' | 'discard' = 'commit') =>
+			socket.mockServerMessage({
+				type: 'data',
+				data: [{ type: 'push_result', clientClock, serverClock: 2, action }],
+			})
+
+		it('sends local changes without waiting for a frame, and resolves once they are committed', async () => {
+			const page = makePage('Hidden Page')
+			store.put([page])
+			expect(getSentPushes()).toHaveLength(0)
+
+			let committed: boolean | undefined
+			const flushed = client.flushChanges().then((result) => (committed = result))
+			const [push] = getSentPushes()
+			expect(push.diff).toEqual({ [page.id]: [RecordOpType.Put, page] })
+
+			await Promise.resolve()
+			expect(committed).toBeUndefined()
+
+			confirm(push.clientClock)
+			await flushed
+			expect(committed).toBe(true)
+			expect(store.get(page.id)).toEqual(page)
+		})
+
+		it('applies changes from the server before sending', async () => {
+			const serverPage = makePage('Server Page')
+			socket.mockServerMessage({
+				type: 'data',
+				data: [
+					{
+						type: 'patch',
+						serverClock: 2,
+						diff: { [serverPage.id]: [RecordOpType.Put, serverPage] },
+					},
+				],
+			})
+			expect(store.has(serverPage.id)).toBe(false)
+
+			expect(await client.flushChanges()).toBe(true)
+			expect(store.get(serverPage.id)).toEqual(serverPage)
+			expect(getSentPushes()).toHaveLength(0)
+		})
+
+		it('resolves false when the server discards the changes', async () => {
+			store.put([makePage('Rejected Page')])
+			const flushed = client.flushChanges()
+			confirm(getSentPushes()[0].clientClock, 'discard')
+
+			expect(await flushed).toBe(false)
+		})
+
+		it('resolves false when the connection drops before the server answers', async () => {
+			store.put([makePage('Unanswered Page')])
+			const flushed = client.flushChanges()
+			socket.mockConnectionStatus('offline')
+
+			expect(await flushed).toBe(false)
+		})
+
+		it('resolves false while offline, without sending anything', async () => {
+			socket.mockConnectionStatus('offline')
+			store.put([makePage('Offline Page')])
+
+			expect(await client.flushChanges()).toBe(false)
+			expect(getSentPushes()).toHaveLength(0)
+		})
+	})
+
 	describe('21. receiving and rebasing (CR)', () => {
 		it('[CR1] drops data events that arrive before the room connection is established', () => {
 			client = createClient()

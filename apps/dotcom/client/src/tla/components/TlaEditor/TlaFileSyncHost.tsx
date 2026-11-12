@@ -106,6 +106,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
 	const editorRef = useRef<Editor | null>(null)
+	// A ref for the same reason as the editor: the message handler reads it when a job arrives.
+	const flushChangesRef = useRef<(() => Promise<boolean>) | null>(null)
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -136,7 +138,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 					return
 				}
 				if (message.type === 'mcp_tab_render') {
-					void answerTabRender(editorRef.current, fileSlug, message)
+					void answerTabRender(editorRef.current, flushChangesRef.current, fileSlug, message)
 					return
 				}
 				trackEvent(message.type)
@@ -154,6 +156,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			[fileLoad]
 		),
 	})
+
+	flushChangesRef.current = store.status === 'synced-remote' ? store.flushChanges : null
 
 	const navigate = useNavigate()
 	const location = useLocation()

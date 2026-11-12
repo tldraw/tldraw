@@ -110,6 +110,14 @@ export type RemoteTLStoreWithStatus =
 			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
 			 */
 			readonly objectAccess: TLObjectStoreAccess
+			/**
+			 * Sends local changes now rather than on the next animation frame, which a hidden tab
+			 * never gets, and resolves `true` once the server has committed them. See
+			 * `TLSyncClient.flushChanges`.
+			 *
+			 * @internal
+			 */
+			flushChanges(): Promise<boolean>
 	  })
 
 /**
@@ -411,10 +419,22 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
 				objectAccess: state.objectAccess ?? 'write',
+				flushChanges: flushChangesFor(state.readyClient),
 			}
 		},
 		[state]
 	)
+}
+
+// One function per client, so the value above doesn't change identity on every read.
+const flushChangesByClient = new WeakMap<TLSyncClient<TLRecord, TLStore>, () => Promise<boolean>>()
+function flushChangesFor(client: TLSyncClient<TLRecord, TLStore>) {
+	let flushChanges = flushChangesByClient.get(client)
+	if (!flushChanges) {
+		flushChanges = () => client.flushChanges()
+		flushChangesByClient.set(client, flushChanges)
+	}
+	return flushChanges
 }
 
 /**
