@@ -24,6 +24,7 @@ import {
 } from '../../menu-items/menu-items'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import { TlaUserAvatar } from '../../TlaUserAvatar/TlaUserAvatar'
 import styles from '../sidebar.module.css'
 
 const messages = defineMessages({
@@ -57,7 +58,7 @@ export function TlaUserSettingsMenu() {
 							onMenuOpenChange(true)
 						}}
 					>
-						<TlaIcon icon="avatar" className={styles.sidebarUserSettingsAvatarIcon} />
+						<TlaUserAvatar user={user} className={styles.sidebarUserSettingsAvatar} />
 						<div
 							className={classNames(
 								styles.sidebarUserSettingsName,

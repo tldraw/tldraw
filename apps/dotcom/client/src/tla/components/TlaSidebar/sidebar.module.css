@@ -378,10 +378,12 @@
 	inset: 2px 0px;
 }
 
-.sidebarUserSettingsAvatarIcon {
-	flex: 0 0 auto;
-	color: var(--tl-color-text-0);
-	margin-inline-end: 6px;
+/* 20px circle on the 15px icon column: the margins keep its centre and the name's start in line with the rows above. */
+.sidebarUserSettingsAvatar {
+	width: 20px;
+	height: 20px;
+	font-size: 11px;
+	margin-inline: -2.5px 3.5px;
 }
 
 .sidebarUserSettingsName {

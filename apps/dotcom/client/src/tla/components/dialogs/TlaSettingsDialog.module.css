@@ -102,14 +102,7 @@
 .avatar {
 	width: 40px;
 	height: 40px;
-	border-radius: 50%;
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: white;
 	font-size: 18px;
-	font-weight: 700;
 }
 
 .identityText {

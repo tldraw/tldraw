@@ -24,6 +24,7 @@ import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import { TlaMenuSelect } from '../tla-menu/tla-menu'
+import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import styles from './TlaSettingsDialog.module.css'
 
 const messages = defineMessages({
@@ -127,9 +128,7 @@ function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
 	return (
 		<>
 			<div className={styles.identity}>
-				<div className={styles.avatar} style={{ backgroundColor: user.color }} aria-hidden>
-					{(user.name || user.email).charAt(0).toUpperCase()}
-				</div>
+				<TlaUserAvatar user={user} className={styles.avatar} />
 				<div className={styles.identityText}>
 					<div className="tla-text_ui__medium notranslate">{user.name}</div>
 					<div className={classNames(styles.email, 'notranslate')}>{user.email}</div>
