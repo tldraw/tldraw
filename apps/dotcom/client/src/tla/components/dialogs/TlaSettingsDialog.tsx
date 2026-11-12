@@ -42,6 +42,7 @@ const messages = defineMessages({
 	name: { defaultMessage: 'Name' },
 	color: { defaultMessage: 'Color' },
 	colorTheme: { defaultMessage: 'Color theme' },
+	canvas: { defaultMessage: 'Canvas' },
 	cookies: { defaultMessage: 'Cookies' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
@@ -60,7 +61,7 @@ function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
 	app.tlUser.setUserPreferences({ id: app.userId, ...prefs })
 }
 
-type SettingsTab = 'profile' | 'preferences' | 'about'
+type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'about'
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
@@ -88,6 +89,8 @@ export function TlaSettingsDialog() {
 	const tabs: { id: SettingsTab; label: string }[] = [
 		{ id: 'profile', label: msg(messages.profile) },
 		{ id: 'preferences', label: msg(messages.preferences) },
+		{ id: 'canvas', label: msg(messages.canvas) },
+		{ id: 'accessibility', label: msg('menu.accessibility') },
 		{ id: 'about', label: msg(messages.about) },
 	]
 
@@ -123,6 +126,7 @@ export function TlaSettingsDialog() {
 						data-testid="tla-settings-sign-out"
 						onClick={signOut}
 					>
+						<TlaIcon icon="sign-out" />
 						<F defaultMessage="Sign out" />
 					</button>
 				</div>
@@ -131,6 +135,8 @@ export function TlaSettingsDialog() {
 						<h3 className={styles.panelTitle}>{label}</h3>
 						{id === 'profile' && <ProfilePanel onNameChange={handleNameChange} />}
 						{id === 'preferences' && <PreferencesPanel />}
+						{id === 'canvas' && <CanvasPanel />}
+						{id === 'accessibility' && <PreferenceSwitches toggles={ACCESSIBILITY_TOGGLES} />}
 						{id === 'about' && <AboutPanel />}
 					</_Tabs.Content>
 				))}
@@ -303,6 +309,210 @@ function PreferencesPanel() {
 			</div>
 			<HighlightMissingTranslationsField />
 		</>
+	)
+}
+
+/** The editor preferences the switches read, with tldraw's defaults for any the user hasn't set. */
+function usePreferences() {
+	const app = useApp()
+	return useValue(
+		'preferences',
+		() => {
+			const user = app.getUser()
+			return {
+				isSnapMode: user.isSnapMode ?? defaultUserPreferences.isSnapMode,
+				isWrapMode: user.isWrapMode ?? defaultUserPreferences.isWrapMode,
+				edgeScrollSpeed: user.edgeScrollSpeed ?? defaultUserPreferences.edgeScrollSpeed,
+				isDynamicSizeMode: user.isDynamicSizeMode ?? defaultUserPreferences.isDynamicSizeMode,
+				isPasteAtCursorMode: user.isPasteAtCursorMode ?? defaultUserPreferences.isPasteAtCursorMode,
+				animationSpeed: user.animationSpeed ?? defaultUserPreferences.animationSpeed,
+				areKeyboardShortcutsEnabled:
+					user.areKeyboardShortcutsEnabled ?? defaultUserPreferences.areKeyboardShortcutsEnabled,
+				enhancedA11yMode: user.enhancedA11yMode ?? defaultUserPreferences.enhancedA11yMode,
+				inputMode: user.inputMode ?? defaultUserPreferences.inputMode,
+				isZoomDirectionInverted:
+					user.isZoomDirectionInverted ?? defaultUserPreferences.isZoomDirectionInverted,
+			}
+		},
+		[app]
+	)
+}
+
+type Preferences = ReturnType<typeof usePreferences>
+
+interface PreferenceToggle {
+	/** The UI event the editor's own menu item for this preference reports. */
+	id:
+		| 'toggle-snap-mode'
+		| 'toggle-wrap-mode'
+		| 'toggle-edge-scrolling'
+		| 'toggle-dynamic-size-mode'
+		| 'toggle-paste-at-cursor'
+		| 'toggle-reduce-motion'
+		| 'toggle-keyboard-shortcuts'
+		| 'enhanced-a11y-mode'
+		| 'toggle-invert-zoom'
+	label: TLUiTranslationKey
+	isChecked(preferences: Preferences): boolean
+	getUpdate(checked: boolean): Partial<TLUserPreferences>
+	isDisabled?(preferences: Preferences): boolean
+}
+
+const CANVAS_TOGGLES: PreferenceToggle[] = [
+	{
+		id: 'toggle-snap-mode',
+		label: 'action.toggle-snap-mode.menu',
+		isChecked: (preferences) => preferences.isSnapMode,
+		getUpdate: (isSnapMode) => ({ isSnapMode }),
+	},
+	{
+		id: 'toggle-wrap-mode',
+		label: 'action.toggle-wrap-mode.menu',
+		isChecked: (preferences) => preferences.isWrapMode,
+		getUpdate: (isWrapMode) => ({ isWrapMode }),
+	},
+	{
+		id: 'toggle-edge-scrolling',
+		label: 'action.toggle-edge-scrolling.menu',
+		isChecked: (preferences) => preferences.edgeScrollSpeed !== 0,
+		getUpdate: (checked) => ({ edgeScrollSpeed: checked ? 1 : 0 }),
+	},
+	{
+		id: 'toggle-dynamic-size-mode',
+		label: 'action.toggle-dynamic-size-mode.menu',
+		isChecked: (preferences) => preferences.isDynamicSizeMode,
+		getUpdate: (isDynamicSizeMode) => ({ isDynamicSizeMode }),
+	},
+	{
+		id: 'toggle-paste-at-cursor',
+		label: 'action.toggle-paste-at-cursor.menu',
+		isChecked: (preferences) => preferences.isPasteAtCursorMode,
+		getUpdate: (isPasteAtCursorMode) => ({ isPasteAtCursorMode }),
+	},
+]
+
+const ACCESSIBILITY_TOGGLES: PreferenceToggle[] = [
+	{
+		id: 'toggle-reduce-motion',
+		label: 'action.toggle-reduce-motion.menu',
+		isChecked: (preferences) => preferences.animationSpeed === 0,
+		getUpdate: (checked) => ({ animationSpeed: checked ? 0 : 1 }),
+	},
+	{
+		id: 'toggle-keyboard-shortcuts',
+		label: 'action.toggle-keyboard-shortcuts.menu',
+		isChecked: (preferences) => preferences.areKeyboardShortcutsEnabled,
+		getUpdate: (areKeyboardShortcutsEnabled) => ({ areKeyboardShortcutsEnabled }),
+	},
+	{
+		id: 'enhanced-a11y-mode',
+		label: 'action.enhanced-a11y-mode.menu',
+		isChecked: (preferences) => preferences.enhancedA11yMode,
+		getUpdate: (enhancedA11yMode) => ({ enhancedA11yMode }),
+	},
+]
+
+const INPUT_DEVICE_TOGGLES: PreferenceToggle[] = [
+	{
+		id: 'toggle-invert-zoom',
+		label: 'action.toggle-invert-zoom.menu',
+		isChecked: (preferences) => preferences.isZoomDirectionInverted,
+		getUpdate: (isZoomDirectionInverted) => ({ isZoomDirectionInverted }),
+		isDisabled: (preferences) => preferences.inputMode !== 'mouse',
+	},
+]
+
+function PreferenceSwitches({ toggles }: { toggles: PreferenceToggle[] }) {
+	const msg = useTranslation()
+	const app = useApp()
+	const trackUiEvent = useUiEvents()
+	const preferences = usePreferences()
+
+	return (
+		<div className={styles.rows}>
+			{toggles.map((toggle) => {
+				const id = `tla-settings-${toggle.id}`
+				const isDisabled = toggle.isDisabled?.(preferences) ?? false
+				return (
+					<label
+						key={toggle.id}
+						htmlFor={id}
+						className={classNames(styles.row, 'tla-text_ui__regular')}
+						data-disabled={isDisabled}
+					>
+						{msg(toggle.label)}
+						<TlaMenuSwitch
+							id={id}
+							data-testid={id}
+							checked={toggle.isChecked(preferences)}
+							disabled={isDisabled}
+							onChange={(checked) => {
+								setPreferences(app, toggle.getUpdate(checked))
+								trackUiEvent(toggle.id, { source: 'dialog' })
+							}}
+						/>
+					</label>
+				)
+			})}
+		</div>
+	)
+}
+
+function CanvasPanel() {
+	return (
+		<>
+			<PreferenceSwitches toggles={CANVAS_TOGGLES} />
+			<InputDeviceField />
+		</>
+	)
+}
+
+type InputMode = 'auto' | 'trackpad' | 'mouse'
+
+const AUTO_INPUT_MODE_LABELS: Record<'none' | 'pan' | 'zoom', TLUiTranslationKey> = {
+	none: 'action.toggle-auto-none',
+	pan: 'action.toggle-auto-pan',
+	zoom: 'action.toggle-auto-zoom',
+}
+
+function InputDeviceField() {
+	const msg = useTranslation()
+	const app = useApp()
+	const trackUiEvent = useUiEvents()
+	const { inputMode } = usePreferences()
+	// What "auto" resolves to comes from the open file's camera, so without an editor it has no suffix.
+	const wheelBehavior = useValue(
+		'wheelBehavior',
+		() => globalEditor.get()?.getCameraOptions().wheelBehavior ?? 'none',
+		[]
+	)
+
+	const options: { value: InputMode; label: string }[] = [
+		{ value: 'auto', label: msg(AUTO_INPUT_MODE_LABELS[wheelBehavior]) },
+		{ value: 'trackpad', label: msg('action.toggle-trackpad') },
+		{ value: 'mouse', label: msg('action.toggle-mouse') },
+	]
+	const value: InputMode = inputMode === 'trackpad' || inputMode === 'mouse' ? inputMode : 'auto'
+
+	return (
+		<div className={styles.field}>
+			<label htmlFor="tla-settings-input-device" className={styles.label}>
+				{msg('menu.input-device')}
+			</label>
+			<TlaMenuSelect
+				id="tla-settings-input-device"
+				data-testid="tla-settings-input-device"
+				variant="field"
+				label={options.find((o) => o.value === value)?.label ?? value}
+				value={value}
+				options={options}
+				onChange={(mode) => {
+					setPreferences(app, { inputMode: mode === 'auto' ? null : mode })
+					trackUiEvent('input-mode', { source: 'dialog', value: mode })
+				}}
+			/>
+			<PreferenceSwitches toggles={INPUT_DEVICE_TOGGLES} />
+		</div>
 	)
 }
 

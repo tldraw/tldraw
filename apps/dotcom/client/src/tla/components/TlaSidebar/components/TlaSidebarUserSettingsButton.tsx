@@ -2,7 +2,6 @@ import classNames from 'classnames'
 import { defineMessages, F, TldrawUiButton, useDialogs, useTranslation, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
 import { TlaSettingsDialog } from '../../dialogs/TlaSettingsDialog'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../../TlaUserAvatar/TlaUserAvatar'
 import styles from '../sidebar.module.css'
 
@@ -35,9 +34,6 @@ export function TlaSidebarUserSettingsButton() {
 				)}
 			>
 				{user.name || <F defaultMessage="Account" />}
-			</div>
-			<div className={styles.sidebarUserSettingsIcon}>
-				<TlaIcon icon="help-circle" />
 			</div>
 		</TldrawUiButton>
 	)

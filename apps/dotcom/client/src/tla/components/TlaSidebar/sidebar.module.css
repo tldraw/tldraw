@@ -359,28 +359,8 @@
 	color: var(--tl-color-text-0);
 }
 
-.sidebarUserSettingsIcon {
-	width: 36px;
-	height: 36px;
-	min-width: 0;
-	margin-inline-end: -6px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex: 0 0 auto;
-	color: var(--tl-color-text-3);
-}
-
 @media (hover: hover) {
 	.sidebarUserSettingsTrigger:hover {
-		color: var(--tl-color-text-0);
-	}
-
-	.sidebarUserSettingsIcon {
-		color: var(--tl-color-text-3);
-	}
-
-	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
 		color: var(--tl-color-text-0);
 	}
 }

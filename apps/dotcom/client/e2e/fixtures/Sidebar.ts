@@ -74,7 +74,7 @@ export class Sidebar {
 	}
 
 	@step
-	async openSettings(tab: 'profile' | 'preferences' | 'about') {
+	async openSettings(tab: 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'about') {
 		await this.userSettingsButton.click()
 		await this.page.getByTestId(`tla-settings-tab-${tab}`).click()
 	}

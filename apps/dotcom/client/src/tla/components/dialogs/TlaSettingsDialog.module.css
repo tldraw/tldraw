@@ -61,6 +61,8 @@
 
 .signOut {
 	margin-top: auto;
+	gap: 6px;
+	color: var(--tl-color-danger);
 }
 
 .panel {
@@ -240,6 +242,12 @@
 	outline-offset: -2px;
 }
 
+.row[data-disabled='true'] {
+	color: var(--tl-color-text-3);
+	cursor: default;
+	background-color: transparent;
+}
+
 .switchField {
 	flex-direction: row;
 	align-items: center;
@@ -256,12 +264,22 @@
 		flex-direction: row;
 	}
 
+	/* The tabs are wider than a phone, so they scroll sideways and Sign out stays pinned. */
 	.tabs {
 		flex-direction: row;
+		flex: 1 1 auto;
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.tab {
+		flex-shrink: 0;
+		white-space: nowrap;
 	}
 
 	.signOut {
 		margin-top: 0;
-		margin-left: auto;
+		margin-left: var(--tl-space-2);
 	}
 }
