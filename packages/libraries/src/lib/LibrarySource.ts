@@ -140,10 +140,12 @@ export interface LibrarySource {
 	 */
 	getDefaultOwnerId?(): string | undefined
 	/**
-	 * Gives a library to another owner. Its items stay in it. Optional: sources that don't track
-	 * owners, or can't move libraries between them, leave it out.
+	 * Gives a library to another owner. Its items stay in it. Resolves with the library at its new
+	 * owner once it is listed there: usually the same library, but a source that moves it by copying
+	 * gives the copy, with its own id. Optional: sources that don't track owners, or can't move
+	 * libraries between them, leave it out.
 	 */
-	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<void>
+	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
 	/**
 	 * Copies a library and its items to an owner, as a new library with the same name, and
 	 * returns the copy. Optional: for sources that can copy without the caller loading and adding

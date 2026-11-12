@@ -59,7 +59,8 @@ describe('TldrawAppLibrariesSource', () => {
 	it('lists libraries from the synced rows, with their workspace as owner', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Team kit', { ownerId: 'acme' })
-		await source.moveLibrary(kit.id, 'user_me')
+		const moved = await source.moveLibrary(kit.id, 'user_me')
+		expect(moved).toMatchObject({ id: kit.id, ownerId: 'user_me' })
 		expect(source.getLibraries().map((c) => [c.name, c.ownerId])).toEqual([['Team kit', 'user_me']])
 	})
 

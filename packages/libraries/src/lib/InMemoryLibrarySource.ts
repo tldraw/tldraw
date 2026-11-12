@@ -266,8 +266,10 @@ export class InMemoryLibrarySource implements LibrarySource {
 	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
 		const library = this.getLibrary(libraryId)
 		if (!this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
-		if (library.ownerId === ownerId) return
-		this.store.put([{ ...library, ownerId }])
+		if (library.ownerId === ownerId) return library
+		const moved = { ...library, ownerId }
+		this.store.put([moved])
+		return moved
 	}
 
 	/** Releases every thumbnail URL this source created. Call it when throwing the source away. */

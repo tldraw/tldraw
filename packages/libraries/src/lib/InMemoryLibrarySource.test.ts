@@ -308,8 +308,9 @@ describe('InMemoryLibrarySource', () => {
 			const stop = react('owner', () => {
 				seen.push(source.getLibraries()[0].ownerId)
 			})
-			await source.moveLibrary(library.id, 'acme')
+			const moved = await source.moveLibrary(library.id, 'acme')
 			stop()
+			expect(moved).toEqual({ ...library, ownerId: 'acme' })
 			expect(seen).toEqual(['home', 'acme'])
 			expect(source.getLibraries()).toEqual([{ ...library, ownerId: 'acme' }])
 			expect(source.getItems(library.id).map((i) => i.id)).toEqual([item.id])

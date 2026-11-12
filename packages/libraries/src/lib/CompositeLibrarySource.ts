@@ -171,7 +171,7 @@ export class CompositeLibrarySource implements LibrarySource {
 		const from = this.getLibraryPart(libraryId)
 		const to = this.getOwnerPart(ownerId)
 		if (from === to) {
-			if (from.owner) return
+			if (from.owner) return this.getListedLibrary(from, libraryId)
 			if (!from.source.moveLibrary) {
 				throw new Error(`Source ${from.source.id} can't move libraries`)
 			}
@@ -180,8 +180,9 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteLibrary', libraryId)) {
 			throw new LibraryPermissionError('deleteLibrary', libraryId)
 		}
-		const { stored } = await copyLibraryItems(this, libraryId, ownerId)
+		const { copied, stored } = await copyLibraryItems(this, libraryId, ownerId)
 		deleteOnceStored(stored, () => from.source.deleteLibrary(libraryId))
+		return copied
 	}
 
 	/**
@@ -231,6 +232,12 @@ export class CompositeLibrarySource implements LibrarySource {
 		const part = this.partByLibrary$.get().get(libraryId)
 		if (!part) throw new LibraryNotFoundError(libraryId)
 		return part
+	}
+
+	private getListedLibrary(part: Part, libraryId: TLLibraryId) {
+		const library = part.libraries.get().find((c) => c.id === libraryId)
+		if (!library) throw new LibraryNotFoundError(libraryId)
+		return library
 	}
 
 	// Items are found through their libraries: sources list items per library only.

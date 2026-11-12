@@ -277,8 +277,11 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
+		const library = this.getLibraries().find((c) => c.id === libraryId)
+		if (!library) throw new LibraryNotFoundError(libraryId)
 		const id = await this.getLibraryRowId(libraryId)
 		await this.apply(this.app.z.mutate.library.move({ id, owningGroupId: ownerId }))
+		return { ...library, ownerId }
 	}
 
 	async copyLibrary(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary> {
