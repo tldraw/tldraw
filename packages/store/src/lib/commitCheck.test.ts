@@ -211,3 +211,124 @@ describe('commit checks', () => {
 		expect(outcomes).toEqual(['accepted', 'aborted'])
 	})
 })
+
+describe('listenToOperations', () => {
+	const listen = () => {
+		const seen: Array<ReturnType<typeof ids> & { operation: number }> = []
+		store.listenToOperations(
+			({ changes }, operation) => seen.push({ ...ids(changes), operation }),
+			{
+				source: 'user',
+				scope: 'document',
+			}
+		)
+		return seen
+	}
+	const operations = (seen: ReturnType<typeof listen>) => seen.map(({ operation }) => operation)
+
+	it('hands over each store call as its own operation, where listen squashes them', () => {
+		const squashed: RecordsDiff<Library>[] = []
+		store.listen(({ changes }) => squashed.push(changes), { source: 'user', scope: 'document' })
+		const seen = listen()
+		// one flush for both calls: in tests the store otherwise flushes after each
+		transact(() => {
+			store.put([book])
+			store.put([author])
+		})
+		store._flushHistory()
+
+		expect(squashed.map(ids)).toEqual([
+			{ added: [author.id, book.id].sort(), updated: [], removed: [] },
+		])
+		expect(seen).toMatchObject([
+			{ added: [book.id], updated: [], removed: [] },
+			{ added: [author.id], updated: [], removed: [] },
+		])
+		expect(new Set(operations(seen)).size).toBe(2)
+	})
+
+	it('treats the writes inside one atomic call or one checked unit as one operation', () => {
+		const seen = listen()
+		transact(() => {
+			store.atomic(() => {
+				store.put([book])
+				store.put([author])
+			})
+			store.checkAsOneOperation(() => {
+				store.remove([book.id])
+				store.remove([author.id])
+			})
+		})
+		store._flushHistory()
+
+		expect(seen).toMatchObject([
+			{ added: [author.id, book.id].sort(), updated: [], removed: [] },
+			{ added: [], updated: [], removed: [author.id, book.id].sort() },
+		])
+	})
+
+	it('delivers an operation flushed halfway in parts that share a number', () => {
+		const seen = listen()
+		store.checkAsOneOperation(() => {
+			store.put([book])
+			store._flushHistory()
+			store.put([author])
+		})
+		store.put([Book.create({ id: Book.createId('c'), title: 'c' })])
+		store._flushHistory()
+
+		expect(seen).toHaveLength(3)
+		const [first, second, third] = operations(seen)
+		expect(second).toBe(first)
+		expect(third).not.toBe(first)
+	})
+
+	it("keeps a checked unit inside an outer store call in that call's operation", () => {
+		store.addCommitCheck(() => null)
+		const seen = listen()
+		const extra = Book.create({ id: Book.createId('c'), title: 'c' })
+		// remote changes aren't checked, so the handler's checked unit runs inside an unchecked call
+		store.sideEffects.registerAfterCreateHandler('author', () => {
+			store.put([book])
+			store.checkAsOneOperation(() => store.put([extra]))
+			store.update(book.id, (b) => ({ ...b, title: 'changed' }))
+		})
+		store.mergeRemoteChanges(() => store.put([author]))
+		store._flushHistory()
+
+		expect(seen).toMatchObject([{ added: [book.id, extra.id].sort(), updated: [], removed: [] }])
+	})
+
+	it('reaches listeners in the order they were added, like listen', () => {
+		const order: string[] = []
+		store.listenToOperations(({ changes }) => order.push(...Object.keys(changes.added)), {
+			source: 'user',
+			scope: 'document',
+		})
+		// added later, this listener writes and flushes while it is being told about the book
+		store.listen(
+			({ changes }) => {
+				if (book.id in changes.added) {
+					store.put([author])
+					store._flushHistory()
+				}
+			},
+			{ source: 'user', scope: 'document' }
+		)
+		store.put([book])
+		store._flushHistory()
+
+		expect(order).toEqual([book.id, author.id])
+	})
+
+	it('counts a checked operation and its revert as one operation that changed nothing', () => {
+		store.addCommitCheck((changes) => (author.id in changes.added ? {} : null))
+		const seen = listen()
+		store.put([author])
+		store.put([book])
+		store._flushHistory()
+
+		// the refused put and its revert net out, so only the book is delivered
+		expect(seen).toMatchObject([{ added: [book.id], updated: [], removed: [] }])
+	})
+})

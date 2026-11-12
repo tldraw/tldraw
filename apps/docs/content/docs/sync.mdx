@@ -424,19 +424,21 @@ The rule only sees pushes the session's access allows, so it can only narrow wha
 
 What the rule sees:
 
-| Argument              | What it is                                                                                                                                                      |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `changes`             | every change in the push, one per record, as `{ type, prev, next }`; `type` is `'create'`, `'update'` or `'delete'`, `prev` is null on create, `next` on delete |
-| `session.userId`      | the authenticated user from connect, or `null` for anonymous                                                                                                    |
-| `session.permissions` | the named permissions from connect, or from the latest `updateSessionPermissions`; also sent to the client. `null` when not in use                              |
-| `session.meta`        | whatever else your server attached at connect; the room never reads it, and it isn't sent to the client                                                         |
-| `session.access`      | the document and object store access from connect                                                                                                               |
-| `before(id)`          | any record as it was when the push started                                                                                                                      |
-| `after(id)`           | any record as it will be once the whole push is applied                                                                                                         |
+| Argument              | What it is                                                                                                                                                           |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `changes`             | every change in the operation, one per record, as `{ type, prev, next }`; `type` is `'create'`, `'update'` or `'delete'`, `prev` is null on create, `next` on delete |
+| `session.userId`      | the authenticated user from connect, or `null` for anonymous                                                                                                         |
+| `session.permissions` | the named permissions from connect, or from the latest `updateSessionPermissions`; also sent to the client. `null` when not in use                                   |
+| `session.meta`        | whatever else your server attached at connect; the room never reads it, and it isn't sent to the client                                                              |
+| `session.access`      | the document and object store access from connect                                                                                                                    |
+| `before(id)`          | any record as it was before the operation                                                                                                                            |
+| `after(id)`           | any record as it will be once the operation is applied                                                                                                               |
 
 A `perRecord` rule gets one change (plus `record`: `next`, or `prev` on a delete) and the same `session`, `before` and `after`.
 
-The session id is chosen by the client and carries no authority; identity is `session.userId`. The rule runs on every push: keep it fast and synchronous, and do no I/O. If it throws, the push is refused and the error is logged.
+The room judges a push one operation at a time. An operation is one editor action (one `editor.run`, side effects included), and a push holds every operation the client made since its last push, in order. The rule sees each operation with the earlier ones already applied. Consecutive operations that only update the same records, like the steps of a drag, arrive as one. An older client sends its whole push as a single operation.
+
+The session id is chosen by the client and carries no authority; identity is `session.userId`. The rule runs on every operation in every push: keep it fast and synchronous, and do no I/O. If it throws, the operation is refused and the error is logged.
 
 #### Fields the client must not choose
 
@@ -481,9 +483,9 @@ const authorize = perRecord<TLRecord>(({ prev, next }, { session, before, after 
 })
 ```
 
-Here the page's policy lives on the page record, in its `meta`. Any client can send a change to that record, so the rule is what makes the field trustworthy: refuse policy changes from anyone but a trusted role, as the second line does. That line is enough on its own. A push that forges the policy and then uses it is refused whole, because the forgery is in it, so nothing it did on the strength of the forged policy is stored.
+Here the page's policy lives on the page record, in its `meta`. Any client can send a change to that record, so the rule is what makes the field trustworthy: refuse policy changes from anyone but a trusted role, as the second line does. That line is enough on its own. The room refuses an operation that forges the policy and every operation after it in the same push, so nothing built on the forged policy is stored.
 
-Because the rule sees the whole push, the order of changes inside it never matters. A frame and the shapes inside it can be created in either order; a frame deleted together with its children goes, children and all; a shape reparented into a frame the same push deletes is refused.
+Because the rule sees a whole operation, the order of changes inside it never matters. A frame and the shapes inside it can be created in either order; a frame deleted together with its children goes, children and all; a shape reparented into a frame the same operation deletes is refused.
 
 `getOwningPage` returns `{ page }` or `{ page: null, reason }`. The reason is `'dangling'` when a parent is missing (refuse: the write would leave an orphan), `'split'` for a binding whose two shapes are on different pages (refuse: the editor never makes one), or `'unscoped'` for records that don't live on a page, like the document record (your call).
 
@@ -522,7 +524,7 @@ Each client only gets its own permissions. A session still connecting gets the l
 
 #### What a refused push looks like
 
-A refused push is discarded whole; nothing in it is stored. The room tells the sending client in the `push_result`, with the rule's `reason` and `ids`, and the client reverts the push: the user sees their change snap back. Pass `onPushRefused` to `useSync` (or `TLSyncClient`) to show a message. The server logs a warning. Only rooms using the deprecated `authorizeRecord` still skip refused records one at a time, silently.
+When the rule refuses an operation, the room stores the operations before it in the push and discards that one and every one after it. A later operation may build on the refused one, so the room doesn't judge the rest. The room tells the sending client in the `push_result`, with the rule's `reason` and `ids` and the index of the first refused operation. The client keeps what was stored and reverts the rest: the user sees those changes snap back. Pass `onPushRefused` to `useSync` (or `TLSyncClient`) to show a message. The server logs a warning. Only rooms using the deprecated `authorizeRecord` still skip refused records one at a time, silently.
 
 #### What the rule never sees
 
