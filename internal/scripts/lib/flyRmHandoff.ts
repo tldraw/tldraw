@@ -302,7 +302,9 @@ export async function handOffReplicationManager({
 	} catch (e) {
 		nicelog(`${appName}: handoff failed, removing the new machine; ${old.id} keeps serving`)
 		try {
-			if (newMachine) await destroyMachineAndVolume(appName, newMachine.id, volume.id)
+			// `machine run` can fail after creating the machine, which then holds the volume.
+			const created = newMachine ?? (await listMachines(appName)).find((m) => m.name === name)
+			if (created) await destroyMachineAndVolume(appName, created.id, volume.id)
 			else await exec('flyctl', ['volumes', 'destroy', volume.id, '-a', appName, '--yes'])
 		} catch (cleanupError) {
 			nicelog(`${appName}: cleanup failed, remove it by hand`, cleanupError)
