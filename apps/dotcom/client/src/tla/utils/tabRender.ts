@@ -84,6 +84,10 @@ export async function answerTabRender(
 	const receivedAt = Date.now()
 	const reply = (body: TabRenderReply) => postTabRenderReply(fileId, jobId, body)
 
+	// A hidden tab applies what the server sends on an animation frame it never gets, so without this
+	// it answers from a board that's behind everyone else's. The catch-up is synchronous; waiting on the
+	// server to confirm this tab's own edits is only for writes.
+	void flushChanges?.()
 	const refusal = editor ? getRefusal(editor, request, flushChanges) : 'editor_not_ready'
 	if (refusal || !editor) {
 		await reply({ status: 'declined', reason: refusal ?? 'editor_not_ready' })
@@ -117,7 +121,7 @@ function doWork(
 		case 'read':
 			return readPage(editor, request)
 		case 'screenshot':
-			return queueCapture(editor, request, receivedAt)
+			return queueCapture(editor, flushChanges, request, receivedAt)
 		case 'apply_ops':
 			return queueApplyOps(editor, flushChanges, request, receivedAt)
 		case 'user_state':
@@ -179,8 +183,14 @@ function getRefusal(
 
 // Checked again at the front of the queue, because the page, the shapes and the user's drag can all
 // have moved on while it waited.
-function queueCapture(editor: Editor, request: TabRenderScreenshotRequest, receivedAt: number) {
+function queueCapture(
+	editor: Editor,
+	flushChanges: FlushChanges | null,
+	request: TabRenderScreenshotRequest,
+	receivedAt: number
+) {
 	return enqueueWork(async () => {
+		void flushChanges?.()
 		const reason =
 			Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request, null)
 		return reason ? { status: 'declined', reason } : capturePage(editor, request)
@@ -195,8 +205,8 @@ function queueApplyOps(
 ) {
 	return enqueueWork(async (): Promise<TabRenderReply> => {
 		if (Date.now() - receivedAt > MAX_QUEUE_MS) return { status: 'declined', reason: 'busy' }
-		// A hidden tab also applies what the server sends on an animation frame. Catch up first, or the
-		// batch lands on a board that's behind everyone else's.
+		// Waited on, unlike a read's catch-up: the batch must not land on top of this tab's own unsent
+		// edits from before, or report them as its own if the server refuses them.
 		if (flushChanges && !(await flushChanges())) return { status: 'declined', reason: 'failed' }
 		const reason = getRefusal(editor, request, flushChanges)
 		if (reason) return { status: 'declined', reason }

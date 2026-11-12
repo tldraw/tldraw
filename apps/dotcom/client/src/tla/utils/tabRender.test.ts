@@ -176,6 +176,19 @@ describe('answerTabRender', () => {
 		editor.dispose()
 	})
 
+	// A hidden tab applies what the server sent only on a frame it never gets, and would describe a
+	// board that's behind.
+	it('catches up with the server before reading, without waiting on its own edits', async () => {
+		const { editor } = setupEditor()
+		const flushChanges = vi.fn(() => new Promise<boolean>(() => {}))
+
+		await answerTabRender(editor, flushChanges, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+
+		expect(flushChanges).toHaveBeenCalled()
+		expect(replies.at(-1)).toMatchObject({ status: 'page_read' })
+		editor.dispose()
+	})
+
 	it('declines before an editor has mounted', async () => {
 		await answerTabRender(null, null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 		expect(replies).toEqual([{ status: 'declined', reason: 'editor_not_ready' }])
@@ -518,7 +531,7 @@ describe('answerTabRender', () => {
 
 				await answerTabRender(editor, flushChanges, 'file-1', applyOps())
 
-				expect(hadShapeWhenFlushed).toEqual([false, true])
+				expect(hadShapeWhenFlushed).toEqual([false, false, true])
 				expect(replies).toEqual([
 					{ status: 'accepted' },
 					{
@@ -545,7 +558,7 @@ describe('answerTabRender', () => {
 			it('reports a batch the server never confirmed as one that may have landed', async () => {
 				const { editor } = setupEditor()
 				let calls = 0
-				const flushChanges = async () => ++calls === 1
+				const flushChanges = async () => ++calls <= 2
 
 				await answerTabRender(editor, flushChanges, 'file-1', applyOps())
 

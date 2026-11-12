@@ -833,7 +833,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	/**
 	 * Sends local changes to the server now, rather than on the next animation frame, and resolves
-	 * once the server has answered them. Any changes that came in from the server are applied first.
+	 * once the server has answered them. Any changes that came in from the server are applied before
+	 * this returns, so a caller that only needs the store up to date doesn't have to wait.
 	 *
 	 * Changes are normally sent on an animation frame, and a hidden tab gets none, so changes made
 	 * there wait until the tab is shown. Code that edits the store from a hidden tab, and needs those
