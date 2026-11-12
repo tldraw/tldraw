@@ -40,28 +40,23 @@ export function useLibraryGrouping(source: LibrarySource) {
 }
 
 /**
- * Libraries gathered into their groups, each keeping the libraries' order. Groups go in the
- * grouping's order; libraries without a known owner come last. Without a grouping, one unnamed
- * group.
+ * Libraries gathered into a group per owner, each keeping the libraries' order. Groups go in the
+ * grouping's order, owners without libraries included; libraries without a known owner come last.
+ * Without a grouping, one unnamed group.
  */
 export function groupLibraryList(
 	libraries: TLLibrary[],
 	grouping?: LibraryGrouping
 ): LibraryGroup[] {
 	if (!grouping) return [{ libraries }]
-	const groups = new Map<string | undefined, LibraryGroup>()
+	const groups = new Map<string | undefined, LibraryGroup>(
+		grouping.order.map((key) => [key, { key, label: grouping.labelOf(key), libraries: [] }])
+	)
 	for (const library of libraries) {
 		const key = grouping.keyOf(library)
 		const group = groups.get(key)
 		if (group) group.libraries.push(library)
-		else {
-			const label = key === undefined ? undefined : grouping.labelOf(key)
-			groups.set(key, { key, label, libraries: [library] })
-		}
+		else groups.set(key, { key, libraries: [library] })
 	}
-	const rank = (key?: string) => {
-		const index = key === undefined ? -1 : grouping.order.indexOf(key)
-		return index === -1 ? grouping.order.length : index
-	}
-	return [...groups.values()].sort((a, b) => rank(a.key) - rank(b.key))
+	return [...groups.values()]
 }

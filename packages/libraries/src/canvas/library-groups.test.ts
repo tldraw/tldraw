@@ -26,18 +26,21 @@ it("puts groups in the owners' order and keeps each group's libraries in order",
 	])
 })
 
-it('puts libraries without a known owner last, in a group with no heading', () => {
+it('puts libraries without a known owner last, in a group with no owner', () => {
 	const groups = groupLibraryList(
 		[library('a'), library('b', 'gone'), library('c', 'team')],
 		getLibraryGrouping(owners)
 	)
 	expect(groups.map((g) => [g.key, g.label, g.libraries.map((c) => c.name)])).toEqual([
+		['me', 'Private to you', []],
 		['team', 'Team', ['c']],
 		[undefined, undefined, ['a', 'b']],
 	])
 })
 
-it('leaves out owners with no libraries', () => {
-	const groups = groupLibraryList([library('a', 'team')], getLibraryGrouping(owners))
-	expect(groups.map((g) => g.key)).toEqual(['team'])
+it('keeps owners with no libraries, so each owner has a group to create libraries in', () => {
+	expect(groupLibraryList([], getLibraryGrouping(owners))).toEqual([
+		{ key: 'me', label: 'Private to you', libraries: [] },
+		{ key: 'team', label: 'Team', libraries: [] },
+	])
 })

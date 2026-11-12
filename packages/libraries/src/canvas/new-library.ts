@@ -1,6 +1,6 @@
 import type { LibrarySource } from '../lib/LibrarySource'
 
-function getDefaultOwnerId(source: LibrarySource) {
+export function getDefaultOwnerId(source: LibrarySource) {
 	return source.getDefaultOwnerId ? source.getDefaultOwnerId() : undefined
 }
 
