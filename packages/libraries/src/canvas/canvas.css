@@ -250,6 +250,7 @@
 }
 
 .tlui-libraries-tile__thumbnail {
+	position: relative;
 	display: flex;
 	align-items: center;
 	justify-content: center;
@@ -285,6 +286,12 @@
 	max-width: 80%;
 	max-height: 80%;
 	object-fit: contain;
+}
+
+/* Still loading, behind the image it replaces; laid out so that lazy loading still starts it. */
+.tlui-libraries-tile__thumbnail > img[data-loading] {
+	position: absolute;
+	visibility: hidden;
 }
 
 .tlui-libraries-add-tile .tlui-libraries-tile__thumbnail {
