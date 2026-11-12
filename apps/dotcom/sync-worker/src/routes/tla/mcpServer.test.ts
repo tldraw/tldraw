@@ -1051,7 +1051,7 @@ describe('read_page_comments', () => {
 						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }],
 					},
 					createdAt: Date.UTC(2026, 0, 1),
-					fromAgent: false,
+					meta: {},
 				},
 			],
 		})
@@ -1074,7 +1074,7 @@ describe('read_page_comments', () => {
 							commentId: 'comment:c',
 							authorName: 'Me',
 							isCurrentUser: true,
-							fromAgent: false,
+							meta: {},
 							createdAt: '2026-01-01T00:00:00.000Z',
 							text: 'Hi',
 						},

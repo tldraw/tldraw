@@ -146,7 +146,7 @@ describe('readPageCommentRows', () => {
 					authorName: 'Ada',
 					body: { type: 'doc', content: [] },
 					createdAt: 2,
-					fromAgent: true,
+					meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
 				},
 			],
 		})

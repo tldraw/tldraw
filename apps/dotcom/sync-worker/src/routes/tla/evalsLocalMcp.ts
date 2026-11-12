@@ -1,4 +1,3 @@
-import { isMcpAgentComment } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { TLComment, TLCommentThread } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
@@ -283,7 +282,7 @@ async function callFixtureTool(
 						authorName: c.authorId,
 						body: c.body,
 						createdAt: c.createdAt,
-						fromAgent: isMcpAgentComment(c.meta),
+						meta: c.meta,
 					})),
 					'',
 					{ includeResolved }

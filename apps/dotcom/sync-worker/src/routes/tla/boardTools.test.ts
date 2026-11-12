@@ -1534,7 +1534,7 @@ describe('getPageCommentsResult', () => {
 			authorName: 'Ada',
 			body: toRichText('x'),
 			createdAt: Date.UTC(2026, 0, 1),
-			fromAgent: false,
+			meta: null,
 			...overrides,
 		}
 	}
@@ -1599,7 +1599,7 @@ describe('getPageCommentsResult', () => {
 					authorName: 'Me',
 					body: toRichText('On it'),
 					createdAt: Date.UTC(2026, 0, 2),
-					fromAgent: true,
+					meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
 				}),
 				comment({
 					id: 'comment:first',
@@ -1636,7 +1636,7 @@ describe('getPageCommentsResult', () => {
 							commentId: 'comment:first',
 							authorName: 'Ada',
 							isCurrentUser: false,
-							fromAgent: false,
+							meta: {},
 							createdAt: '2026-01-01T00:00:00.000Z',
 							text: 'Wider?',
 						},
@@ -1644,7 +1644,7 @@ describe('getPageCommentsResult', () => {
 							commentId: 'comment:reply',
 							authorName: 'Me',
 							isCurrentUser: true,
-							fromAgent: true,
+							meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
 							createdAt: '2026-01-02T00:00:00.000Z',
 							text: 'On it',
 						},

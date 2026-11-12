@@ -1744,8 +1744,8 @@ export interface CommentRow {
 	authorName: string
 	body: unknown
 	createdAt: number
-	/** Posted through write_comment, per the comment's `meta`; see `isMcpAgentComment`. */
-	fromAgent: boolean
+	/** The comment record's `meta`: `mcpAgent` names the agent that posted it through write_comment. */
+	meta: unknown
 }
 
 const SHAPE_TEXT_MAX_LENGTH = 200
@@ -1783,7 +1783,7 @@ export function getPageCommentsResult(
 				// tldraw.com's own fallback for an author it cannot name, such as a deleted account.
 				authorName: comment.authorName.trim() || 'Someone',
 				isCurrentUser: comment.authorId === userId,
-				fromAgent: comment.fromAgent,
+				meta: toMetaObject(comment.meta),
 				createdAt: new Date(comment.createdAt).toISOString(),
 				text: commentBodyToPlainText(comment.body),
 			})),
@@ -1795,6 +1795,14 @@ export function getPageCommentsResult(
 		threadCount: results.length,
 		threads: results,
 	})
+}
+
+// The comment's own meta, so an agent sees what tldraw.com sees (such as `mcpAgent`). A row that
+// predates meta, or holds something other than an object, reads as empty.
+function toMetaObject(meta: unknown): Record<string, unknown> {
+	return typeof meta === 'object' && meta !== null && !Array.isArray(meta)
+		? (meta as Record<string, unknown>)
+		: {}
 }
 
 function compareCreated(
@@ -2244,13 +2252,15 @@ function getReadPageCommentsToolDefinition() {
 	return {
 		name: READ_PAGE_COMMENTS_TOOL_NAME,
 		title: 'Read tldraw page comments',
-		description:
-			'List the open comment threads on one page of a tldraw.com board, oldest first; pass includeResolved to include resolved ones too. Each thread has its threadId, whether it is resolved, its anchor — a shape (its shapeId, type and text), a point or region in page coordinates, or the page itself — and its comments: commentId, authorName, isCurrentUser (true for comments from your account, including ones your agent left), fromAgent (true for comments an agent left through write_comment), createdAt and plain text. Reply to a thread by passing its threadId to write_comment.',
+		description: 'List the open comment threads on one page in order of recency.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
 			properties: {
-				boardId: FILE_BOARD_ID_PROPERTY,
+				boardId: {
+					...FILE_BOARD_ID_PROPERTY,
+					description: 'The id of the board to read comments in.',
+				},
 				page: PAGE_PROPERTY,
 				includeResolved: {
 					type: 'boolean',
@@ -2268,20 +2278,24 @@ function getWriteCommentToolDefinition() {
 	return {
 		name: WRITE_COMMENT_TOOL_NAME,
 		title: 'Write tldraw comment',
-		description: `Post a comment on a tldraw.com board from your account, marked on tldraw.com as left by your agent. Pass threadId to reply in a thread from read_page_comments; resolved threads take no replies. Or start a new thread: shapeId pins it to a shape, and x and y to a point on a page. Returns the threadId and commentId. You can comment on your own boards, your workspaces' boards, and boards shared with you by an edit link.`,
+		description:
+			"Post a comment on a board. Reply to a thread by passing in a threadId, which you can get from read_page_comments. Start a new thread on a shape with shapeId or a point with x and y. Your comments will be marked with your name as well as the user's. The name will default to your name if you don't pass one in.",
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
 			properties: {
-				boardId: FILE_BOARD_ID_PROPERTY,
+				boardId: {
+					...FILE_BOARD_ID_PROPERTY,
+					description: 'The id of the board to leave the comment in.',
+				},
 				text: {
 					type: 'string',
 					maxLength: COMMENT_TEXT_MAX_LENGTH,
-					description: 'The comment, as plain text. Each line becomes a paragraph.',
+					description: 'Comment text.',
 				},
 				threadId: {
 					type: 'string',
-					description: 'Reply in this thread, from read_page_comments.',
+					description: 'Use this to reply in this thread.',
 				},
 				shapeId: {
 					type: 'string',
@@ -2291,7 +2305,7 @@ function getWriteCommentToolDefinition() {
 					type: 'string',
 					maxLength: AGENT_NAME_MAX_LENGTH,
 					description:
-						'Your name, shown on tldraw.com as who left the comment, e.g. "Claude". Use the same name every time. Defaults to the name of your MCP client.',
+						'The name users will see on the board next to the comment. Leave blank to default to your name.',
 				},
 				x: { type: 'number', description: 'Start a thread at this page x coordinate, with y.' },
 				y: { type: 'number', description: 'Start a thread at this page y coordinate, with x.' },

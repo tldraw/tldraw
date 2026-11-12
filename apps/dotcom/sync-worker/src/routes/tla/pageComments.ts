@@ -1,4 +1,3 @@
-import { isMcpAgentComment } from '@tldraw/dotcom-shared'
 import { toRichText } from '@tldraw/tlschema'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -71,7 +70,7 @@ export async function readPageCommentRows(
 				authorName: row.authorName,
 				body: row.body,
 				createdAt: Number(row.createdAt),
-				fromAgent: isMcpAgentComment(row.meta),
+				meta: row.meta,
 			})),
 		}
 	} finally {

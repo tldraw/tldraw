@@ -38,13 +38,6 @@ export const MCP_AGENT_ID_PREFIX = 'mcp-agent:'
 /** The comment `meta` key naming the agent that posted it through the MCP server's write_comment. */
 export const MCP_AGENT_COMMENT_META_KEY = 'mcpAgent'
 
-/** Whether a comment's `meta` marks it as posted by an agent through the MCP server. */
-export function isMcpAgentComment(meta: unknown): boolean {
-	if (typeof meta !== 'object' || meta === null) return false
-	const value = (meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
-	return value !== undefined && value !== null && value !== false
-}
-
 /** The agent a comment's `meta` names, or null for a comment no agent posted. */
 export function getMcpAgentFromCommentMeta(meta: unknown): { id: string; name: string } | null {
 	if (typeof meta !== 'object' || meta === null) return null
