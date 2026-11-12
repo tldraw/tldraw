@@ -436,7 +436,7 @@ What the rule sees:
 
 A `perRecord` rule gets one change (plus `record`: `next`, or `prev` on a delete) and the same `session`, `before` and `after`.
 
-The room judges a push one operation at a time. An operation is one editor action (one `editor.run`, side effects included), and a push holds every operation the client made since its last push, in order. The rule sees each one against the document as the operations ahead of it left it. A client older than this feature sends its push as a single operation.
+The room judges a push one operation at a time. An operation is one editor action (one `editor.run`, side effects included), and a push holds every operation the client made since its last push, in order. The rule sees each operation with the earlier ones already applied. Consecutive operations that only update the same records, like the steps of a drag, arrive as one. An older client sends its whole push as a single operation.
 
 The session id is chosen by the client and carries no authority; identity is `session.userId`. The rule runs on every operation in every push: keep it fast and synchronous, and do no I/O. If it throws, the operation is refused and the error is logged.
 
@@ -483,7 +483,7 @@ const authorize = perRecord<TLRecord>(({ prev, next }, { session, before, after 
 })
 ```
 
-Here the page's policy lives on the page record, in its `meta`. Any client can send a change to that record, so the rule is what makes the field trustworthy: refuse policy changes from anyone but a trusted role, as the second line does. That line is enough on its own. An operation that forges the policy is refused, and so is every operation after it in the same push, so nothing done on the strength of the forged policy is stored.
+Here the page's policy lives on the page record, in its `meta`. Any client can send a change to that record, so the rule is what makes the field trustworthy: refuse policy changes from anyone but a trusted role, as the second line does. That line is enough on its own. The room refuses an operation that forges the policy and every operation after it in the same push, so nothing built on the forged policy is stored.
 
 Because the rule sees a whole operation, the order of changes inside it never matters. A frame and the shapes inside it can be created in either order; a frame deleted together with its children goes, children and all; a shape reparented into a frame the same operation deletes is refused.
 
@@ -524,7 +524,7 @@ Each client only gets its own permissions. A session still connecting gets the l
 
 #### What a refused push looks like
 
-When the rule refuses an operation, the room stores the operations ahead of it in the push and discards that one and every one after it. A later operation may build on the refused one, so the room doesn't judge the rest. The room tells the sending client in the `push_result`, with the rule's `reason` and `ids` and the index of the first refused operation. The client keeps what was stored and reverts the rest: the user sees those changes snap back. Pass `onPushRefused` to `useSync` (or `TLSyncClient`) to show a message. The server logs a warning. Only rooms using the deprecated `authorizeRecord` still skip refused records one at a time, silently.
+When the rule refuses an operation, the room stores the operations before it in the push and discards that one and every one after it. A later operation may build on the refused one, so the room doesn't judge the rest. The room tells the sending client in the `push_result`, with the rule's `reason` and `ids` and the index of the first refused operation. The client keeps what was stored and reverts the rest: the user sees those changes snap back. Pass `onPushRefused` to `useSync` (or `TLSyncClient`) to show a message. The server logs a warning. Only rooms using the deprecated `authorizeRecord` still skip refused records one at a time, silently.
 
 #### What the rule never sees
 

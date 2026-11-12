@@ -558,38 +558,45 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 			const errors: unknown[] = []
 			const wasFlushingHistory = this.isFlushingHistory
 			this.isFlushingHistory = true
-			const deliveries = [
-				...entries.map((entry) => ({ ...entry, operation: -1, perOperation: false })),
-				...operations.map((entry) => ({ ...entry, perOperation: true })),
-			]
-			for (const { changes, source, operation, perOperation } of deliveries) {
+			entries.forEach(({ changes, source }, i) => {
 				// Filtered diffs are computed at most once per scope per entry, and shared by every
 				// listener watching that scope.
 				const scopedChanges = new Map<RecordScope, RecordsDiff<R> | null>()
-				for (const listener of this.listeners) {
-					const { onHistory, filters } = listener
-					if (listener.perOperation !== perOperation) continue
+				for (const { onHistory, filters, perOperation } of this.listeners) {
 					if (filters.source !== 'all' && filters.source !== source) {
 						continue
 					}
-					let listenerChanges = changes
-					if (filters.scope !== 'all') {
-						if (!scopedChanges.has(filters.scope)) {
-							scopedChanges.set(filters.scope, this.filterChangesByScope(changes, filters.scope))
+					// in listener order, otherwise a listener that writes and flushes reorders the rest
+					const parts = perOperation ? operations[i] : [{ changes, operation: -1 }]
+					for (const part of parts) {
+						let listenerChanges = part.changes
+						if (filters.scope !== 'all') {
+							if (perOperation) {
+								const filtered = this.filterChangesByScope(part.changes, filters.scope)
+								if (!filtered) continue
+								listenerChanges = filtered
+							} else {
+								if (!scopedChanges.has(filters.scope)) {
+									scopedChanges.set(
+										filters.scope,
+										this.filterChangesByScope(changes, filters.scope)
+									)
+								}
+								const filtered = scopedChanges.get(filters.scope)
+								if (!filtered) continue
+								listenerChanges = filtered
+							}
 						}
-						const filtered = scopedChanges.get(filters.scope)
-						if (!filtered) continue
-						listenerChanges = filtered
-					}
-					// The entries are already dequeued, so a listener that throws must not stop the others
-					// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
-					try {
-						onHistory({ changes: listenerChanges, source }, operation)
-					} catch (error) {
-						errors.push(error)
+						// The entries are already dequeued, so a listener that throws must not stop the others
+						// (e.g. a sync client) from receiving them: deliver to all, then rethrow the first error.
+						try {
+							onHistory({ changes: listenerChanges, source }, part.operation)
+						} catch (error) {
+							errors.push(error)
+						}
 					}
 				}
-			}
+			})
 			this.isFlushingHistory = wasFlushingHistory
 			if (errors.length > 0) throw errors[0]
 		}
@@ -1391,17 +1398,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		) {
 			return this.checkAsOneOperation(() => this.atomic(fn, runCallbacks, isMergingRemoteChanges))
 		}
-		if (!this._isInAtomicOp && this.checkScopeDepth === 0 && !this.isSettlingCheckedOperation) {
-			try {
-				return this.atomicInner(fn, runCallbacks, isMergingRemoteChanges)
-			} finally {
-				this.operation++
-			}
-		}
-		return this.atomicInner(fn, runCallbacks, isMergingRemoteChanges)
-	}
-
-	private atomicInner<T>(fn: () => T, runCallbacks: boolean, isMergingRemoteChanges: boolean): T {
 		return transact(() => {
 			if (this._isInAtomicOp) {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
@@ -1441,14 +1437,14 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.sideEffects.setIsEnabled(prevSideEffectsEnabled)
 				this._isInAtomicOp = false
 				this.isMergingRemoteChanges = false
+				// inside a checked unit, the unit is the operation
+				if (this.checkScopeDepth === 0) this.operation++
 			}
 		})
 	}
 
 	/** The number of the operation being made: one `checkAsOneOperation`, or one outermost store call. */
 	private operation = 0
-	/** Otherwise a refused operation's revert would count as an operation of its own. */
-	private isSettlingCheckedOperation = false
 
 	private readonly commitChecks = new Set<
 		(changes: RecordsDiff<R>) => TLStoreCommitRefusal | null
@@ -1514,7 +1510,6 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// settled, even inside someone else's transaction. A thrown unit is never judged: there's
 		// nothing left of it to allow or refuse.
 		this.checkScopeDepth = 1
-		this.isSettlingCheckedOperation = true
 		this.checkedChanges = createEmptyRecordsDiff()
 		let refusal: TLStoreCommitRefusal | null = null
 		let result: T
@@ -1538,8 +1533,8 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private endCheckedOperation(outcome: TLStoreOperationOutcome) {
 		this.checkScopeDepth = 0
 		this.checkedChanges = null
-		this.isSettlingCheckedOperation = false
-		this.operation++
+		// inside an outer store call, that call is the operation
+		if (!this._isInAtomicOp) this.operation++
 		for (const listener of this.settledListeners) listener(outcome)
 		if (this.didDeferFlush) {
 			this.didDeferFlush = false
@@ -1596,14 +1591,11 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
  * ```
  *
  * @param entries - The array of history entries to squash
- * @param operations - The operation each entry was made in. Given these, entries from
- *   different operations are kept apart.
  * @returns An array of squashed history entries
  * @public
  */
 function squashHistoryEntries<T extends UnknownRecord>(
-	entries: HistoryEntry<T>[],
-	operations?: number[]
+	entries: HistoryEntry<T>[]
 ): HistoryEntry<T>[] {
 	if (entries.length === 0) return []
 
@@ -1613,8 +1605,7 @@ function squashHistoryEntries<T extends UnknownRecord>(
 
 	for (let i = 1, n = entries.length; i < n; i++) {
 		entry = entries[i]
-		// given operations, an entry from another operation also starts a new chunk
-		if (chunk[0].source !== entry.source || (operations && operations[i] !== operations[i - 1])) {
+		if (chunk[0].source !== entry.source) {
 			chunked.push(chunk)
 			chunk = []
 		}
@@ -1701,23 +1692,27 @@ class HistoryAccumulator<T extends UnknownRecord> {
 	 */
 	flush(currentVersion: number, withOperations: boolean) {
 		this.discardFrom(currentVersion + 1)
-		const entries = squashHistoryEntries(this._history)
-		const operations: (HistoryEntry<T> & { operation: number })[] = []
+		const history = this._history
+		const entries = squashHistoryEntries(history)
+		// For each entry, its changes again, one diff per operation.
+		const operations: { changes: RecordsDiff<T>; operation: number }[][] = []
 		if (withOperations) {
-			const perOperation = squashHistoryEntries(this._history, this._operations)
-			let i = 0
-			for (const entry of perOperation) {
-				operations.push({ ...entry, operation: this._operations[i] })
-				// skip to the first entry of the next chunk
-				const source = this._history[i].source
-				const operation = this._operations[i]
-				while (
-					i < this._history.length &&
-					this._history[i].source === source &&
-					this._operations[i] === operation
-				) {
-					i++
+			let run: (typeof operations)[number] = []
+			for (let start = 0, i = 1; i <= history.length; i++) {
+				const sameEntry = i < history.length && history[i].source === history[start].source
+				if (sameEntry && this._operations[i] === this._operations[start]) continue
+				run.push({
+					changes:
+						i - start === 1
+							? history[start].changes
+							: squashRecordDiffs(history.slice(start, i).map((e) => e.changes)),
+					operation: this._operations[start],
+				})
+				if (!sameEntry) {
+					operations.push(run)
+					run = []
 				}
+				start = i
 			}
 		}
 		this.clear()

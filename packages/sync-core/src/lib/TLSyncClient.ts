@@ -5,6 +5,7 @@ import {
 	Store,
 	UnknownRecord,
 	reverseRecordsDiff,
+	squashRecordDiffs,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
 import type { TLPermissionGrant } from '@tldraw/tlschema'
@@ -33,6 +34,7 @@ import {
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 	TLSyncRefusal,
+	getPushOps,
 	getTlsyncProtocolVersion,
 } from './protocol'
 import type { TLSessionAccess } from './TLSyncRoom'
@@ -337,13 +339,8 @@ function getPresenceOp<R extends UnknownRecord>(
 	return undefined
 }
 
-/** Past this many operations in one push, new ones join the last. */
+/** Otherwise a burst of store calls makes the room run its rule once for each. */
 const MAX_OPS_PER_PUSH = 100
-
-/** A push's operations in order. A push that sent one `diff` is one operation. */
-function getRequestOps<R extends UnknownRecord>(request: TLPushRequest<R>): NetworkDiff<R>[] {
-	return request.ops ?? (request.diff ? [request.diff] : [])
-}
 
 /** Whether both diffs only update records, and the same ones. */
 function updatesSameRecords<R extends UnknownRecord>(a: RecordsDiff<R>, b: RecordsDiff<R>) {
@@ -585,25 +582,15 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			if (!this.unsentChanges.nextOps && !this.unsentChanges.nextPresence) {
 				return
 			}
-			const unsentOps = this.unsentChanges.nextOps ?? []
-			let diff: NetworkDiff<R> | undefined
-			let ops: NetworkDiff<R>[] | undefined
-			if (this.serverAcceptsOps && unsentOps.length > 1) {
-				ops = unsentOps.map((op) => getNetworkDiff(op.diff)).filter((op) => op !== null)
-				if (ops.length === 1) diff = ops.pop()
-				if (ops.length === 0) ops = undefined
-			} else if (unsentOps.length > 0) {
-				const squashed: RecordsDiff<R> = {
-					added: {} as any,
-					updated: {} as any,
-					removed: {} as any,
-				}
-				squashRecordDiffsMutable(
-					squashed,
-					unsentOps.map((op) => op.diff)
-				)
-				diff = getNetworkDiff(squashed) ?? undefined
-			}
+			const unsent = (this.unsentChanges.nextOps ?? []).map((op) => op.diff)
+			// an older room only reads `diff`
+			const sent = (
+				this.serverAcceptsOps || unsent.length < 2 ? unsent : [squashRecordDiffs(unsent)]
+			)
+				.map((diff) => getNetworkDiff(diff))
+				.filter((diff) => diff !== null)
+			const ops = sent.length > 1 ? sent : undefined
+			const diff = sent.length === 1 ? sent[0] : undefined
 			const presence = this.unsentChanges.nextPresence
 				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
 				: undefined
@@ -1012,14 +999,11 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				updatesSameRecords(last.diff, change) ||
 				ops.length >= MAX_OPS_PER_PUSH)
 		) {
-			// records are immutable, so sharing their references with `change` is fine — the
-			// squash gives the op its own containers and tuples without deep-cloning records
 			squashRecordDiffsMutable(last.diff, [change])
 			last.operation = operation
 		} else {
-			const diff: RecordsDiff<R> = { added: {} as any, updated: {} as any, removed: {} as any }
-			squashRecordDiffsMutable(diff, [change])
-			ops.push({ diff, operation })
+			// a copy: otherwise a later squash into the op would write into the store's own diff
+			ops.push({ diff: squashRecordDiffs([change]), operation })
 		}
 		this.sendUnsentChanges()
 	}
@@ -1147,7 +1131,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 							'Received push_result for a push request that is not at the front of the queue'
 						)
 					}
-					const ops = getRequestOps(this.pendingPushRequests.shift()!)
+					const ops = getPushOps(this.pendingPushRequests.shift()!)
 					const refusedFrom = diff.refused ? (diff.refusedFrom ?? 0) : ops.length
 					if (diff.action === 'commit') {
 						for (const op of ops.slice(0, refusedFrom)) this.applyNetworkDiff(op, true)
@@ -1162,7 +1146,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 				try {
 					this.speculativeChanges = this.store.extractingChanges(() => {
 						for (const request of this.pendingPushRequests) {
-							for (const op of getRequestOps(request)) this.applyNetworkDiff(op, true)
+							for (const op of getPushOps(request)) this.applyNetworkDiff(op, true)
 						}
 						for (const op of this.unsentChanges.nextOps ?? []) {
 							const diff = getNetworkDiff(op.diff)

@@ -178,6 +178,36 @@ describe('the room judges a push one operation at a time', () => {
 		expect(stored()).toEqual({ [a]: doc(a, 2) })
 	})
 
+	it('keeps the stored record when a push deletes it, reuses its id and deletes it again', () => {
+		interface Other extends BaseRecord<'other', RecordId<Other>> {
+			label?: string
+		}
+		const OtherType = createRecordType<Other>('other', {
+			scope: 'document',
+			validator: { validate: (value) => value as Other },
+		})
+		const mixed = StoreSchema.create<Doc | Other>({ doc: DocType, other: OtherType })
+		const server = new TestServer<Doc | Other>(mixed, {
+			documents: [{ state: doc(a, 1), lastChangedClock: 0 }],
+			clock: 0,
+			documentClock: 0,
+			schema: mixed.serialize(),
+		})
+		const asOther = { id: a as string as RecordId<Other>, typeName: 'other' } as Other
+		// a server-side push: a session's schema would refuse the reused id
+		;(server.room as any).handlePushRequest(null, {
+			type: 'push',
+			clientClock: 1,
+			ops: [
+				{ [a]: [RecordOpType.Remove] },
+				{ [a]: [RecordOpType.Put, asOther] },
+				{ [a]: [RecordOpType.Remove] },
+			],
+		})
+
+		expect(server.storage.getSnapshot().documents).toEqual([])
+	})
+
 	it('still refuses a push that sends one diff as a whole', () => {
 		const { push, stored } = setup([doc(a, 1)])
 		const result = push({ diff: { ...setValue(a, 2), ...put(doc(c, 500)) } })
@@ -191,8 +221,7 @@ describe('the room judges a push one operation at a time', () => {
 describe('the client sends its operations apart', () => {
 	let rafCallbacks: FrameRequestCallback[]
 
-	// With frames stubbed, a push waits for the throttle, so operations collect the way they do in
-	// a browser.
+	// frames stubbed: otherwise each operation is pushed on its own
 	beforeEach(() => {
 		vi.useFakeTimers()
 		vi.setSystemTime(0)
@@ -331,6 +360,17 @@ describe('the client sends its operations apart', () => {
 		expect(pushes[0].ops).toBeUndefined()
 		expect(pushes[0].diff).toEqual({ [a]: [RecordOpType.Patch, { value: [ValueOpType.Put, 4] }] })
 		expect(stored()).toEqual({ [a]: doc(a, 4) })
+	})
+
+	it('joins further operations into the last once a push holds a hundred', () => {
+		const { store, pushes, settle, stored } = setup([])
+		for (let i = 0; i < 150; i++) store.put([doc(DocType.createId('n' + i), i % 100)])
+		settle()
+
+		expect(pushes).toHaveLength(1)
+		expect(pushes[0].ops).toHaveLength(100)
+		expect(Object.keys(pushes[0].ops![99])).toHaveLength(51)
+		expect(Object.keys(stored())).toHaveLength(150)
 	})
 
 	it('sends one squashed diff to a room that does not accept ops', () => {

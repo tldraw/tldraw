@@ -47,6 +47,7 @@ import {
 	TLSocketServerSentDataEvent,
 	TLSocketServerSentEvent,
 	TLSyncRefusal,
+	getPushOps,
 } from './protocol'
 import { applyAndDiffRecord, diffAndValidateRecord, validateRecord } from './recordDiff'
 import {
@@ -1569,7 +1570,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					return !!store
 				}
 
-				const ops = message.ops ?? (message.diff ? [message.diff] : [])
+				const ops = getPushOps(message)
 				// The first refused operation: the ones before it are stored.
 				let refusedFrom: number | undefined
 				// Whether every stored operation went in exactly as the client sent it.
@@ -1593,22 +1594,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					const recordTypeOf = (record: R) =>
 						assertExists(getOwnProperty(this.schema.types, record.typeName))
 
-					// Staged here, not in the transaction: otherwise a refusal has writes to undo (a write
-					// bumps the clock and a delete leaves a tombstone, even inside the transaction).
+					// staged outside the transaction: otherwise a refusal leaves a bumped clock and tombstones
 					const allowed = new Map<string, R | undefined>()
 					const read = (id: string) =>
 						allowed.has(id) ? allowed.get(id) : (txn.get(id) as R | undefined)
 					// What the allowed operations add up to: one write per record.
 					const writes = new Map<string, Staged>()
 					const addWrite = (s: Staged) => {
-						const first = writes.get(s.id)
-						if (!first) return writes.set(s.id, s)
+						if (!writes.has(s.id)) return writes.set(s.id, s)
 						// an earlier operation changed this record too: write once, from the stored record
-						const prev = first.change.type === 'create' ? null : first.change.prev
+						const prev = (txn.get(s.id) as R | undefined) ?? null
 						const next = s.change.next
 						if (!prev && !next) return writes.delete(s.id)
-						if (!next)
+						if (!next) {
 							return writes.set(s.id, { id: s.id, change: { type: 'delete', prev: prev!, next } })
+						}
 						if (!prev || prev.typeName !== next.typeName) {
 							return writes.set(s.id, { id: s.id, change: { type: 'create', prev: null, next } })
 						}
@@ -1852,63 +1852,16 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		if (message.ops) {
-			// The client keeps the operations before `refusedFrom` and reverts the rest.
-			const refusal = result.refused && {
-				refused: result.refused,
-				refusedFrom: result.refusedFrom,
-			}
-			const stored = result.docChanges.diffs
-			if (!stored) {
-				pushResult = {
-					type: 'push_result',
-					clientClock: message.clientClock,
-					serverClock: documentClock,
-					action: 'discard',
-					...refusal,
-				}
-			} else if (result.verbatim && !(changes && session)) {
-				pushResult = {
-					type: 'push_result',
-					clientClock: message.clientClock,
-					serverClock: documentClock,
-					action: 'commit',
-					...refusal,
-				}
-			} else if (session) {
-				const diff = this.migrateDiffOrRejectSession(
-					session.sessionId,
-					session.serializedSchema,
-					session.requiresDownMigrations,
-					stored.diff,
-					stored.networkDiff,
-					legacyAppendMode
-				)
-				if (diff.ok) {
-					pushResult = {
-						type: 'push_result',
-						clientClock: message.clientClock,
-						serverClock: documentClock,
-						action: { rebaseWithDiff: diff.value },
-						...refusal,
-					}
-				}
-			}
-		} else if (isEqual(result.docChanges.diffs?.networkDiff, message.diff)) {
-			pushResult = {
-				type: 'push_result',
-				clientClock: message.clientClock,
-				serverClock: documentClock,
-				action: 'commit',
-			}
-		} else if (!result.docChanges.diffs?.networkDiff) {
-			pushResult = {
-				type: 'push_result',
-				clientClock: message.clientClock,
-				serverClock: documentClock,
-				action: 'discard',
-				...(result.refused && { refused: result.refused }),
-			}
+		const stored = result.docChanges.diffs
+		// only when the client's own copy already matches what was stored
+		const committed = message.ops
+			? !!stored && result.verbatim && !(changes && session)
+			: isEqual(stored?.networkDiff, message.diff)
+		let action: Extract<TLSocketServerSentEvent<R>, { type: 'push_result' }>['action'] | undefined
+		if (committed) {
+			action = 'commit'
+		} else if (!stored) {
+			action = 'discard'
 		} else if (session) {
 			// if recordsDiff is null but diff is not, then there are no clients that need down migrations
 			// so we can just use the diff directly
@@ -1916,19 +1869,24 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				session.sessionId,
 				session.serializedSchema,
 				session.requiresDownMigrations,
-				result.docChanges.diffs.diff,
-				result.docChanges.diffs.networkDiff,
+				stored.diff,
+				stored.networkDiff,
 				legacyAppendMode
 			)
-			if (diff.ok) {
-				pushResult = {
-					type: 'push_result',
-					clientClock: message.clientClock,
-					serverClock: documentClock,
-					action: { rebaseWithDiff: diff.value },
-				}
+			// if the diff was not ok then the session was rejected and it's ok to continue without a push result
+			if (diff.ok) action = { rebaseWithDiff: diff.value }
+		}
+		if (action) {
+			pushResult = {
+				type: 'push_result',
+				clientClock: message.clientClock,
+				serverClock: documentClock,
+				action,
+				...(result.refused && {
+					refused: result.refused,
+					...(message.ops && { refusedFrom: result.refusedFrom }),
+				}),
 			}
-			// if the difff was not ok then the session was rejected and it's ok to continue without a push result
 		}
 
 		if (session && pushResult) {

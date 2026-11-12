@@ -283,6 +283,44 @@ describe('listenToOperations', () => {
 		expect(third).not.toBe(first)
 	})
 
+	it("keeps a checked unit inside an outer store call in that call's operation", () => {
+		store.addCommitCheck(() => null)
+		const seen = listen()
+		const extra = Book.create({ id: Book.createId('c'), title: 'c' })
+		// remote changes aren't checked, so the handler's checked unit runs inside an unchecked call
+		store.sideEffects.registerAfterCreateHandler('author', () => {
+			store.put([book])
+			store.checkAsOneOperation(() => store.put([extra]))
+			store.update(book.id, (b) => ({ ...b, title: 'changed' }))
+		})
+		store.mergeRemoteChanges(() => store.put([author]))
+		store._flushHistory()
+
+		expect(seen).toMatchObject([{ added: [book.id, extra.id].sort(), updated: [], removed: [] }])
+	})
+
+	it('reaches listeners in the order they were added, like listen', () => {
+		const order: string[] = []
+		store.listenToOperations(({ changes }) => order.push(...Object.keys(changes.added)), {
+			source: 'user',
+			scope: 'document',
+		})
+		// added later, this listener writes and flushes while it is being told about the book
+		store.listen(
+			({ changes }) => {
+				if (book.id in changes.added) {
+					store.put([author])
+					store._flushHistory()
+				}
+			},
+			{ source: 'user', scope: 'document' }
+		)
+		store.put([book])
+		store._flushHistory()
+
+		expect(order).toEqual([book.id, author.id])
+	})
+
 	it('counts a checked operation and its revert as one operation that changed nothing', () => {
 		store.addCommitCheck((changes) => (author.id in changes.added ? {} : null))
 		const seen = listen()

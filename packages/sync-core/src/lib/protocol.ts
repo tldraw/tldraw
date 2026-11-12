@@ -245,6 +245,15 @@ export interface TLPushRequest<R extends UnknownRecord> {
 }
 
 /**
+ * A push's operations in order. A push that sent one `diff` is one operation.
+ *
+ * @internal
+ */
+export function getPushOps<R extends UnknownRecord>(request: TLPushRequest<R>): NetworkDiff<R>[] {
+	return request.ops ?? (request.diff ? [request.diff] : [])
+}
+
+/**
  * Interface defining a client-to-server connection request message.
  *
  * This message initiates a WebSocket connection to a sync room. It includes
