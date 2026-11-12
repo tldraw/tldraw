@@ -104,7 +104,20 @@ export interface LibrarySource {
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
 
+	/**
+	 * Adds an item to a library, and resolves with it once it is listed. A source may go on saving
+	 * it after that, e.g. while its thumbnail uploads, as a pasted image does; if saving fails, the
+	 * source removes the item again and reports the failure itself.
+	 */
 	addItem(libraryId: TLLibraryId, item: TLNewLibraryItem): Promise<TLLibraryItem>
+	/**
+	 * Adds several items to a library, in the order given, as one change where the source can, and
+	 * resolves with them in the same order once they are listed, as {@link LibrarySource.addItem}
+	 * does. Optional: for sources where adding items together is quicker than adding them one at a
+	 * time, e.g. in one request to a server. Without it, `addItemsToLibrary` adds them one at a time
+	 * through {@link LibrarySource.addItem}.
+	 */
+	addItems?(libraryId: TLLibraryId, items: TLNewLibraryItem[]): Promise<TLLibraryItem[]>
 	renameItem(itemId: TLLibraryItemId, name: string): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**
@@ -127,15 +140,17 @@ export interface LibrarySource {
 	 */
 	getDefaultOwnerId?(): string | undefined
 	/**
-	 * Gives a library to another owner. Its items stay in it. Optional: sources that don't track
-	 * owners, or can't move libraries between them, leave it out.
+	 * Gives a library to another owner. Its items stay in it. Resolves with the library at its new
+	 * owner once it is listed there: usually the same library, but a source that moves it by copying
+	 * gives the copy, with its own id. Optional: sources that don't track owners, or can't move
+	 * libraries between them, leave it out.
 	 */
-	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<void>
+	moveLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
 	/**
 	 * Copies a library and its items to an owner, as a new library with the same name, and
 	 * returns the copy. Optional: for sources that can copy without the caller loading and adding
-	 * every item again, e.g. on a server. Without it, `copyLibrary` copies item by item through
-	 * {@link LibrarySource.getItemContent} and {@link LibrarySource.addItem}.
+	 * every item again, e.g. on a server. Without it, `copyLibrary` loads each item's content through
+	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
 }

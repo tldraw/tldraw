@@ -47,6 +47,9 @@ export {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
+export { addItemsToLibrary } from './lib/addItemsToLibrary'
+export { saveErrorMessages } from './lib/saveErrorMessages'
+export { trackItemsStoring, whenItemsStored } from './lib/whenItemsStored'
 export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
 export {
 	CompositeLibrarySource,

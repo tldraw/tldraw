@@ -1,5 +1,7 @@
 import { DB, Role } from '@tldraw/dotcom-shared'
 import { Kysely } from 'kysely'
+import PQueue from 'p-queue'
+import { Environment } from './types'
 
 // An item's content is kept in the ROOMS bucket, which only this worker reads: the uploads bucket
 // is served publicly by object name, which would bypass the membership check the content route
@@ -9,6 +11,58 @@ export function getLibraryItemContentKey(itemId: string) {
 }
 
 export const MAX_LIBRARY_ITEM_CONTENT_BYTES = 5_000_000
+
+/** How many items' objects a request reads or writes at once. */
+export const STORAGE_CONCURRENCY = 4
+
+/**
+ * Runs the tasks, STORAGE_CONCURRENCY at a time, and resolves with their results in order. If one
+ * fails, those under way finish and the rest aren't started, so a caller knows everything they
+ * stored before the error is rethrown.
+ */
+export async function runStorageTasks<T>(tasks: (() => Promise<T>)[]): Promise<T[]> {
+	const queue = new PQueue({ concurrency: STORAGE_CONCURRENCY })
+	try {
+		return await queue.addAll(tasks)
+	} catch (error) {
+		queue.clear()
+		await queue.onIdle()
+		throw error
+	}
+}
+
+// What uniqueId() makes, which is how clients pick library and item ids.
+const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/
+
+/** Whether a value is an id a client could have picked for a new library or item. */
+export function isClientPickedId(value: unknown): value is string {
+	return typeof value === 'string' && CLIENT_ID_PATTERN.test(value)
+}
+
+export async function isLibraryIdTaken(db: Kysely<DB>, id: string) {
+	const row = await db.selectFrom('library').select('id').where('id', '=', id).executeTakeFirst()
+	return row !== undefined
+}
+
+/**
+ * Whether any of the ids is an item's. An id is taken while its item's row exists, and after the
+ * item is deleted until its content is removed (see processLibraryItemEffect), which would
+ * otherwise remove the new item's too.
+ */
+export async function isAnyItemIdTaken(db: Kysely<DB>, env: Environment, ids: string[]) {
+	if (ids.length === 0) return false
+	const row = await db
+		.selectFrom('library_item')
+		.select('id')
+		.where('id', 'in', ids)
+		.executeTakeFirst()
+	if (row !== undefined) return true
+	const heads = new PQueue({ concurrency: STORAGE_CONCURRENCY })
+	const stored = await heads.addAll(
+		ids.map((id) => () => env.ROOMS.head(getLibraryItemContentKey(id)))
+	)
+	return stored.some((object) => object !== null)
+}
 
 // The mutators' getRole counts the home workspace as its owner's whether or not a group_user row
 // exists for it, so this does too.

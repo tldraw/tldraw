@@ -17,6 +17,7 @@ import {
 	type TLRecord,
 } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
+import { getAssetInfo, type TLI18nMessage, type TLUiToastsContextType } from 'tldraw'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -26,6 +27,8 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { mapConcurrently } from './mapConcurrently'
+import { saveErrorMessages } from './saveErrorMessages'
 import {
 	LibraryItemRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
@@ -35,9 +38,19 @@ import {
 	type TLLibraryItem,
 	type TLLibraryItemContent,
 } from './schema'
+import { trackItemsStoring } from './whenItemsStored'
+
+const UPLOAD_CONCURRENCY = 4
 
 export interface BoardLibrarySourceOptions {
 	id?: string
+	/**
+	 * Where to report a thumbnail that fails to upload after its item was listed, as tldraw's
+	 * handler for pasted files reports one. Left out, the failure is only logged.
+	 */
+	toasts?: Pick<TLUiToastsContextType, 'addToast'>
+	/** Translates the report's text, as `useTranslation` does. */
+	msg?(message: TLI18nMessage): string
 }
 
 /**
@@ -49,7 +62,8 @@ export interface BoardLibrarySourceOptions {
  * records, which the content names by id: an item saved from this board shares the assets its
  * shapes already use, and an item added from elsewhere brings its assets into the document.
  * Thumbnails are image assets too, uploaded through the editor as a pasted image is, and the item
- * names them by id. Tiles get a URL sized for them from `resolveThumbnail`; a listed item carries
+ * names them by id. An item appears before its thumbnail has uploaded, shown from the image itself
+ * meanwhile. Tiles get a URL sized for them from `resolveThumbnail`; a listed item carries
  * URLs to the original images, for copying it to another source.
  *
  * Changes don't go on the undo stack, as with comments: saving to a library isn't an edit to the
@@ -60,12 +74,16 @@ export class BoardLibrarySource implements LibrarySource {
 	private readonly libraries: Computed<TLLibrary[]>
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly thumbnailUrls = new Map<TLAssetId, ResolvedUrl>()
+	private readonly toasts: BoardLibrarySourceOptions['toasts']
+	private readonly msg: BoardLibrarySourceOptions['msg']
 
 	constructor(
 		private readonly editor: Editor,
 		options: BoardLibrarySourceOptions = {}
 	) {
 		this.id = options.id ?? 'board'
+		this.toasts = options.toasts
+		this.msg = options.msg
 		for (const typeName of ['library', 'library-item', 'library-item-content']) {
 			if (!editor.store.schema.types[typeName as TLRecord['typeName']]) {
 				throw new Error(
@@ -132,7 +150,8 @@ export class BoardLibrarySource implements LibrarySource {
 
 	/**
 	 * The thumbnail asset for the colour mode, resolved through the editor's asset store at the
-	 * scale the tile shows it, as an image on the canvas is resolved at the scale it is drawn.
+	 * scale the tile shows it, as an image on the canvas is resolved at the scale it is drawn. While
+	 * it uploads, it is the image's temporary preview, as for an image on the canvas.
 	 */
 	async resolveThumbnail(item: TLLibraryItem, context: TLLibraryThumbnailContext) {
 		const record = this.get<TLLibraryItemRecord>(item.id)
@@ -140,6 +159,7 @@ export class BoardLibrarySource implements LibrarySource {
 		const assetId = getThumbnailForColorMode(record.thumbnail, context.colorMode)
 		const asset = this.editor.getAsset(assetId)
 		if (!asset || asset.type === 'bookmark' || !asset.props.w) return null
+		if (!asset.props.src) return this.editor.getTemporaryAssetPreview(assetId) ?? null
 		return this.editor.resolveAssetUrl(assetId, {
 			screenScale: context.width / asset.props.w,
 			dpr: context.dpr,
@@ -190,49 +210,80 @@ export class BoardLibrarySource implements LibrarySource {
 	 * Assets the document doesn't have yet are added to it as they are: content saved from this
 	 * board names assets already here, while content from another source carries its own.
 	 *
-	 * The thumbnail is uploaded first, and the item appears once it has been: it never names an
-	 * image that isn't stored yet. If the upload fails, nothing is added.
+	 * The item is listed at once, its thumbnail shown from the image itself, and it resolves then,
+	 * while the thumbnail goes on uploading, as a pasted image does. If the upload fails, the item is
+	 * removed again and the failure reported through the `toasts` option, as a pasted image's is.
 	 */
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
+		const [item] = await this.addItems(libraryId, [newItem])
+		return item
+	}
+
+	/**
+	 * As {@link BoardLibrarySource.addItem}, for several items at once: they are listed together,
+	 * and their thumbnails are uploaded a few at a time. If any upload fails, all of them are removed
+	 * again, with the images that did upload.
+	 */
+	async addItems(libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) {
 		this.getLibrary(libraryId)
 		this.assertCan('addItem', libraryId)
-		const { content } = parseLibraryItemContent(newItem.content)
-		const { assets, ...rest } = content
-		const newAssets = this.migrateAssets(
-			assets.filter((asset) => !this.editor.store.has(asset.id)),
-			content.schema
+		const now = Date.now()
+		const prepared = await Promise.all(
+			newItems.map(async (newItem) => {
+				const { content } = parseLibraryItemContent(newItem.content)
+				const { assets, ...rest } = content
+				const newAssets = this.migrateAssets(
+					assets.filter((asset) => !this.editor.store.has(asset.id)),
+					content.schema
+				)
+				const thumbnail =
+					newItem.thumbnail && (await this.prepareThumbnail(newItem.thumbnail, newItem.name))
+				return { newItem, assets, rest, newAssets, thumbnail }
+			})
 		)
-		const thumbnailAssets = newItem.thumbnail
-			? await this.uploadThumbnail(newItem.thumbnail, newItem.name)
-			: undefined
-		const thumbnailAssetList = thumbnailAssets ? listThumbnail(thumbnailAssets) : []
-		// Checked again after the upload, which the library may not have outlived.
-		try {
-			this.getLibrary(libraryId)
-			this.assertCan('addItem', libraryId)
-		} catch (error) {
-			this.editor.deleteAssets(thumbnailAssetList)
-			throw error
-		}
-		const item: TLLibraryItemRecord = {
-			id: LibraryItemRecordType.createId(),
-			typeName: 'library-item',
-			libraryId,
-			...(newItem.name === undefined ? {} : { name: newItem.name }),
-			...(thumbnailAssets ? { thumbnail: mapThumbnail(thumbnailAssets, (asset) => asset.id) } : {}),
-			createdAt: Date.now(),
-			version: 1,
-			meta: {},
-		}
-		const contentRecord = LibraryItemContentRecordType.create({
-			id: createLibraryItemContentId(item.id),
-			itemId: item.id,
-			content: structuredClone(rest),
-			assetIds: [...new Set(assets.map((asset) => asset.id))],
+		// Checked again after reading the images, which the library may not have outlived.
+		this.getLibrary(libraryId)
+		this.assertCan('addItem', libraryId)
+		const records = prepared.map(({ newItem, assets, rest, newAssets, thumbnail }, index) => {
+			const item: TLLibraryItemRecord = {
+				id: LibraryItemRecordType.createId(),
+				typeName: 'library-item',
+				libraryId,
+				...(newItem.name === undefined ? {} : { name: newItem.name }),
+				...(thumbnail ? { thumbnail: mapThumbnail(thumbnail, ({ asset }) => asset.id) } : {}),
+				createdAt: now + index,
+				version: 1,
+				meta: {},
+			}
+			const contentRecord = LibraryItemContentRecordType.create({
+				id: createLibraryItemContentId(item.id),
+				itemId: item.id,
+				content: structuredClone(rest),
+				assetIds: [...new Set(assets.map((asset) => asset.id))],
+			})
+			return { item, contentRecord, newAssets, images: thumbnail ? listThumbnail(thumbnail) : [] }
 		})
-		this.write([...newAssets, ...thumbnailAssetList, item, contentRecord])
-		await Promise.all(getThumbnailAssetIds(item).map((id) => this.getResolvedUrl(id)?.ready))
-		return this.toListedItem(item)
+		const images = records.flatMap((r) => r.images)
+		for (const { asset, file } of images) this.editor.createTemporaryAssetPreview(asset.id, file)
+		this.write([
+			...records.flatMap((r) => r.newAssets),
+			...images.map(({ asset }) => asset),
+			...records.flatMap((r) => [r.item, r.contentRecord]),
+		])
+		const itemIds = records.map(({ item }) => item.id)
+		const stored = this.uploadImages(images, itemIds)
+		trackItemsStoring(itemIds, stored)
+		stored.catch((error) => {
+			if (this.toasts && this.msg) {
+				this.toasts.addToast({
+					title: this.msg(saveErrorMessages.saveErrorTitle),
+					description: this.msg(saveErrorMessages.saveErrorDescription),
+					severity: 'error',
+				})
+			}
+			console.error("Couldn't upload a library item's thumbnail", error)
+		})
+		return records.map(({ item }) => this.toListedItem(item))
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
@@ -270,64 +321,93 @@ export class BoardLibrarySource implements LibrarySource {
 	}
 
 	/**
-	 * Each image goes through the editor's handler for files, as a pasted image does: it is checked
-	 * and uploaded to the editor's asset store, and comes back as an image asset to add to the
-	 * document. Every item gets its own assets, so deleting it can delete them.
+	 * Each image becomes an image asset with no src yet, sized and named from the file, as a pasted
+	 * image is before its upload. Every item gets its own assets, so deleting it can delete them.
 	 */
-	private async uploadThumbnail(
+	private async prepareThumbnail(
 		thumbnail: TLLibraryThumbnail<Blob>,
 		name = 'thumbnail'
-	): Promise<TLLibraryThumbnail<TLAsset>> {
-		const upload = async (blob: Blob, suffix: string) => {
+	): Promise<TLLibraryThumbnail<PendingImage>> {
+		const prepare = async (blob: Blob, suffix: string) => {
 			const file = new File([blob], `${name}${suffix}.${blob.type.split('/')[1] ?? 'png'}`, {
 				type: blob.type,
 			})
-			const asset = await this.editor.getAssetForExternalContent({
-				type: 'file',
-				file,
-				assetId: AssetRecordType.createId(),
-			})
-			if (!asset) throw new Error("The editor can't store images: it has no handler for files")
-			return asset
+			const asset = await getAssetInfo(this.editor, file, AssetRecordType.createId())
+			if (!asset) throw new Error(`The editor can't store images: it has no util for ${file.type}`)
+			return { asset, file }
 		}
-		if (thumbnail instanceof Blob) return upload(thumbnail, '')
-		const [light, dark] = await Promise.allSettled([
-			upload(thumbnail.light, '-light'),
-			upload(thumbnail.dark, '-dark'),
+		if (thumbnail instanceof Blob) return prepare(thumbnail, '')
+		const [light, dark] = await Promise.all([
+			prepare(thumbnail.light, '-light'),
+			prepare(thumbnail.dark, '-dark'),
 		])
-		if (light.status === 'fulfilled' && dark.status === 'fulfilled') {
-			return { light: light.value, dark: dark.value }
+		return { light, dark }
+	}
+
+	// Removes the items again, with all of their images, if any image fails to upload.
+	private async uploadImages(images: PendingImage[], itemIds: TLLibraryItemId[]) {
+		try {
+			await mapConcurrently(images, UPLOAD_CONCURRENCY, (image) => this.uploadImage(image))
+		} catch (error) {
+			this.write(
+				[],
+				[...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
+				images.map(({ asset }) => asset.id)
+			)
+			throw error
 		}
-		// Half a pair is no use: whichever uploaded is removed from the asset store again.
-		const uploaded = [light, dark].flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []))
-		this.editor.deleteAssets(uploaded)
-		throw [light, dark].find((r) => r.status === 'rejected')!.reason
+	}
+
+	/**
+	 * The image goes through the editor's handler for files, as a pasted image does: it is checked
+	 * and uploaded to the editor's asset store, and its asset gets the stored src. An asset deleted
+	 * while it uploaded, with its item or library, isn't put back, and the upload is removed.
+	 */
+	private async uploadImage({ asset, file }: PendingImage) {
+		const uploaded = await this.editor.getAssetForExternalContent({
+			type: 'file',
+			file,
+			assetId: asset.id,
+		})
+		if (!uploaded) throw new Error("The editor can't store images: it has no handler for files")
+		if (!this.editor.getAsset(asset.id)) {
+			this.editor.deleteAssets([asset.id])
+			return
+		}
+		this.write([{ ...uploaded, id: asset.id }])
 	}
 
 	private toListedItem(record: TLLibraryItemRecord): TLLibraryItem {
 		const { thumbnail, ...rest } = record
 		if (!thumbnail) return rest
-		const urls = mapThumbnail(thumbnail, (id) => this.getResolvedUrl(id)?.url.get())
+		const urls = mapThumbnail(thumbnail, (id) => this.getThumbnailUrl(id))
 		const resolved = listThumbnail(urls).every((url) => url !== undefined)
 		return resolved ? { ...rest, thumbnail: urls as TLLibraryThumbnail } : rest
 	}
 
 	/**
-	 * A thumbnail asset's URL from the editor's asset store, to the original image, as for copying
-	 * or exporting it: copying an item to another source fetches its thumbnail from these. It
-	 * resolves asynchronously, so it is undefined until then, and an item lists no thumbnail until
-	 * all of its images have one. Kept per asset, and resolved again when its src changes.
+	 * A thumbnail asset's URL to the original image, as for copying or exporting it: copying an item
+	 * to another source fetches its thumbnail from these. While the image uploads, and until its
+	 * stored src resolves, it is the image's temporary preview. Without either it is undefined, and
+	 * an item lists no thumbnail until all of its images have one.
 	 */
-	private getResolvedUrl(assetId: TLAssetId): ResolvedUrl | undefined {
+	private getThumbnailUrl(assetId: TLAssetId): string | undefined {
 		const asset = this.editor.getAsset(assetId)
-		if (!asset?.props.src) return undefined
-		const src = asset.props.src
+		if (!asset) return undefined
+		const resolved = asset.props.src
+			? this.getResolvedUrl(assetId, asset.props.src).url.get()
+			: undefined
+		return resolved ?? this.editor.getTemporaryAssetPreview(assetId)
+	}
+
+	// Resolved asynchronously, kept per asset, and resolved again when its src changes.
+	private getResolvedUrl(assetId: TLAssetId, src: string): ResolvedUrl {
 		const existing = this.thumbnailUrls.get(assetId)
 		if (existing?.src === src) return existing
 		const url = atom<string | undefined>(`thumbnail url ${assetId}`, undefined)
 		// Resolving reads editor state, such as the device pixel ratio, that a listing shouldn't
 		// recompute for.
-		const ready = unsafe__withoutCapture(() =>
+		unsafe__withoutCapture(() =>
 			this.editor.resolveAssetUrl(assetId, { shouldResolveToOriginal: true })
 		).then(
 			(resolved) => {
@@ -335,7 +415,7 @@ export class BoardLibrarySource implements LibrarySource {
 			},
 			(error) => console.error(`Couldn't resolve the thumbnail ${assetId}`, error)
 		)
-		const entry = { src, url, ready }
+		const entry = { src, url }
 		this.thumbnailUrls.set(assetId, entry)
 		return entry
 	}
@@ -389,10 +469,14 @@ export class BoardLibrarySource implements LibrarySource {
 	}
 }
 
+interface PendingImage {
+	asset: TLAsset
+	file: File
+}
+
 interface ResolvedUrl {
 	src: string
 	url: Atom<string | undefined>
-	ready: Promise<void>
 }
 
 function listThumbnail<Src>(thumbnail: TLLibraryThumbnail<Src>): Src[] {

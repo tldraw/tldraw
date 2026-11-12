@@ -1,6 +1,7 @@
 import { computed, type Computed } from '@tldraw/state'
 import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
-import { copyLibraryItemByItem, copyItem } from './copyLibrary'
+import { addItemsToLibrary } from './addItemsToLibrary'
+import { copyLibraryItems, copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -43,7 +44,9 @@ interface Part extends CompositeLibrarySourcePart {
  * One source made of several, such as the user's libraries and the ones an app ships. Each
  * read and write goes to the part holding the library or item, and new libraries to the part
  * of the owner they name. Moving a library to another part's owner copies it there, then
- * deletes the original, so it needs the original's part to allow deleting it.
+ * deletes the original, so it needs the original's part to allow deleting it. Such a move resolves
+ * once the copy is listed; the original is deleted once the copy is saved, and stays if saving
+ * fails.
  * @public
  */
 export class CompositeLibrarySource implements LibrarySource {
@@ -151,6 +154,11 @@ export class CompositeLibrarySource implements LibrarySource {
 		return this.getLibraryPart(libraryId).source.addItem(libraryId, item)
 	}
 
+	/** Added together by a part that can; by a part that can't, one at a time. */
+	addItems(libraryId: TLLibraryId, items: TLNewLibraryItem[]) {
+		return addItemsToLibrary(this.getLibraryPart(libraryId).source, libraryId, items)
+	}
+
 	renameItem(itemId: TLLibraryItemId, name: string) {
 		return this.getItemPart(itemId).part.source.renameItem(itemId, name)
 	}
@@ -163,7 +171,7 @@ export class CompositeLibrarySource implements LibrarySource {
 		const from = this.getLibraryPart(libraryId)
 		const to = this.getOwnerPart(ownerId)
 		if (from === to) {
-			if (from.owner) return
+			if (from.owner) return this.getListedLibrary(from, libraryId)
 			if (!from.source.moveLibrary) {
 				throw new Error(`Source ${from.source.id} can't move libraries`)
 			}
@@ -172,8 +180,9 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteLibrary', libraryId)) {
 			throw new LibraryPermissionError('deleteLibrary', libraryId)
 		}
-		await copyLibraryItemByItem(this, libraryId, ownerId)
-		await from.source.deleteLibrary(libraryId)
+		const { copied, stored } = await copyLibraryItems(this, libraryId, ownerId)
+		deleteOnceStored(stored, () => from.source.deleteLibrary(libraryId))
+		return copied
 	}
 
 	/**
@@ -186,7 +195,8 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (from === to && !from.owner && from.source.copyLibrary) {
 			return from.source.copyLibrary(libraryId, ownerId)
 		}
-		return copyLibraryItemByItem(this, libraryId, ownerId)
+		const { copied } = await copyLibraryItems(this, libraryId, ownerId)
+		return copied
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
@@ -199,8 +209,8 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (!from.source.can('deleteItem', item.libraryId)) {
 			throw new LibraryPermissionError('deleteItem', item.libraryId)
 		}
-		await copyItem(from.source, item, to.source, toLibraryId)
-		await from.source.deleteItem(itemId)
+		const { stored } = await copyItem(from.source, item, to.source, toLibraryId)
+		deleteOnceStored(stored, () => from.source.deleteItem(itemId))
 	}
 
 	private getDefaultPart() {
@@ -224,6 +234,12 @@ export class CompositeLibrarySource implements LibrarySource {
 		return part
 	}
 
+	private getListedLibrary(part: Part, libraryId: TLLibraryId) {
+		const library = part.libraries.get().find((c) => c.id === libraryId)
+		if (!library) throw new LibraryNotFoundError(libraryId)
+		return library
+	}
+
 	// Items are found through their libraries: sources list items per library only.
 	private getItemPart(itemId: TLLibraryItemId) {
 		for (const part of this.parts) {
@@ -239,4 +255,15 @@ export class CompositeLibrarySource implements LibrarySource {
 function ownersOf(part: CompositeLibrarySourcePart): TLLibraryOwner[] {
 	if (part.owner) return [part.owner]
 	return part.source.getLibraryOwners ? part.source.getLibraryOwners() : []
+}
+
+// A move across parts resolves once the copy is listed, and deletes the original only once the
+// copy is saved. If saving fails, the destination has reported it and removed the copy, and the
+// original stays.
+function deleteOnceStored(stored: Promise<void>, deleteOriginal: () => Promise<void>) {
+	stored
+		.then(deleteOriginal, () => {})
+		.catch((error) => {
+			console.error("Couldn't delete the original of a moved library or item", error)
+		})
 }

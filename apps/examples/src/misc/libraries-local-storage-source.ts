@@ -94,20 +94,33 @@ export class LocalStorageLibrarySource implements LibrarySource {
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
-		const content = parseLibraryItemContent(newItem.content)
-		const thumbnail = newItem.thumbnail && (await toDataUrls(newItem.thumbnail))
-		const item = LibraryItemRecordType.create({
-			libraryId,
-			createdAt: Date.now(),
-			...(newItem.name === undefined ? {} : { name: newItem.name }),
-			...(thumbnail ? { thumbnail } : {}),
-		})
+		const [item] = await this.addItems(libraryId, [newItem])
+		return item
+	}
+
+	async addItems(libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) {
+		const now = Date.now()
+		const added = await Promise.all(
+			newItems.map(async (newItem, index) => {
+				const thumbnail = newItem.thumbnail && (await toDataUrls(newItem.thumbnail))
+				const item = LibraryItemRecordType.create({
+					libraryId,
+					createdAt: now + index,
+					...(newItem.name === undefined ? {} : { name: newItem.name }),
+					...(thumbnail ? { thumbnail } : {}),
+				})
+				return { item, content: parseLibraryItemContent(newItem.content) }
+			})
+		)
 		await this.write((s) => ({
 			...s,
-			items: [...s.items, item],
-			contents: { ...s.contents, [item.id]: content },
+			items: [...s.items, ...added.map(({ item }) => item)],
+			contents: {
+				...s.contents,
+				...Object.fromEntries(added.map(({ item, content }) => [item.id, content])),
+			},
 		}))
-		return item
+		return added.map(({ item }) => item)
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
