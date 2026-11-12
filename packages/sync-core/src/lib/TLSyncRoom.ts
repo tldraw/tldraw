@@ -1378,6 +1378,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				// left out when not in use, the same as from an older server
 				...(session.permissions && { permissions: session.permissions }),
 				objectTypes: [...this.objectTypes],
+				acceptsOps: true,
 			} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
 		}) // no id needed because this only reads, no writes.
 
@@ -1568,16 +1569,18 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					return !!store
 				}
 
-				if (message.diff) {
-					// Phase 1: migrate and validate every op and stage it. Nothing touches the
-					// transaction yet, so a refusal has nothing to undo (a write bumps the clock and a
-					// delete leaves a tombstone, even inside the transaction).
+				const ops = message.ops ?? (message.diff ? [message.diff] : [])
+				// The first refused operation: the ones before it are stored.
+				let refusedFrom: number | undefined
+				// Whether every stored operation went in exactly as the client sent it.
+				let verbatim = true
+
+				if (ops.length > 0) {
 					interface Staged {
 						id: string
 						change: TLRecordChange<R>
 						diff?: ObjectDiff
 					}
-					let staged: Staged[] = []
 					const migrateUp = (record: R): R => {
 						const res = session
 							? this.schema.migratePersistedRecord(record, session.serializedSchema, 'up')
@@ -1590,175 +1593,223 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					const recordTypeOf = (record: R) =>
 						assertExists(getOwnProperty(this.schema.types, record.typeName))
 
-					for (const [id, op] of objectMapEntriesIterable(message.diff!)) {
-						switch (op[0]) {
-							case RecordOpType.Put: {
-								if (deny(id, op[1].typeName)) continue
-								// Try to add the document.
-								// If we're putting a record with a type that we don't recognize, fail
-								if (
-									!this.documentTypes.has(op[1].typeName) &&
-									!this.objectTypes.has(op[1].typeName)
-								) {
-									throw new TLSyncError(
-										'invalid record',
-										TLSyncErrorCloseEventReason.INVALID_RECORD
-									)
-								}
-								const record = op[1]
-								const prev = txn.get(id) as R | undefined
-								// A put must not change the record's typeName: the access gate keyed off the
-								// incoming type, so a swap between stores would dodge it. Skip it like a veto.
-								if (session && prev && prev.typeName !== record.typeName) {
-									this.log?.warn?.(
-										'skipping put that changes typeName',
-										`${prev.typeName} -> ${record.typeName}`,
-										id,
-										'session:',
-										session.sessionId
-									)
-									continue
-								}
-								const next = migrateUp(record)
-								if (prev) {
-									const diff = diffAndValidateRecord(
-										prev,
-										next,
-										recordTypeOf(prev),
-										legacyAppendMode
-									)
-									if (!diff) continue
-									staged.push({ id, change: { type: 'update', prev, next }, diff })
-								} else {
-									validateRecord(next, recordTypeOf(next))
-									staged.push({ id, change: { type: 'create', prev: null, next } })
-								}
-								break
-							}
-							case RecordOpType.Patch: {
-								const prev = txn.get(id) as R | undefined
-								// if it was already deleted, there's no need to apply the patch
-								if (!prev) continue
-								if (deny(id, prev.typeName)) continue
-								const recordType = recordTypeOf(prev)
-								// If the client's version of the record is older than ours, apply the patch
-								// to the downgraded record and bring the result back up.
-								const downgraded = session
-									? this.schema.migratePersistedRecord(prev, session.serializedSchema, 'down')
-									: { type: 'success' as const, value: prev }
-								if (downgraded.type === 'error') {
-									throw new TLSyncError(
-										downgraded.reason,
-										TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
-									)
-								}
-								if (downgraded.value === prev) {
-									const applied = applyAndDiffRecord(prev, op[1], recordType, legacyAppendMode)
-									if (!applied) continue
-									staged.push({
-										id,
-										change: { type: 'update', prev, next: applied[1] },
-										diff: applied[0],
-									})
-								} else {
-									const next = migrateUp(applyObjectDiff(downgraded.value, op[1]))
-									const diff = diffAndValidateRecord(prev, next, recordType, legacyAppendMode)
-									if (!diff) continue
-									staged.push({ id, change: { type: 'update', prev, next }, diff })
-								}
-								break
-							}
-							case RecordOpType.Remove: {
-								const prev = txn.get(id) as R | undefined
-								// If the doc was already deleted, don't do anything, no need to propagate a delete op
-								if (!prev) continue
-								if (deny(id, prev.typeName)) continue
-								staged.push({ id, change: { type: 'delete', prev, next: null } })
-								break
-							}
+					// Staged here, not in the transaction: otherwise a refusal has writes to undo (a write
+					// bumps the clock and a delete leaves a tombstone, even inside the transaction).
+					const allowed = new Map<string, R | undefined>()
+					const read = (id: string) =>
+						allowed.has(id) ? allowed.get(id) : (txn.get(id) as R | undefined)
+					// What the allowed operations add up to: one write per record.
+					const writes = new Map<string, Staged>()
+					const addWrite = (s: Staged) => {
+						const first = writes.get(s.id)
+						if (!first) return writes.set(s.id, s)
+						// an earlier operation changed this record too: write once, from the stored record
+						const prev = first.change.type === 'create' ? null : first.change.prev
+						const next = s.change.next
+						if (!prev && !next) return writes.delete(s.id)
+						if (!next)
+							return writes.set(s.id, { id: s.id, change: { type: 'delete', prev: prev!, next } })
+						if (!prev || prev.typeName !== next.typeName) {
+							return writes.set(s.id, { id: s.id, change: { type: 'create', prev: null, next } })
 						}
+						const diff = diffAndValidateRecord(prev, next, recordTypeOf(prev), legacyAppendMode)
+						if (!diff) return writes.delete(s.id)
+						return writes.set(s.id, { id: s.id, change: { type: 'update', prev, next }, diff })
 					}
 
-					// Phase 2: judge. Server-initiated pushes (no session) are never authorized.
-					if (session && (staged.length > 0 || denied.length > 0)) {
-						const overlay = new Map<string, R | undefined>()
-						for (const s of staged) overlay.set(s.id, s.change.next ?? undefined)
-						const ctx = {
-							session: {
-								sessionId: session.sessionId,
-								userId: session.userId,
-								meta: session.meta,
-								access: session.access,
-								permissions: session.permissions,
-							},
-							before: (id: string) => txn.get(id) as R | undefined,
-							after: (id: string) =>
-								overlay.has(id) ? overlay.get(id) : (txn.get(id) as R | undefined),
-						}
-						denied.sort((a, b) => (a.id < b.id ? -1 : 1))
-						let refusal: TLSyncRefusal | null = denied.length
-							? {
-									reason:
-										denied[0].store === 'objects'
-											? 'object store is read-only'
-											: 'document is read-only',
-									ids: denied.map((d) => d.id),
+					for (let i = 0; i < ops.length; i++) {
+						// Phase 1: migrate and validate every op of this operation and stage it.
+						let staged: Staged[] = []
+						denied.length = 0
+
+						for (const [id, op] of objectMapEntriesIterable(ops[i])) {
+							switch (op[0]) {
+								case RecordOpType.Put: {
+									if (deny(id, op[1].typeName)) continue
+									// Try to add the document.
+									// If we're putting a record with a type that we don't recognize, fail
+									if (
+										!this.documentTypes.has(op[1].typeName) &&
+										!this.objectTypes.has(op[1].typeName)
+									) {
+										throw new TLSyncError(
+											'invalid record',
+											TLSyncErrorCloseEventReason.INVALID_RECORD
+										)
+									}
+									const record = op[1]
+									const prev = read(id)
+									// A put must not change the record's typeName: the access gate keyed off the
+									// incoming type, so a swap between stores would dodge it. Skip it like a veto.
+									if (session && prev && prev.typeName !== record.typeName) {
+										this.log?.warn?.(
+											'skipping put that changes typeName',
+											`${prev.typeName} -> ${record.typeName}`,
+											id,
+											'session:',
+											session.sessionId
+										)
+										continue
+									}
+									const next = migrateUp(record)
+									if (prev) {
+										const diff = diffAndValidateRecord(
+											prev,
+											next,
+											recordTypeOf(prev),
+											legacyAppendMode
+										)
+										if (!diff) continue
+										staged.push({ id, change: { type: 'update', prev, next }, diff })
+									} else {
+										validateRecord(next, recordTypeOf(next))
+										staged.push({ id, change: { type: 'create', prev: null, next } })
+									}
+									break
 								}
-							: null
-						// Fail closed: a throwing rule refuses the push rather than letting anything through.
-						if (!refusal && this.authorize) {
-							try {
-								refusal = this.authorize({ ...ctx, changes: staged.map((s) => s.change) })
-							} catch (e) {
-								this.log?.error?.('authorize threw; refusing the push', e)
-								refusal = { reason: 'something went wrong' }
+								case RecordOpType.Patch: {
+									const prev = read(id)
+									// if it was already deleted, there's no need to apply the patch
+									if (!prev) continue
+									if (deny(id, prev.typeName)) continue
+									const recordType = recordTypeOf(prev)
+									// If the client's version of the record is older than ours, apply the patch
+									// to the downgraded record and bring the result back up.
+									const downgraded = session
+										? this.schema.migratePersistedRecord(prev, session.serializedSchema, 'down')
+										: { type: 'success' as const, value: prev }
+									if (downgraded.type === 'error') {
+										throw new TLSyncError(
+											downgraded.reason,
+											TLSyncErrorCloseEventReason.CLIENT_TOO_OLD
+										)
+									}
+									if (downgraded.value === prev) {
+										const applied = applyAndDiffRecord(prev, op[1], recordType, legacyAppendMode)
+										if (!applied) continue
+										staged.push({
+											id,
+											change: { type: 'update', prev, next: applied[1] },
+											diff: applied[0],
+										})
+									} else {
+										const next = migrateUp(applyObjectDiff(downgraded.value, op[1]))
+										const diff = diffAndValidateRecord(prev, next, recordType, legacyAppendMode)
+										if (!diff) continue
+										staged.push({ id, change: { type: 'update', prev, next }, diff })
+									}
+									break
+								}
+								case RecordOpType.Remove: {
+									const prev = read(id)
+									// If the doc was already deleted, don't do anything, no need to propagate a delete op
+									if (!prev) continue
+									if (deny(id, prev.typeName)) continue
+									staged.push({ id, change: { type: 'delete', prev, next: null } })
+									break
+								}
 							}
 						}
-						if (refusal) {
-							this.log?.warn?.(
-								'authorize refused push:',
-								refusal.reason,
-								refusal.ids ?? [],
-								'session:',
-								session.sessionId
-							)
-							refused = refusal
-							staged = []
-						} else if (!this.authorize && this.authorizeRecord) {
-							// The deprecated per-type map judges each record on its own and a refusal
-							// skips only that record.
-							const legacySession = {
-								sessionId: session.sessionId,
-								isReadonly: session.access.document === 'read',
-								meta: session.meta,
+
+						// Phase 2: judge. Server-initiated pushes (no session) are never authorized.
+						if (session && (staged.length > 0 || denied.length > 0)) {
+							const overlay = new Map<string, R | undefined>()
+							for (const s of staged) overlay.set(s.id, s.change.next ?? undefined)
+							const ctx = {
+								session: {
+									sessionId: session.sessionId,
+									userId: session.userId,
+									meta: session.meta,
+									access: session.access,
+									permissions: session.permissions,
+								},
+								before: read,
+								after: (id: string) => (overlay.has(id) ? overlay.get(id) : read(id)),
 							}
-							staged = staged.filter((s) => {
-								const record = s.change.type === 'delete' ? s.change.prev : s.change.next
-								const rule = this.authorizerFor(record.typeName)
-								if (!rule) return true
-								const result = rule({ session: legacySession, ...s.change })
-								if (!result) {
-									this.log?.warn?.(
-										'authorizer vetoed',
-										s.change.type,
-										record.typeName,
-										s.id,
-										'session:',
-										session.sessionId
-									)
-									return false
+							denied.sort((a, b) => (a.id < b.id ? -1 : 1))
+							let refusal: TLSyncRefusal | null = denied.length
+								? {
+										reason:
+											denied[0].store === 'objects'
+												? 'object store is read-only'
+												: 'document is read-only',
+										ids: denied.map((d) => d.id),
+									}
+								: null
+							// Fail closed: a throwing rule refuses the push rather than letting anything through.
+							if (!refusal && this.authorize) {
+								try {
+									refusal = this.authorize({ ...ctx, changes: staged.map((s) => s.change) })
+								} catch (e) {
+									this.log?.error?.('authorize threw; refusing the push', e)
+									refusal = { reason: 'something went wrong' }
 								}
-								if (s.change.type === 'create' && result !== s.change.next) {
-									validateRecord(result, recordTypeOf(result))
-									s.change = { type: 'create', prev: null, next: result }
+							}
+							if (refusal) {
+								this.log?.warn?.(
+									'authorize refused push:',
+									refusal.reason,
+									refusal.ids ?? [],
+									'session:',
+									session.sessionId
+								)
+								// a later operation may build on this one, so the rest go too
+								refused = refusal
+								refusedFrom = i
+								break
+							} else if (!this.authorize && this.authorizeRecord) {
+								// The deprecated per-type map judges each record on its own and a refusal
+								// skips only that record.
+								const legacySession = {
+									sessionId: session.sessionId,
+									isReadonly: session.access.document === 'read',
+									meta: session.meta,
 								}
-								return true
-							})
+								staged = staged.filter((s) => {
+									const record = s.change.type === 'delete' ? s.change.prev : s.change.next
+									const rule = this.authorizerFor(record.typeName)
+									if (!rule) return true
+									const result = rule({ session: legacySession, ...s.change })
+									if (!result) {
+										this.log?.warn?.(
+											'authorizer vetoed',
+											s.change.type,
+											record.typeName,
+											s.id,
+											'session:',
+											session.sessionId
+										)
+										return false
+									}
+									if (s.change.type === 'create' && result !== s.change.next) {
+										validateRecord(result, recordTypeOf(result))
+										s.change = { type: 'create', prev: null, next: result }
+									}
+									return true
+								})
+							}
+						}
+
+						if (verbatim && message.ops) {
+							const applied: NetworkDiff<R> = {}
+							for (const { id, change, diff } of staged) {
+								applied[id] =
+									change.type === 'create'
+										? [RecordOpType.Put, change.next]
+										: change.type === 'update'
+											? [RecordOpType.Patch, assertExists(diff)]
+											: [RecordOpType.Remove]
+							}
+							verbatim = isEqual(applied, ops[i])
+						}
+						for (const s of staged) {
+							allowed.set(s.id, s.change.next ?? undefined)
+							addWrite(s)
 						}
 					}
 
 					// Phase 3: write what survived and collect the diff to broadcast.
-					for (const { id, change, diff } of staged) {
+					for (const { id, change, diff } of writes.values()) {
 						switch (change.type) {
 							case 'create':
 								txn.set(id, change.next)
@@ -1785,7 +1836,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 				}
 
-				return { docChanges, presenceChanges, refused }
+				return { docChanges, presenceChanges, refused, refusedFrom, verbatim }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
 		)
@@ -1801,7 +1852,49 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 		}
 
-		if (isEqual(result.docChanges.diffs?.networkDiff, message.diff)) {
+		if (message.ops) {
+			// The client keeps the operations before `refusedFrom` and reverts the rest.
+			const refusal = result.refused && {
+				refused: result.refused,
+				refusedFrom: result.refusedFrom,
+			}
+			const stored = result.docChanges.diffs
+			if (!stored) {
+				pushResult = {
+					type: 'push_result',
+					clientClock: message.clientClock,
+					serverClock: documentClock,
+					action: 'discard',
+					...refusal,
+				}
+			} else if (result.verbatim && !(changes && session)) {
+				pushResult = {
+					type: 'push_result',
+					clientClock: message.clientClock,
+					serverClock: documentClock,
+					action: 'commit',
+					...refusal,
+				}
+			} else if (session) {
+				const diff = this.migrateDiffOrRejectSession(
+					session.sessionId,
+					session.serializedSchema,
+					session.requiresDownMigrations,
+					stored.diff,
+					stored.networkDiff,
+					legacyAppendMode
+				)
+				if (diff.ok) {
+					pushResult = {
+						type: 'push_result',
+						clientClock: message.clientClock,
+						serverClock: documentClock,
+						action: { rebaseWithDiff: diff.value },
+						...refusal,
+					}
+				}
+			}
+		} else if (isEqual(result.docChanges.diffs?.networkDiff, message.diff)) {
 			pushResult = {
 				type: 'push_result',
 				clientClock: message.clientClock,

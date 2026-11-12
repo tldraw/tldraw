@@ -142,6 +142,8 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			permissions?: readonly TLPermissionGrant[]
 			/** The record types the room keeps in the object store. Optional and additive, like `access`: an older server omits it, which is not the same as an empty list. */
 			objectTypes?: string[]
+			/** Whether the room reads a push's `ops`. Optional and additive: an older server omits it. */
+			acceptsOps?: boolean
 			/** @deprecated use `access.document`; still sent for older clients */
 			isReadonly: boolean
 			/** @deprecated use `access.objects`; still sent for older clients */
@@ -195,8 +197,10 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
-			/** Set on `discard` when the room's `authorize` rule refused the push. */
+			/** Set when the room's `authorize` rule refused the push, or part of it. */
 			refused?: TLSyncRefusal
+			/** With `refused` on a push that sent `ops`: the first refused operation. The ones before it were stored. */
+			refusedFrom?: number
 	  }
 
 /**
@@ -235,6 +239,8 @@ export interface TLPushRequest<R extends UnknownRecord> {
 	type: 'push'
 	clientClock: number
 	diff?: NetworkDiff<R>
+	/** One diff per operation, in order, in place of `diff`. Only for a room whose connect reply set `acceptsOps`. */
+	ops?: NetworkDiff<R>[]
 	presence?: [typeof RecordOpType.Patch, ObjectDiff] | [typeof RecordOpType.Put, R]
 }
 
