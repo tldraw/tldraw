@@ -55,9 +55,10 @@
 	box-shadow: 0 0 0 1px var(--tl-color-panel);
 }
 
+/* The mark fills the badge, so the 1px ring is all the white around it, as with the generic face. */
 .agentLogo {
-	width: 7px;
-	height: 7px;
+	width: 9px;
+	height: 9px;
 }
 
 .anon {
