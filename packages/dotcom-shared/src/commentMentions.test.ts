@@ -67,12 +67,19 @@ describe('extractMentionIds', () => {
 
 describe('getMcpAgentFromCommentMeta', () => {
 	it('reads the agent an MCP comment names', () => {
-		expect(getMcpAgentFromCommentMeta({ mcpAgent: { id: 'mcp-agent:1', name: 'Claude' } })).toEqual(
-			{
-				id: 'mcp-agent:1',
-				name: 'Claude',
-			}
-		)
+		expect(
+			getMcpAgentFromCommentMeta({ mcpAgent: { id: 'mcp-agent:1', name: 'Bob', client: 'claude' } })
+		).toEqual({ id: 'mcp-agent:1', name: 'Bob', client: 'claude' })
+	})
+
+	it('reads no client from meta that names none, or one we do not know', () => {
+		expect(
+			getMcpAgentFromCommentMeta({ mcpAgent: { id: 'mcp-agent:1', name: 'Bob' } })?.client
+		).toBeNull()
+		expect(
+			getMcpAgentFromCommentMeta({ mcpAgent: { id: 'mcp-agent:1', name: 'Bob', client: 'gemini' } })
+				?.client
+		).toBeNull()
 	})
 
 	it.each([

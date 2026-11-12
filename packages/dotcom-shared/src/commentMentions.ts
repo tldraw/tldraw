@@ -38,13 +38,40 @@ export const MCP_AGENT_ID_PREFIX = 'mcp-agent:'
 /** The comment `meta` key naming the agent that posted it through the MCP server's write_comment. */
 export const MCP_AGENT_COMMENT_META_KEY = 'mcpAgent'
 
+/**
+ * The app behind an MCP agent, from the OAuth client its token was issued to. The agent picks its own
+ * name, but not this, so this is what an agent's logo is drawn from.
+ */
+export type McpAgentClient = 'claude' | 'openai' | 'cursor'
+
+const MCP_AGENT_CLIENTS: readonly string[] = [
+	'claude',
+	'openai',
+	'cursor',
+] satisfies McpAgentClient[]
+
+/** An MCP comment's agent, as its `meta` names it. */
+export interface McpCommentAgent {
+	id: string
+	name: string
+	client: McpAgentClient | null
+}
+
 /** The agent a comment's `meta` names, or null for a comment no agent posted. */
-export function getMcpAgentFromCommentMeta(meta: unknown): { id: string; name: string } | null {
+export function getMcpAgentFromCommentMeta(meta: unknown): McpCommentAgent | null {
 	if (typeof meta !== 'object' || meta === null) return null
 	const agent = (meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
 	if (typeof agent !== 'object' || agent === null) return null
 	const { id, name } = agent as Record<string, unknown>
 	if (typeof id !== 'string' || !id.startsWith(MCP_AGENT_ID_PREFIX)) return null
 	if (typeof name !== 'string' || !name) return null
-	return { id, name }
+	const { client } = agent as Record<string, unknown>
+	return {
+		id,
+		name,
+		client:
+			typeof client === 'string' && MCP_AGENT_CLIENTS.includes(client)
+				? (client as McpAgentClient)
+				: null,
+	}
 }

@@ -33,7 +33,12 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
-import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
+import {
+	getMcpAgentClient,
+	normalizeMcpClient,
+	resetRateLimitFallbackForTests,
+	mcpServer,
+} from './mcpServer'
 import { readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import {
@@ -105,6 +110,7 @@ beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
 		ok: true,
 		userId: request.headers.get('x-test-user') ?? 'user_default',
+		clientId: request.headers.get('x-test-client') ?? null,
 	}))
 	// Not the caller's file unless a test says otherwise, which leaves published boards as the default
 	// way a board resolves — the same starting point these tests had before the access check existed.
@@ -213,13 +219,18 @@ function tabAnswering(outcome: TabRenderOutcome): FakeTab {
 function makeRpcRequest(
 	method: string,
 	params?: unknown,
-	{ userAgent, userId = 'user_default' }: { userAgent?: string; userId?: string } = {}
+	{
+		userAgent,
+		userId = 'user_default',
+		clientId,
+	}: { userAgent?: string; userId?: string; clientId?: string } = {}
 ) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
 		headers: {
 			'cf-connecting-ip': `203.0.113.${++requestId}`,
 			'x-test-user': userId,
+			...(clientId ? { 'x-test-client': clientId } : {}),
 			...(userAgent ? { 'user-agent': userAgent } : {}),
 		},
 		body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
@@ -1118,6 +1129,40 @@ describe('write_comment', () => {
 		newThread: true,
 	}
 
+	it('takes the name the agent gives, but the app from its OAuth client', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const env = makeEnv()
+		const request = makeRpcRequest(
+			'tools/call',
+			{
+				name: 'write_comment',
+				arguments: { boardId: 'board_abc', text: 'Hi', threadId: 't', agentName: 'ChatGPT' },
+			},
+			{ userId: 'user_abc', clientId: 'https://claude.ai/oauth/mcp-oauth-client-metadata' }
+		)
+		await mcpServer(request, env)
+
+		// A Claude calling itself ChatGPT is still drawn with Claude's logo.
+		expect(vi.mocked(writeCommentForUser).mock.calls[0][2]).toMatchObject({
+			agentName: 'ChatGPT',
+			agentClient: 'claude',
+		})
+	})
+
+	it('names an unnamed agent after its OAuth client', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const request = makeRpcRequest(
+			'tools/call',
+			{ name: 'write_comment', arguments: { boardId: 'board_abc', text: 'Hi', threadId: 't' } },
+			{ userId: 'user_abc', clientId: 'https://chatgpt.com/oauth/client.json' }
+		)
+		await mcpServer(request, makeEnv())
+		expect(vi.mocked(writeCommentForUser).mock.calls[0][2]).toMatchObject({
+			agentName: 'ChatGPT',
+			agentClient: 'openai',
+		})
+	})
+
 	it('posts as the caller and links to the thread on the client origin', async () => {
 		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
 		const env = makeEnv()
@@ -1131,8 +1176,9 @@ describe('write_comment', () => {
 		expect(writeCommentForUser).toHaveBeenCalledWith(env, 'user_abc', {
 			boardId: 'board_abc',
 			text: 'Too narrow?',
-			// Not named in the call, and the request's User-Agent is no client we know.
+			// Not named in the call, and neither the OAuth client nor the User-Agent is one we know.
 			agentName: 'Agent',
+			agentClient: null,
 			target: { kind: 'shape', shapeId: 'shape:box' },
 		})
 		expect(result.isError).toBeUndefined()
@@ -2363,6 +2409,17 @@ describe('protocol telemetry', () => {
 		// The raw name is kept alongside the family, so a client we do not recognize yet can be found.
 		expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw')).toEqual(['Claude'])
 		expect(blobValuesOf(env, INITIALIZE_EVENT, 'ua')).toEqual(['none'])
+	})
+
+	it('reads the app behind an agent from its OAuth client id, never guessing', () => {
+		expect(getMcpAgentClient('https://claude.ai/oauth/mcp-oauth-client-metadata')).toBe('claude')
+		expect(getMcpAgentClient('https://chatgpt.com/oauth/client.json')).toBe('openai')
+		expect(getMcpAgentClient('https://www.cursor.com/mcp/client')).toBe('cursor')
+		// Lookalikes, opaque ids and nothing at all get no logo.
+		expect(getMcpAgentClient('https://claude.ai.example.com/client')).toBeNull()
+		expect(getMcpAgentClient('https://notclaude.ai/client')).toBeNull()
+		expect(getMcpAgentClient('client_2abc')).toBeNull()
+		expect(getMcpAgentClient(null)).toBeNull()
 	})
 
 	it('normalizes client strings into a bounded set of families', () => {

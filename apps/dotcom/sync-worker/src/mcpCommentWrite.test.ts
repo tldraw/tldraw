@@ -48,6 +48,7 @@ function plan(
 		body,
 		target,
 		agent: { id: 'mcp-agent:test', ownerUserId: ME, name: 'Claude' },
+		agentClient: 'claude',
 	})
 }
 
@@ -70,7 +71,9 @@ describe('planMcpComment', () => {
 			isDeleted: false,
 		})
 		expect(comment.body).toEqual(body)
-		expect(comment.meta).toEqual({ mcpAgent: { id: 'mcp-agent:test', name: 'Claude' } })
+		expect(comment.meta).toEqual({
+			mcpAgent: { id: 'mcp-agent:test', name: 'Claude', client: 'claude' },
+		})
 	})
 
 	it('starts a thread on a nested shape, on the page its ancestors are on', () => {

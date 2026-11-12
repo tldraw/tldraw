@@ -1,4 +1,4 @@
-import { MCP_AGENT_COMMENT_META_KEY } from '@tldraw/dotcom-shared'
+import { MCP_AGENT_COMMENT_META_KEY, McpAgentClient } from '@tldraw/dotcom-shared'
 import { UnknownRecord } from '@tldraw/store'
 import {
 	TLComment,
@@ -54,6 +54,7 @@ export function planMcpComment({
 	body,
 	target,
 	agent,
+	agentClient,
 }: {
 	room: RoomRecords
 	userId: string
@@ -61,6 +62,7 @@ export function planMcpComment({
 	body: TLRichText
 	target: CommentTarget
 	agent: McpAgent
+	agentClient: McpAgentClient | null
 }): PlannedMcpComment {
 	// The authorizers below refuse this too; asked first so a view-only caller hears why, not that
 	// the thread they named is missing.
@@ -95,7 +97,9 @@ export function planMcpComment({
 		// How tldraw.com tells an agent's comment from its user's, and which agent: the comment is the user's own, so
 		// nothing else distinguishes it. A label rather than a credential — the comment authorizers
 		// leave `meta` alone, so a client could set it on its own comments too.
-		meta: { [MCP_AGENT_COMMENT_META_KEY]: { id: agent.id, name: agent.name } },
+		meta: {
+			[MCP_AGENT_COMMENT_META_KEY]: { id: agent.id, name: agent.name, client: agentClient },
+		},
 	})
 
 	const session = {

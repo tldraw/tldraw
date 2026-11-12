@@ -174,12 +174,19 @@ export type SignedInAuth = Extract<SessionAuthObject, { isAuthenticated: true }>
  */
 export type McpTokenRefusal = OAuthAccessTokenRefusal | 'not_allowlisted'
 
-export type McpTokenAuth = { ok: true; userId: string } | { ok: false; reason: McpTokenRefusal }
+/**
+ * `clientId` is the OAuth client the token was issued to, e.g. Claude's or ChatGPT's metadata URL.
+ * Clerk only issues tokens to clients we approved, so unlike anything in the request body it is not
+ * the model's to choose.
+ */
+export type McpTokenAuth =
+	| { ok: true; userId: string; clientId: string | null }
+	| { ok: false; reason: McpTokenRefusal }
 
 export type OAuthAccessTokenRefusal = 'no_token' | 'invalid_token' | 'unconfigured'
 
 export type OAuthAccessTokenAuth =
-	| { ok: true; userId: string }
+	| { ok: true; userId: string; clientId: string | null }
 	| { ok: false; reason: OAuthAccessTokenRefusal }
 
 export interface McpTokenOptions {
@@ -292,7 +299,8 @@ export async function verifyOAuthAccessToken(
 		return { ok: false, reason: 'invalid_token' }
 	}
 
-	return { ok: true, userId: state.toAuth().userId }
+	const auth = state.toAuth()
+	return { ok: true, userId: auth.userId, clientId: auth.clientId || null }
 }
 
 /**

@@ -1,3 +1,4 @@
+import { McpAgentClient } from '@tldraw/dotcom-shared'
 import { toRichText } from '@tldraw/tlschema'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -97,7 +98,14 @@ export async function writeCommentForUser(
 		text,
 		target,
 		agentName,
-	}: { boardId: string; text: string; target: CommentTarget; agentName: string }
+		agentClient,
+	}: {
+		boardId: string
+		text: string
+		target: CommentTarget
+		agentName: string
+		agentClient: McpAgentClient | null
+	}
 ): Promise<WriteCommentOutcome> {
 	const access = await hasReadAccessToFile(env, userId, boardId)
 	if (!access.ok) return refused({ reason: 'not_found' })
@@ -106,6 +114,7 @@ export async function writeCommentForUser(
 		fileId: boardId,
 		userId,
 		agentName,
+		agentClient,
 		body: toRichText(text),
 		target,
 	})

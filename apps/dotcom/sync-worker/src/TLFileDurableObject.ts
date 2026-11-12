@@ -21,6 +21,7 @@ import {
 	WELCOME_CREATE_SOURCE,
 	can,
 	type FeatureFlagValue,
+	type McpAgentClient,
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -3641,6 +3642,7 @@ export class TLFileDurableObject extends DurableObject {
 		fileId,
 		userId,
 		agentName,
+		agentClient,
 		body,
 		target,
 	}: {
@@ -3648,6 +3650,8 @@ export class TLFileDurableObject extends DurableObject {
 		userId: string
 		/** Who the comment is from; see `getOrCreateAgent`. */
 		agentName: string
+		/** The app behind the agent, from its OAuth client; drawn as its logo. */
+		agentClient: McpAgentClient | null
 		body: TLRichText
 		target: CommentTarget
 	}): Promise<
@@ -3710,6 +3714,7 @@ export class TLFileDurableObject extends DurableObject {
 				body,
 				target,
 				agent,
+				agentClient,
 			})
 			if (plan.ok) {
 				for (const record of plan.records) txn.set(record.id, record as unknown as TLRecord)

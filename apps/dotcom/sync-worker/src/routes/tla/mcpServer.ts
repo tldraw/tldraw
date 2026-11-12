@@ -1,3 +1,4 @@
+import { McpAgentClient } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
@@ -272,6 +273,33 @@ const AGENT_NAMES_BY_CLIENT_FAMILY: Record<string, string> = {
 	cursor: 'Cursor',
 }
 
+// The OAuth clients we recognise, by the host of their client id (a client id metadata document URL).
+// A client id we can't place, such as an opaque one, gets no logo rather than a guessed one.
+const MCP_AGENT_CLIENT_HOSTS: ReadonlyArray<readonly [host: string, client: McpAgentClient]> = [
+	['claude.ai', 'claude'],
+	['claude.com', 'claude'],
+	['anthropic.com', 'claude'],
+	['chatgpt.com', 'openai'],
+	['openai.com', 'openai'],
+	['cursor.com', 'cursor'],
+	['cursor.sh', 'cursor'],
+]
+
+/** Which app an OAuth client id belongs to, or null when we don't recognise it. */
+export function getMcpAgentClient(clientId: string | null): McpAgentClient | null {
+	if (!clientId) return null
+	let host: string
+	try {
+		host = new URL(clientId).hostname.toLowerCase()
+	} catch {
+		return null
+	}
+	for (const [known, client] of MCP_AGENT_CLIENT_HOSTS) {
+		if (host === known || host.endsWith(`.${known}`)) return client
+	}
+	return null
+}
+
 export function getDefaultAgentName(request: Request): string {
 	return (
 		AGENT_NAMES_BY_CLIENT_FAMILY[normalizeMcpClient(request.headers.get('user-agent'))] ?? 'Agent'
@@ -364,7 +392,8 @@ const TOOL_HANDLERS = new Map<
 		request: Request,
 		env: Environment,
 		userId: string,
-		ctx?: ExecutionContext
+		ctx?: ExecutionContext,
+		clientId?: string | null
 	) => Promise<ToolCallResult>
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
@@ -496,7 +525,14 @@ export async function mcpServer(
 			const startedAt = Date.now()
 			let called: ToolCallResult
 			try {
-				called = await toolHandler(rpcRequest.params?.arguments, request, env, auth.userId, ctx)
+				called = await toolHandler(
+					rpcRequest.params?.arguments,
+					request,
+					env,
+					auth.userId,
+					ctx,
+					auth.clientId
+				)
 			} catch (error) {
 				writeMcpToolCallTelemetry(env, request, {
 					tool: toolName,
@@ -869,7 +905,8 @@ async function callWriteCommentTool(
 	request: Request,
 	env: Environment,
 	userId: string,
-	ctx?: ExecutionContext
+	ctx?: ExecutionContext,
+	clientId: string | null = null
 ) {
 	const parsed = parseToolInput(() => parseWriteCommentInput(argumentsValue))
 	if (!parsed.ok) return parsed.result
@@ -880,9 +917,15 @@ async function callWriteCommentTool(
 		const refusal = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
+		// The agent picks its own name, but which app it is comes from its OAuth client, so tldraw.com
+		// shows that app's logo however the agent names itself.
+		const agentClient = getMcpAgentClient(clientId)
 		const written = await writeCommentForUser(env, userId, {
 			...input,
-			agentName: input.agentName ?? getDefaultAgentName(request),
+			agentName:
+				input.agentName ??
+				(agentClient ? AGENT_NAMES_BY_CLIENT_FAMILY[agentClient] : getDefaultAgentName(request)),
+			agentClient,
 		})
 		if (!written.ok) return withTelemetryReason(written.result, written.reason)
 		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`

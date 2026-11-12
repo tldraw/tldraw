@@ -45,6 +45,7 @@ describe('writeCommentForUser', () => {
 
 		const outcome = await writeCommentForUser(env, USER_ID, {
 			agentName: 'Claude',
+			agentClient: 'claude',
 			boardId: BOARD_ID,
 			text: 'Done',
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
@@ -73,6 +74,7 @@ describe('writeCommentForUser', () => {
 		vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
 		const outcome = await writeCommentForUser(env, USER_ID, {
 			agentName: 'Claude',
+			agentClient: 'claude',
 			boardId: BOARD_ID,
 			text: 'Hi',
 			target: { kind: 'shape', shapeId: 'shape:box' },
@@ -90,6 +92,7 @@ describe('writeCommentForUser', () => {
 		writeMcpComment.mockResolvedValue({ ok: false, reason: 'comment_forbidden' })
 		const forbidden = await writeCommentForUser(env, USER_ID, {
 			agentName: 'Claude',
+			agentClient: 'claude',
 			boardId: BOARD_ID,
 			text: 'Hi',
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
@@ -104,6 +107,7 @@ describe('writeCommentForUser', () => {
 		})
 		const resolved = await writeCommentForUser(env, USER_ID, {
 			agentName: 'Claude',
+			agentClient: 'claude',
 			boardId: BOARD_ID,
 			text: 'Hi',
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
