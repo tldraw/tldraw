@@ -1,7 +1,6 @@
 import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
 import { LibraryItems } from './library-items'
 import { LibrarySectionHeader } from './library-section-header'

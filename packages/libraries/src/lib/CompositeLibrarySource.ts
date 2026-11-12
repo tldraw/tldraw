@@ -1,4 +1,5 @@
 import { computed, type Computed } from '@tldraw/state'
+import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
 import { copyLibrary, copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
@@ -10,7 +11,6 @@ import {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
-import type { TLLibrary, TLLibraryId, TLLibraryItemId } from './schema'
 
 /** @public */
 export interface CompositeLibrarySourcePart {

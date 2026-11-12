@@ -47,6 +47,7 @@ export {
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './lib/LibrarySource'
+export { BoardLibrarySource, type BoardLibrarySourceOptions } from './lib/BoardLibrarySource'
 export {
 	CompositeLibrarySource,
 	type CompositeLibrarySourceOptions,
@@ -62,20 +63,18 @@ export {
 export {
 	LibraryItemContentTooNewError,
 	LibraryItemRecordType,
-	libraryItemMigrations,
-	libraryMigrations,
-	LibraryRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	libraryItemValidator,
-	libraryValidator,
 	getThumbnailForColorMode,
 	mapThumbnail,
 	parseLibraryItemContent,
-	type TLLibrary,
-	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
-	type TLLibraryItemId,
-	type TLLibraryRecord,
-	type TLLibraryThumbnail,
 } from './lib/schema'
+export {
+	LibraryRecordType,
+	type TLLibrary,
+	type TLLibraryId,
+	type TLLibraryItemId,
+	type TLLibraryThumbnail,
+} from '@tldraw/tlschema'

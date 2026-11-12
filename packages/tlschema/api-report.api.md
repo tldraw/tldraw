@@ -15,6 +15,7 @@ import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
+import { SerializedSchema } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
 import { StandaloneDependsOn } from '@tldraw/store';
@@ -251,6 +252,9 @@ export function createCustomRecordMigrationIds<const S extends string, const T e
 
 // @public
 export function createCustomRecordMigrationSequence(migrations: TLPropsMigrations): TLPropsMigrations;
+
+// @internal
+export function createLibraryItemContentId(itemId: TLLibraryItemId): TLLibraryItemContentRecordId;
 
 // @public
 export function createPresenceStateDerivation($user: Signal<null | TLUser>, opts?: CreatePresenceStateDerivationOpts): (store: TLStore) => Signal<null | TLInstancePresence>;
@@ -766,6 +770,50 @@ export const LANGUAGES: readonly [{
     readonly label: '繁體中文 (台灣)';
     readonly locale: 'zh-tw';
 }];
+
+// @internal (undocumented)
+export const LibraryItemContentRecordType: RecordType<TLLibraryItemContentRecord, "assetIds" | "content" | "itemId">;
+
+// @internal (undocumented)
+export const libraryItemContentValidator: T.Validator<TLLibraryItemContentRecord>;
+
+// @internal (undocumented)
+export const libraryItemRecordValidator: T.Validator<TLLibraryItemRecord>;
+
+// @internal (undocumented)
+export const LibraryRecordType: RecordType<TLLibrary, "name" | "ownerId">;
+
+// @internal
+export const librarySchemaRecords: {
+    'library-item-content': {
+        createDefaultProperties: () => {
+            meta: {};
+        };
+        migrations: MigrationSequence;
+        scope: "document";
+        validator: T.Validator<TLLibraryItemContentRecord>;
+    };
+    'library-item': {
+        createDefaultProperties: () => {
+            meta: {};
+            version: number;
+        };
+        migrations: MigrationSequence;
+        scope: "document";
+        validator: T.Validator<TLLibraryItemRecord>;
+    };
+    library: {
+        createDefaultProperties: () => {
+            meta: {};
+        };
+        migrations: MigrationSequence;
+        scope: "document";
+        validator: T.Validator<TLLibrary>;
+    };
+};
+
+// @internal (undocumented)
+export const libraryValidator: T.Validator<TLLibrary>;
 
 // @public
 export const lineShapeMigrations: TLPropsMigrations;
@@ -1629,6 +1677,63 @@ export type TLInstancePresenceID = RecordId<TLInstancePresence>;
 
 // @public
 export type TLLanguage = (typeof LANGUAGES)[number];
+
+// @internal
+export interface TLLibrary extends BaseRecord<'library', TLLibraryId> {
+    // (undocumented)
+    meta: JsonObject;
+    // (undocumented)
+    name: string;
+    ownerId?: string;
+}
+
+// @internal (undocumented)
+export type TLLibraryId = RecordId<TLLibrary>;
+
+// @internal
+export interface TLLibraryItemContentRecord extends BaseRecord<'library-item-content', TLLibraryItemContentRecordId> {
+    // (undocumented)
+    assetIds: TLAssetId[];
+    // (undocumented)
+    content: {
+        bindings?: TLBinding[];
+        rootShapeIds: TLShapeId[];
+        schema: SerializedSchema;
+        shapes: TLShape[];
+        users?: TLUser[];
+    };
+    // (undocumented)
+    itemId: TLLibraryItemId;
+    // (undocumented)
+    meta: JsonObject;
+}
+
+// @internal (undocumented)
+export type TLLibraryItemContentRecordId = RecordId<TLLibraryItemContentRecord>;
+
+// @internal (undocumented)
+export type TLLibraryItemId = RecordId<TLLibraryItemRecord>;
+
+// @internal
+export interface TLLibraryItemRecord extends BaseRecord<'library-item', TLLibraryItemId> {
+    createdAt?: number;
+    // (undocumented)
+    libraryId: TLLibraryId;
+    // (undocumented)
+    meta: JsonObject;
+    name?: string;
+    thumbnail?: TLLibraryThumbnail<TLAssetId>;
+    version: number;
+}
+
+// @internal (undocumented)
+export type TLLibraryRecord = TLLibrary | TLLibraryItemContentRecord | TLLibraryItemRecord;
+
+// @internal
+export type TLLibraryThumbnail<Src = string> = {
+    dark: Src;
+    light: Src;
+} | Src;
 
 // @public
 export type TLLineShape = TLBaseShape<'line', TLLineShapeProps>;

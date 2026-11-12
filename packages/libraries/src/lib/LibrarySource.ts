@@ -1,12 +1,6 @@
+import type { TLLibrary, TLLibraryId, TLLibraryItemId, TLLibraryThumbnail } from '@tldraw/tlschema'
 import type { JsonObject } from '@tldraw/utils'
-import type {
-	TLLibrary,
-	TLLibraryId,
-	TLLibraryItem,
-	TLLibraryItemContent,
-	TLLibraryItemId,
-	TLLibraryThumbnail,
-} from './schema'
+import type { TLLibraryItem, TLLibraryItemContent } from './schema'
 
 /**
  * A change a user can try to make. Sources answer {@link LibrarySource.can}.
