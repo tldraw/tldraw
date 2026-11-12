@@ -781,6 +781,12 @@ button.tlui-cmt-reaction--active:hover {
 .tlui-button.tlui-cmt-header-btn[data-state='open'] {
 	color: var(--tl-color-text-1);
 }
+/* the same open-menu fade as the canvas menu triggers (.tlui-menu-zone in ui.css) */
+.tlui-button.tlui-cmt-thread__action[data-state='open']::after,
+.tlui-button.tlui-cmt-header-btn[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
+}
 .tlui-cmt-list__header-actions {
 	display: flex;
 	align-items: center;
