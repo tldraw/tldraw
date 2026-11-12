@@ -13,33 +13,54 @@ import {
 	TLUiTranslationKey,
 	TLUserPreferences,
 	USER_COLORS,
+	useDialogs,
 	useTranslation,
 	useUiEvents,
 	useValue,
 } from 'tldraw'
+import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
+import { isDevelopmentEnv } from '../../../utils/env'
+import { globalEditor } from '../../../utils/globalEditor'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
 import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
-import { TlaMenuSelect } from '../tla-menu/tla-menu'
+import { ExternalLink } from '../ExternalLink/ExternalLink'
+import { TlaMenuSelect, TlaMenuSwitch } from '../tla-menu/tla-menu'
+import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
+import { SubmitFeedbackDialog } from './SubmitFeedbackDialog'
+import { TlaManageCookiesDialog } from './TlaManageCookiesDialog'
 import styles from './TlaSettingsDialog.module.css'
 
 const messages = defineMessages({
 	profile: { defaultMessage: 'Profile' },
 	preferences: { defaultMessage: 'Preferences' },
+	about: { defaultMessage: 'About' },
 	name: { defaultMessage: 'Name' },
 	color: { defaultMessage: 'Color' },
 	colorTheme: { defaultMessage: 'Color theme' },
+	cookies: { defaultMessage: 'Cookies' },
+	manageCookies: { defaultMessage: 'Manage cookies' },
+	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
+	userManual: { defaultMessage: 'User manual' },
+	submitFeedback: { defaultMessage: 'Send feedback' },
+	legalSummary: { defaultMessage: 'Legal summary' },
+	buildWithTldraw: { defaultMessage: 'Build with the tldraw SDK' },
 })
+
+const USER_MANUAL_URL = 'https://tldraw.notion.site/support'
+const LEGAL_SUMMARY_URL = '/legal.html'
+const DOT_DEV_URL =
+	'https://tldraw.dev?utm_source=dotcom&utm_medium=organic&utm_campaign=sidebar-link'
 
 function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
 	app.tlUser.setUserPreferences({ id: app.userId, ...prefs })
 }
 
-type SettingsTab = 'profile' | 'preferences'
+type SettingsTab = 'profile' | 'preferences' | 'about'
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
@@ -67,6 +88,7 @@ export function TlaSettingsDialog() {
 	const tabs: { id: SettingsTab; label: string }[] = [
 		{ id: 'profile', label: msg(messages.profile) },
 		{ id: 'preferences', label: msg(messages.preferences) },
+		{ id: 'about', label: msg(messages.about) },
 	]
 
 	return (
@@ -107,11 +129,9 @@ export function TlaSettingsDialog() {
 				{tabs.map(({ id, label }) => (
 					<_Tabs.Content key={id} value={id} className={styles.panel}>
 						<h3 className={styles.panelTitle}>{label}</h3>
-						{id === 'profile' ? (
-							<ProfilePanel onNameChange={handleNameChange} />
-						) : (
-							<PreferencesPanel />
-						)}
+						{id === 'profile' && <ProfilePanel onNameChange={handleNameChange} />}
+						{id === 'preferences' && <PreferencesPanel />}
+						{id === 'about' && <AboutPanel />}
 					</_Tabs.Content>
 				))}
 			</_Tabs.Root>
@@ -188,6 +208,7 @@ const COLOR_SCHEMES: {
 function PreferencesPanel() {
 	const msg = useTranslation()
 	const app = useApp()
+	const { addDialog } = useDialogs()
 	const trackUiEvent = useUiEvents()
 	const colorThemeOptions = useColorThemeOptions()
 	const selectColorTheme = useSelectColorTheme()
@@ -268,6 +289,97 @@ function PreferencesPanel() {
 					}}
 				/>
 			</div>
+			<div className={styles.field}>
+				<div className={styles.label}>{msg(messages.cookies)}</div>
+				<div className={styles.rows}>
+					<button
+						className={classNames(styles.row, 'tla-text_ui__regular')}
+						data-testid="tla-settings-manage-cookies"
+						onClick={() => addDialog({ component: () => <TlaManageCookiesDialog /> })}
+					>
+						{msg(messages.manageCookies)}
+					</button>
+				</div>
+			</div>
+			<HighlightMissingTranslationsField />
 		</>
+	)
+}
+
+function HighlightMissingTranslationsField() {
+	const msg = useTranslation()
+	const isDebugMode = useValue(
+		'debug',
+		() => globalEditor.get()?.getInstanceState().isDebugMode ?? false,
+		[]
+	)
+	const [isHighlighting, setIsHighlighting] = useState(() =>
+		document.body.classList.contains('tla-lang-highlight-missing')
+	)
+
+	// An internal developer tool, so local development only: not staging or preview deploys,
+	// and not production users who turn on debug mode.
+	if (!isDevelopmentEnv || !isDebugMode) return null
+
+	return (
+		<div className={classNames(styles.field, styles.switchField)}>
+			<label htmlFor="tla-settings-highlight-missing" className={styles.label}>
+				{msg(messages.langHighlightMissing)}
+			</label>
+			{/* Shadows every string the UI rendered without going through `F`, which is what
+			    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
+			<TlaMenuSwitch
+				id="tla-settings-highlight-missing"
+				checked={isHighlighting}
+				onChange={(checked) => {
+					document.body.classList.toggle('tla-lang-highlight-missing', checked)
+					setIsHighlighting(checked)
+				}}
+			/>
+		</div>
+	)
+}
+
+function AboutPanel() {
+	const msg = useTranslation()
+	const { addDialog } = useDialogs()
+	const openAndTrack = useOpenUrlAndTrack('dialog')
+	const rowClassName = classNames(styles.row, 'tla-text_ui__regular')
+
+	return (
+		<div className={styles.rows}>
+			<button
+				className={rowClassName}
+				data-testid="tla-settings-user-manual"
+				onClick={() => openAndTrack(USER_MANUAL_URL)}
+			>
+				{msg(messages.userManual)}
+				<TlaIcon icon="external" />
+			</button>
+			<button
+				className={rowClassName}
+				data-testid="tla-settings-feedback"
+				onClick={() => addDialog({ component: SubmitFeedbackDialog })}
+			>
+				{msg(messages.submitFeedback)}
+			</button>
+			<button
+				className={rowClassName}
+				data-testid="tla-settings-legal-summary"
+				onClick={() => openAndTrack(LEGAL_SUMMARY_URL)}
+			>
+				{msg(messages.legalSummary)}
+				<TlaIcon icon="external" />
+			</button>
+			<ExternalLink
+				className={rowClassName}
+				to={DOT_DEV_URL}
+				data-testid="tla-settings-dotdev-link"
+				eventName="sidebar-dotdev-link-clicked"
+			>
+				{msg(messages.buildWithTldraw)}
+				<TlaIcon icon="external" />
+			</ExternalLink>
+		</div>
 	)
 }

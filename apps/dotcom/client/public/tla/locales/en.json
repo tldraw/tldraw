@@ -224,6 +224,9 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
+  "597b56e538": {
+    "translation": "Cookies"
+  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -394,6 +397,9 @@
   },
   "8eb2c00e96": {
     "translation": "Shared with you"
+  },
+  "8f7f4c1ce7": {
+    "translation": "About"
   },
   "8ff3d0a705": {
     "translation": "Rate limited"
@@ -629,9 +635,6 @@
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
-  },
-  "dfdb78a4e4": {
-    "translation": "App debug flags"
   },
   "e0aa021e21": {
     "translation": "OK"

@@ -1,28 +1,22 @@
-import { useAuth } from '@clerk/react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
 	TLDRAW_FILE_EXTENSION,
 	TldrawUiIcon,
-	TldrawUiMenuCheckboxItem,
-	TldrawUiMenuGroup,
 	TldrawUiMenuItem,
 	TldrawUiMenuSubmenu,
 	useDialogs,
 	useDirection,
-	useMaybeEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
-import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
-import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
@@ -32,14 +26,11 @@ import {
 } from '../../utils/tldrawOfflineFiles'
 import { SubmitFeedbackDialog } from '../dialogs/SubmitFeedbackDialog'
 import { TlaManageCookiesDialog } from '../dialogs/TlaManageCookiesDialog'
-import { TlaSettingsDialog } from '../dialogs/TlaSettingsDialog'
 
 const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
 	// user menu
 	accountMenu: { defaultMessage: 'User settings' },
-	signOut: { defaultMessage: 'Sign out' },
-	settings: { defaultMessage: 'Settings' },
 	importFile: { defaultMessage: 'Import file…' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
@@ -52,29 +43,7 @@ const messages = defineMessages({
 	submitFeedback: { defaultMessage: 'Send feedback' },
 	// color theme
 	colorTheme: { defaultMessage: 'Color theme' },
-	// debug
-	appDebugFlags: { defaultMessage: 'App debug flags' },
-	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
-
-export function SignOutMenuItem() {
-	const msg = useTranslation()
-	const auth = useAuth()
-	const handleSignout = useSignOut('sidebar')
-
-	if (!auth.isSignedIn) return
-	return (
-		<TldrawUiMenuGroup id="account-actions">
-			<TldrawUiMenuItem
-				id="sign-out"
-				data-testid="tla-user-sign-out"
-				onSelect={handleSignout}
-				label={msg(messages.signOut)}
-				readonlyOk
-			/>
-		</TldrawUiMenuGroup>
-	)
-}
 
 function UIThemeMenuCheckboxItem({
 	checked,
@@ -153,21 +122,6 @@ function UIThemeMenuGroup() {
 	)
 }
 
-export function SettingsMenuItem() {
-	const msg = useTranslation()
-	const { addDialog } = useDialogs()
-	return (
-		<TldrawUiMenuItem
-			id="settings"
-			label={msg(messages.settings)}
-			readonlyOk
-			onSelect={() => {
-				addDialog({ component: () => <TlaSettingsDialog /> })
-			}}
-		/>
-	)
-}
-
 export function CookieConsentMenuItem() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
@@ -183,14 +137,14 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem({ icon = true }: { icon?: boolean } = {}) {
+export function UserManualMenuItem() {
 	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack('main-menu')
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
 			label={msg(messages.getHelp)}
-			iconLeft={icon ? 'manual' : undefined}
+			iconLeft="manual"
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('https://tldraw.notion.site/support')
@@ -275,47 +229,5 @@ export function ImportFileActionItem() {
 				}
 			}}
 		/>
-	)
-}
-
-export function DebugMenuGroup() {
-	const maybeEditor = useMaybeEditor()
-	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
-		maybeEditor,
-	])
-	// These are internal developer tools, so only surface them in local development —
-	// not on staging/preview deploys or to production users who enable debug mode.
-	if (!isDevelopmentEnv || !isDebugMode) return null
-
-	return <DebugSubmenu />
-}
-
-export function DebugSubmenu() {
-	const msg = useTranslation()
-
-	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
-		document.body.classList.contains('tla-lang-highlight-missing')
-	)
-
-	useEffect(() => {
-		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
-	}, [shouldHighlightMissing])
-
-	const highlightMissingLbl = msg(messages.langHighlightMissing)
-
-	return (
-		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags)}>
-			<TldrawUiMenuGroup id="debug app flags">
-				{/* Shadows every string the UI rendered without going through `F`, which is what
-				    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
-				<TldrawUiMenuCheckboxItem
-					id="highlight-missing"
-					title={highlightMissingLbl}
-					label={highlightMissingLbl}
-					checked={shouldHighlightMissing}
-					onSelect={() => setShouldHighlightMissing(!shouldHighlightMissing)}
-				/>
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
 	)
 }

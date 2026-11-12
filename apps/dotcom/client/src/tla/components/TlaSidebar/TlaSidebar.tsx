@@ -11,11 +11,9 @@ import {
 	useIsSidebarOpenMobile,
 } from '../../utils/local-session-state'
 import { TlaSidebarCreateFileButton } from './components/TlaSidebarCreateFileButton'
-import { TlaSidebarDotDevLink } from './components/TlaSidebarDotDevLink'
-import { TlaSidebarFeedbackButton } from './components/TlaSidebarFeedbackButton'
 import { TlaSidebarNotificationsButton } from './components/TlaSidebarNotificationsButton'
 import { TlaSidebarRecentFiles } from './components/TlaSidebarRecentFiles'
-import { TlaUserSettingsMenu } from './components/TlaSidebarUserSettingsMenu'
+import { TlaSidebarUserSettingsButton } from './components/TlaSidebarUserSettingsButton'
 import { TlaSidebarWorkspaceActions } from './components/TlaSidebarWorkspaceActions'
 import { TlaSidebarWorkspaceLink } from './components/TlaSidebarWorkspaceLink'
 import { TlaSidebarWorkspaceSwitcher } from './components/TlaSidebarWorkspaceSwitcher'
@@ -97,10 +95,8 @@ export const TlaSidebar = memo(function TlaSidebar() {
 				</div>
 				<div className={styles.sidebarBottomArea}>
 					<div className={styles.sidebarDivider} />
-					<TlaSidebarDotDevLink />
-					<TlaSidebarFeedbackButton />
 					<div className={styles.sidebarBottomRow}>
-						<TlaUserSettingsMenu />
+						<TlaSidebarUserSettingsButton />
 					</div>
 				</div>
 			</div>

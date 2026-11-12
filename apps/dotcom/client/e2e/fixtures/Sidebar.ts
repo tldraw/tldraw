@@ -23,18 +23,14 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly userSettingsMenu: Locator
-	public readonly helpMenu: Locator
-	public readonly signOutButton: Locator
+	public readonly userSettingsButton: Locator
 	private lastCreatedAt = 0
 	constructor(public readonly page: Page) {
 		this.sidebarLayout = this.page.getByTestId('tla-sidebar-layout')
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
-		this.helpMenu = this.userSettingsMenu
-		this.signOutButton = this.page.getByTestId('dialog.sign-out')
+		this.userSettingsButton = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 	}
 
 	async isVisible() {
@@ -77,17 +73,9 @@ export class Sidebar {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openUserSettingsMenu() {
-		await this.userSettingsMenu.hover()
-		await this.userSettingsMenu.click()
-		// Wait for the dropdown content to mount before child-item clicks race the open animation.
-		await expect(this.page.getByRole('menu')).toBeVisible()
-	}
-
 	@step
-	async openSettings(tab: 'profile' | 'preferences') {
-		await this.openUserSettingsMenu()
-		await this.page.getByTestId('dialog.settings').click()
+	async openSettings(tab: 'profile' | 'preferences' | 'about') {
+		await this.userSettingsButton.click()
 		await this.page.getByTestId(`tla-settings-tab-${tab}`).click()
 	}
 
@@ -115,8 +103,8 @@ export class Sidebar {
 
 	@step
 	async signOut() {
-		await this.openUserSettingsMenu()
-		await this.signOutButton.click()
+		await this.userSettingsButton.click()
+		await this.page.getByTestId('tla-settings-sign-out').click()
 	}
 
 	async expectToContainText(text: string) {

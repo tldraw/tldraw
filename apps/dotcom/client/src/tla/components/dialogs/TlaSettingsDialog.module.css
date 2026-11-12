@@ -195,6 +195,57 @@
 	outline-offset: -2px;
 }
 
+/* A bordered list of actions and links, one per row. */
+.rows {
+	display: flex;
+	flex-direction: column;
+	width: var(--settings-column);
+	max-width: 100%;
+	box-sizing: border-box;
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-2);
+	background-color: var(--tl-color-muted-0);
+	overflow: hidden;
+}
+
+.row {
+	all: unset;
+	box-sizing: border-box;
+	height: 32px;
+	padding: 0 var(--tl-space-3);
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: var(--tl-space-3);
+	color: var(--tl-color-text-0);
+	cursor: pointer;
+}
+
+.row + .row {
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+.row > span[role='img'] {
+	color: var(--tl-color-text-3);
+}
+
+@media (hover: hover) {
+	.row:hover {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+.row:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -2px;
+}
+
+.switchField {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
 @media (max-width: 600px) {
 	.layout {
 		flex-direction: column;
