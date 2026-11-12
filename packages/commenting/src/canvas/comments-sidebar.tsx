@@ -18,6 +18,7 @@ import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
 import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
+import { avatarRenderer } from './thread-view'
 
 const messages = defineMessages({
 	commentsEmpty: { id: 'comments.empty', defaultMessage: 'No comments on this page yet.' },
@@ -127,6 +128,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 					count: threadComments.length,
 					selected: openId === thread.id,
 					href: getThreadHref?.(thread.id),
+					renderAvatar: avatarRenderer(options.components, thread.createdBy),
 				},
 				lastActivity: (last ?? thread).createdAt,
 			}
