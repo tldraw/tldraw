@@ -6,6 +6,7 @@ import {
 	useToasts,
 	useTranslation,
 	useValue,
+	type TLLibrary,
 	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
@@ -39,6 +40,11 @@ export interface LibrariesPanelProps {
 	 * {@link LibraryMenuItem}s. Shown in a read-only editor too.
 	 */
 	menuItems?: ReactNode
+	/**
+	 * Items of the host's own for one library's ⋯ menu, e.g. a "Remove" for libraries the host
+	 * lists by reference. Return nothing for libraries that need none.
+	 */
+	libraryMenuItems?(library: TLLibrary): ReactNode
 	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
 	prepareItemContent?: PrepareItemContent
 }
@@ -54,6 +60,7 @@ export function LibrariesPanel({
 	source,
 	side = 'left',
 	menuItems,
+	libraryMenuItems,
 	prepareItemContent,
 }: LibrariesPanelProps) {
 	const editor = useEditor()
@@ -100,6 +107,7 @@ export function LibrariesPanel({
 										source={source}
 										library={library}
 										getItemProps={getItemProps}
+										menuItems={libraryMenuItems?.(library)}
 										prepareItemContent={prepareItemContent}
 									/>
 								))}

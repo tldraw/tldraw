@@ -1,4 +1,11 @@
-import { type ButtonHTMLAttributes, useCallback, useEffect, useRef, useState } from 'react'
+import {
+	type ButtonHTMLAttributes,
+	type ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useEditor, useValue, type TLLibrary, type TLLibraryItemId } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
@@ -12,11 +19,13 @@ export function LibrarySection({
 	source,
 	library,
 	getItemProps,
+	menuItems,
 	prepareItemContent,
 }: {
 	source: LibrarySource
 	library: TLLibrary
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	menuItems?: ReactNode
 	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
@@ -63,6 +72,7 @@ export function LibrarySection({
 				library={library}
 				collapsed={collapsed}
 				onToggleCollapsed={() => setCollapsed(!collapsed)}
+				menuItems={menuItems}
 				sort={{
 					options: itemOrderings.map(({ id, label }) => ({ id, label })),
 					value: ordering.id,

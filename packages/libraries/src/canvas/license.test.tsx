@@ -15,7 +15,8 @@ import {
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import { BoardLibrarySource } from '../lib/BoardLibrarySource'
 import { CURRENT_ITEM_CONTENT_FORMAT_VERSION } from '../lib/schema'
-import { LibrariesPanel } from './libraries-panel'
+import { MenuItem } from '../ui/menu-items'
+import { LibrariesPanel, type LibrariesPanelProps } from './libraries-panel'
 import { LibrariesPanelButton } from './libraries-panel-button'
 import { librariesPanelOpen } from './state'
 
@@ -66,7 +67,7 @@ function setLibrariesLicensed(licenseManager: LicenseManager, licensed: boolean)
 	licenseManager.featureFlags.set({ ...licenseManager.featureFlags.get(), libraries: licensed })
 }
 
-async function renderWithLibraries() {
+async function renderWithLibraries(panelProps?: Partial<LibrariesPanelProps>) {
 	container = document.createElement('div')
 	document.body.appendChild(container)
 	let mounted: Editor | undefined
@@ -76,7 +77,7 @@ async function renderWithLibraries() {
 		const source = useMemo(() => new BoardLibrarySource(editor), [editor])
 		return (
 			<>
-				<LibrariesPanel source={source} />
+				<LibrariesPanel source={source} {...panelProps} />
 				<div className="libraries-button-slot">
 					<LibrariesPanelButton />
 				</div>
@@ -121,6 +122,45 @@ describe('libraries UI', () => {
 		setLibrariesLicensed(licenseManager, true)
 		await vi.waitFor(() => expect(panel()).not.toBeNull())
 		expect(button()).not.toBeNull()
+	})
+})
+
+describe('host items in a library menu', () => {
+	it("adds the host's items to the libraries it returns them for", async () => {
+		const onRemove = vi.fn()
+		const { editor, container } = await renderWithLibraries({
+			libraryMenuItems: (library) =>
+				library.name === 'Pack' ? <MenuItem label="Remove" onClick={onRemove} /> : null,
+		})
+		const source = new BoardLibrarySource(editor)
+		await act(async () => {
+			await source.createLibrary('Pack')
+			await source.createLibrary('Mine')
+		})
+		librariesPanelOpen.set(editor, true)
+
+		const openMenu = async (name: string) => {
+			const section = [...container.querySelectorAll('.tlui-libraries-section')].find(
+				(s) => s.querySelector('.tlui-libraries-panel__name')?.textContent === name
+			)!
+			const trigger = section.querySelector('.tlui-libraries-panel__header-actions button')!
+			act(() => {
+				trigger.dispatchEvent(new MouseEvent('pointerdown', { bubbles: true, button: 0 }))
+			})
+			await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).not.toBeNull())
+			return [...document.querySelectorAll('.tlui-libraries-menu__item')]
+		}
+		const findRemove = (items: Element[]) => items.find((i) => i.textContent === 'Remove')
+
+		await vi.waitFor(() =>
+			expect(container.querySelectorAll('.tlui-libraries-section')).toHaveLength(2)
+		)
+		const packItems = await openMenu('Pack')
+		act(() => (findRemove(packItems) as HTMLElement).click())
+		expect(onRemove).toHaveBeenCalledTimes(1)
+
+		await vi.waitFor(() => expect(document.querySelector('.tlui-libraries-menu')).toBeNull())
+		expect(findRemove(await openMenu('Mine'))).toBeUndefined()
 	})
 })
 

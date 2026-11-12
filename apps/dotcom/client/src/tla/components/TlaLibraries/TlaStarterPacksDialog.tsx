@@ -19,6 +19,7 @@ import {
 	useToasts,
 	useTranslation,
 	useValue,
+	type TLLibrary,
 } from 'tldraw'
 import {
 	getStarterPackLibraryId,
@@ -39,6 +40,22 @@ const messages = defineMessages({
 })
 
 const THUMBNAILS_SHOWN = 4
+
+/** Drops a pack the user added from their list, from the pack's own ⋯ menu in the panel. */
+export function TlaRemoveStarterPackMenuItem({
+	packs,
+	library,
+}: {
+	packs: StarterPacksSource
+	library: TLLibrary
+}) {
+	const msg = useTranslation()
+	const packId = library.meta.packId
+	if (typeof packId !== 'string') return null
+	return (
+		<LibraryMenuItem label={msg(messages.remove)} onClick={() => packs.setAdded(packId, false)} />
+	)
+}
 
 export function TlaBrowseStarterPacksMenuItem({ packs }: { packs: StarterPacksSource }) {
 	const msg = useTranslation()

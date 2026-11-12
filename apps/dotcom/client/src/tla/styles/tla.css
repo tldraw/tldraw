@@ -134,6 +134,12 @@
 
 /* --------------------- Editor --------------------- */
 
+/* Pack libraries carry their read-only lock and Copy to beside the name, which wants more room
+   than the SDK's default width. */
+.tl-container {
+	--tlui-libraries-panel-width: 300px;
+}
+
 .tlui-layout__top {
 	display: grid;
 	grid-template-columns: 1fr auto;

@@ -5,7 +5,7 @@
 	position: absolute;
 	top: 48px;
 	left: 8px;
-	width: 240px;
+	width: var(--tlui-libraries-panel-width, 240px);
 	max-height: var(--tlui-libraries-panel-max-height, min(calc(100% - 56px), 720px));
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
@@ -426,6 +426,21 @@
 
 .tlui-libraries-menu__item--danger {
 	color: var(--tl-color-danger);
+}
+
+.tlui-libraries-panel__lock {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	padding: 4px;
+	font-size: 14px;
+	line-height: 1;
+	cursor: default;
+	border-radius: var(--tl-radius-2);
+}
+
+.tlui-libraries-panel__lock:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
 }
 
 .tlui-libraries-panel__header-actions {

@@ -4,7 +4,7 @@ import type { TldrawApp } from '../../app/TldrawApp'
 
 const messages = defineMessages({
 	thisBoard: { defaultMessage: 'This board' },
-	tldraw: { defaultMessage: 'tldraw' },
+	packs: { defaultMessage: 'Packs' },
 })
 
 const sources = new WeakMap<Editor, { fileId: string; source: LibrarySource }>()
@@ -36,7 +36,7 @@ export function getEditorLibraries(
 				source: new BoardLibrarySource(editor, { id: `board:${fileId}` }),
 			},
 			{ source: userLibraries },
-			{ owner: { id: 'tldraw', name: app.msg(messages.tldraw) }, source: starterPacks },
+			{ owner: { id: 'tldraw', name: app.msg(messages.packs) }, source: starterPacks },
 		],
 	})
 	sources.set(editor, { fileId, source })

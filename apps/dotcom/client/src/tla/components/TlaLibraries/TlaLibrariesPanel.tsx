@@ -8,7 +8,10 @@ import {
 	refreshStarterPacksWhenSeen,
 	type StarterPacksSource,
 } from './starterPacks'
-import { TlaBrowseStarterPacksMenuItem } from './TlaStarterPacksDialog'
+import {
+	TlaBrowseStarterPacksMenuItem,
+	TlaRemoveStarterPackMenuItem,
+} from './TlaStarterPacksDialog'
 
 function useEditorLibraries(fileId: string) {
 	const app = useMaybeApp()
@@ -33,11 +36,15 @@ export function TlaLibrariesPanel({ fileId }: { fileId: string }) {
 	const source = useEditorLibraries(fileId)
 	useRefreshStarterPacks(app && source ? getStarterPacksSource(app.userId) : null)
 	if (!app || !source) return null
+	const packs = getStarterPacksSource(app.userId)
 	return (
 		<LibrariesPanel
 			source={source}
 			side="right"
-			menuItems={<TlaBrowseStarterPacksMenuItem packs={getStarterPacksSource(app.userId)} />}
+			menuItems={<TlaBrowseStarterPacksMenuItem packs={packs} />}
+			libraryMenuItems={(library) => (
+				<TlaRemoveStarterPackMenuItem packs={packs} library={library} />
+			)}
 		/>
 	)
 }

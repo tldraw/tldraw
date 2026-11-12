@@ -191,9 +191,6 @@
   "477df802ca": {
     "translation": "To continue editing please copy the file to your files."
   },
-  "47839e47a5": {
-    "translation": "tldraw"
-  },
   "47f493a590": {
     "translation": "Pin file"
   },
@@ -728,6 +725,9 @@
   },
   "edec9387f9": {
     "translation": "This comment was deleted."
+  },
+  "eeb7feed35": {
+    "translation": "Packs"
   },
   "ef53538ae4": {
     "translation": "Members"

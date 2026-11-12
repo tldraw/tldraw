@@ -78,7 +78,7 @@ describe('getEditorLibraries', () => {
 			{ id: 'file-a', name: 'This board' },
 			{ id: 'home', name: 'Private to you' },
 			{ id: 'acme', name: 'Acme' },
-			{ id: 'tldraw', name: 'tldraw' },
+			{ id: 'tldraw', name: 'Packs' },
 		])
 		const library = await source.createLibrary('Board kit', { ownerId: 'file-a' })
 		expect(library.ownerId).toBe('file-a')
@@ -132,7 +132,7 @@ describe('getEditorLibraries', () => {
 		expect(ofType(editor, 'asset').map((a) => a.id)).toEqual([assetId])
 	})
 
-	it('lists added starter packs under tldraw, read-only, and copies one to a workspace', async () => {
+	it('lists added starter packs under Packs, read-only, and copies one to a workspace', async () => {
 		const { editor, packs, source } = setUp()
 		await packs.refresh()
 		packs.setAdded('doodles', true)
