@@ -245,9 +245,6 @@
   "56c34c6410": {
     "translation": "Privacy policy"
   },
-  "57af9a64fa": {
-    "translation": "You may not be allowed to create libraries, or copying failed."
-  },
   "5a95a425f7": {
     "translation": "Share"
   },
@@ -265,6 +262,9 @@
   },
   "5d26ae7550": {
     "translation": "We failed to upload some of the content you created before you signed in."
+  },
+  "5f02f05c74": {
+    "translation": "Loading…"
   },
   "5f3c333678": {
     "translation": "Feedback submitted"
@@ -286,9 +286,6 @@
   },
   "625fd29749": {
     "translation": "Older"
-  },
-  "6378731a5e": {
-    "translation": "Couldn't add"
   },
   "639bae9ac6": {
     "translation": "you"
@@ -728,6 +725,9 @@
   },
   "edec9387f9": {
     "translation": "This comment was deleted."
+  },
+  "eeb7feed35": {
+    "translation": "Packs"
   },
   "ef53538ae4": {
     "translation": "Members"

@@ -81,6 +81,12 @@ export interface LibrarySource {
 	/** Loads an item's content. Kept separate from the listing because content can be large. */
 	getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent>
 	/**
+	 * Whether a library's items are still on their way, e.g. while its file downloads. The panel
+	 * shows placeholder tiles meanwhile. Optional: without it, a library with no items shows as
+	 * empty.
+	 */
+	isLoading?(libraryId: TLLibraryId): boolean
+	/**
 	 * The URL of an item's thumbnail, sized for its tile, or null for none. Optional: without it,
 	 * tiles show the item's `thumbnail` for the editor's colour mode.
 	 *

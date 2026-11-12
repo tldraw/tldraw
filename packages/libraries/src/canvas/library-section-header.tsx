@@ -1,6 +1,8 @@
+import type { ReactNode } from 'react'
 import {
 	defineMessages,
 	TldrawUiIcon,
+	TldrawUiTooltip,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -29,6 +31,15 @@ const messages = defineMessages({
 	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
 	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
 	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
+	readOnlyLabel: { id: 'libraries.read-only.label', defaultMessage: 'Read-only' },
+	readOnlyCopy: {
+		id: 'libraries.read-only.copy',
+		defaultMessage: 'You can’t change this library. To make your own, use Copy to in its menu.',
+	},
+	readOnly: {
+		id: 'libraries.read-only.description',
+		defaultMessage: 'You can’t change this library.',
+	},
 	copiedDescription: { id: 'libraries.copied.description', defaultMessage: 'Copied to {name}.' },
 	changeErrorTitle: {
 		id: 'libraries.library-error.title',
@@ -46,6 +57,7 @@ export interface LibrarySectionHeaderProps {
 	collapsed: boolean
 	onToggleCollapsed(): void
 	sort: LibraryMenuSort
+	menuItems?: ReactNode
 }
 
 export function LibrarySectionHeader({
@@ -54,6 +66,7 @@ export function LibrarySectionHeader({
 	collapsed,
 	onToggleCollapsed,
 	sort,
+	menuItems,
 }: LibrarySectionHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -71,6 +84,7 @@ export function LibrarySectionHeader({
 		() => ({
 			rename: source.can('renameLibrary', libraryId),
 			delete: source.can('deleteLibrary', libraryId),
+			addItem: source.can('addItem', libraryId),
 		}),
 		[source, libraryId]
 	)
@@ -155,6 +169,21 @@ export function LibrarySectionHeader({
 				</button>
 			)}
 			<div className="tlui-libraries-panel__header-actions">
+				{/* Nothing here can be changed, so say so where people look, and point at the way out. */}
+				{!renaming && !can.rename && !can.delete && !can.addItem && (
+					<TldrawUiTooltip
+						content={msg(ownerChoices.copy.length > 0 ? messages.readOnlyCopy : messages.readOnly)}
+					>
+						<span
+							className="tlui-libraries-panel__lock"
+							role="img"
+							aria-label={msg(messages.readOnlyLabel)}
+							tabIndex={0}
+						>
+							📦
+						</span>
+					</TldrawUiTooltip>
+				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the input straight away. */}
 				{!renaming && (
@@ -177,7 +206,9 @@ export function LibrarySectionHeader({
 								? { owners: ownerChoices.copy, onSelect: copyToOwner }
 								: undefined
 						}
-					/>
+					>
+						{menuItems}
+					</LibraryMenu>
 				)}
 			</div>
 		</header>

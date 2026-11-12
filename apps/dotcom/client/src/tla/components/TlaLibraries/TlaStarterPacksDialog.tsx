@@ -1,17 +1,14 @@
 import {
 	activeLibraryId,
 	LibraryMenuItem,
-	type LibraryPack,
-	type LibrarySource,
 	librariesPanelOpen,
 	getThumbnailForColorMode,
 } from '@tldraw/libraries'
-import { useState } from 'react'
+import { useEffect } from 'react'
 import {
 	defineMessages,
 	F,
 	TldrawUiButton,
-	TldrawUiButtonIcon,
 	TldrawUiButtonLabel,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
@@ -22,31 +19,45 @@ import {
 	useToasts,
 	useTranslation,
 	useValue,
+	type TLLibrary,
 } from 'tldraw'
 import {
-	addStarterPack,
-	canAddStarterPack,
-	isStarterPackAdded,
-	STARTER_PACKS,
+	getStarterPackLibraryId,
+	type StarterPackEntry,
+	type StarterPacksSource,
 } from './starterPacks'
 import styles from './TlaStarterPacksDialog.module.css'
 
 const messages = defineMessages({
 	browse: { defaultMessage: 'Browse starter packs…' },
 	itemCount: { defaultMessage: '{count, plural, one {# item} other {# items}}' },
+	loading: { defaultMessage: 'Loading…' },
 	add: { defaultMessage: 'Add' },
+	remove: { defaultMessage: 'Remove' },
 	added: { defaultMessage: 'Added' },
 	addedDescription: { defaultMessage: 'Added {pack} to your libraries.' },
 	open: { defaultMessage: 'Open' },
-	addError: { defaultMessage: "Couldn't add" },
-	addErrorDescription: {
-		defaultMessage: 'You may not be allowed to create libraries, or copying failed.',
-	},
 })
 
 const THUMBNAILS_SHOWN = 4
 
-export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySource }) {
+/** Drops a pack the user added from their list, from the pack's own ⋯ menu in the panel. */
+export function TlaRemoveStarterPackMenuItem({
+	packs,
+	library,
+}: {
+	packs: StarterPacksSource
+	library: TLLibrary
+}) {
+	const msg = useTranslation()
+	const packId = library.meta.packId
+	if (typeof packId !== 'string') return null
+	return (
+		<LibraryMenuItem label={msg(messages.remove)} onClick={() => packs.setAdded(packId, false)} />
+	)
+}
+
+export function TlaBrowseStarterPacksMenuItem({ packs }: { packs: StarterPacksSource }) {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	return (
@@ -54,14 +65,20 @@ export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySourc
 			label={msg(messages.browse)}
 			onClick={() =>
 				addDialog({
-					component: () => <TlaStarterPacksDialog source={source} />,
+					component: () => <TlaStarterPacksDialog packs={packs} />,
 				})
 			}
 		/>
 	)
 }
 
-function TlaStarterPacksDialog({ source }: { source: LibrarySource }) {
+function TlaStarterPacksDialog({ packs }: { packs: StarterPacksSource }) {
+	const msg = useTranslation()
+	const entries = useValue('starter pack entries', () => packs.getEntries(), [packs])
+	// Also retries a list that failed to load at startup.
+	useEffect(() => {
+		void packs.refresh()
+	}, [packs])
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -71,89 +88,90 @@ function TlaStarterPacksDialog({ source }: { source: LibrarySource }) {
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.body}>
-				<ul className={styles.packs}>
-					{STARTER_PACKS.map((pack) => (
-						<StarterPack key={pack.id} source={source} pack={pack} />
-					))}
-				</ul>
+				{entries.length === 0 ? (
+					<p className={styles.detail}>{msg(messages.loading)}</p>
+				) : (
+					<ul className={styles.packs}>
+						{entries.map((entry) => (
+							<StarterPack key={entry.id} packs={packs} entry={entry} />
+						))}
+					</ul>
+				)}
 			</TldrawUiDialogBody>
 		</>
 	)
 }
 
-function StarterPack({ source, pack }: { source: LibrarySource; pack: LibraryPack }) {
+function StarterPack({ packs, entry }: { packs: StarterPacksSource; entry: StarterPackEntry }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
-	const [adding, setAdding] = useState(false)
-	const added = useValue('starter pack added', () => isStarterPackAdded(source, pack.id), [
-		source,
-		pack.id,
-	])
+	const added = useValue('starter pack added', () => packs.isAdded(entry.id), [packs, entry.id])
+	const pack = useValue('starter pack', () => packs.getPack(entry.id), [packs, entry.id])
+	const failed = useValue('starter pack failed', () => packs.hasFailed(entry.id), [packs, entry.id])
 	const colorMode = useValue('color mode', () => editor.getColorMode(), [editor])
-	const canAdd = useValue('can add starter pack', () => canAddStarterPack(source), [source])
+	const name = pack?.name ?? entry.name
 
-	const add = () => {
-		setAdding(true)
-		addStarterPack(source, pack)
-			.then(
-				(library) => {
-					activeLibraryId.set(editor, library.id)
-					addToast({
-						title: msg(messages.added),
-						description: msg(messages.addedDescription, { pack: pack.name }),
-						actions: [
-							{
-								label: msg(messages.open),
-								type: 'primary',
-								onClick: () => {
-									activeLibraryId.set(editor, library.id)
-									librariesPanelOpen.set(editor, true)
-								},
-							},
-						],
-					})
+	if (failed) return null
+
+	// Adding stores the pack's id, nothing else: the pack shows read-only under tldraw, and
+	// removing it loses nothing.
+	const toggle = () => {
+		if (added) {
+			packs.setAdded(entry.id, false)
+			return
+		}
+		packs.setAdded(entry.id, true)
+		const libraryId = getStarterPackLibraryId(entry.id)
+		activeLibraryId.set(editor, libraryId)
+		addToast({
+			title: msg(messages.added),
+			description: msg(messages.addedDescription, { pack: name }),
+			actions: [
+				{
+					label: msg(messages.open),
+					type: 'primary',
+					onClick: () => {
+						activeLibraryId.set(editor, libraryId)
+						librariesPanelOpen.set(editor, true)
+					},
 				},
-				() =>
-					addToast({
-						title: msg(messages.addError),
-						description: msg(messages.addErrorDescription),
-						severity: 'error',
-					})
-			)
-			.finally(() => setAdding(false))
+			],
+		})
 	}
 
 	return (
 		<li className={styles.pack}>
 			<div className={styles.thumbnails} aria-hidden>
-				{pack.items.slice(0, THUMBNAILS_SHOWN).map((item) => (
-					<span key={item.id} className={styles.thumbnail}>
-						{item.thumbnail && (
-							<img
-								src={getThumbnailForColorMode(item.thumbnail, colorMode)}
-								alt=""
-								draggable={false}
-							/>
-						)}
-					</span>
-				))}
+				{pack
+					? pack.items.slice(0, THUMBNAILS_SHOWN).map((item) => (
+							<span key={item.id} className={styles.thumbnail}>
+								{item.thumbnail && (
+									<img
+										src={getThumbnailForColorMode(item.thumbnail, colorMode)}
+										alt=""
+										draggable={false}
+									/>
+								)}
+							</span>
+						))
+					: Array.from({ length: THUMBNAILS_SHOWN }, (_, i) => (
+							<span key={i} className={`${styles.thumbnail} ${styles.loading}`} />
+						))}
 			</div>
 			<div className={styles.footer}>
 				<div className={styles.text}>
-					<span className={styles.name}>{pack.name}</span>
+					<span className={styles.name}>{name}</span>
 					<span className={styles.detail}>
-						{msg(messages.itemCount, { count: pack.items.length })}
+						{pack ? msg(messages.itemCount, { count: pack.items.length }) : msg(messages.loading)}
 					</span>
 				</div>
 				<TldrawUiButton
 					type={added ? 'normal' : 'primary'}
 					className={styles.toggle}
-					disabled={added || adding || !canAdd}
-					onClick={add}
+					onClick={toggle}
 				>
-					{added && <TldrawUiButtonIcon icon="check" small />}
-					<TldrawUiButtonLabel>{msg(added ? messages.added : messages.add)}</TldrawUiButtonLabel>
+					<TldrawUiButtonLabel>{msg(added ? messages.remove : messages.add)}</TldrawUiButtonLabel>
 				</TldrawUiButton>
 			</div>
 		</li>

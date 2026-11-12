@@ -107,6 +107,20 @@ describe('CompositeLibrarySource', () => {
 		expect(await source.getItemContent(button.id)).toEqual(content('button'))
 	})
 
+	it("asks the library's part whether it is loading, and says no for parts that can't tell", async () => {
+		const mine = new InMemoryLibrarySource()
+		const kits = Object.assign(shared(), { isLoading: (id: string) => id === wireframing })
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: personal, source: mine },
+				{ owner: tldraw, source: kits },
+			],
+		})
+		const kit = await mine.createLibrary('Kit')
+		expect(source.isLoading(wireframing)).toBe(true)
+		expect(source.isLoading(kit.id)).toBe(false)
+	})
+
 	it('delegates permissions to the part', () => {
 		const { source } = setUp()
 		expect(source.can('createLibrary')).toBe(true)

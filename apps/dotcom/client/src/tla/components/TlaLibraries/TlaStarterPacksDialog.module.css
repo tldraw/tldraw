@@ -38,6 +38,23 @@
 	overflow: hidden;
 }
 
+.loading {
+	background: var(--tl-color-muted-2);
+	animation: loading 900ms ease-in-out infinite alternate;
+}
+
+@keyframes loading {
+	to {
+		opacity: 0.4;
+	}
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.loading {
+		animation: none;
+	}
+}
+
 .thumbnail > img {
 	max-width: 80%;
 	max-height: 80%;
