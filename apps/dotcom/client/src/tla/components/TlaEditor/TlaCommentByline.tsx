@@ -91,8 +91,8 @@ export function AgentAvatar({
 				</span>
 			) : (
 				<svg className={`${styles.agentBadge} ${styles.anon}`} viewBox="0 0 9 9" aria-hidden="true">
-					<circle cx="3.5" cy="4.5" r="1" fill="currentColor" />
-					<circle cx="6.68" cy="4.5" r="1" fill="currentColor" />
+					<circle cx="2.91" cy="4" r="1" fill="currentColor" />
+					<circle cx="6.09" cy="4" r="1" fill="currentColor" />
 				</svg>
 			)}
 		</span>
