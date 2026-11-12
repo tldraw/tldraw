@@ -1,5 +1,5 @@
 import { Avatar, BylineProps, formatFullDateTime, formatRelativeTime } from '@tldraw/commenting'
-import { getMcpAgentFromCommentMeta } from '@tldraw/dotcom-shared'
+import { getMcpAgentFromCommentMeta, McpAgentClient } from '@tldraw/dotcom-shared'
 import { ReactNode } from 'react'
 import {
 	defineMessages,
@@ -39,7 +39,7 @@ export function TlaCommentByline({
 	let avatar: ReactNode
 	let name: ReactNode
 	if (agent) {
-		avatar = <AgentAvatar agentName={agent.name} ownerAvatar={ownerAvatar} />
+		avatar = <AgentAvatar client={agent.client} ownerAvatar={ownerAvatar} />
 		name = (
 			<>
 				{agent.name}{' '}
@@ -75,13 +75,13 @@ export function TlaCommentByline({
 
 /** The owner's avatar, badged with the agent's logo, or a generic agent face when we don't know it. */
 export function AgentAvatar({
-	agentName,
+	client,
 	ownerAvatar,
 }: {
-	agentName: string
+	client: McpAgentClient | null
 	ownerAvatar: ReactNode
 }) {
-	const logo = getAgentLogo(agentName)
+	const logo = getAgentLogo(client)
 	return (
 		<span className={styles.agentAvatar}>
 			{ownerAvatar}

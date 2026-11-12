@@ -6,10 +6,12 @@
 }
 
 /* A card's hover actions sit over the right of the byline row, where the time is. The time steps
-   aside while they show, in the cards that have them (the hover preview has none). */
-:global(.tlui-cmt-card:has(.tlui-cmt-card__actions):hover) .time,
-:global(.tlui-cmt-card:has(.tlui-cmt-card__actions):focus-within) .time {
-	opacity: 0;
+   aside while they show, in the cards that have them (the hover preview has none), and leaves the
+   row too: hidden but still laid out, it would cut a long name short by its own width on top of
+   the room the toolkit already keeps for the actions. */
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):hover) .time,
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):focus-within) .time {
+	display: none;
 }
 
 /* The toolkit pads the row's right side clear of a card's hover actions (the `.tlui-cmt-head`

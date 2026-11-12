@@ -58,7 +58,7 @@ export function TlaThreadRow({
 			<CommentListItem
 				{...props}
 				author={{ ...owner, name: agent.name }}
-				renderAvatar={() => <AgentAvatar agentName={agent.name} ownerAvatar={ownerAvatar} />}
+				renderAvatar={() => <AgentAvatar client={agent.client} ownerAvatar={ownerAvatar} />}
 			/>
 		</div>
 	)
@@ -80,7 +80,7 @@ export function TlaPinContent({
 	if (!agent) return avatar
 	return (
 		<span className={styles.pinAvatar}>
-			<AgentAvatar agentName={agent.name} ownerAvatar={avatar} />
+			<AgentAvatar client={agent.client} ownerAvatar={avatar} />
 		</span>
 	)
 }
