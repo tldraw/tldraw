@@ -28,7 +28,14 @@ export function extractMentionIds(body: unknown): string[] {
 	return [...ids]
 }
 
-/** The comment `meta` key marking a comment an agent posted through the MCP server's write_comment. */
+/**
+ * An MCP agent's id carries this prefix: `mcp-agent:<uuid>`, one per owner and agent name on a board
+ * (see the sync-worker's `getOrCreateAgent`). It is not a user id; the comment's author is still the
+ * agent's owner.
+ */
+export const MCP_AGENT_ID_PREFIX = 'mcp-agent:'
+
+/** The comment `meta` key naming the agent that posted it through the MCP server's write_comment. */
 export const MCP_AGENT_COMMENT_META_KEY = 'mcpAgent'
 
 /** Whether a comment's `meta` marks it as posted by an agent through the MCP server. */
@@ -36,4 +43,15 @@ export function isMcpAgentComment(meta: unknown): boolean {
 	if (typeof meta !== 'object' || meta === null) return false
 	const value = (meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
 	return value !== undefined && value !== null && value !== false
+}
+
+/** The agent a comment's `meta` names, or null for a comment no agent posted. */
+export function getMcpAgentFromCommentMeta(meta: unknown): { id: string; name: string } | null {
+	if (typeof meta !== 'object' || meta === null) return null
+	const agent = (meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
+	if (typeof agent !== 'object' || agent === null) return null
+	const { id, name } = agent as Record<string, unknown>
+	if (typeof id !== 'string' || !id.startsWith(MCP_AGENT_ID_PREFIX)) return null
+	if (typeof name !== 'string' || !name) return null
+	return { id, name }
 }

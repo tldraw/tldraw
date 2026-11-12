@@ -44,6 +44,7 @@ describe('writeCommentForUser', () => {
 		})
 
 		const outcome = await writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
 			boardId: BOARD_ID,
 			text: 'Done',
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
@@ -71,6 +72,7 @@ describe('writeCommentForUser', () => {
 	it('refuses a board the caller cannot see without touching its object', async () => {
 		vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
 		const outcome = await writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
 			boardId: BOARD_ID,
 			text: 'Hi',
 			target: { kind: 'shape', shapeId: 'shape:box' },
@@ -87,6 +89,7 @@ describe('writeCommentForUser', () => {
 		})
 		writeMcpComment.mockResolvedValue({ ok: false, reason: 'comment_forbidden' })
 		const forbidden = await writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
 			boardId: BOARD_ID,
 			text: 'Hi',
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
@@ -100,6 +103,7 @@ describe('writeCommentForUser', () => {
 			threadId: 'comment-thread:t',
 		})
 		const resolved = await writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
 			boardId: BOARD_ID,
 			text: 'Hi',
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
@@ -124,7 +128,7 @@ describe('readPageCommentRows', () => {
 							authorName: 'Ada',
 							body: { type: 'doc', content: [] },
 							createdAt: '2',
-							meta: { mcpAgent: true },
+							meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
 						},
 					],
 				},

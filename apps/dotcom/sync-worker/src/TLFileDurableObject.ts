@@ -92,6 +92,7 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
+import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
 import { planMcpComment } from './mcpCommentWrite'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
@@ -3639,11 +3640,14 @@ export class TLFileDurableObject extends DurableObject {
 	async writeMcpComment({
 		fileId,
 		userId,
+		agentName,
 		body,
 		target,
 	}: {
 		fileId: string
 		userId: string
+		/** Who the comment is from; see `getOrCreateAgent`. */
+		agentName: string
 		body: TLRichText
 		target: CommentTarget
 	}): Promise<
@@ -3667,6 +3671,9 @@ export class TLFileDurableObject extends DurableObject {
 		}
 		const access = getFileRoomAccess(file, role)
 		if (access === 'none') return { ok: false, reason: 'not_found' }
+		// planMcpComment refuses this too, but by then the agent would be registered on a board it
+		// can't comment on.
+		if (access === 'read') return { ok: false, reason: 'comment_forbidden' }
 
 		// As appFileRecordCreated does for an object that has never been opened.
 		if (!this._documentInfo) {
@@ -3688,13 +3695,21 @@ export class TLFileDurableObject extends DurableObject {
 			throw error
 		}
 
+		this.ensureMcpAgents()
+		const agent = getOrCreateAgent(this.ctx.storage.sql, {
+			ownerUserId: userId,
+			name: agentName,
+			now: Date.now(),
+		})
+
 		const planned = storage.transaction((txn) => {
 			const plan = planMcpComment({
 				room: txn,
 				userId,
-				isReadonly: access === 'read',
+				isReadonly: false,
 				body,
 				target,
+				agent,
 			})
 			if (plan.ok) {
 				for (const record of plan.records) txn.set(record.id, record as unknown as TLRecord)
@@ -3708,6 +3723,14 @@ export class TLFileDurableObject extends DurableObject {
 			this.reportError(error)
 		})
 		return written
+	}
+
+	// Created on first use: most boards never see an agent.
+	private mcpAgentsReady = false
+	private ensureMcpAgents() {
+		if (this.mcpAgentsReady) return
+		ensureMcpAgentTables(this.ctx.storage.sql)
+		this.mcpAgentsReady = true
 	}
 
 	/**

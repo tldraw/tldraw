@@ -263,6 +263,21 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['mozilla', 'browser'],
 ]
 
+// The name an agent goes by on a board when write_comment isn't told one: its client's family, which
+// is what the owner would call it. Bounded to these on purpose, like the families themselves — a raw
+// User-Agent is not a name anyone would recognise.
+const AGENT_NAMES_BY_CLIENT_FAMILY: Record<string, string> = {
+	claude: 'Claude',
+	openai: 'ChatGPT',
+	cursor: 'Cursor',
+}
+
+export function getDefaultAgentName(request: Request): string {
+	return (
+		AGENT_NAMES_BY_CLIENT_FAMILY[normalizeMcpClient(request.headers.get('user-agent'))] ?? 'Agent'
+	)
+}
+
 // Takes unknown because one caller passes a header and the other passes a field parsed straight out
 // of the request body, which is whatever the client chose to send.
 export function normalizeMcpClient(value: unknown): string {
@@ -865,7 +880,10 @@ async function callWriteCommentTool(
 		const refusal = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
-		const written = await writeCommentForUser(env, userId, input)
+		const written = await writeCommentForUser(env, userId, {
+			...input,
+			agentName: input.agentName ?? getDefaultAgentName(request),
+		})
 		if (!written.ok) return withTelemetryReason(written.result, written.reason)
 		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
 		return getWrittenCommentResult({

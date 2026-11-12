@@ -28,6 +28,7 @@ import {
 	getClusterScreenshotSize,
 	getClustersBox,
 	readSnapshotPage,
+	AGENT_NAME_MAX_LENGTH,
 	COMMENT_TEXT_MAX_LENGTH,
 	CommentRow,
 	CommentThreadRow,
@@ -1402,18 +1403,40 @@ describe('parseWriteCommentInput', () => {
 		expect(parseWriteCommentInput({ boardId: 'b', text: ' Done ', threadId: 'abc' })).toEqual({
 			boardId: 'b',
 			text: 'Done',
+			agentName: null,
 			target: { kind: 'reply', threadId: 'comment-thread:abc' },
 		})
 		expect(
 			parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 'shape:box', page: 0 })
-		).toEqual({ boardId: 'b', text: 'Hi', target: { kind: 'shape', shapeId: 'shape:box' } })
+		).toEqual({
+			boardId: 'b',
+			text: 'Hi',
+			agentName: null,
+			target: { kind: 'shape', shapeId: 'shape:box' },
+		})
 		expect(
 			parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 10.5, y: -4, page: 'page:two' })
 		).toEqual({
 			boardId: 'b',
 			text: 'Hi',
+			agentName: null,
 			target: { kind: 'point', page: { kind: 'id', id: 'page:two' }, x: 10.5, y: -4 },
 		})
+	})
+
+	it('takes the name the agent goes by, up to a limit', () => {
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 'abc', agentName: ' Claude ' })
+				.agentName
+		).toBe('Claude')
+		expect(() =>
+			parseWriteCommentInput({
+				boardId: 'b',
+				text: 'Hi',
+				threadId: 'abc',
+				agentName: 'x'.repeat(AGENT_NAME_MAX_LENGTH + 1),
+			})
+		).toThrow('agentName must be at most')
 	})
 
 	// A blank string is what a model sends for a field it meant to leave out.

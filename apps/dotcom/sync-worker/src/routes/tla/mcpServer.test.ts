@@ -1131,6 +1131,8 @@ describe('write_comment', () => {
 		expect(writeCommentForUser).toHaveBeenCalledWith(env, 'user_abc', {
 			boardId: 'board_abc',
 			text: 'Too narrow?',
+			// Not named in the call, and the request's User-Agent is no client we know.
+			agentName: 'Agent',
 			target: { kind: 'shape', shapeId: 'shape:box' },
 		})
 		expect(result.isError).toBeUndefined()

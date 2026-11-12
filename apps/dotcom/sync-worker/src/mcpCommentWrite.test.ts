@@ -41,7 +41,14 @@ function plan(
 	room: object[],
 	isReadonly = false
 ) {
-	return planMcpComment({ room: makeRoom(room), userId: ME, isReadonly, body, target })
+	return planMcpComment({
+		room: makeRoom(room),
+		userId: ME,
+		isReadonly,
+		body,
+		target,
+		agent: { id: 'mcp-agent:test', ownerUserId: ME, name: 'Claude' },
+	})
 }
 
 describe('planMcpComment', () => {
@@ -63,7 +70,7 @@ describe('planMcpComment', () => {
 			isDeleted: false,
 		})
 		expect(comment.body).toEqual(body)
-		expect(comment.meta).toEqual({ mcpAgent: true })
+		expect(comment.meta).toEqual({ mcpAgent: { id: 'mcp-agent:test', name: 'Claude' } })
 	})
 
 	it('starts a thread on a nested shape, on the page its ancestors are on', () => {

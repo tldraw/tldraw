@@ -1551,6 +1551,7 @@ function getPageTransformResolver(shapes: TLShape[]) {
 // verbatim.
 
 export const COMMENT_TEXT_MAX_LENGTH = 5000
+export const AGENT_NAME_MAX_LENGTH = 40
 
 // A published /p/ board is a read-only copy with no comments, and its slug names no file to post on.
 export const COMMENT_BOARD_NOT_FOUND_MESSAGE =
@@ -1621,9 +1622,15 @@ export function parseWriteCommentInput(input: unknown): {
 	boardId: string
 	text: string
 	target: CommentTarget
+	/** Null when the caller didn't name itself; the route falls back to its client's name. */
+	agentName: string | null
 } {
 	const value = requireArgumentsObject(input)
 	const boardId = parseBoardId(value.boardId)
+	const agentName = optionalString(value.agentName, 'agentName')
+	if (agentName !== null && agentName.length > AGENT_NAME_MAX_LENGTH) {
+		throw new Error(`agentName must be at most ${AGENT_NAME_MAX_LENGTH} characters`)
+	}
 	if (typeof value.text !== 'string' || !value.text.trim()) {
 		throw new Error('text is required: the comment to post')
 	}
@@ -1646,9 +1653,17 @@ export function parseWriteCommentInput(input: unknown): {
 
 	// `page` is ignored for a reply or a shape rather than refused: the thread or the shape already
 	// names its page, and the schema's default would otherwise make every such call fail.
-	if (threadId)
-		return { boardId, text, target: { kind: 'reply', threadId: ensureCommentThreadId(threadId) } }
-	if (shapeId) return { boardId, text, target: { kind: 'shape', shapeId: ensureShapeId(shapeId) } }
+	if (threadId) {
+		return {
+			boardId,
+			text,
+			agentName,
+			target: { kind: 'reply', threadId: ensureCommentThreadId(threadId) },
+		}
+	}
+	if (shapeId) {
+		return { boardId, text, agentName, target: { kind: 'shape', shapeId: ensureShapeId(shapeId) } }
+	}
 
 	const { x, y } = value
 	if (
@@ -1659,7 +1674,12 @@ export function parseWriteCommentInput(input: unknown): {
 	) {
 		throw new Error('x and y must both be numbers: a point in page coordinates')
 	}
-	return { boardId, text, target: { kind: 'point', page: parsePageSelector(value.page), x, y } }
+	return {
+		boardId,
+		text,
+		agentName,
+		target: { kind: 'point', page: parsePageSelector(value.page), x, y },
+	}
 }
 
 // A blank string means the same as absent, for the model that fills every field in the schema.
@@ -2266,6 +2286,12 @@ function getWriteCommentToolDefinition() {
 				shapeId: {
 					type: 'string',
 					description: 'Start a thread on this shape, from get_cluster_info or read_page_comments.',
+				},
+				agentName: {
+					type: 'string',
+					maxLength: AGENT_NAME_MAX_LENGTH,
+					description:
+						'Your name, shown on tldraw.com as who left the comment, e.g. "Claude". Use the same name every time. Defaults to the name of your MCP client.',
 				},
 				x: { type: 'number', description: 'Start a thread at this page x coordinate, with y.' },
 				y: { type: 'number', description: 'Start a thread at this page y coordinate, with x.' },

@@ -15,6 +15,7 @@ import {
 	isShape,
 } from '@tldraw/tlschema'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { McpAgent } from './mcpAgentStorage'
 import { CommentTarget, CommentWriteRefusal, enumeratePages } from './routes/tla/boardTools'
 
 /** The room's records, as a storage transaction exposes them. */
@@ -52,12 +53,14 @@ export function planMcpComment({
 	isReadonly,
 	body,
 	target,
+	agent,
 }: {
 	room: RoomRecords
 	userId: string
 	isReadonly: boolean
 	body: TLRichText
 	target: CommentTarget
+	agent: McpAgent
 }): PlannedMcpComment {
 	// The authorizers below refuse this too; asked first so a view-only caller hears why, not that
 	// the thread they named is missing.
@@ -89,10 +92,10 @@ export function planMcpComment({
 		pageId: thread.pageId,
 		authorId: userId,
 		body,
-		// How tldraw.com tells an agent's comment from its user's: the comment is the user's own, so
+		// How tldraw.com tells an agent's comment from its user's, and which agent: the comment is the user's own, so
 		// nothing else distinguishes it. A label rather than a credential — the comment authorizers
 		// leave `meta` alone, so a client could set it on its own comments too.
-		meta: { [MCP_AGENT_COMMENT_META_KEY]: true },
+		meta: { [MCP_AGENT_COMMENT_META_KEY]: { id: agent.id, name: agent.name } },
 	})
 
 	const session = {

@@ -93,7 +93,12 @@ export type WriteCommentOutcome =
 export async function writeCommentForUser(
 	env: Environment,
 	userId: string,
-	{ boardId, text, target }: { boardId: string; text: string; target: CommentTarget }
+	{
+		boardId,
+		text,
+		target,
+		agentName,
+	}: { boardId: string; text: string; target: CommentTarget; agentName: string }
 ): Promise<WriteCommentOutcome> {
 	const access = await hasReadAccessToFile(env, userId, boardId)
 	if (!access.ok) return refused({ reason: 'not_found' })
@@ -101,6 +106,7 @@ export async function writeCommentForUser(
 	const written = await getRoomDurableObject(env, boardId).writeMcpComment({
 		fileId: boardId,
 		userId,
+		agentName,
 		body: toRichText(text),
 		target,
 	})
