@@ -1,3 +1,4 @@
+import { type AvatarProps } from '@tldraw/mentions'
 import { useMemo, type ComponentType } from 'react'
 import {
 	type Editor,
@@ -9,6 +10,7 @@ import {
 	useEditor,
 	useValue,
 } from 'tldraw'
+import { type BylineProps } from '../ui/byline'
 import { type CommentListItemRenderProps } from '../ui/comments-list'
 import { isAllowedReactionEmoji, type EmojiPickerProps } from '../ui/emoji-picker'
 import { type ReactionTooltipProps } from '../ui/reaction'
@@ -60,6 +62,20 @@ export type CommentModificationContext = {
 export interface CommentingComponents {
 	/** A comment's body. Replaces the default rich-text `<CommentBody>`. */
 	CommentBody?: ComponentType<{ comment: TLComment }>
+	/**
+	 * A comment's byline: the author's avatar and name, the time, and the edited marker. Replaces the
+	 * default `<Byline>`, which is exported — so a byline that only changes how the author is shown
+	 * (a badge read from `comment.meta`, say) can spread these props into it with a different
+	 * `author`. `author` is what `resolveAuthor` returned for the comment's `authorId`.
+	 */
+	CommentByline?: ComponentType<BylineProps & { comment: TLComment }>
+	/**
+	 * An author's avatar, wherever the layer draws one: comment bylines, sidebar rows, the composers,
+	 * and the default pin content. Replaces the default `<Avatar>`, which is exported — so an avatar
+	 * that only adds something (a presence ring, a badge) can spread these props into it. `authorId`
+	 * is the id `author` was resolved from, or `null` in a composer with no signed-in user.
+	 */
+	Avatar?: ComponentType<AvatarProps & { authorId: string | null }>
 	/** A pin's inner content. Replaces the author-initial default. */
 	PinContent?: ComponentType<{ thread: TLCommentThread; comments: TLComment[] }>
 	/** A sidebar row's preview. Replaces the plaintext default. */
