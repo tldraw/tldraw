@@ -1582,6 +1582,7 @@ describe('apply_ops', () => {
 	// between "nothing happened" and "we don't know".
 	it.each<[TabRenderOutcome, string, boolean]>([
 		[{ status: 'no_tab' }, 'tab_not_open', false],
+		[{ status: 'tab_suspended' }, 'tab_suspended', false],
 		[{ status: 'reload_needed' }, 'tab_reload_needed', false],
 		[{ status: 'ack_timeout' }, 'tab_ack_timeout', false],
 		[{ status: 'declined', reason: 'read_only' }, 'tab_read_only', false],

@@ -119,9 +119,16 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 	 *                 Can return a string directly or a Promise that resolves to a string.
 	 *                 This function is called each time a connection attempt is made,
 	 *                 allowing for dynamic URI generation (e.g., for authentication tokens).
+	 * @param options - Reconnection settings.
+	 *   - `maxHiddenReconnectDelayMs` - The longest wait between reconnection attempts while the
+	 *     tab is hidden. Defaults to five minutes, which keeps parked background tabs from loading
+	 *     the server. Lower it for a tab that has to stay reachable while nobody is looking at it.
 	 */
-	constructor(getUri: () => Promise<string> | string) {
-		this._reconnectManager = new ReconnectManager(this, getUri)
+	constructor(
+		getUri: () => Promise<string> | string,
+		options: { maxHiddenReconnectDelayMs?: number } = {}
+	) {
+		this._reconnectManager = new ReconnectManager(this, getUri, options.maxHiddenReconnectDelayMs)
 	}
 
 	private _handleConnect() {
@@ -246,10 +253,10 @@ export class ClientWebSocketAdapter implements TLPersistentClientSocket<
 		this._ws = ws
 	}
 
-	_closeSocket() {
+	_closeSocket(code?: number, reason?: string) {
 		if (this._ws === null) return
 
-		this._ws.close()
+		this._ws.close(code, reason)
 		// explicitly orphan the socket to ignore its onclose/onerror, because onclose can be delayed
 		this._ws = null
 		this._handleDisconnect('manual')
@@ -492,7 +499,8 @@ export class ReconnectManager {
 	 */
 	constructor(
 		private socketAdapter: ClientWebSocketAdapter,
-		private getUri: () => Promise<string> | string
+		private getUri: () => Promise<string> | string,
+		private maxHiddenDelay = INACTIVE_MAX_DELAY
 	) {
 		this.subscribeToReconnectHints()
 
@@ -569,7 +577,7 @@ export class ReconnectManager {
 	}
 
 	private getMaxDelay() {
-		return document.hidden ? INACTIVE_MAX_DELAY : ACTIVE_MAX_DELAY
+		return document.hidden ? this.maxHiddenDelay : ACTIVE_MAX_DELAY
 	}
 
 	private getMinDelay() {

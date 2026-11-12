@@ -124,6 +124,11 @@ function describeFailure(
 				message: `This board is not open in a browser tab, and this tool works through the user's open tab. Ask the user to open ${boardUrl} and keep it open, then try again.`,
 				reason: 'tab_not_open',
 			}
+		case 'tab_suspended':
+			return {
+				message: `The browser suspended the tab with ${boardUrl} open, which it does to tabs left in the background, so nothing was done. Ask the user to click on that tab, then try again.`,
+				reason: 'tab_suspended',
+			}
 		case 'reload_needed':
 			return {
 				message:

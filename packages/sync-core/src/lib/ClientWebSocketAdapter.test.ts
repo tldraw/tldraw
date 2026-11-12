@@ -726,6 +726,24 @@ describe('ReconnectManager', () => {
 		}
 	})
 
+	it('[RM1] caps the hidden delay at maxHiddenReconnectDelayMs when given', () => {
+		const hiddenMock = vi.spyOn(document, 'hidden', 'get').mockReturnValue(true)
+		const testAdapter = new ClientWebSocketAdapter(() => `ws://localhost:${port}`, {
+			maxHiddenReconnectDelayMs: 30_000,
+		})
+		try {
+			const manager = testAdapter._reconnectManager
+			;(manager as any).lastAttemptStart = Date.now() - 1_000_000
+
+			manager.intendedDelay = 25_000
+			manager.disconnected()
+			expect(manager.intendedDelay).toBe(30_000)
+		} finally {
+			testAdapter.close()
+			hiddenMock.mockRestore()
+		}
+	})
+
 	it('[RM1][RM2] reconnects with a new socket after the server drops the connection, repeatedly', async () => {
 		await waitFor(() => adapter._ws?.readyState === WebSocket.OPEN)
 		const prevClientSocket = adapter._ws
