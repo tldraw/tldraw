@@ -4,6 +4,7 @@ import {
 	librariesPanelOpen,
 	getThumbnailForColorMode,
 } from '@tldraw/libraries'
+import { useEffect } from 'react'
 import {
 	defineMessages,
 	F,
@@ -55,6 +56,12 @@ export function TlaBrowseStarterPacksMenuItem({ packs }: { packs: StarterPacksSo
 }
 
 function TlaStarterPacksDialog({ packs }: { packs: StarterPacksSource }) {
+	const msg = useTranslation()
+	const entries = useValue('starter pack entries', () => packs.getEntries(), [packs])
+	// Also retries a list that failed to load at startup.
+	useEffect(() => {
+		void packs.refresh()
+	}, [packs])
 	return (
 		<>
 			<TldrawUiDialogHeader>
@@ -64,11 +71,15 @@ function TlaStarterPacksDialog({ packs }: { packs: StarterPacksSource }) {
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TldrawUiDialogBody className={styles.body}>
-				<ul className={styles.packs}>
-					{packs.packs.map((entry) => (
-						<StarterPack key={entry.id} packs={packs} entry={entry} />
-					))}
-				</ul>
+				{entries.length === 0 ? (
+					<p className={styles.detail}>{msg(messages.loading)}</p>
+				) : (
+					<ul className={styles.packs}>
+						{entries.map((entry) => (
+							<StarterPack key={entry.id} packs={packs} entry={entry} />
+						))}
+					</ul>
+				)}
 			</TldrawUiDialogBody>
 		</>
 	)

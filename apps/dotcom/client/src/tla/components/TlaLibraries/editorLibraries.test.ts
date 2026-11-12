@@ -38,13 +38,11 @@ function setUp() {
 		getContainer: () => document.body,
 	})
 	editors.push(editor)
-	const packs = new StarterPacksSource('test-added-packs', [
-		{
-			id: 'doodles',
-			name: 'Doodles',
-			load: async () => ({ id: 'doodles', name: 'Doodles', version: 2, items: [] }),
-		},
-	])
+	const doodles = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
+	const packs = new StarterPacksSource('test-added-packs', {
+		getEntries: async () => [{ id: 'doodles', name: 'Doodles', version: 2 }],
+		getPack: async () => doodles,
+	})
 	return { editor, packs, source: getEditorLibraries(app, libraries, packs, editor, 'file-a') }
 }
 
@@ -136,7 +134,7 @@ describe('getEditorLibraries', () => {
 
 	it('lists added starter packs under tldraw, read-only, and copies one to a workspace', async () => {
 		const { editor, packs, source } = setUp()
-		await packs.load()
+		await packs.refresh()
 		packs.setAdded('doodles', true)
 		const libraryId = getStarterPackLibraryId('doodles')
 		const pack = source.getLibraries().find((library) => library.id === libraryId)

@@ -1,0 +1,27 @@
+[
+	{
+		"id": "wireframing",
+		"name": "Wireframing",
+		"version": 5
+	},
+	{
+		"id": "diagramming",
+		"name": "Diagramming",
+		"version": 3
+	},
+	{
+		"id": "floor-plan",
+		"name": "Floor plan",
+		"version": 3
+	},
+	{
+		"id": "tldraw-characters",
+		"name": "tldraw characters",
+		"version": 1
+	},
+	{
+		"id": "doodles",
+		"name": "Doodles",
+		"version": 1
+	}
+]
