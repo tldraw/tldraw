@@ -8,7 +8,7 @@ status: published
 last_version: v5.6.0
 ---
 
-So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
+So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, adds avatar and byline slots to `@tldraw/commenting`, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
 
 ## API changes
 
@@ -17,6 +17,7 @@ So far this release lets shapes decide whether they can flip, gates action execu
 - 💥 Remove unused `help-menu.discord`, `help-menu.github`, and `help-menu.twitter` keys from `TLUiTranslationKey`. ([#11258](https://github.com/tldraw/tldraw/pull/11258))
 - Actions don't run when `isAvailable` or `isEnabled` returns false, or when the editor is readonly and the action isn't `readonlyOk`, whether they're triggered from a menu, a keyboard shortcut or an `onSelect` call on an action from `useActions()`. The copy, cut and paste shortcuts still come from native clipboard events and aren't gated. If your app calls a custom action directly in readonly mode, set `readonlyOk: true` on it. An override that replaces a built-in's `onSelect`, in place or by spreading it, keeps the built-in's `isEnabled`, so the action no longer runs from a shortcut or `useActions()` when that returns false; override `isEnabled` too if your `onSelect` handles that case. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Add `Editor.getShapesInReadingOrder(shapes)` to sort an arbitrary set of shapes into reading order. ([#10505](https://github.com/tldraw/tldraw/pull/10505))
+- Add `CommentByline` and `Avatar` component slots to `@tldraw/commenting`, so you can change how comment authors and their avatars are shown. ([#11447](https://github.com/tldraw/tldraw/pull/11447))
 
 ## Improvements
 
