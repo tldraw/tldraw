@@ -7,7 +7,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { defineMessages, useEditor, useTranslation } from 'tldraw'
+import { defineMessages, TldrawUiIcon, useEditor, useTranslation } from 'tldraw'
 import type { LibraryGroup } from './library-groups'
 
 const messages = defineMessages({
@@ -93,6 +93,14 @@ export function LibraryTabs({
 							className="tlui-libraries-tabs__tab"
 							title={label(group)}
 						>
+							{group.icon && (
+								<TldrawUiIcon
+									icon={group.icon}
+									label=""
+									small
+									className="tlui-libraries-tabs__icon"
+								/>
+							)}
 							<span className="tlui-libraries-tabs__label">{label(group)}</span>
 						</_Tabs.Trigger>
 					))}

@@ -165,6 +165,7 @@
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
+	gap: 6px;
 	max-width: 160px;
 	height: 40px;
 	padding: 0 8px;
@@ -203,6 +204,10 @@
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: -6px;
 	border-radius: var(--tl-radius-3);
+}
+
+.tlui-libraries-tabs__icon {
+	flex-shrink: 0;
 }
 
 .tlui-libraries-tabs__label {

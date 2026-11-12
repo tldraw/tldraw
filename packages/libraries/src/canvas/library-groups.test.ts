@@ -44,3 +44,12 @@ it('keeps owners with no libraries, so each owner has a group to create librarie
 		{ key: 'team', label: 'Team', libraries: [] },
 	])
 })
+
+it("gives each group its owner's icon", () => {
+	const withIcons = [{ ...owners[0], icon: 'home' }, owners[1]]
+	const groups = groupLibraryList([], getLibraryGrouping(withIcons))
+	expect(groups.map((g) => [g.key, g.icon])).toEqual([
+		['me', 'home'],
+		['team', undefined],
+	])
+})

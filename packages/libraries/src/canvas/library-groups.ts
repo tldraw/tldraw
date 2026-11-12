@@ -8,12 +8,14 @@ export interface LibraryGroup {
 	key?: string
 	/** The owner's name. */
 	label?: string
+	icon?: TLLibraryOwner['icon']
 	libraries: TLLibrary[]
 }
 
 export interface LibraryGrouping {
 	keyOf(library: TLLibrary): string | undefined
 	labelOf(key: string): string | undefined
+	iconOf(key: string): TLLibraryOwner['icon']
 	/** Owner ids in the order their groups go. */
 	order: string[]
 }
@@ -21,11 +23,12 @@ export interface LibraryGrouping {
 /** Groups by the owner each library names, in the owners' order. Fewer than two owners: none. */
 export function getLibraryGrouping(owners: TLLibraryOwner[]): LibraryGrouping | undefined {
 	if (owners.length < 2) return undefined
-	const names = new Map(owners.map((owner) => [owner.id, owner.name]))
+	const byId = new Map(owners.map((owner) => [owner.id, owner]))
 	return {
 		keyOf: (library) =>
-			library.ownerId !== undefined && names.has(library.ownerId) ? library.ownerId : undefined,
-		labelOf: (key) => names.get(key),
+			library.ownerId !== undefined && byId.has(library.ownerId) ? library.ownerId : undefined,
+		labelOf: (key) => byId.get(key)?.name,
+		iconOf: (key) => byId.get(key)?.icon,
 		order: owners.map((owner) => owner.id),
 	}
 }
@@ -50,7 +53,10 @@ export function groupLibraryList(
 ): LibraryGroup[] {
 	if (!grouping) return [{ libraries }]
 	const groups = new Map<string | undefined, LibraryGroup>(
-		grouping.order.map((key) => [key, { key, label: grouping.labelOf(key), libraries: [] }])
+		grouping.order.map((key) => [
+			key,
+			{ key, label: grouping.labelOf(key), icon: grouping.iconOf(key), libraries: [] },
+		])
 	)
 	for (const library of libraries) {
 		const key = grouping.keyOf(library)
