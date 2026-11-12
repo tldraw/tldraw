@@ -74,7 +74,13 @@ export function TlaCommentByline({
 }
 
 /** The owner's avatar, badged with the agent's logo, or a generic agent face when we don't know it. */
-function AgentAvatar({ agentName, ownerAvatar }: { agentName: string; ownerAvatar: ReactNode }) {
+export function AgentAvatar({
+	agentName,
+	ownerAvatar,
+}: {
+	agentName: string
+	ownerAvatar: ReactNode
+}) {
 	const logo = getAgentLogo(agentName)
 	return (
 		<span className={styles.agentAvatar}>

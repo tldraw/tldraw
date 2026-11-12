@@ -70,3 +70,37 @@
 	font-weight: 400;
 	color: var(--tl-color-text-3);
 }
+
+/* A sidebar row for a thread an agent started. The wrapper stays out of the list's layout. */
+.agentRow {
+	display: contents;
+}
+
+.agentRow :global(.tlui-cmt-author)::after {
+	content: ' ' var(--tla-agent-owner);
+	font-weight: 400;
+	color: var(--tl-color-text-3);
+}
+
+/* The list nudges its 14px avatar down to the name's line; move the badged avatar as one. */
+.agentRow .agentAvatar {
+	align-self: flex-start;
+	margin-top: 2px;
+}
+
+.agentRow .agentAvatar :global(.tlui-cmt-avatar) {
+	margin-top: 0;
+}
+
+/* On a pin the avatar is 22px, so the badge grows with it. */
+.pinAvatar .agentBadge {
+	width: 11px;
+	height: 11px;
+	right: -3px;
+	bottom: -3px;
+}
+
+.pinAvatar .agentLogo {
+	width: 11px;
+	height: 11px;
+}
