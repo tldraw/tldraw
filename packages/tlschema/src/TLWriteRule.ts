@@ -38,7 +38,7 @@ export interface TLWriteRuleSession<Meta = unknown> {
 	/**
 	 * Named permissions your server granted this session. Sent to the client, unlike `meta`, so a
 	 * rule that reads them gives the same answer on both sides. `null` when the app doesn't use
-	 * named permissions; `[]` when it granted none. `isPermitted` and `getMissingPermission` treat `null`
+	 * named permissions; `[]` when it granted none. `isPermitted` and `isChangePermitted` treat `null`
 	 * as nothing granted, so a session that was never given a list can't pass a rule that asks.
 	 */
 	permissions: readonly TLPermissionGrant[] | null

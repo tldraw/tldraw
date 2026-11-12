@@ -3,7 +3,6 @@ import {
 	createPermissionPolicy,
 	getRequiredPermission,
 	isPermitted,
-	getMissingPermission,
 	isChangePermitted,
 	TL_PERMISSIONS,
 } from './permissions'
@@ -58,18 +57,13 @@ describe('getRequiredPermission', () => {
 	})
 })
 
-describe('getMissingPermission', () => {
-	it('says which permission is missing', () => {
-		expect(getMissingPermission(['tl:shape:create'], del('shape'))).toBe('tl:shape:delete')
-		expect(getMissingPermission(['tl:shape:*'], del('shape'))).toBe(null)
+describe('isChangePermitted', () => {
+	it('needs the permission the change maps to', () => {
+		expect(isChangePermitted(['tl:shape:create'], del('shape'))).toBe(false)
+		expect(isChangePermitted(['tl:shape:*'], del('shape'))).toBe(true)
 	})
 
 	it('allows records no permission covers', () => {
-		expect(getMissingPermission([], update('document'))).toBe(null)
-		expect(isChangePermitted([], update('document'))).toBe(true)
-		expect(isChangePermitted([], update('shape'))).toBe(false)
-		expect(isChangePermitted([], update('document'))).toBe(true)
-		expect(isChangePermitted([], update('shape'))).toBe(false)
 		expect(isChangePermitted([], update('document'))).toBe(true)
 		expect(isChangePermitted([], update('shape'))).toBe(false)
 	})
@@ -78,9 +72,9 @@ describe('getMissingPermission', () => {
 describe('permissions not in use', () => {
 	it('grant nothing to a rule, so a forgotten list fails closed', () => {
 		expect(isPermitted(null, 'tl:shape:create')).toBe(false)
-		expect(getMissingPermission(null, create('shape'))).toBe('tl:shape:create')
+		expect(isChangePermitted(null, create('shape'))).toBe(false)
 		// a change no permission covers is still allowed
-		expect(getMissingPermission(null, create('document'))).toBe(null)
+		expect(isChangePermitted(null, create('document'))).toBe(true)
 	})
 })
 
@@ -117,9 +111,9 @@ describe('record types of your own', () => {
 	const types = { sticker: 'stickers:edit' }
 
 	it('are not judged without an entry', () => {
-		expect(getMissingPermission(['tl:shape:*'], update('sticker'))).toBe(null)
-		expect(getMissingPermission(['tl:shape:*'], update('sticker'), types)).toBe('stickers:edit')
-		expect(getMissingPermission(['stickers:edit'], create('sticker'), types)).toBe(null)
+		expect(isChangePermitted(['tl:shape:*'], update('sticker'))).toBe(true)
+		expect(isChangePermitted(['tl:shape:*'], update('sticker'), types)).toBe(false)
+		expect(isChangePermitted(['stickers:edit'], create('sticker'), types)).toBe(true)
 	})
 
 	it('cover every kind of write', () => {

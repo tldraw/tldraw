@@ -34,7 +34,7 @@ export interface TLPermissionChange {
  * @example
  * ```ts
  * const types = { sticker: 'stickers:edit' }
- * getMissingPermission(['tl:shape:*'], { type: 'update', prev: sticker, next: moved }, types) // 'stickers:edit'
+ * getRequiredPermission({ type: 'update', prev: sticker, next: moved }, types) // 'stickers:edit'
  * ```
  *
  * @public
@@ -97,29 +97,16 @@ export function getRequiredPermission(
 }
 
 /**
- * The permission a change needs that these permissions don't cover, or null when they cover it
- * (or the change needs none). Pure, so a client and a server can share it. A rule puts it in its
- * refusal.
+ * Whether these permissions cover a change: the permission it needs (see
+ * {@link getRequiredPermission}) is granted, or it needs none. Pure, so a client and a server can
+ * share it.
  *
  * @example
  * ```ts
- * const missing = getMissingPermission(session.permissions, change)
- * if (missing) return { reason: `Needs ${missing}`, ids: [(change.next ?? change.prev).id] }
+ * if (!isChangePermitted(session.permissions, change)) {
+ * 	return { reason: `Needs ${getRequiredPermission(change)}`, ids: [(change.next ?? change.prev).id] }
+ * }
  * ```
- *
- * @public
- */
-export function getMissingPermission(
-	granted: readonly TLPermissionGrant[] | null,
-	change: TLPermissionChange,
-	types?: TLRecordTypePermissions
-): TLPermissionGrant | null {
-	const needed = getRequiredPermission(change, types)
-	return needed === null || isPermitted(granted, needed) ? null : needed
-}
-
-/**
- * Whether these permissions cover a change. Pure, so a client and a server can share it.
  *
  * @public
  */
@@ -128,7 +115,8 @@ export function isChangePermitted(
 	change: TLPermissionChange,
 	types?: TLRecordTypePermissions
 ): boolean {
-	return getMissingPermission(granted, change, types) === null
+	const needed = getRequiredPermission(change, types)
+	return needed === null || isPermitted(granted, needed)
 }
 
 /**

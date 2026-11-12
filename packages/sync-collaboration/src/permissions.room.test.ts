@@ -2,7 +2,8 @@ import {
 	composeRules,
 	createStructureRule,
 	getOwningPage,
-	getMissingPermission,
+	getRequiredPermission,
+	isChangePermitted,
 } from '@tldraw/permissions'
 import {
 	getTlsyncProtocolVersion,
@@ -230,8 +231,9 @@ describe('the structure rule through TLSocketRoom', () => {
 describe('permissions from the server', () => {
 	// The server decides each session's permissions; the rule only reads them.
 	const permissionRule = perRecord<TLRecord, Meta>((change, { session }) => {
-		const missing = getMissingPermission(session.permissions, change)
-		return missing ? `Needs ${missing}` : null
+		return isChangePermitted(session.permissions, change)
+			? null
+			: `Needs ${getRequiredPermission(change)}`
 	})
 	function makePermissionRoom() {
 		const storage = new InMemorySyncStorage<TLRecord>({

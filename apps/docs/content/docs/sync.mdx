@@ -392,16 +392,17 @@ For anything finer than that, give the room one rule with the `authorize` option
 
 Most rules are about one record at a time. `perRecord` builds a push rule from one of those: return `null` to allow the change or a reason to refuse it.
 
-What a session may do usually comes from your server as a list of named permissions, passed at connect. tldraw's own are `tl:shape:create`, `tl:shape:update`, `tl:shape:delete` and the same three for `tl:page`; a name ending in `:*` covers everything under it, and you can add names of your own under another prefix. `getMissingPermission` from `@tldraw/permissions` maps a change to the permission it needs and returns it when the list doesn't cover it:
+What a session may do usually comes from your server as a list of named permissions, passed at connect. tldraw's own are `tl:shape:create`, `tl:shape:update`, `tl:shape:delete` and the same three for `tl:page`; a name ending in `:*` covers everything under it, and you can add names of your own under another prefix. `isChangePermitted` from `@tldraw/permissions` checks a change against the list, and `getRequiredPermission` names the permission it needs, for the refusal:
 
 ```ts
-import { getMissingPermission } from '@tldraw/permissions'
+import { getRequiredPermission, isChangePermitted } from '@tldraw/permissions'
 import { perRecord, TLSocketRoom } from '@tldraw/sync-core'
 
 // students draw, but pages are the teacher's
 const authorize = perRecord<TLRecord>((change, { session }) => {
-	const missing = getMissingPermission(session.permissions, change)
-	return missing ? `Needs ${missing}` : null
+	return isChangePermitted(session.permissions, change)
+		? null
+		: `Needs ${getRequiredPermission(change)}`
 })
 
 const room = new TLSocketRoom<TLRecord>({ objectTypes, authorize })
@@ -417,7 +418,7 @@ room.handleSocketConnect({
 
 The permissions are sent to the client too, so the same rule gives the same answer in the editor, and the UI can follow them (see [Showing what someone can do](#showing-what-someone-can-do)). For facts you don't want the client to see, pass `meta` instead: the rule reads it as `session.meta`, and it never leaves the server.
 
-Leave `permissions` out and they're `null`: the app doesn't use named permissions, and nothing about them changes for that session. `[]` is different: granted nothing. `isPermitted` and `getMissingPermission` treat `null` as nothing granted too, so if one of your connect paths forgets the list, a rule that asks refuses rather than letting everything through. Watch out for `user.permissions ?? []` in your server code: it turns "not in use" into "nothing allowed".
+Leave `permissions` out and they're `null`: the app doesn't use named permissions, and nothing about them changes for that session. `[]` is different: granted nothing. `isPermitted` and `isChangePermitted` treat `null` as nothing granted too, so if one of your connect paths forgets the list, a rule that asks refuses rather than letting everything through. Watch out for `user.permissions ?? []` in your server code: it turns "not in use" into "nothing allowed".
 
 The rule only sees pushes the session's access allows, so it can only narrow what `access` grants, never widen it. Combine several rules with `composeRules` from `@tldraw/permissions`: the first refusal wins.
 

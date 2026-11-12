@@ -24,9 +24,6 @@ export function createStructureRule(): (args: TLStructureRuleArgs) => {
 } | null;
 
 // @public
-export function getMissingPermission(granted: null | readonly TLPermissionGrant[], change: TLPermissionChange, types?: TLRecordTypePermissions): null | TLPermissionGrant;
-
-// @public
 export function getOwningAncestor<T extends UnknownRecord = UnknownRecord>(get: (id: string) => undefined | UnknownRecord, record: UnknownRecord, isOwner: (record: UnknownRecord) => boolean): TLOwningAncestor<T>;
 
 // @public

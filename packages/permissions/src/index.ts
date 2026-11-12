@@ -12,7 +12,6 @@ export {
 	createPermissionPolicy,
 	getRequiredPermission,
 	isPermitted,
-	getMissingPermission,
 	isChangePermitted,
 	TL_PERMISSIONS,
 	type TLPermissionChange,
