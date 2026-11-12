@@ -41,7 +41,7 @@ import {
 	resetRateLimitFallbackForTests,
 	mcpServer,
 } from './mcpServer'
-import { readPageCommentRows, writeCommentForUser } from './pageComments'
+import { readMentionableUsers, readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import {
 	blobValuesOf,
@@ -106,7 +106,11 @@ vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
 // Postgres and the file's Durable Object are covered in pageComments.test.ts and
 // mcpCommentWrite.test.ts; these tests are about the dispatch around them.
-vi.mock('./pageComments', () => ({ readPageCommentRows: vi.fn(), writeCommentForUser: vi.fn() }))
+vi.mock('./pageComments', () => ({
+	readPageCommentRows: vi.fn(),
+	writeCommentForUser: vi.fn(),
+	readMentionableUsers: vi.fn(async () => []),
+}))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
@@ -1090,6 +1094,7 @@ describe('read_page_comments', () => {
 						{
 							commentId: 'comment:c',
 							authorName: 'Me',
+							authorId: 'user_me',
 							isCurrentUser: true,
 							meta: {},
 							createdAt: '2026-01-01T00:00:00.000Z',
@@ -1331,6 +1336,29 @@ describe('get_board_info', () => {
 
 		expect(JSON.parse(result.content[0].text).pageCount).toBe(3)
 		expect(getPublishedFileInfo).not.toHaveBeenCalled()
+	})
+
+	it('lists the people a comment on the file can mention, marking the caller', async () => {
+		grantReadAccess()
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+		vi.mocked(readMentionableUsers).mockResolvedValueOnce([
+			{ id: 'user_2', name: 'Me' },
+			{ id: 'user_ada', name: 'Ada' },
+		])
+
+		const result = await callTool(
+			'get_board_info',
+			{ boardId: 'f1' },
+			makeEnv({ ROOMS: makeFakeRoomsBucket() }),
+			'user_2'
+		)
+
+		expect(JSON.parse(result.content[0].text).people).toEqual([
+			{ id: 'user_2', name: 'Me', isCurrentUser: true },
+			{ id: 'user_ada', name: 'Ada', isCurrentUser: false },
+		])
+		expect(readMentionableUsers).toHaveBeenCalledWith(expect.anything(), 'f1')
 	})
 
 	// Every tool call already dials Postgres twice — once for the access check, once to resolve the

@@ -1,19 +1,67 @@
 import { McpAgentClient } from '@tldraw/dotcom-shared'
-import { toRichText } from '@tldraw/tlschema'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getRoomDurableObject } from '../../utils/durableObjects'
+import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	COMMENT_THREADS_PAGE_SIZE,
 	CommentRow,
 	CommentTarget,
 	CommentThreadRow,
 	CommentWriteRefusal,
+	MentionableUser,
 	ToolResult,
+	commentTextToRichText,
 	getCommentRefusalMessage,
+	getTextMentionIds,
 	toolError,
 } from './boardTools'
+
+/** As many past visitors as tldraw.com's own @-picker offers (`MENTIONABLE_VISITORS_LIMIT`). */
+const MENTIONABLE_VISITORS_LIMIT = 100
+
+/**
+ * Who a comment on `fileId` may mention: the members of the workspace that owns it, then its most
+ * recent visitors — the roster tldraw.com's @-picker offers, so an agent can mention whoever a person
+ * could. Names are the ones Postgres keeps in step with each user's row.
+ */
+export async function readMentionableUsers(
+	env: Environment,
+	fileId: string
+): Promise<MentionableUser[]> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/readMentionableUsers')
+	try {
+		const { members, visitors } = await db
+			.selectNoFrom((eb) => [
+				jsonArrayFrom(
+					eb
+						.selectFrom('group_user')
+						.innerJoin('file', 'file.owningGroupId', 'group_user.groupId')
+						.select(['group_user.userId as id', 'group_user.userName as name'])
+						.where('file.id', '=', fileId)
+						.orderBy('group_user.userName')
+				).as('members'),
+				jsonArrayFrom(
+					eb
+						.selectFrom('file_visitor')
+						.select(['userId as id', 'userName as name'])
+						.where('fileId', '=', fileId)
+						.orderBy('lastVisitAt', 'desc')
+						.limit(MENTIONABLE_VISITORS_LIMIT)
+				).as('visitors'),
+			])
+			.executeTakeFirstOrThrow()
+		const byId = new Map<string, MentionableUser>()
+		for (const person of [...members, ...visitors]) {
+			if (!byId.has(person.id))
+				byId.set(person.id, { id: person.id, name: person.name || 'Someone' })
+		}
+		return [...byId.values()]
+	} finally {
+		await db.destroy()
+	}
+}
 
 /**
  * One page of a board page's live comment threads, newest first, and all their live comments, in
@@ -167,12 +215,26 @@ export async function writeCommentForUser(
 		agentClient: McpAgentClient | null
 	}
 ): Promise<WriteCommentOutcome> {
+	// Only ids are taken from the agent: each must be someone the board's own @-picker would offer,
+	// and is named from our records, never from the text.
+	const mentionIds = getTextMentionIds(text)
+	const names = new Map<string, string>()
+	if (mentionIds.length) {
+		// Checked here only for a mention: otherwise the roster's answer would say who is on a board
+		// the caller cannot see.
+		const access = await hasReadAccessToFile(env, userId, boardId)
+		if (!access.ok) return refused({ reason: 'not_found' })
+		for (const person of await readMentionableUsers(env, boardId)) names.set(person.id, person.name)
+		const unknown = mentionIds.filter((id) => !names.has(id))
+		if (unknown.length) return refused({ reason: 'unknown_mention', userIds: unknown })
+	}
+
 	const written = await getRoomDurableObject(env, boardId).writeMcpComment({
 		fileId: boardId,
 		userId,
 		agentName,
 		agentClient,
-		body: toRichText(text),
+		body: commentTextToRichText(text, names),
 		target,
 	})
 	if (!written.ok) return refused(written)

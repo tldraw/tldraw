@@ -79,7 +79,7 @@ import {
 	readPageInOpenTab,
 	readUserStateInOpenTab,
 } from './mcpTabRender'
-import { readPageCommentRows, writeCommentForUser } from './pageComments'
+import { readMentionableUsers, readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -964,7 +964,15 @@ async function callBoardInfoTool(
 	try {
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
-		return getBoardInfo(loaded.snapshot, loaded.fileName)
+		// The people a comment can @mention, with the ids write_comment takes. A published copy has no
+		// comments, so it lists none.
+		const people = loaded.isFile
+			? (await readMentionableUsers(env, input.boardId)).map((person) => ({
+					...person,
+					isCurrentUser: person.id === userId,
+				}))
+			: null
+		return getBoardInfo(loaded.snapshot, loaded.fileName, people)
 	} catch (error) {
 		// No `telemetry`: this tool isn't on the screenshot ledger.
 		return toolFailure(error, {

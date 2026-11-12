@@ -1,9 +1,11 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
+import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import { COMMENT_BOARD_NOT_FOUND_MESSAGE, COMMENT_THREADS_PAGE_SIZE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
+vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 
 const writeMcpComment = vi.fn()
 vi.mock('../../utils/durableObjects', () => ({
@@ -12,7 +14,8 @@ vi.mock('../../utils/durableObjects', () => ({
 
 const { createPostgresConnectionPool } = await import('../../postgres')
 const { getRoomDurableObject } = await import('../../utils/durableObjects')
-const { readPageCommentRows, writeCommentForUser } = await import('./pageComments')
+const { readMentionableUsers, readPageCommentRows, writeCommentForUser } =
+	await import('./pageComments')
 
 const env = {} as Environment
 const USER_ID = 'user_me'
@@ -192,5 +195,95 @@ describe('readPageCommentRows', () => {
 		expect(read.comments).toHaveLength(COMMENT_THREADS_PAGE_SIZE)
 		expect(read.threads.at(-1)?.createdAt).toBe(100 - COMMENT_THREADS_PAGE_SIZE + 1)
 		expect(fake.queries[0].parameters).toEqual(expect.arrayContaining([101, 'comment-thread:zz']))
+	})
+})
+
+describe('mentions', () => {
+	function allowAccess() {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue({
+			ok: true,
+			file: { id: BOARD_ID, name: 'Board', shared: false, isDeleted: false },
+		})
+	}
+	function roster(members: object[], visitors: object[] = []) {
+		const fake = createFakeKysely([[{ members, visitors }]])
+		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+		return fake
+	}
+	const write = (text: string) =>
+		writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
+			agentClient: 'claude',
+			boardId: BOARD_ID,
+			text,
+			target: { kind: 'reply', threadId: 'comment-thread:t' },
+		})
+
+	it('lists workspace members, then visitors who are not members, with a fallback name', async () => {
+		const fake = roster(
+			[{ id: 'user_a', name: 'Ada' }],
+			[
+				{ id: 'user_a', name: 'Ada' },
+				{ id: 'user_g', name: '' },
+			]
+		)
+		expect(await readMentionableUsers(env, BOARD_ID)).toEqual([
+			{ id: 'user_a', name: 'Ada' },
+			{ id: 'user_g', name: 'Someone' },
+		])
+		expect(fake.destroy).toHaveBeenCalled()
+	})
+
+	it('mentions by id, named from our records rather than the text', async () => {
+		allowAccess()
+		roster([{ id: 'user_a', name: 'Ada Lovelace' }])
+		writeMcpComment.mockResolvedValue({
+			ok: true,
+			threadId: 'comment-thread:t',
+			commentId: 'comment:c',
+			pageId: 'page:a',
+			newThread: false,
+		})
+
+		await write('@[The Boss](user_a) take a look')
+
+		expect(writeMcpComment.mock.calls[0][0].body).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'mention', attrs: { id: 'user_a', label: 'Ada Lovelace' } },
+						{ type: 'text', text: ' take a look' },
+					],
+				},
+			],
+		})
+	})
+
+	it('refuses an id the board would not offer, without touching the object', async () => {
+		allowAccess()
+		roster([{ id: 'user_a', name: 'Ada' }])
+		const outcome = await write('@[Ada](user_a) and @[Eve](user_eve)')
+		expect(outcome).toMatchObject({ ok: false, reason: 'unknown_mention' })
+		expect(errorText(outcome)).toContain('"user_eve"')
+		expect(errorText(outcome)).not.toContain('"user_a"')
+		expect(writeMcpComment).not.toHaveBeenCalled()
+	})
+
+	it('reads no roster or access for a comment that mentions nobody', async () => {
+		writeMcpComment.mockResolvedValue({ ok: false, reason: 'comment_forbidden' })
+		await write('no mentions here')
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
+		expect(hasReadAccessToFile).not.toHaveBeenCalled()
+	})
+
+	// Otherwise which ids pass would say who is on a board the caller cannot see.
+	it('answers a mention on a board the caller cannot see as missing, before the roster', async () => {
+		vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
+		const outcome = await write('@[Ada](user_a)')
+		expect(outcome).toMatchObject({ ok: false, reason: 'not_found' })
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
+		expect(writeMcpComment).not.toHaveBeenCalled()
 	})
 })
