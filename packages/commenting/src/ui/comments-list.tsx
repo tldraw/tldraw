@@ -148,7 +148,7 @@ export function CommentListItem({
 		>
 			{renderAvatar ? renderAvatar(author) : <Avatar author={author} />}
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author} date={date} renderAvatar={renderAvatar} />
+				<Byline author={author} date={date} />
 				<div className="tlui-cmt-list__item-preview">{preview}</div>
 				{reactions && <Reactions reactions={reactions} canReact={false} enableHoverList={false} />}
 				{(resolved || page !== undefined || replies) && (
