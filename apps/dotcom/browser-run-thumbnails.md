@@ -540,7 +540,7 @@ Once the room has booted, a job also only goes to a session whose current socket
 
 **Hidden tabs answer, and pay for it.** Chrome clamps a hidden tab's timers to about once a second, and the export waits on a `sleep(0)` in `ExportDelay`, so a hidden screenshot costs seconds more than a visible one. A read doesn't wait on timers and isn't affected.
 
-The `mcp_tab_render` event records each attempt: `mode` (`read`, `screenshot`, `apply_ops` or `user_state`), `outcome` (`page_read`, `page_not_found`, `captured`, `applied`, `user_state`, `no_tab`, `reload_needed`, `declined`, `room_timeout`, `ack_timeout`, `work_timeout` or `error`), `reason` for a decline, and its duration in `double1`. Like the rest of this pipeline, it carries no board or user identity.
+The `mcp_tab_render` event records each attempt: `mode` (`read`, `screenshot`, `apply_ops` or `user_state`), `outcome` (`page_read`, `page_not_found`, `captured`, `applied`, `user_state`, `no_tab`, `reload_needed`, `declined`, `room_timeout`, `ack_timeout`, `work_timeout` or `error`), `reason` for a decline, the `tool` that asked and the calling `client` family, and its duration in `double1`. `double2` is the wait for the room to boot, `double3` the time to the first reply from any tab (each -1 when the job never got that far), and `double4` the number of tabs asked. Like the rest of this pipeline, it carries no board or user identity. A reply the reply route turns away writes `mcp_tab_render_reply_refusal`, with why (`no_length`, `too_large`, `job_ended`, `invalid_json` or `invalid_reply`), the reply's status when it parsed, and its size in `double1`; `job_ended` is routine on reads, where the first tab to answer ends the job for the others.
 
 ### Editing in an open tab
 

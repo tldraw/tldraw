@@ -14,6 +14,7 @@ function makeEnv({ jobExists = true, received = true } = {}) {
 	const receiveTabRenderReply = vi.fn(async () => received)
 	const env = {
 		...SECRET,
+		MEASURE: { writeDataPoint: vi.fn() },
 		TLDR_DOC: {
 			idFromName: (name: string) => name,
 			get: () => ({ hasTabRenderJob, receiveTabRenderReply }),
@@ -56,6 +57,31 @@ describe('postTabRenderReply', () => {
 		const { env } = makeEnv({ received: false })
 		const response = await postTabRenderReply(makeRequest(ACCEPTED), env)
 		expect(response.status).toBe(404)
+	})
+
+	// Otherwise a refused reply is invisible: its job just runs out the work timeout.
+	it('records a refused reply, but only for a job id it signed', async () => {
+		const refusals = (env: Environment) =>
+			(env.MEASURE as any).writeDataPoint.mock.calls.map(([point]: any) => ({
+				blobs: point.blobs.slice(2),
+				doubles: point.doubles,
+			}))
+
+		const late = makeEnv({ received: false })
+		await postTabRenderReply(makeRequest(ACCEPTED), late.env)
+		expect(refusals(late.env)).toEqual([
+			{ blobs: ['refusal:job_ended', 'reply:accepted'], doubles: [ACCEPTED.length] },
+		])
+
+		const invalid = makeEnv()
+		await postTabRenderReply(makeRequest('{"status":"nonsense"}'), invalid.env)
+		expect(refusals(invalid.env)).toEqual([
+			{ blobs: ['refusal:invalid_reply', 'reply:none'], doubles: [21] },
+		])
+
+		const forged = makeEnv()
+		await postTabRenderReply(makeRequest(ACCEPTED, { jobId: 'made-up' }), forged.env)
+		expect(refusals(forged.env)).toEqual([])
 	})
 
 	// The route takes no sign-in, so an unknown job's body must not reach a room's object: enough of

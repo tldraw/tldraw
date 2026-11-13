@@ -1513,8 +1513,22 @@ describe('the open tab', () => {
 		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 
 		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.blobs.slice(2))).toEqual([
-			['mode:read', 'outcome:declined', 'reason:page_missing'],
+			['mode:read', 'outcome:declined', 'reason:page_missing', 'tool:get_page_info', 'client:none'],
 		])
+	})
+
+	it('records where the time went, and keeps it out of the tool result', async () => {
+		const stats = { tabs: 2, roomMs: 40, ackMs: 120 }
+		const env = makeEnv({
+			tab: tabAnswering({ status: 'declined', reason: 'page_missing', stats } as any),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.doubles.slice(1))).toEqual([
+			[40, 120, 2],
+		])
+		expect(JSON.stringify(result)).not.toContain('roomMs')
 	})
 })
 
@@ -2173,6 +2187,9 @@ describe('protocol telemetry', () => {
 		expect(normalizeMcpClient('claude-ai/1.0')).toBe('claude')
 		// A Claude user agent also says Mozilla, so the more specific match has to win.
 		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh) Claude/1.2')).toBe('claude')
+		// Our own proxy says codex too, and has to stay apart from a Codex client calling directly.
+		expect(normalizeMcpClient('tldraw-codex-plugin')).toBe('codex-plugin')
+		expect(normalizeMcpClient('codex-mcp-client')).toBe('codex')
 		expect(normalizeMcpClient('python-httpx/0.27.0')).toBe('python')
 		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh)')).toBe('browser')
 		// Unrecognized agents collapse to one value rather than becoming a new dimension each.

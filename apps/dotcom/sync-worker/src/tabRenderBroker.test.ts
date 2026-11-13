@@ -138,6 +138,17 @@ describe('TabRenderBroker', () => {
 		await expect(result).resolves.toEqual({ status: 'captured', base64: 'first' })
 	})
 
+	it('reports the first reply from any tab, once', () => {
+		const broker = new TabRenderBroker()
+		const onFirstReply = vi.fn()
+		void broker.dispatch(['a', 'b'], read, ['job-a', 'job-b'], () => {}, onFirstReply)
+
+		broker.receive('job-a', { status: 'accepted' })
+		broker.receive('job-b', { status: 'accepted' })
+
+		expect(onFirstReply).toHaveBeenCalledTimes(1)
+	})
+
 	it('refuses a reply for a job it never issued', () => {
 		const { broker, jobIds } = dispatch(['a'])
 		expect(broker.has('made-up')).toBe(false)
