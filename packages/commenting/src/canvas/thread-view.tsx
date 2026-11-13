@@ -424,8 +424,10 @@ export const ThreadView = memo(function ThreadView({
 		if (editingId !== null) return
 		const resolve = editReturnFocus.current
 		editReturnFocus.current = null
-		// Runs after React has swapped the card back in, so the target is mounted again by now.
-		resolve?.()?.focus()
+		// Runs after React has swapped the card back in, so the target is mounted again by now. Not
+		// shown as keyboard focus: that is what reveals a card's actions, and they should stay up only
+		// while the pointer is over the card.
+		resolve?.()?.focus({ focusVisible: false })
 	}, [editingId])
 
 	// Reported as one batch so the host can record the receipts in a single write. The write flips

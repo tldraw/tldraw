@@ -28,9 +28,11 @@
 	opacity: 0;
 }
 .tlui-cmt-card:hover .tlui-cmt-card__actions,
-.tlui-cmt-card:focus-within .tlui-cmt-card__actions,
-/* an open menu is portaled out of the card, so neither :hover nor :focus-within survives moving
-   the pointer into it — keep the controls up while their menu is open */
+/* Keyboard focus, not any focus: closing an edit hands focus back to the card's ⋯ button, and that
+   alone mustn't leave the controls up for a pointer that has moved away. */
+.tlui-cmt-card:has(:focus-visible) .tlui-cmt-card__actions,
+/* an open menu is portaled out of the card, so neither :hover nor focus survives moving the
+   pointer into it — keep the controls up while their menu is open */
 .tlui-cmt-card__actions:has([data-state='open']) {
 	opacity: 1;
 }
@@ -617,6 +619,14 @@ button.tlui-cmt-reaction--active:hover {
 }
 .tlui-button.tlui-cmt-thread__action:hover {
 	color: var(--tl-color-text-1);
+}
+/* An open menu's trigger, shaded the way the editor's own menu triggers are. */
+.tlui-button.tlui-cmt-thread__action[data-state='open'] {
+	color: var(--tl-color-text-1);
+}
+.tlui-button.tlui-cmt-thread__action[data-state='open']::after {
+	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	opacity: 1;
 }
 .tlui-cmt-thread__resolved {
 	margin: 4px 12px;

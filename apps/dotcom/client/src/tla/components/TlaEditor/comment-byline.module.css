@@ -5,21 +5,27 @@
 	margin-left: auto;
 }
 
-/* A card's hover actions sit over the right of the byline row, where the time is. The time steps
-   aside while they show, in the cards that have them (the hover preview has none), and leaves the
-   row too: hidden but still laid out, it would cut a long name short by its own width on top of
-   the room the toolkit already keeps for the actions. */
+/* A card's actions sit over the right of the byline row, where the time is. While they show (on
+   hover, on keyboard focus, or while one of their menus is open), the time leaves the row: hidden
+   but still laid out, it would cut a long name short by its own width on top of the room the
+   toolkit already keeps for the actions. The hover preview has no actions, so keeps its time. */
 :global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):hover) .time,
-:global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):focus-within) .time {
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):has(:focus-visible)) .time,
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions [data-state='open'])) .time {
 	display: none;
 }
 
-/* The toolkit pads the row's right side clear of a card's hover actions (the `.tlui-cmt-head`
+/* The toolkit pads the row's right side clear of a card's actions (the `.tlui-cmt-head`
    padding-right rules in @tldraw/commenting's comments.css), which would leave the right-aligned
-   time short of the edge. Give the
-   room back while the actions are hidden; on hover the padding returns, so a long name still stops
-   short of them. Their selector out-ranks a module class, hence !important. */
-:global(.tlui-cmt-card:not(:hover):not(:focus-within)) .head {
+   time short of the edge. Give the room back while the actions are hidden; while they show, the
+   padding returns, so a long name still stops short of them. Their selector out-ranks a module
+   class, hence !important. */
+:global(
+		.tlui-cmt-card:not(:hover):not(:has(:focus-visible)):not(
+				:has(.tlui-cmt-card__actions [data-state='open'])
+			)
+	)
+	.head {
 	padding-right: 0 !important;
 }
 
