@@ -3870,6 +3870,8 @@ export class TLFileDurableObject extends DurableObject {
 			// deleted below.
 			this._room = null
 			this.dropBootTimings()
+			// The cached storage handle points at SQLite that deleteAll() drops below.
+			this._storage = null
 			const slug = this.documentInfo.slug
 			const roomKey = getR2KeyForRoom({ slug, isApp: false })
 
@@ -3884,6 +3886,13 @@ export class TLFileDurableObject extends DurableObject {
 
 			// remove main file
 			await this.env.ROOMS.delete(roomKey)
+
+			await this.ctx.storage.deleteAlarm()
+			await this.ctx.storage.deleteAll()
+			// Unlike an app file, no Postgres row records that a legacy room was deleted, so
+			// without documentInfo the next request would boot it as live and reload it from the
+			// legacy fallbacks.
+			this.setDocumentInfo({ slug, isApp: false, deleted: true })
 		})
 
 		return true
