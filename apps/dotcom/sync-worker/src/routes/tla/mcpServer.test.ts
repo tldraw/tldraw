@@ -1402,7 +1402,12 @@ describe('the open tab', () => {
 		})
 
 		it('frames several clusters on the box around all of them', async () => {
-			const tab = measuredTab()
+			// Two large clusters past the 5000px most a page can merge across, but close enough for
+			// their union to stay readable.
+			const tab = openTab({
+				'shape:page:a-0': { x: 0, y: 0, w: 4000, h: 1000 },
+				'shape:page:a-1': { x: 0, y: 6100, w: 4000, h: 1000 },
+			})
 			const env = makeEnv({ tab })
 			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 			const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
@@ -1410,8 +1415,82 @@ describe('the open tab', () => {
 
 			await callTool('get_cluster_screenshot', { boardId: 'abc', clusterIds }, env, 'user_tab')
 
-			// The union runs from (0, 0) to (10080, 10080): a square.
-			expect(tab.mock.lastCall![1]).toMatchObject({ width: 2560, height: 2560 })
+			// The union runs from (0, 0) to (4000, 7100).
+			expect(tab.mock.lastCall![1]).toMatchObject({ width: 1442, height: 2560 })
+		})
+
+		it('refuses to frame clusters too far apart to read, without asking the tab', async () => {
+			const tab = measuredTab()
+			const env = makeEnv({ tab })
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+
+			const result = await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds },
+				env,
+				'user_tab'
+			)
+
+			expect(result.isError).toBe(true)
+			expect(result.content[0].text).toContain('too far apart')
+			expect(result.content[0].text).toContain('layout "separate"')
+			expect(tab.mock.calls.map(([, request]) => request.mode)).not.toContain('screenshot')
+			expect(failureBlobsOf(env)).toContain('failure:clusters_too_far_apart')
+		})
+
+		it('captures each cluster on its own box with layout "separate", naming each image', async () => {
+			const tab = measuredTab()
+			const env = makeEnv({ tab })
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			const clusters = JSON.parse(pageInfo.content[0].text).clusters
+			const clusterIds = clusters.map((c: any) => c.id)
+
+			const result = await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds, layout: 'separate' },
+				env,
+				'user_tab'
+			)
+
+			const captures = tab.mock.calls
+				.map(([, request]) => request)
+				.filter((request): request is TabRenderScreenshotRequest => request.mode === 'screenshot')
+			expect(captures).toMatchObject([
+				{ shapeIds: ['shape:page:a-0'], width: 2560, height: 640 },
+				// 80px is enlarged no more than 8x.
+				{ shapeIds: ['shape:page:a-1'], width: 640, height: 640 },
+			])
+			expect(result.content).toEqual([
+				{ type: 'text', text: 'Cover' },
+				{ type: 'text', text: `${clusters[0].id}: ${clusters[0].label}` },
+				{ type: 'image', data: PNG, mimeType: 'image/png' },
+				{ type: 'text', text: `${clusters[1].id}: ${clusters[1].label}` },
+				{ type: 'image', data: PNG, mimeType: 'image/png' },
+			])
+		})
+
+		it('fails a separate layout outright when one of its captures fails', async () => {
+			let captures = 0
+			const inner = measuredTab()
+			const tab: FakeTab = vi.fn(async (userId: string, request: TabRenderRequest) =>
+				request.mode === 'screenshot' && ++captures === 2
+					? { status: 'declined' as const, reason: 'busy' as const }
+					: inner(userId, request)
+			)
+			const env = makeEnv({ tab })
+			const pageInfo = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+			const clusterIds = JSON.parse(pageInfo.content[0].text).clusters.map((c: any) => c.id)
+
+			const result = await callTool(
+				'get_cluster_screenshot',
+				{ boardId: 'abc', clusterIds, layout: 'separate' },
+				env,
+				'user_tab'
+			)
+
+			expect(result.isError).toBe(true)
+			expect(result.content.some((part: any) => part.type === 'image')).toBe(false)
 		})
 	})
 

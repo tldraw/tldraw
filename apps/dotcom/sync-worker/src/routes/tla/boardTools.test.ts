@@ -26,7 +26,9 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	getClusterScreenshotSize,
+	getClusterSpreadRefusal,
 	getClustersBox,
+	toolClusterImagesResult,
 	readSnapshotPage,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
@@ -523,6 +525,96 @@ describe('parseClusterScreenshotInput', () => {
 		for (const size of [63, 2561, '800', Number.NaN]) {
 			expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', size })).toThrow()
 		}
+	})
+
+	it('defaults to one combined image, and refuses a layout it does not know', () => {
+		expect(parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c' }).layout).toBe('combined')
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', layout: 'separate' }).layout
+		).toBe('separate')
+		expect(() =>
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', layout: 'grid' })
+		).toThrow("layout must be 'combined' or 'separate'")
+	})
+
+	it('drops repeated ids from a separate layout, then caps how many images one call takes', () => {
+		expect(
+			parseClusterScreenshotInput({
+				boardId: 'abc',
+				clusterIds: ['a', 'b', 'a'],
+				layout: 'separate',
+			}).clusterIds
+		).toEqual(['a', 'b'])
+
+		const ids = (n: number) => Array.from({ length: n }, (_, i) => `c${i}`)
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ids(10), layout: 'separate' })
+				.clusterIds
+		).toHaveLength(10)
+		expect(() =>
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ids(11), layout: 'separate' })
+		).toThrow('at most 10 clusters')
+		// One combined image costs the same however many clusters are in it.
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ids(11) }).clusterIds
+		).toHaveLength(11)
+	})
+})
+
+describe('getClusterSpreadRefusal', () => {
+	it('lets clusters through when one image still shows the largest at an eighth of its own detail', () => {
+		// Union is 3200 wide: 0.8x, against 4.27x for a 600px cluster alone. Over an eighth.
+		const bounds = {
+			a: { x: 0, y: 0, w: 600, h: 400 },
+			b: { x: 2600, y: 0, w: 600, h: 400 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)).toBeNull()
+	})
+
+	it('refuses clusters so far apart that the largest would be a speck', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 400, h: 100 },
+			b: { x: 10_000, y: 10_000, w: 80, h: 80 },
+		}
+		const refusal = getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)
+		expect(refusal?.isError).toBe(true)
+		const text = (refusal!.content[0] as { text: string }).text
+		expect(text).toContain('too far apart')
+		expect(text).toContain('about 102px across, against 2560px on its own')
+		expect(text).toContain('layout "separate"')
+	})
+
+	it('measures detail with the 8x enlargement cap, not just the ratio of the boxes', () => {
+		// Two 80px notes 1920px apart: 1.28x together, but only 8x (not 32x) alone, so they pass.
+		const bounds = {
+			a: { x: 0, y: 0, w: 80, h: 80 },
+			b: { x: 1920, y: 0, w: 80, h: 80 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)).toBeNull()
+	})
+
+	it('has nothing to compare with fewer than two measured clusters', () => {
+		const bounds = { a: { x: 0, y: 0, w: 10, h: 10 } }
+		expect(getClusterSpreadRefusal(bounds, ['a'], 2560)).toBeNull()
+		expect(getClusterSpreadRefusal(bounds, ['a', 'unmeasured'], 2560)).toBeNull()
+		expect(getClusterSpreadRefusal(bounds, ['a', 'a'], 2560)).toBeNull()
+	})
+})
+
+describe('toolClusterImagesResult', () => {
+	it('names each image before it, after the page name', () => {
+		expect(
+			toolClusterImagesResult('Cover', [
+				{ id: 'cluster:1', label: 'Roadmap', base64: 'AAA' },
+				{ id: 'cluster:2', label: '3 freehand strokes', base64: 'BBB' },
+			]).content
+		).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'text', text: 'cluster:1: Roadmap' },
+			{ type: 'image', data: 'AAA', mimeType: 'image/png' },
+			{ type: 'text', text: 'cluster:2: 3 freehand strokes' },
+			{ type: 'image', data: 'BBB', mimeType: 'image/png' },
+		])
 	})
 })
 
