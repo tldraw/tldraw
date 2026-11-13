@@ -263,6 +263,16 @@
       "value": "Could not submit feedback"
     }
   ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "On behalf of "
+    },
+    {
+      "type": 1,
+      "value": "name"
+    }
+  ],
   "299cb00a7a": [
     {
       "type": 0,
@@ -686,6 +696,12 @@
       "value": "A new version of tldraw is available. Please reload the page to continue."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Edited"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
@@ -708,6 +724,16 @@
     {
       "type": 0,
       "value": "Help"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [

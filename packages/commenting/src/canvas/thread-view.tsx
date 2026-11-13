@@ -374,6 +374,9 @@ export const ThreadView = memo(function ThreadView({
 	// Resolved when the composer closes rather than held as an element: the card unmounts while the
 	// composer stands in its place, so the node captured on the way in is gone by the way out.
 	const editReturnFocus = useRef<(() => HTMLElement | null) | null>(null)
+	// Whether the edit was last driven from the keyboard (Escape, or Enter to save) rather than by a
+	// click on Save. See the focus hand-back below.
+	const editEndedByKeyboard = useRef(false)
 
 	// Tab from the canvas drops the caret in the reply box: a pin click leaves focus on the editor
 	// container, so the first Tab would otherwise walk the app's UI. Capture phase, once per open thread.
@@ -424,8 +427,12 @@ export const ThreadView = memo(function ThreadView({
 		if (editingId !== null) return
 		const resolve = editReturnFocus.current
 		editReturnFocus.current = null
-		// Runs after React has swapped the card back in, so the target is mounted again by now.
-		resolve?.()?.focus()
+		// Runs after React has swapped the card back in, so the target is mounted again by now. Shown
+		// as keyboard focus only after a keyboard edit: that is what reveals a card's actions, so after
+		// a click on Save they'd stay up for a pointer that has moved away, but after Escape or Enter a
+		// keyboard user would otherwise be left on an invisible ⋯ button with no ring.
+		resolve?.()?.focus({ focusVisible: editEndedByKeyboard.current })
+		editEndedByKeyboard.current = false
 	}, [editingId])
 
 	// Reported as one batch so the host can record the receipts in a single write. The write flips
@@ -502,7 +509,11 @@ export const ThreadView = memo(function ThreadView({
 			return (
 				<div
 					className="tlui-cmt-editing"
+					onPointerDown={() => {
+						editEndedByKeyboard.current = false
+					}}
 					onKeyDown={(e) => {
+						editEndedByKeyboard.current = true
 						if (e.key === 'Escape') {
 							setEditingId(null)
 							e.stopPropagation()

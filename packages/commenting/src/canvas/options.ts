@@ -83,9 +83,12 @@ export interface CommentingComponents {
 	/**
 	 * A whole sidebar row. Replaces the default `<CommentListItem>`, which is exported — so a row
 	 * that only adds an unread dot or a status chip can spread these props into it. Use
-	 * `ThreadPreview` instead when only the preview text is changing.
+	 * `ThreadPreview` instead when only the preview text is changing. `comments` are the thread's
+	 * live comments, oldest first.
 	 */
-	ThreadRow?: ComponentType<CommentListItemRenderProps & { thread: TLCommentThread }>
+	ThreadRow?: ComponentType<
+		CommentListItemRenderProps & { thread: TLCommentThread; comments: TLComment[] }
+	>
 	/**
 	 * Extra controls in an open thread's header, added ahead of the built-in resolve and dismiss
 	 * buttons rather than replacing them. "Copy link" is already built in whenever the host supplies
