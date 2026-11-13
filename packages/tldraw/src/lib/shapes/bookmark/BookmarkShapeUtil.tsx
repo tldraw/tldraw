@@ -176,8 +176,11 @@ export function BookmarkShapeComponent({
 
 	const address = getHumanReadableAddress(url)
 
-	const [isFaviconValid, setIsFaviconValid] = useState(true)
-	const onFaviconError = () => setIsFaviconValid(false)
+	// Keyed to the failed URL: a boolean would hide every later favicon once one fails (#11378).
+	const [failedFavicon, setFailedFavicon] = useState<string | null>(null)
+	const favicon = asset?.props.favicon
+	const isFaviconValid = !!favicon && favicon !== failedFavicon
+	const onFaviconError = () => setFailedFavicon(favicon ?? null)
 
 	const markAsHandledOnShiftKey = useCallback<PointerEventHandler>(
 		(e) => {
@@ -242,10 +245,10 @@ export function BookmarkShapeComponent({
 						onPointerDown={markAsHandledOnShiftKey}
 						onPointerUp={markAsHandledOnShiftKey}
 					>
-						{isFaviconValid && asset?.props.favicon ? (
+						{isFaviconValid ? (
 							<img
 								className="tl-bookmark__favicon"
-								src={asset?.props.favicon}
+								src={favicon}
 								referrerPolicy="strict-origin-when-cross-origin"
 								onError={onFaviconError}
 								alt={`favicon of ${address}`}
