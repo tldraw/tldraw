@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "建立檔案"
   },
+  "1a7222b4e5": {
+    "translation": "移至"
+  },
   "1da2e8106b": {
     "translation": "發生未預期的錯誤。"
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "移除成員"
+  },
+  "398f51738e": {
+    "translation": "請登入以接受此邀請。"
   },
   "3bc7d6ea2f": {
     "translation": "繼續透過電子郵件"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "請重新載入頁面"
   },
+  "747ee44424": {
+    "translation": "將內容儲存為 .tldr 檔案：在左上角選單中選擇「儲存副本」。"
+  },
   "74ff4bad28": {
     "translation": "未找到文件"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "您確定要刪除<strong>{workspaceName}</strong>嗎？此操作無法撤銷。"
   },
+  "930390d222": {
+    "translation": "複製的邀請連結"
+  },
   "95aacd4d4a": {
     "translation": "使用 Google 登入"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, other {# 則未讀}}"
-  },
-  "a0da245992": {
-    "translation": "將內容匯出為 .tldr 檔案：在左上角選單中選擇“下載”。"
   },
   "a104439641": {
     "translation": "填充"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "或者"
   },
+  "ea13ecec38": {
+    "translation": "文件歷史記錄"
+  },
   "ea4788705e": {
     "translation": "取消"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "刪除"
   },
+  "f408fa5fbd": {
+    "translation": "此邀請連結無效或已過期。"
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>、<name>{b}</name> 和{count, plural, other {另外 # 人}}對您的評論做出了回應"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "建立免費帳戶，即可儲存檔案並與隊友一起繪製圖形。"
+  },
+  "ffad261a48": {
+    "translation": "接受邀請時出錯"
   },
   "ffcd73e997": {
     "translation": "導入文件…"

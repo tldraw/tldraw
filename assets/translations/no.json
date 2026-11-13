@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Roter formen med klokken (fin)",
 	"a11y.select-shape": "Velg neste form",
 	"a11y.select-shape-direction": "Velg form i retning",
+	"a11y.shape-group": "Gruppe",
 	"a11y.shape-image": "Bilde",
 	"a11y.shape-index": "{num} av {total}",
 	"a11y.shape-video": "Video",

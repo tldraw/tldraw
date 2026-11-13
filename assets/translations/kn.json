@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "ಆಕಾರವನ್ನು ಪ್ರದಕ್ಷಿಣಾಕಾರವಾಗಿ ತಿರುಗಿಸಿ (ಸೂಕ್ಷ್ಮ)",
 	"a11y.select-shape": "ಮುಂದಿನ ಆಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ",
 	"a11y.select-shape-direction": "ಆಕಾರವನ್ನು ದಿಕ್ಕಿನಲ್ಲಿ ಆಯ್ಕೆಮಾಡಿ",
+	"a11y.shape-group": "ಗುಂಪು",
 	"a11y.shape-image": "ಚಿತ್ರ",
 	"a11y.shape-index": "{total} ರಲ್ಲಿ {num}",
 	"a11y.shape-video": "ವೀಡಿಯೊ",

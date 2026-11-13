@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Ruota la forma in senso orario (precisa)",
 	"a11y.select-shape": "Seleziona la prossima forma",
 	"a11y.select-shape-direction": "Seleziona la forma in direzione",
+	"a11y.shape-group": "Gruppo",
 	"a11y.shape-image": "Immagine",
 	"a11y.shape-index": "{num} di {total}",
 	"a11y.shape-video": "Video",

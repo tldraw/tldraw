@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Περιστροφή σχήματος δεξιόστροφα (λεπτή)",
 	"a11y.select-shape": "Επιλογή επόμενου σχήματος",
 	"a11y.select-shape-direction": "Επιλέξτε σχήμα προς την κατεύθυνση",
+	"a11y.shape-group": "Ομάδα",
 	"a11y.shape-image": "Εικών",
 	"a11y.shape-index": "{num} από {total}",
 	"a11y.shape-video": "Βίντεο",

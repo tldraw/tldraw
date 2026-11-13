@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "வடிவத்தை கடிகார திசையில் சுழற்று (நன்றாக)",
 	"a11y.select-shape": "அடுத்த வடிவத்தைத் தேர்ந்தெடுக்கவும்",
 	"a11y.select-shape-direction": "திசையில் வடிவத்தைத் தேர்ந்தெடுக்கவும்.",
+	"a11y.shape-group": "குழு",
 	"a11y.shape-image": "படம்",
 	"a11y.shape-index": "{num} இல் {total}",
 	"a11y.shape-video": "காணொளி",
