@@ -119,7 +119,6 @@ describe('parseSearchBoardsInput', () => {
 		expect(parseSearchBoardsInput({ query: '   ' }).terms).toEqual([])
 	})
 
-	// Terms are ORed, so word order in the query need not match word order in the name.
 	it('splits a query into terms on whitespace', () => {
 		expect(parseSearchBoardsInput({ query: 'design  system' }).terms).toEqual(['design', 'system'])
 	})

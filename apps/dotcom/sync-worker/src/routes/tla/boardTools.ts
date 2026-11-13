@@ -1108,7 +1108,7 @@ export function getBoardUsers(sessions: { userId: string | null; presence?: unkn
 
 // The editor's `collaboratorInactiveTimeoutMs`: past it, that person's cursor fades on the board, so an
 // agent's "active" means what the people there see.
-export const BOARD_USER_ACTIVE_MS = 60_000
+const BOARD_USER_ACTIVE_MS = 60_000
 
 // Compared against the server clock, but lastActiveAt came from the user's: a skewed client reads as
 // wrongly active or idle, the same way it does to the other people on the board.
