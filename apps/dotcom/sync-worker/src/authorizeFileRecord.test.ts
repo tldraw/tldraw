@@ -90,6 +90,73 @@ describe('authorizeFileRecord', () => {
 		})
 	})
 
+	describe('agent byline', () => {
+		const authorize = authorizeFileRecord.comment!
+		const thread = createCommentThread({ pageId, anchor: { type: 'page' }, createdBy: 'bob' })
+		const agent = { id: 'agent-1', name: 'Claude', client: 'claude' }
+		const plain = createComment({
+			threadId: thread.id,
+			pageId,
+			authorId: 'bob',
+			body: toRichText('hi'),
+		})
+		const badged: TLComment = { ...plain, meta: { mcpAgent: agent } }
+		const edit = (comment: TLComment, meta: TLComment['meta']): TLComment => ({
+			...comment,
+			body: toRichText('edited'),
+			meta,
+		})
+
+		it('vetoes a client create that badges a comment as an agent', () => {
+			expect(
+				authorize({ session: session('bob'), type: 'create', prev: null, next: badged })
+			).toBeNull()
+		})
+
+		it('vetoes a client update that adds the badge', () => {
+			expect(
+				authorize({
+					session: session('bob'),
+					type: 'update',
+					prev: plain,
+					next: edit(plain, { mcpAgent: agent }),
+				})
+			).toBeNull()
+		})
+
+		it('vetoes a client update that changes the badge', () => {
+			expect(
+				authorize({
+					session: session('bob'),
+					type: 'update',
+					prev: badged,
+					next: edit(badged, { mcpAgent: { ...agent, name: 'Someone else' } }),
+				})
+			).toBeNull()
+		})
+
+		it('allows an update that keeps the badge unchanged', () => {
+			const next = edit(badged, { mcpAgent: { ...agent } })
+			expect(authorize({ session: session('bob'), type: 'update', prev: badged, next })).toEqual(
+				next
+			)
+		})
+
+		it('allows an update that drops the badge', () => {
+			const next = edit(badged, {})
+			expect(authorize({ session: session('bob'), type: 'update', prev: badged, next })).toEqual(
+				next
+			)
+		})
+
+		it('allows a create with other meta', () => {
+			const next = { ...plain, meta: { other: 1 } }
+			expect(
+				authorize({ session: session('bob'), type: 'create', prev: null, next })
+			).not.toBeNull()
+		})
+	})
+
 	describe('shape', () => {
 		const authorize = authorizeFileRecord.shape!
 

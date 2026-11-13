@@ -96,12 +96,6 @@ export function planMcpComment({
 		pageId: thread.pageId,
 		authorId: userId,
 		body,
-		// How tldraw.com tells an agent's comment from its user's, and which agent: the comment is the user's own, so
-		// nothing else distinguishes it. A label rather than a credential — the comment authorizers
-		// leave `meta` alone, so a client could set it on its own comments too.
-		meta: {
-			[MCP_AGENT_COMMENT_META_KEY]: { id: agent.id, name: agent.name, client: agentClient },
-		},
 	})
 
 	const session = {
@@ -117,13 +111,23 @@ export function planMcpComment({
 		? authorizeThread({ session, type: 'create', prev: null, next: thread })
 		: thread
 	if (!authorizedComment || !authorizedThread) return { ok: false, reason: 'comment_forbidden' }
+	// How tldraw.com tells an agent's comment from its user's, and which agent: the comment is the
+	// user's own, so nothing else distinguishes it. Stamped after the authorizers, which refuse it
+	// from a client so that only this write can badge a comment as an agent's.
+	const agentComment: TLComment = {
+		...authorizedComment,
+		meta: {
+			...authorizedComment.meta,
+			[MCP_AGENT_COMMENT_META_KEY]: { id: agent.id, name: agent.name, client: agentClient },
+		},
+	}
 
 	// The room validates what a client pushes; a storage write is trusted as is, so validate here.
 	const records: Array<TLCommentThread | TLComment> = [
 		...(newThread
 			? [commentThreadRecordConfig.validator.validate(authorizedThread) as TLCommentThread]
 			: []),
-		commentRecordConfig.validator.validate(authorizedComment) as TLComment,
+		commentRecordConfig.validator.validate(agentComment) as TLComment,
 	]
 	return {
 		ok: true,
