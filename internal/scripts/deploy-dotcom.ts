@@ -23,6 +23,7 @@ import {
 	hashFlyDeployInputs,
 	stampDeployInputHash,
 } from './lib/flyDeployGate'
+import { handOffReplicationManager } from './lib/flyRmHandoff'
 import { makeEnv } from './lib/makeEnv'
 import { nicelog } from './lib/nicelog'
 
@@ -128,9 +129,10 @@ const flyioAppName =
 	deployZero === 'flyio'
 		? `${previewId ?? env.TLDRAW_ENV}-zero-cache`
 		: deployZero === 'flyio-multinode'
-			? `${env.TLDRAW_ENV}-zero-vs`
+			? `${previewId ?? env.TLDRAW_ENV}-zero-vs`
 			: undefined
-const flyioReplAppName = deployZero === 'flyio-multinode' ? `${env.TLDRAW_ENV}-zero-rm` : undefined
+const flyioReplAppName =
+	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -742,22 +744,28 @@ async function ensureFlyApp(appName: string, appsListOutput: string) {
 }
 
 // Most dotcom deploys don't touch zero-cache; see flyDeployGate.ts for why redeploying anyway
-// hurts. Staging and production only: a preview has no connected clients to bounce, and its zero
-// app can need rebuilding for reasons no input covers, like a reset preview database leaving the
-// replica stale. The gate compares this run's inputs to the stamp on the machines, not to the
-// machines' actual state, so a change made out of band (`fly secrets set`, `fly scale`) stays
-// unreconciled until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub
+// hurts. Production only: staging deploys zero on every merge so the deploy path, the RM handoff
+// included, is exercised before production runs it, and a preview has no connected clients to
+// bounce and its zero app can need rebuilding for reasons no input covers, like a reset preview
+// database leaving the replica stale. The gate compares this run's inputs to the stamp on the
+// machines, not to the machines' actual state, so a change made out of band (`fly secrets set`,
+// `fly scale`) stays unreconciled until an input changes. Set the ZERO_FORCE_DEPLOY variable on the GitHub
 // environment to push a deploy through regardless.
 async function deployFlyAppIfChanged({
 	appName,
 	configFile,
 	inputs,
+	deploy = async () => {
+		await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
+	},
 }: {
 	appName: string
 	configFile: string
 	inputs: FlyDeployInputs
+	/** Rolls out the config already written to configFile; defaults to `flyctl deploy`. */
+	deploy?(stampedConfig: string): Promise<void>
 }) {
-	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId
+	const forced = env.ZERO_FORCE_DEPLOY === 'true' || !!previewId || env.TLDRAW_ENV === 'staging'
 	const hash = hashFlyDeployInputs(inputs)
 	const deployed = forced ? null : await getDeployedInputHash(appName)
 	if (deployed?.reason === 'stamped' && deployed.hash === hash) {
@@ -771,11 +779,8 @@ async function deployFlyAppIfChanged({
 			? deployed.hash.slice(0, 12)
 			: `no stamp: ${deployed.reason}`
 	nicelog(`${appName}: deploying (${from} -> ${hash.slice(0, 12)}${forced ? ', forced' : ''})`)
-	fs.writeFileSync(
-		path.join(zeroCacheFolder, configFile),
-		stampDeployInputHash(inputs.config, hash),
-		'utf-8'
-	)
+	const stampedConfig = stampDeployInputHash(inputs.config, hash)
+	fs.writeFileSync(path.join(zeroCacheFolder, configFile), stampedConfig, 'utf-8')
 	if (inputs.dockerfile) {
 		fs.writeFileSync(
 			path.join(inputs.dockerfile.contextDir, 'Dockerfile'),
@@ -784,7 +789,7 @@ async function deployFlyAppIfChanged({
 		)
 	}
 	if (inputs.secrets) await stageZeroFlySecrets(appName, inputs.secrets)
-	await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd: zeroCacheFolder })
+	await deploy(stampedConfig)
 }
 
 async function deployZeroViaFlyIo() {
@@ -904,10 +909,22 @@ async function deployZeroViaFlyIoMultiNode() {
 
 	// Deploy replication manager first
 	await ensureFlyApp(flyioReplAppName, apps)
+	const rmConfigFile = 'flyio-replication-manager.toml'
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
-		configFile: 'flyio-replication-manager.toml',
+		configFile: rmConfigFile,
 		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
+		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
+		deploy:
+			env.TLDRAW_ENV === 'staging'
+				? (renderedToml) =>
+						handOffReplicationManager({
+							appName: flyioReplAppName,
+							renderedToml,
+							configFile: rmConfigFile,
+							pwd: zeroCacheFolder,
+						})
+				: undefined,
 	})
 
 	// Deploy view syncer with reference to replication manager

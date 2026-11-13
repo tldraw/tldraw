@@ -1,0 +1,325 @@
+import { rmSync, writeFileSync } from 'fs'
+import { tmpdir } from 'os'
+import path from 'path'
+import toml from 'toml'
+import { exec } from './exec'
+import { nicelog } from './nicelog'
+
+// Replaces a Zero replication-manager (RM) without the gap that `flyctl deploy` leaves. An app with
+// a volume is updated in place: the old RM stops before the new one starts, and view-syncers that
+// need a backup or a change stream in between stall. Fly's bluegreen and canary strategies refuse
+// apps with volumes, so this script makes the overlap itself, inside the same app so both RMs
+// answer at `<app>.internal`:
+//
+//   1. create a fresh volume and start a second RM on it with the new config
+//   2. wait for its checks to pass. Zero only answers /keepalive once the new RM has restored its
+//      replica from the backup, so it is ready to serve view-syncers
+//   3. stop the old RM. The stop signal makes it drain: it signals its view-syncers to switch
+//      over, they subscribe to the new RM, and that subscription makes the new RM take over the
+//      change log, which shuts the old one down. Taking over cuts the old RM's subscriptions
+//      (Zero's RMv1 design), so view-syncers reconnect, but to an RM that is already warm. Fly's
+//      restart policy does not apply to a stop
+//   4. destroy the old machine and its volume
+//
+// If the new RM never becomes healthy it is destroyed with its volume, and the old RM keeps
+// serving.
+//
+// The new RM is started with a startup delay long enough that it only takes over the change log
+// when a view-syncer subscribes to it (Zero cancels the delay then). With Zero's default 15s, a
+// deploy that died between steps 1 and 3 left both RMs running: the new one took the change log,
+// the old one exited with an error, restart policy `always` brought it back to take the log back,
+// and the two traded it every ~25s, each trade cutting every view-syncer's subscription. Now the
+// leftover RM idles until the next deploy, which finishes the handoff (see
+// planInterruptedHandoff).
+
+// Leaves room in the deploy job's timeout for the rest of the deploy.
+const NEW_MACHINE_TIMEOUT_MS = 10 * 60 * 1000
+// "Never" for a deploy; a view-syncer subscribing cancels it.
+export const HANDOFF_STARTUP_DELAY_MS = 24 * 60 * 60 * 1000
+const POLL_INTERVAL_MS = 2000
+
+interface FlyMachineConfig {
+	image?: string
+	env?: Record<string, string>
+	guest?: { cpu_kind?: string; cpus?: number; memory_mb?: number }
+	checks?: Record<string, Record<string, unknown>>
+	restart?: { policy?: string }
+	stop_config?: { timeout?: string; signal?: string }
+	mounts?: { volume?: string; path?: string; name?: string }[]
+	metadata?: Record<string, string>
+	[key: string]: unknown
+}
+
+export interface FlyMachine {
+	id: string
+	name?: string
+	state?: string
+	created_at?: string
+	region?: string
+	checks?: { name?: string; status?: string }[]
+	config?: FlyMachineConfig
+}
+
+interface FlyVolume {
+	id: string
+	name?: string
+	attached_machine_id?: string | null
+}
+
+interface RenderedRmToml {
+	primary_region: string
+	kill_timeout: string
+	build: { image: string }
+	checks?: Record<string, Record<string, unknown>>
+	restart?: { policy: string }[]
+	vm: { memory: string; cpu_kind: string; cpus: number }[]
+	mounts: { source: string; destination: string; initial_size: string }
+	env: Record<string, string>
+}
+
+export function parseSizeMb(size: string): number {
+	const match = size.trim().match(/^(\d+)\s*(mb|gb)$/i)
+	if (!match) throw new Error(`Unrecognised size "${size}"; expected e.g. 512mb or 2gb`)
+	return Number(match[1]) * (match[2].toLowerCase() === 'gb' ? 1024 : 1)
+}
+
+/**
+ * The machine config for the new RM: the running machine's config, which carries what flyctl
+ * deploy filled in (metadata, init), with everything the fly.toml owns replaced by the rendered
+ * toml. Env is replaced wholesale so a variable removed from the template is dropped too.
+ */
+export function buildHandoffMachineConfig(
+	current: FlyMachineConfig,
+	renderedToml: string,
+	volumeId: string
+): FlyMachineConfig {
+	const config = toml.parse(renderedToml) as RenderedRmToml
+	const vm = config.vm[0]
+	return {
+		...current,
+		image: config.build.image,
+		env: {
+			...config.env,
+			FLY_PROCESS_GROUP: current.env?.FLY_PROCESS_GROUP ?? 'app',
+			PRIMARY_REGION: config.primary_region,
+			ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS: String(HANDOFF_STARTUP_DELAY_MS),
+		},
+		guest: { cpu_kind: vm.cpu_kind, cpus: vm.cpus, memory_mb: parseSizeMb(vm.memory) },
+		checks: config.checks,
+		restart: { ...current.restart, policy: config.restart?.[0]?.policy ?? 'always' },
+		stop_config: { ...current.stop_config, timeout: config.kill_timeout },
+		mounts: [{ volume: volumeId, path: config.mounts.destination, name: config.mounts.source }],
+	}
+}
+
+/**
+ * What to do with the RMs an interrupted handoff left behind, so the next deploy can finish it
+ * instead of needing a person. The newest machine is the one the handoff started:
+ * - older machines that aren't running (the handoff stopped them) are destroyed
+ * - an older machine that is still running is the one still serving, so it is only replaced once
+ *   the newest is healthy, as in a normal handoff
+ */
+export function planInterruptedHandoff(machines: FlyMachine[]): {
+	newest: FlyMachine
+	running: FlyMachine | undefined
+	stale: FlyMachine[]
+} {
+	const sorted = [...machines].sort((a, b) =>
+		(a.created_at ?? '').localeCompare(b.created_at ?? '')
+	)
+	const newest = sorted[sorted.length - 1]
+	const older = sorted.slice(0, -1)
+	const running = older.filter((m) => m.state === 'started' || m.state === 'starting')
+	if (running.length > 1) {
+		throw new Error(
+			`expected at most 1 running replication-manager besides the newest, found ${running.map((m) => m.id).join(', ')}. Destroy the stale ones, keeping the healthy one, and rerun the deploy.`
+		)
+	}
+	return { newest, running: running[0], stale: older.filter((m) => !running.includes(m)) }
+}
+
+export function isHealthy(machine: FlyMachine | undefined): boolean {
+	const checks = machine?.checks ?? []
+	return (
+		machine?.state === 'started' &&
+		checks.length > 0 &&
+		checks.every((check) => check.status === 'passing')
+	)
+}
+
+async function flyJson<T>(args: string[]): Promise<T> {
+	const stdout: string[] = []
+	await exec('flyctl', [...args, '--json'], {
+		processStdoutLine: (line) => stdout.push(line),
+	})
+	return JSON.parse(stdout.join('\n')) as T
+}
+
+async function listMachines(appName: string) {
+	return (await flyJson<FlyMachine[] | null>(['machine', 'list', '-a', appName])) ?? []
+}
+
+async function listVolumes(appName: string) {
+	return (await flyJson<FlyVolume[] | null>(['volumes', 'list', '-a', appName])) ?? []
+}
+
+async function destroyMachineAndVolume(appName: string, machineId: string, volumeId?: string) {
+	await exec('flyctl', ['machine', 'destroy', machineId, '-a', appName, '--force'])
+	if (volumeId) await exec('flyctl', ['volumes', 'destroy', volumeId, '-a', appName, '--yes'])
+}
+
+async function waitUntilHealthy(appName: string, machineId: string) {
+	const deadline = Date.now() + NEW_MACHINE_TIMEOUT_MS
+	let lastLog = 0
+	for (;;) {
+		const current = (await listMachines(appName)).find((m) => m.id === machineId)
+		if (isHealthy(current)) return
+		if (Date.now() > deadline) {
+			throw new Error(
+				`${appName}: machine ${machineId} not healthy after ${NEW_MACHINE_TIMEOUT_MS / 60000} min (state ${current?.state}, checks ${JSON.stringify(current?.checks)})`
+			)
+		}
+		if (Date.now() - lastLog > 60_000) {
+			nicelog(`${appName}: ${machineId} is ${current?.state}, checks not passing yet`)
+			lastLog = Date.now()
+		}
+		await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+	}
+}
+
+async function stopAndDestroy(appName: string, machine: FlyMachine) {
+	await exec('flyctl', ['machine', 'stop', machine.id, '-a', appName])
+	await exec('flyctl', [
+		'machine',
+		'wait',
+		machine.id,
+		'-a',
+		appName,
+		'--state',
+		'stopped',
+		'--wait-timeout',
+		'6m',
+	])
+	await destroyMachineAndVolume(appName, machine.id, machine.config?.mounts?.[0]?.volume)
+}
+
+/** Leaves exactly one RM: the one serving, or the newest once it is healthy. */
+async function finishInterruptedHandoff(appName: string, machines: FlyMachine[]) {
+	const { newest, running, stale } = planInterruptedHandoff(machines)
+	nicelog(
+		`${appName}: found ${machines.length} replication-managers, finishing an interrupted handoff to ${newest.id}`
+	)
+	for (const m of stale) {
+		await destroyMachineAndVolume(appName, m.id, m.config?.mounts?.[0]?.volume)
+	}
+	if (!running) return
+	try {
+		await waitUntilHealthy(appName, newest.id)
+	} catch (e) {
+		nicelog(`${appName}: ${newest.id} never became healthy, keeping ${running.id}`, e)
+		await destroyMachineAndVolume(appName, newest.id, newest.config?.mounts?.[0]?.volume)
+		return
+	}
+	await stopAndDestroy(appName, running)
+}
+
+/**
+ * Deploys `renderedToml` to the single-machine RM app with an overlap between the old and new RM.
+ * Falls back to `flyctl deploy` when the app has no machine yet.
+ */
+export async function handOffReplicationManager({
+	appName,
+	renderedToml,
+	configFile,
+	pwd,
+}: {
+	appName: string
+	renderedToml: string
+	/** Written already; only used for the first-deploy fallback. */
+	configFile: string
+	pwd: string
+}) {
+	let machines = await listMachines(appName)
+	if (machines.length === 0) {
+		nicelog(`${appName}: no machine yet, creating it with flyctl deploy`)
+		await exec('flyctl', ['deploy', '-a', appName, '-c', configFile], { pwd })
+		return
+	}
+	if (machines.length > 1) {
+		await finishInterruptedHandoff(appName, machines)
+		machines = await listMachines(appName)
+		if (machines.length !== 1) {
+			throw new Error(
+				`${appName}: expected 1 replication-manager after cleanup, found ${machines.length}`
+			)
+		}
+	}
+	const [old] = machines
+	if (!old.config) throw new Error(`${appName}: machine ${old.id} has no config`)
+	const parsed = toml.parse(renderedToml) as RenderedRmToml
+	const region = old.region ?? parsed.primary_region
+
+	const volume = await flyJson<FlyVolume>([
+		'volumes',
+		'create',
+		parsed.mounts.source,
+		'-a',
+		appName,
+		'-r',
+		region,
+		'-s',
+		String(Math.max(1, Math.ceil(parseSizeMb(parsed.mounts.initial_size) / 1024))),
+		'--require-unique-zone=false',
+		'--yes',
+	])
+	nicelog(`${appName}: created volume ${volume.id} for the new replication-manager`)
+
+	const machineConfig = buildHandoffMachineConfig(old.config, renderedToml, volume.id)
+	const name = `${appName}-${Date.now().toString(36)}`
+	// Holds env only (the RM's secrets are Fly app secrets), but it's a temp file all the same.
+	const configPath = path.join(tmpdir(), `${name}.json`)
+	writeFileSync(configPath, JSON.stringify(machineConfig), 'utf-8')
+	let newMachine: FlyMachine | undefined
+	try {
+		await exec('flyctl', [
+			'machine',
+			'run',
+			parsed.build.image,
+			'-a',
+			appName,
+			'-r',
+			region,
+			'--name',
+			name,
+			'--machine-config',
+			configPath,
+			'--detach',
+		])
+		newMachine = (await listMachines(appName)).find((m) => m.name === name)
+		if (!newMachine) throw new Error(`${appName}: new machine ${name} not found after machine run`)
+		nicelog(`${appName}: started ${newMachine.id}, waiting for it to restore its replica`)
+		await waitUntilHealthy(appName, newMachine.id)
+	} catch (e) {
+		nicelog(`${appName}: handoff failed, removing the new machine; ${old.id} keeps serving`)
+		try {
+			// `machine run` can fail after creating the machine, which then holds the volume.
+			const created = newMachine ?? (await listMachines(appName)).find((m) => m.name === name)
+			if (created) await destroyMachineAndVolume(appName, created.id, volume.id)
+			else await exec('flyctl', ['volumes', 'destroy', volume.id, '-a', appName, '--yes'])
+		} catch (cleanupError) {
+			nicelog(`${appName}: cleanup failed, remove it by hand`, cleanupError)
+		}
+		throw e
+	} finally {
+		rmSync(configPath, { force: true })
+	}
+
+	nicelog(`${appName}: ${newMachine.id} is healthy, stopping ${old.id} so it drains to it`)
+	await stopAndDestroy(appName, old)
+
+	const leftover = (await listVolumes(appName)).filter((v) => !v.attached_machine_id)
+	if (leftover.length > 0) {
+		nicelog(`${appName}: unattached volumes left over: ${leftover.map((v) => v.id).join(', ')}`)
+	}
+	nicelog(`${appName}: replication-manager handed off from ${old.id} to ${newMachine.id}`)
+}
