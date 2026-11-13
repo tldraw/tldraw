@@ -262,7 +262,10 @@ async function callFixtureTool(
 				const records = board.snapshot.documents.map((doc) => doc.state)
 				const threads = (records as TLCommentThread[]).filter(
 					(r) =>
-						r.typeName === 'comment-thread' && r.pageId === resolved.page.pageId && !r.isDeleted
+						r.typeName === 'comment-thread' &&
+						r.pageId === resolved.page.pageId &&
+						!r.isDeleted &&
+						(includeResolved || !r.resolved)
 				)
 				const comments = (records as TLComment[]).filter(
 					(r) => r.typeName === 'comment' && !r.isDeleted
@@ -285,7 +288,8 @@ async function callFixtureTool(
 						meta: c.meta,
 					})),
 					'',
-					{ includeResolved }
+					// Fixtures are small enough for one page.
+					{ hasMore: false }
 				)
 			}
 			case WRITE_COMMENT_TOOL_NAME: {

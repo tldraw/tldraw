@@ -21,6 +21,7 @@ import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	CLUSTER_INFO_MAX_IDS,
 	COMMENT_QUEUED_NOTE,
+	encodeCommentThreadCursor,
 	McpBoardUser,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
@@ -1066,6 +1067,7 @@ describe('read_page_comments', () => {
 					meta: {},
 				},
 			],
+			hasMore: false,
 		})
 		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
 
@@ -1073,6 +1075,7 @@ describe('read_page_comments', () => {
 
 		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b', {
 			includeResolved: false,
+			after: null,
 		})
 		expect(JSON.parse(result.content[0].text)).toEqual({
 			pageId: 'page:b',
@@ -1096,6 +1099,29 @@ describe('read_page_comments', () => {
 				},
 			],
 		})
+	})
+
+	it('reads on from a cursor, and refuses one from another page', async () => {
+		grantSharedFile()
+		vi.mocked(readPageCommentRows).mockResolvedValue({ threads: [], comments: [], hasMore: false })
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		const cursor = encodeCommentThreadCursor({
+			pageId: 'page:b',
+			createdAt: 7,
+			threadId: 'comment-thread:t',
+		})
+
+		await callTool('read_page_comments', { boardId: 'f1', page: 1, cursor }, env)
+		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b', {
+			includeResolved: false,
+			after: { pageId: 'page:b', createdAt: 7, threadId: 'comment-thread:t' },
+		})
+
+		vi.mocked(readPageCommentRows).mockClear()
+		const wrongPage = await callTool('read_page_comments', { boardId: 'f1', page: 0, cursor }, env)
+		expect(wrongPage.isError).toBe(true)
+		expect(wrongPage.content[0].text).toContain('different page')
+		expect(readPageCommentRows).not.toHaveBeenCalled()
 	})
 
 	it('refuses a published board, which has no comments', async () => {

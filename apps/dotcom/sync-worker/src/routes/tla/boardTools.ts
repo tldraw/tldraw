@@ -1596,10 +1596,62 @@ export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
 	}
 }
 
+// Fixed rather than caller-settable, for the reason BOARD_SEARCH_PAGE_SIZE gives. A thread's
+// comments all come with it, so this bounds threads, not comments.
+export const COMMENT_THREADS_PAGE_SIZE = 20
+
+/**
+ * Where a page of read_page_comments ended: its last thread's sort key, and the page it is on. The
+ * page id rather than the selector the caller passed, since an ordinal can name another page by the
+ * next call.
+ */
+export interface CommentThreadCursor {
+	pageId: string
+	createdAt: number
+	threadId: string
+}
+
+// Opaque, so the encoding can change without clients having to. Percent-escaped first because
+// `btoa` throws outside Latin-1.
+export function encodeCommentThreadCursor(cursor: CommentThreadCursor): string {
+	return btoa(
+		encodeURIComponent(JSON.stringify([cursor.pageId, cursor.createdAt, cursor.threadId]))
+	)
+}
+
+function parseCommentThreadCursor(value: unknown): CommentThreadCursor | null {
+	if (value === undefined || value === null || value === '') return null
+	const invalid = new Error(
+		'cursor is not valid. Omit it to start from the newest thread, or pass the nextCursor from a previous read_page_comments result.'
+	)
+	if (typeof value !== 'string') throw invalid
+	let parsed: unknown
+	try {
+		parsed = JSON.parse(decodeURIComponent(atob(value)))
+	} catch {
+		throw invalid
+	}
+	if (!Array.isArray(parsed) || parsed.length !== 3) throw invalid
+	const [pageId, createdAt, threadId] = parsed
+	if (
+		typeof pageId !== 'string' ||
+		typeof threadId !== 'string' ||
+		typeof createdAt !== 'number' ||
+		!Number.isSafeInteger(createdAt)
+	) {
+		throw invalid
+	}
+	return { pageId, createdAt, threadId }
+}
+
+export const COMMENT_CURSOR_WRONG_PAGE_MESSAGE =
+	'cursor is from a different page. Repeat the page it came from, or omit the cursor to start from the newest thread.'
+
 export function parseReadPageCommentsInput(input: unknown): {
 	boardId: string
 	page: PageSelector
 	includeResolved: boolean
+	cursor: CommentThreadCursor | null
 } {
 	const value = requireArgumentsObject(input)
 	const boardId = parseBoardId(value.boardId)
@@ -1608,7 +1660,12 @@ export function parseReadPageCommentsInput(input: unknown): {
 	if (includeResolved != null && typeof includeResolved !== 'boolean') {
 		throw new Error('includeResolved must be true or false')
 	}
-	return { boardId, page, includeResolved: includeResolved === true }
+	return {
+		boardId,
+		page,
+		includeResolved: includeResolved === true,
+		cursor: parseCommentThreadCursor(value.cursor),
+	}
 }
 
 /**
@@ -1752,16 +1809,16 @@ export interface CommentRow {
 const SHAPE_TEXT_MAX_LENGTH = 200
 
 /**
- * One page's comment threads, oldest first, each with its comments oldest first. A thread with no
- * live comment is left out: it is either a draft whose first comment has not landed or one whose
- * comments were all deleted, and tldraw.com shows neither.
+ * One page of a board page's comment threads, newest first, each with its comments oldest first.
+ * A thread with no live comment is left out: it is either a draft whose first comment has not
+ * landed or one whose comments were all deleted, and tldraw.com shows neither.
  */
 export function getPageCommentsResult(
 	page: SnapshotPage,
 	threads: CommentThreadRow[],
 	comments: CommentRow[],
 	userId: string,
-	{ includeResolved }: { includeResolved: boolean }
+	{ hasMore }: { hasMore: boolean }
 ): ToolResult {
 	const shapes = new Map(page.shapes.map((shape) => [shape.id as string, shape]))
 	const byThread = new Map<string, CommentRow[]>()
@@ -1771,10 +1828,10 @@ export function getPageCommentsResult(
 		else byThread.set(comment.threadId, [comment])
 	}
 
-	const results = [...threads]
-		.sort(compareCreated)
+	const ordered = [...threads].sort((a, b) => compareCreated(b, a))
+	const last = ordered.at(-1)
+	const results = ordered
 		.filter((thread) => byThread.has(thread.id))
-		.filter((thread) => includeResolved || thread.resolvedAt === null)
 		.map((thread) => ({
 			threadId: thread.id,
 			resolved: thread.resolvedAt !== null,
@@ -1795,6 +1852,15 @@ export function getPageCommentsResult(
 		pageName: page.pageName,
 		threadCount: results.length,
 		threads: results,
+		...(hasMore && last
+			? {
+					nextCursor: encodeCommentThreadCursor({
+						pageId: page.pageId,
+						createdAt: last.createdAt,
+						threadId: last.id,
+					}),
+				}
+			: {}),
 	})
 }
 
@@ -2260,7 +2326,8 @@ function getReadPageCommentsToolDefinition() {
 	return {
 		name: READ_PAGE_COMMENTS_TOOL_NAME,
 		title: 'Read tldraw page comments',
-		description: 'List the open comment threads on one page in order of recency.',
+		description:
+			'List the open comment threads on one page in order of recency, 20 at a time. When there are more, the result has a nextCursor: pass it as cursor for the next 20.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2274,6 +2341,11 @@ function getReadPageCommentsToolDefinition() {
 					type: 'boolean',
 					description: 'Include resolved threads. Defaults to false.',
 					default: false,
+				},
+				cursor: {
+					type: 'string',
+					description:
+						'The nextCursor from a previous read_page_comments result on the same page, for the threads after it.',
 				},
 			},
 			required: ['boardId'],

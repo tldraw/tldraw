@@ -21,6 +21,7 @@ import {
 	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
 	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
+	COMMENT_CURSOR_WRONG_PAGE_MESSAGE,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
@@ -871,18 +872,17 @@ async function callReadPageCommentsTool(
 		}
 		const resolved = resolveSnapshotPage(loaded.snapshot, input.page)
 		if (!resolved.ok) return withTelemetryReason(resolved.result, resolved.reason)
+		if (input.cursor && input.cursor.pageId !== resolved.page.pageId) {
+			return toolError(COMMENT_CURSOR_WRONG_PAGE_MESSAGE, 'invalid_input')
+		}
 
-		const { threads, comments } = await readPageCommentRows(
+		const { threads, comments, hasMore } = await readPageCommentRows(
 			env,
 			input.boardId,
 			resolved.page.pageId,
-			{
-				includeResolved: input.includeResolved,
-			}
+			{ includeResolved: input.includeResolved, after: input.cursor }
 		)
-		return getPageCommentsResult(resolved.page, threads, comments, userId, {
-			includeResolved: input.includeResolved,
-		})
+		return getPageCommentsResult(resolved.page, threads, comments, userId, { hasMore })
 	} catch (error) {
 		return toolFailure(error, {
 			env,

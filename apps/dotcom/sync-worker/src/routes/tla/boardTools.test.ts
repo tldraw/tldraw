@@ -9,6 +9,7 @@ import {
 	CLUSTER_INFO_MAX_CHARS,
 	PAGE_INFO_MAX_CHARS,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	McpPageRead,
 	PageSelector,
 	getBoardUsers,
@@ -1398,6 +1399,22 @@ describe('getBoardUsers', () => {
 	})
 })
 
+describe('parseReadPageCommentsInput', () => {
+	it('refuses a cursor it did not hand out', () => {
+		for (const cursor of [
+			42,
+			'not base64!',
+			btoa('[]'),
+			btoa(encodeURIComponent('["page:a","1","t"]')),
+		]) {
+			expect(() => parseReadPageCommentsInput({ boardId: 'b', cursor })).toThrow(
+				'cursor is not valid'
+			)
+		}
+		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: '' }).cursor).toBeNull()
+	})
+})
+
 describe('parseWriteCommentInput', () => {
 	it('takes a reply, a shape or a point, adding the record prefix an id was given without', () => {
 		expect(parseWriteCommentInput({ boardId: 'b', text: ' Done ', threadId: 'abc' })).toEqual({
@@ -1562,19 +1579,28 @@ describe('getPageCommentsResult', () => {
 		}),
 	]
 
-	it('leaves resolved threads out unless asked for them', () => {
+	it('lists threads newest first, with a cursor after the oldest when there are more', () => {
 		const comments = [
 			comment({ id: 'comment:p', threadId: 'comment-thread:point' }),
 			comment({ id: 'comment:s', threadId: 'comment-thread:shape' }),
 		]
-		const threadIds = (includeResolved: boolean) => {
-			const block = getPageCommentsResult(page, threads, comments, 'user_me', { includeResolved })
+		const read = (hasMore: boolean) => {
+			const block = getPageCommentsResult(page, threads, comments, 'user_me', { hasMore })
 				.content[0]
 			if (block.type !== 'text') throw new Error('Expected a text block')
-			return JSON.parse(block.text).threads.map((t: { threadId: string }) => t.threadId)
+			return JSON.parse(block.text)
 		}
-		expect(threadIds(false)).toEqual(['comment-thread:shape'])
-		expect(threadIds(true)).toEqual(['comment-thread:shape', 'comment-thread:point'])
+		expect(read(false).threads.map((t: { threadId: string }) => t.threadId)).toEqual([
+			'comment-thread:point',
+			'comment-thread:shape',
+		])
+		expect(read(false)).not.toHaveProperty('nextCursor')
+		const { nextCursor } = read(true)
+		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: nextCursor }).cursor).toEqual({
+			pageId: 'page:a',
+			createdAt: 1,
+			threadId: 'comment-thread:shape',
+		})
 	})
 
 	it('names the shape a thread is on, rounds page points, and marks the caller’s and agents’ comments', () => {
@@ -1622,7 +1648,7 @@ describe('getPageCommentsResult', () => {
 				comment({ id: 'comment:g', threadId: 'comment-thread:gone' }),
 			],
 			'user_me',
-			{ includeResolved: true }
+			{ hasMore: false }
 		)
 		const block = result.content[0]
 		if (block.type !== 'text') throw new Error('Expected a text block')
@@ -1631,6 +1657,18 @@ describe('getPageCommentsResult', () => {
 			pageName: 'Cover',
 			threadCount: 3,
 			threads: [
+				{
+					threadId: 'comment-thread:gone',
+					resolved: false,
+					anchor: { type: 'shape', shapeId: 'shape:deleted', shapeMissing: true },
+					comments: [expect.objectContaining({ commentId: 'comment:g' })],
+				},
+				{
+					threadId: 'comment-thread:point',
+					resolved: true,
+					anchor: { type: 'point', x: 10, y: 20 },
+					comments: [expect.objectContaining({ commentId: 'comment:p', authorName: 'Someone' })],
+				},
 				{
 					threadId: 'comment-thread:shape',
 					resolved: false,
@@ -1658,18 +1696,6 @@ describe('getPageCommentsResult', () => {
 							text: 'On it',
 						},
 					],
-				},
-				{
-					threadId: 'comment-thread:point',
-					resolved: true,
-					anchor: { type: 'point', x: 10, y: 20 },
-					comments: [expect.objectContaining({ commentId: 'comment:p', authorName: 'Someone' })],
-				},
-				{
-					threadId: 'comment-thread:gone',
-					resolved: false,
-					anchor: { type: 'shape', shapeId: 'shape:deleted', shapeMissing: true },
-					comments: [expect.objectContaining({ commentId: 'comment:g' })],
 				},
 			],
 		})

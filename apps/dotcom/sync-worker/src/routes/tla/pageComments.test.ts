@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
-import { COMMENT_BOARD_NOT_FOUND_MESSAGE } from './boardTools'
+import { COMMENT_BOARD_NOT_FOUND_MESSAGE, COMMENT_THREADS_PAGE_SIZE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
 
@@ -131,7 +131,10 @@ describe('readPageCommentRows', () => {
 		])
 		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
 
-		expect(await readPageCommentRows(env, BOARD_ID, 'page:a', { includeResolved: true })).toEqual({
+		expect(
+			await readPageCommentRows(env, BOARD_ID, 'page:a', { includeResolved: true, after: null })
+		).toEqual({
+			hasMore: false,
 			threads: [{ id: 'comment-thread:t', anchor: { type: 'page' }, resolvedAt: 5, createdAt: 1 }],
 			comments: [
 				{
@@ -149,15 +152,45 @@ describe('readPageCommentRows', () => {
 		const { sql, parameters } = fake.queries[0]
 		expect(sql).toContain('"isDeleted" = $')
 		expect(parameters.filter((p) => p === BOARD_ID)).toHaveLength(3)
-		expect(parameters.filter((p) => p === 'page:a')).toHaveLength(2)
+		expect(parameters.filter((p) => p === 'page:a')).toHaveLength(1)
 		expect(sql).not.toContain('"resolvedAt" is null')
+		expect(parameters).toContain(COMMENT_THREADS_PAGE_SIZE + 1)
 		expect(fake.destroy).toHaveBeenCalled()
 	})
 
 	it('leaves resolved threads and their comments out in the query', async () => {
 		const fake = createFakeKysely([[{ threadRows: [], commentRows: [] }]])
 		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
-		await readPageCommentRows(env, BOARD_ID, 'page:a', { includeResolved: false })
-		expect(fake.queries[0].sql.match(/"t"\."resolvedAt" is null/g)).toHaveLength(2)
+		await readPageCommentRows(env, BOARD_ID, 'page:a', { includeResolved: false, after: null })
+		expect(fake.queries[0].sql.match(/"resolvedAt" is null/g)).toHaveLength(1)
+	})
+
+	it('reads one thread past the page to tell whether there is another, and drops it', async () => {
+		const threadRows = Array.from({ length: COMMENT_THREADS_PAGE_SIZE + 1 }, (_, i) => ({
+			id: `comment-thread:${String(i).padStart(2, '0')}`,
+			anchor: { type: 'page' },
+			resolvedAt: null,
+			createdAt: String(100 - i),
+		}))
+		const commentRows = threadRows.map((thread, i) => ({
+			id: `comment:${i}`,
+			threadId: thread.id,
+			authorId: 'user_a',
+			authorName: 'Ada',
+			body: { type: 'doc', content: [] },
+			createdAt: '1',
+			meta: null,
+		}))
+		const fake = createFakeKysely([[{ threadRows, commentRows }]])
+		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+		const read = await readPageCommentRows(env, BOARD_ID, 'page:a', {
+			includeResolved: false,
+			after: { createdAt: 101, threadId: 'comment-thread:zz' },
+		})
+		expect(read.hasMore).toBe(true)
+		expect(read.threads).toHaveLength(COMMENT_THREADS_PAGE_SIZE)
+		expect(read.comments).toHaveLength(COMMENT_THREADS_PAGE_SIZE)
+		expect(read.threads.at(-1)?.createdAt).toBe(100 - COMMENT_THREADS_PAGE_SIZE + 1)
+		expect(fake.queries[0].parameters).toEqual(expect.arrayContaining([101, 'comment-thread:zz']))
 	})
 })
