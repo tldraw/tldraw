@@ -34,6 +34,7 @@ export { getItemMenuId, ItemMenu, type ItemMenuProps } from './ui/item-menu'
 export { ItemTile, type ItemTileProps } from './ui/item-tile'
 export {
 	MenuItem as LibraryMenuItem,
+	type LibraryMenuTarget,
 	type MenuItemProps as LibraryMenuItemProps,
 } from './ui/menu-items'
 export { RenameInput, type RenameInputProps } from './ui/rename-input'

@@ -19,6 +19,15 @@
 	font-size: 12px;
 }
 
+/* Scrollbars follow the editor's theme rather than the host page's color-scheme. */
+.tl-theme__light .tlui-libraries-panel {
+	color-scheme: light;
+}
+
+.tl-theme__dark .tlui-libraries-panel {
+	color-scheme: dark;
+}
+
 .tlui-libraries-panel[data-side='right'] {
 	left: auto;
 	right: 8px;
@@ -89,6 +98,9 @@
 }
 
 .tlui-libraries-menu-heading {
+	display: flex;
+	align-items: center;
+	gap: 6px;
 	padding: 6px 10px 2px;
 	font-size: 11px;
 	color: var(--tl-color-text-3);
@@ -345,7 +357,9 @@
 }
 
 @media (hover: hover) {
-	.tlui-libraries-tile:hover:not(:has(.tlui-libraries-tile__menu-button:hover, :disabled))
+	.tlui-libraries-tile:hover:not(
+			:has(.tlui-libraries-tile__menu-button:hover, [aria-disabled='true'])
+		)
 		.tlui-libraries-tile__thumbnail {
 		background: var(--tl-color-muted-2);
 	}
@@ -376,16 +390,16 @@
 	color: var(--tl-color-text-3);
 }
 
-.tlui-libraries-add-tile .tlui-libraries-tile__button:disabled {
+.tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] {
 	cursor: default;
 }
 
-.tlui-libraries-add-tile .tlui-libraries-tile__button:disabled .tlui-icon {
+.tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] .tlui-icon {
 	opacity: 0.4;
 }
 
 @media (hover: hover) {
-	.tlui-libraries-add-tile:not(:has(:disabled)):hover .tlui-libraries-tile__thumbnail {
+	.tlui-libraries-add-tile:not(:has([aria-disabled='true'])):hover .tlui-libraries-tile__thumbnail {
 		color: var(--tl-color-text-1);
 	}
 }
