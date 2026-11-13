@@ -50,10 +50,13 @@ export function TlaInviteDialog({
 					onClick={async () => {
 						if (!app) return
 						setIsAccepting(true)
-						await app.acceptWorkspaceInvite(inviteInfo.inviteSecret).finally(() => {
+						let done = false
+						try {
+							done = await app.acceptWorkspaceInvite(inviteInfo.inviteSecret)
+						} finally {
 							setIsAccepting(false)
-						})
-						onClose()
+						}
+						if (done) onClose()
 					}}
 				>
 					<F defaultMessage="Accept invitation" />
