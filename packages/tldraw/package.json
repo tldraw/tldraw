@@ -40,12 +40,19 @@
 		"./*.css": "./*.css"
 	},
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"scripts": {
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
 		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
 		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"check-bundle-size": "pnpm exec tsx ../../internal/scripts/check-sdk-bundle.ts",
 		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
 		"postpack": "../../internal/scripts/postpack.sh",
 		"pack-tarball": "pnpm pack",

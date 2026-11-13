@@ -86,6 +86,7 @@ Code quality:
 - `pnpm format` - format the repo
 - `pnpm format-current` - format changed files
 - `pnpm api-check` - validate public API reports
+- `pnpm exec turbo run check-bundle-size` - check SDK and worker bundle sizes
 
 ## Validation workflow
 

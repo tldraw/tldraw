@@ -480,6 +480,81 @@ async function group<T>(name: string, cb: () => Promise<T>) {
 	}
 }
 
+// Published packages are built unbundled (one output file per source module), so a consumer's
+// bundler sees hundreds of modules and, without this flag, must assume every one of them has
+// import-time side effects and keep them all. Only the package entry point (which registers the
+// library version) and stylesheets have side effects worth keeping.
+const expectedSideEffects = [
+	'./src/index.ts',
+	'./dist-esm/index.mjs',
+	'./dist-cjs/index.js',
+	'**/*.css',
+]
+
+async function checkSideEffects({
+	packages,
+	fix,
+}: {
+	packages: Package[]
+	fix: boolean
+}): Promise<boolean> {
+	let errorCount = 0
+	for (const pkg of packages) {
+		const { relativePath, packageJson, name } = pkg
+		if (!relativePath.startsWith('packages/') || packageJson.private) continue
+		if (!existsSync(join(REPO_ROOT, relativePath, 'src/index.ts'))) {
+			nicelog(['  ⏩ ', styleText('gray', `${name}: skipped (no src/index.ts)`)].join(''))
+			continue
+		}
+
+		const actual = packageJson.sideEffects
+		const ok =
+			Array.isArray(actual) &&
+			actual.length === expectedSideEffects.length &&
+			actual.every((v, i) => v === expectedSideEffects[i])
+		if (ok) {
+			nicelog(['✅ ', styleText('green', `${name}: `), styleText('gray', 'sideEffects')].join(''))
+			continue
+		}
+
+		errorCount++
+		nicelog(
+			[
+				'❌ ',
+				styleText('red', `${name}: `),
+				styleText('gray', 'sideEffects -> '),
+				styleText('red', JSON.stringify(actual ?? null)),
+				styleText('gray', ' (expected: '),
+				styleText('green', JSON.stringify(expectedSideEffects)),
+				styleText('gray', ')'),
+			].join('')
+		)
+		if (fix) {
+			// Keep the key next to "type", where the hand-written manifests put it
+			const fixed: Record<string, unknown> = {}
+			for (const [key, value] of Object.entries(packageJson)) {
+				if (key === 'sideEffects') continue
+				fixed[key] = value
+				if (key === 'type') fixed.sideEffects = expectedSideEffects
+			}
+			if (!('sideEffects' in fixed)) fixed.sideEffects = expectedSideEffects
+			// Later checks write pkg.packageJson back out, so keep it in step with the file
+			pkg.packageJson = fixed as typeof packageJson
+			await writeJsonFile(join(pkg.path, 'package.json'), fixed)
+		}
+	}
+
+	if (errorCount) {
+		if (fix) {
+			nicelog(styleText('yellow', `Fixed ${errorCount} errors`))
+			return true
+		}
+		nicelog(styleText('red', `Found ${errorCount} errors (run \`pnpm check-packages --fix\`)`))
+		return false
+	}
+	return true
+}
+
 // Every workspace uses the same version range for a dependency, so the lockfile resolves one
 // copy. To let a dependency diverge, list the workspaces that step off the shared range here:
 // they must agree with each other, and everything else must agree with everything else.
@@ -603,6 +678,9 @@ async function main({ fix }: { fix: boolean }) {
 	const scriptsOk = await group('Checking package.json scripts...', () =>
 		checkPackageJsonScripts({ packages, fix })
 	)
+	const sideEffectsOk = await group('Checking package.json sideEffects...', () =>
+		checkSideEffects({ packages, fix })
+	)
 	const tsConfigsOk = await group('Checking tsconfig.json files...', () =>
 		checkTsConfigs({ packages, fix })
 	)
@@ -617,7 +695,14 @@ async function main({ fix }: { fix: boolean }) {
 		checkDependencyVersions({ packages, fix })
 	)
 
-	if (!scriptsOk || !tsConfigsOk || !libsOk || !productMetadataOk || !dependencyVersionsOk) {
+	if (
+		!scriptsOk ||
+		!sideEffectsOk ||
+		!tsConfigsOk ||
+		!libsOk ||
+		!productMetadataOk ||
+		!dependencyVersionsOk
+	) {
 		process.exit(1)
 	}
 }

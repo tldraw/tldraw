@@ -26,6 +26,12 @@
 	"types": "./.tsbuild/index.d.ts",
 	"style": "./collaboration.css",
 	"type": "module",
+	"sideEffects": [
+		"./src/index.ts",
+		"./dist-esm/index.mjs",
+		"./dist-cjs/index.js",
+		"**/*.css"
+	],
 	"files": [
 		"collaboration.css"
 	],
