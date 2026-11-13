@@ -1,4 +1,4 @@
-import { b64Vecs } from '@tldraw/tlschema'
+import { b64Vecs, toRichText } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
@@ -9,6 +9,7 @@ import {
 	CLUSTER_INFO_MAX_CHARS,
 	PAGE_INFO_MAX_CHARS,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	McpPageRead,
 	PageSelector,
 	getBoardUsers,
@@ -28,6 +29,15 @@ import {
 	getClusterScreenshotSize,
 	getClustersBox,
 	readSnapshotPage,
+	AGENT_NAME_MAX_LENGTH,
+	COMMENT_TEXT_MAX_LENGTH,
+	CommentRow,
+	CommentThreadRow,
+	commentBodyToPlainText,
+	getCommentRefusalMessage,
+	getPageCommentsResult,
+	parseWriteCommentInput,
+	resolveSnapshotPage,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -1386,5 +1396,323 @@ describe('getBoardUsers', () => {
 			presence: presence({ lastActivityTimestamp: 1e30 }),
 		})
 		expect(user.lastActiveAt).toBeNull()
+	})
+})
+
+describe('parseReadPageCommentsInput', () => {
+	it('refuses a cursor it did not hand out', () => {
+		for (const cursor of [
+			42,
+			'not base64!',
+			btoa('[]'),
+			btoa(encodeURIComponent('["page:a","1","t"]')),
+		]) {
+			expect(() => parseReadPageCommentsInput({ boardId: 'b', cursor })).toThrow(
+				'cursor is not valid'
+			)
+		}
+		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: '' }).cursor).toBeNull()
+	})
+})
+
+describe('parseWriteCommentInput', () => {
+	it('takes a reply, a shape or a point, adding the record prefix an id was given without', () => {
+		expect(parseWriteCommentInput({ boardId: 'b', text: ' Done ', threadId: 'abc' })).toEqual({
+			boardId: 'b',
+			text: 'Done',
+			agentName: null,
+			target: { kind: 'reply', threadId: 'comment-thread:abc' },
+		})
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 'shape:box', page: 0 })
+		).toEqual({
+			boardId: 'b',
+			text: 'Hi',
+			agentName: null,
+			target: { kind: 'shape', shapeId: 'shape:box' },
+		})
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 10.5, y: -4, page: 'page:two' })
+		).toEqual({
+			boardId: 'b',
+			text: 'Hi',
+			agentName: null,
+			target: { kind: 'point', pageId: 'page:two', x: 10.5, y: -4 },
+		})
+	})
+
+	// An ordinal would resolve against the live room here but the saved snapshot in get_board_info.
+	it('needs a page id for a thread at a point', () => {
+		for (const page of [undefined, 0, 'Page 1']) {
+			expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 1, y: 2, page })).toThrow(
+				'page is required'
+			)
+		}
+	})
+
+	it('takes the name the agent goes by, up to a limit', () => {
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 'abc', agentName: ' Claude ' })
+				.agentName
+		).toBe('Claude')
+		expect(() =>
+			parseWriteCommentInput({
+				boardId: 'b',
+				text: 'Hi',
+				threadId: 'abc',
+				agentName: 'x'.repeat(AGENT_NAME_MAX_LENGTH + 1),
+			})
+		).toThrow('agentName must be at most')
+	})
+
+	// A blank string is what a model sends for a field it meant to leave out.
+	it('reads a blank target field as absent', () => {
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 'abc', shapeId: '' }).target
+		).toEqual({ kind: 'reply', threadId: 'comment-thread:abc' })
+	})
+
+	it('refuses no target, more than one, half a point, and missing or overlong text', () => {
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi' })).toThrow('Say where')
+		expect(() =>
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 't', shapeId: 's' })
+		).toThrow('only one of')
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 's', x: 1 })).toThrow(
+			'only one of'
+		)
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 1 })).toThrow(
+			'x and y must both be numbers'
+		)
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: ' ', threadId: 't' })).toThrow(
+			'text is required'
+		)
+		expect(() =>
+			parseWriteCommentInput({
+				boardId: 'b',
+				text: 'x'.repeat(COMMENT_TEXT_MAX_LENGTH + 1),
+				threadId: 't',
+			})
+		).toThrow(`at most ${COMMENT_TEXT_MAX_LENGTH}`)
+		expect(() => parseWriteCommentInput({ text: 'Hi', threadId: 't' })).toThrow(
+			'boardId is required'
+		)
+	})
+})
+
+describe('commentBodyToPlainText', () => {
+	it('puts blocks on their own lines and spells mentions out', () => {
+		expect(
+			commentBodyToPlainText({
+				type: 'doc',
+				content: [
+					{
+						type: 'paragraph',
+						content: [
+							{ type: 'text', text: 'Hey ' },
+							{ type: 'mention', attrs: { id: 'user_1', label: 'Ada' } },
+							{ type: 'text', text: ', look', marks: [{ type: 'bold' }] },
+						],
+					},
+					{
+						type: 'bulletList',
+						content: [
+							{
+								type: 'listItem',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: 'one' }] }],
+							},
+							{
+								type: 'listItem',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: 'two' }] }],
+							},
+						],
+					},
+				],
+			})
+		).toBe('Hey @Ada, look\none\ntwo')
+	})
+})
+
+describe('getPageCommentsResult', () => {
+	const snapshot = makeSnapshot([{ id: 'page:a', index: 'a1', name: 'Cover', shapes: 1 }])
+	// A shape with a label, so the anchor can say what it is.
+	snapshot.documents[2].state.props.richText = {
+		type: 'doc',
+		content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Login' }] }],
+	}
+	const resolved = resolveSnapshotPage(snapshot, { kind: 'ordinal', ordinal: 0 })
+	if (!resolved.ok) throw new Error('Expected the page to resolve')
+	const page = resolved.page
+
+	function thread(overrides: Partial<CommentThreadRow>): CommentThreadRow {
+		return {
+			id: 'comment-thread:t',
+			anchor: { type: 'page' },
+			resolvedAt: null,
+			createdAt: 1,
+			...overrides,
+		}
+	}
+	function comment(overrides: Partial<CommentRow>): CommentRow {
+		return {
+			id: 'comment:c',
+			threadId: 'comment-thread:t',
+			authorId: 'user_other',
+			authorName: 'Ada',
+			body: toRichText('x'),
+			createdAt: Date.UTC(2026, 0, 1),
+			meta: null,
+			...overrides,
+		}
+	}
+
+	const threads = [
+		thread({
+			id: 'comment-thread:point',
+			anchor: { type: 'point', x: 10.4, y: 19.6 },
+			resolvedAt: 5,
+			createdAt: 2,
+		}),
+		thread({
+			id: 'comment-thread:shape',
+			anchor: { type: 'shape', shapeId: 'shape:page:a-0', x: 0.25, y: 0.5, isPrecise: true },
+			createdAt: 1,
+		}),
+	]
+
+	it('lists threads newest first, with a cursor after the oldest when there are more', () => {
+		const comments = [
+			comment({ id: 'comment:p', threadId: 'comment-thread:point' }),
+			comment({ id: 'comment:s', threadId: 'comment-thread:shape' }),
+		]
+		const read = (hasMore: boolean) => {
+			const block = getPageCommentsResult(page, threads, comments, 'user_me', { hasMore })
+				.content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			return JSON.parse(block.text)
+		}
+		expect(read(false).threads.map((t: { threadId: string }) => t.threadId)).toEqual([
+			'comment-thread:point',
+			'comment-thread:shape',
+		])
+		expect(read(false)).not.toHaveProperty('nextCursor')
+		const { nextCursor } = read(true)
+		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: nextCursor }).cursor).toEqual({
+			pageId: 'page:a',
+			createdAt: 1,
+			threadId: 'comment-thread:shape',
+		})
+	})
+
+	it('names the shape a thread is on, rounds page points, and marks the caller’s and agents’ comments', () => {
+		const result = getPageCommentsResult(
+			page,
+			[
+				thread({
+					id: 'comment-thread:point',
+					anchor: { type: 'point', x: 10.4, y: 19.6 },
+					resolvedAt: 5,
+					createdAt: 2,
+				}),
+				thread({
+					id: 'comment-thread:shape',
+					anchor: { type: 'shape', shapeId: 'shape:page:a-0', x: 0.25, y: 0.5, isPrecise: true },
+					createdAt: 1,
+				}),
+				thread({
+					id: 'comment-thread:gone',
+					anchor: { type: 'shape', shapeId: 'shape:deleted', x: 1, y: 0, isPrecise: false },
+					createdAt: 3,
+				}),
+				// No live comment, so tldraw.com shows nothing: left out.
+				thread({ id: 'comment-thread:empty', createdAt: 4 }),
+			],
+			[
+				comment({
+					id: 'comment:reply',
+					threadId: 'comment-thread:shape',
+					authorId: 'user_me',
+					authorName: 'Me',
+					body: toRichText('On it'),
+					createdAt: Date.UTC(2026, 0, 2),
+					meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
+				}),
+				comment({
+					id: 'comment:first',
+					threadId: 'comment-thread:shape',
+					body: {
+						type: 'doc',
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Wider?' }] }],
+					},
+				}),
+				comment({ id: 'comment:p', threadId: 'comment-thread:point', authorName: ' ' }),
+				comment({ id: 'comment:g', threadId: 'comment-thread:gone' }),
+			],
+			'user_me',
+			{ hasMore: false }
+		)
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		expect(JSON.parse(block.text)).toEqual({
+			pageId: 'page:a',
+			pageName: 'Cover',
+			threadCount: 3,
+			threads: [
+				{
+					threadId: 'comment-thread:gone',
+					resolved: false,
+					anchor: { type: 'shape', shapeId: 'shape:deleted', shapeMissing: true },
+					comments: [expect.objectContaining({ commentId: 'comment:g' })],
+				},
+				{
+					threadId: 'comment-thread:point',
+					resolved: true,
+					anchor: { type: 'point', x: 10, y: 20 },
+					comments: [expect.objectContaining({ commentId: 'comment:p', authorName: 'Someone' })],
+				},
+				{
+					threadId: 'comment-thread:shape',
+					resolved: false,
+					anchor: {
+						type: 'shape',
+						shapeId: 'shape:page:a-0',
+						shapeType: 'geo',
+						shapeText: 'Login',
+					},
+					comments: [
+						{
+							commentId: 'comment:first',
+							authorName: 'Ada',
+							isCurrentUser: false,
+							meta: {},
+							createdAt: '2026-01-01T00:00:00.000Z',
+							text: 'Wider?',
+						},
+						{
+							commentId: 'comment:reply',
+							authorName: 'Me',
+							isCurrentUser: true,
+							meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
+							createdAt: '2026-01-02T00:00:00.000Z',
+							text: 'On it',
+						},
+					],
+				},
+			],
+		})
+	})
+})
+
+describe('getCommentRefusalMessage', () => {
+	it('words each refusal so a model knows what to do next', () => {
+		expect(getCommentRefusalMessage({ reason: 'comment_forbidden' })).toContain('view-only link')
+		expect(
+			getCommentRefusalMessage({ reason: 'thread_resolved', threadId: 'comment-thread:t' })
+		).toContain('Start a new thread instead')
+		expect(
+			getCommentRefusalMessage({ reason: 'thread_not_found', threadId: 'comment-thread:t' })
+		).toContain('read_page_comments')
+		expect(getCommentRefusalMessage({ reason: 'page_not_found', pageId: 'page:x' })).toContain(
+			'get_board_info'
+		)
 	})
 })

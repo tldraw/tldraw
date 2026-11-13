@@ -154,7 +154,11 @@ describe('handleInitUser', () => {
 	})
 
 	it('accepts an OAuth access token for the user it names', async () => {
-		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: true, userId: 'user-1' })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({
+			ok: true,
+			userId: 'user-1',
+			clientId: null,
+		})
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
 		expect(response.status).toBe(200)
 		expect(requireAuth).not.toHaveBeenCalled()
@@ -165,7 +169,11 @@ describe('handleInitUser', () => {
 		getUser.mockResolvedValue(clerkUser('someone@example.com'))
 		const { db } = makeDb()
 		pool.current = Object.assign(db, { destroy: async () => {} })
-		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: true, userId: 'user-1' })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({
+			ok: true,
+			userId: 'user-1',
+			clientId: null,
+		})
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
 		expect(response.status).toBe(200)
 		expect(writeDataPoint).toHaveBeenCalledWith(
@@ -187,7 +195,11 @@ describe('handleInitUser', () => {
 	})
 
 	it('answers 404 for an access token whose user is not the one in the path', async () => {
-		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({ ok: true, userId: 'user-2' })
+		vi.mocked(verifyOAuthAccessToken).mockResolvedValue({
+			ok: true,
+			userId: 'user-2',
+			clientId: null,
+		})
 		const response = await handleInitUser(makeRequest(OAUTH_TOKEN), makeEnv())
 		expect(response.status).toBe(404)
 	})

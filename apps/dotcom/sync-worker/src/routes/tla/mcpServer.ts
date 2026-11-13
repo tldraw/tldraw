@@ -1,3 +1,4 @@
+import { McpAgentClient } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
 import {
 	MCP_RATE_LIMIT_WINDOW_MS,
@@ -19,18 +20,22 @@ import {
 	BOARD_NOT_FOUND_MESSAGE,
 	BOARD_USERS_TOOL_NAME,
 	CLUSTER_INFO_TOOL_NAME,
+	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
+	COMMENT_CURSOR_WRONG_PAGE_MESSAGE,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
 	MCP_SERVER_INFO,
 	getMcpServerInstructions,
 	PAGE_INFO_TOOL_NAME,
+	READ_PAGE_COMMENTS_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
 	McpPageRead,
 	PageSelector,
 	SEARCH_BOARDS_TOOL_NAME,
 	ToolResult,
 	USER_STATE_TOOL_NAME,
+	WRITE_COMMENT_TOOL_NAME,
 	describePageSelector,
 	getBoardInfo,
 	getBoardSearchResults,
@@ -38,8 +43,10 @@ import {
 	getClusterScreenshotSize,
 	getClustersBox,
 	getCreatedBoardResult,
+	getPageCommentsResult,
 	getPageInfo,
 	getToolDefinitions,
+	getWrittenCommentResult,
 	getWorkspaceListResult,
 	parseApplyOpsInput,
 	parseBoardInfoInput,
@@ -49,10 +56,13 @@ import {
 	parseCreateBoardInput,
 	parseListWorkspacesInput,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	parseRenameBoardInput,
 	parseSearchBoardsInput,
 	pageLookupFailure,
+	resolveSnapshotPage,
 	parseUserStateInput,
+	parseWriteCommentInput,
 	pickClusterShapes,
 	toolError as modelToolError,
 	toolJsonResult,
@@ -69,6 +79,7 @@ import {
 	readPageInOpenTab,
 	readUserStateInOpenTab,
 } from './mcpTabRender'
+import { readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -254,6 +265,48 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['mozilla', 'browser'],
 ]
 
+// The name an agent goes by on a board when write_comment isn't told one: its client's family, which
+// is what the owner would call it. Bounded to these on purpose, like the families themselves — a raw
+// User-Agent is not a name anyone would recognise.
+const AGENT_NAMES_BY_CLIENT_FAMILY: Record<string, string> = {
+	claude: 'Claude',
+	openai: 'ChatGPT',
+	cursor: 'Cursor',
+}
+
+// The OAuth clients we recognise, by the host of their client id (a client id metadata document URL).
+// A client id we can't place, such as an opaque one, gets no logo rather than a guessed one.
+const MCP_AGENT_CLIENT_HOSTS: ReadonlyArray<readonly [host: string, client: McpAgentClient]> = [
+	['claude.ai', 'claude'],
+	['claude.com', 'claude'],
+	['anthropic.com', 'claude'],
+	['chatgpt.com', 'openai'],
+	['openai.com', 'openai'],
+	['cursor.com', 'cursor'],
+	['cursor.sh', 'cursor'],
+]
+
+/** Which app an OAuth client id belongs to, or null when we don't recognise it. */
+export function getMcpAgentClient(clientId: string | null): McpAgentClient | null {
+	if (!clientId) return null
+	let host: string
+	try {
+		host = new URL(clientId).hostname.toLowerCase()
+	} catch {
+		return null
+	}
+	for (const [known, client] of MCP_AGENT_CLIENT_HOSTS) {
+		if (host === known || host.endsWith(`.${known}`)) return client
+	}
+	return null
+}
+
+export function getDefaultAgentName(request: Request): string {
+	return (
+		AGENT_NAMES_BY_CLIENT_FAMILY[normalizeMcpClient(request.headers.get('user-agent'))] ?? 'Agent'
+	)
+}
+
 // Takes unknown because one caller passes a header and the other passes a field parsed straight out
 // of the request body, which is whatever the client chose to send.
 export function normalizeMcpClient(value: unknown): string {
@@ -340,7 +393,8 @@ const TOOL_HANDLERS = new Map<
 		request: Request,
 		env: Environment,
 		userId: string,
-		ctx?: ExecutionContext
+		ctx?: ExecutionContext,
+		clientId?: string | null
 	) => Promise<ToolCallResult>
 >([
 	[SEARCH_BOARDS_TOOL_NAME, callSearchBoardsTool],
@@ -354,6 +408,8 @@ const TOOL_HANDLERS = new Map<
 	[APPLY_OPS_TOOL_NAME, callApplyOpsTool],
 	[USER_STATE_TOOL_NAME, callUserStateTool],
 	[BOARD_USERS_TOOL_NAME, callBoardUsersTool],
+	[READ_PAGE_COMMENTS_TOOL_NAME, callReadPageCommentsTool],
+	[WRITE_COMMENT_TOOL_NAME, callWriteCommentTool],
 ])
 
 export async function mcpServer(
@@ -470,7 +526,14 @@ export async function mcpServer(
 			const startedAt = Date.now()
 			let called: ToolCallResult
 			try {
-				called = await toolHandler(rpcRequest.params?.arguments, request, env, auth.userId, ctx)
+				called = await toolHandler(
+					rpcRequest.params?.arguments,
+					request,
+					env,
+					auth.userId,
+					ctx,
+					auth.clientId
+				)
 			} catch (error) {
 				writeMcpToolCallTelemetry(env, request, {
 					tool: toolName,
@@ -782,6 +845,111 @@ async function callRenameBoardTool(
 	}
 }
 
+async function callReadPageCommentsTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext
+) {
+	const parsed = parseToolInput(() => parseReadPageCommentsInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// Shares search_boards' budget, like list_workspaces: a Postgres read and an R2 read, and no
+		// Browser Run.
+		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		// The snapshot names the page and the shapes threads are pinned to; the threads themselves
+		// live in Postgres, under the file's id, which for a file is its board id.
+		const loaded = await loadBoardForTool(env, input.boardId, userId)
+		if (!loaded.ok) return loaded.result
+		// A published board has no comments, and its slug names no file to read them under.
+		if (!loaded.isFile) {
+			return toolError(COMMENTS_ON_PUBLISHED_BOARD_MESSAGE, 'comments_unavailable')
+		}
+		const resolved = resolveSnapshotPage(loaded.snapshot, input.page)
+		if (!resolved.ok) return withTelemetryReason(resolved.result, resolved.reason)
+		if (input.cursor && input.cursor.pageId !== resolved.page.pageId) {
+			return toolError(COMMENT_CURSOR_WRONG_PAGE_MESSAGE, 'invalid_input')
+		}
+
+		const { threads, comments, hasMore } = await readPageCommentRows(
+			env,
+			input.boardId,
+			resolved.page.pageId,
+			{ includeResolved: input.includeResolved, after: input.cursor }
+		)
+		return getPageCommentsResult(resolved.page, threads, comments, userId, { hasMore })
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_comment_read',
+			extras: { boardId: input.boardId, page: describePageSelector(input.page) },
+			summary: 'Could not read comments',
+			// As for get_board_info: no render, so only the snapshot-read class can honestly apply.
+			recordAs: (reason) => (reason === 'snapshot_read_error' ? reason : 'board_lookup_error'),
+		})
+	}
+}
+
+async function callWriteCommentTool(
+	argumentsValue: unknown,
+	request: Request,
+	env: Environment,
+	userId: string,
+	ctx?: ExecutionContext,
+	clientId: string | null = null
+) {
+	const parsed = parseToolInput(() => parseWriteCommentInput(argumentsValue))
+	if (!parsed.ok) return parsed.result
+	const input = parsed.input
+
+	try {
+		// The budget every tool that goes through the board's durable object shares.
+		const refusal = await checkTabRateLimit(env, userId, mcpTelemetryWriter(env))
+		if (refusal) return refusal
+
+		// The agent picks its own name, but which app it is comes from its OAuth client, so tldraw.com
+		// shows that app's logo however the agent names itself.
+		const agentClient = getMcpAgentClient(clientId)
+		const written = await writeCommentForUser(env, userId, {
+			...input,
+			agentName:
+				input.agentName ??
+				(agentClient ? AGENT_NAMES_BY_CLIENT_FAMILY[agentClient] : getDefaultAgentName(request)),
+			agentClient,
+		})
+		if (!written.ok) return withTelemetryReason(written.result, written.reason)
+		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
+		return getWrittenCommentResult({
+			boardId: input.boardId,
+			threadId: written.threadId,
+			commentId: written.commentId,
+			pageId: written.pageId,
+			newThread: written.newThread,
+			queued: written.queued,
+			// tldraw.com opens the thread from this, as its own "copy link" does.
+			url: `${boardUrl}?comment=${encodeURIComponent(written.threadId)}`,
+		})
+	} catch (error) {
+		return toolFailure(error, {
+			env,
+			request,
+			ctx,
+			surface: 'mcp_comment_write',
+			// The text is something the caller typed, so it stays off the Sentry event.
+			extras: { boardId: input.boardId, target: input.target.kind },
+			summary: 'Could not post the comment',
+			recordAs: () => 'comment_write_error',
+		})
+	}
+}
+
 async function callBoardInfoTool(
 	argumentsValue: unknown,
 	request: Request,
@@ -856,7 +1024,13 @@ async function callPageInfoTool(
 }
 
 type LoadedBoard =
-	| { ok: true; fileName: string | null; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| {
+			ok: true
+			fileName: string | null
+			snapshot: import('@tldraw/sync-core').RoomSnapshot
+			/** A file the caller can open, rather than a published copy. */
+			isFile: boolean
+	  }
 	| { ok: false; result: ToolCallResult }
 
 async function loadBoardForTool(
@@ -886,7 +1060,12 @@ async function loadBoardForTool(
 		file: resolved.board.file,
 	})
 	if (!snapshot) return { ok: false, result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty') }
-	return { ok: true, fileName: resolved.fileName, snapshot }
+	return {
+		ok: true,
+		fileName: resolved.fileName,
+		snapshot,
+		isFile: resolved.board.access === 'render',
+	}
 }
 
 type BoardPageRead = { ok: true; read: McpPageRead } | { ok: false; result: ToolCallResult }
@@ -1043,7 +1222,7 @@ async function checkTabRateLimit(
 		callerHash: await sha256(userId),
 	})
 	return toolError(
-		`Rate limited. Reading, screenshotting and editing boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
+		`Rate limited. Reading, screenshotting, editing and commenting on boards, and checking who is on them, share a limit of about ${MCP_TAB_PER_USER_RATE_LIMIT} calls per minute per account.`,
 		'rate_limited_tab'
 	)
 }

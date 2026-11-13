@@ -20,6 +20,8 @@ import { Environment } from '../../types'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	CLUSTER_INFO_MAX_IDS,
+	COMMENT_QUEUED_NOTE,
+	encodeCommentThreadCursor,
 	McpBoardUser,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
@@ -33,7 +35,13 @@ import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFi
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { authenticateMcpRequest } from './mcpAuth'
-import { normalizeMcpClient, resetRateLimitFallbackForTests, mcpServer } from './mcpServer'
+import {
+	getMcpAgentClient,
+	normalizeMcpClient,
+	resetRateLimitFallbackForTests,
+	mcpServer,
+} from './mcpServer'
+import { readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import {
 	blobValuesOf,
@@ -96,11 +104,15 @@ vi.mock('./searchBoards', () => ({ searchAccessibleBoards: vi.fn() }))
 vi.mock('./createBoard', () => ({ createBoardForUser: vi.fn() }))
 vi.mock('./listWorkspaces', () => ({ listWorkspacesForUser: vi.fn() }))
 vi.mock('./renameBoard', () => ({ renameBoardForUser: vi.fn() }))
+// Postgres and the file's Durable Object are covered in pageComments.test.ts and
+// mcpCommentWrite.test.ts; these tests are about the dispatch around them.
+vi.mock('./pageComments', () => ({ readPageCommentRows: vi.fn(), writeCommentForUser: vi.fn() }))
 
 beforeEach(() => {
 	vi.mocked(authenticateMcpRequest).mockImplementation(async (request: any) => ({
 		ok: true,
 		userId: request.headers.get('x-test-user') ?? 'user_default',
+		clientId: request.headers.get('x-test-client') ?? null,
 	}))
 	// Not the caller's file unless a test says otherwise, which leaves published boards as the default
 	// way a board resolves — the same starting point these tests had before the access check existed.
@@ -209,13 +221,18 @@ function tabAnswering(outcome: TabRenderOutcome): FakeTab {
 function makeRpcRequest(
 	method: string,
 	params?: unknown,
-	{ userAgent, userId = 'user_default' }: { userAgent?: string; userId?: string } = {}
+	{
+		userAgent,
+		userId = 'user_default',
+		clientId,
+	}: { userAgent?: string; userId?: string; clientId?: string } = {}
 ) {
 	return new Request('https://sync.tldraw.xyz/app/mcp', {
 		method: 'POST',
 		headers: {
 			'cf-connecting-ip': `203.0.113.${++requestId}`,
 			'x-test-user': userId,
+			...(clientId ? { 'x-test-client': clientId } : {}),
 			...(userAgent ? { 'user-agent': userAgent } : {}),
 		},
 		body: JSON.stringify({ jsonrpc: '2.0', id: 1, method, params }),
@@ -438,6 +455,8 @@ describe('MCP server', () => {
 			'apply_ops',
 			'get_user_state',
 			'get_board_users',
+			'read_page_comments',
+			'write_comment',
 		])
 	})
 })
@@ -728,6 +747,11 @@ describe('search_boards', () => {
 
 		const on = await rpcResult(await mcpServer(makeRpcRequest('initialize'), makeEnv()))
 		expect(on.instructions).toContain('find a board by name')
+
+		for (const instructions of [off.instructions, on.instructions]) {
+			expect(instructions).toContain('read_page_comments')
+			expect(instructions).toContain('write_comment')
+		}
 	})
 
 	// Production runs with name matching off while the unindexed ILIKE scan is being watched. The
@@ -1008,6 +1032,276 @@ describe('rename_board', () => {
 		expect(blocked.content[0].text).toContain('Renaming boards is limited')
 		expect(renameBoardForUser).toHaveBeenCalledTimes(MCP_RENAME_PER_USER_RATE_LIMIT)
 		expect(failureBlobsOf(env)).toContain('failure:rate_limited_rename')
+	})
+})
+
+describe('read_page_comments', () => {
+	function grantSharedFile() {
+		grantReadAccess()
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+	}
+
+	it('reads the threads on the requested page of the file, marking the caller’s comments', async () => {
+		grantSharedFile()
+		vi.mocked(readPageCommentRows).mockResolvedValue({
+			threads: [
+				{
+					id: 'comment-thread:t',
+					anchor: { type: 'shape', shapeId: 'shape:page:b-0', x: 1, y: 0, isPrecise: false },
+					resolvedAt: null,
+					createdAt: 1,
+				},
+			],
+			comments: [
+				{
+					id: 'comment:c',
+					threadId: 'comment-thread:t',
+					authorId: 'user_me',
+					authorName: 'Me',
+					body: {
+						type: 'doc',
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Hi' }] }],
+					},
+					createdAt: Date.UTC(2026, 0, 1),
+					meta: {},
+				},
+			],
+			hasMore: false,
+		})
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+
+		const result = await callTool('read_page_comments', { boardId: 'f1', page: 1 }, env, 'user_me')
+
+		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b', {
+			includeResolved: false,
+			after: null,
+		})
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			pageId: 'page:b',
+			pageName: 'Ideas',
+			threadCount: 1,
+			threads: [
+				{
+					threadId: 'comment-thread:t',
+					resolved: false,
+					anchor: { type: 'shape', shapeId: 'shape:page:b-0', shapeType: 'geo' },
+					comments: [
+						{
+							commentId: 'comment:c',
+							authorName: 'Me',
+							isCurrentUser: true,
+							meta: {},
+							createdAt: '2026-01-01T00:00:00.000Z',
+							text: 'Hi',
+						},
+					],
+				},
+			],
+		})
+	})
+
+	it('reads on from a cursor, and refuses one from another page', async () => {
+		grantSharedFile()
+		vi.mocked(readPageCommentRows).mockResolvedValue({ threads: [], comments: [], hasMore: false })
+		const env = makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		const cursor = encodeCommentThreadCursor({
+			pageId: 'page:b',
+			createdAt: 7,
+			threadId: 'comment-thread:t',
+		})
+
+		await callTool('read_page_comments', { boardId: 'f1', page: 1, cursor }, env)
+		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b', {
+			includeResolved: false,
+			after: { pageId: 'page:b', createdAt: 7, threadId: 'comment-thread:t' },
+		})
+
+		vi.mocked(readPageCommentRows).mockClear()
+		const wrongPage = await callTool('read_page_comments', { boardId: 'f1', page: 0, cursor }, env)
+		expect(wrongPage.isError).toBe(true)
+		expect(wrongPage.content[0].text).toContain('different page')
+		expect(readPageCommentRows).not.toHaveBeenCalled()
+	})
+
+	it('refuses a published board, which has no comments', async () => {
+		mockPublishedBoard()
+		const env = makeEnv()
+		const result = await callTool('read_page_comments', { boardId: 'pub' }, env)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toContain('published')
+		expect(readPageCommentRows).not.toHaveBeenCalled()
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['comments_unavailable'])
+	})
+
+	it('reports a failed read as a tool error', async () => {
+		grantSharedFile()
+		vi.mocked(readPageCommentRows).mockRejectedValue(new Error('connection refused'))
+		const result = await callTool(
+			'read_page_comments',
+			{ boardId: 'f1' },
+			makeEnv({ ROOMS: makeFakeRoomsBucket() })
+		)
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not read comments: the board database could not be reached.'
+		)
+	})
+})
+
+describe('write_comment', () => {
+	const WRITTEN = {
+		ok: true as const,
+		threadId: 'comment-thread:t',
+		commentId: 'comment:c',
+		pageId: 'page:a',
+		newThread: true,
+		queued: false,
+	}
+
+	it('takes the name the agent gives, but the app from its OAuth client', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const env = makeEnv()
+		const request = makeRpcRequest(
+			'tools/call',
+			{
+				name: 'write_comment',
+				arguments: { boardId: 'board_abc', text: 'Hi', threadId: 't', agentName: 'ChatGPT' },
+			},
+			{ userId: 'user_abc', clientId: 'https://claude.ai/oauth/mcp-oauth-client-metadata' }
+		)
+		await mcpServer(request, env)
+
+		// A Claude calling itself ChatGPT is still drawn with Claude's logo.
+		expect(vi.mocked(writeCommentForUser).mock.calls[0][2]).toMatchObject({
+			agentName: 'ChatGPT',
+			agentClient: 'claude',
+		})
+	})
+
+	it('names an unnamed agent after its OAuth client', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const request = makeRpcRequest(
+			'tools/call',
+			{ name: 'write_comment', arguments: { boardId: 'board_abc', text: 'Hi', threadId: 't' } },
+			{ userId: 'user_abc', clientId: 'https://chatgpt.com/oauth/client.json' }
+		)
+		await mcpServer(request, makeEnv())
+		expect(vi.mocked(writeCommentForUser).mock.calls[0][2]).toMatchObject({
+			agentName: 'ChatGPT',
+			agentClient: 'openai',
+		})
+	})
+
+	it('posts as the caller and links to the thread on the client origin', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const env = makeEnv()
+		const result = await callTool(
+			'write_comment',
+			{ boardId: 'board_abc', text: ' Too narrow? ', shapeId: 'box' },
+			env,
+			'user_abc'
+		)
+
+		expect(writeCommentForUser).toHaveBeenCalledWith(env, 'user_abc', {
+			boardId: 'board_abc',
+			text: 'Too narrow?',
+			// Not named in the call, and neither the OAuth client nor the User-Agent is one we know.
+			agentName: 'Agent',
+			agentClient: null,
+			target: { kind: 'shape', shapeId: 'shape:box' },
+		})
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			boardId: 'board_abc',
+			threadId: 'comment-thread:t',
+			commentId: 'comment:c',
+			pageId: 'page:a',
+			newThread: true,
+			url: 'https://render.example/f/board_abc?comment=comment-thread%3At',
+		})
+	})
+
+	// read_page_comments reads Postgres, so an agent that misses its comment there would post it again.
+	it('tells the agent not to retry a comment that has not reached Postgres yet', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({ ...WRITTEN, queued: true })
+		const result = await callTool('write_comment', {
+			boardId: 'board_abc',
+			text: 'Hi',
+			threadId: 't',
+		})
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			commentId: 'comment:c',
+			queued: true,
+			note: COMMENT_QUEUED_NOTE,
+		})
+	})
+
+	it('passes a permission refusal through with its own telemetry reason', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({
+			ok: false,
+			reason: 'comment_forbidden',
+			result: { content: [{ type: 'text', text: 'View-only' }], isError: true },
+		})
+		const env = makeEnv()
+		const result = await callTool(
+			'write_comment',
+			{ boardId: 'board_abc', text: 'Hi', threadId: 't' },
+			env
+		)
+		expect(result).toEqual({ content: [{ type: 'text', text: 'View-only' }], isError: true })
+		expect(blobValuesOf(env, 'mcp_server_tool_call', 'reason')).toEqual(['comment_forbidden'])
+	})
+
+	it('rejects a call with no text or no target before touching the board', async () => {
+		const noText = await callTool('write_comment', { boardId: 'board_abc', threadId: 't' })
+		expect(noText.isError).toBe(true)
+		expect(noText.content[0].text).toContain('text is required')
+		const noTarget = await callTool('write_comment', { boardId: 'board_abc', text: 'Hi' })
+		expect(noTarget.isError).toBe(true)
+		expect(noTarget.content[0].text).toContain('Say where the comment goes')
+		expect(writeCommentForUser).not.toHaveBeenCalled()
+	})
+
+	it('reports a failed write as a tool error', async () => {
+		vi.mocked(writeCommentForUser).mockRejectedValue(new Error('object reset'))
+		const result = await callTool('write_comment', {
+			boardId: 'board_abc',
+			text: 'Hi',
+			x: 1,
+			y: 2,
+			page: 'page:a',
+		})
+		expect(result.isError).toBe(true)
+		expect(result.content[0].text).toBe(
+			'Could not post the comment: the comment could not be saved.'
+		)
+	})
+
+	it(`shares the board tools' limit of ${MCP_TAB_PER_USER_RATE_LIMIT} calls per account per minute`, async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue(WRITTEN)
+		const env = makeEnv()
+		const results = []
+		for (let i = 0; i <= MCP_TAB_PER_USER_RATE_LIMIT; i++) {
+			results.push(
+				await callTool('write_comment', { boardId: 'b', text: 'Hi', threadId: 't' }, env, 'user_cm')
+			)
+		}
+		expect(results.slice(0, MCP_TAB_PER_USER_RATE_LIMIT).map((r) => r.isError)).toEqual(
+			Array(MCP_TAB_PER_USER_RATE_LIMIT).fill(undefined)
+		)
+		const blocked = results[MCP_TAB_PER_USER_RATE_LIMIT]
+		expect(blocked.isError).toBe(true)
+		expect(writeCommentForUser).toHaveBeenCalledTimes(MCP_TAB_PER_USER_RATE_LIMIT)
+		expect(failureBlobsOf(env)).toContain('failure:rate_limited_tab')
+		const other = await callTool(
+			'write_comment',
+			{ boardId: 'b', text: 'Hi', threadId: 't' },
+			env,
+			'user_x'
+		)
+		expect(other.isError).toBeUndefined()
 	})
 })
 
@@ -2167,6 +2461,17 @@ describe('protocol telemetry', () => {
 		// The raw name is kept alongside the family, so a client we do not recognize yet can be found.
 		expect(blobValuesOf(env, INITIALIZE_EVENT, 'raw')).toEqual(['Claude'])
 		expect(blobValuesOf(env, INITIALIZE_EVENT, 'ua')).toEqual(['none'])
+	})
+
+	it('reads the app behind an agent from its OAuth client id, never guessing', () => {
+		expect(getMcpAgentClient('https://claude.ai/oauth/mcp-oauth-client-metadata')).toBe('claude')
+		expect(getMcpAgentClient('https://chatgpt.com/oauth/client.json')).toBe('openai')
+		expect(getMcpAgentClient('https://www.cursor.com/mcp/client')).toBe('cursor')
+		// Lookalikes, opaque ids and nothing at all get no logo.
+		expect(getMcpAgentClient('https://claude.ai.example.com/client')).toBeNull()
+		expect(getMcpAgentClient('https://notclaude.ai/client')).toBeNull()
+		expect(getMcpAgentClient('client_2abc')).toBeNull()
+		expect(getMcpAgentClient(null)).toBeNull()
 	})
 
 	it('normalizes client strings into a bounded set of families', () => {
