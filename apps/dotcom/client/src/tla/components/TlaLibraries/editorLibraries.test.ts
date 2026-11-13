@@ -101,7 +101,7 @@ describe('getEditorLibraries', () => {
 		const { userId, source } = setUp()
 		expect(source.getLibraryOwners?.()?.map(({ id, name }) => ({ id, name }))).toEqual([
 			{ id: 'file-a', name: 'This board' },
-			{ id: userId, name: 'Private to you' },
+			{ id: userId, name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
 		])
 		expect(namesOf(source, userId)).toEqual(['Wireframes', 'Icons'])
