@@ -218,7 +218,12 @@ export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxSha
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export { type TLContent } from './lib/editor/types/clipboard-types'
-export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
+export {
+	type TLEventMap,
+	type TLEventMapHandler,
+	type TLSkippedWrite,
+	type TLWriteSkipReason,
+} from './lib/editor/types/emit-types'
 export {
 	EVENT_NAME_MAP,
 	type TLBaseEventInfo,

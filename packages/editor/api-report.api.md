@@ -1362,6 +1362,7 @@ export class Editor extends EventEmitter<TLEventMap> {
     getIsMounted(): boolean;
     // (undocumented)
     getIsReadonly(): boolean;
+    getLastSkippedWrite(): null | TLSkippedWrite;
     // @internal
     getMarkIdMatching(idSubstring: string): null | string;
     getNearestAdjacentShape(shapes: TLShape[], currentShapeId: TLShapeId, direction: 'down' | 'left' | 'right' | 'up'): TLShapeId;
@@ -1509,6 +1510,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     // (undocumented)
     isShapeOfType<T extends TLShape = TLShape>(shapeId: TLShapeId, type: T['type']): boolean;
     isShapeOrAncestorLocked(shape?: TLShape | TLShapeId): boolean;
+    // @internal (undocumented)
+    _isSkipReportingPaused: boolean;
     // @internal
     licenseManager?: LicenseManager;
     loadSnapshot(snapshot: Partial<TLEditorSnapshot> | TLStoreSnapshot, opts?: TLLoadSnapshotOptions): this;
@@ -4191,6 +4194,8 @@ export interface TLEventMap {
     // (undocumented)
     'stop-following': [];
     // (undocumented)
+    'write-skipped': [TLSkippedWrite];
+    // (undocumented)
     change: [HistoryEntry<TLRecord>];
     // (undocumented)
     crash: [{
@@ -4822,6 +4827,13 @@ export interface TLShapeWrapperProps extends React.HTMLAttributes<HTMLDivElement
     shape: TLShape;
 }
 
+// @public
+export interface TLSkippedWrite {
+    ids: TLRecord['id'][];
+    method: string;
+    reason: TLWriteSkipReason;
+}
+
 // @public (undocumented)
 export type TLSpinnerProps = React.SVGProps<SVGSVGElement>;
 
@@ -5070,6 +5082,9 @@ export type TLWheelEventInfo = TLBaseEventInfo & {
     point: VecModel;
     type: 'wheel';
 };
+
+// @public
+export type TLWriteSkipReason = 'locked' | 'max-pages' | 'max-shapes' | 'missing-reference' | 'not-allowed' | 'not-found' | 'readonly';
 
 // @public
 export function toDomPrecision(v: number): number;
