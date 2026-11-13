@@ -655,11 +655,13 @@ export class TldrawApp {
 				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
 		},
 		addingTldrFiles: {
-			// A single file navigates instead of toasting, so English only ever shows the plural.
-			// Still a plural — see the gate in `internal/scripts/i18n-extract.ts` for why "never
-			// one" isn't a reason to skip it.
+			// Shown after a multi-file import, so `one` means the other files failed to import.
 			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
+		// toast title
+		could_not_import_tldr_file: { defaultMessage: 'Couldn’t import {fileName}.' },
+		// toast description
+		invalid_tldr_file: { defaultMessage: 'It isn’t a valid .tldr file.' },
 		copied_invite_link: { defaultMessage: 'Copied invite link' },
 		// toast title
 		accept_invite_error_title: { defaultMessage: 'Error accepting invite' },
@@ -1376,6 +1378,8 @@ export class TldrawApp {
 			)
 		}
 
+		let createdFiles = 0
+		let didFail = false
 		for (const f of files) {
 			const res = await this.uploadTldrFile(
 				f,
@@ -1385,18 +1389,6 @@ export class TldrawApp {
 				},
 				workspaceId
 			).catch((e) => Result.err(e))
-			if (!res.ok) {
-				clearTimeout(uploadingToastTimeout)
-				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
-				this.toasts?.addToast({
-					severity: 'error',
-					title: this.msg(this.messages.unknown_error),
-					keepOpen: true,
-				})
-				console.error(res.error)
-				onUploadError?.()
-				return
-			}
 
 			updateToast({
 				title: this.msg(this.messages.uploadingTldrFiles, {
@@ -1405,6 +1397,24 @@ export class TldrawApp {
 				}),
 			})
 
+			if (!res.ok) {
+				didFail = true
+				// Disposing the app aborts every remaining upload, so don't toast each of them.
+				if (this.abortController.signal.aborted) break
+				console.error(res.error)
+				this.toasts?.addToast({
+					severity: 'error',
+					title: this.msg(this.messages.could_not_import_tldr_file, { fileName: f.name }),
+					description:
+						res.error === 'could not parse file'
+							? this.msg(this.messages.invalid_tldr_file)
+							: undefined,
+					keepOpen: true,
+				})
+				continue
+			}
+
+			createdFiles++
 			this.trackEvent('create-file', { source })
 
 			if (onFirstFileUploaded) {
@@ -1413,14 +1423,19 @@ export class TldrawApp {
 			}
 		}
 		didFinishUploading = true
+		clearTimeout(uploadingToastTimeout)
 
 		if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 
-		if (totalFiles > 1) {
+		// importFromUrl waits on a promise that only this or onFirstFileUploaded settles.
+		if (didFail) onUploadError?.()
+		if (this.abortController.signal.aborted) return
+
+		if (totalFiles > 1 && createdFiles > 0) {
 			this.toasts?.addToast({
 				severity: 'success',
 				title: this.msg(this.messages.addingTldrFiles, {
-					total: files.length,
+					total: createdFiles,
 				}),
 				keepOpen: true,
 			})

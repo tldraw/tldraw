@@ -26,8 +26,9 @@ function createAppStub({
 		abortController: new AbortController(),
 		toasts: { addToast, removeToast: vi.fn(), toasts: { update: vi.fn() } },
 		messages: {},
-		// Translation isn't what these assert, and `messages` is empty, so stub it out as before.
-		msg: () => '',
+		// `messages` is empty, so echo the interpolated values to let tests assert on file names.
+		msg: (_message: unknown, values?: Record<string, unknown>) =>
+			values ? JSON.stringify(values) : '',
 		trackEvent: vi.fn(),
 		uploadTldrFile,
 	})
@@ -86,5 +87,75 @@ describe('uploadTldrFiles', () => {
 
 		expect(uploadTldrFile).not.toHaveBeenCalled()
 		expect(onUploadError).toHaveBeenCalledTimes(1)
+	})
+
+	it('imports the remaining files when one fails, and names the file that failed', async () => {
+		const { app, uploadTldrFile, addToast } = createAppStub({
+			ownedFileCount: 0,
+			maxNumberOfFiles: 200,
+		})
+		uploadTldrFile.mockImplementation(async (file: File) =>
+			file.name === 'board-1.tldr'
+				? ({ ok: false, error: 'could not parse file' } as any)
+				: { ok: true, value: { fileId: file.name } }
+		)
+		const onFirstFileUploaded = vi.fn()
+		const onUploadError = vi.fn()
+
+		await app.uploadTldrFiles(makeFiles(3), {
+			source: 'file-drop',
+			onFirstFileUploaded,
+			onUploadError,
+		})
+
+		expect(uploadTldrFile).toHaveBeenCalledTimes(3)
+		expect(onFirstFileUploaded).toHaveBeenCalledTimes(1)
+		expect(onFirstFileUploaded).toHaveBeenCalledWith('board-0.tldr')
+		expect(onUploadError).toHaveBeenCalledTimes(1)
+		expect(addToast).toHaveBeenCalledWith(
+			expect.objectContaining({
+				severity: 'error',
+				title: expect.stringContaining('board-1.tldr'),
+			})
+		)
+		expect(addToast).toHaveBeenCalledWith(
+			expect.objectContaining({ severity: 'success', title: JSON.stringify({ total: 2 }) })
+		)
+	})
+
+	it('names the file when its upload throws', async () => {
+		const { app, uploadTldrFile, addToast } = createAppStub({
+			ownedFileCount: 0,
+			maxNumberOfFiles: 200,
+		})
+		uploadTldrFile.mockRejectedValueOnce(new Error('network down'))
+
+		await app.uploadTldrFiles(makeFiles(2), { source: 'file-drop' })
+
+		expect(uploadTldrFile).toHaveBeenCalledTimes(2)
+		expect(addToast).toHaveBeenCalledWith(
+			expect.objectContaining({
+				severity: 'error',
+				title: expect.stringContaining('board-0.tldr'),
+			})
+		)
+	})
+
+	it('calls onUploadError once and stops when the app is disposed mid-import', async () => {
+		const { app, uploadTldrFile, addToast } = createAppStub({
+			ownedFileCount: 0,
+			maxNumberOfFiles: 200,
+		})
+		uploadTldrFile.mockImplementation(async () => {
+			;(app as any).abortController.abort()
+			return { ok: false, error: 'aborted' } as any
+		})
+		const onUploadError = vi.fn()
+
+		await app.uploadTldrFiles(makeFiles(3), { source: 'file-drop', onUploadError })
+
+		expect(uploadTldrFile).toHaveBeenCalledTimes(1)
+		expect(onUploadError).toHaveBeenCalledTimes(1)
+		expect(addToast).not.toHaveBeenCalled()
 	})
 })
