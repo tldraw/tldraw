@@ -132,6 +132,8 @@ export function TlaMenuSelect<T extends string>({
 	onChange,
 	options,
 	actions,
+	variant = 'inline',
+	onHighlight,
 	'data-testid': dataTestId,
 }: {
 	id: string
@@ -151,6 +153,9 @@ export function TlaMenuSelect<T extends string>({
 		// Shown on hover when the action is disabled (e.g. why it can't be used).
 		tooltip?: ReactNode
 	}[]
+	variant?: 'inline' | 'field'
+	// Fires as options are hovered or arrowed through, and with null when the list closes.
+	onHighlight?(value: T | null): void
 	'data-testid'?: string
 }) {
 	const container = useContainer()
@@ -168,10 +173,19 @@ export function TlaMenuSelect<T extends string>({
 
 	return (
 		<div className={styles.menuSelectWrapper}>
-			<_Select.Root value={value} onValueChange={handleChange}>
+			<_Select.Root
+				value={value}
+				onValueChange={handleChange}
+				onOpenChange={(open) => {
+					if (!open) onHighlight?.(null)
+				}}
+			>
 				<_Select.Trigger
 					id={id}
-					className={styles.menuSelectTrigger}
+					className={classNames(
+						styles.menuSelectTrigger,
+						variant === 'field' && styles.menuSelectTriggerField
+					)}
 					disabled={disabled}
 					aria-label={label}
 					data-testid={dataTestId}
@@ -186,6 +200,9 @@ export function TlaMenuSelect<T extends string>({
 				<_Select.Portal container={container}>
 					<_Select.Content
 						className={styles.menuSelectContent}
+						// Radix moves focus to the list (not an item) when the pointer leaves an item, so
+						// item focus alone would leave the last hovered option highlighted.
+						onPointerLeave={() => onHighlight?.(null)}
 						position="popper"
 						side="bottom"
 						align="end"
@@ -198,6 +215,7 @@ export function TlaMenuSelect<T extends string>({
 									className={styles.menuSelectOption}
 									value={option.value}
 									disabled={option.disabled}
+									onFocus={() => onHighlight?.(option.value)}
 								>
 									<_Select.ItemIndicator>
 										<TlaIcon icon="check" />
