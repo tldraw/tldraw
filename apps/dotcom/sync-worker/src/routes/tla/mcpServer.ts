@@ -79,7 +79,7 @@ import {
 	readPageInOpenTab,
 	readUserStateInOpenTab,
 } from './mcpTabRender'
-import { readPageCommentRows, writeCommentForUser } from './pageComments'
+import { readMentionableUsers, readPageCommentRows, writeCommentForUser } from './pageComments'
 import { renameBoardForUser } from './renameBoard'
 import { searchAccessibleBoards } from './searchBoards'
 import {
@@ -961,10 +961,28 @@ async function callBoardInfoTool(
 	if (!parsed.ok) return parsed.result
 	const input = parsed.input
 
+	// The people a comment can @mention, with the ids write_comment takes, read alongside the board
+	// rather than after it. Safe to start before the access check: the query applies the caller's own
+	// roster rules, and its answer is used only once the board has let them in. The roster is extra
+	// to the board's info, so a failed read lists nobody rather than failing the tool.
+	const peopleRead = readMentionableUsers(env, input.boardId, userId).catch((error) => {
+		reportThumbnailError(error, {
+			ctx,
+			env,
+			request,
+			surface: 'mcp_board_info',
+			extras: { boardId: input.boardId, operation: 'read_mentionable_users' },
+		})
+		return null
+	})
 	try {
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
-		return getBoardInfo(loaded.snapshot, loaded.fileName)
+		// A published copy has no comments, so it lists none.
+		const roster = loaded.isFile ? await peopleRead : null
+		const people =
+			roster?.map((person) => ({ ...person, isCurrentUser: person.id === userId })) ?? null
+		return getBoardInfo(loaded.snapshot, loaded.fileName, people)
 	} catch (error) {
 		// No `telemetry`: this tool isn't on the screenshot ledger.
 		return toolFailure(error, {

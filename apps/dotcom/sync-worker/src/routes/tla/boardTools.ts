@@ -25,6 +25,7 @@ import {
 	TLArrowBinding,
 	TLCommentAnchor,
 	TLInstancePresence,
+	TLRichText,
 	TLShape,
 	VecModel,
 	b64Vecs,
@@ -815,7 +816,12 @@ export function getReportedBoardName(name: string | null | undefined): string {
 // viewers see), and for an eval fixture, which has no row. The snapshot's `document` record is no
 // substitute for a file board: the room copies the row's name onto it only when the row is
 // updated (renamed, shared, published, moved), so it stays empty until then.
-export function getBoardInfo(snapshot: RoomSnapshot, fileName: string | null): ToolResult {
+export function getBoardInfo(
+	snapshot: RoomSnapshot,
+	fileName: string | null,
+	/** Who comments on the board can mention; null for a published board, which has no comments. */
+	people: (MentionableUser & { isCurrentUser: boolean })[] | null = null
+): ToolResult {
 	const pages = enumerateBoardPages(snapshot)
 	return toolJsonResult({
 		name: getReportedBoardName(fileName ?? getDocumentNameFromSnapshot(snapshot)),
@@ -828,6 +834,7 @@ export function getBoardInfo(snapshot: RoomSnapshot, fileName: string | null): T
 			name: p.name,
 			hasContent: p.hasContent,
 		})),
+		...(people ? { people } : {}),
 	})
 }
 
@@ -1573,6 +1580,7 @@ export type CommentWriteRefusal =
 	| { reason: 'thread_resolved'; threadId: string }
 	| { reason: 'shape_not_found'; shapeId: string }
 	| { reason: 'page_not_found'; pageId: string }
+	| { reason: 'unknown_mention'; userIds: string[] }
 
 export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
 	switch (refusal.reason) {
@@ -1593,6 +1601,8 @@ export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
 			return `No shape with id "${refusal.shapeId}" on this board. Shape ids come from get_cluster_info or read_page_comments.`
 		case 'page_not_found':
 			return `No page with id "${refusal.pageId}" on this board. Page ids come from get_board_info.`
+		case 'unknown_mention':
+			return `Can't mention ${refusal.userIds.map((id) => `"${id}"`).join(', ')}: not someone on this board. Mention people from get_board_info's people, as @[name](id).`
 	}
 }
 
@@ -1692,6 +1702,9 @@ export function parseWriteCommentInput(input: unknown): {
 	if (text.length > COMMENT_TEXT_MAX_LENGTH) {
 		throw new Error(`text must be at most ${COMMENT_TEXT_MAX_LENGTH} characters`)
 	}
+	if (getTextMentionIds(text).length > COMMENT_MENTION_MAX) {
+		throw new Error(`text can mention at most ${COMMENT_MENTION_MAX} people`)
+	}
 
 	const threadId = optionalString(value.threadId, 'threadId')
 	const shapeId = optionalString(value.shapeId, 'shapeId')
@@ -1758,10 +1771,64 @@ function ensureCommentThreadId(id: string) {
 }
 
 /**
+ * How an agent writes and reads a mention: `@[name](id)`. One form both ways, so a mention read from
+ * read_page_comments can be pasted straight into write_comment. Only the id is trusted on write; the
+ * name is replaced with the user's own, so an agent can't put words in a mention.
+ *
+ * The id has to look like a user id (Clerk's `user_` and base62), so a Markdown link such as
+ * `@[the spec](https://…)` stays plain text rather than being refused as an unknown mention.
+ */
+const MENTION_PATTERN = /@\[([^\]\n]*)\]\(([\w-]+)\)/g
+
+/** Most people one comment can mention, so one call can't notify a whole workspace. */
+export const COMMENT_MENTION_MAX = 10
+
+/** Someone a comment on a board may mention: the people tldraw.com's own @-picker offers there. */
+export interface MentionableUser {
+	id: string
+	name: string
+}
+
+function formatMention(name: string, id: string) {
+	// Brackets in a name would end the mention early when it's read back.
+	return `@[${name.replace(/[[\]]/g, '')}](${id})`
+}
+
+/** The distinct user ids `text` mentions, in first-seen order. */
+export function getTextMentionIds(text: string): string[] {
+	return [...new Set([...text.matchAll(MENTION_PATTERN)].map((m) => m[2]))]
+}
+
+/**
+ * Plain comment text as rich text: one paragraph per line, as `toRichText` makes, with each
+ * `@[name](id)` as a mention node named from `names` rather than from the text.
+ */
+export function commentTextToRichText(text: string, names: Map<string, string>): TLRichText {
+	return {
+		type: 'doc',
+		content: text.split('\n').map((line) => {
+			const content: object[] = []
+			let last = 0
+			for (const match of line.matchAll(MENTION_PATTERN)) {
+				if (match.index > last) content.push({ type: 'text', text: line.slice(last, match.index) })
+				const id = match[2]
+				content.push({ type: 'mention', attrs: { id, label: names.get(id) ?? match[1] } })
+				last = match.index + match[0].length
+			}
+			if (last < line.length) content.push({ type: 'text', text: line.slice(last) })
+			return content.length ? { type: 'paragraph', content } : { type: 'paragraph' }
+		}),
+	} as TLRichText
+}
+
+/**
  * A comment body as plain text: blocks on their own lines, mentions as `@name`. A stand-in for the
  * commenting package's renderer, which needs TipTap and the editor, neither of which a Worker has.
  */
-export function commentBodyToPlainText(body: unknown): string {
+export function commentBodyToPlainText(
+	body: unknown,
+	{ mentionIds = false }: { mentionIds?: boolean } = {}
+): string {
 	const blocks: string[] = []
 	let line = ''
 	const visit = (node: unknown) => {
@@ -1773,9 +1840,11 @@ export function commentBodyToPlainText(body: unknown): string {
 			content?: unknown
 		}
 		if (type === 'text' && typeof text === 'string') line += text
-		else if (type === 'mention')
-			line += `@${typeof attrs?.label === 'string' ? attrs.label : 'someone'}`
-		else if (type === 'hardBreak') line += '\n'
+		else if (type === 'mention') {
+			const label = typeof attrs?.label === 'string' ? attrs.label : 'someone'
+			line +=
+				mentionIds && typeof attrs?.id === 'string' ? formatMention(label, attrs.id) : `@${label}`
+		} else if (type === 'hardBreak') line += '\n'
 		if (Array.isArray(content)) for (const child of content) visit(child)
 		if (type === 'paragraph' || type === 'heading' || type === 'codeBlock') {
 			blocks.push(line)
@@ -1840,10 +1909,11 @@ export function getPageCommentsResult(
 				commentId: comment.id,
 				// tldraw.com's own fallback for an author it cannot name, such as a deleted account.
 				authorName: comment.authorName.trim() || 'Someone',
+				authorId: comment.authorId,
 				isCurrentUser: comment.authorId === userId,
 				meta: toMetaObject(comment.meta),
 				createdAt: new Date(comment.createdAt).toISOString(),
-				text: commentBodyToPlainText(comment.body),
+				text: commentBodyToPlainText(comment.body, { mentionIds: true }),
 			})),
 		}))
 
@@ -2124,7 +2194,7 @@ function getBoardInfoToolDefinition() {
 		name: BOARD_INFO_TOOL_NAME,
 		title: 'Get tldraw board info',
 		description:
-			'Return metadata for a tldraw.com board you have access to: its name, page count, and the id, name, 0-based index, and hasContent flag for each page. Call this first, then pass a page id or index to get_page_info.',
+			'Return metadata for a tldraw.com board you have access to: its name, page count, the id, name, 0-based index, and hasContent flag for each page, and the people you can @mention in its comments (their id and name). Call this first, then pass a page id or index to get_page_info.',
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2327,7 +2397,7 @@ function getReadPageCommentsToolDefinition() {
 		name: READ_PAGE_COMMENTS_TOOL_NAME,
 		title: 'Read tldraw page comments',
 		description:
-			'List the open comment threads on one page in order of recency, 20 at a time. When there are more, the result has a nextCursor: pass it as cursor for the next 20.',
+			"List the open comment threads on one page in order of recency, 20 at a time. When there are more, the result has a nextCursor: pass it as cursor for the next 20. Each comment has its author's name and id, and shows a mention as @[name](id), the same form write_comment takes.",
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2371,7 +2441,8 @@ function getWriteCommentToolDefinition() {
 				text: {
 					type: 'string',
 					maxLength: COMMENT_TEXT_MAX_LENGTH,
-					description: 'Comment text.',
+					description:
+						"Comment text. Mention someone as @[name](id), with an id from get_board_info's people (only they can be mentioned); their own name is used whatever you write in the brackets.",
 				},
 				threadId: {
 					type: 'string',

@@ -8,7 +8,8 @@ import {
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import { getFileRoomAccess } from './authorizeFileRecord'
-import { planMcpComment } from './mcpCommentWrite'
+import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
+import { createFakeKysely } from './test/fakeKysely'
 
 const ME = 'user_me'
 const body = toRichText('Looks good')
@@ -177,5 +178,61 @@ describe('getFileRoomAccess', () => {
 		// A legacy value fails closed.
 		expect(getFileRoomAccess(file(true, 'legacy-something'), null)).toBe('read')
 		expect(getFileRoomAccess(file(false), null)).toBe('none')
+	})
+})
+
+describe('resolveCommentMentions', () => {
+	const FILE = 'file_1'
+	function resolve(text: string, roster: { members?: object[]; visitors?: object[] } = {}) {
+		const fake = createFakeKysely([[{ members: [], visitors: [], ...roster }]])
+		const result = resolveCommentMentions(fake.db, { fileId: FILE, userId: ME, text })
+		return { fake, result }
+	}
+
+	it('mentions by id, named from our records rather than the text', async () => {
+		const { result } = resolve('@[The Boss](user_a) take a look', {
+			members: [{ id: 'user_a', name: 'Ada Lovelace' }],
+		})
+		expect(await result).toEqual({
+			ok: true,
+			body: {
+				type: 'doc',
+				content: [
+					{
+						type: 'paragraph',
+						content: [
+							{ type: 'mention', attrs: { id: 'user_a', label: 'Ada Lovelace' } },
+							{ type: 'text', text: ' take a look' },
+						],
+					},
+				],
+			},
+		})
+	})
+
+	it('refuses the ids the caller’s roster does not have, and only those', async () => {
+		const { result } = resolve('@[Ada](user_a) and @[Eve](user_eve) and @[Gus](user_g)', {
+			members: [{ id: 'user_a', name: 'Ada' }],
+			visitors: [{ id: 'user_g', name: '' }],
+		})
+		expect(await result).toEqual({ ok: false, reason: 'unknown_mention', userIds: ['user_eve'] })
+	})
+
+	it('asks Postgres nothing for a comment that mentions nobody', async () => {
+		const { fake, result } = resolve('no mentions here')
+		expect(await result).toMatchObject({ ok: true })
+		expect(fake.queries).toEqual([])
+	})
+
+	// The rules of tldraw.com's own synced queries: members only for a member of the owning
+	// workspace, visitors only for someone who has opened the file, never the caller as a visitor.
+	it('looks up only the mentioned ids, under the caller’s own roster rules', async () => {
+		const { fake, result } = resolve('@[Ada](user_a) @[Eve](user_eve)')
+		await result
+		const [query] = fake.queries
+		expect(query.sql).toContain('"group_user" as "caller"')
+		expect(query.sql).toContain('"file_state"')
+		expect(query.sql).toMatch(/"userId" != \$\d+/)
+		expect(query.parameters).toEqual(expect.arrayContaining([FILE, ME, 'user_a', 'user_eve']))
 	})
 })

@@ -12,7 +12,8 @@ vi.mock('../../utils/durableObjects', () => ({
 
 const { createPostgresConnectionPool } = await import('../../postgres')
 const { getRoomDurableObject } = await import('../../utils/durableObjects')
-const { readPageCommentRows, writeCommentForUser } = await import('./pageComments')
+const { readMentionableUsers, readPageCommentRows, writeCommentForUser } =
+	await import('./pageComments')
 
 const env = {} as Environment
 const USER_ID = 'user_me'
@@ -62,7 +63,7 @@ describe('writeCommentForUser', () => {
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
 		})
 		// The text is the agent's own: tldraw.com marks the comment from its meta instead.
-		expect(call.body.content[0].content[0]).toEqual({ type: 'text', text: 'Done' })
+		expect(call.text).toBe('Done')
 	})
 
 	// The same answer as a missing board, so ids cannot be probed.
@@ -192,5 +193,49 @@ describe('readPageCommentRows', () => {
 		expect(read.comments).toHaveLength(COMMENT_THREADS_PAGE_SIZE)
 		expect(read.threads.at(-1)?.createdAt).toBe(100 - COMMENT_THREADS_PAGE_SIZE + 1)
 		expect(fake.queries[0].parameters).toEqual(expect.arrayContaining([101, 'comment-thread:zz']))
+	})
+})
+
+describe('mentions', () => {
+	it('lists workspace members, then visitors who are not members, with a fallback name', async () => {
+		const fake = createFakeKysely([
+			[
+				{
+					members: [{ id: 'user_a', name: 'Ada' }],
+					visitors: [
+						{ id: 'user_a', name: 'Ada' },
+						{ id: 'user_g', name: '' },
+					],
+				},
+			],
+		])
+		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+		expect(await readMentionableUsers(env, BOARD_ID, USER_ID)).toEqual([
+			{ id: 'user_a', name: 'Ada' },
+			{ id: 'user_g', name: 'Someone' },
+		])
+		expect(fake.queries[0].parameters).toContain(USER_ID)
+		expect(fake.destroy).toHaveBeenCalled()
+	})
+
+	// The object checks mentions after its own access gate, so a caller who can't see the board or
+	// can't comment on it learns nothing about who is on it.
+	it('leaves mentions to the object, without asking Postgres first', async () => {
+		writeMcpComment.mockResolvedValue({
+			ok: false,
+			reason: 'unknown_mention',
+			userIds: ['user_eve'],
+		})
+		const outcome = await writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
+			agentClient: 'claude',
+			boardId: BOARD_ID,
+			text: '@[Eve](user_eve) look',
+			target: { kind: 'reply', threadId: 'comment-thread:t' },
+		})
+		expect(writeMcpComment.mock.calls[0][0].text).toBe('@[Eve](user_eve) look')
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
+		expect(outcome).toMatchObject({ ok: false, reason: 'unknown_mention' })
+		expect(errorText(outcome)).toContain('"user_eve"')
 	})
 })
