@@ -1,4 +1,5 @@
 import { Box, StateNode, TLPointerEventInfo, TLShapeId, pointInPolygon } from '@tldraw/editor'
+import { canDeleteShape } from '../../SelectTool/selectHelpers'
 
 export class Erasing extends StateNode {
 	static override id = 'erasing'
@@ -19,8 +20,8 @@ export class Erasing extends StateNode {
 			this.editor
 				.getCurrentPageShapes()
 				.filter((shape) => {
-					//If the shape is locked, we shouldn't erase it
-					if (this.editor.isShapeOrAncestorLocked(shape)) return true
+					// a locked shape, or one the user can't delete, stays
+					if (!canDeleteShape(this.editor, shape)) return true
 					// A frame the press hit on its outline stays marked: a press just inside the outline
 					// is within the frame's bounds, so the containment check below would otherwise
 					// unmark it on the first move while a press just outside would erase it

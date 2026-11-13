@@ -1,5 +1,7 @@
 import { SerializedSchema, UnknownRecord } from '@tldraw/store'
+import type { TLPermissionGrant, TLWriteRefusal } from '@tldraw/tlschema'
 import { NetworkDiff, ObjectDiff, RecordOpType } from './diff'
+import type { TLSessionAccess } from './TLSyncRoom'
 
 const TLSYNC_PROTOCOL_VERSION = 8
 
@@ -86,6 +88,20 @@ export type TLIncompatibilityReason =
 /* eslint-enable @typescript-eslint/no-deprecated */
 
 /**
+ * The custom message a room sends when a session's permissions change. Sync handles it itself;
+ * it never reaches `onCustomMessageReceived`.
+ *
+ * @internal
+ */
+export const TL_PERMISSIONS_MESSAGE = 'tl:permissions'
+
+/** @internal */
+export interface TLPermissionsMessage {
+	type: typeof TL_PERMISSIONS_MESSAGE
+	permissions: readonly TLPermissionGrant[] | null
+}
+
+/**
  * Union type representing all possible message types that can be sent from server to client.
  *
  * This encompasses the complete set of server-originated WebSocket messages in the tldraw
@@ -118,12 +134,17 @@ export type TLSocketServerSentEvent<R extends UnknownRecord> =
 			schema: SerializedSchema
 			diff: NetworkDiff<R>
 			serverClock: number
+			/** Write access to the document and the object store. Optional and additive: older servers omit it. */
+			access?: TLSessionAccess
+			/** The authenticated user this session was connected as. Optional and additive, like `access`. */
+			userId?: string | null
+			/** Named permissions the server granted this session. Left out when the room doesn't use them, or by an older server. */
+			permissions?: readonly TLPermissionGrant[]
+			/** The record types the room keeps in the object store. Optional and additive, like `access`: an older server omits it, which is not the same as an empty list. */
+			objectTypes?: string[]
+			/** @deprecated use `access.document`; still sent for older clients */
 			isReadonly: boolean
-			/**
-			 * Write access for object-store lane record types, when the room has an object lane.
-			 * Optional and additive: servers without an object lane (or older servers) omit it, and
-			 * older clients ignore it — no protocol version bump needed.
-			 */
+			/** @deprecated use `access.objects`; still sent for older clients */
 			objectAccess?: TLObjectStoreAccess
 	  }
 	| {
@@ -174,7 +195,17 @@ export type TLSocketServerSentDataEvent<R extends UnknownRecord> =
 			clientClock: number
 			serverClock: number
 			action: 'discard' | 'commit' | { rebaseWithDiff: NetworkDiff<R> }
+			/** Set on `discard` when the room's `authorize` rule refused the push. */
+			refused?: TLSyncRefusal
 	  }
+
+/**
+ * Why the room's `authorize` rule refused a push: a short reason for the client and, when the rule
+ * knows, the ids of the records that caused it.
+ *
+ * @public
+ */
+export type TLSyncRefusal = TLWriteRefusal
 
 /**
  * Interface defining a client-to-server push request message.

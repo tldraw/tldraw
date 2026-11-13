@@ -3,6 +3,7 @@ import {
 	ClientWebSocketAdapter,
 	TLCustomMessageHandler,
 	TLObjectStoreAccess,
+	TLSessionAccess,
 	TLPersistentClientSocket,
 	TLPresenceMode,
 	TLRemoteSyncError,
@@ -10,20 +11,25 @@ import {
 	TLSocketServerSentEvent,
 	TLSyncClient,
 	TLSyncErrorCloseEventReason,
+	TLSyncRefusal,
 } from '@tldraw/sync-core'
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import {
 	Editor,
 	TAB_ID,
 	TLAssetStore,
+	TLPermissionGrant,
 	TLPresenceStateInfo,
 	TLRecord,
+	TLRefusal,
 	TLStore,
+	TLStoreAuthorize,
 	TLStoreSchemaOptions,
 	TLStoreWithStatus,
 	TLThemes,
 	TLUser,
 	TLUserStore,
+	TLWriteRule,
 	UserRecordType,
 	computed,
 	createCachedUserResolve,
@@ -104,11 +110,9 @@ export type RemoteTLStoreWithStatus =
 			{ status: 'synced-local' } | { status: 'not-synced' } | { status: 'synced-remote' }
 	  >
 	| (Extract<TLStoreWithStatus, { status: 'synced-remote' }> & {
-			/**
-			 * Write access for object-store lane record types (e.g. comments), as granted by the
-			 * server for this session. Independent of the canvas read-only state, so a session can
-			 * be allowed to comment without being allowed to edit. Defaults to `'write'`.
-			 */
+			/** Write access to the document and the object store, as granted by the server for this session. */
+			readonly access: TLSessionAccess
+			/** @deprecated use `access.objects` */
 			readonly objectAccess: TLObjectStoreAccess
 	  })
 
@@ -134,6 +138,7 @@ export type RemoteTLStoreWithStatus =
  *   - `users` - User store for identity, presence and attribution
  *   - `getUserPresence` - Optional function to customize presence data
  *   - `onCustomMessageReceived` - Handler for custom socket messages
+ *   - `onPushRefused` - Called when the server's write rule refused one of this client's pushes
  *   - `roomId` - Room identifier for analytics (internal use)
  *   - `onMount` - Callback when editor mounts (internal use)
  *   - `trackAnalyticsEvent` - Analytics event tracker (internal use)
@@ -199,7 +204,7 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 	const [state, setState] = useRefState<{
 		readyClient?: TLSyncClient<TLRecord, TLStore>
 		error?: Error
-		objectAccess?: TLObjectStoreAccess
+		access?: TLSessionAccess
 	} | null>(null)
 	const {
 		uri,
@@ -211,6 +216,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		trackAnalyticsEvent: track,
 		getUserPresence: _getUserPresence,
 		onCustomMessageReceived: _onCustomMessageReceived,
+		onPushRefused: _onPushRefused,
+		authorize: _authorize,
 		themes,
 		...schemaOpts
 	} = opts
@@ -229,6 +236,11 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		(_getUserPresence ?? getDefaultUserPresence) as typeof getDefaultUserPresence
 	)
 	const onCustomMessageReceived = useEvent(_onCustomMessageReceived ?? defaultCustomMessageHandler)
+	const onPushRefused = useEvent((refusal: TLSyncRefusal) => _onPushRefused?.(refusal))
+	// a new `authorize` object every render must not mean a new client every render
+	const authorizeRef = useRef(_authorize)
+	authorizeRef.current = _authorize
+	const hasAuthorize = !!_authorize
 
 	useEffect(() => {
 		const storeId = uniqueId()
@@ -307,6 +319,32 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		})
 
 		const syncMode = atom('sync mode', 'readwrite' as 'readonly' | 'readwrite')
+		const refusalListeners = new Set<(refusal: TLRefusal) => void>()
+
+		// What the server granted on the latest connect. Kept while offline, so local edits are
+		// judged by the last grant until a reconnect brings a new one.
+		const granted = atom<{
+			userId: string | null
+			access: TLSessionAccess
+			permissions: readonly TLPermissionGrant[] | null
+		} | null>('sync granted session', null)
+		const permissions = computed('sync permissions', () => granted.get()?.permissions ?? null)
+		// undefined until a connect brings them, and after one from a server too old to send them
+		const roomObjectTypes = atom<readonly string[] | undefined>('sync object types', undefined)
+		const authorize: TLStoreAuthorize<undefined> | undefined = hasAuthorize
+			? {
+					rule: (args) => authorizeRef.current?.rule(args) ?? null,
+					getSession: () => {
+						const session = granted.get()
+						if (!session) return null
+						return { sessionId: TAB_ID, ...session, meta: undefined }
+					},
+					get objectTypes() {
+						// eslint-disable-next-line @typescript-eslint/no-deprecated
+						return roomObjectTypes.get() ?? authorizeRef.current?.objectTypes
+					},
+				}
+			: undefined
 
 		const store = createTLStore({
 			id: storeId,
@@ -314,9 +352,16 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			assets,
 			users,
 			onMount,
+			authorize,
 			collaboration: {
 				status: collaborationStatusSignal,
 				mode: syncMode,
+				refusals: {
+					subscribe: (listener) => (
+						refusalListeners.add(listener), () => void refusalListeners.delete(listener)
+					),
+				},
+				permissions,
 			},
 		})
 
@@ -343,10 +388,10 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 			didCancel: () => didCancel,
 			onLoad(client) {
 				track?.(MULTIPLAYER_EVENT_NAME, { name: 'load', roomId })
-				// Keep objectAccess (onAfterConnect always runs first for this client) but drop the
+				// Keep access (onAfterConnect always runs first for this client) but drop the
 				// rest: an `error` left behind by a previous client (e.g. NOT_FOUND on the old uri)
 				// would otherwise keep the hook reporting status 'error' for the new, healthy room.
-				setState((prev) => ({ readyClient: client, objectAccess: prev?.objectAccess }))
+				setState((prev) => ({ readyClient: client, access: prev?.access }))
 			},
 			onSyncError(reason) {
 				console.error('sync error', reason)
@@ -358,14 +403,16 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				setState({ error: new TLRemoteSyncError(reason) })
 				socket.close()
 			},
-			onAfterConnect(_, { isReadonly, objectAccess }) {
-				// Object-lane (comment) write access is decided per session by the server and can
-				// change on reconnect (e.g. when the file's share tier changes), so surface it on
-				// the returned status for consumers that gate comment UI. This fires before the
-				// first onLoad, hence the merge in both directions.
-				setState((prev) => ({ ...prev, objectAccess }))
+			onAfterConnect(_, { access, userId, permissions, objectTypes }) {
+				// Access is decided per session by the server and can change on reconnect (e.g.
+				// when the file's share tier changes), so surface it on the returned status for
+				// consumers that gate UI. This fires before the first onLoad, hence the merge in both
+				// directions.
+				setState((prev) => ({ ...prev, access }))
 				transact(() => {
-					syncMode.set(isReadonly ? 'readonly' : 'readwrite')
+					granted.set({ userId, access, permissions })
+					roomObjectTypes.set(objectTypes)
+					syncMode.set(access.document === 'read' ? 'readonly' : 'readwrite')
 					// if the server crashes and loses all data it can return an empty document
 					// when it comes back up. This is a safety check to make sure that if something like
 					// that happens, it won't render the app broken and require a restart. The user will
@@ -376,6 +423,20 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				})
 			},
 			onCustomMessageReceived,
+			onPermissionsChanged(permissions) {
+				granted.update((session) => session && { ...session, permissions })
+			},
+			onPushRefused(refusal) {
+				// Editor listeners first, so a throwing host callback can't swallow the editor event
+				for (const listener of refusalListeners) {
+					try {
+						listener({ ...refusal, source: 'server' })
+					} catch (e) {
+						console.error('refusal listener threw', e)
+					}
+				}
+				onPushRefused(refusal)
+			},
 			presence,
 			presenceMode,
 		})
@@ -398,6 +459,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 		uri,
 		getUserPresence,
 		onCustomMessageReceived,
+		onPushRefused,
+		hasAuthorize,
 	])
 
 	return useValue<RemoteTLStoreWithStatus>(
@@ -410,7 +473,8 @@ export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLSt
 				status: 'synced-remote',
 				connectionStatus: toCollaborationStatus(state.readyClient.socket.connectionStatus),
 				store: state.readyClient.store,
-				objectAccess: state.objectAccess ?? 'write',
+				access: state.access ?? { document: 'write', objects: 'write' },
+				objectAccess: state.access?.objects ?? 'write',
 			}
 		},
 		[state]
@@ -507,6 +571,37 @@ export interface UseSyncOptionsBase {
 	 */
 	onCustomMessageReceived?(data: any): void
 
+	/**
+	 * Called when the server's write rule (`authorize` on the room) refused one of this client's
+	 * pushes. The change has already been reverted locally; use this to tell the user why.
+	 *
+	 * @example
+	 * ```ts
+	 * onPushRefused: ({ reason }) => toast(`Change not saved: ${reason}`)
+	 * ```
+	 */
+	onPushRefused?(refusal: TLSyncRefusal): void
+
+	/**
+	 * The room's write rule, run in the editor too, so a change the room would refuse is reverted
+	 * before it's sent. The editor judges it the way the room does: the session's `access` first,
+	 * then the rule, one editor operation at a time. The session is the one the server granted
+	 * (`userId`, `access`, and `permissions`, kept current), with `meta` undefined: the room's
+	 * `meta` isn't sent to the client, so anything the rule needs here belongs in `permissions`.
+	 * Until the first connect every change is refused. The room sends its `objectTypes` on
+	 * connect too.
+	 *
+	 * Only a rule that depends on its arguments and on code both sides share gives the same answer
+	 * here as on the server. The server stays the authority: whatever this lets through, the room
+	 * judges again.
+	 *
+	 * @example
+	 * ```ts
+	 * authorize: { rule: classroomRule }
+	 * ```
+	 */
+	authorize?: UseSyncAuthorize
+
 	/** @internal */
 	onMount?(editor: Editor): void
 	/** @internal used for analytics only, we should refactor this away */
@@ -547,6 +642,25 @@ export interface UseSyncOptionsBase {
 	 * ```
 	 */
 	getUserPresence?(store: TLStore, user: TLUser): TLPresenceStateInfo | null
+}
+
+/**
+ * The write rule a {@link useSync} editor runs locally. See {@link UseSyncOptionsBase.authorize}.
+ *
+ * @public
+ */
+export interface UseSyncAuthorize {
+	/**
+	 * The same rule the room was given as `authorize`. The session's `meta` is undefined here: the
+	 * room keeps it on the server.
+	 */
+	rule: TLWriteRule<TLRecord, undefined>
+	/**
+	 * Used only when the server doesn't send its own on connect (an older server).
+	 *
+	 * @deprecated sent by the room on connect
+	 */
+	objectTypes?: readonly string[]
 }
 
 /** @public */

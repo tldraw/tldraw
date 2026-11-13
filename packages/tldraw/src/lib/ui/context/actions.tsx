@@ -44,6 +44,10 @@ import {
 	areAllSelectedFrames,
 	canApplySelectionAction as canApplySelection,
 	canApplyToUnlockedSelection,
+	canDeleteSelection,
+	canDuplicateSelection,
+	canReplaceSelection,
+	canUngroupSelection,
 	canFitFrameToContent,
 	canFlatten,
 	canFlipSelection,
@@ -61,7 +65,6 @@ import {
 	isGroupAllowed,
 	isOnlyEmbeddableBookmarkSelected,
 	isOnlyEmbedWithUrlSelected,
-	isUngroupAllowed,
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
@@ -396,6 +399,9 @@ function getSelectedOrAllShapeIds(editor: Editor) {
 	return ids.length > 0 ? ids : Array.from(editor.getCurrentPageShapeIds())
 }
 
+const canCreateAndUpdate = (editor: Editor) =>
+	editor.isPermitted('tl:shape:create') && editor.isPermitted('tl:shape:update')
+
 /** @internal */
 export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const _editor = useMaybeEditor()
@@ -551,6 +557,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-embed',
+				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
 				label: messages.actionInsertEmbed.id,
 				kbd: 'cmd+i,ctrl+i',
 				onSelect(source) {
@@ -571,6 +578,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'insert-media',
+				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
 				label: messages.actionInsertMedia.id,
 				kbd: 'cmd+u,ctrl+u',
 				onSelect(source) {
@@ -717,7 +725,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-auto-size',
-				isEnabled: (editor) => editor.isIn('select') && canToggleAutoSize(editor),
+				isEnabled: (editor) =>
+					editor.isIn('select') && hasUnlockedSelection(editor, 1) && canToggleAutoSize(editor),
 				label: messages.actionToggleAutoSize.id,
 				onSelect(source) {
 					trackEvent('toggle-auto-size', { source })
@@ -792,7 +801,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'convert-to-bookmark',
-				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbedWithUrlSelected(editor),
+				isEnabled: (editor) => isOnlyEmbedWithUrlSelected(editor) && canReplaceSelection(editor),
 				label: messages.actionConvertToBookmark.id,
 				async onSelect(source) {
 					trackEvent('convert-to-bookmark', { source })
@@ -828,7 +837,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'convert-to-embed',
-				isEnabled: (editor) => editor.isIn('select') && isOnlyEmbeddableBookmarkSelected(editor),
+				isEnabled: (editor) =>
+					isOnlyEmbeddableBookmarkSelected(editor) && canReplaceSelection(editor),
 				label: messages.actionConvertToEmbed.id,
 				onSelect(source) {
 					trackEvent('convert-to-embed', { source })
@@ -876,7 +886,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'duplicate',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: canDuplicateSelection,
 				kbd: 'cmd+d,ctrl+d',
 				label: messages.actionDuplicate.id,
 				icon: 'duplicate',
@@ -921,7 +931,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'ungroup',
-				isEnabled: (editor) => editor.isIn('select') && isUngroupAllowed(editor),
+				isEnabled: canUngroupSelection,
 				label: messages.actionUngroup.id,
 				kbd: 'cmd+shift+g,ctrl+shift+g',
 				icon: 'ungroup',
@@ -929,7 +939,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'group',
-				isEnabled: (editor) => editor.isIn('select') && isGroupAllowed(editor),
+				// creates the group and reparents the selection into it
+				isEnabled: (editor) =>
+					editor.isIn('select') && isGroupAllowed(editor) && canCreateAndUpdate(editor),
 				label: messages.actionGroup.id,
 				icon: 'group',
 				onSelect: groupSelectedShapes,
@@ -947,13 +959,21 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'frame-selection',
-				isEnabled: (editor) => editor.isIn('select') && canFrameSelection(editor),
+				isEnabled: (editor) =>
+					editor.isIn('select') &&
+					hasUnlockedSelection(editor, 1) &&
+					canFrameSelection(editor) &&
+					canCreateAndUpdate(editor),
 				label: messages.actionFrameSelection.id,
 				onSelect: frameSelectedShapes,
 			},
 			{
 				id: 'remove-frame',
-				isEnabled: (editor) => editor.isIn('select') && areAllSelectedFrameLike(editor),
+				isEnabled: (editor) =>
+					editor.isIn('select') &&
+					hasUnlockedSelection(editor, 1) &&
+					areAllSelectedFrameLike(editor) &&
+					editor.isPermitted('tl:shape:delete'),
 				label: messages.actionRemoveFrame.id,
 				kbd: 'cmd+alt+shift+g,ctrl+alt+shift+g',
 				onSelect: removeSelectedFrames,
@@ -970,7 +990,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'fit-frame-to-content',
-				isEnabled: (editor) => editor.isIn('select') && canFitFrameToContent(editor),
+				isEnabled: (editor) =>
+					editor.isIn('select') && hasUnlockedSelection(editor, 1) && canFitFrameToContent(editor),
 				label: messages.actionFitFrameToContent.id,
 				onSelect(source) {
 					trackEvent('fit-frame-to-content', { source })
@@ -1235,7 +1256,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'cut',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: canDeleteSelection,
 				label: messages.actionCut.id,
 				kbd: 'cmd+x,ctrl+x',
 				onSelect(source) {
@@ -1255,6 +1276,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'paste',
 				isAvailable: canReadClipboard,
+				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
 				label: messages.actionPaste.id,
 				kbd: 'cmd+v,ctrl+v',
 				onSelect(source) {
@@ -1273,6 +1295,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				// Cmd+Option+V: paste at cursor (or center if paste-at-cursor pref is on)
 				id: 'paste-at-cursor',
+				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
 				label: messages.actionPaste.id,
 				kbd: '$?v',
 				onSelect(source) {
@@ -1287,6 +1310,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				// Cmd+Shift+Option+V: paste plain text at cursor (or center if pref is on)
 				id: 'paste-plain-text-at-cursor',
+				isEnabled: (editor) => editor.isPermitted('tl:shape:create'),
 				label: messages.actionPaste.id,
 				kbd: '$!?v',
 				onSelect() {
@@ -1338,7 +1362,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'delete',
-				isEnabled: (editor) => canApplyToUnlockedSelection(editor, 1),
+				isEnabled: canDeleteSelection,
 				label: messages.actionDelete.id,
 				kbd: '⌫,del',
 				icon: 'trash',
@@ -1660,7 +1684,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'unlock-all',
-				isEnabled: hasLockedShapesOnPage,
+				isEnabled: (editor) =>
+					hasLockedShapesOnPage(editor) && editor.isPermitted('tl:shape:update'),
 				label: messages.actionUnlockAll.id,
 				onSelect(source) {
 					trackEvent('unlock-all', { source })
@@ -1781,7 +1806,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'toggle-lock',
-				isEnabled: canApplySelection,
+				// not hasUnlockedSelection: a locked shape has to stay unlockable
+				isEnabled: (editor) => canApplySelection(editor) && editor.isPermitted('tl:shape:update'),
 				label: messages.actionToggleLock.id,
 				kbd: 'shift+l',
 				onSelect(source) {
@@ -1793,7 +1819,9 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			{
 				id: 'move-to-new-page',
 				isEnabled: (editor) =>
-					hasUnlockedSelection(editor, 1) && editor.getPages().length < editor.options.maxPages,
+					hasUnlockedSelection(editor, 1) &&
+					editor.getPages().length < editor.options.maxPages &&
+					editor.isPermitted('tl:page:create'),
 				label: messages.contextPagesNewPage.id,
 				onSelect(source) {
 					const newPageId = PageRecordType.createId()
@@ -1835,7 +1863,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			},
 			{
 				id: 'flatten-to-image',
-				isEnabled: canFlatten,
+				isEnabled: (editor) => canFlatten(editor) && canReplaceSelection(editor),
 				label: messages.actionFlattenToImage.id,
 				kbd: 'shift+f',
 				onSelect: async (source) => {
@@ -1890,8 +1918,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 
 					// If we're on the last page...
 					if (currentPageIndex === -1 || currentPageIndex >= pages.length - 1) {
-						// if the current page is blank or if we're in readonly mode, do nothing
-						if (editor.getCurrentPageShapes().length <= 0 || editor.getIsReadonly()) {
+						// if the current page is blank, or we're in readonly mode or can't create pages, do nothing
+						if (
+							editor.getCurrentPageShapes().length <= 0 ||
+							editor.getIsReadonly() ||
+							!editor.isPermitted('tl:page:create')
+						) {
 							return
 						}
 						// Otherwise, create a new page

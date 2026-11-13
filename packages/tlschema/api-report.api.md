@@ -14,6 +14,7 @@ import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -1693,6 +1694,12 @@ export type TLPageId = RecordId<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public
+export type TLPermission = 'tl:page:create' | 'tl:page:delete' | 'tl:page:update' | 'tl:shape:create' | 'tl:shape:delete' | 'tl:shape:update';
+
+// @public
+export type TLPermissionGrant = (string & {}) | TLPermission;
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1734,6 +1741,28 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export type TLRecordChange<R extends UnknownRecord = UnknownRecord> = {
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    next: R;
+    prev: R;
+    type: 'update';
+};
+
+// @public
+export interface TLRefusal extends TLWriteRefusal {
+    changes?: RecordsDiff<TLRecord>;
+    // (undocumented)
+    source: 'local' | 'server';
+}
+
+// @public
 export interface TLRemovedDefaultThemeColors {
 }
 
@@ -1758,6 +1787,14 @@ export interface TLScribble {
 
 // @public
 export type TLSerializedStore = SerializedStore<TLRecord>;
+
+// @public
+export interface TLSessionAccess {
+    // (undocumented)
+    document: 'read' | 'write';
+    // (undocumented)
+    objects: 'read' | 'write';
+}
 
 // @public
 export type TLShape<K extends keyof TLIndexedShapes = keyof TLIndexedShapes> = TLIndexedShapes[K];
@@ -1787,9 +1824,22 @@ export type TLShapePartial<T extends TLShape = TLShape> = T extends T ? {
 export type TLStore = Store<TLRecord, TLStoreProps>;
 
 // @public
+export interface TLStoreAuthorize<Meta = unknown> {
+    getSession?(): null | TLWriteRuleSession<Meta>;
+    objectTypes?: readonly string[];
+    // (undocumented)
+    rule: TLWriteRule<TLRecord, Meta>;
+}
+
+// @public
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
+    authorize?: TLStoreAuthorize<any>;
     collaboration?: {
+        refusals?: {
+            subscribe(listener: (refusal: TLRefusal) => void): () => void;
+        } | null;
+        permissions?: null | Signal<null | readonly TLPermissionGrant[]>;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
@@ -1986,6 +2036,41 @@ export interface TLVideoShapeProps {
     url: string;
     // (undocumented)
     w: number;
+}
+
+// @public
+export interface TLWriteRefusal {
+    // (undocumented)
+    ids?: string[];
+    // (undocumented)
+    reason: string;
+}
+
+// @public
+export type TLWriteRule<R extends UnknownRecord = UnknownRecord, Meta = unknown> = (args: TLWriteRuleArgs<R, Meta>) => null | TLWriteRefusal;
+
+// @public
+export interface TLWriteRuleArgs<R extends UnknownRecord = UnknownRecord, Meta = unknown> {
+    // (undocumented)
+    after(id: string): R | undefined;
+    // (undocumented)
+    before(id: string): R | undefined;
+    // (undocumented)
+    changes: TLRecordChange<R>[];
+    // (undocumented)
+    session: TLWriteRuleSession<Meta>;
+}
+
+// @public
+export interface TLWriteRuleSession<Meta = unknown> {
+    // (undocumented)
+    access: TLSessionAccess;
+    // (undocumented)
+    meta: Meta;
+    permissions: null | readonly TLPermissionGrant[];
+    // (undocumented)
+    sessionId: string;
+    userId: null | string;
 }
 
 // @public

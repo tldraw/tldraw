@@ -17,6 +17,7 @@ import {
 	createUserId,
 	registerColorsFromThemes,
 	registerFontsFromThemes,
+	TLStoreAuthorize,
 } from '@tldraw/tlschema'
 import { FileHelpers, assert } from '@tldraw/utils'
 import { Editor } from '../editor/Editor'
@@ -53,6 +54,9 @@ export interface TLStoreBaseOptions {
 
 	/** Called when the store is connected to an {@link @tldraw/editor#Editor}. */
 	onMount?(editor: Editor): void | (() => void)
+
+	/** A write rule the editor enforces on this user's changes. See {@link @tldraw/tlschema#TLStoreAuthorize}. */
+	authorize?: TLStoreAuthorize<any>
 }
 
 /** @public */
@@ -75,6 +79,10 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 	collaboration?: {
 		status: Signal<'online' | 'offline'> | null
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/** Refusals of this user's changes by the server; the editor re-emits them as `'refused'`. */
+		refusals?: NonNullable<TLStoreProps['collaboration']>['refusals']
+		/** The server's grants for this session; read through `editor.getPermissions()`. */
+		permissions?: NonNullable<TLStoreProps['collaboration']>['permissions']
 	}
 } & TLStoreSchemaOptions
 
@@ -151,6 +159,7 @@ export function createTLStore({
 	users = defaultUserStore,
 	onMount,
 	collaboration,
+	authorize,
 	themes,
 	...rest
 }: TLStoreOptions = {}): TLStore {
@@ -184,6 +193,7 @@ export function createTLStore({
 				return onMount?.(editor)
 			},
 			collaboration,
+			authorize,
 		},
 	})
 

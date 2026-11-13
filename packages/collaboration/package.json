@@ -56,6 +56,7 @@
 	},
 	"dependencies": {
 		"@tldraw/commenting": "workspace:*",
+		"@tldraw/permissions": "workspace:*",
 		"@tldraw/utils": "workspace:*"
 	}
 }

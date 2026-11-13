@@ -1,7 +1,11 @@
 import { StateNode, TLClickEventInfo, TLPointerEventInfo, TLShape } from '@tldraw/editor'
 import { isOverArrowLabel } from '../../../shapes/arrow/arrowLabel'
 import { getTextLabels } from '../../../utils/shapes/shapes'
-import { isPlainDoubleClickDown, isPointInRotatedSelectionBounds } from '../selectHelpers'
+import {
+	hasUpdatableSelection,
+	isPlainDoubleClickDown,
+	isPointInRotatedSelectionBounds,
+} from '../selectHelpers'
 
 export class PointingShape extends StateNode {
 	static override id = 'pointing_shape'
@@ -254,6 +258,8 @@ export class PointingShape extends StateNode {
 			this.editor.markHistoryStoppingPoint('selecting shape')
 			this.editor.setSelectedShapes([shapeToSelect.id])
 		}
+
+		if (!hasUpdatableSelection(this.editor)) return
 
 		// Re-focus the editor, just in case the text label of the shape has stolen focus
 		this.editor.focus()

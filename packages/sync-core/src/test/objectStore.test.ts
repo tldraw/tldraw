@@ -262,17 +262,21 @@ describe('object store lane', () => {
 				objectAccess: 'write',
 			})
 
+			// a push that also writes the document is refused whole, not split
 			const doc = Doc.create({ title: 'nope' })
-			const note = Note.create({ text: 'yep' })
+			const refusedNote = Note.create({ text: 'nope' })
 			push(room, 'commenter', {
 				[doc.id]: [RecordOpType.Put, doc],
-				[note.id]: [RecordOpType.Put, note],
+				[refusedNote.id]: [RecordOpType.Put, refusedNote],
 			})
-
-			// only the object op survives, so the client is rebased onto it
 			expect(lastPushResult(socket)).toMatchObject({
-				action: { rebaseWithDiff: { [note.id]: [RecordOpType.Put, note] } },
+				action: 'discard',
+				refused: { reason: 'document is read-only', ids: [doc.id] },
 			})
+			expect(storedIds(storage)).toEqual([])
+
+			const note = Note.create({ text: 'yep' })
+			push(room, 'commenter', { [note.id]: [RecordOpType.Put, note] })
 			expect(storedIds(storage)).toEqual([note.id])
 		})
 
@@ -280,16 +284,20 @@ describe('object store lane', () => {
 			const { room, storage } = makeRoom({ objectTypes: ['note'] })
 			const socket = connectSession(room, 'editor', { objectAccess: 'read' })
 
-			const doc = Doc.create({ title: 'yep' })
+			const refusedDoc = Doc.create({ title: 'nope' })
 			const note = Note.create({ text: 'nope' })
 			push(room, 'editor', {
-				[doc.id]: [RecordOpType.Put, doc],
+				[refusedDoc.id]: [RecordOpType.Put, refusedDoc],
 				[note.id]: [RecordOpType.Put, note],
 			})
-
 			expect(lastPushResult(socket)).toMatchObject({
-				action: { rebaseWithDiff: { [doc.id]: [RecordOpType.Put, doc] } },
+				action: 'discard',
+				refused: { reason: 'object store is read-only', ids: [note.id] },
 			})
+			expect(storedIds(storage)).toEqual([])
+
+			const doc = Doc.create({ title: 'yep' })
+			push(room, 'editor', { [doc.id]: [RecordOpType.Put, doc] })
 			expect(storedIds(storage)).toEqual([doc.id])
 		})
 
@@ -402,6 +410,20 @@ describe('object store lane', () => {
 			const reader = connectSession(room, 'reader', { objectAccess: 'read', clear: false })
 			const readerConnect = reader.__messages.find((m: any) => m.type === 'connect') as any
 			expect(readerConnect.objectAccess).toBe('read')
+		})
+
+		it('carries the room objectTypes, an empty list when the room has none', () => {
+			const withTypes = connectSession(makeRoom({ objectTypes: ['note'] }).room, 's', {
+				clear: false,
+			})
+			expect(withTypes.__messages.find((m: any) => m.type === 'connect')).toMatchObject({
+				objectTypes: ['note'],
+			})
+
+			const without = connectSession(makeRoom().room, 's', { clear: false })
+			expect(without.__messages.find((m: any) => m.type === 'connect')).toMatchObject({
+				objectTypes: [],
+			})
 		})
 	})
 

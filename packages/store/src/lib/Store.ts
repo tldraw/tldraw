@@ -7,6 +7,8 @@ import {
 	isUninitialized,
 	reactor,
 	transact,
+	transaction,
+	unsafe__withoutCapture,
 } from '@tldraw/state'
 import {
 	WeakCache,
@@ -23,7 +25,15 @@ import {
 import { AtomMap } from './AtomMap'
 import { IdOf, RecordId, UnknownRecord } from './BaseRecord'
 import { devFreeze } from './devFreeze'
-import { hasAnyKey, isRecordsDiffEmpty, RecordsDiff, squashRecordDiffs } from './RecordsDiff'
+import {
+	createEmptyRecordsDiff,
+	hasAnyKey,
+	isRecordsDiffEmpty,
+	RecordsDiff,
+	reverseRecordsDiff,
+	squashRecordDiffs,
+	squashRecordDiffsMutable,
+} from './RecordsDiff'
 import { RecordScope } from './RecordType'
 import { StoreQueries } from './StoreQueries'
 import { SerializedSchema, StoreSchema } from './StoreSchema'
@@ -529,6 +539,12 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private isFlushingHistory = false
 
 	public _flushHistory() {
+		// listeners must never see changes a pending commit check may still revert
+		if (this.checkedChanges) {
+			this.didDeferFlush = true
+			return
+		}
+		this.didDeferFlush = false
 		// If we have accumulated history, flush it and update listeners
 		const version = this.history.__unsafe__getWithoutCapture()
 		const entries = this.historyAccumulator.flush(version)
@@ -607,6 +623,9 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 		// Set the atom before recording the entry: interceptors run inside `add`, and a flush they
 		// trigger (e.g. via `listen`) would otherwise discard the entry as not yet committed.
 		this.history.set(version, changes)
+		if (this.checkedChanges && !this.isMergingRemoteChanges && !this.isUnchecked) {
+			squashRecordDiffsMutable(this.checkedChanges, [changes])
+		}
 		this.historyAccumulator.add(
 			{
 				changes,
@@ -1239,12 +1258,33 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 
 	private _integrityChecker?: () => void | undefined
 
+	private isUnchecked = false
+
+	/**
+	 * Run housekeeping writes the store or editor makes for itself (repairs, the current user's
+	 * record) without commit checks. Refusing one would bring back the state it fixes, and the
+	 * next fix would loop. Inside a checked operation they're judged as part of it.
+	 *
+	 * @internal
+	 */
+	runUnchecked<T>(fn: () => T): T {
+		const wasUnchecked = this.isUnchecked
+		this.isUnchecked = true
+		try {
+			return fn()
+		} finally {
+			this.isUnchecked = wasUnchecked
+		}
+	}
+
 	/** @internal */
 	ensureStoreIsUsable() {
-		this.atomic(() => {
-			this._integrityChecker ??= this.schema.createIntegrityChecker(this)
-			this._integrityChecker?.()
-		})
+		this.runUnchecked(() =>
+			this.atomic(() => {
+				this._integrityChecker ??= this.schema.createIntegrityChecker(this)
+				this._integrityChecker?.()
+			})
+		)
 	}
 
 	private _isPossiblyCorrupted = false
@@ -1306,6 +1346,16 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 	private _isInAtomicOp = false
 	/** @internal */
 	atomic<T>(fn: () => T, runCallbacks = true, isMergingRemoteChanges = false): T {
+		// a user operation outside any check scope is its own checked unit
+		if (
+			!this._isInAtomicOp &&
+			this.checkScopeDepth === 0 &&
+			this.commitChecks.size > 0 &&
+			!isMergingRemoteChanges &&
+			!this.isUnchecked
+		) {
+			return this.checkAsOneOperation(() => this.atomic(fn, runCallbacks, isMergingRemoteChanges))
+		}
 		return transact(() => {
 			if (this._isInAtomicOp) {
 				if (!this.pendingAfterEvents) this.pendingAfterEvents = new Map()
@@ -1347,6 +1397,121 @@ export class Store<R extends UnknownRecord = UnknownRecord, Props = unknown> {
 				this.isMergingRemoteChanges = false
 			}
 		})
+	}
+
+	private readonly commitChecks = new Set<
+		(changes: RecordsDiff<R>) => TLStoreCommitRefusal | null
+	>()
+	private checkedChanges: RecordsDiff<R> | null = null
+	private didDeferFlush = false
+	private readonly settledListeners = new Set<(outcome: TLStoreOperationOutcome) => void>()
+
+	/**
+	 * Called at the end of every checked operation, once its outcome is final: after a refused one
+	 * was reverted (and before its check is told), after an aborted one (it threw) was rolled back.
+	 * Lets state kept outside the store's atoms (history) follow the operation's fate.
+	 *
+	 * @internal
+	 */
+	onCheckedOperationSettled(listener: (outcome: TLStoreOperationOutcome) => void): () => void {
+		this.settledListeners.add(listener)
+		return () => {
+			this.settledListeners.delete(listener)
+		}
+	}
+
+	/** Whether a commit check will judge what's being written now. @internal */
+	isInCheckedOperation() {
+		return this.checkedChanges !== null
+	}
+
+	/**
+	 * Check every user operation once it has fully settled: after all side effects, including
+	 * operation-complete handlers and anything they wrote, and before history or listeners see it.
+	 * Returning a refusal reverts the whole operation in place, so it nets out of history. Remote
+	 * changes are never checked.
+	 *
+	 * @internal
+	 */
+	addCommitCheck(check: (changes: RecordsDiff<R>) => TLStoreCommitRefusal | null): () => void {
+		this.commitChecks.add(check)
+		return () => {
+			this.commitChecks.delete(check)
+		}
+	}
+
+	private checkScopeDepth = 0
+
+	/**
+	 * Check everything `fn` writes as one operation: the store operations inside collect their
+	 * changes instead of being checked one by one, and the checks run once `fn` returns. For
+	 * callers whose single user action spans several store operations (an editor `run`).
+	 *
+	 * @internal
+	 */
+	checkAsOneOperation<T>(fn: () => T): T {
+		if (this.checkScopeDepth > 0 || this.commitChecks.size === 0) {
+			this.checkScopeDepth++
+			try {
+				return fn()
+			} finally {
+				this.checkScopeDepth--
+			}
+		}
+		// The unit owns its transaction, so a throw has rolled its writes back by the time it's
+		// settled, even inside someone else's transaction. A thrown unit is never judged: there's
+		// nothing left of it to allow or refuse.
+		this.checkScopeDepth = 1
+		this.checkedChanges = createEmptyRecordsDiff()
+		let refusal: TLStoreCommitRefusal | null = null
+		let result: T
+		try {
+			result = transaction(() => {
+				const value = fn()
+				this.checkScopeDepth = 0
+				refusal = this.judgeAndRevert()
+				return value
+			})
+		} catch (error) {
+			this.endCheckedOperation('aborted')
+			throw error
+		}
+		this.endCheckedOperation(refusal ? 'refused' : 'accepted')
+		// hosts hear about it once the outcome is final; a throwing listener can't change it
+		;(refusal as TLStoreCommitRefusal | null)?.afterRevert?.()
+		return result
+	}
+
+	private endCheckedOperation(outcome: TLStoreOperationOutcome) {
+		this.checkScopeDepth = 0
+		this.checkedChanges = null
+		for (const listener of this.settledListeners) listener(outcome)
+		if (this.didDeferFlush) {
+			this.didDeferFlush = false
+			this._flushHistory()
+		}
+	}
+
+	private judgeAndRevert(): TLStoreCommitRefusal | null {
+		const changes = this.checkedChanges
+		this.checkedChanges = null
+		if (!changes || isRecordsDiffEmpty(changes)) return null
+		let refusal: TLStoreCommitRefusal | null = null
+		for (const check of this.commitChecks) {
+			// a check reads the store; inside a reaction that read must not become its dependency
+			refusal = unsafe__withoutCapture(() => check(changes))
+			if (refusal) break
+		}
+		if (refusal) {
+			// the revert itself is never checked: refusing it would leave the refused changes in place
+			this.runUnchecked(() =>
+				this.atomic(
+					() => this.applyDiff(reverseRecordsDiff(changes), { runCallbacks: false }),
+					false
+				)
+			)
+		}
+		return refusal
 	}
 
 	/** @internal */
@@ -1407,6 +1572,24 @@ function squashHistoryEntries<T extends UnknownRecord>(
 				chunk.length === 1 ? chunk[0].changes : squashRecordDiffs(chunk.map((e) => e.changes)),
 		}))
 	)
+}
+
+/**
+ * How a checked operation ended: allowed, refused by a commit check (and reverted), or aborted
+ * because it threw (and rolled back).
+ *
+ * @internal
+ */
+export type TLStoreOperationOutcome = 'accepted' | 'refused' | 'aborted'
+
+/**
+ * What a commit check returns to revert the operation it was shown.
+ *
+ * @internal
+ */
+export interface TLStoreCommitRefusal {
+	/** Called once the operation has been reverted. */
+	afterRevert?(): void
 }
 
 /**

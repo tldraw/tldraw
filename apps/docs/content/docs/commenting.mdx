@@ -66,7 +66,7 @@ export default function App() {
 
 Pick the comment tool from Quick Actions, or press `C`, then click the canvas to start a thread.
 
-The layer's two required inputs are both about identity. `currentUserId` is the id stamped on whatever the user posts. `resolveAuthor` turns an author id into a name, plus an optional color and avatar image. Commenting reads no user directory of its own, so these are where you connect it to whatever your app already knows about its users. Together with the read-status and mention callbacks they make up the `CommentingContext`, which the sidebar takes too.
+The layer's two required inputs are both about identity. `currentUserId` is the id written as the author of whatever the user posts; with sync, use the same id your server passes as `userId`, or the room refuses the post. `resolveAuthor` turns an author id into a name, plus an optional color and avatar image. Commenting reads no user directory of its own, so these are where you connect it to whatever your app already knows about its users. Together with the read-status and mention callbacks they make up the `CommentingContext`, which the sidebar takes too.
 
 ## Comments are records
 
@@ -131,7 +131,7 @@ They're UI-level controls and nothing more. Comment records carry a client-suppl
 
 Comments sync like the rest of your document, with one registration on each side. Pass `records: commentSchemaRecords` to your sync hook, and the same map to `createTLSchema` on the server.
 
-On the server you can go a step further and serve comments through the room's object-store lane. Lane records are gated by their own per-session permission rather than by `isReadonly`, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#Syncing-comments).
+On the server you can go a step further and serve comments through the room's object-store lane. Lane records are gated by their own per-session permission rather than by the document's access, which is how a viewer who can't edit the document can still comment. See [Syncing comments](/sdk-features/commenting#Syncing-comments).
 
 ## Related
 

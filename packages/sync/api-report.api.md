@@ -9,18 +9,23 @@ import { TLAssetStore } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
+import { TLRecord } from 'tldraw';
+import { TLSessionAccess } from '@tldraw/sync-core';
 import { TLStore } from 'tldraw';
 import { TLStoreSchemaOptions } from 'tldraw';
 import { TLStoreWithStatus } from 'tldraw';
+import { TLSyncRefusal } from '@tldraw/sync-core';
 import { TLThemes } from 'tldraw';
 import { TLUser } from 'tldraw';
 import { TLUserStore } from 'tldraw';
+import { TLWriteRule } from 'tldraw';
 
 // @public
 export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
     status: 'synced-remote';
 }> & {
     readonly objectAccess: TLObjectStoreAccess;
+    readonly access: TLSessionAccess;
 }) | Exclude<TLStoreWithStatus, {
     status: 'not-synced';
 } | {
@@ -31,6 +36,13 @@ export type RemoteTLStoreWithStatus = (Extract<TLStoreWithStatus, {
 
 // @public
 export function useSync(opts: UseSyncOptions & TLStoreSchemaOptions): RemoteTLStoreWithStatus;
+
+// @public
+export interface UseSyncAuthorize {
+    // @deprecated
+    objectTypes?: readonly string[];
+    rule: TLWriteRule<TLRecord, undefined>;
+}
 
 // @public (undocumented)
 export type UseSyncConnectFn = (query: {
@@ -59,10 +71,12 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 // @public
 export interface UseSyncOptionsBase {
     assets: TLAssetStore;
+    authorize?: UseSyncAuthorize;
     getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)
     onMount?(editor: Editor): void;
+    onPushRefused?(refusal: TLSyncRefusal): void;
     // @internal
     roomId?: string;
     themes?: Partial<TLThemes>;

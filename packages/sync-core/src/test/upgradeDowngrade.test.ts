@@ -237,7 +237,12 @@ describe('record types unknown to older clients', () => {
 	function connectWith(server: TestServer<any>, schema: SerializedSchema) {
 		const id = 'stale-tab'
 		const socket = mockSocket()
-		server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+		server.room.handleNewSession({
+			sessionId: id,
+			socket,
+			meta: undefined,
+			access: { document: 'write', objects: 'write' },
+		})
 		server.room.handleMessage(id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -376,7 +381,7 @@ it('[MG1] clients will receive updates from a snapshot migration upon connection
 		sessionId: id,
 		socket: newClientSocket,
 		meta: undefined,
-		isReadonly: false,
+		access: { document: 'write', objects: 'write' },
 	})
 	newServer.room.handleMessage(id, {
 		type: 'connect',
@@ -401,7 +406,12 @@ it('[HS3] out-of-date clients will receive incompatibility errors', () => {
 	const id = 'test_upgrade_v2'
 	const socket = mockSocket()
 
-	v3server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v3server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { document: 'write', objects: 'write' },
+	})
 	v3server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -422,7 +432,12 @@ it.each([
 	const id = 'test_malformed_schema'
 	const socket = mockSocket()
 
-	server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { document: 'write', objects: 'write' },
+	})
 	server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -443,7 +458,12 @@ it('[HS2] clients using an out-of-date protocol will receive compatibility error
 		const id = 'test_upgrade_v3'
 		const socket = mockSocket()
 
-		v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+		v2server.room.handleNewSession({
+			sessionId: id,
+			socket,
+			meta: undefined,
+			access: { document: 'write', objects: 'write' },
+		})
 		v2server.room.handleMessage(id, {
 			type: 'connect',
 			connectRequestId: 'test',
@@ -467,7 +487,12 @@ it('[HS2] v5 special case should allow connections', () => {
 	const id = 'test_upgrade_v5'
 	const socket = mockSocket()
 
-	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v2server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { document: 'write', objects: 'write' },
+	})
 	v2server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -496,7 +521,12 @@ it('[HS2] clients using a too-new protocol will receive compatibility errors', (
 	const id = 'test_upgrade_v3'
 	const socket = mockSocket()
 
-	v2server.room.handleNewSession({ sessionId: id, socket, meta: undefined, isReadonly: false })
+	v2server.room.handleNewSession({
+		sessionId: id,
+		socket,
+		meta: undefined,
+		access: { document: 'write', objects: 'write' },
+	})
 	v2server.room.handleMessage(id, {
 		type: 'connect',
 		connectRequestId: 'test',
@@ -539,7 +569,7 @@ it('[HS3] when the client is too new it cannot connect', () => {
 		sessionId: v2_id,
 		socket: v2_socket as any,
 		meta: undefined,
-		isReadonly: false,
+		access: { document: 'write', objects: 'write' },
 	})
 	v1Server.room.handleMessage(v2_id as any, {
 		type: 'connect',
@@ -604,7 +634,7 @@ describe('when the client is too old', () => {
 			sessionId: v1Id,
 			socket: v1Socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 		v2Server.room.handleMessage(v1Id, {
 			type: 'connect',
@@ -618,7 +648,7 @@ describe('when the client is too old', () => {
 			sessionId: v2Id,
 			socket: v2Socket,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 		v2Server.room.handleMessage(v2Id, {
 			type: 'connect',
@@ -638,6 +668,9 @@ describe('when the client is too old', () => {
 			serverClock: 10,
 			isReadonly: false,
 			objectAccess: 'write',
+			access: { document: 'write', objects: 'write' },
+			userId: null,
+			objectTypes: [],
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(v1SendMessage).toHaveBeenCalledWith({
@@ -650,6 +683,9 @@ describe('when the client is too old', () => {
 			serverClock: 10,
 			isReadonly: false,
 			objectAccess: 'write',
+			access: { document: 'write', objects: 'write' },
+			userId: null,
+			objectTypes: [],
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		v2SendMessage.mockClear()
@@ -844,7 +880,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 
 		// Connect with old schema - should succeed since migration has down function
@@ -887,7 +923,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 
 		// Connect with old schema
@@ -947,7 +983,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 
 		// Connect with old schema
@@ -998,7 +1034,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId,
 			socket: socket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 
 		// Connect with old schema
@@ -1040,7 +1076,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId: oldId,
 			socket: oldSocket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 		server.room.handleMessage(oldId, {
 			type: 'connect',
@@ -1057,7 +1093,7 @@ describe('migration failure (TLSyncError handling)', () => {
 			sessionId: newId,
 			socket: newSocket as any,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 		server.room.handleMessage(newId, {
 			type: 'connect',
@@ -1138,7 +1174,7 @@ describe('when the client is the same version', () => {
 			sessionId: aId,
 			socket: aSocket,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 		v2Server.room.handleMessage(aId, {
 			type: 'connect',
@@ -1152,7 +1188,7 @@ describe('when the client is the same version', () => {
 			sessionId: bId,
 			socket: bSocket,
 			meta: undefined,
-			isReadonly: false,
+			access: { document: 'write', objects: 'write' },
 		})
 		v2Server.room.handleMessage(bId, {
 			type: 'connect',
@@ -1172,6 +1208,9 @@ describe('when the client is the same version', () => {
 			serverClock: 10,
 			isReadonly: false,
 			objectAccess: 'write',
+			access: { document: 'write', objects: 'write' },
+			userId: null,
+			objectTypes: [],
 		} satisfies TLSocketServerSentEvent<RV2>)
 
 		expect(bSocket.sendMessage).toHaveBeenCalledWith({
@@ -1184,6 +1223,9 @@ describe('when the client is the same version', () => {
 			serverClock: 10,
 			isReadonly: false,
 			objectAccess: 'write',
+			access: { document: 'write', objects: 'write' },
+			userId: null,
+			objectTypes: [],
 		} satisfies TLSocketServerSentEvent<RV2>)
 		;(aSocket.sendMessage as Mock).mockClear()
 		;(bSocket.sendMessage as Mock).mockClear()

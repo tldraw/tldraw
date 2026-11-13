@@ -6,6 +6,7 @@
 
 
 export * from "@tldraw/commenting";
+export * from "@tldraw/permissions";
 
 // (No @packageDocumentation comment for this package)
 

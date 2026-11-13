@@ -1,5 +1,6 @@
 import { Signal, computed } from '@tldraw/state'
 import {
+	RecordsDiff,
 	SerializedStore,
 	Store,
 	StoreSchema,
@@ -16,6 +17,7 @@ import { InstancePageStateRecordType, TLInstancePageStateId } from './records/TL
 import { PointerRecordType, TLPOINTER_ID } from './records/TLPointer'
 import { TLRecord } from './records/TLRecord'
 import { TLUser } from './records/TLUser'
+import type { TLWriteRefusal, TLWriteRule, TLWriteRuleSession } from './TLWriteRule'
 
 /**
  * Redacts the source of an asset record for error reporting.
@@ -293,6 +295,47 @@ export function createCachedUserResolve(
 }
 
 /**
+ * A refused change of this user's, as reported to the editor: by its own write rule before the
+ * change was kept (`'local'`), or by a server after it was sent (`'server'`).
+ *
+ * @public
+ */
+export interface TLRefusal extends TLWriteRefusal {
+	source: 'local' | 'server'
+	/**
+	 * The refused change as this user made it: records they added, removed, or changed from the
+	 * server's version to theirs. Sync reports it; a host that only knows ids can leave it out.
+	 */
+	changes?: RecordsDiff<TLRecord>
+}
+
+/**
+ * A write rule for this user's changes to a store. The editor enforces it while it is attached
+ * to the store: each operation is judged once its side effects have settled, and refused ones are
+ * reverted whole.
+ *
+ * @public
+ */
+export interface TLStoreAuthorize<Meta = unknown> {
+	rule: TLWriteRule<TLRecord, Meta>
+	/**
+	 * Who is editing, read on every judged operation. `null` while that isn't known yet: every
+	 * change is refused until it is.
+	 *
+	 * Omitted, the session has no user (`userId: null`, `sessionId: 'local'`, `meta` undefined),
+	 * `'write'` access to the document and the object store, and `permissions: null`. A rule that
+	 * reads `session.userId` or `session.permissions` (ownership, named permissions) needs this, as does an app that switches users or acts for an
+	 * agent. Sync always provides its own.
+	 */
+	getSession?(): TLWriteRuleSession<Meta> | null
+	/**
+	 * Record types a sync room serves from its object store, so `access.objects` applies to them.
+	 * Pass the room's `objectTypes`.
+	 */
+	objectTypes?: readonly string[]
+}
+
+/**
  * Configuration properties for a tldraw store, defining its behavior and integrations.
  * These props are passed when creating a new store instance.
  *
@@ -330,12 +373,25 @@ export interface TLStoreProps {
 	 * @returns Optional cleanup function
 	 */
 	onMount(editor: unknown): void | (() => void)
+	/** A write rule the editor enforces on this user's changes. See {@link TLStoreAuthorize}. */
+	authorize?: TLStoreAuthorize<any>
 	/** Optional collaboration configuration for multiplayer features */
 	collaboration?: {
 		/** Signal indicating online/offline collaboration status */
 		status: Signal<'online' | 'offline'> | null
 		/** Signal indicating collaboration mode permissions */
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		/**
+		 * Refusals of this user's changes by the server. The editor re-emits each one as its
+		 * `'refused'` event. Set by sync; a custom transport can provide its own.
+		 */
+		refusals?: { subscribe(listener: (refusal: TLRefusal) => void): () => void } | null
+		/**
+		 * The named permissions the server granted this session, kept current as the server
+		 * changes them; `null` when it doesn't use them. Read through `editor.getPermissions()`.
+		 * Set by sync.
+		 */
+		permissions?: Signal<readonly TLPermissionGrant[] | null> | null
 	}
 }
 
@@ -568,3 +624,25 @@ export function createIntegrityChecker(store: Store<TLRecord, TLStoreProps>): ()
 
 	return ensureStoreIsUsable
 }
+
+/**
+ * A permission the editor and its UI ask about. Hosts can grant names of their own as well; these
+ * are the ones tldraw itself checks.
+ *
+ * @public
+ */
+export type TLPermission =
+	| 'tl:shape:create'
+	| 'tl:shape:update'
+	| 'tl:shape:delete'
+	| 'tl:page:create'
+	| 'tl:page:update'
+	| 'tl:page:delete'
+
+/**
+ * An entry in a list of granted permissions: a permission, or a prefix ending in `:*` that covers
+ * everything under it (`tl:shape:*`, `tl:*`). A host can add names of its own under another prefix.
+ *
+ * @public
+ */
+export type TLPermissionGrant = TLPermission | (string & {})

@@ -39,6 +39,7 @@
 		"build-types": "tsc --build"
 	},
 	"devDependencies": {
+		"@tldraw/permissions": "workspace:*",
 		"vitest": "^5.0.0"
 	},
 	"engines": {

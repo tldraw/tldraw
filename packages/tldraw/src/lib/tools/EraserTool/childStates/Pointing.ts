@@ -1,4 +1,5 @@
 import { StateNode, TLPointerEventInfo, TLShapeId } from '@tldraw/editor'
+import { canDeleteShape } from '../../SelectTool/selectHelpers'
 
 export class Pointing extends StateNode {
 	static override id = 'pointing'
@@ -14,7 +15,7 @@ export class Pointing extends StateNode {
 
 		for (let n = currentPageShapesSorted.length, i = n - 1; i >= 0; i--) {
 			const shape = currentPageShapesSorted[i]
-			if (this.editor.isShapeOrAncestorLocked(shape) || this.editor.isShapeOfType(shape, 'group')) {
+			if (!canDeleteShape(this.editor, shape) || this.editor.isShapeOfType(shape, 'group')) {
 				continue
 			}
 

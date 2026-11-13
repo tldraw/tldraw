@@ -7,9 +7,12 @@
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
-import type { TLRecordAuthorizers } from '@tldraw/sync-core';
+import { TLRecordAuthorizers } from '@tldraw/sync-core';
+import { TLSyncRule } from '@tldraw/sync-core';
+import { TLSyncRuleSession } from '@tldraw/sync-core';
+import type { UnknownRecord } from '@tldraw/store';
 
-// @public
+// @public @deprecated
 export interface CommentAuthorizerOptions<SessionMeta> {
     canComment?(session: {
         isReadonly: boolean;
@@ -36,7 +39,7 @@ export type CommentModification = {
     readonly comment: TLComment;
 };
 
-// @public
+// @public @deprecated
 export type CommentModificationAuthContext<SessionMeta> = {
     readonly ownerId: string;
     readonly session: {
@@ -48,7 +51,30 @@ export type CommentModificationAuthContext<SessionMeta> = {
 } & CommentModification;
 
 // @public
-export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;
+export type CommentModificationRuleContext<SessionMeta> = {
+    readonly ownerId: string;
+    readonly session: TLSyncRuleSession<SessionMeta>;
+    readonly userId: null | string;
+} & CommentModification;
+
+// @public
+export interface CommentRuleOptions<SessionMeta> {
+    canComment?(session: TLSyncRuleSession<SessionMeta>): boolean;
+    canModifyComment?(ctx: CommentModificationRuleContext<SessionMeta>): boolean;
+    getUserId?(session: TLSyncRuleSession<SessionMeta>): null | string;
+}
+
+// @public @deprecated
+export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLCommentRecord, SessionMeta>;
+
+// @public
+export function createCommentRule<R extends UnknownRecord, SessionMeta>(opts?: CommentRuleOptions<SessionMeta>): TLSyncRule<R, SessionMeta>;
+
+// @public
+export function isCommentRecord(record: UnknownRecord): record is TLCommentRecord;
+
+// @public
+export type TLCommentRecord = TLComment | TLCommentReaction | TLCommentThread;
 
 // (No @packageDocumentation comment for this package)
 

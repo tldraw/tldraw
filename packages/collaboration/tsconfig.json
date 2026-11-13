@@ -18,6 +18,9 @@
 			"path": "../commenting"
 		},
 		{
+			"path": "../permissions"
+		},
+		{
 			"path": "../utils"
 		}
 	]

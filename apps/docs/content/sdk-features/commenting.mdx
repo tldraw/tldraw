@@ -226,7 +226,7 @@ The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself
 
 Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
 
-Enforce the same rule on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and that one is authoritative. See [Syncing comments](#syncing-comments).
+Enforce the same rule on the server: `createCommentRule` takes a `canModifyComment` of its own, and that one is authoritative. See [Syncing comments](#syncing-comments).
 
 <Callout type="warning">
 	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
@@ -547,7 +547,7 @@ The record you pass says which comment or thread to act on; the change itself la
 
 That indirection is what makes deleting safe in a shared document. A reaction belongs to whoever left it, not to whoever is deleting the comment underneath it, so no client should be removing it. And a server enforcing per-record permissions gets a write it can check against the session's identity rather than a deletion it can only refuse. `removeCommentRecords` is a hard delete, and such a server rejects it. Reach for it on a local, unsynced comment store.
 
-The flag is write-once server-side, so deletes are never undoable, whatever `history` says: an undo clearing the flag would be vetoed and rebased rather than bring the comment back.
+The flag is write-once server-side, so deletes are never undoable, whatever `history` says: an undo clearing the flag would be refused and reverted rather than bring the comment back.
 
 Deleting a thread's last comment leaves the thread with nothing to render. The record stays for the server to prune, since whoever deleted the comment may not be the thread's creator.
 
@@ -619,18 +619,17 @@ const room = new TLSocketRoom({
 })
 ```
 
-`objectTypes` moves those record types onto a separate lane. Lane records are stored apart from the document and left out of document snapshots. More usefully, they're gated by their own per-session permission rather than by `isReadonly`, so a session can be allowed to comment without being allowed to edit:
+`objectTypes` moves those record types onto a separate lane. Lane records are stored apart from the document and left out of document snapshots. More usefully, they get their own per-session access, independent of the document's, so a session can be allowed to comment without being allowed to edit:
 
 ```ts
 room.handleSocketConnect({
 	sessionId,
 	socket,
-	isReadonly: true, // can't touch the document
-	objectAccess: 'write', // but can still comment
+	access: { document: 'read', objects: 'write' }, // can't touch the document, can still comment
 })
 ```
 
-`objectAccess` is `'read'` or `'write'` and defaults to `'write'`. To persist the lane separately, read it with [TLSocketRoom#getCurrentObjectsSnapshot](?). To mirror comments into your own database as they commit, use the room's `onCommittedChanges` callback:
+Both values are `'read'` or `'write'` and default to `'write'` (see [Who may change what](/docs/sync#who-may-change-what)). To persist the lane separately, read it with [TLSocketRoom#getCurrentObjectsSnapshot](?). To mirror comments into your own database as they commit, use the room's `onCommittedChanges` callback:
 
 ```ts
 const room = new TLSocketRoom({
@@ -645,31 +644,34 @@ const room = new TLSocketRoom({
 
 `onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
 
-This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — pass it to the room's `authorizeRecord`:
+This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced by the room's write rule, which sees each incoming push and the session's identity. `createCommentRule` gives you that ready-made, as an `authorize` that refuses what the session may not do. It passes every other record through, so compose it with your own:
 
 ```ts
-import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
+import { createCommentRule } from '@tldraw/sync-collaboration'
 
-const room = new TLSocketRoom({
+const objectTypes = ['comment', 'comment-thread', 'comment-reaction']
+// authorship comes from `session.userId`, the user you passed to `handleSocketConnect`
+const comments = createCommentRule<MyRecord, SessionMeta>({
+	// Moderators may take anything down. Editing stays the author's, whoever you are.
+	canModifyComment: (ctx) =>
+		(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) || ctx.userId === ctx.ownerId,
+})
+
+const room = new TLSocketRoom<MyRecord, SessionMeta>({
 	schema,
-	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
-	authorizeRecord: {
-		...createCommentAuthorizers<SessionMeta>({
-			getUserId: (session) => session.meta.userId,
-			// Moderators may take anything down. Editing stays the author's, whoever you are.
-			canModifyComment: (ctx) =>
-				(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
-				ctx.userId === ctx.ownerId,
-		}),
-	},
+	objectTypes,
+	// add your own with composeRules from @tldraw/permissions
+	authorize: comments,
 })
 ```
 
-It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
+(`createCommentAuthorizers`, the older per-type map for the deprecated `authorizeRecord` option, still works and is deprecated.)
 
-This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
+It checks authorship against the session so nothing can be posted or resolved in someone else's name: a created comment, thread or reaction must carry the session's `userId` as its author, so pass the same id as the client's `currentUserId`. It keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Moves are different: when a shape changes page or is deleted, the commenting plugin re-homes the thread (its `pageId` and `anchor`) and each comment's `pageId` in the same push as the shape change, from whoever made that change. The rule allows those location-only updates for any session with document write access, without asking `canComment` or the owner, but only when the anchored shape changed page, was deleted, or came back in that same push, and a comment always has to be on its thread's page, whoever writes it. Any other relocation, like dragging a pin, is judged as an ordinary thread edit. They are still object-store writes, so give anyone who can edit the document `objects: 'write'` too: otherwise moving or deleting a commented shape is refused. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
 
-`createCommentAuthorizers` also takes a `canComment` callback, checked before every comment write. It defaults to `({ isReadonly }) => !isReadonly`, so a read-only session can't post even with `objectAccess: 'write'`. To let read-only viewers comment, as in the `handleSocketConnect` example above, pass `canComment: () => true` (or a rule based on the session's `meta`).
+This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back; show the refusal's reason with `onPushRefused` to explain it.
+
+`createCommentRule` also takes a `canComment` callback, checked before every comment write. The room has already checked the session's object store access, so `canComment` can only narrow it: the connect example above lets read-only viewers comment. Pass your own to tie commenting to something else, e.g. `canComment: (session) => session.access.document === 'write'` for "only editors may comment".
 
 ## Building your own comments UI
 

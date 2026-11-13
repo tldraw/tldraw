@@ -1,5 +1,10 @@
 import { MigrationSequence, Store } from '@tldraw/store'
 import {
+	TLAsset,
+	TLBinding,
+	TLPage,
+	TLPermission,
+	TLRecordChange,
 	TLShape,
 	TLStore,
 	TLStoreSnapshot,
@@ -8,8 +13,9 @@ import {
 	TLThemes,
 	registerColorsFromThemes,
 	registerFontsFromThemes,
+	TLStoreAuthorize,
 } from '@tldraw/tlschema'
-import { annotateError, Required } from '@tldraw/utils'
+import { annotateError, Required, warnOnce } from '@tldraw/utils'
 import classNames from 'classnames'
 import React, {
 	memo,
@@ -251,6 +257,50 @@ export interface TldrawEditorBaseProps {
 	): 'visible' | 'hidden' | 'inherit' | null | undefined
 
 	/**
+	 * Whether the UI should offer a change to a record: tools, handles and menu items ask
+	 * {@link Editor.isChangePermitted}, which asks this after readonly and locks. Return `false` to
+	 * hide or disable that affordance. Advisory only: editor methods still try the change, and the
+	 * store's write rule (`authorize`), or the server, decides whether it's saved. The UI may offer
+	 * something the rule then refuses, for example when permissions changed or a dependent record is
+	 * protected.
+	 *
+	 * It gets the change as a write rule sees one: `type` is `'create'`, `'update'` or `'delete'`,
+	 * `prev` and `next` the record before and after. Reactive: read store state or signals inside it
+	 * and the answer follows. Unset, the editor answers from the session's permissions
+	 * (`editor.getPermissions()`) when the app uses them, and allows everything otherwise.
+	 * `createPermissionPolicy` from `@tldraw/permissions` builds this and `isPermitted` for your own
+	 * record types.
+	 *
+	 * @example
+	 * ```ts
+	 * isChangePermitted={(change) => change.type !== 'delete'}
+	 * ```
+	 *
+	 * @param change - The change: `{ type, prev, next }`.
+	 * @param editor - The editor instance.
+	 */
+	isChangePermitted?(
+		change: TLRecordChange<TLShape | TLPage | TLBinding | TLAsset>,
+		editor: Editor
+	): boolean
+
+	/**
+	 * Whether the UI should offer a kind of canvas action, for controls with no record to ask
+	 * `isChangePermitted` about: a missing `tl:page:create` disables the new page button, a missing
+	 * `tl:shape:create` the shape tools. Asked by {@link Editor.isPermitted}, after readonly. Unset, the
+	 * session's permissions decide when the app uses them, and nothing is restricted otherwise. Advisory, like `isChangePermitted`. Selecting is never restricted.
+	 *
+	 * @example
+	 * ```ts
+	 * isPermitted={(permission) => permission !== 'tl:page:create'}
+	 * ```
+	 *
+	 * @param permission - The permission's name.
+	 * @param editor - The editor instance.
+	 */
+	isPermitted?(permission: TLPermission, editor: Editor): boolean
+
+	/**
 	 * The URLs for the fonts to use in the editor.
 	 */
 	assetUrls?: { fonts?: { [key: string]: string | undefined } }
@@ -338,6 +388,12 @@ export const TldrawEditor = memo(function TldrawEditor({
 	if (text !== undefined) mergedOptions = { ...mergedOptions, text }
 	if (deepLinks !== undefined) mergedOptions = { ...mergedOptions, deepLinks }
 
+	if (store && (rest as { authorize?: unknown }).authorize) {
+		warnOnce(
+			'`authorize` is ignored when you pass a `store`: give the store its rule with `createTLStore({ authorize })`.'
+		)
+	}
+
 	// apply defaults. if you're using the bare @tldraw/editor package, we
 	// default these to the "tldraw zero" configuration. We have different
 	// defaults applied in tldraw.
@@ -416,7 +472,30 @@ function TldrawEditorWithOwnStore(
 		users,
 		migrations,
 		themes,
+		authorize,
 	} = props
+
+	// a new `authorize` object every render must not mean a new store every render
+	const authorizeRef = useRef(authorize)
+	authorizeRef.current = authorize
+	const hasAuthorize = !!authorize
+	const stableAuthorize = useMemo<TLStoreAuthorize<any> | undefined>(
+		() =>
+			hasAuthorize
+				? {
+						rule: (args) => authorizeRef.current!.rule(args),
+						// a getter, not a wrapper: an omitted getSession must stay omitted for the default session
+						get getSession() {
+							const current = authorizeRef.current!
+							return current.getSession?.bind(current)
+						},
+						get objectTypes() {
+							return authorizeRef.current!.objectTypes
+						},
+					}
+				: undefined,
+		[hasAuthorize]
+	)
 
 	const syncedStore = useLocalStore({
 		shapeUtils,
@@ -431,6 +510,7 @@ function TldrawEditorWithOwnStore(
 		users,
 		migrations,
 		themes,
+		authorize: stableAuthorize,
 	})
 
 	return <TldrawEditorWithLoadingStore {...props} store={syncedStore} user={user} />
@@ -524,6 +604,8 @@ function TldrawEditorWithReadyStore({
 	options,
 	licenseKey,
 	getShapeVisibility,
+	isChangePermitted,
+	isPermitted,
 	colorScheme,
 	assetUrls,
 	themes,
@@ -559,6 +641,8 @@ function TldrawEditorWithReadyStore({
 		deepLinks,
 		themes,
 		initialTheme,
+		isChangePermitted,
+		isPermitted,
 	})
 
 	useLayoutEffect(() => {
@@ -570,8 +654,20 @@ function TldrawEditorWithReadyStore({
 			deepLinks,
 			themes,
 			initialTheme,
+			isChangePermitted,
+			isPermitted,
 		}
-	}, [autoFocus, initialState, colorScheme, cameraOptions, deepLinks, themes, initialTheme])
+	}, [
+		autoFocus,
+		initialState,
+		colorScheme,
+		cameraOptions,
+		deepLinks,
+		themes,
+		initialTheme,
+		isChangePermitted,
+		isPermitted,
+	])
 
 	// The adapter is called on each use rather than held as a value, so the editor can keep one
 	// stable function that reads whichever adapter is current. Listing `i18n` among the deps that
@@ -595,6 +691,8 @@ function TldrawEditorWithReadyStore({
 				deepLinks,
 				themes,
 				initialTheme,
+				isChangePermitted,
+				isPermitted,
 			} = editorOptionsRef.current
 			const editor = new Editor({
 				store,
@@ -612,6 +710,8 @@ function TldrawEditorWithReadyStore({
 				options,
 				licenseKey,
 				getShapeVisibility,
+				isChangePermitted,
+				isPermitted,
 				colorScheme: initColorScheme,
 				fontAssetUrls: assetUrls?.fonts,
 				themes: themes,
@@ -660,6 +760,11 @@ function TldrawEditorWithReadyStore({
 			stableI18n,
 		]
 	)
+
+	// recreating the editor on a new callback would drop undo history and cut off gestures
+	useLayoutEffect(() => {
+		editor?._setHostPermissions({ isChangePermitted, isPermitted })
+	}, [editor, isChangePermitted, isPermitted])
 
 	useLayoutEffect(() => {
 		if (!editor) return

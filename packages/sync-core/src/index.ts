@@ -30,6 +30,7 @@ export {
 	type TLSocketClientSentEvent,
 	type TLSocketServerSentDataEvent,
 	type TLSocketServerSentEvent,
+	type TLSyncRefusal,
 } from './lib/protocol'
 export { RoomSessionState, type RoomSession, type RoomSessionBase } from './lib/RoomSession'
 export type { PersistedRoomSnapshotForSupabase } from './lib/server-types'
@@ -55,6 +56,7 @@ export {
 } from './lib/TLSocketRoom'
 export {
 	TLSyncClient,
+	type TLSyncConnectDetails,
 	TLSyncErrorCloseEventCode,
 	TLSyncErrorCloseEventReason,
 	type SubscribingFn,
@@ -64,14 +66,23 @@ export {
 	type TLPresenceMode,
 	type TLSocketStatusChangeEvent,
 	type TLSocketStatusListener,
+	type TLSyncClientRefusal,
 } from './lib/TLSyncClient'
 export {
 	TLSyncRoom,
 	type MinimalDocStore,
 	type PresenceStore,
 	type RoomSnapshot,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	type TLRecordAuthorizer,
+	// eslint-disable-next-line @typescript-eslint/no-deprecated
 	type TLRecordAuthorizers,
+	type TLRecordChange,
+	type TLSessionAccess,
+	type TLSyncRule,
+	type TLSyncRuleSession,
+	type TLSyncRuleArgs,
+	perRecord,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {
