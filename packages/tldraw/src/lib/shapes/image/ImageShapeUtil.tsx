@@ -357,7 +357,20 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const [staticFrameSrc, setStaticFrameSrc] = useState('')
-	const [loadedUrl, setLoadedUrl] = useState<null | string>(null)
+	const [loadState, setLoadState] = useState<ImageLoadState>(() => ({
+		assetId: asset?.id ?? null,
+		loadedUrl: null,
+		failedUrls: [],
+	}))
+	// Load progress belongs to one asset. Without this reset, a new asset that fails to load keeps
+	// showing the previous asset's image. Keyed on the hook's asset, not shape.props.assetId, so it
+	// moves in step with `url`.
+	const loadAssetId = asset?.id ?? null
+	if (loadState.assetId !== loadAssetId) {
+		setLoadState({ assetId: loadAssetId, loadedUrl: null, failedUrls: [] })
+		setStaticFrameSrc('')
+	}
+	const { loadedUrl, failedUrls } = loadState
 	const isAnimated = asset && getIsAnimated(editor, asset.id)
 
 	useEffect(() => {
@@ -367,7 +380,7 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 			promise.then(
 				(dataUrl) => {
 					setStaticFrameSrc(dataUrl)
-					setLoadedUrl(url)
+					setLoadState((s) => markImageLoaded(s, url))
 				},
 				() => {
 					// couldn't decode a first frame; keep showing the animated source
@@ -408,11 +421,14 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 
 	const containerStyle = getCroppedContainerStyle(shape)
 
-	const nextSrc = url === loadedUrl ? null : url
+	const didUrlFail = !!url && failedUrls.includes(url)
+	const nextSrc = url === loadedUrl || didUrlFail ? null : url
 	const loadedSrc = reduceMotion ? staticFrameSrc : loadedUrl
+	// If an earlier URL of this asset loaded, keep showing it rather than the broken state.
+	const didFailToLoad = didUrlFail && !loadedUrl
 
 	// This logic path is for when it's broken/missing asset.
-	if (!url && !asset?.props.src) {
+	if ((!url && !asset?.props.src) || didFailToLoad) {
 		return (
 			<HTMLContainer
 				id={shape.id}
@@ -426,10 +442,13 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 				}}
 			>
 				<div
-					className={classNames('tl-image-container', asset && 'tl-image-container-loading')}
+					className={classNames(
+						'tl-image-container',
+						asset && !didFailToLoad && 'tl-image-container-loading'
+					)}
 					style={containerStyle}
 				>
-					{asset ? null : <BrokenAssetIcon />}
+					{asset && !didFailToLoad ? null : <BrokenAssetIcon />}
 				</div>
 				{'url' in shape.props && shape.props.url && <HyperlinkButton url={shape.props.url} />}
 			</HTMLContainer>
@@ -493,7 +512,8 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 							referrerPolicy="strict-origin-when-cross-origin"
 							draggable={false}
 							alt={shape.props.altText}
-							onLoad={() => setLoadedUrl(nextSrc)}
+							onLoad={() => setLoadState((s) => markImageLoaded(s, nextSrc))}
+							onError={() => setLoadState((s) => markImageFailed(s, nextSrc))}
 						/>
 					)}
 				</div>
@@ -502,6 +522,29 @@ const ImageShape = memo(function ImageShape({ shape }: { shape: TLImageShape }) 
 		</>
 	)
 })
+
+interface ImageLoadState {
+	assetId: TLAssetId | null
+	loadedUrl: string | null
+	// Every URL that failed, so zooming back to a resolution that already failed doesn't refetch it
+	failedUrls: string[]
+}
+
+// The animated-image first-frame decode and the <img> can race; a URL the <img> failed on must
+// never become the loaded one, or the native broken-image glyph renders instead of BrokenAssetIcon.
+function markImageLoaded(state: ImageLoadState, url: string): ImageLoadState {
+	if (state.failedUrls.includes(url) || state.loadedUrl === url) return state
+	return { ...state, loadedUrl: url }
+}
+
+function markImageFailed(state: ImageLoadState, url: string): ImageLoadState {
+	if (state.failedUrls.includes(url)) return state
+	return {
+		...state,
+		loadedUrl: state.loadedUrl === url ? null : state.loadedUrl,
+		failedUrls: [...state.failedUrls, url],
+	}
+}
 
 function getIsAnimated(editor: Editor, assetId: TLAssetId) {
 	const asset = assetId ? editor.getAsset(assetId) : undefined
