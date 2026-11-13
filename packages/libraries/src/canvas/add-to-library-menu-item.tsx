@@ -10,6 +10,7 @@ import {
 import type { LibrarySource } from '../lib/LibrarySource'
 import { InContextMenu, MenuItem } from '../ui/menu-items'
 import { groupLibraryList, useLibraryGrouping } from './library-groups'
+import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary } from './new-library'
 import { sortByRecentlyAddedTo } from './recent-libraries'
 import type { PrepareItemContent } from './save-shapes'
@@ -37,6 +38,7 @@ export interface AddToLibraryMenuItemProps {
 export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibraryMenuItemProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const librariesEnabled = useLibrariesEnabled()
 	const hasSelection = useValue('has selection', () => editor.getSelectedShapeIds().length > 0, [
 		editor,
 	])
@@ -53,7 +55,7 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
 	const { saveSelection, saveToNewLibrary } = useSaveSelection(source, prepareItemContent)
 
-	if (!hasSelection || (libraries.length === 0 && !canCreate)) return null
+	if (!librariesEnabled || !hasSelection || (libraries.length === 0 && !canCreate)) return null
 
 	return (
 		<TldrawUiMenuGroup id="libraries">

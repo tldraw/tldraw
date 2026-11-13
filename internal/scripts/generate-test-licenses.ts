@@ -155,11 +155,20 @@ async function main() {
 			),
 		},
 		{
-			name: 'License with Collaboration Feature (grants commenting)',
+			name: 'License with Collaboration Feature (grants commenting and libraries)',
 			info: createLicenseInfo(
 				'test-feat-collaboration',
 				['localhost'],
 				FLAGS.ANNUAL_LICENSE | FLAGS.FEAT_COLLABORATION,
+				getDateOffset(60) // 2 months future
+			),
+		},
+		{
+			name: 'License with Libraries Feature',
+			info: createLicenseInfo(
+				'test-feat-libraries',
+				['localhost'],
+				FLAGS.ANNUAL_LICENSE | FLAGS.FEAT_LIBRARIES,
 				getDateOffset(60) // 2 months future
 			),
 		},
