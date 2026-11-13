@@ -13,6 +13,7 @@ import {
 	McpPageRead,
 	PageSelector,
 	getBoardUsers,
+	getBoardUsersResult,
 	ShapeMeasurement,
 	compareBoardSearchOrder,
 	getClusterInfo,
@@ -80,6 +81,7 @@ function makeRow(overrides: Partial<BoardSearchRow> = {}): BoardSearchRow {
 	return {
 		id: 'board-1',
 		name: 'Roadmap',
+		matched: 0,
 		// A board the caller made: arrival and creation are the same moment.
 		arrivedAt: 1_700_000_000_000,
 		createdAt: 1_700_000_000_000,
@@ -118,7 +120,6 @@ describe('parseSearchBoardsInput', () => {
 		expect(parseSearchBoardsInput({ query: '   ' }).terms).toEqual([])
 	})
 
-	// Terms are ANDed, so word order in the query need not match word order in the name.
 	it('splits a query into terms on whitespace', () => {
 		expect(parseSearchBoardsInput({ query: 'design  system' }).terms).toEqual(['design', 'system'])
 	})
@@ -156,9 +157,16 @@ describe('parseSearchBoardsInput', () => {
 	it('round-trips a cursor from a previous result', () => {
 		const first = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), []))
 		expect(parseSearchBoardsInput({ cursor: first.nextCursor }).cursor).toEqual({
+			matched: 0,
 			arrivedAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: `board-${BOARD_SEARCH_PAGE_SIZE - 1}`,
 		})
+	})
+
+	it('refuses a cursor claiming more matched words than the query has', () => {
+		expect(() =>
+			parseSearchBoardsInput({ query: 'design', cursor: btoa('2:1:board-1:design') })
+		).toThrow('cursor is not valid')
 	})
 
 	// A cursor is a position in one query's results. Carried onto a different query it would point
@@ -204,6 +212,7 @@ describe('parseSearchBoardsInput', () => {
 		rows[BOARD_SEARCH_PAGE_SIZE - 1] = { ...rows[BOARD_SEARCH_PAGE_SIZE - 1], id: 'brädå:1' }
 		const result = parsedJson(getBoardSearchResults(rows, []))
 		expect(parseSearchBoardsInput({ cursor: result.nextCursor }).cursor).toEqual({
+			matched: 0,
 			arrivedAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: 'brädå:1',
 		})
@@ -279,7 +288,10 @@ describe('parseSearchBoardsInput', () => {
 describe('compareBoardSearchOrder', () => {
 	it('puts the newest-created board first', () => {
 		expect(
-			compareBoardSearchOrder({ arrivedAt: 2, id: 'a' }, { arrivedAt: 1, id: 'a' })
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 2, id: 'a' },
+				{ matched: 0, arrivedAt: 1, id: 'a' }
+			)
 		).toBeLessThan(0)
 	})
 
@@ -287,40 +299,61 @@ describe('compareBoardSearchOrder', () => {
 	// say where a page ended inside that group.
 	it('breaks a tie on id, descending', () => {
 		expect(
-			compareBoardSearchOrder({ arrivedAt: 0, id: 'b' }, { arrivedAt: 0, id: 'a' })
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 0, id: 'b' },
+				{ matched: 0, arrivedAt: 0, id: 'a' }
+			)
 		).toBeLessThan(0)
-		expect(compareBoardSearchOrder({ arrivedAt: 0, id: 'a' }, { arrivedAt: 0, id: 'a' })).toBe(0)
+		expect(
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 0, id: 'a' },
+				{ matched: 0, arrivedAt: 0, id: 'a' }
+			)
+		).toBe(0)
+	})
+
+	// Substring matching lets a common word match most boards; the one matching every word leads.
+	it('puts a board matching more of the query first, however old', () => {
+		expect(
+			compareBoardSearchOrder(
+				{ matched: 2, arrivedAt: 0, id: 'a' },
+				{ matched: 1, arrivedAt: 9, id: 'z' }
+			)
+		).toBeLessThan(0)
 	})
 
 	it('sorts an older board after a newer one whatever their ids', () => {
 		expect(
-			compareBoardSearchOrder({ arrivedAt: 0, id: 'z' }, { arrivedAt: 1, id: 'a' })
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 0, id: 'z' },
+				{ matched: 0, arrivedAt: 1, id: 'a' }
+			)
 		).toBeGreaterThan(0)
 	})
 })
 
 describe('isAfterBoardSearchCursor', () => {
 	it('accepts only rows that sort after the cursor', () => {
-		const cursor = { arrivedAt: 10, id: 'm' }
-		expect(isAfterBoardSearchCursor({ arrivedAt: 9, id: 'z' }, cursor)).toBe(true)
-		expect(isAfterBoardSearchCursor({ arrivedAt: 11, id: 'a' }, cursor)).toBe(false)
+		const cursor = { matched: 0, arrivedAt: 10, id: 'm' }
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 9, id: 'z' }, cursor)).toBe(true)
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 11, id: 'a' }, cursor)).toBe(false)
 	})
 
 	// The point of ordering on arrival rather than creation: a board somebody shared with you this
 	// morning leads the list, however long ago its owner made it. Under a createdAt sort it would land
 	// below everything you have made since, which for a long-lived board is the bottom of the page.
 	it('puts a recently shared old board above a board made earlier today', () => {
-		const sharedThisMorning = { arrivedAt: 1_700_000_000_000, id: 'shared' }
-		const mineFromLastWeek = { arrivedAt: 1_699_000_000_000, id: 'mine' }
+		const sharedThisMorning = { matched: 0, arrivedAt: 1_700_000_000_000, id: 'shared' }
+		const mineFromLastWeek = { matched: 0, arrivedAt: 1_699_000_000_000, id: 'mine' }
 		expect(compareBoardSearchOrder(sharedThisMorning, mineFromLastWeek)).toBeLessThan(0)
 	})
 
 	// Descending order means "after" is "less than". Reversed, a page returns itself forever.
 	it('excludes the cursor row itself and takes the tie on id', () => {
-		const cursor = { arrivedAt: 10, id: 'm' }
+		const cursor = { matched: 0, arrivedAt: 10, id: 'm' }
 		expect(isAfterBoardSearchCursor(cursor, cursor)).toBe(false)
-		expect(isAfterBoardSearchCursor({ arrivedAt: 10, id: 'l' }, cursor)).toBe(true)
-		expect(isAfterBoardSearchCursor({ arrivedAt: 10, id: 'n' }, cursor)).toBe(false)
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 10, id: 'l' }, cursor)).toBe(true)
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 10, id: 'n' }, cursor)).toBe(false)
 	})
 })
 
@@ -1415,6 +1448,53 @@ describe('parseReadPageCommentsInput', () => {
 			)
 		}
 		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: '' }).cursor).toBeNull()
+	})
+})
+
+describe('getBoardUsersResult', () => {
+	const NOW = Date.parse('2026-11-12T12:00:00.000Z')
+	const user = (lastActiveAt: string | null) => ({
+		userId: 'a',
+		name: 'A',
+		pageId: 'page:a',
+		selectedShapeIds: ['shape:picked'],
+		viewport: null,
+		lastActiveAt,
+	})
+	const listed = (lastActiveAt: string | null) =>
+		JSON.parse(
+			(
+				getBoardUsersResult({ users: [user(lastActiveAt)], anonymousViewers: 1 }, NOW)
+					.content[0] as {
+					text: string
+				}
+			).text
+		)
+
+	it('leaves selection out and marks who is active', () => {
+		expect(listed('2026-11-12T11:59:30.000Z')).toEqual({
+			users: [
+				{
+					userId: 'a',
+					name: 'A',
+					pageId: 'page:a',
+					viewport: null,
+					lastActiveAt: '2026-11-12T11:59:30.000Z',
+					isActive: true,
+				},
+			],
+			anonymousViewers: 1,
+		})
+	})
+
+	// The editor fades a collaborator's cursor after the same minute.
+	it('marks someone idle for over a minute as inactive', () => {
+		expect(listed('2026-11-12T11:58:59.000Z').users[0].isActive).toBe(false)
+	})
+
+	// Presence reports 0 until someone moves their pointer, and the editor shows them as active (#9017).
+	it('marks someone with no recorded activity as active, as the editor does', () => {
+		expect(listed(null).users[0].isActive).toBe(true)
 	})
 })
 

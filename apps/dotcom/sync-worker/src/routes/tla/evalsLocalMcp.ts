@@ -171,15 +171,18 @@ async function callFixtureTool(
 						// A fixture session is the caller's own account, so every board arrived by being
 						// made here — the two timestamps are the same value, exactly as `createFile` writes
 						// them in production.
+						matched: terms.filter((term) =>
+							(getDocumentNameFromSnapshot(board.snapshot) ?? '')
+								.toLowerCase()
+								.includes(term.toLowerCase())
+						).length,
 						arrivedAt: fixtureTimestamp(index),
 						createdAt: fixtureTimestamp(index),
 						updatedAt: fixtureTimestamp(index),
 						workspaceName: '',
 						source: 'owned' as const,
 					}))
-					.filter((row) =>
-						terms.every((term) => row.name.toLowerCase().includes(term.toLowerCase()))
-					)
+					.filter((row) => !terms.length || row.matched > 0)
 					.sort(compareBoardSearchOrder)
 					.filter((row) => !cursor || isAfterBoardSearchCursor(row, cursor))
 				return getBoardSearchResults(rows, terms)
