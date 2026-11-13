@@ -98,12 +98,20 @@ export const EditLinkDialogInner = track(function EditLinkDialogInner({
 	}, [editor, onClose])
 
 	const handleComplete = useCallback(() => {
+		// Enter reaches here even while Continue is disabled. An invalid input's `safe` value is the
+		// bare `https://`, which the shape's url validator rejects. Enter never clears an existing
+		// link, even while Clear is showing; it hands focus back so the user can fix the url, since
+		// TldrawUiInput blurs the input before calling onComplete.
+		if (!urlInputState.valid) {
+			rInput.current?.focus()
+			return
+		}
+
 		const onlySelectedShape = editor.getOnlySelectedShape()
 
 		if (!onlySelectedShape) return
 		assertShapeWithLink(onlySelectedShape)
 
-		// Here would be a good place to validate the next shape—would setting the empty
 		if (onlySelectedShape.props.url !== urlInputState.safe) {
 			editor.updateShapes([
 				{

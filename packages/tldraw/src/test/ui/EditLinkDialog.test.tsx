@@ -20,14 +20,14 @@ const components: TLComponents = {
 
 const shapeId = createShapeId('box')
 
-async function renderWithOpenDialog() {
+async function renderWithOpenDialog(url = 'https://tldraw.com') {
 	const { editor } = await renderTldrawComponentWithEditor(
 		(onMount) => <Tldraw components={components} onMount={onMount} />,
 		{ waitForPatterns: false }
 	)
 
 	act(() => {
-		editor.createShape({ id: shapeId, type: 'geo', props: { url: 'https://tldraw.com' } })
+		editor.createShape({ id: shapeId, type: 'geo', props: { url } })
 		editor.select(shapeId)
 	})
 
@@ -74,4 +74,47 @@ it('closes itself when the shape is deselected while the dialog is open', async 
 	})
 
 	await expectDialogClosed()
+})
+
+function getInput() {
+	return document.querySelector('.tlui-edit-link-dialog__input') as HTMLInputElement
+}
+
+async function typeAndPressEnter(value: string) {
+	const input = getInput()
+	act(() => input.focus())
+	fireEvent.change(input, { target: { value } })
+	fireEvent.keyDown(input, { key: 'Enter' })
+	await act(async () => {})
+}
+
+it('saves a valid url when Enter is pressed', async () => {
+	editor = await renderWithOpenDialog()
+
+	await typeAndPressEnter('example.com')
+
+	expect(editor.getShape(shapeId)?.props).toMatchObject({ url: 'https://example.com' })
+	expect(getDialogFrame()).toBeNull()
+})
+
+it('does not clear an existing link when Enter is pressed with an invalid url', async () => {
+	editor = await renderWithOpenDialog()
+
+	await typeAndPressEnter('foo bar')
+
+	expect(screen.getByText('A link must be a valid URL.')).toBeTruthy()
+	expect(editor.getShape(shapeId)?.props).toMatchObject({ url: 'https://tldraw.com' })
+	expect(getDialogFrame()).not.toBeNull()
+	expect(document.activeElement).toBe(getInput())
+})
+
+it('does nothing when Enter is pressed with an invalid url on a shape without a link', async () => {
+	editor = await renderWithOpenDialog('')
+
+	await typeAndPressEnter('foo bar')
+
+	expect(screen.getByText('A link must be a valid URL.')).toBeTruthy()
+	expect(editor.getShape(shapeId)?.props).toMatchObject({ url: '' })
+	expect(getDialogFrame()).not.toBeNull()
+	expect(document.activeElement).toBe(getInput())
 })
