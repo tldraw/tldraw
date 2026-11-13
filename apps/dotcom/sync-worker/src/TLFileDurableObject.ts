@@ -21,6 +21,7 @@ import {
 	WELCOME_CREATE_SOURCE,
 	can,
 	type FeatureFlagValue,
+	type McpAgentClient,
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
@@ -47,6 +48,7 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
+	TLRichText,
 	commentSchemaRecords,
 	createTLSchema,
 	defaultShapeSchemas,
@@ -69,7 +71,7 @@ import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, getFileRoomAccess } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -91,6 +93,8 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
+import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
+import { planMcpComment } from './mcpCommentWrite'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -108,7 +112,7 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
-import { getBoardUsers } from './routes/tla/boardTools'
+import { CommentTarget, CommentWriteRefusal, getBoardUsers } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -287,12 +291,6 @@ const OBJECT_TYPES = [
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
 function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
-}
-
-// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain string column with
-// legacy values in it, so anything else fails closed.
-function canEditFile(file: TlaFile, role: Role | null) {
-	return can(role, 'accessFiles') || (file.shared && file.sharedLinkType === 'edit')
 }
 
 export class TLFileDurableObject extends DurableObject {
@@ -1197,11 +1195,13 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					if (!can(role, 'accessFiles') && !file.shared) {
+					const access = getFileRoomAccess(file, role)
+					if (access === 'none') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
-
-					if (!canEditFile(file, role)) openMode = ROOM_OPEN_MODE.READ_ONLY
+					if (access === 'read') {
+						openMode = ROOM_OPEN_MODE.READ_ONLY
+					}
 				} else {
 					// No file row means every check above was skipped, so admitting the socket would
 					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
@@ -2662,12 +2662,16 @@ export class TLFileDurableObject extends DurableObject {
 		for (const id of diff.deletes) {
 			if (isCommentRecordId(id)) ids.push(id)
 		}
-		if (ids.length === 0) return
+		this.enqueueCommentRecordIds(ids)
+	}
+
+	private enqueueCommentRecordIds(ids: string[]): Promise<void> {
+		if (ids.length === 0) return Promise.resolve()
 		this.ensureCommentOutbox()
 		for (const id of ids) {
 			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 		}
-		this.drainCommentOutbox()
+		return this.drainCommentOutbox()
 	}
 
 	/**
@@ -3521,7 +3525,7 @@ export class TLFileDurableObject extends DurableObject {
 	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
 	private async canWriteToFile(userId: string) {
 		const access = await this.getAppFileRecordWithRole(userId)
-		return !!access && canEditFile(access.file, access.role)
+		return !!access && getFileRoomAccess(access.file, access.role) === 'write'
 	}
 
 	/**
@@ -3617,6 +3621,137 @@ export class TLFileDurableObject extends DurableObject {
 
 	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
 		return this.tabRenders.receive(jobId, reply)
+	}
+
+	/**
+	 * Posts a comment from the MCP server as `userId` (see `planMcpComment`), gated by the same
+	 * `getFileRoomAccess` rule as a socket connect. That check runs before a never-opened object's
+	 * documentInfo is initialized, so an id the caller cannot see leaves nothing behind.
+	 *
+	 * Storage writes do not fire `onCommittedChanges`, so the records are outboxed here, in the same
+	 * synchronous block as the write, as the restore handler's invariants require. The drain is
+	 * awaited so a read_page_comments straight after sees the comment.
+	 *
+	 * `queued` says the drain left the comment in the outbox: a failed row is kept for a later drain
+	 * rather than thrown, so the drain resolving says nothing about this comment. read_page_comments
+	 * reads Postgres only, so without this an agent that reads back and misses its comment posts it
+	 * again.
+	 */
+	async writeMcpComment({
+		fileId,
+		userId,
+		agentName,
+		agentClient,
+		body,
+		target,
+	}: {
+		fileId: string
+		userId: string
+		/** Who the comment is from; see `getOrCreateAgent`. */
+		agentName: string
+		/** The app behind the agent, from its OAuth client; drawn as its logo. */
+		agentClient: McpAgentClient | null
+		body: TLRichText
+		target: CommentTarget
+	}): Promise<
+		| {
+				ok: true
+				threadId: string
+				commentId: string
+				pageId: string
+				newThread: boolean
+				queued: boolean
+		  }
+		| ({ ok: false } & CommentWriteRefusal)
+	> {
+		if (this._documentInfo) {
+			const info = this._documentInfo
+			if (info.deleted || !info.isApp || info.slug !== fileId) {
+				return { ok: false, reason: 'not_found' }
+			}
+		}
+
+		const fileWithRole = this._documentInfo
+			? await this.getAppFileRecordWithRole(userId)
+			: await getFileRecordWithRole(this.db, fileId, userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) return { ok: false, reason: 'not_found' }
+		const { file, role } = fileWithRole
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
+			return { ok: false, reason: 'not_found' }
+		}
+		const access = getFileRoomAccess(file, role)
+		if (access === 'none') return { ok: false, reason: 'not_found' }
+		// planMcpComment refuses this too, but by then the agent would be registered on a board it
+		// can't comment on.
+		if (access === 'read') return { ok: false, reason: 'comment_forbidden' }
+
+		// As appFileRecordCreated does for an object that has never been opened.
+		if (!this._documentInfo) {
+			this._fileRecordCache = file
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
+		}
+
+		let storage: TLSyncStorage<TLRecord>
+		try {
+			// With tabs connected, the room has to be running before the write: it is what broadcasts a
+			// storage change to them, and a hibernated object has none — the sockets survive, the room
+			// doesn't. Writing without one, the tabs never hear of the comment: the room that boots
+			// later starts from a clock that already includes it, so nothing replays it until they
+			// reconnect.
+			if (this.state.getWebSockets().length > 0) await this.getRoom()
+			storage = await this.getStorage()
+		} catch (error) {
+			if (error instanceof RoomNotFoundError) return { ok: false, reason: 'board_empty' }
+			throw error
+		}
+
+		this.ensureMcpAgents()
+		const agent = getOrCreateAgent(this.ctx.storage.sql, {
+			ownerUserId: userId,
+			name: agentName,
+			now: Date.now(),
+		})
+
+		const planned = storage.transaction((txn) => {
+			const plan = planMcpComment({
+				room: txn,
+				userId,
+				isReadonly: false,
+				body,
+				target,
+				agent,
+				agentClient,
+			})
+			if (plan.ok) {
+				for (const record of plan.records) txn.set(record.id, record as unknown as TLRecord)
+			}
+			return plan
+		}).result
+		if (!planned.ok) return planned
+
+		const { records, ...written } = planned
+		const recordIds = records.map((record) => record.id)
+		await this.enqueueCommentRecordIds(recordIds).catch((error) => {
+			this.reportError(error)
+		})
+		// A later edit to the same thread can re-queue its id, which reads as queued here too. That
+		// only errs towards telling the agent not to retry.
+		const queued =
+			this.ctx.storage.sql
+				.exec(
+					`SELECT 1 FROM comment_outbox WHERE recordId IN (${recordIds.map(() => '?').join(', ')}) LIMIT 1`,
+					...recordIds
+				)
+				.toArray().length > 0
+		return { ...written, queued }
+	}
+
+	// Created on first use: most boards never see an agent.
+	private mcpAgentsReady = false
+	private ensureMcpAgents() {
+		if (this.mcpAgentsReady) return
+		ensureMcpAgentTables(this.ctx.storage.sql)
+		this.mcpAgentsReady = true
 	}
 
 	/**

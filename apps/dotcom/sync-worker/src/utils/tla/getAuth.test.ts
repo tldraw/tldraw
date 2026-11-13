@@ -200,7 +200,7 @@ describe('getMcpTokenAuth', () => {
 
 		await expect(
 			getMcpTokenAuth(requestWith({ authorization: 'Bearer tok' }), env)
-		).resolves.toEqual({ ok: true, userId: 'user_1' })
+		).resolves.toEqual({ ok: true, userId: 'user_1', clientId: null })
 		expect(canUseMcpServer).toHaveBeenCalledWith(env, 'user_1')
 	})
 
@@ -215,7 +215,7 @@ describe('getMcpTokenAuth', () => {
 			getMcpTokenAuth(requestWith({ 'sec-websocket-protocol': 'tldraw.bearer, tok' }), env, {
 				allowSubprotocolToken: true,
 			})
-		).resolves.toEqual({ ok: true, userId: 'user_1' })
+		).resolves.toEqual({ ok: true, userId: 'user_1', clientId: null })
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe('Bearer tok')
 	})
 
@@ -267,7 +267,7 @@ describe('getMcpTokenAuth', () => {
 			getMcpTokenAuth(requestWith({}, '?accessToken=tok&sessionId=s'), env, {
 				allowQueryToken: true,
 			})
-		).resolves.toEqual({ ok: true, userId: 'user_1' })
+		).resolves.toEqual({ ok: true, userId: 'user_1', clientId: null })
 		expect(authenticateRequest.mock.calls[0][0].headers.get('authorization')).toBe('Bearer tok')
 	})
 
