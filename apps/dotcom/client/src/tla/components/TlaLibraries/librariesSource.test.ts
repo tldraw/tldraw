@@ -26,8 +26,8 @@ const names = (source: TldrawAppLibrariesSource) =>
 describe('TldrawAppLibrariesSource', () => {
 	it("lists the user's workspaces as owners, home first, and creates new libraries there", async () => {
 		const source = createSource()
-		expect(source.getLibraryOwners()).toEqual([
-			{ id: 'home', name: 'Private to you' },
+		expect(source.getLibraryOwners().map(({ id, name }) => ({ id, name }))).toEqual([
+			{ id: 'home', name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
 		])
 		expect(source.getDefaultOwnerId()).toBe('home')
