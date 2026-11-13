@@ -2056,8 +2056,8 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Share of tool calls that came through the codex plugin's proxy worker
-          (tldraw-internal, apps/public/codex-plugin) rather than from an MCP client connected
+        description:
+          Share of tool calls that came through the codex plugin's proxy worker rather than from an MCP client connected
           to this server directly. The plugin forwards search_boards, list_workspaces, create_board
           and rename_board, and is recognized by its tldraw-codex-plugin User-Agent; calls
           it made before it sent one are client none.

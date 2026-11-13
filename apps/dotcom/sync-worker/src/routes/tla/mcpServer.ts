@@ -241,9 +241,9 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 // truncated raw name for spotting families worth adding here. Order matters where strings overlap —
 // a Claude UA also says Mozilla, so `mozilla` sits last, and the codex plugin's UA also says codex.
 //
-// `codex-plugin` is our own proxy worker (tldraw-internal, apps/public/codex-plugin), which forwards a
-// few board tools for every Codex user and names itself in its User-Agent. A Worker's fetch sends no
-// User-Agent of its own, so without that header its calls are `none`.
+// `codex-plugin` is the codex plugin's proxy worker, which forwards a few board tools for every
+// Codex user and names itself in its User-Agent. A Worker's fetch sends no User-Agent of its own, so
+// without that header its calls are `none`.
 const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
 	['tldraw-codex-plugin', 'codex-plugin'],
 	['claude', 'claude'],
