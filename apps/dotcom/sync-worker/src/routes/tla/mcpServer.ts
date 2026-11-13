@@ -39,12 +39,14 @@ import {
 	describePageSelector,
 	getBoardInfo,
 	getBoardSearchResults,
+	getBoardUsersResult,
 	getClusterInfo,
 	getClusterScreenshotSize,
 	getClustersBox,
 	getCreatedBoardResult,
 	getPageCommentsResult,
 	getPageInfo,
+	getPeerStateResult,
 	getToolDefinitions,
 	getWrittenCommentResult,
 	getWorkspaceListResult,
@@ -1469,7 +1471,7 @@ async function callUserStateTool(
 				'user_not_on_board'
 			)
 		}
-		return toolJsonResult(user)
+		return getPeerStateResult(user, Date.now())
 	} catch (error) {
 		return toolFailure(error, {
 			env,
@@ -1503,7 +1505,7 @@ async function callBoardUsersTool(
 
 		const users = await readBoardUsers(env, input.boardId, { request, ctx })
 		if (!users.ok) return toolError(users.message, users.reason)
-		return toolJsonResult(users.value)
+		return getBoardUsersResult(users.value, Date.now())
 	} catch (error) {
 		return toolFailure(error, {
 			env,

@@ -694,6 +694,7 @@ describe('search_boards', () => {
 		id: 'board-1',
 		name: 'Roadmap',
 		// A board the caller made: arrival and creation are the same moment.
+		matched: 0,
 		arrivedAt: 1_700_000_000_000,
 		createdAt: 1_700_000_000_000,
 		updatedAt: 1_700_000_500_000,
@@ -724,10 +725,10 @@ describe('search_boards', () => {
 	// The cursor a caller hands back must reach the query, or every page is page one.
 	it('passes a decoded cursor through to the query', async () => {
 		vi.mocked(searchAccessibleBoards).mockResolvedValue([])
-		await callTool('search_boards', { cursor: btoa('1700000000000:board-9:') })
+		await callTool('search_boards', { cursor: btoa('0:1700000000000:board-9:') })
 		expect(searchAccessibleBoards).toHaveBeenCalledWith(expect.anything(), expect.any(String), {
 			terms: [],
-			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
 	})
 
@@ -2081,7 +2082,11 @@ describe('presence', () => {
 			'user_tab'
 		)
 
-		expect(JSON.parse(result.content[0].text)).toEqual({ users: [PEER], anonymousViewers: 0 })
+		const { selectedShapeIds: _selection, ...listed } = PEER
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			users: [{ ...listed, isActive: true }],
+			anonymousViewers: 0,
+		})
 		expect(tab).not.toHaveBeenCalled()
 	})
 
@@ -2116,7 +2121,7 @@ describe('presence', () => {
 			'user_tab'
 		)
 
-		expect(JSON.parse(result.content[0].text)).toEqual(PEER)
+		expect(JSON.parse(result.content[0].text)).toEqual({ ...PEER, isActive: true })
 		expect(tab).not.toHaveBeenCalled()
 	})
 
