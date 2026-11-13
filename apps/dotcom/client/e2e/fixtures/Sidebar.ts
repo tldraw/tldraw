@@ -82,7 +82,8 @@ export class Sidebar {
 	@step
 	async setDarkMode() {
 		await this.openSettings('preferences')
-		await this.page.getByTestId('tla-settings-theme-dark').click()
+		await this.page.getByTestId('tla-settings-theme').click()
+		await this.page.getByRole('option', { name: 'Dark' }).click()
 		await this.page.keyboard.press('Escape')
 	}
 

@@ -106,7 +106,8 @@ export function TlaMenuControlLabel({
 	htmlFor,
 }: {
 	children: ReactNode
-	htmlFor: string
+	// Omit when the control can't take an id (a radio group, an SDK input); name it with aria-label instead.
+	htmlFor?: string
 }) {
 	return (
 		<label className={classNames(styles.menuLabel, 'tla-text_ui__medium')} htmlFor={htmlFor}>
@@ -132,7 +133,6 @@ export function TlaMenuSelect<T extends string>({
 	onChange,
 	options,
 	actions,
-	variant = 'inline',
 	onHighlight,
 	'data-testid': dataTestId,
 }: {
@@ -153,7 +153,6 @@ export function TlaMenuSelect<T extends string>({
 		// Shown on hover when the action is disabled (e.g. why it can't be used).
 		tooltip?: ReactNode
 	}[]
-	variant?: 'inline' | 'field'
 	// Fires as options are hovered or arrowed through, and with null when the list closes.
 	onHighlight?(value: T | null): void
 	'data-testid'?: string
@@ -182,10 +181,7 @@ export function TlaMenuSelect<T extends string>({
 			>
 				<_Select.Trigger
 					id={id}
-					className={classNames(
-						styles.menuSelectTrigger,
-						variant === 'field' && styles.menuSelectTriggerField
-					)}
+					className={styles.menuSelectTrigger}
 					disabled={disabled}
 					aria-label={label}
 					data-testid={dataTestId}

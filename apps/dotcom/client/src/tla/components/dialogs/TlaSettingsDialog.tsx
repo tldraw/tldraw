@@ -1,5 +1,4 @@
 import classNames from 'classnames'
-import { Tabs as _Tabs, ToggleGroup as _ToggleGroup } from 'radix-ui'
 import { useEffect, useRef, useState } from 'react'
 import {
 	defaultUserPreferences,
@@ -28,7 +27,19 @@ import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
-import { TlaMenuSelect, TlaMenuSwitch } from '../tla-menu/tla-menu'
+import {
+	TlaMenuControl,
+	TlaMenuControlGroup,
+	TlaMenuControlLabel,
+	TlaMenuSection,
+	TlaMenuSelect,
+	TlaMenuSwitch,
+	TlaMenuTabsPage,
+	TlaMenuTabsRoot,
+	TlaMenuTabsTab,
+	TlaMenuTabsTabs,
+} from '../tla-menu/tla-menu'
+import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import { SubmitFeedbackDialog } from './SubmitFeedbackDialog'
@@ -43,7 +54,6 @@ const messages = defineMessages({
 	color: { defaultMessage: 'Color' },
 	colorTheme: { defaultMessage: 'Color theme' },
 	canvas: { defaultMessage: 'Canvas' },
-	cookies: { defaultMessage: 'Cookies' },
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 	userManual: { defaultMessage: 'User manual' },
@@ -68,10 +78,9 @@ export function TlaSettingsDialog() {
 	const app = useApp()
 	const trackAppEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
-	const signOut = useSignOut('user-preferences')
 
-	// Lives here, not in ProfilePanel: Radix unmounts inactive tab content, so a panel-level
-	// effect would report once per visit to the tab instead of once per dialog.
+	// Lives here, not in ProfilePanel: inactive tab pages unmount, so a panel-level effect
+	// would report once per visit to the tab instead of once per dialog.
 	const typedNameRef = useRef<string | null>(null)
 	useEffect(() => {
 		const initialName = app.getUser().name
@@ -102,45 +111,29 @@ export function TlaSettingsDialog() {
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<_Tabs.Root
-				className={styles.layout}
-				orientation="vertical"
-				value={activeTab}
-				onValueChange={(tab) => setActiveTab(tab as SettingsTab)}
+			<TlaMenuTabsRoot
+				activeTab={activeTab}
+				onTabChange={(tab) => setActiveTab(tab as SettingsTab)}
 			>
-				<div className={styles.nav}>
-					<_Tabs.List className={styles.tabs}>
+				<div className={styles.tabs}>
+					<TlaMenuTabsTabs>
 						{tabs.map(({ id, label }) => (
-							<_Tabs.Trigger
-								key={id}
-								value={id}
-								data-testid={`tla-settings-tab-${id}`}
-								className={classNames(styles.tab, 'tla-text_ui__regular')}
-							>
+							<TlaMenuTabsTab key={id} id={id} data-testid={`tla-settings-tab-${id}`}>
 								{label}
-							</_Tabs.Trigger>
+							</TlaMenuTabsTab>
 						))}
-					</_Tabs.List>
-					<button
-						className={classNames(styles.tab, styles.signOut, 'tla-text_ui__regular')}
-						data-testid="tla-settings-sign-out"
-						onClick={signOut}
-					>
-						<TlaIcon icon="sign-out" />
-						<F defaultMessage="Sign out" />
-					</button>
+					</TlaMenuTabsTabs>
 				</div>
-				{tabs.map(({ id, label }) => (
-					<_Tabs.Content key={id} value={id} className={styles.panel}>
-						<h3 className={styles.panelTitle}>{label}</h3>
+				{tabs.map(({ id }) => (
+					<TlaMenuTabsPage key={id} id={id} className={styles.page}>
 						{id === 'profile' && <ProfilePanel onNameChange={handleNameChange} />}
 						{id === 'preferences' && <PreferencesPanel />}
 						{id === 'canvas' && <CanvasPanel />}
-						{id === 'accessibility' && <PreferenceSwitches toggles={ACCESSIBILITY_TOGGLES} />}
+						{id === 'accessibility' && <AccessibilityPanel />}
 						{id === 'about' && <AboutPanel />}
-					</_Tabs.Content>
+					</TlaMenuTabsPage>
 				))}
-			</_Tabs.Root>
+			</TlaMenuTabsRoot>
 		</div>
 	)
 }
@@ -149,10 +142,11 @@ function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
 	const msg = useTranslation()
 	const app = useApp()
 	const trackUiEvent = useUiEvents()
+	const signOut = useSignOut('user-preferences')
 	const user = useValue('user', () => app.getUser(), [app])
 
 	return (
-		<>
+		<TlaMenuSection>
 			<div className={styles.identity}>
 				<TlaUserAvatar user={user} className={styles.avatar} />
 				<div className={styles.identityText}>
@@ -160,45 +154,52 @@ function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
 					<div className={classNames(styles.email, 'notranslate')}>{user.email}</div>
 				</div>
 			</div>
-			<div className={styles.field}>
-				<div className={styles.label}>{msg(messages.name)}</div>
-				<TldrawUiInput
-					aria-label={msg(messages.name)}
-					data-testid="tla-settings-name-input"
-					className={styles.input}
-					defaultValue={user.name}
-					onValueChange={onNameChange}
-				/>
-			</div>
-			<div className={styles.field}>
-				<div className={styles.label} id="tla-settings-color-label">
-					{msg(messages.color)}
-				</div>
-				<div
-					className={styles.swatches}
-					role="radiogroup"
-					aria-labelledby="tla-settings-color-label"
-				>
-					{USER_COLORS.map((color) => (
-						<button
-							key={color}
-							role="radio"
-							aria-checked={user.color === color}
-							aria-label={color}
-							title={color}
-							data-testid={`tla-settings-color-${color}`}
-							className={styles.swatch}
-							style={{ backgroundColor: color }}
-							onClick={() => {
-								if (user.color === color) return
-								setPreferences(app, { color })
-								trackUiEvent('set-color', { source: 'dialog' })
-							}}
+			<TlaMenuControlGroup>
+				<TlaMenuControl>
+					<TlaMenuControlLabel>{msg(messages.name)}</TlaMenuControlLabel>
+					<div className={styles.nameField}>
+						<TldrawUiInput
+							aria-label={msg(messages.name)}
+							data-testid="tla-settings-name-input"
+							className={styles.input}
+							defaultValue={user.name}
+							onValueChange={onNameChange}
 						/>
-					))}
-				</div>
-			</div>
-		</>
+					</div>
+				</TlaMenuControl>
+				<TlaMenuControl>
+					<TlaMenuControlLabel>{msg(messages.color)}</TlaMenuControlLabel>
+					<div className={styles.swatches} role="radiogroup" aria-label={msg(messages.color)}>
+						{USER_COLORS.map((color) => (
+							<button
+								key={color}
+								role="radio"
+								aria-checked={user.color === color}
+								aria-label={color}
+								title={color}
+								data-testid={`tla-settings-color-${color}`}
+								className={styles.swatch}
+								style={{ backgroundColor: color }}
+								onClick={() => {
+									if (user.color === color) return
+									setPreferences(app, { color })
+									trackUiEvent('set-color', { source: 'dialog' })
+								}}
+							/>
+						))}
+					</div>
+				</TlaMenuControl>
+			</TlaMenuControlGroup>
+			<TlaButton
+				variant="secondary"
+				icon="sign-out"
+				className={styles.signOut}
+				data-testid="tla-settings-sign-out"
+				onClick={signOut}
+			>
+				<F defaultMessage="Sign out" />
+			</TlaButton>
+		</TlaMenuSection>
 	)
 }
 
@@ -219,9 +220,15 @@ function PreferencesPanel() {
 	const colorThemeOptions = useColorThemeOptions()
 	const selectColorTheme = useSelectColorTheme()
 
+	// The user record stores this as a plain string, so narrow it to a scheme we offer.
 	const colorScheme = useValue(
 		'colorScheme',
-		() => app.getUser().colorScheme ?? defaultUserPreferences.colorScheme,
+		() => {
+			const value = app.getUser().colorScheme
+			return (
+				COLOR_SCHEMES.find((o) => o.value === value)?.value ?? defaultUserPreferences.colorScheme
+			)
+		},
 		[app]
 	)
 	const locale = useValue('locale', () => app.getUser().locale ?? defaultUserPreferences.locale, [
@@ -233,82 +240,67 @@ function PreferencesPanel() {
 
 	const languageOptions = LANGUAGES.map(({ locale, label }) => ({ value: locale, label }))
 
+	const colorSchemeOptions = COLOR_SCHEMES.map(({ value, label }) => ({ value, label: msg(label) }))
+
 	return (
-		<>
-			<div className={styles.field}>
-				<div className={styles.label} id="tla-settings-theme-label">
-					{msg('menu.theme')}
-				</div>
-				<_ToggleGroup.Root
-					type="single"
-					className={styles.segmented}
-					aria-labelledby="tla-settings-theme-label"
-					value={colorScheme}
-					onValueChange={(value: NonNullable<TLUserPreferences['colorScheme']> | '') => {
-						// Clicking the active segment emits '' (deselect); a theme must stay selected.
-						if (!value) return
-						setPreferences(app, { colorScheme: value })
-						trackUiEvent('color-scheme', { source: 'dialog', value })
-					}}
-				>
-					{COLOR_SCHEMES.map(({ value, label }) => (
-						<_ToggleGroup.Item
-							key={value}
-							value={value}
-							data-testid={`tla-settings-theme-${value}`}
-							className={classNames(styles.segment, 'tla-text_ui__regular')}
-						>
-							{msg(label)}
-						</_ToggleGroup.Item>
-					))}
-				</_ToggleGroup.Root>
-			</div>
-			<div className={styles.field}>
-				<label htmlFor="tla-settings-color-theme" className={styles.label}>
-					{msg(messages.colorTheme)}
-				</label>
-				<TlaMenuSelect
-					id="tla-settings-color-theme"
-					data-testid="tla-settings-color-theme"
-					variant="field"
-					label={colorThemeOptions.find((o) => o.value === colorTheme)?.label ?? colorTheme}
-					value={colorTheme}
-					options={colorThemeOptions}
-					onHighlight={(id) => setColorThemePreview(id)}
-					onChange={selectColorTheme}
-				/>
-			</div>
-			<div className={styles.field}>
-				<label htmlFor="tla-settings-language" className={styles.label}>
-					{msg('menu.language')}
-				</label>
-				<TlaMenuSelect
-					id="tla-settings-language"
-					data-testid="tla-settings-language"
-					variant="field"
-					label={languageOptions.find((o) => o.value === locale)?.label ?? locale}
-					value={locale}
-					options={languageOptions}
-					onChange={(locale) => {
-						setPreferences(app, { locale })
-						trackUiEvent('change-language', { source: 'dialog', locale })
-					}}
-				/>
-			</div>
-			<div className={styles.field}>
-				<div className={styles.label}>{msg(messages.cookies)}</div>
-				<div className={styles.rows}>
-					<button
-						className={classNames(styles.row, 'tla-text_ui__regular')}
-						data-testid="tla-settings-manage-cookies"
-						onClick={() => addDialog({ component: () => <TlaManageCookiesDialog /> })}
-					>
-						{msg(messages.manageCookies)}
-					</button>
-				</div>
-			</div>
-			<HighlightMissingTranslationsField />
-		</>
+		<TlaMenuSection>
+			<TlaMenuControlGroup>
+				<TlaMenuControl>
+					<TlaMenuControlLabel htmlFor="tla-settings-theme">
+						{msg('menu.theme')}
+					</TlaMenuControlLabel>
+					<TlaMenuSelect
+						id="tla-settings-theme"
+						data-testid="tla-settings-theme"
+						label={colorSchemeOptions.find((o) => o.value === colorScheme)?.label ?? colorScheme}
+						value={colorScheme}
+						options={colorSchemeOptions}
+						onChange={(value) => {
+							setPreferences(app, { colorScheme: value })
+							trackUiEvent('color-scheme', { source: 'dialog', value })
+						}}
+					/>
+				</TlaMenuControl>
+				<TlaMenuControl>
+					<TlaMenuControlLabel htmlFor="tla-settings-color-theme">
+						{msg(messages.colorTheme)}
+					</TlaMenuControlLabel>
+					<TlaMenuSelect
+						id="tla-settings-color-theme"
+						data-testid="tla-settings-color-theme"
+						label={colorThemeOptions.find((o) => o.value === colorTheme)?.label ?? colorTheme}
+						value={colorTheme}
+						options={colorThemeOptions}
+						onHighlight={(id) => setColorThemePreview(id)}
+						onChange={selectColorTheme}
+					/>
+				</TlaMenuControl>
+				<TlaMenuControl>
+					<TlaMenuControlLabel htmlFor="tla-settings-language">
+						{msg('menu.language')}
+					</TlaMenuControlLabel>
+					<TlaMenuSelect
+						id="tla-settings-language"
+						data-testid="tla-settings-language"
+						label={languageOptions.find((o) => o.value === locale)?.label ?? locale}
+						value={locale}
+						options={languageOptions}
+						onChange={(locale) => {
+							setPreferences(app, { locale })
+							trackUiEvent('change-language', { source: 'dialog', locale })
+						}}
+					/>
+				</TlaMenuControl>
+				<HighlightMissingTranslationsControl />
+			</TlaMenuControlGroup>
+			<TlaButton
+				variant="secondary"
+				data-testid="tla-settings-manage-cookies"
+				onClick={() => addDialog({ component: () => <TlaManageCookiesDialog /> })}
+			>
+				{msg(messages.manageCookies)}
+			</TlaButton>
+		</TlaMenuSection>
 	)
 }
 
@@ -429,41 +421,50 @@ function PreferenceSwitches({ toggles }: { toggles: PreferenceToggle[] }) {
 	const preferences = usePreferences()
 
 	return (
-		<div className={styles.rows}>
+		<>
 			{toggles.map((toggle) => {
 				const id = `tla-settings-${toggle.id}`
-				const isDisabled = toggle.isDisabled?.(preferences) ?? false
 				return (
-					<label
-						key={toggle.id}
-						htmlFor={id}
-						className={classNames(styles.row, 'tla-text_ui__regular')}
-						data-disabled={isDisabled}
-					>
-						{msg(toggle.label)}
+					<TlaMenuControl key={toggle.id}>
+						<TlaMenuControlLabel htmlFor={id}>{msg(toggle.label)}</TlaMenuControlLabel>
 						<TlaMenuSwitch
 							id={id}
 							data-testid={id}
 							checked={toggle.isChecked(preferences)}
-							disabled={isDisabled}
+							disabled={toggle.isDisabled?.(preferences) ?? false}
 							onChange={(checked) => {
 								setPreferences(app, toggle.getUpdate(checked))
 								trackUiEvent(toggle.id, { source: 'dialog' })
 							}}
 						/>
-					</label>
+					</TlaMenuControl>
 				)
 			})}
-		</div>
+		</>
 	)
 }
 
 function CanvasPanel() {
 	return (
-		<>
-			<PreferenceSwitches toggles={CANVAS_TOGGLES} />
-			<InputDeviceField />
-		</>
+		<TlaMenuSection>
+			<TlaMenuControlGroup>
+				<PreferenceSwitches toggles={CANVAS_TOGGLES} />
+			</TlaMenuControlGroup>
+			<TlaMenuControlGroup>
+				<InputDeviceControl />
+				<PreferenceSwitches toggles={INPUT_DEVICE_TOGGLES} />
+			</TlaMenuControlGroup>
+		</TlaMenuSection>
+	)
+}
+
+function AccessibilityPanel() {
+	return (
+		<TlaMenuSection>
+			<TlaMenuControlGroup>
+				<PreferenceSwitches toggles={ACCESSIBILITY_TOGGLES} />
+			</TlaMenuControlGroup>
+		</TlaMenuSection>
 	)
 }
 
@@ -475,7 +476,7 @@ const AUTO_INPUT_MODE_LABELS: Record<'none' | 'pan' | 'zoom', TLUiTranslationKey
 	zoom: 'action.toggle-auto-zoom',
 }
 
-function InputDeviceField() {
+function InputDeviceControl() {
 	const msg = useTranslation()
 	const app = useApp()
 	const trackUiEvent = useUiEvents()
@@ -495,14 +496,13 @@ function InputDeviceField() {
 	const value: InputMode = inputMode === 'trackpad' || inputMode === 'mouse' ? inputMode : 'auto'
 
 	return (
-		<div className={styles.field}>
-			<label htmlFor="tla-settings-input-device" className={styles.label}>
+		<TlaMenuControl>
+			<TlaMenuControlLabel htmlFor="tla-settings-input-device">
 				{msg('menu.input-device')}
-			</label>
+			</TlaMenuControlLabel>
 			<TlaMenuSelect
 				id="tla-settings-input-device"
 				data-testid="tla-settings-input-device"
-				variant="field"
 				label={options.find((o) => o.value === value)?.label ?? value}
 				value={value}
 				options={options}
@@ -511,12 +511,11 @@ function InputDeviceField() {
 					trackUiEvent('input-mode', { source: 'dialog', value: mode })
 				}}
 			/>
-			<PreferenceSwitches toggles={INPUT_DEVICE_TOGGLES} />
-		</div>
+		</TlaMenuControl>
 	)
 }
 
-function HighlightMissingTranslationsField() {
+function HighlightMissingTranslationsControl() {
 	const msg = useTranslation()
 	const isDebugMode = useValue(
 		'debug',
@@ -532,10 +531,10 @@ function HighlightMissingTranslationsField() {
 	if (!isDevelopmentEnv || !isDebugMode) return null
 
 	return (
-		<div className={classNames(styles.field, styles.switchField)}>
-			<label htmlFor="tla-settings-highlight-missing" className={styles.label}>
+		<TlaMenuControl>
+			<TlaMenuControlLabel htmlFor="tla-settings-highlight-missing">
 				{msg(messages.langHighlightMissing)}
-			</label>
+			</TlaMenuControlLabel>
 			{/* Shadows every string the UI rendered without going through `F`, which is what
 			    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
 			<TlaMenuSwitch
@@ -546,7 +545,7 @@ function HighlightMissingTranslationsField() {
 					setIsHighlighting(checked)
 				}}
 			/>
-		</div>
+		</TlaMenuControl>
 	)
 }
 
@@ -554,42 +553,53 @@ function AboutPanel() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	const openAndTrack = useOpenUrlAndTrack('dialog')
-	const rowClassName = classNames(styles.row, 'tla-text_ui__regular')
+	const linkClassName = classNames(styles.link, 'tla-text_ui__medium')
+	const externalIcon = <TlaIcon icon="external" className={styles.linkIcon} />
 
 	return (
-		<div className={styles.rows}>
-			<button
-				className={rowClassName}
-				data-testid="tla-settings-user-manual"
-				onClick={() => openAndTrack(USER_MANUAL_URL)}
-			>
-				{msg(messages.userManual)}
-				<TlaIcon icon="external" />
-			</button>
-			<button
-				className={rowClassName}
-				data-testid="tla-settings-feedback"
-				onClick={() => addDialog({ component: SubmitFeedbackDialog })}
-			>
-				{msg(messages.submitFeedback)}
-			</button>
-			<button
-				className={rowClassName}
-				data-testid="tla-settings-legal-summary"
-				onClick={() => openAndTrack(LEGAL_SUMMARY_URL)}
-			>
-				{msg(messages.legalSummary)}
-				<TlaIcon icon="external" />
-			</button>
-			<ExternalLink
-				className={rowClassName}
-				to={DOT_DEV_URL}
-				data-testid="tla-settings-dotdev-link"
-				eventName="sidebar-dotdev-link-clicked"
-			>
-				{msg(messages.buildWithTldraw)}
-				<TlaIcon icon="external" />
-			</ExternalLink>
-		</div>
+		<TlaMenuSection>
+			<TlaMenuControlGroup>
+				<TlaMenuControl>
+					<button
+						className={linkClassName}
+						data-testid="tla-settings-user-manual"
+						onClick={() => openAndTrack(USER_MANUAL_URL)}
+					>
+						{msg(messages.userManual)}
+						{externalIcon}
+					</button>
+				</TlaMenuControl>
+				<TlaMenuControl>
+					<button
+						className={linkClassName}
+						data-testid="tla-settings-feedback"
+						onClick={() => addDialog({ component: SubmitFeedbackDialog })}
+					>
+						{msg(messages.submitFeedback)}
+					</button>
+				</TlaMenuControl>
+				<TlaMenuControl>
+					<button
+						className={linkClassName}
+						data-testid="tla-settings-legal-summary"
+						onClick={() => openAndTrack(LEGAL_SUMMARY_URL)}
+					>
+						{msg(messages.legalSummary)}
+						{externalIcon}
+					</button>
+				</TlaMenuControl>
+				<TlaMenuControl>
+					<ExternalLink
+						className={linkClassName}
+						to={DOT_DEV_URL}
+						data-testid="tla-settings-dotdev-link"
+						eventName="sidebar-dotdev-link-clicked"
+					>
+						{msg(messages.buildWithTldraw)}
+						{externalIcon}
+					</ExternalLink>
+				</TlaMenuControl>
+			</TlaMenuControlGroup>
+		</TlaMenuSection>
 	)
 }

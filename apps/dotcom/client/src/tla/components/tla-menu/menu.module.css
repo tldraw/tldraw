@@ -250,30 +250,6 @@
 	}
 }
 
-/* Full-width, form-field look (settings dialog). Kept after the base trigger rules so it wins on order. */
-.menuSelectTriggerField {
-	box-sizing: border-box;
-	height: 32px;
-	width: 100%;
-	justify-content: space-between;
-	padding: 0 var(--tl-space-3);
-	border: 1px solid var(--tl-color-divider);
-	border-radius: var(--tl-radius-2);
-	background-color: var(--tl-color-muted-0);
-}
-
-.menuSelectTriggerField::after {
-	inset: 0;
-	border-radius: inherit;
-	z-index: -1;
-}
-
-.menuSelectTriggerField:focus-visible {
-	outline: 2px solid var(--tl-color-focus);
-	outline-offset: -1px;
-	border-radius: var(--tl-radius-2);
-}
-
 /* --------------------- Switch --------------------- */
 
 .menuSwitchContainer {
