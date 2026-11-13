@@ -18,6 +18,7 @@ import {
 	BOARD_INFO_TOOL_NAME,
 	BOARD_NOT_FOUND_MESSAGE,
 	BOARD_USERS_TOOL_NAME,
+	ClusterImage,
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
@@ -36,6 +37,7 @@ import {
 	getBoardSearchResults,
 	getClusterInfo,
 	getClusterScreenshotSize,
+	getClusterSpreadRefusal,
 	getClustersBox,
 	getCreatedBoardResult,
 	getPageInfo,
@@ -55,6 +57,7 @@ import {
 	parseUserStateInput,
 	pickClusterShapes,
 	toolError as modelToolError,
+	toolClusterImagesResult,
 	toolJsonResult,
 	toolPageResult,
 } from './boardTools'
@@ -1145,24 +1148,58 @@ async function callClusterScreenshotTool(
 			telemetry({ failureReason: 'cluster_not_found' })
 			return withTelemetryReason(picked.result, 'cluster_not_found')
 		}
-		const size = getClusterScreenshotSize(
-			getClustersBox(page.read.detailBounds ?? {}, input.clusterIds),
-			input.size
-		)
+		const bounds = page.read.detailBounds ?? {}
 
-		const image = await captureInOpenTab(
-			env,
-			input.boardId,
-			userId,
-			{
-				pageId: page.read.pageId,
-				shapeIds: picked.shapeIds,
-				theme: input.theme,
-				width: size.width,
-				height: size.height,
-			},
-			{ request, ctx }
-		)
+		const capture = (clusterIds: string[], shapeIds: string[]) => {
+			const size = getClusterScreenshotSize(getClustersBox(bounds, clusterIds), input.size)
+			return captureInOpenTab(
+				env,
+				input.boardId,
+				userId,
+				{
+					pageId: page.read.pageId,
+					shapeIds,
+					theme: input.theme,
+					width: size.width,
+					height: size.height,
+				},
+				{ request, ctx }
+			)
+		}
+
+		if (input.layout === 'separate') {
+			// The read paid for the first capture, as it does for a combined one. Each further capture
+			// is another job on the board's durable object, so it is charged like a call, and charged
+			// up front so a limit hit part-way doesn't throw away the captures before it.
+			for (let i = 1; i < input.clusterIds.length; i++) {
+				const limited = await checkTabRateLimit(env, userId, telemetry)
+				if (limited) return limited
+			}
+			const images: ClusterImage[] = []
+			for (const clusterId of input.clusterIds) {
+				// pickClusterShapes above already refused any id that isn't on the page.
+				const cluster = page.read.details.find((c) => c.id === clusterId)!
+				const image = await capture(
+					[clusterId],
+					cluster.shapes.map((shape) => shape.id)
+				)
+				if (!image.ok) {
+					telemetry({ failureReason: image.reason })
+					return toolError(image.message, image.reason)
+				}
+				images.push({ id: clusterId, label: cluster.label, base64: image.value })
+			}
+			telemetry({})
+			return toolClusterImagesResult(page.read.pageName, images)
+		}
+
+		const spread = getClusterSpreadRefusal(bounds, input.clusterIds, input.size)
+		if (spread) {
+			telemetry({ failureReason: 'clusters_too_far_apart' })
+			return withTelemetryReason(spread, 'clusters_too_far_apart')
+		}
+
+		const image = await capture(input.clusterIds, picked.shapeIds)
 		if (!image.ok) {
 			telemetry({ failureReason: image.reason })
 			return toolError(image.message, image.reason)
@@ -1182,6 +1219,7 @@ async function callClusterScreenshotTool(
 				theme: input.theme,
 				clusterIds: input.clusterIds.join(','),
 				size: input.size,
+				layout: input.layout,
 			},
 			summary: 'Screenshot failed',
 			telemetry,

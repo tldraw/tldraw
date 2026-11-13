@@ -10,6 +10,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
+	ClusterImage,
 	LIST_WORKSPACES_TOOL_NAME,
 	PAGE_INFO_TOOL_NAME,
 	RENAME_BOARD_TOOL_NAME,
@@ -20,6 +21,7 @@ import {
 	getBoardInfo,
 	getBoardSearchResults,
 	getClusterInfo,
+	getClusterSpreadRefusal,
 	getPageInfo,
 	handleMcpJsonRpc,
 	isAfterBoardSearchCursor,
@@ -33,6 +35,7 @@ import {
 	parseSearchBoardsInput,
 	pickClusterShapes,
 	readSnapshotPage,
+	toolClusterImagesResult,
 	toolError,
 	toolPageResult,
 	USER_STATE_TOOL_NAME,
@@ -198,19 +201,30 @@ async function callFixtureTool(
 				return read.ok ? getClusterInfo(read.read, clusterIds, page, cursor).result : read.result
 			}
 			case CLUSTER_SCREENSHOT_TOOL_NAME: {
-				const { boardId, page, clusterIds, theme } = parseClusterScreenshotInput(args)
+				const { boardId, page, clusterIds, theme, size, layout } = parseClusterScreenshotInput(args)
 				const board = boards.get(boardId)
 				if (!board) return toolError(BOARD_NOT_FOUND_MESSAGE)
 				const read = readSnapshotPage(board.snapshot, page, board.measurements, clusterIds)
 				if (!read.ok) return read.result
 				const picked = pickClusterShapes(read.read.details, clusterIds, page)
 				if (!picked.ok) return picked.result
+				const missingShot = toolError(
+					`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
+				)
+				if (layout === 'separate') {
+					const images: ClusterImage[] = []
+					for (const id of clusterIds) {
+						const png = board.shots[screenshotFileName([id], theme)]
+						if (!png) return missingShot
+						const label = read.read.details.find((cluster) => cluster.id === id)!.label
+						images.push({ id, label, base64: png })
+					}
+					return toolClusterImagesResult(read.read.pageName, images)
+				}
+				const spread = getClusterSpreadRefusal(read.read.detailBounds ?? {}, clusterIds, size)
+				if (spread) return spread
 				const png = board.shots[screenshotFileName(clusterIds, theme)]
-				return png
-					? toolPageResult(read.read.pageName, png)
-					: toolError(
-							`${HARNESS_GAP_MARKER} No screenshot was built for this cluster set. Run against staging or production to see the real render.`
-						)
+				return png ? toolPageResult(read.read.pageName, png) : missingShot
 			}
 			case LIST_WORKSPACES_TOOL_NAME: {
 				// Parsed so argument errors read as they do in production; a fixture session has no

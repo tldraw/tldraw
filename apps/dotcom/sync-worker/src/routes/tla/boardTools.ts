@@ -436,21 +436,49 @@ function encodeClusterInfoCursor(cursor: ClusterInfoCursor, clusterIds: string[]
 	return btoa(`${cursor.cluster}:${cursor.shape}:${encodeURIComponent(clusterIds.join(','))}`)
 }
 
+export type ClusterScreenshotLayout = 'combined' | 'separate'
+
 export function parseClusterScreenshotInput(input: unknown): {
 	boardId: string
 	page: PageSelector
 	clusterIds: string[]
 	theme: 'light' | 'dark'
 	size: number
+	layout: ClusterScreenshotLayout
 } {
 	const value = requireArgumentsObject(input)
+	const layout = parseScreenshotLayout(value.layout)
+	const clusterIds = parseClusterIds(value.clusterIds)
+	// Asking twice for one cluster would capture it twice, and spend the budget below on a duplicate.
+	const uniqueIds = layout === 'separate' ? [...new Set(clusterIds)] : clusterIds
+	if (layout === 'separate' && uniqueIds.length > CLUSTER_SCREENSHOT_MAX_SEPARATE) {
+		throw new Error(
+			`layout "separate" takes at most ${CLUSTER_SCREENSHOT_MAX_SEPARATE} clusters per call. Split the rest across more calls.`
+		)
+	}
 	return {
 		boardId: parseBoardId(value.boardId),
 		page: parsePageSelector(value.page),
-		clusterIds: parseClusterIds(value.clusterIds),
+		clusterIds: uniqueIds,
 		theme: parseTheme(value.theme),
 		size: parseScreenshotSize(value.size),
+		layout,
 	}
+}
+
+// Each image is its own capture in the user's tab, run one after another, so a call takes as long as
+// all of them together; and each lands in the model's context. Ten stays well under the 20 images past
+// which Claude shrinks every image in a request.
+export const CLUSTER_SCREENSHOT_MAX_SEPARATE = 10
+
+// Like the theme, an unrecognized layout is refused rather than read as the default: a model that
+// asked for one image per cluster and got one of their union would describe the wrong picture.
+function parseScreenshotLayout(value: unknown): ClusterScreenshotLayout {
+	if (value === undefined || value === null) return 'combined'
+	if (value !== 'combined' && value !== 'separate') {
+		throw new Error(`layout must be 'combined' or 'separate'`)
+	}
+	return value
 }
 
 export const CLUSTER_SCREENSHOT_MIN_SIZE = 64
@@ -495,15 +523,56 @@ export function getClusterScreenshotSize(
 	box: BoxModel | null,
 	size: number
 ): { width: number; height: number } {
-	const longest = box ? Math.max(box.w, box.h) : 0
-	if (!box || longest <= 0) {
+	if (!box || Math.max(box.w, box.h) <= 0) {
 		return { width: size, height: Math.round(size / FALLBACK_ASPECT_RATIO) }
 	}
-	const scale = Math.min(size / longest, CLUSTER_SCREENSHOT_MAX_SCALE)
+	const scale = getClusterScreenshotScale(box, size)
 	return {
 		width: Math.max(1, Math.round(box.w * scale)),
 		height: Math.max(1, Math.round(box.h * scale)),
 	}
+}
+
+/** How far a screenshot framed on `box` enlarges (above 1) or shrinks (below 1) the board. */
+function getClusterScreenshotScale(box: BoxModel, size: number) {
+	const longest = Math.max(box.w, box.h)
+	return longest > 0
+		? Math.min(size / longest, CLUSTER_SCREENSHOT_MAX_SCALE)
+		: CLUSTER_SCREENSHOT_MAX_SCALE
+}
+
+// How much a combined screenshot may shrink any one cluster to fit the others into the frame. The
+// image's pixel size is capped, so distance costs scale: two clusters at opposite ends of a large page
+// come back as specks in an empty frame, with text too small to read, and the model has no way to
+// tell that from a page that really is that sparse. Enlargement past 1x doesn't count as detail lost,
+// or two small notes a screen apart would be refused for coming out at their real size.
+export const CLUSTER_SCREENSHOT_MAX_SPREAD = 4
+
+/**
+ * A refusal when the named clusters sit too far apart to read in one image, or null when they fit.
+ * Clusters the tab could not measure, or that have no size, are left out of the comparison.
+ */
+export function getClusterSpreadRefusal(
+	bounds: Record<string, BoxModel>,
+	clusterIds: string[],
+	size: number
+): ToolResult | null {
+	const measured = [...new Set(clusterIds)].filter(
+		(id) => bounds[id] && Math.max(bounds[id].w, bounds[id].h) > 0
+	)
+	if (measured.length < 2) return null
+	const together = getClusterScreenshotScale(getClustersBox(bounds, measured)!, size)
+	let worst: { id: string; alone: number } | null = null
+	for (const id of measured) {
+		const alone = getClusterScreenshotScale(bounds[id], size)
+		if (together * CLUSTER_SCREENSHOT_MAX_SPREAD >= Math.min(alone, 1)) continue
+		if (!worst || alone > worst.alone) worst = { id, alone }
+	}
+	if (!worst) return null
+	const longest = Math.max(bounds[worst.id].w, bounds[worst.id].h)
+	return toolError(
+		`These clusters are too far apart to read in one image: cluster "${worst.id}" would come out about ${Math.round(longest * together)}px across, against ${Math.round(longest * worst.alone)}px on its own. Pass layout "separate" for one image per cluster, or ask for fewer clusters that sit closer together. get_page_info's bounds say where each cluster is.`
+	)
 }
 
 /** The box around the named clusters, or null when none of them was measured. */
@@ -692,6 +761,25 @@ export function toolPageResult(name: string, base64: string): ToolResult {
 		content: [
 			{ type: 'text', text: name },
 			{ type: 'image', data: base64, mimeType: 'image/png' },
+		],
+	}
+}
+
+export interface ClusterImage {
+	id: string
+	label: string
+	base64: string
+}
+
+/** One image per cluster, each after a line naming it, so the model can tell which is which. */
+export function toolClusterImagesResult(pageName: string, images: ClusterImage[]): ToolResult {
+	return {
+		content: [
+			{ type: 'text', text: pageName },
+			...images.flatMap(({ id, label, base64 }) => [
+				{ type: 'text' as const, text: `${id}: ${label}` },
+				{ type: 'image' as const, data: base64, mimeType: 'image/png' },
+			]),
 		],
 	}
 }
@@ -1772,7 +1860,7 @@ function getClusterScreenshotToolDefinition() {
 	return {
 		name: CLUSTER_SCREENSHOT_TOOL_NAME,
 		title: 'Get tldraw cluster screenshot',
-		description: `Return a PNG of one or more clusters from get_page_info, preceded by the page name. The board must be open in the user’s browser tab, on this page: if it is not, ask them to open it or switch to it. Only the clusters’ shapes are drawn, edge to edge, so the image has the aspect ratio of their bounds. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. Pass several ids to see how clusters sit relative to each other. Use get_cluster_info only when the individual shapes matter.`,
+		description: `Return a PNG of one or more clusters from get_page_info, preceded by the page name. The board must be open in the user’s browser tab, on this page: if it is not, ask them to open it or switch to it. Only the clusters’ shapes are drawn, edge to edge, so the image has the aspect ratio of their bounds. The longer side is ${CLUSTER_SCREENSHOT_MAX_SIZE}px unless you pass a smaller size, and less for a small cluster, which is never enlarged more than ${CLUSTER_SCREENSHOT_MAX_SCALE}x. By default several ids come back as one image of all of them, to see how they sit relative to each other; clusters too far apart to read that way are refused. Pass layout "separate" to get one image per cluster instead, each framed on its own cluster and preceded by its id and label, up to ${CLUSTER_SCREENSHOT_MAX_SEPARATE} per call. Use get_cluster_info only when the individual shapes matter.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -1801,7 +1889,13 @@ function getClusterScreenshotToolDefinition() {
 					maximum: CLUSTER_SCREENSHOT_MAX_SIZE,
 					default: CLUSTER_SCREENSHOT_MAX_SIZE,
 					description:
-						'The image’s longer side in pixels. Pass a smaller size to spend fewer image tokens.',
+						'The image’s longer side in pixels. Pass a smaller size to spend fewer image tokens. With layout "separate" it applies to each image.',
+				},
+				layout: {
+					type: 'string',
+					enum: ['combined', 'separate'],
+					default: 'combined',
+					description: `"combined" draws every cluster into one image of their union. "separate" returns one image per cluster, each framed on that cluster alone, at most ${CLUSTER_SCREENSHOT_MAX_SEPARATE} per call.`,
 				},
 			},
 			required: ['boardId', 'page', 'clusterIds'],

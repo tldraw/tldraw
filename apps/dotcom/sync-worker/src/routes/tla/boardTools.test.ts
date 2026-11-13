@@ -26,7 +26,10 @@ import {
 	parseClusterInfoInput,
 	parseClusterScreenshotInput,
 	getClusterScreenshotSize,
+	getClusterSpreadRefusal,
 	getClustersBox,
+	toolClusterImagesResult,
+	ToolResult,
 	readSnapshotPage,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
@@ -523,6 +526,121 @@ describe('parseClusterScreenshotInput', () => {
 		for (const size of [63, 2561, '800', Number.NaN]) {
 			expect(() => parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', size })).toThrow()
 		}
+	})
+
+	it('defaults to one combined image, and refuses a layout it does not know', () => {
+		expect(parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c' }).layout).toBe('combined')
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', layout: 'separate' }).layout
+		).toBe('separate')
+		expect(() =>
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: 'c', layout: 'grid' })
+		).toThrow("layout must be 'combined' or 'separate'")
+	})
+
+	it('drops repeated ids from a separate layout, then caps how many images one call takes', () => {
+		expect(
+			parseClusterScreenshotInput({
+				boardId: 'abc',
+				clusterIds: ['a', 'b', 'a'],
+				layout: 'separate',
+			}).clusterIds
+		).toEqual(['a', 'b'])
+
+		const ids = (n: number) => Array.from({ length: n }, (_, i) => `c${i}`)
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ids(10), layout: 'separate' })
+				.clusterIds
+		).toHaveLength(10)
+		expect(() =>
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ids(11), layout: 'separate' })
+		).toThrow('at most 10 clusters')
+		// One combined image costs the same however many clusters are in it.
+		expect(
+			parseClusterScreenshotInput({ boardId: 'abc', clusterIds: ids(11) }).clusterIds
+		).toHaveLength(11)
+	})
+})
+
+describe('getClusterSpreadRefusal', () => {
+	const textOf = (result: ToolResult) => (result.content[0] as { text: string }).text
+
+	it('lets small clusters through while they still come out near their real size', () => {
+		// 3200 wide together: 0.8x. Each note would be enlarged 8x alone, but that isn't detail lost.
+		const bounds = {
+			a: { x: 0, y: 0, w: 200, h: 200 },
+			b: { x: 3000, y: 0, w: 200, h: 200 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)).toBeNull()
+	})
+
+	it('refuses clusters so far apart that they would be specks, naming the one shrunk most', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 400, h: 100 },
+			b: { x: 20_000, y: 0, w: 80, h: 80 },
+		}
+		const refusal = getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)
+		expect(refusal?.isError).toBe(true)
+		expect(textOf(refusal!)).toContain(
+			'too far apart to read in one image: cluster "b" would come out about 10px across, against 640px on its own'
+		)
+		expect(textOf(refusal!)).toContain('layout "separate"')
+	})
+
+	it('checks every cluster, so a small one far from a large one is not lost', () => {
+		// 0.18x together keeps the frame over a quarter of its 0.64x alone, but not the note.
+		const bounds = {
+			frame: { x: 0, y: 0, w: 4000, h: 3000 },
+			note: { x: 14_000, y: 0, w: 100, h: 100 },
+		}
+		expect(textOf(getClusterSpreadRefusal(bounds, ['frame', 'note'], 2560)!)).toContain(
+			'cluster "note"'
+		)
+	})
+
+	it('measures a cluster larger than the image against the scale it gets alone', () => {
+		// 0.057x together, against 0.128x for each frame alone: well within a quarter.
+		const bounds = {
+			a: { x: 0, y: 0, w: 20_000, h: 10_000 },
+			b: { x: 25_000, y: 0, w: 20_000, h: 10_000 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)).toBeNull()
+	})
+
+	it('allows less spread for a smaller image', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 200, h: 200 },
+			b: { x: 3000, y: 0, w: 200, h: 200 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 640)).not.toBeNull()
+	})
+
+	it('has nothing to compare with fewer than two measured clusters of any size', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 10, h: 10 },
+			point: { x: 50_000, y: 0, w: 0, h: 0 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a'], 2560)).toBeNull()
+		expect(getClusterSpreadRefusal(bounds, ['a', 'unmeasured'], 2560)).toBeNull()
+		expect(getClusterSpreadRefusal(bounds, ['a', 'a'], 2560)).toBeNull()
+		expect(getClusterSpreadRefusal(bounds, ['a', 'point'], 2560)).toBeNull()
+	})
+})
+
+describe('toolClusterImagesResult', () => {
+	it('names each image before it, after the page name', () => {
+		expect(
+			toolClusterImagesResult('Cover', [
+				{ id: 'cluster:1', label: 'Roadmap', base64: 'AAA' },
+				{ id: 'cluster:2', label: '3 freehand strokes', base64: 'BBB' },
+			]).content
+		).toEqual([
+			{ type: 'text', text: 'Cover' },
+			{ type: 'text', text: 'cluster:1: Roadmap' },
+			{ type: 'image', data: 'AAA', mimeType: 'image/png' },
+			{ type: 'text', text: 'cluster:2: 3 freehand strokes' },
+			{ type: 'image', data: 'BBB', mimeType: 'image/png' },
+		])
 	})
 })
 
