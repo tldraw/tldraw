@@ -34,10 +34,12 @@ export function chunk(msg: string, maxSafeMessageSize?: number): string[];
 
 // @internal
 export class ClientWebSocketAdapter implements TLPersistentClientSocket<TLSocketClientSentEvent<TLRecord>, TLSocketServerSentEvent<TLRecord>> {
-    constructor(getUri: () => Promise<string> | string);
+    constructor(getUri: () => Promise<string> | string, options?: {
+        maxHiddenReconnectDelayMs?: number;
+    });
     close(): void;
     // (undocumented)
-    _closeSocket(): void;
+    _closeSocket(code?: number, reason?: string): void;
     get connectionStatus(): TLPersistentClientSocketStatus;
     // (undocumented)
     _connectionStatus: Atom<'initial' | TLPersistentClientSocketStatus>;
@@ -232,7 +234,7 @@ export type PutOp = [type: typeof ValueOpType.Put, value: unknown];
 
 // @internal
 export class ReconnectManager {
-    constructor(socketAdapter: ClientWebSocketAdapter, getUri: () => Promise<string> | string);
+    constructor(socketAdapter: ClientWebSocketAdapter, getUri: () => Promise<string> | string, maxHiddenDelay?: number);
     close(): void;
     connected(): void;
     disconnected(): void;
@@ -665,6 +667,8 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
         store: S;
     });
     close(): void;
+    // @internal
+    flushChanges(): Promise<boolean>;
     // @internal (undocumented)
     isConnectedToRoom: boolean;
     // @internal (undocumented)

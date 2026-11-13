@@ -1,5 +1,6 @@
-import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
-import { useSync } from '@tldraw/sync'
+import { TAB_FROZEN_CLOSE_CODE, TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { UseSyncConnectFn, useSync } from '@tldraw/sync'
+import { ClientWebSocketAdapter } from '@tldraw/sync-core'
 import {
 	ReactNode,
 	RefObject,
@@ -66,6 +67,11 @@ export function useFileEditorRef() {
 	return assertExists(useContext(FileEditorRefContext), 'TlaFileSyncHost is missing above')
 }
 
+// The longest a signed-in tab waits between reconnects while hidden, down from five minutes: an agent
+// working through the tab hears the board isn't open until it's back. Signed-out tabs keep the
+// default, which is what stops parked background tabs from loading the server.
+const HIDDEN_RECONNECT_MAX_MS = 30_000
+
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
 export const VIA_LAST_FILE_CACHE = 'viaLastFileCache'
 
@@ -106,24 +112,58 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
 	const editorRef = useRef<Editor | null>(null)
+	// A ref for the same reason as the editor: the message handler reads it when a job arrives.
+	const flushChangesRef = useRef<(() => Promise<boolean>) | null>(null)
+
+	const getUri = useCallback(async () => {
+		const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
+		url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
+		// Only connects before sync-connected belong to the load; a later reconnect carrying an id
+		// would make the server park and send an echo nobody reads.
+		const connectId = fileLoad.nextConnectId()
+		if (connectId) url.searchParams.set('loadId', connectId)
+		if (userId) {
+			// Signed in only: the room hands a job to the sockets of the user who asked for it.
+			url.searchParams.set(TAB_RENDER_PARAM, '1')
+			url.searchParams.set('accessToken', await getUserToken())
+			markFirstLoad('sync-token-fetched')
+			fileLoad.mark('sync-token-fetched')
+		}
+		return url.toString()
+	}, [fileSlug, userId, getUserToken, fileLoad])
+	// Built here rather than by useSync so a signed-in tab can reconnect sooner, and can leave with a
+	// reason when the browser freezes it.
+	const socketRef = useRef<ClientWebSocketAdapter | null>(null)
+	const connect = useCallback<UseSyncConnectFn>(
+		({ sessionId, storeId }) => {
+			const socket = new ClientWebSocketAdapter(
+				async () => {
+					const url = new URL(await getUri())
+					url.searchParams.set('sessionId', sessionId)
+					url.searchParams.set('storeId', storeId)
+					return url.toString()
+				},
+				userId ? { maxHiddenReconnectDelayMs: HIDDEN_RECONNECT_MAX_MS } : {}
+			)
+			socketRef.current = socket
+			return socket
+		},
+		[getUri, userId]
+	)
+	useEffect(() => {
+		if (!userId) return
+		// A frozen tab can't answer an agent's jobs, which would otherwise wait out a timeout and be
+		// told the tab isn't responding. The socket's reconnect timer runs again on resume.
+		const onFreeze = () => {
+			const socket = socketRef.current
+			if (socket && !socket.isDisposed) socket._closeSocket(TAB_FROZEN_CLOSE_CODE, 'tab frozen')
+		}
+		document.addEventListener('freeze', onFreeze)
+		return () => document.removeEventListener('freeze', onFreeze)
+	}, [userId])
 
 	const store = useSync({
-		uri: useCallback(async () => {
-			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			// Only connects before sync-connected belong to the load; a later reconnect carrying an id
-			// would make the server park and send an echo nobody reads.
-			const connectId = fileLoad.nextConnectId()
-			if (connectId) url.searchParams.set('loadId', connectId)
-			if (userId) {
-				// Signed in only: the room hands a job to the sockets of the user who asked for it.
-				url.searchParams.set(TAB_RENDER_PARAM, '1')
-				url.searchParams.set('accessToken', await getUserToken())
-				markFirstLoad('sync-token-fetched')
-				fileLoad.mark('sync-token-fetched')
-			}
-			return url.toString()
-		}, [fileSlug, userId, getUserToken, fileLoad]),
+		connect,
 		assets,
 		users,
 		// Register the opt-in `comment` record type so comment records sync through the file room.
@@ -136,7 +176,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 					return
 				}
 				if (message.type === 'mcp_tab_render') {
-					void answerTabRender(editorRef.current, fileSlug, message)
+					void answerTabRender(editorRef.current, flushChangesRef.current, fileSlug, message)
 					return
 				}
 				trackEvent(message.type)
@@ -154,6 +194,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			[fileLoad]
 		),
 	})
+
+	flushChangesRef.current = store.status === 'synced-remote' ? store.flushChanges : null
 
 	const navigate = useNavigate()
 	const location = useLocation()

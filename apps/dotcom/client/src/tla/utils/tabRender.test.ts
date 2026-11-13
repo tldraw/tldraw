@@ -97,7 +97,7 @@ const screenshotOf = (pageId: TLPageId, shapeIds: string[]) =>
 describe('answerTabRender', () => {
 	it('posts to the job on this file, without a token', async () => {
 		const { editor, firstPageId } = setupEditor()
-		await answerTabRender(editor, 'file-1', readOf({ kind: 'id', id: firstPageId }))
+		await answerTabRender(editor, null, 'file-1', readOf({ kind: 'id', id: firstPageId }))
 		const [url, init] = vi.mocked(fetch).mock.calls[0]
 		expect(url).toBe('/api/app/file/file-1/tab-render/job')
 		expect(new Headers((init as RequestInit).headers).has('Authorization')).toBe(false)
@@ -107,7 +107,7 @@ describe('answerTabRender', () => {
 	it('reads the page in view, acknowledging first', async () => {
 		const { editor, firstPageId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+		await answerTabRender(editor, null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },
@@ -132,12 +132,17 @@ describe('answerTabRender', () => {
 	it('sends records only for the clusters it was asked about, with the measured text', async () => {
 		const { editor, firstShapeId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+		await answerTabRender(editor, null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 		const reply = replies.at(-1)
 		if (reply?.status !== 'page_read') throw new Error('expected a page read')
 		const clusterId = reply.read.clusters[0].id
 
-		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }, [clusterId]))
+		await answerTabRender(
+			editor,
+			null,
+			'file-1',
+			readOf({ kind: 'ordinal', ordinal: 0 }, [clusterId])
+		)
 
 		expect(replies.at(-1)).toMatchObject({
 			status: 'page_read',
@@ -157,7 +162,7 @@ describe('answerTabRender', () => {
 	it('reads a page the tab is not showing, without leaving the current one', async () => {
 		const { editor, firstPageId, otherPageId } = setupEditor()
 
-		await answerTabRender(editor, 'file-1', readOf({ kind: 'id', id: otherPageId }))
+		await answerTabRender(editor, null, 'file-1', readOf({ kind: 'id', id: otherPageId }))
 
 		expect(replies.at(-1)).toMatchObject({
 			status: 'page_read',
@@ -171,14 +176,27 @@ describe('answerTabRender', () => {
 		editor.dispose()
 	})
 
+	// A hidden tab applies what the server sent only on a frame it never gets, and would describe a
+	// board that's behind.
+	it('catches up with the server before reading, without waiting on its own edits', async () => {
+		const { editor } = setupEditor()
+		const flushChanges = vi.fn(() => new Promise<boolean>(() => {}))
+
+		await answerTabRender(editor, flushChanges, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+
+		expect(flushChanges).toHaveBeenCalled()
+		expect(replies.at(-1)).toMatchObject({ status: 'page_read' })
+		editor.dispose()
+	})
+
 	it('declines before an editor has mounted', async () => {
-		await answerTabRender(null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
+		await answerTabRender(null, null, 'file-1', readOf({ kind: 'ordinal', ordinal: 0 }))
 		expect(replies).toEqual([{ status: 'declined', reason: 'editor_not_ready' }])
 	})
 
 	it('answers with the page count for a page this tab does not have', async () => {
 		const { editor } = setupEditor()
-		await answerTabRender(editor, 'file-1', readOf({ kind: 'ordinal', ordinal: 5 }))
+		await answerTabRender(editor, null, 'file-1', readOf({ kind: 'ordinal', ordinal: 5 }))
 		expect(replies.at(-1)).toEqual({
 			status: 'page_not_found',
 			reason: 'page_out_of_range',
@@ -190,14 +208,14 @@ describe('answerTabRender', () => {
 	// Declined without an ack, so the worker falls back straight away instead of waiting on this tab.
 	it('declines a screenshot of a page the tab is not showing', async () => {
 		const { editor, otherPageId, otherShapeId } = setupEditor()
-		await answerTabRender(editor, 'file-1', screenshotOf(otherPageId, [otherShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(otherPageId, [otherShapeId]))
 		expect(replies).toEqual([{ status: 'declined', reason: 'page_not_current' }])
 		editor.dispose()
 	})
 
 	it('declines a screenshot whose shapes have left the page', async () => {
 		const { editor, firstPageId, otherShapeId } = setupEditor()
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [otherShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [otherShapeId]))
 		expect(replies).toEqual([{ status: 'declined', reason: 'shapes_missing' }])
 		editor.dispose()
 	})
@@ -207,7 +225,7 @@ describe('answerTabRender', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.spyOn(editor, 'toImage').mockRejectedValue(new Error('export failed'))
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'failed' }])
 		editor.dispose()
@@ -229,7 +247,7 @@ describe('answerTabRender', () => {
 		const camera = { ...editor.getCamera() }
 		stubExport(editor)
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies.at(-1)).toEqual({ status: 'captured', base64: expect.any(String) })
 		expect(editor.getCamera()).toEqual(camera)
@@ -243,6 +261,7 @@ describe('answerTabRender', () => {
 		const toImage = stubExport(editor)
 		await answerTabRender(
 			editor,
+			null,
 			'file-1',
 			job({
 				mode: 'screenshot',
@@ -268,7 +287,7 @@ describe('answerTabRender', () => {
 			new Set(Array.from({ length: 501 }, (_, i) => createShapeId(String(i))))
 		)
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'too_many_shapes' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -280,7 +299,7 @@ describe('answerTabRender', () => {
 		const toImage = stubExport(editor)
 		vi.spyOn(editor.inputs, 'getIsDragging').mockReturnValue(true)
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([{ status: 'declined', reason: 'busy' }])
 		expect(toImage).not.toHaveBeenCalled()
@@ -305,7 +324,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -327,7 +346,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			toImage.mockRejectedValueOnce(new Error('export failed'))
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			await Promise.all([screenshot(), screenshot()])
 
@@ -342,7 +361,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -361,7 +380,7 @@ describe('answerTabRender', () => {
 			const toImage = stubExport(editor)
 			const release = holdFirstExport(toImage)
 			const screenshot = () =>
-				answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+				answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 			const jobs = [screenshot(), screenshot()]
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
@@ -384,7 +403,7 @@ describe('answerTabRender', () => {
 			.mockReturnValueOnce(0)
 			.mockReturnValue(editor.options.maxExportDelayMs)
 
-		await answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+		await answerTabRender(editor, null, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
 
 		expect(replies).toEqual([
 			{ status: 'accepted' },
@@ -397,7 +416,7 @@ describe('answerTabRender', () => {
 		const { editor, firstPageId, firstShapeId } = setupEditor()
 		editor.select(firstShapeId)
 
-		await answerTabRender(editor, 'file-1', job({ mode: 'user_state' }))
+		await answerTabRender(editor, null, 'file-1', job({ mode: 'user_state' }))
 
 		expect(replies.at(-1)).toEqual({
 			status: 'user_state',
@@ -425,7 +444,7 @@ describe('answerTabRender', () => {
 		it('applies a batch once it has the go-ahead, and reports what landed', async () => {
 			const { editor, firstPageId } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeDefined()
 			expect(replies).toEqual([
@@ -446,7 +465,7 @@ describe('answerTabRender', () => {
 			const { editor } = setupEditor()
 			claimGranted = false
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			expect(replies).toEqual([{ status: 'accepted' }])
@@ -458,7 +477,7 @@ describe('answerTabRender', () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 			vi.mocked(fetch).mockRejectedValueOnce(new Error('offline'))
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			editor.dispose()
@@ -467,7 +486,7 @@ describe('answerTabRender', () => {
 		it('hands back why an invalid batch was refused, having applied none of it', async () => {
 			const { editor } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', applyOps([addBox, { op: 'explode' }]))
+			await answerTabRender(editor, null, 'file-1', applyOps([addBox, { op: 'explode' }]))
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			expect(replies.at(-1)).toEqual({
@@ -482,29 +501,86 @@ describe('answerTabRender', () => {
 			const { editor } = setupEditor()
 			editor.updateInstanceState({ isReadonly: true })
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'read_only' }])
 			editor.dispose()
 		})
 
-		// Its edits would wait for a frame before being sent, and the user can't see them land.
-		it('declines in a hidden tab, without claiming the job', async () => {
+		// Its edits would wait for a frame before being sent, with nothing to send them sooner.
+		it('declines in a hidden tab that cannot send its edits now, without claiming the job', async () => {
 			const { editor } = setupEditor()
 			vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'tab_hidden' }])
 			expect(editor.getShape(hello)).toBeUndefined()
 			editor.dispose()
 		})
 
+		describe('when the tab can send its edits now', () => {
+			it('applies in a hidden tab, catching up before and reporting only once the server has it', async () => {
+				const { editor, firstPageId } = setupEditor()
+				vi.spyOn(document, 'visibilityState', 'get').mockReturnValue('hidden')
+				const hadShapeWhenFlushed: boolean[] = []
+				const flushChanges = vi.fn(async () => {
+					hadShapeWhenFlushed.push(!!editor.getShape(hello))
+					return true
+				})
+
+				await answerTabRender(editor, flushChanges, 'file-1', applyOps())
+
+				expect(hadShapeWhenFlushed).toEqual([false, false, true])
+				expect(replies).toEqual([
+					{ status: 'accepted' },
+					{
+						status: 'applied',
+						pageId: firstPageId,
+						pageName: editor.getCurrentPage().name,
+						result: expect.objectContaining({ applied: 1, createdIds: ['hello'] }),
+					},
+				])
+				editor.dispose()
+			})
+
+			it('applies nothing when it cannot catch up first', async () => {
+				const { editor } = setupEditor()
+
+				await answerTabRender(editor, async () => false, 'file-1', applyOps())
+
+				expect(editor.getShape(hello)).toBeUndefined()
+				expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'failed' }])
+				editor.dispose()
+			})
+
+			// The edits are in the tab and go out again on reconnect, so they may yet land.
+			it('reports a batch the server never confirmed as one that may have landed', async () => {
+				const { editor } = setupEditor()
+				let calls = 0
+				const flushChanges = async () => ++calls <= 2
+
+				await answerTabRender(editor, flushChanges, 'file-1', applyOps())
+
+				expect(editor.getShape(hello)).toBeDefined()
+				expect(replies).toEqual([
+					{ status: 'accepted' },
+					{ status: 'declined', reason: 'apply_failed' },
+				])
+				editor.dispose()
+			})
+		})
+
 		// Ops place shapes on the page in view, so applying this would put them on the wrong page.
 		it('declines a batch meant for a page the user is not on', async () => {
 			const { editor, firstPageId, otherPageId } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'id', id: otherPageId }))
+			await answerTabRender(
+				editor,
+				null,
+				'file-1',
+				applyOps([addBox], { kind: 'id', id: otherPageId })
+			)
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'page_not_current' }])
 			expect(editor.getShape(hello)).toBeUndefined()
@@ -515,9 +591,15 @@ describe('answerTabRender', () => {
 		it('applies when a named page is the one in view, by id or by index', async () => {
 			const { editor, firstPageId } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'id', id: firstPageId }))
 			await answerTabRender(
 				editor,
+				null,
+				'file-1',
+				applyOps([addBox], { kind: 'id', id: firstPageId })
+			)
+			await answerTabRender(
+				editor,
+				null,
 				'file-1',
 				applyOps([{ ...addBox, id: 'again' }], { kind: 'ordinal', ordinal: 0 })
 			)
@@ -530,7 +612,12 @@ describe('answerTabRender', () => {
 		it('declines a page the board does not have', async () => {
 			const { editor } = setupEditor()
 
-			await answerTabRender(editor, 'file-1', applyOps([addBox], { kind: 'ordinal', ordinal: 9 }))
+			await answerTabRender(
+				editor,
+				null,
+				'file-1',
+				applyOps([addBox], { kind: 'ordinal', ordinal: 9 })
+			)
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'page_missing' }])
 			editor.dispose()
@@ -542,8 +629,8 @@ describe('answerTabRender', () => {
 			const second = { op: 'rename', target: 'first', text: 'Renamed' }
 
 			await Promise.all([
-				answerTabRender(editor, 'file-1', applyOps([first])),
-				answerTabRender(editor, 'file-1', applyOps([second])),
+				answerTabRender(editor, null, 'file-1', applyOps([first])),
+				answerTabRender(editor, null, 'file-1', applyOps([second])),
 			])
 
 			const shape = editor.getShape(createShapeId('first'))!
@@ -556,7 +643,7 @@ describe('answerTabRender', () => {
 			const { editor } = setupEditor()
 			vi.spyOn(editor.inputs, 'getIsDragging').mockReturnValue(true)
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(replies).toEqual([{ status: 'declined', reason: 'busy' }])
 			expect(editor.getShape(hello)).toBeUndefined()
@@ -571,7 +658,7 @@ describe('answerTabRender', () => {
 				throw new Error('history unavailable')
 			})
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeDefined()
 			expect(replies.at(-1)).toEqual({ status: 'declined', reason: 'apply_failed' })
@@ -589,7 +676,7 @@ describe('answerTabRender', () => {
 				return new Response('{}')
 			})
 
-			await answerTabRender(editor, 'file-1', applyOps())
+			await answerTabRender(editor, null, 'file-1', applyOps())
 
 			expect(editor.getShape(hello)).toBeUndefined()
 			expect(replies).toEqual([{ status: 'accepted' }, { status: 'declined', reason: 'busy' }])
@@ -607,10 +694,15 @@ describe('answerTabRender', () => {
 						release = () => resolve({ blob: new Blob(['x']), width: 1200, height: 630 })
 					})
 			)
-			const capture = answerTabRender(editor, 'file-1', screenshotOf(firstPageId, [firstShapeId]))
+			const capture = answerTabRender(
+				editor,
+				null,
+				'file-1',
+				screenshotOf(firstPageId, [firstShapeId])
+			)
 			await vi.waitFor(() => expect(toImage).toHaveBeenCalledTimes(1))
 
-			const apply = answerTabRender(editor, 'file-1', applyOps())
+			const apply = answerTabRender(editor, null, 'file-1', applyOps())
 			await vi.waitFor(() =>
 				expect(replies.filter((reply) => reply.status === 'accepted')).toHaveLength(2)
 			)

@@ -383,6 +383,9 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 	/** The queue of in-flight push requests that have not yet been acknowledged by the server */
 	private pendingPushRequests: TLPushRequest<R>[] = []
+
+	/** Callers of {@link TLSyncClient.flushChanges} waiting on the server to answer a push. */
+	private pushWaiters: Array<{ clientClock: number; resolve(committed: boolean): void }> = []
 	private unsentChanges: {
 		nextDiff?: RecordsDiff<R>
 		nextPresence?: R | null
@@ -512,46 +515,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.fpsScheduler = new FpsScheduler(COLLABORATIVE_MODE_FPS)
 
 		// Initialize throttled methods after throttle instance is created
-		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => {
-			this.debug('sending unsent changes', {
-				isConnectedToRoom: this.isConnectedToRoom,
-				unsentChanges: this.unsentChanges,
-			})
-			if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
-				return
-			}
-			if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
-				return
-			}
-			const diff = this.unsentChanges.nextDiff
-				? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
-				: undefined
-			const presence = this.unsentChanges.nextPresence
-				? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
-				: undefined
-
-			if (!diff && !presence) {
-				return
-			}
-
-			const pushRequest: TLPushRequest<R> = {
-				type: 'push',
-				clientClock: this.clientClock,
-				diff,
-				presence,
-			}
-
-			this.debug('sending push request', pushRequest)
-			this.socket.sendMessage(pushRequest)
-
-			if (this.unsentChanges.nextPresence) {
-				this.lastPushedPresenceState = this.unsentChanges.nextPresence
-			}
-			this.clientClock++
-			this.pendingPushRequests.push(pushRequest)
-			this.unsentChanges.nextDiff = undefined
-			this.unsentChanges.nextPresence = undefined
-		})
+		this.sendUnsentChanges = this.fpsScheduler.fpsThrottle(() => this.sendUnsentChangesNow())
 
 		this.scheduleRebase = this.fpsScheduler.fpsThrottle(this.rebase)
 
@@ -723,6 +687,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.isConnectedToRoom = false
 		this.firstUnansweredPingAt = null
 		this.pendingPushRequests = []
+		this.settlePushWaiters(null, false)
 		this.incomingDiffBuffer = []
 		this.unsentChanges.nextDiff = undefined
 		this.unsentChanges.nextPresence = undefined
@@ -842,13 +807,13 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			case 'push_result':
 				if (!this.isConnectedToRoom) break
 				this.incomingDiffBuffer.push(event)
-				this.scheduleRebase()
+				this.rebaseSoon()
 				break
 			case 'data':
 				// wait for a connect to succeed before processing more events
 				if (!this.isConnectedToRoom) break
 				this.incomingDiffBuffer.push(...event.data)
-				this.scheduleRebase()
+				this.rebaseSoon()
 				break
 			case 'incompatibility_error':
 				// legacy unrecoverable errors
@@ -864,6 +829,60 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			default:
 				exhaustiveSwitchError(event)
 		}
+	}
+
+	/**
+	 * Sends local changes to the server now, rather than on the next animation frame, and resolves
+	 * once the server has answered them. Any changes that came in from the server are applied before
+	 * this returns, so a caller that only needs the store up to date doesn't have to wait.
+	 *
+	 * Changes are normally sent on an animation frame, and a hidden tab gets none, so changes made
+	 * there wait until the tab is shown. Code that edits the store from a hidden tab, and needs those
+	 * edits to reach the server, can call this after making them.
+	 *
+	 * @returns `true` once the server has committed the changes, or immediately if there was nothing
+	 * to send. `false` if the client is offline, or if the server discarded the changes or the
+	 * connection dropped before it answered. Changes that were never answered are sent again on
+	 * reconnect.
+	 *
+	 * @internal
+	 */
+	flushChanges(): Promise<boolean> {
+		if (!this.isConnectedToRoom) return Promise.resolve(false)
+		// Applies what the server sent, and flushes the store's history so `push` has seen every
+		// local change.
+		this.scheduleRebase.cancel?.()
+		this.rebase()
+		if (!this.isConnectedToRoom) return Promise.resolve(false)
+		this.sendUnsentChanges.cancel?.()
+		this.sendUnsentChangesNow()
+		const lastPush = this.pendingPushRequests.at(-1)
+		if (!lastPush) return Promise.resolve(true)
+		return new Promise((resolve) => {
+			this.pushWaiters.push({ clientClock: lastPush.clientClock, resolve })
+		})
+	}
+
+	/**
+	 * Rebases on the next frame, or right away while someone is waiting on a push: a hidden tab has
+	 * no next frame.
+	 */
+	private rebaseSoon() {
+		if (this.pushWaiters.length === 0) {
+			this.scheduleRebase()
+			return
+		}
+		this.scheduleRebase.cancel?.()
+		this.rebase()
+	}
+
+	private settlePushWaiters(clientClock: number | null, committed: boolean) {
+		const settled = this.pushWaiters.filter(
+			(waiter) => clientClock === null || waiter.clientClock === clientClock
+		)
+		if (settled.length === 0) return
+		this.pushWaiters = this.pushWaiters.filter((waiter) => !settled.includes(waiter))
+		for (const waiter of settled) waiter.resolve(committed)
 	}
 
 	/**
@@ -884,6 +903,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		this.disposables.forEach((dispose) => dispose())
 		this.sendUnsentChanges.cancel?.()
 		this.scheduleRebase.cancel?.()
+		this.settlePushWaiters(null, false)
 		if (typeof window !== 'undefined' && (window as any).tlsync === this) {
 			delete (window as any).tlsync
 		}
@@ -902,6 +922,47 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		this.unsentChanges.nextPresence = nextPresence
 		this.sendUnsentChanges()
+	}
+
+	private sendUnsentChangesNow() {
+		this.debug('sending unsent changes', {
+			isConnectedToRoom: this.isConnectedToRoom,
+			unsentChanges: this.unsentChanges,
+		})
+		if (!this.isConnectedToRoom || this.store.isPossiblyCorrupted()) {
+			return
+		}
+		if (!this.unsentChanges.nextDiff && !this.unsentChanges.nextPresence) {
+			return
+		}
+		const diff = this.unsentChanges.nextDiff
+			? (getNetworkDiff(this.unsentChanges.nextDiff) ?? undefined)
+			: undefined
+		const presence = this.unsentChanges.nextPresence
+			? getPresenceOp<R>(this.lastPushedPresenceState, this.unsentChanges.nextPresence)
+			: undefined
+
+		if (!diff && !presence) {
+			return
+		}
+
+		const pushRequest: TLPushRequest<R> = {
+			type: 'push',
+			clientClock: this.clientClock,
+			diff,
+			presence,
+		}
+
+		this.debug('sending push request', pushRequest)
+		this.socket.sendMessage(pushRequest)
+
+		if (this.unsentChanges.nextPresence) {
+			this.lastPushedPresenceState = this.unsentChanges.nextPresence
+		}
+		this.clientClock++
+		this.pendingPushRequests.push(pushRequest)
+		this.unsentChanges.nextDiff = undefined
+		this.unsentChanges.nextPresence = undefined
 	}
 
 	/** Push a change to the server, or stash it locally if we're offline */
@@ -995,6 +1056,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 							'Received push_result for a push request that is not at the front of the queue'
 						)
 					}
+					this.settlePushWaiters(diff.clientClock, diff.action !== 'discard')
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
 					} else if (diff.action === 'commit') {
