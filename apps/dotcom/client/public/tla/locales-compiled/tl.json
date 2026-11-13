@@ -181,6 +181,12 @@
       "value": "Lumikha ng file"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Lumipat sa"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Alisin ang miyembro"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Mag-sign in para tanggapin ang imbitasyong ito."
     }
   ],
   "3bc7d6ea2f": [
@@ -782,6 +794,12 @@
       "value": "Paki-reload ang page"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "I-save ang nilalaman bilang isang .tldr file: piliin ang 'I-save ang isang kopya' sa kaliwang menu sa itaas."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -1042,6 +1060,12 @@
       "value": "? Hindi na maaaring bawiin ang aksyon na ito."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kinopya ang link ng imbitasyon"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1228,12 +1252,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "I-export ang nilalaman bilang isang .tldr file: Piliin ang 'I-download' sa kaliwang menu sa itaas."
     }
   ],
   "a104439641": [
@@ -1954,6 +1972,12 @@
       "value": "o"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Kasaysayan ng file"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -2050,6 +2074,12 @@
     {
       "type": 0,
       "value": "Tanggalin"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Hindi wasto o nag-expire na ang link ng imbitasyon na ito."
     }
   ],
   "f476ba8646": [
@@ -2196,6 +2226,12 @@
     {
       "type": 0,
       "value": "Gumawa ng libreng account para i-save ang iyong mga file at makipaglaro sa iyong mga kasamahan sa team gamit ang tldraw."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Error sa pagtanggap ng imbitasyon"
     }
   ],
   "ffcd73e997": [

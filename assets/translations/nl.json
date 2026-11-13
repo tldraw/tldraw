@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Vorm met de klok mee draaien (fijn)",
 	"a11y.select-shape": "Selecteer volgende vorm",
 	"a11y.select-shape-direction": "Selecteer vorm in richting",
+	"a11y.shape-group": "Groep",
 	"a11y.shape-image": "Afbeelding",
 	"a11y.shape-index": "{num} van {total}",
 	"a11y.shape-video": "Video",

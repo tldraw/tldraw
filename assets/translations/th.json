@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "หมุนรูปร่างตามเข็มนาฬิกา (ละเอียด)",
 	"a11y.select-shape": "เลือกรูปร่างถัดไป",
 	"a11y.select-shape-direction": "เลือกรูปร่างตามทิศทาง",
+	"a11y.shape-group": "กลุ่ม",
 	"a11y.shape-image": "ภาพ",
 	"a11y.shape-index": "{num} จาก {total}",
 	"a11y.shape-video": "วีดีโอ",

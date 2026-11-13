@@ -181,6 +181,12 @@
       "value": "Dosya oluştur"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Taşın"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -331,6 +337,12 @@
     {
       "type": 0,
       "value": "Üyeyi kaldır"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Bu daveti kabul etmek için giriş yapın."
     }
   ],
   "3bc7d6ea2f": [
@@ -722,6 +734,12 @@
       "value": "Lütfen sayfayı tekrar yükleyin"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "İçeriği .tldr dosyası olarak kaydedin: sol üst menüden 'Bir kopyasını kaydet' seçeneğini seçin."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -974,6 +992,12 @@
       "value": " öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Davet bağlantısı kopyalandı."
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1112,12 +1136,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "İçeriği .tldr dosyası olarak dışa aktarın: Sol üst menüden 'İndir'i seçin."
     }
   ],
   "a104439641": [
@@ -1666,6 +1684,12 @@
       "value": "veya"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Dosya geçmişi"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1762,6 +1786,12 @@
     {
       "type": 0,
       "value": "Sil"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Bu davet bağlantısı geçersiz veya süresi dolmuş."
     }
   ],
   "f476ba8646": [
@@ -1896,6 +1926,12 @@
     {
       "type": 0,
       "value": "Dosyalarınızı kaydetmek ve takım arkadaşlarınızla birlikte çizim yapmak için ücretsiz bir hesap oluşturun."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Daveti kabul etmede hata oluştu"
     }
   ],
   "ffcd73e997": [

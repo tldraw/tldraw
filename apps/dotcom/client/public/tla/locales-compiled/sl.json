@@ -185,6 +185,12 @@
       "value": "Ustvari datoteko"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Premakni v"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Odstrani člana"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Prijavite se, da sprejmete to povabilo."
     }
   ],
   "3bc7d6ea2f": [
@@ -756,6 +768,12 @@
       "value": "Ponovno naložite stran"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Vsebino shranite kot datoteko .tldr: v zgornjem levem meniju izberite »Shrani kopijo«."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -1016,6 +1034,12 @@
       "value": "? Tega dejanja ni mogoče razveljaviti."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Povezava za povabilo je bila kopirana"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1180,12 +1204,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Izvozite vsebino kot datoteko .tldr: V zgornjem levem meniju izberite »Prenesi«."
     }
   ],
   "a104439641": [
@@ -1846,6 +1864,12 @@
       "value": "ali"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Zgodovina datotek"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1942,6 +1966,12 @@
     {
       "type": 0,
       "value": "Izbriši"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ta povezava za povabilo je neveljavna ali je potekla."
     }
   ],
   "f476ba8646": [
@@ -2102,6 +2132,12 @@
     {
       "type": 0,
       "value": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Napaka pri sprejemanju povabila"
     }
   ],
   "ffcd73e997": [

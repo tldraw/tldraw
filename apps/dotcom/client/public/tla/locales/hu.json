@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Fájl létrehozása"
   },
+  "1a7222b4e5": {
+    "translation": "Áthelyezés ide:"
+  },
   "1da2e8106b": {
     "translation": "Váratlan hiba történt."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Tag eltávolítása"
+  },
+  "398f51738e": {
+    "translation": "Jelentkezz be a meghívás elfogadásához."
   },
   "3bc7d6ea2f": {
     "translation": "Folytatás e-mailben"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Kérjük, töltse be újra az oldalt"
   },
+  "747ee44424": {
+    "translation": "Mentsd el a tartalmat .tldr fájlként: válaszd a „Másolat mentése” lehetőséget a bal felső menüben."
+  },
   "74ff4bad28": {
     "translation": "Nem találhatók fájlok"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "Biztosan törölni szeretné a(z) <strong>{workspaceName}</strong> munkaterületet? Ez a művelet nem vonható vissza."
   },
+  "930390d222": {
+    "translation": "Meghívólink másolva"
+  },
   "95aacd4d4a": {
     "translation": "Bejelentkezés Google-fiókkal"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, one {# olvasatlan} other {# olvasatlan}}"
-  },
-  "a0da245992": {
-    "translation": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” lehetőséget a bal felső menüben."
   },
   "a104439641": {
     "translation": "Párnázás"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "vagy"
   },
+  "ea13ecec38": {
+    "translation": "Fájlelőzmények"
+  },
   "ea4788705e": {
     "translation": "Mégsem"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Töröl"
   },
+  "f408fa5fbd": {
+    "translation": "Ez a meghívólink érvénytelen vagy lejárt."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> és {count, plural, one {# másik személy} other {# másik személy}} reagált a hozzászólásodra"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Hozz létre egy ingyenes fiókot, hogy menthesd a fájljaidat és rajzolhass a csapattársaiddal."
+  },
+  "ffad261a48": {
+    "translation": "Hiba a meghívó elfogadásakor"
   },
   "ffcd73e997": {
     "translation": "Fájl importálása…"

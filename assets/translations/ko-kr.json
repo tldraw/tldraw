@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "도형을 시계 방향으로 정밀 회전",
 	"a11y.select-shape": "다음 도형 선택하기",
 	"a11y.select-shape-direction": "방향에서 선택하기",
+	"a11y.shape-group": "그룹",
 	"a11y.shape-image": "이미지",
 	"a11y.shape-index": "{total}개 중 {num}번째",
 	"a11y.shape-video": "동영상",
