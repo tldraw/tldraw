@@ -40,25 +40,27 @@ export function TlaCommentByline({
 	let name: ReactNode
 	if (agent) {
 		avatar = <AgentAvatar client={agent.client} ownerAvatar={ownerAvatar} />
+		// Only the agent's name truncates: it can run to 40 characters, and ellipsizing the whole
+		// line would cut off who the agent acted for.
 		name = (
-			<>
-				{agent.name}{' '}
+			<span className={`tlui-cmt-author ${styles.agentAuthor}`}>
+				<span className={styles.agentName}>{agent.name}</span>
 				<TldrawUiTooltip content={msg(messages.onBehalfOf, { name: author.name })}>
 					<span className={styles.owner}>
 						<F defaultMessage="/ {name}" values={{ name: author.name }} />
 					</span>
 				</TldrawUiTooltip>
-			</>
+			</span>
 		)
 	} else {
 		avatar = ownerAvatar
-		name = author.name
+		name = <span className="tlui-cmt-author">{author.name}</span>
 	}
 
 	return (
 		<div className={`tlui-cmt-head ${styles.head}`}>
 			{avatar}
-			<span className="tlui-cmt-author">{name}</span>
+			{name}
 			<TldrawUiTooltip content={formatFullDateTime(date, locale)}>
 				<span className={`tlui-cmt-time ${styles.time}`}>
 					{formatRelativeTime(date, locale)}

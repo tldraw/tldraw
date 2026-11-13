@@ -3,11 +3,10 @@ import {
 	CommentAuthor,
 	CommentListItem,
 	CommentListItemRenderProps,
-	useThreadComments,
 } from '@tldraw/commenting'
 import { getMcpAgentFromCommentMeta } from '@tldraw/dotcom-shared'
 import { createContext, CSSProperties, useContext } from 'react'
-import { defineMessages, TLComment, TLCommentThread, useEditor, useTranslation } from 'tldraw'
+import { defineMessages, TLComment, TLCommentThread, useTranslation } from 'tldraw'
 import { AgentAvatar } from './TlaCommentByline'
 import styles from './comment-byline.module.css'
 
@@ -24,13 +23,24 @@ const messages = defineMessages({
 	ownerSuffix: { defaultMessage: '/ {name}' },
 })
 
-/** The agent that started a thread, read from its first comment. */
+/** The agent that started a thread, read from its first comment. The toolkit sorts oldest first. */
 function getThreadAgent(comments: TLComment[]) {
-	const first = comments.reduce<TLComment | undefined>(
-		(min, c) => (!min || c.createdAt < min.createdAt ? c : min),
-		undefined
-	)
-	return first ? getMcpAgentFromCommentMeta(first.meta) : null
+	return comments.length ? getMcpAgentFromCommentMeta(comments[0].meta) : null
+}
+
+/**
+ * `text` as a CSS string literal. The owner's name is user-controlled, so a quote or backslash in it
+ * would otherwise end the string early and break the `content` it feeds. JSON's escapes aren't CSS's
+ * (CSS has no `\n` or `\u0022`), so everything outside printable ASCII is written as a hex escape.
+ */
+function toCssString(text: string) {
+	let out = '"'
+	for (const char of text) {
+		const code = char.codePointAt(0)!
+		out +=
+			char === '"' || char === '\\' || code < 0x20 || code > 0x7e ? `\\${code.toString(16)} ` : char
+	}
+	return out + '"'
 }
 
 /**
@@ -38,12 +48,12 @@ function getThreadAgent(comments: TLComment[]) {
  * names the agent and its owner ("Claude / max") and badges the owner's avatar, as the byline does.
  */
 export function TlaThreadRow({
-	thread,
+	thread: _thread,
+	comments,
 	...props
-}: CommentListItemRenderProps & { thread: TLCommentThread }) {
-	const editor = useEditor()
+}: CommentListItemRenderProps & { thread: TLCommentThread; comments: TLComment[] }) {
 	const msg = useTranslation()
-	const agent = getThreadAgent(useThreadComments(editor, thread.id))
+	const agent = getThreadAgent(comments)
 	if (!agent) return <CommentListItem {...props} />
 
 	const owner = props.author
@@ -51,7 +61,7 @@ export function TlaThreadRow({
 	// The row's byline takes the name as a string, so the grey "/ owner" after it is drawn by CSS
 	// from this property rather than by forking the toolkit's row.
 	const style = {
-		'--tla-agent-owner': JSON.stringify(msg(messages.ownerSuffix, { name: owner.name })),
+		'--tla-agent-owner': toCssString(msg(messages.ownerSuffix, { name: owner.name })),
 	} as CSSProperties
 	return (
 		<div className={styles.agentRow} style={style}>

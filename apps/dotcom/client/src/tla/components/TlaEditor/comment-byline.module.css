@@ -74,7 +74,19 @@
 	color: white;
 }
 
+.agentAuthor {
+	display: flex;
+	column-gap: 0.25em;
+}
+
+.agentName {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
 .owner {
+	flex-shrink: 0;
 	font-weight: 400;
 	color: var(--tl-color-text-3);
 }

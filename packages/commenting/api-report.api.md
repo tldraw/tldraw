@@ -160,6 +160,7 @@ export interface CommentingComponents {
         comment: TLComment;
     }>;
     ThreadRow?: ComponentType<CommentListItemRenderProps & {
+        comments: TLComment[];
         thread: TLCommentThread;
     }>;
 }

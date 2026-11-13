@@ -36,6 +36,14 @@
 .tlui-cmt-card__actions:has([data-state='open']) {
 	opacity: 1;
 }
+/* The editor only rings a focused button once Tab or an arrow key has turned its focus ring on, but
+   leaving an edit with Escape or Enter hands keyboard focus to the card's ⋯ button without either,
+   which would leave the keyboard user nothing showing where focus went. Same ring as the editor's. */
+.tlui-cmt-card__actions .tlui-button:focus-visible {
+	border-radius: 10px;
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -5px;
+}
 
 .tlui-cmt-body {
 	flex: 1;
