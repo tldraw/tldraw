@@ -400,6 +400,7 @@ export const FEATURE_FLAG_KEYS = [
 	'libraries',
 	'thumbnail_render_push',
 	'mcp_render_push',
+	'ui_v3',
 ] as const
 export type FeatureFlagKey = (typeof FEATURE_FLAG_KEYS)[number]
 

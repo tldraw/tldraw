@@ -208,6 +208,7 @@ export class TldrawApp {
 	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
 	readonly isLoadRumEnabled: boolean
+	readonly isUiV3Enabled: boolean
 	/** Null when the `libraries` flag is off for this user. */
 	readonly libraries: LibrarySource | null
 
@@ -298,6 +299,7 @@ export class TldrawApp {
 		this.getToken = getToken
 		this.email = email ?? null
 		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
 		if (flags.libraries?.enabled) {
 			const libraries = createLibrariesSource(userId)
 			this.libraries = libraries
