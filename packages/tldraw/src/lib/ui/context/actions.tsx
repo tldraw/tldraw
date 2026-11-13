@@ -32,6 +32,10 @@ import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../util
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import {
+	BACK_TO_CONTENT_JUMP_MS,
+	suppressBackToContent,
+} from '../components/HelperButtons/BackToContent'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -1773,9 +1777,17 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					trackEvent('zoom-to-content', { source })
 					const bounds = editor.getSelectionPageBounds() ?? editor.getCurrentPageBounds()
 					if (!bounds) return
+					// Hiding through the suppression keeps the button's reactor in sync, and the
+					// end of the suppression re-runs it, so the button comes back if the jump was
+					// interrupted. The camera divides the duration by the animation speed.
+					const animationSpeed = editor.user.getAnimationSpeed()
+					suppressBackToContent(
+						editor,
+						animationSpeed > 0 ? BACK_TO_CONTENT_JUMP_MS / animationSpeed : 0
+					)
 					editor.zoomToBounds(bounds, {
 						targetZoom: Math.min(1, editor.getZoomLevel()),
-						animation: { duration: 220 },
+						animation: { duration: BACK_TO_CONTENT_JUMP_MS },
 					})
 				},
 			},

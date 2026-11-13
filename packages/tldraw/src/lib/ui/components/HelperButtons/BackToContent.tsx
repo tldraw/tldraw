@@ -15,6 +15,13 @@ const suppressTimeout = new EditorAtom<number | null>('backToContentSuppressTime
 export const BACK_TO_CONTENT_APPEAR_DELAY_MS = 1000
 
 /**
+ * How long the `back-to-content` action's camera jump takes. The action suppresses the
+ * button for the same time, so the two can't drift apart.
+ * @internal
+ */
+export const BACK_TO_CONTENT_JUMP_MS = 220
+
+/**
  * Hide the "back to content" helper button right away, regardless of where the
  * camera currently is. This is used when the user has explicitly chosen to
  * navigate back to the content (e.g. via the "move focus to canvas" button): the
@@ -57,7 +64,8 @@ export function BackToContent() {
 		'toggle showback to content',
 		() => {
 			let showBackToContentNow = false
-			if (!backToContentSuppressed.get(editor)) {
+			// A locked camera can't jump back to the content, so the button would do nothing.
+			if (!backToContentSuppressed.get(editor) && !editor.getCameraOptions().isLocked) {
 				const shapeIds = editor.getCurrentPageShapeIds()
 				if (shapeIds.size) {
 					showBackToContentNow = shapeIds.size === editor.getNotVisibleShapes().size
@@ -107,10 +115,7 @@ export function BackToContent() {
 	return (
 		<TldrawUiMenuActionItem
 			actionId="back-to-content"
-			onSelect={() => {
-				actions['back-to-content'].onSelect('helper-buttons')
-				setShowBackToContent(false)
-			}}
+			onSelect={() => actions['back-to-content'].onSelect('helper-buttons')}
 		/>
 	)
 }
