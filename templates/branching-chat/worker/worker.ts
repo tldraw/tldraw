@@ -1,7 +1,14 @@
-import { createGoogleGenerativeAI } from '@ai-sdk/google'
+import { createGoogle } from '@ai-sdk/google'
 import { ExecutionContext } from '@cloudflare/workers-types'
 import { createOpenRouter } from '@openrouter/ai-sdk-provider'
-import { generateText, ModelMessage, smoothStream, streamText } from 'ai'
+import {
+	createTextStreamResponse,
+	generateText,
+	ModelMessage,
+	smoothStream,
+	streamText,
+	toTextStream,
+} from 'ai'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { AutoRouter, error, IRequest } from 'itty-router'
 import { Environment } from './types'
@@ -27,7 +34,7 @@ export default class extends WorkerEntrypoint<Environment> {
 		if (env.OPENROUTER_API_KEY) {
 			return createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })(`google/${MODEL_ID}`)
 		}
-		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })(MODEL_ID)
+		return createGoogle({ apiKey: env.GOOGLE_API_KEY })(MODEL_ID)
 	}
 
 	// Generate a new response from the model
@@ -62,7 +69,7 @@ export default class extends WorkerEntrypoint<Environment> {
 				experimental_transform: smoothStream(),
 			})
 
-			return result.toTextStreamResponse()
+			return createTextStreamResponse({ stream: toTextStream({ stream: result.stream }) })
 		} catch (error) {
 			console.error('Stream error:', error)
 			return new Response('An internal server error occurred.', {
