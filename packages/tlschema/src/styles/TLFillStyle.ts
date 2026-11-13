@@ -11,6 +11,8 @@ import { StyleProp } from './StyleProp'
  * - `solid` - Solid fill using the shape's color
  * - `pattern` - Crosshatch pattern fill using the shape's color
  * - `fill` - Alternative solid fill variant
+ * - `lined-fill` - Solid fill in a slightly lighter shade of the shape's color
+ * - `inked` - Tinted fill like `solid`, with the outline drawn in the foreground color (black, or white in dark mode)
  *
  * @example
  * ```ts
@@ -36,7 +38,7 @@ import { StyleProp } from './StyleProp'
  */
 export const DefaultFillStyle = StyleProp.defineEnum('tldraw:fill', {
 	defaultValue: 'none',
-	values: ['none', 'semi', 'solid', 'pattern', 'fill', 'lined-fill'],
+	values: ['none', 'semi', 'solid', 'pattern', 'fill', 'lined-fill', 'inked'],
 })
 
 /**

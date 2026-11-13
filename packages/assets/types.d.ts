@@ -84,6 +84,7 @@ export type AssetUrls = {
 		edit: string
 		'external-link': string
 		'fill-fill': string
+		'fill-inked': string
 		'fill-lined-fill': string
 		'fill-none': string
 		'fill-pattern': string

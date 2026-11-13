@@ -290,7 +290,8 @@ const PenPath = track(function PenPath({
 	const { color, fill, closed, size } = shape.props
 	const theme = editor.getCurrentTheme()
 	const colors = theme.colors[colorMode]
-	const stroke = getColorValue(colors, color, 'solid')
+	// Inked draws its outline in the foreground color ('black' flips to light in dark mode).
+	const stroke = getColorValue(colors, fill === 'inked' ? 'black' : color, 'solid')
 	const fillColor =
 		fill === 'none'
 			? 'none'
@@ -299,11 +300,13 @@ const PenPath = track(function PenPath({
 				: getColorValue(
 						colors,
 						color,
-						{ solid: 'semi', pattern: 'pattern', fill: 'fill', 'lined-fill': 'linedFill' }[fill] as
-							| 'semi'
-							| 'pattern'
-							| 'fill'
-							| 'linedFill'
+						{
+							solid: 'semi',
+							pattern: 'pattern',
+							fill: 'fill',
+							'lined-fill': 'linedFill',
+							inked: 'semi',
+						}[fill] as 'semi' | 'pattern' | 'fill' | 'linedFill'
 					)
 	const patternId = useUniqueSafeId('pen-hatch')
 	return (

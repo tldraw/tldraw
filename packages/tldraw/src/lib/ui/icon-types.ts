@@ -64,6 +64,7 @@ export type TLUiIconType =
 	| 'edit'
 	| 'external-link'
 	| 'fill-fill'
+	| 'fill-inked'
 	| 'fill-lined-fill'
 	| 'fill-none'
 	| 'fill-pattern'
@@ -230,6 +231,7 @@ export const iconTypes = [
 	'edit',
 	'external-link',
 	'fill-fill',
+	'fill-inked',
 	'fill-lined-fill',
 	'fill-none',
 	'fill-pattern',
