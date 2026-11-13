@@ -66,6 +66,13 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
 		},
+		ui_v3: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
+		},
 	}
 }
 
