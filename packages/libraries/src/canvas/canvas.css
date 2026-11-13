@@ -5,7 +5,7 @@
 	position: absolute;
 	top: 48px;
 	left: 8px;
-	width: 240px;
+	width: 260px;
 	max-height: var(--tlui-libraries-panel-max-height, min(calc(100% - 56px), 720px));
 	z-index: var(--tl-layer-panels);
 	pointer-events: auto;
@@ -17,6 +17,15 @@
 	overflow: hidden;
 	color: var(--tl-color-text-1);
 	font-size: 12px;
+}
+
+/* Scrollbars follow the editor's theme rather than the host page's color-scheme. */
+.tl-theme__light .tlui-libraries-panel {
+	color-scheme: light;
+}
+
+.tl-theme__dark .tlui-libraries-panel {
+	color-scheme: dark;
 }
 
 .tlui-libraries-panel[data-side='right'] {
@@ -60,7 +69,7 @@
 
 .tlui-libraries-grid {
 	display: grid;
-	grid-template-columns: repeat(2, minmax(0, 1fr));
+	grid-template-columns: repeat(3, minmax(0, 1fr));
 	margin: 0;
 	padding: 4px 10px 8px;
 	list-style: none;
@@ -89,64 +98,145 @@
 }
 
 .tlui-libraries-menu-heading {
+	display: flex;
+	align-items: center;
+	gap: 6px;
 	padding: 6px 10px 2px;
 	font-size: 11px;
 	color: var(--tl-color-text-3);
 	cursor: default;
 }
 
-/* A group's heading stays at the top of the list while its libraries scroll under it, and its
-   libraries' headers stick beneath it. */
-.tlui-libraries-group {
-	--tlui-libraries-group-heading-height: 44px;
-	--tlui-libraries-sticky-top: var(--tlui-libraries-group-heading-height);
-}
-
-.tlui-libraries-group > .tlui-libraries-group__heading {
-	position: sticky;
-	top: 0;
-	z-index: 2;
+.tlui-libraries-tabs {
 	display: flex;
-	align-items: center;
-	height: var(--tlui-libraries-group-heading-height);
-	margin: 0;
-	padding: 2px;
-	font-size: 12px;
-	font-weight: 500;
-	color: var(--tl-color-text-3);
+	flex-direction: column;
+	min-height: 0;
 }
 
-.tlui-libraries-group__toggle {
+/* Fades at an edge only while there are more owners to scroll to on that side. */
+.tlui-libraries-tabs__bar {
+	position: relative;
+	flex-shrink: 0;
+	border-bottom: 1px solid var(--tl-color-divider);
+}
+
+.tlui-libraries-tabs__bar::before,
+.tlui-libraries-tabs__bar::after {
+	content: '';
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	z-index: 1;
+	width: 32px;
+	pointer-events: none;
+	opacity: 0;
+	transition: opacity 120ms ease-out;
+}
+
+/* 1px in from each side, so they don't paint over the panel's inset edge ring. */
+.tlui-libraries-tabs__bar::before {
+	left: 1px;
+	background: linear-gradient(90deg, var(--tl-color-panel) 20%, transparent);
+}
+
+.tlui-libraries-tabs__bar::after {
+	right: 1px;
+	background: linear-gradient(270deg, var(--tl-color-panel) 20%, transparent);
+}
+
+.tlui-libraries-tabs__bar[data-overflow-start='true']::before,
+.tlui-libraries-tabs__bar[data-overflow-end='true']::after {
+	opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.tlui-libraries-tabs__bar::before,
+	.tlui-libraries-tabs__bar::after {
+		transition: none;
+	}
+}
+
+/* Scrolls sideways when the owners don't fit, the active tab centred. Positioned so it is the tabs'
+   offsetParent, which centring measures against. */
+.tlui-libraries-tabs__list {
+	position: relative;
+	display: flex;
+	padding: 0 6px;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.tlui-libraries-tabs__list::-webkit-scrollbar {
+	display: none;
+}
+
+.tlui-libraries-tabs__tab {
 	all: unset;
+	position: relative;
+	flex-shrink: 0;
 	box-sizing: border-box;
 	display: flex;
 	align-items: center;
-	gap: 2px;
-	flex: 0 1 auto;
-	min-width: 0;
-	height: 32px;
-	margin-left: 2px;
-	margin-right: auto;
+	gap: 6px;
+	max-width: 160px;
+	height: 40px;
 	padding: 0 8px;
-	border-radius: var(--tl-radius-2);
-	background: var(--tl-color-panel);
+	font-weight: 500;
+	color: var(--tl-color-text-3);
 	cursor: pointer;
 }
 
-.tlui-libraries-group__toggle:hover {
+.tlui-libraries-tabs__tab::after {
+	content: '';
+	position: absolute;
+	left: 8px;
+	right: 8px;
+	bottom: 0;
+	height: 2px;
+	border-radius: 1px;
+	background: var(--tl-color-text-1);
+	visibility: hidden;
+}
+
+.tlui-libraries-tabs__tab[data-state='active'] {
 	color: var(--tl-color-text-1);
 }
 
-.tlui-libraries-group__toggle:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
+.tlui-libraries-tabs__tab[data-state='active']::after {
+	visibility: visible;
 }
 
-.tlui-libraries-group__label {
+@media (hover: hover) {
+	.tlui-libraries-tabs__tab:hover {
+		color: var(--tl-color-text-1);
+	}
+}
+
+.tlui-libraries-tabs__tab:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -6px;
+	border-radius: var(--tl-radius-3);
+}
+
+.tlui-libraries-tabs__icon {
+	flex-shrink: 0;
+}
+
+.tlui-libraries-tabs__label {
 	min-width: 0;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+}
+
+.tlui-libraries-tabs > .tlui-libraries-sections {
+	flex: 1;
+	min-height: 0;
+}
+
+.tlui-libraries-tabs > .tlui-libraries-sections:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: -2px;
 }
 
 .tlui-libraries-sections .tlui-libraries-grid {
@@ -154,16 +244,16 @@
 	padding: 0 10px 4px;
 }
 
-/* Scrolled to, a section stops below its group's heading rather than under it. */
-.tlui-libraries-section {
-	scroll-margin-top: var(--tlui-libraries-sticky-top, 0);
+/* The last row stands as far from the panel's bottom as the tiles do from its sides. */
+.tlui-libraries-section:last-child .tlui-libraries-grid {
+	padding-bottom: 10px;
 }
 
-/* Stays at the top of the list, under its group's heading, while its own items scroll under it,
-   until the next section's header pushes it out. */
+/* Stays at the top of the list while its own items scroll under it, until the next section's header
+   pushes it out. */
 .tlui-libraries-section > .tlui-libraries-panel__header {
 	position: sticky;
-	top: var(--tlui-libraries-sticky-top, 0);
+	top: 0;
 	z-index: 1;
 	border-bottom: none;
 }
@@ -193,22 +283,29 @@
 	color: var(--tl-color-text-3);
 }
 
+/* Each tile's button fills its grid cell and insets the thumbnail with its own padding, so
+   neighbouring buttons meet with no gap between them, as toolbar buttons do. */
+.tlui-libraries-grid > li {
+	display: flex;
+}
+
 .tlui-libraries-tile {
 	position: relative;
+	flex: 1;
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
-	padding: 4px;
 	border-radius: var(--tl-radius-2);
 }
 
 .tlui-libraries-tile__button {
 	all: unset;
 	box-sizing: border-box;
+	flex: 1;
 	display: flex;
 	flex-direction: column;
 	gap: 4px;
 	width: 100%;
+	padding: 4px;
 	cursor: pointer;
 }
 
@@ -219,8 +316,8 @@
 
 .tlui-libraries-tile__button:focus-visible {
 	outline: 2px solid var(--tl-color-selected);
-	outline-offset: 2px;
-	border-radius: var(--tl-radius-1);
+	outline-offset: -2px;
+	border-radius: var(--tl-radius-2);
 }
 
 /* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu
@@ -260,7 +357,9 @@
 }
 
 @media (hover: hover) {
-	.tlui-libraries-tile:hover:not(:has(.tlui-libraries-tile__menu-button:hover, :disabled))
+	.tlui-libraries-tile:hover:not(
+			:has(.tlui-libraries-tile__menu-button:hover, [aria-disabled='true'])
+		)
 		.tlui-libraries-tile__thumbnail {
 		background: var(--tl-color-muted-2);
 	}
@@ -291,16 +390,16 @@
 	color: var(--tl-color-text-3);
 }
 
-.tlui-libraries-add-tile .tlui-libraries-tile__button:disabled {
+.tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] {
 	cursor: default;
 }
 
-.tlui-libraries-add-tile .tlui-libraries-tile__button:disabled .tlui-icon {
+.tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] .tlui-icon {
 	opacity: 0.4;
 }
 
 @media (hover: hover) {
-	.tlui-libraries-add-tile:not(:has(:disabled)):hover .tlui-libraries-tile__thumbnail {
+	.tlui-libraries-add-tile:not(:has([aria-disabled='true'])):hover .tlui-libraries-tile__thumbnail {
 		color: var(--tl-color-text-1);
 	}
 }
@@ -459,7 +558,6 @@
 	background: var(--tl-color-panel);
 }
 
-.tlui-libraries-group__heading .tlui-button::before,
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-button::before {
 	content: '';
 	position: absolute;
@@ -469,7 +567,6 @@
 	background: var(--tl-color-panel);
 }
 
-.tlui-libraries-group__heading .tlui-button[data-state='open']::before,
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-button[data-state='open']::before {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%)
 		var(--tl-color-panel);

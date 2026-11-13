@@ -4,7 +4,7 @@ import { useMaybeApp } from '../../hooks/useAppState'
 export function TlaLibrariesPanel() {
 	const source = useMaybeApp()?.libraries
 	if (!source) return null
-	return <LibrariesPanel source={source} side="right" />
+	return <LibrariesPanel source={source} />
 }
 
 export function TlaAddToLibraryMenuItem() {
