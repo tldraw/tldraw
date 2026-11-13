@@ -38,6 +38,8 @@ const FILE_ROW = {
 	updatedAt: '1700000000000',
 	ownerName: 'My workspace',
 	owningGroupId: 'user-1',
+	// pg returns the sum as a string, like the int8 timestamps.
+	matched: '0',
 }
 
 afterEach(() => vi.clearAllMocks())
@@ -124,9 +126,34 @@ describe('searchAccessibleBoards', () => {
 	it('matches any term as an escaped, case-insensitive substring', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: ['design', '50%'], cursor: null })
-		expect(fileQuery(queries).sql).toContain('("file"."name" ilike $4 or "file"."name" ilike $5)')
+		expect(fileQuery(queries).sql).toMatch(
+			/\("file"\."name" ilike \$\d+ or "file"\."name" ilike \$\d+\)/
+		)
 		expect(fileQuery(queries).parameters).toContain('%design%')
 		expect(fileQuery(queries).parameters).toContain('%50\\%%')
+	})
+
+	// Substring matching lets a common word match most boards, so the board matching every word has
+	// to lead rather than sort by age among them.
+	it('ranks boards by how many terms they match, and seeks on that rank', async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, []])
+		await searchAccessibleBoards(env, 'user-1', {
+			terms: ['design', 'roadmap'],
+			cursor: { matched: 1, arrivedAt: 5, id: 'board-9' },
+		})
+		const { sql } = fileQuery(queries)
+		expect(sql).toMatch(
+			/order by \(\(case when "file"\."name" ilike .* desc, "file"\."createdAt" desc/
+		)
+		expect(sql).toMatch(
+			/\(\(\(case when .*\), "file"\."createdAt", file\.id collate "C"\) < \(\$\d+, \$\d+, \$\d+\)/
+		)
+	})
+
+	it('leaves the rank out of a listing, so the index serves the order', async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, []])
+		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		expect(fileQuery(queries).sql).toContain('order by "file"."createdAt" desc')
 	})
 
 	// Test files need admin auth to read, so they are not the caller's to find. Filtered in SQL,
@@ -173,7 +200,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
 		expect(fileQuery(queries).sql).toContain('("file"."createdAt", file.id collate "C") < ($4, $5)')
 		expect(fileQuery(queries).parameters).toContain('board-9')
@@ -192,7 +219,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { arrivedAt: 1, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1, id: 'board-9' },
 		})
 		const sql = fileQuery(queries).sql
 		expect(sql.match(/file\.id collate "C"/g)).toHaveLength(2)
@@ -207,6 +234,7 @@ describe('searchAccessibleBoards', () => {
 			{
 				id: 'board-1',
 				name: 'Roadmap',
+				matched: 0,
 				// A workspace board arrives when it is made, so the two are the same instant here.
 				arrivedAt: 1_699_999_000_000,
 				createdAt: 1_699_999_000_000,
@@ -269,7 +297,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, [], []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
 		const { sql } = sharedQuery(queries)
 		expect(sql).toContain('("group_file"."createdAt", group_file."fileId" collate "C") < ')

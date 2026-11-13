@@ -180,10 +180,18 @@ export const BOARD_SEARCH_MAX_TERMS = 8
 /**
  * Where a page of search results ended: the sort key of its last row.
  *
- * Both halves are needed. `arrivedAt` is not unique — boards created in one batch share one — so
- * `id` is the tiebreaker that makes "where the page ended" a single point rather than a range.
+ * `arrivedAt` is not unique — boards created in one batch share one — so `id` is the tiebreaker
+ * that makes "where the page ended" a single point rather than a range.
  */
 export interface BoardSearchCursor {
+	/**
+	 * How many of the query's words the board's name contains; 0 with no query. Leads the order so a
+	 * board matching every word isn't buried under newer boards that match one common word, which
+	 * substring matching makes most of them. Unlike `arrivedAt` it can change, if the board is renamed
+	 * mid-paging, which can move it onto a page already served or skip it: a rare cost, and the
+	 * alternative is ordering that hides the best match.
+	 */
+	matched: number
 	/**
 	 * When the board entered this caller's list: created in one of their workspaces, moved into one,
 	 * or opened by them through a share link. Immutable whichever way it arrived, which is what a
@@ -218,7 +226,7 @@ export function parseSearchBoardsInput(
 }
 
 // Terms are ORed, so "design roadmap" finds "System design v2" even though the name has no
-// "roadmap". A query of only whitespace means the same as no query: list the caller's newest boards.
+// "roadmap"; boards matching more of the words come first. A query of only whitespace means the same as no query: list the caller's newest boards.
 function parseSearchTerms(value: unknown): string[] {
 	if (value === undefined || value === null) return []
 	if (typeof value !== 'string') {
@@ -260,10 +268,12 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 		throw invalid
 	}
 	// The encoder percent-escapes both the id and the query, and percent-escaping covers the colon,
-	// so these are the only three unescaped ones.
+	// so these are the only unescaped ones.
 	const parts = decoded.split(':')
-	if (parts.length !== 3) throw invalid
-	const [timestampPart, idPart, queryPart] = parts
+	if (parts.length !== 4) throw invalid
+	const [matchedPart, timestampPart, idPart, queryPart] = parts
+	if (!/^\d+$/.test(matchedPart)) throw invalid
+	const matched = Number(matchedPart)
 	// `Number()` accepts far more than a timestamp can legitimately be: '' -> 0, '1e3' -> 1000,
 	// ' 5' -> 5, '+5' -> 5, 'Infinity' -> Infinity. Requiring plain digits first catches all of
 	// these, including the empty-prefix forgery `btoa(":id")`, which would otherwise pass
@@ -294,8 +304,8 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 	// garbage would reach a model as "the board database could not be reached" rather than as a bad
 	// cursor. An empty id is refused here too: it would seek on `arrivedAt` alone, re-serving or
 	// skipping every board that shares it.
-	if (!Number.isSafeInteger(arrivedAt) || id.length === 0) throw invalid
-	return { arrivedAt, id }
+	if (!Number.isSafeInteger(arrivedAt) || id.length === 0 || matched > terms.length) throw invalid
+	return { matched, arrivedAt, id }
 }
 
 // Opaque on purpose: a model should only ever hand back a cursor it was given, which leaves the
@@ -308,7 +318,7 @@ function parseBoardSearchCursor(value: unknown, terms: string[]): BoardSearchCur
 // throw here — and this is what keeps them round-tripping.
 function encodeBoardSearchCursor(cursor: BoardSearchCursor, terms: string[]): string {
 	return btoa(
-		`${cursor.arrivedAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
+		`${cursor.matched}:${cursor.arrivedAt}:${encodeURIComponent(cursor.id)}:${encodeURIComponent(normalizeSearchQuery(terms))}`
 	)
 }
 
@@ -734,8 +744,8 @@ export interface BoardSearchRow extends BoardSearchCursor {
 }
 
 /**
- * The order search results come back in: most recently arrived board first, `id` descending to break
- * the ties `arrivedAt` leaves.
+ * The order search results come back in: boards whose names contain more of the query's words first,
+ * then most recently arrived, then `id` descending to break the ties `arrivedAt` leaves.
  *
  * "Arrived", not "created", so a board somebody shared with you this morning leads the list rather
  * than sorting by when its owner happened to make it — which for a long-lived board buries it under
@@ -748,6 +758,7 @@ export interface BoardSearchRow extends BoardSearchCursor {
  * and `-` of a tldraw id differently, and the two mirrors would silently part company.
  */
 export function compareBoardSearchOrder(a: BoardSearchCursor, b: BoardSearchCursor): number {
+	if (a.matched !== b.matched) return b.matched - a.matched
 	if (a.arrivedAt !== b.arrivedAt) return b.arrivedAt - a.arrivedAt
 	return a.id < b.id ? 1 : a.id > b.id ? -1 : 0
 }
@@ -1112,8 +1123,12 @@ const BOARD_USER_ACTIVE_MS = 60_000
 
 // Compared against the server clock, but lastActiveAt came from the user's: a skewed client reads as
 // wrongly active or idle, the same way it does to the other people on the board.
+//
+// No recorded activity counts as active, as `CollaboratorsManager` does: presence broadcasts 0 until
+// someone moves their pointer, so a person who joined on a touch device and is only watching would
+// otherwise read as gone while everyone on the board sees them (#9017).
 function isBoardUserActive({ lastActiveAt }: { lastActiveAt: string | null }, now: number) {
-	return lastActiveAt !== null && now - Date.parse(lastActiveAt) <= BOARD_USER_ACTIVE_MS
+	return lastActiveAt === null || now - Date.parse(lastActiveAt) <= BOARD_USER_ACTIVE_MS
 }
 
 /** get_user_state's answer for someone else: everything presence holds on them. */
@@ -2114,7 +2129,7 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 	return {
 		name: SEARCH_BOARDS_TOOL_NAME,
 		title: 'Search tldraw boards',
-		description: `Find tldraw.com boards by name among this account's own boards, its workspaces' boards, and boards shared with it by link that it has opened. Write your query as words separated by spaces, up to ${BOARD_SEARCH_MAX_TERMS} words and ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. All boards with any matching words in their names will be returned in descending chronological order by the date of their creation (for a board shared with you, the date you first opened it). Omit the query to list boards. Returns up to ${BOARD_SEARCH_PAGE_SIZE} boards, each with a boardId the other tools take. No match is an empty result, not an error.`,
+		description: `Find tldraw.com boards by name among this account's own boards, its workspaces' boards, and boards shared with it by link that it has opened. Write your query as words separated by spaces, up to ${BOARD_SEARCH_MAX_TERMS} words and ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. A board matches if its name contains any of the words. Boards matching the most words come first, then the newest (by creation, or for a board shared with you, when you first opened it). Omit the query to list boards. Returns ${BOARD_SEARCH_PAGE_SIZE} boards at a time, each with a boardId the other tools take. When there are more, the result has a nextCursor: pass it as cursor for the next ${BOARD_SEARCH_PAGE_SIZE}. No match is an empty result, not an error.`,
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2122,7 +2137,7 @@ function getSearchBoardsToolDefinition(nameMatchingEnabled: boolean) {
 				query: {
 					type: 'string',
 					maxLength: BOARD_SEARCH_MAX_QUERY_LENGTH,
-					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, separated by spaces. At most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. A board matches if its name contains any of them. Omit to list your newest boards.`,
+					description: `Up to ${BOARD_SEARCH_MAX_TERMS} words to match against board names, separated by spaces. At most ${BOARD_SEARCH_MAX_QUERY_LENGTH} characters. A board matches if its name contains any of them; boards matching more come first. Omit to list your newest boards.`,
 				},
 				cursor: {
 					type: 'string',
