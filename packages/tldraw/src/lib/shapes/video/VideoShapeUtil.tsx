@@ -19,7 +19,7 @@ import {
 	WeakCache,
 } from '@tldraw/editor'
 import classNames from 'classnames'
-import { ReactEventHandler, memo, useCallback, useEffect, useRef, useState } from 'react'
+import { memo, useCallback, useEffect, useRef, useState } from 'react'
 import { BrokenAssetIcon } from '../shared/BrokenAssetIcon'
 import type { ShapeOptionsWithDisplayValues } from '../shared/getDisplayValues'
 import { HyperlinkButton } from '../shared/HyperlinkButton'
@@ -164,13 +164,29 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 
 	const rVideo = useRef<HTMLVideoElement>(null!)
 
-	const [isLoaded, setIsLoaded] = useState(false)
+	// Keyed by url so that a new url starts out loading rather than inheriting the previous
+	// video's loaded or failed state.
+	const [loadedUrl, setLoadedUrl] = useState<string | null>(null)
+	const [failedUrl, setFailedUrl] = useState<string | null>(null)
+	const isLoaded = !!url && loadedUrl === url
+	const isFailed = !!url && failedUrl === url
 
-	const handleLoadedData = useCallback<ReactEventHandler<HTMLVideoElement>>((e) => {
-		const video = e.currentTarget
-		if (!video) return
-		setIsLoaded(true)
-	}, [])
+	// The <video> is unmounted while failed, so nothing else would ever clear the error: without
+	// this, switching back to a url that failed once (or to another asset with the same src) would
+	// show the broken icon without trying to load it again. Reset during render rather than in an
+	// effect so the stale broken icon is never committed.
+	const sourceKey = `${asset?.id}|${asset?.props.src}|${url}`
+	const [prevSourceKey, setPrevSourceKey] = useState(sourceKey)
+	if (prevSourceKey !== sourceKey) {
+		setPrevSourceKey(sourceKey)
+		setFailedUrl(null)
+	}
+
+	const handleLoadedData = useCallback(() => setLoadedUrl(url), [url])
+	// A missing or unreachable file fires `error` on the <source>, not on the <video>. The DOM
+	// event doesn't bubble, but React propagates it up the component tree, so this one handler on
+	// the <video> catches those as well as its own errors (decode failures, mid-playback drops).
+	const handleError = useCallback(() => setFailedUrl(url), [url])
 
 	const [isFullscreen, setIsFullscreen] = useState(false)
 
@@ -194,7 +210,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 		}
 	}, [isEditing, isLoaded])
 
-	const hasVideo = !!asset?.props.src && !!url && isLoaded
+	const hasVideo = !!asset?.props.src && !!url && isLoaded && !isFailed
 
 	return (
 		<>
@@ -208,7 +224,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 			>
 				<div className="tl-counter-scaled">
 					<div className="tl-video-container">
-						{!asset ? (
+						{!asset || isFailed ? (
 							<BrokenAssetIcon />
 						) : Spinner && !asset.props.src ? (
 							<Spinner />
@@ -238,6 +254,7 @@ const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) 
 									disablePictureInPicture
 									controls={isEditing && showControls}
 									onLoadedData={handleLoadedData}
+									onError={handleError}
 									hidden={!isLoaded}
 									aria-label={shape.props.altText}
 								>
