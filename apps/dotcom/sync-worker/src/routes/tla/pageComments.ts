@@ -89,7 +89,15 @@ export async function readPageCommentRows(
 }
 
 export type WriteCommentOutcome =
-	| { ok: true; threadId: string; commentId: string; pageId: string; newThread: boolean }
+	| {
+			ok: true
+			threadId: string
+			commentId: string
+			pageId: string
+			newThread: boolean
+			/** Saved on the board, but not yet in Postgres, which read_page_comments reads. */
+			queued: boolean
+	  }
 	| { ok: false; reason: CommentWriteRefusal['reason']; result: ToolResult }
 
 /**

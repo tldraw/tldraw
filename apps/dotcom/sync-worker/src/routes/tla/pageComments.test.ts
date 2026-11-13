@@ -35,6 +35,7 @@ describe('writeCommentForUser', () => {
 			commentId: 'comment:c',
 			pageId: 'page:a',
 			newThread: false,
+			queued: false,
 		})
 
 		const outcome = await writeCommentForUser(env, USER_ID, {
@@ -51,6 +52,7 @@ describe('writeCommentForUser', () => {
 			commentId: 'comment:c',
 			pageId: 'page:a',
 			newThread: false,
+			queued: false,
 		})
 		expect(getRoomDurableObject).toHaveBeenCalledWith(env, BOARD_ID)
 		const [call] = writeMcpComment.mock.calls[0]

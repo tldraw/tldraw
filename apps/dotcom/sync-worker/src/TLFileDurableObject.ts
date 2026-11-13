@@ -3631,6 +3631,11 @@ export class TLFileDurableObject extends DurableObject {
 	 * Storage writes do not fire `onCommittedChanges`, so the records are outboxed here, in the same
 	 * synchronous block as the write, as the restore handler's invariants require. The drain is
 	 * awaited so a read_page_comments straight after sees the comment.
+	 *
+	 * `queued` says the drain left the comment in the outbox: a failed row is kept for a later drain
+	 * rather than thrown, so the drain resolving says nothing about this comment. read_page_comments
+	 * reads Postgres only, so without this an agent that reads back and misses its comment posts it
+	 * again.
 	 */
 	async writeMcpComment({
 		fileId,
@@ -3649,7 +3654,14 @@ export class TLFileDurableObject extends DurableObject {
 		body: TLRichText
 		target: CommentTarget
 	}): Promise<
-		| { ok: true; threadId: string; commentId: string; pageId: string; newThread: boolean }
+		| {
+				ok: true
+				threadId: string
+				commentId: string
+				pageId: string
+				newThread: boolean
+				queued: boolean
+		  }
 		| ({ ok: false } & CommentWriteRefusal)
 	> {
 		if (this._documentInfo) {
@@ -3718,10 +3730,20 @@ export class TLFileDurableObject extends DurableObject {
 		if (!planned.ok) return planned
 
 		const { records, ...written } = planned
-		await this.enqueueCommentRecordIds(records.map((record) => record.id)).catch((error) => {
+		const recordIds = records.map((record) => record.id)
+		await this.enqueueCommentRecordIds(recordIds).catch((error) => {
 			this.reportError(error)
 		})
-		return written
+		// A later edit to the same thread can re-queue its id, which reads as queued here too. That
+		// only errs towards telling the agent not to retry.
+		const queued =
+			this.ctx.storage.sql
+				.exec(
+					`SELECT 1 FROM comment_outbox WHERE recordId IN (${recordIds.map(() => '?').join(', ')}) LIMIT 1`,
+					...recordIds
+				)
+				.toArray().length > 0
+		return { ...written, queued }
 	}
 
 	// Created on first use: most boards never see an agent.

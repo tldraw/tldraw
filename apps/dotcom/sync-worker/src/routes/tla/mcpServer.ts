@@ -932,6 +932,7 @@ async function callWriteCommentTool(
 			commentId: written.commentId,
 			pageId: written.pageId,
 			newThread: written.newThread,
+			queued: written.queued,
 			// tldraw.com opens the thread from this, as its own "copy link" does.
 			url: `${boardUrl}?comment=${encodeURIComponent(written.threadId)}`,
 		})

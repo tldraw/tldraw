@@ -20,6 +20,7 @@ import { Environment } from '../../types'
 import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	CLUSTER_INFO_MAX_IDS,
+	COMMENT_QUEUED_NOTE,
 	McpBoardUser,
 	parseBoardInfoInput,
 	parseClusterInfoInput,
@@ -1129,6 +1130,7 @@ describe('write_comment', () => {
 		commentId: 'comment:c',
 		pageId: 'page:a',
 		newThread: true,
+		queued: false,
 	}
 
 	it('takes the name the agent gives, but the app from its OAuth client', async () => {
@@ -1191,6 +1193,22 @@ describe('write_comment', () => {
 			pageId: 'page:a',
 			newThread: true,
 			url: 'https://render.example/f/board_abc?comment=comment-thread%3At',
+		})
+	})
+
+	// read_page_comments reads Postgres, so an agent that misses its comment there would post it again.
+	it('tells the agent not to retry a comment that has not reached Postgres yet', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({ ...WRITTEN, queued: true })
+		const result = await callTool('write_comment', {
+			boardId: 'board_abc',
+			text: 'Hi',
+			threadId: 't',
+		})
+		expect(result.isError).toBeUndefined()
+		expect(JSON.parse(result.content[0].text)).toMatchObject({
+			commentId: 'comment:c',
+			queued: true,
+			note: COMMENT_QUEUED_NOTE,
 		})
 	})
 

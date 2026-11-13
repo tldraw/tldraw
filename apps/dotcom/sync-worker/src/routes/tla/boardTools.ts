@@ -1844,15 +1844,22 @@ function describeCommentAnchor(anchor: TLCommentAnchor, shapes: Map<string, TLSh
 	}
 }
 
-export function getWrittenCommentResult(written: {
+export const COMMENT_QUEUED_NOTE =
+	'The comment is posted and people with the board open can see it, but read_page_comments may not list it yet. Do not post it again.'
+
+export function getWrittenCommentResult({
+	queued,
+	...written
+}: {
 	boardId: string
 	threadId: string
 	commentId: string
 	pageId: string
 	newThread: boolean
+	queued: boolean
 	url: string
 }): ToolResult {
-	return toolJsonResult(written)
+	return toolJsonResult(queued ? { ...written, queued, note: COMMENT_QUEUED_NOTE } : written)
 }
 
 // --- Tool definitions ---------------------------------------------------------------------------
