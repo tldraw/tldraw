@@ -81,7 +81,7 @@ function addImage(editor: Editor) {
 describe('getEditorLibraries', () => {
 	it("lists the board first, then the user's own libraries", () => {
 		const { userId, source } = setUp()
-		expect(source.getLibraryOwners?.()).toEqual([
+		expect(source.getLibraryOwners?.()?.map(({ id, name }) => ({ id, name }))).toEqual([
 			{ id: 'file-a', name: 'This board' },
 			{ id: userId, name: 'Your libraries' },
 		])
