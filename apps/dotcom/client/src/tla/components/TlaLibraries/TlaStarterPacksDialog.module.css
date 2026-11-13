@@ -4,7 +4,7 @@
 	max-height: 560px;
 }
 
-.packs {
+.body .packs {
 	display: flex;
 	flex-direction: column;
 	gap: var(--tl-space-4);
