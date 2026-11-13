@@ -93,20 +93,11 @@ describe('planMcpComment', () => {
 		expect(comment).toMatchObject({ threadId: result.threadId, authorId: ME, pageId: 'page:b' })
 	})
 
-	it('starts a thread at a page point, naming the page by index or id', () => {
-		const byIndex = plan({ kind: 'point', page: { kind: 'ordinal', ordinal: 1 }, x: 40, y: -20 }, [
-			pageB,
-			pageA,
-		])
-		expect(byIndex).toMatchObject({ ok: true, pageId: 'page:b', newThread: true })
-		if (!byIndex.ok) throw new Error('unreachable')
-		expect((byIndex.records[0] as TLCommentThread).anchor).toEqual({ type: 'point', x: 40, y: -20 })
-
-		const byId = plan({ kind: 'point', page: { kind: 'id', id: 'page:a' }, x: 0, y: 0 }, [
-			pageA,
-			pageB,
-		])
-		expect(byId).toMatchObject({ ok: true, pageId: 'page:a' })
+	it('starts a thread at a point on the page it names', () => {
+		const result = plan({ kind: 'point', pageId: 'page:b', x: 40, y: -20 }, [pageA, pageB])
+		expect(result).toMatchObject({ ok: true, pageId: 'page:b', newThread: true })
+		if (!result.ok) throw new Error('unreachable')
+		expect((result.records[0] as TLCommentThread).anchor).toEqual({ type: 'point', x: 40, y: -20 })
 	})
 
 	it('refuses a view-only caller before anything else', () => {
@@ -160,13 +151,14 @@ describe('planMcpComment', () => {
 		expect(plan({ kind: 'shape', shapeId: 'page:a' }, [pageA])).toMatchObject({
 			reason: 'shape_not_found',
 		})
-		expect(
-			plan({ kind: 'point', page: { kind: 'ordinal', ordinal: 2 }, x: 0, y: 0 }, [pageA, pageB])
-		).toEqual({
+		expect(plan({ kind: 'point', pageId: 'page:c', x: 0, y: 0 }, [pageA, pageB])).toEqual({
 			ok: false,
 			reason: 'page_not_found',
-			page: { kind: 'ordinal', ordinal: 2 },
-			pageCount: 2,
+			pageId: 'page:c',
+		})
+		// A shape is not a page, whatever id it is passed under.
+		expect(plan({ kind: 'point', pageId: 'shape:box', x: 0, y: 0 }, [pageA, box])).toMatchObject({
+			reason: 'page_not_found',
 		})
 	})
 })

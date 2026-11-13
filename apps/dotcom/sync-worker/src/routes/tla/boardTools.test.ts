@@ -1420,8 +1420,17 @@ describe('parseWriteCommentInput', () => {
 			boardId: 'b',
 			text: 'Hi',
 			agentName: null,
-			target: { kind: 'point', page: { kind: 'id', id: 'page:two' }, x: 10.5, y: -4 },
+			target: { kind: 'point', pageId: 'page:two', x: 10.5, y: -4 },
 		})
+	})
+
+	// An ordinal would resolve against the live room here but the saved snapshot in get_board_info.
+	it('needs a page id for a thread at a point', () => {
+		for (const page of [undefined, 0, 'Page 1']) {
+			expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 1, y: 2, page })).toThrow(
+				'page is required'
+			)
+		}
 	})
 
 	it('takes the name the agent goes by, up to a limit', () => {
@@ -1676,12 +1685,8 @@ describe('getCommentRefusalMessage', () => {
 		expect(
 			getCommentRefusalMessage({ reason: 'thread_not_found', threadId: 'comment-thread:t' })
 		).toContain('read_page_comments')
-		expect(
-			getCommentRefusalMessage({
-				reason: 'page_not_found',
-				page: { kind: 'ordinal', ordinal: 4 },
-				pageCount: 2,
-			})
-		).toContain('Page 4 is out of range')
+		expect(getCommentRefusalMessage({ reason: 'page_not_found', pageId: 'page:x' })).toContain(
+			'get_board_info'
+		)
 	})
 })

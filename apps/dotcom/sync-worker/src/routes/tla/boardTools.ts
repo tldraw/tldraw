@@ -19,7 +19,6 @@ import {
 	toThousandths,
 	type TLShapeWithPlainText,
 } from '@tldraw/dotcom-shared'
-import { UnknownRecord } from '@tldraw/store'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import {
 	BoxModel,
@@ -144,11 +143,7 @@ export interface EnumeratedPage {
 // against. A page "has content" when at least one shape sits directly on it (nested shapes always
 // have a top-level ancestor on their page, so checking direct children is sufficient).
 export function enumerateBoardPages(snapshot: RoomSnapshot): EnumeratedPage[] {
-	return enumeratePages(snapshot.documents.map((d) => d.state))
-}
-
-/** {@link enumerateBoardPages} over bare records, for a caller holding a live room. */
-export function enumeratePages(records: readonly UnknownRecord[]): EnumeratedPage[] {
+	const records = snapshot.documents.map((d) => d.state)
 	const parentIdsWithShapes = new Set<string>(records.filter(isShape).map((s) => s.parentId))
 	return orderMcpPages(records.filter(isPage)).map((page) => ({
 		...page,
@@ -1564,7 +1559,7 @@ export const COMMENTS_ON_PUBLISHED_BOARD_MESSAGE =
 export type CommentTarget =
 	| { kind: 'reply'; threadId: string }
 	| { kind: 'shape'; shapeId: string }
-	| { kind: 'point'; page: PageSelector; x: number; y: number }
+	| { kind: 'point'; pageId: string; x: number; y: number }
 
 /**
  * Why the Durable Object refused a comment write. Structured rather than worded, because the object
@@ -1577,7 +1572,7 @@ export type CommentWriteRefusal =
 	| { reason: 'thread_not_found'; threadId: string }
 	| { reason: 'thread_resolved'; threadId: string }
 	| { reason: 'shape_not_found'; shapeId: string }
-	| { reason: 'page_not_found'; page: PageSelector; pageCount: number }
+	| { reason: 'page_not_found'; pageId: string }
 
 export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
 	switch (refusal.reason) {
@@ -1597,7 +1592,7 @@ export function getCommentRefusalMessage(refusal: CommentWriteRefusal): string {
 		case 'shape_not_found':
 			return `No shape with id "${refusal.shapeId}" on this board. Shape ids come from get_cluster_info or read_page_comments.`
 		case 'page_not_found':
-			return getPageNotFoundMessage(refusal.page, refusal.pageCount)
+			return `No page with id "${refusal.pageId}" on this board. Page ids come from get_board_info.`
 	}
 }
 
@@ -1606,8 +1601,10 @@ export function parseReadPageCommentsInput(input: unknown): {
 	page: PageSelector
 	includeResolved: boolean
 } {
-	const { boardId, page } = parsePageInfoInput(input)
-	const { includeResolved } = requireArgumentsObject(input)
+	const value = requireArgumentsObject(input)
+	const boardId = parseBoardId(value.boardId)
+	const page = parsePageSelector(value.page)
+	const { includeResolved } = value
 	if (includeResolved != null && typeof includeResolved !== 'boolean') {
 		throw new Error('includeResolved must be true or false')
 	}
@@ -1652,7 +1649,7 @@ export function parseWriteCommentInput(input: unknown): {
 	}
 
 	// `page` is ignored for a reply or a shape rather than refused: the thread or the shape already
-	// names its page, and the schema's default would otherwise make every such call fail.
+	// names its page.
 	if (threadId) {
 		return {
 			boardId,
@@ -1674,12 +1671,16 @@ export function parseWriteCommentInput(input: unknown): {
 	) {
 		throw new Error('x and y must both be numbers: a point in page coordinates')
 	}
-	return {
-		boardId,
-		text,
-		agentName,
-		target: { kind: 'point', page: parsePageSelector(value.page), x, y },
+	// An id rather than an ordinal: this resolves against the live room, while get_board_info reads
+	// the saved snapshot, which can be behind it. After a page is added or reordered, the same
+	// ordinal names different pages in the two.
+	const { page } = value
+	if (typeof page !== 'string' || !page.startsWith('page:')) {
+		throw new Error(
+			'page is required for a thread at x and y: the page id (the "page:…" string) from get_board_info'
+		)
 	}
+	return { boardId, text, agentName, target: { kind: 'point', pageId: page, x, y } }
 }
 
 // A blank string means the same as absent, for the model that fills every field in the schema.
@@ -2310,10 +2311,8 @@ function getWriteCommentToolDefinition() {
 				x: { type: 'number', description: 'Start a thread at this page x coordinate, with y.' },
 				y: { type: 'number', description: 'Start a thread at this page y coordinate, with x.' },
 				page: {
-					type: ['number', 'string'],
-					description:
-						'For a thread at x and y: the page id or 0-based index from get_board_info. Defaults to 0.',
-					default: 0,
+					type: 'string',
+					description: 'For a thread at x and y: the page id from get_board_info.',
 				},
 			},
 			required: ['boardId', 'text'],

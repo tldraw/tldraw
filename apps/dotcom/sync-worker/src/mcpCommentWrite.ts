@@ -16,12 +16,14 @@ import {
 } from '@tldraw/tlschema'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import { McpAgent } from './mcpAgentStorage'
-import { CommentTarget, CommentWriteRefusal, enumeratePages } from './routes/tla/boardTools'
+import { CommentTarget, CommentWriteRefusal } from './routes/tla/boardTools'
 
-/** The room's records, as a storage transaction exposes them. */
+/**
+ * The room's records, as a storage transaction exposes them. Lookups by id only: on
+ * SQLiteSyncStorage, iterating values parses every record on the board.
+ */
 interface RoomRecords {
 	get(id: string): UnknownRecord | undefined
-	values(): Iterable<UnknownRecord>
 }
 
 export type PlannedMcpComment =
@@ -152,18 +154,9 @@ function placeNewThread(
 		}
 	}
 
-	const pages = enumeratePages([...room.values()])
-	const selector = target.page
-	const page =
-		selector.kind === 'id' ? pages.find((p) => p.id === selector.id) : pages[selector.ordinal]
-	if (!page) {
-		return { ok: false, reason: 'page_not_found', page: target.page, pageCount: pages.length }
-	}
-	return {
-		ok: true,
-		pageId: page.id as TLPageId,
-		anchor: { type: 'point', x: target.x, y: target.y },
-	}
+	const page = room.get(target.pageId)
+	if (!isPage(page)) return { ok: false, reason: 'page_not_found', pageId: target.pageId }
+	return { ok: true, pageId: page.id, anchor: { type: 'point', x: target.x, y: target.y } }
 }
 
 function getAncestorPageId(room: RoomRecords, shape: TLShape): TLPageId | null {
