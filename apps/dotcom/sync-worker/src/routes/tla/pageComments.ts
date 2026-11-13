@@ -1,6 +1,6 @@
 import { McpAgentClient } from '@tldraw/dotcom-shared'
-import { toRichText } from '@tldraw/tlschema'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
+import { selectMentionableUsers } from '../../mcpCommentWrite'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getRoomDurableObject } from '../../utils/durableObjects'
@@ -10,10 +10,28 @@ import {
 	CommentTarget,
 	CommentThreadRow,
 	CommentWriteRefusal,
+	MentionableUser,
 	ToolResult,
 	getCommentRefusalMessage,
 	toolError,
 } from './boardTools'
+
+/**
+ * Who `userId` may mention in a comment on `fileId`: the roster tldraw.com's own @-picker offers
+ * them (see `selectMentionableUsers`), so an agent can mention whoever its user could.
+ */
+export async function readMentionableUsers(
+	env: Environment,
+	fileId: string,
+	userId: string
+): Promise<MentionableUser[]> {
+	const db = createPostgresConnectionPool(env, 'sync-worker/readMentionableUsers')
+	try {
+		return await selectMentionableUsers(db, { fileId, userId })
+	} finally {
+		await db.destroy()
+	}
+}
 
 /**
  * One page of a board page's live comment threads, newest first, and all their live comments, in
@@ -146,9 +164,9 @@ export type WriteCommentOutcome =
  * Posts `text` as `userId`, marked as an agent's, through the file's Durable Object — the one
  * place a comment can be written so that connected collaborators see it and it reaches Postgres.
  *
- * The object makes the access call itself, with the same query `hasReadAccessToFile` runs, so the
- * route doesn't ask Postgres first. An id the caller cannot see wakes an object, but it answers
- * not_found before it loads or stores anything.
+ * The object makes the access call itself, with the same query `hasReadAccessToFile` runs, and
+ * checks any mentions after it, so the route asks Postgres nothing. An id the caller cannot see wakes
+ * an object, but it answers not_found before it loads or stores anything or says who is on the board.
  */
 export async function writeCommentForUser(
 	env: Environment,
@@ -172,7 +190,7 @@ export async function writeCommentForUser(
 		userId,
 		agentName,
 		agentClient,
-		body: toRichText(text),
+		text,
 		target,
 	})
 	if (!written.ok) return refused(written)

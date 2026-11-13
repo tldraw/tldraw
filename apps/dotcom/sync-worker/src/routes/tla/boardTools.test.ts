@@ -38,6 +38,9 @@ import {
 	getPageCommentsResult,
 	parseWriteCommentInput,
 	resolveSnapshotPage,
+	COMMENT_MENTION_MAX,
+	commentTextToRichText,
+	getTextMentionIds,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -1499,6 +1502,62 @@ describe('parseWriteCommentInput', () => {
 	})
 })
 
+describe('comment mentions', () => {
+	it('finds each id once, in order, and ignores anything not quite a mention', () => {
+		expect(
+			getTextMentionIds('@[A](u1) hi @[B](u2) @[A again](u1) @[C] (u3) @[D](u 4) [E](u5) @[F]()')
+		).toEqual(['u1', 'u2'])
+	})
+
+	it('leaves a link that only looks like a mention as plain text', () => {
+		const text =
+			'see @[the spec](https://example.com/spec) and @[notes](docs/notes.md) @[a](user_2Ab-c)'
+		expect(getTextMentionIds(text)).toEqual(['user_2Ab-c'])
+		expect(commentTextToRichText('see @[the spec](https://example.com/spec)', new Map())).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'text', text: 'see @[the spec](https://example.com/spec)' }],
+				},
+			],
+		})
+	})
+
+	it('turns mentions into nodes named from our records, one paragraph per line', () => {
+		expect(
+			commentTextToRichText('hey @[x](u1)!\n\n@[Ghost](u9)', new Map([['u1', 'Ada']]))
+		).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'text', text: 'hey ' },
+						{ type: 'mention', attrs: { id: 'u1', label: 'Ada' } },
+						{ type: 'text', text: '!' },
+					],
+				},
+				{ type: 'paragraph' },
+				{ type: 'paragraph', content: [{ type: 'mention', attrs: { id: 'u9', label: 'Ghost' } }] },
+			],
+		})
+	})
+
+	it('reads a mention back in the form it was written', () => {
+		const body = commentTextToRichText('ping @[x](u1)', new Map([['u1', 'Ada [admin]']]))
+		expect(commentBodyToPlainText(body, { mentionIds: true })).toBe('ping @[Ada admin](u1)')
+		expect(commentBodyToPlainText(body)).toBe('ping @Ada [admin]')
+	})
+
+	it('caps how many people one comment mentions', () => {
+		const text = Array.from({ length: COMMENT_MENTION_MAX + 1 }, (_, i) => `@[p](u${i})`).join(' ')
+		expect(() => parseWriteCommentInput({ boardId: 'b', text, threadId: 't' })).toThrow(
+			`at most ${COMMENT_MENTION_MAX} people`
+		)
+	})
+})
+
 describe('commentBodyToPlainText', () => {
 	it('puts blocks on their own lines and spells mentions out', () => {
 		expect(
@@ -1682,6 +1741,7 @@ describe('getPageCommentsResult', () => {
 						{
 							commentId: 'comment:first',
 							authorName: 'Ada',
+							authorId: 'user_other',
 							isCurrentUser: false,
 							meta: {},
 							createdAt: '2026-01-01T00:00:00.000Z',
@@ -1690,6 +1750,7 @@ describe('getPageCommentsResult', () => {
 						{
 							commentId: 'comment:reply',
 							authorName: 'Me',
+							authorId: 'user_me',
 							isCurrentUser: true,
 							meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
 							createdAt: '2026-01-02T00:00:00.000Z',
