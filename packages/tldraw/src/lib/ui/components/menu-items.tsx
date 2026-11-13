@@ -50,6 +50,11 @@ export function FlattenMenuItem() {
 }
 
 /** @public @react */
+export function UnflattenMenuItem() {
+	return <TldrawUiMenuActionItem actionId="unflatten-image" whenDisabled="hide" />
+}
+
+/** @public @react */
 export function DownloadOriginalMenuItem() {
 	return <TldrawUiMenuActionItem actionId="download-original" whenDisabled="hide" />
 }
@@ -237,6 +242,7 @@ export const EDIT_ACTIONS = [
 	'group',
 	'ungroup',
 	'flatten-to-image',
+	'unflatten-image',
 	'frame-selection',
 	'edit-link',
 	'fit-frame-to-content',

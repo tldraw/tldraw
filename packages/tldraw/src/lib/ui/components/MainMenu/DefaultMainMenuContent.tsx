@@ -28,6 +28,7 @@ import {
 	ToggleToolLockItem,
 	ToggleTransparentBgMenuItem,
 	ToggleWrapModeItem,
+	UnflattenMenuItem,
 	UngroupMenuItem,
 	UnlockAllMenuItem,
 	ZoomTo100MenuItem,
@@ -109,6 +110,7 @@ export function MiscMenuGroup() {
 			<ConvertToEmbedMenuItem />
 			<ConvertToBookmarkMenuItem />
 			<FlattenMenuItem />
+			<UnflattenMenuItem />
 		</TldrawUiMenuGroup>
 	)
 }
