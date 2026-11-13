@@ -2,8 +2,7 @@ import { b64Vecs, compressLegacySegments } from '@tldraw/editor'
 import type { TLDrawShapeSegment, VecModel } from '@tldraw/editor'
 
 /**
- * Helper function to convert draw shape points from VecModel[] to base64 string.
- * Uses delta encoding for improved Float16 precision.
+ * Helper function to convert draw shape points from VecModel[] to an encoded path.
  * This is useful for tests that create draw shapes with the legacy array format.
  *
  * @example
@@ -18,8 +17,7 @@ export function pointsToBase64(points: VecModel[]): string {
 }
 
 /**
- * Helper function to convert base64 string back to VecModel[] points.
- * Decodes delta-encoded points to absolute coordinates.
+ * Helper function to convert an encoded path back to VecModel[] points.
  * This is useful for tests that need to inspect draw shape points.
  *
  * @example
