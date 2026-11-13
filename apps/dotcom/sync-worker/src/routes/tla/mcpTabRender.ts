@@ -9,7 +9,12 @@ import {
 } from '@tldraw/dotcom-shared'
 import { notFound } from '@tldraw/worker-shared'
 import { IRequest } from 'itty-router'
-import { MAX_TAB_RENDER_SESSIONS, TabRenderOutcome } from '../../tabRenderBroker'
+import {
+	MAX_TAB_RENDER_SESSIONS,
+	TabRenderOutcome,
+	TabRenderResponse,
+	TabRenderStats,
+} from '../../tabRenderBroker'
 import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { getRoomDurableObject } from '../../utils/durableObjects'
@@ -27,9 +32,12 @@ import { reportThumbnailError } from './thumbnailShared'
 // answer must only ever reach that owner's own agent. See "Working in an open tab" in
 // browser-run-thumbnails.md.
 
-interface TabRenderContext {
+export interface TabRenderContext {
 	request: Request
 	ctx: ExecutionContext | undefined
+	/** The tool the job is for and the calling client's family, both bounded, for telemetry. */
+	tool: string
+	client: string
 }
 
 /** What a tab produced, or a message for the model and a bounded code for telemetry. */
@@ -43,15 +51,25 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 	userId: string,
 	job: TabRenderRequest,
 	expected: readonly S[],
-	{ request, ctx }: TabRenderContext
+	context: TabRenderContext
 ): Promise<TabRenderResult<Extract<TabRenderOutcome, { status: S }>>> {
+	const { request, ctx } = context
 	const startedAt = Date.now()
 	let result: TabRenderOutcome | { status: 'error' }
 	try {
 		const jobIds = await mintTabRenderJobIds(env, fileId, MAX_TAB_RENDER_SESSIONS)
-		result = await getRoomDurableObject(env, fileId).requestTabRender(userId, job, jobIds)
+		const response: TabRenderResponse = await getRoomDurableObject(env, fileId).requestTabRender(
+			userId,
+			job,
+			jobIds
+		)
+		const { stats, ...outcome } = response
+		result = outcome as TabRenderOutcome
 		const reason = result.status === 'declined' ? result.reason : 'none'
-		writeTabRenderTelemetry(env, job.mode, result.status, reason, Date.now() - startedAt)
+		writeTabRenderTelemetry(env, context, job.mode, result.status, reason, {
+			durationMs: Date.now() - startedAt,
+			stats,
+		})
 	} catch (error) {
 		reportThumbnailError(error, {
 			ctx,
@@ -60,7 +78,9 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 			surface: 'mcp_tab_render',
 			extras: { mode: job.mode },
 		})
-		writeTabRenderTelemetry(env, job.mode, 'error', 'none', Date.now() - startedAt)
+		writeTabRenderTelemetry(env, context, job.mode, 'error', 'none', {
+			durationMs: Date.now() - startedAt,
+		})
 		result = { status: 'error' }
 	}
 	if ((expected as readonly string[]).includes(result.status)) {
@@ -69,18 +89,46 @@ async function runInOpenTab<S extends TabRenderOutcome['status']>(
 	return { ok: false, ...describeFailure(result, job.mode, boardUrlOf(env, request, fileId)) }
 }
 
-// Outcome and reason are closed vocabularies, with no board or user identity, like the rest of this
-// pipeline.
+// Every blob is a closed vocabulary, with no board or user identity, like the rest of this pipeline.
+// Tool and client are appended, so the positions the dashboard already reads don't shift.
+//
+// The doubles after the total are where the time went (see TabRenderStats), -1 for a stage the job
+// never reached: a room that boots slowly and a tab that answers slowly are different problems.
 function writeTabRenderTelemetry(
 	env: Environment,
+	{ tool, client }: TabRenderContext,
 	mode: TabRenderRequest['mode'],
 	outcome: string,
 	reason: string,
-	durationMs: number
+	{ durationMs, stats }: { durationMs: number; stats?: TabRenderStats }
 ) {
 	writeDataPoint(undefined, env.MEASURE, env, 'mcp_tab_render', {
-		blobs: [`mode:${mode}`, `outcome:${outcome}`, `reason:${reason}`],
-		doubles: [durationMs],
+		blobs: [
+			`mode:${mode}`,
+			`outcome:${outcome}`,
+			`reason:${reason}`,
+			`tool:${tool}`,
+			`client:${client}`,
+		],
+		doubles: [durationMs, stats?.roomMs ?? -1, stats?.ackMs ?? -1, stats?.tabs ?? 0],
+	})
+}
+
+// A reply this route turned away. Nothing else records one: the job it was for just runs out its
+// timeout, so a capture too big to send and a tab that never answered both read as `work_timeout`.
+// Only written once the job id's signature has checked out, so a stranger can't fill the dataset.
+// `job_ended` is routine on reads, where the first tab to answer ends the job for the others.
+function writeTabRenderReplyRefusalTelemetry(
+	env: Environment,
+	refusal: 'no_length' | 'too_large' | 'job_ended' | 'invalid_json' | 'invalid_reply',
+	{
+		status = 'none',
+		bytes = 0,
+	}: { status?: TabRenderReply['status'] | 'none'; bytes?: number } = {}
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_tab_render_reply_refusal', {
+		blobs: [`refusal:${refusal}`, `reply:${status}`],
+		doubles: [bytes],
 	})
 }
 
@@ -258,7 +306,7 @@ export function applyOpsInOpenTab(
 export async function readBoardUsers(
 	env: Environment,
 	fileId: string,
-	{ request }: TabRenderContext
+	{ request }: Pick<TabRenderContext, 'request'>
 ): Promise<TabRenderResult<ReturnType<typeof getBoardUsers>>> {
 	const result = await getRoomDurableObject(env, fileId).getMcpBoardUsers()
 	if (result.status === 'room_timeout') {
@@ -418,26 +466,35 @@ export async function postTabRenderReply(request: IRequest, env: Environment): P
 	if (!(await isTabRenderJobIdFor(env, roomId, jobId))) return notFound()
 
 	const length = Number(request.headers.get('content-length'))
-	if (!length) return Response.json({ error: true, message: 'Length required' }, { status: 411 })
+	if (!length) {
+		writeTabRenderReplyRefusalTelemetry(env, 'no_length')
+		return Response.json({ error: true, message: 'Length required' }, { status: 411 })
+	}
 	if (length > MAX_TAB_RENDER_REPLY_BYTES) {
+		writeTabRenderReplyRefusalTelemetry(env, 'too_large', { bytes: length })
 		return Response.json({ error: true, message: 'Reply too large' }, { status: 413 })
 	}
 
 	const room = getRoomDurableObject(env, roomId)
-	if (!(await room.hasTabRenderJob(jobId))) return notFound()
+	if (!(await room.hasTabRenderJob(jobId))) {
+		writeTabRenderReplyRefusalTelemetry(env, 'job_ended', { bytes: length })
+		return notFound()
+	}
 
 	let parsed: unknown
 	try {
 		parsed = await request.json()
 	} catch {
+		writeTabRenderReplyRefusalTelemetry(env, 'invalid_json', { bytes: length })
 		return Response.json({ error: true, message: 'Invalid JSON body' }, { status: 400 })
 	}
 	const reply = parseTabRenderReply(parsed)
 	if (!reply) {
+		writeTabRenderReplyRefusalTelemetry(env, 'invalid_reply', { bytes: length })
 		return Response.json({ error: true, message: 'Invalid reply' }, { status: 400 })
 	}
 
-	return (await room.receiveTabRenderReply(jobId, reply))
-		? Response.json({ error: false })
-		: notFound()
+	if (await room.receiveTabRenderReply(jobId, reply)) return Response.json({ error: false })
+	writeTabRenderReplyRefusalTelemetry(env, 'job_ended', { status: reply.status, bytes: length })
+	return notFound()
 }
