@@ -163,6 +163,44 @@ describe('TldrawUiTranslationProvider', () => {
 		}
 	})
 
+	it('falls back to English when a locale fails to load', async () => {
+		const fetchSpy = vi.spyOn(window, 'fetch').mockImplementation(async (url) =>
+			String(url).includes('fr')
+				? ({ ok: true, json: async () => ({ 'action.copy': 'Copier' }) } as Response)
+				: ({
+						ok: false,
+						status: 404,
+						statusText: 'Not Found',
+						json: async () => {
+							throw new SyntaxError('Unexpected token <')
+						},
+					} as unknown as Response)
+		)
+		const warnSpy = vi.spyOn(console, 'warn').mockImplementation(() => {})
+		try {
+			let locale = 'fr'
+			const { result, rerender } = renderHook(() => useTranslation(), {
+				wrapper: ({ children }) => (
+					<AssetUrlsProvider assetUrls={defaultUiAssetUrls}>
+						<TldrawUiTranslationProvider locale={locale}>{children}</TldrawUiTranslationProvider>
+					</AssetUrlsProvider>
+				),
+			})
+			await waitFor(() => expect(result.current('action.copy')).toBe('Copier'))
+
+			locale = 'de'
+			rerender()
+			await waitFor(() => expect(result.current('action.copy')).toBe('Copy'))
+			expect(warnSpy).toHaveBeenCalledWith(
+				'Failed to load translation for locale de',
+				expect.any(Error)
+			)
+		} finally {
+			fetchSpy.mockRestore()
+			warnSpy.mockRestore()
+		}
+	})
+
 	// An empty override is how an app hides a label; react-intl's default shows the id instead.
 	it('renders an empty override as empty', () => {
 		const { result } = renderHook(() => useTranslation(), {

@@ -43,8 +43,17 @@ export async function fetchTranslation(
 		return EN_TRANSLATION
 	}
 
-	const res = await fetch(assetUrls.translations[language.locale])
-	const messages: TLUiTranslation['messages'] = await res.json()
+	let messages: TLUiTranslation['messages']
+	try {
+		const res = await fetch(assetUrls.translations[language.locale])
+		if (!res.ok) throw new Error(`${res.status} ${res.statusText}`)
+		messages = await res.json()
+	} catch (error) {
+		// Falling back to English rather than throwing: the provider would otherwise keep showing
+		// the previous locale's catalog, with this locale's overrides layered on top.
+		console.warn(`Failed to load translation for locale ${locale}`, error)
+		return EN_TRANSLATION
+	}
 
 	if (!messages) {
 		console.warn(`No messages found for locale ${locale}`)
