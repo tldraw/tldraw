@@ -436,10 +436,6 @@ function encodeClusterInfoCursor(cursor: ClusterInfoCursor, clusterIds: string[]
 	return btoa(`${cursor.cluster}:${cursor.shape}:${encodeURIComponent(clusterIds.join(','))}`)
 }
 
-/**
- * `combined` draws every requested cluster into one image of their union; `separate` returns one
- * image per cluster, each framed on that cluster alone.
- */
 export type ClusterScreenshotLayout = 'combined' | 'separate'
 
 export function parseClusterScreenshotInput(input: unknown): {
@@ -470,9 +466,9 @@ export function parseClusterScreenshotInput(input: unknown): {
 	}
 }
 
-// Each image is its own capture in the user's tab, one after another, and each lands in the model's
-// context. Ten keeps a call to seconds rather than minutes, and well under the 20 images past which
-// Claude shrinks every image in a request.
+// Each image is its own capture in the user's tab, run one after another, so a call takes as long as
+// all of them together; and each lands in the model's context. Ten stays well under the 20 images past
+// which Claude shrinks every image in a request.
 export const CLUSTER_SCREENSHOT_MAX_SEPARATE = 10
 
 // Like the theme, an unrecognized layout is refused rather than read as the default: a model that
@@ -545,33 +541,37 @@ function getClusterScreenshotScale(box: BoxModel, size: number) {
 		: CLUSTER_SCREENSHOT_MAX_SCALE
 }
 
-// How much detail a combined screenshot may give up to fit far-apart clusters into one frame, against
-// what the largest of them gets on its own. The image's pixel size is capped either way, so what
-// distance costs is scale: two clusters at opposite ends of a large page come back as a few specks in
-// an empty frame, with text too small to read, and the model has no way to tell that from a page that
-// really is that sparse.
-export const CLUSTER_SCREENSHOT_MAX_SPREAD = 8
+// How much a combined screenshot may shrink any one cluster to fit the others into the frame. The
+// image's pixel size is capped, so distance costs scale: two clusters at opposite ends of a large page
+// come back as specks in an empty frame, with text too small to read, and the model has no way to
+// tell that from a page that really is that sparse. Enlargement past 1x doesn't count as detail lost,
+// or two small notes a screen apart would be refused for coming out at their real size.
+export const CLUSTER_SCREENSHOT_MAX_SPREAD = 4
 
 /**
  * A refusal when the named clusters sit too far apart to read in one image, or null when they fit.
- * Clusters the tab could not measure are left out, so with fewer than two measured there is nothing
- * to compare.
+ * Clusters the tab could not measure, or that have no size, are left out of the comparison.
  */
 export function getClusterSpreadRefusal(
 	bounds: Record<string, BoxModel>,
 	clusterIds: string[],
 	size: number
 ): ToolResult | null {
-	const boxes = [...new Set(clusterIds)].flatMap((id) => (bounds[id] ? [bounds[id]] : []))
-	if (boxes.length < 2) return null
-	const union = getClustersBox(bounds, clusterIds)!
-	const largest = boxes.reduce((a, b) => (Math.max(b.w, b.h) > Math.max(a.w, a.h) ? b : a))
-	const together = getClusterScreenshotScale(union, size)
-	const alone = getClusterScreenshotScale(largest, size)
-	if (together * CLUSTER_SCREENSHOT_MAX_SPREAD >= alone) return null
-	const longest = Math.max(largest.w, largest.h)
+	const measured = [...new Set(clusterIds)].filter(
+		(id) => bounds[id] && Math.max(bounds[id].w, bounds[id].h) > 0
+	)
+	if (measured.length < 2) return null
+	const together = getClusterScreenshotScale(getClustersBox(bounds, measured)!, size)
+	let worst: { id: string; alone: number } | null = null
+	for (const id of measured) {
+		const alone = getClusterScreenshotScale(bounds[id], size)
+		if (together * CLUSTER_SCREENSHOT_MAX_SPREAD >= Math.min(alone, 1)) continue
+		if (!worst || alone > worst.alone) worst = { id, alone }
+	}
+	if (!worst) return null
+	const longest = Math.max(bounds[worst.id].w, bounds[worst.id].h)
 	return toolError(
-		`These clusters are too far apart to read in one image: the largest would come out about ${Math.round(longest * together)}px across, against ${Math.round(longest * alone)}px on its own. Pass layout "separate" for one image per cluster, or ask for fewer clusters that sit closer together. get_page_info's bounds say where each cluster is.`
+		`These clusters are too far apart to read in one image: cluster "${worst.id}" would come out about ${Math.round(longest * together)}px across, against ${Math.round(longest * worst.alone)}px on its own. Pass layout "separate" for one image per cluster, or ask for fewer clusters that sit closer together. get_page_info's bounds say where each cluster is.`
 	)
 }
 

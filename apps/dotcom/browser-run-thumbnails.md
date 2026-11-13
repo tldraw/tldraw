@@ -460,8 +460,8 @@ get_cluster_screenshot({
 })
 // → text (page name) + a PNG of those clusters, edge to edge at their exact aspect ratio. The
 //   board is never enlarged more than 8x, so a small cluster comes back smaller than `size`.
-//   'combined' is refused when the clusters sit so far apart that their union would draw the
-//   largest at under an eighth of the scale it gets alone. 'separate' returns, per cluster, a
+//   'combined' is refused when the clusters sit so far apart that their union would draw any
+//   of them at under a quarter of the scale it gets alone (counting enlargement past 1x as none). 'separate' returns, per cluster, a
 //   "<id>: <label>" line and a PNG framed on that cluster alone; at most 10 clusters per call
 ```
 
@@ -505,7 +505,7 @@ What this does **not** bound is many accounts looping at once; that needs a glob
 
 Every tool accepts the id of a tldraw.com board the authenticated caller can see: the `:slug` of a file URL (`https://www.tldraw.com/f/:slug`) they own, can reach through its owning group, or that is shared via link. `get_board_info` also accepts the `:slug` of a published board URL (`https://www.tldraw.com/p/:slug`), resolved as a file first and a published slug second; the tools that work in a tab refuse one, because the room behind it holds the live file rather than the published copy. Deleted files and test files are refused, as is any board the caller has no access to; all of these answer the same "no board was found with this id" as an id that names nothing at all.
 
-Each `get_cluster_screenshot` call renders one image, so an agent typically calls `get_board_info` once to enumerate pages (using `hasContent` to skip blank ones), `get_page_info` to list a page's clusters, then screenshots the clusters it cares about — one, several together to see how they sit relative to each other, or several with `layout: 'separate'` to get each one framed on its own in a single call. A combined image is refused when its clusters are too far apart to read (`clusters_too_far_apart`): the image's pixel size is capped, so distance costs scale, and two clusters at opposite ends of a large page would otherwise come back as specks with nothing to say why. A separate layout is one tab capture per cluster, run one after another, and every capture after the first is charged to the tab rate limit like a call of its own. Each clustering call reads the page in the caller's tab, and nothing is cached; see "Working in an open tab".
+An agent typically calls `get_board_info` once to enumerate pages (using `hasContent` to skip blank ones), `get_page_info` to list a page's clusters, then screenshots the clusters it cares about — one, several together to see how they sit relative to each other, or several with `layout: 'separate'` to get each one framed on its own in a single call. A combined image is refused when its clusters are too far apart to read (`clusters_too_far_apart`): the image's pixel size is capped, so distance costs scale, and two clusters at opposite ends of a large page would otherwise come back as specks with nothing to say why. A separate layout is one tab capture per cluster, run one after another, and every capture after the first is charged to the tab rate limit like a call of its own. Each clustering call reads the page in the caller's tab, and nothing is cached; see "Working in an open tab".
 
 The screenshot layer lives in the dotcom sync worker rather than the interactive `apps/mcp-app` canvas worker because it needs real tldraw.com published-file resolution and storage, not a live editor bridge.
 

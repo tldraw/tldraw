@@ -1376,7 +1376,7 @@ describe('the open tab', () => {
 		const measuredTab = () =>
 			openTab({
 				'shape:page:a-0': { x: 0, y: 0, w: 400, h: 100 },
-				'shape:page:a-1': { x: 10_000, y: 10_000, w: 80, h: 80 },
+				'shape:page:a-1': { x: 20_000, y: 0, w: 80, h: 80 },
 			})
 
 		async function clusterIdWithWidth(env: Environment, w: number) {

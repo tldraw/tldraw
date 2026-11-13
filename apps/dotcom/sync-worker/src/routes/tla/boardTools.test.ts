@@ -29,6 +29,7 @@ import {
 	getClusterSpreadRefusal,
 	getClustersBox,
 	toolClusterImagesResult,
+	ToolResult,
 	readSnapshotPage,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
@@ -562,42 +563,67 @@ describe('parseClusterScreenshotInput', () => {
 })
 
 describe('getClusterSpreadRefusal', () => {
-	it('lets clusters through when one image still shows the largest at an eighth of its own detail', () => {
-		// Union is 3200 wide: 0.8x, against 4.27x for a 600px cluster alone. Over an eighth.
+	const textOf = (result: ToolResult) => (result.content[0] as { text: string }).text
+
+	it('lets small clusters through while they still come out near their real size', () => {
+		// 3200 wide together: 0.8x. Each note would be enlarged 8x alone, but that isn't detail lost.
 		const bounds = {
-			a: { x: 0, y: 0, w: 600, h: 400 },
-			b: { x: 2600, y: 0, w: 600, h: 400 },
+			a: { x: 0, y: 0, w: 200, h: 200 },
+			b: { x: 3000, y: 0, w: 200, h: 200 },
 		}
 		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)).toBeNull()
 	})
 
-	it('refuses clusters so far apart that the largest would be a speck', () => {
+	it('refuses clusters so far apart that they would be specks, naming the one shrunk most', () => {
 		const bounds = {
 			a: { x: 0, y: 0, w: 400, h: 100 },
-			b: { x: 10_000, y: 10_000, w: 80, h: 80 },
+			b: { x: 20_000, y: 0, w: 80, h: 80 },
 		}
 		const refusal = getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)
 		expect(refusal?.isError).toBe(true)
-		const text = (refusal!.content[0] as { text: string }).text
-		expect(text).toContain('too far apart')
-		expect(text).toContain('about 102px across, against 2560px on its own')
-		expect(text).toContain('layout "separate"')
+		expect(textOf(refusal!)).toContain(
+			'too far apart to read in one image: cluster "b" would come out about 10px across, against 640px on its own'
+		)
+		expect(textOf(refusal!)).toContain('layout "separate"')
 	})
 
-	it('measures detail with the 8x enlargement cap, not just the ratio of the boxes', () => {
-		// Two 80px notes 1920px apart: 1.28x together, but only 8x (not 32x) alone, so they pass.
+	it('checks every cluster, so a small one far from a large one is not lost', () => {
+		// 0.18x together keeps the frame over a quarter of its 0.64x alone, but not the note.
 		const bounds = {
-			a: { x: 0, y: 0, w: 80, h: 80 },
-			b: { x: 1920, y: 0, w: 80, h: 80 },
+			frame: { x: 0, y: 0, w: 4000, h: 3000 },
+			note: { x: 14_000, y: 0, w: 100, h: 100 },
+		}
+		expect(textOf(getClusterSpreadRefusal(bounds, ['frame', 'note'], 2560)!)).toContain(
+			'cluster "note"'
+		)
+	})
+
+	it('measures a cluster larger than the image against the scale it gets alone', () => {
+		// 0.057x together, against 0.128x for each frame alone: well within a quarter.
+		const bounds = {
+			a: { x: 0, y: 0, w: 20_000, h: 10_000 },
+			b: { x: 25_000, y: 0, w: 20_000, h: 10_000 },
 		}
 		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 2560)).toBeNull()
 	})
 
-	it('has nothing to compare with fewer than two measured clusters', () => {
-		const bounds = { a: { x: 0, y: 0, w: 10, h: 10 } }
+	it('allows less spread for a smaller image', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 200, h: 200 },
+			b: { x: 3000, y: 0, w: 200, h: 200 },
+		}
+		expect(getClusterSpreadRefusal(bounds, ['a', 'b'], 640)).not.toBeNull()
+	})
+
+	it('has nothing to compare with fewer than two measured clusters of any size', () => {
+		const bounds = {
+			a: { x: 0, y: 0, w: 10, h: 10 },
+			point: { x: 50_000, y: 0, w: 0, h: 0 },
+		}
 		expect(getClusterSpreadRefusal(bounds, ['a'], 2560)).toBeNull()
 		expect(getClusterSpreadRefusal(bounds, ['a', 'unmeasured'], 2560)).toBeNull()
 		expect(getClusterSpreadRefusal(bounds, ['a', 'a'], 2560)).toBeNull()
+		expect(getClusterSpreadRefusal(bounds, ['a', 'point'], 2560)).toBeNull()
 	})
 })
 

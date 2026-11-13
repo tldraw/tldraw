@@ -1168,14 +1168,15 @@ async function callClusterScreenshotTool(
 		}
 
 		if (input.layout === 'separate') {
+			// The read paid for the first capture, as it does for a combined one. Each further capture
+			// is another job on the board's durable object, so it is charged like a call, and charged
+			// up front so a limit hit part-way doesn't throw away the captures before it.
+			for (let i = 1; i < input.clusterIds.length; i++) {
+				const limited = await checkTabRateLimit(env, userId, telemetry)
+				if (limited) return limited
+			}
 			const images: ClusterImage[] = []
-			for (const [i, clusterId] of input.clusterIds.entries()) {
-				// The read paid for the first capture, as it does for a combined one. Each further
-				// capture is another job on the board's durable object, so it is charged like a call.
-				if (i > 0) {
-					const limited = await checkTabRateLimit(env, userId, telemetry)
-					if (limited) return limited
-				}
+			for (const clusterId of input.clusterIds) {
 				// pickClusterShapes above already refused any id that isn't on the page.
 				const cluster = page.read.details.find((c) => c.id === clusterId)!
 				const image = await capture(
