@@ -1,4 +1,5 @@
 import { CommentsMenuItem } from '@tldraw/commenting'
+import { librariesPanelOpen, toggleLibrariesPanel, useLibrariesEnabled } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useIntl } from 'react-intl'
@@ -93,6 +94,7 @@ function TlaViewSubmenu() {
 const messages = defineMessages({
 	signIn: { defaultMessage: 'Sign in' },
 	pageMenu: { defaultMessage: 'Page menu' },
+	libraries: { defaultMessage: 'Libraries' },
 })
 
 const SEPARATOR = '/'
@@ -276,6 +278,9 @@ function TlaEditorTopLeftPanelSignedIn() {
 			/>
 			<span className={styles.topLeftPanelSeparator}>{SEPARATOR}</span>
 			<DefaultPageMenu />
+			{/* Only file editors mount the libraries panel (see TlaEditor); on legacy routes there is
+			    no file and the button would toggle state nothing reads. */}
+			{fileId && <LibrariesPanelButton />}
 			<TlaFileMenu
 				fileId={fileId ?? ''}
 				workspaceId={null}
@@ -315,6 +320,31 @@ function TlaEditorTopLeftPanelSignedIn() {
 				</TldrawUiMenuGroup>
 			</TlaFileMenu>
 		</>
+	)
+}
+
+function LibrariesPanelButton() {
+	const msg = useTranslation()
+	const editor = useEditor()
+	const librariesEnabled = useLibrariesEnabled()
+	const hasLibraries = !!useMaybeApp()?.libraries
+	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
+	const label = msg(messages.libraries)
+
+	if (!librariesEnabled || !hasLibraries) return null
+
+	return (
+		<TldrawUiButton
+			type="icon"
+			className={styles.topLeftMainMenuTrigger}
+			data-testid="tla-libraries-button"
+			aria-pressed={open}
+			tooltip={label}
+			title={label}
+			onClick={() => toggleLibrariesPanel(editor)}
+		>
+			<TlaIcon icon="library" />
+		</TldrawUiButton>
 	)
 }
 

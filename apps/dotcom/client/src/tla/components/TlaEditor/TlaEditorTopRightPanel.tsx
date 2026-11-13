@@ -11,7 +11,6 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { librariesPanelOpen, toggleLibrariesPanel, useLibrariesEnabled } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -24,13 +23,11 @@ import {
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
-	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
-import { useOneSidePanelOpen } from '../../hooks/useOneSidePanelOpen'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
@@ -44,10 +41,6 @@ const ctaMessages = defineMessages({
 
 const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
-})
-
-const librariesMessages = defineMessages({
-	libraries: { defaultMessage: 'Libraries' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -75,7 +68,6 @@ export function TlaEditorTopRightPanel({
 		},
 		[editor]
 	)
-	useOneSidePanelOpen(editor)
 
 	if (isAnonUser) {
 		return (
@@ -102,14 +94,9 @@ export function TlaEditorTopRightPanel({
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
 			<PeopleMenu />
-			{/* Only file editors mount the libraries panel and comments sidebar (see TlaEditor); in
-			    legacy and published contexts these buttons would toggle state nothing reads. */}
-			{context !== 'legacy' && context !== 'published-file' && (
-				<>
-					<LibrariesPanelButton />
-					<CommentsSidebarButton />
-				</>
-			)}
+			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
+			    contexts this button would toggle state nothing reads. */}
+			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -162,31 +149,6 @@ function CommentsSidebarButton() {
 			}}
 		>
 			<TlaIcon icon="comment" />
-		</TldrawUiButton>
-	)
-}
-
-function LibrariesPanelButton() {
-	const msg = useTranslation()
-	const editor = useEditor()
-	const librariesEnabled = useLibrariesEnabled()
-	const hasLibraries = !!useMaybeApp()?.libraries
-	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
-	const label = msg(librariesMessages.libraries)
-
-	if (!librariesEnabled || !hasLibraries) return null
-
-	return (
-		<TldrawUiButton
-			type="icon"
-			className={styles.topRightIconButton}
-			data-testid="tla-libraries-button"
-			aria-pressed={open}
-			tooltip={label}
-			title={label}
-			onClick={() => toggleLibrariesPanel(editor)}
-		>
-			<TlaIcon icon="library" />
 		</TldrawUiButton>
 	)
 }
