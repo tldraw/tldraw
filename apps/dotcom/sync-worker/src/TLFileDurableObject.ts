@@ -11,6 +11,7 @@ import {
 	READ_ONLY_PREFIX,
 	ROOM_OPEN_MODE,
 	ROOM_PREFIX,
+	MCP_AGENT_ID_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
 	TAB_RENDER_PARAM,
@@ -93,8 +94,30 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
-import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
+import {
+	PollAgentMentionsInput,
+	PollAgentMentionsResult,
+	UpsertWebhookSubscriptionInput,
+	WebhookSubscription,
+	advanceWebhookWatermark,
+	agentNameKey,
+	deleteWebhookSubscription,
+	ensureMcpAgentTables,
+	getOrCreateAgent,
+	getPendingWebhookEvents,
+	getSubscriptionsForMention,
+	getWebhookSubscription,
+	isWebhookEndpointVerified,
+	pollAgentMentionEvents,
+	pruneExpiredSubscriptions,
+	recordAgentMentions,
+	recordWebhookEndpointVerified,
+	registerAgentThread,
+	suspendWebhookSubscription,
+	upsertWebhookSubscription,
+} from './mcpAgentStorage'
 import { planMcpComment } from './mcpCommentWrite'
+import { WebhookFailure, newWebhookId, parseWebhookSecret, postWebhook } from './mcpWebhooks'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -114,6 +137,7 @@ import {
 } from './roomEffectHelpers'
 import { CommentTarget, CommentWriteRefusal, getBoardUsers } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
+import { toAgentMentionOccurrence } from './routes/tla/mcpEvents'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
 	generateSnapshotChunks,
@@ -289,6 +313,12 @@ const OBJECT_TYPES = [
 
 // The comment outbox (see drainCommentOutbox) only understands comment record ids; keep this
 // separate from OBJECT_TYPES so a future object-lane type doesn't get enqueued there.
+// Each event or control envelope is tried at once, then after each of these pauses: four attempts
+// over under a minute, inside the extension's suggested 3–5 attempts in 10–15 minutes.
+const MCP_WEBHOOK_RETRY_DELAYS_MS = [0, 2_000, 10_000, 30_000]
+// Events per delivery pass; a longer backlog goes out over several.
+const MCP_WEBHOOK_BATCH = 20
+
 function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
 }
@@ -518,6 +548,7 @@ export class TLFileDurableObject extends DurableObject {
 						// replicates them to the app-level view quickly.
 						onCommittedChanges: ({ diff }) => {
 							this.enqueueCommentChanges(diff)
+							this.recordMcpAgentMentions(diff)
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
@@ -3652,32 +3683,11 @@ export class TLFileDurableObject extends DurableObject {
 		| { ok: true; threadId: string; commentId: string; pageId: string; newThread: boolean }
 		| ({ ok: false } & CommentWriteRefusal)
 	> {
-		if (this._documentInfo) {
-			const info = this._documentInfo
-			if (info.deleted || !info.isApp || info.slug !== fileId) {
-				return { ok: false, reason: 'not_found' }
-			}
-		}
-
-		const fileWithRole = this._documentInfo
-			? await this.getAppFileRecordWithRole(userId)
-			: await getFileRecordWithRole(this.db, fileId, userId)
-		if (!fileWithRole || fileWithRole.file.isDeleted) return { ok: false, reason: 'not_found' }
-		const { file, role } = fileWithRole
-		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
-			return { ok: false, reason: 'not_found' }
-		}
-		const access = getFileRoomAccess(file, role)
+		const access = await this.openForMcpCaller(fileId, userId)
 		if (access === 'none') return { ok: false, reason: 'not_found' }
 		// planMcpComment refuses this too, but by then the agent would be registered on a board it
 		// can't comment on.
 		if (access === 'read') return { ok: false, reason: 'comment_forbidden' }
-
-		// As appFileRecordCreated does for an object that has never been opened.
-		if (!this._documentInfo) {
-			this._fileRecordCache = file
-			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
-		}
 
 		let storage: TLSyncStorage<TLRecord>
 		try {
@@ -3694,10 +3704,11 @@ export class TLFileDurableObject extends DurableObject {
 		}
 
 		this.ensureMcpAgents()
+		const now = Date.now()
 		const agent = getOrCreateAgent(this.ctx.storage.sql, {
 			ownerUserId: userId,
 			name: agentName,
-			now: Date.now(),
+			now,
 		})
 
 		const planned = storage.transaction((txn) => {
@@ -3717,11 +3728,47 @@ export class TLFileDurableObject extends DurableObject {
 		}).result
 		if (!planned.ok) return planned
 
+		registerAgentThread(this.ctx.storage.sql, {
+			agentId: agent.id,
+			threadId: planned.threadId,
+			now,
+		})
 		const { records, ...written } = planned
 		await this.enqueueCommentRecordIds(records.map((record) => record.id)).catch((error) => {
 			this.reportError(error)
 		})
 		return written
+	}
+
+	/**
+	 * What an MCP caller may do in this file's room, by the same `getFileRoomAccess` rule as a socket
+	 * connect, initializing a never-opened object's documentInfo when they may do anything. The route
+	 * has already checked the caller can see the board, which is what makes that initialization safe.
+	 */
+	private async openForMcpCaller(
+		fileId: string,
+		userId: string
+	): Promise<'none' | 'read' | 'write'> {
+		const info = this._documentInfo
+		if (info && (info.deleted || !info.isApp || info.slug !== fileId)) return 'none'
+
+		const fileWithRole = info
+			? await this.getAppFileRecordWithRole(userId)
+			: await getFileRecordWithRole(this.db, fileId, userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) return 'none'
+		const { file, role } = fileWithRole
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
+			return 'none'
+		}
+		const access = getFileRoomAccess(file, role)
+		if (access === 'none') return 'none'
+
+		// As appFileRecordCreated does for an object that has never been opened.
+		if (!this._documentInfo) {
+			this._fileRecordCache = file
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
+		}
+		return access
 	}
 
 	// Created on first use: most boards never see an agent.
@@ -3730,6 +3777,239 @@ export class TLFileDurableObject extends DurableObject {
 		if (this.mcpAgentsReady) return
 		ensureMcpAgentTables(this.ctx.storage.sql)
 		this.mcpAgentsReady = true
+	}
+
+	/**
+	 * Turns the owner's @mentions of their agents in committed comments into events for the MCP
+	 * server's `events/poll` (see `recordAgentMentions`). Runs in the commit hook, on records the
+	 * authorizers have already stamped, so `authorId` is the session's real user.
+	 *
+	 * The prefix check comes first so a board with no agents never creates the tables.
+	 */
+	private recordMcpAgentMentions(diff: TLSyncForwardDiff<TLRecord>) {
+		for (const put of Object.values(diff.puts)) {
+			// Comment records ride the object lane, so they're outside the document's TLRecord union.
+			const record = (Array.isArray(put) ? put[1] : put) as unknown as TLComment
+			if (record.typeName !== 'comment') continue
+			if (!JSON.stringify(record.body).includes(MCP_AGENT_ID_PREFIX)) continue
+			this.ensureMcpAgents()
+			const now = Date.now()
+			for (const event of recordAgentMentions(this.ctx.storage.sql, record, now)) {
+				const subscriptions = getSubscriptionsForMention(this.ctx.storage.sql, {
+					ownerUserId: record.authorId,
+					agentNameKey: agentNameKey(event.agentName),
+					now,
+				})
+				for (const subscription of subscriptions) this.deliverMcpWebhooks(subscription.id)
+			}
+		}
+	}
+
+	/**
+	 * Whether this caller has proven they control `url` recently enough to skip the verification
+	 * handshake. Storage-only; false for a board no agent has touched.
+	 */
+	async isMcpWebhookEndpointVerified(fileId: string, ownerUserId: string, url: string) {
+		const info = this._documentInfo
+		if (!info || info.deleted || info.slug !== fileId) return false
+		this.ensureMcpAgents()
+		return isWebhookEndpointVerified(this.ctx.storage.sql, { ownerUserId, url, now: Date.now() })
+	}
+
+	/**
+	 * `events/subscribe` for agent mentions on this board: creates or refreshes the webhook subscription
+	 * (see `upsertWebhookSubscription`), records the endpoint as verified when the route just verified
+	 * it, and starts delivering anything the subscription hasn't been sent yet — a replay from the
+	 * client's cursor, or a backlog held while delivery was suspended.
+	 */
+	async subscribeMcpAgentMentions(
+		fileId: string,
+		input: Omit<UpsertWebhookSubscriptionInput, 'now'> & { justVerified: boolean }
+	): Promise<
+		| {
+				ok: true
+				cursor: number
+				truncated: boolean
+				refreshed: boolean
+				deliveryStatus: {
+					active: boolean
+					lastDeliveryAt: number | null
+					lastError: string | null
+					failedSince: number | null
+				}
+		  }
+		| { ok: false; reason: 'not_found' }
+	> {
+		if ((await this.openForMcpCaller(fileId, input.ownerUserId)) === 'none') {
+			return { ok: false, reason: 'not_found' }
+		}
+		this.ensureMcpAgents()
+		const sql = this.ctx.storage.sql
+		const now = Date.now()
+		pruneExpiredSubscriptions(sql, now)
+		if (input.justVerified) {
+			recordWebhookEndpointVerified(sql, { ownerUserId: input.ownerUserId, url: input.url, now })
+		}
+		const before = getWebhookSubscription(sql, input.id)
+		const { subscription, truncated, refreshed } = upsertWebhookSubscription(sql, { ...input, now })
+		this.deliverMcpWebhooks(subscription.id)
+		return {
+			ok: true,
+			cursor: subscription.ackedSeq,
+			truncated,
+			refreshed,
+			// What delivery looked like before this refresh reactivated it, which is what the client
+			// wants to hear about.
+			deliveryStatus: {
+				active: before?.active ?? true,
+				lastDeliveryAt: subscription.lastDeliveryAt,
+				lastError: subscription.lastError,
+				failedSince: subscription.failedSince,
+			},
+		}
+	}
+
+	/** `events/unsubscribe`: stops deliveries to this subscription at once. */
+	async unsubscribeMcpAgentMentions(fileId: string, id: string): Promise<{ found: boolean }> {
+		const info = this._documentInfo
+		if (!info || info.deleted || info.slug !== fileId) return { found: false }
+		this.ensureMcpAgents()
+		const found = getWebhookSubscription(this.ctx.storage.sql, id) !== null
+		deleteWebhookSubscription(this.ctx.storage.sql, id)
+		return { found }
+	}
+
+	// One delivery loop per subscription at a time, so events go out in order and the watermark only
+	// moves forward. A kick while one runs asks it to go round again rather than starting a second.
+	private mcpWebhookDeliveries = new Map<string, { again: boolean }>()
+
+	private deliverMcpWebhooks(subscriptionId: string) {
+		const running = this.mcpWebhookDeliveries.get(subscriptionId)
+		if (running) {
+			running.again = true
+			return
+		}
+		const state = { again: false }
+		this.mcpWebhookDeliveries.set(subscriptionId, state)
+		const run = async () => {
+			try {
+				do {
+					state.again = false
+					await this.deliverMcpWebhookBacklog(subscriptionId)
+				} while (state.again)
+			} finally {
+				this.mcpWebhookDeliveries.delete(subscriptionId)
+			}
+		}
+		this.ctx.waitUntil(run().catch((error) => this.reportError(error)))
+	}
+
+	/**
+	 * Posts a subscription's undelivered events in order, each retried a few times over under a minute,
+	 * advancing the watermark as each is accepted. When retries run out the subscription is suspended
+	 * with the event still pending, so the client's next refresh reactivates it and it goes again —
+	 * at-least-once rather than abandoned. A 410 or 413 is the endpoint saying not to retry, so the
+	 * event is skipped instead.
+	 */
+	private async deliverMcpWebhookBacklog(subscriptionId: string) {
+		const sql = this.ctx.storage.sql
+		for (;;) {
+			const now = Date.now()
+			const subscription = getWebhookSubscription(sql, subscriptionId)
+			if (!subscription || !subscription.active || subscription.refreshBefore <= now) return
+			const secret = parseWebhookSecret(subscription.secret)
+			if (!secret) return
+			const pending = getPendingWebhookEvents(sql, subscription, {
+				maxEvents: MCP_WEBHOOK_BATCH,
+				now,
+			})
+			if (pending.truncated) {
+				const gapCursor = pending.events.length ? pending.events[0].seq - 1 : pending.cursor
+				const sent = await this.postMcpWebhookWithRetries(subscription, secret, {
+					webhookId: newWebhookId('gap'),
+					body: JSON.stringify({ type: 'gap', cursor: String(gapCursor) }),
+				})
+				if (sent === 'exhausted') return
+				advanceWebhookWatermark(sql, { id: subscription.id, seq: gapCursor, deliveredAt: null })
+			}
+			if (pending.events.length === 0) {
+				// Moves past other owners' events, so the next look doesn't rescan them.
+				advanceWebhookWatermark(sql, {
+					id: subscription.id,
+					seq: pending.cursor,
+					deliveredAt: null,
+				})
+				return
+			}
+			for (const event of pending.events) {
+				const occurrence = toAgentMentionOccurrence(event, {
+					boardId: this.documentInfo.slug,
+					origin: subscription.origin,
+				})
+				const sent = await this.postMcpWebhookWithRetries(subscription, secret, {
+					webhookId: newWebhookId(),
+					body: JSON.stringify({ ...occurrence, cursor: String(event.seq) }),
+				})
+				if (sent === 'exhausted') return
+				advanceWebhookWatermark(sql, {
+					id: subscription.id,
+					seq: event.seq,
+					deliveredAt: sent === 'delivered' ? Date.now() : null,
+				})
+			}
+			if (!pending.hasMore) return
+		}
+	}
+
+	private async postMcpWebhookWithRetries(
+		subscription: WebhookSubscription,
+		secret: Uint8Array<ArrayBuffer>,
+		{ webhookId, body }: { webhookId: string; body: string }
+	): Promise<'delivered' | 'skipped' | 'exhausted'> {
+		let failure: WebhookFailure = 'connection_refused'
+		for (const delay of MCP_WEBHOOK_RETRY_DELAYS_MS) {
+			if (delay) await sleep(delay)
+			// An unsubscribe or a lapsed grant mid-retry ends it: nobody is listening any more.
+			const current = getWebhookSubscription(this.ctx.storage.sql, subscription.id)
+			if (!current || current.refreshBefore <= Date.now()) return 'exhausted'
+			const posted = await postWebhook({
+				url: subscription.url,
+				secret,
+				subscriptionId: subscription.id,
+				webhookId,
+				body,
+			})
+			if (posted.ok) return 'delivered'
+			if (!posted.retry) return 'skipped'
+			failure = posted.failure
+		}
+		suspendWebhookSubscription(this.ctx.storage.sql, {
+			id: subscription.id,
+			failure,
+			now: Date.now(),
+		})
+		return 'exhausted'
+	}
+
+	/**
+	 * One `events/poll` of the caller's agent mentions. Storage-only, like the cluster index reads: a
+	 * poll arrives every few seconds per subscription and must not boot the room. The route has
+	 * already checked the caller can see this board.
+	 */
+	async pollMcpAgentMentions(
+		fileId: string,
+		input: PollAgentMentionsInput
+	): Promise<({ ok: true } & PollAgentMentionsResult) | { ok: false; reason: 'not_found' }> {
+		const info = this._documentInfo
+		// Never initialized: no agent has commented here, so there is nothing to poll yet, and no reason
+		// to create tables for it. Cursor 0 is the head of an empty log.
+		if (!info) {
+			return { ok: true, events: [], cursor: 0, truncated: (input.cursor ?? 0) > 0, hasMore: false }
+		}
+		if (info.deleted || !info.isApp || info.slug !== fileId)
+			return { ok: false, reason: 'not_found' }
+		this.ensureMcpAgents()
+		return { ok: true, ...pollAgentMentionEvents(this.ctx.storage.sql, input) }
 	}
 
 	/**

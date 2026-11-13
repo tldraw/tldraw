@@ -2280,7 +2280,7 @@ function getWriteCommentToolDefinition() {
 		name: WRITE_COMMENT_TOOL_NAME,
 		title: 'Write tldraw comment',
 		description:
-			"Post a comment on a board. Reply to a thread by passing in a threadId, which you can get from read_page_comments. Start a new thread on a shape with shapeId or a point with x and y. Your comments will be marked with your name as well as the user's. The name will default to your name if you don't pass one in.",
+			"Post a comment on a board. Reply to a thread by passing in a threadId, which you can get from read_page_comments. Start a new thread on a shape with shapeId or a point with x and y. Your comments will be marked with your name as well as the user's. The name will default to your name if you don't pass one in. The user can @mention you by that name in the board's comments to ask you something: subscribe to the comment.agent_mentioned event for the board to hear about it, and reply in the thread it names.",
 		inputSchema: {
 			type: 'object',
 			additionalProperties: false,
@@ -2306,7 +2306,7 @@ function getWriteCommentToolDefinition() {
 					type: 'string',
 					maxLength: AGENT_NAME_MAX_LENGTH,
 					description:
-						'The name users will see on the board next to the comment. Leave blank to default to your name.',
+						'The name users will see on the board next to the comment. Leave blank to default to your name. The user will @mention you by this name, so use the same one every time.',
 				},
 				x: { type: 'number', description: 'Start a thread at this page x coordinate, with y.' },
 				y: { type: 'number', description: 'Start a thread at this page y coordinate, with x.' },
