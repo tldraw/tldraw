@@ -75,6 +75,7 @@ export type TLStoreOptions = TLStoreBaseOptions & {
 	collaboration?: {
 		status: Signal<'online' | 'offline'> | null
 		mode?: Signal<'readonly' | 'readwrite'> | null
+		onWriteRejected?: NonNullable<TLStoreProps['collaboration']>['onWriteRejected']
 	}
 } & TLStoreSchemaOptions
 

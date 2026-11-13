@@ -981,6 +981,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 			)
 		}
 
+		const onWriteRejected = this.store.props.collaboration?.onWriteRejected
+		if (onWriteRejected) {
+			this.disposables.add(
+				onWriteRejected(({ rejections, changes }) => {
+					this.history.removeRejectedChanges(changes)
+					this.emit('rejected-write', { rejections, rejectedBy: 'server' })
+				})
+			)
+		}
+
 		this.disposables.add(
 			react('sync current user record', () => {
 				const user = this.store.props.users.currentUser.get()

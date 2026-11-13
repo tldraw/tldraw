@@ -6,14 +6,17 @@
 
 import { BaseRecord } from '@tldraw/store';
 import { Expand } from '@tldraw/utils';
+import { IdOf } from '@tldraw/store';
 import { IndexKey } from '@tldraw/utils';
 import { JsonObject } from '@tldraw/utils';
 import { LegacyMigrations } from '@tldraw/store';
 import { MakeUndefinedOptional } from '@tldraw/utils';
 import { MigrationId } from '@tldraw/store';
 import { MigrationSequence } from '@tldraw/store';
+import { RecordFromId } from '@tldraw/store';
 import { RecordId } from '@tldraw/store';
 import { RecordScope } from '@tldraw/store';
+import { RecordsDiff } from '@tldraw/store';
 import { RecordType } from '@tldraw/store';
 import { SerializedStore } from '@tldraw/store';
 import { Signal } from '@tldraw/state';
@@ -819,6 +822,11 @@ export function registerColorsFromThemes(definitions: TLThemes): void;
 export function registerFontsFromThemes(definitions: TLThemes): void;
 
 // @public
+export function rejectAll(changes: readonly {
+    readonly id: string;
+}[], reason: string): TLWriteRejection[];
+
+// @public
 export const richTextValidator: T.ObjectValidator<{
     attrs?: any;
     content: unknown[];
@@ -1105,6 +1113,9 @@ export type TLCameraId = RecordId<TLCamera>;
 
 // @public
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
+
+// @public
+export type TLCanWrite<R extends UnknownRecord = TLRecord, Context = object> = (changes: readonly TLRecordChange<R>[], context: TLWriteContext<R> & Context) => readonly TLWriteRejection[];
 
 // @public
 export interface TLComment extends BaseRecord<'comment', TLCommentId> {
@@ -1734,6 +1745,37 @@ export interface TLPropsMigrations {
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
 
 // @public
+export type TLRecordChange<R extends UnknownRecord = TLRecord> = R extends UnknownRecord ? {
+    readonly id: R['id'];
+    readonly typeName: R['typeName'];
+} & ({
+    readonly next: null;
+    readonly prev: R;
+    readonly type: 'delete';
+} | {
+    readonly next: R;
+    readonly prev: null;
+    readonly type: 'create';
+} | {
+    readonly next: R;
+    readonly prev: R;
+    readonly type: 'update';
+}) : never;
+
+// @public
+export interface TLRecordReader<R extends UnknownRecord = TLRecord> {
+    // (undocumented)
+    get<K extends IdOf<R>>(id: K): RecordFromId<K> | undefined;
+}
+
+// @public
+export interface TLRejectedWrite<R extends UnknownRecord = TLRecord> {
+    readonly changes: RecordsDiff<R>;
+    // (undocumented)
+    readonly rejections: readonly TLWriteRejection[];
+}
+
+// @public
 export interface TLRemovedDefaultThemeColors {
 }
 
@@ -1790,6 +1832,7 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
     collaboration?: {
+        onWriteRejected?(callback: (rejected: TLRejectedWrite) => void): () => void;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
@@ -1986,6 +2029,20 @@ export interface TLVideoShapeProps {
     url: string;
     // (undocumented)
     w: number;
+}
+
+// @public
+export interface TLWriteContext<R extends UnknownRecord = TLRecord> {
+    readonly after: TLRecordReader<R>;
+    readonly before: TLRecordReader<R>;
+}
+
+// @public
+export interface TLWriteRejection {
+    // (undocumented)
+    readonly id: string;
+    // (undocumented)
+    readonly reason: string;
 }
 
 // @public

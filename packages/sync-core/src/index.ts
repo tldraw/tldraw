@@ -18,6 +18,15 @@ export {
 } from './lib/diff'
 export { DurableObjectSqliteSyncWrapper } from './lib/DurableObjectSqliteSyncWrapper'
 export { DEFAULT_INITIAL_SNAPSHOT, InMemorySyncStorage } from './lib/InMemorySyncStorage'
+export {
+	rejectAll,
+	type TLCanWrite,
+	type TLRecordChange,
+	type TLRecordReader,
+	type TLRejectedWrite,
+	type TLWriteContext,
+	type TLWriteRejection,
+} from '@tldraw/tlschema'
 export { NodeSqliteWrapper, type SyncSqliteDatabase } from './lib/NodeSqliteWrapper'
 export {
 	getTlsyncProtocolVersion,
@@ -72,6 +81,7 @@ export {
 	type RoomSnapshot,
 	type TLRecordAuthorizer,
 	type TLRecordAuthorizers,
+	type TLRoomCanWrite,
 	type TLRoomSocket,
 } from './lib/TLSyncRoom'
 export {

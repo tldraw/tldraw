@@ -101,6 +101,7 @@ import { TLUser } from '@tldraw/tlschema';
 import { TLUserId } from '@tldraw/tlschema';
 import { TLUserStore } from '@tldraw/tlschema';
 import { TLVideoAsset } from '@tldraw/tlschema';
+import { TLWriteRejection } from '@tldraw/tlschema';
 import { UnknownRecord } from '@tldraw/store';
 import { VecModel } from '@tldraw/tlschema';
 
@@ -2241,6 +2242,8 @@ export class HistoryManager<R extends UnknownRecord> {
     _mark(id: string): void;
     // (undocumented)
     redo(): this;
+    // @internal
+    removeRejectedChanges(changes: RecordsDiff<R>): void;
     // (undocumented)
     squashToMark(id: string): this;
     // (undocumented)
@@ -4182,6 +4185,10 @@ export interface TLEventMap {
         };
         shapeId: TLShapeId;
     }];
+    'rejected-write': [{
+        rejectedBy: 'client' | 'server';
+        rejections: readonly TLWriteRejection[];
+    }];
     // (undocumented)
     'select-all-text': [{
         shapeId: TLShapeId;
@@ -4861,6 +4868,7 @@ export type TLStoreEventInfo = HistoryEntry<TLRecord>;
 export type TLStoreOptions = TLStoreBaseOptions & {
     collaboration?: {
         mode?: null | Signal<'readonly' | 'readwrite'>;
+        onWriteRejected?: NonNullable<TLStoreProps['collaboration']>['onWriteRejected'];
         status: null | Signal<'offline' | 'online'>;
     };
     id?: string;
