@@ -14,6 +14,7 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
+import { addStarterPack, isStarterPackAdded } from './starterPacks'
 
 // An add, once its items are stored as well as listed.
 async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
@@ -156,5 +157,17 @@ describe('getEditorLibraries', () => {
 		expect(itemRequests).toHaveLength(1)
 		expect(source.getItems(copy.id).map((item) => item.name)).toEqual(boardOrder)
 		expect(boardOrder).toHaveLength(names.length)
+	})
+
+	it('adds a starter pack to the home workspace, not the board, and counts it added there', async () => {
+		const { editor, source } = setUp()
+		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
+		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+		const copy = await addStarterPack(source, pack)
+		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
+		expect(ofType(editor, 'library')).toEqual([])
+		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
+		await source.moveLibrary!(copy.id, 'acme')
+		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
 	})
 })
