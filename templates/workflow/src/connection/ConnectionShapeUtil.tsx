@@ -10,6 +10,7 @@ import {
 	TLHandle,
 	TLHandleDragInfo,
 	TLShape,
+	TLShapeId,
 	Vec,
 	VecLike,
 	VecModel,
@@ -21,6 +22,7 @@ import {
 } from 'tldraw'
 import { onCanvasComponentPickerState } from '../components/OnCanvasComponentPicker'
 import { getAllConnectedNodes, getNodeOutputPortInfo, getNodePorts } from '../nodes/nodePorts'
+import { NodeType } from '../nodes/nodeTypes'
 import { STOP_EXECUTION } from '../nodes/types/shared'
 import { getPortAtPoint } from '../ports/getPortAtPoint'
 import { updatePortState } from '../ports/portState'
@@ -138,13 +140,12 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 		const oppositeTerminalShapeId = existingBindings[oppositeTerminal]?.toId
 
 		// Find the new position of the handle in page space
-		const shapeTransform = this.editor.getShapePageTransform(connection)
-		const handlePagePosition = shapeTransform.applyToPoint(handle)
+		const handlePagePosition = this.editor.getShapePageTransform(connection).applyToPoint(handle)
 
 		// Find the port at the new position
 		const target = getPortAtPoint(this.editor, handlePagePosition, {
 			margin: 8,
-			terminal: handle.id as 'start' | 'end',
+			terminal: draggingTerminal,
 		})
 
 		// only 'start' ports (outputs) can have multiple connections
@@ -214,9 +215,7 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 
 		// if we successfully connected & now have a binding, we're done!
 		const bindings = getConnectionBindings(this.editor, connection)
-		if (bindings[draggingTerminal]) {
-			return
-		}
+		if (bindings[draggingTerminal]) return
 
 		// If we were creating a new connection and didn't attach it to anything, open the component
 		// picker to let the user choose a node to create.
@@ -225,52 +224,17 @@ export class ConnectionShapeUtil extends ShapeUtil<ConnectionShape> {
 			onCanvasComponentPickerState.set(this.editor, {
 				connectionShapeId: connection.id,
 				location: draggingTerminal,
-				onClose: () => {
-					// if we didn't attach the connection to anything, delete it
-					const bindings = getConnectionBindings(this.editor, connection)
-					if (!bindings.start || !bindings.end) {
-						this.editor.deleteShapes([connection.id])
-					}
-				},
+				// if we didn't attach the connection to anything, delete it
+				onClose: () => deleteConnectionIfIncomplete(this.editor, connection.id),
 				onPick: (nodeType, terminalInPageSpace) => {
 					// create the node based on the user's selection:
-					const newNodeId = createShapeId()
-					this.editor.createShape({
-						type: 'node',
-						id: newNodeId,
-						x: terminalInPageSpace.x,
-						y: terminalInPageSpace.y,
-						props: {
-							node: nodeType,
-						},
-					})
-					this.editor.select(newNodeId)
-
-					// Position the node so its input port aligns with the connection end
-					const ports = getNodePorts(this.editor, newNodeId)
-					const firstInputPort = Object.values(ports).find((p) => p.terminal === 'end')
-					if (firstInputPort) {
-						this.editor.updateShape({
-							id: newNodeId,
-							type: 'node',
-							x: terminalInPageSpace.x - firstInputPort.x,
-							y: terminalInPageSpace.y - firstInputPort.y,
-						})
-
-						// bind the connection to the node's first input port
-						createOrUpdateConnectionBinding(this.editor, connection, newNodeId, {
-							portId: firstInputPort.id,
-							terminal: draggingTerminal,
-						})
-					}
+					createNodeAtConnectionEnd(this.editor, connection.id, nodeType, terminalInPageSpace)
 				},
 			})
 		} else {
 			// if we're not creating a new connection and we just let go, there must be bindings. If
 			// not, let's interpret this as the user disconnecting the shape.
-			if (!bindings.start || !bindings.end) {
-				this.editor.deleteShapes([connection.id])
-			}
+			deleteConnectionIfIncomplete(this.editor, connection.id)
 		}
 	}
 
@@ -303,12 +267,9 @@ function ConnectionShape({ connection }: { connection: ConnectionShape }) {
 	const isInactive = useValue(
 		'isInactive',
 		() => {
-			const bindings = getConnectionBindings(editor, connection.id)
-			if (!bindings.start) return false
-			const originShapeId = bindings.start?.toId
-			if (!originShapeId) return false
-			const outputs = getNodeOutputPortInfo(editor, originShapeId)
-			const output = outputs[bindings.start.props.portId]
+			const { start } = getConnectionBindings(editor, connection.id)
+			if (!start) return false
+			const output = getNodeOutputPortInfo(editor, start.toId)[start.props.portId]
 			return output.value === STOP_EXECUTION
 		},
 		[connection.id, editor]
@@ -359,28 +320,67 @@ function getConnectionPath(start: VecLike, end: VecLike) {
 
 // Get the actual start and end points of a connection, considering its bindings
 export function getConnectionTerminals(editor: Editor, connection: ConnectionShape) {
-	let start, end
-
 	// if possible, set the start and end points based on the bindings
 	const bindings = getConnectionBindings(editor, connection)
 	const shapeTransform = Mat.Inverse(editor.getShapePageTransform(connection))
-	if (bindings.start) {
-		const inPageSpace = getConnectionBindingPositionInPageSpace(editor, bindings.start)
-		if (inPageSpace) {
-			start = Mat.applyToPoint(shapeTransform, inPageSpace)
-		}
-	}
-	if (bindings.end) {
-		const inPageSpace = getConnectionBindingPositionInPageSpace(editor, bindings.end)
-		if (inPageSpace) {
-			end = Mat.applyToPoint(shapeTransform, inPageSpace)
-		}
+
+	const fromBinding = (terminal: 'start' | 'end'): VecModel => {
+		const binding = bindings[terminal]
+		const inPageSpace = binding && getConnectionBindingPositionInPageSpace(editor, binding)
+		// if we couldn't set the start and end points based on the bindings, use the values stored on
+		// the shape itself
+		return inPageSpace ? Mat.applyToPoint(shapeTransform, inPageSpace) : connection.props[terminal]
 	}
 
-	// if we couldn't set the start and end points based on the bindings, use the values stored on
-	// the shape itself
-	if (!start) start = connection.props.start
-	if (!end) end = connection.props.end
+	return { start: fromBinding('start'), end: fromBinding('end') }
+}
 
-	return { start, end }
+/**
+ * Create a node of the given type, positioned so its first input port sits at `terminalInPageSpace`,
+ * and bind the connection's end to that port.
+ */
+export function createNodeAtConnectionEnd(
+	editor: Editor,
+	connectionId: TLShapeId,
+	nodeType: NodeType,
+	terminalInPageSpace: VecModel
+) {
+	const newNodeId = createShapeId()
+	editor.createShape({
+		type: 'node',
+		id: newNodeId,
+		x: terminalInPageSpace.x,
+		y: terminalInPageSpace.y,
+		props: { node: nodeType },
+	})
+	editor.select(newNodeId)
+
+	const firstInputPort = Object.values(getNodePorts(editor, newNodeId)).find(
+		(p) => p.terminal === 'end'
+	)
+	if (!firstInputPort) return
+
+	// Position the node so its input port aligns with the connection end
+	editor.updateShape({
+		id: newNodeId,
+		type: 'node',
+		x: terminalInPageSpace.x - firstInputPort.x,
+		y: terminalInPageSpace.y - firstInputPort.y,
+	})
+
+	// bind the connection to the node's first input port
+	createOrUpdateConnectionBinding(editor, connectionId, newNodeId, {
+		portId: firstInputPort.id,
+		terminal: 'end',
+	})
+}
+
+/** Delete a connection unless both of its terminals are bound. */
+export function deleteConnectionIfIncomplete(editor: Editor, connectionId: TLShapeId) {
+	const connection = editor.getShape(connectionId)
+	if (!connection || !editor.isShapeOfType(connection, 'connection')) return
+	const bindings = getConnectionBindings(editor, connection)
+	if (!bindings.start || !bindings.end) {
+		editor.deleteShapes([connection.id])
+	}
 }

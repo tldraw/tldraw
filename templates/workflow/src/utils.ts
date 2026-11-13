@@ -60,11 +60,7 @@ export function indexList<T>(array: T[]): IndexList<T> {
  * Convert an index list into an array of entries.
  */
 export function indexListEntries<T>(list: IndexList<T>) {
-	return Object.entries(list).sort((a, b) => {
-		if (a[0] === b[0]) return 0
-		if (a[0] < b[0]) return -1
-		return 1
-	}) as [IndexKey, T][]
+	return Object.entries(list).sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0)) as [IndexKey, T][]
 }
 
 /**
