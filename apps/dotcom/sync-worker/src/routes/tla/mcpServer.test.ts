@@ -1070,7 +1070,9 @@ describe('read_page_comments', () => {
 
 		const result = await callTool('read_page_comments', { boardId: 'f1', page: 1 }, env, 'user_me')
 
-		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b')
+		expect(readPageCommentRows).toHaveBeenCalledWith(env, 'f1', 'page:b', {
+			includeResolved: false,
+		})
 		expect(JSON.parse(result.content[0].text)).toEqual({
 			pageId: 'page:b',
 			pageName: 'Ideas',
@@ -1220,7 +1222,13 @@ describe('write_comment', () => {
 
 	it('reports a failed write as a tool error', async () => {
 		vi.mocked(writeCommentForUser).mockRejectedValue(new Error('object reset'))
-		const result = await callTool('write_comment', { boardId: 'board_abc', text: 'Hi', x: 1, y: 2 })
+		const result = await callTool('write_comment', {
+			boardId: 'board_abc',
+			text: 'Hi',
+			x: 1,
+			y: 2,
+			page: 'page:a',
+		})
 		expect(result.isError).toBe(true)
 		expect(result.content[0].text).toBe(
 			'Could not post the comment: the comment could not be saved.'

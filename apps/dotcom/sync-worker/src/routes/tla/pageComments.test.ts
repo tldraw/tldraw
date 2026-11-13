@@ -1,11 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
-import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import { COMMENT_BOARD_NOT_FOUND_MESSAGE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
-vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 
 const writeMcpComment = vi.fn()
 vi.mock('../../utils/durableObjects', () => ({
@@ -31,10 +29,6 @@ afterEach(() => vi.clearAllMocks())
 
 describe('writeCommentForUser', () => {
 	it('posts through the file’s object as the caller, with the header in the body', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue({
-			ok: true,
-			file: { id: BOARD_ID, name: 'Board', shared: false, isDeleted: false },
-		})
 		writeMcpComment.mockResolvedValue({
 			ok: true,
 			threadId: 'comment-thread:t',
@@ -69,9 +63,9 @@ describe('writeCommentForUser', () => {
 		expect(call.body.content[0].content[0]).toEqual({ type: 'text', text: 'Done' })
 	})
 
-	// The same answer as a missing board, so ids cannot be probed — and no object is woken for it.
-	it('refuses a board the caller cannot see without touching its object', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
+	// The same answer as a missing board, so ids cannot be probed.
+	it('words a board the caller cannot see as missing', async () => {
+		writeMcpComment.mockResolvedValue({ ok: false, reason: 'not_found' })
 		const outcome = await writeCommentForUser(env, USER_ID, {
 			agentName: 'Claude',
 			agentClient: 'claude',
@@ -81,14 +75,9 @@ describe('writeCommentForUser', () => {
 		})
 		expect(outcome).toMatchObject({ ok: false, reason: 'not_found' })
 		expect(errorText(outcome)).toBe(COMMENT_BOARD_NOT_FOUND_MESSAGE)
-		expect(getRoomDurableObject).not.toHaveBeenCalled()
 	})
 
 	it('words the object’s refusal for the model', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue({
-			ok: true,
-			file: { id: BOARD_ID, name: 'Board', shared: true, isDeleted: false },
-		})
 		writeMcpComment.mockResolvedValue({ ok: false, reason: 'comment_forbidden' })
 		const forbidden = await writeCommentForUser(env, USER_ID, {
 			agentName: 'Claude',
@@ -140,7 +129,7 @@ describe('readPageCommentRows', () => {
 		])
 		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
 
-		expect(await readPageCommentRows(env, BOARD_ID, 'page:a')).toEqual({
+		expect(await readPageCommentRows(env, BOARD_ID, 'page:a', { includeResolved: true })).toEqual({
 			threads: [{ id: 'comment-thread:t', anchor: { type: 'page' }, resolvedAt: 5, createdAt: 1 }],
 			comments: [
 				{
@@ -159,6 +148,14 @@ describe('readPageCommentRows', () => {
 		expect(sql).toContain('"isDeleted" = $')
 		expect(parameters.filter((p) => p === BOARD_ID)).toHaveLength(3)
 		expect(parameters.filter((p) => p === 'page:a')).toHaveLength(2)
+		expect(sql).not.toContain('"resolvedAt" is null')
 		expect(fake.destroy).toHaveBeenCalled()
+	})
+
+	it('leaves resolved threads and their comments out in the query', async () => {
+		const fake = createFakeKysely([[{ threadRows: [], commentRows: [] }]])
+		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+		await readPageCommentRows(env, BOARD_ID, 'page:a', { includeResolved: false })
+		expect(fake.queries[0].sql.match(/"t"\."resolvedAt" is null/g)).toHaveLength(2)
 	})
 })

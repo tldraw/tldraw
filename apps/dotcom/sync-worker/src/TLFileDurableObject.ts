@@ -293,12 +293,6 @@ function isCommentRecordId(id: string) {
 	return isCommentId(id) || isCommentThreadId(id) || isCommentReactionId(id)
 }
 
-// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain string column with
-// legacy values in it, so anything else fails closed.
-function canEditFile(file: TlaFile, role: Role | null) {
-	return can(role, 'accessFiles') || (file.shared && file.sharedLinkType === 'edit')
-}
-
 export class TLFileDurableObject extends DurableObject {
 	// A unique identifier for this instance of the Durable Object
 	id: DurableObjectId
@@ -3531,7 +3525,7 @@ export class TLFileDurableObject extends DurableObject {
 	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
 	private async canWriteToFile(userId: string) {
 		const access = await this.getAppFileRecordWithRole(userId)
-		return !!access && canEditFile(access.file, access.role)
+		return !!access && getFileRoomAccess(access.file, access.role) === 'write'
 	}
 
 	/**
@@ -3631,8 +3625,8 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Posts a comment from the MCP server as `userId` (see `planMcpComment`), gated by the same
-	 * `getFileRoomAccess` rule as a socket connect. The route has already checked the caller can see
-	 * the board, which is what makes initializing a never-opened object's documentInfo safe.
+	 * `getFileRoomAccess` rule as a socket connect. That check runs before a never-opened object's
+	 * documentInfo is initialized, so an id the caller cannot see leaves nothing behind.
 	 *
 	 * Storage writes do not fire `onCommittedChanges`, so the records are outboxed here, in the same
 	 * synchronous block as the write, as the restore handler's invariants require. The drain is

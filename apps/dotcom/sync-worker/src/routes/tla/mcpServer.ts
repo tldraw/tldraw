@@ -861,27 +861,24 @@ async function callReadPageCommentsTool(
 		const refusal = await checkSearchRateLimit(env, userId, mcpTelemetryWriter(env))
 		if (refusal) return refusal
 
-		// A published board has no comments, and its slug names no file to read them under.
-		if (!(await hasReadAccessToFile(env, userId, input.boardId)).ok) {
-			const published = await resolveThumbnailBoard(env, 'published', input.boardId, {
-				access: 'public',
-			})
-			return published.ok
-				? toolError(COMMENTS_ON_PUBLISHED_BOARD_MESSAGE, 'comments_unavailable')
-				: toolError(BOARD_NOT_FOUND_MESSAGE, 'not_found')
-		}
-
 		// The snapshot names the page and the shapes threads are pinned to; the threads themselves
 		// live in Postgres, under the file's id, which for a file is its board id.
 		const loaded = await loadBoardForTool(env, input.boardId, userId)
 		if (!loaded.ok) return loaded.result
+		// A published board has no comments, and its slug names no file to read them under.
+		if (!loaded.isFile) {
+			return toolError(COMMENTS_ON_PUBLISHED_BOARD_MESSAGE, 'comments_unavailable')
+		}
 		const resolved = resolveSnapshotPage(loaded.snapshot, input.page)
 		if (!resolved.ok) return withTelemetryReason(resolved.result, resolved.reason)
 
 		const { threads, comments } = await readPageCommentRows(
 			env,
 			input.boardId,
-			resolved.page.pageId
+			resolved.page.pageId,
+			{
+				includeResolved: input.includeResolved,
+			}
 		)
 		return getPageCommentsResult(resolved.page, threads, comments, userId, {
 			includeResolved: input.includeResolved,
@@ -1026,7 +1023,13 @@ async function callPageInfoTool(
 }
 
 type LoadedBoard =
-	| { ok: true; fileName: string | null; snapshot: import('@tldraw/sync-core').RoomSnapshot }
+	| {
+			ok: true
+			fileName: string | null
+			snapshot: import('@tldraw/sync-core').RoomSnapshot
+			/** A file the caller can open, rather than a published copy. */
+			isFile: boolean
+	  }
 	| { ok: false; result: ToolCallResult }
 
 async function loadBoardForTool(
@@ -1056,7 +1059,12 @@ async function loadBoardForTool(
 		file: resolved.board.file,
 	})
 	if (!snapshot) return { ok: false, result: toolError(BOARD_EMPTY_MESSAGE, 'board_empty') }
-	return { ok: true, fileName: resolved.fileName, snapshot }
+	return {
+		ok: true,
+		fileName: resolved.fileName,
+		snapshot,
+		isFile: resolved.board.access === 'render',
+	}
 }
 
 type BoardPageRead = { ok: true; read: McpPageRead } | { ok: false; result: ToolCallResult }
