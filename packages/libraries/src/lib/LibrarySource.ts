@@ -1,5 +1,6 @@
 import type { TLLibrary, TLLibraryId, TLLibraryItemId, TLLibraryThumbnail } from '@tldraw/tlschema'
 import type { JsonObject } from '@tldraw/utils'
+import type { TLUiIconJsx, TLUiIconType } from 'tldraw'
 import type { TLLibraryItem, TLLibraryItemContent } from './schema'
 
 /**
@@ -26,6 +27,8 @@ export type TLLibraryTarget = TLLibraryId | { ownerId: string }
 export interface TLLibraryOwner {
 	id: string
 	name: string
+	/** Shown before the name on the owner's tab in the libraries panel. */
+	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
 }
 
 /** Choices for a new library. */

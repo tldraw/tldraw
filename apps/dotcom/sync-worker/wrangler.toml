@@ -173,6 +173,12 @@ THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
 # types.ts). Production leaves it unset: thumbnail_render_push decides there.
 THUMBNAIL_RENDER_PUSH = "true"
 
+# The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
+# worker serves every environment's host, and it must exist before this one deploys.
+[[env.staging.services]]
+binding = "MCP_WEB"
+service = "mcp-web"
+
 # production gets the proper name
 [env.production]
 name = "tldraw-multiplayer"
@@ -190,6 +196,11 @@ MCP_HOST_ORIGIN = "https://mcp.tldraw.com"
 # scope. Off, the tool lists rather than searches and advertises no query — it does not accept a
 # query and ignore it. Unset reads as on, which is what previews and local dev get.
 MCP_SEARCH_NAME_MATCHING_ENABLED = "false"
+
+# The MCP host's landing page on mcp.tldraw.com. The same worker as staging's binding above.
+[[env.production.services]]
+binding = "MCP_WEB"
+service = "mcp-web"
 
 #################### Routing ####################
 # no custom routes for previews and development

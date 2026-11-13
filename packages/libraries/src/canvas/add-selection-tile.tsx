@@ -1,6 +1,7 @@
 import {
 	defineMessages,
 	TldrawUiIcon,
+	TldrawUiTooltip,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -31,20 +32,26 @@ export function AddSelectionTile({
 		editor,
 	])
 
+	const hint = msg(hasSelection ? messages.addSelection : messages.selectToAdd)
+
 	return (
 		<div className="tlui-libraries-tile tlui-libraries-add-tile">
-			<button
-				type="button"
-				className="tlui-libraries-tile__button"
-				aria-label={msg(messages.addSelection)}
-				title={msg(hasSelection ? messages.addSelection : messages.selectToAdd)}
-				disabled={!hasSelection}
-				onClick={() => saveSelection(libraryId)}
-			>
-				<span className="tlui-libraries-tile__thumbnail">
-					<TldrawUiIcon icon="plus" label="" small />
-				</span>
-			</button>
+			<TldrawUiTooltip content={hint}>
+				<button
+					type="button"
+					className="tlui-libraries-tile__button"
+					aria-label={msg(messages.addSelection)}
+					aria-description={hasSelection ? undefined : hint}
+					aria-disabled={!hasSelection}
+					onClick={() => {
+						if (hasSelection) saveSelection(libraryId)
+					}}
+				>
+					<span className="tlui-libraries-tile__thumbnail">
+						<TldrawUiIcon icon="plus" label="" small />
+					</span>
+				</button>
+			</TldrawUiTooltip>
 		</div>
 	)
 }

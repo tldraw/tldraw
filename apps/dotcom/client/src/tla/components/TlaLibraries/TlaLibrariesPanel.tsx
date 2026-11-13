@@ -24,11 +24,7 @@ export function TlaLibrariesPanel({ fileId }: { fileId: string }) {
 	const source = useEditorLibraries(fileId)
 	if (!source) return null
 	return (
-		<LibrariesPanel
-			source={source}
-			side="right"
-			menuItems={<TlaBrowseStarterPacksMenuItem source={source} />}
-		/>
+		<LibrariesPanel source={source} menuItems={<TlaBrowseStarterPacksMenuItem source={source} />} />
 	)
 }
 

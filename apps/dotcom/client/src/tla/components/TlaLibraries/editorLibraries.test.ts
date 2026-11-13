@@ -75,9 +75,9 @@ function addImage(editor: Editor) {
 describe('getEditorLibraries', () => {
 	it("lists the board first and keeps libraries made there in the file's document", async () => {
 		const { editor, source } = setUp()
-		expect(source.getLibraryOwners?.()).toEqual([
+		expect(source.getLibraryOwners?.()?.map(({ id, name }) => ({ id, name }))).toEqual([
 			{ id: 'file-a', name: 'This board' },
-			{ id: 'home', name: 'Private to you' },
+			{ id: 'home', name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
 		])
 		const library = await source.createLibrary('Board kit', { ownerId: 'file-a' })

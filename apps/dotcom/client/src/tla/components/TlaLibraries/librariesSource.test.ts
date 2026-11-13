@@ -46,8 +46,8 @@ afterEach(() => {
 describe('TldrawAppLibrariesSource', () => {
 	it("lists the user's workspaces as owners, home first, and creates new libraries there", async () => {
 		const { source } = setUp()
-		expect(source.getLibraryOwners()).toEqual([
-			{ id: 'user_me', name: 'Private to you' },
+		expect(source.getLibraryOwners().map(({ id, name }) => ({ id, name }))).toEqual([
+			{ id: 'user_me', name: 'Home' },
 			{ id: 'acme', name: 'Acme' },
 		])
 		expect(source.getDefaultOwnerId()).toBe('user_me')

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { ConsentPreferences } from '../types'
+import type { CopyCodeEvent } from '../utils/copy-event'
 
 export class AnalyticsService {
 	protected isEnabled = false
@@ -24,17 +25,12 @@ export class AnalyticsService {
 	// Track when user selects consent preferences (called before consent is granted).
 	trackConsentBannerSelected?(data: ConsentPreferences): void
 	// Track when user copies a code snippet.
-	trackCopyCode?(data: {
-		page_category: string
-		text_snippet: string
-		user_email?: string
-		user_email_sha256?: string
-		user_first_name?: string
-		user_last_name?: string
-		user_phone_number?: string
-	}): void
+	trackCopyCode?(data: CopyCodeEvent): void
 	// Track when user submits a form.
 	trackFormSubmission?(data: {
+		prospectId?: string
+		copyVisitorId?: string
+		previousCopyVisitorId?: string
 		enquiry_type: string
 		page_category?: string
 		company_size?: string
