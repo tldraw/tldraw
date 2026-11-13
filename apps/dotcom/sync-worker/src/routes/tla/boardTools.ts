@@ -2442,7 +2442,7 @@ function getWriteCommentToolDefinition() {
 					type: 'string',
 					maxLength: COMMENT_TEXT_MAX_LENGTH,
 					description:
-						"Comment text. Mention someone as @[name](id), with an id from get_board_info's people or read_page_comments; their own name is used whatever you write in the brackets.",
+						"Comment text. Mention someone as @[name](id), with an id from get_board_info's people (only they can be mentioned); their own name is used whatever you write in the brackets.",
 				},
 				threadId: {
 					type: 'string',

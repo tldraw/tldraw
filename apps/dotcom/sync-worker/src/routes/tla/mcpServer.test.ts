@@ -1361,6 +1361,26 @@ describe('get_board_info', () => {
 		expect(readMentionableUsers).toHaveBeenCalledWith(expect.anything(), 'f1', 'user_2')
 	})
 
+	// The roster is extra to the board's info: the first tool an agent calls must still answer.
+	it('lists nobody rather than failing when the roster read fails', async () => {
+		grantReadAccess()
+		vi.mocked(getSharedFileInfo).mockResolvedValue({ id: 'f1', shared: true, isDeleted: false })
+		vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeSnapshot(PAGES))
+		vi.mocked(readMentionableUsers).mockRejectedValueOnce(new Error('pool timeout'))
+
+		const result = await callTool(
+			'get_board_info',
+			{ boardId: 'f1' },
+			makeEnv({ ROOMS: makeFakeRoomsBucket() }),
+			'user_2'
+		)
+
+		expect(result.isError).toBeFalsy()
+		const info = JSON.parse(result.content[0].text)
+		expect(info.people ?? null).toBeNull()
+		expect(info.pages.length).toBeGreaterThan(0)
+	})
+
 	// Every tool call already dials Postgres twice — once for the access check, once to resolve the
 	// board. The snapshot read must not make it three: getSharedFileRoomSnapshot falls back to its own
 	// getSharedFileInfo when no row is handed to it, so the resolved row is passed through instead.
