@@ -121,10 +121,10 @@ describe('searchAccessibleBoards', () => {
 		expect(parameters.filter((value) => value === 21)).toHaveLength(1)
 	})
 
-	it('matches every term as an escaped, case-insensitive substring', async () => {
+	it('matches any term as an escaped, case-insensitive substring', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: ['design', '50%'], cursor: null })
-		expect(fileQuery(queries).sql).toContain('"file"."name" ilike $4 and "file"."name" ilike $5')
+		expect(fileQuery(queries).sql).toContain('("file"."name" ilike $4 or "file"."name" ilike $5)')
 		expect(fileQuery(queries).parameters).toContain('%design%')
 		expect(fileQuery(queries).parameters).toContain('%50\\%%')
 	})

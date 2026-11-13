@@ -13,6 +13,7 @@ import {
 	McpPageRead,
 	PageSelector,
 	getBoardUsers,
+	getBoardUsersResult,
 	ShapeMeasurement,
 	compareBoardSearchOrder,
 	getClusterInfo,
@@ -118,7 +119,7 @@ describe('parseSearchBoardsInput', () => {
 		expect(parseSearchBoardsInput({ query: '   ' }).terms).toEqual([])
 	})
 
-	// Terms are ANDed, so word order in the query need not match word order in the name.
+	// Terms are ORed, so word order in the query need not match word order in the name.
 	it('splits a query into terms on whitespace', () => {
 		expect(parseSearchBoardsInput({ query: 'design  system' }).terms).toEqual(['design', 'system'])
 	})
@@ -1415,6 +1416,52 @@ describe('parseReadPageCommentsInput', () => {
 			)
 		}
 		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: '' }).cursor).toBeNull()
+	})
+})
+
+describe('getBoardUsersResult', () => {
+	const NOW = Date.parse('2026-11-12T12:00:00.000Z')
+	const user = (lastActiveAt: string | null) => ({
+		userId: 'a',
+		name: 'A',
+		pageId: 'page:a',
+		selectedShapeIds: ['shape:picked'],
+		viewport: null,
+		lastActiveAt,
+	})
+	const listed = (lastActiveAt: string | null) =>
+		JSON.parse(
+			(
+				getBoardUsersResult({ users: [user(lastActiveAt)], anonymousViewers: 1 }, NOW)
+					.content[0] as {
+					text: string
+				}
+			).text
+		)
+
+	it('leaves selection out and marks who is active', () => {
+		expect(listed('2026-11-12T11:59:30.000Z')).toEqual({
+			users: [
+				{
+					userId: 'a',
+					name: 'A',
+					pageId: 'page:a',
+					viewport: null,
+					lastActiveAt: '2026-11-12T11:59:30.000Z',
+					isActive: true,
+				},
+			],
+			anonymousViewers: 1,
+		})
+	})
+
+	// The editor fades a collaborator's cursor after the same minute.
+	it('marks someone idle for over a minute as inactive', () => {
+		expect(listed('2026-11-12T11:58:59.000Z').users[0].isActive).toBe(false)
+	})
+
+	it('marks someone with no recorded activity as inactive', () => {
+		expect(listed(null).users[0].isActive).toBe(false)
 	})
 })
 

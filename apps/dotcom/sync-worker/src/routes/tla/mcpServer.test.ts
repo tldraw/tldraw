@@ -2081,7 +2081,11 @@ describe('presence', () => {
 			'user_tab'
 		)
 
-		expect(JSON.parse(result.content[0].text)).toEqual({ users: [PEER], anonymousViewers: 0 })
+		const { selectedShapeIds: _selection, ...listed } = PEER
+		expect(JSON.parse(result.content[0].text)).toEqual({
+			users: [{ ...listed, isActive: false }],
+			anonymousViewers: 0,
+		})
 		expect(tab).not.toHaveBeenCalled()
 	})
 
@@ -2116,7 +2120,7 @@ describe('presence', () => {
 			'user_tab'
 		)
 
-		expect(JSON.parse(result.content[0].text)).toEqual(PEER)
+		expect(JSON.parse(result.content[0].text)).toEqual({ ...PEER, isActive: false })
 		expect(tab).not.toHaveBeenCalled()
 	})
 

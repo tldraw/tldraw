@@ -115,15 +115,17 @@ function toBoardSearchRow(
  * surplus row only means "there is another page" if both were searching the same thing.
  */
 function narrowToTerms<T extends { where: any }>(query: T, terms: string[]): T {
-	let narrowed = query
+	const narrowed = query
 		.where('file.isDeleted', '=', false)
 		// Mirrors isTestFile: reading a test file needs admin auth, so it is not the caller's to find.
 		// In SQL rather than after the fact, or one could take a slot on the page.
 		.where('file.id', 'not like', 'test\\_%')
-	for (const term of terms) {
-		narrowed = narrowed.where('file.name', 'ilike', `%${escapeLikePattern(term)}%`)
-	}
-	return narrowed
+	if (!terms.length) return narrowed
+	// ORed: a board matches when its name contains any one term. A model guessing at a title tends to
+	// add a word the title lacks, and under AND that one stray word emptied the result.
+	return narrowed.where((eb: any) =>
+		eb.or(terms.map((term) => eb('file.name', 'ilike', `%${escapeLikePattern(term)}%`)))
+	)
 }
 
 /**

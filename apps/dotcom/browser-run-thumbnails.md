@@ -412,7 +412,7 @@ This is not Browser Run: different Chrome build, different flags, no billing hea
 
 ```ts
 search_boards({
- query?: string,  // words to match against board names, ANDed, case-insensitive. omit to list the newest boards
+ query?: string,  // words to match against board names, ORed, case-insensitive. omit to list the newest boards
  cursor?: string, // the nextCursor from a previous result, replayed with the same query. omit for the first page
 })
 // → { boardCount: number, nextCursor?: string, boards: { boardId: string, name: string, createdAt: string, updatedAt: string, source: 'owned' | 'workspace', workspaceName?: string }[] }

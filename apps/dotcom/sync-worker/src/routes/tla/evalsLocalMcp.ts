@@ -177,8 +177,10 @@ async function callFixtureTool(
 						workspaceName: '',
 						source: 'owned' as const,
 					}))
-					.filter((row) =>
-						terms.every((term) => row.name.toLowerCase().includes(term.toLowerCase()))
+					.filter(
+						(row) =>
+							!terms.length ||
+							terms.some((term) => row.name.toLowerCase().includes(term.toLowerCase()))
 					)
 					.sort(compareBoardSearchOrder)
 					.filter((row) => !cursor || isAfterBoardSearchCursor(row, cursor))
