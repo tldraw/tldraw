@@ -967,7 +967,7 @@ async function callBoardInfoTool(
 		// The people a comment can @mention, with the ids write_comment takes. A published copy has no
 		// comments, so it lists none.
 		const people = loaded.isFile
-			? (await readMentionableUsers(env, input.boardId)).map((person) => ({
+			? (await readMentionableUsers(env, input.boardId, userId)).map((person) => ({
 					...person,
 					isCurrentUser: person.id === userId,
 				}))

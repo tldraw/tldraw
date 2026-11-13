@@ -1509,6 +1509,21 @@ describe('comment mentions', () => {
 		).toEqual(['u1', 'u2'])
 	})
 
+	it('leaves a link that only looks like a mention as plain text', () => {
+		const text =
+			'see @[the spec](https://example.com/spec) and @[notes](docs/notes.md) @[a](user_2Ab-c)'
+		expect(getTextMentionIds(text)).toEqual(['user_2Ab-c'])
+		expect(commentTextToRichText('see @[the spec](https://example.com/spec)', new Map())).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'text', text: 'see @[the spec](https://example.com/spec)' }],
+				},
+			],
+		})
+	})
+
 	it('turns mentions into nodes named from our records, one paragraph per line', () => {
 		expect(
 			commentTextToRichText('hey @[x](u1)!\n\n@[Ghost](u9)', new Map([['u1', 'Ada']]))

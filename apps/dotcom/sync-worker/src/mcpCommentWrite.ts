@@ -1,4 +1,9 @@
-import { MCP_AGENT_COMMENT_META_KEY, McpAgentClient } from '@tldraw/dotcom-shared'
+import {
+	DB,
+	MCP_AGENT_COMMENT_META_KEY,
+	MENTIONABLE_VISITORS_LIMIT,
+	McpAgentClient,
+} from '@tldraw/dotcom-shared'
 import { UnknownRecord } from '@tldraw/store'
 import {
 	TLComment,
@@ -14,9 +19,17 @@ import {
 	isPage,
 	isShape,
 } from '@tldraw/tlschema'
+import { Kysely } from 'kysely'
+import { jsonArrayFrom } from 'kysely/helpers/postgres'
 import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import { McpAgent } from './mcpAgentStorage'
-import { CommentTarget, CommentWriteRefusal } from './routes/tla/boardTools'
+import {
+	CommentTarget,
+	CommentWriteRefusal,
+	MentionableUser,
+	commentTextToRichText,
+	getTextMentionIds,
+} from './routes/tla/boardTools'
 
 /**
  * The room's records, as a storage transaction exposes them. Lookups by id only: on
@@ -173,4 +186,99 @@ function getAncestorPageId(room: RoomRecords, shape: TLShape): TLPageId | null {
 		parentId = parent.parentId
 	}
 	return null
+}
+
+/**
+ * Who `userId` may mention in a comment on `fileId`: the roster tldraw.com's @-picker offers them
+ * there, under the same rules its synced queries apply, so an agent can mention exactly whoever its
+ * user could and learns nothing more about who is on the board.
+ *
+ * - The members of the workspace that owns the file, only if the caller is one of them
+ *   (`workspaceMemberships`).
+ * - Its most recent visitors besides the caller, only if the caller has opened the file themselves
+ *   (`fileVisitors`).
+ *
+ * With `ids`, only those of them that are on the roster, so checking a comment's few mentions
+ * doesn't read the whole of it. Names are the ones Postgres keeps in step with each user's row.
+ */
+export async function selectMentionableUsers(
+	db: Kysely<DB>,
+	{ fileId, userId, ids }: { fileId: string; userId: string; ids?: readonly string[] }
+): Promise<MentionableUser[]> {
+	if (ids && !ids.length) return []
+	const { members, visitors } = await db
+		.selectNoFrom((eb) => [
+			jsonArrayFrom(
+				eb
+					.selectFrom('group_user')
+					.innerJoin('file', 'file.owningGroupId', 'group_user.groupId')
+					.select(['group_user.userId as id', 'group_user.userName as name'])
+					.where('file.id', '=', fileId)
+					.where(({ exists, selectFrom }) =>
+						exists(
+							selectFrom('group_user as caller')
+								.select('caller.userId')
+								.whereRef('caller.groupId', '=', 'file.owningGroupId')
+								.where('caller.userId', '=', userId)
+						)
+					)
+					.$if(!!ids, (qb) => qb.where('group_user.userId', 'in', ids ?? []))
+					.orderBy('group_user.userName')
+			).as('members'),
+			jsonArrayFrom(
+				eb
+					.selectFrom((sub) =>
+						// The most recent visitors first, then the ids among them: a visitor past the limit
+						// isn't one tldraw.com offers.
+						sub
+							.selectFrom('file_visitor')
+							.select(['userId as id', 'userName as name', 'lastVisitAt'])
+							.where('fileId', '=', fileId)
+							.where('userId', '!=', userId)
+							.where(({ exists, selectFrom }) =>
+								exists(
+									selectFrom('file_state')
+										.select('file_state.userId')
+										.where('file_state.fileId', '=', fileId)
+										.where('file_state.userId', '=', userId)
+								)
+							)
+							.orderBy('lastVisitAt', 'desc')
+							.limit(MENTIONABLE_VISITORS_LIMIT)
+							.as('recent')
+					)
+					.select(['recent.id', 'recent.name'])
+					.$if(!!ids, (qb) => qb.where('recent.id', 'in', ids ?? []))
+					.orderBy('recent.lastVisitAt', 'desc')
+			).as('visitors'),
+		])
+		.executeTakeFirstOrThrow()
+	const byId = new Map<string, MentionableUser>()
+	for (const person of [...members, ...visitors]) {
+		if (!byId.has(person.id)) byId.set(person.id, { id: person.id, name: person.name || 'Someone' })
+	}
+	return [...byId.values()]
+}
+
+/**
+ * An agent's comment text as rich text, with each `@[name](id)` as a mention. Only the id is taken
+ * from the agent: each must be on the caller's roster ({@link selectMentionableUsers}), and is named
+ * from our records, never from the text.
+ *
+ * Only for a caller already let in to comment: which ids pass says who is on the board.
+ */
+export async function resolveCommentMentions(
+	db: Kysely<DB>,
+	{ fileId, userId, text }: { fileId: string; userId: string; text: string }
+): Promise<{ ok: true; body: TLRichText } | ({ ok: false } & CommentWriteRefusal)> {
+	const ids = getTextMentionIds(text)
+	const names = new Map<string, string>()
+	if (ids.length) {
+		for (const person of await selectMentionableUsers(db, { fileId, userId, ids })) {
+			names.set(person.id, person.name)
+		}
+		const unknown = ids.filter((id) => !names.has(id))
+		if (unknown.length) return { ok: false, reason: 'unknown_mention', userIds: unknown }
+	}
+	return { ok: true, body: commentTextToRichText(text, names) }
 }

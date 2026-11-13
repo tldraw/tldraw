@@ -1,11 +1,9 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
-import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import { COMMENT_BOARD_NOT_FOUND_MESSAGE, COMMENT_THREADS_PAGE_SIZE } from './boardTools'
 
 vi.mock('../../postgres', () => ({ createPostgresConnectionPool: vi.fn() }))
-vi.mock('../../utils/tla/getAuth', () => ({ hasReadAccessToFile: vi.fn() }))
 
 const writeMcpComment = vi.fn()
 vi.mock('../../utils/durableObjects', () => ({
@@ -65,7 +63,7 @@ describe('writeCommentForUser', () => {
 			target: { kind: 'reply', threadId: 'comment-thread:t' },
 		})
 		// The text is the agent's own: tldraw.com marks the comment from its meta instead.
-		expect(call.body.content[0].content[0]).toEqual({ type: 'text', text: 'Done' })
+		expect(call.text).toBe('Done')
 	})
 
 	// The same answer as a missing board, so ids cannot be probed.
@@ -199,91 +197,45 @@ describe('readPageCommentRows', () => {
 })
 
 describe('mentions', () => {
-	function allowAccess() {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue({
-			ok: true,
-			file: { id: BOARD_ID, name: 'Board', shared: false, isDeleted: false },
-		})
-	}
-	function roster(members: object[], visitors: object[] = []) {
-		const fake = createFakeKysely([[{ members, visitors }]])
-		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
-		return fake
-	}
-	const write = (text: string) =>
-		writeCommentForUser(env, USER_ID, {
-			agentName: 'Claude',
-			agentClient: 'claude',
-			boardId: BOARD_ID,
-			text,
-			target: { kind: 'reply', threadId: 'comment-thread:t' },
-		})
-
 	it('lists workspace members, then visitors who are not members, with a fallback name', async () => {
-		const fake = roster(
-			[{ id: 'user_a', name: 'Ada' }],
+		const fake = createFakeKysely([
 			[
-				{ id: 'user_a', name: 'Ada' },
-				{ id: 'user_g', name: '' },
-			]
-		)
-		expect(await readMentionableUsers(env, BOARD_ID)).toEqual([
-			{ id: 'user_a', name: 'Ada' },
-			{ id: 'user_g', name: 'Someone' },
-		])
-		expect(fake.destroy).toHaveBeenCalled()
-	})
-
-	it('mentions by id, named from our records rather than the text', async () => {
-		allowAccess()
-		roster([{ id: 'user_a', name: 'Ada Lovelace' }])
-		writeMcpComment.mockResolvedValue({
-			ok: true,
-			threadId: 'comment-thread:t',
-			commentId: 'comment:c',
-			pageId: 'page:a',
-			newThread: false,
-		})
-
-		await write('@[The Boss](user_a) take a look')
-
-		expect(writeMcpComment.mock.calls[0][0].body).toEqual({
-			type: 'doc',
-			content: [
 				{
-					type: 'paragraph',
-					content: [
-						{ type: 'mention', attrs: { id: 'user_a', label: 'Ada Lovelace' } },
-						{ type: 'text', text: ' take a look' },
+					members: [{ id: 'user_a', name: 'Ada' }],
+					visitors: [
+						{ id: 'user_a', name: 'Ada' },
+						{ id: 'user_g', name: '' },
 					],
 				},
 			],
-		})
+		])
+		vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+		expect(await readMentionableUsers(env, BOARD_ID, USER_ID)).toEqual([
+			{ id: 'user_a', name: 'Ada' },
+			{ id: 'user_g', name: 'Someone' },
+		])
+		expect(fake.queries[0].parameters).toContain(USER_ID)
+		expect(fake.destroy).toHaveBeenCalled()
 	})
 
-	it('refuses an id the board would not offer, without touching the object', async () => {
-		allowAccess()
-		roster([{ id: 'user_a', name: 'Ada' }])
-		const outcome = await write('@[Ada](user_a) and @[Eve](user_eve)')
+	// The object checks mentions after its own access gate, so a caller who can't see the board or
+	// can't comment on it learns nothing about who is on it.
+	it('leaves mentions to the object, without asking Postgres first', async () => {
+		writeMcpComment.mockResolvedValue({
+			ok: false,
+			reason: 'unknown_mention',
+			userIds: ['user_eve'],
+		})
+		const outcome = await writeCommentForUser(env, USER_ID, {
+			agentName: 'Claude',
+			agentClient: 'claude',
+			boardId: BOARD_ID,
+			text: '@[Eve](user_eve) look',
+			target: { kind: 'reply', threadId: 'comment-thread:t' },
+		})
+		expect(writeMcpComment.mock.calls[0][0].text).toBe('@[Eve](user_eve) look')
+		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
 		expect(outcome).toMatchObject({ ok: false, reason: 'unknown_mention' })
 		expect(errorText(outcome)).toContain('"user_eve"')
-		expect(errorText(outcome)).not.toContain('"user_a"')
-		expect(writeMcpComment).not.toHaveBeenCalled()
-	})
-
-	it('reads no roster or access for a comment that mentions nobody', async () => {
-		writeMcpComment.mockResolvedValue({ ok: false, reason: 'comment_forbidden' })
-		await write('no mentions here')
-		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
-		expect(hasReadAccessToFile).not.toHaveBeenCalled()
-	})
-
-	// Otherwise which ids pass would say who is on a board the caller cannot see.
-	it('answers a mention on a board the caller cannot see as missing, before the roster', async () => {
-		vi.mocked(hasReadAccessToFile).mockResolvedValue({ ok: false })
-		const outcome = await write('@[Ada](user_a)')
-		expect(outcome).toMatchObject({ ok: false, reason: 'not_found' })
-		expect(createPostgresConnectionPool).not.toHaveBeenCalled()
-		expect(writeMcpComment).not.toHaveBeenCalled()
 	})
 })

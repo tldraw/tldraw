@@ -1,9 +1,9 @@
 import { McpAgentClient } from '@tldraw/dotcom-shared'
 import { jsonArrayFrom } from 'kysely/helpers/postgres'
+import { selectMentionableUsers } from '../../mcpCommentWrite'
 import { createPostgresConnectionPool } from '../../postgres'
 import { Environment } from '../../types'
 import { getRoomDurableObject } from '../../utils/durableObjects'
-import { hasReadAccessToFile } from '../../utils/tla/getAuth'
 import {
 	COMMENT_THREADS_PAGE_SIZE,
 	CommentRow,
@@ -12,52 +12,22 @@ import {
 	CommentWriteRefusal,
 	MentionableUser,
 	ToolResult,
-	commentTextToRichText,
 	getCommentRefusalMessage,
-	getTextMentionIds,
 	toolError,
 } from './boardTools'
 
-/** As many past visitors as tldraw.com's own @-picker offers (`MENTIONABLE_VISITORS_LIMIT`). */
-const MENTIONABLE_VISITORS_LIMIT = 100
-
 /**
- * Who a comment on `fileId` may mention: the members of the workspace that owns it, then its most
- * recent visitors — the roster tldraw.com's @-picker offers, so an agent can mention whoever a person
- * could. Names are the ones Postgres keeps in step with each user's row.
+ * Who `userId` may mention in a comment on `fileId`: the roster tldraw.com's own @-picker offers
+ * them (see `selectMentionableUsers`), so an agent can mention whoever its user could.
  */
 export async function readMentionableUsers(
 	env: Environment,
-	fileId: string
+	fileId: string,
+	userId: string
 ): Promise<MentionableUser[]> {
 	const db = createPostgresConnectionPool(env, 'sync-worker/readMentionableUsers')
 	try {
-		const { members, visitors } = await db
-			.selectNoFrom((eb) => [
-				jsonArrayFrom(
-					eb
-						.selectFrom('group_user')
-						.innerJoin('file', 'file.owningGroupId', 'group_user.groupId')
-						.select(['group_user.userId as id', 'group_user.userName as name'])
-						.where('file.id', '=', fileId)
-						.orderBy('group_user.userName')
-				).as('members'),
-				jsonArrayFrom(
-					eb
-						.selectFrom('file_visitor')
-						.select(['userId as id', 'userName as name'])
-						.where('fileId', '=', fileId)
-						.orderBy('lastVisitAt', 'desc')
-						.limit(MENTIONABLE_VISITORS_LIMIT)
-				).as('visitors'),
-			])
-			.executeTakeFirstOrThrow()
-		const byId = new Map<string, MentionableUser>()
-		for (const person of [...members, ...visitors]) {
-			if (!byId.has(person.id))
-				byId.set(person.id, { id: person.id, name: person.name || 'Someone' })
-		}
-		return [...byId.values()]
+		return await selectMentionableUsers(db, { fileId, userId })
 	} finally {
 		await db.destroy()
 	}
@@ -194,9 +164,9 @@ export type WriteCommentOutcome =
  * Posts `text` as `userId`, marked as an agent's, through the file's Durable Object — the one
  * place a comment can be written so that connected collaborators see it and it reaches Postgres.
  *
- * The object makes the access call itself, with the same query `hasReadAccessToFile` runs, so the
- * route doesn't ask Postgres first. An id the caller cannot see wakes an object, but it answers
- * not_found before it loads or stores anything.
+ * The object makes the access call itself, with the same query `hasReadAccessToFile` runs, and
+ * checks any mentions after it, so the route asks Postgres nothing. An id the caller cannot see wakes
+ * an object, but it answers not_found before it loads or stores anything or says who is on the board.
  */
 export async function writeCommentForUser(
 	env: Environment,
@@ -215,26 +185,12 @@ export async function writeCommentForUser(
 		agentClient: McpAgentClient | null
 	}
 ): Promise<WriteCommentOutcome> {
-	// Only ids are taken from the agent: each must be someone the board's own @-picker would offer,
-	// and is named from our records, never from the text.
-	const mentionIds = getTextMentionIds(text)
-	const names = new Map<string, string>()
-	if (mentionIds.length) {
-		// Checked here only for a mention: otherwise the roster's answer would say who is on a board
-		// the caller cannot see.
-		const access = await hasReadAccessToFile(env, userId, boardId)
-		if (!access.ok) return refused({ reason: 'not_found' })
-		for (const person of await readMentionableUsers(env, boardId)) names.set(person.id, person.name)
-		const unknown = mentionIds.filter((id) => !names.has(id))
-		if (unknown.length) return refused({ reason: 'unknown_mention', userIds: unknown })
-	}
-
 	const written = await getRoomDurableObject(env, boardId).writeMcpComment({
 		fileId: boardId,
 		userId,
 		agentName,
 		agentClient,
-		body: commentTextToRichText(text, names),
+		text,
 		target,
 	})
 	if (!written.ok) return refused(written)

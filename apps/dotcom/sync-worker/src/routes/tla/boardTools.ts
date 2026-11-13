@@ -1774,8 +1774,11 @@ function ensureCommentThreadId(id: string) {
  * How an agent writes and reads a mention: `@[name](id)`. One form both ways, so a mention read from
  * read_page_comments can be pasted straight into write_comment. Only the id is trusted on write; the
  * name is replaced with the user's own, so an agent can't put words in a mention.
+ *
+ * The id has to look like a user id (Clerk's `user_` and base62), so a Markdown link such as
+ * `@[the spec](https://…)` stays plain text rather than being refused as an unknown mention.
  */
-const MENTION_PATTERN = /@\[([^\]\n]*)\]\(([^)\s]+)\)/g
+const MENTION_PATTERN = /@\[([^\]\n]*)\]\(([\w-]+)\)/g
 
 /** Most people one comment can mention, so one call can't notify a whole workspace. */
 export const COMMENT_MENTION_MAX = 10

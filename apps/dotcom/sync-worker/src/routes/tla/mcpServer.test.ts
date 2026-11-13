@@ -1358,7 +1358,7 @@ describe('get_board_info', () => {
 			{ id: 'user_2', name: 'Me', isCurrentUser: true },
 			{ id: 'user_ada', name: 'Ada', isCurrentUser: false },
 		])
-		expect(readMentionableUsers).toHaveBeenCalledWith(expect.anything(), 'f1')
+		expect(readMentionableUsers).toHaveBeenCalledWith(expect.anything(), 'f1', 'user_2')
 	})
 
 	// Every tool call already dials Postgres twice — once for the access check, once to resolve the

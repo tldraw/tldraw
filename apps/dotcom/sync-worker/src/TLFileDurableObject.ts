@@ -48,7 +48,6 @@ import {
 	TLDOCUMENT_ID,
 	TLDocument,
 	TLRecord,
-	TLRichText,
 	commentSchemaRecords,
 	createTLSchema,
 	defaultShapeSchemas,
@@ -94,7 +93,7 @@ import {
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
 import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
-import { planMcpComment } from './mcpCommentWrite'
+import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
 import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
@@ -3628,6 +3627,10 @@ export class TLFileDurableObject extends DurableObject {
 	 * `getFileRoomAccess` rule as a socket connect. That check runs before a never-opened object's
 	 * documentInfo is initialized, so an id the caller cannot see leaves nothing behind.
 	 *
+	 * Mentions in `text` are checked after that gate (see `resolveCommentMentions`): which ids pass
+	 * says who is on the board, so a caller who can't see it hears not_found, and one who can't
+	 * comment hears comment_forbidden, before anything about its people.
+	 *
 	 * Storage writes do not fire `onCommittedChanges`, so the records are outboxed here, in the same
 	 * synchronous block as the write, as the restore handler's invariants require. The drain is
 	 * awaited so a read_page_comments straight after sees the comment.
@@ -3642,7 +3645,7 @@ export class TLFileDurableObject extends DurableObject {
 		userId,
 		agentName,
 		agentClient,
-		body,
+		text,
 		target,
 	}: {
 		fileId: string
@@ -3651,7 +3654,8 @@ export class TLFileDurableObject extends DurableObject {
 		agentName: string
 		/** The app behind the agent, from its OAuth client; drawn as its logo. */
 		agentClient: McpAgentClient | null
-		body: TLRichText
+		/** Plain text, with mentions as `@[name](id)`. */
+		text: string
 		target: CommentTarget
 	}): Promise<
 		| {
@@ -3684,6 +3688,10 @@ export class TLFileDurableObject extends DurableObject {
 		// planMcpComment refuses this too, but by then the agent would be registered on a board it
 		// can't comment on.
 		if (access === 'read') return { ok: false, reason: 'comment_forbidden' }
+
+		const resolved = await resolveCommentMentions(this.db, { fileId: file.id, userId, text })
+		if (!resolved.ok) return resolved
+		const { body } = resolved
 
 		// As appFileRecordCreated does for an object that has never been opened.
 		if (!this._documentInfo) {
