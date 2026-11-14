@@ -31,14 +31,12 @@ test.describe('commenting thread view', () => {
 		const body = page.locator('.tlui-cmt-canvas-popover .tlui-cmt-collapsible')
 		const toggle = page.locator('.tlui-cmt-canvas-popover .tlui-cmt-see-more')
 		await expect(toggle).toHaveText('See more')
-		// Clipped to its max height rather than its full content.
+		// Clamped short of its full content.
 		const clipped = await body.evaluate((el) => ({
 			height: el.clientHeight,
-			maxHeight: parseFloat(getComputedStyle(el).maxHeight),
 			overflows: el.scrollHeight > el.clientHeight,
 		}))
 		expect(clipped.overflows).toBe(true)
-		expect(clipped.height).toBe(Math.round(clipped.maxHeight))
 
 		await toggle.click()
 		await expect(toggle).toHaveText('See less')

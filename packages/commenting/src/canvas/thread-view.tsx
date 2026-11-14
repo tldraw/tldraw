@@ -90,7 +90,7 @@ const messages = defineMessages({
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
 
 /**
- * A comment body clipped to 10 lines (see `.tlui-cmt-collapsible--collapsed`), with a See more /
+ * A comment body clamped to 10 lines (see `.tlui-cmt-collapsible--collapsed`), with a See more /
  * See less toggle when it's longer. Overflow is measured rather than estimated from the text, so it
  * holds for any body (including a host's `CommentBody` slot) and re-checks as the panel resizes.
  */
@@ -110,16 +110,11 @@ function CollapsibleBody({ children }: { children: ReactNode }) {
 		for (const child of Array.from(el.children)) observer.observe(child)
 		return () => observer.disconnect()
 	}, [expanded, children])
-	const collapsed = overflows && !expanded
 	return (
 		<>
 			<div
 				ref={ref}
-				className={[
-					'tlui-cmt-collapsible',
-					!expanded && 'tlui-cmt-collapsible--collapsed',
-					collapsed && 'tlui-cmt-collapsible--clipped',
-				]
+				className={['tlui-cmt-collapsible', !expanded && 'tlui-cmt-collapsible--collapsed']
 					.filter(Boolean)
 					.join(' ')}
 			>

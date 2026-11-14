@@ -103,30 +103,31 @@
 	user-select: text;
 }
 
-/* A long comment in the thread view, clipped to 10 lines of body text (12px × 1.4) until expanded.
-   While it overflows, the last line fades out above the See more toggle. */
+/* A long comment in the thread view, clamped to 10 lines until expanded. A line clamp, not a max
+   height, so it always ends on a whole line: paragraph gaps would leave a height cut mid-line. */
 .tlui-cmt-collapsible--collapsed {
-	max-height: calc(12px * 1.4 * 10);
+	display: -webkit-box;
+	-webkit-box-orient: vertical;
+	-webkit-line-clamp: 10;
+	line-clamp: 10;
 	overflow: hidden;
 }
-.tlui-cmt-collapsible--clipped {
-	mask-image: linear-gradient(to bottom, black calc(100% - 17px), transparent);
-}
+/* Styled as the byline's time ("now"), so it reads as metadata rather than a button. */
 .tlui-cmt-see-more {
 	display: block;
-	margin: 0 0 6px;
+	/* The clamped body's own bottom margin is clipped with its overflow. */
+	margin: 4px 0 6px;
 	padding: 0;
 	border: none;
 	background: none;
 	font: inherit;
 	font-size: 12px;
-	font-weight: 500;
-	line-height: 1.4;
+	font-weight: normal;
 	color: var(--tl-color-text-3);
 	cursor: pointer;
 }
 .tlui-cmt-see-more:hover {
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-0);
 }
 
 .tlui-cmt-edited {
