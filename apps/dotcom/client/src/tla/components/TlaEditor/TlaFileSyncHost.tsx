@@ -1,22 +1,11 @@
 import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
-import {
-	ReactNode,
-	RefObject,
-	createContext,
-	useCallback,
-	useContext,
-	useEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
 	Editor,
 	TLUserStore,
 	UserRecordType,
-	assertExists,
 	commentSchemaRecords,
 	computed,
 	createUserId,
@@ -28,7 +17,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { trackEvent } from '../../../utils/analytics'
 import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
-import { FileLoad, fileLoads } from '../../../utils/fileLoad'
+import { fileLoads } from '../../../utils/fileLoad'
 import { markFirstLoad } from '../../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
 import { currentApp$, useMaybeApp } from '../../hooks/useAppState'
@@ -40,31 +29,7 @@ import {
 } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
 import { answerTabRender } from '../../utils/tabRender'
-
-type FileSyncStore = ReturnType<typeof useSync>
-
-const FileSyncStoreContext = createContext<FileSyncStore | null>(null)
-
-export function useFileSyncStore(): FileSyncStore {
-	return assertExists(useContext(FileSyncStoreContext), 'TlaFileSyncHost is missing above')
-}
-
-const FileLoadContext = createContext<FileLoad | null>(null)
-
-/** This file open's file_load tracker, begun where the open begins: the sync host. */
-export function useFileLoad(): FileLoad {
-	return assertExists(useContext(FileLoadContext), 'TlaFileSyncHost is missing above')
-}
-
-const FileEditorRefContext = createContext<RefObject<Editor | null> | null>(null)
-
-/**
- * Where the editor below registers itself for this file. A ref because the host mounts first and
- * only ever reads it when a job arrives, so nothing here should re-render over it.
- */
-export function useFileEditorRef() {
-	return assertExists(useContext(FileEditorRefContext), 'TlaFileSyncHost is missing above')
-}
+import { FileSyncStoreContext, FileLoadContext, FileEditorRefContext } from './fileSyncHostContext'
 
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
 export const VIA_LAST_FILE_CACHE = 'viaLastFileCache'

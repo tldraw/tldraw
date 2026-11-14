@@ -26,19 +26,13 @@ import {
 	TldrawUiTooltip,
 	TLRichText,
 	useTranslation,
-	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import {
-	buildReactionNotifications,
-	categorizeCommentNotifications,
-	CommentNotificationReason,
-	mergeNotifications,
-	summarizeForeignReactors,
-} from './commentNotifications'
+import { CommentNotificationReason, summarizeForeignReactors } from './commentNotifications'
+import { useCommentNotifications } from './useCommentNotifications'
 import styles from './notifications.module.css'
 
 const messages = defineMessages({
@@ -180,26 +174,6 @@ function NotificationsOverflowMenu({
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
-	)
-}
-
-/**
- * Comments and reactions surfaced as notifications, merged from the comment feeds and the
- * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
- * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
- */
-export function useCommentNotifications() {
-	const app = useMaybeApp()
-	return useValue(
-		'comment notifications',
-		() => {
-			const comments = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
-			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], app?.userId)
-			const notifications = mergeNotifications(comments, reactionEntries)
-			const unreadCount = notifications.filter((n) => n.unread).length
-			return { notifications, unreadCount }
-		},
-		[app]
 	)
 }
 

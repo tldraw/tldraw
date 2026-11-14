@@ -1,9 +1,10 @@
+/* oxlint-disable react/only-export-components -- the router root; any edit here reloads the page regardless */
 import type { TLSyncErrorCloseEventReason } from '@tldraw/sync-core'
 import { Suspense, lazy, useEffect } from 'react'
 import { Helmet } from 'react-helmet-async'
 import { Outlet, Route, createRoutesFromElements, redirect, useRouteError } from 'react-router-dom'
 import { ErrorPage } from './components/ErrorPage/ErrorPage'
-import { notFound } from './pages/not-found'
+import { NotFound } from './pages/not-found'
 import { ROUTES, routes, TlaRouteHandle } from './routeDefs'
 import { TlaNotFoundError } from './tla/utils/notFoundError'
 import { captureRouteError, isRemoteSyncError } from './utils/routeErrors'
@@ -60,7 +61,7 @@ export function createAppRouter({
 					}
 				}
 				if (error instanceof TlaNotFoundError) {
-					return notFound()
+					return <NotFound />
 				}
 
 				return (

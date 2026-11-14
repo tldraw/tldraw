@@ -5,7 +5,6 @@ import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
 import { useIntl } from 'react-intl'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-	defineMessages,
 	F,
 	isEqual,
 	preventDefault,
@@ -24,7 +23,7 @@ import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { RecentFile } from './sidebar-shared'
+import { RecentFile, sidebarMessages } from './sidebar-shared'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import styles from '../sidebar.module.css'
@@ -135,11 +134,6 @@ export function TlaSidebarFileLink({
 		</_ContextMenu.Root>
 	)
 }
-
-export const sidebarMessages = defineMessages({
-	renameFile: { defaultMessage: 'Rename file' },
-	selected: { defaultMessage: 'selected' },
-})
 
 export function TlaSidebarFileLinkInner({
 	isPinned,
