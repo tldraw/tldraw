@@ -193,6 +193,7 @@
 	"color-style.yellow": "Yellow",
 	"comments.add-placeholder": "Add a comment…",
 	"comments.add-reaction": "Add reaction",
+	"comments.close": "Close",
 	"comments.cluster-label": "{count, plural, one {# comment here} other {# comments here}}",
 	"comments.copy-link": "Copy link",
 	"comments.delete": "Delete thread",

@@ -10,7 +10,7 @@ import {
 	VecLike,
 } from 'tldraw'
 import { getCommentingOptions } from './options'
-import { commentsSidebarOpen, openThreadId } from './state'
+import { commentsHidden, commentsSidebarOpen, openThreadId } from './state'
 import { POPOVER_OFFSET } from './thread-view'
 
 /** How far an imprecise shape pin steps inside the shape from its anchor spot, in screen px —
@@ -207,8 +207,11 @@ export function shapeAnchorAt(
 	}
 }
 
-/** Open a thread and bring it into view — switch to its page if needed, then center its pin. @public */
+/** Open a thread and bring it into view — switch to its page if needed, unhide comments, then
+ * center its pin. @public */
 export function focusThread(editor: Editor, thread: TLCommentThread): void {
+	// The thread popover lives on the layer that hiding withholds, so it would open invisibly.
+	commentsHidden.set(editor, false)
 	if (thread.pageId !== editor.getCurrentPageId()) {
 		editor.markHistoryStoppingPoint('change-page')
 		editor.setCurrentPage(thread.pageId as any)

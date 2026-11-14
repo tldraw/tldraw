@@ -197,6 +197,7 @@ export type TLUiTranslationKey =
 	| 'color-style.yellow'
 	| 'comments.add-placeholder'
 	| 'comments.add-reaction'
+	| 'comments.close'
 	| 'comments.cluster-label'
 	| 'comments.copy-link'
 	| 'comments.delete'

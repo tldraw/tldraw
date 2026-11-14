@@ -636,15 +636,17 @@ button.tlui-cmt-reaction:hover {
 .tlui-cmt-thread__action + .tlui-cmt-thread__action {
 	margin-left: -4px;
 }
-.tlui-button.tlui-cmt-thread__action:hover {
-	color: var(--tl-color-text-1);
+@media (hover: hover) {
+	.tlui-button.tlui-cmt-thread__action:hover {
+		color: var(--tl-color-text-1);
+	}
 }
 /* An open menu's trigger, shaded the way the editor's own menu triggers are. */
 .tlui-button.tlui-cmt-thread__action[data-state='open'] {
 	color: var(--tl-color-text-1);
 }
 .tlui-button.tlui-cmt-thread__action[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
 .tlui-cmt-thread__resolved {
@@ -773,7 +775,6 @@ button.tlui-cmt-reaction:hover {
 	   divider is an inset shadow, not a border, so the header stays the buttons' 40px tall. */
 	height: 40px;
 	padding: 0 0 0 12px;
-	box-shadow: inset 0 -1px 0 var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
 	font-size: 12px;
@@ -794,12 +795,16 @@ button.tlui-cmt-reaction:hover {
 .tlui-cmt-header-btn + .tlui-cmt-header-btn {
 	margin-left: -4px;
 }
-.tlui-button.tlui-cmt-header-btn:hover,
 .tlui-button.tlui-cmt-header-btn[data-state='open'] {
 	color: var(--tl-color-text-1);
 }
+@media (hover: hover) {
+	.tlui-button.tlui-cmt-header-btn:hover {
+		color: var(--tl-color-text-1);
+	}
+}
 .tlui-button.tlui-cmt-header-btn[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
 .tlui-cmt-list__header-actions {
@@ -813,9 +818,11 @@ button.tlui-cmt-reaction:hover {
 	overflow-y: auto;
 }
 .tlui-cmt-list__empty {
-	padding: 20px 14px;
-	color: var(--tl-color-text-3);
+	/* extra 2px at the bottom of the list */
+	padding: 12px 12px 14px 12px;
+	font-weight: 400;
 	font-size: 12px;
+	min-height: 40px;
 }
 .tlui-cmt-list__item {
 	position: relative;
@@ -824,7 +831,6 @@ button.tlui-cmt-reaction:hover {
 	width: 100%;
 	padding: 12px;
 	border: none;
-	border-bottom: 1px solid var(--tl-color-divider);
 	background: transparent;
 	font: inherit;
 	text-align: left;
