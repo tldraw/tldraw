@@ -154,6 +154,17 @@ describe('comment tool placement lifecycle', () => {
 		expect(commentsSidebarOpen.get(editor)).toBe(false)
 	})
 
+	it('shows the comment cursor while hovering and the default cursor once a composer is open', () => {
+		editor.setCurrentTool('comment')
+		expect(editor.getInstanceState().cursor.type).toBe('comment')
+		driver.pointerDown(400, 300)
+		driver.pointerUp(400, 300)
+		// The next press cancels rather than placing another comment, so the cursor shouldn't
+		// promise a placement (#11328).
+		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+
 	it('escape leaves the tool for select and drops the draft', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
@@ -186,6 +197,11 @@ describe('startCommentAt', () => {
 		const id = makeShape()
 		startCommentAt(editor, { x: 150, y: 125 })
 		expect(pendingComment.get(editor)?.anchor).toMatchObject({ type: 'shape', shapeId: id })
+	})
+
+	it('shows the default cursor while its composer is open', () => {
+		startCommentAt(editor, { x: 400, y: 300 })
+		expect(editor.getInstanceState().cursor.type).toBe('default')
 	})
 
 	it('hints the anchored shape, not the one under the live pointer', () => {
@@ -257,6 +273,7 @@ describe('comment tool placement hints with regions enabled', () => {
 			anchor: { type: 'region', x: 100, y: 100, w: 100, h: 80, pinX: 1, pinY: 1 },
 			point: { x: 200, y: 180 },
 		})
+		expect(editor.getInstanceState().cursor.type).toBe('default')
 	})
 
 	it('does not hint a shape under the pin corner of a placed region', () => {
