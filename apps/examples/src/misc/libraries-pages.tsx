@@ -1,5 +1,4 @@
 import {
-	BoardIcon,
 	LibraryItemRecordType,
 	LibraryMenuItem,
 	type LibraryPack,
@@ -93,7 +92,7 @@ const SHOWINGS: Record<PageName, Showing> = {
 			id: 'libraries-composite',
 			defaultOwnerId: 'personal',
 			parts: [
-				{ owner: { id: 'board', name: 'This board', icon: <BoardIcon /> }, source: board },
+				{ owner: { id: 'board', name: 'This board', icon: 'file' }, source: board },
 				{ owner: { id: 'personal', name: 'Private to you', icon: <HomeIcon /> }, source: personal },
 				{ owner: { id: 'shared', name: 'Shared', icon: <PeopleIcon /> }, source: shared },
 				{
