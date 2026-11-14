@@ -19,6 +19,7 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -30,8 +31,6 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import {
 	buildReactionNotifications,
 	categorizeCommentNotifications,
@@ -148,10 +147,10 @@ function NotificationsOverflowMenu({
 						title={msg(messages.moreOptions)}
 						className="tlui-cmt-header-btn"
 					>
-						<TlaIcon icon="dots-vertical-strong" />
+						<TldrawUiIcon icon="dots-vertical" label={msg(messages.moreOptions)} small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
@@ -293,7 +292,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							className="tlui-cmt-header-btn"
 							onClick={onClose}
 						>
-							<TlaIcon icon="close" style={{ width: 12, height: 12 }} />
+							<TldrawUiIcon icon="cross-2" label={msg(messages.close)} small />
 						</TldrawUiButton>
 					</div>
 				}
@@ -309,13 +308,13 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							// middle-click opens the tab natively without firing onClick; still mark it read
 							onAuxClick={(e) => e.button === 1 && handleSelect(item.id, true)}
 						>
-							<span
-								className={styles.pin}
-								style={{ backgroundColor: item.author.color }}
-								aria-hidden="true"
-							/>
 							<div className="tlui-cmt-list__item-body">
-								<div className={styles.head}>
+								<div className="tlui-cmt-head">
+									<span
+										className={styles.pin}
+										style={{ backgroundColor: item.author.color }}
+										aria-hidden="true"
+									/>
 									<span className={styles.byline}>
 										<ReasonByline
 											reason={n?.primaryReason ?? 'owned-board'}
@@ -328,10 +327,16 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 										<span className={styles.time}>{formatRelativeTime(item.date)}</span>
 									</TldrawUiTooltip>
 								</div>
-								<div className={styles.preview}>{item.preview}</div>
-								{item.reactions && (
-									<Reactions reactions={item.reactions} canReact={false} enableHoverList={false} />
-								)}
+								<div className="tlui-cmt-body">
+									<div className={styles.preview}>{item.preview}</div>
+									{item.reactions && (
+										<Reactions
+											reactions={item.reactions}
+											canReact={false}
+											enableHoverList={false}
+										/>
+									)}
+								</div>
 							</div>
 							{n?.unread && <span className={styles.unreadDot} aria-hidden="true" />}
 						</Link>

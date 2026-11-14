@@ -61,10 +61,6 @@
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
 }
-/* Focus should read like hover, so the pin lifts the same way when tabbed to. */
-.tlui-cmt-canvas-pin__marker:focus-visible .tlui-cmt-marker {
-	transform: scale(var(--tlui-cmt-marker-hover-scale));
-}
 
 .tlui-cmt-cluster-fade {
 	opacity: 1;
@@ -119,7 +115,6 @@
 .tlui-cmt-canvas-stack-badge:focus-visible .tlui-cmt-marker {
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
-	transform: scale(var(--tlui-cmt-marker-hover-scale));
 }
 
 /* The stack's popover content: one card per thread, the expanded thread inline among them. */
