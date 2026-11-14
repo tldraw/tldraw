@@ -1,9 +1,10 @@
 import { CANVAS_OPS_BATCH_JSON_SCHEMA, CANVAS_OPS_GUIDE } from '@tldraw/dotcom-shared'
+import type { TabRenderDeclineReason } from '@tldraw/dotcom-shared'
 import { Box, type Editor } from 'tldraw'
 import { z } from 'zod'
 import { trackEvent } from '../../utils/analytics'
 import { describeShapes, fromShapeId } from './canvas-ops/actions'
-import { createCanvasOpsReceiver } from './canvas-ops/receiver'
+import { applyBatchInTurn, getApplyRefusal } from './tabRender'
 
 // WebMCP (https://webmachinelearning.github.io/webmcp/) lets a page hand tools to the browser's own
 // agent. Only the part of the API this file calls is typed here: it is a draft behind an origin
@@ -34,7 +35,6 @@ export const APPLY_OPS_TOOL_NAME = 'apply_ops'
 
 /** Past this a page's shapes stop fitting in a model's context alongside everything else. */
 const MAX_SHAPES_PER_READ = 500
-const MAX_INVALID_OPS_DETAIL = 1_500
 
 const ReadPageInputSchema = z.object({
 	scope: z.enum(['page', 'viewport', 'selection']).default('page'),
@@ -88,45 +88,43 @@ function readPage(editor: Editor, input: Record<string, unknown>): ToolResult {
 	})
 }
 
-function applyOps(
+const REFUSALS: Partial<Record<TabRenderDeclineReason, string>> = {
+	read_only: 'The user can only view this board, not edit it.',
+	tab_hidden: 'The board is in a background tab. Ask the user to switch to it.',
+	busy: 'The user is in the middle of a drag. Try again in a moment.',
+}
+
+async function applyOps(
 	editor: Editor,
 	input: Record<string, unknown>,
 	userId: string | undefined
-): ToolResult {
-	// The checks an apply_ops job from the hosted MCP server gets; getRefusal in tabRender.ts says why.
-	if (editor.getIsReadonly()) return toolError('The user can only view this board, not edit it.')
-	if (document.visibilityState !== 'visible') {
-		return toolError('The board is in a background tab. Ask the user to switch to it.')
-	}
-	if (editor.inputs.getIsDragging()) {
-		return toolError('The user is in the middle of a drag. Try again in a moment.')
-	}
-
-	try {
-		const result = createCanvasOpsReceiver(editor).applyBatch(
-			{ ops: input.ops },
-			{ userId, runId: input.runId }
-		)
-		return toolJson({ page: editor.getCurrentPage().name, ...result })
-	} catch (error) {
-		if (error instanceof z.ZodError) {
+): Promise<ToolResult> {
+	const outcome = await applyBatchInTurn(
+		editor,
+		{ ops: input.ops, attribution: { userId, runId: input.runId } },
+		() => getApplyRefusal(editor, editor.getCurrentPageId())
+	)
+	switch (outcome.status) {
+		case 'applied':
+			return toolJson({ page: editor.getCurrentPage().name, ...outcome.result })
+		case 'invalid_ops':
+			return toolError(`Nothing was applied, the ops are invalid:\n${outcome.detail}`)
+		case 'apply_failed':
 			return toolError(
-				`Nothing was applied, the ops are invalid:\n${z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL)}`
+				`The batch failed partway and some ops may have been applied. Call ${READ_PAGE_TOOL_NAME} before sending anything again.`
 			)
-		}
-		// Validation passed, so some ops may have run. Calling it a plain failure would have the agent
-		// send the batch again.
-		console.error('A WebMCP batch of ops failed partway', error)
-		return toolError(
-			`The batch failed partway and some ops may have been applied. Call ${READ_PAGE_TOOL_NAME} before sending anything again.`
-		)
+		case 'refused':
+			return toolError(REFUSALS[outcome.reason] ?? 'The board cannot be edited right now.')
 	}
 }
 
 function getTools(editor: Editor, opts: WebMcpToolOptions): ModelContextTool[] {
-	const tracked = (name: string, run: (input: Record<string, unknown>) => ToolResult) => {
+	const tracked = (
+		name: string,
+		run: (input: Record<string, unknown>) => ToolResult | Promise<ToolResult>
+	) => {
 		return async (input: Record<string, unknown>) => {
-			const result = run(input ?? {})
+			const result = await run(input)
 			trackEvent('webmcp-tool-call', { tool: name, is_error: !!result.isError })
 			return result
 		}
@@ -149,7 +147,6 @@ function getTools(editor: Editor, opts: WebMcpToolOptions): ModelContextTool[] {
 				},
 			},
 			execute: tracked(READ_PAGE_TOOL_NAME, (input) => readPage(editor, input)),
-			// Anyone the board is shared with can have written the text on it.
 			annotations: { readOnlyHint: true, untrustedContentHint: true },
 		},
 	]
@@ -177,7 +174,8 @@ function getTools(editor: Editor, opts: WebMcpToolOptions): ModelContextTool[] {
 				required: ['ops'],
 			},
 			execute: tracked(APPLY_OPS_TOOL_NAME, (input) => applyOps(editor, input, opts.userId)),
-			annotations: { readOnlyHint: false },
+			// The result quotes shape text, which anyone the board is shared with can have written.
+			annotations: { readOnlyHint: false, untrustedContentHint: true },
 		})
 	}
 
