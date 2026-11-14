@@ -103,6 +103,32 @@
 	user-select: text;
 }
 
+/* A long comment in the thread view, clipped to 10 lines of body text (12px × 1.4) until expanded.
+   While it overflows, the last line fades out above the See more toggle. */
+.tlui-cmt-collapsible--collapsed {
+	max-height: calc(12px * 1.4 * 10);
+	overflow: hidden;
+}
+.tlui-cmt-collapsible--clipped {
+	mask-image: linear-gradient(to bottom, black calc(100% - 17px), transparent);
+}
+.tlui-cmt-see-more {
+	display: block;
+	margin: 0 0 6px;
+	padding: 0;
+	border: none;
+	background: none;
+	font: inherit;
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.4;
+	color: var(--tl-color-text-3);
+	cursor: pointer;
+}
+.tlui-cmt-see-more:hover {
+	color: var(--tl-color-text-1);
+}
+
 .tlui-cmt-edited {
 	font-style: italic;
 }
@@ -426,16 +452,6 @@ button.tlui-cmt-reaction:hover {
 	background: var(--tl-color-muted-1);
 }
 
-/* a reaction you're part of fills with the selection colour, so "I reacted with this" stands out
-   from the grey pills of reactions you haven't joined. */
-.tlui-cmt-reaction--active {
-	background: color-mix(in srgb, var(--tl-color-selected) 28%, var(--tl-color-panel));
-}
-
-button.tlui-cmt-reaction--active:hover {
-	background: color-mix(in srgb, var(--tl-color-selected) 38%, var(--tl-color-panel));
-}
-
 /* The emoji renders larger than the 10px count, but its pinned line-height keeps the pill the
    count's height — the glyph overflows the line box rather than growing it. */
 .tlui-cmt-reaction__emoji {
@@ -448,8 +464,10 @@ button.tlui-cmt-reaction--active:hover {
 	font-variant-numeric: tabular-nums;
 }
 
+/* A reaction you're part of keeps the same grey pill; only its count says "I reacted with this". */
 .tlui-cmt-reaction--active .tlui-cmt-reaction__count {
 	color: var(--tl-color-text-1);
+	font-weight: 700;
 }
 
 /* emoji picker */
@@ -771,8 +789,12 @@ button.tlui-cmt-reaction--active:hover {
 	align-items: center;
 	justify-content: space-between;
 	gap: 8px;
-	padding: 2px 2px 2px 14px;
-	border-bottom: 1px solid var(--tl-color-divider);
+	/* Flush top and right, like the thread popover's header: the 40px buttons' 32px hover squares
+	   then sit 4px in from the panel edge, and the title shares the popover's 12px inset. The
+	   divider is an inset shadow, not a border, so the header stays the buttons' 40px tall. */
+	height: 40px;
+	padding: 0 0 0 12px;
+	box-shadow: inset 0 -1px 0 var(--tl-color-divider);
 }
 .tlui-cmt-list__header-title {
 	font-size: 12px;
@@ -804,48 +826,6 @@ button.tlui-cmt-reaction--active:hover {
 	align-items: center;
 }
 
-/* The commenting dropdowns' surface — a little air between the items and the menu edge. */
-.tlui-cmt-menu {
-	min-width: 100px;
-	padding: 4px;
-}
-
-/* a menu row with a label and a right-aligned shortcut hint (overflow menu) */
-.tlui-cmt-menu-item {
-	position: relative;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 24px;
-	width: 100%;
-	min-height: 40px;
-	padding: 0 10px;
-	border: none;
-	background: transparent;
-	font: inherit;
-	font-size: 12px;
-	color: var(--tl-color-text-1);
-	cursor: pointer;
-}
-/* 36px visual inset within the 40px row — the hover wash the action and emoji buttons use. */
-.tlui-cmt-menu-item::after {
-	content: '';
-	position: absolute;
-	inset: 2px;
-	border-radius: var(--tl-radius-2);
-}
-.tlui-cmt-menu-item:hover::after {
-	background: var(--tl-color-muted-2);
-}
-/* Destructive menu entries (delete) — the same danger colour as tldraw's danger buttons. */
-.tlui-cmt-menu-item--danger {
-	color: var(--tl-color-danger);
-}
-
-.tlui-cmt-menu-item__shortcut {
-	color: var(--tl-color-text-3);
-	font-size: 12px;
-}
 .tlui-cmt-list__items {
 	flex: 1;
 	min-height: 0;

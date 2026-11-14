@@ -224,6 +224,8 @@ export type TLUiTranslationKey =
 	| 'comments.resolved'
 	| 'comments.resolved-by'
 	| 'comments.save'
+	| 'comments.see-less'
+	| 'comments.see-more'
 	| 'comments.send'
 	| 'comments.show'
 	| 'comments.show-all-pages'

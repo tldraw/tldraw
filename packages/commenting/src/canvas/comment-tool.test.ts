@@ -106,76 +106,82 @@ describe('comment tool placement lifecycle', () => {
 		driver = makeEditor()
 	})
 
-	it('stays in the tool with the composer open after placing', () => {
+	it('hands back to select with the composer open after placing', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
-		// Placement opens the composer but the interaction isn't over — the tool holds on until
-		// the comment is posted or dismissed, so the surrounding UI stays stable.
-		expect(editor.isIn('comment.idle')).toBe(true)
+		// The placement is done; the composer outlives the tool until posted or dismissed.
+		expect(editor.isIn('select.idle')).toBe(true)
 		expect(pendingComment.get(editor)).toEqual({
 			anchor: { type: 'point', x: 400, y: 300 },
 			point: { x: 400, y: 300 },
 		})
 	})
 
-	it('cancels the placement and returns to select on a second click', () => {
+	it('stays in the tool after placing when the tool is locked', () => {
+		editor.updateInstanceState({ isToolLocked: true })
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
-		driver.pointerDown(200, 200)
-		driver.pointerUp(200, 200)
-		expect(editor.isIn('select.idle')).toBe(true)
-		expect(pendingComment.get(editor)).toBeNull()
-	})
-
-	it('drops the pending composer when the tool exits', () => {
-		editor.setCurrentTool('comment')
-		driver.pointerDown(400, 300)
-		driver.pointerUp(400, 300)
+		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(pendingComment.get(editor)).not.toBeNull()
-
-		// A direct tool switch (toolbar, shortcut) abandons the draft composer — it belongs to
-		// the tool. The text itself survives in the comment draft store.
-		editor.setCurrentTool('select')
-		expect(pendingComment.get(editor)).toBeNull()
 	})
 
-	it('closes the comments sidebar for the whole interaction', () => {
+	it('keeps the composer open across a later tool switch', () => {
+		editor.setCurrentTool('comment')
+		driver.pointerDown(400, 300)
+		driver.pointerUp(400, 300)
+		editor.setCurrentTool('hand')
+		expect(pendingComment.get(editor)).not.toBeNull()
+	})
+
+	it('keeps the comments sidebar closed after placing', () => {
 		commentsSidebarOpen.set(editor, true)
 		editor.setCurrentTool('comment')
 		expect(commentsSidebarOpen.get(editor)).toBe(false)
 
-		// ...and placing doesn't reopen it: the tool (and the closed sidebar) hold through the
-		// composer. Reopening is the host's button, never a side effect of leaving the tool.
+		// Reopening is the host's button, never a side effect of leaving the tool.
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
-		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(commentsSidebarOpen.get(editor)).toBe(false)
 	})
 
-	it('escape leaves the tool for select and drops the draft', () => {
+	it('shows the default cursor on press, move once dragging, then default on release', () => {
+		editor.setCurrentTool('comment')
+		expect(editor.getInstanceState().cursor.type).toBe('comment')
+		driver.pointerDown(400, 300)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+		driver.pointerMove(450, 350)
+		expect(editor.isIn('comment.pointing')).toBe(true)
+		expect(editor.getInstanceState().cursor.type).toBe('move')
+		driver.pointerUp(450, 350)
+		expect(editor.getInstanceState().cursor.type).toBe('default')
+	})
+
+	it('escape mid-placement leaves the tool for select and drops the draft', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
-		driver.pointerUp(400, 300)
 		editor.cancel()
 		expect(editor.isIn('select')).toBe(true)
 		expect(pendingComment.get(editor)).toBeNull()
 	})
+
+	it('escape before placing leaves the tool for select', () => {
+		editor.setCurrentTool('comment')
+		editor.cancel()
+		expect(editor.isIn('select')).toBe(true)
+	})
 })
 
 describe('startCommentAt', () => {
-	let driver: Driver
-
 	beforeEach(() => {
-		driver = makeEditor()
+		makeEditor()
 	})
 
-	it('enters the tool and opens the composer at a bare point on empty canvas', () => {
-		commentsSidebarOpen.set(editor, true)
+	it('opens the composer at a bare point on empty canvas, with select active', () => {
+		editor.setCurrentTool('comment')
 		startCommentAt(editor, { x: 400, y: 300 })
-		expect(editor.isIn('comment.idle')).toBe(true)
-		expect(commentsSidebarOpen.get(editor)).toBe(false)
+		expect(editor.isIn('select.idle')).toBe(true)
 		expect(pendingComment.get(editor)).toEqual({
 			anchor: { type: 'point', x: 400, y: 300 },
 			point: { x: 400, y: 300 },
@@ -186,16 +192,6 @@ describe('startCommentAt', () => {
 		const id = makeShape()
 		startCommentAt(editor, { x: 150, y: 125 })
 		expect(pendingComment.get(editor)?.anchor).toMatchObject({ type: 'shape', shapeId: id })
-	})
-
-	it('hints the anchored shape, not the one under the live pointer', () => {
-		const anchored = makeShape()
-		const underPointer = makeShape(400, 100)
-		driver.pointerMove(450, 125)
-		editor.setCurrentTool('comment')
-		expect(editor.getHintingShapeIds()).toEqual([underPointer])
-		startCommentAt(editor, { x: 150, y: 125 })
-		expect(editor.getHintingShapeIds()).toEqual([anchored])
 	})
 })
 
@@ -219,7 +215,7 @@ describe('commentToolOverrides', () => {
 		driver.pointerDown(400, 300).pointerUp(400, 300)
 		driver.pointerMove(600, 500)
 		getCommentTool().onSelect('context-menu')
-		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(editor.isIn('select.idle')).toBe(true)
 		expect(pendingComment.get(editor)?.point).toEqual({ x: 400, y: 300 })
 	})
 
@@ -246,13 +242,13 @@ describe('comment tool placement hints with regions enabled', () => {
 		expect(editor.getHintingShapeIds()).toEqual([])
 	})
 
-	it('stays in the tool with the composer open after a region drag', () => {
+	it('hands back to select with the composer open after a region drag', () => {
 		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
 		editor.setCurrentTool('comment')
 		driver.pointerDown(100, 100)
 		driver.pointerMove(200, 180)
 		driver.pointerUp(200, 180)
-		expect(editor.isIn('comment.idle')).toBe(true)
+		expect(editor.isIn('select.idle')).toBe(true)
 		expect(pendingComment.get(editor)).toEqual({
 			anchor: { type: 'region', x: 100, y: 100, w: 100, h: 80, pinX: 1, pinY: 1 },
 			point: { x: 200, y: 180 },
@@ -268,7 +264,6 @@ describe('comment tool placement hints with regions enabled', () => {
 		driver.pointerDown(50, 50)
 		driver.pointerMove(150, 125)
 		driver.pointerUp(150, 125)
-		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(editor.getHintingShapeIds()).toEqual([])
 	})
 

@@ -1,5 +1,14 @@
-import { type PointerEvent as ReactPointerEvent, useRef } from 'react'
-import { type BoxModel, Editor, useValue, VecLike } from 'tldraw'
+import { type PointerEvent as ReactPointerEvent, useEffect, useRef } from 'react'
+import {
+	type BoxModel,
+	Editor,
+	getCursor,
+	getPerfectDashProps,
+	usePassThroughWheelEvents,
+	useValue,
+	VecLike,
+} from 'tldraw'
+import { startCommentDrag } from './canvas-events'
 import { regionDraft } from './state'
 
 /** A region's dashed box. Purely visual — a region moves by its pin and resizes from its corner
@@ -16,7 +25,39 @@ export function RegionBox({ editor, box }: { editor: Editor; box: BoxModel }) {
 		},
 		[editor, box.x, box.y, box.w, box.h]
 	)
-	return <div className="tlui-cmt-canvas-region" style={rect} />
+	const { width: w, height: h } = rect
+	// The group outline's dashes: drawn per side with perfect dashes (so every side starts and ends
+	// on a dash), at the 1px dash scale and 1.5px stroke the editor's selection outline uses.
+	const sides = [
+		[0, 0, w, 0],
+		[w, 0, w, h],
+		[w, h, 0, h],
+		[0, h, 0, 0],
+	]
+	return (
+		<div className="tlui-cmt-canvas-region" style={rect}>
+			<svg className="tlui-cmt-canvas-region__outline" width={w} height={h} aria-hidden="true">
+				{sides.map(([x1, y1, x2, y2], i) => {
+					const { strokeDasharray, strokeDashoffset } = getPerfectDashProps(
+						Math.hypot(x2 - x1, y2 - y1),
+						1,
+						{ style: 'dashed', lengthRatio: 4 }
+					)
+					return (
+						<line
+							key={i}
+							x1={x1}
+							y1={y1}
+							x2={x2}
+							y2={y2}
+							strokeDasharray={strokeDasharray}
+							strokeDashoffset={strokeDashoffset}
+						/>
+					)
+				})}
+			</svg>
+		</div>
+	)
 }
 
 /** The live region being dragged out by the comment tool, or nothing when not dragging. */
@@ -31,7 +72,7 @@ export function RegionDraftBox({ editor }: { editor: Editor }) {
 export interface RegionHandle {
 	x: number
 	y: number
-	cursor: string
+	cursor: 'nwse-resize' | 'nesw-resize'
 }
 
 // The four corners, each resizing both axes.
@@ -62,6 +103,42 @@ function resizeRegion(box: BoxModel, handle: RegionHandle, cursor: VecLike): Box
 	}
 }
 
+/**
+ * The selection's corner-handle sizing (`SelectionForegroundOverlayUtil`), in screen px for a box
+ * `w`×`h` px on screen, so a region's corners look and hit exactly like a shape's resize corners.
+ * Keep in step with that util: the constants are its, not tuned here.
+ */
+export function selectionCornerSizing(w: number, h: number, isCoarsePointer: boolean) {
+	const handleSize = 8
+	const mobileHandleMultiplier = isCoarsePointer ? 1.75 : 1
+	const hitTargetSize = 6 * mobileHandleMultiplier
+	const isSmallX = w < handleSize * 4
+	const isSmallY = h < handleSize * 4
+	const hitTargetSizeX =
+		(isSmallX ? hitTargetSize / 2 : hitTargetSize) * (mobileHandleMultiplier * 0.75)
+	const hitTargetSizeY =
+		(isSmallY ? hitTargetSize / 2 : hitTargetSize) * (mobileHandleMultiplier * 0.75)
+	const isTinyX = w < handleSize * 2
+	const isTinyY = h < handleSize * 2
+	return {
+		// The corner hit square's full side: the util's `cornerHitHalfSize`, doubled.
+		hitSize: Math.max(hitTargetSizeX, hitTargetSizeY) * 1.5 * 2,
+		hideAlternateCorners: isTinyX || isTinyY,
+		showOnlyOneCorner: isTinyX && isTinyY,
+	}
+}
+
+// The selection hides the top-right and bottom-left corners on a tiny box, and the bottom-right too
+// when it's tiny both ways (top-left always shows).
+function isHiddenCorner(
+	h: RegionHandle,
+	sizing: ReturnType<typeof selectionCornerSizing>
+): boolean {
+	if (h.x === 0 && h.y === 0) return false
+	if (h.x === 1 && h.y === 1) return sizing.showOnlyOneCorner
+	return sizing.hideAlternateCorners
+}
+
 /** Draggable handles that resize a region — corners (both axes) or edges (one axis), per the resize
  *  option. Previews live, commits on release. */
 export function RegionResizeHandles({
@@ -79,46 +156,118 @@ export function RegionResizeHandles({
 }) {
 	// The box at pointer-down, captured so the box prop reflowing under the live preview doesn't move
 	// the fixed edges mid-drag.
-	const boxRef = useRef<BoxModel | null>(null)
-	const points = useValue(
-		'region handle points',
-		() =>
-			handles.map((h) => {
-				const p = editor.pageToViewport({ x: box.x + h.x * box.w, y: box.y + h.y * box.h })
-				return { ...h, key: `${h.x}-${h.y}`, left: p.x, top: p.y }
-			}),
+	const dragRef = useRef<{
+		box: BoxModel
+		handle: RegionHandle
+		// The last pointer position, so a camera move mid-resize can re-place the corner under it.
+		clientX: number
+		clientY: number
+		endDrag(): void
+	} | null>(null)
+	const wheelRef = useRef<HTMLDivElement>(null)
+	usePassThroughWheelEvents(wheelRef)
+	// Unmounting mid-resize gets no pointer up to end the drag.
+	useEffect(() => () => dragRef.current?.endDrag(), [])
+	const layout = useValue(
+		'region handle layout',
+		() => {
+			const zoom = editor.getZoomLevel()
+			const sizing = selectionCornerSizing(
+				box.w * zoom,
+				box.h * zoom,
+				editor.getInstanceState().isCoarsePointer
+			)
+			const points = handles
+				.filter((h) => !isHiddenCorner(h, sizing))
+				.map((h) => {
+					const p = editor.pageToViewport({ x: box.x + h.x * box.w, y: box.y + h.y * box.h })
+					return { ...h, key: `${h.x}-${h.y}`, left: p.x, top: p.y }
+				})
+			// tldraw's own resize cursors (the editor's, in the theme's cursor colour), not the
+			// browser's native ones.
+			const { cursor: cursorColor } = editor.getCurrentTheme().colors[editor.getColorMode()]
+			const cursors = {
+				'nwse-resize': getCursor('nwse-resize', 0, cursorColor),
+				'nesw-resize': getCursor('nesw-resize', 0, cursorColor),
+			}
+			return { points, hitSize: sizing.hitSize, cursors }
+		},
 		[editor, box.x, box.y, box.w, box.h, handles]
 	)
-	const startResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+	const { points, hitSize, cursors } = layout
+	const resized = () => {
+		const drag = dragRef.current!
+		return resizeRegion(
+			drag.box,
+			drag.handle,
+			editor.screenToPage({ x: drag.clientX, y: drag.clientY })
+		)
+	}
+	const startResize = (h: RegionHandle) => (e: ReactPointerEvent<HTMLDivElement>) => {
 		e.stopPropagation()
-		boxRef.current = box
+		dragRef.current = {
+			box,
+			handle: h,
+			clientX: e.clientX,
+			clientY: e.clientY,
+			endDrag: startCommentDrag(editor, {
+				cursor: h.cursor,
+				onCameraMove: () => {
+					if (dragRef.current) onPreview(resized())
+				},
+			}),
+		}
 		e.currentTarget.setPointerCapture(e.pointerId)
 	}
-	const resizedTo = (h: RegionHandle, e: ReactPointerEvent<HTMLDivElement>): BoxModel =>
-		resizeRegion(boxRef.current!, h, editor.screenToPage({ x: e.clientX, y: e.clientY }))
-	const onResize = (h: RegionHandle) => (e: ReactPointerEvent<HTMLDivElement>) => {
-		if (boxRef.current) onPreview(resizedTo(h, e))
+	const onResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		if (!drag) return
+		// Keep the resize's pointer moves from the active tool, whose hover handling resets the cursor.
+		e.stopPropagation()
+		drag.clientX = e.clientX
+		drag.clientY = e.clientY
+		onPreview(resized())
 	}
-	const endResize = (h: RegionHandle) => (e: ReactPointerEvent<HTMLDivElement>) => {
-		if (!boxRef.current) return
-		const bounds = resizedTo(h, e)
-		boxRef.current = null
+	const endResize = (e: ReactPointerEvent<HTMLDivElement>) => {
+		const drag = dragRef.current
+		if (!drag) return
+		drag.clientX = e.clientX
+		drag.clientY = e.clientY
+		const bounds = resized()
+		dragRef.current = null
+		drag.endDrag()
 		if (e.currentTarget.hasPointerCapture(e.pointerId))
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		onCommit(bounds)
 	}
+	// A cancelled pointer abandons the resize: the region snaps back to its stored bounds.
+	const cancelResize = () => {
+		const drag = dragRef.current
+		if (!drag) return
+		dragRef.current = null
+		drag.endDrag()
+		onPreview(null)
+	}
 	return (
-		<>
+		// A wheel over a handle (even mid-resize) scrolls the canvas, like everywhere else on it.
+		<div ref={wheelRef} className="tlui-cmt-canvas-region-handles">
 			{points.map((h) => (
 				<div
 					key={h.key}
 					className="tlui-cmt-canvas-region-handle"
-					style={{ left: h.left, top: h.top, cursor: h.cursor }}
-					onPointerDown={startResize}
-					onPointerMove={onResize(h)}
-					onPointerUp={endResize(h)}
+					style={{
+						left: h.left,
+						top: h.top,
+						width: hitSize,
+						height: hitSize,
+						cursor: cursors[h.cursor],
+					}}
+					onPointerDown={startResize(h)}
+					onPointerMove={onResize}
+					onPointerUp={endResize}
+					onPointerCancel={cancelResize}
 				/>
 			))}
-		</>
+		</div>
 	)
 }

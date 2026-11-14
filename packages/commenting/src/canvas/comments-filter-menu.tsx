@@ -56,8 +56,6 @@ export function CommentsFilterMenu({
 					<MoreMenuIcon />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			{/* No tlui-cmt-menu here: the rows are tldraw menu items, which carry their own insets —
-			    the extra padding would set this menu apart from the canvas menus it should match. */}
 			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
 					<TldrawUiMenuGroup id="comments-filter">

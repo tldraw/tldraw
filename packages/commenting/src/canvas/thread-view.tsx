@@ -1,5 +1,14 @@
 import { type CommentAuthor } from '@tldraw/mentions'
-import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import {
+	memo,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	createComment,
 	defineMessages,
@@ -8,6 +17,7 @@ import {
 	TLComment,
 	TLCommentThread,
 	TldrawUiButton,
+	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
@@ -70,12 +80,64 @@ const messages = defineMessages({
 	commentsResolve: { id: 'comments.resolve', defaultMessage: 'Resolve' },
 	commentsResolvedBy: { id: 'comments.resolved-by', defaultMessage: 'Resolved by {name}' },
 	commentsSave: { id: 'comments.save', defaultMessage: 'Save' },
+	commentsSeeLess: { id: 'comments.see-less', defaultMessage: 'See less' },
+	commentsSeeMore: { id: 'comments.see-more', defaultMessage: 'See more' },
 	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
 	commentsThreadTitle: { id: 'comments.thread-title', defaultMessage: 'Comment' },
 	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
 })
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
+
+/**
+ * A comment body clipped to 10 lines (see `.tlui-cmt-collapsible--collapsed`), with a See more /
+ * See less toggle when it's longer. Overflow is measured rather than estimated from the text, so it
+ * holds for any body (including a host's `CommentBody` slot) and re-checks as the panel resizes.
+ */
+function CollapsibleBody({ children }: { children: ReactNode }) {
+	const msg = useTranslation()
+	const ref = useRef<HTMLDivElement>(null)
+	const [expanded, setExpanded] = useState(false)
+	const [overflows, setOverflows] = useState(false)
+	useLayoutEffect(() => {
+		const el = ref.current
+		// Expanded, nothing is clipped to measure; keep the collapsed reading so See less stays.
+		if (!el || expanded) return
+		const measure = () => setOverflows(el.scrollHeight > el.clientHeight + 1)
+		measure()
+		const observer = new ResizeObserver(measure)
+		observer.observe(el)
+		for (const child of Array.from(el.children)) observer.observe(child)
+		return () => observer.disconnect()
+	}, [expanded, children])
+	const collapsed = overflows && !expanded
+	return (
+		<>
+			<div
+				ref={ref}
+				className={[
+					'tlui-cmt-collapsible',
+					!expanded && 'tlui-cmt-collapsible--collapsed',
+					collapsed && 'tlui-cmt-collapsible--clipped',
+				]
+					.filter(Boolean)
+					.join(' ')}
+			>
+				{children}
+			</div>
+			{overflows && (
+				<button
+					type="button"
+					className="tlui-cmt-see-more"
+					aria-expanded={expanded}
+					onClick={() => setExpanded((v) => !v)}
+				>
+					{msg(expanded ? messages.commentsSeeLess : messages.commentsSeeMore)}
+				</button>
+			)}
+		</>
+	)
+}
 
 /** The "⋯" dropdown used for both a comment's and the thread's actions. */
 function MoreOptionsMenu({
@@ -102,13 +164,7 @@ function MoreOptionsMenu({
 					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent
-				className="tlui-cmt-menu"
-				side="bottom"
-				align="start"
-				alignOffset={0}
-				sideOffset={4}
-			>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={4}>
 				<TldrawUiDropdownMenuGroup>{children}</TldrawUiDropdownMenuGroup>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
@@ -117,24 +173,18 @@ function MoreOptionsMenu({
 
 function MenuItem({
 	label,
-	danger,
 	noClose,
 	onClick,
 }: {
 	label: string
-	danger?: boolean
 	noClose?: boolean
 	onClick(): void
 }) {
 	return (
 		<TldrawUiDropdownMenuItem noClose={noClose}>
-			<button
-				type="button"
-				className={danger ? 'tlui-cmt-menu-item tlui-cmt-menu-item--danger' : 'tlui-cmt-menu-item'}
-				onClick={onClick}
-			>
-				<span>{label}</span>
-			</button>
+			<TldrawUiButton type="menu" onClick={onClick}>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</TldrawUiDropdownMenuItem>
 	)
 }
@@ -328,9 +378,15 @@ export const ThreadView = memo(function ThreadView({
 	// re-allocate a date string and body element per comment.
 	const cards = useMemo(
 		() =>
-			comments.map((c) =>
-				toCardProps(c, { currentUserId, resolveAuthor }, options.components, resolveName)
-			),
+			comments.map((c) => {
+				const card = toCardProps(
+					c,
+					{ currentUserId, resolveAuthor },
+					options.components,
+					resolveName
+				)
+				return { ...card, body: <CollapsibleBody>{card.body}</CollapsibleBody> }
+			}),
 		[comments, currentUserId, resolveAuthor, options.components, resolveName]
 	)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
@@ -562,7 +618,6 @@ export const ThreadView = memo(function ThreadView({
 									{permissions?.delete && (
 										<MenuItem
 											label={msg(messages.actionDelete)}
-											danger
 											onClick={() => deleteComment(editor, comment)}
 										/>
 									)}
@@ -597,7 +652,7 @@ export const ThreadView = memo(function ThreadView({
 						/>
 					)}
 					{canDeleteThread && (
-						<MenuItem label={msg(messages.commentsDelete)} danger onClick={removeThread} />
+						<MenuItem label={msg(messages.commentsDelete)} onClick={removeThread} />
 					)}
 				</MoreOptionsMenu>
 			)}

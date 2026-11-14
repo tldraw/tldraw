@@ -18,7 +18,7 @@ import {
 	useValue,
 } from 'tldraw'
 import { CommentPin } from '../ui/comment-pin'
-import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
+import { forwardPointerEventToCanvas, isCanvasPanGesture, startCommentDrag } from './canvas-events'
 import { commitCommentMutation } from './comment-mutations'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
@@ -129,6 +129,10 @@ export const ThreadPin = memo(function ThreadPin({
 		// cursor's delta (like RegionBox's move) instead of snapping the anchor to the cursor.
 		offsetX: number
 		offsetY: number
+		// The last pointer position, so a camera move mid-drag can re-place the pin under it.
+		clientX: number
+		clientY: number
+		endDrag?(): void
 	} | null>(null)
 	const markerRef = useRef<HTMLButtonElement>(null)
 	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
@@ -140,7 +144,9 @@ export const ThreadPin = memo(function ThreadPin({
 	// clear the hint here or it stays on the shape indefinitely.
 	useEffect(() => {
 		return () => {
-			if (dragRef.current) editor.setHintingShapes([])
+			if (!dragRef.current) return
+			editor.setHintingShapes([])
+			dragRef.current.endDrag?.()
 		}
 	}, [editor])
 
@@ -239,6 +245,8 @@ export const ThreadPin = memo(function ThreadPin({
 		dragRef.current = {
 			startX: e.clientX,
 			startY: e.clientY,
+			clientX: e.clientX,
+			clientY: e.clientY,
 			moved: false,
 			offsetX: anchorPage ? anchorPage.x - grabPage.x : 0,
 			offsetY: anchorPage ? anchorPage.y - grabPage.y : 0,
@@ -252,8 +260,21 @@ export const ThreadPin = memo(function ThreadPin({
 		// press stays a click (`moved` never sets, so release toggles the popover and never commits).
 		if (!canComment) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
-		drag.moved = true
-		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		// Keep the drag's pointer moves from the active tool, whose hover handling would reset the cursor.
+		e.stopPropagation()
+		drag.clientX = e.clientX
+		drag.clientY = e.clientY
+		if (!drag.moved) {
+			drag.moved = true
+			drag.endDrag = startCommentDrag(editor, { cursor: 'move', onCameraMove: dragToPointer })
+		}
+		dragToPointer()
+	}
+	// Place the pin under the drag's last pointer position, at the current camera.
+	const dragToPointer = () => {
+		const drag = dragRef.current
+		if (!drag) return
+		const cursorPage = editor.screenToPage({ x: drag.clientX, y: drag.clientY })
 		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
 		setDragPagePoint(pagePoint)
 		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
@@ -267,6 +288,7 @@ export const ThreadPin = memo(function ThreadPin({
 	const takeDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
+		drag?.endDrag?.()
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}
