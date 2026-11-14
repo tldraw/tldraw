@@ -6,7 +6,6 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { LibraryIcon } from '../ui/library-icon'
 import { librariesPanelOpen, toggleLibrariesPanel } from './state'
 
 const messages = defineMessages({
@@ -32,7 +31,7 @@ export function LibrariesPanelButton() {
 			title={label}
 			onClick={() => toggleLibrariesPanel(editor)}
 		>
-			<TldrawUiButtonIcon icon={<LibraryIcon />} />
+			<TldrawUiButtonIcon icon="library" />
 		</TldrawUiButton>
 	)
 }

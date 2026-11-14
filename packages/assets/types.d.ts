@@ -83,6 +83,7 @@ export type AssetUrls = {
 		duplicate: string
 		edit: string
 		'external-link': string
+		file: string
 		'fill-fill': string
 		'fill-lined-fill': string
 		'fill-none': string
@@ -126,6 +127,8 @@ export type AssetUrls = {
 		'info-circle': string
 		italic: string
 		leading: string
+		'library-add': string
+		library: string
 		link: string
 		list: string
 		lock: string

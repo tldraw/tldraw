@@ -8,7 +8,6 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { NewLibraryIcon } from '../ui/library-icon'
 import { LibraryMenu } from '../ui/library-menu'
 import { renamingLibraryId } from './state'
 
@@ -46,7 +45,7 @@ export function LibrariesPanelHeader({
 						title={newLibrary.label}
 						onClick={newLibrary.onCreate}
 					>
-						<TldrawUiButtonIcon icon={<NewLibraryIcon />} />
+						<TldrawUiButtonIcon icon="library-add" />
 					</TldrawUiButton>
 				)}
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur

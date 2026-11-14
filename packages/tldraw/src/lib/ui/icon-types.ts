@@ -63,6 +63,7 @@ export type TLUiIconType =
 	| 'duplicate'
 	| 'edit'
 	| 'external-link'
+	| 'file'
 	| 'fill-fill'
 	| 'fill-lined-fill'
 	| 'fill-none'
@@ -106,6 +107,8 @@ export type TLUiIconType =
 	| 'info-circle'
 	| 'italic'
 	| 'leading'
+	| 'library-add'
+	| 'library'
 	| 'link'
 	| 'list'
 	| 'lock'
@@ -229,6 +232,7 @@ export const iconTypes = [
 	'duplicate',
 	'edit',
 	'external-link',
+	'file',
 	'fill-fill',
 	'fill-lined-fill',
 	'fill-none',
@@ -272,6 +276,8 @@ export const iconTypes = [
 	'info-circle',
 	'italic',
 	'leading',
+	'library-add',
+	'library',
 	'link',
 	'list',
 	'lock',
