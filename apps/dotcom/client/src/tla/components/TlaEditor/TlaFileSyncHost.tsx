@@ -1,3 +1,4 @@
+import { useClerk } from '@clerk/react'
 import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import {
@@ -101,9 +102,19 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 	const getUserToken = useEvent(async () => {
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
+	const clerk = useClerk()
 	const assets = useMemo(() => {
-		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
-	}, [fileSlug, getUserToken])
+		return multiplayerAssetStore({
+			getFileId: () => fileSlug,
+			getToken: async () => {
+				const token = await getUserToken()
+				// An upload outlives an account switch; sent with the next account's token (or none,
+				// after sign-out) it would be attributed to the wrong user or rejected as a guest.
+				if (clerk.user?.id !== userId) throw new Error('The signed-in account changed')
+				return token
+			},
+		})
+	}, [fileSlug, getUserToken, clerk, userId])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
 	const editorRef = useRef<Editor | null>(null)
 

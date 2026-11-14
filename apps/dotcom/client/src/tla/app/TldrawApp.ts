@@ -171,6 +171,8 @@ function getEnglishIntl() {
 	return englishIntl
 }
 
+type CreateFileError = 'max number of files reached' | 'mutation rejected' | 'app disposed'
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -213,6 +215,13 @@ export class TldrawApp {
 	readonly libraries: LibrarySource | null
 
 	private readonly abortController = new AbortController()
+	/**
+	 * Signing out or switching accounts disposes this app without a page reload, so awaited work
+	 * resumes under the next session. Check this before a late result toasts or navigates.
+	 */
+	isDisposed() {
+		return this.abortController.signal.aborted
+	}
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
 	private getToken: () => Promise<string | undefined>
 
@@ -680,6 +689,8 @@ export class TldrawApp {
 
 	// Zero-level errors (socket down, client closed) carry prose, not a ZErrorCode.
 	showMutationRejectionToast = throttle((error: MutatorResultErrorDetails['error']) => {
+		// Closing Zero on dispose fails every pending mutation; that is teardown, not a rejection.
+		if (this.isDisposed()) return
 		const code = error.type === 'zero' ? ZErrorCode.offline_error : (error.message as ZErrorCode)
 		const descriptor = this.getMessage(code)
 		this.toasts?.addToast({
@@ -925,7 +936,7 @@ export class TldrawApp {
 	// Cleared once settled.
 	private readonly workspaceWelcomeFileSeeds = new Map<
 		string,
-		Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>>
+		Promise<Result<{ fileId: string }, CreateFileError>>
 	>()
 
 	/**
@@ -936,7 +947,7 @@ export class TldrawApp {
 	 */
 	createWorkspaceWelcomeFile(
 		workspaceId: string
-	): Promise<Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>> {
+	): Promise<Result<{ fileId: string }, CreateFileError>> {
 		const inFlight = this.workspaceWelcomeFileSeeds.get(workspaceId)
 		if (inFlight) return inFlight
 
@@ -973,9 +984,7 @@ export class TldrawApp {
 		workspaceId?: string
 		name?: string
 		createSource?: string | null
-	} = {}): Promise<
-		Result<{ fileId: string }, 'max number of files reached' | 'mutation rejected'>
-	> {
+	} = {}): Promise<Result<{ fileId: string }, CreateFileError>> {
 		if (!this.canCreateNewFile(workspaceId)) {
 			this.showMaxFilesToast()
 			return Result.err('max number of files reached')
@@ -992,6 +1001,7 @@ export class TldrawApp {
 			createSource,
 			time: Date.now(),
 		}).client
+		if (this.isDisposed()) return Result.err('app disposed')
 		if (res.type === 'error') {
 			this.showMutationRejectionToast(res.error)
 			return Result.err('mutation rejected')
@@ -1542,6 +1552,7 @@ export class TldrawApp {
 		// A gateway error page or the router's own 401 body isn't an AcceptInviteResponseBody;
 		// parsing it first would throw past the toast below.
 		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
+		if (this.isDisposed()) return
 
 		if (!payload || payload.error || !response.ok) {
 			const code = payload?.error ? payload.code : undefined
@@ -1575,6 +1586,9 @@ export class TldrawApp {
 				return
 			}
 			await sleep(100)
+			// A disposed app's store never updates, so without this the loop would time out and
+			// toast an error and navigate away in whichever session replaced it.
+			if (this.isDisposed()) return
 		}
 
 		// Clear any existing ordering for this new workspace to get fresh ordering
