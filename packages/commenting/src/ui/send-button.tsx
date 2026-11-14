@@ -1,4 +1,4 @@
-import { SendIcon } from './icons'
+import { TldrawUiIcon } from 'tldraw'
 
 /** @public */
 export interface SendButtonProps {
@@ -19,7 +19,7 @@ export function SendButton({ label, disabled, onClick }: SendButtonProps) {
 			aria-label={label}
 			title={label}
 		>
-			<SendIcon />
+			<TldrawUiIcon icon="arrow-up" label="" aria-hidden="true" small />
 		</button>
 	)
 }

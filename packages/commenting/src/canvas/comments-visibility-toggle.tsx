@@ -1,5 +1,11 @@
-import { defineMessages, TldrawUiButton, useEditor, useTranslation, useValue } from 'tldraw'
-import { EyeClosedIcon, EyeOpenIcon } from '../ui/icons'
+import {
+	defineMessages,
+	TldrawUiButton,
+	TldrawUiButtonIcon,
+	useEditor,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { commentsHidden, toggleCommentsHidden } from './state'
 
 const messages = defineMessages({
@@ -24,7 +30,7 @@ export function CommentsVisibilityToggle() {
 			className="tlui-cmt-header-btn"
 			onClick={() => toggleCommentsHidden(editor)}
 		>
-			{hidden ? <EyeClosedIcon /> : <EyeOpenIcon />}
+			<TldrawUiButtonIcon icon={hidden ? 'closed' : 'follow'} small />
 		</TldrawUiButton>
 	)
 }

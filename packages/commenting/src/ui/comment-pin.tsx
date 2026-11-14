@@ -1,5 +1,5 @@
 import { ReactNode } from 'react'
-import { PinCheckIcon } from './icons'
+import { TldrawUiIcon } from 'tldraw'
 
 /** @public */
 export interface CommentPinProps {
@@ -12,7 +12,7 @@ export interface CommentPinProps {
 }
 
 /* Decorative — the pin's accessible name lives on whatever wraps it. */
-const resolvedCheck = <PinCheckIcon />
+const resolvedCheck = <TldrawUiIcon icon="check-bold" label="" aria-hidden="true" small />
 
 /** A canvas comment marker: shows its `children` (or a check when resolved). Purely
  * presentational — it reflects open/resolved state via CSS; wrap it to make it clickable.

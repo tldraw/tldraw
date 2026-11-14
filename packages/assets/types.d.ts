@@ -34,6 +34,7 @@ export type AssetUrls = {
 		'arrow-cycle': string
 		'arrow-elbow': string
 		'arrow-left': string
+		'arrow-up': string
 		'arrowhead-arrow': string
 		'arrowhead-bar': string
 		'arrowhead-diamond': string
@@ -49,6 +50,7 @@ export type AssetUrls = {
 		'bring-to-front': string
 		broken: string
 		bulletList: string
+		'check-bold': string
 		'check-circle': string
 		check: string
 		'chevron-down': string
@@ -148,6 +150,7 @@ export type AssetUrls = {
 		'size-large': string
 		'size-medium': string
 		'size-small': string
+		smile: string
 		'spline-cubic': string
 		'spline-line': string
 		'stack-horizontal': string
