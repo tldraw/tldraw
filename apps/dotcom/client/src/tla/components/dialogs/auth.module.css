@@ -57,7 +57,7 @@
 /* Description Text */
 .authDescription {
 	text-align: center;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 	font-size: 12px;
 	margin: 0;
 	line-height: 1.5;
