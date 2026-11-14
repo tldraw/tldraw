@@ -1,3 +1,4 @@
+import { ChangeSource } from '@tldraw/store'
 import {
 	RecordProps,
 	TLBinding,
@@ -74,6 +75,14 @@ export interface BindingOnShapeChangeOptions<Binding extends TLBinding = TLBindi
 	 * - 'ancestry': the ancestry of the shape changed, but the shape itself may not have done
 	 */
 	reason: 'self' | 'ancestry'
+	/**
+	 * Where the change came from. Hooks also run on every client that receives a remote change, and
+	 * that change already carries any binding updates the original client made in response, so a
+	 * hook that adjusts the binding relative to its previous state should skip `'remote'` changes.
+	 * Diffs applied outside `store.mergeRemoteChanges` (for example with `store.applyDiff`) arrive
+	 * as `'user'`.
+	 */
+	source: ChangeSource
 }
 
 /**

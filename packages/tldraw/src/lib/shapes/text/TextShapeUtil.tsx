@@ -111,6 +111,11 @@ export class TextShapeUtil extends ShapeUtil<TLTextShape> {
 	}
 
 	getMinDimensions(shape: TLTextShape) {
+		// The cache is keyed by id, so it only describes the record currently in the store. Measuring
+		// an older version (such as `shapeBefore` in a binding hook) would otherwise return the new size.
+		if (this.editor.getShape(shape.id)?.props !== shape.props) {
+			return getTextSize(this.editor, shape.props, getDisplayValues(this, shape))
+		}
 		return sizeCache.get(this.editor, shape.id)!
 	}
 
