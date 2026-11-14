@@ -15,6 +15,7 @@ async function getAllPersistenceKeys() {
 }
 
 const { loader, useData } = defineLoader(getAllPersistenceKeys)
+// oxlint-disable-next-line react/only-export-components -- React Router reads `loader` from the lazy route module
 export { loader }
 
 export function Component() {

@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- a dialog-opening utility, not a component module */
 import {
 	TLUiDialogsContextType,
 	TldrawUiButton,

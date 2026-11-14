@@ -61,10 +61,6 @@
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
 }
-/* Focus should read like hover, so the pin lifts the same way when tabbed to. */
-.tlui-cmt-canvas-pin__marker:focus-visible .tlui-cmt-marker {
-	transform: scale(var(--tlui-cmt-marker-hover-scale));
-}
 
 .tlui-cmt-cluster-fade {
 	opacity: 1;
@@ -119,7 +115,6 @@
 .tlui-cmt-canvas-stack-badge:focus-visible .tlui-cmt-marker {
 	outline: 2px solid var(--tl-color-selected);
 	outline-offset: 2px;
-	transform: scale(var(--tlui-cmt-marker-hover-scale));
 }
 
 /* The stack's popover content: one card per thread, the expanded thread inline among them. */
@@ -273,31 +268,39 @@
 	cursor: pointer;
 }
 
-/* Every card surface that tints on hover — a collapsed thread in a stack list, a preview card, and
-   the single-comment preview panel. One rule, because they're the same object to the eye.
-
-   The opaque low-surface token, not a translucent muted one: these float directly over the canvas,
-   where a translucent fill would let shapes show through.
-
-   The second line is why this isn't a one-liner. `--tl-shadow-3` ends with a 1px *inset* ring in
-   `--tl-color-panel-contrast` — pure white in light mode — and an inset shadow paints over the
-   background. At rest that's invisible (the panel is 99% white under a 100% white ring), but tint
-   the background to grey and the ring stays white, hugging the edge as a pale outline. Re-tinting
-   `--tl-color-panel-contrast` here wouldn't reach it: `--tl-shadow-3` is declared on the container,
-   so its var() was already substituted there and the white is baked into what we inherit. Instead
-   lay a ring of the new surface over the old one — first shadow in the list paints on top. */
+/* Every card surface that highlights on hover — a collapsed thread in a stack list, a preview
+   card, and the single-comment preview panel. One rule, because they're the same object to the eye.
+   The highlight is an inset, rounded wash like a menu item's, not a tint of the whole surface: the
+   card stays panel-white and a wash sits 4px inside its edge, its corners following the card's.
+   It paints behind the content (`isolation` keeps the -1 z-index above the card's own fill). */
+.tlui-cmt-stack-list__card,
+.tlui-cmt-preview-card--selectable,
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable {
+	position: relative;
+	isolation: isolate;
+}
+.tlui-cmt-stack-list__card::after,
+.tlui-cmt-preview-card--selectable::after,
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable::after {
+	content: '';
+	position: absolute;
+	inset: 4px;
+	z-index: -1;
+	/* The cards' 12px radius, less the inset. */
+	border-radius: 8px;
+	pointer-events: none;
+}
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable::after {
+	border-radius: calc(var(--tl-radius-4) - 4px);
+}
+.tlui-cmt-stack-list__card:hover::after,
+.tlui-cmt-preview-card--selectable:hover::after,
+.tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover::after {
+	background: var(--tl-color-muted-2);
+}
 .tlui-cmt-stack-list__card:hover,
 .tlui-cmt-preview-card--selectable:hover,
 .tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable:hover {
-	--tlui-cmt-preview-hover-surface: color-mix(
-		in srgb,
-		var(--tl-color-low) 50%,
-		var(--tl-color-panel)
-	);
-	background: var(--tlui-cmt-preview-hover-surface);
-	box-shadow:
-		inset 0 0 0 1px var(--tlui-cmt-preview-hover-surface),
-		var(--tl-shadow-3);
 	cursor: pointer;
 }
 
@@ -341,22 +344,44 @@
 .tlui-cmt-canvas-region {
 	position: absolute;
 	pointer-events: none;
-	border: 2px dashed var(--tl-color-selected);
-	border-radius: 6px;
 	background: color-mix(in srgb, var(--tl-color-selected) 10%, transparent);
 }
+.tlui-cmt-canvas-region__outline {
+	position: absolute;
+	inset: 0;
+	overflow: visible;
+	fill: none;
+	stroke: var(--tl-color-selection-stroke);
+	stroke-width: 1.5px;
+	stroke-linecap: round;
+}
 
-/* Corner resize handles on a region box (three corners; the pin corner is the move handle). */
+.tlui-cmt-canvas-region-handles {
+	display: contents;
+}
+
+/* Corner resize handles on a region box (three corners; the pin corner is the move handle). The
+   element is the hit square, sized from the selection's corner hit area (see
+   `selectionCornerSizing`); the visible square is drawn like a selection corner: an 8px fill with a
+   1.5px stroke centred on its edge. */
 .tlui-cmt-canvas-region-handle {
 	position: absolute;
-	width: 9px;
-	height: 9px;
 	transform: translate(-50%, -50%);
-	background: var(--tl-color-panel);
-	border: 1.5px solid var(--tl-color-selected);
-	border-radius: 2px;
 	pointer-events: auto;
 	touch-action: none;
+}
+.tlui-cmt-canvas-region-handle::before {
+	content: '';
+	position: absolute;
+	left: 50%;
+	top: 50%;
+	/* Not covered by the container's `*` border-box rule, which doesn't match pseudo-elements. */
+	box-sizing: border-box;
+	width: 9.5px;
+	height: 9.5px;
+	transform: translate(-50%, -50%);
+	background: var(--tl-color-background);
+	border: 1.5px solid var(--tl-color-selection-stroke);
 }
 
 /* Anchor the pin by its bottom-left corner, so the marker's one sharp corner (the pin shape's
@@ -489,13 +514,19 @@
 .tlui-cmt-canvas-composer .tlui-cmt-input__placeholder {
 	left: 12px;
 }
-/* The draft avatar previews the pin it becomes — a white 28px pin holding the author's 22px avatar
-   circle — sharing the composer's lift. Not interactive: it drops the pin's pointer cursor and
-   hover affordances (scale + shadow bump), but keeps a 40×40 hit area (the ::after below). */
+/* The draft avatar previews the pin it becomes and is the draft's drag handle. It keeps a 40×40 hit
+   area (the ::after below). */
 .tlui-cmt-canvas-composer .tlui-cmt-pin {
 	position: relative;
 	box-shadow: var(--tl-shadow-2);
 	cursor: default;
+}
+.tlui-cmt-canvas-composer__handle {
+	touch-action: none;
+}
+.tlui-cmt-canvas-composer--dragging .tlui-cmt-canvas-composer__handle,
+.tlui-cmt-canvas-composer--dragging .tlui-cmt-pin {
+	cursor: var(--tl-cursor-move);
 }
 .tlui-cmt-canvas-composer .tlui-cmt-pin::after {
 	content: '';

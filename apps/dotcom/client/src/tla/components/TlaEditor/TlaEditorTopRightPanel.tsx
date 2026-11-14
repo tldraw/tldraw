@@ -4,16 +4,9 @@ import {
 	useCommentingEnabled,
 	useCommentsSidebarOpen,
 } from '@tldraw/commenting'
-import {
-	PUBLISH_PREFIX,
-	READ_ONLY_LEGACY_PREFIX,
-	READ_ONLY_PREFIX,
-	ROOM_PREFIX,
-	SNAPSHOT_PREFIX,
-} from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
 	F,
@@ -34,12 +27,13 @@ import {
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
+import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
-import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -140,7 +134,7 @@ function CommentsSidebarButton() {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 	const commentingEnabled = useCommentingEnabled()
-	const commentingEnabledForUser = useIsCommentingEnabled()
+	const commentingEnabledForUser = useIsCommentingEnabledForUser()
 	const open = useCommentsSidebarOpen()
 	const label = msg(commentsMessages.comments)
 
@@ -208,47 +202,6 @@ function DesignSwitchItem({ designSwitch }: { designSwitch: DesignSwitch }) {
 			readonlyOk
 		/>
 	)
-}
-
-export function useGetFileName() {
-	const editor = useEditor()
-	const msg = useTranslation()
-	const defaultPageName = msg('page-menu.new-page-initial-name')
-
-	const documentName = editor.getDocumentSettings().name
-	if (documentName?.length > 0) return documentName
-
-	const firstPageName = editor.getPages()[0].name
-	if (
-		firstPageName.length > 0 &&
-		!firstPageName.startsWith('Page 1') &&
-		!firstPageName.startsWith(defaultPageName)
-	)
-		return firstPageName
-	return ''
-}
-
-function usePrefix() {
-	const location = useLocation()
-	const roomPrefix = location.pathname.split('/')[1]
-	switch (roomPrefix) {
-		case ROOM_PREFIX:
-		case READ_ONLY_PREFIX:
-		case READ_ONLY_LEGACY_PREFIX:
-		case SNAPSHOT_PREFIX:
-		case PUBLISH_PREFIX:
-			return roomPrefix
-	}
-	return null
-}
-
-export function useRoomInfo() {
-	// Legacy routes name the param roomId; the publish route (/p/:fileSlug) names it fileSlug.
-	const { roomId, fileSlug } = useParams()
-	const id = roomId ?? fileSlug
-	const prefix = usePrefix()
-	if (!id || !prefix) return null
-	return { prefix, id }
 }
 
 function LegacyImportButton() {

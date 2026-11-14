@@ -117,13 +117,13 @@
 }
 
 .tlui-button[aria-expanded='true'][data-direction='left'] {
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-rtl);
 	opacity: 1;
 }
 
 @media (hover: hover) {
 	.tlui-button[aria-expanded='true'][data-direction='left']:not(:hover)::after {
-		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: var(--tl-gradient-rtl);
 		opacity: 1;
 	}
 
@@ -327,7 +327,7 @@
 }
 
 .tlui-zoom-menu__button[data-state='open']::after {
-	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-btt);
 	opacity: 1;
 }
 
@@ -578,7 +578,7 @@
 
 .tlui-select__chevron {
 	flex-shrink: 0;
-	color: var(--tl-color-text-2);
+	color: var(--tl-color-text-1);
 }
 
 /* Content extends .tlui-menu with Radix-aware sizing */
@@ -693,30 +693,22 @@
 /* Submenu triggers */
 
 .tlui-menu__submenu__trigger {
-	--gradient-angle: 90deg;
+	--tlui-submenu-gradient: var(--tl-gradient-ltr);
 }
 
 .tlui-menu__submenu__trigger[data-direction='left'] {
-	--gradient-angle: 270deg;
+	--tlui-submenu-gradient: var(--tl-gradient-rtl);
 }
 
 .tlui-menu__submenu__trigger[data-state='open']::after {
 	opacity: 1;
-	background: linear-gradient(
-		var(--gradient-angle),
-		rgba(144, 144, 144, 0) 0%,
-		var(--tl-color-muted-2) 100%
-	);
+	background: var(--tlui-submenu-gradient);
 }
 
 @media (hover: hover) {
 	.tlui-menu__submenu__trigger:is(:hover, [data-state='open'])::after {
 		opacity: 1;
-		background: linear-gradient(
-			var(--gradient-angle),
-			rgba(144, 144, 144, 0) 0%,
-			var(--tl-color-muted-2) 100%
-		);
+		background: var(--tlui-submenu-gradient);
 	}
 }
 
@@ -792,13 +784,13 @@
 }
 
 .tlui-menu-zone *[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
 
 @media (hover: hover) {
 	.tlui-menu-zone *[data-state='open']:not(:hover)::after {
-		background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: var(--tl-gradient-ttb);
 		opacity: 1;
 	}
 }
@@ -813,10 +805,12 @@
 
 .tlui-page-menu__trigger {
 	width: auto;
+	/* Long page names truncate in the label rather than stretching the menu zone across the top. */
+	max-width: 320px;
 }
 
 .tlui-page-menu__trigger[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
 
@@ -1006,6 +1000,10 @@
 	opacity: 1;
 }
 
+.tlui-page-menu__item__submenu > .tlui-button[data-state='open'] {
+	color: var(--tl-color-text-1);
+}
+
 /* Hide the kebab while any row is being dragged: :hover sticks during pointer */
 /* capture, which would otherwise leave the kebab visible mid-drag. */
 .tlui-page-menu__list__content[data-dragging='true']
@@ -1047,7 +1045,7 @@
 	}
 
 	.tlui-page-menu__item__submenu > .tlui-button:hover {
-		color: var(--tl-color-text);
+		color: var(--tl-color-text-1);
 	}
 }
 /* -------------- Skip to main content -------------- */
@@ -1211,7 +1209,7 @@ tldraw? probably.
 
 .tlui-style-panel .tlui-button[data-state='open']::after {
 	opacity: 1;
-	background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-rtl);
 }
 
 @media (hover: hover) {
@@ -1220,7 +1218,7 @@ tldraw? probably.
 	}
 	.tlui-style-panel .tlui-button[data-state='open']:not(:hover)::after {
 		opacity: 1;
-		background: linear-gradient(270deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: var(--tl-gradient-rtl);
 	}
 }
 
@@ -1447,11 +1445,11 @@ tldraw? probably.
 }
 
 .tlui-main-toolbar--horizontal *[data-state='open']::after {
-	background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-btt);
 	opacity: 1;
 }
 .tlui-main-toolbar--vertical *[data-state='open']::after {
-	background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ltr);
 	opacity: 1;
 }
 
@@ -1487,11 +1485,11 @@ tldraw? probably.
 
 @media (hover: hover) {
 	.tlui-main-toolbar--horizontal *[data-state='open']:not(:hover)::after {
-		background: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: var(--tl-gradient-btt);
 		opacity: 1;
 	}
 	.tlui-main-toolbar--vertical *[data-state='open']:not(:hover)::after {
-		background: linear-gradient(90deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+		background: var(--tl-gradient-ltr);
 		opacity: 1;
 	}
 }

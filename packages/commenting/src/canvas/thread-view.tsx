@@ -1,5 +1,15 @@
-import { type CommentAuthor } from '@tldraw/mentions'
-import { memo, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { type CommentAuthor, isMentionPickerOpen } from '@tldraw/mentions'
+import {
+	type ClipboardEvent as ReactClipboardEvent,
+	memo,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import {
 	createComment,
 	defineMessages,
@@ -8,6 +18,7 @@ import {
 	TLComment,
 	TLCommentThread,
 	TldrawUiButton,
+	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
@@ -16,6 +27,7 @@ import {
 	TldrawUiIcon,
 	TLRichText,
 	useContainer,
+	useCurrentTranslation,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
@@ -52,12 +64,13 @@ import {
 	useCommentingOptions,
 } from './options'
 import { openThreadId } from './state'
+import { formatThreadTranscript } from './thread-transcript'
 
 const messages = defineMessages({
 	actionDelete: { id: 'action.delete', defaultMessage: 'Delete' },
 	commentsCopyLink: { id: 'comments.copy-link', defaultMessage: 'Copy link' },
 	commentsDelete: { id: 'comments.delete', defaultMessage: 'Delete thread' },
-	commentsDismiss: { id: 'comments.dismiss', defaultMessage: 'Dismiss' },
+	commentsClose: { id: 'comments.close', defaultMessage: 'Close' },
 	commentsEdit: { id: 'comments.edit', defaultMessage: 'Edit' },
 	commentsEditPlaceholder: {
 		id: 'comments.edit-placeholder',
@@ -70,12 +83,59 @@ const messages = defineMessages({
 	commentsResolve: { id: 'comments.resolve', defaultMessage: 'Resolve' },
 	commentsResolvedBy: { id: 'comments.resolved-by', defaultMessage: 'Resolved by {name}' },
 	commentsSave: { id: 'comments.save', defaultMessage: 'Save' },
+	commentsSeeLess: { id: 'comments.see-less', defaultMessage: 'See less' },
+	commentsSeeMore: { id: 'comments.see-more', defaultMessage: 'See more' },
 	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
 	commentsThreadTitle: { id: 'comments.thread-title', defaultMessage: 'Comment' },
 	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
 })
 
 const stop = (e: { stopPropagation(): void }) => e.stopPropagation()
+
+/**
+ * A comment body clamped to 10 lines (see `.tlui-cmt-collapsible--collapsed`), with a See more /
+ * See less toggle when it's longer. Overflow is measured rather than estimated from the text, so it
+ * holds for any body (including a host's `CommentBody` slot) and re-checks as the panel resizes.
+ */
+function CollapsibleBody({ children }: { children: ReactNode }) {
+	const msg = useTranslation()
+	const ref = useRef<HTMLDivElement>(null)
+	const [expanded, setExpanded] = useState(false)
+	const [overflows, setOverflows] = useState(false)
+	useLayoutEffect(() => {
+		const el = ref.current
+		// Expanded, nothing is clipped to measure; keep the collapsed reading so See less stays.
+		if (!el || expanded) return
+		const measure = () => setOverflows(el.scrollHeight > el.clientHeight + 1)
+		measure()
+		const observer = new ResizeObserver(measure)
+		observer.observe(el)
+		for (const child of Array.from(el.children)) observer.observe(child)
+		return () => observer.disconnect()
+	}, [expanded, children])
+	return (
+		<>
+			<div
+				ref={ref}
+				className={['tlui-cmt-collapsible', !expanded && 'tlui-cmt-collapsible--collapsed']
+					.filter(Boolean)
+					.join(' ')}
+			>
+				{children}
+			</div>
+			{overflows && (
+				<button
+					type="button"
+					className="tlui-cmt-see-more"
+					aria-expanded={expanded}
+					onClick={() => setExpanded((v) => !v)}
+				>
+					{msg(expanded ? messages.commentsSeeLess : messages.commentsSeeMore)}
+				</button>
+			)}
+		</>
+	)
+}
 
 /** The "⋯" dropdown used for both a comment's and the thread's actions. */
 function MoreOptionsMenu({
@@ -102,14 +162,8 @@ function MoreOptionsMenu({
 					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent
-				className="tlui-cmt-menu"
-				side="bottom"
-				align="start"
-				alignOffset={0}
-				sideOffset={4}
-			>
-				<TldrawUiDropdownMenuGroup>{children}</TldrawUiDropdownMenuGroup>
+			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
+				{children}
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
 	)
@@ -117,24 +171,18 @@ function MoreOptionsMenu({
 
 function MenuItem({
 	label,
-	danger,
 	noClose,
 	onClick,
 }: {
 	label: string
-	danger?: boolean
 	noClose?: boolean
 	onClick(): void
 }) {
 	return (
 		<TldrawUiDropdownMenuItem noClose={noClose}>
-			<button
-				type="button"
-				className={danger ? 'tlui-cmt-menu-item tlui-cmt-menu-item--danger' : 'tlui-cmt-menu-item'}
-				onClick={onClick}
-			>
-				<span>{label}</span>
-			</button>
+			<TldrawUiButton type="menu" onClick={onClick}>
+				<TldrawUiButtonLabel>{label}</TldrawUiButtonLabel>
+			</TldrawUiButton>
 		</TldrawUiDropdownMenuItem>
 	)
 }
@@ -328,12 +376,56 @@ export const ThreadView = memo(function ThreadView({
 	// re-allocate a date string and body element per comment.
 	const cards = useMemo(
 		() =>
-			comments.map((c) =>
-				toCardProps(c, { currentUserId, resolveAuthor }, options.components, resolveName)
-			),
+			comments.map((c) => {
+				const card = toCardProps(
+					c,
+					{ currentUserId, resolveAuthor },
+					options.components,
+					resolveName
+				)
+				return { ...card, body: <CollapsibleBody>{card.body}</CollapsibleBody> }
+			}),
 		[comments, currentUserId, resolveAuthor, options.components, resolveName]
 	)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
+	const { locale } = useCurrentTranslation()
+
+	// Copying across comments puts a clean transcript on the clipboard: the DOM's own text runs the
+	// name into the time ("Steve Ruiznow"), loses whichever time is hidden under hover actions, and
+	// keeps relative times that mean nothing once pasted. A selection inside one comment's body,
+	// or in an editable field, is left to the browser, so quoting part of a comment still works.
+	const onCopy = (e: ReactClipboardEvent<HTMLDivElement>) => {
+		const selection = e.currentTarget.ownerDocument.getSelection()
+		if (!selection || selection.isCollapsed || selection.rangeCount === 0) return
+		const range = selection.getRangeAt(0)
+		const startEl =
+			range.startContainer instanceof Element
+				? range.startContainer
+				: range.startContainer.parentElement
+		if (startEl?.closest('[contenteditable="true"]')) return
+		const items = Array.from(
+			e.currentTarget.querySelector('.tlui-cmt-thread__list')?.children ?? []
+		)
+		const touched = comments
+			.map((comment, i) => ({ comment, card: cards[i], el: items[i] }))
+			.filter(({ el }) => el && range.intersectsNode(el))
+		if (touched.length === 0) return
+		if (touched.length === 1) {
+			const body = touched[0].el.querySelector('.tlui-cmt-body')
+			if (body?.contains(range.startContainer) && body.contains(range.endContainer)) return
+		}
+		const { text, html } = formatThreadTranscript(
+			touched.map(({ comment, card }) => ({
+				authorName: card.author.name,
+				date: card.date,
+				body: comment.body,
+			})),
+			{ locale, resolveName }
+		)
+		e.clipboardData.setData('text/plain', text)
+		e.clipboardData.setData('text/html', html)
+		e.preventDefault()
+	}
 	// Composing, editing, deleting, and resolving are all gated on the viewer's permission. Where it's
 	// withheld the composer gives way to the ComposerFallback slot and the affordances are hidden.
 	const canComment = useCanComment(currentUserId)
@@ -371,6 +463,29 @@ export const ThreadView = memo(function ThreadView({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	const canReply = canComment && !thread.resolved
 	const container = useContainer()
+
+	// Escape in a reply box with text clears the text and keeps the thread open; an empty one falls
+	// through to the layer's Escape, which closes the thread. On the window, in the capture phase,
+	// so it runs ahead of that document-level handler.
+	const replyRef = useRef(reply)
+	replyRef.current = reply
+	useEffect(() => {
+		const win = container.ownerDocument.defaultView
+		if (!win) return
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape' || isMentionPickerOpen()) return
+			const target = e.target as HTMLElement | null
+			if (!target?.closest('.tlui-cmt-thread .tlui-cmt-composer')) return
+			if (target.closest('.tlui-cmt-editing')) return
+			if (isCommentEmpty(replyRef.current)) return
+			setReply(EMPTY_COMMENT)
+			clearCommentDraft(replyDraftSlot(thread.id))
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		win.addEventListener('keydown', onKeyDown, true)
+		return () => win.removeEventListener('keydown', onKeyDown, true)
+	}, [container, thread.id])
 	// Resolved when the composer closes rather than held as an element: the card unmounts while the
 	// composer stands in its place, so the node captured on the way in is gone by the way out.
 	const editReturnFocus = useRef<(() => HTMLElement | null) | null>(null)
@@ -551,25 +666,25 @@ export const ThreadView = memo(function ThreadView({
 				actions={
 					canComment && (
 						<>
+							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 							{(permissions?.edit || permissions?.delete) && (
 								<MoreOptionsMenu id={`comment-actions-${comment.id}`} moreFor={comment.id}>
-									{permissions?.edit && (
-										<MenuItem
-											label={msg(messages.commentsEdit)}
-											onClick={() => startEdit(comment, { fromMoreMenu: true })}
-										/>
-									)}
-									{permissions?.delete && (
-										<MenuItem
-											label={msg(messages.actionDelete)}
-											danger
-											onClick={() => deleteComment(editor, comment)}
-										/>
-									)}
+									<TldrawUiDropdownMenuGroup>
+										{permissions?.edit && (
+											<MenuItem
+												label={msg(messages.commentsEdit)}
+												onClick={() => startEdit(comment, { fromMoreMenu: true })}
+											/>
+										)}
+										{permissions?.delete && (
+											<MenuItem
+												label={msg(messages.actionDelete)}
+												onClick={() => deleteComment(editor, comment)}
+											/>
+										)}
+									</TldrawUiDropdownMenuGroup>
 								</MoreOptionsMenu>
 							)}
-							{/* Last so react is always the rightmost pill. */}
-							<CommentReactionPicker comment={comment} currentUserId={currentUserId} />
 						</>
 					)
 				}
@@ -584,23 +699,6 @@ export const ThreadView = memo(function ThreadView({
 		<>
 			{/* Host verbs — assign, link a ticket — sit ahead of the built-in actions. */}
 			{ThreadActions && <ThreadActions thread={thread} comments={comments} />}
-			{(threadHref !== undefined || canDeleteThread) && (
-				<MoreOptionsMenu id={`comment-thread-actions-${thread.id}`}>
-					{/* A link is a read affordance: offered to anyone who can see the thread,
-					    including a viewer who can't comment. `noClose` keeps the menu up so the
-					    item can confirm the copy in place. */}
-					{threadHref !== undefined && (
-						<MenuItem
-							label={msg(linkCopied ? messages.commentsLinkCopied : messages.commentsCopyLink)}
-							noClose
-							onClick={copyThreadLink}
-						/>
-					)}
-					{canDeleteThread && (
-						<MenuItem label={msg(messages.commentsDelete)} danger onClick={removeThread} />
-					)}
-				</MoreOptionsMenu>
-			)}
 			{canComment && currentUserId && (
 				<TldrawUiButton
 					type="icon"
@@ -612,68 +710,88 @@ export const ThreadView = memo(function ThreadView({
 					<TldrawUiIcon icon="check" label={resolveLabel} small />
 				</TldrawUiButton>
 			)}
-			<TldrawUiButton
-				type="icon"
-				tooltip={msg(messages.commentsDismiss)}
-				title={msg(messages.commentsDismiss)}
-				className="tlui-cmt-thread__action"
-				onClick={() => openThreadId.set(editor, null)}
-			>
-				<TldrawUiIcon icon="cross-2" label={msg(messages.commentsDismiss)} small />
-			</TldrawUiButton>
+			<MoreOptionsMenu id={`comment-thread-actions-${thread.id}`}>
+				{(threadHref !== undefined || canDeleteThread) && (
+					<TldrawUiDropdownMenuGroup>
+						{/* A link is a read affordance: offered to anyone who can see the thread,
+						    including a viewer who can't comment. `noClose` keeps the menu up so the
+						    item can confirm the copy in place. */}
+						{threadHref !== undefined && (
+							<MenuItem
+								label={msg(linkCopied ? messages.commentsLinkCopied : messages.commentsCopyLink)}
+								noClose
+								onClick={copyThreadLink}
+							/>
+						)}
+						{canDeleteThread && (
+							<MenuItem label={msg(messages.commentsDelete)} onClick={removeThread} />
+						)}
+					</TldrawUiDropdownMenuGroup>
+				)}
+				<TldrawUiDropdownMenuGroup>
+					<MenuItem
+						label={msg(messages.commentsClose)}
+						onClick={() => openThreadId.set(editor, null)}
+					/>
+				</TldrawUiDropdownMenuGroup>
+			</MoreOptionsMenu>
 		</>
 	)
 
 	return (
-		<CommentThread
-			header={msg(messages.commentsThreadTitle)}
-			headerActions={headerActions}
-			renderComment={renderComment}
-			comments={cards}
-			resolvedBanner={
-				thread.resolved
-					? msg(messages.commentsResolvedBy, {
-							name: resolveAuthor(thread.resolved.by)?.name ?? msg(messages.commentsUnknownAuthor),
-						})
-					: undefined
-			}
-			composer={
-				canReply
-					? {
-							author: me ?? UNKNOWN_COMMENT_AUTHOR,
-							leading: avatarRenderer(
-								options.components,
-								currentUserId
-							)?.(me ?? UNKNOWN_COMMENT_AUTHOR),
-							placeholder: msg(messages.commentsReplyPlaceholder),
-							sendLabel: msg(messages.commentsSend),
-							value: reply,
-							onChange: (value: TLRichText) => {
-								setReply(value)
-								saveCommentDraft(replyDraftSlot(thread.id), value)
-							},
-							onSubmit: postReply,
-							// Up in the empty reply box edits the comment directly above it, chat-style —
-							// only when you're allowed to edit it (the same gate as the Edit link).
-							onArrowUpWhenEmpty: () => {
-								const last = comments[comments.length - 1]
-								if (last && commentPermissions.get(last.id)?.edit) startEdit(last)
-							},
-							// No user, no author for the record — dead send button.
-							disabled: isCommentEmpty(reply) || !currentUserId,
-							getMentionSuggestions,
-							renderMentionSuggestion,
-							// Reuses the composer's own focus path, so the caret lands at the end of a
-							// restored draft rather than in front of it.
-							autoFocus: focusReply,
-						}
-					: undefined
-			}
-			footer={
-				!canComment && !thread.resolved && ComposerFallback ? (
-					<ComposerFallback context="thread" />
-				) : undefined
-			}
-		/>
+		// `display: contents` so the wrapper only listens: it takes no part in the layout.
+		<div style={{ display: 'contents' }} onCopy={onCopy}>
+			<CommentThread
+				header={msg(messages.commentsThreadTitle)}
+				headerActions={headerActions}
+				renderComment={renderComment}
+				comments={cards}
+				resolvedBanner={
+					thread.resolved
+						? msg(messages.commentsResolvedBy, {
+								name:
+									resolveAuthor(thread.resolved.by)?.name ?? msg(messages.commentsUnknownAuthor),
+							})
+						: undefined
+				}
+				composer={
+					canReply
+						? {
+								author: me ?? UNKNOWN_COMMENT_AUTHOR,
+								leading: avatarRenderer(
+									options.components,
+									currentUserId
+								)?.(me ?? UNKNOWN_COMMENT_AUTHOR),
+								placeholder: msg(messages.commentsReplyPlaceholder),
+								sendLabel: msg(messages.commentsSend),
+								value: reply,
+								onChange: (value: TLRichText) => {
+									setReply(value)
+									saveCommentDraft(replyDraftSlot(thread.id), value)
+								},
+								onSubmit: postReply,
+								// Up in the empty reply box edits the comment directly above it, chat-style —
+								// only when you're allowed to edit it (the same gate as the Edit link).
+								onArrowUpWhenEmpty: () => {
+									const last = comments[comments.length - 1]
+									if (last && commentPermissions.get(last.id)?.edit) startEdit(last)
+								},
+								// No user, no author for the record — dead send button.
+								disabled: isCommentEmpty(reply) || !currentUserId,
+								getMentionSuggestions,
+								renderMentionSuggestion,
+								// Reuses the composer's own focus path, so the caret lands at the end of a
+								// restored draft rather than in front of it.
+								autoFocus: focusReply,
+							}
+						: undefined
+				}
+				footer={
+					!canComment && !thread.resolved && ComposerFallback ? (
+						<ComposerFallback context="thread" />
+					) : undefined
+				}
+			/>
+		</div>
 	)
 })

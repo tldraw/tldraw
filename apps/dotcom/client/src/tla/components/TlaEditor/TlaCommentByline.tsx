@@ -10,7 +10,8 @@ import {
 	useCurrentTranslation,
 	useTranslation,
 } from 'tldraw'
-import { AgentLogo, getAgentLogo } from './agent-logos'
+import { getAgentLogo } from './agent-logos'
+import { AgentLogo } from './AgentLogo'
 import styles from './comment-byline.module.css'
 
 const messages = defineMessages({

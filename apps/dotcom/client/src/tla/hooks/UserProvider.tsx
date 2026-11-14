@@ -1,22 +1,7 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/react'
-import type { UserResource } from '@clerk/react/types'
-import { ReactNode, createContext, useContext, useMemo } from 'react'
+import { ReactNode, useMemo } from 'react'
 import { assert, useShallowObjectIdentity } from 'tldraw'
-
-interface TldrawUser {
-	id: string
-	clerkUser: UserResource
-	isTldraw: boolean
-	getToken(): Promise<string>
-}
-const UserContext = createContext<null | TldrawUser>(null)
-
-export function getIsTldrawStaff(clerkUser: UserResource | null | undefined) {
-	return (
-		clerkUser?.primaryEmailAddress?.verification?.status === 'verified' &&
-		clerkUser.primaryEmailAddress.emailAddress.endsWith('@tldraw.com')
-	)
-}
+import { UserContext, getIsTldrawStaff } from './useUser'
 
 export function UserProvider({ children }: { children: ReactNode }) {
 	const { isLoaded, ...others } = useClerkUser()
@@ -50,8 +35,4 @@ export function UserProvider({ children }: { children: ReactNode }) {
 	}
 
 	return <UserContext.Provider value={value}>{children}</UserContext.Provider>
-}
-
-export function useTldrawCurrentUser() {
-	return useContext(UserContext)
 }

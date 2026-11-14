@@ -8,6 +8,7 @@ import {
 	richTextToPlaintext,
 	summarizeReactions,
 } from '@tldraw/commenting'
+import classNames from 'classnames'
 import { ReactNode, useCallback, useState } from 'react'
 import { useIntl } from 'react-intl'
 import { Link } from 'react-router-dom'
@@ -19,6 +20,7 @@ import {
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
+	TldrawUiIcon,
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
@@ -26,19 +28,11 @@ import {
 	TldrawUiTooltip,
 	TLRichText,
 	useTranslation,
-	useValue,
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
-import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import {
-	buildReactionNotifications,
-	categorizeCommentNotifications,
-	CommentNotificationReason,
-	mergeNotifications,
-	summarizeForeignReactors,
-} from './commentNotifications'
+import { CommentNotificationReason, summarizeForeignReactors } from './commentNotifications'
+import { useCommentNotifications } from './useCommentNotifications'
 import styles from './notifications.module.css'
 
 const messages = defineMessages({
@@ -74,35 +68,25 @@ function ReasonByline({
 		case 'reply':
 			return <F defaultMessage="<name>{author}</name> replied" values={{ author, name }} />
 		case 'owned-board':
-			return (
-				<F
-					defaultMessage="<name>{author}</name> commented on your board"
-					values={{ author, name }}
-				/>
-			)
+			return <F defaultMessage="<name>{author}</name> commented" values={{ author, name }} />
 		case 'reaction': {
 			const { names, others, total } = reactors
 			const [a, b] = names
 			if (names.length === 0) {
 				return (
 					<F
-						defaultMessage="{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}"
+						defaultMessage="{count, plural, one {Someone reacted} other {# people reacted}}"
 						values={{ count: total }}
 					/>
 				)
 			}
 			if (names.length === 1 && others === 0) {
-				return (
-					<F
-						defaultMessage="<name>{author}</name> reacted to your comment"
-						values={{ author: a, name }}
-					/>
-				)
+				return <F defaultMessage="<name>{author}</name> reacted" values={{ author: a, name }} />
 			}
 			if (names.length === 2 && others === 0) {
 				return (
 					<F
-						defaultMessage="<name>{a}</name> and <name>{b}</name> reacted to your comment"
+						defaultMessage="<name>{a}</name> and <name>{b}</name> reacted"
 						values={{ a, b, name }}
 					/>
 				)
@@ -110,14 +94,14 @@ function ReasonByline({
 			if (names.length === 1) {
 				return (
 					<F
-						defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+						defaultMessage="<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted"
 						values={{ author: a, count: others, name }}
 					/>
 				)
 			}
 			return (
 				<F
-					defaultMessage="<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
+					defaultMessage="<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted"
 					values={{ a, b, count: others, name }}
 				/>
 			)
@@ -148,10 +132,10 @@ function NotificationsOverflowMenu({
 						title={msg(messages.moreOptions)}
 						className="tlui-cmt-header-btn"
 					>
-						<TlaIcon icon="dots-vertical-strong" />
+						<TldrawUiIcon icon="dots-vertical" label={msg(messages.moreOptions)} small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
@@ -180,26 +164,6 @@ function NotificationsOverflowMenu({
 				</TldrawUiDropdownMenuContent>
 			</TldrawUiMenuContextProvider>
 		</TldrawUiDropdownMenuRoot>
-	)
-}
-
-/**
- * Comments and reactions surfaced as notifications, merged from the comment feeds and the
- * `reactions` synced query and sorted by timestamp. {@link categorizeCommentNotifications} and
- * {@link buildReactionNotifications} do the per-feed shaping. Shared by trigger button and panel.
- */
-export function useCommentNotifications() {
-	const app = useMaybeApp()
-	return useValue(
-		'comment notifications',
-		() => {
-			const comments = categorizeCommentNotifications(app?.getComments() ?? [], app?.userId)
-			const reactionEntries = buildReactionNotifications(app?.getReactions() ?? [], app?.userId)
-			const notifications = mergeNotifications(comments, reactionEntries)
-			const unreadCount = notifications.filter((n) => n.unread).length
-			return { notifications, unreadCount }
-		},
-		[app]
 	)
 }
 
@@ -293,7 +257,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							className="tlui-cmt-header-btn"
 							onClick={onClose}
 						>
-							<TlaIcon icon="close" style={{ width: 12, height: 12 }} />
+							<TldrawUiIcon icon="cross-2" label={msg(messages.close)} small />
 						</TldrawUiButton>
 					</div>
 				}
@@ -309,13 +273,13 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							// middle-click opens the tab natively without firing onClick; still mark it read
 							onAuxClick={(e) => e.button === 1 && handleSelect(item.id, true)}
 						>
-							<span
-								className={styles.pin}
-								style={{ backgroundColor: item.author.color }}
-								aria-hidden="true"
-							/>
 							<div className="tlui-cmt-list__item-body">
-								<div className={styles.head}>
+								<div className={classNames('tlui-cmt-head', styles.head)}>
+									<span
+										className={styles.pin}
+										style={{ backgroundColor: item.author.color }}
+										aria-hidden="true"
+									/>
 									<span className={styles.byline}>
 										<ReasonByline
 											reason={n?.primaryReason ?? 'owned-board'}
@@ -328,10 +292,16 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 										<span className={styles.time}>{formatRelativeTime(item.date)}</span>
 									</TldrawUiTooltip>
 								</div>
-								<div className={styles.preview}>{item.preview}</div>
-								{item.reactions && (
-									<Reactions reactions={item.reactions} canReact={false} enableHoverList={false} />
-								)}
+								<div className="tlui-cmt-body">
+									<div className="tlui-cmt-list__item-preview">{item.preview}</div>
+									{item.reactions && (
+										<Reactions
+											reactions={item.reactions}
+											canReact={false}
+											enableHoverList={false}
+										/>
+									)}
+								</div>
 							</div>
 							{n?.unread && <span className={styles.unreadDot} aria-hidden="true" />}
 						</Link>

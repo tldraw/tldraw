@@ -3,16 +3,7 @@ import { useUrl } from '../hooks/useUrl'
 import { TlaIcon } from '../tla/components/TlaIcon/TlaIcon'
 import { trackEvent } from '../utils/analytics'
 import { getParentOrigin, isInIframe } from '../utils/iFrame'
-
-export const ROOM_CONTEXT = {
-	PUBLIC_MULTIPLAYER: 'public-multiplayer',
-	PUBLIC_READONLY: 'public-readonly',
-	PUBLIC_SNAPSHOT: 'public-snapshot',
-	HISTORY_SNAPSHOT: 'history-snapshot',
-	HISTORY: 'history',
-	LOCAL: 'local',
-} as const
-type $ROOM_CONTEXT = (typeof ROOM_CONTEXT)[keyof typeof ROOM_CONTEXT]
+import { ROOM_CONTEXT, $ROOM_CONTEXT } from './roomContext'
 
 const EMBEDDED_STATE = {
 	IFRAME_OK: 'iframe-ok',

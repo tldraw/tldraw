@@ -16,7 +16,7 @@ import {
 import { routes } from '../../../../routeDefs'
 import { trackEvent } from '../../../../utils/analytics'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { useGetFileName, useRoomInfo } from '../TlaEditorTopRightPanel'
+import { useGetFileName, useRoomInfo } from '../../../hooks/useRoomInfo'
 import styles from './sneaky-legacy-modal.module.css'
 
 function LegacyChangesModal({ onClose }: { onClose(): void }) {

@@ -1,12 +1,14 @@
 import {
 	defineMessages,
 	TldrawUiButton,
+	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuGroup,
 	TldrawUiDropdownMenuItem,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
+	TldrawUiKbd,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -19,8 +21,8 @@ const messages = defineMessages({
 	commentsShow: { id: 'comments.show', defaultMessage: 'Show comments' },
 })
 
-// A keyboard-shortcut glyph, not translatable copy — kept out of JSX as a constant.
-const HIDE_SHORTCUT = '⇧C'
+// tldraw's kbd notation (`!` = shift), rendered per platform by TldrawUiKbd.
+const HIDE_SHORTCUT = '!c'
 
 /** The overflow (⋯) dropdown in the sidebar header. For now it holds the hide/show-comments
  *  toggle; it's the home for later comment-wide controls (notifications, mark all as read).
@@ -42,23 +44,15 @@ export function CommentsOverflowMenu() {
 					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent
-				className="tlui-cmt-menu"
-				side="bottom"
-				align="end"
-				alignOffset={0}
-				sideOffset={4}
-			>
+			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuItem>
-						<button
-							type="button"
-							className="tlui-cmt-menu-item"
-							onClick={() => toggleCommentsHidden(editor)}
-						>
-							<span>{hidden ? msg(messages.commentsShow) : msg(messages.commentsHide)}</span>
-							<span className="tlui-cmt-menu-item__shortcut">{HIDE_SHORTCUT}</span>
-						</button>
+						<TldrawUiButton type="menu" onClick={() => toggleCommentsHidden(editor)}>
+							<TldrawUiButtonLabel>
+								{hidden ? msg(messages.commentsShow) : msg(messages.commentsHide)}
+							</TldrawUiButtonLabel>
+							<TldrawUiKbd>{HIDE_SHORTCUT}</TldrawUiKbd>
+						</TldrawUiButton>
 					</TldrawUiDropdownMenuItem>
 				</TldrawUiDropdownMenuGroup>
 			</TldrawUiDropdownMenuContent>

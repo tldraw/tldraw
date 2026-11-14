@@ -4,7 +4,7 @@ import { defineMessages, useDialogs, useTranslation } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { useHandleSidebarCreateFile } from './TlaSidebarCreateFileButton'
+import { useHandleSidebarCreateFile } from './sidebar-shared'
 import { TlaSidebarSearch } from './TlaSidebarSearch'
 import styles from '../sidebar.module.css'
 

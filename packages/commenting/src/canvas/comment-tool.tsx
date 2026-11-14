@@ -54,8 +54,8 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
  * release — like placing a sticky note — settling on a point, or on a shape when released over one.
  * With region comments enabled, dragging past the threshold draws a region rectangle instead.
  * Placement only opens a composer; the records are created when the comment is posted. The tool
- * stays active while the composer is open — posting returns to select, and so does clicking the
- * canvas elsewhere, which cancels the placement.
+ * stays active after a placement, so comments can be placed one after another. Escape closes an
+ * open composer first, then returns to the select tool.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -100,21 +100,34 @@ export class CommentTool extends StateNode {
 	}
 
 	override onExit() {
-		// Drop the hover hint painted while pointing at shapes (see CommentIdle). The cursor resets
-		// when the next tool takes over. The draft composer and region draft belong to the tool, so
-		// they leave with it; the draft's text survives in the comment draft store.
+		// Drop the hover hint painted while pointing at shapes (see CommentIdle) and any unfinished
+		// region draft. The cursor resets when the next tool takes over. An open composer outlives
+		// the tool.
 		this.editor.setHintingShapes([])
-		pendingComment.set(this.editor, null)
 		regionDraft.set(this.editor, null)
 	}
 
-	// Escape leaves the tool, like the built-in tools (the editor dispatches `cancel` on Escape).
+	// Escape (the editor dispatches `cancel`) steps back one level: an open composer closes and the
+	// tool stays; with none open, the tool returns to select. Mid-placement it also drops the
+	// composer that's following the pointer: this handler runs before the child state's, and
+	// leaving the tool skips the child's own cancel.
 	override onCancel() {
+		if (this.getCurrent()?.id === 'idle' && pendingComment.get(this.editor)) {
+			pendingComment.set(this.editor, null)
+			return
+		}
+		if (this.getCurrent()?.id !== 'idle') pendingComment.set(this.editor, null)
 		this.editor.setCurrentTool('select')
 	}
 }
 
-function pendingCommentAt(editor: Editor, point: VecLike): PendingComment {
+/** The pending placement a release at `point` resolves to: anchored to the shape under it, or a
+ *  bare point. Shared by the tool's click placement and the composer's drag handle. */
+export function pendingCommentAt(
+	editor: Editor,
+	point: VecLike,
+	altKey = editor.inputs.getAltKey()
+): PendingComment {
 	const hit = commentTargetShapeAt(editor, point)
 	const anchor: TLCommentAnchor = hit
 		? shapeAnchorAt(
@@ -124,7 +137,7 @@ function pendingCommentAt(editor: Editor, point: VecLike): PendingComment {
 				getCommentingOptions(editor).shouldBePrecise(editor, {
 					shapeId: hit.id,
 					point,
-					altKey: editor.inputs.getAltKey(),
+					altKey,
 				})
 			)
 		: { type: 'point', x: point.x, y: point.y }
@@ -133,9 +146,9 @@ function pendingCommentAt(editor: Editor, point: VecLike): PendingComment {
 
 /**
  * Open the comment composer at a page point, anchored as a comment tool click there would be. Use
- * it to start a comment from outside the tool, such as a context menu item. Enters the comment tool
- * (which must be registered), since the draft composer closes when the tool exits. It doesn't check
- * `canComment`: a viewer who can't comment sees the `ComposerFallback` slot instead.
+ * it to start a comment from outside the tool, such as a context menu item. It leaves the select
+ * tool active with the composer open. It doesn't check `canComment`: a
+ * viewer who can't comment sees the `ComposerFallback` slot instead.
  *
  * @example
  * ```tsx
@@ -144,12 +157,15 @@ function pendingCommentAt(editor: Editor, point: VecLike): PendingComment {
  * @public
  */
 export function startCommentAt(editor: Editor, point: VecLike) {
-	editor.setCurrentTool('comment')
-	const pending = pendingCommentAt(editor, point)
-	pendingComment.set(editor, pending)
-	// Entering the tool hints the shape under the live pointer, which is wherever the caller's UI
-	// was (a menu item), not `point`.
-	editor.setHintingShapes(pending.anchor.type === 'shape' ? [pending.anchor.shapeId] : [])
+	editor.setCurrentTool('select')
+	pendingComment.set(editor, pendingCommentAt(editor, point))
+}
+
+/** End a placement: the composer stays open at `pending` and the tool goes back to idle, ready
+ *  for the next one. */
+function finishPlacement(state: StateNode, pending: PendingComment) {
+	pendingComment.set(state.editor, pending)
+	state.parent.transition('idle')
 }
 
 /** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
@@ -164,11 +180,10 @@ class CommentIdle extends StateNode {
 	static override id = 'idle'
 
 	override onEnter() {
-		// Back to hovering: restore the pin cursor (a prior placing state may have hidden it).
+		// Back to hovering: restore the pin cursor (a cancelled placement may have changed it).
 		this.editor.setCursor({ type: 'comment', rotation: 0 })
-		// With a region composer open, a shape outline under its pin corner would imply a shape
-		// anchor the region will never use — and it would stick, since moves over the composer
-		// never reach the canvas. Point placements keep the hint: it previews the next click.
+		// After a region placement its composer is still open here. A shape outline under its pin
+		// corner would imply a shape anchor the region never uses.
 		if (pendingComment.get(this.editor)?.anchor.type === 'region') {
 			this.editor.setHintingShapes([])
 		} else {
@@ -181,12 +196,6 @@ class CommentIdle extends StateNode {
 	}
 
 	override onPointerDown() {
-		// A press away from an open composer cancels the placement rather than moving it. The
-		// tool's onExit drops the draft composer; its text survives in the draft store.
-		if (pendingComment.get(this.editor)) {
-			this.editor.setCurrentTool('select')
-			return
-		}
 		this.parent.transition('pointing')
 	}
 }
@@ -199,8 +208,8 @@ class CommentPointing extends StateNode {
 		// on release), and let it trail the pointer while dragging — like placing a sticky note. The
 		// anchor is a bare point for now; it's resolved (shape or point) on pointer up.
 		const { editor } = this
-		// Hide the cursor while placing: the draft composer is the pointer's stand-in now, so the pin
-		// cursor sitting over it just reads as clutter.
+		// The composer opens under the pointer and stands in for it, so the cursor hides; it becomes
+		// `move` once a drag starts.
 		editor.setCursor({ type: 'none', rotation: 0 })
 		const point = editor.inputs.getCurrentPagePoint()
 		pendingComment.set(editor, {
@@ -219,6 +228,9 @@ class CommentPointing extends StateNode {
 		}
 		// Otherwise the composer trails the pointer — keep hinting the shape a release here would
 		// anchor to, like the idle hover does.
+		if (editor.inputs.getIsDragging() && editor.getInstanceState().cursor.type !== 'move') {
+			editor.setCursor({ type: 'move', rotation: 0 })
+		}
 		updateAnchorHint(editor)
 		const point = editor.inputs.getCurrentPagePoint()
 		pendingComment.update(editor, (p) => (p ? { ...p, point: { x: point.x, y: point.y } } : p))
@@ -228,25 +240,18 @@ class CommentPointing extends StateNode {
 	override onPointerUp() {
 		const { editor } = this
 		const point = editor.inputs.getCurrentPagePoint()
-		pendingComment.set(editor, pendingCommentAt(editor, point))
-		// Stay in the tool while the composer is open — the interaction isn't over until the
-		// comment is posted or dismissed, and staying keeps the surrounding UI (style panel,
-		// sidebar) from churning mid-placement.
-		this.parent.transition('idle')
-	}
-
-	override onCancel() {
-		this.cancel()
+		finishPlacement(this, pendingCommentAt(editor, point))
 	}
 
 	override onInterrupt() {
 		this.cancel()
 	}
 
-	// Abandon the follow composer if placement is interrupted (Escape, focus loss, etc.). The
-	// tool's onExit drops the draft.
+	// Abandon the follow composer if placement is interrupted (focus loss, etc.). Its text survives
+	// in the draft store. Escape is the tool's own onCancel, which runs first.
 	private cancel() {
-		this.editor.setCurrentTool('select')
+		pendingComment.set(this.editor, null)
+		this.parent.transition('idle')
 	}
 }
 
@@ -276,16 +281,10 @@ class CommentDragging extends StateNode {
 		// The pin lives on the corner the drag released on — drag up-left, pin top-left.
 		const pin = { x: current.x >= origin.x ? 1 : 0, y: current.y >= origin.y ? 1 : 0 }
 		regionDraft.set(editor, null)
-		pendingComment.set(editor, {
+		finishPlacement(this, {
 			anchor: { type: 'region', ...region, pinX: pin.x, pinY: pin.y },
 			point: regionPinPoint(region, pin),
 		})
-		// Same as the point placement: the tool stays active while the composer is open.
-		this.parent.transition('idle')
-	}
-
-	override onCancel() {
-		this.cancel()
 	}
 
 	override onInterrupt() {
@@ -300,9 +299,9 @@ class CommentDragging extends StateNode {
 		)
 	}
 
-	// The tool's onExit drops the region draft.
 	private cancel() {
-		this.editor.setCurrentTool('select')
+		regionDraft.set(this.editor, null)
+		this.parent.transition('idle')
 	}
 }
 

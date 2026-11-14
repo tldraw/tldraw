@@ -2,13 +2,13 @@ import { SendIcon } from './icons'
 
 /** @public */
 export interface SendButtonProps {
-	/** The button's accessible name (e.g. "Send"). Shown as an up-arrow icon, so this is its label. */
+	/** The button's accessible name (e.g. "Send"). Shown as a return-arrow icon, so this is its label. */
 	label: string
 	disabled?: boolean
 	onClick?(): void
 }
 
-/** The button that posts a comment — an up arrow. @public @react */
+/** The button that posts a comment — a return arrow. @public @react */
 export function SendButton({ label, disabled, onClick }: SendButtonProps) {
 	return (
 		<button

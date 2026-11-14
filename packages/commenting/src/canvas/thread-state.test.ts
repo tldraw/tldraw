@@ -13,7 +13,7 @@ import {
 	TLShapeId,
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
-import { commentsSidebarOpen } from './state'
+import { commentsHidden, commentsSidebarOpen, openThreadId } from './state'
 import {
 	anchorPagePoint,
 	commentCenterScreenOffset,
@@ -263,6 +263,18 @@ describe('isBoxInInflatedViewport', () => {
 })
 
 describe('focusThread', () => {
+	it('unhides comments so the opened thread is visible', () => {
+		commentsHidden.set(editor, true)
+		const thread = createCommentThread({
+			pageId: editor.getCurrentPageId(),
+			anchor: { type: 'point', x: 50, y: 50 },
+			createdBy: 'me',
+		})
+		focusThread(editor, thread)
+		expect(commentsHidden.get(editor)).toBe(false)
+		expect(openThreadId.get(editor)).toBe(thread.id)
+	})
+
 	it('records a cross-page jump as its own undo step', () => {
 		const page1Id = editor.getCurrentPageId()
 		const page2Id = PageRecordType.createId()

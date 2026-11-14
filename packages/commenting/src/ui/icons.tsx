@@ -63,15 +63,15 @@ export function SmileyIcon() {
 	)
 }
 
-/** The composer's post button — an up arrow. */
+/** The composer's post button — a return arrow (↵), since Enter is what posts. */
 export function SendIcon() {
 	return (
 		<svg width="15" height="15" viewBox="0 0 15 15" fill="none" aria-hidden="true">
 			<path
-				d="M7.14645 2.14645C7.34171 1.95118 7.65829 1.95118 7.85355 2.14645L11.8536 6.14645C12.0488 6.34171 12.0488 6.65829 11.8536 6.85355C11.6583 7.04882 11.3417 7.04882 11.1464 6.85355L8 3.70711L8 12.5C8 12.7761 7.77614 13 7.5 13C7.22386 13 7 12.7761 7 12.5L7 3.70711L3.85355 6.85355C3.65829 7.04882 3.34171 7.04882 3.14645 6.85355C2.95118 6.65829 2.95118 6.34171 3.14645 6.14645L7.14645 2.14645Z"
-				fill="currentColor"
-				fillRule="evenodd"
-				clipRule="evenodd"
+				d="M12 3V8C12 8.55228 11.5523 9 11 9H3.5M6 6.5L3.5 9L6 11.5"
+				stroke="currentColor"
+				strokeLinecap="round"
+				strokeLinejoin="round"
 			/>
 		</svg>
 	)

@@ -13,8 +13,8 @@ import { routes } from '../../../routeDefs'
 import { useHandleUiEvents } from '../../../utils/analytics'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
+import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { editorMessages as messages } from './editor-messages'
-import { useRoomInfo } from './TlaEditorTopRightPanel'
 
 /** Triggers a GET to the app file download endpoint; browser shows download immediately with progress. */
 export function downloadAppFile(fileId: string) {

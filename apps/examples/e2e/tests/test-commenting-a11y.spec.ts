@@ -163,7 +163,7 @@ test.describe('commenting a11y', () => {
 		// editor container, where Tab would walk the app's UI instead of the thread's own controls.
 		const moreButton = page.locator('.tlui-cmt-canvas-popover [data-cmt-more-for]')
 		await moreButton.click()
-		await page.locator('.tlui-cmt-menu-item', { hasText: 'Edit' }).click()
+		await page.getByRole('menuitem', { name: 'Edit' }).click()
 		await expect(page.locator('.tlui-cmt-editing [contenteditable="true"]')).toBeFocused()
 		await page.keyboard.press('Escape')
 		await expect(page.locator('.tlui-cmt-canvas-popover')).toBeVisible()

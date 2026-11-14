@@ -5,6 +5,12 @@
 	margin-left: auto;
 }
 
+/* Comment list rows use the toolkit's byline rather than this one; right-align their time too, so
+   rows read like the thread's cards. They have no hover actions, so the time always shows. */
+:global(.tlui-cmt-list__item .tlui-cmt-time) {
+	margin-left: auto;
+}
+
 /* A card's actions sit over the right of the byline row, where the time is. While they show (on
    hover, on keyboard focus, or while one of their menus is open), the time leaves the row: hidden
    but still laid out, it would cut a long name short by its own width on top of the room the
@@ -100,16 +106,6 @@
 	content: ' ' var(--tla-agent-owner);
 	font-weight: 400;
 	color: var(--tl-color-text-3);
-}
-
-/* The list nudges its 14px avatar down to the name's line; move the badged avatar as one. */
-.agentRow .agentAvatar {
-	align-self: flex-start;
-	margin-top: 2px;
-}
-
-.agentRow .agentAvatar :global(.tlui-cmt-avatar) {
-	margin-top: 0;
 }
 
 /* On a pin the avatar is 22px, so the badge grows with it. */

@@ -1,8 +1,8 @@
 import { useAuth, useUser as useClerkUser } from '@clerk/react'
 import { captureException } from '@sentry/react'
-import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { assertExists, atom, useValue } from 'tldraw'
+import { useValue } from 'tldraw'
 import { ErrorPage } from '../../components/ErrorPage/ErrorPage'
 import { markFirstLoad } from '../../utils/firstLoad'
 import { TldrawApp, getPreloadDiagnostics } from '../app/TldrawApp'
@@ -14,17 +14,7 @@ import {
 	fetchFeatureFlags,
 	wasAuthenticated,
 } from '../utils/featureFlags'
-
-const appContext = createContext<TldrawApp | null>(null)
-// Anonymous trees never mount the provider, so they read the default: not loading.
-const appLoadingContext = createContext(false)
-
-export const isClientTooOld$ = atom('isClientTooOld', false)
-
-// The one source for the app; the React context below is derived from it. Code that runs before
-// the app exists but must pick it up without remounting (the presence user store behind the sync
-// socket) reads this directly.
-export const currentApp$ = atom<TldrawApp | null>('currentApp', null)
+import { appContext, appLoadingContext, currentApp$, isClientTooOld$ } from './useAppState'
 
 const APP_LOAD_ERROR_MESSAGES = {
 	header: 'Something went wrong',
@@ -157,19 +147,4 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 			<appContext.Provider value={app}>{children}</appContext.Provider>
 		</appLoadingContext.Provider>
 	)
-}
-
-export function useMaybeApp() {
-	return useContext(appContext)
-}
-
-/**
- * True between mount and the app resolving for a signed-in user. `useMaybeApp()` alone cannot
- * tell a signed-out visitor from a signed-in user whose Zero preload is still running.
- */
-export function useIsAppLoading() {
-	return useContext(appLoadingContext)
-}
-export function useApp(): TldrawApp {
-	return assertExists(useContext(appContext), 'useApp must be used within AppStateProvider')
 }

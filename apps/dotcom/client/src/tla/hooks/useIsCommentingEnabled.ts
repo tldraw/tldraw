@@ -10,6 +10,6 @@ import { useMaybeApp } from './useAppState'
  * This is dotcom's own gate, separate from `useCommentingEnabled` in `@tldraw/commenting`, which
  * says whether commenting is licensed for the editor at all. Both have to pass.
  */
-export function useIsCommentingEnabled(): boolean {
+export function useIsCommentingEnabledForUser(): boolean {
 	return useMaybeApp() !== null
 }

@@ -86,8 +86,8 @@ function CanvasCommentsLayer(props: CommentingContext) {
 	const canComment = useCanComment(props.currentUserId)
 	// Nothing renders a pending comment when composing is blocked and there's no fallback slot, and
 	// the dismiss handlers live inside PendingComposer — so clear the atom rather than strand it,
-	// and leave the tool too: it holds while a composer is open, so staying would turn every click
-	// into a silently swallowed placement.
+	// and leave the tool too: with tool lock it stays active, so every click would be a silently
+	// swallowed placement.
 	const canRenderComposer = canComment || options.components.ComposerFallback != null
 	const showPendingComposer = pending != null && canRenderComposer
 	useEffect(() => {
@@ -223,6 +223,9 @@ function CanvasCommentsLayer(props: CommentingContext) {
 			openThreadId.set(editor, null)
 			e.preventDefault()
 			e.stopPropagation()
+			// Closing from inside the thread would leave focus on the page, out of reach of the next
+			// Escape (the editor listens on its container).
+			if (target && target.closest('.tlui-cmt-thread')) editor.getContainer().focus()
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)
