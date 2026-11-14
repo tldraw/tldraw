@@ -1,6 +1,7 @@
 import { MAX_THUMBNAIL_PAGES } from '@tldraw/dotcom-shared'
 import {
 	AssetRecordType,
+	Box,
 	Editor,
 	TLArrowShape,
 	TLAsset,
@@ -20,6 +21,7 @@ import {
 	acquireThumbnailRenderData,
 	exportThumbnailImage,
 	prepareLiveCapture,
+	getBusiestFrame,
 	preloadImageAssets,
 	renderAssetStore,
 	setThumbnailError,
@@ -287,6 +289,26 @@ describe('renderAssetStore', () => {
 		expect(url).toBe(
 			'https://tldrawusercontent.com/cdn-cgi/image/w=120,anim=false,format=auto/party.gif'
 		)
+	})
+})
+
+describe('getBusiestFrame', () => {
+	// A spread-out board's bounds centre can be empty space, so the frame follows the shapes.
+	it('frames the part of the page with the most shapes, not the middle', () => {
+		const content = new Box(0, 0, 50000, 20000)
+		const cluster = Array.from({ length: 20 }, (_, i) => new Box(40000 + i * 100, 15000, 50, 50))
+		const strays = [new Box(0, 0, 50, 50), new Box(25000, 10000, 50, 50)]
+		const frame = getBusiestFrame([...strays, ...cluster], content, 10000, 5000)
+		expect(cluster.every((b) => frame.containsPoint(b.center))).toBe(true)
+		expect(frame.w).toBe(10000)
+		expect(frame.h).toBe(5000)
+	})
+
+	it('centres an axis that already fits instead of searching it', () => {
+		const content = new Box(0, 1000, 50000, 2000)
+		const frame = getBusiestFrame([new Box(45000, 1500, 50, 50)], content, 10000, 5000)
+		expect(frame.center.y).toBe(2000)
+		expect(frame.containsPoint(new Box(45000, 1500, 50, 50).center)).toBe(true)
 	})
 })
 
