@@ -23,6 +23,7 @@ const ids = {
 	box2: createShapeId('box2'),
 	box3: createShapeId('box3'),
 	arrow1: createShapeId('arrow1'),
+	group1: createShapeId('group1'),
 }
 
 function bindings(id: TLShapeId) {
@@ -846,5 +847,47 @@ describe('line bug', () => {
 		expect(editor.getCurrentPageShapes().length).toBe(2)
 		const bindings = getArrowBindings(editor, editor.getCurrentPageShapes()[1] as TLArrowShape)
 		expect(bindings.end).toBeDefined()
+	})
+})
+
+describe('When the bound shapes are in a locked group', () => {
+	function arrowShape() {
+		return editor.getCurrentPageShapes().find((s): s is TLArrowShape => s.type === 'arrow')!
+	}
+
+	beforeEach(() => {
+		editor.groupShapes([ids.box1, ids.box2], { groupId: ids.group1, select: false })
+	})
+
+	it('does not bind to shapes in the group', () => {
+		editor.toggleLock([ids.group1])
+		editor.setCurrentTool('arrow').pointerDown(150, 150).pointerMove(320, 320).pointerUp()
+
+		const arrow = arrowShape()
+		expect(bindings(arrow.id)).toMatchObject({ start: undefined, end: undefined })
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
+	})
+
+	it('does not get stuck when drawing out of a shape in the group', () => {
+		editor.toggleLock([ids.group1])
+		// the end starts out over box1 too
+		editor.setCurrentTool('arrow').pointerDown(150, 150).pointerMove(160, 160).pointerMove(600, 150)
+
+		const arrow = arrowShape()
+		const end = editor.getShapePageTransform(arrow).applyToPoint(arrow.props.end)
+		expect(arrow.parentId).toBe(editor.getCurrentPageId())
+		expect(end.x).toBeCloseTo(600)
+		expect(end.y).toBeCloseTo(150)
+	})
+
+	it('unbinds from shapes in the group when the arrow is moved', () => {
+		editor.setCurrentTool('arrow').pointerDown(150, 150).pointerMove(375, 375).pointerUp()
+		const arrowId = arrowShape().id
+		expect(bindings(arrowId)).toMatchObject({ start: { toId: ids.box1 }, end: { toId: ids.box3 } })
+
+		editor.toggleLock([ids.group1])
+		editor.select(arrowId).nudgeShapes([arrowId], { x: 5, y: 0 })
+
+		expect(bindings(arrowId)).toMatchObject({ start: undefined, end: { toId: ids.box3 } })
 	})
 })
