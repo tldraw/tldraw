@@ -8,6 +8,7 @@
 		"moduleResolution": "bundler"
 	},
 	"references": [
+		{ "path": "../render-worker" },
 		{ "path": "../../../packages/sync-collaboration" },
 		{ "path": "../../../packages/dotcom-shared" },
 		{ "path": "../../../packages/store" },

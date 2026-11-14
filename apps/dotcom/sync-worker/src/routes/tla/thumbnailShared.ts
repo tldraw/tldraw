@@ -93,6 +93,20 @@ export class RenderPageError extends Error {
 	}
 }
 
+// A failure returned by the private render worker over its service binding (apps/dotcom/render-worker).
+// The worker has already classified it to a bounded reason and reported the underlying detail to its
+// own Sentry; this carries that reason back through the same throw/catch the local render path uses,
+// so classifyScreenshotFailure returns it unchanged and the call sites need no special casing.
+export class RenderWorkerError extends Error {
+	readonly reason: string
+
+	constructor(reason: string) {
+		super(`Render worker failed (${reason})`)
+		this.name = 'RenderWorkerError'
+		this.reason = reason
+	}
+}
+
 // Maps an arbitrary render error to a bounded set of reason codes for the `failure` telemetry blob.
 // Raw `error.message` strings are unbounded and must never reach that dimension, so keep this a
 // small, stable vocabulary. The typed cases are matched first and by type: a failed snapshot read is
@@ -102,6 +116,8 @@ export class RenderPageError extends Error {
 // `snapshot_read_error` with everything else the readers throw. That race is a few milliseconds wide,
 // so separating it out isn't worth a dedicated error type threaded through every reporting path.
 export function classifyScreenshotFailure(error: unknown): string {
+	// Already classified by the render worker; pass its reason through unchanged.
+	if (error instanceof RenderWorkerError) return error.reason
 	if (error instanceof RateLimiterUnavailableError) return 'rate_limiter_unavailable'
 	if (error instanceof BoardSnapshotReadError) return 'snapshot_read_error'
 	if (error instanceof BrowserRenderError) return classifyBrowserRenderFailure(error)
@@ -139,6 +155,8 @@ export function describeThumbnailFailure(reason: string): string {
 			return "the board's saved content could not be read"
 		case 'not_configured':
 			return 'rendering is not configured'
+		case 'board_too_large':
+			return 'the board is too large to render'
 		case 'browser_timeout':
 			return 'rendering timed out'
 		case 'board_lookup_error':

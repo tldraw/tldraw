@@ -519,6 +519,23 @@ binding = "BROWSER"
 [env.production.browser]
 binding = "BROWSER"
 
+#################### Render worker (private screenshot/measure worker) ####################
+# RPC to the private render worker (apps/dotcom/render-worker), reached only here — it has no routes.
+# The RenderWorker entrypoint exposes screenshot()/measure(). Bound on dev + staging; preview's
+# per-id name is injected by deploy-dotcom.ts. NOT bound in production: production stays on the local
+# render path. Nothing calls the binding anywhere until THUMBNAIL_RENDER_VIA_WORKER is turned on
+# (off by default), so staging is wired but unchanged for everyone until that flag flips. deploy
+# order: render-worker deploys before this worker (deploy-dotcom.ts dependsOn), or the ref dangles.
+[[env.dev.services]]
+binding = "RENDER_WORKER"
+service = "dev-tldraw-render-worker"
+entrypoint = "RenderWorker"
+
+[[env.staging.services]]
+binding = "RENDER_WORKER"
+service = "staging-tldraw-render-worker"
+entrypoint = "RenderWorker"
+
 #################### Room snapshots parent slug KV store ####################
 [[env.dev.kv_namespaces]]
 binding = "SNAPSHOT_SLUG_TO_PARENT_SLUG"

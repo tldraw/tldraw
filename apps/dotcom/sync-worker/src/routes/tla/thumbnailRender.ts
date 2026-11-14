@@ -1,11 +1,14 @@
 import {
 	DEFAULT_THUMBNAIL_HEIGHT,
 	DEFAULT_THUMBNAIL_WIDTH,
+	RENDER_PUSH_BUDGET_BYTES,
 	THUMBNAIL_RENDER_GLOBAL,
 	THUMBNAIL_RENDER_PATH,
 	THUMBNAIL_RENDER_TIMEOUT_MS,
 	getThumbnailContentRequestBody,
 	getThumbnailScreenshotRequestBody,
+	renderPushByteLength,
+	renderPushScript,
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { AssetRecordType, isShape, isShapeId } from '@tldraw/tlschema'
@@ -43,6 +46,7 @@ import {
 	BoardSnapshotReadError,
 	BrowserRenderError,
 	RenderPageError,
+	RenderWorkerError,
 	classifyScreenshotFailure,
 } from './thumbnailShared'
 
@@ -364,6 +368,36 @@ export async function captureThumbnailScreenshot(
 		theme,
 		exp: Date.now() + THUMBNAIL_RENDER_TOKEN_TTL_MS,
 	}
+
+	// Flag-gated hand-off to the private render worker (apps/dotcom/render-worker). Off by default;
+	// when on and bound it renders instead of the local path below. Push-only, so it needs the
+	// snapshot the caller read — without one there is nothing to push, so fall through to the local
+	// path. The worker writes browser_run_session and reports detail to its own Sentry; a failure
+	// returns as a bounded reason, re-thrown as RenderWorkerError so this function's callers keep the
+	// same throw/catch and request-level telemetry. See the render worker's api.ts.
+	if (envFlagWord(env.THUMBNAIL_RENDER_VIA_WORKER) === 'true' && env.RENDER_WORKER && snapshot) {
+		const body = thumbnailSnapshotBodyFor(snapshot, job)
+		// The same page/shape re-check the snapshot route does; with no pull path, a vanished page or
+		// shape fails the render rather than falling back to a fetch.
+		if (body.error) throw new Error(body.message)
+		// Refuse a board too large to push before spending any RPC (decision #1: no pull fallback). The
+		// injected script is the larger of the two 32 MiB hops, so measuring it covers both.
+		if (renderPushByteLength(renderPushScript(body)) > RENDER_PUSH_BUDGET_BYTES) {
+			throw new RenderWorkerError('board_too_large')
+		}
+		const result = await env.RENDER_WORKER.screenshot({
+			payload: body,
+			telemetry: {
+				source: telemetry.source,
+				reason: telemetry.reason,
+				content: content ?? EMPTY_CONTENT_SUMMARY,
+			},
+		})
+		if (!result.ok) throw new RenderWorkerError(result.reason)
+		// Callers read only `base64`; render time now lives on the worker's ledger, not here.
+		return { base64: arrayBufferToBase64(result.png.buffer as ArrayBuffer), durationMs: 0 }
+	}
+
 	// Minted even for a push: the page still beacons with it.
 	const token = await mintRecordedRenderToken(env, job)
 	try {
