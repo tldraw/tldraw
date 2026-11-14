@@ -416,3 +416,84 @@ describe('TldrawApp.getFallbackFileName', () => {
 		)
 	})
 })
+
+describe('TldrawApp after dispose', () => {
+	function createDisposableAppStub(overrides: Record<string, unknown> = {}) {
+		const abortController = new AbortController()
+		const app = Object.assign(Object.create(TldrawApp.prototype), {
+			abortController,
+			navigate: vi.fn(),
+			toasts: { addToast: vi.fn() },
+			trackEvent: vi.fn(),
+			showMutationRejectionToast: vi.fn(),
+			...overrides,
+		}) as TldrawApp
+		return { app, dispose: () => abortController.abort() }
+	}
+
+	afterEach(() => {
+		vi.useRealTimers()
+		vi.unstubAllGlobals()
+	})
+
+	it('does not report a file created by a session that ended while it was pending', async () => {
+		const mutation = promiseWithResolve<{ type: 'error'; error: unknown }>()
+		const { app, dispose } = createDisposableAppStub({
+			canCreateNewFile: () => true,
+			storeNewRoomCreationTracking: vi.fn(),
+			z: { mutate: { createFile: () => ({ client: mutation }) } },
+		})
+
+		const result = app.createFile({ workspaceId: 'workspace', name: 'file' })
+		dispose()
+		mutation.resolve({ type: 'error', error: { type: 'zero', message: 'closed' } })
+
+		expect(await result).toEqual({ ok: false, error: 'app disposed' })
+		expect(app.showMutationRejectionToast).not.toHaveBeenCalled()
+	})
+
+	it('stops waiting for an accepted invite once the session ends', async () => {
+		vi.useFakeTimers()
+		vi.stubGlobal(
+			'fetch',
+			vi.fn().mockResolvedValue({ ok: true, json: async () => ({ workspaceId: 'workspace' }) })
+		)
+		const { app, dispose } = createDisposableAppStub({ getWorkspaceMembership: () => undefined })
+
+		const accepted = app.acceptWorkspaceInvite('secret')
+		await vi.advanceTimersByTimeAsync(500)
+		dispose()
+		await vi.advanceTimersByTimeAsync(20_000)
+		await accepted
+
+		expect(app.navigate).not.toHaveBeenCalled()
+		expect(app.toasts!.addToast).not.toHaveBeenCalled()
+	})
+})
+
+describe('TldrawApp.uploadTldrFiles after dispose', () => {
+	it('does not toast an upload failure caused by the session ending', async () => {
+		const abortController = new AbortController()
+		const upload = promiseWithResolve<never>()
+		const app = Object.assign(Object.create(TldrawApp.prototype), {
+			abortController,
+			toasts: { addToast: vi.fn(), removeToast: vi.fn() },
+			trackEvent: vi.fn(),
+			canCreateNewFile: () => true,
+			getHomeWorkspaceId: () => 'home',
+			uploadTldrFile: () => upload,
+		}) as TldrawApp
+		const onUploadError = vi.fn()
+
+		const uploading = app.uploadTldrFiles([new File(['{}'], 'a.tldr')], {
+			source: 'import-url',
+			onUploadError,
+		})
+		abortController.abort()
+		upload.reject(new Error('aborted'))
+		await uploading
+
+		expect(app.toasts!.addToast).not.toHaveBeenCalled()
+		expect(onUploadError).not.toHaveBeenCalled()
+	})
+})
