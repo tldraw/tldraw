@@ -1155,7 +1155,7 @@ describe('handleOgImageRenderMessage', () => {
 	// proved it cannot render. The cooldown is what stands in for the marker on that one path, and
 	// only that path: a publish-triggered failure must not arm it, or the repair loses the immediate
 	// first attempt it exists to provide.
-	it('arms the repair cooldown when a crawler-triggered job gives up, and only then', async () => {
+	it('arms the repair cooldown when a crawler-triggered job gives up, not a publish-triggered one', async () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 		vi.mocked(getPublishedFileInfo).mockResolvedValue({
 			id: 'file-1',
@@ -1208,6 +1208,73 @@ describe('handleOgImageRenderMessage', () => {
 
 		vi.setSystemTime(armedAt + OG_REPAIR_COOLDOWN_MS + 1000)
 		expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+	})
+
+	describe('edit cooldown', () => {
+		const board = { kind: 'shared_file', slug: 'file-1' } as const
+
+		function arrangeFailingSharedFile() {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+			vi.mocked(getSharedFileInfo).mockResolvedValue({
+				id: 'file-1',
+				shared: true,
+				isDeleted: false,
+			})
+			vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
+			return makeEnv({
+				BROWSER: makeBrowserBinding(async () => {
+					throw new Error('browser session failed')
+				}),
+				ROOMS: makeFakeRoomsBucket(),
+				THUMBNAILS: makeFakeThumbnailsBucket(),
+			})
+		}
+
+		// The case behind it: a shared board that cannot render, edited continuously, queued a full retry
+		// chain on every edit window.
+		it('turns edit asks away after an edit-triggered job gives up, until the cooldown lapses', async () => {
+			vi.useFakeTimers()
+			vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+			const env = arrangeFailingSharedFile()
+
+			await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'edit' }, 1))
+			expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+			await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'edit' }, 3))
+			expect(await isOgImageRepairOnCooldown(env, board)).toBe(true)
+
+			const armedAt = Date.parse('2026-01-01T00:00:00Z')
+			vi.mocked(env.QUEUE!.send).mockClear()
+			expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('cooling_down')
+			expect(env.QUEUE!.send).not.toHaveBeenCalled()
+			expect(blobValuesOf(env, 'og_render_cooling_down', 'kind')).toEqual(['shared_file'])
+
+			vi.setSystemTime(armedAt + OG_REPAIR_COOLDOWN_MS + 1000)
+			expect(await enqueueOgImageRender(env, board, { reason: 'edit' })).toBe('enqueued')
+		})
+
+		it('still lets a publish through while an edit cooldown is armed', async () => {
+			const env = arrangeFailingSharedFile()
+			await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'edit' }, 3))
+
+			expect(await enqueueOgImageRender(env, board, { reason: 'publish' })).toBe('enqueued')
+		})
+
+		// The next edit that draws something must render straight away.
+		it('does not arm on an empty board', async () => {
+			vi.mocked(getSharedFileInfo).mockResolvedValue({
+				id: 'file-1',
+				shared: true,
+				isDeleted: false,
+			})
+			vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(
+				makeSnapshot([{ id: 'page:one', index: 'a1', shapes: 0 }])
+			)
+			const env = makeEnv({ ROOMS: makeFakeRoomsBucket(), THUMBNAILS: makeFakeThumbnailsBucket() })
+
+			await handleOgImageRenderMessage(env, makeMessage({ ...board, reason: 'edit' }))
+
+			expect(await isOgImageRepairOnCooldown(env, board)).toBe(false)
+		})
 	})
 
 	// A board that fails deterministically fails every attempt, so reporting each delivery filed three

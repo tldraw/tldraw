@@ -2300,7 +2300,9 @@ export class TLFileDurableObject extends DurableObject {
 	 * wait is up. That debounce is the render rate control; there is no sampling or staleness gate on
 	 * top, because a persist means the saved content genuinely differs from what the cached thumbnail
 	 * shows. Downstream, the pending marker single-flights the ask and the consumer re-checks
-	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either.
+	 * `(board, version)` before spending a Browser Run slot — neither is a rate control either. The one
+	 * thing that turns an ask away is the cooldown a give-up arms (`cooling_down`), for boards that
+	 * cannot render at all.
 	 */
 	private async requestOgRenderForEdit(firedAt: number) {
 		try {

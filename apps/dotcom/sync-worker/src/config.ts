@@ -86,11 +86,15 @@ export const OG_RETRY_DELAY_SECONDS = 30
  * to render — a huge board that times out, say — would burn a full retry chain of Browser Run every
  * ~4 minutes for as long as anything crawls its URL. With it, such a board costs one chain per hour.
  *
- * Only the *crawler-reason* give-up arms it, so a publish-triggered render that fails transiently
+ * A publish-triggered give-up never arms it, so a publish-triggered render that fails transiently
  * still gets one immediate repair on the next crawl — the case the repair exists for — and the
  * cooldown only meters the attempts after that one has also failed. The publish trigger clears it,
  * because an in-place republish reuses the slug: the cooldown is evidence about the snapshot that
  * failed, and it must not outlive that snapshot and block the new one's repair.
+ *
+ * An edit-triggered give-up arms it too, and edit asks consult it. Without that, a shared board that
+ * cannot render (seen 2026-11-10: Browser Run 500s on two boards, TLDRAW-SYNC-3VJ) burns a retry chain
+ * on every edit window while anyone edits it. Its thumbnail stays up to an hour behind meanwhile.
  */
 export const OG_REPAIR_COOLDOWN_MS = 60 * 60_000
 
