@@ -175,6 +175,7 @@ jobs:
           SUPABASE_LITE_URL: ${{ vars.SUPABASE_LITE_URL }}
           VERCEL_ORG_ID: ${{ vars.VERCEL_ORG_ID }}
           VERCEL_PROJECT_ID: ${{ vars.VERCEL_DOTCOM_PROJECT_ID }}
+          VITE_WEBMCP_ORIGIN_TRIAL_TOKENS: ${{ vars.WEBMCP_ORIGIN_TRIAL_TOKENS }}
 
           ANALYTICS_API_URL: ${{ secrets.ANALYTICS_API_URL }}
           ANALYTICS_API_TOKEN: ${{ secrets.ANALYTICS_API_TOKEN }}

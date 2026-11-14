@@ -67,6 +67,7 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { SneakyWebMcpTools } from './sneaky/SneakyWebMcpTools'
 import { TlaPinContent, TlaThreadRow } from './TlaAgentCommentSurfaces'
 import { TlaCommentByline } from './TlaCommentByline'
 import { A11yAudit } from './TlaDebug'
@@ -416,6 +417,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
 				<SneakyFileEditorRegistration />
+				<SneakyWebMcpTools />
 				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>

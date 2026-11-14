@@ -1,6 +1,7 @@
 import { ReactNode, useMemo } from 'react'
 import { Editor, TLComponents, Tldraw, TldrawOptions, TLUiOverrides, useEvent } from 'tldraw'
 import { SneakyToolSwitcher } from '../tla/components/TlaEditor/sneaky/SneakyToolSwitcher'
+import { SneakyWebMcpTools } from '../tla/components/TlaEditor/sneaky/SneakyWebMcpTools'
 import { useExtraDragIconOverrides } from '../tla/components/TlaEditor/useExtraToolDragIcons'
 import { useFileEditorOverrides } from '../tla/components/TlaEditor/useFileEditorOverrides'
 import { useHandleUiEvents } from '../utils/analytics'
@@ -58,6 +59,7 @@ export function LocalEditor({
 				<SneakyOnDropOverride isMultiplayer={false} />
 				<SneakyToolSwitcher />
 				<SneakyMermaidHandler />
+				<SneakyWebMcpTools />
 				<ThemeUpdater />
 				{children}
 			</Tldraw>

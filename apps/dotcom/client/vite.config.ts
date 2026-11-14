@@ -85,6 +85,28 @@ function clerkJsPlugin(): Plugin {
 	}
 }
 
+// WebMCP is behind an origin trial: a visitor's browser only has it on pages that carry a token for
+// their origin. Tokens are public, and several can be listed (comma separated), one per browser
+// vendor's trial. With none set, only a browser with its WebMCP flag turned on gets the tools in
+// src/tla/utils/webMcp.ts.
+function originTrialPlugin(): Plugin {
+	const tokens = (process.env.VITE_WEBMCP_ORIGIN_TRIAL_TOKENS ?? '')
+		.split(',')
+		.map((token) => token.trim())
+		.filter(Boolean)
+	return {
+		name: 'origin-trial',
+		transformIndexHtml(html, ctx) {
+			if (!ctx.path.endsWith('/index.html')) return html
+			return tokens.map((content) => ({
+				tag: 'meta',
+				attrs: { 'http-equiv': 'origin-trial', content },
+				injectTo: 'head-prepend' as const,
+			}))
+		},
+	}
+}
+
 function urlOrLocalFallback(mode: string, url: string | undefined, localFallbackPort: number) {
 	if (url) {
 		return JSON.stringify(url)
@@ -111,6 +133,7 @@ export default defineConfig((env) => ({
 		thumbnailRenderEntryPlugin(),
 		spaFallbackPlugin(),
 		clerkJsPlugin(),
+		originTrialPlugin(),
 		thumbnailScreenshotPlugin(),
 		zodLocalePlugin(fileURLToPath(new URL('./scripts/zod-locales-shim.js', import.meta.url))),
 		react(),
