@@ -1,0 +1,126 @@
+.time {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	margin-left: auto;
+}
+
+/* A card's actions sit over the right of the byline row, where the time is. While they show (on
+   hover, on keyboard focus, or while one of their menus is open), the time leaves the row: hidden
+   but still laid out, it would cut a long name short by its own width on top of the room the
+   toolkit already keeps for the actions. The hover preview has no actions, so keeps its time. */
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):hover) .time,
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions > *):has(:focus-visible)) .time,
+:global(.tlui-cmt-card:has(.tlui-cmt-card__actions [data-state='open'])) .time {
+	display: none;
+}
+
+/* The toolkit pads the row's right side clear of a card's actions (the `.tlui-cmt-head`
+   padding-right rules in @tldraw/commenting's comments.css), which would leave the right-aligned
+   time short of the edge. Give the room back while the actions are hidden; while they show, the
+   padding returns, so a long name still stops short of them. Their selector out-ranks a module
+   class, hence !important. */
+:global(
+		.tlui-cmt-card:not(:hover):not(:has(:focus-visible)):not(
+				:has(.tlui-cmt-card__actions [data-state='open'])
+			)
+	)
+	.head {
+	padding-right: 0 !important;
+}
+
+.edited {
+	display: inline-flex;
+}
+
+.edited :global(.tlui-icon) {
+	width: 11px;
+	height: 11px;
+}
+
+/* The owner's avatar, at the toolkit's byline size, with the agent's badge over its bottom-right
+   corner. */
+.agentAvatar {
+	position: relative;
+	flex-shrink: 0;
+	display: inline-flex;
+}
+
+/* The ring in the panel colour separates the badge from the avatar under it in both themes. */
+.agentBadge {
+	position: absolute;
+	right: -2px;
+	bottom: -2px;
+	box-sizing: border-box;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 9px;
+	height: 9px;
+	border-radius: 50%;
+	background: var(--tl-color-panel);
+	color: var(--tl-color-text-1);
+	box-shadow: 0 0 0 1px var(--tl-color-panel);
+}
+
+/* The mark fills the badge, so the 1px ring is all the white around it, as with the generic face. */
+.agentLogo {
+	width: 9px;
+	height: 9px;
+}
+
+.anon {
+	background: #9fa8b2;
+	color: white;
+}
+
+.agentAuthor {
+	display: flex;
+	column-gap: 0.25em;
+}
+
+.agentName {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.owner {
+	flex-shrink: 0;
+	font-weight: 400;
+	color: var(--tl-color-text-3);
+}
+
+/* A sidebar row for a thread an agent started. The wrapper stays out of the list's layout. */
+.agentRow {
+	display: contents;
+}
+
+.agentRow :global(.tlui-cmt-author)::after {
+	content: ' ' var(--tla-agent-owner);
+	font-weight: 400;
+	color: var(--tl-color-text-3);
+}
+
+/* The list nudges its 14px avatar down to the name's line; move the badged avatar as one. */
+.agentRow .agentAvatar {
+	align-self: flex-start;
+	margin-top: 2px;
+}
+
+.agentRow .agentAvatar :global(.tlui-cmt-avatar) {
+	margin-top: 0;
+}
+
+/* On a pin the avatar is 22px, so the badge grows with it. */
+.pinAvatar .agentBadge {
+	width: 11px;
+	height: 11px;
+	right: -3px;
+	bottom: -3px;
+}
+
+.pinAvatar .agentLogo {
+	width: 11px;
+	height: 11px;
+}

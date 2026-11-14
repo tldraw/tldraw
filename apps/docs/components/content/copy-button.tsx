@@ -11,16 +11,26 @@ export function CopyButton({
 	className?: string
 }) {
 	const [copied, setCopied] = useState<boolean>(false)
-	const handleClick = () => {
+	const handleClick = async () => {
+		const page_url = window.location.href
 		const code: string = typeof copy === 'string' ? copy : (copy.current?.innerText ?? '')
 
-		navigator.clipboard.writeText(code)
+		try {
+			await navigator.clipboard.writeText(code)
+		} catch {
+			return
+		}
 
-		if (window.tlanalytics?.trackCopyCode) {
-			window.tlanalytics.trackCopyCode({
+		try {
+			window.tlanalytics?.trackCopyCode?.({
 				page_category: 'docs',
+				page_url,
+				copy_kind: 'code_snippet',
+				method: 'button',
 				text_snippet: code,
 			})
+		} catch {
+			/* Analytics must not interrupt a successful copy. */
 		}
 
 		setCopied(true)

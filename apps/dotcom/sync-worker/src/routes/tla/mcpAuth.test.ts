@@ -3,6 +3,7 @@ import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vite
 import { Environment } from '../../types'
 import { canUseMcpServer } from '../../utils/featureFlags'
 import {
+	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	McpAuthResult,
@@ -10,6 +11,7 @@ import {
 	getMcpAuthorizationServer,
 	getMcpProtectedResourceMetadata,
 	getMcpResourceUrl,
+	isMcpHostRequest,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './mcpAuth'
@@ -106,13 +108,19 @@ function makeEnv(overrides: Partial<Record<string, unknown>> = {}) {
 		CLERK_SECRET_KEY: 'sk_test_secret',
 		CLERK_PUBLISHABLE_KEY: PUBLISHABLE_KEY,
 		MCP_SERVER_URL: RESOURCE,
+		MCP_HOST_ORIGIN: 'https://mcp.tldraw.com',
 		...overrides,
 	} as unknown as Environment
 }
 
-function makeRequest(headers: Record<string, string> = {}) {
-	return new Request('https://sync.tldraw.xyz/app/mcp', { method: 'POST', headers }) as any
+function makeRequest(
+	headers: Record<string, string> = {},
+	url = 'https://sync.tldraw.xyz/app/mcp'
+) {
+	return new Request(url, { method: 'POST', headers }) as any
 }
+
+const mcpHostRequest = (path = '/mcp') => makeRequest({}, `https://mcp.tldraw.com${path}`)
 
 const bearer = (token: string) => makeRequest({ authorization: `Bearer ${token}` })
 
@@ -153,6 +161,35 @@ describe('getMcpResourceUrl', () => {
 	it('falls back to the request origin when unset', () => {
 		expect(getMcpResourceUrl(makeRequest(), makeEnv({ MCP_SERVER_URL: undefined }))).toBe(
 			'https://sync.tldraw.xyz/api/app/mcp'
+		)
+	})
+})
+
+describe('MCP host', () => {
+	it('is recognised by the configured origin alone', () => {
+		expect(isMcpHostRequest(mcpHostRequest(), makeEnv())).toBe(true)
+		expect(isMcpHostRequest(makeRequest(), makeEnv())).toBe(false)
+		expect(isMcpHostRequest(mcpHostRequest(), makeEnv({ MCP_HOST_ORIGIN: undefined }))).toBe(false)
+	})
+
+	// A connector validates the metadata against the URL the user typed, so on the host the resource
+	// is the host's URL, not the /api one.
+	it('advertises the boards URL as the resource', async () => {
+		expect(getMcpResourceUrl(mcpHostRequest(), makeEnv())).toBe('https://mcp.tldraw.com/mcp')
+
+		const response = getMcpProtectedResourceMetadata(
+			mcpHostRequest(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH),
+			makeEnv()
+		)
+		expect(await response.json()).toMatchObject({ resource: 'https://mcp.tldraw.com/mcp' })
+	})
+
+	it('points a refusal at the boards metadata on the host', async () => {
+		const result = await authenticateMcpRequest(mcpHostRequest(), makeEnv())
+
+		expect(responseOf(result).headers.get('WWW-Authenticate')).toBe(
+			`Bearer resource_metadata="https://mcp.tldraw.com${ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH}", ` +
+				`scope="openid profile email offline_access"`
 		)
 	})
 })
@@ -287,7 +324,7 @@ describe('authenticateMcpRequest', () => {
 	it('accepts a valid token and returns its subject', async () => {
 		const result = await authenticateMcpRequest(bearer(await signToken()), makeEnv())
 
-		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(result).toEqual({ ok: true, userId: 'user_123', clientId: null })
 	})
 
 	// The signing keys are the accepting instance's own, fetched from Clerk's Backend API with the
@@ -372,7 +409,7 @@ describe('authenticateMcpRequest', () => {
 			makeEnv()
 		)
 
-		expect(result).toEqual({ ok: true, userId: 'user_123' })
+		expect(result).toEqual({ ok: true, userId: 'user_123', clientId: null })
 	})
 
 	// Only the SDK's reason and message are logged. The token itself, or a decoded payload, would put
@@ -429,7 +466,7 @@ describe('authenticateMcpRequest', () => {
 				makeRequest({ authorization: `  bearer   ${token}  ` }),
 				makeEnv()
 			)
-		).toEqual({ ok: true, userId: 'user_123' })
+		).toEqual({ ok: true, userId: 'user_123', clientId: null })
 	})
 
 	// Anything that is not a bearer token is treated as no token at all, so the client is told where to

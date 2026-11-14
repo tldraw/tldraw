@@ -185,6 +185,12 @@
       "value": "Vytvořit soubor"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Přesunout do"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Odebrat člena"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Přihlaste se a přijměte tuto pozvánku."
     }
   ],
   "3bc7d6ea2f": [
@@ -756,6 +768,12 @@
       "value": "Načtěte stránku znovu"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Uložte obsah jako soubor .tldr: v levé horní nabídce vyberte možnost „Uložit kopii“."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -1016,6 +1034,12 @@
       "value": "? Tuto akci nelze vrátit zpět."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Zkopírován odkaz na pozvánku"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1180,12 +1204,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Export obsahu jako souboru .tldr: V levé horní nabídce vyberte možnost „Stáhnout“."
     }
   ],
   "a104439641": [
@@ -1846,6 +1864,12 @@
       "value": "nebo"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historie souborů"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1942,6 +1966,12 @@
     {
       "type": 0,
       "value": "Vymazat"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Tento odkaz na pozvánku je neplatný nebo jeho platnost vypršela."
     }
   ],
   "f476ba8646": [
@@ -2102,6 +2132,12 @@
     {
       "type": 0,
       "value": "Vytvořte si bezplatný účet pro ukládání souborů a kreslení se spoluhráči."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Chyba při přijímání pozvánky"
     }
   ],
   "ffcd73e997": [

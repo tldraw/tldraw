@@ -20,14 +20,13 @@
 	},
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "1.11.3",
+		"@rocicorp/zero": "1.11.5",
 		"kysely": "^0.28.12",
 		"pg": "^8.16.3"
 	},
 	"devDependencies": {
 		"@types/pg": "^8.16.0",
 		"concurrently": "^9.1.2",
-		"dotenv": "^16.4.7",
 		"tsx": "^4.19.2",
 		"vitest": "^5.0.0"
 	}

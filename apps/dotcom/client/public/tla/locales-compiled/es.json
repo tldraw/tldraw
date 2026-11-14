@@ -185,6 +185,12 @@
       "value": "Crear archivo"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Convidar a"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Eliminar miembro"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Inicia sesión para aceptar esta invitación."
     }
   ],
   "3bc7d6ea2f": [
@@ -734,6 +746,12 @@
       "value": "Vuelva a cargar la página"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Guarda el contenido como un archivo .tldr: selecciona 'Guardar una copia' en el menú superior izquierdo."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -994,6 +1012,12 @@
       "value": "? Esta acción no se puede deshacer."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Enlace de invitación copiado"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1136,12 +1160,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Exportar el contenido como un archivo .tldr: seleccione ‘Descargar’ en el menú superior izquierdo."
     }
   ],
   "a104439641": [
@@ -1702,6 +1720,12 @@
       "value": "o"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historial de archivos"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1798,6 +1822,12 @@
     {
       "type": 0,
       "value": "Eliminar"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Este enlace de invitación no es válido o ha caducado."
     }
   ],
   "f476ba8646": [
@@ -1936,6 +1966,12 @@
     {
       "type": 0,
       "value": "Crea una cuenta gratuita para guardar tus archivos y colaborar con tus compañeros de equipo."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Error al aceptar la invitación"
     }
   ],
   "ffcd73e997": [

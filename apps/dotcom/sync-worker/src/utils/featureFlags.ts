@@ -45,12 +45,33 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'Version history written as delta chains; rooms outside it write every version as a whole keyframe. Bucketed per ROOM, not per user: the sync worker passes the room R2 key as the id, and the per-user value browsers see is meaningless. A change reaches a room when its durable object next starts',
 		},
-		collections: {
+		libraries: {
 			type: 'allowlist',
 			users: [],
 			allowEveryone: false,
 			description:
-				'Shows the collections UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
+				'Shows the libraries UI, which is still being built. The list starts empty, so nobody sees it until they are added. A change reaches a tab when it next reloads',
+		},
+		thumbnail_render_push: {
+			type: 'percentage',
+			// 0% by default: a deployment whose KV read fails keeps fetching, the path that predates push.
+			percentage: 0,
+			enabled: true,
+			description:
+				'Board thumbnail and OG renders send the board to the render page instead of the page fetching it. Bucketed per BOARD, not per user: the sync worker passes the board kind and slug as the id, and the per-user value browsers see is meaningless. MCP renders follow mcp_render_push instead. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH (dev, previews, staging push every board). A change lands within about a minute',
+		},
+		mcp_render_push: {
+			type: 'boolean',
+			enabled: true,
+			description:
+				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
+		},
+		ui_v3: {
+			type: 'allowlist',
+			users: [],
+			allowEveryone: false,
+			description:
+				'The tldraw.com v3 redesign, and the design switches (beaker menu) for trying ideas within it. The list starts empty, so nobody sees it until they are added. Read once per page load, so a change reaches a user on their next reload',
 		},
 	}
 }

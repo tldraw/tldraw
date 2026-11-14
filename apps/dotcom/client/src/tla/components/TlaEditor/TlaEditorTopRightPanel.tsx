@@ -19,17 +19,27 @@ import {
 	F,
 	PeopleMenu,
 	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -93,9 +103,10 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
+			<DesignSwitchesMenu />
 			<PeopleMenu />
-			{/* Only file editors mount the comments sidebar (see CommentsOnCanvas); in legacy and
-			    published contexts the button would toggle state nothing reads. */}
+			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
+			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
@@ -138,7 +149,7 @@ function CommentsSidebarButton() {
 	return (
 		<TldrawUiButton
 			type="icon"
-			className={styles.commentsSidebarButton}
+			className={styles.topRightIconButton}
 			data-testid="tla-comments-button"
 			aria-pressed={open}
 			tooltip={label}
@@ -150,6 +161,52 @@ function CommentsSidebarButton() {
 		>
 			<TlaIcon icon="comment" />
 		</TldrawUiButton>
+	)
+}
+
+/** The beaker: v3 design switches, for `ui_v3` users only. See `designSwitches`. */
+function DesignSwitchesMenu() {
+	const isUiV3 = useIsUiV3()
+	if (!isUiV3) return null
+
+	return (
+		<TldrawUiDropdownMenuRoot id="design-switches">
+			<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
+						type="icon"
+						className={styles.topRightIconButton}
+						data-testid="tla-design-switches-button"
+						tooltip="Design switches"
+						title="Design switches"
+					>
+						<TlaIcon icon="beaker" />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+					<TldrawUiMenuGroup id="design-switches">
+						{Object.values(designSwitches).map((designSwitch) => (
+							<DesignSwitchItem key={designSwitch.id} designSwitch={designSwitch} />
+						))}
+					</TldrawUiMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
+
+function DesignSwitchItem({ designSwitch }: { designSwitch: DesignSwitch }) {
+	const checked = useValue(designSwitch.value)
+	return (
+		<TldrawUiMenuCheckboxItem
+			id={`design-switch-${designSwitch.id}`}
+			label={designSwitch.label}
+			checked={checked}
+			onSelect={() => {
+				designSwitch.value.set(!checked)
+			}}
+			readonlyOk
+		/>
 	)
 }
 

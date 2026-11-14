@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "创建文件"
   },
+  "1a7222b4e5": {
+    "translation": "移至"
+  },
   "1da2e8106b": {
     "translation": "发生意外错误。"
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "移除成员"
+  },
+  "398f51738e": {
+    "translation": "请登录以接受此邀请。"
   },
   "3bc7d6ea2f": {
     "translation": "使用电子邮箱继续"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "请重新加载页面"
   },
+  "747ee44424": {
+    "translation": "将内容保存为 .tldr 文件：在左上角菜单中选择“保存副本”。"
+  },
   "74ff4bad28": {
     "translation": "未找到文件"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "你确定要删除<strong>{workspaceName}</strong>吗？此操作无法撤销。"
   },
+  "930390d222": {
+    "translation": "复制的邀请链接"
+  },
   "95aacd4d4a": {
     "translation": "使用 Google 登录"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, other {# 条未读}}"
-  },
-  "a0da245992": {
-    "translation": "将内容导出为 .tldr 文件：在左上角菜单中选择「下载」。"
   },
   "a104439641": {
     "translation": "内边距"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "或者"
   },
+  "ea13ecec38": {
+    "translation": "文件历史记录"
+  },
   "ea4788705e": {
     "translation": "取消"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "删除"
   },
+  "f408fa5fbd": {
+    "translation": "此邀请链接无效或已过期。"
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>、<name>{b}</name> 和{count, plural, other {另外 # 人}}对你的评论做出了回应"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "创建免费账户，即可保存文件，并与团队成员在 tldraw 上协作绘图。"
+  },
+  "ffad261a48": {
+    "translation": "接受邀请时出错"
   },
   "ffcd73e997": {
     "translation": "导入文件…"

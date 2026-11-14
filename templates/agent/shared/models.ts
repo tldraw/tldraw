@@ -1,8 +1,11 @@
 export type AgentModelName = keyof typeof AGENT_MODEL_DEFINITIONS
 export type AgentModelProvider = 'openai' | 'anthropic' | 'google'
 
-/** Adaptive-thinking mode passed to the Anthropic provider. */
-export type AnthropicThinking = 'adaptive' | 'disabled'
+/**
+ * Thinking mode passed to the Anthropic provider. Models without adaptive thinking, such as Haiku
+ * 4.5, take a token budget instead.
+ */
+export type AnthropicThinking = 'adaptive' | 'disabled' | { budgetTokens: number }
 
 /** Effort level passed to the Anthropic provider (Opus 4.6+/Sonnet 4.6+; not supported on Haiku 4.5). */
 export type AnthropicEffort = 'low' | 'medium' | 'high' | 'xhigh' | 'max'
@@ -15,13 +18,10 @@ export type GeminiThinkingLevel = 'low' | 'medium' | 'high'
 
 interface BaseAgentModelDefinition {
 	name: AgentModelName
+	/** The provider's own model id. */
 	id: string
-
-	/**
-	 * Whether the model accepts a prefilled assistant turn to force the JSON start.
-	 * Opus 4.6+ and Sonnet 4.6+ reject last-assistant-turn prefills (400).
-	 */
-	supportsPrefill: boolean
+	/** The model's id on OpenRouter, used when the worker has an `OPENROUTER_API_KEY`. */
+	openRouterId: string
 
 	/**
 	 * Whether the model accepts a `temperature` sampling parameter.
@@ -44,7 +44,8 @@ export interface GoogleModelDefinition extends BaseAgentModelDefinition {
 
 export interface OpenAIModelDefinition extends BaseAgentModelDefinition {
 	provider: 'openai'
-	reasoningEffort: OpenAIReasoningEffort
+	/** Reasoning effort; omit to use the model's default. */
+	reasoningEffort?: OpenAIReasoningEffort
 }
 
 export type AgentModelDefinition =
@@ -57,8 +58,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'claude-opus-5': {
 		name: 'claude-opus-5',
 		id: 'claude-opus-5',
+		openRouterId: 'anthropic/claude-opus-5',
 		provider: 'anthropic',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		thinking: 'adaptive',
 		effort: 'medium',
@@ -67,8 +68,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'claude-sonnet-5': {
 		name: 'claude-sonnet-5',
 		id: 'claude-sonnet-5',
+		openRouterId: 'anthropic/claude-sonnet-5',
 		provider: 'anthropic',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		thinking: 'adaptive',
 		effort: 'low',
@@ -77,18 +78,19 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'claude-haiku-4-5': {
 		name: 'claude-haiku-4-5',
 		id: 'claude-haiku-4-5',
+		openRouterId: 'anthropic/claude-haiku-4.5',
 		provider: 'anthropic',
-		supportsPrefill: true,
-		supportsTemperature: true,
-		thinking: 'disabled',
+		// Anthropic takes no temperature while the model thinks.
+		supportsTemperature: false,
+		thinking: { budgetTokens: 1024 },
 	},
 
 	// Google models
 	'gemini-3.8-flash': {
 		name: 'gemini-3.8-flash',
 		id: 'gemini-3.8-flash',
+		openRouterId: 'google/gemini-3.8-flash',
 		provider: 'google',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		thinkingLevel: 'low',
 	},
@@ -97,8 +99,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gpt-5.6-sol': {
 		name: 'gpt-5.6-sol',
 		id: 'gpt-5.6-sol',
+		openRouterId: 'openai/gpt-5.6-sol',
 		provider: 'openai',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		reasoningEffort: 'medium',
 	},
@@ -106,8 +108,8 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gpt-5.6-terra': {
 		name: 'gpt-5.6-terra',
 		id: 'gpt-5.6-terra',
+		openRouterId: 'openai/gpt-5.6-terra',
 		provider: 'openai',
-		supportsPrefill: false,
 		supportsTemperature: false,
 		reasoningEffort: 'high',
 	},
@@ -115,10 +117,9 @@ export const AGENT_MODEL_DEFINITIONS = {
 	'gpt-5.6-luna': {
 		name: 'gpt-5.6-luna',
 		id: 'gpt-5.6-luna',
+		openRouterId: 'openai/gpt-5.6-luna',
 		provider: 'openai',
-		supportsPrefill: false,
 		supportsTemperature: false,
-		reasoningEffort: 'max',
 	},
 } as const
 

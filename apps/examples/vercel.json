@@ -1,5 +1,5 @@
 {
-	"installCommand": "pnpm install --filter examples.tldraw.com... --filter @tldraw/monorepo... --filter config...",
+	"installCommand": "pnpm install",
 	"buildCommand": "pnpm build",
 	"outputDirectory": "dist",
 	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-examples.sh",
