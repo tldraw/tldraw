@@ -184,7 +184,7 @@ test.describe('comment notifications', () => {
 		const posted = await test.step('a comment on your home board shows up', async () => {
 			const comment = await postComment(member, text)
 			await expectUnreadBadge(owner, 1)
-			await expectNotification(owner, text, /commented on your board/)
+			await expectNotification(owner, text, /commented/)
 			await closeNotifications(owner)
 
 			// the badge is there on a cold load too, before any feed change arrives
@@ -206,7 +206,7 @@ test.describe('comment notifications', () => {
 		await test.step('a reaction to your comment shows up', async () => {
 			await waitForRecord(member, mentioned.commentId)
 			await react(member, mentioned, '👍')
-			const reaction = await expectNotification(owner, mention, /reacted to your comment/)
+			const reaction = await expectNotification(owner, mention, /reacted/)
 			await expect(reaction).toContainText('👍')
 			await closeNotifications(owner)
 		})
@@ -220,7 +220,7 @@ test.describe('comment notifications', () => {
 		await test.step('a soft-deleted board takes its notifications with it', async () => {
 			const doomed = scenario.name('doomed comment')
 			await postComment(member, doomed)
-			await expectNotification(owner, doomed, /commented on your board/)
+			await expectNotification(owner, doomed, /commented/)
 			await closeNotifications(owner)
 
 			// deleting the file soft-deletes it and the trigger removes its file_state/group_file rows
