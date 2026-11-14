@@ -2,6 +2,7 @@ import { useCallback, useId, type ComponentType, type KeyboardEvent, type MouseE
 import {
 	defineMessages,
 	TldrawUiButton,
+	TldrawUiButtonIcon,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -10,7 +11,6 @@ import {
 	useTranslation,
 } from 'tldraw'
 import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
-import { SmileyIcon } from './icons'
 import { RenderReaction } from './reaction'
 
 const messages = defineMessages({
@@ -101,7 +101,7 @@ export function ReactionPicker({
 					title={msg(messages.commentsAddReaction)}
 					className={className}
 				>
-					<SmileyIcon />
+					<TldrawUiButtonIcon icon="smile" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* left-aligned under the trigger, so the grid opens rightward off the card's edge */}

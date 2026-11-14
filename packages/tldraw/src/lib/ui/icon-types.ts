@@ -14,6 +14,7 @@ export type TLUiIconType =
 	| 'arrow-cycle'
 	| 'arrow-elbow'
 	| 'arrow-left'
+	| 'arrow-up'
 	| 'arrowhead-arrow'
 	| 'arrowhead-bar'
 	| 'arrowhead-diamond'
@@ -29,6 +30,7 @@ export type TLUiIconType =
 	| 'bring-to-front'
 	| 'broken'
 	| 'bulletList'
+	| 'check-bold'
 	| 'check-circle'
 	| 'check'
 	| 'chevron-down'
@@ -128,6 +130,7 @@ export type TLUiIconType =
 	| 'size-large'
 	| 'size-medium'
 	| 'size-small'
+	| 'smile'
 	| 'spline-cubic'
 	| 'spline-line'
 	| 'stack-horizontal'
@@ -180,6 +183,7 @@ export const iconTypes = [
 	'arrow-cycle',
 	'arrow-elbow',
 	'arrow-left',
+	'arrow-up',
 	'arrowhead-arrow',
 	'arrowhead-bar',
 	'arrowhead-diamond',
@@ -195,6 +199,7 @@ export const iconTypes = [
 	'bring-to-front',
 	'broken',
 	'bulletList',
+	'check-bold',
 	'check-circle',
 	'check',
 	'chevron-down',
@@ -294,6 +299,7 @@ export const iconTypes = [
 	'size-large',
 	'size-medium',
 	'size-small',
+	'smile',
 	'spline-cubic',
 	'spline-line',
 	'stack-horizontal',

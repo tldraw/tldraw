@@ -1,6 +1,7 @@
 import {
 	defineMessages,
 	TldrawUiButton,
+	TldrawUiButtonIcon,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
 	TldrawUiDropdownMenuTrigger,
@@ -11,7 +12,6 @@ import {
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { MoreMenuIcon } from '../ui/icons'
 import { SidebarFilters } from './sidebar-filters'
 import { sidebarFilters } from './state'
 
@@ -53,7 +53,7 @@ export function CommentsFilterMenu({
 					title={msg(messages.commentsFilter)}
 					className="tlui-cmt-header-btn"
 				>
-					<MoreMenuIcon />
+					<TldrawUiButtonIcon icon="dots-vertical" small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* No tlui-cmt-menu here: the rows are tldraw menu items, which carry their own insets —
