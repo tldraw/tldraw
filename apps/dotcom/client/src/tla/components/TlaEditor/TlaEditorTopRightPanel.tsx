@@ -34,7 +34,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
@@ -140,7 +140,7 @@ function CommentsSidebarButton() {
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 	const commentingEnabled = useCommentingEnabled()
-	const commentingEnabledForUser = useIsCommentingEnabled()
+	const commentingEnabledForUser = useIsCommentingEnabledForUser()
 	const open = useCommentsSidebarOpen()
 	const label = msg(commentsMessages.comments)
 
