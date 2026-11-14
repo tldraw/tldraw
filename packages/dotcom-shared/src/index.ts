@@ -1,4 +1,5 @@
 /* eslint-disable tldraw/no-export-star */
+export * from './canvasOpsGuide'
 export * from './canvasOpsJsonSchema'
 export * from './capabilities'
 export * from './commentMentions'

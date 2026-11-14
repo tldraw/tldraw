@@ -31,6 +31,7 @@ import {
 	renderThumbnailPng,
 } from '../../utils/boardCapture'
 import { createCanvasOpsReceiver } from './canvas-ops/receiver'
+import type { ApplyOpsResult } from './canvas-ops/schema'
 
 // Answers MCP tool calls from this tab; see "Working in an open tab" and "Editing in an open tab" in
 // browser-run-thumbnails.md.
@@ -65,10 +66,64 @@ const MAX_INVALID_OPS_DETAIL = 1_500
 // they came. Queued rather than declined: agents routinely ask for several things at once.
 let workQueue: Promise<unknown> = Promise.resolve()
 
-function enqueueWork(run: () => Promise<TabRenderReply>) {
+function enqueueWork<T>(run: () => Promise<T>) {
 	const result = workQueue.then(run)
 	workQueue = result.catch(() => {})
 	return result
+}
+
+export type ApplyBatchOutcome =
+	| { status: 'applied'; result: ApplyOpsResult }
+	| { status: 'invalid_ops'; detail: string }
+	| { status: 'apply_failed' }
+	| { status: 'refused'; reason: TabRenderDeclineReason }
+
+/**
+ * Apply a batch of ops in its turn of the tab's work queue. `getRefusal` runs at the front of the
+ * queue, because the page and the user's drag can have moved on while the batch waited.
+ */
+export function applyBatchInTurn(
+	editor: Editor,
+	batch: { ops: unknown; attribution: unknown },
+	getRefusal: () => TabRenderDeclineReason | undefined
+) {
+	return enqueueWork(async (): Promise<ApplyBatchOutcome> => {
+		const reason = getRefusal()
+		if (reason) return { status: 'refused', reason }
+		try {
+			const result = createCanvasOpsReceiver(editor).applyBatch(
+				{ ops: batch.ops },
+				batch.attribution
+			)
+			return { status: 'applied', result }
+		} catch (error) {
+			if (error instanceof z.ZodError) {
+				const detail = z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL)
+				return { status: 'invalid_ops', detail }
+			}
+			// Validation passed, so some of the ops may have run before this.
+			// Calling it a plain failure would have the agent send the batch again.
+			console.error('A batch of ops failed partway', error)
+			return { status: 'apply_failed' }
+		}
+	})
+}
+
+/** What stops a batch meant for `pageId` being applied to this tab right now, whoever sent it. */
+export function getApplyRefusal(
+	editor: Editor,
+	pageId: TLPageId | undefined
+): TabRenderDeclineReason | undefined {
+	if (editor.getIsReadonly()) return 'read_only'
+	// The user has to be watching: a hidden tab's edits wait for an animation frame before they're
+	// sent, so a batch could report success and be lost if the tab closed first.
+	if (document.visibilityState !== 'visible') return 'tab_hidden'
+	if (!pageId || !editor.getPage(pageId)) return 'page_missing'
+	// Ops place shapes on the page in view, so a batch meant for another page would land on the
+	// wrong one, and moving the user there to apply it is not an option.
+	if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
+	// Cancelling a drag rolls back to where it began, which would take the batch with it.
+	return editor.inputs.getIsDragging() ? 'busy' : undefined
 }
 
 export async function answerTabRender(
@@ -137,17 +192,7 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 	if (request.mode === 'read') return undefined
 	if (request.mode === 'user_state') return undefined
 	if (request.mode === 'apply_ops') {
-		if (editor.getIsReadonly()) return 'read_only'
-		// The user has to be watching: a hidden tab's edits wait for an animation frame before they're
-		// sent, so a batch could report success and be lost if the tab closed first.
-		if (document.visibilityState !== 'visible') return 'tab_hidden'
-		const pageId = getApplyPageId(editor, request.page)
-		if (!pageId || !editor.getPage(pageId)) return 'page_missing'
-		// Ops place shapes on the page in view, so a batch meant for another page would land on the
-		// wrong one, and moving the user there to apply it is not an option.
-		if (editor.getCurrentPageId() !== pageId) return 'page_not_current'
-		// Cancelling a drag rolls back to where it began, which would take the batch with it.
-		return editor.inputs.getIsDragging() ? 'busy' : undefined
+		return getApplyRefusal(editor, getApplyPageId(editor, request.page))
 	}
 
 	const pageId = request.pageId as TLPageId
@@ -166,37 +211,37 @@ function getRefusal(editor: Editor, request: TabRenderRequest): TabRenderDecline
 // Checked again at the front of the queue, because the page, the shapes and the user's drag can all
 // have moved on while it waited.
 function queueCapture(editor: Editor, request: TabRenderScreenshotRequest, receivedAt: number) {
-	return enqueueWork(async () => {
+	return enqueueWork(async (): Promise<TabRenderReply> => {
 		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
 		return reason ? { status: 'declined', reason } : capturePage(editor, request)
 	})
 }
 
-function queueApplyOps(editor: Editor, request: TabRenderApplyOpsRequest, receivedAt: number) {
-	return enqueueWork(async (): Promise<TabRenderReply> => {
-		const reason = Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
-		if (reason) return { status: 'declined', reason }
-		try {
-			const result = createCanvasOpsReceiver(editor).applyBatch(
-				{ ops: request.ops },
-				request.attribution
-			)
+async function queueApplyOps(
+	editor: Editor,
+	request: TabRenderApplyOpsRequest,
+	receivedAt: number
+): Promise<TabRenderReply> {
+	const outcome = await applyBatchInTurn(editor, request, () =>
+		Date.now() - receivedAt > MAX_QUEUE_MS ? 'busy' : getRefusal(editor, request)
+	)
+	switch (outcome.status) {
+		case 'applied': {
 			const page = editor.getCurrentPage()
-			return { status: 'applied', pageId: page.id, pageName: page.name, result: { ...result } }
-		} catch (error) {
-			if (error instanceof z.ZodError) {
-				return {
-					status: 'declined',
-					reason: 'invalid_ops',
-					detail: z.prettifyError(error).slice(0, MAX_INVALID_OPS_DETAIL),
-				}
+			return {
+				status: 'applied',
+				pageId: page.id,
+				pageName: page.name,
+				result: { ...outcome.result },
 			}
-			// Validation passed, so some of the ops may have run before this.
-			// Calling it a plain failure would have the agent send the batch again.
-			console.error('A batch of ops failed partway', error)
-			return { status: 'declined', reason: 'apply_failed' }
 		}
-	})
+		case 'invalid_ops':
+			return { status: 'declined', reason: 'invalid_ops', detail: outcome.detail }
+		case 'apply_failed':
+			return { status: 'declined', reason: 'apply_failed' }
+		case 'refused':
+			return { status: 'declined', reason: outcome.reason }
+	}
 }
 
 async function forEachInSlices<T>(items: T[], visit: (item: T) => void) {
