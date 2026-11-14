@@ -1395,6 +1395,10 @@ export class TldrawApp {
 				},
 				workspaceId
 			).catch((e) => Result.err(e))
+			if (this.isDisposed()) {
+				clearTimeout(uploadingToastTimeout)
+				return
+			}
 			if (!res.ok) {
 				clearTimeout(uploadingToastTimeout)
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
@@ -1493,7 +1497,11 @@ export class TldrawApp {
 			],
 		})
 
-		const res = await fetch(TLDR_FILE_ENDPOINT, { method: 'POST', body })
+		const res = await fetch(TLDR_FILE_ENDPOINT, {
+			method: 'POST',
+			body,
+			signal: this.abortController.signal,
+		})
 		onProgress?.(body.length)
 		if (!res.ok) {
 			throw Error('could not upload file ' + (await res.text()))

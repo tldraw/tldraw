@@ -470,3 +470,30 @@ describe('TldrawApp after dispose', () => {
 		expect(app.toasts!.addToast).not.toHaveBeenCalled()
 	})
 })
+
+describe('TldrawApp.uploadTldrFiles after dispose', () => {
+	it('does not toast an upload failure caused by the session ending', async () => {
+		const abortController = new AbortController()
+		const upload = promiseWithResolve<never>()
+		const app = Object.assign(Object.create(TldrawApp.prototype), {
+			abortController,
+			toasts: { addToast: vi.fn(), removeToast: vi.fn() },
+			trackEvent: vi.fn(),
+			canCreateNewFile: () => true,
+			getHomeWorkspaceId: () => 'home',
+			uploadTldrFile: () => upload,
+		}) as TldrawApp
+		const onUploadError = vi.fn()
+
+		const uploading = app.uploadTldrFiles([new File(['{}'], 'a.tldr')], {
+			source: 'import-url',
+			onUploadError,
+		})
+		abortController.abort()
+		upload.reject(new Error('aborted'))
+		await uploading
+
+		expect(app.toasts!.addToast).not.toHaveBeenCalled()
+		expect(onUploadError).not.toHaveBeenCalled()
+	})
+})
