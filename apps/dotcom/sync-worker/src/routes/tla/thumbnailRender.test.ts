@@ -124,31 +124,67 @@ describe('summarizeSnapshotContent', () => {
 				y: 0,
 				props: { w: 10, h: 10 },
 			}),
-			doc({ id: 'asset:img', typeName: 'asset', type: 'image' }),
+			doc({
+				id: 'shape:5',
+				typeName: 'shape',
+				type: 'image',
+				parentId: 'shape:1',
+				x: 0,
+				y: 0,
+				props: { w: 10, h: 10, assetId: 'asset:img' },
+			}),
+			doc({
+				id: 'shape:6',
+				typeName: 'shape',
+				type: 'image',
+				parentId: 'shape:3',
+				x: 0,
+				y: 0,
+				props: { w: 10, h: 10, assetId: 'asset:img' },
+			}),
+			doc({
+				id: 'shape:7',
+				typeName: 'shape',
+				type: 'image',
+				parentId: 'page:b',
+				x: -5000,
+				y: 0,
+				props: { w: 10, h: 10, assetId: 'asset:other' },
+			}),
+			doc({
+				id: 'asset:img',
+				typeName: 'asset',
+				type: 'image',
+				props: { w: 2000, h: 1000, pixelRatio: 2 },
+			}),
+			doc({ id: 'asset:other', typeName: 'asset', type: 'image', props: { w: 500, h: 500 } }),
 			doc({ id: 'asset:vid', typeName: 'asset', type: 'video' }),
 			doc({ id: 'asset:bm', typeName: 'asset', type: 'bookmark' }),
 		],
 	} as any
 
 	it('counts the rendered page and sizes its top-level shapes', () => {
-		// The child inside shape:1 and the shape on page:b are not top-level on page:a; the draw
-		// stroke has no stored size and counts as a point.
+		// The children inside shape:1 and the shapes on page:b are not top-level on page:a; the draw
+		// stroke has no stored size and counts as a point. Both nested images on page:a use asset:img,
+		// counted once at its full resolution (2000x1000 at pixel ratio 2); page:b's image is not drawn.
 		expect(summarizeSnapshotContent(snapshot, 'page:a')).toEqual({
-			records: 10,
+			records: 14,
 			pageShapes: 2,
-			mediaAssets: 2,
+			mediaAssets: 3,
 			bboxWidth: 900,
 			bboxHeight: 650,
+			imageMegapixels: 8,
 		})
 	})
 
 	it('reports zero size for a page with nothing on it', () => {
 		expect(summarizeSnapshotContent(snapshot, 'page:none')).toEqual({
-			records: 10,
+			records: 14,
 			pageShapes: 0,
-			mediaAssets: 2,
+			mediaAssets: 3,
 			bboxWidth: 0,
 			bboxHeight: 0,
+			imageMegapixels: 0,
 		})
 	})
 })

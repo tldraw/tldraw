@@ -48,7 +48,7 @@ export { Avatar }
 export { AvatarProps }
 
 // @public
-export function Byline({ author, date, edited }: BylineProps): JSX.Element;
+export function Byline({ author, date, edited, renderAvatar }: BylineProps): JSX.Element;
 
 // @public (undocumented)
 export interface BylineProps {
@@ -56,6 +56,7 @@ export interface BylineProps {
     author: CommentAuthor;
     date: string;
     edited?: boolean;
+    renderAvatar?(author: CommentAuthor): ReactNode;
 }
 
 // @public
@@ -86,7 +87,7 @@ export interface CommentBodyProps {
 }
 
 // @public
-export function CommentCard({ author, body, date, you, edited, actions, footer, }: CommentCardProps): JSX.Element;
+export function CommentCard({ author, body, date, you, edited, byline, renderAvatar, actions, footer, }: CommentCardProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentCardProps {
@@ -94,9 +95,11 @@ export interface CommentCardProps {
     // (undocumented)
     author: CommentAuthor;
     body: ReactNode;
+    byline?: ReactNode;
     date: string;
     edited?: boolean;
     footer?: ReactNode;
+    renderAvatar?(author: CommentAuthor): ReactNode;
     // (undocumented)
     you: boolean;
 }
@@ -128,7 +131,13 @@ export interface CommentComposerProps {
 
 // @public
 export interface CommentingComponents {
+    Avatar?: ComponentType<AvatarProps & {
+        authorId: null | string;
+    }>;
     CommentBody?: ComponentType<{
+        comment: TLComment;
+    }>;
+    CommentByline?: ComponentType<BylineProps & {
         comment: TLComment;
     }>;
     ComposerFallback?: ComponentType<{
@@ -151,6 +160,7 @@ export interface CommentingComponents {
         comment: TLComment;
     }>;
     ThreadRow?: ComponentType<CommentListItemRenderProps & {
+        comments: TLComment[];
         thread: TLCommentThread;
     }>;
 }
@@ -189,7 +199,7 @@ export interface CommentingOptions {
 }
 
 // @public
-export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, resolvedLabel, onSelect, }: CommentListItemRenderProps): JSX.Element;
+export function CommentListItem({ id, author, preview, date, resolved, page, count, selected, reactions, href, renderAvatar, resolvedLabel, onSelect, }: CommentListItemRenderProps): JSX.Element;
 
 // @public (undocumented)
 export interface CommentListItemProps {
@@ -203,6 +213,7 @@ export interface CommentListItemProps {
     page?: string;
     preview: ReactNode;
     reactions?: ReactionSummary[];
+    renderAvatar?(author: CommentAuthor): ReactNode;
     // (undocumented)
     resolved?: boolean;
     selected?: boolean;

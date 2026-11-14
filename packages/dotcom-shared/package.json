@@ -9,7 +9,7 @@
 	"files": [],
 	"type": "module",
 	"dependencies": {
-		"@rocicorp/zero": "1.11.3",
+		"@rocicorp/zero": "1.11.5",
 		"@tldraw/state": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/tlschema": "workspace:*",

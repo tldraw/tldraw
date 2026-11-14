@@ -1,16 +1,19 @@
-import { TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import {
 	ReactNode,
+	RefObject,
 	createContext,
 	useCallback,
 	useContext,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import {
+	Editor,
 	TLUserStore,
 	UserRecordType,
 	assertExists,
@@ -36,6 +39,7 @@ import {
 	resolveCachedFileVisit,
 } from '../../utils/cachedFileVisit'
 import { clearLastVisitedFile, setLastVisitedFile } from '../../utils/local-session-state'
+import { answerTabRender } from '../../utils/tabRender'
 
 type FileSyncStore = ReturnType<typeof useSync>
 
@@ -50,6 +54,16 @@ const FileLoadContext = createContext<FileLoad | null>(null)
 /** This file open's file_load tracker, begun where the open begins: the sync host. */
 export function useFileLoad(): FileLoad {
 	return assertExists(useContext(FileLoadContext), 'TlaFileSyncHost is missing above')
+}
+
+const FileEditorRefContext = createContext<RefObject<Editor | null> | null>(null)
+
+/**
+ * Where the editor below registers itself for this file. A ref because the host mounts first and
+ * only ever reads it when a job arrives, so nothing here should re-render over it.
+ */
+export function useFileEditorRef() {
+	return assertExists(useContext(FileEditorRefContext), 'TlaFileSyncHost is missing above')
 }
 
 /** Location state key for the `/` redirect from the local cache; holds a `startCachedFileVisit` token. */
@@ -91,6 +105,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
+	const editorRef = useRef<Editor | null>(null)
 
 	const store = useSync({
 		uri: useCallback(async () => {
@@ -101,6 +116,8 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 			const connectId = fileLoad.nextConnectId()
 			if (connectId) url.searchParams.set('loadId', connectId)
 			if (userId) {
+				// Signed in only: the room hands a job to the sockets of the user who asked for it.
+				url.searchParams.set(TAB_RENDER_PARAM, '1')
 				url.searchParams.set('accessToken', await getUserToken())
 				markFirstLoad('sync-token-fetched')
 				fileLoad.mark('sync-token-fetched')
@@ -118,9 +135,13 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 					fileLoad.setServerTimings(message)
 					return
 				}
+				if (message.type === 'mcp_tab_render') {
+					void answerTabRender(editorRef.current, fileSlug, message)
+					return
+				}
 				trackEvent(message.type)
 			},
-			[fileLoad]
+			[fileLoad, fileSlug]
 		),
 		// `load` fires right after the snapshot is applied. An effect on `synced-remote` would wait out
 		// the editor's mount work, seconds on big boards.
@@ -210,7 +231,9 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 
 	return (
 		<FileLoadContext.Provider value={fileLoad}>
-			<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+			<FileEditorRefContext.Provider value={editorRef}>
+				<FileSyncStoreContext.Provider value={store}>{children}</FileSyncStoreContext.Provider>
+			</FileEditorRefContext.Provider>
 		</FileLoadContext.Provider>
 	)
 }

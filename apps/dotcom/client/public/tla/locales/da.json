@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Opret fil"
   },
+  "1a7222b4e5": {
+    "translation": "Flyt til"
+  },
   "1da2e8106b": {
     "translation": "Der opstod en uventet fejl."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Fjern medlem"
+  },
+  "398f51738e": {
+    "translation": "Log ind for at acceptere denne invitation."
   },
   "3bc7d6ea2f": {
     "translation": "Fortsæt med e-mail"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Genindlæs venligst siden"
   },
+  "747ee44424": {
+    "translation": "Gem indholdet som en .tldr-fil: vælg 'Gem en kopi' i menuen øverst til venstre."
+  },
   "74ff4bad28": {
     "translation": "Ingen filer fundet"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "Er du sikker på, at du vil slette <strong>{workspaceName}</strong>? Denne handling kan ikke fortrydes."
   },
+  "930390d222": {
+    "translation": "Kopieret invitationslink"
+  },
   "95aacd4d4a": {
     "translation": "Log ind med Google"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, one {# ulæst} other {# ulæst}}"
-  },
-  "a0da245992": {
-    "translation": "Eksporter indholdet som en .tldr-fil: Vælg 'Download' i menuen øverst til venstre."
   },
   "a104439641": {
     "translation": "Polstring"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "eller"
   },
+  "ea13ecec38": {
+    "translation": "Filhistorik"
+  },
   "ea4788705e": {
     "translation": "Ophæve"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Slet"
   },
+  "f408fa5fbd": {
+    "translation": "Dette invitationslink er ugyldigt eller udløbet."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> og {count, plural, one {# anden} other {# andre}} reagerede på din kommentar"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Opret en gratis konto for at gemme dine filer og tldraw med dine holdkammerater."
+  },
+  "ffad261a48": {
+    "translation": "Fejl ved accept af invitation"
   },
   "ffcd73e997": {
     "translation": "Importér fil…"

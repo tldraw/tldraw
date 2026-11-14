@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Utwórz plik"
   },
+  "1a7222b4e5": {
+    "translation": "Przenieś się do"
+  },
   "1da2e8106b": {
     "translation": "Wystąpił nieoczekiwany błąd."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Usuń członka"
+  },
+  "398f51738e": {
+    "translation": "Zaloguj się, aby przyjąć zaproszenie."
   },
   "3bc7d6ea2f": {
     "translation": "Kontynuuj z e-mailem"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Odśwież stronę"
   },
+  "747ee44424": {
+    "translation": "Zapisz zawartość jako plik .tldr: wybierz „Zapisz kopię” w menu w lewym górnym rogu."
+  },
   "74ff4bad28": {
     "translation": "Nie znaleziono plików"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "Czy na pewno chcesz usunąć <strong>{workspaceName}</strong>? Tej czynności nie można cofnąć."
   },
+  "930390d222": {
+    "translation": "Skopiowano link zaproszenia"
+  },
   "95aacd4d4a": {
     "translation": "Zaloguj się za pomocą Google"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, one {# nieprzeczytane} few {# nieprzeczytane} many {# nieprzeczytanych} other {# nieprzeczytanych}}"
-  },
-  "a0da245992": {
-    "translation": "Eksportuj zawartość jako plik .tldr: Wybierz „Pobierz” w menu u góry po lewej stronie."
   },
   "a104439641": {
     "translation": "Wypełnienie"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "Lub"
   },
+  "ea13ecec38": {
+    "translation": "Historia pliku"
+  },
   "ea4788705e": {
     "translation": "Anuluj"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Usuń"
   },
+  "f408fa5fbd": {
+    "translation": "Ten link zaproszenia jest nieprawidłowy lub wygasł."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> i {count, plural, one {# inna osoba} few {# inne osoby} many {# innych osób} other {# innej osoby}} zareagowali na Twój komentarz"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Załóż bezpłatne konto, aby zapisywać pliki i rysować je wspólnie z członkami drużyny."
+  },
+  "ffad261a48": {
+    "translation": "Błąd podczas akceptowania zaproszenia"
   },
   "ffcd73e997": {
     "translation": "Importuj plik…"

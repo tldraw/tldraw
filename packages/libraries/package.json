@@ -1,0 +1,44 @@
+{
+	"name": "@tldraw/libraries",
+	"description": "Libraries of reusable shapes for tldraw. Unreleased: private until the release PR flips it.",
+	"version": "0.0.0",
+	"private": true,
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"style": "./libraries.css",
+	"files": [
+		"libraries.css"
+	],
+	"type": "module",
+	"dependencies": {
+		"@tldraw/editor": "workspace:*",
+		"@tldraw/state": "workspace:*",
+		"@tldraw/store": "workspace:*",
+		"@tldraw/tlschema": "workspace:*",
+		"@tldraw/utils": "workspace:*",
+		"@tldraw/validate": "workspace:*",
+		"radix-ui": "^1.4.2",
+		"tldraw": "workspace:*"
+	},
+	"devDependencies": {
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"vitest": "^5.0.0"
+	},
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
+	}
+}

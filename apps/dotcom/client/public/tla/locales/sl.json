@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Ustvari datoteko"
   },
+  "1a7222b4e5": {
+    "translation": "Premakni v"
+  },
   "1da2e8106b": {
     "translation": "Prišlo je do nepričakovane napake."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Odstrani člana"
+  },
+  "398f51738e": {
+    "translation": "Prijavite se, da sprejmete to povabilo."
   },
   "3bc7d6ea2f": {
     "translation": "Nadaljuj z e-pošto"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Ponovno naložite stran"
   },
+  "747ee44424": {
+    "translation": "Vsebino shranite kot datoteko .tldr: v zgornjem levem meniju izberite »Shrani kopijo«."
+  },
   "74ff4bad28": {
     "translation": "Ni najdenih datotek"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "Ali ste prepričani, da želite izbrisati <strong>{workspaceName}</strong>? Tega dejanja ni mogoče razveljaviti."
   },
+  "930390d222": {
+    "translation": "Povezava za povabilo je bila kopirana"
+  },
   "95aacd4d4a": {
     "translation": "Prijava z Googlom"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, one {# neprebrano} two {# neprebrani} few {# neprebrana} other {# neprebranih}}"
-  },
-  "a0da245992": {
-    "translation": "Izvozite vsebino kot datoteko .tldr: V zgornjem levem meniju izberite »Prenesi«."
   },
   "a104439641": {
     "translation": "Obroba"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "ali"
   },
+  "ea13ecec38": {
+    "translation": "Zgodovina datotek"
+  },
   "ea4788705e": {
     "translation": "Prekliči"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Izbriši"
   },
+  "f408fa5fbd": {
+    "translation": "Ta povezava za povabilo je neveljavna ali je potekla."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> in {count, plural, one {# drug} two {# druga} few {# drugi} other {# drugih}} so se odzvali na vaš komentar"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
+  },
+  "ffad261a48": {
+    "translation": "Napaka pri sprejemanju povabila"
   },
   "ffcd73e997": {
     "translation": "Uvozi datoteko …"

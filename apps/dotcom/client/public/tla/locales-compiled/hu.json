@@ -185,6 +185,12 @@
       "value": "Fájl létrehozása"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Áthelyezés ide:"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Tag eltávolítása"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Jelentkezz be a meghívás elfogadásához."
     }
   ],
   "3bc7d6ea2f": [
@@ -734,6 +746,12 @@
       "value": "Kérjük, töltse be újra az oldalt"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Mentsd el a tartalmat .tldr fájlként: válaszd a „Másolat mentése” lehetőséget a bal felső menüben."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -994,6 +1012,12 @@
       "value": " munkaterületet? Ez a művelet nem vonható vissza."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Meghívólink másolva"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1136,12 +1160,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” lehetőséget a bal felső menüben."
     }
   ],
   "a104439641": [
@@ -1690,6 +1708,12 @@
       "value": "vagy"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Fájlelőzmények"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1786,6 +1810,12 @@
     {
       "type": 0,
       "value": "Töröl"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ez a meghívólink érvénytelen vagy lejárt."
     }
   ],
   "f476ba8646": [
@@ -1924,6 +1954,12 @@
     {
       "type": 0,
       "value": "Hozz létre egy ingyenes fiókot, hogy menthesd a fájljaidat és rajzolhass a csapattársaiddal."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Hiba a meghívó elfogadásakor"
     }
   ],
   "ffcd73e997": [

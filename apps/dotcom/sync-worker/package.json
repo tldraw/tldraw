@@ -24,7 +24,7 @@
 	},
 	"dependencies": {
 		"@clerk/backend": "^3.17.1",
-		"@rocicorp/zero": "1.11.3",
+		"@rocicorp/zero": "1.11.5",
 		"@supabase/supabase-js": "^2.48.1",
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/store": "workspace:*",
@@ -44,6 +44,6 @@
 		"esbuild": "^0.28.0",
 		"typescript": "^7.0.2",
 		"vitest": "^5.0.0",
-		"wrangler": "^4.75.0"
+		"wrangler": "^4.148.0"
 	}
 }

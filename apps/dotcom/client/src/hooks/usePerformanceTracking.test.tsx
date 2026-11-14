@@ -71,7 +71,10 @@ beforeEach(() => {
 		load_rum: { enabled: false },
 		mcp_server_access: { enabled: false },
 		version_chain: { enabled: false },
-		collections: { enabled: false },
+		libraries: { enabled: false },
+		thumbnail_render_push: { enabled: false },
+		mcp_render_push: { enabled: false },
+		ui_v3: { enabled: false },
 	} satisfies FeatureFlags)
 })
 

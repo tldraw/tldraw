@@ -147,6 +147,8 @@ MCP_SCREENSHOT_TOKEN_SECRET = "local-dev-thumbnail-render-secret"
 # to the client dev server, which drives Playwright. Deployed environments leave this unset and use
 # the BROWSER binding.
 LOCAL_SCREENSHOT_SERVICE_URL = "http://localhost:3000/__screenshot"
+# The local screenshot service injects addScriptTag like Browser Run, so dev exercises push too.
+THUMBNAIL_RENDER_PUSH = "true"
 
 # we don't have a hard-coded name for preview. we instead have to generate it at build time and append it to this file.
 
@@ -161,11 +163,21 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "1024"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://staging.tldraw.com"
 MCP_SERVER_URL = "https://staging.tldraw.com/api/app/mcp"
+MCP_HOST_ORIGIN = "https://staging-mcp.tldraw.com"
 MCP_SEARCH_NAME_MATCHING_ENABLED = "true"
 # Staging joins previews in trialling live-canvas capture (see THUMBNAIL_RENDER_LIVE_CAPTURE in
 # types.ts). Previews are too short-lived and too lightly used to produce the render_page_timings
 # volume the trial is judged on; production stays on the export until it is.
 THUMBNAIL_RENDER_LIVE_CAPTURE = "true"
+# Staging pushes every board's records into the render page (see THUMBNAIL_RENDER_PUSH in
+# types.ts). Production leaves it unset: thumbnail_render_push decides there.
+THUMBNAIL_RENDER_PUSH = "true"
+
+# The MCP host's landing page (mcpHostRouter in worker.ts serves it on staging-mcp.tldraw.com). One
+# worker serves every environment's host, and it must exist before this one deploys.
+[[env.staging.services]]
+binding = "MCP_WEB"
+service = "mcp-web"
 
 # production gets the proper name
 [env.production]
@@ -178,11 +190,17 @@ HEALTH_CHECK_CHANGELOG_SIZE_THRESHOLD_MB = "1024"
 HEALTH_CHECK_WAL_SIZE_THRESHOLD_MB = "2048"
 MCP_SCREENSHOT_RENDER_ORIGIN = "https://www.tldraw.com"
 MCP_SERVER_URL = "https://www.tldraw.com/api/app/mcp"
+MCP_HOST_ORIGIN = "https://mcp.tldraw.com"
 # Off while the unindexed `name ILIKE '%term%'` scan it drives is still being watched: it is the one
 # part of search no index reaches, so a term matching nothing reads every board in the caller's
 # scope. Off, the tool lists rather than searches and advertises no query — it does not accept a
 # query and ignore it. Unset reads as on, which is what previews and local dev get.
 MCP_SEARCH_NAME_MATCHING_ENABLED = "false"
+
+# The MCP host's landing page on mcp.tldraw.com. The same worker as staging's binding above.
+[[env.production.services]]
+binding = "MCP_WEB"
+service = "mcp-web"
 
 #################### Routing ####################
 # no custom routes for previews and development
@@ -210,6 +228,12 @@ pattern = "staging.tldraw.com/.well-known/oauth-protected-resource"
 zone_name = "tldraw.com"
 pattern = "staging.tldraw.com/.well-known/mcp/*"
 
+# The MCP host, which this worker owns whole: its own router answers every path (see mcpHostRouter
+# in worker.ts). A more specific pattern can still hand a path to another worker.
+[[env.staging.routes]]
+zone_name = "tldraw.com"
+pattern = "staging-mcp.tldraw.com/*"
+
 [[env.staging.routes]]
 custom_domain = true
 pattern = "staging-sync.tldraw.xyz"
@@ -231,6 +255,12 @@ pattern = "www.tldraw.com/.well-known/oauth-protected-resource"
 zone_name = "tldraw.com"
 pattern = "www.tldraw.com/.well-known/mcp/*"
 
+# The MCP host, which this worker owns whole: its own router answers every path (see mcpHostRouter
+# in worker.ts). Mirrors the staging-mcp.tldraw.com/* route above.
+[[env.production.routes]]
+zone_name = "tldraw.com"
+pattern = "mcp.tldraw.com/*"
+
 [[env.production.routes]]
 custom_domain = true
 pattern = "sync.tldraw.xyz"
@@ -238,6 +268,7 @@ pattern = "sync.tldraw.xyz"
 #################### Durable objects ####################
 # durable objects have the same configuration in all environments:
 [env.dev.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -245,6 +276,7 @@ bindings = [
 ]
 
 [durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -252,6 +284,7 @@ bindings = [
 ]
 
 [env.preview.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -259,6 +292,7 @@ bindings = [
 ]
 
 [env.staging.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -266,6 +300,7 @@ bindings = [
 ]
 
 [env.production.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [
 	{ name = "TLDR_DOC", class_name = "TLFileDurableObject" },
 	{ name = "TL_FILE_EFFECTS", class_name = "TLFileEffectProcessor" },
@@ -464,30 +499,9 @@ bucket_name = "thumbnails-preview"
 binding = "THUMBNAILS"
 bucket_name = "thumbnails"
 
-#################### MCP data R2 bucket ####################
-# cache for MCP tool screenshots (`mcp/…` keys). Separate from THUMBNAILS because the retention is the
-# opposite: this key includes the board's content version, so every edit strands the previous object.
-# These buckets carry an expiration lifecycle rule (see the ops setup in browser-run-thumbnails.md).
-[[env.dev.r2_buckets]]
-binding = "MCP_DATA_BUCKET"
-bucket_name = "dotcom-mcp-data-preview"
-preview_bucket_name = "dotcom-mcp-data-preview"
-
-[[env.preview.r2_buckets]]
-binding = "MCP_DATA_BUCKET"
-bucket_name = "dotcom-mcp-data-preview"
-
-[[env.staging.r2_buckets]]
-binding = "MCP_DATA_BUCKET"
-bucket_name = "dotcom-mcp-data-preview"
-
-[[env.production.r2_buckets]]
-binding = "MCP_DATA_BUCKET"
-bucket_name = "dotcom-mcp-data"
-
 #################### Browser Rendering binding ####################
 # Drives the thumbnail render page through a Cloudflare-hosted headless browser (see
-# mcpServer.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
+# thumbnailRender.ts). Chrome runs in Cloudflare's Browser Rendering fleet, not in this
 # worker's isolate. The dev binding is intentionally NOT marked `remote`: a remote binding makes
 # `wrangler dev` require a CLOUDFLARE_API_TOKEN, which the credential-free process-compose e2e stack
 # does not have, so it would fail to boot. Local dev therefore gets a non-functional local BROWSER
@@ -618,119 +632,31 @@ type = "ratelimit"
 namespace_id = "1004"
 simple = { limit = 600, period = 60 }
 
-# MCP server per-account request guard: one budget per signed-in caller, across every tool that can
-# spend Browser Run. It counts *calls*, not captures, and the clustering tools each run a measure
-# render, so ten a minute is nearer three finished screenshots a minute — see MCP_PER_USER_RATE_LIMIT
-# in config.ts before changing this number.
-# A binding carries one `limit` applied per key, so per-account and per-board need separate bindings to
-# hold different numbers. `period` must be 10 or 60. Keep these in step with the fallback constants in
-# mcpServer.ts, which are all that unit tests can see.
-# The name is the odd one out in this family: it keeps MCP_SCREENSHOT_ because it is deployed and
-# counting. It keyed on client IP until the endpoint required authentication; renaming live state buys
-# nothing, and the key it counts is now the user id.
-[[env.dev.unsafe.bindings]]
-name = "MCP_SCREENSHOT_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1005"
-simple = { limit = 10, period = 60 }
-
-[[env.preview.unsafe.bindings]]
-name = "MCP_SCREENSHOT_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1006"
-simple = { limit = 10, period = 60 }
-
-[[env.staging.unsafe.bindings]]
-name = "MCP_SCREENSHOT_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1007"
-simple = { limit = 10, period = 60 }
-
-[[env.production.unsafe.bindings]]
-name = "MCP_SCREENSHOT_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1008"
-simple = { limit = 10, period = 60 }
-
-# MCP server per-board capture guard, kept tighter than the per-account one so no single board can
-# absorb a caller's whole allowance. Captures only: measure renders are counted against the global
-# budget instead, because three of them land on one board in the ordinary cluster-screenshot flow.
-[[env.dev.unsafe.bindings]]
-name = "MCP_SERVER_BOARD_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1013"
-simple = { limit = 2, period = 60 }
-
-[[env.preview.unsafe.bindings]]
-name = "MCP_SERVER_BOARD_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1014"
-simple = { limit = 2, period = 60 }
-
-[[env.staging.unsafe.bindings]]
-name = "MCP_SERVER_BOARD_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1015"
-simple = { limit = 2, period = 60 }
-
-[[env.production.unsafe.bindings]]
-name = "MCP_SERVER_BOARD_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1016"
-simple = { limit = 2, period = 60 }
-
-# global cap on Browser Run invocations from the MCP server (keyed on a single shared key)
-[[env.dev.unsafe.bindings]]
-name = "MCP_SERVER_BROWSER_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1009"
-simple = { limit = 20, period = 60 }
-
-[[env.preview.unsafe.bindings]]
-name = "MCP_SERVER_BROWSER_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1010"
-simple = { limit = 20, period = 60 }
-
-[[env.staging.unsafe.bindings]]
-name = "MCP_SERVER_BROWSER_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1011"
-simple = { limit = 20, period = 60 }
-
-[[env.production.unsafe.bindings]]
-name = "MCP_SERVER_BROWSER_RATE_LIMITER"
-type = "ratelimit"
-namespace_id = "1012"
-simple = { limit = 20, period = 60 }
-
-# MCP server per-account `search_boards` guard. Bounds Postgres rather than Browser Run, which search
-# never spends, so it is a separate budget from MCP_SCREENSHOT_RATE_LIMITER and a much larger number:
-# paging is what spends it, at a fixed 20 boards a page — see MCP_SEARCH_PER_USER_RATE_LIMIT in
-# config.ts before changing this.
+# MCP server per-account `search_boards` guard. Bounds Postgres. Paging is what spends it, at a fixed
+# 20 boards a page — see MCP_SEARCH_PER_USER_RATE_LIMIT in config.ts before changing this.
 [[env.dev.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1017"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.preview.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1018"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.staging.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1019"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 [[env.production.unsafe.bindings]]
 name = "MCP_SERVER_SEARCH_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1020"
-simple = { limit = 60, period = 60 }
+simple = { limit = 120, period = 60 }
 
 # MCP server per-account `create_board` guard. Bounds writes, so it is its own budget and smaller than
 # search's — see MCP_CREATE_PER_USER_RATE_LIMIT in config.ts before changing this.
@@ -783,6 +709,32 @@ name = "MCP_SERVER_RENAME_RATE_LIMITER"
 type = "ratelimit"
 namespace_id = "1028"
 simple = { limit = 10, period = 60 }
+
+# MCP server per-account guard on the tools that go through a board's durable object. Bounds load
+# on a shared board — see MCP_TAB_PER_USER_RATE_LIMIT in config.ts before changing this.
+[[env.dev.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1029"
+simple = { limit = 90, period = 60 }
+
+[[env.preview.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1030"
+simple = { limit = 90, period = 60 }
+
+[[env.staging.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1031"
+simple = { limit = 90, period = 60 }
+
+[[env.production.unsafe.bindings]]
+name = "MCP_SERVER_TAB_RATE_LIMITER"
+type = "ratelimit"
+namespace_id = "1032"
+simple = { limit = 90, period = 60 }
 
 #################### Queues ####################
 [[env.dev.queues.producers]]

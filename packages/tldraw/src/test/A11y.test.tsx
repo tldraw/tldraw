@@ -122,21 +122,84 @@ describe('A11y Shape Announcements', () => {
 	})
 
 	it('announces a shape outside the reading order without a position', () => {
-		const frame = createShapeId('frame')
-		const child = createShapeId('child')
-
-		editor.createShapes([
-			{ id: frame, type: 'frame', x: 0, y: 0, props: { w: 400, h: 200 } },
-			{ id: child, type: 'geo', x: 10, y: 10, parentId: frame },
-		])
+		const box = createShapeId('box')
+		editor.createShapes([{ id: box, type: 'geo', x: 0, y: 0 }])
+		// A shape that can't be tabbed to has no place in the reading order, and "0 of N" would be wrong
+		vi.spyOn(editor.getShapeUtil('geo'), 'canTabTo').mockReturnValue(false)
 
 		const message = generateShapeAnnouncementMessage({
 			editor,
-			selectedShapeIds: [child],
+			selectedShapeIds: [box],
 			msg: mockTranslate,
 		})
 
 		expect(message).toBe('Rectangle.')
+	})
+
+	it('announces a group by name rather than a missing tool key', () => {
+		const box1 = createShapeId('box1')
+		const box2 = createShapeId('box2')
+		const groupId = createShapeId('group')
+
+		editor.createShapes([
+			{ id: box1, type: 'geo', x: 0, y: 0 },
+			{ id: box2, type: 'geo', x: 100, y: 0 },
+		])
+		editor.groupShapes([box1, box2], { groupId })
+
+		// The name comes from GroupShapeUtil.getShapeName, not the mock, which would turn a missing
+		// `tool.group` into "group"
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [groupId],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Group. 1 of 1')
+	})
+
+	it('announces a shape inside a frame by its position among its siblings', () => {
+		const frameId = createShapeId('frame')
+		const outside = createShapeId('outside')
+		const first = createShapeId('first')
+		const second = createShapeId('second')
+		const third = createShapeId('third')
+
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 600, h: 200 } },
+			{ id: outside, type: 'geo', x: 1000, y: 0 },
+			{ id: first, type: 'geo', x: 10, y: 10, parentId: frameId },
+			{ id: second, type: 'geo', x: 210, y: 10, parentId: frameId },
+			{ id: third, type: 'geo', x: 410, y: 10, parentId: frameId },
+		])
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [second],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Rectangle. 2 of 3')
+	})
+
+	it('announces a shape inside a group by its position among its siblings', () => {
+		const box1 = createShapeId('box1')
+		const box2 = createShapeId('box2')
+		const groupId = createShapeId('group')
+
+		editor.createShapes([
+			{ id: box1, type: 'geo', x: 0, y: 0 },
+			{ id: box2, type: 'geo', x: 200, y: 0 },
+		])
+		editor.groupShapes([box1, box2], { groupId })
+
+		const message = generateShapeAnnouncementMessage({
+			editor,
+			selectedShapeIds: [box2],
+			msg: mockTranslate,
+		})
+
+		expect(message).toBe('Rectangle. 2 of 2')
 	})
 
 	it('returns empty string when no shapes are selected', () => {

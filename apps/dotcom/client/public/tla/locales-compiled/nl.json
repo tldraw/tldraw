@@ -185,6 +185,12 @@
       "value": "Bestand aanmaken"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Verplaatsen naar"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Lid verwijderen"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Meld u aan om deze uitnodiging te accepteren."
     }
   ],
   "3bc7d6ea2f": [
@@ -734,6 +746,12 @@
       "value": "Laad de pagina opnieuw"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Sla de inhoud op als een .tldr-bestand: selecteer 'Een kopie opslaan' in het menu linksboven."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -994,6 +1012,12 @@
       "value": " wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kopieer de uitnodigingslink"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1136,12 +1160,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Exporteer de inhoud als een .tldr-bestand: Selecteer 'Downloaden' in het menu linksboven."
     }
   ],
   "a104439641": [
@@ -1694,6 +1712,12 @@
       "value": "of"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Bestandsgeschiedenis"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1790,6 +1814,12 @@
     {
       "type": 0,
       "value": "Verwijderen"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Deze uitnodigingslink is ongeldig of verlopen."
     }
   ],
   "f476ba8646": [
@@ -1932,6 +1962,12 @@
     {
       "type": 0,
       "value": "Maak een gratis account aan om je bestanden op te slaan en samen met je teamgenoten te tekenen (tldraw)."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Fout bij het accepteren van de uitnodiging"
     }
   ],
   "ffcd73e997": [

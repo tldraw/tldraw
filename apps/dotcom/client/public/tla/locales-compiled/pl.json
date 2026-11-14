@@ -181,6 +181,12 @@
       "value": "Utwórz plik"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Przenieś się do"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -335,6 +341,12 @@
     {
       "type": 0,
       "value": "Usuń członka"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Zaloguj się, aby przyjąć zaproszenie."
     }
   ],
   "3bc7d6ea2f": [
@@ -752,6 +764,12 @@
       "value": "Odśwież stronę"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Zapisz zawartość jako plik .tldr: wybierz „Zapisz kopię” w menu w lewym górnym rogu."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -1012,6 +1030,12 @@
       "value": "? Tej czynności nie można cofnąć."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Skopiowano link zaproszenia"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1176,12 +1200,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Eksportuj zawartość jako plik .tldr: Wybierz „Pobierz” w menu u góry po lewej stronie."
     }
   ],
   "a104439641": [
@@ -1842,6 +1860,12 @@
       "value": "Lub"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historia pliku"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1938,6 +1962,12 @@
     {
       "type": 0,
       "value": "Usuń"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ten link zaproszenia jest nieprawidłowy lub wygasł."
     }
   ],
   "f476ba8646": [
@@ -2098,6 +2128,12 @@
     {
       "type": 0,
       "value": "Załóż bezpłatne konto, aby zapisywać pliki i rysować je wspólnie z członkami drużyny."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Błąd podczas akceptowania zaproszenia"
     }
   ],
   "ffcd73e997": [
