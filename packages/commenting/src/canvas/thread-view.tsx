@@ -1,4 +1,4 @@
-import { type CommentAuthor } from '@tldraw/mentions'
+import { type CommentAuthor, isMentionPickerOpen } from '@tldraw/mentions'
 import {
 	memo,
 	ReactNode,
@@ -422,6 +422,29 @@ export const ThreadView = memo(function ThreadView({
 	const [editText, setEditText] = useState<TLRichText>(EMPTY_COMMENT)
 	const canReply = canComment && !thread.resolved
 	const container = useContainer()
+
+	// Escape in a reply box with text clears the text and keeps the thread open; an empty one falls
+	// through to the layer's Escape, which closes the thread. On the window, in the capture phase,
+	// so it runs ahead of that document-level handler.
+	const replyRef = useRef(reply)
+	replyRef.current = reply
+	useEffect(() => {
+		const win = container.ownerDocument.defaultView
+		if (!win) return
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape' || isMentionPickerOpen()) return
+			const target = e.target as HTMLElement | null
+			if (!target?.closest('.tlui-cmt-thread .tlui-cmt-composer')) return
+			if (target.closest('.tlui-cmt-editing')) return
+			if (isCommentEmpty(replyRef.current)) return
+			setReply(EMPTY_COMMENT)
+			clearCommentDraft(replyDraftSlot(thread.id))
+			e.preventDefault()
+			e.stopPropagation()
+		}
+		win.addEventListener('keydown', onKeyDown, true)
+		return () => win.removeEventListener('keydown', onKeyDown, true)
+	}, [container, thread.id])
 	// Resolved when the composer closes rather than held as an element: the card unmounts while the
 	// composer stands in its place, so the node captured on the way in is gone by the way out.
 	const editReturnFocus = useRef<(() => HTMLElement | null) | null>(null)

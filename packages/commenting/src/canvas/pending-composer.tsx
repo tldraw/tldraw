@@ -103,6 +103,30 @@ export function PendingComposer({
 	// keeps it pinned to the point.
 	const placed = useMobilePlacement(ref, point, isMobile)
 
+	// Escape steps back one level at a time: a draft with text is cleared first, and only an empty
+	// one closes. A native listener on the composer, because the editor's own Escape handler (which
+	// would also cancel the comment tool) sits on its container, below React's root listener.
+	const textRef = useRef(text)
+	textRef.current = text
+	useEffect(() => {
+		const el = ref.current
+		if (!el) return
+		const onKeyDown = (e: KeyboardEvent) => {
+			if (e.key !== 'Escape' || isMentionPickerOpen()) return
+			e.stopPropagation()
+			if (!isCommentEmpty(textRef.current)) {
+				setText(EMPTY_COMMENT)
+				clearCommentDraft(NEW_COMMENT_DRAFT)
+				return
+			}
+			pendingComment.set(editor, null)
+			// Focus would drop to the page with the composer gone, out of reach of the next Escape.
+			editor.getContainer().focus()
+		}
+		el.addEventListener('keydown', onKeyDown)
+		return () => el.removeEventListener('keydown', onKeyDown)
+	}, [editor])
+
 	// Dismiss on a click anywhere outside the composer (capture-phase, ahead of stopPropagation).
 	useEffect(() => {
 		const onPointerDown = (e: PointerEvent) => {
@@ -161,9 +185,6 @@ export function PendingComposer({
 				style={{ left: placed.left, top: placed.top }}
 				onPointerDown={stop}
 				onContextMenu={stop}
-				onKeyDown={(e) => {
-					if (e.key === 'Escape' && !isMentionPickerOpen()) pendingComment.set(editor, null)
-				}}
 			>
 				{canComment ? (
 					<CommentComposer

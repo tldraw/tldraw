@@ -58,7 +58,8 @@ test.describe('commenting draft composer', () => {
 		await expect.poll(cameraTransform).not.toBe(cameraBefore)
 		await expect.poll(handleCenter).toEqual({ x: gx + 150, y: gy + 100 })
 		await page.mouse.up()
-		await expect.poll(editorCursor).toBe('var(--tl-cursor-default)')
+		// The comment tool is still active after placing, so its cursor comes back.
+		await expect.poll(editorCursor).toBe('var(--tl-cursor-comment)')
 
 		// The composer kept its text, and kept focus for typing.
 		await expect(input).toHaveText('moved draft')
@@ -77,16 +78,61 @@ test.describe('commenting draft composer', () => {
 			.toEqual({ x: Math.round(dropped.x), y: Math.round(dropped.y) })
 	})
 
-	test('placing hands back to select, and a canvas press dismisses the draft', async ({ page }) => {
-		await page.getByTestId('quick-actions.comment').click()
+	test('placing stays in the comment tool, and Escape returns to select', async ({ page }) => {
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await commentTool.click()
 		await page.mouse.click(400, 300)
 		const composer = page.locator('.tlui-cmt-canvas-composer')
 		await expect(composer).toBeVisible()
-		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
 
+		// Another press starts a new draft there rather than leaving the tool.
 		await page.mouse.click(700, 500)
-		await expect(composer).toHaveCount(0)
+		await expect(composer).toHaveCount(1)
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
 		await expect(page.locator('.tlui-cmt-canvas-pin__marker')).toHaveCount(0)
+
+		// Escape steps back one level at a time: clear the text, close the draft, leave the tool.
+		const input = page.locator('.tlui-cmt-canvas-composer [contenteditable="true"].tlui-cmt-input')
+		await expect(input).toBeFocused()
+		await page.keyboard.type('half a thought')
+		await page.keyboard.press('Escape')
+		await expect(composer).toBeVisible()
+		await expect(input).toHaveText('')
+		await page.keyboard.press('Escape')
+		await expect(composer).toHaveCount(0)
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
+	})
+
+	test('Escape in a reply clears it, then closes the thread, then leaves the tool', async ({
+		page,
+		isMobile,
+	}) => {
+		if (isMobile) test.skip()
+		const commentTool = page.getByTestId('quick-actions.comment')
+		await commentTool.click()
+		await page.mouse.click(400, 300)
+		await page.keyboard.type('first')
+		await page.keyboard.press('Enter')
+		const pin = page.locator('.tlui-cmt-canvas-pin__marker')
+		await expect(pin).toHaveCount(1)
+		await pin.click()
+
+		const thread = page.locator('.tlui-cmt-thread')
+		await expect(thread).toBeVisible()
+		const reply = thread.locator('[contenteditable="true"].tlui-cmt-input')
+		await reply.click()
+		await page.keyboard.type('a reply')
+		await page.keyboard.press('Escape')
+		await expect(thread).toBeVisible()
+		await expect(reply).toHaveText('')
+		await page.keyboard.press('Escape')
+		await expect(thread).toHaveCount(0)
+		await expect(commentTool).toHaveAttribute('aria-pressed', 'true')
+		await page.keyboard.press('Escape')
+		await expect(page.getByTestId('tools.select')).toHaveAttribute('aria-pressed', 'true')
 	})
 
 	test('panning the camera with the middle button keeps the draft open', async ({

@@ -53,9 +53,9 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
  * The comment tool. Pressing down opens the comment composer at the pointer and it follows until
  * release — like placing a sticky note — settling on a point, or on a shape when released over one.
  * With region comments enabled, dragging past the threshold draws a region rectangle instead.
- * Placement only opens a composer; the records are created when the comment is posted. Releasing
- * hands back to select (unless the tool is locked); the composer stays open until it's posted, or
- * dismissed by Escape or a press outside it.
+ * Placement only opens a composer; the records are created when the comment is posted. The tool
+ * stays active after a placement, so comments can be placed one after another. Escape closes an
+ * open composer first, then returns to the select tool.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -101,16 +101,21 @@ export class CommentTool extends StateNode {
 
 	override onExit() {
 		// Drop the hover hint painted while pointing at shapes (see CommentIdle) and any unfinished
-		// region draft. The cursor resets when the next tool takes over. A placed composer outlives
-		// the tool: placing hands straight back to select with it open.
+		// region draft. The cursor resets when the next tool takes over. An open composer outlives
+		// the tool.
 		this.editor.setHintingShapes([])
 		regionDraft.set(this.editor, null)
 	}
 
-	// Escape leaves the tool, like the built-in tools (the editor dispatches `cancel` on Escape).
-	// Mid-placement it also drops the composer that's following the pointer: this handler runs
-	// before the child state's, and leaving the tool skips the child's own cancel.
+	// Escape (the editor dispatches `cancel`) steps back one level: an open composer closes and the
+	// tool stays; with none open, the tool returns to select. Mid-placement it also drops the
+	// composer that's following the pointer: this handler runs before the child state's, and
+	// leaving the tool skips the child's own cancel.
 	override onCancel() {
+		if (this.getCurrent()?.id === 'idle' && pendingComment.get(this.editor)) {
+			pendingComment.set(this.editor, null)
+			return
+		}
 		if (this.getCurrent()?.id !== 'idle') pendingComment.set(this.editor, null)
 		this.editor.setCurrentTool('select')
 	}
@@ -141,8 +146,8 @@ export function pendingCommentAt(
 
 /**
  * Open the comment composer at a page point, anchored as a comment tool click there would be. Use
- * it to start a comment from outside the tool, such as a context menu item. Like a placement with the
- * tool, it leaves the select tool active with the composer open. It doesn't check `canComment`: a
+ * it to start a comment from outside the tool, such as a context menu item. It leaves the select
+ * tool active with the composer open. It doesn't check `canComment`: a
  * viewer who can't comment sees the `ComposerFallback` slot instead.
  *
  * @example
@@ -156,13 +161,11 @@ export function startCommentAt(editor: Editor, point: VecLike) {
 	pendingComment.set(editor, pendingCommentAt(editor, point))
 }
 
-/** End a placement: the composer stays open at `pending` and, like the shape tools, the select
- *  tool takes over unless the tool is locked. */
+/** End a placement: the composer stays open at `pending` and the tool goes back to idle, ready
+ *  for the next one. */
 function finishPlacement(state: StateNode, pending: PendingComment) {
-	const { editor } = state
-	pendingComment.set(editor, pending)
-	if (editor.getInstanceState().isToolLocked) state.parent.transition('idle')
-	else editor.setCurrentTool('select')
+	pendingComment.set(state.editor, pending)
+	state.parent.transition('idle')
 }
 
 /** Hint the shape a comment placed at the pointer would anchor to, using the same hit-test as the
@@ -179,7 +182,7 @@ class CommentIdle extends StateNode {
 	override onEnter() {
 		// Back to hovering: restore the pin cursor (a cancelled placement may have changed it).
 		this.editor.setCursor({ type: 'comment', rotation: 0 })
-		// With tool lock a region composer can still be open here. A shape outline under its pin
+		// After a region placement its composer is still open here. A shape outline under its pin
 		// corner would imply a shape anchor the region never uses.
 		if (pendingComment.get(this.editor)?.anchor.type === 'region') {
 			this.editor.setHintingShapes([])
@@ -205,9 +208,9 @@ class CommentPointing extends StateNode {
 		// on release), and let it trail the pointer while dragging — like placing a sticky note. The
 		// anchor is a bare point for now; it's resolved (shape or point) on pointer up.
 		const { editor } = this
-		// The composer opens under the pointer, so the pin cursor gives way to the plain pointer
-		// right away; it becomes `move` once a drag starts.
-		editor.setCursor({ type: 'default', rotation: 0 })
+		// The composer opens under the pointer and stands in for it, so the cursor hides; it becomes
+		// `move` once a drag starts.
+		editor.setCursor({ type: 'none', rotation: 0 })
 		const point = editor.inputs.getCurrentPagePoint()
 		pendingComment.set(editor, {
 			anchor: { type: 'point', x: point.x, y: point.y },
@@ -248,7 +251,7 @@ class CommentPointing extends StateNode {
 	// in the draft store. Escape is the tool's own onCancel, which runs first.
 	private cancel() {
 		pendingComment.set(this.editor, null)
-		this.editor.setCurrentTool('select')
+		this.parent.transition('idle')
 	}
 }
 
@@ -296,9 +299,9 @@ class CommentDragging extends StateNode {
 		)
 	}
 
-	// The tool's onExit drops the region draft.
 	private cancel() {
-		this.editor.setCurrentTool('select')
+		regionDraft.set(this.editor, null)
+		this.parent.transition('idle')
 	}
 }
 

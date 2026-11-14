@@ -223,6 +223,9 @@ function CanvasCommentsLayer(props: CommentingContext) {
 			openThreadId.set(editor, null)
 			e.preventDefault()
 			e.stopPropagation()
+			// Closing from inside the thread would leave focus on the page, out of reach of the next
+			// Escape (the editor listens on its container).
+			if (target && target.closest('.tlui-cmt-thread')) editor.getContainer().focus()
 		}
 		document.addEventListener('keydown', onKeyDown, true)
 		return () => document.removeEventListener('keydown', onKeyDown, true)

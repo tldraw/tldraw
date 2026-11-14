@@ -106,29 +106,18 @@ describe('comment tool placement lifecycle', () => {
 		driver = makeEditor()
 	})
 
-	it('hands back to select with the composer open after placing', () => {
+	it('stays in the tool with the composer open after placing', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
-		// The placement is done; the composer outlives the tool until posted or dismissed.
-		expect(editor.isIn('select.idle')).toBe(true)
+		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(pendingComment.get(editor)).toEqual({
 			anchor: { type: 'point', x: 400, y: 300 },
 			point: { x: 400, y: 300 },
 		})
 	})
 
-	it('stays in the tool after placing when the tool is locked', () => {
-		editor.updateInstanceState({ isToolLocked: true })
-		editor.setCurrentTool('comment')
-		driver.pointerDown(400, 300)
-		driver.pointerUp(400, 300)
-		expect(editor.isIn('comment.idle')).toBe(true)
-		expect(pendingComment.get(editor)).not.toBeNull()
-	})
-
-	it('keeps the composer open when a locked tool is left', () => {
-		editor.updateInstanceState({ isToolLocked: true })
+	it('keeps the composer open when the tool is left', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
@@ -148,16 +137,16 @@ describe('comment tool placement lifecycle', () => {
 		expect(commentsSidebarOpen.get(editor)).toBe(false)
 	})
 
-	it('shows the default cursor on press, move once dragging, then default on release', () => {
+	it('hides the cursor on press, shows move once dragging, then the comment cursor on release', () => {
 		editor.setCurrentTool('comment')
 		expect(editor.getInstanceState().cursor.type).toBe('comment')
 		driver.pointerDown(400, 300)
-		expect(editor.getInstanceState().cursor.type).toBe('default')
+		expect(editor.getInstanceState().cursor.type).toBe('none')
 		driver.pointerMove(450, 350)
 		expect(editor.isIn('comment.pointing')).toBe(true)
 		expect(editor.getInstanceState().cursor.type).toBe('move')
 		driver.pointerUp(450, 350)
-		expect(editor.getInstanceState().cursor.type).toBe('default')
+		expect(editor.getInstanceState().cursor.type).toBe('comment')
 	})
 
 	it('escape mid-placement leaves the tool for select and drops the draft', () => {
@@ -170,6 +159,19 @@ describe('comment tool placement lifecycle', () => {
 
 	it('escape before placing leaves the tool for select', () => {
 		editor.setCurrentTool('comment')
+		editor.cancel()
+		expect(editor.isIn('select')).toBe(true)
+	})
+
+	it('escape closes an open composer and stays in the tool, then a second escape leaves for select', () => {
+		editor.setCurrentTool('hand')
+		editor.setCurrentTool('comment')
+		driver.pointerDown(400, 300)
+		driver.pointerUp(400, 300)
+		editor.cancel()
+		expect(pendingComment.get(editor)).toBeNull()
+		expect(editor.isIn('comment.idle')).toBe(true)
+		// Select, not the tool that was active before the comment tool.
 		editor.cancel()
 		expect(editor.isIn('select')).toBe(true)
 	})
@@ -244,13 +246,13 @@ describe('comment tool placement hints with regions enabled', () => {
 		expect(editor.getHintingShapeIds()).toEqual([])
 	})
 
-	it('hands back to select with the composer open after a region drag', () => {
+	it('stays in the tool with the composer open after a region drag', () => {
 		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
 		editor.setCurrentTool('comment')
 		driver.pointerDown(100, 100)
 		driver.pointerMove(200, 180)
 		driver.pointerUp(200, 180)
-		expect(editor.isIn('select.idle')).toBe(true)
+		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(pendingComment.get(editor)).toEqual({
 			anchor: { type: 'region', x: 100, y: 100, w: 100, h: 80, pinX: 1, pinY: 1 },
 			point: { x: 200, y: 180 },
@@ -260,9 +262,8 @@ describe('comment tool placement hints with regions enabled', () => {
 	it('does not hint a shape under the pin corner of a placed region', () => {
 		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
 		makeShape(100, 100)
-		// Tool lock keeps the comment tool active with the region composer open, so its idle hover
-		// is what could re-hint the shape.
-		editor.updateInstanceState({ isToolLocked: true })
+		// The comment tool stays active with the region composer open, so its idle hover is what
+		// could re-hint the shape.
 		editor.setCurrentTool('comment')
 		// Release on top of the shape: a region anchors to its rectangle, so the outline that
 		// normally previews a shape anchor would be a lie here.
