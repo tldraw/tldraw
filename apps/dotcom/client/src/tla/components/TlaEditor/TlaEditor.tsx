@@ -46,7 +46,7 @@ import { globalEditor } from '../../../utils/globalEditor'
 import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
@@ -360,7 +360,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
-	const commentingEnabled = useIsCommentingEnabled()
+	const commentingEnabled = useIsCommentingEnabledForUser()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {

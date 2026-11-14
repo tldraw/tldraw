@@ -46,7 +46,7 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
@@ -72,7 +72,7 @@ import styles from './top.module.css'
  *  only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject
  *  into. */
 function TlaViewSubmenu() {
-	const commentingEnabled = useIsCommentingEnabled()
+	const commentingEnabled = useIsCommentingEnabledForUser()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
