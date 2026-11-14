@@ -3,7 +3,7 @@ import { Editor, react, TLCursorType, unsafe__withoutCapture } from 'tldraw'
 
 /** A pointer-down that belongs to the camera, not the comment UI: any non-primary button
  *  (middle/right-button pans), or a primary press with the spacebar pan key held. */
-export function isCanvasPanGesture(editor: Editor, e: ReactPointerEvent) {
+export function isCanvasPanGesture(editor: Editor, e: { button: number }) {
 	return e.button !== 0 || editor.inputs.keys.has('Space')
 }
 
@@ -18,23 +18,27 @@ export function forwardPointerEventToCanvas(container: HTMLElement, e: ReactPoin
 }
 
 /**
- * Start a comment drag (a pin move or a region resize) run by the comment UI's own pointer
- * handlers rather than a tool state. Shows `cursor` on the editor for the whole drag, and re-runs
- * `onCameraMove` whenever the camera moves (a wheel scroll mid-drag), so the drag keeps tracking the
- * pointer's page position as a shape drag does instead of waiting for the next pointer move.
- * Returns the cleanup.
+ * Start a comment drag (pin move or region resize) run by the comment UI's own pointer handlers
+ * rather than a tool state. Shows `cursor` for the whole drag and re-runs `onCameraMove` when the
+ * camera moves, from the drag's last pointer position, so a mid-drag scroll keeps the dragged thing
+ * under the pointer as a shape drag does. Returns the cleanup.
  *
- * The dragged element's own CSS cursor only applies while the pointer is over it, so without the
- * editor cursor a drag that outruns it shows whatever cursor the canvas underneath has.
+ * The drag's pointer moves still reach the editor (its inputs and the presence cursor others see
+ * must keep tracking), so the active tool's hover handling may set its own cursor on each one; the
+ * drag's cursor is put back whenever that happens.
  */
 export function startCommentDrag(
 	editor: Editor,
 	{ cursor, onCameraMove }: { cursor: TLCursorType; onCameraMove(): void }
 ): () => void {
 	const prevCursor = { ...editor.getInstanceState().cursor }
-	editor.setCursor({ type: cursor, rotation: 0 })
+	const stopCursor = react('comment drag cursor', () => {
+		if (editor.getInstanceState().cursor.type !== cursor) {
+			editor.setCursor({ type: cursor, rotation: 0 })
+		}
+	})
 	let started = false
-	const stop = react('comment drag follows camera', () => {
+	const stopCamera = react('comment drag follows camera', () => {
 		editor.getCamera()
 		if (!started) {
 			started = true
@@ -44,7 +48,8 @@ export function startCommentDrag(
 		unsafe__withoutCapture(onCameraMove)
 	})
 	return () => {
-		stop()
+		stopCamera()
+		stopCursor()
 		editor.setCursor(prevCursor)
 	}
 }

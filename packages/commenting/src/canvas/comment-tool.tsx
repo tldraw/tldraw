@@ -54,8 +54,8 @@ export function regionBetween(a: VecLike, b: VecLike): BoxModel {
  * release — like placing a sticky note — settling on a point, or on a shape when released over one.
  * With region comments enabled, dragging past the threshold draws a region rectangle instead.
  * Placement only opens a composer; the records are created when the comment is posted. Releasing
- * hands back to the select tool (unless the tool is locked) with the composer still open — it stays until the comment is
- * posted, or dismissed by Escape or a press outside it.
+ * hands back to select (unless the tool is locked); the composer stays open until it's posted, or
+ * dismissed by Escape or a press outside it.
  * @public
  */
 export class CommentTool extends StateNode {
@@ -179,7 +179,13 @@ class CommentIdle extends StateNode {
 	override onEnter() {
 		// Back to hovering: restore the pin cursor (a cancelled placement may have changed it).
 		this.editor.setCursor({ type: 'comment', rotation: 0 })
-		updateAnchorHint(this.editor)
+		// With tool lock a region composer can still be open here. A shape outline under its pin
+		// corner would imply a shape anchor the region never uses.
+		if (pendingComment.get(this.editor)?.anchor.type === 'region') {
+			this.editor.setHintingShapes([])
+		} else {
+			updateAnchorHint(this.editor)
+		}
 	}
 
 	override onPointerMove() {
@@ -234,16 +240,12 @@ class CommentPointing extends StateNode {
 		finishPlacement(this, pendingCommentAt(editor, point))
 	}
 
-	override onCancel() {
-		this.cancel()
-	}
-
 	override onInterrupt() {
 		this.cancel()
 	}
 
-	// Abandon the follow composer if placement is interrupted (Escape, focus loss, etc.). Its text
-	// survives in the draft store.
+	// Abandon the follow composer if placement is interrupted (focus loss, etc.). Its text survives
+	// in the draft store. Escape is the tool's own onCancel, which runs first.
 	private cancel() {
 		pendingComment.set(this.editor, null)
 		this.editor.setCurrentTool('select')
@@ -280,10 +282,6 @@ class CommentDragging extends StateNode {
 			anchor: { type: 'region', ...region, pinX: pin.x, pinY: pin.y },
 			point: regionPinPoint(region, pin),
 		})
-	}
-
-	override onCancel() {
-		this.cancel()
 	}
 
 	override onInterrupt() {

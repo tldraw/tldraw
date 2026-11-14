@@ -8,7 +8,7 @@ import {
 	useValue,
 	VecLike,
 } from 'tldraw'
-import { startCommentDrag } from './canvas-events'
+import { forwardPointerEventToCanvas, isCanvasPanGesture, startCommentDrag } from './canvas-events'
 import { regionDraft } from './state'
 
 /** A region's dashed box. Purely visual — a region moves by its pin and resizes from its corner
@@ -67,15 +67,13 @@ export function RegionDraftBox({ editor }: { editor: Editor }) {
 	return <RegionBox editor={editor} box={box} />
 }
 
-// A resize handle's normalized 0–1 spot on the box, and its cursor. An axis at 0.5 is *not*
-// controlled by that handle — the resize math reads the spot rather than special-casing corners.
+// A corner resize handle: its normalized 0–1 spot on the box, and its cursor.
 export interface RegionHandle {
 	x: number
 	y: number
 	cursor: 'nwse-resize' | 'nesw-resize'
 }
 
-// The four corners, each resizing both axes.
 export const REGION_CORNERS: readonly RegionHandle[] = [
 	{ x: 0, y: 0, cursor: 'nwse-resize' },
 	{ x: 1, y: 0, cursor: 'nesw-resize' },
@@ -87,19 +85,16 @@ export const REGION_CORNERS: readonly RegionHandle[] = [
 // the handles (which sit on the edge) are comfortably reachable.
 export const REGION_HANDLE_MARGIN_PX = 12
 
-/** Resize `box` by dragging `handle` to `cursor` (page coords). Each controlled axis spans from the
- *  handle's fixed opposite edge to the cursor (normalized, so dragging past it flips); an axis the
- *  handle doesn't control (a midpoint, at 0.5) keeps its original position and size. */
+/** Resize `box` by dragging corner `handle` to `cursor` (page coords): the box spans from the
+ *  opposite corner to the cursor, normalized so dragging past that corner flips it. */
 function resizeRegion(box: BoxModel, handle: RegionHandle, cursor: VecLike): BoxModel {
-	const controlsX = handle.x !== 0.5
-	const controlsY = handle.y !== 0.5
 	const fixedX = box.x + (1 - handle.x) * box.w
 	const fixedY = box.y + (1 - handle.y) * box.h
 	return {
-		x: controlsX ? Math.min(fixedX, cursor.x) : box.x,
-		y: controlsY ? Math.min(fixedY, cursor.y) : box.y,
-		w: controlsX ? Math.abs(cursor.x - fixedX) : box.w,
-		h: controlsY ? Math.abs(cursor.y - fixedY) : box.h,
+		x: Math.min(fixedX, cursor.x),
+		y: Math.min(fixedY, cursor.y),
+		w: Math.abs(cursor.x - fixedX),
+		h: Math.abs(cursor.y - fixedY),
 	}
 }
 
@@ -139,8 +134,7 @@ function isHiddenCorner(
 	return sizing.hideAlternateCorners
 }
 
-/** Draggable handles that resize a region — corners (both axes) or edges (one axis), per the resize
- *  option. Previews live, commits on release. */
+/** Draggable corner handles that resize a region. Previews live, commits on release. */
 export function RegionResizeHandles({
 	editor,
 	box,
@@ -159,7 +153,6 @@ export function RegionResizeHandles({
 	const dragRef = useRef<{
 		box: BoxModel
 		handle: RegionHandle
-		// The last pointer position, so a camera move mid-resize can re-place the corner under it.
 		clientX: number
 		clientY: number
 		endDrag(): void
@@ -177,8 +170,11 @@ export function RegionResizeHandles({
 				box.h * zoom,
 				editor.getInstanceState().isCoarsePointer
 			)
+			const dragged = dragRef.current?.handle
 			const points = handles
-				.filter((h) => !isHiddenCorner(h, sizing))
+				// The corner being dragged stays, even as the box shrinks to a size that hides it:
+				// unmounting it would drop its pointer capture and strand the resize.
+				.filter((h) => (h.x === dragged?.x && h.y === dragged?.y) || !isHiddenCorner(h, sizing))
 				.map((h) => {
 					const p = editor.pageToViewport({ x: box.x + h.x * box.w, y: box.y + h.y * box.h })
 					return { ...h, key: `${h.x}-${h.y}`, left: p.x, top: p.y }
@@ -204,7 +200,13 @@ export function RegionResizeHandles({
 		)
 	}
 	const startResize = (h: RegionHandle) => (e: ReactPointerEvent<HTMLDivElement>) => {
+		// A middle/right-button or space-held press is a camera pan, not a resize.
+		if (isCanvasPanGesture(editor, e)) {
+			forwardPointerEventToCanvas(editor.getContainer(), e)
+			return
+		}
 		e.stopPropagation()
+		dragRef.current?.endDrag()
 		dragRef.current = {
 			box,
 			handle: h,
@@ -222,8 +224,6 @@ export function RegionResizeHandles({
 	const onResize = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		if (!drag) return
-		// Keep the resize's pointer moves from the active tool, whose hover handling resets the cursor.
-		e.stopPropagation()
 		drag.clientX = e.clientX
 		drag.clientY = e.clientY
 		onPreview(resized())
@@ -266,6 +266,7 @@ export function RegionResizeHandles({
 					onPointerMove={onResize}
 					onPointerUp={endResize}
 					onPointerCancel={cancelResize}
+					onLostPointerCapture={cancelResize}
 				/>
 			))}
 		</div>

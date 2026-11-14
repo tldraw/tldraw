@@ -15,7 +15,7 @@ describe('selectionCornerSizing', () => {
 		expect(selectionCornerSizing(200, 100, true).hitSize).toBeCloseTo(41.34, 2)
 	})
 
-	it('halves the hit target on an axis only when both axes are small', () => {
+	it('shrinks the hit square only when both axes are small', () => {
 		// One small axis: the other axis's full target still sets the square.
 		expect(selectionCornerSizing(20, 100, false).hitSize).toBe(13.5)
 		expect(selectionCornerSizing(20, 20, false).hitSize).toBe(6.75)

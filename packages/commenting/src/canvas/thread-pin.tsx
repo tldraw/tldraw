@@ -129,7 +129,6 @@ export const ThreadPin = memo(function ThreadPin({
 		// cursor's delta (like RegionBox's move) instead of snapping the anchor to the cursor.
 		offsetX: number
 		offsetY: number
-		// The last pointer position, so a camera move mid-drag can re-place the pin under it.
 		clientX: number
 		clientY: number
 		endDrag?(): void
@@ -260,8 +259,6 @@ export const ThreadPin = memo(function ThreadPin({
 		// press stays a click (`moved` never sets, so release toggles the popover and never commits).
 		if (!canComment) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
-		// Keep the drag's pointer moves from the active tool, whose hover handling would reset the cursor.
-		e.stopPropagation()
 		drag.clientX = e.clientX
 		drag.clientY = e.clientY
 		if (!drag.moved) {

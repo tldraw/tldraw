@@ -12,10 +12,12 @@ import {
 	defineMessages,
 	Editor,
 	EditorPortal,
+	TLCommentAnchor,
 	TLRichText,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
+	VecLike,
 } from 'tldraw'
 import { CommentComposer } from '../ui/comment-composer'
 import { EMPTY_COMMENT, isCommentEmpty } from '../ui/comment-extensions'
@@ -67,9 +69,9 @@ export function PendingComposer({
 	const ComposerFallback = components.ComposerFallback
 	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
-	// The leading pin previews the pin this draft becomes: a white pin holding the author's avatar.
 	const isMobile = useIsMobileCommenting()
 	const drag = useDraftDrag(editor, pending)
+	// The leading pin previews the pin this draft becomes: a white pin holding the author's avatar.
 	const draftAvatar = (
 		<div
 			className="tlui-cmt-canvas-composer__handle"
@@ -110,6 +112,8 @@ export function PendingComposer({
 			// A click in the composer, or in the mention picker it spawns (portaled elsewhere), is
 			// not "outside" — keep the draft open so the pick can insert.
 			if (el.contains(target) || target.closest('.tlui-cmt-mention-popup')) return
+			// Panning the camera to look around while writing isn't leaving the draft.
+			if (isCanvasPanGesture(editor, e) || (e as any).isSpecialRedispatchedEvent) return
 			pendingComment.set(editor, null)
 		}
 		document.addEventListener('pointerdown', onPointerDown, true)
@@ -198,13 +202,20 @@ function useDraftDrag(editor: Editor, pending: PendingComment) {
 		// The pin's page offset from the grab point, so the pin keeps its place under the pointer.
 		offsetX: number
 		offsetY: number
-		// The last pointer position, so a camera move mid-drag can re-place the draft under it.
 		clientX: number
 		clientY: number
 		endDrag?(): void
 	} | null>(null)
-	// Unmounting mid-drag (the draft is dismissed) gets no pointer up to end the drag.
-	useEffect(() => () => dragRef.current?.endDrag?.(), [])
+	// Unmounting mid-drag (the draft is dismissed) gets no pointer up to end the drag, and the
+	// drop-target hint is editor-global state that would otherwise stay on the shape.
+	useEffect(
+		() => () => {
+			if (!dragRef.current) return
+			dragRef.current.endDrag?.()
+			editor.setHintingShapes([])
+		},
+		[editor]
+	)
 
 	const pagePointFor = (clientX: number, clientY: number) => {
 		const drag = dragRef.current!
@@ -212,30 +223,36 @@ function useDraftDrag(editor: Editor, pending: PendingComment) {
 		return { x: cursor.x + drag.offsetX, y: cursor.y + drag.offsetY }
 	}
 
-	// A region moves as a whole: its box rides with the pin corner. A point draft only moves its
-	// composer until release, when the anchor resolves against what's under it.
-	const moveTo = (point: { x: number; y: number }, altKey: boolean, settle: boolean) => {
+	// A region moves as a whole, its box riding with the pin corner; a point draft moves only its
+	// composer until the drop, when its anchor resolves against what's under it.
+	const moveRegion = (anchor: Extract<TLCommentAnchor, { type: 'region' }>, point: VecLike) => {
+		const corner = regionAnchorPinCorner(anchor)
+		const moved = regionWithPinAt(anchor, corner, point)
+		pendingComment.set(editor, { anchor: moved, point: regionPinPoint(moved, corner) })
+	}
+
+	// Mid-drag, a point draft hints the shape a drop here would anchor to.
+	const previewAt = (point: VecLike) => {
 		const current = pendingComment.get(editor)
 		if (!current) return
-		if (current.anchor.type === 'region') {
-			const corner = regionAnchorPinCorner(current.anchor)
-			const anchor = regionWithPinAt(current.anchor, corner, point)
-			pendingComment.set(editor, { anchor, point: regionPinPoint(anchor, corner) })
-			return
-		}
-		if (settle) {
-			pendingComment.set(editor, pendingCommentAt(editor, point, altKey))
-		} else {
-			pendingComment.set(editor, { ...current, point })
-		}
+		if (current.anchor.type === 'region') return moveRegion(current.anchor, point)
+		pendingComment.set(editor, { ...current, point: { x: point.x, y: point.y } })
 		const hit = commentTargetShapeAt(editor, point)
 		editor.setHintingShapes(hit ? [hit.id] : [])
+	}
+
+	const settleAt = (point: VecLike, altKey: boolean) => {
+		const current = pendingComment.get(editor)
+		if (!current) return
+		if (current.anchor.type === 'region') return moveRegion(current.anchor, point)
+		pendingComment.set(editor, pendingCommentAt(editor, point, altKey))
 	}
 
 	const takeDrag = (e: ReactPointerEvent<HTMLDivElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
 		drag?.endDrag?.()
+		editor.setHintingShapes([])
 		setDragging(false)
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
@@ -268,8 +285,6 @@ function useDraftDrag(editor: Editor, pending: PendingComment) {
 			const drag = dragRef.current
 			if (!drag) return
 			if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
-			// Keep the drag's pointer moves from the comment tool, whose idle hover resets the cursor.
-			e.stopPropagation()
 			drag.clientX = e.clientX
 			drag.clientY = e.clientY
 			if (!drag.moved) {
@@ -278,29 +293,24 @@ function useDraftDrag(editor: Editor, pending: PendingComment) {
 					cursor: 'move',
 					onCameraMove: () => {
 						const d = dragRef.current
-						if (d) moveTo(pagePointFor(d.clientX, d.clientY), false, false)
+						if (d) previewAt(pagePointFor(d.clientX, d.clientY))
 					},
 				})
 				setDragging(true)
 			}
-			moveTo(pagePointFor(e.clientX, e.clientY), e.altKey, false)
+			previewAt(pagePointFor(e.clientX, e.clientY))
 		},
 		onPointerUp: (e: ReactPointerEvent<HTMLDivElement>) => {
-			if (!dragRef.current?.moved) {
-				takeDrag(e)
-				return
-			}
-			const point = pagePointFor(e.clientX, e.clientY)
+			const moved = dragRef.current?.moved
+			const point = moved ? pagePointFor(e.clientX, e.clientY) : null
 			takeDrag(e)
-			moveTo(point, e.altKey, true)
+			if (point) settleAt(point, e.altKey)
 		},
 		// A cancelled pointer leaves the draft where the drag last put it, with its anchor resolved.
 		onPointerCancel: (e: ReactPointerEvent<HTMLDivElement>) => {
 			const drag = takeDrag(e)
 			const current = pendingComment.get(editor)
-			if (drag?.moved && current && current.anchor.type !== 'region') {
-				pendingComment.set(editor, pendingCommentAt(editor, current.point))
-			}
+			if (drag?.moved && current) settleAt(current.point, editor.inputs.getAltKey())
 		},
 	}
 

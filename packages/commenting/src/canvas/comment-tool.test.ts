@@ -127,10 +127,12 @@ describe('comment tool placement lifecycle', () => {
 		expect(pendingComment.get(editor)).not.toBeNull()
 	})
 
-	it('keeps the composer open across a later tool switch', () => {
+	it('keeps the composer open when a locked tool is left', () => {
+		editor.updateInstanceState({ isToolLocked: true })
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
+		expect(editor.isIn('comment.idle')).toBe(true)
 		editor.setCurrentTool('hand')
 		expect(pendingComment.get(editor)).not.toBeNull()
 	})
@@ -258,12 +260,16 @@ describe('comment tool placement hints with regions enabled', () => {
 	it('does not hint a shape under the pin corner of a placed region', () => {
 		const driver = makeEditor(CommentTool.configure({ enableRegions: true }))
 		makeShape(100, 100)
+		// Tool lock keeps the comment tool active with the region composer open, so its idle hover
+		// is what could re-hint the shape.
+		editor.updateInstanceState({ isToolLocked: true })
 		editor.setCurrentTool('comment')
 		// Release on top of the shape: a region anchors to its rectangle, so the outline that
 		// normally previews a shape anchor would be a lie here.
 		driver.pointerDown(50, 50)
 		driver.pointerMove(150, 125)
 		driver.pointerUp(150, 125)
+		expect(editor.isIn('comment.idle')).toBe(true)
 		expect(editor.getHintingShapeIds()).toEqual([])
 	})
 

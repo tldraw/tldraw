@@ -291,7 +291,8 @@
 	position: absolute;
 	inset: 4px;
 	z-index: -1;
-	border-radius: calc(12px - 4px);
+	/* The cards' 12px radius, less the inset. */
+	border-radius: 8px;
 	pointer-events: none;
 }
 .tlui-cmt-canvas-preview__panel--thread.tlui-cmt-canvas-preview__panel--selectable::after {
@@ -518,10 +519,8 @@
 .tlui-cmt-canvas-composer .tlui-cmt-input__placeholder {
 	left: 12px;
 }
-/* The draft avatar previews the pin it becomes — a white 28px pin holding the author's 22px avatar
-   circle — sharing the composer's lift. It's the draft's drag handle, like a placed pin: default
-   cursor at rest, move while dragging, no hover scale or shadow bump, and a 40×40 hit area (the
-   ::after below). */
+/* The draft avatar previews the pin it becomes and is the draft's drag handle. It keeps a 40×40 hit
+   area (the ::after below). */
 .tlui-cmt-canvas-composer .tlui-cmt-pin {
 	position: relative;
 	box-shadow: var(--tl-shadow-2);
