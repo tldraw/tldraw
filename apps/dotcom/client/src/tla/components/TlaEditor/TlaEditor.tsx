@@ -45,9 +45,10 @@ import { markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
 import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { TldrawApp } from '../../app/TldrawApp'
+import { ReadyWrapper } from '../../hooks/ReadyWrapper'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
-import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
 import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
@@ -55,11 +56,8 @@ import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
 import { registerAgentBylineEditHandler } from './agentCommentEdits'
-import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
-import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
-import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
-import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { CommentsOnCanvas, SignInToComment } from './CommentsOnCanvas'
+import { useFileEditorRef, useFileLoad, useFileSyncStore } from './fileSyncHostContext'
 import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
@@ -70,8 +68,9 @@ import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { TlaPinContent, TlaThreadRow } from './TlaAgentCommentSurfaces'
 import { TlaCommentByline } from './TlaCommentByline'
 import { A11yAudit } from './TlaDebug'
+import { components } from './tlaEditorComponents'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileEditorRef, useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
+import { useAnonCommentToolOverrides } from './useAnonCommentToolOverrides'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -96,19 +95,6 @@ const tlaCommentTools = [
 		},
 	}),
 ]
-
-/** @internal */
-export const components: TLComponents = {
-	ErrorFallback: TlaEditorErrorFallback,
-	MenuPanel: TlaEditorMenuPanel,
-	TopPanel: TlaEditorTopPanel,
-	SharePanel: TlaEditorSharePanel,
-	Dialogs: null,
-	Toasts: null,
-	// No loading screen on tla editors: the editor only mounts once it's ready,
-	// so a spinner would only flash before the content appears.
-	LoadingScreen: null,
-}
 
 interface TlaEditorProps {
 	fileSlug: string

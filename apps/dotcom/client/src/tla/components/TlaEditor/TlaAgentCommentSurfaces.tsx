@@ -1,22 +1,10 @@
-import {
-	Avatar,
-	CommentAuthor,
-	CommentListItem,
-	CommentListItemRenderProps,
-} from '@tldraw/commenting'
+import { Avatar, CommentListItem, CommentListItemRenderProps } from '@tldraw/commenting'
 import { getMcpAgentFromCommentMeta } from '@tldraw/dotcom-shared'
-import { createContext, CSSProperties, useContext } from 'react'
+import { CSSProperties, useContext } from 'react'
 import { defineMessages, TLComment, TLCommentThread, useTranslation } from 'tldraw'
+import { ResolveCommentAuthorContext } from './resolveCommentAuthorContext'
 import { AgentAvatar } from './TlaCommentByline'
 import styles from './comment-byline.module.css'
-
-/**
- * The author resolver, from `CommentsOnCanvas`. Component slots get only the records (a pin gets its
- * thread and comments), and React context crosses the portals pins and threads render in.
- */
-export const ResolveCommentAuthorContext = createContext<(id: string) => CommentAuthor | undefined>(
-	() => undefined
-)
 
 const messages = defineMessages({
 	unknownAuthor: { defaultMessage: 'Someone' },

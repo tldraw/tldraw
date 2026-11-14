@@ -28,7 +28,7 @@ export function TlaSidebarToggleMobile() {
 				})
 			}}
 		>
-			<TlaIcon icon="sidebar" />
+			<TlaIcon icon="sidebar-strong" />
 		</TldrawUiButton>
 	)
 }

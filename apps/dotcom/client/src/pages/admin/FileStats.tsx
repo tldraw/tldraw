@@ -2,7 +2,8 @@ import { AdminFileStatsResponseBody } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
-import { formatBytes, formatTally, getResponseError, StructuredDataDisplay } from './shared'
+import { formatBytes, formatTally, getResponseError } from './shared'
+import { StructuredDataDisplay } from './StructuredDataDisplay'
 import styles from './admin.module.css'
 
 function formatNumber(value: number) {

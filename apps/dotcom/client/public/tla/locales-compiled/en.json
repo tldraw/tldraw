@@ -241,22 +241,6 @@
       "value": "About tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " commented on your board"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
@@ -461,6 +445,22 @@
       "value": "Name"
     }
   ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " commented"
+    }
+  ],
   "4d0d3ddec9": [
     {
       "type": 0,
@@ -579,22 +579,6 @@
       "value": "My workspace"
     }
   ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
-    }
-  ],
   "5d04a002ea": [
     {
       "type": 0,
@@ -635,35 +619,6 @@
     {
       "type": 0,
       "value": "Later"
-    }
-  ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Someone reacted to your comment"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " people reacted to your comment"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
     }
   ],
   "625fd29749": [
@@ -708,6 +663,70 @@
       "value": "New file"
     }
   ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
+    }
+  ],
   "6832ac5936": [
     {
       "type": 0,
@@ -718,6 +737,35 @@
     {
       "type": 0,
       "value": "Delete workspace"
+    }
+  ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Someone reacted"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " people reacted"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "6a26f54883": [
@@ -982,6 +1030,56 @@
       "value": "You are already a member of this workspace"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -1060,6 +1158,22 @@
     {
       "type": 0,
       "value": "This month"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "985a4b720f": [
@@ -1548,56 +1662,6 @@
       "value": "Learn more about publishing."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " others"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
-    }
-  ],
   "d3d2e61733": [
     {
       "type": 0,
@@ -1716,36 +1780,6 @@
       "value": "Terms of service"
     }
   ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
-    }
-  ],
   "e81c4e4f2b": [
     {
       "type": 0,
@@ -1862,70 +1896,6 @@
       "value": "This invite link is invalid or has expired."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " and "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " others"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reacted to your comment"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -2008,6 +1978,36 @@
     {
       "type": 0,
       "value": "Error accepting invite"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " and "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reacted"
     }
   ],
   "ffcd73e997": [

@@ -48,6 +48,7 @@ import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
+import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
@@ -63,9 +64,8 @@ import {
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
-import { sidebarMessages } from '../TlaSidebar/components/TlaSidebarFileLink'
+import { sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
-import { useRoomInfo } from './TlaEditorTopRightPanel'
 import styles from './top.module.css'
 
 /** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in

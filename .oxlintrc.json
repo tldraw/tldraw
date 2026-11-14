@@ -269,6 +269,12 @@
 			}
 		},
 		{
+			"files": ["apps/dotcom/client/src/**/*.tsx"],
+			"rules": {
+				"react/only-export-components": ["error", { "allowConstantExport": true }]
+			}
+		},
+		{
 			"files": ["packages/**/*", "apps/**/*", "internal/**/*", "templates/**/*"],
 			"rules": {
 				"tldraw/no-undeclared-dependencies": "error"

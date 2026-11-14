@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- its own HTML entry, captured headlessly rather than hot-edited */
 import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
