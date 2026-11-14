@@ -554,6 +554,10 @@ function writeBrowserRunSessionTelemetry(
 			// Appended after `capture:`. What the worker sent; what the page used is `acquired:` on
 			// render_page_timings.
 			`transport:${transport.kind}`,
+			// Appended. Spike: which Browser Run engine ran the session (`kitesurf` vs the default
+			// `chromium`), so the preview's sessions can be sliced by engine. `chromium` everywhere the
+			// flag is unset, which keeps historical rows reading as chromium.
+			`engine:${browserRunEngine(env)}`,
 		],
 		doubles: [
 			width,
@@ -752,6 +756,33 @@ function browserMsUsedOf(response: Response) {
 	return Number(response.headers.get('X-Browser-Ms-Used')) || 0
 }
 
+// Which Browser Run engine the Quick Actions run on. Spike (preview only): BROWSER_RUN_KITESURF opts
+// into Cloudflare's lighter stateless `kitesurf` engine; everything else is the default Chromium.
+// A pure function of the env so both the call site (callBrowserRun) and the spend ledger
+// (writeBrowserRunSessionTelemetry) agree without threading a value through. The flag is injected
+// for previews only, and the local dev stand-in never calls Browser Run, so the label never lies.
+export function browserRunEngine(env: Environment): 'kitesurf' | 'chromium' {
+	return envFlagWord(env.BROWSER_RUN_KITESURF) === 'true' ? 'kitesurf' : 'chromium'
+}
+
+// Kitesurf (beta) rejects any quick-action option it hasn't implemented with a hard error *before*
+// any browser runs (no session, 0 ms billed) — unsupported options can't be sent and ignored. Our
+// render requests carry two it doesn't implement (measured against the binding 2026-11-02):
+// `viewport.deviceScaleFactor` on the screenshot body, and `cacheTTL` on the content body. Strip
+// both for kitesurf and add the engine selector. Revisit as kitesurf fills in its option surface.
+function toKitesurfOptions(requestBody: ThumbnailRenderRequestBody) {
+	const { cacheTTL, viewport, ...rest } = requestBody as Record<string, unknown> & {
+		cacheTTL?: unknown
+		viewport?: { width: number; height: number; deviceScaleFactor?: number }
+	}
+	void cacheTTL
+	return {
+		...rest,
+		browser: 'kitesurf',
+		...(viewport ? { viewport: { width: viewport.width, height: viewport.height } } : null),
+	}
+}
+
 async function callBrowserRun(
 	env: Environment,
 	action: BrowserRunAction,
@@ -765,8 +796,12 @@ async function callBrowserRun(
 
 	const startedAt = Date.now()
 	// A Browser Rendering Quick Action, invoked straight through the binding (no puppeteer, no API
-	// token). Requires compatibility_date >= 2026-03-24 for `quickAction`.
-	const response = await env.BROWSER.quickAction(action, requestBody)
+	// token). Requires compatibility_date >= 2026-03-24 for `quickAction`. The spike runs it on
+	// `kitesurf` instead of the default Chromium, stripping the options kitesurf's beta rejects (see
+	// toKitesurfOptions) — otherwise the request fails before a browser runs.
+	const options =
+		browserRunEngine(env) === 'kitesurf' ? toKitesurfOptions(requestBody) : requestBody
+	const response = await env.BROWSER.quickAction(action, options)
 	const durationMs = Date.now() - startedAt
 
 	if (!response.ok) {

@@ -145,6 +145,10 @@ export interface Environment {
 	// the page fetching them back from the snapshot route, for every board. Where it is unset
 	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
 	THUMBNAIL_RENDER_PUSH: string | undefined
+	// Spike (preview only): 'true' runs Browser Run's Quick Actions on Cloudflare's lighter stateless
+	// `kitesurf` engine instead of the default Chromium, by adding `browser: 'kitesurf'` to the call.
+	// Only the live Browser Run path reads it; off everywhere it is unset. See browserRunEngine.
+	BROWSER_RUN_KITESURF: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected

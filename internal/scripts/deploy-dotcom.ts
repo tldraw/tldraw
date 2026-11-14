@@ -622,6 +622,10 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 						// export until the trial is judged. Injected here because previews have no such block.
 						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
 						THUMBNAIL_RENDER_PUSH: 'true',
+						// Spike: previews render Browser Run on the lighter `kitesurf` engine (see
+						// BROWSER_RUN_KITESURF in types.ts / browserRunEngine). Staging and production stay
+						// on Chromium. Injected here because previews have no wrangler.toml vars block.
+						BROWSER_RUN_KITESURF: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml
