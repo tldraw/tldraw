@@ -3,9 +3,11 @@
 import {
 	BaseBoxShapeUtil,
 	HTMLContainer,
+	SvgExportContext,
 	TLEmbedShape,
 	TLEmbedShapeProps,
 	TLResizeInfo,
+	clamp,
 	embedShapeMigrations,
 	embedShapeProps,
 	lerp,
@@ -13,7 +15,6 @@ import {
 	toDomPrecision,
 	useColorMode,
 	useIsEditing,
-	useSvgExportContext,
 	useValue,
 } from '@tldraw/editor'
 import {
@@ -25,7 +26,14 @@ import {
 	unknownEmbedShapePermissionOverrides,
 } from '../../defaultEmbedDefinitions'
 import { TLEmbedResult, getCorrectedEmbedSize, getEmbedInfo } from '../../utils/embeds/embeds'
+import { getHumanReadableAddress } from '../bookmark/bookmarks'
 import { BookmarkShapeComponent } from '../bookmark/BookmarkShapeUtil'
+import {
+	TLCreateTextJsxFromSpansOpts,
+	createTextJsxFromSpans,
+} from '../shared/createTextJsxFromSpans'
+import { getFontFamily } from '../shared/default-shape-constants'
+import { DefaultFontFaces, getThemeFontFaces } from '../shared/defaultFonts'
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { getRotatedBoxShadow } from '../shared/rotated-box-shadow'
 
@@ -217,6 +225,70 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		return super.getGeometry(shape)
 	}
 
+	override getFontFaces() {
+		const sans = DefaultFontFaces.tldraw_sans.normal
+		return getThemeFontFaces(this.editor.getCurrentTheme(), 'sans') ?? [sans.normal, sans.bold]
+	}
+
+	// An export can't capture the iframe, so without this an embed exports as a blank box.
+	override toSvg(shape: TLEmbedShape, ctx: SvgExportContext) {
+		const { w, h, url } = shape.props
+		const definition = this.getEmbedDefinition(url)?.definition
+		const radius = definition?.overrideOutlineRadius ?? 8
+		const address = getHumanReadableAddress(url)
+		const theme = this.editor.getCurrentTheme()
+		const colors = theme.colors[ctx.colorMode]
+		const fontFamily = getFontFamily(theme, 'sans')
+		// Exports are often shown far smaller than the shape, so the text scales with it.
+		const titleSize = clamp(w / 12, 12, 48)
+		const captionSize = titleSize * 0.75
+		const title = definition?.title ?? address
+		const caption = definition ? address : undefined
+		const gap = titleSize * 0.4
+		const top = (h - (caption ? titleSize + gap + captionSize : titleSize)) / 2
+		// One centred line, cut with an ellipsis: SVG text doesn't wrap or clip.
+		const line = (text: string, fontSize: number, y: number, fontWeight: string) => {
+			const opts: TLCreateTextJsxFromSpansOpts = {
+				overflow: 'truncate-ellipsis',
+				width: w - 32,
+				height: fontSize,
+				padding: 0,
+				fontSize,
+				fontWeight,
+				fontFamily,
+				fontStyle: 'normal',
+				lineHeight: 1,
+				textAlign: 'middle',
+				verticalTextAlign: 'start',
+				offsetX: 16,
+				offsetY: y,
+				fill: colors.text,
+			}
+			return createTextJsxFromSpans(
+				this.editor,
+				this.editor.textMeasure.measureTextSpans(text, opts),
+				opts
+			)
+		}
+		return (
+			<>
+				<rect width={w} height={h} rx={radius} fill={colors.background} />
+				<rect
+					width={w}
+					height={h}
+					rx={radius}
+					fill="none"
+					stroke={colors.text}
+					strokeOpacity={0.2}
+				/>
+				{line(title, titleSize, top, 'bold')}
+				{caption && (
+					<g fillOpacity={0.6}>{line(caption, captionSize, top + titleSize + gap, 'normal')}</g>
+				)}
+			</>
+		)
+	}
+
 	override isAspectRatioLocked(shape: TLEmbedShape) {
 		const embedInfo = this.getEmbedDefinition(shape.props.url)
 		return embedInfo?.definition.isAspectRatioLocked ?? false
@@ -250,7 +322,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 	}
 
 	override component(shape: TLEmbedShape) {
-		const svgExport = useSvgExportContext()
 		const { w, h, url } = shape.props
 		const isEditing = useIsEditing(shape.id)
 		const colorMode = useColorMode()
@@ -276,25 +347,6 @@ export class EmbedShapeUtil extends BaseBoxShapeUtil<TLEmbedShape> {
 		)
 
 		const pageRotation = this.editor.getShapePageTransform(shape)!.rotation()
-
-		if (svgExport) {
-			// for SVG exports, we show a blank embed
-			return (
-				<HTMLContainer className="tl-embed-container" id={shape.id}>
-					<div
-						className="tl-embed"
-						style={{
-							border: 0,
-							boxShadow: dv.showShadow ? getRotatedBoxShadow(pageRotation) : 'none',
-							borderRadius: embedInfo?.definition.overrideOutlineRadius ?? 8,
-							background: embedInfo?.definition.backgroundColor ?? 'var(--tl-color-background)',
-							width: w,
-							height: h,
-						}}
-					/>
-				</HTMLContainer>
-			)
-		}
 
 		const isInteractive = isEditing || isHoveringWhileEditingSameShape
 
