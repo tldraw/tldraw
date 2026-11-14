@@ -188,7 +188,7 @@ button.topLeftInputNameWidthSetter {
 
 @media (hover: hover) {
 	.topLeftMainMenuTrigger:hover {
-		color: var(--tl-color-text-0);
+		color: var(--tl-color-text-1);
 	}
 
 	.topLeftMainMenuTrigger:hover::after {
@@ -196,9 +196,14 @@ button.topLeftInputNameWidthSetter {
 	}
 }
 
+.topLeftMainMenuTrigger[aria-pressed='true'],
+.topLeftMainMenuTrigger[data-state='open'] {
+	color: var(--tl-color-text-1);
+}
+
 .topLeftMainMenuTrigger[aria-pressed='true']::after,
 .topLeftMainMenuTrigger[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
 
@@ -211,24 +216,18 @@ button.topLeftInputNameWidthSetter {
 	border-radius: 8px;
 	/* A 36px square matching the share button; min-width because the base button's 40px would
 	   beat width. */
-	height: 36px;
-	width: 36px;
-	min-width: 36px;
-}
-
-/* Match the hover wash to the share pill's inset and radius (the base ::after sits at 4px). */
-.topRightIconButton::after {
-	inset: 2px;
+	height: 40px;
+	width: 40px;
+	min-width: 40px;
+	color: var(--tl-color-text-1);
 }
 
 .topRightIconButton + .topRightIconButton {
 	margin-inline-start: 4px;
 }
 
-/* A panel toggle shows the same open wash as the main menu trigger while the panel it controls
-   is open. */
 .topRightIconButton[aria-pressed='true']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-color-muted-2);
 	opacity: 1;
 }
 
@@ -264,7 +263,7 @@ button.topLeftInputNameWidthSetter {
 	position: relative;
 	cursor: pointer;
 	z-index: 1;
-	color: var(--tl-color-text-0);
+	color: var(--tl-color-text-3);
 }
 
 .topRightAnonShareButton::before {
@@ -286,18 +285,32 @@ button.topLeftInputNameWidthSetter {
 	right: 4px;
 	bottom: 4px;
 	border-radius: 6px;
-	background-color: var(--tl-color-muted-0);
+	background-color: var(--tl-color-muted-2);
 	z-index: 0;
 	pointer-events: none;
 	visibility: hidden;
 }
 
+.topRightAnonShareButton[data-state='open'] {
+	color: var(--tl-color-text-1);
+}
+
 .topRightAnonShareButton[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	visibility: visible;
+	/* .tlui-button::after rests at opacity 0 and only tldraw's hover rule lifts it. */
+	opacity: 1;
 }
 
 @media (hover: hover) {
+	.topRightAnonShareButton {
+		color: var(--tl-color-text-3);
+	}
+
+	.topRightAnonShareButton:hover {
+		color: var(--tl-color-text-1);
+	}
+
 	.topRightAnonShareButton:hover::after {
 		visibility: visible;
 	}

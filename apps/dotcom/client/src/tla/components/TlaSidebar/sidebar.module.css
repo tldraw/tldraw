@@ -159,7 +159,7 @@
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tl-color-muted-0);
+	background-color: var(--tl-color-muted-2);
 }
 
 .sidebarToggle:focus-visible {
@@ -209,6 +209,12 @@
 	height: 44px;
 	padding: 3px 8px 0px 4px;
 	gap: var(--tl-space-3);
+}
+
+.sidebarTopRowButtons {
+	display: flex;
+	flex-direction: row;
+	padding: 0 0px;
 }
 
 /* Workspace link */
@@ -275,7 +281,6 @@
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarCreateFileButton:focus-visible {
@@ -993,8 +998,12 @@
 	}
 
 	.sidebarFileListItemMenuTrigger:hover {
-		color: var(--tl-color-text-0);
+		color: var(--tl-color-text-1);
 	}
+}
+
+.sidebarFileListItemMenuTrigger[data-state='open'] {
+	color: var(--tl-color-text-1);
 }
 
 /* Guest badge */

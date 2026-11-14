@@ -66,6 +66,19 @@
 	background-color: var(--tl-color-selected);
 }
 
+/* The bell opens a dropdown, so it shows the menu-trigger wash while open. Doubled up with
+   .tlui-button so it outranks the shared new-file button class it sits on, whichever stylesheet
+   loads last. */
+.button:global(.tlui-button) {
+	color: var(--tl-color-text-1);
+}
+
+.button:global(.tlui-button)[data-state='open']::after {
+	visibility: visible;
+	background: var(--tl-gradient-ttb);
+	opacity: 1;
+}
+
 /* Small dot on the sidebar bell when there are unread notifications. */
 .badge {
 	position: absolute;

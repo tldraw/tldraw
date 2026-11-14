@@ -1,3 +1,4 @@
+import classNames from 'classnames'
 import {
 	defineMessages,
 	TldrawUiButton,
@@ -39,7 +40,7 @@ export function TlaSidebarNotificationsButton() {
 			<TldrawUiPopoverTrigger>
 				<TldrawUiButton
 					type="icon"
-					className={styles.sidebarCreateFileButton}
+					className={classNames(styles.sidebarCreateFileButton, notifications.button)}
 					data-testid="tla-notifications-button"
 					title={msg(messages.notifications)}
 				>

@@ -80,7 +80,7 @@ export const TlaSidebar = memo(function TlaSidebar() {
 			>
 				<div className={styles.sidebarTopRow}>
 					<TlaSidebarWorkspaceLink />
-					<div style={{ display: 'flex', alignItems: 'center' }}>
+					<div className={styles.sidebarTopRowButtons}>
 						<TlaSidebarNotificationsButton />
 						<TlaSidebarCreateFileButton />
 					</div>
