@@ -247,7 +247,9 @@ My browser: ${navigator.userAgent}`
 						<div className="tl-error-boundary__body">
 							<p>
 								{msg(messages.refreshHint)} {msg(messages.resetHint)}{' '}
-								<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
+								<span className="tl-error-boundary__warning">
+									<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
+								</span>
 							</p>
 							{process.env.NODE_ENV !== 'production' && (
 								<p>
