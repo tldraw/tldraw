@@ -74,7 +74,6 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 		)
 	}
 	return (
-		// The standard dropdown classes, so the picker matches every other menu.
 		<div ref={ref} className="tlui-menu tlui-cmt-mention-list" role="listbox">
 			{members.map((member, i) => {
 				const active = i === activeIndex
@@ -85,11 +84,7 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 						role="option"
 						aria-selected={active}
 						data-highlighted={active || undefined}
-						className={
-							active
-								? 'tlui-button tlui-button__menu tlui-cmt-mention-list__item tlui-cmt-mention-list__item--active'
-								: 'tlui-button tlui-button__menu tlui-cmt-mention-list__item'
-						}
+						className="tlui-button tlui-button__menu tlui-cmt-mention-list__item"
 						// Keep the composer focused on a row press: it's portaled outside the editor, so a
 						// bare mousedown would blur the composer — which now dismisses the picker — before
 						// the click could select. Selection runs on click; focus stays put.

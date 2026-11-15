@@ -34,11 +34,16 @@
 	display: flex;
 	flex-direction: column;
 	width: 100%;
-	max-height: 260px;
+	/* Fits MAX_SUGGESTIONS (8) menu rows: .tlui-menu hides its scrollbar and the active row
+	   isn't scrolled into view, so a cut-off last row would be unreachable. */
+	max-height: 296px;
 	color: var(--tl-color-text-1);
 }
 
 .tlui-cmt-mention-list .tlui-cmt-mention-list__item {
+	/* min-height rather than the menu row's fixed 40px, so a taller renderMember row can grow. */
+	height: auto;
+	min-height: 40px;
 	flex-shrink: 0;
 	justify-content: flex-start;
 	text-align: start;

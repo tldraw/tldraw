@@ -235,6 +235,6 @@ The notifications popover belongs to tldraw.com, not the SDK, so there's no comp
 The rows below use the app's own stylesheet, so the spacing shown here is the real thing.
 
 [2]
-The same markup as the row in the app's `TlaSidebarNotificationsPanel`, minus its router link and
-read-state wiring. If that row changes, change this one to match.
+The same markup as the row in the app's `TlaSidebarNotificationsPanel`, minus its router link,
+read-state wiring and the tooltip on the time. If that row changes, change this one to match.
 */

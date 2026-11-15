@@ -1606,13 +1606,14 @@ it from receiving any pointer events or affecting the cursor. */
 }
 
 .tl-error-boundary__content .tl-error-boundary__copy {
+	height: 24px;
 	min-width: 0px;
 	padding: 0px var(--tl-space-3);
 	margin-inline-end: calc(-1 * var(--tl-space-3));
 	color: var(--tl-color-text-3);
 }
 
-.tl-error-boundary__copy::after {
+.tl-error-boundary__content .tl-error-boundary__copy::after {
 	inset: 0px;
 }
 

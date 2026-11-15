@@ -176,8 +176,7 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
 /**
  * Notifications popover contents. Reuses the comments sidebar's list shell (header, scroll, empty)
  * but renders each row person-first — an author-coloured pin and a name-led byline (who, and why
- * you're being notified), the comment preview beneath, and an unread dot. Reactions only show up
- * in the byline; the row carries no reaction pills.
+ * you're being notified), the comment preview beneath, and an unread dot.
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const msg = useTranslation()
