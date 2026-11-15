@@ -28,56 +28,43 @@
 	border-radius: 4px;
 }
 
-/* mention picker */
-.tlui-cmt-mention-list {
+/* mention picker — row size, highlight, panel and shadow come from .tlui-menu and
+   .tlui-button__menu; these rules only lay out the row's contents. */
+.tlui-menu.tlui-cmt-mention-list {
 	display: flex;
 	flex-direction: column;
-	gap: 4px;
-	padding: 4px;
 	width: 100%;
-	box-sizing: border-box;
 	max-height: 260px;
-	overflow-y: auto;
-	color: var(--tl-color-text-1, #1d1d1d);
-	background: var(--tl-color-panel, #fff);
-	border-radius: 10px;
-	/* shadow-3 (like the context menu) already carries a 1px inset edge — a separate `border`
-	   on top of it double-outlines the popup. */
-	box-shadow: var(--tl-shadow-3, 0 2px 12px rgba(0, 0, 0, 0.14));
-}
-
-.tlui-cmt-mention-list__item {
-	display: flex;
-	align-items: center;
-	gap: 8px;
-	padding: 6px 8px;
-	border: none;
-	background: transparent;
-	border-radius: 6px;
-	cursor: pointer;
-	text-align: left;
 	color: var(--tl-color-text-1);
-	font: inherit;
 }
 
-.tlui-cmt-mention-list__item--active,
-.tlui-cmt-mention-list__item:hover {
-	background: var(--tl-color-muted-2, rgba(0, 0, 0, 0.06));
+.tlui-cmt-mention-list .tlui-cmt-mention-list__item {
+	flex-shrink: 0;
+	justify-content: flex-start;
+	text-align: start;
 }
 
+.tlui-cmt-mention-list__item .tlui-cmt-avatar {
+	width: 20px;
+	height: 20px;
+	font-size: 10px;
+}
+
+/* Name and secondary share one line so a row never outgrows the menu-row height. */
 .tlui-cmt-mention-list__text {
 	display: flex;
-	flex-direction: column;
+	align-items: baseline;
+	gap: 6px;
 	min-width: 0;
-	line-height: 1.3;
 }
 
 .tlui-cmt-mention-list__name {
 	font-size: 12px;
-	font-weight: 500;
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	flex-shrink: 0;
+	max-width: 100%;
 }
 
 .tlui-cmt-mention-list__you {
@@ -94,12 +81,13 @@
 	text-overflow: ellipsis;
 }
 
-.tlui-cmt-mention-list--empty {
-	padding: 8px 10px;
-	width: 100%;
-	box-sizing: border-box;
+.tlui-menu.tlui-cmt-mention-list--empty {
+	flex-direction: row;
+	align-items: center;
+	height: 40px;
+	padding: 0 12px;
 	color: var(--tl-color-text-3);
-	font-size: 13px;
+	font-size: 12px;
 }
 
 /* the @-picker popup — anchored under the editor field, positioned by the suggestion plugin */

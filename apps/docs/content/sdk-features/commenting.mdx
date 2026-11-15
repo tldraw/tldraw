@@ -261,7 +261,7 @@ function Comments() {
 }
 ```
 
-A `MentionMember` is a `CommentAuthor` plus an `id`, an optional `secondary` line for the picker, and `you` to mark the current user. `filterMentionMembers` does the matching; supply your own filter to query a server instead. To change how a row looks, pass `renderMentionSuggestion`.
+A `MentionMember` is a `CommentAuthor` plus an `id`, optional `secondary` text shown after the name in the picker, and `you` to mark the current user. `filterMentionMembers` does the matching; supply your own filter to query a server instead. To change how a row looks, pass `renderMentionSuggestion`.
 
 A mention is a node in the body rather than text in it, so you can't find one by searching the string. To detect a mention, look for `{ type: 'mention', attrs: { id } }` in the body's `content` tree.
 
