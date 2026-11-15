@@ -4,9 +4,7 @@ import {
 	formatFullDateTime,
 	formatRelativeTime,
 	isOpenInNewTabClick,
-	Reactions,
 	richTextToPlaintext,
-	summarizeReactions,
 } from '@tldraw/commenting'
 import classNames from 'classnames'
 import { ReactNode, useCallback, useState } from 'react'
@@ -178,7 +176,8 @@ function commentLink(fileId: string, shapeId: string | null | undefined, comment
 /**
  * Notifications popover contents. Reuses the comments sidebar's list shell (header, scroll, empty)
  * but renders each row person-first — an author-coloured pin and a name-led byline (who, and why
- * you're being notified), the comment preview and any reaction pills beneath, and an unread dot.
+ * you're being notified), the comment preview beneath, and an unread dot. Reactions only show up
+ * in the byline; the row carries no reaction pills.
  */
 export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 	const msg = useTranslation()
@@ -203,13 +202,6 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 			// the notified-about event: a reaction entry dates from its newest foreign reaction,
 			// not from the (older) comment it decorates
 			date: new Date(n.timestamp).toISOString(),
-			// inert pills: no toggling from the panel, emoji + count with the user's own
-			// reactions highlighted
-			reactions: summarizeReactions(
-				c.reactions ?? [],
-				app?.userId,
-				(id) => c.reactions?.find((r) => r.userId === id)?.userName || undefined
-			),
 			// a real link target, so browser affordances (ctrl/cmd-click, middle-click) open a new tab
 			href: commentLink(c.fileId, c.thread?.shapeId, c.id),
 		}
@@ -294,13 +286,6 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 								</div>
 								<div className="tlui-cmt-body">
 									<div className="tlui-cmt-list__item-preview">{item.preview}</div>
-									{item.reactions && (
-										<Reactions
-											reactions={item.reactions}
-											canReact={false}
-											enableHoverList={false}
-										/>
-									)}
 								</div>
 							</div>
 							{n?.unread && <span className={styles.unreadDot} aria-hidden="true" />}

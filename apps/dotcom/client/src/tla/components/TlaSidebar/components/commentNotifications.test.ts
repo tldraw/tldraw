@@ -273,7 +273,7 @@ describe('categorizeCommentNotifications', () => {
 
 describe('buildReactionNotifications', () => {
 	/** One row of the reactions feed: my own comment, carrying the full `reactions` set the entry
-	 *  derives its timestamp and pills from. */
+	 *  derives its timestamp and byline from. */
 	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
 		return comment({
 			authorId: ME,
