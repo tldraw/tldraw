@@ -126,15 +126,14 @@ describe('comment tool placement lifecycle', () => {
 		expect(pendingComment.get(editor)).not.toBeNull()
 	})
 
-	it('keeps the comments sidebar closed after placing', () => {
+	it('leaves the comments sidebar open while the tool is active', () => {
 		commentsSidebarOpen.set(editor, true)
 		editor.setCurrentTool('comment')
-		expect(commentsSidebarOpen.get(editor)).toBe(false)
+		expect(commentsSidebarOpen.get(editor)).toBe(true)
 
-		// Reopening is the host's button, never a side effect of leaving the tool.
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
-		expect(commentsSidebarOpen.get(editor)).toBe(false)
+		expect(commentsSidebarOpen.get(editor)).toBe(true)
 	})
 
 	it('hides the cursor on press, shows move once dragging, then the comment cursor on release', () => {

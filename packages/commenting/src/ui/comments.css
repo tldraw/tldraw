@@ -558,7 +558,7 @@ button.tlui-cmt-reaction:hover {
 	--tlui-cmt-marker-transition: 0.08s ease;
 	--tlui-cmt-thread-padding: 12px;
 	--tlui-cmt-thread-gap: 0px;
-	/* Hit-area width of one .tlui-cmt-thread__action button (drawn as a 32px square inset 4px). */
+	/* Hit-area width of one .tlui-cmt-icon-btn button (drawn as a 32px square inset 4px). */
 	--tlui-cmt-thread-action-size: 40px;
 	/* A floating pill's edge — its hairline ring is the only thing separating it from the panel it
 	   overlaps, so the ring is a theme token rather than a literal black: a near-black hairline
@@ -618,12 +618,13 @@ button.tlui-cmt-reaction:hover {
 	   would leave them at the left). */
 	margin-left: auto;
 }
-/* These are TldrawUiButtons (type="icon"), so the 40px box, the 32px ::after square carrying the
-   hover wash, and the hover z-index flip all come from .tlui-button — the hit area (not the
-   ::after) is what's clickable, and it never reaches past its row. Only the bits that differ from
-   a toolbar button are set here, at .tlui-button's specificity + 1 so stylesheet order can't
-   decide the winner. */
-.tlui-button.tlui-cmt-thread__action {
+/* Every icon button in the comment UI: thread and sidebar headers, and a comment's own actions.
+   These are TldrawUiButtons (type="icon"), so the 40px box, the 32px ::after square carrying the
+   hover wash, and the hover z-index flip all come from .tlui-button. Only the bits that differ
+   from a toolbar button are set here, at .tlui-button's specificity + 1 so stylesheet order can't
+   decide the winner. `.tlui-cmt-thread__action` and `.tlui-cmt-header-btn` are the class's former
+   names, kept so a host's own buttons still pick the styles up. */
+.tlui-button:is(.tlui-cmt-icon-btn, .tlui-cmt-thread__action, .tlui-cmt-header-btn) {
 	width: 40px;
 	padding: 0;
 	border-radius: 6px;
@@ -632,20 +633,28 @@ button.tlui-cmt-reaction:hover {
 	line-height: 1;
 }
 /* Overlap each button 4px into the previous so the 32px visual squares sit 4px apart, not 8px.
-   Left-only, so the last button's hit area still stops at its row's right edge. */
-.tlui-cmt-thread__action + .tlui-cmt-thread__action {
-	margin-left: -4px;
+   On the leading side only, so the last button's hit area still stops at its row's edge. */
+:is(.tlui-cmt-icon-btn, .tlui-cmt-thread__action, .tlui-cmt-header-btn)
+	+ :is(.tlui-cmt-icon-btn, .tlui-cmt-thread__action, .tlui-cmt-header-btn) {
+	margin-inline-start: -4px;
 }
 @media (hover: hover) {
-	.tlui-button.tlui-cmt-thread__action:hover {
+	.tlui-button:is(.tlui-cmt-icon-btn, .tlui-cmt-thread__action, .tlui-cmt-header-btn):hover {
 		color: var(--tl-color-text-1);
 	}
 }
-/* An open menu's trigger, shaded the way the editor's own menu triggers are. */
-.tlui-button.tlui-cmt-thread__action[data-state='open'] {
+.tlui-button:is(
+		.tlui-cmt-icon-btn,
+		.tlui-cmt-thread__action,
+		.tlui-cmt-header-btn
+	)[data-state='open'] {
 	color: var(--tl-color-text-1);
 }
-.tlui-button.tlui-cmt-thread__action[data-state='open']::after {
+.tlui-button:is(
+		.tlui-cmt-icon-btn,
+		.tlui-cmt-thread__action,
+		.tlui-cmt-header-btn
+	)[data-state='open']::after {
 	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
@@ -725,7 +734,7 @@ button.tlui-cmt-reaction:hover {
 	padding-left: calc(12px + 6px);
 }
 /* Line the card actions up with the header actions: flush to the full-width card's right edge (the
-   panel edge, matching the header ✕) and flush on the 40px byline row, so the 40px buttons fill it. */
+   panel edge, under the header's ⋯) and flush on the 40px byline row, so the 40px buttons fill it. */
 .tlui-cmt-thread .tlui-cmt-card .tlui-cmt-card__actions {
 	top: 0;
 	right: 0;
@@ -739,11 +748,6 @@ button.tlui-cmt-reaction:hover {
 .tlui-cmt-stack-list .tlui-cmt-card .tlui-cmt-head,
 .tlui-cmt-list__item .tlui-cmt-head {
 	min-height: 40px;
-}
-/* A list row keeps its top padding for rows that don't use a byline (tldraw.com's notifications),
-   so the byline row reaches up through it to sit where it does on a thread card. */
-.tlui-cmt-list__item .tlui-cmt-head {
-	margin-top: -12px;
 }
 /* Reserve head room only for buttons that actually rendered (one child / two children) — the count
    is a permissions question (see canModifyComment), not ownership, and empty slots (read-only
@@ -781,32 +785,6 @@ button.tlui-cmt-reaction:hover {
 	color: var(--tl-color-text);
 }
 
-/* An icon button in the sidebar header (filter funnel, overflow …). Sized like the thread actions:
-   a TldrawUiButton (type="icon") left at its native 40px box, with .tlui-button's 32px ::after
-   square carrying the hover wash. Only the bits that differ are set here, at .tlui-button's
-   specificity + 1 so stylesheet order can't decide the winner. */
-.tlui-button.tlui-cmt-header-btn {
-	width: 40px;
-	padding: 0;
-	border-radius: 6px;
-	color: var(--tl-color-text-3);
-}
-/* The same 4px overlap as the thread actions. */
-.tlui-cmt-header-btn + .tlui-cmt-header-btn {
-	margin-left: -4px;
-}
-.tlui-button.tlui-cmt-header-btn[data-state='open'] {
-	color: var(--tl-color-text-1);
-}
-@media (hover: hover) {
-	.tlui-button.tlui-cmt-header-btn:hover {
-		color: var(--tl-color-text-1);
-	}
-}
-.tlui-button.tlui-cmt-header-btn[data-state='open']::after {
-	background: var(--tl-gradient-ttb);
-	opacity: 1;
-}
 .tlui-cmt-list__header-actions {
 	display: flex;
 	align-items: center;
@@ -829,7 +807,8 @@ button.tlui-cmt-reaction:hover {
 	display: flex;
 	gap: 10px;
 	width: 100%;
-	padding: 12px;
+	/* No top padding: the 40px byline row supplies the space above the name, as on a thread card. */
+	padding: 0 12px 12px;
 	border: none;
 	background: transparent;
 	font: inherit;

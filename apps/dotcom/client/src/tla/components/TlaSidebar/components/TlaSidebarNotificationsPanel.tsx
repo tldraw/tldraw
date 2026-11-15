@@ -130,7 +130,7 @@ function NotificationsOverflowMenu({
 					<TldrawUiButton
 						type="icon"
 						title={msg(messages.moreOptions)}
-						className="tlui-cmt-header-btn"
+						className="tlui-cmt-icon-btn"
 					>
 						<TldrawUiIcon icon="dots-vertical" label={msg(messages.moreOptions)} small />
 					</TldrawUiButton>
@@ -254,7 +254,7 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 						<TldrawUiButton
 							type="icon"
 							title={msg(messages.close)}
-							className="tlui-cmt-header-btn"
+							className="tlui-cmt-icon-btn"
 							onClick={onClose}
 						>
 							<TldrawUiIcon icon="cross-2" label={msg(messages.close)} small />

@@ -53,7 +53,7 @@ export function CommentsFilterMenu({
 					type="icon"
 					tooltip={msg(messages.commentsFilter)}
 					title={msg(messages.commentsFilter)}
-					className="tlui-cmt-header-btn"
+					className="tlui-cmt-icon-btn"
 				>
 					<MoreMenuIcon />
 				</TldrawUiButton>

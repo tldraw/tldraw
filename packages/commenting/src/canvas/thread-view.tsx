@@ -156,7 +156,7 @@ function MoreOptionsMenu({
 					type="icon"
 					tooltip={msg(messages.commentsMoreOptions)}
 					title={msg(messages.commentsMoreOptions)}
-					className="tlui-cmt-thread__action"
+					className="tlui-cmt-icon-btn"
 					data-cmt-more-for={moreFor}
 				>
 					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
@@ -704,7 +704,7 @@ export const ThreadView = memo(function ThreadView({
 					type="icon"
 					tooltip={resolveLabel}
 					title={resolveLabel}
-					className="tlui-cmt-thread__action"
+					className="tlui-cmt-icon-btn"
 					onClick={toggleResolve}
 				>
 					<TldrawUiIcon icon="check" label={resolveLabel} small />

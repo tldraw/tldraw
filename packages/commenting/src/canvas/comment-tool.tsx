@@ -9,7 +9,7 @@ import {
 	defineMessages,
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
-import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
+import { pendingComment, regionDraft } from './state'
 import { commentTargetShapeAt, regionPinPoint, shapeAnchorAt } from './thread-state'
 
 /** A comment being placed but not yet posted: where its composer sits and what it will anchor
@@ -94,9 +94,6 @@ export class CommentTool extends StateNode {
 
 	override onEnter() {
 		this.editor.setCursor({ type: 'comment', rotation: 0 })
-		// Placing comments is canvas-focused — the thread list gets out of the way while the tool is
-		// active. Reopened via its own control (a button), never by leaving the tool.
-		commentsSidebarOpen.set(this.editor, false)
 	}
 
 	override onExit() {

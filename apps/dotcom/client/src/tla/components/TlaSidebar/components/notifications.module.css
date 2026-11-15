@@ -62,7 +62,8 @@
 /* Unread marker on a row — the same blue as the sidebar bell's badge, pinned top-right. */
 .unreadDot {
 	align-self: flex-start;
-	margin-top: 5px;
+	/* Centred on the headline's first line. */
+	margin-top: 16px;
 	flex-shrink: 0;
 	width: 7px;
 	height: 7px;

@@ -39,7 +39,7 @@ export function CommentsOverflowMenu() {
 					type="icon"
 					tooltip={msg(messages.commentsMoreOptions)}
 					title={msg(messages.commentsMoreOptions)}
-					className="tlui-cmt-header-btn"
+					className="tlui-cmt-icon-btn"
 				>
 					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>

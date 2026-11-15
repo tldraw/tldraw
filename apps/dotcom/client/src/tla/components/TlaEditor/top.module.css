@@ -214,8 +214,6 @@ button.topLeftInputNameWidthSetter {
 .topRightIconButton {
 	background-color: var(--tl-color-background);
 	border-radius: 8px;
-	/* A 36px square matching the share button; min-width because the base button's 40px would
-	   beat width. */
 	height: 40px;
 	width: 40px;
 	min-width: 40px;

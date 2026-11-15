@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { formatThreadTranscript, formatTranscriptTime } from './thread-transcript'
+import { formatCompactDateTime } from '../ui/format-time'
+import { formatThreadTranscript } from './thread-transcript'
 
 const doc = (...content: any[]) => ({ type: 'doc', content }) as any
 const para = (...content: any[]) => ({ type: 'paragraph', content })
@@ -19,8 +20,8 @@ describe('formatThreadTranscript', () => {
 			{ locale: 'en' }
 		)
 		expect(plain).toBe(
-			`Ada • ${formatTranscriptTime(first, 'en')}\nok\n\n` +
-				`Grace • ${formatTranscriptTime(second, 'en')}\nasd asd sa`
+			`Ada • ${formatCompactDateTime(first, 'en')}\nok\n\n` +
+				`Grace • ${formatCompactDateTime(second, 'en')}\nasd asd sa`
 		)
 	})
 
@@ -49,7 +50,7 @@ describe('formatThreadTranscript', () => {
 	})
 
 	it('writes a compact absolute time: day, short month, year, 24-hour time and zone', () => {
-		expect(formatTranscriptTime(first, 'en')).toMatch(/^\d{1,2} Nov 2026 \d{2}:\d{2}\S+$/)
+		expect(formatCompactDateTime(first, 'en')).toMatch(/^\d{1,2} Nov 2026 \d{2}:\d{2}\S+$/)
 	})
 
 	it('drops the time when the date is invalid', () => {

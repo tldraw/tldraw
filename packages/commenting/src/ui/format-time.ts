@@ -12,6 +12,7 @@ const DIVISIONS = [
 // constructing an Intl formatter is far more expensive than formatting with one.
 const relativeTimeFormatters = new Map<string, Intl.RelativeTimeFormat>()
 const fullDateTimeFormatters = new Map<string, Intl.DateTimeFormat>()
+const compactDateTimeFormatters = new Map<string, Intl.DateTimeFormat>()
 
 function getCached<T>(cache: Map<string, T>, locale: string, create: () => T): T {
 	let formatter = cache.get(locale)
@@ -64,4 +65,31 @@ export function formatFullDateTime(iso: string, locale = 'en'): string {
 		locale,
 		() => new Intl.DateTimeFormat(locale, { dateStyle: 'full', timeStyle: 'short' })
 	).format(date)
+}
+
+/**
+ * Format an ISO datetime as a compact absolute time with its zone ("4 Nov 2026 21:31EST"): day,
+ * short month and year, then 24-hour time. The order is fixed; the month and zone names follow the
+ * locale. Used where a time has to stay meaningful after it leaves the app, such as copied text.
+ */
+export function formatCompactDateTime(iso: string, locale = 'en'): string {
+	const date = new Date(iso)
+	if (Number.isNaN(date.getTime())) return ''
+	const parts = getCached(
+		compactDateTimeFormatters,
+		locale,
+		() =>
+			new Intl.DateTimeFormat(locale, {
+				day: 'numeric',
+				month: 'short',
+				year: 'numeric',
+				hour: '2-digit',
+				minute: '2-digit',
+				hourCycle: 'h23',
+				timeZoneName: 'short',
+			})
+	).formatToParts(date)
+	const part = (type: Intl.DateTimeFormatPartTypes) =>
+		parts.find((p) => p.type === type)?.value ?? ''
+	return `${part('day')} ${part('month')} ${part('year')} ${part('hour')}:${part('minute')}${part('timeZoneName')}`
 }
