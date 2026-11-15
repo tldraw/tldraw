@@ -95,6 +95,10 @@
 .tlui-cmt-canvas-pin--open {
 	z-index: 1;
 }
+/* A pin being dragged rides over everything it passes, the open thread's pin included. */
+.tlui-cmt-canvas-pin--dragging {
+	z-index: 2;
+}
 
 /* The count badge standing in for a stack of coincident pins — same face as a cluster badge,
    but clicking opens the stack's thread list rather than zooming (no zoom can separate them).

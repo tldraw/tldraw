@@ -808,7 +808,7 @@ button.tlui-cmt-reaction:hover {
 	gap: 10px;
 	width: 100%;
 	/* No top padding: the 40px byline row supplies the space above the name, as on a thread card. */
-	padding: 0 12px 12px;
+	padding: 0 12px 8px;
 	border: none;
 	background: transparent;
 	font: inherit;
@@ -823,7 +823,7 @@ button.tlui-cmt-reaction:hover {
 .tlui-cmt-list__item::after {
 	content: '';
 	position: absolute;
-	inset: 4px;
+	inset: 4px 4px 0px 4px;
 	border-radius: var(--tl-radius-2);
 	pointer-events: none;
 }
