@@ -219,63 +219,88 @@ My browser: ${navigator.userAgent}`
 			>
 				{shouldShowResetConfirmation ? (
 					<>
-						<h2>{msg(messages.confirmResetTitle)}</h2>
-						<p>{msg(messages.confirmResetDescription)}</p>
+						<h2 className="tl-error-boundary__title">{msg(messages.confirmResetTitle)}</h2>
+						<div className="tl-error-boundary__body">
+							<p>{msg(messages.confirmResetDescription)}</p>
+						</div>
 						<div className="tl-error-boundary__content__actions">
-							<button className="tlui-button" onClick={() => setShouldShowResetConfirmation(false)}>
-								{msg(messages.cancel)}
-							</button>
-							<button className="tlui-button tl-error-boundary__reset" onClick={resetLocalState}>
-								{msg(messages.resetData)}
-							</button>
+							<div />
+							<div className="tl-error-boundary__content__actions__group">
+								<button
+									className="tlui-button tl-error-boundary__button"
+									onClick={() => setShouldShowResetConfirmation(false)}
+								>
+									{msg(messages.cancel)}
+								</button>
+								<button
+									className="tlui-button tl-error-boundary__button tl-error-boundary__reset"
+									onClick={resetLocalState}
+								>
+									{msg(messages.resetData)}
+								</button>
+							</div>
 						</div>
 					</>
 				) : (
 					<>
-						<h2>{msg(messages.title)}</h2>
-						<p>{msg(messages.refreshHint)}</p>
-						<p>{msg(messages.resetHint)}</p>
-						<p>
-							<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
-						</p>
-						{process.env.NODE_ENV !== 'production' && (
+						<h2 className="tl-error-boundary__title">{msg(messages.title)}</h2>
+						<div className="tl-error-boundary__body">
 							<p>
-								If you&apos;re developing with the SDK and need help, join us on{' '}
-								<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
-									Discord
-								</a>
-								.
+								{msg(messages.refreshHint)} {msg(messages.resetHint)}{' '}
+								<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
 							</p>
-						)}
-						{shouldShowError && (
-							<>
-								{msg(messages.messageLabel)}
-								<h4>
-									<code>{errorMessage}</code>
-								</h4>
-								{msg(messages.stackTraceLabel)}
-								<div className="tl-error-boundary__content__error">
-									<pre>
-										<code>{errorStack ?? errorMessage}</code>
-									</pre>
-									<button className="tlui-button" onClick={copyError}>
-										{didCopy ? msg(messages.copied) : msg(messages.copy)}
-									</button>
-								</div>
-							</>
-						)}
+							{process.env.NODE_ENV !== 'production' && (
+								<p>
+									If you&apos;re developing with the SDK and need help, join us on{' '}
+									<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
+										Discord
+									</a>
+									.
+								</p>
+							)}
+							{shouldShowError && (
+								<>
+									<div className="tl-error-boundary__section">
+										<div className="tl-error-boundary__label">{msg(messages.messageLabel)}</div>
+										<pre className="tl-error-boundary__message">
+											<code>{errorMessage}</code>
+										</pre>
+									</div>
+									<div className="tl-error-boundary__section">
+										<div className="tl-error-boundary__label">
+											{msg(messages.stackTraceLabel)}
+											<button
+												className="tlui-button tl-error-boundary__button tl-error-boundary__copy"
+												onClick={copyError}
+											>
+												{didCopy ? msg(messages.copied) : msg(messages.copy)}
+											</button>
+										</div>
+										<pre className="tl-error-boundary__stack">
+											<code>{errorStack ?? errorMessage}</code>
+										</pre>
+									</div>
+								</>
+							)}
+						</div>
 						<div className="tl-error-boundary__content__actions">
-							<button className="tlui-button" onClick={() => setShouldShowError(!shouldShowError)}>
+							<button
+								className="tlui-button tl-error-boundary__button"
+								onClick={() => setShouldShowError(!shouldShowError)}
+							>
 								{shouldShowError ? msg(messages.hideDetails) : msg(messages.showDetails)}
 							</button>
 							<div className="tl-error-boundary__content__actions__group">
 								<button
-									className="tlui-button tl-error-boundary__reset"
+									className="tlui-button tl-error-boundary__button"
 									onClick={() => setShouldShowResetConfirmation(true)}
 								>
 									{msg(messages.resetData)}
 								</button>
-								<button className="tlui-button tl-error-boundary__refresh" onClick={refresh}>
+								<button
+									className="tlui-button tl-error-boundary__button tl-error-boundary__refresh"
+									onClick={refresh}
+								>
 									{msg(messages.refreshPage)}
 								</button>
 							</div>
