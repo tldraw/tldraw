@@ -71,7 +71,7 @@ export function ReactionPicker({
 	renderReaction,
 	palette: Palette = EmojiPicker,
 	menuId,
-	className = 'tlui-cmt-thread__action',
+	className = 'tlui-cmt-icon-btn',
 }: ReactionPickerProps) {
 	const msg = useTranslation()
 	const editor = useMaybeEditor()
