@@ -1514,19 +1514,6 @@ it from receiving any pointer events or affecting the cursor. */
 	font-weight: 600;
 }
 
-.tl-error-boundary__section {
-	display: flex;
-	flex-direction: column;
-	gap: var(--tl-space-2);
-}
-
-.tl-error-boundary__label {
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	min-height: 24px;
-}
-
 .tl-error-boundary__content pre {
 	margin: 0px;
 	padding: var(--tl-space-3) var(--tl-space-4);
@@ -1537,11 +1524,11 @@ it from receiving any pointer events or affecting the cursor. */
 	line-height: 1.6;
 }
 
-.tl-error-boundary__message {
-	white-space: pre-wrap;
+.tl-error-boundary__stack {
+	position: relative;
 }
 
-.tl-error-boundary__stack {
+.tl-error-boundary__stack pre {
 	overflow: auto;
 	max-height: 240px;
 	overflow-wrap: normal;
@@ -1583,15 +1570,32 @@ it from receiving any pointer events or affecting the cursor. */
 }
 
 .tl-error-boundary__content .tl-error-boundary__copy {
-	height: 24px;
-	min-width: 0px;
-	padding: 0px var(--tl-space-3);
-	margin-inline-end: calc(-1 * var(--tl-space-3));
+	position: absolute;
+	top: var(--tl-space-2);
+	inset-inline-end: var(--tl-space-2);
+	height: 32px;
+	min-width: 32px;
+	padding: 0px;
 	color: var(--tl-color-text-3);
+	background-color: var(--tl-color-panel);
+	border-radius: var(--tl-radius-2);
 }
 
 .tl-error-boundary__content .tl-error-boundary__copy::after {
 	inset: 0px;
+}
+
+/* Touch screens can't hover, so the button stays visible there. */
+@media (hover: hover) {
+	.tl-error-boundary__content .tl-error-boundary__copy {
+		opacity: 0;
+	}
+
+	.tl-error-boundary__stack:hover .tl-error-boundary__copy,
+	.tl-error-boundary__stack:focus-within .tl-error-boundary__copy,
+	.tl-error-boundary__stack[data-copied='true'] .tl-error-boundary__copy {
+		opacity: 1;
+	}
 }
 
 .tl-error-boundary__content__actions {

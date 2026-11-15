@@ -38,6 +38,7 @@ const messages = defineMessages({
 		id: 'error.reset-note',
 		defaultMessage: 'Resetting will erase your current project and any unsaved work.',
 	},
+	// No longer rendered, but still published translation keys that apps may override.
 	messageLabel: { id: 'error.message-label', defaultMessage: 'Message:' },
 	stackTraceLabel: { id: 'error.stack-trace-label', defaultMessage: 'Stack trace:' },
 	copy: { id: 'error.copy', defaultMessage: 'Copy' },
@@ -95,6 +96,11 @@ export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 
 	const errorMessage = error instanceof Error ? error.message : String(error)
 	const errorStack = error instanceof Error ? error.stack : null
+	// Chrome's stack starts with the message; Safari and Firefox leave it out.
+	const errorDetails =
+		errorStack && !errorStack.includes(errorMessage)
+			? `${errorMessage}\n${errorStack}`
+			: (errorStack ?? errorMessage)
 
 	const isDarkModeFromApp = useValue(
 		'isDarkMode',
@@ -156,7 +162,7 @@ export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 	const copyError = () => {
 		const doc = getOwnerDocument(containerRef.current)
 		const textarea = doc.createElement('textarea')
-		textarea.value = errorStack ?? errorMessage
+		textarea.value = errorDetails
 		doc.body.appendChild(textarea)
 		textarea.select()
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -261,28 +267,19 @@ My browser: ${navigator.userAgent}`
 								</p>
 							)}
 							{shouldShowError && (
-								<>
-									<div className="tl-error-boundary__section">
-										<div className="tl-error-boundary__label">{msg(messages.messageLabel)}</div>
-										<pre className="tl-error-boundary__message">
-											<code>{errorMessage}</code>
-										</pre>
-									</div>
-									<div className="tl-error-boundary__section">
-										<div className="tl-error-boundary__label">
-											{msg(messages.stackTraceLabel)}
-											<button
-												className="tlui-button tl-error-boundary__button tl-error-boundary__copy"
-												onClick={copyError}
-											>
-												{didCopy ? msg(messages.copied) : msg(messages.copy)}
-											</button>
-										</div>
-										<pre className="tl-error-boundary__stack">
-											<code>{errorStack ?? errorMessage}</code>
-										</pre>
-									</div>
-								</>
+								<div className="tl-error-boundary__stack" data-copied={didCopy}>
+									<pre>
+										<code>{errorDetails}</code>
+									</pre>
+									<button
+										className="tlui-button tl-error-boundary__button tl-error-boundary__copy"
+										onClick={copyError}
+										title={didCopy ? msg(messages.copied) : msg(messages.copy)}
+										aria-label={didCopy ? msg(messages.copied) : msg(messages.copy)}
+									>
+										{didCopy ? <CheckIcon /> : <CopyIcon />}
+									</button>
+								</div>
 							)}
 						</div>
 						<div className="tl-error-boundary__content__actions">
@@ -311,5 +308,29 @@ My browser: ${navigator.userAgent}`
 				)}
 			</div>
 		</div>
+	)
+}
+
+function CopyIcon() {
+	return (
+		<svg width="16" height="16" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M2 19.0001C2 20.6569 3.34315 22.0001 5 22.0001H8L8 20.0001H5C4.44772 20.0001 4 19.5524 4 19.0001L4 5.00009C4 4.44781 4.44772 4.00009 5 4.00009L19 4.00009C19.5523 4.00009 20 4.44781 20 5.00009V8.00001H11C9.34315 8.00001 8 9.34316 8 11V25C8 26.6569 9.34315 28 11 28H25C26.6569 28 28 26.6569 28 25V11C28 9.34316 26.6569 8.00001 25 8.00001H22V5.00009C22 3.34324 20.6569 2.00009 19 2.00009H5C3.34315 2.00009 2 3.34324 2 5.00009V19.0001ZM10 11C10 10.4477 10.4477 10 11 10H25C25.5523 10 26 10.4477 26 11V25C26 25.5523 25.5523 26 25 26H11C10.4477 26 10 25.5523 10 25V11Z"
+				fill="currentColor"
+			/>
+		</svg>
+	)
+}
+
+function CheckIcon() {
+	return (
+		<svg width="16" height="16" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+			<path
+				d="M22.9339 7.45369C23.5118 7.83148 23.6739 8.60615 23.2961 9.18396L14.7961 22.184C14.5958 22.4903 14.2712 22.6935 13.9082 22.7398C13.5451 22.7862 13.1799 22.6711 12.909 22.4248L7.40905 17.4248C6.89822 16.9604 6.86058 16.1699 7.32496 15.6591C7.78935 15.1482 8.57991 15.1106 9.09073 15.575L13.506 19.5888L21.2037 7.81584C21.5815 7.23803 22.3561 7.07589 22.9339 7.45369Z"
+				fill="currentColor"
+			/>
+		</svg>
 	)
 }
