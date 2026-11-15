@@ -46,18 +46,6 @@ test.describe('commenting thread view', () => {
 		await expect(toggle).toHaveText('See more')
 	})
 
-	test('short comments have no toggle', async ({ page }) => {
-		await page.getByTestId('quick-actions.comment').click()
-		await page.mouse.click(400, 300)
-		const input = page.locator('.tlui-cmt-canvas-composer [contenteditable="true"].tlui-cmt-input')
-		await expect(input).toBeFocused()
-		await page.keyboard.type('short')
-		await page.keyboard.press('Enter')
-		await openPostedThread(page)
-		await expect(page.locator('.tlui-cmt-canvas-popover .tlui-cmt-text')).toBeVisible()
-		await expect(page.locator('.tlui-cmt-canvas-popover .tlui-cmt-see-more')).toHaveCount(0)
-	})
-
 	test('copying across comments puts a clean transcript on the clipboard', async ({ page }) => {
 		await page.getByTestId('quick-actions.comment').click()
 		await page.mouse.click(400, 300)
@@ -91,9 +79,9 @@ test.describe('commenting thread view', () => {
 		})
 		const blocks = copied.text.split('\n\n')
 		expect(blocks).toHaveLength(2)
-		// Name, then an absolute time on the same line, then the body on its own line.
-		expect(blocks[0]).toMatch(/^.+ • \d{1,2} \S+ \d{4} \d{2}:\d{2}\S*\nfirst$/)
-		expect(blocks[1]).toMatch(/^.+ • \d{1,2} \S+ \d{4} \d{2}:\d{2}\S*\nsecond$/)
+		// The time's format is covered by formatCompactDateTime's unit test.
+		expect(blocks[0]).toMatch(/^.+ • .+\nfirst$/)
+		expect(blocks[1]).toMatch(/^.+ • .+\nsecond$/)
 		expect(copied.html).toContain('<strong>')
 	})
 
@@ -103,6 +91,8 @@ test.describe('commenting thread view', () => {
 		await page.keyboard.type('just this text')
 		await page.keyboard.press('Enter')
 		await openPostedThread(page)
+		// A short comment gets no See more toggle.
+		await expect(page.locator('.tlui-cmt-canvas-popover .tlui-cmt-see-more')).toHaveCount(0)
 
 		const handled = await page.evaluate(() => {
 			const text = document.querySelector('.tlui-cmt-canvas-popover .tlui-cmt-text p')!

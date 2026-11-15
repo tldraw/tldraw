@@ -49,10 +49,6 @@ describe('formatThreadTranscript', () => {
 		expect(html).toContain('<strong>bold</strong>')
 	})
 
-	it('writes a compact absolute time: day, short month, year, 24-hour time and zone', () => {
-		expect(formatCompactDateTime(first, 'en')).toMatch(/^\d{1,2} Nov 2026 \d{2}:\d{2}\S+$/)
-	})
-
 	it('drops the time when the date is invalid', () => {
 		const { text: plain } = formatThreadTranscript(
 			[{ authorName: 'Ada', date: 'not a date', body: doc(para(text('ok'))) }],

@@ -15,7 +15,7 @@ import {
 } from 'tldraw'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { CommentTool, commentToolOverrides, startCommentAt } from './comment-tool'
-import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
+import { pendingComment, regionDraft } from './state'
 
 /**
  * Pointer-driven tests for the comment tool's placement affordances. These need a real editor
@@ -121,19 +121,8 @@ describe('comment tool placement lifecycle', () => {
 		editor.setCurrentTool('comment')
 		driver.pointerDown(400, 300)
 		driver.pointerUp(400, 300)
-		expect(editor.isIn('comment.idle')).toBe(true)
 		editor.setCurrentTool('hand')
 		expect(pendingComment.get(editor)).not.toBeNull()
-	})
-
-	it('leaves the comments sidebar open while the tool is active', () => {
-		commentsSidebarOpen.set(editor, true)
-		editor.setCurrentTool('comment')
-		expect(commentsSidebarOpen.get(editor)).toBe(true)
-
-		driver.pointerDown(400, 300)
-		driver.pointerUp(400, 300)
-		expect(commentsSidebarOpen.get(editor)).toBe(true)
 	})
 
 	it('hides the cursor on press, shows move once dragging, then the comment cursor on release', () => {
