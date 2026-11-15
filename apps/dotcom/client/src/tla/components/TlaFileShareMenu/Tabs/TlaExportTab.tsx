@@ -205,9 +205,14 @@ function ExportImageButton() {
 	const trackEvent = useTldrawAppUiEvents()
 
 	const [exported, setExported] = useState(false)
+	const isPageEmpty = useValue(
+		'is page empty',
+		() => (globalEditor.get()?.getCurrentPageShapeIds().size ?? 0) === 0,
+		[]
+	)
 
 	const handleClick = () => {
-		if (exported) return
+		if (exported || isPageEmpty) return
 
 		const editor = getCurrentEditor()
 		if (!editor) return
@@ -242,7 +247,12 @@ function ExportImageButton() {
 	}
 
 	return (
-		<TlaButton className="tla-share-menu__copy-button" onClick={handleClick} iconRight="export">
+		<TlaButton
+			className="tla-share-menu__copy-button"
+			onClick={handleClick}
+			iconRight="export"
+			disabled={isPageEmpty}
+		>
 			<F defaultMessage="Export image" />
 		</TlaButton>
 	)

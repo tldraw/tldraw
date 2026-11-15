@@ -102,7 +102,7 @@
 	left: 0px;
 	right: 0px;
 	bottom: 2px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	background-color: var(--tl-color-muted-0);
 	z-index: 0;
 	pointer-events: none;
@@ -155,11 +155,11 @@
 	left: 4px;
 	right: 4px;
 	bottom: 4px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tl-color-muted-0);
+	background-color: var(--tl-color-muted-2);
 }
 
 .sidebarToggle:focus-visible {
@@ -271,11 +271,10 @@
 	left: 2px;
 	right: 2px;
 	bottom: 2px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	pointer-events: none;
 	z-index: 0;
 	visibility: hidden;
-	background-color: var(--tl-color-muted-0);
 }
 
 .sidebarCreateFileButton:focus-visible {
@@ -392,34 +391,17 @@
 	color: var(--tl-color-text-0);
 }
 
-.sidebarUserSettingsIcon {
-	width: 36px;
-	height: 36px;
-	min-width: 0;
-	margin-inline-end: -6px;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	flex: 0 0 auto;
-	color: var(--tl-color-text-3);
-}
-
 @media (hover: hover) {
 	.sidebarUserSettingsTrigger:hover {
 		color: var(--tl-color-text-0);
 	}
-
-	.sidebarUserSettingsIcon {
-		color: var(--tl-color-text-3);
-	}
-
-	.sidebarUserSettingsTrigger:hover .sidebarUserSettingsIcon {
-		color: var(--tl-color-text-0);
-	}
 }
 
+/* Its menu opens upward from the footer, so the wash fades in toward it, like the bell beside it. */
 .sidebarUserSettingsTrigger[data-state='open']::after {
 	visibility: visible;
+	background: var(--tl-gradient-btt);
+	opacity: 1;
 }
 
 /* ---------------- File link section --------------- */
@@ -588,7 +570,7 @@
 	inset: 4px 6px;
 	opacity: 0;
 	pointer-events: none;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 }
 
 .sidebarWorkspaceSwitcherItem[data-highlighted]::after {
@@ -710,7 +692,7 @@
 	content: '';
 	position: absolute;
 	inset: 2px 0px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	border: 1px solid transparent;
 	pointer-events: none;
 }
@@ -838,7 +820,7 @@
 }
 
 .sidebarFileListItem[data-active='true'][data-enhanced-a11y-mode='true'] {
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	outline: 2px solid var(--tl-color-text-0);
 	outline-offset: -2px;
 }
@@ -893,7 +875,7 @@
 	position: absolute;
 	bottom: 0px;
 	inset: 2px 0px;
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	border: 1px solid var(--tl-color-primary);
 }
 
@@ -936,7 +918,7 @@
 }
 
 .sidebarFileListItemButton:focus-visible {
-	border-radius: 4px;
+	border-radius: var(--tl-radius-2);
 	outline-offset: 0px;
 }
 
@@ -993,8 +975,12 @@
 	}
 
 	.sidebarFileListItemMenuTrigger:hover {
-		color: var(--tl-color-text-0);
+		color: var(--tl-color-text-1);
 	}
+}
+
+.sidebarFileListItemMenuTrigger[data-state='open'] {
+	color: var(--tl-color-text-1);
 }
 
 /* Guest badge */

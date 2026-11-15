@@ -46,8 +46,8 @@ export interface CommentNotificationInput {
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
 	/** Every reaction to the comment, the caller's own included. Categorization only reads who and
-	 *  when; `emoji` rides along for the row's reaction pills; `userName` is the reactor's display
-	 *  name, denormalized from `user.name` onto reaction rows by Postgres triggers. */
+	 *  when; `userName` is the reactor's display name for the byline, denormalized from
+	 *  `user.name` onto reaction rows by Postgres triggers. */
 	reactions?:
 		| readonly { userId: string; userName?: string; emoji: string; createdAt: number }[]
 		| null
@@ -172,8 +172,8 @@ export function latestForeignReactionAt(
 /**
  * Turns the reactions feed — the caller's own comments that someone else has reacted to — into one
  * {@link CommentNotification} per comment. Each entry is dated and marked unread by the newest
- * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline and
- * pills (strict >: a receipt from the same instant counts as read).
+ * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline
+ * (strict >: a receipt from the same instant counts as read).
  *
  * The feed rows are comments rather than reactions because the query is rooted at `comment`; see
  * `queries.reactions` for why that rooting is load-bearing.
