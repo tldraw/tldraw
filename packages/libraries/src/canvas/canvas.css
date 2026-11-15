@@ -371,8 +371,7 @@
 }
 
 .tlui-libraries-tile__menu-button[data-state='open'] {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%)
-		var(--tl-color-panel);
+	background: var(--tl-gradient-ttb) var(--tl-color-panel);
 }
 
 .tlui-libraries-tile:has(.tlui-libraries-tile__menu-button[data-state='open'])
@@ -568,11 +567,10 @@
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-button[data-state='open']::before {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%)
-		var(--tl-color-panel);
+	background: var(--tl-gradient-ttb) var(--tl-color-panel);
 }
 
 .tlui-libraries-panel > .tlui-libraries-panel__header .tlui-button[data-state='open']::after {
-	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
+	background: var(--tl-gradient-ttb);
 	opacity: 1;
 }
