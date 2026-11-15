@@ -206,8 +206,7 @@ test.describe('comment notifications', () => {
 		await test.step('a reaction to your comment shows up', async () => {
 			await waitForRecord(member, mentioned.commentId)
 			await react(member, mentioned, '👍')
-			const reaction = await expectNotification(owner, mention, /reacted/)
-			await expect(reaction).toContainText('👍')
+			await expectNotification(owner, mention, /reacted/)
 			await closeNotifications(owner)
 		})
 

@@ -10,7 +10,9 @@ async function openPostedThread(page: Page) {
 }
 
 test.describe('commenting thread view', () => {
-	test.beforeEach(async ({ page }) => {
+	test.beforeEach(async ({ page, isMobile }) => {
+		// These place comments at desktop coordinates, which fall outside the mobile viewport.
+		if (isMobile) test.skip()
 		await page.goto('http://localhost:5420/commenting/full')
 		await page.waitForSelector('.tl-canvas')
 	})

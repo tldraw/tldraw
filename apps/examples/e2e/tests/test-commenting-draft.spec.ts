@@ -78,7 +78,13 @@ test.describe('commenting draft composer', () => {
 			.toEqual({ x: Math.round(dropped.x), y: Math.round(dropped.y) })
 	})
 
-	test('placing stays in the comment tool, and Escape returns to select', async ({ page }) => {
+	test('placing stays in the comment tool, and Escape returns to select', async ({
+		page,
+		isMobile,
+	}) => {
+		// The presses land at desktop coordinates, outside the mobile viewport.
+		if (isMobile) test.skip()
+
 		const commentTool = page.getByTestId('quick-actions.comment')
 		await commentTool.click()
 		await page.mouse.click(400, 300)
