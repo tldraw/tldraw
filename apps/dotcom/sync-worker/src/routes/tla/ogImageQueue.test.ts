@@ -37,7 +37,6 @@ import {
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
-import { getRenderPushFallbackKey } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -398,7 +397,6 @@ describe('deleteBoardThumbnails', () => {
 			// Two of them, as two concurrent MCP captures of different pages would leave.
 			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:a'), new Uint8Array().buffer)
 			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:b'), new Uint8Array().buffer)
-			await bucket.put(getRenderPushFallbackKey(board), new Uint8Array().buffer)
 		}
 	}
 
@@ -451,7 +449,6 @@ describe('deleteBoardThumbnails', () => {
 				ogTokenKey('published', 'published-slug'),
 				mcpTokenKey('published', 'published-slug', 'page:a'),
 				mcpTokenKey('published', 'published-slug', 'page:b'),
-				getRenderPushFallbackKey({ kind: 'published', slug: 'published-slug' }),
 			].sort()
 		)
 	})
@@ -647,27 +644,7 @@ describe('handleOgImageRenderMessage', () => {
 			})
 		})
 
-		it('falls back to the fetch when the binding refuses the request as too large', async () => {
-			let calls = 0
-			const env = arrange({
-				BROWSER: makeBrowserBinding(async () => {
-					if (calls++ === 0) {
-						throw new Error('Serialized RPC arguments or return values are limited to 32MiB')
-					}
-					return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-				}),
-			})
-			const message = makeMessage(board)
-
-			await handleOgImageRenderMessage(env, message)
-
-			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', null])
-			expect(requestsOf(env)[1].payload).toBeUndefined()
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push_fallback'])
-			expect(message.ack).toHaveBeenCalledTimes(1)
-		})
-
-		it('fetches on the next attempt after a pushed capture times out, and only then', async () => {
+		it('keeps pushing after a pushed capture times out', async () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 			let calls = 0
 			const env = arrange({
@@ -686,11 +663,8 @@ describe('handleOgImageRenderMessage', () => {
 			await handleOgImageRenderMessage(env, second)
 			expect(second.ack).toHaveBeenCalledTimes(1)
 
-			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', null])
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual([
-				'push',
-				'push_fallback',
-			])
+			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', '1'])
+			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push', 'push'])
 			expect(sessionsOf(env).map((session) => session.outcome)).toEqual(['browser_timeout', 'ok'])
 		})
 
