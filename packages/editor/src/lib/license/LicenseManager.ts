@@ -30,6 +30,9 @@ export const FLAGS = {
 	// Commenting is the first sub-feature of collaboration.
 	FEAT_COMMENTING: 1 << 7,
 	TRACKED: 1 << 8,
+	// The command palette is a feature of the SDK, separate from collaboration: only its own flag
+	// grants it.
+	FEAT_COMMAND_PALETTE: 1 << 9,
 }
 const HIGHEST_FLAG = Math.max(...Object.values(FLAGS))
 
@@ -80,19 +83,22 @@ export interface LicenseInfo {
 
 /**
  * Names of the licensable product features gated by the license. `collaboration` is an umbrella
- * that also grants all of its sub-features (currently just `commenting`).
+ * that also grants all of its sub-features (currently just `commenting`); `commandPalette` isn't
+ * one of them.
  *
  * @internal
  */
-export type LicenseFeatureName = 'collaboration' | 'commenting'
+export type LicenseFeatureName = 'collaboration' | 'commenting' | 'commandPalette'
 
 const NO_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: false,
 	commenting: false,
+	commandPalette: false,
 }
 const ALL_FEATURES: Readonly<Record<LicenseFeatureName, boolean>> = {
 	collaboration: true,
 	commenting: true,
+	commandPalette: true,
 }
 
 /** @internal */
@@ -136,6 +142,7 @@ export interface ValidLicenseKeyResult {
 	isEvaluationLicenseExpired: boolean
 	isCollaborationEnabled: boolean
 	isCommentingEnabled: boolean
+	isCommandPaletteEnabled: boolean
 	daysSinceExpiry: number
 }
 
@@ -264,7 +271,11 @@ export class LicenseManager {
 			license: {
 				id: CANONICAL_HOST_LICENSE_ID,
 				hosts: [window.location.hostname.toLowerCase()],
-				flags: FLAGS.WITH_WATERMARK | FLAGS.FEAT_COLLABORATION | FLAGS.FEAT_COMMENTING,
+				flags:
+					FLAGS.WITH_WATERMARK |
+					FLAGS.FEAT_COLLABORATION |
+					FLAGS.FEAT_COMMENTING |
+					FLAGS.FEAT_COMMAND_PALETTE,
 				expiryDate: CANONICAL_HOST_NEVER_EXPIRES.toISOString(),
 			},
 			isDevelopment: this.isDevelopment,
@@ -281,6 +292,7 @@ export class LicenseManager {
 			isEvaluationLicenseExpired: false,
 			isCollaborationEnabled: true,
 			isCommentingEnabled: true,
+			isCommandPaletteEnabled: true,
 			daysSinceExpiry: 0,
 		}
 	}
@@ -455,6 +467,10 @@ export class LicenseManager {
 			const isCollaborationEnabled = this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COLLABORATION)
 			const isCommentingEnabled =
 				isCollaborationEnabled || this.isFlagEnabled(licenseInfo.flags, FLAGS.FEAT_COMMENTING)
+			const isCommandPaletteEnabled = this.isFlagEnabled(
+				licenseInfo.flags,
+				FLAGS.FEAT_COMMAND_PALETTE
+			)
 
 			// For perpetual licenses, the calendar expiry date only gates access to future
 			// major/minor releases; it does not "expire" the license itself. While the user
@@ -481,6 +497,7 @@ export class LicenseManager {
 					isEvaluationLicense && this.isEvaluationLicenseExpired(expiryDate),
 				isCollaborationEnabled,
 				isCommentingEnabled,
+				isCommandPaletteEnabled,
 				daysSinceExpiry,
 			}
 			this.outputLicenseInfoIfNeeded(result)
@@ -693,6 +710,7 @@ export function getEnabledFeatures(
 	return {
 		collaboration: result.isCollaborationEnabled,
 		commenting: result.isCommentingEnabled,
+		commandPalette: result.isCommandPaletteEnabled,
 	}
 }
 

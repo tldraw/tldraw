@@ -728,12 +728,17 @@ describe('LicenseManager', () => {
 					isLicensedWithWatermark: true,
 					isCollaborationEnabled: true,
 					isCommentingEnabled: true,
+					isCommandPaletteEnabled: true,
 					isAnnualLicenseExpired: false,
 					isPerpetualLicenseExpired: false,
 					daysSinceExpiry: 0,
 				})
 				expect(manager.state.get()).toBe('licensed-with-watermark')
-				expect(manager.featureFlags.get()).toEqual({ collaboration: true, commenting: true })
+				expect(manager.featureFlags.get()).toEqual({
+					collaboration: true,
+					commenting: true,
+					commandPalette: true,
+				})
 				manager.dispose()
 			}
 		})
@@ -755,7 +760,11 @@ describe('LicenseManager', () => {
 					reason: 'no-key-provided',
 				})
 				expect(manager.state.get()).toBe('unlicensed-production')
-				expect(manager.featureFlags.get()).toEqual({ collaboration: false, commenting: false })
+				expect(manager.featureFlags.get()).toEqual({
+					collaboration: false,
+					commenting: false,
+					commandPalette: false,
+				})
 				manager.dispose()
 			}
 		})
@@ -981,6 +990,22 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isCommentingEnabled).toBe(true)
 			expect(result.isCollaborationEnabled).toBe(false)
+			expect(result.isCommandPaletteEnabled).toBe(false)
+		})
+
+		it('Checks for the command palette feature flag', async () => {
+			const paletteLicenseInfo = JSON.parse(STANDARD_LICENSE_INFO)
+			paletteLicenseInfo[PROPERTIES.FLAGS] |= FLAGS.FEAT_COMMAND_PALETTE
+			const paletteLicenseKey = await generateLicenseKey(
+				JSON.stringify(paletteLicenseInfo),
+				keyPair
+			)
+			const result = (await licenseManager.getLicenseFromKey(
+				paletteLicenseKey
+			)) as ValidLicenseKeyResult
+			expect(result.isCommandPaletteEnabled).toBe(true)
+			expect(result.isCollaborationEnabled).toBe(false)
+			expect(result.isCommentingEnabled).toBe(false)
 		})
 
 		it('Checks for the collaboration feature flag', async () => {
@@ -994,8 +1019,9 @@ describe('LicenseManager', () => {
 				collaborationLicenseKey
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(true)
-			// The collaboration umbrella grants the commenting sub-feature.
+			// The collaboration umbrella grants the commenting sub-feature, but not the command palette.
 			expect(result.isCommentingEnabled).toBe(true)
+			expect(result.isCommandPaletteEnabled).toBe(false)
 		})
 
 		it('Leaves feature flags off when no feature bits are set', async () => {
@@ -1005,6 +1031,7 @@ describe('LicenseManager', () => {
 			)) as ValidLicenseKeyResult
 			expect(result.isCollaborationEnabled).toBe(false)
 			expect(result.isCommentingEnabled).toBe(false)
+			expect(result.isCommandPaletteEnabled).toBe(false)
 		})
 
 		it('Enables features synchronously in development, before validation resolves', () => {
@@ -1020,6 +1047,7 @@ describe('LicenseManager', () => {
 				const devLicenseManager = new LicenseManager('', keyPair.publicKey)
 				expect(devLicenseManager.isFeatureEnabled('commenting')).toBe(true)
 				expect(devLicenseManager.isFeatureEnabled('collaboration')).toBe(true)
+				expect(devLicenseManager.isFeatureEnabled('commandPalette')).toBe(true)
 			} finally {
 				process.env.NODE_ENV = 'test'
 			}
@@ -1311,6 +1339,7 @@ function getDefaultLicenseResult(overrides: Partial<ValidLicenseKeyResult>): Val
 		isEvaluationLicenseExpired: false,
 		isCollaborationEnabled: false,
 		isCommentingEnabled: false,
+		isCommandPaletteEnabled: false,
 		daysSinceExpiry: 0,
 		// WatermarkManager does not check these fields, it relies on the calculated values like isAnnualLicenseExpired
 		license: {
@@ -1622,6 +1651,7 @@ describe('getEnabledFeatures', () => {
 		expect(getEnabledFeatures(result, 'unlicensed', true)).toEqual({
 			collaboration: true,
 			commenting: true,
+			commandPalette: true,
 		})
 	})
 
@@ -1629,10 +1659,25 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: false,
 			isCommentingEnabled: true,
+			isCommandPaletteEnabled: true,
 		})
 		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
 			collaboration: false,
 			commenting: true,
+			commandPalette: true,
+		})
+	})
+
+	it('grants the command palette only from its own flag, not the collaboration umbrella', () => {
+		const result = getDefaultLicenseResult({
+			isCollaborationEnabled: true,
+			isCommentingEnabled: true,
+			isCommandPaletteEnabled: false,
+		})
+		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
+			collaboration: true,
+			commenting: true,
+			commandPalette: false,
 		})
 	})
 
@@ -1640,10 +1685,12 @@ describe('getEnabledFeatures', () => {
 		const result = getDefaultLicenseResult({
 			isCollaborationEnabled: true,
 			isCommentingEnabled: true,
+			isCommandPaletteEnabled: true,
 		})
 		expect(getEnabledFeatures(result, 'licensed-with-watermark', false)).toEqual({
 			collaboration: true,
 			commenting: true,
+			commandPalette: true,
 		})
 	})
 
@@ -1657,6 +1704,7 @@ describe('getEnabledFeatures', () => {
 			expect(getEnabledFeatures(result, state, false)).toEqual({
 				collaboration: false,
 				commenting: false,
+				commandPalette: false,
 			})
 		}
 	)
@@ -1670,6 +1718,7 @@ describe('getEnabledFeatures', () => {
 		expect(getEnabledFeatures(result, 'licensed', false)).toEqual({
 			collaboration: true,
 			commenting: true,
+			commandPalette: true,
 		})
 	})
 
@@ -1683,6 +1732,7 @@ describe('getEnabledFeatures', () => {
 		expect(getEnabledFeatures(result, 'expired', false)).toEqual({
 			collaboration: false,
 			commenting: false,
+			commandPalette: false,
 		})
 	})
 
@@ -1696,6 +1746,7 @@ describe('getEnabledFeatures', () => {
 		).toEqual({
 			collaboration: false,
 			commenting: false,
+			commandPalette: false,
 		})
 	})
 })
