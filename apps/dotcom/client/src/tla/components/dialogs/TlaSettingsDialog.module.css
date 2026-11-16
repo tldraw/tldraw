@@ -140,7 +140,7 @@
 	width: 416px;
 }
 
-/* ---- Vertical tabs (the settingsVerticalTabs design switch) ---- */
+/* From here down is the vertical tab layout, which only the settingsVerticalTabs design switch uses. */
 
 .dialogVertical {
 	width: 544px;
