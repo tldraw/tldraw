@@ -32,8 +32,9 @@ import { nicelog } from './nicelog'
 // leftover RM idles until the next deploy, which finishes the handoff (see
 // planInterruptedHandoff).
 
-// Leaves room in the deploy job's timeout for the rest of the deploy.
-const NEW_MACHINE_TIMEOUT_MS = 10 * 60 * 1000
+// A production restore took ~10 min in the 1.11.5 incident. Leaves room in the deploy job's
+// timeout for the rest of the deploy.
+const NEW_MACHINE_TIMEOUT_MS = 30 * 60 * 1000
 // "Never" for a deploy; a view-syncer subscribing cancels it.
 export const HANDOFF_STARTUP_DELAY_MS = 24 * 60 * 60 * 1000
 const POLL_INTERVAL_MS = 2000
@@ -225,10 +226,10 @@ async function finishInterruptedHandoff(appName: string, machines: FlyMachine[])
 		await destroyMachineAndVolume(appName, m.id, m.config?.mounts?.[0]?.volume)
 	}
 	if (!running) return
-	try {
-		await waitUntilHealthy(appName, newest.id)
-	} catch (e) {
-		nicelog(`${appName}: ${newest.id} never became healthy, keeping ${running.id}`, e)
+	// It has been up since the deploy that started it, so waiting again would only spend the job's
+	// timeout before this deploy's own handoff wait.
+	if (!isHealthy(newest)) {
+		nicelog(`${appName}: ${newest.id} is not healthy, keeping ${running.id}`)
 		await destroyMachineAndVolume(appName, newest.id, newest.config?.mounts?.[0]?.volume)
 		return
 	}
