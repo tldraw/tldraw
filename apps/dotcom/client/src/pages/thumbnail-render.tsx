@@ -152,7 +152,7 @@ declare global {
 
 // The injected script runs after navigation, often after this module has looked, so a one-shot
 // setter catches the assignment. No timer: a push that never lands ends as the capture's timeout,
-// and the worker fetches on the board's next attempt (see markPushTimedOut).
+// and the OG queue retries it like any other.
 function awaitPushedSnapshot(): Promise<ThumbnailPushedSnapshot> {
 	return new Promise((resolve) => {
 		Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
