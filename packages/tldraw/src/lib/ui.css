@@ -195,8 +195,9 @@
 	border-radius: var(--tl-radius-2);
 }
 
+/* Leading icons and checks sit 6px from the label; trailing items keep the 8px gap. */
 .tlui-button__menu > .tlui-icon + .tlui-button__label {
-	margin-inline-start: 0px;
+	margin-inline-start: -2px;
 }
 
 .tlui-button__menu:nth-child(1) {
