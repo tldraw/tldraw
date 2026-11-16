@@ -29,7 +29,6 @@ import {
 } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useMaybeApp } from '../../../hooks/useAppState'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { CommentNotificationReason, summarizeForeignReactors } from './commentNotifications'
 import { useCommentNotifications } from './useCommentNotifications'
 import styles from './notifications.module.css'
@@ -37,7 +36,6 @@ import styles from './notifications.module.css'
 const messages = defineMessages({
 	title: { defaultMessage: 'Notifications' },
 	moreOptions: { defaultMessage: 'Notification options' },
-	close: { defaultMessage: 'Close' },
 	filterAll: { defaultMessage: 'All' },
 	filterUnread: { defaultMessage: 'Unread' },
 	markAllRead: { defaultMessage: 'Mark all as read' },
@@ -134,12 +132,7 @@ function NotificationsOverflowMenu({
 						<TldrawUiIcon icon="dots-vertical" label={msg(messages.moreOptions)} small />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent
-					side="bottom"
-					align="end"
-					{...TLA_MENU_POSITION}
-					sideOffset={0}
-				>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={0}>
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
@@ -248,14 +241,6 @@ export function TlaSidebarNotificationsPanel({ onClose }: { onClose(): void }) {
 							onMarkAllRead={markAllRead}
 							hasUnread={unreadCount > 0}
 						/>
-						<TldrawUiButton
-							type="icon"
-							title={msg(messages.close)}
-							className="tlui-cmt-icon-btn"
-							onClick={onClose}
-						>
-							<TldrawUiIcon icon="cross-2" label={msg(messages.close)} small />
-						</TldrawUiButton>
 					</div>
 				}
 				empty={msg(messages.empty)}

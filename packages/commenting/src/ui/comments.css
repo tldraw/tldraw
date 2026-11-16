@@ -807,8 +807,9 @@ button.tlui-cmt-reaction:hover {
 	display: flex;
 	gap: 10px;
 	width: 100%;
-	/* No top padding: the 40px byline row supplies the space above the name, as on a thread card. */
-	padding: 0 12px 8px;
+	/* No top padding: the 40px byline row supplies the space above the name, as on a thread card.
+	   The 6px bottom matches the thread card text's trailing margin, so a row is as tall as a card. */
+	padding: 0 12px 6px;
 	border: none;
 	background: transparent;
 	font: inherit;

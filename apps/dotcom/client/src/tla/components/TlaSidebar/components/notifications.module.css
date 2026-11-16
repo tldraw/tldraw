@@ -20,15 +20,14 @@
 	background: var(--tl-color-text-3);
 }
 
-/* A notification's headline wraps, so its row grows from the top instead of centring in the
-   toolkit's fixed 40px byline row: a wrapped headline would otherwise press the preview up against
-   it. The padding puts a one-line headline exactly where a thread card's name sits. Out-ranks the
-   toolkit's list-row byline rule, whatever order the stylesheets load in. */
+/* A notification's headline wraps, so it grows from the top instead of centring in the toolkit's
+   40px byline row: a wrapped headline would otherwise press the preview up against it. The padding
+   fills that row exactly for a one-line headline, so its name and preview sit where a comment row's
+   do. Out-ranks the toolkit's list-row byline rule, whatever order the stylesheets load in. */
 :global(.tlui-cmt-list__item) .head:global(.tlui-cmt-head) {
 	align-items: flex-start;
 	min-height: 0;
-	padding: 11px 0 8px;
-	margin-bottom: 0;
+	padding: 11.5px 0;
 	line-height: 17px;
 }
 
