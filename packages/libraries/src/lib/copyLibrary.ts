@@ -1,8 +1,9 @@
 import type { TLLibrary, TLLibraryId, TLLibraryThumbnail } from '@tldraw/tlschema'
-import { addItemsToLibrary, whenItemsStored } from './addItemsToLibrary'
+import { addItemsToLibrary } from './addItemsToLibrary'
 import { LibraryNotFoundError, type LibrarySource, type TLNewLibraryItem } from './LibrarySource'
 import { mapConcurrently } from './mapConcurrently'
 import type { TLLibraryItem } from './schema'
+import { whenItemsStored } from './whenItemsStored'
 
 const LOAD_CONCURRENCY = 6
 
@@ -56,7 +57,7 @@ export async function copyItems(
 ): Promise<TLLibraryItem[]> {
 	const newItems = await mapConcurrently(items, LOAD_CONCURRENCY, (item) => loadCopy(from, item))
 	const added = await addItemsToLibrary(to, toLibraryId, newItems)
-	await whenItemsStored(to, added)
+	await whenItemsStored(added.map((item) => item.id))
 	return added
 }
 
@@ -68,7 +69,7 @@ export async function copyItem(
 	toLibraryId: TLLibraryId
 ): Promise<TLLibraryItem> {
 	const added = await to.addItem(toLibraryId, await loadCopy(from, item))
-	await whenItemsStored(to, [added])
+	await whenItemsStored([added.id])
 	return added
 }
 
