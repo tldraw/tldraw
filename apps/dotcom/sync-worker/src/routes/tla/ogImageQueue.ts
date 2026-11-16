@@ -17,7 +17,6 @@ import { enumerateBoardPages } from './boardTools'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
-	getRenderPushFallbackKey,
 	loadBoardSnapshot,
 	putThumbnailPng,
 	resolveThumbnailBoard,
@@ -204,11 +203,7 @@ export async function deleteBoardThumbnails(
 	// slug would address `og/published//light.png` — some other board's neighbourhood, not this one's.
 	if (publishedSlug) boards.push({ kind: 'published', slug: publishedSlug })
 	await Promise.all(
-		boards.flatMap((board) => [
-			deleteOgImage(env, board),
-			deleteRenderTokenRecord(env, board),
-			env.THUMBNAILS?.delete(getRenderPushFallbackKey(board)).catch(() => {}),
-		])
+		boards.flatMap((board) => [deleteOgImage(env, board), deleteRenderTokenRecord(env, board)])
 	)
 }
 
