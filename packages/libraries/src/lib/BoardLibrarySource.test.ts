@@ -1,3 +1,4 @@
+import { react } from '@tldraw/state'
 import {
 	AssetRecordType,
 	librarySchemaRecords,
@@ -434,6 +435,62 @@ describe('BoardLibrarySource', () => {
 			).rejects.toThrow('upload failed')
 			expect(source.getItems(library.id)).toEqual([])
 			expect(thumbnailAssets(editor)).toEqual([])
+			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
+		})
+	})
+
+	describe('adding several items', () => {
+		it('adds them together once their thumbnails have uploaded, in the order given', async () => {
+			const editor = makeEditor()
+			const source = new BoardLibrarySource(editor)
+			const library = await source.createLibrary('Photos')
+			const listings: string[][] = []
+			const stop = react('listing', () => {
+				listings.push(
+					source
+						.getItems(library.id)
+						.map((item) => item.name ?? '')
+						.sort()
+				)
+			})
+
+			const items = await source.addItems(library.id, [
+				{ name: 'One', content: contentOf(editor, [addImage(editor)]), thumbnail: png('1') },
+				{ name: 'Two', content: contentOf(editor, [addImage(editor)]) },
+				{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png('3') },
+			])
+			stop()
+
+			expect(items.map((item) => item.name)).toEqual(['One', 'Two', 'Three'])
+			// Listed again as their thumbnails' URLs resolve, but never some without the others.
+			expect(listings[0]).toEqual([])
+			for (const listing of listings.slice(1)) expect(listing).toEqual(['One', 'Three', 'Two'])
+			expect(items[0].thumbnail).toMatch(/\?resolved$/)
+			expect(items[1].thumbnail).toBeUndefined()
+			expect(items[2].thumbnail).toMatch(/\?resolved$/)
+			expect(items[0].createdAt).toBeLessThan(items[2].createdAt!)
+		})
+
+		it('adds none when a thumbnail fails to upload, and removes the ones that did', async () => {
+			const assets = makeAssetStore()
+			const upload = assets.store.upload
+			assets.store.upload = async (asset, file, signal) => {
+				if (file.name.startsWith('Two')) throw new Error('upload failed')
+				return upload(asset, file, signal)
+			}
+			const editor = makeEditor(librarySchemaRecords, assets)
+			const source = new BoardLibrarySource(editor)
+			const library = await source.createLibrary('Photos')
+
+			await expect(
+				source.addItems(library.id, [
+					{ name: 'One', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
+					{ name: 'Two', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
+					{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
+				])
+			).rejects.toThrow('upload failed')
+			expect(source.getItems(library.id)).toEqual([])
+			expect(allOfType(editor, 'asset').filter((asset) => asset.id !== assetId)).toEqual([])
 			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
 		})
 	})

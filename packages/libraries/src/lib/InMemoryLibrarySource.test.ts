@@ -113,6 +113,51 @@ describe('InMemoryLibrarySource', () => {
 		await expect(source.deleteItem(missingItem)).rejects.toThrow(LibraryNotFoundError)
 	})
 
+	it('adds several items together, in the order given', async () => {
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Wireframes')
+		const listings: string[][] = []
+		const stop = react('listing', () => {
+			listings.push(
+				source
+					.getItems(library.id)
+					.map((item) => item.name ?? '')
+					.sort()
+			)
+		})
+
+		const items = await source.addItems(library.id, [
+			{ name: 'Button', content: content() },
+			{ name: 'Card', content: content(), thumbnail: png() },
+			{ name: 'Input', content: content() },
+		])
+		stop()
+
+		expect(items.map((item) => item.name)).toEqual(['Button', 'Card', 'Input'])
+		expect(source.getItems(library.id)).toHaveLength(3)
+		expect(source.getItems(library.id)).toEqual(expect.arrayContaining(items))
+		expect(listings).toEqual([[], ['Button', 'Card', 'Input']])
+		expect(items[0].createdAt).toBeLessThan(items[1].createdAt!)
+		expect(items[1].createdAt).toBeLessThan(items[2].createdAt!)
+		expect(items[1].thumbnail).toMatch(/^blob:/)
+		expect(await source.getItemContent(items[2].id)).toEqual(content())
+	})
+
+	it('adds none of the items when one is refused', async () => {
+		const create = vi.spyOn(URL, 'createObjectURL')
+		const source = new InMemoryLibrarySource()
+		const library = await source.createLibrary('Wireframes')
+		await expect(
+			source.addItems(library.id, [
+				{ name: 'Button', content: content(), thumbnail: png() },
+				{ name: ' ', content: content() },
+			])
+		).rejects.toThrow()
+		expect(source.getItems(library.id)).toEqual([])
+		expect(create).not.toHaveBeenCalled()
+		create.mockRestore()
+	})
+
 	describe('thumbnail urls', () => {
 		afterEach(() => vi.restoreAllMocks())
 
