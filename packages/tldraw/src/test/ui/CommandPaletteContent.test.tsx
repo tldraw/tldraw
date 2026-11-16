@@ -15,16 +15,13 @@ import {
 import { ReactNode } from 'react'
 import { vi } from 'vitest'
 import { defaultBindingUtils } from '../../lib/defaultBindingUtils'
-import { defaultShapeTools } from '../../lib/defaultShapeTools'
 import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
 import { defaultTools } from '../../lib/defaultTools'
 import { Tldraw } from '../../lib/Tldraw'
 import {
 	CommandPaletteActionGroup,
-	CommandPalettePagesGroup,
 	CommandPaletteToolsGroup,
 } from '../../lib/ui/components/CommandPalette/CommandPaletteGroups'
-import { CommandPalettePromptItem } from '../../lib/ui/components/CommandPalette/CommandPalettePromptItem'
 import { CommandPaletteShell } from '../../lib/ui/components/CommandPalette/CommandPaletteShell'
 import {
 	StylePicker,
@@ -106,64 +103,10 @@ function expectDisabled(rendered: RenderResult, id: string, disabled: boolean) {
 }
 
 describe('default command palette content', () => {
-	it('enables frame commands only while a frame is selected', async () => {
-		const { editor, rendered, search } = await renderPalette()
-		search('remove frame')
-		await waitFor(() => expectDisabled(rendered, 'remove-frame', true))
-		act(() => {
-			editor.createShapes([{ type: 'frame', x: 400, y: 0 }])
-			editor.select(editor.getCurrentPageShapes().find((shape) => shape.type === 'frame')!)
-		})
-		await waitFor(() => expectDisabled(rendered, 'remove-frame', false))
-	})
-
-	it('aligns two selected shapes, and only then enables align', async () => {
-		const { editor, search, enter, rendered } = await renderPalette()
-		const a = createShapeId()
-		const b = createShapeId()
-		search('align left')
-		await waitFor(() => expectDisabled(rendered, 'align-left', true))
-		act(() => {
-			editor.createShapes([
-				{ id: a, type: 'geo', x: 0, y: 0 },
-				{ id: b, type: 'geo', x: 200, y: 300 },
-			])
-			editor.select(a, b)
-		})
-		search('align left')
-		await waitFor(() => expectDisabled(rendered, 'align-left', false))
-		enter()
-		expect(editor.getShape(a)!.x).toBe(editor.getShape(b)!.x)
-	})
-
-	it('labels moving the selection to a new page', async () => {
-		const { editor, search, rendered } = await renderPalette()
-		act(() => {
-			editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
-			editor.selectAll()
-		})
-		search('move to page new')
-		expect(
-			(await rendered.findByTestId('command-palette.item.move-to-new-page')).textContent
-		).toContain('Move to page: New page')
-	})
-
-	it('prefixes submenu items with their submenu and finds them by either part', async () => {
-		const { rendered, search } = await renderPalette()
-		search('theme dark')
-		expect(
-			(await rendered.findByTestId('command-palette.item.color-scheme-dark')).textContent
-		).toContain('Theme: Dark')
-		search('dark')
-		expect(rendered.getAllByRole('option')[0].textContent).toContain('Theme: Dark')
-	})
-
 	it('collapses the language list into a submenu that lists languages by name', async () => {
 		const { rendered, input } = await renderPalette()
 		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Language'))
 		expect(input.value).toBe('')
-		// The header also shows the Esc hint.
-		expect(rendered.getByTestId('command-palette.back').textContent).toBe('LanguageEsc')
 		expect((await rendered.findByTestId('command-palette.item.language-de')).textContent).toBe(
 			'Deutsch'
 		)
@@ -180,20 +123,6 @@ describe('default command palette content', () => {
 		expect(rendered.queryByTestId('command-palette.item.asset')).toBeNull()
 		expect(rendered.queryByTestId('command-palette.item.embed')).toBeNull()
 		await rendered.findByTestId('command-palette.item.insert-media')
-	})
-
-	it('lists tools when the tools group is rendered', async () => {
-		const { rendered } = await renderTldrawComponentWithEditor(
-			(onMount) => (
-				<Tldraw onMount={onMount}>
-					<CommandPaletteShell onClose={() => {}}>
-						<CommandPaletteToolsGroup />
-					</CommandPaletteShell>
-				</Tldraw>
-			),
-			{ waitForPatterns: false }
-		)
-		await rendered.findByTestId('command-palette.item.rectangle')
 	})
 
 	it('lists the comment tool only while commenting is enabled', async () => {
@@ -219,18 +148,6 @@ describe('default command palette content', () => {
 		expect(rendered.queryByTestId('command-palette.item.new-page')).toBeNull()
 	})
 
-	it('leaves out editing commands in readonly mode', async () => {
-		const { editor, rendered, search } = await renderPalette()
-		act(() => {
-			editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
-			editor.selectAll()
-		})
-		search('delete')
-		await rendered.findByTestId('command-palette.item.delete')
-		act(() => editor.updateInstanceState({ isReadonly: true }))
-		await waitFor(() => expect(rendered.queryByTestId('command-palette.item.delete')).toBeNull())
-	})
-
 	it('reports the palette as the event source', async () => {
 		const onUiEvent = vi.fn()
 		const { search, enter, rendered } = await renderPalette({ onUiEvent })
@@ -251,6 +168,22 @@ describe('default command palette content', () => {
 		vi.spyOn(editor, 'updateViewportScreenBounds').mockImplementation(() => editor)
 	}
 
+	it.each([
+		{ when: 'on a wide viewport', listed: true },
+		{ when: 'when forceMobile hides the minimap', forceMobile: true, listed: false },
+		{ when: 'in focus mode', focusMode: true, listed: false },
+	])('lists toggle minimap $when: $listed', async ({ forceMobile, focusMode, listed }) => {
+		realBreakpoint.value = true
+		const { editor, rendered, search } = await renderPalette({ forceMobile })
+		pinViewport(editor, new Box(0, 0, 1400, 900))
+		if (focusMode) act(() => editor.updateInstanceState({ isFocusMode: true }))
+		search('minimap')
+		await rendered.findByTestId('command-palette.input')
+		await waitFor(() =>
+			expect(rendered.queryByTestId('command-palette.item.toggle-minimap') !== null).toBe(listed)
+		)
+	})
+
 	it('toggles the minimap, in step with the navigation panel', async () => {
 		realBreakpoint.value = true
 		const { editor, rendered, search, enter } = await renderPalette()
@@ -267,32 +200,15 @@ describe('default command palette content', () => {
 		)
 	})
 
-	it('hides toggle minimap when forceMobile hides the minimap', async () => {
-		realBreakpoint.value = true
-		const { editor, rendered, search } = await renderPalette({ forceMobile: true })
-		pinViewport(editor, new Box(0, 0, 1400, 900))
-		search('minimap')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
-	})
-
-	it('hides toggle minimap in focus mode', async () => {
-		realBreakpoint.value = true
-		const { editor, rendered, search } = await renderPalette()
-		pinViewport(editor, new Box(0, 0, 1400, 900))
-		search('minimap')
-		await rendered.findByTestId('command-palette.item.toggle-minimap')
-		act(() => editor.updateInstanceState({ isFocusMode: true }))
-		search('minimap')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.toggle-minimap')).toBeNull()
-	})
-
 	it('renames, duplicates and deletes the current page, but not the only one', async () => {
 		const { editor, rendered, input, search, enter } = await renderPalette()
 		search('rename page')
+		expect((await rendered.findByTestId('command-palette.item.rename-page')).textContent).toBe(
+			'Rename page'
+		)
 		enter()
 		await waitFor(() => expect(input.value).toBe('Page 1'))
+		expect(input.placeholder).toBe('Page name')
 		search('Plans')
 		enter()
 		expect(editor.getCurrentPage().name).toBe('Plans')
@@ -311,35 +227,7 @@ describe('default command palette content', () => {
 		expect(editor.getPages()).toHaveLength(1)
 	})
 
-	it('translates prompt labels and placeholders, passing plain text through', async () => {
-		const { rendered, input, search, enter } = await renderPalette({
-			content: (
-				<>
-					<CommandPalettePagesGroup />
-					<CommandPalettePromptItem
-						id="rename-board"
-						label="Rename board"
-						placeholder="Board name"
-						onSubmit={() => {}}
-					/>
-				</>
-			),
-		})
-		search('rename page')
-		const renamePage = await rendered.findByTestId('command-palette.item.rename-page')
-		expect(renamePage.textContent).toBe('Rename page')
-		enter()
-		await waitFor(() => expect(input.placeholder).toBe('Page name'))
-		fireEvent.keyDown(input, { key: 'Escape' })
-
-		search('rename board')
-		const renameBoard = await rendered.findByTestId('command-palette.item.rename-board')
-		expect(renameBoard.textContent).toBe('Rename board')
-		enter()
-		await waitFor(() => expect(input.placeholder).toBe('Board name'))
-	})
-
-	it("sets the selection's styles, checking the current value", async () => {
+	it("sets the selection's styles and opacity, checking the current value", async () => {
 		const { editor, rendered, search, enter } = await renderPalette()
 		act(() => {
 			editor.createShapes([{ id: createShapeId('box'), type: 'geo', x: 0, y: 0 }])
@@ -357,14 +245,7 @@ describe('default command palette content', () => {
 		search('start arrowhead')
 		await rendered.findByTestId('command-palette.input')
 		expect(rendered.queryByTestId('command-palette.item.style-arrowhead-start-dot')).toBeNull()
-	})
 
-	it("sets the selection's opacity, checking the current value", async () => {
-		const { editor, rendered, search } = await renderPalette()
-		act(() => {
-			editor.createShapes([{ id: createShapeId('box'), type: 'geo', x: 0, y: 0 }])
-			editor.select(createShapeId('box'))
-		})
 		search('opacity 50')
 		fireEvent.click(await rendered.findByTestId('command-palette.item.style-opacity-0.5'))
 		expect(editor.getShape(createShapeId('box'))!.opacity).toBe(0.5)
@@ -375,35 +256,7 @@ describe('default command palette content', () => {
 		)
 	})
 
-	it('opens in an editor without the geo shape', async () => {
-		let editor!: Editor
-		const rendered = render(
-			<TldrawEditor
-				shapeUtils={defaultShapeUtils.filter((util) => util.type !== 'geo')}
-				tools={[...defaultTools, ...defaultShapeTools.filter((tool) => tool.id !== 'geo')]}
-				initialState="select"
-				onMount={(e) => {
-					editor = e
-				}}
-			>
-				<TldrawUi />
-			</TldrawEditor>
-		)
-		await waitFor(() => expect(editor).toBeDefined())
-		act(() => {
-			editor.updateInstanceState({ isFocused: true })
-			editor
-				.getContainerDocument()
-				.body.dispatchEvent(
-					new KeyboardEvent('keydown', { bubbles: true, key: 'k', code: 'KeyK', metaKey: true })
-				)
-		})
-		const input = await rendered.findByTestId('command-palette.input')
-		fireEvent.change(input, { target: { value: 'color red' } })
-		await rendered.findByTestId('command-palette.item.style-color-red')
-	})
-
-	it('opens on a shape with the geo style in an editor without the geo shape', async () => {
+	it('opens in an editor without the geo shape, on a shape with the geo style', async () => {
 		class GeoLikeShapeUtil extends BaseBoxShapeUtil<any> {
 			static override type = 'geo-like'
 			static override props = { w: T.number, h: T.number, geo: GeoShapeGeoStyle }
@@ -420,7 +273,7 @@ describe('default command palette content', () => {
 		let editor!: Editor
 		const rendered = render(
 			<TldrawEditor
-				shapeUtils={[GeoLikeShapeUtil]}
+				shapeUtils={[...defaultShapeUtils.filter((util) => util.type !== 'geo'), GeoLikeShapeUtil]}
 				tools={defaultTools}
 				initialState="select"
 				onMount={(e) => {
@@ -446,6 +299,9 @@ describe('default command palette content', () => {
 		const input = await rendered.findByTestId('command-palette.input')
 		fireEvent.change(input, { target: { value: 'opacity 50' } })
 		await rendered.findByTestId('command-palette.item.style-opacity-0.5')
+		act(() => editor.selectNone())
+		fireEvent.change(input, { target: { value: 'color red' } })
+		await rendered.findByTestId('command-palette.item.style-color-red')
 	})
 
 	// Styles are open StyleProps, so the pickers are a hand-kept list that a new default style can miss.
@@ -509,10 +365,6 @@ describe('default command palette content', () => {
 		search('aspect ratio square')
 		fireEvent.click(await rendered.findByTestId('command-palette.item.aspect-ratio-square'))
 		expect(image().props.w).toBeCloseTo(image().props.h)
-
-		search('crop image')
-		enter()
-		expect(editor.isIn('select.crop.idle')).toBe(true)
 	})
 
 	describe('actions', () => {

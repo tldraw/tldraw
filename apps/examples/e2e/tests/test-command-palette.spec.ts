@@ -90,7 +90,9 @@ test.describe('command palette', () => {
 		await expect(input).toBeFocused()
 	})
 
-	test('shows every item in a short scrolling list', async ({ page }) => {
+	test('shows every item in a short scrolling list, faded while more are below', async ({
+		page,
+	}) => {
 		await page.keyboard.press('ControlOrMeta+k')
 		const list = page.getByRole('listbox')
 		await expect(list).toBeVisible()
@@ -98,13 +100,6 @@ test.describe('command palette', () => {
 		// 8 rows' worth (36px each, +4): group headings take some of the space.
 		const height = await list.evaluate((el) => el.clientHeight)
 		expect(height).toBeLessThanOrEqual(8 * 36 + 4)
-	})
-
-	test('fades the list while more items are below', async ({ page }) => {
-		await page.keyboard.press('ControlOrMeta+k')
-		const input = page.getByTestId('command-palette.input')
-		await input.fill('a')
-		const list = page.getByRole('listbox')
 		await expect(list).toHaveAttribute('data-more', '')
 		await list.evaluate((el) => el.scrollTo(0, el.scrollHeight))
 		await expect(list).not.toHaveAttribute('data-more')

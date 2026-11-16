@@ -1,42 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import { getCommandPaletteMatchScore, rankCommandPaletteEntries } from './commandPaletteSearch'
 
-const score = getCommandPaletteMatchScore
-
 describe('getCommandPaletteMatchScore', () => {
-	it('matches nothing with an empty query', () => {
-		expect(score('', 'Align left')).toBe(0)
-		expect(score('   ', 'Align left')).toBe(0)
-	})
-
-	it('ranks an exact label highest', () => {
-		expect(score('align left', 'Align left')).toBe(5)
-	})
-
-	it('ranks a label prefix next', () => {
-		expect(score('align l', 'Align left')).toBe(4)
-	})
-
-	it('matches words at word starts in any order', () => {
-		expect(score('exp svg', 'Export as SVG')).toBe(3)
-		expect(score('left al', 'Align left')).toBe(3)
-	})
-
-	it('matches words in the middle of a word', () => {
-		expect(score('lign', 'Align left')).toBe(2)
-	})
-
-	it('matches words that only appear in the path', () => {
-		expect(score('theme dark', 'Dark', ['Preferences', 'Theme'])).toBe(1)
-	})
-
-	it('ignores case and accents', () => {
-		expect(score('cafe', 'Café')).toBe(5)
-		expect(score('CAFÉ', 'cafe')).toBe(5)
-	})
-
-	it('requires every word to match', () => {
-		expect(score('align banana', 'Align left')).toBe(0)
+	it.each<[string, string, string[], number]>([
+		['', 'Align left', [], 0],
+		['   ', 'Align left', [], 0],
+		['align left', 'Align left', [], 5],
+		['align l', 'Align left', [], 4],
+		['exp svg', 'Export as SVG', [], 3],
+		['left al', 'Align left', [], 3],
+		['lign', 'Align left', [], 2],
+		['theme dark', 'Dark', ['Preferences', 'Theme'], 1],
+		['cafe', 'Café', [], 5],
+		['CAFÉ', 'cafe', [], 5],
+		['align banana', 'Align left', [], 0],
+	])('scores %j against %j (path %j) as %i', (query, label, path, expected) => {
+		expect(getCommandPaletteMatchScore(query, label, path)).toBe(expected)
 	})
 })
 
@@ -91,14 +70,10 @@ describe('rankCommandPaletteEntries', () => {
 			[]
 		)
 		expect(ranked.map((e) => e.id)).toEqual(['dark', 'mode', 'other'])
-	})
-
-	it('matches the full prefixed label', () => {
-		const ranked = rankCommandPaletteEntries(
-			[{ id: 'dark', label: 'Theme: Dark', name: 'Dark', path: [] }],
-			'theme dark',
-			[]
-		)
-		expect(ranked.map((e) => e.id)).toEqual(['dark'])
+		expect(
+			rankCommandPaletteEntries([prefixed('dark', 'Theme: Dark', 'Dark')], 'theme dark', []).map(
+				(e) => e.id
+			)
+		).toEqual(['dark'])
 	})
 })

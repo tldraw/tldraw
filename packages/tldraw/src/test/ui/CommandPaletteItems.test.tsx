@@ -44,12 +44,23 @@ describe('menu items in the command palette', () => {
 					<TldrawUiMenuCheckboxItem id="dark" label="theme.dark" checked onSelect={() => {}} />
 				</TldrawUiMenuSubmenu>
 				<TldrawUiMenuItem id="redo-item" label="action.redo" disabled onSelect={() => {}} />
+				<TldrawUiMenuItem id="file" label="action.undo" detail="Acme" onSelect={() => {}} />
+				<TldrawUiMenuItem
+					id="variant"
+					label={{ default: 'action.undo', 'command-palette': 'action.redo' }}
+					onSelect={() => {}}
+				/>
 			</TldrawUiMenuGroup>
 		)
 		// Disabled items register too, for search to list greyed out.
-		await waitFor(() => expect(ids()).toEqual(['undo-item', 'dark', 'redo-item']))
-		const [undo, dark, redo] = store.entries.get()
+		await waitFor(() =>
+			expect(ids()).toEqual(['undo-item', 'dark', 'redo-item', 'file', 'variant'])
+		)
+		const [undo, dark, redo, file, variant] = store.entries.get()
 		expect(redo).toMatchObject({ disabled: true })
+		// The detail is searched like the path.
+		expect(file).toMatchObject({ detail: 'Acme', path: ['Edit', 'Acme'] })
+		expect(variant).toMatchObject({ label: 'Redo' })
 		expect(undo).toMatchObject({
 			label: 'Undo',
 			path: ['Edit'],
@@ -67,48 +78,38 @@ describe('menu items in the command palette', () => {
 		expect(onUndo).toHaveBeenCalledWith('command-palette')
 	})
 
-	it('register their detail, and search it like the path', async () => {
-		const { store, ids } = await renderItems(
-			<TldrawUiMenuGroup id="files" label="menu.edit">
-				<TldrawUiMenuItem id="file" label="action.undo" detail="Acme" onSelect={() => {}} />
-			</TldrawUiMenuGroup>
-		)
-		await waitFor(() => expect(ids()).toEqual(['file']))
-		expect(store.entries.get()[0]).toMatchObject({ detail: 'Acme', path: ['Edit', 'Acme'] })
-	})
-
-	it('use the command palette label variant', async () => {
-		const { store, ids } = await renderItems(
-			<TldrawUiMenuItem
-				id="x"
-				label={{ default: 'action.undo', 'command-palette': 'action.redo' }}
-				onSelect={() => {}}
-			/>
-		)
-		await waitFor(() => expect(ids()).toEqual(['x']))
-		expect(store.entries.get()[0].label).toBe('Redo')
-	})
-
-	it('drop out in readonly mode unless they are readonlyOk', async () => {
-		const { editor, ids } = await renderItems(
-			<>
-				<TldrawUiMenuItem id="edit-only" label="action.undo" onSelect={() => {}} />
-				<TldrawUiMenuItem id="always" label="action.zoom-in" readonlyOk onSelect={() => {}} />
-			</>
-		)
-		await waitFor(() => expect(ids()).toEqual(['edit-only', 'always']))
-		act(() => editor.updateInstanceState({ isReadonly: true }))
-		await waitFor(() => expect(ids()).toEqual(['always']))
-	})
-
-	it('drop prompt items in readonly mode unless they are readonlyOk', async () => {
-		const prompt = { label: 'action.rename', placeholder: 'action.rename', onSubmit: () => {} }
-		const { editor, ids } = await renderItems(
-			<>
-				<CommandPalettePromptItem id="edit-only" {...prompt} />
-				<CommandPalettePromptItem id="always" readonlyOk {...prompt} />
-			</>
-		)
+	it.each([
+		{
+			kind: 'menu items',
+			items: (
+				<>
+					<TldrawUiMenuItem id="edit-only" label="action.undo" onSelect={() => {}} />
+					<TldrawUiMenuItem id="always" label="action.zoom-in" readonlyOk onSelect={() => {}} />
+				</>
+			),
+		},
+		{
+			kind: 'prompt items',
+			items: (
+				<>
+					<CommandPalettePromptItem
+						id="edit-only"
+						label="action.rename"
+						placeholder="action.rename"
+						onSubmit={() => {}}
+					/>
+					<CommandPalettePromptItem
+						id="always"
+						label="action.rename"
+						placeholder="action.rename"
+						readonlyOk
+						onSubmit={() => {}}
+					/>
+				</>
+			),
+		},
+	])('drop $kind in readonly mode unless they are readonlyOk', async ({ items }) => {
+		const { editor, ids } = await renderItems(items)
 		await waitFor(() => expect(ids()).toEqual(['edit-only', 'always']))
 		act(() => editor.updateInstanceState({ isReadonly: true }))
 		await waitFor(() => expect(ids()).toEqual(['always']))
