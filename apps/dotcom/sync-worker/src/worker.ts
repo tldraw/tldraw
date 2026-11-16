@@ -43,6 +43,7 @@ import { createFiles } from './routes/tla/createFiles'
 import { forwardRoomRequest } from './routes/tla/forwardRoomRequest'
 import { getBoardThumbnail } from './routes/tla/getBoardThumbnail'
 import { getInviteInfo } from './routes/tla/getInviteInfo'
+import { getMyUploads } from './routes/tla/getMyUploads'
 import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
@@ -201,6 +202,7 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
+	.get('/app/my-uploads', getMyUploads)
 	.post('/app/libraries/:libraryId/items', addLibraryItems)
 	.post('/app/libraries/:libraryId/copy', copyLibrary)
 	.get('/app/library-items/:itemId/content', getLibraryItemContent)
