@@ -4,6 +4,7 @@ import { LibraryNestingError, LibraryNotFoundError } from './LibrarySource'
 import {
 	flattenLibraryTree,
 	getLibraryDescendants,
+	getLibraryPath,
 	getLibraryTree,
 	getRootLibrary,
 	isLibraryWithin,
@@ -73,6 +74,14 @@ describe('tree queries', () => {
 			'data',
 		])
 		expect(getLibraryDescendants(libraries, id('icons'))).toEqual([])
+	})
+
+	it("finds a library's path from the top level", () => {
+		expect(getLibraryPath(libraries, id('serverless')).map((c) => c.name)).toEqual([
+			'architecture',
+			'compute',
+			'serverless',
+		])
 	})
 
 	it('finds the root library', () => {

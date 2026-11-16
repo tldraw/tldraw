@@ -251,12 +251,27 @@
 }
 
 /* Stays at the top of the list while its own items scroll under it, until the next section's header
-   pushes it out. */
+   pushes it out. A nested section's header sticks under the headers of the libraries it is inside,
+   so they stay in view as a trail while its items scroll. */
 .tlui-libraries-section > .tlui-libraries-panel__header {
 	position: sticky;
-	top: 0;
-	z-index: 1;
+	top: calc(var(--tl-library-depth, 0) * 36px);
+	z-index: calc(10 - var(--tl-library-depth, 0));
 	border-bottom: none;
+}
+
+/* A library inside another is indented under it, its header and its items alike. */
+.tlui-libraries-section .tlui-libraries-section {
+	margin-inline-start: 12px;
+}
+
+.tlui-libraries-menu [data-nested],
+.tlui-libraries-menu__submenu [data-nested] {
+	padding-inline-start: calc(10px + var(--tl-library-depth, 0) * 12px);
+}
+
+.tlui-libraries-menu__submenu .tlui-button__label[data-nested] {
+	padding-inline-start: calc(var(--tl-library-depth, 0) * 12px);
 }
 
 /* The whole name row folds the section, with the chevron straight after the name. */
@@ -494,6 +509,7 @@
 	position: relative;
 	display: flex;
 	align-items: center;
+	gap: 6px;
 	width: 100%;
 	min-height: 36px;
 	padding: 0 10px;

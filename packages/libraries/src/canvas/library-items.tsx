@@ -16,7 +16,7 @@ import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { type ItemOrdering, sortItems } from './item-order'
-import { toMenuTargets, useLibraryGrouping } from './library-groups'
+import { toMenuTargetTree, useLibraryGrouping } from './library-groups'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useThumbnailUrls } from './use-thumbnail-urls'
@@ -66,6 +66,11 @@ export interface LibraryItemsProps {
 	ordering: ItemOrdering
 	reversed: boolean
 	prepareItemContent?: PrepareItemContent
+	/**
+	 * Whether libraries sit inside this one. Without items of its own it then shows nothing, not even
+	 * the tile for adding the selection: it reads as a heading over the libraries inside it.
+	 */
+	hasChildren?: boolean
 }
 
 export function LibraryItems({
@@ -76,6 +81,7 @@ export function LibraryItems({
 	ordering,
 	reversed,
 	prepareItemContent,
+	hasChildren = false,
 }: LibraryItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -103,9 +109,10 @@ export function LibraryItems({
 	const copyTargets = useValue(
 		'copy targets',
 		() =>
-			toMenuTargets(
-				source.getLibraries().filter((c) => c.id !== libraryId && source.can('addItem', c.id)),
-				grouping
+			toMenuTargetTree(
+				source.getLibraries(),
+				grouping,
+				(c) => c.id !== libraryId && source.can('addItem', c.id)
 			),
 		[source, libraryId, grouping]
 	)
@@ -208,6 +215,7 @@ export function LibraryItems({
 		[items, source, showChangeError, msg]
 	)
 
+	if (items.length === 0 && hasChildren) return null
 	if (items.length === 0 && !canAdd) {
 		return <p className="tlui-libraries-panel__empty">{msg(messages.emptyLibrary)}</p>
 	}

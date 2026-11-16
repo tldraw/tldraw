@@ -1,5 +1,12 @@
 import { ContextMenu as _ContextMenu } from 'radix-ui'
-import { createContext, type PointerEvent, type ReactNode, type RefObject, useContext } from 'react'
+import {
+	createContext,
+	type CSSProperties,
+	type PointerEvent,
+	type ReactNode,
+	type RefObject,
+	useContext,
+} from 'react'
 import {
 	defineMessages,
 	preventDefault,
@@ -61,7 +68,15 @@ export interface MenuItemProps {
 	noClose?: boolean
 	/** Stops the menu moving focus to the item on hover, which would blur and commit a rename. */
 	holdFocus?: boolean
+	/** How far in to indent it, e.g. for a library inside another in a list of libraries. */
+	depth?: number
+	icon?: TLLibraryOwner['icon']
 	onClick(): void
+}
+
+// Indents a menu item's label for a library `depth` levels in.
+export function depthStyle(depth = 0): CSSProperties | undefined {
+	return depth > 0 ? ({ '--tl-library-depth': depth } as CSSProperties) : undefined
 }
 
 /**
@@ -75,6 +90,8 @@ export function MenuItem({
 	danger,
 	noClose,
 	holdFocus = false,
+	depth,
+	icon,
 	onClick,
 }: MenuItemProps) {
 	const keepFocus = keepFocusWhile(holdFocus)
@@ -91,7 +108,10 @@ export function MenuItem({
 				onClick={onClick}
 				onPointerMove={keepFocus}
 				onPointerLeave={keepFocus}
+				style={depthStyle(depth)}
+				data-nested={depth ? true : undefined}
 			>
+				{icon && <TldrawUiIcon icon={icon} label="" small />}
 				<span>{label}</span>
 			</button>
 		</MenuItemRoot>
@@ -102,15 +122,24 @@ export function MenuItem({
 export function MenuCheckboxItem({
 	label,
 	checked,
+	depth,
 	onSelect,
 }: {
 	label: string
 	checked: boolean
+	/** As for {@link MenuItem}. */
+	depth?: number
 	onSelect(): void
 }) {
 	return (
 		<TldrawUiDropdownMenuCheckboxItem title={label} checked={checked} onSelect={onSelect}>
-			<span className="tlui-button__label">{label}</span>
+			<span
+				className="tlui-button__label"
+				style={depthStyle(depth)}
+				data-nested={depth ? true : undefined}
+			>
+				{label}
+			</span>
 		</TldrawUiDropdownMenuCheckboxItem>
 	)
 }
@@ -156,6 +185,8 @@ export interface LibraryMenuTarget {
 	 * owners' names.
 	 */
 	owner?: TLLibraryOwner
+	/** How many libraries it is inside, to indent it under them. */
+	depth?: number
 }
 
 /**
@@ -178,7 +209,12 @@ export function MenuTargetItems({
 	}
 	const items = (list: LibraryMenuTarget[]) =>
 		list.map((target) => (
-			<MenuItem key={target.id} label={target.name} onClick={() => onSelect(target.id)} />
+			<MenuItem
+				key={target.id}
+				label={target.name}
+				depth={target.depth}
+				onClick={() => onSelect(target.id)}
+			/>
 		))
 	if (groups.length < 2) return items(targets)
 	return groups.map(({ owner, targets: list }) => {

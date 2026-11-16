@@ -9,6 +9,7 @@ import {
 	type TLLibraryId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getLibraryPath } from '../lib/libraryTree'
 import { InContextMenu, MenuItem, MenuTargetItems } from '../ui/menu-items'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import { useLibrariesEnabled } from './license'
@@ -30,8 +31,9 @@ export interface AddToLibraryMenuItemProps {
 }
 
 /**
- * An "Add to library" submenu listing the libraries the selection can be added to, under
- * their owners' names when the source has two or more, and a new library when the source allows
+ * An "Add to library" submenu listing the libraries the selection can be added to, most recently
+ * added to first, each named with the libraries it is inside, under their owners' names when the
+ * source has two or more, and a new library when the source allows
  * creating one. Hidden when nothing is selected or there is nowhere to add it. Drop it into your
  * context menu, e.g. above `DefaultContextMenuContent`.
  * @public @react
@@ -52,6 +54,7 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 			),
 		[source]
 	)
+	const allLibraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
 	const canCreate = useValue('can create library', () => canCreateNewLibrary(source), [source])
 	const { saveSelection, saveToNewLibrary } = useSaveSelection(source, prepareItemContent)
@@ -64,7 +67,12 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 				<InContextMenu>
 					<TldrawUiDropdownMenuGroup className="tlui-libraries-menu__submenu">
 						<MenuTargetItems
-							targets={toMenuTargets(libraries, grouping)}
+							targets={toMenuTargets(libraries, grouping).map((target) => ({
+								...target,
+								name: getLibraryPath(allLibraries, target.id)
+									.map((c) => c.name)
+									.join(' › '),
+							}))}
 							onSelect={(libraryId) => saveSelection(libraryId as TLLibraryId)}
 						/>
 						{canCreate && (

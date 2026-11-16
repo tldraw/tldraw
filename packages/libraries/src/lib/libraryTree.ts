@@ -89,6 +89,20 @@ export function getRootLibrary(
 	return library
 }
 
+/** The libraries `libraryId` is inside, from the top level down, then the library itself. */
+export function getLibraryPath(libraries: TLLibrary[], libraryId: TLLibraryId): TLLibrary[] {
+	const byId = new Map(libraries.map((library) => [library.id, library]))
+	const path: TLLibrary[] = []
+	for (
+		let library = byId.get(libraryId);
+		library && !path.includes(library);
+		library = library.parentId === undefined ? undefined : byId.get(library.parentId)
+	) {
+		path.unshift(library)
+	}
+	return path
+}
+
 /** Whether `libraryId` is `ancestorId` or anywhere inside it. */
 export function isLibraryWithin(
 	libraries: TLLibrary[],

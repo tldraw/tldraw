@@ -10,6 +10,7 @@ import {
 	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { getLibraryTree } from '../lib/libraryTree'
 import { LibrariesPanelHeader } from './libraries-panel-header'
 import { groupLibraryList, useLibraryGrouping } from './library-groups'
 import { LibrarySection } from './library-section'
@@ -126,11 +127,11 @@ export function LibrariesPanel({
 		list.length === 0 ? (
 			<NoLibraries />
 		) : (
-			list.map((library) => (
+			getLibraryTree(list).map((node) => (
 				<LibrarySection
-					key={library.id}
+					key={node.library.id}
 					source={source}
-					library={library}
+					node={node}
 					getItemProps={getItemProps}
 					prepareItemContent={prepareItemContent}
 				/>
@@ -151,7 +152,7 @@ export function LibrariesPanel({
 							label: newLibraryTarget.ownerName
 								? msg(messages.newLibraryIn, { name: newLibraryTarget.ownerName })
 								: msg(messages.newLibrary),
-							onCreate: () => createLibrary(newLibraryOwnerId),
+							onCreate: () => createLibrary({ ownerId: newLibraryOwnerId }),
 						}
 					}
 					menuItems={menuItems}

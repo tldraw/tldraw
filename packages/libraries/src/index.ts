@@ -17,6 +17,7 @@ export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,
 	type LibraryMenuCopy,
+	type LibraryMenuDestination,
 	type LibraryMenuMove,
 	type LibraryMenuProps,
 	type LibraryMenuSort,
