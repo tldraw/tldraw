@@ -102,6 +102,8 @@ export interface TLUiEventMap {
 	'toggle-snap-mode': null
 	'toggle-tool-lock': null
 	'toggle-grid-mode': null
+	'toggle-minimap': null
+	'crop-image': null
 	'toggle-wrap-mode': null
 	'toggle-focus-mode': null
 	'input-mode': { value: string }

@@ -126,6 +126,7 @@ export type TLUiTranslationKey =
 	| 'action.toggle-keyboard-shortcuts'
 	| 'action.toggle-keyboard-shortcuts.menu'
 	| 'action.toggle-lock'
+	| 'action.toggle-minimap'
 	| 'action.toggle-mouse'
 	| 'action.toggle-paste-at-cursor'
 	| 'action.toggle-paste-at-cursor.menu'

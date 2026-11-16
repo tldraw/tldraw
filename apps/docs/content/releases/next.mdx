@@ -22,6 +22,7 @@ So far this release lets shapes decide whether they can flip, gates action execu
 - Add a `'collector'` menu type, so UI such as a command palette can reuse the menu components as data. Pass a `TLUiMenuCollector` as the `collector` prop of `TldrawUiMenuContextProvider` with `type="collector"`, and `TldrawUiMenuItem`, `TldrawUiMenuCheckboxItem`, `TldrawUiMenuGroup` and `TldrawUiMenuSubmenu` hand it their translated labels, shortcuts and state instead of rendering. Action items with `whenDisabled="hide"` reach a collector anyway, marked disabled. Also add a `detail` prop to `TldrawUiMenuItem`, a `'command-palette'` event source and `open-command-palette` event, and export `useTldrawUiMenuContext`, `useCommentingEnabled`, `STYLES`, `styleMessageId` and `stylePanelMessages`.
 - Add `comments.close`, `comments.see-more`, and `comments.see-less` to `TLUiTranslationKey`. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
 - Add the `--tl-muted-gradient-to-bottom`, `--tl-muted-gradient-to-top`, `--tl-muted-gradient-to-right`, and `--tl-muted-gradient-to-left` theme CSS variables for open menu triggers. ([#11492](https://github.com/tldraw/tldraw/pull/11492))
+- Add the `toggle-minimap` and `crop-image` actions, with matching `TLUiEventMap` events and the `action.toggle-minimap` translation key. The minimap's open state is now shared between the navigation panel and the action.
 
 ## Improvements
 
@@ -29,6 +30,7 @@ So far this release lets shapes decide whether they can flip, gates action execu
 - Add Cmd+Alt+Shift+G as an explicit Remove frame shortcut. Cmd+G and Cmd+Alt+G continue to toggle grouping and framing when the selection allows the corresponding action. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Cursor chat opens with `/` in any tool, and its menu item shows in any tool. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Exit crop mode when clicking any shape other than the one being cropped, instead of moving the crop to the clicked image. ([#10832](https://github.com/tldraw/tldraw/pull/10832))
+- The image toolbar's crop button runs the `crop-image` action, so an override of that action changes what the button does.
 - Stay in the comment tool after placing a comment, allowing multiple comments to be placed in sequence. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
 - Step Escape back one level at a time while commenting: clear active draft or reply text, then close the composer or thread, then return to the select tool. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
 - Align `@tldraw/commenting` menus, buttons, drags, and list rows with the rest of tldraw: drag an unposted comment by its pin, keep drags under the pointer when the camera scrolls, and collapse comments longer than 10 lines behind a "See more" toggle. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
