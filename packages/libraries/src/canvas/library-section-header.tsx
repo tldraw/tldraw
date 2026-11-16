@@ -10,10 +10,10 @@ import {
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary } from '../lib/schema'
-import type { LibraryMenuSort } from '../ui/library-menu'
+import { LibraryMenu as DefaultLibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
-import { useLibrariesComponents } from './libraries-components'
+import { useLibrariesComponentOverrides } from './libraries-components'
 import { getOwnerChoices } from './owner-choices'
 import { renamingLibraryId } from './state'
 
@@ -68,7 +68,7 @@ export function LibrarySectionHeader({
 }: LibrarySectionHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { LibraryMenu } = useLibrariesComponents()
+	const { LibraryMenu = DefaultLibraryMenu } = useLibrariesComponentOverrides()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const libraryId = library.id

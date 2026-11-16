@@ -1,15 +1,15 @@
-import { type ComponentType, createContext, type ReactNode, useContext, useMemo } from 'react'
+import { type ComponentType, createContext, type ReactNode, useContext } from 'react'
 import { useShallowObjectIdentity } from 'tldraw'
 import type { TLLibrary, TLLibraryItem } from '../lib/schema'
-import { ItemMenu, type ItemMenuProps } from '../ui/item-menu'
-import { ItemTile, type ItemTileProps } from '../ui/item-tile'
-import { LibraryMenu, type LibraryMenuProps } from '../ui/library-menu'
-import { AddSelectionTile, type AddSelectionTileProps } from './add-selection-tile'
-import { EmptyLibrary, type EmptyLibraryProps } from './empty-library'
-import { LibrariesPanelHeader, type LibrariesPanelHeaderProps } from './libraries-panel-header'
-import { LibrarySectionHeader, type LibrarySectionHeaderProps } from './library-section-header'
-import { LibraryTabLabel, type LibraryTabLabelProps } from './library-tab-label'
-import { NoLibraries, type NoLibrariesProps } from './no-libraries'
+import type { ItemMenuProps } from '../ui/item-menu'
+import type { ItemTileProps } from '../ui/item-tile'
+import type { LibraryMenuProps } from '../ui/library-menu'
+import type { AddSelectionTileProps } from './add-selection-tile'
+import type { EmptyLibraryProps } from './empty-library'
+import type { LibrariesPanelHeaderProps } from './libraries-panel-header'
+import type { LibrarySectionHeaderProps } from './library-section-header'
+import type { LibraryTabLabelProps } from './library-tab-label'
+import type { NoLibrariesProps } from './no-libraries'
 
 /**
  * Component overrides for the {@link LibrariesPanel}. Each slot replaces a built-in piece: leave a
@@ -96,25 +96,9 @@ export function LibrariesComponentsProvider({
 }
 
 /**
- * The libraries UI's components: the defaults, with the overrides from the nearest
- * {@link LibrariesComponentsProvider} in their place. A hidden slot is `null`.
- * @public
+ * The overrides from the nearest provider, without the defaults. Each place that renders a slot
+ * fills in its default with a destructuring default, which keeps `null` as null.
  */
-export function useLibrariesComponents(): Required<LibrariesComponents> {
-	const overrides = useContext(LibrariesComponentsContext)
-	return useMemo(
-		() => ({
-			LibrariesPanelHeader,
-			LibraryTabLabel,
-			NoLibraries,
-			LibrarySectionHeader,
-			LibraryMenu,
-			EmptyLibrary,
-			ItemTile,
-			ItemMenu,
-			AddSelectionTile,
-			...overrides,
-		}),
-		[overrides]
-	)
+export function useLibrariesComponentOverrides() {
+	return useContext(LibrariesComponentsContext)
 }

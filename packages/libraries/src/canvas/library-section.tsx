@@ -3,8 +3,9 @@ import { useEditor, useValue } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
-import { useLibrariesComponents } from './libraries-components'
+import { useLibrariesComponentOverrides } from './libraries-components'
 import { LibraryItems } from './library-items'
+import { LibrarySectionHeader as DefaultLibrarySectionHeader } from './library-section-header'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
 
@@ -21,7 +22,7 @@ export function LibrarySection({
 	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
-	const { LibrarySectionHeader } = useLibrariesComponents()
+	const { LibrarySectionHeader = DefaultLibrarySectionHeader } = useLibrariesComponentOverrides()
 	const ref = useRef<HTMLElement | null>(null)
 	// Also in state, so the tiles can measure once it mounts. The ref stays for the scroll below,
 	// which runs before a state update would land.

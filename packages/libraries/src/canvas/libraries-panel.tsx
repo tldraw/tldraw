@@ -12,9 +12,12 @@ import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
-	useLibrariesComponents,
+	useLibrariesComponentOverrides,
 } from './libraries-components'
-import type { NewLibraryAction } from './libraries-panel-header'
+import {
+	LibrariesPanelHeader as DefaultLibrariesPanelHeader,
+	type NewLibraryAction,
+} from './libraries-panel-header'
 import {
 	getGroupOwner,
 	groupLibraryList,
@@ -24,6 +27,7 @@ import {
 import { LibrarySection } from './library-section'
 import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
+import { NoLibraries as DefaultNoLibraries } from './no-libraries'
 import { placeLibraryItem } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
@@ -81,7 +85,8 @@ function LibrariesPanelContent({
 	prepareItemContent,
 }: Omit<LibrariesPanelProps, 'components'>) {
 	const editor = useEditor()
-	const { LibrariesPanelHeader, NoLibraries } = useLibrariesComponents()
+	const { LibrariesPanelHeader = DefaultLibrariesPanelHeader, NoLibraries = DefaultNoLibraries } =
+		useLibrariesComponentOverrides()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])

@@ -4,10 +4,13 @@ import { copyItem } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '../lib/schema'
 import { ItemGrid, ItemGridTile } from '../ui/item-grid'
-import { getItemMenuId } from '../ui/item-menu'
+import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
+import { ItemTile as DefaultItemTile } from '../ui/item-tile'
+import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
 import { type ItemOrdering, sortItems } from './item-order'
-import { useLibrariesComponents } from './libraries-components'
+import { useLibrariesComponentOverrides } from './libraries-components'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
@@ -70,7 +73,12 @@ export function LibraryItems({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
-	const { ItemTile, ItemMenu, EmptyLibrary, AddSelectionTile } = useLibrariesComponents()
+	const {
+		ItemTile = DefaultItemTile,
+		ItemMenu = DefaultItemMenu,
+		EmptyLibrary = DefaultEmptyLibrary,
+		AddSelectionTile = DefaultAddSelectionTile,
+	} = useLibrariesComponentOverrides()
 	const libraryId = library.id
 	const items = useValue(
 		'library items',

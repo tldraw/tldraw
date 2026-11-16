@@ -8,8 +8,8 @@ export {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
 	type LibrariesComponentsProviderProps,
-	useLibrariesComponents,
 } from './canvas/libraries-components'
+export { useLibrariesComponents } from './canvas/use-libraries-components'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
 export {
 	LibrariesPanelHeader,

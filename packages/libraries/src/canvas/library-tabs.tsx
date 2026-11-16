@@ -8,8 +8,9 @@ import {
 	useState,
 } from 'react'
 import { defineMessages, useEditor, useTranslation } from 'tldraw'
-import { useLibrariesComponents } from './libraries-components'
+import { useLibrariesComponentOverrides } from './libraries-components'
 import { getGroupOwner, type LibraryGroup } from './library-groups'
+import { LibraryTabLabel as DefaultLibraryTabLabel } from './library-tab-label'
 
 const messages = defineMessages({
 	owners: { id: 'libraries.tabs.label', defaultMessage: 'Library owners' },
@@ -35,7 +36,7 @@ export function LibraryTabs({
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { LibraryTabLabel } = useLibrariesComponents()
+	const { LibraryTabLabel = DefaultLibraryTabLabel } = useLibrariesComponentOverrides()
 	const label = (group: LibraryGroup) => group.label ?? msg(messages.other)
 	const listRef = useRef<HTMLDivElement | null>(null)
 	const [overflow, setOverflow] = useState({ start: false, end: false })

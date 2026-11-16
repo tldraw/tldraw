@@ -17,13 +17,10 @@ import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryRecordType } from '../lib/schema'
-import {
-	type LibrariesComponents,
-	LibrariesComponentsProvider,
-	useLibrariesComponents,
-} from './libraries-components'
+import { type LibrariesComponents, LibrariesComponentsProvider } from './libraries-components'
 import { LibrariesPanel } from './libraries-panel'
 import { librariesPanelOpen } from './state'
+import { useLibrariesComponents } from './use-libraries-components'
 
 const library = LibraryRecordType.create({ name: 'Shapes' })
 const shapeId = createShapeId()
