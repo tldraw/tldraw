@@ -54,7 +54,8 @@ describe('getMyUploads', () => {
 	})
 
 	// The asset row's userId is the uploader; the file's owner or workspace doesn't matter. Uploads
-	// someone else made in the caller's files, and the server's copies (no userId), aren't listed.
+	// someone else made in the caller's files, the server's copies (no userId) and the thumbnails of
+	// board library items aren't listed.
 	it("lists only the caller's own uploads, in files that aren't deleted", async () => {
 		const fake = mockPool([[]])
 		await getMyUploads(request(), env)
@@ -62,9 +63,15 @@ describe('getMyUploads', () => {
 		expect(query.sql).toBe(
 			'select "asset"."objectName", "asset"."fileId", (extract(epoch from "asset"."uploadedAt") * 1000)::float8 as "uploadedAt" ' +
 				'from "asset" inner join "file" on "file"."id" = "asset"."fileId" ' +
-				'where "asset"."userId" = $1 and "file"."isDeleted" = $2 and "asset"."objectName" ~* $3 ' +
-				'order by "asset"."uploadedAt" desc limit $4'
+				'where "asset"."userId" = $1 and "asset"."isLibraryThumbnail" = $2 and "file"."isDeleted" = $3 ' +
+				'and "asset"."objectName" ~* $4 order by "asset"."uploadedAt" desc limit $5'
 		)
-		expect(query.parameters).toEqual([ME, false, '-(png|jpe?g|gif|webp|avif)$', MAX_LISTED_UPLOADS])
+		expect(query.parameters).toEqual([
+			ME,
+			false,
+			false,
+			'-(png|jpe?g|gif|webp|avif)$',
+			MAX_LISTED_UPLOADS,
+		])
 	})
 })

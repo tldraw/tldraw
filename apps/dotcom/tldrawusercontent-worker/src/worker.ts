@@ -37,10 +37,13 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 		//    deleted document is a 403 too, so callers cannot probe for ids.
 		// 2. R2 upload — writes the asset blob to the R2 bucket.
 		// 3. confirmUpload — queues a message to asynchronously insert an `asset` row
-		//    linking the uploaded blob to the document.
+		//    linking the uploaded blob to the document, marked as a library thumbnail when the
+		//    `libraryThumbnail=true` param says so.
 		.post('/:objectName', async (request) => {
 			const objectName = request.params.objectName
-			const fileId = new URL(request.url).searchParams.get('fileId')
+			const { searchParams } = new URL(request.url)
+			const fileId = searchParams.get('fileId')
+			const isLibraryThumbnail = searchParams.get('libraryThumbnail') === 'true'
 
 			// For app file uploads, validate auth + file access before writing to R2.
 			let userId: string | null = null
@@ -70,7 +73,10 @@ export default class Worker extends WorkerEntrypoint<Environment> {
 			if (res.status === 200 && fileId) {
 				try {
 					await retry(
-						() => this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId),
+						() =>
+							this.env.SYNC_WORKER.confirmUpload(objectName, fileId, userId, {
+								isLibraryThumbnail,
+							}),
 						TRANSIENT_RETRY_OPTIONS
 					)
 				} catch (e) {

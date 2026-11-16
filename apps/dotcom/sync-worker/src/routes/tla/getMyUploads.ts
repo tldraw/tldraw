@@ -28,7 +28,8 @@ export interface GetMyUploadsResponseBody {
  * The images the caller uploaded, newest first, at most MAX_LISTED_UPLOADS of them: the asset rows
  * whose `userId` is theirs, which the upload route writes for the signed-in uploader, in files that
  * aren't deleted. Copies the server makes, of uploads pasted into another file, have no `userId`,
- * so they aren't listed.
+ * so they aren't listed, and neither are the thumbnails of board library items, which the client
+ * marks when it uploads them.
  */
 export async function getMyUploads(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
@@ -44,6 +45,7 @@ export async function getMyUploads(request: IRequest, env: Environment) {
 				sql<number>`(extract(epoch from "asset"."uploadedAt") * 1000)::float8`.as('uploadedAt'),
 			])
 			.where('asset.userId', '=', auth.userId)
+			.where('asset.isLibraryThumbnail', '=', false)
 			.where('file.isDeleted', '=', false)
 			.where(sql<boolean>`"asset"."objectName" ~* ${IMAGE_OBJECT_NAME}`)
 			.orderBy(sql`"asset"."uploadedAt"`, 'desc')

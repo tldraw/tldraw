@@ -284,6 +284,8 @@ export interface AssetUploadQueueMessage {
 	objectName: string
 	fileId: string
 	userId: string | null
+	/** Optional: messages queued before it was added have none. */
+	isLibraryThumbnail?: boolean
 }
 
 /**

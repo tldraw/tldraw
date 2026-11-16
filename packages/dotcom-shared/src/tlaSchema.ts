@@ -496,6 +496,8 @@ export interface TlaAsset {
 	objectName: string
 	fileId: string
 	userId: string | null
+	/** Whether it's the thumbnail of an item in a board's library. Defaults to false. */
+	isLibraryThumbnail?: boolean
 }
 
 /** An uploads-bucket object a library item owns. Server-only: not in the Zero schema. */

@@ -11,6 +11,7 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 	const userId = auth?.userId || null
 	const searchParams = new URL(url).searchParams
 	const fileId = searchParams.get('fileId')
+	const isLibraryThumbnail = searchParams.get('libraryThumbnail') === 'true'
 	if (!fileId) return Response.json({ error: 'File id is required' }, { status: 400 })
 
 	const objectName = request.params.objectName
@@ -34,7 +35,7 @@ export async function upload(request: IRequest, env: Environment): Promise<Respo
 		objectName,
 	})
 	if (res.status === 200) {
-		await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId })
+		await env.QUEUE.send({ type: 'asset-upload', objectName, fileId, userId, isLibraryThumbnail })
 	}
 	return res
 }

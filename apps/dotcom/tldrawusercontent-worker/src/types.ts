@@ -5,7 +5,12 @@ interface SyncWorkerRpc {
 		fileId: string,
 		authorizationHeader: string | null
 	): Promise<{ ok: true; userId: string | null } | { ok: false; error: string }>
-	confirmUpload(objectName: string, fileId: string, userId: string | null): Promise<void>
+	confirmUpload(
+		objectName: string,
+		fileId: string,
+		userId: string | null,
+		options?: { isLibraryThumbnail?: boolean }
+	): Promise<void>
 }
 
 export interface Environment {
