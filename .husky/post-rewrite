@@ -1,0 +1,27 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# A rebase recreates commits without running pre-commit, so a conflict resolved
+# mid-rebase can land unformatted. Check the files the rebased commits touched.
+# Git ignores this hook's exit code, so all it can do is warn.
+[ "$1" = "rebase" ] || exit 0
+
+if [ ! -x node_modules/.bin/oxfmt ]; then
+	printf '%s\n' 'post-rewrite: oxfmt is not installed, so the rebased files were not format-checked. Run pnpm install.' >&2
+	exit 0
+fi
+
+# stdin is one "<old-sha> <new-sha>" line per rewritten commit.
+files=$(cut -d' ' -f2 | git diff-tree --stdin --no-commit-id --name-only -r --diff-filter=ACMR |
+	grep -E '\.(ts|tsx|js|jsx|cjs|mjs|css|md|mdx|html|yml|yaml)$' | sort -u |
+	while IFS= read -r f; do [ -f "$f" ] && printf '%s\n' "$f"; done) || true
+[ -n "$files" ] || exit 0
+
+unformatted=$(printf '%s\n' "$files" | tr '\n' '\0' |
+	xargs -0 node_modules/.bin/oxfmt --list-different --no-error-on-unmatched-pattern) || true
+[ -n "$unformatted" ] || exit 0
+
+printf '\n%s\n' 'post-rewrite: the rebase left these files unformatted:' >&2
+printf '%s\n' "$unformatted" | sed 's/^/  /' >&2
+printf '\n%s\n\n' 'Fix with: node_modules/.bin/oxfmt <files> && git commit --amend --no-edit' >&2
+exit 1

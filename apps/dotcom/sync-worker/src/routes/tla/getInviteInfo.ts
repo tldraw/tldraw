@@ -7,7 +7,9 @@ import { getJoinableWorkspaceFromInvite } from '../../utils/tla/getJoinableWorks
 export async function getInviteInfo(request: IRequest, env: Environment): Promise<Response> {
 	const { token } = request.params
 	if (!token) {
-		return Response.json({ error: true, message: 'Invite token is required' }, { status: 400 })
+		return Response.json({ error: true, code: 'bad_request' } satisfies GetInviteInfoResponseBody, {
+			status: 400,
+		})
 	}
 
 	const db = createPostgresConnectionPool(env, 'getInviteInfo')
@@ -19,7 +21,7 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 			return Response.json(
 				{
 					error: true,
-					message: 'Invalid or expired invite token',
+					code: 'invite_not_found',
 				} satisfies GetInviteInfoResponseBody,
 				{ status: 404 }
 			)
@@ -37,7 +39,7 @@ export async function getInviteInfo(request: IRequest, env: Environment): Promis
 		return Response.json(
 			{
 				error: true,
-				message: 'Internal server error',
+				code: 'internal_error',
 			} satisfies GetInviteInfoResponseBody,
 			{ status: 500 }
 		)

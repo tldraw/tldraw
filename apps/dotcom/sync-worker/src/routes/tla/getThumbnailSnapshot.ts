@@ -1,8 +1,10 @@
 import { ThumbnailSnapshotResponseBody } from '@tldraw/dotcom-shared'
+import { RoomSnapshot } from '@tldraw/sync-core'
 import { TLRecord } from '@tldraw/tlschema'
 import { IRequest } from 'itty-router'
 import { Environment } from '../../types'
 import {
+	ThumbnailRenderJob,
 	isMintedRenderToken,
 	markRenderTokenServed,
 	renderJobAccess,
@@ -66,10 +68,23 @@ export async function getThumbnailSnapshot(
 		})
 		return undefined
 	})
+	const body = thumbnailSnapshotBodyFor(snapshot, job)
+	return json(body, body.error ? 404 : 200)
+}
+
+/**
+ * What the render page draws for a job: the route's answer, and the payload the worker pushes into
+ * the page instead (see captureThumbnailScreenshot). One builder, so a pushed render and a fetched
+ * one cannot draw different records.
+ */
+export function thumbnailSnapshotBodyFor(
+	snapshot: RoomSnapshot | undefined,
+	job: ThumbnailRenderJob
+): ThumbnailSnapshotResponseBody {
 	// A corrupt or partial R2 payload can carry schema metadata without a documents array; guard it
 	// so it returns a controlled 404 rather than throwing on the .map below and 500ing the render.
 	if (!snapshot?.schema || !snapshot.documents) {
-		return json({ error: true, message: 'Board not found' }, 404)
+		return { error: true, message: 'Board not found' }
 	}
 
 	// The token can target a specific page (the MCP tool labels its result with that page's name,
@@ -82,7 +97,7 @@ export async function getThumbnailSnapshot(
 		job.pageId &&
 		!snapshot.documents.some((d) => (d.state as TLRecord | undefined)?.id === job.pageId)
 	) {
-		return json({ error: true, message: 'Page not found' }, 404)
+		return { error: true, message: 'Page not found' }
 	}
 
 	// Same reasoning as the page check above, and it matters more here: with every requested shape
@@ -92,18 +107,18 @@ export async function getThumbnailSnapshot(
 	if (job.shapeIds) {
 		const presentIds = new Set(snapshot.documents.map((d) => (d.state as TLRecord | undefined)?.id))
 		if (!job.shapeIds.every((id) => presentIds.has(id as TLRecord['id']))) {
-			return json({ error: true, message: 'Shape not found' }, 404)
+			return { error: true, message: 'Shape not found' }
 		}
 	}
 
 	const records = snapshot.documents.map((d) => d.state) as TLRecord[]
-	return json({
+	return {
 		error: false,
 		// The rest of the board costs parse, migration and store load inside the Browser Run budget.
 		records: sliceSnapshotForRender(records, job) ?? records,
 		schema: snapshot.schema,
 		renderParams: renderParamsForJob(job),
-	})
+	}
 }
 
 function json(body: ThumbnailSnapshotResponseBody, status = 200) {

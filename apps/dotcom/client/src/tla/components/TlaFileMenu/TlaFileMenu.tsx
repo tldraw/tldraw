@@ -46,6 +46,8 @@ const messages = defineMessages({
 	pin: { defaultMessage: 'Pin file' },
 	unpin: { defaultMessage: 'Unpin file' },
 	myWorkspace: { defaultMessage: 'My workspace' },
+	moveTo: { defaultMessage: 'Move to' },
+	newWorkspace: { defaultMessage: 'New workspace' },
 })
 
 function getDuplicateName(file: TlaFile, app: TldrawApp) {
@@ -258,7 +260,7 @@ export function FileItems({
 			</TldrawUiMenuGroup>
 			<TldrawUiMenuGroup id="file-delete">
 				{hasAdminRights && (
-					<TldrawUiMenuSubmenu id="move-to-workspace" label={'Move to'} size="small">
+					<TldrawUiMenuSubmenu id="move-to-workspace" label={msg(messages.moveTo)} size="small">
 						<TldrawUiMenuGroup id="workspaces">
 							<TldrawUiMenuCheckboxItem
 								key="my-files"
@@ -287,7 +289,7 @@ export function FileItems({
 						</TldrawUiMenuGroup>
 						<TldrawUiMenuGroup id="create-new-workspace">
 							<TldrawUiMenuItem
-								label="New workspace"
+								label={msg(messages.newWorkspace)}
 								id="create-new-workspace"
 								iconLeft={'plus'}
 								readonlyOk

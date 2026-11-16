@@ -185,6 +185,12 @@
       "value": "Buat fail"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Beralih ke"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Alih keluar ahli"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Log masuk untuk menerima jemputan ini."
     }
   ],
   "3bc7d6ea2f": [
@@ -726,6 +738,12 @@
       "value": "Sila muat semula halaman"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Simpan kandungan sebagai fail .tldr: pilih 'Simpan salinan' di menu kiri atas."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -986,6 +1004,12 @@
       "value": "? Tindakan ini tidak boleh dibuat asal."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Pautan jemputan yang disalin"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1117,12 +1141,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Eksport kandungan sebagai fail .tldr: Pilih 'Muat turun' dalam menu kiri atas."
     }
   ],
   "a104439641": [
@@ -1645,6 +1663,12 @@
       "value": "atau"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Sejarah fail"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1741,6 +1765,12 @@
     {
       "type": 0,
       "value": "Padam"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Pautan jemputan ini tidak sah atau telah tamat tempoh."
     }
   ],
   "f476ba8646": [
@@ -1868,6 +1898,12 @@
     {
       "type": 0,
       "value": "Cipta akaun percuma untuk menyimpan fail anda dan tldraw bersama rakan sepasukan anda."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Ralat menerima jemputan"
     }
   ],
   "ffcd73e997": [

@@ -33,11 +33,8 @@ export const consumerMessages = defineMessages({
 		defaultMessage: 'Could not open file',
 	},
 	helpMenuAbout: { id: 'help-menu.about', defaultMessage: 'About tldraw' },
-	helpMenuDiscord: { id: 'help-menu.discord', defaultMessage: 'Discord' },
-	helpMenuGithub: { id: 'help-menu.github', defaultMessage: 'GitHub' },
 	helpMenuPrivacy: { id: 'help-menu.privacy', defaultMessage: 'Privacy policy' },
 	helpMenuTerms: { id: 'help-menu.terms', defaultMessage: 'Terms of service' },
-	helpMenuTwitter: { id: 'help-menu.twitter', defaultMessage: 'Twitter' },
 	vscodeFileOpenBackup: { id: 'vscode.file-open.backup', defaultMessage: 'Backup' },
 	vscodeFileOpenBackupFailed: {
 		id: 'vscode.file-open.backup-failed',
