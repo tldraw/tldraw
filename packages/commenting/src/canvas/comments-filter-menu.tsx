@@ -58,7 +58,7 @@ export function CommentsFilterMenu({
 					<MoreMenuIcon />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
+			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-6} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
