@@ -38,6 +38,7 @@ const messages = defineMessages({
 		id: 'error.reset-note',
 		defaultMessage: 'Resetting will erase your current project and any unsaved work.',
 	},
+	// No longer rendered, but still published translation keys that apps may override.
 	messageLabel: { id: 'error.message-label', defaultMessage: 'Message:' },
 	stackTraceLabel: { id: 'error.stack-trace-label', defaultMessage: 'Stack trace:' },
 	copy: { id: 'error.copy', defaultMessage: 'Copy' },
@@ -95,6 +96,11 @@ export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 
 	const errorMessage = error instanceof Error ? error.message : String(error)
 	const errorStack = error instanceof Error ? error.stack : null
+	// Chrome's stack starts with the message; Safari and Firefox leave it out.
+	const errorDetails =
+		errorStack && !errorStack.includes(errorMessage)
+			? `${errorMessage}\n${errorStack}`
+			: (errorStack ?? errorMessage)
 
 	const isDarkModeFromApp = useValue(
 		'isDarkMode',
@@ -156,7 +162,7 @@ export function DefaultErrorFallback({ error, editor }: TLErrorFallbackProps) {
 	const copyError = () => {
 		const doc = getOwnerDocument(containerRef.current)
 		const textarea = doc.createElement('textarea')
-		textarea.value = errorStack ?? errorMessage
+		textarea.value = errorDetails
 		doc.body.appendChild(textarea)
 		textarea.select()
 		// eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -219,63 +225,79 @@ My browser: ${navigator.userAgent}`
 			>
 				{shouldShowResetConfirmation ? (
 					<>
-						<h2>{msg(messages.confirmResetTitle)}</h2>
-						<p>{msg(messages.confirmResetDescription)}</p>
+						<h2 className="tl-error-boundary__title">{msg(messages.confirmResetTitle)}</h2>
+						<div className="tl-error-boundary__body">
+							<p>{msg(messages.confirmResetDescription)}</p>
+						</div>
 						<div className="tl-error-boundary__content__actions">
-							<button className="tlui-button" onClick={() => setShouldShowResetConfirmation(false)}>
-								{msg(messages.cancel)}
-							</button>
-							<button className="tlui-button tl-error-boundary__reset" onClick={resetLocalState}>
-								{msg(messages.resetData)}
-							</button>
+							<div />
+							<div className="tl-error-boundary__content__actions__group">
+								<button
+									className="tlui-button tl-error-boundary__button"
+									onClick={() => setShouldShowResetConfirmation(false)}
+								>
+									{msg(messages.cancel)}
+								</button>
+								<button
+									className="tlui-button tl-error-boundary__button tl-error-boundary__reset"
+									onClick={resetLocalState}
+								>
+									{msg(messages.resetData)}
+								</button>
+							</div>
 						</div>
 					</>
 				) : (
 					<>
-						<h2>{msg(messages.title)}</h2>
-						<p>{msg(messages.refreshHint)}</p>
-						<p>{msg(messages.resetHint)}</p>
-						<p>
-							<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
-						</p>
-						{process.env.NODE_ENV !== 'production' && (
+						<h2 className="tl-error-boundary__title">{msg(messages.title)}</h2>
+						<div className="tl-error-boundary__body">
 							<p>
-								If you&apos;re developing with the SDK and need help, join us on{' '}
-								<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
-									Discord
-								</a>
-								.
+								{msg(messages.refreshHint)} {msg(messages.resetHint)}{' '}
+								<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
 							</p>
-						)}
-						{shouldShowError && (
-							<>
-								{msg(messages.messageLabel)}
-								<h4>
-									<code>{errorMessage}</code>
-								</h4>
-								{msg(messages.stackTraceLabel)}
-								<div className="tl-error-boundary__content__error">
+							{process.env.NODE_ENV !== 'production' && (
+								<p>
+									If you&apos;re developing with the SDK and need help, join us on{' '}
+									<a href="https://discord.tldraw.com/?utm_source=sdk&utm_medium=organic&utm_campaign=error-screen">
+										Discord
+									</a>
+									.
+								</p>
+							)}
+							{shouldShowError && (
+								<div className="tl-error-boundary__stack" data-copied={didCopy}>
 									<pre>
-										<code>{errorStack ?? errorMessage}</code>
+										<code>{errorDetails}</code>
 									</pre>
-									<button className="tlui-button" onClick={copyError}>
-										{didCopy ? msg(messages.copied) : msg(messages.copy)}
+									<button
+										className="tlui-button tl-error-boundary__button tl-error-boundary__copy"
+										onClick={copyError}
+										title={didCopy ? msg(messages.copied) : msg(messages.copy)}
+										aria-label={didCopy ? msg(messages.copied) : msg(messages.copy)}
+									>
+										{didCopy ? <CheckIcon /> : <CopyIcon />}
 									</button>
 								</div>
-							</>
-						)}
+							)}
+						</div>
 						<div className="tl-error-boundary__content__actions">
-							<button className="tlui-button" onClick={() => setShouldShowError(!shouldShowError)}>
+							<button
+								className="tlui-button tl-error-boundary__button"
+								onClick={() => setShouldShowError(!shouldShowError)}
+							>
 								{shouldShowError ? msg(messages.hideDetails) : msg(messages.showDetails)}
 							</button>
 							<div className="tl-error-boundary__content__actions__group">
 								<button
-									className="tlui-button tl-error-boundary__reset"
+									className="tlui-button tl-error-boundary__button tl-error-boundary__reset"
 									onClick={() => setShouldShowResetConfirmation(true)}
 								>
 									{msg(messages.resetData)}
 								</button>
-								<button className="tlui-button tl-error-boundary__refresh" onClick={refresh}>
+								<button
+									className="tlui-button tl-error-boundary__button tl-error-boundary__refresh"
+									onClick={refresh}
+								>
 									{msg(messages.refreshPage)}
 								</button>
 							</div>
@@ -284,5 +306,29 @@ My browser: ${navigator.userAgent}`
 				)}
 			</div>
 		</div>
+	)
+}
+
+function CopyIcon() {
+	return (
+		<svg width="16" height="16" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+			<path
+				fillRule="evenodd"
+				clipRule="evenodd"
+				d="M2 19.0001C2 20.6569 3.34315 22.0001 5 22.0001H8L8 20.0001H5C4.44772 20.0001 4 19.5524 4 19.0001L4 5.00009C4 4.44781 4.44772 4.00009 5 4.00009L19 4.00009C19.5523 4.00009 20 4.44781 20 5.00009V8.00001H11C9.34315 8.00001 8 9.34316 8 11V25C8 26.6569 9.34315 28 11 28H25C26.6569 28 28 26.6569 28 25V11C28 9.34316 26.6569 8.00001 25 8.00001H22V5.00009C22 3.34324 20.6569 2.00009 19 2.00009H5C3.34315 2.00009 2 3.34324 2 5.00009V19.0001ZM10 11C10 10.4477 10.4477 10 11 10H25C25.5523 10 26 10.4477 26 11V25C26 25.5523 25.5523 26 25 26H11C10.4477 26 10 25.5523 10 25V11Z"
+				fill="currentColor"
+			/>
+		</svg>
+	)
+}
+
+function CheckIcon() {
+	return (
+		<svg width="16" height="16" viewBox="0 0 30 30" fill="none" aria-hidden="true">
+			<path
+				d="M22.9339 7.45369C23.5118 7.83148 23.6739 8.60615 23.2961 9.18396L14.7961 22.184C14.5958 22.4903 14.2712 22.6935 13.9082 22.7398C13.5451 22.7862 13.1799 22.6711 12.909 22.4248L7.40905 17.4248C6.89822 16.9604 6.86058 16.1699 7.32496 15.6591C7.78935 15.1482 8.57991 15.1106 9.09073 15.575L13.506 19.5888L21.2037 7.81584C21.5815 7.23803 22.3561 7.07589 22.9339 7.45369Z"
+				fill="currentColor"
+			/>
+		</svg>
 	)
 }
