@@ -143,7 +143,7 @@
 	--tl-font-mono: 'tldraw_mono', monospace;
 	/* checkboxes, for fonts whose theme entry doesn't draw its own */
 	--tl-checkbox-box: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='6.2' y='27.2' width='66' height='66' rx='14.4' fill='none' stroke='%23000' stroke-width='8.3'/%3E%3C/svg%3E");
-	--tl-checkbox-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M25.13 60.63L34.11 71.14L57.02 44.3' fill='none' stroke='%23000' stroke-width='8.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+	--tl-checkbox-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M25.13 62.63L34.11 73.14L57.02 46.3' fill='none' stroke='%23000' stroke-width='8.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	/* text outline */
 	--tl-text-outline-a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
 	--tl-text-outline-b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
