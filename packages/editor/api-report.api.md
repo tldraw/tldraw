@@ -637,8 +637,15 @@ export class CubicSpline2d extends Geometry2d {
 // @internal
 export class CurrentPageBoundsCache {
     constructor(editor: Editor, name: string,
-    getBounds: (shape: TLShape) => Box | undefined);
+    getBounds: (shape: TLShape) => Box | undefined, listener?: CurrentPageBoundsCacheListener | undefined);
     get(): ReadonlyMap<TLShapeId, Box>;
+    getCommonBounds(): Box | undefined;
+}
+
+// @internal
+export interface CurrentPageBoundsCacheListener {
+    onChange(id: TLShapeId, prev: Box | undefined, next: Box | undefined): void;
+    onRebuild(): void;
 }
 
 // @public
