@@ -259,11 +259,13 @@ export {
 	type NoteShapeUtilDisplayValues,
 } from './lib/shapes/note/NoteShapeUtil'
 export {
+	applyImageAspectRatio,
 	ASPECT_RATIO_OPTIONS,
 	ASPECT_RATIO_TO_VALUE,
 	getCropBox,
 	getDefaultCrop,
 	getUncroppedSize,
+	isImageAspectRatioChecked,
 	type ASPECT_RATIO_OPTION,
 	type CropBoxOptions,
 } from './lib/shapes/shared/crop'

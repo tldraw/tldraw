@@ -764,6 +764,12 @@ export function getCroppedImageDataForAspectRatio(
 	}
 }
 
+/**
+ * Whether an image's crop matches an aspect ratio option, as the image toolbar's aspect ratio menu
+ * shows it.
+ *
+ * @public
+ */
 export function isImageAspectRatioChecked(
 	image: TLImageShape,
 	aspectRatio: ASPECT_RATIO_OPTION
@@ -779,6 +785,12 @@ export function isImageAspectRatioChecked(
 	)
 }
 
+/**
+ * Crops an image to an aspect ratio option, like the image toolbar's aspect ratio menu, as one undo
+ * step.
+ *
+ * @public
+ */
 export function applyImageAspectRatio(
 	editor: Editor,
 	image: TLImageShape,

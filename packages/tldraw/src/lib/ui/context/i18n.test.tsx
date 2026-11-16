@@ -315,7 +315,8 @@ describe('the declared English', () => {
 
 	// Stands in for the English catalog the SDK no longer bundles. Fails when a declaring module is
 	// never imported, as `consumerMessages` wasn't. Exempt: messages inline on an `<F>`, which carry
-	// their own English, and @tldraw/commenting's, which `tldraw` doesn't import.
+	// their own English, and @tldraw/commenting's and @tldraw/command-palette's, which `tldraw`
+	// doesn't import.
 	it('covers main.json once the package has loaded', async () => {
 		await import('../../../index')
 		// The one test that reads the catalog file, since matching it is the point.
@@ -336,7 +337,9 @@ describe('the declared English', () => {
 				!(id in declared) &&
 				!inlineIds.has(id) &&
 				!id.startsWith('comments.') &&
-				id !== 'tool.comment'
+				id !== 'tool.comment' &&
+				!id.startsWith('command-palette.') &&
+				id !== 'action.open-command-palette'
 		)
 		expect(missing).toEqual([])
 	})
