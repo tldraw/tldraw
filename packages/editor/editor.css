@@ -1623,10 +1623,6 @@ it from receiving any pointer events or affecting the cursor. */
 	color: var(--tl-color-danger);
 }
 
-.tl-error-boundary__warning {
-	color: var(--tl-color-danger);
-}
-
 .tl-container__focused:not(.tl-container__no-focus-ring) .tl-error-boundary__button:focus-visible {
 	border-radius: 10px;
 	outline: 2px solid var(--tl-color-focus);

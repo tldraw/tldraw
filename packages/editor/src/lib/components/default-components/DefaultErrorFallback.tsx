@@ -253,9 +253,7 @@ My browser: ${navigator.userAgent}`
 						<div className="tl-error-boundary__body">
 							<p>
 								{msg(messages.refreshHint)} {msg(messages.resetHint)}{' '}
-								<span className="tl-error-boundary__warning">
-									<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
-								</span>
+								<strong>{msg(messages.noteLabel)}</strong> {msg(messages.resetNote)}
 							</p>
 							{process.env.NODE_ENV !== 'production' && (
 								<p>
@@ -291,7 +289,7 @@ My browser: ${navigator.userAgent}`
 							</button>
 							<div className="tl-error-boundary__content__actions__group">
 								<button
-									className="tlui-button tl-error-boundary__button"
+									className="tlui-button tl-error-boundary__button tl-error-boundary__reset"
 									onClick={() => setShouldShowResetConfirmation(true)}
 								>
 									{msg(messages.resetData)}
