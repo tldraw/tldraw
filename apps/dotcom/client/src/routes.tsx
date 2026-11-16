@@ -105,12 +105,12 @@ export function createAppRouter({
 						lazy={() => import('./tla/pages/file')}
 						handle={{ rendersWhileAppLoads: true } satisfies TlaRouteHandle}
 					/>
+					<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
+					<Route
+						path={ROUTES.tlaFileHistorySnapshot}
+						lazy={() => import('./tla/pages/file-history-snapshot')}
+					/>
 					<Route lazy={() => import('./tla/providers/RequireTldrawStaff')}>
-						<Route path={ROUTES.tlaFileHistory} lazy={() => import('./tla/pages/file-history')} />
-						<Route
-							path={ROUTES.tlaFileHistorySnapshot}
-							lazy={() => import('./tla/pages/file-history-snapshot')}
-						/>
 						<Route
 							path={ROUTES.tlaLegacyRoomHistory}
 							lazy={() => import('./tla/pages/legacy-history')}
@@ -146,6 +146,7 @@ export function createAppRouter({
 					    a trailing optional param drops the optionality and 404s bare /admin */}
 					<Route path="/admin" lazy={() => import('./pages/admin')} />
 					<Route path="/admin/:section" lazy={() => import('./pages/admin')} />
+					<Route path="/admin/:section/:fileId" lazy={() => import('./pages/admin')} />
 				</Route>
 			</Route>
 			<Route path={ROUTES.tlaSsoCallback} lazy={() => import('./tla/pages/sso-callback')} />

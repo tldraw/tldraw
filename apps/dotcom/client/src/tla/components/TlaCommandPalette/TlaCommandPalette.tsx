@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import {
 	CommandPaletteActionGroup,
 	CommandPaletteArrangeGroup,
-	CommandPaletteCollapsed,
+	CommandPaletteOnDemand,
 	CommandPalettePinned,
 	CommandPaletteEditGroup,
 	CommandPaletteExportGroup,
@@ -339,7 +339,7 @@ function TlaNotificationsGroup() {
 
 	return (
 		<CommandPalettePinned>
-			<CommandPaletteCollapsed>
+			<CommandPaletteOnDemand>
 				<TldrawUiMenuSubmenu id="tla-new-notifications" label={notificationsLbl}>
 					{listed.map(({ comment, authorName, preview, reactors }) => (
 						<TldrawUiMenuItem
@@ -360,7 +360,7 @@ function TlaNotificationsGroup() {
 						/>
 					))}
 				</TldrawUiMenuSubmenu>
-			</CommandPaletteCollapsed>
+			</CommandPaletteOnDemand>
 		</CommandPalettePinned>
 	)
 }

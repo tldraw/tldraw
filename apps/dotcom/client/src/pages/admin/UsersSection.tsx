@@ -1,5 +1,6 @@
 import { TlaFile, TlaUser } from '@tldraw/dotcom-shared'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { getResponseError, StructuredDataDisplay, useTransientMessage } from './shared'
@@ -165,6 +166,15 @@ export function UsersSection() {
 		setData(await res.json())
 		await loadDeletedFiles()
 	}, [loadDeletedFiles, setSuccessMessage])
+
+	// /admin/users?q=<email or ID> opens straight to that user, so other admin pages can link here
+	const [searchParams] = useSearchParams()
+	const initialQuery = searchParams.get('q')
+	useEffect(() => {
+		if (!initialQuery || !inputRef.current) return
+		inputRef.current.value = initialQuery
+		loadData()
+	}, [initialQuery, loadData])
 
 	return (
 		<>

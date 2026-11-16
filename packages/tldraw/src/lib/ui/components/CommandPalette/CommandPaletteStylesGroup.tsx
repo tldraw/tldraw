@@ -39,7 +39,8 @@ const messages = defineMessages({
 	arrowheadEnd: { id: 'command-palette.arrowhead-end', defaultMessage: 'End arrowhead' },
 })
 
-interface StylePicker<T extends string | number = string | number> {
+/** @internal */
+export interface StylePicker<T extends string | number = string | number> {
 	id: string
 	label: string
 	values: readonly T[]
@@ -84,8 +85,8 @@ function CommandPaletteStylePicker({ picker }: { picker: StylePicker }) {
 	)
 }
 
-/** The pickers for the styles that apply, in style panel order; null when no styles apply. */
-function useCommandPaletteStylePickers(): StylePicker[] | null {
+/** The pickers for the styles that apply, in style panel order; null when no styles apply. @internal */
+export function useCommandPaletteStylePickers(): StylePicker[] | null {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const trackEvent = useUiEvents()

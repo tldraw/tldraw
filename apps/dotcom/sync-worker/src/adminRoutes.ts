@@ -1,5 +1,6 @@
 import {
 	AdminFileAssetsResponseBody,
+	AdminFileResponseBody,
 	AdminFileStatsResponseBody,
 	AdminOutboxRowsResponseBody,
 	AdminOutboxStatsResponseBody,
@@ -518,6 +519,87 @@ export const adminRoutes = createRouter<Environment>()
 			}
 		}
 		return await hardDeleteAppFile({ pg, file, env })
+	})
+	// 404 for legacy rooms, which have no file row.
+	.get('/app/admin/file/:fileId', async (res, env) => {
+		const fileId = res.params.fileId
+		assert(typeof fileId === 'string', 'fileId is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/file')
+		const file = await pg
+			.selectFrom('file')
+			.select([
+				'id',
+				'name',
+				'owningGroupId',
+				'createdAt',
+				'updatedAt',
+				'isDeleted',
+				'isEmpty',
+				'shared',
+				'sharedLinkType',
+				'published',
+				'publishedSlug',
+				'lastPublished',
+				'createSource',
+			])
+			.where('id', '=', fileId)
+			.executeTakeFirst()
+		if (!file) return new Response('File not found', { status: 404 })
+		const { owningGroupId, ...rest } = file
+		const [workspace, owners] = owningGroupId
+			? await Promise.all([
+					pg
+						.selectFrom('group')
+						.select(['id', 'name', 'isDeleted'])
+						.where('id', '=', owningGroupId)
+						.executeTakeFirst(),
+					pg
+						.selectFrom('group_user')
+						.innerJoin('user', 'user.id', 'group_user.userId')
+						.select(['user.id', 'user.name', 'user.email'])
+						.where('group_user.groupId', '=', owningGroupId)
+						.where('group_user.role', '=', 'owner')
+						.execute(),
+				])
+			: [undefined, []]
+		const body: AdminFileResponseBody = {
+			...rest,
+			createSource: rest.createSource ?? null,
+			workspace: workspace ?? null,
+			owners,
+		}
+		return json(body)
+	})
+	// The same soft delete an owner's delete does: cleanup_deleted_file_trigger drops the file's
+	// file_state and group_file rows, and the outbox trigger records the change for the room.
+	.post('/app/admin/soft_delete_file/:fileId', async (res, env) => {
+		const fileId = res.params.fileId
+		assert(typeof fileId === 'string', 'fileId is required')
+
+		const pg = createPostgresConnectionPool(env, '/app/admin/soft_delete_file')
+		const updated = await pg
+			.updateTable('file')
+			.set('isDeleted', true)
+			.where('id', '=', fileId)
+			.where('isDeleted', '=', false)
+			.returning('id')
+			.executeTakeFirst()
+		if (!updated) {
+			const file = await pg
+				.selectFrom('file')
+				.select('id')
+				.where('id', '=', fileId)
+				.executeTakeFirst()
+			return file
+				? new Response('File is already deleted', { status: 400 })
+				: new Response('File not found', { status: 404 })
+		}
+		// Best-effort nudge, as in undelete_file: the sweep backstops it.
+		await getFileEffectProcessor(env)
+			.poke()
+			.catch(() => {})
+		return json({ success: true })
 	})
 	.post('/app/admin/undelete_file/:fileId', async (res, env) => {
 		const fileId = res.params.fileId

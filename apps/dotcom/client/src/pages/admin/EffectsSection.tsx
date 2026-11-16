@@ -118,7 +118,10 @@ export function EffectsSection() {
 									expanded={expandedId === row.id}
 									busy={busyId === row.id}
 									onToggle={() => setExpandedId((prev) => (prev === row.id ? null : row.id))}
-									onRetry={() => runRowAction(row.id, 'retry')}
+									onRetry={() => {
+										if (!window.confirm(`Retry outbox row ${row.id} now?`)) return
+										runRowAction(row.id, 'retry')
+									}}
 									onDelete={() => {
 										if (!window.confirm(`Delete outbox row ${row.id}? This cannot be undone.`))
 											return

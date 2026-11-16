@@ -288,19 +288,19 @@ For long or async lists, read the query with `useCommandPaletteQuery()` and rend
 A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
 
 - `CommandPalettePinned` lists the items inside first, above recent commands, while browsing.
-- `CommandPaletteCollapsed` keeps the submenu inside as one row you open, even with a single item, and keeps its items out of top-level search results.
+- `CommandPaletteOnDemand` keeps the submenu inside as one row you open, even with a single item, and keeps its items out of top-level search results.
 - `TldrawUiMenuItem` takes a `detail`, muted text after its label, such as the workspace a file is in. Search matches it too.
 - `CommandPalettePromptItem` asks for text before running, such as a name. Its `onSubmit` gets the trimmed text, and `initialValue` fills the input with the current value, selected.
 
 ```tsx
 <CommandPalettePinned>
-	<CommandPaletteCollapsed>
+	<CommandPaletteOnDemand>
 		<TldrawUiMenuSubmenu id="inbox" label="Inbox">
 			{messages.map((message) => (
 				<TldrawUiMenuItem key={message.id} id={message.id} label={message.title} onSelect={open} />
 			))}
 		</TldrawUiMenuSubmenu>
-	</CommandPaletteCollapsed>
+	</CommandPaletteOnDemand>
 </CommandPalettePinned>
 
 <CommandPalettePromptItem
