@@ -5094,6 +5094,8 @@ export interface TLUiEventMap {
     // (undocumented)
     'create-new-project': null;
     // (undocumented)
+    'crop-image': null;
+    // (undocumented)
     'delete-page': null;
     // (undocumented)
     'delete-shapes': null;
