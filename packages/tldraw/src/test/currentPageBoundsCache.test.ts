@@ -11,6 +11,7 @@ import {
 	createShapeId,
 	react,
 } from '@tldraw/editor'
+import { vi } from 'vitest'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -258,6 +259,37 @@ describe('CurrentPageBoundsCache', () => {
 		expect(cache.get().size).toBe(4)
 	})
 
+	it('gets every change when the spatial index reads in between', () => {
+		// Both read the same expanded changes, and the spatial index reads after each move here
+		// while the cache only catches up once the transaction commits.
+		const held = (cache as any).maps
+		const everywhere = new Box(-10000, -10000, 20000, 20000)
+		editor.run(() => {
+			editor.updateShape({ id: ids.box, type: 'geo', x: -500 })
+			editor.getShapeIdsInsideBounds(everywhere)
+			editor.updateShape({ id: ids.frame, type: 'frame', x: 1000 })
+			editor.getShapeIdsInsideBounds(everywhere)
+			editor.deleteShapes([ids.child])
+			editor.getShapeIdsInsideBounds(everywhere)
+		})
+		expectCacheToMatch()
+		expect((cache as any).maps).toBe(held)
+		expect(invalidations).toBe(1)
+	})
+
+	it('rebuilds when it falls too far behind the spatial index', () => {
+		const everywhere = new Box(-10000, -10000, 20000, 20000)
+		editor.run(() => {
+			for (let i = 1; i <= 50; i++) {
+				editor.updateShape({ id: ids.box, type: 'geo', x: -i * 10 })
+				editor.getShapeIdsInsideBounds(everywhere)
+			}
+			editor.updateShape({ id: ids.frame, type: 'frame', x: 1000 })
+		})
+		expectCacheToMatch()
+		expect(invalidations).toBe(1)
+	})
+
 	it('does not invalidate dependents when no value changed', () => {
 		editor.updateShape({ id: ids.box, type: 'geo', props: { color: 'red' } })
 		// Still clipped to the same sliver of the frame.
@@ -298,5 +330,53 @@ describe('editor.getCurrentPageBounds', () => {
 
 		hideFrames.set(false)
 		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: 0, y: 0, w: 400, h: 200 })
+	})
+})
+
+describe('releasing the bounds when nothing is subscribed', () => {
+	// The editor's own cache, not the test one that `beforeEach` subscribes to.
+	const heldBounds = (): Map<TLShapeId, Box> | undefined =>
+		(editor as any)._currentPageMaskedBounds.maps?.bounds
+	const endOfTask = () => new Promise<void>((resolve) => queueMicrotask(resolve))
+
+	it('does not keep the map after a read from outside a reaction', async () => {
+		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: 0, y: 0, w: 400, h: 200 })
+		expect(heldBounds()!.size).toBe(3)
+
+		await endOfTask()
+		expect(heldBounds()).toBeUndefined()
+
+		// Later reads are still right, with or without changes in between.
+		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: 0, y: 0, w: 400, h: 200 })
+		await endOfTask()
+		editor.updateShape({ id: ids.box, type: 'geo', x: -100 })
+		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: -100, y: 0, w: 500, h: 200 })
+		await endOfTask()
+		expect(heldBounds()).toBeUndefined()
+	})
+
+	it('keeps the map and updates it incrementally while subscribed', async () => {
+		// Leave the editor's cache as the only one calling `getShapeMaskedPageBounds`.
+		stop()
+		const stopReading = react('read page bounds', () => editor.getCurrentPageBounds())
+		await endOfTask()
+		const held = heldBounds()!
+		expect(held.size).toBe(3)
+
+		const getBounds = vi.spyOn(editor, 'getShapeMaskedPageBounds')
+		editor.updateShape({ id: ids.box, type: 'geo', x: -100 })
+		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: -100, y: 0, w: 500, h: 200 })
+		// Only the moved shape was rechecked, in the same map.
+		expect(getBounds.mock.calls).toEqual([[ids.box]])
+		expect(heldBounds()).toBe(held)
+		getBounds.mockRestore()
+
+		stopReading()
+		// Nothing tells the cache that its last subscriber left, so it lets go on the next read
+		// that follows a change.
+		editor.updateShape({ id: ids.box, type: 'geo', x: 0 })
+		editor.getCurrentPageBounds()
+		await endOfTask()
+		expect(heldBounds()).toBeUndefined()
 	})
 })
