@@ -347,4 +347,29 @@ describe('multiplayerAssetStore.upload', () => {
 		).rejects.toThrow()
 		expect(onUpload).not.toHaveBeenCalled()
 	})
+
+	it("marks a library thumbnail's upload and doesn't report it", async () => {
+		const fetch = vi.fn(async (_url: string) => new Response(null, { status: 200 }))
+		vi.stubGlobal('fetch', fetch)
+		const onUpload = vi.fn()
+		const store = multiplayerAssetStore({
+			getFileId: () => 'file_a',
+			isLibraryThumbnail: () => true,
+			onUpload,
+		})
+		await upload(store)
+		const params = new URL(fetch.mock.calls[0][0]).searchParams
+		expect(Object.fromEntries(params)).toEqual({ fileId: 'file_a', libraryThumbnail: 'true' })
+		expect(onUpload).not.toHaveBeenCalled()
+	})
+
+	it("doesn't mark other uploads", async () => {
+		const fetch = vi.fn(async (_url: string) => new Response(null, { status: 200 }))
+		vi.stubGlobal('fetch', fetch)
+		await upload(
+			multiplayerAssetStore({ getFileId: () => 'file_a', isLibraryThumbnail: () => false })
+		)
+		const params = new URL(fetch.mock.calls[0][0]).searchParams
+		expect(Object.fromEntries(params)).toEqual({ fileId: 'file_a' })
+	})
 })
