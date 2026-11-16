@@ -46,7 +46,7 @@ import {
 } from 'tldraw'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useRoomInfo } from '../../hooks/useRoomInfo'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -64,7 +64,7 @@ import {
 import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaLogo } from '../TlaLogo/TlaLogo'
-import { sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
+import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-shared'
 import { editorMessages } from './editor-messages'
 import styles from './top.module.css'
 

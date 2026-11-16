@@ -1,5 +1,3 @@
-import { Select as _Select } from 'radix-ui'
-
 /**
  * Shared positioning for tla dropdowns, popovers, and selects so they sit consistently
  * relative to their triggers. Spread onto a Radix/SDK content element (e.g.

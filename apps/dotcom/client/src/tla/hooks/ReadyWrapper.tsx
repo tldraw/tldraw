@@ -1,8 +1,13 @@
 import classNames from 'classnames'
 import React, { PropsWithChildren, useCallback, useContext } from 'react'
 import { ReadyContext } from './useIsReady'
-import styles from './useIsReady.module.css'
+import styles from './ReadyWrapper.module.css'
 
+/*
+ * An optional 'shroud' for initial page loads that fades in the page once all
+ * the necessary data has been loaded. This can help avoid flickering in some
+ * situations.
+ */
 export function ReadyWrapper({ children }: PropsWithChildren) {
 	const parent = useContext(ReadyContext)
 	const [isReady, _setIsReady] = React.useState(false)

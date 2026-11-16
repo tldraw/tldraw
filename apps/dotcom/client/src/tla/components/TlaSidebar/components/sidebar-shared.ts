@@ -20,6 +20,8 @@ export const messages = defineMessages({
 	toggleSidebar: { defaultMessage: 'Toggle sidebar' },
 	accountMenu: { defaultMessage: 'Account menu' },
 	fileMenu: { defaultMessage: 'File menu' },
+	renameFile: { defaultMessage: 'Rename file' },
+	selected: { defaultMessage: 'selected' },
 })
 
 /** The sidebar toggles hide until an editor exists, and while it is in focus mode. */
@@ -29,11 +31,6 @@ export function useHideSidebarToggle() {
 		editor,
 	])
 }
-
-export const sidebarMessages = defineMessages({
-	renameFile: { defaultMessage: 'Rename file' },
-	selected: { defaultMessage: 'selected' },
-})
 
 export function useHandleSidebarCreateFile() {
 	const app = useApp()
@@ -47,23 +44,33 @@ export function useHandleSidebarCreateFile() {
 
 	return useCallback(async () => {
 		if (!rCanCreate.current) return
-		const res = await app.createFile({ workspaceId: activeWorkspaceId })
-		if (res.ok) {
-			const { fileId } = res.value
-			const isMobile = getIsCoarsePointer()
-			if (!isMobile) {
-				app.sidebarState.update((prev) => ({
-					...prev,
-					renameState: { fileId, workspaceId: activeWorkspaceId },
-				}))
+		// Block repeat clicks while the create is in flight, not just after it resolves, or a
+		// double click makes two files.
+		rCanCreate.current = false
+		let fileId: string
+		try {
+			const res = await app.createFile({ workspaceId: activeWorkspaceId })
+			if (!res.ok) {
+				rCanCreate.current = true
+				return
 			}
-			navigate(routes.tlaFile(fileId))
-			trackEvent('create-file', { source: 'sidebar' })
-			rCanCreate.current = false
-			tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
-			if (isMobile) {
-				toggleMobileSidebar(false)
-			}
+			fileId = res.value.fileId
+		} catch (e) {
+			rCanCreate.current = true
+			throw e
+		}
+		const isMobile = getIsCoarsePointer()
+		if (!isMobile) {
+			app.sidebarState.update((prev) => ({
+				...prev,
+				renameState: { fileId, workspaceId: activeWorkspaceId },
+			}))
+		}
+		navigate(routes.tlaFile(fileId))
+		trackEvent('create-file', { source: 'sidebar' })
+		tltime.setTimeout('can create again', () => (rCanCreate.current = true), 1000)
+		if (isMobile) {
+			toggleMobileSidebar(false)
 		}
 	}, [app, navigate, trackEvent, activeWorkspaceId])
 }

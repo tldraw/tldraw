@@ -8,7 +8,7 @@ export const appLoadingContext = createContext(false)
 
 export const isClientTooOld$ = atom('isClientTooOld', false)
 
-// The one source for the app; the React context below is derived from it. Code that runs before
+// The one source for the app; `AppStateProvider` derives `appContext` from it. Code that runs before
 // the app exists but must pick it up without remounting (the presence user store behind the sync
 // socket) reads this directly.
 export const currentApp$ = atom<TldrawApp | null>('currentApp', null)

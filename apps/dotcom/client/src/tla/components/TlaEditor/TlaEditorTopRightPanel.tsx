@@ -27,7 +27,7 @@ import {
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'

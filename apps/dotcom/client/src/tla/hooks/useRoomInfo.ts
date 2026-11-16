@@ -6,24 +6,30 @@ import {
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
 import { useLocation, useParams } from 'react-router-dom'
-import { useEditor, useTranslation } from 'tldraw'
+import { useEditor, useTranslation, useValue } from 'tldraw'
 
 export function useGetFileName() {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const defaultPageName = msg('page-menu.new-page-initial-name')
 
-	const documentName = editor.getDocumentSettings().name
-	if (documentName?.length > 0) return documentName
+	return useValue(
+		'fileName',
+		() => {
+			const documentName = editor.getDocumentSettings().name
+			if (documentName?.length > 0) return documentName
 
-	const firstPageName = editor.getPages()[0].name
-	if (
-		firstPageName.length > 0 &&
-		!firstPageName.startsWith('Page 1') &&
-		!firstPageName.startsWith(defaultPageName)
+			const firstPageName = editor.getPages()[0].name
+			if (
+				firstPageName.length > 0 &&
+				!firstPageName.startsWith('Page 1') &&
+				!firstPageName.startsWith(defaultPageName)
+			)
+				return firstPageName
+			return ''
+		},
+		[editor, defaultPageName]
 	)
-		return firstPageName
-	return ''
 }
 
 function usePrefix() {

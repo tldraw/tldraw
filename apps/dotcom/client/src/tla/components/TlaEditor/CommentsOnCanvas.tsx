@@ -18,8 +18,8 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { latestForeignReactionAt } from '../TlaSidebar/components/commentNotifications'
+import { editorMessages } from './editor-messages'
 import { ResolveCommentAuthorContext } from './resolveCommentAuthorContext'
-import { signInMessages } from './useAnonCommentToolOverrides'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 type FileVisitors = QueryResultType<typeof queries.fileVisitors>
@@ -282,12 +282,12 @@ export function SignInToComment() {
 			onClick={() => {
 				trackEvent('sign-up-clicked', {
 					source: 'comments',
-					ctaMessage: msg(signInMessages.signInToComment),
+					ctaMessage: msg(editorMessages.signInToComment),
 				})
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<F {...signInMessages.signInToComment} />
+			<F {...editorMessages.signInToComment} />
 		</TlaCtaButton>
 	)
 }
