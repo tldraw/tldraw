@@ -18,6 +18,7 @@ import {
 	type LibrarySource,
 	type TLLibrary,
 	type TLLibraryAction,
+	type TLLibraryDestination,
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
@@ -289,17 +290,21 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		await this.apply(this.app.z.mutate.library.delete({ id }))
 	}
 
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
+	async moveLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
 		const library = this.getLibraries().find((c) => c.id === libraryId)
 		if (!library) throw new LibraryNotFoundError(libraryId)
+		if (to.parentId !== undefined) throw new Error("Workspace libraries can't be nested yet")
+		const ownerId = to.ownerId ?? library.ownerId ?? this.getDefaultOwnerId()
 		const id = await this.getLibraryRowId(libraryId)
 		await this.apply(this.app.z.mutate.library.move({ id, owningGroupId: ownerId }))
 		return { ...library, ownerId }
 	}
 
-	async copyLibrary(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary> {
+	async copyLibrary(libraryId: TLLibraryId, to: TLLibraryDestination): Promise<TLLibrary> {
 		const source = this.getLibraries().find((c) => c.id === libraryId)
 		if (!source) throw new LibraryNotFoundError(libraryId)
+		if (to.parentId !== undefined) throw new Error("Workspace libraries can't be nested yet")
+		const ownerId = to.ownerId ?? this.getDefaultOwnerId()
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const sourceItems = this.getItems(libraryId)
 

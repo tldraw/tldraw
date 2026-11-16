@@ -12,11 +12,18 @@ import {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryDestination,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import {
+	getLibraryDescendants,
+	getLibraryTree,
+	getRootLibrary,
+	resolveLibraryDestination,
+} from './libraryTree'
 import {
 	LibraryItemRecordType,
 	libraryItemValidator,
@@ -44,7 +51,8 @@ export interface InMemoryLibrarySourceOptions {
 	defaultOwnerId?: string
 	/**
 	 * Decides what the user may do, answering `can` for the source. Leave it out to allow
-	 * everything. A library or owner that doesn't exist is refused before this is asked. New
+	 * everything. A library or owner that doesn't exist is refused before this is asked. A library
+	 * inside another is asked about as its root library, whose permissions it has. New
 	 * libraries are asked about with the owner they will belong to, when there is one. Listing
 	 * items and loading their content aren't actions, so they work even when this refuses
 	 * everything.
@@ -113,6 +121,17 @@ export class InMemoryLibrarySource implements LibrarySource {
 				if (library.ownerId !== undefined && !isOwner(library.ownerId)) {
 					throw new Error(`Library ${library.id} belongs to missing owner ${library.ownerId}`)
 				}
+				if (library.parentId === undefined) continue
+				const parent = libraries.find((c) => c.id === library.parentId)
+				if (!parent) throw new Error(`Library ${library.id} is inside missing ${library.parentId}`)
+				if (parent.ownerId !== library.ownerId) {
+					throw new Error(`Library ${library.id} has another owner than ${parent.id}`)
+				}
+			}
+			// Every parent is listed, so a library with one that is still at the top level is in a loop.
+			const loops = getLibraryTree(libraries).filter((node) => node.library.parentId !== undefined)
+			if (loops.length > 0) {
+				throw new Error(`Library ${loops[0].library.id} is inside itself`)
 			}
 			for (const item of items) {
 				if (!libraries.some((c) => c.id === item.libraryId)) {
@@ -156,7 +175,11 @@ export class InMemoryLibrarySource implements LibrarySource {
 	}
 
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
-		if (typeof target === 'string' && !this.store.has(target)) return false
+		if (typeof target === 'string') {
+			const root = getRootLibrary(this.getLibraries(), target)
+			if (!root) return false
+			return this.allows(action, root.id)
+		}
 		if (typeof target === 'object' && this.getLibraryOwners().length > 0) {
 			if (!this.hasOwner(target.ownerId)) return false
 		}
@@ -172,12 +195,21 @@ export class InMemoryLibrarySource implements LibrarySource {
 	}
 
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		const ownerId = options.ownerId ?? this.getDefaultOwnerId() ?? this.getLibraryOwners()[0]?.id
-		if (ownerId !== undefined && !this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
-		this.assertCan('createLibrary', ownerId === undefined ? undefined : { ownerId })
+		const place = resolveLibraryDestination(this.getLibraries(), options)
+		const ownerId =
+			place.parentId === undefined
+				? (place.ownerId ?? this.getDefaultOwnerId() ?? this.getLibraryOwners()[0]?.id)
+				: place.ownerId
+		if (place.parentId !== undefined) {
+			this.assertCan('createLibrary', place.parentId)
+		} else {
+			if (ownerId !== undefined && !this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
+			this.assertCan('createLibrary', ownerId === undefined ? undefined : { ownerId })
+		}
 		const library = LibraryRecordType.create({
 			name,
 			...(ownerId === undefined ? {} : { ownerId }),
+			...(place.parentId === undefined ? {} : { parentId: place.parentId }),
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.store.put([library])
@@ -193,10 +225,14 @@ export class InMemoryLibrarySource implements LibrarySource {
 	async deleteLibrary(libraryId: TLLibraryId) {
 		this.getLibrary(libraryId)
 		this.assertCan('deleteLibrary', libraryId)
-		const items = this.getItems(libraryId)
+		const libraryIds = [
+			libraryId,
+			...getLibraryDescendants(this.getLibraries(), libraryId).map((c) => c.id),
+		]
+		const items = libraryIds.flatMap((id) => this.getItems(id))
 		for (const item of items) this.forgetItem(item.id)
-		this.store.remove([libraryId, ...items.map((item) => item.id)])
-		this.itemsByLibrary.delete(libraryId)
+		this.store.remove([...libraryIds, ...items.map((item) => item.id)])
+		for (const id of libraryIds) this.itemsByLibrary.delete(id)
 	}
 
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
@@ -263,13 +299,30 @@ export class InMemoryLibrarySource implements LibrarySource {
 		this.store.put([{ ...item, libraryId: toLibraryId }])
 	}
 
-	// Items point at their library, not its owner, so they move with it.
-	async moveLibrary(libraryId: TLLibraryId, ownerId: string) {
+	// Items point at their library, not its owner, so they move with it. The libraries inside it
+	// point at it too, but carry its owner, so they are given the new one.
+	async moveLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
 		const library = this.getLibrary(libraryId)
-		if (!this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
-		if (library.ownerId === ownerId) return library
-		const moved = { ...library, ownerId }
-		this.store.put([moved])
+		const libraries = this.getLibraries()
+		const place = resolveLibraryDestination(libraries, to, libraryId)
+		const ownerId =
+			place.parentId === undefined ? (place.ownerId ?? library.ownerId) : place.ownerId
+		if (
+			place.parentId === undefined &&
+			ownerId !== undefined &&
+			this.getLibraryOwners().length > 0
+		) {
+			if (!this.hasOwner(ownerId)) throw new LibraryNotFoundError(ownerId)
+		}
+		if (library.parentId === place.parentId && library.ownerId === ownerId) return library
+		this.assertCan('deleteLibrary', libraryId)
+		if (place.parentId !== undefined) this.assertCan('createLibrary', place.parentId)
+		else this.assertCan('createLibrary', ownerId === undefined ? undefined : { ownerId })
+		const moved = placeLibrary(library, ownerId, place.parentId)
+		const descendants = getLibraryDescendants(libraries, libraryId).map((c) =>
+			placeLibrary(c, ownerId, c.parentId)
+		)
+		this.store.put([moved, ...descendants])
 		return moved
 	}
 
@@ -305,5 +358,18 @@ export class InMemoryLibrarySource implements LibrarySource {
 		this.contents.delete(itemId)
 		this.thumbnailUrls.get(itemId)?.forEach((url) => URL.revokeObjectURL(url))
 		this.thumbnailUrls.delete(itemId)
+	}
+}
+
+function placeLibrary(
+	library: TLLibrary,
+	ownerId: string | undefined,
+	parentId: TLLibraryId | undefined
+): TLLibrary {
+	const { ownerId: _ownerId, parentId: _parentId, ...rest } = library
+	return {
+		...rest,
+		...(ownerId === undefined ? {} : { ownerId }),
+		...(parentId === undefined ? {} : { parentId }),
 	}
 }

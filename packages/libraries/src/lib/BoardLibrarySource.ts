@@ -23,10 +23,12 @@ import {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryDestination,
 	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
+import { getLibraryDescendants, resolveLibraryDestination } from './libraryTree'
 import { mapConcurrently } from './mapConcurrently'
 import { saveErrorMessages } from './saveErrorMessages'
 import {
@@ -173,10 +175,12 @@ export class BoardLibrarySource implements LibrarySource {
 
 	// The board doesn't track owners, so a library can't be given one.
 	async createLibrary(name: string, options: TLNewLibraryOptions = {}) {
-		this.assertCan('createLibrary')
 		if (options.ownerId !== undefined) throw new LibraryNotFoundError(options.ownerId)
+		const { parentId } = resolveLibraryDestination(this.getLibraries(), options)
+		this.assertCan('createLibrary', parentId)
 		const library = LibraryRecordType.create({
 			name,
+			...(parentId === undefined ? {} : { parentId }),
 			...(options.meta === undefined ? {} : { meta: options.meta }),
 		})
 		this.write([library])
@@ -194,16 +198,34 @@ export class BoardLibrarySource implements LibrarySource {
 	async deleteLibrary(libraryId: TLLibraryId) {
 		this.getLibrary(libraryId)
 		this.assertCan('deleteLibrary', libraryId)
-		const records = this.query('library-item', () => ({
-			libraryId: { eq: libraryId },
-		})).get()
+		const libraryIds = [
+			libraryId,
+			...getLibraryDescendants(this.getLibraries(), libraryId).map((c) => c.id),
+		]
+		const records = libraryIds.flatMap((id) =>
+			this.query('library-item', () => ({ libraryId: { eq: id } })).get()
+		)
 		const itemIds = records.map((item) => item.id)
 		this.write(
 			[],
-			[libraryId, ...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
+			[...libraryIds, ...itemIds, ...itemIds.map((itemId) => createLibraryItemContentId(itemId))],
 			records.flatMap(getThumbnailAssetIds)
 		)
-		this.itemsByLibrary.delete(libraryId)
+		for (const id of libraryIds) this.itemsByLibrary.delete(id)
+	}
+
+	/** Moves a library, with everything inside it, into another on the board or to the top level. */
+	async moveLibrary(libraryId: TLLibraryId, to: TLLibraryDestination) {
+		const library = this.getLibrary(libraryId)
+		if (to.ownerId !== undefined) throw new LibraryNotFoundError(to.ownerId)
+		const { parentId } = resolveLibraryDestination(this.getLibraries(), to, libraryId)
+		if (library.parentId === parentId) return library
+		this.assertCan('deleteLibrary', libraryId)
+		this.assertCan('createLibrary', parentId)
+		const { parentId: _parentId, ...rest } = library
+		const moved: TLLibrary = parentId === undefined ? rest : { ...rest, parentId }
+		this.write([moved])
+		return moved
 	}
 
 	/**

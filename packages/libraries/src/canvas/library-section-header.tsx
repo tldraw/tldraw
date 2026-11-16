@@ -112,7 +112,7 @@ export function LibrarySectionHeader({
 	const moveLibrary = (ownerId: string) => {
 		if (!source.moveLibrary) return
 		const owner = ownerChoices.move.find((o) => o.id === ownerId)
-		source.moveLibrary(libraryId, ownerId).then((moved) => {
+		source.moveLibrary(libraryId, { ownerId }).then((moved) => {
 			activeLibraryId.set(editor, moved.id)
 			addToast({
 				title: msg(messages.movedTitle),
@@ -123,7 +123,7 @@ export function LibrarySectionHeader({
 
 	const copyToOwner = (ownerId: string) => {
 		const owner = ownerChoices.copy.find((o) => o.id === ownerId)
-		copyLibrary(source, libraryId, ownerId).then((copy) => {
+		copyLibrary(source, libraryId, { ownerId }).then((copy) => {
 			activeLibraryId.set(editor, copy.id)
 			addToast({
 				title: msg(messages.copiedTitle),

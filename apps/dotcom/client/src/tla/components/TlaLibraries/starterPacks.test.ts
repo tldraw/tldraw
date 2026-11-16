@@ -140,7 +140,7 @@ describe('starter packs in a source with owners', () => {
 		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
 		const copy = await addStarterPack(source, pack)
 		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary(copy.id, 'acme')
+		await source.moveLibrary(copy.id, { ownerId: 'acme' })
 		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
 	})
 

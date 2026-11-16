@@ -59,7 +59,7 @@ describe('TldrawAppLibrariesSource', () => {
 	it('lists libraries from the synced rows, with their workspace as owner', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Team kit', { ownerId: 'acme' })
-		const moved = await source.moveLibrary(kit.id, 'user_me')
+		const moved = await source.moveLibrary(kit.id, { ownerId: 'user_me' })
 		expect(moved).toMatchObject({ id: kit.id, ownerId: 'user_me' })
 		expect(source.getLibraries().map((c) => [c.name, c.ownerId])).toEqual([['Team kit', 'user_me']])
 	})
@@ -75,7 +75,7 @@ describe('TldrawAppLibrariesSource', () => {
 	it('reports a mutation the server rejects', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Kit')
-		await expect(source.moveLibrary(kit.id, 'elsewhere')).rejects.toThrow('rejected')
+		await expect(source.moveLibrary(kit.id, { ownerId: 'elsewhere' })).rejects.toThrow('rejected')
 	})
 
 	it("adds an item through the worker, with the user's token, and loads its content back", async () => {
@@ -152,7 +152,7 @@ describe('TldrawAppLibrariesSource', () => {
 		const { backend, source } = setUp()
 		const kit = await source.createLibrary('Kit')
 		await added(source.addItem(kit.id, { name: 'Star', content }))
-		const copy = await copyLibrary(source, kit.id, 'acme')
+		const copy = await copyLibrary(source, kit.id, { ownerId: 'acme' })
 		expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
 		expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Star'])
 		const urls = backend.fetch.mock.calls.map(([url]) => String(url))
@@ -393,7 +393,7 @@ describe('TldrawAppLibrariesSource', () => {
 		it('lists the copy and its items at once, with the source items’ names and thumbnails', async () => {
 			const { backend, source, kit, star } = await withKit()
 			backend.holdRequests()
-			source.copyLibrary(kit.id, 'acme')
+			source.copyLibrary(kit.id, { ownerId: 'acme' })
 			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
 			expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
 			expect(source.getItems(copy.id)).toMatchObject([
@@ -408,7 +408,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const kit = await source.createLibrary('Kit')
 			await added(source.addItem(kit.id, { name: 'Star', content, meta: { category: 'Sky' } }))
 			const requests = backend.holdRequests()
-			const copying = source.copyLibrary(kit.id, 'acme')
+			const copying = source.copyLibrary(kit.id, { ownerId: 'acme' })
 			const pending = source.getLibraries().find((c) => c.id !== kit.id)!
 			expect(source.getItems(pending.id).map((i) => i.meta)).toEqual([{ category: 'Sky' }])
 			requests.release()
@@ -423,7 +423,7 @@ describe('TldrawAppLibrariesSource', () => {
 		it('places an item being copied from its source item’s content', async () => {
 			const { backend, source, kit } = await withKit()
 			const requests = backend.holdRequests()
-			source.copyLibrary(kit.id, 'acme')
+			source.copyLibrary(kit.id, { ownerId: 'acme' })
 			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
 			const [pending] = source.getItems(copy.id)
 			const loading = source.getItemContent(pending.id)
@@ -434,7 +434,7 @@ describe('TldrawAppLibrariesSource', () => {
 		it('sends the ids it listed the copy under, and keeps them once the rows arrive', async () => {
 			const { backend, source, kit, star, moon } = await withKit()
 			const rows = backend.holdWorkerRows()
-			const copying = source.copyLibrary(kit.id, 'acme')
+			const copying = source.copyLibrary(kit.id, { ownerId: 'acme' })
 			const listed = source.getLibraries().find((c) => c.id !== kit.id)!
 			const listedItems = source.getItems(listed.id)
 			const copy = await copying
@@ -460,7 +460,7 @@ describe('TldrawAppLibrariesSource', () => {
 		it('drops the copy when the worker fails, and rejects', async () => {
 			const { backend, source, kit } = await withKit()
 			const requests = backend.holdRequests()
-			const copying = source.copyLibrary(kit.id, 'acme')
+			const copying = source.copyLibrary(kit.id, { ownerId: 'acme' })
 			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
 			const renaming = source.renameLibrary(copy.id, 'Copied kit')
 			requests.fail()
@@ -473,7 +473,7 @@ describe('TldrawAppLibrariesSource', () => {
 		it('renames a copy once its row has arrived', async () => {
 			const { backend, source, kit } = await withKit()
 			const rows = backend.holdWorkerRows()
-			source.copyLibrary(kit.id, 'acme')
+			source.copyLibrary(kit.id, { ownerId: 'acme' })
 			const copy = source.getLibraries().find((c) => c.id !== kit.id)!
 			const renaming = source.renameLibrary(copy.id, 'Copied kit')
 			rows.release()
@@ -485,7 +485,7 @@ describe('TldrawAppLibrariesSource', () => {
 			const { backend, source } = setUp()
 			const server = backend.holdServer()
 			const kit = await source.createLibrary('Kit')
-			const copying = source.copyLibrary(kit.id, 'acme')
+			const copying = source.copyLibrary(kit.id, { ownerId: 'acme' })
 			await Promise.resolve()
 			expect(source.getLibraries()).toHaveLength(2)
 			expect(backend.fetch).not.toHaveBeenCalled()
@@ -500,7 +500,7 @@ describe('TldrawAppLibrariesSource', () => {
 			renameLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
 				source.renameLibrary(kit.id, 'Renamed'),
 			moveLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
-				source.moveLibrary(kit.id, 'acme'),
+				source.moveLibrary(kit.id, { ownerId: 'acme' }),
 			deleteLibrary: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>
 				source.deleteLibrary(kit.id),
 			renameItem: async (source: TldrawAppLibrariesSource, kit: TLLibrary) =>

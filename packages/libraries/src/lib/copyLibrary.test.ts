@@ -76,7 +76,7 @@ describe('copyLibrary', () => {
 		)
 		await added(source.addItem(original.id, { content: content() }))
 
-		const copy = await copyLibrary(source, original.id, 'acme')
+		const copy = await copyLibrary(source, original.id, { ownerId: 'acme' })
 
 		expect(copy).toMatchObject({ name: 'Wireframes', ownerId: 'acme' })
 		expect(copy.id).not.toBe(original.id)
@@ -96,7 +96,7 @@ describe('copyLibrary', () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
 		await added(source.addItem(original.id, { content: content(), meta: { category: 'Cards' } }))
-		const copy = await copyLibrary(source, original.id, 'acme')
+		const copy = await copyLibrary(source, original.id, { ownerId: 'acme' })
 		expect(source.getItems(copy.id).map((item) => item.meta)).toEqual([{ category: 'Cards' }])
 	})
 
@@ -118,7 +118,7 @@ describe('copyLibrary', () => {
 		const addItems = vi.spyOn(source, 'addItems')
 		const addItem = vi.spyOn(source, 'addItem')
 
-		const copy = await copyLibrary(source, original.id, 'acme')
+		const copy = await copyLibrary(source, original.id, { ownerId: 'acme' })
 
 		expect(mostAtOnce).toBeGreaterThan(1)
 		expect(mostAtOnce).toBeLessThan(names.length)
@@ -139,7 +139,7 @@ describe('copyLibrary', () => {
 			await added(memory.addItem(original.id, { name, content: content() }))
 		const addItem = vi.spyOn(memory, 'addItem')
 
-		const copy = await copyLibrary(withoutAddItems(memory), original.id, 'acme')
+		const copy = await copyLibrary(withoutAddItems(memory), original.id, { ownerId: 'acme' })
 
 		expect(addItem).toHaveBeenCalledTimes(3)
 		const byCreation = [...memory.getItems(copy.id)]
@@ -156,7 +156,7 @@ describe('copyLibrary', () => {
 			can: (_, libraryId) => libraryId !== pack.id,
 			initial: { libraries: [pack], items: [item], contents: { [item.id]: content() } },
 		})
-		const copy = await copyLibrary(source, pack.id, 'acme')
+		const copy = await copyLibrary(source, pack.id, { ownerId: 'acme' })
 		expect(source.can('addItem', copy.id)).toBe(true)
 		expect(source.getItems(copy.id).map((i) => i.name)).toEqual(['Card'])
 	})
@@ -171,7 +171,7 @@ describe('copyLibrary', () => {
 				thumbnail: { light: new Blob(['l']), dark: new Blob(['d']) },
 			})
 		)
-		const copy = await copyLibrary(source, original.id, 'acme')
+		const copy = await copyLibrary(source, original.id, { ownerId: 'acme' })
 		expect(source.getItems(copy.id)[0].thumbnail).toBeUndefined()
 	})
 
@@ -180,17 +180,19 @@ describe('copyLibrary', () => {
 		const original = await source.createLibrary('Wireframes')
 		await added(source.addItem(original.id, { content: content() }))
 		vi.spyOn(source, 'getItemContent').mockRejectedValue(new Error('offline'))
-		await expect(copyLibrary(source, original.id, 'acme')).rejects.toThrow('offline')
+		await expect(copyLibrary(source, original.id, { ownerId: 'acme' })).rejects.toThrow('offline')
 		expect(source.getLibraries().map((c) => c.id)).toEqual([original.id])
 	})
 
 	it('refuses a missing library or owner', async () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
-		await expect(copyLibrary(source, LibraryRecordType.createId('nope'), 'acme')).rejects.toThrow(
+		await expect(
+			copyLibrary(source, LibraryRecordType.createId('nope'), { ownerId: 'acme' })
+		).rejects.toThrow(LibraryNotFoundError)
+		await expect(copyLibrary(source, original.id, { ownerId: 'nobody' })).rejects.toThrow(
 			LibraryNotFoundError
 		)
-		await expect(copyLibrary(source, original.id, 'nobody')).rejects.toThrow(LibraryNotFoundError)
 		expect(source.getLibraries()).toHaveLength(1)
 	})
 })

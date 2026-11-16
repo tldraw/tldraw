@@ -118,7 +118,7 @@ describe('getEditorLibraries', () => {
 			})
 		)
 
-		await source.moveLibrary!(library.id, 'home')
+		await source.moveLibrary!(library.id, { ownerId: 'home' })
 		await vi.waitFor(() => expect(ofType(editor, 'library')).toEqual([]))
 		const [inHome] = source.getLibraries()
 		expect(inHome.ownerId).toBe('home')
@@ -128,7 +128,7 @@ describe('getEditorLibraries', () => {
 		])
 
 		editor.store.remove([assetId])
-		await source.moveLibrary!(inHome.id, 'file-a')
+		await source.moveLibrary!(inHome.id, { ownerId: 'file-a' })
 		await vi.waitFor(() => expect(source.getLibraries()).toHaveLength(1))
 		const [onBoard] = source.getLibraries()
 		expect(onBoard.ownerId).toBe('file-a')
@@ -151,7 +151,7 @@ describe('getEditorLibraries', () => {
 		}
 		const boardOrder = source.getItems(library.id).map((item) => item.name)
 
-		const copy = await copyLibrary(source, library.id, 'home')
+		const copy = await copyLibrary(source, library.id, { ownerId: 'home' })
 
 		const itemRequests = backend.fetch.mock.calls.filter(([url]) => String(url).endsWith('/items'))
 		expect(itemRequests).toHaveLength(1)
@@ -167,7 +167,7 @@ describe('getEditorLibraries', () => {
 		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
 		expect(ofType(editor, 'library')).toEqual([])
 		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary!(copy.id, 'acme')
+		await source.moveLibrary!(copy.id, { ownerId: 'acme' })
 		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
 	})
 })
