@@ -122,8 +122,9 @@ import {
 import {
 	TAB_RENDER_ROOM_TIMEOUT_MS,
 	TabRenderBroker,
-	TabRenderOutcome,
+	TabRenderResponse,
 	TabRenderSocket,
+	TabRenderStats,
 	keepDeliverableTabRenderSessions,
 	pickTabRenderSessions,
 	pickTabRenderTargets,
@@ -3536,7 +3537,7 @@ export class TLFileDurableObject extends DurableObject {
 		userId: string,
 		request: TabRenderRequest,
 		jobIds: string[]
-	): Promise<TabRenderOutcome> {
+	): Promise<TabRenderResponse> {
 		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
 		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
 		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
@@ -3559,8 +3560,10 @@ export class TLFileDurableObject extends DurableObject {
 			: pickTabRenderSessions(sockets, userId, now)
 		if (sessionIds.length === 0) return { status: 'reload_needed' }
 
+		const roomStartedAt = Date.now()
 		const room = await this.getRoomForTabRender()
-		if (!room) return { status: 'room_timeout' }
+		const stats: TabRenderStats = { tabs: 0, roomMs: Date.now() - roomStartedAt, ackMs: -1 }
+		if (!room) return { status: 'room_timeout', stats }
 		// Only now: sessionIdToWs is filled in as the room boots.
 		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
 			const ws = this.sessionIdToWs.get(sessionId)
@@ -3571,7 +3574,7 @@ export class TLFileDurableObject extends DurableObject {
 				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
 			}
 		})
-		if (deliverable.length === 0) return { status: 'no_tab' }
+		if (deliverable.length === 0) return { status: 'no_tab', stats }
 
 		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
 		// presence, says which one they're in.
@@ -3580,10 +3583,19 @@ export class TLFileDurableObject extends DurableObject {
 			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
 		}).slice(0, jobIds.length)
 
-		return this.tabRenders.dispatch(targets, request, jobIds, (sessionId, jobId) => {
-			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
-			room.sendCustomMessage(sessionId, event)
-		})
+		stats.tabs = targets.length
+		const sentAt = Date.now()
+		const outcome = await this.tabRenders.dispatch(
+			targets,
+			request,
+			jobIds,
+			(sessionId, jobId) => {
+				const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+				room.sendCustomMessage(sessionId, event)
+			},
+			() => (stats.ackMs = Date.now() - sentAt)
+		)
+		return { ...outcome, stats }
 	}
 
 	/**

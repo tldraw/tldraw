@@ -23,15 +23,15 @@ spec:
           spec: {}
           version: v0
   cursorSync: Crosshair
-  description:
-    The authenticated MCP server on the sync worker at POST /app/mcp, which serves get_board_info,
-    get_page_info, get_cluster_info and get_cluster_screenshot for any tldraw.com board the signed-in
-    caller can see. Every request needs an OAuth access token from the tldraw Clerk instance and a
-    user the mcp_server_access flag names; refusals are on the mcp_server_auth_refusal event. Protocol traffic comes from the mcp_server_tool_call and mcp_server_initialize
-    events; the render panels are the source:mcp slice of mcp_shared_board_screenshot, whose
-    cross-surface view (og and queue too) stays on Dotcom events. This server only — the separate
-    tldraw MCP app worker (apps/mcp-app) and its own MCP_ANALYTICS dataset are on MCP app
-    sessions.
+  description: The authenticated MCP server on the sync worker at POST /app/mcp, which serves
+    the board tools for any tldraw.com board the signed-in caller can see. Every request needs
+    an OAuth access token from the tldraw Clerk instance and a user the mcp_server_access
+    flag names; refusals are on the mcp_server_auth_refusal event. Protocol traffic comes
+    from the mcp_server_tool_call and mcp_server_initialize events, and the client variable
+    filters the tool call panels to the codex plugin's proxied calls or to direct clients.
+    The tools that read, capture or edit a page work through the caller's open browser tab,
+    on the mcp_tab_render event. This server only — the separate tldraw MCP app worker (apps/mcp-app)
+    and its own MCP_ANALYTICS dataset are on MCP app sessions.
   editable: true
   elements:
     panel-1:
@@ -61,12 +61,14 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       rawQuery: |-
                         SELECT count() as calls
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       round: 0s
                       showFormattedSQL: false
@@ -160,8 +162,9 @@ spec:
             queryOptions: {}
             transformations: []
         description: Client family, normalized from the User-Agent header into a bounded set
-          (claude, openai, cursor, python, node, curl, browser, other, none). `none` means
-          the caller sent no User-Agent.
+          (codex-plugin, claude, codex, openai, cursor, python, node, curl, browser, other,
+          none). codex-plugin is our own proxy worker; codex is a Codex client connected to
+          this server directly. `none` means the caller sent no User-Agent.
         id: 10
         links: []
         title: Tool calls by client
@@ -361,8 +364,8 @@ spec:
             transformations: []
         description: The raw clientInfo.name each caller reported, beside the User-Agent family
           it arrived with. This is where a client that currently lands in `other` gets identified
-          — add it to MCP_CLIENT_FAMILIES in mcpServer.ts and it gets its own
-          series in the panels above.
+          — add it to MCP_CLIENT_FAMILIES in mcpServer.ts and it gets its own series in the
+          panels above.
         id: 12
         links: []
         title: Client names seen at initialize
@@ -412,22 +415,20 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob4 = 'outcome:declined', substring(blob5, 8), substring(blob4, 9)) as outcome, sum(_sample_interval) as jobs
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'browser_run_session'
-                        AND blob3 = 'source:mcp'
+                        AND blob1 = 'mcp_tab_render'
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date, mode
+                        GROUP BY date, outcome
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 6) as mode, quantileWeighted(0.5, double3, _sample_interval) as p50, quantileWeighted(0.95, double3, _sample_interval) as p95, quantileWeighted(0.99, double3, _sample_interval) as p99
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob4 = 'outcome:declined', substring(blob5, 8), substring(blob4, 9)) as outcome, sum(_sample_interval) as jobs
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'browser_run_session'
-                        AND blob3 = 'source:mcp'
+                        AND blob1 = 'mcp_tab_render'
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date, mode
+                        GROUP BY date, outcome
                         ORDER BY date ASC
                       round: 0s
                       showFormattedSQL: false
@@ -438,14 +439,16 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Wall-clock per browser session for this server only (source:mcp), from the
-          browser_run_session ledger, split by what the session was for: measure (the clustering
-          tools sizing a page) vs screenshot. Weighted by _sample_interval to account for Analytics
-          Engine sampling. Failed sessions are included — they held a browser too. The cross-surface
-          view, including the og route and the background queue, is on Dotcom events.'
+        description: One row per job sent to the caller's open tab (mcp_tab_render), which
+          is how get_page_info, get_cluster_info, get_cluster_screenshot, apply_ops and get_user_state
+          do their work. page_read, page_not_found, captured, applied and user_state are answers.
+          no_tab and reload_needed mean the user has to open or reload the board; ack_timeout
+          is a tab that never picked the job up, usually a throttled background tab; work_timeout
+          and room_timeout are a tab or a room that took too long. A declined job shows the
+          tab's reason instead (tab_hidden, busy, editor_not_ready, invalid_ops and so on).
         id: 13
         links: []
-        title: Browser Run render duration percentiles
+        title: Tab jobs by outcome
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -462,16 +465,16 @@ spec:
                   axisPlacement: auto
                   barAlignment: 0
                   barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 10
-                  gradientMode: opacity
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
                   hideFrom:
                     legend: false
                     tooltip: false
                     viz: false
                   insertNulls: false
                   lineInterpolation: linear
-                  lineWidth: 1.5
+                  lineWidth: 0
                   pointSize: 5
                   scaleDistribution:
                     type: linear
@@ -480,11 +483,15 @@ spec:
                   spanNulls: false
                   stacking:
                     group: A
-                    mode: none
+                    mode: normal
                   thresholdsStyle:
                     mode: 'off'
-                thresholds: *id001
-                unit: ms
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
               overrides: []
             options:
               annotations:
@@ -526,24 +533,20 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 7) as cache_status, count() as total
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as mode, sum(if(blob4 IN ('outcome:page_read', 'outcome:page_not_found', 'outcome:captured', 'outcome:applied', 'outcome:user_state'), _sample_interval, 0)) / sum(_sample_interval) * 100 as success_rate
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'mcp_shared_board_screenshot'
-                        AND blob3 = 'source:mcp'
-                        AND blob4 != 'cache:none'
+                        AND blob1 = 'mcp_tab_render'
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date, cache_status
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 7) as cache_status, count() as total
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as mode, sum(if(blob4 IN ('outcome:page_read', 'outcome:page_not_found', 'outcome:captured', 'outcome:applied', 'outcome:user_state'), _sample_interval, 0)) / sum(_sample_interval) * 100 as success_rate
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'mcp_shared_board_screenshot'
-                        AND blob3 = 'source:mcp'
-                        AND blob4 != 'cache:none'
+                        AND blob1 = 'mcp_tab_render'
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date, cache_status
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       round: 0s
                       showFormattedSQL: false
@@ -554,13 +557,12 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Cache outcome per screenshot attempt: hit (served a cached PNG), miss
-          (had to render). Only misses spend Browser Run, so a falling hit rate is what makes
-          render spend climb. cache:none is excluded — the info tools consult no cache at all
-          and would otherwise swamp both real values.'
+        description: 'Share of open-tab jobs answered with a result, by what the job was:
+          read (page and cluster info), screenshot, apply_ops or user_state. A falling line
+          with steady traffic means tabs are open but not answering.'
         id: 14
         links: []
-        title: Screenshot cache status
+        title: Tab job success rate by mode
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -577,16 +579,16 @@ spec:
                   axisPlacement: auto
                   barAlignment: 0
                   barWidthFactor: 0.8
-                  drawStyle: bars
-                  fillOpacity: 80
-                  gradientMode: none
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
                   hideFrom:
                     legend: false
                     tooltip: false
                     viz: false
                   insertNulls: false
                   lineInterpolation: linear
-                  lineWidth: 0
+                  lineWidth: 1.5
                   pointSize: 5
                   scaleDistribution:
                     type: linear
@@ -595,11 +597,15 @@ spec:
                   spanNulls: false
                   stacking:
                     group: A
-                    mode: normal
+                    mode: none
                   thresholdsStyle:
                     mode: 'off'
-                thresholds: *id001
-                unit: short
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percent
               overrides: []
             options:
               annotations:
@@ -669,8 +675,10 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Render-path failures for this server only. browser_timeout and browser_failed
-          are Browser Run problems; snapshot_read_error is the board load; the rest are caller-shaped.
+        description: Refusals and failures on this server's request ledger (the source:mcp
+          slice of mcp_shared_board_screenshot), which the tools still write though none of
+          them starts a browser any more. tab_* reasons are the open tab's; the rest are caller-shaped
+          or a board lookup.
         id: 15
         links: []
         title: Screenshot failures by reason
@@ -870,28 +878,22 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double4, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double4, _sample_interval) as browser_p95
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as mode, quantileWeighted(0.95, double1, _sample_interval) as p95
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'browser_run_session'
-                        AND blob3 = 'source:mcp'
-                        AND blob4 = 'mode:screenshot'
-                        AND blob5 = 'outcome:ok'
-                        AND double4 > 0
+                        AND blob1 = 'mcp_tab_render'
+                        AND blob4 IN ('outcome:page_read', 'outcome:page_not_found', 'outcome:captured', 'outcome:applied', 'outcome:user_state')
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double3, _sample_interval) as total_p50, quantileWeighted(0.5, double4, _sample_interval) as browser_p50, quantileWeighted(0.95, double3, _sample_interval) as total_p95, quantileWeighted(0.95, double4, _sample_interval) as browser_p95
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as mode, quantileWeighted(0.95, double1, _sample_interval) as p95
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'browser_run_session'
-                        AND blob3 = 'source:mcp'
-                        AND blob4 = 'mode:screenshot'
-                        AND blob5 = 'outcome:ok'
-                        AND double4 > 0
+                        AND blob1 = 'mcp_tab_render'
+                        AND blob4 IN ('outcome:page_read', 'outcome:page_not_found', 'outcome:captured', 'outcome:applied', 'outcome:user_state')
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       round: 0s
                       showFormattedSQL: false
@@ -902,10 +904,13 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Total session wall clock (double3) against the browser wall clock Browser Run bills for it (double4, from the X-Browser-Ms-Used header), for successful cluster screenshots. The gap between the lines is everything outside the browser — RPC, Browser Run queueing, response transfer — which is where the pipeline variance lives. Sessions with no billed time recorded (failures, the local dev service, rows from before the field existed) are excluded by double4 > 0.'
+        description: p95 time from sending a job to the tab's answer, for jobs a tab answered,
+          weighted by _sample_interval. Covers minting the job ids, waking the room, the tab's
+          own work and the reply POST. Failed jobs are left out because their duration is
+          whichever timeout ended them.
         id: 17
         links: []
-        title: In-browser vs total session time
+        title: Tab job p95 duration by mode
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -943,7 +948,11 @@ spec:
                     mode: none
                   thresholdsStyle:
                     mode: 'off'
-                thresholds: *id001
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
                 unit: ms
               overrides: []
             options:
@@ -986,22 +995,20 @@ spec:
                       formatAs: time_series
                       intervalFactor: 1
                       query: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as boot, quantileWeighted(0.5, double2 - double1, _sample_interval) as acquire, quantileWeighted(0.5, double3 - double2, _sample_interval) as mount, quantileWeighted(0.5, double4 - double3, _sample_interval) as settle, quantileWeighted(0.5, double5 - double4, _sample_interval) as export
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as mode, sum(_sample_interval) as jobs
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'render_page_timings'
-                        AND blob3 = 'surface:mcp'
+                        AND blob1 = 'mcp_tab_render'
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       rawQuery: |-
-                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.5, double1, _sample_interval) as boot, quantileWeighted(0.5, double2 - double1, _sample_interval) as acquire, quantileWeighted(0.5, double3 - double2, _sample_interval) as mount, quantileWeighted(0.5, double4 - double3, _sample_interval) as settle, quantileWeighted(0.5, double5 - double4, _sample_interval) as export
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 6) as mode, sum(_sample_interval) as jobs
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'render_page_timings'
-                        AND blob3 = 'surface:mcp'
+                        AND blob1 = 'mcp_tab_render'
                         AND blob2 = '${environment}-tldraw-multiplayer'
-                        GROUP BY date
+                        GROUP BY date, mode
                         ORDER BY date ASC
                       round: 0s
                       showFormattedSQL: false
@@ -1012,10 +1019,12 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Where the in-page time goes, from the render page timing beacon (render_page_timings): p50 per phase for this server (surface:mcp). Phases are deltas between performance.now() stamps: script boot, snapshot fetch, editor mount, the settle wait for fonts and assets, and the export. The og surface beacons onto the same event.'
+        description: Open-tab jobs by what they asked the tab to do. A tool call that fails
+          before it reaches a tab (bad input, a rate limit, a board the caller cannot see)
+          sends no job.
         id: 18
         links: []
-        title: Render page phase timings
+        title: Tab jobs by mode
         vizConfig:
           group: timeseries
           kind: VizConfig
@@ -1032,16 +1041,16 @@ spec:
                   axisPlacement: auto
                   barAlignment: 0
                   barWidthFactor: 0.8
-                  drawStyle: line
-                  fillOpacity: 10
-                  gradientMode: opacity
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
                   hideFrom:
                     legend: false
                     tooltip: false
                     viz: false
                   insertNulls: false
                   lineInterpolation: linear
-                  lineWidth: 1.5
+                  lineWidth: 0
                   pointSize: 5
                   scaleDistribution:
                     type: linear
@@ -1050,11 +1059,131 @@ spec:
                   spanNulls: false
                   stacking:
                     group: A
-                    mode: none
+                    mode: normal
                   thresholdsStyle:
                     mode: 'off'
-                thresholds: *id001
-                unit: ms
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-19:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob6 = 'client:codex-plugin', 'codex plugin', if(blob6 = 'client:none', 'unidentified', 'direct')) as channel, sum(_sample_interval) as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, channel
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob6 = 'client:codex-plugin', 'codex plugin', if(blob6 = 'client:none', 'unidentified', 'direct')) as channel, sum(_sample_interval) as calls
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, channel
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: "Tool calls split by how they reached this server: through the codex
+          plugin's proxy worker, or from an MCP client connected directly (Claude, Cursor,
+          a Codex client using this server's own URL, scripts). unidentified is a caller
+          with no User-Agent, which is what the plugin's calls looked like before it sent
+          one. Use the client variable to filter the tool panels to either side."
+        id: 19
+        links: []
+        title: 'Tool calls: codex plugin vs direct'
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
               overrides: []
             options:
               annotations:
@@ -1100,12 +1229,14 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       rawQuery: |-
                         SELECT countIf(blob4 = 'outcome:error') / count() * 100 as error_rate
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       round: 0s
                       showFormattedSQL: false
@@ -1146,6 +1277,666 @@ spec:
               showPercentChange: false
               textMode: auto
               wideLayout: true
+          version: 13.2.0-29854286369
+    panel-20:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob6 = 'client:codex-plugin', 'codex plugin', if(blob6 = 'client:none', 'unidentified', 'direct')) as channel, sum(if(blob4 = 'outcome:error', _sample_interval, 0)) / sum(_sample_interval) * 100 as error_rate
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, channel
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob6 = 'client:codex-plugin', 'codex plugin', if(blob6 = 'client:none', 'unidentified', 'direct')) as channel, sum(if(blob4 = 'outcome:error', _sample_interval, 0)) / sum(_sample_interval) * 100 as error_rate
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, channel
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Share of tool calls that returned an error on each side. The plugin only
+          forwards the four board-list tools, so its errors are bad input, rate limits and
+          board lookups; the direct side also carries every open-tab failure.
+        id: 20
+        links: []
+        title: 'Tool call error rate: codex plugin vs direct'
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percent
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-21:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob6 = 'client:codex-plugin', 'codex plugin', if(blob6 = 'client:none', 'unidentified', 'direct')) as channel, quantileWeighted(0.95, double1, _sample_interval) as p95
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, channel
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, if(blob6 = 'client:codex-plugin', 'codex plugin', if(blob6 = 'client:none', 'unidentified', 'direct')) as channel, quantileWeighted(0.95, double1, _sample_interval) as p95
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_server_tool_call'
+                        AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, channel
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description:
+          p95 time inside the tools/call handler on each side, weighted by _sample_interval.
+          Calls rejected before doing any work are excluded, as in Tool call duration percentiles.
+        id: 21
+        links: []
+        title: 'Tool call p95 duration: codex plugin vs direct'
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-22:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: table
+                      formatAs: table
+                      intervalFactor: 1
+                      query: |-
+                        SELECT sum(if(blob4 IN ('outcome:page_read', 'outcome:page_not_found', 'outcome:captured', 'outcome:applied', 'outcome:user_state'), _sample_interval, 0)) / sum(_sample_interval) * 100 as success_rate
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      rawQuery: |-
+                        SELECT sum(if(blob4 IN ('outcome:page_read', 'outcome:page_not_found', 'outcome:captured', 'outcome:applied', 'outcome:user_state'), _sample_interval, 0)) / sum(_sample_interval) * 100 as success_rate
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Share of open-tab jobs a tab answered with a result. Everything else
+          is a board that was not open, a tab that declined or a timeout; see Tab jobs by
+          outcome.
+        id: 22
+        links: []
+        title: Tab job success rate
+        vizConfig:
+          group: stat
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: thresholds
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percent
+              overrides: []
+            options:
+              colorMode: value
+              graphMode: area
+              justifyMode: auto
+              orientation: auto
+              percentChangeColorMode: standard
+              reduceOptions:
+                calcs:
+                  - lastNotNull
+                fields: ''
+                values: false
+              showPercentChange: false
+              textMode: auto
+              wideLayout: true
+          version: 13.2.0-29854286369
+    panel-23:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.95, double2, _sample_interval) as room, quantileWeighted(0.95, double3, _sample_interval) as ack, quantileWeighted(0.95, double1, _sample_interval) as total
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render'
+                        AND double2 >= 0
+                        AND double3 >= 0
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, quantileWeighted(0.95, double2, _sample_interval) as room, quantileWeighted(0.95, double3, _sample_interval) as ack, quantileWeighted(0.95, double1, _sample_interval) as total
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render'
+                        AND double2 >= 0
+                        AND double3 >= 0
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: "Where an answered job's time went, weighted by _sample_interval: room
+          is the wait for the board's room to boot, ack is from sending the job to the first
+          reply from any tab, and total is the whole job. A high room time is ours to fix;
+          a high ack time is throttled or busy tabs."
+        id: 23
+        links: []
+        title: Tab job stage times (p95)
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: line
+                  fillOpacity: 10
+                  gradientMode: opacity
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 1.5
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: none
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: ms
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-24:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob6, 6) as tool, sum(_sample_interval) as jobs
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render'
+                        AND blob6 != ''
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, tool
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob6, 6) as tool, sum(_sample_interval) as jobs
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render'
+                        AND blob6 != ''
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, tool
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Open-tab jobs by the tool that asked. get_page_info and get_cluster_info
+          are both mode read, and get_cluster_screenshot sends a read before its screenshot,
+          so this is the split by mode cannot give.
+        id: 24
+        links: []
+        title: Tab jobs by tool
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-25:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 9) as refusal, sum(_sample_interval) as replies
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render_reply_refusal'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, refusal
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 9) as refusal, sum(_sample_interval) as replies
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_tab_render_reply_refusal'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, refusal
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description:
+          Replies from a tab that the reply route turned away (mcp_tab_render_reply_refusal).
+          job_ended is routine on reads, where the first tab to answer ends the job for the
+          others. too_large, invalid_json and invalid_reply are a tab that did the work and
+          could not hand it over; the job itself shows as work_timeout.
+        id: 25
+        links: []
+        title: Tab replies refused
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
           version: 13.2.0-29854286369
     panel-3:
       kind: Panel
@@ -1245,22 +2036,16 @@ spec:
                       formatAs: table
                       intervalFactor: 1
                       query: |-
-                        SELECT count() as renders
+                        SELECT sum(if(blob6 = 'client:codex-plugin', _sample_interval, 0)) / sum(_sample_interval) * 100 as codex_plugin
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'browser_run_session'
-                        AND blob3 = 'source:mcp'
-                        AND blob4 = 'mode:screenshot'
-                        AND blob5 = 'outcome:ok'
+                        AND blob1 = 'mcp_server_tool_call'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       rawQuery: |-
-                        SELECT count() as renders
+                        SELECT sum(if(blob6 = 'client:codex-plugin', _sample_interval, 0)) / sum(_sample_interval) * 100 as codex_plugin
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
-                        AND blob1 = 'browser_run_session'
-                        AND blob3 = 'source:mcp'
-                        AND blob4 = 'mode:screenshot'
-                        AND blob5 = 'outcome:ok'
+                        AND blob1 = 'mcp_server_tool_call'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                       round: 0s
                       showFormattedSQL: false
@@ -1271,12 +2056,14 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: Browser sessions on this server that produced a PNG (browser_run_session rows
-          with mode:screenshot and outcome:ok). Measure renders, cache hits and failed sessions are
-          excluded — for measure spend see the duration panel, which splits by mode.
+        description:
+          Share of tool calls that came through the codex plugin's proxy worker rather than from an MCP client connected
+          to this server directly. The plugin forwards search_boards, list_workspaces, create_board
+          and rename_board, and is recognized by its tldraw-codex-plugin User-Agent; calls
+          it made before it sent one are client none.
         id: 4
         links: []
-        title: Screenshots rendered
+        title: Codex plugin share of tool calls
         vizConfig:
           group: stat
           kind: VizConfig
@@ -1285,8 +2072,12 @@ spec:
               defaults:
                 color:
                   mode: thresholds
-                thresholds: *id001
-                unit: short
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: percent
               overrides: []
             options:
               colorMode: value
@@ -1330,6 +2121,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, tool
                         ORDER BY date ASC
@@ -1338,6 +2130,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, tool
                         ORDER BY date ASC
@@ -1440,6 +2233,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, outcome
                         ORDER BY date ASC
@@ -1448,6 +2242,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, outcome
                         ORDER BY date ASC
@@ -1550,6 +2345,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob4 = 'outcome:error'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, reason
@@ -1559,6 +2355,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob4 = 'outcome:error'
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, reason
@@ -1667,6 +2464,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date
@@ -1676,6 +2474,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob5 NOT IN ('reason:unknown_tool', 'reason:invalid_input')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date
@@ -1781,6 +2580,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, tool
                         ORDER BY date ASC
@@ -1789,6 +2589,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_server_tool_call'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob6 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob6, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, tool
                         ORDER BY date ASC
@@ -1874,26 +2675,8 @@ spec:
               kind: ElementReference
               name: panel-1
             height: 4
-            width: 6
+            width: 5
             x: 0
-            y: 0
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-2
-            height: 4
-            width: 6
-            x: 6
-            y: 0
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-3
-            height: 4
-            width: 6
-            x: 12
             y: 0
         - kind: GridLayoutItem
           spec:
@@ -1901,9 +2684,63 @@ spec:
               kind: ElementReference
               name: panel-4
             height: 4
-            width: 6
-            x: 18
+            width: 5
+            x: 5
             y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-2
+            height: 4
+            width: 5
+            x: 10
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-3
+            height: 4
+            width: 5
+            x: 15
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-22
+            height: 4
+            width: 4
+            x: 20
+            y: 0
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-19
+            height: 8
+            width: 8
+            x: 0
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-20
+            height: 8
+            width: 8
+            x: 8
+            y: 4
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-21
+            height: 8
+            width: 8
+            x: 16
+            y: 4
         - kind: GridLayoutItem
           spec:
             element:
@@ -1912,7 +2749,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 4
+            y: 12
         - kind: GridLayoutItem
           spec:
             element:
@@ -1921,7 +2758,7 @@ spec:
             height: 8
             width: 6
             x: 12
-            y: 4
+            y: 12
         - kind: GridLayoutItem
           spec:
             element:
@@ -1930,7 +2767,7 @@ spec:
             height: 8
             width: 6
             x: 18
-            y: 4
+            y: 12
         - kind: GridLayoutItem
           spec:
             element:
@@ -1939,7 +2776,7 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 12
+            y: 20
         - kind: GridLayoutItem
           spec:
             element:
@@ -1948,7 +2785,7 @@ spec:
             height: 8
             width: 12
             x: 12
-            y: 12
+            y: 20
         - kind: GridLayoutItem
           spec:
             element:
@@ -1957,7 +2794,7 @@ spec:
             height: 8
             width: 8
             x: 0
-            y: 20
+            y: 28
         - kind: GridLayoutItem
           spec:
             element:
@@ -1966,7 +2803,7 @@ spec:
             height: 8
             width: 8
             x: 8
-            y: 20
+            y: 28
         - kind: GridLayoutItem
           spec:
             element:
@@ -1975,7 +2812,7 @@ spec:
             height: 8
             width: 8
             x: 16
-            y: 20
+            y: 28
         - kind: GridLayoutItem
           spec:
             element:
@@ -1984,30 +2821,12 @@ spec:
             height: 8
             width: 12
             x: 0
-            y: 28
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-14
-            height: 8
-            width: 12
-            x: 12
-            y: 28
-        - kind: GridLayoutItem
-          spec:
-            element:
-              kind: ElementReference
-              name: panel-15
-            height: 8
-            width: 12
-            x: 0
             y: 36
         - kind: GridLayoutItem
           spec:
             element:
               kind: ElementReference
-              name: panel-16
+              name: panel-14
             height: 8
             width: 12
             x: 12
@@ -2030,6 +2849,51 @@ spec:
             width: 12
             x: 12
             y: 44
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-23
+            height: 8
+            width: 8
+            x: 0
+            y: 52
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-24
+            height: 8
+            width: 8
+            x: 8
+            y: 52
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-25
+            height: 8
+            width: 8
+            x: 16
+            y: 52
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-15
+            height: 8
+            width: 12
+            x: 0
+            y: 60
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-16
+            height: 8
+            width: 12
+            x: 12
+            y: 60
   links: []
   liveNow: false
   preload: false
@@ -2062,10 +2926,24 @@ spec:
         current:
           text: production
           value: production
-        description: Environment to filter by. Use production, staging, or your pr number
-          (pr-42). Every panel here reads the MEASURE dataset, so it applies to all of them.
+        description: Environment to filter by. Use production, staging, or your pr number (pr-42).
+          Every panel here reads the MEASURE dataset, so it applies to all of them.
         hide: dontHide
         label: 'Environment: production | staging | pr-42'
         name: environment
         query: production
+        skipUrlSync: false
+    - kind: TextVariable
+      spec:
+        current:
+          text: all
+          value: all
+        description: Which callers the tool call panels count. all is everyone; codex-plugin
+          is the codex plugin's proxy worker; direct is every identified client except the plugin;
+          or name one family (claude, codex, cursor, openai, none and so on). The by-client
+          and codex plugin vs direct panels ignore it.
+        hide: dontHide
+        label: 'Client: all | codex-plugin | direct | claude'
+        name: client
+        query: all
         skipUrlSync: false

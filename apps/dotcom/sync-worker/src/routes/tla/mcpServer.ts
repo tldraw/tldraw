@@ -63,6 +63,7 @@ import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
 	PUBLISHED_BOARD_FAILURE,
+	TabRenderContext,
 	applyOpsInOpenTab,
 	captureInOpenTab,
 	readBoardUsers,
@@ -238,10 +239,16 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 // and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
 // unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
 // truncated raw name for spotting families worth adding here. Order matters where strings overlap —
-// a Claude UA also says Mozilla, so `mozilla` sits last.
+// a Claude UA also says Mozilla, so `mozilla` sits last, and the codex plugin's UA also says codex.
+//
+// `codex-plugin` is the codex plugin's proxy worker, which forwards a few board tools for every
+// Codex user and names itself in its User-Agent. A Worker's fetch sends no User-Agent of its own, so
+// without that header its calls are `none`.
 const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['tldraw-codex-plugin', 'codex-plugin'],
 	['claude', 'claude'],
 	['anthropic', 'claude'],
+	['codex', 'codex'],
 	['chatgpt', 'openai'],
 	['openai', 'openai'],
 	['cursor', 'cursor'],
@@ -263,6 +270,14 @@ export function normalizeMcpClient(value: unknown): string {
 		if (lower.includes(needle)) return family
 	}
 	return 'other'
+}
+
+function tabContext(
+	request: Request,
+	ctx: ExecutionContext | undefined,
+	tool: string
+): TabRenderContext {
+	return { request, ctx, tool, client: normalizeMcpClient(request.headers.get('user-agent')) }
 }
 
 // One datapoint per tools/call dispatch, whatever the tool did: the render path's
@@ -837,6 +852,7 @@ async function callPageInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: PAGE_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		telemetry({})
@@ -922,12 +938,14 @@ async function readBoardPage(
 		telemetry,
 		request,
 		ctx,
+		tool,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		tool: string
 	}
 ): Promise<BoardPageRead> {
 	const fail = (reason: string, result: ToolCallResult): BoardPageRead => {
@@ -941,7 +959,14 @@ async function readBoardPage(
 	const refusal = await refuseUnlessFile(env, boardId, userId)
 	if (refusal) return fail(refusal.reason, refusal.result)
 
-	const tab = await readPageInOpenTab(env, boardId, userId, page, clusterIds, { request, ctx })
+	const tab = await readPageInOpenTab(
+		env,
+		boardId,
+		userId,
+		page,
+		clusterIds,
+		tabContext(request, ctx, tool)
+	)
 	if (!tab.ok) return fail(tab.reason, toolError(tab.message, tab.reason))
 	if (!tab.value.found) {
 		const failure = pageLookupFailure(tab.value.lookup, page)
@@ -1090,6 +1115,7 @@ async function callClusterInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const info = getClusterInfo(page.read, input.clusterIds, input.page, input.cursor)
@@ -1138,6 +1164,7 @@ async function callClusterScreenshotTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_SCREENSHOT_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const picked = pickClusterShapes(page.read.details, input.clusterIds, input.page)
@@ -1161,7 +1188,7 @@ async function callClusterScreenshotTool(
 				width: size.width,
 				height: size.height,
 			},
-			{ request, ctx }
+			tabContext(request, ctx, CLUSTER_SCREENSHOT_TOOL_NAME)
 		)
 		if (!image.ok) {
 			telemetry({ failureReason: image.reason })
@@ -1219,7 +1246,7 @@ async function callApplyOpsTool(
 				page: input.page ?? undefined,
 				attribution: { userId, runId: input.runId ?? undefined },
 			},
-			{ request, ctx }
+			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)
 		if (!applied.ok) return toolError(applied.message, applied.reason)
 		const { pageId, pageName, result } = applied.value
@@ -1257,13 +1284,18 @@ async function callUserStateTool(
 		if (refusal) return refusal.result
 
 		if (input.userId === null || input.userId === userId) {
-			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			const state = await readUserStateInOpenTab(
+				env,
+				input.boardId,
+				userId,
+				tabContext(request, ctx, USER_STATE_TOOL_NAME)
+			)
 			if (!state.ok) return toolError(state.message, state.reason)
 			const { pageId, pageName, selectedShapeIds, viewport } = state.value
 			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
 		}
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
 		if (!user) {
@@ -1304,7 +1336,7 @@ async function callBoardUsersTool(
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		return toolJsonResult(users.value)
 	} catch (error) {
