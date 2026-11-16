@@ -371,7 +371,7 @@
 }
 
 .tlui-libraries-tile__menu-button[data-state='open'] {
-	background: var(--tl-gradient-to-bottom) var(--tl-color-panel);
+	background: var(--tl-muted-gradient-to-bottom) var(--tl-color-panel);
 }
 
 .tlui-libraries-tile:has(.tlui-libraries-tile__menu-button[data-state='open'])
@@ -567,10 +567,10 @@
 }
 
 .tlui-libraries-section > .tlui-libraries-panel__header .tlui-button[data-state='open']::before {
-	background: var(--tl-gradient-to-bottom) var(--tl-color-panel);
+	background: var(--tl-muted-gradient-to-bottom) var(--tl-color-panel);
 }
 
 .tlui-libraries-panel > .tlui-libraries-panel__header .tlui-button[data-state='open']::after {
-	background: var(--tl-gradient-to-bottom);
+	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
 }

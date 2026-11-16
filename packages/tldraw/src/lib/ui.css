@@ -117,13 +117,13 @@
 }
 
 .tlui-button[aria-expanded='true'][data-direction='left'] {
-	background: var(--tl-gradient-to-left);
+	background: var(--tl-muted-gradient-to-left);
 	opacity: 1;
 }
 
 @media (hover: hover) {
 	.tlui-button[aria-expanded='true'][data-direction='left']:not(:hover)::after {
-		background: var(--tl-gradient-to-left);
+		background: var(--tl-muted-gradient-to-left);
 		opacity: 1;
 	}
 
@@ -327,7 +327,7 @@
 }
 
 .tlui-zoom-menu__button[data-state='open']::after {
-	background: var(--tl-gradient-to-top);
+	background: var(--tl-muted-gradient-to-top);
 	opacity: 1;
 }
 
@@ -792,13 +792,13 @@
 }
 
 .tlui-menu-zone *[data-state='open']::after {
-	background: var(--tl-gradient-to-bottom);
+	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
 }
 
 @media (hover: hover) {
 	.tlui-menu-zone *[data-state='open']:not(:hover)::after {
-		background: var(--tl-gradient-to-bottom);
+		background: var(--tl-muted-gradient-to-bottom);
 		opacity: 1;
 	}
 }
@@ -818,7 +818,7 @@
 }
 
 .tlui-page-menu__trigger[data-state='open']::after {
-	background: var(--tl-gradient-to-bottom);
+	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
 }
 
@@ -1217,7 +1217,7 @@ tldraw? probably.
 
 .tlui-style-panel .tlui-button[data-state='open']::after {
 	opacity: 1;
-	background: var(--tl-gradient-to-left);
+	background: var(--tl-muted-gradient-to-left);
 }
 
 @media (hover: hover) {
@@ -1226,7 +1226,7 @@ tldraw? probably.
 	}
 	.tlui-style-panel .tlui-button[data-state='open']:not(:hover)::after {
 		opacity: 1;
-		background: var(--tl-gradient-to-left);
+		background: var(--tl-muted-gradient-to-left);
 	}
 }
 
@@ -1453,11 +1453,11 @@ tldraw? probably.
 }
 
 .tlui-main-toolbar--horizontal *[data-state='open']::after {
-	background: var(--tl-gradient-to-top);
+	background: var(--tl-muted-gradient-to-top);
 	opacity: 1;
 }
 .tlui-main-toolbar--vertical *[data-state='open']::after {
-	background: var(--tl-gradient-to-right);
+	background: var(--tl-muted-gradient-to-right);
 	opacity: 1;
 }
 
@@ -1493,11 +1493,11 @@ tldraw? probably.
 
 @media (hover: hover) {
 	.tlui-main-toolbar--horizontal *[data-state='open']:not(:hover)::after {
-		background: var(--tl-gradient-to-top);
+		background: var(--tl-muted-gradient-to-top);
 		opacity: 1;
 	}
 	.tlui-main-toolbar--vertical *[data-state='open']:not(:hover)::after {
-		background: var(--tl-gradient-to-right);
+		background: var(--tl-muted-gradient-to-right);
 		opacity: 1;
 	}
 }
