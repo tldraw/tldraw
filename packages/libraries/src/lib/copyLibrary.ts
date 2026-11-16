@@ -1,5 +1,5 @@
 import type { TLLibrary, TLLibraryId, TLLibraryThumbnail } from '@tldraw/tlschema'
-import { addItemsToLibrary } from './addItemsToLibrary'
+import { addItemsToLibrary, whenItemsStored } from './addItemsToLibrary'
 import { LibraryNotFoundError, type LibrarySource, type TLNewLibraryItem } from './LibrarySource'
 import { mapConcurrently } from './mapConcurrently'
 import type { TLLibraryItem } from './schema'
@@ -45,7 +45,8 @@ export async function copyLibraryItems(
 
 /**
  * Adds copies of `items`, from `from`, to a library in `to`, with new ids and in the same order.
- * Their content and thumbnails are loaded a few at a time, and the copies added together.
+ * Their content and thumbnails are loaded a few at a time, and the copies added together. Resolves
+ * once `to` has stored them.
  */
 export async function copyItems(
 	from: LibrarySource,
@@ -54,17 +55,21 @@ export async function copyItems(
 	toLibraryId: TLLibraryId
 ): Promise<TLLibraryItem[]> {
 	const newItems = await mapConcurrently(items, LOAD_CONCURRENCY, (item) => loadCopy(from, item))
-	return addItemsToLibrary(to, toLibraryId, newItems)
+	const added = await addItemsToLibrary(to, toLibraryId, newItems)
+	await whenItemsStored(to, added)
+	return added
 }
 
-/** Adds a copy of `item`, from `from`, to a library in `to`, with a new id. */
+/** Adds a copy of `item`, from `from`, to a library in `to`, with a new id, once `to` has stored it. */
 export async function copyItem(
 	from: LibrarySource,
 	item: TLLibraryItem,
 	to: LibrarySource,
 	toLibraryId: TLLibraryId
 ): Promise<TLLibraryItem> {
-	return to.addItem(toLibraryId, await loadCopy(from, item))
+	const added = await to.addItem(toLibraryId, await loadCopy(from, item))
+	await whenItemsStored(to, [added])
+	return added
 }
 
 async function loadCopy(from: LibrarySource, item: TLLibraryItem): Promise<TLNewLibraryItem> {
