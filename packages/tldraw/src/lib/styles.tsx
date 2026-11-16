@@ -104,6 +104,7 @@ export const STYLES = {
 	fillExtra: [
 		{ value: 'pattern', icon: 'fill-pattern' },
 		{ value: 'lined-fill', icon: 'fill-lined-fill' },
+		{ value: 'inked', icon: 'fill-inked' },
 		{ value: 'fill', icon: 'fill-fill' },
 	],
 	dash: [

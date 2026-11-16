@@ -181,6 +181,7 @@ export function getAssetUrlsByImport(opts) {
 			edit: iconsIcon0MergedSvg2 + '#edit',
 			'external-link': iconsIcon0MergedSvg2 + '#external-link',
 			'fill-fill': iconsIcon0MergedSvg2 + '#fill-fill',
+			'fill-inked': iconsIcon0MergedSvg2 + '#fill-inked',
 			'fill-lined-fill': iconsIcon0MergedSvg2 + '#fill-lined-fill',
 			'fill-none': iconsIcon0MergedSvg2 + '#fill-none',
 			'fill-pattern': iconsIcon0MergedSvg2 + '#fill-pattern',

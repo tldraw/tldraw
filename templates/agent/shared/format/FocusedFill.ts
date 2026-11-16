@@ -17,6 +17,7 @@ const SHAPE_TO_FOCUSED_FILLS: Record<TLDefaultFillStyle, FocusedFill> = {
 	none: 'none',
 	fill: 'solid',
 	'lined-fill': 'solid',
+	inked: 'tint',
 	semi: 'background',
 	solid: 'tint',
 	pattern: 'pattern',

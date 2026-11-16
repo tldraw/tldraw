@@ -285,6 +285,7 @@
 	"file-system.shared-document-file-open-error.description": "Opening files from shared projects is not supported.",
 	"file-system.shared-document-file-open-error.title": "Could not open file",
 	"fill-style.fill": "Fill",
+	"fill-style.inked": "Inked",
 	"fill-style.lined-fill": "Lined fill",
 	"fill-style.none": "None",
 	"fill-style.pattern": "Pattern",

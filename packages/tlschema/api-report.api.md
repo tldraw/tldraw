@@ -359,7 +359,7 @@ export const DefaultColorStyle: EnumStyleProp<TLDefaultColorStyle>;
 export const DefaultDashStyle: EnumStyleProp<"dashed" | "dotted" | "draw" | "none" | "solid">;
 
 // @public
-export const DefaultFillStyle: EnumStyleProp<"fill" | "lined-fill" | "none" | "pattern" | "semi" | "solid">;
+export const DefaultFillStyle: EnumStyleProp<"fill" | "inked" | "lined-fill" | "none" | "pattern" | "semi" | "solid">;
 
 // @public
 export const DefaultFontFamilies: {

@@ -289,6 +289,7 @@ export type TLUiTranslationKey =
 	| 'file-system.shared-document-file-open-error.description'
 	| 'file-system.shared-document-file-open-error.title'
 	| 'fill-style.fill'
+	| 'fill-style.inked'
 	| 'fill-style.lined-fill'
 	| 'fill-style.none'
 	| 'fill-style.pattern'
