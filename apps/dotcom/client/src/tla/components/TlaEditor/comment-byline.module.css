@@ -102,16 +102,6 @@
 	color: var(--tl-color-text-3);
 }
 
-/* The list nudges its 14px avatar down to the name's line; move the badged avatar as one. */
-.agentRow .agentAvatar {
-	align-self: flex-start;
-	margin-top: 2px;
-}
-
-.agentRow .agentAvatar :global(.tlui-cmt-avatar) {
-	margin-top: 0;
-}
-
 /* On a pin the avatar is 22px, so the badge grows with it. */
 .pinAvatar .agentBadge {
 	width: 11px;
