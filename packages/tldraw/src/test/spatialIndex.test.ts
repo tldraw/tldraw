@@ -184,6 +184,24 @@ describe('SpatialIndexManager - bounds epoch', () => {
 	})
 })
 
+describe('SpatialIndexManager - theme changes', () => {
+	it('follows a theme font-size change that resizes text', () => {
+		const text = createShapeId('text')
+		editor.createShape({ id: text, type: 'text', x: 0, y: 0, props: { autoSize: true } })
+		const before = editor.getShapePageBounds(text)!.clone()
+		const justBelow = new Box(before.minX, before.maxY + 1, before.w, 1)
+		expect(editor.getShapeIdsInsideBounds(justBelow).has(text)).toBe(false)
+
+		const tracker = trackSpatialIndexInvalidations(editor, justBelow)
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 64 })
+
+		expect(editor.getShapePageBounds(text)!.h).toBeGreaterThan(before.h + 1)
+		expect(editor.getShapeIdsInsideBounds(justBelow).has(text)).toBe(true)
+		expect(tracker.delta).toBe(1)
+		tracker.stop()
+	})
+})
+
 describe('SpatialIndexManager - step-2 transitive bounds sweep', () => {
 	it('refreshes arrow bounds when a bound geo shape changes outline without changing axis-aligned bounds', () => {
 		// Regression: rectangle→ellipse keeps axis-aligned bounds the

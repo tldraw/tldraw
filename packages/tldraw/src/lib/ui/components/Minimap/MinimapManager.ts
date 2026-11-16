@@ -1,16 +1,61 @@
 import {
 	Box,
-	CurrentPageBoundsCache,
 	Editor,
+	RESET_VALUE,
+	TLShape,
+	TLShapeId,
 	Vec,
 	atom,
 	bind,
 	clamp,
 	computed,
+	isUninitialized,
+	objectMapValues,
 	PI2,
 	react,
 	uniqueId,
+	unsafe__withoutCapture,
 } from '@tldraw/editor'
+
+// The shapes, on any page, whose util hides them from the minimap. `hideInMinimap` is asked when a
+// shape's record is added or changed and never tracked, so the per-shape cost stays out of both
+// the reactive graph and the minimap's path rebuild.
+function createHiddenShapeIds(editor: Editor) {
+	const shapeHistory = editor.store.query.filterHistory('shape')
+	const isHidden = (shape: TLShape) => !!editor.getShapeUtil(shape).hideInMinimap?.(shape)
+
+	return computed<ReadonlySet<TLShapeId>>('minimap hidden shapes', (prev, lastComputedEpoch) => {
+		const diffs = shapeHistory.getDiffSince(lastComputedEpoch)
+
+		return unsafe__withoutCapture(() => {
+			if (isUninitialized(prev) || diffs === RESET_VALUE) {
+				const hidden = new Set<TLShapeId>()
+				for (const record of editor.store.allRecords()) {
+					if (record.typeName === 'shape' && isHidden(record)) hidden.add(record.id)
+				}
+				return hidden
+			}
+
+			// Copied only if a shape's answer changes, which keeps the value (and so the paths)
+			// stable while hidden shapes are merely moved or restyled.
+			let next: Set<TLShapeId> | undefined
+			const setHidden = (id: TLShapeId, hidden: boolean) => {
+				if ((next ?? prev).has(id) === hidden) return
+				next ??= new Set(prev)
+				if (hidden) next.add(id)
+				else next.delete(id)
+			}
+			for (const diff of diffs) {
+				for (const shape of objectMapValues(diff.added)) setHidden(shape.id, isHidden(shape))
+				for (const [, shape] of objectMapValues(diff.updated)) {
+					setHidden(shape.id, isHidden(shape))
+				}
+				for (const shape of objectMapValues(diff.removed)) setHidden(shape.id, false)
+			}
+			return next ?? prev
+		})
+	})
+}
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
@@ -21,7 +66,7 @@ export class MinimapManager {
 	}
 
 	private readonly ctx: CanvasRenderingContext2D
-	private readonly shapeRects: CurrentPageBoundsCache
+	private readonly hiddenShapeIds: ReturnType<typeof createHiddenShapeIds>
 
 	constructor(
 		public editor: Editor,
@@ -31,11 +76,7 @@ export class MinimapManager {
 		const ctx = elem.getContext('2d')
 		if (!ctx) throw new Error('Minimap: could not get 2D canvas context')
 		this.ctx = ctx
-		this.shapeRects = new CurrentPageBoundsCache(editor, 'minimap shape rects', (shape) =>
-			editor.getShapeUtil(shape).hideInMinimap?.(shape)
-				? undefined
-				: editor.getShapeMaskedPageBounds(shape.id)
-		)
+		this.hiddenShapeIds = createHiddenShapeIds(editor)
 		this.colors = this._getColors()
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
 	}
@@ -191,11 +232,13 @@ export class MinimapManager {
 	@computed
 	private getShapePaths() {
 		const selectedIds = new Set(this.editor.getSelectedShapeIds())
+		const hiddenIds = this.hiddenShapeIds.get()
 
 		const shapes = new Path2D()
 		const selected = new Path2D()
 
-		for (const [shapeId, bounds] of this.shapeRects.get()) {
+		for (const [shapeId, bounds] of this.editor.getCurrentPageShapeMaskedBounds()) {
+			if (hiddenIds.size > 0 && hiddenIds.has(shapeId)) continue
 			const target = selectedIds.has(shapeId) ? selected : shapes
 			target.rect(bounds.x, bounds.y, bounds.w, bounds.h)
 		}

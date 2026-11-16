@@ -1337,6 +1337,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapeIds(): Set<TLShapeId>;
     // @internal (undocumented)
     getCurrentPageShapeIdsSorted(): TLShapeId[];
+    // @internal
+    getCurrentPageShapeMaskedBounds(): ReadonlyMap<TLShapeId, Box>;
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];

@@ -5,13 +5,12 @@ import {
 	isUninitialized,
 	unsafe__withoutCapture,
 } from '@tldraw/state'
-import type { RecordsDiff } from '@tldraw/store'
-import { TLPageId, TLShapeId, isShape } from '@tldraw/tlschema'
-import type { TLRecord } from '@tldraw/tlschema'
+import { TLShapeId, isShape } from '@tldraw/tlschema'
 import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
-import { getShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
+import type { ShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
 import { RBushIndex, type SpatialElement } from './RBushIndex'
+import { getShapeBoundsChangesSince } from './shapeBoundsChanges'
 
 /**
  * Manages spatial indexing for efficient shape location queries.
@@ -23,9 +22,9 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  * rechecked — O(affected) per update instead of O(page).
  *
  * Key features:
- * - Incremental updates using filterHistory pattern (shape and binding history)
+ * - Incremental updates from the shared dirty-bounds changes (see `getShapeBoundsChangesSince`)
  * - Dirty-set expansion via parent/child and binding relationships
- * - Per-page index (rebuilds on page change)
+ * - Per-page index (rebuilds on page change, theme change and font load)
  * - Optimized for viewport culling queries
  *
  * Known limitation: a custom shape whose geometry reads other shapes outside the
@@ -39,73 +38,32 @@ import { RBushIndex, type SpatialElement } from './RBushIndex'
  */
 export class SpatialIndexManager {
 	private rbush: RBushIndex
+	// The value bumps only when the rbush content may have changed, so prop-only diffs don't
+	// invalidate the consumers that subscribe through it.
 	private spatialIndexComputed: Computed<number>
-	private lastPageId: TLPageId | null = null
-	private lastFontLoadEpoch = -1
-
-	// Bumps only when the rbush content may have changed. Consumers subscribe
-	// via the computed; a stable epoch lets prop-only diffs skip downstream
-	// invalidations.
-	private _boundsEpoch = 0
 
 	constructor(public readonly editor: Editor) {
 		this.rbush = new RBushIndex()
-		this.spatialIndexComputed = this.createSpatialIndexComputed()
-	}
+		this.spatialIndexComputed = computed<number>('spatialIndex', (prevEpoch, lastComputedEpoch) => {
+			// The only tracked dependency. The rebuild and update below run without capture to
+			// avoid registering a dependency per checked shape.
+			const changes = getShapeBoundsChangesSince(editor, prevEpoch, lastComputedEpoch)
+			const epoch = isUninitialized(prevEpoch) ? 0 : prevEpoch
 
-	private rebuildAndBumpEpoch(): number {
-		this.buildFromScratch()
-		this._boundsEpoch++
-		return this._boundsEpoch
-	}
-
-	private createSpatialIndexComputed() {
-		const shapeHistory = this.editor.store.query.filterHistory('shape')
-		// Binding changes can move a shape's derived bounds (e.g. creating or
-		// deleting an arrow binding relocates the arrow's body) without
-		// touching any shape record, so they must also invalidate the index.
-		const bindingHistory = this.editor.store.query.filterHistory('binding')
-
-		return computed<number>('spatialIndex', (_prevValue, lastComputedEpoch) => {
-			// These four reads are the computed's only tracked dependencies: shape
-			// and binding record changes, plus font loads (measured text resizes
-			// when its font swaps in). Theme changes that resize shapes without a
-			// record diff (e.g. `updateTheme({ fontSize })`) are not tracked, so
-			// the index stays stale for those until the next rebuild.
-			// The rebuild/update paths below run without capture to avoid
-			// registering a dependency per checked shape on every update (and
-			// ~page-size dependencies on every rebuild).
-			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
-			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
-			const currentPageId = this.editor.getCurrentPageId()
-			const fontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
-
-			if (
-				isUninitialized(_prevValue) ||
-				shapeDiff === RESET_VALUE ||
-				bindingDiff === RESET_VALUE ||
-				this.lastPageId !== currentPageId ||
-				// Which shapes a font load resizes isn't known without visiting
-				// every shape, so rebuild; loads are rare and bounded by the
-				// number of distinct fonts.
-				this.lastFontLoadEpoch !== fontLoadEpoch
-			) {
-				return unsafe__withoutCapture(() => this.rebuildAndBumpEpoch())
+			if (changes === RESET_VALUE) {
+				unsafe__withoutCapture(() => this.buildFromScratch())
+				return epoch + 1
 			}
 
-			if (shapeDiff.length === 0 && bindingDiff.length === 0) return this._boundsEpoch
+			if (!changes) return epoch
 
-			if (unsafe__withoutCapture(() => this.processIncrementalUpdate(shapeDiff, bindingDiff))) {
-				this._boundsEpoch++
-			}
-			return this._boundsEpoch
+			const didChange = unsafe__withoutCapture(() => this.processIncrementalUpdate(changes))
+			return didChange ? epoch + 1 : epoch
 		})
 	}
 
 	private buildFromScratch(): void {
 		this.rbush.clear()
-		this.lastPageId = this.editor.getCurrentPageId()
-		this.lastFontLoadEpoch = this.editor.fonts.getFontLoadEpoch()
 
 		const elements: SpatialElement[] = []
 		for (const shape of this.editor.getCurrentPageShapes()) {
@@ -125,16 +83,12 @@ export class SpatialIndexManager {
 		this.rbush.bulkLoad(elements)
 	}
 
-	private processIncrementalUpdate(
-		shapeDiff: RecordsDiff<TLRecord>[],
-		bindingDiff: RecordsDiff<TLRecord>[]
-	): boolean {
+	private processIncrementalUpdate({ dirty, removed }: ShapesWithDirtyBounds): boolean {
+		const currentPageId = this.editor.getCurrentPageId()
 		// Rbush mutations are collected and applied as one batch at the end so
 		// large updates can use a bulk rebuild instead of per-item tree ops.
 		const pendingRemoves = new Set<TLShapeId>()
 		const pendingUpserts: SpatialElement[] = []
-
-		const { dirty, removed } = getShapesWithDirtyBounds(this.editor, shapeDiff, bindingDiff)
 
 		for (const id of removed) {
 			if (this.rbush.has(id)) pendingRemoves.add(id)
@@ -150,11 +104,7 @@ export class SpatialIndexManager {
 			const indexedElement = pendingRemoves.has(id) ? undefined : this.rbush.getElement(id)
 			const record = this.editor.store.unsafeGetWithoutCapture(id)
 
-			if (
-				!record ||
-				!isShape(record) ||
-				this.editor.getAncestorPageId(record) !== this.lastPageId
-			) {
+			if (!record || !isShape(record) || this.editor.getAncestorPageId(record) !== currentPageId) {
 				if (this.rbush.has(id)) {
 					pendingRemoves.add(id)
 				}
@@ -242,6 +192,5 @@ export class SpatialIndexManager {
 	 */
 	dispose(): void {
 		this.rbush.dispose()
-		this.lastPageId = null
 	}
 }

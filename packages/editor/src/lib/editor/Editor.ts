@@ -5863,6 +5863,17 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * The masked page bounds of each shape on the current page, by shape id. Hidden shapes are
+	 * included. The map is updated in place and has the reactivity limits described on
+	 * {@link Editor.getCurrentPageBounds}.
+	 *
+	 * @internal
+	 */
+	getCurrentPageShapeMaskedBounds(): ReadonlyMap<TLShapeId, Box> {
+		return this._currentPageMaskedBounds.get()
+	}
+
+	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
 	 * Shape bounds are updated incrementally: a shape's bounds are recomputed when its record,
@@ -5875,7 +5886,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
 
-		for (const [shapeId, bounds] of this._currentPageMaskedBounds.get()) {
+		for (const [shapeId, bounds] of this.getCurrentPageShapeMaskedBounds()) {
 			// Free unless `getShapeVisibility` is set; then it tracks every shape.
 			if (this.isShapeHidden(shapeId)) continue
 			if (!commonBounds) {

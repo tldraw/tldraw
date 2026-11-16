@@ -5,19 +5,30 @@ import {
 	isUninitialized,
 	unsafe__withoutCapture,
 } from '@tldraw/state'
-import { TLPageId, TLShape, TLShapeId, TLTheme, isShape } from '@tldraw/tlschema'
+import { TLShape, TLShapeId, isShape } from '@tldraw/tlschema'
 import { Box } from '../../../primitives/Box'
 import type { VecLike } from '../../../primitives/Vec'
 import type { Editor } from '../../Editor'
-import { getShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
+import type { ShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
+import { getShapeBoundsChangesSince } from './shapeBoundsChanges'
+
+interface BoundsMaps {
+	bounds: Map<TLShapeId, Box>
+	// Local-space clip paths of the shapes that have one, to spot clip changes that come from
+	// derived geometry rather than a record change.
+	clipPaths: Map<TLShapeId, VecLike[]>
+}
 
 /**
  * An incrementally maintained map of page-space bounds for the shapes on the current page.
  *
  * A computed that reads per-shape bounds for the whole page has to revalidate every shape's
  * bounds on every store change, which costs milliseconds per change on large pages. This instead
- * recomputes only the shapes that a change could have affected (see `getShapesWithDirtyBounds`),
+ * recomputes only the shapes that a change could have affected (see `getShapeBoundsChangesSince`),
  * and rebuilds on page, theme and font changes.
+ *
+ * The maps are only kept while something is subscribed. A read from outside a reaction (a one-off
+ * zoom to fit, say) builds them, and they are dropped again once the current task is done.
  *
  * `getBounds` may depend on ancestors' clip paths (masked bounds): when a dirty shape's clip path
  * changes without its record changing, as with a container whose geometry fits its children, its
@@ -32,14 +43,10 @@ import { getShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
  * @internal
  */
 export class CurrentPageBoundsCache {
-	private readonly bounds = new Map<TLShapeId, Box>()
-	// Local-space clip paths of the shapes that have one, to spot clip changes that come from
-	// derived geometry rather than a record change.
-	private readonly clipPaths = new Map<TLShapeId, VecLike[]>()
+	// Null until the first read, after a change that needs a rebuild, and once released.
+	private maps: BoundsMaps | null = null
+	private isReleaseQueued = false
 	private readonly epoch: Computed<number>
-	private lastPageId: TLPageId | null = null
-	private lastTheme: TLTheme | null = null
-	private lastFontLoadEpoch = -1
 
 	constructor(
 		private readonly editor: Editor,
@@ -47,40 +54,23 @@ export class CurrentPageBoundsCache {
 		/** Get the page-space bounds for a shape. Return undefined to leave the shape out. */
 		private readonly getBounds: (shape: TLShape) => Box | undefined
 	) {
-		const shapeHistory = editor.store.query.filterHistory('shape')
-		const bindingHistory = editor.store.query.filterHistory('binding')
-
 		this.epoch = computed<number>(name, (prevEpoch, lastComputedEpoch) => {
-			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
-			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
-			const currentPageId = editor.getCurrentPageId()
-			const theme = editor.getCurrentTheme()
-			const fontLoadEpoch = editor.fonts.getFontLoadEpoch()
+			const changes = getShapeBoundsChangesSince(editor, prevEpoch, lastComputedEpoch)
+			const epoch = isUninitialized(prevEpoch) ? 0 : prevEpoch
 
-			if (
-				isUninitialized(prevEpoch) ||
-				shapeDiff === RESET_VALUE ||
-				bindingDiff === RESET_VALUE ||
-				this.lastPageId !== currentPageId ||
-				// Which shapes a theme change or font load resizes isn't known without
-				// visiting every shape; both are rare.
-				this.lastTheme !== theme ||
-				this.lastFontLoadEpoch !== fontLoadEpoch
-			) {
-				this.lastPageId = currentPageId
-				this.lastTheme = theme
-				this.lastFontLoadEpoch = fontLoadEpoch
-				unsafe__withoutCapture(() => this.rebuild())
-				return isUninitialized(prevEpoch) ? 0 : prevEpoch + 1
+			if (changes === RESET_VALUE) {
+				// `get` builds the maps again.
+				this.maps = null
+				return epoch + 1
 			}
+			if (!changes) return epoch
 
-			if (shapeDiff.length === 0 && bindingDiff.length === 0) return prevEpoch
+			const { maps } = this
+			// Released, so there is nothing to compare against: assume the bounds changed.
+			if (!maps) return epoch + 1
 
-			const didChange = unsafe__withoutCapture(() => {
-				const { dirty, removed } = getShapesWithDirtyBounds(editor, shapeDiff, bindingDiff)
-				return this.update(dirty, removed)
-			})
-			return didChange ? prevEpoch + 1 : prevEpoch
+			const didChange = unsafe__withoutCapture(() => this.update(maps, changes))
+			return didChange ? epoch + 1 : epoch
 		})
 	}
 
@@ -91,35 +81,54 @@ export class CurrentPageBoundsCache {
 	 */
 	get(): ReadonlyMap<TLShapeId, Box> {
 		this.epoch.get()
-		return this.bounds
+		const maps = (this.maps ??= unsafe__withoutCapture(() => this.build()))
+		if (!this.epoch.isActivelyListening) this.releaseUnlessSubscribed()
+		return maps.bounds
 	}
 
-	private rebuild() {
-		this.bounds.clear()
-		this.clipPaths.clear()
+	private releaseUnlessSubscribed() {
+		if (this.isReleaseQueued) return
+		this.isReleaseQueued = true
+		// Deferred because this read may be a reaction's first run, which only subscribes once
+		// it has finished. It also lets a burst of one-off reads share one build.
+		queueMicrotask(() => {
+			this.isReleaseQueued = false
+			if (!this.epoch.isActivelyListening) this.maps = null
+		})
+	}
+
+	private build(): BoundsMaps {
+		const maps: BoundsMaps = { bounds: new Map(), clipPaths: new Map() }
 		for (const shape of this.editor.getCurrentPageShapes()) {
 			const bounds = this.getBounds(shape)
-			if (bounds) this.bounds.set(shape.id, bounds)
+			if (bounds) maps.bounds.set(shape.id, bounds)
 			const clipPath = this.editor.getShapeUtil(shape).getClipPath?.(shape)
-			if (clipPath) this.clipPaths.set(shape.id, clipPath)
+			if (clipPath) maps.clipPaths.set(shape.id, clipPath)
 		}
+		return maps
 	}
 
 	/** Record the shape's current clip path; true if it differs from the last one seen. */
-	private updateClipPath(shape: TLShape | undefined, id: TLShapeId): boolean {
+	private updateClipPath(
+		clipPaths: BoundsMaps['clipPaths'],
+		shape: TLShape | undefined,
+		id: TLShapeId
+	): boolean {
 		const next = shape ? this.editor.getShapeUtil(shape).getClipPath?.(shape) : undefined
-		const prev = this.clipPaths.get(id)
-		if (next) this.clipPaths.set(id, next)
-		else this.clipPaths.delete(id)
+		const prev = clipPaths.get(id)
+		if (next) clipPaths.set(id, next)
+		else clipPaths.delete(id)
 		return !arePolygonsEqual(prev, next)
 	}
 
-	private update(dirty: Set<TLShapeId>, removed: Set<TLShapeId>) {
+	private update({ bounds: boundsById, clipPaths }: BoundsMaps, changes: ShapesWithDirtyBounds) {
+		const { dirty, removed } = changes
+		const currentPageId = this.editor.getCurrentPageId()
 		let didChange = false
 
 		for (const id of removed) {
-			if (this.bounds.delete(id)) didChange = true
-			this.clipPaths.delete(id)
+			if (boundsById.delete(id)) didChange = true
+			clipPaths.delete(id)
 		}
 
 		const queue = [...dirty]
@@ -128,14 +137,14 @@ export class CurrentPageBoundsCache {
 			const id = queue.pop()!
 			const record = this.editor.store.unsafeGetWithoutCapture(id)
 			const shape =
-				record && isShape(record) && this.editor.getAncestorPageId(record) === this.lastPageId
+				record && isShape(record) && this.editor.getAncestorPageId(record) === currentPageId
 					? record
 					: undefined
 
 			// Descendants' masks are built from this shape's clip path. A record change that moves
 			// or resizes it already dirtied them, but a clip path derived from other shapes (like
 			// children) can change while its record doesn't.
-			if (this.updateClipPath(shape, id)) {
+			if (this.updateClipPath(clipPaths, shape, id)) {
 				this.editor.visitDescendants(id, (childId) => {
 					if (!queued.has(childId)) {
 						queued.add(childId)
@@ -145,12 +154,12 @@ export class CurrentPageBoundsCache {
 			}
 
 			const bounds = shape ? this.getBounds(shape) : undefined
-			const prev = this.bounds.get(id)
+			const prev = boundsById.get(id)
 
 			if (!bounds) {
-				if (this.bounds.delete(id)) didChange = true
+				if (boundsById.delete(id)) didChange = true
 			} else if (!prev || !Box.Equals(prev, bounds)) {
-				this.bounds.set(id, bounds)
+				boundsById.set(id, bounds)
 				didChange = true
 			}
 		}

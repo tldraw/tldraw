@@ -4,6 +4,14 @@ import type { TLRecord } from '@tldraw/tlschema'
 import { objectMapValues } from '@tldraw/utils'
 import type { Editor } from '../../Editor'
 
+/** @internal */
+export interface ShapesWithDirtyBounds {
+	/** Existing or just-added shapes to recheck. */
+	dirty: Set<TLShapeId>
+	/** Shapes that a diff removed. One may also be in `dirty` if a later diff re-added it. */
+	removed: Set<TLShapeId>
+}
+
 /**
  * Expand shape and binding record diffs into the shapes whose page-space bounds (or anything
  * derived from them, like masked bounds) may have changed. Derived-bounds changes (arrows
@@ -19,16 +27,13 @@ import type { Editor } from '../../Editor'
  * Its reads would capture a dependency per visited shape, so call it inside
  * `unsafe__withoutCapture`.
  *
- * @returns `dirty`: existing or just-added shapes to recheck. `removed`: shapes that a diff
- * removed; one may also be in `dirty` if a later diff re-added it.
- *
  * @internal
  */
 export function getShapesWithDirtyBounds(
 	editor: Editor,
 	shapeDiff: RecordsDiff<TLRecord>[],
 	bindingDiff: RecordsDiff<TLRecord>[]
-): { dirty: Set<TLShapeId>; removed: Set<TLShapeId> } {
+): ShapesWithDirtyBounds {
 	const removed = new Set<TLShapeId>()
 	// Shapes whose page transform may have moved (their record was added or
 	// updated). Their descendants' transforms move with them.
