@@ -3639,6 +3639,9 @@ export interface StrokePoint {
     runningLength: number;
 }
 
+// @public
+export function styleMessageId(uiType: string, value: number | string): string;
+
 // @public (undocumented)
 export function StylePanelArrowheadPicker(): JSX.Element | null;
 
@@ -3777,6 +3780,86 @@ export function StylePanelGeoShapePicker(): JSX.Element | null;
 // @public (undocumented)
 export function StylePanelLabelAlignPicker(): JSX.Element | null;
 
+// @public
+export const stylePanelMessages: {
+    readonly 'arrow-kind': {
+        readonly defaultMessage: "Line";
+        readonly id: "style-panel.arrow-kind";
+    } & TLI18nMessage;
+    readonly 'arrowhead-end': {
+        readonly defaultMessage: "End";
+        readonly id: "style-panel.arrowhead-end";
+    } & TLI18nMessage;
+    readonly 'arrowhead-start': {
+        readonly defaultMessage: "Start";
+        readonly id: "style-panel.arrowhead-start";
+    } & TLI18nMessage;
+    readonly 'label-align': {
+        readonly defaultMessage: "Label align";
+        readonly id: "style-panel.label-align";
+    } & TLI18nMessage;
+    readonly 'vertical-align': {
+        readonly defaultMessage: "Vertical align";
+        readonly id: "style-panel.vertical-align";
+    } & TLI18nMessage;
+    readonly align: {
+        readonly defaultMessage: "Align";
+        readonly id: "style-panel.align";
+    } & TLI18nMessage;
+    readonly arrowheads: {
+        readonly defaultMessage: "Arrows";
+        readonly id: "style-panel.arrowheads";
+    } & TLI18nMessage;
+    readonly color: {
+        readonly defaultMessage: "Color";
+        readonly id: "style-panel.color";
+    } & TLI18nMessage;
+    readonly dash: {
+        readonly defaultMessage: "Dash";
+        readonly id: "style-panel.dash";
+    } & TLI18nMessage;
+    readonly fill: {
+        readonly defaultMessage: "Fill";
+        readonly id: "style-panel.fill";
+    } & TLI18nMessage;
+    readonly font: {
+        readonly defaultMessage: "Font";
+        readonly id: "style-panel.font";
+    } & TLI18nMessage;
+    readonly geo: {
+        readonly defaultMessage: "Shape";
+        readonly id: "style-panel.geo";
+    } & TLI18nMessage;
+    readonly mixed: {
+        readonly defaultMessage: "Mixed";
+        readonly id: "style-panel.mixed";
+    } & TLI18nMessage;
+    readonly opacity: {
+        readonly defaultMessage: "Opacity";
+        readonly id: "style-panel.opacity";
+    } & TLI18nMessage;
+    readonly position: {
+        readonly defaultMessage: "Position";
+        readonly id: "style-panel.position";
+    } & TLI18nMessage;
+    readonly selected: {
+        readonly defaultMessage: "selected";
+        readonly id: "style-panel.selected";
+    } & TLI18nMessage;
+    readonly size: {
+        readonly defaultMessage: "Size";
+        readonly id: "style-panel.size";
+    } & TLI18nMessage;
+    readonly spline: {
+        readonly defaultMessage: "Spline";
+        readonly id: "style-panel.spline";
+    } & TLI18nMessage;
+    readonly title: {
+        readonly defaultMessage: "Styles";
+        readonly id: "style-panel.title";
+    } & TLI18nMessage;
+};
+
 // @public (undocumented)
 export function StylePanelOpacityPicker(): JSX.Element | null;
 
@@ -3806,6 +3889,163 @@ export interface StylePanelSubheadingProps {
 
 // @public (undocumented)
 export function StylePanelTextAlignPicker(): JSX.Element | null;
+
+// @public
+export const STYLES: {
+    readonly arrowheadEnd: readonly [{
+        readonly icon: 'arrowhead-none';
+        readonly value: 'none';
+    }, {
+        readonly icon: 'arrowhead-arrow';
+        readonly value: 'arrow';
+    }, {
+        readonly icon: 'arrowhead-triangle';
+        readonly value: 'triangle';
+    }, {
+        readonly icon: 'arrowhead-square';
+        readonly value: 'square';
+    }, {
+        readonly icon: 'arrowhead-dot';
+        readonly value: 'dot';
+    }, {
+        readonly icon: 'arrowhead-diamond';
+        readonly value: 'diamond';
+    }, {
+        readonly icon: 'arrowhead-triangle-inverted';
+        readonly value: 'inverted';
+    }, {
+        readonly icon: 'arrowhead-bar';
+        readonly value: 'bar';
+    }];
+    readonly arrowheadStart: readonly [{
+        readonly icon: 'arrowhead-none';
+        readonly value: 'none';
+    }, {
+        readonly icon: 'arrowhead-arrow';
+        readonly value: 'arrow';
+    }, {
+        readonly icon: 'arrowhead-triangle';
+        readonly value: 'triangle';
+    }, {
+        readonly icon: 'arrowhead-square';
+        readonly value: 'square';
+    }, {
+        readonly icon: 'arrowhead-dot';
+        readonly value: 'dot';
+    }, {
+        readonly icon: 'arrowhead-diamond';
+        readonly value: 'diamond';
+    }, {
+        readonly icon: 'arrowhead-triangle-inverted';
+        readonly value: 'inverted';
+    }, {
+        readonly icon: 'arrowhead-bar';
+        readonly value: 'bar';
+    }];
+    readonly arrowKind: readonly [{
+        readonly icon: 'arrow-arc';
+        readonly value: 'arc';
+    }, {
+        readonly icon: 'arrow-elbow';
+        readonly value: 'elbow';
+    }];
+    readonly dash: readonly [{
+        readonly icon: 'dash-draw';
+        readonly value: 'draw';
+    }, {
+        readonly icon: 'dash-dashed';
+        readonly value: 'dashed';
+    }, {
+        readonly icon: 'dash-dotted';
+        readonly value: 'dotted';
+    }, {
+        readonly icon: 'dash-solid';
+        readonly value: 'solid';
+    }];
+    readonly fill: readonly [{
+        readonly icon: 'fill-none';
+        readonly value: 'none';
+    }, {
+        readonly icon: 'fill-semi';
+        readonly value: 'semi';
+    }, {
+        readonly icon: 'fill-solid';
+        readonly value: 'solid';
+    }];
+    readonly fillExtra: readonly [{
+        readonly icon: 'fill-pattern';
+        readonly value: 'pattern';
+    }, {
+        readonly icon: 'fill-lined-fill';
+        readonly value: 'lined-fill';
+    }, {
+        readonly icon: 'fill-fill';
+        readonly value: 'fill';
+    }];
+    readonly font: readonly [{
+        readonly icon: 'font-draw';
+        readonly value: 'draw';
+    }, {
+        readonly icon: 'font-sans';
+        readonly value: 'sans';
+    }, {
+        readonly icon: 'font-serif';
+        readonly value: 'serif';
+    }, {
+        readonly icon: 'font-mono';
+        readonly value: 'mono';
+    }];
+    readonly horizontalAlign: readonly [{
+        readonly icon: 'horizontal-align-start';
+        readonly value: 'start';
+    }, {
+        readonly icon: 'horizontal-align-middle';
+        readonly value: 'middle';
+    }, {
+        readonly icon: 'horizontal-align-end';
+        readonly value: 'end';
+    }];
+    readonly size: readonly [{
+        readonly icon: 'size-small';
+        readonly value: 's';
+    }, {
+        readonly icon: 'size-medium';
+        readonly value: 'm';
+    }, {
+        readonly icon: 'size-large';
+        readonly value: 'l';
+    }, {
+        readonly icon: 'size-extra-large';
+        readonly value: 'xl';
+    }];
+    readonly spline: readonly [{
+        readonly icon: 'spline-line';
+        readonly value: 'line';
+    }, {
+        readonly icon: 'spline-cubic';
+        readonly value: 'cubic';
+    }];
+    readonly textAlign: readonly [{
+        readonly icon: 'text-align-left';
+        readonly value: 'start';
+    }, {
+        readonly icon: 'text-align-center';
+        readonly value: 'middle';
+    }, {
+        readonly icon: 'text-align-right';
+        readonly value: 'end';
+    }];
+    readonly verticalAlign: readonly [{
+        readonly icon: 'vertical-align-start';
+        readonly value: 'start';
+    }, {
+        readonly icon: 'vertical-align-middle';
+        readonly value: 'middle';
+    }, {
+        readonly icon: 'vertical-align-end';
+        readonly value: 'end';
+    }];
+};
 
 // @public (undocumented)
 export type StyleValuesForUi<T> = readonly {
@@ -4360,13 +4600,13 @@ export function TldrawUiMenuActionItem({ actionId, whenDisabled, disabled, ...re
 export function TldrawUiMenuCheckboxItem<TranslationKey extends string = string, IconType extends string = string>({ id, kbd, label, lang, readonlyOk, onSelect, toggle, disabled, checked, }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
-export function TldrawUiMenuContextProvider({ type, sourceId, children, }: TLUiMenuContextProviderProps): JSX.Element;
+export function TldrawUiMenuContextProvider({ type, sourceId, collector, children, }: TLUiMenuContextProviderProps): JSX.Element;
 
 // @public (undocumented)
 export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGroupProps): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
 
 // @public (undocumented)
-export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
+export function TldrawUiMenuItem<TranslationKey extends string = string, IconType extends string = string>({ disabled, spinner, readonlyOk, id, kbd, label, icon, iconLeft, onSelect, noClose, isSelected, detail, onDragStart, }: TLUiMenuItemProps<TranslationKey, IconType>): JSX.Element | null;
 
 // @public (undocumented)
 export function TldrawUiMenuSubmenu<Translation extends string = string>({ id, disabled, label, size, children, }: TLUiMenuSubmenuProps<Translation>): bigint | boolean | JSX.Element | Iterable<ReactNode> | null | number | Promise<bigint | boolean | ReactElement<unknown, JSXElementConstructor<any> | string> | ReactPortal | Iterable<ReactNode> | null | number | string | undefined> | string | undefined;
@@ -4747,6 +4987,7 @@ export interface TLUiComponents {
     A11y?: ComponentType | null;
     // (undocumented)
     ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null;
+    CommandPalette?: ComponentType | null;
     // (undocumented)
     ContextMenu?: ComponentType<TLUiContextMenuProps> | null;
     // (undocumented)
@@ -5472,10 +5713,51 @@ export interface TLUiMenuCheckboxItemProps<TranslationKey extends string = strin
     toggle?: boolean;
 }
 
+// @public
+export interface TLUiMenuCollector {
+    // (undocumented)
+    renderGroup(group: TLUiMenuCollectorGroup): ReactNode;
+    // (undocumented)
+    renderItem(item: TLUiMenuCollectorItem): ReactNode;
+    // (undocumented)
+    renderSubmenu(submenu: TLUiMenuCollectorSubmenu): ReactNode;
+}
+
+// @public
+export interface TLUiMenuCollectorGroup {
+    children: ReactNode;
+    // (undocumented)
+    id: string;
+    label?: string;
+}
+
+// @public
+export interface TLUiMenuCollectorItem {
+    checked?: boolean;
+    // (undocumented)
+    detail?: string;
+    disabled: boolean;
+    // (undocumented)
+    id: string;
+    isSelected?: boolean;
+    // (undocumented)
+    kbd?: string;
+    label: string;
+    // (undocumented)
+    onSelect(source: TLUiEventSource): Promise<void> | void;
+}
+
+// @public
+export interface TLUiMenuCollectorSubmenu extends TLUiMenuCollectorGroup {
+    // (undocumented)
+    disabled: boolean;
+}
+
 // @public (undocumented)
 export interface TLUiMenuContextProviderProps {
     // (undocumented)
     children: React.ReactNode;
+    collector?: TLUiMenuCollector;
     // (undocumented)
     sourceId: TLUiEventSource;
     // (undocumented)
@@ -5483,7 +5765,16 @@ export interface TLUiMenuContextProviderProps {
 }
 
 // @public (undocumented)
-export type TLUiMenuContextType = 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
+export type TLUiMenuContextType = 'collector' | 'context-menu' | 'helper-buttons' | 'icons' | 'keyboard-shortcuts' | 'menu' | 'small-icons' | 'toolbar-overflow' | 'toolbar';
+
+// @public (undocumented)
+export interface TLUiMenuContextValue {
+    collector?: TLUiMenuCollector;
+    // (undocumented)
+    sourceId: TLUiEventSource;
+    // (undocumented)
+    type: TLUiMenuContextType;
+}
 
 // @public (undocumented)
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
@@ -5500,6 +5791,7 @@ export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
 
 // @public (undocumented)
 export interface TLUiMenuItemProps<TranslationKey extends string = string, IconType extends string = string> {
+    detail?: string;
     disabled?: boolean;
     icon?: IconType | TLUiIconJsx;
     iconLeft?: IconType | TLUiIconJsx;
@@ -6489,6 +6781,9 @@ export function useCanUndo(): boolean;
 // @public (undocumented)
 export function useCollaborationStatus(): "offline" | "online" | null;
 
+// @public
+export function useCommentingEnabled(): boolean;
+
 // @public (undocumented)
 export function useCopyAs(): (ids: TLShapeId[], format?: TLCopyType) => void;
 
@@ -6644,6 +6939,9 @@ export function useTldrawI18n(): TLI18nAdapter;
 
 // @public (undocumented)
 export function useTldrawUiComponents(): TLUiComponents;
+
+// @public (undocumented)
+export function useTldrawUiMenuContext(): TLUiMenuContextValue;
 
 // @public (undocumented)
 export function useTldrawUiOrientation(): TldrawUiOrientationContext;

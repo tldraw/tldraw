@@ -309,7 +309,7 @@ export {
 	type VideoShapeOptions,
 	type VideoShapeUtilDisplayValues,
 } from './lib/shapes/video/VideoShapeUtil'
-export { getColorStyleItems, getFontStyleItems, type StyleValuesForUi } from './lib/styles'
+export { getColorStyleItems, getFontStyleItems, STYLES, type StyleValuesForUi } from './lib/styles'
 export { Tldraw, type TLComponents, type TldrawBaseProps, type TldrawProps } from './lib/Tldraw'
 export { TldrawImage, type TldrawImageProps } from './lib/TldrawImage'
 export { EraserTool } from './lib/tools/EraserTool/EraserTool'
@@ -470,8 +470,14 @@ export {
 } from './lib/ui/components/primitives/menus/TldrawUiMenuCheckboxItem'
 export {
 	TldrawUiMenuContextProvider,
+	useTldrawUiMenuContext,
+	type TLUiMenuCollector,
+	type TLUiMenuCollectorGroup,
+	type TLUiMenuCollectorItem,
+	type TLUiMenuCollectorSubmenu,
 	type TLUiMenuContextProviderProps,
 	type TLUiMenuContextType,
+	type TLUiMenuContextValue,
 } from './lib/ui/components/primitives/menus/TldrawUiMenuContext'
 export {
 	TldrawUiMenuGroup,
@@ -807,6 +813,7 @@ export { useExportAs } from './lib/ui/hooks/useExportAs'
 export { useKeyboardShortcuts } from './lib/ui/hooks/useKeyboardShortcuts'
 export { useLocalStorageState } from './lib/ui/hooks/useLocalStorageState'
 export { useMenuIsOpen } from './lib/ui/hooks/useMenuIsOpen'
+export { useCommentingEnabled } from './lib/ui/hooks/useCommentingEnabled'
 export { useReadonly } from './lib/ui/hooks/useReadonly'
 export { useSomeActionsEnabled } from './lib/ui/hooks/useActionState'
 export { useRelevantStyles } from './lib/ui/hooks/useRelevantStyles'
@@ -831,6 +838,7 @@ export {
 } from './lib/ui/hooks/useTranslation/useTranslation'
 export { iconTypes, type TLUiIconType } from './lib/ui/icon-types'
 export { useDefaultHelpers, type TLUiOverrideHelpers, type TLUiOverrides } from './lib/ui/overrides'
+export { styleMessageId, stylePanelMessages } from './lib/ui/styleMessages'
 export { TldrawUi, TldrawUiInFrontOfTheCanvas, type TldrawUiProps } from './lib/ui/TldrawUi'
 export { containBoxSize, downsizeImage, type BoxWidthHeight } from './lib/utils/assets/assets'
 export { preloadFont, type TLTypeFace } from './lib/utils/assets/preload-font'

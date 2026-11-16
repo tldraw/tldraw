@@ -95,6 +95,11 @@ function fontIcon(font: TLThemeFont, name: string): string | TLUiIconJsx {
 }
 
 // todo: default styles prop?
+/**
+ * The icons for each value of the default styles, in the order the style panel shows them.
+ *
+ * @public
+ */
 export const STYLES = {
 	fill: [
 		{ value: 'none', icon: 'fill-none' },

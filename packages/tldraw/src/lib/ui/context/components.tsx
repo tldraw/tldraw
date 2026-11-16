@@ -63,6 +63,11 @@ import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 export interface TLUiComponents {
 	ContextMenu?: ComponentType<TLUiContextMenuProps> | null
 	ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null
+	/**
+	 * Mounted with the rest of the UI, including in focus mode, for as long as the UI is shown.
+	 * There's no default: the component manages its own open state.
+	 */
+	CommandPalette?: ComponentType | null
 	HelpMenu?: ComponentType<TLUiHelpMenuProps> | null
 	ZoomMenu?: ComponentType<TLUiZoomMenuProps> | null
 	MainMenu?: ComponentType<TLUiMainMenuProps> | null
@@ -116,6 +121,7 @@ export function TldrawUiComponentsProvider({
 				() => ({
 					ContextMenu: DefaultContextMenu,
 					ActionsMenu: DefaultActionsMenu,
+					CommandPalette: null,
 					HelpMenu: null,
 					ZoomMenu: DefaultZoomMenu,
 					MainMenu: DefaultMainMenu,

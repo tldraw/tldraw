@@ -121,7 +121,7 @@ export const styleMessages = defineMessages({
  * value. Composed the same way, so invisible at the call site too; a custom section's heading
  * falls back to rendering its key.
  *
- * @internal
+ * @public
  */
 export const stylePanelMessages = defineMessages({
 	align: { id: 'style-panel.align', defaultMessage: 'Align' },
@@ -146,11 +146,11 @@ export const stylePanelMessages = defineMessages({
 })
 
 /**
- * The id to translate for a style value's label. Resolved through {@link styleMessages}, so
+ * The id to translate for a style value's label. Resolved through `styleMessages`, so
  * dropping an entry there breaks the picker rather than going unnoticed. Falls back to the
  * composed key for a custom style, whose values the SDK can't know.
  *
- * @internal
+ * @public
  */
 export function styleMessageId(uiType: string, value: string | number): string {
 	const id = `${uiType}-style.${value}`

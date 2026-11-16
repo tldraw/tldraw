@@ -26,7 +26,7 @@ import { TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { TldrawUiToolbarButton } from '../TldrawUiToolbar'
 import { hideAllTooltips } from '../TldrawUiTooltip'
-import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
+import { getMenuCollector, useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
 export interface TLUiMenuItemProps<
@@ -75,6 +75,11 @@ export interface TLUiMenuItemProps<
 	 */
 	isSelected?: boolean
 	/**
+	 * Secondary text shown after the label, such as where the item lives. Passed to a
+	 * {@link TLUiMenuCollector}; the default menus don't show it.
+	 */
+	detail?: string
+	/**
 	 * The function to call when the item is dragged. If this is provided, the item will be draggable.
 	 */
 	onDragStart?(source: TLUiEventSource, info: TLPointerEventInfo): void
@@ -96,9 +101,11 @@ export function TldrawUiMenuItem<
 	onSelect,
 	noClose,
 	isSelected,
+	detail,
 	onDragStart,
 }: TLUiMenuItemProps<TranslationKey, IconType>) {
-	const { type: menuType, sourceId } = useTldrawUiMenuContext()
+	const menu = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = menu
 
 	const msg = useTranslation()
 	const dir = useDirection()
@@ -276,6 +283,23 @@ export function TldrawUiMenuItem<
 				>
 					<TldrawUiButtonIcon icon={icon!} />
 				</TldrawUiToolbarButton>
+			)
+		}
+		case 'collector': {
+			if (!labelStr) return null
+			// Wrapped so the public return type stays `JSX.Element | null`, not `ReactNode`.
+			return (
+				<>
+					{getMenuCollector(menu).renderItem({
+						id,
+						label: labelStr,
+						kbd,
+						disabled,
+						isSelected,
+						detail,
+						onSelect,
+					})}
+				</>
 			)
 		}
 		default: {

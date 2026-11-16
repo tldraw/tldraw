@@ -4,6 +4,7 @@ import {
 	TldrawUiMenuCheckboxItem,
 	type TLUiMenuCheckboxItemProps,
 } from './TldrawUiMenuCheckboxItem'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
 export type TLUiMenuActionCheckboxItemProps = {
@@ -22,9 +23,11 @@ export function TldrawUiMenuActionCheckboxItem({
 }: TLUiMenuActionCheckboxItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
+	const { type: menuType } = useTldrawUiMenuContext()
 	const { available, enabled, checked: isChecked } = useActionState(action)
 	if (!action || !available) return null
-	if ((disabled || !enabled) && whenDisabled === 'hide') return null
+	// Collectors get disabled items anyway, marked disabled, and decide for themselves.
+	if ((disabled || !enabled) && whenDisabled === 'hide' && menuType !== 'collector') return null
 	return (
 		<TldrawUiMenuCheckboxItem
 			{...(action as TLUiMenuCheckboxItemProps)}

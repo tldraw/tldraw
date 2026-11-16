@@ -1,4 +1,4 @@
-import { useContainer } from '@tldraw/editor'
+import { useContainerIfExists } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { ReactNode } from 'react'
 import { unwrapLabel } from '../../../context/actions'
@@ -13,7 +13,7 @@ import {
 	TldrawUiDropdownMenuSubContent,
 	TldrawUiDropdownMenuSubTrigger,
 } from '../TldrawUiDropdownMenu'
-import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
+import { getMenuCollector, useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
 export interface TLUiMenuSubmenuProps<Translation extends string = string> {
@@ -32,8 +32,10 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 	size = 'small',
 	children,
 }: TLUiMenuSubmenuProps<Translation>) {
-	const { type: menuType, sourceId } = useTldrawUiMenuContext()
-	const container = useContainer()
+	const menu = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = menu
+	// A collector can render menus outside an editor, which has no container.
+	const container = useContainerIfExists()
 	const msg = useTranslation()
 	const dir = useDirection()
 	const labelToUse = unwrapLabel(label, menuType)
@@ -83,6 +85,9 @@ export function TldrawUiMenuSubmenu<Translation extends string = string>({
 					</_ContextMenu.ContextMenuPortal>
 				</ContextMenuSubWithMenu>
 			)
+		}
+		case 'collector': {
+			return getMenuCollector(menu).renderSubmenu({ id, label: labelStr, disabled, children })
 		}
 		default: {
 			// no submenus in actions

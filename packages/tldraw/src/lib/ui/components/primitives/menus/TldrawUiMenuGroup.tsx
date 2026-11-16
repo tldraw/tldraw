@@ -5,7 +5,7 @@ import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslatio
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { TldrawUiColumn, TldrawUiGrid, TldrawUiRow, useTldrawUiOrientation } from '../layout'
 import { TldrawUiDropdownMenuGroup } from '../TldrawUiDropdownMenu'
-import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
+import { getMenuCollector, useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
 export interface TLUiMenuGroupProps<TranslationKey extends string = string> {
@@ -66,6 +66,9 @@ export function TldrawUiMenuGroup({ id, label, className, children }: TLUiMenuGr
 					{children}
 				</TldrawUiGrid>
 			)
+		}
+		case 'collector': {
+			return getMenuCollector(menu).renderGroup({ id, label: labelStr, children })
 		}
 		default: {
 			return children

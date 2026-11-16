@@ -7,7 +7,7 @@ import { TLUiTranslationKey } from '../../../hooks/useTranslation/TLUiTranslatio
 import { useDirection, useTranslation } from '../../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
-import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
+import { getMenuCollector, useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 const messages = defineMessages({
 	uiChecked: { id: 'ui.checked', defaultMessage: 'Checked' },
@@ -47,7 +47,8 @@ export function TldrawUiMenuCheckboxItem<
 	disabled = false,
 	checked = false,
 }: TLUiMenuCheckboxItemProps<TranslationKey, IconType>) {
-	const { type: menuType, sourceId } = useTldrawUiMenuContext()
+	const menu = useTldrawUiMenuContext()
+	const { type: menuType, sourceId } = menu
 	const isReadonlyMode = useReadonly()
 	const msg = useTranslation()
 	const dir = useDirection()
@@ -117,6 +118,21 @@ export function TldrawUiMenuCheckboxItem<
 				>
 					{content}
 				</_ContextMenu.CheckboxItem>
+			)
+		}
+		case 'collector': {
+			if (!labelStr) return null
+			return (
+				<>
+					{getMenuCollector(menu).renderItem({
+						id,
+						label: labelStr,
+						kbd,
+						disabled,
+						checked,
+						onSelect,
+					})}
+				</>
 			)
 		}
 		default: {

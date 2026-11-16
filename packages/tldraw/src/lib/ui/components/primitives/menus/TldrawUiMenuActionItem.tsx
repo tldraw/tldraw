@@ -25,7 +25,8 @@ export function TldrawUiMenuActionItem({
 	if (!available) {
 		// The shortcuts dialog lists what a key does, even where the menu item wouldn't show.
 		if (menuType !== 'keyboard-shortcuts') return null
-	} else if ((disabled || !enabled) && whenDisabled === 'hide') {
+	} else if ((disabled || !enabled) && whenDisabled === 'hide' && menuType !== 'collector') {
+		// Collectors get disabled items anyway, marked disabled, and decide for themselves.
 		return null
 	}
 	return (

@@ -8,7 +8,7 @@ import { useLicenseFeatureFlag, useMaybeLicenseManager } from '@tldraw/editor'
  * `<Tldraw />` too: UI mounted via `EditorProvider` resolves the license through the editor, and
  * with no editor at all this is `false`.
  *
- * @internal
+ * @public
  */
 export function useCommentingEnabled(): boolean {
 	return useLicenseFeatureFlag(useMaybeLicenseManager(), 'commenting')
