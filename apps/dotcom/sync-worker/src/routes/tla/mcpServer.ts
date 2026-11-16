@@ -22,6 +22,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
 	COMMENT_CURSOR_WRONG_PAGE_MESSAGE,
+	CommentTarget,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
@@ -47,6 +48,7 @@ import {
 	getPageCommentsResult,
 	getPageInfo,
 	getPeerStateResult,
+	getTextMentionIds,
 	getToolDefinitions,
 	getWrittenCommentResult,
 	getWorkspaceListResult,
@@ -352,6 +354,24 @@ function writeMcpToolCallTelemetry(
 			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
 		],
 		doubles: [data.durationMs],
+	})
+}
+
+// One datapoint per comment that landed. The tool call event says a write succeeded but not what it
+// was, and a `queued` write is a success that read_page_comments can't see yet: the one outcome an
+// agent may answer by posting the comment again.
+function writeCommentWriteTelemetry(
+	env: Environment,
+	request: Request,
+	data: { target: CommentTarget['kind']; queued: boolean; mentions: number }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_comment_write', {
+		blobs: [
+			`target:${data.target}`,
+			`stored:${data.queued ? 'queued' : 'saved'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.mentions],
 	})
 }
 
@@ -942,6 +962,11 @@ async function callWriteCommentTool(
 			agentClient,
 		})
 		if (!written.ok) return withTelemetryReason(written.result, written.reason)
+		writeCommentWriteTelemetry(env, request, {
+			target: input.target.kind,
+			queued: written.queued,
+			mentions: getTextMentionIds(input.text).length,
+		})
 		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
 		return getWrittenCommentResult({
 			boardId: input.boardId,

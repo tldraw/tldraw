@@ -1244,6 +1244,33 @@ describe('write_comment', () => {
 		})
 	})
 
+	it('records what was written, and whether it reached Postgres', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({ ...WRITTEN, queued: true })
+		const env = makeEnv()
+		await callTool(
+			'write_comment',
+			{ boardId: 'board_abc', text: 'Hi @[Ada](user_ada) and @[Bo](user_bo)', shapeId: 'box' },
+			env
+		)
+		expect(
+			datapointsNamed(env, 'mcp_comment_write').map((point) => ({
+				blobs: point.blobs.slice(-3),
+				doubles: point.doubles,
+			}))
+		).toEqual([{ blobs: ['target:shape', 'stored:queued', 'client:none'], doubles: [2] }])
+	})
+
+	it('records no comment write for a refused one', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({
+			ok: false,
+			reason: 'thread_resolved',
+			result: { content: [{ type: 'text', text: 'Resolved' }], isError: true },
+		})
+		const env = makeEnv()
+		await callTool('write_comment', { boardId: 'board_abc', text: 'Hi', threadId: 't' }, env)
+		expect(datapointsNamed(env, 'mcp_comment_write')).toEqual([])
+	})
+
 	it('passes a permission refusal through with its own telemetry reason', async () => {
 		vi.mocked(writeCommentForUser).mockResolvedValue({
 			ok: false,

@@ -1938,6 +1938,235 @@ spec:
                 mode: multi
                 sort: desc
           version: 13.2.0-29854286369
+    panel-26:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 8) as target, sum(_sample_interval) as comments
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_comment_write'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, target
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob3, 8) as target, sum(_sample_interval) as comments
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_comment_write'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, target
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: 'Comments write_comment posted (mcp_comment_write), by where they went:
+          reply is a reply in an existing thread, and shape and point each start a new thread.
+          Refused writes are not here; they are tool call errors with their own reason.'
+        id: 26
+        links: []
+        title: Comments written by target
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
+    panel-27:
+      kind: Panel
+      spec:
+        data:
+          kind: QueryGroup
+          spec:
+            queries:
+              - kind: PanelQuery
+                spec:
+                  hidden: false
+                  query:
+                    datasource:
+                      name: bdgu7tk03irr4e
+                    group: vertamedia-clickhouse-datasource
+                    kind: DataQuery
+                    spec:
+                      dateTimeType: DATETIME
+                      editorMode: code
+                      extrapolate: true
+                      format: time_series
+                      formatAs: time_series
+                      intervalFactor: 1
+                      query: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 8) as stored, sum(_sample_interval) as comments
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_comment_write'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, stored
+                        ORDER BY date ASC
+                      rawQuery: |-
+                        SELECT toStartOfInterval(timestamp, INTERVAL '$interval' SECOND) as date, substring(blob4, 8) as stored, sum(_sample_interval) as comments
+                        FROM 'MEASURE'
+                        WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
+                        AND blob1 = 'mcp_comment_write'
+                        AND blob2 = '${environment}-tldraw-multiplayer'
+                        GROUP BY date, stored
+                        ORDER BY date ASC
+                      round: 0s
+                      showFormattedSQL: false
+                      showHelp: false
+                      skip_comments: true
+                      step: ''
+                    version: v0
+                  refId: A
+            queryOptions: {}
+            transformations: []
+        description: Whether a posted comment had reached Postgres when write_comment answered.
+          queued means it is on the board but the outbox drain left it behind, so read_page_comments
+          cannot see it yet. A few are harmless; a sustained queued line is the comment drain
+          failing.
+        id: 27
+        links: []
+        title: Comments saved or queued
+        vizConfig:
+          group: timeseries
+          kind: VizConfig
+          spec:
+            fieldConfig:
+              defaults:
+                color:
+                  mode: palette-classic
+                custom:
+                  axisBorderShow: false
+                  axisCenteredZero: false
+                  axisColorMode: text
+                  axisLabel: ''
+                  axisPlacement: auto
+                  barAlignment: 0
+                  barWidthFactor: 0.8
+                  drawStyle: bars
+                  fillOpacity: 80
+                  gradientMode: none
+                  hideFrom:
+                    legend: false
+                    tooltip: false
+                    viz: false
+                  insertNulls: false
+                  lineInterpolation: linear
+                  lineWidth: 0
+                  pointSize: 5
+                  scaleDistribution:
+                    type: linear
+                  showPoints: never
+                  showValues: false
+                  spanNulls: false
+                  stacking:
+                    group: A
+                    mode: normal
+                  thresholdsStyle:
+                    mode: 'off'
+                thresholds:
+                  mode: absolute
+                  steps:
+                    - color: green
+                      value: 0
+                unit: short
+              overrides: []
+            options:
+              annotations:
+                clustering: -1
+                multiLane: false
+              legend:
+                calcs: []
+                displayMode: list
+                enableFacetedFilter: false
+                overflow: ellipsis
+                placement: bottom
+                showLegend: true
+              tooltip:
+                hideZeros: false
+                maxHeight: 600
+                mode: multi
+                sort: desc
+          version: 13.2.0-29854286369
     panel-3:
       kind: Panel
       spec:
@@ -2056,11 +2285,11 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description:
-          Share of tool calls that came through the codex plugin's proxy worker rather than from an MCP client connected
-          to this server directly. The plugin forwards search_boards, list_workspaces, create_board
-          and rename_board, and is recognized by its tldraw-codex-plugin User-Agent; calls
-          it made before it sent one are client none.
+        description: Share of tool calls that came through the codex plugin's proxy worker
+          rather than from an MCP client connected to this server directly. The plugin forwards
+          search_boards, list_workspaces, create_board and rename_board, and is recognized
+          by its tldraw-codex-plugin User-Agent; calls it made before it sent one are client
+          none.
         id: 4
         links: []
         title: Codex plugin share of tool calls
@@ -2143,9 +2372,8 @@ spec:
                   refId: A
             queryOptions: {}
             transformations: []
-        description: 'Which of the four tools callers actually use: get_board_info, get_page_info,
-          get_cluster_info and get_cluster_screenshot. `unknown` is a call for a tool name
-          this server does not have.'
+        description: Which tools callers actually use. `unknown` is a call for a tool name
+          this server does not have.
         id: 5
         links: []
         title: Tool calls by tool
@@ -2880,7 +3108,7 @@ spec:
           spec:
             element:
               kind: ElementReference
-              name: panel-15
+              name: panel-26
             height: 8
             width: 12
             x: 0
@@ -2889,11 +3117,29 @@ spec:
           spec:
             element:
               kind: ElementReference
-              name: panel-16
+              name: panel-27
             height: 8
             width: 12
             x: 12
             y: 60
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-15
+            height: 8
+            width: 12
+            x: 0
+            y: 68
+        - kind: GridLayoutItem
+          spec:
+            element:
+              kind: ElementReference
+              name: panel-16
+            height: 8
+            width: 12
+            x: 12
+            y: 68
   links: []
   liveNow: false
   preload: false
