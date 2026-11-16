@@ -1,7 +1,7 @@
 import { computed, type Computed } from '@tldraw/state'
 import type { TLLibrary, TLLibraryId, TLLibraryItemId } from '@tldraw/tlschema'
 import { addItemsToLibrary } from './addItemsToLibrary'
-import { copyLibraryItemByItem, copyItem } from './copyLibrary'
+import { copyLibraryItems, copyItem } from './copyLibrary'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -200,7 +200,7 @@ export class CompositeLibrarySource implements LibrarySource {
 		if (from === to && !from.owner && from.source.copyLibrary) {
 			return from.source.copyLibrary(libraryId, ownerId, options)
 		}
-		return copyLibraryItemByItem(this, libraryId, ownerId, options)
+		return copyLibraryItems(this, libraryId, ownerId, options)
 	}
 
 	private async moveItemBetweenParts(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {

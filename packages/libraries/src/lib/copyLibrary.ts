@@ -1,17 +1,24 @@
 import type { TLLibrary, TLLibraryId, TLLibraryThumbnail } from '@tldraw/tlschema'
+import { addItemsToLibrary } from './addItemsToLibrary'
 import {
 	LibraryNotFoundError,
 	type LibrarySource,
 	type TLCopyLibraryOptions,
+	type TLNewLibraryItem,
 } from './LibrarySource'
+import { mapConcurrently } from './mapConcurrently'
 import type { TLLibraryItem } from './schema'
+
+const LOAD_CONCURRENCY = 6
 
 /**
  * Copies a library and its items to an owner, as a new library named by `options.getName`, its
  * items keeping their names. The original is left as it is, so this works for read-only libraries
- * too. A source that has its own {@link LibrarySource.copyLibrary} makes the copy; otherwise item
- * thumbnails are fetched from their URLs and copied, one that can't be fetched being left out, and
- * if an item can't be copied, the partial copy is deleted and the error rethrown.
+ * too. A source that has its own {@link LibrarySource.copyLibrary} makes the copy; otherwise the
+ * items' content and thumbnails are loaded a few at a time, thumbnails being fetched from their
+ * URLs and one that can't be fetched left out, and the copies are added together (see
+ * `addItemsToLibrary`). If an item can't be copied, the partial copy is deleted and the error
+ * rethrown.
  * @public
  */
 export async function copyLibrary(
@@ -21,11 +28,11 @@ export async function copyLibrary(
 	options: TLCopyLibraryOptions = {}
 ): Promise<TLLibrary> {
 	if (source.copyLibrary) return source.copyLibrary(libraryId, ownerId, options)
-	return copyLibraryItemByItem(source, libraryId, ownerId, options)
+	return copyLibraryItems(source, libraryId, ownerId, options)
 }
 
-/** {@link copyLibrary} for a source without its own: each item is loaded and added again. */
-export async function copyLibraryItemByItem(
+/** {@link copyLibrary} for a source without its own: the items are loaded and added again. */
+export async function copyLibraryItems(
 	source: LibrarySource,
 	libraryId: TLLibraryId,
 	ownerId: string,
@@ -37,12 +44,26 @@ export async function copyLibraryItemByItem(
 	const name = options.getName ? options.getName(library.name) : library.name
 	const copy = await source.createLibrary(name, { ownerId })
 	try {
-		for (const item of items) await copyItem(source, item, source, copy.id)
+		await copyItems(source, items, source, copy.id)
 	} catch (error) {
 		await source.deleteLibrary(copy.id).catch(() => {})
 		throw error
 	}
 	return copy
+}
+
+/**
+ * Adds copies of `items`, from `from`, to a library in `to`, with new ids and in the same order.
+ * Their content and thumbnails are loaded a few at a time, and the copies added together.
+ */
+export async function copyItems(
+	from: LibrarySource,
+	items: TLLibraryItem[],
+	to: LibrarySource,
+	toLibraryId: TLLibraryId
+): Promise<TLLibraryItem[]> {
+	const newItems = await mapConcurrently(items, LOAD_CONCURRENCY, (item) => loadCopy(from, item))
+	return addItemsToLibrary(to, toLibraryId, newItems)
 }
 
 /**
@@ -56,17 +77,21 @@ export async function copyItem(
 	toLibraryId: TLLibraryId,
 	options: TLCopyLibraryOptions = {}
 ): Promise<TLLibraryItem> {
+	const copy = await loadCopy(from, item)
+	if (copy.name !== undefined && options.getName) copy.name = options.getName(copy.name)
+	return to.addItem(toLibraryId, copy)
+}
+
+async function loadCopy(from: LibrarySource, item: TLLibraryItem): Promise<TLNewLibraryItem> {
 	const [content, thumbnail] = await Promise.all([
 		from.getItemContent(item.id),
 		item.thumbnail === undefined ? undefined : fetchThumbnail(item.thumbnail),
 	])
-	return to.addItem(toLibraryId, {
-		...(item.name === undefined
-			? {}
-			: { name: options.getName ? options.getName(item.name) : item.name }),
+	return {
+		...(item.name === undefined ? {} : { name: item.name }),
 		content,
 		...(thumbnail === undefined ? {} : { thumbnail }),
-	})
+	}
 }
 
 /**
