@@ -1020,6 +1020,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 	}
 
+	/**
+	 * The hidden shapes on the current page, or null if there are none. Reading `isShapeHidden`
+	 * for every shape from a computed that re-runs on each shape change costs a tracked read per
+	 * shape per change; this only re-runs when a shape's visibility changes.
+	 */
+	@computed private _getCurrentPageHiddenShapeIds(): Set<TLShapeId> | null {
+		if (!this._getShapeVisibility) return null
+		let hidden: Set<TLShapeId> | null = null
+		for (const id of this.getCurrentPageShapeIds()) {
+			if (this.isShapeHidden(id)) (hidden ??= new Set()).add(id)
+		}
+		return hidden
+	}
+
 	readonly options: TldrawOptions
 
 	/**
@@ -5885,10 +5899,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
+		const hidden = this._getCurrentPageHiddenShapeIds()
 
 		for (const [shapeId, bounds] of this.getCurrentPageShapeMaskedBounds()) {
-			// Free unless `getShapeVisibility` is set; then it tracks every shape.
-			if (this.isShapeHidden(shapeId)) continue
+			if (hidden?.has(shapeId)) continue
 			if (!commonBounds) {
 				commonBounds = bounds.clone()
 			} else {

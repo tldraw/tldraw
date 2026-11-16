@@ -37,9 +37,13 @@ function median(values: number[]) {
 	return sorted.length % 2 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2
 }
 
-function setupBoard(n: number) {
-	// The default maxShapesPerPage (4000) would silently drop most of the larger boards.
-	const editor = new TestEditor({ options: { maxShapesPerPage: Infinity } })
+function setupBoard(n: number, withVisibility: boolean) {
+	const editor = new TestEditor({
+		// The default maxShapesPerPage (4000) would silently drop most of the larger boards.
+		options: { maxShapesPerPage: Infinity },
+		// Setting this at all, as tldraw.com does, makes every isShapeHidden call a tracked read.
+		getShapeVisibility: withVisibility ? () => 'inherit' : undefined,
+	})
 	const cols = Math.ceil(Math.sqrt(n))
 	const ids: TLShapeId[] = []
 	const partials = []
@@ -132,8 +136,11 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 	it("measures the minimap's added cost per editor change", () => {
 		const results: Record<string, string | number>[] = []
 
-		for (const n of SIZES) {
-			const { editor, ids } = setupBoard(n)
+		for (const { n, withVisibility } of SIZES.flatMap((n) => [
+			{ n, withVisibility: false },
+			{ n, withVisibility: true },
+		])) {
+			const { editor, ids } = setupBoard(n, withVisibility)
 			const many = ids.slice(0, 100)
 			// Every op writes fresh values so none of them is a no-op.
 			let tick = 0
@@ -185,6 +192,7 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 			results.push({
 				scenario: 'first render',
 				shapes: n,
+				visibility: withVisibility ? 'yes' : 'no',
 				withoutMs: '-',
 				withMs: firstRenderMs,
 				minimapMs: firstRenderMs,
@@ -199,6 +207,7 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 				results.push({
 					scenario: scenario.name,
 					shapes: n,
+					visibility: withVisibility ? 'yes' : 'no',
 					withoutMs: round(without[i].ms),
 					withMs: round(withMinimap[i].ms),
 					minimapMs: round(withMinimap[i].ms - without[i].ms),
