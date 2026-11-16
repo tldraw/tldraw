@@ -8,11 +8,12 @@ import { Environment } from './types'
 // the ROOMS bucket (see libraryStorage).
 
 export const MAX_LIBRARY_ITEM_THUMBNAIL_BYTES = 1_000_000
-// No SVG, which can carry script.
+// SVG is served like any upload, with a CSP that keeps its script from running.
 export const LIBRARY_ITEM_THUMBNAIL_TYPES: ReadonlySet<string> = new Set([
 	'image/png',
 	'image/webp',
 	'image/jpeg',
+	'image/svg+xml',
 ])
 
 /** The uploads-bucket objects a thumbnail's URLs point at. */
@@ -46,7 +47,7 @@ export async function putThumbnail(
 }
 
 async function putImage(env: Environment, image: Blob, stored: string[]) {
-	const extension = image.type.split('/')[1]
+	const extension = image.type === 'image/svg+xml' ? 'svg' : image.type.split('/')[1]
 	const body = await image.arrayBuffer()
 	return putObject(env, extension, body, { contentType: image.type }, stored)
 }
