@@ -118,9 +118,12 @@ assert(
 )
 
 // Multinode (flyio-multinode) is for staging + production, previews use single as it is faster / cheaper
-// TEMP(preview-rmv2): previews run multi-node to exercise the RMv2 handoff
 const deployZero =
-	env.DEPLOY_ZERO === 'false' ? false : (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
+	env.DEPLOY_ZERO === 'false'
+		? false
+		: previewId && env.DEPLOY_ZERO === 'flyio-multinode'
+			? ('flyio' as const)
+			: (env.DEPLOY_ZERO as 'flyio' | 'flyio-multinode')
 // For multinode: -vs = view syncer, -rm = replication manager (abbreviated for Fly.io's 30-char app name limit)
 const flyioAppName =
 	deployZero === 'flyio'
@@ -133,8 +136,7 @@ const flyioReplAppName =
 
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
 // needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
-// TEMP(preview-rmv2): previews too
-const zeroRmv2 = env.TLDRAW_ENV === 'staging' || !!previewId
+const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -322,15 +324,7 @@ const zeroVmSizes = {
 		vsMinMachines: 13,
 		killTimeout: '5m',
 	},
-	// TEMP(preview-rmv2): multi-node sizes for previews
-	preview: {
-		single: { cpus: 2, memory: '2gb' },
-		rm: { cpus: 1, memory: '1gb', cpuKind: 'shared' },
-		vs: { cpus: 2, memory: '1gb' },
-		volumeSize: '1gb',
-		vsMinMachines: 1,
-		killTimeout: '5m',
-	},
+	preview: { single: { cpus: 2, memory: '2gb' } },
 } as const
 
 const zeroConnectionLimits = {
@@ -345,9 +339,6 @@ const zeroConnectionLimits = {
 	// Previews use Supabase branch DB
 	preview: {
 		single: { upstream: 3, cvr: 5 },
-		// TEMP(preview-rmv2): multi-node limits for previews
-		rm: { upstream: 1, cvr: 1 },
-		vs: { upstream: 2, cvr: 3 },
 	},
 } as const
 interface ConnLimits {
@@ -885,11 +876,6 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_VERSION', zeroVersion)
 }
 
-// TEMP(preview-rmv2): info logs show the backup gate and the switchover
-function withPreviewInfoLogs(toml: string): string {
-	return previewId ? toml.replace('ZERO_LOG_LEVEL = "warn"', 'ZERO_LOG_LEVEL = "info"') : toml
-}
-
 // The view-syncer image; the replication manager runs the stock Zero image.
 function renderDockerfile(): string {
 	const dockerfileTemplate = path.join(zeroCacheFolder, 'Dockerfile.template')
@@ -935,10 +921,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	await deployFlyAppIfChanged({
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
-		inputs: {
-			config: withPreviewInfoLogs(renderFlyioReplicationManagerToml(flyioReplAppName, backupPath)),
-			secrets,
-		},
+		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
 		deploy: zeroRmv2
 			? (renderedToml) =>
 					handOffReplicationManager({
@@ -957,9 +940,7 @@ async function deployZeroViaFlyIoMultiNode() {
 		appName: flyioAppName,
 		configFile: 'flyio-view-syncer.toml',
 		inputs: {
-			config: withPreviewInfoLogs(
-				renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath)
-			),
+			config: renderFlyioViewSyncerToml(flyioAppName, replManagerUri, backupPath),
 			dockerfile: { content: renderDockerfile(), contextDir: zeroCacheFolder },
 			secrets,
 		},
