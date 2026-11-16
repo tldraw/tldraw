@@ -616,3 +616,38 @@
 	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
 }
+
+.tlui-libraries-stamp-preview {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.tlui-libraries-stamp-preview__item,
+.tlui-libraries-stamp-preview__box {
+	position: absolute;
+	top: 0;
+	left: 0;
+}
+
+.tlui-libraries-stamp-preview__item {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	opacity: 0.4;
+}
+
+.tlui-libraries-stamp-preview__item[data-has-thumbnail='false'] {
+	border: 1px dashed var(--tl-color-text-3);
+}
+
+.tlui-libraries-stamp-preview__item img {
+	width: 100%;
+	height: 100%;
+	object-fit: contain;
+}
+
+.tlui-libraries-stamp-preview__box {
+	border: 1px dashed var(--tl-color-selected);
+}

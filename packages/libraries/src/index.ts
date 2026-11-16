@@ -7,6 +7,9 @@ export { LibrariesPanelButton } from './canvas/libraries-panel-button'
 export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
 export { useLibrariesEnabled } from './canvas/license'
 export { placeLibraryItem } from './canvas/place-item'
+export { armLibraryItem, type ArmLibraryItemOptions, isLibraryItemArmed } from './canvas/arm-item'
+export { LibraryStampPreview } from './canvas/stamp-preview'
+export { LibraryStampTool } from './canvas/stamp-tool'
 export {
 	saveShapesToLibrary,
 	type PrepareItemContent,
