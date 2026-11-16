@@ -45,7 +45,7 @@ import {
 	regionWithPinAt,
 	shapeAnchorAt,
 } from './thread-state'
-import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
+import { avatarRenderer, POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
 
 const messages = defineMessages({
 	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
@@ -199,10 +199,13 @@ export const ThreadPin = memo(function ThreadPin({
 
 	const PinContent = options.components.PinContent
 	const threadAuthor = resolveAuthor(thread.createdBy)
+	const pinAuthor = threadAuthor ?? UNKNOWN_COMMENT_AUTHOR
 	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />
 	) : (
-		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
+		(avatarRenderer(options.components, thread.createdBy)?.(pinAuthor) ?? (
+			<Avatar author={pinAuthor} />
+		))
 	)
 	const pinLabel = msg(
 		thread.resolved ? messages.commentsPinLabelResolved : messages.commentsPinLabel,

@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Повернути фігуру за годинниковою стрілкою (точніше)",
 	"a11y.select-shape": "Вибрати наступну фігуру",
 	"a11y.select-shape-direction": "Виберіть фігуру в напрямку",
+	"a11y.shape-group": "Група",
 	"a11y.shape-image": "Зображення",
 	"a11y.shape-index": "{num} з {total}",
 	"a11y.shape-video": "відео",

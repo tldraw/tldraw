@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Rotera formen medsols (fin)",
 	"a11y.select-shape": "Välj nästa form",
 	"a11y.select-shape-direction": "Välj form i riktning",
+	"a11y.shape-group": "Grupp",
 	"a11y.shape-image": "Bild",
 	"a11y.shape-index": "{num} av {total}",
 	"a11y.shape-video": "Video",

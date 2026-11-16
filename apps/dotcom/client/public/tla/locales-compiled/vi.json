@@ -181,6 +181,12 @@
       "value": "Tạo tệp"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Di chuyển đến"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -335,6 +341,12 @@
     {
       "type": 0,
       "value": "Xóa thành viên"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Đăng nhập để chấp nhận lời mời này."
     }
   ],
   "3bc7d6ea2f": [
@@ -722,6 +734,12 @@
       "value": "Vui lòng tải lại trang"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Lưu nội dung dưới dạng tệp .tldr: chọn 'Lưu bản sao' trong menu ở góc trên bên trái."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -982,6 +1000,12 @@
       "value": " không? Hành động này không thể hoàn tác."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Đã sao chép liên kết mời"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1113,12 +1137,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Xuất nội dung dưới dạng tệp .tldr: Chọn 'Tải xuống' ở menu trên cùng bên trái."
     }
   ],
   "a104439641": [
@@ -1645,6 +1663,12 @@
       "value": "hoặc"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Lịch sử tập tin"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1741,6 +1765,12 @@
     {
       "type": 0,
       "value": "Xóa"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Liên kết mời này không hợp lệ hoặc đã hết hạn."
     }
   ],
   "f476ba8646": [
@@ -1868,6 +1898,12 @@
     {
       "type": 0,
       "value": "Tạo tài khoản miễn phí để lưu tệp của bạn và sử dụng tldraw cùng đồng đội."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Lỗi khi chấp nhận lời mời"
     }
   ],
   "ffcd73e997": [

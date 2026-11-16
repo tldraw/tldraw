@@ -11,7 +11,6 @@ import {
 	ROOM_PREFIX,
 	SNAPSHOT_PREFIX,
 } from '@tldraw/dotcom-shared'
-import { librariesPanelOpen, toggleLibrariesPanel } from '@tldraw/libraries'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
 import { useLocation, useNavigate, useParams } from 'react-router-dom'
@@ -20,6 +19,12 @@ import {
 	F,
 	PeopleMenu,
 	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
@@ -30,9 +35,11 @@ import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
-import { useOneSidePanelOpen } from '../../hooks/useOneSidePanelOpen'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -44,10 +51,6 @@ const ctaMessages = defineMessages({
 
 const commentsMessages = defineMessages({
 	comments: { defaultMessage: 'Comments' },
-})
-
-const librariesMessages = defineMessages({
-	libraries: { defaultMessage: 'Libraries' },
 })
 
 type TopRightPanelContext = 'file' | 'published-file' | 'scratch' | 'legacy'
@@ -75,7 +78,6 @@ export function TlaEditorTopRightPanel({
 		},
 		[editor]
 	)
-	useOneSidePanelOpen(editor)
 
 	if (isAnonUser) {
 		return (
@@ -101,15 +103,11 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
+			<DesignSwitchesMenu />
 			<PeopleMenu />
-			{/* Only file editors mount the libraries panel and comments sidebar (see TlaEditor); in
-			    legacy and published contexts these buttons would toggle state nothing reads. */}
-			{context !== 'legacy' && context !== 'published-file' && (
-				<>
-					<LibrariesPanelButton />
-					<CommentsSidebarButton />
-				</>
-			)}
+			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
+			    contexts this button would toggle state nothing reads. */}
+			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
 				<TlaFileShareMenu
@@ -166,27 +164,49 @@ function CommentsSidebarButton() {
 	)
 }
 
-function LibrariesPanelButton() {
-	const msg = useTranslation()
-	const editor = useEditor()
-	const hasLibraries = !!useMaybeApp()?.libraries
-	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
-	const label = msg(librariesMessages.libraries)
-
-	if (!hasLibraries) return null
+/** The beaker: v3 design switches, for `ui_v3` users only. See `designSwitches`. */
+function DesignSwitchesMenu() {
+	const isUiV3 = useIsUiV3()
+	if (!isUiV3) return null
 
 	return (
-		<TldrawUiButton
-			type="icon"
-			className={styles.topRightIconButton}
-			data-testid="tla-libraries-button"
-			aria-pressed={open}
-			tooltip={label}
-			title={label}
-			onClick={() => toggleLibrariesPanel(editor)}
-		>
-			<TlaIcon icon="library" />
-		</TldrawUiButton>
+		<TldrawUiDropdownMenuRoot id="design-switches">
+			<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
+						type="icon"
+						className={styles.topRightIconButton}
+						data-testid="tla-design-switches-button"
+						tooltip="Design switches"
+						title="Design switches"
+					>
+						<TlaIcon icon="beaker" />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+					<TldrawUiMenuGroup id="design-switches">
+						{Object.values(designSwitches).map((designSwitch) => (
+							<DesignSwitchItem key={designSwitch.id} designSwitch={designSwitch} />
+						))}
+					</TldrawUiMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
+
+function DesignSwitchItem({ designSwitch }: { designSwitch: DesignSwitch }) {
+	const checked = useValue(designSwitch.value)
+	return (
+		<TldrawUiMenuCheckboxItem
+			id={`design-switch-${designSwitch.id}`}
+			label={designSwitch.label}
+			checked={checked}
+			onSelect={() => {
+				designSwitch.value.set(!checked)
+			}}
+			readonlyOk
+		/>
 	)
 }
 

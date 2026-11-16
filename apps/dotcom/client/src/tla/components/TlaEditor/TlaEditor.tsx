@@ -54,6 +54,7 @@ import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
+import { registerAgentBylineEditHandler } from './agentCommentEdits'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -66,6 +67,8 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { TlaPinContent, TlaThreadRow } from './TlaAgentCommentSurfaces'
+import { TlaCommentByline } from './TlaCommentByline'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
 import { useFileEditorRef, useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
@@ -85,7 +88,12 @@ const messages = defineMessages({
 const tlaCommentTools = [
 	CommentTool.configure({
 		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
-		components: { ComposerFallback: SignInToComment },
+		components: {
+			ComposerFallback: SignInToComment,
+			CommentByline: TlaCommentByline,
+			ThreadRow: TlaThreadRow,
+			PinContent: TlaPinContent,
+		},
 	}),
 ]
 
@@ -243,6 +251,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				editor.navigateToDeepLink()
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
+			const cleanupAgentBylineEdits = registerAgentBylineEditHandler(editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -289,6 +298,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			return () => {
 				cleanupPerf()
 				fileStateUpdater.dispose()
+				cleanupAgentBylineEdits()
 				abortController.abort()
 			}
 		},

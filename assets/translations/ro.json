@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Rotește forma în sensul acelor de ceasornic (fin)",
 	"a11y.select-shape": "Selectați următoarea formă",
 	"a11y.select-shape-direction": "Selectați forma în direcția",
+	"a11y.shape-group": "Grup",
 	"a11y.shape-image": "Imagine",
 	"a11y.shape-index": "{num} din {total}",
 	"a11y.shape-video": "Video",
