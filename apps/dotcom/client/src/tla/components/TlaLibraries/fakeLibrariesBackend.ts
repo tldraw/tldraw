@@ -132,11 +132,11 @@ export function createFakeLibrariesBackend({
 	}
 
 	const addItem = (
+		id: string,
 		libraryId: string,
 		name: string | null,
 		thumbnail: TlaLibraryItemThumbnail | null
 	) => {
-		const id = uniqueId()
 		const item: TlaLibraryItem = {
 			id,
 			libraryId,
@@ -157,7 +157,10 @@ export function createFakeLibrariesBackend({
 		let match = url.match(/^\/api\/app\/libraries\/([^/]+)\/items$/)
 		if (match && init.method === 'POST') {
 			const form = init.body as FormData
+			const id = form.get('id')
+			if (typeof id !== 'string') return new Response(null, { status: 400 })
 			const item = addItem(
+				id,
 				match[1],
 				(form.get('name') as string | null) ?? null,
 				newThumbnail(
@@ -177,6 +180,7 @@ export function createFakeLibrariesBackend({
 			for (const item of source.items) {
 				const { thumbnail } = item
 				const copy = addItem(
+					uniqueId(),
 					id,
 					item.name,
 					newThumbnail(thumbnail !== null, typeof thumbnail === 'object' && thumbnail !== null)
