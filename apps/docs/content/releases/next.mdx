@@ -8,7 +8,7 @@ status: published
 last_version: v5.6.0
 ---
 
-So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across arrow binding in locked groups, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
+So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
 
 ## API changes
 
@@ -40,6 +40,7 @@ So far this release lets shapes decide whether they can flip, gates action execu
 ## Bug fixes
 
 - Fix arrows binding to shapes in locked groups, which could lock the new arrow or leave it stuck while drawing. ([#11201](https://github.com/tldraw/tldraw/pull/11201))
+- Fix an unhandled promise rejection when UI translations fail to load. ([#10922](https://github.com/tldraw/tldraw/pull/10922))
 - Fix `TldrawUiIcon` throwing outside an `AssetUrlsProvider` by falling back to the default icon URLs. ([#11485](https://github.com/tldraw/tldraw/pull/11485))
 - Fix `.tldr` files dropping assets that custom records refer to; assets named by any record in the file are now preserved. ([#11406](https://github.com/tldraw/tldraw/pull/11406))
 - Fix pressing Escape while dragging a note's clone handle leaving the new note behind and switching to the note tool. ([#10460](https://github.com/tldraw/tldraw/pull/10460))
