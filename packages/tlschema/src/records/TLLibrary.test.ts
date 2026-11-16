@@ -33,6 +33,15 @@ describe('libraryValidator', () => {
 		expect(() => libraryValidator.validate({ ...library, ownerId: ' ' })).toThrow()
 	})
 
+	it('accepts a parent library, but not an id of another type', () => {
+		const parentId = LibraryRecordType.createId('ui-kit')
+		expect(libraryValidator.validate({ ...library, parentId })).toEqual({ ...library, parentId })
+		expect(() => libraryValidator.validate({ ...library, parentId: 'ui-kit' })).toThrow()
+		expect(() =>
+			libraryValidator.validate({ ...library, parentId: 'library-item:ui-kit' })
+		).toThrow()
+	})
+
 	it('rejects a readOnly flag, which a library no longer has', () => {
 		expect(() => libraryValidator.validate({ ...library, readOnly: true })).toThrow()
 	})
@@ -154,5 +163,23 @@ describe('schema registration', () => {
 			'down'
 		)
 		expect(result.type).toBe('error')
+	})
+})
+
+describe('library migrations', () => {
+	const migration = (librarySchemaRecords.library.migrations as any).sequence.find(
+		(m: any) => m.id === 'com.tldraw.library/2'
+	) as { up(r: any): any; down(r: any): any }
+	const parentId = LibraryRecordType.createId('ui-kit')
+	const nested = LibraryRecordType.create({ id: libraryId, name: 'Wireframes', parentId })
+
+	it('leaves libraries from before parents as they are, at the top level', () => {
+		const { parentId: _parentId, ...topLevel } = nested
+		expect(migration.up(topLevel)).toEqual(topLevel)
+	})
+
+	it('down-migrates by dropping the parent, so a nested library arrives at the top level', () => {
+		const { parentId: _parentId, ...topLevel } = nested
+		expect(migration.down(nested)).toEqual(topLevel)
 	})
 })
