@@ -10,8 +10,21 @@ import { describe, expect, it, vi } from 'vitest'
 import { CompositeLibrarySource } from './CompositeLibrarySource'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
-import { LibraryNotFoundError, LibraryPermissionError, type LibrarySource } from './LibrarySource'
-import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
+import {
+	LibraryNotFoundError,
+	LibraryPermissionError,
+	type LibrarySource,
+	type TLNewLibraryItem,
+} from './LibrarySource'
+import { LibraryItemRecordType, type TLLibraryItem, type TLLibraryItemContent } from './schema'
+import { trackItemsStoring, whenItemsStored } from './whenItemsStored'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 function content(name: string): TLLibraryItemContent {
 	const id = createShapeId(name)
@@ -103,7 +116,7 @@ describe('CompositeLibrarySource', () => {
 		const { source, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
 		expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id])
-		const item = await source.addItem(kit.id, { name: 'Star', content: content('star') })
+		const item = await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
 		expect(source.getItems(kit.id)).toEqual(team.getItems(kit.id))
 		expect(await source.getItemContent(item.id)).toEqual(content('star'))
 		await source.renameItem(item.id, 'Heart')
@@ -122,10 +135,12 @@ describe('CompositeLibrarySource', () => {
 		const { source, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
 		const addItems = vi.spyOn(team, 'addItems')
-		const items = await source.addItems(kit.id, [
-			{ name: 'Star', content: content('star') },
-			{ name: 'Heart', content: content('heart') },
-		])
+		const items = await added(
+			source.addItems(kit.id, [
+				{ name: 'Star', content: content('star') },
+				{ name: 'Heart', content: content('heart') },
+			])
+		)
 		expect(addItems).toHaveBeenCalledTimes(1)
 		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
 		expect(team.getItems(kit.id)).toEqual(expect.arrayContaining(items))
@@ -138,10 +153,12 @@ describe('CompositeLibrarySource', () => {
 			parts: [{ owner: personal, source: withoutAddItems(mine) }],
 		})
 		const kit = await source.createLibrary('Kit')
-		const items = await source.addItems(kit.id, [
-			{ name: 'Star', content: content('star') },
-			{ name: 'Heart', content: content('heart') },
-		])
+		const items = await added(
+			source.addItems(kit.id, [
+				{ name: 'Star', content: content('star') },
+				{ name: 'Heart', content: content('heart') },
+			])
+		)
 		expect(addItem).toHaveBeenCalledTimes(2)
 		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
 	})
@@ -237,7 +254,7 @@ describe('CompositeLibrarySource', () => {
 	it('moves a library between writable parts', async () => {
 		const { source, mine, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
-		await source.addItem(kit.id, { name: 'Star', content: content('star') })
+		await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
 		await source.moveLibrary(kit.id, 'acme')
 		expect(mine.getLibraries()).toEqual([])
 		const [moved] = team.getLibraries()
@@ -249,7 +266,7 @@ describe('CompositeLibrarySource', () => {
 		const { source, mine, team } = setUp()
 		const from = await source.createLibrary('Kit', { ownerId: 'home' })
 		const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
-		const item = await source.addItem(from.id, { name: 'Star', content: content('star') })
+		const item = await added(source.addItem(from.id, { name: 'Star', content: content('star') }))
 		await source.moveItem!(item.id, to.id)
 		expect(mine.getItems(from.id)).toEqual([])
 		expect(team.getItems(to.id).map((i) => i.name)).toEqual(['Star'])
@@ -258,12 +275,28 @@ describe('CompositeLibrarySource', () => {
 	describe('a part that stores added items after listing them', () => {
 		// Lists added items at once, then fails to store them and removes them again.
 		function failingToStore(source: InMemoryLibrarySource): LibrarySource {
+			const failToStore = (itemIds: TLLibraryItemId[]) => {
+				const stored = (async () => {
+					await new Promise((resolve) => setTimeout(resolve, 1))
+					for (const itemId of itemIds) await source.deleteItem(itemId)
+					throw new Error('storing failed')
+				})()
+				trackItemsStoring(itemIds, stored)
+			}
 			return new Proxy(source, {
 				get: (target, key) => {
-					if (key === 'whenStored') {
-						return async (itemIds: TLLibraryItemId[]) => {
-							for (const itemId of itemIds) await target.deleteItem(itemId).catch(() => {})
-							throw new Error('storing failed')
+					if (key === 'addItem') {
+						return async (libraryId: TLLibraryId, newItem: TLNewLibraryItem) => {
+							const item = await target.addItem(libraryId, newItem)
+							failToStore([item.id])
+							return item
+						}
+					}
+					if (key === 'addItems') {
+						return async (libraryId: TLLibraryId, newItems: TLNewLibraryItem[]) => {
+							const items = await target.addItems(libraryId, newItems)
+							failToStore(items.map((item) => item.id))
+							return items
 						}
 					}
 					const value = Reflect.get(target, key)
@@ -284,16 +317,20 @@ describe('CompositeLibrarySource', () => {
 			return { source, mine, team }
 		}
 
-		it('asks each part when items are stored', async () => {
-			const { source } = setUpFailing()
-			await expect(source.whenStored([])).rejects.toThrow('storing failed')
+		it('resolves an add to the part once listed, while the part goes on storing it', async () => {
+			const { source, team } = setUpFailing()
+			const kit = await source.createLibrary('Team kit', { ownerId: 'acme' })
+			const item = await source.addItem(kit.id, { content: content('star') })
+			expect(team.getItems(kit.id)).toEqual([item])
+			await expect(whenItemsStored([item.id])).rejects.toThrow('storing failed')
+			expect(team.getItems(kit.id)).toEqual([])
 		})
 
 		it('keeps an item it failed to move', async () => {
 			const { source, mine, team } = setUpFailing()
 			const from = await source.createLibrary('Kit', { ownerId: 'home' })
 			const to = await source.createLibrary('Team kit', { ownerId: 'acme' })
-			const item = await source.addItem(from.id, { name: 'Star', content: content('star') })
+			const item = await added(source.addItem(from.id, { name: 'Star', content: content('star') }))
 			await expect(source.moveItem!(item.id, to.id)).rejects.toThrow('storing failed')
 			expect(mine.getItems(from.id).map((i) => i.name)).toEqual(['Star'])
 			expect(team.getItems(to.id)).toEqual([])
@@ -302,7 +339,7 @@ describe('CompositeLibrarySource', () => {
 		it('deletes a copy it failed to store, and keeps a library it failed to move', async () => {
 			const { source, mine, team } = setUpFailing()
 			const kit = await source.createLibrary('Kit', { ownerId: 'home' })
-			await source.addItem(kit.id, { name: 'Star', content: content('star') })
+			await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
 			await expect(copyLibrary(source, kit.id, 'acme')).rejects.toThrow('storing failed')
 			await expect(source.moveLibrary(kit.id, 'acme')).rejects.toThrow('storing failed')
 			expect(team.getLibraries()).toEqual([])
