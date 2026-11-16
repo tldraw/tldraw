@@ -8,7 +8,7 @@ status: published
 last_version: v5.6.0
 ---
 
-So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
+So far this release lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, runs agent starter kit actions through tool calls, and allows app links in shape URLs. It also includes bug fixes across arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
 
 ## API changes
 
@@ -36,6 +36,7 @@ So far this release lets shapes decide whether they can flip, gates action execu
 - Run agent starter kit actions through tool calls rather than plain JSON text output, with streaming partial updates and follow-up turns, and let actions provide their own results via `AgentActionUtil.getResult`. ([#11147](https://github.com/tldraw/tldraw/pull/11147))
 - Add OpenRouter support to the agent and branching-chat starter kits via `OPENROUTER_API_KEY`. ([#11103](https://github.com/tldraw/tldraw/pull/11103))
 - Use Node's built-in `node:sqlite` instead of `better-sqlite3` in the Node and socket.io sync server starter templates, removing the need for a native module dependency. ([#11175](https://github.com/tldraw/tldraw/pull/11175))
+- Allow app links into apps such as VS Code, Cursor, Slack and Figma in shape links and bookmarks. ([#10899](https://github.com/tldraw/tldraw/pull/10899))
 
 ## Bug fixes
 
