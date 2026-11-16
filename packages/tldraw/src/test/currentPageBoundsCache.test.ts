@@ -1,7 +1,10 @@
 import {
+	BaseBoxShapeUtil,
 	Box,
 	CurrentPageBoundsCache,
 	PageRecordType,
+	Rectangle2d,
+	TLBaseBoxShape,
 	TLShape,
 	TLShapeId,
 	atom,
@@ -99,6 +102,12 @@ describe('CurrentPageBoundsCache', () => {
 		expect([...cache.get().keys()]).toEqual([ids.box])
 	})
 
+	it('drops the children of a frame removed without them', () => {
+		editor.store.remove([ids.frame])
+		expect(editor.store.has(ids.child)).toBe(true)
+		expect([...cache.get().keys()]).toEqual([ids.box])
+	})
+
 	it('drops a shape that leaves the current page without a page change', () => {
 		const pageId = PageRecordType.createId('other')
 		editor.createPage({ id: pageId, name: 'Other' })
@@ -129,6 +138,62 @@ describe('CurrentPageBoundsCache', () => {
 	it('reclips a child when its frame is resized', () => {
 		editor.updateShape({ id: ids.frame, type: 'frame', props: { w: 400 } })
 		expect(cache.get().get(ids.child)!.toJson()).toEqual({ x: 350, y: 50, w: 100, h: 100 })
+		expectCacheToMatch()
+	})
+
+	it('reclips siblings when a clip path derived from children changes', () => {
+		// A clipping container whose geometry spans its first child, so moving that child changes
+		// the clip for the others without touching the container's record.
+		class FitClipShapeUtil extends BaseBoxShapeUtil<TLBaseBoxShape> {
+			static override type = 'fit-clip' as const
+			override getDefaultProps() {
+				return { w: 1, h: 1 }
+			}
+			override getGeometry(shape: TLBaseBoxShape) {
+				const [firstId] = this.editor.getSortedChildIdsForParent(shape.id)
+				const first = firstId && this.editor.getShape(firstId)
+				if (!first) return new Rectangle2d({ width: 1, height: 1, isFilled: true })
+				const bounds = this.editor.getShapeGeometry(first).bounds
+				return new Rectangle2d({
+					width: first.x + bounds.maxX,
+					height: first.y + bounds.maxY,
+					isFilled: true,
+				})
+			}
+			override getClipPath(shape: TLBaseBoxShape) {
+				return this.editor.getShapeGeometry(shape).vertices
+			}
+			override component() {
+				return null
+			}
+			override indicator() {
+				return null
+			}
+			override getIndicatorPath(): undefined {
+				return undefined
+			}
+		}
+
+		stop()
+		editor.dispose()
+		editor = new TestEditor({ shapeUtils: [FitClipShapeUtil] })
+		const container = createShapeId('container')
+		const a = createShapeId('a')
+		const b = createShapeId('b')
+		editor.createShapes([
+			{ id: container, type: 'fit-clip' as any, x: 0, y: 0 },
+			{ id: a, type: 'geo', parentId: container, x: 0, y: 0, props: { w: 100, h: 100 } },
+			// Clipped to the container's 100px height until `a` moves down.
+			{ id: b, type: 'geo', parentId: container, x: 0, y: 0, props: { w: 100, h: 300 } },
+		])
+		cache = new CurrentPageBoundsCache(editor, 'test cache', (shape: TLShape) =>
+			editor.getShapeMaskedPageBounds(shape.id)
+		)
+		stop = react('read cache', () => cache.get())
+		expectCacheToMatch()
+
+		editor.updateShape({ id: a, type: 'geo', y: 400 })
+		expect(cache.get().get(b)!.toJson()).toEqual({ x: 0, y: 0, w: 100, h: 300 })
 		expectCacheToMatch()
 	})
 

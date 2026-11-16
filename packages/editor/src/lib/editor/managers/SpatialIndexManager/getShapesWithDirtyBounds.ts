@@ -56,6 +56,10 @@ export function getShapesWithDirtyBounds(
 		for (const shape of objectMapValues(changes.removed) as TLShape[]) {
 			if (!isShape(shape)) continue
 			removed.add(shape.id)
+			// Step 2 then rechecks its descendants. They are usually removed in the same
+			// transaction, but a raw `store.remove` or a remote diff can orphan them, and an
+			// orphan must be dropped rather than kept at its last position.
+			transformChanged.add(shape.id)
 			// The old parent's derived bounds (groups) may shrink. Bindings
 			// involving the shape are deleted in the same transaction, so the
 			// binding diff below dirties the other ends.

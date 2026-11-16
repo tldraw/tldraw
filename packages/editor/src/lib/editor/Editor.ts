@@ -5865,6 +5865,11 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
+	 * Shape bounds are updated incrementally: a shape's bounds are recomputed when its record,
+	 * its ancestors, its bindings, the theme or the loaded fonts change. If a custom shape's
+	 * geometry, `getClipPath` or `shouldClipChild` reads other state, such as an atom, changes to
+	 * that state aren't reflected until the shape itself changes.
+	 *
 	 * @public
 	 */
 	@computed getCurrentPageBounds(): Box | undefined {
