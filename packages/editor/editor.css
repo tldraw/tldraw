@@ -270,6 +270,33 @@
 		inset 0px 0px 0px 1px var(--tl-color-panel-contrast);
 }
 
+/* The wash an open menu trigger shows: clear at one edge, muted-2 at the other, named for the
+   direction it fades in. Declared on the theme element, after both themes' colours, so each stop
+   resolves to the current theme's value. */
+.tl-theme__light,
+.tl-theme__dark {
+	--tl-muted-gradient-to-bottom: linear-gradient(
+		180deg,
+		var(--tl-color-muted-none) 0%,
+		var(--tl-color-muted-2) 100%
+	);
+	--tl-muted-gradient-to-top: linear-gradient(
+		0deg,
+		var(--tl-color-muted-none) 0%,
+		var(--tl-color-muted-2) 100%
+	);
+	--tl-muted-gradient-to-right: linear-gradient(
+		90deg,
+		var(--tl-color-muted-none) 0%,
+		var(--tl-color-muted-2) 100%
+	);
+	--tl-muted-gradient-to-left: linear-gradient(
+		270deg,
+		var(--tl-color-muted-none) 0%,
+		var(--tl-color-muted-2) 100%
+	);
+}
+
 .tl-counter-scaled {
 	transform: scale(var(--tl-scale));
 	transform-origin: top left;
