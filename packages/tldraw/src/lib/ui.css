@@ -2509,6 +2509,11 @@ tldraw? probably.
 	opacity: 0;
 }
 
+/* Raised like a hovered .tlui-button, so it keeps the pointer where rows overlap. */
+.tlui-command-palette__item[data-highlighted] {
+	z-index: 1;
+}
+
 .tlui-command-palette__item[data-highlighted]::after {
 	opacity: 1;
 }
