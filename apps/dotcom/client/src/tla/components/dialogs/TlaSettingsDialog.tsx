@@ -111,7 +111,10 @@ export function TlaSettingsDialog() {
 
 	const pages = tabs.map(({ id }) => (
 		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
-			{id === 'profile' && <ProfilePanel onNameChange={handleNameChange} />}
+			{id === 'profile' && (
+				// With vertical tabs, Sign out sits at the bottom of the tab column instead.
+				<ProfilePanel onNameChange={handleNameChange} hasSignOut={!hasVerticalTabs} />
+			)}
 			{id === 'preferences' && <PreferencesPanel />}
 			{id === 'canvas' && <CanvasPanel />}
 			{id === 'accessibility' && <AccessibilityPanel />}
@@ -155,7 +158,7 @@ export function TlaSettingsDialog() {
 									</button>
 								))}
 							</div>
-							<SignOutButton className={classNames(styles.navTab, styles.navSignOut)} />
+							<SignOutButton layout="nav" />
 						</div>
 						{pages}
 					</div>
@@ -171,9 +174,6 @@ export function TlaSettingsDialog() {
 							</TlaMenuTabsTabs>
 						</div>
 						{pages}
-						<div className={styles.footer}>
-							<SignOutButton className={classNames(styles.link, styles.signOut)} />
-						</div>
 					</>
 				)}
 			</TlaMenuTabsRoot>
@@ -181,21 +181,33 @@ export function TlaSettingsDialog() {
 	)
 }
 
-function SignOutButton({ className }: { className: string }) {
+/** Sign out as an item in the vertical tab column, or as a row on the Profile page. */
+function SignOutButton({ layout }: { layout: 'nav' | 'row' }) {
 	const signOut = useSignOut('user-preferences')
+	const icon = <TlaIcon icon="sign-out" />
+	const label = <F defaultMessage="Sign out" />
 	return (
 		<button
-			className={classNames(className, 'tla-text_ui__medium')}
+			className={classNames(
+				layout === 'nav' ? [styles.navTab, styles.navSignOut] : [styles.link, styles.signOut],
+				'tla-text_ui__medium'
+			)}
 			data-testid="tla-settings-sign-out"
 			onClick={signOut}
 		>
-			<TlaIcon icon="sign-out" />
-			<F defaultMessage="Sign out" />
+			{layout === 'nav' ? icon : label}
+			{layout === 'nav' ? label : icon}
 		</button>
 	)
 }
 
-function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
+function ProfilePanel({
+	onNameChange,
+	hasSignOut,
+}: {
+	onNameChange(name: string): void
+	hasSignOut: boolean
+}) {
 	const msg = useTranslation()
 	const app = useApp()
 	const trackUiEvent = useUiEvents()
@@ -246,6 +258,13 @@ function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
 					</div>
 				</TlaMenuControl>
 			</TlaMenuControlGroup>
+			{hasSignOut && (
+				<TlaMenuControlGroup>
+					<TlaMenuControl>
+						<SignOutButton layout="row" />
+					</TlaMenuControl>
+				</TlaMenuControlGroup>
+			)}
 		</TlaMenuSection>
 	)
 }
