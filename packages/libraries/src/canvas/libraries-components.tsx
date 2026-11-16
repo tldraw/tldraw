@@ -63,7 +63,9 @@ export interface LibrariesComponents {
 	ItemTile?: ComponentType<ItemTileProps & { item: TLLibraryItem }> | null
 	/**
 	 * An item's ⋯ menu, passed to its tile as `menu`. Replaces the default {@link ItemMenu}. Keep
-	 * the menu's `id`: right-clicking the tile opens the menu with that id.
+	 * the menu's `id`: right-clicking the tile opens the menu with that id. With an override set,
+	 * right-click always opens it, so an override that renders nothing for an item leaves that
+	 * item's right-click empty.
 	 */
 	ItemMenu?: ComponentType<ItemMenuProps & { item: TLLibraryItem }> | null
 	/**

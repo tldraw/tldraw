@@ -292,11 +292,11 @@ describe('LibrariesPanel components with a custom library header', () => {
 
 describe('LibrariesPanel item menus on right-click', () => {
 	const rightClickBox = async (panel: Element) => {
+		const event = new MouseEvent('contextmenu', { bubbles: true, cancelable: true })
 		await act(async () => {
-			panel
-				.querySelector('button[aria-label="Box"]')!
-				.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+			panel.querySelector('button[aria-label="Box"]')!.dispatchEvent(event)
 		})
+		return event
 	}
 
 	afterEach(() => editor.menus.clearOpenMenus())
@@ -321,7 +321,15 @@ describe('LibrariesPanel item menus on right-click', () => {
 	it('leaves the right-click alone when the item has no menu', async () => {
 		const panel = await renderPanel(undefined, undefined, makeReadOnlySource())
 		expect(panel.querySelector('button[aria-label="Item options"]')).toBeNull()
-		await rightClickBox(panel)
+		const event = await rightClickBox(panel)
+		expect(event.defaultPrevented).toBe(false)
+		expect(editor.menus.getOpenMenus()).toEqual([])
+	})
+
+	it('leaves the right-click alone when the ItemMenu slot is null', async () => {
+		const panel = await renderPanel({ ItemMenu: null })
+		const event = await rightClickBox(panel)
+		expect(event.defaultPrevented).toBe(false)
 		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 })

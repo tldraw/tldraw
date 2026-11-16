@@ -73,12 +73,13 @@ export function LibraryItems({
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
+	const overrides = useLibrariesComponentOverrides()
 	const {
 		ItemTile = DefaultItemTile,
 		ItemMenu = DefaultItemMenu,
 		EmptyLibrary = DefaultEmptyLibrary,
 		AddSelectionTile = DefaultAddSelectionTile,
-	} = useLibrariesComponentOverrides()
+	} = overrides
 	const libraryId = library.id
 	const items = useValue(
 		'library items',
@@ -114,23 +115,31 @@ export function LibraryItems({
 		() => (source.moveItem && source.can('deleteItem', libraryId) ? copyTargets : []),
 		[source, libraryId, copyTargets]
 	)
+	// An override can add entries of its own, so it has a menu whatever the source allows.
+	const hasItemMenu =
+		ItemMenu !== null &&
+		(overrides.ItemMenu !== undefined ||
+			canRename ||
+			canDelete ||
+			moveTargets.length > 0 ||
+			copyTargets.length > 0)
 	const getTileProps = useCallback(
-		(itemId: TLLibraryItemId) => ({
-			...getItemProps(itemId),
-			onContextMenu(e: MouseEvent<HTMLButtonElement>) {
-				// The item's menu renders nothing when it has no entries, so a trigger in the item's cell
-				// means there's a menu to open, whether its entries are built in or a host's.
-				const cell = e.currentTarget.closest('li')
-				if (!cell || !cell.querySelector('[aria-haspopup="menu"]')) return
-				e.preventDefault()
-				const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
-				// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
-				// releasing the button selects whichever item it lands on.
-				if (e.buttons === 0) openMenu()
-				else window.addEventListener('pointerup', openMenu, { once: true })
-			},
-		}),
-		[getItemProps, editor]
+		(itemId: TLLibraryItemId) => {
+			const props = getItemProps(itemId)
+			if (!hasItemMenu) return props
+			return {
+				...props,
+				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
+					e.preventDefault()
+					const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
+					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
+					// releasing the button selects whichever item it lands on.
+					if (e.buttons === 0) openMenu()
+					else window.addEventListener('pointerup', openMenu, { once: true })
+				},
+			}
+		},
+		[getItemProps, hasItemMenu, editor]
 	)
 	const showChangeError = useCallback(
 		(title: string) => {
