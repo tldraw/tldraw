@@ -63,6 +63,9 @@ export class MinimapManager {
 	@bind
 	close() {
 		this.disposables.forEach((d) => d())
+		// The editor only frees its page-sized bounds map on a read that finds nothing
+		// subscribed, and with the minimap gone there may never be another one.
+		this.editor.getCurrentPageShapeMaskedBounds()
 	}
 
 	private readonly ctx: CanvasRenderingContext2D

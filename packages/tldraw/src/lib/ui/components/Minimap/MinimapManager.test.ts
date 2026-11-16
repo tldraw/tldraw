@@ -106,3 +106,32 @@ describe('shapes that hide themselves from the minimap', () => {
 		expectToDraw([ids.box, ids.other])
 	})
 })
+
+describe('closing the minimap', () => {
+	const heldBounds = () => (editor as any)._currentPageMaskedBounds.maps?.bounds
+	const endOfTask = () => new Promise<void>((resolve) => queueMicrotask(resolve))
+
+	it("frees the editor's bounds map when nothing else reads it", async () => {
+		await endOfTask()
+		expect(heldBounds().size).toBe(3)
+
+		minimap.close()
+		await endOfTask()
+		expect(heldBounds()).toBeUndefined()
+	})
+
+	it('keeps the map while another minimap is still open', async () => {
+		const container = document.createElement('div')
+		const canvas = document.createElement('canvas')
+		container.appendChild(canvas)
+		const other = new MinimapManager(editor, canvas, container)
+
+		minimap.close()
+		await endOfTask()
+		expect(heldBounds().size).toBe(3)
+
+		other.close()
+		await endOfTask()
+		expect(heldBounds()).toBeUndefined()
+	})
+})
