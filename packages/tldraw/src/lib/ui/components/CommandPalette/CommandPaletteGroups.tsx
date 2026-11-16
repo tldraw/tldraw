@@ -68,7 +68,7 @@ export function CommandPaletteActionGroup({ group, label }: TLUiCommandPaletteAc
 				.filter(({ commandPalette }) =>
 					group === undefined
 						? commandPalette !== false
-						: commandPalette && commandPalette.group === group
+						: typeof commandPalette === 'object' && commandPalette.group === group
 				)
 				.map((action) =>
 					action.checkbox || action.isChecked ? (

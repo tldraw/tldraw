@@ -337,10 +337,10 @@ export interface TLUiActionItem<
 	isChecked?(editor: Editor): boolean
 	/**
 	 * Where the command palette lists the action. `false` leaves it out; `{ group }` lists it in the
-	 * `CommandPaletteActionGroup` with that group when one is rendered. Otherwise, and without a
-	 * group, the palette's catch-all group lists it.
+	 * `CommandPaletteActionGroup` with that group when one is rendered. Otherwise (`true`, or
+	 * without a group) the palette's catch-all group lists it.
 	 */
-	commandPalette?: false | { group?: string }
+	commandPalette?: boolean | { group?: string }
 	onSelect(source: TLUiEventSource): Promise<void> | void
 }
 

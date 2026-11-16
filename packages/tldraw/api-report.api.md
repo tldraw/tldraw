@@ -4709,7 +4709,7 @@ export interface TLUiActionItem<TransationKey extends string = string, IconType 
     checkbox?: boolean;
     commandPalette?: {
         group?: string;
-    } | false;
+    } | boolean;
     // (undocumented)
     icon?: IconType | React_2.ReactElement;
     // (undocumented)
