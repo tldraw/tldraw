@@ -10,7 +10,7 @@ import {
 	useContainer,
 	useTranslation,
 } from 'tldraw'
-import { MenuItem, MenuSubmenu } from './menu-items'
+import { type LibraryMenuTarget, MenuItem, MenuSubmenu, MenuTargetItems } from './menu-items'
 import { RenameInput } from './rename-input'
 
 const messages = defineMessages({
@@ -18,6 +18,7 @@ const messages = defineMessages({
 	rename: { id: 'libraries.item-menu.rename', defaultMessage: 'Rename' },
 	delete: { id: 'libraries.item-menu.delete', defaultMessage: 'Delete' },
 	moveTo: { id: 'libraries.item-menu.move-to', defaultMessage: 'Move to' },
+	copyTo: { id: 'libraries.item-menu.copy-to', defaultMessage: 'Copy to' },
 })
 
 /** @public */
@@ -34,8 +35,11 @@ export interface ItemMenuProps {
 	/** Leave out to hide Delete. */
 	onDelete?(): void
 	/** The libraries the item can move to. Leave out, or leave empty, to hide "Move to". */
-	moveTargets?: { id: string; name: string }[]
+	moveTargets?: LibraryMenuTarget[]
 	onMove?(libraryId: string): void
+	/** The libraries the item can be copied to. Leave out, or leave empty, to hide "Copy to". */
+	copyTargets?: LibraryMenuTarget[]
+	onCopy?(libraryId: string): void
 }
 
 /**
@@ -52,10 +56,20 @@ export function getItemMenuId(id: string) {
  * nothing when it has no actions.
  * @public @react
  */
-export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+export function ItemMenu({
+	id,
+	name,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+	copyTargets,
+	onCopy,
+}: ItemMenuProps) {
 	const msg = useTranslation()
 	const canMove = onMove !== undefined && moveTargets !== undefined && moveTargets.length > 0
-	if (!onRename && !onDelete && !canMove) return null
+	const canCopy = onCopy !== undefined && copyTargets !== undefined && copyTargets.length > 0
+	if (!onRename && !onDelete && !canMove && !canCopy) return null
 
 	return (
 		<TldrawUiDropdownMenuRoot id={getItemMenuId(id)}>
@@ -83,6 +97,8 @@ export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: 
 					onDelete={onDelete}
 					moveTargets={canMove ? moveTargets : undefined}
 					onMove={onMove}
+					copyTargets={canCopy ? copyTargets : undefined}
+					onCopy={onCopy}
 				/>
 			</TldrawUiDropdownMenuContent>
 		</TldrawUiDropdownMenuRoot>
@@ -90,7 +106,16 @@ export function ItemMenu({ id, name, onRename, onDelete, moveTargets, onMove }: 
 }
 
 /** Mounted only while the menu is open, so closing it ends a rename. */
-function ItemMenuContent({ id, name, onRename, onDelete, moveTargets, onMove }: ItemMenuProps) {
+function ItemMenuContent({
+	id,
+	name,
+	onRename,
+	onDelete,
+	moveTargets,
+	onMove,
+	copyTargets,
+	onCopy,
+}: ItemMenuProps) {
 	const msg = useTranslation()
 	const [renaming, setRenaming] = useState(false)
 	const renameItemRef = useRef<HTMLButtonElement>(null)
@@ -142,9 +167,16 @@ function ItemMenuContent({ id, name, onRename, onDelete, moveTargets, onMove }: 
 						label={msg(messages.moveTo)}
 						holdFocus={renaming}
 					>
-						{moveTargets.map((target) => (
-							<MenuItem key={target.id} label={target.name} onClick={() => onMove(target.id)} />
-						))}
+						<MenuTargetItems targets={moveTargets} onSelect={onMove} />
+					</MenuSubmenu>
+				)}
+				{copyTargets && onCopy && (
+					<MenuSubmenu
+						id={`${getItemMenuId(id)}-copy-to`}
+						label={msg(messages.copyTo)}
+						holdFocus={renaming}
+					>
+						<MenuTargetItems targets={copyTargets} onSelect={onCopy} />
 					</MenuSubmenu>
 				)}
 				{onDelete && (

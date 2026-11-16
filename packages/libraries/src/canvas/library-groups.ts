@@ -8,12 +8,14 @@ export interface LibraryGroup {
 	key?: string
 	/** The owner's name. */
 	label?: string
+	icon?: TLLibraryOwner['icon']
 	libraries: TLLibrary[]
 }
 
 export interface LibraryGrouping {
 	keyOf(library: TLLibrary): string | undefined
 	labelOf(key: string): string | undefined
+	iconOf(key: string): TLLibraryOwner['icon']
 	/** Owner ids in the order their groups go. */
 	order: string[]
 }
@@ -21,11 +23,12 @@ export interface LibraryGrouping {
 /** Groups by the owner each library names, in the owners' order. Fewer than two owners: none. */
 export function getLibraryGrouping(owners: TLLibraryOwner[]): LibraryGrouping | undefined {
 	if (owners.length < 2) return undefined
-	const names = new Map(owners.map((owner) => [owner.id, owner.name]))
+	const byId = new Map(owners.map((owner) => [owner.id, owner]))
 	return {
 		keyOf: (library) =>
-			library.ownerId !== undefined && names.has(library.ownerId) ? library.ownerId : undefined,
-		labelOf: (key) => names.get(key),
+			library.ownerId !== undefined && byId.has(library.ownerId) ? library.ownerId : undefined,
+		labelOf: (key) => byId.get(key)?.name,
+		iconOf: (key) => byId.get(key)?.icon,
 		order: owners.map((owner) => owner.id),
 	}
 }
@@ -40,28 +43,26 @@ export function useLibraryGrouping(source: LibrarySource) {
 }
 
 /**
- * Libraries gathered into their groups, each keeping the libraries' order. Groups go in the
- * grouping's order; libraries without a known owner come last. Without a grouping, one unnamed
- * group.
+ * Libraries gathered into a group per owner, each keeping the libraries' order. Groups go in the
+ * grouping's order, owners without libraries included; libraries without a known owner come last.
+ * Without a grouping, one unnamed group.
  */
 export function groupLibraryList(
 	libraries: TLLibrary[],
 	grouping?: LibraryGrouping
 ): LibraryGroup[] {
 	if (!grouping) return [{ libraries }]
-	const groups = new Map<string | undefined, LibraryGroup>()
+	const groups = new Map<string | undefined, LibraryGroup>(
+		grouping.order.map((key) => [
+			key,
+			{ key, label: grouping.labelOf(key), icon: grouping.iconOf(key), libraries: [] },
+		])
+	)
 	for (const library of libraries) {
 		const key = grouping.keyOf(library)
 		const group = groups.get(key)
 		if (group) group.libraries.push(library)
-		else {
-			const label = key === undefined ? undefined : grouping.labelOf(key)
-			groups.set(key, { key, label, libraries: [library] })
-		}
+		else groups.set(key, { key, libraries: [library] })
 	}
-	const rank = (key?: string) => {
-		const index = key === undefined ? -1 : grouping.order.indexOf(key)
-		return index === -1 ? grouping.order.length : index
-	}
-	return [...groups.values()].sort((a, b) => rank(a.key) - rank(b.key))
+	return [...groups.values()]
 }

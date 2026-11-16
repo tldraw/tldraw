@@ -1,4 +1,4 @@
-import { Avatar, type CommentAuthor } from '@tldraw/mentions'
+import { type CommentAuthor } from '@tldraw/mentions'
 import { Fragment, MouseEvent, ReactNode } from 'react'
 import { useTranslation } from 'tldraw'
 import { Byline } from './byline'
@@ -24,6 +24,8 @@ export interface CommentListItemProps {
 	/** Tallied reactions for the row (a thread's, or a single comment's when the row is one
 	 *  comment), shown as inert pills under the preview. Omit to hide. */
 	reactions?: ReactionSummary[]
+	/** Draws the author's avatar. Defaults to `<Avatar>`. */
+	renderAvatar?(author: CommentAuthor): ReactNode
 	/**
 	 * Link target for the item. When set, the row renders as an anchor so browser affordances
 	 * (ctrl/cmd-click, middle-click) open it in a new tab; a plain click still calls `onSelect`.
@@ -122,6 +124,7 @@ export function CommentListItem({
 	selected,
 	reactions,
 	href,
+	renderAvatar,
 	resolvedLabel = 'Resolved',
 	onSelect,
 }: CommentListItemRenderProps) {
@@ -143,23 +146,26 @@ export function CommentListItem({
 			data-resolved={resolved || undefined}
 			onClick={handleClick}
 		>
-			<Avatar author={author} />
 			<div className="tlui-cmt-list__item-body">
-				<Byline author={author} date={date} />
-				<div className="tlui-cmt-list__item-preview">{preview}</div>
-				{reactions && <Reactions reactions={reactions} canReact={false} enableHoverList={false} />}
-				{(resolved || page !== undefined || replies) && (
-					<div className="tlui-cmt-list__item-meta">
-						{resolved && (
-							<span className="tlui-cmt-list__item-resolved">
-								<CheckIcon />
-								{resolvedLabel}
-							</span>
-						)}
-						{page !== undefined && <span className="tlui-cmt-list__item-page">{page}</span>}
-						{replies && <span className="tlui-cmt-list__item-replies">{replies}</span>}
-					</div>
-				)}
+				<Byline author={author} date={date} renderAvatar={renderAvatar} />
+				<div className="tlui-cmt-body">
+					<div className="tlui-cmt-list__item-preview">{preview}</div>
+					{reactions && (
+						<Reactions reactions={reactions} canReact={false} enableHoverList={false} />
+					)}
+					{(resolved || page !== undefined || replies) && (
+						<div className="tlui-cmt-list__item-meta">
+							{resolved && (
+								<span className="tlui-cmt-list__item-resolved">
+									<CheckIcon />
+									{resolvedLabel}
+								</span>
+							)}
+							{page !== undefined && <span className="tlui-cmt-list__item-page">{page}</span>}
+							{replies && <span className="tlui-cmt-list__item-replies">{replies}</span>}
+						</div>
+					)}
+				</div>
 			</div>
 		</Tag>
 	)

@@ -160,6 +160,10 @@ export interface Environment {
 	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
 	// the host has no route (production for now, dev, previews).
 	MCP_HOST_ORIGIN: string | undefined
+	// The MCP host's landing page: a static-assets worker with no route or public URL of its own.
+	// mcpHostRouter hands it every GET and HEAD it doesn't serve itself.
+	// Bound per environment in wrangler.toml; unbound, the host 404s those paths as before.
+	MCP_WEB: Fetcher | undefined
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
 	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined

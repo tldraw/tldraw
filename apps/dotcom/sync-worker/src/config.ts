@@ -163,7 +163,8 @@ export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
 
 /**
  * The budget shared by every tool that goes through the board's durable object: `get_page_info`,
- * `get_cluster_info`, `get_cluster_screenshot`, `apply_ops`, `get_user_state` and `get_board_users`.
+ * `get_cluster_info`, `get_cluster_screenshot`, `apply_ops`, `get_user_state`, `get_board_users` and
+ * `write_comment`.
  *
  * Most of them have the caller's open tab do the work, but the durable object is shared with everyone
  * on the board and still carries each call: it wakes, relays the job, and takes the tab's reply, which
@@ -250,10 +251,3 @@ export const WORKER_MAX_SIMULTANEOUS_CONNECTIONS = 6
  * The URL of the PostHog instance to use.
  */
 export const POSTHOG_URL = 'https://eu.i.posthog.com'
-
-/**
- * How long a board renders by fetch after a pushed capture of it timed out. Long enough to cover the
- * OG queue's whole retry chain (OG_PENDING_MARKER_TTL_MS) and an agent's next few MCP calls, so the
- * next attempt at the same board is the one that falls back.
- */
-export const RENDER_PUSH_FALLBACK_TTL_MS = 10 * 60_000

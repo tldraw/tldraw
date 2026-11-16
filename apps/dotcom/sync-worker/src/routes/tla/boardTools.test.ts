@@ -1,4 +1,4 @@
-import { b64Vecs } from '@tldraw/tlschema'
+import { b64Vecs, toRichText } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
 import {
 	BOARD_SEARCH_MAX_TERMS,
@@ -9,9 +9,11 @@ import {
 	CLUSTER_INFO_MAX_CHARS,
 	PAGE_INFO_MAX_CHARS,
 	parsePageInfoInput,
+	parseReadPageCommentsInput,
 	McpPageRead,
 	PageSelector,
 	getBoardUsers,
+	getBoardUsersResult,
 	ShapeMeasurement,
 	compareBoardSearchOrder,
 	getClusterInfo,
@@ -28,6 +30,18 @@ import {
 	getClusterScreenshotSize,
 	getClustersBox,
 	readSnapshotPage,
+	AGENT_NAME_MAX_LENGTH,
+	COMMENT_TEXT_MAX_LENGTH,
+	CommentRow,
+	CommentThreadRow,
+	commentBodyToPlainText,
+	getCommentRefusalMessage,
+	getPageCommentsResult,
+	parseWriteCommentInput,
+	resolveSnapshotPage,
+	COMMENT_MENTION_MAX,
+	commentTextToRichText,
+	getTextMentionIds,
 } from './boardTools'
 import { makeSnapshot } from './screenshotTestHelpers'
 
@@ -67,6 +81,7 @@ function makeRow(overrides: Partial<BoardSearchRow> = {}): BoardSearchRow {
 	return {
 		id: 'board-1',
 		name: 'Roadmap',
+		matched: 0,
 		// A board the caller made: arrival and creation are the same moment.
 		arrivedAt: 1_700_000_000_000,
 		createdAt: 1_700_000_000_000,
@@ -105,7 +120,6 @@ describe('parseSearchBoardsInput', () => {
 		expect(parseSearchBoardsInput({ query: '   ' }).terms).toEqual([])
 	})
 
-	// Terms are ANDed, so word order in the query need not match word order in the name.
 	it('splits a query into terms on whitespace', () => {
 		expect(parseSearchBoardsInput({ query: 'design  system' }).terms).toEqual(['design', 'system'])
 	})
@@ -143,9 +157,16 @@ describe('parseSearchBoardsInput', () => {
 	it('round-trips a cursor from a previous result', () => {
 		const first = parsedJson(getBoardSearchResults(makePage(BOARD_SEARCH_PAGE_SIZE + 1), []))
 		expect(parseSearchBoardsInput({ cursor: first.nextCursor }).cursor).toEqual({
+			matched: 0,
 			arrivedAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: `board-${BOARD_SEARCH_PAGE_SIZE - 1}`,
 		})
+	})
+
+	it('refuses a cursor claiming more matched words than the query has', () => {
+		expect(() =>
+			parseSearchBoardsInput({ query: 'design', cursor: btoa('2:1:board-1:design') })
+		).toThrow('cursor is not valid')
 	})
 
 	// A cursor is a position in one query's results. Carried onto a different query it would point
@@ -191,6 +212,7 @@ describe('parseSearchBoardsInput', () => {
 		rows[BOARD_SEARCH_PAGE_SIZE - 1] = { ...rows[BOARD_SEARCH_PAGE_SIZE - 1], id: 'brädå:1' }
 		const result = parsedJson(getBoardSearchResults(rows, []))
 		expect(parseSearchBoardsInput({ cursor: result.nextCursor }).cursor).toEqual({
+			matched: 0,
 			arrivedAt: 1_700_000_000_000 - (BOARD_SEARCH_PAGE_SIZE - 1),
 			id: 'brädå:1',
 		})
@@ -266,7 +288,10 @@ describe('parseSearchBoardsInput', () => {
 describe('compareBoardSearchOrder', () => {
 	it('puts the newest-created board first', () => {
 		expect(
-			compareBoardSearchOrder({ arrivedAt: 2, id: 'a' }, { arrivedAt: 1, id: 'a' })
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 2, id: 'a' },
+				{ matched: 0, arrivedAt: 1, id: 'a' }
+			)
 		).toBeLessThan(0)
 	})
 
@@ -274,40 +299,61 @@ describe('compareBoardSearchOrder', () => {
 	// say where a page ended inside that group.
 	it('breaks a tie on id, descending', () => {
 		expect(
-			compareBoardSearchOrder({ arrivedAt: 0, id: 'b' }, { arrivedAt: 0, id: 'a' })
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 0, id: 'b' },
+				{ matched: 0, arrivedAt: 0, id: 'a' }
+			)
 		).toBeLessThan(0)
-		expect(compareBoardSearchOrder({ arrivedAt: 0, id: 'a' }, { arrivedAt: 0, id: 'a' })).toBe(0)
+		expect(
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 0, id: 'a' },
+				{ matched: 0, arrivedAt: 0, id: 'a' }
+			)
+		).toBe(0)
+	})
+
+	// Substring matching lets a common word match most boards; the one matching every word leads.
+	it('puts a board matching more of the query first, however old', () => {
+		expect(
+			compareBoardSearchOrder(
+				{ matched: 2, arrivedAt: 0, id: 'a' },
+				{ matched: 1, arrivedAt: 9, id: 'z' }
+			)
+		).toBeLessThan(0)
 	})
 
 	it('sorts an older board after a newer one whatever their ids', () => {
 		expect(
-			compareBoardSearchOrder({ arrivedAt: 0, id: 'z' }, { arrivedAt: 1, id: 'a' })
+			compareBoardSearchOrder(
+				{ matched: 0, arrivedAt: 0, id: 'z' },
+				{ matched: 0, arrivedAt: 1, id: 'a' }
+			)
 		).toBeGreaterThan(0)
 	})
 })
 
 describe('isAfterBoardSearchCursor', () => {
 	it('accepts only rows that sort after the cursor', () => {
-		const cursor = { arrivedAt: 10, id: 'm' }
-		expect(isAfterBoardSearchCursor({ arrivedAt: 9, id: 'z' }, cursor)).toBe(true)
-		expect(isAfterBoardSearchCursor({ arrivedAt: 11, id: 'a' }, cursor)).toBe(false)
+		const cursor = { matched: 0, arrivedAt: 10, id: 'm' }
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 9, id: 'z' }, cursor)).toBe(true)
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 11, id: 'a' }, cursor)).toBe(false)
 	})
 
 	// The point of ordering on arrival rather than creation: a board somebody shared with you this
 	// morning leads the list, however long ago its owner made it. Under a createdAt sort it would land
 	// below everything you have made since, which for a long-lived board is the bottom of the page.
 	it('puts a recently shared old board above a board made earlier today', () => {
-		const sharedThisMorning = { arrivedAt: 1_700_000_000_000, id: 'shared' }
-		const mineFromLastWeek = { arrivedAt: 1_699_000_000_000, id: 'mine' }
+		const sharedThisMorning = { matched: 0, arrivedAt: 1_700_000_000_000, id: 'shared' }
+		const mineFromLastWeek = { matched: 0, arrivedAt: 1_699_000_000_000, id: 'mine' }
 		expect(compareBoardSearchOrder(sharedThisMorning, mineFromLastWeek)).toBeLessThan(0)
 	})
 
 	// Descending order means "after" is "less than". Reversed, a page returns itself forever.
 	it('excludes the cursor row itself and takes the tie on id', () => {
-		const cursor = { arrivedAt: 10, id: 'm' }
+		const cursor = { matched: 0, arrivedAt: 10, id: 'm' }
 		expect(isAfterBoardSearchCursor(cursor, cursor)).toBe(false)
-		expect(isAfterBoardSearchCursor({ arrivedAt: 10, id: 'l' }, cursor)).toBe(true)
-		expect(isAfterBoardSearchCursor({ arrivedAt: 10, id: 'n' }, cursor)).toBe(false)
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 10, id: 'l' }, cursor)).toBe(true)
+		expect(isAfterBoardSearchCursor({ matched: 0, arrivedAt: 10, id: 'n' }, cursor)).toBe(false)
 	})
 })
 
@@ -1386,5 +1432,428 @@ describe('getBoardUsers', () => {
 			presence: presence({ lastActivityTimestamp: 1e30 }),
 		})
 		expect(user.lastActiveAt).toBeNull()
+	})
+})
+
+describe('parseReadPageCommentsInput', () => {
+	it('refuses a cursor it did not hand out', () => {
+		for (const cursor of [
+			42,
+			'not base64!',
+			btoa('[]'),
+			btoa(encodeURIComponent('["page:a","1","t"]')),
+		]) {
+			expect(() => parseReadPageCommentsInput({ boardId: 'b', cursor })).toThrow(
+				'cursor is not valid'
+			)
+		}
+		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: '' }).cursor).toBeNull()
+	})
+})
+
+describe('getBoardUsersResult', () => {
+	const NOW = Date.parse('2026-11-12T12:00:00.000Z')
+	const user = (lastActiveAt: string | null) => ({
+		userId: 'a',
+		name: 'A',
+		pageId: 'page:a',
+		selectedShapeIds: ['shape:picked'],
+		viewport: null,
+		lastActiveAt,
+	})
+	const listed = (lastActiveAt: string | null) =>
+		JSON.parse(
+			(
+				getBoardUsersResult({ users: [user(lastActiveAt)], anonymousViewers: 1 }, NOW)
+					.content[0] as {
+					text: string
+				}
+			).text
+		)
+
+	it('leaves selection out and marks who is active', () => {
+		expect(listed('2026-11-12T11:59:30.000Z')).toEqual({
+			users: [
+				{
+					userId: 'a',
+					name: 'A',
+					pageId: 'page:a',
+					viewport: null,
+					lastActiveAt: '2026-11-12T11:59:30.000Z',
+					isActive: true,
+				},
+			],
+			anonymousViewers: 1,
+		})
+	})
+
+	// The editor fades a collaborator's cursor after the same minute.
+	it('marks someone idle for over a minute as inactive', () => {
+		expect(listed('2026-11-12T11:58:59.000Z').users[0].isActive).toBe(false)
+	})
+
+	// Presence reports 0 until someone moves their pointer, and the editor shows them as active (#9017).
+	it('marks someone with no recorded activity as active, as the editor does', () => {
+		expect(listed(null).users[0].isActive).toBe(true)
+	})
+})
+
+describe('parseWriteCommentInput', () => {
+	it('takes a reply, a shape or a point, adding the record prefix an id was given without', () => {
+		expect(parseWriteCommentInput({ boardId: 'b', text: ' Done ', threadId: 'abc' })).toEqual({
+			boardId: 'b',
+			text: 'Done',
+			agentName: null,
+			target: { kind: 'reply', threadId: 'comment-thread:abc' },
+		})
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 'shape:box', page: 0 })
+		).toEqual({
+			boardId: 'b',
+			text: 'Hi',
+			agentName: null,
+			target: { kind: 'shape', shapeId: 'shape:box' },
+		})
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 10.5, y: -4, page: 'page:two' })
+		).toEqual({
+			boardId: 'b',
+			text: 'Hi',
+			agentName: null,
+			target: { kind: 'point', pageId: 'page:two', x: 10.5, y: -4 },
+		})
+	})
+
+	// An ordinal would resolve against the live room here but the saved snapshot in get_board_info.
+	it('needs a page id for a thread at a point', () => {
+		for (const page of [undefined, 0, 'Page 1']) {
+			expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 1, y: 2, page })).toThrow(
+				'page is required'
+			)
+		}
+	})
+
+	it('takes the name the agent goes by, up to a limit', () => {
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 'abc', agentName: ' Claude ' })
+				.agentName
+		).toBe('Claude')
+		expect(() =>
+			parseWriteCommentInput({
+				boardId: 'b',
+				text: 'Hi',
+				threadId: 'abc',
+				agentName: 'x'.repeat(AGENT_NAME_MAX_LENGTH + 1),
+			})
+		).toThrow('agentName must be at most')
+	})
+
+	// A blank string is what a model sends for a field it meant to leave out.
+	it('reads a blank target field as absent', () => {
+		expect(
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 'abc', shapeId: '' }).target
+		).toEqual({ kind: 'reply', threadId: 'comment-thread:abc' })
+	})
+
+	it('refuses no target, more than one, half a point, and missing or overlong text', () => {
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi' })).toThrow('Say where')
+		expect(() =>
+			parseWriteCommentInput({ boardId: 'b', text: 'Hi', threadId: 't', shapeId: 's' })
+		).toThrow('only one of')
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', shapeId: 's', x: 1 })).toThrow(
+			'only one of'
+		)
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: 'Hi', x: 1 })).toThrow(
+			'x and y must both be numbers'
+		)
+		expect(() => parseWriteCommentInput({ boardId: 'b', text: ' ', threadId: 't' })).toThrow(
+			'text is required'
+		)
+		expect(() =>
+			parseWriteCommentInput({
+				boardId: 'b',
+				text: 'x'.repeat(COMMENT_TEXT_MAX_LENGTH + 1),
+				threadId: 't',
+			})
+		).toThrow(`at most ${COMMENT_TEXT_MAX_LENGTH}`)
+		expect(() => parseWriteCommentInput({ text: 'Hi', threadId: 't' })).toThrow(
+			'boardId is required'
+		)
+	})
+})
+
+describe('comment mentions', () => {
+	it('finds each id once, in order, and ignores anything not quite a mention', () => {
+		expect(
+			getTextMentionIds('@[A](u1) hi @[B](u2) @[A again](u1) @[C] (u3) @[D](u 4) [E](u5) @[F]()')
+		).toEqual(['u1', 'u2'])
+	})
+
+	it('leaves a link that only looks like a mention as plain text', () => {
+		const text =
+			'see @[the spec](https://example.com/spec) and @[notes](docs/notes.md) @[a](user_2Ab-c)'
+		expect(getTextMentionIds(text)).toEqual(['user_2Ab-c'])
+		expect(commentTextToRichText('see @[the spec](https://example.com/spec)', new Map())).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [{ type: 'text', text: 'see @[the spec](https://example.com/spec)' }],
+				},
+			],
+		})
+	})
+
+	it('turns mentions into nodes named from our records, one paragraph per line', () => {
+		expect(
+			commentTextToRichText('hey @[x](u1)!\n\n@[Ghost](u9)', new Map([['u1', 'Ada']]))
+		).toEqual({
+			type: 'doc',
+			content: [
+				{
+					type: 'paragraph',
+					content: [
+						{ type: 'text', text: 'hey ' },
+						{ type: 'mention', attrs: { id: 'u1', label: 'Ada' } },
+						{ type: 'text', text: '!' },
+					],
+				},
+				{ type: 'paragraph' },
+				{ type: 'paragraph', content: [{ type: 'mention', attrs: { id: 'u9', label: 'Ghost' } }] },
+			],
+		})
+	})
+
+	it('reads a mention back in the form it was written', () => {
+		const body = commentTextToRichText('ping @[x](u1)', new Map([['u1', 'Ada [admin]']]))
+		expect(commentBodyToPlainText(body, { mentionIds: true })).toBe('ping @[Ada admin](u1)')
+		expect(commentBodyToPlainText(body)).toBe('ping @Ada [admin]')
+	})
+
+	it('caps how many people one comment mentions', () => {
+		const text = Array.from({ length: COMMENT_MENTION_MAX + 1 }, (_, i) => `@[p](u${i})`).join(' ')
+		expect(() => parseWriteCommentInput({ boardId: 'b', text, threadId: 't' })).toThrow(
+			`at most ${COMMENT_MENTION_MAX} people`
+		)
+	})
+})
+
+describe('commentBodyToPlainText', () => {
+	it('puts blocks on their own lines and spells mentions out', () => {
+		expect(
+			commentBodyToPlainText({
+				type: 'doc',
+				content: [
+					{
+						type: 'paragraph',
+						content: [
+							{ type: 'text', text: 'Hey ' },
+							{ type: 'mention', attrs: { id: 'user_1', label: 'Ada' } },
+							{ type: 'text', text: ', look', marks: [{ type: 'bold' }] },
+						],
+					},
+					{
+						type: 'bulletList',
+						content: [
+							{
+								type: 'listItem',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: 'one' }] }],
+							},
+							{
+								type: 'listItem',
+								content: [{ type: 'paragraph', content: [{ type: 'text', text: 'two' }] }],
+							},
+						],
+					},
+				],
+			})
+		).toBe('Hey @Ada, look\none\ntwo')
+	})
+})
+
+describe('getPageCommentsResult', () => {
+	const snapshot = makeSnapshot([{ id: 'page:a', index: 'a1', name: 'Cover', shapes: 1 }])
+	// A shape with a label, so the anchor can say what it is.
+	snapshot.documents[2].state.props.richText = {
+		type: 'doc',
+		content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Login' }] }],
+	}
+	const resolved = resolveSnapshotPage(snapshot, { kind: 'ordinal', ordinal: 0 })
+	if (!resolved.ok) throw new Error('Expected the page to resolve')
+	const page = resolved.page
+
+	function thread(overrides: Partial<CommentThreadRow>): CommentThreadRow {
+		return {
+			id: 'comment-thread:t',
+			anchor: { type: 'page' },
+			resolvedAt: null,
+			createdAt: 1,
+			...overrides,
+		}
+	}
+	function comment(overrides: Partial<CommentRow>): CommentRow {
+		return {
+			id: 'comment:c',
+			threadId: 'comment-thread:t',
+			authorId: 'user_other',
+			authorName: 'Ada',
+			body: toRichText('x'),
+			createdAt: Date.UTC(2026, 0, 1),
+			meta: null,
+			...overrides,
+		}
+	}
+
+	const threads = [
+		thread({
+			id: 'comment-thread:point',
+			anchor: { type: 'point', x: 10.4, y: 19.6 },
+			resolvedAt: 5,
+			createdAt: 2,
+		}),
+		thread({
+			id: 'comment-thread:shape',
+			anchor: { type: 'shape', shapeId: 'shape:page:a-0', x: 0.25, y: 0.5, isPrecise: true },
+			createdAt: 1,
+		}),
+	]
+
+	it('lists threads newest first, with a cursor after the oldest when there are more', () => {
+		const comments = [
+			comment({ id: 'comment:p', threadId: 'comment-thread:point' }),
+			comment({ id: 'comment:s', threadId: 'comment-thread:shape' }),
+		]
+		const read = (hasMore: boolean) => {
+			const block = getPageCommentsResult(page, threads, comments, 'user_me', { hasMore })
+				.content[0]
+			if (block.type !== 'text') throw new Error('Expected a text block')
+			return JSON.parse(block.text)
+		}
+		expect(read(false).threads.map((t: { threadId: string }) => t.threadId)).toEqual([
+			'comment-thread:point',
+			'comment-thread:shape',
+		])
+		expect(read(false)).not.toHaveProperty('nextCursor')
+		const { nextCursor } = read(true)
+		expect(parseReadPageCommentsInput({ boardId: 'b', cursor: nextCursor }).cursor).toEqual({
+			pageId: 'page:a',
+			createdAt: 1,
+			threadId: 'comment-thread:shape',
+		})
+	})
+
+	it('names the shape a thread is on, rounds page points, and marks the caller’s and agents’ comments', () => {
+		const result = getPageCommentsResult(
+			page,
+			[
+				thread({
+					id: 'comment-thread:point',
+					anchor: { type: 'point', x: 10.4, y: 19.6 },
+					resolvedAt: 5,
+					createdAt: 2,
+				}),
+				thread({
+					id: 'comment-thread:shape',
+					anchor: { type: 'shape', shapeId: 'shape:page:a-0', x: 0.25, y: 0.5, isPrecise: true },
+					createdAt: 1,
+				}),
+				thread({
+					id: 'comment-thread:gone',
+					anchor: { type: 'shape', shapeId: 'shape:deleted', x: 1, y: 0, isPrecise: false },
+					createdAt: 3,
+				}),
+				// No live comment, so tldraw.com shows nothing: left out.
+				thread({ id: 'comment-thread:empty', createdAt: 4 }),
+			],
+			[
+				comment({
+					id: 'comment:reply',
+					threadId: 'comment-thread:shape',
+					authorId: 'user_me',
+					authorName: 'Me',
+					body: toRichText('On it'),
+					createdAt: Date.UTC(2026, 0, 2),
+					meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
+				}),
+				comment({
+					id: 'comment:first',
+					threadId: 'comment-thread:shape',
+					body: {
+						type: 'doc',
+						content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Wider?' }] }],
+					},
+				}),
+				comment({ id: 'comment:p', threadId: 'comment-thread:point', authorName: ' ' }),
+				comment({ id: 'comment:g', threadId: 'comment-thread:gone' }),
+			],
+			'user_me',
+			{ hasMore: false }
+		)
+		const block = result.content[0]
+		if (block.type !== 'text') throw new Error('Expected a text block')
+		expect(JSON.parse(block.text)).toEqual({
+			pageId: 'page:a',
+			pageName: 'Cover',
+			threadCount: 3,
+			threads: [
+				{
+					threadId: 'comment-thread:gone',
+					resolved: false,
+					anchor: { type: 'shape', shapeId: 'shape:deleted', shapeMissing: true },
+					comments: [expect.objectContaining({ commentId: 'comment:g' })],
+				},
+				{
+					threadId: 'comment-thread:point',
+					resolved: true,
+					anchor: { type: 'point', x: 10, y: 20 },
+					comments: [expect.objectContaining({ commentId: 'comment:p', authorName: 'Someone' })],
+				},
+				{
+					threadId: 'comment-thread:shape',
+					resolved: false,
+					anchor: {
+						type: 'shape',
+						shapeId: 'shape:page:a-0',
+						shapeType: 'geo',
+						shapeText: 'Login',
+					},
+					comments: [
+						{
+							commentId: 'comment:first',
+							authorName: 'Ada',
+							authorId: 'user_other',
+							isCurrentUser: false,
+							meta: {},
+							createdAt: '2026-01-01T00:00:00.000Z',
+							text: 'Wider?',
+						},
+						{
+							commentId: 'comment:reply',
+							authorName: 'Me',
+							authorId: 'user_me',
+							isCurrentUser: true,
+							meta: { mcpAgent: { id: 'mcp-agent:a', name: 'Claude' } },
+							createdAt: '2026-01-02T00:00:00.000Z',
+							text: 'On it',
+						},
+					],
+				},
+			],
+		})
+	})
+})
+
+describe('getCommentRefusalMessage', () => {
+	it('words each refusal so a model knows what to do next', () => {
+		expect(getCommentRefusalMessage({ reason: 'comment_forbidden' })).toContain('view-only link')
+		expect(
+			getCommentRefusalMessage({ reason: 'thread_resolved', threadId: 'comment-thread:t' })
+		).toContain('Start a new thread instead')
+		expect(
+			getCommentRefusalMessage({ reason: 'thread_not_found', threadId: 'comment-thread:t' })
+		).toContain('read_page_comments')
+		expect(getCommentRefusalMessage({ reason: 'page_not_found', pageId: 'page:x' })).toContain(
+			'get_board_info'
+		)
 	})
 })

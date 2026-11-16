@@ -71,7 +71,7 @@ export function ReactionPicker({
 	renderReaction,
 	palette: Palette = EmojiPicker,
 	menuId,
-	className = 'tlui-cmt-thread__action',
+	className = 'tlui-cmt-icon-btn',
 }: ReactionPickerProps) {
 	const msg = useTranslation()
 	const editor = useMaybeEditor()
@@ -105,7 +105,7 @@ export function ReactionPicker({
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* left-aligned under the trigger, so the grid opens rightward off the card's edge */}
-			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={4}>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<Palette
 					emoji={emoji}
 					selected={selected}

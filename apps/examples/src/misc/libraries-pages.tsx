@@ -1,4 +1,5 @@
 import {
+	BoardIcon,
 	LibraryItemRecordType,
 	LibraryMenuItem,
 	type LibraryPack,
@@ -13,6 +14,7 @@ import {
 import { Editor } from 'tldraw'
 import type { Showing } from './libraries-example'
 import { LocalStorageLibrarySource } from './libraries-local-storage-source'
+import { ArchiveIcon, HomeIcon, PeopleIcon } from './libraries-owner-icons'
 import diagramming from './libraries-pack-diagramming.json'
 import doodles from './libraries-pack-doodles.json'
 import tldrawCharacters from './libraries-pack-tldraw-characters.json'
@@ -58,7 +60,19 @@ function shippedPacks(packs: LibraryPack[]) {
 
 const packs = shippedPacks(PACKS)
 
+const board = new InMemoryLibrarySource({ id: 'libraries-board' })
+
+const personal = new InMemoryLibrarySource({ id: 'libraries-personal' })
+
 const shared = new InMemoryLibrarySource({ id: 'libraries-shared' })
+
+const designTeam = new InMemoryLibrarySource({ id: 'libraries-design-team' })
+
+const marketing = new InMemoryLibrarySource({ id: 'libraries-marketing' })
+
+const engineering = new InMemoryLibrarySource({ id: 'libraries-engineering' })
+
+const sales = new InMemoryLibrarySource({ id: 'libraries-sales' })
 
 const local = new LocalStorageLibrarySource('libraries-local', 'libraries-example-local')
 
@@ -77,14 +91,31 @@ const SHOWINGS: Record<PageName, Showing> = {
 	CompositeLibrarySource: {
 		source: new CompositeLibrarySource({
 			id: 'libraries-composite',
+			defaultOwnerId: 'personal',
 			parts: [
-				{ owner: { id: 'shared', name: 'Shared' }, source: shared },
-				{ owner: { id: 'packs', name: 'Packs' }, source: packs },
+				{ owner: { id: 'board', name: 'This board', icon: <BoardIcon /> }, source: board },
+				{ owner: { id: 'personal', name: 'Private to you', icon: <HomeIcon /> }, source: personal },
+				{ owner: { id: 'shared', name: 'Shared', icon: <PeopleIcon /> }, source: shared },
+				{
+					owner: { id: 'design-team', name: 'Design team', icon: <PeopleIcon /> },
+					source: designTeam,
+				},
+				{ owner: { id: 'marketing', name: 'Marketing', icon: <PeopleIcon /> }, source: marketing },
+				{
+					owner: { id: 'engineering', name: 'Engineering', icon: <PeopleIcon /> },
+					source: engineering,
+				},
+				{ owner: { id: 'sales', name: 'Sales', icon: <PeopleIcon /> }, source: sales },
+				{ owner: { id: 'packs', name: 'Packs', icon: <ArchiveIcon /> }, source: packs },
 			],
 		}),
 		seed: async (editor) => {
+			const sketches = await board.createLibrary('Sketches')
+			await saveSamples(editor, board, sketches.id, WIREFRAMES.slice(0, 2))
 			const wireframes = await shared.createLibrary('Wireframes')
 			await saveSamples(editor, shared, wireframes.id, WIREFRAMES)
+			const components = await designTeam.createLibrary('Components')
+			await saveSamples(editor, designTeam, components.id, WIREFRAMES)
 		},
 	},
 	LocalStorageLibrarySource: {
