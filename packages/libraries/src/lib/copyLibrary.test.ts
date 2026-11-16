@@ -8,7 +8,15 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { copyLibrary } from './copyLibrary'
 import { InMemoryLibrarySource } from './InMemoryLibrarySource'
 import { LibraryNotFoundError, type LibrarySource } from './LibrarySource'
-import { LibraryItemRecordType, type TLLibraryItemContent } from './schema'
+import { LibraryItemRecordType, type TLLibraryItem, type TLLibraryItemContent } from './schema'
+import { whenItemsStored } from './whenItemsStored'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 const shapeId = createShapeId('box')
 const owners = [
@@ -59,12 +67,14 @@ describe('copyLibrary', () => {
 		stubFetch(() => true)
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
-		const named = await source.addItem(original.id, {
-			name: 'Card',
-			content: content(),
-			thumbnail: new Blob(['png']),
-		})
-		await source.addItem(original.id, { content: content() })
+		const named = await added(
+			source.addItem(original.id, {
+				name: 'Card',
+				content: content(),
+				thumbnail: new Blob(['png']),
+			})
+		)
+		await added(source.addItem(original.id, { content: content() }))
 
 		const copy = await copyLibrary(source, original.id, 'acme')
 
@@ -87,7 +97,7 @@ describe('copyLibrary', () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
 		const names = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H']
-		for (const name of names) await source.addItem(original.id, { name, content: content() })
+		for (const name of names) await added(source.addItem(original.id, { name, content: content() }))
 		const load = source.getItemContent.bind(source)
 		let loading = 0
 		let mostAtOnce = 0
@@ -118,7 +128,7 @@ describe('copyLibrary', () => {
 		const memory = new InMemoryLibrarySource({ owners })
 		const original = await memory.createLibrary('Wireframes')
 		for (const name of ['A', 'B', 'C'])
-			await memory.addItem(original.id, { name, content: content() })
+			await added(memory.addItem(original.id, { name, content: content() }))
 		const addItem = vi.spyOn(memory, 'addItem')
 
 		const copy = await copyLibrary(withoutAddItems(memory), original.id, 'acme')
@@ -147,10 +157,12 @@ describe('copyLibrary', () => {
 		stubFetch(() => false)
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
-		await source.addItem(original.id, {
-			content: content(),
-			thumbnail: { light: new Blob(['l']), dark: new Blob(['d']) },
-		})
+		await added(
+			source.addItem(original.id, {
+				content: content(),
+				thumbnail: { light: new Blob(['l']), dark: new Blob(['d']) },
+			})
+		)
 		const copy = await copyLibrary(source, original.id, 'acme')
 		expect(source.getItems(copy.id)[0].thumbnail).toBeUndefined()
 	})
@@ -158,7 +170,7 @@ describe('copyLibrary', () => {
 	it('deletes the partial copy when an item cannot be copied', async () => {
 		const source = new InMemoryLibrarySource({ owners })
 		const original = await source.createLibrary('Wireframes')
-		await source.addItem(original.id, { content: content() })
+		await added(source.addItem(original.id, { content: content() }))
 		vi.spyOn(source, 'getItemContent').mockRejectedValue(new Error('offline'))
 		await expect(copyLibrary(source, original.id, 'acme')).rejects.toThrow('offline')
 		expect(source.getLibraries().map((c) => c.id)).toEqual([original.id])

@@ -17,7 +17,7 @@ import {
 	type TLRecord,
 } from '@tldraw/tlschema'
 import { structuredClone } from '@tldraw/utils'
-import { getAssetInfo } from 'tldraw'
+import { getAssetInfo, type TLI18nMessage, type TLUiToastsContextType } from 'tldraw'
 import {
 	LibraryNotFoundError,
 	LibraryPermissionError,
@@ -28,6 +28,7 @@ import {
 	type TLNewLibraryOptions,
 } from './LibrarySource'
 import { mapConcurrently } from './mapConcurrently'
+import { saveErrorMessages } from './saveErrorMessages'
 import {
 	LibraryItemRecordType,
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
@@ -37,11 +38,19 @@ import {
 	type TLLibraryItem,
 	type TLLibraryItemContent,
 } from './schema'
+import { trackItemsStoring } from './whenItemsStored'
 
 const UPLOAD_CONCURRENCY = 4
 
 export interface BoardLibrarySourceOptions {
 	id?: string
+	/**
+	 * Where to report a thumbnail that fails to upload after its item was listed, as tldraw's
+	 * handler for pasted files reports one. Left out, the failure is only logged.
+	 */
+	toasts?: Pick<TLUiToastsContextType, 'addToast'>
+	/** Translates the report's text, as `useTranslation` does. */
+	msg?(message: TLI18nMessage): string
 }
 
 /**
@@ -65,13 +74,16 @@ export class BoardLibrarySource implements LibrarySource {
 	private readonly libraries: Computed<TLLibrary[]>
 	private readonly itemsByLibrary = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 	private readonly thumbnailUrls = new Map<TLAssetId, ResolvedUrl>()
-	private readonly storing = new Map<TLLibraryItemId, Promise<void>>()
+	private readonly toasts: BoardLibrarySourceOptions['toasts']
+	private readonly msg: BoardLibrarySourceOptions['msg']
 
 	constructor(
 		private readonly editor: Editor,
 		options: BoardLibrarySourceOptions = {}
 	) {
 		this.id = options.id ?? 'board'
+		this.toasts = options.toasts
+		this.msg = options.msg
 		for (const typeName of ['library', 'library-item', 'library-item-content']) {
 			if (!editor.store.schema.types[typeName as TLRecord['typeName']]) {
 				throw new Error(
@@ -200,7 +212,7 @@ export class BoardLibrarySource implements LibrarySource {
 	 *
 	 * The item is listed at once, its thumbnail shown from the image itself, and it resolves then,
 	 * while the thumbnail goes on uploading, as a pasted image does. If the upload fails, the item is
-	 * removed again: {@link BoardLibrarySource.whenStored} tells when it is stored, or rejects.
+	 * removed again and the failure reported through the `toasts` option, as a pasted image's is.
 	 */
 	async addItem(libraryId: TLLibraryId, newItem: TLNewLibraryItem) {
 		const [item] = await this.addItems(libraryId, [newItem])
@@ -260,22 +272,18 @@ export class BoardLibrarySource implements LibrarySource {
 		])
 		const itemIds = records.map(({ item }) => item.id)
 		const stored = this.uploadImages(images, itemIds)
-		for (const itemId of itemIds) this.storing.set(itemId, stored)
-		stored.then(
-			() => {
-				for (const itemId of itemIds) this.storing.delete(itemId)
-			},
-			(error) => console.error("Couldn't upload a library item's thumbnail", error)
-		)
+		trackItemsStoring(itemIds, stored)
+		stored.catch((error) => {
+			if (this.toasts && this.msg) {
+				this.toasts.addToast({
+					title: this.msg(saveErrorMessages.saveErrorTitle),
+					description: this.msg(saveErrorMessages.saveErrorDescription),
+					severity: 'error',
+				})
+			}
+			console.error("Couldn't upload a library item's thumbnail", error)
+		})
 		return records.map(({ item }) => this.toListedItem(item))
-	}
-
-	/**
-	 * Resolves once the items' thumbnails have uploaded, or rejects with the error if one failed,
-	 * and they were removed again.
-	 */
-	async whenStored(itemIds: TLLibraryItemId[]) {
-		await Promise.all(itemIds.map((itemId) => this.storing.get(itemId)))
 	}
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
