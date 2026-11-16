@@ -201,7 +201,6 @@ export type TLUiTranslationKey =
 	| 'comments.cluster-label'
 	| 'comments.copy-link'
 	| 'comments.delete'
-	| 'comments.dismiss'
 	| 'comments.edit'
 	| 'comments.edit-placeholder'
 	| 'comments.empty'

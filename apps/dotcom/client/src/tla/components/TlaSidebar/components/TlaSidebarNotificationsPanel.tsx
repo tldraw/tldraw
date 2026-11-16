@@ -145,7 +145,12 @@ function NotificationsOverflowMenu({
 						<TlaIcon icon="dots-vertical-strong" />
 					</TldrawUiButton>
 				</TldrawUiDropdownMenuTrigger>
-				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					sideOffset={0}
+				>
 					<TldrawUiMenuGroup id="notifications-filter">
 						<TldrawUiMenuCheckboxItem
 							id="filter-all"
