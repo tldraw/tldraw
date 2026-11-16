@@ -39,7 +39,6 @@ import {
 	TlaMenuTabsTab,
 	TlaMenuTabsTabs,
 } from '../tla-menu/tla-menu'
-import { TlaButton } from '../TlaButton/TlaButton'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { TlaUserAvatar } from '../TlaUserAvatar/TlaUserAvatar'
 import { SubmitFeedbackDialog } from './SubmitFeedbackDialog'
@@ -78,6 +77,7 @@ export function TlaSettingsDialog() {
 	const app = useApp()
 	const trackAppEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
+	const signOut = useSignOut('user-preferences')
 
 	// Lives here, not in ProfilePanel: inactive tab pages unmount, so a panel-level effect
 	// would report once per visit to the tab instead of once per dialog.
@@ -134,6 +134,16 @@ export function TlaSettingsDialog() {
 					</TlaMenuTabsPage>
 				))}
 			</TlaMenuTabsRoot>
+			<div className={styles.footer}>
+				<button
+					className={classNames(styles.link, styles.signOut, 'tla-text_ui__medium')}
+					data-testid="tla-settings-sign-out"
+					onClick={signOut}
+				>
+					<TlaIcon icon="sign-out" />
+					<F defaultMessage="Sign out" />
+				</button>
+			</div>
 		</div>
 	)
 }
@@ -142,7 +152,6 @@ function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
 	const msg = useTranslation()
 	const app = useApp()
 	const trackUiEvent = useUiEvents()
-	const signOut = useSignOut('user-preferences')
 	const user = useValue('user', () => app.getUser(), [app])
 
 	return (
@@ -190,15 +199,6 @@ function ProfilePanel({ onNameChange }: { onNameChange(name: string): void }) {
 					</div>
 				</TlaMenuControl>
 			</TlaMenuControlGroup>
-			<TlaButton
-				variant="secondary"
-				icon="sign-out"
-				className={styles.signOut}
-				data-testid="tla-settings-sign-out"
-				onClick={signOut}
-			>
-				<F defaultMessage="Sign out" />
-			</TlaButton>
 		</TlaMenuSection>
 	)
 }
@@ -293,13 +293,18 @@ function PreferencesPanel() {
 				</TlaMenuControl>
 				<HighlightMissingTranslationsControl />
 			</TlaMenuControlGroup>
-			<TlaButton
-				variant="secondary"
-				data-testid="tla-settings-manage-cookies"
-				onClick={() => addDialog({ component: () => <TlaManageCookiesDialog /> })}
-			>
-				{msg(messages.manageCookies)}
-			</TlaButton>
+			<TlaMenuControlGroup>
+				<TlaMenuControl>
+					<button
+						className={classNames(styles.link, 'tla-text_ui__medium')}
+						data-testid="tla-settings-manage-cookies"
+						onClick={() => addDialog({ component: () => <TlaManageCookiesDialog /> })}
+					>
+						{msg(messages.manageCookies)}
+						<TlaIcon icon="chevron-right" className={styles.linkIcon} />
+					</button>
+				</TlaMenuControl>
+			</TlaMenuControlGroup>
 		</TlaMenuSection>
 	)
 }
@@ -576,6 +581,7 @@ function AboutPanel() {
 						onClick={() => addDialog({ component: SubmitFeedbackDialog })}
 					>
 						{msg(messages.submitFeedback)}
+						<TlaIcon icon="chevron-right" className={styles.linkIcon} />
 					</button>
 				</TlaMenuControl>
 				<TlaMenuControl>
