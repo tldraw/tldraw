@@ -70,6 +70,7 @@ export function Component() {
 				// need to remove importUrl from location state so it doesn't persist after the import
 				const state = omit(location.state, ['importUrl'])
 				const result = await importFromUrl(app, pendingImportUrl)
+				if (app.isDisposed()) return
 				if (result.ok) {
 					navigate(routes.tlaFile(result.fileId), { replace: true, state })
 					return
@@ -89,6 +90,7 @@ export function Component() {
 
 			if (getShouldSlurpFile()) {
 				const res = await app.slurpFile()
+				if (app.isDisposed()) return
 				// Fails when the user has too many files; leaving the local content
 				// unslurped means it's still there when they log out.
 				if (res.ok) {
@@ -102,7 +104,7 @@ export function Component() {
 			const mostRecentFileId = app.getMostRecentFileId()
 			if (!mostRecentFileId) {
 				const result = await app.createFile()
-
+				if (app.isDisposed()) return
 				assert(result.ok, 'Failed to create file')
 				// result is only false if the user reached their file limit so
 				// we don't need to handle that case here since they have no files

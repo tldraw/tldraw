@@ -1,4 +1,4 @@
-import { useAuth, useUser as useClerkUser } from '@clerk/react'
+import { useAuth, useClerk, useUser as useClerkUser } from '@clerk/react'
 import { captureException } from '@sentry/react'
 import { ReactNode, createContext, useContext, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -36,6 +36,7 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 	const app = useValue(currentApp$)
 	const [error, setError] = useState<unknown>(null)
 	const auth = useAuth()
+	const clerk = useClerk()
 	const { user, isLoaded } = useClerkUser()
 	const trackEvent = useTldrawAppUiEvents()
 
@@ -59,6 +60,17 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 		let didCancel = false
 		const abort = new AbortController()
 		setError(null)
+		const userId = auth.userId
+
+		// Clerk's getToken answers for whoever is signed in when it runs, not for the account this
+		// app was built for. Between a sign-in elsewhere and this effect's cleanup, the old app
+		// would otherwise make requests with the next account's token.
+		async function tokenForThisUser(get: () => Promise<string | null | undefined>) {
+			if (didCancel || clerk.user?.id !== userId) return undefined
+			const token = await get()
+			if (didCancel || clerk.user?.id !== userId) return undefined
+			return token || undefined
+		}
 
 		const FETCH_TIMEOUT = 5000
 		function fetchFlagsWithTimeout(): Promise<FeatureFlags> {
@@ -83,17 +95,16 @@ export function AppStateProvider({ children }: { children: ReactNode }) {
 				userId: auth.userId,
 				email,
 				flags,
-				getToken: async () => {
-					const token = await auth.getToken()
-					return token || undefined
-				},
+				getToken: () => tokenForThisUser(() => auth.getToken()),
 				// `skipCache` is load-bearing, not belt and braces: Clerk hands back a cached token
 				// until it is nearly expired, and the refresh schedules itself from the *remaining*
 				// life of whatever it is given. Cached tokens would shorten that interval on every
 				// pass — 90s, then 45s, then 22s — until it bottomed out against its floor.
 				// Zero boots tokenless and picks a token up on its next refresh, so offline must not reject.
 				getZeroToken: () =>
-					tokenOrUndefinedWhenOffline(() => auth.getToken({ template: 'zero', skipCache: true })),
+					tokenForThisUser(() =>
+						tokenOrUndefinedWhenOffline(() => auth.getToken({ template: 'zero', skipCache: true }))
+					),
 				onClientTooOld: () => {
 					isClientTooOld$.set(true)
 				},
