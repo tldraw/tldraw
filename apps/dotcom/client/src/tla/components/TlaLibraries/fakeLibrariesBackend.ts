@@ -5,10 +5,23 @@ import type { TldrawApp } from '../../app/TldrawApp'
 
 type Row = TlaLibrary & { items: TlaLibraryItem[] }
 
+/** A promise each request or mutation waits on while a test holds it, until it's let through. */
+function createHold() {
+	let open: (passes: boolean) => void = () => {}
+	const passes = new Promise<boolean>((resolve) => {
+		open = resolve
+	})
+	return { passes, release: () => open(true), fail: () => open(false) }
+}
+
 /**
  * Stands in for what TldrawAppLibrariesSource talks to: the app's libraries query and
  * mutators, and the sync worker's routes behind `fetch`. Rows change at once, as Zero applies a
  * mutation locally. Stored content is kept in a map, and thumbnails at made-up public URLs.
+ *
+ * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls a created
+ * library back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
+ * of rows the worker inserts (`holdItemRows`).
  */
 export function createFakeLibrariesBackend({
 	userId = 'user_me',
@@ -28,9 +41,21 @@ export function createFakeLibrariesBackend({
 	]
 	const isMember = (groupId: string) => memberships.some((m) => m.groupId === groupId)
 
-	const done = () => {
-		const result = Promise.resolve({ type: 'success' })
-		return { client: result, server: result }
+	let serverHold: ReturnType<typeof createHold> | undefined
+	let requestHold: ReturnType<typeof createHold> | undefined
+	let rowHold: ReturnType<typeof createHold> | undefined
+	const showMutationRejectionToast = vi.fn()
+
+	const done = (rollback = () => {}) => {
+		const forbidden = { type: 'error', error: { type: 'app', message: 'forbidden' } }
+		const server = serverHold
+			? serverHold.passes.then((passes) => {
+					if (passes) return { type: 'success' }
+					rollback()
+					return forbidden
+				})
+			: Promise.resolve({ type: 'success' })
+		return { client: Promise.resolve({ type: 'success' }), server }
 	}
 	const rejected = () => {
 		const result = Promise.resolve({ type: 'error', error: { type: 'app', message: 'forbidden' } })
@@ -60,7 +85,7 @@ export function createFakeLibrariesBackend({
 						items: [],
 					},
 				])
-				return done()
+				return done(() => rows.update((all) => all.filter((row) => row.id !== id)))
 			},
 			rename: ({ id, name }: any) => {
 				updateRow(id, (row) => ({ ...row, name }))
@@ -121,11 +146,14 @@ export function createFakeLibrariesBackend({
 			createdAt: Date.now(),
 			updatedAt: Date.now(),
 		}
-		updateRow(libraryId, (row) => ({ ...row, items: [...row.items, item] }))
+		const insert = () => updateRow(libraryId, (row) => ({ ...row, items: [...row.items, item] }))
+		if (rowHold) rowHold.passes.then(insert)
+		else insert()
 		return item
 	}
 
 	const routes = async (url: string, init: RequestInit = {}): Promise<Response> => {
+		if (requestHold && !(await requestHold.passes)) return new Response(null, { status: 500 })
 		let match = url.match(/^\/api\/app\/libraries\/([^/]+)\/items$/)
 		if (match && init.method === 'POST') {
 			const form = init.body as FormData
@@ -176,7 +204,18 @@ export function createFakeLibrariesBackend({
 		getWorkspaceMembership: (id: string) => memberships.find((m) => m.groupId === id),
 		getLibraryRows: () => rows.get(),
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
+		showMutationRejectionToast,
 	} as unknown as TldrawApp
 
-	return { app, rows, contents, fetch: fetchSpy, getToken: async () => 'token' }
+	return {
+		app,
+		rows,
+		contents,
+		fetch: fetchSpy,
+		getToken: async () => 'token',
+		showMutationRejectionToast,
+		holdServer: () => (serverHold = createHold()),
+		holdRequests: () => (requestHold = createHold()),
+		holdItemRows: () => (rowHold = createHold()),
+	}
 }
