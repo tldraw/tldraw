@@ -251,13 +251,17 @@ describe('CompositeLibrarySource', () => {
 		])
 	})
 
-	it('moves a library between writable parts', async () => {
+	it('moves a library between writable parts, resolving with the copy', async () => {
 		const { source, mine, team } = setUp()
 		const kit = await source.createLibrary('Kit', { ownerId: 'home' })
 		await added(source.addItem(kit.id, { name: 'Star', content: content('star') }))
-		await source.moveLibrary(kit.id, 'acme')
+		const copy = await source.moveLibrary(kit.id, 'acme')
+		expect(copy).toMatchObject({ name: 'Kit', ownerId: 'acme' })
+		expect(copy.id).not.toBe(kit.id)
+		expect(source.getLibraries().find((c) => c.id === copy.id)).toEqual(copy)
 		await vi.waitFor(() => expect(mine.getLibraries()).toEqual([]))
 		const [moved] = team.getLibraries()
+		expect(moved.id).toBe(copy.id)
 		expect(moved.name).toBe('Kit')
 		expect(team.getItems(moved.id).map((item) => item.name)).toEqual(['Star'])
 	})
@@ -379,7 +383,8 @@ describe('CompositeLibrarySource', () => {
 			expect(source.getDefaultOwnerId()).toBe('acme')
 			const kit = await source.createLibrary('Kit')
 			expect(kit.ownerId).toBe('acme')
-			await source.moveLibrary(kit.id, 'home')
+			const moved = await source.moveLibrary(kit.id, 'home')
+			expect(moved).toEqual({ ...kit, ownerId: 'home' })
 			expect(mine.getLibraries()[0]).toMatchObject({ id: kit.id, ownerId: 'home' })
 		})
 
