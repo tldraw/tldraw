@@ -143,7 +143,7 @@
 	--tl-font-mono: 'tldraw_mono', monospace;
 	/* checkboxes, for fonts whose theme entry doesn't draw its own */
 	--tl-checkbox-box: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect x='6.2' y='27.2' width='66' height='66' rx='14.4' fill='none' stroke='%23000' stroke-width='8.3'/%3E%3C/svg%3E");
-	--tl-checkbox-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Csvg x='-12.8' y='8.2' width='103.6' height='103.6' viewBox='0 0 30 30' overflow='visible'%3E%3Cpath d='M22.9339 7.45369C23.5118 7.83148 23.6739 8.60615 23.2961 9.18396L14.7961 22.184C14.5958 22.4903 14.2712 22.6935 13.9082 22.7398C13.5451 22.7862 13.1799 22.6711 12.909 22.4248L7.40905 17.4248C6.89822 16.9604 6.86058 16.1699 7.32496 15.6591C7.78935 15.1482 8.57991 15.1106 9.09073 15.575L13.506 19.5888L21.2037 7.81584C21.5815 7.23803 22.3561 7.07589 22.9339 7.45369Z'/%3E%3C/svg%3E%3C/svg%3E");
+	--tl-checkbox-tick: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M25.13 60.63L34.11 71.14L57.02 44.3' fill='none' stroke='%23000' stroke-width='8.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
 	/* text outline */
 	--tl-text-outline-a: calc(min(0.5, 1 / var(--tl-zoom)) * 2px);
 	--tl-text-outline-b: calc(min(0.5, 1 / var(--tl-zoom)) * -2px);
