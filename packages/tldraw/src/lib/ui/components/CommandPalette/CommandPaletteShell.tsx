@@ -15,11 +15,7 @@ import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiKbd } from '../primitives/TldrawUiKbd'
 import { CommandPaletteStoreProvider } from './CommandPaletteContext'
 import { handleCommandPaletteKeyDown } from './commandPaletteKeyboard'
-import {
-	CommandPaletteList,
-	getCommandPaletteEntryMark,
-	getCommandPaletteOptionId,
-} from './CommandPaletteList'
+import { CommandPaletteList, getCommandPaletteOptionId } from './CommandPaletteList'
 import { addCommandPaletteRecent, getCommandPaletteRecents } from './commandPaletteRecents'
 import {
 	CommandPaletteRow,
@@ -106,6 +102,10 @@ export function CommandPaletteShell({
 	const prompt = useValue(store.prompt)
 	const [activeIndex, setActiveIndex] = useState(0)
 	const rClampedIndex = useRef(0)
+	// Whether the pointer, not the keyboard, picked the active row. Only then does leaving the row
+	// clear it: scrolling the list moves rows out from under a still pointer, which must not drop a
+	// row picked with the arrow keys.
+	const rPointerActive = useRef(false)
 	const rPalette = useRef<HTMLDivElement>(null)
 	const rInput = useRef<HTMLInputElement>(null)
 	const rList = useRef<HTMLDivElement>(null)
@@ -143,14 +143,6 @@ export function CommandPaletteShell({
 	}, [store, activeItemId])
 
 	const isBrowsing = !query && !submenu && !prompt
-	// Every row keeps a check slot so labels line up, except in an opened submenu with nothing to
-	// check, like a list of pages.
-	const hasCheckSlot =
-		!submenu ||
-		entries.some(
-			(entry) =>
-				entry.submenu?.key === submenu.key && getCommandPaletteEntryMark(entry) !== undefined
-		)
 	const { anchor, canScrollDown, onListScroll } = useCommandPaletteLayout({
 		editor,
 		position,
@@ -210,6 +202,7 @@ export function CommandPaletteShell({
 
 	const setQuery = useCallback(
 		(value: string) => {
+			rPointerActive.current = false
 			rScrollToActive.current = true
 			rRestoreScrollTop.current = null
 			store.query.set(value)
@@ -325,9 +318,22 @@ export function CommandPaletteShell({
 	const move = (delta: number) => {
 		const count = selectableRows.length
 		if (!count) return
+		rPointerActive.current = false
 		rScrollToActive.current = true
 		rRestoreScrollTop.current = null
-		setActiveIndex((Math.max(clampedIndex, 0) + delta + count) % count)
+		// With no active row, Down starts at the first row and Up at the last.
+		const from = clampedIndex < 0 ? (delta > 0 ? -1 : 0) : clampedIndex
+		setActiveIndex((from + delta + count) % count)
+	}
+
+	const hover = (index: number) => {
+		rPointerActive.current = true
+		setActiveIndex(index)
+	}
+
+	// Like a menu, the highlight goes when the pointer leaves the row, e.g. for a title or outside.
+	const leave = () => {
+		if (rPointerActive.current) setActiveIndex(-1)
 	}
 
 	return (
@@ -432,11 +438,11 @@ export function CommandPaletteShell({
 						<CommandPaletteList
 							listboxId={listboxId}
 							sections={sections}
-							hasCheckSlot={hasCheckSlot}
 							indexByKey={indexByKey}
 							activeIndex={clampedIndex}
 							rScrollToActive={rScrollToActive}
-							onHover={setActiveIndex}
+							onHover={hover}
+							onLeave={leave}
 							onRun={runRow}
 						/>
 					</div>

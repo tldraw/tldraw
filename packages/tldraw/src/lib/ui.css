@@ -195,8 +195,9 @@
 	border-radius: var(--tl-radius-2);
 }
 
+/* Leading icons and checks sit 6px from the label; trailing items keep the 8px gap. */
 .tlui-button__menu > .tlui-icon + .tlui-button__label {
-	margin-inline-start: 0px;
+	margin-inline-start: -2px;
 }
 
 .tlui-button__menu:nth-child(1) {
@@ -2400,30 +2401,16 @@ tldraw? probably.
 	max-height: 60%;
 }
 
-/* A bordered box like the sidebar's rename and search inputs; the palette keeps focus on it. */
+/* No focus ring: the palette keeps focus on the input the whole time it's open. */
 .tlui-command-palette__search {
-	position: relative;
 	display: flex;
 	align-items: center;
-	gap: var(--tl-space-3);
+	gap: 6px;
 	flex-shrink: 0;
 	height: var(--tlui-command-palette-row);
-	padding: 0 var(--tl-space-4);
+	padding: 0 var(--tl-space-4) 0 8px;
 	border-bottom: 1px solid var(--tl-color-divider);
 	color: var(--tl-color-text-3);
-}
-
-.tlui-command-palette__search::before {
-	content: '';
-	position: absolute;
-	inset: 4px;
-	border-radius: var(--tl-radius-2);
-	border: 1px solid transparent;
-	pointer-events: none;
-}
-
-.tlui-command-palette__search:focus-within::before {
-	border-color: var(--tl-color-primary);
 }
 
 /* Extends .tlui-input; no font-size here, so its iOS 16px rule still applies. */
@@ -2434,14 +2421,15 @@ tldraw? probably.
 	padding: 0;
 }
 
-/* Rows overlap by 4px like .tlui-button__menu, so n rows are n * 36px + 4px. Headings and
-   separators take rows' space, so 9 rows' worth keeps about 6 commands in view. */
+/* Rows overlap by 4px like .tlui-button__menu, so n rows are n * 36px + 4px. Group titles
+   take rows' space, so 9 rows' worth keeps about 6 commands in view. */
 .tlui-command-palette__list {
 	min-height: 0;
 	max-height: calc(9 * (var(--tlui-command-palette-row) - 4px) + 4px);
 	overflow-y: auto;
 	overscroll-behavior: contain;
-	scroll-padding-block-start: 32px;
+	/* Keeps a group's title in view above its first row. */
+	scroll-padding-block-start: calc(var(--tlui-command-palette-row) - 4px);
 	scroll-padding-block-end: var(--tlui-command-palette-row);
 	scrollbar-width: none;
 }
@@ -2463,32 +2451,36 @@ tldraw? probably.
 	);
 }
 
+/* Divided like .tlui-menu__group. */
+.tlui-command-palette__group + .tlui-command-palette__group {
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+/* A menu row's height and type, muted, so a title reads as a row that can't be picked. */
 .tlui-command-palette__heading {
-	padding: var(--tl-space-3) var(--tl-space-4) var(--tl-space-1);
-	font-size: 11px;
+	display: flex;
+	align-items: center;
+	height: var(--tlui-command-palette-row);
+	padding: 0 var(--tl-space-4);
 	color: var(--tl-color-text-3);
 }
 
+.tlui-command-palette__heading + .tlui-command-palette__item {
+	margin-top: -4px;
+}
+
 .tlui-command-palette__back {
-	display: flex;
-	align-items: center;
-	gap: var(--tl-space-1);
+	flex-shrink: 0;
+	gap: 6px;
 	padding-inline-start: var(--tl-space-3);
+	border-bottom: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text-1);
 	cursor: pointer;
 }
 
 .tlui-command-palette__back-kbd {
 	margin-inline-start: auto;
-}
-
-@media (hover: hover) {
-	.tlui-command-palette__back:hover {
-		color: var(--tl-color-text-1);
-	}
-}
-
-.tlui-command-palette__separator {
-	border-bottom: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text-3);
 }
 
 .tlui-command-palette__item {
@@ -2496,6 +2488,11 @@ tldraw? probably.
 	z-index: 0;
 	padding: 0 var(--tl-space-4);
 	cursor: pointer;
+}
+
+/* Pulls the check into the inset, like .tlui-button__checkbox. */
+.tlui-command-palette__item[aria-checked] {
+	padding-inline-start: var(--tl-space-3);
 }
 
 .tlui-command-palette__item + .tlui-command-palette__item {
@@ -2512,6 +2509,11 @@ tldraw? probably.
 	opacity: 0;
 }
 
+/* Raised like a hovered .tlui-button, so it keeps the pointer where rows overlap. */
+.tlui-command-palette__item[data-highlighted] {
+	z-index: 1;
+}
+
 .tlui-command-palette__item[data-highlighted]::after {
 	opacity: 1;
 }
@@ -2525,6 +2527,11 @@ tldraw? probably.
 
 .tlui-command-palette__row > .tlui-icon {
 	flex-shrink: 0;
+}
+
+/* The same uneven gap as .tlui-button__menu. */
+.tlui-command-palette__row > .tlui-icon + .tlui-command-palette__label {
+	margin-inline-start: -2px;
 }
 
 .tlui-command-palette__label {
