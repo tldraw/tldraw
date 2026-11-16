@@ -351,6 +351,7 @@ export {
 	type TLThemeColors,
 	type TLThemeDefaultColors,
 	type TLThemeFont,
+	type TLThemeFontCheckbox,
 	type TLThemeFonts,
 	type TLThemeId,
 	type TLThemes,
