@@ -948,9 +948,10 @@ export function writeScreenshotTelemetry(
 		 * What the PNG cache did for this request. `none` when the request never consulted it: the
 		 * info tools have no cache at all, and a screenshot request refused before the cache read
 		 * (bad input, rate-limited caller, unresolvable board) says nothing about cache health.
-		 * Excluding `none` is what keeps a hit-rate-by-source panel honest.
+		 * Excluding `none` is what keeps a hit-rate-by-source panel honest. `unchanged` is a queue job
+		 * whose board moved but whose image didn't need to: the edit was to records it doesn't draw.
 		 */
-		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
+		cacheStatus: 'hit' | 'stale' | 'miss' | 'unchanged' | 'none'
 		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
 		 * rows — see below.
