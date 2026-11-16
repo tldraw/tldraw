@@ -196,6 +196,7 @@ button.topLeftInputNameWidthSetter {
 	}
 }
 
+.topLeftMainMenuTrigger[aria-pressed='true']::after,
 .topLeftMainMenuTrigger[data-state='open']::after {
 	background: linear-gradient(180deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
 	opacity: 1;
@@ -218,6 +219,10 @@ button.topLeftInputNameWidthSetter {
 /* Match the hover wash to the share pill's inset and radius (the base ::after sits at 4px). */
 .topRightIconButton::after {
 	inset: 2px;
+}
+
+.topRightIconButton + .topRightIconButton {
+	margin-inline-start: 4px;
 }
 
 /* A panel toggle shows the same open wash as the main menu trigger while the panel it controls

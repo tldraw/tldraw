@@ -1,4 +1,5 @@
 import type { CommentAuthor } from '@tldraw/mentions'
+import { isValidElement, type ReactElement } from 'react'
 import type { TLComment } from 'tldraw'
 import { describe, expect, it } from 'vitest'
 import { absoluteThreadLink, toCardProps } from './thread-view'
@@ -40,6 +41,44 @@ describe('toCardProps', () => {
 		const card = toCardProps(comment({ authorId: 'user:gone' }), context, {}, resolveName)
 		expect(card.you).toBe(false)
 		expect(card.author).not.toBe(AUTHOR)
+	})
+
+	it('leaves the byline and avatar to the card when no slots are set', () => {
+		const card = toCardProps(comment(), context, {}, resolveName)
+		expect(card.byline).toBeUndefined()
+		expect(card.renderAvatar).toBeUndefined()
+	})
+
+	it('renders the Avatar slot for the author, with the id they were resolved from', () => {
+		const Avatar = () => null
+		const card = toCardProps(comment(), context, { Avatar }, resolveName)
+		const avatar = card.renderAvatar?.(AUTHOR) as ReactElement<Record<string, unknown>>
+		expect(avatar.type).toBe(Avatar)
+		expect(avatar.props).toEqual({ author: AUTHOR, authorId: 'user:1' })
+	})
+
+	it('renders the CommentByline slot with the byline props and the comment record', () => {
+		const CommentByline = () => null
+		const record = comment({ editedAt: Date.parse('2026-07-30T13:00:00.000Z') })
+		const card = toCardProps(record, context, { CommentByline }, resolveName)
+		expect(isValidElement(card.byline)).toBe(true)
+		const byline = card.byline as ReactElement<Record<string, unknown>>
+		expect(byline.type).toBe(CommentByline)
+		expect(byline.props).toEqual({
+			author: AUTHOR,
+			date: '2026-07-30T12:00:00.000Z',
+			edited: true,
+			renderAvatar: undefined,
+			comment: record,
+		})
+	})
+
+	it('hands the CommentByline slot the Avatar slot, so a spread into Byline keeps it', () => {
+		const Avatar = () => null
+		const CommentByline = () => null
+		const card = toCardProps(comment(), context, { Avatar, CommentByline }, resolveName)
+		const byline = card.byline as ReactElement<Record<string, unknown>>
+		expect(byline.props.renderAvatar).toBe(card.renderAvatar)
 	})
 })
 

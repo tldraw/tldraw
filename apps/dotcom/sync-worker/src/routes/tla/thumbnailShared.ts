@@ -149,6 +149,8 @@ export function describeThumbnailFailure(reason: string): string {
 			return 'the board could not be saved'
 		case 'board_rename_error':
 			return 'the new name could not be saved'
+		case 'comment_write_error':
+			return 'the comment could not be saved'
 		case 'rate_limiter_unavailable':
 			// Deliberately not phrased as being rate limited: the caller is inside their budget, and a
 			// message saying otherwise would have them back off for a minute that would not help.
@@ -169,16 +171,14 @@ export type ThumbnailErrorSurface =
 	| 'mcp_board_create'
 	| 'mcp_board_rename'
 	| 'mcp_workspace_list'
+	| 'mcp_comment_read'
+	| 'mcp_comment_write'
 	| 'mcp_screenshot'
-	// Kept apart from 'mcp_screenshot': the render succeeded and the caller still got their PNG, so
-	// this never means "screenshots are broken" — it means the cache isn't absorbing them and every
-	// call is re-spending Browser Run.
-	| 'mcp_screenshot_cache_write'
-	// The cluster index cache in the file's Durable Object. Neither of these is ever a caller-visible
-	// failure — both fall back to measuring the page — but both mean the clustering tools are paying
-	// for a browser session per call again, which is the thing that cache exists to stop.
-	| 'mcp_cluster_index_read'
-	| 'mcp_cluster_index_write'
+	// Reaching the caller's open tab (mcpTabRender.ts), for a reason other than the tab being unable to
+	// help. The caller is told the tab isn't responding.
+	| 'mcp_tab_render'
+	| 'mcp_apply_ops'
+	| 'mcp_board_presence'
 	// The authenticated owner-facing thumbnail route (getBoardThumbnail.ts).
 	| 'board_view'
 	// The render page's failure beacon. Pairs with an og_queue or mcp_screenshot failure from the same

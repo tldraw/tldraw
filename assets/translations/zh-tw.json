@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "順時針微幅旋轉圖形",
 	"a11y.select-shape": "選取下一個圖形",
 	"a11y.select-shape-direction": "選取該方向的圖形",
+	"a11y.shape-group": "團體",
 	"a11y.shape-image": "影像",
 	"a11y.shape-index": "第 {num} 個，共 {total} 個",
 	"a11y.shape-video": "影片",

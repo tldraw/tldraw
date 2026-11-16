@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "شکل را در جهت عقربه‌های ساعت بچرخانید (دقیق)",
 	"a11y.select-shape": "شکل بعدی را انتخاب کنید",
 	"a11y.select-shape-direction": "شکل را در جهت انتخاب کنید",
+	"a11y.shape-group": "گروه",
 	"a11y.shape-image": "تصویر",
 	"a11y.shape-index": "{num} از {total}",
 	"a11y.shape-video": "ویدئو",

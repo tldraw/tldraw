@@ -1,5 +1,5 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
@@ -9,6 +9,7 @@ import {
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
 import { OgImageRenderQueueMessage } from '../../types'
+import { hashToPercentage, resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
@@ -25,7 +26,6 @@ import {
 import {
 	blobValuesOf,
 	blobsWithPrefix,
-	clusterIndexStoreOf,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeQueue,
@@ -485,10 +485,6 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		// The MCP cluster index is the only thing in this pipeline that reaches a durable object, and
-		// only from a tool call. The OG path shares the render token, the render page and the browser
-		// binding with it, and must not pick this up by accident.
-		expect(clusterIndexStoreOf(env).calls).toEqual({ get: 0, put: 0 })
 		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({
 			kind: 'published',
@@ -513,6 +509,7 @@ describe('handleOgImageRenderMessage', () => {
 
 	describe('pushing the records into the render page', () => {
 		const board = { kind: 'published', slug: 'board' } as const
+		beforeEach(() => resetFeatureFlagCacheForTests())
 		// Run as the page would, so a script that evaluates differently from JSON.parse fails here.
 		function runPushedScript(script: string) {
 			const window: Record<string, unknown> = {}
@@ -592,6 +589,62 @@ describe('handleOgImageRenderMessage', () => {
 
 			expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
 			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+		})
+
+		describe('the thumbnail_render_push rollout, where the deployment does not force push', () => {
+			const bucket = hashToPercentage('published/board', 'thumbnail_render_push')
+
+			function arrangeRollout(flag: object) {
+				return arrange({
+					THUMBNAIL_RENDER_PUSH: undefined,
+					FEATURE_FLAGS: {
+						get: async (key: string) =>
+							key === 'thumbnail_render_push' ? JSON.stringify(flag) : null,
+					},
+				})
+			}
+
+			it('pushes a board whose bucket is inside the percentage', async () => {
+				const env = arrangeRollout({ enabled: true, percentage: bucket + 1 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(requestsOf(env).map((request) => request.push)).toEqual(['1'])
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
+			})
+
+			it('leaves a board whose bucket is outside the percentage to fetch', async () => {
+				const env = arrangeRollout({ enabled: true, percentage: bucket })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
+
+			it('fetches for every board when the flag is disabled, whatever the percentage', async () => {
+				const env = arrangeRollout({ enabled: false, percentage: 100 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
+
+			it('fetches when the flag cannot be read', async () => {
+				const env = arrange({
+					THUMBNAIL_RENDER_PUSH: undefined,
+					FEATURE_FLAGS: {
+						get: async () => {
+							throw new Error('KV is down')
+						},
+					},
+				})
+				vi.spyOn(console, 'error').mockImplementation(() => {})
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
 		})
 
 		it('falls back to the fetch when the binding refuses the request as too large', async () => {
@@ -1443,36 +1496,6 @@ describe('handleOgImageRenderMessage', () => {
 		)
 		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
 		expect(sessionsOf(emptyBoardEnv)).toEqual([])
-	})
-
-	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside
-	// caller can spend, and this consumer is not caller-driven. A saturated MCP limiter must not stop a
-	// board's own thumbnail refreshing.
-	it('renders even when the MCP rate limiters are saturated, and never consults them', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const queue = { send: vi.fn(async () => undefined) }
-		const browserLimiter = { limit: vi.fn(async () => ({ success: false })) }
-		const env = makeEnv({
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-			QUEUE: queue,
-			MCP_SERVER_BROWSER_RATE_LIMITER: browserLimiter,
-		})
-
-		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
-		await handleOgImageRenderMessage(env, message)
-
-		expect(browserLimiter.limit).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
-		expect(message.ack).toHaveBeenCalledTimes(1)
-		expect(message.retry).not.toHaveBeenCalled()
-		// No requeue chain: there is no backpressure signal left to requeue for.
-		expect(queue.send).not.toHaveBeenCalled()
-		expect(failureBlobsOf(env)).toEqual(['failure:none'])
 	})
 
 	it('records the trigger that asked for a completed render', async () => {

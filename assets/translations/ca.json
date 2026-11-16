@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Gira la forma en sentit horari (finament)",
 	"a11y.select-shape": "Selecciona la forma següent",
 	"a11y.select-shape-direction": "Selecciona la forma en la direcció",
+	"a11y.shape-group": "Grup",
 	"a11y.shape-image": "Imatge",
 	"a11y.shape-index": "{num} de {total}",
 	"a11y.shape-video": "Vídeo",

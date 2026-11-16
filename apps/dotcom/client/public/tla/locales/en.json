@@ -98,6 +98,9 @@
   "28b2464e1f": {
     "translation": "Could not submit feedback"
   },
+  "2944edaa8d": {
+    "translation": "On behalf of {name}"
+  },
   "299cb00a7a": {
     "translation": "Upload failed"
   },
@@ -281,6 +284,9 @@
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
   },
+  "67ed6ddb7d": {
+    "translation": "Edited"
+  },
   "681e10aecb": {
     "translation": "New file"
   },
@@ -292,6 +298,9 @@
   },
   "6a26f54883": {
     "translation": "Help"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
@@ -500,9 +509,6 @@
   "a9ded1e5ce": {
     "translation": "Background"
   },
-  "a9fc91939a": {
-    "translation": "Collections"
-  },
   "aac449eef6": {
     "translation": "Create workspace"
   },
@@ -511,6 +517,9 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
+  },
+  "aeb428554a": {
+    "translation": "Libraries"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",

@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "顺时针旋转形状（微调）",
 	"a11y.select-shape": "选择下一个图形",
 	"a11y.select-shape-direction": "选择指定方向上的图形",
+	"a11y.shape-group": "团体",
 	"a11y.shape-image": "图像",
 	"a11y.shape-index": "第 {num} 个，共 {total} 个",
 	"a11y.shape-video": "视频",

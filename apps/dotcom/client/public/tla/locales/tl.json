@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Lumikha ng file"
   },
+  "1a7222b4e5": {
+    "translation": "Lumipat sa"
+  },
   "1da2e8106b": {
     "translation": "May naganap na hindi inaasahang error."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Alisin ang miyembro"
+  },
+  "398f51738e": {
+    "translation": "Mag-sign in para tanggapin ang imbitasyong ito."
   },
   "3bc7d6ea2f": {
     "translation": "Magpatuloy sa email"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Paki-reload ang page"
   },
+  "747ee44424": {
+    "translation": "I-save ang nilalaman bilang isang .tldr file: piliin ang 'I-save ang isang kopya' sa kaliwang menu sa itaas."
+  },
   "74ff4bad28": {
     "translation": "Walang nakitang mga file"
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "Sigurado ka bang gusto mong tanggalin ang <strong>{workspaceName}</strong>? Hindi na maaaring bawiin ang aksyon na ito."
   },
+  "930390d222": {
+    "translation": "Kinopya ang link ng imbitasyon"
+  },
   "95aacd4d4a": {
     "translation": "Mag-sign in gamit ang Google"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, zero {# hindi pa nababasa} one {# hindi pa nababasa} two {# hindi pa nababasa} few {# hindi pa nababasa} many {# hindi pa nababasa} other {# hindi pa nababasa}}"
-  },
-  "a0da245992": {
-    "translation": "I-export ang nilalaman bilang isang .tldr file: Piliin ang 'I-download' sa kaliwang menu sa itaas."
   },
   "a104439641": {
     "translation": "Padding"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "o"
   },
+  "ea13ecec38": {
+    "translation": "Kasaysayan ng file"
+  },
   "ea4788705e": {
     "translation": "Kanselahin"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Tanggalin"
   },
+  "f408fa5fbd": {
+    "translation": "Hindi wasto o nag-expire na ang link ng imbitasyon na ito."
+  },
   "f476ba8646": {
     "translation": "Sina <name>{a}</name>, <name>{b}</name> at {count, plural, one {# iba pa} other {# iba pa}} ang nag-react sa iyong komento"
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Gumawa ng libreng account para i-save ang iyong mga file at makipaglaro sa iyong mga kasamahan sa team gamit ang tldraw."
+  },
+  "ffad261a48": {
+    "translation": "Error sa pagtanggap ng imbitasyon"
   },
   "ffcd73e997": {
     "translation": "Mag-import ng file…"
