@@ -22,6 +22,7 @@ import {
 	fetch,
 	kickoutOccludedShapes,
 	openWindow,
+	useAtom,
 	useMaybeEditor,
 } from '@tldraw/editor'
 import * as React from 'react'
@@ -32,6 +33,8 @@ import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../util
 import { generateShapeAnnouncementMessage } from '../components/A11y'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
+import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
+import { PORTRAIT_BREAKPOINT } from '../constants'
 import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 import { flattenShapesToImages } from '../hooks/useFlatten'
 import { TLUiTranslationKey } from '../hooks/useTranslation/TLUiTranslationKey'
@@ -65,6 +68,7 @@ import {
 	supportsDownloadingOriginal,
 } from './action-predicates'
 import { isActionRunnable } from './action-state'
+import { useBreakpoint } from './breakpoints'
 import { useTldrawUiComponents } from './components'
 import { TLUiEventSource, useUiEvents } from './events'
 
@@ -73,6 +77,7 @@ import { TLUiEventSource, useUiEvents } from './events'
 // keeps the string extractable and the prop a plain key, which is what an app overriding one
 // passes.
 const messages = defineMessages({
+	actionToggleMinimap: { id: 'action.toggle-minimap', defaultMessage: 'Toggle minimap' },
 	a11yAdjustShapeStyles: { id: 'a11y.adjust-shape-styles', defaultMessage: 'Adjust shape styles' },
 	a11yEnlargeShape: { id: 'a11y.enlarge-shape', defaultMessage: 'Enlarge shape' },
 	a11yRepeatShape: { id: 'a11y.repeat-shape', defaultMessage: 'Repeat shape' },
@@ -405,6 +410,13 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 	const trackEvent = useUiEvents()
 	const a11y = useA11y()
 	const msg = useTranslation()
+
+	// An atom, not a memo dep, so actions don't rebuild on every breakpoint change.
+	const breakpoint = useBreakpoint()
+	const breakpointAtom = useAtom('actions breakpoint', breakpoint)
+	React.useLayoutEffect(() => {
+		breakpointAtom.set(breakpoint)
+	}, [breakpointAtom, breakpoint])
 
 	const defaultDocumentName = helpers.msg(messages.documentDefaultName)
 
@@ -1746,6 +1758,23 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				},
 			},
 			{
+				id: 'toggle-minimap',
+				label: messages.actionToggleMinimap.id,
+				// Mirrors where TldrawUi and DefaultNavigationPanel actually render the minimap.
+				isAvailable: (editor) =>
+					!!components.Minimap &&
+					!!components.NavigationPanel &&
+					!editor.getInstanceState().isFocusMode &&
+					breakpointAtom.get() >= PORTRAIT_BREAKPOINT.TABLET,
+				isChecked: () => !isMinimapCollapsed(),
+				readonlyOk: true,
+				onSelect(source) {
+					trackEvent('toggle-minimap', { source })
+					toggleMinimap()
+				},
+				checkbox: true,
+			},
+			{
 				id: 'toggle-grid',
 				isChecked: (editor) => editor.getInstanceState().isGridMode,
 				label: {
@@ -2197,6 +2226,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 		msg,
 		a11y,
 		components,
+		breakpointAtom,
 	])
 
 	return (
