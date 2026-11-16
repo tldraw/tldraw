@@ -1,6 +1,5 @@
 import { can, isRole, TlaLibraryItem, TlaLibraryItemAsset } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
-import PQueue from 'p-queue'
 import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
 import {
 	getLibraryAccess,
@@ -9,7 +8,7 @@ import {
 	isAnyItemIdTaken,
 	isClientPickedId,
 	isLibraryIdTaken,
-	STORAGE_CONCURRENCY,
+	runStorageTasks,
 } from '../../libraryStorage'
 import { copyThumbnail, toThumbnailColumn } from '../../libraryThumbnails'
 import { createPostgresConnectionPool } from '../../postgres'
@@ -99,7 +98,13 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 		const now = Date.now()
 		const copied: CopiedObjects = { keys: [], uploads: [] }
 		try {
-			const copies = await copyEachItemsObjects(env, toCopy, copied)
+			const copies = await runStorageTasks(
+				toCopy.map(
+					({ item, newId }) =>
+						() =>
+							copyItemObjects(env, item, newId, copied)
+				)
+			)
 			const rows: TlaLibraryItem[] = []
 			const owned: TlaLibraryItemAsset[] = []
 			copies.forEach((copy, index) => {
@@ -177,32 +182,6 @@ interface CopiedObjects {
 interface CopiedItem {
 	thumbnail: Awaited<ReturnType<typeof copyThumbnail>>
 	ownedObjectNames: string[]
-}
-
-/**
- * Copies each item's objects, a few at a time, in order; null for an item whose content is
- * missing. If one fails, the ones under way finish, so `copied` holds everything stored, and the
- * rest aren't started.
- */
-async function copyEachItemsObjects(
-	env: Environment,
-	toCopy: { item: TlaLibraryItem; newId: string }[],
-	copied: CopiedObjects
-) {
-	const queue = new PQueue({ concurrency: STORAGE_CONCURRENCY })
-	try {
-		return await queue.addAll(
-			toCopy.map(
-				({ item, newId }) =>
-					() =>
-						copyItemObjects(env, item, newId, copied)
-			)
-		)
-	} catch (error) {
-		queue.clear()
-		await queue.onIdle()
-		throw error
-	}
 }
 
 /**

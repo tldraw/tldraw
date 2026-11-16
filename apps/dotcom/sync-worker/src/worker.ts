@@ -47,7 +47,7 @@ import { getOgImage } from './routes/tla/getOgImage'
 import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleInitUser } from './routes/tla/initUser'
-import { addLibraryItem, getLibraryItemContent } from './routes/tla/libraryItems'
+import { addLibraryItems, getLibraryItemContent } from './routes/tla/libraryItems'
 import {
 	ROOT_MCP_SERVER_PATH,
 	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
@@ -201,7 +201,7 @@ const router = createRouter<Environment>()
 		})
 	})
 	.post('/app/uploads/:objectName', upload)
-	.post('/app/libraries/:libraryId/items', addLibraryItem)
+	.post('/app/libraries/:libraryId/items', addLibraryItems)
 	.post('/app/libraries/:libraryId/copy', copyLibrary)
 	.get('/app/library-items/:itemId/content', getLibraryItemContent)
 	.get('/app/invite/:token', getInviteInfo)
