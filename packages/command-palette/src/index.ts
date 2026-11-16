@@ -45,6 +45,7 @@ export {
 	type TLUiDefaultCommandPaletteProps,
 } from './lib/DefaultCommandPalette'
 export { DefaultCommandPaletteContent } from './lib/DefaultCommandPaletteContent'
+export { useCommandPaletteEnabled } from './lib/license'
 
 registerTldrawLibraryVersion(
 	(globalThis as any).TLDRAW_LIBRARY_NAME,

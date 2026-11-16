@@ -9,10 +9,12 @@
 	"homepage": "https://tldraw.dev",
 	"license": "SEE LICENSE IN LICENSE.md",
 	"tldraw_product": {
-		"stableId": "tldraw:sdk-core",
-		"name": "SDK",
-		"type": "product",
-		"premium": false
+		"stableId": "tldraw:command-palette",
+		"name": "Command palette",
+		"type": "feature",
+		"parent": "tldraw:sdk-core",
+		"premium": true,
+		"licenseFlag": "FEAT_COMMAND_PALETTE"
 	},
 	"repository": {
 		"type": "git",

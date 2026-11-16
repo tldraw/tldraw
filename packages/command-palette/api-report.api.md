@@ -137,6 +137,9 @@ export interface TLUiDefaultCommandPaletteProps extends TLUiCommandPaletteProps 
 }
 
 // @public
+export function useCommandPaletteEnabled(): boolean;
+
+// @public
 export function useCommandPaletteQuery(): string;
 
 // (No @packageDocumentation comment for this package)

@@ -18,5 +18,9 @@ export default function App() {
 open. `commandPaletteOverrides` adds the `open-command-palette` action, bound to Cmd/Ctrl+K. Wrap
 `CommandPalette` to pass `position`, `suggestions`, `actionGroups` or your own items as children.
 
+The command palette is a licensed feature. It runs in development without a key; in production it
+needs a tldraw license that includes the command palette, or `CommandPalette` renders nothing and
+Cmd/Ctrl+K does nothing. See [License key](https://tldraw.dev/sdk-features/license-key).
+
 See the [UI components docs](https://tldraw.dev/sdk-features/ui-components#Command-palette) and the
 [command palette example](https://tldraw.dev/examples/ui/command-palette).

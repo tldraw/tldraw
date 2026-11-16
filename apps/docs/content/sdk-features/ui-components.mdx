@@ -218,6 +218,15 @@ export default function App() {
 }
 ```
 
+The command palette is a licensed feature. It runs in development without a key. In production it needs a tldraw license that includes the command palette; pass it as `licenseKey`. `useCommandPaletteEnabled()` tells you whether it's licensed, so you can gate your own palette UI the same way.
+
+<Callout type="warning">
+	Without a license key that includes the command palette, `CommandPalette` and
+	`CommandPaletteMenuItem` render nothing and Cmd/Ctrl+K does nothing in production. The feature is
+	fully enabled in development, so a missing key shows up as a missing palette after you deploy. See
+	[License key](/sdk-features/license-key).
+</Callout>
+
 `commandPaletteOverrides` adds the `open-command-palette` action, which Cmd/Ctrl+K runs. If you have other overrides, pass an array: `overrides={[commandPaletteOverrides, myOverrides]}`. To bind another chord, override `actions['open-command-palette'].kbd`. To open the palette from a menu, place `CommandPaletteMenuItem`, for example in the main menu:
 
 ```tsx

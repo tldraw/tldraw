@@ -155,6 +155,15 @@ async function main() {
 			),
 		},
 		{
+			name: 'License with Command palette feature',
+			info: createLicenseInfo(
+				'test-feat-command-palette',
+				['localhost'],
+				FLAGS.ANNUAL_LICENSE | FLAGS.FEAT_COMMAND_PALETTE,
+				getDateOffset(60) // 2 months future
+			),
+		},
+		{
 			name: 'License with Collaboration Feature (grants commenting)',
 			info: createLicenseInfo(
 				'test-feat-collaboration',

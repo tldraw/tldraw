@@ -12,6 +12,7 @@ The taxonomy has exactly two levels, matching the order form's "Product in Scope
 ```
 [ ] SDK
       [ ] Sync, Driver, Mermaid, Create tldraw CLI   (included, not separately licensed)
+      [ ] Command palette
 [ ] Collaboration module
       [ ] Commenting
 ```
@@ -65,19 +66,21 @@ Reference components by stable id, for example: "SDK (`tldraw:sdk-core`) and the
 
 Run `pnpm product-manifest` for the authoritative list. As of the introduction of this convention:
 
-| Stable id              | Name                 | Parent                 | Premium                    | Packages                                                                                                                                                                         |
-| ---------------------- | -------------------- | ---------------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `tldraw:sdk-core`      | SDK                  | —                      | no                         | `tldraw`, `@tldraw/tldraw`, `@tldraw/editor`, `@tldraw/assets`, `@tldraw/state`, `@tldraw/state-react`, `@tldraw/store`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate` |
-| `tldraw:sync`          | Sync                 | `tldraw:sdk-core`      | no                         | `@tldraw/sync`, `@tldraw/sync-core`                                                                                                                                              |
-| `tldraw:driver`        | Driver               | `tldraw:sdk-core`      | no                         | `@tldraw/driver`                                                                                                                                                                 |
-| `tldraw:mermaid`       | Mermaid              | `tldraw:sdk-core`      | no                         | `@tldraw/mermaid`                                                                                                                                                                |
-| `tldraw:create-tldraw` | Create tldraw CLI    | `tldraw:sdk-core`      | no                         | `create-tldraw`                                                                                                                                                                  |
-| `tldraw:collaboration` | Collaboration module | —                      | yes (`FEAT_COLLABORATION`) | `@tldraw/collaboration`                                                                                                                                                          |
-| `tldraw:commenting`    | Commenting           | `tldraw:collaboration` | yes (`FEAT_COMMENTING`)    | `@tldraw/commenting`, `@tldraw/mentions`, `@tldraw/sync-collaboration`                                                                                                           |
+| Stable id                | Name                 | Parent                 | Premium                      | Packages                                                                                                                                                                         |
+| ------------------------ | -------------------- | ---------------------- | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `tldraw:sdk-core`        | SDK                  | —                      | no                           | `tldraw`, `@tldraw/tldraw`, `@tldraw/editor`, `@tldraw/assets`, `@tldraw/state`, `@tldraw/state-react`, `@tldraw/store`, `@tldraw/tlschema`, `@tldraw/utils`, `@tldraw/validate` |
+| `tldraw:sync`            | Sync                 | `tldraw:sdk-core`      | no                           | `@tldraw/sync`, `@tldraw/sync-core`                                                                                                                                              |
+| `tldraw:driver`          | Driver               | `tldraw:sdk-core`      | no                           | `@tldraw/driver`                                                                                                                                                                 |
+| `tldraw:mermaid`         | Mermaid              | `tldraw:sdk-core`      | no                           | `@tldraw/mermaid`                                                                                                                                                                |
+| `tldraw:create-tldraw`   | Create tldraw CLI    | `tldraw:sdk-core`      | no                           | `create-tldraw`                                                                                                                                                                  |
+| `tldraw:command-palette` | Command palette      | `tldraw:sdk-core`      | yes (`FEAT_COMMAND_PALETTE`) | `@tldraw/command-palette`                                                                                                                                                        |
+| `tldraw:collaboration`   | Collaboration module | —                      | yes (`FEAT_COLLABORATION`)   | `@tldraw/collaboration`                                                                                                                                                          |
+| `tldraw:commenting`      | Commenting           | `tldraw:collaboration` | yes (`FEAT_COMMENTING`)      | `@tldraw/commenting`, `@tldraw/mentions`, `@tldraw/sync-collaboration`                                                                                                           |
 
 Entitlement flows down the tree:
 
 - `FEAT_COLLABORATION` — the umbrella flag; grants the whole Collaboration module.
 - `FEAT_COMMENTING` — grants commenting.
+- `FEAT_COMMAND_PALETTE` — grants the command palette. It's a premium feature of the SDK, so neither the SDK nor `FEAT_COLLABORATION` grants it.
 
 `@tldraw/mentions` implements commenting today because `@tldraw/commenting` depends on it, so every customer entitled to commenting is entitled to mentions. If mentions later becomes usable on its own — in shape rich text, say — it will need its own component and license flag at that point.

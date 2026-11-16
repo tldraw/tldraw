@@ -277,3 +277,50 @@ describe('customizing the command palette', () => {
 		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 })
+
+describe('licensing', () => {
+	// Tests run as development, where every feature is licensed, so these switch the flag off.
+	function setLicensed(editor: Editor, commandPalette: boolean) {
+		act(() => editor.licenseManager!.featureFlags.update((flags) => ({ ...flags, commandPalette })))
+	}
+
+	it('opens while licensed', async () => {
+		const { editor, rendered } = await setup()
+		expect(editor.licenseManager!.isFeatureEnabled('commandPalette')).toBe(true)
+		pressCmdK(editor)
+		await rendered.findByTestId('command-palette')
+	})
+
+	it('renders nothing and leaves the open action unavailable while unlicensed', async () => {
+		const onUiEvent = vi.fn()
+		const { editor, rendered } = await setup({ onUiEvent })
+		setLicensed(editor, false)
+		pressCmdK(editor)
+		expect(rendered.queryByTestId('command-palette')).toBeNull()
+		expect(commandPaletteOpen.get(editor)).toBe(false)
+		expect(onUiEvent).not.toHaveBeenCalledWith('open-command-palette', expect.anything())
+		expectUndoShortcutWorks(editor)
+	})
+
+	it('closes an open palette when the license turns off', async () => {
+		const { editor, rendered } = await setup()
+		pressCmdK(editor)
+		await rendered.findByTestId('command-palette')
+		setLicensed(editor, false)
+		expect(rendered.queryByTestId('command-palette')).toBeNull()
+		expect(commandPaletteOpen.get(editor)).toBe(false)
+	})
+
+	it('hides its menu entry while unlicensed', async () => {
+		const { editor, rendered } = await setup({
+			children: (
+				<TldrawUiMenuContextProvider type="keyboard-shortcuts" sourceId="kbd">
+					<CommandPaletteMenuItem />
+				</TldrawUiMenuContextProvider>
+			),
+		})
+		expect(rendered.getByTestId('kbd.open-command-palette')).toBeTruthy()
+		setLicensed(editor, false)
+		expect(rendered.queryByTestId('kbd.open-command-palette')).toBeNull()
+	})
+})
