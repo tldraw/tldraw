@@ -1,0 +1,65 @@
+{
+	"name": "@tldraw/command-palette",
+	"description": "A Cmd/Ctrl+K command palette for tldraw.",
+	"version": "5.6.1",
+	"author": {
+		"name": "tldraw Inc.",
+		"email": "hello@tldraw.com"
+	},
+	"homepage": "https://tldraw.dev",
+	"license": "SEE LICENSE IN LICENSE.md",
+	"tldraw_product": {
+		"stableId": "tldraw:sdk-core",
+		"name": "SDK",
+		"type": "product",
+		"premium": false
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/tldraw/tldraw"
+	},
+	"bugs": {
+		"url": "https://github.com/tldraw/tldraw/issues"
+	},
+	"main": "./src/index.ts",
+	"types": "./.tsbuild/index.d.ts",
+	"style": "./command-palette.css",
+	"type": "module",
+	"files": [
+		"command-palette.css"
+	],
+	"scripts": {
+		"test-ci": "pnpm exec vitest run --passWithNoTests",
+		"test": "pnpm exec vitest --passWithNoTests",
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build": "pnpm exec tsx ../../internal/scripts/build-package.ts",
+		"build-api": "pnpm exec tsx ../../internal/scripts/build-api.ts",
+		"prepack": "pnpm exec tsx ../../internal/scripts/prepack.ts",
+		"postpack": "../../internal/scripts/postpack.sh",
+		"pack-tarball": "pnpm pack",
+		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
+		"build-types": "tsc --build"
+	},
+	"devDependencies": {
+		"@peculiar/webcrypto": "^1.5.0",
+		"@testing-library/dom": "^10.0.0",
+		"@testing-library/react": "^16.0.0",
+		"@types/react": "^19.2.7",
+		"@types/react-dom": "^19.2.3",
+		"fake-indexeddb": "^4.0.2",
+		"react": "^19.2.1",
+		"react-dom": "^19.2.1",
+		"resize-observer-polyfill": "^1.5.1",
+		"vitest": "^5.0.0"
+	},
+	"peerDependencies": {
+		"react": "^18.2.0 || ^19.2.1",
+		"react-dom": "^18.2.0 || ^19.2.1"
+	},
+	"engines": {
+		"node": ">=22.12.0"
+	},
+	"dependencies": {
+		"tldraw": "workspace:*"
+	}
+}
