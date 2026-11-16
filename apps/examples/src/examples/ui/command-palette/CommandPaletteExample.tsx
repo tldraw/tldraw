@@ -76,9 +76,9 @@ export default function CommandPaletteExample() {
 
 /*
 [1]
-Actions are listed in the palette on their own. The palette hides disabled actions, so "Make red"
-only shows up while something is selected. Left alone, it would land in the catch-all at the end
-of the default content. `commandPalette: { group }` lists it in the `CommandPaletteActionGroup`
+Actions are listed in the palette on their own. "Make red" is disabled with nothing selected:
+browsing leaves it out then, and search lists it greyed out. Left alone, it would land in the
+catch-all at the end of the default content. `commandPalette: { group }` lists it in the `CommandPaletteActionGroup`
 with that group below instead, and `commandPalette: false` leaves it out of the palette.
 
 [2]
@@ -86,8 +86,8 @@ Wrap `DefaultCommandPalette` and keep `DefaultCommandPaletteContent` to add comm
 rebuilding the palette. Items are the same `TldrawUiMenu*` components the other menus use.
 Forward the slot's props so the palette keeps anything tldraw passes to the slot.
 
-`position` sets where the palette opens: `'center'`, the default, `'top'`, or `'bottom'`, just
-above the toolbar.
+`position` sets where the palette opens: `'bottom'`, the default, just above the toolbar,
+`'center'`, or `'top'`.
 
 [3]
 A submenu is one row you open to see its items. Its items still show up when you search, so
