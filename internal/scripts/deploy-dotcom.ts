@@ -913,7 +913,9 @@ async function deployZeroViaFlyIoMultiNode() {
 	}
 
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
-	const backupPath = previewId ?? env.TLDRAW_ENV
+	// RMv2 puts each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
+	// replaces the env folder and the backup lands at the bucket root.
+	const backupPath = `${previewId ?? env.TLDRAW_ENV}${zeroRmv2 ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
