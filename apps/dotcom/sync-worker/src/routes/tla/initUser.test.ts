@@ -54,9 +54,11 @@ function makeEnv(rateLimited = false) {
 	return { RATE_LIMITER: { limit: async () => ({ success: !rateLimited }) } } as any
 }
 
-const clerkUser = (email?: string) => ({
+const clerkUser = (email?: string, image?: { hasImage: boolean; imageUrl: string }) => ({
 	fullName: 'Someone',
-	imageUrl: '',
+	hasImage: false,
+	imageUrl: 'https://img.clerk.com/default',
+	...image,
 	primaryEmailAddress: email ? { emailAddress: email } : null,
 	emailAddresses: email ? [{ emailAddress: email }] : [],
 })
@@ -84,6 +86,19 @@ describe('ensureUser', () => {
 			email: 'someone@tldraw.com',
 		})
 		expect(inserted.map((i) => i.table)).toEqual(['user', 'group', 'group_user'])
+	})
+
+	it("keeps the user's own image as their avatar, but not Clerk's generated one", async () => {
+		getUser.mockResolvedValue(clerkUser('someone@tldraw.com'))
+		const generated = makeDb()
+		await ensureUser(makeEnv(), generated.db, 'user-1')
+		expect(generated.inserted[0].row.avatar).toBe('')
+
+		const imageUrl = 'https://img.clerk.com/own'
+		getUser.mockResolvedValue(clerkUser('someone@tldraw.com', { hasImage: true, imageUrl }))
+		const own = makeDb()
+		await ensureUser(makeEnv(), own.db, 'user-1')
+		expect(own.inserted[0].row.avatar).toBe(imageUrl)
 	})
 
 	// A user row without its home group leaves the account with no workspace at all.

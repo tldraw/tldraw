@@ -145,7 +145,8 @@ export async function ensureUser(
 				id,
 				name: clerkUser.fullName ?? '',
 				email,
-				avatar: clerkUser.imageUrl,
+				// Clerk gives every user an imageUrl, a generated image when they haven't set one.
+				avatar: clerkUser.hasImage ? clerkUser.imageUrl : '',
 				color: '___INIT___',
 				exportFormat: 'png',
 				exportTheme: 'light',
