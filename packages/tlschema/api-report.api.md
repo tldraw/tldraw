@@ -74,17 +74,21 @@ export const AssetRecordType: RecordType<TLAsset<"bookmark" | "image" | "video">
 
 // @public
 export class b64Vecs {
-    static decodeFirstPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
-    static decodeFirstPoint2D(b64Points: string): null | VecModel;
-    static decodeLastPoint(b64Points: string, dim?: 2 | 3): null | VecModel;
-    static decodeLastPoint2D(b64Points: string): null | VecModel;
-    static decodePoints(base64: string, dim?: 2 | 3): VecModel[];
-    static decodePoints2D(base64: string): VecModel[];
+    static decodeFirstPoint(path: string, dim?: 2 | 3): null | VecModel;
+    static decodeFirstPoint2D(path: string): null | VecModel;
+    static decodeLastPoint(path: string, dim?: 2 | 3): null | VecModel;
+    static decodeLastPoint2D(path: string): null | VecModel;
+    static decodePoints(path: string, dim?: 2 | 3): VecModel[];
+    static decodePoints2D(path: string): VecModel[];
     static encodePoints(points: VecModel[], dim?: 2 | 3): string;
     static encodePoints2D(points: VecModel[]): string;
-    static isSinglePoint(b64Points: string, dim?: 2 | 3): boolean;
+    static isSinglePoint(path: string, dim?: 2 | 3): boolean;
     // @internal
     static _legacyDecodePoints(base64: string): VecModel[];
+    // @internal
+    static _legacyDeltaDecodePoints(base64: string, dim?: 2 | 3): VecModel[];
+    // @internal
+    static _legacyDeltaEncodePoints(points: VecModel[], dim?: 2 | 3): string;
     // @internal
     static _legacyEncodePoint(x: number, y: number, z: number): string;
     // @internal

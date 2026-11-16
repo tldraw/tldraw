@@ -134,7 +134,7 @@ editor.createShape({
 
 ### Draw
 
-The draw shape captures freehand strokes and straight line segments. It supports pressure-sensitive input from pens and styluses, automatic shape closing, angle snapping when holding Shift, and hybrid freehand/straight-line drawing modes. Points are stored in a delta-encoded base64 format; strokes from devices without pressure are stored as 2D (`dim: 2`) and pen strokes keep the pressure value.
+The draw shape captures freehand strokes and straight line segments. It supports pressure-sensitive input from pens and styluses, automatic shape closing, angle snapping when holding Shift, and hybrid freehand/straight-line drawing modes. Points are stored as a compact encoded string; strokes from devices without pressure are stored as 2D (`dim: 2`) and pen strokes keep the pressure value.
 
 For complete documentation on the draw shape and draw tool, including drawing modes, pen support, angle snapping, and programmatic creation, see the [Draw shape](/sdk-features/draw-shape) article.
 
