@@ -62,6 +62,7 @@ export function CommentsFilterMenu({
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
+							toggle
 							id="show-all-pages"
 							label={messages.commentsShowAllPages.id}
 							checked={!filters.onlyCurrentPage}
@@ -69,6 +70,7 @@ export function CommentsFilterMenu({
 						/>
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
+								toggle
 								id="only-my-comments"
 								label={messages.commentsOnlyMyComments.id}
 								checked={filters.onlyMine}
@@ -77,6 +79,7 @@ export function CommentsFilterMenu({
 						)}
 						{canFilterByUnread && (
 							<TldrawUiMenuCheckboxItem
+								toggle
 								id="only-unread"
 								label={messages.commentsOnlyUnread.id}
 								checked={filters.onlyUnread}
@@ -84,6 +87,7 @@ export function CommentsFilterMenu({
 							/>
 						)}
 						<TldrawUiMenuCheckboxItem
+							toggle
 							id="show-resolved"
 							label={messages.commentsShowResolved.id}
 							checked={filters.showResolved}
