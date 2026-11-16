@@ -528,7 +528,7 @@ binding = "BROWSER"
 #################### Render worker (private screenshot/measure worker) ####################
 # RPC to the private render worker (apps/dotcom/render-worker), reached only here — it has no routes.
 # The RenderWorker entrypoint exposes screenshot()/measure(). Bound on dev, staging and production;
-# preview's per-id name is injected by deploy-dotcom.ts. The call site is gated on
+# not on previews (they stay on the local render path). The call site is gated on
 # THUMBNAIL_RENDER_VIA_WORKER (types.ts): staging turns it on; production binds the worker but leaves
 # the flag unset (off), so the binding is wired yet nothing routes through it there until the flag
 # flips. deploy order: render-worker deploys before this worker (deploy-dotcom.ts dependsOn), or the

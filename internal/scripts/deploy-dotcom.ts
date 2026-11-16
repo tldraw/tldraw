@@ -207,7 +207,7 @@ const workerDeployments: WorkerDeployment[] = [
 		stepLabel: 'deploying multiplayer worker to cloudflare',
 		timingLabel: 'worker deploy: multiplayer',
 		// The render worker must exist first, since the sync worker binds it (RENDER_WORKER) on dev,
-		// staging, production and previews.
+		// staging and production. For previews deployRenderWorker is a no-op, so this still resolves.
 		dependsOn: ['render'],
 		run: deployTlsyncWorker,
 	},
@@ -585,20 +585,7 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 	if (previewId) {
 		const queueName = `tldraw-multiplayer-queue-${previewId}`
 		if (!didUpdateTlsyncWorker) {
-			await setWranglerPreviewConfig(
-				worker,
-				{
-					name: workerId,
-					// The sync worker binds the render worker (off by default behind
-					// THUMBNAIL_RENDER_VIA_WORKER; see thumbnailRender.ts). Preview render-worker names are
-					// per-id, so the binding target is injected here rather than fixed in wrangler.toml.
-					serviceBinding: {
-						binding: 'RENDER_WORKER',
-						service: `${previewId}-tldraw-render-worker`,
-					},
-				},
-				queueName
-			)
+			await setWranglerPreviewConfig(worker, { name: workerId }, queueName)
 			didUpdateTlsyncWorker = true
 		}
 		if (!dryRun) {
@@ -655,11 +642,6 @@ async function deployTlsyncWorker({ dryRun }: { dryRun: boolean }) {
 						// export until the trial is judged. Injected here because previews have no such block.
 						THUMBNAIL_RENDER_LIVE_CAPTURE: 'true',
 						THUMBNAIL_RENDER_PUSH: 'true',
-						// Previews route thumbnail and OG screenshots through the private render worker (the
-						// RENDER_WORKER binding injected above), so each preview exercises the worker path.
-						// Staging opts in through its own wrangler.toml vars block; production binds the
-						// worker but leaves this unset (off).
-						THUMBNAIL_RENDER_VIA_WORKER: 'true',
 						// Previews advertise and verify against their own public URL like every other
 						// deployed environment — the Host-derived fallback in getMcpResourceUrl is for
 						// local dev and tests only. Injected here because previews have no wrangler.toml
@@ -706,16 +688,16 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 	})
 }
 
-let didUpdateRenderWorker = false
 async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
-	// Deployed everywhere now, including production, so the sync worker's RENDER_WORKER binding
-	// resolves in every environment. The call site stays gated on THUMBNAIL_RENDER_VIA_WORKER, which
-	// production leaves unset (off), so a prod deploy ships the worker but routes nothing to it yet.
-	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-render-worker`
-	if (previewId && !didUpdateRenderWorker) {
-		await setWranglerPreviewConfig(renderWorker, { name: workerId })
-		didUpdateRenderWorker = true
+	// Deployed to dev, staging and production. Not to previews: they stay on the local render path (no
+	// RENDER_WORKER binding injected), so the worker is validated on staging rather than per-PR. The
+	// call site stays gated on THUMBNAIL_RENDER_VIA_WORKER, which production leaves unset (off), so a
+	// prod deploy ships the worker but routes nothing to it yet.
+	if (previewId) {
+		nicelog('skipping render-worker deploy for previews')
+		return
 	}
+	const workerId = `${env.TLDRAW_ENV}-tldraw-render-worker`
 	await wranglerDeploy({
 		location: renderWorker,
 		dryRun,
@@ -723,11 +705,6 @@ async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
 		vars: {
 			TLDRAW_ENV: env.TLDRAW_ENV,
 			WORKER_NAME: workerId,
-			// Previews render from their own client origin; staging sets RENDER_PAGE_ORIGIN in
-			// wrangler.toml. Mirrors the sync worker's MCP_SCREENSHOT_RENDER_ORIGIN.
-			...(previewId
-				? { RENDER_PAGE_ORIGIN: `https://${previewId}-preview-deploy.tldraw.com` }
-				: {}),
 		},
 	})
 }
