@@ -30,6 +30,7 @@ test.describe('command palette', () => {
 
 	test('stays open for canvas clicks with a selection, closes otherwise, and lets the camera move', async ({
 		page,
+		isMobile,
 	}) => {
 		await page.evaluate(() => {
 			editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
@@ -39,23 +40,45 @@ test.describe('command palette', () => {
 		const palette = page.getByTestId('command-palette')
 		const input = page.getByTestId('command-palette.input')
 		await expect(input).toBeFocused()
-		const [shapePoint, emptyPoint] = await page.evaluate(() =>
-			[editor.pageToScreen({ x: 150, y: 150 }), editor.pageToScreen({ x: 400, y: 150 })].map(
-				({ x, y }) => ({ x, y })
-			)
-		)
+		// The palette sits above the toolbar on desktop and at the top on touch devices, and a phone
+		// is narrow, so place the shape and the empty point in the canvas the palette and the UI
+		// leave visible: whichever band above or below the palette is taller.
+		const paletteBox = (await palette.boundingBox())!
+		const topUi = (await page.getByTestId('main-menu.button').boundingBox())!
+		const bottomUi = (await page.locator('.tlui-layout__bottom').boundingBox())!
+		const above = { top: topUi.y + topUi.height, bottom: paletteBox.y }
+		const below = { top: paletteBox.y + paletteBox.height, bottom: bottomUi.y }
+		const band = above.bottom - above.top > below.bottom - below.top ? above : below
+		expect(band.bottom - band.top).toBeGreaterThan(140)
+		const y = (band.top + band.bottom) / 2
+		const viewportWidth = page.viewportSize()!.width
+		const shapeScreen = { x: viewportWidth / 4, y }
+		const emptyPoint = { x: (viewportWidth * 3) / 4, y }
+		await page.evaluate((center) => {
+			const { x, y } = editor.screenToPage(center)
+			const [shape] = editor.getSelectedShapes()
+			editor.updateShape({ id: shape.id, type: 'geo', x: x - 50, y: y - 50 })
+		}, shapeScreen)
+		await expect(palette).toBeVisible()
+		// A mouse click would switch a touch device to a fine pointer, which moves the palette.
+		const click = (point: { x: number; y: number }) =>
+			isMobile ? page.touchscreen.tap(point.x, point.y) : page.mouse.click(point.x, point.y)
 		// Clicking a selected shape would start editing its label, which keeps focus.
-		await page.mouse.click(emptyPoint.x, emptyPoint.y)
+		await click(emptyPoint)
 		await expect(palette).toBeVisible()
 		await expect(input).toBeFocused()
 		const before = await page.evaluate(() => editor.getCamera().y)
-		await page.mouse.move(emptyPoint.x, emptyPoint.y)
-		await page.mouse.wheel(0, 100)
-		await expect.poll(() => page.evaluate(() => editor.getCamera().y)).not.toBe(before)
-		await expect(palette).toBeVisible()
-		await page.mouse.wheel(0, -100)
+		// Touch devices pan with a drag, not a wheel.
+		if (!isMobile) {
+			await page.mouse.move(emptyPoint.x, emptyPoint.y)
+			await page.mouse.wheel(0, 100)
+			await expect.poll(() => page.evaluate(() => editor.getCamera().y)).not.toBe(before)
+			await expect(palette).toBeVisible()
+			await page.mouse.wheel(0, -100)
+			await expect.poll(() => page.evaluate(() => editor.getCamera().y)).toBeCloseTo(before)
+		}
 		// That click on empty canvas cleared the selection, so the next canvas click closes it.
-		await page.mouse.click(shapePoint.x, shapePoint.y)
+		await click(shapeScreen)
 		await expect(palette).toBeHidden()
 		// The click still selected the shape under it.
 		expect(await page.evaluate(() => editor.getSelectedShapeIds().length)).toBe(1)
