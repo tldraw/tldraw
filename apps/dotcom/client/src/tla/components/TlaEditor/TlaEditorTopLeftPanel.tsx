@@ -318,10 +318,7 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				{/* Preferences and language live in the settings dialog for signed-in users. */}
-				<TldrawUiMenuGroup id="help">
-					<KeyboardShortcutsMenuItem />
-				</TldrawUiMenuGroup>
+				{/* Preferences, language and keyboard shortcuts live in the settings dialog for signed-in users. */}
 			</TlaFileMenu>
 		</>
 	)

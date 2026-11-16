@@ -13,6 +13,7 @@ import {
 	TLUserPreferences,
 	USER_COLORS,
 	useDialogs,
+	useTldrawUiComponents,
 	useTranslation,
 	useUiEvents,
 	useValue,
@@ -652,6 +653,10 @@ function AboutPanel() {
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
 	const openAndTrack = useOpenUrlAndTrack('dialog')
+	const trackUiEvent = useUiEvents()
+	const { KeyboardShortcutsDialog } = useTldrawUiComponents()
+	// The shortcuts dialog throws without an editor, and a file error page has none.
+	const hasEditor = useValue('has editor', () => !!globalEditor.get(), [])
 	const linkClassName = classNames(styles.link, 'tla-text_ui__medium')
 	const externalIcon = <TlaIcon icon="external" className={styles.linkIcon} />
 
@@ -668,6 +673,21 @@ function AboutPanel() {
 						{externalIcon}
 					</button>
 				</TlaMenuControl>
+				{KeyboardShortcutsDialog && hasEditor && (
+					<TlaMenuControl>
+						<button
+							className={linkClassName}
+							data-testid="tla-settings-keyboard-shortcuts"
+							onClick={() => {
+								trackUiEvent('open-kbd-shortcuts', { source: 'dialog' })
+								addDialog({ component: KeyboardShortcutsDialog })
+							}}
+						>
+							{msg('action.open-kbd-shortcuts')}
+							<TlaIcon icon="chevron-right" className={styles.linkIcon} />
+						</button>
+					</TlaMenuControl>
+				)}
 				<TlaMenuControl>
 					<button
 						className={linkClassName}
