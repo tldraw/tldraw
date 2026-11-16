@@ -9,15 +9,7 @@ import {
 } from '@tldraw/commenting'
 import { queries } from '@tldraw/dotcom-shared'
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import {
-	defineMessages,
-	F,
-	TLUiOverrides,
-	useDialogs,
-	useEditor,
-	useTranslation,
-	useValue,
-} from 'tldraw'
+import { defineMessages, F, useDialogs, useEditor, useTranslation, useValue } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { TldrawApp } from '../../app/TldrawApp'
 import { useMaybeApp } from '../../hooks/useAppState'
@@ -26,7 +18,8 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { latestForeignReactionAt } from '../TlaSidebar/components/commentNotifications'
-import { ResolveCommentAuthorContext } from './TlaAgentCommentSurfaces'
+import { editorMessages } from './editor-messages'
+import { ResolveCommentAuthorContext } from './resolveCommentAuthorContext'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 type FileVisitors = QueryResultType<typeof queries.fileVisitors>
@@ -270,34 +263,6 @@ function presenceAuthorsEqual(
 	return true
 }
 
-const signInMessages = defineMessages({
-	signInToComment: { defaultMessage: 'Sign in to comment' },
-})
-
-/** For signed-out viewers, the comment tool button and its `c` shortcut open the sign-in dialog
- *  instead of entering the tool. Compose after `commentToolOverrides`, which registers the tool. */
-export function useAnonCommentToolOverrides(): TLUiOverrides {
-	const msg = useTranslation()
-	const app = useMaybeApp()
-	const trackEvent = useTldrawAppUiEvents()
-	const ctaString = msg(signInMessages.signInToComment)
-	return useMemo(() => {
-		if (app) return {}
-		return {
-			tools(_editor, tools, { addDialog }) {
-				const comment = tools.comment
-				if (comment) {
-					comment.onSelect = () => {
-						trackEvent('sign-up-clicked', { source: 'comments', ctaMessage: ctaString })
-						addDialog({ component: TlaSignInDialog })
-					}
-				}
-				return tools
-			},
-		}
-	}, [app, trackEvent, ctaString])
-}
-
 /** Anon viewers read comments but don't compose — the toolkit's `ComposerFallback` slot holds
  *  this sign-in prompt (registered via `CommentTool.configure` in `TlaEditor`). */
 export function SignInToComment() {
@@ -317,12 +282,12 @@ export function SignInToComment() {
 			onClick={() => {
 				trackEvent('sign-up-clicked', {
 					source: 'comments',
-					ctaMessage: msg(signInMessages.signInToComment),
+					ctaMessage: msg(editorMessages.signInToComment),
 				})
 				addDialog({ component: TlaSignInDialog })
 			}}
 		>
-			<F {...signInMessages.signInToComment} />
+			<F {...editorMessages.signInToComment} />
 		</TlaCtaButton>
 	)
 }
