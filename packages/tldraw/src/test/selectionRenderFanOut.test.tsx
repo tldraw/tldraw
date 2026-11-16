@@ -29,7 +29,8 @@ class CountingNoteShapeUtil extends NoteShapeUtil {
 
 const ids = Array.from({ length: 6 }, (_, i) => createShapeId(`shape${i}`))
 const [a, b] = ids
-const [geoA, geoB] = [createShapeId('geoA'), createShapeId('geoB')]
+const geoA = createShapeId('geoA')
+const geoB = createShapeId('geoB')
 
 async function setup(type: 'text' | 'note') {
 	const { editor } = await renderTldrawComponentWithEditor(
