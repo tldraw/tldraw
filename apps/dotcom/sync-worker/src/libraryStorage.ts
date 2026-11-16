@@ -12,6 +12,25 @@ export function newLibraryItemContentKey() {
 
 export const MAX_LIBRARY_ITEM_CONTENT_BYTES = 5_000_000
 
+// What uniqueId() makes, which is how clients pick library and item ids.
+const CLIENT_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/
+
+/** Whether a value is an id a client could have picked for a new library or item. */
+export function isClientPickedId(value: unknown): value is string {
+	return typeof value === 'string' && CLIENT_ID_PATTERN.test(value)
+}
+
+/** Whether any of the ids is an item's. */
+export async function isAnyItemIdTaken(db: Kysely<DB>, ids: string[]) {
+	if (ids.length === 0) return false
+	const row = await db
+		.selectFrom('library_item')
+		.select('id')
+		.where('id', 'in', ids)
+		.executeTakeFirst()
+	return row !== undefined
+}
+
 // The mutators' getRole counts the home workspace as its owner's whether or not a group_user row
 // exists for it, so this does too.
 function resolveRole(owningGroupId: string, userId: string, role: Role | null | undefined) {

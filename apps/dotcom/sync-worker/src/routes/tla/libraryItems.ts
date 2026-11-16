@@ -4,11 +4,9 @@ import {
 	MAX_LIBRARY_NAME_LENGTH,
 	MAX_NUMBER_OF_LIBRARY_ITEMS,
 	TlaLibraryItemThumbnail,
-	type DB,
 	ZErrorCode,
 } from '@tldraw/dotcom-shared'
 import { IRequest } from 'itty-router'
-import { Kysely } from 'kysely'
 import { AssetToReplace } from '../../assetAssociation'
 import { LibraryItemObject, queueLibraryObjectDeletes } from '../../libraryEffects'
 import { copyItemAssets, planItemAssetCopies, StoredItemContent } from '../../libraryItemAssets'
@@ -16,6 +14,8 @@ import {
 	countLibraryItems,
 	getLibraryAccess,
 	getLibraryItemAccess,
+	isAnyItemIdTaken,
+	isClientPickedId,
 	limitReached,
 	MAX_LIBRARY_ITEM_CONTENT_BYTES,
 	newLibraryItemContentKey,
@@ -45,9 +45,6 @@ const notFound = () => Response.json({ error: 'Not found' }, { status: 404 })
 const badRequest = (error: string) => Response.json({ error }, { status: 400 })
 const conflict = () => Response.json({ error: 'The item id is taken' }, { status: 409 })
 
-// What uniqueId() makes, which is how clients pick item ids.
-const ITEM_ID_PATTERN = /^[A-Za-z0-9_-]{21}$/
-
 async function readText(value: FormDataEntryValue | null) {
 	if (value === null) return null
 	return typeof value === 'string' ? value : await value.text()
@@ -63,15 +60,6 @@ function readThumbnail(value: FormDataEntryValue | null): File | null | Response
 		return Response.json({ error: 'Thumbnail is too large' }, { status: 413 })
 	}
 	return value
-}
-
-async function isItemIdTaken(db: Kysely<DB>, id: string) {
-	const row = await db
-		.selectFrom('library_item')
-		.select('id')
-		.where('id', '=', id)
-		.executeTakeFirst()
-	return row !== undefined
 }
 
 function isItemContent(value: unknown): value is StoredItemContent {
@@ -113,7 +101,7 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 	const form = await request.formData().catch(() => null)
 	if (!form) return badRequest('Expected form data')
 	const id = await readText(form.get('id'))
-	if (id === null || !ITEM_ID_PATTERN.test(id)) return badRequest('A valid item id is required')
+	if (!isClientPickedId(id)) return badRequest('A valid item id is required')
 	const contentText = await readText(form.get('content'))
 	if (contentText === null) return badRequest('Content is required')
 	if (new TextEncoder().encode(contentText).byteLength > MAX_LIBRARY_ITEM_CONTENT_BYTES) {
@@ -147,7 +135,7 @@ export async function addLibraryItem(request: IRequest, env: Environment) {
 			return limitReached(ZErrorCode.max_library_items_reached)
 		}
 
-		if (await isItemIdTaken(db, id)) return conflict()
+		if (await isAnyItemIdTaken(db, [id])) return conflict()
 
 		const contentKey = newLibraryItemContentKey()
 		const assetCopies = planItemAssetCopies(env, content, id)
