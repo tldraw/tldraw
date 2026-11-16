@@ -635,9 +635,10 @@ export class CubicSpline2d extends Geometry2d {
 }
 
 // @internal
-export class CurrentPageShapeCache<T> {
-    constructor(editor: Editor, name: string, derive: (shape: TLShape) => T | undefined, isEqual: (a: T, b: T) => boolean);
-    get(): ReadonlyMap<TLShapeId, T>;
+export class CurrentPageBoundsCache {
+    constructor(editor: Editor, name: string,
+    getBounds: (shape: TLShape) => Box | undefined);
+    get(): ReadonlyMap<TLShapeId, Box>;
 }
 
 // @public

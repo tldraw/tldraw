@@ -172,7 +172,7 @@ import { InputsManager } from './managers/InputsManager/InputsManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
-import { CurrentPageShapeCache } from './managers/SpatialIndexManager/CurrentPageShapeCache'
+import { CurrentPageBoundsCache } from './managers/SpatialIndexManager/CurrentPageBoundsCache'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
@@ -407,11 +407,10 @@ export class Editor extends EventEmitter<TLEventMap> {
 		this._spatialIndex = new SpatialIndexManager(this)
 		this.disposables.add(() => this._spatialIndex.dispose())
 
-		this._currentPageMaskedBounds = new CurrentPageShapeCache(
+		this._currentPageMaskedBounds = new CurrentPageBoundsCache(
 			this,
 			'currentPageMaskedBounds',
-			(shape) => this.getShapeMaskedPageBounds(shape.id),
-			Box.Equals
+			(shape) => this.getShapeMaskedPageBounds(shape.id)
 		)
 
 		this.disposables.add(this.timers.dispose)
@@ -1153,7 +1152,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 */
 	private readonly _spatialIndex: SpatialIndexManager
 
-	private readonly _currentPageMaskedBounds: CurrentPageShapeCache<Box>
+	private readonly _currentPageMaskedBounds: CurrentPageBoundsCache
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -5872,6 +5871,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		let commonBounds: Box | undefined
 
 		for (const [shapeId, bounds] of this._currentPageMaskedBounds.get()) {
+			// Free unless `getShapeVisibility` is set; then it tracks every shape.
 			if (this.isShapeHidden(shapeId)) continue
 			if (!commonBounds) {
 				commonBounds = bounds.clone()

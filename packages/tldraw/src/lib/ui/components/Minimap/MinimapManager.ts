@@ -1,6 +1,6 @@
 import {
 	Box,
-	CurrentPageShapeCache,
+	CurrentPageBoundsCache,
 	Editor,
 	Vec,
 	atom,
@@ -21,7 +21,7 @@ export class MinimapManager {
 	}
 
 	private readonly ctx: CanvasRenderingContext2D
-	private readonly shapeRects: CurrentPageShapeCache<Box>
+	private readonly shapeRects: CurrentPageBoundsCache
 
 	constructor(
 		public editor: Editor,
@@ -31,17 +31,10 @@ export class MinimapManager {
 		const ctx = elem.getContext('2d')
 		if (!ctx) throw new Error('Minimap: could not get 2D canvas context')
 		this.ctx = ctx
-		// Maintained incrementally: a computed that read every shape's bounds would
-		// revalidate all of them on each store change, which is most of the minimap's
-		// cost on large pages.
-		this.shapeRects = new CurrentPageShapeCache<Box>(
-			editor,
-			'minimap shape rects',
-			(shape) =>
-				editor.getShapeUtil(shape).hideInMinimap?.(shape)
-					? undefined
-					: editor.getShapeMaskedPageBounds(shape.id),
-			Box.Equals
+		this.shapeRects = new CurrentPageBoundsCache(editor, 'minimap shape rects', (shape) =>
+			editor.getShapeUtil(shape).hideInMinimap?.(shape)
+				? undefined
+				: editor.getShapeMaskedPageBounds(shape.id)
 		)
 		this.colors = this._getColors()
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))

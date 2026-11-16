@@ -1,16 +1,17 @@
 import {
 	Box,
-	CurrentPageShapeCache,
+	CurrentPageBoundsCache,
 	PageRecordType,
 	TLShape,
 	TLShapeId,
+	atom,
 	createShapeId,
 	react,
 } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
-let cache: CurrentPageShapeCache<Box>
+let cache: CurrentPageBoundsCache
 let stop: () => void
 let invalidations: number
 
@@ -19,7 +20,6 @@ const ids = {
 	frame: createShapeId('frame'),
 	child: createShapeId('child'),
 	arrow: createShapeId('arrow'),
-	hidden: createShapeId('hidden'),
 }
 
 // What a computed that reads every shape would produce.
@@ -35,8 +35,9 @@ function expected() {
 
 function expectCacheToMatch() {
 	const actual = new Map(cache.get())
-	expect(new Set(actual.keys())).toEqual(new Set(expected().keys()))
-	for (const [id, bounds] of expected()) {
+	const want = expected()
+	expect(new Set(actual.keys())).toEqual(new Set(want.keys()))
+	for (const [id, bounds] of want) {
 		expect(actual.get(id)!.toJson()).toEqual(bounds.toJson())
 	}
 }
@@ -49,11 +50,8 @@ beforeEach(() => {
 		// Half way out of the frame, so its masked bounds are clipped.
 		{ id: ids.child, type: 'geo', parentId: ids.frame, x: 150, y: 50, props: { w: 100, h: 100 } },
 	])
-	cache = new CurrentPageShapeCache<Box>(
-		editor,
-		'test cache',
-		(shape: TLShape) => (shape.meta.skip ? undefined : editor.getShapeMaskedPageBounds(shape.id)),
-		Box.Equals
+	cache = new CurrentPageBoundsCache(editor, 'test cache', (shape: TLShape) =>
+		shape.meta.skip ? undefined : editor.getShapeMaskedPageBounds(shape.id)
 	)
 	invalidations = -1
 	stop = react('count invalidations', () => {
@@ -67,7 +65,7 @@ afterEach(() => {
 	editor.dispose()
 })
 
-describe('CurrentPageShapeCache', () => {
+describe('CurrentPageBoundsCache', () => {
 	it('starts with every shape on the page', () => {
 		expect(cache.get().size).toBe(3)
 		expect(cache.get().get(ids.child)!.toJson()).toEqual({ x: 350, y: 50, w: 50, h: 100 })
@@ -92,6 +90,39 @@ describe('CurrentPageShapeCache', () => {
 	it('follows a child when its parent moves', () => {
 		editor.updateShape({ id: ids.frame, type: 'frame', x: 1000, y: 1000 })
 		expect(cache.get().get(ids.child)!.toJson()).toEqual({ x: 1150, y: 1050, w: 50, h: 100 })
+		expectCacheToMatch()
+		expect(invalidations).toBe(1)
+	})
+
+	it('drops the children of a deleted frame', () => {
+		editor.deleteShapes([ids.frame])
+		expect([...cache.get().keys()]).toEqual([ids.box])
+	})
+
+	it('drops a shape that leaves the current page without a page change', () => {
+		const pageId = PageRecordType.createId('other')
+		editor.createPage({ id: pageId, name: 'Other' })
+		editor.store.put([{ ...editor.getShape(ids.frame)!, parentId: pageId }])
+		expect([...cache.get().keys()]).toEqual([ids.box])
+	})
+
+	it('keeps a shape that is removed and added again before the next read', () => {
+		const box = editor.getShape(ids.box)!
+		editor.run(() => {
+			editor.store.remove([ids.box])
+			editor.store.put([{ ...box, x: 700 }])
+		})
+		expect(cache.get().get(ids.box)!.x).toBe(700)
+		expectCacheToMatch()
+	})
+
+	it('rebuilds when the theme resizes shapes', () => {
+		const text = createShapeId('text')
+		editor.createShape({ id: text, type: 'text', x: 0, y: 500, props: { autoSize: true } })
+		const before = cache.get().get(text)!.clone()
+
+		editor.updateTheme({ ...editor.getTheme('default')!, fontSize: 64 })
+		expect(cache.get().get(text)!.h).toBeGreaterThan(before.h)
 		expectCacheToMatch()
 	})
 
@@ -164,8 +195,8 @@ describe('CurrentPageShapeCache', () => {
 
 	it('does not invalidate dependents when no value changed', () => {
 		editor.updateShape({ id: ids.box, type: 'geo', props: { color: 'red' } })
-		editor.select(ids.box)
-		editor.setCamera({ x: 100, y: 100, z: 2 })
+		// Still clipped to the same sliver of the frame.
+		editor.updateShape({ id: ids.child, type: 'geo', props: { w: 300 } })
 		expect(invalidations).toBe(0)
 	})
 })
@@ -185,5 +216,22 @@ describe('editor.getCurrentPageBounds', () => {
 
 		editor.deleteShapes([ids.box])
 		expect(editor.getCurrentPageBounds()).toBeUndefined()
+	})
+
+	it('leaves out hidden shapes, and follows visibility that changes without a shape change', () => {
+		const hideFrames = atom('hide frames', true)
+		editor.dispose()
+		editor = new TestEditor({
+			getShapeVisibility: (shape) =>
+				shape.type === 'frame' && hideFrames.get() ? 'hidden' : 'inherit',
+		})
+		editor.createShapes([
+			{ id: ids.box, type: 'geo', x: 0, y: 0, props: { w: 100, h: 100 } },
+			{ id: ids.frame, type: 'frame', x: 200, y: 0, props: { w: 200, h: 200 } },
+		])
+		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: 0, y: 0, w: 100, h: 100 })
+
+		hideFrames.set(false)
+		expect(editor.getCurrentPageBounds()!.toJson()).toEqual({ x: 0, y: 0, w: 400, h: 200 })
 	})
 })

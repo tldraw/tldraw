@@ -12,10 +12,12 @@ import type { Editor } from '../../Editor'
  * every shape on the page.
  *
  * Known limitation: a custom shape whose geometry reads other shapes outside the parent/child
- * and binding relationships is not included when those shapes change. Core shapes only depend
- * on other shapes via bindings (arrows) and parent/child relationships (groups, frames).
+ * and binding relationships, or reads other state, is not included when those change. Core
+ * shapes only depend on other shapes via bindings (arrows) and parent/child relationships
+ * (groups, frames).
  *
- * Reads from the editor without capturing, so call it inside `unsafe__withoutCapture`.
+ * Its reads would capture a dependency per visited shape, so call it inside
+ * `unsafe__withoutCapture`.
  *
  * @returns `dirty`: existing or just-added shapes to recheck. `removed`: shapes that a diff
  * removed; one may also be in `dirty` if a later diff re-added it.

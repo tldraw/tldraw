@@ -5,37 +5,37 @@ import {
 	isUninitialized,
 	unsafe__withoutCapture,
 } from '@tldraw/state'
-import { TLPageId, TLShape, TLShapeId, isShape } from '@tldraw/tlschema'
+import { TLPageId, TLShape, TLShapeId, TLTheme, isShape } from '@tldraw/tlschema'
+import { Box } from '../../../primitives/Box'
 import type { Editor } from '../../Editor'
 import { getShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
 
 /**
- * An incrementally maintained map of a bounds-derived value for every shape on the current page.
+ * An incrementally maintained map of page-space bounds for the shapes on the current page.
  *
  * A computed that reads per-shape bounds for the whole page has to revalidate every shape's
  * bounds on every store change, which costs milliseconds per change on large pages. This instead
- * rederives only the shapes that a change could have affected (see
- * `getShapesWithDirtyBounds`, which also describes what it can miss), plus a full rebuild
- * on page change and font load.
+ * recomputes only the shapes that a change could have affected (see `getShapesWithDirtyBounds`),
+ * and rebuilds on page, theme and font changes.
  *
- * `derive` runs without capturing, so it is only re-run for a shape when that shape is dirty:
- * it should depend on nothing but the shape's record and its page-space bounds or mask.
+ * The price is reactivity: `getBounds` runs without capturing, so a shape's entry is only
+ * refreshed when that shape is dirty. Bounds that depend on anything other than the shape's
+ * record, its ancestors, its bindings, the theme or its fonts go stale until the shape changes.
  *
  * @internal
  */
-export class CurrentPageShapeCache<T> {
-	private readonly values = new Map<TLShapeId, T>()
+export class CurrentPageBoundsCache {
+	private readonly bounds = new Map<TLShapeId, Box>()
 	private readonly epoch: Computed<number>
 	private lastPageId: TLPageId | null = null
+	private lastTheme: TLTheme | null = null
 	private lastFontLoadEpoch = -1
 
 	constructor(
 		private readonly editor: Editor,
 		name: string,
-		/** Get the value for a shape. Return undefined to leave the shape out. */
-		private readonly derive: (shape: TLShape) => T | undefined,
-		/** Dependents are only invalidated when some shape's value stops being equal. */
-		private readonly isEqual: (a: T, b: T) => boolean
+		/** Get the page-space bounds for a shape. Return undefined to leave the shape out. */
+		private readonly getBounds: (shape: TLShape) => Box | undefined
 	) {
 		const shapeHistory = editor.store.query.filterHistory('shape')
 		const bindingHistory = editor.store.query.filterHistory('binding')
@@ -44,6 +44,7 @@ export class CurrentPageShapeCache<T> {
 			const shapeDiff = shapeHistory.getDiffSince(lastComputedEpoch)
 			const bindingDiff = bindingHistory.getDiffSince(lastComputedEpoch)
 			const currentPageId = editor.getCurrentPageId()
+			const theme = editor.getCurrentTheme()
 			const fontLoadEpoch = editor.fonts.getFontLoadEpoch()
 
 			if (
@@ -51,9 +52,13 @@ export class CurrentPageShapeCache<T> {
 				shapeDiff === RESET_VALUE ||
 				bindingDiff === RESET_VALUE ||
 				this.lastPageId !== currentPageId ||
+				// Which shapes a theme change or font load resizes isn't known without
+				// visiting every shape; both are rare.
+				this.lastTheme !== theme ||
 				this.lastFontLoadEpoch !== fontLoadEpoch
 			) {
 				this.lastPageId = currentPageId
+				this.lastTheme = theme
 				this.lastFontLoadEpoch = fontLoadEpoch
 				unsafe__withoutCapture(() => this.rebuild())
 				return isUninitialized(prevEpoch) ? 0 : prevEpoch + 1
@@ -70,42 +75,42 @@ export class CurrentPageShapeCache<T> {
 	}
 
 	/**
-	 * The cached values by shape id, in no particular order. Reactive: reading it inside a
-	 * computed or reaction subscribes to changes. The map is updated in place, so don't hold on
-	 * to it or compare it by identity.
+	 * The bounds by shape id, in no particular order. Reactive: reading it inside a computed or
+	 * reaction subscribes to changes. The map is updated in place, so don't hold on to it or
+	 * compare it by identity.
 	 */
-	get(): ReadonlyMap<TLShapeId, T> {
+	get(): ReadonlyMap<TLShapeId, Box> {
 		this.epoch.get()
-		return this.values
+		return this.bounds
 	}
 
 	private rebuild() {
-		this.values.clear()
+		this.bounds.clear()
 		for (const shape of this.editor.getCurrentPageShapes()) {
-			const value = this.derive(shape)
-			if (value !== undefined) this.values.set(shape.id, value)
+			const bounds = this.getBounds(shape)
+			if (bounds) this.bounds.set(shape.id, bounds)
 		}
 	}
 
 	private update(dirty: Set<TLShapeId>, removed: Set<TLShapeId>) {
-		const { values } = this
 		let didChange = false
 
 		for (const id of removed) {
-			if (values.delete(id)) didChange = true
+			if (this.bounds.delete(id)) didChange = true
 		}
 
 		for (const id of dirty) {
 			const shape = this.editor.store.unsafeGetWithoutCapture(id)
-			const value =
+			const bounds =
 				shape && isShape(shape) && this.editor.getAncestorPageId(shape) === this.lastPageId
-					? this.derive(shape)
+					? this.getBounds(shape)
 					: undefined
+			const prev = this.bounds.get(id)
 
-			if (value === undefined) {
-				if (values.delete(id)) didChange = true
-			} else if (!values.has(id) || !this.isEqual(values.get(id)!, value)) {
-				values.set(id, value)
+			if (!bounds) {
+				if (this.bounds.delete(id)) didChange = true
+			} else if (!prev || !Box.Equals(prev, bounds)) {
+				this.bounds.set(id, bounds)
 				didChange = true
 			}
 		}
