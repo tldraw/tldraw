@@ -7,6 +7,7 @@ import {
 	TLUiOverrides,
 	VecLike,
 	defineMessages,
+	react,
 } from 'tldraw'
 import { type CommentingOptions, defaultCommentingOptions, getCommentingOptions } from './options'
 import { commentsSidebarOpen, pendingComment, regionDraft } from './state'
@@ -163,9 +164,16 @@ function updateAnchorHint(editor: Editor) {
 class CommentIdle extends StateNode {
 	static override id = 'idle'
 
+	private disposeCursorReactor?: () => void
+
 	override onEnter() {
-		// Back to hovering: restore the pin cursor (a prior placing state may have hidden it).
-		this.editor.setCursor({ type: 'comment', rotation: 0 })
+		// With a composer open the next press cancels the placement instead of placing another
+		// comment (#11328), so show the plain pointer then. Reactive because `startCommentAt` sets
+		// the pending comment after the tool has already entered idle.
+		this.disposeCursorReactor = react('comment idle cursor', () => {
+			const type = pendingComment.get(this.editor) ? 'default' : 'comment'
+			this.editor.setCursor({ type, rotation: 0 })
+		})
 		// With a region composer open, a shape outline under its pin corner would imply a shape
 		// anchor the region will never use — and it would stick, since moves over the composer
 		// never reach the canvas. Point placements keep the hint: it previews the next click.
@@ -174,6 +182,11 @@ class CommentIdle extends StateNode {
 		} else {
 			updateAnchorHint(this.editor)
 		}
+	}
+
+	override onExit() {
+		this.disposeCursorReactor?.()
+		this.disposeCursorReactor = undefined
 	}
 
 	override onPointerMove() {
