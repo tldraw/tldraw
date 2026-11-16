@@ -1,8 +1,7 @@
 import {
 	Box,
-	ComputedCache,
+	CurrentPageShapeCache,
 	Editor,
-	TLShape,
 	Vec,
 	atom,
 	bind,
@@ -22,7 +21,7 @@ export class MinimapManager {
 	}
 
 	private readonly ctx: CanvasRenderingContext2D
-	private readonly shapeRectCache: ComputedCache<Box | null, TLShape>
+	private readonly shapeRects: CurrentPageShapeCache<Box>
 
 	constructor(
 		public editor: Editor,
@@ -32,17 +31,17 @@ export class MinimapManager {
 		const ctx = elem.getContext('2d')
 		if (!ctx) throw new Error('Minimap: could not get 2D canvas context')
 		this.ctx = ctx
-		// Per-shape minimap rect cache. Each entry re-derives only when the
-		// underlying shape record (or its masked page bounds) changes, so a
-		// single shape edit invalidates one entry instead of the whole render.
-		// `null` means "do not draw this shape" (hideInMinimap or no bounds).
-		this.shapeRectCache = editor.store.createComputedCache<Box | null, TLShape>(
-			'minimap-shape-rect',
-			(shape) => {
-				const util = editor.getShapeUtil(shape.type)
-				if (util.hideInMinimap?.(shape)) return null
-				return editor.getShapeMaskedPageBounds(shape.id) ?? null
-			}
+		// Maintained incrementally: a computed that read every shape's bounds would
+		// revalidate all of them on each store change, which is most of the minimap's
+		// cost on large pages.
+		this.shapeRects = new CurrentPageShapeCache<Box>(
+			editor,
+			'minimap shape rects',
+			(shape) =>
+				editor.getShapeUtil(shape).hideInMinimap?.(shape)
+					? undefined
+					: editor.getShapeMaskedPageBounds(shape.id),
+			Box.Equals
 		)
 		this.colors = this._getColors()
 		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
@@ -194,21 +193,16 @@ export class MinimapManager {
 	}
 
 	// Shape geometry in page space, split into unselected/selected fills. Built
-	// from the per-shape rect cache and selection only, so it survives pan/zoom of
-	// the main canvas — those move the `ctx` transform, not the paths themselves.
+	// from the shape rects and selection only, so it survives pan/zoom of the
+	// main canvas — those move the `ctx` transform, not the paths themselves.
 	@computed
 	private getShapePaths() {
-		const { editor } = this
-		const selectedIds = new Set<string>(editor.getSelectedShapeIds())
-		const ids = editor.getCurrentPageShapeIdsSorted()
+		const selectedIds = new Set(this.editor.getSelectedShapeIds())
 
 		const shapes = new Path2D()
 		const selected = new Path2D()
 
-		for (let i = 0, len = ids.length; i < len; i++) {
-			const shapeId = ids[i]
-			const bounds = this.shapeRectCache.get(shapeId)
-			if (!bounds) continue
+		for (const [shapeId, bounds] of this.shapeRects.get()) {
 			const target = selectedIds.has(shapeId) ? selected : shapes
 			target.rect(bounds.x, bounds.y, bounds.w, bounds.h)
 		}

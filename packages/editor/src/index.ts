@@ -146,6 +146,7 @@ export {
 	type SnapData,
 	type SnapIndicator,
 } from './lib/editor/managers/SnapManager/SnapManager'
+export { CurrentPageShapeCache } from './lib/editor/managers/SpatialIndexManager/CurrentPageShapeCache'
 export { SpatialIndexManager } from './lib/editor/managers/SpatialIndexManager/SpatialIndexManager'
 export {
 	TextManager,

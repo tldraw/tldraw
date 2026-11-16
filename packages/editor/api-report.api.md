@@ -634,6 +634,12 @@ export class CubicSpline2d extends Geometry2d {
     get segments(): CubicBezier2d[];
 }
 
+// @internal
+export class CurrentPageShapeCache<T> {
+    constructor(editor: Editor, name: string, derive: (shape: TLShape) => T | undefined, isEqual: (a: T, b: T) => boolean);
+    get(): ReadonlyMap<TLShapeId, T>;
+}
+
 // @public
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
