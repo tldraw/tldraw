@@ -41,7 +41,7 @@ export interface LibrariesPanelProps {
 	prepareItemContent?: PrepareItemContent
 	/**
 	 * Whether each library's ⋯ menu offers putting it in the current user's toolbar, or taking it
-	 * out, for a host that shows those libraries in its toolbar. Defaults to `false`.
+	 * out, for a host that shows {@link LibrariesToolbarItems}. Defaults to `false`.
 	 */
 	canPutInToolbar?: boolean
 }

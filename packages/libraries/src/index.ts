@@ -4,6 +4,10 @@ export {
 } from './canvas/add-to-library-menu-item'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
+export {
+	LibrariesToolbarItems,
+	type LibrariesToolbarItemsProps,
+} from './canvas/libraries-toolbar-items'
 export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
 export { useLibrariesEnabled } from './canvas/license'
 export { placeLibraryItem } from './canvas/place-item'

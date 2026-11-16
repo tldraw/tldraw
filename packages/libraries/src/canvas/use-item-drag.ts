@@ -17,9 +17,14 @@ type DragState =
 /**
  * Pointer handlers that let a tile be dragged out of the panel onto the canvas, the way tools are
  * dragged out of the toolbar: past the drag distance and outside the panel, the item's shapes are
- * placed under the pointer and follow it until release. A click without a drag calls `onPlace`.
+ * placed under the pointer and follow it until release. A click without a drag calls `onPlace`;
+ * a drag calls `onDragStart` as the shapes are placed.
  */
-export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryItemId) => void) {
+export function useItemDrag(
+	source: LibrarySource,
+	onPlace: (itemId: TLLibraryItemId) => void,
+	onDragStart?: () => void
+) {
 	const editor = useEditor()
 
 	return useMemo(() => {
@@ -115,6 +120,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			if (!content || !hasLeftPanel(lastMove, screenSpaceStart, panelRect)) return
 			stopPointing()
 			state = { name: 'dragging' }
+			if (onDragStart) onDragStart()
 			startDrag(lastMove, screenSpaceStart, content)
 			showMoveCursorWhileTranslating()
 		}
@@ -137,7 +143,9 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			},
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
 				if (e.button !== 0) return
-				const panel = e.currentTarget.closest('.tlui-libraries-panel') ?? e.currentTarget
+				const panel =
+					e.currentTarget.closest('.tlui-libraries-panel, .tlui-libraries-toolbar-popover') ??
+					e.currentTarget
 				state = {
 					name: 'pointing',
 					itemId,
@@ -180,5 +188,5 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				if (!wasDrag) onPlace(itemId)
 			},
 		})
-	}, [editor, source, onPlace])
+	}, [editor, source, onPlace, onDragStart])
 }
