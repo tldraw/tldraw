@@ -674,3 +674,26 @@
 	max-height: min(60vh, 400px);
 	overflow-y: auto;
 }
+
+.tlui-libraries-toolbar-library {
+	display: flex;
+}
+
+.tlui-libraries-toolbar-library > .tlui-button__tool:first-child {
+	width: 40px;
+}
+
+.tlui-libraries-toolbar-library > .tlui-button__tool:first-child::after {
+	inset: 4px 0 4px 4px;
+	border-radius: 8px 0 0 8px;
+}
+
+.tlui-libraries-toolbar-library__more.tlui-button__tool {
+	width: 20px;
+	min-width: 20px;
+}
+
+.tlui-libraries-toolbar-library__more.tlui-button__tool::after {
+	inset: 4px 4px 4px 0;
+	border-radius: 0 8px 8px 0;
+}

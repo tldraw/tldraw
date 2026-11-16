@@ -1,5 +1,5 @@
 import { Popover as _Popover } from 'radix-ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import {
 	defineMessages,
 	TldrawUiButtonIcon,
@@ -10,6 +10,7 @@ import {
 	useContainer,
 	useEditor,
 	useMenuIsOpen,
+	useTldrawUiOrientation,
 	useTranslation,
 	useUniqueSafeId,
 	useValue,
@@ -25,6 +26,8 @@ import { useThumbnailUrls } from './use-thumbnail-urls'
 
 const messages = defineMessages({
 	unnamedItem: { id: 'libraries.unnamed-item', defaultMessage: 'Unnamed item' },
+	armShown: { id: 'libraries.toolbar.arm-shown', defaultMessage: '{item} from {library}' },
+	openLibrary: { id: 'libraries.toolbar.open', defaultMessage: 'More from {library}' },
 })
 
 function ItemIcon({
@@ -50,9 +53,13 @@ function ToolbarLibrary({ source, library }: { source: LibrarySource; library: T
 	const editor = useEditor()
 	const msg = useTranslation()
 	const container = useContainer()
+	const { orientation } = useTldrawUiOrientation()
 	const popoverId = `libraries-toolbar-${useUniqueSafeId()}`
 	const [isOpen, handleOpenChange] = useMenuIsOpen(popoverId)
-	const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null)
+	// Held in a ref, not state: Radix's slot hands it a new callback ref on every render.
+	const controlRef = useRef<HTMLDivElement | null>(null)
+	const [control, setControl] = useState<HTMLDivElement | null>(null)
+	useLayoutEffect(() => setControl(controlRef.current), [])
 	const [grid, setGrid] = useState<HTMLDivElement | null>(null)
 
 	const items = useValue('toolbar library items', () => source.getItems(library.id), [
@@ -64,16 +71,17 @@ function ToolbarLibrary({ source, library }: { source: LibrarySource; library: T
 		() => items.find((item) => isLibraryItemArmed(editor, source, item.id))?.id,
 		[editor, source, items]
 	)
-	// The trigger shows the item last armed from this library, as a toolbar's overflow shows the
-	// last tool used from it.
+	// The main button shows the item last armed from this library, and arms it again.
 	const [lastArmedId, setLastArmedId] = useState<TLLibraryItemId>()
 	useEffect(() => {
 		if (armedItemId) setLastArmedId(armedItemId)
 	}, [armedItemId])
 	const shownItem = items.find((item) => item.id === (armedItemId ?? lastArmedId)) ?? items[0]
 
-	const triggerUrls = useThumbnailUrls(source, shownItem ? [shownItem] : [], trigger)
+	const shownItems = useMemo(() => (shownItem ? [shownItem] : []), [shownItem])
+	const shownUrls = useThumbnailUrls(source, shownItems, control)
 	const gridUrls = useThumbnailUrls(source, items, grid)
+	const shownName = shownItem && (shownItem.name ?? msg(messages.unnamedItem))
 
 	const pickItem = usePickItem(source)
 	const close = useCallback(() => handleOpenChange(false), [handleOpenChange])
@@ -89,27 +97,54 @@ function ToolbarLibrary({ source, library }: { source: LibrarySource; library: T
 
 	return (
 		<_Popover.Root open={isOpen} onOpenChange={handleOpenChange}>
-			<_Popover.Trigger asChild>
-				<TldrawUiToolbarButton
-					ref={setTrigger}
-					type="tool"
-					title={library.name}
+			<_Popover.Anchor asChild>
+				<div
+					ref={controlRef}
+					role="group"
+					aria-label={library.name}
+					className="tlui-libraries-toolbar-library"
 					data-value={library.id}
-					aria-pressed={armedItemId !== undefined}
-					// Inside the toolbar's overflow, a click would close the overflow and this with it.
-					onClick={(e) => e.stopPropagation()}
 				>
-					<ItemIcon
-						source={source}
-						item={shownItem}
-						thumbnailUrl={shownItem && triggerUrls[shownItem.id]}
-					/>
-				</TldrawUiToolbarButton>
-			</_Popover.Trigger>
+					<TldrawUiToolbarButton
+						type="tool"
+						title={
+							shownName
+								? msg(messages.armShown, { item: shownName, library: library.name })
+								: library.name
+						}
+						aria-pressed={armedItemId !== undefined}
+						disabled={!shownItem}
+						onClick={() => {
+							if (!shownItem) return
+							pickItem(shownItem.id, { thumbnailUrl: shownUrls[shownItem.id] ?? undefined })
+						}}
+					>
+						<ItemIcon
+							source={source}
+							item={shownItem}
+							thumbnailUrl={shownItem && shownUrls[shownItem.id]}
+						/>
+					</TldrawUiToolbarButton>
+					<_Popover.Trigger asChild>
+						<TldrawUiToolbarButton
+							type="tool"
+							className="tlui-libraries-toolbar-library__more"
+							title={msg(messages.openLibrary, { library: library.name })}
+							// Inside the toolbar's overflow, a click would close the overflow and this with it.
+							onClick={(e) => e.stopPropagation()}
+						>
+							<TldrawUiButtonIcon
+								icon={orientation === 'horizontal' ? 'chevron-up' : 'chevron-right'}
+								small
+							/>
+						</TldrawUiToolbarButton>
+					</_Popover.Trigger>
+				</div>
+			</_Popover.Anchor>
 			<_Popover.Portal container={container}>
 				<_Popover.Content
 					className="tlui-popover__content tlui-libraries-toolbar-popover"
-					side="top"
+					side={orientation === 'horizontal' ? 'top' : 'right'}
 					sideOffset={8}
 					collisionPadding={8}
 				>
@@ -141,10 +176,11 @@ export interface LibrariesToolbarItemsProps {
 
 /**
  * A toolbar item for each library the current user has put in their toolbar (see
- * {@link getToolbarLibraryIds}), for the children of a `DefaultToolbar`. Each opens a grid of the
- * library's items above the toolbar, and shows the item last armed from it. Picking an item arms
- * it, as clicking it in the panel does, and the library's toolbar item shows pressed while it stays
- * armed; dragging an item out drops a copy under the pointer.
+ * {@link getToolbarLibraryIds}), for the children of a `DefaultToolbar`. Each is a split button: its
+ * main part shows the item last armed from the library and arms it again, and shows pressed while
+ * one of the library's items is armed; its chevron opens a grid of the library's items. Picking an
+ * item there arms it, from the keyboard too, as picking a tool does; dragging one out drops a copy
+ * under the pointer.
  *
  * Put it after `DefaultToolbarContent` for the libraries to sit at the end of the toolbar, in its
  * overflow when there's no room; one with an armed item takes the overflow's slot for the last
