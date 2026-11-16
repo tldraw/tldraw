@@ -1,4 +1,4 @@
-import { ButtonHTMLAttributes, ReactNode } from 'react'
+import { ButtonHTMLAttributes, ReactNode, useState } from 'react'
 
 /** @public */
 export interface ItemTileProps {
@@ -21,6 +21,9 @@ export function ItemTile({
 	buttonProps,
 	menu,
 }: ItemTileProps) {
+	const [loadedUrl, setLoadedUrl] = useState<string>()
+	const shownUrl = thumbnailUrl && loadedUrl
+	const nextUrl = thumbnailUrl === loadedUrl ? undefined : thumbnailUrl
 	return (
 		<div className="tlui-libraries-tile">
 			<button
@@ -31,8 +34,20 @@ export function ItemTile({
 				{...buttonProps}
 			>
 				<span className="tlui-libraries-tile__thumbnail">
-					{thumbnailUrl && (
-						<img src={thumbnailUrl} alt="" draggable={false} loading="lazy" decoding="async" />
+					{shownUrl && (
+						<img key={shownUrl} src={shownUrl} alt="" draggable={false} decoding="async" />
+					)}
+					{nextUrl && (
+						<img
+							key={nextUrl}
+							src={nextUrl}
+							alt=""
+							draggable={false}
+							loading="lazy"
+							decoding="async"
+							data-loading={shownUrl ? true : undefined}
+							onLoad={() => setLoadedUrl(nextUrl)}
+						/>
 					)}
 				</span>
 			</button>
