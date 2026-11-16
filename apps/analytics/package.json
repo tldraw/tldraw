@@ -10,7 +10,8 @@
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
 		"test": "pnpm exec vitest --passWithNoTests",
 		"test-ci": "pnpm exec vitest run --passWithNoTests",
-		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests"
+		"test-coverage": "pnpm exec vitest run --coverage --passWithNoTests",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"js-cookie": "^3.0.5",
@@ -22,6 +23,6 @@
 		"typescript": "^7.0.2",
 		"vite": "^8.0.16",
 		"vitest": "^5.0.0",
-		"wrangler": "^4.75.0"
+		"wrangler": "^4.148.0"
 	}
 }

@@ -3,6 +3,8 @@ import { Tooltip as _Tooltip } from 'radix-ui'
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	F,
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
@@ -10,12 +12,12 @@ import {
 	TldrawUiInput,
 	TldrawUiTooltip,
 	useDialogs,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlLabel,
@@ -72,6 +74,7 @@ function useScrollbarWhenScrollable() {
 }
 
 export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
+	const msg = useTranslation()
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
@@ -80,10 +83,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 
 	const scrollableRef = useScrollbarWhenScrollable()
 
-	const namePlaceholderMsg = useMsg(messages.namePlaceholder)
-	const ownerMsg = useMsg(messages.owner)
-	const memberMsg = useMsg(messages.member)
-	const youMsg = useMsg(messages.you)
+	const namePlaceholderMsg = msg(messages.namePlaceholder)
 
 	const workspaceMembership = useValue(
 		'workspaceMembership',
@@ -155,7 +155,10 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 	// Optional column: older cached rows without it (and the migration's default)
 	// mean "enabled", so treat a missing value as true.
 	const inviteLinkEnabled = workspace.inviteLinkEnabled ?? true
-	const roleLabels: Record<Role, string> = { owner: ownerMsg, member: memberMsg }
+	const roleLabels: Record<Role, string> = {
+		owner: msg(messages.owner),
+		member: msg(messages.member),
+	}
 	// Owners sort above members; within a role the current user is pinned to the top.
 	const roleOrder: Record<Role, number> = { owner: 0, member: 1 }
 	const roleOptions = (Object.keys(roleLabels) as Role[]).map((value) => ({
@@ -441,7 +444,7 @@ export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSetti
 													</div>
 													<span className={styles.memberName}>
 														{member.userName}
-														{isSelf ? ` (${youMsg})` : ''}
+														{isSelf ? ` (${msg(messages.you)})` : ''}
 													</span>
 													{canManageWorkspace ? (
 														<TlaMenuSelect

@@ -1,4 +1,5 @@
-import { Editor } from 'tldraw'
+import { Editor, RecordsDiff, TLRecord, TLShapeId } from 'tldraw'
+import { convertTldrawIdToSimpleId } from '../../shared/format/convertTldrawShapeToFocusedShape'
 import { AgentAction } from '../../shared/types/AgentAction'
 import { BaseAgentAction } from '../../shared/types/BaseAgentAction'
 import { ChatHistoryInfo } from '../../shared/types/ChatHistoryInfo'
@@ -154,12 +155,38 @@ export abstract class AgentActionUtil<T extends BaseAgentAction = BaseAgentActio
 	}
 
 	/**
+	 * What the complete action did, which the model reads as the result of its tool call.
+	 * Defaults to the shapes that the action changed.
+	 */
+	getResult(_action: T, diff: RecordsDiff<TLRecord>): string {
+		const shapeIds = (records: Record<string, unknown>) =>
+			Object.keys(records)
+				.filter((id) => id.startsWith('shape:'))
+				.map((id) => convertTldrawIdToSimpleId(id as TLShapeId))
+		const changes = [
+			['Created', shapeIds(diff.added)],
+			['Updated', shapeIds(diff.updated)],
+			['Deleted', shapeIds(diff.removed)],
+		] as const
+		const lines = changes
+			.filter(([, ids]) => ids.length > 0)
+			.map(([verb, ids]) => `${verb} ${ids.join(', ')}.`)
+		return lines.length > 0 ? lines.join(' ') : 'Done.'
+	}
+
+	/**
 	 * Whether the action gets saved to history.
 	 */
 	savesToHistory(): boolean {
 		return true
 	}
 }
+
+/**
+ * Thrown from `applyAction` when the action cannot be done, such as an update to a shape that does
+ * not exist. The model reads the message as the result of its tool call.
+ */
+export class ActionFailedError extends Error {}
 
 export interface AgentActionUtilConstructor<T extends BaseAgentAction = BaseAgentAction> {
 	new (agent: TldrawAgent): AgentActionUtil<T>

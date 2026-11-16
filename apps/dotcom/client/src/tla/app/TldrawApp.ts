@@ -8,6 +8,7 @@ import {
 	MAX_NUMBER_OF_FILES,
 	ROOM_PREFIX,
 	Snapshot,
+	TlaApiErrorCode,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	TlaFileState,
@@ -26,6 +27,7 @@ import {
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
+import type { LibrarySource } from '@tldraw/libraries'
 import {
 	Result,
 	compact,
@@ -39,23 +41,28 @@ import {
 	throttle,
 	uniqueId,
 } from '@tldraw/utils'
+import { createIntl, type IntlShape } from 'react-intl'
 import { useNavigate } from 'react-router-dom'
 import {
-	Atom,
-	Signal,
-	TLDocument,
-	TLUiToastsContextType,
-	TLUserPreferences,
 	assertExists,
 	atom,
+	Atom,
 	computed,
 	createTLCurrentUser,
 	createTLSchema,
 	dataUrlToFile,
 	defaultUserPreferences,
+	defineMessages,
 	getUserPreferences,
 	parseTldrawJsonFile,
 	react,
+	Signal,
+	TLDocument,
+	TLI18nAdapter,
+	TLI18nMessage,
+	TLI18nValues,
+	TLUiToastsContextType,
+	TLUserPreferences,
 	transact,
 } from 'tldraw'
 import { routes } from '../../routeDefs'
@@ -64,12 +71,17 @@ import { ZERO_SERVER } from '../../utils/config'
 import { getFirstLoadId, markFirstLoad } from '../../utils/firstLoad'
 import { multiplayerAssetStore } from '../../utils/multiplayerAssetStore'
 import { getScratchPersistenceKey } from '../../utils/scratch-persistence-key'
+import { createLibrariesSource } from '../components/TlaLibraries/librariesSource'
+import { mergeCommentFeeds } from '../components/TlaSidebar/components/commentNotifications'
 import { TLAppUiContextType, TLAppUiEventSource } from '../utils/app-ui-events'
 import { copyTextToClipboard } from '../utils/copy'
 import { getDateFormat } from '../utils/dates'
-import { FeatureFlags } from '../utils/FeatureFlagPoller'
-import { createIntl, defineMessages, setupCreateIntl } from '../utils/i18n'
-import { updateLocalSessionState } from '../utils/local-session-state'
+import { FeatureFlags } from '../utils/featureFlags'
+import {
+	clearLastVisitedFile,
+	getLastVisitedFileId,
+	updateLocalSessionState,
+} from '../utils/local-session-state'
 import { ZeroLogBuffer, formatLogArg, redactTokens } from './ZeroLogBuffer'
 
 export const TLDR_FILE_ENDPOINT = `/api/app/tldr`
@@ -79,13 +91,13 @@ const USER_PRELOAD_TIMEOUT_MS = 30_000
 
 export interface PreloadDiagnostics {
 	stage: string
+	initError: string | undefined
 	connection: string
 	connectionReason: string | undefined
 	visibilityState: DocumentVisibilityState
 	hiddenMs: number
 	online: boolean
 	msSinceNavigation: number
-	msSinceInit: number
 	zeroLog: string[]
 }
 
@@ -151,6 +163,14 @@ export function msUntilTokenRefresh(token: string | undefined, now = Date.now())
 	return Math.max(MIN_TOKEN_REFRESH_MS, remaining / 2)
 }
 
+// `locale` matches `defaultLocale` so a message missing from the empty catalog falls back to its
+// English without a MISSING_TRANSLATION per call, and is formatted with English plural rules.
+let englishIntl: IntlShape | undefined
+function getEnglishIntl() {
+	englishIntl ??= createIntl({ locale: 'en', defaultLocale: 'en', messages: {} })
+	return englishIntl
+}
+
 export class TldrawApp {
 	config = {
 		maxNumberOfFiles: MAX_NUMBER_OF_FILES,
@@ -185,9 +205,12 @@ export class TldrawApp {
 	private readonly comments$: Signal<QueryResultType<typeof queries.homeBoardComments>>
 	/** Like the comment feeds. */
 	private readonly reactions$: Atom<QueryResultType<typeof queries.reactions>>
-	/** The signed-in account's email, for the first-load report gate. */
+	/** The signed-in account's email, for the load report gate. */
 	readonly email: string | null
-	readonly isFirstLoadRumEnabled: boolean
+	readonly isLoadRumEnabled: boolean
+	readonly isUiV3Enabled: boolean
+	/** Null when the `libraries` flag is off for this user. */
+	readonly libraries: LibrarySource | null
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -239,6 +262,17 @@ export class TldrawApp {
 	}
 
 	toasts: TLUiToastsContextType | null = null
+	/**
+	 * The editor's i18n, put here by `PutI18nInApp` once the provider has it. Held rather than
+	 * reached for: this class outlives any render and has no hooks available.
+	 */
+	i18n: TLI18nAdapter | null = null
+	/**
+	 * The user's locale, alongside `i18n`, as a signal. The adapter keeps its identity across a
+	 * language switch, so a `useValue` over a date it formatted never recomputed: the sidebar's
+	 * fallback file names stayed English, and stayed in the old language after a switch.
+	 */
+	readonly locale$ = atom<string>('app locale', 'en')
 	trackEvent: TLAppUiContextType
 	navigate: ReturnType<typeof useNavigate>
 
@@ -264,7 +298,15 @@ export class TldrawApp {
 		this.trackEvent = trackEvent
 		this.getToken = getToken
 		this.email = email ?? null
-		this.isFirstLoadRumEnabled = flags.first_load_rum?.enabled ?? false
+		this.isLoadRumEnabled = flags.load_rum?.enabled ?? false
+		this.isUiV3Enabled = flags.ui_v3?.enabled ?? false
+		if (flags.libraries?.enabled) {
+			const libraries = createLibrariesSource(userId)
+			this.libraries = libraries
+			this.disposables.push(() => libraries.dispose())
+		} else {
+			this.libraries = null
+		}
 		// Exposed as __test__triggerClientTooOld below so e2e can exercise the real recovery UI
 		// without a live schema/protocol mismatch against zero-cache.
 		if (window.navigator.webdriver) {
@@ -365,23 +407,14 @@ export class TldrawApp {
 		this.threadStarterComments$ = atom('thread starter comments signal', [], { isEqual })
 		this.threadParticipantComments$ = atom('thread participant comments signal', [], { isEqual })
 		this.mentionComments$ = atom('mention comments signal', [], { isEqual })
-		this.comments$ = computed('comments signal', () => {
-			const seen = new Set<string>()
-			const merged: QueryResultType<typeof queries.homeBoardComments> = []
-			for (const feed of [
-				this.homeBoardComments$,
-				this.threadStarterComments$,
-				this.threadParticipantComments$,
-				this.mentionComments$,
-			]) {
-				for (const comment of feed.get()) {
-					if (seen.has(comment.id)) continue
-					seen.add(comment.id)
-					merged.push(comment)
-				}
-			}
-			return merged
-		})
+		this.comments$ = computed('comments signal', () =>
+			mergeCommentFeeds<QueryResultType<typeof queries.homeBoardComments>[number]>(
+				this.homeBoardComments$.get(),
+				this.threadStarterComments$.get(),
+				this.threadParticipantComments$.get(),
+				this.mentionComments$.get()
+			)
+		)
 		this.reactions$ = atom('reactions signal', [], { isEqual })
 	}
 
@@ -446,33 +479,44 @@ export class TldrawApp {
 		return this.z.materialize(query as any) as unknown as TypedView<TReturn>
 	}
 
-	async preload(signal?: AbortSignal) {
-		// Ensure user exists in DB before Zero can query
+	/**
+	 * Creates the user row + home workspace. Throws if the request was never sent; once sent, a
+	 * failure is returned instead, since the row may still have committed.
+	 */
+	private async initUser(): Promise<Error | undefined> {
 		const token = await this.getToken()
 		if (!token) throw new Error('No auth token available for init')
-		const res = await fetch(`/api/app/${this.userId}/init`, {
-			method: 'POST',
-			headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
-		})
-		markFirstLoad('init-done')
-		// A failed init only matters if the user row never shows up: returning users whose row
-		// already exists should still load through a transient worker error.
-		const initError = res.ok ? undefined : new Error(`Init failed: ${res.status}`)
-		// Zero's query can itself stall, so the deadline must cover it as well as the user row.
+		try {
+			const res = await fetch(`/api/app/${this.userId}/init`, {
+				method: 'POST',
+				headers: { Authorization: `Bearer ${token}`, 'x-tldraw-load-id': getFirstLoadId() },
+			})
+			return res.ok ? undefined : new Error(`Init failed: ${res.status}`)
+		} catch (e) {
+			// Browsers word network errors differently and Sentry groups on the message.
+			return new Error('Init request failed', { cause: e })
+		}
+	}
+
+	async preload(signal?: AbortSignal) {
+		// Zero's query can itself stall, so the deadline must cover it and every stage after it.
 		// The stage is in the error so Sentry can tell a slow Zero sync from a row that never arrived.
-		let stage: 'zero query' | 'state flush' | 'user record' = 'zero query'
-		const timedOut = promiseWithResolve<never>()
+		let stage: 'zero query' | 'state flush' | 'user init' | 'user record' | 'workspace data' =
+			'zero query'
+		const failed = promiseWithResolve<never>()
 		let stopWaiting: (() => void) | undefined
-		const initReturnedAt = Date.now()
+		let initError: Error | undefined
 		let hiddenMs = 0
 		const fail = () => {
-			const error = initError ?? new Error(`Timed out waiting for the ${stage} after init`)
+			const error =
+				(stage === 'user record' && initError) || new Error(`Timed out waiting for the ${stage}`)
 			try {
 				const connection = this.z.connection.state.current
 				// Sentry's ExtraErrorData integration copies this onto the event.
 				Object.assign(error, {
 					diagnostics: {
 						stage,
+						initError: initError && formatLogArg(initError),
 						connection: connection.name,
 						connectionReason:
 							'reason' in connection ? redactTokens(formatLogArg(connection.reason)) : undefined,
@@ -480,12 +524,11 @@ export class TldrawApp {
 						hiddenMs,
 						online: navigator.onLine,
 						msSinceNavigation: Math.round(performance.now()),
-						msSinceInit: Date.now() - initReturnedAt,
 						zeroLog: this.zeroLog.recent(),
 					} satisfies PreloadDiagnostics,
 				})
 			} finally {
-				timedOut.reject(error)
+				failed.reject(error)
 			}
 		}
 		// Zero built in a hidden tab waits for visibility before connecting, so a restored or
@@ -515,31 +558,52 @@ export class TldrawApp {
 		else hiddenSince = Date.now()
 		// A hidden tab can sit here indefinitely, so the caller needs a way to settle this and let
 		// create() dispose the half-built app when it gives up on it.
-		const onAbort = () => timedOut.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
+		const onAbort = () => failed.reject(new DOMException('Bootstrap cancelled', 'AbortError'))
 		signal?.addEventListener('abort', onAbort)
 		if (signal?.aborted) onAbort()
 		try {
-			await Promise.race([this.z.preload(queries.user()).complete, timedOut])
+			await Promise.race([this.z.preload(queries.user()).complete, failed])
 			stage = 'state flush'
-			await Promise.race([this.changesFlushed, timedOut])
-			stage = 'user record'
+			await Promise.race([this.changesFlushed, failed])
 			const userLoaded = promiseWithResolve<void>()
 			stopWaiting = react('wait for user', () => {
 				if (this.user$.get()) userLoaded.resolve()
 			})
-			await Promise.race([userLoaded, timedOut])
+			// Only a user Zero has confirmed missing needs init, so returning users never wait on the
+			// worker's Postgres. The row wins over a slow init (another tab created it, a lost ack), and
+			// a sent init that failed may still have committed, so its error only surfaces if the
+			// deadline runs out.
+			if (!this.user$.get()) {
+				stage = 'user init'
+				await Promise.race([
+					this.initUser().then((error) => {
+						initError = error
+						// After the row wins, a late mark would skew the step deltas around it.
+						if (stage === 'user init') markFirstLoad('init-done')
+					}),
+					userLoaded,
+					failed,
+				])
+			}
+			stage = 'user record'
+			await Promise.race([userLoaded, failed])
+			if (initError) console.warn('[AppState] User row arrived after init failed:', initError)
 			markFirstLoad('zero-user-synced')
+			stage = 'workspace data'
+			await Promise.race([
+				Promise.all([
+					this.z.preload(queries.fileStates()).complete,
+					this.z.preload(queries.workspaceMemberships()).complete,
+				]),
+				failed,
+			])
+			markFirstLoad('zero-preloaded')
 		} finally {
 			signal?.removeEventListener('abort', onAbort)
 			document.removeEventListener('visibilitychange', onVisibilityChange)
 			clearTimeout(timeout)
 			stopWaiting?.()
 		}
-		await Promise.all([
-			this.z.preload(queries.fileStates()).complete,
-			this.z.preload(queries.workspaceMemberships()).complete,
-		])
-		markFirstLoad('zero-preloaded')
 	}
 
 	messages = defineMessages({
@@ -591,10 +655,18 @@ export class TldrawApp {
 				'{total, plural, one {Uploading .tldr file…} other {Uploading {uploaded} of {total} .tldr files…}}',
 		},
 		addingTldrFiles: {
-			// no need for pluralization, if there was only one file we navigated to it
-			// so there's no need to show a toast.
-			defaultMessage: 'Added {total} .tldr files.',
+			// A single file navigates instead of toasting, so English only ever shows the plural.
+			// Still a plural — see the gate in `internal/scripts/i18n-extract.ts` for why "never
+			// one" isn't a reason to skip it.
+			defaultMessage: '{total, plural, one {Added # .tldr file.} other {Added # .tldr files.}}',
 		},
+		copied_invite_link: { defaultMessage: 'Copied invite link' },
+		// toast title
+		accept_invite_error_title: { defaultMessage: 'Error accepting invite' },
+		// toast descriptions
+		accept_invite_unauthorized: { defaultMessage: 'Sign in to accept this invite.' },
+		accept_invite_not_found: { defaultMessage: 'This invite link is invalid or has expired.' },
+		accept_invite_try_again: { defaultMessage: 'Please try again.' },
 	})
 
 	getMessage(id: keyof typeof this.messages) {
@@ -611,8 +683,8 @@ export class TldrawApp {
 		const code = error.type === 'zero' ? ZErrorCode.offline_error : (error.message as ZErrorCode)
 		const descriptor = this.getMessage(code)
 		this.toasts?.addToast({
-			title: this.getIntl().formatMessage(this.messages.mutation_error_toast_title),
-			description: this.getIntl().formatMessage(descriptor),
+			title: this.msg(this.messages.mutation_error_toast_title),
+			description: this.msg(descriptor),
 		})
 	}, 3000)
 
@@ -680,6 +752,14 @@ export class TldrawApp {
 		return this.getWorkspaceMemberships().find((g) => g.groupId === workspaceId)
 	}
 
+	// Home also lists legacy and guest files, but not ones owned by a workspace the user is in (mislinked rows).
+	private isFileListedInWorkspace(workspaceId: string, file: TlaFile) {
+		const owningGroupId = file.owningGroupId
+		if (owningGroupId === workspaceId) return true
+		if (workspaceId !== this.getHomeWorkspaceId()) return false
+		return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+	}
+
 	getWorkspaceFilesSorted(workspaceId: string) {
 		const membership = this.getWorkspaceMembership(workspaceId)
 		if (!membership) return []
@@ -693,17 +773,13 @@ export class TldrawApp {
 		// a workspace's welcome file mirrored during the create-workspace race), and opening it
 		// from home would bounce the user into that workspace. Guarding here keeps such rows out
 		// of the list even before they're cleaned up.
-		const homeWorkspaceId = this.getHomeWorkspaceId()
 		const groupFiles = membership.groupFiles.filter((f): f is TlaGroupFile & { file: TlaFile } => {
 			// A group_file row can outlive (or arrive before) its file: the file may be deleted,
 			// not yet synced, or filtered out server-side because the user can no longer read it.
 			// The `file` relationship is a nullable Zero `.one()`, so guard before dereferencing.
 			// The type predicate narrows `file` to non-undefined for the rest of the function.
 			if (!f.file) return false
-			const owningGroupId = f.file.owningGroupId
-			if (owningGroupId === workspaceId) return true
-			if (workspaceId !== homeWorkspaceId) return false
-			return owningGroupId == null || !this.getWorkspaceMembership(owningGroupId)
+			return this.isFileListedInWorkspace(workspaceId, f.file)
 		})
 
 		const pinned = groupFiles.filter((f) => f.index !== null)
@@ -832,8 +908,8 @@ export class TldrawApp {
 	private showMaxFilesToast() {
 		trackEvent('max-files-reached')
 		this.toasts?.addToast({
-			title: this.getIntl().formatMessage(this.messages.max_files_title),
-			description: this.getIntl().formatMessage(this.messages.max_files_reached),
+			title: this.msg(this.messages.max_files_title),
+			description: this.msg(this.messages.max_files_reached),
 			keepOpen: true,
 		})
 	}
@@ -866,7 +942,7 @@ export class TldrawApp {
 
 		const seed = this.createFile({
 			workspaceId,
-			name: this.getIntl().formatMessage(this.messages.new_workspace_file_name),
+			name: this.msg(this.messages.new_workspace_file_name),
 			createSource: WELCOME_CREATE_SOURCE,
 		})
 		this.workspaceWelcomeFileSeeds.set(workspaceId, seed)
@@ -971,7 +1047,9 @@ export class TldrawApp {
 	getFallbackFileName(time: number) {
 		const createdAt = new Date(time)
 		const format = getDateFormat(createdAt)
-		return this.getIntl().formatDate(createdAt, format)
+		// `Intl` directly: a locale is all a date needs, and it's the one thing `TLI18n` carries.
+		const locale = this.locale$.get()
+		return new Intl.DateTimeFormat(locale, format).format(createdAt)
 	}
 
 	getFileName(file: TlaFile | string | null, useDateFallback: false): string | undefined
@@ -1084,6 +1162,8 @@ export class TldrawApp {
 			this.showMutationRejectionToast(res.error)
 			return false
 		}
+		// Otherwise the next `/` load would walk straight back into the room and re-add the file.
+		if (getLastVisitedFileId(this.userId) === fileId) clearLastVisitedFile()
 		return true
 	}
 
@@ -1115,6 +1195,12 @@ export class TldrawApp {
 
 	getFileState(fileId: string) {
 		return this.getUserFileStates().find((f) => f.fileId === fileId)
+	}
+
+	/** Same test getMostRecentFileId applies: a visit whose file is gone (moved, revoked, deleted) doesn't count. */
+	isFileVisitable(fileId: string) {
+		const file = this.getFileState(fileId)?.file
+		return !!file && !file.isDeleted
 	}
 
 	updateFileState(fileId: string, partial: Omit<TlaFileStatePartial, 'fileId' | 'userId'>) {
@@ -1208,16 +1294,16 @@ export class TldrawApp {
 		return { app, userId: user.id }
 	}
 
-	getIntl() {
-		const intl = createIntl()
-		if (intl) return intl
-		// intl should exists since IntlWrapper should create it before we get here, but let's use this just in case
-		setupCreateIntl({
-			defaultLocale: 'en',
-			locale: this.user$.get()?.locale ?? 'en',
-			messages: {},
-		})
-		return createIntl()!
+	/**
+	 * Translates a message in the user's locale. Until `PutI18nInApp` hands over the editor's
+	 * i18n — app creation, a user switch — it formats the English instead, values and all.
+	 * `translateMessage` alone returns the default message unformatted there, which put a plural
+	 * toast's own ICU source on screen.
+	 */
+	msg(message: TLI18nMessage, values?: TLI18nValues) {
+		const i18n = this.i18n?.()
+		if (i18n) return i18n.translate(message, values)
+		return getEnglishIntl().formatMessage(message, values)
 	}
 
 	async uploadTldrFiles(
@@ -1266,7 +1352,7 @@ export class TldrawApp {
 			if (getApproxPercentage() > 50) return
 			uploadingToastId = this.toasts?.addToast({
 				severity: 'info',
-				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				title: this.msg(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
 					uploaded: uploadedFiles + 1,
 				}),
@@ -1304,7 +1390,7 @@ export class TldrawApp {
 				if (uploadingToastId) this.toasts?.removeToast(uploadingToastId)
 				this.toasts?.addToast({
 					severity: 'error',
-					title: this.getIntl().formatMessage(this.messages.unknown_error),
+					title: this.msg(this.messages.unknown_error),
 					keepOpen: true,
 				})
 				console.error(res.error)
@@ -1313,7 +1399,7 @@ export class TldrawApp {
 			}
 
 			updateToast({
-				title: this.getIntl().formatMessage(this.messages.uploadingTldrFiles, {
+				title: this.msg(this.messages.uploadingTldrFiles, {
 					total: totalFiles,
 					uploaded: ++uploadedFiles + 1,
 				}),
@@ -1333,7 +1419,7 @@ export class TldrawApp {
 		if (totalFiles > 1) {
 			this.toasts?.addToast({
 				severity: 'success',
-				title: this.getIntl().formatMessage(this.messages.addingTldrFiles, {
+				title: this.msg(this.messages.addingTldrFiles, {
 					total: files.length,
 				}),
 				keepOpen: true,
@@ -1404,13 +1490,13 @@ export class TldrawApp {
 		}
 		const response = (await res.json()) as CreateFilesResponseBody
 		if (response.error) {
-			throw Error(response.message)
+			throw Error(response.code)
 		}
 		const fileId = response.slugs[0]
 		// `||` not `??`: File.name is never nullish, so the document-name fallback was unreachable
 		// and a file called `.tldr` would reach createFile with an empty name (bad_request).
 		const name =
-			file.name.replace(/\.tldr$/, '').trim() ||
+			file.name.replace(/\.tldr$/i, '').trim() ||
 			Object.values(snapshot.store)
 				.find((d): d is TLDocument => d.typeName === 'document')
 				?.name?.trim() ||
@@ -1440,7 +1526,7 @@ export class TldrawApp {
 		if (showToast) {
 			this.toasts?.addToast({
 				id: 'copied-invite-link',
-				title: 'Copied invite link',
+				title: this.msg(this.messages.copied_invite_link),
 			})
 		}
 
@@ -1458,10 +1544,17 @@ export class TldrawApp {
 		const payload = (await response.json().catch(() => null)) as AcceptInviteResponseBody | null
 
 		if (!payload || payload.error || !response.ok) {
+			const code = payload?.error ? payload.code : undefined
+			const errorMessages: Partial<Record<TlaApiErrorCode, TLI18nMessage>> = {
+				unauthorized: this.messages.accept_invite_unauthorized,
+				invite_not_found: this.messages.accept_invite_not_found,
+			}
 			this.toasts?.addToast({
 				severity: 'error',
-				title: 'Error accepting invite',
-				description: payload?.message ?? 'Please try again.',
+				title: this.msg(this.messages.accept_invite_error_title),
+				description: this.msg(
+					(code && errorMessages[code]) ?? this.messages.accept_invite_try_again
+				),
 			})
 			this.navigate(routes.tlaRoot())
 			return
@@ -1475,8 +1568,8 @@ export class TldrawApp {
 			if (attempts++ > 100) {
 				this.toasts?.addToast({
 					severity: 'error',
-					title: 'Error accepting invite',
-					description: 'Please try again.',
+					title: this.msg(this.messages.accept_invite_error_title),
+					description: this.msg(this.messages.accept_invite_try_again),
 				})
 				this.navigate(routes.tlaRoot())
 				return

@@ -1,9 +1,4 @@
-import {
-	getLicenseKey,
-	ROOM_OPEN_MODE,
-	RoomOpenMode,
-	RoomOpenModeToPath,
-} from '@tldraw/dotcom-shared'
+import { ROOM_OPEN_MODE, RoomOpenMode, RoomOpenModeToPath } from '@tldraw/dotcom-shared'
 import { useSync } from '@tldraw/sync'
 import { useCallback, useMemo } from 'react'
 import { commentSchemaRecords, Editor, TLComponents, Tldraw } from 'tldraw'
@@ -18,8 +13,9 @@ import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
 import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { ReadyWrapper } from '../../hooks/ReadyWrapper'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useSetIsReady } from '../../hooks/useIsReady'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -116,7 +112,6 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
 				store={storeWithStatus}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}

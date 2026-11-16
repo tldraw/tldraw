@@ -23,7 +23,8 @@ import { useCommentingEnabled } from './useCommentingEnabled'
 import { useReadonly } from './useReadonly'
 import { useTools } from './useTools'
 
-const SKIP_KBDS = [
+/** @internal */
+export const SKIP_KBDS = [
 	// we set these in useNativeClipboardEvents instead
 	'copy',
 	'cut',
@@ -31,6 +32,12 @@ const SKIP_KBDS = [
 	// There's also an upload asset action, so we don't want to set the kbd twice
 	'asset',
 ]
+
+// Actions whose kbd still fires with the keyboard shortcuts preference off. The preference
+// silences tldraw's shortcuts, not the keys that operate a selection: the select tool handles
+// Enter, Tab, Escape, and the arrows outside this registry, so Delete would otherwise be the
+// one selection key the preference took away.
+const KBDS_IGNORING_SHORTCUTS_PREFERENCE = ['delete']
 
 /** @public */
 export function useKeyboardShortcuts() {
@@ -57,11 +64,18 @@ export function useKeyboardShortcuts() {
 		// Except those that in SKIP_KBDS!
 		for (const action of Object.values(actions)) {
 			if (!action.kbd) continue
+			// Not redundant with the action gate: unregistered chords fall through to the browser
+			// (e.g. cmd+D bookmarks), while a registered but blocked one is default-prevented.
 			if (isReadonlyMode && !action.readonlyOk) continue
 			if (SKIP_KBDS.includes(action.id)) continue
 
+			const ignoresPreference = KBDS_IGNORING_SHORTCUTS_PREFERENCE.includes(action.id)
 			register(getHotkeysStringFromKbd(action.kbd), (event) => {
-				if (areShortcutsDisabled(editor) && !action.isRequiredA11yAction) return
+				if (!action.isRequiredA11yAction) {
+					if (ignoresPreference ? isShortcutContextBlocked(editor) : areShortcutsDisabled(editor)) {
+						return
+					}
+				}
 				preventDefault(event)
 				action.onSelect('kbd')
 			})
@@ -197,11 +211,14 @@ function dispatchCommaPointerEvent(
 }
 
 export function areShortcutsDisabled(editor: Editor) {
+	return isShortcutContextBlocked(editor) || !editor.user.getAreKeyboardShortcutsEnabled()
+}
+
+function isShortcutContextBlocked(editor: Editor) {
 	return (
 		editor.menus.hasAnyOpenMenus() ||
 		editor.getEditingShapeId() !== null ||
-		editor.getCrashingError() ||
-		!editor.user.getAreKeyboardShortcutsEnabled()
+		editor.getCrashingError()
 	)
 }
 

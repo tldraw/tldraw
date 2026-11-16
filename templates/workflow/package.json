@@ -18,14 +18,16 @@
 			"order": 4
 		},
 		"scripts": {
-			"lint": null
+			"lint": null,
+			"build-types": null
 		}
 	},
 	"scripts": {
 		"dev": "vite --host",
 		"build": "tsc && vite build",
 		"lint": "pnpm exec tsx ../../internal/scripts/lint.ts",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"build-types": "tsc"
 	},
 	"dependencies": {
 		"classnames": "^2.5.1",

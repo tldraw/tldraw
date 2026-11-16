@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "<a><strong>{appName}</strong></a> からのファイルのサポートに取り組んでいます。"
   },
-  "03b3e13197": {
-    "translation": "このページのサイドバーにファイルをドラッグします。または、ユーザーメニューから [ファイルをインポート] オプションを選択します。"
-  },
   "043973ec1f": {
     "translation": "問題が解決しませんか？{GetHelpLink}"
   },
@@ -73,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "ファイルを作成"
+  },
+  "1a7222b4e5": {
+    "translation": "移動"
   },
   "1da2e8106b": {
     "translation": "予期せぬエラーが発生しました。"
@@ -139,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "メンバーを削除する"
+  },
+  "398f51738e": {
+    "translation": "招待を受けるにはログインしてください。"
   },
   "3bc7d6ea2f": {
     "translation": "メールで続行"
@@ -208,9 +211,6 @@
   },
   "54286b1d01": {
     "translation": "共同作業者の上限に達しました"
-  },
-  "545241e7dd": {
-    "translation": "{count} 未読"
   },
   "550b25cc0c": {
     "translation": "ローカル図面を復元できませんでした。ページを再読み込みしてください。"
@@ -311,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "ページを再読み込みしてください"
   },
+  "747ee44424": {
+    "translation": "コンテンツを.tldrファイルとして保存するには、左上のメニューから「コピーを保存」を選択してください。"
+  },
   "74ff4bad28": {
     "translation": "ファイルが見つかりません"
   },
@@ -386,9 +389,6 @@
   "85a082de1b": {
     "translation": "tldrawの最新バージョンを取得するには、ページを再読み込みしてください。"
   },
-  "86353d2c41": {
-    "translation": "{total} 個の .tldr ファイルを追加しました。"
-  },
   "86c66437fd": {
     "translation": "ファイル名を変更する"
   },
@@ -415,6 +415,9 @@
   },
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong>を削除してもよろしいですか？この操作は元に戻せません。"
+  },
+  "930390d222": {
+    "translation": "招待リンクをコピーしました"
   },
   "95aacd4d4a": {
     "translation": "Googleでログイン"
@@ -458,8 +461,8 @@
   "a078644c42": {
     "translation": "あなたは<strong>{workspaceName}</strong>への参加に招待されました。"
   },
-  "a0da245992": {
-    "translation": "コンテンツを .tldr ファイルとしてエクスポートします。左上のメニューで「ダウンロード」を選択します。"
+  "a0a19d5145": {
+    "translation": "{count, plural, other {# 未読}}"
   },
   "a104439641": {
     "translation": "パディング"
@@ -537,6 +540,9 @@
   "b6f4a2ec63": {
     "translation": "所有者"
   },
+  "b74dbb40c5": {
+    "translation": "ファイルをこのページのサイドバーにドラッグしてください。または、左上の「ファイル」メニューから「ファイルのインポート」を選択してください。"
+  },
   "b758336699": {
     "translation": "リンクをコピー"
   },
@@ -547,7 +553,7 @@
     "translation": "招待は無効になっています"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, other {{uploaded} 件中 {total} 件の .tldr ファイルをアップロードしています…}}"
+    "translation": "{total, plural, other {{total} 件中 {uploaded} 件の .tldr ファイルをアップロードしています…}}"
   },
   "bc88b0e89e": {
     "translation": "{ownerName}さんが共有"
@@ -558,14 +564,14 @@
   "c2276c9127": {
     "translation": "共有についてさらに詳しく。"
   },
+  "c26f17786f": {
+    "translation": "{total, plural, other {# 個の .tldr ファイルを追加しました。}}"
+  },
   "c303bd1095": {
     "translation": "ファイルを公開できません"
   },
   "c4b39a1cc3": {
     "translation": "必須クッキー"
-  },
-  "c655b27b1e": {
-    "translation": "i18n：長い文字列"
   },
   "c6a00f137b": {
     "translation": "招待する"
@@ -592,7 +598,7 @@
     "translation": "公開についてさらに詳しく。"
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> と {count, plural, one {# other} other {# others}} があなたのコメントに反応しました"
+    "translation": "<name>{author}</name> と{count, plural, other {他 # 人}}があなたのコメントに反応しました"
   },
   "d3d2e61733": {
     "translation": "閉じる"
@@ -645,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "または"
   },
+  "ea13ecec38": {
+    "translation": "ファイル履歴"
+  },
   "ea4788705e": {
     "translation": "キャンセル"
   },
@@ -659,9 +668,6 @@
   },
   "ec611e9a08": {
     "translation": "アカウントメニュー"
-  },
-  "ed53713239": {
-    "translation": "i18n：アクセント付き"
   },
   "ed75712b0e": {
     "translation": "複製する"
@@ -690,8 +696,11 @@
   "f2a6c498fb": {
     "translation": "削除"
   },
+  "f408fa5fbd": {
+    "translation": "この招待リンクは無効であるか、期限切れです。"
+  },
   "f476ba8646": {
-    "translation": "<name>{a}</name>、<name>{b}</name>、および{count, plural, one {# other} other {# others}}があなたのコメントに反応しました"
+    "translation": "<name>{a}</name>、<name>{b}</name> と{count, plural, other {他 # 人}}があなたのコメントに反応しました"
   },
   "f4f70727dc": {
     "translation": "設定"
@@ -716,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "無料アカウントを作成してファイルを保存し、チームメイトとtldrawを共有しましょう。"
+  },
+  "ffad261a48": {
+    "translation": "招待の承諾エラー"
   },
   "ffcd73e997": {
     "translation": "ファイルをインポート…"

@@ -338,6 +338,13 @@ describe('AtomMap', () => {
 			expect(dReactor).toHaveBeenCalledTimes(2)
 			expect(dReactor).toHaveLastReturnedWith(undefined)
 		})
+
+		it('[AM4] does not capture the map', () => {
+			const map = new AtomMap('test', [['a', 1]])
+			const reactor = testReactor('remover', () => map.deleteMany(['a']))
+			map.set('b', 2)
+			expect(reactor).toHaveBeenCalledTimes(1)
+		})
 	})
 
 	describe('clear', () => {

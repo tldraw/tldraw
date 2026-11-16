@@ -1,14 +1,14 @@
-import { TldrawUiButton } from 'tldraw'
+import { TldrawUiButton, useTranslation } from 'tldraw'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
-import { useMsg } from '../../../utils/i18n'
 import { getIsSidebarOpenMobile, toggleMobileSidebar } from '../../../utils/local-session-state'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { messages, useHideSidebarToggle } from './sidebar-shared'
 import styles from '../sidebar.module.css'
 
 export function TlaSidebarToggleMobile() {
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
-	const toggleSidebarLbl = useMsg(messages.toggleSidebar)
+	const toggleSidebarLbl = msg(messages.toggleSidebar)
 	const hideSidebarToggle = useHideSidebarToggle()
 	if (hideSidebarToggle) return null
 

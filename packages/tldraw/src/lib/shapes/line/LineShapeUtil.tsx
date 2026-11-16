@@ -136,6 +136,10 @@ export class LineShapeUtil extends ShapeUtil<TLLineShape> {
 
 	//   Events
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: TLLineShape, info: TLResizeInfo<TLLineShape>) {
 		const { scaleX, scaleY } = info
 

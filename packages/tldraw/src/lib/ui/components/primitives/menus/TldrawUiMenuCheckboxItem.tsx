@@ -1,4 +1,4 @@
-import { preventDefault } from '@tldraw/editor'
+import { defineMessages, preventDefault } from '@tldraw/editor'
 import { ContextMenu as _ContextMenu, DropdownMenu as _DropdownMenu } from 'radix-ui'
 import { unwrapLabel } from '../../../context/actions'
 import { TLUiEventSource } from '../../../context/events'
@@ -8,6 +8,11 @@ import { useDirection, useTranslation } from '../../../hooks/useTranslation/useT
 import { TldrawUiIcon, TLUiIconJsx } from '../TldrawUiIcon'
 import { TldrawUiKbd } from '../TldrawUiKbd'
 import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
+
+const messages = defineMessages({
+	uiChecked: { id: 'ui.checked', defaultMessage: 'Checked' },
+	uiUnchecked: { id: 'ui.unchecked', defaultMessage: 'Unchecked' },
+})
 
 /** @public */
 export interface TLUiMenuCheckboxItemProps<
@@ -53,21 +58,31 @@ export function TldrawUiMenuCheckboxItem<
 	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
+	const indicator = (
+		<TldrawUiIcon
+			small
+			label={msg(checked ? messages.uiChecked : messages.uiUnchecked)}
+			icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
+		/>
+	)
+
+	// Checkmarks lead the row; switches trail it, like a settings row.
 	const content = (
 		<>
-			<TldrawUiIcon
-				small
-				label={msg(checked ? 'ui.checked' : 'ui.unchecked')}
-				icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
-			/>
+			{!toggle && indicator}
 			{labelStr && (
 				<span className="tlui-button__label" draggable={false}>
 					{labelStr}
 				</span>
 			)}
 			{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+			{toggle && indicator}
 		</>
 	)
+
+	const className = toggle
+		? 'tlui-button tlui-button__menu tlui-button__checkbox tlui-button__toggle'
+		: 'tlui-button tlui-button__menu tlui-button__checkbox'
 
 	const handleSelect = (e: Event) => {
 		onSelect(sourceId)
@@ -80,7 +95,7 @@ export function TldrawUiMenuCheckboxItem<
 				<_DropdownMenu.CheckboxItem
 					dir={dir}
 					lang={lang}
-					className="tlui-button tlui-button__menu tlui-button__checkbox"
+					className={className}
 					onSelect={handleSelect}
 					disabled={disabled}
 					checked={checked}
@@ -93,7 +108,7 @@ export function TldrawUiMenuCheckboxItem<
 			return (
 				<_ContextMenu.CheckboxItem
 					key={id}
-					className="tlui-button tlui-button__menu tlui-button__checkbox"
+					className={className}
 					dir={dir}
 					lang={lang}
 					onSelect={handleSelect}

@@ -77,6 +77,10 @@ export class BezierCurveShapeUtil extends ShapeUtil<MyBezierCurveShape> {
 		return this.editor.getEditingShapeId() === shape.id
 	}
 
+	override canFlip() {
+		return true
+	}
+
 	override onResize(shape: MyBezierCurveShape, info: TLResizeInfo<MyBezierCurveShape>) {
 		const { scaleX, scaleY } = info
 		return {

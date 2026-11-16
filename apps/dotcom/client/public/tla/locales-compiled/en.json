@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the user menu."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -191,6 +185,12 @@
       "value": "Create file"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Move to"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -261,6 +261,16 @@
     {
       "type": 0,
       "value": "Could not submit feedback"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "On behalf of "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -345,6 +355,12 @@
     {
       "type": 0,
       "value": "Remove member"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Sign in to accept this invite."
     }
   ],
   "3bc7d6ea2f": [
@@ -497,16 +513,6 @@
     {
       "type": 0,
       "value": "Collaborator limit reached"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " unread"
     }
   ],
   "550b25cc0c": [
@@ -690,6 +696,12 @@
       "value": "A new version of tldraw is available. Please reload the page to continue."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Edited"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
@@ -712,6 +724,16 @@
     {
       "type": 0,
       "value": "Help"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -748,6 +770,12 @@
     {
       "type": 0,
       "value": "Please reload the page"
+    }
+  ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
     }
   ],
   "74ff4bad28": [
@@ -942,20 +970,6 @@
       "value": "Please refresh the page to get the latest version of tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Added "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr files."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1022,6 +1036,12 @@
     {
       "type": 0,
       "value": "? This action cannot be undone."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Copied invite link"
     }
   ],
   "95aacd4d4a": [
@@ -1136,10 +1156,36 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Export the content as a .tldr file: Select 'Download' in the top left menu."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " unread"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " unread"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1232,6 +1278,12 @@
       "value": "File limit reached"
     }
   ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Libraries"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1306,6 +1358,12 @@
     {
       "type": 0,
       "value": "Owner"
+    }
+  ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Drag the file into the sidebar on this page. Or select the 'Import file' option from the File menu in the top left."
     }
   ],
   "b758336699": [
@@ -1390,6 +1448,46 @@
       "value": "Learn more about sharing."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Added "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr file."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Added "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr files."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1400,12 +1498,6 @@
     {
       "type": 0,
       "value": "Essential cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Long String"
     }
   ],
   "c6a00f137b": [
@@ -1660,6 +1752,12 @@
       "value": "or"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "File history"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1688,12 +1786,6 @@
     {
       "type": 0,
       "value": "Account menu"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accented"
     }
   ],
   "ed75712b0e": [
@@ -1762,6 +1854,12 @@
     {
       "type": 0,
       "value": "Delete"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "This invite link is invalid or has expired."
     }
   ],
   "f476ba8646": [
@@ -1904,6 +2002,12 @@
     {
       "type": 0,
       "value": "Create a free account to save your files and tldraw with your teammates."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Error accepting invite"
     }
   ],
   "ffcd73e997": [

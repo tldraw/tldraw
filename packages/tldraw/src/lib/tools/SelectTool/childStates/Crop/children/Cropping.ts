@@ -1,6 +1,5 @@
 import {
 	Box,
-	HALF_PI,
 	SelectionHandle,
 	ShapeWithCrop,
 	StateNode,
@@ -13,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import { getCropBox, getDefaultCrop, getUncroppedSize } from '../../../../../shapes/shared/crop'
 import { GestureShapeChangeTracker } from '../../../GestureShapeChangeTracker'
+import { isRightAngleRotation } from '../../../selectHelpers'
 import { CursorTypeMap } from '../../PointingResizeHandle'
 
 type Snapshot = ReturnType<Cropping['createSnapshot']>
@@ -136,7 +136,7 @@ export class Cropping extends StateNode {
 		editor.snaps.clearIndicators()
 		const shouldSnap = editor.user.getIsSnapMode() ? !isHoldingAccel : isHoldingAccel
 		let didSnap = false
-		if (shouldSnap && initialSelectionPageBounds && selectionRotation % HALF_PI === 0) {
+		if (shouldSnap && initialSelectionPageBounds && isRightAngleRotation(selectionRotation)) {
 			const { nudge } = editor.snaps.shapeBounds.snapResizeShapes({
 				dragDelta: Vec.Sub(currentPagePoint, originPagePoint),
 				initialSelectionPageBounds,

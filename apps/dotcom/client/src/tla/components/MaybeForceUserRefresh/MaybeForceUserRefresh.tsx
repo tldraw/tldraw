@@ -1,7 +1,6 @@
 import { ReactNode, useState } from 'react'
-import { useValue } from 'tldraw'
+import { F, useValue } from 'tldraw'
 import { isClientTooOld$ } from '../../hooks/useAppState'
-import { F } from '../../utils/i18n'
 import { TlaButton } from '../TlaButton/TlaButton'
 import styles from './MaybeForceUserRefresh.module.css'
 

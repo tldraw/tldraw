@@ -2,14 +2,17 @@ import classNames from 'classnames'
 import { useEffect, useRef, useState } from 'react'
 import {
 	Box,
+	compact,
+	debounce,
+	defineMessages,
 	Editor,
+	exportAs,
+	F,
 	FileHelpers,
 	TLExportType,
 	TLShape,
-	compact,
-	debounce,
-	exportAs,
 	useReactor,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { globalEditor } from '../../../../utils/globalEditor'
@@ -17,7 +20,6 @@ import { TldrawApp } from '../../../app/TldrawApp'
 import { useMaybeApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getCurrentEditor } from '../../../utils/getCurrentEditor'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TldrawAppSessionState,
 	getLocalSessionState,
@@ -171,7 +173,7 @@ function ExportThemeSelect({
 	value: TldrawAppSessionState['exportSettings']['exportTheme']
 	onChange(key: 'exportTheme', value: TldrawAppSessionState['exportSettings']['exportTheme']): void
 }) {
-	const label = useMsg(messages[value as 'auto' | 'light' | 'dark'])
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
 	const handleChange = (value: TldrawAppSessionState['exportSettings']['exportTheme']) => {
 		onChange('exportTheme', value)
@@ -186,7 +188,7 @@ function ExportThemeSelect({
 			<TlaMenuSelect
 				id="tla-export-theme-select"
 				value={value}
-				label={label}
+				label={msg(messages[value as 'auto' | 'light' | 'dark'])}
 				onChange={handleChange}
 				options={[
 					{ value: 'auto', label: <F defaultMessage="Auto" /> },

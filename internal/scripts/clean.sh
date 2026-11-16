@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-pnpm exec lazy run clean || true
+pnpm -r --if-present run clean || true
 
 # a function called 'goodbye' that takes a string as an argument
 function goodbye() {
@@ -21,7 +21,6 @@ goodbye tmp-assets
 goodbye tsconfig.tsbuildinfo
 goodbye tsconfig.build.tsbuildinfo
 goodbye tsconfig.build.json
-goodbye .lazy
 goodbye dist-esm
 goodbye dist-cjs
 goodbye .tsbuild

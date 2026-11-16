@@ -2,8 +2,8 @@ import { mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs'
 import { relative, resolve } from 'node:path'
 import process from 'node:process'
 import { Readable } from 'node:stream'
+import { styleText } from 'node:util'
 import { outro, select, spinner, text } from '@clack/prompts'
-import picocolors from 'picocolors'
 import * as tar from 'tar'
 import { groupSelect, GroupSelectOption } from './group-select'
 import { Template, TEMPLATES } from './templates'
@@ -26,10 +26,9 @@ import { wrapAnsi } from './wrap-ansi'
 
 const DEBUG = !!process.env.DEBUG
 
-const TELEMETRY_URLS = [
-	'https://dashboard.tldraw.pro/api/starter-kit-choice',
-	'https://teamldraw.com/api/starter-kit-choice',
-]
+// tldraw.dev forwards this on to wherever the counts are actually kept, so a change there doesn't
+// need a new release of this package.
+const TELEMETRY_URL = 'https://tldraw.dev/api/starter-kit-choice'
 
 async function main() {
 	const args = parseCliArgs(process.argv.slice(2))
@@ -102,16 +101,14 @@ async function templatePicker(args: CliArgs) {
 function trackStarterKitChoice(templateId: string, telemetry: boolean) {
 	if (!telemetry) return
 
-	for (const url of TELEMETRY_URLS) {
-		// Fire and forget - don't block on this request
-		fetch(url, {
-			method: 'POST',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ id: templateId }),
-		}).catch(() => {
-			// Silently ignore errors
-		})
-	}
+	// Fire and forget - don't block on this request
+	fetch(TELEMETRY_URL, {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ id: templateId }),
+	}).catch(() => {
+		// Silently ignore errors
+	})
 }
 
 async function namePicker(argOption?: string) {
@@ -123,7 +120,7 @@ async function namePicker(argOption?: string) {
 
 	const name = await handleCancel(
 		text({
-			message: picocolors.bold('Name your app'),
+			message: styleText('bold', 'Name your app'),
 			placeholder: defaultName,
 			validate: (value) => {
 				if (value && !isValidPackageName(value)) {
@@ -157,7 +154,8 @@ async function prepareRequestedDir(targetDir: string): Promise<RequestedDirActio
 
 	const action = await handleCancel(
 		select<RequestedDirAction | 'cancel'>({
-			message: picocolors.bold(
+			message: styleText(
+				'bold',
 				`${displayName === '.' ? 'The current directory' : displayName} is not empty. How would you like to proceed?`
 			),
 			options: [
@@ -282,19 +280,19 @@ function getHelp() {
 	}
 
 	return [
-		picocolors.bold('Usage: create-tldraw [OPTION]... [DIRECTORY]'),
+		styleText('bold', 'Usage: create-tldraw [OPTION]... [DIRECTORY]'),
 		'',
 		'Create a new tldraw project from a starter kit.',
 		"With no arguments, you'll be guided through an interactive setup.",
 		'Pass . as the directory to create the project in the current directory.',
 		'',
-		picocolors.bold('Options:'),
+		styleText('bold', 'Options:'),
 		...formatRows(
 			optionPrefix,
 			options.map((o) => ({ name: o.flags, description: o.description }))
 		),
 		'',
-		picocolors.bold('Available starter kits:'),
+		styleText('bold', 'Available starter kits:'),
 		...formatRows(templatePrefix, templates),
 		'',
 	].join('\n')

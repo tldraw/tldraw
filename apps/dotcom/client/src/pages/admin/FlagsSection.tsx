@@ -170,9 +170,10 @@ function FeatureFlags() {
 					implicitAccess={FLAG_IMPLICIT_ACCESS[flagName]}
 					onSetAllowEveryone={(allowEveryone) => {
 						if (
-							allowEveryone &&
 							!window.confirm(
-								`Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again on "User list".`
+								allowEveryone
+									? `Open "${flagName}" to EVERY signed-in account? The list below is kept, and applies again on "User list".`
+									: `Limit "${flagName}" to the user list?`
 							)
 						) {
 							return
@@ -237,7 +238,9 @@ function FeatureFlags() {
 			)}
 
 			<p className={styles.featureFlagsNote}>
-				<strong>Global feature toggles.</strong> Changes take effect immediately for ALL users.
+				<strong>Global feature toggles.</strong> Server checks pick up changes within about 90
+				seconds, open tabs on their next page load after that. Some apply later still, as noted in
+				their descriptions.
 			</p>
 			<p className={styles.featureFlagsDescription}>
 				Boolean flags toggle on/off for everyone. Percentage flags roll out to X% of users

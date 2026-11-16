@@ -177,6 +177,38 @@ describe(HistoryManager, () => {
 		expect(editor.getCount()).toBe(3)
 	})
 
+	// Callers mark before code that may change nothing, such as a shape util's double-click
+	// handler (#11075), so an empty stopping point must not cost an extra undo or redo
+	it('treats back-to-back stopping points as one on undo and redo', () => {
+		editor.history._mark('stop at 0')
+		editor.increment()
+		editor.history._mark('nothing follows this mark')
+		editor.history._mark('stop at 1')
+		editor.increment()
+		expect(editor.getCount()).toBe(2)
+
+		editor.history.undo()
+		expect(editor.getCount()).toBe(1)
+		editor.history.undo()
+		expect(editor.getCount()).toBe(0)
+
+		editor.history.redo()
+		expect(editor.getCount()).toBe(1)
+		editor.history.redo()
+		expect(editor.getCount()).toBe(2)
+	})
+
+	it('skips a trailing stopping point with no changes after it on undo', () => {
+		editor.history._mark('stop at 0')
+		editor.increment()
+		editor.history._mark('nothing follows this mark')
+
+		editor.history.undo()
+		expect(editor.getCount()).toBe(0)
+		editor.history.redo()
+		expect(editor.getCount()).toBe(1)
+	})
+
 	it('allows squashing of commands', () => {
 		editor.increment()
 

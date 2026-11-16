@@ -13,6 +13,7 @@ const destroy = vi.fn(async () => {})
 
 interface FileRow {
 	id: string
+	name: string
 	owningGroupId: string | null
 	shared: boolean
 	isDeleted: boolean
@@ -27,6 +28,7 @@ let lastQuery: { table?: string; columns?: unknown; where?: unknown[] } = {}
 function mockFileRow(row: Partial<FileRow> | undefined) {
 	const value: FileRow | undefined = row && {
 		id: 'file-1',
+		name: 'Roadmap',
 		owningGroupId: null,
 		shared: false,
 		isDeleted: false,
@@ -56,7 +58,7 @@ afterEach(() => vi.clearAllMocks())
 
 const granted = (id = 'file-1') => ({
 	ok: true,
-	file: { id, shared: expect.any(Boolean), isDeleted: false },
+	file: { id, name: 'Roadmap', shared: expect.any(Boolean), isDeleted: false },
 })
 const DENIED = { ok: false }
 
@@ -72,8 +74,8 @@ describe('hasReadAccessToFile', () => {
 
 		expect(lastQuery.table).toBe('file')
 		expect(lastQuery.where).toEqual(['id', '=', 'file-1'])
-		// Every column the decision below reads, plus the id handed back to the caller.
-		expect(lastQuery.columns).toEqual(['id', 'owningGroupId', 'shared', 'isDeleted'])
+		// Every column the decision below reads, plus the id and name handed back to the caller.
+		expect(lastQuery.columns).toEqual(['id', 'name', 'owningGroupId', 'shared', 'isDeleted'])
 	})
 
 	// Unlike the write check, `sharedLinkType` is irrelevant: a link shared for editing is also one
@@ -115,12 +117,13 @@ describe('hasReadAccessToFile', () => {
 	})
 
 	// Handed back so the resolution that follows can re-apply the gate to it rather than dialling
-	// Postgres again for a strict subset of the same columns.
+	// Postgres again for a strict subset of the same columns. The name rides along because
+	// get_board_info reports it, and the row is the only place it is always right.
 	it('hands back the row it read', async () => {
 		mockFileRow({ shared: true })
 		expect(await hasReadAccessToFile(env, 'user-1', 'file-1')).toEqual({
 			ok: true,
-			file: { id: 'file-1', shared: true, isDeleted: false },
+			file: { id: 'file-1', name: 'Roadmap', shared: true, isDeleted: false },
 		})
 	})
 

@@ -1,6 +1,7 @@
 import {
 	DefaultFillStyle,
 	GeoShapeGeoStyle,
+	Group2d,
 	TLArrowShape,
 	TLFrameShape,
 	TLGeoShape,
@@ -11,6 +12,7 @@ import {
 } from '@tldraw/editor'
 import { vi } from 'vitest'
 import { getArrowBindings } from '../lib/shapes/arrow/shared'
+import { FRAME_HEADING_MAX_SCALE } from '../lib/shapes/frame/frameHelpers'
 import { FrameShapeUtil } from '../lib/shapes/frame/FrameShapeUtil'
 import { DEFAULT_FRAME_PADDING, fitFrameToContent, removeFrame } from '../lib/utils/frames/frames'
 import { TestEditor } from './TestEditor'
@@ -2016,5 +2018,133 @@ describe('When double-clicking a frame edge', () => {
 		const boxPageBoundsAfter = editor.getShapePageBounds(boxId)!
 		expect(boxPageBoundsAfter.x).toBeCloseTo(boxPageBoundsBefore.x)
 		expect(boxPageBoundsAfter.y).toBeCloseTo(boxPageBoundsBefore.y)
+	})
+})
+
+describe('removeFrame', () => {
+	it('leaves non-frame shapes passed alongside a frame in place', () => {
+		const frameId = createShapeId('frame')
+		const childId = createShapeId('child')
+		const rectId = createShapeId('rect')
+		editor.createShapes([
+			{ id: frameId, type: 'frame', x: 0, y: 0, props: { w: 200, h: 200 } },
+			{ id: childId, type: 'geo', parentId: frameId, x: 10, y: 10 },
+			{ id: rectId, type: 'geo', x: 400, y: 0 },
+		])
+
+		removeFrame(editor, [frameId, rectId])
+
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(childId)?.parentId).toBe(editor.getCurrentPageId())
+		expect(editor.getShape(rectId)).toBeDefined()
+	})
+})
+
+describe('Undoing a double-click fit to content', () => {
+	let frameId: TLShapeId
+	let boxId: TLShapeId
+
+	beforeEach(() => {
+		boxId = createRect({ pos: [300, 300], size: [100, 100] })
+		// Drawn with the tool so the frame's creation is a marked undo step the fit could leak into
+		frameId = dragCreateFrame({ down: [100, 100], move: [600, 600], up: [600, 600] })
+		expect(editor.getShape(boxId)).toMatchObject({ parentId: frameId, x: 200, y: 200 })
+	})
+
+	it('undoes a corner double-click as its own step', () => {
+		const frameBefore = editor.getShape(frameId)!
+		const boxBefore = editor.getShape(boxId)!
+
+		editor.doubleClick(100, 100, { target: 'selection', handle: 'top_left' })
+		const frameAfter = editor.getShape(frameId)!
+		const boxAfter = editor.getShape(boxId)!
+		expect(frameAfter).toMatchObject({ x: 290, y: 290, props: { w: 120, h: 120 } })
+		expect(boxAfter).toMatchObject({ x: 10, y: 10 })
+
+		// The first undo unfits the frame rather than deleting it
+		editor.undo()
+		expect(editor.getShape(frameId)).toEqual(frameBefore)
+		expect(editor.getShape(boxId)).toEqual(boxBefore)
+
+		editor.redo()
+		expect(editor.getShape(frameId)).toEqual(frameAfter)
+		expect(editor.getShape(boxId)).toEqual(boxAfter)
+		editor.undo()
+
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 300,
+			y: 300,
+		})
+	})
+
+	it('undoes an edge double-click as its own step, children included', () => {
+		const frameBefore = editor.getShape(frameId)!
+		const boxBefore = editor.getShape(boxId)!
+
+		editor.doubleClick(600, 350, { target: 'selection', handle: 'right' })
+		const frameAfter = editor.getShape(frameId)!
+		const boxAfter = editor.getShape(boxId)!
+		expect(frameAfter).toMatchObject({ x: 290, y: 100, props: { w: 120, h: 500 } })
+		expect(boxAfter).toMatchObject({ x: 10, y: 200 })
+
+		// The children are moved before the frame is, but one undo reverts both
+		editor.undo()
+		expect(editor.getShape(frameId)).toEqual(frameBefore)
+		expect(editor.getShape(boxId)).toEqual(boxBefore)
+
+		editor.redo()
+		expect(editor.getShape(frameId)).toEqual(frameAfter)
+		expect(editor.getShape(boxId)).toEqual(boxAfter)
+		editor.undo()
+
+		editor.undo()
+		expect(editor.getShape(frameId)).toBeUndefined()
+		expect(editor.getShape(boxId)).toMatchObject({
+			parentId: editor.getCurrentPageId(),
+			x: 300,
+			y: 300,
+		})
+	})
+})
+
+describe('frame heading geometry', () => {
+	const frameId = createShapeId('frame')
+
+	beforeEach(() => {
+		editor.createShape<TLFrameShape>({
+			id: frameId,
+			type: 'frame',
+			x: 0,
+			y: 0,
+			props: { w: 10000, h: 10000 },
+		})
+	})
+
+	function getHeadingBounds() {
+		const geometry = editor.getShapeGeometry(frameId) as Group2d
+		return geometry.children.find((child) => child.isLabel)!.bounds
+	}
+
+	it('stops growing past the max heading scale when zoomed out', () => {
+		editor.setCamera({ x: 0, y: 0, z: 1 })
+		expect(getHeadingBounds().h).toBeCloseTo(24)
+
+		editor.setCamera({ x: 0, y: 0, z: 0.5 })
+		expect(getHeadingBounds().h).toBeCloseTo(48)
+
+		editor.setCamera({ x: 0, y: 0, z: 0.1 })
+		expect(getHeadingBounds().h).toBeCloseTo(24 * FRAME_HEADING_MAX_SCALE)
+		expect(getHeadingBounds().maxY).toBeCloseTo(-4 * FRAME_HEADING_MAX_SCALE)
+	})
+
+	it('does not select the frame from empty space above its heading when zoomed out', () => {
+		editor.setCamera({ x: 0, y: 0, z: 0.1 })
+
+		// Above the capped heading (~98 page units) but inside the old 1 / z area (~280)
+		expect(editor.getShapeAtPoint({ x: 100, y: -200 }, { hitLabels: true })).toBeUndefined()
+		expect(editor.getShapeAtPoint({ x: 100, y: -40 }, { hitLabels: true })?.id).toBe(frameId)
 	})
 })

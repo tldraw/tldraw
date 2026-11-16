@@ -41,6 +41,11 @@ jobs:
 
       - uses: ./.github/actions/setup
 
+      - name: Restore build tool caches
+        uses: ./.github/actions/build-cache
+        with:
+          name: test-tools
+
       - name: Build types
         run: pnpm build-types
 

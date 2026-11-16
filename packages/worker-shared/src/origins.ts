@@ -36,6 +36,8 @@ export function isAllowedOrigin(origin: string) {
 	// app gets its own host under this suffix, and the Codex desktop app uses its own scheme
 	// (`codex-sandbox://…`), which is why this matches the suffix rather than a full origin.
 	if (origin.endsWith('.web-sandbox.oaiusercontent.com')) return origin
+	// Claude's MCP app sandbox; Zero forwards this origin to the query and mutate endpoints.
+	if (/^https:\/\/[a-z0-9-]+\.claudemcpcontent\.com$/.test(origin)) return origin
 	return undefined
 }
 

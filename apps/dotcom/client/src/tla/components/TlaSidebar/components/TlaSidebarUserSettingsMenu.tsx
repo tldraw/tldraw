@@ -1,5 +1,7 @@
 import classNames from 'classnames'
 import {
+	defineMessages,
+	F,
 	LanguageMenu,
 	preventDefault,
 	TldrawUiButton,
@@ -9,10 +11,10 @@ import {
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
 	useMenuIsOpen,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	CookieConsentMenuItem,
 	DebugMenuGroup,
@@ -21,7 +23,7 @@ import {
 	ThemeSubmenu,
 	UserManualMenuItem,
 } from '../../menu-items/menu-items'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
@@ -32,8 +34,9 @@ const messages = defineMessages({
 const USER_SETTINGS_MENU_ID = 'user-settings-sidebar'
 
 export function TlaUserSettingsMenu() {
+	const msg = useTranslation()
 	const app = useApp()
-	const userMenuLbl = useMsg(messages.userMenu)
+	const userMenuLbl = msg(messages.userMenu)
 	const user = useValue('auth', () => app.getUser(), [app])
 
 	// The dropdown's open state is keyed globally by its id, so we can reuse the

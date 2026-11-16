@@ -1,12 +1,12 @@
-import { captureException } from '@sentry/react'
 import { useEffect, useMemo } from 'react'
 import { useParams, useRouteError } from 'react-router-dom'
 import { SerializedSchema, TLRecord, TLStoreSnapshot, fetch } from 'tldraw'
 import { defineLoader } from '../../utils/defineLoader'
+import { captureRouteError } from '../../utils/routeErrors'
 import { TlaLegacySnapshotEditor } from '../components/TlaEditor/TlaLegacySnapshotEditor'
 import { TlaFileError } from '../components/TlaFileError/TlaFileError'
+import { ReadyWrapper } from '../hooks/ReadyWrapper'
 import { useMaybeApp } from '../hooks/useAppState'
-import { ReadyWrapper } from '../hooks/useIsReady'
 import { TlaAnonLayout } from '../layouts/TlaAnonLayout/TlaAnonLayout'
 import { TlaSidebarLayout } from '../layouts/TlaSidebarLayout/TlaSidebarLayout'
 import { toggleSidebar } from '../utils/local-session-state'
@@ -38,12 +38,13 @@ const { loader, useMaybeData } = defineLoader(async (args) => {
 	}
 })
 
+// oxlint-disable-next-line react/only-export-components -- React Router reads `loader` from the lazy route module
 export { loader }
 
 export function ErrorBoundary() {
 	const error = useRouteError()
 	useEffect(() => {
-		captureException(error)
+		captureRouteError(error)
 	}, [error])
 	return <Component error={error} />
 }

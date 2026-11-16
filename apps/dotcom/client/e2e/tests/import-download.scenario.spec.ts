@@ -12,7 +12,10 @@ function validateTldrJson(json: unknown) {
 }
 
 test.describe('import and download scenarios', () => {
-	test('owner imports a tldr file from a URL into a scenario file', async ({ owner, scenario }) => {
+	test('owner imports a tldr file from a URL and downloads it from the sidebar', async ({
+		owner,
+		scenario,
+	}) => {
 		await owner.editor.ensureSidebarOpen()
 		const fileCountBefore = await owner.sidebar.getNumberOfFiles()
 
@@ -23,22 +26,14 @@ test.describe('import and download scenarios', () => {
 		}).toPass()
 		expect(importedFile.fileName).toBe('e2e import test')
 		expect(importedFile.url).toMatch(/\/f\//)
-	})
 
-	test('owner downloads a namespaced scenario file from the sidebar', async ({
-		owner,
-		scenario,
-	}) => {
-		const fileName = scenario.name('download file')
-		await scenario.createPersonalFile(owner, fileName)
-
-		const download = await scenario.downloadFileFromSidebar(owner, fileName)
+		const download = await scenario.downloadFileFromSidebar(owner, importedFile.fileName)
 
 		const filePath = await download.path()
 		expect(filePath).toBeTruthy()
 		const json = JSON.parse(fs.readFileSync(filePath!, 'utf-8'))
 		validateTldrJson(json)
-		expect(download.suggestedFilename()).toContain(fileName)
+		expect(download.suggestedFilename()).toContain(importedFile.fileName)
 		expect(download.suggestedFilename()).toMatch(/\.tldr$/)
 	})
 })

@@ -149,19 +149,65 @@ async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: strin
 	await assertUserCanAccessFile(tx, userId, file!)
 }
 
+const isBoolean = (value: unknown) => typeof value === 'boolean'
+const isNumber = (value: unknown) => typeof value === 'number' && Number.isFinite(value)
+const isShortString = (value: unknown) => typeof value === 'string' && value.length <= 64
+/** For an optional column, where null unsets the preference and the editor's default applies. */
+const orNull = (check: (value: unknown) => boolean) => (value: unknown) =>
+	value === null || check(value)
+
+/**
+ * The user preferences `updateUserPreferences` may change, and what each accepts. The editor
+ * preferences in UserPreferencesKeys, less colorScheme (an app embedding the editor owns its
+ * theme) and name (so an agent's token cannot rename its user).
+ */
+const USER_PREFERENCE_VALIDATORS = {
+	locale: orNull(isShortString),
+	animationSpeed: orNull(isNumber),
+	areKeyboardShortcutsEnabled: orNull(isBoolean),
+	edgeScrollSpeed: orNull(isNumber),
+	isSnapMode: orNull(isBoolean),
+	isWrapMode: orNull(isBoolean),
+	isDynamicSizeMode: orNull(isBoolean),
+	isPasteAtCursorMode: orNull(isBoolean),
+	enhancedA11yMode: orNull(isBoolean),
+	inputMode: orNull((value) => value === 'trackpad' || value === 'mouse'),
+	isZoomDirectionInverted: orNull(isBoolean),
+	// Not null: the column is required.
+	color: isShortString,
+} satisfies Partial<Record<keyof TlaUser, (value: unknown) => boolean>>
+
+export type TlaUserPreferenceKey = keyof typeof USER_PREFERENCE_VALIDATORS
+
+/** The keys `updateUserPreferences` accepts, for callers that narrow it further. */
+export const USER_PREFERENCE_KEYS = Object.keys(
+	USER_PREFERENCE_VALIDATORS
+) as readonly TlaUserPreferenceKey[]
+
 export function createMutators(userId: string) {
 	const mutators = {
 		user: {
-			/** @deprecated */
-			insert: async (tx: Tx, user: TlaUser) => {
-				assert(userId === user.id, ZErrorCode.forbidden)
-				await tx.mutate.user.insert(user)
-			},
 			update: async (tx: Tx, user: TlaUserPartial) => {
 				assert(userId === user.id, ZErrorCode.forbidden)
 				disallowImmutableMutations(user, immutableColumns.user)
 				await tx.mutate.user.update(user)
 			},
+		},
+		/** Sets the caller's own editor preferences, and nothing else on their user row. */
+		updateUserPreferences: async (
+			tx: Tx,
+			preferences: Partial<Pick<TlaUser, TlaUserPreferenceKey>>
+		) => {
+			const entries = Object.entries(preferences)
+			for (const [key, value] of entries) {
+				assert(Object.hasOwn(USER_PREFERENCE_VALIDATORS, key), ZErrorCode.forbidden)
+				assert(
+					USER_PREFERENCE_VALIDATORS[key as TlaUserPreferenceKey](value),
+					ZErrorCode.bad_request
+				)
+			}
+			if (entries.length === 0) return
+			await tx.mutate.user.update({ ...preferences, id: userId })
 		},
 		file: {
 			update: async (tx: Tx, _file: TlaFilePartial) => {
@@ -443,6 +489,13 @@ export function createMutators(userId: string) {
 		},
 		createWorkspace: async (tx: Tx, { id, name }: { id: string; name: string }) => {
 			assertValidId(id)
+			// Server inserts are ON CONFLICT DO NOTHING, so reusing an existing id would skip the
+			// group insert yet still make the caller its owner below. Home workspace ids are user
+			// ids, refused by prefix too so a home can't be squatted before its user row exists.
+			assert(!id.startsWith('user_'), ZErrorCode.forbidden)
+			await assertNotHomeWorkspace(tx, id)
+			const existingGroup = await tx.run(zql.group.where('id', '=', id).one())
+			assert(!existingGroup, ZErrorCode.forbidden)
 
 			const clampedName = name.trim().slice(0, MAX_WORKSPACE_NAME_LENGTH)
 			assert(clampedName, ZErrorCode.bad_request)
@@ -565,6 +618,7 @@ export function createMutators(userId: string) {
 		) => {
 			assert(workspaceId, ZErrorCode.bad_request)
 			assert(targetUserId, ZErrorCode.bad_request)
+			await assertNotHomeWorkspace(tx, workspaceId)
 
 			const role = await getRole(tx, userId, workspaceId)
 			assert(can(role, 'manageWorkspace'), ZErrorCode.forbidden)

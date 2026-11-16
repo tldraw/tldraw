@@ -1,4 +1,4 @@
-import { defineMessages } from '../../utils/i18n'
+import { defineMessages } from 'tldraw'
 
 export const editorMessages = defineMessages({
 	file: { defaultMessage: 'File' },
@@ -6,4 +6,5 @@ export const editorMessages = defineMessages({
 	downloadFile: { defaultMessage: 'Download' },
 	copyToMyfiles: { defaultMessage: 'Copy to my workspace' },
 	anonymousUser: { defaultMessage: 'Guest user' },
+	signInToComment: { defaultMessage: 'Sign in to comment' },
 })

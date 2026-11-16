@@ -1,67 +1,63 @@
 import { captureException } from '@sentry/react'
 import { CommentTool, commentToolOverrides } from '@tldraw/commenting'
-import { TLCustomServerEvent, getLicenseKey } from '@tldraw/dotcom-shared'
-import { useSync } from '@tldraw/sync'
 import { useCallback, useEffect, useMemo, useRef } from 'react'
 import {
+	createDebugValue,
+	createSessionStateSnapshotSignal,
+	debugFlags,
+	DefaultContextMenu,
+	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
+	defineMessages,
 	Editor,
-	TLComponents,
-	TLSessionStateSnapshot,
-	TLUiDialogsContextType,
-	TLUserStore,
-	Tldraw,
-	TldrawUiMenuItem,
-	UserRecordType,
-	commentSchemaRecords,
-	computed,
-	createSessionStateSnapshotSignal,
-	createUserId,
 	react,
 	throttle,
+	TLComponents,
+	Tldraw,
+	TldrawUiMenuItem,
+	TLSessionStateSnapshot,
 	tltime,
+	TLUiDialogsContextType,
 	useAtom,
 	useDialogs,
 	useEditor,
 	useEvent,
 	useToasts,
+	useTranslation,
 	useValue,
 } from 'tldraw'
 import { SneakyMermaidHandler } from '../../../components/SneakyMermaidHandler/SneakyMermaidHandler'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { usePerformanceTracking } from '../../../hooks/usePerformanceTracking'
-import { useRoomLoadTracking } from '../../../hooks/useRoomLoadTracking'
+import {
+	boardSizeFields,
+	estimateFileSizeBucket,
+	useRoomLoadTracking,
+} from '../../../hooks/useRoomLoadTracking'
 import { trackEvent, useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
-import { CLIENT_BUILD_TIMESTAMP, MULTIPLAYER_SERVER } from '../../../utils/config'
 import { createAssetFromUrl } from '../../../utils/createAssetFromUrl'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
-import {
-	getFirstLoadId,
-	hasFirstLoadStep,
-	markFirstLoad,
-	reportFirstLoad,
-	setFirstLoadServerTimings,
-} from '../../../utils/firstLoad'
+import { reportFileLoad } from '../../../utils/fileLoad'
+import { markFirstLoad, reportFirstLoad } from '../../../utils/firstLoad'
 import { globalEditor } from '../../../utils/globalEditor'
-import { multiplayerAssetStore } from '../../../utils/multiplayerAssetStore'
+import { LOADS_DEBUG_FLAG } from '../../../utils/loadTracker'
 import { TldrawApp } from '../../app/TldrawApp'
+import { ReadyWrapper } from '../../hooks/ReadyWrapper'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
-import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
+import { useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
-import { useTldrawCurrentUser } from '../../hooks/useUser'
-import { defineMessages, useMsg } from '../../utils/i18n'
+import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
-import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
-import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
-import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
-import { TlaEditorSharePanel } from './editor-components/TlaEditorSharePanel'
-import { TlaEditorTopPanel } from './editor-components/TlaEditorTopPanel'
+import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
+import { registerAgentBylineEditHandler } from './agentCommentEdits'
+import { CommentsOnCanvas, SignInToComment } from './CommentsOnCanvas'
+import { useFileEditorRef, useFileLoad, useFileSyncStore } from './fileSyncHostContext'
 import { SneakyCommentDeepLink } from './sneaky/SneakyCommentDeepLink'
 import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
@@ -69,8 +65,12 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { TlaPinContent, TlaThreadRow } from './TlaAgentCommentSurfaces'
+import { TlaCommentByline } from './TlaCommentByline'
 import { A11yAudit } from './TlaDebug'
+import { components } from './tlaEditorComponents'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
+import { useAnonCommentToolOverrides } from './useAnonCommentToolOverrides'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -78,6 +78,7 @@ const messages = defineMessages({
 	slurpFailed: {
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
+	fileHistory: { defaultMessage: 'File history' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -86,27 +87,31 @@ const messages = defineMessages({
 const tlaCommentTools = [
 	CommentTool.configure({
 		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
-		components: { ComposerFallback: SignInToComment },
+		components: {
+			ComposerFallback: SignInToComment,
+			CommentByline: TlaCommentByline,
+			ThreadRow: TlaThreadRow,
+			PinContent: TlaPinContent,
+		},
 	}),
 ]
-
-/** @internal */
-export const components: TLComponents = {
-	ErrorFallback: TlaEditorErrorFallback,
-	MenuPanel: TlaEditorMenuPanel,
-	TopPanel: TlaEditorTopPanel,
-	SharePanel: TlaEditorSharePanel,
-	Dialogs: null,
-	Toasts: null,
-	// No loading screen on tla editors: the editor only mounts once it's ready,
-	// so a spinner would only flash before the content appears.
-	LoadingScreen: null,
-}
 
 interface TlaEditorProps {
 	fileSlug: string
 	isEmbed?: boolean
 	deepLinks?: boolean
+}
+
+function SneakyFileEditorRegistration() {
+	const editor = useEditor()
+	const editorRef = useFileEditorRef()
+	useEffect(() => {
+		editorRef.current = editor
+		return () => {
+			editorRef.current = null
+		}
+	}, [editor, editorRef])
+	return null
 }
 
 export function TlaEditor(props: TlaEditorProps) {
@@ -122,6 +127,9 @@ export function TlaEditor(props: TlaEditorProps) {
 }
 
 function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps) {
+	const msg = useTranslation()
+	const fileLoad = useFileLoad()
+	fileLoad.mark('editor-rendered')
 	markFirstLoad('editor-rendered')
 	const handleUiEvent = useHandleUiEvents()
 	const app = useMaybeApp()
@@ -130,12 +138,11 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 	const setIsReady = useSetIsReady()
 	const { addToast } = useToasts()
-	const slurpFailedMsg = useMsg(messages.slurpFailed)
 	const showSlurpFailure = useEvent(() => {
 		addToast({
 			id: 'local-file-restore-failed',
 			severity: 'warning',
-			title: slurpFailedMsg,
+			title: msg(messages.slurpFailed),
 			keepOpen: true,
 		})
 	})
@@ -162,6 +169,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		})
 	}, [hideAllShapes])
 
+	const store = useFileSyncStore()
+
 	const trackRoomLoaded = useRoomLoadTracking()
 	const trackNewRoomCreation = useNewRoomCreationTracking()
 	const trackShareLinkOpen = useShareLinkOpenTracking()
@@ -170,12 +179,14 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const handleMount = useCallback(
 		(editor: Editor) => {
 			markFirstLoad('editor-mounted')
+			fileLoad.mark('editor-mounted')
 			trackRoomLoaded(editor)
 			trackNewRoomCreation(app, fileId)
 			trackShareLinkOpen(app, fileId, isEmbed)
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
+			;(window as any).canvasOpsReceiver = createCanvasOpsReceiver(editor)
 			// Register the editor globally
 			globalEditor.set(editor)
 
@@ -184,9 +195,16 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 
 			if (!app) {
 				setIsReady()
-				// Signed-out loads record every step too; the report itself is gated on the account.
 				markFirstLoad('board-visible')
-				reportFirstLoad({ email: null, flagEnabled: false, trackEvent })
+				fileLoad.mark('board-visible')
+				const size = boardSizeFields(editor)
+				reportFirstLoad({ email: null, flagEnabled: false, trackEvent, fileLoad, extra: size })
+				reportFileLoad(fileLoad, {
+					email: null,
+					flagEnabled: false,
+					trackEvent,
+					extra: { file_size_bucket: estimateFileSizeBucket(editor), ...size },
+				})
 				return
 			}
 
@@ -219,6 +237,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				editor.navigateToDeepLink()
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
+			const cleanupAgentBylineEdits = registerAgentBylineEditHandler(editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -245,21 +264,33 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 					if (abortController.signal.aborted) return
 					setIsReady()
 					markFirstLoad('board-visible')
+					fileLoad.mark('board-visible')
+					const size = boardSizeFields(editor)
 					reportFirstLoad({
 						email: app?.email,
-						flagEnabled: app?.isFirstLoadRumEnabled ?? false,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
 						trackEvent,
+						fileLoad,
+						extra: size,
+					})
+					reportFileLoad(fileLoad, {
+						email: app?.email,
+						flagEnabled: app?.isLoadRumEnabled ?? false,
+						trackEvent,
+						extra: { file_size_bucket: estimateFileSizeBucket(editor), ...size },
 					})
 				})
 
 			return () => {
 				cleanupPerf()
 				fileStateUpdater.dispose()
+				cleanupAgentBylineEdits()
 				abortController.abort()
 			}
 		},
 		[
 			addDialog,
+			fileLoad,
 			trackRoomLoaded,
 			trackNewRoomCreation,
 			trackShareLinkOpen,
@@ -273,60 +304,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		]
 	)
 
-	const user = useTldrawCurrentUser()
-	const getUserToken = useEvent(async () => {
-		return (await user?.getToken()) ?? 'not-logged-in'
-	})
-	const hasUser = !!user
-	const assets = useMemo(() => {
-		return multiplayerAssetStore({ getFileId: () => fileId, getToken: getUserToken })
-	}, [fileId, getUserToken])
-
-	const users: TLUserStore = useMemo(() => {
-		const prefs = app?.tlUser.userPreferences
-		// Signed out, attribute nothing: useSync's default store would stamp the local preferences id,
-		// which authorizeFileRecord rejects for a guest session, rolling back note edits and duplicates.
-		if (!prefs) return { currentUser: computed('currentUser', () => null) }
-		const currentUser = computed('currentUser', () => {
-			const p = prefs.get()
-			return UserRecordType.create({
-				id: createUserId(p.id),
-				name: p.name ?? '',
-				color: p.color ?? '',
-			})
-		})
-		return {
-			currentUser,
-		}
-	}, [app?.tlUser.userPreferences])
-
-	const store = useSync({
-		uri: useCallback(async () => {
-			const url = new URL(`${MULTIPLAYER_SERVER}/app/file/${fileSlug}`)
-			url.searchParams.set('v', CLIENT_BUILD_TIMESTAMP)
-			// Only the first connect belongs to the load; a reconnect carrying the id would make the
-			// server park and send an echo the client already has, and tag its timers as first-load.
-			if (!hasFirstLoadStep('sync-connected')) url.searchParams.set('loadId', getFirstLoadId())
-			if (hasUser) {
-				url.searchParams.set('accessToken', await getUserToken())
-				markFirstLoad('sync-token-fetched')
-			}
-			return url.toString()
-		}, [fileSlug, hasUser, getUserToken]),
-		assets,
-		users,
-		// Register the opt-in `comment` record type so comment records sync through the file room.
-		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
-		records: commentSchemaRecords,
-		onCustomMessageReceived: useCallback((message: TLCustomServerEvent) => {
-			if (message.type === 'first_load_server') {
-				setFirstLoadServerTimings(message)
-				return
-			}
-			trackEvent(message.type)
-		}, []),
-	})
-
 	// we need to prevent recording the file exit if the store is in an error state
 	const storeError = useRef(false)
 	if (store.status === 'error') {
@@ -334,10 +311,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	}
 
 	// Handle entering and exiting the file, with some protection against rapid enters/exits
-	useEffect(() => {
-		if (store.status === 'synced-remote') markFirstLoad('sync-connected')
-	}, [store.status])
-
 	useEffect(() => {
 		if (!app) return
 		if (store.status !== 'synced-remote') return
@@ -373,15 +346,24 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	const overrides = useFileEditorOverrides({ fileSlug })
 	const extraDragIconOverrides = useExtraDragIconOverrides()
 	const anonCommentToolOverrides = useAnonCommentToolOverrides()
-	const commentingEnabled = useIsCommentingEnabled()
+	const commentingEnabled = useIsCommentingEnabledForUser()
 
 	const instanceComponents = useMemo((): TLComponents => {
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} />
-				: undefined,
+			ContextMenu: (props) => (
+				<DefaultContextMenu {...props}>
+					<TlaAddToLibraryMenuItem />
+					<DefaultContextMenuContent />
+				</DefaultContextMenu>
+			),
+			InFrontOfTheCanvas: () => (
+				<>
+					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
+					<TlaLibrariesPanel />
+				</>
+			),
 		}
 	}, [fileId, commentingEnabled])
 
@@ -397,7 +379,6 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
 				store={store}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
@@ -420,6 +401,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyFileEditorRegistration />
 				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>
@@ -427,19 +409,24 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 	)
 }
 
+const DOTCOM_DEBUG_FLAGS = {
+	...debugFlags,
+	logLoads: createDebugValue(LOADS_DEBUG_FLAG, { defaults: { all: false } }),
+}
+
 function CustomDebugMenu() {
 	const app = useMaybeApp()
-	const user = useTldrawCurrentUser()
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const msg = useTranslation()
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
-			{!isReadOnly && app && user?.isTldraw && (
+			{!isReadOnly && app && (
 				<TldrawUiMenuItem
-					id="user-manual"
-					label="File history"
+					id="file-history"
+					label={msg(messages.fileHistory)}
 					readonlyOk
 					onSelect={() => {
 						const url = new URL(window.location.href)
@@ -448,7 +435,7 @@ function CustomDebugMenu() {
 					}}
 				/>
 			)}
-			<DefaultDebugMenuContent />
+			<DefaultDebugMenuContent customDebugFlags={DOTCOM_DEBUG_FLAGS} />
 		</DefaultDebugMenu>
 	)
 }

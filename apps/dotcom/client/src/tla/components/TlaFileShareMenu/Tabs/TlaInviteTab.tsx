@@ -1,6 +1,6 @@
 import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
-import { useEditor, useValue } from 'tldraw'
+import { defineMessages, F, useEditor, useTranslation, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useEditorDeepLink } from '../../../hooks/useDeepLink'
@@ -8,7 +8,6 @@ import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useTldrawCurrentUser } from '../../../hooks/useUser'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../../utils/copy'
-import { F, defineMessages, useMsg } from '../../../utils/i18n'
 import {
 	TlaMenuControl,
 	TlaMenuControlGroup,
@@ -92,6 +91,7 @@ function TlaSharedToggle({ isShared, fileId }: { isShared: boolean; fileId: stri
 }
 
 function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
+	const msg = useTranslation()
 	const app = useApp()
 	const user = useTldrawCurrentUser()
 	const trackEvent = useTldrawAppUiEvents()
@@ -113,8 +113,6 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 		[app, fileId, trackEvent]
 	)
 
-	const label = useMsg(sharedLinkType === 'edit' ? messages.editor : messages.viewer)
-
 	return (
 		<TlaMenuControl>
 			<TlaMenuControlLabel htmlFor="tla-shared-link-type-select">
@@ -123,7 +121,7 @@ function TlaSelectSharedLinkType({ fileId }: { fileId: string }) {
 			<TlaMenuSelect
 				id="tla-shared-link-type-select"
 				data-testid="shared-link-type-select"
-				label={label}
+				label={msg((sharedLinkType === 'edit' ? messages.editor : messages.viewer).id)}
 				value={sharedLinkType!}
 				onChange={handleSelectChange}
 				options={[

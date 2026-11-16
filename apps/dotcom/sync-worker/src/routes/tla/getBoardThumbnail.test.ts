@@ -44,7 +44,11 @@ async function storeThumbnail(
 
 beforeEach(() => {
 	vi.mocked(getAuth).mockResolvedValue({ userId: 'user-1' } as any)
-	vi.mocked(resolveSharedBoardForUser).mockResolvedValue({ ok: true, board: BOARD as any })
+	vi.mocked(resolveSharedBoardForUser).mockResolvedValue({
+		ok: true,
+		board: BOARD as any,
+		fileName: 'Board',
+	})
 })
 
 afterEach(() => vi.clearAllMocks())
@@ -212,7 +216,7 @@ describe('getBoardThumbnail', () => {
 		})
 
 		it('resolves against the OAuth token’s user', async () => {
-			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: true, userId: 'user-2' })
+			vi.mocked(getMcpTokenAuth).mockResolvedValue({ ok: true, userId: 'user-2', clientId: null })
 			const bucket = makeFakeThumbnailsBucket()
 			await storeThumbnail(bucket)
 

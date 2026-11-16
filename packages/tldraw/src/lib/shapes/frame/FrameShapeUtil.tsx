@@ -31,6 +31,7 @@ import {
 import { ShapeOptionsWithDisplayValues, getDisplayValues } from '../shared/getDisplayValues'
 import { FrameHeading } from './components/FrameHeading'
 import {
+	FRAME_HEADING_MAX_SCALE,
 	defaultEmptyAs,
 	getFrameHeadingOpts,
 	getFrameHeadingSide,
@@ -162,18 +163,21 @@ export class FrameShapeUtil extends BaseFrameLikeShapeUtil<TLFrameShape> {
 		// and add that extra width to the right side of the label
 		const isShowingFrameColors = this.options.showColors
 
-		// Scale everything into **screen space**
-		const extraWidth = FRAME_HEADING_EXTRA_WIDTH / z
-		const minWidth = FRAME_HEADING_MIN_WIDTH / z
-		const maxWidth = rotatedTopEdgeWidth + (isShowingFrameColors ? 1 : extraWidth)
+		// Must match the heading's capped CSS scale, or zooming out leaves a hit
+		// area much taller than the visible heading
+		const scale = Math.min(1 / z, FRAME_HEADING_MAX_SCALE)
 
-		const labelWidth = headingSize.w / z
-		const labelHeight = headingSize.h / z
+		const extraWidth = FRAME_HEADING_EXTRA_WIDTH * scale
+		const minWidth = FRAME_HEADING_MIN_WIDTH * scale
+		const maxWidth = rotatedTopEdgeWidth * z * scale + (isShowingFrameColors ? 1 : extraWidth)
+
+		const labelWidth = headingSize.w * scale
+		const labelHeight = headingSize.h * scale
 
 		const clampedLabelWidth = clamp(labelWidth + extraWidth, minWidth, maxWidth)
 
-		const offsetX = (isShowingFrameColors ? -1 : FRAME_HEADING_NOCOLORS_OFFSET_X) / z
-		const offsetY = FRAME_HEADING_OFFSET_Y / z
+		const offsetX = (isShowingFrameColors ? -1 : FRAME_HEADING_NOCOLORS_OFFSET_X) * scale
+		const offsetY = FRAME_HEADING_OFFSET_Y * scale
 
 		// In page space
 		const width = isVertical ? labelHeight : clampedLabelWidth

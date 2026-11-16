@@ -1,4 +1,4 @@
-import type { UserResource } from '@clerk/types'
+import type { UserResource } from '@clerk/react/types'
 import { describe, expect, it } from 'vitest'
 import { getIsTldrawStaff } from './useUser'
 

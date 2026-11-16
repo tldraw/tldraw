@@ -76,6 +76,17 @@ export {
 	type TLLoadSnapshotOptions,
 } from './lib/config/TLEditorSnapshot'
 export {
+	defaultI18n,
+	defineMessages,
+	getDeclaredMessages,
+	translateMessage,
+	type TLI18n,
+	type TLI18nAdapter,
+	type TLI18nMessage,
+	type TLI18nMessageInput,
+	type TLI18nValues,
+} from './lib/config/TLI18n'
+export {
 	createSessionStateSnapshotSignal,
 	extractSessionStateFromLegacySnapshot,
 	loadSessionStateSnapshotIntoStore,
@@ -439,17 +450,18 @@ export {
 } from './lib/primitives/utils'
 export { Vec, type VecLike } from './lib/primitives/Vec'
 export {
+	EditorI18nFallbackContext,
 	ErrorScreen,
 	LoadingScreen,
-	TldrawEditor,
-	useOnMount,
 	type LoadingScreenProps,
+	TldrawEditor,
 	type TldrawEditorBaseProps,
 	type TldrawEditorProps,
 	type TldrawEditorStoreProps,
 	type TldrawEditorWithoutStoreProps,
 	type TldrawEditorWithStoreProps,
 	type TLOnMountHandler,
+	useOnMount,
 } from './lib/TldrawEditor'
 export { dataUrlToFile, getDefaultCdnBaseUrl } from './lib/utils/assets'
 export { clampToBrowserMaxCanvasSize, type CanvasMaxSize } from './lib/utils/browserCanvasMaxSize'

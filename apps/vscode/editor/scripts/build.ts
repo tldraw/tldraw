@@ -1,7 +1,6 @@
 import fs from 'fs'
 import path from 'path'
 import esbuild from 'esbuild'
-import fse, { exists } from 'fs-extra'
 import { logEnv } from './cli'
 import { getDirname } from './path'
 
@@ -11,7 +10,7 @@ const log = logEnv('editor')
 export async function build() {
 	try {
 		const targetFolder = `${rootDir}dist/`
-		if (await exists(targetFolder)) {
+		if (fs.existsSync(targetFolder)) {
 			log({ cmd: 'remove', args: { target: targetFolder } })
 			await fs.promises.rm(targetFolder, { recursive: true })
 		}
@@ -24,7 +23,7 @@ export async function build() {
 			const dest = targetFolder + path.basename(file)
 			const source = path.join(topSource, file)
 			log({ cmd: 'copy', args: { source, dest } })
-			await fse.copy(source, dest)
+			await fs.promises.cp(source, dest, { recursive: true })
 		}
 		const entryPoints = [`${rootDir}src/index.tsx`]
 

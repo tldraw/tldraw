@@ -2,7 +2,6 @@ import { execSync } from 'child_process'
 import { existsSync, readFileSync, readdirSync, writeFileSync } from 'fs'
 import path, { join } from 'path'
 import { Octokit } from '@octokit/rest'
-import { fetch } from 'cross-fetch'
 import { glob } from 'glob'
 import { parse } from 'semver'
 import { exec } from './exec'
@@ -309,6 +308,30 @@ export async function publishProductionDocsAndExamplesAndBemo({
 }: { gitRef?: string } = {}) {
 	await exec('git', ['push', 'origin', `${gitRef}:docs-production`, `--force`])
 	await exec('git', ['push', 'origin', `${gitRef}:bemo-production`, `--force`])
+}
+
+// Without `workflows` permission GitHub sometimes rejects one ref of a push ("Unable to determine if
+// workflow can be created or updated due to timeout"). --atomic lands the branch and tag together or
+// not at all, so a retry or job re-run starts clean.
+export async function pushReleaseCommitAndTag(refspec?: string) {
+	await retry(
+		async ({ attempt, remaining, total }) => {
+			try {
+				await exec('git', [
+					'push',
+					'--atomic',
+					'--follow-tags',
+					...(refspec ? ['origin', refspec] : []),
+				])
+			} catch (e) {
+				nicelog(
+					`[push] git push rejected, attempt ${attempt + 1} of ${total}${remaining > 1 ? ', retrying' : ''}`
+				)
+				throw e
+			}
+		},
+		{ delay: 10_000, numAttempts: 5 }
+	)
 }
 
 export async function triggerBumpVersionsWorkflow(ghToken: string) {

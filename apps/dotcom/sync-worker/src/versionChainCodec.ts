@@ -13,8 +13,8 @@ export async function encodeVersionBody(
 }
 
 /**
- * The stamp is what decides, not a magic byte: legacy full copies and anything written before
- * compression landed are plain JSON, and both have to keep reading correctly forever.
+ * The stamp is what decides, not a magic byte: anything written before compression landed is
+ * plain JSON, and has to keep reading correctly forever.
  */
 export function isGzippedVersionBody(object: R2Object): boolean {
 	return object.customMetadata?.[ENCODING_METADATA_KEY] === 'gzip'

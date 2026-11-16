@@ -1,8 +1,6 @@
-import { useUser } from '@clerk/clerk-react'
-import classNames from 'classnames'
+import { useUser } from '@clerk/react'
 import { useCallback, useState } from 'react'
-import { TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'
-import { F } from '../../utils/i18n'
+import { F, TldrawUiDialogBody, TldrawUiDialogHeader, TldrawUiDialogTitle } from 'tldraw'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import styles from './auth.module.css'
@@ -67,7 +65,7 @@ export function TlaLegalAcceptance({ onClose }: { onClose(): void }) {
 					data-testid="tla-accept-and-continue-button"
 					onClick={handleContinue}
 					disabled={isSubmitting}
-					className={classNames(styles.authCtaButton, styles.legalCtaButton)}
+					className={styles.authCtaButton}
 				>
 					<F defaultMessage="Accept and continue" />
 				</TlaCtaButton>

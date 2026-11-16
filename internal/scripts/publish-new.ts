@@ -1,6 +1,6 @@
 import assert from 'assert'
+import { parseArgs } from 'util'
 import { Octokit } from '@octokit/rest'
-import minimist from 'minimist'
 import { SemVer, parse } from 'semver'
 import { exec } from './lib/exec'
 import { makeEnv } from './lib/makeEnv'
@@ -9,6 +9,7 @@ import {
 	getLatestTldrawVersionFromNpm,
 	publish,
 	publishProductionDocsAndExamplesAndBemo,
+	pushReleaseCommitAndTag,
 	setAllVersions,
 	triggerBumpVersionsWorkflow,
 } from './lib/publishing'
@@ -26,8 +27,8 @@ type ReleaseType =
 	  }
 
 function getReleaseType(): ReleaseType {
-	const arg = minimist(process.argv.slice(2))['bump']
-	if (!arg) {
+	const arg = parseArgs({ options: { bump: { type: 'string' } }, strict: false }).values['bump']
+	if (typeof arg !== 'string' || !arg) {
 		throw new Error('Must provide a --bump argument')
 	}
 	if (arg === 'major' || arg === 'minor') {
@@ -120,7 +121,7 @@ async function main() {
 	const branchName = `v${major}.${minor}.x`
 	// create and push a new tag to the release branch
 	await exec('git', ['tag', '-a', gitTag, '-m', gitTag, '-f'])
-	await exec('git', ['push', 'origin', `HEAD:refs/heads/${branchName}`, '--follow-tags'])
+	await pushReleaseCommitAndTag(`HEAD:refs/heads/${branchName}`)
 	await publishProductionDocsAndExamplesAndBemo()
 
 	// convert draft release to published release

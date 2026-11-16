@@ -31,7 +31,7 @@ editor.createShape({
 
 ## Creating frames
 
-You can create a frame programmatically with [Editor#createShape](?), or interactively with the frame tool. The frame tool ships in the default toolbar; users can also press `F` to switch to it. The **Frame selection** action (`Cmd/Ctrl+Alt+G`) wraps the current selection in a new frame.
+You can create a frame programmatically with [Editor#createShape](?), or interactively with the frame tool. The frame tool ships in the default toolbar; users can also press `F` to switch to it. The **Frame selection** action wraps the current selection in a new frame. `Cmd/Ctrl+Alt+G` runs the `toggle-frame` action: it frames the selection, or removes the frame if only frames are selected. Override `toggle-frame` to rebind it.
 
 When the user drags a frame around existing shapes, the frame tool reparents any sibling shapes that fall fully inside the frame's bounds. Locked shapes are skipped. This is what makes "draw a frame around the things I want to group" work as a single gesture.
 
@@ -114,7 +114,7 @@ import { removeFrame } from 'tldraw'
 removeFrame(editor, [frameId])
 ```
 
-The **Remove frame** and **Fit frame to content** actions in the main menu and the context menu's Edit submenu call these helpers when a frame is selected. **Frame selection** (`Cmd/Ctrl+Alt+G`) also removes frames when every selected shape is a frame.
+The **Remove frame** and **Fit frame to content** actions in the main menu and the context menu's Edit submenu call these helpers when a frame is selected. **Remove frame** (`remove-frame`) has its own shortcut, `Cmd/Ctrl+Alt+Shift+G`.
 
 ## Exporting frames
 

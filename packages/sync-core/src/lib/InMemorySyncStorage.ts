@@ -7,7 +7,7 @@ import {
 	TLDOCUMENT_ID,
 	TLPageId,
 } from '@tldraw/tlschema'
-import { assert, IndexKey, objectMapEntries, throttle } from '@tldraw/utils'
+import { assert, IndexKey, objectMapEntries, throttle, type ThrottledFunction } from '@tldraw/utils'
 import { MicrotaskNotifier } from './MicrotaskNotifier'
 import { RoomSnapshot } from './TLSyncRoom'
 import {
@@ -247,7 +247,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
 	}
 
 	/** @internal */
-	pruneTombstones: ReturnType<typeof throttle<() => void>> = throttle(
+	pruneTombstones: ThrottledFunction<() => void> = throttle(
 		() => {
 			if (this.tombstones.size > MAX_TOMBSTONES) {
 				// Convert to array and sort by clock ascending (oldest first)

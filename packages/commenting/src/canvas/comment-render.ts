@@ -4,10 +4,12 @@ import { renderHtmlFromRichTextWithExtensions, TLRichText } from 'tldraw'
 import { commentTipTapExtensions, isCommentEmpty } from '../ui/comment-extensions'
 
 /**
- * The author name shown in a byline when no source can name an id (e.g. a deleted account, or a
- * member with no comment and no live presence). The toolkit's one generic default, applied where a
- * byline needs a name; hosts pre-empt it by resolving the id from `resolveAuthor`. Not a
- * translation key — a single English literal.
+ * The author name used when no source can name an id (e.g. a deleted account, or a member with no
+ * comment and no live presence). Hosts pre-empt it by resolving the id from `resolveAuthor`.
+ *
+ * The English fallback, for the places that can't translate: it's a module constant, so the UI
+ * reads `comments.unknown-author` instead and only lands here when there are no translations at
+ * all. Pass a translated name to {@link summarizeReactions} for the same reason.
  */
 export const UNKNOWN_AUTHOR = 'Someone'
 

@@ -16,6 +16,8 @@ dist
 dist-cjs
 dist-esm
 .tsbuild*
+.turbo
+# cache from prior tooling (lazyrepo)
 .lazy
 dist-ssr
 *.local
@@ -56,11 +58,6 @@ tsconfig.build.json
 
 api-json
 api-md
-
-packages/tldraw/tldraw.css
-packages/namespaced-tldraw/tldraw.css
-packages/commenting/commenting.css
-packages/collaboration/collaboration.css
 
 packages/assets/embed-icons
 packages/assets/fonts

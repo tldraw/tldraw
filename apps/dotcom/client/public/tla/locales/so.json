@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Waxaan ka shaqeyneynaa taageerada faylasha ka imanaya <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Ku jiid faylka dhinaca bar-side ee boggan. Ama ka dooro 'Faylka Import' ee liiska isticmaalaha."
-  },
   "043973ec1f": {
     "translation": "Weli dhib baa haysta? {GetHelpLink}"
   },
@@ -73,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "Samee fayl"
+  },
+  "1a7222b4e5": {
+    "translation": "U guur"
   },
   "1da2e8106b": {
     "translation": "Khalad lama filaan ah ayaa dhacay"
@@ -139,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Ka saar xubinta"
+  },
+  "398f51738e": {
+    "translation": "Soo gal si aad u aqbasho martiqaadkan."
   },
   "3bc7d6ea2f": {
     "translation": "Ku sii wad iimaylka"
@@ -208,9 +211,6 @@
   },
   "54286b1d01": {
     "translation": "Xadka wada shaqayntu waa la gaadhay"
-  },
-  "545241e7dd": {
-    "translation": "{count} lama akhrin"
   },
   "550b25cc0c": {
     "translation": "Ma soo celin karin sawirkaaga maxalliga ah. Isku day inaad dib u soo celiso boggan."
@@ -311,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Fadlan dib u soo deji bogga"
   },
+  "747ee44424": {
+    "translation": "Keydi macluumaadka sida fayl .tldr ah: dooro 'Keydso nuqul' liiska bidix ee sare."
+  },
   "74ff4bad28": {
     "translation": "Faylal lama helin"
   },
@@ -386,9 +389,6 @@
   "85a082de1b": {
     "translation": "Fadlan dib u cusbooneysii bogga si aad u hesho nuqulkii ugu dambeeyay ee tldraw."
   },
-  "86353d2c41": {
-    "translation": "Lagu daray {total} .tldr files."
-  },
   "86c66437fd": {
     "translation": "Magaca beddelo faylka"
   },
@@ -415,6 +415,9 @@
   },
   "90646db02d": {
     "translation": "Ma hubtaa inaad rabto inaad tirtirto <strong>{workspaceName}</strong>? Ficilkan lama celin karo."
+  },
+  "930390d222": {
+    "translation": "Xiriirinta casuumaadda la koobiyay"
   },
   "95aacd4d4a": {
     "translation": "Ku gal Google"
@@ -458,8 +461,8 @@
   "a078644c42": {
     "translation": "Waxaa laguugu martiqaaday inaad ku biirto <strong>{workspaceName}</strong>."
   },
-  "a0da245992": {
-    "translation": "U dhoofi waxa ku jira sidii faylka .tldr: Dooro 'Download' menu-ka sare ee bidix."
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# aan la akhrin} other {# aan la akhrin}}"
   },
   "a104439641": {
     "translation": "suufka"
@@ -537,6 +540,9 @@
   "b6f4a2ec63": {
     "translation": "Mulkiilaha"
   },
+  "b74dbb40c5": {
+    "translation": "Faylka u jiid dhinaca dambe ee boggan. Ama dooro ikhtiyaarka 'Soo dejiso faylka' ee ku yaal liiska Faylka ee ku yaal bidixda sare."
+  },
   "b758336699": {
     "translation": "Koobiga isku xirka"
   },
@@ -547,7 +553,7 @@
     "translation": "Martiqaadyada waa la joojiyay"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Soo dejinaya faylka .tldr…} other {Soo dejinta {uploaded} ee {total} .tldr files…}}"
+    "translation": "{total, plural, one {Soo dejinaya faylka .tldr…} other {Soo dejinaya {uploaded} ka mid ah {total} fayl .tldr…}}"
   },
   "bc88b0e89e": {
     "translation": "Waxaa wadaaga {ownerName}"
@@ -558,14 +564,14 @@
   "c2276c9127": {
     "translation": "Wax badan ka baro wadaagga"
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Waxaa lagu daray # faylka .tldr.} other {Waxaa lagu daray # faylasha .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Aan awoodin in la daabaco faylka"
   },
   "c4b39a1cc3": {
     "translation": "Kukiyada muhiimka ah"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Xarig dheer"
   },
   "c6a00f137b": {
     "translation": "martiqaad"
@@ -645,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "ama"
   },
+  "ea13ecec38": {
+    "translation": "Taariikhda faylka"
+  },
   "ea4788705e": {
     "translation": "Jooji"
   },
@@ -659,9 +668,6 @@
   },
   "ec611e9a08": {
     "translation": "Liiska xisaabta"
-  },
-  "ed53713239": {
-    "translation": "i18n: Accent"
   },
   "ed75712b0e": {
     "translation": "nuqul"
@@ -690,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Tirtir"
   },
+  "f408fa5fbd": {
+    "translation": "Xiriiriyahan martiqaadku waa mid aan sax ahayn ama wuu dhacay."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> iyo {count, plural, one {# qof kale} other {# dad kale}} ayaa ka falceliyay faalladaada"
   },
@@ -716,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Samee akoon bilaash ah si aad u kaydiso faylashaada oo aad ula wadaagto asxaabtaada."
+  },
+  "ffad261a48": {
+    "translation": "Khalad ayaa ka jira aqbalidda martiqaadka"
   },
   "ffcd73e997": {
     "translation": "Soo rar faylka…"

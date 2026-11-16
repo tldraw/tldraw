@@ -1,13 +1,18 @@
 import { ReactNode, forwardRef } from 'react'
-import { useTranslation } from 'tldraw'
+import { defineMessages, useTranslation } from 'tldraw'
 import { Avatar } from './avatar'
 import { CommentAuthor } from './comment-author'
+
+const messages = defineMessages({
+	commentsMentionNoMatches: { id: 'comments.mention-no-matches', defaultMessage: 'No matches' },
+	commentsMentionYou: { id: 'comments.mention-you', defaultMessage: 'You' },
+})
 
 /** A person the composer's \@-mention picker can offer: a {@link CommentAuthor} plus its id and
  * picker-only display fields. @public */
 export interface MentionMember extends CommentAuthor {
 	id: string
-	/** A secondary line under the name — e.g. an email or handle. Omit for a single-line row. */
+	/** Muted text after the name, e.g. an email or handle. */
 	secondary?: string
 	/** Marks the current user; shown as a "(You)" suffix after the name. */
 	you?: boolean
@@ -29,7 +34,7 @@ export interface MentionListProps {
 	renderMember?(member: MentionMember): ReactNode
 }
 
-/** The default row content: avatar, name (with a "(You)" marker), and an optional secondary line. */
+/** The default row content: avatar, name (with a "(You)" marker), and optional secondary text. */
 function DefaultMemberRow({ member }: { member: MentionMember }) {
 	const msg = useTranslation()
 	return (
@@ -39,7 +44,7 @@ function DefaultMemberRow({ member }: { member: MentionMember }) {
 				<span className="tlui-cmt-mention-list__name">
 					{member.name}
 					{member.you && (
-						<span className="tlui-cmt-mention-list__you">{`(${msg('comments.mention-you')})`}</span>
+						<span className="tlui-cmt-mention-list__you">{`(${msg(messages.commentsMentionYou)})`}</span>
 					)}
 				</span>
 				{member.secondary && (
@@ -63,13 +68,13 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 	const msg = useTranslation()
 	if (members.length === 0) {
 		return (
-			<div ref={ref} className="tlui-cmt-mention-list tlui-cmt-mention-list--empty">
-				{emptyLabel ?? msg('comments.mention-no-matches')}
+			<div ref={ref} className="tlui-menu tlui-cmt-mention-list tlui-cmt-mention-list--empty">
+				{emptyLabel ?? msg(messages.commentsMentionNoMatches)}
 			</div>
 		)
 	}
 	return (
-		<div ref={ref} className="tlui-cmt-mention-list" role="listbox">
+		<div ref={ref} className="tlui-menu tlui-cmt-mention-list" role="listbox">
 			{members.map((member, i) => {
 				const active = i === activeIndex
 				return (
@@ -78,11 +83,8 @@ export const MentionList = forwardRef<HTMLDivElement, MentionListProps>(function
 						type="button"
 						role="option"
 						aria-selected={active}
-						className={
-							active
-								? 'tlui-cmt-mention-list__item tlui-cmt-mention-list__item--active'
-								: 'tlui-cmt-mention-list__item'
-						}
+						data-highlighted={active || undefined}
+						className="tlui-button tlui-button__menu tlui-cmt-mention-list__item"
 						// Keep the composer focused on a row press: it's portaled outside the editor, so a
 						// bare mousedown would blur the composer — which now dismisses the picker — before
 						// the click could select. Selection runs on click; focus stays put.

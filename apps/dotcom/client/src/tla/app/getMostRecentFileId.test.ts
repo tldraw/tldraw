@@ -163,3 +163,19 @@ describe('getMostRecentFileId', () => {
 		expect(app.getMostRecentFileId('group:x')).toBe('file:top')
 	})
 })
+
+describe('isFileVisitable', () => {
+	it('is true only for a visited file whose file row is present and not deleted', () => {
+		const app = createAppStub({
+			fileStates: [
+				makeState('ok'),
+				makeState('deleted', { file: { isDeleted: true } }),
+				makeState('gone', { file: undefined }),
+			],
+		})
+		expect(app.isFileVisitable('ok')).toBe(true)
+		expect(app.isFileVisitable('deleted')).toBe(false)
+		expect(app.isFileVisitable('gone')).toBe(false)
+		expect(app.isFileVisitable('never-visited')).toBe(false)
+	})
+})

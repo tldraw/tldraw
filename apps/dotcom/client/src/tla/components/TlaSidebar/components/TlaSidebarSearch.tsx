@@ -1,8 +1,7 @@
 import classNames from 'classnames'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { TldrawUiButton, TldrawUiInput, useValue } from 'tldraw'
+import { defineMessages, TldrawUiButton, TldrawUiInput, useTranslation, useValue } from 'tldraw'
 import { useApp } from '../../../hooks/useAppState'
-import { defineMessages, useMsg } from '../../../utils/i18n'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 
@@ -19,13 +18,14 @@ const messages = defineMessages({
  * Escape, exits search.
  */
 export function TlaSidebarSearch() {
+	const msg = useTranslation()
 	const app = useApp()
 	const [isSearching, setIsSearching] = useState(false)
 	const [query, setLocalQuery] = useState('')
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const searchLbl = useMsg(messages.search)
-	const clearLbl = useMsg(messages.clearSearch)
+	const searchLbl = msg(messages.search)
+	const clearLbl = msg(messages.clearSearch)
 
 	const setQuery = useCallback(
 		(searchQuery: string) => {

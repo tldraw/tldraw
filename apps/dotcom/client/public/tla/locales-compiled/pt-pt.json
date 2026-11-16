@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Arraste o ficheiro para a barra lateral nesta página. Ou selecione a opção \"Importar ficheiro\" no menu de utilizador."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -185,6 +179,12 @@
     {
       "type": 0,
       "value": "Criar ficheiro"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Mudar para"
     }
   ],
   "1da2e8106b": [
@@ -343,6 +343,12 @@
       "value": "Remover membro"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Faça login para aceitar este convite."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -493,16 +499,6 @@
     {
       "type": 0,
       "value": "Limite de colaboradores atingido"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " não lido"
     }
   ],
   "550b25cc0c": [
@@ -746,6 +742,12 @@
       "value": "Recarregue a página"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Salve o conteúdo como um arquivo .tldr: selecione 'Salvar uma cópia' no menu superior esquerdo."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -938,20 +940,6 @@
       "value": "Atualize a página para obter a última versão do tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Adicionados "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " ficheiros .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1018,6 +1006,12 @@
     {
       "type": 0,
       "value": "? Esta ação não pode ser desfeita."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Link do convite copiado"
     }
   ],
   "95aacd4d4a": [
@@ -1132,10 +1126,36 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Exporte o conteúdo como um ficheiro .tldr: selecione \"Download\" no menu superior esquerdo."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " não lido"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " não lido"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1304,6 +1324,12 @@
       "value": "Proprietário"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Arraste o arquivo para a barra lateral desta página. Ou selecione a opção \"Importar arquivo\" no menu Arquivo, no canto superior esquerdo."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1386,6 +1412,38 @@
       "value": "Saiba mais sobre partilha."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ficheiro .tldr adicionado."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ficheiros .tldr adicionados."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1454,6 @@
     {
       "type": 0,
       "value": "Cookies essenciais"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: String longa"
     }
   ],
   "c6a00f137b": [
@@ -1477,7 +1529,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " outra pessoa"
             }
           ]
         },
@@ -1488,7 +1540,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " outras pessoas"
             }
           ]
         }
@@ -1656,6 +1708,12 @@
       "value": "ou"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Histórico de arquivos"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1684,12 +1742,6 @@
     {
       "type": 0,
       "value": "Menu da conta"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Acentuado"
     }
   ],
   "ed75712b0e": [
@@ -1760,6 +1812,12 @@
       "value": "Apagar"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Este link de convite é inválido ou expirou."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1799,7 +1857,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " outra pessoa"
             }
           ]
         },
@@ -1810,7 +1868,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " outras pessoas"
             }
           ]
         }
@@ -1896,6 +1954,12 @@
     {
       "type": 0,
       "value": "Crie uma conta gratuita para guardar os seus ficheiros e desenhar com os seus colegas de equipa."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Erro ao aceitar o convite"
     }
   ],
   "ffcd73e997": [

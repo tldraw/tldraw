@@ -1,7 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { TLUiAssetUrls } from '../../assetUrls'
-import { DEFAULT_TRANSLATION } from './defaultTranslation'
-import { fetchTranslation } from './translations'
+import { EN_TRANSLATION, fetchTranslation } from './translations'
 
 const assetUrls = {
 	translations: { en: '/translations/en.json', fr: '/translations/fr.json' },
@@ -18,8 +17,7 @@ describe('fetchTranslation', () => {
 
 		const translation = await fetchTranslation('en', assetUrls)
 
-		expect(translation.locale).toBe('en')
-		expect(translation.messages).toBe(DEFAULT_TRANSLATION)
+		expect(translation).toBe(EN_TRANSLATION)
 		expect(fetch).not.toHaveBeenCalled()
 	})
 
@@ -29,38 +27,31 @@ describe('fetchTranslation', () => {
 
 		const translation = await fetchTranslation('fr', assetUrls)
 
-		expect(translation.locale).toBe('en')
-		expect(translation.messages).toBe(DEFAULT_TRANSLATION)
+		expect(translation).toBe(EN_TRANSLATION)
 	})
 
 	it('falls back to english when the locale file is not json', async () => {
 		vi.stubGlobal(
 			'fetch',
-			vi
-				.fn()
-				.mockResolvedValueOnce(new Response('{}'))
-				.mockResolvedValueOnce(new Response('<!doctype html>', { status: 404 }))
+			vi.fn().mockResolvedValue(new Response('<!doctype html>', { status: 404 }))
 		)
 		vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 		const translation = await fetchTranslation('fr', assetUrls)
 
-		expect(translation.locale).toBe('en')
+		expect(translation).toBe(EN_TRANSLATION)
 	})
 
-	it('merges a fetched locale over english', async () => {
+	it('returns the fetched locale messages', async () => {
 		vi.stubGlobal(
 			'fetch',
-			vi
-				.fn()
-				.mockResolvedValueOnce(new Response('{}'))
-				.mockResolvedValueOnce(new Response(JSON.stringify({ 'action.undo': 'Annuler' })))
+			vi.fn().mockResolvedValue(new Response(JSON.stringify({ 'action.undo': 'Annuler' })))
 		)
+		vi.spyOn(console, 'warn').mockImplementation(() => {})
 
 		const translation = await fetchTranslation('fr', assetUrls)
 
 		expect(translation.locale).toBe('fr')
 		expect(translation.messages['action.undo']).toBe('Annuler')
-		expect(translation.messages['action.redo']).toBe(DEFAULT_TRANSLATION['action.redo'])
 	})
 })

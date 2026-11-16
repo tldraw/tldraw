@@ -4,31 +4,36 @@ import {
 	useCommentingEnabled,
 	useCommentsSidebarOpen,
 } from '@tldraw/commenting'
-import {
-	PUBLISH_PREFIX,
-	READ_ONLY_LEGACY_PREFIX,
-	READ_ONLY_PREFIX,
-	ROOM_PREFIX,
-	SNAPSHOT_PREFIX,
-} from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { useCallback, useRef } from 'react'
-import { useLocation, useNavigate, useParams } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import {
+	defineMessages,
+	F,
 	PeopleMenu,
 	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuCheckboxItem,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
 	useDialogs,
 	useEditor,
 	usePassThroughWheelEvents,
 	useTranslation,
+	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
+import { useIsUiV3 } from '../../hooks/useIsUiV3'
+import { useGetFileName, useRoomInfo } from '../../hooks/useRoomInfo'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { defineMessages, F, useMsg } from '../../utils/i18n'
+import { DesignSwitch, designSwitches } from '../../utils/designSwitches'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { TlaFileShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
@@ -51,7 +56,7 @@ export function TlaEditorTopRightPanel({
 	isAnonUser: boolean
 	context: TopRightPanelContext
 }) {
-	const ctaString = useMsg(ctaMessages.signInToShare)
+	const msg = useTranslation()
 	const ref = useRef<HTMLDivElement>(null)
 	usePassThroughWheelEvents(ref)
 	const fileId = useCurrentFileId()
@@ -79,7 +84,7 @@ export function TlaEditorTopRightPanel({
 					onClick={() => {
 						trackEvent('sign-up-clicked', {
 							source: 'anon-landing-page',
-							ctaMessage: ctaString,
+							ctaMessage: msg(ctaMessages.signInToShare),
 						})
 						addDialog({ component: TlaSignInDialog })
 					}}
@@ -92,9 +97,10 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
+			<DesignSwitchesMenu />
 			<PeopleMenu />
-			{/* Only file editors mount the comments sidebar (see CommentsOnCanvas); in legacy and
-			    published contexts the button would toggle state nothing reads. */}
+			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
+			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
 			{context === 'legacy' && <LegacyImportButton />}
 			{context !== 'legacy' && (
@@ -124,19 +130,20 @@ export function TlaEditorTopRightPanel({
  * viewer is signed out.
  */
 function CommentsSidebarButton() {
+	const msg = useTranslation()
 	const editor = useEditor()
 	const trackEvent = useTldrawAppUiEvents()
 	const commentingEnabled = useCommentingEnabled()
-	const commentingEnabledForUser = useIsCommentingEnabled()
+	const commentingEnabledForUser = useIsCommentingEnabledForUser()
 	const open = useCommentsSidebarOpen()
-	const label = useMsg(commentsMessages.comments)
+	const label = msg(commentsMessages.comments)
 
 	if (!commentingEnabled || !commentingEnabledForUser) return null
 
 	return (
 		<TldrawUiButton
 			type="icon"
-			className={styles.commentsSidebarButton}
+			className={styles.topRightIconButton}
 			data-testid="tla-comments-button"
 			aria-pressed={open}
 			tooltip={label}
@@ -151,45 +158,50 @@ function CommentsSidebarButton() {
 	)
 }
 
-export function useGetFileName() {
-	const editor = useEditor()
-	const msg = useTranslation()
-	const defaultPageName = msg('page-menu.new-page-initial-name')
+/** The beaker: v3 design switches, for `ui_v3` users only. See `designSwitches`. */
+function DesignSwitchesMenu() {
+	const isUiV3 = useIsUiV3()
+	if (!isUiV3) return null
 
-	const documentName = editor.getDocumentSettings().name
-	if (documentName?.length > 0) return documentName
-
-	const firstPageName = editor.getPages()[0].name
-	if (
-		firstPageName.length > 0 &&
-		!firstPageName.startsWith('Page 1') &&
-		!firstPageName.startsWith(defaultPageName)
+	return (
+		<TldrawUiDropdownMenuRoot id="design-switches">
+			<TldrawUiMenuContextProvider type="menu" sourceId="menu">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
+						type="icon"
+						className={styles.topRightIconButton}
+						data-testid="tla-design-switches-button"
+						tooltip="Design switches"
+						title="Design switches"
+					>
+						<TlaIcon icon="beaker" />
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				<TldrawUiDropdownMenuContent side="bottom" align="end" {...TLA_MENU_POSITION}>
+					<TldrawUiMenuGroup id="design-switches">
+						{Object.values(designSwitches).map((designSwitch) => (
+							<DesignSwitchItem key={designSwitch.id} designSwitch={designSwitch} />
+						))}
+					</TldrawUiMenuGroup>
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
 	)
-		return firstPageName
-	return ''
 }
 
-function usePrefix() {
-	const location = useLocation()
-	const roomPrefix = location.pathname.split('/')[1]
-	switch (roomPrefix) {
-		case ROOM_PREFIX:
-		case READ_ONLY_PREFIX:
-		case READ_ONLY_LEGACY_PREFIX:
-		case SNAPSHOT_PREFIX:
-		case PUBLISH_PREFIX:
-			return roomPrefix
-	}
-	return null
-}
-
-export function useRoomInfo() {
-	// Legacy routes name the param roomId; the publish route (/p/:fileSlug) names it fileSlug.
-	const { roomId, fileSlug } = useParams()
-	const id = roomId ?? fileSlug
-	const prefix = usePrefix()
-	if (!id || !prefix) return null
-	return { prefix, id }
+function DesignSwitchItem({ designSwitch }: { designSwitch: DesignSwitch }) {
+	const checked = useValue(designSwitch.value)
+	return (
+		<TldrawUiMenuCheckboxItem
+			id={`design-switch-${designSwitch.id}`}
+			label={designSwitch.label}
+			checked={checked}
+			onSelect={() => {
+				designSwitch.value.set(!checked)
+			}}
+			readonlyOk
+		/>
+	)
 }
 
 function LegacyImportButton() {
@@ -229,8 +241,9 @@ function SignedOutShareButton({
 	fileId?: string
 	context: TopRightPanelContext
 }) {
+	const msg = useTranslation()
 	const trackEvent = useTldrawAppUiEvents()
-	const shareLbl = useMsg(signedOutShareMessages.share)
+	const shareLbl = msg(signedOutShareMessages.share)
 
 	return (
 		<TlaFileShareMenu fileId={fileId} context={context} source="anon">

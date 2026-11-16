@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Træk filen ind i sidebjælken på denne side. Eller vælg indstillingen 'Importer fil' fra brugermenuen."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -189,6 +183,12 @@
     {
       "type": 0,
       "value": "Opret fil"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Flyt til"
     }
   ],
   "1da2e8106b": [
@@ -347,6 +347,12 @@
       "value": "Fjern medlem"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Log ind for at acceptere denne invitation."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -497,16 +503,6 @@
     {
       "type": 0,
       "value": "Samarbejdsgrænsen er nået"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " ulæste"
     }
   ],
   "550b25cc0c": [
@@ -750,6 +746,12 @@
       "value": "Genindlæs venligst siden"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Gem indholdet som en .tldr-fil: vælg 'Gem en kopi' i menuen øverst til venstre."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -942,20 +944,6 @@
       "value": "Opdater siden for at få den seneste version af tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Tilføjet "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr-filer."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1022,6 +1010,12 @@
     {
       "type": 0,
       "value": "? Denne handling kan ikke fortrydes."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kopieret invitationslink"
     }
   ],
   "95aacd4d4a": [
@@ -1136,10 +1130,36 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Eksporter indholdet som en .tldr-fil: Vælg 'Download' i menuen øverst til venstre."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ulæst"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ulæst"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1308,6 +1328,12 @@
       "value": "Ejer"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Træk filen ind i sidebjælken på denne side. Eller vælg 'Importer fil' i menuen Filer øverst til venstre."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1390,6 +1416,46 @@
       "value": "Få mere at vide om deling."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Tilføjet "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-fil."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Tilføjet "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-filer."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1400,12 +1466,6 @@
     {
       "type": 0,
       "value": "Vigtige cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Lang streng"
     }
   ],
   "c6a00f137b": [
@@ -1481,7 +1541,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " anden"
             }
           ]
         },
@@ -1492,7 +1552,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andre"
             }
           ]
         }
@@ -1660,6 +1720,12 @@
       "value": "eller"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Filhistorik"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1669,7 +1735,7 @@
   "eb1e2b0542": [
     {
       "type": 0,
-      "value": "Bed ejeren af ​​arbejdsområdet om en ny."
+      "value": "Bed ejeren af arbejdsområdet om en ny."
     }
   ],
   "ebfe9ce86e": [
@@ -1688,12 +1754,6 @@
     {
       "type": 0,
       "value": "Konto menu"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accent"
     }
   ],
   "ed75712b0e": [
@@ -1764,6 +1824,12 @@
       "value": "Slet"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Dette invitationslink er ugyldigt eller udløbet."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1803,7 +1869,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " anden"
             }
           ]
         },
@@ -1814,7 +1880,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " andre"
             }
           ]
         }
@@ -1904,6 +1970,12 @@
     {
       "type": 0,
       "value": "Opret en gratis konto for at gemme dine filer og tldraw med dine holdkammerater."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Fejl ved accept af invitation"
     }
   ],
   "ffcd73e997": [

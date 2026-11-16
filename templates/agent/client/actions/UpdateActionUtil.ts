@@ -7,7 +7,7 @@ import { UpdateAction } from '../../shared/schema/AgentActionSchemas'
 import { toSimpleShapeId } from '../../shared/types/ids-schema'
 import { Streaming } from '../../shared/types/Streaming'
 import { AgentHelpers } from '../AgentHelpers'
-import { AgentActionUtil, registerActionUtil } from './AgentActionUtil'
+import { ActionFailedError, AgentActionUtil, registerActionUtil } from './AgentActionUtil'
 
 export const UpdateActionUtil = registerActionUtil(
 	class UpdateActionUtil extends AgentActionUtil<UpdateAction> {
@@ -73,7 +73,7 @@ export const UpdateActionUtil = registerActionUtil(
 			const existingShape = editor.getShape(shapeId)
 
 			if (!existingShape) {
-				throw new Error(`Shape ${shapeId} not found in canvas`)
+				throw new ActionFailedError(`Shape ${action.update.shapeId} not found in canvas.`)
 			}
 
 			const result = convertFocusedShapeToTldrawShape(editor, action.update, {

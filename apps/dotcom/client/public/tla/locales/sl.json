@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Delamo na podpori za datoteke iz <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
-  },
   "043973ec1f": {
     "translation": "Še vedno imate težave? {GetHelpLink}"
   },
@@ -73,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "Ustvari datoteko"
+  },
+  "1a7222b4e5": {
+    "translation": "Premakni v"
   },
   "1da2e8106b": {
     "translation": "Prišlo je do nepričakovane napake."
@@ -139,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Odstrani člana"
+  },
+  "398f51738e": {
+    "translation": "Prijavite se, da sprejmete to povabilo."
   },
   "3bc7d6ea2f": {
     "translation": "Nadaljuj z e-pošto"
@@ -208,9 +211,6 @@
   },
   "54286b1d01": {
     "translation": "Dosežena je omejitev sodelavcev"
-  },
-  "545241e7dd": {
-    "translation": "{count} neprebranih"
   },
   "550b25cc0c": {
     "translation": "Vaše lokalne risbe ni bilo mogoče obnoviti. Poskusite znova naložiti to stran."
@@ -311,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Ponovno naložite stran"
   },
+  "747ee44424": {
+    "translation": "Vsebino shranite kot datoteko .tldr: v zgornjem levem meniju izberite »Shrani kopijo«."
+  },
   "74ff4bad28": {
     "translation": "Ni najdenih datotek"
   },
@@ -386,9 +389,6 @@
   "85a082de1b": {
     "translation": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
   },
-  "86353d2c41": {
-    "translation": "Dodane {total} datoteke .tldr."
-  },
   "86c66437fd": {
     "translation": "Preimenuj datoteko"
   },
@@ -415,6 +415,9 @@
   },
   "90646db02d": {
     "translation": "Ali ste prepričani, da želite izbrisati <strong>{workspaceName}</strong>? Tega dejanja ni mogoče razveljaviti."
+  },
+  "930390d222": {
+    "translation": "Povezava za povabilo je bila kopirana"
   },
   "95aacd4d4a": {
     "translation": "Prijava z Googlom"
@@ -458,8 +461,8 @@
   "a078644c42": {
     "translation": "Povabljeni ste bili, da se pridružite <strong>{workspaceName}</strong>."
   },
-  "a0da245992": {
-    "translation": "Izvozite vsebino kot datoteko .tldr: V zgornjem levem meniju izberite »Prenesi«."
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# neprebrano} two {# neprebrani} few {# neprebrana} other {# neprebranih}}"
   },
   "a104439641": {
     "translation": "Obroba"
@@ -537,6 +540,9 @@
   "b6f4a2ec63": {
     "translation": "Lastnik"
   },
+  "b74dbb40c5": {
+    "translation": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v meniju Datoteka v zgornjem levem kotu izberite možnost »Uvozi datoteko«."
+  },
   "b758336699": {
     "translation": "Kopiraj povezavo"
   },
@@ -547,7 +553,7 @@
     "translation": "Povabila so onemogočena"
   },
   "bbbcefd7ce": {
-    "translation": "{total, plural, one {Nalaganje datoteke .tldr …} two {} few {} other {Nalaganje {uploaded} od {total} datotek .tldr …}}"
+    "translation": "{total, plural, one {Nalaganje datoteke .tldr …} two {Nalaganje {uploaded} od {total} datotek .tldr …} few {Nalaganje {uploaded} od {total} datotek .tldr …} other {Nalaganje {uploaded} od {total} datotek .tldr …}}"
   },
   "bc88b0e89e": {
     "translation": "Delil {ownerName}"
@@ -558,14 +564,14 @@
   "c2276c9127": {
     "translation": "Preberite več o skupni rabi."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Dodana je # datoteka .tldr.} two {Dodani sta # datoteki .tldr.} few {Dodane so # datoteke .tldr.} other {Dodanih je # datotek .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Datoteke ni mogoče objaviti."
   },
   "c4b39a1cc3": {
     "translation": "Bistveni piškotki"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: dolg niz"
   },
   "c6a00f137b": {
     "translation": "Povabi"
@@ -592,7 +598,7 @@
     "translation": "Preberite več o objavljanju."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> in {count, plural, one {# other} other {# others}} sta se odzvala na vaš komentar"
+    "translation": "<name>{author}</name> in {count, plural, one {# drug} two {# druga} few {# drugi} other {# drugih}} so se odzvali na vaš komentar"
   },
   "d3d2e61733": {
     "translation": "Zapri"
@@ -645,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "ali"
   },
+  "ea13ecec38": {
+    "translation": "Zgodovina datotek"
+  },
   "ea4788705e": {
     "translation": "Prekliči"
   },
@@ -659,9 +668,6 @@
   },
   "ec611e9a08": {
     "translation": "Meni računa"
-  },
-  "ed53713239": {
-    "translation": "i18n: Naglašeno"
   },
   "ed75712b0e": {
     "translation": "Podvoji"
@@ -690,8 +696,11 @@
   "f2a6c498fb": {
     "translation": "Izbriši"
   },
+  "f408fa5fbd": {
+    "translation": "Ta povezava za povabilo je neveljavna ali je potekla."
+  },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> in {count, plural, one {# other} other {# others}} so se odzvali na vaš komentar"
+    "translation": "<name>{a}</name>, <name>{b}</name> in {count, plural, one {# drug} two {# druga} few {# drugi} other {# drugih}} so se odzvali na vaš komentar"
   },
   "f4f70727dc": {
     "translation": "Nastavitve"
@@ -716,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
+  },
+  "ffad261a48": {
+    "translation": "Napaka pri sprejemanju povabila"
   },
   "ffcd73e997": {
     "translation": "Uvozi datoteko …"

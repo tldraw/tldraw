@@ -12,14 +12,25 @@ export function CopyMarkdownButton({
 }) {
 	const [copied, setCopied] = useState(false)
 
-	const handleClick = () => {
-		navigator.clipboard.writeText(markdown)
+	const handleClick = async () => {
+		const page_url = window.location.href
+		try {
+			await navigator.clipboard.writeText(markdown)
+		} catch {
+			return
+		}
 
-		if (window.tlanalytics?.trackCopyCode) {
-			window.tlanalytics.trackCopyCode({
+		try {
+			window.tlanalytics?.trackCopyCode?.({
 				page_category: 'docs',
+				page_url,
+				copy_kind: 'page_markdown',
+				method: 'button',
+				chars: markdown.length,
 				text_snippet: markdown.slice(0, 500),
 			})
+		} catch {
+			/* Analytics must not interrupt a successful copy. */
 		}
 
 		setCopied(true)

@@ -1,4 +1,5 @@
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -6,13 +7,23 @@ import {
 	TldrawUiMenuCheckboxItem,
 	TldrawUiMenuContextProvider,
 	TldrawUiMenuGroup,
+	TldrawUiMenuItem,
 	useEditor,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import { MoreMenuIcon } from '../ui/icons'
 import { SidebarFilters } from './sidebar-filters'
-import { sidebarFilters } from './state'
+import { commentsSidebarOpen, sidebarFilters } from './state'
+
+const messages = defineMessages({
+	commentsClose: { id: 'comments.close', defaultMessage: 'Close' },
+	commentsFilter: { id: 'comments.filter', defaultMessage: 'Filter comments' },
+	commentsOnlyMyComments: { id: 'comments.only-my-comments', defaultMessage: 'Only my comments' },
+	commentsOnlyUnread: { id: 'comments.only-unread', defaultMessage: 'Only unread' },
+	commentsShowAllPages: { id: 'comments.show-all-pages', defaultMessage: 'Show all pages' },
+	commentsShowResolved: { id: 'comments.show-resolved', defaultMessage: 'Show resolved' },
+})
 
 /** @public */
 export interface CommentsFilterMenuProps {
@@ -40,45 +51,56 @@ export function CommentsFilterMenu({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.filter')}
-					title={msg('comments.filter')}
-					className="tlui-cmt-header-btn"
+					tooltip={msg(messages.commentsFilter)}
+					title={msg(messages.commentsFilter)}
+					className="tlui-cmt-icon-btn"
 				>
 					<MoreMenuIcon />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			{/* No tlui-cmt-menu here: the rows are tldraw menu items, which carry their own insets —
-			    the extra padding would set this menu apart from the canvas menus it should match. */}
-			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0}>
+			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={-6} sideOffset={0}>
 				<TldrawUiMenuContextProvider type="menu" sourceId="menu">
 					<TldrawUiMenuGroup id="comments-filter">
 						<TldrawUiMenuCheckboxItem
+							toggle
 							id="show-all-pages"
-							label="comments.show-all-pages"
+							label={messages.commentsShowAllPages.id}
 							checked={!filters.onlyCurrentPage}
 							onSelect={() => toggle('onlyCurrentPage')}
 						/>
 						{canFilterByAuthor && (
 							<TldrawUiMenuCheckboxItem
+								toggle
 								id="only-my-comments"
-								label="comments.only-my-comments"
+								label={messages.commentsOnlyMyComments.id}
 								checked={filters.onlyMine}
 								onSelect={() => toggle('onlyMine')}
 							/>
 						)}
 						{canFilterByUnread && (
 							<TldrawUiMenuCheckboxItem
+								toggle
 								id="only-unread"
-								label="comments.only-unread"
+								label={messages.commentsOnlyUnread.id}
 								checked={filters.onlyUnread}
 								onSelect={() => toggle('onlyUnread')}
 							/>
 						)}
 						<TldrawUiMenuCheckboxItem
+							toggle
 							id="show-resolved"
-							label="comments.show-resolved"
+							label={messages.commentsShowResolved.id}
 							checked={filters.showResolved}
 							onSelect={() => toggle('showResolved')}
+						/>
+					</TldrawUiMenuGroup>
+					<TldrawUiMenuGroup id="comments-close">
+						<TldrawUiMenuItem
+							id="close-comments"
+							label={messages.commentsClose.id}
+							onSelect={() => {
+								commentsSidebarOpen.set(editor, false)
+							}}
 						/>
 					</TldrawUiMenuGroup>
 				</TldrawUiMenuContextProvider>

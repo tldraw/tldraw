@@ -1,10 +1,11 @@
 /* eslint-disable tldraw/no-export-star */
+export * from './canvasOpsJsonSchema'
 export * from './capabilities'
 export * from './commentMentions'
 export * from './constants'
+export * from './mcpPageRead'
 export * from './roles'
 export * from './shapeClusters'
-export { default as getLicenseKey } from './license'
 export * from './mutators'
 export * from './queries'
 export * from './routes'

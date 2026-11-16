@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Trascina il file nella barra laterale su questa pagina. Oppure seleziona l'opzione \"Importa file\" dal menu utente."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -185,6 +179,12 @@
     {
       "type": 0,
       "value": "Crea file"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Spostarsi su"
     }
   ],
   "1da2e8106b": [
@@ -343,6 +343,12 @@
       "value": "Rimuovere il membro"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Accedi per accettare questo invito."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -493,16 +499,6 @@
     {
       "type": 0,
       "value": "Limite di collaboratori raggiunto"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " non letto"
     }
   ],
   "550b25cc0c": [
@@ -746,6 +742,12 @@
       "value": "Ricarica la pagina"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Salva il contenuto come file .tldr: seleziona \"Salva una copia\" nel menu in alto a sinistra."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -938,20 +940,6 @@
       "value": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Aggiunti "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " file .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1018,6 +1006,12 @@
     {
       "type": 0,
       "value": "? Questa azione non può essere annullata."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Link di invito copiato"
     }
   ],
   "95aacd4d4a": [
@@ -1132,10 +1126,36 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Esportare il contenuto come file .tldr: selezionare \"Scarica\" nel menu in alto a sinistra."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " non letto"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " non letto"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1304,6 +1324,12 @@
       "value": "Proprietario"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Trascina il file nella barra laterale di questa pagina. In alternativa, seleziona l'opzione \"Importa file\" dal menu File in alto a sinistra."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1386,6 +1412,46 @@
       "value": "Maggiori informazioni sulla condivisione."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Aggiunto "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " file .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Aggiunti "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " file .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1462,6 @@
     {
       "type": 0,
       "value": "Cookie essenziali"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: stringa lunga"
     }
   ],
   "c6a00f137b": [
@@ -1656,6 +1716,12 @@
       "value": "O"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Cronologia dei file"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1684,12 +1750,6 @@
     {
       "type": 0,
       "value": "Menu account"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: lettera accentata"
     }
   ],
   "ed75712b0e": [
@@ -1758,6 +1818,12 @@
     {
       "type": 0,
       "value": "Elimina"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Questo link di invito non è valido o è scaduto."
     }
   ],
   "f476ba8646": [
@@ -1896,6 +1962,12 @@
     {
       "type": 0,
       "value": "Crea un account gratuito per salvare i tuoi file e disegnare insieme ai tuoi compagni di squadra."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Errore durante l'accettazione dell'invito"
     }
   ],
   "ffcd73e997": [

@@ -16,7 +16,7 @@ import { Store } from '@tldraw/store';
 import { StoreSchema } from '@tldraw/store';
 import { StoreSnapshot } from '@tldraw/store';
 import { SynchronousStorage } from '@tldraw/store';
-import { throttle } from '@tldraw/utils';
+import { ThrottledFunction } from '@tldraw/utils';
 import { TLDocument } from 'tldraw';
 import { TLPage } from 'tldraw';
 import { TLRecord } from '@tldraw/tlschema';
@@ -133,7 +133,7 @@ export class InMemorySyncStorage<R extends UnknownRecord> implements TLSyncStora
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => unknown): () => void;
     // @internal (undocumented)
-    pruneTombstones: ReturnType<typeof throttle<() => void>>;
+    pruneTombstones: ThrottledFunction<() => void>;
     // @internal (undocumented)
     schema: Atom<SerializedSchema>;
     // @internal (undocumented)
@@ -357,7 +357,7 @@ export class SQLiteSyncStorage<R extends UnknownRecord> implements TLSyncStorage
     // (undocumented)
     onChange(callback: (arg: TLSyncStorageOnChangeCallbackProps) => void): () => void;
     // @internal (undocumented)
-    pruneTombstones: ReturnType<typeof throttle<() => void>>;
+    pruneTombstones: ThrottledFunction<() => void>;
     // @internal (undocumented)
     _setSchema(schema: SerializedSchema): void;
     // (undocumented)
@@ -514,7 +514,7 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
         sessionId: string;
     }>;
     getSessionSnapshot(sessionId: string): null | SessionStateSnapshot;
-    handleSocketClose(sessionId: string): void;
+    handleSocketClose(sessionId: string, socket?: WebSocketMinimal): void;
     handleSocketConnect(opts: {
         isReadonly?: boolean;
         objectAccess?: TLObjectStoreAccess;
@@ -523,8 +523,8 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     } & (SessionMeta extends void ? object : {
         meta: SessionMeta;
     })): void;
-    handleSocketError(sessionId: string): void;
-    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string): void;
+    handleSocketError(sessionId: string, socket?: WebSocketMinimal): void;
+    handleSocketMessage(sessionId: string, message: AllowSharedBufferSource | string, socket?: WebSocketMinimal): void;
     handleSocketResume(opts: {
         sessionId: string;
         snapshot: SessionStateSnapshot;
@@ -772,7 +772,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     // (undocumented)
     readonly presenceType: null | RecordType<R, any>;
     // (undocumented)
-    pruneSessions: ReturnType<typeof throttle<() => void>>;
+    pruneSessions: ThrottledFunction<() => void>;
     rejectSession(sessionId: string, fatalReason?: string | TLSyncErrorCloseEventReason): void;
     // (undocumented)
     readonly schema: StoreSchema<R, any>;

@@ -2,12 +2,14 @@ import { TlaFile } from '@tldraw/dotcom-shared'
 import classNames from 'classnames'
 import { ContextMenu as _ContextMenu } from 'radix-ui'
 import { KeyboardEvent, MouseEvent, ReactNode, useEffect, useRef } from 'react'
+import { useIntl } from 'react-intl'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import {
-	TldrawUiMenuContextProvider,
-	TldrawUiTooltip,
+	F,
 	isEqual,
 	preventDefault,
+	TldrawUiMenuContextProvider,
+	TldrawUiTooltip,
 	useContainer,
 	useMaybeEditor,
 	useMenuIsOpen,
@@ -18,11 +20,10 @@ import { useApp } from '../../../hooks/useAppState'
 import { useHasFileAdminRights } from '../../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
-import { F, defineMessages, useIntl } from '../../../utils/i18n'
 import { toggleMobileSidebar, useIsSidebarOpenMobile } from '../../../utils/local-session-state'
 import { FileItems } from '../../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import { RecentFile } from './sidebar-shared'
+import { RecentFile, messages as sidebarMessages } from './sidebar-shared'
 import { TlaSidebarFileLinkMenu } from './TlaSidebarFileLinkMenu'
 import { TlaSidebarRenameInline } from './TlaSidebarRenameInline'
 import styles from '../sidebar.module.css'
@@ -134,11 +135,6 @@ export function TlaSidebarFileLink({
 	)
 }
 
-export const sidebarMessages = defineMessages({
-	renameFile: { defaultMessage: 'Rename file' },
-	selected: { defaultMessage: 'selected' },
-})
-
 export function TlaSidebarFileLinkInner({
 	isPinned,
 	testId,
@@ -174,8 +170,10 @@ export function TlaSidebarFileLinkInner({
 		editor,
 	])
 
+	const hasAdminRights = useHasFileAdminRights(fileId)
+
 	const handleKeyDown = (e: KeyboardEvent) => {
-		if (!isActive) return
+		if (!isActive || !hasAdminRights) return
 		if (e.key === 'Enter') {
 			handleRenameAction()
 		}
@@ -197,7 +195,6 @@ export function TlaSidebarFileLinkInner({
 	}, [isActive, linkRef, editor])
 
 	const file = useValue('file', () => app.getFile(fileId), [fileId, app])
-	const hasAdminRights = useHasFileAdminRights(fileId)
 
 	// disable dragging on mobile
 	const isDragEnabled = !getIsCoarsePointer()

@@ -1,15 +1,20 @@
+import { defineMessages } from '@tldraw/editor'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 import { TldrawUiTooltip } from '../primitives/TldrawUiTooltip'
+
+const messages = defineMessages({
+	statusOffline: { id: 'status.offline', defaultMessage: 'Offline' },
+})
 
 /** @public @react */
 export function OfflineIndicator() {
 	const msg = useTranslation()
 
 	return (
-		<TldrawUiTooltip content={msg('status.offline')}>
+		<TldrawUiTooltip content={msg(messages.statusOffline)}>
 			<div className="tlui-offline-indicator">
-				<TldrawUiIcon icon="status-offline" label={msg('status.offline')} small />
+				<TldrawUiIcon icon="status-offline" label={msg(messages.statusOffline)} small />
 			</div>
 		</TldrawUiTooltip>
 	)

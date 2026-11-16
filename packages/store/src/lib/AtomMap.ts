@@ -275,11 +275,11 @@ export class AtomMap<K, V> implements Map<K, V> {
 	deleteMany(keys: Iterable<K>): [K, V][] {
 		return transact(() => {
 			const deleted: [K, V][] = []
-			const newAtoms = this.atoms.get().withMutations((atoms) => {
+			const newAtoms = this.atoms.__unsafe__getWithoutCapture().withMutations((atoms) => {
 				for (const key of keys) {
 					const valueAtom = atoms.get(key)
 					if (!valueAtom) continue
-					const oldValue = valueAtom.get()
+					const oldValue = valueAtom.__unsafe__getWithoutCapture()
 					assert(oldValue !== UNINITIALIZED)
 
 					deleted.push([key, oldValue])

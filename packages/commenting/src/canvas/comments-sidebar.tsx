@@ -1,5 +1,13 @@
 import { ReactNode, useCallback } from 'react'
-import { EditorPortal, TLCommentThread, useEditor, useTranslation, useValue } from 'tldraw'
+import {
+	defineMessages,
+	EditorPortal,
+	TLComment,
+	TLCommentThread,
+	useEditor,
+	useTranslation,
+	useValue,
+} from 'tldraw'
 import { CommentListItemProps, CommentListItemRenderProps, CommentsList } from '../ui/comments-list'
 import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { CommentsFilterMenu } from './comments-filter-menu'
@@ -9,8 +17,21 @@ import { getCommentsByThread, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
-import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
+import { commentsHidden, commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
+import { avatarRenderer } from './thread-view'
+
+const EMPTY_COMMENTS: TLComment[] = []
+
+const messages = defineMessages({
+	commentsEmpty: { id: 'comments.empty', defaultMessage: 'No comments on this page yet.' },
+	commentsEmptyFiltered: {
+		id: 'comments.empty-filtered',
+		defaultMessage: 'No comments match your filters.',
+	},
+	commentsResolved: { id: 'comments.resolved', defaultMessage: 'Resolved' },
+	commentsTitle: { id: 'comments.title', defaultMessage: 'Comments' },
+})
 
 /**
  * The host wiring for {@link CanvasCommentsSidebar}: the {@link CommentingContext} fields it reads,
@@ -110,6 +131,7 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 					count: threadComments.length,
 					selected: openId === thread.id,
 					href: getThreadHref?.(thread.id),
+					renderAvatar: avatarRenderer(options.components, thread.createdBy),
 				},
 				lastActivity: (last ?? thread).createdAt,
 			}
@@ -119,11 +141,15 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
-		if (thread) focusThread(editor, thread)
+		if (!thread) return
+		// The thread popover lives on the layer that hiding withholds, so it would open invisibly.
+		commentsHidden.set(editor, false)
+		focusThread(editor, thread)
 	}
 
-	// The `ThreadRow` component slot overrides the built-in row. It gets the thread record alongside
-	// the summarized row, so host state on `thread.meta` is in reach without a second lookup. Indexed
+	// The `ThreadRow` component slot overrides the built-in row. It gets the thread record and its
+	// comments alongside the summarized row, so host state on their `meta` is in reach without each
+	// row subscribing to the store again. Indexed
 	// once rather than scanned per row — this runs for every row on every render of the panel.
 	const ThreadRow = options.components.ThreadRow
 	const renderItem = ThreadRow
@@ -137,7 +163,13 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 					// Can't happen — the items are built from these threads — but a row with no thread has
 					// nothing to render, and the slot's contract says the record is there.
 					if (!thread) return null
-					return <ThreadRow {...rowProps} thread={thread} />
+					return (
+						<ThreadRow
+							{...rowProps}
+							thread={thread}
+							comments={byThread.get(thread.id) ?? EMPTY_COMMENTS}
+						/>
+					)
 				}
 			})()
 		: undefined
@@ -146,22 +178,22 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 		<SidebarPanel>
 			<CommentsList
 				items={items}
-				header={header ?? msg('comments.title')}
+				header={header ?? msg(messages.commentsTitle)}
 				headerAction={
 					<div className="tlui-cmt-list__header-actions">
+						<CommentsVisibilityToggle />
 						<CommentsFilterMenu
 							canFilterByAuthor={currentUserId !== null}
 							canFilterByUnread={isCommentUnread !== undefined}
 						/>
-						<CommentsVisibilityToggle />
 					</div>
 				}
 				empty={
 					items.length === 0 && pageThreads.length > 0
-						? msg('comments.empty-filtered')
-						: (empty ?? msg('comments.empty'))
+						? msg(messages.commentsEmptyFiltered)
+						: (empty ?? msg(messages.commentsEmpty))
 				}
-				resolvedLabel={msg('comments.resolved')}
+				resolvedLabel={msg(messages.commentsResolved)}
 				onSelect={focus}
 				renderItem={renderItem}
 			/>

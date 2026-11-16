@@ -1,5 +1,11 @@
 import { assert } from '@tldraw/utils'
 
+/** Route `handle` metadata read by the tla layout. */
+export interface TlaRouteHandle {
+	/** Render while the signed-in app is still preloading; the page must cope with a null app. */
+	rendersWhileAppLoads?: boolean
+}
+
 export const ROUTES = {
 	tlaOptIn: '/preview',
 
@@ -13,6 +19,9 @@ export const ROUTES = {
 	tlaPublish: `/p/:fileSlug`,
 	tlaImport: `/import`,
 	tlaInvite: `/invite/:token`,
+	tlaSignIn: `/sign-in`,
+	tlaSsoCallback: `/sso-callback`,
+	tlaOAuthConsent: `/oauth-consent`,
 	// Legacy routes
 	tlaLegacyRoom: '/r/:roomId',
 	tlaLegacyRoomHistory: '/r/:boardId/history',
@@ -76,15 +85,14 @@ function compilePath(
 			routeParams === null || Object.keys(routeParams).length === 0,
 			`Route params are not allowed for path ${path}`
 		)
-		return path + (search ? `?${search}` : '')
-	}
-	assert(routeParams !== null, `Route params are required for path ${path}`)
-
-	path =
-		path.replace(/:\w+/g, (match) =>
+	} else {
+		assert(routeParams !== null, `Route params are required for path ${path}`)
+		path = path.replace(/:\w+/g, (match) =>
 			// if there's only one param, routeParams will be a string
 			typeof routeParams === 'string' ? routeParams : routeParams[match.slice(1)]
-		) + (search ? `?${search}` : '')
+		)
+	}
+	path += search ? `?${search}` : ''
 
 	if (options?.asUrl) {
 		return `${window.location.origin}${path}`

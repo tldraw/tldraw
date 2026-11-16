@@ -37,12 +37,6 @@
       "value": " alkalmazásból származó fájlok támogatásán."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Húzza a fájlt az oldal oldalsávjába. Vagy válassza a „Fájl importálása” opciót a felhasználói menüből."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -189,6 +183,12 @@
     {
       "type": 0,
       "value": "Fájl létrehozása"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Áthelyezés ide:"
     }
   ],
   "1da2e8106b": [
@@ -347,6 +347,12 @@
       "value": "Tag eltávolítása"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Jelentkezz be a meghívás elfogadásához."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -497,16 +503,6 @@
     {
       "type": 0,
       "value": "Elérte az együttműködők korlátját"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " olvasatlan"
     }
   ],
   "550b25cc0c": [
@@ -750,6 +746,12 @@
       "value": "Kérjük, töltse be újra az oldalt"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Mentsd el a tartalmat .tldr fájlként: válaszd a „Másolat mentése” lehetőséget a bal felső menüben."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -942,16 +944,6 @@
       "value": "Kérjük, frissítse az oldalt a tldraw legújabb verziójának letöltéséhez."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr fájl hozzáadva."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1018,6 +1010,12 @@
     {
       "type": 0,
       "value": " munkaterületet? Ez a művelet nem vonható vissza."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Meghívólink másolva"
     }
   ],
   "95aacd4d4a": [
@@ -1132,10 +1130,36 @@
       "value": " munkaterületre."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Exportáld a tartalmat .tldr fájlként: Válaszd a „Letöltés” ​​lehetőséget a bal felső menüben."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " olvasatlan"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " olvasatlan"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1304,6 +1328,12 @@
       "value": "Tulajdonos"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Húzd a fájlt az oldalsávba ezen az oldalon. Vagy válaszd a „Fájl importálása” lehetőséget a bal felső sarokban található Fájl menüből."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1382,6 +1412,38 @@
       "value": "További információ a megosztásról."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr fájl hozzáadva."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr fájl hozzáadva."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1392,12 +1454,6 @@
     {
       "type": 0,
       "value": "Alapvető sütik"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Hosszú karakterlánc"
     }
   ],
   "c6a00f137b": [
@@ -1473,7 +1529,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " másik személy"
             }
           ]
         },
@@ -1484,7 +1540,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " másik személy"
             }
           ]
         }
@@ -1652,6 +1708,12 @@
       "value": "vagy"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Fájlelőzmények"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1680,12 +1742,6 @@
     {
       "type": 0,
       "value": "Fiók menü"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Ékezetes"
     }
   ],
   "ed75712b0e": [
@@ -1756,6 +1812,12 @@
       "value": "Töröl"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ez a meghívólink érvénytelen vagy lejárt."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1795,7 +1857,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " másik személy"
             }
           ]
         },
@@ -1806,7 +1868,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " másik személy"
             }
           ]
         }
@@ -1892,6 +1954,12 @@
     {
       "type": 0,
       "value": "Hozz létre egy ingyenes fiókot, hogy menthesd a fájljaidat és rajzolhass a csapattársaiddal."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Hiba a meghívó elfogadásakor"
     }
   ],
   "ffcd73e997": [

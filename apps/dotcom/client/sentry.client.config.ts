@@ -9,6 +9,9 @@ import type { Editor } from 'tldraw'
 import { sentryReleaseName } from './sentry-release-name'
 import { env } from './src/utils/env'
 import { setGlobalErrorReporter } from './src/utils/errorReporting'
+// Clears the PostHog hash from tldraw.dev links, which can carry the visitor's email, before
+// Sentry.init below records the URL.
+import './src/utils/posthogHashBootstrap'
 
 function requireSentryDsn() {
 	if (!process.env.SENTRY_DSN) {

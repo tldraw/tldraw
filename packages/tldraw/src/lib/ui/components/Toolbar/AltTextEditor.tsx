@@ -1,10 +1,22 @@
-import { ExtractShapeByProps, preventDefault, TLShape, TLShapeId, useEditor } from '@tldraw/editor'
+import {
+	defineMessages,
+	ExtractShapeByProps,
+	preventDefault,
+	TLShape,
+	TLShapeId,
+	useEditor,
+} from '@tldraw/editor'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useUiEvents } from '../../context/events'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { TldrawUiButton } from '../primitives/Button/TldrawUiButton'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiInput } from '../primitives/TldrawUiInput'
+
+const messages = defineMessages({
+	toolMediaAltTextConfirm: { id: 'tool.media-alt-text-confirm', defaultMessage: 'Confirm' },
+	toolMediaAltTextDesc: { id: 'tool.media-alt-text-desc', defaultMessage: 'Give a description…' },
+})
 
 /** @public */
 export interface AltTextEditorProps {
@@ -81,8 +93,8 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 				className="tlui-media__toolbar-alt-text-input"
 				data-testid="media-toolbar.alt-text-input"
 				value={altText}
-				placeholder={msg('tool.media-alt-text-desc')}
-				aria-label={msg('tool.media-alt-text-desc')}
+				placeholder={msg(messages.toolMediaAltTextDesc)}
+				aria-label={msg(messages.toolMediaAltTextDesc)}
 				onValueChange={setAltText}
 				onComplete={handleComplete}
 				onCancel={onClose}
@@ -90,7 +102,7 @@ export function AltTextEditor({ shapeId, onClose, source }: AltTextEditorProps) 
 			/>
 			{!isReadonly && (
 				<TldrawUiButton
-					title={msg('tool.media-alt-text-confirm')}
+					title={msg(messages.toolMediaAltTextConfirm)}
 					data-testid="tool.media-alt-text-confirm"
 					type="icon"
 					onPointerDown={preventDefault}

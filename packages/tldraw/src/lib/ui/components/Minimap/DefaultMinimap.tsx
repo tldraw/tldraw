@@ -1,18 +1,23 @@
 import {
 	Box,
-	TLPointerEventInfo,
-	Vec,
+	defineMessages,
 	getPointerInfo,
 	setPointerCapture,
-	useContainer,
+	TLPointerEventInfo,
 	useColorMode,
+	useContainer,
 	useEditor,
 	usePassThroughWheelEvents,
 	useValue,
+	Vec,
 } from '@tldraw/editor'
 import * as React from 'react'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
 import { MinimapManager } from './MinimapManager'
+
+const messages = defineMessages({
+	navigationZoneMinimap: { id: 'navigation-zone.minimap', defaultMessage: 'Minimap' },
+})
 
 // Squared distance (in screen pixels) the pointer can move after pointer down before
 // it counts as a drag. Sub-pixel jitter that accompanies a click stays below this, so
@@ -196,7 +201,7 @@ export function DefaultMinimap() {
 			<canvas
 				ref={rCanvas}
 				role="img"
-				aria-label={msg('navigation-zone.minimap')}
+				aria-label={msg(messages.navigationZoneMinimap)}
 				data-testid="minimap.canvas"
 				className="tlui-minimap__canvas"
 				onDoubleClick={onDoubleClick}

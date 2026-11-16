@@ -39,9 +39,9 @@
 	/* Inter is usually available on our properties */
 	font-family: 'Inter', sans-serif;
 	font-weight: 400;
-	/* Safe area aware overrides */
-	bottom: max(4px, env(safe-area-inset-bottom));
-	right: max(4px, env(safe-area-inset-right));
+	/* Keep the outer gap beyond the device's safe area. */
+	bottom: calc(4px + env(safe-area-inset-bottom, 0px));
+	right: calc(4px + env(safe-area-inset-right, 0px));
 	max-width: 240px;
 	/* Slide-in animation */
 	transform: translateY(110%);

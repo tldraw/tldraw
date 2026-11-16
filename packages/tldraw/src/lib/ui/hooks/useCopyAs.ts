@@ -1,8 +1,16 @@
-import { TLShapeId, assert, useMaybeEditor } from '@tldraw/editor'
+import { assert, defineMessages, TLShapeId, useMaybeEditor } from '@tldraw/editor'
 import { useCallback } from 'react'
 import { TLCopyType, copyAs } from '../../utils/export/copyAs'
 import { useToasts } from '../context/toasts'
 import { useTranslation } from './useTranslation/useTranslation'
+
+const messages = defineMessages({
+	toastErrorCopyFailDesc: {
+		id: 'toast.error.copy-fail.desc',
+		defaultMessage: 'Failed to copy image',
+	},
+	toastErrorCopyFailTitle: { id: 'toast.error.copy-fail.title', defaultMessage: 'Failed copy' },
+})
 
 /** @public */
 export function useCopyAs() {
@@ -17,8 +25,8 @@ export function useCopyAs() {
 				addToast({
 					id: 'copy-fail',
 					severity: 'warning',
-					title: msg('toast.error.copy-fail.title'),
-					description: msg('toast.error.copy-fail.desc'),
+					title: msg(messages.toastErrorCopyFailTitle),
+					description: msg(messages.toastErrorCopyFailDesc),
 				})
 			})
 		},

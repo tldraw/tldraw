@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "Stiamo lavorando al supporto per i file provenienti da <a><strong>{appName}</strong></a>."
   },
-  "03b3e13197": {
-    "translation": "Trascina il file nella barra laterale su questa pagina. Oppure seleziona l'opzione \"Importa file\" dal menu utente."
-  },
   "043973ec1f": {
     "translation": "Hai ancora difficoltà? {GetHelpLink}"
   },
@@ -73,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "Crea file"
+  },
+  "1a7222b4e5": {
+    "translation": "Spostarsi su"
   },
   "1da2e8106b": {
     "translation": "Si è verificato un errore imprevisto."
@@ -139,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Rimuovere il membro"
+  },
+  "398f51738e": {
+    "translation": "Accedi per accettare questo invito."
   },
   "3bc7d6ea2f": {
     "translation": "Continua con l'email"
@@ -208,9 +211,6 @@
   },
   "54286b1d01": {
     "translation": "Limite di collaboratori raggiunto"
-  },
-  "545241e7dd": {
-    "translation": "{count} non letto"
   },
   "550b25cc0c": {
     "translation": "Impossibile ripristinare il disegno locale. Prova a ricaricare questa pagina."
@@ -311,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Ricarica la pagina"
   },
+  "747ee44424": {
+    "translation": "Salva il contenuto come file .tldr: seleziona \"Salva una copia\" nel menu in alto a sinistra."
+  },
   "74ff4bad28": {
     "translation": "Nessun file trovato"
   },
@@ -386,9 +389,6 @@
   "85a082de1b": {
     "translation": "Ricarica la pagina per ottenere l'ultima versione di tldraw."
   },
-  "86353d2c41": {
-    "translation": "Aggiunti {total} file .tldr."
-  },
   "86c66437fd": {
     "translation": "Rinomina file"
   },
@@ -415,6 +415,9 @@
   },
   "90646db02d": {
     "translation": "Sei sicuro di voler eliminare <strong>{workspaceName}</strong>? Questa azione non può essere annullata."
+  },
+  "930390d222": {
+    "translation": "Link di invito copiato"
   },
   "95aacd4d4a": {
     "translation": "Accedi con Google"
@@ -458,8 +461,8 @@
   "a078644c42": {
     "translation": "Sei stato invitato a unirti a <strong>{workspaceName}</strong>."
   },
-  "a0da245992": {
-    "translation": "Esportare il contenuto come file .tldr: selezionare \"Scarica\" nel menu in alto a sinistra."
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# non letto} other {# non letto}}"
   },
   "a104439641": {
     "translation": "Padding"
@@ -537,6 +540,9 @@
   "b6f4a2ec63": {
     "translation": "Proprietario"
   },
+  "b74dbb40c5": {
+    "translation": "Trascina il file nella barra laterale di questa pagina. In alternativa, seleziona l'opzione \"Importa file\" dal menu File in alto a sinistra."
+  },
   "b758336699": {
     "translation": "Copia link"
   },
@@ -558,14 +564,14 @@
   "c2276c9127": {
     "translation": "Maggiori informazioni sulla condivisione."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {Aggiunto # file .tldr.} other {Aggiunti # file .tldr.}}"
+  },
   "c303bd1095": {
     "translation": "Impossibile pubblicare il file."
   },
   "c4b39a1cc3": {
     "translation": "Cookie essenziali"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: stringa lunga"
   },
   "c6a00f137b": {
     "translation": "Invita"
@@ -645,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "O"
   },
+  "ea13ecec38": {
+    "translation": "Cronologia dei file"
+  },
   "ea4788705e": {
     "translation": "Annulla"
   },
@@ -659,9 +668,6 @@
   },
   "ec611e9a08": {
     "translation": "Menu account"
-  },
-  "ed53713239": {
-    "translation": "i18n: lettera accentata"
   },
   "ed75712b0e": {
     "translation": "Duplica"
@@ -690,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "Elimina"
   },
+  "f408fa5fbd": {
+    "translation": "Questo link di invito non è valido o è scaduto."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> e {count, plural, one {# altro} other {# altri}} hanno reagito al tuo commento"
   },
@@ -716,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Crea un account gratuito per salvare i tuoi file e disegnare insieme ai tuoi compagni di squadra."
+  },
+  "ffad261a48": {
+    "translation": "Errore durante l'accettazione dell'invito"
   },
   "ffcd73e997": {
     "translation": "Importa file…"

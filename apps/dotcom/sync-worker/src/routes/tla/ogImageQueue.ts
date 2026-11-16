@@ -1,5 +1,6 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { TLRecord } from '@tldraw/tlschema'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
@@ -14,6 +15,7 @@ import {
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
 import { enumerateBoardPages } from './boardTools'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
@@ -37,12 +39,25 @@ import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShar
 // the pipeline lives on the MCP endpoint instead (mcpServer.ts).
 
 // OG images render a single page as the unfurl preview. Pick the first page (in board order) that
-// has content, so a board whose first page is empty still gets a meaningful image; fall back to the
-// first page when none have content, which renders as a blank.
+// has content, so a board whose first page is empty still gets a meaningful image. Undefined when no
+// page has any: a capture of that is a blank card (see dropBoardWithNoContent).
 function pickOgImagePageId(snapshot: RoomSnapshot): string | undefined {
-	const pages = enumerateBoardPages(snapshot)
-	if (pages.length === 0) return undefined
-	return (pages.find((page) => page.hasContent) ?? pages[0]).id
+	return enumerateBoardPages(snapshot).find((page) => page.hasContent)?.id
+}
+
+// What the image depicts, where the board's version moves on an edit to any page. Taken over the slice
+// the render page draws (sliceSnapshotForRender), so it changes exactly when the picture can; a slice
+// that refuses falls back to the whole board, which is the board version's behaviour. A count and the
+// newest clock are enough: an edit or an addition raises the clock, and a deletion alone lowers the
+// count. The page id is in it because another page becoming the first with content changes the
+// picture without touching any of these records.
+export function getOgImageContentVersion(snapshot: RoomSnapshot, pageId: string) {
+	const records = snapshot.documents.map((document) => document.state) as TLRecord[]
+	const slice = sliceSnapshotForRender(records, { pageId }) ?? records
+	const clockOf = new Map(snapshot.documents.map((d) => [d.state.id, d.lastChangedClock]))
+	let newest = 0
+	for (const record of slice) newest = Math.max(newest, clockOf.get(record.id) ?? 0)
+	return `${pageId}:${slice.length}:${newest}`
 }
 
 /**
@@ -70,9 +85,9 @@ function getOgImagePendingKey(board: ThumbnailBoardRef) {
 	return getOgImageCacheKey(board).replace(/\.png$/, '.pending')
 }
 
-// Armed when a crawler-triggered job gives up, consulted only by the OG route's published-board
-// repair (see OG_REPAIR_COOLDOWN_MS in config.ts). Deliberately not consulted by enqueueOgImageRender
-// itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
+// Armed when a crawler-triggered job ends without an image — it gave up, or the board has nothing to
+// render — and consulted only by the OG route's published-board repair (see OG_REPAIR_COOLDOWN_MS in
+// config.ts). Deliberately not consulted by enqueueOgImageRender itself: a republish is a genuine new snapshot and must render regardless of how the last attempt
 // went, so only the one ask an outside caller can cause is metered. For the same reason the publish
 // trigger *clears* it: the cooldown is evidence about the snapshot that failed, and a republish
 // replaces that snapshot, so the new one gets its own repair backstop — and re-arms the cooldown
@@ -273,6 +288,25 @@ export async function handleOgImageRenderMessage(
 		message.ack()
 	}
 
+	// Persisted, but no page has a shape on it. A capture would be a blank card, which is worse than
+	// what both routes show for a board with no image: the OG route redirects to the site-wide
+	// default, and the board view answers 404 for its placeholder. So no capture, and the image goes
+	// too, whatever its kind: it depicts content the board no longer has. Terminal rather than
+	// retried, since the next edit that draws something asks again.
+	const dropBoardWithNoContent = async () => {
+		await env.THUMBNAILS?.delete(cacheKey)
+		await clearOgImagePendingMarker(env, boardRef)
+		await armRepairCooldownIfCrawler(env, boardRef, reason)
+		writeScreenshotTelemetry(env, {
+			source: 'queue',
+			reason,
+			followUp,
+			cacheStatus: 'miss',
+			failureReason: 'board_empty',
+		})
+		message.ack()
+	}
+
 	try {
 		// 'render' rather than 'public': every board gets a thumbnail, private ones included. The OG
 		// route re-applies the public gate when it serves.
@@ -296,9 +330,8 @@ export async function handleOgImageRenderMessage(
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// No capacity check, by design (see the top of this file). The version check above is what stops
-		// redundant work: everything past this point is a board whose cached thumbnail genuinely no
-		// longer matches its content.
+		// No capacity check, by design (see the top of this file). The version check above and the
+		// content check below are what stop redundant work.
 
 		// Loaded to target the first page that has content, so a board whose first page is empty still
 		// gets a meaningful unfurl image.
@@ -324,9 +357,36 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 
+		const pageId = pickOgImagePageId(snapshot)
+		if (!pageId) {
+			await dropBoardWithNoContent()
+			return
+		}
+
+		// The edit was to records the image doesn't draw, such as another page. The image stays, and
+		// only its version moves on, which is what the OG route reads as fresh.
+		const contentVersion = getOgImageContentVersion(snapshot, pageId)
+		if (cached?.customMetadata?.contentVersion === contentVersion) {
+			const image = await env.THUMBNAILS.get(cacheKey)
+			if (image) {
+				await env.THUMBNAILS.put(cacheKey, await image.arrayBuffer(), {
+					httpMetadata: { contentType: 'image/png' },
+					customMetadata: { ...image.customMetadata, version: String(board.version) },
+				})
+				await clearOgImagePendingMarker(env, boardRef)
+				writeScreenshotTelemetry(env, {
+					source: 'queue',
+					reason,
+					followUp,
+					cacheStatus: 'unchanged',
+				})
+				message.ack()
+				return
+			}
+		}
+
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
-		const pageId = pickOgImagePageId(snapshot)
 		const render = await captureThumbnailScreenshot(env, board, {
 			surface: 'og',
 			pageId,
@@ -337,8 +397,11 @@ export async function handleOgImageRenderMessage(
 			// queue's ledger even though the job is signed for the og pipeline.
 			telemetry: { source: 'queue', reason },
 			content: summarizeSnapshotContent(snapshot, pageId),
+			snapshot,
 		})
-		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
+		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version, {
+			contentVersion,
+		})
 		await clearOgImagePendingMarker(env, boardRef)
 		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
 
@@ -483,18 +546,23 @@ async function retryOrDrop(
 	// rather than letting it lapse means the next ask is acted on immediately instead of being turned
 	// away for the rest of the TTL — which matters most here, since this board has no image at all.
 	await clearOgImagePendingMarker(env, board)
-	// But when the ask that failed was itself the OG route's crawler-triggered repair, "immediately"
-	// is the problem rather than the point: with the marker gone, the next unauthenticated request
-	// would re-arm the whole retry chain, letting traffic an outside caller controls spend Browser Run
-	// on a board that just proved it cannot render. Arm the repair cooldown instead — publish- and
-	// edit-triggered asks don't consult it, so a genuine republish still renders straight away. Best
-	// effort: a cooldown that fails to write costs extra renders, not the ack.
-	if (board.kind === 'published' && reason === 'crawler' && env.THUMBNAILS) {
-		await putMarker(
-			env.THUMBNAILS,
-			getOgImageRepairCooldownKey(board),
-			OG_REPAIR_COOLDOWN_MS
-		).catch(() => {})
-	}
+	await armRepairCooldownIfCrawler(env, board, reason)
 	message.ack()
+}
+
+// For a job that ended without an image. When the ask was the OG route's crawler-triggered repair,
+// clearing the marker lets the next unauthenticated request re-arm the whole job straight away,
+// letting traffic an outside caller controls spend on a board that just proved it yields no image.
+// Arm the repair cooldown instead — publish- and edit-triggered asks don't consult it, so a genuine
+// republish still renders straight away. Best effort: a cooldown that fails to write costs extra
+// renders, not the ack.
+async function armRepairCooldownIfCrawler(
+	env: Environment,
+	board: ThumbnailBoardRef,
+	reason: OgImageRenderReason
+) {
+	if (board.kind !== 'published' || reason !== 'crawler' || !env.THUMBNAILS) return
+	await putMarker(env.THUMBNAILS, getOgImageRepairCooldownKey(board), OG_REPAIR_COOLDOWN_MS).catch(
+		() => {}
+	)
 }

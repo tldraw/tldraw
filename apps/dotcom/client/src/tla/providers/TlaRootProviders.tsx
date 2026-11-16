@@ -1,30 +1,35 @@
-import { useAuth, useUser as useClerkUser } from '@clerk/clerk-react'
+import { useAuth, useUser as useClerkUser } from '@clerk/react'
 import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
 import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
-import { Outlet } from 'react-router-dom'
+import { IntlProvider, useIntl } from 'react-intl'
+import { Outlet, useMatches } from 'react-router-dom'
 import {
 	ContainerProvider,
 	DefaultA11yAnnouncer,
 	DefaultDialogs,
 	DefaultToasts,
+	defineMessages,
 	EditorContext,
-	RTL_LANGUAGES,
-	TLUiEventHandler,
-	TldrawUiA11yProvider,
-	TldrawUiContextProvider,
 	fetch,
 	react,
+	RTL_LANGUAGES,
 	runtime,
 	setRuntimeOverrides,
+	TldrawUiA11yProvider,
+	TldrawUiContextProvider,
 	tlenvReactive,
+	TLUiEventHandler,
 	useDialogs,
+	useTldrawI18n,
 	useToasts,
 	useValue,
 } from 'tldraw'
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
-import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
+import { TlaRouteHandle } from '../../routeDefs'
+import { trackEvent } from '../../utils/analytics'
+import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/AnalyticsTrackers'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
 import { markFirstLoad } from '../../utils/firstLoad'
@@ -32,15 +37,14 @@ import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
-import { components } from '../components/TlaEditor/TlaEditor'
+import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
-import { AppStateProvider, useMaybeApp } from '../hooks/useAppState'
-import { useUITheme } from '../hooks/useUITheme'
-import { UserProvider } from '../hooks/useUser'
+import { AppStateProvider } from '../hooks/AppStateProvider'
+import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import '../styles/tla.css'
+import { UserProvider } from '../hooks/UserProvider'
+import { useUITheme } from '../hooks/useUITheme'
 import { hasNotAcceptedLegal } from '../utils/auth'
-import { FeatureFlagPoller } from '../utils/FeatureFlagPoller'
-import { IntlProvider, defineMessages, setupCreateIntl, useIntl } from '../utils/i18n'
 import {
 	getLocalSessionState,
 	resetLocalSessionStateButKeepTheme,
@@ -61,7 +65,10 @@ function WatermarkOverride() {
 		setRuntimeOverrides({
 			openWindow(url: string, target: string, allowReferrer?: boolean) {
 				if (url.includes('utm_campaign=watermark')) {
-					url = url.replace('utm_source=sdk', 'utm_source=dotcom')
+					// Keeps tldraw.com's own badge apart from the SDK watermark in other people's apps.
+					url = url
+						.replace('utm_source=sdk', 'utm_source=dotcom')
+						.replace('utm_campaign=watermark', 'utm_campaign=made-with-tldraw')
 					trackEvent('click-watermark', { url })
 				}
 				originalOpenWindow(url, target, allowReferrer)
@@ -71,7 +78,7 @@ function WatermarkOverride() {
 	return null
 }
 
-export const appMessages = defineMessages({
+const appMessages = defineMessages({
 	oldBrowser: {
 		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
 	},
@@ -149,7 +156,9 @@ export function Component() {
 							{container && (
 								<ContainerProvider container={container}>
 									<InsideOfContainerContext>
-										<Outlet />
+										<AppGate>
+											<Outlet />
+										</AppGate>
 										<LegalTermsAcceptance />
 									</InsideOfContainerContext>
 								</ContainerProvider>
@@ -194,10 +203,6 @@ function IntlWrapper({ children, locale }: { children: ReactNode; locale: string
 		}
 	}, [locale])
 
-	const defaultLocale = 'en'
-	// createIntl is used in non-React locations.
-	setupCreateIntl({ defaultLocale, locale, messages })
-
 	return (
 		<IntlProvider defaultLocale={locale} locale={locale} messages={messages}>
 			{children}
@@ -219,6 +224,7 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 					components={components}
 					onUiEvent={handleAppLevelUiEvent}
 				>
+					<PutI18nInApp />
 					<_Tooltip.Provider>{children}</_Tooltip.Provider>
 					<DefaultDialogs />
 					<DefaultToasts />
@@ -232,11 +238,42 @@ function InsideOfContainerContext({ children }: { children: ReactNode }) {
 	)
 }
 
+// The app outlives any render, so the adapter is handed to it rather than reached for. Ahead of
+// `children`, so the adapter is there for their first render; the locale goes in a layout effect,
+// since it's a signal they may be subscribed to, and lands before paint.
+function PutI18nInApp() {
+	const i18n = useTldrawI18n()
+	const app = useMaybeApp()
+	const locale = i18n().locale
+	if (app) app.i18n = i18n
+	useLayoutEffect(() => {
+		app?.locale$.set(locale)
+	}, [app, locale])
+	return null
+}
+
 function PutToastsInApp() {
 	const toasts = useToasts()
 	const app = useMaybeApp()
 	if (app) app.toasts = toasts
 	return null
+}
+
+// Holds routes back until the app resolves unless the matched route opts in via its `handle`
+// (the root and file routes: they open the sync socket while Zero is still preloading and cope
+// with a null app). Anything else calling `useApp()` would otherwise throw.
+function AppGate({ children }: { children: ReactNode }) {
+	const isAppLoading = useIsAppLoading()
+	const matches = useMatches()
+	const rendersWhileAppLoads = matches.some(
+		(m) => (m.handle as TlaRouteHandle | undefined)?.rendersWhileAppLoads
+	)
+	if (isAppLoading && !rendersWhileAppLoads) return null
+	return children
+}
+
+function WhenAppReady({ children }: { children: ReactNode }) {
+	return useMaybeApp() ? children : null
 }
 
 function SignedInProvider({
@@ -319,7 +356,6 @@ function SignedInProvider({
 	if (!auth.isSignedIn || !user || !isUserLoaded) {
 		return (
 			<ThemeContainer onThemeChange={onThemeChange}>
-				<FeatureFlagPoller />
 				<SignedOutAnalytics />
 				{children}
 			</ThemeContainer>
@@ -328,11 +364,12 @@ function SignedInProvider({
 
 	return (
 		<>
-			<FeatureFlagPoller />
 			<AppStateProvider>
 				<UserProvider>
 					<ThemeContainer onThemeChange={onThemeChange}>
-						<SignedInAnalytics />
+						<WhenAppReady>
+							<SignedInAnalytics />
+						</WhenAppReady>
 						{children}
 					</ThemeContainer>
 				</UserProvider>
@@ -345,6 +382,10 @@ function LegalTermsAcceptance() {
 	const { user } = useClerkUser()
 	const { addDialog } = useDialogs()
 	const userRef = useRef(user)
+	// Accepting calls user.update and user.reload, which change the Clerk user identity, a dep of
+	// AppStateProvider's bootstrap effect. Shown during the preload, accepting would abort and
+	// restart the preload, so the dialog waits for the app.
+	const isAppLoading = useIsAppLoading()
 
 	// Keep the ref updated with the latest user
 	useEffect(() => {
@@ -363,8 +404,9 @@ function LegalTermsAcceptance() {
 			}
 		}
 
+		if (isAppLoading) return
 		maybeShowDialog()
-	}, [addDialog, user?.id])
+	}, [addDialog, user?.id, isAppLoading])
 
 	return null
 }

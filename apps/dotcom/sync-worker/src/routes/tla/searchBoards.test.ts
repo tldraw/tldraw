@@ -1,14 +1,6 @@
-import { DB } from '@tldraw/dotcom-shared'
-import {
-	CompiledQuery,
-	DatabaseConnection,
-	Kysely,
-	PostgresAdapter,
-	PostgresIntrospector,
-	PostgresQueryCompiler,
-	QueryResult,
-} from 'kysely'
+import { CompiledQuery } from 'kysely'
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createFakeKysely } from '../../test/fakeKysely'
 import { Environment } from '../../types'
 import { BOARD_SEARCH_PAGE_SIZE } from './boardTools'
 
@@ -20,45 +12,10 @@ const { escapeLikePattern, searchAccessibleBoards, selectAccessibleGroupIds } =
 
 const env = {} as Environment
 
-/**
- * A real Kysely on a driver that records the SQL instead of sending it, and hands back the queued
- * result sets in order.
- *
- * Real rather than a stub builder because the thing under test *is* the SQL: whether the query
- * joins `file_state` decides whether the ordering can ever be index-served, and whether `id`
- * carries `COLLATE "C"` decides whether the database agrees with the JS comparator. Neither is
- * visible in a recording of which builder methods were called.
- */
 function mockPool(resultSets: unknown[][]) {
-	const queries: CompiledQuery[] = []
-	const queued = [...resultSets]
-	const connection: DatabaseConnection = {
-		async executeQuery<R>(compiled: CompiledQuery<unknown>): Promise<QueryResult<R>> {
-			queries.push(compiled)
-			return { rows: (queued.shift() ?? []) as R[] }
-		},
-		async *streamQuery() {},
-	}
-	const db = new Kysely<DB>({
-		dialect: {
-			createAdapter: () => new PostgresAdapter(),
-			createIntrospector: (instance) => new PostgresIntrospector(instance),
-			createQueryCompiler: () => new PostgresQueryCompiler(),
-			createDriver: () => ({
-				async init() {},
-				async acquireConnection() {
-					return connection
-				},
-				async beginTransaction() {},
-				async commitTransaction() {},
-				async rollbackTransaction() {},
-				async releaseConnection() {},
-				async destroy() {},
-			}),
-		},
-	})
-	vi.mocked(createPostgresConnectionPool).mockReturnValue(db)
-	return { queries }
+	const fake = createFakeKysely(resultSets)
+	vi.mocked(createPostgresConnectionPool).mockReturnValue(fake.db)
+	return fake
 }
 
 /** The workspace read is the second query; the first is the workspace-membership lookup. */
@@ -81,6 +38,8 @@ const FILE_ROW = {
 	updatedAt: '1700000000000',
 	ownerName: 'My workspace',
 	owningGroupId: 'user-1',
+	// pg returns the sum as a string, like the int8 timestamps.
+	matched: '0',
 }
 
 afterEach(() => vi.clearAllMocks())
@@ -164,12 +123,37 @@ describe('searchAccessibleBoards', () => {
 		expect(parameters.filter((value) => value === 21)).toHaveLength(1)
 	})
 
-	it('matches every term as an escaped, case-insensitive substring', async () => {
+	it('matches any term as an escaped, case-insensitive substring', async () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', { terms: ['design', '50%'], cursor: null })
-		expect(fileQuery(queries).sql).toContain('"file"."name" ilike $4 and "file"."name" ilike $5')
+		expect(fileQuery(queries).sql).toMatch(
+			/\("file"\."name" ilike \$\d+ or "file"\."name" ilike \$\d+\)/
+		)
 		expect(fileQuery(queries).parameters).toContain('%design%')
 		expect(fileQuery(queries).parameters).toContain('%50\\%%')
+	})
+
+	// Substring matching lets a common word match most boards, so the board matching every word has
+	// to lead rather than sort by age among them.
+	it('ranks boards by how many terms they match, and seeks on that rank', async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, []])
+		await searchAccessibleBoards(env, 'user-1', {
+			terms: ['design', 'roadmap'],
+			cursor: { matched: 1, arrivedAt: 5, id: 'board-9' },
+		})
+		const { sql } = fileQuery(queries)
+		expect(sql).toMatch(
+			/order by \(\(case when "file"\."name" ilike .* desc, "file"\."createdAt" desc/
+		)
+		expect(sql).toMatch(
+			/\(\(\(case when .*\), "file"\."createdAt", file\.id collate "C"\) < \(\$\d+, \$\d+, \$\d+\)/
+		)
+	})
+
+	it('leaves the rank out of a listing, so the index serves the order', async () => {
+		const { queries } = mockPool([HOME_MEMBERSHIP, []])
+		await searchAccessibleBoards(env, 'user-1', { terms: [], cursor: null })
+		expect(fileQuery(queries).sql).toContain('order by "file"."createdAt" desc')
 	})
 
 	// Test files need admin auth to read, so they are not the caller's to find. Filtered in SQL,
@@ -216,7 +200,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
 		expect(fileQuery(queries).sql).toContain('("file"."createdAt", file.id collate "C") < ($4, $5)')
 		expect(fileQuery(queries).parameters).toContain('board-9')
@@ -235,7 +219,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { arrivedAt: 1, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1, id: 'board-9' },
 		})
 		const sql = fileQuery(queries).sql
 		expect(sql.match(/file\.id collate "C"/g)).toHaveLength(2)
@@ -250,6 +234,7 @@ describe('searchAccessibleBoards', () => {
 			{
 				id: 'board-1',
 				name: 'Roadmap',
+				matched: 0,
 				// A workspace board arrives when it is made, so the two are the same instant here.
 				arrivedAt: 1_699_999_000_000,
 				createdAt: 1_699_999_000_000,
@@ -312,7 +297,7 @@ describe('searchAccessibleBoards', () => {
 		const { queries } = mockPool([HOME_MEMBERSHIP, [], []])
 		await searchAccessibleBoards(env, 'user-1', {
 			terms: [],
-			cursor: { arrivedAt: 1_700_000_000_000, id: 'board-9' },
+			cursor: { matched: 0, arrivedAt: 1_700_000_000_000, id: 'board-9' },
 		})
 		const { sql } = sharedQuery(queries)
 		expect(sql).toContain('("group_file"."createdAt", group_file."fileId" collate "C") < ')

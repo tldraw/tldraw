@@ -1,5 +1,6 @@
 import { useCallback, useId, type ComponentType, type KeyboardEvent, type MouseEvent } from 'react'
 import {
+	defineMessages,
 	TldrawUiButton,
 	TldrawUiDropdownMenuContent,
 	TldrawUiDropdownMenuRoot,
@@ -11,6 +12,10 @@ import {
 import { EmojiPicker, type EmojiPickerProps } from './emoji-picker'
 import { SmileyIcon } from './icons'
 import { RenderReaction } from './reaction'
+
+const messages = defineMessages({
+	commentsAddReaction: { id: 'comments.add-reaction', defaultMessage: 'Add reaction' },
+})
 
 /** @public */
 export interface ReactionPickerProps {
@@ -66,7 +71,7 @@ export function ReactionPicker({
 	renderReaction,
 	palette: Palette = EmojiPicker,
 	menuId,
-	className = 'tlui-cmt-thread__action',
+	className = 'tlui-cmt-icon-btn',
 }: ReactionPickerProps) {
 	const msg = useTranslation()
 	const editor = useMaybeEditor()
@@ -92,15 +97,15 @@ export function ReactionPicker({
 			<TldrawUiDropdownMenuTrigger>
 				<TldrawUiButton
 					type="icon"
-					tooltip={msg('comments.add-reaction')}
-					title={msg('comments.add-reaction')}
+					tooltip={msg(messages.commentsAddReaction)}
+					title={msg(messages.commentsAddReaction)}
 					className={className}
 				>
 					<SmileyIcon />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
 			{/* left-aligned under the trigger, so the grid opens rightward off the card's edge */}
-			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={4}>
+			<TldrawUiDropdownMenuContent side="bottom" align="start" alignOffset={0} sideOffset={0}>
 				<Palette
 					emoji={emoji}
 					selected={selected}

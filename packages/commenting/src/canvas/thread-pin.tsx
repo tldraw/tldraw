@@ -8,18 +8,19 @@ import {
 	useState,
 } from 'react'
 import {
-	type BoxModel,
+	defineMessages,
 	Editor,
 	TLCommentThread,
+	type BoxModel,
 	useContainer,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import { CommentPin } from '../ui/comment-pin'
-import { forwardPointerEventToCanvas, isCanvasPanGesture } from './canvas-events'
+import { forwardPointerEventToCanvas, isCanvasPanGesture, startCommentDrag } from './canvas-events'
 import { commitCommentMutation } from './comment-mutations'
-import { UNKNOWN_AUTHOR, UNKNOWN_COMMENT_AUTHOR } from './comment-render'
+import { UNKNOWN_COMMENT_AUTHOR } from './comment-render'
 import { type CommentingContext } from './context'
 import { useThreadComments } from './hooks'
 import { getCommentingOptions, useCanComment, useCommentingOptions } from './options'
@@ -44,7 +45,16 @@ import {
 	regionWithPinAt,
 	shapeAnchorAt,
 } from './thread-state'
-import { POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
+import { avatarRenderer, POPOVER_OFFSET, ThreadPopover, ThreadView } from './thread-view'
+
+const messages = defineMessages({
+	commentsUnknownAuthor: { id: 'comments.unknown-author', defaultMessage: 'Someone' },
+	commentsPinLabel: { id: 'comments.pin-label', defaultMessage: 'Comment by {name}' },
+	commentsPinLabelResolved: {
+		id: 'comments.pin-label-resolved',
+		defaultMessage: 'Resolved comment by {name}',
+	},
+})
 
 /** The opened popover has a header row the hover preview lacks, so it opens this much higher — the
  *  first comment then lands where the preview's sat. Re-measure if the header height or the preview
@@ -119,6 +129,9 @@ export const ThreadPin = memo(function ThreadPin({
 		// cursor's delta (like RegionBox's move) instead of snapping the anchor to the cursor.
 		offsetX: number
 		offsetY: number
+		clientX: number
+		clientY: number
+		endDrag?(): void
 	} | null>(null)
 	const markerRef = useRef<HTMLButtonElement>(null)
 	// Wheel pass-through sits on the marker (which is never scrollable), not the layer root —
@@ -130,7 +143,9 @@ export const ThreadPin = memo(function ThreadPin({
 	// clear the hint here or it stays on the shape indefinitely.
 	useEffect(() => {
 		return () => {
-			if (dragRef.current) editor.setHintingShapes([])
+			if (!dragRef.current) return
+			editor.setHintingShapes([])
+			dragRef.current.endDrag?.()
 		}
 	}, [editor])
 
@@ -189,14 +204,20 @@ export const ThreadPin = memo(function ThreadPin({
 
 	const PinContent = options.components.PinContent
 	const threadAuthor = resolveAuthor(thread.createdBy)
+	const pinAuthor = threadAuthor ?? UNKNOWN_COMMENT_AUTHOR
 	const pinContent = PinContent ? (
 		<PinContent thread={thread} comments={comments} />
 	) : (
-		<Avatar author={threadAuthor ?? UNKNOWN_COMMENT_AUTHOR} />
+		(avatarRenderer(options.components, thread.createdBy)?.(pinAuthor) ?? (
+			<Avatar author={pinAuthor} />
+		))
 	)
 	const pinLabel = msg(
-		thread.resolved ? 'comments.pin-label-resolved' : 'comments.pin-label'
-	).replace('{name}', threadAuthor?.name ?? UNKNOWN_AUTHOR)
+		thread.resolved ? messages.commentsPinLabelResolved : messages.commentsPinLabel,
+		{
+			name: threadAuthor?.name ?? msg(messages.commentsUnknownAuthor),
+		}
+	)
 
 	// Drag the marker to move the thread: position is overridden locally while dragging, then re-anchored
 	// on drop. A region translates keeping its size; a barely-moved pointer is a click.
@@ -223,6 +244,8 @@ export const ThreadPin = memo(function ThreadPin({
 		dragRef.current = {
 			startX: e.clientX,
 			startY: e.clientY,
+			clientX: e.clientX,
+			clientY: e.clientY,
 			moved: false,
 			offsetX: anchorPage ? anchorPage.x - grabPage.x : 0,
 			offsetY: anchorPage ? anchorPage.y - grabPage.y : 0,
@@ -236,8 +259,19 @@ export const ThreadPin = memo(function ThreadPin({
 		// press stays a click (`moved` never sets, so release toggles the popover and never commits).
 		if (!canComment) return
 		if (!drag.moved && Math.hypot(e.clientX - drag.startX, e.clientY - drag.startY) < 4) return
-		drag.moved = true
-		const cursorPage = editor.screenToPage({ x: e.clientX, y: e.clientY })
+		drag.clientX = e.clientX
+		drag.clientY = e.clientY
+		if (!drag.moved) {
+			drag.moved = true
+			drag.endDrag = startCommentDrag(editor, { cursor: 'move', onCameraMove: dragToPointer })
+		}
+		dragToPointer()
+	}
+	// Place the pin under the drag's last pointer position, at the current camera.
+	const dragToPointer = () => {
+		const drag = dragRef.current
+		if (!drag) return
+		const cursorPage = editor.screenToPage({ x: drag.clientX, y: drag.clientY })
 		const pagePoint = { x: cursorPage.x + drag.offsetX, y: cursorPage.y + drag.offsetY }
 		setDragPagePoint(pagePoint)
 		// Hint the shape the pin would re-anchor to on drop — the same hit-test endDrag resolves
@@ -251,6 +285,7 @@ export const ThreadPin = memo(function ThreadPin({
 	const takeDrag = (e: ReactPointerEvent<HTMLButtonElement>) => {
 		const drag = dragRef.current
 		dragRef.current = null
+		drag?.endDrag?.()
 		if (e.currentTarget.hasPointerCapture(e.pointerId)) {
 			e.currentTarget.releasePointerCapture(e.pointerId)
 		}

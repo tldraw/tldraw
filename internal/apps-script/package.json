@@ -36,7 +36,8 @@
 		"gpull:staging": "pnpm build:staging && clasp pull",
 		"gpush:staging": "pnpm build:staging && clasp push",
 		"build": "IS_PRODUCTION=1 pnpm exec tsx build-workspace-app.ts",
-		"build:staging": "pnpm exec tsx build-workspace-app.ts"
+		"build:staging": "pnpm exec tsx build-workspace-app.ts",
+		"build-types": "tsc --build"
 	},
 	"dependencies": {
 		"@google/clasp": "^3.2.0"

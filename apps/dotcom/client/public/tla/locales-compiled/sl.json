@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v uporabniškem meniju izberite možnost 'Uvozi datoteko'."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -189,6 +183,12 @@
     {
       "type": 0,
       "value": "Ustvari datoteko"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Premakni v"
     }
   ],
   "1da2e8106b": [
@@ -347,6 +347,12 @@
       "value": "Odstrani člana"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Prijavite se, da sprejmete to povabilo."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -497,16 +503,6 @@
     {
       "type": 0,
       "value": "Dosežena je omejitev sodelavcev"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " neprebranih"
     }
   ],
   "550b25cc0c": [
@@ -772,6 +768,12 @@
       "value": "Ponovno naložite stran"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Vsebino shranite kot datoteko .tldr: v zgornjem levem meniju izberite »Shrani kopijo«."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -964,20 +966,6 @@
       "value": "Prosimo, osvežite stran, da dobite najnovejšo različico tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Dodane "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " datoteke .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1044,6 +1032,12 @@
     {
       "type": 0,
       "value": "? Tega dejanja ni mogoče razveljaviti."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Povezava za povabilo je bila kopirana"
     }
   ],
   "95aacd4d4a": [
@@ -1158,10 +1152,58 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Izvozite vsebino kot datoteko .tldr: V zgornjem levem meniju izberite »Prenesi«."
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " neprebrana"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " neprebrano"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " neprebranih"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " neprebrani"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1330,6 +1372,12 @@
       "value": "Lastnik"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Povlecite datoteko v stransko vrstico na tej strani. Ali pa v meniju Datoteka v zgornjem levem kotu izberite možnost »Uvozi datoteko«."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1354,6 +1402,26 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Nalaganje "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " od "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " datotek .tldr …"
+            }
           ]
         },
         "one": {
@@ -1390,6 +1458,26 @@
         },
         "two": {
           "value": [
+            {
+              "type": 0,
+              "value": "Nalaganje "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " od "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " datotek .tldr …"
+            }
           ]
         }
       },
@@ -1420,6 +1508,76 @@
       "value": "Preberite več o skupni rabi."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodane so "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " datoteke .tldr."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodana je "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " datoteka .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodanih je "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " datotek .tldr."
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodani sta "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " datoteki .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1430,12 +1588,6 @@
     {
       "type": 0,
       "value": "Bistveni piškotki"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: dolg niz"
     }
   ],
   "c6a00f137b": [
@@ -1504,6 +1656,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " drugi"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1511,7 +1674,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " drug"
             }
           ]
         },
@@ -1522,7 +1685,18 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " drugih"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " druga"
             }
           ]
         }
@@ -1533,7 +1707,7 @@
     },
     {
       "type": 0,
-      "value": " sta se odzvala na vaš komentar"
+      "value": " so se odzvali na vaš komentar"
     }
   ],
   "d3d2e61733": [
@@ -1690,6 +1864,12 @@
       "value": "ali"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Zgodovina datotek"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1718,12 +1898,6 @@
     {
       "type": 0,
       "value": "Meni računa"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Naglašeno"
     }
   ],
   "ed75712b0e": [
@@ -1794,6 +1968,12 @@
       "value": "Izbriši"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ta povezava za povabilo je neveljavna ali je potekla."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1826,6 +2006,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " drugi"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1833,7 +2024,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " drug"
             }
           ]
         },
@@ -1844,7 +2035,18 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " drugih"
+            }
+          ]
+        },
+        "two": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " druga"
             }
           ]
         }
@@ -1930,6 +2132,12 @@
     {
       "type": 0,
       "value": "Ustvarite brezplačen račun za shranjevanje datotek in risanje s soigralci."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Napaka pri sprejemanju povabila"
     }
   ],
   "ffcd73e997": [

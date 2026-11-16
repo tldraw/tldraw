@@ -1,9 +1,19 @@
-import { warnOnce } from '@tldraw/editor'
+import { TLI18nMessage, getDeclaredMessages, useValue, warnOnce } from '@tldraw/editor'
 import * as React from 'react'
+import {
+	IntlContext,
+	IntlProvider,
+	ReactIntlErrorCode,
+	createIntl,
+	createIntlCache,
+	type IntlConfig,
+} from 'react-intl'
+// Nothing renders these, so nothing else imports them, and an app looks them up by key. Imported
+// so their English is declared — see `getDeclaredMessages`.
+import '../../consumerMessages'
 import { useAssetUrls } from '../../context/asset-urls'
-import { DEFAULT_TRANSLATION } from './defaultTranslation'
 import { TLUiTranslationKey } from './TLUiTranslationKey'
-import { TLUiTranslation, fetchTranslation } from './translations'
+import { EN_TRANSLATION, TLUiTranslation, fetchTranslation } from './translations'
 
 /** @public */
 export interface TLUiTranslationProviderProps {
@@ -20,6 +30,13 @@ export interface TLUiTranslationProviderProps {
 	 */
 	overrides?: Record<string, Record<string, string>>
 }
+
+// What a nested `TldrawUiTranslationProvider` needs to tell its parent `IntlProvider` apart from
+// an app's: the catalog this one handed react-intl, which passes it through as `intl.messages`.
+const OuterCatalogContext = React.createContext<{
+	messages: IntlConfig['messages']
+	appMessages: IntlConfig['messages'] | undefined
+} | null>(null)
 
 /** @public */
 export type TLUiTranslationContextType = TLUiTranslation
@@ -60,12 +77,10 @@ export function TldrawUiTranslationProvider({
 }: TLUiTranslationProviderProps) {
 	const getAssetUrl = useAssetUrls()
 
-	const [currentTranslation, setCurrentTranslation] = React.useState<TLUiTranslation>(() => ({
-		locale: 'en',
-		label: 'English',
-		dir: 'ltr',
-		messages: overrides?.en ? { ...DEFAULT_TRANSLATION, ...overrides.en } : DEFAULT_TRANSLATION,
-	}))
+	// Only the fetch belongs in an effect; merging overrides is derived from data already in hand.
+	// Inside one, a changed override took another round trip to apply, and an app assembling its
+	// overrides as it loads its own strings refetched this catalog on every identity change.
+	const [loaded, setLoaded] = React.useState<TLUiTranslation>(EN_TRANSLATION)
 
 	React.useEffect(() => {
 		let isCancelled = false
@@ -73,13 +88,7 @@ export function TldrawUiTranslationProvider({
 		async function loadTranslation() {
 			const translation = await fetchTranslation(locale, getAssetUrl)
 			if (isCancelled) return
-
-			const localeOverrides = overrides?.[locale]
-			setCurrentTranslation(
-				localeOverrides
-					? { ...translation, messages: { ...translation.messages, ...localeOverrides } }
-					: translation
-			)
+			setLoaded(translation)
 		}
 
 		loadTranslation()
@@ -87,30 +96,128 @@ export function TldrawUiTranslationProvider({
 		return () => {
 			isCancelled = true
 		}
-	}, [getAssetUrl, locale, overrides])
+	}, [getAssetUrl, locale])
+
+	// Keyed on the requested locale, not the loaded one. They differ when the SDK ships no catalogue
+	// for it and `fetchTranslation` falls back to English — which is the case for a locale that
+	// exists only in an app's own strings, so that's exactly when its overrides have to apply.
+	//
+	// Lowest to highest: the declared English, the English overrides, the locale's catalog, its
+	// overrides. The English overrides go underneath the catalog, so they reach only ids it lacks:
+	// an app's own key not yet translated for this locale falls back to its English, not its id.
+	const declared = useValue('declared messages', getDeclaredMessages, [])
+	const translated = React.useMemo(() => {
+		const enOverrides = locale === 'en' ? undefined : overrides?.en
+		return { ...enOverrides, ...loaded.messages, ...overrides?.[locale] }
+	}, [loaded, overrides, locale])
+
+	const currentTranslation = React.useMemo(
+		() => ({
+			...loaded,
+			messages: { ...declared, ...translated } as TLUiTranslation['messages'],
+		}),
+		[loaded, declared, translated]
+	)
+
+	// react-intl builds each provider's catalog from its own props alone, so without merging this
+	// one shadows an app's own `IntlProvider` for everything inside it — every tldraw.com dialog
+	// and share menu — leaving them on `defaultMessage`: English, and silently untranslated
+	// everywhere else. Ours wins a collision, since `overrides.translations` is the documented way
+	// to change an SDK string. The declared English goes underneath the app's catalog, not over it:
+	// it holds the app's own declarations too, whose English would otherwise shadow their
+	// translations.
+	//
+	// Only the app's catalog is merged, never another of ours: `<Tldraw>` renders one of these
+	// above the UI's, with the locale it mounted with, and merging that put its language under
+	// every other — French under English, French filling German's gaps.
+	//
+	// The cast is because the type is a union of two uniform records and this one is mixed on
+	// purpose: `formatMessage` dispatches per message, so the SDK's ICU strings and an app's
+	// precompiled AST can share a catalog. That holds only while the app keeps react-intl's ICU
+	// parser — an app that aliases it away, as tldraw.com used to, formats every string message
+	// with a placeholder to its own source.
+	const parentIntl = React.useContext(IntlContext)
+	const outer = React.useContext(OuterCatalogContext)
+	const appMessages =
+		outer && parentIntl?.messages === outer.messages ? outer.appMessages : parentIntl?.messages
+	const messages = React.useMemo(
+		() =>
+			appMessages
+				? ({
+						...declared,
+						...appMessages,
+						...translated,
+					} as IntlConfig['messages'])
+				: currentTranslation.messages,
+		[appMessages, declared, translated, currentTranslation.messages]
+	)
+	const outerCatalog = React.useMemo(() => ({ messages, appMessages }), [messages, appMessages])
 
 	return (
 		<TranslationsContext.Provider value={currentTranslation}>
-			{children}
+			{/* One IntlShape behind both APIs: `msg()` by key and `<F>` by descriptor read the
+			    same merged catalog, so an app's `overrides.translations` reaches both. */}
+			<IntlProvider
+				locale={locale}
+				defaultLocale="en"
+				messages={messages}
+				onError={onTranslationError}
+				fallbackOnEmptyString={false}
+			>
+				<OuterCatalogContext.Provider value={outerCatalog}>{children}</OuterCatalogContext.Provider>
+			</IntlProvider>
 		</TranslationsContext.Provider>
 	)
 }
 
 /**
- * Returns a function to translate a translation key into a string based on the current translation.
+ * Values substituted into a message's ICU placeholders.
+ *
+ * @public
+ */
+export type TLUiTranslationValues = Record<
+	string,
+	string | number | bigint | boolean | Date | null | undefined
+>
+
+// `fallbackOnEmptyString` is off on both intl instances because an override of `''` is how an app
+// hides a label; react-intl's default renders the id in its place.
+//
+// Returning the key verbatim for an unknown id is documented behaviour: apps pass their own keys
+// and plain text through `msg()`. Only surface errors that mean a message is actually malformed.
+const onTranslationError: IntlConfig['onError'] = (error) => {
+	if (error.code === ReactIntlErrorCode.MISSING_TRANSLATION) return
+	if (process.env.NODE_ENV !== 'production') console.error(error)
+}
+
+// One cache for the intl instances built below, as formatjs recommends, so that repeated mounts
+// don't leak a formatter cache each.
+const intlCache = createIntlCache()
+
+/**
+ * Returns a function to translate a message into a string based on the current translation.
+ *
+ * Pass a message declared with `defineMessages`, or a translation key. Messages are
+ * {@link https://unicode-org.github.io/icu/userguide/format_parse/messages/ | ICU MessageFormat},
+ * so a message can pluralise or select on the values you pass it. A declared message missing from
+ * the catalog falls back to its `defaultMessage`; an unknown key is returned as-is.
  *
  * @example
  *
  * ```ts
+ * const messages = defineMessages({
+ * 	selected: { id: 'my-app.selected', defaultMessage: '{count, plural, one {# shape} other {# shapes}}' },
+ * })
+ *
  * const msg = useTranslation()
- * const label = msg('style-panel.styles')
+ * const label = msg(messages.selected, { count: 5 })
+ * const title = msg('my-app.title')
  * ```
  *
  * @public
  */
 export function useTranslation() {
 	const translation = React.useContext(TranslationsContext)
-	const messages = translation?.messages ?? DEFAULT_TRANSLATION
 
 	React.useEffect(() => {
 		if (!translation?.messages) {
@@ -120,11 +227,43 @@ export function useTranslation() {
 		}
 	}, [translation?.messages])
 
+	// Not `useIntl()`: that throws outside a provider, where this hook still has to work.
+	const providedIntl = React.useContext(IntlContext)
+
+	// `TranslationsContext` on its own has always been enough to translate — tests and hand-rolled
+	// setups provide it without the rest. Keep that working by formatting against its messages when
+	// there's no `IntlProvider` above us, rather than silently falling back to English.
+	const standaloneIntl = React.useMemo(
+		() =>
+			providedIntl
+				? null
+				: createIntl(
+						{
+							locale: translation?.locale ?? 'en',
+							defaultLocale: 'en',
+							messages: translation?.messages ?? getDeclaredMessages(),
+							onError: onTranslationError,
+							fallbackOnEmptyString: false,
+						},
+						intlCache
+					),
+		[providedIntl, translation?.locale, translation?.messages]
+	)
+	const intl = providedIntl ?? standaloneIntl!
+
 	return React.useCallback(
-		function msg(id?: Exclude<string, TLUiTranslationKey> | string) {
-			return messages[id as TLUiTranslationKey] ?? id
+		function msg(
+			message?: Exclude<string, TLUiTranslationKey> | string | TLI18nMessage,
+			values?: TLUiTranslationValues
+		): string {
+			// `formatMessage` needs an id. Callers pass optional labels straight through, so keep the
+			// nullish passthrough this has always had rather than substituting an empty string.
+			if (!message) return message as string
+			// A bare key carries no default message, by design: this is the path for labels that
+			// arrive as data and for an app's own keys.
+			return intl.formatMessage(typeof message === 'string' ? { id: message } : message, values)
 		},
-		[messages]
+		[intl]
 	)
 }
 

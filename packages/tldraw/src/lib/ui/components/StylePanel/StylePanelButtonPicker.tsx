@@ -12,8 +12,8 @@ import { memo, useMemo, useRef } from 'react'
 import { StyleValuesForUi } from '../../../styles'
 import { PORTRAIT_BREAKPOINT } from '../../constants'
 import { useBreakpoint } from '../../context/breakpoints'
-import { TLUiTranslationKey } from '../../hooks/useTranslation/TLUiTranslationKey'
 import { useTranslation } from '../../hooks/useTranslation/useTranslation'
+import { styleMessageId, stylePanelMessages } from '../../styleMessages'
 import { TldrawUiButtonIcon } from '../primitives/Button/TldrawUiButtonIcon'
 import { TldrawUiGrid, TldrawUiRow } from '../primitives/layout'
 import {
@@ -154,18 +154,18 @@ function StylePanelButtonPickerInlineInner<T extends string>(
 			<Layout>
 				{items.map((item) => {
 					const isActive = value.type === 'shared' && value.value === item.value
-					const label = title + ' — ' + msg(`${uiType}-style.${item.value}` as TLUiTranslationKey)
+					const label = title + ' — ' + msg(styleMessageId(uiType, item.value))
 					return (
 						<TldrawUiToolbarToggleItem
 							type="icon"
 							key={item.value}
 							data-id={item.value}
 							data-testid={`style.${uiType}.${item.value}`}
-							aria-label={label + (isActive ? ` (${msg('style-panel.selected')})` : '')}
+							aria-label={label + (isActive ? ` (${msg(stylePanelMessages.selected)})` : '')}
 							tooltip={
 								<>
 									<div>{label}</div>
-									{isActive ? <div>({msg('style-panel.selected')})</div> : null}
+									{isActive ? <div>({msg(stylePanelMessages.selected)})</div> : null}
 								</>
 							}
 							value={item.value}

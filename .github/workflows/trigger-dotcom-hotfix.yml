@@ -67,3 +67,9 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           DISCORD_DEPLOY_WEBHOOK_URL: ${{ secrets.DISCORD_DEPLOY_WEBHOOK_URL }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+
+      # the script leaves another branch checked out. composite post steps re-read action.yml, so a
+      # different setup action there fails the job with "Index was out of range".
+      - name: Restore original checkout
+        if: always()
+        run: git checkout --force "$GITHUB_SHA"

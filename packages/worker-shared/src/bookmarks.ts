@@ -11,6 +11,8 @@ const queryValidator = T.object({
 	url: T.httpUrl,
 })
 
+const BOT_USER_AGENT = 'tldraw-bot/1.0 (+https://tldraw.com)'
+
 type UploadImage = (
 	headers: Headers,
 	body: ReadableStream | null,
@@ -101,6 +103,9 @@ async function trySaveImage<const K extends string>(
 
 	try {
 		const imageResponse = await fetch(initialUrl, {
+			// Some hosts (Wikimedia among them) answer 403 to a request with no user agent, which
+			// would leave the bookmark pointing at the original image instead of our copy.
+			headers: { 'user-agent': BOT_USER_AGENT },
 			cf: {
 				image: {
 					width: size,
