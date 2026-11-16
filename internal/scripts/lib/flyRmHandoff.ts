@@ -12,31 +12,25 @@ import { nicelog } from './nicelog'
 // answer at `<app>.internal`:
 //
 //   1. create a fresh volume and start a second RM on it with the new config
-//   2. wait for its checks to pass. Zero only answers /keepalive once the new RM has restored its
-//      replica from the backup, so it is ready to serve view-syncers
-//   3. stop the old RM. The stop signal makes it drain: it signals its view-syncers to switch
-//      over, they subscribe to the new RM, and that subscription makes the new RM take over the
-//      change log, which shuts the old one down. Taking over cuts the old RM's subscriptions
-//      (Zero's RMv1 design), so view-syncers reconnect, but to an RM that is already warm. Fly's
-//      restart policy does not apply to a stop
+//   2. wait for its checks to pass. Under RMv2 Zero only answers /keepalive once the new RM has
+//      forked the backup into its own path and its first backup covers its replica, so view-syncers
+//      restoring from it don't wait on a backup
+//   3. stop the old RM. The stop signal makes it drain: its view-syncers switch over to the new RM
 //   4. destroy the old machine and its volume
 //
 // If the new RM never becomes healthy it is destroyed with its volume, and the old RM keeps
 // serving.
 //
-// The new RM is started with a startup delay long enough that it only takes over the change log
-// when a view-syncer subscribes to it (Zero cancels the delay then). With Zero's default 15s, a
-// deploy that died between steps 1 and 3 left both RMs running: the new one took the change log,
-// the old one exited with an error, restart policy `always` brought it back to take the log back,
-// and the two traded it every ~25s, each trade cutting every view-syncer's subscription. Now the
-// leftover RM idles until the next deploy, which finishes the handoff (see
+// Needs RMv2 (ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION). Under RMv1 the RMs share one
+// replication slot and change log: the new RM takes the log over 15s after starting, the old one
+// exits, restart policy `always` brings it back to take it back, and each trade cuts every
+// view-syncer's subscription. RMv2 gives each RM its own slot and change log, so two running RMs
+// are fine, and a deploy that dies between steps 1 and 3 is finished by the next one (see
 // planInterruptedHandoff).
 
 // A production restore took ~10 min in the 1.11.5 incident. Leaves room in the deploy job's
 // timeout for the rest of the deploy.
 const NEW_MACHINE_TIMEOUT_MS = 30 * 60 * 1000
-// "Never" for a deploy; a view-syncer subscribing cancels it.
-export const HANDOFF_STARTUP_DELAY_MS = 24 * 60 * 60 * 1000
 const POLL_INTERVAL_MS = 2000
 
 interface FlyMachineConfig {
@@ -103,7 +97,6 @@ export function buildHandoffMachineConfig(
 			...config.env,
 			FLY_PROCESS_GROUP: current.env?.FLY_PROCESS_GROUP ?? 'app',
 			PRIMARY_REGION: config.primary_region,
-			ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS: String(HANDOFF_STARTUP_DELAY_MS),
 		},
 		guest: { cpu_kind: vm.cpu_kind, cpus: vm.cpus, memory_mb: parseSizeMb(vm.memory) },
 		checks: config.checks,

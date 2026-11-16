@@ -134,6 +134,10 @@ const flyioAppName =
 const flyioReplAppName =
 	deployZero === 'flyio-multinode' ? `${previewId ?? env.TLDRAW_ENV}-zero-rm` : undefined
 
+// RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
+// needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
+const zeroRmv2 = env.TLDRAW_ENV === 'staging'
+
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
 	shouldNotify: env.TLDRAW_ENV === 'production',
@@ -825,6 +829,7 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
+		.replaceAll('__RMV2', String(zeroRmv2))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -860,6 +865,7 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
+		.replaceAll('__RMV2', String(zeroRmv2))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
@@ -914,17 +920,15 @@ async function deployZeroViaFlyIoMultiNode() {
 		appName: flyioReplAppName,
 		configFile: rmConfigFile,
 		inputs: { config: renderFlyioReplicationManagerToml(flyioReplAppName, backupPath), secrets },
-		// Staging trial of the overlapping handoff before it replaces the in-place deploy everywhere.
-		deploy:
-			env.TLDRAW_ENV === 'staging'
-				? (renderedToml) =>
-						handOffReplicationManager({
-							appName: flyioReplAppName,
-							renderedToml,
-							configFile: rmConfigFile,
-							pwd: zeroCacheFolder,
-						})
-				: undefined,
+		deploy: zeroRmv2
+			? (renderedToml) =>
+					handOffReplicationManager({
+						appName: flyioReplAppName,
+						renderedToml,
+						configFile: rmConfigFile,
+						pwd: zeroCacheFolder,
+					})
+			: undefined,
 	})
 
 	// Deploy view syncer with reference to replication manager

@@ -2,7 +2,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import { exec } from './exec'
 import {
 	buildHandoffMachineConfig,
-	HANDOFF_STARTUP_DELAY_MS,
 	isHealthy,
 	listMachines,
 	parseSizeMb,
@@ -67,7 +66,6 @@ describe('buildHandoffMachineConfig', () => {
 				TLDRAW_DEPLOY_INPUT_HASH: 'abc',
 				FLY_PROCESS_GROUP: 'app',
 				PRIMARY_REGION: 'fra',
-				ZERO_CHANGE_STREAMER_STARTUP_DELAY_MS: String(HANDOFF_STARTUP_DELAY_MS),
 			},
 			guest: { cpu_kind: 'shared', cpus: 1, memory_mb: 1024 },
 			checks: {
