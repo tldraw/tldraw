@@ -444,6 +444,8 @@ function writeBrowserRunSessionTelemetry(
 			content.bboxWidth,
 			content.bboxHeight,
 			pushChars,
+			// double11, matching sync-worker's layout: the page's full-resolution image megapixels.
+			content.imageMegapixels,
 		],
 	})
 }

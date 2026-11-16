@@ -45,6 +45,11 @@ export interface RenderContentSummary {
 	mediaAssets: number
 	bboxWidth: number
 	bboxHeight: number
+	/**
+	 * Full-resolution megapixels of the image assets the rendered page's shapes use, each counted
+	 * once — what decoding the originals would cost, which the resized render avoids.
+	 */
+	imageMegapixels: number
 }
 
 /** Who a session is for on the spend ledger, and what it drew — the session-level dimensions. */
