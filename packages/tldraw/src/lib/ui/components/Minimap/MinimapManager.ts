@@ -1,61 +1,5 @@
-import {
-	Box,
-	Editor,
-	RESET_VALUE,
-	TLShape,
-	TLShapeId,
-	Vec,
-	atom,
-	bind,
-	clamp,
-	computed,
-	isUninitialized,
-	objectMapValues,
-	PI2,
-	react,
-	uniqueId,
-	unsafe__withoutCapture,
-} from '@tldraw/editor'
-
-// The shapes, on any page, whose util hides them from the minimap. `hideInMinimap` is asked when a
-// shape's record is added or changed and never tracked, so the per-shape cost stays out of both
-// the reactive graph and the minimap's path rebuild.
-function createHiddenShapeIds(editor: Editor) {
-	const shapeHistory = editor.store.query.filterHistory('shape')
-	const isHidden = (shape: TLShape) => !!editor.getShapeUtil(shape).hideInMinimap?.(shape)
-
-	return computed<ReadonlySet<TLShapeId>>('minimap hidden shapes', (prev, lastComputedEpoch) => {
-		const diffs = shapeHistory.getDiffSince(lastComputedEpoch)
-
-		return unsafe__withoutCapture(() => {
-			if (isUninitialized(prev) || diffs === RESET_VALUE) {
-				const hidden = new Set<TLShapeId>()
-				for (const record of editor.store.allRecords()) {
-					if (record.typeName === 'shape' && isHidden(record)) hidden.add(record.id)
-				}
-				return hidden
-			}
-
-			// Copied only if a shape's answer changes, which keeps the value (and so the paths)
-			// stable while hidden shapes are merely moved or restyled.
-			let next: Set<TLShapeId> | undefined
-			const setHidden = (id: TLShapeId, hidden: boolean) => {
-				if ((next ?? prev).has(id) === hidden) return
-				next ??= new Set(prev)
-				if (hidden) next.add(id)
-				else next.delete(id)
-			}
-			for (const diff of diffs) {
-				for (const shape of objectMapValues(diff.added)) setHidden(shape.id, isHidden(shape))
-				for (const [, shape] of objectMapValues(diff.updated)) {
-					setHidden(shape.id, isHidden(shape))
-				}
-				for (const shape of objectMapValues(diff.removed)) setHidden(shape.id, false)
-			}
-			return next ?? prev
-		})
-	})
-}
+import { Box, Editor, Vec, atom, bind, clamp, computed, PI2, react, uniqueId } from '@tldraw/editor'
+import { MinimapShapeLayer } from './MinimapShapeLayer'
 
 export class MinimapManager {
 	disposables = [] as (() => void)[]
@@ -69,7 +13,7 @@ export class MinimapManager {
 	}
 
 	private readonly ctx: CanvasRenderingContext2D
-	private readonly hiddenShapeIds: ReturnType<typeof createHiddenShapeIds>
+	private readonly shapeLayer: MinimapShapeLayer
 
 	constructor(
 		public editor: Editor,
@@ -79,9 +23,11 @@ export class MinimapManager {
 		const ctx = elem.getContext('2d')
 		if (!ctx) throw new Error('Minimap: could not get 2D canvas context')
 		this.ctx = ctx
-		this.hiddenShapeIds = createHiddenShapeIds(editor)
+		this.shapeLayer = new MinimapShapeLayer(editor, elem.ownerDocument)
 		this.colors = this._getColors()
-		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render))
+		this.disposables.push(this._listenForCanvasResize(), react('minimap render', this.render), () =>
+			this.shapeLayer.dispose()
+		)
 	}
 
 	private _getColors() {
@@ -229,26 +175,6 @@ export class MinimapManager {
 		return new Vec(px, py)
 	}
 
-	// Shape geometry in page space, split into unselected/selected fills. Built
-	// from the shape rects and selection only, so it survives pan/zoom of the
-	// main canvas — those move the `ctx` transform, not the paths themselves.
-	@computed
-	private getShapePaths() {
-		const selectedIds = new Set(this.editor.getSelectedShapeIds())
-		const hiddenIds = this.hiddenShapeIds.get()
-
-		const shapes = new Path2D()
-		const selected = new Path2D()
-
-		for (const [shapeId, bounds] of this.editor.getCurrentPageShapeMaskedBounds()) {
-			if (hiddenIds.size > 0 && hiddenIds.has(shapeId)) continue
-			const target = selectedIds.has(shapeId) ? selected : shapes
-			target.rect(bounds.x, bounds.y, bounds.w, bounds.h)
-		}
-
-		return { shapes, selected }
-	}
-
 	@bind
 	render() {
 		const { ctx, editor, elem } = this
@@ -269,20 +195,22 @@ export class MinimapManager {
 		ctx.fillStyle = this.colors.background
 		ctx.fillRect(0, 0, canvasSize.x, canvasSize.y)
 
+		this.shapeLayer.draw(
+			ctx,
+			{
+				width: elem.width,
+				height: elem.height,
+				minX: canvasPageBounds.minX,
+				minY: canvasPageBounds.minY,
+				scale: dpr * zoom,
+			},
+			{ shape: this.colors.shapeFill, selected: this.colors.selectFill }
+		)
+
 		// Transform: 1 page unit = `zoom * dpr` device pixels, with the minimap's
 		// page bounds pinned to the top-left of the canvas.
 		ctx.scale(dpr * zoom, dpr * zoom)
 		ctx.translate(-canvasPageBounds.minX, -canvasPageBounds.minY)
-
-		// Shapes — page-space paths from a computed, so a pan/zoom that only moves
-		// the transform above reuses them instead of rebuilding per shape.
-		const { shapes: shapesPath, selected: selectedPath } = this.getShapePaths()
-
-		ctx.fillStyle = this.colors.shapeFill
-		ctx.fill(shapesPath)
-
-		ctx.fillStyle = this.colors.selectFill
-		ctx.fill(selectedPath)
 
 		// Viewport indicator. roundRect is pricier than rect, so when the corner
 		// radius would be sub-pixel on screen (and thus invisible) fall back to a

@@ -172,7 +172,10 @@ import { InputsManager } from './managers/InputsManager/InputsManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
-import { CurrentPageBoundsCache } from './managers/SpatialIndexManager/CurrentPageBoundsCache'
+import {
+	CurrentPageBoundsCache,
+	type CurrentPageBoundsCacheListener,
+} from './managers/SpatialIndexManager/CurrentPageBoundsCache'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
@@ -5888,6 +5891,16 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * Listen for each change to {@link Editor.getCurrentPageShapeMaskedBounds} as it is applied.
+	 *
+	 * @returns A function that stops listening.
+	 * @internal
+	 */
+	addCurrentPageShapeMaskedBoundsListener(listener: CurrentPageBoundsCacheListener) {
+		return this._currentPageMaskedBounds.addListener(listener)
+	}
+
+	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
 	 *
 	 * Shape bounds are updated incrementally: a shape's bounds are recomputed when its record,
@@ -5898,11 +5911,13 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @public
 	 */
 	@computed getCurrentPageBounds(): Box | undefined {
-		let commonBounds: Box | undefined
 		const hidden = this._getCurrentPageHiddenShapeIds()
+		if (!hidden) return this._currentPageMaskedBounds.getCommonBounds()
+
+		let commonBounds: Box | undefined
 
 		for (const [shapeId, bounds] of this.getCurrentPageShapeMaskedBounds()) {
-			if (hidden?.has(shapeId)) continue
+			if (hidden.has(shapeId)) continue
 			if (!commonBounds) {
 				commonBounds = bounds.clone()
 			} else {

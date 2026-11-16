@@ -12,6 +12,20 @@ import type { Editor } from '../../Editor'
 import type { ShapesWithDirtyBounds } from './getShapesWithDirtyBounds'
 import { getShapeBoundsChangesSince } from './shapeBoundsChanges'
 
+/**
+ * Told about each change to a {@link CurrentPageBoundsCache} as it is applied, for consumers
+ * that keep their own incremental state. The calls happen while the cache is being read, by any
+ * reader, so they must not read or write reactive state.
+ *
+ * @internal
+ */
+export interface CurrentPageBoundsCacheListener {
+	/** A shape's bounds were added (no `prev`), removed (no `next`) or changed. */
+	onChange(id: TLShapeId, prev: Box | undefined, next: Box | undefined): void
+	/** Every entry was discarded and recomputed. `onChange` is not called for these. */
+	onRebuild(): void
+}
+
 interface BoundsMaps {
 	bounds: Map<TLShapeId, Box>
 	// Local-space clip paths of the shapes that have one, to spot clip changes that come from
@@ -46,6 +60,11 @@ export class CurrentPageBoundsCache {
 	// Null until the first read, after a change that needs a rebuild, and once released.
 	private maps: BoundsMaps | null = null
 	private isReleaseQueued = false
+	// Kept as extents, not a Box: comparing against a derived `x + w` would miss boxes that
+	// sit exactly on the edge.
+	private readonly common = { minX: 0, minY: 0, maxX: 0, maxY: 0 }
+	private isCommonStale = true
+	private readonly listeners = new Set<CurrentPageBoundsCacheListener>()
 	private readonly epoch: Computed<number>
 
 	constructor(
@@ -86,6 +105,69 @@ export class CurrentPageBoundsCache {
 		return maps.bounds
 	}
 
+	/**
+	 * The common bounds of every entry, or undefined if there are none. Reactive, like
+	 * {@link CurrentPageBoundsCache.get}.
+	 */
+	getCommonBounds(): Box | undefined {
+		const bounds = this.get()
+		const common = this.common
+		if (this.isCommonStale) {
+			common.minX = common.minY = Infinity
+			common.maxX = common.maxY = -Infinity
+			for (const box of bounds.values()) this.expandCommon(box)
+			this.isCommonStale = false
+		}
+		if (bounds.size === 0) return undefined
+		return new Box(common.minX, common.minY, common.maxX - common.minX, common.maxY - common.minY)
+	}
+
+	/** Listen for changes as they are applied. Returns a function that stops listening. */
+	addListener(listener: CurrentPageBoundsCacheListener) {
+		this.listeners.add(listener)
+		return () => {
+			this.listeners.delete(listener)
+		}
+	}
+
+	private expandCommon(bounds: Box) {
+		const { common } = this
+		common.minX = Math.min(common.minX, bounds.minX)
+		common.minY = Math.min(common.minY, bounds.minY)
+		common.maxX = Math.max(common.maxX, bounds.maxX)
+		common.maxY = Math.max(common.maxY, bounds.maxY)
+	}
+
+	// The common bounds can only shrink when a box on its edge moves or goes away, so any
+	// other change can be folded in without visiting every entry.
+	private updateCommon(prev: Box | undefined, next: Box | undefined) {
+		if (this.isCommonStale) return
+		const { common } = this
+		if (
+			prev &&
+			(prev.minX <= common.minX ||
+				prev.minY <= common.minY ||
+				prev.maxX >= common.maxX ||
+				prev.maxY >= common.maxY)
+		) {
+			this.isCommonStale = true
+		} else if (next) {
+			this.expandCommon(next)
+		}
+	}
+
+	private set(
+		boundsById: BoundsMaps['bounds'],
+		id: TLShapeId,
+		prev: Box | undefined,
+		next: Box | undefined
+	) {
+		if (next) boundsById.set(id, next)
+		else boundsById.delete(id)
+		this.updateCommon(prev, next)
+		for (const listener of this.listeners) listener.onChange(id, prev, next)
+	}
+
 	private releaseUnlessSubscribed() {
 		if (this.isReleaseQueued) return
 		this.isReleaseQueued = true
@@ -98,6 +180,8 @@ export class CurrentPageBoundsCache {
 	}
 
 	private build(): BoundsMaps {
+		this.isCommonStale = true
+		for (const listener of this.listeners) listener.onRebuild()
 		const maps: BoundsMaps = { bounds: new Map(), clipPaths: new Map() }
 		for (const shape of this.editor.getCurrentPageShapes()) {
 			const bounds = this.getBounds(shape)
@@ -127,7 +211,11 @@ export class CurrentPageBoundsCache {
 		let didChange = false
 
 		for (const id of removed) {
-			if (boundsById.delete(id)) didChange = true
+			const prev = boundsById.get(id)
+			if (prev) {
+				this.set(boundsById, id, prev, undefined)
+				didChange = true
+			}
 			clipPaths.delete(id)
 		}
 
@@ -156,10 +244,8 @@ export class CurrentPageBoundsCache {
 			const bounds = shape ? this.getBounds(shape) : undefined
 			const prev = boundsById.get(id)
 
-			if (!bounds) {
-				if (boundsById.delete(id)) didChange = true
-			} else if (!prev || !Box.Equals(prev, bounds)) {
-				boundsById.set(id, bounds)
+			if (bounds ? !prev || !Box.Equals(prev, bounds) : prev) {
+				this.set(boundsById, id, prev, bounds)
 				didChange = true
 			}
 		}
