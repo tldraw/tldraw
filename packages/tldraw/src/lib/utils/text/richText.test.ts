@@ -7,7 +7,7 @@ import {
 	isEmptyRichText,
 	renderHtmlFromRichTextWithExtensions,
 	renderPlaintextFromRichText,
-	renderPlaintextFromRichTextRange,
+	renderPlaintextFromRichTextSlice,
 	renderRichTextFromHTML,
 	tipTapDefaultExtensions,
 } from './richText'
@@ -168,7 +168,7 @@ describe('renderPlaintextFromRichText', () => {
 					],
 				},
 			])
-		).toBe('- before\nafter\n- next')
+		).toBe('- before\n  after\n- next')
 	})
 
 	it('keeps a hard break pasted inside a list item', () => {
@@ -176,12 +176,33 @@ describe('renderPlaintextFromRichText', () => {
 			editor,
 			'<ul><li>before<br>after</li><li>next</li></ul>'
 		)
-		expect(renderPlaintextFromRichText(editor, richText)).toBe('- before\nafter\n- next')
+		expect(renderPlaintextFromRichText(editor, richText)).toBe('- before\n  after\n- next')
+	})
+
+	it('renders an empty list as empty text', () => {
+		expect(plain([{ type: 'bulletList', content: [listItem({ type: 'paragraph' })] }])).toBe('')
+	})
+
+	it('marks task list items with their checked state', () => {
+		const taskItem = (checked: boolean, t: string) => ({
+			type: 'taskItem',
+			attrs: { checked },
+			content: [paragraph(t)],
+		})
+		const richText = {
+			type: 'doc',
+			content: [{ type: 'taskList', content: [taskItem(true, 'done'), taskItem(false, 'todo')] }],
+		}
+		const extensions = [...tipTapDefaultExtensions, TaskList, TaskItem]
+		const doc = Node.fromJSON(getSchema(extensions), richText)
+		expect(
+			renderPlaintextFromRichTextSlice(doc.slice(0, doc.content.size, true), doc.type.schema)
+		).toBe('- [x] done\n- [ ] todo')
 	})
 })
 
-describe('renderPlaintextFromRichTextRange', () => {
-	// Positions: `Shopping` occupies 1-9, `eggs` 13-17 and `milk` 21-25.
+describe('renderPlaintextFromRichTextSlice', () => {
+	// Positions: `Shopping` occupies 1-9, `eggs` 13-17, `milk` 21-25 and `Done` 29-33.
 	const doc = Node.fromJSON(getSchema(tipTapDefaultExtensions), {
 		type: 'doc',
 		content: [
@@ -190,25 +211,23 @@ describe('renderPlaintextFromRichTextRange', () => {
 				type: 'bulletList',
 				content: [listItem(paragraph('eggs')), listItem(paragraph('milk'))],
 			},
+			paragraph('Done'),
 		],
 	})
-	const between = (from: number, to: number) => renderPlaintextFromRichTextRange(doc, { from, to })
+	// `includeParents` matches `Selection.content()`, which ProseMirror hands to the serializer.
+	const between = (from: number, to: number) =>
+		renderPlaintextFromRichTextSlice(doc.slice(from, to, true), doc.type.schema)
 
 	it('renders the whole document like renderPlaintextFromRichText', () => {
-		expect(between(0, doc.content.size)).toBe('Shopping\n- eggs\n- milk')
+		expect(between(0, doc.content.size)).toBe('Shopping\n- eggs\n- milk\nDone')
 	})
 
 	it('cuts the first and last lines to the selection', () => {
 		expect(between(5, 23)).toBe('ping\n- eggs\n- mi')
 	})
 
-	it('only marks an item when the selection starts at its beginning', () => {
+	it('does not mark the first item when the selection starts inside it', () => {
 		expect(between(14, 25)).toBe('ggs\n- milk')
-		expect(between(13, 25)).toBe('- eggs\n- milk')
-	})
-
-	it('does not add a blank line when the selection starts at the end of an item', () => {
-		expect(between(17, 25)).toBe('- milk')
 	})
 
 	it('renders a selection inside a single item without a marker', () => {
@@ -216,7 +235,14 @@ describe('renderPlaintextFromRichTextRange', () => {
 		expect(between(21, 25)).toBe('milk')
 	})
 
-	it('skips items outside the selection', () => {
+	it('does not add a blank line when the selection starts at the end of a line', () => {
+		expect(between(17, 25)).toBe('- milk')
+		expect(between(9, 17)).toBe('- eggs')
+		expect(between(25, 33)).toBe('Done')
+	})
+
+	it('does not add a bare marker when the selection ends at the start of an item', () => {
+		expect(between(1, 13)).toBe('Shopping')
 		expect(between(1, 17)).toBe('Shopping\n- eggs')
 	})
 })
