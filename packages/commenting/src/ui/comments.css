@@ -655,7 +655,7 @@ button.tlui-cmt-reaction:hover {
 		.tlui-cmt-thread__action,
 		.tlui-cmt-header-btn
 	)[data-state='open']::after {
-	background: var(--tl-gradient-ttb);
+	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
 }
 .tlui-cmt-thread__resolved {
