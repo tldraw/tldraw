@@ -1,11 +1,16 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { exec } from './exec'
 import {
 	buildHandoffMachineConfig,
 	HANDOFF_STARTUP_DELAY_MS,
 	isHealthy,
+	listMachines,
 	parseSizeMb,
 	planInterruptedHandoff,
 } from './flyRmHandoff'
+
+vi.mock('./exec', () => ({ exec: vi.fn() }))
+vi.mock('./nicelog', () => ({ nicelog: vi.fn() }))
 
 const renderedToml = `
 app = "staging-zero-rm"
@@ -144,5 +149,39 @@ describe('planInterruptedHandoff', () => {
 				m('c', 'started', '2026-11-11T13:00:00Z'),
 			])
 		).toThrow()
+	})
+})
+
+describe('listMachines', () => {
+	afterEach(() => {
+		vi.mocked(exec).mockReset()
+		vi.useRealTimers()
+	})
+
+	function failTimes(n: number) {
+		let calls = 0
+		vi.mocked(exec).mockImplementation(async (_cmd, _args, opts) => {
+			if (calls++ < n) throw new Error('flyctl: 502')
+			opts?.processStdoutLine?.('[{"id":"m1"}]')
+			return ''
+		})
+	}
+
+	it('survives two failed reads', async () => {
+		vi.useFakeTimers()
+		failTimes(2)
+		const result = listMachines('staging-zero-rm')
+		await vi.runAllTimersAsync()
+		expect(await result).toEqual([{ id: 'm1' }])
+		expect(exec).toHaveBeenCalledTimes(3)
+	})
+
+	it('gives up after three failed reads', async () => {
+		vi.useFakeTimers()
+		failTimes(3)
+		const result = expect(listMachines('staging-zero-rm')).rejects.toThrow('flyctl: 502')
+		await vi.runAllTimersAsync()
+		await result
+		expect(exec).toHaveBeenCalledTimes(3)
 	})
 })

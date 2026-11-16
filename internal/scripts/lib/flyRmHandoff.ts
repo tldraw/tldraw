@@ -155,8 +155,20 @@ async function flyJson<T>(args: string[]): Promise<T> {
 	return JSON.parse(stdout.join('\n')) as T
 }
 
-async function listMachines(appName: string) {
-	return (await flyJson<FlyMachine[] | null>(['machine', 'list', '-a', appName])) ?? []
+// A single flaky read would otherwise fail the handoff and destroy a healthy new machine, or leak
+// it if the cleanup's own lookup fails too.
+const LIST_MACHINES_ATTEMPTS = 3
+
+export async function listMachines(appName: string) {
+	for (let attempt = 1; ; attempt++) {
+		try {
+			return (await flyJson<FlyMachine[] | null>(['machine', 'list', '-a', appName])) ?? []
+		} catch (e) {
+			if (attempt >= LIST_MACHINES_ATTEMPTS) throw e
+			nicelog(`${appName}: machine list failed (attempt ${attempt}), retrying`, e)
+			await new Promise((resolve) => setTimeout(resolve, POLL_INTERVAL_MS))
+		}
+	}
 }
 
 async function listVolumes(appName: string) {
