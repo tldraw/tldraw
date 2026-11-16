@@ -645,6 +645,7 @@ export function createMutators(userId: string) {
 				// these are set by the trigger
 				userName: '',
 				userColor: '#000000',
+				userAvatar: '',
 				role: 'owner',
 				createdAt: Date.now(),
 				updatedAt: Date.now(),

@@ -194,6 +194,7 @@ async function insertHomeWorkspace(
 			index: 'a1' as IndexKey,
 			userName,
 			userColor: '',
+			userAvatar: '',
 		})
 		.onConflict((oc) => oc.doNothing())
 		.execute()
