@@ -1,5 +1,6 @@
 import { type CommentAuthor } from '@tldraw/mentions'
 import {
+	type ClipboardEvent as ReactClipboardEvent,
 	memo,
 	ReactNode,
 	useCallback,
@@ -26,6 +27,7 @@ import {
 	TldrawUiIcon,
 	TLRichText,
 	useContainer,
+	useCurrentTranslation,
 	usePassThroughWheelEvents,
 	useTranslation,
 	useValue,
@@ -62,6 +64,7 @@ import {
 	useCommentingOptions,
 } from './options'
 import { openThreadId } from './state'
+import { formatThreadTranscript } from './thread-transcript'
 
 const messages = defineMessages({
 	actionDelete: { id: 'action.delete', defaultMessage: 'Delete' },
@@ -385,6 +388,44 @@ export const ThreadView = memo(function ThreadView({
 		[comments, currentUserId, resolveAuthor, options.components, resolveName]
 	)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
+	const { locale } = useCurrentTranslation()
+
+	// Copying across comments puts a clean transcript on the clipboard: the DOM's own text runs the
+	// name into the time ("Steve Ruiznow"), loses whichever time is hidden under hover actions, and
+	// keeps relative times that mean nothing once pasted. A selection inside one comment's body,
+	// or in an editable field, is left to the browser, so quoting part of a comment still works.
+	const onCopy = (e: ReactClipboardEvent<HTMLDivElement>) => {
+		const selection = e.currentTarget.ownerDocument.getSelection()
+		if (!selection || selection.isCollapsed || selection.rangeCount === 0) return
+		const range = selection.getRangeAt(0)
+		const startEl =
+			range.startContainer instanceof Element
+				? range.startContainer
+				: range.startContainer.parentElement
+		if (startEl?.closest('[contenteditable="true"]')) return
+		const items = Array.from(
+			e.currentTarget.querySelector('.tlui-cmt-thread__list')?.children ?? []
+		)
+		const touched = comments
+			.map((comment, i) => ({ comment, card: cards[i], el: items[i] }))
+			.filter(({ el }) => el && range.intersectsNode(el))
+		if (touched.length === 0) return
+		if (touched.length === 1) {
+			const body = touched[0].el.querySelector('.tlui-cmt-body')
+			if (body?.contains(range.startContainer) && body.contains(range.endContainer)) return
+		}
+		const { text, html } = formatThreadTranscript(
+			touched.map(({ comment, card }) => ({
+				authorName: card.author.name,
+				date: card.date,
+				body: comment.body,
+			})),
+			{ locale, resolveName }
+		)
+		e.clipboardData.setData('text/plain', text)
+		e.clipboardData.setData('text/html', html)
+		e.preventDefault()
+	}
 	// Composing, editing, deleting, and resolving are all gated on the viewer's permission. Where it's
 	// withheld the composer gives way to the ComposerFallback slot and the affordances are hidden.
 	const canComment = useCanComment(currentUserId)
@@ -675,55 +716,59 @@ export const ThreadView = memo(function ThreadView({
 	)
 
 	return (
-		<CommentThread
-			header={msg(messages.commentsThreadTitle)}
-			headerActions={headerActions}
-			renderComment={renderComment}
-			comments={cards}
-			resolvedBanner={
-				thread.resolved
-					? msg(messages.commentsResolvedBy, {
-							name: resolveAuthor(thread.resolved.by)?.name ?? msg(messages.commentsUnknownAuthor),
-						})
-					: undefined
-			}
-			composer={
-				canReply
-					? {
-							author: me ?? UNKNOWN_COMMENT_AUTHOR,
-							leading: avatarRenderer(
-								options.components,
-								currentUserId
-							)?.(me ?? UNKNOWN_COMMENT_AUTHOR),
-							placeholder: msg(messages.commentsReplyPlaceholder),
-							sendLabel: msg(messages.commentsSend),
-							value: reply,
-							onChange: (value: TLRichText) => {
-								setReply(value)
-								saveCommentDraft(replyDraftSlot(thread.id), value)
-							},
-							onSubmit: postReply,
-							// Up in the empty reply box edits the comment directly above it, chat-style —
-							// only when you're allowed to edit it (the same gate as the Edit link).
-							onArrowUpWhenEmpty: () => {
-								const last = comments[comments.length - 1]
-								if (last && commentPermissions.get(last.id)?.edit) startEdit(last)
-							},
-							// No user, no author for the record — dead send button.
-							disabled: isCommentEmpty(reply) || !currentUserId,
-							getMentionSuggestions,
-							renderMentionSuggestion,
-							// Reuses the composer's own focus path, so the caret lands at the end of a
-							// restored draft rather than in front of it.
-							autoFocus: focusReply,
-						}
-					: undefined
-			}
-			footer={
-				!canComment && !thread.resolved && ComposerFallback ? (
-					<ComposerFallback context="thread" />
-				) : undefined
-			}
-		/>
+		// `display: contents` so the wrapper only listens: it takes no part in the layout.
+		<div style={{ display: 'contents' }} onCopy={onCopy}>
+			<CommentThread
+				header={msg(messages.commentsThreadTitle)}
+				headerActions={headerActions}
+				renderComment={renderComment}
+				comments={cards}
+				resolvedBanner={
+					thread.resolved
+						? msg(messages.commentsResolvedBy, {
+								name:
+									resolveAuthor(thread.resolved.by)?.name ?? msg(messages.commentsUnknownAuthor),
+							})
+						: undefined
+				}
+				composer={
+					canReply
+						? {
+								author: me ?? UNKNOWN_COMMENT_AUTHOR,
+								leading: avatarRenderer(
+									options.components,
+									currentUserId
+								)?.(me ?? UNKNOWN_COMMENT_AUTHOR),
+								placeholder: msg(messages.commentsReplyPlaceholder),
+								sendLabel: msg(messages.commentsSend),
+								value: reply,
+								onChange: (value: TLRichText) => {
+									setReply(value)
+									saveCommentDraft(replyDraftSlot(thread.id), value)
+								},
+								onSubmit: postReply,
+								// Up in the empty reply box edits the comment directly above it, chat-style —
+								// only when you're allowed to edit it (the same gate as the Edit link).
+								onArrowUpWhenEmpty: () => {
+									const last = comments[comments.length - 1]
+									if (last && commentPermissions.get(last.id)?.edit) startEdit(last)
+								},
+								// No user, no author for the record — dead send button.
+								disabled: isCommentEmpty(reply) || !currentUserId,
+								getMentionSuggestions,
+								renderMentionSuggestion,
+								// Reuses the composer's own focus path, so the caret lands at the end of a
+								// restored draft rather than in front of it.
+								autoFocus: focusReply,
+							}
+						: undefined
+				}
+				footer={
+					!canComment && !thread.resolved && ComposerFallback ? (
+						<ComposerFallback context="thread" />
+					) : undefined
+				}
+			/>
+		</div>
 	)
 })
