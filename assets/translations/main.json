@@ -197,7 +197,6 @@
 	"comments.cluster-label": "{count, plural, one {# comment here} other {# comments here}}",
 	"comments.copy-link": "Copy link",
 	"comments.delete": "Delete thread",
-	"comments.dismiss": "Dismiss",
 	"comments.edit": "Edit",
 	"comments.edit-placeholder": "Edit comment…",
 	"comments.empty": "No comments on this page yet.",
