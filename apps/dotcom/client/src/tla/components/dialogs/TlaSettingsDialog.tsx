@@ -25,7 +25,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
 import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { useDesignSwitch } from '../../utils/designSwitches'
+import { DesignSwitch, designSwitches, useDesignSwitch } from '../../utils/designSwitches'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -71,7 +71,7 @@ function setPreferences(app: TldrawApp, prefs: Partial<TLUserPreferences>) {
 	app.tlUser.setUserPreferences({ id: app.userId, ...prefs })
 }
 
-type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'about'
+type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'labs' | 'about'
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
@@ -79,6 +79,7 @@ export function TlaSettingsDialog() {
 	const trackAppEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
 	const hasVerticalTabs = useDesignSwitch('settingsVerticalTabs')
+	const hasLabsTab = useDesignSwitch('settingsLabsTab')
 
 	// Lives here, not in ProfilePanel: inactive tab pages unmount, so a panel-level effect
 	// would report once per visit to the tab instead of once per dialog.
@@ -101,8 +102,12 @@ export function TlaSettingsDialog() {
 		{ id: 'preferences', label: msg(messages.preferences) },
 		{ id: 'canvas', label: msg(messages.canvas) },
 		{ id: 'accessibility', label: msg('menu.accessibility') },
+		// A plain string, like the design switch labels: not worth translating while it's an experiment.
+		...(hasLabsTab ? [{ id: 'labs' as const, label: 'Labs' }] : []),
 		{ id: 'about', label: msg(messages.about) },
 	]
+	// Turning the Labs tab off from inside it removes the tab that's open.
+	const visibleTab = tabs.some((tab) => tab.id === activeTab) ? activeTab : 'profile'
 
 	const pages = tabs.map(({ id }) => (
 		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
@@ -110,12 +115,18 @@ export function TlaSettingsDialog() {
 			{id === 'preferences' && <PreferencesPanel />}
 			{id === 'canvas' && <CanvasPanel />}
 			{id === 'accessibility' && <AccessibilityPanel />}
+			{id === 'labs' && <LabsPanel />}
 			{id === 'about' && <AboutPanel />}
 		</TlaMenuTabsPage>
 	))
 
 	return (
-		<div className={classNames(styles.dialog, hasVerticalTabs && styles.dialogVertical)}>
+		<div
+			className={classNames(
+				styles.dialog,
+				hasVerticalTabs ? styles.dialogVertical : hasLabsTab && styles.dialogSixTabs
+			)}
+		>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					<F defaultMessage="Settings" />
@@ -123,7 +134,7 @@ export function TlaSettingsDialog() {
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
 			<TlaMenuTabsRoot
-				activeTab={activeTab}
+				activeTab={visibleTab}
 				onTabChange={(tab) => setActiveTab(tab as SettingsTab)}
 			>
 				{hasVerticalTabs ? (
@@ -134,7 +145,7 @@ export function TlaSettingsDialog() {
 									<button
 										key={id}
 										role="tab"
-										aria-selected={activeTab === id}
+										aria-selected={visibleTab === id}
 										aria-controls={`tla-tabpanel-${id}`}
 										data-testid={`tla-settings-tab-${id}`}
 										className={classNames(styles.navTab, 'tla-text_ui__medium')}
@@ -585,6 +596,34 @@ function HighlightMissingTranslationsControl() {
 					document.body.classList.toggle('tla-lang-highlight-missing', checked)
 					setIsHighlighting(checked)
 				}}
+			/>
+		</TlaMenuControl>
+	)
+}
+
+function LabsPanel() {
+	return (
+		<TlaMenuSection>
+			<TlaMenuControlGroup>
+				{Object.values(designSwitches).map((designSwitch) => (
+					<LabsSwitch key={designSwitch.id} designSwitch={designSwitch} />
+				))}
+			</TlaMenuControlGroup>
+		</TlaMenuSection>
+	)
+}
+
+function LabsSwitch({ designSwitch }: { designSwitch: DesignSwitch }) {
+	const checked = useValue(designSwitch.value)
+	const id = `tla-settings-design-switch-${designSwitch.id}`
+	return (
+		<TlaMenuControl>
+			<TlaMenuControlLabel htmlFor={id}>{designSwitch.label}</TlaMenuControlLabel>
+			<TlaMenuSwitch
+				id={id}
+				data-testid={id}
+				checked={checked}
+				onChange={(checked) => designSwitch.value.set(checked)}
 			/>
 		</TlaMenuControl>
 	)

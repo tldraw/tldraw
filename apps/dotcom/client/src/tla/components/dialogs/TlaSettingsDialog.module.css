@@ -147,6 +147,11 @@
 	color: var(--tl-color-danger);
 }
 
+/* Room for the Labs tab (the settingsLabsTab design switch) without the strip scrolling. */
+.dialogSixTabs {
+	width: 416px;
+}
+
 /* ---- Vertical tabs (the settingsVerticalTabs design switch) ---- */
 
 .dialogVertical {
