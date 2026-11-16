@@ -1,4 +1,5 @@
 import type { TLLibraryThumbnail } from '@tldraw/tlschema'
+import type { JsonObject } from '@tldraw/utils'
 import type { TLLibraryItemContent } from './schema'
 
 /**
@@ -25,4 +26,6 @@ export interface LibraryPackItem {
 	 * A preview image's URL, such as a bundled asset or a data URL, or a light and a dark one.
 	 */
 	thumbnail?: TLLibraryThumbnail
+	/** {@link copyPack} stores it on the item's copy as its `meta`. */
+	meta?: JsonObject
 }

@@ -3,11 +3,13 @@ import {
 	isRole,
 	MAX_LIBRARY_ITEMS_PER_REQUEST,
 	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
+	MAX_LIBRARY_META_LENGTH,
 	MAX_LIBRARY_NAME_LENGTH,
 	TlaLibraryItem,
 	TlaLibraryItemAsset,
 	TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
+import type { JsonObject } from '@tldraw/utils'
 import { IRequest } from 'itty-router'
 import { copyItemAssets, StoredItemContent } from '../../libraryItemAssets'
 import {
@@ -73,6 +75,20 @@ function isItemContent(value: unknown): value is StoredItemContent {
 	return content.assets === undefined || Array.isArray(content.assets)
 }
 
+function isJsonObject(value: unknown): value is JsonObject {
+	return !!value && typeof value === 'object' && !Array.isArray(value)
+}
+
+// A meta field: {} when it's left out, or the response refusing it.
+async function readMeta(value: FormDataEntryValue | null): Promise<JsonObject | Response> {
+	const text = await readText(value)
+	if (text === null) return {}
+	if (text.length > MAX_LIBRARY_META_LENGTH) return tooLarge('Meta is too large')
+	const meta = parseJson(text)
+	if (!meta || !isJsonObject(meta.value)) return badRequest('Meta must be a JSON object')
+	return meta.value
+}
+
 function parseJson(text: string): { value: unknown } | null {
 	try {
 		return { value: JSON.parse(text) }
@@ -87,6 +103,7 @@ interface NewItem {
 	content: StoredItemContent
 	thumbnail: File | null
 	darkThumbnail: File | null
+	meta: JsonObject
 }
 
 // The items the form lists, in its order, or the response refusing them.
@@ -119,6 +136,9 @@ async function readItems(form: FormData): Promise<NewItem[] | Response> {
 		if (darkThumbnail instanceof Response) return darkThumbnail
 		if (darkThumbnail && !thumbnail) return badRequest('A dark thumbnail needs a light one')
 
+		const meta = await readMeta(form.get(`meta:${id}`))
+		if (meta instanceof Response) return meta
+
 		bytes += contentBytes + (thumbnail?.size ?? 0) + (darkThumbnail?.size ?? 0)
 		if (bytes > MAX_LIBRARY_ITEMS_REQUEST_BYTES) return tooLarge('The items are too large')
 		items.push({
@@ -127,6 +147,7 @@ async function readItems(form: FormData): Promise<NewItem[] | Response> {
 			content: content.value,
 			thumbnail,
 			darkThumbnail,
+			meta,
 		})
 	}
 	return items
@@ -147,9 +168,10 @@ async function readItems(form: FormData): Promise<NewItem[] | Response> {
  * inserted.
  *
  * Form fields: `items`, a JSON list of `{ id, name? }` with each id made by uniqueId; then for each
- * item, by its id, `content:<id>`, `thumbnail:<id>` (optional, PNG, WebP, JPEG or SVG) and
+ * item, by its id, `content:<id>`, `thumbnail:<id>` (optional, PNG, WebP, JPEG or SVG),
  * `darkThumbnail:<id>` (optional, and only with `thumbnail:<id>`, which is then the light one of
- * the pair). At most MAX_LIBRARY_ITEMS_PER_REQUEST items, of at most
+ * the pair) and `meta:<id>` (optional, a JSON object of at most MAX_LIBRARY_META_LENGTH
+ * characters). At most MAX_LIBRARY_ITEMS_PER_REQUEST items, of at most
  * MAX_LIBRARY_ITEMS_REQUEST_BYTES of content and thumbnails together.
  */
 export async function addLibraryItems(request: IRequest, env: Environment) {
@@ -199,6 +221,7 @@ export async function addLibraryItems(request: IRequest, env: Environment) {
 				createdBy: auth.userId,
 				createdAt: now + index,
 				updatedAt: now,
+				meta: item.meta,
 			}))
 			const owned: TlaLibraryItemAsset[] = items.flatMap((item, index) =>
 				storedItems[index].ownedObjectNames.map((objectName) => ({ itemId: item.id, objectName }))

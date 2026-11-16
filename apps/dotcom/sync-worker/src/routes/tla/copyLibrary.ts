@@ -119,6 +119,7 @@ export async function copyLibrary(request: IRequest, env: Environment) {
 					// Items are listed by createdAt, so each copy's is a step later to keep their order.
 					createdAt: now + rows.length,
 					updatedAt: now,
+					meta: toCopy[index].item.meta,
 				})
 				for (const objectName of copy.ownedObjectNames) {
 					owned.push({ itemId: newItemId, objectName })

@@ -203,6 +203,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 						...(item.name ? { name: item.name } : {}),
 						...(thumbnail ? { thumbnail } : {}),
 						createdAt: item.createdAt,
+						meta: item.meta ?? {},
 					})
 				})
 			)
@@ -437,6 +438,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 					...(newItem.name ? { name: newItem.name } : {}),
 					...(thumbnail ? { thumbnail } : {}),
 					createdAt,
+					...(newItem.meta ? { meta: newItem.meta } : {}),
 				}),
 				loadContent: async () => structuredClone(newItem.content),
 				arrived: arrival.promise,
@@ -458,6 +460,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 			...(newItem.name ? { name: newItem.name } : {}),
 			...(listedThumbnail ? { thumbnail: listedThumbnail } : {}),
 			createdAt: stored.createdAt,
+			...(newItem.meta ? { meta: newItem.meta } : {}),
 		})
 		if (thumbnail) {
 			this.localThumbnails.update((all) => new Map(all).set(id, thumbnail))
@@ -505,6 +508,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		)
 		for (const { id, newItem, contentJson } of adding) {
 			form.set(`content:${id}`, contentJson)
+			if (newItem.meta) form.set(`meta:${id}`, JSON.stringify(newItem.meta))
 			if (!newItem.thumbnail) continue
 			form.set(`thumbnail:${id}`, getThumbnailForColorMode(newItem.thumbnail, 'light'))
 			if (!(newItem.thumbnail instanceof Blob)) {
@@ -540,6 +544,7 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 				...(sourceItem.name === undefined ? {} : { name: sourceItem.name }),
 				...(sourceItem.thumbnail === undefined ? {} : { thumbnail: sourceItem.thumbnail }),
 				createdAt: Date.now(),
+				meta: sourceItem.meta,
 			}),
 			loadContent: async () => {
 				try {

@@ -11,8 +11,8 @@ const FETCH_CONCURRENCY = 6
 
 /**
  * Copies a pack into a source as an ordinary library the owner can change like any other, with
- * the pack's items and their thumbnails. The copy takes the pack's name, numbered if the source
- * already has a library by that name. The copy's `meta` records the pack's `packId` and
+ * the pack's items, their thumbnails and their `meta`. The copy takes the pack's name, numbered if
+ * the source already has a library by that name. The copy's `meta` records the pack's `packId` and
  * `packVersion`, alongside any `meta` passed in. The items' thumbnails are fetched a few at a time,
  * and the items added together (see `addItemsToLibrary`). Resolves once the copy is listed, while
  * the source may go on saving its items. If an item can't be added, or saving fails, the partial
@@ -41,6 +41,7 @@ export async function copyPack(
 				...(item.name === undefined ? {} : { name: item.name }),
 				content: item.content,
 				...(thumbnail === undefined ? {} : { thumbnail }),
+				...(item.meta === undefined ? {} : { meta: item.meta }),
 			}
 		})
 		const added = await addItemsToLibrary(source, copy.id, newItems)

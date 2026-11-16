@@ -1,6 +1,7 @@
 import {
 	MAX_LIBRARY_ITEMS_PER_REQUEST,
 	MAX_LIBRARY_ITEMS_REQUEST_BYTES,
+	MAX_LIBRARY_META_LENGTH,
 } from '@tldraw/dotcom-shared'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getLibraryItemContentKey, STORAGE_CONCURRENCY } from '../../libraryStorage'
@@ -49,6 +50,7 @@ interface ItemFields {
 	content?: string
 	thumbnail?: Blob
 	darkThumbnail?: Blob
+	meta?: string
 }
 
 // A request adding the items, each listed by its id and name unless `list` replaces the listing.
@@ -59,10 +61,11 @@ function addRequest(items: ItemFields[], list?: unknown) {
 		...(name === undefined ? {} : { name }),
 	}))
 	form.set('items', JSON.stringify(list === undefined ? listed : list))
-	for (const { id = ITEM_ID, content, thumbnail, darkThumbnail } of items) {
+	for (const { id = ITEM_ID, content, thumbnail, darkThumbnail, meta } of items) {
 		if (content !== undefined) form.set(`content:${id}`, content)
 		if (thumbnail) form.set(`thumbnail:${id}`, thumbnail)
 		if (darkThumbnail) form.set(`darkThumbnail:${id}`, darkThumbnail)
+		if (meta !== undefined) form.set(`meta:${id}`, meta)
 	}
 	return Object.assign(
 		new Request(`https://sync.tldraw.xyz/app/libraries/${LIBRARY_ID}/items`, {
@@ -137,6 +140,18 @@ describe('addLibraryItems', () => {
 		expect(insert.parameters).toEqual(
 			expect.arrayContaining([ITEM_ID, LIBRARY_ID, 'Button', JSON.stringify(thumbnail), ME])
 		)
+	})
+
+	it("stores each item's meta on its row, and {} for an item without", async () => {
+		const fake = mockPool(adding(libraryAccess(W, 'member'), [ITEM_ID, OTHER_ID]))
+		const meta = { category: 'Actions', tags: ['button'], source: 'tldraw' }
+		const response = await addLibraryItems(
+			addRequest([{ ...valid(), meta: JSON.stringify(meta) }, valid(OTHER_ID)]),
+			makeEnv()
+		)
+		expect(response.status).toBe(200)
+		const insert = fake.queries.find((q) => q.sql.startsWith('insert into "library_item"'))!
+		expect(insert.parameters).toEqual(expect.arrayContaining([meta, {}]))
 	})
 
 	it('stores a light and a dark thumbnail', async () => {
@@ -246,6 +261,8 @@ describe('addLibraryItems', () => {
 		['an id with characters uniqueId does not use', [valid('item/../111222233334444')]],
 		['the same id twice', [valid(), valid()]],
 		['a bad item after a good one', [valid(), { id: OTHER_ID, content: '{' }]],
+		['meta that is not JSON', [{ ...valid(), meta: '{' }]],
+		['meta that is not an object', [{ ...valid(), meta: '["Actions"]' }]],
 	])('refuses %s, storing nothing', async (_, items, list) => {
 		const fake = mockPool(adding(libraryAccess(W, 'member')))
 		const env = makeEnv()
@@ -266,6 +283,10 @@ describe('addLibraryItems', () => {
 		[
 			'content that is too large',
 			[{ content: JSON.stringify({ ...CONTENT, padding: 'x'.repeat(5_000_000) }) }],
+		],
+		[
+			'meta that is too large',
+			[{ ...valid(), meta: JSON.stringify({ padding: 'x'.repeat(MAX_LIBRARY_META_LENGTH) }) }],
 		],
 		[
 			'a thumbnail that is too large',

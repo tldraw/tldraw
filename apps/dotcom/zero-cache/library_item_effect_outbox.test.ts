@@ -5,7 +5,8 @@ import pg from 'pg'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 
 // Integration test for the library tables (055), the library_item delete trigger (056),
-// which queues the R2 cleanup TLFileEffectProcessor runs, and the item asset ownership table (057). The cases that need a real Postgres are
+// which queues the R2 cleanup TLFileEffectProcessor runs, the item asset ownership table (057)
+// and the item meta column (058). The cases that need a real Postgres are
 // the cascades: items removed with their library, or with a workspace that is hard-deleted,
 // must still produce outbox rows.
 //
@@ -111,6 +112,11 @@ describeMaybe('library_item effect_outbox trigger', () => {
 		await client.query(`DELETE FROM library WHERE "id" = 'c1'`)
 		const owned = await client.query(`SELECT "objectName" FROM library_item_asset`)
 		expect(owned.rows).toEqual([{ objectName: 'abc-png' }])
+	})
+
+	it("gives an item inserted without meta an empty object, as a library's (058)", async () => {
+		const res = await client.query(`SELECT "meta" FROM library_item WHERE "id" = 'i1'`)
+		expect(res.rows).toEqual([{ meta: {} }])
 	})
 
 	it('refuses a library whose workspace does not exist', async () => {

@@ -34,6 +34,7 @@ const item = (id: string, thumbnail: string | { light: string; dark: string } | 
 	createdBy: 'user_cccc11112222dddd',
 	createdAt: 1,
 	updatedAt: 1,
+	meta: { category: `Category ${id}` },
 })
 
 const url = (objectName: string) => `https://content.test/${objectName}`
@@ -122,6 +123,9 @@ describe('copyLibrary', () => {
 			expect.arrayContaining([newItemId(0), newItemId(1), NEW_ID])
 		)
 		expect(itemInsert.parameters).not.toContain(newItemId(2))
+		expect(itemInsert.parameters).toEqual(
+			expect.arrayContaining([{ category: 'Category item_a' }, { category: 'Category item_b' }])
+		)
 		const uploads = await keysOf(env.UPLOADS)
 		expect(uploads).toHaveLength(2)
 		const copied = uploads.find((name) => name !== 'thumb_a-png')!

@@ -92,6 +92,14 @@ describe('copyLibrary', () => {
 		expect(source.getItems(original.id)).toHaveLength(2)
 	})
 
+	it("keeps each item's meta on its copy", async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const original = await source.createLibrary('Wireframes')
+		await added(source.addItem(original.id, { content: content(), meta: { category: 'Cards' } }))
+		const copy = await copyLibrary(source, original.id, 'acme')
+		expect(source.getItems(copy.id).map((item) => item.meta)).toEqual([{ category: 'Cards' }])
+	})
+
 	it('loads the items a few at a time, then adds the copies together in their order', async () => {
 		stubFetch(() => true)
 		const source = new InMemoryLibrarySource({ owners })

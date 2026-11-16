@@ -108,6 +108,7 @@ export class LocalStorageLibrarySource implements LibrarySource {
 					createdAt: now + index,
 					...(newItem.name === undefined ? {} : { name: newItem.name }),
 					...(thumbnail ? { thumbnail } : {}),
+					...(newItem.meta === undefined ? {} : { meta: newItem.meta }),
 				})
 				return { item, content: parseLibraryItemContent(newItem.content) }
 			})

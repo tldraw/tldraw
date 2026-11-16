@@ -1741,6 +1741,7 @@ describe('libraries', () => {
 		createdBy: me,
 		createdAt: 1,
 		updatedAt: 1,
+		meta: {},
 	})
 
 	function setup(tables: Partial<TableStore> = {}) {
