@@ -232,6 +232,8 @@ export const library = table('library')
 		id: string(),
 		name: string(),
 		owningGroupId: string(),
+		/** The library this one is inside, in the same workspace; null at the top level. */
+		parentLibraryId: string().optional(),
 		createdBy: string(),
 		createdAt: number(),
 		updatedAt: number(),

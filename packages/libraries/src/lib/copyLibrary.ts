@@ -48,7 +48,10 @@ export interface ListedCopy<T> {
  * {@link copyLibrary} for a source without its own: the libraries are created again, each parent
  * before the libraries inside it, and their items loaded and added again. The tree is read before
  * anything is copied, so copying a library into one inside it copies what was there, once. If
- * saving any item fails, the whole copy is deleted before `stored` rejects.
+ * saving any item fails, the whole copy is deleted before `stored` rejects. A source whose own
+ * `copyLibrary` can't make some copies, e.g. of a library with libraries inside it, can fall back
+ * to this.
+ * @public
  */
 export async function copyLibraryItems(
 	source: LibrarySource,

@@ -56,6 +56,27 @@ describe('TldrawAppLibrariesSource', () => {
 		expect(source.getLibraries()).toMatchObject([{ id: library.id, name: 'Kit' }])
 	})
 
+	it('nests libraries through the parentLibraryId column', async () => {
+		const { source } = setUp()
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		const forms = await source.createLibrary('Forms', { parentId: kit.id })
+		const other = await source.createLibrary('Other', { ownerId: 'acme' })
+		expect(forms).toMatchObject({ ownerId: 'acme', parentId: kit.id })
+		expect(source.getLibraries().find((c) => c.id === forms.id)?.parentId).toBe(kit.id)
+
+		await source.moveLibrary(forms.id, { parentId: other.id })
+		expect(source.getLibraries().find((c) => c.id === forms.id)?.parentId).toBe(other.id)
+
+		await added(source.addItem(forms.id, { name: 'Field', content }))
+		const copy = await copyLibrary(source, other.id, { ownerId: 'user_me' })
+		await new Promise((resolve) => setTimeout(resolve, 0))
+		const copiedForms = source.getLibraries().find((c) => c.parentId === copy.id)
+		expect(copiedForms).toMatchObject({ name: 'Forms', ownerId: 'user_me' })
+
+		await source.deleteLibrary(other.id)
+		expect(source.getLibraries().map((c) => c.name)).toEqual(['Kit', 'Other', 'Forms'])
+	})
+
 	it('lists libraries from the synced rows, with their workspace as owner', async () => {
 		const { source } = setUp()
 		const kit = await source.createLibrary('Team kit', { ownerId: 'acme' })

@@ -1727,6 +1727,7 @@ describe('libraries', () => {
 		overrides: Partial<TlaLibrary> & { id: string; owningGroupId: string }
 	): TlaLibrary => ({
 		name: 'Shapes',
+		parentLibraryId: null,
 		createdBy: me,
 		createdAt: 1,
 		updatedAt: 1,
@@ -1874,6 +1875,75 @@ describe('libraries', () => {
 				mutators.library.move(tx, { id: libraryId, owningGroupId: other })
 			)
 			expect(store.library[0].owningGroupId).toBe(W)
+		})
+	})
+
+	describe('nested libraries', () => {
+		const root = 'coll_root1111222233'
+		const mid = 'coll_mid11112222333'
+		const leaf = 'coll_leaf1111222233'
+		// root ─ mid ─ leaf, in W, with an item in leaf
+		const tree = () => ({
+			library: [
+				makeLibrary({ id: root, owningGroupId: W }),
+				makeLibrary({ id: mid, owningGroupId: W, parentLibraryId: root }),
+				makeLibrary({ id: leaf, owningGroupId: W, parentLibraryId: mid }),
+			],
+			library_item: [makeItem('item_leaf111122223333', leaf)],
+		})
+		const rejects = async (run: () => Promise<unknown>) => {
+			await expect(run()).rejects.toThrow()
+		}
+
+		it('creates a library inside one in the same workspace only', async () => {
+			const { store, tx, mutators } = setup(tree())
+			await mutators.library.create(tx, {
+				id: libraryId,
+				name: 'Inner',
+				owningGroupId: W,
+				parentLibraryId: leaf,
+			})
+			expect(store.library.find((c) => c.id === libraryId)?.parentLibraryId).toBe(leaf)
+			await rejects(() =>
+				mutators.library.create(tx, {
+					id: 'coll_zzzz11112222zzzz',
+					name: 'Inner',
+					owningGroupId: V,
+					parentLibraryId: leaf,
+				})
+			)
+		})
+
+		it('deletes a library with the libraries inside it and their items', async () => {
+			const { store, tx, mutators } = setup(tree())
+			await mutators.library.delete(tx, { id: root })
+			expect(store.library).toEqual([])
+			expect(store.library_item).toEqual([])
+		})
+
+		it('moves a library inside another, refusing one inside itself', async () => {
+			const { store, tx, mutators } = setup({
+				...tree(),
+				library: [...tree().library, makeLibrary({ id: libraryId, owningGroupId: W })],
+			})
+			await mutators.library.move(tx, { id: mid, owningGroupId: W, parentLibraryId: libraryId })
+			expect(store.library.find((c) => c.id === mid)?.parentLibraryId).toBe(libraryId)
+			await rejects(() =>
+				mutators.library.move(tx, { id: libraryId, owningGroupId: W, parentLibraryId: leaf })
+			)
+			await rejects(() =>
+				mutators.library.move(tx, { id: mid, owningGroupId: W, parentLibraryId: mid })
+			)
+		})
+
+		it('moves a library with everything inside it to the top level of another workspace', async () => {
+			const { store, tx, mutators } = setup(tree())
+			await mutators.library.move(tx, { id: mid, owningGroupId: V })
+			expect(store.library.map((c) => [c.id, c.owningGroupId, c.parentLibraryId ?? null])).toEqual([
+				[root, W, null],
+				[mid, V, null],
+				[leaf, V, mid],
+			])
 		})
 	})
 

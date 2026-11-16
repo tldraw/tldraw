@@ -77,7 +77,7 @@ export function createFakeLibrariesBackend({
 
 	const mutate = {
 		library: {
-			create: ({ id, name, owningGroupId, meta }: any) => {
+			create: ({ id, name, owningGroupId, parentLibraryId = null, meta }: any) => {
 				if (!isMember(owningGroupId)) return rejected()
 				return change(() =>
 					rows.update((all) => [
@@ -86,6 +86,7 @@ export function createFakeLibrariesBackend({
 							id,
 							name: name.trim(),
 							owningGroupId,
+							parentLibraryId,
 							meta,
 							createdBy: userId,
 							createdAt: all.length,
@@ -97,10 +98,18 @@ export function createFakeLibrariesBackend({
 			},
 			rename: ({ id, name }: any) => change(() => updateRow(id, (row) => ({ ...row, name }))),
 			delete: ({ id }: any) =>
-				change(() => rows.update((all) => all.filter((row) => row.id !== id))),
-			move: ({ id, owningGroupId }: any) => {
+				change(() =>
+					rows.update((all) => {
+						const deleted = new Set([id])
+						for (const row of all) {
+							if (row.parentLibraryId && deleted.has(row.parentLibraryId)) deleted.add(row.id)
+						}
+						return all.filter((row) => !deleted.has(row.id))
+					})
+				),
+			move: ({ id, owningGroupId, parentLibraryId = null }: any) => {
 				if (!isMember(owningGroupId)) return rejected()
-				return change(() => updateRow(id, (row) => ({ ...row, owningGroupId })))
+				return change(() => updateRow(id, (row) => ({ ...row, owningGroupId, parentLibraryId })))
 			},
 		},
 		library_item: {
@@ -201,7 +210,7 @@ export function createFakeLibrariesBackend({
 			insertRows(() =>
 				rows.update((all) => [
 					...all,
-					{ ...source, id, owningGroupId, createdAt: all.length, items },
+					{ ...source, id, owningGroupId, parentLibraryId: null, createdAt: all.length, items },
 				])
 			)
 			return Response.json({ id })
