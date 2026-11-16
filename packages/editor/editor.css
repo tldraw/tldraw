@@ -275,18 +275,22 @@
    resolves to the current theme's value. */
 .tl-theme__light,
 .tl-theme__dark {
-	--tl-gradient-ttb: linear-gradient(
+	--tl-gradient-to-bottom: linear-gradient(
 		180deg,
 		rgba(144, 144, 144, 0) 0%,
 		var(--tl-color-muted-2) 100%
 	);
-	--tl-gradient-btt: linear-gradient(0deg, rgba(144, 144, 144, 0) 0%, var(--tl-color-muted-2) 100%);
-	--tl-gradient-ltr: linear-gradient(
+	--tl-gradient-to-top: linear-gradient(
+		0deg,
+		rgba(144, 144, 144, 0) 0%,
+		var(--tl-color-muted-2) 100%
+	);
+	--tl-gradient-to-right: linear-gradient(
 		90deg,
 		rgba(144, 144, 144, 0) 0%,
 		var(--tl-color-muted-2) 100%
 	);
-	--tl-gradient-rtl: linear-gradient(
+	--tl-gradient-to-left: linear-gradient(
 		270deg,
 		rgba(144, 144, 144, 0) 0%,
 		var(--tl-color-muted-2) 100%
