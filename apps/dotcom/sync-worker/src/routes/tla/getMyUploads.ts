@@ -8,9 +8,8 @@ import { requireAuth } from '../../utils/tla/getAuth'
 export const MAX_LISTED_UPLOADS = 200
 
 // The upload's file name, after the client's id prefix, has non-word characters turned into
-// dashes (multiplayerAssetStore), so `photo.png` is stored as `<id>-photo-png`. SVGs are left out:
-// they can't be a library item's thumbnail, so they couldn't be copied to a library.
-const IMAGE_OBJECT_NAME = '-(png|jpe?g|gif|webp|avif)$'
+// dashes (multiplayerAssetStore), so `photo.png` is stored as `<id>-photo-png`.
+const IMAGE_OBJECT_NAME = '-(png|jpe?g|gif|webp|avif|svg)$'
 
 export interface MyUpload {
 	objectName: string

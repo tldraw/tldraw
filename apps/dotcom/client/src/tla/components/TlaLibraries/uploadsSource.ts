@@ -47,7 +47,7 @@ const LIBRARY_ID = LibraryRecordType.createId('uploads')
 // non-word character of the file name turned into a dash, so `photo.png` is `<id>-photo-png`.
 const ID_PREFIX_LENGTH = 22
 // The images the worker lists.
-const IMAGE_OBJECT_NAME = /-(png|jpe?g|gif|webp|avif)$/i
+const IMAGE_OBJECT_NAME = /-(png|jpe?g|gif|webp|avif|svg)$/i
 
 // As big as a thumbnail rendered from shapes, and in a format a workspace library accepts as one.
 const THUMBNAIL_SIZE = 512
@@ -58,9 +58,12 @@ const getDisplayName = (objectName: string) =>
 	objectName.slice(ID_PREFIX_LENGTH).replace(IMAGE_OBJECT_NAME, '.$1')
 
 // Resized by Cloudflare's Image Transformations, which only run where the zone is set up: in dev
-// and previews, the upload itself.
+// and previews, the upload itself. An SVG is its own thumbnail, as the transformations pass it
+// through unchanged.
 function getThumbnailUrl(objectName: string) {
-	if (isDevelopmentEnv || isPreviewEnv) return `${USER_CONTENT_URL}/${objectName}`
+	if (isDevelopmentEnv || isPreviewEnv || objectName.endsWith('-svg')) {
+		return `${USER_CONTENT_URL}/${objectName}`
+	}
 	const size = `width=${THUMBNAIL_SIZE},height=${THUMBNAIL_SIZE}`
 	return `${USER_CONTENT_URL}/cdn-cgi/image/${size},fit=scale-down,anim=false,format=webp/${objectName}`
 }

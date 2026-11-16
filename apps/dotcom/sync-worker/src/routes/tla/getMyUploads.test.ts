@@ -70,7 +70,7 @@ describe('getMyUploads', () => {
 			ME,
 			false,
 			false,
-			'-(png|jpe?g|gif|webp|avif)$',
+			'-(png|jpe?g|gif|webp|avif|svg)$',
 			MAX_LISTED_UPLOADS,
 		])
 	})
