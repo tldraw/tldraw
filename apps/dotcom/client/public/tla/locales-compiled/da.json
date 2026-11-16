@@ -185,6 +185,12 @@
       "value": "Opret fil"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Flyt til"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Fjern medlem"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Log ind for at acceptere denne invitation."
     }
   ],
   "3bc7d6ea2f": [
@@ -734,6 +746,12 @@
       "value": "Genindlæs venligst siden"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Gem indholdet som en .tldr-fil: vælg 'Gem en kopi' i menuen øverst til venstre."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -994,6 +1012,12 @@
       "value": "? Denne handling kan ikke fortrydes."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kopieret invitationslink"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1136,12 +1160,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Eksporter indholdet som en .tldr-fil: Vælg 'Download' i menuen øverst til venstre."
     }
   ],
   "a104439641": [
@@ -1702,6 +1720,12 @@
       "value": "eller"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Filhistorik"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1798,6 +1822,12 @@
     {
       "type": 0,
       "value": "Slet"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Dette invitationslink er ugyldigt eller udløbet."
     }
   ],
   "f476ba8646": [
@@ -1940,6 +1970,12 @@
     {
       "type": 0,
       "value": "Opret en gratis konto for at gemme dine filer og tldraw med dine holdkammerater."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Fejl ved accept af invitation"
     }
   ],
   "ffcd73e997": [

@@ -1,5 +1,5 @@
 import { THUMBNAIL_RENDER_TIMEOUT_MS } from '@tldraw/dotcom-shared'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
@@ -9,6 +9,7 @@ import {
 	OG_RETRY_DELAY_SECONDS,
 } from '../../config'
 import { OgImageRenderQueueMessage } from '../../types'
+import { hashToPercentage, resetFeatureFlagCacheForTests } from '../../utils/featureFlags'
 import { verifyThumbnailRenderToken } from '../../utils/renderTokens'
 import { getPublishedFileInfo, getPublishedRoomSnapshot } from './getPublishedFile'
 import { getSharedFileInfo, getSharedFileRoomSnapshot } from './getSharedFile'
@@ -19,13 +20,13 @@ import {
 	enqueueOgImageRender,
 	enqueuePublishThumbnailRender,
 	getOgImageCacheKey,
+	getOgImageContentVersion,
 	handleOgImageRenderMessage,
 	isOgImageRepairOnCooldown,
 } from './ogImageQueue'
 import {
 	blobValuesOf,
 	blobsWithPrefix,
-	clusterIndexStoreOf,
 	failureBlobsOf,
 	makeBrowserBinding,
 	makeFakeQueue,
@@ -37,7 +38,6 @@ import {
 	screenshotOf,
 	tokenFromScreenshot,
 } from './screenshotTestHelpers'
-import { getRenderPushFallbackKey } from './thumbnailRender'
 
 vi.mock('./getPublishedFile', () => ({
 	getPublishedFileInfo: vi.fn(),
@@ -398,7 +398,6 @@ describe('deleteBoardThumbnails', () => {
 			// Two of them, as two concurrent MCP captures of different pages would leave.
 			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:a'), new Uint8Array().buffer)
 			await bucket.put(mcpTokenKey(board.kind, board.slug, 'page:b'), new Uint8Array().buffer)
-			await bucket.put(getRenderPushFallbackKey(board), new Uint8Array().buffer)
 		}
 	}
 
@@ -451,7 +450,6 @@ describe('deleteBoardThumbnails', () => {
 				ogTokenKey('published', 'published-slug'),
 				mcpTokenKey('published', 'published-slug', 'page:a'),
 				mcpTokenKey('published', 'published-slug', 'page:b'),
-				getRenderPushFallbackKey({ kind: 'published', slug: 'published-slug' }),
 			].sort()
 		)
 	})
@@ -485,10 +483,6 @@ describe('handleOgImageRenderMessage', () => {
 		await handleOgImageRenderMessage(env, message)
 
 		expect(message.ack).toHaveBeenCalledTimes(1)
-		// The MCP cluster index is the only thing in this pipeline that reaches a durable object, and
-		// only from a tool call. The OG path shares the render token, the render page and the browser
-		// binding with it, and must not pick this up by accident.
-		expect(clusterIndexStoreOf(env).calls).toEqual({ get: 0, put: 0 })
 		const job = await verifyThumbnailRenderToken(env, tokenFromScreenshot(env))
 		expect(job).toMatchObject({
 			kind: 'published',
@@ -501,18 +495,20 @@ describe('handleOgImageRenderMessage', () => {
 			// gate — and are the only ones a minted-token record is kept for.
 			access: 'render',
 		})
-		// the worker writes the rendered image to the cache key itself, stamping the version
+		// the worker writes the rendered image to the cache key itself, stamping both versions
 		expect(
 			bucket.store.get(getOgImageCacheKey({ kind: 'published', slug: 'published-board' }))
 				?.customMetadata
 		).toEqual({
 			version: '1751234567890',
 			createdAt: expect.any(String),
+			contentVersion: expect.stringMatching(/^page:/),
 		})
 	})
 
 	describe('pushing the records into the render page', () => {
 		const board = { kind: 'published', slug: 'board' } as const
+		beforeEach(() => resetFeatureFlagCacheForTests())
 		// Run as the page would, so a script that evaluates differently from JSON.parse fails here.
 		function runPushedScript(script: string) {
 			const window: Record<string, unknown> = {}
@@ -594,27 +590,63 @@ describe('handleOgImageRenderMessage', () => {
 			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
 		})
 
-		it('falls back to the fetch when the binding refuses the request as too large', async () => {
-			let calls = 0
-			const env = arrange({
-				BROWSER: makeBrowserBinding(async () => {
-					if (calls++ === 0) {
-						throw new Error('Serialized RPC arguments or return values are limited to 32MiB')
-					}
-					return new Response(new Uint8Array([1, 2, 3]), { status: 200 })
-				}),
+		describe('the thumbnail_render_push rollout, where the deployment does not force push', () => {
+			const bucket = hashToPercentage('published/board', 'thumbnail_render_push')
+
+			function arrangeRollout(flag: object) {
+				return arrange({
+					THUMBNAIL_RENDER_PUSH: undefined,
+					FEATURE_FLAGS: {
+						get: async (key: string) =>
+							key === 'thumbnail_render_push' ? JSON.stringify(flag) : null,
+					},
+				})
+			}
+
+			it('pushes a board whose bucket is inside the percentage', async () => {
+				const env = arrangeRollout({ enabled: true, percentage: bucket + 1 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(requestsOf(env).map((request) => request.push)).toEqual(['1'])
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push'])
 			})
-			const message = makeMessage(board)
 
-			await handleOgImageRenderMessage(env, message)
+			it('leaves a board whose bucket is outside the percentage to fetch', async () => {
+				const env = arrangeRollout({ enabled: true, percentage: bucket })
 
-			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', null])
-			expect(requestsOf(env)[1].payload).toBeUndefined()
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push_fallback'])
-			expect(message.ack).toHaveBeenCalledTimes(1)
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(requestsOf(env)).toEqual([{ push: null, payload: undefined }])
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
+
+			it('fetches for every board when the flag is disabled, whatever the percentage', async () => {
+				const env = arrangeRollout({ enabled: false, percentage: 100 })
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
+
+			it('fetches when the flag cannot be read', async () => {
+				const env = arrange({
+					THUMBNAIL_RENDER_PUSH: undefined,
+					FEATURE_FLAGS: {
+						get: async () => {
+							throw new Error('KV is down')
+						},
+					},
+				})
+				vi.spyOn(console, 'error').mockImplementation(() => {})
+
+				await handleOgImageRenderMessage(env, makeMessage(board))
+
+				expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['pull'])
+			})
 		})
 
-		it('fetches on the next attempt after a pushed capture times out, and only then', async () => {
+		it('keeps pushing after a pushed capture times out', async () => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 			let calls = 0
 			const env = arrange({
@@ -633,11 +665,8 @@ describe('handleOgImageRenderMessage', () => {
 			await handleOgImageRenderMessage(env, second)
 			expect(second.ack).toHaveBeenCalledTimes(1)
 
-			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', null])
-			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual([
-				'push',
-				'push_fallback',
-			])
+			expect(requestsOf(env).map((request) => request.push)).toEqual(['1', '1'])
+			expect(blobValuesOf(env, 'browser_run_session', 'transport')).toEqual(['push', 'push'])
 			expect(sessionsOf(env).map((session) => session.outcome)).toEqual(['browser_timeout', 'ok'])
 		})
 
@@ -947,6 +976,109 @@ describe('handleOgImageRenderMessage', () => {
 
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(message.ack).toHaveBeenCalledTimes(1)
+	})
+
+	describe('when the edit was to records the image does not draw', () => {
+		// Page one is the image; page two is where the editing happens. Each record carries the clock
+		// it last changed at, as a persisted room snapshot does.
+		function twoPageBoard({
+			pageOne = [10, 11],
+			pageTwo = [12],
+		}: { pageOne?: number[]; pageTwo?: number[] } = {}) {
+			const shape = (pageId: string, i: number, clock: number) => ({
+				state: {
+					typeName: 'shape',
+					id: `shape:${pageId}-${i}`,
+					parentId: pageId,
+					type: 'geo',
+					index: `a${i + 1}`,
+					x: i * 100,
+					y: 0,
+					rotation: 0,
+					props: { w: 80, h: 80 },
+				},
+				lastChangedClock: clock,
+			})
+			return {
+				documents: [
+					{
+						state: { typeName: 'document', id: 'document:document', name: '' },
+						lastChangedClock: 1,
+					},
+					{ state: { typeName: 'page', id: 'page:one', index: 'a1' }, lastChangedClock: 1 },
+					{ state: { typeName: 'page', id: 'page:two', index: 'a2' }, lastChangedClock: 1 },
+					...pageOne.map((clock, i) => shape('page:one', i, clock)),
+					...pageTwo.map((clock, i) => shape('page:two', i, clock)),
+				],
+				schema: { schemaVersion: 2, sequences: {} },
+			} as any
+		}
+
+		it('keeps the content version when only another page changes', () => {
+			expect(getOgImageContentVersion(twoPageBoard({ pageTwo: [99, 100] }), 'page:one')).toBe(
+				getOgImageContentVersion(twoPageBoard(), 'page:one')
+			)
+		})
+
+		it('moves the content version on an edit, an addition or a deletion on the drawn page', () => {
+			const before = getOgImageContentVersion(twoPageBoard(), 'page:one')
+			for (const pageOne of [[10, 50], [10, 11, 50], [10]]) {
+				expect(getOgImageContentVersion(twoPageBoard({ pageOne }), 'page:one')).not.toBe(before)
+			}
+		})
+
+		it('moves the content version when a different page is drawn', () => {
+			const board = twoPageBoard()
+			expect(getOgImageContentVersion(board, 'page:two')).not.toBe(
+				getOgImageContentVersion(board, 'page:one')
+			)
+		})
+
+		const board = { kind: 'shared_file', slug: 'shared-file' } as const
+		async function arrange(cachedContentVersion: string) {
+			vi.mocked(getSharedFileInfo).mockResolvedValue({
+				id: 'shared-file',
+				shared: true,
+				isDeleted: false,
+			})
+			vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(twoPageBoard({ pageTwo: [99] }))
+			const bucket = makeFakeThumbnailsBucket()
+			await bucket.put(getOgImageCacheKey(board), new Uint8Array([9]).buffer, {
+				customMetadata: {
+					version: 'etag-old',
+					createdAt: '1',
+					contentVersion: cachedContentVersion,
+				},
+			})
+			const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-new'), THUMBNAILS: bucket })
+			return { bucket, env }
+		}
+
+		it('keeps the image and moves its version on, without rendering', async () => {
+			const { bucket, env } = await arrange(getOgImageContentVersion(twoPageBoard(), 'page:one'))
+			const message = makeMessage(board)
+
+			await handleOgImageRenderMessage(env, message)
+
+			expect(screenshotOf(env)).not.toHaveBeenCalled()
+			const cached = bucket.store.get(getOgImageCacheKey(board))
+			expect(new Uint8Array(cached!.body)).toEqual(new Uint8Array([9]))
+			expect(cached?.customMetadata).toMatchObject({ version: 'etag-new', createdAt: '1' })
+			expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:unchanged'])
+			expect(message.ack).toHaveBeenCalledTimes(1)
+		})
+
+		it('renders when the drawn page changed, and stamps the new content version', async () => {
+			const { bucket, env } = await arrange('page:one:1:1')
+
+			await handleOgImageRenderMessage(env, makeMessage(board))
+
+			expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+			expect(bucket.store.get(getOgImageCacheKey(board))?.customMetadata).toMatchObject({
+				version: 'etag-new',
+				contentVersion: getOgImageContentVersion(twoPageBoard(), 'page:one'),
+			})
+		})
 	})
 
 	// Deletion is terminal in a way privacy is not: no number of retries brings the board back, and a
@@ -1443,36 +1575,6 @@ describe('handleOgImageRenderMessage', () => {
 		)
 		expect(failureBlobsOf(emptyBoardEnv)).toEqual(['failure:board_empty'])
 		expect(sessionsOf(emptyBoardEnv)).toEqual([])
-	})
-
-	// Thumbnail rendering is uncapped: the MCP endpoint's limiters exist to bound what an outside
-	// caller can spend, and this consumer is not caller-driven. A saturated MCP limiter must not stop a
-	// board's own thumbnail refreshing.
-	it('renders even when the MCP rate limiters are saturated, and never consults them', async () => {
-		vi.mocked(getPublishedFileInfo).mockResolvedValue({
-			id: 'file-1',
-			published: true,
-			lastPublished: 1,
-		})
-		vi.mocked(getPublishedRoomSnapshot).mockResolvedValue(makeOnePageSnapshot())
-		const queue = { send: vi.fn(async () => undefined) }
-		const browserLimiter = { limit: vi.fn(async () => ({ success: false })) }
-		const env = makeEnv({
-			THUMBNAILS: makeFakeThumbnailsBucket(),
-			QUEUE: queue,
-			MCP_SERVER_BROWSER_RATE_LIMITER: browserLimiter,
-		})
-
-		const message = makeMessage({ kind: 'published', slug: 'board', reason: 'edit' })
-		await handleOgImageRenderMessage(env, message)
-
-		expect(browserLimiter.limit).not.toHaveBeenCalled()
-		expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
-		expect(message.ack).toHaveBeenCalledTimes(1)
-		expect(message.retry).not.toHaveBeenCalled()
-		// No requeue chain: there is no backpressure signal left to requeue for.
-		expect(queue.send).not.toHaveBeenCalled()
-		expect(failureBlobsOf(env)).toEqual(['failure:none'])
 	})
 
 	it('records the trigger that asked for a completed render', async () => {

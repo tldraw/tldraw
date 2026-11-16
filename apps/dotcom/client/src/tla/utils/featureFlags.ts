@@ -13,7 +13,11 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// Server-side only: the sync worker evaluates this per room to pick the version write mode. The
 	// per-user value here means nothing to the client.
 	version_chain: { enabled: false },
-	collections: { enabled: false },
+	libraries: { enabled: false },
+	// Server-side only: the sync worker reads these to pick the render transport.
+	thumbnail_render_push: { enabled: false },
+	mcp_render_push: { enabled: false },
+	ui_v3: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }

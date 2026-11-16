@@ -1,3 +1,4 @@
+import { MCP_AGENT_COMMENT_META_KEY, Role, TlaFile, can } from '@tldraw/dotcom-shared'
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
 import { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
@@ -8,6 +9,7 @@ import {
 	TLRecord,
 	TLShape,
 } from '@tldraw/tlschema'
+import { isEqual } from '@tldraw/utils'
 
 /** Per-session metadata attached to each socket: the local store id and the authenticated user (if any). */
 export interface SessionMeta {
@@ -29,13 +31,9 @@ function getNoteAttribution(shape: TLShape): string | null | undefined {
 }
 
 /**
- * Notes stamp `textLastEditedBy` client-side (the editor on text edit, `null` when emptied or
- * anonymous). Enforce it here on both create and update: the attribution may only be `null` or
- * the session's own user. Duplication and paste re-stamp the copy to the current user (via
- * `NoteShapeUtil.onBeforeDuplicate`), so a legitimate create never carries another user's
- * attribution and we can reject one that does — closing the forged-create loophole the create
- * passthrough previously had to accept. Updates still allow an unchanged attribution from any
- * user, so anyone with access can edit a note's other props.
+ * Slurped notes can carry a browser-local author ID. Rejecting their creates drops the notes
+ * from the imported board, so re-stamp foreign attribution from the session instead. Updates
+ * may retain an existing author but cannot claim a new identity other than the session's user.
  */
 const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	session,
@@ -44,19 +42,65 @@ const authorizeShape: TLRecordAuthorizer<TLShape, SessionMeta> = ({
 	next,
 }) => {
 	if (type === 'delete') return prev
-	// On create there's no prior attribution; on update an unchanged attribution is always allowed.
 	const before = type === 'create' ? null : getNoteAttribution(prev)
 	const after = getNoteAttribution(next)
-	if (after !== before && after != null && after !== session.meta.userId) return null
+	if (after !== before && after != null && after !== session.meta.userId) {
+		if (type === 'update') return null
+		const note = next as TLNoteShape
+		return { ...note, props: { ...note.props, textLastEditedBy: session.meta.userId } }
+	}
 	return next
+}
+
+const commentAuthorizers = createCommentAuthorizers<SessionMeta>({
+	getUserId: (session) => session.meta.userId,
+})
+
+function getAgentMeta(comment: TLComment): unknown {
+	return (comment.meta as Record<string, unknown>)[MCP_AGENT_COMMENT_META_KEY]
+}
+
+/**
+ * `meta.mcpAgent` is what badges a comment as an agent's, and only the MCP server's own write may
+ * put it there; without this, anyone could post a comment that reads as an agent's on their behalf,
+ * or relabel their own. A client write may keep it unchanged or drop it, but not add or change it.
+ * The MCP write stamps it after this check (see `planMcpComment`); server-side writes skip the
+ * authorizers anyway.
+ */
+const authorizeComment: TLRecordAuthorizer<TLComment, SessionMeta> = (args) => {
+	const after = args.type === 'delete' ? undefined : getAgentMeta(args.next)
+	if (after !== undefined) {
+		if (args.type === 'create') return null
+		if (args.type === 'update' && !isEqual(after, getAgentMeta(args.prev))) return null
+	}
+	return commentAuthorizers.comment!(args)
 }
 
 /**
  * Force comment, thread, and reaction authorship from the session's identity (via the shared
  * commenting authorizers), and guard note text attribution, so nothing can be posted, pinned,
- * or reacted in someone else's name.
+ * or reacted in someone else's name, or badged as an agent's.
  */
 export const authorizeFileRecord = {
-	...createCommentAuthorizers<SessionMeta>({ getUserId: (session) => session.meta.userId }),
+	...commentAuthorizers,
+	comment: authorizeComment,
 	shape: authorizeShape,
 } satisfies TLRecordAuthorizers<FileRecord, SessionMeta>
+
+/**
+ * What a signed-in user may do in an app file's room: nothing, read (canvas and comments), or edit
+ * (canvas and comments). The one statement of the rule, read by the socket connect and by the MCP
+ * server's comment write, so an agent can comment exactly where its user could.
+ *
+ * Guests get canvas write, and with it comments (see `canComment` in `createCommentAuthorizers`),
+ * only on an `edit` link. `sharedLinkType` is a plain string column with legacy values in it, so
+ * anything else fails closed.
+ */
+export function getFileRoomAccess(
+	file: Pick<TlaFile, 'shared' | 'sharedLinkType'>,
+	role: Role | null
+): 'none' | 'read' | 'write' {
+	if (can(role, 'accessFiles')) return 'write'
+	if (!file.shared) return 'none'
+	return file.sharedLinkType === 'edit' ? 'write' : 'read'
+}

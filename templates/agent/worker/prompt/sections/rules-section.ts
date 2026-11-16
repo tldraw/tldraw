@@ -148,10 +148,6 @@ ${flagged(
 - Do not use the \`review\` action to check your work for simple tasks like creating, updating or moving a single shape. Assume you got it right.
 - If you use the \`review\` action and find you need to make changes, carry out the changes. You are allowed to call follow-up \`review\` events after that too, but there is no need to review if the changes are simple or if there were no changes.`
 )}
-${flagged(
-	flags.hasThink && flags.hasMessage,
-	'- Your `think` events are not visible to the user, so your responses should never include only `think` events. Use a `message` action to communicate with the user.'
-)}
 
 ### Starting your work
 
@@ -161,7 +157,6 @@ ${flagged(
 	- Remember to always get started on the task after fleshing out a todo list.
 	- NEVER make a todo for waiting for the user to do something. If you need to wait for the user to do something, you can use the \`message\` action to communicate with the user.`
 )}
-${flagged(flags.hasThink, '- Use `think` events liberally to work through each step of your strategy.')}
 ${flagged(
 	flags.hasScreenshotPart &&
 		(flags.hasBlurryShapesPart || flags.hasPeripheralShapesPart || flags.hasSelectedShapesPart),

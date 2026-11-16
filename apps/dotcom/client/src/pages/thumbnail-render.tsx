@@ -1,3 +1,4 @@
+/* oxlint-disable react/only-export-components -- its own HTML entry, captured headlessly rather than hot-edited */
 import {
 	DEFAULT_THUMBNAIL_WIDTH,
 	MAX_THUMBNAIL_DIMENSION,
@@ -25,18 +26,28 @@ import {
 	TLRecord,
 	TLShapeId,
 	Tldraw,
-	compact,
 	fetch,
 	sleep,
 	useEditor,
 	TLAssetId,
+	TLAssetStore,
 	TLBookmarkShape,
+	TLImageShape,
+	getUncroppedSize,
 	AssetRecordType,
 	getHashForString,
 } from 'tldraw'
 import 'tldraw/tldraw.css'
 import { assetUrls } from '../utils/assetUrls'
+import {
+	getRequestedBounds,
+	getRequestedShapeIds,
+	getThumbnailContentInset,
+	measureShapeForMcp,
+	renderThumbnailPng,
+} from '../utils/boardCapture'
 import { embedShapeUtils } from '../utils/embedShapeUtil'
+import { resolveUserContentImageUrl } from '../utils/resolveUserContentImageUrl'
 
 // The thumbnail render page: a real editor, loaded with one board's records, that exports itself
 // and displays the export for Browser Run to screenshot. Served as its own Vite entry
@@ -162,7 +173,7 @@ declare global {
 
 // The injected script runs after navigation, often after this module has looked, so a one-shot
 // setter catches the assignment. No timer: a push that never lands ends as the capture's timeout,
-// and the worker fetches on the board's next attempt (see markPushTimedOut).
+// and the OG queue retries it like any other.
 function awaitPushedSnapshot(): Promise<ThumbnailPushedSnapshot> {
 	return new Promise((resolve) => {
 		Object.defineProperty(window, THUMBNAIL_RENDER_GLOBAL, {
@@ -287,6 +298,7 @@ function ThumbnailRenderPage({
 			<Tldraw
 				hideUi
 				assetUrls={assetUrls}
+				assets={renderAssetStore}
 				shapeUtils={embedShapeUtils}
 				components={{ ErrorFallback: ThumbnailRenderCrash }}
 				snapshot={snapshot}
@@ -455,10 +467,6 @@ export function clampThumbnailDimension(value: number) {
 	return Math.max(MIN_THUMBNAIL_DIMENSION, Math.min(MAX_THUMBNAIL_DIMENSION, Math.floor(value)))
 }
 
-function getRepresentativeContentInset(width: number, height: number) {
-	return Math.max(48, Math.min(160, width * 0.12, height * 0.18))
-}
-
 function fitBoundsCamera(
 	editor: Editor,
 	bounds: Box | null | undefined,
@@ -469,7 +477,7 @@ function fitBoundsCamera(
 		editor.zoomToBounds(bounds, {
 			immediate: true,
 			force: true,
-			inset: getRepresentativeContentInset(width, height),
+			inset: getThumbnailContentInset(width, height),
 		})
 	} else {
 		editor.setCamera({ x: 0, y: 0, z: 1 }, { immediate: true })
@@ -487,15 +495,6 @@ function fitContentCamera(editor: Editor, width: number, height: number) {
 // snapshot endpoint proves every requested id still exists *somewhere* on the board, which is all it
 // can see, so a live shared-file snapshot that moved them to another page since the mint gets here.
 export const SHAPES_NOT_ON_PAGE = 'requested shapes are not on the requested page'
-
-// The shapes the token asked for, filtered to those on the current page. Deliberately not a store
-// lookup: `editor.getShape` answers for a shape on any page, and both callers use this to decide
-// what to draw or delete on *this* one. Membership is read from the current page rather than from
-// each shape's `parentId`, which for a shape inside a frame names the frame instead of the page.
-function getRequestedShapeIds(editor: Editor, shapeIds: string[]): TLShapeId[] {
-	const onCurrentPage = editor.getCurrentPageShapeIds()
-	return shapeIds.filter((id): id is TLShapeId => onCurrentPage.has(id as TLShapeId))
-}
 
 // Readies the canvas for a live capture, or refuses the render. Returns false once the error marker
 // is set, which is terminal — the worker's screenshot wait resolves on it.
@@ -547,9 +546,7 @@ function pruneToRequestedShapes(editor: Editor, requestedIds: TLShapeId[]) {
 // for the same reason content fits are: autosized text re-measures once web fonts load.
 function fitShapesCamera(editor: Editor, shapeIds: string[], width: number, height: number) {
 	const ids = getRequestedShapeIds(editor, shapeIds)
-	const bounds = ids.length
-		? Box.Common(compact(ids.map((id) => editor.getShapePageBounds(id))))
-		: null
+	const bounds = ids.length ? getRequestedBounds(editor, ids) : null
 	fitBoundsCamera(editor, bounds, width, height)
 }
 
@@ -679,16 +676,10 @@ function ThumbnailMeasureSignal() {
 			await Promise.race([waitForFonts(editor), sleep(THUMBNAIL_SETTLE_TIMEOUT_MS)])
 			if (cancelled) return
 
-			// Text comes from the shape's own util, which is the authoritative answer — a Worker
-			// reading the record can only approximate it, and gets nothing at all for shapes whose
-			// text is computed rather than stored.
 			const bounds: Record<string, ThumbnailShapeMeasurement> = {}
 			for (const id of editor.getCurrentPageShapeIds()) {
-				const shape = editor.getShape(id)
-				const box = editor.getShapePageBounds(id)
-				if (!shape || !box) continue
-				const text = editor.getShapeUtil(shape).getText(shape)
-				bounds[id] = { x: box.x, y: box.y, w: box.w, h: box.h, ...(text ? { text } : null) }
+				const measured = measureShapeForMcp(editor, id)
+				if (measured) bounds[id] = measured
 			}
 			if (cancelled) return
 			publishMeasureResult(bounds)
@@ -751,41 +742,7 @@ export async function exportThumbnailImage(
 		return makeBlankThumbnail(width, height, editor.getCurrentTheme().colors[theme].background)
 	}
 
-	const { blob } = await editor.toImage(shapeIds, {
-		format: 'png',
-		bounds,
-		scale: camera.z,
-		padding: 0,
-		background: true,
-		darkMode: theme === 'dark',
-		pixelRatio: 1,
-	})
-	return normalizeThumbnailSize(blob, width, height)
-}
-
-// The export's bitmap sizing floors fractional dimensions, so a fractional camera zoom can come
-// back a pixel short of the requested output (e.g. 500 / 0.82 * 0.82 = 499.99…). Redraw onto an
-// exactly-sized canvas when that happens; the sub-pixel stretch is invisible.
-async function normalizeThumbnailSize(blob: Blob, width: number, height: number): Promise<Blob> {
-	const bitmap = await createImageBitmap(blob)
-	try {
-		if (bitmap.width === width && bitmap.height === height) return blob
-
-		const canvas = document.createElement('canvas')
-		canvas.width = width
-		canvas.height = height
-		const context = canvas.getContext('2d')
-		if (!context) return blob
-		context.drawImage(bitmap, 0, 0, width, height)
-		return await new Promise<Blob>((resolve, reject) => {
-			canvas.toBlob(
-				(result) => (result ? resolve(result) : reject(new Error('Could not resize thumbnail'))),
-				'image/png'
-			)
-		})
-	} finally {
-		bitmap.close()
-	}
+	return renderThumbnailPng(editor, shapeIds, { theme, width, height, bounds, scale: camera.z })
 }
 
 // toImage cannot export an empty shape list, so pages with no (visible) shapes fall back to a
@@ -827,6 +784,51 @@ async function waitForFonts(editor: Editor) {
 	}
 }
 
+// Without it the SDK's default store resolves every image to its original upload, so a thumbnail of a
+// board full of photos downloaded and decoded each one at full size — enough to exhaust the tab on
+// image-heavy boards (Browser Run then fails with "Cannot read properties of null (reading
+// 'screenshot')", TLDRAW-SYNC-3VJ) or to run out the capture's time.
+//
+// Asked for at a pixel ratio of 2 whatever the context says. The resized width is the asset's width
+// times a power-of-two zoom step (floored at 1/32) times the pixel ratio, so at 1 the floor asks for
+// 1/32 widths that the app on a 2x screen never does (its floor lands at 1/16). At 2 the render page
+// asks for the variants the app has already asked for, so the edge cache can answer and no transform
+// exists only for thumbnails.
+//
+// Animated images resize to their first frame too: the export draws only that frame anyway, but
+// from the whole original file, so a few GIFs could outweigh every other image on the board.
+//
+// Every request for an asset is lifted to the largest scale any drawn shape of it needs. The SDK
+// caches an image's export per asset, from whichever shape resolves it first, so two shapes drawing
+// one asset at different sizes would otherwise both get the first one's variant, and the larger
+// would draw blurry from the smaller.
+export const renderAssetStore: TLAssetStore = {
+	upload: async () => {
+		throw new Error('The thumbnail render page is read-only')
+	},
+	resolve: (asset, context) => {
+		const largest = largestScreenScaleByAsset.get(asset.id) ?? 0
+		return resolveUserContentImageUrl(
+			asset,
+			{
+				...context,
+				screenScale: Math.max(context.screenScale, largest),
+				steppedScreenScale: Math.max(context.steppedScreenScale, stepScreenScale(largest)),
+				dpr: 2,
+			},
+			{ stillAnimations: true }
+		)
+	},
+}
+
+// Filled by preloadImageAssets, which runs before the export and knows every shape it will draw.
+const largestScreenScaleByAsset = new Map<TLAssetId, number>()
+
+// The SDK's power-of-two zoom step (see Editor.resolveAssetUrl); stepping keeps the max of two scales.
+function stepScreenScale(screenScale: number) {
+	return screenScale > 0 ? 2 ** Math.ceil(Math.log2(screenScale)) : 0
+}
+
 // Warm the images the capture will draw, so the browser has the bytes before the shapes request
 // them. Only those: the store holds every asset on every page of the board, and the settle budget
 // is fixed, so a board with thousands of images elsewhere spent it fetching pictures the export
@@ -835,12 +837,19 @@ async function waitForFonts(editor: Editor) {
 // their descendants, or the page's shapes that survive culling at the camera the export will use —
 // so this must run after the pre-export fit, not before it.
 // Failures resolve rather than reject: a broken asset should not block the capture.
-async function preloadImageAssets(editor: Editor, deadline: number, requestedShapeIds?: string[]) {
+export async function preloadImageAssets(
+	editor: Editor,
+	deadline: number,
+	requestedShapeIds?: string[]
+) {
 	const culled = editor.getCulledShapes()
 	const roots = requestedShapeIds?.length
 		? getRequestedShapeIds(editor, requestedShapeIds)
 		: [...editor.getCurrentPageShapeIds()].filter((id) => !culled.has(id))
 	const urls = new Set<string>()
+	// The export's zoom: fitExportCamera has run, and the export uses the camera's zoom as its scale.
+	const scale = editor.getCamera().z
+	largestScreenScaleByAsset.clear()
 	for (const id of editor.getShapeAndDescendantIds(roots)) {
 		const shape = editor.getShape(id)
 		if (!shape) continue
@@ -854,9 +863,28 @@ async function preloadImageAssets(editor: Editor, deadline: number, requestedSha
 				: null)
 		const asset = assetId ? editor.getAsset(assetId) : undefined
 		if (!asset) continue
-		if (asset.type === 'image' && asset.props.src) urls.add(asset.props.src)
+		if (asset.type === 'image' && asset.props.src) {
+			// The scale the export will ask for (see resolveAssetUrl in the SDK's getSvgJsx, and the
+			// uncropped width ImageShapeUtil.toSvg passes it).
+			const width = editor.isShapeOfType<TLImageShape>(shape, 'image')
+				? getUncroppedSize(shape.props, shape.props.crop).w
+				: ((shape.props as { w?: number }).w ?? asset.props.w)
+			const screenScale = scale * (width / asset.props.w)
+			largestScreenScaleByAsset.set(
+				asset.id,
+				Math.max(largestScreenScaleByAsset.get(asset.id) ?? 0, screenScale)
+			)
+		}
 		if (asset.type === 'bookmark' && asset.props.image) urls.add(asset.props.image)
 	}
+	// Warm the URL the export will ask for: warming the original instead would fetch exactly the
+	// full-size bytes the asset store exists to avoid.
+	const resolved = await Promise.all(
+		[...largestScreenScaleByAsset].map(([assetId, screenScale]) =>
+			editor.resolveAssetUrl(assetId, { screenScale, dpr: 1 }).catch(() => null)
+		)
+	)
+	for (const url of resolved) if (url) urls.add(url)
 	await Promise.all([...urls].map((url) => preloadImage(url, deadline)))
 }
 

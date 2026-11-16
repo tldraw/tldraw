@@ -9,7 +9,7 @@ import { TldrawUiIcon } from '../primitives/TldrawUiIcon'
 const messages = defineMessages({
 	peopleMenuAnonymousUser: { id: 'people-menu.anonymous-user', defaultMessage: 'New user' },
 	peopleMenuAvatarColor: { id: 'people-menu.avatar-color', defaultMessage: 'Avatar color' },
-	peopleMenuFollow: { id: 'people-menu.follow', defaultMessage: 'Following' },
+	peopleMenuFollow: { id: 'people-menu.follow', defaultMessage: 'Follow' },
 	peopleMenuFollowing: { id: 'people-menu.following', defaultMessage: 'Following' },
 	peopleMenuLeading: { id: 'people-menu.leading', defaultMessage: 'Following you' },
 })

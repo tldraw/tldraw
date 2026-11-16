@@ -34,18 +34,23 @@ routes = [{ pattern = "demo.tldraw.xyz", custom_domain = true }]
 # durable objects have the same configuration in all environments:
 
 [durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
 
 [env.dev.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
 
 [env.preview.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
 
 [env.staging.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
 
 [env.production.durable_objects]
+code_update_strategy = { mode = "immediate" }
 bindings = [{ name = "BEMO_DO", class_name = "BemoDO" }]
 
 #################### R2 bucket ####################

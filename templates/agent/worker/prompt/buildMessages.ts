@@ -20,9 +20,15 @@ export function buildMessages(prompt: AgentPrompt): ModelMessage[] {
 	const rest = toModelMessages(allMessages.filter((m) => m.priority !== CHAT_HISTORY_PRIORITY))
 
 	// Claude caches only up to a marked message. The next request repeats the history and adds to it.
+	// Mark the message's last block, not the message: OpenRouter marks every block of a marked
+	// message, and Claude takes at most four marks.
 	const lastHistoryMessage = history.at(-1)
-	if (lastHistoryMessage) {
-		lastHistoryMessage.providerOptions = { anthropic: { cacheControl: { type: 'ephemeral' } } }
+	const cacheMark = { anthropic: { cacheControl: { type: 'ephemeral' } } }
+	if (typeof lastHistoryMessage?.content === 'string') {
+		lastHistoryMessage.providerOptions = cacheMark
+	} else {
+		const lastPart = lastHistoryMessage?.content.at(-1)
+		if (lastPart) lastPart.providerOptions = cacheMark
 	}
 
 	return [...history, ...rest]

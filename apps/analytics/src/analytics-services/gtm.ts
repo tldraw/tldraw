@@ -1,5 +1,7 @@
 import { GTM_SCRIPT_ID } from '../constants'
 import { ConsentPreferences } from '../types'
+import { copyEventMetadata } from '../utils/copy-event'
+import type { CopyCodeEvent } from '../utils/copy-event'
 import { AnalyticsService } from './analytics-service'
 
 // Extend Window with dataLayer (other Window properties declared in types.ts)
@@ -92,23 +94,16 @@ class GTMAnalyticsService extends AnalyticsService {
 		})
 	}
 
-	override trackCopyCode(data: {
-		page_category: string
-		text_snippet: string
-		user_email?: string
-		user_email_sha256?: string
-		user_first_name?: string
-		user_last_name?: string
-		user_phone_number?: string
-	}) {
+	override trackCopyCode(data: CopyCodeEvent) {
 		const payload: any = {
 			event: 'click_copy_code',
-			id: crypto.randomUUID(),
+			id: data.event_id,
 			page: {
 				category: data.page_category.toLowerCase(),
 			},
 			data: {
 				text_snippet: data.text_snippet.substring(0, 100),
+				...copyEventMetadata(data),
 			},
 			_clear: true,
 		}
@@ -133,6 +128,7 @@ class GTMAnalyticsService extends AnalyticsService {
 	}
 
 	override trackFormSubmission(data: {
+		prospectId?: string
 		enquiry_type: string
 		page_category?: string
 		company_size?: string

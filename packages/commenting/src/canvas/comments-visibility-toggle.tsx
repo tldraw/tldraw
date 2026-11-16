@@ -21,7 +21,7 @@ export function CommentsVisibilityToggle() {
 			type="icon"
 			tooltip={label}
 			title={label}
-			className="tlui-cmt-header-btn"
+			className="tlui-cmt-icon-btn"
 			onClick={() => toggleCommentsHidden(editor)}
 		>
 			{hidden ? <EyeClosedIcon /> : <EyeOpenIcon />}

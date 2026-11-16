@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "Create file"
   },
+  "1a7222b4e5": {
+    "translation": "Move to"
+  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -94,6 +97,9 @@
   },
   "28b2464e1f": {
     "translation": "Could not submit feedback"
+  },
+  "2944edaa8d": {
+    "translation": "On behalf of {name}"
   },
   "299cb00a7a": {
     "translation": "Upload failed"
@@ -136,6 +142,9 @@
   },
   "375396d6e5": {
     "translation": "Remove member"
+  },
+  "398f51738e": {
+    "translation": "Sign in to accept this invite."
   },
   "3bc7d6ea2f": {
     "translation": "Continue with email"
@@ -275,6 +284,9 @@
   "6637a98151": {
     "translation": "A new version of tldraw is available. Please reload the page to continue."
   },
+  "67ed6ddb7d": {
+    "translation": "Edited"
+  },
   "681e10aecb": {
     "translation": "New file"
   },
@@ -286,6 +298,9 @@
   },
   "6a26f54883": {
     "translation": "Help"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "You do not have the necessary permissions to perform this action."
@@ -304,6 +319,9 @@
   },
   "7408cf0d7b": {
     "translation": "Please reload the page"
+  },
+  "747ee44424": {
+    "translation": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
   },
   "74ff4bad28": {
     "translation": "No files found"
@@ -407,6 +425,9 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
+  "930390d222": {
+    "translation": "Copied invite link"
+  },
   "95aacd4d4a": {
     "translation": "Sign in with Google"
   },
@@ -452,9 +473,6 @@
   "a0a19d5145": {
     "translation": "{count, plural, one {# unread} other {# unread}}"
   },
-  "a0da245992": {
-    "translation": "Export the content as a .tldr file: Select 'Download' in the top left menu."
-  },
   "a104439641": {
     "translation": "Padding"
   },
@@ -499,6 +517,9 @@
   },
   "ab0df9ba36": {
     "translation": "File limit reached"
+  },
+  "aeb428554a": {
+    "translation": "Libraries"
   },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
@@ -642,6 +663,9 @@
   "e81c4e4f2b": {
     "translation": "or"
   },
+  "ea13ecec38": {
+    "translation": "File history"
+  },
   "ea4788705e": {
     "translation": "Cancel"
   },
@@ -684,6 +708,9 @@
   "f2a6c498fb": {
     "translation": "Delete"
   },
+  "f408fa5fbd": {
+    "translation": "This invite link is invalid or has expired."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment"
   },
@@ -710,6 +737,9 @@
   },
   "ff52811b98": {
     "translation": "Create a free account to save your files and tldraw with your teammates."
+  },
+  "ffad261a48": {
+    "translation": "Error accepting invite"
   },
   "ffcd73e997": {
     "translation": "Import file…"

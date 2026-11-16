@@ -6,6 +6,11 @@ import {
 } from '@ai-sdk/google'
 import { createOpenAI, OpenAIProvider, OpenAIResponsesProviderOptions } from '@ai-sdk/openai'
 import {
+	createOpenRouter,
+	OpenRouterProvider,
+	OpenRouterProviderOptions,
+} from '@openrouter/ai-sdk-provider'
+import {
 	JSONParseError,
 	LanguageModel,
 	ModelMessage,
@@ -16,12 +21,7 @@ import {
 	TypeValidationError,
 } from 'ai'
 import z from 'zod'
-import {
-	AgentModelDefinition,
-	AgentModelName,
-	getAgentModelDefinition,
-	isValidModelName,
-} from '../../shared/models'
+import { AgentModelDefinition, getAgentModelDefinition } from '../../shared/models'
 import { DebugPart } from '../../shared/schema/PromptPartDefinitions'
 import { ActionMeta, AgentAction, getActionSchemaForMode } from '../../shared/types/AgentAction'
 import { AgentPrompt } from '../../shared/types/AgentPrompt'
@@ -36,17 +36,21 @@ export class AgentService {
 	openai: OpenAIProvider
 	anthropic: AnthropicProvider
 	google: GoogleGenerativeAIProvider
+	// With an OpenRouter key, every model goes through OpenRouter and the provider keys are not used.
+	openrouter: OpenRouterProvider | null
 
 	constructor(env: Environment) {
 		this.openai = createOpenAI({ apiKey: env.OPENAI_API_KEY })
 		this.anthropic = createAnthropic({ apiKey: env.ANTHROPIC_API_KEY })
 		this.google = createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })
+		this.openrouter = env.OPENROUTER_API_KEY
+			? createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })
+			: null
 	}
 
-	getModel(modelName: AgentModelName): LanguageModel {
-		const modelDefinition = getAgentModelDefinition(modelName)
-		const provider = modelDefinition.provider
-		return this[provider](modelDefinition.id)
+	getModel(definition: AgentModelDefinition): LanguageModel {
+		if (this.openrouter) return this.openrouter(definition.openRouterId)
+		return this[definition.provider](definition.id)
 	}
 
 	/**
@@ -72,25 +76,15 @@ export class AgentService {
 		finish: { toolCalls: number }
 	): AsyncGenerator<Streaming<AgentAction>> {
 		const modelName = getModelName(prompt)
-		const model = this.getModel(modelName)
-
-		if (typeof model === 'string') {
-			throw new Error('Model is a string, not a LanguageModel')
-		}
-
-		const { modelId, provider } = model
-		if (!isValidModelName(modelId)) {
-			throw new Error(`Model ${modelId} is not in AGENT_MODEL_DEFINITIONS`)
-		}
-
-		const modelDefinition = getAgentModelDefinition(modelId)
+		const modelDefinition = getAgentModelDefinition(modelName)
+		const model = this.getModel(modelDefinition)
 		const systemPrompt = buildSystemPrompt(prompt)
 
 		// Build messages with provider-specific options
 		const messages: ModelMessage[] = []
 
 		// Add system prompt with Anthropic caching if applicable
-		if (provider === 'anthropic.messages') {
+		if (modelDefinition.provider === 'anthropic') {
 			// Anthropic requires explicit cache breakpoints. We set one at the end of the
 			// system prompt to cache all system content (which generally changes together).
 			messages.push({
@@ -129,9 +123,12 @@ export class AgentService {
 			tools: buildActionTools(prompt),
 			toolChoice: 'auto',
 			maxOutputTokens: 8192,
-			// Opus 4.7+ removed `temperature` (and top_p/top_k); sending it returns a 400.
+			// Opus 4.7+ removed `temperature` (and top_p/top_k), and Anthropic takes none while a model
+			// thinks; sending it returns a 400.
 			...(modelDefinition.supportsTemperature ? { temperature: 0 } : {}),
-			providerOptions: getProviderOptions(modelDefinition),
+			providerOptions: this.openrouter
+				? getOpenRouterProviderOptions(modelDefinition)
+				: getProviderOptions(modelDefinition),
 			onAbort() {
 				console.warn('Stream actions aborted')
 			},
@@ -238,7 +235,7 @@ export class AgentService {
 				case 'tool-call': {
 					finish.toolCalls++
 					if (part.invalid) {
-						console.warn(`Invalid ${part.toolName} call from ${modelId}: ${String(part.error)}`)
+						console.warn(`Invalid ${part.toolName} call from ${modelName}: ${String(part.error)}`)
 					}
 					if (part.invalid && NoSuchToolError.isInstance(part.error)) {
 						// The mode has no such action, so the client could not act on it. Drop the call; the
@@ -305,15 +302,16 @@ function describeInvalidInput(error: unknown): string {
 }
 
 /**
- * One tool per action the mode allows, named by the action's `_type`. Messages are plain text, so
- * they have no tool. The tools have no `execute`: the client carries them out.
+ * One tool per action the mode allows, named by the action's `_type`. Messages are plain text and
+ * think actions are the model's own reasoning, so they have no tool. The tools have no `execute`:
+ * the client carries them out.
  */
 function buildActionTools(prompt: AgentPrompt): ToolSet {
 	const modePart = prompt.mode
 	if (!modePart) throw new Error('A mode part is always required.')
 	const tools: ToolSet = {}
 	for (const type of modePart.actionTypes) {
-		if (type === 'message') continue
+		if (type === 'message' || type === 'think') continue
 		const schema = getActionSchemaForMode(type, modePart.modeType) as
 			| z.ZodObject<{ _type: z.ZodLiteral<string> }>
 			| undefined
@@ -338,7 +336,11 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 			return {
 				anthropic: {
 					thinking:
-						definition.thinking === 'adaptive' ? { type: 'adaptive' } : { type: 'disabled' },
+						definition.thinking === 'adaptive'
+							? { type: 'adaptive' }
+							: definition.thinking === 'disabled'
+								? { type: 'disabled' }
+								: { type: 'enabled', budgetTokens: definition.thinking.budgetTokens },
 					...(definition.effort ? { effort: definition.effort } : {}),
 				} satisfies AnthropicProviderOptions,
 			}
@@ -359,3 +361,39 @@ function getProviderOptions(definition: AgentModelDefinition): StreamTextProvide
 			}
 	}
 }
+
+/**
+ * OpenRouter takes one reasoning effort for every model, or a token budget for a model that thinks
+ * with one. Its effort has three levels, so `minimal` sends `low`, and `xhigh` and `max` send `high`.
+ * A model with no effort uses OpenRouter's default.
+ */
+function getOpenRouterProviderOptions(definition: AgentModelDefinition): StreamTextProviderOptions {
+	const effort =
+		definition.provider === 'anthropic'
+			? definition.thinking === 'adaptive'
+				? definition.effort
+				: undefined
+			: definition.provider === 'google'
+				? definition.thinkingLevel
+				: definition.reasoningEffort
+	const reasoningOff =
+		definition.provider === 'anthropic' ? definition.thinking === 'disabled' : effort === 'none'
+	const reasoning: OpenRouterProviderOptions['reasoning'] = reasoningOff
+		? // OpenRouter's type needs an effort even when reasoning is off.
+			{ enabled: false, effort: 'low' }
+		: definition.provider === 'anthropic' && typeof definition.thinking === 'object'
+			? { max_tokens: definition.thinking.budgetTokens }
+			: effort && effort !== 'none'
+				? { effort: OPENROUTER_EFFORT[effort] }
+				: undefined
+	return { openrouter: reasoning ? { reasoning } : {} }
+}
+
+const OPENROUTER_EFFORT = {
+	minimal: 'low',
+	low: 'low',
+	medium: 'medium',
+	high: 'high',
+	xhigh: 'high',
+	max: 'high',
+} as const

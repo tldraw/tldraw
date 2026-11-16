@@ -111,7 +111,7 @@ const withFeedRelations = (query: ReturnType<typeof feedComments>, userId: strin
  * shows a handful (see filterMentionMembers / MAX_SUGGESTIONS); this caps what reaches the client,
  * most-recent viewers first.
  */
-const MENTIONABLE_VISITORS_LIMIT = 100
+export const MENTIONABLE_VISITORS_LIMIT = 100
 
 /**
  * Synced Queries with permission logic.
