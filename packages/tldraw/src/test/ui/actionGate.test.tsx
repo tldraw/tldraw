@@ -1,7 +1,9 @@
 import { act } from '@testing-library/react'
-import { createShapeId, Editor } from '@tldraw/editor'
+import { atom, createShapeId, createTLStore, Editor } from '@tldraw/editor'
 import { useEffect } from 'react'
 import { vi } from 'vitest'
+import { defaultBindingUtils } from '../../lib/defaultBindingUtils'
+import { defaultShapeUtils } from '../../lib/defaultShapeUtils'
 import { Tldraw } from '../../lib/Tldraw'
 import { isActionRunnable } from '../../lib/ui/context/action-state'
 import {
@@ -174,6 +176,40 @@ describe('every action gates itself', () => {
 	})
 	afterEach(() => {
 		vi.useFakeTimers()
+	})
+
+	it('opens the keyboard shortcuts dialog in readonly mode', async () => {
+		const { editor, actions, onUiEvent } = await setup()
+		act(() => editor.updateInstanceState({ isReadonly: true }))
+		onUiEvent.mockClear()
+		await act(async () => {
+			await actions()['open-kbd-shortcuts'].onSelect('kbd')
+		})
+		expect(onUiEvent).toHaveBeenCalledWith('open-kbd-shortcuts', { source: 'kbd' })
+	})
+
+	it('sets readonlyOk on every built-in action', async () => {
+		let actions: TLUiActionsContextType = {}
+		// Collaboration adds the conditional actions.
+		const store = createTLStore({
+			shapeUtils: defaultShapeUtils,
+			bindingUtils: defaultBindingUtils,
+			collaboration: { status: atom('status', 'online' as const) },
+		})
+		await renderTldrawComponentWithEditor(
+			(onMount) => (
+				<Tldraw store={store} onMount={onMount}>
+					<ActionCapturer onCapture={(a) => (actions = a)} />
+				</Tldraw>
+			),
+			{ waitForPatterns: false }
+		)
+		expect(actions['open-cursor-chat']).toBeDefined()
+		// Explicit, so a forgotten field can't silently drop an action out of readonly.
+		const missing = Object.values(actions)
+			.filter((action) => action.readonlyOk === undefined)
+			.map((action) => action.id)
+		expect(missing).toEqual([])
 	})
 
 	it('blocks every action an override disables', async () => {
