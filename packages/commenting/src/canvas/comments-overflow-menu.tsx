@@ -44,7 +44,7 @@ export function CommentsOverflowMenu() {
 					<TldrawUiIcon icon="dots-vertical" label={msg(messages.commentsMoreOptions)} small />
 				</TldrawUiButton>
 			</TldrawUiDropdownMenuTrigger>
-			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={4}>
+			<TldrawUiDropdownMenuContent side="bottom" align="end" alignOffset={0} sideOffset={0}>
 				<TldrawUiDropdownMenuGroup>
 					<TldrawUiDropdownMenuItem>
 						<TldrawUiButton type="menu" onClick={() => toggleCommentsHidden(editor)}>
