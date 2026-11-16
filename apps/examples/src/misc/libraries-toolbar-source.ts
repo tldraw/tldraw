@@ -1,10 +1,21 @@
 import {
+	getThumbnailForColorMode,
 	InMemoryLibrarySource,
 	LibraryRecordType,
+	type TLLibraryId,
+	type TLLibraryItem,
 	type TLLibraryItemId,
 	type TLLibraryItemTool,
+	type TLLibraryThumbnailContext,
 } from '@tldraw/libraries'
-import { type Editor, GeoShapeGeoStyle, type TLGeoShape, toRichText } from 'tldraw'
+import {
+	type Computed,
+	computed,
+	type Editor,
+	GeoShapeGeoStyle,
+	type TLGeoShape,
+	toRichText,
+} from 'tldraw'
 import { geo, saveSamples, type Sample, shapeSample, WIREFRAMES } from './libraries-samples'
 
 // Fixed ids, so the libraries a user puts in their toolbar are still there after a reload, when
@@ -57,9 +68,13 @@ const stamps = (): Sample[] => [
  * Two libraries: "Basic shapes", whose items stand for the geo tool armed with each geo type, and
  * "Stamps", whose items are placed as they are. Only this source's own Basic shapes items are tools:
  * one copied to another library is plain content there.
+ *
+ * Like tldraw.com's, its listings carry no thumbnails: tiles get theirs from `resolveThumbnail`.
  */
 export class ToolbarExampleLibrarySource extends InMemoryLibrarySource {
 	private readonly geoByItem = new Map<TLLibraryItemId, string>()
+	private readonly stored = new Map<TLLibraryItemId, TLLibraryItem>()
+	private readonly listings = new Map<TLLibraryId, Computed<TLLibraryItem[]>>()
 
 	constructor() {
 		super({
@@ -79,6 +94,26 @@ export class ToolbarExampleLibrarySource extends InMemoryLibrarySource {
 		const shapes = await saveSamples(editor, this, BASIC_SHAPES_ID, basicShapes())
 		shapes.forEach((item, i) => this.geoByItem.set(item.id, GEO_TYPES[i]))
 		await saveSamples(editor, this, STAMPS_ID, stamps())
+	}
+
+	override getItems(libraryId: TLLibraryId) {
+		let listing = this.listings.get(libraryId)
+		if (!listing) {
+			listing = computed('listing without thumbnails', () =>
+				super.getItems(libraryId).map((item) => {
+					this.stored.set(item.id, item)
+					const { thumbnail: _thumbnail, ...listed } = item
+					return listed
+				})
+			)
+			this.listings.set(libraryId, listing)
+		}
+		return listing.get()
+	}
+
+	resolveThumbnail(item: TLLibraryItem, { colorMode }: TLLibraryThumbnailContext) {
+		const thumbnail = this.stored.get(item.id)?.thumbnail
+		return thumbnail ? getThumbnailForColorMode(thumbnail, colorMode) : null
 	}
 
 	getItemTool(itemId: TLLibraryItemId): TLLibraryItemTool | undefined {
