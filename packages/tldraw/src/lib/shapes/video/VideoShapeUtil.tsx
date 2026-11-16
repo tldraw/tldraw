@@ -13,6 +13,7 @@ import {
 	useEditor,
 	useEditorComponents,
 	useIsEditing,
+	useValue,
 	VecModel,
 	videoShapeMigrations,
 	videoShapeProps,
@@ -150,8 +151,11 @@ export class VideoShapeUtil extends BaseBoxShapeUtil<TLVideoShape> {
 
 const VideoShape = memo(function VideoShape({ shape }: { shape: TLVideoShape }) {
 	const editor = useEditor()
-	const showControls =
-		editor.getShapeGeometry(shape).bounds.w * editor.getEfficientZoomLevel() >= 110
+	const showControls = useValue(
+		'show controls',
+		() => editor.getShapeGeometry(shape.id).bounds.w * editor.getEfficientZoomLevel() >= 110,
+		[editor, shape.id]
+	)
 	const isEditing = useIsEditing(shape.id)
 	const prefersReducedMotion = usePrefersReducedMotion()
 	const { Spinner } = useEditorComponents()
