@@ -1,4 +1,9 @@
-import { type LibrarySource, saveShapesToLibrary, type TLLibraryId } from '@tldraw/libraries'
+import {
+	type LibrarySource,
+	saveShapesToLibrary,
+	type TLLibraryId,
+	type TLLibraryItem,
+} from '@tldraw/libraries'
 import { createShapeId, Editor, TLGeoShape, TLShapePartial, toRichText } from 'tldraw'
 
 type GeoProps = Partial<TLGeoShape['props']>
@@ -6,13 +11,9 @@ type GeoProps = Partial<TLGeoShape['props']>
 // Samples are drawn off-screen, exported, then deleted, so they never flash on the canvas.
 const OFF_SCREEN = -100_000
 
-const geo = (x: number, y: number, props: GeoProps): TLShapePartial<TLGeoShape> => ({
-	id: createShapeId(),
-	type: 'geo',
-	x: x + OFF_SCREEN,
-	y: y + OFF_SCREEN,
-	props,
-})
+export function geo(x: number, y: number, props: GeoProps): TLShapePartial<TLGeoShape> {
+	return { id: createShapeId(), type: 'geo', x: x + OFF_SCREEN, y: y + OFF_SCREEN, props }
+}
 
 export interface Sample {
 	name?: string
@@ -76,13 +77,15 @@ export async function saveSamples(
 	libraryId: TLLibraryId,
 	samples: Sample[]
 ) {
+	const items: TLLibraryItem[] = []
 	for (const sample of samples) {
 		const ids = sample.shapes.map((shape) => shape.id)
 		editor.run(() => editor.createShapes(sample.shapes), { history: 'ignore' })
 		try {
-			await saveShapesToLibrary(editor, source, libraryId, ids, { name: sample.name })
+			items.push(await saveShapesToLibrary(editor, source, libraryId, ids, { name: sample.name }))
 		} finally {
 			editor.run(() => editor.deleteShapes(ids), { history: 'ignore' })
 		}
 	}
+	return items
 }
