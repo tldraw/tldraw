@@ -4,6 +4,7 @@ import {
 	RESET_VALUE,
 	TLShape,
 	TLShapeId,
+	atom,
 	computed,
 	isUninitialized,
 	objectMapValues,
@@ -54,6 +55,15 @@ function createHiddenShapeIds(editor: Editor) {
 	})
 }
 
+// A full repaint is too cheap to be worth deferring at or below this many shapes.
+const MAX_SHAPES_FOR_EAGER_REPAINT = 2000
+
+// How long the view has to hold still before a deferred repaint happens.
+const DEFERRED_REPAINT_DELAY_MS = 150
+
+// How far the layer can be scaled up or down before it looks wrong enough to repaint anyway.
+const MAX_STALE_SCALE = 2
+
 /** Where the layer's pixels sit in page space. Sizes are in device pixels. */
 export interface MinimapShapeLayerView {
 	width: number
@@ -76,8 +86,11 @@ export interface MinimapShapeLayerFills {
  * page, and the minimap renders on every camera move.
  *
  * When shapes or the selection change, only the tiles they touch are repainted, using the
- * spatial index to find the other shapes in those tiles. The whole layer is repainted when
- * its view or fills change.
+ * spatial index to find the other shapes in those tiles.
+ *
+ * A change of view (the minimap rescales whenever the viewport moves while it reaches outside
+ * the page's content) needs the whole layer repainted. On large pages that is deferred until
+ * the view holds still, and the stale layer is drawn scaled to fit in the meantime.
  */
 export class MinimapShapeLayer {
 	private readonly canvas: HTMLCanvasElement
@@ -93,6 +106,14 @@ export class MinimapShapeLayer {
 	private hidden: ReadonlySet<TLShapeId> = new Set()
 
 	private needsFullRepaint = true
+	// Set when a shape lands outside the layer, where it can't be painted until the view is
+	// updated to include it.
+	private hasShapesOutsideView = false
+
+	private readonly deferredRepaintEpoch = atom('minimap deferred repaint', 0)
+	private deferredRepaintTimer: number | undefined
+	private deferredRepaintView: MinimapShapeLayerView | undefined
+	private isDeferredRepaintDue = false
 	private cols = 0
 	private dirtyTiles = new Uint8Array(0)
 	private dirtyCount = 0
@@ -122,6 +143,7 @@ export class MinimapShapeLayer {
 
 	dispose() {
 		this.stopListening()
+		this.editor.timers.clearTimeout(this.deferredRepaintTimer)
 	}
 
 	/**
@@ -133,15 +155,19 @@ export class MinimapShapeLayer {
 		view: MinimapShapeLayerView,
 		fills: MinimapShapeLayerFills
 	) {
+		this.deferredRepaintEpoch.get()
+
 		// Reading the rects applies any pending changes, which marks their tiles dirty. That has
 		// to happen against the view the layer was last painted with, so before the view is updated.
 		const rects = this.editor.getCurrentPageShapeMaskedBounds()
 		this.updateHidden(rects)
 		this.updateSelection(rects)
-		this.updateView(view, fills)
 
 		// drawImage throws on an empty canvas, which is what we have until the first layout.
 		if (view.width === 0 || view.height === 0 || !Number.isFinite(view.scale)) return
+
+		if (!this.canKeepView(view, fills, rects.size)) this.setView(view, fills)
+		this.isDeferredRepaintDue = false
 
 		if (this.needsFullRepaint) {
 			this.repaintAll(rects)
@@ -149,24 +175,54 @@ export class MinimapShapeLayer {
 			this.repaintDirtyTiles(rects)
 		}
 
-		target.drawImage(this.canvas, 0, 0)
-	}
-
-	private updateView(view: MinimapShapeLayerView, fills: MinimapShapeLayerFills) {
-		const prev = this.view
-		if (
-			prev.width === view.width &&
-			prev.height === view.height &&
-			prev.minX === view.minX &&
-			prev.minY === view.minY &&
-			prev.scale === view.scale &&
-			this.fills.shape === fills.shape &&
-			this.fills.selected === fills.selected
-		) {
+		const layer = this.view
+		if (isSameView(layer, view)) {
+			target.drawImage(this.canvas, 0, 0)
 			return
 		}
 
-		if (prev.width !== view.width || prev.height !== view.height) {
+		const scale = view.scale / layer.scale
+		target.save()
+		target.imageSmoothingQuality = 'high'
+		target.drawImage(
+			this.canvas,
+			(layer.minX - view.minX) * view.scale,
+			(layer.minY - view.minY) * view.scale,
+			layer.width * scale,
+			layer.height * scale
+		)
+		target.restore()
+		this.deferRepaint(view)
+	}
+
+	/** Whether the layer as painted can stand in for `view`, exactly or scaled. */
+	private canKeepView(
+		view: MinimapShapeLayerView,
+		fills: MinimapShapeLayerFills,
+		shapeCount: number
+	) {
+		const layer = this.view
+		if (isSameView(layer, view)) {
+			return this.fills.shape === fills.shape && this.fills.selected === fills.selected
+		}
+
+		const scale = view.scale / layer.scale
+		return !(
+			this.needsFullRepaint ||
+			this.isDeferredRepaintDue ||
+			this.hasShapesOutsideView ||
+			shapeCount <= MAX_SHAPES_FOR_EAGER_REPAINT ||
+			layer.width !== view.width ||
+			layer.height !== view.height ||
+			this.fills.shape !== fills.shape ||
+			this.fills.selected !== fills.selected ||
+			scale > MAX_STALE_SCALE ||
+			scale < 1 / MAX_STALE_SCALE
+		)
+	}
+
+	private setView(view: MinimapShapeLayerView, fills: MinimapShapeLayerFills) {
+		if (this.view.width !== view.width || this.view.height !== view.height) {
 			this.canvas.width = view.width
 			this.canvas.height = view.height
 			this.cols = Math.ceil(view.width / TILE_SIZE)
@@ -176,6 +232,23 @@ export class MinimapShapeLayer {
 		this.view = { ...view }
 		this.fills = { ...fills }
 		this.needsFullRepaint = true
+		this.hasShapesOutsideView = false
+		this.editor.timers.clearTimeout(this.deferredRepaintTimer)
+		this.deferredRepaintView = undefined
+	}
+
+	private deferRepaint(view: MinimapShapeLayerView) {
+		// Renders that don't move the view (a collaborator's cursor, say) mustn't push the
+		// repaint back, or it might never happen.
+		if (this.deferredRepaintView && isSameView(this.deferredRepaintView, view)) return
+		this.deferredRepaintView = { ...view }
+
+		this.editor.timers.clearTimeout(this.deferredRepaintTimer)
+		this.deferredRepaintTimer = this.editor.timers.setTimeout(() => {
+			this.deferredRepaintView = undefined
+			this.isDeferredRepaintDue = true
+			this.deferredRepaintEpoch.update((n) => n + 1)
+		}, DEFERRED_REPAINT_DELAY_MS)
 	}
 
 	private updateSelection(rects: ReadonlyMap<TLShapeId, Box>) {
@@ -207,11 +280,21 @@ export class MinimapShapeLayer {
 		if (!rect || this.needsFullRepaint) return
 		const { view, cols, dirtyTiles } = this
 
+		const left = (rect.minX - view.minX) * view.scale
+		const top = (rect.minY - view.minY) * view.scale
+		const right = (rect.maxX - view.minX) * view.scale
+		const bottom = (rect.maxY - view.minY) * view.scale
+
+		// Shapes on the edge of the content sit on the edge of the layer, give or take rounding.
+		if (left < -0.5 || top < -0.5 || right > view.width + 0.5 || bottom > view.height + 0.5) {
+			this.hasShapesOutsideView = true
+		}
+
 		// A pixel of padding covers antialiasing and rounding at the rect's edges.
-		const x0 = Math.max(0, Math.floor((rect.minX - view.minX) * view.scale) - 1)
-		const y0 = Math.max(0, Math.floor((rect.minY - view.minY) * view.scale) - 1)
-		const x1 = Math.min(view.width, Math.ceil((rect.maxX - view.minX) * view.scale) + 1)
-		const y1 = Math.min(view.height, Math.ceil((rect.maxY - view.minY) * view.scale) + 1)
+		const x0 = Math.max(0, Math.floor(left) - 1)
+		const y0 = Math.max(0, Math.floor(top) - 1)
+		const x1 = Math.min(view.width, Math.ceil(right) + 1)
+		const y1 = Math.min(view.height, Math.ceil(bottom) + 1)
 		// Also false for NaN bounds.
 		if (!(x1 > x0 && y1 > y0)) return
 
@@ -311,4 +394,14 @@ export class MinimapShapeLayer {
 		ctx.fillStyle = fills.selected
 		ctx.fill(selectedPath)
 	}
+}
+
+function isSameView(a: MinimapShapeLayerView, b: MinimapShapeLayerView) {
+	return (
+		a.width === b.width &&
+		a.height === b.height &&
+		a.minX === b.minX &&
+		a.minY === b.minY &&
+		a.scale === b.scale
+	)
 }

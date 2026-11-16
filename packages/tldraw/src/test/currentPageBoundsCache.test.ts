@@ -44,6 +44,9 @@ function expectCacheToMatch() {
 	for (const [id, bounds] of want) {
 		expect(actual.get(id)!.toJson()).toEqual(bounds.toJson())
 	}
+	expect(cache.getCommonBounds()?.toJson()).toEqual(
+		want.size ? Box.Common([...want.values()]).toJson() : undefined
+	)
 }
 
 beforeEach(() => {
@@ -288,6 +291,23 @@ describe('CurrentPageBoundsCache', () => {
 		})
 		expectCacheToMatch()
 		expect(invalidations).toBe(1)
+	})
+
+	it('shrinks the common bounds when a shape on their edge moves in or goes away', () => {
+		expect(cache.getCommonBounds()!.toJson()).toEqual({ x: 0, y: 0, w: 400, h: 200 })
+
+		// Not on an edge: folded in without a recompute.
+		editor.createShape({ type: 'geo', x: 120, y: 20, props: { w: 10, h: 10 } })
+		expectCacheToMatch()
+
+		editor.updateShape({ id: ids.box, type: 'geo', x: 150 })
+		expect(cache.getCommonBounds()!.toJson()).toEqual({ x: 120, y: 0, w: 280, h: 200 })
+
+		editor.deleteShapes([ids.frame])
+		expect(cache.getCommonBounds()!.toJson()).toEqual({ x: 120, y: 0, w: 130, h: 100 })
+
+		editor.deleteShapes(editor.getCurrentPageShapes())
+		expect(cache.getCommonBounds()).toBeUndefined()
 	})
 
 	it('does not invalidate dependents when no value changed', () => {

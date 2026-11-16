@@ -17,12 +17,9 @@ const SIZES = [1_000, 10_000, 25_000]
 const WARMUP = 5
 const ITERATIONS = 40
 
-const counts = { path2d: 0, rect: 0 }
+const counts = { rect: 0 }
 
 class CountingPath2D {
-	constructor() {
-		counts.path2d++
-	}
 	rect() {
 		counts.rect++
 	}
@@ -89,7 +86,6 @@ interface Scenario {
 
 interface Sample {
 	ms: number
-	pathRebuilds: number
 	rects: number
 }
 
@@ -98,7 +94,6 @@ function measure(scenario: Scenario): Sample {
 	for (let i = 0; i < WARMUP; i++) scenario.op()
 
 	const times: number[] = []
-	counts.path2d = 0
 	counts.rect = 0
 	for (let i = 0; i < ITERATIONS; i++) {
 		const t0 = performance.now()
@@ -107,8 +102,7 @@ function measure(scenario: Scenario): Sample {
 	}
 	return {
 		ms: median(times),
-		// Each getShapePaths rebuild allocates two Path2Ds.
-		pathRebuilds: counts.path2d / 2 / ITERATIONS,
+		// How many shapes were repainted per op. The whole page means a full repaint.
 		rects: counts.rect / ITERATIONS,
 	}
 }
@@ -131,8 +125,8 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 	})
 
 	// The minimap's cost is the op time with it attached minus the op time without it.
-	// Timing render() alone undercounts: the reaction's parent check recomputes
-	// getShapePaths before render runs, and that rebuild is where the time goes.
+	// Timing render() alone undercounts: the shape bounds the minimap depends on are brought
+	// up to date before render runs, when the reaction checks whether its parents changed.
 	it("measures the minimap's added cost per editor change", () => {
 		const results: Record<string, string | number>[] = []
 
@@ -184,7 +178,6 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 			const without = scenarios.map(measure)
 
 			editor.selectNone()
-			counts.path2d = 0
 			counts.rect = 0
 			const t0 = performance.now()
 			const detach = attachMinimap(editor)
@@ -196,7 +189,6 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 				withoutMs: '-',
 				withMs: firstRenderMs,
 				minimapMs: firstRenderMs,
-				pathRebuilds: counts.path2d / 2,
 				rects: counts.rect,
 			})
 
@@ -211,7 +203,6 @@ describe.runIf(process.env.MINIMAP_BENCH)('minimap perf', () => {
 					withoutMs: round(without[i].ms),
 					withMs: round(withMinimap[i].ms),
 					minimapMs: round(withMinimap[i].ms - without[i].ms),
-					pathRebuilds: withMinimap[i].pathRebuilds,
 					rects: withMinimap[i].rects,
 				})
 			})

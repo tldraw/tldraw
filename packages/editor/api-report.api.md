@@ -637,7 +637,8 @@ export class CubicSpline2d extends Geometry2d {
 // @internal
 export class CurrentPageBoundsCache {
     constructor(editor: Editor, name: string,
-    getBounds: (shape: TLShape) => Box | undefined, listener?: CurrentPageBoundsCacheListener | undefined);
+    getBounds: (shape: TLShape) => Box | undefined);
+    addListener(listener: CurrentPageBoundsCacheListener): () => void;
     get(): ReadonlyMap<TLShapeId, Box>;
     getCommonBounds(): Box | undefined;
 }
@@ -896,6 +897,8 @@ export class EdgeScrollManager {
 // @public (undocumented)
 export class Editor extends EventEmitter<TLEventMap> {
     constructor({ store, user, shapeUtils, bindingUtils, assetUtils: assetUtilConstructors, overlayUtils: overlayUtilConstructors, tools, getContainer, cameraOptions, initialState, autoFocus, options: _options, textOptions: _textOptions, getShapeVisibility, colorScheme, fontAssetUrls, themes, initialTheme, i18n, }: TLEditorOptions);
+    // @internal
+    addCurrentPageShapeMaskedBoundsListener(listener: CurrentPageBoundsCacheListener): () => void;
     alignShapes(shapes: TLShape[] | TLShapeId[], operation: 'bottom' | 'center-horizontal' | 'center-vertical' | 'center' | 'left' | 'right' | 'top'): this;
     animateShape(partial: null | TLShapePartial | undefined, opts?: TLCameraMoveOptions): this;
     animateShapes(partials: (null | TLShapePartial | undefined)[], opts?: TLCameraMoveOptions): this;
