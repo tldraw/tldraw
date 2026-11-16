@@ -39,6 +39,11 @@ export interface LibrariesPanelProps {
 	menuItems?: ReactNode
 	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
 	prepareItemContent?: PrepareItemContent
+	/**
+	 * Whether each library's ⋯ menu offers putting it in the current user's toolbar, or taking it
+	 * out, for a host that shows those libraries in its toolbar. Defaults to `false`.
+	 */
+	canPutInToolbar?: boolean
 }
 
 /**
@@ -57,6 +62,7 @@ export function LibrariesPanel({
 	side = 'left',
 	menuItems,
 	prepareItemContent,
+	canPutInToolbar = false,
 }: LibrariesPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -116,6 +122,7 @@ export function LibrariesPanel({
 					library={library}
 					getItemProps={getItemProps}
 					prepareItemContent={prepareItemContent}
+					canPutInToolbar={canPutInToolbar}
 				/>
 			))
 		)

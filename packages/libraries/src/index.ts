@@ -16,6 +16,11 @@ export {
 	type SaveShapesOptions,
 } from './canvas/save-shapes'
 export { activeLibraryId, librariesPanelOpen, toggleLibrariesPanel } from './canvas/state'
+export {
+	getToolbarLibraryIds,
+	putLibraryInToolbar,
+	removeLibraryFromToolbar,
+} from './canvas/toolbar-libraries'
 export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,

@@ -15,6 +15,11 @@ import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { getOwnerChoices } from './owner-choices'
 import { activeLibraryId, renamingLibraryId } from './state'
+import {
+	getToolbarLibraryIds,
+	putLibraryInToolbar,
+	removeLibraryFromToolbar,
+} from './toolbar-libraries'
 
 const messages = defineMessages({
 	deleteTitle: {
@@ -46,6 +51,8 @@ export interface LibrarySectionHeaderProps {
 	collapsed: boolean
 	onToggleCollapsed(): void
 	sort: LibraryMenuSort
+	/** Whether the menu offers putting the library in the toolbar, or taking it out. */
+	canPutInToolbar?: boolean
 }
 
 export function LibrarySectionHeader({
@@ -54,6 +61,7 @@ export function LibrarySectionHeader({
 	collapsed,
 	onToggleCollapsed,
 	sort,
+	canPutInToolbar = false,
 }: LibrarySectionHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
@@ -72,6 +80,11 @@ export function LibrarySectionHeader({
 			rename: source.can('renameLibrary', libraryId),
 			delete: source.can('deleteLibrary', libraryId),
 		}),
+		[source, libraryId]
+	)
+	const isInToolbar = useValue(
+		'library in toolbar',
+		() => getToolbarLibraryIds(source).includes(libraryId),
 		[source, libraryId]
 	)
 	const ownerChoices = useValue(
@@ -173,6 +186,16 @@ export function LibrarySectionHeader({
 						copy={
 							ownerChoices.copy.length > 0
 								? { owners: ownerChoices.copy, onSelect: copyToOwner }
+								: undefined
+						}
+						onPutInToolbar={
+							canPutInToolbar && !isInToolbar
+								? () => putLibraryInToolbar(source, libraryId)
+								: undefined
+						}
+						onRemoveFromToolbar={
+							canPutInToolbar && isInToolbar
+								? () => removeLibraryFromToolbar(source, libraryId)
 								: undefined
 						}
 					/>

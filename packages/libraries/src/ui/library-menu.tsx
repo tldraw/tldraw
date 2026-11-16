@@ -21,6 +21,11 @@ const messages = defineMessages({
 	reverse: { id: 'libraries.library-menu.reverse', defaultMessage: 'Reverse order' },
 	move: { id: 'libraries.library-menu.move', defaultMessage: 'Move to' },
 	copy: { id: 'libraries.library-menu.copy', defaultMessage: 'Copy to' },
+	putInToolbar: { id: 'libraries.library-menu.put-in-toolbar', defaultMessage: 'Put in toolbar' },
+	removeFromToolbar: {
+		id: 'libraries.library-menu.remove-from-toolbar',
+		defaultMessage: 'Remove from toolbar',
+	},
 })
 
 /** @public */
@@ -67,6 +72,13 @@ export interface LibraryMenuProps {
 	/** A "Copy to" submenu of owners. Leave out to hide it. */
 	copy?: LibraryMenuCopy
 	/**
+	 * Puts the library in this user's toolbar. Pass this or `onRemoveFromToolbar`, by whether it's
+	 * there already.
+	 */
+	onPutInToolbar?(): void
+	/** Takes the library out of this user's toolbar. */
+	onRemoveFromToolbar?(): void
+	/**
 	 * Items of the host's own, placed after "New library", e.g. {@link LibraryMenuItem}s. The menu
 	 * doesn't check whether the editor is read-only, so gate any that change the document.
 	 */
@@ -85,10 +97,24 @@ export function LibraryMenu({
 	sort,
 	move: moveTo,
 	copy: copyTo,
+	onPutInToolbar,
+	onRemoveFromToolbar,
 	children,
 }: LibraryMenuProps) {
 	const msg = useTranslation()
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
+	if (
+		!create &&
+		!rename &&
+		!remove &&
+		!sort &&
+		!moveTo &&
+		!copyTo &&
+		!onPutInToolbar &&
+		!onRemoveFromToolbar &&
+		!children
+	) {
+		return null
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -153,6 +179,12 @@ export function LibraryMenu({
 								/>
 							))}
 						</MenuSubmenu>
+					)}
+					{onPutInToolbar && (
+						<MenuItem label={msg(messages.putInToolbar)} onClick={onPutInToolbar} />
+					)}
+					{onRemoveFromToolbar && (
+						<MenuItem label={msg(messages.removeFromToolbar)} onClick={onRemoveFromToolbar} />
 					)}
 					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
 				</TldrawUiDropdownMenuGroup>
