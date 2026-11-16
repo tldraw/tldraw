@@ -44,6 +44,7 @@ export {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemTool,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,

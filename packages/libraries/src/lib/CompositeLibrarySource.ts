@@ -118,6 +118,14 @@ export class CompositeLibrarySource implements LibrarySource {
 		return this.getItemPart(itemId).part.source.getItemContent(itemId)
 	}
 
+	getItemTool(itemId: TLLibraryItemId) {
+		for (const part of this.parts) {
+			const tool = part.source.getItemTool?.(itemId)
+			if (tool) return tool
+		}
+		return undefined
+	}
+
 	can(action: TLLibraryAction, target?: TLLibraryTarget) {
 		if (target === undefined) return this.getDefaultPart()?.source.can(action) ?? false
 		if (typeof target === 'string') {

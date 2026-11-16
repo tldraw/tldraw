@@ -163,6 +163,26 @@ describe('CompositeLibrarySource', () => {
 		expect(items.map((item) => item.name)).toEqual(['Star', 'Heart'])
 	})
 
+	it("asks each part which tool an item stands for, and the parts that can't answer say none", async () => {
+		const { mine, team, kits } = setUp()
+		const [button] = kits.getItems(wireframing)
+		const tool = { toolId: 'geo', styles: { 'tldraw:geo': 'rectangle' } }
+		const tools = Object.assign(kits, {
+			getItemTool: (itemId: string) => (itemId === button.id ? tool : undefined),
+		})
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: personal, source: mine },
+				{ owner: acme, source: team },
+				{ owner: tldraw, source: tools },
+			],
+		})
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		const star = await source.addItem(kit.id, { content: content('star') })
+		expect(source.getItemTool(button.id)).toEqual(tool)
+		expect(source.getItemTool(star.id)).toBeUndefined()
+	})
+
 	it('delegates permissions to the part', () => {
 		const { source } = setUp()
 		expect(source.can('createLibrary')).toBe(true)
