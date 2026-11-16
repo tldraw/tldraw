@@ -27,8 +27,10 @@ async function getUrl(file: File, fileId: string | undefined) {
 export function multiplayerAssetStore(opts?: {
 	getFileId?(): string
 	getToken?(): Promise<string | undefined>
+	/** Called after an upload to a file succeeds, with the upload's src and the file. */
+	onUpload?(upload: { src: string; fileId: string }): void
 }) {
-	const { getFileId, getToken } = opts ?? {}
+	const { getFileId, getToken, onUpload } = opts ?? {}
 	return {
 		upload: async (_asset, file, abortSignal?) => {
 			const fileId = getFileId?.()
@@ -53,6 +55,7 @@ export function multiplayerAssetStore(opts?: {
 
 			if (fileId) {
 				const meta = { fileId }
+				onUpload?.({ src, fileId })
 				return { src, meta }
 			}
 			return { src }

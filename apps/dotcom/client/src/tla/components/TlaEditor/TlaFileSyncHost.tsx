@@ -67,7 +67,16 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		return (await user?.getToken()) ?? 'not-logged-in'
 	})
 	const assets = useMemo(() => {
-		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
+		return multiplayerAssetStore({
+			getFileId: () => fileSlug,
+			getToken: getUserToken,
+			// The upload's asset row is written after the upload returns, so it's listed here rather
+			// than by listing the uploads again.
+			onUpload: (upload) => {
+				const uploads = currentApp$.get()?.uploads
+				if (uploads) uploads.noteUpload(upload)
+			},
+		})
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
 	const editorRef = useRef<Editor | null>(null)

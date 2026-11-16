@@ -314,3 +314,37 @@ describe('multiplayerAssetStore.resolve', () => {
 		).toBe('https://tldrawusercontent.com/cdn-cgi/image/format=auto/image.png')
 	})
 })
+
+describe('multiplayerAssetStore.upload', () => {
+	afterEach(() => vi.unstubAllGlobals())
+
+	const upload = (store: ReturnType<typeof multiplayerAssetStore>) =>
+		store.upload(
+			{} as TLAsset,
+			new File(['png'], 'photo.png', { type: 'image/png' }),
+			new AbortController().signal
+		)
+
+	it('reports an upload to a file once it has succeeded', async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => new Response(null, { status: 200 }))
+		)
+		const onUpload = vi.fn()
+		const { src } = await upload(multiplayerAssetStore({ getFileId: () => 'file_a', onUpload }))
+		expect(src).toMatch(/-photo-png$/)
+		expect(onUpload).toHaveBeenCalledWith({ src, fileId: 'file_a' })
+	})
+
+	it("doesn't report an upload that fails", async () => {
+		vi.stubGlobal(
+			'fetch',
+			vi.fn(async () => new Response(null, { status: 403 }))
+		)
+		const onUpload = vi.fn()
+		await expect(
+			upload(multiplayerAssetStore({ getFileId: () => 'file_a', onUpload }))
+		).rejects.toThrow()
+		expect(onUpload).not.toHaveBeenCalled()
+	})
+})
