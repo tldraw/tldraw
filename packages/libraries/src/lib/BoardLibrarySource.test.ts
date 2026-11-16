@@ -23,8 +23,17 @@ import { LibraryNotFoundError, LibraryPermissionError } from './LibrarySource'
 import {
 	CURRENT_ITEM_CONTENT_FORMAT_VERSION,
 	LibraryItemContentTooNewError,
+	type TLLibraryItem,
 	type TLLibraryItemContent,
 } from './schema'
+import { whenItemsStored } from './whenItemsStored'
+
+// An add, once its items are stored as well as listed.
+async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
+	const result = await adding
+	await whenItemsStored((Array.isArray(result) ? result : [result]).map((item) => item.id))
+	return result
+}
 
 let editors: Editor[] = []
 
@@ -188,10 +197,12 @@ describe('BoardLibrarySource', () => {
 		const source = new BoardLibrarySource(editor)
 		const imageId = addImage(editor)
 		const library = await source.createLibrary('Photos')
-		const item = await source.addItem(library.id, {
-			name: 'Photo',
-			content: contentOf(editor, [imageId]),
-		})
+		const item = await added(
+			source.addItem(library.id, {
+				name: 'Photo',
+				content: contentOf(editor, [imageId]),
+			})
+		)
 
 		expect(source.getItems(library.id)).toEqual([item])
 		const stored = editor.store.get(
@@ -210,7 +221,7 @@ describe('BoardLibrarySource', () => {
 		const editor = makeEditor()
 		const source = new BoardLibrarySource(editor)
 		const library = await source.createLibrary('Photos')
-		await source.addItem(library.id, { content })
+		await added(source.addItem(library.id, { content }))
 
 		expect(allOfType(editor, 'asset')).toEqual([photoAsset()])
 	})
@@ -220,7 +231,7 @@ describe('BoardLibrarySource', () => {
 		const source = new BoardLibrarySource(editor)
 		const imageId = addImage(editor)
 		const library = await source.createLibrary('Photos')
-		const item = await source.addItem(library.id, { content: contentOf(editor, [imageId]) })
+		const item = await added(source.addItem(library.id, { content: contentOf(editor, [imageId]) }))
 		editor.deleteShape(imageId)
 
 		const { content } = await source.getItemContent(item.id)
@@ -238,7 +249,7 @@ describe('BoardLibrarySource', () => {
 		const source = new BoardLibrarySource(editor)
 		const imageId = addImage(editor)
 		const library = await source.createLibrary('Photos')
-		const item = await source.addItem(library.id, { content: contentOf(editor, [imageId]) })
+		const item = await added(source.addItem(library.id, { content: contentOf(editor, [imageId]) }))
 		const contentId = createLibraryItemContentId(item.id)
 		const stored = editor.store.get(contentId as any) as unknown as TLLibraryItemContentRecord
 		// The image shape's earliest version, before url, altText and flip props existed.
@@ -273,9 +284,9 @@ describe('BoardLibrarySource', () => {
 			const editor = makeEditor()
 			const source = new BoardLibrarySource(editor)
 			const library = await source.createLibrary('Photos')
-			const item = await source.addItem(library.id, {
-				content: contentOf(editor, [addImage(editor)]),
-			})
+			const item = await added(
+				source.addItem(library.id, { content: contentOf(editor, [addImage(editor)]) })
+			)
 			const contentId = createLibraryItemContentId(item.id)
 			const stored = editor.store.get(contentId as any) as unknown as TLLibraryItemContentRecord
 			editor.store.put([edit(stored) as any])
@@ -308,8 +319,8 @@ describe('BoardLibrarySource', () => {
 		const source = new BoardLibrarySource(editor)
 		const imageId = addImage(editor)
 		const library = await source.createLibrary('Photos')
-		const first = await source.addItem(library.id, { content: contentOf(editor, [imageId]) })
-		await source.addItem(library.id, { content: contentOf(editor, [imageId]) })
+		const first = await added(source.addItem(library.id, { content: contentOf(editor, [imageId]) }))
+		await added(source.addItem(library.id, { content: contentOf(editor, [imageId]) }))
 
 		await source.deleteItem(first.id)
 		expect(source.getItems(library.id)).toHaveLength(1)
@@ -326,12 +337,13 @@ describe('BoardLibrarySource', () => {
 	describe('thumbnails', () => {
 		async function addWithThumbnail(editor: Editor, source = new BoardLibrarySource(editor)) {
 			const library = await source.createLibrary('Photos')
-			const item = await source.addItem(library.id, {
-				name: 'Photo',
-				content: contentOf(editor, [addImage(editor)]),
-				thumbnail: { light: png('light'), dark: png('dark') },
-			})
-			await source.whenStored([item.id])
+			const item = await added(
+				source.addItem(library.id, {
+					name: 'Photo',
+					content: contentOf(editor, [addImage(editor)]),
+					thumbnail: { light: png('light'), dark: png('dark') },
+				})
+			)
 			const stored = editor.store.get(item.id as any) as unknown as TLLibraryItemRecord
 			return { source, library, item, stored }
 		}
@@ -399,7 +411,11 @@ describe('BoardLibrarySource', () => {
 			async function startAdding() {
 				const assets = makeHeldAssetStore()
 				const editor = makeEditor(librarySchemaRecords, assets)
-				const source = new BoardLibrarySource(editor)
+				const toasts = { addToast: vi.fn() }
+				const source = new BoardLibrarySource(editor, {
+					toasts,
+					msg: (message) => message.defaultMessage ?? message.id,
+				})
 				const library = await source.createLibrary('Photos')
 				const adding = source.addItem(library.id, {
 					name: 'Photo',
@@ -408,19 +424,19 @@ describe('BoardLibrarySource', () => {
 				})
 				await vi.waitFor(() => expect(assets.held).toHaveLength(2))
 				const [item] = source.getItems(library.id)
-				return { assets, editor, source, library, adding, item }
+				return { assets, editor, source, library, adding, item, toasts }
 			}
 
 			it('resolves once the item is listed, before the images have uploaded', async () => {
-				const { assets, source, adding, item } = await startAdding()
-				const stored = vi.fn()
-				source.whenStored([item.id]).then(stored)
-
+				const { assets, adding, item } = await startAdding()
+				const settled = vi.fn()
 				expect(await adding).toEqual(item)
+				whenItemsStored([item.id]).then(settled)
+
 				await Promise.resolve()
-				expect(stored).not.toHaveBeenCalled()
+				expect(settled).not.toHaveBeenCalled()
 				for (const upload of assets.held) upload.finish()
-				await source.whenStored([item.id])
+				await whenItemsStored([item.id])
 			})
 
 			it('lists the item at once, with its images not yet stored', async () => {
@@ -461,7 +477,7 @@ describe('BoardLibrarySource', () => {
 				const { assets, editor, source, library, adding } = await startAdding()
 				const item = await adding
 				for (const upload of assets.held) upload.finish()
-				await source.whenStored([item.id])
+				await whenItemsStored([item.id])
 				const [light, dark] = thumbnailAssets(editor)
 
 				expect(light.props.src).toBe(`https://uploads.example/${light.id}`)
@@ -476,12 +492,16 @@ describe('BoardLibrarySource', () => {
 
 			it('removes the item again when an image fails to upload, and reports it', async () => {
 				vi.spyOn(console, 'error').mockImplementation(() => {})
-				const { assets, editor, source, library, adding } = await startAdding()
+				const { assets, editor, source, library, adding, toasts } = await startAdding()
 				const item = await adding
 				assets.held[0].finish()
 				assets.held[1].fail(new Error('upload failed'))
 
-				await expect(source.whenStored([item.id])).rejects.toThrow('upload failed')
+				await expect(whenItemsStored([item.id])).rejects.toThrow('upload failed')
+				expect(toasts.addToast).toHaveBeenCalledWith({
+					title: "Couldn't save to library",
+					severity: 'error',
+				})
 				expect(source.getItems(library.id)).toEqual([])
 				expect(allOfType(editor, 'library-item-content')).toEqual([])
 				expect(thumbnailAssets(editor)).toEqual([])
@@ -489,11 +509,12 @@ describe('BoardLibrarySource', () => {
 			})
 
 			it('doesn’t bring back the images of an item deleted meanwhile', async () => {
-				const { assets, editor, source, adding, item } = await startAdding()
+				const { assets, editor, source, adding, item, toasts } = await startAdding()
 				await adding
 				await source.deleteItem(item.id)
 				for (const upload of assets.held) upload.finish()
-				await source.whenStored([item.id])
+				await whenItemsStored([item.id])
+				expect(toasts.addToast).not.toHaveBeenCalled()
 
 				expect(thumbnailAssets(editor)).toEqual([])
 				await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
@@ -553,9 +574,11 @@ describe('BoardLibrarySource', () => {
 			it('resolves to null when the item has no thumbnail or its image is gone', async () => {
 				const editor = makeEditor()
 				const { source, library, item } = await addWithThumbnail(editor)
-				const plain = await source.addItem(library.id, {
-					content: contentOf(editor, [addImage(editor)]),
-				})
+				const plain = await added(
+					source.addItem(library.id, {
+						content: contentOf(editor, [addImage(editor)]),
+					})
+				)
 				expect(await source.resolveThumbnail(plain, context)).toBeNull()
 
 				const [light] = thumbnailAssets(editor)
@@ -606,7 +629,7 @@ describe('BoardLibrarySource', () => {
 				content: contentOf(editor, [addImage(editor)]),
 				thumbnail: { light: png(), dark: png() },
 			})
-			await expect(source.whenStored([item.id])).rejects.toThrow('upload failed')
+			await expect(whenItemsStored([item.id])).rejects.toThrow('upload failed')
 			expect(source.getItems(library.id)).toEqual([])
 			expect(thumbnailAssets(editor)).toEqual([])
 			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
@@ -633,7 +656,7 @@ describe('BoardLibrarySource', () => {
 				{ name: 'Two', content: contentOf(editor, [addImage(editor)]) },
 				{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png('3') },
 			])
-			await source.whenStored(items.map((item) => item.id))
+			await whenItemsStored(items.map((item) => item.id))
 			await vi.waitFor(() =>
 				expect(source.getItems(library.id)[0].thumbnail).toMatch(/\?resolved$/)
 			)
@@ -666,7 +689,7 @@ describe('BoardLibrarySource', () => {
 				{ name: 'Two', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
 				{ name: 'Three', content: contentOf(editor, [addImage(editor)]), thumbnail: png() },
 			])
-			await expect(source.whenStored([items[0].id])).rejects.toThrow('upload failed')
+			await expect(whenItemsStored(items.map((item) => item.id))).rejects.toThrow('upload failed')
 			expect(source.getItems(library.id)).toEqual([])
 			expect(allOfType(editor, 'asset').filter((asset) => asset.id !== assetId)).toEqual([])
 			await vi.waitFor(() => expect(assets.uploads.size).toBe(0))
@@ -678,7 +701,9 @@ describe('BoardLibrarySource', () => {
 		const source = new BoardLibrarySource(editor)
 		const a = await source.createLibrary('A')
 		const b = await source.createLibrary('B')
-		const item = await source.addItem(a.id, { content: contentOf(editor, [addImage(editor)]) })
+		const item = await added(
+			source.addItem(a.id, { content: contentOf(editor, [addImage(editor)]) })
+		)
 		await source.moveItem(item.id, b.id)
 		expect(source.getItems(a.id)).toEqual([])
 		expect(source.getItems(b.id)).toEqual([{ ...item, libraryId: b.id }])
@@ -690,7 +715,7 @@ describe('BoardLibrarySource', () => {
 		const imageId = addImage(editor)
 		editor.markHistoryStoppingPoint()
 		const library = await source.createLibrary('Photos')
-		await source.addItem(library.id, { content: contentOf(editor, [imageId]) })
+		await added(source.addItem(library.id, { content: contentOf(editor, [imageId]) }))
 		editor.undo()
 		expect(source.getLibraries()).toHaveLength(1)
 		expect(source.getItems(library.id)).toHaveLength(1)
