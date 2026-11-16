@@ -101,12 +101,10 @@
 .authCtaButton {
 	height: 36px;
 	width: 100%;
+	/* TlaCtaButton's 2px left margin would push a full-width button past the form's right edge. */
+	margin-left: 0;
 	font-size: 12px;
 	font-weight: 500;
-}
-
-.legalCtaButton {
-	margin-left: 0;
 }
 
 /* The google logo in the cta button on the sign in dialog */
