@@ -252,6 +252,50 @@ describe('CompositeLibrarySource', () => {
 		})
 	})
 
+	describe('parts naming the same owner', () => {
+		// A writable part, then a read-only part listed beside it under the same owner.
+		function setUpShared() {
+			const team = new InMemoryLibrarySource({ id: 'team' })
+			const generated = new InMemoryLibrarySource({
+				owners: [personal, { ...acme, name: 'Generated' }],
+				can: () => false,
+				initial: {
+					libraries: [
+						LibraryRecordType.create({ id: wireframing, name: 'Wireframing', ownerId: 'acme' }),
+					],
+					items: [],
+					contents: {},
+				},
+			})
+			const source = new CompositeLibrarySource({
+				parts: [{ owner: acme, source: team }, { source: generated }],
+			})
+			return { source, team, generated }
+		}
+
+		it('lists the owner once, as the first part gives it, with the libraries of both parts', async () => {
+			const { source } = setUpShared()
+			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+			expect(source.getLibraryOwners()).toEqual([acme, personal])
+			expect(source.getLibraries().map((c) => [c.id, c.ownerId])).toEqual([
+				[kit.id, 'acme'],
+				[wireframing, 'acme'],
+			])
+		})
+
+		it('sends writes for the owner to the first part, and keeps the later part read-only', async () => {
+			const { source, team, generated } = setUpShared()
+			expect(source.can('createLibrary', { ownerId: 'acme' })).toBe(true)
+			expect(source.can('deleteLibrary', wireframing)).toBe(false)
+			const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id])
+			const copy = await copyLibrary(source, wireframing, 'acme')
+			expect(team.getLibraries().map((c) => c.id)).toEqual([kit.id, copy.id])
+			expect(generated.getLibraries()).toHaveLength(1)
+			await expect(source.moveLibrary(wireframing, 'acme')).rejects.toThrow(LibraryPermissionError)
+		})
+	})
+
 	it('offers moving items only when a part can', () => {
 		const withMoving = setUp().source
 		expect(withMoving.moveItem).toBeDefined()

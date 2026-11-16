@@ -1,4 +1,5 @@
 import { expect, it } from 'vitest'
+import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import { getOwnerChoices } from './owner-choices'
 
@@ -31,5 +32,24 @@ it('offers nothing when no other owner allows creating a library', () => {
 	expect(getOwnerChoices(new InMemoryLibrarySource(), undefined)).toEqual({
 		move: [],
 		copy: [],
+	})
+})
+
+it('offers an owner two parts of a composite name once, as its writable first part allows', () => {
+	const team = new InMemoryLibrarySource({ id: 'team' })
+	const generated = new InMemoryLibrarySource({
+		owners: [{ id: 'team', name: 'Generated' }],
+		can: () => false,
+	})
+	const source = new CompositeLibrarySource({
+		parts: [
+			{ owner: me, source: new InMemoryLibrarySource({ id: 'mine' }) },
+			{ owner: { id: 'team', name: 'Team' }, source: team },
+			{ source: generated },
+		],
+	})
+	expect(getOwnerChoices(source, 'me')).toEqual({
+		move: [me, { id: 'team', name: 'Team' }],
+		copy: [{ id: 'team', name: 'Team' }],
 	})
 })
