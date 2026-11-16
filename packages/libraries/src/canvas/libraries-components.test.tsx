@@ -16,7 +16,8 @@ import { vi } from 'vitest'
 import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { LibraryRecordType } from '../lib/schema'
+import { LibraryItemRecordType, LibraryRecordType } from '../lib/schema'
+import { ItemMenu } from '../ui/item-menu'
 import { MenuItem } from '../ui/menu-items'
 import { type LibrariesComponents, LibrariesComponentsProvider } from './libraries-components'
 import { LibrariesPanel } from './libraries-panel'
@@ -25,6 +26,30 @@ import { useLibrariesComponents } from './use-libraries-components'
 
 const library = LibraryRecordType.create({ name: 'Shapes' })
 const shapeId = createShapeId()
+
+function makeReadOnlySource() {
+	const item = LibraryItemRecordType.create({ libraryId: library.id, name: 'Box' })
+	return new InMemoryLibrarySource({
+		id: 'read-only',
+		can: () => false,
+		initial: {
+			libraries: [library],
+			items: [item],
+			contents: {
+				[item.id]: {
+					formatVersion: 1,
+					content: {
+						shapes: [{ id: shapeId, type: 'geo', x: 0, y: 0, props: {} }] as any,
+						bindings: [],
+						rootShapeIds: [shapeId],
+						assets: [],
+						schema: createTLSchema().serialize(),
+					},
+				},
+			},
+		},
+	})
+}
 
 async function makeSource() {
 	const source = new InMemoryLibrarySource({
@@ -262,6 +287,42 @@ describe('LibrariesPanel components with a custom library header', () => {
 		expect(panel.querySelector('[data-testid="name"]')?.textContent).toBe('Mine')
 		expect(menuIn(':scope > header')).not.toBeNull()
 		expect(menuIn('[data-testid="header"]')).not.toBeNull()
+	})
+})
+
+describe('LibrariesPanel item menus on right-click', () => {
+	const rightClickBox = async (panel: Element) => {
+		await act(async () => {
+			panel
+				.querySelector('button[aria-label="Box"]')!
+				.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, cancelable: true }))
+		})
+	}
+
+	afterEach(() => editor.menus.clearOpenMenus())
+
+	it('opens a menu whose only entries are the host’s', async () => {
+		const panel = await renderPanel(
+			{
+				ItemMenu: (props) => (
+					<ItemMenu {...props}>
+						<MenuItem label="Host action" onClick={() => {}} />
+					</ItemMenu>
+				),
+			},
+			undefined,
+			makeReadOnlySource()
+		)
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		expect(document.body.textContent).toContain('Host action')
+	})
+
+	it('leaves the right-click alone when the item has no menu', async () => {
+		const panel = await renderPanel(undefined, undefined, makeReadOnlySource())
+		expect(panel.querySelector('button[aria-label="Item options"]')).toBeNull()
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toEqual([])
 	})
 })
 

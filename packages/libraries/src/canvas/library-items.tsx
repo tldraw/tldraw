@@ -114,26 +114,23 @@ export function LibraryItems({
 		() => (source.moveItem && source.can('deleteItem', libraryId) ? copyTargets : []),
 		[source, libraryId, copyTargets]
 	)
-	const hasItemMenu =
-		ItemMenu !== null &&
-		(canRename || canDelete || moveTargets.length > 0 || copyTargets.length > 0)
 	const getTileProps = useCallback(
-		(itemId: TLLibraryItemId) => {
-			const props = getItemProps(itemId)
-			if (!hasItemMenu) return props
-			return {
-				...props,
-				onContextMenu(e: MouseEvent<HTMLButtonElement>) {
-					e.preventDefault()
-					const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
-					// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
-					// releasing the button selects whichever item it lands on.
-					if (e.buttons === 0) openMenu()
-					else window.addEventListener('pointerup', openMenu, { once: true })
-				},
-			}
-		},
-		[getItemProps, hasItemMenu, editor]
+		(itemId: TLLibraryItemId) => ({
+			...getItemProps(itemId),
+			onContextMenu(e: MouseEvent<HTMLButtonElement>) {
+				// The item's menu renders nothing when it has no entries, so a trigger in the item's cell
+				// means there's a menu to open, whether its entries are built in or a host's.
+				const cell = e.currentTarget.closest('li')
+				if (!cell || !cell.querySelector('[aria-haspopup="menu"]')) return
+				e.preventDefault()
+				const openMenu = () => editor.menus.addOpenMenu(getItemMenuId(itemId))
+				// macOS fires contextmenu on press. Opening then puts the menu under the pointer, and
+				// releasing the button selects whichever item it lands on.
+				if (e.buttons === 0) openMenu()
+				else window.addEventListener('pointerup', openMenu, { once: true })
+			},
+		}),
+		[getItemProps, editor]
 	)
 	const showChangeError = useCallback(
 		(title: string) => {
