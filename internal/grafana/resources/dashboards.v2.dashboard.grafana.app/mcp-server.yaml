@@ -1614,6 +1614,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_tab_render'
+                        AND blob6 != ''
                         AND double2 >= 0
                         AND double3 >= 0
                         AND blob2 = '${environment}-tldraw-multiplayer'
@@ -1624,6 +1625,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_tab_render'
+                        AND blob6 != ''
                         AND double2 >= 0
                         AND double3 >= 0
                         AND blob2 = '${environment}-tldraw-multiplayer'
