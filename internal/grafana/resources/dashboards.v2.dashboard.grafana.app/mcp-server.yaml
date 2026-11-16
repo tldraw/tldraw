@@ -1965,6 +1965,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_comment_write'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob5 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob5, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, target
                         ORDER BY date ASC
@@ -1973,6 +1974,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_comment_write'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob5 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob5, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, target
                         ORDER BY date ASC
@@ -2079,6 +2081,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_comment_write'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob5 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob5, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, stored
                         ORDER BY date ASC
@@ -2087,6 +2090,7 @@ spec:
                         FROM 'MEASURE'
                         WHERE timestamp >= toDateTime($from) AND timestamp <= toDateTime($to)
                         AND blob1 = 'mcp_comment_write'
+                        AND ('${client}' = 'all' OR ('${client}' = 'direct' AND blob5 NOT IN ('client:codex-plugin', 'client:none')) OR substring(blob5, 8) = '${client}')
                         AND blob2 = '${environment}-tldraw-multiplayer'
                         GROUP BY date, stored
                         ORDER BY date ASC
