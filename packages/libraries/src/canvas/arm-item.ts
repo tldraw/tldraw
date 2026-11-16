@@ -12,6 +12,11 @@ import { getContentBounds } from './stamp-item'
 /** The id of {@link LibraryStampTool}. */
 export const LIBRARY_STAMP_TOOL_ID = 'library-stamp'
 
+/** Whether the host has added {@link LibraryStampTool} to the editor's tools, so items can be armed. */
+export function hasLibraryStampTool(editor: Editor) {
+	return editor.root.children?.[LIBRARY_STAMP_TOOL_ID] !== undefined
+}
+
 /** The item the stamp tool places, with its content loaded. */
 export interface ArmedStamp {
 	source: LibrarySource

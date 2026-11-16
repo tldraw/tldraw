@@ -651,3 +651,7 @@
 .tlui-libraries-stamp-preview__box {
 	border: 1px dashed var(--tl-color-selected);
 }
+
+.tlui-libraries-tile__button[aria-pressed='true'] .tlui-libraries-tile__thumbnail {
+	box-shadow: inset 0 0 0 2px var(--tl-color-selected);
+}
