@@ -1,4 +1,4 @@
-import type { MutatorResultErrorDetails } from '@rocicorp/zero'
+import type { MutatorResult } from '@rocicorp/zero'
 import {
 	can,
 	isSvgLibraryThumbnail,
@@ -41,8 +41,6 @@ import type { TldrawApp } from '../../app/TldrawApp'
 const messages = defineMessages({
 	privateToYou: { defaultMessage: 'Private to you' },
 })
-
-type MutationResult = { type: 'success' } | MutatorResultErrorDetails
 
 // What the server refuses with when an add would take a workspace or library past its limit.
 const limitCodes: ReadonlySet<string> = new Set([
@@ -87,10 +85,11 @@ const revokeThumbnail = (thumbnail: TLLibraryThumbnail) =>
  * and is fetched with the user's token. Its thumbnails are public uploads whose URLs are on its
  * row, so they load as ordinary images.
  *
- * A new library is listed as soon as Zero has applied it locally, and a new item as soon as it's
- * asked for, with the thumbnails it was given, while the worker stores it. A library the server
- * rejects disappears and the app shows its mutation error; an item the worker can't store
- * disappears and `addItem` rejects.
+ * Changes are listed as soon as Zero has applied them locally, and the promises resolve then; a
+ * change the server rejects is rolled back and the app shows its mutation error. A new item is
+ * listed as soon as it's asked for, with the thumbnails it was given, while the worker stores it;
+ * one the worker can't store disappears and `addItem` rejects. Changes to it wait until its row has
+ * arrived.
  */
 export class TldrawAppLibrariesSource implements LibrarySource {
 	readonly id = 'dotcom-workspaces'
@@ -202,15 +201,15 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (!this.canManageIn(ownerId)) throw new LibraryPermissionError('createLibrary')
 		const id = uniqueId()
 		const meta = options.meta ?? {}
-		const mutation = this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta })
-		await this.check(mutation.client, 'createLibrary')
+		const { confirmed } = await this.apply(
+			this.app.z.mutate.library.create({ id, name, owningGroupId: ownerId, meta }),
+			'createLibrary'
+		)
 		this.unconfirmedLibraries.set(
 			id,
-			(mutation.server as Promise<MutationResult>).then((result) => {
+			confirmed.then((accepted) => {
 				this.unconfirmedLibraries.delete(id)
-				if (result.type === 'success') return true
-				this.app.showMutationRejectionToast(result.error)
-				return false
+				return accepted
 			})
 		)
 		return LibraryRecordType.create({
@@ -222,11 +221,11 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async renameLibrary(libraryId: TLLibraryId, name: string) {
-		await this.check(this.app.z.mutate.library.rename({ id: rowId(libraryId), name }).server)
+		await this.apply(this.app.z.mutate.library.rename({ id: rowId(libraryId), name }))
 	}
 
 	async deleteLibrary(libraryId: TLLibraryId) {
-		await this.check(this.app.z.mutate.library.delete({ id: rowId(libraryId) }).server)
+		await this.apply(this.app.z.mutate.library.delete({ id: rowId(libraryId) }))
 	}
 
 	async copyLibrary(
@@ -308,12 +307,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	async renameItem(itemId: TLLibraryItemId, name: string) {
 		const id = await this.getItemRowId(itemId)
-		await this.check(this.app.z.mutate.library_item.rename({ id, name }).server)
+		await this.apply(this.app.z.mutate.library_item.rename({ id, name }))
 	}
 
 	async deleteItem(itemId: TLLibraryItemId) {
 		const id = await this.getItemRowId(itemId)
-		await this.check(this.app.z.mutate.library_item.delete({ id }).server)
+		await this.apply(this.app.z.mutate.library_item.delete({ id }))
 		const thumbnail = this.localThumbnails.get().get(id)
 		if (!thumbnail) return
 		revokeThumbnail(thumbnail)
@@ -326,8 +325,8 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	async moveItem(itemId: TLLibraryItemId, toLibraryId: TLLibraryId) {
 		const id = await this.getItemRowId(itemId)
-		await this.check(
-			this.app.z.mutate.library_item.move({ id, libraryId: rowId(toLibraryId) }).server,
+		await this.apply(
+			this.app.z.mutate.library_item.move({ id, libraryId: rowId(toLibraryId) }),
 			'addItem',
 			toLibraryId
 		)
@@ -413,20 +412,31 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return can(this.app.getWorkspaceMembership(workspaceId)?.role, 'manageLibraries')
 	}
 
-	// Zero's mutation promises resolve with an error result rather than rejecting. `action` is
-	// what's refused if the change would take a workspace or library past its limit.
-	private async check(
-		result: Promise<MutationResult>,
+	/**
+	 * Resolves once Zero has applied a mutation locally, with whether the server goes on to accept
+	 * it; if it doesn't, Zero rolls the change back and the app shows why. A mutation that fails
+	 * locally rejects, and fails on the server with the same error.
+	 * Refused locally for taking a workspace or library past its limit, it rejects with a
+	 * LibraryPermissionError for `action`.
+	 */
+	private async apply(
+		mutation: MutatorResult,
 		action?: TLLibraryAction,
 		libraryId?: TLLibraryId
-	) {
-		const outcome = await result
-		if (outcome.type === 'error') {
-			if (action && outcome.error.type === 'app') {
-				this.throwIfAtLimit(outcome.error.message, action, libraryId)
+	): Promise<{ confirmed: Promise<boolean> }> {
+		const applied = await mutation.client
+		if (applied.type === 'error') {
+			if (action && applied.error.type === 'app') {
+				this.throwIfAtLimit(applied.error.message, action, libraryId)
 			}
-			throw new Error('The change was rejected', { cause: outcome.error })
+			throw new Error('The change was rejected', { cause: applied.error })
 		}
+		const confirmed = mutation.server.then((result) => {
+			if (result.type === 'success') return true
+			this.app.showMutationRejectionToast(result.error)
+			return false
+		})
+		return { confirmed }
 	}
 
 	// A refusal for a limit gets the app's toast explaining it, and counts as the user not being
