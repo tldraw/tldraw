@@ -1,3 +1,4 @@
+import { CommandPalette, commandPaletteOverrides } from '@tldraw/command-palette'
 import {
 	CanvasComments,
 	CommentAuthor,
@@ -28,6 +29,7 @@ import {
 	useEditor,
 	useLocalStore,
 } from 'tldraw'
+import '@tldraw/command-palette/command-palette.css'
 import '@tldraw/commenting/commenting.css'
 import 'tldraw/tldraw.css'
 import { trackedShapes, useDebugging } from '../hooks/useDebugging'
@@ -106,6 +108,7 @@ const Comments = track(() => {
 })
 
 const components: TLComponents = {
+	CommandPalette,
 	ContextMenu,
 	DebugMenu: () => (
 		<DefaultDebugMenu>
@@ -151,7 +154,12 @@ export default function Develop() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				overrides={[performanceOverrides, debuggingOverrides, commentToolOverrides]}
+				overrides={[
+					performanceOverrides,
+					debuggingOverrides,
+					commentToolOverrides,
+					commandPaletteOverrides,
+				]}
 				store={store}
 				tools={tools}
 				onMount={(editor) => {

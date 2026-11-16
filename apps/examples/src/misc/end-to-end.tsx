@@ -1,10 +1,19 @@
+import {
+	CommandPalette,
+	CommandPaletteMenuItem,
+	commandPaletteOverrides,
+} from '@tldraw/command-palette'
 import { createMermaidDiagram } from '@tldraw/mermaid'
 import { useEffect, useLayoutEffect } from 'react'
 import {
 	BaseBoxShapeUtil,
+	DefaultMainMenu,
+	DefaultMainMenuContent,
 	Editor,
+	TLComponents,
 	TLShape,
 	Tldraw,
+	TldrawUiMenuGroup,
 	VecModel,
 	allDefaultFontFaces,
 	b64Vecs,
@@ -17,11 +26,24 @@ import {
 	useEditor,
 	useUniqueSafeId,
 } from 'tldraw'
+import '@tldraw/command-palette/command-palette.css'
 import 'tldraw/tldraw.css'
 import { EndToEndApi } from './EndToEndApi'
 import { checkMermaidReadability } from './mermaidReadability'
 ;(window as any).__tldraw_ui_event = { id: 'NOTHING_YET' }
 ;(window as any).__tldraw_editor_events = []
+
+const components: TLComponents = {
+	CommandPalette,
+	MainMenu: () => (
+		<DefaultMainMenu>
+			<DefaultMainMenuContent />
+			<TldrawUiMenuGroup id="command-palette">
+				<CommandPaletteMenuItem />
+			</TldrawUiMenuGroup>
+		</DefaultMainMenu>
+	),
+}
 
 const HTML_TYPE = 'html' as const
 let nextMockShapeId = 0
@@ -135,6 +157,8 @@ export default function EndToEnd() {
 					;(window as any).__tldraw_ui_event = { name, data }
 				}}
 				shapeUtils={[HtmlCssShapeUtil]}
+				components={components}
+				overrides={commandPaletteOverrides}
 			>
 				<SneakyExportButton />
 			</Tldraw>

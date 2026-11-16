@@ -5,6 +5,7 @@
 	"compilerOptions": { "outDir": "./.tsbuild" },
 	"references": [
 		{ "path": "../../packages/assets" },
+		{ "path": "../../packages/command-palette" },
 		{ "path": "../../packages/libraries" },
 		{ "path": "../../packages/commenting" },
 		{ "path": "../../packages/mermaid" },

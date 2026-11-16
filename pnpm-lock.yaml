@@ -917,6 +917,9 @@ importers:
       '@tldraw/assets':
         specifier: workspace:*
         version: link:../../packages/assets
+      '@tldraw/command-palette':
+        specifier: workspace:*
+        version: link:../../packages/command-palette
       '@tldraw/commenting':
         specifier: workspace:*
         version: link:../../packages/commenting
