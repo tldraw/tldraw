@@ -28,7 +28,8 @@ import {
 import translationsEnJson from '../../../public/tla/locales-compiled/en.json'
 import { ErrorPage, RefreshErrorBoundary } from '../../components/ErrorPage/ErrorPage'
 import { TlaRouteHandle } from '../../routeDefs'
-import { SignedInAnalytics, SignedOutAnalytics, trackEvent } from '../../utils/analytics'
+import { trackEvent } from '../../utils/analytics'
+import { SignedInAnalytics, SignedOutAnalytics } from '../../utils/AnalyticsTrackers'
 import { assetUrls } from '../../utils/assetUrls'
 import { reportError } from '../../utils/errorReporting'
 import { markFirstLoad } from '../../utils/firstLoad'
@@ -36,12 +37,13 @@ import { globalEditor } from '../../utils/globalEditor'
 import { TlaCookieConsent } from '../components/dialogs/TlaCookieConsent'
 import { TlaLegalAcceptance } from '../components/dialogs/TlaLegalAcceptance'
 import { MaybeForceUserRefresh } from '../components/MaybeForceUserRefresh/MaybeForceUserRefresh'
-import { components } from '../components/TlaEditor/TlaEditor'
+import { components } from '../components/TlaEditor/tlaEditorComponents'
 import { WorkspaceInviteHandler } from '../components/WorkspaceInviteHandler'
-import { AppStateProvider, useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
+import { AppStateProvider } from '../hooks/AppStateProvider'
+import { useIsAppLoading, useMaybeApp } from '../hooks/useAppState'
 import '../styles/tla.css'
+import { UserProvider } from '../hooks/UserProvider'
 import { useUITheme } from '../hooks/useUITheme'
-import { UserProvider } from '../hooks/useUser'
 import { hasNotAcceptedLegal } from '../utils/auth'
 import {
 	getLocalSessionState,
@@ -76,7 +78,7 @@ function WatermarkOverride() {
 	return null
 }
 
-export const appMessages = defineMessages({
+const appMessages = defineMessages({
 	oldBrowser: {
 		defaultMessage: 'Old browser detected. Please update your browser to use this app.',
 	},

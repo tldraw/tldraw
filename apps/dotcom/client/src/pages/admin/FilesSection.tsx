@@ -5,13 +5,8 @@ import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
 import { FileStats } from './FileStats'
 import { parseFileId } from './parseFileId'
-import {
-	formatBytes,
-	formatTally,
-	getResponseError,
-	StructuredDataDisplay,
-	useTransientMessage,
-} from './shared'
+import { formatBytes, formatTally, getResponseError, useTransientMessage } from './shared'
+import { StructuredDataDisplay } from './StructuredDataDisplay'
 import styles from './admin.module.css'
 
 export function FilesSection({ fileId }: { fileId?: string }) {

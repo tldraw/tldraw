@@ -1,12 +1,8 @@
 import { FEATURE_FLAG_KEYS } from '@tldraw/dotcom-shared'
 import posthog, { PostHogConfig, Properties } from 'posthog-js'
 import 'posthog-js/dist/web-vitals'
-import { useEffect } from 'react'
 import ReactGA from 'react-ga4'
-import { useLocation } from 'react-router-dom'
 import { atom, getFromLocalStorage, react, setInLocalStorage, useValue, warnOnce } from 'tldraw'
-import { useApp } from '../tla/hooks/useAppState'
-import { useSignUpTracking } from '../tla/hooks/useSignUpTracking'
 import { getCurrentFlags, hasResolvedFlagsOnce } from '../tla/utils/featureFlags'
 import {
 	commonRoom,
@@ -339,17 +335,10 @@ export function useHandleUiEvents() {
 	return trackEvent
 }
 
-export function SignedOutAnalytics() {
-	const storedConsent = useAnalyticsConsentValue()
-
-	useEffect(() => {
-		configureAnalytics(storedConsent === true, undefined)
-		document.getElementById('reo-iframe-loader')?.remove()
-	}, [storedConsent])
-
-	useTrackPageViews()
-
-	return null
+export function signoutAnalytics() {
+	if (shouldUseCommonRoom) commonRoom.reset()
+	if (shouldUsePosthog) posthog.reset()
+	if (shouldUseGA4) ReactGA.reset()
 }
 
 function setupReo(options: AnalyticsOptions) {
@@ -382,48 +371,4 @@ function setupReo(options: AnalyticsOptions) {
 	} else {
 		reoIdentify()
 	}
-}
-
-export function SignedInAnalytics() {
-	const app = useApp()
-	const user = useValue('userData', () => app.getUser(), [app])
-	const storedConsent = useAnalyticsConsentValue()
-
-	useEffect(() => {
-		const userConsent = user.allowAnalyticsCookie
-
-		// If user has no preference in database but has one in atom/localStorage, sync it
-		if (userConsent === null && storedConsent !== null) {
-			app.updateUser({ id: user.id, allowAnalyticsCookie: storedConsent })
-		}
-
-		// Sync database consent to atom/localStorage to keep them in sync
-		// This will run if a logged in user changes their preference
-		if (userConsent !== null && userConsent !== storedConsent) {
-			setStoredAnalyticsConsent(userConsent)
-		}
-
-		// Use user's database preference if available, otherwise fall back to stored consent
-		const finalConsent = userConsent !== null ? userConsent : storedConsent === true
-
-		configureAnalytics(finalConsent, { id: user.id, name: user.name, email: user.email })
-	}, [user.allowAnalyticsCookie, user.email, user.id, user.name, app, storedConsent])
-
-	useTrackPageViews()
-	useSignUpTracking()
-
-	return null
-}
-
-function useTrackPageViews() {
-	const location = useLocation()
-	useEffect(() => {
-		trackEvent('$pageview')
-	}, [location])
-}
-
-export function signoutAnalytics() {
-	if (shouldUseCommonRoom) commonRoom.reset()
-	if (shouldUsePosthog) posthog.reset()
-	if (shouldUseGA4) ReactGA.reset()
 }

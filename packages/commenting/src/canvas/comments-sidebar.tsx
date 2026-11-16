@@ -17,7 +17,7 @@ import { getCommentsByThread, useCommentThreads } from './hooks'
 import { useCommentingEnabled } from './license'
 import { useCommentingOptions } from './options'
 import { richTextToPlaintext } from './rich-text'
-import { commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
+import { commentsHidden, commentsSidebarOpen, openThreadId, sidebarFilters } from './state'
 import { focusThread } from './thread-state'
 import { avatarRenderer } from './thread-view'
 
@@ -141,7 +141,10 @@ export function CanvasCommentsSidebar(props: CanvasCommentsSidebarProps) {
 
 	const focus = (id: string) => {
 		const thread = threads.find((t) => t.id === id)
-		if (thread) focusThread(editor, thread)
+		if (!thread) return
+		// The thread popover lives on the layer that hiding withholds, so it would open invisibly.
+		commentsHidden.set(editor, false)
+		focusThread(editor, thread)
 	}
 
 	// The `ThreadRow` component slot overrides the built-in row. It gets the thread record and its

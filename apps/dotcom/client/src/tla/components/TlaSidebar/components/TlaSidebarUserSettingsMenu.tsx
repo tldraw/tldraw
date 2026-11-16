@@ -23,7 +23,7 @@ import {
 	ThemeSubmenu,
 	UserManualMenuItem,
 } from '../../menu-items/menu-items'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 

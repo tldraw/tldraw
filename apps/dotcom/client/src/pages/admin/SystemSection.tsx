@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react'
 import { fetch } from 'tldraw'
 import { sentryReleaseName } from '../../../sentry-release-name'
-import { getResponseError, StructuredDataDisplay } from './shared'
+import { getResponseError } from './shared'
+import { StructuredDataDisplay } from './StructuredDataDisplay'
 import styles from './admin.module.css'
 
 export function SystemSection() {
