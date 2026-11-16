@@ -26,6 +26,8 @@ export interface Showing {
 	seed?(editor: Editor): Promise<void>
 	menuItems?: ReactNode
 	components?: LibrariesComponents
+	/** CSS variables set on the editor's container while it shows, e.g. --tlui-libraries-columns. */
+	cssVariables?: Record<string, string>
 }
 
 const seeded = new Map<Showing, Promise<void>>()
@@ -50,6 +52,15 @@ function makeComponents(getShowing: (editor: Editor) => Showing): TLComponents {
 		const editor = useEditor()
 		const showing = useShowing()
 		useEffect(() => seedOnce(editor, showing), [editor, showing])
+		useEffect(() => {
+			const { cssVariables } = showing
+			if (!cssVariables) return undefined
+			const style = editor.getContainer().style
+			for (const [name, value] of Object.entries(cssVariables)) style.setProperty(name, value)
+			return () => {
+				for (const name of Object.keys(cssVariables)) style.removeProperty(name)
+			}
+		}, [editor, showing])
 		return (
 			<LibrariesPanel
 				source={showing.source}
