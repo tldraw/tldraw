@@ -794,6 +794,8 @@ button.tlui-cmt-reaction:hover {
 	flex: 1;
 	min-height: 0;
 	overflow-y: auto;
+	/* A row's hover wash has no bottom inset, so rows tile; this is the last row's 4px. */
+	padding-bottom: 4px;
 }
 .tlui-cmt-list__empty {
 	/* extra 2px at the bottom of the list */
