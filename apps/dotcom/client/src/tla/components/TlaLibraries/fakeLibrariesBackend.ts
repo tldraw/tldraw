@@ -1,4 +1,9 @@
-import type { TlaLibrary, TlaLibraryItem, TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
+import type {
+	TlaGroupUser,
+	TlaLibrary,
+	TlaLibraryItem,
+	TlaLibraryItemThumbnail,
+} from '@tldraw/dotcom-shared'
 import type { JsonObject } from '@tldraw/utils'
 import { atom } from 'tldraw'
 import { vi } from 'vitest'
@@ -6,6 +11,9 @@ import { USER_CONTENT_URL } from '../../../utils/config'
 import type { TldrawApp } from '../../app/TldrawApp'
 
 type Row = TlaLibrary & { items: TlaLibraryItem[] }
+type FakeMember = Pick<TlaGroupUser, 'userId' | 'userName'> & Partial<TlaGroupUser>
+
+export const AVATAR_HOST = 'https://img.clerk.test'
 
 /** A promise each request or mutation waits on while a test holds it, until it's let through. */
 function createHold() {
@@ -27,6 +35,9 @@ function createHold() {
  *
  * `userUploads` are what the worker lists as the user's uploads; every user content URL answers with a
  * small PNG.
+ *
+ * A workspace's `members` are its group_user rows, which a test can change with `setMembers`. Every
+ * URL on {@link AVATAR_HOST} answers with a small PNG, and data URLs are read as fetch reads them.
  */
 export function createFakeLibrariesBackend({
 	userId = 'user_me',
@@ -34,7 +45,7 @@ export function createFakeLibrariesBackend({
 	userUploads = [],
 }: {
 	userId?: string
-	workspaces?: { id: string; name: string }[]
+	workspaces?: { id: string; name: string; members?: FakeMember[] }[]
 	userUploads?: { objectName: string; fileId: string; uploadedAt: number }[]
 } = {}) {
 	const rows = atom<Row[]>('fake library rows', [])
@@ -45,11 +56,34 @@ export function createFakeLibrariesBackend({
 		if (!light) return null
 		return dark ? { light: upload(), dark: upload() } : upload()
 	}
-	const memberships = [
-		{ groupId: userId, role: 'owner', group: { name: 'Home' } },
-		...workspaces.map((w) => ({ groupId: w.id, role: 'member', group: { name: w.name } })),
-	]
-	const isMember = (groupId: string) => memberships.some((m) => m.groupId === groupId)
+	const toGroupUser = (groupId: string, member: FakeMember): TlaGroupUser => ({
+		groupId,
+		createdAt: 0,
+		updatedAt: 0,
+		role: 'member',
+		userColor: '',
+		userAvatar: '',
+		index: 'a1' as TlaGroupUser['index'],
+		...member,
+	})
+	const memberships$ = atom('fake memberships', [
+		{ groupId: userId, role: 'owner', group: { name: 'Home' }, groupMembers: [] as TlaGroupUser[] },
+		...workspaces.map((w) => ({
+			groupId: w.id,
+			role: 'member',
+			group: { name: w.name },
+			groupMembers: (w.members ?? []).map((m) => toGroupUser(w.id, m)),
+		})),
+	])
+	const setMembers = (groupId: string, members: FakeMember[]) =>
+		memberships$.update((all) =>
+			all.map((m) =>
+				m.groupId === groupId
+					? { ...m, groupMembers: members.map((member) => toGroupUser(groupId, member)) }
+					: m
+			)
+		)
+	const isMember = (groupId: string) => memberships$.get().some((m) => m.groupId === groupId)
 
 	let serverHold: ReturnType<typeof createHold> | undefined
 	let requestHold: ReturnType<typeof createHold> | undefined
@@ -161,12 +195,16 @@ export function createFakeLibrariesBackend({
 		else insert()
 	}
 
+	const realFetch = globalThis.fetch
 	const routes = async (url: string, init: RequestInit = {}): Promise<Response> => {
+		if (url.startsWith('data:')) return realFetch(url)
 		if (requestHold && !(await requestHold.passes)) return new Response(null, { status: 500 })
 		if (url === '/api/app/my-uploads') return Response.json({ uploads: userUploads })
 		if (url.startsWith(USER_CONTENT_URL)) {
 			return new Response(new Blob(['png'], { type: 'image/png' }))
 		}
+		if (url.startsWith(AVATAR_HOST))
+			return new Response('png', { headers: { 'content-type': 'image/png' } })
 		let match = url.match(/^\/api\/app\/libraries\/([^/]+)\/items$/)
 		if (match && init.method === 'POST') {
 			const form = init.body as FormData
@@ -236,8 +274,8 @@ export function createFakeLibrariesBackend({
 		toasts,
 		z: { mutate },
 		getHomeWorkspaceId: () => userId,
-		getWorkspaceMemberships: () => memberships,
-		getWorkspaceMembership: (id: string) => memberships.find((m) => m.groupId === id),
+		getWorkspaceMemberships: () => memberships$.get(),
+		getWorkspaceMembership: (id: string) => memberships$.get().find((m) => m.groupId === id),
 		getLibraryRows: () => rows.get(),
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 		showMutationRejectionToast,
@@ -254,5 +292,6 @@ export function createFakeLibrariesBackend({
 		holdServer: () => (serverHold = createHold()),
 		holdRequests: () => (requestHold = createHold()),
 		holdWorkerRows: () => (rowHold = createHold()),
+		setMembers,
 	}
 }

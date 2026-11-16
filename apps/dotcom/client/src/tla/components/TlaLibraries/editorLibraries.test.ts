@@ -9,17 +9,25 @@ import {
 	createShapeId,
 	createTLSchema,
 	createTLStore,
+	defaultAssetUtils,
+	defaultAddFontsFromNode,
 	defaultBindingUtils,
 	defaultShapeUtils,
 	Editor,
 	MediaHelpers,
+	registerDefaultExternalContentHandlers,
+	renderPlaintextFromRichText,
+	type TLImageShape,
+	type TLTextShape,
+	tipTapDefaultExtensions,
 	type TLRecord,
 } from 'tldraw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
-import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
+import { AVATAR_HOST, createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
+import { TldrawAppMembersSource } from './membersSource'
 import { addStarterPack, isStarterPackAdded } from './starterPacks'
 import { TldrawAppUploadsSource } from './uploadsSource'
 
@@ -39,19 +47,32 @@ afterEach(() => {
 })
 
 const UPLOAD = { objectName: 'V1StGXR8_Z5jdHi6B-myT-photo-png', fileId: 'file-b', uploadedAt: 1 }
+const ADA = { userId: 'ada', userName: 'Ada', userAvatar: `${AVATAR_HOST}/ada` }
 
-function setUp({ withUploads = false } = {}) {
-	const backend = createFakeLibrariesBackend({ userId: 'home', userUploads: [UPLOAD] })
+function setUp({ withUploads = false, withMembers = false } = {}) {
+	const backend = createFakeLibrariesBackend({
+		userId: 'home',
+		workspaces: [{ id: 'acme', name: 'Acme', members: [ADA] }],
+		userUploads: [UPLOAD],
+	})
 	vi.stubGlobal('fetch', backend.fetch)
 	const uploads = withUploads ? new TldrawAppUploadsSource(backend.app, backend.getToken) : null
-	const app = Object.assign(backend.app, { uploads })
+	const members = withMembers ? new TldrawAppMembersSource(backend.app) : null
+	const app = Object.assign(backend.app, { uploads, members })
 	const libraries = new TldrawAppLibrariesSource(app, backend.getToken)
 	const editor = new Editor({
 		store: createTLStore({ schema: createTLSchema({ records: fileSchemaRecords }) }),
 		shapeUtils: defaultShapeUtils,
 		bindingUtils: defaultBindingUtils,
+		assetUtils: defaultAssetUtils,
 		tools: [],
 		getContainer: () => document.body,
+		options: {
+			text: {
+				addFontsFromNode: defaultAddFontsFromNode,
+				tipTapConfig: { extensions: tipTapDefaultExtensions },
+			},
+		},
 	})
 	editors.push(editor)
 	return { editor, backend, uploads, source: getEditorLibraries(app, libraries, editor, 'file-a') }
@@ -232,5 +253,87 @@ describe('getEditorLibraries', () => {
 		const { content } = JSON.parse(backend.contents.get(item.id.slice('library-item:'.length))!)
 		expect(content.assets).toMatchObject([{ meta: { fileId: 'file-b' } }])
 		expect(source.getItems(uploads.id)).toHaveLength(1)
+	})
+
+	it("lists a workspace's members in its own group, beside its libraries, where they can't be changed", async () => {
+		const { source } = setUp({ withMembers: true })
+		expect(source.getLibraryOwners?.().map(({ id, name }) => ({ id, name }))).toEqual([
+			{ id: 'home', name: 'Private' },
+			{ id: 'acme', name: 'Acme' },
+			{ id: 'file-a', name: 'This board' },
+		])
+		const members = source.getLibraries().find((library) => library.id === 'library:members-acme')!
+		expect(members).toMatchObject({ name: 'Members', ownerId: 'acme' })
+		expect(source.getLibraries().map((library) => library.ownerId)).toEqual(['acme'])
+		expect(source.getItems(members.id).map((item) => item.name)).toEqual(['Ada'])
+		expect(source.can('createLibrary', { ownerId: 'acme' })).toBe(true)
+		const kit = await source.createLibrary('Kit', { ownerId: 'acme' })
+		expect(source.getLibraries().map((library) => library.name)).toEqual(['Kit', 'Members'])
+		expect(source.getItems(kit.id)).toEqual([])
+		expect(source.can('addItem', members.id)).toBe(false)
+		expect(source.can('deleteItem', members.id)).toBe(false)
+		await expect(source.deleteLibrary(members.id)).rejects.toThrow()
+	})
+
+	it('places a member on the board as their avatar, uploaded to the board, over their name', async () => {
+		const { editor, backend, source } = setUp({ withMembers: true })
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 64, h: 64, pixelRatio: 1 })
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		const upload = vi.fn(async () => ({ src: 'https://tldrawusercontent.com/uploaded-ada-png' }))
+		editor.store.props.assets.upload = upload
+		registerDefaultExternalContentHandlers(editor, { toasts: backend.app.toasts!, msg: (id) => id })
+		const members = source.getLibraries().find((library) => library.id === 'library:members-acme')!
+		const [item] = source.getItems(members.id)
+
+		await placeLibraryItem(editor, source, item.id)
+		backend.setMembers('acme', [{ ...ADA, userName: 'Ada Lovelace' }])
+
+		const [groupId] = editor.getSortedChildIdsForParent(editor.getCurrentPageId())
+		const group = editor.getShape(groupId)!
+		expect(group.type).toBe('group')
+		const [image, name] = editor
+			.getSortedChildIdsForParent(group.id)
+			.map((id) => editor.getShape(id)!) as [TLImageShape, TLTextShape]
+		expect(image).toMatchObject({
+			type: 'image',
+			props: { w: 96, h: 96, crop: { isCircle: true } },
+		})
+		expect(renderPlaintextFromRichText(editor, name.props.richText)).toBe('Ada')
+		expect(editor.getShapePageBounds(name)!.minY).toBeGreaterThan(
+			editor.getShapePageBounds(image)!.maxY
+		)
+		expect(editor.getShapePageBounds(name)!.center.x).toBeCloseTo(
+			editor.getShapePageBounds(image)!.center.x
+		)
+		await vi.waitFor(() =>
+			expect(editor.getAsset(image.props.assetId!)!.props.src).toBe(
+				'https://tldrawusercontent.com/uploaded-ada-png'
+			)
+		)
+		expect(editor.getSelectedShapeIds()).toEqual([group.id])
+
+		await placeLibraryItem(editor, source, item.id)
+		expect(editor.getSortedChildIdsForParent(editor.getCurrentPageId())).toHaveLength(2)
+		expect(upload).toHaveBeenCalledTimes(1)
+	})
+
+	it("copies a workspace's members to a workspace library, with their content and thumbnails", async () => {
+		const { backend, source } = setUp({ withMembers: true })
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 64, h: 64, pixelRatio: 1 })
+		const members = source.getLibraries().find((library) => library.id === 'library:members-acme')!
+
+		const copy = await copyLibrary(source, members.id, 'home')
+		await whenItemsStored(source.getItems(copy.id).map((item) => item.id))
+
+		expect(copy).toMatchObject({ name: 'Members', ownerId: 'home' })
+		const [item] = source.getItems(copy.id)
+		expect(item).toMatchObject({ name: 'Ada', thumbnail: expect.any(String) })
+		const { content } = JSON.parse(backend.contents.get(item.id.slice('library-item:'.length))!)
+		expect(content.shapes.map((shape: TLRecord & { type: string }) => shape.type)).toEqual([
+			'group',
+			'image',
+			'text',
+		])
+		expect(source.getItems(members.id)).toHaveLength(1)
 	})
 })
