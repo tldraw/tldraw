@@ -220,8 +220,10 @@ export function createFakeLibrariesBackend({
 		routes(String(input), init)
 	)
 
+	const toasts = { addToast: vi.fn() }
 	const app = {
 		userId,
+		toasts,
 		z: { mutate },
 		getHomeWorkspaceId: () => userId,
 		getWorkspaceMemberships: () => memberships,
@@ -238,6 +240,7 @@ export function createFakeLibrariesBackend({
 		fetch: fetchSpy,
 		getToken: async () => 'token',
 		showMutationRejectionToast,
+		toasts,
 		holdServer: () => (serverHold = createHold()),
 		holdRequests: () => (requestHold = createHold()),
 		holdWorkerRows: () => (rowHold = createHold()),
