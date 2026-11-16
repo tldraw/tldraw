@@ -1,9 +1,10 @@
-import { act, screen, waitFor } from '@testing-library/react'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { Box, Editor, Vec } from '@tldraw/editor'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
 	BACK_TO_CONTENT_APPEAR_DELAY_MS,
+	BACK_TO_CONTENT_JUMP_MS,
 	suppressBackToContent,
 } from '../../lib/ui/components/HelperButtons/BackToContent'
 import { renderTldrawComponentWithEditor } from '../testutils/renderTldrawComponent'
@@ -168,6 +169,60 @@ describe('BackToContent button', () => {
 		// Hiding is immediate, with no delay.
 		bringContentBackIntoView()
 		expect(button()).toBeNull()
+	})
+
+	it('reappears after an interrupted jump back to content', async () => {
+		vi.useFakeTimers()
+		createShapeInViewport()
+		panAllShapesOffScreen()
+
+		act(() => {
+			vi.advanceTimersByTime(BACK_TO_CONTENT_APPEAR_DELAY_MS + 1)
+		})
+		expect(button()).not.toBeNull()
+
+		fireEvent.click(button()!)
+		expect(button()).toBeNull()
+
+		// Stop the jump before the camera moves, so the content stays off-screen.
+		act(() => {
+			editor.stopCameraAnimation()
+		})
+		expect(editor.getCurrentPageShapeIds().size).toBe(editor.getNotVisibleShapes().size)
+
+		act(() => {
+			vi.advanceTimersByTime(BACK_TO_CONTENT_JUMP_MS + BACK_TO_CONTENT_APPEAR_DELAY_MS + 1)
+		})
+		expect(button()).not.toBeNull()
+	})
+
+	it('stays hidden while the camera is locked', async () => {
+		vi.useFakeTimers()
+		createShapeInViewport()
+		panAllShapesOffScreen()
+
+		act(() => {
+			vi.advanceTimersByTime(BACK_TO_CONTENT_APPEAR_DELAY_MS + 1)
+		})
+		expect(button()).not.toBeNull()
+
+		act(() => {
+			editor.setCameraOptions({ isLocked: true })
+		})
+		expect(button()).toBeNull()
+
+		act(() => {
+			vi.advanceTimersByTime(BACK_TO_CONTENT_APPEAR_DELAY_MS * 5)
+		})
+		expect(button()).toBeNull()
+
+		act(() => {
+			editor.setCameraOptions({ isLocked: false })
+		})
+		act(() => {
+			vi.advanceTimersByTime(BACK_TO_CONTENT_APPEAR_DELAY_MS + 1)
+		})
+		expect(button()).not.toBeNull()
 	})
 
 	it('cancels a pending appearance when back-to-content is suppressed', async () => {
