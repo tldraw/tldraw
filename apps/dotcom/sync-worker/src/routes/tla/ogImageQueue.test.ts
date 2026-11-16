@@ -20,6 +20,7 @@ import {
 	enqueueOgImageRender,
 	enqueuePublishThumbnailRender,
 	getOgImageCacheKey,
+	getOgImageContentVersion,
 	handleOgImageRenderMessage,
 	isOgImageRepairOnCooldown,
 } from './ogImageQueue'
@@ -497,13 +498,14 @@ describe('handleOgImageRenderMessage', () => {
 			// gate — and are the only ones a minted-token record is kept for.
 			access: 'render',
 		})
-		// the worker writes the rendered image to the cache key itself, stamping the version
+		// the worker writes the rendered image to the cache key itself, stamping both versions
 		expect(
 			bucket.store.get(getOgImageCacheKey({ kind: 'published', slug: 'published-board' }))
 				?.customMetadata
 		).toEqual({
 			version: '1751234567890',
 			createdAt: expect.any(String),
+			contentVersion: expect.stringMatching(/^page:/),
 		})
 	})
 
@@ -1000,6 +1002,109 @@ describe('handleOgImageRenderMessage', () => {
 
 		expect(screenshotOf(env)).not.toHaveBeenCalled()
 		expect(message.ack).toHaveBeenCalledTimes(1)
+	})
+
+	describe('when the edit was to records the image does not draw', () => {
+		// Page one is the image; page two is where the editing happens. Each record carries the clock
+		// it last changed at, as a persisted room snapshot does.
+		function twoPageBoard({
+			pageOne = [10, 11],
+			pageTwo = [12],
+		}: { pageOne?: number[]; pageTwo?: number[] } = {}) {
+			const shape = (pageId: string, i: number, clock: number) => ({
+				state: {
+					typeName: 'shape',
+					id: `shape:${pageId}-${i}`,
+					parentId: pageId,
+					type: 'geo',
+					index: `a${i + 1}`,
+					x: i * 100,
+					y: 0,
+					rotation: 0,
+					props: { w: 80, h: 80 },
+				},
+				lastChangedClock: clock,
+			})
+			return {
+				documents: [
+					{
+						state: { typeName: 'document', id: 'document:document', name: '' },
+						lastChangedClock: 1,
+					},
+					{ state: { typeName: 'page', id: 'page:one', index: 'a1' }, lastChangedClock: 1 },
+					{ state: { typeName: 'page', id: 'page:two', index: 'a2' }, lastChangedClock: 1 },
+					...pageOne.map((clock, i) => shape('page:one', i, clock)),
+					...pageTwo.map((clock, i) => shape('page:two', i, clock)),
+				],
+				schema: { schemaVersion: 2, sequences: {} },
+			} as any
+		}
+
+		it('keeps the content version when only another page changes', () => {
+			expect(getOgImageContentVersion(twoPageBoard({ pageTwo: [99, 100] }), 'page:one')).toBe(
+				getOgImageContentVersion(twoPageBoard(), 'page:one')
+			)
+		})
+
+		it('moves the content version on an edit, an addition or a deletion on the drawn page', () => {
+			const before = getOgImageContentVersion(twoPageBoard(), 'page:one')
+			for (const pageOne of [[10, 50], [10, 11, 50], [10]]) {
+				expect(getOgImageContentVersion(twoPageBoard({ pageOne }), 'page:one')).not.toBe(before)
+			}
+		})
+
+		it('moves the content version when a different page is drawn', () => {
+			const board = twoPageBoard()
+			expect(getOgImageContentVersion(board, 'page:two')).not.toBe(
+				getOgImageContentVersion(board, 'page:one')
+			)
+		})
+
+		const board = { kind: 'shared_file', slug: 'shared-file' } as const
+		async function arrange(cachedContentVersion: string) {
+			vi.mocked(getSharedFileInfo).mockResolvedValue({
+				id: 'shared-file',
+				shared: true,
+				isDeleted: false,
+			})
+			vi.mocked(getSharedFileRoomSnapshot).mockResolvedValue(twoPageBoard({ pageTwo: [99] }))
+			const bucket = makeFakeThumbnailsBucket()
+			await bucket.put(getOgImageCacheKey(board), new Uint8Array([9]).buffer, {
+				customMetadata: {
+					version: 'etag-old',
+					createdAt: '1',
+					contentVersion: cachedContentVersion,
+				},
+			})
+			const env = makeEnv({ ROOMS: makeFakeRoomsBucket('etag-new'), THUMBNAILS: bucket })
+			return { bucket, env }
+		}
+
+		it('keeps the image and moves its version on, without rendering', async () => {
+			const { bucket, env } = await arrange(getOgImageContentVersion(twoPageBoard(), 'page:one'))
+			const message = makeMessage(board)
+
+			await handleOgImageRenderMessage(env, message)
+
+			expect(screenshotOf(env)).not.toHaveBeenCalled()
+			const cached = bucket.store.get(getOgImageCacheKey(board))
+			expect(new Uint8Array(cached!.body)).toEqual(new Uint8Array([9]))
+			expect(cached?.customMetadata).toMatchObject({ version: 'etag-new', createdAt: '1' })
+			expect(blobsWithPrefix(env, 'cache:')).toEqual(['cache:unchanged'])
+			expect(message.ack).toHaveBeenCalledTimes(1)
+		})
+
+		it('renders when the drawn page changed, and stamps the new content version', async () => {
+			const { bucket, env } = await arrange('page:one:1:1')
+
+			await handleOgImageRenderMessage(env, makeMessage(board))
+
+			expect(screenshotOf(env)).toHaveBeenCalledTimes(1)
+			expect(bucket.store.get(getOgImageCacheKey(board))?.customMetadata).toMatchObject({
+				version: 'etag-new',
+				contentVersion: getOgImageContentVersion(twoPageBoard(), 'page:one'),
+			})
+		})
 	})
 
 	// Deletion is terminal in a way privacy is not: no number of retries brings the board back, and a

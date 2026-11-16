@@ -1,5 +1,6 @@
 import { DEFAULT_THUMBNAIL_HEIGHT, DEFAULT_THUMBNAIL_WIDTH } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
+import { TLRecord } from '@tldraw/tlschema'
 import {
 	OG_MAX_RENDER_ATTEMPTS,
 	OG_PENDING_MARKER_TTL_MS,
@@ -14,6 +15,7 @@ import {
 } from '../../types'
 import { deleteRenderTokenRecord } from '../../utils/renderTokens'
 import { enumerateBoardPages } from './boardTools'
+import { sliceSnapshotForRender } from './sliceSnapshotForRender'
 import {
 	ResolvedThumbnailBoard,
 	captureThumbnailScreenshot,
@@ -42,6 +44,21 @@ import { classifyScreenshotFailure, reportThumbnailError } from './thumbnailShar
 // page has any: a capture of that is a blank card (see dropBoardWithNoContent).
 function pickOgImagePageId(snapshot: RoomSnapshot): string | undefined {
 	return enumerateBoardPages(snapshot).find((page) => page.hasContent)?.id
+}
+
+// What the image depicts, where the board's version moves on an edit to any page. Taken over the slice
+// the render page draws (sliceSnapshotForRender), so it changes exactly when the picture can; a slice
+// that refuses falls back to the whole board, which is the board version's behaviour. A count and the
+// newest clock are enough: an edit or an addition raises the clock, and a deletion alone lowers the
+// count. The page id is in it because another page becoming the first with content changes the
+// picture without touching any of these records.
+export function getOgImageContentVersion(snapshot: RoomSnapshot, pageId: string) {
+	const records = snapshot.documents.map((document) => document.state) as TLRecord[]
+	const slice = sliceSnapshotForRender(records, { pageId }) ?? records
+	const clockOf = new Map(snapshot.documents.map((d) => [d.state.id, d.lastChangedClock]))
+	let newest = 0
+	for (const record of slice) newest = Math.max(newest, clockOf.get(record.id) ?? 0)
+	return `${pageId}:${slice.length}:${newest}`
 }
 
 /**
@@ -318,9 +335,8 @@ export async function handleOgImageRenderMessage(
 			throw new Error('THUMBNAILS bucket is not configured')
 		}
 
-		// No capacity check, by design (see the top of this file). The version check above is what stops
-		// redundant work: everything past this point is a board whose cached thumbnail genuinely no
-		// longer matches its content.
+		// No capacity check, by design (see the top of this file). The version check above and the
+		// content check below are what stop redundant work.
 
 		// Loaded to target the first page that has content, so a board whose first page is empty still
 		// gets a meaningful unfurl image.
@@ -352,6 +368,28 @@ export async function handleOgImageRenderMessage(
 			return
 		}
 
+		// The edit was to records the image doesn't draw, such as another page. The image stays, and
+		// only its version moves on, which is what the OG route reads as fresh.
+		const contentVersion = getOgImageContentVersion(snapshot, pageId)
+		if (cached?.customMetadata?.contentVersion === contentVersion) {
+			const image = await env.THUMBNAILS.get(cacheKey)
+			if (image) {
+				await env.THUMBNAILS.put(cacheKey, await image.arrayBuffer(), {
+					httpMetadata: { contentType: 'image/png' },
+					customMetadata: { ...image.customMetadata, version: String(board.version) },
+				})
+				await clearOgImagePendingMarker(env, boardRef)
+				writeScreenshotTelemetry(env, {
+					source: 'queue',
+					reason,
+					followUp,
+					cacheStatus: 'unchanged',
+				})
+				message.ack()
+				return
+			}
+		}
+
 		// The render page exports the chosen page; the worker screenshots it through the BROWSER
 		// binding and writes the PNG to the cache key the OG route reads.
 		const render = await captureThumbnailScreenshot(env, board, {
@@ -366,7 +404,9 @@ export async function handleOgImageRenderMessage(
 			content: summarizeSnapshotContent(snapshot, pageId),
 			snapshot,
 		})
-		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version)
+		await putThumbnailPng(env.THUMBNAILS, cacheKey, render.base64, board.version, {
+			contentVersion,
+		})
 		await clearOgImagePendingMarker(env, boardRef)
 		await enqueueFollowUpIfBoardMoved(env, message, board, reason, ctx)
 
