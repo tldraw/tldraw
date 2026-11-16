@@ -1,0 +1,73 @@
+apiVersion: rules.alerting.grafana.app/v0alpha1
+kind: AlertRule
+metadata:
+  annotations:
+    grafana.app/folder: f6hsw6
+    grafana.com/provenance: ''
+  labels:
+    grafana.app/folder: f6hsw6
+    grafana.com/group: zero-replica-alerts
+    grafana.com/group-index: '0'
+  name: zero-replica-wal-not-checkpointing
+  namespace: stacks-890472
+spec:
+  annotations:
+    summary: Zero replica WAL is not checkpointing on {{ $labels.service_instance_id }}
+    description: >-
+      Uncheckpointed replica WAL is {{ humanize1024 $values.A.Value }}B (normal is under 100MB on
+      most machines). A pinned read snapshot stops checkpoints and the WAL grows at the replication
+      write rate, about 190MB/min, until /data (8GB) fills, and then the replicator dies with
+      SQLITE_FULL. That leaves 15-25 minutes after this fires. Restarting the machine clears it.
+  execErrState: Error
+  expressions:
+    A:
+      datasourceUID: grafanacloud-prom
+      model:
+        editorMode: code
+        expr: max by (service_name, service_instance_id) (zero_replica_wal_uncheckpointed_bytes{deployment_environment="production"})
+        instant: true
+        intervalMs: 1000
+        legendFormat: __auto
+        maxDataPoints: 43200
+        range: false
+        refId: A
+      relativeTimeRange:
+        from: 10m0s
+        to: 0s
+    C:
+      model:
+        conditions:
+          - evaluator:
+              params:
+                - 1500000000
+              type: gt
+            operator:
+              type: and
+            query:
+              params:
+                - C
+            reducer:
+              params: []
+              type: last
+            type: query
+        datasource:
+          type: __expr__
+          uid: __expr__
+        expression: A
+        intervalMs: 1000
+        maxDataPoints: 43200
+        refId: C
+        type: threshold
+      queryType: expression
+      source: true
+  for: 3m0s
+  labels:
+    service: zero
+    severity: critical
+  noDataState: Ok
+  notificationSettings:
+    receiver: Discord
+    type: SimplifiedRouting
+  title: Zero replica WAL not checkpointing
+  trigger:
+    interval: 1m

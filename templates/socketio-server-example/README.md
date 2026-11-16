@@ -4,7 +4,7 @@ This is a simple example of a backend for [tldraw sync](https://tldraw.dev/docs/
 
 Run `npm run dev` in this folder to start the server + client.
 
-Room data is automatically persisted to SQLite databases in the `.rooms` directory using `SQLiteSyncStorage`.
+Room data is automatically persisted to SQLite databases in the `.rooms` directory using `SQLiteSyncStorage` and Node's built-in [`node:sqlite`](https://nodejs.org/api/sqlite.html) module, so there's no native dependency to install. This needs Node.js 22.13 or later. On Node.js 22 and 24, `node:sqlite` logs a one-time `ExperimentalWarning` when the server starts; it's safe to ignore.
 
 For a production-ready example specific to Cloudflare, see /templates/sync-cloudflare.
 

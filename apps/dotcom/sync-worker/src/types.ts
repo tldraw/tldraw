@@ -11,9 +11,10 @@ import type { KeyframeReason } from './versionChain'
 // so a Worker can call the Quick Actions endpoints (`screenshot`, `pdf`, …) straight through the
 // binding — no API token, no @cloudflare/puppeteer. Requires compatibility_date >= 2026-03-24. Not
 // in @cloudflare/workers-types yet, so the small surface we use is declared here; it resolves to a
-// standard `Response` (PNG bytes for `screenshot`, with an `X-Browser-Ms-Used` header).
+// standard `Response` (PNG bytes for `screenshot`, `{ success, result: "<html>…" }` JSON for
+// `content`, with an `X-Browser-Ms-Used` header).
 export interface BrowserBinding {
-	quickAction(action: 'screenshot', options: unknown): Promise<Response>
+	quickAction(action: 'screenshot' | 'content', options: unknown): Promise<Response>
 }
 
 // This type isn't available in @cloudflare/workers-types yet
@@ -97,23 +98,17 @@ export interface Environment {
 	ANALYTICS_API_TOKEN: string | undefined
 
 	RATE_LIMITER: RateLimit
-	// Rate limit bindings for the Browser Run-backed MCP screenshot tool, declared in wrangler.toml.
-	// All three bound what an agent calling the public MCP endpoint can spend; board thumbnail
-	// rendering is subject to none of them. Separate bindings because a binding carries one `limit`
-	// applied per key, so budgets with different numbers cannot share one. The route falls back to an
-	// isolate-local guard when they are absent (local dev, tests).
-	/** One per-account budget (`user:`) across every Browser Run-spending MCP tool. */
-	MCP_SCREENSHOT_RATE_LIMITER: RateLimit | undefined
-	/** Per-board Browser Run captures, applied only on cache misses. Measures are not counted here. */
-	MCP_SERVER_BOARD_RATE_LIMITER: RateLimit | undefined
-	/** Total Browser Run sessions the tools spend, captures and measures alike, on one shared key. */
-	MCP_SERVER_BROWSER_RATE_LIMITER: RateLimit | undefined
+	// Rate limit bindings for the MCP tools that spend Postgres or write rows, declared in wrangler.toml.
+	// Separate bindings because a binding carries one `limit` applied per key. The route falls back to
+	// an isolate-local guard when they are absent (local dev, tests).
 	/** Per-account `search_boards` calls. Bounds Postgres, not Browser Run, which search never spends. */
 	MCP_SERVER_SEARCH_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `create_board` calls. Bounds writes. */
 	MCP_SERVER_CREATE_RATE_LIMITER: RateLimit | undefined
 	/** Per-account `rename_board` calls. Bounds writes. */
 	MCP_SERVER_RENAME_RATE_LIMITER: RateLimit | undefined
+	/** Per-account calls to the tools that go through a board's durable object. Bounds load on a shared board. */
+	MCP_SERVER_TAB_RATE_LIMITER: RateLimit | undefined
 
 	QUEUE: Queue<QueueMessage>
 
@@ -123,13 +118,6 @@ export interface Environment {
 	// thumbnail has to outlive any lifecycle window.
 	// Optional so tests and unconfigured environments degrade to cacheless rendering.
 	THUMBNAILS: R2Bucket | undefined
-
-	// R2 storage for MCP tool output (`mcp/…` keys, screenshots today). Its own bucket rather than a
-	// prefix inside THUMBNAILS because these keys include the board's content version, so the set grows
-	// without bound and needs the expiration rule that would be actively wrong on THUMBNAILS. See "Why
-	// two buckets" in browser-run-thumbnails.md.
-	// Optional on the same terms as THUMBNAILS.
-	MCP_DATA_BUCKET: R2Bucket | undefined
 
 	// Cloudflare Browser Rendering binding. The worker takes thumbnails by calling the binding's
 	// `quickAction` Quick Actions method (e.g. `screenshot`) directly — no @cloudflare/puppeteer and
@@ -153,6 +141,10 @@ export interface Environment {
 	// the page exporting itself. Skips the export phase, the expensive part on heavy boards, at the
 	// cost of the export path's pixel-exact sizing. Off everywhere it is unset.
 	THUMBNAIL_RENDER_LIVE_CAPTURE: string | undefined
+	// 'true' pushes the board's records into the render page with the screenshot request, instead of
+	// the page fetching them back from the snapshot route, for every board. Where it is unset
+	// (production), the `thumbnail_render_push` flag picks the boards whose OG renders push.
+	THUMBNAIL_RENDER_PUSH: string | undefined
 	// HMAC secret for short-lived thumbnail render job tokens.
 	MCP_SCREENSHOT_TOKEN_SECRET: string | undefined
 	// The MCP server's public URL, and the resource identifier it advertises in RFC 9728 protected
@@ -163,6 +155,15 @@ export interface Environment {
 	// it is derived from the request's own origin, which is fine locally and wrong anywhere a Host
 	// header can be forged — see getMcpResourceUrl.
 	MCP_SERVER_URL: string | undefined
+	// The MCP host's origin (`https://staging-mcp.tldraw.com` on staging; production's mcp.tldraw.com
+	// comes later), where the same server answers at ROOT_MCP_SERVER_PATH. Requests on this host get their
+	// own router and advertise its URLs instead of MCP_SERVER_URL; see isMcpHostRequest. Unset where
+	// the host has no route (production for now, dev, previews).
+	MCP_HOST_ORIGIN: string | undefined
+	// The MCP host's landing page: a static-assets worker with no route or public URL of its own.
+	// mcpHostRouter hands it every GET and HEAD it doesn't serve itself.
+	// Bound per environment in wrangler.toml; unbound, the host 404s those paths as before.
+	MCP_WEB: Fetcher | undefined
 	// Overrides the OAuth authorization server advertised to MCP clients. Normally unset: the value is
 	// derived from CLERK_PUBLISHABLE_KEY so it cannot drift from the instance whose tokens we verify.
 	MCP_OAUTH_AUTHORIZATION_SERVER: string | undefined
@@ -300,17 +301,6 @@ export type ThumbnailBoardKind = 'published' | 'shared_file'
 export interface ThumbnailBoardRef {
 	kind: ThumbnailBoardKind
 	slug: string
-}
-
-/**
- * Which page of which board a stored MCP cluster index belongs to. The object it is stored in is
- * already the board's file, so this addresses a page within that. See mcpClusterIndexStorage.ts.
- */
-export interface McpClusterIndexKey {
-	kind: ThumbnailBoardKind
-	pageId: string
-	/** The board's content version, so an index is only read back for the content it was built from. */
-	version: string
 }
 
 /**

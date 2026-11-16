@@ -5,6 +5,8 @@ import {
 	createDebugValue,
 	createSessionStateSnapshotSignal,
 	debugFlags,
+	DefaultContextMenu,
+	DefaultContextMenuContent,
 	DefaultDebugMenu,
 	DefaultDebugMenuContent,
 	defineMessages,
@@ -48,9 +50,12 @@ import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
 import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
 import { useNewRoomCreationTracking } from '../../hooks/useNewRoomCreationTracking'
 import { useShareLinkOpenTracking } from '../../hooks/useShareLinkOpenTracking'
+import { createCanvasOpsReceiver } from '../../utils/canvas-ops/receiver'
 import { maybeSlurp } from '../../utils/slurping'
 import { TlaAnonDotDevLink } from '../TlaAnonDotDevLink/TlaAnonDotDevLink'
 import { TlaCommandPalette } from '../TlaCommandPalette/TlaCommandPalette'
+import { TlaAddToLibraryMenuItem, TlaLibrariesPanel } from '../TlaLibraries/TlaLibrariesPanel'
+import { registerAgentBylineEditHandler } from './agentCommentEdits'
 import { CommentsOnCanvas, SignInToComment, useAnonCommentToolOverrides } from './CommentsOnCanvas'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -63,9 +68,11 @@ import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
+import { TlaPinContent, TlaThreadRow } from './TlaAgentCommentSurfaces'
+import { TlaCommentByline } from './TlaCommentByline'
 import { A11yAudit } from './TlaDebug'
 import { TlaEditorWrapper } from './TlaEditorWrapper'
-import { useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
+import { useFileEditorRef, useFileLoad, useFileSyncStore } from './TlaFileSyncHost'
 import { useExtraDragIconOverrides } from './useExtraToolDragIcons'
 import { useFileEditorOverrides } from './useFileEditorOverrides'
 
@@ -73,6 +80,7 @@ const messages = defineMessages({
 	slurpFailed: {
 		defaultMessage: 'Could not restore your local drawing. Try reloading this page.',
 	},
+	fileHistory: { defaultMessage: 'File history' },
 })
 
 // Composing needs a signed-in author and an editable canvas. Signed-out visitors on an
@@ -81,7 +89,12 @@ const messages = defineMessages({
 const tlaCommentTools = [
 	CommentTool.configure({
 		canComment: ({ editor, currentUserId }) => currentUserId !== null && !editor.getIsReadonly(),
-		components: { ComposerFallback: SignInToComment },
+		components: {
+			ComposerFallback: SignInToComment,
+			CommentByline: TlaCommentByline,
+			ThreadRow: TlaThreadRow,
+			PinContent: TlaPinContent,
+		},
 	}),
 ]
 
@@ -103,6 +116,18 @@ interface TlaEditorProps {
 	fileSlug: string
 	isEmbed?: boolean
 	deepLinks?: boolean
+}
+
+function SneakyFileEditorRegistration() {
+	const editor = useEditor()
+	const editorRef = useFileEditorRef()
+	useEffect(() => {
+		editorRef.current = editor
+		return () => {
+			editorRef.current = null
+		}
+	}, [editor, editorRef])
+	return null
 }
 
 export function TlaEditor(props: TlaEditorProps) {
@@ -177,6 +202,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			const cleanupPerf = trackPerformance(editor)
 			;(window as any).app = app
 			;(window as any).editor = editor
+			;(window as any).canvasOpsReceiver = createCanvasOpsReceiver(editor)
 			// Register the editor globally
 			globalEditor.set(editor)
 
@@ -227,6 +253,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				editor.navigateToDeepLink()
 			}
 			const fileStateUpdater = new FileStateUpdater(app, fileId, editor)
+			const cleanupAgentBylineEdits = registerAgentBylineEditHandler(editor)
 
 			const abortController = new AbortController()
 			maybeSlurp({
@@ -273,6 +300,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			return () => {
 				cleanupPerf()
 				fileStateUpdater.dispose()
+				cleanupAgentBylineEdits()
 				abortController.abort()
 			}
 		},
@@ -340,9 +368,18 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 		return {
 			...components,
 			DebugMenu: () => <CustomDebugMenu />,
-			InFrontOfTheCanvas: commentingEnabled
-				? () => <CommentsOnCanvas fileId={fileId} />
-				: undefined,
+			ContextMenu: (props) => (
+				<DefaultContextMenu {...props}>
+					<TlaAddToLibraryMenuItem />
+					<DefaultContextMenuContent />
+				</DefaultContextMenu>
+			),
+			InFrontOfTheCanvas: () => (
+				<>
+					{commentingEnabled && <CommentsOnCanvas fileId={fileId} />}
+					<TlaLibrariesPanel />
+				</>
+			),
 		}
 	}, [fileId, commentingEnabled])
 
@@ -380,6 +417,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyFileEditorRegistration />
 				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
 			</Tldraw>
@@ -397,13 +435,14 @@ function CustomDebugMenu() {
 	const openAndTrack = useOpenUrlAndTrack('unknown')
 	const editor = useEditor()
 	const isReadOnly = useValue('isReadOnly', () => editor.getIsReadonly(), [editor])
+	const msg = useTranslation()
 	return (
 		<DefaultDebugMenu>
 			<A11yAudit />
 			{!isReadOnly && app && (
 				<TldrawUiMenuItem
 					id="file-history"
-					label="File history"
+					label={msg(messages.fileHistory)}
 					readonlyOk
 					onSelect={() => {
 						const url = new URL(window.location.href)

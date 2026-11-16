@@ -9,7 +9,6 @@ export function getSystemPromptFlags(actions: AgentAction['_type'][], parts: Pro
 		hasMessage: actions.includes('message'),
 
 		// Planning
-		hasThink: actions.includes('think'),
 		hasReview: actions.includes('review'),
 		hasSetMyView: actions.includes('setMyView'),
 		hasTodoList: actions.includes('update-todo-list') && parts.includes('todoList'),

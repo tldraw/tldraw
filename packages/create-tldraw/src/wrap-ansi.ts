@@ -5,9 +5,9 @@
  * https://github.com/chalk/wrap-ansi/blob/163b878a6eb5d8c32b7bbea65036eeadc0e4def9/index.js
  */
 
+import { stripVTControlCharacters } from 'node:util'
 import ansiStyles from 'ansi-styles'
 import stringWidth from 'string-width'
-import stripAnsi from 'strip-ansi'
 
 interface WrapAnsiOptions {
 	trim?: boolean
@@ -45,7 +45,7 @@ function wrapWord(rows: string[], word: string, columns: number, indent: string)
 
 	let isInsideEscape = false
 	let isInsideLinkEscape = false
-	let visible = stringWidth(stripAnsi(rows.at(-1)!))
+	let visible = stringWidth(stripVTControlCharacters(rows.at(-1)!))
 
 	const indentLength = stringWidth(indent)
 

@@ -27,6 +27,7 @@ import { type CommentingContext } from './context'
 import { useIsMobileCommenting, useMobilePlacement } from './mobile-placement'
 import { useCanComment, useCommentingOptions } from './options'
 import { pendingComment } from './state'
+import { avatarRenderer } from './thread-view'
 
 const messages = defineMessages({
 	commentsSend: { id: 'comments.send', defaultMessage: 'Send' },
@@ -49,13 +50,16 @@ export function PendingComposer({
 	getMentionSuggestions,
 	renderMentionSuggestion,
 }: CommentingContext & { editor: Editor; pending: PendingComment }) {
-	const ComposerFallback = useCommentingOptions().components.ComposerFallback
+	const { components } = useCommentingOptions()
+	const ComposerFallback = components.ComposerFallback
 	const canComment = useCanComment(currentUserId)
 	const me = currentUserId ? resolveAuthor(currentUserId) : undefined
 	// The leading pin previews the pin this draft becomes: a white pin holding the author's avatar.
 	const draftAvatar = (
 		<CommentPin>
-			<Avatar author={me ?? UNKNOWN_COMMENT_AUTHOR} />
+			{avatarRenderer(components, currentUserId)?.(me ?? UNKNOWN_COMMENT_AUTHOR) ?? (
+				<Avatar author={me ?? UNKNOWN_COMMENT_AUTHOR} />
+			)}
 		</CommentPin>
 	)
 	// Click-away keeps the draft (saved on every change) and the next placement composer

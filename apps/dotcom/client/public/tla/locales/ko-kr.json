@@ -71,6 +71,9 @@
   "181b90f889": {
     "translation": "파일 생성"
   },
+  "1a7222b4e5": {
+    "translation": "이동하다"
+  },
   "1da2e8106b": {
     "translation": "예기치 못한 오류가 발생했습니다."
   },
@@ -136,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "멤버를 삭제합니다"
+  },
+  "398f51738e": {
+    "translation": "이 초대장을 수락하려면 로그인하세요."
   },
   "3bc7d6ea2f": {
     "translation": "이메일로 계속하기"
@@ -305,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "페이지를 다시 로드해 주세요"
   },
+  "747ee44424": {
+    "translation": "내용을 .tldr 파일로 저장하려면 왼쪽 상단 메뉴에서 '사본 저장'을 선택하세요."
+  },
   "74ff4bad28": {
     "translation": "파일을 찾을 수 없습니다."
   },
@@ -407,6 +416,9 @@
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong>을 삭제하시겠습니까? 이 작업은 되돌릴 수 없습니다."
   },
+  "930390d222": {
+    "translation": "초대 링크를 복사했습니다"
+  },
   "95aacd4d4a": {
     "translation": "Google로 로그인"
   },
@@ -451,9 +463,6 @@
   },
   "a0a19d5145": {
     "translation": "{count, plural, other {# 읽지 않음}}"
-  },
-  "a0da245992": {
-    "translation": "콘텐츠를 .tldr 파일로 내보내려면 왼쪽 상단 메뉴에서 '다운로드'를 선택하세요."
   },
   "a104439641": {
     "translation": "여백"
@@ -642,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "또는"
   },
+  "ea13ecec38": {
+    "translation": "파일 기록"
+  },
   "ea4788705e": {
     "translation": "취소"
   },
@@ -684,6 +696,9 @@
   "f2a6c498fb": {
     "translation": "삭제"
   },
+  "f408fa5fbd": {
+    "translation": "이 초대 링크는 유효하지 않거나 만료되었습니다."
+  },
   "f476ba8646": {
     "translation": "<name>{a}</name>님, <name>{b}</name>님 외 {count, plural, other {# 명}}이 회원님의 댓글에 반응했습니다."
   },
@@ -710,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "무료 계정을 만들어 파일을 저장하고 팀원들과 함께 그림을 그려보세요."
+  },
+  "ffad261a48": {
+    "translation": "초대 수락 오류"
   },
   "ffcd73e997": {
     "translation": "파일 가져오기…"

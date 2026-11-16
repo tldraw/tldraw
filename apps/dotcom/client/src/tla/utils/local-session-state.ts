@@ -138,6 +138,23 @@ export function getLocalSessionState() {
 	return localSessionState.get()
 }
 
+/**
+ * The resolved light/dark theme the running app last mirrored to local storage (via
+ * `SneakyDarkModeSync`), or null when this browser has no stored session. Signed-in theme changes
+ * persist to the user's account record, not the SDK's global preferences, so this mirror is the only
+ * copy readable outside the app's providers — e.g. the OAuth consent page. A missing session returns
+ * null rather than the `light` default, so callers can fall back to the OS preference instead of
+ * mistaking it for an explicit light choice.
+ */
+export function getStoredThemePreference(): 'light' | 'dark' | null {
+	try {
+		if (!getFromLocalStorage(STORAGE_KEY)) return null
+	} catch {
+		return null
+	}
+	return getLocalSessionState().theme
+}
+
 export function getColorThemePreview() {
 	return colorThemePreview.get()
 }

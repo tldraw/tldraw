@@ -120,12 +120,12 @@ Data collection differs by license type:
 
 | License type | Data sent                                           |
 | ------------ | --------------------------------------------------- |
-| Commercial   | None                                                |
+| Commercial   | None by default                                     |
 | Hobby        | License ID, license type, SDK version, and page URL |
 | Trial        | License ID, license type, SDK version, and page URL |
 | Unlicensed   | SDK version and page URL (production only)          |
 
-Trial and hobby licenses ping tldraw's servers with the license ID, license type, SDK version, build environment, and deployment URL for analytics. No user data, canvas content, or personally identifiable information is collected. Nothing is sent from development environments.
+Commercial licenses send nothing unless the key is issued as tracked, for example a key without a fixed domain. Tracked keys send the same ping as trial keys. Trial and hobby licenses ping tldraw's servers with the license ID, license type, SDK version, build environment, and deployment URL for analytics. No user data, canvas content, or personally identifiable information is collected. Nothing is sent from development environments.
 
 ## Troubleshooting
 

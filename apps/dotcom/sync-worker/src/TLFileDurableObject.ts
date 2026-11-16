@@ -13,14 +13,19 @@ import {
 	ROOM_PREFIX,
 	ROOM_SIZE_LIMIT_MB,
 	SNAPSHOT_PREFIX,
+	TAB_RENDER_PARAM,
 	TLCustomServerEvent,
+	TabRenderReply,
+	TabRenderRequest,
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
 	type FeatureFlagValue,
+	type McpAgentClient,
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
 	DurableObjectSqliteSyncWrapper,
@@ -38,7 +43,6 @@ import {
 } from '@tldraw/sync-core'
 import {
 	TLAsset,
-	TLAssetId,
 	TLComment,
 	TLCommentReaction,
 	TLDOCUMENT_ID,
@@ -46,18 +50,27 @@ import {
 	TLRecord,
 	commentSchemaRecords,
 	createTLSchema,
+	defaultShapeSchemas,
 	isCommentId,
 	isCommentReactionId,
 	isCommentThreadId,
 } from '@tldraw/tlschema'
-import { ExecutionQueue, assert, assertExists, exhaustiveSwitchError, retry } from '@tldraw/utils'
+import {
+	ExecutionQueue,
+	assert,
+	assertExists,
+	exhaustiveSwitchError,
+	objectMapEntries,
+	retry,
+	sleep,
+} from '@tldraw/utils'
 import { createSentry, isValidR2ObjectName } from '@tldraw/worker-shared'
 import { DurableObject } from 'cloudflare:workers'
 import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord, getFileRoomAccess } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -79,13 +92,10 @@ import {
 } from './commentRows'
 import { MAX_VERIFY_KEYFRAME_BYTES, PERSIST_INTERVAL_MS } from './config'
 import { Logger } from './Logger'
-import {
-	ensureMcpClusterIndexTable,
-	pruneMcpClusterIndexRows,
-	readMcpClusterIndexRow,
-	writeMcpClusterIndexRow,
-} from './mcpClusterIndexStorage'
+import { ensureMcpAgentTables, getOrCreateAgent } from './mcpAgentStorage'
+import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
 import { TLPostgresPool, getPostgresConnection } from './postgres'
+import { pruneUnusedAssetsForTldr } from './pruneUnusedAssets'
 import {
 	deleteAllObjectsWithPrefix,
 	getR2KeyForRoom,
@@ -101,6 +111,7 @@ import {
 	settleWithin,
 	shouldSkipMissingRoomEffect,
 } from './roomEffectHelpers'
+import { CommentTarget, CommentWriteRefusal, getBoardUsers } from './routes/tla/boardTools'
 import { getPublishedRoomSnapshot } from './routes/tla/getPublishedFile'
 import { deleteBoardThumbnails, enqueueOgImageRender } from './routes/tla/ogImageQueue'
 import {
@@ -111,7 +122,16 @@ import {
 	resolvePersistedFingerprint,
 	SnapshotFingerprint,
 } from './snapshotUtils'
-import { Analytics, DBLoadResult, Environment, McpClusterIndexKey, TLServerEvent } from './types'
+import {
+	TAB_RENDER_ROOM_TIMEOUT_MS,
+	TabRenderBroker,
+	TabRenderOutcome,
+	TabRenderSocket,
+	keepDeliverableTabRenderSessions,
+	pickTabRenderSessions,
+	pickTabRenderTargets,
+} from './tabRenderBroker'
+import { Analytics, DBLoadResult, Environment, TLServerEvent } from './types'
 import { EventData, writeDataPoint } from './utils/analytics'
 import { arrayBufferToBase64 } from './utils/base64'
 import {
@@ -219,6 +239,9 @@ interface SocketAttachment {
 	// The client bundle's monotonic build timestamp (epoch ms), from the `?v=` connect param.
 	// Absent for bundles that predate the param, or when the param didn't validate.
 	clientBuildTimestamp?: string
+	// When a client that can answer `mcp_tab_render` jobs connected, which is what its liveness reads
+	// as until its first ping. Absent for every other socket.
+	tabRenderConnectedAt?: number
 	snapshot: SessionStateSnapshot | null
 }
 
@@ -242,16 +265,6 @@ async function canAccessTestProductionFile(
 	} catch (_e) {
 		return false
 	}
-}
-
-function pruneUnusedAssetsForTldr(records: TLRecord[]): TLRecord[] {
-	const usedAssets = new Set<TLAssetId>()
-	for (const record of records) {
-		if (record.typeName === 'shape' && 'assetId' in record.props && record.props.assetId) {
-			usedAssets.add(record.props.assetId as TLAssetId)
-		}
-	}
-	return records.filter((r) => r.typeName !== 'asset' || usedAssets.has(r.id as TLAssetId))
 }
 
 const MB = 1024 * 1024
@@ -388,6 +401,33 @@ export class TLFileDurableObject extends DurableObject {
 
 	sentry: ReturnType<typeof createSentry> | null = null
 
+	private recordVetoWarningScheduled = false
+	private recordVetoCounts?: Map<string, number>
+
+	private observeRecordAuthorizers(
+		authorizers: typeof authorizeFileRecord
+	): typeof authorizeFileRecord {
+		return Object.fromEntries(
+			objectMapEntries(authorizers).map(([typeName, authorize]) => {
+				if (!authorize) return [typeName, undefined]
+				return [
+					typeName,
+					(args: Parameters<typeof authorize>[0]) => {
+						const result = authorize(args as never)
+						if (result === null) {
+							try {
+								this.recordVeto(typeName, args.type, args.type === 'delete' ? args.prev : args.next)
+							} catch {
+								// Failed telemetry must never change authorization.
+							}
+						}
+						return result
+					},
+				]
+			})
+		) as typeof authorizeFileRecord
+	}
+
 	getRoom() {
 		if (!this._documentInfo) {
 			throw new Error('documentInfo must be present when accessing room')
@@ -480,7 +520,7 @@ export class TLFileDurableObject extends DurableObject {
 						},
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
-						authorizeRecord: authorizeFileRecord,
+						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -1084,6 +1124,7 @@ export class TLFileDurableObject extends DurableObject {
 		// 500 with the accepted server socket leaked in the hibernation set, so catch broadly and
 		// close it instead.
 		let auth: { userId: string } | null
+		let isWebsiteSession = false
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1098,8 +1139,10 @@ export class TLFileDurableObject extends DurableObject {
 			// the website. It rides in the handshake's `Sec-WebSocket-Protocol` header, the one field
 			// a browser lets a client set there, which keeps it out of the URL that session tokens
 			// still use.
+			const session = await getAuth(req, this.env)
+			isWebsiteSession = !!session
 			auth =
-				(await getAuth(req, this.env)) ??
+				session ??
 				(await getMcpTokenUser(req, this.env, {
 					allowSubprotocolToken: true,
 					allowQueryToken: true,
@@ -1151,15 +1194,11 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					const hasOwnerAccess = can(role, 'accessFiles')
-
-					if (!hasOwnerAccess && !file.shared) {
+					const access = getFileRoomAccess(file, role)
+					if (access === 'none') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
-
-					// Guests only get canvas write on an `edit` link. `sharedLinkType` is a plain
-					// string column with legacy values in it, so anything else fails closed.
-					if (!hasOwnerAccess && file.sharedLinkType !== 'edit') {
+					if (access === 'read') {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
 				} else {
@@ -1195,6 +1234,8 @@ export class TLFileDurableObject extends DurableObject {
 				isReadonly,
 				objectAccess,
 				clientBuildTimestamp,
+				tabRenderConnectedAt:
+					isWebsiteSession && params[TAB_RENDER_PARAM] === '1' ? Date.now() : undefined,
 				snapshot: null,
 			}
 			serverWebSocket.serializeAttachment(attachment)
@@ -1446,6 +1487,65 @@ export class TLFileDurableObject extends DurableObject {
 		} catch (e) {
 			this.reportError(e, { source: 'alarm', retryCount: alarmInfo?.retryCount ?? 0 })
 			throw e
+		}
+	}
+
+	private recordVeto(
+		typeName: keyof typeof authorizeFileRecord,
+		operation: 'create' | 'update' | 'delete',
+		record: UnknownRecord
+	) {
+		const shape = record as UnknownRecord & { type?: unknown }
+		const shapeType =
+			typeName !== 'shape'
+				? ''
+				: typeof shape.type === 'string' && Object.hasOwn(defaultShapeSchemas, shape.type)
+					? shape.type
+					: 'unknown'
+		const key = `${typeName}|${operation}|${shapeType}`
+		if (this.recordVetoCounts) {
+			this.recordVetoCounts.set(key, (this.recordVetoCounts.get(key) ?? 0) + 1)
+			return
+		}
+		const counts = (this.recordVetoCounts = new Map([[key, 1]]))
+		// Coalesce a push's vetoes to avoid per-record I/O and Analytics Engine's write limit.
+		this.state.waitUntil(Promise.resolve().then(() => this.flushRecordVetoes(counts, key)))
+	}
+
+	private async flushRecordVetoes(counts: Map<string, number>, firstCategory: string) {
+		this.recordVetoCounts = undefined
+		for (const [dimensions, count] of counts) {
+			try {
+				this.writeEvent('record_vetoed', { blobs: dimensions.split('|'), doubles: [count] })
+			} catch {
+				// A failed category must not prevent the remaining counters from flushing.
+			}
+		}
+		if (this.recordVetoWarningScheduled || !this.sentry) return
+		this.recordVetoWarningScheduled = true
+		try {
+			const key = 'recordVetoWarningAt'
+			const previous = await this.storage.get<number>(key)
+			const now = Date.now()
+			// Hibernation resets fields: persist before capture so waking cannot flood Sentry.
+			if (previous !== undefined && now - previous < 60 * 60 * 1000) return
+			await this.storage.put(key, now)
+			const [typeName, operation, shapeType] = firstCategory.split('|')
+			// eslint-disable-next-line @typescript-eslint/no-deprecated
+			this.sentry?.withScope((scope) => {
+				scope.setFingerprint(['file-record-vetoed'])
+				scope.setExtras({
+					durableObjectId: this.id.toString(),
+					slug: this._documentInfo?.slug,
+					typeName,
+					operation,
+					shapeType,
+				})
+				// eslint-disable-next-line @typescript-eslint/no-deprecated
+				this.sentry?.captureMessage('File record vetoed', 'warning')
+			})
+		} catch {
+			// Failed telemetry must not retry on every edit.
 		}
 	}
 
@@ -2561,12 +2661,16 @@ export class TLFileDurableObject extends DurableObject {
 		for (const id of diff.deletes) {
 			if (isCommentRecordId(id)) ids.push(id)
 		}
-		if (ids.length === 0) return
+		this.enqueueCommentRecordIds(ids)
+	}
+
+	private enqueueCommentRecordIds(ids: string[]): Promise<void> {
+		if (ids.length === 0) return Promise.resolve()
 		this.ensureCommentOutbox()
 		for (const id of ids) {
 			this.ctx.storage.sql.exec('INSERT INTO comment_outbox (recordId) VALUES (?)', id)
 		}
-		this.drainCommentOutbox()
+		return this.drainCommentOutbox()
 	}
 
 	/**
@@ -3392,49 +3496,270 @@ export class TLFileDurableObject extends DurableObject {
 		}
 	}
 
-	/**
-	 * The MCP server's cluster index cache (mcpClusterIndexStorage.ts), which lives here because it is
-	 * content derived from the room this object owns: it dies with the file, and needs no expiry.
-	 *
-	 * Storage-only — none of these boot the room. They run on a Worker's critical path, and the point
-	 * of the cache is to be cheaper than the browser render it replaces.
-	 */
-	// `CREATE TABLE IF NOT EXISTS` is a write, and a cheap one, but running it per call would make the
-	// read path a write path — which is what lets a request in flight during a hard delete put storage
-	// back into an object that has already been emptied. Once per instance, after the delete check.
-	private mcpClusterIndexReady = false
-	private ensureMcpClusterIndex() {
-		if (this.mcpClusterIndexReady) return
-		ensureMcpClusterIndexTable(this.ctx.storage.sql)
-		this.mcpClusterIndexReady = true
+	private tabRenders = new TabRenderBroker()
+
+	/** The sockets that could run a tab job. Read off the runtime, so it wakes nothing. */
+	private getTabRenderSockets() {
+		const sockets: (TabRenderSocket & { isReadonly: boolean })[] = []
+		for (const ws of this.ctx.getWebSockets()) {
+			const attachment = this.getSocketAttachment(ws)
+			if (!attachment?.sessionId || !attachment.tabRenderConnectedAt) continue
+			sockets.push({
+				sessionId: attachment.sessionId,
+				userId: attachment.meta.userId,
+				isReadonly: attachment.isReadonly,
+				lastSeenAt:
+					this.ctx.getWebSocketAutoResponseTimestamp(ws)?.getTime() ??
+					attachment.tabRenderConnectedAt,
+			})
+		}
+		return sockets
+	}
+
+	/** The room, unless it takes too long: see TAB_RENDER_ROOM_TIMEOUT_MS. */
+	private getRoomForTabRender() {
+		return Promise.race([this.getRoom(), sleep(TAB_RENDER_ROOM_TIMEOUT_MS).then(() => null)])
+	}
+
+	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
+	private async canWriteToFile(userId: string) {
+		const access = await this.getAppFileRecordWithRole(userId)
+		return !!access && getFileRoomAccess(access.file, access.role) === 'write'
 	}
 
 	/**
-	 * One page's stored cluster index, or null when nothing was stored for this content version.
+	 * Runs an MCP tool's work in this user's open tabs: a measure or screenshot that would otherwise
+	 * start a browser, a batch of ops, or the user's own selection and page.
 	 *
-	 * Refuses when documentInfo is absent or deleted rather than reading: `appFileRecordDidDelete`
-	 * empties this object's storage, so a deleted object comes back from hibernation with null here.
-	 * Allowing that state to initialize the table would resurrect storage nothing ever collects.
+	 * Reads the sockets straight off the runtime, so the common answer — nobody has this board open —
+	 * neither wakes the room nor loads the document. The room only boots once there is a tab to talk
+	 * to, and the promise this returns is what keeps the object awake until the reply route gets here.
 	 */
-	async getMcpClusterIndex(key: McpClusterIndexKey): Promise<string | null> {
-		if (!this._documentInfo || this._documentInfo.deleted) return null
-		this.ensureMcpClusterIndex()
-		return readMcpClusterIndexRow(this.ctx.storage.sql, key)
+	async requestTabRender(
+		userId: string,
+		request: TabRenderRequest,
+		jobIds: string[]
+	): Promise<TabRenderOutcome> {
+		if (!this._documentInfo || this._documentInfo.deleted) return { status: 'no_tab' }
+		// Ahead of looking for a tab, so a view-only caller hears that rather than being sent to open one.
+		if (request.mode === 'apply_ops' && !(await this.canWriteToFile(userId))) {
+			return { status: 'declined', reason: 'read_only' }
+		}
+
+		const isWrite = request.mode === 'apply_ops'
+		const sockets = this.getTabRenderSockets()
+		const now = Date.now()
+		if (pickTabRenderSessions(sockets, userId, now).length === 0) return { status: 'no_tab' }
+		// The tab applies a write as its own session, which is what the room authorizes. The access
+		// check above is current, but a session keeps the mode it connected with until it reconnects,
+		// so a tab opened before the user could edit has to be reloaded.
+		const sessionIds = isWrite
+			? pickTabRenderSessions(
+					sockets.filter((s) => !s.isReadonly),
+					userId,
+					now
+				)
+			: pickTabRenderSessions(sockets, userId, now)
+		if (sessionIds.length === 0) return { status: 'reload_needed' }
+
+		const room = await this.getRoomForTabRender()
+		if (!room) return { status: 'room_timeout' }
+		// Only now: sessionIdToWs is filled in as the room boots.
+		const deliverable = keepDeliverableTabRenderSessions(sessionIds, userId, (sessionId) => {
+			const ws = this.sessionIdToWs.get(sessionId)
+			const attachment = ws ? this.getSocketAttachment(ws) : null
+			if (!attachment) return null
+			return {
+				userId: attachment.meta.userId,
+				canTabRender: !!attachment.tabRenderConnectedAt && !(isWrite && attachment.isReadonly),
+			}
+		})
+		if (deliverable.length === 0) return { status: 'no_tab' }
+
+		// A ping only says a tab is alive. The user's last pointer activity, from their own tabs'
+		// presence, says which one they're in.
+		const targets = pickTabRenderTargets(request.mode, deliverable, (sessionId) => {
+			const presence = room.getSessionSnapshot(sessionId)?.presenceRecord
+			return (presence as { lastActivityTimestamp?: number } | null)?.lastActivityTimestamp ?? 0
+		}).slice(0, jobIds.length)
+
+		return this.tabRenders.dispatch(targets, request, jobIds, (sessionId, jobId) => {
+			const event: TLCustomServerEvent = { type: 'mcp_tab_render', jobId, request }
+			room.sendCustomMessage(sessionId, event)
+		})
 	}
 
 	/**
-	 * Stores one page's cluster index, replacing whatever that page last had and dropping the rows for
-	 * pages the board no longer has.
+	 * Who is on the board. Identity comes from the session, which the server verified. A session's
+	 * presence is whatever its client sent, so it's joined on rather than trusted: anyone with a share
+	 * link can claim any `userId` there.
 	 */
-	async putMcpClusterIndex(
-		key: McpClusterIndexKey,
-		payload: string,
-		livePageIds: string[]
-	): Promise<void> {
-		if (!this._documentInfo || this._documentInfo.deleted) return
-		this.ensureMcpClusterIndex()
-		pruneMcpClusterIndexRows(this.ctx.storage.sql, key.kind, livePageIds)
-		writeMcpClusterIndexRow(this.ctx.storage.sql, key, payload)
+	async getMcpBoardUsers(): Promise<
+		{ status: 'room_timeout' } | ({ status: 'ok' } & ReturnType<typeof getBoardUsers>)
+	> {
+		if (!this._documentInfo || this._documentInfo.deleted || !this.ctx.getWebSockets().length) {
+			return { status: 'ok', users: [], anonymousViewers: 0 }
+		}
+		const room = await this.getRoomForTabRender()
+		if (!room) return { status: 'room_timeout' }
+
+		const presences = room.getPresenceRecords()
+		const sessions = room
+			.getSessions()
+			.filter((session) => session.isConnected)
+			.map(({ sessionId, meta }) => {
+				const presenceId = room.getSessionSnapshot(sessionId)?.presenceId
+				return { userId: meta.userId, presence: presenceId ? presences[presenceId] : undefined }
+			})
+		return { status: 'ok', ...getBoardUsers(sessions) }
+	}
+
+	async hasTabRenderJob(jobId: string): Promise<boolean> {
+		return this.tabRenders.has(jobId)
+	}
+
+	async receiveTabRenderReply(jobId: string, reply: TabRenderReply): Promise<boolean> {
+		return this.tabRenders.receive(jobId, reply)
+	}
+
+	/**
+	 * Posts a comment from the MCP server as `userId` (see `planMcpComment`), gated by the same
+	 * `getFileRoomAccess` rule as a socket connect. That check runs before a never-opened object's
+	 * documentInfo is initialized, so an id the caller cannot see leaves nothing behind.
+	 *
+	 * Mentions in `text` are checked after that gate (see `resolveCommentMentions`): which ids pass
+	 * says who is on the board, so a caller who can't see it hears not_found, and one who can't
+	 * comment hears comment_forbidden, before anything about its people.
+	 *
+	 * Storage writes do not fire `onCommittedChanges`, so the records are outboxed here, in the same
+	 * synchronous block as the write, as the restore handler's invariants require. The drain is
+	 * awaited so a read_page_comments straight after sees the comment.
+	 *
+	 * `queued` says the drain left the comment in the outbox: a failed row is kept for a later drain
+	 * rather than thrown, so the drain resolving says nothing about this comment. read_page_comments
+	 * reads Postgres only, so without this an agent that reads back and misses its comment posts it
+	 * again.
+	 */
+	async writeMcpComment({
+		fileId,
+		userId,
+		agentName,
+		agentClient,
+		text,
+		target,
+	}: {
+		fileId: string
+		userId: string
+		/** Who the comment is from; see `getOrCreateAgent`. */
+		agentName: string
+		/** The app behind the agent, from its OAuth client; drawn as its logo. */
+		agentClient: McpAgentClient | null
+		/** Plain text, with mentions as `@[name](id)`. */
+		text: string
+		target: CommentTarget
+	}): Promise<
+		| {
+				ok: true
+				threadId: string
+				commentId: string
+				pageId: string
+				newThread: boolean
+				queued: boolean
+		  }
+		| ({ ok: false } & CommentWriteRefusal)
+	> {
+		if (this._documentInfo) {
+			const info = this._documentInfo
+			if (info.deleted || !info.isApp || info.slug !== fileId) {
+				return { ok: false, reason: 'not_found' }
+			}
+		}
+
+		const fileWithRole = this._documentInfo
+			? await this.getAppFileRecordWithRole(userId)
+			: await getFileRecordWithRole(this.db, fileId, userId)
+		if (!fileWithRole || fileWithRole.file.isDeleted) return { ok: false, reason: 'not_found' }
+		const { file, role } = fileWithRole
+		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
+			return { ok: false, reason: 'not_found' }
+		}
+		const access = getFileRoomAccess(file, role)
+		if (access === 'none') return { ok: false, reason: 'not_found' }
+		// planMcpComment refuses this too, but by then the agent would be registered on a board it
+		// can't comment on.
+		if (access === 'read') return { ok: false, reason: 'comment_forbidden' }
+
+		const resolved = await resolveCommentMentions(this.db, { fileId: file.id, userId, text })
+		if (!resolved.ok) return resolved
+		const { body } = resolved
+
+		// As appFileRecordCreated does for an object that has never been opened.
+		if (!this._documentInfo) {
+			this._fileRecordCache = file
+			this.setDocumentInfo({ slug: file.id, isApp: true, deleted: false })
+		}
+
+		let storage: TLSyncStorage<TLRecord>
+		try {
+			// With tabs connected, the room has to be running before the write: it is what broadcasts a
+			// storage change to them, and a hibernated object has none — the sockets survive, the room
+			// doesn't. Writing without one, the tabs never hear of the comment: the room that boots
+			// later starts from a clock that already includes it, so nothing replays it until they
+			// reconnect.
+			if (this.state.getWebSockets().length > 0) await this.getRoom()
+			storage = await this.getStorage()
+		} catch (error) {
+			if (error instanceof RoomNotFoundError) return { ok: false, reason: 'board_empty' }
+			throw error
+		}
+
+		this.ensureMcpAgents()
+		const agent = getOrCreateAgent(this.ctx.storage.sql, {
+			ownerUserId: userId,
+			name: agentName,
+			now: Date.now(),
+		})
+
+		const planned = storage.transaction((txn) => {
+			const plan = planMcpComment({
+				room: txn,
+				userId,
+				isReadonly: false,
+				body,
+				target,
+				agent,
+				agentClient,
+			})
+			if (plan.ok) {
+				for (const record of plan.records) txn.set(record.id, record as unknown as TLRecord)
+			}
+			return plan
+		}).result
+		if (!planned.ok) return planned
+
+		const { records, ...written } = planned
+		const recordIds = records.map((record) => record.id)
+		await this.enqueueCommentRecordIds(recordIds).catch((error) => {
+			this.reportError(error)
+		})
+		// A later edit to the same thread can re-queue its id, which reads as queued here too. That
+		// only errs towards telling the agent not to retry.
+		const queued =
+			this.ctx.storage.sql
+				.exec(
+					`SELECT 1 FROM comment_outbox WHERE recordId IN (${recordIds.map(() => '?').join(', ')}) LIMIT 1`,
+					...recordIds
+				)
+				.toArray().length > 0
+		return { ...written, queued }
+	}
+
+	// Created on first use: most boards never see an agent.
+	private mcpAgentsReady = false
+	private ensureMcpAgents() {
+		if (this.mcpAgentsReady) return
+		ensureMcpAgentTables(this.ctx.storage.sql)
+		this.mcpAgentsReady = true
 	}
 
 	/**

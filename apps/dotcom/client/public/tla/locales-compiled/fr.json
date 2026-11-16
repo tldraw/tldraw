@@ -185,6 +185,12 @@
       "value": "Créer un fichier"
     }
   ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Passer à"
+    }
+  ],
   "1da2e8106b": [
     {
       "type": 0,
@@ -339,6 +345,12 @@
     {
       "type": 0,
       "value": "Supprimer un membre"
+    }
+  ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Connectez-vous pour accepter cette invitation."
     }
   ],
   "3bc7d6ea2f": [
@@ -734,6 +746,12 @@
       "value": "Veuillez recharger la page"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Enregistrez le contenu au format .tldr : sélectionnez « Enregistrer une copie » dans le menu en haut à gauche."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -994,6 +1012,12 @@
       "value": " ? Cette action est irréversible."
     }
   ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Lien d'invitation copié"
+    }
+  ],
   "95aacd4d4a": [
     {
       "type": 0,
@@ -1136,12 +1160,6 @@
       "pluralType": "cardinal",
       "type": 6,
       "value": "count"
-    }
-  ],
-  "a0da245992": [
-    {
-      "type": 0,
-      "value": "Exporter le contenu sous forme de fichier .tldr : sélectionnez « Télécharger » dans le menu en haut à gauche."
     }
   ],
   "a104439641": [
@@ -1694,6 +1712,12 @@
       "value": "ou"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historique des fichiers"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1790,6 +1814,12 @@
     {
       "type": 0,
       "value": "Supprimer"
+    }
+  ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ce lien d'invitation est invalide ou a expiré."
     }
   ],
   "f476ba8646": [
@@ -1928,6 +1958,12 @@
     {
       "type": 0,
       "value": "Créez un compte gratuit pour sauvegarder vos fichiers et dessiner avec vos coéquipiers."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Erreur lors de l'acceptation de l'invitation"
     }
   ],
   "ffcd73e997": [

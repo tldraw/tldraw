@@ -30,6 +30,11 @@ export interface ChatHistoryActionItem {
 	action: Streaming<AgentAction>
 	diff: RecordsDiff<TLRecord>
 	acceptance: 'pending' | 'accepted' | 'rejected'
+	/**
+	 * What the action did, which the model reads as the result of its tool call.
+	 * Only set when the action is complete.
+	 */
+	result?: string
 }
 
 /**

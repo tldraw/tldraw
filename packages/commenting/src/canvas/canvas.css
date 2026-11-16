@@ -482,6 +482,9 @@
 	/* The base expanded rule re-pads the right edge for the squarer composer's geometry; here the
 	   12px is already symmetric. */
 	padding-right: 12px;
+	/* Collapsed, the 26px wrap is centred in the 36px input, 5px below its top. Expanded, the wrap
+	   starts the first flex line, so without the extra 5px the text jumps up as it starts to wrap. */
+	padding-top: 9.5px;
 }
 .tlui-cmt-canvas-composer .tlui-cmt-input__placeholder {
 	left: 12px;

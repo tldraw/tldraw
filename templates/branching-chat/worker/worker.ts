@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google'
 import { ExecutionContext } from '@cloudflare/workers-types'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { generateText, ModelMessage, smoothStream, streamText } from 'ai'
 import { WorkerEntrypoint } from 'cloudflare:workers'
 import { AutoRouter, error, IRequest } from 'itty-router'
@@ -23,7 +24,10 @@ export default class extends WorkerEntrypoint<Environment> {
 	}
 
 	private getModel(env: Environment) {
-		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_GENERATIVE_AI_API_KEY })(MODEL_ID)
+		if (env.OPENROUTER_API_KEY) {
+			return createOpenRouter({ apiKey: env.OPENROUTER_API_KEY })(`google/${MODEL_ID}`)
+		}
+		return createGoogleGenerativeAI({ apiKey: env.GOOGLE_API_KEY })(MODEL_ID)
 	}
 
 	// Generate a new response from the model

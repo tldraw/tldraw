@@ -62,7 +62,7 @@ spec:
         type: threshold
       queryType: expression
       source: true
-  for: 10m0s
+  for: 3m0s
   labels:
     service: zero
     severity: critical

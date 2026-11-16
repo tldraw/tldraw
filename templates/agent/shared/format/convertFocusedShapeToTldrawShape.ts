@@ -1,5 +1,6 @@
 import {
 	Box,
+	DefaultHorizontalAlignStyle,
 	createShapeId,
 	Editor,
 	IndexKey,
@@ -11,6 +12,7 @@ import {
 	TLDrawShape,
 	TLGeoShape,
 	TLGeoShapeGeoStyle,
+	TLGeoShapeProps,
 	TLLineShape,
 	TLNoteShape,
 	TLShape,
@@ -501,7 +503,9 @@ function convertGeoShapeToTldrawShape(
 			isLocked: defaultGeoShape.isLocked ?? false,
 			opacity: defaultGeoShape.opacity ?? 1,
 			props: {
-				align: focusedShape.textAlign ?? defaultGeoShape.props?.align ?? 'middle',
+				align: asHorizontalAlign(
+					focusedShape.textAlign ?? defaultGeoShape.props?.align ?? 'middle'
+				),
 				color: asColor(focusedShape.color ?? defaultGeoShape.props?.color ?? 'black'),
 				dash: defaultGeoShape.props?.dash ?? 'draw',
 				fill,
@@ -814,4 +818,13 @@ export function convertPartialFocusedShapeToTldrawShape(
 				? { x: focusedShape.x1 as number, y: focusedShape.y1 as number }
 				: null
 	return { shape: result.shape, bindings: result.bindings ?? null, position }
+}
+
+// A streaming action can carry a cut-off value, such as "midd".
+function asHorizontalAlign(align: TLGeoShapeProps['align']): TLGeoShapeProps['align'] {
+	try {
+		return DefaultHorizontalAlignStyle.validate(align)
+	} catch {
+		return 'middle'
+	}
 }
