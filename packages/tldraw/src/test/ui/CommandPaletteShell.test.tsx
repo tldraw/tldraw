@@ -868,7 +868,7 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 	})
 
-	it('shows no item icons, and gives every row a check slot', async () => {
+	it('shows no item icons, and gives only checkable rows a check slot', async () => {
 		const { rendered, input } = await renderShell(
 			<>
 				<TldrawUiMenuGroup id="edit" label="Edit">
@@ -886,16 +886,17 @@ describe('CommandPaletteShell', () => {
 		await rendered.findByText('Edit')
 		const iconCount = (testId: string) =>
 			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
-		for (const id of ['alpha', 'grid', 'gamma'])
-			expect(iconCount(`command-palette.item.${id}`)).toBe(1)
-		// The check slot plus the chevron.
-		expect(iconCount('command-palette.submenu.More')).toBe(2)
+		expect(['alpha', 'grid', 'gamma'].map((id) => iconCount(`command-palette.item.${id}`))).toEqual(
+			[0, 1, 0]
+		)
+		// Just the chevron.
+		expect(iconCount('command-palette.submenu.More')).toBe(1)
 		type(input, 'gam')
 		await waitFor(() => expect(rendered.queryByTestId('command-palette.item.grid')).toBeNull())
-		expect(iconCount('command-palette.item.gamma')).toBe(1)
+		expect(iconCount('command-palette.item.gamma')).toBe(0)
 	})
 
-	it('gives an opened submenu a check slot only when it has something to check', async () => {
+	it('gives rows in an opened submenu a check slot only when they are checkable', async () => {
 		const { rendered, input } = await renderShell(
 			<>
 				<TldrawUiMenuSubmenu id="pages" label="Pages">
@@ -913,7 +914,7 @@ describe('CommandPaletteShell', () => {
 		expect(iconCount('command-palette.item.a')).toBe(0)
 		press(input, 'Escape')
 		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Language'))
-		expect(iconCount('command-palette.item.de')).toBe(1)
+		expect(['en', 'de'].map((id) => iconCount(`command-palette.item.${id}`))).toEqual([1, 0])
 	})
 
 	it('marks checkable rows with aria-checked, keeping the check icon decorative', async () => {
@@ -930,9 +931,10 @@ describe('CommandPaletteShell', () => {
 		expect(
 			['on', 'off', 'current', 'plain'].map((id) => row(id).getAttribute('aria-checked'))
 		).toEqual(['true', 'false', 'true', null])
-		for (const id of ['on', 'off', 'current', 'plain']) {
+		for (const id of ['on', 'off', 'current']) {
 			expect(row(id).querySelector('.tlui-icon')!.getAttribute('aria-hidden')).toBe('true')
 		}
+		expect(row('plain').querySelector('.tlui-icon')).toBeNull()
 	})
 
 	it('ignores Enter while an IME composition is in progress', async () => {
@@ -1090,6 +1092,48 @@ describe('CommandPaletteShell', () => {
 		} finally {
 			Element.prototype.scrollIntoView = original
 		}
+	})
+
+	it('drops a hovered row when the pointer leaves it, but keeps one picked with the keys', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{item('alpha', 'Alpha')}
+				{item('beta', 'Beta')}
+			</>
+		)
+		const row = (id: string) => rendered.getByTestId(`command-palette.item.${id}`)
+		const highlighted = () =>
+			['alpha', 'beta'].filter((id) => row(id).dataset.highlighted === 'true')
+		await waitFor(() => expect(highlighted()).toEqual(['alpha']))
+		fireEvent.pointerMove(row('beta'))
+		await waitFor(() => expect(highlighted()).toEqual(['beta']))
+		fireEvent.pointerLeave(row('beta'))
+		await waitFor(() => expect(highlighted()).toEqual([]))
+		press(input, 'ArrowDown')
+		await waitFor(() => expect(highlighted()).toEqual(['alpha']))
+		fireEvent.pointerLeave(row('alpha'))
+		expect(highlighted()).toEqual(['alpha'])
+	})
+
+	it('draws no empty group where a separator meets a heading', async () => {
+		addCommandPaletteRecent('alpha')
+		const { rendered } = await renderShell(
+			<>
+				<TldrawUiMenuGroup id="edit" label="menu.edit">
+					{item('alpha', 'Alpha')}
+					{item('beta', 'Beta')}
+				</TldrawUiMenuGroup>
+				<TldrawUiMenuGroup id="view" label="menu.view">
+					{item('gamma', 'Gamma')}
+				</TldrawUiMenuGroup>
+			</>
+		)
+		const listbox = await rendered.findByRole('listbox')
+		await within(listbox).findByRole('group', { name: 'Recent' })
+		const groups = Array.from(listbox.children)
+		expect(groups.map((group) => group.querySelectorAll('[role="option"]').length)).toEqual([
+			1, 1, 1,
+		])
 	})
 
 	it('settles when items re-render every time the palette does', async () => {
