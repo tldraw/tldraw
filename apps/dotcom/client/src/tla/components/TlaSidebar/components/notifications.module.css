@@ -1,10 +1,16 @@
-/* Bounds the shared tlui-cmt-list inside the popover so its items scroll. */
+/* Bounds the shared tlui-cmt-list inside the popover so its items scroll. A fixed height, not a
+   max: the popover opens upward from the footer, so a shorter list (switching to Unread) would
+   move its header. */
 .wrap {
 	display: flex;
 	flex-direction: column;
 	width: 300px;
 	max-width: 92vw;
-	max-height: 60vh;
+	height: 42vh;
+}
+
+.wrap > :global(.tlui-cmt-list) {
+	flex: 1;
 }
 
 /* The author-coloured comment pin leading each row — the SDK pin silhouette (.tlui-cmt-pin),
@@ -80,7 +86,7 @@
 
 .button:global(.tlui-button)[data-state='open']::after {
 	visibility: visible;
-	background: var(--tl-gradient-btt);
+	background: var(--tl-muted-gradient-to-top);
 	opacity: 1;
 }
 

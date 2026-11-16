@@ -203,7 +203,7 @@ button.topLeftInputNameWidthSetter {
 
 .topLeftMainMenuTrigger[aria-pressed='true']::after,
 .topLeftMainMenuTrigger[data-state='open']::after {
-	background: var(--tl-gradient-ttb);
+	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
 }
 
@@ -294,7 +294,7 @@ button.topLeftInputNameWidthSetter {
 }
 
 .topRightAnonShareButton[data-state='open']::after {
-	background: var(--tl-gradient-ttb);
+	background: var(--tl-muted-gradient-to-bottom);
 	visibility: visible;
 	/* .tlui-button::after rests at opacity 0 and only tldraw's hover rule lifts it. */
 	opacity: 1;

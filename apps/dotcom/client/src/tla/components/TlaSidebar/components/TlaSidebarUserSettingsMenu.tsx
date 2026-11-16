@@ -75,7 +75,7 @@ export function TlaUserSettingsMenu() {
 					side="bottom"
 					align="end"
 					{...TLA_MENU_POSITION}
-					alignOffset={-18}
+					alignOffset={-6}
 				>
 					{user && (
 						<>

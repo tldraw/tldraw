@@ -65,7 +65,7 @@ export function TlaSidebarNotificationsButton() {
 				align="start"
 				{...TLA_MENU_POSITION}
 				alignOffset={alignOffset}
-				sideOffset={0}
+				sideOffset={4}
 				autoFocusFirstButton={false}
 			>
 				<TlaSidebarNotificationsPanel onClose={() => onOpenChange(false)} />
