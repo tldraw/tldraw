@@ -96,7 +96,9 @@ export function LibraryTabs({
 							className="tlui-libraries-tabs__tab"
 							title={label(group)}
 						>
-							{LibraryTabLabel && <LibraryTabLabel owner={getGroupOwner(group)} />}
+							{LibraryTabLabel && (
+								<LibraryTabLabel owner={getGroupOwner(group)} libraries={group.libraries} />
+							)}
 						</_Tabs.Trigger>
 					))}
 				</_Tabs.List>

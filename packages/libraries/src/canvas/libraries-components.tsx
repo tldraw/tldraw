@@ -1,5 +1,6 @@
 import { type ComponentType, createContext, type ReactNode, useContext } from 'react'
 import { useShallowObjectIdentity } from 'tldraw'
+import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary, TLLibraryItem } from '../lib/schema'
 import type { ItemMenuProps } from '../ui/item-menu'
 import type { ItemTileProps } from '../ui/item-tile'
@@ -35,17 +36,20 @@ export interface LibrariesComponents {
 	 */
 	NoLibraries?: ComponentType<NoLibrariesProps> | null
 	/**
-	 * A library's header: its name, which folds the library shut, and its ⋯ menu. Replaces the
-	 * default {@link LibrarySectionHeader}, which renders the `LibraryMenu` slot. Use `LibraryMenu`
-	 * instead when only the menu is changing.
+	 * A library's header: its name, which folds the library shut, and its ⋯ menu, passed as `menu`
+	 * from the `LibraryMenu` slot. Replaces the default {@link LibrarySectionHeader}. An override
+	 * must end a rename it's shown, as the default's input does, or the panel stays in renaming. Use
+	 * `LibraryMenu` instead when only the menu is changing.
 	 */
 	LibrarySectionHeader?: ComponentType<LibrarySectionHeaderProps> | null
 	/**
-	 * A library's ⋯ menu, in its header. Replaces the default {@link LibraryMenu}, so a menu that
+	 * A library's ⋯ menu, passed to its header as `menu`. Replaces the default {@link LibraryMenu}, so a menu that
 	 * only adds actions can pass them to it as children, e.g. {@link LibraryMenuItem}s. The panel's
 	 * own ⋯ menu is part of `LibrariesPanelHeader`.
 	 */
-	LibraryMenu?: ComponentType<LibraryMenuProps & { library: TLLibrary }> | null
+	LibraryMenu?: ComponentType<
+		LibraryMenuProps & { source: LibrarySource; library: TLLibrary }
+	> | null
 	/**
 	 * Shown in place of a library's items when it has none and they can't be added. Replaces the
 	 * default {@link EmptyLibrary} message.

@@ -1,5 +1,6 @@
 import { defineMessages, TldrawUiIcon, useTranslation } from 'tldraw'
 import type { TLLibraryOwner } from '../lib/LibrarySource'
+import type { TLLibrary } from '../lib/schema'
 
 const messages = defineMessages({
 	other: { id: 'libraries.tabs.other', defaultMessage: 'Other' },
@@ -9,6 +10,8 @@ const messages = defineMessages({
 export interface LibraryTabLabelProps {
 	/** The tab's owner. Undefined for the tab of libraries without a known owner. */
 	owner?: TLLibraryOwner
+	/** The libraries in the tab, in the panel's order. */
+	libraries: TLLibrary[]
 }
 
 /**

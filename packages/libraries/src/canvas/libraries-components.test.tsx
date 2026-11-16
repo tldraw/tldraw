@@ -17,6 +17,7 @@ import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryRecordType } from '../lib/schema'
+import { MenuItem } from '../ui/menu-items'
 import { type LibrariesComponents, LibrariesComponentsProvider } from './libraries-components'
 import { LibrariesPanel } from './libraries-panel'
 import { librariesPanelOpen } from './state'
@@ -73,6 +74,7 @@ beforeAll(() => {
 		disconnect() {}
 	}
 	Element.prototype.scrollTo ??= () => {}
+	Element.prototype.scrollIntoView ??= () => {}
 })
 
 beforeEach(() => {
@@ -98,10 +100,11 @@ afterEach(() => {
 async function renderPanel(
 	components?: LibrariesComponents,
 	outer?: LibrariesComponents,
-	source?: LibrarySource
+	source?: LibrarySource,
+	menuItems?: ReactNode
 ) {
 	source ??= await makeSource()
-	const panel = <LibrariesPanel source={source} components={components} />
+	const panel = <LibrariesPanel source={source} components={components} menuItems={menuItems} />
 	await act(async () => {
 		root.render(
 			<ContainerProvider container={container}>
@@ -195,6 +198,9 @@ describe('LibrariesPanel components with a tab per owner', () => {
 		})
 		const panel = await renderPanel(
 			{
+				LibraryTabLabel: ({ owner, libraries }) => (
+					<span data-testid="tab">{`${owner?.id}:${libraries.length}`}</span>
+				),
 				NoLibraries: ({ owner, newLibrary }) => (
 					<p data-testid="empty" data-owner={owner?.id}>
 						{newLibrary?.label}
@@ -208,10 +214,54 @@ describe('LibrariesPanel components with a tab per owner', () => {
 			el.getAttribute('data-owner'),
 			el.textContent,
 		])
+		expect([...panel.querySelectorAll('[data-testid="tab"]')].map((el) => el.textContent)).toEqual([
+			'packs:0',
+			'board:0',
+		])
 		expect(empties).toEqual([
 			['packs', ''],
 			['board', 'New library in Board'],
 		])
+	})
+})
+
+describe('LibrariesPanel components with a custom library header', () => {
+	it('lets the header end the rename that New library starts', async () => {
+		const panel = await renderPanel(
+			{
+				LibrarySectionHeader: ({ library, menu, isRenaming, onRenameComplete }) => (
+					<header data-testid="header">
+						{isRenaming ? (
+							<button data-testid="done" onClick={() => onRenameComplete('Mine')} />
+						) : (
+							<span data-testid="name">{library.name}</span>
+						)}
+						{menu}
+					</header>
+				),
+			},
+			undefined,
+			new InMemoryLibrarySource({ id: 'rename' }),
+			<MenuItem label="Host item" onClick={() => {}} />
+		)
+		const menuIn = (selector: string) =>
+			panel.querySelector(`${selector} [aria-label="Library options"]`)
+		const click = async (selector: string) => {
+			await act(async () => {
+				panel.querySelector<HTMLButtonElement>(selector)!.click()
+			})
+		}
+		expect(menuIn(':scope > header')).not.toBeNull()
+
+		await click(':scope > header button[aria-label="New library"]')
+		expect(panel.querySelector('[data-testid="done"]')).not.toBeNull()
+		expect(menuIn(':scope > header')).toBeNull()
+		expect(menuIn('[data-testid="header"]')).toBeNull()
+
+		await click('[data-testid="done"]')
+		expect(panel.querySelector('[data-testid="name"]')?.textContent).toBe('Mine')
+		expect(menuIn(':scope > header')).not.toBeNull()
+		expect(menuIn('[data-testid="header"]')).not.toBeNull()
 	})
 })
 
