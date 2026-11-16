@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useState } from 'react'
 import {
 	defineMessages,
 	EditorPortal,
@@ -6,6 +6,7 @@ import {
 	useTranslation,
 	useValue,
 	type TLLibrary,
+	type TLLibraryItemId,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibrariesPanelHeader } from './libraries-panel-header'
@@ -18,7 +19,7 @@ import { NoLibraries } from './no-libraries'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useCreateLibrary } from './use-create-library'
-import { useItemDrag } from './use-item-drag'
+import { type ItemPick, useItemDrag } from './use-item-drag'
 import { usePickItem } from './use-pick-item'
 
 const messages = defineMessages({
@@ -53,8 +54,9 @@ export interface LibrariesPanelProps {
  * active tab's owner. Setting {@link activeLibraryId} switches to the tab holding that library.
  * Clicking an item arms it where the host has added {@link LibraryStampTool}, and the item shows
  * pressed while it stays armed: an item that stands for a tool arms that tool, any other arms the
- * stamp tool to place copies of it. Without the stamp tool, clicking places a copy in the middle of
- * the viewport. Dragging an item out drops a copy under the pointer.
+ * stamp tool to place copies of it. Without the stamp tool, or when picked from the keyboard,
+ * clicking places a copy in the middle of the viewport. Dragging an item out drops a copy under the
+ * pointer.
  * @public @react
  */
 export function LibrariesPanel({
@@ -71,7 +73,13 @@ export function LibrariesPanel({
 	const libraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
 	const pickItem = usePickItem(source)
-	const getItemProps = useItemDrag(source, pickItem)
+	// Arming needs a pointer to place with, so a tile picked from the keyboard places a copy instead.
+	const pickTile = useCallback(
+		(itemId: TLLibraryItemId, { thumbnailUrl, fromKeyboard }: ItemPick) =>
+			pickItem(itemId, { thumbnailUrl, placeAtCentre: fromKeyboard }),
+		[pickItem]
+	)
+	const getItemProps = useItemDrag(source, pickTile)
 	const createLibrary = useCreateLibrary(source)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()

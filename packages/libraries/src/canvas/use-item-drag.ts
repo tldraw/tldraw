@@ -1,6 +1,14 @@
-import { PointerEvent, useMemo } from 'react'
+import { type MouseEvent, PointerEvent, useMemo } from 'react'
 import { getPointerInfo, react, TLLibraryItemId, TLContent, useEditor, Vec, VecModel } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+
+/** How an item was picked, for `onPlace`. */
+export interface ItemPick {
+	/** The thumbnail its tile showed, if any. */
+	thumbnailUrl?: string
+	/** Picked with the keyboard (or assistive tech) rather than a pointer: no pointer to place with. */
+	fromKeyboard: boolean
+}
 
 type DragState =
 	| { name: 'idle' }
@@ -22,7 +30,7 @@ type DragState =
  */
 export function useItemDrag(
 	source: LibrarySource,
-	onPlace: (itemId: TLLibraryItemId) => void,
+	onPlace: (itemId: TLLibraryItemId, pick: ItemPick) => void,
 	onDragStart?: () => void
 ) {
 	const editor = useEditor()
@@ -137,7 +145,7 @@ export function useItemDrag(
 			)
 		}
 
-		return (itemId: TLLibraryItemId) => ({
+		return (itemId: TLLibraryItemId, thumbnailUrl?: string) => ({
 			onPointerEnter() {
 				load(itemId)
 			},
@@ -182,10 +190,11 @@ export function useItemDrag(
 				if (state.name === 'dragging') editor.cancel()
 				state = { name: 'idle' }
 			},
-			onClick() {
+			onClick(e: MouseEvent<HTMLButtonElement>) {
 				const wasDrag = state.name === 'dragging'
 				state = { name: 'idle' }
-				if (!wasDrag) onPlace(itemId)
+				// A click from Enter, Space or assistive tech has no pointer presses behind it.
+				if (!wasDrag) onPlace(itemId, { thumbnailUrl, fromKeyboard: e.detail === 0 })
 			},
 		})
 	}, [editor, source, onPlace, onDragStart])

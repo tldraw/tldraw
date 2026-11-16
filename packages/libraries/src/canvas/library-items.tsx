@@ -63,7 +63,10 @@ export interface LibraryItemsProps {
 	libraryId: TLLibraryId
 	/** Where the tiles are measured for their thumbnail size. */
 	container: HTMLElement | null
-	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	getItemProps(
+		itemId: TLLibraryItemId,
+		thumbnailUrl?: string
+	): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: ItemOrdering
 	reversed: boolean
 	prepareItemContent?: PrepareItemContent
@@ -127,7 +130,7 @@ export function LibraryItems({
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const props = {
-				...getItemProps(itemId),
+				...getItemProps(itemId, thumbnailUrls[itemId] ?? undefined),
 				'aria-pressed': canArm ? armedItemId === itemId : undefined,
 			}
 			if (!hasItemMenu) return props
@@ -143,7 +146,7 @@ export function LibraryItems({
 				},
 			}
 		},
-		[getItemProps, canArm, armedItemId, hasItemMenu, editor]
+		[getItemProps, thumbnailUrls, canArm, armedItemId, hasItemMenu, editor]
 	)
 	const showChangeError = useCallback(
 		(title: string) => {

@@ -12,6 +12,13 @@ const messages = defineMessages({
 	},
 })
 
+export interface PickItemOptions {
+	/** The thumbnail the item was picked by, for the stamp tool's preview. */
+	thumbnailUrl?: string
+	/** Places a copy in the middle of the viewport even where items can be armed. */
+	placeAtCentre?: boolean
+}
+
 /**
  * What picking an item does: arms it where the host has added the stamp tool, otherwise places a
  * copy in the middle of the viewport. Shows a toast when the item can't be loaded.
@@ -21,10 +28,11 @@ export function usePickItem(source: LibrarySource) {
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	return useCallback(
-		(itemId: TLLibraryItemId, thumbnailUrl?: string) => {
-			const picked = hasLibraryStampTool(editor)
-				? armLibraryItem(editor, source, itemId, { thumbnailUrl })
-				: placeLibraryItem(editor, source, itemId)
+		(itemId: TLLibraryItemId, { thumbnailUrl, placeAtCentre = false }: PickItemOptions = {}) => {
+			const picked =
+				!placeAtCentre && hasLibraryStampTool(editor)
+					? armLibraryItem(editor, source, itemId, { thumbnailUrl })
+					: placeLibraryItem(editor, source, itemId)
 			picked.catch(() => {
 				addToast({
 					title: msg(messages.placeErrorTitle),

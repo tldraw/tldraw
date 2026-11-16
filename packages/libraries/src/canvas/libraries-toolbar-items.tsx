@@ -19,7 +19,7 @@ import type { TLLibraryItem } from '../lib/schema'
 import { LibraryIcon } from '../ui/library-icon'
 import { isLibraryItemArmed } from './arm-item'
 import { getToolbarLibraryIds } from './toolbar-libraries'
-import { useItemDrag } from './use-item-drag'
+import { type ItemPick, useItemDrag } from './use-item-drag'
 import { usePickItem } from './use-pick-item'
 import { useThumbnailUrls } from './use-thumbnail-urls'
 
@@ -77,13 +77,13 @@ function ToolbarLibrary({ source, library }: { source: LibrarySource; library: T
 
 	const pickItem = usePickItem(source)
 	const close = useCallback(() => handleOpenChange(false), [handleOpenChange])
+	// Picked from the keyboard too, an item arms, as a toolbar tool does.
 	const pickAndClose = useCallback(
-		(itemId: TLLibraryItemId) => {
-			// The thumbnail the item was picked by, for the stamp's preview.
-			pickItem(itemId, gridUrls[itemId] ?? undefined)
+		(itemId: TLLibraryItemId, { thumbnailUrl }: ItemPick) => {
+			pickItem(itemId, { thumbnailUrl })
 			close()
 		},
-		[pickItem, gridUrls, close]
+		[pickItem, close]
 	)
 	const getItemProps = useItemDrag(source, pickAndClose, close)
 
@@ -122,7 +122,7 @@ function ToolbarLibrary({ source, library }: { source: LibrarySource; library: T
 								data-value={item.id}
 								aria-pressed={item.id === armedItemId}
 								isActive={item.id === armedItemId}
-								{...getItemProps(item.id)}
+								{...getItemProps(item.id, gridUrls[item.id] ?? undefined)}
 							>
 								<ItemIcon source={source} item={item} thumbnailUrl={gridUrls[item.id]} />
 							</TldrawUiToolbarButton>

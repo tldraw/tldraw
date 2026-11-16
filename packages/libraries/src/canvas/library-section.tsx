@@ -17,7 +17,10 @@ export function LibrarySection({
 }: {
 	source: LibrarySource
 	library: TLLibrary
-	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	getItemProps(
+		itemId: TLLibraryItemId,
+		thumbnailUrl?: string
+	): ButtonHTMLAttributes<HTMLButtonElement>
 	prepareItemContent?: PrepareItemContent
 	canPutInToolbar?: boolean
 }) {
