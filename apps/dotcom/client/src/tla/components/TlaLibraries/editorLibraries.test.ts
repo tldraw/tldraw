@@ -36,7 +36,7 @@ function setUp() {
 		getContainer: () => document.body,
 	})
 	editors.push(editor)
-	return { editor, source: getEditorLibraries(app, libraries, editor, 'file-a') }
+	return { editor, backend, source: getEditorLibraries(app, libraries, editor, 'file-a') }
 }
 
 const ofType = (editor: Editor, typeName: string) =>
@@ -127,5 +127,27 @@ describe('getEditorLibraries', () => {
 		await source.moveItem!(homeItem.id, own.id)
 		expect(source.getItems(own.id)).toHaveLength(1)
 		expect(ofType(editor, 'asset').map((a) => a.id)).toEqual([assetId])
+	})
+
+	it("copies a board library's items to a workspace in one request, in their order", async () => {
+		const { editor, backend, source } = setUp()
+		const library = await new BoardLibrarySource(editor).createLibrary('Shapes')
+		const names = ['One', 'Two', 'Three', 'Four', 'Five']
+		for (const name of names) {
+			const id = createShapeId()
+			editor.createShape({ id, type: 'geo' })
+			await source.addItem(library.id, {
+				name,
+				content: { formatVersion: 1, content: editor.getContentFromCurrentPage([id])! },
+			})
+		}
+		const boardOrder = source.getItems(library.id).map((item) => item.name)
+
+		const copy = await copyLibrary(source, library.id, 'home')
+
+		const itemRequests = backend.fetch.mock.calls.filter(([url]) => String(url).endsWith('/items'))
+		expect(itemRequests).toHaveLength(1)
+		expect(source.getItems(copy.id).map((item) => item.name)).toEqual(boardOrder)
+		expect(boardOrder).toHaveLength(names.length)
 	})
 })
