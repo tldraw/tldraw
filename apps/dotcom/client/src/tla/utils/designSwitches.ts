@@ -21,8 +21,8 @@ function designSwitch(id: string, label: string, initialValue = false): DesignSw
 }
 
 export const designSwitches = {
-	// Proves the menu end to end. Replace it with the first real idea.
-	placeholder: designSwitch('placeholder', 'Placeholder switch'),
+	// Settings dialog: tabs in a column beside the page instead of a strip above it.
+	settingsVerticalTabs: designSwitch('settings-vertical-tabs', 'Vertical settings tabs'),
 } satisfies Record<string, DesignSwitch>
 
 export type DesignSwitchId = keyof typeof designSwitches

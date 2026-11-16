@@ -25,6 +25,7 @@ import { useApp } from '../../hooks/useAppState'
 import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
 import { useSignOut } from '../../hooks/useSignOut'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
+import { useDesignSwitch } from '../../utils/designSwitches'
 import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import { ExternalLink } from '../ExternalLink/ExternalLink'
 import {
@@ -77,7 +78,7 @@ export function TlaSettingsDialog() {
 	const app = useApp()
 	const trackAppEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
-	const signOut = useSignOut('user-preferences')
+	const hasVerticalTabs = useDesignSwitch('settingsVerticalTabs')
 
 	// Lives here, not in ProfilePanel: inactive tab pages unmount, so a panel-level effect
 	// would report once per visit to the tab instead of once per dialog.
@@ -103,8 +104,18 @@ export function TlaSettingsDialog() {
 		{ id: 'about', label: msg(messages.about) },
 	]
 
+	const pages = tabs.map(({ id }) => (
+		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
+			{id === 'profile' && <ProfilePanel onNameChange={handleNameChange} />}
+			{id === 'preferences' && <PreferencesPanel />}
+			{id === 'canvas' && <CanvasPanel />}
+			{id === 'accessibility' && <AccessibilityPanel />}
+			{id === 'about' && <AboutPanel />}
+		</TlaMenuTabsPage>
+	))
+
 	return (
-		<div className={styles.dialog}>
+		<div className={classNames(styles.dialog, hasVerticalTabs && styles.dialogVertical)}>
 			<TldrawUiDialogHeader>
 				<TldrawUiDialogTitle>
 					<F defaultMessage="Settings" />
@@ -115,36 +126,61 @@ export function TlaSettingsDialog() {
 				activeTab={activeTab}
 				onTabChange={(tab) => setActiveTab(tab as SettingsTab)}
 			>
-				<div className={styles.tabs}>
-					<TlaMenuTabsTabs>
-						{tabs.map(({ id, label }) => (
-							<TlaMenuTabsTab key={id} id={id} data-testid={`tla-settings-tab-${id}`}>
-								{label}
-							</TlaMenuTabsTab>
-						))}
-					</TlaMenuTabsTabs>
-				</div>
-				{tabs.map(({ id }) => (
-					<TlaMenuTabsPage key={id} id={id} className={styles.page}>
-						{id === 'profile' && <ProfilePanel onNameChange={handleNameChange} />}
-						{id === 'preferences' && <PreferencesPanel />}
-						{id === 'canvas' && <CanvasPanel />}
-						{id === 'accessibility' && <AccessibilityPanel />}
-						{id === 'about' && <AboutPanel />}
-					</TlaMenuTabsPage>
-				))}
+				{hasVerticalTabs ? (
+					<div className={styles.columns}>
+						<div className={styles.nav}>
+							<div className={styles.navTabs} role="tablist" aria-orientation="vertical">
+								{tabs.map(({ id, label }) => (
+									<button
+										key={id}
+										role="tab"
+										aria-selected={activeTab === id}
+										aria-controls={`tla-tabpanel-${id}`}
+										data-testid={`tla-settings-tab-${id}`}
+										className={classNames(styles.navTab, 'tla-text_ui__medium')}
+										onClick={() => setActiveTab(id)}
+									>
+										{label}
+									</button>
+								))}
+							</div>
+							<SignOutButton className={classNames(styles.navTab, styles.navSignOut)} />
+						</div>
+						{pages}
+					</div>
+				) : (
+					<>
+						<div className={styles.tabs}>
+							<TlaMenuTabsTabs>
+								{tabs.map(({ id, label }) => (
+									<TlaMenuTabsTab key={id} id={id} data-testid={`tla-settings-tab-${id}`}>
+										{label}
+									</TlaMenuTabsTab>
+								))}
+							</TlaMenuTabsTabs>
+						</div>
+						{pages}
+						<div className={styles.footer}>
+							<SignOutButton className={classNames(styles.link, styles.signOut)} />
+						</div>
+					</>
+				)}
 			</TlaMenuTabsRoot>
-			<div className={styles.footer}>
-				<button
-					className={classNames(styles.link, styles.signOut, 'tla-text_ui__medium')}
-					data-testid="tla-settings-sign-out"
-					onClick={signOut}
-				>
-					<TlaIcon icon="sign-out" />
-					<F defaultMessage="Sign out" />
-				</button>
-			</div>
 		</div>
+	)
+}
+
+function SignOutButton({ className }: { className: string }) {
+	const signOut = useSignOut('user-preferences')
+	return (
+		<button
+			className={classNames(className, 'tla-text_ui__medium')}
+			data-testid="tla-settings-sign-out"
+			onClick={signOut}
+		>
+			<TlaIcon icon="sign-out" />
+			<F defaultMessage="Sign out" />
+		</button>
 	)
 }
 

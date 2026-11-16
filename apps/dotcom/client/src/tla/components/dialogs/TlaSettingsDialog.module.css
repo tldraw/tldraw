@@ -146,3 +146,108 @@
 	gap: 6px;
 	color: var(--tl-color-danger);
 }
+
+/* ---- Vertical tabs (the settingsVerticalTabs design switch) ---- */
+
+.dialogVertical {
+	width: 544px;
+}
+
+/* The nav column and the page side by side, at the same fixed height as a page on its own. */
+.columns {
+	display: flex;
+	flex: 0 1 296px;
+	min-height: 0;
+}
+
+.columns > .page {
+	flex: 1;
+	min-width: 0;
+}
+
+.nav {
+	flex: 0 0 140px;
+	display: flex;
+	flex-direction: column;
+	padding: var(--tl-space-4) 0 var(--tl-space-4) var(--tl-space-4);
+	margin-right: var(--tl-space-3);
+}
+
+.navTabs {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+}
+
+.navTab {
+	margin: 0;
+	border: none;
+	background: none;
+	height: 32px;
+	padding: 0 var(--tl-space-3);
+	border-radius: var(--tl-radius-2);
+	display: flex;
+	align-items: center;
+	gap: 6px;
+	color: var(--tl-color-text-1);
+	text-align: start;
+	cursor: pointer;
+}
+
+.navTab[aria-selected='true'] {
+	background-color: var(--tl-color-muted-2);
+	color: var(--tl-color-text-0);
+}
+
+@media (hover: hover) {
+	.navTab:hover {
+		background-color: var(--tl-color-muted-2);
+	}
+}
+
+.navTab:focus-visible {
+	outline: 2px solid var(--tl-color-focus);
+	outline-offset: -2px;
+}
+
+.navSignOut {
+	margin-top: auto;
+	color: var(--tl-color-danger);
+}
+
+/* Too narrow for two columns: the nav becomes a strip that scrolls sideways, with Sign out pinned. */
+@media (max-width: 600px) {
+	.columns {
+		flex-direction: column;
+		flex-basis: auto;
+	}
+
+	.columns > .page {
+		flex: 0 1 296px;
+	}
+
+	.nav {
+		flex: none;
+		flex-direction: row;
+		padding: 0 var(--tl-space-4);
+		margin-right: 0;
+	}
+
+	.navTabs {
+		flex-direction: row;
+		flex: 1 1 auto;
+		min-width: 0;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.navTab {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.navSignOut {
+		margin-top: 0;
+		margin-left: var(--tl-space-2);
+	}
+}
