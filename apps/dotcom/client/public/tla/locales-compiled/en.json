@@ -149,6 +149,12 @@
       "value": "Send feedback"
     }
   ],
+  "0f3113590c": [
+    {
+      "type": 0,
+      "value": "Uploads"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -2214,6 +2220,12 @@
     {
       "type": 0,
       "value": "Import file…"
+    }
+  ],
+  "fff0d600f8": [
+    {
+      "type": 0,
+      "value": "Images"
     }
   ]
 }

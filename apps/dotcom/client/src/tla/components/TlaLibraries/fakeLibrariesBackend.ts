@@ -2,6 +2,7 @@ import type { TlaLibrary, TlaLibraryItem, TlaLibraryItemThumbnail } from '@tldra
 import type { JsonObject } from '@tldraw/utils'
 import { atom } from 'tldraw'
 import { vi } from 'vitest'
+import { USER_CONTENT_URL } from '../../../utils/config'
 import type { TldrawApp } from '../../app/TldrawApp'
 
 type Row = TlaLibrary & { items: TlaLibraryItem[] }
@@ -23,11 +24,19 @@ function createHold() {
  * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
  * mutations back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
  * of rows the worker inserts (`holdWorkerRows`).
+ *
+ * `userUploads` are what the worker lists as the user's uploads; every user content URL answers with a
+ * small PNG.
  */
 export function createFakeLibrariesBackend({
 	userId = 'user_me',
 	workspaces = [{ id: 'acme', name: 'Acme' }],
-}: { userId?: string; workspaces?: { id: string; name: string }[] } = {}) {
+	userUploads = [],
+}: {
+	userId?: string
+	workspaces?: { id: string; name: string }[]
+	userUploads?: { objectName: string; fileId: string; uploadedAt: number }[]
+} = {}) {
 	const rows = atom<Row[]>('fake library rows', [])
 	const contents = new Map<string, string>()
 	let uploads = 0
@@ -154,6 +163,10 @@ export function createFakeLibrariesBackend({
 
 	const routes = async (url: string, init: RequestInit = {}): Promise<Response> => {
 		if (requestHold && !(await requestHold.passes)) return new Response(null, { status: 500 })
+		if (url === '/api/app/my-uploads') return Response.json({ uploads: userUploads })
+		if (url.startsWith(USER_CONTENT_URL)) {
+			return new Response(new Blob(['png'], { type: 'image/png' }))
+		}
 		let match = url.match(/^\/api\/app\/libraries\/([^/]+)\/items$/)
 		if (match && init.method === 'POST') {
 			const form = init.body as FormData

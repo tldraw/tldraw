@@ -1,4 +1,9 @@
-import { copyLibrary, whenItemsStored, type TLLibraryItem } from '@tldraw/libraries'
+import {
+	copyLibrary,
+	placeLibraryItem,
+	whenItemsStored,
+	type TLLibraryItem,
+} from '@tldraw/libraries'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -7,6 +12,7 @@ import {
 	defaultBindingUtils,
 	defaultShapeUtils,
 	Editor,
+	MediaHelpers,
 	type TLRecord,
 } from 'tldraw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -15,6 +21,7 @@ import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
 import { addStarterPack, isStarterPackAdded } from './starterPacks'
+import { TldrawAppUploadsSource } from './uploadsSource'
 
 // An add, once its items are stored as well as listed.
 async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
@@ -31,10 +38,13 @@ afterEach(() => {
 	vi.unstubAllGlobals()
 })
 
-function setUp() {
-	const backend = createFakeLibrariesBackend({ userId: 'home' })
+const UPLOAD = { objectName: 'V1StGXR8_Z5jdHi6B-myT-photo-png', fileId: 'file-b', uploadedAt: 1 }
+
+function setUp({ withUploads = false } = {}) {
+	const backend = createFakeLibrariesBackend({ userId: 'home', userUploads: [UPLOAD] })
 	vi.stubGlobal('fetch', backend.fetch)
-	const { app } = backend
+	const uploads = withUploads ? new TldrawAppUploadsSource(backend.app, backend.getToken) : null
+	const app = Object.assign(backend.app, { uploads })
 	const libraries = new TldrawAppLibrariesSource(app, backend.getToken)
 	const editor = new Editor({
 		store: createTLStore({ schema: createTLSchema({ records: fileSchemaRecords }) }),
@@ -44,7 +54,7 @@ function setUp() {
 		getContainer: () => document.body,
 	})
 	editors.push(editor)
-	return { editor, backend, source: getEditorLibraries(app, libraries, editor, 'file-a') }
+	return { editor, backend, uploads, source: getEditorLibraries(app, libraries, editor, 'file-a') }
 }
 
 const ofType = (editor: Editor, typeName: string) =>
@@ -169,5 +179,58 @@ describe('getEditorLibraries', () => {
 		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
 		await source.moveLibrary!(copy.id, 'acme')
 		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+	})
+
+	it("lists the user's uploads under their own owner, where nothing can be changed", async () => {
+		const { source } = setUp({ withUploads: true })
+		expect(source.getLibraryOwners?.().at(-1)).toMatchObject({
+			id: 'uploads',
+			name: 'Uploads',
+		})
+		const uploads = source.getLibraries().find((library) => library.ownerId === 'uploads')!
+		expect(uploads.name).toBe('Images')
+		expect(source.can('createLibrary', { ownerId: 'uploads' })).toBe(false)
+		expect(source.can('addItem', uploads.id)).toBe(false)
+		expect(source.can('deleteItem', uploads.id)).toBe(false)
+		await expect(source.deleteLibrary(uploads.id)).rejects.toThrow()
+	})
+
+	it('places an upload on the board as an image over the upload, from its file', async () => {
+		const { editor, source, uploads: uploadsSource } = setUp({ withUploads: true })
+		await uploadsSource!.refresh()
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 40, h: 30, pixelRatio: 1 })
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		const uploads = source.getLibraries().find((library) => library.ownerId === 'uploads')!
+		const [item] = source.getItems(uploads.id)
+
+		await placeLibraryItem(editor, source, item.id)
+
+		expect(ofType(editor, 'asset')).toMatchObject([
+			{
+				props: { src: `https://tldrawusercontent.com/${UPLOAD.objectName}`, w: 40, h: 30 },
+				meta: { fileId: 'file-b' },
+			},
+		])
+		expect(editor.getCurrentPageShapes()).toMatchObject([
+			{ type: 'image', props: { w: 40, h: 30 } },
+		])
+	})
+
+	it('copies the uploads to a workspace, with their content and thumbnails', async () => {
+		const { backend, source, uploads: uploadsSource } = setUp({ withUploads: true })
+		await uploadsSource!.refresh()
+		vi.spyOn(MediaHelpers, 'getImageSize').mockResolvedValue({ w: 40, h: 30, pixelRatio: 1 })
+		vi.spyOn(MediaHelpers, 'isAnimated').mockResolvedValue(false)
+		const uploads = source.getLibraries().find((library) => library.ownerId === 'uploads')!
+
+		const copy = await copyLibrary(source, uploads.id, 'home')
+		await whenItemsStored(source.getItems(copy.id).map((item) => item.id))
+
+		expect(copy).toMatchObject({ name: 'Images', ownerId: 'home' })
+		const [item] = source.getItems(copy.id)
+		expect(item).toMatchObject({ name: 'photo.png', thumbnail: expect.any(String) })
+		const { content } = JSON.parse(backend.contents.get(item.id.slice('library-item:'.length))!)
+		expect(content.assets).toMatchObject([{ meta: { fileId: 'file-b' } }])
+		expect(source.getItems(uploads.id)).toHaveLength(1)
 	})
 })
