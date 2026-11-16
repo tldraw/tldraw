@@ -1,5 +1,6 @@
 import { SerializedSchema, TLRecord, fetch } from 'tldraw'
-import { IFrameProtector, ROOM_CONTEXT } from '../../components/IFrameProtector'
+import { IFrameProtector } from '../../components/IFrameProtector'
+import { ROOM_CONTEXT } from '../../components/roomContext'
 import { defineLoader } from '../../utils/defineLoader'
 import { PUBLISH_ENDPOINT } from '../app/TldrawApp'
 import { TlaPublishEditor } from '../components/TlaEditor/TlaPublishEditor'
@@ -19,6 +20,7 @@ const { loader, useData } = defineLoader(async (args) => {
 	}
 })
 
+// oxlint-disable-next-line react/only-export-components -- React Router reads `loader` from the lazy route module
 export { loader }
 
 export function Component() {

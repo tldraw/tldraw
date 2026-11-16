@@ -11,12 +11,12 @@ import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getLocalSessionState, updateLocalSessionState } from '../../utils/local-session-state'
 import {
-	TLA_MENU_POSITION,
 	TlaMenuTabsPage,
 	TlaMenuTabsRoot,
 	TlaMenuTabsTab,
 	TlaMenuTabsTabs,
 } from '../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { TlaAnonCopyLinkTab } from './Tabs/TlaAnonCopyLinkTab'
 import { TlaExportTab } from './Tabs/TlaExportTab'
 import { TlaInviteTab } from './Tabs/TlaInviteTab'

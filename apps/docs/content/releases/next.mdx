@@ -8,7 +8,7 @@ status: published
 last_version: v5.6.0
 ---
 
-So far this release adds a command palette (Cmd/Ctrl+K), lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, adds avatar and byline slots to `@tldraw/commenting`, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
+So far this release adds a command palette (Cmd/Ctrl+K), lets shapes decide whether they can flip, gates action execution on action predicates across menus and shortcuts, brings multi-comment placement and UI polish to `@tldraw/commenting`, restyles the error screen, improves crop mode, switches sync server templates to `node:sqlite`, and runs agent starter kit actions through tool calls. It also includes bug fixes across arrow binding in locked groups, UI translation loading, icon fallback outside asset providers, `.tldr` asset preservation, media asset handling, frame hit testing, text shape bounds, cursor chat, locked frame shortcuts, screen readers, and the comment composer.
 
 ## What's new
 
@@ -32,9 +32,11 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - `ColorSchemeMenu`, `InputModeMenu` and `LanguageMenu` now report their real menu as the `onUiEvent` source (for example `'main-menu'` or `'help-menu'`) instead of `'menu'`. ([#11156](https://github.com/tldraw/tldraw/pull/11156))
 - 💥 Move the Cmd+G and Cmd+Alt+G shortcuts from the `group` and `frame-selection` actions to new `toggle-group` and `toggle-frame` actions, which pick `group` or `ungroup`, and `frame-selection` or `remove-frame`, from the selection. `group` and `frame-selection` no longer have a `kbd`, so menus no longer show a shortcut next to them. To rebind or disable these shortcuts, override `actions['toggle-group']` or `actions['toggle-frame']` instead, for example `actions['toggle-group'].kbd = 'cmd+m,ctrl+m'` or `delete actions['toggle-group']`; setting `kbd` on `group` or `frame-selection` now registers a separate shortcut that only groups or frames. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - 💥 Remove unused `help-menu.discord`, `help-menu.github`, and `help-menu.twitter` keys from `TLUiTranslationKey`. ([#11258](https://github.com/tldraw/tldraw/pull/11258))
+- 💥 Remove `comments.dismiss` from `TLUiTranslationKey`. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
 - Actions don't run when `isAvailable` or `isEnabled` returns false, or when the editor is readonly and the action isn't `readonlyOk`, whether they're triggered from a menu, a keyboard shortcut or an `onSelect` call on an action from `useActions()`. The copy, cut and paste shortcuts still come from native clipboard events and aren't gated. If your app calls a custom action directly in readonly mode, set `readonlyOk: true` on it. An override that replaces a built-in's `onSelect`, in place or by spreading it, keeps the built-in's `isEnabled`, so the action no longer runs from a shortcut or `useActions()` when that returns false; override `isEnabled` too if your `onSelect` handles that case. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
-- Add `Editor.getShapesInReadingOrder(shapes)` to sort an arbitrary set of shapes into reading order. ([#10505](https://github.com/tldraw/tldraw/pull/10505))
 - Add `CommentByline` and `Avatar` component slots to `@tldraw/commenting`, so you can change how comment authors and their avatars are shown. ([#11447](https://github.com/tldraw/tldraw/pull/11447))
+- Add `comments.close`, `comments.see-more`, and `comments.see-less` to `TLUiTranslationKey`. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
+- Add the `--tl-muted-gradient-to-bottom`, `--tl-muted-gradient-to-top`, `--tl-muted-gradient-to-right`, and `--tl-muted-gradient-to-left` theme CSS variables for open menu triggers. ([#11492](https://github.com/tldraw/tldraw/pull/11492))
 
 ## Improvements
 
@@ -42,12 +44,21 @@ Press Cmd+K (Ctrl+K on Windows and Linux) to search and run commands: actions, p
 - Add Cmd+Alt+Shift+G as an explicit Remove frame shortcut. Cmd+G and Cmd+Alt+G continue to toggle grouping and framing when the selection allows the corresponding action. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Cursor chat opens with `/` in any tool, and its menu item shows in any tool. ([#11043](https://github.com/tldraw/tldraw/pull/11043))
 - Exit crop mode when clicking any shape other than the one being cropped, instead of moving the crop to the clicked image. ([#10832](https://github.com/tldraw/tldraw/pull/10832))
+- Stay in the comment tool after placing a comment, allowing multiple comments to be placed in sequence. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
+- Step Escape back one level at a time while commenting: clear active draft or reply text, then close the composer or thread, then return to the select tool. ([#11496](https://github.com/tldraw/tldraw/pull/11496))
+- Align `@tldraw/commenting` menus, buttons, drags, and list rows with the rest of tldraw: drag an unposted comment by its pin, keep drags under the pointer when the camera scrolls, and collapse comments longer than 10 lines behind a "See more" toggle. ([#11495](https://github.com/tldraw/tldraw/pull/11495))
+- Match the mention picker in `@tldraw/mentions` to other tldraw menus, using standard menu item styling and 20px avatars. ([#11493](https://github.com/tldraw/tldraw/pull/11493))
+- Cap the page menu trigger's width so long page names truncate. ([#11492](https://github.com/tldraw/tldraw/pull/11492))
+- Restyle the error screen in `@tldraw/editor` to match tldraw dialogs, with text buttons, a primary Refresh button, a red Reset button, and an icon copy button on hover for the stack trace. ([#11491](https://github.com/tldraw/tldraw/pull/11491))
 - Run agent starter kit actions through tool calls rather than plain JSON text output, with streaming partial updates and follow-up turns, and let actions provide their own results via `AgentActionUtil.getResult`. ([#11147](https://github.com/tldraw/tldraw/pull/11147))
 - Add OpenRouter support to the agent and branching-chat starter kits via `OPENROUTER_API_KEY`. ([#11103](https://github.com/tldraw/tldraw/pull/11103))
 - Use Node's built-in `node:sqlite` instead of `better-sqlite3` in the Node and socket.io sync server starter templates, removing the need for a native module dependency. ([#11175](https://github.com/tldraw/tldraw/pull/11175))
 
 ## Bug fixes
 
+- Fix arrows binding to shapes in locked groups, which could lock the new arrow or leave it stuck while drawing. ([#11201](https://github.com/tldraw/tldraw/pull/11201))
+- Fix an unhandled promise rejection when UI translations fail to load. ([#10922](https://github.com/tldraw/tldraw/pull/10922))
+- Fix `TldrawUiIcon` throwing outside an `AssetUrlsProvider` by falling back to the default icon URLs. ([#11485](https://github.com/tldraw/tldraw/pull/11485))
 - Fix `.tldr` files dropping assets that custom records refer to; assets named by any record in the file are now preserved. ([#11406](https://github.com/tldraw/tldraw/pull/11406))
 - Fix pressing Escape while dragging a note's clone handle leaving the new note behind and switching to the note tool. ([#10460](https://github.com/tldraw/tldraw/pull/10460))
 - Fix the Delete, Duplicate, and Group shortcuts acting on children of locked frames and groups, matching the menu behavior. ([#10479](https://github.com/tldraw/tldraw/pull/10479))
