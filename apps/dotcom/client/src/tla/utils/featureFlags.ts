@@ -17,6 +17,7 @@ export const DEFAULT_FLAGS: FeatureFlags = {
 	// Server-side only: the sync worker reads these to pick the render transport.
 	thumbnail_render_push: { enabled: false },
 	mcp_render_push: { enabled: false },
+	ui_v3: { enabled: false },
 }
 
 let currentFlags: FeatureFlags = { ...DEFAULT_FLAGS }

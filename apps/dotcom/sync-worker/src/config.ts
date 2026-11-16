@@ -163,7 +163,8 @@ export const MCP_RENAME_PER_USER_RATE_LIMIT = 10
 
 /**
  * The budget shared by every tool that goes through the board's durable object: `get_page_info`,
- * `get_cluster_info`, `get_cluster_screenshot`, `apply_ops`, `get_user_state` and `get_board_users`.
+ * `get_cluster_info`, `get_cluster_screenshot`, `apply_ops`, `get_user_state`, `get_board_users` and
+ * `write_comment`.
  *
  * Most of them have the caller's open tab do the work, but the durable object is shared with everyone
  * on the board and still carries each call: it wakes, relays the job, and takes the tab's reply, which

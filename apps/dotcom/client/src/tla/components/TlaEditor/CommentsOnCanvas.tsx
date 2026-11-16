@@ -26,6 +26,7 @@ import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { TlaSignInDialog } from '../dialogs/TlaSignInDialog'
 import { TlaCtaButton } from '../TlaCtaButton/TlaCtaButton'
 import { latestForeignReactionAt } from '../TlaSidebar/components/commentNotifications'
+import { ResolveCommentAuthorContext } from './TlaAgentCommentSurfaces'
 
 type FileComments = QueryResultType<typeof queries.fileComments>
 type FileVisitors = QueryResultType<typeof queries.fileVisitors>
@@ -228,10 +229,10 @@ export function CommentsOnCanvas({ fileId }: { fileId: string }) {
 	)
 
 	return (
-		<>
+		<ResolveCommentAuthorContext.Provider value={resolveAuthor}>
 			<CanvasComments {...commenting} />
 			<CanvasCommentsSidebar {...commenting} />
-		</>
+		</ResolveCommentAuthorContext.Provider>
 	)
 }
 

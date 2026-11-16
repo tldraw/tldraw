@@ -553,6 +553,7 @@ describe('getAllFeatureFlagValues', () => {
 			'mcp_server_access',
 			'rum_enabled',
 			'thumbnail_render_push',
+			'ui_v3',
 			'version_chain',
 		])
 	})

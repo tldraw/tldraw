@@ -260,7 +260,7 @@ export function mcpUnauthorized(
 export type McpAuthRefusal = McpTokenRefusal
 
 export type McpAuthResult =
-	| { ok: true; userId: string }
+	| { ok: true; userId: string; clientId: string | null }
 	| { ok: false; response: Response; reason: McpAuthRefusal }
 
 /**
@@ -301,7 +301,7 @@ export async function authenticateMcpRequest(
 	}
 
 	const result = await getMcpTokenAuth(request, env)
-	if (result.ok) return { ok: true, userId: result.userId }
+	if (result.ok) return { ok: true, userId: result.userId, clientId: result.clientId }
 
 	switch (result.reason) {
 		case 'no_token':

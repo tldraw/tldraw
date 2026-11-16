@@ -15,6 +15,7 @@
 	"a11y.rotate-shape-cw-fine": "Otočit tvar doprava",
 	"a11y.select-shape": "Vybrat další tvar",
 	"a11y.select-shape-direction": "Vyberte tvar ve směru",
+	"a11y.shape-group": "Skupina",
 	"a11y.shape-image": "Obrázek",
 	"a11y.shape-index": "{num} z {total}",
 	"a11y.shape-video": "Video",
