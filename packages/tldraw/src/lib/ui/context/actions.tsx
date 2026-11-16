@@ -1855,12 +1855,12 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 					!!components.NavigationPanel &&
 					!editor.getInstanceState().isFocusMode &&
 					breakpointAtom.get() >= PORTRAIT_BREAKPOINT.TABLET,
-				isChecked: (editor) => !isMinimapCollapsed(editor),
+				isChecked: () => !isMinimapCollapsed(),
 				readonlyOk: true,
 				commandPalette: { group: 'view' },
 				onSelect(source) {
 					trackEvent('toggle-minimap', { source })
-					toggleMinimap(editor)
+					toggleMinimap()
 				},
 				checkbox: true,
 			},
