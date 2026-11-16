@@ -342,10 +342,11 @@ export async function captureThumbnailScreenshot(
 		// The same page/shape re-check the snapshot route does; with no pull path, a vanished page or
 		// shape fails the render rather than falling back to a fetch.
 		if (body.error) throw new Error(body.message)
-		// Refuse a board too large to push before spending any RPC (decision #1: no pull fallback). The
-		// injected script is the larger of the two 32 MiB hops, so measuring it covers both.
+		// Refuse a page too large to push before spending any RPC (decision #1: no pull fallback). The
+		// push carries only the records the chosen page draws, so this measures the page, not the board.
+		// The injected script is the larger of the two 32 MiB hops, so measuring it covers both.
 		if (renderPushByteLength(renderPushScript(body)) > RENDER_PUSH_BUDGET_BYTES) {
-			throw new RenderWorkerError('board_too_large')
+			throw new RenderWorkerError('page_too_large')
 		}
 		const result = await env.RENDER_WORKER.screenshot({
 			payload: body,

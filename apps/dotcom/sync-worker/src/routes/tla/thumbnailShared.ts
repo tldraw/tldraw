@@ -155,8 +155,8 @@ export function describeThumbnailFailure(reason: string): string {
 			return "the board's saved content could not be read"
 		case 'not_configured':
 			return 'rendering is not configured'
-		case 'board_too_large':
-			return 'the board is too large to render'
+		case 'page_too_large':
+			return 'the page is too large to render'
 		case 'browser_timeout':
 			return 'rendering timed out'
 		case 'board_lookup_error':
