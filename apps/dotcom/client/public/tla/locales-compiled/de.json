@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Ziehen Sie die Datei in die Seitenleiste auf dieser Seite. Oder wählen Sie im Benutzermenü Option „Datei importieren“."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -185,6 +179,12 @@
     {
       "type": 0,
       "value": "Datei erstellen"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Bewegen nach"
     }
   ],
   "1da2e8106b": [
@@ -343,6 +343,12 @@
       "value": "Mitglied entfernen"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Melde dich an, um diese Einladung anzunehmen."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -493,16 +499,6 @@
     {
       "type": 0,
       "value": "Limit für Mitwirkende erreicht"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " ungelesen"
     }
   ],
   "550b25cc0c": [
@@ -746,6 +742,12 @@
       "value": "Bitte laden Sie die Seite neu"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Speichern Sie den Inhalt als .tldr-Datei: Wählen Sie dazu im Menü oben links die Option „Kopie speichern“."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -938,16 +940,6 @@
       "value": "Bitte aktualisieren Sie die Seite und holden Sie sich die neueste Version von tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr-Dateien hinzugefügt."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1014,6 +1006,12 @@
     {
       "type": 0,
       "value": " wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Kopierter Einladungslink"
     }
   ],
   "95aacd4d4a": [
@@ -1128,10 +1126,36 @@
       "value": " beizutreten."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Exportieren Sie den Inhalt als .tldr-Datei: Wählen Sie im Menü oben links „Herunterladen“."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ungelesen"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " ungelesen"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1300,6 +1324,12 @@
       "value": "Eigentümer"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Ziehen Sie die Datei in die Seitenleiste dieser Seite. Alternativ können Sie im Menü „Datei“ oben links die Option „Datei importieren“ auswählen."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1386,6 +1416,38 @@
       "value": "Erfahren Sie mehr über das Teilen."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-Datei hinzugefügt."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " .tldr-Dateien hinzugefügt."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1396,12 +1458,6 @@
     {
       "type": 0,
       "value": "Notwendige Cookies"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Langer String"
     }
   ],
   "c6a00f137b": [
@@ -1477,7 +1533,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " weitere Person"
             }
           ]
         },
@@ -1488,7 +1544,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " weitere Personen"
             }
           ]
         }
@@ -1656,6 +1712,12 @@
       "value": "oder"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Dateiverlauf"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1684,12 +1746,6 @@
     {
       "type": 0,
       "value": "Kontomenü"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: akzentuiert"
     }
   ],
   "ed75712b0e": [
@@ -1760,6 +1816,12 @@
       "value": "Löschen"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Dieser Einladungslink ist ungültig oder abgelaufen."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1799,7 +1861,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " weitere Person"
             }
           ]
         },
@@ -1810,7 +1872,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " weitere Personen"
             }
           ]
         }
@@ -1900,6 +1962,12 @@
     {
       "type": 0,
       "value": "Erstelle ein kostenloses Konto, um deine Dateien zu speichern und mit deinen Teamkollegen zu zeichnen."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Fehler beim Annehmen der Einladung"
     }
   ],
   "ffcd73e997": [

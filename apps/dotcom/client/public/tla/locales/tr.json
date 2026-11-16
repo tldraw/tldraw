@@ -8,9 +8,6 @@
   "029f235f01": {
     "translation": "<a><strong>{appName}</strong></a> adresinden gelen dosyalar için destek üzerinde çalışıyoruz."
   },
-  "03b3e13197": {
-    "translation": "Dosyayı bu sayfadaki kenar çubuğuna sürükleyin. Veya kullanıcı menüsünden 'Dosyayı içe aktar' seçeneğini seçin."
-  },
   "043973ec1f": {
     "translation": "Sorun devam ediyor mu? {GetHelpLink}"
   },
@@ -73,6 +70,9 @@
   },
   "181b90f889": {
     "translation": "Dosya oluştur"
+  },
+  "1a7222b4e5": {
+    "translation": "Taşın"
   },
   "1da2e8106b": {
     "translation": "Beklenmeyen bir hata oluştu."
@@ -139,6 +139,9 @@
   },
   "375396d6e5": {
     "translation": "Üyeyi kaldır"
+  },
+  "398f51738e": {
+    "translation": "Bu daveti kabul etmek için giriş yapın."
   },
   "3bc7d6ea2f": {
     "translation": "E-postayla devam et"
@@ -208,9 +211,6 @@
   },
   "54286b1d01": {
     "translation": "Ortak çalışan sınırına ulaşıldı"
-  },
-  "545241e7dd": {
-    "translation": "{count} okunmamış"
   },
   "550b25cc0c": {
     "translation": "Yerel çiziminiz geri yüklenemedi. Lütfen bu sayfayı yeniden yüklemeyi deneyin."
@@ -311,6 +311,9 @@
   "7408cf0d7b": {
     "translation": "Lütfen sayfayı tekrar yükleyin"
   },
+  "747ee44424": {
+    "translation": "İçeriği .tldr dosyası olarak kaydedin: sol üst menüden 'Bir kopyasını kaydet' seçeneğini seçin."
+  },
   "74ff4bad28": {
     "translation": "Dosya bulunamadı."
   },
@@ -386,9 +389,6 @@
   "85a082de1b": {
     "translation": "En güncel tldraw sürümü için lütfen sayfayı yenileyin."
   },
-  "86353d2c41": {
-    "translation": "{total} .tldr dosyası eklendi."
-  },
   "86c66437fd": {
     "translation": "Dosyayı yeniden adlandır"
   },
@@ -415,6 +415,9 @@
   },
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong> öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
+  },
+  "930390d222": {
+    "translation": "Davet bağlantısı kopyalandı."
   },
   "95aacd4d4a": {
     "translation": "Google ile oturum açın"
@@ -458,8 +461,8 @@
   "a078644c42": {
     "translation": "<strong>{workspaceName}</strong>'e katılmaya davet edildiniz."
   },
-  "a0da245992": {
-    "translation": "İçeriği .tldr dosyası olarak dışa aktarın: Sol üst menüden 'İndir'i seçin."
+  "a0a19d5145": {
+    "translation": "{count, plural, one {# okunmamış} other {# okunmamış}}"
   },
   "a104439641": {
     "translation": "Doldurma"
@@ -537,6 +540,9 @@
   "b6f4a2ec63": {
     "translation": "Mal sahibi"
   },
+  "b74dbb40c5": {
+    "translation": "Dosyayı bu sayfanın kenar çubuğuna sürükleyin. Veya sol üst köşedeki Dosya menüsünden 'Dosya içe aktar' seçeneğini seçin."
+  },
   "b758336699": {
     "translation": "Bağlantıyı kopyala"
   },
@@ -558,14 +564,14 @@
   "c2276c9127": {
     "translation": "Paylaşım hakkında daha fazla bilgi edinin."
   },
+  "c26f17786f": {
+    "translation": "{total, plural, one {# .tldr dosyası eklendi.} other {# .tldr dosyaları eklendi.}}"
+  },
   "c303bd1095": {
     "translation": "Bu dosya yayınlanamıyor."
   },
   "c4b39a1cc3": {
     "translation": "Temel çerezler"
-  },
-  "c655b27b1e": {
-    "translation": "i18n: Uzun Dizi"
   },
   "c6a00f137b": {
     "translation": "Davet et"
@@ -592,7 +598,7 @@
     "translation": "Yayınlama hakkında daha fazla bilgi edinin."
   },
   "d0e3556476": {
-    "translation": "<name>{author}</name> ve {count, plural, one {# other} other {# others}} yorumunuza tepki verdi."
+    "translation": "<name>{author}</name> ve {count, plural, one {# kişi daha} other {# kişi daha}} yorumunuza tepki verdi."
   },
   "d3d2e61733": {
     "translation": "Kapat"
@@ -645,6 +651,9 @@
   "e81c4e4f2b": {
     "translation": "veya"
   },
+  "ea13ecec38": {
+    "translation": "Dosya geçmişi"
+  },
   "ea4788705e": {
     "translation": "İptal"
   },
@@ -659,9 +668,6 @@
   },
   "ec611e9a08": {
     "translation": "Hesap menüsü"
-  },
-  "ed53713239": {
-    "translation": "i18n: Aksanlı"
   },
   "ed75712b0e": {
     "translation": "Kopya oluştur"
@@ -690,8 +696,11 @@
   "f2a6c498fb": {
     "translation": "Sil"
   },
+  "f408fa5fbd": {
+    "translation": "Bu davet bağlantısı geçersiz veya süresi dolmuş."
+  },
   "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# other} other {# others}} yorumunuza tepki verdi."
+    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# kişi daha} other {# kişi daha}} yorumunuza tepki verdi."
   },
   "f4f70727dc": {
     "translation": "Ayarlar"
@@ -716,6 +725,9 @@
   },
   "ff52811b98": {
     "translation": "Dosyalarınızı kaydetmek ve takım arkadaşlarınızla birlikte çizim yapmak için ücretsiz bir hesap oluşturun."
+  },
+  "ffad261a48": {
+    "translation": "Daveti kabul etmede hata oluştu"
   },
   "ffcd73e997": {
     "translation": "Dosyayı içe aktar…"

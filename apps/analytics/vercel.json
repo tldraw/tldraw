@@ -1,7 +1,7 @@
 {
 	"version": 2,
 	"ignoreCommand": "bash ../../internal/scripts/vercel/should-build-analytics.sh",
-	"installCommand": "pnpm install --filter @tldraw/analytics... --filter @tldraw/monorepo... --filter config...",
+	"installCommand": "pnpm install",
 	"buildCommand": "pnpm build",
 	"outputDirectory": "public",
 	"headers": [

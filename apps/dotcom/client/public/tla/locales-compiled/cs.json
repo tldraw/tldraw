@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Přetáhněte soubor na postranní panel na této stránce. Nebo vyberte možnost Importovat soubor z uživatelské nabídky."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -189,6 +183,12 @@
     {
       "type": 0,
       "value": "Vytvořit soubor"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Přesunout do"
     }
   ],
   "1da2e8106b": [
@@ -347,6 +347,12 @@
       "value": "Odebrat člena"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Přihlaste se a přijměte tuto pozvánku."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -497,16 +503,6 @@
     {
       "type": 0,
       "value": "Bylo dosaženo limitu spolupracovníků"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " nepřečtených"
     }
   ],
   "550b25cc0c": [
@@ -772,6 +768,12 @@
       "value": "Načtěte stránku znovu"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Uložte obsah jako soubor .tldr: v levé horní nabídce vyberte možnost „Uložit kopii“."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -964,20 +966,6 @@
       "value": "Po aktualizaci stránky získáte nejnovější verzi tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Byly přidány "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " soubory .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1044,6 +1032,12 @@
     {
       "type": 0,
       "value": "? Tuto akci nelze vrátit zpět."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Zkopírován odkaz na pozvánku"
     }
   ],
   "95aacd4d4a": [
@@ -1158,10 +1152,58 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Export obsahu jako souboru .tldr: V levé horní nabídce vyberte možnost „Stáhnout“."
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nepřečtené"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nepřečtené"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nepřečtené"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nepřečtených"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1330,6 +1372,12 @@
       "value": "Majitel"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Přetáhněte soubor do postranního panelu na této stránce. Nebo vyberte možnost „Importovat soubor“ z nabídky Soubor vlevo nahoře."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1354,10 +1402,50 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Nahrávání "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " z "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " souborů .tldr…"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 0,
+              "value": "Nahrávání "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " z "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " souborů .tldr…"
+            }
           ]
         },
         "one": {
@@ -1420,6 +1508,76 @@
       "value": "Další informace o sdílení."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Přidány "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " soubory .tldr."
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Přidáno "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " souboru .tldr."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Přidán "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " soubor .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Přidáno "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " souborů .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1430,12 +1588,6 @@
     {
       "type": 0,
       "value": "Základní soubory cookie"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Dlouhá struna"
     }
   ],
   "c6a00f137b": [
@@ -1504,6 +1656,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " další"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dalšího"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1511,7 +1685,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " další"
             }
           ]
         },
@@ -1522,7 +1696,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " dalších"
             }
           ]
         }
@@ -1690,6 +1864,12 @@
       "value": "nebo"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historie souborů"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1718,12 +1898,6 @@
     {
       "type": 0,
       "value": "Nabídka účtu"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: s přízvukem"
     }
   ],
   "ed75712b0e": [
@@ -1794,6 +1968,12 @@
       "value": "Vymazat"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Tento odkaz na pozvánku je neplatný nebo jeho platnost vypršela."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1826,6 +2006,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " další"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " dalšího"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1833,7 +2035,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " další"
             }
           ]
         },
@@ -1844,7 +2046,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " dalších"
             }
           ]
         }
@@ -1930,6 +2132,12 @@
     {
       "type": 0,
       "value": "Vytvořte si bezplatný účet pro ukládání souborů a kreslení se spoluhráči."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Chyba při přijímání pozvánky"
     }
   ],
   "ffcd73e997": [

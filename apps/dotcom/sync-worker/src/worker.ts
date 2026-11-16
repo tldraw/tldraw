@@ -1,7 +1,7 @@
 /// <reference no-default-lib="true"/>
 /// <reference types="@cloudflare/workers-types" />
 import { mustGetQuery } from '@rocicorp/zero'
-import { PushProcessor, handleQueryRequest } from '@rocicorp/zero/server'
+import { getMutation, handleMutateRequest, handleQueryRequest } from '@rocicorp/zero/server'
 import { zeroPostgresJS } from '@rocicorp/zero/server/adapters/postgresjs'
 import {
 	FILE_PREFIX,
@@ -47,9 +47,12 @@ import { getPublishedFile } from './routes/tla/getPublishedFile'
 import { getThumbnailSnapshot } from './routes/tla/getThumbnailSnapshot'
 import { handleInitUser } from './routes/tla/initUser'
 import {
+	ROOT_MCP_SERVER_PATH,
+	ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_FALLBACK_PATH,
 	MCP_PROTECTED_RESOURCE_METADATA_PATH,
 	getMcpProtectedResourceMetadata,
+	isMcpHostRequest,
 	mcpCorsPreflight,
 	withMcpCors,
 } from './routes/tla/mcpAuth'
@@ -59,6 +62,7 @@ import {
 	MCP_SERVER_CARD_WELL_KNOWN_PATH,
 	getMcpServerCard,
 } from './routes/tla/mcpServerCard'
+import { postTabRenderReply } from './routes/tla/mcpTabRender'
 import { handleOgImageRenderMessage } from './routes/tla/ogImageQueue'
 import { putThumbnailRenderResult } from './routes/tla/putThumbnailRenderResult'
 import { upload } from './routes/tla/uploads'
@@ -166,6 +170,7 @@ const router = createRouter<Environment>()
 	.post('/unfurl', extractBookmarkMetadata)
 	.post(`/${ROOM_PREFIX}/:roomId/restore`, forwardRoomRequest)
 	.post(`/app/file/:roomId/restore`, forwardRoomRequest)
+	.post('/app/file/:roomId/tab-render/:jobId', postTabRenderReply)
 	.post('/app/:userId/init', handleInitUser)
 	.post('/app/tldr', createFiles)
 	// Dev/preview only. Wakes the outbox processor: local workerd doesn't fire persisted alarms
@@ -237,16 +242,20 @@ const router = createRouter<Environment>()
 		if (!auth) {
 			return Response.json({ error: 'Unauthorized' }, { status: 401 })
 		}
-		// (db, mutatorContext, logLevel): mutators close over userId, so no context.
-		const processor = new PushProcessor(
-			zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
-			undefined,
-			'debug'
-		)
-		const result = await processor.process(
-			auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId),
-			req
-		)
+		// Mutators close over userId. `userID` is what zero-cache checks the client's claim against.
+		const mutators = auth.mcp ? createMcpMutators(auth.userId) : createMutators(auth.userId)
+		const result = await handleMutateRequest({
+			dbProvider: zeroPostgresJS(schema, getPostgresConnection(env).connectionString),
+			handler: (transact) =>
+				transact((tx, name, args) =>
+					// getMutator takes defineMutators registries and ignores `|` names; ours are plain defs.
+					// eslint-disable-next-line @typescript-eslint/no-deprecated
+					getMutation(mutators, name)(tx, args, undefined)
+				),
+			request: req,
+			userID: auth.userId,
+			logLevel: 'debug',
+		})
 		// Wake the outbox consumer without blocking the response: a poke failure must not 500 a
 		// mutation that already committed, and the singleton DO shouldn't sit on the hot path.
 		ctx.waitUntil(
@@ -292,18 +301,40 @@ const router = createRouter<Environment>()
 	})
 	.all('*', notFound)
 
+// The MCP host (`mcp.tldraw.com`) serves MCP servers, one per path, and the landing page around them.
+// A router of its own rather than routes on the main one, so no API route is reachable through the
+// host and no server's path can collide with one.
+const mcpHostRouter = createRouter<Environment>()
+	.options(ROOT_MCP_SERVER_PATH, mcpCorsPreflight)
+	.options(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, mcpCorsPreflight)
+	.all(ROOT_MCP_SERVER_PATH, async (req, env, ctx) => withMcpCors(await mcpServer(req, env, ctx)))
+	.get(ROOT_MCP_SERVER_PROTECTED_RESOURCE_METADATA_PATH, (req, env) =>
+		withMcpCors(getMcpProtectedResourceMetadata(req, env))
+	)
+	// Discovery paths the host doesn't serve keep this worker's JSON 404, whatever the site does with
+	// an unknown path.
+	.all('/.well-known/*', notFound)
+	// Everything else is the landing page, a static-assets worker reached through the MCP_WEB service
+	// binding, so the page shares the host without any route of its own. Read-only methods only;
+	// unbound environments keep the 404.
+	.all('*', (req, env) => {
+		if (!env.MCP_WEB || (req.method !== 'GET' && req.method !== 'HEAD')) return notFound()
+		return env.MCP_WEB.fetch(req)
+	})
+
 export default class Worker extends WorkerEntrypoint<Environment> {
 	override async fetch(request: Request): Promise<Response> {
+		const onMcpHost = isMcpHostRequest(request, this.env)
 		// if we get a request that starts with /api/, strip it before handling.
 		const url = new URL(request.url)
 		const pathname = url.pathname.replace(/^\/api\//, '/')
-		if (pathname !== url.pathname) {
+		if (!onMcpHost && pathname !== url.pathname) {
 			url.pathname = pathname
 			request = new Request(url.toString(), request)
 		}
 
 		return await handleApiRequest({
-			router,
+			router: onMcpHost ? mcpHostRouter : router,
 			request,
 			env: this.env,
 			ctx: this.ctx,

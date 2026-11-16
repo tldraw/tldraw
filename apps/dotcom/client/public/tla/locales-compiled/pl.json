@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Przeciągnij plik na pasek boczny na tej stronie lub wybierz opcję „Importuj plik” z menu użytkownika."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -185,6 +179,12 @@
     {
       "type": 0,
       "value": "Utwórz plik"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Przenieś się do"
     }
   ],
   "1da2e8106b": [
@@ -343,6 +343,12 @@
       "value": "Usuń członka"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Zaloguj się, aby przyjąć zaproszenie."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -493,16 +499,6 @@
     {
       "type": 0,
       "value": "Osiągnięto limit współpracowników"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " nieprzeczytane"
     }
   ],
   "550b25cc0c": [
@@ -768,6 +764,12 @@
       "value": "Odśwież stronę"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Zapisz zawartość jako plik .tldr: wybierz „Zapisz kopię” w menu w lewym górnym rogu."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -960,20 +962,6 @@
       "value": "Odśwież stronę, aby pobrać najnowszą wersję tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Dodano pliki "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1040,6 +1028,12 @@
     {
       "type": 0,
       "value": "? Tej czynności nie można cofnąć."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Skopiowano link zaproszenia"
     }
   ],
   "95aacd4d4a": [
@@ -1154,10 +1148,58 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Eksportuj zawartość jako plik .tldr: Wybierz „Pobierz” w menu u góry po lewej stronie."
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytane"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytanych"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytane"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " nieprzeczytanych"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1326,6 +1368,12 @@
       "value": "Właściciel"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Przeciągnij plik na pasek boczny na tej stronie. Możesz też wybrać opcję „Importuj plik” z menu Plik w lewym górnym rogu."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1350,10 +1398,50 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Przesyłanie "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " z "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " plików .tldr…"
+            }
           ]
         },
         "many": {
           "value": [
+            {
+              "type": 0,
+              "value": "Przesyłanie "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " z "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " plików .tldr…"
+            }
           ]
         },
         "one": {
@@ -1416,6 +1504,76 @@
       "value": "Dowiedz się więcej o udostępnianiu."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pliki .tldr."
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " plików .tldr."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " plik .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Dodano "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pliku .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1426,12 +1584,6 @@
     {
       "type": 0,
       "value": "Niezbędne pliki cookie"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Długi ciąg"
     }
   ],
   "c6a00f137b": [
@@ -1500,6 +1652,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " inne osoby"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " innych osób"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1507,7 +1681,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " inna osoba"
             }
           ]
         },
@@ -1518,7 +1692,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " innej osoby"
             }
           ]
         }
@@ -1686,6 +1860,12 @@
       "value": "Lub"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historia pliku"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1714,12 +1894,6 @@
     {
       "type": 0,
       "value": "Menu konta"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: akcentowany"
     }
   ],
   "ed75712b0e": [
@@ -1790,6 +1964,12 @@
       "value": "Usuń"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ten link zaproszenia jest nieprawidłowy lub wygasł."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1822,6 +2002,28 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " inne osoby"
+            }
+          ]
+        },
+        "many": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " innych osób"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1829,7 +2031,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " inna osoba"
             }
           ]
         },
@@ -1840,7 +2042,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " innej osoby"
             }
           ]
         }
@@ -1926,6 +2128,12 @@
     {
       "type": 0,
       "value": "Załóż bezpłatne konto, aby zapisywać pliki i rysować je wspólnie z członkami drużyny."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Błąd podczas akceptowania zaproszenia"
     }
   ],
   "ffcd73e997": [

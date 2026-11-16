@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Faites glisser le fichier vers la barre latérale de cette page. Vous pouvez également sélectionner l'option « Importer un fichier » dans le menu utilisateur."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -189,6 +183,12 @@
     {
       "type": 0,
       "value": "Créer un fichier"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Passer à"
     }
   ],
   "1da2e8106b": [
@@ -347,6 +347,12 @@
       "value": "Supprimer un membre"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Connectez-vous pour accepter cette invitation."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -497,16 +503,6 @@
     {
       "type": 0,
       "value": "Limite de collaborateurs atteinte"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " non lu"
     }
   ],
   "550b25cc0c": [
@@ -750,6 +746,12 @@
       "value": "Veuillez recharger la page"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Enregistrez le contenu au format .tldr : sélectionnez « Enregistrer une copie » dans le menu en haut à gauche."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -942,20 +944,6 @@
       "value": "Veuillez rafraîchir la page pour obtenir la dernière version de tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Ajout de "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " fichiers .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1022,6 +1010,12 @@
     {
       "type": 0,
       "value": " ? Cette action est irréversible."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Lien d'invitation copié"
     }
   ],
   "95aacd4d4a": [
@@ -1136,10 +1130,36 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Exporter le contenu sous forme de fichier .tldr : sélectionnez « Télécharger » dans le menu en haut à gauche."
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " non lu"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " non lu"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1308,6 +1328,12 @@
       "value": "Propriétaire"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Faites glisser le fichier dans la barre latérale de cette page. Ou sélectionnez l'option « Importer un fichier » dans le menu Fichier en haut à gauche."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1334,7 +1360,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Téléchargement du fichier .tldr…"
+              "value": "Envoi du fichier .tldr…"
             }
           ]
         },
@@ -1342,7 +1368,7 @@
           "value": [
             {
               "type": 0,
-              "value": "Téléchargement de "
+              "value": "Envoi de "
             },
             {
               "type": 1,
@@ -1390,6 +1416,38 @@
       "value": "En savoir plus sur le partage."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fichier .tldr ajouté."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fichiers .tldr ajoutés."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1400,12 +1458,6 @@
     {
       "type": 0,
       "value": "Cookies essentiels"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n : chaîne longue"
     }
   ],
   "c6a00f137b": [
@@ -1481,7 +1533,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " autre personne"
             }
           ]
         },
@@ -1492,7 +1544,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " autres personnes"
             }
           ]
         }
@@ -1660,6 +1712,12 @@
       "value": "ou"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Historique des fichiers"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1688,12 +1746,6 @@
     {
       "type": 0,
       "value": "Menu du compte"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n : avec accents"
     }
   ],
   "ed75712b0e": [
@@ -1764,6 +1816,12 @@
       "value": "Supprimer"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Ce lien d'invitation est invalide ou a expiré."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1803,7 +1861,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " autre personne"
             }
           ]
         },
@@ -1814,7 +1872,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " autres personnes"
             }
           ]
         }
@@ -1900,6 +1958,12 @@
     {
       "type": 0,
       "value": "Créez un compte gratuit pour sauvegarder vos fichiers et dessiner avec vos coéquipiers."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Erreur lors de l'acceptation de l'invitation"
     }
   ],
   "ffcd73e997": [

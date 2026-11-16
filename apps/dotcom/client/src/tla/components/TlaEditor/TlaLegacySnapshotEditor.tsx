@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useCallback } from 'react'
 import { Editor, TLComponents, TLStoreSnapshot, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -7,8 +6,9 @@ import { useHandleUiEvents } from '../../../utils/analytics'
 import { assetUrls } from '../../../utils/assetUrls'
 import { embedShapeUtils } from '../../../utils/embedShapeUtil'
 import { globalEditor } from '../../../utils/globalEditor'
+import { ReadyWrapper } from '../../hooks/ReadyWrapper'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { ReadyWrapper, useSetIsReady } from '../../hooks/useIsReady'
+import { useSetIsReady } from '../../hooks/useIsReady'
 import { TlaEditorErrorFallback } from './editor-components/TlaEditorErrorFallback'
 import { TlaEditorLegacySharePanel } from './editor-components/TlaEditorLegacySharePanel'
 import { TlaEditorMenuPanel } from './editor-components/TlaEditorMenuPanel'
@@ -82,7 +82,6 @@ function TlaEditorInner({
 		<TlaEditorWrapper>
 			<Tldraw
 				className="tla-editor"
-				licenseKey={getLicenseKey()}
 				snapshot={snapshot}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}

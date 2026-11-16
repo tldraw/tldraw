@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul utilizatorului."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -185,6 +179,12 @@
     {
       "type": 0,
       "value": "Creați fișier"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Mută ​​la"
     }
   ],
   "1da2e8106b": [
@@ -343,6 +343,12 @@
       "value": "Eliminați membrul"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Conectați-vă pentru a accepta această invitație."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -493,16 +499,6 @@
     {
       "type": 0,
       "value": "Limita de colaboratori a fost atinsă"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " necitit"
     }
   ],
   "550b25cc0c": [
@@ -757,6 +753,12 @@
       "value": "Vă rugăm să reîncărcați pagina"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Salvați conținutul ca fișier .tldr: selectați „Salvați o copie” în meniul din stânga sus."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -949,20 +951,6 @@
       "value": "Vă rugăm să reîmprospătați pagina pentru a obține cea mai recentă versiune de tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "S-au adăugat "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": " fișiere .tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1029,6 +1017,12 @@
     {
       "type": 0,
       "value": "? Această acțiune nu poate fi anulată."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Link de invitație copiat"
     }
   ],
   "95aacd4d4a": [
@@ -1143,10 +1137,47 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Exportați conținutul ca fișier .tldr: Selectați „Descărcare” în meniul din stânga sus."
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " necitite"
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " necitit"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " de necitite"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1315,6 +1346,12 @@
       "value": "Proprietar"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Trageți fișierul în bara laterală de pe această pagină. Sau selectați opțiunea „Importați fișierul” din meniul Fișier din stânga sus."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1339,13 +1376,33 @@
       "options": {
         "few": {
           "value": [
+            {
+              "type": 0,
+              "value": "Se încarcă "
+            },
+            {
+              "type": 1,
+              "value": "uploaded"
+            },
+            {
+              "type": 0,
+              "value": " din "
+            },
+            {
+              "type": 1,
+              "value": "total"
+            },
+            {
+              "type": 0,
+              "value": " fișiere .tldr…"
+            }
           ]
         },
         "one": {
           "value": [
             {
               "type": 0,
-              "value": "Se încarcă fișierul .tldr..."
+              "value": "Se încarcă fișierul .tldr…"
             }
           ]
         },
@@ -1369,7 +1426,7 @@
             },
             {
               "type": 0,
-              "value": " fișiere .tldr..."
+              "value": " fișiere .tldr…"
             }
           ]
         }
@@ -1401,6 +1458,61 @@
       "value": "Aflați mai multe despre partajare."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "few": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Au fost adăugate "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fișiere .tldr."
+            }
+          ]
+        },
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "A fost adăugat "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " fișier .tldr."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Au fost adăugate "
+            },
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " de fișiere .tldr."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1411,12 +1523,6 @@
     {
       "type": 0,
       "value": "Cookie-uri esențiale"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: șir lung"
     }
   ],
   "c6a00f137b": [
@@ -1485,6 +1591,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " alte persoane"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1492,7 +1609,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " altă persoană"
             }
           ]
         },
@@ -1503,7 +1620,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " de alte persoane"
             }
           ]
         }
@@ -1671,6 +1788,12 @@
       "value": "sau"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Istoricul fișierelor"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1699,12 +1822,6 @@
     {
       "type": 0,
       "value": "meniul cont"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Accentuat"
     }
   ],
   "ed75712b0e": [
@@ -1775,6 +1892,12 @@
       "value": "Şterge"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Acest link de invitație este invalid sau a expirat."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1807,6 +1930,17 @@
     {
       "offset": 0,
       "options": {
+        "few": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " alte persoane"
+            }
+          ]
+        },
         "one": {
           "value": [
             {
@@ -1814,7 +1948,7 @@
             },
             {
               "type": 0,
-              "value": " other"
+              "value": " altă persoană"
             }
           ]
         },
@@ -1825,7 +1959,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " de alte persoane"
             }
           ]
         }
@@ -1911,6 +2045,12 @@
     {
       "type": 0,
       "value": "Creează-ți un cont gratuit pentru a salva fișierele și a desena cu tldraw alături de coechipierii tăi."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Eroare la acceptarea invitației"
     }
   ],
   "ffcd73e997": [

@@ -59,6 +59,11 @@ export interface TldrawAgentOptions {
  * agent.prompt('Draw a snowman')
  * ```
  */
+/** Follow-up requests in one turn, after the user's prompt, that send results back or run scheduled work. */
+const MAX_FOLLOW_UP_REQUESTS = 20
+/** Below this many steps left in a turn, each request tells the model how many it has. */
+const WARN_STEPS_LEFT = 3
+
 export class TldrawAgent {
 	/** The editor associated with this agent. */
 	editor: Editor
@@ -227,6 +232,9 @@ export class TldrawAgent {
 	 */
 	private isActingOnEditor = false
 
+	/** How many follow-up requests the current turn has sent. */
+	private followUpRequests = 0
+
 	/**
 	 * Get whether the agent is currently acting on the editor.
 	 * @returns true if the agent is currently acting, false otherwise.
@@ -312,19 +320,46 @@ export class TldrawAgent {
 		}
 
 		this.requests.setIsPrompting(true)
+		if (!nested) this.followUpRequests = 0
 
 		const request = this.requests.getFullRequestFromInput(input)
 		const startingNode = this.mode.getCurrentModeNode()
 		startingNode.onPromptStart?.(this, request)
 
 		// Submit the request to the agent.
+		let toolCalls = 0
 		try {
-			await this.request(request)
+			toolCalls = (await this.request(request)) ?? 0
 		} catch (e) {
 			console.error('Error data:', e)
 			this.requests.setIsPrompting(false)
 			this.requests.setCancelFn(null)
 			return
+		}
+
+		// The model made tool calls, so send their results back in a follow-up request. A request that
+		// an action already scheduled (such as a review) sends them too. Both count toward the limit.
+		const scheduled = this.requests.getScheduledRequest()
+		if (toolCalls > 0 || scheduled) {
+			if (this.followUpRequests >= MAX_FOLLOW_UP_REQUESTS) {
+				this.requests.clearScheduledRequest()
+			} else if (this.mode.getCurrentModeDefinition().active) {
+				this.followUpRequests++
+				// Near the limit, tell the model, so it can finish its work and not be cut off.
+				const stepsLeft = MAX_FOLLOW_UP_REQUESTS - this.followUpRequests
+				const agentMessages =
+					stepsLeft >= WARN_STEPS_LEFT
+						? []
+						: stepsLeft === 0
+							? [
+									'This is your last step in this turn. Finish what you are doing, then tell the user what is still left to do.',
+								]
+							: [
+									`You have ${stepsLeft} more ${stepsLeft === 1 ? 'step' : 'steps'} after this one in this turn. Plan to finish, then tell the user what is still left to do.`,
+								]
+				// A scheduled request keeps its own bounds, such as a review's area.
+				this.schedule({ ...(scheduled ? {} : { bounds: request.bounds }), agentMessages })
+			}
 		}
 
 		let modeChanged = true
@@ -592,8 +627,9 @@ export class TldrawAgent {
 			const prompt = await this.preparePrompt(request, helpers)
 			let incompleteDiff: RecordsDiff<TLRecord> | null = null
 			const actionPromises: Promise<void>[] = []
+			const finish: { toolCalls?: number } = {}
 			try {
-				for await (const action of this.streamAgentActions({ prompt, signal })) {
+				for await (const action of this.streamAgentActions({ prompt, signal, finish })) {
 					if (cancelled) break
 
 					// Set acting flag BEFORE editor.run so user action tracker ignores all changes
@@ -618,6 +654,12 @@ export class TldrawAgent {
 									// Track the inverse diff to update created shapes tracking
 									this.lints.trackShapesFromDiff(inversePrevDiff)
 									incompleteDiff = null
+								}
+
+								// A call that failed validation is not applied. The model reads its error.
+								if (action.complete && action.invalid) {
+									this.actions.recordInvalid(action, action.invalid)
+									return
 								}
 
 								// Sanitize the agent's action
@@ -654,11 +696,35 @@ export class TldrawAgent {
 					}
 				}
 				await Promise.all(actionPromises)
+				return finish.toolCalls
 			} catch (e) {
 				if (e === 'Cancelled by user' || (e instanceof Error && e.name === 'AbortError')) {
-					return
+					return 0
 				}
 				this.onError(e)
+				return 0
+			} finally {
+				// The stream can end on an action that never completed, such as a tool call that failed
+				// validation, or a stream error. Revert its changes and remove it from the chat history.
+				if (incompleteDiff && !cancelled) {
+					const inverseDiff = reverseRecordsDiff(incompleteDiff)
+					this.setIsActingOnEditor(true)
+					try {
+						editor.run(
+							() => {
+								editor.store.applyDiff(inverseDiff)
+								this.lints.trackShapesFromDiff(inverseDiff)
+							},
+							{ ignoreShapeLock: true, history: 'ignore' }
+						)
+					} finally {
+						this.setIsActingOnEditor(false)
+					}
+					this.chat.update((items) => {
+						const last = items.at(-1)
+						return last?.type === 'action' && !last.action.complete ? items.slice(0, -1) : items
+					})
+				}
 			}
 		})()
 
@@ -679,9 +745,12 @@ export class TldrawAgent {
 	private async *streamAgentActions({
 		prompt,
 		signal,
+		finish,
 	}: {
 		prompt: BaseAgentPrompt
 		signal: AbortSignal
+		/** Receives the number of tool calls the model made, whose results it expects. */
+		finish: { toolCalls?: number }
 	}): AsyncGenerator<Streaming<AgentAction>> {
 		const res = await fetch('/stream', {
 			method: 'POST',
@@ -714,6 +783,11 @@ export class TldrawAgent {
 					if (match) {
 						try {
 							const data = JSON.parse(match[1])
+
+							if ('toolCalls' in data) {
+								finish.toolCalls = data.toolCalls
+								continue
+							}
 
 							// If the response contains an error, throw it
 							if ('error' in data) {

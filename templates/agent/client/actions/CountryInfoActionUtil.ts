@@ -17,6 +17,11 @@ export const CountryInfoActionUtil = registerActionUtil(
 			}
 		}
 
+		// The fetch finishes after the tool call, so its data comes as part of the next request.
+		override getResult() {
+			return 'The country info comes in your next request.'
+		}
+
 		override async applyAction(action: Streaming<CountryInfoAction>) {
 			// Wait until the action has finished streaming
 			if (!action.complete) return

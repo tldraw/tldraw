@@ -1,8 +1,9 @@
 import { AdminFileStatsResponseBody } from '@tldraw/dotcom-shared'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { fetch } from 'tldraw'
 import { AdminButton } from './AdminButton'
-import { formatBytes, formatTally, getResponseError, StructuredDataDisplay } from './shared'
+import { formatBytes, formatTally, getResponseError } from './shared'
+import { StructuredDataDisplay } from './StructuredDataDisplay'
 import styles from './admin.module.css'
 
 function formatNumber(value: number) {
@@ -19,23 +20,17 @@ function formatTimestamp(value: number) {
  * snapshot. Enough to reason about a slow or broken board — or to answer "what does a board this
  * size actually look like" — without opening it or seeing anything on it.
  */
-export function FileStats() {
-	const inputRef = useRef<HTMLInputElement>(null)
+export function FileStats({ fileId }: { fileId: string }) {
 	const [error, setError] = useState(null as string | null)
 	const [isLoading, setIsLoading] = useState(false)
 	const [stats, setStats] = useState(null as AdminFileStatsResponseBody | null)
 
 	const onGetStats = useCallback(async () => {
-		const slug = inputRef.current?.value?.trim()
-		if (!slug) {
-			setError('Please enter a file slug')
-			return
-		}
 		setError(null)
 		setStats(null)
 		setIsLoading(true)
 		try {
-			const res = await fetch(`/api/app/admin/file-stats/${encodeURIComponent(slug)}`)
+			const res = await fetch(`/api/app/admin/file-stats/${encodeURIComponent(fileId)}`)
 			if (!res.ok) {
 				setError(await getResponseError(res))
 				return
@@ -46,7 +41,7 @@ export function FileStats() {
 		} finally {
 			setIsLoading(false)
 		}
-	}, [])
+	}, [fileId])
 
 	return (
 		<div className={styles.fileOperation}>
@@ -55,20 +50,9 @@ export function FileStats() {
 				or a person&apos;s identity, so a report is safe to paste into an issue or a support reply.
 			</p>
 			{error && <div className={styles.errorMessage}>{error}</div>}
-			<div className={styles.searchContainer}>
-				<input
-					type="text"
-					placeholder="File slug"
-					ref={inputRef}
-					className={styles.searchInput}
-					onKeyDown={(e) => {
-						if (e.key === 'Enter') onGetStats()
-					}}
-				/>
-				<AdminButton onClick={onGetStats} variant="primary" isLoading={isLoading}>
-					Get stats
-				</AdminButton>
-			</div>
+			<AdminButton onClick={onGetStats} variant="primary" isLoading={isLoading}>
+				Get stats
+			</AdminButton>
 			{stats && <FileStatsReport stats={stats} />}
 		</div>
 	)

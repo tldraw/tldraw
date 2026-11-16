@@ -1,4 +1,3 @@
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import { SerializedSchema, TLComponents, TLRecord, Tldraw } from 'tldraw'
 import { ThemeUpdater } from '../../../components/ThemeUpdater/ThemeUpdater'
@@ -45,7 +44,6 @@ export function TlaPublishEditor({ schema, records }: TlaPublishEditorProps) {
 	return (
 		<TlaEditorWrapper>
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				assetUrls={assetUrls}
 				shapeUtils={embedShapeUtils}
 				snapshot={snapshot}

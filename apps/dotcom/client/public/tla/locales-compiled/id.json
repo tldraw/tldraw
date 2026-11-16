@@ -37,12 +37,6 @@
       "value": "."
     }
   ],
-  "03b3e13197": [
-    {
-      "type": 0,
-      "value": "Seret file ke bilah samping di halaman ini atau pilih opsi 'Impor file' dari menu pengguna."
-    }
-  ],
   "043973ec1f": [
     {
       "type": 0,
@@ -185,6 +179,12 @@
     {
       "type": 0,
       "value": "Buat file"
+    }
+  ],
+  "1a7222b4e5": [
+    {
+      "type": 0,
+      "value": "Pindah ke"
     }
   ],
   "1da2e8106b": [
@@ -343,6 +343,12 @@
       "value": "Hapus anggota"
     }
   ],
+  "398f51738e": [
+    {
+      "type": 0,
+      "value": "Masuk untuk menerima undangan ini."
+    }
+  ],
   "3bc7d6ea2f": [
     {
       "type": 0,
@@ -493,16 +499,6 @@
     {
       "type": 0,
       "value": "Batas kolaborator terpenuhi"
-    }
-  ],
-  "545241e7dd": [
-    {
-      "type": 1,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " belum dibaca"
     }
   ],
   "550b25cc0c": [
@@ -738,6 +734,12 @@
       "value": "Muat ulang halaman"
     }
   ],
+  "747ee44424": [
+    {
+      "type": 0,
+      "value": "Simpan konten sebagai file .tldr: pilih 'Simpan salinan' di menu kiri atas."
+    }
+  ],
   "74ff4bad28": [
     {
       "type": 0,
@@ -930,20 +932,6 @@
       "value": "Muat ulang halaman untuk mendapatkan versi terbaru tldraw."
     }
   ],
-  "86353d2c41": [
-    {
-      "type": 0,
-      "value": "Menambahkan file "
-    },
-    {
-      "type": 1,
-      "value": "total"
-    },
-    {
-      "type": 0,
-      "value": ".tldr."
-    }
-  ],
   "86c66437fd": [
     {
       "type": 0,
@@ -1010,6 +998,12 @@
     {
       "type": 0,
       "value": "? Tindakan ini tidak dapat dibatalkan."
+    }
+  ],
+  "930390d222": [
+    {
+      "type": 0,
+      "value": "Tautan undangan disalin"
     }
   ],
   "95aacd4d4a": [
@@ -1124,10 +1118,25 @@
       "value": "."
     }
   ],
-  "a0da245992": [
+  "a0a19d5145": [
     {
-      "type": 0,
-      "value": "Ekspor konten sebagai file .tldr: Pilih 'Unduh' di menu kiri atas."
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " belum dibaca"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
     }
   ],
   "a104439641": [
@@ -1296,6 +1305,12 @@
       "value": "Pemilik"
     }
   ],
+  "b74dbb40c5": [
+    {
+      "type": 0,
+      "value": "Seret file ke bilah sisi pada halaman ini. Atau pilih opsi 'Impor file' dari menu File di kiri atas."
+    }
+  ],
   "b758336699": [
     {
       "type": 0,
@@ -1370,6 +1385,27 @@
       "value": "Pelajari lebih lanjut tentang berbagi."
     }
   ],
+  "c26f17786f": [
+    {
+      "offset": 0,
+      "options": {
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " file .tldr ditambahkan."
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "total"
+    }
+  ],
   "c303bd1095": [
     {
       "type": 0,
@@ -1380,12 +1416,6 @@
     {
       "type": 0,
       "value": "Cookie penting"
-    }
-  ],
-  "c655b27b1e": [
-    {
-      "type": 0,
-      "value": "i18n: Deret Panjang"
     }
   ],
   "c6a00f137b": [
@@ -1454,17 +1484,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1472,7 +1491,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " lainnya"
             }
           ]
         }
@@ -1640,6 +1659,12 @@
       "value": "atau"
     }
   ],
+  "ea13ecec38": [
+    {
+      "type": 0,
+      "value": "Riwayat berkas"
+    }
+  ],
   "ea4788705e": [
     {
       "type": 0,
@@ -1668,12 +1693,6 @@
     {
       "type": 0,
       "value": "Menu akun"
-    }
-  ],
-  "ed53713239": [
-    {
-      "type": 0,
-      "value": "i18n: Beraksen"
     }
   ],
   "ed75712b0e": [
@@ -1744,6 +1763,12 @@
       "value": "Hapus"
     }
   ],
+  "f408fa5fbd": [
+    {
+      "type": 0,
+      "value": "Tautan undangan ini tidak valid atau telah kedaluwarsa."
+    }
+  ],
   "f476ba8646": [
     {
       "children": [
@@ -1776,17 +1801,6 @@
     {
       "offset": 0,
       "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " other"
-            }
-          ]
-        },
         "other": {
           "value": [
             {
@@ -1794,7 +1808,7 @@
             },
             {
               "type": 0,
-              "value": " others"
+              "value": " lainnya"
             }
           ]
         }
@@ -1880,6 +1894,12 @@
     {
       "type": 0,
       "value": "Buat akun gratis untuk menyimpan file Anda dan menggambar bersama rekan tim Anda."
+    }
+  ],
+  "ffad261a48": [
+    {
+      "type": 0,
+      "value": "Terjadi kesalahan saat menerima undangan."
     }
   ],
   "ffcd73e997": [

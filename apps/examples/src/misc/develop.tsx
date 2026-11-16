@@ -4,7 +4,6 @@ import {
 	CommentTool,
 	commentToolOverrides,
 } from '@tldraw/commenting'
-import { getLicenseKey } from '@tldraw/dotcom-shared'
 import { useMemo } from 'react'
 import {
 	commentSchemaRecords,
@@ -152,7 +151,6 @@ export default function Develop() {
 	return (
 		<div className="tldraw__editor">
 			<Tldraw
-				licenseKey={getLicenseKey()}
 				overrides={[performanceOverrides, debuggingOverrides, commentToolOverrides]}
 				store={store}
 				tools={tools}

@@ -19,6 +19,10 @@ exports[`the_routes 1`] = `
     "vercelRouterPattern": "^/admin/[^/]*/?$",
   },
   {
+    "reactRouterPattern": "/admin/:section/:fileId",
+    "vercelRouterPattern": "^/admin/[^/]*/[^/]*/?$",
+  },
+  {
     "reactRouterPattern": "/f/:fileSlug",
     "vercelRouterPattern": "^/f/[^/]*/?$",
   },
@@ -81,6 +85,10 @@ exports[`the_routes 1`] = `
   {
     "reactRouterPattern": "/s/:roomId",
     "vercelRouterPattern": "^/s/[^/]*/?$",
+  },
+  {
+    "reactRouterPattern": "/sign-in",
+    "vercelRouterPattern": "^/sign-in/?$",
   },
   {
     "reactRouterPattern": "/sso-callback",
