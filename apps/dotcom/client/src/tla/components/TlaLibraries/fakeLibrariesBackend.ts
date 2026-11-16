@@ -19,8 +19,8 @@ function createHold() {
  * mutators, and the sync worker's routes behind `fetch`. Rows change at once, as Zero applies a
  * mutation locally. Stored content is kept in a map, and thumbnails at made-up public URLs.
  *
- * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls a created
- * library back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
+ * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
+ * mutations back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
  * of rows the worker inserts (`holdItemRows`).
  */
 export function createFakeLibrariesBackend({
@@ -46,7 +46,7 @@ export function createFakeLibrariesBackend({
 	let rowHold: ReturnType<typeof createHold> | undefined
 	const showMutationRejectionToast = vi.fn()
 
-	const done = (rollback = () => {}) => {
+	const done = (rollback: () => void) => {
 		const forbidden = { type: 'error', error: { type: 'app', message: 'forbidden' } }
 		const server = serverHold
 			? serverHold.passes.then((passes) => {
@@ -61,6 +61,12 @@ export function createFakeLibrariesBackend({
 		const result = Promise.resolve({ type: 'error', error: { type: 'app', message: 'forbidden' } })
 		return { client: result, server: result }
 	}
+	// Applies a mutation locally, as Zero does, to be rolled back if the server rejects it.
+	const change = (apply: () => void) => {
+		const before = rows.get()
+		apply()
+		return done(() => rows.set(before))
+	}
 	const updateRow = (id: string, change: (row: Row) => Row) =>
 		rows.update((all) => all.map((row) => (row.id === id ? change(row) : row)))
 	const updateItem = (id: string, change: (item: TlaLibraryItem) => TlaLibraryItem) =>
@@ -72,61 +78,54 @@ export function createFakeLibrariesBackend({
 		library: {
 			create: ({ id, name, owningGroupId, meta }: any) => {
 				if (!isMember(owningGroupId)) return rejected()
-				rows.update((all) => [
-					...all,
-					{
-						id,
-						name: name.trim(),
-						owningGroupId,
-						meta,
-						createdBy: userId,
-						createdAt: all.length,
-						updatedAt: 0,
-						items: [],
-					},
-				])
-				return done(() => rows.update((all) => all.filter((row) => row.id !== id)))
+				return change(() =>
+					rows.update((all) => [
+						...all,
+						{
+							id,
+							name: name.trim(),
+							owningGroupId,
+							meta,
+							createdBy: userId,
+							createdAt: all.length,
+							updatedAt: 0,
+							items: [],
+						},
+					])
+				)
 			},
-			rename: ({ id, name }: any) => {
-				updateRow(id, (row) => ({ ...row, name }))
-				return done()
-			},
-			delete: ({ id }: any) => {
-				rows.update((all) => all.filter((row) => row.id !== id))
-				return done()
-			},
+			rename: ({ id, name }: any) => change(() => updateRow(id, (row) => ({ ...row, name }))),
+			delete: ({ id }: any) =>
+				change(() => rows.update((all) => all.filter((row) => row.id !== id))),
 			move: ({ id, owningGroupId }: any) => {
 				if (!isMember(owningGroupId)) return rejected()
-				updateRow(id, (row) => ({ ...row, owningGroupId }))
-				return done()
+				return change(() => updateRow(id, (row) => ({ ...row, owningGroupId })))
 			},
 		},
 		library_item: {
-			rename: ({ id, name }: any) => {
-				updateItem(id, (item) => ({ ...item, name }))
-				return done()
-			},
-			delete: ({ id }: any) => {
-				rows.update((all) =>
-					all.map((row) => ({ ...row, items: row.items.filter((i) => i.id !== id) }))
-				)
-				return done()
-			},
+			rename: ({ id, name }: any) => change(() => updateItem(id, (item) => ({ ...item, name }))),
+			delete: ({ id }: any) =>
+				change(() =>
+					rows.update((all) =>
+						all.map((row) => ({ ...row, items: row.items.filter((i) => i.id !== id) }))
+					)
+				),
 			move: ({ id, libraryId }: any) => {
 				const item = rows
 					.get()
 					.flatMap((row) => row.items)
 					.find((i) => i.id === id)!
-				rows.update((all) =>
-					all.map((row) => ({
-						...row,
-						items:
-							row.id === libraryId
-								? [...row.items, { ...item, libraryId }]
-								: row.items.filter((i) => i.id !== id),
-					}))
+				return change(() =>
+					rows.update((all) =>
+						all.map((row) => ({
+							...row,
+							items:
+								row.id === libraryId
+									? [...row.items, { ...item, libraryId }]
+									: row.items.filter((i) => i.id !== id),
+						}))
+					)
 				)
-				return done()
 			},
 		},
 	}
