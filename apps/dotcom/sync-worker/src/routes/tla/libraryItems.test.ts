@@ -130,6 +130,22 @@ describe('addLibraryItem', () => {
 		expect(insert.parameters).toContain(JSON.stringify(thumbnail))
 	})
 
+	it('stores an SVG thumbnail as an SVG upload', async () => {
+		mockPool([[libraryAccess(W, 'member')]])
+		const env = makeEnv()
+		const response = await addLibraryItem(
+			addRequest({
+				content: JSON.stringify(CONTENT),
+				thumbnail: new Blob(['<svg/>'], { type: 'image/svg+xml' }),
+			}),
+			env
+		)
+
+		expect(response.status).toBe(200)
+		const [objectName] = await uploadNames(env)
+		expect(objectName).toMatch(/-svg$/)
+	})
+
 	it("removes what it stored when the row can't be inserted", async () => {
 		const fake = mockPool([[libraryAccess(W, 'member')]])
 		vi.spyOn(fake.db, 'transaction').mockImplementation(() => {
@@ -176,10 +192,10 @@ describe('addLibraryItem', () => {
 		['content that is not JSON', { content: '{' }],
 		['JSON that is not item content', { content: JSON.stringify({ shapes: [] }) }],
 		[
-			'an SVG thumbnail',
+			'a GIF thumbnail',
 			{
 				content: JSON.stringify(CONTENT),
-				thumbnail: new Blob(['<svg/>'], { type: 'image/svg+xml' }),
+				thumbnail: new Blob([new Uint8Array([1])], { type: 'image/gif' }),
 			},
 		],
 		[

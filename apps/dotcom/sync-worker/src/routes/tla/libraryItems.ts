@@ -43,7 +43,7 @@ async function readText(value: FormDataEntryValue | null) {
 function readThumbnail(value: FormDataEntryValue | null): File | null | Response {
 	if (value === null || typeof value === 'string') return null
 	if (!LIBRARY_ITEM_THUMBNAIL_TYPES.has(value.type)) {
-		return badRequest('Thumbnail must be PNG, WebP or JPEG')
+		return badRequest('Thumbnail must be PNG, WebP, JPEG or SVG')
 	}
 	if (value.size > MAX_LIBRARY_ITEM_THUMBNAIL_BYTES) {
 		return Response.json({ error: 'Thumbnail is too large' }, { status: 413 })
@@ -65,7 +65,7 @@ function isItemContent(value: unknown): value is StoredItemContent {
  * reaches clients through Zero, and records the copies it owns. The worker picks the item's id, so
  * a request can't name an existing item and overwrite its content.
  *
- * Form fields: `content`, `thumbnail` (optional, PNG, WebP or JPEG), `darkThumbnail` (optional, and
+ * Form fields: `content`, `thumbnail` (optional, PNG, WebP, JPEG or SVG), `darkThumbnail` (optional, and
  * only with `thumbnail`, which is then the light one of the pair) and `name` (optional).
  */
 export async function addLibraryItem(request: IRequest, env: Environment) {
