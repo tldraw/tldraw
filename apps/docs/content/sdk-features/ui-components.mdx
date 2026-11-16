@@ -195,6 +195,140 @@ Pass `null` to hide a component entirely. This is useful for focused experiences
 
 See the [UI components hidden example](/examples/ui/ui-components-hidden) for a complete list of hideable components.
 
+## Command palette
+
+The `@tldraw/command-palette` package adds a command palette: press Cmd+K (Ctrl+K on Windows and Linux) to open a searchable list of commands. It's built from the same menu items as the other menus.
+
+Install it alongside tldraw:
+
+```bash
+npm install @tldraw/command-palette
+```
+
+Put `CommandPalette` in the `CommandPalette` component slot, pass `commandPaletteOverrides` for the shortcut, and import the stylesheet:
+
+```tsx
+import { CommandPalette, commandPaletteOverrides } from '@tldraw/command-palette'
+import '@tldraw/command-palette/command-palette.css'
+import { Tldraw } from 'tldraw'
+import 'tldraw/tldraw.css'
+
+export default function App() {
+	return <Tldraw components={{ CommandPalette }} overrides={commandPaletteOverrides} />
+}
+```
+
+`commandPaletteOverrides` adds the `open-command-palette` action, which Cmd/Ctrl+K runs. If you have other overrides, pass an array: `overrides={[commandPaletteOverrides, myOverrides]}`. To bind another chord, override `actions['open-command-palette'].kbd`. To open the palette from a menu, place `CommandPaletteMenuItem`, for example in the main menu:
+
+```tsx
+function MyMainMenu() {
+	return (
+		<DefaultMainMenu>
+			<DefaultMainMenuContent />
+			<TldrawUiMenuGroup id="command-palette">
+				<CommandPaletteMenuItem />
+			</TldrawUiMenuGroup>
+		</DefaultMainMenu>
+	)
+}
+```
+
+### Adding commands
+
+Actions show up in the palette on their own. Your custom actions from `overrides.actions` are listed at the end of the default content, with the same label, shortcut and [gating](/sdk-features/actions#Enabling-and-checking-actions) as everywhere else. The palette only lists commands that can run right now while you browse; search lists disabled ones greyed out.
+
+To place commands, wrap `CommandPalette` and pass children, which replace the default content:
+
+```tsx
+function MyCommandPalette() {
+	return (
+		<CommandPalette actionGroups={{ 'make-red': 'colors', 'internal-action': false }}>
+			<CommandPaletteActionGroup group="colors" label="Colors" />
+			<TldrawUiMenuGroup id="my-stuff" label="My stuff">
+				<TldrawUiMenuItem id="say-hi" label="Say hi" onSelect={sayHi} />
+			</TldrawUiMenuGroup>
+			<DefaultCommandPaletteContent />
+		</CommandPalette>
+	)
+}
+
+;<Tldraw components={{ CommandPalette: MyCommandPalette }} overrides={commandPaletteOverrides} />
+```
+
+`actionGroups` maps action ids to the `group` of the `CommandPaletteActionGroup` that lists them, or to `false` to leave an action out of the palette. It's merged over `defaultCommandPaletteActionGroups`, which places tldraw's built-in actions and leaves out internal and shortcut-only ones. Set `false` on your own internal or shortcut-only actions too.
+
+A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. `CommandPaletteToolsGroup` lists one item per tool, after the editing commands and before preferences and help.
+
+### Position and behavior
+
+The palette opens just above the toolbar when it's horizontal, and in the lower middle of the editor otherwise. Pass `position="center"` or `position="top"` to open it elsewhere. On touch devices it always opens near the top, clear of the on-screen keyboard:
+
+```tsx
+function TopCommandPalette() {
+	return <CommandPalette position="top" />
+}
+```
+
+While the query is empty, the palette lists recent commands first. Pass `suggestions="none"` to leave them out.
+
+The palette doesn't block the canvas. While shapes are selected, a click on the canvas leaves it open, so you can work on the selection and then run commands on it. Any other click closes it: on the canvas with nothing selected, or on other UI such as menus and panels. The click goes through either way, and scrolling and zooming move the camera without closing it.
+
+### Outside the editor
+
+`CommandPaletteShell` is the palette's input, list and keyboard handling. It also works outside an editor, for example on a page that lists documents. There, your app owns the open state and the shortcut, and renders `<CommandPaletteShell onClose={...}>` with its own items while open. Render it inside `TldrawUiContextProvider` and a themed tldraw container (`.tl-container` with a theme class such as `tl-theme__light`) that is positioned, since the palette fills its nearest positioned ancestor. Focus goes back to whatever had it when the palette opened. `CommandPalette`, `DefaultCommandPalette`, Cmd/Ctrl+K and the default groups still need an editor.
+
+```tsx
+function DocumentPalette({ onClose }: { onClose(): void }) {
+	return (
+		<div className="tl-container tl-theme__light" style={{ position: 'fixed', inset: 0 }}>
+			<TldrawUiContextProvider>
+				<CommandPaletteShell onClose={onClose}>
+					{documents.map((doc) => (
+						<TldrawUiMenuItem
+							key={doc.id}
+							id={doc.id}
+							label={doc.name}
+							onSelect={() => open(doc)}
+						/>
+					))}
+				</CommandPaletteShell>
+			</TldrawUiContextProvider>
+		</div>
+	)
+}
+```
+
+For long or async lists, read the query with `useCommandPaletteQuery()` and render only your best matches. `getCommandPaletteMatchScore` matches the same items the palette does, but the palette adds its own tiebreaks to the order, so rely only on 0 meaning no match and a higher score meaning a better one.
+
+### Shaping items
+
+A few components shape how items appear in the palette. Outside it they render their children unchanged, so a group can be shared with other menus.
+
+- `CommandPalettePinned` lists the items inside first, above recent commands, while browsing.
+- `CommandPaletteOnDemand` keeps the submenu inside as one row you open, even with a single item, and keeps its items out of top-level search results.
+- `TldrawUiMenuItem` takes a `detail`, muted text after its label, such as the workspace a file is in. Search matches it too.
+- `CommandPalettePromptItem` asks for text before running, such as a name. Its `onSubmit` gets the trimmed text, and `initialValue` fills the input with the current value, selected.
+
+```tsx
+<CommandPalettePinned>
+	<CommandPaletteOnDemand>
+		<TldrawUiMenuSubmenu id="inbox" label="Inbox">
+			{messages.map((message) => (
+				<TldrawUiMenuItem key={message.id} id={message.id} label={message.title} onSelect={open} />
+			))}
+		</TldrawUiMenuSubmenu>
+	</CommandPaletteOnDemand>
+</CommandPalettePinned>
+
+<CommandPalettePromptItem
+	id="rename-board"
+	label="Rename board"
+	placeholder="Board name"
+	initialValue={board.name}
+	onSubmit={(name) => name && renameBoard(name)}
+/>
+```
+
 ## Overrides
 
 Control tldraw's actions, tools, and translations with the `overrides` prop. This prop accepts a [TLUiOverrides](?) object, which has methods for `actions` and `tools`, and a `translations` property.
@@ -319,3 +453,4 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 - [Vertical toolbar](/examples/ui/vertical-toolbar) - Switch to a vertical toolbar layout
 - [Add tool to toolbar](/examples/ui/add-tool-to-toolbar) - Add a custom tool to the toolbar
 - [UI events](/examples/events/ui-events) - Listen to UI events like tool selection and menu interactions
+- [Command palette](/examples/ui/command-palette) - Add your own commands to the command palette
