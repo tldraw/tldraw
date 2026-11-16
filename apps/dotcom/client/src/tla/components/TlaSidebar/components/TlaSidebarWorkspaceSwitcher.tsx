@@ -18,7 +18,7 @@ import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import styles from '../sidebar.module.css'
 

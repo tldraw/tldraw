@@ -213,6 +213,11 @@
 	padding-left: 8px;
 }
 
+/* Switches sit at the trailing edge, so the label keeps the standard menu inset. */
+.tlui-button__toggle {
+	padding-left: 12px;
+}
+
 .tlui-button__checkbox__indicator {
 	width: 15px;
 	height: 15px;

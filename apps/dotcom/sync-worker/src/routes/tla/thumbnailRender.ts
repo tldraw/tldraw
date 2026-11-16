@@ -12,7 +12,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { AssetRecordType, isShape, isShapeId } from '@tldraw/tlschema'
-import { RENDER_PUSH_FALLBACK_TTL_MS, THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
+import { THUMBNAIL_RENDER_TOKEN_TTL_MS } from '../../config'
 import { getR2KeyForRoom } from '../../r2'
 import {
 	Environment,
@@ -200,12 +200,11 @@ async function mintRecordedRenderToken(env: Environment, job: ThumbnailRenderJob
 /**
  * How a session's page gets its records. `push` sends them in the screenshot request, so the page
  * never fetches. `pull` leaves the page to fetch them with its token: push is off, the caller had no
- * snapshot, or the job is an error the snapshot route reports. `push_fallback` had the records and
- * sent none: too big for the RPC message, or a push of this board timed out recently.
+ * snapshot, or the job is an error the snapshot route reports.
  */
 type RenderTransport =
-	| { kind: 'pull' | 'push_fallback'; pushChars: number }
-	| { kind: 'push'; pushChars: number; script: string; board: ThumbnailBoardRef }
+	| { kind: 'pull'; pushChars: number }
+	| { kind: 'push'; pushChars: number; script: string }
 
 const PULL: RenderTransport = { kind: 'pull', pushChars: 0 }
 
@@ -215,7 +214,6 @@ async function renderTransportFor(
 	job: ThumbnailRenderJob
 ): Promise<RenderTransport> {
 	if (!snapshot || !(await isPushRolledOutFor(env, job))) return PULL
-	if (await didPushTimeOutRecently(env, job)) return { kind: 'push_fallback', pushChars: 0 }
 	// Built by the snapshot route's own function, so a pushed render and a fetched one cannot differ.
 	const body = thumbnailSnapshotBodyFor(snapshot, job)
 	if (body.error) return PULL
@@ -223,14 +221,11 @@ async function renderTransportFor(
 	// into its prototype, so a board that loads by fetch would fail validation by push. addScriptTag
 	// sets the script's text rather than parsing it as HTML, so board text cannot close the tag early.
 	const script = `window.${THUMBNAIL_RENDER_GLOBAL}=JSON.parse(${JSON.stringify(JSON.stringify(body))})`
-	if (script.length > PUSH_SCRIPT_BUDGET_CHARS) {
-		return { kind: 'push_fallback', pushChars: script.length }
-	}
-	return { kind: 'push', pushChars: script.length, script, board: job }
+	return { kind: 'push', pushChars: script.length, script }
 }
 
 // The OG percentage is bucketed per board, not per render: otherwise a board's retries would flip
-// between transports and the per-board push-fallback marker would stop meaning anything.
+// between transports.
 async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
 	if (envFlagWord(env.THUMBNAIL_RENDER_PUSH) === 'true') return true
 	if (job.surface === 'mcp') {
@@ -242,39 +237,6 @@ async function isPushRolledOutFor(env: Environment, job: ThumbnailRenderJob) {
 	}
 	const flag = await getFeatureFlagValue(env, 'thumbnail_render_push')
 	return evaluateFlagForUser(flag, 'thumbnail_render_push', `${job.kind}/${job.slug}`)
-}
-
-// The page waits for a push as long as the capture lasts, so a push that never lands is a
-// browser_timeout. One switches the board to fetching for RENDER_PUSH_FALLBACK_TTL_MS, so the next
-// attempt (the OG queue's retry, an agent's next call) falls back. Per board, not per surface: the
-// cause is the board's payload. THUMBNAILS has no lifecycle rule, so deleteBoardThumbnails removes it.
-export function getRenderPushFallbackKey(board: ThumbnailBoardRef) {
-	return `push-fallback/${board.kind}/${board.slug}`
-}
-
-async function didPushTimeOutRecently(env: Environment, board: ThumbnailBoardRef) {
-	// Fails open to pushing: a marker that cannot be read costs at most one more timeout.
-	const marker = await env.THUMBNAILS?.head(getRenderPushFallbackKey(board)).catch(() => null)
-	const expiresAt = Number(marker?.customMetadata?.expiresAt)
-	return Number.isFinite(expiresAt) && expiresAt > Date.now()
-}
-
-async function markPushTimedOut(env: Environment, board: ThumbnailBoardRef) {
-	await env.THUMBNAILS?.put(getRenderPushFallbackKey(board), new Uint8Array(), {
-		customMetadata: { expiresAt: String(Date.now() + RENDER_PUSH_FALLBACK_TTL_MS) },
-	}).catch(() => {})
-}
-
-// The binding serializes the whole request into one RPC message, capped at 32 MiB (measured
-// 2026-08-21: 25.6 MB pushes, 32 MB is refused). A script with any non-Latin-1 character serializes
-// at two bytes a character, so this budget can still overshoot; isRpcOversizeError catches that, and
-// the refusal comes before any session exists.
-const PUSH_SCRIPT_BUDGET_CHARS = 31 * 1024 * 1024
-
-// A plain Error, so the message is all there is to match. Kept narrow: nothing else may be mistaken
-// for "too big" and silently downgraded to a fetch.
-function isRpcOversizeError(error: unknown) {
-	return error instanceof Error && /Serialized RPC .*limited to/i.test(error.message)
 }
 
 export function buildThumbnailRenderUrl(renderOrigin: string, token: string) {
@@ -631,7 +593,7 @@ async function runRenderSession(
 		width,
 		height,
 		session,
-		transport: plannedTransport,
+		transport,
 		content,
 		pageReached,
 	}: {
@@ -646,8 +608,7 @@ async function runRenderSession(
 ): Promise<{ buffer: ArrayBuffer; durationMs: number }> {
 	const action: BrowserRunAction = session.mode === 'measure' ? 'content' : 'screenshot'
 	// Built by one function and handed to whichever transport runs, so the wait strategy, capture
-	// target and timeout cannot drift between Browser Run and its development stand-in, or between a
-	// pushed request and its fallback.
+	// target and timeout cannot drift between Browser Run and its development stand-in.
 	const requestBody = (injectedScript?: string) =>
 		(action === 'content' ? getThumbnailContentRequestBody : getThumbnailScreenshotRequestBody)({
 			renderUrl,
@@ -656,8 +617,6 @@ async function runRenderSession(
 			timeoutMs: THUMBNAIL_RENDER_TIMEOUT_MS,
 			injectedScript,
 		})
-	let transport = plannedTransport
-
 	// Local dev has no route to Browser Run, so it points this at a screenshot service instead (the
 	// client's dev server, which can drive Playwright). Selected on the var being set rather than on
 	// an environment name, so only an environment that configures one can take this path.
@@ -668,25 +627,15 @@ async function runRenderSession(
 			? callLocalScreenshotService(env.LOCAL_SCREENSHOT_SERVICE_URL, action, body)
 			: callBrowserRun(env, action, body)
 	try {
-		// The binding refuses an oversize request before any browser session exists, so falling back
-		// to the fetch costs nothing. Only that refusal falls back; any other error is the render's.
-		const capture =
-			plannedTransport.kind === 'push'
-				? callCapture(requestBody(plannedTransport.script)).catch((error) => {
-						if (!isRpcOversizeError(error)) throw error
-						transport = { kind: 'push_fallback', pushChars: plannedTransport.pushChars }
-						return callCapture(requestBody())
-					})
-				: callCapture(requestBody())
+		const capture = callCapture(
+			requestBody(transport.kind === 'push' ? transport.script : undefined)
+		)
 		timed = await abandonAtRenderTimeout(capture, startedAt)
 	} catch (error) {
 		// A BrowserRenderError is a session that existed and died, so it lands on the ledger with the
 		// time it held its browser. Anything else never created a session and records nothing.
 		if (error instanceof BrowserRenderError) {
 			const outcome = classifyScreenshotFailure(error)
-			if (transport.kind === 'push' && outcome === 'browser_timeout') {
-				await markPushTimedOut(env, transport.board)
-			}
 			writeBrowserRunSessionTelemetry(env, session, {
 				outcome,
 				durationMs: error.durationMs,
@@ -1033,9 +982,10 @@ export function writeScreenshotTelemetry(
 		 * What the PNG cache did for this request. `none` when the request never consulted it: the
 		 * info tools have no cache at all, and a screenshot request refused before the cache read
 		 * (bad input, rate-limited caller, unresolvable board) says nothing about cache health.
-		 * Excluding `none` is what keeps a hit-rate-by-source panel honest.
+		 * Excluding `none` is what keeps a hit-rate-by-source panel honest. `unchanged` is a queue job
+		 * whose board moved but whose image didn't need to: the edit was to records it doesn't draw.
 		 */
-		cacheStatus: 'hit' | 'stale' | 'miss' | 'none'
+		cacheStatus: 'hit' | 'stale' | 'miss' | 'unchanged' | 'none'
 		/**
 		 * Hashed identity of whoever asked, for surfaces that have one. Recorded only on rate-limited
 		 * rows — see below.

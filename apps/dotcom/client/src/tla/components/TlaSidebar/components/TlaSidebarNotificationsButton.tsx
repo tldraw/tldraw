@@ -7,12 +7,10 @@ import {
 	useMenuIsOpen,
 	useTranslation,
 } from 'tldraw'
-import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
-import {
-	TlaSidebarNotificationsPanel,
-	useCommentNotifications,
-} from './TlaSidebarNotificationsPanel'
+import { TlaSidebarNotificationsPanel } from './TlaSidebarNotificationsPanel'
+import { useCommentNotifications } from './useCommentNotifications'
 import styles from '../sidebar.module.css'
 import notifications from './notifications.module.css'
 
@@ -56,6 +54,7 @@ export function TlaSidebarNotificationsButton() {
 				side="bottom"
 				align="start"
 				{...TLA_MENU_POSITION}
+				sideOffset={0}
 				autoFocusFirstButton={false}
 			>
 				<TlaSidebarNotificationsPanel onClose={() => onOpenChange(false)} />
