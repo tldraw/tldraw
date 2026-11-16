@@ -3,8 +3,8 @@ import { useEditor, useValue } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
 import { getItemOrderChoice, itemOrderings, setItemOrderChoice } from './item-order'
+import { useLibrariesComponents } from './libraries-components'
 import { LibraryItems } from './library-items'
-import { LibrarySectionHeader } from './library-section-header'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, collapsedLibraryIds } from './state'
 
@@ -21,6 +21,7 @@ export function LibrarySection({
 	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
+	const { LibrarySectionHeader } = useLibrariesComponents()
 	const ref = useRef<HTMLElement | null>(null)
 	// Also in state, so the tiles can measure once it mounts. The ref stays for the scroll below,
 	// which runs before a state update would land.
@@ -59,25 +60,27 @@ export function LibrarySection({
 
 	return (
 		<section ref={setRef} className="tlui-libraries-section">
-			<LibrarySectionHeader
-				source={source}
-				library={library}
-				collapsed={collapsed}
-				onToggleCollapsed={() => setCollapsed(!collapsed)}
-				sort={{
-					options: itemOrderings.map(({ id, label }) => ({ id, label })),
-					value: ordering.id,
-					onValueChange: (orderingId) =>
-						setItemOrderChoice(source.id, libraryId, { ...choice, orderingId }),
-					reversed: choice.reversed,
-					onReversedChange: (reversed) =>
-						setItemOrderChoice(source.id, libraryId, { ...choice, reversed }),
-				}}
-			/>
+			{LibrarySectionHeader && (
+				<LibrarySectionHeader
+					source={source}
+					library={library}
+					collapsed={collapsed}
+					onToggleCollapsed={() => setCollapsed(!collapsed)}
+					sort={{
+						options: itemOrderings.map(({ id, label }) => ({ id, label })),
+						value: ordering.id,
+						onValueChange: (orderingId) =>
+							setItemOrderChoice(source.id, libraryId, { ...choice, orderingId }),
+						reversed: choice.reversed,
+						onReversedChange: (reversed) =>
+							setItemOrderChoice(source.id, libraryId, { ...choice, reversed }),
+					}}
+				/>
+			)}
 			{!collapsed && (
 				<LibraryItems
 					source={source}
-					libraryId={libraryId}
+					library={library}
 					container={element}
 					getItemProps={getItemProps}
 					ordering={ordering}

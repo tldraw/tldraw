@@ -1,10 +1,29 @@
+export { AddSelectionTile, type AddSelectionTileProps } from './canvas/add-selection-tile'
 export {
 	AddToLibraryMenuItem,
 	type AddToLibraryMenuItemProps,
 } from './canvas/add-to-library-menu-item'
+export { EmptyLibrary, type EmptyLibraryProps } from './canvas/empty-library'
+export {
+	type LibrariesComponents,
+	LibrariesComponentsProvider,
+	type LibrariesComponentsProviderProps,
+	useLibrariesComponents,
+} from './canvas/libraries-components'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
+export {
+	LibrariesPanelHeader,
+	type LibrariesPanelHeaderProps,
+	type NewLibraryAction,
+} from './canvas/libraries-panel-header'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
 export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
+export {
+	LibrarySectionHeader,
+	type LibrarySectionHeaderProps,
+} from './canvas/library-section-header'
+export { LibraryTabLabel, type LibraryTabLabelProps } from './canvas/library-tab-label'
+export { NoLibraries, type NoLibrariesProps } from './canvas/no-libraries'
 export { placeLibraryItem } from './canvas/place-item'
 export {
 	saveShapesToLibrary,

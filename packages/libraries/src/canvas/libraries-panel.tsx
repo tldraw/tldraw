@@ -9,12 +9,21 @@ import {
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary, TLLibraryItemId } from '../lib/schema'
-import { LibrariesPanelHeader } from './libraries-panel-header'
-import { groupLibraryList, useLibraryGrouping } from './library-groups'
+import {
+	type LibrariesComponents,
+	LibrariesComponentsProvider,
+	useLibrariesComponents,
+} from './libraries-components'
+import type { NewLibraryAction } from './libraries-panel-header'
+import {
+	getGroupOwner,
+	groupLibraryList,
+	type LibraryGroup,
+	useLibraryGrouping,
+} from './library-groups'
 import { LibrarySection } from './library-section'
 import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
-import { NoLibraries } from './no-libraries'
 import { placeLibraryItem } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
@@ -44,6 +53,8 @@ export interface LibrariesPanelProps {
 	menuItems?: ReactNode
 	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
 	prepareItemContent?: PrepareItemContent
+	/** Replaces or hides pieces of the panel. See {@link LibrariesComponents}. */
+	components?: LibrariesComponents
 }
 
 /**
@@ -55,13 +66,22 @@ export interface LibrariesPanelProps {
  * under the pointer.
  * @public @react
  */
-export function LibrariesPanel({
+export function LibrariesPanel({ components, ...props }: LibrariesPanelProps) {
+	return (
+		<LibrariesComponentsProvider components={components}>
+			<LibrariesPanelContent {...props} />
+		</LibrariesComponentsProvider>
+	)
+}
+
+function LibrariesPanelContent({
 	source,
 	side = 'left',
 	menuItems,
 	prepareItemContent,
-}: LibrariesPanelProps) {
+}: Omit<LibrariesPanelProps, 'components'>) {
 	const editor = useEditor()
+	const { LibrariesPanelHeader, NoLibraries } = useLibrariesComponents()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
@@ -99,40 +119,49 @@ export function LibrariesPanel({
 		if (activeLibraryTab !== undefined) setChosenTab(activeLibraryTab)
 	}, [activeLibraryTab])
 	const activeGroup = grouping ? groups.find((group) => getTabValue(group.key) === tab) : undefined
-	const newLibraryOwnerId = activeGroup?.key
-	const activeOwnerName = activeGroup?.label
-	const newLibraryTarget = useValue(
+	const creatableOwnerIds = useValue(
+		'owners to create libraries for',
+		() =>
+			grouping ? grouping.order.filter((ownerId) => source.can('createLibrary', { ownerId })) : [],
+		[source, grouping]
+	)
+	const ungroupedTarget = useValue(
 		'new library target',
 		() => {
-			if (grouping) {
-				if (newLibraryOwnerId === undefined) return undefined
-				const allowed = source.can('createLibrary', { ownerId: newLibraryOwnerId })
-				return allowed ? { ownerName: activeOwnerName } : undefined
-			}
-			if (!canCreateNewLibrary(source)) return undefined
+			if (grouping || !canCreateNewLibrary(source)) return undefined
 			const defaultOwnerId = getDefaultOwnerId(source)
 			const owners = source.getLibraryOwners ? source.getLibraryOwners() : []
 			return { ownerName: owners.find((owner) => owner.id === defaultOwnerId)?.name }
 		},
-		[source, grouping, newLibraryOwnerId, activeOwnerName]
+		[source, grouping]
 	)
 
 	if (!open) return null
 
-	const renderSections = (list: TLLibrary[]) =>
-		list.length === 0 ? (
-			<NoLibraries />
-		) : (
-			list.map((library) => (
-				<LibrarySection
-					key={library.id}
-					source={source}
-					library={library}
-					getItemProps={getItemProps}
-					prepareItemContent={prepareItemContent}
-				/>
-			))
-		)
+	const newLibraryAction = (ownerName: string | undefined, ownerId: string | undefined) => ({
+		label: ownerName ? msg(messages.newLibraryIn, { name: ownerName }) : msg(messages.newLibrary),
+		onCreate: () => createLibrary(ownerId),
+	})
+	const getNewLibrary = (group: LibraryGroup | undefined): NewLibraryAction | undefined => {
+		if (!grouping) return ungroupedTarget && newLibraryAction(ungroupedTarget.ownerName, undefined)
+		if (group?.key === undefined || !creatableOwnerIds.includes(group.key)) return undefined
+		return newLibraryAction(group.label, group.key)
+	}
+
+	const renderSections = (list: TLLibrary[], group?: LibraryGroup) =>
+		list.length === 0
+			? NoLibraries && (
+					<NoLibraries owner={group && getGroupOwner(group)} newLibrary={getNewLibrary(group)} />
+				)
+			: list.map((library) => (
+					<LibrarySection
+						key={library.id}
+						source={source}
+						library={library}
+						getItemProps={getItemProps}
+						prepareItemContent={prepareItemContent}
+					/>
+				))
 
 	return (
 		<EditorPortal>
@@ -142,22 +171,14 @@ export function LibrariesPanel({
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				<LibrariesPanelHeader
-					newLibrary={
-						newLibraryTarget && {
-							label: newLibraryTarget.ownerName
-								? msg(messages.newLibraryIn, { name: newLibraryTarget.ownerName })
-								: msg(messages.newLibrary),
-							onCreate: () => createLibrary(newLibraryOwnerId),
-						}
-					}
-					menuItems={menuItems}
-				/>
+				{LibrariesPanelHeader && (
+					<LibrariesPanelHeader newLibrary={getNewLibrary(activeGroup)} menuItems={menuItems} />
+				)}
 				{grouping ? (
 					<LibraryTabs groups={groups} value={tab} onValueChange={setChosenTab}>
 						{groups.map((group) => (
 							<LibraryTabPanel key={getTabValue(group.key)} value={getTabValue(group.key)}>
-								{renderSections(group.libraries)}
+								{renderSections(group.libraries, group)}
 							</LibraryTabPanel>
 						))}
 					</LibraryTabs>

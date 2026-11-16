@@ -10,9 +10,10 @@ import {
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
 import type { TLLibrary } from '../lib/schema'
-import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
+import type { LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
+import { useLibrariesComponents } from './libraries-components'
 import { getOwnerChoices } from './owner-choices'
 import { renamingLibraryId } from './state'
 
@@ -40,14 +41,24 @@ const messages = defineMessages({
 	},
 })
 
+/** @public */
 export interface LibrarySectionHeaderProps {
+	/** The panel's source, which the library's menu renames, deletes, moves and copies it through. */
 	source: LibrarySource
 	library: TLLibrary
+	/** Whether the library is folded shut, hiding its items. */
 	collapsed: boolean
 	onToggleCollapsed(): void
+	/** The library's item order, for its menu's "Sort items by". */
 	sort: LibraryMenuSort
 }
 
+/**
+ * A library's name, which folds it shut, and its ⋯ menu: the `LibraryMenu` slot, wired to
+ * rename, delete, move and copy the library as the source allows. The default for
+ * {@link LibrariesComponents.LibrarySectionHeader}.
+ * @public @react
+ */
 export function LibrarySectionHeader({
 	source,
 	library,
@@ -57,6 +68,7 @@ export function LibrarySectionHeader({
 }: LibrarySectionHeaderProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const { LibraryMenu } = useLibrariesComponents()
 	const { addToast } = useToasts()
 	const { addDialog } = useDialogs()
 	const libraryId = library.id
@@ -157,8 +169,9 @@ export function LibrarySectionHeader({
 			<div className="tlui-libraries-panel__header-actions">
 				{/* Hidden while renaming: a closing menu hands focus back to its trigger, which would blur
 				    the input straight away. */}
-				{!renaming && (
+				{!renaming && LibraryMenu && (
 					<LibraryMenu
+						library={library}
 						id={`libraries-library-menu-${libraryId}`}
 						onRename={can.rename ? () => renamingLibraryId.set(editor, libraryId) : undefined}
 						onDelete={can.delete ? deleteLibrary : undefined}
