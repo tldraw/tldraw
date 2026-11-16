@@ -1,5 +1,5 @@
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
-import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
+import { createShapeId, deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
 import { ReactNode, StrictMode, useEffect, useState } from 'react'
 import { vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
@@ -180,24 +180,38 @@ describe('CommandPaletteShell', () => {
 		expect(selected()).toBe('command-palette.item.beta')
 	})
 
-	it('hides disabled items, both browsing and searching', async () => {
+	it('leaves disabled items out while browsing, and lists them last and greyed in search', async () => {
+		const onRedo = vi.fn()
 		const { rendered, input } = await renderShell(
 			<>
+				{item('redraw', 'Redo disabled', onRedo, { disabled: true })}
+				{item('redo', 'Redo')}
 				{item('alpha', 'Alpha')}
-				{item('redo', 'Redo', vi.fn(), { disabled: true })}
 			</>
 		)
 		await rendered.findByTestId('command-palette.item.alpha')
-		expect(rendered.queryByTestId('command-palette.item.redo')).toBeNull()
+		expect(rendered.queryByTestId('command-palette.item.redraw')).toBeNull()
 		type(input, 'redo')
-		await rendered.findByText('No results')
+		await rendered.findByTestId('command-palette.item.redraw')
+		const options = () => rendered.getAllByRole('option').map((el) => el.dataset.testid)
+		expect(options()).toEqual(['command-palette.item.redo', 'command-palette.item.redraw'])
+		const disabledRow = rendered.getByTestId('command-palette.item.redraw')
+		expect(disabledRow.getAttribute('aria-disabled')).toBe('true')
+		// Not reachable with the keys, the pointer or a click.
+		press(input, 'ArrowDown')
+		expect(rendered.getByTestId('command-palette.item.redo').dataset.highlighted).toBe('true')
+		fireEvent.pointerMove(disabledRow)
+		expect(disabledRow.dataset.highlighted).toBeUndefined()
+		fireEvent.click(disabledRow)
+		type(input, 'redo dis')
+		await waitFor(() => expect(options()).toEqual(['command-palette.item.redraw']))
+		press(input, 'Enter')
+		expect(onRedo).not.toHaveBeenCalled()
 	})
 
-	it('opens in the center by default', async () => {
+	it('opens above the toolbar by default', async () => {
 		const { rendered } = await renderShell(item('alpha', 'Alpha'))
-		const palette = rendered.getByTestId('command-palette')
-		expect(palette.dataset.position).toBe('center')
-		expect(palette.style.top).toBe('')
+		expect(rendered.getByTestId('command-palette').dataset.position).toBe('bottom')
 	})
 
 	it('opens where its position says', async () => {
@@ -265,12 +279,12 @@ describe('CommandPaletteShell', () => {
 					</TldrawUiMenuSubmenu>
 				</>
 			)
-			// The toolbar ends 12px above the bottom, so the palette ends 12px above the toolbar.
-			await waitFor(() => expect(palette.style.top).toBe('628px'))
+			// 8px above the toolbar's top, at 940px.
+			await waitFor(() => expect(palette.style.top).toBe('632px'))
 			expect(palette.style.maxHeight).toBe('')
 			fireEvent.click(within(palette).getByTestId('command-palette.submenu.Many'))
 			await within(palette).findByTestId('command-palette.back')
-			expect(palette.style.top).toBe('628px')
+			expect(palette.style.top).toBe('632px')
 			expect(palette.style.maxHeight).toBe('300px')
 		})
 
@@ -970,15 +984,38 @@ describe('CommandPaletteShell', () => {
 		expect(document.activeElement).toBe(input)
 	})
 
-	it('closes on Escape, on Cmd+K and on a click outside', async () => {
+	it('closes on Escape and on Cmd+K', async () => {
 		const onClose = vi.fn()
 		const { rendered, input } = await renderShell(item('alpha', 'Alpha'), onClose)
 		press(input, 'Escape')
 		press(input, 'k', { metaKey: true })
 		fireEvent.pointerDown(rendered.getByTestId('command-palette'))
 		expect(onClose).toHaveBeenCalledTimes(2)
-		fireEvent.pointerDown(rendered.getByTestId('command-palette').parentElement!)
-		expect(onClose).toHaveBeenCalledTimes(3)
+	})
+
+	it('stays open for a canvas click while shapes are selected, and closes for any other click', async () => {
+		const onClose = vi.fn()
+		const { editor, rendered } = await renderShell(item('alpha', 'Alpha'), onClose)
+		const canvas = editor.getContainer().querySelector('.tl-canvas')!
+		const reached = vi.fn()
+		canvas.addEventListener('pointerdown', reached)
+		act(() => {
+			editor.createShape({ type: 'geo', x: 0, y: 0 })
+			editor.selectAll()
+		})
+		fireEvent.pointerDown(canvas)
+		expect(onClose).not.toHaveBeenCalled()
+		act(() => editor.selectNone())
+		fireEvent.pointerDown(canvas)
+		expect(onClose).toHaveBeenCalledTimes(1)
+		// Other UI, such as the toolbar, closes it even with a selection.
+		act(() => editor.selectAll())
+		fireEvent.pointerDown(rendered.container.querySelector('.tlui-main-toolbar')!)
+		expect(onClose).toHaveBeenCalledTimes(2)
+		// The click goes through every time.
+		expect(reached).toHaveBeenCalledTimes(2)
+		const overlay = rendered.getByTestId('command-palette').parentElement!
+		expect(overlay.hasAttribute('data-passthrough')).toBe(true)
 	})
 
 	it('returns focus to the editor after running an item', async () => {
@@ -1058,10 +1095,29 @@ describe('CommandPaletteShell', () => {
 		expect(document.activeElement).toBe(editor.getContainer())
 	})
 
-	it('returns focus to the editor after a click outside', async () => {
-		const { editor, rendered } = await renderShell(item('alpha', 'Alpha'))
-		fireEvent.pointerDown(rendered.getByTestId('command-palette').parentElement!)
-		expect(document.activeElement).toBe(editor.getContainer())
+	it('takes focus back from the canvas after a click, so typing keeps searching', async () => {
+		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
+		act(() => editor.getContainer().focus())
+		fireEvent.pointerUp(window)
+		await waitFor(() => expect(document.activeElement).toBe(input))
+	})
+
+	it("leaves focus with a shape's text editor or another open menu after a click", async () => {
+		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
+		const editing = vi.spyOn(editor, 'getEditingShapeId').mockReturnValue(createShapeId())
+		act(() => editor.getContainer().focus())
+		fireEvent.pointerUp(window)
+		await new Promise((r) => requestAnimationFrame(r))
+		expect(document.activeElement).not.toBe(input)
+		editing.mockRestore()
+		act(() => {
+			editor.menus.addOpenMenu('other')
+			editor.getContainer().focus()
+		})
+		fireEvent.pointerUp(window)
+		await new Promise((r) => requestAnimationFrame(r))
+		expect(document.activeElement).not.toBe(input)
+		act(() => editor.menus.deleteOpenMenu('other'))
 	})
 
 	it('scrolls the newly active option into view on keyboard moves but not on hover', async () => {
@@ -1273,6 +1329,15 @@ describe('CommandPaletteShell without an editor', () => {
 		expect(onClose).toHaveBeenCalledTimes(1)
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(document.activeElement).toBe(opener)
+	})
+
+	it('closes on a click outside', async () => {
+		const { rendered, open, onClose } = renderApp()
+		await open()
+		const overlay = rendered.getByTestId('command-palette').parentElement!
+		expect(overlay.hasAttribute('data-passthrough')).toBe(false)
+		fireEvent.pointerDown(overlay)
+		expect(onClose).toHaveBeenCalledTimes(1)
 	})
 
 	it('closes on Escape and gives focus back', async () => {

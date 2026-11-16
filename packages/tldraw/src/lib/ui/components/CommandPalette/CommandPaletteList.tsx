@@ -141,10 +141,12 @@ function CommandPaletteRowView({
 			role="option"
 			aria-selected={isActive}
 			aria-checked={mark}
+			aria-disabled={entry.disabled || undefined}
 			data-highlighted={isActive || undefined}
 			data-testid={`command-palette.${row.recent ? 'recent' : 'item'}.${entry.id}`}
 			className="tlui-command-palette__item"
-			onPointerMove={onHover}
+			// Like a disabled menu row, it takes no highlight, so hovering it drops the last one.
+			onPointerMove={entry.disabled ? onLeave : onHover}
 			onPointerLeave={onLeave}
 			onClick={onRun}
 		>

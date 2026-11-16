@@ -28,6 +28,39 @@ test.describe('command palette', () => {
 		expect(xs[0]).toBeCloseTo(xs[1])
 	})
 
+	test('stays open for canvas clicks with a selection, closes otherwise, and lets the camera move', async ({
+		page,
+	}) => {
+		await page.evaluate(() => {
+			editor.createShapes([{ type: 'geo', x: 100, y: 100, props: { w: 100, h: 100 } }])
+			editor.selectAll()
+		})
+		await page.keyboard.press('ControlOrMeta+k')
+		const palette = page.getByTestId('command-palette')
+		const input = page.getByTestId('command-palette.input')
+		await expect(input).toBeFocused()
+		const [shapePoint, emptyPoint] = await page.evaluate(() =>
+			[editor.pageToScreen({ x: 150, y: 150 }), editor.pageToScreen({ x: 400, y: 150 })].map(
+				({ x, y }) => ({ x, y })
+			)
+		)
+		// Clicking a selected shape would start editing its label, which keeps focus.
+		await page.mouse.click(emptyPoint.x, emptyPoint.y)
+		await expect(palette).toBeVisible()
+		await expect(input).toBeFocused()
+		const before = await page.evaluate(() => editor.getCamera().y)
+		await page.mouse.move(emptyPoint.x, emptyPoint.y)
+		await page.mouse.wheel(0, 100)
+		await expect.poll(() => page.evaluate(() => editor.getCamera().y)).not.toBe(before)
+		await expect(palette).toBeVisible()
+		await page.mouse.wheel(0, -100)
+		// That click on empty canvas cleared the selection, so the next canvas click closes it.
+		await page.mouse.click(shapePoint.x, shapePoint.y)
+		await expect(palette).toBeHidden()
+		// The click still selected the shape under it.
+		expect(await page.evaluate(() => editor.getSelectedShapeIds().length)).toBe(1)
+	})
+
 	test('copies as PNG inside the keypress', async ({ page, context, browserName }) => {
 		test.skip(browserName !== 'chromium', 'clipboard permissions are Chromium only')
 		await context.grantPermissions(['clipboard-read', 'clipboard-write'])
@@ -62,9 +95,9 @@ test.describe('command palette', () => {
 		const list = page.getByRole('listbox')
 		await expect(list).toBeVisible()
 		expect(await page.getByRole('option').count()).toBeGreaterThan(6)
-		// 9 rows' worth (36px each, +4): group headings and separators take some of the space.
+		// 8 rows' worth (36px each, +4): group headings take some of the space.
 		const height = await list.evaluate((el) => el.clientHeight)
-		expect(height).toBeLessThanOrEqual(9 * 36 + 4)
+		expect(height).toBeLessThanOrEqual(8 * 36 + 4)
 	})
 
 	test('fades the list while more items are below', async ({ page }) => {

@@ -47,12 +47,13 @@ export function useCommandPaletteLayout({
 		updateScroll()
 	}, [rows, updateScroll])
 
-	// Bottom position, like Figma: as wide as the toolbar, with the gap between the browsing palette
-	// and the toolbar matching the toolbar's gap to the bottom edge. Measured while browsing and kept
-	// while searching, so the input stays put as results shrink. Only set when it changes: a new
-	// object would re-render the registered items, change the rows and measure again, forever. A
-	// vertical toolbar is a narrow column, and outside an editor there is no toolbar, so both fall
-	// back to the CSS box. Touch devices use the CSS box too, which opens at the top.
+	// Bottom position, like Figma: as wide as the toolbar and 8px above it. Not the toolbar's own gap
+	// to the bottom edge, which grows with whatever sits below it, such as a debug panel. Measured
+	// while browsing and kept while searching, so the input stays put as results shrink. Only set
+	// when it changes: a new object would re-render the registered items, change the rows and
+	// measure again, forever. A vertical toolbar is a narrow column, and outside an editor there is
+	// no toolbar, so both fall back to the CSS box. Touch devices use the CSS box too, which opens
+	// at the top.
 	const isCoarsePointer = useValue(
 		'coarse pointer',
 		() => editor?.getInstanceState().isCoarsePointer ?? false,
@@ -68,9 +69,8 @@ export function useCommandPaletteLayout({
 		)
 		if (!palette || !toolbar) return setAnchor(null)
 		const bounds = container.getBoundingClientRect()
-		const { top, bottom, width } = toolbar.getBoundingClientRect()
-		const gap = bounds.bottom - bottom
-		const limit = top - bounds.top - gap
+		const { top, width } = toolbar.getBoundingClientRect()
+		const limit = top - bounds.top - 8
 		const next = { top: Math.max(8, limit - palette.offsetHeight), bottom: limit, width }
 		setAnchor((prev) =>
 			prev?.top === next.top && prev.bottom === next.bottom && prev.width === next.width

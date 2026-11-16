@@ -121,12 +121,13 @@ export function TldrawUiMenuCheckboxItem<
 			)
 		}
 		case 'command-palette': {
-			if (!labelStr || disabled) return null
+			if (!labelStr) return null
 			return (
 				<CommandPaletteItemRegistration
 					id={id}
 					label={labelStr}
 					kbd={kbd}
+					disabled={disabled}
 					checked={checked}
 					onSelect={onSelect}
 				/>

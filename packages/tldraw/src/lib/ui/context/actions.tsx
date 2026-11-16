@@ -31,7 +31,7 @@ import { createBookmarkFromUrl } from '../../shapes/bookmark/bookmarks'
 import { downloadFile } from '../../utils/export/exportAs'
 import { fitFrameToContent, getFrameableShapeIds, removeFrame } from '../../utils/frames/frames'
 import { generateShapeAnnouncementMessage } from '../components/A11y'
-import { COMMAND_PALETTE_MENU_ID } from '../components/CommandPalette/commandPaletteMenuId'
+import { commandPaletteOpen } from '../components/CommandPalette/commandPaletteOpen'
 import { EditLinkDialog } from '../components/EditLinkDialog'
 import { EmbedDialog } from '../components/EmbedDialog'
 import { isMinimapCollapsed, toggleMinimap } from '../components/NavigationPanel/minimapCollapsed'
@@ -2342,8 +2342,7 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 			})
 		}
 
-		// Opening marks a menu open, which disables every shortcut until the palette clears it,
-		// so the action must not exist where no palette renders.
+		// Without a palette to render, the shortcut would open nothing.
 		if (components.CommandPalette) {
 			actionItems.push({
 				id: 'open-command-palette',
@@ -2352,12 +2351,14 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				readonlyOk: true,
 				commandPalette: false,
 				onSelect(source) {
+					// The palette stays open while the canvas has focus, so the shortcut also closes it.
+					if (commandPaletteOpen.get(editor)) {
+						commandPaletteOpen.set(editor, false)
+						return
+					}
 					trackEvent('open-command-palette', { source })
 					editor.complete()
-					// DefaultPageMenu clears open menus on keydown while body is focused, closing the palette.
-					const doc = editor.getContainerDocument()
-					if (doc.activeElement === doc.body) editor.getContainer().focus()
-					editor.menus.addOpenMenu(COMMAND_PALETTE_MENU_ID)
+					commandPaletteOpen.set(editor, true)
 				},
 			})
 		}

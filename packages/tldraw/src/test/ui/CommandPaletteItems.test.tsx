@@ -46,9 +46,10 @@ describe('menu items in the command palette', () => {
 				<TldrawUiMenuItem id="redo-item" label="action.redo" disabled onSelect={() => {}} />
 			</TldrawUiMenuGroup>
 		)
-		// Disabled items don't register: the palette only lists what can run now.
-		await waitFor(() => expect(ids()).toEqual(['undo-item', 'dark']))
-		const [undo, dark] = store.entries.get()
+		// Disabled items register too, for search to list greyed out.
+		await waitFor(() => expect(ids()).toEqual(['undo-item', 'dark', 'redo-item']))
+		const [undo, dark, redo] = store.entries.get()
+		expect(redo).toMatchObject({ disabled: true })
 		expect(undo).toMatchObject({
 			label: 'Undo',
 			path: ['Edit'],

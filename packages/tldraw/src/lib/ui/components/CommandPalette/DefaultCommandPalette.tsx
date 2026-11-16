@@ -1,6 +1,6 @@
 import { useEditor, useValue } from '@tldraw/editor'
 import { ComponentType, ReactNode, memo, useCallback, useEffect } from 'react'
-import { COMMAND_PALETTE_MENU_ID } from './commandPaletteMenuId'
+import { commandPaletteOpen } from './commandPaletteOpen'
 import { CommandPaletteShell, TLUiCommandPaletteShellProps } from './CommandPaletteShell'
 import { DefaultCommandPaletteContent } from './DefaultCommandPaletteContent'
 
@@ -17,7 +17,9 @@ export interface TLUiCommandPaletteProps extends Pick<
 
 function useCloseCommandPalette() {
 	const editor = useEditor()
-	return useCallback(() => editor.menus.deleteOpenMenu(COMMAND_PALETTE_MENU_ID), [editor])
+	return useCallback(() => {
+		commandPaletteOpen.set(editor, false)
+	}, [editor])
 }
 
 /**
@@ -41,8 +43,8 @@ export const DefaultCommandPalette = memo(function DefaultCommandPalette({
 })
 
 /**
- * Mounts the `CommandPalette` slot while the palette is open. Clears the open mark if it unmounts
- * while open, so hiding the UI can't leave every shortcut disabled.
+ * Mounts the `CommandPalette` slot while the palette is open. Closes it if this unmounts while
+ * open, so hiding the UI doesn't reopen the palette when it's shown again.
  *
  * @internal
  */
@@ -53,11 +55,7 @@ export function CommandPaletteSlot({
 	component: ComponentType<TLUiCommandPaletteProps>
 }) {
 	const editor = useEditor()
-	const isOpen = useValue(
-		'command palette open',
-		() => editor.menus.isMenuOpen(COMMAND_PALETTE_MENU_ID),
-		[editor]
-	)
+	const isOpen = useValue('command palette open', () => commandPaletteOpen.get(editor), [editor])
 	const close = useCloseCommandPalette()
 	useEffect(() => close, [close])
 	if (!isOpen) return null

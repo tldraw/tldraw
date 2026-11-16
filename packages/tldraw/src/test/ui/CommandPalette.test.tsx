@@ -2,8 +2,8 @@ import { act, fireEvent, waitFor } from '@testing-library/react'
 import { createShapeId, deleteFromLocalStorage, Editor, toRichText } from '@tldraw/editor'
 import { StrictMode, useState } from 'react'
 import { TLComponents, Tldraw } from '../../lib/Tldraw'
-import { COMMAND_PALETTE_MENU_ID } from '../../lib/ui/components/CommandPalette/commandPaletteMenuId'
 import { CommandPaletteMenuItem } from '../../lib/ui/components/CommandPalette/CommandPaletteMenuItem'
+import { commandPaletteOpen } from '../../lib/ui/components/CommandPalette/commandPaletteOpen'
 import { addCommandPaletteRecent } from '../../lib/ui/components/CommandPalette/commandPaletteRecents'
 import {
 	DefaultCommandPalette,
@@ -84,7 +84,7 @@ describe('command palette', () => {
 			await new Promise((r) => setTimeout(r, 50))
 		})
 		const input = rendered.getByTestId('command-palette.input')
-		expect(editor.menus.isMenuOpen(COMMAND_PALETTE_MENU_ID)).toBe(true)
+		expect(commandPaletteOpen.get(editor)).toBe(true)
 		fireEvent.keyDown(input, { key: 'Escape' })
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(editor.menus.getOpenMenus()).toEqual([])
@@ -100,7 +100,7 @@ describe('command palette', () => {
 			await new Promise((r) => setTimeout(r, 50))
 		})
 		expect(rendered.queryByTestId('command-palette')).not.toBeNull()
-		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		expect(commandPaletteOpen.get(editor)).toBe(true)
 	})
 
 	it('opens on Ctrl+K', async () => {
@@ -219,7 +219,7 @@ describe('custom command palette slot', () => {
 		expectUndoShortcutWorks(editor)
 	})
 
-	it('unmounts a slot that ignores onClose when open menus are cleared', async () => {
+	it('leaves shortcuts working under a slot that ignores onClose, and Cmd+K closes it', async () => {
 		function InertPalette() {
 			return <div data-testid="custom-palette" />
 		}
@@ -227,9 +227,10 @@ describe('custom command palette slot', () => {
 		pressCmdK(editor)
 		await rendered.findByTestId('custom-palette')
 		act(() => editor.menus.clearOpenMenus())
-		await waitFor(() => expect(rendered.queryByTestId('custom-palette')).toBeNull())
-		expect(editor.menus.getOpenMenus()).toEqual([])
+		expect(rendered.queryByTestId('custom-palette')).not.toBeNull()
 		expectUndoShortcutWorks(editor)
+		pressCmdK(editor)
+		await waitFor(() => expect(rendered.queryByTestId('custom-palette')).toBeNull())
 	})
 
 	it('closes a DefaultCommandPalette that gets no props on Escape', async () => {

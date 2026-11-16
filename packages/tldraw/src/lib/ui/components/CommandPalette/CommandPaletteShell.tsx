@@ -24,6 +24,7 @@ import {
 	getCommandPaletteSearchRows,
 	getCommandPaletteSections,
 	getCommandPaletteSubmenuRows,
+	isCommandPaletteRowDisabled,
 	SelectableRow,
 } from './commandPaletteRows'
 import {
@@ -58,9 +59,9 @@ export type TLUiCommandPaletteSuggestions = 'recent' | 'none'
 /** @public */
 export interface TLUiCommandPaletteShellProps {
 	/**
-	 * Where the palette opens. Defaults to `'center'`. `'top'` sits near the top edge. `'bottom'` sits
-	 * just above the toolbar at its width when the toolbar is horizontal; otherwise it opens lower
-	 * than `'center'`. On touch devices every position opens near the top edge.
+	 * Where the palette opens. Defaults to `'bottom'`, which sits just above the toolbar at its width
+	 * when the toolbar is horizontal, and otherwise opens lower than `'center'`. `'top'` sits near the
+	 * top edge. On touch devices every position opens near the top edge.
 	 */
 	position?: TLUiCommandPalettePosition
 	/**
@@ -85,7 +86,7 @@ export interface TLUiCommandPaletteShellProps {
  * @public @react
  */
 export function CommandPaletteShell({
-	position = 'center',
+	position = 'bottom',
 	suggestions = 'recent',
 	onClose,
 	children,
@@ -134,7 +135,12 @@ export function CommandPaletteShell({
 		() => new Map(selectableRows.map((row, index) => [row.key, index])),
 		[selectableRows]
 	)
-	const clampedIndex = Math.min(activeIndex, selectableRows.length - 1)
+	// A disabled row can't be active: search lists them last, so this only applies when every match
+	// is disabled, or the active index was clamped past the last enabled row.
+	let clampedIndex = Math.min(activeIndex, selectableRows.length - 1)
+	if (clampedIndex >= 0 && isCommandPaletteRowDisabled(selectableRows[clampedIndex])) {
+		clampedIndex = -1
+	}
 	const activeRow = clampedIndex >= 0 ? selectableRows[clampedIndex] : undefined
 	rClampedIndex.current = Math.max(clampedIndex, 0)
 	const activeItemId = !prompt && activeRow?.type === 'item' ? activeRow.entry.id : null
@@ -198,6 +204,25 @@ export function CommandPaletteShell({
 		if (!win) return
 		const frame = win.requestAnimationFrame(() => input.focus())
 		return () => win.cancelAnimationFrame(frame)
+	}, [editor])
+
+	// The palette can stay open while you work on the selection, and typing should keep searching,
+	// so a click on the canvas hands focus back to the input. Not while editing a shape's text or
+	// with another menu open, which need their own focus.
+	useEffect(() => {
+		if (!editor) return
+		const win = editor.getContainerWindow()
+		const onPointerUp = () => {
+			editor.timers.requestAnimationFrame(() => {
+				const doc = editor.getContainerDocument()
+				const focused = doc.activeElement
+				if (focused !== editor.getContainer() && focused !== doc.body) return
+				if (editor.getEditingShapeId() || editor.menus.hasAnyOpenMenus()) return
+				rInput.current?.focus()
+			})
+		}
+		win.addEventListener('pointerup', onPointerUp, true)
+		return () => win.removeEventListener('pointerup', onPointerUp, true)
 	}, [editor])
 
 	const setQuery = useCallback(
@@ -278,9 +303,32 @@ export function CommandPaletteShell({
 		restoreFocus()
 	}, [onClose, restoreFocus])
 
+	// Caught on the window rather than by a covering overlay: the editor's wheel and pinch handling
+	// lives on the canvas element, so an overlay would also stop the camera moving.
+	const rDismiss = useRef(dismiss)
+	useLayoutEffect(() => {
+		rDismiss.current = dismiss
+	})
+	useEffect(() => {
+		if (!editor) return
+		const win = editor.getContainerWindow()
+		const onPointerDown = (e: PointerEvent) => {
+			const target = e.target as Node
+			if (rPalette.current?.contains(target)) return
+			// Like Figma, it stays open while you work on the selection on the canvas, and closes for
+			// any other click: on the canvas with nothing selected, or on other UI. The click goes
+			// through either way.
+			const canvas = editor.getContainer().querySelector('.tl-canvas')
+			if (canvas?.contains(target) && editor.getSelectedShapeIds().length > 0) return
+			rDismiss.current()
+		}
+		win.addEventListener('pointerdown', onPointerDown, true)
+		return () => win.removeEventListener('pointerdown', onPointerDown, true)
+	}, [editor])
+
 	const runRow = useCallback(
 		(row: SelectableRow | undefined) => {
-			if (!row) return
+			if (!row || isCommandPaletteRowDisabled(row)) return
 			if (row.key === 'prompt:cancel') {
 				back()
 				rInput.current?.focus()
@@ -321,9 +369,12 @@ export function CommandPaletteShell({
 		rPointerActive.current = false
 		rScrollToActive.current = true
 		rRestoreScrollTop.current = null
-		// With no active row, Down starts at the first row and Up at the last.
-		const from = clampedIndex < 0 ? (delta > 0 ? -1 : 0) : clampedIndex
-		setActiveIndex((from + delta + count) % count)
+		// With no active row, Down starts at the first row and Up at the last. Skips disabled rows.
+		let index = clampedIndex < 0 ? (delta > 0 ? -1 : 0) : clampedIndex
+		for (let step = 0; step < count; step++) {
+			index = (index + delta + count) % count
+			if (!isCommandPaletteRowDisabled(selectableRows[index])) return setActiveIndex(index)
+		}
 	}
 
 	const hover = (index: number) => {
@@ -340,8 +391,10 @@ export function CommandPaletteShell({
 		<CommandPaletteStoreProvider store={store}>
 			<div
 				className="tlui-command-palette__overlay"
+				// In an editor, clicks and wheel pass through so the camera can move.
+				data-passthrough={editor ? '' : undefined}
 				onPointerDown={(e) => {
-					if (e.target === e.currentTarget) dismiss()
+					if (!editor && e.target === e.currentTarget) dismiss()
 				}}
 			>
 				<div

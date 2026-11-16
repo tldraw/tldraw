@@ -1,4 +1,4 @@
-import { act, fireEvent, render, waitFor } from '@testing-library/react'
+import { act, fireEvent, render, RenderResult, waitFor } from '@testing-library/react'
 import {
 	atom,
 	BaseBoxShapeUtil,
@@ -99,26 +99,30 @@ async function renderPalette({
 	return { editor, rendered, input, search, enter }
 }
 
+// Search lists a disabled item greyed out rather than leaving it out.
+function expectDisabled(rendered: RenderResult, id: string, disabled: boolean) {
+	const row = rendered.getByTestId(`command-palette.item.${id}`)
+	expect(row.getAttribute('aria-disabled')).toBe(disabled ? 'true' : null)
+}
+
 describe('default command palette content', () => {
-	it('lists frame commands only while a frame is selected', async () => {
+	it('enables frame commands only while a frame is selected', async () => {
 		const { editor, rendered, search } = await renderPalette()
 		search('remove frame')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.remove-frame')).toBeNull()
+		await waitFor(() => expectDisabled(rendered, 'remove-frame', true))
 		act(() => {
 			editor.createShapes([{ type: 'frame', x: 400, y: 0 }])
 			editor.select(editor.getCurrentPageShapes().find((shape) => shape.type === 'frame')!)
 		})
-		await rendered.findByTestId('command-palette.item.remove-frame')
+		await waitFor(() => expectDisabled(rendered, 'remove-frame', false))
 	})
 
-	it('aligns two selected shapes, and only then lists align', async () => {
+	it('aligns two selected shapes, and only then enables align', async () => {
 		const { editor, search, enter, rendered } = await renderPalette()
 		const a = createShapeId()
 		const b = createShapeId()
 		search('align left')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.align-left')).toBeNull()
+		await waitFor(() => expectDisabled(rendered, 'align-left', true))
 		act(() => {
 			editor.createShapes([
 				{ id: a, type: 'geo', x: 0, y: 0 },
@@ -127,7 +131,7 @@ describe('default command palette content', () => {
 			editor.select(a, b)
 		})
 		search('align left')
-		await rendered.findByTestId('command-palette.item.align-left')
+		await waitFor(() => expectDisabled(rendered, 'align-left', false))
 		enter()
 		expect(editor.getShape(a)!.x).toBe(editor.getShape(b)!.x)
 	})
@@ -296,8 +300,7 @@ describe('default command palette content', () => {
 		fireEvent.keyDown(input, { key: 'Escape' })
 
 		search('delete page')
-		await rendered.findByTestId('command-palette.input')
-		expect(rendered.queryByTestId('command-palette.item.delete-page')).toBeNull()
+		await waitFor(() => expectDisabled(rendered, 'delete-page', true))
 
 		search('duplicate page')
 		enter()
@@ -576,7 +579,7 @@ describe('default command palette content', () => {
 			expect(rendered.queryByTestId('command-palette.item.secret')).toBeNull()
 		})
 
-		it('lists a placed custom action only while it is enabled', async () => {
+		it('enables a placed custom action only while its action is enabled', async () => {
 			const { editor, rendered, search, enter } = await renderPalette({
 				overrides,
 				content: (
@@ -589,13 +592,12 @@ describe('default command palette content', () => {
 				),
 			})
 			search('make red')
-			await rendered.findByTestId('command-palette.input')
-			expect(rendered.queryByTestId('command-palette.item.make-red')).toBeNull()
+			await waitFor(() => expectDisabled(rendered, 'make-red', true))
 			act(() => {
 				editor.createShapes([{ type: 'geo', x: 0, y: 0 }])
 				editor.selectAll()
 			})
-			await rendered.findByTestId('command-palette.item.make-red')
+			await waitFor(() => expectDisabled(rendered, 'make-red', false))
 			enter()
 			expect(makeRed).toHaveBeenCalled()
 		})
