@@ -112,8 +112,8 @@ export function LibrarySectionHeader({
 	const moveLibrary = (ownerId: string) => {
 		if (!source.moveLibrary) return
 		const owner = ownerChoices.move.find((o) => o.id === ownerId)
-		source.moveLibrary(libraryId, ownerId).then(() => {
-			activeLibraryId.set(editor, libraryId)
+		source.moveLibrary(libraryId, ownerId).then((moved) => {
+			activeLibraryId.set(editor, moved.id)
 			addToast({
 				title: msg(messages.movedTitle),
 				description: owner && msg(messages.movedDescription, { name: owner.name }),
