@@ -63,7 +63,7 @@ export {
 	type CompositeLibrarySourceOptions,
 	type CompositeLibrarySourcePart,
 } from './lib/CompositeLibrarySource'
-export type { LibraryPack, LibraryPackItem } from './lib/LibraryPack'
+export type { LibraryPack, LibraryPackItem, LibraryPackLibrary } from './lib/LibraryPack'
 export { copyLibrary } from './lib/copyLibrary'
 export { copyPack } from './lib/copyPack'
 export {

@@ -98,4 +98,72 @@ describe('copyPack', () => {
 		const copy = await copyPack(source, pack)
 		expect(copy.name).toBe('Wireframing 1')
 	})
+
+	it('copies the libraries inside a pack, each inside the one it is in', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const nested: LibraryPack = {
+			id: 'architecture',
+			name: 'Software architecture',
+			version: 1,
+			items: [],
+			libraries: [
+				{
+					id: 'compute',
+					name: 'Compute',
+					items: [{ id: 'server', name: 'Server', content: content('server') }],
+					libraries: [
+						{
+							id: 'serverless',
+							name: 'Serverless',
+							items: [{ id: 'fn', name: 'Function', content: content('fn') }],
+						},
+					],
+				},
+				{
+					id: 'data',
+					name: 'Data',
+					items: [{ id: 'db', name: 'Database', content: content('db') }],
+				},
+			],
+		}
+		const copy = await copyPack(source, nested, { ownerId: 'acme' })
+		const libraries = source.getLibraries()
+		const named = (name: string) => libraries.find((c) => c.name === name)!
+		expect(libraries.map((c) => [c.name, c.ownerId])).toEqual([
+			['Software architecture', 'acme'],
+			['Compute', 'acme'],
+			['Serverless', 'acme'],
+			['Data', 'acme'],
+		])
+		expect(named('Compute').parentId).toBe(copy.id)
+		expect(named('Serverless').parentId).toBe(named('Compute').id)
+		expect(named('Data').parentId).toBe(copy.id)
+		expect(source.getItems(named('Serverless').id).map((i) => i.name)).toEqual(['Function'])
+		expect(source.getItems(copy.id)).toEqual([])
+	})
+
+	it('deletes the whole copy when a library inside it fails to copy', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const broken: LibraryPack = {
+			id: 'broken',
+			name: 'Broken',
+			version: 1,
+			items: [],
+			libraries: [
+				{ id: 'ok', name: 'Ok', items: [{ id: 'a', content: content('a') }] },
+				{ id: 'bad', name: 'Bad', items: [{ id: 'b', content: { formatVersion: 99 } as any }] },
+			],
+		}
+		await expect(copyPack(source, broken, { ownerId: 'acme' })).rejects.toThrow()
+		expect(source.getLibraries()).toEqual([])
+	})
+
+	it('numbers the name only against the libraries the copy sits beside', async () => {
+		const source = new InMemoryLibrarySource({ owners })
+		const elsewhere = await source.createLibrary('Elsewhere', { ownerId: 'home' })
+		await source.createLibrary('Wireframing', { parentId: elsewhere.id })
+		await source.createLibrary('Wireframing', { ownerId: 'home' })
+		expect((await copyPack(source, pack, { ownerId: 'acme' })).name).toBe('Wireframing')
+		expect((await copyPack(source, pack, { ownerId: 'home' })).name).toBe('Wireframing 1')
+	})
 })
