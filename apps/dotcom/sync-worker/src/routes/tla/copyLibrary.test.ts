@@ -147,6 +147,38 @@ describe('copyLibrary', () => {
 		expect(itemInsert.parameters).not.toContain('Button item_b')
 	})
 
+	it('copies items a few at a time and keeps their order', async () => {
+		const env = makeEnv()
+		const ids = Array.from({ length: 10 }, (_, i) => `item_${i}`)
+		for (const id of ids) await env.ROOMS.put(getLibraryItemContentKey(id), STORED)
+		let running = 0
+		let mostAtOnce = 0
+		const get = env.ROOMS.get.bind(env.ROOMS)
+		vi.spyOn(env.ROOMS, 'get').mockImplementation(async (key: string) => {
+			running++
+			mostAtOnce = Math.max(mostAtOnce, running)
+			// later items finish first
+			const index = ids.findIndex((id) => key === getLibraryItemContentKey(id))
+			await new Promise((resolve) => setTimeout(resolve, (ids.length - index) * 2))
+			running--
+			return get(key)
+		})
+		const fake = mockPool(copying(ids.map((id) => item(id, null))))
+
+		expect((await copyLibrary(request(V, { itemIds: itemIdsFor(ids) }), env)).status).toBe(200)
+
+		expect(mostAtOnce).toBeGreaterThan(1)
+		expect(mostAtOnce).toBeLessThanOrEqual(4)
+		const parameters = insertOf(fake, 'library_item')!.parameters
+		const insertedIds = parameters.filter(
+			(p): p is string => typeof p === 'string' && p.startsWith('copy_')
+		)
+		expect(insertedIds).toEqual(ids.map((_, i) => newItemId(i)))
+		const createdAts = parameters.filter((p): p is number => typeof p === 'number')
+		const [first] = createdAts
+		expect(createdAts.filter((_, i) => i % 2 === 0)).toEqual(ids.map((_, i) => first + i))
+	})
+
 	it('copies both of a light and dark pair, and a light one alone without its dark one', async () => {
 		const env = makeEnv()
 		const ids = ['item_a', 'item_b', 'item_c']
@@ -191,6 +223,32 @@ describe('copyLibrary', () => {
 		)
 		expect(await keysOf(env.ROOMS)).toEqual([getLibraryItemContentKey('item_a')])
 		expect(await keysOf(env.UPLOADS)).toEqual(['thumb_a-png'])
+	})
+
+	it('removes every copy, once those under way finish, when copying an item fails', async () => {
+		const env = makeEnv()
+		const ids = Array.from({ length: 8 }, (_, i) => `item_${i}`)
+		for (const id of ids) {
+			await env.ROOMS.put(getLibraryItemContentKey(id), STORED)
+			await env.UPLOADS.put(`thumb_${id}-png`, new Uint8Array([1]))
+		}
+		const get = env.ROOMS.get.bind(env.ROOMS)
+		vi.spyOn(env.ROOMS, 'get').mockImplementation(async (key: string) => {
+			if (key === getLibraryItemContentKey('item_2')) throw new Error('R2 is down')
+			await new Promise((resolve) => setTimeout(resolve, 10))
+			return get(key)
+		})
+		const fake = mockPool(copying(ids.map((id) => item(id, url(`thumb_${id}-png`)))))
+
+		await expect(copyLibrary(request(V, { itemIds: itemIdsFor(ids) }), env)).rejects.toThrow(
+			'R2 is down'
+		)
+		await new Promise((resolve) => setTimeout(resolve, 50))
+		expect((await keysOf(env.ROOMS)).sort()).toEqual(
+			ids.map((id) => getLibraryItemContentKey(id)).sort()
+		)
+		expect((await keysOf(env.UPLOADS)).sort()).toEqual(ids.map((id) => `thumb_${id}-png`).sort())
+		expect(fake.queries.some((q) => q.sql.startsWith('insert'))).toBe(false)
 	})
 
 	it.each([
