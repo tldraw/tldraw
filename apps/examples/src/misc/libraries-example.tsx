@@ -1,5 +1,6 @@
 import {
 	AddToLibraryMenuItem,
+	type LibrariesComponents,
 	type LibrarySource,
 	LibrariesPanel,
 	LibrariesQuickActions,
@@ -24,6 +25,7 @@ export interface Showing {
 	/** Fills the source the first time it shows. */
 	seed?(editor: Editor): Promise<void>
 	menuItems?: ReactNode
+	components?: LibrariesComponents
 }
 
 const seeded = new Map<Showing, Promise<void>>()
@@ -48,7 +50,13 @@ function makeComponents(getShowing: (editor: Editor) => Showing): TLComponents {
 		const editor = useEditor()
 		const showing = useShowing()
 		useEffect(() => seedOnce(editor, showing), [editor, showing])
-		return <LibrariesPanel source={showing.source} menuItems={showing.menuItems} />
+		return (
+			<LibrariesPanel
+				source={showing.source}
+				menuItems={showing.menuItems}
+				components={showing.components}
+			/>
+		)
 	}
 
 	function ExampleSaveMenu() {
