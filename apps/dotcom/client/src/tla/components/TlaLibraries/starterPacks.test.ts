@@ -1,5 +1,7 @@
-import { type LibraryPack, InMemoryLibrarySource } from '@tldraw/libraries'
-import { describe, expect, it } from 'vitest'
+import { type LibraryPack, InMemoryLibrarySource, whenItemsStored } from '@tldraw/libraries'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
+import { TldrawAppLibrariesSource } from './librariesSource'
 import {
 	addStarterPack,
 	canAddStarterPack,
@@ -26,11 +28,41 @@ describe('starter pack data', () => {
 		(_, p) => {
 			expect(p.items.length).toBeGreaterThan(0)
 			expect(new Set(p.items.map((item) => item.id)).size).toBe(p.items.length)
+			const dataUrl = expect.stringMatching(/^data:image\//)
 			for (const item of p.items) {
-				expect(item.thumbnail, item.id).toEqual(expect.stringMatching(/^data:image\//))
+				expect(item.thumbnail, item.id).toEqual(
+					typeof item.thumbnail === 'string' ? dataUrl : { light: dataUrl, dark: dataUrl }
+				)
 			}
 		}
 	)
+})
+
+describe('starter packs in tldraw.com workspaces', () => {
+	afterEach(() => {
+		vi.unstubAllGlobals()
+		vi.restoreAllMocks()
+	})
+
+	it("stores each item's category and tags with its copy", async () => {
+		const backend = createFakeLibrariesBackend()
+		vi.stubGlobal('fetch', backend.fetch)
+		vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:local')
+		vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
+		const source = new TldrawAppLibrariesSource(backend.app, backend.getToken)
+		const math = STARTER_PACKS.find((p) => p.id === 'math')!
+
+		const copy = await addStarterPack(source, math)
+		await whenItemsStored(source.getItems(copy.id).map((item) => item.id))
+
+		const rows = backend.rows.get().find((row) => row.id === copy.id.split(':')[1])!.items
+		expect(rows.map((row) => row.meta)).toEqual(math.items.map((item) => item.meta))
+		expect(rows[0].meta).toEqual({
+			category: 'Operators and relations',
+			tags: ['Plus', 'plus', 'Operators and relations'],
+			source: 'tldraw',
+		})
+	})
 })
 
 describe('starter packs in a source without owners', () => {

@@ -1,12 +1,16 @@
 import { copyPack, type LibraryPack, type LibrarySource, type TLLibrary } from '@tldraw/libraries'
+import architecture from './starterPackArchitecture.json'
 import diagramming from './starterPackDiagramming.json'
 import doodles from './starterPackDoodles.json'
 import floorPlan from './starterPackFloorPlan.json'
+import math from './starterPackMath.json'
 import tldrawCharacters from './starterPackTldrawCharacters.json'
 import wireframing from './starterPackWireframing.json'
 
 export const STARTER_PACKS = [
 	wireframing,
+	architecture,
+	math,
 	diagramming,
 	floorPlan,
 	tldrawCharacters,
