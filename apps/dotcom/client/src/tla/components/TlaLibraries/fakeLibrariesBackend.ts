@@ -1,5 +1,5 @@
 import type { TlaLibrary, TlaLibraryItem, TlaLibraryItemThumbnail } from '@tldraw/dotcom-shared'
-import { atom, uniqueId } from 'tldraw'
+import { atom } from 'tldraw'
 import { vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
 
@@ -21,7 +21,7 @@ function createHold() {
  *
  * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
  * mutations back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
- * of rows the worker inserts (`holdItemRows`).
+ * of rows the worker inserts (`holdWorkerRows`).
  */
 export function createFakeLibrariesBackend({
 	userId = 'user_me',
@@ -130,25 +130,23 @@ export function createFakeLibrariesBackend({
 		},
 	}
 
-	const addItem = (
+	const newItem = (
 		id: string,
 		libraryId: string,
 		name: string | null,
 		thumbnail: TlaLibraryItemThumbnail | null
-	) => {
-		const item: TlaLibraryItem = {
-			id,
-			libraryId,
-			name,
-			thumbnail,
-			createdBy: userId,
-			createdAt: Date.now(),
-			updatedAt: Date.now(),
-		}
-		const insert = () => updateRow(libraryId, (row) => ({ ...row, items: [...row.items, item] }))
+	): TlaLibraryItem => ({
+		id,
+		libraryId,
+		name,
+		thumbnail,
+		createdBy: userId,
+		createdAt: Date.now(),
+		updatedAt: Date.now(),
+	})
+	const insertRows = (insert: () => void) => {
 		if (rowHold) rowHold.passes.then(insert)
 		else insert()
-		return item
 	}
 
 	const routes = async (url: string, init: RequestInit = {}): Promise<Response> => {
@@ -158,34 +156,44 @@ export function createFakeLibrariesBackend({
 			const form = init.body as FormData
 			const id = form.get('id')
 			if (typeof id !== 'string') return new Response(null, { status: 400 })
-			const item = addItem(
+			const libraryId = match[1]
+			const item = newItem(
 				id,
-				match[1],
+				libraryId,
 				(form.get('name') as string | null) ?? null,
 				newThumbnail(
 					form.get('thumbnail') instanceof Blob,
 					form.get('darkThumbnail') instanceof Blob
 				)
 			)
+			insertRows(() => updateRow(libraryId, (row) => ({ ...row, items: [...row.items, item] })))
 			contents.set(item.id, form.get('content') as string)
 			return Response.json({ id: item.id, createdAt: item.createdAt, thumbnail: item.thumbnail })
 		}
 		match = url.match(/^\/api\/app\/libraries\/([^/]+)\/copy$/)
 		if (match && init.method === 'POST') {
-			const { owningGroupId } = JSON.parse(init.body as string)
+			const { owningGroupId, id, itemIds } = JSON.parse(init.body as string)
 			const source = rows.get().find((row) => row.id === match![1])!
-			const id = uniqueId()
-			rows.update((all) => [...all, { ...source, id, owningGroupId, items: [] }])
-			for (const item of source.items) {
+			const items = source.items.flatMap((item) => {
+				const copyId: string | undefined = itemIds[item.id]
+				if (!copyId) return []
 				const { thumbnail } = item
-				const copy = addItem(
-					uniqueId(),
-					id,
-					item.name,
-					newThumbnail(thumbnail !== null, typeof thumbnail === 'object' && thumbnail !== null)
-				)
-				contents.set(copy.id, contents.get(item.id)!)
-			}
+				contents.set(copyId, contents.get(item.id)!)
+				return [
+					newItem(
+						copyId,
+						id,
+						item.name,
+						newThumbnail(thumbnail !== null, typeof thumbnail === 'object' && thumbnail !== null)
+					),
+				]
+			})
+			insertRows(() =>
+				rows.update((all) => [
+					...all,
+					{ ...source, id, owningGroupId, createdAt: all.length, items },
+				])
+			)
 			return Response.json({ id })
 		}
 		match = url.match(/^\/api\/app\/library-items\/([^/]+)\/content$/)
@@ -219,6 +227,6 @@ export function createFakeLibrariesBackend({
 		showMutationRejectionToast,
 		holdServer: () => (serverHold = createHold()),
 		holdRequests: () => (requestHold = createHold()),
-		holdItemRows: () => (rowHold = createHold()),
+		holdWorkerRows: () => (rowHold = createHold()),
 	}
 }
