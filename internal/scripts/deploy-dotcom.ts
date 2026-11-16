@@ -206,8 +206,8 @@ const workerDeployments: WorkerDeployment[] = [
 		id: 'multiplayer',
 		stepLabel: 'deploying multiplayer worker to cloudflare',
 		timingLabel: 'worker deploy: multiplayer',
-		// The render worker must exist first, since the sync worker binds it (RENDER_WORKER) on staging
-		// and previews. In production deployRenderWorker is a no-op, so this dependency still resolves.
+		// The render worker must exist first, since the sync worker binds it (RENDER_WORKER) on dev,
+		// staging, production and previews.
 		dependsOn: ['render'],
 		run: deployTlsyncWorker,
 	},
@@ -703,12 +703,9 @@ async function deployImageResizeWorker({ dryRun }: { dryRun: boolean }) {
 
 let didUpdateRenderWorker = false
 async function deployRenderWorker({ dryRun }: { dryRun: boolean }) {
-	// Staging and previews only for now: nothing in production binds or calls the render worker yet,
-	// so skip it there. The sync worker's dependsOn ['render'] still resolves — this just returns.
-	if (env.TLDRAW_ENV === 'production') {
-		nicelog('skipping render-worker deploy: not enabled in production yet')
-		return
-	}
+	// Deployed everywhere now, including production, so the sync worker's RENDER_WORKER binding
+	// resolves in every environment. The call site stays gated on THUMBNAIL_RENDER_VIA_WORKER, which
+	// production leaves unset (off), so a prod deploy ships the worker but routes nothing to it yet.
 	const workerId = `${previewId ?? env.TLDRAW_ENV}-tldraw-render-worker`
 	if (previewId && !didUpdateRenderWorker) {
 		await setWranglerPreviewConfig(renderWorker, { name: workerId })
