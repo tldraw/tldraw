@@ -1342,11 +1342,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 	/**
 	 * Runs a storage transaction as a user: `authorize.write` judges its writes as a whole, and a
-	 * refusal stores none of them. See `transaction` on {@link TLSocketRoom}.
+	 * refusal stores none of them. See `writeAs` on {@link TLSocketRoom}.
 	 */
-	transaction(
-		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void,
-		opts: { userId: string | null }
+	writeAs(
+		userId: string | null,
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void
 	): TLWriteRefusal | null {
 		return this.storage.transaction((txn) => {
 			const write = this.authorize?.write
@@ -1356,9 +1356,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			}
 			const pending = new PendingWrites<R>(txn)
 			callback(pending)
-			const refusal = this.judgeWrite(write, opts.userId, pending)
+			const refusal = this.judgeWrite(write, userId, pending)
 			if (refusal) {
-				this.log?.warn?.('authorize.write refused server write', refusal.reason, opts.userId)
+				this.log?.warn?.('authorize.write refused server write', refusal.reason, userId)
 				return refusal
 			}
 			pending.commit()

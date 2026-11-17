@@ -295,13 +295,10 @@ describe('authorize.write for server writes', () => {
 		const bobs = DocType.create({ id: docId('bobs'), owner: 'bob', parentId: null })
 		const server = makeRoom(ownerOnly, [bobs])
 
-		const refusal = server.room.transaction(
-			(txn) => {
-				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
-				txn.delete(bobs.id)
-			},
-			{ userId: 'alice' }
-		)
+		const refusal = server.room.writeAs('alice', (txn) => {
+			txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
+			txn.delete(bobs.id)
+		})
 
 		expect(refusal).toEqual({ reason: 'not-yours' })
 		expect(storedIds(server)).toEqual([bobs.id])
@@ -313,14 +310,11 @@ describe('authorize.write for server writes', () => {
 		flush(server, bob.socketPair)
 
 		const doc = DocType.create({ id: docId('a'), owner: 'alice', parentId: null })
-		const refusal = server.room.transaction(
-			(txn) => {
-				txn.set(doc.id, doc)
-				// reads see the transaction's own writes
-				expect(txn.get(doc.id)).toEqual(doc)
-			},
-			{ userId: 'alice' }
-		)
+		const refusal = server.room.writeAs('alice', (txn) => {
+			txn.set(doc.id, doc)
+			// reads see the transaction's own writes
+			expect(txn.get(doc.id)).toEqual(doc)
+		})
 		await Promise.resolve() // storage notifies the room on a microtask
 		flush(server, bob.socketPair)
 
@@ -333,10 +327,8 @@ describe('authorize.write for server writes', () => {
 		const write = vi.fn<NonNullable<TLAuthorize<R>['write']>>(() => ({ reason: 'sign-in' }))
 		const server = makeRoom({ write })
 
-		const refusal = server.room.transaction(
-			(txn) =>
-				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null })),
-			{ userId: null }
+		const refusal = server.room.writeAs(null, (txn) =>
+			txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
 		)
 
 		expect(refusal).toEqual({ reason: 'sign-in' })
@@ -351,10 +343,8 @@ describe('authorize.write for server writes', () => {
 			},
 		})
 
-		const refusal = server.room.transaction(
-			(txn) =>
-				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null })),
-			{ userId: 'alice' }
+		const refusal = server.room.writeAs('alice', (txn) =>
+			txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
 		)
 		error.mockRestore()
 
@@ -365,10 +355,8 @@ describe('authorize.write for server writes', () => {
 	it('stores the transaction when the room has no write hook', () => {
 		const server = makeRoom({})
 
-		const refusal = server.room.transaction(
-			(txn) =>
-				txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null })),
-			{ userId: 'alice' }
+		const refusal = server.room.writeAs('alice', (txn) =>
+			txn.set(docId('a'), DocType.create({ id: docId('a'), owner: 'alice', parentId: null }))
 		)
 
 		expect(refusal).toBeNull()

@@ -968,22 +968,22 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
 	 *
 	 * @example
 	 * ```ts
-	 * const refusal = room.transaction((txn) => txn.set(shape.id, shape), { userId })
+	 * const refusal = room.writeAs(userId, (txn) => txn.set(shape.id, shape))
 	 * if (refusal) return new Response(refusal.reason, { status: 403 })
 	 * ```
 	 *
+	 * @param userId - The user the hook gets as `ctx.userId`, or null for a guest.
 	 * @param callback - Reads and writes records. Reads see the callback's own writes.
-	 * @param opts - `userId` is the user the hook gets as `ctx.userId`, or null for a guest.
 	 * @returns The refusal, or null when the writes were stored.
 	 */
-	transaction(
-		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void,
-		opts: { userId: string | null }
+	writeAs(
+		userId: string | null,
+		callback: (txn: Pick<TLSyncStorageTransaction<R>, 'get' | 'set' | 'delete'>) => void
 	): TLWriteRefusal | null {
 		if (this.isClosed()) {
 			throw new Error('Cannot write to a closed room')
 		}
-		return this.room.transaction(callback, opts)
+		return this.room.writeAs(userId, callback)
 	}
 
 	/**

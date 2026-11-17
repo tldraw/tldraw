@@ -547,11 +547,9 @@ export class TLSocketRoom<R extends UnknownRecord = UnknownRecord, SessionMeta =
     sendCustomMessage(sessionId: string, data: any): void;
     // (undocumented)
     storage: TLSyncStorage<R>;
-    transaction(callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void, opts: {
-        userId: null | string;
-    }): null | TLWriteRefusal;
     // @deprecated
     updateStore(updater: (store: RoomStoreMethods<R>) => Promise<void> | void): Promise<void>;
+    writeAs(userId: null | string, callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void): null | TLWriteRefusal;
 }
 
 // @public
@@ -799,9 +797,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
     readonly serializedSchema: SerializedSchema;
     // (undocumented)
     readonly sessions: Map<string, RoomSession<R, SessionMeta>>;
-    transaction(callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void, opts: {
-        userId: null | string;
-    }): null | TLWriteRefusal;
+    writeAs(userId: null | string, callback: (txn: Pick<TLSyncStorageTransaction<R>, 'delete' | 'get' | 'set'>) => void): null | TLWriteRefusal;
 }
 
 // @public
