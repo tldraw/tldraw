@@ -140,6 +140,9 @@ const zeroRmv2: boolean = false
 // RMv2 only forks a v5 backup; from a v3 one it resyncs from Postgres. So an env deploys once on
 // RMv1 with v5 backups before zeroRmv2 turns on for it.
 const zeroBackupV5 = zeroRmv2 || env.TLDRAW_ENV === 'staging'
+// Rendered only when on: the deploy gate hashes the config text, so even an explicit "false" line
+// would redeploy production's zero apps in place.
+const rmv2Env = zeroRmv2 ? 'ZERO_UPSTREAM_PG_HIGH_AVAILABILITY_REPLICATION = "true"\n' : ''
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -832,7 +835,7 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
-		.replaceAll('__RMV2', String(zeroRmv2))
+		.replace('__RMV2_ENV\n', rmv2Env)
 		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
@@ -869,7 +872,7 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__ZERO_R2_SECRET_ACCESS_KEY', env.ZERO_R2_SECRET_ACCESS_KEY)
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
-		.replaceAll('__RMV2', String(zeroRmv2))
+		.replace('__RMV2_ENV\n', rmv2Env)
 		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
