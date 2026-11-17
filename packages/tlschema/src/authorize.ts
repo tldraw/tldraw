@@ -1,4 +1,5 @@
 import { UnknownRecord } from '@tldraw/store'
+import { TLComment, TLCommentThread } from './records/TLComment'
 import { TLPage } from './records/TLPage'
 import { TLRecord } from './records/TLRecord'
 import { TLShape } from './records/TLShape'
@@ -104,6 +105,11 @@ export interface TLPermissionDataMap {
 	'tl:page:create': undefined
 	'tl:page:edit': { page: TLPage }
 	'tl:page:delete': { page: TLPage }
+	/** Take part in comments: post, react, resolve and reopen threads, and move pins. */
+	'tl:comment:create': undefined
+	'tl:comment:edit': { comment: TLComment }
+	'tl:comment:delete': { comment: TLComment }
+	'tl:comment-thread:delete': { thread: TLCommentThread }
 }
 
 /**

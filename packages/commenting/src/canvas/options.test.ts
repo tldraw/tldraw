@@ -61,10 +61,11 @@ describe('CommentTool.configure', () => {
 
 // A minimal editor stub: getCommentingOptions reads the comment tool's `options` off
 // getStateDescendant, and commitCommentMutation forwards to run().
-function stubEditor(options: CommentingOptions) {
+function stubEditor(options: CommentingOptions, granted?: Set<string>) {
 	const runCalls: Array<{ history: unknown }> = []
 	const editor = {
 		getStateDescendant: () => ({ options }),
+		can: (permission: string) => !granted || granted.has(permission),
 		run: (fn: () => void, opts: { history: unknown }) => {
 			runCalls.push(opts)
 			fn()
@@ -247,6 +248,27 @@ describe('getCanModifyComment', () => {
 		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(false)
 		expect(onError).toHaveBeenCalled()
 		onError.mockRestore()
+	})
+})
+
+describe('permissions', () => {
+	it('denies commenting without tl:comment:create, whatever canComment says', () => {
+		const options = { ...defaultCommentingOptions, canComment: () => true }
+		expect(getCanComment(stubEditor(options, new Set()).editor, 'alice')).toBe(false)
+		expect(getCanComment(stubEditor(options, new Set(['tl:comment:create'])).editor, 'alice')).toBe(
+			true
+		)
+	})
+
+	it('asks the permission that matches each write, before the ownership rule', () => {
+		const comment = makeComment('alice')
+		const thread = makeThread('alice')
+		const { editor } = stubEditor(defaultCommentingOptions, new Set(['tl:comment:edit']))
+		expect(getCanModifyComment(editor, 'alice', { action: 'edit-comment', comment })).toBe(true)
+		expect(getCanModifyComment(editor, 'alice', { action: 'delete-comment', comment })).toBe(false)
+		expect(getCanModifyComment(editor, 'alice', { action: 'delete-thread', thread })).toBe(false)
+		// a permission does not give the affordance on someone else's comment
+		expect(getCanModifyComment(editor, 'bob', { action: 'edit-comment', comment })).toBe(false)
 	})
 })
 
