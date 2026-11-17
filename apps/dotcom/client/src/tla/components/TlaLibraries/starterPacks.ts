@@ -5,7 +5,7 @@ import {
 	type LibrarySource,
 	type TLLibrary,
 } from '@tldraw/libraries'
-import manifest from './starterPackManifest.json'
+import { atom } from 'tldraw'
 
 /** What the starter packs dialog shows of a pack, without loading its items. */
 export interface StarterPackSummary {
@@ -28,7 +28,31 @@ export const STARTER_PACK_LOADERS: Record<string, () => Promise<{ default: unkno
 	doodles: () => import('./starterPackDoodles.json'),
 }
 
-export const STARTER_PACKS = manifest as StarterPackSummary[]
+const starterPackSummaries = atom<StarterPackSummary[] | undefined>(
+	'starter pack summaries',
+	undefined
+)
+let loadingSummaries: Promise<StarterPackSummary[]> | undefined
+
+/** The summaries, once {@link loadStarterPackSummaries} has loaded them. */
+export function getStarterPackSummaries() {
+	return starterPackSummaries.get()
+}
+
+export function loadStarterPackSummaries() {
+	loadingSummaries ??= import('./starterPackManifest.json').then(
+		(manifest) => {
+			const summaries = manifest.default as StarterPackSummary[]
+			starterPackSummaries.set(summaries)
+			return summaries
+		},
+		(error) => {
+			loadingSummaries = undefined
+			throw error
+		}
+	)
+	return loadingSummaries
+}
 
 export async function loadStarterPack(id: string): Promise<LibraryPack> {
 	const load = Object.hasOwn(STARTER_PACK_LOADERS, id) ? STARTER_PACK_LOADERS[id] : undefined
