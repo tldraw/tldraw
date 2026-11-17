@@ -392,20 +392,16 @@ For anything finer than that, give the room one rule with the `authorize` option
 
 Most rules are about one record at a time. `perRecord` builds a push rule from one of those: return `null` to allow the change or a reason to refuse it.
 
-What a session may do usually comes from your server as a list of named permissions, passed at connect. tldraw's own are `tl:shape:create`, `tl:shape:update`, `tl:shape:delete` and the same three for `tl:page`; a name ending in `:*` covers everything under it, and you can add names of your own under another prefix. `isChangePermitted` from `@tldraw/permissions` checks a change against the list, and `getRequiredPermission` names the permission it needs, for the refusal:
+What a session may do usually comes from your server as a list of grants, passed at connect. See [Grants](#grants) for what a grant can say; `createGrantsPolicy` from `@tldraw/permissions` builds a rule that checks every change against them:
 
 ```ts
-import { getRequiredPermission, isChangePermitted } from '@tldraw/permissions'
-import { perRecord, TLSocketRoom } from '@tldraw/sync-core'
+import { createGrantsPolicy } from '@tldraw/permissions'
+import { TLSocketRoom } from '@tldraw/sync-core'
 
 // students draw, but pages are the teacher's
-const authorize = perRecord<TLRecord>((change, { session }) => {
-	return isChangePermitted(session.permissions, change)
-		? null
-		: `Needs ${getRequiredPermission(change)}`
-})
+const policy = createGrantsPolicy()
 
-const room = new TLSocketRoom<TLRecord>({ objectTypes, authorize })
+const room = new TLSocketRoom<TLRecord>({ objectTypes, authorize: policy })
 
 room.handleSocketConnect({
 	sessionId,
@@ -416,11 +412,57 @@ room.handleSocketConnect({
 })
 ```
 
+`authorize` takes a rule or a policy object carrying one, so the same `policy` goes to the client (see [Running the rule in the editor](#running-the-rule-in-the-editor)).
+
 The permissions are sent to the client too, so the same rule gives the same answer in the editor, and the UI can follow them (see [Showing what someone can do](#showing-what-someone-can-do)). For facts you don't want the client to see, pass `meta` instead: the rule reads it as `session.meta`, and it never leaves the server.
 
 Leave `permissions` out and they're `null`: the app doesn't use named permissions, and nothing about them changes for that session. `[]` is different: granted nothing. `isPermitted` and `isChangePermitted` treat `null` as nothing granted too, so if one of your connect paths forgets the list, a rule that asks refuses rather than letting everything through. Watch out for `user.permissions ?? []` in your server code: it turns "not in use" into "nothing allowed".
 
 The rule only sees pushes the session's access allows, so it can only narrow what `access` grants, never widen it. Combine several rules with `composeRules` from `@tldraw/permissions`: the first refusal wins.
+
+#### Grants
+
+A grant is a name with an optional place. tldraw's names are `tl:shape:create`, `tl:shape:update`, `tl:shape:delete` and the same three for `tl:page`; you can add names of your own under another prefix. A shape action also ends in the shape's type: creating a geo shape is `tl:shape:create:geo`, and `getRequiredPermission` from `@tldraw/permissions` names the action a change is.
+
+```ts
+const grants = [
+	'tl:shape:*', // every shape action, anywhere
+	'tl:shape:create', // create any type
+	'tl:shape:create:note', // create notes only
+	'tl:shape:*@page:A', // every shape action, on page A
+	'tl:shape:*@shape:frame1', // that frame and what's inside it
+]
+```
+
+A grant covers an action when the names are equal, when it's a parent of the action (`tl:shape:create` covers `tl:shape:create:geo`), or when it ends in `:*` and the action is under it. A grant for one type doesn't cover the untyped parent: `tl:shape:create` only holds when every type is granted. A place is any record id. A check about a record walks from the record up through its parents to its page, and a grant placed anywhere on that walk counts.
+
+The grants rule checks a create where the record ends up, a delete where it was, and an update at both, so a grant on page A can't move a shape off page B. A binding is an update of the shape it starts from. A new asset passes when some type of shape may be created somewhere. Moving a frame needs permission for the frame on both pages, and nothing for the shapes inside it, which ride along unchanged.
+
+A `requires` table says what an action needs, for names like `page:edit` that you grant per page:
+
+```ts
+const policy = createGrantsPolicy({
+	requires: {
+		'tl:shape:create': ['tl:shape:create', 'page:edit'],
+		'tl:shape:update': ['tl:shape:update', 'page:edit'],
+		'tl:shape:delete': { anyOf: ['tl:shape:delete', 'page:edit'] },
+	},
+})
+
+// Sam draws on page A only
+room.handleSocketConnect({
+	sessionId,
+	socket,
+	userId: 'sam',
+	permissions: ['tl:shape:*', 'page:edit@page:A'],
+})
+```
+
+A list needs all of its names, `{ anyOf }` one of them, each at the same place as the action. A typed action uses the nearest parent's entry, and where the entry names its own key, the action keeps its full name: above, the geo tool needs `tl:shape:create:geo` and `page:edit`, so `['tl:shape:create:note', 'page:edit']` only lets notes through. Entries aren't expanded through each other. `tl:*` doesn't cover `page:edit`; grant it alongside.
+
+`rules` adds your own write rules, run in order after the grant checks: `createGrantsPolicy({ requires, rules: [ownership] })`. `types` gives your own record types a permission, as in [Showing what someone can do](#showing-what-someone-can-do). For apps that only need grants, `defaultGrantsPolicy` is ready-made.
+
+`isPermitted` and `isChangePermitted` from `@tldraw/permissions` are the checks underneath, for rules of your own: `isPermitted(session.permissions, 'classroom:manage')`, or `isChangePermitted(session.permissions, change, { requires, before, after })`.
 
 What the rule sees:
 
@@ -532,11 +574,13 @@ A refused push is discarded whole; nothing in it is stored. The room tells the s
 
 #### Running the rule in the editor
 
-The same rule can run in the editor too, so a change the room would refuse is reverted before it's sent. Pass it to `useSync`:
+The same rule can run in the editor too, so a change the room would refuse is reverted before it's sent. Pass the policy the room got to `useSync`:
 
 ```tsx
-const store = useSync({ uri, assets, authorize: { rule: authorize } })
+const store = useSync({ uri, assets, authorize: policy })
 ```
+
+The policy's `requires` and `types` come along, so the editor's UI follows the same grants (see [Showing what someone can do](#showing-what-someone-can-do)). A plain rule works too: `authorize: { rule }`.
 
 The room sends its `objectTypes` on connect, so the editor knows which records `access.objects` covers. The editor judges it the way the room does: the session's `access` first, then the rule. The unit is one editor operation (one `editor.run`, side effects included), so a group, a delete and its binding cleanup are judged whole. The session is what the server granted: `userId` and `access` from connect, and `permissions`, kept current as the server updates them. Until the first connect every change is refused. A rule that reads a database or other server-only data can only run on the server.
 
@@ -546,12 +590,12 @@ The write rule enforces submitted client changes on the server and configured lo
 
 When the editor refuses a change, it reverts it before history or sync see it, so there's nothing to undo and nothing is pushed. The interaction in progress ends, keeping what was accepted earlier in it: a drag stops where the last allowed frame put the shape. History is left as it was too, redo included, and an undo or redo the rule refuses changes nothing. Listen for both kinds of refusal with `editor.on('refused', ...)`; `source` is `'local'` or `'server'`.
 
-Without sync, give the store its rule directly: `createTLStore({ authorize: { rule } })`, or the `authorize` prop on `<Tldraw />` when it creates the store. By default there is no user (`session.userId` is `null`) and access is `'write'`, and `permissions` is `null`, so a rule that reads `session.userId` or `session.permissions`, such as ownership, needs `getSession` too. So does an app that switches users or acts for an agent:
+Without sync, give the store its rule directly: `createTLStore({ authorize: { rule } })`, or the `authorize` prop on `<Tldraw />` when it creates the store. By default there is no user (`session.userId` is `null`) and access is `'write'`, and `permissions` is `null`, so a rule that reads `session.userId` or `session.permissions`, such as ownership or a grants policy, needs `getSession` too. So does an app that switches users or acts for an agent:
 
 ```tsx
 <Tldraw
 	authorize={{
-		rule,
+		...policy,
 		getSession: () => ({ sessionId: 'local', userId, meta, access, permissions }),
 	}}
 />
@@ -565,30 +609,38 @@ Client permissions need a tldraw license with the permissions feature, which col
 
 The rule judges whole operations after the fact, so the UI can't ask it whether to show a button: one record on its own isn't the whole operation (deleting a frame also deletes its children). The editor asks two questions instead, before the user does anything:
 
-- [Editor#isPermitted](?): is this kind of action available at all? For controls with no record yet: the new page button asks `tl:page:create`, the drawing tools ask `tl:shape:create` and `tl:shape:update`. A student holding `['tl:shape:*']` gets a disabled new page button.
-- [Editor#isChangePermitted](?): may this record change this way? For controls tied to one shape or page: drag, resize, handles, text editing, the eraser, renaming or deleting a page. It gets the change as a rule sees one, `{ type: 'update', prev, next }`. With an ownership policy, your own shapes get handles and other people's don't.
+- [Editor#isPermitted](?): may I do this action here? For controls with no record yet: the new page button asks `tl:page:create`, the geo tool asks `tl:shape:create:geo` and `tl:shape:update:geo`. It takes a place, a page or shape id, and defaults to the current page; then a grant placed on any shape of that page counts too, since there is somewhere here you can do it. A student holding `['tl:shape:*']` gets a disabled new page button. Any name works, including your own; readonly turns off the `tl:` ones.
+- [Editor#isChangePermitted](?): may this record change this way? For controls tied to one shape or page: drag, resize, handles, text editing, the eraser, renaming or deleting a page. It gets the change as a rule sees one, `{ type: 'update', prev, next }`, and checks the grants where the record is.
 
 Each is answered in this order:
 
 1. Readonly and locked shapes, always.
-2. Your app's `isPermitted` or `isChangePermitted` option, if you pass one.
-3. Otherwise the session's permissions, [Editor#getPermissions](?), with the built-in mapping (`getRequiredPermission`), so the UI agrees with a rule that reads the same list and follows every update. There's nothing to pass:
+2. The session's grants, [Editor#getPermissions](?), with the `requires` and `types` of the store's `authorize`, so the UI uses the same checks as a grants policy and follows every update. With `null` permissions (not in use), everything passes this step. There's nothing to pass:
 
    ```tsx
    <Tldraw store={store} />
    ```
 
-4. With `null` permissions (not in use), everything is allowed.
+3. Your app's `isPermitted` or `isChangePermitted` option, if you pass one. It can only narrow: the grants are the ceiling, and a callback can't turn on what they don't allow.
 
-A list of names covers `isPermitted` and the simple cases of `isChangePermitted`. Policies that depend on the record itself, like who owns it, which page it's on or a custom shape type, need your own `isChangePermitted`. `createPermissionPolicy` from `@tldraw/permissions` builds both options, for example with permissions for your own record types:
+Grants cover who may do what on which pages, which types and which records. Policies that depend on a record's contents, like who owns it, need your own `isChangePermitted`, with the same check in the policy's `rules`:
 
 ```tsx
-const policy = createPermissionPolicy(undefined, { types: { sticker: 'stickers:edit' } })
+const isMine = (shape: TLShape, userId: string) => shape.meta.ownerId === userId
+const policy = createGrantsPolicy({ rules: [ownershipRule] }) // ownershipRule calls isMine
 
-<Tldraw store={store} isChangePermitted={policy.isChangePermitted} isPermitted={policy.isPermitted} />
+<Tldraw
+	store={store}
+	isChangePermitted={(change) => {
+		const record = change.prev ?? change.next
+		return record.typeName !== 'shape' || isMine(record, userId)
+	}}
+/>
 ```
 
-Neither question stops anything: editor methods still try the change, and the rule decides. The UI can still offer something the rule then refuses, for example when permissions change or a record the operation depends on is protected. Selecting is never restricted.
+The callback `isPermitted` gets typed shape names: match the untyped parent with `action.startsWith('tl:shape:create')`. Your own record types get a permission through the policy's `types`: `createGrantsPolicy({ types: { sticker: 'stickers:edit' } })`.
+
+Neither question stops anything: editor methods still try the change, and the rule decides. The UI can still offer something the rule then refuses, for example when permissions change or a record the operation creates alongside (a binding, an asset) is refused. Selecting is never restricted.
 
 The default UI follows both. Controls are disabled rather than hidden (readonly still hides them):
 
@@ -601,7 +653,9 @@ The default UI follows both. Controls are disabled rather than hidden (readonly 
 | `tl:page:update`  | rename, move and reorder pages                                                                                                                                                                                                            |
 | `tl:page:delete`  | delete page                                                                                                                                                                                                                               |
 
-Shapes `isChangePermitted` refuses get the same treatment one by one: no handles, no drag, no text editing, and the eraser skips them. A selection that mixes shapes the user can and can't change still drags, and the rule refuses the whole operation. The style panel is hidden when shapes can be neither created nor updated.
+Shape actions in this table are the untyped parents. Controls that know their shape type ask the typed action: the tools, note handles, duplicate, alt-drag cloning, move to page, and everything on a selected shape. Paste, dropped files and flatten don't know the types in advance and ask the parent, which needs every type.
+
+Shapes the grants or `isChangePermitted` refuse get the same treatment one by one: no handles, no drag, no text editing, and the eraser skips them. A selection that mixes shapes the user can and can't change still drags, and the rule refuses the whole operation. The style panel is hidden when shapes can be neither created nor updated.
 
 Your own tools can join in with `isEnabled` on the tool item: a disabled tool shows disabled in the toolbar and does nothing when selected, from a shortcut or anywhere else.
 
@@ -609,7 +663,7 @@ Your own tools can join in with `isEnabled` on the tool item: a disabled tool sh
 tools.stamp = {
 	...tools.stamp,
 	isEnabled: (editor) =>
-		editor.isPermitted('tl:shape:create') && editor.isPermitted('tl:shape:update'),
+		editor.isPermitted('tl:shape:create:stamp') && editor.isPermitted('tl:shape:update:stamp'),
 }
 ```
 

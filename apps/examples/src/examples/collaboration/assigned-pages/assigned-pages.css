@@ -1,0 +1,13 @@
+.assigned-pages-controls {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	margin: 8px;
+	padding: 4px;
+	pointer-events: all;
+}
+
+.assigned-pages-refused {
+	padding: 0 8px;
+	color: var(--tl-color-warning, #d97706);
+}
