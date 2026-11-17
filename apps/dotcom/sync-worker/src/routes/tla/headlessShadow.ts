@@ -6,7 +6,7 @@ import {
 } from '@tldraw/dotcom-shared'
 import { RoomSnapshot } from '@tldraw/sync-core'
 import { BoxModel } from '@tldraw/tlschema'
-import { Environment, envFlagWord } from '../../types'
+import { Environment } from '../../types'
 import { writeDataPoint } from '../../utils/analytics'
 import { evaluateFlagForUser, getFeatureFlagValue } from '../../utils/featureFlags'
 import { ThumbnailRenderJob } from '../../utils/renderTokens'
@@ -25,9 +25,9 @@ import { ResolvedThumbnailBoard, loadBoardSnapshot } from './thumbnailRender'
 // after the tool has returned, and every failure is swallowed into a telemetry row.
 //
 // Rollout follows the HEADLESS_WORKER binding, which only staging has (the worker is deployed from
-// the tldraw-headless repo as `staging-tldraw-headless-worker`). Staging forces the shadow on for
-// every read via HEADLESS_SHADOW; production and dev leave the binding unbound, so it is fully inert
-// there until the worker is deployed and the `headless_shadow` flag samples a caller.
+// the tldraw-headless repo as `staging-tldraw-headless-worker`). The `headless_shadow` flag is the
+// one control: staging runs it at 100%; production and dev leave the binding unbound, so it is fully
+// inert there, and the flag is hidden where no binding backs it (see getAllFeatureFlagValues).
 //
 // No board identifier leaves this pipeline: the row carries only counts and deltas, like the rest of
 // the render telemetry.
@@ -196,12 +196,9 @@ export async function compareMeasureInShadow(
 	if (!headless) return
 	let headlessMs = 0
 	try {
-		// Staging forces the shadow on for every read (HEADLESS_SHADOW), so the headless path is
-		// exercised continuously; elsewhere the flag samples per user.
-		if (envFlagWord(env.HEADLESS_SHADOW) !== 'true') {
-			const flag = await getFeatureFlagValue(env, 'headless_shadow')
-			if (!evaluateFlagForUser(flag, 'headless_shadow', userId)) return
-		}
+		// The one control: staging runs it at 100%, production rolls up from 0% once it has a binding.
+		const flag = await getFeatureFlagValue(env, 'headless_shadow')
+		if (!evaluateFlagForUser(flag, 'headless_shadow', userId)) return
 
 		// The MCP read path leaves the document server-blind on purpose; the shadow reloads the
 		// persisted R2 snapshot here, off the critical path, which can lag the live tab by an edit.

@@ -436,6 +436,11 @@ export async function getAllFeatureFlagValues(
 
 	await Promise.all(
 		FEATURE_FLAG_KEYS.map(async (key) => {
+			// headless_shadow only does anything where HEADLESS_WORKER is bound (staging today). A flag
+			// that cannot act is a control that misleads, so it is hidden from the admin panel until the
+			// binding exists in this environment, and reappears the moment the worker is bound there.
+			// See headlessShadow.ts.
+			if (key === 'headless_shadow' && !env.HEADLESS_WORKER) return
 			flags[key] = await readFeatureFlag(env, key)
 		})
 	)
