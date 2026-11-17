@@ -134,7 +134,7 @@ const flyioReplAppName =
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
 // needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
 // TEMP(preview-rmv2): two-step test, RMv1 -> RMv1 + v5 backups -> RMv2
-const zeroRmv2 = env.TLDRAW_ENV === 'staging'
+const zeroRmv2 = env.TLDRAW_ENV === 'staging' || !!previewId
 // TEMP(preview-rmv2): v5 backups on RMv1, the step before RMv2
 const zeroBackupV5 = zeroRmv2 || !!previewId
 
