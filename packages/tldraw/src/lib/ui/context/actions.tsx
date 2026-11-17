@@ -2053,6 +2053,8 @@ export function ActionsProvider({ overrides, children }: ActionsProviderProps) {
 				id: 'unflatten-image',
 				isEnabled: canUnflatten,
 				label: messages.actionUnflattenImage.id,
+				readonlyOk: false,
+				commandPalette: { group: 'selection' },
 				onSelect: async (source) => {
 					const ids = editor.getSelectedShapeIds()
 					if (ids.length === 0) return
