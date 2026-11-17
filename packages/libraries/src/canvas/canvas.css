@@ -77,7 +77,8 @@
 }
 
 /* Points down while open, and to the side while folded shut. */
-.tlui-icon.tlui-libraries-chevron {
+.tlui-libraries-chevron {
+	flex-shrink: 0;
 	width: 12px;
 	height: 12px;
 	transition: transform 120ms ease-out;
@@ -88,7 +89,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-	.tlui-icon.tlui-libraries-chevron {
+	.tlui-libraries-chevron {
 		transition: none;
 	}
 }

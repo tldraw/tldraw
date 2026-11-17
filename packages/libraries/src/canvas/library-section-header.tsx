@@ -1,6 +1,5 @@
 import {
 	defineMessages,
-	TldrawUiIcon,
 	useDialogs,
 	useEditor,
 	useToasts,
@@ -10,6 +9,7 @@ import {
 } from 'tldraw'
 import { copyLibrary } from '../lib/copyLibrary'
 import type { LibrarySource } from '../lib/LibrarySource'
+import { ChevronDownStrongIcon } from '../ui/chevron-down-strong-icon'
 import { LibraryMenu, type LibraryMenuSort } from '../ui/library-menu'
 import { RenameInput } from '../ui/rename-input'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
@@ -149,7 +149,7 @@ export function LibrarySectionHeader({
 					onClick={onToggleCollapsed}
 				>
 					<span className="tlui-libraries-panel__name">{library.name}</span>
-					<TldrawUiIcon icon="chevron-down" label="" small className="tlui-libraries-chevron" />
+					<ChevronDownStrongIcon className="tlui-libraries-chevron" />
 				</button>
 			)}
 			<div className="tlui-libraries-panel__header-actions">
