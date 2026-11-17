@@ -6,8 +6,10 @@ import {
 	addStarterPack,
 	canAddStarterPack,
 	getStarterPackId,
+	getStarterPackSummaries,
 	isStarterPackAdded,
 	loadStarterPack,
+	loadStarterPackSummaries,
 	STARTER_PACK_LOADERS,
 	STARTER_PACK_PREVIEW_COUNT,
 	type StarterPackSummary,
@@ -36,6 +38,15 @@ describe('starter pack data', () => {
 		await expect(JSON.stringify(summaries, null, '\t') + '\n').toMatchFileSnapshot(
 			'./starterPackManifest.json'
 		)
+	})
+
+	it('loads the summaries once and keeps them for the dialog', async () => {
+		expect(getStarterPackSummaries()).toBeUndefined()
+		const loading = loadStarterPackSummaries()
+		expect(loadStarterPackSummaries()).toBe(loading)
+		const summaries = await loading
+		expect(summaries.map((p) => p.id)).toEqual(Object.keys(STARTER_PACK_LOADERS))
+		expect(getStarterPackSummaries()).toBe(summaries)
 	})
 
 	it('loads each pack under its own id', () => {
