@@ -73,6 +73,7 @@ import {
 	toolPageResult,
 } from './boardTools'
 import { createBoardForUser } from './createBoard'
+import { compareMeasureInShadow } from './headlessShadow'
 import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
@@ -1196,6 +1197,11 @@ async function readBoardPage(
 	if (!tab.value.found) {
 		const failure = pageLookupFailure(tab.value.lookup, page)
 		return fail(failure.reason, withTelemetryReason(failure.result, failure.reason))
+	}
+	// get_page_info reads the whole page (no cluster ids named); shadow-compare that clustering against
+	// the headless editor, off the critical path. Inert until HEADLESS_WORKER is bound — see headlessShadow.ts.
+	if (clusterIds.length === 0 && ctx && env.HEADLESS_WORKER) {
+		ctx.waitUntil(compareMeasureInShadow(env, { boardId, userId, read: tab.value.read }))
 	}
 	return { ok: true, read: tab.value.read }
 }

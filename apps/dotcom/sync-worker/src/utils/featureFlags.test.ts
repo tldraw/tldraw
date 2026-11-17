@@ -547,6 +547,7 @@ describe('getAllFeatureFlagValues', () => {
 		const flags = await getAllFeatureFlagValues(env as any)
 
 		expect(Object.keys(flags).sort()).toEqual([
+			'headless_shadow',
 			'libraries',
 			'load_rum',
 			'mcp_render_push',

@@ -66,6 +66,15 @@ function getFlagDefaults(): Record<FeatureFlagKey, FeatureFlagValue> {
 			description:
 				'MCP screenshots and measures send the board to the render page instead of the page fetching it. Turning it off is the kill switch: every MCP render fetches. Ignored where the deployment sets THUMBNAIL_RENDER_PUSH. A change lands within about a minute',
 		},
+		headless_shadow: {
+			type: 'percentage',
+			// 0% by default, and inert anyway until the HEADLESS_WORKER binding exists. Bucketed per user:
+			// the sync worker passes the caller's user id, so a stable sample of accounts runs the shadow.
+			percentage: 0,
+			enabled: true,
+			description:
+				'Runs the headless editor over an MCP page read in shadow mode, off the critical path, and records how its clustering compares with the open tab. Does nothing unless the HEADLESS_WORKER binding is present. Bucketed per user. A change lands within about a minute',
+		},
 		ui_v3: {
 			type: 'allowlist',
 			users: [],
