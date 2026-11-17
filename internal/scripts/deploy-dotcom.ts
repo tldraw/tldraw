@@ -133,8 +133,10 @@ const flyioReplAppName =
 
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
 // needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
-// TEMP(preview-rmv2): previews too
-const zeroRmv2 = env.TLDRAW_ENV === 'staging' || !!previewId
+// TEMP(preview-rmv2): two-step test, RMv1 -> RMv1 + v5 backups -> RMv2
+const zeroRmv2 = env.TLDRAW_ENV === 'staging'
+// TEMP(preview-rmv2): v5 backups on RMv1, the step before RMv2
+const zeroBackupV5 = zeroRmv2 || false
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
@@ -839,6 +841,7 @@ function renderFlyioReplicationManagerToml(appName: string, backupPath: string):
 		.replaceAll('__RM_UPSTREAM_MAX_CONNS', String(zeroConns.rm.upstream))
 		.replaceAll('__RM_CVR_MAX_CONNS', String(zeroConns.rm.cvr))
 		.replaceAll('__RMV2', String(zeroRmv2))
+		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
 		.replaceAll('__CPU_KIND', zeroVm.rm.cpuKind ?? 'shared')
 		.replaceAll('__VM_CPUS', String(zeroVm.rm.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.rm.memory)
@@ -875,6 +878,7 @@ function renderFlyioViewSyncerToml(
 		.replaceAll('__VS_UPSTREAM_MAX_CONNS', String(zeroConns.vs.upstream))
 		.replaceAll('__VS_CVR_MAX_CONNS', String(zeroConns.vs.cvr))
 		.replaceAll('__RMV2', String(zeroRmv2))
+		.replaceAll('__BACKUP_V5', String(zeroBackupV5))
 		.replaceAll('__VM_CPUS', String(zeroVm.vs.cpus))
 		.replaceAll('__VM_MEMORY', zeroVm.vs.memory)
 		.replaceAll('__CPU_KIND', zeroVm.vs.cpuKind ?? 'shared')
@@ -915,7 +919,7 @@ async function deployZeroViaFlyIoMultiNode() {
 	const apps = await exec('flyctl', ['apps', 'list', '-o', 'tldraw-gb-ltd'])
 	// RMv2 puts each RM's backup at `new URL(<id>, backupURL)`. Without the trailing slash that
 	// replaces the env folder and the backup lands at the bucket root.
-	const backupPath = `${previewId ?? env.TLDRAW_ENV}${zeroRmv2 ? '/' : ''}`
+	const backupPath = `${previewId ?? env.TLDRAW_ENV}${zeroBackupV5 ? '/' : ''}`
 	const secrets = [
 		`ZERO_UPSTREAM_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
 		`ZERO_CVR_DB=${withStatementTimeout(env.BOTCOM_POSTGRES_CONNECTION_STRING)}`,
