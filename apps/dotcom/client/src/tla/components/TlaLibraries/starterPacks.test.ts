@@ -7,7 +7,10 @@ import {
 	canAddStarterPack,
 	getStarterPackId,
 	isStarterPackAdded,
-	STARTER_PACKS,
+	loadStarterPack,
+	STARTER_PACK_LOADERS,
+	STARTER_PACK_PREVIEW_COUNT,
+	type StarterPackSummary,
 } from './starterPacks'
 
 const pack: LibraryPack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
@@ -17,13 +20,33 @@ const owners = [
 	{ id: 'home', name: 'Home' },
 ]
 
+const fullPacks = await Promise.all(Object.keys(STARTER_PACK_LOADERS).map(loadStarterPack))
+
 describe('starter pack data', () => {
-	it('gives every pack a unique id', () => {
-		const ids = STARTER_PACKS.map((p) => p.id)
-		expect(new Set(ids).size).toBe(ids.length)
+	it('summarises the packs in starterPackManifest.json', async () => {
+		const summaries: StarterPackSummary[] = fullPacks.map((p) => ({
+			id: p.id,
+			name: p.name,
+			version: p.version,
+			itemCount: p.items.length,
+			previews: p.items
+				.slice(0, STARTER_PACK_PREVIEW_COUNT)
+				.map((item) => ({ id: item.id, thumbnail: item.thumbnail })),
+		}))
+		await expect(JSON.stringify(summaries, null, '\t') + '\n').toMatchFileSnapshot(
+			'./starterPackManifest.json'
+		)
 	})
 
-	it.each(STARTER_PACKS.map((p) => [p.id, p] as const))(
+	it('loads each pack under its own id', () => {
+		expect(fullPacks.map((p) => p.id)).toEqual(Object.keys(STARTER_PACK_LOADERS))
+	})
+
+	it("can't load a pack that doesn't exist", async () => {
+		await expect(loadStarterPack('nope')).rejects.toThrow()
+	})
+
+	it.each(fullPacks.map((p) => [p.id, p] as const))(
 		'%s has items, each with a thumbnail',
 		(_, p) => {
 			expect(p.items.length).toBeGreaterThan(0)
@@ -50,7 +73,7 @@ describe('starter packs in tldraw.com workspaces', () => {
 		vi.spyOn(URL, 'createObjectURL').mockImplementation(() => 'blob:local')
 		vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {})
 		const source = new TldrawAppLibrariesSource(backend.app, backend.getToken)
-		const math = STARTER_PACKS.find((p) => p.id === 'math')!
+		const math = await loadStarterPack('math')
 
 		const copy = await addStarterPack(source, math)
 		await whenItemsStored(source.getItems(copy.id).map((item) => item.id))

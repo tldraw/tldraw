@@ -1,7 +1,6 @@
 import {
 	activeLibraryId,
 	LibraryMenuItem,
-	type LibraryPack,
 	type LibrarySource,
 	librariesPanelOpen,
 	getThumbnailForColorMode,
@@ -27,7 +26,9 @@ import {
 	addStarterPack,
 	canAddStarterPack,
 	isStarterPackAdded,
+	loadStarterPack,
 	STARTER_PACKS,
+	type StarterPackSummary,
 } from './starterPacks'
 import styles from './TlaStarterPacksDialog.module.css'
 
@@ -43,8 +44,6 @@ const messages = defineMessages({
 		defaultMessage: 'You may not be allowed to create libraries, or copying failed.',
 	},
 })
-
-const THUMBNAILS_SHOWN = 4
 
 export function TlaBrowseStarterPacksMenuItem({ source }: { source: LibrarySource }) {
 	const msg = useTranslation()
@@ -81,7 +80,7 @@ function TlaStarterPacksDialog({ source }: { source: LibrarySource }) {
 	)
 }
 
-function StarterPack({ source, pack }: { source: LibrarySource; pack: LibraryPack }) {
+function StarterPack({ source, pack }: { source: LibrarySource; pack: StarterPackSummary }) {
 	const editor = useEditor()
 	const msg = useTranslation()
 	const { addToast } = useToasts()
@@ -95,7 +94,8 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: LibraryPac
 
 	const add = () => {
 		setAdding(true)
-		addStarterPack(source, pack)
+		loadStarterPack(pack.id)
+			.then((fullPack) => addStarterPack(source, fullPack))
 			.then(
 				(library) => {
 					activeLibraryId.set(editor, library.id)
@@ -127,7 +127,7 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: LibraryPac
 	return (
 		<li className={styles.pack}>
 			<div className={styles.thumbnails} aria-hidden>
-				{pack.items.slice(0, THUMBNAILS_SHOWN).map((item) => (
+				{pack.previews.map((item) => (
 					<span key={item.id} className={styles.thumbnail}>
 						{item.thumbnail && (
 							<img
@@ -143,7 +143,7 @@ function StarterPack({ source, pack }: { source: LibrarySource; pack: LibraryPac
 				<div className={styles.text}>
 					<span className={styles.name}>{pack.name}</span>
 					<span className={styles.detail}>
-						{msg(messages.itemCount, { count: pack.items.length })}
+						{msg(messages.itemCount, { count: pack.itemCount })}
 					</span>
 				</div>
 				<TldrawUiButton
