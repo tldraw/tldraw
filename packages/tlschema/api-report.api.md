@@ -150,6 +150,9 @@ export const commentSchemaRecords: {
 export const commentThreadRecordConfig: CustomRecordInfo;
 
 // @public
+export function composeAuthorize<R extends UnknownRecord = TLRecord, Meta = any>(...list: TLAuthorize<R, Meta>[]): TLAuthorize<R, Meta>;
+
+// @public
 export function compressLegacySegments(segments: {
     points: VecModel[];
     type: 'free' | 'straight';
