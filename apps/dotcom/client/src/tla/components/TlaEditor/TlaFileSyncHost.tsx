@@ -1,4 +1,5 @@
-import { TAB_RENDER_PARAM, TLCustomServerEvent } from '@tldraw/dotcom-shared'
+import { TAB_RENDER_PARAM, TLCustomServerEvent, getFilePermissions } from '@tldraw/dotcom-shared'
+import { createPermissions } from '@tldraw/permissions'
 import { useSync } from '@tldraw/sync'
 import { ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -53,6 +54,23 @@ function createPresenceUserStore(userId: string | undefined): TLUserStore {
 }
 
 /**
+ * The file's permissions as authorize hooks, the same ones the room runs. On the client there is
+ * one user, so the source ignores the id the hooks pass (the room's id for this session). It reads
+ * the user's file access from Zero, so a change to the file or to the user's role applies at once.
+ */
+function createFileAuthorize(fileSlug: string) {
+	const permissions = computed('file permissions', () => {
+		const app = currentApp$.get()
+		// Signed out, or still loading: a guest on an edit link, with no comments. The room connects
+		// a view link read-only, which turns off every permission in the editor.
+		return new Set<string>(
+			app ? app.getFilePermissions(fileSlug) : getFilePermissions('editor', false)
+		)
+	})
+	return createPermissions({ source: { get: () => permissions } }).authorize
+}
+
+/**
  * Owns the file room's sync store so it can connect while the signed-in app is still preloading
  * from Zero: the uri only needs the slug, the build timestamp and a Clerk token. Everything that
  * needs the app (the editor, session restore, slurping) mounts below, once it exists.
@@ -70,6 +88,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		return multiplayerAssetStore({ getFileId: () => fileSlug, getToken: getUserToken })
 	}, [fileSlug, getUserToken])
 	const users = useMemo(() => createPresenceUserStore(userId), [userId])
+	const authorize = useMemo(() => createFileAuthorize(fileSlug), [fileSlug])
 	const editorRef = useRef<Editor | null>(null)
 
 	const store = useSync({
@@ -94,6 +113,7 @@ export function TlaFileSyncHost({ fileSlug, children }: { fileSlug: string; chil
 		// Register the opt-in `comment` record type so comment records sync through the file room.
 		// Must match the server schema (see fileSyncSchema in TLFileDurableObject).
 		records: commentSchemaRecords,
+		authorize,
 		onCustomMessageReceived: useCallback(
 			(message: TLCustomServerEvent) => {
 				if (message.type === 'first_load_server') {

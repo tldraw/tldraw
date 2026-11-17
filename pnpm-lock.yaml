@@ -618,6 +618,9 @@ importers:
       '@tldraw/mermaid':
         specifier: workspace:*
         version: link:../../../packages/mermaid
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../../../packages/permissions
       '@tldraw/sync':
         specifier: workspace:*
         version: link:../../../packages/sync
@@ -797,6 +800,9 @@ importers:
       '@tldraw/dotcom-shared':
         specifier: workspace:*
         version: link:../../../packages/dotcom-shared
+      '@tldraw/permissions':
+        specifier: workspace:*
+        version: link:../../../packages/permissions
       '@tldraw/store':
         specifier: workspace:*
         version: link:../../../packages/store

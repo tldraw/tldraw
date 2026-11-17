@@ -45,6 +45,7 @@
 		"@tldraw/dotcom-shared": "workspace:*",
 		"@tldraw/libraries": "workspace:*",
 		"@tldraw/mermaid": "workspace:*",
+		"@tldraw/permissions": "workspace:*",
 		"@tldraw/sync": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",
 		"@tldraw/utils": "workspace:*",

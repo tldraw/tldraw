@@ -27,6 +27,7 @@
 		"@rocicorp/zero": "1.11.5",
 		"@supabase/supabase-js": "^2.48.1",
 		"@tldraw/dotcom-shared": "workspace:*",
+		"@tldraw/permissions": "workspace:*",
 		"@tldraw/store": "workspace:*",
 		"@tldraw/sync-collaboration": "workspace:*",
 		"@tldraw/sync-core": "workspace:*",

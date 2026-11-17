@@ -7,7 +7,6 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { getFileRoomAccess } from './authorizeFileRecord'
 import { planMcpComment, resolveCommentMentions } from './mcpCommentWrite'
 import { createFakeKysely } from './test/fakeKysely'
 
@@ -161,23 +160,6 @@ describe('planMcpComment', () => {
 		expect(plan({ kind: 'point', pageId: 'shape:box', x: 0, y: 0 }, [pageA, box])).toMatchObject({
 			reason: 'page_not_found',
 		})
-	})
-})
-
-describe('getFileRoomAccess', () => {
-	const file = (shared: boolean, sharedLinkType = 'edit') => ({ shared, sharedLinkType })
-
-	it('gives workspace members write whatever the link says', () => {
-		expect(getFileRoomAccess(file(false), 'owner')).toBe('write')
-		expect(getFileRoomAccess(file(true, 'view'), 'member')).toBe('write')
-	})
-
-	it('gives guests write only on an edit link, and nothing on an unshared board', () => {
-		expect(getFileRoomAccess(file(true, 'edit'), null)).toBe('write')
-		expect(getFileRoomAccess(file(true, 'view'), null)).toBe('read')
-		// A legacy value fails closed.
-		expect(getFileRoomAccess(file(true, 'legacy-something'), null)).toBe('read')
-		expect(getFileRoomAccess(file(false), null)).toBe('none')
 	})
 })
 

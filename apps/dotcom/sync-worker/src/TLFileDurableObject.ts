@@ -20,11 +20,14 @@ import {
 	TlaFile,
 	WELCOME_CREATE_SOURCE,
 	can,
+	getFileAccess,
+	getFilePermissions,
 	type FeatureFlagValue,
 	type McpAgentClient,
 	type Role,
 	type RoomOpenMode,
 } from '@tldraw/dotcom-shared'
+import { createPermissions } from '@tldraw/permissions'
 import { UnknownRecord } from '@tldraw/store'
 import {
 	DEFAULT_INITIAL_SNAPSHOT,
@@ -70,7 +73,7 @@ import { IRequest, Router, StatusError } from 'itty-router'
 import { Kysely, PostgresDialect } from 'kysely'
 import PQueue from 'p-queue'
 import { collectAssetAssociationChanges } from './assetAssociation'
-import { SessionMeta, authorizeFileRecord, getFileRoomAccess } from './authorizeFileRecord'
+import { SessionMeta, authorizeFileRecord } from './authorizeFileRecord'
 import {
 	CommentLoadResult,
 	findEmptiedCommentThreads,
@@ -243,6 +246,11 @@ interface SocketAttachment {
 	// as until its first ping. Absent for every other socket.
 	tabRenderConnectedAt?: number
 	snapshot: SessionStateSnapshot | null
+	// The user the room judges this socket as, and their permissions. Kept here because the
+	// permission store is in memory and does not survive hibernation. Absent on sockets from before
+	// permissions, which resume with none until their next reconnect.
+	userId?: string
+	permissions?: string[]
 }
 
 /** The user behind an MCP access token, in the shape the file checks already take. */
@@ -401,6 +409,19 @@ export class TLFileDurableObject extends DurableObject {
 
 	sentry: ReturnType<typeof createSentry> | null = null
 
+	/**
+	 * What each user in the room may do, from `getFilePermissions`. Set on connect and whenever the
+	 * file row changes. The room and the client run the same `authorize` hooks over it.
+	 */
+	private readonly permissions = createPermissions()
+
+	private setSessionPermissions(sessionId: string, userId: string, permissions: string[]) {
+		this.permissions.permissions.set(userId, permissions)
+		const ws = this.sessionIdToWs.get(sessionId)
+		const attachment = ws?.deserializeAttachment() as SocketAttachment | null | undefined
+		if (ws && attachment) ws.serializeAttachment({ ...attachment, userId, permissions })
+	}
+
 	private recordVetoWarningScheduled = false
 	private recordVetoCounts?: Map<string, number>
 
@@ -521,6 +542,9 @@ export class TLFileDurableObject extends DurableObject {
 						// Guard attribution with the session's authenticated identity so a client can't
 						// post or edit in someone else's name.
 						authorizeRecord: this.observeRecordAuthorizers(authorizeFileRecord),
+						// Canvas permissions. Comments are still judged by the record authorizers above,
+						// which stamp attribution and feed the veto telemetry.
+						authorize: this.permissions.authorize,
 					})
 
 					// Sessions that survived hibernation. Collected before the event so room_start can
@@ -548,6 +572,10 @@ export class TLFileDurableObject extends DurableObject {
 					this.logEvent({ type: 'room', name: 'room_start', resumedSockets: resumes.length })
 
 					for (const resume of resumes) {
+						const attachment = resume.socket.deserializeAttachment() as SocketAttachment
+						if (attachment.userId && attachment.permissions) {
+							this.permissions.permissions.set(attachment.userId, attachment.permissions)
+						}
 						room.handleSocketResume(resume)
 						this.sessionIdToWs.set(resume.sessionId, resume.socket)
 					}
@@ -1125,6 +1153,8 @@ export class TLFileDurableObject extends DurableObject {
 		// close it instead.
 		let auth: { userId: string } | null
 		let isWebsiteSession = false
+		// Legacy rooms are read-only, so their sessions get none.
+		let permissions: string[] = []
 		try {
 			if (this.documentInfo.deleted) {
 				return closeSocket(TLSyncErrorCloseEventReason.NOT_FOUND)
@@ -1194,13 +1224,14 @@ export class TLFileDurableObject extends DurableObject {
 					rateLimitTimer.report('on_request_rate_limit', loadIdBlobs)
 					marks.mark('rate_limit')
 
-					const access = getFileRoomAccess(file, role)
+					const access = getFileAccess(file, role)
 					if (access === 'none') {
 						return closeSocket(TLSyncErrorCloseEventReason.FORBIDDEN)
 					}
-					if (access === 'read') {
+					if (access === 'viewer') {
 						openMode = ROOM_OPEN_MODE.READ_ONLY
 					}
+					permissions = getFilePermissions(access, !!auth?.userId)
 				} else {
 					// No file row means every check above was skipped, so admitting the socket would
 					// open the room to anyone holding the id — the R2 blob and the DO's SQLite outlive
@@ -1223,6 +1254,9 @@ export class TLFileDurableObject extends DurableObject {
 				userId: auth?.userId ? auth.userId : null,
 			}
 			const isReadonly = openMode === ROOM_OPEN_MODE.READ_ONLY
+			// Guests get an id of their own, so the hooks can tell them apart and look up their
+			// permissions. It is not a user row: nothing is attributed to it.
+			const userId = auth?.userId ?? `guest:${sessionId}`
 			// Only authenticated users can write comments — authors are stored in Postgres with a
 			// foreign key to the user table, so an anonymous author can't be represented. Tier
 			// gating (view-only sessions) happens in `authorizeFileRecord` off the session's
@@ -1237,6 +1271,8 @@ export class TLFileDurableObject extends DurableObject {
 				tabRenderConnectedAt:
 					isWebsiteSession && params[TAB_RENDER_PARAM] === '1' ? Date.now() : undefined,
 				snapshot: null,
+				userId,
+				permissions,
 			}
 			serverWebSocket.serializeAttachment(attachment)
 
@@ -1254,12 +1290,14 @@ export class TLFileDurableObject extends DurableObject {
 			}
 
 			// all good
+			this.permissions.permissions.set(userId, permissions)
 			room.handleSocketConnect({
 				sessionId,
 				socket: serverWebSocket,
 				meta,
 				isReadonly,
 				objectAccess,
+				userId,
 			})
 			// Mapped here and on resume, never from webSocketMessage: a superseded socket for the same
 			// session id can still deliver messages, and would steal the session's snapshot writes.
@@ -3357,34 +3395,32 @@ export class TLFileDurableObject extends DurableObject {
 
 		const room = await this.getRoom()
 
-		// if the app file record updated, it might mean that the sharing state was updated
-		// in which case we should kick people out or change their permissions
+		// The file row changed: the share link may have, so each session's access may have too.
+		// A change between viewer and editor flips the room's read-only lane, which only a reconnect
+		// can change. Every other change applies at once through the permission store.
 		//
-		// Only `edit` links grant guests canvas write; anything else fails closed. A tier change
-		// flips `isReadonly`, and the reconnect refreshes the session state the comment
-		// authorizers gate on — so comparing the readonly lane alone covers both.
-		const roomIsReadOnlyForGuests = file.shared && file.sharedLinkType !== 'edit'
-
+		// Only file rows reach here. A change to a user's workspace role (group_user) does not, so
+		// a member who is removed keeps their permissions until they reconnect. Applying those at once
+		// needs a feed of grant changes into the room, for example from Zero.
 		for (const session of room.getSessions()) {
 			if (file.isDeleted) {
 				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.NOT_FOUND)
 				continue
 			}
-
-			const canAccessFiles = async () => {
-				const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
-				return can(role, 'accessFiles')
-			}
-
-			if (!file.shared) {
-				if (!(await canAccessFiles())) {
-					room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
-				}
-			} else if (session.isReadonly !== roomIsReadOnlyForGuests) {
-				if (!(await canAccessFiles())) {
-					// not passing a reason means they will try to reconnect
-					room.closeSession(session.sessionId)
-				}
+			const role = await getRole(this.db, session.meta.userId, file.owningGroupId)
+			const access = getFileAccess(file, role)
+			if (access === 'none') {
+				room.closeSession(session.sessionId, TLSyncErrorCloseEventReason.FORBIDDEN)
+			} else if (session.isReadonly !== (access === 'viewer')) {
+				// not passing a reason means they will try to reconnect
+				room.closeSession(session.sessionId)
+			} else if (session.userId) {
+				const isSignedIn = session.meta.userId !== null
+				this.setSessionPermissions(
+					session.sessionId,
+					session.userId,
+					getFilePermissions(access, isSignedIn)
+				)
 			}
 		}
 	}
@@ -3524,7 +3560,10 @@ export class TLFileDurableObject extends DurableObject {
 	/** The same rule `onRequest` applies when it decides whether a socket is read-only. */
 	private async canWriteToFile(userId: string) {
 		const access = await this.getAppFileRecordWithRole(userId)
-		return !!access && getFileRoomAccess(access.file, access.role) === 'write'
+		if (!access) return false
+		return getFilePermissions(getFileAccess(access.file, access.role), true).includes(
+			'tl:shape:edit'
+		)
 	}
 
 	/**
@@ -3624,7 +3663,7 @@ export class TLFileDurableObject extends DurableObject {
 
 	/**
 	 * Posts a comment from the MCP server as `userId` (see `planMcpComment`), gated by the same
-	 * `getFileRoomAccess` rule as a socket connect. That check runs before a never-opened object's
+	 * `getFileAccess` rule as a socket connect. That check runs before a never-opened object's
 	 * documentInfo is initialized, so an id the caller cannot see leaves nothing behind.
 	 *
 	 * Mentions in `text` are checked after that gate (see `resolveCommentMentions`): which ids pass
@@ -3683,11 +3722,12 @@ export class TLFileDurableObject extends DurableObject {
 		if (isTestFile(file.id) && !(await canAccessTestProductionFile(this.env, { userId }))) {
 			return { ok: false, reason: 'not_found' }
 		}
-		const access = getFileRoomAccess(file, role)
+		const access = getFileAccess(file, role)
 		if (access === 'none') return { ok: false, reason: 'not_found' }
 		// planMcpComment refuses this too, but by then the agent would be registered on a board it
 		// can't comment on.
-		if (access === 'read') return { ok: false, reason: 'comment_forbidden' }
+		const canComment = getFilePermissions(access, true).includes('tl:comment:create')
+		if (!canComment) return { ok: false, reason: 'comment_forbidden' }
 
 		const resolved = await resolveCommentMentions(this.db, { fileId: file.id, userId, text })
 		if (!resolved.ok) return resolved
@@ -3720,6 +3760,9 @@ export class TLFileDurableObject extends DurableObject {
 			now: Date.now(),
 		})
 
+		// A server write: it goes to storage directly, so the room's authorize hooks never see it,
+		// and the access check above stands in for them. The SDK has no way yet to run the hooks on
+		// a server write as a given user.
 		const planned = storage.transaction((txn) => {
 			const plan = planMcpComment({
 				room: txn,

@@ -59,8 +59,8 @@ export type PlannedMcpComment =
  * tldraw.com meets. A server-side storage write skips the authorizers, so without this the MCP route
  * would be the one way to post that they never see.
  *
- * `isReadonly` is the caller's tier from `getFileRoomAccess`, the same value a socket session for
- * them would carry.
+ * `isReadonly` is whether the caller lacks `tl:comment:create` (see `getFilePermissions`), the same
+ * answer a socket session for them would get.
  */
 export function planMcpComment({
 	room,

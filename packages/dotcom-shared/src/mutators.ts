@@ -8,6 +8,7 @@ import {
 	uniqueId,
 } from '@tldraw/utils'
 import { MAX_NUMBER_OF_WORKSPACES, MAX_WORKSPACE_NAME_LENGTH } from './constants'
+import { getFileAccess, getFilePermissions, getFileUpdatePermissions } from './filePermissions'
 import { Role, can, isRole } from './roles'
 import { FILE_PREFIX } from './routes'
 import {
@@ -134,16 +135,6 @@ async function assertUserCanAccessFile(tx: Tx, userId: string, file: TlaFile) {
 	await assertUserCanAccessFileInternal(tx, userId, file, true)
 }
 
-/**
- * Check if a user can update (write to) a file.
- * A user can update a file if:
- * - They are a member of the owning workspace (new model: user is in file.owningGroupId)
- * Note: Sharing only grants read access, not write access
- */
-async function assertUserCanUpdateFile(tx: Tx, userId: string, file: TlaFile) {
-	await assertUserCanAccessFileInternal(tx, userId, file, false)
-}
-
 async function assertUserCanAccessFileById(tx: Tx, userId: string, fileId: string) {
 	const file = await tx.run(zql.file.where('id', '=', fileId).one())
 	await assertUserCanAccessFile(tx, userId, file!)
@@ -213,7 +204,14 @@ export function createMutators(userId: string) {
 			update: async (tx: Tx, _file: TlaFilePartial) => {
 				disallowImmutableMutations(_file, immutableColumns.file)
 				const file = await tx.run(zql.file.where('id', '=', _file.id).one())
-				await assertUserCanUpdateFile(tx, userId, file!)
+				assert(file && !file.isDeleted, ZErrorCode.bad_request)
+				// The same permissions the room and the editor check, enforced here because file
+				// settings are Zero writes that never reach the room's authorize hooks.
+				const role = await getRole(tx, userId, file.owningGroupId)
+				const granted = getFilePermissions(getFileAccess(file, role), true)
+				for (const permission of getFileUpdatePermissions(_file)) {
+					assert(granted.includes(permission), ZErrorCode.forbidden)
+				}
 
 				await tx.mutate.file.update({
 					..._file,

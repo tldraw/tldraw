@@ -3,7 +3,7 @@ import { TlaFile } from '@tldraw/dotcom-shared'
 import { useCallback, useState } from 'react'
 import { FormattedRelativeTime } from 'react-intl'
 import { useParams } from 'react-router-dom'
-import { F, useEditor } from 'tldraw'
+import { F, useEditor, useValue } from 'tldraw'
 import { routes } from '../../../../routeDefs'
 import { useApp } from '../../../hooks/useAppState'
 import { useTldrawAppUiEvents } from '../../../utils/app-ui-events'
@@ -33,7 +33,7 @@ export function TlaPublishTab({ file }: { file: TlaFile }) {
 	const editor = useEditor()
 	const app = useApp()
 	const { publishedSlug, published } = file
-	const isOwner = app.canUpdateFile(file.id)
+	const isOwner = useValue('canPublish', () => editor.can('file:publish', { file }), [editor, file])
 	const auth = useAuth()
 	const trackEvent = useTldrawAppUiEvents()
 	const [hasPublishedChanges, setHasPublishedChanges] = useState(false)

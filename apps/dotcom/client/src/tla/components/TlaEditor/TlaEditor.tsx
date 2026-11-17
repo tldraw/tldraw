@@ -63,6 +63,7 @@ import { SneakyDarkModeSync } from './sneaky/SneakyDarkModeSync'
 import { SneakyDebugModeToast } from './sneaky/SneakyDebugModeToast'
 import { SneakyTldrawFileDropHandler } from './sneaky/SneakyFileDropHandler'
 import { SneakyLargeFileHander } from './sneaky/SneakyLargeFileHandler'
+import { SneakyRefusedToast } from './sneaky/SneakyRefusedToast'
 import { SneakySetDocumentTitle } from './sneaky/SneakySetDocumentTitle'
 import { SneakyToolSwitcher } from './sneaky/SneakyToolSwitcher'
 import { TlaPinContent, TlaThreadRow } from './TlaAgentCommentSurfaces'
@@ -401,6 +402,7 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 				{app && <SneakyTldrawFileDropHandler />}
 				<SneakyLargeFileHander />
 				<SneakyDebugModeToast />
+				<SneakyRefusedToast />
 				<SneakyFileEditorRegistration />
 				{commentingEnabled && <SneakyCommentDeepLink />}
 				<TlaAnonDotDevLink />
