@@ -385,7 +385,7 @@ function DebugSubmenu() {
 
 	return (
 		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags)}>
-			<TldrawUiMenuGroup id="debug app flags">
+			<TldrawUiMenuGroup id="debug-app-flags">
 				{/* Shadows every string the UI rendered without going through `F`, which is what
 				    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
 				<TldrawUiMenuCheckboxItem
