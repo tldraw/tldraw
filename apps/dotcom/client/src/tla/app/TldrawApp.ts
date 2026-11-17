@@ -237,6 +237,14 @@ export class TldrawApp {
 
 	/** Feed a materialized Zero view into an atom for its lifetime, batched like every other signal. */
 	private bindQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
+		this.feedQuery(val$, view)
+		this.disposables.push(() => {
+			view.destroy()
+		})
+	}
+
+	/** {@link bindQuery}'s feed alone, for a view whose owner destroys it. */
+	private feedQuery<TReturn>(val$: Atom<TReturn>, view: TypedView<TReturn>) {
 		let reportedError = false
 		view.addListener((res, resultType, error) => {
 			// a failed query just leaves its signal empty, which looks like no data rather than broken.
@@ -259,9 +267,6 @@ export class TldrawApp {
 				this.changesFlushed?.resolve(undefined)
 				this.changesFlushed = null
 			})
-		})
-		this.disposables.push(() => {
-			view.destroy()
 		})
 	}
 
@@ -490,6 +495,26 @@ export class TldrawApp {
 	/** The libraries of every workspace the user is in, with their items. */
 	getLibraryRows(): QueryResultType<typeof queries.libraries> {
 		return this.libraryRows$.get()
+	}
+
+	/**
+	 * The libraries a file shows, with their items, until `stop` is called: those added to it and
+	 * the user's default (see `queries.fileLibraries`).
+	 */
+	watchFileLibraries(fileId: string) {
+		const rows$ = atom<QueryResultType<typeof queries.fileLibraries>>(
+			`file libraries ${fileId}`,
+			[],
+			{ isEqual }
+		)
+		const view = this.materializeQuery<QueryResultType<typeof queries.fileLibraries>>(
+			queries.fileLibraries({ fileId })
+		)
+		this.feedQuery(rows$, view)
+		return {
+			rows: rows$ as Signal<QueryResultType<typeof queries.fileLibraries>>,
+			stop: () => view.destroy(),
+		}
 	}
 
 	/**

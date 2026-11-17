@@ -23,6 +23,7 @@ import {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryPlacement,
 	type TLLibraryThumbnailContext,
 	type TLLibraryItemPartial,
 	type TLNewLibraryItem,
@@ -99,6 +100,10 @@ export class BoardLibrarySource implements LibrarySource {
 
 	getLibraries() {
 		return this.libraries.get()
+	}
+
+	getLibraryPlacement(libraryId: TLLibraryId): TLLibraryPlacement | undefined {
+		return this.get<TLLibrary>(libraryId) ? 'housed' : undefined
 	}
 
 	// One query per library, kept so its result stays the same array until that library's
@@ -183,8 +188,10 @@ export class BoardLibrarySource implements LibrarySource {
 		})
 	}
 
-	can(_action: TLLibraryAction, libraryId?: TLLibraryId) {
+	can(action: TLLibraryAction, libraryId?: TLLibraryId) {
 		if (this.editor.getIsReadonly()) return false
+		// Its libraries are housed in the document, so they are never added to it or removed from it.
+		if (action === 'addLibraryToDocument' || action === 'removeLibraryFromDocument') return false
 		return libraryId === undefined || !!this.get<TLLibrary>(libraryId)
 	}
 

@@ -131,6 +131,20 @@ describe('TrackedLibrarySource', () => {
 		])
 	})
 
+	it('reports adding a library to the file and removing it', async () => {
+		const { source, events } = setUp()
+		const library = await source.createLibrary('Secret', { ownerId: 'acme' })
+		await source.removeLibraryFromDocument!(library.id)
+		await vi.waitFor(() =>
+			expect(source.getAvailableLibraries!().map((l) => l.id)).toContain(library.id)
+		)
+		await source.addLibraryToDocument!(library.id)
+		expect(events().slice(1)).toEqual([
+			['remove-library-from-file', { source: 'libraries' }],
+			['add-library-to-file', { source: 'libraries' }],
+		])
+	})
+
 	it('reports changes with the part of the app they were made from', async () => {
 		const { backend, events } = setUp()
 		const libraries = new TldrawAppLibrariesSource(backend.app, backend.getToken)

@@ -16,12 +16,23 @@ export type TLLibraryAction =
 	| 'addItem'
 	| 'updateItem'
 	| 'deleteItem'
+	| 'addLibraryToDocument'
+	| 'removeLibraryFromDocument'
 
 /**
  * What {@link LibrarySource.can} answers for: a library, by its id, or an owner, by
  * `{ ownerId }`, e.g. whether a library may be created for that owner.
  */
 export type TLLibraryTarget = TLLibraryId | { ownerId: string }
+
+/**
+ * Why a library is shown in the document, answered by {@link LibrarySource.getLibraryPlacement}:
+ *
+ * - `'housed'`: it is kept in the document itself, and goes wherever the document goes.
+ * - `'added'`: it is kept elsewhere, such as in a workspace, and was added to the document.
+ * - `'default'`: it is the user's own default library, shown in every document they open.
+ */
+export type TLLibraryPlacement = 'housed' | 'added' | 'default'
 
 /** Something a library can belong to, such as a user or a workspace. */
 export interface TLLibraryOwner {
@@ -85,7 +96,12 @@ export interface TLLibraryThumbnailContext {
 export interface LibrarySource {
 	readonly id: string
 
-	/** The libraries this user may see. */
+	/**
+	 * The libraries shown in this document. For a source where libraries are added to a document,
+	 * these are the ones housed in it, added to it and the user's default (see
+	 * {@link LibrarySource.getLibraryPlacement}); the rest the user may add are
+	 * {@link LibrarySource.getAvailableLibraries}.
+	 */
 	getLibraries(): TLLibrary[]
 	getItems(libraryId: TLLibraryId): TLLibraryItem[]
 	/** Loads an item's content. Kept separate from the listing because content can be large. */
@@ -110,6 +126,11 @@ export interface LibrarySource {
 	 */
 	can(action: TLLibraryAction, target?: TLLibraryTarget): boolean
 
+	/**
+	 * Creates a library, listed in {@link LibrarySource.getLibraries} once it resolves: a source
+	 * where libraries are added to a document adds the new one to it. So does
+	 * {@link LibrarySource.copyLibrary} for the copy.
+	 */
 	createLibrary(name: string, options?: TLNewLibraryOptions): Promise<TLLibrary>
 	renameLibrary(libraryId: TLLibraryId, name: string): Promise<void>
 	deleteLibrary(libraryId: TLLibraryId): Promise<void>
@@ -167,6 +188,30 @@ export interface LibrarySource {
 	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
+
+	/**
+	 * Why a library is shown in this document, or undefined for one it doesn't show. Optional:
+	 * sources that don't distinguish leave it out, and their libraries are shown without a reason.
+	 */
+	getLibraryPlacement?(libraryId: TLLibraryId): TLLibraryPlacement | undefined
+	/**
+	 * The libraries the user could add to this document: those they may see that it doesn't show
+	 * yet. {@link LibrarySource.getItems} answers for them too, so they can be browsed before being
+	 * added. Optional, with {@link LibrarySource.addLibraryToDocument}: sources whose libraries
+	 * are all shown leave both out.
+	 */
+	getAvailableLibraries?(): TLLibrary[]
+	/**
+	 * Shows an available library in this document, for everyone who opens it, and resolves once it
+	 * is listed in {@link LibrarySource.getLibraries}. Adding one already shown does nothing.
+	 */
+	addLibraryToDocument?(libraryId: TLLibraryId): Promise<void>
+	/**
+	 * Stops showing a library added to this document. The library and its items stay where they
+	 * are kept, available to add again. Only `'added'` libraries can be removed: one housed in the
+	 * document is deleted instead, and the user's default is always shown.
+	 */
+	removeLibraryFromDocument?(libraryId: TLLibraryId): Promise<void>
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

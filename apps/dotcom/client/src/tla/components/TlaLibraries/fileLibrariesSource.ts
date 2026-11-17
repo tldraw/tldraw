@@ -20,8 +20,7 @@ import { rowId, toLibrary, toLibraryItem, type TldrawAppLibrariesSource } from '
 
 /**
  * The workspace libraries one file shows: those added to it, and the user's default library,
- * shown on every file. The rest of the libraries of the file's workspace and the user's home
- * workspace are available to add, and new libraries are offered in those two.
+ * shown on every file. The rest of the libraries in the user's workspaces are available to add.
  *
  * A view over the app's {@link TldrawAppLibrariesSource}, which keeps what every file shares:
  * items being added, libraries being copied, loaded content and thumbnail URLs. This adds the
@@ -61,11 +60,6 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 		return shown
 	})
 
-	// The file's workspace: where its new libraries go, and the only one whose libraries it offers.
-	private readonly offeredOwnerIds$ = computed('file library owners', () => [
-		this.app.getFile(this.fileId)?.owningGroupId ?? this.app.getHomeWorkspaceId(),
-	])
-
 	private readonly libraries$ = computed('file libraries list', () =>
 		[...this.shown$.get().values()].map(({ library }) => library)
 	)
@@ -89,7 +83,7 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 	constructor(
 		private readonly app: Pick<
 			TldrawApp,
-			'z' | 'getHomeWorkspaceId' | 'getFile' | 'canUpdateFile' | 'watchFileLibraries'
+			'z' | 'getHomeWorkspaceId' | 'canUpdateFile' | 'watchFileLibraries'
 		>,
 		private readonly libraries: TldrawAppLibrariesSource,
 		private readonly fileId: string
@@ -108,19 +102,7 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 
 	getAvailableLibraries() {
 		const shown = this.shown$.get()
-		const ownerIds = this.offeredOwnerIds$.get()
-		return this.libraries
-			.getLibraries()
-			.filter(
-				(library) =>
-					!shown.has(library.id) &&
-					library.ownerId !== undefined &&
-					ownerIds.includes(library.ownerId)
-			)
-	}
-
-	getNewLibraryOwnerIds() {
-		return this.offeredOwnerIds$.get()
+		return this.libraries.getLibraries().filter((library) => !shown.has(library.id))
 	}
 
 	getItems(libraryId: TLLibraryId) {
@@ -137,7 +119,8 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 				return (
 					typeof target === 'string' &&
 					this.app.canUpdateFile(this.fileId) &&
-					this.getAvailableLibraries().some((library) => library.id === target)
+					!this.shown$.get().has(target) &&
+					this.workspaceLibraries$.get().has(target)
 				)
 			case 'removeLibraryFromDocument':
 				return (
@@ -157,7 +140,7 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 	}
 
 	getDefaultOwnerId() {
-		return this.offeredOwnerIds$.get()[0]
+		return this.libraries.getDefaultOwnerId()
 	}
 
 	async addLibraryToDocument(libraryId: TLLibraryId) {
@@ -174,7 +157,7 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 		}
 		await this.libraries.apply(
 			this.app.z.mutate.file_library.remove({ fileId: this.fileId, libraryId: rowId(libraryId) }),
-			undefined
+			'remove-library-from-file'
 		)
 	}
 
@@ -245,7 +228,7 @@ export class TldrawAppFileLibrariesSource implements LibrarySource {
 			}
 			const { confirmed } = await this.libraries.apply(
 				this.app.z.mutate.file_library.add({ fileId: this.fileId, libraryId: rowId(libraryId) }),
-				undefined
+				'add-library-to-file'
 			)
 			confirmed.finally(settle)
 		} catch (error) {

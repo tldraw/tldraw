@@ -98,6 +98,7 @@ export {
 	type TLLibraryAction,
 	type TLLibraryItemPartial,
 	type TLLibraryOwner,
+	type TLLibraryPlacement,
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,
 	type TLNewLibraryItem,
@@ -114,6 +115,7 @@ export {
 } from './lib/CompositeLibrarySource'
 export { parseLibraryPack, type LibraryPack, type LibraryPackItem } from './lib/LibraryPack'
 export { copyLibrary } from './lib/copyLibrary'
+export { addPackToDocument, findPackCopy } from './lib/addPackToDocument'
 export { copyPack } from './lib/copyPack'
 export {
 	InMemoryLibrarySource,

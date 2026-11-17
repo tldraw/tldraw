@@ -85,12 +85,30 @@ describe('getEditorLibraries', () => {
 		expect(ofType(editor, 'library')).toMatchObject([{ id: library.id, name: 'Board kit' }])
 	})
 
-	it('creates new libraries in the home workspace by default', async () => {
-		const { editor, source } = setUp()
+	it('creates new libraries in the home workspace by default, and adds them to the file', async () => {
+		const { editor, backend, source } = setUp()
 		expect(source.getDefaultOwnerId?.()).toBe('home')
 		const library = await source.createLibrary('Team kit')
 		expect(library.ownerId).toBe('home')
 		expect(ofType(editor, 'library')).toEqual([])
+		expect(backend.fileLibraries.get()).toMatchObject([{ fileId: 'file-a' }])
+	})
+
+	it('places board libraries as housed, and workspace ones as added', async () => {
+		const { source } = setUp()
+		const onBoard = await source.createLibrary('Board kit', { ownerId: 'file-a' })
+		const inHome = await source.createLibrary('Team kit')
+		expect(source.getLibraryPlacement!(onBoard.id)).toBe('housed')
+		expect(source.getLibraryPlacement!(inHome.id)).toBe('added')
+	})
+
+	it("stops the file's libraries query when the editor is disposed", () => {
+		const { editor, backend } = setUp()
+		const stops = backend.watchFileLibraries.mock.results.map((result) => result.value.stop)
+		editors = editors.filter((e) => e !== editor)
+		editor.dispose()
+		expect(stops).toHaveLength(1)
+		expect(stops[0]).toHaveBeenCalled()
 	})
 
 	it("creates a library in another of the user's workspaces when asked", async () => {
@@ -159,13 +177,14 @@ describe('getEditorLibraries', () => {
 		expect(boardOrder).toHaveLength(names.length)
 	})
 
-	it('adds a starter pack to the home workspace, not the board, and counts it added there', async () => {
+	it('adds a starter pack to the home workspace and the file, not the board, and counts it added there', async () => {
 		const { editor, source } = setUp()
 		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
 		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
 		const copy = await addStarterPack(source, pack)
 		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
 		expect(ofType(editor, 'library')).toEqual([])
+		expect(source.getLibraryPlacement!(copy.id)).toBe('added')
 		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
 		await source.moveLibrary!(copy.id, 'acme')
 		expect(isStarterPackAdded(source, 'doodles')).toBe(false)

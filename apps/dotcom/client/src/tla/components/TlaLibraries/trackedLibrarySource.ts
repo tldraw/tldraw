@@ -36,6 +36,12 @@ export class TrackedLibrarySource implements LibrarySource {
 	readonly getLibraryOwners?: LibrarySource['getLibraryOwners']
 	readonly getDefaultOwnerId?: LibrarySource['getDefaultOwnerId']
 	readonly resolveThumbnail?: LibrarySource['resolveThumbnail']
+	readonly getItemDetails?: LibrarySource['getItemDetails']
+	readonly getNewLibraryOwnerIds?: LibrarySource['getNewLibraryOwnerIds']
+	readonly getLibraryPlacement?: LibrarySource['getLibraryPlacement']
+	readonly getAvailableLibraries?: LibrarySource['getAvailableLibraries']
+	readonly addLibraryToDocument?: LibrarySource['addLibraryToDocument']
+	readonly removeLibraryFromDocument?: LibrarySource['removeLibraryFromDocument']
 	private readonly fileId: string | undefined
 	private readonly eventSource: TLAppUiEventSource
 
@@ -102,6 +108,33 @@ export class TrackedLibrarySource implements LibrarySource {
 		if (source.getLibraryOwners) this.getLibraryOwners = source.getLibraryOwners.bind(source)
 		if (source.getDefaultOwnerId) this.getDefaultOwnerId = source.getDefaultOwnerId.bind(source)
 		if (source.resolveThumbnail) this.resolveThumbnail = source.resolveThumbnail.bind(source)
+		if (source.getItemDetails) this.getItemDetails = source.getItemDetails.bind(source)
+		if (source.getNewLibraryOwnerIds) {
+			this.getNewLibraryOwnerIds = source.getNewLibraryOwnerIds.bind(source)
+		}
+		if (source.getLibraryPlacement) {
+			this.getLibraryPlacement = source.getLibraryPlacement.bind(source)
+		}
+		if (source.getAvailableLibraries) {
+			this.getAvailableLibraries = source.getAvailableLibraries.bind(source)
+		}
+		if (source.addLibraryToDocument) {
+			const addLibraryToDocument = source.addLibraryToDocument.bind(source)
+			this.addLibraryToDocument = async (libraryId) => {
+				await this.watch({ action: 'add-library-to-file' }, addLibraryToDocument(libraryId))
+				this.track('add-library-to-file')
+			}
+		}
+		if (source.removeLibraryFromDocument) {
+			const removeLibraryFromDocument = source.removeLibraryFromDocument.bind(source)
+			this.removeLibraryFromDocument = async (libraryId) => {
+				await this.watch(
+					{ action: 'remove-library-from-file' },
+					removeLibraryFromDocument(libraryId)
+				)
+				this.track('remove-library-from-file')
+			}
+		}
 	}
 
 	getLibraries() {
@@ -178,6 +211,8 @@ export class TrackedLibrarySource implements LibrarySource {
 			| 'rename-library-item'
 			| 'delete-library-item'
 			| 'move-library-item'
+			| 'add-library-to-file'
+			| 'remove-library-from-file'
 	) {
 		this.app.trackEvent(name, { source: this.eventSource })
 	}

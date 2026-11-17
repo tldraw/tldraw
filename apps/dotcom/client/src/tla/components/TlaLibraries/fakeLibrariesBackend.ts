@@ -26,8 +26,7 @@ function createHold() {
  * libraries query, a file's fileLibraries query and the mutators, and the sync worker's routes
  * behind `fetch`. Rows change at once, as Zero applies a mutation locally. Stored content is kept
  * in a map, and thumbnails at made-up public URLs. `otherRows` are libraries of workspaces the user
- * isn't in, seen only when added to a file; the user can edit every file but `readOnlyFiles`. Files
- * are in the first workspace unless `fileWorkspaces` says otherwise.
+ * isn't in, seen only when added to a file; the user can edit every file but `readOnlyFiles`.
  *
  * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
  * mutations back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
@@ -41,8 +40,6 @@ export function createFakeLibrariesBackend({
 	const otherRows = atom<Row[]>('fake library rows of other workspaces', [])
 	const fileLibraries = atom<TlaFileLibrary[]>('fake file libraries', [])
 	const readOnlyFiles = new Set<string>()
-	// The workspace each file is in: the first of `workspaces` unless set.
-	const fileWorkspaces = atom('fake file workspaces', new Map<string, string>())
 	const contents = new Map<string, string>()
 	let uploads = 0
 	const upload = () => `https://content.test/thumbnail-${++uploads}-png`
@@ -311,10 +308,6 @@ export function createFakeLibrariesBackend({
 		getLibraryRows: () => rows.get(),
 		watchFileLibraries,
 		canUpdateFile: (fileId: string) => !readOnlyFiles.has(fileId),
-		getFile: (fileId: string) => ({
-			id: fileId,
-			owningGroupId: fileWorkspaces.get().get(fileId) ?? workspaces[0]?.id ?? userId,
-		}),
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 		showMutationRejectionToast,
 		trackEvent,
@@ -326,7 +319,6 @@ export function createFakeLibrariesBackend({
 		otherRows,
 		fileLibraries,
 		readOnlyFiles,
-		fileWorkspaces,
 		watchFileLibraries,
 		contents,
 		fetch: fetchSpy,
