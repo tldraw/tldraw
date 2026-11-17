@@ -138,3 +138,37 @@ export interface TLAuthorize<R extends UnknownRecord = TLRecord, Meta = any> {
 	read?: TLAuthorizeRead<R, Meta>
 	can?: TLAuthorizeCan<Meta>
 }
+
+/**
+ * Combine several authorize objects into one, for example the app's permissions and the comment
+ * rules. `write` runs each hook in order and returns the first refusal. `read` and `can` allow
+ * only when every hook allows. A hook that no object has stays unset.
+ *
+ * @example
+ * ```ts
+ * new TLSocketRoom({ authorize: composeAuthorize(permissionsAuthorize, commentAuthorize) })
+ * ```
+ *
+ * @public
+ */
+export function composeAuthorize<R extends UnknownRecord = TLRecord, Meta = any>(
+	...list: TLAuthorize<R, Meta>[]
+): TLAuthorize<R, Meta> {
+	const writes = list.flatMap((a) => (a.write ? [a.write] : []))
+	const reads = list.flatMap((a) => (a.read ? [a.read] : []))
+	const cans = list.flatMap((a) => (a.can ? [a.can] : []))
+	const result: TLAuthorize<R, Meta> = {}
+	if (writes.length) {
+		result.write = (changes, ctx) => {
+			for (const write of writes) {
+				const refusal = write(changes, ctx)
+				if (refusal) return refusal
+			}
+			return null
+		}
+	}
+	if (reads.length) result.read = (record, session) => reads.every((read) => read(record, session))
+	if (cans.length)
+		result.can = (session, permission, data) => cans.every((can) => can(session, permission, data))
+	return result
+}
