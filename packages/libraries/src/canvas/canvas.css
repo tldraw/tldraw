@@ -397,6 +397,13 @@
 	color: var(--tl-color-text-3);
 }
 
+.tlui-libraries-add-tile
+	.tlui-libraries-tile__button:not([aria-disabled='true'])
+	.tlui-libraries-tile__thumbnail {
+	outline: 1.5px dashed var(--tl-color-muted-1);
+	outline-offset: -1.5px;
+}
+
 .tlui-libraries-add-tile .tlui-libraries-tile__button[aria-disabled='true'] {
 	cursor: default;
 }
