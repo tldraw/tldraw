@@ -4,7 +4,13 @@ import type { LibrarySource } from '../lib/LibrarySource'
 
 type DragState =
 	| { name: 'idle' }
-	| { name: 'pointing'; itemId: TLLibraryItemId; screenSpaceStart: VecModel; panelRect: DOMRect }
+	| {
+			name: 'pointing'
+			itemId: TLLibraryItemId
+			screenSpaceStart: VecModel
+			panel: Element
+			panelRect: DOMRect
+	  }
 	| { name: 'dragging' }
 
 /**
@@ -20,15 +26,23 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 		// Items are never replaced, only deleted and re-added, so loaded content stays valid.
 		const contents = new Map<TLLibraryItemId, TLContent>()
 
-		const hasLeftPanel = (e: PointerEvent, screenSpaceStart: VecModel, panelRect: DOMRect) => {
-			const { left, top, right, bottom } = panelRect
-			const { clientX: x, clientY: y } = e
-			if (x >= left && x <= right && y >= top && y <= bottom) return false
+		const isPastDragDistance = (e: PointerEvent, screenSpaceStart: VecModel) => {
 			const minDistanceSq =
 				e.pointerType === 'mouse'
 					? editor.options.uiDragDistanceSquared
 					: editor.options.uiCoarseDragDistanceSquared
-			return Vec.Dist2(screenSpaceStart, { x, y }) > minDistanceSq
+			return Vec.Dist2(screenSpaceStart, { x: e.clientX, y: e.clientY }) > minDistanceSq
+		}
+
+		const hasLeftPanel = (e: PointerEvent, screenSpaceStart: VecModel, panelRect: DOMRect) => {
+			const { left, top, right, bottom } = panelRect
+			const { clientX: x, clientY: y } = e
+			if (x >= left && x <= right && y >= top && y <= bottom) return false
+			return isPastDragDistance(e, screenSpaceStart)
+		}
+
+		const stopPointing = () => {
+			if (state.name === 'pointing') state.panel.classList.remove('tlui-libraries-dragging')
 		}
 
 		const startDrag = (e: PointerEvent, screenSpaceStart: VecModel, content: TLContent) => {
@@ -113,6 +127,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 					name: 'pointing',
 					itemId,
 					screenSpaceStart: { x: e.clientX, y: e.clientY },
+					panel,
 					panelRect: panel.getBoundingClientRect(),
 				}
 				e.currentTarget.setPointerCapture(e.pointerId)
@@ -121,9 +136,13 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			onPointerMove(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
 				if (state.name !== 'pointing' || state.itemId !== itemId) return
+				if (isPastDragDistance(e, state.screenSpaceStart)) {
+					state.panel.classList.add('tlui-libraries-dragging')
+				}
 				const content = contents.get(itemId)
 				if (!content || !hasLeftPanel(e, state.screenSpaceStart, state.panelRect)) return
 				const { screenSpaceStart } = state
+				stopPointing()
 				state = { name: 'dragging' }
 				startDrag(e, screenSpaceStart, content)
 				showMoveCursorWhileTranslating()
@@ -131,6 +150,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			onPointerUp(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
 				e.currentTarget.releasePointerCapture(e.pointerId)
+				stopPointing()
 				if (state.name !== 'dragging') return
 				editor.dispatch({
 					type: 'pointer',
@@ -140,6 +160,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				})
 			},
 			onPointerCancel() {
+				stopPointing()
 				if (state.name === 'dragging') editor.cancel()
 				state = { name: 'idle' }
 			},
