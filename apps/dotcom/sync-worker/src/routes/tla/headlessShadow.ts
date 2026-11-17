@@ -62,7 +62,8 @@ const SHADOW_MEASURE_VIEWPORT = { width: 1200, height: 800 } as const
  * The numbers that say how far the headless clustering diverged from the tab's. The cluster id is a
  * hash of its sorted member ids (see getShapeClusters), so an id present in both means the two paths
  * grouped the same shapes together; `onlyTab`/`onlyHeadless` count where the groupings differ. Bounds
- * deltas, over clusters both paths produced, are the numeric measurement difference, in thousandths.
+ * deltas, over clusters both paths produced, are the numeric measurement difference, in page units
+ * (px at z=1 — the cluster box is rounded to 0.001, see toClusterBox).
  */
 export interface ShadowClusterDiff {
 	tabClusters: number
@@ -71,9 +72,9 @@ export interface ShadowClusterDiff {
 	onlyTabClusters: number
 	onlyHeadlessClusters: number
 	pageShapes: number
-	/** Largest single x/y/w/h gap across matched clusters, in thousandths. */
+	/** Largest single x/y/w/h gap across matched clusters, in page units (px at z=1). */
 	maxBoundsDelta: number
-	/** Mean of those gaps over matched clusters with bounds on both sides, in thousandths. */
+	/** Mean of those gaps over matched clusters with bounds on both sides, in page units (px at z=1). */
 	meanBoundsDelta: number
 }
 
