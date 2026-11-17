@@ -675,15 +675,13 @@ This is the same question the client's [`canModifyComment`](#who-can-edit-and-de
 
 ### With the authorize hooks
 
-If you use the room's `authorize` option, use `createCommentAuthorize` in place of `createCommentAuthorizers`, and combine it with your other hooks through `composeAuthorize`. Pass the same object to the client, so the editor refuses a comment write before the server does:
+If you use the room's `authorize` option, use `createCommentAuthorize` in place of `createCommentAuthorizers`, and combine it with your other hooks through `composeAuthorize`. Pass the same object to the client, so the editor refuses a comment write before the server does. The hook reads the user from `ctx.userId`, which the room gets from `handleSocketConnect`:
 
 ```ts
 import { createCommentAuthorize } from '@tldraw/sync-collaboration'
 import { composeAuthorize } from 'tldraw'
 
-const comments = createCommentAuthorize<SessionMeta>({
-	getUserId: (session) => session.meta.userId,
-})
+const comments = createCommentAuthorize()
 const room = new TLSocketRoom({
 	schema,
 	objectTypes,

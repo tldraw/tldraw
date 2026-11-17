@@ -925,18 +925,16 @@ describe('createCommentAuthorizers', () => {
 })
 
 describe('createCommentAuthorize', () => {
-	const { write } = createCommentAuthorize<TestMeta, any>({
-		getUserId: (s) => s.meta.userId,
-	})
+	const { write } = createCommentAuthorize<any>()
 	const ctx = (userId: string | null) => ({
-		session: { sessionId: 's1', meta: { userId } },
+		userId,
 		before: { get: () => undefined },
 		after: { get: () => undefined },
 	})
 	const comment = (authorId: string) =>
 		createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
 
-	it("allows a comment created in the session user's own name", () => {
+	it("allows a comment created in the user's own name", () => {
 		const next = comment('bob')
 		expect(write!([{ type: 'create', id: next.id, prev: null, next }], ctx('bob'))).toBe(null)
 	})

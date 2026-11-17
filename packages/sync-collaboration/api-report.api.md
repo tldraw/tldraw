@@ -5,19 +5,18 @@
 ```ts
 
 import { TLAuthorize } from '@tldraw/tlschema';
+import { TLAuthorizeContext } from '@tldraw/tlschema';
 import { TLComment } from '@tldraw/tlschema';
 import { TLCommentReaction } from '@tldraw/tlschema';
 import { TLCommentThread } from '@tldraw/tlschema';
 import { TLRecord } from '@tldraw/tlschema';
 import type { TLRecordAuthorizers } from '@tldraw/sync-core';
-import { TLSession } from '@tldraw/tlschema';
 import type { UnknownRecord } from '@tldraw/store';
 
 // @public
-export interface CommentAuthorizeOptions<SessionMeta> {
-    canComment?(session: TLSession<SessionMeta>): boolean;
-    canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean;
-    getUserId(session: TLSession<SessionMeta>): null | string;
+export interface CommentAuthorizeOptions {
+    canComment?(ctx: TLAuthorizeContext): boolean;
+    canModifyComment?(ctx: CommentModificationAuthContext<TLAuthorizeContext>): boolean;
 }
 
 // @public
@@ -59,7 +58,7 @@ export type CommentModificationAuthContext<SessionMeta> = {
 } & CommentModification;
 
 // @public
-export function createCommentAuthorize<SessionMeta, R extends UnknownRecord = TLRecord>(opts: CommentAuthorizeOptions<SessionMeta>): TLAuthorize<R, SessionMeta>;
+export function createCommentAuthorize<R extends UnknownRecord = TLRecord>(opts?: CommentAuthorizeOptions): TLAuthorize<R>;
 
 // @public
 export function createCommentAuthorizers<SessionMeta>(opts: CommentAuthorizerOptions<SessionMeta>): TLRecordAuthorizers<TLComment | TLCommentReaction | TLCommentThread, SessionMeta>;

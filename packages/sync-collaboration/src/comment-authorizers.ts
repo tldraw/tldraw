@@ -3,11 +3,11 @@ import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
 	type TLAuthorize,
+	type TLAuthorizeContext,
 	type TLComment,
 	type TLCommentReaction,
 	type TLCommentThread,
 	type TLRecord,
-	type TLSession,
 } from '@tldraw/tlschema'
 import { isEqual } from '@tldraw/utils'
 
@@ -361,22 +361,20 @@ export function createCommentAuthorizers<SessionMeta>(
  *
  * @public
  */
-export interface CommentAuthorizeOptions<SessionMeta> {
-	/** The user id for a session, or `null` for an anonymous session, which may not comment. */
-	getUserId(session: TLSession<SessionMeta>): string | null
+export interface CommentAuthorizeOptions {
 	/**
-	 * Whether a session may write comment records at all. Defaults to `true`: in the room, who may
-	 * comment is the session's `objectAccess`, which the room checks before this hook runs. An app
-	 * with permissions can ask them here, for example
-	 * `(session) => permissions.can(session.meta.userId, 'tl:comment:create')`.
+	 * Whether a user may write comment records at all. `userId` is `null` for a session with no
+	 * user, which may never comment. Defaults to `true`: in the room, who may comment is the
+	 * session's `objectAccess`, which the room checks before this hook runs. An app with
+	 * permissions can ask them here, for example
+	 * `({ userId }) => permissions.can(userId, 'tl:comment:create')`.
 	 */
-	canComment?(session: TLSession<SessionMeta>): boolean
+	canComment?(ctx: TLAuthorizeContext): boolean
 	/**
 	 * Who may edit or delete a comment, or delete a thread. Defaults to the record's owner. See
-	 * {@link CommentAuthorizerOptions.canModifyComment}. `ctx.session.isReadonly` is always `false`
-	 * here; use `objectAccess` for read-only commenters.
+	 * {@link CommentAuthorizerOptions.canModifyComment}. Read the user from `ctx.userId`.
 	 */
-	canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean
+	canModifyComment?(ctx: CommentModificationAuthContext<TLAuthorizeContext>): boolean
 }
 
 /**
@@ -387,36 +385,35 @@ export interface CommentAuthorizeOptions<SessionMeta> {
  * The rules are the ones {@link createCommentAuthorizers} enforces, with one difference: a write
  * hook can only allow or refuse, so attribution is checked, not stamped. A comment, thread, or
  * reaction created in another user's name is refused rather than corrected. The built-in
- * commenting UI always writes the session's own user.
+ * commenting UI always writes the current user.
  *
  * @example
  * ```ts
  * const { authorize } = createPermissions()
- * const comments = createCommentAuthorize<SessionMeta>({ getUserId: (s) => s.meta.userId })
- * new TLSocketRoom({ authorize: composeAuthorize(authorize, comments) })
+ * new TLSocketRoom({ authorize: composeAuthorize(authorize, createCommentAuthorize()) })
  * ```
  *
  * @public
  */
-export function createCommentAuthorize<SessionMeta, R extends UnknownRecord = TLRecord>(
-	opts: CommentAuthorizeOptions<SessionMeta>
-): TLAuthorize<R, SessionMeta> {
-	const { getUserId, canComment = () => true, canModifyComment } = opts
-	const authorizers = createCommentAuthorizers<SessionMeta>({
-		getUserId,
-		canComment,
+export function createCommentAuthorize<R extends UnknownRecord = TLRecord>(
+	opts: CommentAuthorizeOptions = {}
+): TLAuthorize<R> {
+	const { canComment = () => true, canModifyComment } = opts
+	const authorizers = createCommentAuthorizers<TLAuthorizeContext>({
+		getUserId: (session) => session.meta.userId,
+		canComment: (session) => canComment(session.meta),
 		canModifyComment,
-	}) as Record<string, TLRecordAuthorizer<UnknownRecord, SessionMeta> | undefined>
+	}) as Record<string, TLRecordAuthorizer<UnknownRecord, TLAuthorizeContext> | undefined>
 
 	return {
-		write: (changes, { session }) => {
+		write: (changes, { userId }) => {
 			// the room has already dropped writes a read-only session may not make
-			const authSession = { ...session, isReadonly: false }
+			const session = { sessionId: '', isReadonly: false, meta: { userId } }
 			for (const change of changes) {
 				const record = (change.next ?? change.prev) as UnknownRecord
 				const authorizer = authorizers[record.typeName]
 				if (!authorizer) continue
-				const result = authorizer({ ...change, session: authSession } as any)
+				const result = authorizer({ ...change, session } as any)
 				// a result that differs from the write is one the per-record rules would have
 				// rewritten (stamped attribution), which a write hook can only refuse
 				if (!result || !isEqual(result, record)) return { reason: 'comment-rules' }
