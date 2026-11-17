@@ -14,10 +14,12 @@ import {
 	type TLLibraryAction,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
+	type TLLibraryItemPartial,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
 } from './LibrarySource'
 import {
+	applyLibraryItemPartial,
 	LibraryItemRecordType,
 	libraryItemValidator,
 	mapThumbnail,
@@ -241,10 +243,10 @@ export class InMemoryLibrarySource implements LibrarySource {
 		return items
 	}
 
-	async renameItem(itemId: TLLibraryItemId, name: string) {
+	async updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial) {
 		const item = this.getItem(itemId)
-		this.assertCan('renameItem', item.libraryId)
-		this.store.put([{ ...item, name }])
+		this.assertCan('updateItem', item.libraryId)
+		this.store.put([structuredClone(applyLibraryItemPartial(item, partial))])
 	}
 
 	async deleteItem(itemId: TLLibraryItemId) {

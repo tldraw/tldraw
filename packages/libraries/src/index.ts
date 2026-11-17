@@ -62,6 +62,7 @@ export {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemPartial,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,

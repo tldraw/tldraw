@@ -9,6 +9,7 @@ import {
 	type TLLibraryItem,
 	type TLLibraryItemContent,
 	type TLLibraryItemId,
+	type TLLibraryItemPartial,
 	type TLLibraryThumbnail,
 	type TLNewLibraryItem,
 	type TLNewLibraryOptions,
@@ -124,10 +125,18 @@ export class LocalStorageLibrarySource implements LibrarySource {
 		return added.map(({ item }) => item)
 	}
 
-	async renameItem(itemId: TLLibraryItemId, name: string) {
+	async updateItem(itemId: TLLibraryItemId, { name, meta }: TLLibraryItemPartial) {
 		await this.write((s) => ({
 			...s,
-			items: s.items.map((item) => (item.id === itemId ? { ...item, name } : item)),
+			items: s.items.map((item) =>
+				item.id === itemId
+					? {
+							...item,
+							...(name === undefined ? {} : { name }),
+							...(meta === undefined ? {} : { meta: { ...item.meta, ...meta } }),
+						}
+					: item
+			),
 		}))
 	}
 

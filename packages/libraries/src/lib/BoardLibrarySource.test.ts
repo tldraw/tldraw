@@ -196,6 +196,23 @@ describe('BoardLibrarySource', () => {
 		expect(editor.store.get(item.id as any)).toMatchObject({ meta: { category: 'Photos' } })
 	})
 
+	it('updates an item’s name and meta on its record', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor)
+		const library = await source.createLibrary('Kit')
+		const item = await added(
+			source.addItem(library.id, {
+				content: contentOf(editor, [addImage(editor)]),
+				meta: { category: 'Photos' },
+			})
+		)
+		await source.updateItem(item.id, { name: 'Cat', meta: { starred: true } })
+		expect(editor.store.get(item.id as any)).toMatchObject({
+			name: 'Cat',
+			meta: { category: 'Photos', starred: true },
+		})
+	})
+
 	it("refuses an owner, since the board doesn't track them", async () => {
 		const source = new BoardLibrarySource(makeEditor())
 		await expect(source.createLibrary('Kit', { ownerId: 'acme' })).rejects.toThrow(
@@ -811,6 +828,21 @@ describe('BoardLibrarySource', () => {
 		expect(source.can('createLibrary')).toBe(false)
 		expect(source.can('addItem', library.id)).toBe(false)
 		await expect(source.renameLibrary(library.id, 'No')).rejects.toThrow(LibraryPermissionError)
+	})
+
+	it('refuses to update an item while the editor is read-only', async () => {
+		const editor = makeEditor()
+		const source = new BoardLibrarySource(editor)
+		const library = await source.createLibrary('Photos')
+		const item = await added(
+			source.addItem(library.id, { content: contentOf(editor, [addImage(editor)]) })
+		)
+		editor.updateInstanceState({ isReadonly: true })
+		expect(source.can('updateItem', library.id)).toBe(false)
+		await expect(source.updateItem(item.id, { meta: { starred: true } })).rejects.toThrow(
+			LibraryPermissionError
+		)
+		expect(source.getItems(library.id)).toEqual([item])
 	})
 
 	describe("the document's own library", () => {
