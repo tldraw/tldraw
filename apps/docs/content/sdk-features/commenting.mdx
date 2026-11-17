@@ -673,6 +673,26 @@ This is the same question the client's [`canModifyComment`](#who-can-edit-and-de
 
 `createCommentAuthorizers` also takes a `canComment` callback, checked before every comment write. It defaults to `({ isReadonly }) => !isReadonly`, so a read-only session can't post even with `objectAccess: 'write'`. To let read-only viewers comment, as in the `handleSocketConnect` example above, pass `canComment: () => true` (or a rule based on the session's `meta`).
 
+### With the authorize hooks
+
+If you use the room's `authorize` option, use `createCommentAuthorize` in place of `createCommentAuthorizers`, and combine it with your other hooks through `composeAuthorize`. Pass the same object to the client, so the editor refuses a comment write before the server does:
+
+```ts
+import { createCommentAuthorize } from '@tldraw/sync-collaboration'
+import { composeAuthorize } from 'tldraw'
+
+const comments = createCommentAuthorize<SessionMeta>({
+	getUserId: (session) => session.meta.userId,
+})
+const room = new TLSocketRoom({
+	schema,
+	objectTypes,
+	authorize: composeAuthorize(myAuthorize, comments),
+})
+```
+
+The rules are the same with two differences. A write hook can only allow or refuse, so a record created in another user's name is refused, not stamped. And `canComment` defaults to `true`, because the hook can't see `isReadonly`: to stop read-only viewers from commenting, connect them with `objectAccess: 'read'`.
+
 ## Building your own comments UI
 
 `CanvasComments` is one way to assemble the parts, and every part it uses is exported. You can rebuild it, or build something quite different, from the same pieces.

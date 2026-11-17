@@ -11,7 +11,7 @@ import {
 	toRichText,
 } from '@tldraw/tlschema'
 import { describe, expect, it } from 'vitest'
-import { createCommentAuthorizers } from './comment-authorizers'
+import { createCommentAuthorize, createCommentAuthorizers } from './comment-authorizers'
 
 interface TestMeta {
 	userId: string | null
@@ -921,5 +921,48 @@ describe('createCommentAuthorizers', () => {
 				).toBeNull()
 			})
 		})
+	})
+})
+
+describe('createCommentAuthorize', () => {
+	const { write } = createCommentAuthorize<TestMeta, any>({
+		getUserId: (s) => s.meta.userId,
+	})
+	const ctx = (userId: string | null) => ({
+		session: { sessionId: 's1', meta: { userId } },
+		before: { get: () => undefined },
+		after: { get: () => undefined },
+	})
+	const comment = (authorId: string) =>
+		createComment({ threadId: thread.id, pageId, authorId, body: toRichText('hi') })
+
+	it("allows a comment created in the session user's own name", () => {
+		const next = comment('bob')
+		expect(write!([{ type: 'create', id: next.id, prev: null, next }], ctx('bob'))).toBe(null)
+	})
+
+	it("refuses, instead of stamping, a comment created in another user's name", () => {
+		const next = comment('alice')
+		expect(write!([{ type: 'create', id: next.id, prev: null, next }], ctx('bob'))).toEqual({
+			reason: 'comment-rules',
+		})
+	})
+
+	it("refuses an edit of someone else's comment and any hard delete", () => {
+		const prev = comment('alice')
+		const next = { ...prev, body: toRichText('changed') }
+		expect(write!([{ type: 'update', id: prev.id, prev, next }], ctx('bob'))).toEqual({
+			reason: 'comment-rules',
+		})
+		expect(write!([{ type: 'delete', id: prev.id, prev, next: null }], ctx('alice'))).toEqual({
+			reason: 'comment-rules',
+		})
+	})
+
+	it('ignores records that are not comments', () => {
+		const shape = { id: 'shape:a', typeName: 'shape' } as any
+		expect(write!([{ type: 'create', id: shape.id, prev: null, next: shape }], ctx(null))).toBe(
+			null
+		)
 	})
 })

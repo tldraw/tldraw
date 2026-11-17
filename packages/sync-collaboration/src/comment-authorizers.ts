@@ -2,9 +2,12 @@ import type { UnknownRecord } from '@tldraw/store'
 import type { TLRecordAuthorizer, TLRecordAuthorizers } from '@tldraw/sync-core'
 import {
 	createCommentReactionId,
+	type TLAuthorize,
 	type TLComment,
 	type TLCommentReaction,
 	type TLCommentThread,
+	type TLRecord,
+	type TLSession,
 } from '@tldraw/tlschema'
 import { isEqual } from '@tldraw/utils'
 
@@ -350,5 +353,75 @@ export function createCommentAuthorizers<SessionMeta>(
 		// have no soft-delete flag on purpose — a reaction is a toggle, and a host cascading a comment or
 		// thread deletion must sweep every reactor's records, not just the caller's own.
 		'comment-reaction': withUserId(authorizeReaction),
+	}
+}
+
+/**
+ * Options for {@link createCommentAuthorize}.
+ *
+ * @public
+ */
+export interface CommentAuthorizeOptions<SessionMeta> {
+	/** The user id for a session, or `null` for an anonymous session, which may not comment. */
+	getUserId(session: TLSession<SessionMeta>): string | null
+	/**
+	 * Whether a session may write comment records at all. Defaults to `true`: in the room, who may
+	 * comment is the session's `objectAccess`, which the room checks before this hook runs. An app
+	 * with permissions can ask them here, for example
+	 * `(session) => permissions.can(session.meta.userId, 'tl:comment:create')`.
+	 */
+	canComment?(session: TLSession<SessionMeta>): boolean
+	/**
+	 * Who may edit or delete a comment, or delete a thread. Defaults to the record's owner. See
+	 * {@link CommentAuthorizerOptions.canModifyComment}. `ctx.session.isReadonly` is always `false`
+	 * here; use `objectAccess` for read-only commenters.
+	 */
+	canModifyComment?(ctx: CommentModificationAuthContext<SessionMeta>): boolean
+}
+
+/**
+ * The comment rules as an `authorize.write` hook, to combine with the app's own hooks through
+ * `composeAuthorize`. Pass the same object to the room and to the client, so the editor refuses
+ * a comment write before the room would.
+ *
+ * The rules are the ones {@link createCommentAuthorizers} enforces, with one difference: a write
+ * hook can only allow or refuse, so attribution is checked, not stamped. A comment, thread, or
+ * reaction created in another user's name is refused rather than corrected. The built-in
+ * commenting UI always writes the session's own user.
+ *
+ * @example
+ * ```ts
+ * const { authorize } = createPermissions()
+ * const comments = createCommentAuthorize<SessionMeta>({ getUserId: (s) => s.meta.userId })
+ * new TLSocketRoom({ authorize: composeAuthorize(authorize, comments) })
+ * ```
+ *
+ * @public
+ */
+export function createCommentAuthorize<SessionMeta, R extends UnknownRecord = TLRecord>(
+	opts: CommentAuthorizeOptions<SessionMeta>
+): TLAuthorize<R, SessionMeta> {
+	const { getUserId, canComment = () => true, canModifyComment } = opts
+	const authorizers = createCommentAuthorizers<SessionMeta>({
+		getUserId,
+		canComment,
+		canModifyComment,
+	}) as Record<string, TLRecordAuthorizer<UnknownRecord, SessionMeta> | undefined>
+
+	return {
+		write: (changes, { session }) => {
+			// the room has already dropped writes a read-only session may not make
+			const authSession = { ...session, isReadonly: false }
+			for (const change of changes) {
+				const record = (change.next ?? change.prev) as UnknownRecord
+				const authorizer = authorizers[record.typeName]
+				if (!authorizer) continue
+				const result = authorizer({ ...change, session: authSession } as any)
+				// a result that differs from the write is one the per-record rules would have
+				// rewritten (stamped attribution), which a write hook can only refuse
+				if (!result || !isEqual(result, record)) return { reason: 'comment-rules' }
+			}
+			return null
+		},
 	}
 }
