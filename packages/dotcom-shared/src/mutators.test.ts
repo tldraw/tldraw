@@ -1733,7 +1733,11 @@ describe('libraries', () => {
 		meta: {},
 		...overrides,
 	})
-	const makeItem = (id: string, inLibrary: string): TlaLibraryItem => ({
+	const makeItem = (
+		id: string,
+		inLibrary: string,
+		overrides: Partial<TlaLibraryItem> = {}
+	): TlaLibraryItem => ({
 		id,
 		libraryId: inLibrary,
 		name: null,
@@ -1742,6 +1746,7 @@ describe('libraries', () => {
 		createdAt: 1,
 		updatedAt: 1,
 		meta: {},
+		...overrides,
 	})
 
 	function setup(
@@ -1778,7 +1783,7 @@ describe('libraries', () => {
 			() => mutators.library.rename(tx, { id: libraryId, name: 'x' }),
 			() => mutators.library.move(tx, { id: libraryId, owningGroupId: V }),
 			() => mutators.library.delete(tx, { id: libraryId }),
-			() => mutators.library_item.rename(tx, { id: itemId, name: 'x' }),
+			() => mutators.library_item.update(tx, { id: itemId, name: 'x' }),
 			() => mutators.library_item.move(tx, { id: itemId, libraryId: 'coll_cccc11112222dddd' }),
 			() => mutators.library_item.delete(tx, { id: itemId }),
 		]
@@ -1803,7 +1808,7 @@ describe('libraries', () => {
 			const isFeatureEnabled = vi.fn(async () => false)
 			const { store, tx, mutators } = setup(tables, 'client', { isFeatureEnabled })
 			await mutators.library.rename(tx, { id: libraryId, name: 'Icons' })
-			await mutators.library_item.rename(tx, { id: itemId, name: 'Button' })
+			await mutators.library_item.update(tx, { id: itemId, name: 'Button' })
 			expect(store.library[0].name).toBe('Icons')
 			expect(store.library_item[0].name).toBe('Button')
 			expect(isFeatureEnabled).not.toHaveBeenCalled()
@@ -1995,7 +2000,7 @@ describe('libraries', () => {
 				],
 				library_item: [makeItem(itemId, libraryId)],
 			})
-			await mutators.library_item.rename(tx, { id: itemId, name: 'Button' })
+			await mutators.library_item.update(tx, { id: itemId, name: 'Button' })
 			expect(store.library_item[0].name).toBe('Button')
 			await mutators.library_item.move(tx, { id: itemId, libraryId: otherLibrary })
 			expect(store.library_item[0].libraryId).toBe(otherLibrary)
@@ -2003,12 +2008,62 @@ describe('libraries', () => {
 			expect(store.library_item).toEqual([])
 		})
 
+		it('updates an item’s name, its meta, or both, merging meta key by key', async () => {
+			const { store, tx, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: W })],
+				library_item: [
+					makeItem(itemId, libraryId, { name: 'Card', meta: { category: 'Cards', tags: ['a'] } }),
+				],
+			})
+			await mutators.library_item.update(tx, { id: itemId, meta: { tags: ['b'], starred: true } })
+			expect(store.library_item[0]).toMatchObject({
+				name: 'Card',
+				meta: { category: 'Cards', tags: ['b'], starred: true },
+			})
+			await mutators.library_item.update(tx, { id: itemId, name: '  Button  ' })
+			expect(store.library_item[0]).toMatchObject({
+				name: 'Button',
+				meta: { category: 'Cards', tags: ['b'], starred: true },
+			})
+			await mutators.library_item.update(tx, {
+				id: itemId,
+				name: 'Header',
+				meta: { category: null },
+			})
+			expect(store.library_item[0]).toMatchObject({
+				name: 'Header',
+				meta: { category: null, tags: ['b'], starred: true },
+			})
+		})
+
+		it('refuses a blank name, non-object meta and meta that grows too large', async () => {
+			const { store, tx, mutators } = setup({
+				library: [makeLibrary({ id: libraryId, owningGroupId: W })],
+				library_item: [
+					makeItem(itemId, libraryId, { name: 'Card', meta: { big: 'x'.repeat(4000) } }),
+				],
+			})
+			const update = (args: Partial<Parameters<typeof mutators.library_item.update>[1]>) =>
+				mutators.library_item.update(tx, { id: itemId, ...args })
+			await expectBadRequest(() => update({ name: '   ' }))
+			await expectBadRequest(() => update({ meta: [] as any }))
+			await expectBadRequest(() => update({ meta: 'tags' as any }))
+			await expectBadRequest(() => update({ meta: { more: 'y'.repeat(200) } }))
+			expect(store.library_item[0]).toMatchObject({
+				name: 'Card',
+				meta: { big: 'x'.repeat(4000) },
+			})
+		})
+
 		it("can't change items in a workspace I'm not in", async () => {
 			const { store, tx, mutators } = setup({
 				library: [makeLibrary({ id: libraryId, owningGroupId: X })],
 				library_item: [makeItem(itemId, libraryId)],
 			})
-			await expectForbidden(() => mutators.library_item.rename(tx, { id: itemId, name: 'x' }))
+			await expectForbidden(() => mutators.library_item.update(tx, { id: itemId, name: 'x' }))
+			await expectForbidden(() =>
+				mutators.library_item.update(tx, { id: itemId, meta: { starred: true } })
+			)
 			await expectForbidden(() => mutators.library_item.delete(tx, { id: itemId }))
 			expect(store.library_item).toHaveLength(1)
 		})

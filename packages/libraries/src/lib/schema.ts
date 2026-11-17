@@ -76,6 +76,18 @@ export const libraryItemValidator: T.Validator<TLLibraryItem> = T.object({
 	meta: T.jsonValue as T.ObjectValidator<JsonObject>,
 })
 
+/** The item with an `updateItem` partial applied: meta merged key by key, as shapes' is. */
+export function applyLibraryItemPartial<T extends TLLibraryItem>(
+	item: T,
+	partial: Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
+): T {
+	return {
+		...item,
+		...(partial.name === undefined ? {} : { name: partial.name }),
+		...(partial.meta === undefined ? {} : { meta: { ...item.meta, ...partial.meta } }),
+	}
+}
+
 export const LibraryItemRecordType = createRecordType<TLLibraryItem>('library-item', {
 	validator: libraryItemValidator,
 	scope: 'document',

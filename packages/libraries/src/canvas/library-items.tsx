@@ -97,7 +97,7 @@ export function LibraryItems({
 		[source, libraryId, ordering, reversed]
 	)
 	const thumbnailUrls = useThumbnailUrls(source, items, container)
-	const canRename = useValue('can rename items', () => source.can('renameItem', libraryId), [
+	const canRename = useValue('can rename items', () => source.can('updateItem', libraryId), [
 		source,
 		libraryId,
 	])
@@ -223,7 +223,7 @@ export function LibraryItems({
 			// Names are never blank, so clearing the input keeps the old name rather than removing it.
 			if (!item || trimmed === '' || trimmed === item.name) return
 			source
-				.renameItem(itemId, trimmed)
+				.updateItem(itemId, { name: trimmed })
 				.catch(() => showChangeError(msg(messages.renameErrorTitle)))
 		},
 		[items, source, showChangeError, msg]

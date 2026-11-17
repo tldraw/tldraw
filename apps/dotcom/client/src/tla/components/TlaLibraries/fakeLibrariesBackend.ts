@@ -109,7 +109,14 @@ export function createFakeLibrariesBackend({
 			},
 		},
 		library_item: {
-			rename: ({ id, name }: any) => change(() => updateItem(id, (item) => ({ ...item, name }))),
+			update: ({ id, name, meta }: any) =>
+				change(() =>
+					updateItem(id, (item) => ({
+						...item,
+						...(name === undefined ? {} : { name }),
+						...(meta === undefined ? {} : { meta: { ...item.meta, ...meta } }),
+					}))
+				),
 			delete: ({ id }: any) =>
 				change(() =>
 					rows.update((all) =>

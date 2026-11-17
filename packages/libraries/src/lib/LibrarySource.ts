@@ -14,7 +14,7 @@ export type TLLibraryAction =
 	| 'renameLibrary'
 	| 'deleteLibrary'
 	| 'addItem'
-	| 'renameItem'
+	| 'updateItem'
 	| 'deleteItem'
 
 /**
@@ -52,6 +52,11 @@ export interface TLNewLibraryItem {
 	/** Stored on the item as its `meta`, e.g. the category it had in the pack it was copied from. */
 	meta?: JsonObject
 }
+
+/**
+ * The changes {@link LibrarySource.updateItem} makes to an item. Fields left out stay as they are.
+ */
+export type TLLibraryItemPartial = Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
 
 /**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
@@ -123,7 +128,11 @@ export interface LibrarySource {
 	 * through {@link LibrarySource.addItem}.
 	 */
 	addItems?(libraryId: TLLibraryId, items: TLNewLibraryItem[]): Promise<TLLibraryItem[]>
-	renameItem(itemId: TLLibraryItemId, name: string): Promise<void>
+	/**
+	 * Changes an item's name or meta. A name is never blank, so it can be changed but not removed.
+	 * Meta is merged into the item's meta key by key, as `editor.updateShape` merges a shape's.
+	 */
+	updateItem(itemId: TLLibraryItemId, partial: TLLibraryItemPartial): Promise<void>
 	deleteItem(itemId: TLLibraryItemId): Promise<void>
 	/**
 	 * Moves an item to another library, keeping its id, content and thumbnail. Needs
