@@ -275,7 +275,7 @@ describe('categorizeCommentNotifications', () => {
 
 describe('buildReactionNotifications', () => {
 	/** One row of the reactions feed: my own comment, carrying the full `reactions` set the entry
-	 *  derives its timestamp and pills from. */
+	 *  derives its timestamp and byline from. */
 	function mine(overrides: Partial<CommentNotificationInput> = {}): CommentNotificationInput {
 		return comment({
 			authorId: ME,
@@ -447,7 +447,7 @@ describe('summarizeForeignReactors', () => {
 
 	it('drops names missing at runtime but still counts the reactor', () => {
 		// rows synced before a view-syncer picks up the userName column arrive without it,
-		// defeating the type — never render "undefined reacted to your comment"
+		// defeating the type — never render "undefined reacted"
 		const ghost = { userId: 'ghost', emoji: '👍', createdAt: 3 } as unknown as ReturnType<typeof r>
 		expect(summarizeForeignReactors([r('bo', 'Bo', 1), ghost], 'me')).toEqual({
 			names: ['Bo'],
@@ -511,12 +511,12 @@ describe('formatReactionByline', () => {
 			fmt(['Ada'], 1),
 			fmt(['Ada', 'Bo'], 2),
 		]).toEqual([
-			'Someone reacted to your comment',
-			'3 people reacted to your comment',
-			'Ada reacted to your comment',
-			'Ada and Bo reacted to your comment',
-			'Ada and 1 other reacted to your comment',
-			'Ada, Bo and 2 others reacted to your comment',
+			'Someone reacted',
+			'3 people reacted',
+			'Ada reacted',
+			'Ada and Bo reacted',
+			'Ada and 1 other reacted',
+			'Ada, Bo and 2 others reacted',
 		])
 	})
 })

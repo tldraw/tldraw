@@ -1,6 +1,7 @@
 import { extractMentionIds } from '@tldraw/dotcom-shared'
 import type { IntlShape } from 'react-intl'
-import { defineMessages } from 'tldraw'
+import { createDeepLinkString, defineMessages } from 'tldraw'
+import { routes } from '../../../../routeDefs'
 
 /**
  * Why a comment shows up in a user's notifications feed:
@@ -48,8 +49,8 @@ export interface CommentNotificationInput {
 		comments?: readonly { authorId: string; createdAt: number }[] | null
 	} | null
 	/** Every reaction to the comment, the caller's own included. Categorization only reads who and
-	 *  when; `emoji` rides along for the row's reaction pills; `userName` is the reactor's display
-	 *  name, denormalized from `user.name` onto reaction rows by Postgres triggers. */
+	 *  when; `userName` is the reactor's display name for the byline, denormalized from
+	 *  `user.name` onto reaction rows by Postgres triggers. */
 	reactions?:
 		| readonly { userId: string; userName?: string; emoji: string; createdAt: number }[]
 		| null
@@ -168,18 +169,17 @@ export function summarizeForeignReactors(
 // `<name>` wraps each reactor name: the panel styles it, plain-string callers unwrap it.
 const reactionBylineMessages = defineMessages({
 	anonymous: {
-		defaultMessage:
-			'{count, plural, one {Someone reacted to your comment} other {# people reacted to your comment}}',
+		defaultMessage: '{count, plural, one {Someone reacted} other {# people reacted}}',
 	},
-	one: { defaultMessage: '<name>{author}</name> reacted to your comment' },
-	two: { defaultMessage: '<name>{a}</name> and <name>{b}</name> reacted to your comment' },
+	one: { defaultMessage: '<name>{author}</name> reacted' },
+	two: { defaultMessage: '<name>{a}</name> and <name>{b}</name> reacted' },
 	oneAndOthers: {
 		defaultMessage:
-			'<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted to your comment',
+			'<name>{author}</name> and {count, plural, one {# other} other {# others}} reacted',
 	},
 	twoAndOthers: {
 		defaultMessage:
-			'<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted to your comment',
+			'<name>{a}</name>, <name>{b}</name> and {count, plural, one {# other} other {# others}} reacted',
 	},
 })
 
@@ -218,8 +218,8 @@ export function latestForeignReactionAt(
 /**
  * Turns the reactions feed — the caller's own comments that someone else has reacted to — into one
  * {@link CommentNotification} per comment. Each entry is dated and marked unread by the newest
- * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline and
- * pills (strict >: a receipt from the same instant counts as read).
+ * foreign reaction in the comment's own unbounded `reactions` set, which also feeds the byline
+ * (strict >: a receipt from the same instant counts as read).
  *
  * The feed rows are comments rather than reactions because the query is rooted at `comment`; see
  * `queries.reactions` for why that rooting is load-bearing.
@@ -269,4 +269,12 @@ export function mergeNotifications<T extends CommentNotificationInput>(
 	...feeds: readonly CommentNotification<T>[][]
 ): CommentNotification<T>[] {
 	return feeds.flat().sort((a, b) => b.timestamp - a.timestamp)
+}
+
+/** Deep link to a comment's file, anchored to its shape (when shape-anchored) so its popover opens. */
+export function commentLink(fileId: string, shapeId: string | null | undefined, commentId: string) {
+	const base = `${routes.tlaFile(fileId)}?comment=${encodeURIComponent(commentId)}`
+	if (!shapeId) return base
+	const d = createDeepLinkString({ type: 'shapes', shapeIds: [shapeId as any] })
+	return `${base}&d=${d}`
 }

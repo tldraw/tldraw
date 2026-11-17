@@ -59,21 +59,31 @@ export function TldrawUiMenuCheckboxItem<
 	const labelToUse = unwrapLabel(label, menuType)
 	const labelStr = labelToUse ? msg(labelToUse as TLUiTranslationKey) : undefined
 
+	const indicator = (
+		<TldrawUiIcon
+			small
+			label={msg(checked ? messages.uiChecked : messages.uiUnchecked)}
+			icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
+		/>
+	)
+
+	// Checkmarks lead the row; switches trail it, like a settings row.
 	const content = (
 		<>
-			<TldrawUiIcon
-				small
-				label={msg(checked ? messages.uiChecked : messages.uiUnchecked)}
-				icon={toggle ? (checked ? 'toggle-on' : 'toggle-off') : checked ? 'check' : 'none'}
-			/>
+			{!toggle && indicator}
 			{labelStr && (
 				<span className="tlui-button__label" draggable={false}>
 					{labelStr}
 				</span>
 			)}
 			{kbd && <TldrawUiKbd>{kbd}</TldrawUiKbd>}
+			{toggle && indicator}
 		</>
 	)
+
+	const className = toggle
+		? 'tlui-button tlui-button__menu tlui-button__checkbox tlui-button__toggle'
+		: 'tlui-button tlui-button__menu tlui-button__checkbox'
 
 	const handleSelect = (e: Event) => {
 		onSelect(sourceId)
@@ -86,7 +96,7 @@ export function TldrawUiMenuCheckboxItem<
 				<_DropdownMenu.CheckboxItem
 					dir={dir}
 					lang={lang}
-					className="tlui-button tlui-button__menu tlui-button__checkbox"
+					className={className}
 					onSelect={handleSelect}
 					disabled={disabled}
 					checked={checked}
@@ -99,7 +109,7 @@ export function TldrawUiMenuCheckboxItem<
 			return (
 				<_ContextMenu.CheckboxItem
 					key={id}
-					className="tlui-button tlui-button__menu tlui-button__checkbox"
+					className={className}
 					dir={dir}
 					lang={lang}
 					onSelect={handleSelect}
@@ -111,12 +121,13 @@ export function TldrawUiMenuCheckboxItem<
 			)
 		}
 		case 'command-palette': {
-			if (!labelStr || disabled) return null
+			if (!labelStr) return null
 			return (
 				<CommandPaletteItemRegistration
 					id={id}
 					label={labelStr}
 					kbd={kbd}
+					disabled={disabled}
 					checked={checked}
 					onSelect={onSelect}
 				/>

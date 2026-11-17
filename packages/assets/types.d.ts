@@ -158,6 +158,7 @@ export type AssetUrls = {
 		'stretch-horizontal': string
 		'stretch-vertical': string
 		strike: string
+		taskList: string
 		'text-align-center': string
 		'text-align-left': string
 		'text-align-right': string
@@ -261,7 +262,6 @@ export type AssetUrls = {
 		scratch: string
 		spotify: string
 		tldraw: string
-		val_town: string
 		vimeo: string
 		youtube: string
 	}

@@ -38,7 +38,7 @@ import { getFileVisitDate } from '../../app/TldrawApp'
 import { useActiveWorkspaceId } from '../../hooks/useActiveWorkspaceId'
 import { useApp, useMaybeApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
-import { useIsCommentingEnabled } from '../../hooks/useIsCommentingEnabled'
+import { useIsCommentingEnabledForUser } from '../../hooks/useIsCommentingEnabledForUser'
 import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { copyTextToClipboard } from '../../utils/copy'
@@ -59,19 +59,18 @@ import {
 	UIThemeCommandPaletteSubmenu,
 } from '../menu-items/menu-items'
 import { FileItems } from '../TlaFileMenu/TlaFileMenu'
-import { openShareMenu } from '../TlaFileShareMenu/TlaFileShareMenu'
-import { formatReactionByline } from '../TlaSidebar/components/commentNotifications'
-import { useHandleSidebarCreateFile } from '../TlaSidebar/components/TlaSidebarCreateFileButton'
-import { openNotificationsPanel } from '../TlaSidebar/components/TlaSidebarNotificationsButton'
+import { openShareMenu } from '../TlaFileShareMenu/openShareMenu'
+import { commentLink, formatReactionByline } from '../TlaSidebar/components/commentNotifications'
+import { openNotificationsPanel } from '../TlaSidebar/components/openNotificationsPanel'
+import { useHandleSidebarCreateFile } from '../TlaSidebar/components/sidebar-shared'
 import {
-	commentLink,
 	useCommentNotifications,
 	useEnrichedNotifications,
-} from '../TlaSidebar/components/TlaSidebarNotificationsPanel'
+} from '../TlaSidebar/components/useCommentNotifications'
 import {
 	useCreateWorkspaceDialog,
 	useSwitchToWorkspace,
-} from '../TlaSidebar/components/TlaSidebarWorkspaceSwitcher'
+} from '../TlaSidebar/components/useWorkspaceActions'
 
 const MAX_FILE_RESULTS = 8
 const MAX_RECENT_FILES = 5
@@ -81,10 +80,9 @@ const messages = defineMessages({
 	goToFile: { defaultMessage: 'Go to file' },
 	currentFile: { defaultMessage: 'Current file' },
 	newFile: { defaultMessage: 'New file' },
-	fileNamePlaceholder: { defaultMessage: 'File name' },
+	fileNamePlaceholder: { defaultMessage: 'Name' },
 	share: { defaultMessage: 'Share' },
-	shareFile: { defaultMessage: 'Share…' },
-	publish: { defaultMessage: 'Publish file' },
+	publish: { defaultMessage: 'Publish this file' },
 	unpublish: { defaultMessage: 'Unpublish file' },
 	copyPublishedLink: { defaultMessage: 'Copy published link' },
 	copied: { defaultMessage: 'Copied link' },
@@ -97,8 +95,8 @@ const messages = defineMessages({
 	workspaces: { defaultMessage: 'Workspaces' },
 	switchWorkspace: { defaultMessage: 'Switch workspace' },
 	myWorkspace: { defaultMessage: 'My workspace' },
-	newWorkspace: { defaultMessage: 'New workspace…' },
-	workspaceSettings: { defaultMessage: 'Workspace settings…' },
+	newWorkspace: { defaultMessage: 'New workspace' },
+	workspaceSettings: { defaultMessage: 'Manage workspace' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
 	account: { defaultMessage: 'Account' },
 	signIn: { defaultMessage: 'Sign in' },
@@ -249,11 +247,10 @@ function TlaShareGroup() {
 	const trackEvent = useTldrawAppUiEvents()
 	const fileId = useCurrentFileId()
 	const isAdmin = useHasFileAdminRights(fileId)
-	const commentingEnabled = useIsCommentingEnabled()
+	const commentingEnabled = useIsCommentingEnabledForUser()
 	const commentsSidebarOpen = useCommentsSidebarOpen()
 	const file = useValue('file', () => app.getFile(fileId), [app, fileId])
 	const shareLbl = msg(messages.share)
-	const shareFileLbl = msg(messages.shareFile)
 	const publishLbl = msg(messages.publish)
 	const unpublishLbl = msg(messages.unpublish)
 	const copyPublishedLbl = msg(messages.copyPublishedLink)
@@ -266,7 +263,7 @@ function TlaShareGroup() {
 		<TldrawUiMenuGroup id="tla-share" label={shareLbl}>
 			<TldrawUiMenuItem
 				id="tla-share-file"
-				label={shareFileLbl}
+				label={shareLbl}
 				readonlyOk
 				onSelect={() => {
 					openShareMenu(editor, fileId)

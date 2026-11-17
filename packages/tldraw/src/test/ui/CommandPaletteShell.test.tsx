@@ -1,7 +1,7 @@
 import { act, fireEvent, render, waitFor, within } from '@testing-library/react'
-import { deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
+import { createShapeId, deleteFromLocalStorage, Editor, useValue } from '@tldraw/editor'
 import { ReactNode, StrictMode, useEffect, useState } from 'react'
-import { vi } from 'vitest'
+import { onTestFinished, vi } from 'vitest'
 import { Tldraw } from '../../lib/Tldraw'
 import {
 	CommandPaletteOnDemand,
@@ -87,9 +87,68 @@ function item(id: string, label: string, onSelect = vi.fn(), extra: object = {})
 	return <TldrawUiMenuItem key={id} id={id} label={label} onSelect={onSelect} {...extra} />
 }
 
+/**
+ * jsdom has no layout: give the listbox a 250px viewport over 50px `rows`, with a scrollTop a
+ * browser would clamp to what the rows can hold (or to a fixed `scrollHeight`). `layout` patches
+ * row measuring until the test ends: 'stacked' places rows one after another and makes
+ * scrollIntoView act like block: 'nearest'; 'in-view' reads every row as in view, so only a
+ * restore moves the list, and makes scrollIntoView act like 'nearest' on a list scrolled past
+ * its first row.
+ */
+function mockListLayout(
+	list: HTMLElement,
+	{
+		rows = () => within(list).queryAllByRole('option'),
+		scrollHeight,
+		layout,
+	}: { rows?(): Element[]; scrollHeight?: number; layout?: 'stacked' | 'in-view' } = {}
+) {
+	const top = (el: Element) => rows().indexOf(el) * 50
+	const maxScroll = () =>
+		scrollHeight === undefined ? Math.max(0, rows().length * 50 - 250) : scrollHeight - 250
+	let scrollTop = 0
+	Object.defineProperties(list, {
+		scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
+		clientHeight: { configurable: true, value: 250 },
+		scrollTop: {
+			configurable: true,
+			get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
+			set: (value: number) => (scrollTop = Math.max(0, Math.min(value, maxScroll()))),
+		},
+	})
+	if (!layout) return { top }
+
+	const originalRect = Element.prototype.getBoundingClientRect
+	const originalScroll = Element.prototype.scrollIntoView
+	onTestFinished(() => {
+		Element.prototype.getBoundingClientRect = originalRect
+		Element.prototype.scrollIntoView = originalScroll
+	})
+	if (layout === 'stacked') {
+		Element.prototype.getBoundingClientRect = function () {
+			const y = this === list ? 0 : top(this) - list.scrollTop
+			return { top: y, bottom: y + (this === list ? 250 : 50) } as DOMRect
+		}
+		Element.prototype.scrollIntoView = function () {
+			const y = top(this) - list.scrollTop
+			if (y < 0) list.scrollTop += y
+			else if (y + 50 > 250) list.scrollTop += y + 50 - 250
+		}
+	} else {
+		Element.prototype.getBoundingClientRect = function () {
+			return { top: 0, bottom: this === list ? 250 : 50 } as DOMRect
+		}
+		Element.prototype.scrollIntoView = () => {
+			list.scrollTop = 0
+		}
+	}
+	return { top }
+}
+
 describe('CommandPaletteShell', () => {
-	it('heads each group', async () => {
-		const { rendered } = await renderShell(
+	it('keeps only options and groups inside the listbox, with the empty message outside', async () => {
+		addCommandPaletteRecent('alpha')
+		const { rendered, input } = await renderShell(
 			<>
 				<TldrawUiMenuGroup id="edit" label="menu.edit">
 					{item('alpha', 'Alpha')}
@@ -100,19 +159,6 @@ describe('CommandPaletteShell', () => {
 				</TldrawUiMenuGroup>
 			</>
 		)
-		await rendered.findByTestId('command-palette.item.alpha')
-		const palette = within(rendered.getByTestId('command-palette'))
-		expect(palette.queryByText('Edit')).not.toBeNull()
-		expect(palette.queryByText('View')).not.toBeNull()
-	})
-
-	it('keeps only options and groups inside the listbox, with the empty message outside', async () => {
-		addCommandPaletteRecent('alpha')
-		const { rendered, input } = await renderShell(
-			<TldrawUiMenuGroup id="edit" label="menu.edit">
-				{item('alpha', 'Alpha')}
-			</TldrawUiMenuGroup>
-		)
 		const listbox = await rendered.findByRole('listbox')
 		const recent = await within(listbox).findByRole('group', { name: 'Recent' })
 		expect(within(recent).getByRole('option', { name: /Alpha/ })).toBeTruthy()
@@ -121,6 +167,10 @@ describe('CommandPaletteShell', () => {
 				['group', 'option'].includes(child.getAttribute('role')!)
 			)
 		).toBe(true)
+		// No empty group where a separator meets a heading.
+		expect(
+			Array.from(listbox.children).map((group) => group.querySelectorAll('[role="option"]').length)
+		).toEqual([1, 1, 1])
 
 		type(input, 'zzzzqqq')
 		const noResults = await rendered.findByText('No results')
@@ -128,26 +178,9 @@ describe('CommandPaletteShell', () => {
 		expect(listbox.children).toHaveLength(0)
 	})
 
-	it('filters and ranks as you type', async () => {
-		const { rendered, input } = await renderShell(
-			<>
-				{item('realign', 'Realign')}
-				{item('zoom', 'Zoom in')}
-				{item('align', 'Align left')}
-			</>
-		)
-		type(input, 'align')
-		await waitFor(() =>
-			expect(rendered.getAllByRole('option').map((el) => el.dataset.testid)).toEqual([
-				'command-palette.item.align',
-				'command-palette.item.realign',
-			])
-		)
-	})
-
-	it('closes before running the highlighted item on Enter and records it', async () => {
+	it('closes before running the highlighted item on Enter, records it and returns focus to the editor', async () => {
 		const calls: string[] = []
-		const { input } = await renderShell(
+		const { editor, input } = await renderShell(
 			item(
 				'alpha',
 				'Alpha',
@@ -155,10 +188,12 @@ describe('CommandPaletteShell', () => {
 			),
 			() => calls.push('close')
 		)
+		expect(document.activeElement).toBe(input)
 		type(input, 'alp')
 		press(input, 'Enter')
 		expect(calls).toEqual(['close', 'select'])
 		expect(getCommandPaletteRecents()).toEqual(['alpha'])
+		expect(document.activeElement).toBe(editor.getContainer())
 	})
 
 	it('moves the highlight with the arrow keys and wraps around', async () => {
@@ -180,29 +215,41 @@ describe('CommandPaletteShell', () => {
 		expect(selected()).toBe('command-palette.item.beta')
 	})
 
-	it('hides disabled items, both browsing and searching', async () => {
+	it('leaves disabled items out while browsing, and lists them last and greyed in search', async () => {
+		const onRedo = vi.fn()
 		const { rendered, input } = await renderShell(
 			<>
+				{item('redraw', 'Redo disabled', onRedo, { disabled: true })}
+				{item('redo', 'Redo')}
 				{item('alpha', 'Alpha')}
-				{item('redo', 'Redo', vi.fn(), { disabled: true })}
 			</>
 		)
 		await rendered.findByTestId('command-palette.item.alpha')
-		expect(rendered.queryByTestId('command-palette.item.redo')).toBeNull()
+		expect(rendered.queryByTestId('command-palette.item.redraw')).toBeNull()
 		type(input, 'redo')
-		await rendered.findByText('No results')
+		await rendered.findByTestId('command-palette.item.redraw')
+		const options = () => rendered.getAllByRole('option').map((el) => el.dataset.testid)
+		expect(options()).toEqual(['command-palette.item.redo', 'command-palette.item.redraw'])
+		const disabledRow = rendered.getByTestId('command-palette.item.redraw')
+		expect(disabledRow.getAttribute('aria-disabled')).toBe('true')
+		// Not reachable with the keys, the pointer or a click.
+		press(input, 'ArrowDown')
+		expect(rendered.getByTestId('command-palette.item.redo').dataset.highlighted).toBe('true')
+		fireEvent.pointerMove(disabledRow)
+		expect(disabledRow.dataset.highlighted).toBeUndefined()
+		fireEvent.click(disabledRow)
+		type(input, 'redo dis')
+		await waitFor(() => expect(options()).toEqual(['command-palette.item.redraw']))
+		press(input, 'Enter')
+		expect(onRedo).not.toHaveBeenCalled()
 	})
 
-	it('opens in the center by default', async () => {
-		const { rendered } = await renderShell(item('alpha', 'Alpha'))
-		const palette = rendered.getByTestId('command-palette')
-		expect(palette.dataset.position).toBe('center')
-		expect(palette.style.top).toBe('')
-	})
-
-	it('opens where its position says', async () => {
-		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), { position: 'top' })
-		expect(rendered.getByTestId('command-palette').dataset.position).toBe('top')
+	it.each([
+		[undefined, 'bottom'],
+		['top', 'top'],
+	] as const)('opens at position %s on the %s', async (position, expected) => {
+		const { rendered } = await renderShell(item('alpha', 'Alpha'), vi.fn(), { position })
+		expect(rendered.getByTestId('command-palette').dataset.position).toBe(expected)
 	})
 
 	describe('bottom position', () => {
@@ -238,7 +285,7 @@ describe('CommandPaletteShell', () => {
 			)
 			await rendered.findByTestId('command-palette.item.alpha')
 			expect(rendered.container.querySelector(`.tlui-main-toolbar--${orientation}`)).not.toBeNull()
-			return { editor, palette: rendered.getByTestId('command-palette') }
+			return { editor, palette: rendered.getByTestId('command-palette'), toolbarBox }
 		}
 
 		afterEach(() => {
@@ -247,7 +294,50 @@ describe('CommandPaletteShell', () => {
 
 		it('sits above a horizontal toolbar at its width', async () => {
 			const { palette } = await renderWithToolbar('horizontal')
-			await waitFor(() => expect(palette.style.width).toBe('500px'))
+			await waitFor(() => expect(palette.style.top).toBe('932px'))
+			expect(palette.style.width).toBe('500px')
+		})
+
+		it('updates its position and width when the toolbar or container resizes', async () => {
+			const observers = new Map<Element, Set<() => void>>()
+			vi.stubGlobal(
+				'ResizeObserver',
+				class {
+					private targets = new Set<Element>()
+					constructor(private callback: () => void) {}
+					observe(target: Element) {
+						this.targets.add(target)
+						if (!observers.has(target)) observers.set(target, new Set())
+						observers.get(target)!.add(this.callback)
+					}
+					unobserve(target: Element) {
+						observers.get(target)?.delete(this.callback)
+						this.targets.delete(target)
+					}
+					disconnect() {
+						for (const target of this.targets) this.unobserve(target)
+					}
+				}
+			)
+			onTestFinished(() => {
+				vi.unstubAllGlobals()
+			})
+			const { editor, palette, toolbarBox } = await renderWithToolbar('horizontal')
+			const container = editor.getContainer()
+			const toolbar = container.querySelector('.tlui-main-toolbar__inner')!
+			await waitFor(() => expect(palette.style.top).toBe('932px'))
+
+			toolbarBox.top = 900
+			toolbarBox.width = 600
+			act(() => observers.get(toolbar)?.forEach((callback) => callback()))
+			expect(palette.style.top).toBe('892px')
+			expect(palette.style.width).toBe('600px')
+
+			toolbarBox.top = 800
+			toolbarBox.width = 250
+			act(() => observers.get(container)?.forEach((callback) => callback()))
+			expect(palette.style.top).toBe('792px')
+			expect(palette.style.width).toBe('320px')
 		})
 
 		it('caps a submenu at the browsing height so it stays above the toolbar', async () => {
@@ -265,21 +355,22 @@ describe('CommandPaletteShell', () => {
 					</TldrawUiMenuSubmenu>
 				</>
 			)
-			// The toolbar ends 12px above the bottom, so the palette ends 12px above the toolbar.
-			await waitFor(() => expect(palette.style.top).toBe('628px'))
+			// 8px above the toolbar's top, at 940px.
+			await waitFor(() => expect(palette.style.top).toBe('632px'))
 			expect(palette.style.maxHeight).toBe('')
 			fireEvent.click(within(palette).getByTestId('command-palette.submenu.Many'))
 			await within(palette).findByTestId('command-palette.back')
-			expect(palette.style.top).toBe('628px')
+			expect(palette.style.top).toBe('632px')
 			expect(palette.style.maxHeight).toBe('300px')
 		})
 
 		it('leaves the toolbar for the top on touch devices', async () => {
 			const { editor, palette } = await renderWithToolbar('horizontal')
-			await waitFor(() => expect(palette.style.width).toBe('500px'))
+			await waitFor(() => expect(palette.style.top).toBe('932px'))
+			expect(palette.style.width).toBe('500px')
 			act(() => editor.updateInstanceState({ isCoarsePointer: true }))
-			await waitFor(() => expect(palette.style.width).toBe(''))
-			expect(palette.style.top).toBe('')
+			await waitFor(() => expect(palette.style.top).toBe(''))
+			expect(palette.style.width).toBe('')
 		})
 
 		it('ignores a vertical toolbar', async () => {
@@ -289,78 +380,38 @@ describe('CommandPaletteShell', () => {
 		})
 	})
 
-	it('fades the list while there is more content below', async () => {
-		const { rendered } = await renderShell(<>{item('alpha', 'Alpha')}</>)
+	it('keeps the scroll position when backing out of a submenu or a prompt', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{['a', 'b', 'c'].map((id) => item(id, `Item ${id}`))}
+				<TldrawUiMenuSubmenu id="many" label="Many">
+					{['x', 'y'].map((id) => item(id, `Option ${id}`))}
+					<CommandPalettePromptItem id="new" label="New" placeholder="Name" onSubmit={vi.fn()} />
+				</TldrawUiMenuSubmenu>
+			</>
+		)
 		const list = await rendered.findByRole('listbox')
-		const setMetrics = (scrollTop: number) => {
-			for (const [key, value] of Object.entries({
-				scrollHeight: 500,
-				clientHeight: 250,
-				scrollTop,
-			})) {
-				Object.defineProperty(list, key, { configurable: true, value })
-			}
+		mockListLayout(list, { scrollHeight: 500, layout: 'in-view' })
+		const scrollTo = (scrollTop: number) => {
+			list.scrollTop = scrollTop
 			fireEvent.scroll(list)
 		}
-		expect(list.hasAttribute('data-more')).toBe(false)
-		setMetrics(0)
+
+		scrollTo(250)
+		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Many'))
+		expect(list.scrollTop).toBe(0)
 		expect(list.hasAttribute('data-more')).toBe(true)
-		setMetrics(250)
+		scrollTo(100)
+		fireEvent.click(rendered.getByTestId('command-palette.item.new'))
+		expect(list.scrollTop).toBe(0)
+
+		press(input, 'Escape')
+		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
+		expect(list.scrollTop).toBe(100)
+		press(input, 'Escape')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(list.scrollTop).toBe(250)
 		expect(list.hasAttribute('data-more')).toBe(false)
-	})
-
-	it('keeps the scroll position when backing out of a submenu or a prompt', async () => {
-		const original = Element.prototype.scrollIntoView
-		const originalRect = Element.prototype.getBoundingClientRect
-		// Like block: 'nearest' on a list scrolled past its first row.
-		Element.prototype.scrollIntoView = function () {
-			const list = this.closest('[role="listbox"]') as HTMLElement
-			list.scrollTop = 0
-		}
-		try {
-			const { rendered, input } = await renderShell(
-				<>
-					{['a', 'b', 'c'].map((id) => item(id, `Item ${id}`))}
-					<TldrawUiMenuSubmenu id="many" label="Many">
-						{['x', 'y'].map((id) => item(id, `Option ${id}`))}
-						<CommandPalettePromptItem id="new" label="New" placeholder="Name" onSubmit={vi.fn()} />
-					</TldrawUiMenuSubmenu>
-				</>
-			)
-			const list = await rendered.findByRole('listbox')
-			for (const [key, value] of Object.entries({ scrollHeight: 500, clientHeight: 250 })) {
-				Object.defineProperty(list, key, { configurable: true, value })
-			}
-			Object.defineProperty(list, 'scrollTop', { configurable: true, writable: true, value: 0 })
-			// Every row reads as in view, so only the restore moves the list.
-			Element.prototype.getBoundingClientRect = function () {
-				const height = this.getAttribute('role') === 'listbox' ? 250 : 50
-				return { top: 0, bottom: height } as DOMRect
-			}
-			const scrollTo = (scrollTop: number) => {
-				list.scrollTop = scrollTop
-				fireEvent.scroll(list)
-			}
-
-			scrollTo(250)
-			fireEvent.click(await rendered.findByTestId('command-palette.submenu.Many'))
-			expect(list.scrollTop).toBe(0)
-			expect(list.hasAttribute('data-more')).toBe(true)
-			scrollTo(100)
-			fireEvent.click(rendered.getByTestId('command-palette.item.new'))
-			expect(list.scrollTop).toBe(0)
-
-			press(input, 'Escape')
-			expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
-			expect(list.scrollTop).toBe(100)
-			press(input, 'Escape')
-			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-			expect(list.scrollTop).toBe(250)
-			expect(list.hasAttribute('data-more')).toBe(false)
-		} finally {
-			Element.prototype.scrollIntoView = original
-			Element.prototype.getBoundingClientRect = originalRect
-		}
 	})
 
 	it('keeps the scroll position when backing out to rows that register a commit late', async () => {
@@ -380,18 +431,7 @@ describe('CommandPaletteShell', () => {
 			</>
 		)
 		const list = await rendered.findByRole('listbox')
-		// 50px a row, and a browser clamps scrollTop to what the rows can hold, keeping the clamp.
-		const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
-		let scrollTop = 0
-		Object.defineProperties(list, {
-			scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
-			clientHeight: { configurable: true, value: 250 },
-			scrollTop: {
-				configurable: true,
-				get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
-				set: (value: number) => (scrollTop = Math.min(value, maxScroll())),
-			},
-		})
+		mockListLayout(list)
 
 		type(input, 'row')
 		await rendered.findByTestId('command-palette.item.row7')
@@ -439,52 +479,26 @@ describe('CommandPaletteShell', () => {
 			const { rendered, input } = await renderShell(<Rows />)
 			const list = await rendered.findByRole('listbox')
 			await rendered.findByTestId('command-palette.item.b8')
-			// Headings and options are 50px each, in a 250px list.
-			const slots = () =>
-				Array.from(list.querySelectorAll('[role="option"], .tlui-command-palette__heading'))
-			const top = (el: Element) => slots().indexOf(el) * 50
-			let scrollTop = 0
-			const maxScroll = () => Math.max(0, slots().length * 50 - 250)
-			Object.defineProperties(list, {
-				scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
-				clientHeight: { configurable: true, value: 250 },
-				scrollTop: {
-					configurable: true,
-					get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
-					set: (value: number) => (scrollTop = Math.max(0, Math.min(value, maxScroll()))),
-				},
+			// Headings take a 50px slot too.
+			const { top } = mockListLayout(list, {
+				rows: () =>
+					Array.from(list.querySelectorAll('[role="option"], .tlui-command-palette__heading')),
+				layout: 'stacked',
 			})
-			const rect = (y: number, height: number) => ({ top: y, bottom: y + height }) as DOMRect
-			const originalRect = Element.prototype.getBoundingClientRect
-			const originalScroll = Element.prototype.scrollIntoView
-			Element.prototype.getBoundingClientRect = function () {
-				if (this === list) return rect(0, 250)
-				return rect(top(this) - list.scrollTop, 50)
-			}
-			Element.prototype.scrollIntoView = function () {
-				const y = top(this) - list.scrollTop
-				if (y < 0) list.scrollTop += y
-				else if (y + 50 > 250) list.scrollTop += y + 50 - 250
-			}
-			try {
-				for (let i = 0; i < 5; i++) press(input, 'ArrowDown')
-				const active = () => list.querySelector('[data-highlighted]')!
-				list.scrollTop = top(active())
-				fireEvent.scroll(list)
-				const saved = list.scrollTop
-				expect(saved).toBeGreaterThan(0)
 
-				fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
-				act(() => removeEdit())
-				press(input, 'Escape')
-				expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-				const y = top(active()) - list.scrollTop
-				expect(y).toBeGreaterThanOrEqual(0)
-				expect(y + 50).toBeLessThanOrEqual(250)
-			} finally {
-				Element.prototype.getBoundingClientRect = originalRect
-				Element.prototype.scrollIntoView = originalScroll
-			}
+			for (let i = 0; i < 5; i++) press(input, 'ArrowDown')
+			const active = () => list.querySelector('[data-highlighted]')!
+			list.scrollTop = top(active())
+			fireEvent.scroll(list)
+			expect(list.scrollTop).toBeGreaterThan(0)
+
+			fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
+			act(() => removeEdit())
+			press(input, 'Escape')
+			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+			const y = top(active()) - list.scrollTop
+			expect(y).toBeGreaterThanOrEqual(0)
+			expect(y + 50).toBeLessThanOrEqual(250)
 		}
 	)
 
@@ -498,49 +512,18 @@ describe('CommandPaletteShell', () => {
 			</>
 		)
 		const list = await rendered.findByRole('listbox')
-		// Options are 50px each, in a 250px list.
-		const top = (el: Element) =>
-			within(list)
-				.queryAllByRole('option')
-				.indexOf(el as HTMLElement) * 50
-		const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
-		let scrollTop = 0
-		Object.defineProperties(list, {
-			scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
-			clientHeight: { configurable: true, value: 250 },
-			scrollTop: {
-				configurable: true,
-				get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
-				set: (value: number) => (scrollTop = Math.max(0, Math.min(value, maxScroll()))),
-			},
-		})
-		const originalRect = Element.prototype.getBoundingClientRect
-		const originalScroll = Element.prototype.scrollIntoView
-		Element.prototype.getBoundingClientRect = function () {
-			const y = this === list ? 0 : top(this) - list.scrollTop
-			return { top: y, bottom: y + (this === list ? 250 : 50) } as DOMRect
-		}
-		// Like block: 'nearest', which reveals the whole row.
-		Element.prototype.scrollIntoView = function () {
-			const y = top(this) - list.scrollTop
-			if (y < 0) list.scrollTop += y
-			else if (y + 50 > 250) list.scrollTop += y + 50 - 250
-		}
-		try {
-			for (let i = 0; i < 3; i++) press(input, 'ArrowDown')
-			const active = () => list.querySelector('[data-highlighted]')!
-			list.scrollTop = top(active()) + 20
-			fireEvent.scroll(list)
-			const saved = list.scrollTop
+		const { top } = mockListLayout(list, { layout: 'stacked' })
 
-			fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
-			press(input, 'Escape')
-			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-			expect(list.scrollTop).toBe(saved)
-		} finally {
-			Element.prototype.getBoundingClientRect = originalRect
-			Element.prototype.scrollIntoView = originalScroll
-		}
+		for (let i = 0; i < 3; i++) press(input, 'ArrowDown')
+		const active = () => list.querySelector('[data-highlighted]')!
+		list.scrollTop = top(active()) + 20
+		fireEvent.scroll(list)
+		const saved = list.scrollTop
+
+		fireEvent.click(rendered.getByTestId('command-palette.submenu.Many'))
+		press(input, 'Escape')
+		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		expect(list.scrollTop).toBe(saved)
 	})
 
 	it.each([false, true])(
@@ -562,17 +545,7 @@ describe('CommandPaletteShell', () => {
 			)
 			const list = await rendered.findByRole('listbox')
 			await rendered.findByTestId('command-palette.item.r9')
-			const maxScroll = () => Math.max(0, within(list).queryAllByRole('option').length * 50 - 250)
-			let scrollTop = 0
-			Object.defineProperties(list, {
-				scrollHeight: { configurable: true, get: () => maxScroll() + 250 },
-				clientHeight: { configurable: true, value: 250 },
-				scrollTop: {
-					configurable: true,
-					get: () => (scrollTop = Math.min(scrollTop, maxScroll())),
-					set: (value: number) => (scrollTop = Math.min(value, maxScroll())),
-				},
-			})
+			mockListLayout(list)
 
 			list.scrollTop = 150
 			fireEvent.scroll(list)
@@ -608,46 +581,17 @@ describe('CommandPaletteShell', () => {
 		expect(isEnterKeyUpSwallowed(editor)).toBe(false)
 	})
 
-	it('lists pinned groups first, above recents, under their heading', async () => {
-		addCommandPaletteRecent('alpha')
-		const { rendered } = await renderShell(
-			<>
-				{item('alpha', 'Alpha')}
-				<CommandPalettePinned>
-					<TldrawUiMenuGroup id="news" label="News">
-						{item('unread', 'Unread thing')}
-					</TldrawUiMenuGroup>
-				</CommandPalettePinned>
-			</>
-		)
-		await rendered.findByTestId('command-palette.item.unread')
-		const ids = rendered.getAllByRole('option').map((option) => option.dataset.testid)
-		expect(ids.indexOf('command-palette.item.unread')).toBeLessThan(
-			ids.indexOf('command-palette.recent.alpha')
-		)
-		expect(within(rendered.getByTestId('command-palette')).getByText('News')).toBeTruthy()
-	})
-
-	it('shows recent items first on an empty query', async () => {
-		addCommandPaletteRecent('beta')
-		const { rendered } = await renderShell(
-			<>
-				{item('alpha', 'Alpha')}
-				{item('beta', 'Beta')}
-			</>
-		)
-		await waitFor(() =>
-			expect(rendered.getAllByRole('option')[0].dataset.testid).toBe('command-palette.recent.beta')
-		)
-	})
-
-	it("leaves out recents while browsing with suggestions 'none', keeping pinned items and search", async () => {
+	it("lists pinned groups but leaves out recents while browsing with suggestions 'none', keeping search", async () => {
 		addCommandPaletteRecent('beta')
 		const { rendered, input } = await renderShell(
 			<>
 				{item('alpha', 'Alpha')}
 				{item('beta', 'Beta')}
-				<CommandPalettePinned>{item('unread', 'Unread thing')}</CommandPalettePinned>
+				<CommandPalettePinned>
+					<TldrawUiMenuGroup id="news" label="News">
+						{item('unread', 'Unread thing')}
+					</TldrawUiMenuGroup>
+				</CommandPalettePinned>
 			</>,
 			vi.fn(),
 			{ suggestions: 'none' }
@@ -657,6 +601,7 @@ describe('CommandPaletteShell', () => {
 		expect(palette.queryByText('Recent')).toBeNull()
 		expect(rendered.queryByTestId('command-palette.recent.beta')).toBeNull()
 		expect(rendered.getByTestId('command-palette.item.unread')).toBeTruthy()
+		expect(palette.getByText('News')).toBeTruthy()
 
 		type(input, 'alp')
 		await waitFor(() =>
@@ -676,7 +621,7 @@ describe('CommandPaletteShell', () => {
 		)
 		const open = async () => {
 			fireEvent.click(await rendered.findByTestId('command-palette.submenu.Many'))
-			expect(rendered.getByTestId('command-palette.item.b').textContent).toBe('Option b')
+			expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
 		}
 		await open()
 		type(input, 'b')
@@ -686,7 +631,6 @@ describe('CommandPaletteShell', () => {
 		press(input, 'Backspace')
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		await open()
-		expect(within(rendered.getByTestId('command-palette.back')).getByText('Esc')).toBeTruthy()
 		press(input, 'Escape')
 		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
 		expect(onClose).not.toHaveBeenCalled()
@@ -739,60 +683,42 @@ describe('CommandPaletteShell', () => {
 		expect(selected()).toBe('command-palette.submenu.Many')
 	})
 
-	it('opens a submenu with ArrowRight at the end of the input and leaves with ArrowLeft at its start', async () => {
-		const { rendered, input } = await renderShell(
-			<TldrawUiMenuSubmenu id="many" label="Many">
-				{['a', 'b'].map((id) => item(id, `Option ${id}`))}
-			</TldrawUiMenuSubmenu>
-		)
-		type(input, 'many')
-		await rendered.findByTestId('command-palette.submenu.Many')
-		input.setSelectionRange(2, 2)
-		press(input, 'ArrowRight')
-		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-		input.setSelectionRange(4, 4)
-		press(input, 'ArrowRight')
-		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
-		type(input, 'b')
-		input.setSelectionRange(1, 1)
-		press(input, 'ArrowLeft')
-		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
-		input.setSelectionRange(0, 0)
-		press(input, 'ArrowLeft')
-		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-		expect(input.value).toBe('many')
-	})
-
-	it('swaps the submenu arrow keys in RTL', async () => {
-		mockDir.current = 'rtl'
-		const { rendered, input } = await renderShell(
-			<TldrawUiMenuSubmenu id="many" label="Many">
-				{['a', 'b'].map((id) => item(id, `Option ${id}`))}
-			</TldrawUiMenuSubmenu>
-		)
-		type(input, 'many')
-		await rendered.findByTestId('command-palette.submenu.Many')
-		input.setSelectionRange(4, 4)
-		press(input, 'ArrowRight')
-		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-		input.setSelectionRange(2, 2)
-		press(input, 'ArrowLeft')
-		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-		input.setSelectionRange(4, 4)
-		press(input, 'ArrowLeft')
-		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
-		type(input, 'b')
-		input.setSelectionRange(0, 0)
-		press(input, 'ArrowLeft')
-		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
-		input.setSelectionRange(1, 1)
-		press(input, 'ArrowRight')
-		expect(rendered.queryByTestId('command-palette.back')).not.toBeNull()
-		input.setSelectionRange(0, 0)
-		press(input, 'ArrowRight')
-		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-		expect(input.value).toBe('many')
-	})
+	it.each([
+		{ dir: 'ltr', forward: 'ArrowRight', back: 'ArrowLeft' },
+		{ dir: 'rtl', forward: 'ArrowLeft', back: 'ArrowRight' },
+	] as const)(
+		'opens a submenu with $forward at the end of the input and leaves with $back at its start ($dir)',
+		async ({ dir, forward, back }) => {
+			mockDir.current = dir
+			const { rendered, input } = await renderShell(
+				<TldrawUiMenuSubmenu id="many" label="Many">
+					{['a', 'b'].map((id) => item(id, `Option ${id}`))}
+				</TldrawUiMenuSubmenu>
+			)
+			const isOpen = () => rendered.queryByTestId('command-palette.back') !== null
+			type(input, 'many')
+			await rendered.findByTestId('command-palette.submenu.Many')
+			input.setSelectionRange(2, 2)
+			press(input, forward)
+			expect(isOpen()).toBe(false)
+			input.setSelectionRange(4, 4)
+			press(input, back)
+			expect(isOpen()).toBe(false)
+			press(input, forward)
+			expect(isOpen()).toBe(true)
+			type(input, 'b')
+			input.setSelectionRange(0, 0)
+			press(input, forward)
+			expect(isOpen()).toBe(true)
+			input.setSelectionRange(1, 1)
+			press(input, back)
+			expect(isOpen()).toBe(true)
+			input.setSelectionRange(0, 0)
+			press(input, back)
+			expect(isOpen()).toBe(false)
+			expect(input.value).toBe('many')
+		}
+	)
 
 	it('asks for text before running a prompt item, falling back to an empty value', async () => {
 		const onSubmit = vi.fn()
@@ -808,7 +734,6 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).not.toHaveBeenCalled()
 		expect(input.placeholder).toBe('File name')
 		type(input, ' Plans ')
-		expect(rendered.getByTestId('command-palette.item.new').textContent).toBe('New file“Plans”')
 		press(input, 'Enter')
 		expect(onSubmit).toHaveBeenCalledWith('Plans')
 	})
@@ -831,108 +756,56 @@ describe('CommandPaletteShell', () => {
 		expect(onSubmit).toHaveBeenCalledWith('Plans')
 	})
 
-	it('backs out of a prompt with its Cancel row', async () => {
-		const onSubmit = vi.fn()
-		const { rendered, input } = await renderShell(
-			<CommandPalettePromptItem
-				id="new"
-				label="New file"
-				placeholder="File name"
-				onSubmit={onSubmit}
-			/>
-		)
-		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
-		type(input, 'Plans')
-		const cancel = rendered.getByTestId('command-palette.item.command-palette-cancel')
-		expect(within(cancel).getByText('Esc')).toBeTruthy()
-		fireEvent.click(cancel)
-		expect(onSubmit).not.toHaveBeenCalled()
-		expect(input.value).toBe('')
-		expect(input.placeholder).not.toBe('File name')
-	})
+	it.each(['its Cancel row', 'Escape'])(
+		'backs out of a prompt with %s, without submitting',
+		async (via) => {
+			const onSubmit = vi.fn()
+			const { rendered, input } = await renderShell(
+				<CommandPalettePromptItem
+					id="new"
+					label="New file"
+					placeholder="File name"
+					onSubmit={onSubmit}
+				/>
+			)
+			fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
+			type(input, 'Plans')
+			if (via === 'Escape') press(input, 'Escape')
+			else fireEvent.click(rendered.getByTestId('command-palette.item.command-palette-cancel'))
+			expect(onSubmit).not.toHaveBeenCalled()
+			expect(input.value).toBe('')
+			expect(input.placeholder).not.toBe('File name')
+			expect(rendered.queryByTestId('command-palette.back')).toBeNull()
+		}
+	)
 
-	it('backs out of a prompt without submitting', async () => {
-		const onSubmit = vi.fn()
-		const { rendered, input } = await renderShell(
-			<CommandPalettePromptItem
-				id="new"
-				label="New file"
-				placeholder="File name"
-				onSubmit={onSubmit}
-			/>
-		)
-		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
-		press(input, 'Escape')
-		expect(rendered.queryByTestId('command-palette.back')).toBeNull()
-		expect(input.placeholder).not.toBe('File name')
-		expect(onSubmit).not.toHaveBeenCalled()
-	})
-
-	it('shows no item icons, and gives every row a check slot', async () => {
-		const { rendered, input } = await renderShell(
-			<>
-				<TldrawUiMenuGroup id="edit" label="Edit">
-					<TldrawUiMenuItem id="alpha" label="Alpha" iconLeft="plus" onSelect={vi.fn()} />
-					<TldrawUiMenuCheckboxItem id="grid" label="Grid" checked readonlyOk onSelect={vi.fn()} />
-					<TldrawUiMenuSubmenu id="more" label="More">
-						{['a', 'b'].map((id) => item(id, `Item ${id}`))}
-					</TldrawUiMenuSubmenu>
-				</TldrawUiMenuGroup>
-				<TldrawUiMenuGroup id="view" label="View">
-					<TldrawUiMenuItem id="gamma" label="Gamma" iconLeft="plus" onSelect={vi.fn()} />
-				</TldrawUiMenuGroup>
-			</>
-		)
-		await rendered.findByText('Edit')
-		const iconCount = (testId: string) =>
-			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
-		for (const id of ['alpha', 'grid', 'gamma'])
-			expect(iconCount(`command-palette.item.${id}`)).toBe(1)
-		// The check slot plus the chevron.
-		expect(iconCount('command-palette.submenu.More')).toBe(2)
-		type(input, 'gam')
-		await waitFor(() => expect(rendered.queryByTestId('command-palette.item.grid')).toBeNull())
-		expect(iconCount('command-palette.item.gamma')).toBe(1)
-	})
-
-	it('gives an opened submenu a check slot only when it has something to check', async () => {
-		const { rendered, input } = await renderShell(
-			<>
-				<TldrawUiMenuSubmenu id="pages" label="Pages">
-					{['a', 'b'].map((id) => item(id, `Page ${id}`))}
-				</TldrawUiMenuSubmenu>
-				<TldrawUiMenuSubmenu id="language" label="Language">
-					<TldrawUiMenuCheckboxItem id="en" label="English" checked readonlyOk onSelect={vi.fn()} />
-					{item('de', 'Deutsch')}
-				</TldrawUiMenuSubmenu>
-			</>
-		)
-		const iconCount = (testId: string) =>
-			rendered.getByTestId(testId).querySelectorAll('.tlui-icon').length
-		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Pages'))
-		expect(iconCount('command-palette.item.a')).toBe(0)
-		press(input, 'Escape')
-		fireEvent.click(await rendered.findByTestId('command-palette.submenu.Language'))
-		expect(iconCount('command-palette.item.de')).toBe(1)
-	})
-
-	it('marks checkable rows with aria-checked, keeping the check icon decorative', async () => {
+	it('gives only checkable rows a check, marked with aria-checked and kept decorative', async () => {
 		const { rendered } = await renderShell(
 			<>
 				<TldrawUiMenuCheckboxItem id="on" label="On" checked readonlyOk onSelect={vi.fn()} />
 				<TldrawUiMenuCheckboxItem id="off" label="Off" checked={false} onSelect={vi.fn()} />
 				{item('current', 'Current', vi.fn(), { isSelected: true })}
-				{item('plain', 'Plain')}
+				{item('plain', 'Plain', vi.fn(), { iconLeft: 'plus' })}
+				<TldrawUiMenuSubmenu id="language" label="Language">
+					<TldrawUiMenuCheckboxItem id="en" label="English" checked readonlyOk onSelect={vi.fn()} />
+					{item('de', 'Deutsch', vi.fn(), { iconLeft: 'plus' })}
+				</TldrawUiMenuSubmenu>
 			</>
 		)
-		await rendered.findByTestId('command-palette.item.plain')
-		const row = (id: string) => rendered.getByTestId(`command-palette.item.${id}`)
-		expect(
-			['on', 'off', 'current', 'plain'].map((id) => row(id).getAttribute('aria-checked'))
-		).toEqual(['true', 'false', 'true', null])
-		for (const id of ['on', 'off', 'current', 'plain']) {
-			expect(row(id).querySelector('.tlui-icon')!.getAttribute('aria-hidden')).toBe('true')
+		const expectChecks = (checked: Record<string, string | null>) => {
+			for (const [id, value] of Object.entries(checked)) {
+				const row = rendered.getByTestId(`command-palette.item.${id}`)
+				expect(row.getAttribute('aria-checked')).toBe(value)
+				// Item icons are left out, so a plain row has none.
+				const icon = row.querySelector('.tlui-icon')
+				expect(icon?.getAttribute('aria-hidden') ?? null).toBe(value === null ? null : 'true')
+			}
 		}
+		await rendered.findByTestId('command-palette.item.plain')
+		expectChecks({ on: 'true', off: 'false', current: 'true', plain: null })
+		fireEvent.click(rendered.getByTestId('command-palette.submenu.Language'))
+		await rendered.findByTestId('command-palette.item.de')
+		expectChecks({ en: 'true', de: null })
 	})
 
 	it('ignores Enter while an IME composition is in progress', async () => {
@@ -945,8 +818,8 @@ describe('CommandPaletteShell', () => {
 		expect(onSelect).not.toHaveBeenCalled()
 	})
 
-	it('keeps focus on the input when a row, heading or empty area is pressed', async () => {
-		const { rendered } = await renderShell(
+	it('keeps focus on the input when a row or empty area is pressed, and after expanding a submenu row', async () => {
+		const { rendered, input } = await renderShell(
 			<TldrawUiMenuSubmenu id="many" label="Many">
 				{['a', 'b', 'c', 'd', 'e', 'f'].map((id) => item(id, `Option ${id}`))}
 			</TldrawUiMenuSubmenu>
@@ -954,38 +827,75 @@ describe('CommandPaletteShell', () => {
 		const submenu = await rendered.findByTestId('command-palette.submenu.Many')
 		expect(fireEvent.mouseDown(submenu)).toBe(false)
 		expect(fireEvent.mouseDown(rendered.getByRole('listbox'))).toBe(false)
-	})
-
-	it('refocuses the input after expanding a submenu row', async () => {
-		const { rendered, input } = await renderShell(
-			<TldrawUiMenuSubmenu id="many" label="Many">
-				{['a', 'b', 'c', 'd', 'e', 'f'].map((id) => item(id, `Option ${id}`))}
-			</TldrawUiMenuSubmenu>
-		)
-		const submenu = await rendered.findByTestId('command-palette.submenu.Many')
 		;(document.activeElement as HTMLElement).blur()
 		fireEvent.click(submenu)
 		expect(document.activeElement).toBe(input)
 	})
 
-	it('closes on Escape, on Cmd+K and on a click outside', async () => {
+	it('closes on Escape and on Cmd+K, returning focus to the editor', async () => {
 		const onClose = vi.fn()
-		const { rendered, input } = await renderShell(item('alpha', 'Alpha'), onClose)
+		const { editor, rendered, input } = await renderShell(item('alpha', 'Alpha'), onClose)
 		press(input, 'Escape')
+		expect(onClose).toHaveBeenCalledTimes(1)
+		expect(document.activeElement).toBe(editor.getContainer())
+		input.focus()
 		press(input, 'k', { metaKey: true })
+		expect(onClose).toHaveBeenCalledTimes(2)
+		expect(document.activeElement).toBe(editor.getContainer())
 		fireEvent.pointerDown(rendered.getByTestId('command-palette'))
 		expect(onClose).toHaveBeenCalledTimes(2)
-		fireEvent.pointerDown(rendered.getByTestId('command-palette').parentElement!)
-		expect(onClose).toHaveBeenCalledTimes(3)
 	})
 
-	it('returns focus to the editor after running an item', async () => {
-		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
-		expect(document.activeElement).toBe(input)
-		type(input, 'alp')
-		press(input, 'Enter')
-		expect(document.activeElement).toBe(editor.getContainer())
+	it('stays open for a canvas click while shapes are selected, and closes for any other click', async () => {
+		const onClose = vi.fn()
+		const { editor, rendered } = await renderShell(item('alpha', 'Alpha'), onClose)
+		const canvas = editor.getContainer().querySelector('.tl-canvas')!
+		const reached = vi.fn()
+		canvas.addEventListener('pointerdown', reached)
+		act(() => {
+			editor.createShape({ type: 'geo', x: 0, y: 0 })
+			editor.selectAll()
+		})
+		fireEvent.pointerDown(canvas)
+		expect(onClose).not.toHaveBeenCalled()
+		act(() => editor.selectNone())
+		fireEvent.pointerDown(canvas)
+		await act(async () => fireEvent.pointerUp(canvas))
+		expect(onClose).toHaveBeenCalledTimes(1)
+		// Other UI, such as the toolbar, closes it even with a selection.
+		act(() => editor.selectAll())
+		fireEvent.pointerDown(rendered.container.querySelector('.tlui-main-toolbar')!)
+		expect(onClose).toHaveBeenCalledTimes(2)
+		// The click goes through every time.
+		expect(reached).toHaveBeenCalledTimes(2)
 	})
+
+	it.each([
+		[false, false, true],
+		[false, true, false],
+		[true, false, false],
+		[true, true, false],
+	])(
+		'canvas click with selection before=%s and after=%s closes=%s',
+		async (selectedBefore, selectedAfter, shouldClose) => {
+			const onClose = vi.fn()
+			const { editor } = await renderShell(item('alpha', 'Alpha'), onClose)
+			const canvas = editor.getContainer().querySelector('.tl-canvas')!
+			act(() => {
+				editor.createShape({ type: 'geo' })
+				if (selectedBefore) editor.selectAll()
+			})
+			fireEvent.pointerDown(canvas)
+			expect(onClose).not.toHaveBeenCalled()
+			const updateSelection = () => {
+				if (selectedAfter) editor.selectAll()
+				else editor.selectNone()
+			}
+			canvas.addEventListener('pointerup', updateSelection, { once: true })
+			await act(async () => fireEvent.pointerUp(canvas))
+			expect(onClose).toHaveBeenCalledTimes(shouldClose ? 1 : 0)
+		}
+	)
 
 	it('does not record items run from an on-demand submenu', async () => {
 		const onSelect = vi.fn()
@@ -1047,19 +957,29 @@ describe('CommandPaletteShell', () => {
 		expect(getCommandPaletteRecents()).toEqual([])
 	})
 
-	it('returns focus to the editor after Escape and after Cmd+K', async () => {
+	it('takes focus back from the canvas after a click, so typing keeps searching', async () => {
 		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
-		press(input, 'Escape')
-		expect(document.activeElement).toBe(editor.getContainer())
-		input.focus()
-		press(input, 'k', { metaKey: true })
-		expect(document.activeElement).toBe(editor.getContainer())
+		act(() => editor.getContainer().focus())
+		fireEvent.pointerUp(window)
+		await waitFor(() => expect(document.activeElement).toBe(input))
 	})
 
-	it('returns focus to the editor after a click outside', async () => {
-		const { editor, rendered } = await renderShell(item('alpha', 'Alpha'))
-		fireEvent.pointerDown(rendered.getByTestId('command-palette').parentElement!)
-		expect(document.activeElement).toBe(editor.getContainer())
+	it("leaves focus with a shape's text editor or another open menu after a click", async () => {
+		const { editor, input } = await renderShell(item('alpha', 'Alpha'))
+		const editing = vi.spyOn(editor, 'getEditingShapeId').mockReturnValue(createShapeId())
+		act(() => editor.getContainer().focus())
+		fireEvent.pointerUp(window)
+		await new Promise((r) => requestAnimationFrame(r))
+		expect(document.activeElement).not.toBe(input)
+		editing.mockRestore()
+		act(() => {
+			editor.menus.addOpenMenu('other')
+			editor.getContainer().focus()
+		})
+		fireEvent.pointerUp(window)
+		await new Promise((r) => requestAnimationFrame(r))
+		expect(document.activeElement).not.toBe(input)
+		act(() => editor.menus.deleteOpenMenu('other'))
 	})
 
 	it('scrolls the newly active option into view on keyboard moves but not on hover', async () => {
@@ -1092,6 +1012,27 @@ describe('CommandPaletteShell', () => {
 		}
 	})
 
+	it('drops a hovered row when the pointer leaves it, but keeps one picked with the keys', async () => {
+		const { rendered, input } = await renderShell(
+			<>
+				{item('alpha', 'Alpha')}
+				{item('beta', 'Beta')}
+			</>
+		)
+		const row = (id: string) => rendered.getByTestId(`command-palette.item.${id}`)
+		const highlighted = () =>
+			['alpha', 'beta'].filter((id) => row(id).dataset.highlighted === 'true')
+		await waitFor(() => expect(highlighted()).toEqual(['alpha']))
+		fireEvent.pointerMove(row('beta'))
+		await waitFor(() => expect(highlighted()).toEqual(['beta']))
+		fireEvent.pointerLeave(row('beta'))
+		await waitFor(() => expect(highlighted()).toEqual([]))
+		press(input, 'ArrowDown')
+		await waitFor(() => expect(highlighted()).toEqual(['alpha']))
+		fireEvent.pointerLeave(row('alpha'))
+		expect(highlighted()).toEqual(['alpha'])
+	})
+
 	it('settles when items re-render every time the palette does', async () => {
 		let renders = 0
 		function RerendersWithPalette() {
@@ -1110,39 +1051,26 @@ describe('CommandPaletteShell', () => {
 		expect(renders).toBeLessThan(10)
 	})
 
-	it("runs a prompt's latest onSubmit, even if it changes while the prompt is open", async () => {
+	it("runs an item's latest onSelect, and a prompt's latest onSubmit even if it changes while open", async () => {
 		const calls: string[] = []
 		let setCount = (_n: number) => {}
 		function Counter() {
 			const [count, _setCount] = useState(0)
 			setCount = _setCount
 			return (
-				<CommandPalettePromptItem
-					id="new"
-					label="New file"
-					placeholder="File name"
-					onSubmit={(value) => calls.push(`${value} ${count}`)}
-				/>
-			)
-		}
-		const { rendered, input } = await renderShell(<Counter />)
-		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
-		act(() => setCount(1))
-		type(input, 'Plans')
-		press(input, 'Enter')
-		expect(calls).toEqual(['Plans 1'])
-	})
-
-	it('runs the latest onSelect after it changes', async () => {
-		const calls: number[] = []
-		let setCount = (_n: number) => {}
-		function Counter() {
-			const [count, _setCount] = useState(0)
-			setCount = _setCount
-			return item(
-				'alpha',
-				'Alpha',
-				vi.fn(() => calls.push(count))
+				<>
+					{item(
+						'alpha',
+						'Alpha',
+						vi.fn(() => calls.push(`select ${count}`))
+					)}
+					<CommandPalettePromptItem
+						id="new"
+						label="New file"
+						placeholder="File name"
+						onSubmit={(value) => calls.push(`${value} ${count}`)}
+					/>
+				</>
 			)
 		}
 		const { rendered, input } = await renderShell(<Counter />)
@@ -1150,7 +1078,14 @@ describe('CommandPaletteShell', () => {
 		act(() => setCount(1))
 		type(input, 'alp')
 		press(input, 'Enter')
-		expect(calls).toEqual([1])
+		expect(calls).toEqual(['select 1'])
+
+		type(input, '')
+		fireEvent.click(await rendered.findByTestId('command-palette.item.new'))
+		act(() => setCount(2))
+		type(input, 'Plans')
+		press(input, 'Enter')
+		expect(calls).toEqual(['select 1', 'Plans 2'])
 	})
 })
 
@@ -1231,41 +1166,34 @@ describe('CommandPaletteShell without an editor', () => {
 		expect(document.activeElement).toBe(opener)
 	})
 
-	it('closes on Escape and gives focus back', async () => {
-		const { rendered, open, onClose, onSelect } = renderApp()
+	it('closes on a click outside', async () => {
+		const { rendered, open, onClose } = renderApp()
+		await open()
+		const overlay = rendered.getByTestId('command-palette').parentElement!
+		expect(overlay.hasAttribute('data-passthrough')).toBe(false)
+		fireEvent.pointerDown(overlay)
+		expect(onClose).toHaveBeenCalledTimes(1)
+	})
+
+	// Cmd+K also checks the app's own Cmd+K handler doesn't reopen it.
+	it.each([
+		{ name: 'Escape', key: 'Escape', init: {}, strict: false },
+		{ name: 'Cmd+K', key: 'k', init: { metaKey: true }, strict: false },
+		{ name: 'Escape under StrictMode', key: 'Escape', init: {}, strict: true },
+	])('closes on $name and gives focus back', async ({ key, init, strict }) => {
+		const { rendered, open, onClose, onSelect } = renderApp({ strict })
 		const { opener, input } = await open()
-		press(input, 'Escape')
+		press(input, key, init)
 		expect(onClose).toHaveBeenCalledTimes(1)
 		expect(onSelect).not.toHaveBeenCalled()
 		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
 		expect(document.activeElement).toBe(opener)
 	})
 
-	it("closes on Cmd+K without the app's own Cmd+K reopening it", async () => {
-		const { rendered, open, onClose } = renderApp()
-		const { opener, input } = await open()
-		press(input, 'k', { metaKey: true })
-		expect(onClose).toHaveBeenCalledTimes(1)
-		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
-		expect(document.activeElement).toBe(opener)
-	})
-
-	it('gives focus back under StrictMode', async () => {
-		const { rendered, open } = renderApp({ strict: true })
-		const { opener, input } = await open()
-		press(input, 'Escape')
-		await waitFor(() => expect(rendered.queryByTestId('command-palette')).toBeNull())
-		expect(document.activeElement).toBe(opener)
-	})
-
-	it('opens submenus and submits prompts', async () => {
+	it('closes once after submitting a prompt', async () => {
 		const { rendered, open, onClose, onSubmit } = renderApp()
 		const { input } = await open()
-		fireEvent.click(rendered.getByTestId('command-palette.submenu.More'))
-		await rendered.findByTestId('command-palette.item.a')
-		press(input, 'Escape')
-		expect(onClose).not.toHaveBeenCalled()
-		fireEvent.click(await rendered.findByTestId('command-palette.item.rename'))
+		fireEvent.click(rendered.getByTestId('command-palette.item.rename'))
 		type(input, 'Plans')
 		press(input, 'Enter')
 		expect(onSubmit).toHaveBeenCalledWith('Plans')

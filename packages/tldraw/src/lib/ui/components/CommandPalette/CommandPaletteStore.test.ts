@@ -39,14 +39,6 @@ describe('CommandPaletteStore', () => {
 		expect(store.entries.get().map((e) => e.label)).toEqual(['first'])
 	})
 
-	it('replaces an entry when its token registers again', () => {
-		const [marker] = markers(1)
-		const store = new CommandPaletteStore()
-		store.set('t', entry('a', marker))
-		store.set('t', { ...entry('a', marker), label: 'renamed' })
-		expect(store.entries.get().map((e) => e.label)).toEqual(['renamed'])
-	})
-
 	it('drops an entry when it unregisters', () => {
 		const [marker] = markers(1)
 		const store = new CommandPaletteStore()

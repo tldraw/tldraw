@@ -1244,6 +1244,33 @@ describe('write_comment', () => {
 		})
 	})
 
+	it('records what was written, and whether it reached Postgres', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({ ...WRITTEN, queued: true })
+		const env = makeEnv()
+		await callTool(
+			'write_comment',
+			{ boardId: 'board_abc', text: 'Hi @[Ada](user_ada) and @[Bo](user_bo)', shapeId: 'box' },
+			env
+		)
+		expect(
+			datapointsNamed(env, 'mcp_comment_write').map((point) => ({
+				blobs: point.blobs.slice(-3),
+				doubles: point.doubles,
+			}))
+		).toEqual([{ blobs: ['target:shape', 'stored:queued', 'client:none'], doubles: [2] }])
+	})
+
+	it('records no comment write for a refused one', async () => {
+		vi.mocked(writeCommentForUser).mockResolvedValue({
+			ok: false,
+			reason: 'thread_resolved',
+			result: { content: [{ type: 'text', text: 'Resolved' }], isError: true },
+		})
+		const env = makeEnv()
+		await callTool('write_comment', { boardId: 'board_abc', text: 'Hi', threadId: 't' }, env)
+		expect(datapointsNamed(env, 'mcp_comment_write')).toEqual([])
+	})
+
 	it('passes a permission refusal through with its own telemetry reason', async () => {
 		vi.mocked(writeCommentForUser).mockResolvedValue({
 			ok: false,
@@ -1856,8 +1883,22 @@ describe('the open tab', () => {
 		await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
 
 		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.blobs.slice(2))).toEqual([
-			['mode:read', 'outcome:declined', 'reason:page_missing'],
+			['mode:read', 'outcome:declined', 'reason:page_missing', 'tool:get_page_info', 'client:none'],
 		])
+	})
+
+	it('records where the time went, and keeps it out of the tool result', async () => {
+		const stats = { tabs: 2, roomMs: 40, ackMs: 120 }
+		const env = makeEnv({
+			tab: tabAnswering({ status: 'declined', reason: 'page_missing', stats } as any),
+		})
+
+		const result = await callTool('get_page_info', { boardId: 'abc' }, env, 'user_tab')
+
+		expect(datapointsNamed(env, 'mcp_tab_render').map((d: any) => d.doubles.slice(1))).toEqual([
+			[40, 120, 2],
+		])
+		expect(JSON.stringify(result)).not.toContain('roomMs')
 	})
 })
 
@@ -2531,6 +2572,10 @@ describe('protocol telemetry', () => {
 		expect(normalizeMcpClient('claude-ai/1.0')).toBe('claude')
 		// A Claude user agent also says Mozilla, so the more specific match has to win.
 		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh) Claude/1.2')).toBe('claude')
+		// Our own proxy says codex too, and has to stay apart from a Codex client calling directly.
+		expect(normalizeMcpClient('tldraw-codex-plugin')).toBe('codex-plugin')
+		expect(normalizeMcpClient('codex-mcp-client')).toBe('codex')
+		expect(normalizeMcpClient('OpenCode/1.0')).toBe('opencode')
 		expect(normalizeMcpClient('python-httpx/0.27.0')).toBe('python')
 		expect(normalizeMcpClient('Mozilla/5.0 (Macintosh)')).toBe('browser')
 		// Unrecognized agents collapse to one value rather than becoming a new dimension each.

@@ -287,13 +287,13 @@ export function TldrawUiMenuItem<
 			)
 		}
 		case 'command-palette': {
-			// The palette only lists what can run now.
-			if (!labelStr || disabled) return null
+			if (!labelStr) return null
 			return (
 				<CommandPaletteItemRegistration
 					id={id}
 					label={labelStr}
 					kbd={kbd}
+					disabled={disabled}
 					isSelected={isSelected}
 					detail={detail}
 					onSelect={onSelect}

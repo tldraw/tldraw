@@ -22,23 +22,25 @@ export function getCommandPaletteOptionId(listboxId: string, index: number) {
 export function CommandPaletteList({
 	listboxId,
 	sections,
-	hasCheckSlot,
 	indexByKey,
 	activeIndex,
 	rScrollToActive,
 	onHover,
+	onLeave,
 	onRun,
 }: {
 	listboxId: string
 	sections: CommandPaletteSection[]
-	hasCheckSlot: boolean
 	indexByKey: ReadonlyMap<string, number>
 	activeIndex: number
 	rScrollToActive: RefObject<boolean>
 	onHover(index: number): void
+	onLeave(): void
 	onRun(row: SelectableRow): void
 }) {
 	return sections.map((section, sectionIndex) => {
+		// A separator just before a heading leaves an empty section; it would draw a second divider.
+		if (!section.rows.length) return null
 		const options = section.rows.map((row) => {
 			const index = indexByKey.get(row.key)!
 			return (
@@ -46,29 +48,28 @@ export function CommandPaletteList({
 					key={row.key}
 					id={getCommandPaletteOptionId(listboxId, index)}
 					row={row}
-					hasCheckSlot={hasCheckSlot}
 					isActive={index === activeIndex}
 					rScrollToActive={rScrollToActive}
 					onHover={() => onHover(index)}
+					onLeave={onLeave}
 					onRun={() => onRun(row)}
 				/>
 			)
 		})
-		if (section.separated) {
-			return (
-				<div key={section.key} role="group">
-					<div role="separator" className="tlui-command-palette__separator" />
-					{options}
-				</div>
-			)
-		}
-		if (!section.heading) return options
-		const headingId = `${listboxId}-heading-${sectionIndex}`
+		// Every section is a group, divided from the next like .tlui-menu__group.
+		const headingId = section.heading && `${listboxId}-heading-${sectionIndex}`
 		return (
-			<div key={section.heading.key} role="group" aria-labelledby={headingId}>
-				<div id={headingId} className="tlui-command-palette__heading">
-					{section.heading.label}
-				</div>
+			<div
+				key={section.key}
+				role="group"
+				aria-labelledby={headingId}
+				className="tlui-command-palette__group"
+			>
+				{section.heading && (
+					<div id={headingId} className="tlui-command-palette__heading">
+						{section.heading.label}
+					</div>
+				)}
 				{options}
 			</div>
 		)
@@ -78,18 +79,18 @@ export function CommandPaletteList({
 function CommandPaletteRowView({
 	id,
 	row,
-	hasCheckSlot,
 	isActive,
 	rScrollToActive,
 	onHover,
+	onLeave,
 	onRun,
 }: {
 	id: string
 	row: SelectableRow
-	hasCheckSlot: boolean
 	isActive: boolean
 	rScrollToActive: RefObject<boolean>
 	onHover(): void
+	onLeave(): void
 	onRun(): void
 }) {
 	const dir = useDirection()
@@ -99,8 +100,9 @@ function CommandPaletteRowView({
 	}, [isActive, rScrollToActive])
 
 	const mark = getMark(row)
-	// Decorative: the row's aria-checked carries the state.
-	const checkSlot = hasCheckSlot && (
+	// Like menu checkbox items, only checkable rows lead with a check. Decorative: the row's
+	// aria-checked carries the state.
+	const checkSlot = mark !== undefined && (
 		<TldrawUiIcon icon={mark ? 'check' : 'none'} small label="" aria-hidden="true" />
 	)
 
@@ -115,10 +117,10 @@ function CommandPaletteRowView({
 				data-testid={`command-palette.submenu.${row.submenu.label}`}
 				className="tlui-command-palette__item"
 				onPointerMove={onHover}
+				onPointerLeave={onLeave}
 				onClick={onRun}
 			>
 				<span className="tlui-command-palette__row">
-					{checkSlot}
 					<span className="tlui-command-palette__label">{row.submenu.label}</span>
 					<TldrawUiIcon
 						aria-hidden="true"
@@ -139,10 +141,13 @@ function CommandPaletteRowView({
 			role="option"
 			aria-selected={isActive}
 			aria-checked={mark}
+			aria-disabled={entry.disabled || undefined}
 			data-highlighted={isActive || undefined}
 			data-testid={`command-palette.${row.recent ? 'recent' : 'item'}.${entry.id}`}
 			className="tlui-command-palette__item"
-			onPointerMove={onHover}
+			// Like a disabled menu row, it takes no highlight, so hovering it drops the last one.
+			onPointerMove={entry.disabled ? onLeave : onHover}
+			onPointerLeave={onLeave}
 			onClick={onRun}
 		>
 			<span className="tlui-command-palette__row">

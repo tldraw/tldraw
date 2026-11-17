@@ -22,6 +22,22 @@ export type CommandPaletteRow =
 /** @internal */
 export type SelectableRow = Extract<CommandPaletteRow, { type: 'item' | 'submenu' }>
 
+/** A disabled row is listed but can't be highlighted or run. @internal */
+export function isCommandPaletteRowDisabled(row: SelectableRow) {
+	return row.type === 'item' && !!row.entry.disabled
+}
+
+// Search lists disabled items after the enabled ones, as plain rows, since opening a submenu of
+// items that can't run would lead nowhere. On-demand submenus stay out of top-level search.
+function getDisabledSearchRows(
+	entries: readonly CommandPaletteEntry[],
+	query: string,
+	recentIds: readonly string[]
+) {
+	const disabled = entries.filter((entry) => entry.disabled && !entry.submenu?.onDemand)
+	return rankCommandPaletteEntries(disabled, query, recentIds).map((entry) => itemRow(entry))
+}
+
 /** @internal */
 export interface CommandPaletteSection {
 	key: string
@@ -106,6 +122,8 @@ export function getCommandPaletteBrowseRows(
 	recentIds: readonly string[],
 	recentHeading: string
 ): CommandPaletteRow[] {
+	// Browsing lists only what can run now.
+	entries = entries.filter((entry) => !entry.disabled)
 	const rows: CommandPaletteRow[] = []
 	const pinned = entries.filter((entry) => entry.pinned)
 	const unpinned = entries.filter((entry) => !entry.pinned)
@@ -152,6 +170,8 @@ export function getCommandPaletteSearchRows(
 	query: string,
 	recentIds: readonly string[]
 ): CommandPaletteRow[] {
+	const disabledRows = getDisabledSearchRows(entries, query, recentIds)
+	entries = entries.filter((entry) => !entry.disabled)
 	const ranked = rankCommandPaletteEntries(entries, query, recentIds)
 
 	// An item stays a row when the query names it ("page 2", "move to page 2"). When the query also
@@ -179,6 +199,7 @@ export function getCommandPaletteSearchRows(
 		}
 		rows.push(itemRow(entry))
 	}
+	rows.push(...disabledRows)
 	return rows
 }
 
@@ -194,6 +215,7 @@ export function getCommandPaletteSubmenuRows(
 		const rows: CommandPaletteRow[] = []
 		let previous: CommandPaletteEntry | undefined
 		for (const entry of inSubmenu) {
+			if (entry.disabled) continue
 			if (previous && previous.section !== entry.section) {
 				rows.push({ type: 'separator', key: `separator:${entry.id}` })
 			}
@@ -202,15 +224,21 @@ export function getCommandPaletteSubmenuRows(
 		}
 		return rows
 	}
-	const rankable = inSubmenu.map((entry) => ({
-		id: entry.id,
-		label: entry.name,
-		path: entry.detail ? [entry.detail] : [],
-		entry,
-	}))
-	return rankCommandPaletteEntries(rankable, query, recentIds).map(({ entry }) =>
-		itemRow(entry, entry.name)
-	)
+	const rank = (inGroup: readonly CommandPaletteEntry[]) =>
+		rankCommandPaletteEntries(
+			inGroup.map((entry) => ({
+				id: entry.id,
+				label: entry.name,
+				path: entry.detail ? [entry.detail] : [],
+				entry,
+			})),
+			query,
+			recentIds
+		).map(({ entry }) => itemRow(entry, entry.name))
+	return [
+		...rank(inSubmenu.filter((entry) => !entry.disabled)),
+		...rank(inSubmenu.filter((entry) => entry.disabled)),
+	]
 }
 
 /** @internal */

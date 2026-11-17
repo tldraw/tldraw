@@ -236,7 +236,7 @@ function MyCommandPalette() {
 
 A command shows once, wherever it's placed first, so placing an action yourself takes it out of the catch-all at the end. `DefaultCommandPaletteContent` is made of exported groups, such as `CommandPaletteEditGroup` and `CommandPaletteViewGroup`, ending with `<CommandPaletteActionGroup />`, the catch-all. If you list the groups yourself, end with it too, or actions you don't place won't appear. The catch-all lists every available action with a label, custom ones included, so set `commandPalette: false` on internal or shortcut-only actions to leave them out. `CommandPaletteToolsGroup` lists one item per tool, after the editing commands and before preferences and help. Pass `CommandPalette: null` to turn the palette off.
 
-The palette opens in the middle of the editor. Pass `position="top"` or `position="bottom"` to `DefaultCommandPalette` to open it elsewhere; `'bottom'` sits just above the toolbar when it's horizontal, and in the lower middle of the editor otherwise. On touch devices it always opens near the top, clear of the on-screen keyboard:
+The palette opens just above the toolbar when it's horizontal, and in the lower middle of the editor otherwise. Pass `position="center"` or `position="top"` to `DefaultCommandPalette` to open it elsewhere. On touch devices it always opens near the top, clear of the on-screen keyboard:
 
 ```tsx
 function TopCommandPalette(props: TLUiCommandPaletteProps) {
@@ -247,6 +247,8 @@ function TopCommandPalette(props: TLUiCommandPaletteProps) {
 ```
 
 While the query is empty, the palette lists recent commands first. Pass `suggestions="none"` to leave them out.
+
+The palette doesn't block the canvas. While shapes are selected, a click on the canvas leaves it open, so you can work on the selection and then run commands on it. Any other click closes it: on the canvas with nothing selected, or on other UI such as menus and panels. The click goes through either way, and scrolling and zooming move the camera without closing it.
 
 To build your own palette, render `CommandPaletteShell` from the `CommandPalette` slot. The slot is mounted only while the palette is open, and gets an `onClose` prop that closes it:
 
@@ -436,3 +438,4 @@ Note that `onUiEvent` only fires for UI interactions. Calling [Editor#alignShape
 - [Vertical toolbar](/examples/ui/vertical-toolbar) - Switch to a vertical toolbar layout
 - [Add tool to toolbar](/examples/ui/add-tool-to-toolbar) - Add a custom tool to the toolbar
 - [UI events](/examples/events/ui-events) - Listen to UI events like tool selection and menu interactions
+- [Command palette](/examples/ui/command-palette) - Add your own commands to the command palette

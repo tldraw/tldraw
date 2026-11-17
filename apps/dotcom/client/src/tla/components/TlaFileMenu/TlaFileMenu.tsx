@@ -31,7 +31,7 @@ import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-eve
 import { copyTextToClipboard } from '../../utils/copy'
 import { CreateWorkspaceDialog } from '../dialogs/CreateWorkspaceDialog'
 import { TlaDeleteFileDialog } from '../dialogs/TlaDeleteFileDialog'
-import { TLA_MENU_POSITION } from '../tla-menu/tla-menu'
+import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
 import { editorMessages } from '../TlaEditor/editor-messages'
 import { downloadAppFile } from '../TlaEditor/useFileEditorOverrides'
 

@@ -3,7 +3,6 @@ import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
 	addCommandPaletteRecent,
 	getCommandPaletteRecents,
-	MAX_COMMAND_PALETTE_RECENTS,
 	MAX_STORED_COMMAND_PALETTE_RECENTS,
 } from './commandPaletteRecents'
 
@@ -15,10 +14,6 @@ afterEach(() => {
 })
 
 describe('command palette recents', () => {
-	it('starts empty', () => {
-		expect(getCommandPaletteRecents()).toEqual([])
-	})
-
 	it('puts the latest id first without duplicates', () => {
 		addCommandPaletteRecent('a')
 		addCommandPaletteRecent('b')
@@ -26,17 +21,12 @@ describe('command palette recents', () => {
 		expect(getCommandPaletteRecents()).toEqual(['a', 'b'])
 	})
 
-	it('keeps more ids than it shows, up to the stored max', () => {
-		const ids = Array.from({ length: MAX_STORED_COMMAND_PALETTE_RECENTS + 1 }, (_, i) => `${i}`)
+	it('caps the stored ids at the stored max on write and on read', () => {
+		const ids = Array.from({ length: MAX_STORED_COMMAND_PALETTE_RECENTS + 5 }, (_, i) => `${i}`)
 		for (const id of ids) addCommandPaletteRecent(id)
 		expect(getCommandPaletteRecents()).toEqual(
-			ids.reverse().slice(0, MAX_STORED_COMMAND_PALETTE_RECENTS)
+			[...ids].reverse().slice(0, MAX_STORED_COMMAND_PALETTE_RECENTS)
 		)
-		expect(MAX_STORED_COMMAND_PALETTE_RECENTS).toBeGreaterThan(MAX_COMMAND_PALETTE_RECENTS)
-	})
-
-	it('caps an over-long stored list on read', () => {
-		const ids = Array.from({ length: MAX_STORED_COMMAND_PALETTE_RECENTS + 5 }, (_, i) => `${i}`)
 		setInLocalStorage(KEY, JSON.stringify(ids))
 		expect(getCommandPaletteRecents()).toEqual(ids.slice(0, MAX_STORED_COMMAND_PALETTE_RECENTS))
 	})

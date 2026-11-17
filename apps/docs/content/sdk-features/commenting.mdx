@@ -89,9 +89,9 @@ Mount the layer through the `InFrontOfTheCanvas` component slot so it sits above
 
 ## Placing comments
 
-`commentToolOverrides` puts the comment tool in Quick Actions with the `C` shortcut, and adds a **Comment** item to the canvas context menu that opens the composer where the menu was opened. With the tool active, clicking empty canvas starts a thread anchored to that point, and clicking a shape anchors a comment to the shape. You can also turn on region comments, where dragging the tool out covers an area. Either way the click only opens a composer: nothing is written to the store until the comment is posted.
+`commentToolOverrides` puts the comment tool in Quick Actions with the `C` shortcut, and adds a **Comment** item to the canvas context menu that opens the composer where the menu was opened. With the tool active, clicking empty canvas starts a thread anchored to that point, and clicking a shape anchors a comment to the shape. You can also turn on region comments, where dragging the tool out covers an area. Either way the click only opens a composer: nothing is written to the store until the comment is posted. The comment tool stays active after a placement, so you can place comments one after another, and the composer stays open until it's posted or dismissed.
 
-To start a comment from somewhere else, such as your own menu item, call `startCommentAt(editor, point)` with a page point. It enters the comment tool and opens the composer there, anchored the same way a click would be.
+To start a comment from somewhere else, such as your own menu item, call `startCommentAt(editor, point)` with a page point. It opens the composer there with the select tool active, anchored the same way a click would be.
 
 Once a comment thread exists, its pin is the handle for everything else.
 
@@ -99,10 +99,12 @@ Once a comment thread exists, its pin is the handle for everything else.
 | ----------- | -------------------------------------------------------------------- |
 | Click a pin | Opens the thread, with its replies and a reply composer.             |
 | Drag a pin  | Re-anchors the thread. Drop it on a shape to attach it to the shape. |
-| `Escape`    | Closes the open thread.                                              |
+| `Escape`    | Steps back one level at a time (see below).                          |
 | `Shift+C`   | Hides and shows the pins on the canvas.                              |
 
-In the built-in layer, resolve and delete-thread sit in the thread's header, and the edit and delete controls for a single comment appear only on the author's own comments by default. [`canModifyComment`](#who-can-edit-and-delete) changes who gets those controls, and [Syncing comments](#syncing-comments) covers enforcing the same rules on the server.
+`Escape` undoes one thing per press. In a composer or reply box that has text, it clears the text. Otherwise it closes the open composer or thread. With nothing open, it leaves the comment tool for the select tool.
+
+In the built-in layer, resolve sits in the thread's header, next to a menu that holds copy link, delete thread and close, and the edit and delete controls for a single comment appear only on the author's own comments by default. [`canModifyComment`](#who-can-edit-and-delete) changes who gets those controls, and [Syncing comments](#syncing-comments) covers enforcing the same rules on the server.
 
 To put the show and hide toggle in a menu of your own, use `CommentsMenuItem`. It's a checkbox item wired to the same state as the `Shift+C` shortcut.
 
@@ -259,7 +261,7 @@ function Comments() {
 }
 ```
 
-A `MentionMember` is a `CommentAuthor` plus an `id`, an optional `secondary` line for the picker, and `you` to mark the current user. `filterMentionMembers` does the matching; supply your own filter to query a server instead. To change how a row looks, pass `renderMentionSuggestion`.
+A `MentionMember` is a `CommentAuthor` plus an `id`, optional `secondary` text shown after the name in the picker, and `you` to mark the current user. `filterMentionMembers` does the matching; supply your own filter to query a server instead. To change how a row looks, pass `renderMentionSuggestion`.
 
 A mention is a node in the body rather than text in it, so you can't find one by searching the string. To detect a mention, look for `{ type: 'mention', attrs: { id } }` in the body's `content` tree.
 
@@ -450,7 +452,7 @@ function StatusRow({ thread, ...row }: CommentListItemRenderProps & { thread: TL
 const tools = [CommentTool.configure({ components: { ThreadRow: StatusRow } })]
 ```
 
-`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve and dismiss buttons. This is where host verbs go: assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
+`ThreadActions` adds controls to an open thread's header, ahead of the built-in resolve button and menu. This is where host verbs go: assign a thread, link it to a ticket, mark it as a to-do. It adds alongside the built-in actions rather than replacing them, so a thread never loses the ability to be resolved.
 
 ```tsx
 import { CommentTool } from '@tldraw/commenting'
@@ -458,7 +460,7 @@ import { TLCommentThread } from 'tldraw'
 
 function AssignAction({ thread }: { thread: TLCommentThread }) {
 	return (
-		<button type="button" className="tlui-cmt-thread__action" onClick={() => assign(thread.id)}>
+		<button type="button" className="tlui-cmt-icon-btn" onClick={() => assign(thread.id)}>
 			Assign
 		</button>
 	)

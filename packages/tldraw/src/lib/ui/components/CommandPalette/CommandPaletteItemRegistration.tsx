@@ -11,6 +11,8 @@ export interface CommandPaletteItemRegistrationProps {
 	label: string
 	/** Shortcut shown at the end of the row. */
 	kbd?: string
+	/** Listed greyed out in search results, after the enabled ones, and can't run. Left out while browsing. */
+	disabled?: boolean
 	/** Shows a check mark, or an empty slot when false. */
 	checked?: boolean
 	/** Like `checked`, for menu items; `checked` wins when both are set. */
@@ -44,12 +46,13 @@ export function CommandPaletteItemRegistration(props: CommandPaletteItemRegistra
 	// No deps: re-register every render so label and checked state stay current.
 	useLayoutEffect(() => {
 		rProps.current = props
-		const { id, kbd, checked, isSelected, detail, prompt } = props
+		const { id, kbd, disabled, checked, isSelected, detail, prompt } = props
 		// Prefixed here so rows, recents and search matching all see the same label.
 		const label = submenu ? `${submenu.label}: ${props.label}` : props.label
 		store.set(token, {
 			id,
 			kbd,
+			disabled,
 			checked,
 			isSelected,
 			detail,

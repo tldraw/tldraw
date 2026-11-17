@@ -31,6 +31,8 @@ export interface CommandPaletteEntry {
 	/** The outermost labelled group the item is in, for group headings. */
 	heading: string | null
 	kbd?: string
+	/** Search lists it greyed out, after enabled matches; browsing leaves it out. */
+	disabled?: boolean
 	checked?: boolean
 	isSelected?: boolean
 	/** Muted text after the label, e.g. the workspace a file is in. Also in `path`, for search. */
@@ -68,6 +70,7 @@ const entryFieldEquals: {
 	section: same,
 	heading: same,
 	kbd: same,
+	disabled: same,
 	checked: same,
 	isSelected: same,
 	detail: same,

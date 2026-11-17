@@ -66,3 +66,14 @@ export function groupLibraryList(
 	}
 	return [...groups.values()]
 }
+
+/** Libraries as menu targets, in their owners' order and named with their owners when grouped. */
+export function toMenuTargets(libraries: TLLibrary[], grouping: LibraryGrouping | undefined) {
+	return groupLibraryList(libraries, grouping).flatMap(({ key, label, icon, libraries: list }) =>
+		list.map(({ id, name }) => ({
+			id,
+			name,
+			owner: key === undefined || label === undefined ? undefined : { id: key, name: label, icon },
+		}))
+	)
+}

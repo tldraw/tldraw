@@ -195,8 +195,9 @@
 	border-radius: var(--tl-radius-2);
 }
 
+/* Leading icons and checks sit 6px from the label; trailing items keep the 8px gap. */
 .tlui-button__menu > .tlui-icon + .tlui-button__label {
-	margin-inline-start: 0px;
+	margin-inline-start: -2px;
 }
 
 .tlui-button__menu:nth-child(1) {
@@ -211,6 +212,11 @@
 
 .tlui-button__checkbox {
 	padding-left: 8px;
+}
+
+/* Switches sit at the trailing edge, so the label keeps the standard menu inset. */
+.tlui-button__toggle {
+	padding-left: 12px;
 }
 
 .tlui-button__checkbox__indicator {
@@ -618,6 +624,11 @@
 	align-self: bottom;
 	color: currentColor;
 	margin-inline-start: var(--tl-space-4);
+}
+
+.tlui-button__menu .tlui-kbd,
+.tlui-command-palette__item .tlui-kbd {
+	color: var(--tl-color-text-3);
 }
 
 .tlui-kbd > span {
@@ -2265,12 +2276,19 @@ tldraw? probably.
 }
 
 .tlui-rich-text__toolbar-link-input {
-	margin-left: 12px;
+	/* Padding rather than margin, so the invalid outline runs to the toolbar's left edge. */
+	padding-left: 12px;
 	/*
 	 * Nice touch tweak: keep the link editor toolbar the same as the default toolbar.
 	 * This is so the toolbar size stays stable going in and out of the link editor.
 	 */
-	width: 148px;
+	width: 160px;
+}
+
+.tlui-rich-text__toolbar-link-input--invalid {
+	/* An inset shadow rather than a border, so the input doesn't change size. */
+	box-shadow: inset 0 0 0 1px var(--tl-color-danger);
+	border-radius: var(--tl-radius-3) var(--tl-radius-2) var(--tl-radius-2) var(--tl-radius-3);
 }
 
 .tlui-media__toolbar-alt-text-input {
@@ -2358,18 +2376,29 @@ tldraw? probably.
 	pointer-events: all;
 }
 
+.tlui-command-palette__overlay[data-passthrough] {
+	pointer-events: none;
+}
+
+.tlui-command-palette__overlay[data-passthrough] > .tlui-command-palette {
+	pointer-events: all;
+}
+
 .tlui-command-palette {
 	--tlui-command-palette-row: 40px;
 	position: absolute;
 	/* The top sits 130px above the anchor and stays put as the list shrinks; short screens raise it
-	   to 360px above the bottom, but no higher than 8px. max-height keeps the 368px full palette at
+	   to 252px above the bottom, but no higher than 8px. max-height keeps the 260px full palette at
 	   most 60% tall and ending at least 8px above the bottom edge. */
 	--tlui-command-palette-anchor: 65%;
-	top: max(8px, min(calc(var(--tlui-command-palette-anchor) - 130px), calc(100% - 360px)));
+	top: max(8px, min(calc(var(--tlui-command-palette-anchor) - 130px), calc(100% - 252px)));
 	left: 50%;
 	transform: translateX(-50%);
 	/* Room for group headings next to longer labels. */
 	width: min(360px, calc(100% - 16px));
+	/* Fixed, so the palette doesn't resize as results come and go: the search row plus 6 rows. The
+	   max-heights below still shrink it on short screens. */
+	height: calc(var(--tlui-command-palette-row) + 6 * (var(--tlui-command-palette-row) - 4px) + 4px);
 	max-height: min(60%, calc(100% - var(--tlui-command-palette-anchor) + 122px));
 	display: flex;
 	flex-direction: column;
@@ -2381,9 +2410,9 @@ tldraw? probably.
 	font-size: 12px;
 }
 
-/* Centers the full 368px palette; shorter lists keep the same top, so the input never moves. */
+/* Centers the full 260px palette; shorter lists keep the same top, so the input never moves. */
 .tlui-command-palette[data-position='center'] {
-	top: max(8px, calc(50% - 184px));
+	top: max(8px, calc(50% - 130px));
 	max-height: 60%;
 }
 
@@ -2395,30 +2424,16 @@ tldraw? probably.
 	max-height: 60%;
 }
 
-/* A bordered box like the sidebar's rename and search inputs; the palette keeps focus on it. */
+/* No focus ring: the palette keeps focus on the input the whole time it's open. */
 .tlui-command-palette__search {
-	position: relative;
 	display: flex;
 	align-items: center;
-	gap: var(--tl-space-3);
+	gap: 6px;
 	flex-shrink: 0;
 	height: var(--tlui-command-palette-row);
-	padding: 0 var(--tl-space-4);
+	padding: 0 var(--tl-space-4) 0 8px;
 	border-bottom: 1px solid var(--tl-color-divider);
 	color: var(--tl-color-text-3);
-}
-
-.tlui-command-palette__search::before {
-	content: '';
-	position: absolute;
-	inset: 4px;
-	border-radius: var(--tl-radius-2);
-	border: 1px solid transparent;
-	pointer-events: none;
-}
-
-.tlui-command-palette__search:focus-within::before {
-	border-color: var(--tl-color-primary);
 }
 
 /* Extends .tlui-input; no font-size here, so its iOS 16px rule still applies. */
@@ -2429,14 +2444,16 @@ tldraw? probably.
 	padding: 0;
 }
 
-/* Rows overlap by 4px like .tlui-button__menu, so n rows are n * 36px + 4px. Headings and
-   separators take rows' space, so 9 rows' worth keeps about 6 commands in view. */
+/* Fills the palette under the search: 8 rows' worth, since rows overlap by 4px like
+   .tlui-button__menu (n rows are n * 36px + 4px). Group titles take rows' space, so about 5
+   commands are in view. */
 .tlui-command-palette__list {
+	flex: 1 1 auto;
 	min-height: 0;
-	max-height: calc(9 * (var(--tlui-command-palette-row) - 4px) + 4px);
 	overflow-y: auto;
 	overscroll-behavior: contain;
-	scroll-padding-block-start: 32px;
+	/* Keeps a group's title in view above its first row. */
+	scroll-padding-block-start: calc(var(--tlui-command-palette-row) - 4px);
 	scroll-padding-block-end: var(--tlui-command-palette-row);
 	scrollbar-width: none;
 }
@@ -2458,32 +2475,36 @@ tldraw? probably.
 	);
 }
 
+/* Divided like .tlui-menu__group. */
+.tlui-command-palette__group + .tlui-command-palette__group {
+	border-top: 1px solid var(--tl-color-divider);
+}
+
+/* A menu row's height and type, muted, so a title reads as a row that can't be picked. */
 .tlui-command-palette__heading {
-	padding: var(--tl-space-3) var(--tl-space-4) var(--tl-space-1);
-	font-size: 11px;
+	display: flex;
+	align-items: center;
+	height: var(--tlui-command-palette-row);
+	padding: 0 var(--tl-space-4);
 	color: var(--tl-color-text-3);
 }
 
+.tlui-command-palette__heading + .tlui-command-palette__item {
+	margin-top: -4px;
+}
+
 .tlui-command-palette__back {
-	display: flex;
-	align-items: center;
-	gap: var(--tl-space-1);
+	flex-shrink: 0;
+	gap: 6px;
 	padding-inline-start: var(--tl-space-3);
+	border-bottom: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text-1);
 	cursor: pointer;
 }
 
 .tlui-command-palette__back-kbd {
 	margin-inline-start: auto;
-}
-
-@media (hover: hover) {
-	.tlui-command-palette__back:hover {
-		color: var(--tl-color-text-1);
-	}
-}
-
-.tlui-command-palette__separator {
-	border-bottom: 1px solid var(--tl-color-divider);
+	color: var(--tl-color-text-3);
 }
 
 .tlui-command-palette__item {
@@ -2491,6 +2512,11 @@ tldraw? probably.
 	z-index: 0;
 	padding: 0 var(--tl-space-4);
 	cursor: pointer;
+}
+
+/* Pulls the check into the inset, like .tlui-button__checkbox. */
+.tlui-command-palette__item[aria-checked] {
+	padding-inline-start: var(--tl-space-3);
 }
 
 .tlui-command-palette__item + .tlui-command-palette__item {
@@ -2507,8 +2533,19 @@ tldraw? probably.
 	opacity: 0;
 }
 
+/* Raised like a hovered .tlui-button, so it keeps the pointer where rows overlap. */
+.tlui-command-palette__item[data-highlighted] {
+	z-index: 1;
+}
+
 .tlui-command-palette__item[data-highlighted]::after {
 	opacity: 1;
+}
+
+.tlui-command-palette__item[aria-disabled='true'],
+.tlui-command-palette__item[aria-disabled='true'] .tlui-kbd {
+	color: var(--tl-color-text-disabled);
+	cursor: default;
 }
 
 .tlui-command-palette__row {
@@ -2520,6 +2557,11 @@ tldraw? probably.
 
 .tlui-command-palette__row > .tlui-icon {
 	flex-shrink: 0;
+}
+
+/* The same uneven gap as .tlui-button__menu. */
+.tlui-command-palette__row > .tlui-icon + .tlui-command-palette__label {
+	margin-inline-start: -2px;
 }
 
 .tlui-command-palette__label {
