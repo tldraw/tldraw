@@ -509,12 +509,6 @@
       "value": "Pin file"
     }
   ],
-  "47f9082fc3": [
-    {
-      "type": 0,
-      "value": "Private"
-    }
-  ],
   "4970317944": [
     {
       "type": 0,
@@ -2030,6 +2024,12 @@
     {
       "type": 0,
       "value": "Learn more about publishing."
+    }
+  ],
+  "cf99da61fc": [
+    {
+      "type": 0,
+      "value": "My stuff"
     }
   ],
   "d0834fcec6": [

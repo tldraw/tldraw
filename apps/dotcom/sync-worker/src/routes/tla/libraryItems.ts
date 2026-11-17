@@ -352,7 +352,10 @@ async function storeItemObjects(
 	return { thumbnail, skippedObjectNames }
 }
 
-/** An item's content, to members of its library's workspace. */
+/**
+ * An item's content, to members of its library's workspace and to anyone who can access a file
+ * its library is added to.
+ */
 export async function getLibraryItemContent(request: IRequest, env: Environment) {
 	const auth = await requireAuth(request, env)
 	if (!(await canUseLibraries(env, auth.userId))) return notFound()
@@ -363,7 +366,7 @@ export async function getLibraryItemContent(request: IRequest, env: Environment)
 	let contentKey: string
 	try {
 		const access = await getLibraryItemAccess(db, auth.userId, itemId)
-		if (!access || !isRole(access.role)) return notFound()
+		if (!access || !(isRole(access.role) || access.isOnAccessibleFile)) return notFound()
 		contentKey = access.item.contentKey
 	} finally {
 		await db.destroy()

@@ -176,7 +176,7 @@ const libraryAccess = (owningGroupId: string, role: string | null) => ({
 	role,
 })
 
-const itemAccess = (role: string | null) => ({
+const itemAccess = (role: string | null, isOnAccessibleFile = false) => ({
 	id: ITEM_ID,
 	libraryId: LIBRARY_ID,
 	name: null,
@@ -187,6 +187,7 @@ const itemAccess = (role: string | null) => ({
 	updatedAt: 1,
 	owningGroupId: W,
 	role,
+	isOnAccessibleFile,
 })
 
 beforeEach(() => {
@@ -784,6 +785,29 @@ describe('getLibraryItemContent', () => {
 	it('answers 404 to someone who is not a member of the workspace', async () => {
 		const env = await storedEnv()
 		mockPool([[itemAccess(null)]])
+		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
+	})
+
+	it("serves someone who isn't a member when the library is added to a file they can access", async () => {
+		const env = await storedEnv()
+		const fake = mockPool([[itemAccess(null, true)]])
+		const content = await getLibraryItemContent(getRequest(), env)
+		expect(content.status).toBe(200)
+		expect(await content.json()).toEqual(CONTENT)
+		const [{ sql, parameters }] = fake.queries
+		expect(sql).toContain('"file_library"')
+		expect(parameters).toEqual([ME, ME, ME, ITEM_ID])
+	})
+
+	it('answers 404 to someone who is not a member, and whose files the library is not added to', async () => {
+		const env = await storedEnv()
+		mockPool([[itemAccess(null, false)]])
+		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
+	})
+
+	it('answers 404 for an item that does not exist', async () => {
+		const env = await storedEnv()
+		mockPool([[]])
 		expect((await getLibraryItemContent(getRequest(), env)).status).toBe(404)
 	})
 })

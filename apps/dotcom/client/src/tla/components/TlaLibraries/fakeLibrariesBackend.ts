@@ -1,11 +1,12 @@
 import {
 	libraryName,
+	type TlaFileLibrary,
 	type TlaLibrary,
 	type TlaLibraryItem,
 	type TlaLibraryItemThumbnail,
 } from '@tldraw/dotcom-shared'
 import type { JsonObject } from '@tldraw/utils'
-import { atom } from 'tldraw'
+import { atom, computed } from 'tldraw'
 import { vi } from 'vitest'
 import type { TldrawApp } from '../../app/TldrawApp'
 
@@ -21,9 +22,12 @@ function createHold() {
 }
 
 /**
- * Stands in for what TldrawAppLibrariesSource talks to: the app's libraries query and
- * mutators, and the sync worker's routes behind `fetch`. Rows change at once, as Zero applies a
- * mutation locally. Stored content is kept in a map, and thumbnails at made-up public URLs.
+ * Stands in for what TldrawAppLibrariesSource and TldrawAppFileLibrariesSource talk to: the app's
+ * libraries query, a file's fileLibraries query and the mutators, and the sync worker's routes
+ * behind `fetch`. Rows change at once, as Zero applies a mutation locally. Stored content is kept
+ * in a map, and thumbnails at made-up public URLs. `otherRows` are libraries of workspaces the user
+ * isn't in, seen only when added to a file; the user can edit every file but `readOnlyFiles`. Files
+ * are in the first workspace unless `fileWorkspaces` says otherwise.
  *
  * A test can hold the server's confirmation of mutations (`holdServer`, failing it rolls the
  * mutations back), the worker's answers (`holdRequests`, failing them answers 500) and the arrival
@@ -34,6 +38,11 @@ export function createFakeLibrariesBackend({
 	workspaces = [{ id: 'acme', name: 'Acme' }],
 }: { userId?: string; workspaces?: { id: string; name: string }[] } = {}) {
 	const rows = atom<Row[]>('fake library rows', [])
+	const otherRows = atom<Row[]>('fake library rows of other workspaces', [])
+	const fileLibraries = atom<TlaFileLibrary[]>('fake file libraries', [])
+	const readOnlyFiles = new Set<string>()
+	// The workspace each file is in: the first of `workspaces` unless set.
+	const fileWorkspaces = atom('fake file workspaces', new Map<string, string>())
 	const contents = new Map<string, string>()
 	let uploads = 0
 	const upload = () => `https://content.test/thumbnail-${++uploads}-png`
@@ -93,6 +102,7 @@ export function createFakeLibrariesBackend({
 							name: libraryName(name),
 							owningGroupId,
 							meta,
+							isDefault: false,
 							createdBy: userId,
 							createdAt: all.length,
 							updatedAt: 0,
@@ -103,10 +113,58 @@ export function createFakeLibrariesBackend({
 			},
 			rename: ({ id, name }: any) => change(() => updateRow(id, (row) => ({ ...row, name }))),
 			delete: ({ id }: any) =>
-				change(() => rows.update((all) => all.filter((row) => row.id !== id))),
+				change(() => {
+					rows.update((all) => all.filter((row) => row.id !== id))
+					fileLibraries.update((all) => all.filter((fl) => fl.libraryId !== id))
+				}),
+			ensureDefault: ({ id, name }: any) => {
+				if (rows.get().some((row) => row.isDefault && row.owningGroupId === userId)) {
+					return change(() => {})
+				}
+				return change(() =>
+					rows.update((all) => [
+						...all,
+						{
+							id,
+							name,
+							owningGroupId: userId,
+							meta: {},
+							isDefault: true,
+							createdBy: userId,
+							createdAt: all.length,
+							updatedAt: 0,
+							items: [],
+						},
+					])
+				)
+			},
 			move: ({ id, owningGroupId }: any) => {
 				if (!isMember(owningGroupId)) return rejected()
 				return change(() => updateRow(id, (row) => ({ ...row, owningGroupId })))
+			},
+		},
+		file_library: {
+			add: ({ fileId, libraryId }: any) => {
+				if (readOnlyFiles.has(fileId) || !rows.get().some((row) => row.id === libraryId)) {
+					return rejected()
+				}
+				if (fileLibraries.get().some((fl) => fl.fileId === fileId && fl.libraryId === libraryId)) {
+					return change(() => {})
+				}
+				return change(() =>
+					fileLibraries.update((all) => [
+						...all,
+						{ fileId, libraryId, addedBy: userId, addedAt: Date.now() },
+					])
+				)
+			},
+			remove: ({ fileId, libraryId }: any) => {
+				if (readOnlyFiles.has(fileId)) return rejected()
+				return change(() =>
+					fileLibraries.update((all) =>
+						all.filter((fl) => !(fl.fileId === fileId && fl.libraryId === libraryId))
+					)
+				)
 			},
 		},
 		library_item: {
@@ -214,7 +272,7 @@ export function createFakeLibrariesBackend({
 			insertRows(() =>
 				rows.update((all) => [
 					...all,
-					{ ...source, id, owningGroupId, createdAt: all.length, items },
+					{ ...source, id, owningGroupId, isDefault: false, createdAt: all.length, items },
 				])
 			)
 			return Response.json({ id })
@@ -230,6 +288,18 @@ export function createFakeLibrariesBackend({
 		routes(String(input), init)
 	)
 
+	const watchFileLibraries = vi.fn((fileId: string) => ({
+		rows: computed(`fake file libraries ${fileId}`, () => {
+			const added = fileLibraries.get().filter((fl) => fl.fileId === fileId)
+			return [...rows.get(), ...otherRows.get()].flatMap((row) => {
+				const own = added.filter((fl) => fl.libraryId === row.id)
+				const isMyDefault = row.isDefault && row.owningGroupId === userId
+				return isMyDefault || own.length > 0 ? [{ ...row, fileLibraries: own }] : []
+			})
+		}),
+		stop: vi.fn(),
+	}))
+
 	const toasts = { addToast: vi.fn() }
 	const app = {
 		userId,
@@ -239,6 +309,12 @@ export function createFakeLibrariesBackend({
 		getWorkspaceMemberships: () => memberships,
 		getWorkspaceMembership: (id: string) => memberships.find((m) => m.groupId === id),
 		getLibraryRows: () => rows.get(),
+		watchFileLibraries,
+		canUpdateFile: (fileId: string) => !readOnlyFiles.has(fileId),
+		getFile: (fileId: string) => ({
+			id: fileId,
+			owningGroupId: fileWorkspaces.get().get(fileId) ?? workspaces[0]?.id ?? userId,
+		}),
 		msg: (message: { defaultMessage: string }) => message.defaultMessage,
 		showMutationRejectionToast,
 		trackEvent,
@@ -247,6 +323,11 @@ export function createFakeLibrariesBackend({
 	return {
 		app,
 		rows,
+		otherRows,
+		fileLibraries,
+		readOnlyFiles,
+		fileWorkspaces,
+		watchFileLibraries,
 		contents,
 		fetch: fetchSpy,
 		getToken: async () => 'token',

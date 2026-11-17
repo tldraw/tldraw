@@ -27,7 +27,6 @@ import {
 	queries,
 	schema as zeroSchema,
 } from '@tldraw/dotcom-shared'
-import type { LibrarySource } from '@tldraw/libraries'
 import {
 	Result,
 	compact,
@@ -212,9 +211,10 @@ export class TldrawApp {
 	readonly isLoadRumEnabled: boolean
 	readonly isUiV3Enabled: boolean
 	/** Null when the `libraries` flag is off for this user. */
-	readonly libraries: LibrarySource | null
+	readonly libraries: TldrawAppLibrariesSource | null
 	/** Empty until {@link startLibraries}. */
 	private readonly libraryRows$: Atom<QueryResultType<typeof queries.libraries>>
+	private readonly librariesLoaded$ = atom('libraries loaded', false)
 
 	private readonly abortController = new AbortController()
 	readonly disposables: (() => void)[] = [() => this.abortController.abort(), () => this.z.close()]
@@ -466,11 +466,25 @@ export class TldrawApp {
 	 * {@link startNotificationFeeds}, once {@link preload} has resolved.
 	 */
 	startLibraries() {
-		if (!this.libraries) return
-		this.bindQuery(
-			this.libraryRows$,
-			this.materializeQuery<QueryResultType<typeof queries.libraries>>(queries.libraries())
+		const { libraries } = this
+		if (!libraries) return
+		const view = this.materializeQuery<QueryResultType<typeof queries.libraries>>(
+			queries.libraries()
 		)
+		this.bindQuery(this.libraryRows$, view)
+		view.addListener((_rows, resultType) => {
+			if (resultType !== 'complete' || this.librariesLoaded$.get()) return
+			// After bindQuery's flush, so the rows are in place before anyone reads them as loaded.
+			void this.changesFlushed?.then(() => {
+				this.librariesLoaded$.set(true)
+				libraries.ensureDefaultLibrary()
+			})
+		})
+	}
+
+	/** Whether the libraries query has synced, so an empty list means there are none. */
+	areLibrariesLoaded() {
+		return this.librariesLoaded$.get()
 	}
 
 	/** The libraries of every workspace the user is in, with their items. */

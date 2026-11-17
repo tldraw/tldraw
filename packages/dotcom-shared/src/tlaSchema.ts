@@ -236,6 +236,9 @@ export const library = table('library')
 		createdAt: number(),
 		updatedAt: number(),
 		meta: json<JsonObject>(),
+		// the user's default library, shown on every board they open; at most one per user, in their
+		// home workspace (059)
+		isDefault: boolean(),
 	})
 	.primaryKey('id')
 
@@ -258,6 +261,17 @@ export const library_item = table('library_item')
 	})
 	.primaryKey('id')
 
+// A library added to a file. Everyone who can access the file sees it, whether or not they're a
+// member of the library's workspace.
+export const file_library = table('file_library')
+	.columns({
+		fileId: string(),
+		libraryId: string(),
+		addedBy: string(),
+		addedAt: number(),
+	})
+	.primaryKey('fileId', 'libraryId')
+
 const fileRelationships = relationships(file, ({ many }) => ({
 	states: many({
 		sourceField: ['id'],
@@ -268,6 +282,11 @@ const fileRelationships = relationships(file, ({ many }) => ({
 		sourceField: ['id'],
 		destField: ['fileId'],
 		destSchema: group_file,
+	}),
+	fileLibraries: many({
+		sourceField: ['id'],
+		destField: ['fileId'],
+		destSchema: file_library,
 	}),
 }))
 
@@ -427,6 +446,36 @@ const libraryRelationships = relationships(library, ({ one, many }) => ({
 		destField: ['libraryId'],
 		destSchema: library_item,
 	}),
+	fileLibraries: many({
+		sourceField: ['id'],
+		destField: ['libraryId'],
+		destSchema: file_library,
+	}),
+}))
+
+// fileStates and groupFiles are the file's access rows, correlated straight on fileId as on
+// `comment`, so the file-access gate sits one hop from file_library.
+const fileLibraryRelationships = relationships(file_library, ({ one, many }) => ({
+	file: one({
+		sourceField: ['fileId'],
+		destField: ['id'],
+		destSchema: file,
+	}),
+	library: one({
+		sourceField: ['libraryId'],
+		destField: ['id'],
+		destSchema: library,
+	}),
+	fileStates: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: file_state,
+	}),
+	groupFiles: many({
+		sourceField: ['fileId'],
+		destField: ['fileId'],
+		destSchema: group_file,
+	}),
 }))
 
 export type TlaFilePartial = Partial<TlaFile> & {
@@ -577,6 +626,7 @@ export interface DB {
 	library: TlaLibrary
 	library_item: TlaLibraryItem & LibraryItemPersistenceColumns
 	library_item_object: TlaLibraryItemObject
+	file_library: TlaFileLibrary
 }
 
 export const schema = createSchema({
@@ -595,6 +645,7 @@ export const schema = createSchema({
 		comment_reaction,
 		library,
 		library_item,
+		file_library,
 	],
 	relationships: [
 		fileRelationships,
@@ -606,6 +657,7 @@ export const schema = createSchema({
 		commentRelationships,
 		commentThreadRelationships,
 		libraryRelationships,
+		fileLibraryRelationships,
 	],
 })
 
@@ -624,6 +676,7 @@ export type TlaCommentMention = Row<typeof schema.tables.comment_mention>
 export type TlaCommentReaction = Row<typeof schema.tables.comment_reaction>
 export type TlaLibrary = Row<typeof schema.tables.library>
 export type TlaLibraryItem = Row<typeof schema.tables.library_item>
+export type TlaFileLibrary = Row<typeof schema.tables.file_library>
 
 // Permissions are now handled via Synced Queries in queries.ts
 

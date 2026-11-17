@@ -215,9 +215,6 @@
   "47f493a590": {
     "translation": "Pin file"
   },
-  "47f9082fc3": {
-    "translation": "Private"
-  },
   "4970317944": {
     "translation": "Object"
   },
@@ -758,6 +755,9 @@
   },
   "cea291e45e": {
     "translation": "Learn more about publishing."
+  },
+  "cf99da61fc": {
+    "translation": "My stuff"
   },
   "d0834fcec6": {
     "translation": "Preferences"

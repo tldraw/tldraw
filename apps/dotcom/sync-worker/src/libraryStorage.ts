@@ -110,7 +110,11 @@ export async function getLibraryAccess(db: Kysely<DB>, userId: string, libraryId
 	return { library, role: resolveRole(library.owningGroupId, userId, role) }
 }
 
-/** An item and the user's role in its library's owning workspace, or null if it doesn't exist. */
+/**
+ * An item, the user's role in its library's owning workspace, and whether its library is added to
+ * a file the user can access (opened it, or a member of a workspace it belongs to, as the
+ * fileLibraries query gates it). Null if the item doesn't exist.
+ */
 export async function getLibraryItemAccess(db: Kysely<DB>, userId: string, itemId: string) {
 	const row = await db
 		.selectFrom('library_item')
@@ -125,11 +129,44 @@ export async function getLibraryItemAccess(db: Kysely<DB>, userId: string, itemI
 				.where('group_user.userId', '=', userId)
 				.as('role')
 		)
+		.select((eb) =>
+			eb
+				.exists(
+					eb
+						.selectFrom('file_library')
+						.select('file_library.fileId')
+						.whereRef('file_library.libraryId', '=', 'library.id')
+						.where((eb) =>
+							eb.or([
+								eb.exists(
+									eb
+										.selectFrom('file_state')
+										.select('file_state.fileId')
+										.whereRef('file_state.fileId', '=', 'file_library.fileId')
+										.where('file_state.userId', '=', userId)
+								),
+								eb.exists(
+									eb
+										.selectFrom('group_file')
+										.innerJoin('group_user', 'group_user.groupId', 'group_file.groupId')
+										.select('group_file.fileId')
+										.whereRef('group_file.fileId', '=', 'file_library.fileId')
+										.where('group_user.userId', '=', userId)
+								),
+							])
+						)
+				)
+				.as('isOnAccessibleFile')
+		)
 		.where('library_item.id', '=', itemId)
 		.executeTakeFirst()
 	if (!row) return null
-	const { role, owningGroupId, ...item } = row
-	return { item, role: resolveRole(owningGroupId, userId, role) }
+	const { role, owningGroupId, isOnAccessibleFile, ...item } = row
+	return {
+		item,
+		role: resolveRole(owningGroupId, userId, role),
+		isOnAccessibleFile: Boolean(isOnAccessibleFile),
+	}
 }
 
 /** The user's role in a workspace, the home workspace counting as its owner's. */

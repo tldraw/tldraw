@@ -233,6 +233,10 @@ async function deleteLibrary(tx: Tx, id: string) {
 	if (tx.location !== 'server') {
 		const items = await tx.run(zql.library_item.where('libraryId', '=', id))
 		for (const item of items) await tx.mutate.library_item.delete({ id: item.id })
+		const added = await tx.run(zql.file_library.where('libraryId', '=', id))
+		for (const { fileId } of added) {
+			await tx.mutate.file_library.delete({ fileId, libraryId: id })
+		}
 	}
 	await tx.mutate.library.delete({ id })
 }
@@ -352,6 +356,32 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 					createdAt: now,
 					updatedAt: now,
 					meta,
+					isDefault: false,
+				})
+			},
+			/**
+			 * Creates the user's default library, in their home workspace, unless they have one.
+			 * Refuses an id that names another library.
+			 */
+			ensureDefault: async (tx: Tx, { id, name }: { id: string; name: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const current = await tx.run(
+					zql.library.where('owningGroupId', '=', userId).where('isDefault', '=', true).one()
+				)
+				if (current) return
+				assertValidId(id)
+				const existing = await tx.run(zql.library.where('id', '=', id).one())
+				assert(!existing, ZErrorCode.bad_request)
+				const now = Date.now()
+				await tx.mutate.library.insert({
+					id,
+					name: libraryName(name),
+					owningGroupId: userId,
+					createdBy: userId,
+					createdAt: now,
+					updatedAt: now,
+					meta: {},
+					isDefault: true,
 				})
 			},
 			rename: async (tx: Tx, { id, name }: { id: string; name: string }) => {
@@ -359,9 +389,11 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				await assertCanManageLibrary(tx, userId, id)
 				await tx.mutate.library.update({ id, name: libraryName(name), updatedAt: Date.now() })
 			},
+			/** Deletes a library with its items. The user's default library is never deleted. */
 			delete: async (tx: Tx, { id }: { id: string }) => {
 				await assertLibrariesEnabled(tx, options)
-				await assertCanManageLibrary(tx, userId, id)
+				const library = await assertCanManageLibrary(tx, userId, id)
+				assert(!library.isDefault, ZErrorCode.forbidden)
 				await deleteLibrary(tx, id)
 			},
 			/** Gives a library, with its items, to another workspace the user is a member of. */
@@ -370,6 +402,7 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				assert(owningGroupId, ZErrorCode.bad_request)
 				const library = await assertCanManageLibrary(tx, userId, id)
 				if (library.owningGroupId === owningGroupId) return
+				assert(!library.isDefault, ZErrorCode.forbidden)
 				const toRole = await getRole(tx, userId, owningGroupId)
 				assert(can(toRole, 'manageLibraries'), ZErrorCode.forbidden)
 				await tx.mutate.library.update({ id, owningGroupId, updatedAt: Date.now() })
@@ -406,6 +439,35 @@ export function createMutators(userId: string, options: MutatorOptions = {}) {
 				if (item.libraryId === libraryId) return
 				await assertCanManageLibrary(tx, userId, libraryId)
 				await tx.mutate.library_item.update({ id, libraryId, updatedAt: Date.now() })
+			},
+		},
+
+		file_library: {
+			/** Adds a library the user can see to a file they can edit. */
+			add: async (tx: Tx, { fileId, libraryId }: { fileId: string; libraryId: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
+				await assertUserCanUpdateFile(tx, userId, file!)
+				assert(libraryId, ZErrorCode.bad_request)
+				const library = await tx.run(zql.library.where('id', '=', libraryId).one())
+				assert(library, ZErrorCode.bad_request)
+				assert(isRole(await getRole(tx, userId, library.owningGroupId)), ZErrorCode.forbidden)
+				const existing = await tx.run(
+					zql.file_library.where('fileId', '=', fileId).where('libraryId', '=', libraryId).one()
+				)
+				if (existing) return
+				await tx.mutate.file_library.insert({
+					fileId,
+					libraryId,
+					addedBy: userId,
+					addedAt: Date.now(),
+				})
+			},
+			remove: async (tx: Tx, { fileId, libraryId }: { fileId: string; libraryId: string }) => {
+				await assertLibrariesEnabled(tx, options)
+				const file = await tx.run(zql.file.where('id', '=', fileId).one())
+				await assertUserCanUpdateFile(tx, userId, file!)
+				await tx.mutate.file_library.delete({ fileId, libraryId })
 			},
 		},
 

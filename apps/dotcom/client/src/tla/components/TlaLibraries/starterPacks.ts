@@ -1,16 +1,19 @@
 import {
-	copyPack,
+	addPackToDocument,
+	findPackCopy,
+	getLibraryErrorReason,
 	libraryThumbnailValidator,
 	parseLibraryPack,
+	type LibraryBrowseGroup,
 	type LibraryPack,
 	type LibraryPackItem,
 	type LibrarySource,
-	type TLLibrary,
 } from '@tldraw/libraries'
 import { atom, T } from 'tldraw'
+import type { TLAppUiHandler } from '../../utils/app-ui-events'
 import { getUntrackedSource } from './trackedLibrarySource'
 
-/** What the starter packs dialog shows of a pack, without loading its items. */
+/** What browsing shows of a pack, without loading its items. */
 export interface StarterPackSummary {
 	id: string
 	name: string
@@ -77,42 +80,88 @@ export async function loadStarterPack(id: string): Promise<LibraryPack> {
 	return parseLibraryPack((await load()).default)
 }
 
-function getDefaultOwnerId(source: LibrarySource) {
+/**
+ * Where adding a starter pack copies it: the first owner the source offers for new libraries that
+ * the user may create in, which for a file is its workspace, else the source's default owner.
+ */
+export function getStarterPackOwnerId(source: LibrarySource): string | undefined {
+	const offered = source.getNewLibraryOwnerIds ? source.getNewLibraryOwnerIds() : []
+	const ownerId = offered.find((id) => source.can('createLibrary', { ownerId: id }))
+	if (ownerId !== undefined) return ownerId
 	return source.getDefaultOwnerId ? source.getDefaultOwnerId() : undefined
 }
 
-/** Whether the user may add a starter pack, i.e. create a library for the default owner. */
-export function canAddStarterPack(source: LibrarySource) {
-	const ownerId = getDefaultOwnerId(source)
-	return source.can('createLibrary', ownerId === undefined ? undefined : { ownerId })
+/**
+ * Shows a starter pack in the document, as {@link addPackToDocument} does. Tracked as adding the
+ * pack, not as creating a library and saving items to it.
+ */
+export function addStarterPack(
+	source: LibrarySource,
+	packId: string,
+	loadPack: () => Promise<LibraryPack>,
+	ownerId: string | undefined
+) {
+	return addPackToDocument(
+		getUntrackedSource(source),
+		packId,
+		loadPack,
+		ownerId === undefined ? {} : { ownerId }
+	)
 }
 
 /**
- * Copies a starter pack into the source's default owner, or wherever the source puts new libraries.
- * Tracked as adding the pack, not as creating a library and saving items to it.
+ * The starter packs as a group to browse: each is added once the document shows a copy of it.
+ * Adding one adds a copy the user already has available, or copies the pack to
+ * {@link getStarterPackOwnerId}, and reports `add-starter-pack`, or `library-error` if it fails.
  */
-export function addStarterPack(source: LibrarySource, pack: LibraryPack) {
-	const ownerId = getDefaultOwnerId(source)
-	return copyPack(getUntrackedSource(source), pack, ownerId === undefined ? {} : { ownerId })
-}
-
-/** The pack a library was copied from, as recorded by `copyPack`, if any. */
-export function getStarterPackId(library: TLLibrary): string | undefined {
-	const { packId } = library.meta
-	return typeof packId === 'string' ? packId : undefined
-}
-
-/**
- * Whether the source holds a copy of the pack, in its default owner if it has one. Deleting the
- * copy makes the pack addable again.
- */
-export function isStarterPackAdded(source: LibrarySource, packId: string) {
-	const ownerId = getDefaultOwnerId(source)
-	return source
-		.getLibraries()
-		.some(
-			(library) =>
-				(ownerId === undefined || library.ownerId === ownerId) &&
-				getStarterPackId(library) === packId
-		)
+export function getStarterPackBrowseGroup(
+	source: LibrarySource,
+	packs: StarterPackSummary[],
+	label: string,
+	trackEvent: TLAppUiHandler
+): LibraryBrowseGroup {
+	const shown = source.getLibraries()
+	const available = source.getAvailableLibraries ? source.getAvailableLibraries() : []
+	const ownerId = getStarterPackOwnerId(source)
+	const canCopy = source.can('createLibrary', ownerId === undefined ? undefined : { ownerId })
+	return {
+		id: 'starter-packs',
+		label,
+		entries: packs.map((pack) => {
+			const copy = findPackCopy(available, pack.id)
+			return {
+				id: pack.id,
+				name: pack.name,
+				itemCount: pack.itemCount,
+				previews: pack.previews.map((item) => item.thumbnail),
+				added: findPackCopy(shown, pack.id) !== undefined,
+				canAdd: copy ? source.can('addLibraryToDocument', copy.id) : canCopy,
+				add: async () => {
+					try {
+						const id = await addStarterPack(
+							source,
+							pack.id,
+							() => loadStarterPack(pack.id),
+							ownerId
+						)
+						trackEvent('add-starter-pack', { source: 'libraries', pack_id: pack.id })
+						return id
+					} catch (error) {
+						trackEvent('library-error', {
+							source: 'libraries',
+							action: 'add-starter-pack',
+							reason: getLibraryErrorReason(error),
+						})
+						throw error
+					}
+				},
+				getItems: async () =>
+					(await loadStarterPack(pack.id)).items.map(({ id, name, thumbnail }) => ({
+						id,
+						name,
+						thumbnail,
+					})),
+			}
+		}),
+	}
 }
