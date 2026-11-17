@@ -139,6 +139,12 @@
       "value": "Invia feedback"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Contrassegna tutte le notifiche come lette"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -173,6 +179,12 @@
     {
       "type": 0,
       "value": "Opzioni di notifica"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Passa allo spazio di lavoro"
     }
   ],
   "181b90f889": [
@@ -237,26 +249,20 @@
       "value": "Informazioni su tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " ha commentato sulla tua bacheca"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Impossibile inviare il feedback"
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "A nome di "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -319,10 +325,22 @@
       "value": "Torna a tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "File duplicato"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Prova a ricaricare la pagina."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Nome file"
     }
   ],
   "344a7f427f": [
@@ -423,6 +441,12 @@
       "value": "Grazie per averci aiutato a migliorare tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Spostare il file in"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -445,6 +469,28 @@
     {
       "type": 0,
       "value": "Nome"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Copia il link pubblicato"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha commentato"
     }
   ],
   "4d0d3ddec9": [
@@ -535,6 +581,12 @@
       "value": "Crea uno spazio di lavoro"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Vai al file"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -563,22 +615,6 @@
     {
       "type": 0,
       "value": "Il mio spazio di lavoro"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " ha reagito al tuo commento"
     }
   ],
   "5d04a002ea": [
@@ -623,35 +659,6 @@
       "value": "Più tardi"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Qualcuno ha reagito al tuo commento"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " persone hanno reagito al tuo commento"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -682,10 +689,80 @@
       "value": "È disponibile una nuova versione di tldraw. Ricarica la pagina per continuare."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Modificato"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Nuovo file"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " altro"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " altri"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " hanno reagito"
     }
   ],
   "6832ac5936": [
@@ -700,10 +777,49 @@
       "value": "Elimina l'area di lavoro"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Qualcuno ha reagito"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " le persone hanno reagito"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Aiuto"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -716,6 +832,12 @@
     {
       "type": 0,
       "value": "Per importare il contenuto manualmente, segui questi passaggi:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Tela"
     }
   ],
   "70a6facb9d": [
@@ -788,6 +910,12 @@
     {
       "type": 0,
       "value": "Per favore ricarica"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Copia il collegamento al file"
     }
   ],
   "777f9e90cf": [
@@ -952,6 +1080,56 @@
       "value": "Sei già membro di questo spazio di lavoro"
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " altro"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " altri"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " hanno reagito"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -968,6 +1146,12 @@
     {
       "type": 0,
       "value": "Condivisi con te"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Di"
     }
   ],
   "8ff3d0a705": [
@@ -1008,6 +1192,12 @@
       "value": "? Questa azione non può essere annullata."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "File"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1030,6 +1220,22 @@
     {
       "type": 0,
       "value": "Questo mese"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " ha reagito"
     }
   ],
   "985a4b720f": [
@@ -1194,6 +1400,12 @@
       "value": "Politica sui cookie"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Attiva/disattiva la barra laterale dei commenti"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1248,6 +1460,18 @@
       "value": "Limite file raggiunto"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "App"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Biblioteche"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1298,6 +1522,12 @@
     {
       "type": 0,
       "value": "Il file è pieno"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Apri il pannello delle notifiche"
     }
   ],
   "b357b524e7": [
@@ -1400,6 +1630,12 @@
       "value": "ownerName"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "File corrente"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1488,6 +1724,18 @@
       "value": "Chiudi"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Colore"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Profilo"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1512,54 +1760,16 @@
       "value": "Maggiori informazioni sulla pubblicazione."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " e "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " altro"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " altri"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Preferenze"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " hanno reagito al tuo commento"
+      "value": "Annulla la pubblicazione del file"
     }
   ],
   "d3d2e61733": [
@@ -1578,6 +1788,12 @@
     {
       "type": 0,
       "value": "Attiva/disattiva barra laterale"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Spazi di lavoro"
     }
   ],
   "d638a3344b": [
@@ -1650,12 +1866,6 @@
       "value": "Lasciare l'area di lavoro"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Flag di debug dell'app"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1678,36 +1888,6 @@
     {
       "type": 0,
       "value": "Termini di servizio"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " e "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " hanno reagito al tuo commento"
     }
   ],
   "e81c4e4f2b": [
@@ -1826,70 +2006,6 @@
       "value": "Questo link di invito non è valido o è scaduto."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " e "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " altro"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " altri"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " hanno reagito al tuo commento"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -1968,6 +2084,36 @@
     {
       "type": 0,
       "value": "Errore durante l'accettazione dell'invito"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " hanno reagito"
     }
   ],
   "ffcd73e997": [

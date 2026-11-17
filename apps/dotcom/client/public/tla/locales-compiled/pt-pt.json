@@ -139,6 +139,12 @@
       "value": "Enviar feedback"
     }
   ],
+  "0e4a10d921": [
+    {
+      "type": 0,
+      "value": "Marcar todas as notificações como lidas"
+    }
+  ],
   "1063e38cb5": [
     {
       "type": 0,
@@ -173,6 +179,12 @@
     {
       "type": 0,
       "value": "Opções de notificação"
+    }
+  ],
+  "15bf4fead9": [
+    {
+      "type": 0,
+      "value": "Alternar espaço de trabalho"
     }
   ],
   "181b90f889": [
@@ -237,26 +249,20 @@
       "value": "Sobre tldraw"
     }
   ],
-  "2755e3ab39": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " comentou no seu fórum"
-    }
-  ],
   "28b2464e1f": [
     {
       "type": 0,
       "value": "Não foi possível enviar o feedback."
+    }
+  ],
+  "2944edaa8d": [
+    {
+      "type": 0,
+      "value": "Em nome de "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "299cb00a7a": [
@@ -319,10 +325,22 @@
       "value": "Voltar ao tldraw"
     }
   ],
+  "32811caa8c": [
+    {
+      "type": 0,
+      "value": "Arquivo duplicado"
+    }
+  ],
   "335defdafe": [
     {
       "type": 0,
       "value": "Tente atualizar a página."
+    }
+  ],
+  "34082694d2": [
+    {
+      "type": 0,
+      "value": "Nome do arquivo"
     }
   ],
   "344a7f427f": [
@@ -423,6 +441,12 @@
       "value": "Obrigado por nos ajudar a melhorar o tldraw!"
     }
   ],
+  "4630b65bb2": [
+    {
+      "type": 0,
+      "value": "Mover arquivo para"
+    }
+  ],
   "46de2de6bb": [
     {
       "type": 0,
@@ -445,6 +469,28 @@
     {
       "type": 0,
       "value": "Nome"
+    }
+  ],
+  "4a8165368a": [
+    {
+      "type": 0,
+      "value": "Copiar link publicado"
+    }
+  ],
+  "4a95fa0c08": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " comentou"
     }
   ],
   "4d0d3ddec9": [
@@ -535,6 +581,12 @@
       "value": "Crie um espaço de trabalho"
     }
   ],
+  "5653ebed2e": [
+    {
+      "type": 0,
+      "value": "Acesse o arquivo"
+    }
+  ],
   "5677e381d2": [
     {
       "type": 0,
@@ -563,22 +615,6 @@
     {
       "type": 0,
       "value": "Meu espaço de trabalho"
-    }
-  ],
-  "5bffeebf03": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagiu ao seu comentário"
     }
   ],
   "5d04a002ea": [
@@ -623,35 +659,6 @@
       "value": "Mais tarde"
     }
   ],
-  "61fb03fd7b": [
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 0,
-              "value": "Alguém reagiu ao seu comentário."
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " pessoas reagiram ao seu comentário"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    }
-  ],
   "625fd29749": [
     {
       "type": 0,
@@ -682,10 +689,80 @@
       "value": "Uma nova versão do tldraw está disponível. Recarregue a página para continuar."
     }
   ],
+  "67ed6ddb7d": [
+    {
+      "type": 0,
+      "value": "Editado"
+    }
+  ],
   "681e10aecb": [
     {
       "type": 0,
       "value": "Novo ficheiro"
+    }
+  ],
+  "68240daa8f": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": ", "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagiram"
     }
   ],
   "6832ac5936": [
@@ -700,10 +777,49 @@
       "value": "Eliminar espaço de trabalho"
     }
   ],
+  "69ce6a28fb": [
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 0,
+              "value": "Alguém reagiu."
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " pessoas reagiram"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    }
+  ],
   "6a26f54883": [
     {
       "type": 0,
       "value": "Ajuda"
+    }
+  ],
+  "6b71e0ebcb": [
+    {
+      "type": 0,
+      "value": "/ "
+    },
+    {
+      "type": 1,
+      "value": "name"
     }
   ],
   "6dc0836c1b": [
@@ -716,6 +832,12 @@
     {
       "type": 0,
       "value": "Siga estes passos para importar o conteúdo manualmente:"
+    }
+  ],
+  "6ea5359e01": [
+    {
+      "type": 0,
+      "value": "Tela"
     }
   ],
   "70a6facb9d": [
@@ -788,6 +910,12 @@
     {
       "type": 0,
       "value": "Por favor recarregue"
+    }
+  ],
+  "76ec4e4ed9": [
+    {
+      "type": 0,
+      "value": "Copiar link do arquivo"
     }
   ],
   "777f9e90cf": [
@@ -952,6 +1080,56 @@
       "value": "Você já é membro deste espaço de trabalho."
     }
   ],
+  "887479cb61": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "offset": 0,
+      "options": {
+        "one": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " other"
+            }
+          ]
+        },
+        "other": {
+          "value": [
+            {
+              "type": 7
+            },
+            {
+              "type": 0,
+              "value": " others"
+            }
+          ]
+        }
+      },
+      "pluralType": "cardinal",
+      "type": 6,
+      "value": "count"
+    },
+    {
+      "type": 0,
+      "value": " reagiram"
+    }
+  ],
   "88bf6ab42c": [
     {
       "type": 0,
@@ -968,6 +1146,12 @@
     {
       "type": 0,
       "value": "Partilhado consigo"
+    }
+  ],
+  "8f7f4c1ce7": [
+    {
+      "type": 0,
+      "value": "Sobre"
     }
   ],
   "8ff3d0a705": [
@@ -1008,6 +1192,12 @@
       "value": "? Esta ação não pode ser desfeita."
     }
   ],
+  "91f3a2c0e4": [
+    {
+      "type": 0,
+      "value": "Arquivos"
+    }
+  ],
   "930390d222": [
     {
       "type": 0,
@@ -1030,6 +1220,22 @@
     {
       "type": 0,
       "value": "Este mês"
+    }
+  ],
+  "9643c97d49": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "author"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagiu"
     }
   ],
   "985a4b720f": [
@@ -1194,6 +1400,12 @@
       "value": "Política de cookies"
     }
   ],
+  "a4bef6414b": [
+    {
+      "type": 0,
+      "value": "Alternar barra lateral de comentários"
+    }
+  ],
   "a4d3b161ce": [
     {
       "type": 0,
@@ -1248,6 +1460,18 @@
       "value": "Limite do ficheiro atingido"
     }
   ],
+  "ac863f346e": [
+    {
+      "type": 0,
+      "value": "Aplicativo"
+    }
+  ],
+  "aeb428554a": [
+    {
+      "type": 0,
+      "value": "Bibliotecas"
+    }
+  ],
   "af3dc88931": [
     {
       "type": 0,
@@ -1298,6 +1522,12 @@
     {
       "type": 0,
       "value": "O ficheiro está cheio"
+    }
+  ],
+  "b3205c1e45": [
+    {
+      "type": 0,
+      "value": "Abra o painel de notificações"
     }
   ],
   "b357b524e7": [
@@ -1400,6 +1630,12 @@
       "value": "ownerName"
     }
   ],
+  "bd8aac2696": [
+    {
+      "type": 0,
+      "value": "Arquivo atual"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1480,6 +1716,18 @@
       "value": "Fechar"
     }
   ],
+  "cb5feb1b73": [
+    {
+      "type": 0,
+      "value": "Cor"
+    }
+  ],
+  "cce99c598c": [
+    {
+      "type": 0,
+      "value": "Perfil"
+    }
+  ],
   "cceaefbc20": [
     {
       "type": 0,
@@ -1504,54 +1752,16 @@
       "value": "Saiba mais sobre publicação."
     }
   ],
-  "d0e3556476": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "author"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
+  "d0834fcec6": [
     {
       "type": 0,
-      "value": " e "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " outra pessoa"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " outras pessoas"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
+      "value": "Preferências"
+    }
+  ],
+  "d28d6bbc42": [
     {
       "type": 0,
-      "value": " reagiram ao seu comentário"
+      "value": "Cancelar publicação do arquivo"
     }
   ],
   "d3d2e61733": [
@@ -1570,6 +1780,12 @@
     {
       "type": 0,
       "value": "Alternar barra lateral"
+    }
+  ],
+  "d5e92609cf": [
+    {
+      "type": 0,
+      "value": "Espaços de trabalho"
     }
   ],
   "d638a3344b": [
@@ -1642,12 +1858,6 @@
       "value": "Sair do espaço de trabalho"
     }
   ],
-  "dfdb78a4e4": [
-    {
-      "type": 0,
-      "value": "Sinalizadores de depuração da aplicação"
-    }
-  ],
   "e0aa021e21": [
     {
       "type": 0,
@@ -1670,36 +1880,6 @@
     {
       "type": 0,
       "value": "Termos de serviço"
-    }
-  ],
-  "e65b2dcb6f": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " e "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " reagiram ao seu comentário"
     }
   ],
   "e81c4e4f2b": [
@@ -1818,70 +1998,6 @@
       "value": "Este link de convite é inválido ou expirou."
     }
   ],
-  "f476ba8646": [
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "a"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": ", "
-    },
-    {
-      "children": [
-        {
-          "type": 1,
-          "value": "b"
-        }
-      ],
-      "type": 8,
-      "value": "name"
-    },
-    {
-      "type": 0,
-      "value": " e "
-    },
-    {
-      "offset": 0,
-      "options": {
-        "one": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " outra pessoa"
-            }
-          ]
-        },
-        "other": {
-          "value": [
-            {
-              "type": 7
-            },
-            {
-              "type": 0,
-              "value": " outras pessoas"
-            }
-          ]
-        }
-      },
-      "pluralType": "cardinal",
-      "type": 6,
-      "value": "count"
-    },
-    {
-      "type": 0,
-      "value": " reagiram ao seu comentário"
-    }
-  ],
   "f4f70727dc": [
     {
       "type": 0,
@@ -1960,6 +2076,36 @@
     {
       "type": 0,
       "value": "Erro ao aceitar o convite"
+    }
+  ],
+  "ffba7e098c": [
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "a"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " e "
+    },
+    {
+      "children": [
+        {
+          "type": 1,
+          "value": "b"
+        }
+      ],
+      "type": 8,
+      "value": "name"
+    },
+    {
+      "type": 0,
+      "value": " reagiram"
     }
   ],
   "ffcd73e997": [
