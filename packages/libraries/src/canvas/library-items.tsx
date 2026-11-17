@@ -14,6 +14,7 @@ import type { LibrarySource } from '../lib/LibrarySource'
 import { ItemGrid, ItemGridItems, ItemGridTile } from '../ui/item-grid'
 import { getItemMenuId, ItemMenu } from '../ui/item-menu'
 import { AddSelectionTile } from './add-selection-tile'
+import { hasLibraryStampTool, isLibraryItemArmed } from './arm-item'
 import { ConfirmDeleteDialog } from './confirm-delete-dialog'
 import { type ItemOrdering, sortItems } from './item-order'
 import { toMenuTargets, useLibraryGrouping } from './library-groups'
@@ -62,7 +63,10 @@ export interface LibraryItemsProps {
 	libraryId: TLLibraryId
 	/** Where the tiles are measured for their thumbnail size. */
 	container: HTMLElement | null
-	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	getItemProps(
+		itemId: TLLibraryItemId,
+		thumbnailUrl?: string
+	): ButtonHTMLAttributes<HTMLButtonElement>
 	ordering: ItemOrdering
 	reversed: boolean
 	prepareItemContent?: PrepareItemContent
@@ -116,9 +120,19 @@ export function LibraryItems({
 		[source, libraryId, copyTargets]
 	)
 	const hasItemMenu = canRename || canDelete || moveTargets.length > 0 || copyTargets.length > 0
+	// Without the stamp tool, clicking places a copy, so tiles aren't toggles.
+	const canArm = hasLibraryStampTool(editor)
+	const armedItemId = useValue(
+		'armed library item',
+		() => items.find((item) => isLibraryItemArmed(editor, source, item.id))?.id,
+		[editor, source, items]
+	)
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
-			const props = getItemProps(itemId)
+			const props = {
+				...getItemProps(itemId, thumbnailUrls[itemId] ?? undefined),
+				'aria-pressed': canArm ? armedItemId === itemId : undefined,
+			}
 			if (!hasItemMenu) return props
 			return {
 				...props,
@@ -132,7 +146,7 @@ export function LibraryItems({
 				},
 			}
 		},
-		[getItemProps, hasItemMenu, editor]
+		[getItemProps, thumbnailUrls, canArm, armedItemId, hasItemMenu, editor]
 	)
 	const showChangeError = useCallback(
 		(title: string) => {

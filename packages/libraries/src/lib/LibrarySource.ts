@@ -54,6 +54,22 @@ export interface TLNewLibraryItem {
 }
 
 /**
+ * The tool an item stands for, such as the geo tool armed to draw rectangles. Arming the item arms
+ * that tool the way a toolbar tool does, instead of placing the item's content.
+ */
+export interface TLLibraryItemTool {
+	/** The editor tool to arm, such as `'geo'`. */
+	toolId: string
+	/**
+	 * Styles for the next shapes, set when the tool is armed, keyed by style id, such as
+	 * `{ [GeoShapeGeoStyle.id]: 'rectangle' }`.
+	 */
+	styles?: Record<string, unknown>
+	/** An icon from the editor's icon set, shown in the toolbar instead of the item's thumbnail. */
+	icon?: TLUiIconType | Exclude<string, TLUiIconType> | TLUiIconJsx
+}
+
+/**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
  * builds it each time it asks.
  */
@@ -158,6 +174,13 @@ export interface LibrarySource {
 	 * {@link LibrarySource.getItemContent} and adds the copies together (see `addItemsToLibrary`).
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
+
+	/**
+	 * The tool an item stands for, if any. A source answers in code, so only items it knows can be
+	 * tools: an item copied to another source is plain content there. Optional: without it, no item
+	 * is a tool.
+	 */
+	getItemTool?(itemId: TLLibraryItemId): TLLibraryItemTool | undefined
 }
 
 /** Thrown by a source when the current user isn't allowed to do something. */

@@ -3,7 +3,6 @@ import {
 	defineMessages,
 	EditorPortal,
 	useEditor,
-	useToasts,
 	useTranslation,
 	useValue,
 	type TLLibrary,
@@ -17,21 +16,16 @@ import { getTabValue, LibraryTabPanel, LibraryTabs } from './library-tabs'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getDefaultOwnerId } from './new-library'
 import { NoLibraries } from './no-libraries'
-import { placeLibraryItem } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
 import { activeLibraryId, librariesPanelOpen } from './state'
 import { useCreateLibrary } from './use-create-library'
-import { useItemDrag } from './use-item-drag'
+import { type ItemPick, useItemDrag } from './use-item-drag'
+import { usePickItem } from './use-pick-item'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 	newLibrary: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	newLibraryIn: { id: 'libraries.group.new-library', defaultMessage: 'New library in {name}' },
-	placeErrorTitle: { id: 'libraries.place-error.title', defaultMessage: "Couldn't place item" },
-	placeErrorDescription: {
-		id: 'libraries.place-error.description',
-		defaultMessage: 'It may have been deleted. Try again, or pick another item.',
-	},
 })
 
 /** @public */
@@ -46,6 +40,11 @@ export interface LibrariesPanelProps {
 	menuItems?: ReactNode
 	/** Changes an item's content before the panel's + saves it, e.g. {@link wrapInGroup}. */
 	prepareItemContent?: PrepareItemContent
+	/**
+	 * Whether each library's ⋯ menu offers putting it in the current user's toolbar, or taking it
+	 * out, for a host that shows {@link LibrariesToolbarItems}. Defaults to `false`.
+	 */
+	canPutInToolbar?: boolean
 }
 
 /**
@@ -53,8 +52,11 @@ export interface LibrariesPanelProps {
  * {@link librariesPanelOpen} is set. Each library is a section that folds shut; a source with
  * two or more owners shows a tab per owner, and "New library" in the header creates one for the
  * active tab's owner. Setting {@link activeLibraryId} switches to the tab holding that library.
- * Clicking an item places a copy of it in the middle of the viewport; dragging one out drops it
- * under the pointer.
+ * Clicking an item arms it where the host has added {@link LibraryStampTool}, and the item shows
+ * pressed while it stays armed: an item that stands for a tool arms that tool, any other arms the
+ * stamp tool to place copies of it. Without the stamp tool, or when picked from the keyboard,
+ * clicking places a copy in the middle of the viewport. Dragging an item out drops a copy under the
+ * pointer.
  * @public @react
  */
 export function LibrariesPanel({
@@ -62,27 +64,22 @@ export function LibrariesPanel({
 	side = 'left',
 	menuItems,
 	prepareItemContent,
+	canPutInToolbar = false,
 }: LibrariesPanelProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const { addToast } = useToasts()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
 	const libraries = useValue('libraries', () => source.getLibraries(), [source])
 	const grouping = useLibraryGrouping(source)
-	const placeItem = useCallback(
-		(itemId: TLLibraryItemId) => {
-			placeLibraryItem(editor, source, itemId).catch(() => {
-				addToast({
-					title: msg(messages.placeErrorTitle),
-					description: msg(messages.placeErrorDescription),
-					severity: 'error',
-				})
-			})
-		},
-		[editor, source, addToast, msg]
+	const pickItem = usePickItem(source)
+	// Arming needs a pointer to place with, so a tile picked from the keyboard places a copy instead.
+	const pickTile = useCallback(
+		(itemId: TLLibraryItemId, { thumbnailUrl, fromKeyboard }: ItemPick) =>
+			pickItem(itemId, { thumbnailUrl, placeAtCentre: fromKeyboard }),
+		[pickItem]
 	)
-	const getItemProps = useItemDrag(source, placeItem)
+	const getItemProps = useItemDrag(source, pickTile)
 	const createLibrary = useCreateLibrary(source)
 	const groups = groupLibraryList(libraries, grouping)
 	const [chosenTab, setChosenTab] = useState<string>()
@@ -133,6 +130,7 @@ export function LibrariesPanel({
 					library={library}
 					getItemProps={getItemProps}
 					prepareItemContent={prepareItemContent}
+					canPutInToolbar={canPutInToolbar}
 				/>
 			))
 		)

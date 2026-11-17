@@ -181,11 +181,17 @@ export function OverflowingToolbar({
 							shouldShowInOverflow ? 'true' : 'false'
 						)
 					}
-					if (shouldShowInOverflow && mainItem.element.getAttribute('aria-pressed') === 'true') {
+					// An item can be a group of controls, such as a split button; its first button
+					// stands for it here, and the group carries its data-value.
+					const button =
+						mainItem.element.getAttribute('role') === 'group'
+							? mainItem.element.querySelector('button')
+							: mainItem.element
+					if (shouldShowInOverflow && button?.getAttribute('aria-pressed') === 'true') {
 						newActiveOverflowItem = mainItem.element.getAttribute('data-value')
 					}
-					if (shouldShowInMain && mainItem.element.tagName === 'BUTTON') {
-						numberedButtons.push(mainItem.element as HTMLButtonElement)
+					if (shouldShowInMain && button?.tagName === 'BUTTON') {
+						numberedButtons.push(button as HTMLButtonElement)
 					}
 					if (!shouldShowInOverflow && isLastActiveOverflowItem) {
 						shouldInvalidateLastActiveOverflowItem = true

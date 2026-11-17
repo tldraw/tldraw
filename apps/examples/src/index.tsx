@@ -61,6 +61,13 @@ const router = createBrowserRouter([
 		},
 	},
 	{
+		path: 'libraries-toolbar',
+		lazy: async () => {
+			const { default: LibrariesToolbar } = await import('./misc/libraries-toolbar')
+			return { element: <LibrariesToolbar /> }
+		},
+	},
+	{
 		path: 'libraries-stress',
 		lazy: async () => {
 			const { default: LibrariesStress } = await import('./misc/libraries-stress')

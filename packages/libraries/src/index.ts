@@ -4,15 +4,27 @@ export {
 } from './canvas/add-to-library-menu-item'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
 export { LibrariesPanelButton } from './canvas/libraries-panel-button'
+export {
+	LibrariesToolbarItems,
+	type LibrariesToolbarItemsProps,
+} from './canvas/libraries-toolbar-items'
 export { LibrariesQuickActions } from './canvas/libraries-quick-actions'
 export { useLibrariesEnabled } from './canvas/license'
 export { placeLibraryItem } from './canvas/place-item'
+export { armLibraryItem, type ArmLibraryItemOptions, isLibraryItemArmed } from './canvas/arm-item'
+export { LibraryStampPreview } from './canvas/stamp-preview'
+export { LibraryStampTool } from './canvas/stamp-tool'
 export {
 	saveShapesToLibrary,
 	type PrepareItemContent,
 	type SaveShapesOptions,
 } from './canvas/save-shapes'
 export { activeLibraryId, librariesPanelOpen, toggleLibrariesPanel } from './canvas/state'
+export {
+	getToolbarLibraryIds,
+	putLibraryInToolbar,
+	removeLibraryFromToolbar,
+} from './canvas/toolbar-libraries'
 export { wrapInGroup } from './canvas/wrap-in-group'
 export {
 	LibraryMenu,
@@ -44,6 +56,7 @@ export {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemTool,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
 	type TLLibraryThumbnailContext,

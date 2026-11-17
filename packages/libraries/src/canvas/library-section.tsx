@@ -13,11 +13,16 @@ export function LibrarySection({
 	library,
 	getItemProps,
 	prepareItemContent,
+	canPutInToolbar,
 }: {
 	source: LibrarySource
 	library: TLLibrary
-	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	getItemProps(
+		itemId: TLLibraryItemId,
+		thumbnailUrl?: string
+	): ButtonHTMLAttributes<HTMLButtonElement>
 	prepareItemContent?: PrepareItemContent
+	canPutInToolbar?: boolean
 }) {
 	const editor = useEditor()
 	const ref = useRef<HTMLElement | null>(null)
@@ -63,6 +68,7 @@ export function LibrarySection({
 				library={library}
 				collapsed={collapsed}
 				onToggleCollapsed={() => setCollapsed(!collapsed)}
+				canPutInToolbar={canPutInToolbar}
 				sort={{
 					options: itemOrderings.map(({ id, label }) => ({ id, label })),
 					value: ordering.id,

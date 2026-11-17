@@ -1,6 +1,14 @@
-import { PointerEvent, useMemo } from 'react'
+import { type MouseEvent, PointerEvent, useMemo } from 'react'
 import { getPointerInfo, react, TLLibraryItemId, TLContent, useEditor, Vec, VecModel } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
+
+/** How an item was picked, for `onPlace`. */
+export interface ItemPick {
+	/** The thumbnail its tile showed, if any. */
+	thumbnailUrl?: string
+	/** Picked with the keyboard (or assistive tech) rather than a pointer: no pointer to place with. */
+	fromKeyboard: boolean
+}
 
 type DragState =
 	| { name: 'idle' }
@@ -17,9 +25,14 @@ type DragState =
 /**
  * Pointer handlers that let a tile be dragged out of the panel onto the canvas, the way tools are
  * dragged out of the toolbar: past the drag distance and outside the panel, the item's shapes are
- * placed under the pointer and follow it until release. A click without a drag calls `onPlace`.
+ * placed under the pointer and follow it until release. A click without a drag calls `onPlace`;
+ * a drag calls `onDragStart` as the shapes are placed.
  */
-export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryItemId) => void) {
+export function useItemDrag(
+	source: LibrarySource,
+	onPlace: (itemId: TLLibraryItemId, pick: ItemPick) => void,
+	onDragStart?: () => void
+) {
 	const editor = useEditor()
 
 	return useMemo(() => {
@@ -115,6 +128,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			if (!content || !hasLeftPanel(lastMove, screenSpaceStart, panelRect)) return
 			stopPointing()
 			state = { name: 'dragging' }
+			if (onDragStart) onDragStart()
 			startDrag(lastMove, screenSpaceStart, content)
 			showMoveCursorWhileTranslating()
 		}
@@ -131,13 +145,15 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			)
 		}
 
-		return (itemId: TLLibraryItemId) => ({
+		return (itemId: TLLibraryItemId, thumbnailUrl?: string) => ({
 			onPointerEnter() {
 				load(itemId)
 			},
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
 				if (e.button !== 0) return
-				const panel = e.currentTarget.closest('.tlui-libraries-panel') ?? e.currentTarget
+				const panel =
+					e.currentTarget.closest('.tlui-libraries-panel, .tlui-libraries-toolbar-popover') ??
+					e.currentTarget
 				state = {
 					name: 'pointing',
 					itemId,
@@ -174,11 +190,12 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				if (state.name === 'dragging') editor.cancel()
 				state = { name: 'idle' }
 			},
-			onClick() {
+			onClick(e: MouseEvent<HTMLButtonElement>) {
 				const wasDrag = state.name === 'dragging'
 				state = { name: 'idle' }
-				if (!wasDrag) onPlace(itemId)
+				// A click from Enter, Space or assistive tech has no pointer presses behind it.
+				if (!wasDrag) onPlace(itemId, { thumbnailUrl, fromKeyboard: e.detail === 0 })
 			},
 		})
-	}, [editor, source, onPlace])
+	}, [editor, source, onPlace, onDragStart])
 }

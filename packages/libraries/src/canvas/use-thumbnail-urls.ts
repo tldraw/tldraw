@@ -98,7 +98,9 @@ function useTileWidth(container: HTMLElement | null, enabled: boolean) {
 		if (!container || !enabled) return
 		// Every tile is as wide as the first. Watching the container catches restyles and new tiles.
 		const measure = () => {
-			const thumbnail = container.querySelector<HTMLElement>('.tlui-libraries-tile__thumbnail')
+			const thumbnail = container.querySelector<HTMLElement>(
+				'.tlui-libraries-tile__thumbnail, .tlui-libraries-toolbar-item__thumbnail'
+			)
 			if (thumbnail?.offsetWidth) setWidth(stepThumbnailWidth(thumbnail.offsetWidth))
 		}
 		measure()
