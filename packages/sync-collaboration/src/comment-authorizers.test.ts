@@ -957,6 +957,64 @@ describe('createCommentAuthorize', () => {
 		})
 	})
 
+	describe('threads that follow a shape', () => {
+		const page2 = 'page:other' as TLPageId
+		const shapeOn = (parentId: string) => ({ id: 'shape:box', typeName: 'shape', parentId }) as any
+		const reader = (...records: any[]) => ({
+			get: (id: string) => records.find((r) => r.id === id),
+		})
+		const anchored = createCommentThread({
+			pageId,
+			anchor: { type: 'shape', shapeId: 'shape:box' as any, x: 1, y: 0, isPrecise: false },
+			createdBy: 'alice',
+		})
+		const write2 = (changes: any[], before: any, after: any, userId: string | null = 'bob') =>
+			write!(changes, { userId, before, after })
+
+		it("lets anyone move another user's thread with its shape to another page", () => {
+			const next = { ...anchored, pageId: page2 }
+			expect(
+				write2(
+					[{ type: 'update', id: anchored.id, prev: anchored, next }],
+					reader(shapeOn(pageId)),
+					reader(shapeOn(page2))
+				)
+			).toBe(null)
+		})
+
+		it('lets a user who may not comment turn the anchor into a point when the shape is deleted', () => {
+			const strict = createCommentAuthorize<any>({ canComment: () => false })
+			const next = { ...anchored, anchor: { type: 'point' as const, x: 0, y: 0 } }
+			expect(
+				strict.write!([{ type: 'update', id: anchored.id, prev: anchored, next }], {
+					userId: 'guest',
+					before: reader(shapeOn(pageId)),
+					after: reader(),
+				})
+			).toBe(null)
+		})
+
+		it("judges a comment move that its thread doesn't explain as an edit", () => {
+			const prev = comment('alice')
+			const next = { ...prev, pageId: page2 }
+			expect(
+				write2([{ type: 'update', id: prev.id, prev, next }], reader(), reader(thread))
+			).toEqual({ reason: 'comment-rules' })
+		})
+
+		it("lets a comment's page follow its thread", () => {
+			const prev = comment('alice')
+			const next = { ...prev, pageId: page2 }
+			expect(
+				write2(
+					[{ type: 'update', id: prev.id, prev, next }],
+					reader(),
+					reader({ ...thread, pageId: page2 })
+				)
+			).toBe(null)
+		})
+	})
+
 	it('ignores records that are not comments', () => {
 		const shape = { id: 'shape:a', typeName: 'shape' } as any
 		expect(write!([{ type: 'create', id: shape.id, prev: null, next: shape }], ctx(null))).toBe(

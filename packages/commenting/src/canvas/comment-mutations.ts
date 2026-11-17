@@ -131,6 +131,20 @@ export function commitCommentMutation<T>(
 }
 
 /**
+ * Post a comment through {@link commitCommentMutation}, and return it only if it was stored. The
+ * editor's `authorize.write` can refuse the post, which reverts it without throwing, so a composer
+ * that took the return value as success would drop the draft of a comment that was never posted.
+ * @internal
+ */
+export function commitCommentPost(
+	editor: Editor,
+	fn: (writer: CommentMutationWriter) => TLComment
+): TLComment | null {
+	const comment = commitCommentMutation(editor, fn)
+	return getCommentRecord(editor, comment.id) ? comment : null
+}
+
+/**
  * Write comment records to the store, under the configured {@link CommentingOptions.history}
  * behavior. Defaults to `'ignore'`.
  *
