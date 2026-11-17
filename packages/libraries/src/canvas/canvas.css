@@ -337,10 +337,10 @@
 	}
 
 	.tlui-libraries-tile:hover .tlui-libraries-tile__menu,
-	.tlui-libraries-tile:focus-within .tlui-libraries-tile__menu,
+	.tlui-libraries-tile:has(:focus-visible) .tlui-libraries-tile__menu,
 	.tlui-libraries-tile__menu:has([data-state='open']),
 	.tlui-libraries-section
-		> .tlui-libraries-panel__header:is(:hover, :focus-within)
+		> .tlui-libraries-panel__header:is(:hover, :has(:focus-visible))
 		> .tlui-libraries-panel__header-actions,
 	.tlui-libraries-section
 		> .tlui-libraries-panel__header
