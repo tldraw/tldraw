@@ -23,22 +23,14 @@ export class Sidebar {
 	public readonly sidebar: Locator
 	public readonly sidebarLogo: Locator
 	public readonly createFileButton: Locator
-	public readonly userSettingsMenu: Locator
-	public readonly helpMenu: Locator
-	public readonly themeButton: Locator
-	public readonly darkModeButton: Locator
-	public readonly signOutButton: Locator
+	public readonly userSettingsButton: Locator
 	private lastCreatedAt = 0
 	constructor(public readonly page: Page) {
 		this.sidebarLayout = this.page.getByTestId('tla-sidebar-layout')
 		this.sidebar = this.page.getByTestId('tla-sidebar')
 		this.sidebarLogo = this.page.getByTestId('tla-sidebar-logo-icon')
 		this.createFileButton = this.page.getByTestId('tla-create-file')
-		this.userSettingsMenu = this.page.getByTestId('tla-sidebar-user-settings-trigger')
-		this.helpMenu = this.userSettingsMenu
-		this.themeButton = this.page.getByTestId('dialog-sub.theme-button')
-		this.darkModeButton = this.page.getByRole('menuitemcheckbox', { name: 'Dark', exact: true })
-		this.signOutButton = this.page.getByTestId('dialog.sign-out')
+		this.userSettingsButton = this.page.getByTestId('tla-sidebar-user-settings-trigger')
 	}
 
 	async isVisible() {
@@ -81,50 +73,39 @@ export class Sidebar {
 		return (await this.page.$$(this.fileLink)).length
 	}
 
-	async openUserSettingsMenu() {
-		await this.userSettingsMenu.hover()
-		await this.userSettingsMenu.click()
-		// Wait for the dropdown content to mount before child-item clicks race the open animation.
-		await expect(this.page.getByRole('menu')).toBeVisible()
+	@step
+	async openSettings(tab: 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'about') {
+		await this.userSettingsButton.click()
+		await this.page.getByTestId(`tla-settings-tab-${tab}`).click()
 	}
 
 	@step
 	async setDarkMode() {
-		await this.openUserSettingsMenu()
-		await this.themeButton.hover()
-		await this.darkModeButton.click()
+		await this.openSettings('preferences')
+		await this.page.getByTestId('tla-settings-theme').click()
+		await this.page.getByRole('option', { name: 'Dark' }).click()
+		await this.page.keyboard.press('Escape')
 	}
 
 	@step
-	async openLanguageMenu(languageButtonText: string) {
-		// need the editor to be mounted for the menu to be available
-		await expect(this.page.getByTestId('canvas')).toBeVisible()
-		await this.openUserSettingsMenu()
-		await this.page.getByText(languageButtonText).hover()
+	async expectLanguageToBe(language: string) {
+		await this.openSettings('preferences')
+		await expect(this.page.getByTestId('tla-settings-language')).toHaveText(language)
+		await this.page.keyboard.press('Escape')
 	}
 
 	@step
-	async expectLanguageToBe(languageButtonText: string, language: string) {
-		await this.openLanguageMenu(languageButtonText)
-		await expect(async () => {
-			const checkedAttribute = await this.page
-				.getByRole('menuitemcheckbox', { name: language })
-				.getAttribute('data-state')
-			expect(checkedAttribute).toBe('checked')
-		}).toPass()
-	}
-
-	@step
-	async setLanguage(languageButtonText: string, language: string) {
-		await this.openLanguageMenu(languageButtonText)
-		await this.page.getByRole('menuitemcheckbox', { name: language }).click()
+	async setLanguage(language: string) {
+		await this.openSettings('preferences')
+		await this.page.getByTestId('tla-settings-language').click()
+		await this.page.getByRole('option', { name: language }).click()
 		await this.page.keyboard.press('Escape')
 	}
 
 	@step
 	async signOut() {
-		await this.openUserSettingsMenu()
-		await this.signOutButton.click()
+		await this.userSettingsButton.click()
+		await this.page.getByTestId('tla-settings-sign-out').click()
 	}
 
 	async expectToContainText(text: string) {
@@ -281,11 +262,6 @@ export class Sidebar {
 	async isHinted(fileLink: Locator): Promise<boolean> {
 		const backgroundColor = await this.getAfterElementStyle(fileLink, 'background-color')
 		return backgroundColor === 'rgba(9, 11, 12, 0.043)'
-	}
-
-	@step
-	async closeAccountMenu() {
-		await this.page.keyboard.press('Escape')
 	}
 
 	// Workspace-related methods

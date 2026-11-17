@@ -1,7 +1,7 @@
 import { useAuth } from '@clerk/react'
 import { fileOpen } from 'browser-fs-access'
 import { DropdownMenu as _DropdownMenu } from 'radix-ui'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
@@ -15,25 +15,17 @@ import {
 	useDialogs,
 	useCommandPaletteActiveItemId,
 	useDirection,
-	useMaybeEditor,
 	useTranslation,
-	useUiEvents,
 	useValue,
 } from 'tldraw'
 import { useOpenUrlAndTrack } from '../../../hooks/useOpenUrlAndTrack'
 import { routes } from '../../../routeDefs'
-import { signoutAnalytics } from '../../../utils/analytics'
-import { isDevelopmentEnv } from '../../../utils/env'
 import { useMaybeApp } from '../../hooks/useAppState'
-import { UI_THEMES } from '../../themes/ui-themes'
+import { useColorThemeOptions, useSelectColorTheme } from '../../hooks/useColorThemes'
+import { useSignOut } from '../../hooks/useSignOut'
 import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../utils/app-ui-events'
 import { getCurrentEditor } from '../../utils/getCurrentEditor'
-import {
-	getLocalSessionState,
-	resetLocalSessionStateButKeepTheme,
-	setColorThemePreview,
-	updateLocalSessionState,
-} from '../../utils/local-session-state'
+import { getLocalSessionState, setColorThemePreview } from '../../utils/local-session-state'
 import {
 	TLDRAW_OFFLINE_FILE_EXTENSION,
 	useRejectTldrawOfflineFiles,
@@ -45,7 +37,6 @@ const messages = defineMessages({
 	help: { defaultMessage: 'Help' },
 	// user menu
 	accountMenu: { defaultMessage: 'User settings' },
-	signOut: { defaultMessage: 'Sign out' },
 	importFile: { defaultMessage: 'Import file…' },
 	// account menu
 	getHelp: { defaultMessage: 'User manual' },
@@ -56,34 +47,15 @@ const messages = defineMessages({
 	manageCookies: { defaultMessage: 'Manage cookies' },
 	about: { defaultMessage: 'About tldraw' },
 	submitFeedback: { defaultMessage: 'Send feedback' },
+	signOut: { defaultMessage: 'Sign out' },
 	// color theme
 	colorTheme: { defaultMessage: 'Color theme' },
-	colorThemeDefault: { defaultMessage: 'Default' },
-	// debug
-	appDebugFlags: { defaultMessage: 'App debug flags' },
-	langHighlightMissing: { defaultMessage: 'i18n: Highlight Missing' },
 })
 
-export function SignOutMenuItem({ source = 'sidebar' }: { source?: TLAppUiEventSource } = {}) {
+export function SignOutMenuItem({ source }: { source: TLAppUiEventSource }) {
 	const msg = useTranslation()
 	const auth = useAuth()
-	const app = useMaybeApp()
-
-	const trackEvent = useTldrawAppUiEvents()
-
-	const handleSignout = useCallback(() => {
-		signoutAnalytics()
-		auth
-			.signOut()
-			.then(async () => {
-				resetLocalSessionStateButKeepTheme()
-				// After sign-out rather than before: an IndexedDB delete waits for every connection to
-				// the database to close, and other tabs only drop theirs once Clerk propagates sign-out.
-				await app?.deleteLocalData()
-			})
-			.catch((err) => console.error('Sign out failed:', err))
-		trackEvent('sign-out-clicked', { source })
-	}, [auth, app, trackEvent, source])
+	const signOut = useSignOut(source)
 
 	if (!auth.isSignedIn) return
 	return (
@@ -91,57 +63,13 @@ export function SignOutMenuItem({ source = 'sidebar' }: { source?: TLAppUiEventS
 			<TldrawUiMenuItem
 				id="sign-out"
 				data-testid="tla-user-sign-out"
-				onSelect={handleSignout}
+				onSelect={signOut}
 				label={msg(messages.signOut)}
 				readonlyOk
 			/>
 		</TldrawUiMenuGroup>
 	)
 }
-
-const COLOR_SCHEMES = [
-	{ colorScheme: 'light' as const, label: 'theme.light' },
-	{ colorScheme: 'dark' as const, label: 'theme.dark' },
-	{ colorScheme: 'system' as const, label: 'theme.system' },
-]
-
-function ThemeMenuGroup() {
-	const editor = useMaybeEditor()
-	const trackEvent = useUiEvents()
-	const currentColorScheme = useValue(
-		'colorScheme',
-		() =>
-			editor
-				? (editor.user.getUserPreferences().colorScheme ??
-					(editor.user.getIsDarkMode() ? 'dark' : 'light'))
-				: 'system',
-		[editor]
-	)
-
-	if (!editor) return null
-
-	return (
-		<TldrawUiMenuGroup id="theme">
-			{COLOR_SCHEMES.map(({ colorScheme, label }) => (
-				<TldrawUiMenuCheckboxItem
-					id={`color-scheme-${colorScheme}`}
-					key={colorScheme}
-					label={label}
-					checked={colorScheme === currentColorScheme}
-					readonlyOk
-					onSelect={() => {
-						editor.user.updateUserPreferences({ colorScheme })
-						trackEvent('color-scheme', { source: 'menu', value: colorScheme })
-					}}
-				/>
-			))}
-		</TldrawUiMenuGroup>
-	)
-}
-
-const THEME_NAMES: Record<string, string> = Object.fromEntries(
-	UI_THEMES.map(({ id, name }) => [id, name])
-)
 
 function UIThemeMenuCheckboxItem({
 	checked,
@@ -183,28 +111,6 @@ function UIThemeMenuCheckboxItem({
 	)
 }
 
-function useUIThemeIds() {
-	const editor = useMaybeEditor()
-	return useValue('themeIds', () => (editor ? Object.keys(editor.getThemes()) : []), [editor])
-}
-
-function useUIThemeChoices() {
-	const themeIds = useUIThemeIds()
-	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
-	const msg = useTranslation()
-	const defaultThemeLabel = msg(messages.colorThemeDefault)
-	const trackEvent = useTldrawAppUiEvents()
-	return themeIds.map((id) => ({
-		id,
-		label: id === 'default' ? defaultThemeLabel : (THEME_NAMES[id] ?? id),
-		checked: colorTheme === id,
-		select(source: TLAppUiEventSource) {
-			updateLocalSessionState(() => ({ colorTheme: id }))
-			trackEvent('set-color-theme', { source, theme: id })
-		},
-	}))
-}
-
 // Highlighting a color theme previews it, like hovering one in the menu. Closing the palette
 // without choosing unmounts this and drops the preview.
 function UIThemeCommandPalettePreview({ themeIds }: { themeIds: string[] }) {
@@ -217,20 +123,20 @@ function UIThemeCommandPalettePreview({ themeIds }: { themeIds: string[] }) {
 
 export function UIThemeCommandPaletteSubmenu() {
 	const msg = useTranslation()
-	const choices = useUIThemeChoices()
-	const colorThemeLabel = msg(messages.colorTheme)
-	if (choices.length === 0) return null
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
+	const options = useColorThemeOptions()
+	const selectColorTheme = useSelectColorTheme('command-palette')
 	return (
-		<TldrawUiMenuSubmenu id="tla-color-theme" label={colorThemeLabel}>
-			<UIThemeCommandPalettePreview themeIds={choices.map((choice) => choice.id)} />
-			{choices.map((choice) => (
+		<TldrawUiMenuSubmenu id="tla-color-theme" label={msg(messages.colorTheme)}>
+			<UIThemeCommandPalettePreview themeIds={options.map((option) => option.value)} />
+			{options.map(({ value, label }) => (
 				<TldrawUiMenuCheckboxItem
-					key={choice.id}
-					id={`ui-theme-${choice.id}`}
-					label={choice.label}
-					checked={choice.checked}
+					key={value}
+					id={`ui-theme-${value}`}
+					label={label}
+					checked={colorTheme === value}
 					readonlyOk
-					onSelect={() => choice.select('command-palette')}
+					onSelect={() => selectColorTheme(value)}
 				/>
 			))}
 		</TldrawUiMenuSubmenu>
@@ -239,9 +145,6 @@ export function UIThemeCommandPaletteSubmenu() {
 
 export function UIThemeSubmenu() {
 	const msg = useTranslation()
-	const themeIds = useUIThemeIds()
-
-	if (themeIds.length === 0) return null
 
 	return (
 		<TldrawUiMenuSubmenu id="ui-theme" label={msg(messages.colorTheme)}>
@@ -251,12 +154,12 @@ export function UIThemeSubmenu() {
 }
 
 function UIThemeMenuGroup() {
+	const colorTheme = useValue('colorTheme', () => getLocalSessionState().colorTheme, [])
 	const clearThemePreview = useCallback(() => setColorThemePreview(null), [])
-	const choices = useUIThemeChoices()
+	const options = useColorThemeOptions()
+	const selectColorTheme = useSelectColorTheme('user-preferences')
 
 	useEffect(() => clearThemePreview, [clearThemePreview])
-
-	if (choices.length === 0) return null
 
 	return (
 		<div
@@ -264,33 +167,16 @@ function UIThemeMenuGroup() {
 			onPointerCancel={clearThemePreview}
 			onPointerLeave={clearThemePreview}
 		>
-			{choices.map((choice) => (
+			{options.map(({ value, label }) => (
 				<UIThemeMenuCheckboxItem
-					key={choice.id}
-					label={choice.label}
-					checked={choice.checked}
-					onPreview={() => setColorThemePreview(choice.id)}
-					onSelect={() => {
-						choice.select('user-preferences')
-						clearThemePreview()
-					}}
+					key={value}
+					label={label}
+					checked={colorTheme === value}
+					onPreview={() => setColorThemePreview(value)}
+					onSelect={() => selectColorTheme(value)}
 				/>
 			))}
 		</div>
-	)
-}
-
-export function ThemeSubmenu() {
-	const editor = useMaybeEditor()
-	if (!editor) return null
-
-	return (
-		<TldrawUiMenuSubmenu id="theme" label="menu.theme">
-			<div className="tlui-language-menu">
-				<ThemeMenuGroup />
-				<UIThemeMenuGroup />
-			</div>
-		</TldrawUiMenuSubmenu>
 	)
 }
 
@@ -309,20 +195,14 @@ export function CookieConsentMenuItem() {
 	)
 }
 
-export function UserManualMenuItem({
-	icon = true,
-	source = 'main-menu',
-}: {
-	icon?: boolean
-	source?: TLUiEventSource
-} = {}) {
+export function UserManualMenuItem({ source = 'main-menu' }: { source?: TLUiEventSource } = {}) {
 	const msg = useTranslation()
 	const openAndTrack = useOpenUrlAndTrack(source)
 	return (
 		<TldrawUiMenuItem
 			id="user-manual"
 			label={msg(messages.getHelp)}
-			iconLeft={icon ? 'manual' : undefined}
+			iconLeft="manual"
 			readonlyOk
 			onSelect={() => {
 				openAndTrack('https://tldraw.notion.site/support')
@@ -409,47 +289,5 @@ export function ImportFileActionItem({
 				}
 			}}
 		/>
-	)
-}
-
-export function DebugMenuGroup() {
-	const maybeEditor = useMaybeEditor()
-	const isDebugMode = useValue('debug', () => maybeEditor?.getInstanceState().isDebugMode, [
-		maybeEditor,
-	])
-	// These are internal developer tools, so only surface them in local development —
-	// not on staging/preview deploys or to production users who enable debug mode.
-	if (!isDevelopmentEnv || !isDebugMode) return null
-
-	return <DebugSubmenu />
-}
-
-export function DebugSubmenu() {
-	const msg = useTranslation()
-
-	const [shouldHighlightMissing, setShouldHighlightMissing] = useState(
-		document.body.classList.contains('tla-lang-highlight-missing')
-	)
-
-	useEffect(() => {
-		document.body.classList.toggle('tla-lang-highlight-missing', shouldHighlightMissing)
-	}, [shouldHighlightMissing])
-
-	const highlightMissingLbl = msg(messages.langHighlightMissing)
-
-	return (
-		<TldrawUiMenuSubmenu id="debug" label={msg(messages.appDebugFlags)}>
-			<TldrawUiMenuGroup id="debug app flags">
-				{/* Shadows every string the UI rendered without going through `F`, which is what
-				    marks translated text with `.i18n-msg`. Not a locale — a body class. */}
-				<TldrawUiMenuCheckboxItem
-					id="highlight-missing"
-					title={highlightMissingLbl}
-					label={highlightMissingLbl}
-					checked={shouldHighlightMissing}
-					onSelect={() => setShouldHighlightMissing(!shouldHighlightMissing)}
-				/>
-			</TldrawUiMenuGroup>
-		</TldrawUiMenuSubmenu>
 	)
 }
