@@ -93,7 +93,19 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			})
 		}
 
+		const load = (itemId: TLLibraryItemId) => {
+			if (contents.has(itemId)) return
+			source.getItemContent(itemId).then(
+				({ content }) => contents.set(itemId, content),
+				// A failed load surfaces through onPlace if the press ends as a click.
+				() => {}
+			)
+		}
+
 		return (itemId: TLLibraryItemId) => ({
+			onPointerEnter() {
+				load(itemId)
+			},
 			onPointerDown(e: PointerEvent<HTMLButtonElement>) {
 				if (e.button !== 0) return
 				const panel = e.currentTarget.closest('.tlui-libraries-panel') ?? e.currentTarget
@@ -104,13 +116,7 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 					panelRect: panel.getBoundingClientRect(),
 				}
 				e.currentTarget.setPointerCapture(e.pointerId)
-				if (!contents.has(itemId)) {
-					source.getItemContent(itemId).then(
-						({ content }) => contents.set(itemId, content),
-						// A failed load surfaces through onPlace if the press ends as a click.
-						() => {}
-					)
-				}
+				load(itemId)
 			},
 			onPointerMove(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return

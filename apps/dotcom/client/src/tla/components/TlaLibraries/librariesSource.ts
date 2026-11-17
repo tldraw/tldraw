@@ -158,6 +158,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	// can't add items to them or copy them until it has.
 	private readonly unconfirmedLibraries = new Map<string, Promise<boolean>>()
 
+	// What's stored under an item's id never changes, so one load serves every later use.
+	private readonly itemContents = new Map<TLLibraryItemId, Promise<TLLibraryItemContent>>()
+
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
 		const memberships = this.app.getWorkspaceMemberships()
@@ -223,6 +226,16 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const pending = this.findPendingItem(itemId)
 		if (pending) return pending.loadContent()
+		let loading = this.itemContents.get(itemId)
+		if (!loading) {
+			loading = this.loadItemContent(itemId)
+			this.itemContents.set(itemId, loading)
+			loading.catch(() => this.itemContents.delete(itemId))
+		}
+		return loading
+	}
+
+	private async loadItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
 		const response = await this.request(`/api/app/library-items/${rowId(itemId)}/content`)
 		if (response.status === 404) throw new LibraryNotFoundError(itemId)
 		if (!response.ok) throw new Error(`Couldn't load the item: ${response.status}`)
