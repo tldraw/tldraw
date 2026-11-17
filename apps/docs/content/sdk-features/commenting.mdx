@@ -228,7 +228,7 @@ The `ctx` carries the editor, the viewer's `currentUserId`, and the write itself
 
 Resolving, reopening, reacting, and moving a pin aren't asked about: none of them is anyone's in particular, so `canComment` is the only gate on them. `canModifyComment` is checked after `canComment`, so a viewer who may not participate gets no action affordances whatever it returns. Like `canComment`, it's read during render (through `useCanModifyComment`), so a callback that reads signals re-evaluates when they change.
 
-Enforce the same rule on the server: `createCommentAuthorizers` takes a `canModifyComment` of its own, and that one is authoritative. See [Syncing comments](#syncing-comments).
+Enforce the same rule on the server: `createCommentAuthorize` takes a `canModifyComment` of its own, and that one is authoritative. See [Syncing comments](#syncing-comments).
 
 <Callout type="warning">
 	`canComment` and `canModifyComment` hide UI. They don't enforce anything. Comment records carry a
@@ -647,7 +647,39 @@ const room = new TLSocketRoom({
 
 `onCommittedChanges` only fires for client pushes. Server-initiated writes don't trigger it, including `updateStore`, `loadSnapshot`, and writing to storage directly, so anything mirroring room state has to handle those paths itself.
 
-This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server validates each incoming record against the session's identity. `createCommentAuthorizers` is that validation, ready-made — pass it to the room's `authorizeRecord`:
+This is also where per-record permissions belong. The lane's write access is all or nothing, so rules like "only the author may edit a comment" or "only the thread's creator may delete it" are enforced as your server checks each incoming change against the session's user. `createCommentAuthorize` is that check, ready-made, as an `authorize.write` hook. Combine it with your other hooks through `composeAuthorize`, and pass the same object to the client, so the editor refuses a comment write before the server does:
+
+```ts
+import { createCommentAuthorize } from '@tldraw/sync-collaboration'
+import { composeAuthorize } from 'tldraw'
+
+const authorize = composeAuthorize(
+	myAuthorize,
+	createCommentAuthorize({
+		// Moderators may take anything down. Editing stays the author's, whoever you are.
+		canModifyComment: (ctx) =>
+			(ctx.action !== 'edit-comment' && isModerator(ctx.userId)) || ctx.userId === ctx.ownerId,
+	})
+)
+
+const room = new TLSocketRoom({
+	schema,
+	objectTypes: ['comment', 'comment-thread', 'comment-reaction'],
+	authorize,
+})
+
+room.handleSocketConnect({ sessionId, socket, userId })
+```
+
+The hook reads the user from `ctx.userId`, which the room gets from `handleSocketConnect`. It checks that nothing is posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays fixed, a soft delete stays write-once, and clients still can't hard-delete a record. A write hook can only allow or refuse, so a record created in another user's name is refused, not corrected. The built-in commenting UI always writes the current user.
+
+This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then refuses sees the comment disappear and come back, with nothing to explain it.
+
+`createCommentAuthorize` also takes a `canComment` callback, checked before every comment write. It defaults to `true`, because the room has already applied the session's `objectAccess`: to stop read-only viewers from commenting, connect them with `objectAccess: 'read'`. To ask your own permissions instead, pass a rule on `ctx.userId`.
+
+### With authorizeRecord (deprecated)
+
+The room's `authorizeRecord` option is deprecated in favor of `authorize`. If you still use it, `createCommentAuthorizers` gives the same rules as per-record authorizers. Unlike the write hook, it stamps authorship from the session instead of refusing, and its `canComment` defaults to `({ isReadonly }) => !isReadonly`:
 
 ```ts
 import { createCommentAuthorizers } from '@tldraw/sync-collaboration'
@@ -658,38 +690,10 @@ const room = new TLSocketRoom({
 	authorizeRecord: {
 		...createCommentAuthorizers<SessionMeta>({
 			getUserId: (session) => session.meta.userId,
-			// Moderators may take anything down. Editing stays the author's, whoever you are.
-			canModifyComment: (ctx) =>
-				(ctx.action !== 'edit-comment' && isModerator(ctx.session.meta)) ||
-				ctx.userId === ctx.ownerId,
 		}),
 	},
 })
 ```
-
-It stamps authorship from the session so nothing can be posted or resolved in someone else's name, keeps `isDeleted` write-once, and, through `canModifyComment`, decides who may edit a comment, delete a comment, or delete a thread. Left unset, `canModifyComment` defaults to the record's owner, matching the client. It's asked after the structural rules, so widening it grants those three writes and nothing else: attribution stays immutable, a soft delete stays write-once, and clients still can't hard-delete a record.
-
-This is the same question the client's [`canModifyComment`](#who-can-edit-and-delete) answers, and the server's answer is the one that counts: the client's only decides which affordances the UI offers. Widen the two together. A moderator offered a delete the server then rejects sees the comment disappear and come back, with nothing to explain it.
-
-`createCommentAuthorizers` also takes a `canComment` callback, checked before every comment write. It defaults to `({ isReadonly }) => !isReadonly`, so a read-only session can't post even with `objectAccess: 'write'`. To let read-only viewers comment, as in the `handleSocketConnect` example above, pass `canComment: () => true` (or a rule based on the session's `meta`).
-
-### With the authorize hooks
-
-If you use the room's `authorize` option, use `createCommentAuthorize` in place of `createCommentAuthorizers`, and combine it with your other hooks through `composeAuthorize`. Pass the same object to the client, so the editor refuses a comment write before the server does. The hook reads the user from `ctx.userId`, which the room gets from `handleSocketConnect`:
-
-```ts
-import { createCommentAuthorize } from '@tldraw/sync-collaboration'
-import { composeAuthorize } from 'tldraw'
-
-const comments = createCommentAuthorize()
-const room = new TLSocketRoom({
-	schema,
-	objectTypes,
-	authorize: composeAuthorize(myAuthorize, comments),
-})
-```
-
-The rules are the same with two differences. A write hook can only allow or refuse, so a record created in another user's name is refused, not stamped. And `canComment` defaults to `true`, because the hook can't see `isReadonly`: to stop read-only viewers from commenting, connect them with `objectAccess: 'read'`.
 
 ## Building your own comments UI
 
