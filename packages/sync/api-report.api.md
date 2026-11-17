@@ -6,6 +6,7 @@
 
 import { Editor } from 'tldraw';
 import { TLAssetStore } from 'tldraw';
+import { TLAuthorize } from 'tldraw';
 import { TLObjectStoreAccess } from '@tldraw/sync-core';
 import { TLPersistentClientSocket } from '@tldraw/sync-core';
 import { TLPresenceStateInfo } from 'tldraw';
@@ -59,6 +60,7 @@ export type UseSyncOptions = UseSyncOptionsWithConnectFn | UseSyncOptionsWithUri
 // @public
 export interface UseSyncOptionsBase {
     assets: TLAssetStore;
+    authorize?: TLAuthorize;
     getUserPresence?(store: TLStore, user: TLUser): null | TLPresenceStateInfo;
     onCustomMessageReceived?(data: any): void;
     // @internal (undocumented)

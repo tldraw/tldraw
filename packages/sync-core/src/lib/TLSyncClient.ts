@@ -7,6 +7,7 @@ import {
 	reverseRecordsDiff,
 	squashRecordDiffsMutable,
 } from '@tldraw/store'
+import type { TLWriteRefusal } from '@tldraw/tlschema'
 import {
 	FpsScheduler,
 	exhaustiveSwitchError,
@@ -456,10 +457,17 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 	 */
 	private readonly onAfterConnect?: (
 		self: this,
-		details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+		details: {
+			isReadonly: boolean
+			objectAccess: TLObjectStoreAccess
+			/** The user the room judges this session as. `undefined` when the server does not say. */
+			userId: string | null | undefined
+		}
 	) => void
 
 	private readonly onCustomMessageReceived?: TLCustomMessageHandler
+
+	private readonly onPushRefused?: (refusal: TLWriteRefusal) => void
 
 	private isDebugging = false
 	private debug(...args: any[]) {
@@ -499,11 +507,22 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 		onCustomMessageReceived?: TLCustomMessageHandler
 		onAfterConnect?(
 			self: TLSyncClient<R, S>,
-			details: { isReadonly: boolean; objectAccess: TLObjectStoreAccess }
+			details: {
+				isReadonly: boolean
+				objectAccess: TLObjectStoreAccess
+				/** The user the room judges this session as. `undefined` when the server does not say. */
+				userId: string | null | undefined
+			}
 		): void
 		didCancel?(): boolean
+		/**
+		 * Called when the room's `authorize.write` refused one of this client's pushes. The client
+		 * has already rolled the push back to the server's state.
+		 */
+		onPushRefused?(refusal: TLWriteRefusal): void
 	}) {
 		this.didCancel = config.didCancel
+		this.onPushRefused = config.onPushRefused
 
 		this.presenceType = config.store.scopedTypes.presence.values().next().value ?? null
 
@@ -816,6 +835,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			this.onAfterConnect?.(this, {
 				isReadonly: event.isReadonly,
 				objectAccess: event.objectAccess ?? 'write',
+				userId: event.userId,
 			})
 			const presence = this.presenceState?.get()
 			if (presence) {
@@ -974,6 +994,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 
 		const diffs = this.incomingDiffBuffer
 		this.incomingDiffBuffer = []
+		const refusals: TLWriteRefusal[] = []
 
 		try {
 			this.store.mergeRemoteChanges(() => {
@@ -997,6 +1018,7 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 					}
 					if (diff.action === 'discard') {
 						this.pendingPushRequests.shift()
+						if (diff.refused) refusals.push(diff.refused)
 					} else if (diff.action === 'commit') {
 						const request = this.pendingPushRequests.shift()!
 						if ('diff' in request && request.diff) {
@@ -1031,6 +1053,14 @@ export class TLSyncClient<R extends UnknownRecord, S extends Store<R> = Store<R>
 			console.error(e)
 			this.store.ensureStoreIsUsable()
 			this.resetConnection()
+		}
+		// outside the try above: a host callback that throws must not reset the connection
+		for (const refusal of refusals) {
+			try {
+				this.onPushRefused?.(refusal)
+			} catch (e) {
+				console.error('onPushRefused threw', e)
+			}
 		}
 	}
 }

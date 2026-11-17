@@ -57,12 +57,15 @@ import {
 	TLUserId,
 	TLVideoAsset,
 	UserRecordType,
+	bindAuthorizeCan,
 	createBindingId,
 	createShapeId,
 	createUserId,
 	getShapePropKeysByStyle,
 	isPageId,
 	isShapeId,
+	TLPermission,
+	TLPermissionDataMap,
 } from '@tldraw/tlschema'
 import {
 	FileHelpers,
@@ -162,6 +165,7 @@ import { bindingsIndex } from './derivations/bindingsIndex'
 import { notVisibleShapes } from './derivations/notVisibleShapes'
 import { parentsToChildren } from './derivations/parentsToChildren'
 import { deriveShapeIdsInCurrentPage } from './derivations/shapeIdsInCurrentPage'
+import { AuthorizeManager, getAuthorizeUserId } from './managers/AuthorizeManager/AuthorizeManager'
 import { ClickManager } from './managers/ClickManager/ClickManager'
 import { CollaboratorsManager } from './managers/CollaboratorsManager/CollaboratorsManager'
 import { EdgeScrollManager } from './managers/EdgeScrollManager/EdgeScrollManager'
@@ -402,6 +406,9 @@ export class Editor extends EventEmitter<TLEventMap> {
 		})
 
 		this.snaps = new SnapManager(this)
+
+		const authorizeManager = new AuthorizeManager(this)
+		this.disposables.add(() => authorizeManager.dispose())
 
 		this._spatialIndex = new SpatialIndexManager(this)
 		this.disposables.add(() => this._spatialIndex.dispose())
@@ -1753,12 +1760,36 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const previousIgnoreShapeLock = this._shouldIgnoreShapeLock
 		this._shouldIgnoreShapeLock = opts?.ignoreShapeLock ?? previousIgnoreShapeLock
 		try {
-			this.history.batch(fn, opts)
+			// one editor operation is one checked unit, however many store operations it makes
+			this.store.checkAsOneOperation(() => this.history.batch(fn, opts))
 		} finally {
 			this._shouldIgnoreShapeLock = previousIgnoreShapeLock
 		}
 
 		return this
+	}
+
+	/**
+	 * Whether the current user has a permission, for example `'tl:shape:edit'` for a shape. The
+	 * editor asks the store's `authorize.can` with the current user's id: the one the sync room
+	 * gave this session, or else {@link @tldraw/editor#UserPreferencesManager.getExternalId}. With
+	 * no `can`, every permission is granted. In a read-only editor, no permission is granted.
+	 *
+	 * @example
+	 * ```ts
+	 * if (editor.can('tl:shape:edit', { shape })) {
+	 * 	editor.updateShape({ ...shape, x: 100 })
+	 * }
+	 * ```
+	 *
+	 * @public
+	 */
+	can<P extends TLPermission>(permission: P, data?: TLPermissionDataMap[P]): boolean {
+		if (this.getIsReadonly()) return false
+		const can = bindAuthorizeCan(this.store.props.authorize?.can, {
+			userId: getAuthorizeUserId(this),
+		})
+		return can(permission, data)
 	}
 
 	/* --------------------- Errors --------------------- */
@@ -4472,11 +4503,14 @@ export class Editor extends EventEmitter<TLEventMap> {
 		) {
 			return
 		}
-		this.run(
-			() => {
-				this.store.put([user])
-			},
-			{ history: 'ignore' }
+		// housekeeping for the current user, so the write hook never sees it
+		this.store.runUnchecked(() =>
+			this.run(
+				() => {
+					this.store.put([user])
+				},
+				{ history: 'ignore' }
+			)
 		)
 	}
 

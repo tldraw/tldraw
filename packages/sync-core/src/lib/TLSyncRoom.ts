@@ -7,6 +7,12 @@ import {
 	UnknownRecord,
 } from '@tldraw/store'
 import {
+	bindAuthorizeCan,
+	type TLAuthorize,
+	type TLRecordChange,
+	type TLWriteRefusal,
+} from '@tldraw/tlschema'
+import {
 	assert,
 	assertExists,
 	exhaustiveSwitchError,
@@ -353,6 +359,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 	private onPresenceChange?(): void
 	private onCommittedChanges?(args: { diff: TLSyncForwardDiff<R>; documentClock: number }): void
 	private readonly authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+	private readonly authorize?: TLAuthorize<R>
 	private readonly sessionIdleTimeout: number
 
 	/**
@@ -401,6 +408,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		 * create, rewrite. See {@link TLRecordAuthorizers}.
 		 */
 		authorizeRecord?: TLRecordAuthorizers<R, SessionMeta>
+		/** The authorize hooks. See `authorize` on {@link TLSocketRoom}. */
+		authorize?: TLAuthorize<R>
 		storage: TLSyncStorage<R>
 		clientTimeout?: number
 	}) {
@@ -409,6 +418,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		this.onPresenceChange = opts.onPresenceChange
 		this.onCommittedChanges = opts.onCommittedChanges
 		this.authorizeRecord = opts.authorizeRecord
+		this.authorize = opts.authorize
 		this.storage = opts.storage
 		this.sessionIdleTimeout = opts.clientTimeout ?? SESSION_IDLE_TIMEOUT
 
@@ -579,6 +589,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		}
 
 		this.sessions.delete(sessionId)
+		this.visiblePresence.delete(sessionId)
 		this.clearDebounceTimer(session)
 
 		try {
@@ -629,6 +640,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta: session.meta,
 			isReadonly: session.isReadonly,
 			objectAccess: session.objectAccess,
+			userId: session.userId,
 			requiresLegacyRejection: session.requiresLegacyRejection,
 			supportsStringAppend: session.supportsStringAppend,
 		})
@@ -671,12 +683,14 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				return
 			}
 
+			const filtered = this.filterPresenceForSession(session, diff, unmigrated)
+			if (!filtered) return
 			const diffResult = this.migrateDiffOrRejectSession(
 				session.sessionId,
 				session.serializedSchema,
 				session.requiresDownMigrations,
-				diff,
-				unmigrated,
+				filtered.diff,
+				filtered.networkDiff,
 				legacyAppendMode
 			)
 			if (!diffResult.ok) return
@@ -688,6 +702,68 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			})
 		})
 		return this
+	}
+
+	/** Presence ids each session holds, kept only when the room has an `authorize.read` hook. */
+	private readonly visiblePresence = new Map<string, Set<string>>()
+
+	/** `authorize.read` for one presence record. A hook that throws hides the record. */
+	private canReadPresence(record: R, session: { userId: string | null }) {
+		try {
+			const ctx = { userId: session.userId }
+			return this.authorize!.read!(record, {
+				...ctx,
+				can: bindAuthorizeCan(this.authorize!.can, ctx),
+			})
+		} catch (e) {
+			this.log?.error?.('authorize.read threw; hiding the record', e)
+			return false
+		}
+	}
+
+	/**
+	 * Applies `authorize.read` to the presence records in a broadcast, for one session. A record
+	 * that becomes visible is sent whole, because the session doesn't have it. A record that
+	 * becomes hidden is removed from the session. Returns null when nothing is left to send.
+	 */
+	private filterPresenceForSession(
+		session: RoomSession<R, SessionMeta>,
+		diff: TLSyncForwardDiff<R>,
+		networkDiff: NetworkDiff<R>
+	): { diff: TLSyncForwardDiff<R>; networkDiff: NetworkDiff<R> } | null {
+		const presenceTypeName = this.presenceType?.typeName
+		if (!this.authorize?.read || !presenceTypeName) return { diff, networkDiff }
+		let visible = this.visiblePresence.get(session.sessionId)
+		if (!visible) {
+			visible = new Set()
+			this.visiblePresence.set(session.sessionId, visible)
+		}
+
+		const puts = { ...diff.puts }
+		const deletes = [...diff.deletes]
+		const ops = { ...networkDiff }
+		for (const [id, put] of Object.entries(diff.puts)) {
+			const record = Array.isArray(put) ? put[1] : put
+			if (record.typeName !== presenceTypeName) continue
+			if (this.canReadPresence(record, session)) {
+				if (!visible.has(id)) {
+					visible.add(id)
+					puts[id] = record
+					ops[id] = [RecordOpType.Put, record]
+				}
+			} else {
+				delete puts[id]
+				if (visible.delete(id)) {
+					deletes.push(id)
+					ops[id] = [RecordOpType.Remove]
+				} else {
+					delete ops[id]
+				}
+			}
+		}
+		for (const id of diff.deletes) visible.delete(id)
+		if (Object.keys(ops).length === 0) return null
+		return { diff: { puts, deletes }, networkDiff: ops }
 	}
 
 	/**
@@ -744,8 +820,9 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
+		userId?: string | null
 	}) {
-		const { sessionId, socket, meta, isReadonly, objectAccess } = opts
+		const { sessionId, socket, meta, isReadonly, objectAccess, userId } = opts
 		// a connect racing close() would otherwise create a session nothing ever prunes
 		if (this._isClosed) {
 			socket.close()
@@ -762,6 +839,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly: isReadonly ?? false,
 			objectAccess: objectAccess ?? 'write',
+			userId: userId ?? null,
 			// this gets set later during handleConnectMessage
 			requiresLegacyRejection: false,
 			supportsStringAppend: true,
@@ -782,6 +860,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 		meta: SessionMeta
 		isReadonly: boolean
 		objectAccess?: TLObjectStoreAccess
+		userId?: string | null
 		serializedSchema: SerializedSchema
 		presenceId: string | null
 		presenceRecord: UnknownRecord | null
@@ -794,6 +873,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly,
 			objectAccess,
+			userId,
 			serializedSchema,
 			presenceId,
 			presenceRecord,
@@ -822,6 +902,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 			meta,
 			isReadonly,
 			objectAccess: objectAccess ?? 'write',
+			userId: userId ?? null,
 			requiresLegacyRejection,
 			supportsStringAppend,
 		})
@@ -1161,8 +1242,17 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				meta: session.meta,
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
+				userId: session.userId,
 				requiresLegacyRejection: session.requiresLegacyRejection,
 			})
+			const presenceTypeName = this.presenceType?.typeName
+			if (this.authorize?.read && presenceTypeName) {
+				const sent = new Set<string>()
+				for (const [id, op] of Object.entries(msg.diff)) {
+					if (op[0] === RecordOpType.Put && op[1].typeName === presenceTypeName) sent.add(id)
+				}
+				this.visiblePresence.set(session.sessionId, sent)
+			}
 			this._unsafe_sendMessage(session.sessionId, msg)
 		}
 
@@ -1181,6 +1271,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					puts: Object.fromEntries(
 						[...this.presenceStore.values()]
 							.filter((p) => p.id !== session.presenceId)
+							.filter((p) => !this.authorize?.read || this.canReadPresence(p, session))
 							.map((p) => [p.id, p])
 					),
 					deletes: [],
@@ -1212,6 +1303,8 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				diff: { ...presenceDiff.value, ...docDiff },
 				isReadonly: session.isReadonly,
 				objectAccess: session.objectAccess,
+				// only rooms with authorize hooks say who they judge the session as
+				...(this.authorize ? { userId: session.userId } : null),
 			} satisfies Extract<TLSocketServerSentEvent<R>, { type: 'connect' }>
 		}) // no id needed because this only reads, no writes.
 
@@ -1219,6 +1312,31 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 
 		if (result) {
 			connect(result)
+		}
+	}
+
+	/**
+	 * Runs the write hook on a buffered push. Only document records reach the hook. A hook that
+	 * throws refuses the push (fail closed).
+	 */
+	private judgeWrite(
+		write: NonNullable<TLAuthorize<R>['write']>,
+		session: RoomSession<R, SessionMeta>,
+		pending: PendingWrites<R>
+	): TLWriteRefusal | null {
+		const changes = pending.getChanges()
+		if (changes.length === 0) return null
+		const ctx = { userId: session.userId }
+		try {
+			return write(changes, {
+				...ctx,
+				can: bindAuthorizeCan(this.authorize?.can, ctx),
+				before: { get: (id) => pending.getBefore(id) as any },
+				after: { get: (id) => pending.get(id) as any },
+			})
+		} catch (e) {
+			this.log?.error?.('authorize.write threw; refusing the push', e)
+			return { reason: 'error' }
 		}
 	}
 
@@ -1420,10 +1538,11 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					!session ||
 					(this.objectTypes.has(typeName) ? session.objectAccess !== 'read' : !session.isReadonly)
 
-				// The push is written to a buffer over the transaction, and the buffer is committed at the
-				// end, so the whole push can be judged before any of it reaches storage.
-				const pending = new PendingWrites<R>(txn)
-				const docs: MinimalDocStore<R> = pending
+				// With a write hook, the push is written to a buffer first, so the hook can judge it
+				// as a whole and a refusal stores none of it.
+				const authorizeWrite = session ? this.authorize?.write : undefined
+				const pending = authorizeWrite ? new PendingWrites<R>(txn) : null
+				const docs: MinimalDocStore<R> = pending ?? txn
 
 				// what authorizers see of the pushing session, shared by every authorized op in this push
 				const authSession = session
@@ -1569,8 +1688,21 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 					}
 				}
 
-				pending.commit()
-				return { docChanges, presenceChanges }
+				if (pending && authorizeWrite && session) {
+					const refusal = this.judgeWrite(authorizeWrite, session, pending)
+					if (refusal) {
+						this.log?.warn?.(
+							'authorize.write refused push',
+							refusal.reason,
+							'session:',
+							session.sessionId
+						)
+						return { docChanges: { diffs: null } as ActualChanges, presenceChanges, refusal }
+					}
+					pending.commit()
+				}
+
+				return { docChanges, presenceChanges, refusal: null }
 			},
 			{ id: this.internalTxnId, emitChanges: 'when-different' }
 		)
@@ -1599,6 +1731,7 @@ export class TLSyncRoom<R extends UnknownRecord, SessionMeta> {
 				clientClock: message.clientClock,
 				serverClock: documentClock,
 				action: 'discard',
+				...(result.refusal ? { refused: result.refusal } : null),
 			}
 		} else if (session) {
 			// if recordsDiff is null but diff is not, then there are no clients that need down migrations
@@ -1688,8 +1821,8 @@ export interface MinimalDocStore<R extends UnknownRecord> {
 }
 
 /**
- * Buffers a push's writes over a storage transaction, so the push can be judged before any of it
- * reaches storage. Reads see the buffered writes.
+ * Buffers a push's writes over a storage transaction, so the write hook can judge them before
+ * any reach storage. Reads see the buffered writes.
  */
 class PendingWrites<R extends UnknownRecord> implements MinimalDocStore<R> {
 	private readonly writes = new Map<string, R | null>()
@@ -1701,12 +1834,27 @@ class PendingWrites<R extends UnknownRecord> implements MinimalDocStore<R> {
 		return this.txn.get(id) as R | undefined
 	}
 
+	getBefore(id: string): R | undefined {
+		return this.txn.get(id) as R | undefined
+	}
+
 	set(id: string, record: R) {
 		this.writes.set(id, record)
 	}
 
 	delete(id: string) {
 		this.writes.set(id, null)
+	}
+
+	getChanges(): TLRecordChange<R>[] {
+		const changes: TLRecordChange<R>[] = []
+		for (const [id, next] of this.writes) {
+			const prev = this.getBefore(id) ?? null
+			if (prev && next) changes.push({ type: 'update', id: id as R['id'], prev, next })
+			else if (next) changes.push({ type: 'create', id: id as R['id'], prev: null, next })
+			else if (prev) changes.push({ type: 'delete', id: id as R['id'], prev, next: null })
+		}
+		return changes
 	}
 
 	commit() {

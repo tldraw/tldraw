@@ -218,7 +218,11 @@ export { BaseBoxShapeTool } from './lib/editor/tools/BaseBoxShapeTool/BaseBoxSha
 export { maybeSnapToGrid } from './lib/editor/tools/BaseBoxShapeTool/children/Pointing'
 export { StateNode, type TLStateNodeConstructor } from './lib/editor/tools/StateNode'
 export { type TLContent } from './lib/editor/types/clipboard-types'
-export { type TLEventMap, type TLEventMapHandler } from './lib/editor/types/emit-types'
+export {
+	type TLEventMap,
+	type TLEventMapHandler,
+	type TLRefusal,
+} from './lib/editor/types/emit-types'
 export {
 	EVENT_NAME_MAP,
 	type TLBaseEventInfo,
@@ -331,6 +335,7 @@ export { useShallowArrayIdentity, useShallowObjectIdentity } from './lib/hooks/u
 export { useIsCropping } from './lib/hooks/useIsCropping'
 export { useIsEditing } from './lib/hooks/useIsEditing'
 export { useLocalStore } from './lib/hooks/useLocalStore'
+export { useStableAuthorize } from './lib/hooks/useStableAuthorize'
 export { usePassThroughWheelEvents } from './lib/hooks/usePassThroughWheelEvents'
 export { usePeerIds } from './lib/hooks/usePeerIds'
 export { usePresence } from './lib/hooks/usePresence'

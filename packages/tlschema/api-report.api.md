@@ -91,6 +91,9 @@ export class b64Vecs {
     static _legacyEncodePoints(points: VecModel[]): string;
 }
 
+// @internal
+export function bindAuthorizeCan(can: TLAuthorizeCan | undefined, ctx: TLAuthorizeContext): TLCan;
+
 // @public
 export const bindingIdValidator: T.Validator<TLBindingId>;
 
@@ -148,6 +151,9 @@ export const commentSchemaRecords: {
 
 // @public
 export const commentThreadRecordConfig: CustomRecordInfo;
+
+// @public
+export function composeAuthorize<R extends UnknownRecord = TLRecord>(...list: TLAuthorize<R>[]): TLAuthorize<R>;
 
 // @public
 export function compressLegacySegments(segments: {
@@ -997,6 +1003,31 @@ export interface TLAssetStore {
 }
 
 // @public
+export interface TLAuthorize<R extends UnknownRecord = TLRecord> {
+    // (undocumented)
+    can?: TLAuthorizeCan;
+    // (undocumented)
+    read?: TLAuthorizeRead<R>;
+    // (undocumented)
+    write?: TLAuthorizeWrite<R>;
+}
+
+// @public
+export type TLAuthorizeCan = <P extends TLPermission>(permission: P, data: TLPermissionDataMap[P] | undefined, ctx: TLAuthorizeContext) => boolean;
+
+// @public
+export interface TLAuthorizeContext {
+    // (undocumented)
+    userId: null | string;
+}
+
+// @public
+export type TLAuthorizeRead<R extends UnknownRecord = TLRecord> = (record: R, ctx: TLReadContext) => boolean;
+
+// @public
+export type TLAuthorizeWrite<R extends UnknownRecord = TLRecord> = (changes: TLRecordChange<R>[], ctx: TLWriteContext<R>) => null | TLWriteRefusal;
+
+// @public
 export interface TLBaseAsset<Type extends string, Props> extends BaseRecord<'asset', TLAssetId> {
     meta: JsonObject;
     props: Props;
@@ -1102,6 +1133,9 @@ export interface TLCamera extends BaseRecord<'camera', TLCameraId> {
 
 // @public
 export type TLCameraId = RecordId<TLCamera>;
+
+// @public
+export type TLCan = <P extends TLPermission>(permission: P, data?: TLPermissionDataMap[P]) => boolean;
 
 // @public
 export type TLCanvasUiColor = SetValue<typeof TL_CANVAS_UI_COLOR_TYPES>;
@@ -1693,6 +1727,33 @@ export type TLPageId = RecordId<TLPage>;
 export type TLParentId = TLPageId | TLShapeId;
 
 // @public
+export type TLPermission = keyof TLPermissionDataMap & string;
+
+// @public
+export interface TLPermissionDataMap {
+    // (undocumented)
+    'tl:page:create': undefined;
+    // (undocumented)
+    'tl:page:delete': {
+        page: TLPage;
+    };
+    // (undocumented)
+    'tl:page:edit': {
+        page: TLPage;
+    };
+    // (undocumented)
+    'tl:shape:create': undefined;
+    // (undocumented)
+    'tl:shape:delete': {
+        shape: TLShape;
+    };
+    // (undocumented)
+    'tl:shape:edit': {
+        shape: TLShape;
+    };
+}
+
+// @public
 export interface TLPointer extends BaseRecord<'pointer', TLPointerId> {
     // (undocumented)
     lastActivityTimestamp: number;
@@ -1731,7 +1792,39 @@ export interface TLPropsMigrations {
 }
 
 // @public
+export interface TLReadContext extends TLAuthorizeContext {
+    // (undocumented)
+    can: TLCan;
+}
+
+// @public
 export type TLRecord = TLCustomRecord | TLDefaultRecord;
+
+// @public
+export type TLRecordChange<R extends UnknownRecord = TLRecord> = {
+    id: R['id'];
+    next: null;
+    prev: R;
+    type: 'delete';
+} | {
+    id: R['id'];
+    next: R;
+    prev: null;
+    type: 'create';
+} | {
+    id: R['id'];
+    next: R;
+    prev: R;
+    type: 'update';
+};
+
+// @public
+export interface TLRecordGetter<R extends UnknownRecord = TLRecord> {
+    // (undocumented)
+    get<Id extends R['id']>(id: Id): Extract<R, {
+        id: Id;
+    }> | undefined;
+}
 
 // @public
 export interface TLRemovedDefaultThemeColors {
@@ -1789,7 +1882,12 @@ export type TLStore = Store<TLRecord, TLStoreProps>;
 // @public
 export interface TLStoreProps {
     assets: Required<TLAssetStore>;
+    authorize?: TLAuthorize;
     collaboration?: {
+        refusals?: {
+            subscribe(listener: (refusal: TLWriteRefusal) => void): () => void;
+        } | null;
+        userId?: null | Signal<null | string | undefined>;
         mode?: null | Signal<'readonly' | 'readwrite'>;
         status: null | Signal<'offline' | 'online'>;
     };
@@ -1993,6 +2091,20 @@ export interface TLVideoShapeProps {
     url: string;
     // (undocumented)
     w: number;
+}
+
+// @public
+export interface TLWriteContext<R extends UnknownRecord = TLRecord> extends TLReadContext {
+    // (undocumented)
+    after: TLRecordGetter<R>;
+    // (undocumented)
+    before: TLRecordGetter<R>;
+}
+
+// @public
+export interface TLWriteRefusal {
+    // (undocumented)
+    reason: string;
 }
 
 // @public

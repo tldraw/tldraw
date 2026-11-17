@@ -35,6 +35,8 @@ export class TestServer<R extends UnknownRecord, P = unknown> {
 			meta: undefined,
 			isReadonly: opts?.isReadonly ?? false,
 			objectAccess: opts?.objectAccess,
+			// the authorize tests use the session id as the user id
+			userId: socketPair.id,
 		})
 
 		socketPair.clientSocket.connectionStatus = 'online'

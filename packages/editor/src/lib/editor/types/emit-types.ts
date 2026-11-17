@@ -1,6 +1,17 @@
 import { HistoryEntry } from '@tldraw/store'
-import { BoxModel, TLPageId, TLRecord, TLShapeId } from '@tldraw/tlschema'
+import { BoxModel, TLPageId, TLRecord, TLShapeId, TLWriteRefusal } from '@tldraw/tlschema'
 import { TLEventInfo } from './event-types'
+
+/**
+ * A refused change, as the editor's `'refused'` event reports it. `source` is `'local'` when the
+ * editor's own `authorize.write` refused it, and `'server'` when the room did. Either way the
+ * change is already rolled back.
+ *
+ * @public
+ */
+export interface TLRefusal extends TLWriteRefusal {
+	source: 'local' | 'server'
+}
 
 /** @public */
 export interface TLEventMap {
@@ -24,6 +35,8 @@ export interface TLEventMap {
 	'edited-shapes': [TLRecord[]]
 	'deleted-shapes': [TLShapeId[]]
 	edit: []
+	/** The editor or the room refused one of this user's changes. It is already rolled back. */
+	refused: [TLRefusal]
 	dispose: []
 }
 

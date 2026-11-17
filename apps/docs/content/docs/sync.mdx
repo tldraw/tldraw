@@ -401,6 +401,60 @@ mirror committed records into your own database. That callback only fires for cl
 may edit a comment", pass authorizers to the room's `authorizeRecord` option (see [TLRecordAuthorizers](?)).
 See [Commenting](/sdk-features/commenting) for the client side and the ready-made comment authorizers.
 
+### Authorize hooks
+
+The `authorize` option holds hooks that allow or refuse changes. Pass the same object to the room and to the client, so both sides give the same answer.
+
+```ts
+import { TLAuthorize } from 'tldraw'
+
+const authorize: TLAuthorize = {
+	write: (changes, { userId }) =>
+		changes.some((c) => c.prev && c.prev.meta.ownerId !== userId) ? { reason: 'not-yours' } : null,
+}
+
+// on the server, with the user id from your auth
+const room = new TLSocketRoom({ authorize })
+room.handleSocketConnect({ sessionId, socket, userId })
+
+// on the client
+const store = useSync({ uri, assets, authorize })
+
+// in the editor, for refusals from the editor and from the room
+editor.on('refused', ({ reason, source }) => toast(reason))
+```
+
+Every hook gets `userId` in its context. The room gets it from `handleSocketConnect`, and it is `null` for a session with no user. The room sends it to the client when the client connects, and the editor's hooks use it from then on, so both sides judge the same user. Any other data a hook needs, such as roles, look up by `userId`. You can write `authorize` inline in a component: the store keeps the hooks it started with and calls your latest object.
+
+`authorize.write` gets every document record change in a client push, with `before` and `after` readers for other records, for example a shape's parent. It returns `null` to allow, or `{ reason }` to refuse. The room refuses the whole push and stores none of it. The client rolls the push back, and the editor emits `'refused'` with `source: 'server'`. In the editor, the same hook judges each operation once its side effects have settled. A refused operation is reverted before history or any listener sees it, and the editor emits `'refused'` with `source: 'local'`. Hooks must be synchronous and pure.
+
+The editor judges each operation, but the room judges each push, and a push can hold many operations, for example all the edits made offline. The two sides only disagree when they have different data, for example stale roles on the client. Then the room refuses the whole push, including the operations it would allow alone.
+
+`authorize.read` decides which presence records each session gets, for example to show cursors only to a teacher. Document records go to every session in the room. `authorize.can` answers permission checks for the editor, through `editor.can(permission, data)`. In a read-only editor, `editor.can` is always `false`.
+
+`write` and `read` also get `can` in their context, bound to the same user. Write your permission rules once in `can`, and check them in `write` with `ctx.can`, so the UI and the hooks agree:
+
+```ts
+const authorize: TLAuthorize = {
+	// a user may edit and delete only the shapes they own
+	can: (_permission, data, { userId }) =>
+		!data || !('shape' in data) || data.shape.meta.ownerId === userId,
+	write: (changes, ctx) =>
+		changes.some(
+			(c) =>
+				c.type === 'update' &&
+				c.prev.typeName === 'shape' &&
+				!ctx.can('tl:shape:edit', { shape: c.prev })
+		)
+			? { reason: 'not-yours' }
+			: null,
+}
+```
+
+With no `can` hook, `ctx.can` allows everything, as `editor.can` does.
+
+To use several sets of hooks together, for example your permissions and the comment rules, combine them with `composeAuthorize(a, b)`. `write` returns the first refusal, and `read` and `can` allow only when every hook allows.
+
 ### Deployment concerns
 
 <Callout type="warning">
