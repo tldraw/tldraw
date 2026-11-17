@@ -455,6 +455,17 @@ With no `can` hook, `ctx.can` allows everything, as `editor.can` does.
 
 To use several sets of hooks together, for example your permissions and the comment rules, combine them with `composeAuthorize(a, b)`. `write` returns the first refusal, and `read` and `can` allow only when every hook allows.
 
+The default UI asks `editor.can` so it doesn't offer what `authorize.write` would refuse. Controls are disabled, not hidden. Editor methods don't check it: they try, and `authorize.write` decides.
+
+| Without           | What's off                                                                                                        |
+| ----------------- | ----------------------------------------------------------------------------------------------------------------- |
+| `tl:shape:create` | drawing tools, duplicate, paste, dropped files, insert media and embed, double click for text, note clone handles |
+| `tl:shape:edit`   | drawing tools, move, resize, rotate, handles, crop, text editing, restyle, reorder, group, move to page           |
+| `tl:shape:delete` | delete, cut, the eraser, ungroup, flatten, convert to bookmark or embed                                           |
+| `tl:page:create`  | new page, duplicate page, move to new page                                                                        |
+| `tl:page:edit`    | rename, move and reorder pages                                                                                    |
+| `tl:page:delete`  | delete page                                                                                                       |
+
 ### Deployment concerns
 
 <Callout type="warning">
