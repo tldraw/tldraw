@@ -1,0 +1,103 @@
+import classNames from 'classnames'
+import {
+	defineMessages,
+	F,
+	LanguageMenu,
+	preventDefault,
+	TldrawUiButton,
+	TldrawUiDropdownMenuContent,
+	TldrawUiDropdownMenuRoot,
+	TldrawUiDropdownMenuTrigger,
+	TldrawUiMenuContextProvider,
+	TldrawUiMenuGroup,
+	useMenuIsOpen,
+	useTranslation,
+	useValue,
+} from 'tldraw'
+import { useApp } from '../../../hooks/useAppState'
+import {
+	CookieConsentMenuItem,
+	DebugMenuGroup,
+	LegalSummaryMenuItem,
+	SignOutMenuItem,
+	ThemeSubmenu,
+	UserManualMenuItem,
+} from '../../menu-items/menu-items'
+import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
+import { TlaIcon } from '../../TlaIcon/TlaIcon'
+import styles from '../sidebar.module.css'
+
+const messages = defineMessages({
+	userMenu: { defaultMessage: 'User settings' },
+})
+
+const USER_SETTINGS_MENU_ID = 'user-settings-sidebar'
+
+export function TlaUserSettingsMenu() {
+	const msg = useTranslation()
+	const app = useApp()
+	const userMenuLbl = msg(messages.userMenu)
+	const user = useValue('auth', () => app.getUser(), [app])
+
+	// The dropdown's open state is keyed globally by its id, so we can reuse the
+	// same hook to open the menu when the user right-clicks the row.
+	const [, onMenuOpenChange] = useMenuIsOpen(USER_SETTINGS_MENU_ID)
+
+	return (
+		<TldrawUiDropdownMenuRoot id={USER_SETTINGS_MENU_ID}>
+			<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
+				<TldrawUiDropdownMenuTrigger>
+					<TldrawUiButton
+						type="menu"
+						tooltip={userMenuLbl}
+						title={userMenuLbl}
+						className={classNames(styles.sidebarUserSettingsTrigger, styles.hoverable)}
+						data-testid="tla-sidebar-user-settings-trigger"
+						onContextMenu={(e) => {
+							preventDefault(e)
+							onMenuOpenChange(true)
+						}}
+					>
+						<TlaIcon icon="avatar" className={styles.sidebarUserSettingsAvatarIcon} />
+						<div
+							className={classNames(
+								styles.sidebarUserSettingsName,
+								'tla-text_ui__regular',
+								'notranslate'
+							)}
+						>
+							{user?.name || <F defaultMessage="Account" />}
+						</div>
+					</TldrawUiButton>
+				</TldrawUiDropdownMenuTrigger>
+				{/* Hang ~8px over the sidebar's right edge (see TlaFileMenu) rather than inset. */}
+				<TldrawUiDropdownMenuContent
+					side="bottom"
+					align="end"
+					{...TLA_MENU_POSITION}
+					alignOffset={-6}
+				>
+					{user && (
+						<>
+							<TldrawUiMenuGroup id="preferences">
+								<ThemeSubmenu />
+								<LanguageMenu />
+							</TldrawUiMenuGroup>
+							<DebugMenuGroup />
+						</>
+					)}
+					<TldrawUiMenuGroup id="legal">
+						<UserManualMenuItem icon={false} />
+						<LegalSummaryMenuItem />
+						<CookieConsentMenuItem />
+					</TldrawUiMenuGroup>
+					{user && (
+						<TldrawUiMenuGroup id="signout">
+							<SignOutMenuItem source="sidebar" />
+						</TldrawUiMenuGroup>
+					)}
+				</TldrawUiDropdownMenuContent>
+			</TldrawUiMenuContextProvider>
+		</TldrawUiDropdownMenuRoot>
+	)
+}
