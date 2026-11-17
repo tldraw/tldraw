@@ -16,6 +16,7 @@ import {
 	InputModeMenu,
 	KeyboardShortcutsMenuItem,
 	LanguageMenu,
+	PreferencesGroup,
 	TldrawUiButton,
 	TldrawUiButtonLabel,
 	TldrawUiDropdownMenuContent,
@@ -33,6 +34,7 @@ import {
 	ToggleGridItem,
 	TogglePasteAtCursorItem,
 	ToggleSnapModeItem,
+	ToggleToolLockItem,
 	ToggleWrapModeItem,
 	useDialogs,
 	useEditor,
@@ -70,11 +72,12 @@ import { messages as sidebarMessages } from '../TlaSidebar/components/sidebar-sh
 import { editorMessages } from './editor-messages'
 import styles from './top.module.css'
 
-/** tldraw's default View submenu plus the per-file display toggles and a "Comments" show/hide
- *  toggle (its own group, signed-in only). Rebuilt here because tldraw's `ViewSubmenu` is a fixed
- *  component with no slot to inject into. */
+/** tldraw's default View submenu plus a "Comments" show/hide toggle (its own group, signed-in
+ *  only) and, in `ui_v3`, the per-file display toggles that otherwise sit under Preferences.
+ *  Rebuilt here because tldraw's `ViewSubmenu` is a fixed component with no slot to inject into. */
 function TlaViewSubmenu() {
 	const commentingEnabled = useIsCommentingEnabledForUser()
+	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuSubmenu id="view" label="menu.view">
 			<TldrawUiMenuGroup id="view-actions">
@@ -84,11 +87,13 @@ function TlaViewSubmenu() {
 				<ZoomToFitMenuItem />
 				<ZoomToSelectionMenuItem />
 			</TldrawUiMenuGroup>
-			<TldrawUiMenuGroup id="view-toggles">
-				<ToggleGridItem />
-				<ToggleFocusModeItem />
-				<ToggleDebugModeItem />
-			</TldrawUiMenuGroup>
+			{isUiV3 && (
+				<TldrawUiMenuGroup id="view-toggles">
+					<ToggleGridItem />
+					<ToggleFocusModeItem />
+					<ToggleDebugModeItem />
+				</TldrawUiMenuGroup>
+			)}
 			{commentingEnabled && (
 				<TldrawUiMenuGroup id="view-comments">
 					<CommentsMenuItem />
@@ -221,12 +226,12 @@ function TlaEditorTopLeftPanelAnonymous() {
 function TlaEditorTopLeftPanelSignedIn() {
 	const msg = useTranslation()
 	const editor = useEditor()
+	const isUiV3 = useIsUiV3()
 	const intl = useIntl()
 	const [isRenaming, setIsRenaming] = useState(false)
 	const pageMenuLbl = msg(messages.pageMenu)
 
 	const isEmbed = !!new URLSearchParams(window.location.search).get('embed')
-	const isUiV3 = useIsUiV3()
 
 	const fileSlug = useParams<{ fileSlug: string }>().fileSlug ?? '_not_a_file_' // fall back to a string that will not match any file
 	const isOwner = useHasFileAdminRights(fileSlug)
@@ -328,7 +333,12 @@ function TlaEditorTopLeftPanelSignedIn() {
 					<ExportFileContentSubMenu />
 					<ExtrasGroup />
 				</TldrawUiMenuGroup>
-				{/* Preferences, language and keyboard shortcuts live in the settings dialog for signed-in users. */}
+				{/* In `ui_v3`, preferences, language and keyboard shortcuts live in the settings dialog. */}
+				{!isUiV3 && (
+					<TldrawUiMenuGroup id="preferences">
+						<PreferencesGroup />
+					</TldrawUiMenuGroup>
+				)}
 			</TlaFileMenu>
 		</>
 	)
@@ -530,15 +540,21 @@ function SignInMenuItem() {
 /** The anonymous menu keeps the account-wide preferences: without an account there is no settings
  *  dialog to hold them. */
 function TlaPreferencesGroup() {
+	// In `ui_v3` these are under View (see TlaViewSubmenu), and tool lock is left to the toolbar.
+	const isUiV3 = useIsUiV3()
 	return (
 		<TldrawUiMenuGroup id="preferences">
 			<TldrawUiMenuSubmenu id="preferences" label="menu.preferences">
 				<TldrawUiMenuGroup id="preferences-actions">
 					<ToggleSnapModeItem />
+					{!isUiV3 && <ToggleToolLockItem />}
+					{!isUiV3 && <ToggleGridItem />}
 					<ToggleWrapModeItem />
+					{!isUiV3 && <ToggleFocusModeItem />}
 					<ToggleEdgeScrollingItem />
 					<ToggleDynamicSizeModeItem />
 					<TogglePasteAtCursorItem />
+					{!isUiV3 && <ToggleDebugModeItem />}
 				</TldrawUiMenuGroup>
 				<TldrawUiMenuGroup id="user-interface-submenus">
 					<ColorSchemeMenu />

@@ -48,14 +48,15 @@ test.describe('preferences', () => {
 	test('can change language', async ({ sidebar, page, editor }) => {
 		await editor.ensureSidebarOpen()
 		await test.step('English by default', async () => {
-			await sidebar.expectLanguageToBe('English')
+			await sidebar.expectLanguageToBe('Language', 'English')
 		})
+		await sidebar.closeAccountMenu()
 		await test.step('change language', async () => {
-			await sidebar.setLanguage('Français')
+			await sidebar.setLanguage('Language', 'Français')
 		})
 
 		await test.step('changed to French', async () => {
-			await sidebar.expectLanguageToBe('Français')
+			await sidebar.expectLanguageToBe('Langue', 'Français')
 			await editor.openPageMenu()
 			// Make sure the file / page menu is using the correct language
 			await expect(page.getByText('Charger un média')).toBeVisible()

@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Hantar maklum balas"
   },
+  "0e4a10d921": {
+    "translation": "Tandakan semua pemberitahuan sebagai telah dibaca"
+  },
   "1063e38cb5": {
     "translation": "Alih keluar"
   },
@@ -67,6 +70,9 @@
   },
   "14b03eeeb5": {
     "translation": "Pilihan pemberitahuan"
+  },
+  "15bf4fead9": {
+    "translation": "Tukar ruang kerja"
   },
   "181b90f889": {
     "translation": "Buat fail"
@@ -92,11 +98,11 @@
   "250ddea65c": {
     "translation": "Mengenai tldraw"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> telah mengulas di papan anda"
-  },
   "28b2464e1f": {
     "translation": "Tidak dapat menghantar maklum balas"
+  },
+  "2944edaa8d": {
+    "translation": "Bagi pihak {name}"
   },
   "299cb00a7a": {
     "translation": "Muat naik gagal"
@@ -128,8 +134,14 @@
   "324a0f3182": {
     "translation": "Kembali ke tldraw"
   },
+  "32811caa8c": {
+    "translation": "Fail pendua"
+  },
   "335defdafe": {
     "translation": "Sila cuba muat semula halaman."
+  },
+  "34082694d2": {
+    "translation": "Nama fail"
   },
   "344a7f427f": {
     "translation": "Editor"
@@ -173,6 +185,9 @@
   "46137245cd": {
     "translation": "Terima kasih kerana membantu kami meningkatkan tldraw!"
   },
+  "4630b65bb2": {
+    "translation": "Alihkan fail ke"
+  },
   "46de2de6bb": {
     "translation": "Terima syarat penggunaan"
   },
@@ -184,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "Nama"
+  },
+  "4a8165368a": {
+    "translation": "Salin pautan yang diterbitkan"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> telah mengulas"
   },
   "4d0d3ddec9": {
     "translation": "Tapak ini menggunakan kuki untuk menjadikan apl berfungsi dan mengumpul analitik."
@@ -224,6 +245,9 @@
   "5638176be5": {
     "translation": "Cipta ruang kerja"
   },
+  "5653ebed2e": {
+    "translation": "Pergi ke fail"
+  },
   "5677e381d2": {
     "translation": "Kami menggunakan kuki analitik untuk menjadikan tldraw lebih baik."
   },
@@ -238,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Ruang kerja saya"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> telah memberi reaksi terhadap komen anda"
   },
   "5d04a002ea": {
     "translation": "Tidak dapat menyambung"
@@ -263,9 +284,6 @@
   "61057a0c84": {
     "translation": "Nanti"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, other {# orang memberi reaksi kepada komen anda}}"
-  },
   "625fd29749": {
     "translation": "Lebih tua"
   },
@@ -281,8 +299,14 @@
   "6637a98151": {
     "translation": "Versi baharu tldraw tersedia. Sila muat semula halaman untuk meneruskan."
   },
+  "67ed6ddb7d": {
+    "translation": "Disunting"
+  },
   "681e10aecb": {
     "translation": "Fail baharu"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, other {# yang lain}} bertindak balas"
   },
   "6832ac5936": {
     "translation": "Masukkan alamat e-mel anda"
@@ -290,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Padam ruang kerja"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, other {# orang memberi reaksi}}"
+  },
   "6a26f54883": {
     "translation": "Tolong"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Anda tidak mempunyai kebenaran yang diperlukan untuk melakukan tindakan ini."
   },
   "6dfc62f621": {
     "translation": "Ikuti langkah ini untuk mengimport kandungan secara manual:"
+  },
+  "6ea5359e01": {
+    "translation": "Kanvas"
   },
   "70a6facb9d": {
     "translation": "minggu ini"
@@ -334,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Berbual dengan kami di Discord"
+  },
+  "76ec4e4ed9": {
+    "translation": "Salin pautan fail"
   },
   "777f9e90cf": {
     "translation": "Permintaan tidak sah."
@@ -395,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Anda sudah menjadi ahli ruang kerja ini"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> dan {count, plural, other {# yang lain}} bertindak balas"
+  },
   "88bf6ab42c": {
     "translation": "Pautan jemputan ini telah tamat tempoh"
   },
@@ -403,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Dikongsi dengan anda"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Mengenai"
   },
   "8ff3d0a705": {
     "translation": "Kadar terhad"
@@ -416,6 +458,9 @@
   "90646db02d": {
     "translation": "Adakah anda pasti mahu memadam <strong>{workspaceName}</strong>? Tindakan ini tidak boleh dibuat asal."
   },
+  "91f3a2c0e4": {
+    "translation": "Fail"
+  },
   "930390d222": {
     "translation": "Pautan jemputan yang disalin"
   },
@@ -427,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "bulan ini"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> bertindak balas"
   },
   "985a4b720f": {
     "translation": "Syarat Penggunaan"
@@ -482,6 +530,9 @@
   "a3debabee7": {
     "translation": "Dasar kuki"
   },
+  "a4bef6414b": {
+    "translation": "Togol bar sisi komen"
+  },
   "a4d3b161ce": {
     "translation": "Hantar"
   },
@@ -509,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Had fail dicapai"
   },
+  "ac863f346e": {
+    "translation": "Aplikasi"
+  },
+  "aeb428554a": {
+    "translation": "Perpustakaan"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Terakhir diterbitkan <date></date>"
@@ -527,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Fail sudah penuh"
+  },
+  "b3205c1e45": {
+    "translation": "Buka panel pemberitahuan"
   },
   "b357b524e7": {
     "translation": "Alamat e-mel"
@@ -558,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "Dikongsi oleh {ownerName}"
   },
+  "bd8aac2696": {
+    "translation": "Fail semasa"
+  },
   "c17466812d": {
     "translation": "Urus ruang kerja"
   },
@@ -585,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Ketepikan"
   },
+  "cb5feb1b73": {
+    "translation": "Warna"
+  },
+  "cce99c598c": {
+    "translation": "Profil"
+  },
   "cceaefbc20": {
     "translation": "Kongsi fail ini"
   },
@@ -597,8 +666,11 @@
   "cea291e45e": {
     "translation": "Ketahui lebih lanjut tentang penerbitan."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> dan {count, plural, other {# orang lain}} memberi reaksi terhadap komen anda"
+  "d0834fcec6": {
+    "translation": "Keutamaan"
+  },
+  "d28d6bbc42": {
+    "translation": "Nyahterbitkan fail"
   },
   "d3d2e61733": {
     "translation": "tutup"
@@ -608,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Togol bar sisi"
+  },
+  "d5e92609cf": {
+    "translation": "Ruang kerja"
   },
   "d638a3344b": {
     "translation": "Sebelum anda mula, sila terima <tos>syarat penggunaan</tos> dan <privacy>dasar privasi</privacy> kami."
@@ -630,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Tinggalkan ruang kerja"
   },
-  "dfdb78a4e4": {
-    "translation": "Bendera nyahpepijat apl"
-  },
   "e0aa021e21": {
     "translation": "OK"
   },
@@ -644,9 +716,6 @@
   },
   "e404559826": {
     "translation": "Syarat perkhidmatan"
-  },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> dan <name>{b}</name> telah memberi reaksi terhadap komen anda"
   },
   "e81c4e4f2b": {
     "translation": "atau"
@@ -699,9 +768,6 @@
   "f408fa5fbd": {
     "translation": "Pautan jemputan ini tidak sah atau telah tamat tempoh."
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> dan {count, plural, other {# orang lain}} telah memberi reaksi terhadap komen anda"
-  },
   "f4f70727dc": {
     "translation": "tetapan"
   },
@@ -728,6 +794,9 @@
   },
   "ffad261a48": {
     "translation": "Ralat menerima jemputan"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> dan <name>{b}</name> bertindak balas"
   },
   "ffcd73e997": {
     "translation": "Import fail…"

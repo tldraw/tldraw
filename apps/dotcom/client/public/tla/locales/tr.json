@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "Geri bildirim gönder"
   },
+  "0e4a10d921": {
+    "translation": "Tüm bildirimleri okundu olarak işaretle"
+  },
   "1063e38cb5": {
     "translation": "Kaldırmak"
   },
@@ -67,6 +70,9 @@
   },
   "14b03eeeb5": {
     "translation": "Bildirim seçenekleri"
+  },
+  "15bf4fead9": {
+    "translation": "Çalışma alanını değiştir"
   },
   "181b90f889": {
     "translation": "Dosya oluştur"
@@ -92,11 +98,11 @@
   "250ddea65c": {
     "translation": "tldraw hakkında"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name> panonuza yorum yaptı."
-  },
   "28b2464e1f": {
     "translation": "Geri bildirim gönderilemedi."
+  },
+  "2944edaa8d": {
+    "translation": "{name} adına"
   },
   "299cb00a7a": {
     "translation": "Yüklenemedi"
@@ -128,8 +134,14 @@
   "324a0f3182": {
     "translation": "tldraw'a geri dön"
   },
+  "32811caa8c": {
+    "translation": "Dosya kopyası"
+  },
   "335defdafe": {
     "translation": "Lütfen sayfayı yenilemeyi deneyin."
+  },
+  "34082694d2": {
+    "translation": "Dosya adı"
   },
   "344a7f427f": {
     "translation": "Düzenleyici"
@@ -173,6 +185,9 @@
   "46137245cd": {
     "translation": "Tldraw'ı geliştirmemize yardımcı olduğunuz için teşekkürler!"
   },
+  "4630b65bb2": {
+    "translation": "Dosyayı taşı"
+  },
   "46de2de6bb": {
     "translation": "Kullanım şartlarını kabul edin"
   },
@@ -184,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "İsim"
+  },
+  "4a8165368a": {
+    "translation": "Yayınlanan bağlantıyı kopyala"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name> yorum yaptı"
   },
   "4d0d3ddec9": {
     "translation": "Bu site, uygulamanın çalışmasını sağlamak ve analiz toplamak için çerezler kullanır."
@@ -224,6 +245,9 @@
   "5638176be5": {
     "translation": "Bir çalışma alanı oluşturun"
   },
+  "5653ebed2e": {
+    "translation": "Dosyaya git"
+  },
   "5677e381d2": {
     "translation": "Tldraw'ı daha iyi hale getirmek için analiz çerezleri kullanıyoruz."
   },
@@ -238,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "Çalışma alanım"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name> yorumunuza yanıt verdi."
   },
   "5d04a002ea": {
     "translation": "Bağlantı kurulamadı."
@@ -263,9 +284,6 @@
   "61057a0c84": {
     "translation": "Daha sonra"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, one {Birisi yorumunuza yanıt verdi.} other {# Kişi yorumunuza tepki verdi}}"
-  },
   "625fd29749": {
     "translation": "Daha eski"
   },
@@ -281,8 +299,14 @@
   "6637a98151": {
     "translation": "tldraw'ın yeni bir sürümü mevcut. Devam etmek için lütfen sayfayı yeniden yükleyin."
   },
+  "67ed6ddb7d": {
+    "translation": "Düzenlendi"
+  },
   "681e10aecb": {
     "translation": "Yeni dosya"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# other} other {# others}} tepki verdi"
   },
   "6832ac5936": {
     "translation": "E-posta adresinizi girin"
@@ -290,14 +314,23 @@
   "694f82ed9d": {
     "translation": "Çalışma alanını sil"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, one {Birisi tepki gösterdi.} other {# insanlar tepki verdi}}"
+  },
   "6a26f54883": {
     "translation": "Yardım"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "Bu işlem için gerekli izinlere sahip değilsiniz."
   },
   "6dfc62f621": {
     "translation": "İçeriği manuel olarak içe aktarmak için şu adımları izleyin:"
+  },
+  "6ea5359e01": {
+    "translation": "Tuval"
   },
   "70a6facb9d": {
     "translation": "Bu hafta"
@@ -334,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Discord'da bizimle sohbet edin"
+  },
+  "76ec4e4ed9": {
+    "translation": "Dosya bağlantısını kopyala"
   },
   "777f9e90cf": {
     "translation": "Geçersiz istek"
@@ -395,6 +431,9 @@
   "87fdb09de6": {
     "translation": "Zaten bu çalışma alanının bir üyesisiniz."
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name> ve {count, plural, one {# other} other {# others}} tepki verdi"
+  },
   "88bf6ab42c": {
     "translation": "Bu davet bağlantısının süresi doldu."
   },
@@ -403,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "Sizinle paylaşıldı"
+  },
+  "8f7f4c1ce7": {
+    "translation": "Hakkında"
   },
   "8ff3d0a705": {
     "translation": "Kullanım sınırlı"
@@ -416,6 +458,9 @@
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong> öğesini silmek istediğinizden emin misiniz? Bu işlem geri alınamaz."
   },
+  "91f3a2c0e4": {
+    "translation": "Dosyalar"
+  },
   "930390d222": {
     "translation": "Davet bağlantısı kopyalandı."
   },
@@ -427,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "Bu ay"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name> tepki verdi"
   },
   "985a4b720f": {
     "translation": "Kullanım Şartları"
@@ -482,6 +530,9 @@
   "a3debabee7": {
     "translation": "Çerez politikası"
   },
+  "a4bef6414b": {
+    "translation": "Yorumlar kenar çubuğunu aç/kapat"
+  },
   "a4d3b161ce": {
     "translation": "Göndermek"
   },
@@ -509,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "Dosya sınırına ulaşıldı"
   },
+  "ac863f346e": {
+    "translation": "Uygulama"
+  },
+  "aeb428554a": {
+    "translation": "Kütüphaneler"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "Son yayınlanma <date></date>"
@@ -527,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "Dosya dolu"
+  },
+  "b3205c1e45": {
+    "translation": "Bildirim panelini açın"
   },
   "b357b524e7": {
     "translation": "E-posta adresi"
@@ -558,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "{ownerName} tarafından paylaşıldı"
   },
+  "bd8aac2696": {
+    "translation": "Mevcut dosya"
+  },
   "c17466812d": {
     "translation": "Çalışma alanını yönetin"
   },
@@ -585,6 +648,12 @@
   "c8a59e7135": {
     "translation": "Kapat"
   },
+  "cb5feb1b73": {
+    "translation": "Renk"
+  },
+  "cce99c598c": {
+    "translation": "Profil"
+  },
   "cceaefbc20": {
     "translation": "Bu dosyayı paylaş"
   },
@@ -597,8 +666,11 @@
   "cea291e45e": {
     "translation": "Yayınlama hakkında daha fazla bilgi edinin."
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> ve {count, plural, one {# kişi daha} other {# kişi daha}} yorumunuza tepki verdi."
+  "d0834fcec6": {
+    "translation": "Tercihler"
+  },
+  "d28d6bbc42": {
+    "translation": "Dosyayı yayından kaldır"
   },
   "d3d2e61733": {
     "translation": "Kapat"
@@ -608,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "Kenar çubuğunu aç/kapat"
+  },
+  "d5e92609cf": {
+    "translation": "Çalışma Alanları"
   },
   "d638a3344b": {
     "translation": "Başlamadan önce lütfen <tos>kullanım koşullarımızı</tos> ve <privacy>gizlilik politikamızı</privacy> kabul edin."
@@ -630,9 +705,6 @@
   "dbf9b24193": {
     "translation": "Çalışma alanından ayrılın"
   },
-  "dfdb78a4e4": {
-    "translation": "Uygulama hata ayıklama bayrakları"
-  },
   "e0aa021e21": {
     "translation": "TAMAM"
   },
@@ -644,9 +716,6 @@
   },
   "e404559826": {
     "translation": "Hizmet Şartları"
-  },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> ve <name>{b}</name> yorumunuza yanıt verdi."
   },
   "e81c4e4f2b": {
     "translation": "veya"
@@ -699,9 +768,6 @@
   "f408fa5fbd": {
     "translation": "Bu davet bağlantısı geçersiz veya süresi dolmuş."
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>, <name>{b}</name> ve {count, plural, one {# kişi daha} other {# kişi daha}} yorumunuza tepki verdi."
-  },
   "f4f70727dc": {
     "translation": "Ayarlar"
   },
@@ -728,6 +794,9 @@
   },
   "ffad261a48": {
     "translation": "Daveti kabul etmede hata oluştu"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name> ve <name>{b}</name> tepki verdi"
   },
   "ffcd73e997": {
     "translation": "Dosyayı içe aktar…"

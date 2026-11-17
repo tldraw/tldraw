@@ -143,12 +143,6 @@
       "value": "Send feedback"
     }
   ],
-  "0dcda35158": [
-    {
-      "type": 0,
-      "value": "Board menu"
-    }
-  ],
   "0e4a10d921": [
     {
       "type": 0,
@@ -481,10 +475,14 @@
       "value": "Pin file"
     }
   ],
-  "48b90a52b9": [
+  "49800157c1": [
     {
       "type": 0,
-      "value": "No boards here yet."
+      "value": "Edited "
+    },
+    {
+      "type": 1,
+      "value": "time"
     }
   ],
   "49ee308734": [
@@ -549,6 +547,12 @@
     {
       "type": 0,
       "value": "Page menu"
+    }
+  ],
+  "517f5f3544": [
+    {
+      "type": 0,
+      "value": "No files here yet."
     }
   ],
   "53770fd374": [
@@ -619,6 +623,12 @@
     {
       "type": 0,
       "value": "Privacy policy"
+    }
+  ],
+  "56cabd57d5": [
+    {
+      "type": 0,
+      "value": "Archived files will appear here."
     }
   ],
   "5a95a425f7": [
@@ -1164,12 +1174,6 @@
       "value": "This invite link has expired"
     }
   ],
-  "8a7fb7458e": [
-    {
-      "type": 0,
-      "value": "Archived boards will appear here."
-    }
-  ],
   "8c2d3d730c": [
     {
       "type": 0,
@@ -1682,6 +1686,12 @@
       "value": "Current file"
     }
   ],
+  "bf9c7b5670": [
+    {
+      "type": 0,
+      "value": "Search…"
+    }
+  ],
   "c17466812d": [
     {
       "type": 0,
@@ -1756,12 +1766,6 @@
     {
       "type": 0,
       "value": "Copy to my workspace"
-    }
-  ],
-  "c7d7403714": [
-    {
-      "type": 0,
-      "value": "New board"
     }
   ],
   "c87aacf567": [
@@ -1888,12 +1892,6 @@
       "value": "Theme"
     }
   ],
-  "d789869473": [
-    {
-      "type": 0,
-      "value": "Favorites"
-    }
-  ],
   "d876a9fe1a": [
     {
       "type": 0,
@@ -1922,6 +1920,12 @@
     {
       "type": 0,
       "value": "Leave workspace"
+    }
+  ],
+  "dfdb78a4e4": [
+    {
+      "type": 0,
+      "value": "App debug flags"
     }
   ],
   "e0aa021e21": [
@@ -1994,6 +1998,12 @@
     {
       "type": 0,
       "value": "Account menu"
+    }
+  ],
+  "ed6241a422": [
+    {
+      "type": 0,
+      "value": "No files match your search."
     }
   ],
   "ed75712b0e": [
@@ -2074,12 +2084,6 @@
     {
       "type": 0,
       "value": "Delete"
-    }
-  ],
-  "f2f9a2e98d": [
-    {
-      "type": 0,
-      "value": "Workspace menu"
     }
   ],
   "f408fa5fbd": [

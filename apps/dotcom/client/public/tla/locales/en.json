@@ -50,9 +50,6 @@
   "0d1f2bb523": {
     "translation": "Send feedback"
   },
-  "0dcda35158": {
-    "translation": "Board menu"
-  },
   "0e4a10d921": {
     "translation": "Mark all notifications as read"
   },
@@ -203,8 +200,8 @@
   "47f493a590": {
     "translation": "Pin file"
   },
-  "48b90a52b9": {
-    "translation": "No boards here yet."
+  "49800157c1": {
+    "translation": "Edited {time}"
   },
   "49ee308734": {
     "translation": "Name"
@@ -232,6 +229,9 @@
   },
   "517bb809d9": {
     "translation": "Page menu"
+  },
+  "517f5f3544": {
+    "translation": "No files here yet."
   },
   "53770fd374": {
     "translation": "Unread"
@@ -262,6 +262,9 @@
   },
   "56c34c6410": {
     "translation": "Privacy policy"
+  },
+  "56cabd57d5": {
+    "translation": "Archived files will appear here."
   },
   "5a95a425f7": {
     "translation": "Share"
@@ -448,9 +451,6 @@
   },
   "88bf6ab42c": {
     "translation": "This invite link has expired"
-  },
-  "8a7fb7458e": {
-    "translation": "Archived boards will appear here."
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
@@ -642,6 +642,9 @@
   "bd8aac2696": {
     "translation": "Current file"
   },
+  "bf9c7b5670": {
+    "translation": "Search…"
+  },
   "c17466812d": {
     "translation": "Manage workspace"
   },
@@ -662,9 +665,6 @@
   },
   "c6f16003f2": {
     "translation": "Copy to my workspace"
-  },
-  "c7d7403714": {
-    "translation": "New board"
   },
   "c87aacf567": {
     "translation": "Sign out"
@@ -714,9 +714,6 @@
   "d721757161": {
     "translation": "Theme"
   },
-  "d789869473": {
-    "translation": "Favorites"
-  },
   "d876a9fe1a": {
     "translation": "Try Again"
   },
@@ -731,6 +728,9 @@
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
+  },
+  "dfdb78a4e4": {
+    "translation": "App debug flags"
   },
   "e0aa021e21": {
     "translation": "OK"
@@ -768,6 +768,9 @@
   "ec611e9a08": {
     "translation": "Account menu"
   },
+  "ed6241a422": {
+    "translation": "No files match your search."
+  },
   "ed75712b0e": {
     "translation": "Duplicate"
   },
@@ -800,9 +803,6 @@
   },
   "f2a6c498fb": {
     "translation": "Delete"
-  },
-  "f2f9a2e98d": {
-    "translation": "Workspace menu"
   },
   "f408fa5fbd": {
     "translation": "This invite link is invalid or has expired."
