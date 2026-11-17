@@ -187,11 +187,8 @@ function TlaEditorInner({ fileSlug, deepLinks, isEmbed = false }: TlaEditorProps
 			;(window as any).app = app
 			;(window as any).editor = editor
 			;(window as any).canvasOpsReceiver = createCanvasOpsReceiver(editor)
+			// Register the editor globally
 			globalEditor.set(editor)
-			editor.disposables.add(() => {
-				// Gallery preferences must not keep reading a disposed editor.
-				if (globalEditor.get() === editor) globalEditor.set(null)
-			})
 
 			// Register the external asset handler
 			editor.registerExternalAssetHandler('url', createAssetFromUrl)

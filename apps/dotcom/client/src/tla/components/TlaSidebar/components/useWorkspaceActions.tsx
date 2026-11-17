@@ -7,18 +7,12 @@ import { TLAppUiEventSource, useTldrawAppUiEvents } from '../../../utils/app-ui-
 import { getIsCoarsePointer } from '../../../utils/getIsCoarsePointer'
 import { CreateWorkspaceDialog } from '../../dialogs/CreateWorkspaceDialog'
 
-export type WorkspaceDestination = 'board' | 'workspace'
-
-export function useSwitchToWorkspace(destination: WorkspaceDestination = 'board') {
+export function useSwitchToWorkspace() {
 	const app = useApp()
 	const navigate = useNavigate()
 
 	return useCallback(
 		async (workspaceId: string) => {
-			if (destination === 'workspace') {
-				navigate(routes.tlaWorkspace(workspaceId))
-				return
-			}
 			// Open the file the user last had open here, not just the top of the pinned-first list.
 			const mostRecentFileId = app.getMostRecentFileId(workspaceId)
 			if (mostRecentFileId) {
@@ -52,18 +46,15 @@ export function useSwitchToWorkspace(destination: WorkspaceDestination = 'board'
 				navigate(routes.tlaFile(res.value.fileId))
 			}
 		},
-		[app, navigate, destination]
+		[app, navigate]
 	)
 }
 
-export function useCreateWorkspaceDialog({
-	source = 'sidebar',
-	destination = 'board',
-}: { source?: TLAppUiEventSource; destination?: WorkspaceDestination } = {}) {
+export function useCreateWorkspaceDialog(source: TLAppUiEventSource = 'sidebar') {
 	const app = useApp()
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
-	const switchToWorkspace = useSwitchToWorkspace(destination)
+	const switchToWorkspace = useSwitchToWorkspace()
 	const trackEvent = useTldrawAppUiEvents()
 
 	return useCallback(() => {
@@ -84,11 +75,7 @@ export function useCreateWorkspaceDialog({
 						// otherwise create a blank file before the welcome file lands).
 						const res = await app.createWorkspaceWelcomeFile(id)
 						if (res.ok) {
-							navigate(
-								destination === 'workspace'
-									? routes.tlaWorkspace(id)
-									: routes.tlaFile(res.value.fileId)
-							)
+							navigate(routes.tlaFile(res.value.fileId))
 						} else {
 							// Seeding failed; still land the user in the new workspace rather than
 							// leaving them stranded. switchToWorkspace creates a blank file for the
@@ -99,5 +86,5 @@ export function useCreateWorkspaceDialog({
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source, destination])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source])
 }

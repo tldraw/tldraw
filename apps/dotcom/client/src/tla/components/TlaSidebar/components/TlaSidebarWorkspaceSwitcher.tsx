@@ -4,7 +4,6 @@ import { ReactNode, useCallback } from 'react'
 import {
 	defineMessages,
 	useContainer,
-	useDialogs,
 	useGlobalMenuIsOpen,
 	useMaybeEditor,
 	useTranslation,
@@ -12,8 +11,6 @@ import {
 } from 'tldraw'
 import { useActiveWorkspaceId } from '../../../hooks/useActiveWorkspaceId'
 import { useApp } from '../../../hooks/useAppState'
-import { useWorkspaceName } from '../../../hooks/useWorkspaceName'
-import { WorkspaceSettingsDialog } from '../../dialogs/WorkspaceSettingsDialog'
 import { TLA_MENU_POSITION } from '../../tla-menu/tla-menu-position'
 import { TlaIcon } from '../../TlaIcon/TlaIcon'
 import { useCreateWorkspaceDialog, useSwitchToWorkspace } from './useWorkspaceActions'
@@ -22,22 +19,20 @@ import styles from '../sidebar.module.css'
 const messages = defineMessages({
 	myWorkspace: { defaultMessage: 'My workspace' },
 	createWorkspace: { defaultMessage: 'New workspace' },
-	manageWorkspace: { defaultMessage: 'Manage workspace' },
 })
 
-export function TlaSidebarWorkspaceSwitcher({
-	className,
-	destination = 'board',
-}: {
-	className?: string
-	destination?: 'board' | 'workspace'
-} = {}) {
+/**
+ * The fixed top region of the sidebar: a dropdown for switching between the
+ * home workspace and the user's other workspaces, followed by action rows for
+ * the active workspace. Selecting a workspace opens the file the user most
+ * recently had open in it (or its top file if they've visited none), which makes
+ * it active (the active workspace is derived from the open file).
+ */
+export function TlaSidebarWorkspaceSwitcher() {
 	const msg = useTranslation()
 	const app = useApp()
 	const homeWorkspaceId = app.getHomeWorkspaceId()
 	const activeWorkspaceId = useActiveWorkspaceId()
-	const displayName = useWorkspaceName(activeWorkspaceId)
-	const homeDisplayName = useWorkspaceName(homeWorkspaceId)
 	const isHome = activeWorkspaceId === homeWorkspaceId
 	const myWorkspaceLbl = msg(messages.myWorkspace)
 
@@ -81,13 +76,12 @@ export function TlaSidebarWorkspaceSwitcher({
 			[editor]
 		)
 	)
-	const switchToWorkspace = useSwitchToWorkspace(destination)
-	const handleCreateWorkspace = useCreateWorkspaceDialog({ destination })
-	const { addDialog } = useDialogs()
+	const switchToWorkspace = useSwitchToWorkspace()
+	const handleCreateWorkspace = useCreateWorkspaceDialog()
 	const container = useContainer()
 
 	return (
-		<div className={classNames(styles.sidebarSection, className)}>
+		<div className={styles.sidebarSection}>
 			<div className={styles.sidebarWorkspaceSwitcherRoot}>
 				<_DropdownMenu.Root open={isOpen} onOpenChange={onOpenChange}>
 					<_DropdownMenu.Trigger asChild>
@@ -103,24 +97,17 @@ export function TlaSidebarWorkspaceSwitcher({
 								className={classNames(styles.sidebarWorkspaceSwitcherLabel, 'notranslate')}
 								data-testid="tla-active-workspace-name"
 							>
-								{destination === 'workspace'
-									? displayName
-									: (activeWorkspaceName ?? myWorkspaceLbl)}
+								{activeWorkspaceName ?? myWorkspaceLbl}
 							</span>
 							<TlaIcon icon="chevron-up-down" className={styles.sidebarWorkspaceSwitcherChevrons} />
 						</button>
 					</_DropdownMenu.Trigger>
 					<_DropdownMenu.Portal container={container}>
 						<_DropdownMenu.Content
-							className={classNames(
-								'tlui-menu',
-								styles.sidebarWorkspaceSwitcherMenu,
-								destination === 'workspace' && styles.workspaceSwitcherPopover
-							)}
+							className={classNames('tlui-menu', styles.sidebarWorkspaceSwitcherMenu)}
 							side="bottom"
 							align="start"
 							{...TLA_MENU_POSITION}
-							sideOffset={destination === 'workspace' ? 11 : TLA_MENU_POSITION.sideOffset}
 							// When the switcher closes because another menu is opening (e.g. a file's
 							// "…" menu), don't restore focus to our trigger — that focus shift would
 							// dismiss the just-opened menu, making it flash. A plain Escape/outside
@@ -129,86 +116,39 @@ export function TlaSidebarWorkspaceSwitcher({
 								if (editor?.menus.hasAnyOpenMenus()) e.preventDefault()
 							}}
 						>
-							<div
-								className={destination === 'workspace' ? styles.userSettingsPopoverBody : undefined}
+							<WorkspaceSwitcherItem
+								isActive={isHome}
+								onSelect={() => switchToWorkspace(homeWorkspaceId)}
+								testId="tla-workspace-switcher-home"
 							>
+								{homeWorkspaceName ?? myWorkspaceLbl}
+							</WorkspaceSwitcherItem>
+							{workspaces.map((g) => (
 								<WorkspaceSwitcherItem
-									isActive={isHome}
-									onSelect={() => switchToWorkspace(homeWorkspaceId)}
-									testId="tla-workspace-switcher-home"
+									key={`workspace-${g.group.id}`}
+									isActive={g.group.id === activeWorkspaceId}
+									onSelect={() => switchToWorkspace(g.group.id)}
 								>
-									{destination === 'workspace'
-										? homeDisplayName
-										: (homeWorkspaceName ?? myWorkspaceLbl)}
+									{g.group.name}
 								</WorkspaceSwitcherItem>
-								{workspaces.map((g) => (
-									<WorkspaceSwitcherItem
-										key={`workspace-${g.group.id}`}
-										isActive={g.group.id === activeWorkspaceId}
-										onSelect={() => switchToWorkspace(g.group.id)}
-									>
-										{g.group.name}
-									</WorkspaceSwitcherItem>
-								))}
-								<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
-								{destination === 'workspace' && (
-									<_DropdownMenu.Item
-										className={classNames(
-											styles.sidebarWorkspaceSwitcherItem,
-											'tla-text_ui__regular'
-										)}
-										onSelect={() =>
-											addDialog({
-												component: ({ onClose }) => (
-													<WorkspaceSettingsDialog
-														workspaceId={activeWorkspaceId}
-														onClose={onClose}
-														layout="sections"
-													/>
-												),
-											})
-										}
-									>
-										<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
-											<TlaIcon icon="settings" />
-											<span className={styles.sidebarTruncatedText}>
-												{msg(messages.manageWorkspace)}
-											</span>
-										</span>
-									</_DropdownMenu.Item>
+							))}
+							<_DropdownMenu.Separator className={styles.sidebarWorkspaceSwitcherSeparator} />
+							<_DropdownMenu.Item
+								className={classNames(
+									styles.sidebarWorkspaceSwitcherItem,
+									styles.sidebarWorkspaceSwitcherItemCreate,
+									'tla-text_ui__regular'
 								)}
-								<_DropdownMenu.Item
-									className={classNames(
-										styles.sidebarWorkspaceSwitcherItem,
-										styles.sidebarWorkspaceSwitcherItemCreate,
-										'tla-text_ui__regular'
-									)}
-									onSelect={handleCreateWorkspace}
-									data-testid="tla-create-workspace-menu-item"
-								>
-									<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
-										<TlaIcon icon="plus" />
-										<span className={styles.sidebarTruncatedText}>
-											{msg(messages.createWorkspace)}
-										</span>
+								onSelect={handleCreateWorkspace}
+								data-testid="tla-create-workspace-menu-item"
+							>
+								<span className={styles.sidebarWorkspaceSwitcherItemLabel}>
+									<TlaIcon icon="plus" />
+									<span className={styles.sidebarTruncatedText}>
+										{msg(messages.createWorkspace)}
 									</span>
-								</_DropdownMenu.Item>
-							</div>
-							{destination === 'workspace' && (
-								<svg
-									width={14}
-									height={7}
-									viewBox="0 0 14 7"
-									className={classNames(
-										styles.userSettingsPopoverArrow,
-										styles.workspaceSwitcherArrow
-									)}
-									aria-hidden="true"
-								>
-									<path d="M0 -1 V0 L7 7 L14 0 V-1 Z" />
-									<path d="M0 0 L7 7 L14 0" fill="none" />
-								</svg>
-							)}
+								</span>
+							</_DropdownMenu.Item>
 						</_DropdownMenu.Content>
 					</_DropdownMenu.Portal>
 				</_DropdownMenu.Root>

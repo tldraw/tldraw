@@ -430,7 +430,7 @@ function TlaWorkspacesGroup() {
 	const { addDialog } = useDialogs()
 	const activeWorkspaceId = useActiveWorkspaceId()
 	const switchToWorkspace = useSwitchToWorkspace()
-	const createWorkspace = useCreateWorkspaceDialog({ source: 'command-palette' })
+	const createWorkspace = useCreateWorkspaceDialog('command-palette')
 	const memberships = useValue('memberships', () => app.getWorkspaceMemberships(), [app])
 	const workspacesLbl = msg(messages.workspaces)
 	const switchLbl = msg(messages.switchWorkspace)

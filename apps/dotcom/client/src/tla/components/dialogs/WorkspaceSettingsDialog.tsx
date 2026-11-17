@@ -1,7 +1,6 @@
 import { MAX_WORKSPACE_NAME_LENGTH, Role, can } from '@tldraw/dotcom-shared'
-import classNames from 'classnames'
 import { Tooltip as _Tooltip } from 'radix-ui'
-import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
@@ -9,16 +8,13 @@ import {
 	TldrawUiDialogBody,
 	TldrawUiDialogCloseButton,
 	TldrawUiDialogHeader,
-	TldrawUiDialogFooter,
 	TldrawUiDialogTitle,
 	TldrawUiInput,
-	TldrawUiIcon,
 	TldrawUiTooltip,
 	useDialogs,
 	useTranslation,
 	useValue,
 } from 'tldraw'
-import { routes } from '../../../routeDefs'
 import { useApp } from '../../hooks/useAppState'
 import { useCurrentFileId } from '../../hooks/useCurrentFileId'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
@@ -33,15 +29,12 @@ import {
 	TlaMenuTabsTabs,
 } from '../tla-menu/tla-menu'
 import { TlaButton } from '../TlaButton/TlaButton'
-import { TlaIcon } from '../TlaIcon/TlaIcon'
 import { ConfirmDialog } from './ConfirmDialog'
 import styles from './dialogs.module.css'
 
 const messages = defineMessages({
 	cancel: { defaultMessage: 'Cancel' },
 	copyInviteLink: { defaultMessage: 'Copy invite link' },
-	inviteLink: { defaultMessage: 'Invite link' },
-	invitesDisabled: { defaultMessage: 'Invites are disabled' },
 	deleteWorkspace: { defaultMessage: 'Delete workspace' },
 	inviteTeammates: { defaultMessage: 'Invite teammates' },
 	leave: { defaultMessage: 'Leave' },
@@ -60,7 +53,6 @@ const messages = defineMessages({
 interface WorkspaceSettingsDialogProps {
 	workspaceId: string
 	onClose(): void
-	layout?: 'tabs' | 'sections'
 }
 
 // Returns a callback ref for a scroll container that shows its scrollbar only when the
@@ -81,19 +73,13 @@ function useScrollbarWhenScrollable() {
 	}, [])
 }
 
-export function WorkspaceSettingsDialog({
-	workspaceId,
-	onClose,
-	layout = 'tabs',
-}: WorkspaceSettingsDialogProps) {
+export function WorkspaceSettingsDialog({ workspaceId, onClose }: WorkspaceSettingsDialogProps) {
 	const msg = useTranslation()
 	const app = useApp()
 	const { addDialog } = useDialogs()
 	const trackEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState('members')
 	const [copiedInviteLink, setCopiedInviteLink] = useState(false)
-	const [draftName, setDraftName] = useState<string | null>(null)
-	const [isSavingName, setIsSavingName] = useState(false)
 
 	const scrollableRef = useScrollbarWhenScrollable()
 
@@ -107,19 +93,25 @@ export function WorkspaceSettingsDialog({
 	const currentFileId = useCurrentFileId()
 	const navigate = useNavigate()
 
-	// Keep the dialog's top edge stable when changing tabs or adding members changes its height.
+	// The overlay grid-centers the dialog, so it re-centers (and visibly jumps) whenever its
+	// height changes between tabs. Anchor it near the top instead (Raycast-style): a stable
+	// position that grows/shrinks downward as content changes. The max-height keeps a margin
+	// below it so it never reaches the bottom of the viewport — past that the members list
+	// scrolls (see .tabPage) while the name/invite/tabs stay put. vh keeps these correct
+	// across window resizes.
 	const anchorRef = useRef<HTMLDivElement>(null)
+	const hasAnchoredRef = useRef(false)
 	useLayoutEffect(() => {
+		if (hasAnchoredRef.current) return
 		const content = anchorRef.current?.closest('.tlui-dialog__content')
 		if (!(content instanceof HTMLElement)) return
+		hasAnchoredRef.current = true
 		content.style.alignSelf = 'start'
-		content.style.marginTop = layout === 'sections' ? '8vh' : '20vh'
-		content.style.maxHeight = layout === 'sections' ? '84vh' : '70vh'
-		if (layout === 'sections') content.classList.add(styles.workspaceSettingsDialog)
-		return () => content.classList.remove(styles.workspaceSettingsDialog)
-	}, [layout])
+		content.style.marginTop = '20vh'
+		content.style.maxHeight = '70vh'
+	})
 
-	// The legacy input live-saves; the sections layout saves explicitly. Track one `rename-workspace`
+	// The name input live-saves on each keystroke, but we only want one `rename-workspace`
 	// analytics event per edit session. Capture the name on open in the effect closure and
 	// compare it against the latest name when the dialog unmounts.
 	const workspaceName = workspaceMembership?.group?.name ?? null
@@ -173,25 +165,6 @@ export function WorkspaceSettingsDialog({
 		value,
 		label: roleLabels[value],
 	}))
-
-	const inviteUrl = workspace.inviteSecret
-		? routes.tlaInvite(workspace.inviteSecret, { asUrl: true })
-		: ''
-	const nameToSave = (draftName ?? workspace.name).trim()
-	const handleSaveName = async () => {
-		if (!canManageWorkspace || !nameToSave || nameToSave === workspace.name || isSavingName) return
-		setIsSavingName(true)
-		try {
-			const res = await app.z.mutate.updateWorkspace({ id: workspaceId, name: nameToSave }).client
-			if (res.type === 'error') {
-				app.showMutationRejectionToast(res.error)
-				return
-			}
-			setDraftName(null)
-		} finally {
-			setIsSavingName(false)
-		}
-	}
 
 	const handleCopyInviteLink = async () => {
 		if (copiedInviteLink) return
@@ -365,53 +338,27 @@ export function WorkspaceSettingsDialog({
 				</TldrawUiDialogTitle>
 				<TldrawUiDialogCloseButton />
 			</TldrawUiDialogHeader>
-			<TldrawUiDialogBody
-				className={classNames(styles.workspaceSettingsBody, {
-					[styles.workspaceSettingsSections]: layout === 'sections',
-				})}
-			>
+			<TldrawUiDialogBody className={styles.workspaceSettingsBody}>
+				{/* Shared header: name + invite link, shown above both tabs. */}
 				<div className={styles.section}>
 					<div className={styles.sectionLabel}>
-						{layout === 'sections' ? (
-							<F defaultMessage="Workspace name" />
-						) : (
-							<F defaultMessage="Name" />
-						)}
+						<F defaultMessage="Name" />
 					</div>
-					<div className={layout === 'sections' ? styles.workspaceNameRow : undefined}>
-						<TldrawUiInput
-							className={styles.dialogInput}
-							defaultValue={layout === 'tabs' ? workspace.name : undefined}
-							value={layout === 'sections' ? (draftName ?? workspace.name) : undefined}
-							aria-label={namePlaceholderMsg}
-							data-testid="workspace-settings-name"
-							disabled={!canManageWorkspace || isSavingName}
-							onValueChange={(value) => {
-								if (layout === 'sections') {
-									setDraftName(value)
-									return
-								}
-								const name = value.trim()
-								if (name && name !== workspace.name) {
-									app.z.mutate.updateWorkspace({ id: workspaceId, name })
-								}
-							}}
-							onComplete={layout === 'sections' ? handleSaveName : undefined}
-							onCancel={layout === 'sections' ? () => setDraftName(null) : undefined}
-							placeholder={namePlaceholderMsg}
-							maxLength={MAX_WORKSPACE_NAME_LENGTH}
-							autoSelect
-						/>
-						{layout === 'sections' && canManageWorkspace && (
-							<TlaButton
-								className={styles.workspaceDone}
-								disabled={!nameToSave || nameToSave === workspace.name || isSavingName}
-								onClick={handleSaveName}
-							>
-								<F defaultMessage="Save" />
-							</TlaButton>
-						)}
-					</div>
+					{/* Renaming requires the manageWorkspace capability (enforced by the mutator). */}
+					<TldrawUiInput
+						className={styles.dialogInput}
+						defaultValue={workspace.name}
+						disabled={!canManageWorkspace}
+						onValueChange={(value) => {
+							const name = value.trim()
+							if (name && name !== workspace.name) {
+								app.z.mutate.updateWorkspace({ id: workspaceId, name })
+							}
+						}}
+						placeholder={namePlaceholderMsg}
+						maxLength={MAX_WORKSPACE_NAME_LENGTH}
+						autoSelect
+					/>
 				</div>
 
 				{/* The home workspace is private and can't be shared, so show a disabled invite
@@ -433,47 +380,43 @@ export function WorkspaceSettingsDialog({
 				{/* Invite link, members, and settings apply only to shared workspaces. */}
 				{!isHomeWorkspace && (
 					<>
-						{layout === 'tabs' && (
-							<div className={styles.section}>
-								<div className={styles.sectionLabel}>
-									<F {...messages.inviteTeammates} />
-								</div>
-								{inviteLinkEnabled ? (
-									<TlaButton
-										iconRight={copiedInviteLink ? 'check' : 'copy'}
-										iconRightClassName={styles.copyInviteLinkIconRight}
-										variant="primary"
-										big
-										onClick={handleCopyInviteLink}
-									>
-										<F {...messages.copyInviteLink} />
-									</TlaButton>
-								) : (
-									<TlaButton variant="secondary" big disabled>
-										<F defaultMessage="Invites are disabled" />
-									</TlaButton>
-								)}
+						<div className={styles.section}>
+							<div className={styles.sectionLabel}>
+								<F {...messages.inviteTeammates} />
 							</div>
-						)}
+							{inviteLinkEnabled ? (
+								<TlaButton
+									iconRight={copiedInviteLink ? 'check' : 'copy'}
+									iconRightClassName={styles.copyInviteLinkIconRight}
+									variant="primary"
+									big
+									onClick={handleCopyInviteLink}
+								>
+									<F {...messages.copyInviteLink} />
+								</TlaButton>
+							) : (
+								<TlaButton variant="secondary" big disabled>
+									<F defaultMessage="Invites are disabled" />
+								</TlaButton>
+							)}
+						</div>
 
 						<TlaMenuTabsRoot activeTab={activeTab} onTabChange={setActiveTab}>
 							{/* The shared tabs inset their labels by the tab padding; pull the strip out
 					    by that amount so the first tab's label lines up with the headings, button,
 					    and member rows. The underline still spans the content width. */}
-							{layout === 'tabs' && (
-								<div className={styles.workspaceTabs}>
-									<TlaMenuTabsTabs>
-										<TlaMenuTabsTab id="members">
-											<F defaultMessage="Members" />
-										</TlaMenuTabsTab>
-										<TlaMenuTabsTab id="settings">
-											<F defaultMessage="Settings" />
-										</TlaMenuTabsTab>
-									</TlaMenuTabsTabs>
-								</div>
-							)}
+							<div className={styles.workspaceTabs}>
+								<TlaMenuTabsTabs>
+									<TlaMenuTabsTab id="members">
+										<F defaultMessage="Members" />
+									</TlaMenuTabsTab>
+									<TlaMenuTabsTab id="settings">
+										<F defaultMessage="Settings" />
+									</TlaMenuTabsTab>
+								</TlaMenuTabsTabs>
+							</div>
 
-							<WorkspaceSettingsPage id="members" layout={layout}>
+							<TlaMenuTabsPage id="members">
 								<div className={styles.tabPage} ref={scrollableRef}>
 									<div className={styles.membersList}>
 										{members.map((member) => {
@@ -495,36 +438,15 @@ export function WorkspaceSettingsDialog({
 												<div key={member.userId} className={styles.memberItem}>
 													<div
 														className={styles.memberAvatar}
-														style={{
-															backgroundColor:
-																layout === 'sections'
-																	? `color-mix(in srgb, ${member.userColor || '#ff6b35'} 20%, var(--tl-color-panel))`
-																	: member.userColor || '#ff6b35',
-														}}
+														style={{ backgroundColor: member.userColor || '#ff6b35' }}
 													>
-														{layout === 'sections'
-															? member.userName
-																	.split(/\s+/)
-																	.filter(Boolean)
-																	.map((part) => part[0])
-																	.slice(0, 2)
-																	.join('')
-																	.toUpperCase()
-															: member.userName.charAt(0).toUpperCase()}
+														{member.userName.charAt(0).toUpperCase()}
 													</div>
 													<span className={styles.memberName}>
 														{member.userName}
-														{isSelf &&
-															(layout === 'sections' ? (
-																<span className={styles.workspaceMemberCaption}>
-																	<F defaultMessage="You" />
-																</span>
-															) : (
-																` (${msg(messages.you)})`
-															))}
+														{isSelf ? ` (${msg(messages.you)})` : ''}
 													</span>
-													{canManageWorkspace &&
-													!(layout === 'sections' && isSelf && !canRemoveMember) ? (
+													{canManageWorkspace ? (
 														<TlaMenuSelect
 															id={`workspace-member-role-${member.userId}`}
 															label={roleLabels[member.role]}
@@ -577,186 +499,63 @@ export function WorkspaceSettingsDialog({
 										})}
 									</div>
 								</div>
-								{layout === 'sections' && (
-									<TlaButton
-										variant="secondary"
-										icon={copiedInviteLink ? 'check' : 'plus-strong'}
-										className={styles.workspaceInviteButton}
-										disabled={!inviteLinkEnabled || !inviteUrl}
-										title={msg(messages.copyInviteLink)}
-										onClick={handleCopyInviteLink}
-									>
-										{copiedInviteLink ? (
-											<F defaultMessage="Link copied" />
-										) : (
-											<F {...messages.inviteTeammates} />
-										)}
-									</TlaButton>
-								)}
-							</WorkspaceSettingsPage>
+							</TlaMenuTabsPage>
 
-							{layout === 'sections' ? (
-								<section className={styles.workspaceSettingsSection}>
-									<div className={styles.workspaceInviteHeading}>
-										<label htmlFor="workspace-invite-enabled-switch">
-											<F {...messages.inviteLink} />
-										</label>
+							<TlaMenuTabsPage id="settings">
+								<div className={styles.tabPage} ref={scrollableRef}>
+									<div className={styles.settingsPage}>
 										{canManageWorkspace && (
-											<TlaMenuSwitch
-												id="workspace-invite-enabled-switch"
-												checked={inviteLinkEnabled}
-												onChange={handleToggleInviteLink}
-											/>
-										)}
-									</div>
-									<p className={styles.workspaceInviteHelp}>
-										<F defaultMessage="Anyone with this link can join this workspace." />
-									</p>
-									<div className={styles.workspaceInviteLinkRow}>
-										<input
-											readOnly
-											aria-label={msg(messages.inviteLink)}
-											value={inviteLinkEnabled ? inviteUrl : ''}
-											disabled={!inviteLinkEnabled}
-											placeholder={msg(messages.invitesDisabled)}
-										/>
-										<TlaButton
-											variant="secondary"
-											icon={copiedInviteLink ? 'check' : 'copy'}
-											disabled={!inviteLinkEnabled || !inviteUrl}
-											onClick={handleCopyInviteLink}
-										>
-											{copiedInviteLink ? (
-												<F defaultMessage="Copied" />
-											) : (
-												<F defaultMessage="Copy link" />
-											)}
-										</TlaButton>
-									</div>
-									{canManageWorkspace && (
-										<button
-											type="button"
-											className={classNames(styles.inlineButton, styles.workspaceRegenerate)}
-											onClick={openRegenerateConfirmDialog}
-										>
-											<TlaIcon icon="refresh" />
-											<F defaultMessage="Regenerate link" />
-										</button>
-									)}
-								</section>
-							) : (
-								<WorkspaceSettingsPage id="settings" layout={layout}>
-									<div className={styles.tabPage} ref={scrollableRef}>
-										<div className={styles.settingsPage}>
-											{canManageWorkspace && (
-												<>
-													<TlaMenuControl>
-														<TlaMenuControlLabel htmlFor="workspace-invite-enabled-switch">
-															<F defaultMessage="Enable invites" />
-														</TlaMenuControlLabel>
-														<TlaMenuSwitch
-															id="workspace-invite-enabled-switch"
-															checked={inviteLinkEnabled}
-															onChange={handleToggleInviteLink}
-														/>
-													</TlaMenuControl>
-													<button
-														type="button"
-														className={styles.inlineButton}
-														onClick={openRegenerateConfirmDialog}
-													>
-														<F {...messages.regenerateInviteLink} />
-													</button>
-												</>
-											)}
-											{canLeave ? (
+											<>
+												<TlaMenuControl>
+													<TlaMenuControlLabel htmlFor="workspace-invite-enabled-switch">
+														<F defaultMessage="Enable invites" />
+													</TlaMenuControlLabel>
+													<TlaMenuSwitch
+														id="workspace-invite-enabled-switch"
+														checked={inviteLinkEnabled}
+														onChange={handleToggleInviteLink}
+													/>
+												</TlaMenuControl>
 												<button
 													type="button"
 													className={styles.inlineButton}
-													onClick={openLeaveConfirmDialog}
+													onClick={openRegenerateConfirmDialog}
 												>
+													<F {...messages.regenerateInviteLink} />
+												</button>
+											</>
+										)}
+										{canLeave ? (
+											<button
+												type="button"
+												className={styles.inlineButton}
+												onClick={openLeaveConfirmDialog}
+											>
+												<F {...messages.leaveWorkspace} />
+											</button>
+										) : (
+											<TldrawUiTooltip content={<F {...messages.mustKeepOwner} />}>
+												<button type="button" className={styles.inlineButton} disabled>
 													<F {...messages.leaveWorkspace} />
 												</button>
-											) : (
-												<TldrawUiTooltip content={<F {...messages.mustKeepOwner} />}>
-													<button type="button" className={styles.inlineButton} disabled>
-														<F {...messages.leaveWorkspace} />
-													</button>
-												</TldrawUiTooltip>
-											)}
-											{canManageWorkspace && (
-												<button
-													type="button"
-													className={`${styles.inlineButton} ${styles.inlineButtonDanger}`}
-													onClick={openDeleteConfirmDialog}
-												>
-													<F {...messages.deleteWorkspace} />
-												</button>
-											)}
-										</div>
+											</TldrawUiTooltip>
+										)}
+										{canManageWorkspace && (
+											<button
+												type="button"
+												className={`${styles.inlineButton} ${styles.inlineButtonDanger}`}
+												onClick={openDeleteConfirmDialog}
+											>
+												<F {...messages.deleteWorkspace} />
+											</button>
+										)}
 									</div>
-								</WorkspaceSettingsPage>
-							)}
+								</div>
+							</TlaMenuTabsPage>
 						</TlaMenuTabsRoot>
 					</>
 				)}
 			</TldrawUiDialogBody>
-			{layout === 'sections' && (
-				<TldrawUiDialogFooter>
-					<div className={styles.workspaceFooterActions}>
-						{!isHomeWorkspace && canManageWorkspace && (
-							<button
-								type="button"
-								className={classNames(
-									styles.inlineButton,
-									styles.inlineButtonDanger,
-									styles.workspaceDestructive
-								)}
-								onClick={openDeleteConfirmDialog}
-							>
-								<TldrawUiIcon icon="trash" label="" small />
-								<F {...messages.deleteWorkspace} />
-							</button>
-						)}
-						{!isHomeWorkspace && canLeave && (
-							<button
-								type="button"
-								className={classNames(styles.inlineButton, styles.workspaceDestructive)}
-								onClick={openLeaveConfirmDialog}
-							>
-								<F {...messages.leaveWorkspace} />
-							</button>
-						)}
-					</div>
-					<TlaButton className={styles.workspaceDone} onClick={onClose}>
-						<F defaultMessage="Done" />
-					</TlaButton>
-				</TldrawUiDialogFooter>
-			)}
 		</_Tooltip.Provider>
-	)
-}
-
-function WorkspaceSettingsPage({
-	id,
-	layout,
-	children,
-}: {
-	id: string
-	layout: 'tabs' | 'sections'
-	children: ReactNode
-}) {
-	if (layout === 'tabs') return <TlaMenuTabsPage id={id}>{children}</TlaMenuTabsPage>
-	return (
-		<section className={styles.workspaceSettingsSection}>
-			<h3>
-				{id === 'members' ? (
-					<F defaultMessage="Members" />
-				) : (
-					<F defaultMessage="Workspace settings" />
-				)}
-			</h3>
-			{children}
-		</section>
 	)
 }

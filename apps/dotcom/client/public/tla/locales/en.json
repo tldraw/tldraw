@@ -83,9 +83,6 @@
   "1a7222b4e5": {
     "translation": "Move to"
   },
-  "1d2591253e": {
-    "translation": "Workspace settings"
-  },
   "1da2e8106b": {
     "translation": "An unexpected error occurred."
   },
@@ -206,6 +203,9 @@
   "47f493a590": {
     "translation": "Pin file"
   },
+  "48b90a52b9": {
+    "translation": "No boards here yet."
+  },
   "49ee308734": {
     "translation": "Name"
   },
@@ -265,9 +265,6 @@
   },
   "5a95a425f7": {
     "translation": "Share"
-  },
-  "5ac173888a": {
-    "translation": "Leave some feedback"
   },
   "5bec508475": {
     "translation": "Old browser detected. Please update your browser to use this app."
@@ -359,9 +356,6 @@
   "747ee44424": {
     "translation": "Save the content as a .tldr file: select 'Save a copy' in the top left menu."
   },
-  "74e92a4dc1": {
-    "translation": "Regenerate link"
-  },
   "74ff4bad28": {
     "translation": "No files found"
   },
@@ -425,6 +419,9 @@
   "8030793ce3": {
     "translation": "New workspace"
   },
+  "815e116a2e": {
+    "translation": "Have a bug, issue, or idea for tldraw? Let us know! Fill out this form and we will follow up over email if needed. You can also <discord>chat with us on Discord</discord> or <github>submit an issue on GitHub</github>."
+  },
   "81666c6e4a": {
     "translation": "Are you sure you want to forget <strong>{fileName}</strong>?"
   },
@@ -436,9 +433,6 @@
   },
   "85a082de1b": {
     "translation": "Please refresh the page to get the latest version of tldraw."
-  },
-  "85f71c89ae": {
-    "translation": "Read the docs"
   },
   "86c66437fd": {
     "translation": "Rename file"
@@ -454,6 +448,9 @@
   },
   "88bf6ab42c": {
     "translation": "This invite link has expired"
+  },
+  "8a7fb7458e": {
+    "translation": "Archived boards will appear here."
   },
   "8c2d3d730c": {
     "translation": "Check your email for a verification code."
@@ -479,14 +476,8 @@
   "90646db02d": {
     "translation": "Are you sure you want to delete <strong>{workspaceName}</strong>? This action cannot be undone."
   },
-  "906e5ea01a": {
-    "translation": "Shared by {name}"
-  },
   "91f3a2c0e4": {
     "translation": "Files"
-  },
-  "92e36cb6cf": {
-    "translation": "Invite link"
   },
   "930390d222": {
     "translation": "Copied invite link"
@@ -566,14 +557,8 @@
   "a52945dbe2": {
     "translation": "Leave"
   },
-  "a588b1abc5": {
-    "translation": "Copied"
-  },
   "a6cc403d56": {
     "translation": "Anyone with the link"
-  },
-  "a6fb260b8d": {
-    "translation": "Your feedback"
   },
   "a768caa988": {
     "translation": "Analytics"
@@ -595,9 +580,6 @@
   },
   "ac863f346e": {
     "translation": "App"
-  },
-  "acf84eea1e": {
-    "translation": "Link copied"
   },
   "aeb428554a": {
     "translation": "Libraries"
@@ -630,9 +612,6 @@
   "b3d7c37eb8": {
     "translation": "Grid view"
   },
-  "b4795ec590": {
-    "translation": "{modifier} K"
-  },
   "b48becc771": {
     "translation": "Enable invites"
   },
@@ -648,14 +627,8 @@
   "b758336699": {
     "translation": "Copy link"
   },
-  "b7ea061b51": {
-    "translation": "Build with the SDK"
-  },
   "ba0318cb81": {
     "translation": "Sign in to share"
-  },
-  "bb8a0099e2": {
-    "translation": "Search your boards…"
   },
   "bbaaf8b6bf": {
     "translation": "Invites are disabled"
@@ -668,12 +641,6 @@
   },
   "bd8aac2696": {
     "translation": "Current file"
-  },
-  "bea4c2c8eb": {
-    "translation": "Feedback"
-  },
-  "c042e3b259": {
-    "translation": "{count, plural, one {# board} other {# boards}} found"
   },
   "c17466812d": {
     "translation": "Manage workspace"
@@ -704,12 +671,6 @@
   },
   "c8a59e7135": {
     "translation": "Dismiss"
-  },
-  "c9cc8cce24": {
-    "translation": "Save"
-  },
-  "cae8d14edd": {
-    "translation": "You"
   },
   "cb5feb1b73": {
     "translation": "Color"
@@ -765,17 +726,11 @@
   "d9100f3e10": {
     "translation": "Go here to see the content"
   },
-  "da075431c3": {
-    "translation": "Please provide as much detail as possible."
-  },
   "dbbebf3c03": {
     "translation": "Invite only"
   },
   "dbf9b24193": {
     "translation": "Leave workspace"
-  },
-  "de85e4ab12": {
-    "translation": "Anyone with this link can join this workspace."
   },
   "e0aa021e21": {
     "translation": "OK"
@@ -791,9 +746,6 @@
   },
   "e727b00944": {
     "translation": "Archive"
-  },
-  "e7fdcad3aa": {
-    "translation": "Have a bug, issue, or idea for tldraw? Let us know! We’ll follow up over email if needed."
   },
   "e81c4e4f2b": {
     "translation": "or"
@@ -849,6 +801,9 @@
   "f2a6c498fb": {
     "translation": "Delete"
   },
+  "f2f9a2e98d": {
+    "translation": "Workspace menu"
+  },
   "f408fa5fbd": {
     "translation": "This invite link is invalid or has expired."
   },
@@ -858,14 +813,8 @@
   "f5ddc8d9c1": {
     "translation": "For now, you can <a>export as a {extension} file</a> to use it here."
   },
-  "f92965e2c8": {
-    "translation": "Done"
-  },
   "fa2ead697d": {
     "translation": "Privacy Policy"
-  },
-  "fabfc25ef8": {
-    "translation": "Get help"
   },
   "fb15c53f22": {
     "translation": "Viewer"
