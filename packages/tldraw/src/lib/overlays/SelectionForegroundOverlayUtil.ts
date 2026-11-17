@@ -15,6 +15,7 @@ import {
 	TLShape,
 	Vec,
 } from '@tldraw/editor'
+import { canUpdateShape } from '../tools/SelectTool/selectHelpers'
 
 const SQUARE_ROOT_PI = Math.sqrt(Math.PI)
 
@@ -470,7 +471,8 @@ export class SelectionForegroundOverlayUtil extends OverlayUtil<TLSelectionForeg
 		if (onlyShape && editor.isShapeHidden(onlyShape)) return null
 
 		const onlyShapeUtil = onlyShape ? editor.getShapeUtil(onlyShape) : null
-		const isLockedShape = !!(onlyShape && editor.isShapeOrAncestorLocked(onlyShape))
+		// no handles for a shape the user can't change: locked, or denied by the host
+		const isLockedShape = !!(onlyShape && !canUpdateShape(editor, onlyShape))
 
 		const expandOutlineBy =
 			onlyShape && onlyShapeUtil ? onlyShapeUtil.expandSelectionOutlinePx(onlyShape) : 0

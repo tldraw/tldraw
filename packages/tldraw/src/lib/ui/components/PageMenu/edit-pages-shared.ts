@@ -4,6 +4,7 @@ import {
 	getIndexBelow,
 	getIndexBetween,
 	IndexKey,
+	TLPage,
 	TLPageId,
 } from '@tldraw/editor'
 import { TLUiEventContextType } from '../../context/events'
@@ -32,6 +33,10 @@ export function onMovePage(
 		index = getIndexBetween(below.index, above.index)
 	}
 
+	// checked here too, not only where the move starts: a drag can outlast the permission
+	const page = editor.getPage(id as TLPageId)
+	if (!page || !canUpdatePage(editor, page)) return
+
 	if (index !== pages[from].index) {
 		editor.markHistoryStoppingPoint('moving page')
 		editor.updatePage({
@@ -40,4 +45,26 @@ export function onMovePage(
 		})
 		trackEvent('move-page', { source: 'page-menu' })
 	}
+}
+
+// Each of these passes the page, so a rule that only covers some pages still gets a say.
+
+export function canCreatePage(editor: Editor) {
+	return editor.can('tl:page:create')
+}
+
+export function canUpdatePage(editor: Editor, page: TLPage) {
+	return editor.can('tl:page:edit', { page })
+}
+
+// A copy of a page with shapes on it creates those shapes too.
+export function canDuplicatePage(editor: Editor, page: TLPage) {
+	if (!canCreatePage(editor)) return false
+	return editor.getPageShapeIds(page).size === 0 || editor.can('tl:shape:create')
+}
+
+// Deleting a page deletes the shapes on it.
+export function canDeletePage(editor: Editor, page: TLPage) {
+	if (!editor.can('tl:page:delete', { page })) return false
+	return editor.getPageShapeIds(page).size === 0 || editor.can('tl:shape:delete')
 }

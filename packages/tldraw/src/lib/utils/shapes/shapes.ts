@@ -31,7 +31,12 @@ export function isShapeWithLink(shape: TLShape | null | undefined): shape is TLS
  */
 export function getSelectedLinkShape(editor: Editor): TLShapeWithLink | undefined {
 	const shape = editor.getOnlySelectedShape()
-	if (!isShapeWithLink(shape) || editor.isShapeOrAncestorLocked(shape)) return undefined
+	if (
+		!isShapeWithLink(shape) ||
+		editor.isShapeOrAncestorLocked(shape) ||
+		!editor.can('tl:shape:edit', { shape })
+	)
+		return undefined
 	return shape
 }
 

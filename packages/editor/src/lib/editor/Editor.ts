@@ -2868,6 +2868,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		const _info: TLEditStartInfo = info ?? { type: 'unknown' }
 		if (!util.canEdit(_shape, _info)) return false // shape is not editable
 		if (this.getIsReadonly() && !util.canEditInReadonly(_shape)) return false // readonly and no exception
+		if (!this.getIsReadonly() && !this.can('tl:shape:edit', { shape: _shape })) return false // the app says the user can't change it
 		if (this.isShapeOrAncestorLocked(_shape) && !util.canEditWhileLocked(_shape)) return false // locked and no exception. Note here: we're not distinguishing between a locked shape and a shape that is the descendant of a locked shape.
 		return true // shape is editable
 	}
@@ -3127,6 +3128,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 		if (!util.canCrop(_shape)) return false
 		if (this.getIsReadonly()) return false
 		if (this.isShapeOrAncestorLocked(_shape)) return false
+		if (!this.can('tl:shape:edit', { shape: _shape })) return false
 		return true
 	}
 
@@ -9632,6 +9634,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		// asked before the handler runs: an upload for a shape that is then refused can't be taken back
+		if (!this.can('tl:shape:create')) return
 
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
@@ -9647,6 +9651,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 		opts = {} as { force?: boolean }
 	): Promise<void> {
 		if (!opts.force && this.getIsReadonly()) return
+		// as in putExternalContent: the upload happens before authorize.write sees the change
+		if (!this.can('tl:shape:edit')) return
 		return this.externalContentHandlers[info.type]?.(info as any)
 	}
 
