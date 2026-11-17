@@ -176,6 +176,16 @@ describe('every action gates itself', () => {
 		vi.useFakeTimers()
 	})
 
+	it('opens the keyboard shortcuts dialog in readonly mode', async () => {
+		const { editor, actions, onUiEvent } = await setup()
+		act(() => editor.updateInstanceState({ isReadonly: true }))
+		onUiEvent.mockClear()
+		await act(async () => {
+			await actions()['open-kbd-shortcuts'].onSelect('kbd')
+		})
+		expect(onUiEvent).toHaveBeenCalledWith('open-kbd-shortcuts', { source: 'kbd' })
+	})
+
 	it('blocks every action an override disables', async () => {
 		const { editor, actions, onUiEvent } = await setup(
 			withCustom((_editor, actions) => {

@@ -4,6 +4,7 @@ import {
 	TldrawUiMenuCheckboxItem,
 	type TLUiMenuCheckboxItemProps,
 } from './TldrawUiMenuCheckboxItem'
+import { useTldrawUiMenuContext } from './TldrawUiMenuContext'
 
 /** @public */
 export type TLUiMenuActionCheckboxItemProps = {
@@ -22,9 +23,12 @@ export function TldrawUiMenuActionCheckboxItem({
 }: TLUiMenuActionCheckboxItemProps) {
 	const actions = useActions()
 	const action = actions[actionId]
+	const { type: menuType } = useTldrawUiMenuContext()
 	const { available, enabled, checked: isChecked } = useActionState(action)
 	if (!action || !available) return null
-	if ((disabled || !enabled) && whenDisabled === 'hide') return null
+	// The palette shows disabled items in search, so they register there either way.
+	if ((disabled || !enabled) && whenDisabled === 'hide' && menuType !== 'command-palette')
+		return null
 	return (
 		<TldrawUiMenuCheckboxItem
 			{...(action as TLUiMenuCheckboxItemProps)}

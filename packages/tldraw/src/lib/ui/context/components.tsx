@@ -6,6 +6,10 @@ import {
 	TLUiActionsMenuProps,
 } from '../components/ActionsMenu/DefaultActionsMenu'
 import {
+	DefaultCommandPalette,
+	TLUiCommandPaletteProps,
+} from '../components/CommandPalette/DefaultCommandPalette'
+import {
 	DefaultContextMenu,
 	TLUiContextMenuProps,
 } from '../components/ContextMenu/DefaultContextMenu'
@@ -63,6 +67,7 @@ import { useShowCollaborationUi } from '../hooks/useCollaborationStatus'
 export interface TLUiComponents {
 	ContextMenu?: ComponentType<TLUiContextMenuProps> | null
 	ActionsMenu?: ComponentType<TLUiActionsMenuProps> | null
+	CommandPalette?: ComponentType<TLUiCommandPaletteProps> | null
 	HelpMenu?: ComponentType<TLUiHelpMenuProps> | null
 	ZoomMenu?: ComponentType<TLUiZoomMenuProps> | null
 	MainMenu?: ComponentType<TLUiMainMenuProps> | null
@@ -116,6 +121,7 @@ export function TldrawUiComponentsProvider({
 				() => ({
 					ContextMenu: DefaultContextMenu,
 					ActionsMenu: DefaultActionsMenu,
+					CommandPalette: DefaultCommandPalette,
 					HelpMenu: null,
 					ZoomMenu: DefaultZoomMenu,
 					MainMenu: DefaultMainMenu,

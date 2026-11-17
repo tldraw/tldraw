@@ -71,19 +71,20 @@ Keyboard shortcuts are bound automatically. The [useKeyboardShortcuts](?) hook p
 
 The [TLUiActionItem](?) interface defines what an action contains:
 
-| Property               | Description                                                                                                                                                                      |
-| ---------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `id`                   | Unique identifier for the action (e.g., `'duplicate'`, `'zoom-in'`)                                                                                                              |
-| `label`                | Translation key for display text. Can be a string or an object mapping contexts to different keys (see [Context-sensitive labels](#context-sensitive-labels))                    |
-| `icon`                 | Icon name from tldraw's icon set, or a custom React element                                                                                                                      |
-| `kbd`                  | Keyboard shortcut string. Use commas to bind several combinations, e.g. `'cmd+g,ctrl+g'` (see [Keyboard shortcuts](#keyboard-shortcuts))                                         |
-| `readonlyOk`           | When `true`, the action runs in readonly mode; otherwise it doesn't run, however it's triggered. Defaults to `false`                                                             |
-| `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                                             |
-| `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions                                 |
-| `isAvailable`          | Optional `(editor) => boolean`. When it returns `false`, menus hide the action, and the action doesn't run (see [Enabling and checking actions](#enabling-and-checking-actions)) |
-| `isEnabled`            | Optional `(editor) => boolean`. When it returns `false`, menus disable or hide the action, and the action doesn't run                                                            |
-| `isChecked`            | Optional `(editor) => boolean`. For checkbox actions, whether the item shows as checked                                                                                          |
-| `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)                                |
+| Property               | Description                                                                                                                                                                                                 |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `id`                   | Unique identifier for the action (e.g., `'duplicate'`, `'zoom-in'`)                                                                                                                                         |
+| `label`                | Translation key for display text. Can be a string or an object mapping contexts to different keys (see [Context-sensitive labels](#context-sensitive-labels))                                               |
+| `icon`                 | Icon name from tldraw's icon set, or a custom React element                                                                                                                                                 |
+| `kbd`                  | Keyboard shortcut string. Use commas to bind several combinations, e.g. `'cmd+g,ctrl+g'` (see [Keyboard shortcuts](#keyboard-shortcuts))                                                                    |
+| `readonlyOk`           | When `true`, the action runs in readonly mode; otherwise it doesn't run, however it's triggered. Defaults to `false`                                                                                        |
+| `checkbox`             | When `true`, renders as a toggle with a checkmark indicator in menus                                                                                                                                        |
+| `isRequiredA11yAction` | When `true`, the keyboard shortcut works even when shortcuts are normally disabled (e.g., while editing a shape). Used for accessibility actions                                                            |
+| `isAvailable`          | Optional `(editor) => boolean`. When it returns `false`, menus hide the action, and the action doesn't run (see [Enabling and checking actions](#enabling-and-checking-actions))                            |
+| `isEnabled`            | Optional `(editor) => boolean`. When it returns `false`, menus disable or hide the action, and the action doesn't run                                                                                       |
+| `isChecked`            | Optional `(editor) => boolean`. For checkbox actions, whether the item shows as checked                                                                                                                     |
+| `commandPalette`       | Optional. `false` leaves the action out of the command palette; `{ group }` lists it in that `CommandPaletteActionGroup` when one is rendered. Otherwise, and without a group, the catch-all group lists it |
+| `onSelect`             | Handler called when the action is triggered. Receives a [TLUiEventSource](?) indicating the trigger origin (`'kbd'`, `'menu'`, `'toolbar'`, etc.)                                                           |
 
 ## Accessing actions
 
@@ -360,7 +361,7 @@ The `source` parameter tells you where the action was triggered. Use this for an
 actions['custom-action'] = {
 	id: 'custom-action',
 	label: 'action.custom',
-	kbd: 'cmd+k,ctrl+k',
+	kbd: 'cmd+m,ctrl+m',
 	onSelect(source) {
 		trackEvent('custom-action', { source })
 		// source: 'kbd', 'menu', 'context-menu', 'toolbar', 'quick-actions', 'zoom-menu', etc.

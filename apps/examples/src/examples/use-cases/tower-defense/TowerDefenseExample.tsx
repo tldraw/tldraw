@@ -230,6 +230,7 @@ const components: Required<TLUiComponents> = {
 	Toolbar: GameToolbar,
 	ContextMenu: null,
 	ActionsMenu: null,
+	CommandPalette: null,
 	HelpMenu: null,
 	ZoomMenu: null,
 	MainMenu: null,
