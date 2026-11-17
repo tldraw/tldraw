@@ -22,6 +22,7 @@ import {
 	CLUSTER_INFO_TOOL_NAME,
 	COMMENTS_ON_PUBLISHED_BOARD_MESSAGE,
 	COMMENT_CURSOR_WRONG_PAGE_MESSAGE,
+	CommentTarget,
 	CLUSTER_SCREENSHOT_TOOL_NAME,
 	CREATE_BOARD_TOOL_NAME,
 	LIST_WORKSPACES_TOOL_NAME,
@@ -47,6 +48,7 @@ import {
 	getPageCommentsResult,
 	getPageInfo,
 	getPeerStateResult,
+	getTextMentionIds,
 	getToolDefinitions,
 	getWrittenCommentResult,
 	getWorkspaceListResult,
@@ -75,6 +77,7 @@ import { listWorkspacesForUser } from './listWorkspaces'
 import { McpAuthRefusal, authenticateMcpRequest } from './mcpAuth'
 import {
 	PUBLISHED_BOARD_FAILURE,
+	TabRenderContext,
 	applyOpsInOpenTab,
 	captureInOpenTab,
 	readBoardUsers,
@@ -251,10 +254,16 @@ export function isMcpSearchNameMatchingEnabled(env: Environment) {
 // and the clientInfo.name from initialize. Bounded on purpose: raw agent strings are
 // unbounded-cardinality, so anything unrecognized lands in `other`, and the initialize event keeps a
 // truncated raw name for spotting families worth adding here. Order matters where strings overlap —
-// a Claude UA also says Mozilla, so `mozilla` sits last.
+// a Claude UA also says Mozilla, so `mozilla` sits below it, and the codex plugin's UA also says codex.
+//
+// `codex-plugin` is the codex plugin's proxy worker, which forwards a few board tools for every
+// Codex user and names itself in its User-Agent. A Worker's fetch sends no User-Agent of its own, so
+// without that header its calls are `none`.
 const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: string]> = [
+	['tldraw-codex-plugin', 'codex-plugin'],
 	['claude', 'claude'],
 	['anthropic', 'claude'],
+	['codex', 'codex'],
 	['chatgpt', 'openai'],
 	['openai', 'openai'],
 	['cursor', 'cursor'],
@@ -265,6 +274,7 @@ const MCP_CLIENT_FAMILIES: ReadonlyArray<readonly [needle: string, family: strin
 	['undici', 'node'],
 	['curl', 'curl'],
 	['mozilla', 'browser'],
+	['opencode', 'opencode'],
 ]
 
 // The name an agent goes by on a board when write_comment isn't told one: its client's family, which
@@ -320,6 +330,14 @@ export function normalizeMcpClient(value: unknown): string {
 	return 'other'
 }
 
+function tabContext(
+	request: Request,
+	ctx: ExecutionContext | undefined,
+	tool: string
+): TabRenderContext {
+	return { request, ctx, tool, client: normalizeMcpClient(request.headers.get('user-agent')) }
+}
+
 // One datapoint per tools/call dispatch, whatever the tool did: the render path's
 // mcp_shared_board_screenshot event only fires when a screenshot is attempted, so without this the
 // info tools (and every early failure) are invisible. Written at the dispatcher rather than inside
@@ -337,6 +355,24 @@ function writeMcpToolCallTelemetry(
 			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
 		],
 		doubles: [data.durationMs],
+	})
+}
+
+// One datapoint per comment that landed. The tool call event says a write succeeded but not what it
+// was, and a `queued` write is a success that read_page_comments can't see yet: the one outcome an
+// agent may answer by posting the comment again.
+function writeCommentWriteTelemetry(
+	env: Environment,
+	request: Request,
+	data: { target: CommentTarget['kind']; queued: boolean; mentions: number }
+) {
+	writeDataPoint(undefined, env.MEASURE, env, 'mcp_comment_write', {
+		blobs: [
+			`target:${data.target}`,
+			`stored:${data.queued ? 'queued' : 'saved'}`,
+			`client:${normalizeMcpClient(request.headers.get('user-agent'))}`,
+		],
+		doubles: [data.mentions],
 	})
 }
 
@@ -927,6 +963,11 @@ async function callWriteCommentTool(
 			agentClient,
 		})
 		if (!written.ok) return withTelemetryReason(written.result, written.reason)
+		writeCommentWriteTelemetry(env, request, {
+			target: input.target.kind,
+			queued: written.queued,
+			mentions: getTextMentionIds(input.text).length,
+		})
 		const boardUrl = `${getPublicOrigin(request as IRequest, env)}/f/${input.boardId}`
 		return getWrittenCommentResult({
 			boardId: input.boardId,
@@ -1025,6 +1066,7 @@ async function callPageInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: PAGE_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		telemetry({})
@@ -1121,12 +1163,14 @@ async function readBoardPage(
 		telemetry,
 		request,
 		ctx,
+		tool,
 	}: {
 		env: Environment
 		userId: string
 		telemetry: McpTelemetryWriter
 		request: Request
 		ctx: ExecutionContext | undefined
+		tool: string
 	}
 ): Promise<BoardPageRead> {
 	const fail = (reason: string, result: ToolCallResult): BoardPageRead => {
@@ -1140,7 +1184,14 @@ async function readBoardPage(
 	const refusal = await refuseUnlessFile(env, boardId, userId)
 	if (refusal) return fail(refusal.reason, refusal.result)
 
-	const tab = await readPageInOpenTab(env, boardId, userId, page, clusterIds, { request, ctx })
+	const tab = await readPageInOpenTab(
+		env,
+		boardId,
+		userId,
+		page,
+		clusterIds,
+		tabContext(request, ctx, tool)
+	)
 	if (!tab.ok) return fail(tab.reason, toolError(tab.message, tab.reason))
 	if (!tab.value.found) {
 		const failure = pageLookupFailure(tab.value.lookup, page)
@@ -1289,6 +1340,7 @@ async function callClusterInfoTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_INFO_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const info = getClusterInfo(page.read, input.clusterIds, input.page, input.cursor)
@@ -1337,6 +1389,7 @@ async function callClusterScreenshotTool(
 			telemetry,
 			request,
 			ctx,
+			tool: CLUSTER_SCREENSHOT_TOOL_NAME,
 		})
 		if (!page.ok) return page.result
 		const picked = pickClusterShapes(page.read.details, input.clusterIds, input.page)
@@ -1360,7 +1413,7 @@ async function callClusterScreenshotTool(
 				width: size.width,
 				height: size.height,
 			},
-			{ request, ctx }
+			tabContext(request, ctx, CLUSTER_SCREENSHOT_TOOL_NAME)
 		)
 		if (!image.ok) {
 			telemetry({ failureReason: image.reason })
@@ -1418,7 +1471,7 @@ async function callApplyOpsTool(
 				page: input.page ?? undefined,
 				attribution: { userId, runId: input.runId ?? undefined },
 			},
-			{ request, ctx }
+			tabContext(request, ctx, APPLY_OPS_TOOL_NAME)
 		)
 		if (!applied.ok) return toolError(applied.message, applied.reason)
 		const { pageId, pageName, result } = applied.value
@@ -1456,13 +1509,18 @@ async function callUserStateTool(
 		if (refusal) return refusal.result
 
 		if (input.userId === null || input.userId === userId) {
-			const state = await readUserStateInOpenTab(env, input.boardId, userId, { request, ctx })
+			const state = await readUserStateInOpenTab(
+				env,
+				input.boardId,
+				userId,
+				tabContext(request, ctx, USER_STATE_TOOL_NAME)
+			)
 			if (!state.ok) return toolError(state.message, state.reason)
 			const { pageId, pageName, selectedShapeIds, viewport } = state.value
 			return toolJsonResult({ userId, pageId, pageName, selectedShapeIds, viewport })
 		}
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		const user = users.value.users.find((candidate) => candidate.userId === input.userId)
 		if (!user) {
@@ -1503,7 +1561,7 @@ async function callBoardUsersTool(
 		const refusal = await refuseUnlessFile(env, input.boardId, userId)
 		if (refusal) return refusal.result
 
-		const users = await readBoardUsers(env, input.boardId, { request, ctx })
+		const users = await readBoardUsers(env, input.boardId, { request })
 		if (!users.ok) return toolError(users.message, users.reason)
 		return getBoardUsersResult(users.value, Date.now())
 	} catch (error) {
