@@ -98,8 +98,8 @@ export function TlaEditorTopRightPanel({
 
 	return (
 		<div ref={ref} className={styles.topRightPanel}>
-			<DesignSwitchesMenu />
 			<PeopleMenu />
+			<DesignSwitchesMenu />
 			{/* Only file editors mount the comments sidebar (see TlaEditor); in legacy and published
 			    contexts this button would toggle state nothing reads. */}
 			{context !== 'legacy' && context !== 'published-file' && <CommentsSidebarButton />}
@@ -172,7 +172,7 @@ function DesignSwitchesMenu() {
 				<TldrawUiDropdownMenuTrigger>
 					<TldrawUiButton
 						type="icon"
-						className={styles.topRightIconButton}
+						className={classNames(styles.topRightIconButton, styles.topRightDesignSwitchesButton)}
 						data-testid="tla-design-switches-button"
 						tooltip="Design switches"
 						title="Design switches"

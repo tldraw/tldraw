@@ -1,34 +1,38 @@
 import { formatRelativeTime } from '@tldraw/commenting'
 import classNames from 'classnames'
-import { ReactNode, useCallback, useState } from 'react'
+import { ContextMenu as _ContextMenu } from 'radix-ui'
+import {
+	KeyboardEvent,
+	MouseEvent,
+	ReactNode,
+	useCallback,
+	useEffect,
+	useRef,
+	useState,
+} from 'react'
 import { useIntl } from 'react-intl'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import {
 	defineMessages,
 	F,
 	getFromLocalStorage,
 	setInLocalStorage,
 	TldrawUiButton,
-	TldrawUiDropdownMenuContent,
-	TldrawUiDropdownMenuRoot,
-	TldrawUiDropdownMenuTrigger,
 	TldrawUiIcon,
 	TldrawUiMenuContextProvider,
-	TldrawUiMenuGroup,
-	TldrawUiMenuItem,
-	useDialogs,
+	useContainer,
+	useMenuIsOpen,
 	useTranslation,
 	useValue,
 } from 'tldraw'
 import { routes } from '../../../routeDefs'
 import { getFileRecencyDate } from '../../app/TldrawApp'
 import { useApp } from '../../hooks/useAppState'
-import { useWorkspaceName } from '../../hooks/useWorkspaceName'
+import { useHasFileAdminRights } from '../../hooks/useIsFileOwner'
 import { useTldrawAppUiEvents } from '../../utils/app-ui-events'
-import { WorkspaceSettingsDialog } from '../dialogs/WorkspaceSettingsDialog'
-import { TLA_MENU_POSITION } from '../tla-menu/tla-menu-position'
+import { getIsCoarsePointer } from '../../utils/getIsCoarsePointer'
 import { TlaButton } from '../TlaButton/TlaButton'
-import { TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
+import { FileItems, TlaFileMenu } from '../TlaFileMenu/TlaFileMenu'
 import { TlaIcon } from '../TlaIcon/TlaIcon'
 import {
 	messages as sidebarMessages,
@@ -37,12 +41,13 @@ import {
 import styles from './workspace-home.module.css'
 
 const messages = defineMessages({
-	newBoard: { defaultMessage: 'New board' },
-	workspaceMenu: { defaultMessage: 'Workspace menu' },
-	manage: { defaultMessage: 'Manage' },
-	boardMenu: { defaultMessage: 'Board menu' },
+	newFile: { defaultMessage: 'New file' },
+	search: { defaultMessage: 'Search…' },
+	clearSearch: { defaultMessage: 'Clear search' },
 	listView: { defaultMessage: 'List view' },
 	gridView: { defaultMessage: 'Grid view' },
+	edited: { defaultMessage: 'Edited {time}' },
+	pinned: { defaultMessage: 'Pinned' },
 })
 
 type Tab = 'recent' | 'archive' | 'shared'
@@ -54,12 +59,14 @@ interface BoardItem {
 	fileId: string
 	name: string
 	date: number
+	isPinned: boolean
 	/** Set for boards owned by someone outside this workspace. */
 	ownerName?: string
 }
 
 export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
 	const [tab, setTab] = useState<Tab>('recent')
+	const [query, setQuery] = useState('')
 	const [viewMode, setViewMode] = useState<ViewMode>(() =>
 		getFromLocalStorage(VIEW_MODE_KEY) === 'list' ? 'list' : 'grid'
 	)
@@ -68,36 +75,32 @@ export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
 		setInLocalStorage(VIEW_MODE_KEY, mode)
 	}, [])
 
-	const boards = useWorkspaceBoards(workspaceId, tab)
+	const boards = useWorkspaceBoards(workspaceId, tab, query)
 
 	return (
 		<div className={styles.home} data-testid="tla-workspace-home">
-			<TlaWorkspaceHomeHeader workspaceId={workspaceId} />
-			<div className={styles.navigation}>
-				<div className={styles.tabs} role="tablist">
-					<TlaWorkspaceHomeTab tab="recent" current={tab} onSelect={setTab}>
-						<F defaultMessage="Recently viewed" />
-					</TlaWorkspaceHomeTab>
-					<TlaWorkspaceHomeTab tab="archive" current={tab} onSelect={setTab}>
-						<F defaultMessage="Archive" />
-					</TlaWorkspaceHomeTab>
-					<TlaWorkspaceHomeTab tab="shared" current={tab} onSelect={setTab}>
-						<F defaultMessage="Shared with me" />
-					</TlaWorkspaceHomeTab>
-				</div>
-				<TlaViewModeToggle viewMode={viewMode} onChange={handleViewModeChange} />
-			</div>
+			<TlaWorkspaceHomeToolbar
+				tab={tab}
+				onTabChange={setTab}
+				query={query}
+				onQueryChange={setQuery}
+				viewMode={viewMode}
+				onViewModeChange={handleViewModeChange}
+			/>
 			{boards.length === 0 ? (
 				<div className={classNames(styles.empty, 'tla-text_ui__regular')}>
-					{tab === 'archive' ? (
-						<F defaultMessage="Archived boards will appear here." />
+					{query ? (
+						<F defaultMessage="No files match your search." />
+					) : tab === 'archive' ? (
+						<F defaultMessage="Archived files will appear here." />
 					) : (
-						<F defaultMessage="No boards here yet." />
+						<F defaultMessage="No files here yet." />
 					)}
 				</div>
 			) : (
 				<div
 					className={viewMode === 'grid' ? styles.grid : styles.list}
+					role="list"
 					data-testid="tla-workspace-boards"
 				>
 					{boards.map((board) => (
@@ -114,91 +117,120 @@ export function TlaWorkspaceHome({ workspaceId }: { workspaceId: string }) {
 	)
 }
 
-function useWorkspaceBoards(workspaceId: string, tab: Tab): BoardItem[] {
+function useWorkspaceBoards(workspaceId: string, tab: Tab, query: string): BoardItem[] {
 	const app = useApp()
+	const normalizedQuery = query.trim().toLowerCase()
 	return useValue(
 		'workspace boards',
 		() => {
 			// TODO: files have no archived state yet.
 			if (tab === 'archive') return []
 
-			const query = app.sidebarState.get().searchQuery.trim().toLowerCase()
 			const boards: BoardItem[] = []
-			for (const { fileId } of app.getWorkspaceFilesSorted(workspaceId)) {
+			// Same order as the sidebar: pinned first, then most recent.
+			for (const { fileId, isPinned } of app.getWorkspaceFilesSorted(workspaceId)) {
 				const file = app.getFile(fileId)
 				if (!file) continue
 				const name = app.getFileName(file)
-				if (query && !name.toLowerCase().includes(query)) continue
+				if (normalizedQuery && !name.toLowerCase().includes(normalizedQuery)) continue
 				// Owned by a workspace the user isn't in: a shared board they opened as a guest.
 				const isShared = !!file.owningGroupId && !app.getWorkspaceMembership(file.owningGroupId)
 				if (tab === 'shared' && !isShared) continue
 				boards.push({
 					fileId,
 					name,
+					isPinned,
 					date: getFileRecencyDate(app.getFileState(fileId), file),
 					ownerName: isShared ? file.ownerName : undefined,
 				})
 			}
-			return boards.sort((a, b) => b.date - a.date)
+			return boards
 		},
-		[app, workspaceId, tab]
+		[app, workspaceId, tab, normalizedQuery]
 	)
 }
 
-function TlaWorkspaceHomeHeader({ workspaceId }: { workspaceId: string }) {
+function TlaWorkspaceHomeToolbar({
+	tab,
+	onTabChange,
+	query,
+	onQueryChange,
+	viewMode,
+	onViewModeChange,
+}: {
+	tab: Tab
+	onTabChange(tab: Tab): void
+	query: string
+	onQueryChange(query: string): void
+	viewMode: ViewMode
+	onViewModeChange(mode: ViewMode): void
+}) {
 	const msg = useTranslation()
-	const name = useWorkspaceName(workspaceId)
 	const handleCreateFile = useHandleSidebarCreateFile()
-	const { addDialog } = useDialogs()
-	const trackEvent = useTldrawAppUiEvents()
-	const menuLbl = msg(messages.workspaceMenu)
-
-	const handleManage = useCallback(() => {
-		addDialog({
-			component: ({ onClose }) => (
-				<WorkspaceSettingsDialog workspaceId={workspaceId} onClose={onClose} />
-			),
-		})
-		trackEvent('open-share-menu', { source: 'workspace-home' })
-	}, [addDialog, workspaceId, trackEvent])
 
 	return (
-		<div className={styles.header}>
-			<h1 className={classNames(styles.title, 'notranslate')} data-testid="tla-workspace-title">
-				{name}
-			</h1>
-			<TldrawUiDropdownMenuRoot id={`workspace-menu-${workspaceId}`}>
-				<TldrawUiMenuContextProvider type="menu" sourceId="dialog">
-					<TldrawUiDropdownMenuTrigger>
-						<TldrawUiButton
-							type="icon"
-							className={styles.headerMenuTrigger}
-							tooltip={menuLbl}
-							title={menuLbl}
-						>
-							<TlaIcon icon="dots-vertical-strong" />
-						</TldrawUiButton>
-					</TldrawUiDropdownMenuTrigger>
-					<TldrawUiDropdownMenuContent side="bottom" align="start" {...TLA_MENU_POSITION}>
-						<TldrawUiMenuGroup id="workspace">
-							<TldrawUiMenuItem
-								id="manage-workspace"
-								label={msg(messages.manage)}
-								readonlyOk
-								onSelect={handleManage}
-							/>
-						</TldrawUiMenuGroup>
-					</TldrawUiDropdownMenuContent>
-				</TldrawUiMenuContextProvider>
-			</TldrawUiDropdownMenuRoot>
+		<div className={styles.toolbar}>
+			<div className={styles.tabs} role="tablist">
+				<TlaWorkspaceHomeTab tab="recent" current={tab} onSelect={onTabChange}>
+					<F defaultMessage="Recently viewed" />
+				</TlaWorkspaceHomeTab>
+				<TlaWorkspaceHomeTab tab="shared" current={tab} onSelect={onTabChange}>
+					<F defaultMessage="Shared with me" />
+				</TlaWorkspaceHomeTab>
+				<TlaWorkspaceHomeTab tab="archive" current={tab} onSelect={onTabChange}>
+					<F defaultMessage="Archive" />
+				</TlaWorkspaceHomeTab>
+			</div>
 			<div className={styles.spacer} />
+			<TlaWorkspaceHomeSearch query={query} onChange={onQueryChange} />
+			<TlaViewModeToggle viewMode={viewMode} onChange={onViewModeChange} />
 			<TlaButton
 				icon="plus"
+				className={styles.newFile}
 				onClick={() => handleCreateFile({ source: 'workspace-home' })}
-				data-testid="tla-workspace-new-board"
+				data-testid="tla-workspace-new-file"
 			>
-				{msg(messages.newBoard)}
+				{msg(messages.newFile)}
 			</TlaButton>
+		</div>
+	)
+}
+
+function TlaWorkspaceHomeSearch({
+	query,
+	onChange,
+}: {
+	query: string
+	onChange(query: string): void
+}) {
+	const msg = useTranslation()
+	const searchLbl = msg(messages.search)
+	const clearLbl = msg(messages.clearSearch)
+	return (
+		<div className={styles.search}>
+			<TlaIcon icon="search" className={styles.searchIcon} />
+			<input
+				className={styles.searchInput}
+				type="search"
+				value={query}
+				placeholder={searchLbl}
+				aria-label={searchLbl}
+				onChange={(e) => onChange(e.currentTarget.value)}
+				onKeyDown={(e) => {
+					if (e.key === 'Escape') onChange('')
+				}}
+				data-testid="tla-workspace-search"
+			/>
+			{query && (
+				<button
+					className={styles.searchClear}
+					aria-label={clearLbl}
+					title={clearLbl}
+					onClick={() => onChange('')}
+				>
+					<TlaIcon icon="close" />
+				</button>
+			)}
 		</div>
 	)
 }
@@ -242,6 +274,7 @@ function TlaViewModeToggle({
 				aria-pressed={viewMode === 'list'}
 				title={msg(messages.listView)}
 				onClick={() => onChange('list')}
+				data-testid="tla-workspace-view-list"
 			>
 				<TldrawUiIcon icon="list" label={msg(messages.listView)} small />
 			</button>
@@ -250,6 +283,7 @@ function TlaViewModeToggle({
 				aria-pressed={viewMode === 'grid'}
 				title={msg(messages.gridView)}
 				onClick={() => onChange('grid')}
+				data-testid="tla-workspace-view-grid"
 			>
 				<TlaIcon icon="layout-grid" />
 			</button>
@@ -257,6 +291,7 @@ function TlaViewModeToggle({
 	)
 }
 
+/** A board in the gallery, with the same actions as a file in the old sidebar. */
 function TlaBoardCard({
 	board,
 	workspaceId,
@@ -269,44 +304,200 @@ function TlaBoardCard({
 	const app = useApp()
 	const msg = useTranslation()
 	const intl = useIntl()
-	const menuLbl = msg(messages.boardMenu)
+	const trackEvent = useTldrawAppUiEvents()
+	const container = useContainer()
+	const hasAdminRights = useHasFileAdminRights(board.fileId)
+	const [isRenaming, setIsRenaming] = useState(false)
+	const [_, handleContextMenuOpenChange] = useMenuIsOpen(`file-context-menu-${board.fileId}`)
+	const isCoarsePointer = getIsCoarsePointer()
+	const href = routes.tlaFile(board.fileId)
+	const fileMenuLbl = msg(sidebarMessages.fileMenu)
+	const navigate = useNavigate()
 
-	const handleRename = useCallback(() => {
-		const name = prompt(intl.formatMessage(sidebarMessages.renameFile), board.name)?.trim()
-		if (name) app.updateFile(board.fileId, { name })
-	}, [app, intl, board.fileId, board.name])
+	// A renamable name opens the board on a single click and renames on a double click, so
+	// the single click waits out the double-click window before navigating.
+	const rPendingOpen = useRef<ReturnType<typeof setTimeout>>(undefined)
+	useEffect(() => () => clearTimeout(rPendingOpen.current), [])
+	const handleNameClick = useCallback(
+		(e: MouseEvent) => {
+			if (e.metaKey || e.ctrlKey || e.shiftKey) {
+				window.open(href, '_blank')
+				return
+			}
+			if (e.detail !== 1) return
+			rPendingOpen.current = setTimeout(() => {
+				trackEvent('click-file-link', { source: 'workspace-home' })
+				navigate(href)
+			}, 250)
+		},
+		[href, navigate, trackEvent]
+	)
+
+	const handleRenameAction = useCallback(() => {
+		if (isCoarsePointer) {
+			const name = prompt(intl.formatMessage(sidebarMessages.renameFile), board.name)?.trim()
+			if (name) app.updateFile(board.fileId, { name })
+		} else {
+			setIsRenaming(true)
+		}
+	}, [app, intl, board.fileId, board.name, isCoarsePointer])
+
+	const handleRenameComplete = useCallback(
+		(name: string) => {
+			setIsRenaming(false)
+			const trimmed = name.trim()
+			if (!trimmed || trimmed === board.name) return
+			app.updateFile(board.fileId, { name: trimmed })
+			trackEvent('rename-file', { name: trimmed, source: 'workspace-home' })
+		},
+		[app, board.fileId, board.name, trackEvent]
+	)
 
 	const time = formatRelativeTime(new Date(board.date).toISOString(), intl.locale)
+	const edited = intl.formatMessage(messages.edited, { time })
+
+	const isDragEnabled = !isCoarsePointer
 
 	return (
-		<div className={viewMode === 'grid' ? styles.card : styles.row} data-testid="tla-board-card">
-			<Link to={routes.tlaFile(board.fileId)} className={styles.cardLink} aria-label={board.name} />
-			{viewMode === 'grid' && <TlaBoardThumbnail fileId={board.fileId} />}
-			<div className={styles.cardFooter}>
-				<div className={styles.cardText}>
-					<div className={classNames(styles.cardName, 'notranslate')}>{board.name}</div>
-					<div className={styles.cardMeta}>
-						{board.ownerName ? `${board.ownerName} • ${time}` : time}
+		<_ContextMenu.Root onOpenChange={handleContextMenuOpenChange} modal={false}>
+			<_ContextMenu.Trigger asChild>
+				<div
+					className={viewMode === 'grid' ? styles.card : styles.row}
+					role="listitem"
+					data-testid="tla-board-card"
+					data-is-pinned={board.isPinned}
+					draggable={isDragEnabled}
+					onDragStart={
+						isDragEnabled
+							? (event) => {
+									// Dragging a board drags its URL, like a link: out to a new tab or another app.
+									const fileUrl = routes.tlaFile(board.fileId, { asUrl: true })
+									event.dataTransfer.effectAllowed = 'copyLink'
+									event.dataTransfer.setData('text/uri-list', fileUrl)
+									event.dataTransfer.setData('text/plain', fileUrl)
+								}
+							: undefined
+					}
+				>
+					{!isRenaming && (
+						<Link
+							to={href}
+							className={styles.cardLink}
+							aria-label={board.name}
+							draggable={false}
+							onClick={() => trackEvent('click-file-link', { source: 'workspace-home' })}
+						/>
+					)}
+					{viewMode === 'grid' && <TlaBoardThumbnail fileId={board.fileId} />}
+					<div className={styles.cardFooter}>
+						<div className={styles.cardText}>
+							{isRenaming ? (
+								<TlaBoardRenameInput
+									defaultValue={board.name}
+									onComplete={handleRenameComplete}
+									onCancel={() => setIsRenaming(false)}
+								/>
+							) : (
+								<div
+									className={classNames(styles.cardName, 'notranslate')}
+									data-renamable={hasAdminRights}
+									onClick={hasAdminRights ? handleNameClick : undefined}
+									onDoubleClick={
+										hasAdminRights
+											? () => {
+													clearTimeout(rPendingOpen.current)
+													handleRenameAction()
+												}
+											: undefined
+									}
+								>
+									{board.name}
+								</div>
+							)}
+							<div className={styles.cardMeta}>
+								{board.isPinned && (
+									<TlaIcon
+										icon="pin"
+										className={styles.cardPinned}
+										aria-label={msg(messages.pinned)}
+									/>
+								)}
+								<span className={styles.cardMetaText}>
+									{board.ownerName ? `${board.ownerName} • ${edited}` : edited}
+								</span>
+							</div>
+						</div>
+						<TlaFileMenu
+							fileId={board.fileId}
+							workspaceId={workspaceId}
+							source="workspace-home"
+							onRenameAction={handleRenameAction}
+							trigger={
+								<TldrawUiButton
+									type="icon"
+									className={styles.cardMenuTrigger}
+									tooltip={fileMenuLbl}
+									title={fileMenuLbl}
+								>
+									<TlaIcon icon="dots-vertical-strong" />
+								</TldrawUiButton>
+							}
+						/>
 					</div>
 				</div>
-				<TlaFileMenu
-					fileId={board.fileId}
-					workspaceId={workspaceId}
-					source="workspace-home"
-					onRenameAction={handleRename}
-					trigger={
-						<TldrawUiButton
-							type="icon"
-							className={styles.cardMenuTrigger}
-							tooltip={menuLbl}
-							title={menuLbl}
-						>
-							<TlaIcon icon="dots-vertical-strong" />
-						</TldrawUiButton>
-					}
-				/>
-			</div>
-		</div>
+			</_ContextMenu.Trigger>
+			<_ContextMenu.Portal container={container}>
+				<_ContextMenu.Content className="tlui-menu tlui-scrollable">
+					{!isCoarsePointer && (
+						<TldrawUiMenuContextProvider type="context-menu" sourceId="context-menu">
+							<FileItems
+								source="workspace-home"
+								fileId={board.fileId}
+								onRenameAction={handleRenameAction}
+								workspaceId={workspaceId}
+							/>
+						</TldrawUiMenuContextProvider>
+					)}
+				</_ContextMenu.Content>
+			</_ContextMenu.Portal>
+		</_ContextMenu.Root>
+	)
+}
+
+function TlaBoardRenameInput({
+	defaultValue,
+	onComplete,
+	onCancel,
+}: {
+	defaultValue: string
+	onComplete(name: string): void
+	onCancel(): void
+}) {
+	const msg = useTranslation()
+	// Escape cancels, but the blur it causes as the input unmounts must not then save.
+	const [isDone, setIsDone] = useState(false)
+	const handleKeyDown = (e: KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === 'Enter') {
+			setIsDone(true)
+			onComplete(e.currentTarget.value)
+		} else if (e.key === 'Escape') {
+			setIsDone(true)
+			onCancel()
+		}
+	}
+	return (
+		<input
+			className={classNames(styles.cardRenameInput, 'notranslate')}
+			defaultValue={defaultValue}
+			aria-label={msg(sidebarMessages.renameFile)}
+			autoFocus
+			onFocus={(e) => e.currentTarget.select()}
+			onKeyDown={handleKeyDown}
+			onBlur={(e) => {
+				if (!isDone) onComplete(e.currentTarget.value)
+			}}
+			data-testid="tla-board-rename-input"
+		/>
 	)
 }
 
@@ -315,7 +506,9 @@ function TlaBoardThumbnail({ fileId }: { fileId: string }) {
 	const [failed, setFailed] = useState(false)
 	return (
 		<div className={styles.cardPreview}>
-			{!failed && (
+			{failed ? (
+				<TlaSemicolon className={styles.cardPreviewPlaceholder} />
+			) : (
 				<img
 					className={styles.cardPreviewImage}
 					src={`/api/app/file/${fileId}/thumbnail`}
@@ -326,5 +519,17 @@ function TlaBoardThumbnail({ fileId }: { fileId: string }) {
 				/>
 			)}
 		</div>
+	)
+}
+
+/** The semicolon from the tldraw mark, without its rounded square. */
+function TlaSemicolon({ className }: { className?: string }) {
+	return (
+		<svg className={className} viewBox="5.6 2.9 4.2 9.5" aria-hidden="true">
+			<path
+				fill="currentColor"
+				d="M9.055 4.5a1.35 1.35 0 1 1-2.7 0 1.35 1.35 0 0 1 2.7 0M7.262 12.15c.635.002 1.246-.88 1.475-1.372.281-.606.457-1.696.175-2.342-.198-.452-.652-.786-1.25-.786-.722 0-1.307.586-1.307 1.31 0 .2.046.387.127.553.075.154.174.314.274.476.315.508.637 1.03.244 1.398-.318.3-.218.761.262.763"
+			/>
+		</svg>
 	)
 }

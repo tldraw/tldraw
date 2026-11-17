@@ -2,22 +2,21 @@ import { defineMessages, useTranslation, useValue } from 'tldraw'
 import { useApp } from './useAppState'
 
 const messages = defineMessages({
-	home: { defaultMessage: 'Home' },
+	myWorkspace: { defaultMessage: 'My workspace' },
 	untitledWorkspace: { defaultMessage: 'Untitled workspace' },
 })
 
-/** A workspace's display name. The home workspace is always "Home", whatever its group is named. */
+/** A workspace's display name, falling back to "My workspace" for an unnamed home workspace. */
 export function useWorkspaceName(workspaceId: string) {
 	const app = useApp()
 	const msg = useTranslation()
 	const name = useValue(
 		'workspace name',
-		() =>
-			workspaceId === app.getHomeWorkspaceId()
-				? null
-				: app.getWorkspaceMembership(workspaceId)?.group?.name,
+		() => app.getWorkspaceMembership(workspaceId)?.group?.name,
 		[app, workspaceId]
 	)
-	if (name === null) return msg(messages.home)
-	return name || msg(messages.untitledWorkspace)
+	if (name) return name
+	return msg(
+		workspaceId === app.getHomeWorkspaceId() ? messages.myWorkspace : messages.untitledWorkspace
+	)
 }

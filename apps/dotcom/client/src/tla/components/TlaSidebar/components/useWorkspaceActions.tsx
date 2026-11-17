@@ -50,7 +50,11 @@ export function useSwitchToWorkspace() {
 	)
 }
 
-export function useCreateWorkspaceDialog(source: TLAppUiEventSource = 'sidebar') {
+export function useCreateWorkspaceDialog(
+	source: TLAppUiEventSource = 'sidebar',
+	// The v3 gallery opens the new workspace's page; everywhere else opens its welcome board.
+	destination: 'board' | 'workspace' = 'board'
+) {
 	const app = useApp()
 	const navigate = useNavigate()
 	const { addDialog } = useDialogs()
@@ -74,7 +78,9 @@ export function useCreateWorkspaceDialog(source: TLAppUiEventSource = 'sidebar')
 						// directly (not via switchToWorkspace, whose empty-workspace path would
 						// otherwise create a blank file before the welcome file lands).
 						const res = await app.createWorkspaceWelcomeFile(id)
-						if (res.ok) {
+						if (destination === 'workspace') {
+							navigate(routes.tlaWorkspace(id))
+						} else if (res.ok) {
 							navigate(routes.tlaFile(res.value.fileId))
 						} else {
 							// Seeding failed; still land the user in the new workspace rather than
@@ -86,5 +92,5 @@ export function useCreateWorkspaceDialog(source: TLAppUiEventSource = 'sidebar')
 				/>
 			),
 		})
-	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source])
+	}, [app, addDialog, navigate, switchToWorkspace, trackEvent, source, destination])
 }
