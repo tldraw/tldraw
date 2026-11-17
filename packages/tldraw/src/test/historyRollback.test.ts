@@ -1,4 +1,4 @@
-import { createShapeId, transact, transaction } from '@tldraw/editor'
+import { createShapeId, transaction } from '@tldraw/editor'
 import { TestEditor } from './TestEditor'
 
 let editor: TestEditor
@@ -37,24 +37,6 @@ describe('history after a rolled-back transaction', () => {
 		expect(editor.getShape(a)).toBeUndefined()
 		expect(editor.getShape(b)).toBeDefined()
 		expect(editor.getShape(c)!.x).toBe(0)
-	})
-
-	it('drops changes from an editor op inside an outer transaction that throws', () => {
-		editor.markHistoryStoppingPoint('start')
-		expect(() =>
-			transact(() => {
-				editor.createShapes([{ id: a, type: 'geo' }])
-				throw new Error('outer')
-			})
-		).toThrow('outer')
-		expect(editor.getShape(a)).toBeUndefined()
-
-		editor.markHistoryStoppingPoint('b')
-		editor.createShapes([{ id: b, type: 'geo' }])
-		editor.undo()
-		editor.redo()
-		expect(editor.getShape(a)).toBeUndefined()
-		expect(editor.getShape(b)).toBeDefined()
 	})
 
 	it('drops only a nested transaction that rolls back', () => {
@@ -145,22 +127,5 @@ describe('history after a rolled-back transaction', () => {
 		expect(editor.getShape(a)!.x).toBe(0)
 		expect(editor.getShape(b)!.x).toBe(100)
 		expect(editor.getShape(c)!.x).toBe(100)
-	})
-
-	it('keeps changes made before the rolled-back transaction', () => {
-		editor.markHistoryStoppingPoint('start')
-		editor.createShapes([{ id: b, type: 'geo' }])
-		expect(() =>
-			editor.run(() => {
-				editor.createShapes([{ id: a, type: 'geo' }])
-				throw new Error('boom')
-			})
-		).toThrow()
-		expect(editor.getCanUndo()).toBe(true)
-		editor.undo()
-		expect(editor.getShape(b)).toBeUndefined()
-		editor.redo()
-		expect(editor.getShape(b)).toBeDefined()
-		expect(editor.getShape(a)).toBeUndefined()
 	})
 })

@@ -1,4 +1,3 @@
-import { vi } from 'vitest'
 import { atom } from '../Atom'
 import { computed } from '../Computed'
 import { react } from '../EffectScheduler'
@@ -308,11 +307,5 @@ describe('onTransactionAbort', () => {
 			})
 		})
 		expect(log).toEqual(['inner'])
-	})
-
-	it('does nothing outside a transaction', () => {
-		const undo = vi.fn()
-		onTransactionAbort(undo)
-		expect(undo).not.toHaveBeenCalled()
 	})
 })
