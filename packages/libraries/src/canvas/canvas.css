@@ -424,10 +424,16 @@
 	padding: 4px;
 }
 
+.tlui-libraries-menu:has(> .tlui-libraries-menu__heading) {
+	min-width: 144px;
+}
+
 .tlui-libraries-menu__heading {
 	display: flex;
 	align-items: center;
-	width: 200px;
+	box-sizing: border-box;
+	width: 0;
+	min-width: 100%;
 	min-height: 36px;
 	padding: 0 10px;
 	font-size: 12px;
