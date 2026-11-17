@@ -5,38 +5,34 @@ import {
 	useDialogs,
 	useEditor,
 	useTranslation,
+	useUiEvents,
 	useValue,
 	type TLLibrary,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { AddMoreButton } from './add-more-button'
+import { AddMoreMenu } from './add-more-menu'
 import { BrowseLibrariesDialog, type LibraryBrowseGroup } from './browse-libraries-dialog'
-import { EmptyThisFile } from './empty-this-file'
 import {
 	type LibrariesComponents,
 	LibrariesComponentsProvider,
 	useLibrariesComponentOverrides,
 } from './libraries-components'
 import { LibrariesPanelHeader as DefaultLibrariesPanelHeader } from './libraries-panel-header'
-import { LibrariesSearch } from './libraries-search'
 import { LibrarySection } from './library-section'
 import { useLibrariesEnabled } from './license'
 import { canCreateNewLibrary, getNewLibraryOwners } from './new-library'
 import { NoLibraries as DefaultNoLibraries } from './no-libraries'
-import { getSearchScope, normalizeQuery } from './panel-search'
-import { getEmptyThisFileOffers, getPanelSections } from './panel-sections'
+import { getPanelSections } from './panel-sections'
 import type { LibraryItemPlacer } from './place-item'
 import type { PrepareItemContent } from './save-shapes'
-import { SearchResults } from './search-results'
-import { librariesPanelOpen, librariesSearchQuery, librariesSearchScope } from './state'
+import { librariesPanelOpen } from './state'
 import { useCreateLibrary } from './use-create-library'
-import { useLibraryItemDrag, usePlaceLibraryItem } from './use-item-drag'
+import { useLibraryItemDrag } from './use-item-drag'
 import { useLibraries } from './use-libraries'
 
 const messages = defineMessages({
 	title: { id: 'libraries.title', defaultMessage: 'Libraries' },
 	thisFile: { id: 'libraries.panel.this-file', defaultMessage: 'This file' },
-	search: { id: 'libraries.search.placeholder', defaultMessage: 'Search libraries' },
 })
 
 /** @public */
@@ -116,25 +112,15 @@ function LibrariesPanelContent({
 		useLibrariesComponentOverrides()
 	const msg = useTranslation()
 	const { addDialog } = useDialogs()
+	const trackEvent = useUiEvents()
 	const librariesEnabled = useLibrariesEnabled()
 	const open = useValue('libraries panel open', () => librariesPanelOpen.get(editor), [editor])
-	const query = useValue('libraries search query', () => librariesSearchQuery.get(editor), [editor])
 	const libraries = useLibraries(source)
 	const sections = useValue('library sections', () => getPanelSections(source, libraries), [
 		source,
 		libraries,
 	])
-	const offers = useValue(
-		'empty this file offers',
-		() => getEmptyThisFileOffers(sections, getBrowseGroups ? getBrowseGroups() : []),
-		[sections, getBrowseGroups]
-	)
-	const scopeId = useValue('libraries search scope', () => librariesSearchScope.get(editor), [
-		editor,
-	])
-	const { scope, searched } = getSearchScope(libraries, scopeId)
 	const getItemProps = useLibraryItemDrag(source, { placeItem })
-	const placeItemOnClick = usePlaceLibraryItem(source, placeItem)
 	const createLibrary = useCreateLibrary(source)
 	const newLibraryOwners = useValue(
 		'new library owners',
@@ -148,13 +134,14 @@ function LibrariesPanelContent({
 
 	const canBrowse =
 		!!(source.getAvailableLibraries && source.addLibraryToDocument) || !!getBrowseGroups
-	const browse = () =>
+	const browse = () => {
+		trackEvent('open-browse-libraries', { source: 'libraries' })
 		addDialog({
 			component: () => <BrowseLibrariesDialog source={source} getBrowseGroups={getBrowseGroups} />,
 		})
+	}
 
 	if (!librariesEnabled || !open) return null
-	const searching = searched.length > 0 && normalizeQuery(query) !== ''
 
 	const renderSections = (list: TLLibrary[]) =>
 		list.map((library) => (
@@ -163,45 +150,9 @@ function LibrariesPanelContent({
 				source={source}
 				library={library}
 				getItemProps={getItemProps}
-				placeItem={placeItemOnClick}
 				prepareItemContent={prepareItemContent}
 			/>
 		))
-
-	const renderLists = () => {
-		if (searching) {
-			return (
-				<SearchResults
-					source={source}
-					libraries={searched}
-					query={query}
-					getItemProps={getItemProps}
-					placeItem={placeItemOnClick}
-					prepareItemContent={prepareItemContent}
-				/>
-			)
-		}
-		if (scope) return renderSections([scope])
-		return sections ? (
-			<>
-				{renderSections(sections.defaults)}
-				<div
-					role="group"
-					className="tlui-libraries-panel__group"
-					aria-label={msg(messages.thisFile)}
-				>
-					<h3 className="tlui-libraries-panel__group-label">{msg(messages.thisFile)}</h3>
-					{sections.thisFile.length > 0 ? (
-						renderSections(sections.thisFile)
-					) : (
-						<EmptyThisFile offers={offers} onBrowse={canBrowse ? browse : undefined} />
-					)}
-				</div>
-			</>
-		) : (
-			renderSections(libraries)
-		)
-	}
 
 	return (
 		<EditorPortal>
@@ -211,20 +162,27 @@ function LibrariesPanelContent({
 				aria-label={msg(messages.title)}
 				onContextMenu={(e) => e.stopPropagation()}
 			>
-				{LibrariesPanelHeader && (
-					<LibrariesPanelHeader
-						menuItems={menuItems}
-						create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
-					/>
-				)}
-				{libraries.length > 0 && (
-					<LibrariesSearch placeholder={msg(messages.search)} scope={scope} />
-				)}
+				{LibrariesPanelHeader && <LibrariesPanelHeader menuItems={menuItems} />}
 				<div className="tlui-libraries-sections">
 					{libraries.length === 0 && NoLibraries && <NoLibraries />}
-					{renderLists()}
+					{sections ? (
+						<>
+							{sections.thisFile.length > 0 && (
+								<div role="group" aria-label={msg(messages.thisFile)}>
+									<h3 className="tlui-libraries-panel__group-label">{msg(messages.thisFile)}</h3>
+									{renderSections(sections.thisFile)}
+								</div>
+							)}
+							{renderSections(sections.defaults)}
+						</>
+					) : (
+						renderSections(libraries)
+					)}
+					<AddMoreMenu
+						create={newLibraryOwners && { owners: newLibraryOwners, onCreate: createLibrary }}
+						onBrowse={canBrowse ? browse : undefined}
+					/>
 				</div>
-				{!searching && !scope && canBrowse && <AddMoreButton onBrowse={browse} />}
 			</section>
 		</EditorPortal>
 	)

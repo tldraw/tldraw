@@ -242,7 +242,8 @@ describe('TrackedLibrarySource', () => {
 
 	it('leaves adding a starter pack to be reported as that', async () => {
 		const { source, events } = setUp()
-		await addStarterPack(source, { id: 'doodles', name: 'Doodles', version: 1, items: [] })
+		const pack = { id: 'doodles', name: 'Doodles', version: 1, items: [] }
+		await addStarterPack(source, 'doodles', async () => pack, undefined)
 		expect(events()).toEqual([])
 	})
 

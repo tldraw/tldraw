@@ -683,12 +683,6 @@
       "value": "Archived files will appear here."
     }
   ],
-  "57af9a64fa": [
-    {
-      "type": 0,
-      "value": "You may not be allowed to create libraries, or copying failed."
-    }
-  ],
   "5a95a425f7": [
     {
       "type": 0,
@@ -761,12 +755,6 @@
       "value": "Older"
     }
   ],
-  "6378731a5e": [
-    {
-      "type": 0,
-      "value": "Couldn't add"
-    }
-  ],
   "639bae9ac6": [
     {
       "type": 0,
@@ -777,12 +765,6 @@
     {
       "type": 0,
       "value": "Refresh"
-    }
-  ],
-  "6481836091": [
-    {
-      "type": 0,
-      "value": "Browse starter packs…"
     }
   ],
   "6609dd239e": [
@@ -1948,12 +1930,6 @@
       "value": "Unable to publish the file."
     }
   ],
-  "c3bf447eab": [
-    {
-      "type": 0,
-      "value": "Open"
-    }
-  ],
   "c4b39a1cc3": [
     {
       "type": 0,
@@ -1988,12 +1964,6 @@
     {
       "type": 0,
       "value": "Color"
-    }
-  ],
-  "cb63743752": [
-    {
-      "type": 0,
-      "value": "Couldn't load starter packs"
     }
   ],
   "cce99c598c": [
@@ -2160,20 +2130,6 @@
       "value": "name"
     }
   ],
-  "e19d2ede14": [
-    {
-      "type": 0,
-      "value": "Added "
-    },
-    {
-      "type": 1,
-      "value": "pack"
-    },
-    {
-      "type": 0,
-      "value": " to your libraries."
-    }
-  ],
   "e2198d6228": [
     {
       "type": 0,
@@ -2222,12 +2178,6 @@
       "value": "Yesterday"
     }
   ],
-  "ec211f7c20": [
-    {
-      "type": 0,
-      "value": "Add"
-    }
-  ],
   "ec59b960ea": [
     {
       "type": 0,
@@ -2238,12 +2188,6 @@
     {
       "type": 0,
       "value": "Account menu"
-    }
-  ],
-  "ec9ac32d83": [
-    {
-      "type": 0,
-      "value": "Starter packs"
     }
   ],
   "ed6241a422": [
@@ -2326,12 +2270,6 @@
       "value": "We use these cookies to save your files and settings."
     }
   ],
-  "f29ddbfb90": [
-    {
-      "type": 0,
-      "value": "Added"
-    }
-  ],
   "f2a6c498fb": [
     {
       "type": 0,
@@ -2406,6 +2344,12 @@
     {
       "type": 0,
       "value": "Copied link"
+    }
+  ],
+  "feebd72b89": [
+    {
+      "type": 0,
+      "value": "Public libraries"
     }
   ],
   "ff2fefd3c6": [

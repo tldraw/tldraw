@@ -113,6 +113,7 @@ export function addStarterPack(
  * The starter packs as a group to browse: each is added once the document shows a copy of it.
  * Adding one adds a copy the user already has available, or copies the pack to
  * {@link getStarterPackOwnerId}, and reports `add-starter-pack`, or `library-error` if it fails.
+ * Removing one takes the copy it shows out of the document, and keeps the copy itself.
  */
 export function getStarterPackBrowseGroup(
 	source: LibrarySource,
@@ -129,12 +130,15 @@ export function getStarterPackBrowseGroup(
 		label,
 		entries: packs.map((pack) => {
 			const copy = findPackCopy(available, pack.id)
+			const shownCopy = findPackCopy(shown, pack.id)
+			const remove = source.removeLibraryFromDocument
 			return {
 				id: pack.id,
 				name: pack.name,
 				itemCount: pack.itemCount,
 				previews: pack.previews.map((item) => item.thumbnail),
-				added: findPackCopy(shown, pack.id) !== undefined,
+				added: shownCopy !== undefined,
+				libraryId: shownCopy?.id,
 				canAdd: copy ? source.can('addLibraryToDocument', copy.id) : canCopy,
 				add: async () => {
 					try {
@@ -155,6 +159,10 @@ export function getStarterPackBrowseGroup(
 						throw error
 					}
 				},
+				remove:
+					shownCopy && remove && source.can('removeLibraryFromDocument', shownCopy.id)
+						? () => remove.call(source, shownCopy.id)
+						: undefined,
 				getItems: async () =>
 					(await loadStarterPack(pack.id)).items.map(({ id, name, thumbnail }) => ({
 						id,

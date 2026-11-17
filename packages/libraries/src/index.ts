@@ -3,6 +3,11 @@ export {
 	AddToLibraryMenuItem,
 	type AddToLibraryMenuItemProps,
 } from './canvas/add-to-library-menu-item'
+export {
+	type LibraryBrowseEntry,
+	type LibraryBrowseEntryItem,
+	type LibraryBrowseGroup,
+} from './canvas/browse-libraries-dialog'
 export { EmptyLibrary, type EmptyLibraryProps } from './canvas/empty-library'
 export {
 	type LibrariesComponents,

@@ -1,4 +1,9 @@
-import { copyLibrary, whenItemsStored, type TLLibraryItem } from '@tldraw/libraries'
+import {
+	addPackToDocument,
+	copyLibrary,
+	whenItemsStored,
+	type TLLibraryItem,
+} from '@tldraw/libraries'
 import {
 	AssetRecordType,
 	createShapeId,
@@ -14,7 +19,7 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { getEditorLibraries } from './editorLibraries'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
-import { addStarterPack, isStarterPackAdded } from './starterPacks'
+import { getStarterPackBrowseGroup, getStarterPackOwnerId } from './starterPacks'
 
 // An add, once its items are stored as well as listed.
 async function added<T extends TLLibraryItem | TLLibraryItem[]>(adding: Promise<T>) {
@@ -177,16 +182,25 @@ describe('getEditorLibraries', () => {
 		expect(boardOrder).toHaveLength(names.length)
 	})
 
-	it('adds a starter pack to the home workspace and the file, not the board, and counts it added there', async () => {
+	it("copies a starter pack to the file's workspace, not the board, and adds that copy again", async () => {
 		const { editor, source } = setUp()
 		const pack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
+		const summary = { id: 'doodles', name: 'Doodles', version: 2, itemCount: 0, previews: [] }
+		const entry = () => getStarterPackBrowseGroup(source, [summary], 'Public', () => {}).entries[0]
+		expect(entry().added).toBe(false)
+
+		const ownerId = getStarterPackOwnerId(source)
+		expect(ownerId).toBe('acme')
+		const id = await addPackToDocument(source, 'doodles', async () => pack, { ownerId })
+		const copy = source.getLibraries().find((library) => library.id === id)
+		expect(copy).toMatchObject({ ownerId: 'acme', meta: { packId: 'doodles', packVersion: 2 } })
 		expect(ofType(editor, 'library')).toEqual([])
-		expect(source.getLibraryPlacement!(copy.id)).toBe('added')
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary!(copy.id, 'acme')
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
+		expect(source.getLibraryPlacement!(id)).toBe('added')
+		expect(entry().added).toBe(true)
+
+		await source.removeLibraryFromDocument!(id)
+		expect(entry().added).toBe(false)
+		expect(await entry().add()).toBe(id)
+		expect(source.getLibraryPlacement!(id)).toBe('added')
 	})
 })

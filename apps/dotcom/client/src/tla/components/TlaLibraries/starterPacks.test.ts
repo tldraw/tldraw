@@ -1,8 +1,11 @@
 import {
-	type LibraryPack,
-	type LibraryPackItem,
+	copyPack,
 	InMemoryLibrarySource,
+	LibraryRecordType,
+	type InMemoryLibrarySourceOptions,
 	whenItemsStored,
+	type LibraryPackItem,
+	type LibrarySource,
 } from '@tldraw/libraries'
 import { createTLSchema, type SerializedStore, type TLRecord } from 'tldraw'
 import { afterEach, describe, expect, it, vi } from 'vitest'
@@ -10,19 +13,15 @@ import { fileSchemaRecords } from '../../../utils/fileSchemaRecords'
 import { createFakeLibrariesBackend } from './fakeLibrariesBackend'
 import { TldrawAppLibrariesSource } from './librariesSource'
 import {
-	addStarterPack,
-	canAddStarterPack,
-	getStarterPackId,
+	getStarterPackBrowseGroup,
+	getStarterPackOwnerId,
 	getStarterPackSummaries,
-	isStarterPackAdded,
 	loadStarterPack,
 	loadStarterPackSummaries,
 	STARTER_PACK_LOADERS,
 	STARTER_PACK_PREVIEW_COUNT,
 	type StarterPackSummary,
 } from './starterPacks'
-
-const pack: LibraryPack = { id: 'doodles', name: 'Doodles', version: 2, items: [] }
 
 const owners = [
 	{ id: 'acme', name: 'Acme' },
@@ -128,7 +127,7 @@ describe('starter packs in tldraw.com workspaces', () => {
 		const source = new TldrawAppLibrariesSource(backend.app, backend.getToken)
 		const math = await loadStarterPack('math')
 
-		const copy = await addStarterPack(source, math)
+		const copy = await copyPack(source, math)
 		await whenItemsStored(source.getItems(copy.id).map((item) => item.id))
 
 		const rows = backend.rows.get().find((row) => row.id === copy.id.split(':')[1])!.items
@@ -141,57 +140,117 @@ describe('starter packs in tldraw.com workspaces', () => {
 	})
 })
 
-describe('starter packs in a source without owners', () => {
-	it('copies the pack as a new library', async () => {
-		const source = new InMemoryLibrarySource()
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ name: 'Doodles', meta: { packId: 'doodles', packVersion: 2 } })
-		expect(copy.ownerId).toBeUndefined()
-		expect(getStarterPackId(copy)).toBe('doodles')
-	})
+const doodles: StarterPackSummary = {
+	id: 'doodles',
+	name: 'Doodles',
+	version: 2,
+	itemCount: 3,
+	previews: [],
+}
 
-	it('names no pack for a library made any other way', async () => {
-		const source = new InMemoryLibrarySource()
-		expect(getStarterPackId(await source.createLibrary('Kit'))).toBeUndefined()
-	})
-
-	it('counts a pack as added while the source holds a copy of it', async () => {
-		const source = new InMemoryLibrarySource()
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-		const copy = await addStarterPack(source, pack)
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		expect(isStarterPackAdded(source, 'wireframing')).toBe(false)
-		await source.deleteLibrary(copy.id)
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-	})
-
-	it("can't add a pack when the source refuses new libraries", () => {
-		expect(canAddStarterPack(new InMemoryLibrarySource())).toBe(true)
-		expect(canAddStarterPack(new InMemoryLibrarySource({ can: () => false }))).toBe(false)
-	})
-})
-
-describe('starter packs in a source with owners', () => {
-	it('copies the pack into the default owner', async () => {
-		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
-		const copy = await addStarterPack(source, pack)
-		expect(copy).toMatchObject({ ownerId: 'home', meta: { packId: 'doodles', packVersion: 2 } })
-	})
-
-	it("doesn't count a copy that has moved to another owner", async () => {
-		const source = new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' })
-		const copy = await addStarterPack(source, pack)
-		expect(isStarterPackAdded(source, 'doodles')).toBe(true)
-		await source.moveLibrary(copy.id, 'acme')
-		expect(isStarterPackAdded(source, 'doodles')).toBe(false)
-	})
-
-	it('asks whether the default owner may have new libraries', () => {
-		const source = new InMemoryLibrarySource({
+// A file in Acme: it shows the user's default, and offers Acme and home for new libraries.
+function setUpFile({
+	libraries = [],
+	can,
+}: {
+	libraries?: ReturnType<typeof LibraryRecordType.create>[]
+	can?: InMemoryLibrarySourceOptions['can']
+} = {}) {
+	const mine = LibraryRecordType.create({ name: 'My stuff', ownerId: 'home' })
+	const source: LibrarySource = Object.assign(
+		new InMemoryLibrarySource({
 			owners,
 			defaultOwnerId: 'home',
-			can: (_, target) => typeof target !== 'object' || target.ownerId !== 'home',
+			initial: { libraries: [mine, ...libraries], items: [], contents: {} },
+			shownInDocument: [{ libraryId: mine.id, placement: 'default' }],
+			can,
+		}),
+		{ getNewLibraryOwnerIds: () => ['acme', 'home'] }
+	)
+	return source
+}
+
+const doodlesCopy = (ownerId: string) =>
+	LibraryRecordType.create({
+		name: 'Doodles',
+		ownerId,
+		meta: { packId: 'doodles', packVersion: 2 },
+	})
+
+describe('starter packs to browse', () => {
+	it("copies a pack to the file's workspace, or home where the user can't create there", () => {
+		expect(getStarterPackOwnerId(setUpFile())).toBe('acme')
+		const notInAcme = setUpFile({
+			can: (_, target) => typeof target !== 'object' || target.ownerId !== 'acme',
 		})
-		expect(canAddStarterPack(source)).toBe(false)
+		expect(getStarterPackOwnerId(notInAcme)).toBe('home')
+		expect(
+			getStarterPackOwnerId(new InMemoryLibrarySource({ owners, defaultOwnerId: 'home' }))
+		).toBe('home')
+	})
+
+	it('adds a copy the user already has rather than copying the pack again', async () => {
+		const copy = doodlesCopy('home')
+		const source = setUpFile({ libraries: [copy] })
+		const [entry] = getStarterPackBrowseGroup(source, [doodles], 'Public', () => {}).entries
+		expect(entry).toMatchObject({ id: 'doodles', added: false, canAdd: true, itemCount: 3 })
+
+		expect(await entry.add()).toBe(copy.id)
+		expect(source.getLibraryPlacement!(copy.id)).toBe('added')
+		expect(source.getLibraries()).toHaveLength(2)
+		expect(getStarterPackBrowseGroup(source, [doodles], 'Public', () => {}).entries[0].added).toBe(
+			true
+		)
+	})
+
+	it('removes the copy the file shows from the file, and keeps the copy to add again', async () => {
+		const copy = doodlesCopy('home')
+		const source = setUpFile({ libraries: [copy] })
+		const entryOf = () =>
+			getStarterPackBrowseGroup(source, [doodles], 'Public', () => {}).entries[0]
+		expect(entryOf().remove).toBeUndefined()
+
+		await entryOf().add()
+		const added = entryOf()
+		expect(added).toMatchObject({ added: true, libraryId: copy.id })
+		await added.remove!()
+
+		expect(source.getLibraries().map((l) => l.id)).not.toContain(copy.id)
+		expect(source.getAvailableLibraries!().map((l) => l.id)).toContain(copy.id)
+		expect(entryOf()).toMatchObject({ added: false, canAdd: true, remove: undefined })
+	})
+
+	it("can't remove a pack's copy the user may not remove from the file", async () => {
+		const copy = doodlesCopy('home')
+		const source = setUpFile({
+			libraries: [copy],
+			can: (action) => action !== 'removeLibraryFromDocument',
+		})
+		await getStarterPackBrowseGroup(source, [doodles], 'Public', () => {}).entries[0].add()
+		const [entry] = getStarterPackBrowseGroup(source, [doodles], 'Public', () => {}).entries
+		expect(entry.added).toBe(true)
+		expect(entry.remove).toBeUndefined()
+	})
+
+	it("loads a pack's items for viewing before it's added", async () => {
+		const [entry] = getStarterPackBrowseGroup(setUpFile(), [doodles], 'Public', () => {}).entries
+		const pack = await loadStarterPack('doodles')
+		expect(await entry.getItems!()).toEqual(
+			pack.items.map(({ id, name, thumbnail }) => ({ id, name, thumbnail }))
+		)
+	})
+
+	it("can't add a pack the user can neither copy nor has a copy of", () => {
+		const source = setUpFile({ can: (action) => action !== 'createLibrary' })
+		expect(getStarterPackBrowseGroup(source, [doodles], 'Public', () => {}).entries[0].canAdd).toBe(
+			false
+		)
+		const withCopy = setUpFile({
+			libraries: [doodlesCopy('acme')],
+			can: (action) => action !== 'createLibrary',
+		})
+		expect(
+			getStarterPackBrowseGroup(withCopy, [doodles], 'Public', () => {}).entries[0].canAdd
+		).toBe(true)
 	})
 })

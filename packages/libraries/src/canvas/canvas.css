@@ -115,9 +115,7 @@
 }
 
 .tlui-libraries-panel__add-more {
-	flex-shrink: 0;
 	margin: 0;
-	border-top: 1px solid var(--tl-color-divider);
 	border-radius: 0;
 }
 
@@ -128,7 +126,7 @@
 	line-height: 32px;
 	font-size: 12px;
 	font-weight: 500;
-	color: var(--tl-color-text-1);
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-menu-heading {
@@ -530,7 +528,6 @@
 
 .tlui-libraries-browse .tlui-libraries-panel__group-label {
 	padding: 0 var(--tl-space-2);
-	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-browse .tlui-libraries-browse__cards {
@@ -561,20 +558,40 @@
 	border-radius: var(--tl-radius-3);
 }
 
-.tlui-libraries-browse__footer {
-	display: flex;
-	align-items: center;
-	gap: var(--tl-space-4);
-	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
+.tlui-dialog__header.tlui-libraries-browse__header {
+	flex-shrink: 0;
+	border-bottom: 1px solid var(--tl-color-divider);
 }
 
-.tlui-libraries-browse__footer > .tlui-button {
+/* .tlui-dialog__body's `overflow-wrap: anywhere` would let the action's label wrap mid-word. */
+.tlui-libraries-browse__footer {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: var(--tl-space-2) var(--tl-space-4);
+	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
+	overflow-wrap: normal;
+}
+
+.tlui-libraries-browse__actions {
+	display: flex;
 	flex: none;
+	align-items: center;
+	gap: var(--tl-space-4);
+	margin-inline-start: auto;
+}
+
+.tlui-libraries-browse__added {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-2);
+	font-size: 12px;
+	color: var(--tl-color-text-3);
 }
 
 .tlui-libraries-browse__text {
 	display: flex;
-	flex: 1 1 auto;
+	flex: 1 1 160px;
 	flex-direction: column;
 	min-width: 0;
 }
@@ -634,5 +651,151 @@
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
+	color: var(--tl-color-text-1);
+}
+
+/* Like the tldraw.com sidebar's search row: an icon, the input, and a ✕ once it has text, in a box
+   that takes the primary colour while focused. */
+.tlui-libraries-search {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	align-items: center;
+	height: 32px;
+	margin: 8px 10px 4px;
+	padding-left: 8px;
+	border-radius: var(--tl-radius-2);
+	box-shadow: inset 0 0 0 1px var(--tl-color-divider);
+}
+
+.tlui-libraries-search:focus-within {
+	box-shadow: inset 0 0 0 1px var(--tl-color-primary);
+}
+
+.tlui-libraries-search > .tlui-input__wrapper {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	gap: 6px;
+}
+
+.tlui-libraries-search__icon {
+	flex-shrink: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-input.tlui-libraries-search__input {
+	flex: 1;
+	min-width: 0;
+	height: 100%;
+	padding: 0;
+}
+
+.tlui-libraries-search__clear {
+	width: 32px;
+	height: 32px;
+	min-width: 32px;
+}
+
+.tlui-libraries-search__clear::after {
+	inset: 4px;
+}
+
+/* Rows like the panel's own "Add more", and tldraw's menu items: the name, its item count, and a
+   chevron into the library. */
+.tlui-libraries-rows {
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tlui-button.tlui-libraries-row {
+	width: 100%;
+	margin: 0;
+	border-radius: 0;
+	gap: 6px;
+}
+
+.tlui-libraries-row > .tlui-button__label {
+	flex: 1;
+	min-width: 0;
+	text-align: start;
+}
+
+.tlui-libraries-row__name {
+	display: block;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-weight: 500;
+}
+
+.tlui-libraries-row__count {
+	flex-shrink: 0;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-row > .tlui-icon {
+	color: var(--tl-color-text-3);
+}
+
+/* With a back button before it, the name sits where the button's icon leaves off. */
+.tlui-libraries-panel__back + .tlui-libraries-panel__title {
+	padding-left: 0;
+}
+
+.tlui-libraries-browse__view {
+	all: unset;
+	box-sizing: border-box;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--tl-space-3);
+	border-radius: var(--tl-radius-3);
+	cursor: pointer;
+}
+
+.tlui-libraries-browse__view:focus-visible {
+	outline: 2px solid var(--tl-color-selected);
+	outline-offset: 2px;
+}
+
+@media (hover: hover) {
+	.tlui-libraries-browse__view:hover > .tlui-libraries-tile__thumbnail {
+		border-color: var(--tl-color-muted-1);
+	}
+}
+
+.tlui-libraries-browse__back {
+	margin-inline-end: calc(-1 * var(--tl-space-3));
+}
+
+.tlui-libraries-browse .tlui-libraries-browse__items {
+	flex-shrink: 0;
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--tl-space-4) var(--tl-space-3);
+	min-height: 80px;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tlui-libraries-browse__item {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-2);
+	min-width: 0;
+}
+
+.tlui-libraries-browse__item > .tlui-libraries-tile__thumbnail {
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+
+.tlui-libraries-browse__item-name {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	font-size: 12px;
 	color: var(--tl-color-text-1);
 }
