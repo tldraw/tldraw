@@ -4,7 +4,6 @@ import {
 	TldrawUiButton,
 	TldrawUiButtonIcon,
 	useEditor,
-	useReadonly,
 	useTranslation,
 	useValue,
 } from 'tldraw'
@@ -29,7 +28,6 @@ export function LibrariesPanelHeader({
 }) {
 	const editor = useEditor()
 	const msg = useTranslation()
-	const isReadonly = useReadonly()
 	const renaming = useValue('renaming library', () => renamingLibraryId.get(editor) !== null, [
 		editor,
 	])
@@ -38,7 +36,7 @@ export function LibrariesPanelHeader({
 		<header className="tlui-libraries-panel__header">
 			<span className="tlui-libraries-panel__title">{msg(messages.title)}</span>
 			<div className="tlui-libraries-panel__header-actions">
-				{newLibrary && !isReadonly && (
+				{newLibrary && (
 					<TldrawUiButton
 						type="icon"
 						tooltip={newLibrary.label}
