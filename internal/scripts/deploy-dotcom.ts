@@ -136,7 +136,7 @@ const flyioReplAppName =
 // TEMP(preview-rmv2): two-step test, RMv1 -> RMv1 + v5 backups -> RMv2
 const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 // TEMP(preview-rmv2): v5 backups on RMv1, the step before RMv2
-const zeroBackupV5 = zeroRmv2 || false
+const zeroBackupV5 = zeroRmv2 || !!previewId
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
