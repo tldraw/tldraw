@@ -9,23 +9,17 @@ import type { TLAuthorize } from '@tldraw/tlschema';
 import type { TLPermission } from '@tldraw/tlschema';
 import type { TLPermissionDataMap } from '@tldraw/tlschema';
 import type { TLRecord } from '@tldraw/tlschema';
-import type { TLSession } from '@tldraw/tlschema';
 
 // @public
-export function createPermissions<Meta = {
-    userId: string;
-}>(opts?: Omit<CreatePermissionsOptions<Meta>, 'source'>): TLPermissionsResult<TLPermissionStore, Meta>;
+export function createPermissions(opts?: Omit<CreatePermissionsOptions, 'source'>): TLPermissionsResult<TLPermissionStore>;
 
 // @public (undocumented)
-export function createPermissions<S extends TLPermissionSource, Meta = {
-    userId: string;
-}>(opts: CreatePermissionsOptions<Meta> & {
+export function createPermissions<S extends TLPermissionSource>(opts: CreatePermissionsOptions & {
     source: S;
-}): TLPermissionsResult<S, Meta>;
+}): TLPermissionsResult<S>;
 
 // @public (undocumented)
-export interface CreatePermissionsOptions<Meta> {
-    getUserId?(session: TLSession<Meta>): string | undefined;
+export interface CreatePermissionsOptions {
     source?: TLPermissionSource;
 }
 
@@ -43,8 +37,8 @@ export interface TLPermissionSource {
 }
 
 // @public (undocumented)
-export interface TLPermissionsResult<S extends TLPermissionSource, Meta> {
-    authorize: TLAuthorize<TLRecord, Meta>;
+export interface TLPermissionsResult<S extends TLPermissionSource> {
+    authorize: TLAuthorize<TLRecord>;
     permissions: S & TLPermissionCheck;
 }
 

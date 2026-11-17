@@ -7,7 +7,6 @@ import type {
 	TLPermissionDataMap,
 	TLRecord,
 	TLRecordChange,
-	TLSession,
 	TLShape,
 	TLShapeId,
 	TLWriteContext,
@@ -77,19 +76,17 @@ export interface TLPermissionCheck {
 }
 
 /** @public */
-export interface CreatePermissionsOptions<Meta> {
+export interface CreatePermissionsOptions {
 	/** Where permissions come from. Defaults to a new {@link createPermissionStore}. */
 	source?: TLPermissionSource
-	/** Finds the user in a session. Defaults to `session.meta.userId`. */
-	getUserId?(session: TLSession<Meta>): string | undefined
 }
 
 /** @public */
-export interface TLPermissionsResult<S extends TLPermissionSource, Meta> {
+export interface TLPermissionsResult<S extends TLPermissionSource> {
 	/** The permission source with a `can` check. */
 	permissions: S & TLPermissionCheck
 	/** The hooks to pass to `TLSocketRoom` and to the client, as they are. */
-	authorize: TLAuthorize<TLRecord, Meta>
+	authorize: TLAuthorize<TLRecord>
 }
 
 /**
@@ -102,31 +99,29 @@ export interface TLPermissionsResult<S extends TLPermissionSource, Meta> {
  * permissions.set('alice', ['tl:shape:create', 'tl:shape:edit', 'tl:shape:delete'])
  *
  * new TLSocketRoom({ authorize })
- * <Tldraw authorize={authorize} sessionMeta={{ userId: 'alice' }} />
+ * <Tldraw authorize={authorize} user={alice} />
  * ```
  *
  * @public
  */
-export function createPermissions<Meta = { userId: string }>(
-	opts?: Omit<CreatePermissionsOptions<Meta>, 'source'>
-): TLPermissionsResult<TLPermissionStore, Meta>
+export function createPermissions(
+	opts?: Omit<CreatePermissionsOptions, 'source'>
+): TLPermissionsResult<TLPermissionStore>
 /** @public */
-export function createPermissions<S extends TLPermissionSource, Meta = { userId: string }>(
-	opts: CreatePermissionsOptions<Meta> & { source: S }
-): TLPermissionsResult<S, Meta>
-export function createPermissions<Meta>(
-	opts: CreatePermissionsOptions<Meta> = {}
-): TLPermissionsResult<TLPermissionSource, Meta> {
+export function createPermissions<S extends TLPermissionSource>(
+	opts: CreatePermissionsOptions & { source: S }
+): TLPermissionsResult<S>
+export function createPermissions(
+	opts: CreatePermissionsOptions = {}
+): TLPermissionsResult<TLPermissionSource> {
 	const source = opts.source ?? createPermissionStore()
-	const getUserId =
-		opts.getUserId ?? ((session) => (session.meta as { userId?: string } | undefined)?.userId)
 
 	const can: TLPermissionCheck['can'] = (userId, permission) => {
 		return source.get(userId).get()?.has(permission) ?? false
 	}
 
-	const write: TLAuthorizeWrite<TLRecord, Meta> = (changes, ctx) => {
-		const userId = getUserId(ctx.session)
+	const write: TLAuthorizeWrite<TLRecord> = (changes, ctx) => {
+		const { userId } = ctx
 		for (const change of changes) {
 			const required = getRequiredPermission(change, changes, ctx)
 			if (!required) continue
@@ -145,10 +140,7 @@ export function createPermissions<Meta>(
 		permissions,
 		authorize: {
 			write,
-			can: (session, permission, data) => {
-				const userId = getUserId(session)
-				return userId ? can(userId, permission, data) : false
-			},
+			can: (permission, data, { userId }) => (userId ? can(userId, permission, data) : false),
 		},
 	}
 }
@@ -164,7 +156,7 @@ type RequiredPermission = {
 function getRequiredPermission(
 	change: TLRecordChange,
 	changes: TLRecordChange[],
-	ctx: TLWriteContext<TLRecord, any>
+	ctx: TLWriteContext<TLRecord>
 ): RequiredPermission | null {
 	const record = change.next ?? change.prev
 	switch (record.typeName) {

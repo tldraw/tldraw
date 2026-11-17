@@ -67,9 +67,9 @@ const remove = (prev: TLRecord): TLRecordChange => ({
 	next: null,
 })
 
-function ctx(userId: string | undefined, records: TLRecord[] = []): TLWriteContext {
+function ctx(userId: string | null, records: TLRecord[] = []): TLWriteContext {
 	const get = (id: string) => records.find((r) => r.id === id) as any
-	return { session: { sessionId: 's', meta: { userId } }, before: { get }, after: { get } }
+	return { userId, before: { get }, after: { get } }
 }
 
 describe('createPermissionStore', () => {
@@ -107,13 +107,12 @@ describe('createPermissions', () => {
 		expect(permissions.can('alice', 'tl:shape:edit', { shape: shape('a') })).toBe(false)
 	})
 
-	it('authorize.can finds the user in the session', () => {
+	it('authorize.can checks the user in ctx', () => {
 		const { permissions, authorize } = createPermissions()
 		permissions.set('alice', ['tl:page:create'])
-		const session = (userId?: string) => ({ sessionId: 's', meta: { userId } }) as any
-		expect(authorize.can!(session('alice'), 'tl:page:create')).toBe(true)
-		expect(authorize.can!(session('bob'), 'tl:page:create')).toBe(false)
-		expect(authorize.can!(session(undefined), 'tl:page:create')).toBe(false)
+		expect(authorize.can!('tl:page:create', undefined, { userId: 'alice' })).toBe(true)
+		expect(authorize.can!('tl:page:create', undefined, { userId: 'bob' })).toBe(false)
+		expect(authorize.can!('tl:page:create', undefined, { userId: null })).toBe(false)
 	})
 
 	it('authorize.write refuses with the first missing permission', () => {
@@ -126,7 +125,7 @@ describe('createPermissions', () => {
 		expect(write([update(a)], ctx('alice'))).toEqual({ reason: 'tl:shape:edit' })
 		expect(write([remove(a)], ctx('alice'))).toEqual({ reason: 'tl:shape:delete' })
 		expect(write([create(page)], ctx('alice'))).toEqual({ reason: 'tl:page:create' })
-		expect(write([create(a)], ctx(undefined))).toEqual({ reason: 'tl:shape:create' })
+		expect(write([create(a)], ctx(null))).toEqual({ reason: 'tl:shape:create' })
 	})
 
 	it('maps pages and the document to page permissions', () => {
@@ -163,7 +162,7 @@ describe('createPermissions', () => {
 		expect(authorize.write!([create(comment)], ctx('alice'))).toBeNull()
 	})
 
-	it('takes its own source and user lookup', () => {
+	it('takes its own source', () => {
 		const role = atom('role', 'viewer')
 		const source = {
 			get: (_userId: string) =>
@@ -171,14 +170,10 @@ describe('createPermissions', () => {
 					role.get() === 'editor' ? new Set(['tl:shape:create']) : new Set<string>()
 				),
 		}
-		const { permissions, authorize } = createPermissions<typeof source, { id: string }>({
-			source,
-			getUserId: (session) => session.meta.id,
-		})
-		const session = { sessionId: 's', meta: { id: 'x' } }
+		const { permissions, authorize } = createPermissions({ source })
 		expect(permissions.can('x', 'tl:shape:create')).toBe(false)
 		expect(permissions.get('x').get()).toEqual(new Set())
 		role.set('editor')
-		expect(authorize.can!(session, 'tl:shape:create')).toBe(true)
+		expect(authorize.can!('tl:shape:create', undefined, { userId: 'x' })).toBe(true)
 	})
 })
