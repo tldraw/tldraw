@@ -50,6 +50,9 @@
   "0d1f2bb523": {
     "translation": "フィードバックを送信"
   },
+  "0e4a10d921": {
+    "translation": "すべての通知を既読にする"
+  },
   "1063e38cb5": {
     "translation": "取り除く"
   },
@@ -67,6 +70,9 @@
   },
   "14b03eeeb5": {
     "translation": "通知オプション"
+  },
+  "15bf4fead9": {
+    "translation": "ワークスペースを切り替える"
   },
   "181b90f889": {
     "translation": "ファイルを作成"
@@ -92,11 +98,11 @@
   "250ddea65c": {
     "translation": "tldrawについて"
   },
-  "2755e3ab39": {
-    "translation": "<name>{author}</name>さんがあなたのボードにコメントしました"
-  },
   "28b2464e1f": {
     "translation": "フィードバックを送信できませんでした"
+  },
+  "2944edaa8d": {
+    "translation": "{name} を代表して"
   },
   "299cb00a7a": {
     "translation": "アップロードに失敗しました"
@@ -128,8 +134,14 @@
   "324a0f3182": {
     "translation": "tldrawに戻る"
   },
+  "32811caa8c": {
+    "translation": "重複ファイル"
+  },
   "335defdafe": {
     "translation": "ページの再読み込みをお試しください。"
+  },
+  "34082694d2": {
+    "translation": "ファイル名"
   },
   "344a7f427f": {
     "translation": "エディタ"
@@ -173,6 +185,9 @@
   "46137245cd": {
     "translation": "tldraw の改善にご協力いただきありがとうございます。"
   },
+  "4630b65bb2": {
+    "translation": "ファイルを移動"
+  },
   "46de2de6bb": {
     "translation": "利用規約に同意する"
   },
@@ -184,6 +199,12 @@
   },
   "49ee308734": {
     "translation": "名前"
+  },
+  "4a8165368a": {
+    "translation": "公開されたリンクをコピー"
+  },
+  "4a95fa0c08": {
+    "translation": "<name>{author}</name>がコメントしました"
   },
   "4d0d3ddec9": {
     "translation": "このサイトでは、アプリの動作と分析情報の収集のために Cookie を使用します。"
@@ -224,6 +245,9 @@
   "5638176be5": {
     "translation": "ワークスペースを作成する"
   },
+  "5653ebed2e": {
+    "translation": "ファイルへ移動"
+  },
   "5677e381d2": {
     "translation": "tldraw をより良くするために分析 Cookie を使用します。"
   },
@@ -238,9 +262,6 @@
   },
   "5bff3c9c88": {
     "translation": "私の作業スペース"
-  },
-  "5bffeebf03": {
-    "translation": "<name>{author}</name>さんがあなたのコメントに反応しました"
   },
   "5d04a002ea": {
     "translation": "接続できません"
@@ -263,9 +284,6 @@
   "61057a0c84": {
     "translation": "後で"
   },
-  "61fb03fd7b": {
-    "translation": "{count, plural, other {# 人々があなたのコメントに反応しました}}"
-  },
   "625fd29749": {
     "translation": "より古い"
   },
@@ -281,8 +299,14 @@
   "6637a98151": {
     "translation": "tldraw の新しいバージョンが利用可能です。続行するにはページを再読み込みしてください。"
   },
+  "67ed6ddb7d": {
+    "translation": "編集済み"
+  },
   "681e10aecb": {
     "translation": "新しいファイル"
+  },
+  "68240daa8f": {
+    "translation": "<name>{a}</name>、<name>{b}</name>、および{count, plural, one {# other} other {# others}}が反応しました"
   },
   "6832ac5936": {
     "translation": "メールアドレスを入力してください"
@@ -290,14 +314,23 @@
   "694f82ed9d": {
     "translation": "ワークスペースを削除"
   },
+  "69ce6a28fb": {
+    "translation": "{count, plural, other {# 人々の反応}}"
+  },
   "6a26f54883": {
     "translation": "ヘルプ"
+  },
+  "6b71e0ebcb": {
+    "translation": "/ {name}"
   },
   "6dc0836c1b": {
     "translation": "この操作を実行する権限がありません。"
   },
   "6dfc62f621": {
     "translation": "コンテンツを手動でインポートするには、次の手順に従ってください。"
+  },
+  "6ea5359e01": {
+    "translation": "キャンバス"
   },
   "70a6facb9d": {
     "translation": "今週"
@@ -334,6 +367,9 @@
   },
   "764671e008": {
     "translation": "Discordでチャットしましょう"
+  },
+  "76ec4e4ed9": {
+    "translation": "ファイルリンクをコピー"
   },
   "777f9e90cf": {
     "translation": "無効なリクエストです。"
@@ -395,6 +431,9 @@
   "87fdb09de6": {
     "translation": "あなたは既にこのワークスペースのメンバーです"
   },
+  "887479cb61": {
+    "translation": "<name>{author}</name>と{count, plural, one {# other} other {# others}}が反応しました"
+  },
   "88bf6ab42c": {
     "translation": "この招待リンクは期限切れです"
   },
@@ -403,6 +442,9 @@
   },
   "8eb2c00e96": {
     "translation": "あなたと共有しました"
+  },
+  "8f7f4c1ce7": {
+    "translation": "について"
   },
   "8ff3d0a705": {
     "translation": "レートが制限されています"
@@ -416,6 +458,9 @@
   "90646db02d": {
     "translation": "<strong>{workspaceName}</strong>を削除してもよろしいですか？この操作は元に戻せません。"
   },
+  "91f3a2c0e4": {
+    "translation": "ファイル"
+  },
   "930390d222": {
     "translation": "招待リンクをコピーしました"
   },
@@ -427,6 +472,9 @@
   },
   "96165d6df5": {
     "translation": "今月"
+  },
+  "9643c97d49": {
+    "translation": "<name>{author}</name>が反応しました"
   },
   "985a4b720f": {
     "translation": "利用規約"
@@ -482,6 +530,9 @@
   "a3debabee7": {
     "translation": "クッキーポリシー"
   },
+  "a4bef6414b": {
+    "translation": "コメントサイドバーの表示/非表示を切り替える"
+  },
   "a4d3b161ce": {
     "translation": "提出する"
   },
@@ -509,6 +560,12 @@
   "ab0df9ba36": {
     "translation": "ファイル制限に達しました"
   },
+  "ac863f346e": {
+    "translation": "アプリ"
+  },
+  "aeb428554a": {
+    "translation": "図書館"
+  },
   "af3dc88931": {
     "notes": "This is used to show the last time the file was published. An example is 'Last published 5 minutes ago'.",
     "translation": "最終公開：<date></date>"
@@ -527,6 +584,9 @@
   },
   "b2c3c2e30c": {
     "translation": "ファイルがいっぱいです"
+  },
+  "b3205c1e45": {
+    "translation": "通知パネルを開く"
   },
   "b357b524e7": {
     "translation": "電子メールアドレス"
@@ -558,6 +618,9 @@
   "bc88b0e89e": {
     "translation": "{ownerName}さんが共有"
   },
+  "bd8aac2696": {
+    "translation": "現在のファイル"
+  },
   "c17466812d": {
     "translation": "ワークスペースを管理する"
   },
@@ -585,6 +648,12 @@
   "c8a59e7135": {
     "translation": "閉じる"
   },
+  "cb5feb1b73": {
+    "translation": "色"
+  },
+  "cce99c598c": {
+    "translation": "プロフィール"
+  },
   "cceaefbc20": {
     "translation": "このファイルを共有"
   },
@@ -597,8 +666,11 @@
   "cea291e45e": {
     "translation": "公開についてさらに詳しく。"
   },
-  "d0e3556476": {
-    "translation": "<name>{author}</name> と{count, plural, other {他 # 人}}があなたのコメントに反応しました"
+  "d0834fcec6": {
+    "translation": "設定"
+  },
+  "d28d6bbc42": {
+    "translation": "ファイルの非公開"
   },
   "d3d2e61733": {
     "translation": "閉じる"
@@ -608,6 +680,9 @@
   },
   "d4bbf74f3e": {
     "translation": "サイドバーを切り替え"
+  },
+  "d5e92609cf": {
+    "translation": "ワークスペース"
   },
   "d638a3344b": {
     "translation": "始める前に、<tos>利用規約</tos>と<privacy>プライバシーポリシー</privacy>に同意してください。"
@@ -630,9 +705,6 @@
   "dbf9b24193": {
     "translation": "ワークスペースを離れる"
   },
-  "dfdb78a4e4": {
-    "translation": "デバッグのフラグを追加"
-  },
   "e0aa021e21": {
     "translation": "わかりました"
   },
@@ -644,9 +716,6 @@
   },
   "e404559826": {
     "translation": "利用規約"
-  },
-  "e65b2dcb6f": {
-    "translation": "<name>{a}</name> と <name>{b}</name> があなたのコメントに反応しました"
   },
   "e81c4e4f2b": {
     "translation": "または"
@@ -699,9 +768,6 @@
   "f408fa5fbd": {
     "translation": "この招待リンクは無効であるか、期限切れです。"
   },
-  "f476ba8646": {
-    "translation": "<name>{a}</name>、<name>{b}</name> と{count, plural, other {他 # 人}}があなたのコメントに反応しました"
-  },
   "f4f70727dc": {
     "translation": "設定"
   },
@@ -728,6 +794,9 @@
   },
   "ffad261a48": {
     "translation": "招待の承諾エラー"
+  },
+  "ffba7e098c": {
+    "translation": "<name>{a}</name>と<name>{b}</name>が反応しました"
   },
   "ffcd73e997": {
     "translation": "ファイルをインポート…"
