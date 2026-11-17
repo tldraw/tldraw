@@ -321,19 +321,32 @@
 	border-radius: var(--tl-radius-2);
 }
 
-/* The ⋯ sits over the thumbnail's corner, shown while the tile is hovered or focused, or its menu
-   is open. */
+/* The ⋯ sits over the thumbnail's corner. With a pointer that hovers, it and a section header's ⋯
+   show while their tile or header is hovered or focused, or the menu is open; touch has no hover to
+   reveal them, so there they always show. */
 .tlui-libraries-tile__menu {
 	position: absolute;
 	top: 4px;
 	right: 4px;
-	opacity: 0;
 }
 
-.tlui-libraries-tile:hover .tlui-libraries-tile__menu,
-.tlui-libraries-tile:focus-within .tlui-libraries-tile__menu,
-.tlui-libraries-tile__menu:has([data-state='open']) {
-	opacity: 1;
+@media (hover: hover) {
+	.tlui-libraries-tile__menu,
+	.tlui-libraries-section > .tlui-libraries-panel__header > .tlui-libraries-panel__header-actions {
+		opacity: 0;
+	}
+
+	.tlui-libraries-tile:hover .tlui-libraries-tile__menu,
+	.tlui-libraries-tile:focus-within .tlui-libraries-tile__menu,
+	.tlui-libraries-tile__menu:has([data-state='open']),
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header:is(:hover, :focus-within)
+		> .tlui-libraries-panel__header-actions,
+	.tlui-libraries-section
+		> .tlui-libraries-panel__header
+		> .tlui-libraries-panel__header-actions:has([data-state='open']) {
+		opacity: 1;
+	}
 }
 
 .tlui-libraries-tile__menu-button {
