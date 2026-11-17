@@ -634,6 +634,13 @@ export class CubicSpline2d extends Geometry2d {
     get segments(): CubicBezier2d[];
 }
 
+// @internal
+export class CurrentPageBoundsCache {
+    constructor(editor: Editor, name: string,
+    getBounds: (shape: TLShape) => Box | undefined);
+    get(): ReadonlyMap<TLShapeId, Box>;
+}
+
 // @public
 export function dataUrlToFile(url: string, filename: string, mimeType: string): Promise<File>;
 
@@ -1330,6 +1337,8 @@ export class Editor extends EventEmitter<TLEventMap> {
     getCurrentPageShapeIds(): Set<TLShapeId>;
     // @internal (undocumented)
     getCurrentPageShapeIdsSorted(): TLShapeId[];
+    // @internal
+    getCurrentPageShapeMaskedBounds(): ReadonlyMap<TLShapeId, Box>;
     getCurrentPageShapes(): TLShape[];
     getCurrentPageShapesInReadingOrder(): TLShape[];
     getCurrentPageShapesSorted(): TLShape[];

@@ -172,6 +172,7 @@ import { InputsManager } from './managers/InputsManager/InputsManager'
 import { PerformanceManager } from './managers/PerformanceManager/PerformanceManager'
 import { ScribbleManager } from './managers/ScribbleManager/ScribbleManager'
 import { SnapManager } from './managers/SnapManager/SnapManager'
+import { CurrentPageBoundsCache } from './managers/SpatialIndexManager/CurrentPageBoundsCache'
 import { SpatialIndexManager } from './managers/SpatialIndexManager/SpatialIndexManager'
 import { TextManager } from './managers/TextManager/TextManager'
 import { ThemeManager, resolveThemes } from './managers/ThemeManager/ThemeManager'
@@ -405,6 +406,12 @@ export class Editor extends EventEmitter<TLEventMap> {
 
 		this._spatialIndex = new SpatialIndexManager(this)
 		this.disposables.add(() => this._spatialIndex.dispose())
+
+		this._currentPageMaskedBounds = new CurrentPageBoundsCache(
+			this,
+			'currentPageMaskedBounds',
+			(shape) => this.getShapeMaskedPageBounds(shape.id)
+		)
 
 		this.disposables.add(this.timers.dispose)
 
@@ -1013,6 +1020,20 @@ export class Editor extends EventEmitter<TLEventMap> {
 		)
 	}
 
+	/**
+	 * The hidden shapes on the current page, or null if there are none. Reading `isShapeHidden`
+	 * for every shape from a computed that re-runs on each shape change costs a tracked read per
+	 * shape per change; this isolates visibility and page-membership dependencies from bounds.
+	 */
+	@computed private _getCurrentPageHiddenShapeIds(): Set<TLShapeId> | null {
+		if (!this._getShapeVisibility) return null
+		let hidden: Set<TLShapeId> | null = null
+		for (const id of this.getCurrentPageShapeIds()) {
+			if (this.isShapeHidden(id)) (hidden ??= new Set()).add(id)
+		}
+		return hidden
+	}
+
 	readonly options: TldrawOptions
 
 	/**
@@ -1144,6 +1165,8 @@ export class Editor extends EventEmitter<TLEventMap> {
 	 * @internal
 	 */
 	private readonly _spatialIndex: SpatialIndexManager
+
+	private readonly _currentPageMaskedBounds: CurrentPageBoundsCache
 
 	/**
 	 * A manager for the any asynchronous events and making sure they're
@@ -5854,23 +5877,38 @@ export class Editor extends EventEmitter<TLEventMap> {
 	}
 
 	/**
+	 * The masked page bounds of each shape on the current page, by shape id. Hidden shapes are
+	 * included. The map is updated in place and has the reactivity limits described on
+	 * {@link Editor.getCurrentPageBounds}.
+	 *
+	 * @internal
+	 */
+	getCurrentPageShapeMaskedBounds(): ReadonlyMap<TLShapeId, Box> {
+		return this._currentPageMaskedBounds.get()
+	}
+
+	/**
 	 * The bounds of the current page (the common bounds of all of the shapes on the page).
+	 *
+	 * Shape bounds are updated incrementally: a shape's bounds are recomputed when its record,
+	 * its ancestors, its bindings, the theme or the loaded fonts change. If a custom shape's
+	 * geometry, `getClipPath` or `shouldClipChild` reads other state, such as an atom, changes to
+	 * that state aren't reflected until the shape itself changes.
 	 *
 	 * @public
 	 */
 	@computed getCurrentPageBounds(): Box | undefined {
 		let commonBounds: Box | undefined
+		const hidden = this._getCurrentPageHiddenShapeIds()
 
-		this.getCurrentPageShapeIdsSorted().forEach((shapeId) => {
-			if (this.isShapeHidden(shapeId)) return
-			const bounds = this.getShapeMaskedPageBounds(shapeId)
-			if (!bounds) return
+		for (const [shapeId, bounds] of this.getCurrentPageShapeMaskedBounds()) {
+			if (hidden?.has(shapeId)) continue
 			if (!commonBounds) {
 				commonBounds = bounds.clone()
 			} else {
 				commonBounds = commonBounds.expand(bounds)
 			}
-		})
+		}
 
 		return commonBounds
 	}
