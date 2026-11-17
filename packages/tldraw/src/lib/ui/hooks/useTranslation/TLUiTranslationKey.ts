@@ -475,6 +475,8 @@ export type TLUiTranslationKey =
 	| 'tool.rich-text-link-visit'
 	| 'tool.rich-text-orderedList'
 	| 'tool.rich-text-strikethrough'
+	| 'tool.rich-text-taskItem-toggle'
+	| 'tool.rich-text-taskList'
 	| 'tool.rich-text-toolbar-title'
 	| 'tool.select'
 	| 'tool.star'

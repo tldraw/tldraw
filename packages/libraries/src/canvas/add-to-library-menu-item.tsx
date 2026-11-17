@@ -8,8 +8,9 @@ import {
 	useValue,
 } from 'tldraw'
 import type { LibrarySource } from '../lib/LibrarySource'
-import { InContextMenu, MenuItem } from '../ui/menu-items'
-import { groupLibraryList, useLibraryGrouping } from './library-groups'
+import type { TLLibraryId } from '../lib/schema'
+import { InContextMenu, MenuItem, MenuTargetItems } from '../ui/menu-items'
+import { toMenuTargets, useLibraryGrouping } from './library-groups'
 import { canCreateNewLibrary } from './new-library'
 import { sortByRecentlyAddedTo } from './recent-libraries'
 import type { PrepareItemContent } from './save-shapes'
@@ -60,22 +61,10 @@ export function AddToLibraryMenuItem({ source, prepareItemContent }: AddToLibrar
 			<TldrawUiMenuSubmenu id="add-to-library" label={messages.addToLibrary.id}>
 				<InContextMenu>
 					<TldrawUiDropdownMenuGroup className="tlui-libraries-menu__submenu">
-						{groupLibraryList(libraries, grouping).map((group) => (
-							<div key={group.key ?? ''} role="group" aria-label={group.label}>
-								{group.label && (
-									<div className="tlui-libraries-menu-heading" role="presentation">
-										{group.label}
-									</div>
-								)}
-								{group.libraries.map((library) => (
-									<MenuItem
-										key={library.id}
-										label={library.name}
-										onClick={() => saveSelection(library.id)}
-									/>
-								))}
-							</div>
-						))}
+						<MenuTargetItems
+							targets={toMenuTargets(libraries, grouping)}
+							onSelect={(libraryId) => saveSelection(libraryId as TLLibraryId)}
+						/>
 						{canCreate && (
 							<>
 								{libraries.length > 0 && (
