@@ -1023,7 +1023,7 @@ export class Editor extends EventEmitter<TLEventMap> {
 	/**
 	 * The hidden shapes on the current page, or null if there are none. Reading `isShapeHidden`
 	 * for every shape from a computed that re-runs on each shape change costs a tracked read per
-	 * shape per change; this only re-runs when a shape's visibility changes.
+	 * shape per change; this isolates visibility and page-membership dependencies from bounds.
 	 */
 	@computed private _getCurrentPageHiddenShapeIds(): Set<TLShapeId> | null {
 		if (!this._getShapeVisibility) return null

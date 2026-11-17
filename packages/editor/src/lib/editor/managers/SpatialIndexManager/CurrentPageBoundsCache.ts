@@ -27,8 +27,8 @@ interface BoundsMaps {
  * recomputes only the shapes that a change could have affected (see `getShapeBoundsChangesSince`),
  * and rebuilds on page, theme and font changes.
  *
- * The maps are only kept while something is subscribed. A read from outside a reaction (a one-off
- * zoom to fit, say) builds them, and they are dropped again once the current task is done.
+ * A read with no active subscriber schedules release after the current task. Consumers that
+ * unsubscribe should read once more to release the maps if nothing else is listening.
  *
  * `getBounds` may depend on ancestors' clip paths (masked bounds): when a dirty shape's clip path
  * changes without its record changing, as with a container whose geometry fits its children, its

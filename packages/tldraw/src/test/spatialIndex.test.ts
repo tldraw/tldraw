@@ -184,6 +184,24 @@ describe('SpatialIndexManager - bounds epoch', () => {
 	})
 })
 
+describe('SpatialIndexManager - orphaned shapes', () => {
+	it('drops a child when its frame is removed without it', () => {
+		const frame = createShapeId('frame')
+		const child = createShapeId('child')
+		editor.createShapes([
+			{ id: frame, type: 'frame', props: { w: 200, h: 200 } },
+			{ id: child, type: 'geo', parentId: frame, props: { w: 100, h: 100 } },
+		])
+		const bounds = new Box(-1, -1, 202, 202)
+		expect(editor.getShapeIdsInsideBounds(bounds)).toEqual(new Set([frame, child]))
+
+		editor.store.remove([frame])
+
+		expect(editor.store.has(child)).toBe(true)
+		expect(editor.getShapeIdsInsideBounds(bounds)).toEqual(new Set())
+	})
+})
+
 describe('SpatialIndexManager - theme changes', () => {
 	it('follows a theme font-size change that resizes text', () => {
 		const text = createShapeId('text')
