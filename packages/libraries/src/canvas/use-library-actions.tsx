@@ -25,6 +25,21 @@ const messages = defineMessages({
 		defaultMessage:
 			'Delete “{name}” and its {count, plural, one {# item} other {# items}}? Copies already placed on canvases stay.',
 	},
+	deleteHousedBody: {
+		id: 'libraries.delete-housed-library-dialog.body',
+		defaultMessage:
+			'“{name}” is kept in this file. Delete it and its {count, plural, one {# item} other {# items}} for everyone who opens the file? Copies already placed on canvases stay.',
+	},
+	removeTitle: {
+		id: 'libraries.remove-library-dialog.title',
+		defaultMessage: 'Remove from this file',
+	},
+	removeBody: {
+		id: 'libraries.remove-library-dialog.body',
+		defaultMessage:
+			'Remove “{name}” from this file for everyone who opens it? Items already placed on the canvas stay, and the library stays available to add again.',
+	},
+	removeConfirm: { id: 'libraries.remove-library-dialog.confirm', defaultMessage: 'Remove' },
 	movedTitle: { id: 'libraries.moved.title', defaultMessage: 'Moved' },
 	movedDescription: { id: 'libraries.moved.description', defaultMessage: 'Moved to {name}.' },
 	copiedTitle: { id: 'libraries.copied.title', defaultMessage: 'Copied' },
@@ -50,13 +65,17 @@ export interface LibraryActions {
 	 * Props for a {@link LibraryMenu}: each action is left out when the source doesn't allow it.
 	 * Deleting asks first in a dialog; moving and copying show a toast once done.
 	 */
-	menuActions: Pick<LibraryMenuProps, 'onRename' | 'onDelete' | 'move' | 'copy'>
+	menuActions: Pick<
+		LibraryMenuProps,
+		'onRename' | 'onDelete' | 'onRemoveFromDocument' | 'move' | 'copy'
+	>
 }
 
 /**
- * A library's rename, delete, move and copy, as the source allows them, for its header and its
- * menu, as each section of the {@link LibrariesPanel} uses them. Renaming starts from the menu,
- * or when the library is new, and ends with the header's input. Failures show a toast.
+ * A library's rename, delete, removal from the document, move and copy, as the source allows
+ * them, for its header and its menu, as each section of the {@link LibrariesPanel} uses them.
+ * Renaming starts from the menu, or when the library is new, and ends with the header's input.
+ * Failures show a toast.
  * @public
  */
 export function useLibraryActions(source: LibrarySource, library: TLLibrary): LibraryActions {
@@ -74,10 +93,19 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 
 	const can = useValue(
 		'library permissions',
-		() => ({
-			rename: source.can('renameLibrary', libraryId),
-			delete: source.can('deleteLibrary', libraryId),
-		}),
+		() => {
+			const canManage = source.can('deleteLibrary', libraryId)
+			const placement = source.getLibraryPlacement
+				? source.getLibraryPlacement(libraryId)
+				: undefined
+			return {
+				rename: source.can('renameLibrary', libraryId),
+				canManage,
+				delete: canManage && placement !== 'added' && placement !== 'default',
+				removeFromDocument:
+					!!source.removeLibraryFromDocument && source.can('removeLibraryFromDocument', libraryId),
+			}
+		},
 		[source, libraryId]
 	)
 	const ownerChoices = useValue(
@@ -103,13 +131,36 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 
 	const deleteLibrary = () => {
 		const count = source.getItems(libraryId).length
+		const housed =
+			source.getLibraryPlacement !== undefined && source.getLibraryPlacement(libraryId) === 'housed'
 		addDialog({
 			component: ({ onClose }) => (
 				<ConfirmDeleteDialog
 					title={msg(messages.deleteTitle)}
-					body={msg(messages.deleteBody, { name: library.name, count })}
+					body={msg(housed ? messages.deleteHousedBody : messages.deleteBody, {
+						name: library.name,
+						count,
+					})}
 					onClose={onClose}
 					onConfirm={() => source.deleteLibrary(libraryId).catch(showError)}
+				/>
+			),
+		})
+	}
+
+	const removeFromDocument = () => {
+		addDialog({
+			component: ({ onClose }) => (
+				<ConfirmDeleteDialog
+					title={msg(messages.removeTitle)}
+					body={msg(messages.removeBody, { name: library.name })}
+					confirmLabel={msg(messages.removeConfirm)}
+					onClose={onClose}
+					onConfirm={() => {
+						if (source.removeLibraryFromDocument) {
+							source.removeLibraryFromDocument(libraryId).catch(showError)
+						}
+					}}
 				/>
 			),
 		})
@@ -145,11 +196,15 @@ export function useLibraryActions(source: LibrarySource, library: TLLibrary): Li
 		)
 	}
 
-	const menuActions: Pick<LibraryMenuProps, 'onRename' | 'onDelete' | 'move' | 'copy'> = {
+	const menuActions: Pick<
+		LibraryMenuProps,
+		'onRename' | 'onDelete' | 'onRemoveFromDocument' | 'move' | 'copy'
+	> = {
 		onRename: can.rename ? () => renamingLibraryId.set(editor, libraryId) : undefined,
 		onDelete: can.delete ? deleteLibrary : undefined,
+		onRemoveFromDocument: can.removeFromDocument ? removeFromDocument : undefined,
 		move:
-			source.moveLibrary && can.delete && ownerChoices.move.length > 0
+			source.moveLibrary && can.canManage && ownerChoices.move.length > 0
 				? { owners: ownerChoices.move, value: library.ownerId, onValueChange: moveLibrary }
 				: undefined,
 		copy:

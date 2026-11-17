@@ -1,6 +1,7 @@
 import {
 	type ButtonHTMLAttributes,
 	type PointerEvent,
+	useCallback,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -88,39 +89,15 @@ export function useLibraryItemDrag(
 	options: LibraryItemDragOptions = {}
 ): (itemId: TLLibraryItemId) => ButtonHTMLAttributes<HTMLButtonElement> {
 	const editor = useEditor()
-	const msg = useTranslation()
-	const { addToast } = useToasts()
 	const trackEvent = useUiEvents()
+	const onPlace = usePlaceLibraryItem(source, options.placeItem)
 	// Read through a ref so that new options each render don't drop a drag in progress.
-	const latest = useRef({ options, msg, addToast, trackEvent })
+	const latest = useRef({ options, trackEvent })
 	useLayoutEffect(() => {
-		latest.current = { options, msg, addToast, trackEvent }
+		latest.current = { options, trackEvent }
 	})
 
 	return useMemo(() => {
-		const onPlace = (itemId: TLLibraryItemId) => {
-			const { placeItem = defaultPlaceLibraryItem } = latest.current.options
-			placeItemWith(editor, source, itemId, {}, placeItem, 'click').then(
-				() =>
-					latest.current.trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
-				(error) => {
-					const { msg, addToast, trackEvent } = latest.current
-					trackEvent('library-error', {
-						source: 'libraries',
-						action: 'place-library-item',
-						reason: getLibraryErrorReason(error),
-					})
-					addToast(
-						getContentTooNewToast(error, msg) ?? {
-							title: msg(messages.placeErrorTitle),
-							description: msg(messages.placeErrorDescription),
-							severity: 'error',
-						}
-					)
-				}
-			)
-		}
-
 		const getDragRegion = (tile: HTMLElement) => {
 			const { getDragRegion } = latest.current.options
 			const region = getDragRegion ? getDragRegion(tile) : tile.closest('.tlui-libraries-panel')
@@ -298,5 +275,48 @@ export function useLibraryItemDrag(
 				if (!wasDrag) onPlace(itemId)
 			},
 		})
-	}, [editor, source])
+	}, [editor, source, onPlace])
+}
+
+/**
+ * Places an item as a click on its tile does, in the middle of the viewport with `placeItem`.
+ * Reports `place-library-item`, or shows a toast and reports `library-error` if it fails.
+ */
+export function usePlaceLibraryItem(
+	source: LibrarySource,
+	placeItem: LibraryItemPlacer = defaultPlaceLibraryItem
+): (itemId: TLLibraryItemId) => void {
+	const editor = useEditor()
+	const msg = useTranslation()
+	const { addToast } = useToasts()
+	const trackEvent = useUiEvents()
+	const latest = useRef({ placeItem, msg, addToast, trackEvent })
+	useLayoutEffect(() => {
+		latest.current = { placeItem, msg, addToast, trackEvent }
+	})
+
+	return useCallback(
+		(itemId: TLLibraryItemId) => {
+			placeItemWith(editor, source, itemId, {}, latest.current.placeItem, 'click').then(
+				() =>
+					latest.current.trackEvent('place-library-item', { source: 'libraries', method: 'click' }),
+				(error) => {
+					const { msg, addToast, trackEvent } = latest.current
+					trackEvent('library-error', {
+						source: 'libraries',
+						action: 'place-library-item',
+						reason: getLibraryErrorReason(error),
+					})
+					addToast(
+						getContentTooNewToast(error, msg) ?? {
+							title: msg(messages.placeErrorTitle),
+							description: msg(messages.placeErrorDescription),
+							severity: 'error',
+						}
+					)
+				}
+			)
+		},
+		[editor, source]
+	)
 }

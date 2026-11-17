@@ -17,6 +17,10 @@ const messages = defineMessages({
 	create: { id: 'libraries.library-menu.create', defaultMessage: 'New library' },
 	rename: { id: 'libraries.library-menu.rename', defaultMessage: 'Rename library' },
 	delete: { id: 'libraries.library-menu.delete', defaultMessage: 'Delete library' },
+	removeFromDocument: {
+		id: 'libraries.library-menu.remove-from-document',
+		defaultMessage: 'Remove from this file',
+	},
 	sort: { id: 'libraries.library-menu.sort', defaultMessage: 'Sort items by' },
 	reverse: { id: 'libraries.library-menu.reverse', defaultMessage: 'Reverse order' },
 	move: { id: 'libraries.library-menu.move', defaultMessage: 'Move to' },
@@ -60,6 +64,8 @@ export interface LibraryMenuProps {
 	onCreate?(): void
 	onRename?(): void
 	onDelete?(): void
+	/** Stops showing the library in the document, without deleting it. */
+	onRemoveFromDocument?(): void
 	/** A "Sort items by" submenu. Leave out to hide it. */
 	sort?: LibraryMenuSort
 	/** A "Move to" submenu of owners. Leave out to hide it. */
@@ -82,13 +88,25 @@ export function LibraryMenu({
 	onCreate: create,
 	onRename: rename,
 	onDelete: remove,
+	onRemoveFromDocument: removeFromDocument,
 	sort,
 	move: moveTo,
 	copy: copyTo,
 	children,
 }: LibraryMenuProps) {
 	const msg = useTranslation()
-	if (!create && !rename && !remove && !sort && !moveTo && !copyTo && !children) return null
+	if (
+		!create &&
+		!rename &&
+		!remove &&
+		!removeFromDocument &&
+		!sort &&
+		!moveTo &&
+		!copyTo &&
+		!children
+	) {
+		return null
+	}
 
 	return (
 		<TldrawUiDropdownMenuRoot id={id}>
@@ -153,6 +171,9 @@ export function LibraryMenu({
 								/>
 							))}
 						</MenuSubmenu>
+					)}
+					{removeFromDocument && (
+						<MenuItem label={msg(messages.removeFromDocument)} onClick={removeFromDocument} />
 					)}
 					{remove && <MenuItem label={msg(messages.delete)} danger onClick={remove} />}
 				</TldrawUiDropdownMenuGroup>

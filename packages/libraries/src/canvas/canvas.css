@@ -53,6 +53,11 @@
 	border-bottom: 1px solid var(--tl-color-divider);
 }
 
+/* 40px, its buttons flush to the panel's edges, like the page menu's rows. */
+.tlui-libraries-panel > .tlui-libraries-panel__header {
+	padding: 0;
+}
+
 .tlui-libraries-panel__title {
 	display: flex;
 	flex: 1;
@@ -109,6 +114,23 @@
 	overflow-y: auto;
 }
 
+.tlui-libraries-panel__add-more {
+	flex-shrink: 0;
+	margin: 0;
+	border-top: 1px solid var(--tl-color-divider);
+	border-radius: 0;
+}
+
+/* Labelled like the tldraw.com sidebar's file sections, in line with the libraries' names. */
+.tlui-libraries-panel__group-label {
+	margin: 0;
+	padding: 0 14px;
+	line-height: 32px;
+	font-size: 12px;
+	font-weight: 500;
+	color: var(--tl-color-text-1);
+}
+
 .tlui-libraries-menu-heading {
 	display: flex;
 	align-items: center;
@@ -117,138 +139,6 @@
 	font-size: 11px;
 	color: var(--tl-color-text-3);
 	cursor: default;
-}
-
-.tlui-libraries-tabs {
-	display: flex;
-	flex-direction: column;
-	min-height: 0;
-}
-
-/* Fades at an edge only while there are more owners to scroll to on that side. */
-.tlui-libraries-tabs__bar {
-	position: relative;
-	flex-shrink: 0;
-	border-bottom: 1px solid var(--tl-color-divider);
-}
-
-.tlui-libraries-tabs__bar::before,
-.tlui-libraries-tabs__bar::after {
-	content: '';
-	position: absolute;
-	top: 0;
-	bottom: 0;
-	z-index: 1;
-	width: 32px;
-	pointer-events: none;
-	opacity: 0;
-	transition: opacity 120ms ease-out;
-}
-
-/* 1px in from each side, so they don't paint over the panel's inset edge ring. */
-.tlui-libraries-tabs__bar::before {
-	left: 1px;
-	background: linear-gradient(90deg, var(--tl-color-panel) 20%, transparent);
-}
-
-.tlui-libraries-tabs__bar::after {
-	right: 1px;
-	background: linear-gradient(270deg, var(--tl-color-panel) 20%, transparent);
-}
-
-.tlui-libraries-tabs__bar[data-overflow-start='true']::before,
-.tlui-libraries-tabs__bar[data-overflow-end='true']::after {
-	opacity: 1;
-}
-
-@media (prefers-reduced-motion: reduce) {
-	.tlui-libraries-tabs__bar::before,
-	.tlui-libraries-tabs__bar::after {
-		transition: none;
-	}
-}
-
-/* Scrolls sideways when the owners don't fit, the active tab centred. Positioned so it is the tabs'
-   offsetParent, which centring measures against. */
-.tlui-libraries-tabs__list {
-	position: relative;
-	display: flex;
-	padding: 0 6px;
-	overflow-x: auto;
-	scrollbar-width: none;
-}
-
-.tlui-libraries-tabs__list::-webkit-scrollbar {
-	display: none;
-}
-
-.tlui-libraries-tabs__tab {
-	all: unset;
-	position: relative;
-	flex-shrink: 0;
-	box-sizing: border-box;
-	display: flex;
-	align-items: center;
-	gap: 6px;
-	max-width: 160px;
-	height: 40px;
-	padding: 0 8px;
-	font-weight: 500;
-	color: var(--tl-color-text-3);
-	cursor: pointer;
-}
-
-.tlui-libraries-tabs__tab::after {
-	content: '';
-	position: absolute;
-	left: 8px;
-	right: 8px;
-	bottom: 0;
-	height: 2px;
-	border-radius: 1px;
-	background: var(--tl-color-text-1);
-	visibility: hidden;
-}
-
-.tlui-libraries-tabs__tab[data-state='active'] {
-	color: var(--tl-color-text-1);
-}
-
-.tlui-libraries-tabs__tab[data-state='active']::after {
-	visibility: visible;
-}
-
-@media (hover: hover) {
-	.tlui-libraries-tabs__tab:hover {
-		color: var(--tl-color-text-1);
-	}
-}
-
-.tlui-libraries-tabs__tab:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -6px;
-	border-radius: var(--tl-radius-3);
-}
-
-.tlui-libraries-tabs__icon {
-	flex-shrink: 0;
-}
-
-.tlui-libraries-tabs__label {
-	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
-}
-
-.tlui-libraries-tabs > .tlui-libraries-sections {
-	flex: 1;
-	min-height: 0;
-}
-
-.tlui-libraries-tabs > .tlui-libraries-sections:focus-visible {
-	outline: 2px solid var(--tl-color-selected);
-	outline-offset: -2px;
 }
 
 .tlui-libraries-sections .tlui-libraries-grid {
@@ -626,4 +516,123 @@
 .tlui-libraries-panel > .tlui-libraries-panel__header .tlui-button[data-state='open']::after {
 	background: var(--tl-muted-gradient-to-bottom);
 	opacity: 1;
+}
+
+/* Laid out like tldraw.com's starter packs dialog. */
+.tlui-libraries-browse {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-4);
+	width: 440px;
+	max-width: 100%;
+	max-height: 560px;
+}
+
+.tlui-libraries-browse .tlui-libraries-panel__group-label {
+	padding: 0 var(--tl-space-2);
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-browse .tlui-libraries-browse__cards {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-4);
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+.tlui-libraries-browse__card {
+	display: flex;
+	flex-direction: column;
+	padding: var(--tl-space-3);
+	border-radius: var(--tl-radius-4);
+	background: color-mix(in srgb, var(--tl-color-text-0) 3%, transparent);
+}
+
+.tlui-libraries-browse__thumbnails {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: var(--tl-space-3);
+}
+
+.tlui-libraries-browse__thumbnails > .tlui-libraries-tile__thumbnail {
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+
+.tlui-libraries-browse__footer {
+	display: flex;
+	align-items: center;
+	gap: var(--tl-space-4);
+	padding: var(--tl-space-3) 0 0 var(--tl-space-2);
+}
+
+.tlui-libraries-browse__footer > .tlui-button {
+	flex: none;
+}
+
+.tlui-libraries-browse__text {
+	display: flex;
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-width: 0;
+}
+
+.tlui-libraries-browse__name,
+.tlui-libraries-browse__detail {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.tlui-libraries-browse__name {
+	font-size: 13px;
+	line-height: 20px;
+	font-weight: 500;
+	color: var(--tl-color-text-0);
+}
+
+.tlui-libraries-browse__detail {
+	font-size: 12px;
+	line-height: 18px;
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-details {
+	display: flex;
+	flex-direction: column;
+	gap: var(--tl-space-4);
+	width: 320px;
+	max-width: 100%;
+}
+
+.tlui-libraries-details__thumbnail {
+	border: 1px solid var(--tl-color-divider);
+	border-radius: var(--tl-radius-3);
+}
+
+.tlui-libraries-details__description {
+	margin: 0;
+	color: var(--tl-color-text-1);
+}
+
+.tlui-libraries-details__facts {
+	display: grid;
+	grid-template-columns: auto minmax(0, 1fr);
+	gap: var(--tl-space-2) var(--tl-space-4);
+	margin: 0;
+	font-size: 12px;
+}
+
+.tlui-libraries-details__facts > dt {
+	color: var(--tl-color-text-3);
+}
+
+.tlui-libraries-details__facts > dd {
+	margin: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	color: var(--tl-color-text-1);
 }

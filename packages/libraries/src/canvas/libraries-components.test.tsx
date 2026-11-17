@@ -15,7 +15,6 @@ import {
 	useToasts,
 } from 'tldraw'
 import { vi } from 'vitest'
-import { CompositeLibrarySource } from '../lib/CompositeLibrarySource'
 import { InMemoryLibrarySource } from '../lib/InMemoryLibrarySource'
 import type { LibrarySource } from '../lib/LibrarySource'
 import { LibraryItemContentTooNewError, LibraryItemRecordType } from '../lib/schema'
@@ -193,65 +192,17 @@ describe('LibrariesPanel components', () => {
 })
 
 describe('LibrariesPanel components with no libraries', () => {
-	it('passes the new-library action to the panel-level slots', async () => {
+	it('renders the panel-level slots', async () => {
 		const panel = await renderPanel(
 			{
 				LibrariesPanelHeader: null,
-				NoLibraries: ({ newLibrary }) => (
-					<button data-testid="empty" onClick={newLibrary?.onCreate}>
-						{newLibrary?.label}
-					</button>
-				),
+				NoLibraries: () => <p data-testid="empty" />,
 			},
 			undefined,
 			new InMemoryLibrarySource({ id: 'empty' })
 		)
 		expect(panel.querySelector('.tlui-libraries-panel__title')).toBeNull()
-		expect(panel.querySelector('[data-testid="empty"]')?.textContent).toBe('New library')
-	})
-})
-
-describe('LibrariesPanel components with a tab per owner', () => {
-	it('gives each tab’s NoLibraries its own owner’s new-library action', async () => {
-		const source = new CompositeLibrarySource({
-			id: 'owners',
-			parts: [
-				{
-					owner: { id: 'packs', name: 'Packs' },
-					source: new InMemoryLibrarySource({ id: 'packs', can: () => false }),
-				},
-				{
-					owner: { id: 'board', name: 'Board' },
-					source: new InMemoryLibrarySource({ id: 'board' }),
-				},
-			],
-		})
-		const panel = await renderPanel(
-			{
-				LibraryTabLabel: ({ owner, libraries }) => (
-					<span data-testid="tab">{`${owner?.id}:${libraries.length}`}</span>
-				),
-				NoLibraries: ({ owner, newLibrary }) => (
-					<p data-testid="empty" data-owner={owner?.id}>
-						{newLibrary?.label}
-					</p>
-				),
-			},
-			undefined,
-			source
-		)
-		const empties = [...panel.querySelectorAll('[data-testid="empty"]')].map((el) => [
-			el.getAttribute('data-owner'),
-			el.textContent,
-		])
-		expect([...panel.querySelectorAll('[data-testid="tab"]')].map((el) => el.textContent)).toEqual([
-			'packs:0',
-			'board:0',
-		])
-		expect(empties).toEqual([
-			['packs', ''],
-			['board', 'New library in Board'],
-		])
+		expect(panel.querySelector('[data-testid="empty"]')).not.toBeNull()
 	})
 })
 
@@ -323,12 +274,11 @@ describe('LibrariesPanel item menus on right-click', () => {
 		expect(document.body.textContent).toContain('Host action')
 	})
 
-	it('leaves the right-click alone when the item has no menu', async () => {
+	it('opens Details for an item the source doesn’t let me change', async () => {
 		const panel = await renderPanel(undefined, undefined, makeReadOnlySource())
-		expect(panel.querySelector('button[aria-label="Item options"]')).toBeNull()
-		const event = await rightClickBox(panel)
-		expect(event.defaultPrevented).toBe(false)
-		expect(editor.menus.getOpenMenus()).toEqual([])
+		await rightClickBox(panel)
+		expect(editor.menus.getOpenMenus()).toHaveLength(1)
+		expect(document.body.textContent).toContain('Details')
 	})
 
 	it('leaves the right-click alone when the ItemMenu slot is null', async () => {

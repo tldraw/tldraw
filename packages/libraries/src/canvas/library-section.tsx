@@ -17,11 +17,13 @@ export function LibrarySection({
 	source,
 	library,
 	getItemProps,
+	placeItem,
 	prepareItemContent,
 }: {
 	source: LibrarySource
 	library: TLLibrary
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	placeItem(itemId: TLLibraryItemId): void
 	prepareItemContent?: PrepareItemContent
 }) {
 	const editor = useEditor()
@@ -93,6 +95,7 @@ export function LibrarySection({
 					library={library}
 					container={element}
 					getItemProps={getItemProps}
+					placeItem={placeItem}
 					ordering={order.ordering}
 					reversed={order.reversed}
 					prepareItemContent={prepareItemContent}

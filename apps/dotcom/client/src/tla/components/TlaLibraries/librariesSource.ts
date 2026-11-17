@@ -24,6 +24,7 @@ import {
 	type TLLibraryId,
 	type TLLibraryItem,
 	type TLLibraryItemContent,
+	type TLLibraryItemDetails,
 	type TLLibraryItemId,
 	type TLLibraryOwner,
 	type TLLibraryTarget,
@@ -43,7 +44,6 @@ import type { TldrawApp } from '../../app/TldrawApp'
 import type { TLAppLibraryAction } from '../../utils/app-ui-events'
 
 const messages = defineMessages({
-	private: { defaultMessage: 'Private' },
 	myStuff: { defaultMessage: 'My stuff' },
 })
 
@@ -153,7 +153,8 @@ function splitIntoRequests(items: NewItem[]): NewItem[][] {
 
 /**
  * Workspace libraries, kept in tldraw.com's database and synced through Zero: those of every
- * workspace the user is a member of, the home workspace's being private to them. A board's own
+ * workspace the user is a member of, each named as its workspace is, the home workspace's being
+ * private to them. A board's own
  * libraries are kept in its document instead (see editorLibraries), and which libraries a file
  * shows is up to TldrawAppFileLibrariesSource, over this one.
  *
@@ -202,12 +203,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	private readonly owners$ = computed('library owners', (): TLLibraryOwner[] => {
 		const homeId = this.app.getHomeWorkspaceId()
-		const memberships = this.app.getWorkspaceMemberships()
+		const owners = this.app
+			.getWorkspaceMemberships()
+			.flatMap((m) => (m.group ? [{ id: m.groupId, name: m.group.name }] : []))
 		return [
-			{ id: homeId, name: this.app.msg(messages.private) },
-			...memberships.flatMap((m) =>
-				m.groupId !== homeId && m.group ? [{ id: m.groupId, name: m.group.name }] : []
-			),
+			...owners.filter((owner) => owner.id === homeId),
+			...owners.filter((owner) => owner.id !== homeId),
 		]
 	})
 
@@ -243,6 +244,17 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		return byLibrary
 	})
 
+	// Who saved each stored item, by its row id, and the workspace whose members can name them.
+	private readonly itemCreators$ = computed('library item creators', () => {
+		const creators = new Map<string, { userId: string; workspaceId: string }>()
+		for (const row of this.app.getLibraryRows()) {
+			for (const item of row.items) {
+				creators.set(item.id, { userId: item.createdBy, workspaceId: row.owningGroupId })
+			}
+		}
+		return creators
+	})
+
 	constructor(
 		private readonly app: TldrawApp,
 		private readonly getToken: () => Promise<string | undefined>
@@ -254,6 +266,15 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 
 	getItems(libraryId: TLLibraryId) {
 		return this.items$.get().get(rowId(libraryId)) ?? []
+	}
+
+	getItemDetails(item: TLLibraryItem): TLLibraryItemDetails {
+		const creator = this.itemCreators$.get().get(rowId(item.id))
+		if (!creator) return {}
+		const member = this.app
+			.getWorkspaceMembership(creator.workspaceId)
+			?.groupMembers.find((m) => m.userId === creator.userId)
+		return member ? { creatorName: member.userName } : {}
 	}
 
 	async getItemContent(itemId: TLLibraryItemId): Promise<TLLibraryItemContent> {
@@ -286,8 +307,11 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		})
 	}
 
-	can(_action: TLLibraryAction, target?: TLLibraryTarget) {
-		// Every member of a workspace can manage its libraries, so the action doesn't matter.
+	can(action: TLLibraryAction, target?: TLLibraryTarget) {
+		if (action === 'deleteLibrary' && typeof target === 'string' && this.isDefaultLibrary(target)) {
+			return false
+		}
+		// Otherwise every member of a workspace can manage its libraries, so the action doesn't matter.
 		const ownerId = this.getTargetOwnerId(target)
 		return ownerId !== undefined && this.canManageIn(ownerId)
 	}
@@ -356,6 +380,9 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 	}
 
 	async deleteLibrary(libraryId: TLLibraryId) {
+		if (this.isDefaultLibrary(libraryId)) {
+			throw new LibraryPermissionError('deleteLibrary', libraryId)
+		}
 		const id = await this.getLibraryRowId(libraryId)
 		const itemIds = this.getItems(libraryId).map((item) => rowId(item.id))
 		this.unconfirmedDeletes.update((all) => new Set(all).add(id))
@@ -774,6 +801,12 @@ export class TldrawAppLibrariesSource implements LibrarySource {
 		if (target === undefined) return this.getDefaultOwnerId()
 		if (typeof target === 'object') return target.ownerId
 		return this.getLibraries().find((c) => c.id === target)?.ownerId
+	}
+
+	// The user's default library is never deleted, so it can't be moved out of their home either.
+	private isDefaultLibrary(libraryId: TLLibraryId) {
+		const id = rowId(libraryId)
+		return this.app.getLibraryRows().some((row) => row.id === id && row.isDefault)
 	}
 
 	private canManageIn(workspaceId: string) {

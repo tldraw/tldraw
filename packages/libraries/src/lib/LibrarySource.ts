@@ -70,6 +70,16 @@ export interface TLNewLibraryItem {
 export type TLLibraryItemPartial = Partial<Pick<TLLibraryItem, 'name' | 'meta'>>
 
 /**
+ * What a source knows about an item beyond its listing, shown in its details. Every field is
+ * optional: the details leave out what a source doesn't know.
+ */
+export interface TLLibraryItemDetails {
+	/** The name to show for whoever saved the item. */
+	creatorName?: string
+	description?: string
+}
+
+/**
  * What a tile needs from a thumbnail, passed to {@link LibrarySource.resolveThumbnail}. The panel
  * builds it each time it asks.
  */
@@ -118,6 +128,12 @@ export interface LibrarySource {
 		item: TLLibraryItem,
 		context: TLLibraryThumbnailContext
 	): string | null | Promise<string | null>
+
+	/**
+	 * What the source knows about an item beyond its listing, such as who saved it. Optional:
+	 * without it, an item's details show what its listing has. Reactive, like the other getters.
+	 */
+	getItemDetails?(item: TLLibraryItem): TLLibraryItemDetails
 
 	/**
 	 * Whether the current user may do `action`. With a library id, answers for that library;
@@ -189,6 +205,13 @@ export interface LibrarySource {
 	 */
 	copyLibrary?(libraryId: TLLibraryId, ownerId: string): Promise<TLLibrary>
 
+	/**
+	 * Who a library created from this document may belong to, in the order to offer them, such as
+	 * the user's own workspace and the document's. Optional: without it, any owner the user may
+	 * create a library for is offered. Owners stay listed by
+	 * {@link LibrarySource.getLibraryOwners} for moving and copying libraries.
+	 */
+	getNewLibraryOwnerIds?(): string[]
 	/**
 	 * Why a library is shown in this document, or undefined for one it doesn't show. Optional:
 	 * sources that don't distinguish leave it out, and their libraries are shown without a reason.

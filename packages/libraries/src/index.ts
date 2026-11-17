@@ -13,6 +13,7 @@ export { useLibrariesComponents } from './canvas/use-libraries-components'
 export { LibrariesPanel, type LibrariesPanelProps } from './canvas/libraries-panel'
 export {
 	LibrariesPanelHeader,
+	type LibrariesPanelHeaderCreate,
 	type LibrariesPanelHeaderProps,
 	type NewLibraryAction,
 } from './canvas/libraries-panel-header'
@@ -96,6 +97,7 @@ export {
 	LibraryPermissionError,
 	type LibrarySource,
 	type TLLibraryAction,
+	type TLLibraryItemDetails,
 	type TLLibraryItemPartial,
 	type TLLibraryOwner,
 	type TLLibraryPlacement,

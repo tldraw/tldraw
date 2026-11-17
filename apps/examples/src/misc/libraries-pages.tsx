@@ -15,11 +15,8 @@ import { Editor } from 'tldraw'
 import type { Showing } from './libraries-example'
 import { LocalStorageLibrarySource } from './libraries-local-storage-source'
 import { ArchiveIcon, HomeIcon, PeopleIcon } from './libraries-owner-icons'
-import diagramming from './libraries-pack-diagramming.json'
-import doodles from './libraries-pack-doodles.json'
-import tldrawCharacters from './libraries-pack-tldraw-characters.json'
-import wireframing from './libraries-pack-wireframing.json'
-import { saveSamples, WIREFRAMES } from './libraries-samples'
+import { getPackBrowseGroups, PACKS } from './libraries-packs'
+import { saveSamples, shapeSample, WIREFRAMES } from './libraries-samples'
 
 export const PAGES = [
 	'InMemoryLibrarySource',
@@ -27,8 +24,6 @@ export const PAGES = [
 	'LocalStorageLibrarySource',
 ] as const
 export type PageName = (typeof PAGES)[number]
-
-const PACKS = [wireframing, diagramming, tldrawCharacters, doodles] as unknown as LibraryPack[]
 
 // Packs the app ships as data, listed as they are: their items can be placed but nothing changed.
 function shippedPacks(packs: LibraryPack[]) {
@@ -76,6 +71,32 @@ const sales = new InMemoryLibrarySource({ id: 'libraries-sales' })
 
 const local = new LocalStorageLibrarySource('libraries-local', 'libraries-example-local')
 
+const inDocumentLibraries = {
+	sketches: LibraryRecordType.create({ name: 'Sketches', ownerId: 'design-team' }),
+	wireframes: LibraryRecordType.create({ name: 'Wireframes', ownerId: 'design-team' }),
+	myStuff: LibraryRecordType.create({ name: 'My stuff', ownerId: 'personal' }),
+	components: LibraryRecordType.create({ name: 'Components', ownerId: 'design-team' }),
+	shapes: LibraryRecordType.create({ name: 'Shapes', ownerId: 'personal' }),
+}
+
+// A document in the design team's workspace, opened by someone with their own workspace too. It
+// shows a library kept in it, one added from the team's, and the user's default; the rest are
+// available to add.
+const inDocument = new InMemoryLibrarySource({
+	id: 'libraries-in-document',
+	owners: [
+		{ id: 'personal', name: 'Personal' },
+		{ id: 'design-team', name: 'Design team' },
+	],
+	defaultOwnerId: 'personal',
+	initial: { libraries: Object.values(inDocumentLibraries), items: [], contents: {} },
+	shownInDocument: [
+		{ libraryId: inDocumentLibraries.sketches.id, placement: 'housed' },
+		{ libraryId: inDocumentLibraries.wireframes.id, placement: 'added' },
+		{ libraryId: inDocumentLibraries.myStuff.id, placement: 'default' },
+	],
+})
+
 function AddPackMenuItems({ source }: { source: LibrarySource }) {
 	const addPack = (pack: LibraryPack) =>
 		copyPack(source, pack).catch((error) =>
@@ -87,7 +108,18 @@ function AddPackMenuItems({ source }: { source: LibrarySource }) {
 }
 
 const SHOWINGS: Record<PageName, Showing> = {
-	InMemoryLibrarySource: { source: packs },
+	InMemoryLibrarySource: {
+		source: inDocument,
+		getBrowseGroups: () => getPackBrowseGroups(inDocument, 'personal'),
+		seed: async (editor) => {
+			const { sketches, wireframes, myStuff, components, shapes } = inDocumentLibraries
+			await saveSamples(editor, inDocument, sketches.id, WIREFRAMES.slice(0, 2))
+			await saveSamples(editor, inDocument, wireframes.id, WIREFRAMES)
+			await saveSamples(editor, inDocument, myStuff.id, [shapeSample(0), shapeSample(1)])
+			await saveSamples(editor, inDocument, components.id, WIREFRAMES)
+			await saveSamples(editor, inDocument, shapes.id, [0, 1, 2, 3, 4].map(shapeSample))
+		},
+	},
 	CompositeLibrarySource: {
 		source: new CompositeLibrarySource({
 			id: 'libraries-composite',

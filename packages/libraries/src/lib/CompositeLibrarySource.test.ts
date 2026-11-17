@@ -102,6 +102,23 @@ describe('CompositeLibrarySource', () => {
 		expect(kit).not.toHaveProperty('ownerId')
 	})
 
+	it("answers an item's details from its part, and none from a part without them", async () => {
+		const mine = Object.assign(new InMemoryLibrarySource({ id: 'mine' }), {
+			getItemDetails: () => ({ creatorName: 'Ada' }),
+		})
+		const kits = shared()
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ owner: personal, source: mine },
+				{ owner: tldraw, source: kits },
+			],
+		})
+		const kit = await mine.createLibrary('Kit')
+		const star = await added(mine.addItem(kit.id, { name: 'Star', content: content('star') }))
+		expect(source.getItemDetails!(star)).toEqual({ creatorName: 'Ada' })
+		expect(source.getItemDetails!(kits.getItems(wireframing)[0])).toEqual({})
+	})
+
 	it('updates its listing when a part changes', async () => {
 		const { source, team } = setUp()
 		const seen: string[][] = []
@@ -600,12 +617,29 @@ describe('CompositeLibrarySource shown in a document', () => {
 		)
 	})
 
+	it("lists each part's owners for new libraries, a fixed-owner part as its owner", () => {
+		const workspaces = Object.assign(new InMemoryLibrarySource({ owners: [personal, acme] }), {
+			getNewLibraryOwnerIds: () => ['acme', 'home'],
+		})
+		const kits = Object.assign(shared(), { getNewLibraryOwnerIds: () => ['anything'] })
+		const source = new CompositeLibrarySource({
+			parts: [
+				{ source: workspaces },
+				{ owner: tldraw, source: kits },
+				{ owner: { id: 'board', name: 'Board' }, source: shared() },
+			],
+		})
+		expect(source.getNewLibraryOwnerIds!()).toEqual(['acme', 'home', 'tldraw'])
+	})
+
 	it('has none of the document members when no part has them', () => {
 		const source = new CompositeLibrarySource({ parts: [{ owner: tldraw, source: shared() }] })
 		expect(source.getAvailableLibraries).toBeUndefined()
 		expect(source.getLibraryPlacement).toBeUndefined()
 		expect(source.addLibraryToDocument).toBeUndefined()
 		expect(source.removeLibraryFromDocument).toBeUndefined()
+		expect(source.getNewLibraryOwnerIds).toBeUndefined()
+		expect(source.getItemDetails).toBeUndefined()
 	})
 })
 

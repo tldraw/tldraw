@@ -1,6 +1,7 @@
 import { type ButtonHTMLAttributes, type MouseEvent, useCallback } from 'react'
 import {
 	defineMessages,
+	useDialogs,
 	useEditor,
 	useTranslation,
 	useValue,
@@ -14,6 +15,7 @@ import { ItemMenu as DefaultItemMenu, getItemMenuId } from '../ui/item-menu'
 import { ItemTile as DefaultItemTile } from '../ui/item-tile'
 import { AddSelectionTile as DefaultAddSelectionTile } from './add-selection-tile'
 import { EmptyLibrary as DefaultEmptyLibrary } from './empty-library'
+import { ItemDetailsDialog } from './item-details-dialog'
 import type { TLLibraryItemOrdering } from './item-order'
 import { useLibrariesComponentOverrides } from './libraries-components'
 import type { PrepareItemContent } from './save-shapes'
@@ -33,6 +35,7 @@ export interface LibraryItemsProps {
 	/** Where the tiles are measured for their thumbnail size. */
 	container: HTMLElement | null
 	getItemProps(itemId: TLLibraryItemId): ButtonHTMLAttributes<HTMLButtonElement>
+	placeItem(itemId: TLLibraryItemId): void
 	ordering: TLLibraryItemOrdering
 	reversed: boolean
 	prepareItemContent?: PrepareItemContent
@@ -43,12 +46,14 @@ export function LibraryItems({
 	library,
 	container,
 	getItemProps,
+	placeItem,
 	ordering,
 	reversed,
 	prepareItemContent,
 }: LibraryItemsProps) {
 	const editor = useEditor()
 	const msg = useTranslation()
+	const { addDialog } = useDialogs()
 	const overrides = useLibrariesComponentOverrides()
 	const {
 		ItemTile = DefaultItemTile,
@@ -66,14 +71,8 @@ export function LibraryItems({
 		source,
 		libraryId
 	)
-	// An override can add entries of its own, so it has a menu whatever the source allows.
-	const hasItemMenu =
-		ItemMenu !== null &&
-		(overrides.ItemMenu !== undefined ||
-			canRename ||
-			canDelete ||
-			moveTargets.length > 0 ||
-			copyTargets.length > 0)
+	// Every item has Details, so it has a menu whatever the source allows.
+	const hasItemMenu = ItemMenu !== null
 	const getTileProps = useCallback(
 		(itemId: TLLibraryItemId) => {
 			const props = getItemProps(itemId)
@@ -118,6 +117,19 @@ export function LibraryItems({
 										item={item}
 										id={item.id}
 										name={item.name}
+										onShowDetails={() =>
+											addDialog({
+												component: ({ onClose }) => (
+													<ItemDetailsDialog
+														source={source}
+														item={item}
+														library={library}
+														onPlace={() => placeItem(item.id)}
+														onClose={onClose}
+													/>
+												),
+											})
+										}
 										onRename={canRename ? (name) => rename(item.id, name) : undefined}
 										moveTargets={moveTargets}
 										onMove={(toLibraryId) => move(item.id, toLibraryId as TLLibraryId)}
