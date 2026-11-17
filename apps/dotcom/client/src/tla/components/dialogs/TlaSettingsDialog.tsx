@@ -1,5 +1,5 @@
 import classNames from 'classnames'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import {
 	defaultUserPreferences,
 	defineMessages,
@@ -76,27 +76,9 @@ type SettingsTab = 'profile' | 'preferences' | 'canvas' | 'accessibility' | 'lab
 
 export function TlaSettingsDialog() {
 	const msg = useTranslation()
-	const app = useApp()
-	const trackAppEvent = useTldrawAppUiEvents()
 	const [activeTab, setActiveTab] = useState<SettingsTab>('profile')
 	const hasVerticalTabs = useDesignSwitch('settingsVerticalTabs')
 	const hasLabsTab = useDesignSwitch('settingsLabsTab')
-
-	// Lives here, not in ProfilePanel: inactive tab pages unmount, so a panel-level effect
-	// would report once per visit to the tab instead of once per dialog.
-	const typedNameRef = useRef<string | null>(null)
-	useEffect(() => {
-		const initialName = app.getUser().name
-		return () => {
-			if (typedNameRef.current !== null && typedNameRef.current !== initialName) {
-				trackAppEvent('change-user-name', { source: 'user-preferences' })
-			}
-		}
-	}, [app, trackAppEvent])
-	const handleNameChange = (name: string) => {
-		typedNameRef.current = name
-		setPreferences(app, { name })
-	}
 
 	const tabs: { id: SettingsTab; label: string }[] = [
 		{ id: 'profile', label: msg(messages.profile) },
@@ -114,7 +96,7 @@ export function TlaSettingsDialog() {
 		<TlaMenuTabsPage key={id} id={id} className={styles.page}>
 			{id === 'profile' && (
 				// With vertical tabs, Sign out sits at the bottom of the tab column instead.
-				<ProfilePanel onNameChange={handleNameChange} hasSignOut={!hasVerticalTabs} />
+				<ProfilePanel hasSignOut={!hasVerticalTabs} />
 			)}
 			{id === 'preferences' && <PreferencesPanel />}
 			{id === 'canvas' && <CanvasPanel />}
@@ -182,6 +164,54 @@ export function TlaSettingsDialog() {
 	)
 }
 
+/** Saves on blur or Enter, never on a keystroke: collaborators would watch the name being typed. */
+function NameInput() {
+	const msg = useTranslation()
+	const app = useApp()
+	const trackAppEvent = useTldrawAppUiEvents()
+	const rInput = useRef<HTMLInputElement>(null)
+	// What's typed but not saved yet.
+	const rDraft = useRef<string | null>(null)
+
+	const save = useCallback(() => {
+		const draft = rDraft.current
+		rDraft.current = null
+		if (draft === null) return
+		const currentName = app.getUser().name
+		// A blank name isn't saved: the field goes back to the current one.
+		const newName = draft.trim() || currentName
+		if (rInput.current) rInput.current.value = newName
+		if (newName === currentName) return
+		setPreferences(app, { name: newName })
+		trackAppEvent('change-user-name', { source: 'user-preferences' })
+	}, [app, trackAppEvent])
+
+	// Clicking outside the dialog closes it without blurring the field first.
+	useEffect(() => save, [save])
+
+	// Escape closes the dialog and drops what's typed. Radix handles the key from a document
+	// listener and unmounts the field before its own handlers run, so this listens ahead of that.
+	useEffect(() => {
+		const handleKeyDown = (e: KeyboardEvent) => {
+			if (e.key === 'Escape' && e.target === rInput.current) rDraft.current = null
+		}
+		window.addEventListener('keydown', handleKeyDown, { capture: true })
+		return () => window.removeEventListener('keydown', handleKeyDown, { capture: true })
+	}, [])
+
+	return (
+		<TldrawUiInput
+			ref={rInput}
+			aria-label={msg(messages.name)}
+			data-testid="tla-settings-name-input"
+			className={styles.input}
+			defaultValue={app.getUser().name}
+			onValueChange={(value) => (rDraft.current = value)}
+			onBlur={save}
+		/>
+	)
+}
+
 /** Sign out as an item in the vertical tab column, or as a row on the Profile page. */
 function SignOutButton({ layout }: { layout: 'nav' | 'row' }) {
 	const signOut = useSignOut('user-preferences')
@@ -202,13 +232,7 @@ function SignOutButton({ layout }: { layout: 'nav' | 'row' }) {
 	)
 }
 
-function ProfilePanel({
-	onNameChange,
-	hasSignOut,
-}: {
-	onNameChange(name: string): void
-	hasSignOut: boolean
-}) {
+function ProfilePanel({ hasSignOut }: { hasSignOut: boolean }) {
 	const msg = useTranslation()
 	const app = useApp()
 	const trackUiEvent = useUiEvents()
@@ -227,13 +251,7 @@ function ProfilePanel({
 				<TlaMenuControl>
 					<TlaMenuControlLabel>{msg(messages.name)}</TlaMenuControlLabel>
 					<div className={styles.nameField}>
-						<TldrawUiInput
-							aria-label={msg(messages.name)}
-							data-testid="tla-settings-name-input"
-							className={styles.input}
-							defaultValue={user.name}
-							onValueChange={onNameChange}
-						/>
+						<NameInput />
 					</div>
 				</TlaMenuControl>
 				<TlaMenuControl>
