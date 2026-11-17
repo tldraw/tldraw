@@ -10,6 +10,7 @@ type DragState =
 			screenSpaceStart: VecModel
 			panel: Element
 			panelRect: DOMRect
+			lastMove?: PointerEvent
 	  }
 	| { name: 'dragging' }
 
@@ -107,10 +108,24 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 			})
 		}
 
+		const tryStartDrag = (itemId: TLLibraryItemId) => {
+			if (state.name !== 'pointing' || state.itemId !== itemId || !state.lastMove) return
+			const content = contents.get(itemId)
+			const { lastMove, screenSpaceStart, panelRect } = state
+			if (!content || !hasLeftPanel(lastMove, screenSpaceStart, panelRect)) return
+			stopPointing()
+			state = { name: 'dragging' }
+			startDrag(lastMove, screenSpaceStart, content)
+			showMoveCursorWhileTranslating()
+		}
+
 		const load = (itemId: TLLibraryItemId) => {
 			if (contents.has(itemId)) return
 			source.getItemContent(itemId).then(
-				({ content }) => contents.set(itemId, content),
+				({ content }) => {
+					contents.set(itemId, content)
+					tryStartDrag(itemId)
+				},
 				// A failed load surfaces through onPlace if the press ends as a click.
 				() => {}
 			)
@@ -139,13 +154,8 @@ export function useItemDrag(source: LibrarySource, onPlace: (itemId: TLLibraryIt
 				if (isPastDragDistance(e, state.screenSpaceStart)) {
 					state.panel.classList.add('tlui-libraries-dragging')
 				}
-				const content = contents.get(itemId)
-				if (!content || !hasLeftPanel(e, state.screenSpaceStart, state.panelRect)) return
-				const { screenSpaceStart } = state
-				stopPointing()
-				state = { name: 'dragging' }
-				startDrag(e, screenSpaceStart, content)
-				showMoveCursorWhileTranslating()
+				state.lastMove = e
+				tryStartDrag(itemId)
 			},
 			onPointerUp(e: PointerEvent<HTMLButtonElement>) {
 				if ((e as any).isSpecialRedispatchedEvent) return
