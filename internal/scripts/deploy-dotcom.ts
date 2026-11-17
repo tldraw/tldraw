@@ -133,8 +133,8 @@ const flyioReplAppName =
 
 // RMv2 runs each replication-manager on its own slot and change log, which the overlapping handoff
 // needs (see flyRmHandoff.ts). Staging only until it has run there; rolling back to RMv1 resyncs.
-// TEMP(preview-rmv2): previews too
-const zeroRmv2 = env.TLDRAW_ENV === 'staging' || !!previewId
+// TEMP(preview-rmv2): previews start on RMv1 to test the RMv1 -> RMv2 fork
+const zeroRmv2 = env.TLDRAW_ENV === 'staging'
 
 const discord = new Discord({
 	webhookUrl: env.DISCORD_DEPLOY_WEBHOOK_URL,
